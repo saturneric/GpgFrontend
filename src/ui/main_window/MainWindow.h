@@ -519,6 +519,111 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_import_keys_from_key_server(const QStringList& fprs);
 
  private:
+  TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
+  QMenu* file_menu_{};        ///<  Submenu for file-operations
+  QMenu* edit_menu_{};        ///<  Submenu for text-operations
+  QMenu* crypt_menu_{};       ///<  Submenu for crypt-operations
+  QMenu* advance_menu_{};     ///<  Submenu for help-operations
+  QMenu* help_menu_{};        ///<  Submenu for help-operations
+  QMenu* key_menu_{};         ///<  Submenu for key-operations
+  QMenu* view_menu_{};        ///<  Submenu for view operations
+  QMenu* import_key_menu_{};  ///<  Submenu for import operations
+  QMenu* workspace_menu_{};   ///<
+  QMenu* open_menu_{};
+
+  QToolBar* crypt_tool_bar_{};  ///<  Toolbar holding crypt actions
+  QToolBar* file_tool_bar_{};   ///<  Toolbar holding file actions
+  QToolBar* edit_tool_bar_{};   ///<  Toolbar holding edit actions
+  QToolBar*
+      special_edit_tool_bar_{};  ///<  Toolbar holding special edit actions
+  QToolBar* key_tool_bar_{};     ///<  Toolbar holding key operations
+  QToolButton*
+      import_button_{};  ///<  Tool button for import dropdown menu in toolbar
+  QToolButton* open_button_{};       ///<
+  QToolButton* workspace_button_{};  ///<
+  QDockWidget* key_list_dock_{};     ///<  Encrypt Dock
+  QDockWidget* attachment_dock_{};   ///<  Attachment Dock
+  QDockWidget* info_board_dock_{};
+
+  QAction* new_tab_act_{};               ///<  Action to create new tab
+  QAction* switch_tab_up_act_{};         ///<  Action to switch tab up
+  QAction* switch_tab_down_act_{};       ///<  Action to switch tab down
+  QAction* browser_file_act_{};          ///<  Action to open file browser
+  QAction* browser_dir_act_{};           ///<  Action to open file browser
+  QAction* browser_act_{};               ///<  Action to open file browser
+  QAction* save_act_{};                  ///<  Action to save file
+  QAction* save_as_act_{};               ///<  Action to save file as
+  QAction* print_act_{};                 ///<  Action to print
+  QAction* close_tab_act_{};             ///<  Action to print
+  QAction* quit_act_{};                  ///<  Action to quit application
+  QAction* sym_encrypt_act_{};           ///<  Action to symmetric encrypt text
+  QAction* encrypt_act_{};               ///<  Action to encrypt text
+  QAction* encrypt_sign_act_{};          ///<  Action to encrypt and sign text
+  QAction* decrypt_verify_act_{};        ///<  Action to encrypt and sign text
+  QAction* decrypt_act_{};               ///<  Action to decrypt text
+  QAction* sign_act_{};                  ///<  Action to sign text
+  QAction* verify_act_{};                ///<  Action to verify text
+  QAction* import_key_from_edit_act_{};  ///<  Action to import key from edit
+  QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double
+  QAction* generate_key_pair_act_{};
+
+  QAction* gnupg_controller_open_act_{};       ///<
+  QAction* module_controller_open_act_{};      ///<
+  QAction* smart_card_controller_open_act_{};  ///<
+
+  QAction* clean_gpg_password_cache_act_{};  ///<
+  QAction* reload_components_act_{};         ///<
+  QAction* restart_components_act_{};        ///<
+
+  QAction* append_selected_keys_act_{};  ///< Action to append selected keys
+                                         ///< to edit
+  QAction* append_key_fingerprint_to_editor_act_{};  ///<
+  QAction* append_key_create_date_to_editor_act_{};  ///<
+  QAction* append_key_expire_date_to_editor_act_{};  ///<
+
+  QAction* copy_mail_address_to_clipboard_act_{};  ///< Action to copy mail to
+                                                   ///< clipboard
+  QAction* copy_key_id_to_clipboard_act_{};        ///<
+  QAction* copy_key_default_uid_to_clipboard_act_{};  ///<
+
+  QAction* add_key_2_favourite_act_{};        ///<
+  QAction* remove_key_from_favourtie_act_{};  ///<
+  QAction* set_owner_trust_of_key_act_{};     ///<
+
+  QAction* open_key_management_act_{};   ///< Action to open key management
+  QAction* copy_act_{};                  ///< Action to copy text
+  QAction* quote_act_{};                 ///< Action to quote text
+  QAction* cut_act_{};                   ///< Action to cut text
+  QAction* paste_act_{};                 ///< Action to paste text
+  QAction* select_all_act_{};            ///< Action to select whole text
+  QAction* find_act_{};                  ///< Action to find text
+  QAction* undo_act_{};                  ///< Action to undo last action
+  QAction* redo_act_{};                  ///< Action to redo last action
+  QAction* zoom_in_act_{};               ///< Action to zoom in
+  QAction* zoom_out_act_{};              ///< Action to zoom out
+  QAction* about_act_{};                 ///< Action to open about dialog
+  QAction* open_settings_act_{};         ///< Action to open settings dialog
+  QAction* show_key_details_act_{};      ///< Action to open key-details dialog
+  QAction* start_wizard_act_{};          ///< Action to open the wizard
+  QAction* cut_pgp_header_act_{};        ///< Action for cutting the PGP header
+  QAction* add_pgp_header_act_{};        ///< Action for adding the PGP header
+  QAction* import_key_from_file_act_{};  ///<
+  QAction* import_key_from_clipboard_act_{};  ///<
+  QAction* show_log_view_act_{};              ///<
+
+  QLabel* status_bar_icon_{};  ///<
+
+  KeyList* m_key_list_{};          ///<
+  InfoBoardWidget* info_board_{};  ///<
+  QMap<QString, QPointer<QAction>> buffered_actions_;
+
+  QMenu* popup_menu_;
+
+  bool attachment_dock_created_{};         ///<
+  int restart_mode_{0};                    ///<
+  bool prohibit_update_checking_ = false;  ///<
+  unsigned int operations_menu_mask_ = ~0;
+
   /**
    * @details Create actions for the main-menu and the context-menu of the
    * keylist.
@@ -662,109 +767,11 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   auto check_and_notify_invalid_key_dbs() -> void;
 
-  TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
-  QMenu* file_menu_{};        ///<  Submenu for file-operations
-  QMenu* edit_menu_{};        ///<  Submenu for text-operations
-  QMenu* crypt_menu_{};       ///<  Submenu for crypt-operations
-  QMenu* advance_menu_{};     ///<  Submenu for help-operations
-  QMenu* help_menu_{};        ///<  Submenu for help-operations
-  QMenu* key_menu_{};         ///<  Submenu for key-operations
-  QMenu* view_menu_{};        ///<  Submenu for view operations
-  QMenu* import_key_menu_{};  ///<  Submenu for import operations
-  QMenu* workspace_menu_{};   ///<
-  QMenu* open_menu_{};
-
-  QToolBar* crypt_tool_bar_{};  ///<  Toolbar holding crypt actions
-  QToolBar* file_tool_bar_{};   ///<  Toolbar holding file actions
-  QToolBar* edit_tool_bar_{};   ///<  Toolbar holding edit actions
-  QToolBar*
-      special_edit_tool_bar_{};  ///<  Toolbar holding special edit actions
-  QToolBar* key_tool_bar_{};     ///<  Toolbar holding key operations
-  QToolButton*
-      import_button_{};  ///<  Tool button for import dropdown menu in toolbar
-  QToolButton* open_button_{};       ///<
-  QToolButton* workspace_button_{};  ///<
-  QDockWidget* key_list_dock_{};     ///<  Encrypt Dock
-  QDockWidget* attachment_dock_{};   ///<  Attachment Dock
-  QDockWidget* info_board_dock_{};
-
-  QAction* new_tab_act_{};               ///<  Action to create new tab
-  QAction* switch_tab_up_act_{};         ///<  Action to switch tab up
-  QAction* switch_tab_down_act_{};       ///<  Action to switch tab down
-  QAction* browser_file_act_{};          ///<  Action to open file browser
-  QAction* browser_dir_act_{};           ///<  Action to open file browser
-  QAction* browser_act_{};               ///<  Action to open file browser
-  QAction* save_act_{};                  ///<  Action to save file
-  QAction* save_as_act_{};               ///<  Action to save file as
-  QAction* print_act_{};                 ///<  Action to print
-  QAction* close_tab_act_{};             ///<  Action to print
-  QAction* quit_act_{};                  ///<  Action to quit application
-  QAction* sym_encrypt_act_{};           ///<  Action to symmetric encrypt text
-  QAction* encrypt_act_{};               ///<  Action to encrypt text
-  QAction* encrypt_sign_act_{};          ///<  Action to encrypt and sign text
-  QAction* decrypt_verify_act_{};        ///<  Action to encrypt and sign text
-  QAction* decrypt_act_{};               ///<  Action to decrypt text
-  QAction* sign_act_{};                  ///<  Action to sign text
-  QAction* verify_act_{};                ///<  Action to verify text
-  QAction* import_key_from_edit_act_{};  ///<  Action to import key from edit
-  QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double
-  QAction* generate_key_pair_act_{};
-
-  QAction* gnupg_controller_open_act_{};       ///<
-  QAction* module_controller_open_act_{};      ///<
-  QAction* smart_card_controller_open_act_{};  ///<
-
-  QAction* clean_gpg_password_cache_act_{};  ///<
-  QAction* reload_components_act_{};         ///<
-  QAction* restart_components_act_{};        ///<
-
-  QAction* append_selected_keys_act_{};  ///< Action to append selected keys
-                                         ///< to edit
-  QAction* append_key_fingerprint_to_editor_act_{};  ///<
-  QAction* append_key_create_date_to_editor_act_{};  ///<
-  QAction* append_key_expire_date_to_editor_act_{};  ///<
-
-  QAction* copy_mail_address_to_clipboard_act_{};  ///< Action to copy mail to
-                                                   ///< clipboard
-  QAction* copy_key_id_to_clipboard_act_{};        ///<
-  QAction* copy_key_default_uid_to_clipboard_act_{};  ///<
-
-  QAction* add_key_2_favourite_act_{};        ///<
-  QAction* remove_key_from_favourtie_act_{};  ///<
-  QAction* set_owner_trust_of_key_act_{};     ///<
-
-  QAction* open_key_management_act_{};   ///< Action to open key management
-  QAction* copy_act_{};                  ///< Action to copy text
-  QAction* quote_act_{};                 ///< Action to quote text
-  QAction* cut_act_{};                   ///< Action to cut text
-  QAction* paste_act_{};                 ///< Action to paste text
-  QAction* select_all_act_{};            ///< Action to select whole text
-  QAction* find_act_{};                  ///< Action to find text
-  QAction* undo_act_{};                  ///< Action to undo last action
-  QAction* redo_act_{};                  ///< Action to redo last action
-  QAction* zoom_in_act_{};               ///< Action to zoom in
-  QAction* zoom_out_act_{};              ///< Action to zoom out
-  QAction* about_act_{};                 ///< Action to open about dialog
-  QAction* open_settings_act_{};         ///< Action to open settings dialog
-  QAction* show_key_details_act_{};      ///< Action to open key-details dialog
-  QAction* start_wizard_act_{};          ///< Action to open the wizard
-  QAction* cut_pgp_header_act_{};        ///< Action for cutting the PGP header
-  QAction* add_pgp_header_act_{};        ///< Action for adding the PGP header
-  QAction* import_key_from_file_act_{};  ///<
-  QAction* import_key_from_clipboard_act_{};  ///<
-
-  QLabel* status_bar_icon_{};  ///<
-
-  KeyList* m_key_list_{};          ///<
-  InfoBoardWidget* info_board_{};  ///<
-  QMap<QString, QPointer<QAction>> buffered_actions_;
-
-  QMenu* popup_menu_;
-
-  bool attachment_dock_created_{};         ///<
-  int restart_mode_{0};                    ///<
-  bool prohibit_update_checking_ = false;  ///<
-  unsigned int operations_menu_mask_ = ~0;
+  /**
+   * @brief Slot to show log view
+   *
+   */
+  auto slot_show_log_view() -> void;
 };
 
 }  // namespace GpgFrontend::UI

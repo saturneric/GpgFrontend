@@ -34,6 +34,7 @@
 #include <qstring.h>
 #include <qtextstream.h>
 
+#include "Application.h"
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
@@ -173,30 +174,16 @@ auto ParseLogLevel(const QString& log_level) -> int {
 
   if (log_level == "debug") {
     QLoggingCategory::setFilterRules(
-        "core.debug=true\n"
-        "ui.debug=true\n"
-        "module.debug=true\n"
-        "test.debug=true");
+        BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kDEBUG)));
   } else if (log_level == "info") {
     QLoggingCategory::setFilterRules(
-        "*.debug=false\n"
-        "core.info=true\n"
-        "ui.info=true\n"
-        "module.info=true\n"
-        "test.debug=true");
+        BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kINFO)));
   } else if (log_level == "warn") {
     QLoggingCategory::setFilterRules(
-        "*.debug=false\n"
-        "*.info=false\n"
-        "core.warning=true\n"
-        "ui.warning=true\n"
-        "module.warning=true\n"
-        "test.warning=true\n");
+        BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kWARNING)));
   } else if (log_level == "error") {
     QLoggingCategory::setFilterRules(
-        "*.debug=false\n"
-        "*.info=false\n"
-        "*.warning=false");
+        BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kCRITICAL)));
   } else {
     qWarning() << "unknown log level: " << log_level;
   }

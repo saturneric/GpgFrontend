@@ -31,6 +31,7 @@
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/SettingsObject.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/LogViewDialog.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/dialog/settings/SettingsDialog.h"
 #include "ui/main_window/KeyMgmt.h"
@@ -48,6 +49,13 @@ void MainWindow::slot_start_wizard() {
   auto* wizard = new Wizard(this);
   wizard->show();
   wizard->setModal(true);
+}
+
+void MainWindow::slot_show_log_view() {
+  auto* dialog = new LogViewDialog(this);
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  dialog->show();
+  dialog->raise();
 }
 
 void MainWindow::slot_open_key_management() {

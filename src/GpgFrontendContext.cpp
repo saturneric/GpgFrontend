@@ -33,6 +33,7 @@
 #include <qobject.h>
 #include <qthread.h>
 
+#include "Application.h"
 #include "ui/GpgFrontendApplication.h"
 
 namespace GpgFrontend {
@@ -48,25 +49,31 @@ void GpgFrontendContext::load_env_conf_set_properties() {
 
   property("GFSelfCheck", s.value("SelfCheck", false).toBool());
   property("GFSecureLevel", s.value("SecureLevel", 0).toInt());
+  property("GFLogLevel",
+           s.value("LogLevel", static_cast<int>(GFLogLevel::kWARNING)).toInt());
   property("GFPortableMode", s.value("PortableMode", false).toBool());
   property("GFGnuPGOfflineMode", s.value("GnuPGOfflineMode", false).toBool());
   property("GFPinentryProgramPath",
            s.value("PinentryProgramPath", "").toString());
+  property("GFLogRingBufferCapacity",
+           s.value("LogRingBufferCapacity", 1024).toInt());
 
-  // Set ShowConsoleOnWindows property
-  property("GFShowConsoleOnWindows",
-           s.value("ShowConsoleOnWindows", false).toBool());
-
-  qInfo() << "ENV" << "GFSelfCheck" << property("GFSelfCheck").toInt();
-  qInfo() << "ENV" << "GFSecureLevel" << property("GFSecureLevel").toInt();
-  qInfo() << "ENV" << "GFPortableMode" << property("GFPortableMode").toBool();
-  qInfo() << "ENV" << "GFGnuPGOfflineMode"
-          << property("GFGnuPGOfflineMode").toBool();
-  qInfo() << "ENV" << "GFPinentryProgramPath"
+  qInfo() << "ENV"
+          << "GFSelfCheck" << property("GFSelfCheck").toInt();
+  qInfo() << "ENV"
+          << "GFSecureLevel" << property("GFSecureLevel").toInt();
+  qInfo() << "ENV"
+          << "GFLogLevel" << property("GFLogLevel").toInt();
+  qInfo() << "ENV"
+          << "GFPortableMode" << property("GFPortableMode").toBool();
+  qInfo() << "ENV"
+          << "GFGnuPGOfflineMode" << property("GFGnuPGOfflineMode").toBool();
+  qInfo() << "ENV"
+          << "GFPinentryProgramPath"
           << property("GFPinentryProgramPath").toString();
-
-  qInfo() << "ENV" << "GFShowConsoleOnWindows"
-          << property("GFShowConsoleOnWindows").toBool();
+  qInfo() << "ENV"
+          << "GFLogRingBufferCapacity"
+          << property("GFLogRingBufferCapacity").toInt();
 }
 
 void GpgFrontendContext::InitApplication() {

@@ -43,6 +43,7 @@
 #include "ui/GpgFrontendUIInit.h"
 
 // main
+#include "Application.h"
 #include "GpgFrontendContext.h"
 
 namespace GpgFrontend {
@@ -59,32 +60,22 @@ int setenv(const char *name, const char *value, int overwrite) {
 }
 #endif
 
+namespace {}  // namespace
+
 void PreInit(const GFCxtWPtr &p_ctx) {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) return;
 
   auto *app = ctx->GetApp();
 
-#ifdef Q_OS_WINDOWS
-  const auto console = app->property("GFShowConsoleOnWindows").toBool();
+  const int ring_capacity =
+      app->property("GFLogRingBufferCapacity").toInt() > 0
+          ? app->property("GFLogRingBufferCapacity").toInt()
+          : 1024;
 
-  if (console && AllocConsole()) {
-    Q_ASSERT(freopen("CONOUT$", "w", stdout) != nullptr);
-    Q_ASSERT(freopen("CONOUT$", "w", stderr) != nullptr);
-    Q_ASSERT(freopen("CONIN$", "r", stdin) != nullptr);
-    setvbuf(stdout, NULL, _IONBF, 0);
-
-    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext &context,
-                              const QString &msg) {
-      auto message = qFormatLogMessage(type, context, msg);
-      fprintf(stdout, "%s\n", message.toLocal8Bit().constData());
-      fflush(stdout);
-    });
-
-    std::ios::sync_with_stdio(true);
-  }
-
-#endif
+  // initialize log system and set log handler
+  GFLogManager::Instance().InitRingBuffer(ring_capacity);
+  qInstallMessageHandler(GFMessageHandler);
 
   // High Secure Level
   const auto secure_level = app->property("GFSecureLevel").toInt();
@@ -110,15 +101,16 @@ void PreInit(const GFCxtWPtr &p_ctx) {
     Q_ASSERT(CRYPTO_secure_malloc_initialized());
   }
 
+  const int log_level = app->property("GFLogLevel").toInt();
+  QLoggingCategory::setFilterRules(BuildQtLoggingFilterRules(log_level));
+
 #ifdef RELEASE
-  QLoggingCategory::setFilterRules("*.debug=false\n*.info=false\n");
   qSetMessagePattern(
       "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
       "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"
       "critical}C%{endif}%{if-fatal}F%{endif}] [%{threadid}] - "
       "%{message}");
 #else
-  QLoggingCategory::setFilterRules("*.debug=false");
   qSetMessagePattern(
       "[%{time yyyyMMdd h:mm:ss.zzz}] [%{category}] "
       "[%{if-debug}D%{endif}%{if-info}I%{endif}%{if-warning}W%{endif}%{if-"

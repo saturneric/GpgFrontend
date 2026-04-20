@@ -28,31 +28,61 @@
 
 #pragma once
 
-#include "core/model/GpgPassphraseContext.h"
+#include "Application.h"
+#include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
-class PassphraseDialog : public QDialog {
+
+class LogViewDialog : public GeneralDialog {
   Q_OBJECT
  public:
   /**
-   * @brief Construct a new Passphrase Dialog object
+   * @brief Construct a new Log View Dialog object
    *
-   * @param ctx
    * @param parent
    */
-  explicit PassphraseDialog(const QSharedPointer<GpgPassphraseContext>& ctx,
-                            QWidget* parent = nullptr);
+  explicit LogViewDialog(QWidget* parent = nullptr);
+
+  /**
+   * @brief Destroy the Log View Dialog object
+   *
+   */
+  ~LogViewDialog() override = default;
+
+ public slots:
+  void ReloadLogs();
+
+ private slots:
+  void slot_copy_to_clipboard();
+  void slot_save_to_file();
+  void slot_clear_view();
+  void slot_auto_refresh_toggled(bool checked);
+
+ private:
+  /**
+   * @brief
+   *
+   */
+  void init_ui();
 
   /**
    * @brief
    *
+   * @param logs
    * @return QString
    */
-  [[nodiscard]] auto Passphrase() const -> QString;
+  static auto build_log_text(const QVector<GFLogEntry>& logs) -> QString;
 
  private:
-  QSharedPointer<GpgPassphraseContext> ctx_;
-  QLineEdit* password_edit_ = nullptr;
-  QCheckBox* show_password_checkbox_ = nullptr;
+  QPlainTextEdit* log_text_edit_ = nullptr;
+
+  QPushButton* refresh_button_ = nullptr;
+  QPushButton* copy_button_ = nullptr;
+  QPushButton* save_button_ = nullptr;
+  QPushButton* clear_button_ = nullptr;
+  QPushButton* close_button_ = nullptr;
+
+  QCheckBox* auto_refresh_checkbox_ = nullptr;
+  QTimer* auto_refresh_timer_ = nullptr;
 };
 }  // namespace GpgFrontend::UI

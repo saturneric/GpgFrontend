@@ -295,6 +295,12 @@ void MainWindow::create_actions() {
   connect(start_wizard_act_, &QAction::triggered, this,
           &MainWindow::slot_start_wizard);
 
+  show_log_view_act_ =
+      create_action("show_log_view", tr("Show Application Log"),
+                    ":/icons/log.png", tr("Show the application log view"));
+  connect(show_log_view_act_, &QAction::triggered, this,
+          &MainWindow::slot_show_log_view);
+
   append_selected_keys_act_ =
       create_action("append_selected_keys", tr("Append Public Key to Editor"),
                     "", tr("Append selected Keypair's Public Key to Editor"));
@@ -466,6 +472,7 @@ void MainWindow::create_menus() {
 
   help_menu_ = menuBar()->addMenu(tr("Help"));
   help_menu_->addAction(start_wizard_act_);
+  help_menu_->addAction(show_log_view_act_);
   help_menu_->addSeparator();
 
   help_menu_->addAction(about_act_);

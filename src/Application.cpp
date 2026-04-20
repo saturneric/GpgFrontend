@@ -37,13 +37,62 @@
 
 namespace GpgFrontend {
 
-/**
- * @brief
- *
- * @param argc
- * @param argv
- * @return int
- */
+void GFMessageHandler(QtMsgType type, const QMessageLogContext& context,
+                      const QString& msg) {
+  const QString formatted = qFormatLogMessage(type, context, msg);
+
+  GFLogEntry entry;
+  entry.timestamp = QDateTime::currentDateTime();
+  entry.type = type;
+  entry.category =
+      QString::fromUtf8((context.category != nullptr) ? context.category : "");
+  entry.file = QString::fromUtf8((context.file != nullptr) ? context.file : "");
+  entry.line = context.line;
+  entry.function =
+      QString::fromUtf8((context.function != nullptr) ? context.function : "");
+  entry.formatted_message = formatted;
+  entry.raw_message = msg;
+
+  GFLogManager::Instance().Push(entry);
+
+#ifdef Q_OS_WINDOWS
+  QByteArray local = formatted.toLocal8Bit();
+  fprintf(stdout, "%s\n", local.constData());
+  fflush(stdout);
+#else
+  QByteArray local = formatted.toLocal8Bit();
+  fprintf(stderr, "%s\n", local.constData());
+  fflush(stderr);
+#endif
+
+  if (type == QtFatalMsg) {
+    abort();
+  }
+}
+
+auto BuildQtLoggingFilterRules(int level) -> QString {
+  switch (static_cast<GFLogLevel>(level)) {
+    case GFLogLevel::kDEBUG:
+      return {};
+    case GFLogLevel::kINFO:
+      return "*.debug=false\n";
+    case GFLogLevel::kWARNING:
+      return "*.debug=false\n"
+             "*.info=false\n";
+    case GFLogLevel::kCRITICAL:
+      return "*.debug=false\n"
+             "*.info=false\n"
+             "*.warning=false\n";
+    case GFLogLevel::kFATAL:
+      return "*.debug=false\n"
+             "*.info=false\n"
+             "*.warning=false\n"
+             "*.critical=false\n";
+    default:
+      return "*.debug=false\n";
+  }
+}
+
 auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
@@ -88,6 +137,66 @@ auto StartApplication(const GFCxtWPtr& p_ctx) -> int {
 
   // exit the program
   return return_from_event_loop_code;
+}
+
+void GFLogRingBuffer::Push(GFLogEntry entry) {
+  QMutexLocker locker(&mutex_);
+
+  buffer_[write_index_] = std::move(entry);
+  write_index_ = (write_index_ + 1) % capacity_;
+
+  if (size_ < capacity_) {
+    ++size_;
+  } else {
+    full_ = true;
+  }
+}
+
+auto GFLogRingBuffer::Snapshot() const -> QVector<GFLogEntry> {
+  QMutexLocker locker(&mutex_);
+
+  QVector<GFLogEntry> result;
+  result.reserve(size_);
+
+  if (size_ == 0) return result;
+
+  const int start = full_ ? write_index_ : 0;
+  for (int i = 0; i < size_; ++i) {
+    const int index = (start + i) % capacity_;
+    result.push_back(buffer_[index]);
+  }
+
+  return result;
+}
+
+auto GFLogRingBuffer::Size() const -> int {
+  QMutexLocker locker(&mutex_);
+  return size_;
+}
+
+auto GFLogRingBuffer::Capacity() const -> int { return capacity_; }
+
+auto GFLogManager::Instance() -> GFLogManager& {
+  static GFLogManager instance;
+  return instance;
+}
+
+void GFLogManager::InitRingBuffer(int capacity) {
+  QMutexLocker locker(&mutex_);
+  ring_buffer_ = std::make_unique<GFLogRingBuffer>(capacity);
+}
+
+void GFLogManager::Push(const GFLogEntry& entry) {
+  QMutexLocker locker(&mutex_);
+  if (ring_buffer_ != nullptr) {
+    ring_buffer_->Push(entry);
+  }
+}
+
+auto GFLogManager::Snapshot() const -> QVector<GFLogEntry> {
+  QMutexLocker locker(&mutex_);
+  if (ring_buffer_ == nullptr) return {};
+  return ring_buffer_->Snapshot();
 }
 
 }  // namespace GpgFrontend
