@@ -306,13 +306,19 @@ auto MainWindow::GetCurrentGpgContextChannel() const -> int {
 
 auto MainWindow::check_and_notify_invalid_key_dbs() -> void {
   auto key_dbs = GetAllKeyDatabaseInfoBySettings();
+  auto active_dbs = GetGpgKeyDatabaseInfos();
 
   // 1. Filter and identify invalid databases
   QString details;
   int invalid_count = 0;
 
   for (const auto& key_db : key_dbs) {
-    if (!key_db.valid) {
+    bool is_active = std::find_if(active_dbs.begin(), active_dbs.end(),
+                                  [key_db](const KeyDatabaseInfo& i) -> bool {
+                                    return i.name == key_db.name;
+                                  }) != active_dbs.end();
+
+    if (!key_db.valid || !is_active) {
       invalid_count++;
       details += tr("Name: %1").arg(key_db.name) + "\n" +
                  tr("Path: %1").arg(key_db.origin_path) + "\n\n";
