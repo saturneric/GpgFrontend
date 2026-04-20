@@ -34,18 +34,18 @@
 #include <qstring.h>
 #include <qtextstream.h>
 
-#include "Application.h"
+#include "core/GFLog.h"
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "test/GpgFrontendTest.h"
 
 // GpgFrontend
-
+#include "Application.h"
 #include "GpgFrontendContext.h"
-#include "test/GpgFrontendTest.h"
 
 namespace GpgFrontend {
 

@@ -33,6 +33,7 @@
 
 #include <cstddef>
 
+#include "core/GFLog.h"
 #include "core/GpgCoreInit.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"

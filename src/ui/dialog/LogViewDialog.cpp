@@ -46,9 +46,6 @@ auto LogTypeToString(QtMsgType type) -> QString {
   return "?";
 }
 
-auto GetRecentLogs() -> QVector<GpgFrontend::GFLogEntry> {
-  return GpgFrontend::GFLogManager::Instance().Snapshot();
-}
 }  // namespace
 
 namespace GpgFrontend::UI {
@@ -135,7 +132,7 @@ auto LogViewDialog::build_log_text(const QVector<GFLogEntry>& logs) -> QString {
 }
 
 void LogViewDialog::ReloadLogs() {
-  const auto logs = GetRecentLogs();
+  const auto logs = lm_.Snapshot();
   const QString text = build_log_text(logs);
 
   const auto old_scroll = log_text_edit_->verticalScrollBar()->value();

@@ -32,64 +32,6 @@
 
 namespace GpgFrontend {
 
-enum class GFLogLevel : uint8_t {
-  kDEBUG = 0,
-  kINFO = 1,
-  kWARNING = 2,
-  kCRITICAL = 3,
-  kFATAL = 4
-};
-
-struct GFLogEntry {
-  QDateTime timestamp;
-  QtMsgType type;
-  QString category;
-  QString file;
-  int line = 0;
-  QString function;
-  QString formatted_message;
-  QString raw_message;
-};
-
-class GFLogRingBuffer {
- public:
-  explicit GFLogRingBuffer(int capacity = 1024)
-      : capacity_(capacity), buffer_(capacity) {}
-
-  void Push(GFLogEntry entry);
-
-  auto Snapshot() const -> QVector<GFLogEntry>;
-
-  auto Size() const -> int;
-
-  auto Capacity() const -> int;
-
- private:
-  int capacity_ = 0;
-  mutable QMutex mutex_;
-  QVector<GFLogEntry> buffer_;
-  int write_index_ = 0;
-  int size_ = 0;
-  bool full_ = false;
-};
-
-class GFLogManager {
- public:
-  static auto Instance() -> GFLogManager&;
-
-  void InitRingBuffer(int capacity);
-
-  void Push(const GFLogEntry& entry);
-
-  auto Snapshot() const -> QVector<GFLogEntry>;
-
- private:
-  GFLogManager() = default;
-
-  mutable QMutex mutex_;
-  std::unique_ptr<GFLogRingBuffer> ring_buffer_;
-};
-
 /**
  * @brief
  *

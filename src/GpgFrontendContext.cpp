@@ -33,7 +33,7 @@
 #include <qobject.h>
 #include <qthread.h>
 
-#include "Application.h"
+#include "core/GFLog.h"
 #include "ui/GpgFrontendApplication.h"
 
 namespace GpgFrontend {

@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "Application.h"
+#include "core/GFLog.h"
 #include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
@@ -74,6 +74,7 @@ class LogViewDialog : public GeneralDialog {
   static auto build_log_text(const QVector<GFLogEntry>& logs) -> QString;
 
  private:
+  GFLogManager& lm_ = GFLogManager::Instance();
   QPlainTextEdit* log_text_edit_ = nullptr;
 
   QPushButton* refresh_button_ = nullptr;
