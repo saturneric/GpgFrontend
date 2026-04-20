@@ -102,17 +102,27 @@ jobs:
 
       - name: Codesign Configuration (macOS)
         run: |
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          PP_PATH=$RUNNER_TEMP/${{secrets.GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID}}.provisionprofile
+          APP_CERT_PATH=$RUNNER_TEMP/app_certificate.p12
+          INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.p12
+
+          if [ "${{ matrix.sandbox }}" == "ON" ]; then
+            PP_PATH=$RUNNER_TEMP/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile
+            echo -n "${{secrets.MAS_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
+          else
+            PP_PATH=$RUNNER_TEMP/${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}.provisionprofile
+            echo -n "${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
+          fi
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          echo -n "${{secrets.MACOS_CERTIFICATE}}" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "${{secrets.GPGFRONTEND_XCODE_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
+          # Import the certificates and provisioning profile into the keychain
+          echo -n "${{secrets.MACOS_CERTIFICATE}}" | base64 --decode -o $APP_CERT_PATH
+          echo -n "${{secrets.MAS_INSTALLER_CERT}}" | base64 --decode -o $INSTALLER_CERT_PATH
 
           security create-keychain -p gpgfrontend build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p gpgfrontend build.keychain
-          security import $CERTIFICATE_PATH -k build.keychain -P ${{secrets.MAOS_CERTIFICATE_PWD}} -T /usr/bin/codesign
+          security import $APP_CERT_PATH -k build.keychain -P ${{secrets.MAOS_CERTIFICATE_PWD}} -T /usr/bin/codesign
+          security import $INSTALLER_CERT_PATH -k build.keychain -P ${{secrets.MAS_INSTALLER_CERT_PWD}} -T /usr/bin/productbuild
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
           security set-keychain-settings -lut 3600
 
