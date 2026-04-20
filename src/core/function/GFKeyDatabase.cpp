@@ -466,7 +466,6 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
       sub.can_encrypt = query.value(8).toBool();
       sub.can_auth = query.value(9).toBool();
       sub.can_certify = query.value(10).toBool();
-      sub.is_revoked = query.value(11).toBool();
       subkeys.append(sub);
     }
   }
