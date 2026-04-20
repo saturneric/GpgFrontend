@@ -49,7 +49,7 @@ jobs:
             "macos-26",
             "windows-2022",
           ]
-      sandbox: ["OFF"]
+        sandbox: ["OFF"]
         include:
           - os: "macos-15"
             sandbox: "ON"
