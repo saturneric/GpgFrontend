@@ -265,6 +265,15 @@ jobs:
       - name: Deploy Qt & Code Sign (macOS)
         run: |
           macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
+
+          # Sign the app bundle. If sandboxing is enabled, we need to add the entitlements flag to the codesign command.
+          if [ "${{ env.SANDBOX_CMAKE_FLAG }}" != "" ]; then
+            ENTITLEMENTS_FLAG="--entitlements ${{github.workspace}}/resource/entitlements/GpgFrontend.entitlements"
+          else
+            ENTITLEMENTS_FLAG=""
+          fi
+
+          # Sign the app bundle with the specified identity and provisioning profile.
           codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp ${{github.workspace}}/build/package/GpgFrontend.app
         if: runner.os == 'macOS'
 
