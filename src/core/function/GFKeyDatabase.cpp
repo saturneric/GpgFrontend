@@ -33,6 +33,8 @@
 
 namespace GpgFrontend {
 
+static constexpr int kCurrentSchemaVersion = 1;
+
 namespace {
 
 auto PrimaryKeyAsSubKey(const GFKeyMetadata& meta) -> GFSubKeyMetadata {
@@ -55,8 +57,15 @@ auto PrimaryKeyAsSubKey(const GFKeyMetadata& meta) -> GFSubKeyMetadata {
 }  // namespace
 
 auto GFKeyDatabase::connect_db(const QString& path) -> bool {
-  db_ = QSqlDatabase::addDatabase("QSQLITE");
+  if (!connection_name_.isEmpty()) {
+    LOG_W() << "database connection already initialized:" << connection_name_;
+    return db_.isOpen();
+  }
 
+  connection_name_ =
+      QString("GFKeyDB_%1")
+          .arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+  db_ = QSqlDatabase::addDatabase("QSQLITE", connection_name_);
   db_.setDatabaseName(path);
 
   if (!db_.open()) {
@@ -177,9 +186,27 @@ auto GFKeyDatabase::Init(const QString& path) -> bool {
   LOG_I() << "created directory for key database at path: " << path;
 
   // target database file is under the created directory
-  QFileInfo key_db_file_info(path + "/keys.db");
+  QFileInfo key_db_file_info(path + "/gf_keydb.sqlite");
 
-  return connect_db(key_db_file_info.absoluteFilePath()) && create_table();
+  if (!connect_db(key_db_file_info.absoluteFilePath())) {
+    LOG_E() << "failed to connect to key database at path: "
+            << key_db_file_info.absoluteFilePath();
+    return false;
+  }
+
+  if (!enable_pragmas()) {
+    LOG_E() << "failed to enable pragmas for key database at path: "
+            << key_db_file_info.absoluteFilePath();
+    return false;
+  }
+
+  if (!ensure_schema()) {
+    LOG_E() << "failed to ensure schema for key database at path: "
+            << key_db_file_info.absoluteFilePath();
+    return false;
+  }
+
+  return true;
 }
 
 auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
@@ -353,7 +380,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
   return {};
 }
 
-auto GFKeyDatabase::create_table() -> bool {
+auto GFKeyDatabase::create_schema_v1() -> bool {
   QSqlQuery query(db_);
 
   // 1. Primary key metadata table with new capability fields
@@ -517,6 +544,21 @@ auto GFKeyDatabase::ResolvePrimaryFpr(const QString& identifier) -> QString {
   // 4. Not found anywhere
   return {};
 }
+auto GFKeyDatabase::GetSchemaVersion() -> int {
+  QSqlQuery query(db_);
+  if (!query.exec("PRAGMA user_version;")) {
+    LOG_E() << "failed to read PRAGMA user_version:"
+            << query.lastError().text();
+    return -1;
+  }
+
+  if (!query.next()) {
+    LOG_E() << "PRAGMA user_version returned no rows";
+    return -1;
+  }
+
+  return query.value(0).toInt();
+}
 
 auto GFKeyDatabase::load_user_ids_for_parent(const QString& fpr)
     -> QContainer<GFUserId> {
@@ -555,10 +597,124 @@ auto GFKeyDatabase::load_user_ids_for_parent(const QString& fpr)
   }
   return uids;
 }
+auto GFKeyDatabase::enable_pragmas() -> bool {
+  QSqlQuery query(db_);
+
+  if (!query.exec("PRAGMA foreign_keys = ON;")) {
+    LOG_E() << "failed to enable foreign_keys:" << query.lastError().text();
+    return false;
+  }
+
+  if (!query.exec("PRAGMA journal_mode = WAL;")) {
+    LOG_W() << "failed to enable WAL journal mode:" << query.lastError().text();
+  }
+
+  if (!query.exec("PRAGMA synchronous = NORMAL;")) {
+    LOG_W() << "failed to set synchronous=NORMAL:" << query.lastError().text();
+  }
+
+  return true;
+}
+
+auto GFKeyDatabase::ensure_schema() -> bool {
+  int version = GetSchemaVersion();
+  if (version < 0) {
+    return false;
+  }
+
+  if (version == 0) {
+    if (is_database_empty()) {
+      LOG_I() << "empty database detected, creating schema v1";
+      if (!create_schema_v1()) {
+        return false;
+      }
+      if (!set_schema_version(1)) {
+        return false;
+      }
+      version = 1;
+    }
+  }
+
+  while (version < kCurrentSchemaVersion) {
+    switch (version) {
+        // case 1:
+        //   if (!migrate_v1_to_v2()) {
+        //     return false;
+        //   }
+        //   if (!set_schema_version(2)) {
+        //     return false;
+        //   }
+        //   version = 2;
+        //   break;
+
+      default:
+        LOG_E() << "unsupported schema version:" << version;
+        return false;
+    }
+  }
+
+  if (version > kCurrentSchemaVersion) {
+    LOG_E() << "database schema version is newer than application supports:"
+            << version << ">" << kCurrentSchemaVersion;
+    return false;
+  }
+
+  return true;
+}
+
+auto GFKeyDatabase::set_schema_version(int version) -> bool {
+  QSqlQuery query(db_);
+  const auto sql = QString("PRAGMA user_version = %1;").arg(version);
+  if (!query.exec(sql)) {
+    LOG_E() << "failed to set PRAGMA user_version to" << version << ":"
+            << query.lastError().text();
+    return false;
+  }
+  return true;
+}
+
+auto GFKeyDatabase::table_exists(const QString& table_name) -> bool {
+  return db_.tables().contains(table_name, Qt::CaseInsensitive);
+}
+
+auto GFKeyDatabase::column_exists(const QString& table_name,
+                                  const QString& column_name) -> bool {
+  QSqlQuery query(db_);
+  query.prepare(QString("PRAGMA table_info(%1);").arg(table_name));
+
+  if (!query.exec()) {
+    LOG_E() << "failed to query table_info for" << table_name << ":"
+            << query.lastError().text();
+    return false;
+  }
+
+  while (query.next()) {
+    if (query.value(1).toString().compare(column_name, Qt::CaseInsensitive) ==
+        0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+auto GFKeyDatabase::is_database_empty() -> bool {
+  const auto tables = db_.tables(QSql::Tables);
+  return std::all_of(tables.begin(), tables.end(),
+                     [](const QString& table) -> bool {
+                       return table.startsWith("sqlite_", Qt::CaseInsensitive);
+                     });
+}
 
 GFKeyDatabase::~GFKeyDatabase() {
   if (db_.isOpen()) {
     db_.close();
+  }
+
+  if (!connection_name_.isEmpty()) {
+    const auto conn_name = connection_name_;
+    db_ = QSqlDatabase();
+    QSqlDatabase::removeDatabase(conn_name);
+    connection_name_.clear();
   }
 }
 }  // namespace GpgFrontend

@@ -118,8 +118,16 @@ class GF_CORE_EXPORT GFKeyDatabase {
    */
   auto ResolvePrimaryFpr(const QString& identifier) -> QString;
 
+  /**
+   * @brief Get the Schema Version object
+   *
+   * @return int
+   */
+  auto GetSchemaVersion() -> int;
+
  private:
-  QSqlDatabase db_;  ///<
+  QSqlDatabase db_;          ///<
+  QString connection_name_;  ///< Store the unique connection name for cleanup
 
   /**
    * @brief
@@ -136,7 +144,7 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * @return true
    * @return false
    */
-  auto create_table() -> bool;
+  auto create_schema_v1() -> bool;
 
   /**
    * @brief Load subkeys for a given primary key fingerprint
@@ -155,6 +163,59 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * @return QContainer<GFUserId>
    */
   auto load_user_ids_for_parent(const QString& fpr) -> QContainer<GFUserId>;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto enable_pragmas() -> bool;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto ensure_schema() -> bool;
+
+  /**
+   * @brief Set the schema version object
+   *
+   * @param version
+   * @return true
+   * @return false
+   */
+  auto set_schema_version(int version) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param table_name
+   * @return true
+   * @return false
+   */
+  auto table_exists(const QString& table_name) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param table_name
+   * @param column_name
+   * @return true
+   * @return false
+   */
+  auto column_exists(const QString& table_name, const QString& column_name)
+      -> bool;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto is_database_empty() -> bool;
 };
 
 }  // namespace GpgFrontend
