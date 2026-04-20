@@ -274,7 +274,7 @@ jobs:
           fi
 
           # Sign the app bundle with the specified identity and provisioning profile.
-          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp ${{github.workspace}}/build/package/GpgFrontend.app
+          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp $ENTITLEMENTS_FLAG ${{github.workspace}}/build/package/GpgFrontend.app
         if: runner.os == 'macOS'
 
       - name: Package & Sign App Bundle (macOS)
@@ -289,7 +289,14 @@ jobs:
             ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \
             ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.zip
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && matrix.sandbox == 'OFF'
+
+      - name: Create Installer Package (macOS)
+        run: |
+          productbuild --component ${{github.workspace}}/build/package/GpgFrontend.app /Applications \
+            --sign "${{secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY}}" \
+            ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.pkg
+        if: runner.os == 'macOS' && matrix.sandbox == 'ON'
 
       - name: Notarize Release Build (macOS)
         run: |
@@ -300,7 +307,7 @@ jobs:
           ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.zip
           echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && matrix.sandbox == 'OFF'
 
       - name: Build GpgFrontend (Linux)
         run: |
