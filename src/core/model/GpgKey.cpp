@@ -214,7 +214,7 @@ auto GpgKey::IsRevoked() const -> bool {
 }
 
 auto GpgKey::IsDisabled() const -> bool {
-  if (km_ref_ != nullptr) return false;
+  if (km_ref_ != nullptr) return km_ref_->is_disabled;
   return key_ref_->disabled;
 }
 

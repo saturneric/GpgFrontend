@@ -88,4 +88,14 @@ auto GetSecretKeysByKeyIdForSigning(GFKeyDatabase& key_db,
                                     const GpgAbstractKeyPtrList& key)
     -> QContainer<QByteArray>;
 
+/**
+ * @brief
+ *
+ * @param key_db
+ * @param key_id
+ * @return true
+ * @return false
+ */
+auto RefreshKeyMetaInDatabase(GFKeyDatabase& key_db, const QString& key_id)
+    -> bool;
 }  // namespace GpgFrontend

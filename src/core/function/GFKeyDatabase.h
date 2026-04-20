@@ -89,8 +89,8 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * @return true
    * @return false
    */
-  auto SaveKey(const GFKeyMetadata& metadata, const GFKeyBlocks& blocks)
-      -> bool;
+  auto SaveKey(const GFKeyMetadata& metadata, const GFKeyBlocks& blocks,
+               bool update_ts = true) -> bool;
 
   /**
    * @brief Get the Key object
@@ -124,6 +124,15 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * @return int
    */
   auto GetSchemaVersion() -> int;
+
+  /**
+   * @brief
+   *
+   * @param fpr
+   * @return true
+   * @return false
+   */
+  auto DisableKey(const QString& fpr) -> bool;
 
  private:
   QSqlDatabase db_;          ///<

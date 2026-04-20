@@ -89,6 +89,7 @@ struct GFKeyMetadata {
   qint64 update_time;
   bool has_secret;
   bool is_revoked;
+  bool is_disabled;
 
   bool can_sign;
   bool can_encrypt;

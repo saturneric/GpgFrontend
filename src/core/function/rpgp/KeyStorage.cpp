@@ -43,6 +43,8 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
   meta.created_at = static_cast<qint64>(gfr_meta.created_at);
   meta.has_secret = gfr_meta.has_secret;
   meta.is_revoked = gfr_meta.is_revoked;
+  // GpgFrontend itself will be responsible for handling disabled keys
+  meta.is_disabled = false;
   meta.algo = static_cast<int>(gfr_meta.algo);
   meta.key_length = static_cast<unsigned int>(gfr_meta.key_length);
 
@@ -298,6 +300,57 @@ auto GetSecretKeysByKeyIdForSigning(GFKeyDatabase& key_db,
   }
 
   return result;
+}
+
+auto RefreshKeyMetaInDatabase(GFKeyDatabase& key_db, const QString& key_id)
+    -> bool {
+  auto key = key_db.GetKeyByIdentifier(key_id);
+  if (!key) {
+    LOG_E() << "cannot find key with id: " << key_id
+            << " in database to refresh";
+    return false;
+  }
+
+  auto disable_and_err = [&key_db, key, key_id]() -> bool {
+    if (!key_db.DisableKey(key->metadata.fpr)) {
+      LOG_E() << "failed to disable key with id: " << key_id;
+    }
+    return false;
+  };
+
+  auto key_blocks = key->blocks;
+  auto key_block = key_blocks.secret_key.isEmpty() ? key_blocks.public_key
+                                                   : key_blocks.secret_key;
+  if (key_block.isEmpty()) {
+    LOG_E() << "no valid key block found for key with id: " << key_id
+            << " to refresh metadata";
+    return disable_and_err();
+  }
+
+  auto key_block_utf8 = key_block.toUtf8();
+  auto keys = GetGFKeysFromKeyBlock(GFBuffer(key_block_utf8));
+  if (keys.empty()) {
+    LOG_E() << "cannot parse key blocks for key with id: " << key_id
+            << " to refresh metadata";
+    return disable_and_err();
+  }
+
+  const auto& final_key = keys.front();
+
+  if (final_key.metadata.fpr.toUpper() != key->metadata.fpr.toUpper()) {
+    LOG_E()
+        << "fingerprint mismatch when refreshing key metadata for key with id: "
+        << key_id;
+    return disable_and_err();
+  }
+
+  if (!key_db.SaveKey(final_key.metadata, final_key.blocks)) {
+    LOG_E() << "failed to refresh key metadata for key with id: " << key_id;
+    return disable_and_err();
+  }
+
+  LOG_D() << "successfully refreshed key metadata for key with id: " << key_id;
+  return true;
 }
 
 }  // namespace GpgFrontend

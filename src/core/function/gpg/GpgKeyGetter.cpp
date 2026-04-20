@@ -34,6 +34,7 @@
 
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/rpgp/KeyStorage.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -143,6 +144,12 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
     keys_search_cache_.clear();
 
     if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
+      static bool first_flush = true;
+      if (first_flush) {
+        LOG_D() << "flush rpgp key cache, channel: " << GetChannel();
+        flush_key_db_rpgp_impl();
+        first_flush = false;
+      }
       return flush_key_cache_rpgp_impl();
     }
 
@@ -337,6 +344,28 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
           auto p_s_key = SecureCreateSharedObject<GpgSubKey>(s_key);
           keys_search_cache_.insert(s_key.ID(), p_s_key);
           keys_search_cache_.insert(s_key.Fingerprint(), p_s_key);
+        }
+      }
+    }
+
+    return true;
+  }
+
+  auto flush_key_db_rpgp_impl() -> bool {
+    auto key_db = ctx_.KeyDatabase();
+    if (key_db == nullptr) {
+      LOG_E() << "key database is not initialized";
+      return false;
+    }
+
+    auto key_meta_list = key_db->GetMetadataList();
+    {
+      // get the lock
+      std::lock_guard<std::mutex> lock(keys_cache_mutex_);
+
+      for (const auto& meta : key_meta_list) {
+        if (!RefreshKeyMetaInDatabase(*key_db, meta.fpr)) {
+          LOG_W() << "refresh key meta in database failed, fpr: " << meta.fpr;
         }
       }
     }

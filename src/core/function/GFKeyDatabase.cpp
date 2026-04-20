@@ -81,7 +81,7 @@ auto GFKeyDatabase::GetMetadataList() -> QContainer<GFKeyMetadata> {
   QSqlQuery query(db_);
 
   if (query.exec(R"(
-        SELECT fpr, key_id, algo, created_at, has_secret, is_revoked, key_length,
+        SELECT fpr, key_id, algo, created_at, has_secret, is_revoked, is_disabled, key_length,
                can_sign, can_encrypt, can_auth, can_certify, update_time
         FROM key_metadata
       )")) {
@@ -93,13 +93,14 @@ auto GFKeyDatabase::GetMetadataList() -> QContainer<GFKeyMetadata> {
       meta.created_at = query.value(3).toLongLong();
       meta.has_secret = query.value(4).toBool();
       meta.is_revoked = query.value(5).toBool();
-      meta.key_length = static_cast<unsigned int>(query.value(6).toUInt());
-      meta.can_sign = query.value(7).toBool();
-      meta.can_encrypt = query.value(8).toBool();
-      meta.can_auth = query.value(9).toBool();
-      meta.can_certify = query.value(10).toBool();
+      meta.is_disabled = query.value(6).toBool();
+      meta.key_length = static_cast<unsigned int>(query.value(7).toUInt());
+      meta.can_sign = query.value(8).toBool();
+      meta.can_encrypt = query.value(9).toBool();
+      meta.can_auth = query.value(10).toBool();
+      meta.can_certify = query.value(11).toBool();
       meta.update_time =
-          QDateTime::fromString(query.value(11).toString(), Qt::ISODate)
+          QDateTime::fromString(query.value(12).toString(), Qt::ISODate)
               .toSecsSinceEpoch();
 
       // Load user IDs for this primary key
@@ -210,7 +211,7 @@ auto GFKeyDatabase::Init(const QString& path) -> bool {
 }
 
 auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
-                            const GFKeyBlocks& blocks) -> bool {
+                            const GFKeyBlocks& blocks, bool update_ts) -> bool {
   if (!db_.transaction()) {
     return false;
   }
@@ -220,8 +221,8 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
   // 1. Save Primary Key Metadata
   query.prepare(R"(
     INSERT OR REPLACE INTO key_metadata 
-    (fpr, key_id, algo, created_at, has_secret, is_revoked, key_length, can_sign, can_encrypt, can_auth, can_certify, update_time)
-    VALUES (:fpr, :key_id, :algo, :created_at, :has_secret, :is_revoked, :key_length, :can_sign, :can_encrypt, :can_auth, :can_certify, :update_time)
+    (fpr, key_id, algo, created_at, has_secret, is_revoked, is_disabled, key_length, can_sign, can_encrypt, can_auth, can_certify, update_time)
+    VALUES (:fpr, :key_id, :algo, :created_at, :has_secret, :is_revoked, :is_disabled, :key_length, :can_sign, :can_encrypt, :can_auth, :can_certify, :update_time)
   )");
   query.bindValue(":fpr", meta.fpr.toUpper());
   query.bindValue(":key_id", meta.key_id.toUpper());
@@ -229,13 +230,17 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
   query.bindValue(":created_at", meta.created_at);
   query.bindValue(":has_secret", meta.has_secret ? 1 : 0);
   query.bindValue(":is_revoked", meta.is_revoked ? 1 : 0);
+  query.bindValue(":is_disabled", meta.is_disabled ? 1 : 0);
   query.bindValue(":key_length", meta.key_length);
   query.bindValue(":can_sign", meta.can_sign ? 1 : 0);
   query.bindValue(":can_encrypt", meta.can_encrypt ? 1 : 0);
   query.bindValue(":can_auth", meta.can_auth ? 1 : 0);
   query.bindValue(":can_certify", meta.can_certify ? 1 : 0);
   query.bindValue(":update_time",
-                  QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
+                  update_ts
+                      ? QDateTime::currentDateTimeUtc().toString(Qt::ISODate)
+                      : QDateTime::fromSecsSinceEpoch(meta.update_time)
+                            .toString(Qt::ISODate));
 
   if (!query.exec()) {
     LOG_E() << "SaveKey meta error: " << query.lastError().text();
@@ -393,6 +398,7 @@ auto GFKeyDatabase::create_schema_v1() -> bool {
       created_at INTEGER,
       has_secret INTEGER DEFAULT 0,
       is_revoked INTEGER DEFAULT 0,
+      is_disabled INTEGER DEFAULT 0,
       can_sign INTEGER DEFAULT 0,
       can_encrypt INTEGER DEFAULT 0,
       can_auth INTEGER DEFAULT 0,
@@ -558,6 +564,19 @@ auto GFKeyDatabase::GetSchemaVersion() -> int {
   }
 
   return query.value(0).toInt();
+}
+auto GFKeyDatabase::DisableKey(const QString& fpr) -> bool {
+  auto real_primary_fpr = ResolvePrimaryFpr(fpr);
+  if (real_primary_fpr.isEmpty()) {
+    LOG_W() << "Attempted to disable non-existent key with identifier: " << fpr;
+    return false;
+  }
+
+  QSqlQuery query(db_);
+  query.prepare("UPDATE key_metadata SET is_disabled = 1 WHERE fpr = :fpr");
+  query.bindValue(":fpr", real_primary_fpr);
+
+  return query.exec();
 }
 
 auto GFKeyDatabase::load_user_ids_for_parent(const QString& fpr)
