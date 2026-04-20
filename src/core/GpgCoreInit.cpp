@@ -310,15 +310,8 @@ auto InitBasicPath() -> bool {
   }
 
   auto default_home_path = GetDefaultKeyDatabasePath();
-
-  LOG_I() << "home path provided by gpgconf: " << default_home_path;
-  if (default_home_path.isEmpty()) {
-    LOG_E() << "Cannot find default home path by gpgconf!"
-            << "GpgFrontend cannot start under this situation!";
-    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
-        QCoreApplication::tr("Cannot Find Default Home Path"));
-    return false;
-  }
+  LOG_I() << "default home path: " << default_home_path;
+  assert(!default_home_path.isEmpty());
 
   if (!QDir(default_home_path).exists()) QDir(default_home_path).mkpath(".");
 
