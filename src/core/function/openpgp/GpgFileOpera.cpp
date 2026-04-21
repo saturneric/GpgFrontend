@@ -27,10 +27,7 @@
  */
 #include "GpgFileOpera.h"
 
-#include "core/function/openpgp/FileCryptoOperaTraits.h"
-#include "core/function/rpgp/FileCryptoOpera.h"
-#include "core/model/GpgData.h"
-#include "core/utils/AsyncUtils.h"
+#include "core/function/openpgp/traits/FileCryptoOperaTraits.h"
 #include "function/openpgp/Async.h"
 
 namespace GpgFrontend {
@@ -58,7 +55,8 @@ void GpgFileOpera::EncryptDirectory(const GpgAbstractKeyPtrList& keys,
                                     const QString& in_path, bool ascii,
                                     const QString& out_path,
                                     const GpgOperationCallback& cb) {
-  RunRegistered<DirEncryptOpTag>(ctx_, keys, in_path, ascii, out_path, cb);
+  RunRegisteredDirect<DirEncryptOpTag>(ctx_, keys, in_path, ascii, out_path,
+                                       cb);
 }
 
 void GpgFileOpera::DecryptFile(const QString& in_path, const QString& out_path,
@@ -75,7 +73,7 @@ auto GpgFileOpera::DecryptFileSync(const QString& in_path,
 void GpgFileOpera::DecryptArchive(const QString& in_path,
                                   const QString& out_path,
                                   const GpgOperationCallback& cb) {
-  RunRegistered<ArchiveDecryptOpTag>(ctx_, in_path, out_path, cb);
+  RunRegisteredDirect<ArchiveDecryptOpTag>(ctx_, in_path, out_path, cb);
 }
 
 void GpgFileOpera::SignFile(const GpgAbstractKeyPtrList& keys,
@@ -126,8 +124,8 @@ void GpgFileOpera::EncryptSignDirectory(
     const GpgAbstractKeyPtrList& keys, const GpgAbstractKeyPtrList& signer_keys,
     const QString& in_path, bool ascii, const QString& out_path,
     const GpgOperationCallback& cb) {
-  RunRegistered<DirEncryptSignOpTag>(ctx_, keys, signer_keys, in_path, ascii,
-                                     out_path, cb);
+  RunRegisteredDirect<DirEncryptSignOpTag>(ctx_, keys, signer_keys, in_path,
+                                           ascii, out_path, cb);
 }
 
 void GpgFileOpera::DecryptVerifyFile(const QString& in_path,
@@ -145,7 +143,7 @@ auto GpgFileOpera::DecryptVerifyFileSync(const QString& in_path,
 void GpgFileOpera::DecryptVerifyArchive(const QString& in_path,
                                         const QString& out_path,
                                         const GpgOperationCallback& cb) {
-  RunRegistered<ArchiveDecryptVerifyOpTag>(ctx_, in_path, out_path, cb);
+  RunRegisteredDirect<ArchiveDecryptVerifyOpTag>(ctx_, in_path, out_path, cb);
 }
 
 void GpgFileOpera::EncryptFileSymmetric(const QString& in_path, bool ascii,
@@ -165,7 +163,8 @@ auto GpgFileOpera::EncryptFileSymmetricSync(const QString& in_path, bool ascii,
 void GpgFileOpera::EncryptDirectorySymmetric(const QString& in_path, bool ascii,
                                              const QString& out_path,
                                              const GpgOperationCallback& cb) {
-  RunRegistered<DirEncryptSymmetricOpTag>(ctx_, in_path, ascii, out_path, cb);
+  RunRegisteredDirect<DirEncryptSymmetricOpTag>(ctx_, in_path, ascii, out_path,
+                                                cb);
 }
 
 }  // namespace GpgFrontend

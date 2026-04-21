@@ -102,7 +102,7 @@ auto RunRegisteredSync(GpgContext& ctx, Args&&... args)
  * @return std::tuple<GpgError, DataObjectPtr>
  */
 template <typename OpTag, typename... Args>
-auto RunRegistered(GpgContext& ctx, Args&&... args) -> GpgError {
+auto RunRegisteredDirect(GpgContext& ctx, Args&&... args) -> GpgError {
   auto stored_args =
       std::make_tuple(std::decay_t<Args>(std::forward<Args>(args))...);
 

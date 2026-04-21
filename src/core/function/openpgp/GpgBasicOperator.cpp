@@ -29,7 +29,7 @@
 #include "GpgBasicOperator.h"
 
 #include "core/function/openpgp/Async.h"
-#include "core/function/openpgp/BasicCryptoOperaTraits.h"
+#include "core/function/openpgp/traits/BasicCryptoOperaTraits.h"
 
 namespace GpgFrontend {
 
