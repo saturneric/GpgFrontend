@@ -79,15 +79,17 @@ struct DispatchOpTraitsBase<Derived, R (*)(GpgContext&, Args...)>
   }
 };
 
-#define DEFINE_OP_TRAITS(TAG, OPNAME, FN_TYPE, TABLE_INIT)               \
-  template <>                                                            \
-  struct OpTraits<TAG> : DispatchOpTraitsBase<OpTraits<TAG>, FN_TYPE> {  \
-    static constexpr const char* kOpName = OPNAME;                       \
-    using ImplFn = FN_TYPE;                                              \
-    static auto ImplTable() -> const QContainer<EngineOpImpl<ImplFn>>& { \
-      static const QContainer<EngineOpImpl<ImplFn>> kTable = TABLE_INIT; \
-      return kTable;                                                     \
-    }                                                                    \
+#define GF_DEF_OP_TRAITS(TAG, OPNAME, FN_REF, ...)                          \
+  struct TAG {};                                                            \
+  template <>                                                               \
+  struct OpTraits<TAG>                                                      \
+      : DispatchOpTraitsBase<OpTraits<TAG>, decltype(FN_REF)> {             \
+    static constexpr const char* kOpName = OPNAME;                          \
+    using ImplFn = decltype(FN_REF);                                        \
+    static auto ImplTable() -> const auto& {                                \
+      static const QContainer<EngineOpImpl<ImplFn>> kTable = {__VA_ARGS__}; \
+      return kTable;                                                        \
+    }                                                                       \
   };
 
 }  // namespace GpgFrontend

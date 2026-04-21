@@ -36,170 +36,34 @@
 
 namespace GpgFrontend {
 
-// Basic Crypto Operations
-struct EncryptOpTag {};
-struct EncryptSymmetricOpTag {};
-struct DecryptOpTag {};
-struct VerifyOpTag {};
-struct SignOpTag {};
-struct DecryptVerifyOpTag {};
-struct EncryptSignOpTag {};
+GF_DEF_OP_TRAITS(EncryptOpTag, "op_encrypt", &EncryptGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &EncryptGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &EncryptRpgpImpl});
 
-template <>
-struct OpTraits<EncryptOpTag> : EmptyOpTraitsBase {
-  static constexpr const char* kOpName = "op_encrypt";
+GF_DEF_OP_TRAITS(EncryptSymmetricOpTag, "op_encrypt_symmetric",
+                 &EncryptSymmetricGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &EncryptSymmetricGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &EncryptSymmetricRpgpImpl});
 
-  using ImplFn = GpgError (*)(GpgContext&, const GpgAbstractKeyPtrList&,
-                              const GFBuffer&, bool, const DataObjectPtr&);
+GF_DEF_OP_TRAITS(DecryptOpTag, "op_decrypt", &DecryptGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &DecryptGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &DecryptRpgpImpl});
 
-  static auto ImplTable() -> const auto& {
-    static const EngineOpImplTable<ImplFn> kTable = {
-        {OpenPGPEngine::kGNUPG, &EncryptGnuPGImpl},
-        {OpenPGPEngine::kRPGP, &EncryptRpgpImpl},
-    };
-    return kTable;
-  }
+GF_DEF_OP_TRAITS(VerifyOpTag, "op_verify", &VerifyGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &VerifyGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &VerifyRpgpImpl});
 
-  static auto Call(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                   const GFBuffer& in_buffer, bool ascii,
-                   const DataObjectPtr& data_object) -> GpgError {
-    return DispatchByEngine(ctx, ImplTable(), keys, in_buffer, ascii,
-                            data_object);
-  }
-};
+GF_DEF_OP_TRAITS(SignOpTag, "op_sign", &SignGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &SignGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &SignRpgpImpl});
 
-template <>
-struct OpTraits<EncryptSymmetricOpTag> : EmptyOpTraitsBase {
-  static constexpr const char* kOpName = "op_encrypt_symmetric";
+GF_DEF_OP_TRAITS(EncryptSignOpTag, "op_encrypt_sign", &EncryptSignGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &EncryptSignGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &EncryptSignRpgpImpl});
 
-  using ImplFn = GpgError (*)(GpgContext&, const GFBuffer&, bool,
-                              const DataObjectPtr&);
+GF_DEF_OP_TRAITS(DecryptVerifyOpTag, "op_decrypt_verify",
+                 &DecryptVerifyGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &DecryptVerifyGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &DecryptVerifyRpgpImpl});
 
-  static auto ImplTable() -> const auto& {
-    static const EngineOpImplTable<ImplFn> kTable = {
-        {OpenPGPEngine::kGNUPG, &EncryptSymmetricGnuPGImpl},
-        {OpenPGPEngine::kRPGP, &EncryptSymmetricRpgpImpl},
-    };
-    return kTable;
-  }
-
-  static auto Call(GpgContext& ctx, const GFBuffer& in_buffer, bool ascii,
-                   const DataObjectPtr& data_object) -> GpgError {
-    return DispatchByEngine(ctx, ImplTable(), in_buffer, ascii, data_object);
-  }
-};
-
-template <>
-struct OpTraits<DecryptOpTag> : EmptyOpTraitsBase {
-  static constexpr const char* kOpName = "op_decrypt";
-
-  using ImplFn = GpgError (*)(GpgContext&, const GFBuffer&,
-                              const DataObjectPtr&);
-
-  static auto ImplTable() -> const auto& {
-    static const EngineOpImplTable<ImplFn> kTable = {
-        {OpenPGPEngine::kGNUPG, &DecryptGnuPGImpl},
-        {OpenPGPEngine::kRPGP, &DecryptRpgpImpl},
-    };
-    return kTable;
-  }
-
-  static auto Call(GpgContext& ctx, const GFBuffer& in_buffer,
-                   const DataObjectPtr& data_object) -> GpgError {
-    return DispatchByEngine(ctx, ImplTable(), in_buffer, data_object);
-  }
-};
-
-template <>
-struct OpTraits<SignOpTag> : EmptyOpTraitsBase {
-  static constexpr const char* kOpName = "op_sign";
-
-  using ImplFn = GpgError (*)(GpgContext&, const GpgAbstractKeyPtrList&,
-                              const GFBuffer&, GpgSignMode, bool,
-                              const DataObjectPtr&);
-
-  static auto ImplTable() -> const auto& {
-    static const EngineOpImplTable<ImplFn> kTable = {
-        {OpenPGPEngine::kGNUPG, &SignGnuPGImpl},
-        {OpenPGPEngine::kRPGP, &SignRpgpImpl},
-    };
-    return kTable;
-  }
-
-  static auto Call(GpgContext& ctx, const GpgAbstractKeyPtrList& signers,
-                   const GFBuffer& in_buffer, GpgSignMode mode, bool ascii,
-                   const DataObjectPtr& data_object) -> GpgError {
-    return DispatchByEngine(ctx, ImplTable(), signers, in_buffer, mode, ascii,
-                            data_object);
-  }
-};
-
-template <>
-struct OpTraits<VerifyOpTag> : EmptyOpTraitsBase {
-  static constexpr const char* kOpName = "op_verify";
-
-  using ImplFn = GpgError (*)(GpgContext&, const GFBuffer&, const GFBuffer&,
-                              const DataObjectPtr&);
-
-  static auto ImplTable() -> const auto& {
-    static const EngineOpImplTable<ImplFn> kTable = {
-        {OpenPGPEngine::kGNUPG, &VerifyGnuPGImpl},
-        {OpenPGPEngine::kRPGP, &VerifyRpgpImpl},
-    };
-    return kTable;
-  }
-
-  static auto Call(GpgContext& ctx, const GFBuffer& in_buffer,
-                   const GFBuffer& sig_buffer, const DataObjectPtr& data_object)
-      -> GpgError {
-    return DispatchByEngine(ctx, ImplTable(), in_buffer, sig_buffer,
-                            data_object);
-  }
-};
-
-template <>
-struct OpTraits<EncryptSignOpTag> : EmptyOpTraitsBase {
-  static constexpr const char* kOpName = "op_encrypt_sign";
-
-  using ImplFn = GpgError (*)(GpgContext&, const GpgAbstractKeyPtrList&,
-                              const GpgAbstractKeyPtrList&, const GFBuffer&,
-                              bool, const DataObjectPtr&);
-
-  static auto ImplTable() -> const auto& {
-    static const EngineOpImplTable<ImplFn> kTable = {
-        {OpenPGPEngine::kGNUPG, &EncryptSignGnuPGImpl},
-        {OpenPGPEngine::kRPGP, &EncryptSignRpgpImpl},
-    };
-    return kTable;
-  }
-
-  static auto Call(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                   const GpgAbstractKeyPtrList& signers,
-                   const GFBuffer& in_buffer, bool ascii,
-                   const DataObjectPtr& data_object) -> GpgError {
-    return DispatchByEngine(ctx, ImplTable(), keys, signers, in_buffer, ascii,
-                            data_object);
-  }
-};
-
-template <>
-struct OpTraits<DecryptVerifyOpTag> : EmptyOpTraitsBase {
-  static constexpr const char* kOpName = "op_decrypt_verify";
-
-  using ImplFn = GpgError (*)(GpgContext&, const GFBuffer&,
-                              const DataObjectPtr&);
-
-  static auto ImplTable() -> const auto& {
-    static const EngineOpImplTable<ImplFn> kTable = {
-        {OpenPGPEngine::kGNUPG, &DecryptVerifyGnuPGImpl},
-        {OpenPGPEngine::kRPGP, &DecryptVerifyRpgpImpl},
-    };
-    return kTable;
-  }
-
-  static auto Call(GpgContext& ctx, const GFBuffer& in_buffer,
-                   const DataObjectPtr& data_object) -> GpgError {
-    return DispatchByEngine(ctx, ImplTable(), in_buffer, data_object);
-  }
-};
 }  // namespace GpgFrontend
