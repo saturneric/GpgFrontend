@@ -120,4 +120,5 @@ auto GF_CORE_EXPORT GFSoftwareVersionGreaterThan(const QString &a,
  * @return false
  */
 auto GF_CORE_EXPORT IsCoreEnvInitialized() -> bool;
+
 }  // namespace GpgFrontend
