@@ -29,6 +29,7 @@
 #include "GFEngineSupportIf.h"
 
 #include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 EngineSupportIf::EngineSupportIf()
@@ -52,5 +53,18 @@ auto GpgContextSupportIf(int channel,
                      [=](const EngineSupportIf& cond) -> bool {
                        return cond.IsSupport(GpgContext::GetInstance(channel));
                      });
+}
+
+auto GpgContextSupportIfWithLog(int channel, const QString& log,
+                                const QContainer<EngineSupportIf>& if_cond)
+    -> bool {
+  auto supported = GpgContextSupportIf(channel, if_cond);
+  if (!supported) {
+    auto& ctx = GpgContext::GetInstance(channel);
+    LOG_W() << "engine check failed, channel: " << channel
+            << ", engine: " << ConvertOpenPGPEngine2String(ctx.Engine())
+            << ", version: " << ctx.EngineVersion() << ", message: " << log;
+  }
+  return supported;
 }
 }  // namespace GpgFrontend

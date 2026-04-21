@@ -56,7 +56,7 @@ constexpr const char* PGP_PUBLIC_KEY_BEGIN =
 constexpr const char* PGP_PRIVATE_KEY_BEGIN =
     "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
 
-// MODULE ID
-constexpr const char* kEmailModuleID = "com.bktus.gpgfrontend.module.email";
+constexpr const char* kGpgMinimalSupportVersion =
+    "2.2.0";  ///< minimum required version of GPG
 
 }  // namespace GpgFrontend

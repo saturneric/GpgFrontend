@@ -75,4 +75,40 @@ class GF_CORE_EXPORT EngineSupportIf {
  */
 auto GF_CORE_EXPORT GpgContextSupportIf(
     int channel, const QContainer<EngineSupportIf>& if_cond) -> bool;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param if_cond
+ * @param log_message
+ * @return true
+ * @return false
+ */
+auto GF_CORE_EXPORT GpgContextSupportIfWithLog(
+    int channel, const QString& log, const QContainer<EngineSupportIf>& if_cond)
+    -> bool;
+
+// a helper macro to check engine support in a more convenient way, it will be
+// used in most of the functions that have engine requirements
+#define CTX_SUPPORT_IF(...)                                          \
+  (GpgContextSupportIfWithLog(this->GetChannel(),                    \
+                              (QString("file: %1 func: %2 line: %3") \
+                                   .arg(__FILE__)                    \
+                                   .arg(__FUNCTION__)                \
+                                   .arg(__LINE__)),                  \
+                              __VA_ARGS__))
+
+// a helper macro to check gpg engine support with a specific version
+// requirement in a more convenient way, it will be used in most of the
+// functions that have gpg engine requirements, the version requirement is in
+// format of "x.y.z"
+#define GPG_CTX_SUPPORT_IF(ver) CTX_SUPPORT_IF({{OpenPGPEngine::kGNUPG, (ver)}})
+
+// a helper macro to check if the current gpg engine support the minimum
+// required version, it will be used in most of the functions that have gpg
+// engine  requirements, the minimum required version is defined in
+// GpgConstants.h
+#define GPG_CTX_MIN_SUPPORT() GPG_CTX_SUPPORT_IF(kGpgMinimalSupportVersion)
+
 }  // namespace GpgFrontend
