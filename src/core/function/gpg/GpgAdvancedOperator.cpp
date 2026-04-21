@@ -33,31 +33,45 @@
 #include "GpgAdvancedOperator.h"
 
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "core/model/GFEngineSupportIf.h"
+
 namespace GpgFrontend {
 
 auto GpgAdvancedOperator::ClearGpgPasswordCache() -> bool {
+  if (!GPG_CTX_MIN_SUPPORT()) return false;
+
   return mgr_.ReloadGpgAgent();
 }
 
 auto GpgAdvancedOperator::ReloadAllGpgComponents() -> bool {
+  if (!GPG_CTX_MIN_SUPPORT()) return false;
+
   return mgr_.ReloadGpgAgent();
 }
 
 auto GpgAdvancedOperator::KillAllGpgComponents() -> bool {
+  if (!GPG_CTX_MIN_SUPPORT()) return false;
+
   mgr_.Reset();
   return ctx_.RestartGpgAgent();
 }
 
 auto GpgAdvancedOperator::ResetConfigures() -> bool {
+  if (!GPG_CTX_MIN_SUPPORT()) return false;
+
   return mgr_.ReloadGpgAgent();
 }
 
 auto GpgAdvancedOperator::LaunchAllGpgComponents() -> bool {
+  if (!GPG_CTX_MIN_SUPPORT()) return false;
+
   mgr_.Reset();
   return ctx_.RestartGpgAgent();
 }
 
 auto GpgAdvancedOperator::RestartGpgComponents() -> bool {
+  if (!GPG_CTX_MIN_SUPPORT()) return false;
+
   mgr_.Reset();
   return ctx_.RestartGpgAgent();
 }

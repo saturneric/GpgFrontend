@@ -30,6 +30,7 @@
 #include <qglobal.h>
 
 #include "core/model/DataObject.h"
+#include "core/model/GFEngineSupportIf.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
@@ -310,6 +311,11 @@ void PrepareExecuteAsyncContext(
 
 auto GpgCommandExecutor::GpgExecuteSync(const ExecuteContext &context)
     -> std::tuple<int, QByteArray, QByteArray> {
+  if (!GPG_CTX_MIN_SUPPORT()) {
+    return {-1, "gpg command execution is not supported in current context",
+            ""};
+  }
+
   return PrepareExecuteSyncContext(ctx_,
                                    Module::RetrieveRTValueTypedOrDefault<>(
                                        "core", "gpgme.ctx.app_path", QString{}),
@@ -319,6 +325,11 @@ auto GpgCommandExecutor::GpgExecuteSync(const ExecuteContext &context)
 auto GpgCommandExecutor::GpgConfExecuteSync(const ExecuteContext &context)
 
     -> std::tuple<int, QByteArray, QByteArray> {
+  if (!GPG_CTX_MIN_SUPPORT()) {
+    return {-1, "gpg command execution is not supported in current context",
+            ""};
+  }
+
   return PrepareExecuteSyncContext(
       ctx_,
       Module::RetrieveRTValueTypedOrDefault<>("core", "gpgme.ctx.gpgconf_path",
@@ -327,6 +338,8 @@ auto GpgCommandExecutor::GpgConfExecuteSync(const ExecuteContext &context)
 }
 
 void GpgCommandExecutor::GpgExecuteAsync(const ExecuteContext &context) {
+  if (!GPG_CTX_MIN_SUPPORT()) return;
+
   PrepareExecuteAsyncContext(ctx_,
                              Module::RetrieveRTValueTypedOrDefault<>(
                                  "core", "gpgme.ctx.app_path", QString{}),
@@ -334,6 +347,8 @@ void GpgCommandExecutor::GpgExecuteAsync(const ExecuteContext &context) {
 }
 
 void GpgCommandExecutor::GpgConfExecuteAsync(const ExecuteContext &context) {
+  if (!GPG_CTX_MIN_SUPPORT()) return;
+
   PrepareExecuteAsyncContext(ctx_,
                              Module::RetrieveRTValueTypedOrDefault<>(
                                  "core", "gpgme.ctx.gpgconf_path", QString{}),

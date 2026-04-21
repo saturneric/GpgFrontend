@@ -28,6 +28,7 @@
 
 #include "GpgAssuanHelper.h"
 
+#include "core/model/GFEngineSupportIf.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 
@@ -41,6 +42,8 @@ GpgAssuanHelper::GpgAssuanHelper(int channel)
 GpgAssuanHelper::~GpgAssuanHelper() = default;
 
 auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> GpgError {
+  if (!GPG_CTX_MIN_SUPPORT()) return GPG_ERR_NOT_SUPPORTED;
+
   if (ctx_map_.contains(type)) return GPG_ERR_NO_ERROR;
 
   auto socket_path = ctx_.ComponentDirectory(type);
@@ -110,6 +113,8 @@ auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
                                   DataCallback data_cb,
                                   InqueryCallback inquery_cb,
                                   StatusCallback status_cb) -> GpgError {
+  if (!GPG_CTX_MIN_SUPPORT()) return GPG_ERR_NOT_SUPPORTED;
+
   if (!ctx_map_.contains(type)) {
     LOG_W() << "haven't connect to: " << component_type_to_q_string(type)
             << ", trying to make a connection";
@@ -151,6 +156,8 @@ auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
 auto GpgAssuanHelper::SendStatusCommand(GpgComponentType type,
                                         const QString& command)
     -> std::tuple<GpgError, QStringList> {
+  if (!GPG_CTX_MIN_SUPPORT()) return {GPG_ERR_NOT_SUPPORTED, {}};
+
   GpgAssuanHelper::DataCallback d_cb =
       [&](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)
       -> gpg_error_t {
@@ -184,6 +191,8 @@ auto GpgAssuanHelper::SendStatusCommand(GpgComponentType type,
 auto GpgAssuanHelper::SendDataCommand(GpgComponentType type,
                                       const QString& command)
     -> std::tuple<GpgError, QStringList> {
+  if (!GPG_CTX_MIN_SUPPORT()) return {GPG_ERR_NOT_SUPPORTED, {}};
+
   QStringList lines;
   GpgAssuanHelper::DataCallback d_cb =
       [&](const QSharedPointer<GpgAssuanHelper::AssuanCallbackContext>& ctx)

@@ -28,12 +28,16 @@
 
 #include "GpgComponentManager.h"
 
+#include "core/model/GFEngineSupportIf.h"
+
 namespace GpgFrontend {
 
 GpgComponentManager::GpgComponentManager(int channel)
     : GpgFrontend::SingletonFunctionObject<GpgComponentManager>(channel) {}
 
 auto GpgComponentManager::GetGpgAgentVersion() -> QString {
+  if (!GPG_CTX_MIN_SUPPORT()) return {};
+
   if (!gpg_agent_version_.isEmpty()) return gpg_agent_version_;
 
   auto [r, s] =
@@ -48,6 +52,8 @@ auto GpgComponentManager::GetGpgAgentVersion() -> QString {
 }
 
 auto GpgComponentManager::GetScdaemonVersion() -> QString {
+  if (!GPG_CTX_MIN_SUPPORT()) return {};
+
   if (!scdaemon_version_.isEmpty()) return scdaemon_version_;
 
   auto [r, s] = assuan_.SendDataCommand(GpgComponentType::kGPG_AGENT,
@@ -62,6 +68,8 @@ auto GpgComponentManager::GetScdaemonVersion() -> QString {
 }
 
 auto GpgComponentManager::ReloadGpgAgent() -> bool {
+  if (!GPG_CTX_MIN_SUPPORT()) return false;
+
   auto [r, s] =
       assuan_.SendStatusCommand(GpgComponentType::kGPG_AGENT, "RELOADAGENT");
   if (r != GPG_ERR_NO_ERROR) {
@@ -72,6 +80,8 @@ auto GpgComponentManager::ReloadGpgAgent() -> bool {
 }
 
 auto GpgComponentManager::GpgKillAgent() -> bool {
+  if (!GPG_CTX_MIN_SUPPORT()) return false;
+
   auto [r, s] =
       assuan_.SendStatusCommand(GpgComponentType::kGPG_AGENT, "KILLAGENT");
   if (r != GPG_ERR_NO_ERROR) {

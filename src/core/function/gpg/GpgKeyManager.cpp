@@ -32,6 +32,7 @@
 #include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/rpgp/KeyManagement.h"
+#include "core/model/GFEngineSupportIf.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -377,6 +378,14 @@ auto GpgKeyManager::RevSign(const GpgKeyPtr& key,
 auto GpgKeyManager::SetExpire(const GpgKeyPtr& key,
                               std::unique_ptr<GpgSubKey>& subkey,
                               std::unique_ptr<QDateTime>& expires) -> bool {
+  // check support before doing anything
+  if (!GpgContextSupportIf(GetChannel(), {
+                                             {OpenPGPEngine::kGNUPG, "2.2.0"},
+                                             {OpenPGPEngine::kRPGP, "0.1.0"},
+                                         })) {
+    return {};
+  }
+
   if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
     LOG_W() << "RPGP backend does not support setting expire for now";
     return false;

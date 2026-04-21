@@ -28,6 +28,7 @@
 
 #include "GpgAutomatonHandler.h"
 
+#include "core/model/GFEngineSupportIf.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 
@@ -139,6 +140,8 @@ auto GpgAutomatonHandler::DoInteract(
     const GpgKeyPtr& key, AutomatonNextStateHandler next_state_handler,
     AutomatonActionHandler action_handler, int flags)
     -> std::tuple<GpgError, bool> {
+  if (!GPG_CTX_MIN_SUPPORT()) return {GPG_ERR_NOT_SUPPORTED, false};
+
   assert(key != nullptr);
   if (key == nullptr) return {GPG_ERR_USER_1, false};
 
@@ -150,6 +153,8 @@ auto GpgAutomatonHandler::DoInteract(
 auto GpgAutomatonHandler::DoCardInteract(
     const QString& serial_number, AutomatonNextStateHandler next_state_handler,
     AutomatonActionHandler action_handler) -> std::tuple<GpgError, bool> {
+  if (!GPG_CTX_MIN_SUPPORT()) return {GPG_ERR_NOT_SUPPORTED, false};
+
   return DoInteractImpl(ctx_, nullptr, true, serial_number,
                         std::move(next_state_handler),
                         std::move(action_handler), GPGME_INTERACT_CARD);

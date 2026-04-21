@@ -29,6 +29,7 @@
 #include "GpgSmartCardManager.h"
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
+#include "core/model/GFEngineSupportIf.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 
@@ -38,6 +39,8 @@ GpgSmartCardManager::GpgSmartCardManager(int channel)
     : SingletonFunctionObject<GpgSmartCardManager>(channel) {}
 
 auto GpgSmartCardManager::Fetch(const QString& serial_number) -> GpgError {
+  if (!GPG_CTX_MIN_SUPPORT()) return GPG_ERR_NOT_SUPPORTED;
+
   GpgAutomatonHandler::AutomatonNextStateHandler next_state_handler =
       [=](AutomatonState state, const QString& status, const QString& args) {
         switch (state) {
@@ -90,6 +93,8 @@ auto GpgSmartCardManager::IsSCDVersionSupported() -> bool {
 }
 
 auto GpgSmartCardManager::GetSerialNumbers() -> QStringList {
+  if (!GPG_CTX_MIN_SUPPORT()) return {};
+
   auto [r, s] = assuan_.SendStatusCommand(GpgComponentType::kGPG_AGENT,
                                           "SCD SERIALNO --all");
   if (r != GPG_ERR_NO_ERROR) {
@@ -139,7 +144,14 @@ auto GpgSmartCardManager::GetSerialNumbers() -> QStringList {
 
 auto GpgSmartCardManager::SelectCardBySerialNumber(const QString& serial_number)
     -> std::tuple<GpgError, QString> {
-  if (serial_number.isEmpty()) return {false, "Serial Number is empty."};
+  if (!GPG_CTX_MIN_SUPPORT()) {
+    return {GPG_ERR_NOT_SUPPORTED,
+            "Current context does not support this operation."};
+  }
+
+  if (serial_number.isEmpty()) {
+    return {GPG_ERR_INV_ARG, "Serial Number is empty."};
+  }
 
   auto [err, status] = assuan_.SendStatusCommand(
       GpgComponentType::kGPG_AGENT,
@@ -162,6 +174,8 @@ auto GpgSmartCardManager::SelectCardBySerialNumber(const QString& serial_number)
 
 auto GpgSmartCardManager::FetchCardInfoBySerialNumber(
     const QString& serial_number) -> QSharedPointer<GpgOpenPGPCard> {
+  if (!GPG_CTX_MIN_SUPPORT()) return nullptr;
+
   if (serial_number.trimmed().isEmpty()) return nullptr;
 
   auto [err, status] = assuan_.SendStatusCommand(
@@ -217,6 +231,11 @@ auto PercentDataEscape(const QByteArray& data, bool plus_escape = false,
 
 auto GpgSmartCardManager::ModifyAttr(const QString& attr, const QString& value)
     -> std::tuple<GpgError, QString> {
+  if (!GPG_CTX_MIN_SUPPORT()) {
+    return {GPG_ERR_NOT_SUPPORTED,
+            "Current context does not support this operation."};
+  }
+
   if (attr.trimmed().isEmpty() || value.trimmed().isEmpty()) {
     return {GPG_ERR_INV_ARG, "ATTR or Value is empty"};
   }
@@ -232,6 +251,11 @@ auto GpgSmartCardManager::ModifyAttr(const QString& attr, const QString& value)
 
 auto GpgSmartCardManager::ModifyPin(const QString& pin_ref)
     -> std::tuple<GpgError, QString> {
+  if (!GPG_CTX_MIN_SUPPORT()) {
+    return {GPG_ERR_NOT_SUPPORTED,
+            "Current context does not support this operation."};
+  }
+
   if (pin_ref.trimmed().isEmpty()) {
     return {GPG_ERR_INV_ARG, "PIN Reference is empty"};
   }
@@ -257,6 +281,11 @@ auto GpgSmartCardManager::GenerateKey(const QString& serial_number,
                                       const QString& comment,
                                       const QDateTime& expire, bool non_expire)
     -> std::tuple<GpgError, QString> {
+  if (!GPG_CTX_MIN_SUPPORT()) {
+    return {GPG_ERR_NOT_SUPPORTED,
+            "Current context does not support this operation."};
+  }
+
   if (name.isEmpty() || email.isEmpty()) {
     return {GPG_ERR_INV_ARG, "name or email is empty"};
   }

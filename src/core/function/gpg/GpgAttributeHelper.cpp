@@ -28,6 +28,8 @@
 
 #include "GpgAttributeHelper.h"
 
+#include "core/model/GFEngineSupportIf.h"
+
 namespace {
 auto StripHeader(QVector<GpgFrontend::GpgAttrInfo>& infos) -> void {
   for (auto& a : infos) {
@@ -62,6 +64,8 @@ GpgAttributeHelper::~GpgAttributeHelper() = default;
 
 auto GpgAttributeHelper::GetAttributes(const QString& key_id)
     -> QContainer<GpgAttrInfo> {
+  if (!GPG_CTX_MIN_SUPPORT()) return {};
+
   auto [exit_code, out, err] = gce_.GpgExecuteSync({{},
                                                     {
                                                         "--batch",
