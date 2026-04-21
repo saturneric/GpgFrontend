@@ -236,14 +236,19 @@ class GlobalSettingStation::Impl {
 
   auto GetAppSecureKeyDir() -> QString { return app_secure_path(); }
 
-  auto SupportedOpenPPGEngines() -> QContainer<OpenPGPEngine> {
-    return supported_engines_;
+  auto IsEngineSupported(OpenPGPEngine engine) -> bool {
+    return supported_engines_.contains(engine);
   }
 
-  auto SetSupportedOpenPPGEngines(const QContainer<OpenPGPEngine>& engines)
-      -> void {
-    supported_engines_ = engines;
+  auto AddSupportedOpenPPGEngine(OpenPGPEngine engine) -> void {
+    supported_engines_.insert(engine);
   }
+
+  auto RemoveSupportedOpenPPGEngine(OpenPGPEngine engine) -> void {
+    supported_engines_.remove(engine);
+  }
+
+  auto HasSupportedEngine() -> bool { return !supported_engines_.empty(); }
 
  private:
   [[nodiscard]] auto app_config_file_path() const -> QString {
@@ -281,7 +286,7 @@ class GlobalSettingStation::Impl {
   QMap<GFBuffer, GFBuffer> app_secure_keys_;
   GFBuffer active_key_id_;
   GFBuffer legacy_key_id_;
-  QContainer<OpenPGPEngine> supported_engines_;
+  QSet<OpenPGPEngine> supported_engines_;
 };
 
 GlobalSettingStation::GlobalSettingStation(int channel) noexcept
@@ -335,9 +340,6 @@ auto GlobalSettingStation::GetIntegratedModulePath() const -> QString {
 auto GlobalSettingStation::IsProtableMode() const -> bool {
   return p_->IsProtableMode();
 }
-auto GetSettings() -> QSettings {
-  return GlobalSettingStation::GetInstance().GetSettings();
-}
 
 auto GlobalSettingStation::GetAppSecureKey(const GFBuffer& id) -> GFBuffer {
   return p_->GetAppSecureKey(id);
@@ -355,14 +357,17 @@ void GlobalSettingStation::AppendAppSecureKeys(
     const QMap<GFBuffer, GFBuffer>& keys) {
   p_->AppendAppSecureKeys(keys);
 }
-auto GlobalSettingStation::SupportedOpenPPGEngines()
-    -> QContainer<OpenPGPEngine> {
-  return p_->SupportedOpenPPGEngines();
+
+auto GlobalSettingStation::IsEngineSupported(OpenPGPEngine engine) -> bool {
+  return p_->IsEngineSupported(engine);
 }
 
-auto GlobalSettingStation::SetSupportedOpenPPGEngines(
-    const QContainer<OpenPGPEngine>& engines) -> void {
-  p_->SetSupportedOpenPPGEngines(engines);
+auto GlobalSettingStation::AddSupportedEngine(OpenPGPEngine engine) -> void {
+  p_->AddSupportedOpenPPGEngine(engine);
+}
+
+auto GlobalSettingStation::RemoveSupportedEngine(OpenPGPEngine engine) -> void {
+  p_->RemoveSupportedOpenPPGEngine(engine);
 }
 
 auto GlobalSettingStation::GetLegacyAppSecureKeyPath() -> QString {
@@ -392,4 +397,15 @@ void GlobalSettingStation::SetLegacyKeyId(const GFBuffer& id) {
 auto GlobalSettingStation::GetLegacyAppSecureKey() -> GFBuffer {
   return p_->GetLegacyKey();
 }
+
+auto GlobalSettingStation::HasSupportedEngine() -> bool {
+  return p_->HasSupportedEngine();
+}
+
+auto GetGSS() -> GlobalSettingStation& {
+  return GlobalSettingStation::GetInstance();
+}
+
+auto GetSettings() -> QSettings { return GetGSS().GetSettings(); }
+
 }  // namespace GpgFrontend

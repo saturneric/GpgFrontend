@@ -476,11 +476,9 @@ auto InitGnuPGEnv() -> bool {
 }
 
 auto InitGpgFrontendCore(CoreInitArgs args) -> int {
-  QContainer<OpenPGPEngine> supported_engines;
-
   // check gpgme env
   if (InitGnuPGEnv()) {
-    supported_engines.push_back(OpenPGPEngine::kGNUPG);
+    GetGSS().AddSupportedEngine(OpenPGPEngine::kGNUPG);
   }
 
   // check rpgp env, actually rpgp is always integrated and supported, but
@@ -491,7 +489,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     LOG_I() << "Rust support detected, rPGP engine is available.";
     LOG_I() << "rPGP engine version: " << RustEngineVersion();
 
-    supported_engines.push_back(OpenPGPEngine::kRPGP);
+    GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
   }
 
   // decide gpgconf, gnupg and default home path
@@ -505,7 +503,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   }
 
   // refresh gpgme backend engine, if gnupg is supported
-  if (supported_engines.contains(OpenPGPEngine::kGNUPG)) {
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.ctx.gpgconf_path", QString{});
     auto gnupg_path = Module::RetrieveRTValueTypedOrDefault<>(
@@ -517,16 +515,12 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
       LOG_E()
           << "Oops, Refresh GpgME Backend Engine failed!"
           << "But don't worry, GpgFrontend will use rPGP engine as fallback.";
-      supported_engines.removeAll(OpenPGPEngine::kGNUPG);
+      GetGSS().RemoveSupportedEngine(OpenPGPEngine::kGNUPG);
     }
   }
 
-  // update supported engines to global setting station
-  GlobalSettingStation::GetInstance().SetSupportedOpenPPGEngines(
-      supported_engines);
-
   // rarely happens, but just in case
-  if (supported_engines.empty()) {
+  if (!GetGSS().HasSupportedEngine()) {
     LOG_E()
         << "No supported OpenPGP engine detected, GpgFrontend cannot start!";
     Module::UpsertRTValue("core", "env.state.openpgp_engine", -1);
@@ -584,7 +578,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
                 << "default key db path:" << args.db_path;
 
         // default to gnupg backend if possible, or fallback to rpgp backend
-        if (supported_engines.contains(OpenPGPEngine::kGNUPG)) {
+        if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
           args.engine = OpenPGPEngine::kGNUPG;
           LOG_I() << "gnupg backend is supported, use gnupg backend as default";
         } else {
@@ -637,7 +631,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
                                    : OpenPGPEngine::kGNUPG;
 
           if (key_db_engine == OpenPGPEngine::kGNUPG &&
-              !supported_engines.contains(OpenPGPEngine::kGNUPG)) {
+              !GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
             LOG_W() << "gnupg backend is not supported, skip key db:"
                     << key_db.name;
             continue;

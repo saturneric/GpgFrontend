@@ -256,9 +256,6 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
     LOG_D() << "got default key database path from context: " << home_path;
     assert(!home_path.isEmpty());
 
-    auto supported_engines =
-        GlobalSettingStation::GetInstance().SupportedOpenPPGEngines();
-
     if (home_path.isEmpty()) {
       LOG_E() << "failed to get default key database path from gpgme context, "
                  "fallback to default app data path";
@@ -269,9 +266,7 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
 
       // since we cannot get default key database path from gpgme context, it's
       // likely that gpgme is not working properly, we should fallback to rpgp
-      supported_engines = {OpenPGPEngine::kRPGP};
-      GlobalSettingStation::GetInstance().SetSupportedOpenPPGEngines(
-          supported_engines);
+      GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
     }
 
     key_db.channel = 0;
@@ -280,7 +275,7 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
     // default to gnupg backend if possible if gnupg backend is not supported,
     // fallback to rpgp backend, and set the default key database path to rpgp
     // default path
-    if (supported_engines.contains(OpenPGPEngine::kGNUPG)) {
+    if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
       key_db.backend_type = "gnupg";
       LOG_I() << "gnupg backend is supported, use gnupg backend as default";
     } else {
@@ -551,7 +546,7 @@ auto GF_CORE_EXPORT DecidePinentry() -> QString {
 
 auto GnuPGVersion() -> QString {
   auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.gnupg_version", QString{});
+      "core", "gpgme.ctx.gnupg_version", QString{"0.0.0"});
   return gnupg_version;
 }
 
@@ -588,5 +583,4 @@ auto ConvertOpenPGPEngine2String(OpenPGPEngine type) -> QString {
       return "Unknown";
   }
 }
-
 }  // namespace GpgFrontend

@@ -228,23 +228,51 @@ class GF_CORE_EXPORT GlobalSettingStation
   /**
    * @brief
    *
-   * @return QContainer<OpenPGPEngine>
+   * @param engine
+   * @return true
+   * @return false
    */
-  auto SupportedOpenPPGEngines() -> QContainer<OpenPGPEngine>;
+  auto IsEngineSupported(OpenPGPEngine engine) -> bool;
 
   /**
    * @brief Set the Supported Open P P G Engine object
    *
    * @param engines
    */
-  auto SetSupportedOpenPPGEngines(const QContainer<OpenPGPEngine>& engines)
-      -> void;
+  auto AddSupportedEngine(OpenPGPEngine engine) -> void;
+
+  /**
+   * @brief
+   *
+   * @param engine
+   */
+  auto RemoveSupportedEngine(OpenPGPEngine engine) -> void;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto HasSupportedEngine() -> bool;
 
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;
 };
 
+/**
+ * @brief
+ *
+ * @return GlobalSettingStation&
+ */
+auto GF_CORE_EXPORT GetGSS() -> GlobalSettingStation&;
+
+/**
+ * @brief
+ *
+ * @return QSettings
+ */
 auto GF_CORE_EXPORT GetSettings() -> QSettings;
 
 }  // namespace GpgFrontend
