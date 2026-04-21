@@ -27,8 +27,8 @@
  */
 
 #include "GpgCoreTest.h"
-#include "core/function/gpg/GpgFileOpera.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgFileOpera.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
