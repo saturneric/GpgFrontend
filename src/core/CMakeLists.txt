@@ -27,6 +27,7 @@
 aux_source_directory(./function/result_analyse CORE_SOURCE)
 aux_source_directory(./function/basic CORE_SOURCE)
 aux_source_directory(./function/gpg CORE_SOURCE)
+aux_source_directory(./function/openpgp CORE_SOURCE)
 aux_source_directory(./function/secure_memory CORE_SOURCE)
 aux_source_directory(./function/rpgp CORE_SOURCE)
 aux_source_directory(./function CORE_SOURCE)

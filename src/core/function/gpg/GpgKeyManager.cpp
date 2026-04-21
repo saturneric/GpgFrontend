@@ -28,9 +28,10 @@
 
 #include "GpgKeyManager.h"
 
+#include "core/function/gpg/BasicCryptoOpera.h"
 #include "core/function/gpg/GpgAutomatonHandler.h"
-#include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgBasicOperator.h"
 #include "core/function/rpgp/KeyManagement.h"
 #include "core/model/GFEngineSupportIf.h"
 #include "core/utils/GpgUtils.h"
@@ -336,7 +337,7 @@ auto GpgKeyManager::SignKey(const GpgKeyPtr& key,
     return false;
   }
 
-  GpgBasicOperator::GetInstance(GetChannel()).SetSigners(keys, true);
+  SetSignersGnuPGImpl(ctx_, keys, true);
 
   unsigned int flags = 0;
   unsigned int expires_time_t = 0;

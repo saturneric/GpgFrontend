@@ -36,8 +36,6 @@ GpgComponentManager::GpgComponentManager(int channel)
     : GpgFrontend::SingletonFunctionObject<GpgComponentManager>(channel) {}
 
 auto GpgComponentManager::GetGpgAgentVersion() -> QString {
-  if (!GPG_CTX_MIN_SUPPORT()) return {};
-
   if (!gpg_agent_version_.isEmpty()) return gpg_agent_version_;
 
   auto [r, s] =
@@ -53,7 +51,6 @@ auto GpgComponentManager::GetGpgAgentVersion() -> QString {
 
 auto GpgComponentManager::GetScdaemonVersion() -> QString {
   if (!GPG_CTX_MIN_SUPPORT()) return {};
-
   if (!scdaemon_version_.isEmpty()) return scdaemon_version_;
 
   auto [r, s] = assuan_.SendDataCommand(GpgComponentType::kGPG_AGENT,

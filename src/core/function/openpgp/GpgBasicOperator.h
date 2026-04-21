@@ -215,21 +215,6 @@ class GF_CORE_EXPORT GpgBasicOperator
                 GpgSignMode mode, bool ascii)
       -> std::tuple<GpgError, DataObjectPtr>;
 
-  /**
-   * @brief  Set the private key for signatures, this operation is a global
-   * operation.
-   *
-   * @param keys
-   */
-  void SetSigners(const GpgAbstractKeyPtrList& signers, bool ascii);
-
-  /**
-   * @brief Get a global signature private keys that has been set.
-   *
-   * @return Intelligent pointer pointing to the private key list
-   */
-  auto GetSigners(bool ascii) -> KeyArgsList;
-
  private:
   GpgContext& ctx_ = GpgContext::GetInstance(
       SingletonFunctionObject::GetChannel());  ///< Corresponding context

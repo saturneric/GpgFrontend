@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "core/GpgFrontendCore.h"
 #include "core/model/GFEngineSupportIf.h"
 #include "core/thread/Task.h"
 #include "core/typedef/CoreTypedef.h"
@@ -87,4 +86,5 @@ auto GF_CORE_EXPORT RunOperaAsync(const OperaRunnable& runnable,
                                   const OperationCallback& callback,
                                   const QString& operation)
     -> Thread::Task::TaskHandler;
+
 }  // namespace GpgFrontend

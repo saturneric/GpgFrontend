@@ -28,7 +28,8 @@
 #include "GpgFileOpera.h"
 
 #include "core/function/ArchiveFileOperator.h"
-#include "core/function/gpg/GpgBasicOperator.h"
+#include "core/function/gpg/BasicCryptoOpera.h"
+#include "core/function/openpgp/GpgBasicOperator.h"
 #include "core/function/rpgp/FileCryptoOpera.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
@@ -139,7 +140,7 @@ auto SignFileGpgDataImpl(GpgContext& ctx_, GpgBasicOperator& basic_opera_,
   GpgError err;
 
   // Set Singers of this opera
-  basic_opera_.SetSigners(keys, ascii);
+  SetSignersGnuPGImpl(ctx_, keys, ascii);
 
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
   err = CheckGpgError(
@@ -194,7 +195,7 @@ auto EncryptSignFileGpgDataImpl(GpgContext& ctx_,
   GpgError err;
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
 
-  basic_opera_.SetSigners(signer_keys, ascii);
+  SetSignersGnuPGImpl(ctx_, signer_keys, ascii);
 
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
   err = CheckGpgError(gpgme_op_encrypt_sign(

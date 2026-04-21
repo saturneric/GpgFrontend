@@ -32,9 +32,9 @@
 #include <cstring>
 
 #include "GFSDKBasic.h"
-#include "core/function/gpg/GpgBasicOperator.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/function/openpgp/GpgBasicOperator.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
