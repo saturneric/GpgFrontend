@@ -30,7 +30,6 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/openpgp/GpgBasicOperator.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -129,17 +128,6 @@ class GF_CORE_EXPORT GpgFileOpera
   void EncryptDirectorySymmetric(const QString& in_path, bool ascii,
                                  const QString& out_path,
                                  const GpgOperationCallback& cb);
-
-  /**
-   * @brief
-   *
-   * @param in_path
-   * @param ascii
-   * @param out_path
-   */
-  auto EncryptDirectorySymmetricSync(const QString& in_path, bool ascii,
-                                     const QString& out_path)
-      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief
@@ -302,9 +290,6 @@ class GF_CORE_EXPORT GpgFileOpera
  private:
   GpgContext& ctx_ = GpgContext::GetInstance(
       SingletonFunctionObject::GetChannel());  ///< Corresponding context
-
-  GpgBasicOperator& basic_opera_ =
-      GpgBasicOperator::GetInstance(SingletonFunctionObject::GetChannel());
 };
 
 }  // namespace GpgFrontend

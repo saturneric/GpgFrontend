@@ -28,13 +28,8 @@
 
 #include "GpgBasicOperator.h"
 
-#include <gpg-error.h>
-
-#include "core/function/gpg/BasicCryptoOpera.h"
 #include "core/function/openpgp/Async.h"
-#include "core/function/openpgp/BasicOperaTraits.h"
-#include "core/function/rpgp/BasicCryptoOpera.h"
-#include "core/utils/AsyncUtils.h"
+#include "core/function/openpgp/BasicCryptoOperaTraits.h"
 
 namespace GpgFrontend {
 
@@ -44,93 +39,85 @@ GpgBasicOperator::GpgBasicOperator(int channel)
 void GpgBasicOperator::Encrypt(const GpgAbstractKeyPtrList& keys,
                                const GFBuffer& in_buffer, bool ascii,
                                const GpgOperationCallback& cb) {
-  RunRegisteredAsync<EncryptOpTag>(GetChannel(), ctx_, cb, keys, in_buffer,
-                                   ascii);
+  RunRegisteredAsync<EncryptOpTag>(ctx_, cb, keys, in_buffer, ascii);
 }
 
 auto GpgBasicOperator::EncryptSync(const GpgAbstractKeyPtrList& keys,
                                    const GFBuffer& in_buffer, bool ascii)
     -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<EncryptOpTag>(GetChannel(), ctx_, keys, in_buffer,
-                                         ascii);
+  return RunRegisteredSync<EncryptOpTag>(ctx_, keys, in_buffer, ascii);
 }
 
 void GpgBasicOperator::EncryptSymmetric(const GFBuffer& in_buffer, bool ascii,
                                         const GpgOperationCallback& cb) {
-  RunRegisteredAsync<EncryptSymmetricOpTag>(GetChannel(), ctx_, cb, in_buffer,
-                                            ascii);
+  RunRegisteredAsync<EncryptSymmetricOpTag>(ctx_, cb, in_buffer, ascii);
 }
 
 auto GpgBasicOperator::EncryptSymmetricSync(const GFBuffer& in_buffer,
                                             bool ascii)
     -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<EncryptSymmetricOpTag>(GetChannel(), ctx_, in_buffer,
-                                                  ascii);
+  return RunRegisteredSync<EncryptSymmetricOpTag>(ctx_, in_buffer, ascii);
 }
 
 void GpgBasicOperator::Decrypt(const GFBuffer& in_buffer,
                                const GpgOperationCallback& cb) {
-  RunRegisteredAsync<DecryptOpTag>(GetChannel(), ctx_, cb, in_buffer);
+  RunRegisteredAsync<DecryptOpTag>(ctx_, cb, in_buffer);
 }
 
 auto GpgBasicOperator::DecryptSync(const GFBuffer& in_buffer)
     -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<DecryptOpTag>(GetChannel(), ctx_, in_buffer);
+  return RunRegisteredSync<DecryptOpTag>(ctx_, in_buffer);
 }
 
 void GpgBasicOperator::Verify(const GFBuffer& in_buffer,
                               const GFBuffer& sig_buffer,
                               const GpgOperationCallback& cb) {
-  RunRegisteredAsync<VerifyOpTag>(GetChannel(), ctx_, cb, in_buffer,
-                                  sig_buffer);
+  RunRegisteredAsync<VerifyOpTag>(ctx_, cb, in_buffer, sig_buffer);
 }
 
 auto GpgBasicOperator::VerifySync(const GFBuffer& in_buffer,
                                   const GFBuffer& sig_buffer)
     -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<VerifyOpTag>(GetChannel(), ctx_, in_buffer,
-                                        sig_buffer);
+  return RunRegisteredSync<VerifyOpTag>(ctx_, in_buffer, sig_buffer);
 }
 
 void GpgBasicOperator::Sign(const GpgAbstractKeyPtrList& signers,
                             const GFBuffer& in_buffer, GpgSignMode mode,
                             bool ascii, const GpgOperationCallback& cb) {
-  RunRegisteredAsync<SignOpTag>(GetChannel(), ctx_, cb, signers, in_buffer,
-                                mode, ascii);
+  RunRegisteredAsync<SignOpTag>(ctx_, cb, signers, in_buffer, mode, ascii);
 }
 
 auto GpgBasicOperator::SignSync(const GpgAbstractKeyPtrList& signers,
                                 const GFBuffer& in_buffer, GpgSignMode mode,
                                 bool ascii)
     -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<SignOpTag>(GetChannel(), ctx_, signers, in_buffer,
-                                      mode, ascii);
+  return RunRegisteredSync<SignOpTag>(ctx_, signers, in_buffer, mode, ascii);
 }
 
 void GpgBasicOperator::DecryptVerify(const GFBuffer& in_buffer,
                                      const GpgOperationCallback& cb) {
-  RunRegisteredAsync<DecryptVerifyOpTag>(GetChannel(), ctx_, cb, in_buffer);
+  RunRegisteredAsync<DecryptVerifyOpTag>(ctx_, cb, in_buffer);
 }
 
 auto GpgBasicOperator::DecryptVerifySync(const GFBuffer& in_buffer)
     -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<DecryptVerifyOpTag>(GetChannel(), ctx_, in_buffer);
+  return RunRegisteredSync<DecryptVerifyOpTag>(ctx_, in_buffer);
 }
 
 void GpgBasicOperator::EncryptSign(const GpgAbstractKeyPtrList& keys,
                                    const GpgAbstractKeyPtrList& signers,
                                    const GFBuffer& in_buffer, bool ascii,
                                    const GpgOperationCallback& cb) {
-  RunRegisteredAsync<EncryptSignOpTag>(GetChannel(), ctx_, cb, keys, signers,
-                                       in_buffer, ascii);
+  RunRegisteredAsync<EncryptSignOpTag>(ctx_, cb, keys, signers, in_buffer,
+                                       ascii);
 }
 
 auto GpgBasicOperator::EncryptSignSync(const GpgAbstractKeyPtrList& keys,
                                        const GpgAbstractKeyPtrList& signers,
                                        const GFBuffer& in_buffer, bool ascii)
     -> std::tuple<GpgError, DataObjectPtr> {
-  return RunRegisteredSync<EncryptSignOpTag>(GetChannel(), ctx_, keys, signers,
-                                             in_buffer, ascii);
+  return RunRegisteredSync<EncryptSignOpTag>(ctx_, keys, signers, in_buffer,
+                                             ascii);
 }
 
 }  // namespace GpgFrontend

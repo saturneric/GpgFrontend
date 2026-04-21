@@ -38,6 +38,9 @@ struct OpTraits;
 template <typename ImplFn>
 using EngineOpImpl = QPair<OpenPGPEngine, ImplFn>;
 
+template <typename ImplFn>
+using EngineOpImplTable = QContainer<EngineOpImpl<ImplFn>>;
+
 template <typename Derived>
 struct OpTraitsBase {
   static auto Versions() -> const auto& {
@@ -48,6 +51,10 @@ struct OpTraitsBase {
     return kVersions;
   }
 };
+
+struct EmptyOpTag {};
+using EmptyOpTraits = OpTraits<EmptyOpTag>;
+using EmptyOpTraitsBase = OpTraitsBase<EmptyOpTraits>;
 
 template <typename Table, typename... Args>
 auto DispatchByEngine(GpgContext& ctx, const Table& table, Args&&... args)
@@ -60,5 +67,27 @@ auto DispatchByEngine(GpgContext& ctx, const Table& table, Args&&... args)
   }
   return GPG_ERR_NOT_SUPPORTED;
 }
+
+template <typename Derived, typename Fn>
+struct DispatchOpTraitsBase;
+
+template <typename Derived, typename R, typename... Args>
+struct DispatchOpTraitsBase<Derived, R (*)(GpgContext&, Args...)>
+    : EmptyOpTraitsBase {
+  static auto Call(GpgContext& ctx, Args... args) -> R {
+    return DispatchByEngine(ctx, Derived::ImplTable(), args...);
+  }
+};
+
+#define DEFINE_OP_TRAITS(TAG, OPNAME, FN_TYPE, TABLE_INIT)               \
+  template <>                                                            \
+  struct OpTraits<TAG> : DispatchOpTraitsBase<OpTraits<TAG>, FN_TYPE> {  \
+    static constexpr const char* kOpName = OPNAME;                       \
+    using ImplFn = FN_TYPE;                                              \
+    static auto ImplTable() -> const QContainer<EngineOpImpl<ImplFn>>& { \
+      static const QContainer<EngineOpImpl<ImplFn>> kTable = TABLE_INIT; \
+      return kTable;                                                     \
+    }                                                                    \
+  };
 
 }  // namespace GpgFrontend

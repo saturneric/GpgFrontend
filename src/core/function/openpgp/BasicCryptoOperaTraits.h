@@ -36,6 +36,7 @@
 
 namespace GpgFrontend {
 
+// Basic Crypto Operations
 struct EncryptOpTag {};
 struct EncryptSymmetricOpTag {};
 struct DecryptOpTag {};
@@ -45,14 +46,14 @@ struct DecryptVerifyOpTag {};
 struct EncryptSignOpTag {};
 
 template <>
-struct OpTraits<EncryptOpTag> : OpTraitsBase<OpTraits<EncryptOpTag>> {
+struct OpTraits<EncryptOpTag> : EmptyOpTraitsBase {
   static constexpr const char* kOpName = "op_encrypt";
 
   using ImplFn = GpgError (*)(GpgContext&, const GpgAbstractKeyPtrList&,
                               const GFBuffer&, bool, const DataObjectPtr&);
 
   static auto ImplTable() -> const auto& {
-    static const QContainer<EngineOpImpl<ImplFn>> kTable = {
+    static const EngineOpImplTable<ImplFn> kTable = {
         {OpenPGPEngine::kGNUPG, &EncryptGnuPGImpl},
         {OpenPGPEngine::kRPGP, &EncryptRpgpImpl},
     };
@@ -68,15 +69,14 @@ struct OpTraits<EncryptOpTag> : OpTraitsBase<OpTraits<EncryptOpTag>> {
 };
 
 template <>
-struct OpTraits<EncryptSymmetricOpTag>
-    : OpTraitsBase<OpTraits<EncryptSymmetricOpTag>> {
+struct OpTraits<EncryptSymmetricOpTag> : EmptyOpTraitsBase {
   static constexpr const char* kOpName = "op_encrypt_symmetric";
 
   using ImplFn = GpgError (*)(GpgContext&, const GFBuffer&, bool,
                               const DataObjectPtr&);
 
   static auto ImplTable() -> const auto& {
-    static const QContainer<EngineOpImpl<ImplFn>> kTable = {
+    static const EngineOpImplTable<ImplFn> kTable = {
         {OpenPGPEngine::kGNUPG, &EncryptSymmetricGnuPGImpl},
         {OpenPGPEngine::kRPGP, &EncryptSymmetricRpgpImpl},
     };
@@ -90,14 +90,14 @@ struct OpTraits<EncryptSymmetricOpTag>
 };
 
 template <>
-struct OpTraits<DecryptOpTag> : OpTraitsBase<OpTraits<DecryptOpTag>> {
+struct OpTraits<DecryptOpTag> : EmptyOpTraitsBase {
   static constexpr const char* kOpName = "op_decrypt";
 
   using ImplFn = GpgError (*)(GpgContext&, const GFBuffer&,
                               const DataObjectPtr&);
 
   static auto ImplTable() -> const auto& {
-    static const QContainer<EngineOpImpl<ImplFn>> kTable = {
+    static const EngineOpImplTable<ImplFn> kTable = {
         {OpenPGPEngine::kGNUPG, &DecryptGnuPGImpl},
         {OpenPGPEngine::kRPGP, &DecryptRpgpImpl},
     };
@@ -111,7 +111,7 @@ struct OpTraits<DecryptOpTag> : OpTraitsBase<OpTraits<DecryptOpTag>> {
 };
 
 template <>
-struct OpTraits<SignOpTag> : OpTraitsBase<OpTraits<SignOpTag>> {
+struct OpTraits<SignOpTag> : EmptyOpTraitsBase {
   static constexpr const char* kOpName = "op_sign";
 
   using ImplFn = GpgError (*)(GpgContext&, const GpgAbstractKeyPtrList&,
@@ -119,7 +119,7 @@ struct OpTraits<SignOpTag> : OpTraitsBase<OpTraits<SignOpTag>> {
                               const DataObjectPtr&);
 
   static auto ImplTable() -> const auto& {
-    static const QContainer<EngineOpImpl<ImplFn>> kTable = {
+    static const EngineOpImplTable<ImplFn> kTable = {
         {OpenPGPEngine::kGNUPG, &SignGnuPGImpl},
         {OpenPGPEngine::kRPGP, &SignRpgpImpl},
     };
@@ -135,14 +135,14 @@ struct OpTraits<SignOpTag> : OpTraitsBase<OpTraits<SignOpTag>> {
 };
 
 template <>
-struct OpTraits<VerifyOpTag> : OpTraitsBase<OpTraits<VerifyOpTag>> {
+struct OpTraits<VerifyOpTag> : EmptyOpTraitsBase {
   static constexpr const char* kOpName = "op_verify";
 
   using ImplFn = GpgError (*)(GpgContext&, const GFBuffer&, const GFBuffer&,
                               const DataObjectPtr&);
 
   static auto ImplTable() -> const auto& {
-    static const QContainer<EngineOpImpl<ImplFn>> kTable = {
+    static const EngineOpImplTable<ImplFn> kTable = {
         {OpenPGPEngine::kGNUPG, &VerifyGnuPGImpl},
         {OpenPGPEngine::kRPGP, &VerifyRpgpImpl},
     };
@@ -158,7 +158,7 @@ struct OpTraits<VerifyOpTag> : OpTraitsBase<OpTraits<VerifyOpTag>> {
 };
 
 template <>
-struct OpTraits<EncryptSignOpTag> : OpTraitsBase<OpTraits<EncryptSignOpTag>> {
+struct OpTraits<EncryptSignOpTag> : EmptyOpTraitsBase {
   static constexpr const char* kOpName = "op_encrypt_sign";
 
   using ImplFn = GpgError (*)(GpgContext&, const GpgAbstractKeyPtrList&,
@@ -166,7 +166,7 @@ struct OpTraits<EncryptSignOpTag> : OpTraitsBase<OpTraits<EncryptSignOpTag>> {
                               bool, const DataObjectPtr&);
 
   static auto ImplTable() -> const auto& {
-    static const QContainer<EngineOpImpl<ImplFn>> kTable = {
+    static const EngineOpImplTable<ImplFn> kTable = {
         {OpenPGPEngine::kGNUPG, &EncryptSignGnuPGImpl},
         {OpenPGPEngine::kRPGP, &EncryptSignRpgpImpl},
     };
@@ -183,15 +183,14 @@ struct OpTraits<EncryptSignOpTag> : OpTraitsBase<OpTraits<EncryptSignOpTag>> {
 };
 
 template <>
-struct OpTraits<DecryptVerifyOpTag>
-    : OpTraitsBase<OpTraits<DecryptVerifyOpTag>> {
+struct OpTraits<DecryptVerifyOpTag> : EmptyOpTraitsBase {
   static constexpr const char* kOpName = "op_decrypt_verify";
 
   using ImplFn = GpgError (*)(GpgContext&, const GFBuffer&,
                               const DataObjectPtr&);
 
   static auto ImplTable() -> const auto& {
-    static const QContainer<EngineOpImpl<ImplFn>> kTable = {
+    static const EngineOpImplTable<ImplFn> kTable = {
         {OpenPGPEngine::kGNUPG, &DecryptVerifyGnuPGImpl},
         {OpenPGPEngine::kRPGP, &DecryptVerifyRpgpImpl},
     };
