@@ -121,22 +121,24 @@ void MainWindow::Init() noexcept {
             &MainWindow::SlotOpenFile);
 
 #ifndef Q_OS_WINDOWS
-    connect(this, &MainWindow::SignalLoaded, this, [=]() {
-      QTimer::singleShot(3000, [self = QPointer<MainWindow>(this)]() {
-        if (self && DecidePinentry().isEmpty()) {
-          QMessageBox::warning(
-              self, tr("GUI Pinentry Not Found"),
-              tr("No suitable *graphical* Pinentry program was found on your "
-                 "system.\n\n"
-                 "Please install a GUI-based Pinentry (e.g., 'pinentry-qt', "
-                 "'pinentry-gnome3', or 'pinentry-mac' on macOS).\n\n"
-                 "Without a GUI Pinentry, GnuPG cannot prompt you for "
-                 "passwords or passphrases.\n\n"
-                 "After installing it, please restart GpgFrontend. The "
-                 "configuration file will be updated automatically."));
-        }
+    if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+      connect(this, &MainWindow::SignalLoaded, this, [=]() {
+        QTimer::singleShot(3000, [self = QPointer<MainWindow>(this)]() -> void {
+          if (self && DecidePinentry().isEmpty()) {
+            QMessageBox::warning(
+                self, tr("GUI Pinentry Not Found"),
+                tr("No suitable *graphical* Pinentry program was found on your "
+                   "system.\n\n"
+                   "Please install a GUI-based Pinentry (e.g., 'pinentry-qt', "
+                   "'pinentry-gnome3', or 'pinentry-mac' on macOS).\n\n"
+                   "Without a GUI Pinentry, GnuPG cannot prompt you for "
+                   "passwords or passphrases.\n\n"
+                   "After installing it, please restart GpgFrontend. The "
+                   "configuration file will be updated automatically."));
+          }
+        });
       });
-    });
+    }
 #endif
 
     popup_menu_ = new QMenu(this);
