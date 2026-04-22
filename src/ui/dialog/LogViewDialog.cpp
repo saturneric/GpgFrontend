@@ -176,7 +176,12 @@ void LogViewDialog::slot_save_to_file() {
   }
 
   QTextStream out(&file);
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   out.setEncoding(QStringConverter::Utf8);
+#else
+  out.setCodec(QTextCodec::codecForName("UTF-8"));
+#endif
   out << log_text_edit_->toPlainText();
 
   if (!file.commit()) {
