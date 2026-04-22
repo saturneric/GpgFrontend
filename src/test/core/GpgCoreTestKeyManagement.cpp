@@ -29,7 +29,6 @@
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/gpg/GpgKeyManager.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/model/GpgImportInformation.h"
@@ -125,7 +124,8 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
   ASSERT_EQ(s_key.size(), 5);
   ASSERT_EQ(s_key[2].ID(), "2D1F9FC59B568A8C");
 
-  ASSERT_WITHIN(GpgKeyManager::GetInstance().DeleteSubkey(key, 2), 3000);
+  ASSERT_WITHIN(KeyManagementOperation::GetInstance().DeleteSubkey(key, 2),
+                3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -151,7 +151,8 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
                  .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
 
-  ASSERT_WITHIN(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 1), 3000);
+  ASSERT_WITHIN(
+      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 1), 3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -161,7 +162,8 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
   // why?
   ASSERT_EQ(key->OwnerTrustLevel(), 0);
 
-  ASSERT_WITHIN(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 2), 3000);
+  ASSERT_WITHIN(
+      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 2), 3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -170,7 +172,8 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 
   ASSERT_EQ(key->OwnerTrustLevel(), 2);
 
-  ASSERT_WITHIN(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 3), 3000);
+  ASSERT_WITHIN(
+      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 3), 3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -179,7 +182,8 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 
   ASSERT_EQ(key->OwnerTrustLevel(), 3);
 
-  ASSERT_WITHIN(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 4), 3000);
+  ASSERT_WITHIN(
+      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 4), 3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -188,7 +192,8 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 
   ASSERT_EQ(key->OwnerTrustLevel(), 4);
 
-  ASSERT_WITHIN(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 5), 3000);
+  ASSERT_WITHIN(
+      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 5), 3000);
 
   GpgKeyGetter::GetInstance().FlushKeyCache();
   key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
@@ -197,10 +202,13 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 
   ASSERT_EQ(key->OwnerTrustLevel(), 5);
 
-  ASSERT_FALSE(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 0));
+  ASSERT_FALSE(
+      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 0));
 
-  ASSERT_FALSE(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, -1));
-  ASSERT_FALSE(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 6));
+  ASSERT_FALSE(
+      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, -1));
+  ASSERT_FALSE(
+      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 6));
 
   KeyManagementOperation::GetInstance().DeleteKey(key);
 }
@@ -221,7 +229,7 @@ TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
   ASSERT_EQ(s_key.size(), 5);
   ASSERT_EQ(s_key[2].ID(), "2D1F9FC59B568A8C");
 
-  ASSERT_WITHIN(GpgKeyManager::GetInstance().RevokeSubkey(
+  ASSERT_WITHIN(KeyManagementOperation::GetInstance().RevokeSubkey(
                     key, 2, 2, QString("H\nE\nLL\nO\n\n")),
                 3000);
 

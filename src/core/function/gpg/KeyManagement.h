@@ -82,6 +82,32 @@ auto ModifyKeyPassphraseGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
  *
  * @param ctx
  * @param key
+ * @param subkey_index
+ * @return true
+ * @return false
+ */
+auto DeleteSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                           int subkey_index) -> bool;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param key
+ * @param subkey_index
+ * @param reason_code
+ * @param reason_text
+ * @return true
+ * @return false
+ */
+auto RevokeSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                           int subkey_index, int reason_code,
+                           const QString& reason_text) -> bool;
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param key
  * @param adsk
  * @param data_object
  * @return GpgError
@@ -89,4 +115,43 @@ auto ModifyKeyPassphraseGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
 auto AddADSKGnuPGIImpl(GpgContext& ctx, const GpgKeyPtr& key,
                        const GpgSubKey& adsk, const DataObjectPtr& data_object)
     -> GpgError;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param key
+ * @param keys
+ * @param uid
+ * @param expires
+ * @return true
+ * @return false
+ */
+auto SignKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                      const GpgAbstractKeyPtrList& keys, const QString& uid,
+                      const std::optional<QDateTime>& expires) -> bool;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param key
+ * @param signature_id
+ * @return true
+ * @return false
+ */
+auto RevKeySignatureGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                              const SignIdArgsList& signature_id) -> bool;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param key
+ * @param trust_level
+ * @return true
+ * @return false
+ */
+auto SetOwnerTrustLevelGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
+                                 int trust_level) -> bool;
 }  // namespace GpgFrontend

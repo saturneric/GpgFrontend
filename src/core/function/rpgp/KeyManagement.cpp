@@ -130,8 +130,8 @@ auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return GPG_ERR_NO_ERROR;
 }
 
-auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
-                          int skey_idx) -> bool {
+auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, int skey_idx)
+    -> bool {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";
@@ -203,7 +203,7 @@ auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
   return true;
 }
 
-auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
+auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
                           int subkey_index, int reason_code,
                           const QString& reason_text) -> bool {
   auto key_db = ctx.KeyDatabase();

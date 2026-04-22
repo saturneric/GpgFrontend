@@ -29,8 +29,8 @@
 #include "KeyPairSubkeyTab.h"
 
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/gpg/GpgKeyManager.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -558,7 +558,7 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
     return;
   }
 
-  auto res = GpgKeyManager::GetInstance(current_gpg_context_channel_)
+  auto res = KeyManagementOperation::GetInstance(current_gpg_context_channel_)
                  .DeleteSubkey(key_, index);
 
   if (!res) {
@@ -616,8 +616,9 @@ void KeyPairSubkeyTab::slot_revoke_subkey() {
           &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,
           [key = key_, index, channel = current_gpg_context_channel_, this](
               int code, const QString& text) {
-            auto res = GpgKeyManager::GetInstance(channel).RevokeSubkey(
-                key, index, code, text);
+            auto res =
+                KeyManagementOperation::GetInstance(channel).RevokeSubkey(
+                    key, index, code, text);
             if (!res) {
               QMessageBox::critical(
                   nullptr, tr("Revocation Failed"),

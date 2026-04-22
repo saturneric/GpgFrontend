@@ -29,7 +29,7 @@
 #include "KeyPairUIDTab.h"
 
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/gpg/GpgKeyManager.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/UserIdOperation.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/RevocationOptionsDialog.h"
@@ -457,8 +457,8 @@ void KeyPairUIDTab::slot_del_sign() {
                                  QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!GpgKeyManager::GetInstance(current_gpg_context_channel_)
-             .RevSign(m_key_, selected_signs)) {
+    if (!KeyManagementOperation::GetInstance(current_gpg_context_channel_)
+             .RevKeySignature(m_key_, selected_signs)) {
       QMessageBox::critical(nullptr, tr("Operation Failed"),
                             tr("An error occurred during the operation."));
     }

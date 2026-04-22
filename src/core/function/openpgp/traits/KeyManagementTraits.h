@@ -53,7 +53,26 @@ GF_DEF_OP_TRAITS(GenerateRevCertOpTag, "op_generate_rev_cert",
                  {OpenPGPEngine::kGNUPG, &GenerateRevCertGnuPGImpl},
                  {OpenPGPEngine::kRPGP, &GenerateRevCertRpgpImpl});
 
+GF_DEF_OP_TRAITS(RevokeSubKeyOpTag, "op_revoke_subkey", &RevokeSubKeyGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &RevokeSubKeyGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &RevokeSubKeyRpgpImpl});
+
+GF_DEF_OP_TRAITS(DeleteSubKeyOpTag, "op_delete_subkey", &DeleteSubKeyGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &DeleteSubKeyGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &DeleteSubKeyRpgpImpl});
+
 GF_DEF_OP_TRAITS(AddADSKOpTag, "op_add_adsk", &AddADSKGnuPGIImpl,
                  {OpenPGPEngine::kGNUPG, &AddADSKGnuPGIImpl});
+
+GF_DEF_OP_TRAITS(SignKeyOpTag, "op_sign_key", &SignKeyGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &SignKeyGnuPGImpl});
+
+GF_DEF_OP_TRAITS(RevKeySignatureOpTag, "op_rev_key_signature",
+                 &RevKeySignatureGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &RevKeySignatureGnuPGImpl});
+
+GF_DEF_OP_TRAITS(SetOwnerTrustLevelOpTag, "op_set_owner_trust_level",
+                 &SetOwnerTrustLevelGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &SetOwnerTrustLevelGnuPGImpl});
 
 }  // namespace GpgFrontend

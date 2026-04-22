@@ -28,7 +28,7 @@
 
 #include "KeyUIDSignDialog.h"
 
-#include "core/function/gpg/GpgKeyManager.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "ui/UISignalStation.h"
 #include "ui/widgets/KeyList.h"
 
@@ -116,10 +116,10 @@ void KeyUIDSignDialog::slot_sign_key(bool) {
   assert(std::all_of(keys.begin(), keys.end(),
                      [](const auto& key) { return key->IsGood(); }));
 
-  auto expires = std::make_unique<QDateTime>(expires_edit_->dateTime());
+  auto expires = std::make_optional<QDateTime>(expires_edit_->dateTime());
 
   // Sign For mKey
-  if (!GpgKeyManager::GetInstance(current_gpg_context_channel_)
+  if (!KeyManagementOperation::GetInstance(current_gpg_context_channel_)
            .SignKey(m_key_, keys, m_uid_, expires)) {
     QMessageBox::critical(
         nullptr, tr("Unsuccessful Operation"),

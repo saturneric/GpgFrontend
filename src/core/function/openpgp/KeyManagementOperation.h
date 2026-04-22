@@ -110,6 +110,62 @@ class GF_CORE_EXPORT KeyManagementOperation
   auto AddADSKSync(const GpgKeyPtr& key, const GpgSubKey& adsk)
       -> std::tuple<GpgError, DataObjectPtr>;
 
+  /**
+   * @brief
+   *
+   * @param key
+   * @param keys
+   * @param uid
+   * @param expires
+   * @return true
+   * @return false
+   */
+  auto SignKey(const GpgKeyPtr& key, const GpgAbstractKeyPtrList& keys,
+               const QString& uid, const std::optional<QDateTime>& expires)
+      -> bool;
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param signature_id
+   * @return true
+   * @return false
+   */
+  auto RevKeySignature(const GpgKeyPtr& key, const SignIdArgsList& signature_id)
+      -> bool;
+
+  /**
+   * @brief
+   *
+   * @return
+   */
+  auto SetOwnerTrustLevel(const GpgAbstractKeyPtr& key, int trust_level)
+      -> bool;
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param subkey_index
+   * @return true
+   * @return false
+   */
+  auto DeleteSubkey(const GpgKeyPtr& key, int skey_idx) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param key
+   * @param subkey_index
+   * @param reason_code
+   * @param reason_text
+   * @return true
+   * @return false
+   */
+  auto RevokeSubkey(const GpgKeyPtr& key, int skey_idx, int reason_code,
+                    const QString& reason_text) -> bool;
+
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<

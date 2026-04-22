@@ -60,8 +60,8 @@ auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @param skey_idx
  * @return GpgError
  */
-auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
-                          int skey_idx) -> bool;
+auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, int skey_idx)
+    -> bool;
 
 /**
  * @brief
@@ -74,7 +74,7 @@ auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
  * @return true
  * @return false
  */
-auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
+auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
                           int subkey_index, int reason_code,
                           const QString& reason_text) -> bool;
 

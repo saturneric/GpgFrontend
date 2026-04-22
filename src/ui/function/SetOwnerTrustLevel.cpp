@@ -28,7 +28,7 @@
 
 #include "SetOwnerTrustLevel.h"
 
-#include "core/function/gpg/GpgKeyManager.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/utils/GpgUtils.h"
 
 //
@@ -106,8 +106,9 @@ auto SetOwnerTrustLevel::Exec(int channel, const GpgAbstractKeyPtr& key)
       trust_level = 1;
     }
 
-    bool status = GpgKeyManager::GetInstance(channel).SetOwnerTrustLevel(
-        key, trust_level);
+    bool status =
+        KeyManagementOperation::GetInstance(channel).SetOwnerTrustLevel(
+            key, trust_level);
     if (!status) {
       QMessageBox::critical(this, tr("Failed"),
                             tr("Modify Owner Trust Level failed."));
@@ -115,7 +116,7 @@ auto SetOwnerTrustLevel::Exec(int channel, const GpgAbstractKeyPtr& key)
     }
 
     // update key database and refresh ui
-    emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
+    emit UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
     return true;
   }
 

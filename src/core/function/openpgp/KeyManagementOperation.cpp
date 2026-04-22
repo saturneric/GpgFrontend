@@ -38,22 +38,10 @@ namespace GpgFrontend {
 KeyManagementOperation::KeyManagementOperation(int channel)
     : SingletonFunctionObject<KeyManagementOperation>(channel) {}
 
-/**
- * Delete keys
- * @param uidList key ids
- */
 void KeyManagementOperation::DeleteKeys(const GpgAbstractKeyPtrList& keys) {
   RunRegisteredForward<DeleteKeysOpTag>(ctx_, keys);
 }
 
-/**
- * Set the expire date and time of a key pair(actually the primary key) or
- * subkey
- * @param key target key pair
- * @param subkey null if primary key
- * @param expires date and time
- * @return if successful
- */
 auto KeyManagementOperation::SetExpire(const GpgKeyPtr& key,
                                        const SubkeyId& skey_fpr,
                                        const std::optional<QDateTime>& expires)
@@ -61,12 +49,6 @@ auto KeyManagementOperation::SetExpire(const GpgKeyPtr& key,
   return RunRegisteredForward<SetExpireOpTag>(ctx_, key, skey_fpr, expires);
 }
 
-/**
- * Generate revoke cert of a key pair
- * @param key target key pair
- * @param outputFileName out file name(path)
- * @return the process doing this job
- */
 void KeyManagementOperation::GenerateRevokeCert(const GpgKeyPtr& key,
                                                 const QString& output_path,
                                                 int reason_code,
@@ -94,5 +76,36 @@ auto KeyManagementOperation::AddADSKSync(const GpgKeyPtr& key,
                                          const GpgSubKey& adsk)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunRegisteredSync<AddADSKOpTag>(ctx_, key, adsk);
+}
+
+auto KeyManagementOperation::SignKey(const GpgKeyPtr& key,
+                                     const GpgAbstractKeyPtrList& keys,
+                                     const QString& uid,
+                                     const std::optional<QDateTime>& expires)
+    -> bool {
+  return RunRegisteredForward<SignKeyOpTag>(ctx_, key, keys, uid, expires);
+}
+
+auto KeyManagementOperation::RevKeySignature(const GpgKeyPtr& key,
+                                             const SignIdArgsList& signature_id)
+    -> bool {
+  return RunRegisteredForward<RevKeySignatureOpTag>(ctx_, key, signature_id);
+}
+
+auto KeyManagementOperation::SetOwnerTrustLevel(const GpgAbstractKeyPtr& key,
+                                                int trust_level) -> bool {
+  return RunRegisteredForward<SetOwnerTrustLevelOpTag>(ctx_, key, trust_level);
+}
+
+auto KeyManagementOperation::DeleteSubkey(const GpgKeyPtr& key, int skey_idx)
+    -> bool {
+  return RunRegisteredForward<DeleteSubKeyOpTag>(ctx_, key, skey_idx);
+}
+
+auto KeyManagementOperation::RevokeSubkey(const GpgKeyPtr& key, int skey_idx,
+                                          int reason_code,
+                                          const QString& reason_text) -> bool {
+  return RunRegisteredForward<RevokeSubKeyOpTag>(ctx_, key, skey_idx,
+                                                 reason_code, reason_text);
 }
 }  // namespace GpgFrontend
