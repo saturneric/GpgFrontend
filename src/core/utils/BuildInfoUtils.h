@@ -42,6 +42,13 @@ auto GF_CORE_EXPORT GetProjectName() -> QString;
  *
  * @return QString
  */
+auto GF_CORE_EXPORT GetProjectOrganization() -> QString;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
 auto GF_CORE_EXPORT GetProjectVersion() -> QString;
 
 /**

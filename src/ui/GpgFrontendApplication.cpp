@@ -60,9 +60,10 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
 
   // set the extra information of the build
   GpgFrontendApplication::setApplicationVersion(GetProjectVersion());
+  // prevent the "Unknown Organization" in conf path issue on some platforms
   GpgFrontendApplication::setApplicationName(GetProjectName());
   GpgFrontendApplication::setApplicationDisplayName(application_display_name);
-  // GpgFrontendApplication::setOrganizationName(GetProjectName());
+  GpgFrontendApplication::setOrganizationName(GetProjectOrganization());
   GpgFrontendApplication::setQuitOnLastWindowClosed(true);
 
   // don't show icons in menus

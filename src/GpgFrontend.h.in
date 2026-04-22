@@ -34,6 +34,7 @@
 // global build info
 
 #define PROJECT_NAME "@CMAKE_PROJECT_NAME@"
+#define PROJECT_ORGANIZATION "BKTUS"
 #define OS_PLATFORM "@OS_PLATFORM@"
 #define LOCALE_DIR "@LOCALE_DIR@"
 
