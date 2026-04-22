@@ -61,8 +61,15 @@ GF_DEF_OP_TRAITS(DeleteSubKeyOpTag, "op_delete_subkey", &DeleteSubKeyGnuPGImpl,
                  {OpenPGPEngine::kGNUPG, &DeleteSubKeyGnuPGImpl},
                  {OpenPGPEngine::kRPGP, &DeleteSubKeyRpgpImpl});
 
-GF_DEF_OP_TRAITS(AddADSKOpTag, "op_add_adsk", &AddADSKGnuPGIImpl,
-                 {OpenPGPEngine::kGNUPG, &AddADSKGnuPGIImpl});
+inline auto AddADSKVersions() -> const QContainer<EngineSupportIf>& {
+  static const QContainer<EngineSupportIf> kVersions = {
+      {OpenPGPEngine::kGNUPG, "2.4.1"}};
+  return kVersions;
+}
+
+GF_DEF_OP_TRAITS_PLUS(AddADSKOpTag, "op_add_adsk", &AddADSKGnuPGIImpl,
+                      AddADSKVersions,
+                      {OpenPGPEngine::kGNUPG, &AddADSKGnuPGIImpl});
 
 GF_DEF_OP_TRAITS(SignKeyOpTag, "op_sign_key", &SignKeyGnuPGImpl,
                  {OpenPGPEngine::kGNUPG, &SignKeyGnuPGImpl});
