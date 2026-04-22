@@ -26,38 +26,37 @@
  *
  */
 
-#include "GpgUIDOperator.h"
-
+#include "UserIdOperation.h"
 #include "core/function/openpgp/Async.h"
 #include "core/function/openpgp/traits/UserIdOperaTraits.h"
 
 namespace GpgFrontend {
 
-GpgUIDOperator::GpgUIDOperator(int channel)
-    : SingletonFunctionObject<GpgUIDOperator>(channel) {}
+UserIdOperation::UserIdOperation(int channel)
+    : SingletonFunctionObject<UserIdOperation>(channel) {}
 
-auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& uid) -> bool {
+auto UserIdOperation::AddUID(const GpgKeyPtr& key, const QString& uid) -> bool {
   return RunRegisteredForward<AddUserIdOpTag>(ctx_, key, uid);
 }
 
-auto GpgUIDOperator::SetPrimaryUID(const GpgKeyPtr& key, const QString& uid)
+auto UserIdOperation::SetPrimaryUID(const GpgKeyPtr& key, const QString& uid)
     -> bool {
   return RunRegisteredForward<SetPrimaryUserIdOpTag>(ctx_, key, uid);
 }
 
-auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& name,
-                            const QString& comment, const QString& email)
+auto UserIdOperation::AddUID(const GpgKeyPtr& key, const QString& name,
+                             const QString& comment, const QString& email)
     -> bool {
   return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
 }
 
-auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, const QString& uid)
+auto UserIdOperation::DeleteUID(const GpgKeyPtr& key, const QString& uid)
     -> bool {
   return RunRegisteredForward<DeleteUserIdOpTag>(ctx_, key, uid);
 }
 
-auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, const QString& uid,
-                               int reason_code, const QString& reason_text)
+auto UserIdOperation::RevokeUID(const GpgKeyPtr& key, const QString& uid,
+                                int reason_code, const QString& reason_text)
     -> bool {
   return RunRegisteredForward<RevokeUserIdOpTag>(ctx_, key, uid, reason_code,
                                                  reason_text);

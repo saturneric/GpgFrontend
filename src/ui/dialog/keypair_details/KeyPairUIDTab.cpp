@@ -30,7 +30,7 @@
 
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
-#include "core/function/openpgp/GpgUIDOperator.h"
+#include "core/function/openpgp/UserIdOperation.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/RevocationOptionsDialog.h"
 #include "ui/dialog/keypair_details/KeyNewUIDDialog.h"
@@ -316,7 +316,7 @@ void KeyPairUIDTab::slot_del_uid() {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    if (!GpgUIDOperator::GetInstance(current_gpg_context_channel_)
+    if (!UserIdOperation::GetInstance(current_gpg_context_channel_)
              .DeleteUID(m_key_, target_uid.GetUID())) {
       QMessageBox::critical(
           nullptr, tr("Operation Failed"),
@@ -348,7 +348,7 @@ void KeyPairUIDTab::slot_set_primary_uid() {
 
   if (ret != QMessageBox::Yes) return;
 
-  if (!GpgUIDOperator::GetInstance(current_gpg_context_channel_)
+  if (!UserIdOperation::GetInstance(current_gpg_context_channel_)
            .SetPrimaryUID(m_key_, target_uid.GetUID())) {
     QMessageBox::critical(nullptr, tr("Operation Failed"),
                           tr("An error occurred during the operation."));
@@ -516,7 +516,7 @@ void KeyPairUIDTab::slot_rev_uid() {
           &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,
           [key = m_key_, channel = current_gpg_context_channel_, this,
            uid = target_uid.GetUID()](int code, const QString& text) {
-            auto res = GpgUIDOperator::GetInstance(channel).RevokeUID(
+            auto res = UserIdOperation::GetInstance(channel).RevokeUID(
                 key, uid, code == 1 ? 4 : 0, text);
             if (!res) {
               QMessageBox::critical(

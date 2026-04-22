@@ -36,15 +36,15 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GF_CORE_EXPORT GpgUIDOperator
-    : public SingletonFunctionObject<GpgUIDOperator> {
+class GF_CORE_EXPORT UserIdOperation
+    : public SingletonFunctionObject<UserIdOperation> {
  public:
   /**
    * @brief Construct a new Gpg UID Opera object
    *
    * @param channel
    */
-  explicit GpgUIDOperator(
+  explicit UserIdOperation(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**

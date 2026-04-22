@@ -28,7 +28,7 @@
 
 #include "KeyNewUIDDialog.h"
 
-#include "core/function/openpgp/GpgUIDOperator.h"
+#include "core/function/openpgp/UserIdOperation.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
 
@@ -91,7 +91,7 @@ void KeyNewUIDDialog::slot_create_new_uid() {
   }
   auto error_string = error_stream.readAll();
   if (error_string.isEmpty()) {
-    if (GpgUIDOperator::GetInstance(current_gpg_context_channel_)
+    if (UserIdOperation::GetInstance(current_gpg_context_channel_)
             .AddUID(m_key_, name_->text(), comment_->text(), email_->text())) {
       emit finished(1);
       emit SignalUIDCreated();
