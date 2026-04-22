@@ -26,51 +26,51 @@
  *
  */
 
-#include "GpgKeyGenerateOpera.h"
+#include "KeyGenerationOperation.h"
 
 #include "core/function/openpgp/Async.h"
-#include "core/function/openpgp/traits/KeyGenerateTraits.h"
+#include "core/function/openpgp/traits/KeyGenerationTraits.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgKeyGenerateInfo.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
-GpgKeyGenerateOpera::GpgKeyGenerateOpera(int channel)
-    : SingletonFunctionObject<GpgKeyGenerateOpera>(channel) {}
+KeyGenerationOperation::KeyGenerationOperation(int channel)
+    : SingletonFunctionObject<KeyGenerationOperation>(channel) {}
 
-void GpgKeyGenerateOpera::GenerateKey(
+void KeyGenerationOperation::GenerateKey(
     const QSharedPointer<KeyGenerateInfo>& params,
     const GpgOperationCallback& cb) {
   RunRegisteredAsync<GenerateKeyTag>(ctx_, cb, params);
 }
 
-auto GpgKeyGenerateOpera::GenerateKeySync(
+auto KeyGenerationOperation::GenerateKeySync(
     const QSharedPointer<KeyGenerateInfo>& params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunRegisteredSync<GenerateKeyTag>(ctx_, params);
 }
 
-void GpgKeyGenerateOpera::GenerateSubkey(
+void KeyGenerationOperation::GenerateSubkey(
     const GpgKeyPtr& key, const QSharedPointer<KeyGenerateInfo>& params,
     const GpgOperationCallback& cb) {
   RunRegisteredAsync<GenerateSubKeyTag>(ctx_, cb, key, params);
 }
 
-auto GpgKeyGenerateOpera::GenerateSubkeySync(
+auto KeyGenerationOperation::GenerateSubkeySync(
     const GpgKeyPtr& key, const QSharedPointer<KeyGenerateInfo>& params)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunRegisteredSync<GenerateSubKeyTag>(ctx_, key, params);
 }
 
-void GpgKeyGenerateOpera::GenerateKeyWithSubkey(
+void KeyGenerationOperation::GenerateKeyWithSubkey(
     const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const GpgOperationCallback& cb) {
   RunRegisteredAsync<GenerateKeyWithSubKeyTag>(ctx_, cb, p_params, s_params);
 }
 
-auto GpgKeyGenerateOpera::GenerateKeyWithSubkeySync(
+auto KeyGenerationOperation::GenerateKeyWithSubkeySync(
     const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params)
     -> std::tuple<GpgError, DataObjectPtr> {

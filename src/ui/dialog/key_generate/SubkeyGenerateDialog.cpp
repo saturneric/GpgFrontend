@@ -31,7 +31,7 @@
 #include <cassert>
 
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/function/openpgp/GpgKeyGenerateOpera.h"
+#include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -311,7 +311,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
       this, tr("Generating"),
       [this, key = this->key_, gen_key_info = this->gen_subkey_info_](
           const OperaWaitingHd& hd) -> void {
-        GpgKeyGenerateOpera::GetInstance(current_gpg_context_channel_)
+        KeyGenerationOperation::GetInstance(current_gpg_context_channel_)
             .GenerateSubkey(
                 key, gen_key_info,
                 [this, hd](GpgError err, const DataObjectPtr&) -> void {

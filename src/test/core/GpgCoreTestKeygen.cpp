@@ -29,7 +29,7 @@
 #include "GpgCoreTest.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/function/openpgp/GpgKeyGenerateOpera.h"
+#include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGenerateInfo.h"
@@ -72,7 +72,7 @@ TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
   p_info->SetNonPassPhrase(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -128,7 +128,7 @@ TEST_F(GpgCoreTest, GenerateKeyRSA4096Test) {
   p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -167,7 +167,7 @@ TEST_F(GpgCoreTest, GenerateKeyDSA2048Test) {
   p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -224,7 +224,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519Test) {
   p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -286,7 +286,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519CV25519Test) {
   s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeyWithSubkeySync(p_info, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -363,7 +363,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519NISTP256Test) {
   s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeyWithSubkeySync(p_info, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -440,7 +440,7 @@ TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
   s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeyWithSubkeySync(p_info, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -512,7 +512,7 @@ TEST_F(GpgCoreTest, GenerateKeyNISTP256Test) {
   p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -569,7 +569,7 @@ TEST_F(GpgCoreTest, GenerateKeyED448Test) {
   p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -627,7 +627,7 @@ TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
   p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);

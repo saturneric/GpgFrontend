@@ -29,7 +29,7 @@
 #include "GpgCoreTest.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/function/openpgp/GpgKeyGenerateOpera.h"
+#include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGenerateInfo.h"
@@ -54,7 +54,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
   s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -98,7 +98,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
   s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -142,7 +142,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
   s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -186,7 +186,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
   s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -230,7 +230,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
   s_info->SetNonPassPhrase(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -273,7 +273,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
   s_info->SetNonExpired(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -316,7 +316,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
   s_info->SetNonExpired(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -359,7 +359,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
   s_info->SetNonExpired(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -402,7 +402,7 @@ TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
   s_info->SetNonExpired(true);
 
   auto [err, data_object] =
-      GpgKeyGenerateOpera::GetInstance(kGpgFrontendDefaultChannel)
+      KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateSubkeySync(p_key, s_info);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);

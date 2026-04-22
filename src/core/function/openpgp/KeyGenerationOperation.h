@@ -29,8 +29,6 @@
 #pragma once
 
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -44,15 +42,15 @@ class KeyGenerateInfo;
  * @brief
  *
  */
-class GF_CORE_EXPORT GpgKeyGenerateOpera
-    : public SingletonFunctionObject<GpgKeyGenerateOpera> {
+class GF_CORE_EXPORT KeyGenerationOperation
+    : public SingletonFunctionObject<KeyGenerationOperation> {
  public:
   /**
    * @brief Construct a new Gpg Key Opera object
    *
    * @param channel
    */
-  explicit GpgKeyGenerateOpera(
+  explicit KeyGenerationOperation(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
