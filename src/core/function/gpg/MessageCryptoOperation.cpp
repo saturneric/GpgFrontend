@@ -26,7 +26,7 @@
  *
  */
 
-#include "BasicCryptoOpera.h"
+#include "MessageCryptoOperation.h"
 
 #include <gpg-error.h>
 

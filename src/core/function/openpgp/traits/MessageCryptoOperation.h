@@ -31,8 +31,8 @@
 #include "core/function/openpgp/Op.h"
 
 // Engine Impl
-#include "core/function/gpg/BasicCryptoOpera.h"
-#include "core/function/rpgp/BasicCryptoOpera.h"
+#include "core/function/gpg/MessageCryptoOperation.h"
+#include "core/function/rpgp/MessageCryptoOperation.h"
 
 namespace GpgFrontend {
 

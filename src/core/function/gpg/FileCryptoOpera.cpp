@@ -28,7 +28,7 @@
 #include "FileCryptoOpera.h"
 
 #include "core/function/ArchiveFileOperator.h"
-#include "core/function/gpg/BasicCryptoOpera.h"
+#include "core/function/gpg/MessageCryptoOperation.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"

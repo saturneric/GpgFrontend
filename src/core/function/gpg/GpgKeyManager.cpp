@@ -28,9 +28,9 @@
 
 #include "GpgKeyManager.h"
 
-#include "core/function/gpg/BasicCryptoOpera.h"
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/gpg/MessageCryptoOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/rpgp/KeyManagement.h"
 #include "core/model/GFEngineSupportIf.h"
