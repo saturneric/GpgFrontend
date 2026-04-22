@@ -29,7 +29,9 @@
 #pragma once
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/model/GFBuffer.h"
 #include "core/model/GpgImportInformation.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
@@ -38,9 +40,9 @@ namespace GpgFrontend {
  *
  * @param ctx
  * @param in_buffer
- * @return auto
+ * @return QSharedPointer<GpgImportInformation>
  */
-auto ImportKeyRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
+auto ImportKeyGnuPGImpl(GpgContext& ctx, const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation>;
 
 /**
@@ -49,10 +51,13 @@ auto ImportKeyRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
  * @param ctx
  * @param keys
  * @param secret
+ * @param ascii
+ * @param shortest
+ * @param ssh_mode
  * @return std::tuple<GpgError, GFBuffer>
  */
-auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                        bool secret, bool ascii, bool shortest, bool ssh_mode)
+auto ExportKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
+                         bool secret, bool ascii, bool shortest, bool ssh_mode)
     -> std::tuple<GpgError, GFBuffer>;
 
 /**
@@ -67,10 +72,10 @@ auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
  * @param data_object
  * @return GpgError
  */
-auto ExportKeysAsyncRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                             bool secret, bool ascii, bool shortest,
-                             bool ssh_mode, const DataObjectPtr& data_object)
-    -> GpgError;
+auto ExportKeysAsyncGnuPGImpl(GpgContext& ctx,
+                              const GpgAbstractKeyPtrList& keys, bool secret,
+                              bool ascii, bool shortest, bool ssh_mode,
+                              const DataObjectPtr& data_object) -> GpgError;
 
 /**
  * @brief
@@ -79,22 +84,21 @@ auto ExportKeysAsyncRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
  * @param keys
  * @param secret
  * @param ascii
- * @param shortest
- * @param ssh_mode
  * @param data_object
  * @return GpgError
  */
-auto ExportAllKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                           bool secret, bool ascii,
-                           const DataObjectPtr& data_object) -> GpgError;
+auto ExportAllKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
+                            bool secret, bool ascii,
+                            const DataObjectPtr& data_object) -> GpgError;
 
 /**
  * @brief
  *
  * @param ctx
- * @param in_buffer
- * @return QSharedPointer<GpgImportInformation>
+ * @param fpr
+ * @param ascii
+ * @return std::tuple<GpgError, GFBuffer>
  */
-auto ImportRevCertRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
-    -> QSharedPointer<GpgImportInformation>;
+auto ExportSubkeyGnuPGImpl(GpgContext& ctx, const QString& fpr, bool ascii)
+    -> std::tuple<GpgError, GFBuffer>;
 }  // namespace GpgFrontend

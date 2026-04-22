@@ -35,7 +35,6 @@
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
-#include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {

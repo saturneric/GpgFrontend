@@ -201,7 +201,8 @@ auto ImportKeyRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
 }
 
 auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                        bool secret) -> std::tuple<GpgError, GFBuffer> {
+                        bool secret, bool ascii, bool shortest, bool ssh_mode)
+    -> std::tuple<GpgError, GFBuffer> {
   auto key_db = ctx.KeyDatabase();
 
   if (key_db == nullptr) {
@@ -242,6 +243,37 @@ auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
   LOG_D() << "exported armored string: " << qs_armored;
 
   return {GPG_ERR_NO_ERROR, GFBuffer(qs_armored)};
+}
+
+auto ExportKeysAsyncRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
+                             bool secret, bool ascii, bool shortest,
+                             bool ssh_mode, const DataObjectPtr& data_object)
+    -> GpgError {
+  auto [err, buffer] =
+      ExportKeysRpgpImpl(ctx, keys, secret, ascii, shortest, ssh_mode);
+  data_object->Swap({buffer});
+  return err;
+}
+
+auto ExportAllKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
+                           bool secret, bool ascii,
+                           const DataObjectPtr& data_object) -> GpgError {
+  if (keys.empty()) return GPG_ERR_CANCELED;
+
+  auto [err, buffer] =
+      ExportKeysRpgpImpl(ctx, keys, false, ascii, false, false);
+  if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return err;
+
+  if (secret) {
+    auto [sec_err, sec_buffer] =
+        ExportKeysRpgpImpl(ctx, keys, true, ascii, false, false);
+    if (gpgme_err_code(sec_err) != GPG_ERR_NO_ERROR) return sec_err;
+
+    buffer.Append(sec_buffer);
+  }
+
+  data_object->Swap({buffer});
+  return err;
 }
 
 auto ImportRevCertRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)

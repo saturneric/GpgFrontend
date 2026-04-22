@@ -35,7 +35,7 @@
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/function/openpgp/GpgKeyImportExporter.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/IOUtils.h"
 

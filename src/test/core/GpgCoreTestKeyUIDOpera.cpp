@@ -29,9 +29,9 @@
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/gpg/GpgKeyImportExporter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/function/gpg/GpgUIDOperator.h"
+#include "core/function/openpgp/GpgKeyImportExporter.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 

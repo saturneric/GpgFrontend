@@ -28,7 +28,7 @@
 
 #include "MainWindow.h"
 #include "core/function/GFBufferFactory.h"
-#include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/function/openpgp/GpgKeyImportExporter.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"

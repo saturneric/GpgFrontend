@@ -58,14 +58,18 @@ using EmptyOpTraitsBase = OpTraitsBase<EmptyOpTraits>;
 
 template <typename Table, typename... Args>
 auto DispatchByEngine(GpgContext& ctx, const Table& table, Args&&... args)
-    -> GpgError {
+    -> decltype(std::declval<typename Table::value_type::second_type>()(
+        ctx, std::forward<Args>(args)...)) {
   const auto engine = ctx.Engine();
   for (const auto& [supported_engine, fn] : table) {
     if (supported_engine == engine) {
       return fn(ctx, std::forward<Args>(args)...);
     }
   }
-  return GPG_ERR_NOT_SUPPORTED;
+
+  LOG_E() << "no implementation found for engine: " << static_cast<int>(engine);
+  assert(false && "no implementation found for the current engine");
+  return {};
 }
 
 template <typename Derived, typename Fn>

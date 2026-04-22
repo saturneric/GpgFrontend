@@ -29,7 +29,7 @@
 #include "KeyPackageOperator.h"
 
 #include "core/function/KeyPackageOperator.h"
-#include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/function/openpgp/GpgKeyImportExporter.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"

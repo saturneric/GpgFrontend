@@ -28,7 +28,7 @@
 
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
-#include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/function/openpgp/GpgKeyImportExporter.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {

@@ -30,7 +30,7 @@
 
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/gpg/GpgKeyImportExporter.h"
+#include "core/function/openpgp/GpgKeyImportExporter.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
