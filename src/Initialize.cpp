@@ -253,11 +253,11 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
 
   if (ctx->unit_test_mode || kill_all_gnupg_daemon_at_close) {
     for (const auto &channel : GpgContext::GetAllChannelId()) {
-      assert(GpgAdvancedOperator::GetInstance(channel).KillAllGpgComponents());
+      GpgAdvancedOperator::GetInstance(channel).KillAllGpgComponents();
     }
   } else if (clear_gpg_password_cache) {
     for (const auto &channel : GpgContext::GetAllChannelId()) {
-      assert(GpgAdvancedOperator::GetInstance(channel).ClearGpgPasswordCache());
+      GpgAdvancedOperator::GetInstance(channel).ClearGpgPasswordCache();
     }
   }
 
