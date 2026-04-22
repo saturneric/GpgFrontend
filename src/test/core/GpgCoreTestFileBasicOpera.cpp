@@ -28,7 +28,7 @@
 
 #include "GpgCoreTest.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/openpgp/GpgFileOpera.h"
+#include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
@@ -48,7 +48,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptDecrTest) {
   auto input_file = CreateTempFileAndWriteData(buffer);
   auto output_file = GetTempFilePath();
 
-  auto [err, data_object] = GpgFileOpera::GetInstance().EncryptFileSync(
+  auto [err, data_object] = FileCryptoOperation::GetInstance().EncryptFileSync(
       {encrypt_key}, input_file, true, output_file);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -57,8 +57,9 @@ TEST_F(GpgCoreTest, CoreFileEncryptDecrTest) {
   ASSERT_TRUE(result.InvalidRecipients().empty());
 
   auto decrpypt_output_file = GetTempFilePath();
-  auto [err_0, data_object_0] = GpgFileOpera::GetInstance().DecryptFileSync(
-      output_file, decrpypt_output_file);
+  auto [err_0, data_object_0] =
+      FileCryptoOperation::GetInstance().DecryptFileSync(output_file,
+                                                         decrpypt_output_file);
 
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
@@ -80,7 +81,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptDecrBinaryTest) {
   auto input_file = CreateTempFileAndWriteData(buffer);
   auto output_file = GetTempFilePath();
 
-  auto [err, data_object] = GpgFileOpera::GetInstance().EncryptFileSync(
+  auto [err, data_object] = FileCryptoOperation::GetInstance().EncryptFileSync(
       {encrypt_key}, input_file, false, output_file);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -89,8 +90,9 @@ TEST_F(GpgCoreTest, CoreFileEncryptDecrBinaryTest) {
   ASSERT_TRUE(result.InvalidRecipients().empty());
 
   auto decrpypt_output_file = GetTempFilePath();
-  auto [err_0, data_object_0] = GpgFileOpera::GetInstance().DecryptFileSync(
-      output_file, decrpypt_output_file);
+  auto [err_0, data_object_0] =
+      FileCryptoOperation::GetInstance().DecryptFileSync(output_file,
+                                                         decrpypt_output_file);
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult>()));
@@ -110,8 +112,8 @@ TEST_F(GpgCoreTest, CoreFileEncryptSymmetricDecrTest) {
   auto output_file = GetTempFilePath();
 
   auto [err, data_object] =
-      GpgFileOpera::GetInstance().EncryptFileSymmetricSync(input_file, true,
-                                                           output_file);
+      FileCryptoOperation::GetInstance().EncryptFileSymmetricSync(
+          input_file, true, output_file);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object->Check<GpgEncryptResult>()));
@@ -119,8 +121,9 @@ TEST_F(GpgCoreTest, CoreFileEncryptSymmetricDecrTest) {
   ASSERT_TRUE(result.InvalidRecipients().empty());
 
   auto decrpypt_output_file = GetTempFilePath();
-  auto [err_0, data_object_0] = GpgFileOpera::GetInstance().DecryptFileSync(
-      output_file, decrpypt_output_file);
+  auto [err_0, data_object_0] =
+      FileCryptoOperation::GetInstance().DecryptFileSync(output_file,
+                                                         decrpypt_output_file);
 
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult>()));
 
@@ -140,8 +143,8 @@ TEST_F(GpgCoreTest, CoreFileEncryptSymmetricDecrBinaryTest) {
   auto output_file = GetTempFilePath();
 
   auto [err, data_object] =
-      GpgFileOpera::GetInstance().EncryptFileSymmetricSync(input_file, false,
-                                                           output_file);
+      FileCryptoOperation::GetInstance().EncryptFileSymmetricSync(
+          input_file, false, output_file);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object->Check<GpgEncryptResult>()));
@@ -149,8 +152,9 @@ TEST_F(GpgCoreTest, CoreFileEncryptSymmetricDecrBinaryTest) {
   ASSERT_TRUE(result.InvalidRecipients().empty());
 
   auto decrpypt_output_file = GetTempFilePath();
-  auto [err_0, data_object_0] = GpgFileOpera::GetInstance().DecryptFileSync(
-      output_file, decrpypt_output_file);
+  auto [err_0, data_object_0] =
+      FileCryptoOperation::GetInstance().DecryptFileSync(output_file,
+                                                         decrpypt_output_file);
 
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult>()));
 
@@ -172,7 +176,7 @@ TEST_F(GpgCoreTest, CoreFileSignVerifyNormalTest) {
   auto input_file = CreateTempFileAndWriteData("Hello GpgFrontend!");
   auto output_file = GetTempFilePath();
 
-  auto [err, data_object] = GpgFileOpera::GetInstance().SignFileSync(
+  auto [err, data_object] = FileCryptoOperation::GetInstance().SignFileSync(
       {sign_key}, input_file, true, output_file);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -181,7 +185,8 @@ TEST_F(GpgCoreTest, CoreFileSignVerifyNormalTest) {
   ASSERT_TRUE(result.InvalidSigners().empty());
 
   auto [err_0, data_object_0] =
-      GpgFileOpera::GetInstance().VerifyFileSync(input_file, output_file);
+      FileCryptoOperation::GetInstance().VerifyFileSync(input_file,
+                                                        output_file);
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object_0->Check<GpgVerifyResult>()));
@@ -202,7 +207,7 @@ TEST_F(GpgCoreTest, CoreFileSignVerifyNormalBinaryTest) {
   auto input_file = CreateTempFileAndWriteData("Hello GpgFrontend!");
   auto output_file = GetTempFilePath();
 
-  auto [err, data_object] = GpgFileOpera::GetInstance().SignFileSync(
+  auto [err, data_object] = FileCryptoOperation::GetInstance().SignFileSync(
       {sign_key}, input_file, false, output_file);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -211,7 +216,8 @@ TEST_F(GpgCoreTest, CoreFileSignVerifyNormalBinaryTest) {
   ASSERT_TRUE(result.InvalidSigners().empty());
 
   auto [err_0, data_object_0] =
-      GpgFileOpera::GetInstance().VerifyFileSync(input_file, output_file);
+      FileCryptoOperation::GetInstance().VerifyFileSync(input_file,
+                                                        output_file);
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object_0->Check<GpgVerifyResult>()));
@@ -237,8 +243,9 @@ TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyTest) {
   ASSERT_TRUE(sign_key->IsPrivateKey());
   ASSERT_TRUE(sign_key->IsHasActualSignCap());
 
-  auto [err, data_object] = GpgFileOpera::GetInstance().EncryptSignFileSync(
-      {encrypt_key}, {sign_key}, input_file, true, output_file);
+  auto [err, data_object] =
+      FileCryptoOperation::GetInstance().EncryptSignFileSync(
+          {encrypt_key}, {sign_key}, input_file, true, output_file);
 
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GpgSignResult>()));
   auto encr_result = ExtractParams<GpgEncryptResult>(data_object, 0);
@@ -249,8 +256,8 @@ TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyTest) {
 
   auto decrpypt_output_file = GetTempFilePath();
   auto [err_0, data_object_0] =
-      GpgFileOpera::GetInstance().DecryptVerifyFileSync(output_file,
-                                                        decrpypt_output_file);
+      FileCryptoOperation::GetInstance().DecryptVerifyFileSync(
+          output_file, decrpypt_output_file);
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GpgVerifyResult>()));
@@ -284,8 +291,9 @@ TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyBinaryTest) {
   ASSERT_TRUE(sign_key->IsPrivateKey());
   ASSERT_TRUE(sign_key->IsHasActualSignCap());
 
-  auto [err, data_object] = GpgFileOpera::GetInstance().EncryptSignFileSync(
-      {encrypt_key}, {sign_key}, input_file, false, output_file);
+  auto [err, data_object] =
+      FileCryptoOperation::GetInstance().EncryptSignFileSync(
+          {encrypt_key}, {sign_key}, input_file, false, output_file);
 
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GpgSignResult>()));
   auto encr_result = ExtractParams<GpgEncryptResult>(data_object, 0);
@@ -296,8 +304,8 @@ TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyBinaryTest) {
 
   auto decrpypt_output_file = GetTempFilePath();
   auto [err_0, data_object_0] =
-      GpgFileOpera::GetInstance().DecryptVerifyFileSync(output_file,
-                                                        decrpypt_output_file);
+      FileCryptoOperation::GetInstance().DecryptVerifyFileSync(
+          output_file, decrpypt_output_file);
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GpgVerifyResult>()));

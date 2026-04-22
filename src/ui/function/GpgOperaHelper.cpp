@@ -28,7 +28,7 @@
 
 #include "GpgOperaHelper.h"
 
-#include "core/function/openpgp/GpgFileOpera.h"
+#include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
@@ -316,12 +316,12 @@ auto GpgOperaHelper::BuildOperasFileEncrypt(
       context, channel, index,
       [context, channel](const QString& path, const QString& o_path,
                          const auto& callback) {
-        GpgFileOpera::GetInstance(channel).EncryptFileSymmetric(
+        FileCryptoOperation::GetInstance(channel).EncryptFileSymmetric(
             path, context->base->ascii, o_path, callback);
       },
       [context, channel](const QString& path, const QString& o_path,
                          const auto& callback) {
-        GpgFileOpera::GetInstance(channel).EncryptFile(
+        FileCryptoOperation::GetInstance(channel).EncryptFile(
             context->base->keys, path, context->base->ascii, o_path, callback);
       });
 }
@@ -333,12 +333,12 @@ auto GpgOperaHelper::BuildOperasDirectoryEncrypt(
       context, channel, index,
       [context, channel](const QString& path, const QString& o_path,
                          const auto& callback) {
-        GpgFileOpera::GetInstance(channel).EncryptDirectorySymmetric(
+        FileCryptoOperation::GetInstance(channel).EncryptDirectorySymmetric(
             path, context->base->ascii, o_path, callback);
       },
       [context, channel](const QString& path, const QString& o_path,
                          const auto& callback) {
-        GpgFileOpera::GetInstance(channel).EncryptDirectory(
+        FileCryptoOperation::GetInstance(channel).EncryptDirectory(
             context->base->keys, path, context->base->ascii, o_path, callback);
       });
 }
@@ -351,7 +351,8 @@ auto GpgOperaHelper::BuildOperasFileDecrypt(
       context, channel, index,
       [channel](const QString& path, const QString& o_path,
                 const auto& callback) {
-        GpgFileOpera::GetInstance(channel).DecryptFile(path, o_path, callback);
+        FileCryptoOperation::GetInstance(channel).DecryptFile(path, o_path,
+                                                              callback);
       });
 }
 
@@ -363,8 +364,8 @@ auto GpgOperaHelper::BuildOperasArchiveDecrypt(
       context, channel, index,
       [channel](const QString& path, const QString& o_path,
                 const auto& callback) {
-        GpgFileOpera::GetInstance(channel).DecryptArchive(path, o_path,
-                                                          callback);
+        FileCryptoOperation::GetInstance(channel).DecryptArchive(path, o_path,
+                                                                 callback);
       });
 }
 
@@ -375,7 +376,7 @@ auto GpgOperaHelper::BuildOperasFileSign(
       context, channel, index,
       [channel, context](const QString& path, const QString& o_path,
                          const auto& callback) {
-        GpgFileOpera::GetInstance(channel).SignFile(
+        FileCryptoOperation::GetInstance(channel).SignFile(
             context->base->keys, path, context->base->ascii, o_path, callback);
       });
 }
@@ -388,7 +389,8 @@ auto GpgOperaHelper::BuildOperasFileVerify(
       context, channel, index,
       [channel](const QString& path, const QString& o_path,
                 const auto& callback) {
-        GpgFileOpera::GetInstance(channel).VerifyFile(o_path, path, callback);
+        FileCryptoOperation::GetInstance(channel).VerifyFile(o_path, path,
+                                                             callback);
       });
 }
 
@@ -401,7 +403,7 @@ auto GpgOperaHelper::BuildOperasFileEncryptSign(
       context, channel, index,
       [channel, context](const QString& path, const QString& o_path,
                          const auto& callback) {
-        GpgFileOpera::GetInstance(channel).EncryptSignFile(
+        FileCryptoOperation::GetInstance(channel).EncryptSignFile(
             context->base->keys, context->base->singer_keys, path,
             context->base->ascii, o_path, callback);
       });
@@ -416,7 +418,7 @@ auto GpgOperaHelper::BuildOperasDirectoryEncryptSign(
       context, channel, index,
       [channel, context](const QString& path, const QString& o_path,
                          const auto& callback) {
-        GpgFileOpera::GetInstance(channel).EncryptSignDirectory(
+        FileCryptoOperation::GetInstance(channel).EncryptSignDirectory(
             context->base->keys, context->base->singer_keys, path,
             context->base->ascii, o_path, callback);
       });
@@ -431,8 +433,8 @@ auto GpgOperaHelper::BuildOperasFileDecryptVerify(
       context, channel, index,
       [channel](const QString& path, const QString& o_path,
                 const auto& callback) {
-        GpgFileOpera::GetInstance(channel).DecryptVerifyFile(path, o_path,
-                                                             callback);
+        FileCryptoOperation::GetInstance(channel).DecryptVerifyFile(
+            path, o_path, callback);
       });
 }
 
@@ -445,8 +447,8 @@ auto GpgOperaHelper::BuildOperasArchiveDecryptVerify(
       context, channel, index,
       [channel](const QString& path, const QString& o_path,
                 const auto& callback) {
-        GpgFileOpera::GetInstance(channel).DecryptVerifyArchive(path, o_path,
-                                                                callback);
+        FileCryptoOperation::GetInstance(channel).DecryptVerifyArchive(
+            path, o_path, callback);
       });
 }
 

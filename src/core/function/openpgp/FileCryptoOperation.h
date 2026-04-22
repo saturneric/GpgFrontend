@@ -39,15 +39,15 @@ namespace GpgFrontend {
  *
  * @class class: GpgBasicOperator
  */
-class GF_CORE_EXPORT GpgFileOpera
-    : public SingletonFunctionObject<GpgFileOpera> {
+class GF_CORE_EXPORT FileCryptoOperation
+    : public SingletonFunctionObject<FileCryptoOperation> {
  public:
   /**
    * @brief Construct a new Gpg File Opera object
    *
    * @param channel
    */
-  explicit GpgFileOpera(
+  explicit FileCryptoOperation(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
