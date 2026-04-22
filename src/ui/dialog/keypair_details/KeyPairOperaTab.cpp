@@ -31,7 +31,7 @@
 #include "KeySetExpireDateDialog.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgKeyOpera.h"
+#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgKey.h"
 #include "core/module/ModuleManager.h"
@@ -100,12 +100,6 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
     vbox_p_k->addWidget(revoke_cert_opera_button);
   }
 
-  auto* modify_tofu_button = new QPushButton(tr("Modify TOFU Policy"));
-  // do not show, useless
-  modify_tofu_button->setHidden(true);
-  connect(modify_tofu_button, &QPushButton::clicked, this,
-          &KeyPairOperaTab::slot_modify_tofu_policy);
-
   auto* set_owner_trust_level_button =
       new QPushButton(tr("Set Owner Trust Level"));
   connect(set_owner_trust_level_button, &QPushButton::clicked, this,
@@ -117,7 +111,6 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
   if (!m_key_->IsPrivateKey() && engine == OpenPGPEngine::kGNUPG) {
     vbox_p_k->addWidget(set_owner_trust_level_button);
   }
-  vbox_p_k->addWidget(modify_tofu_button);
   m_vbox->addStretch(0);
 
   setLayout(m_vbox);
@@ -335,37 +328,6 @@ void KeyPairOperaTab::slot_modify_password() {
       .ModifyPassword(m_key_, [this](GpgError err, const DataObjectPtr&) {
         CommonUtils::RaiseMessageBox(this, err);
       });
-}
-
-void KeyPairOperaTab::slot_modify_tofu_policy() {
-  QStringList items;
-  items << tr("Policy Auto") << tr("Policy Good") << tr("Policy Bad")
-        << tr("Policy Ask") << tr("Policy Unknown");
-
-  bool ok;
-  QString item = QInputDialog::getItem(
-      this, tr("Modify TOFU Policy(Default is Auto)"),
-      tr("Policy for the Key Pair:"), items, 0, false, &ok);
-  if (ok && !item.isEmpty()) {
-    gpgme_tofu_policy_t tofu_policy = GPGME_TOFU_POLICY_AUTO;
-    if (item == tr("Policy Auto")) {
-      tofu_policy = GPGME_TOFU_POLICY_AUTO;
-    } else if (item == tr("Policy Good")) {
-      tofu_policy = GPGME_TOFU_POLICY_GOOD;
-    } else if (item == tr("Policy Bad")) {
-      tofu_policy = GPGME_TOFU_POLICY_BAD;
-    } else if (item == tr("Policy Ask")) {
-      tofu_policy = GPGME_TOFU_POLICY_ASK;
-    } else if (item == tr("Policy Unknown")) {
-      tofu_policy = GPGME_TOFU_POLICY_UNKNOWN;
-    }
-    auto err = GpgKeyOpera::GetInstance(current_gpg_context_channel_)
-                   .ModifyTOFUPolicy(m_key_, tofu_policy);
-    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-      QMessageBox::critical(this, tr("Not Successful"),
-                            tr("Modify TOFU policy not successfully."));
-    }
-  }
 }
 
 void KeyPairOperaTab::slot_set_owner_trust_level() {

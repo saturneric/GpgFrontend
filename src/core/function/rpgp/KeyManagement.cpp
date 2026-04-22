@@ -30,6 +30,7 @@
 
 #include "core/GpgCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
+#include "core/function/gpg/GpgKeyGroupGetter.h"
 #include "core/function/rpgp/KeyImportExport.h"
 #include "core/function/rpgp/RustEngineCallback.h"
 #include "core/utils/IOUtils.h"
@@ -37,29 +38,35 @@
 namespace GpgFrontend {
 
 auto DeleteKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
-    -> GpgError {
+    -> bool {
+  auto key_db = ctx.KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "key database is not initialized";
+    return false;
+  }
+
   for (const auto& key : keys) {
     LOG_D() << "Deleting key: " << key->ID();
 
-    auto key_db = ctx.KeyDatabase();
-    if (key_db == nullptr) {
-      LOG_E() << "key database is not initialized";
-      return GPG_ERR_GENERAL;
+    if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
+      GpgKeyGroupGetter::GetInstance(ctx.GetChannel()).Remove(key->ID());
+      continue;
     }
 
     if (!key_db->GetKeyMetadata(key->ID())) {
       LOG_E() << "key not found in database: " << key->ID();
+      return false;
     }
 
     if (!key_db->DeleteKey(key->ID())) {
       LOG_E() << "failed to delete key from database: " << key->ID();
     }
   }
-  return GPG_ERR_NO_ERROR;
+  return true;
 }
 
-auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key)
-    -> GpgError {
+auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                                 const DataObjectPtr& data_object) -> GpgError {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";
@@ -124,7 +131,7 @@ auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key)
 }
 
 auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
-                          int subkey_index) -> bool {
+                          int skey_idx) -> bool {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";
@@ -138,14 +145,13 @@ auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
     return false;
   }
 
-  if (subkey_index < 0 ||
-      subkey_index >= static_cast<int>(meta->subkeys.size())) {
-    LOG_E() << "illegal subkey index: " << subkey_index
+  if (skey_idx < 0 || skey_idx >= static_cast<int>(meta->subkeys.size())) {
+    LOG_E() << "illegal subkey index: " << skey_idx
             << " for key with fpr: " << meta->fpr;
     return false;
   }
 
-  auto target_subkey_fpr = meta->subkeys[subkey_index].fpr;
+  auto target_subkey_fpr = meta->subkeys[skey_idx].fpr;
 
   auto key_block_data = key_db->GetKeyBlocks(meta->fpr);
   if (!key_block_data) {
@@ -295,10 +301,10 @@ auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
   return true;
 }
 
-auto GenerateKeyRevCertRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
-                                const QString& output_path, int reason_code,
-                                const QString& reason_text) -> bool {
-  auto key_db = ctx.KeyDatabase();
+auto GenerateRevCertRpgpImpl(GpgContext& ctx_, const GpgKeyPtr& key,
+                             const QString& output_path, int reason_code,
+                             const QString& reason_text) -> bool {
+  auto key_db = ctx_.KeyDatabase();
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";
     return false;
@@ -353,7 +359,7 @@ auto GenerateKeyRevCertRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
   char* out_secret_block = nullptr;
 
   auto err = Rust::gfr_crypto_generate_key_rev_cert(
-      ctx.GetChannel(), key_block_utf8.constData(),
+      ctx_.GetChannel(), key_block_utf8.constData(),
       static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
       reason_text_utf8.constData(), FetchPasswordCallback, FreeCallback,
       &out_secret_block);

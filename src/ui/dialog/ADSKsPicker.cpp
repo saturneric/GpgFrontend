@@ -28,7 +28,7 @@
 
 #include "ADSKsPicker.h"
 
-#include "core/function/gpg/GpgKeyOpera.h"
+#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
@@ -165,7 +165,7 @@ void ADSKsPicker::slot_add_adsk(const QContainer<GpgSubKey>& s_keys) {
           msg_box->exec();
         }
 
-        emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
+        emit UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
 
         if (self != nullptr) {
           self->accept();

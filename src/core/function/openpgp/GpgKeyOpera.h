@@ -72,22 +72,22 @@ class GF_CORE_EXPORT GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
    * @brief Set the Expire object
    *
    * @param key
-   * @param subkey_fpr
+   * @param skey_fpr
    * @param expires
    * @return GpgError
    */
-  auto SetExpire(const GpgKeyPtr& key, const SubkeyId& subkey_fpr,
-                 std::unique_ptr<QDateTime>& expires) -> GpgError;
-
+  auto SetExpire(const GpgKeyPtr& key, const SubkeyId& skey_fpr,
+                 const std::optional<QDateTime>& expires) -> GpgError;
   /**
    * @brief
    *
    * @param key
-   * @param output_file_name
+   * @param output_path
+   * @param reason_code
+   * @param reason_text
    */
   void GenerateRevokeCert(const GpgKeyPtr& key, const QString& output_path,
-                          int revocation_reason_code,
-                          const QString& revocation_reason_text);
+                          int reason_code, const QString& reason_text);
 
   /**
    * @brief
@@ -97,15 +97,6 @@ class GF_CORE_EXPORT GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
    */
   void ModifyPassword(const GpgKeyPtr& key, const GpgOperationCallback&);
 
-  /**
-   * @brief
-   *
-   * @param key
-   * @param tofu_policy
-   * @return GpgFrontend::GpgError
-   */
-  auto ModifyTOFUPolicy(const GpgKeyPtr& key, gpgme_tofu_policy_t tofu_policy)
-      -> GpgError;
   /**
    * @brief
    *

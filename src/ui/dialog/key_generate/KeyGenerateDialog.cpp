@@ -28,7 +28,7 @@
 
 #include "KeyGenerateDialog.h"
 
-#include "core/function/gpg/GpgKeyOpera.h"
+#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/model/CacheObject.h"
 #include "core/utils/CommonUtils.h"

@@ -39,56 +39,54 @@ namespace GpgFrontend {
  * @param ctx
  * @param keys
  */
-auto DeleteKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
+auto DeleteKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
     -> bool;
 
 /**
  * @brief
  *
  * @param ctx
- * @param keys
+ * @param key
+ * @param skey_fpr
+ * @param expires
  * @return GpgError
  */
-auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
-                                 const DataObjectPtr& data_object) -> GpgError;
+auto SetExpireGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                        const SubkeyId& skey_fpr,
+                        const std::optional<QDateTime>& expires) -> GpgError;
+/**
+ * @brief
+ *
+ * @param ctx_
+ * @param key
+ * @param output_path
+ * @param revocation_reason_code
+ * @param revocation_reason_text
+ */
+auto GenerateRevCertGnuPGImpl(GpgContext& ctx_, const GpgKeyPtr& key,
+                              const QString& output_path, int reason_code,
+                              const QString& reason_text) -> bool;
 
 /**
  * @brief
  *
  * @param ctx
  * @param key
- * @param skey_idx
  * @return GpgError
  */
-auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
-                          int skey_idx) -> bool;
+auto ModifyKeyPassphraseGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                                  const DataObjectPtr& data_object) -> GpgError;
 
 /**
  * @brief
  *
  * @param ctx
  * @param key
- * @param subkey_index
- * @param reason_code
- * @param reason_text
- * @return true
- * @return false
+ * @param adsk
+ * @param data_object
+ * @return GpgError
  */
-auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
-                          int subkey_index, int reason_code,
-                          const QString& reason_text) -> bool;
-
-/**
- * @brief
- *
- * @param ctx
- * @param secret_key
- * @param reason_code
- * @param reason_text
- * @return true
- * @return false
- */
-auto GenerateRevCertRpgpImpl(GpgContext& ctx_, const GpgKeyPtr& secret_key,
-                             const QString& output_path, int reason_code,
-                             const QString& reason_text) -> bool;
+auto AddADSKGnuPGIImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                       const GpgSubKey& adsk, const DataObjectPtr& data_object)
+    -> GpgError;
 }  // namespace GpgFrontend

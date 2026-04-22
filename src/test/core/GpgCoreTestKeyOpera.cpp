@@ -28,7 +28,7 @@
 
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
-#include "core/function/gpg/GpgKeyOpera.h"
+#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgImportInformation.h"

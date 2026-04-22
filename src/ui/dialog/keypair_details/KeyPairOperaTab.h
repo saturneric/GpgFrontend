@@ -100,12 +100,6 @@ class KeyPairOperaTab : public QWidget {
    * @brief
    *
    */
-  void slot_modify_tofu_policy();
-
-  /**
-   * @brief
-   *
-   */
   void slot_set_owner_trust_level();
 
   /**

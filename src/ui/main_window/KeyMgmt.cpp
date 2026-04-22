@@ -31,7 +31,7 @@
 #include <cassert>
 
 #include "core/function/KeyPackageOperator.h"
-#include "core/function/gpg/GpgKeyOpera.h"
+#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/module/ModuleManager.h"
