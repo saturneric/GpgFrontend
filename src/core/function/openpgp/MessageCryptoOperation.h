@@ -39,15 +39,15 @@ namespace GpgFrontend {
  * @brief Basic operation collection
  *
  */
-class GF_CORE_EXPORT GpgBasicOperator
-    : public SingletonFunctionObject<GpgBasicOperator> {
+class GF_CORE_EXPORT MessageCryptoOperation
+    : public SingletonFunctionObject<MessageCryptoOperation> {
  public:
   /**
    * @brief Construct a new Basic Operator object
    *
    * @param channel Channel corresponding to the context
    */
-  explicit GpgBasicOperator(
+  explicit MessageCryptoOperation(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**

@@ -33,8 +33,8 @@
 
 #include "GFSDKBasic.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/openpgp/GpgBasicOperator.h"
 #include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
@@ -81,7 +81,7 @@ auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
       sign_mode == 0 ? GPGME_SIG_MODE_NORMAL : GPGME_SIG_MODE_DETACH;
 
   auto [err, data_object] =
-      GpgFrontend::GpgBasicOperator::GetInstance(channel).SignSync(
+      GpgFrontend::MessageCryptoOperation::GetInstance(channel).SignSync(
           signer_keys, in_buffer, gpg_sign_mode, ascii != 0);
 
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
@@ -170,7 +170,7 @@ auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
   auto in_buffer = GpgFrontend::GFBuffer(GFUnStrDup(data).toUtf8());
 
   auto [err, data_object] =
-      GpgFrontend::GpgBasicOperator::GetInstance(channel).EncryptSync(
+      GpgFrontend::MessageCryptoOperation::GetInstance(channel).EncryptSync(
           encrypt_keys, in_buffer, ascii != 0);
 
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
@@ -212,7 +212,7 @@ auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
   auto in_buffer = GpgFrontend::GFBuffer(GFUnStrDup(data).toUtf8());
 
   auto [err, data_object] =
-      GpgFrontend::GpgBasicOperator::GetInstance(channel).DecryptSync(
+      GpgFrontend::MessageCryptoOperation::GetInstance(channel).DecryptSync(
           in_buffer);
 
   auto result =
@@ -254,7 +254,7 @@ auto GF_SDK_EXPORT GFGpgVerifyData(int channel, char* data, char* signature,
   auto sig_buffer = GpgFrontend::GFBuffer(GFUnStrDup(signature).toUtf8());
 
   auto [err, data_object] =
-      GpgFrontend::GpgBasicOperator::GetInstance(channel).VerifySync(
+      GpgFrontend::MessageCryptoOperation::GetInstance(channel).VerifySync(
           in_buffer, sig_buffer);
 
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {

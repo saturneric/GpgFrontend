@@ -28,7 +28,7 @@
 
 #include "GpgCoreTest.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/openpgp/GpgBasicOperator.h"
+#include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
@@ -45,8 +45,8 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
 
   auto buffer = GFBuffer(QString("Hello GpgFrontend!"));
 
-  auto [err, data_object] =
-      GpgBasicOperator::GetInstance().EncryptSync({encrypt_key}, buffer, true);
+  auto [err, data_object] = MessageCryptoOperation::GetInstance().EncryptSync(
+      {encrypt_key}, buffer, true);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
@@ -58,7 +58,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
   ASSERT_TRUE(result.InvalidRecipients().empty());
 
   auto [err_0, data_object_0] =
-      GpgBasicOperator::GetInstance().DecryptSync(encr_out_buffer);
+      MessageCryptoOperation::GetInstance().DecryptSync(encr_out_buffer);
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GFBuffer>()));
@@ -74,7 +74,8 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest) {
 TEST_F(GpgCoreTest, CoreEncryptSymmetricDecrTest) {
   auto encrypt_text = GFBuffer(QString("Hello GpgFrontend!"));
   auto [err, data_object] =
-      GpgBasicOperator::GetInstance().EncryptSymmetricSync(encrypt_text, true);
+      MessageCryptoOperation::GetInstance().EncryptSymmetricSync(encrypt_text,
+                                                                 true);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
@@ -83,7 +84,7 @@ TEST_F(GpgCoreTest, CoreEncryptSymmetricDecrTest) {
   ASSERT_TRUE(encr_result.InvalidRecipients().empty());
 
   auto [err_0, data_object_0] =
-      GpgBasicOperator::GetInstance().DecryptSync(encr_out_buffer);
+      MessageCryptoOperation::GetInstance().DecryptSync(encr_out_buffer);
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GFBuffer>()));
@@ -109,7 +110,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_1) {
       "-----END PGP MESSAGE-----"));
 
   auto [err, data_object] =
-      GpgBasicOperator::GetInstance().DecryptSync(encr_out_data);
+      MessageCryptoOperation::GetInstance().DecryptSync(encr_out_data);
 
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object, 0);
   auto decr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
@@ -134,7 +135,7 @@ TEST_F(GpgCoreTest, CoreEncryptDecrTest_KeyNotFound_ResultAnalyse) {
       "-----END PGP MESSAGE-----"));
 
   auto [err, data_object] =
-      GpgBasicOperator::GetInstance().DecryptSync(encr_out_data);
+      MessageCryptoOperation::GetInstance().DecryptSync(encr_out_data);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_SECKEY);
   ASSERT_TRUE((data_object->Check<GpgDecryptResult, GFBuffer>()));
@@ -158,7 +159,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
 
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
-  auto [err, data_object] = GpgBasicOperator::GetInstance().SignSync(
+  auto [err, data_object] = MessageCryptoOperation::GetInstance().SignSync(
       {sign_key}, sign_text, GPGME_SIG_MODE_NORMAL, true);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -168,7 +169,8 @@ TEST_F(GpgCoreTest, CoreSignVerifyNormalTest) {
   ASSERT_TRUE(result.InvalidSigners().empty());
 
   auto [err_0, data_object_0] =
-      GpgBasicOperator::GetInstance().VerifySync(sign_out_buffer, GFBuffer());
+      MessageCryptoOperation::GetInstance().VerifySync(sign_out_buffer,
+                                                       GFBuffer());
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object_0->Check<GpgVerifyResult, GFBuffer>()));
@@ -184,7 +186,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
   ASSERT_TRUE(sign_key != nullptr);
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
-  auto [err, data_object] = GpgBasicOperator::GetInstance().SignSync(
+  auto [err, data_object] = MessageCryptoOperation::GetInstance().SignSync(
       {sign_key}, sign_text, GPGME_SIG_MODE_DETACH, true);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -194,7 +196,8 @@ TEST_F(GpgCoreTest, CoreSignVerifyDetachTest) {
   ASSERT_TRUE(result.InvalidSigners().empty());
 
   auto [err_0, data_object_0] =
-      GpgBasicOperator::GetInstance().VerifySync(sign_text, sign_out_buffer);
+      MessageCryptoOperation::GetInstance().VerifySync(sign_text,
+                                                       sign_out_buffer);
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE((data_object_0->Check<GpgVerifyResult, GFBuffer>()));
@@ -211,7 +214,7 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
 
   auto sign_text = GFBuffer(QString("Hello GpgFrontend!"));
 
-  auto [err, data_object] = GpgBasicOperator::GetInstance().SignSync(
+  auto [err, data_object] = MessageCryptoOperation::GetInstance().SignSync(
       {sign_key}, sign_text, GPGME_SIG_MODE_CLEAR, true);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -221,7 +224,8 @@ TEST_F(GpgCoreTest, CoreSignVerifyClearTest) {
   ASSERT_TRUE(result.InvalidSigners().empty());
 
   auto [err_0, data_object_0] =
-      GpgBasicOperator::GetInstance().VerifySync(sign_out_buffer, GFBuffer());
+      MessageCryptoOperation::GetInstance().VerifySync(sign_out_buffer,
+                                                       GFBuffer());
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   auto verify_reult = ExtractParams<GpgVerifyResult>(data_object_0, 0);
@@ -242,8 +246,9 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
   ASSERT_TRUE(sign_key->IsPrivateKey());
   ASSERT_TRUE(sign_key->IsHasActualSignCap());
 
-  auto [err, data_object] = GpgBasicOperator::GetInstance().EncryptSignSync(
-      {encrypt_key}, {sign_key}, encrypt_text, true);
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance().EncryptSignSync(
+          {encrypt_key}, {sign_key}, encrypt_text, true);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_TRUE(
@@ -255,7 +260,7 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
   ASSERT_TRUE(sign_result.InvalidSigners().empty());
 
   auto [err_0, data_object_0] =
-      GpgBasicOperator::GetInstance().DecryptVerifySync(encr_out_buffer);
+      MessageCryptoOperation::GetInstance().DecryptVerifySync(encr_out_buffer);
 
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE(

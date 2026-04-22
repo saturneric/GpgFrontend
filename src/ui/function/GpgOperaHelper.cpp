@@ -28,8 +28,8 @@
 
 #include "GpgOperaHelper.h"
 
-#include "core/function/openpgp/GpgBasicOperator.h"
 #include "core/function/openpgp/GpgFileOpera.h"
+#include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
@@ -493,11 +493,11 @@ auto GpgOperaHelper::BuildOperasEncrypt(
   return BuildOperasEncryptHelper(
       context, channel, index,
       [context, channel](const GFBuffer& buffer, const auto& callback) {
-        GpgBasicOperator::GetInstance(channel).EncryptSymmetric(
+        MessageCryptoOperation::GetInstance(channel).EncryptSymmetric(
             buffer, context->base->ascii, callback);
       },
       [context, channel](const GFBuffer& buffer, const auto& callback) {
-        GpgBasicOperator::GetInstance(channel).Encrypt(
+        MessageCryptoOperation::GetInstance(channel).Encrypt(
             context->base->keys, buffer, context->base->ascii, callback);
       });
 }
@@ -508,7 +508,7 @@ auto GpgOperaHelper::BuildOperasDecrypt(
   return BuildSimpleGpgOperasHelper<GpgDecryptResult, GpgDecryptResultAnalyse>(
       context, channel, index,
       [channel](const GFBuffer& buffer, const auto& callback) {
-        GpgBasicOperator::GetInstance(channel).Decrypt(buffer, callback);
+        MessageCryptoOperation::GetInstance(channel).Decrypt(buffer, callback);
       });
 }
 
@@ -517,7 +517,7 @@ auto GpgOperaHelper::BuildOperasSign(QSharedPointer<GpgOperaContext>& context,
   return BuildSimpleGpgOperasHelper<GpgSignResult, GpgSignResultAnalyse>(
       context, channel, index,
       [channel, context](const GFBuffer& buffer, const auto& callback) {
-        GpgBasicOperator::GetInstance(channel).Sign(
+        MessageCryptoOperation::GetInstance(channel).Sign(
             context->base->keys, buffer, GPGME_SIG_MODE_CLEAR,
             context->base->ascii, callback);
       });
@@ -529,8 +529,8 @@ auto GpgOperaHelper::BuildOperasVerify(QSharedPointer<GpgOperaContext>& context,
   return BuildSimpleGpgOperasHelper<GpgVerifyResult, GpgVerifyResultAnalyse>(
       context, channel, index,
       [channel, context](const GFBuffer& buffer, const auto& callback) {
-        GpgBasicOperator::GetInstance(channel).Verify(buffer, GFBuffer(),
-                                                      callback);
+        MessageCryptoOperation::GetInstance(channel).Verify(buffer, GFBuffer(),
+                                                            callback);
       });
 }
 
@@ -541,7 +541,7 @@ auto GpgOperaHelper::BuildOperasEncryptSign(
                                      GpgSignResult, GpgSignResultAnalyse>(
       context, channel, index,
       [channel, context](const GFBuffer& buffer, const auto& callback) {
-        GpgBasicOperator::GetInstance(channel).EncryptSign(
+        MessageCryptoOperation::GetInstance(channel).EncryptSign(
             context->base->keys, context->base->singer_keys, buffer,
             context->base->ascii, callback);
       });
@@ -554,7 +554,8 @@ auto GpgOperaHelper::BuildOperasDecryptVerify(
                                      GpgVerifyResult, GpgVerifyResultAnalyse>(
       context, channel, index,
       [channel](const GFBuffer& buffer, const auto& callback) {
-        GpgBasicOperator::GetInstance(channel).DecryptVerify(buffer, callback);
+        MessageCryptoOperation::GetInstance(channel).DecryptVerify(buffer,
+                                                                   callback);
       });
 }
 
