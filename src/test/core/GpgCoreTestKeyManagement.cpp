@@ -30,8 +30,8 @@
 #include "core/GpgConstants.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
-#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 
@@ -137,7 +137,7 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
   ASSERT_EQ(s_key.size(), 4);
   ASSERT_EQ(s_key[2].ID(), "CE038203C4D03C3D");
 
-  GpgKeyOpera::GetInstance().DeleteKey(key);
+  KeyManagementOperation::GetInstance().DeleteKey(key);
 }
 
 TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
@@ -202,7 +202,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
   ASSERT_FALSE(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, -1));
   ASSERT_FALSE(GpgKeyManager::GetInstance().SetOwnerTrustLevel(key, 6));
 
-  GpgKeyOpera::GetInstance().DeleteKey(key);
+  KeyManagementOperation::GetInstance().DeleteKey(key);
 }
 
 TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
@@ -237,7 +237,7 @@ TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
 
   ASSERT_TRUE(s_key[2].IsRevoked());
 
-  GpgKeyOpera::GetInstance().DeleteKey(key);
+  KeyManagementOperation::GetInstance().DeleteKey(key);
 }
 
 }  // namespace GpgFrontend::Test

@@ -29,8 +29,8 @@
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/UserIdOperation.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
@@ -93,7 +93,7 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
   ASSERT_EQ(uids.size(), 3);
   ASSERT_EQ(uids[2].GetUID(), "hhhhhh(hhhhhhh)<hhhhh@hhhh.hhhh>");
 
-  GpgKeyOpera::GetInstance().DeleteKey(key);
+  KeyManagementOperation::GetInstance().DeleteKey(key);
   GpgKeyGetter::GetInstance().FlushKeyCache();
 }
 
@@ -130,7 +130,7 @@ TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
   ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
   ASSERT_TRUE(uids[2].GetRevoked());
 
-  GpgKeyOpera::GetInstance().DeleteKey(key);
+  KeyManagementOperation::GetInstance().DeleteKey(key);
   GpgKeyGetter::GetInstance().FlushKeyCache();
 }
 

@@ -28,8 +28,9 @@
 
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
-#include "core/function/openpgp/GpgKeyOpera.h"
+#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
@@ -91,8 +92,8 @@ TEST_F(GpgCoreTest, CoreAddADSKTestA) {
   auto key_b_s_keys = key_b.SubKeys();
   ASSERT_EQ(key_b_s_keys.size(), 2);
 
-  auto [err, data_object] =
-      GpgKeyOpera::GetInstance().AddADSKSync(key, key_b_s_keys.last());
+  auto [err, data_object] = KeyManagementOperation::GetInstance().AddADSKSync(
+      key, key_b_s_keys.last());
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
@@ -113,6 +114,6 @@ TEST_F(GpgCoreTest, CoreAddADSKTestA) {
   ASSERT_EQ(s_keys.last().ID(), "F89C95A05088CC93");
   ASSERT_EQ(s_keys.last().IsADSK(), true);
 
-  GpgKeyOpera::GetInstance().DeleteKey(key);
+  KeyManagementOperation::GetInstance().DeleteKey(key);
 }
 };  // namespace GpgFrontend::Test

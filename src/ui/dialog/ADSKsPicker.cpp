@@ -28,7 +28,7 @@
 
 #include "ADSKsPicker.h"
 
-#include "core/function/openpgp/GpgKeyOpera.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
@@ -122,7 +122,8 @@ void ADSKsPicker::slot_add_adsk(const QContainer<GpgSubKey>& s_keys) {
         QStringList err_sub_key_infos;
         for (const auto& s_key : s_keys) {
           auto [err, _] =
-              GpgKeyOpera::GetInstance(channel).AddADSKSync(key, s_key);
+              KeyManagementOperation::GetInstance(channel).AddADSKSync(key,
+                                                                       s_key);
           if (CheckGpgError(err) == GPG_ERR_NO_ERROR) continue;
 
           err_sub_key_infos.append(tr("Key ID: %1 Reason: %2")

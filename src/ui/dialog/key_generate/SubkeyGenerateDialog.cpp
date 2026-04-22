@@ -30,8 +30,8 @@
 
 #include <cassert>
 
-#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"

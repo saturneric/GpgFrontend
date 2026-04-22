@@ -31,8 +31,8 @@
 #include <cassert>
 
 #include "core/function/KeyPackageOperator.h"
-#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -343,7 +343,8 @@ void KeyMgmt::delete_keys_with_warning(const GpgAbstractKeyPtrList& keys) {
       QMessageBox::No | QMessageBox::Yes);
 
   if (ret == QMessageBox::Yes) {
-    GpgKeyOpera::GetInstance(key_list_->GetCurrentGpgContextChannel())
+    KeyManagementOperation::GetInstance(
+        key_list_->GetCurrentGpgContextChannel())
         .DeleteKeys(keys);
     emit SignalKeyStatusUpdated();
   }

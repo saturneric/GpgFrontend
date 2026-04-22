@@ -29,29 +29,23 @@
 #pragma once
 
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
-/**
- * @brief
- *
- */
-class KeyGenerateInfo;
 
 /**
  * @brief
  *
  */
-class GF_CORE_EXPORT GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
+class GF_CORE_EXPORT KeyManagementOperation
+    : public SingletonFunctionObject<KeyManagementOperation> {
  public:
   /**
    * @brief Construct a new Gpg Key Opera object
    *
    * @param channel
    */
-  explicit GpgKeyOpera(
+  explicit KeyManagementOperation(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
@@ -100,68 +94,6 @@ class GF_CORE_EXPORT GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
   /**
    * @brief
    *
-   * @param params
-   * @param result
-   * @return GpgFrontend::GpgError
-   */
-  void GenerateKey(const QSharedPointer<KeyGenerateInfo>&,
-                   const GpgOperationCallback&);
-
-  /**
-   * @brief
-   *
-   * @param params
-   */
-  auto GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
-      -> std::tuple<GpgError, DataObjectPtr>;
-
-  /**
-   * @brief
-   *
-   * @param key
-   * @param params
-   * @return GpgFrontend::GpgError
-   */
-  void GenerateSubkey(const GpgKeyPtr& key,
-                      const QSharedPointer<KeyGenerateInfo>& params,
-                      const GpgOperationCallback&);
-
-  /**
-   * @brief
-   *
-   * @param key
-   * @param params
-   */
-  auto GenerateSubkeySync(const GpgKeyPtr& key,
-                          const QSharedPointer<KeyGenerateInfo>& params)
-      -> std::tuple<GpgError, DataObjectPtr>;
-
-  /**
-   * @brief
-   *
-   * @param params
-   * @param subkey_params
-   * @param callback
-   */
-  void GenerateKeyWithSubkey(const QSharedPointer<KeyGenerateInfo>& p_params,
-                             const QSharedPointer<KeyGenerateInfo>& s_params,
-                             const GpgOperationCallback& callback);
-
-  /**
-   * @brief
-   *
-   * @param params
-   * @param subkey_params
-   * @param callback
-   */
-  auto GenerateKeyWithSubkeySync(
-      const QSharedPointer<KeyGenerateInfo>& p_params,
-      const QSharedPointer<KeyGenerateInfo>& s_params)
-      -> std::tuple<GpgError, DataObjectPtr>;
-
-  /**
-   * @brief
-   *
    * @param key
    * @param adsk
    */
@@ -181,12 +113,5 @@ class GF_CORE_EXPORT GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
-
-  GpgKeyGetter& key_getter_ =
-      GpgKeyGetter::GetInstance(SingletonFunctionObject::GetChannel());  ///<
-
-  KeyImportExportOperation& key_import_exporter_ =
-      KeyImportExportOperation::GetInstance(
-          SingletonFunctionObject::GetChannel());  ///<
 };
 }  // namespace GpgFrontend

@@ -31,8 +31,8 @@
 #include "KeySetExpireDateDialog.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/model/GpgKey.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -315,7 +315,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
             }
 
             if (!m_output_file_name.isEmpty()) {
-              GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+              KeyManagementOperation::GetInstance(current_gpg_context_channel_)
                   .GenerateRevokeCert(m_key_, m_output_file_name, code, text);
             }
           });
@@ -324,7 +324,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
 }
 
 void KeyPairOperaTab::slot_modify_password() {
-  GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+  KeyManagementOperation::GetInstance(current_gpg_context_channel_)
       .ModifyPassword(m_key_, [this](GpgError err, const DataObjectPtr&) {
         CommonUtils::RaiseMessageBox(this, err);
       });

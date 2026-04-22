@@ -28,8 +28,8 @@
 
 #include "GpgCoreTest.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGenerateInfo.h"

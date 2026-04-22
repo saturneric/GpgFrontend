@@ -26,29 +26,23 @@
  *
  */
 
-#include "GpgKeyOpera.h"
+#include "KeyManagementOperation.h"
 
-#include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/KeyManagementTraits.h"
-#include "core/function/rpgp/KeyManagement.h"
 #include "core/model/DataObject.h"
-#include "core/model/GpgGenerateKeyResult.h"
-#include "core/module/ModuleManager.h"
 #include "core/typedef/GpgTypedef.h"
-#include "core/utils/AsyncUtils.h"
-#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
-GpgKeyOpera::GpgKeyOpera(int channel)
-    : SingletonFunctionObject<GpgKeyOpera>(channel) {}
+KeyManagementOperation::KeyManagementOperation(int channel)
+    : SingletonFunctionObject<KeyManagementOperation>(channel) {}
 
 /**
  * Delete keys
  * @param uidList key ids
  */
-void GpgKeyOpera::DeleteKeys(const GpgAbstractKeyPtrList& keys) {
+void KeyManagementOperation::DeleteKeys(const GpgAbstractKeyPtrList& keys) {
   RunRegisteredForward<DeleteKeysOpTag>(ctx_, keys);
 }
 
@@ -60,8 +54,9 @@ void GpgKeyOpera::DeleteKeys(const GpgAbstractKeyPtrList& keys) {
  * @param expires date and time
  * @return if successful
  */
-auto GpgKeyOpera::SetExpire(const GpgKeyPtr& key, const SubkeyId& skey_fpr,
-                            const std::optional<QDateTime>& expires)
+auto KeyManagementOperation::SetExpire(const GpgKeyPtr& key,
+                                       const SubkeyId& skey_fpr,
+                                       const std::optional<QDateTime>& expires)
     -> GpgError {
   return RunRegisteredForward<SetExpireOpTag>(ctx_, key, skey_fpr, expires);
 }
@@ -72,27 +67,31 @@ auto GpgKeyOpera::SetExpire(const GpgKeyPtr& key, const SubkeyId& skey_fpr,
  * @param outputFileName out file name(path)
  * @return the process doing this job
  */
-void GpgKeyOpera::GenerateRevokeCert(const GpgKeyPtr& key,
-                                     const QString& output_path,
-                                     int reason_code,
-                                     const QString& reason_text) {
+void KeyManagementOperation::GenerateRevokeCert(const GpgKeyPtr& key,
+                                                const QString& output_path,
+                                                int reason_code,
+                                                const QString& reason_text) {
   RunRegisteredForward<GenerateRevCertOpTag>(ctx_, key, output_path,
                                              reason_code, reason_text);
 }
 
-void GpgKeyOpera::ModifyPassword(const GpgKeyPtr& key,
-                                 const GpgOperationCallback& cb) {
+void KeyManagementOperation::ModifyPassword(const GpgKeyPtr& key,
+                                            const GpgOperationCallback& cb) {
   RunRegisteredAsync<ModifyKeyPassphraseOpTag>(ctx_, cb, key);
 }
 
-void GpgKeyOpera::DeleteKey(const GpgAbstractKeyPtr& key) { DeleteKeys({key}); }
+void KeyManagementOperation::DeleteKey(const GpgAbstractKeyPtr& key) {
+  DeleteKeys({key});
+}
 
-void GpgKeyOpera::AddADSK(const GpgKeyPtr& key, const GpgSubKey& adsk,
-                          const GpgOperationCallback& cb) {
+void KeyManagementOperation::AddADSK(const GpgKeyPtr& key,
+                                     const GpgSubKey& adsk,
+                                     const GpgOperationCallback& cb) {
   RunRegisteredAsync<AddADSKOpTag>(ctx_, cb, key, adsk);
 }
 
-auto GpgKeyOpera::AddADSKSync(const GpgKeyPtr& key, const GpgSubKey& adsk)
+auto KeyManagementOperation::AddADSKSync(const GpgKeyPtr& key,
+                                         const GpgSubKey& adsk)
     -> std::tuple<GpgError, DataObjectPtr> {
   return RunRegisteredSync<AddADSKOpTag>(ctx_, key, adsk);
 }

@@ -29,7 +29,7 @@
 #include "KeySetExpireDateDialog.h"
 
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/openpgp/GpgKeyOpera.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui_ModifiedExpirationDateTime.h"
@@ -67,7 +67,7 @@ void KeySetExpireDateDialog::slot_confirm() {
     expires = std::make_optional<QDateTime>(datetime.toLocalTime());
   }
 
-  auto err = GpgKeyOpera::GetInstance(current_gpg_context_channel_)
+  auto err = KeyManagementOperation::GetInstance(current_gpg_context_channel_)
                  .SetExpire(m_key_, m_subkey_, expires);
 
   if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {

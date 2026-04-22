@@ -28,8 +28,8 @@
 
 #include "GpgCoreTest.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/openpgp/GpgKeyOpera.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGenerateInfo.h"
@@ -105,7 +105,8 @@ TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
   ASSERT_TRUE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyRSA4096Test) {
@@ -144,7 +145,8 @@ TEST_F(GpgCoreTest, GenerateKeyRSA4096Test) {
   ASSERT_TRUE(key != nullptr);
   ASSERT_EQ(key->ExpirationTime().date(), expire_time.date());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(key);
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyDSA2048Test) {
@@ -201,7 +203,8 @@ TEST_F(GpgCoreTest, GenerateKeyDSA2048Test) {
   ASSERT_FALSE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyED25519Test) {
@@ -258,7 +261,8 @@ TEST_F(GpgCoreTest, GenerateKeyED25519Test) {
   ASSERT_FALSE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyED25519CV25519Test) {
@@ -335,7 +339,8 @@ TEST_F(GpgCoreTest, GenerateKeyED25519CV25519Test) {
   ASSERT_TRUE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyED25519NISTP256Test) {
@@ -412,7 +417,8 @@ TEST_F(GpgCoreTest, GenerateKeyED25519NISTP256Test) {
   ASSERT_TRUE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
@@ -489,7 +495,8 @@ TEST_F(GpgCoreTest, GenerateKeyED25519BRAINPOOLP256R1Test) {
   ASSERT_TRUE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyNISTP256Test) {
@@ -546,7 +553,8 @@ TEST_F(GpgCoreTest, GenerateKeyNISTP256Test) {
   ASSERT_FALSE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeyED448Test) {
@@ -604,7 +612,8 @@ TEST_F(GpgCoreTest, GenerateKeyED448Test) {
   ASSERT_FALSE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(p_key);
 }
 
 TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
@@ -661,7 +670,8 @@ TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
   ASSERT_FALSE(key.IsHasActualEncrCap());
   ASSERT_TRUE(key.IsHasActualSignCap());
 
-  GpgKeyOpera::GetInstance(kGpgFrontendDefaultChannel).DeleteKey(p_key);
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(p_key);
 }
 
 }  // namespace GpgFrontend::Test
