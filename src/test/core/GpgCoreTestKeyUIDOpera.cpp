@@ -30,8 +30,8 @@
 #include "core/GpgConstants.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/function/gpg/GpgUIDOperator.h"
 #include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/GpgUIDOperator.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 
@@ -79,7 +79,7 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
   ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
 
   auto res = GpgUIDOperator::GetInstance().DeleteUID(
-      key, "gggggg(ggggg)<ggggg@ggg.ggg>", 3);
+      key, "gggggg(ggggg)<ggggg@ggg.ggg>");
 
   ASSERT_TRUE(res);
 
@@ -115,7 +115,7 @@ TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
   ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
 
   auto res = GpgUIDOperator::GetInstance().RevokeUID(
-      key, "gggggg(ggggg)<ggggg@ggg.ggg>", 3, 4, "H\nEEEEEL\n\n\n\nL   \n0\n");
+      key, "gggggg(ggggg)<ggggg@ggg.ggg>", 4, "H\nEEEEEL\n\n\n\nL   \n0\n");
 
   ASSERT_TRUE(res);
 

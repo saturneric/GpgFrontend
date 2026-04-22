@@ -28,7 +28,6 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -75,8 +74,7 @@ class GF_CORE_EXPORT GpgUIDOperator
    * @return true
    * @return false
    */
-  auto DeleteUID(const GpgKeyPtr& key, const QString& uid, int uid_index)
-      -> bool;
+  auto DeleteUID(const GpgKeyPtr& key, const QString& uid) -> bool;
 
   /**
    * @brief
@@ -88,8 +86,8 @@ class GF_CORE_EXPORT GpgUIDOperator
    * @return true
    * @return false
    */
-  auto RevokeUID(const GpgKeyPtr& key, const QString& uid, int uid_index,
-                 int reason_code, const QString& reason_text) -> bool;
+  auto RevokeUID(const GpgKeyPtr& key, const QString& uid, int reason_code,
+                 const QString& reason_text) -> bool;
 
   /**
    * Set one of a uid of a key pair as primary
@@ -102,8 +100,6 @@ class GF_CORE_EXPORT GpgUIDOperator
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
-  GpgAutomatonHandler& auto_ = GpgAutomatonHandler::GetInstance(
-      SingletonFunctionObject::GetChannel());  ///<
 };
 
 }  // namespace GpgFrontend

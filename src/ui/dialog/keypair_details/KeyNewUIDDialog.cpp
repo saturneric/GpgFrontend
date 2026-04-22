@@ -28,7 +28,7 @@
 
 #include "KeyNewUIDDialog.h"
 
-#include "core/function/gpg/GpgUIDOperator.h"
+#include "core/function/openpgp/GpgUIDOperator.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
 

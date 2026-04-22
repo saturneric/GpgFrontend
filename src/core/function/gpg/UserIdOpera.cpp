@@ -26,15 +26,12 @@
  *
  */
 
-#include "GpgUIDOperator.h"
+#include "UserIdOpera.h"
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
-#include "core/function/rpgp/UserIdOpera.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
-
-namespace {
 
 auto AddUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
     -> bool {
@@ -43,8 +40,20 @@ auto AddUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-auto DeleteUIDGnuPGImpl(GpgAutomatonHandler& auto_hdlr, const GpgKeyPtr& key,
-                        int uid_index) -> bool {
+auto DeleteUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                        const QString& uid) -> bool {
+  auto& auto_hdlr = GpgAutomatonHandler::GetInstance(ctx.GetChannel());
+
+  int uid_index = -1;
+  int i = 0;
+  for (const auto& u : key->UIDs()) {
+    if (u.GetUID() == uid) {
+      uid_index = i + 1;  // gpgme uid index starts from 1
+      break;
+    }
+    ++i;
+  }
+
   if (uid_index < 2 || uid_index > static_cast<int>(key->UIDs().size())) {
     LOG_W() << "illegal uid_index index: " << uid_index;
     return false;
@@ -121,9 +130,21 @@ auto DeleteUIDGnuPGImpl(GpgAutomatonHandler& auto_hdlr, const GpgKeyPtr& key,
   return err == GPG_ERR_NO_ERROR && succ;
 }
 
-auto RevokeUIDGnuPGImpl(GpgAutomatonHandler& auto_hdlr, const GpgKeyPtr& key,
-                        int uid_index, int reason_code,
+auto RevokeUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                        const QString& uid, int reason_code,
                         const QString& reason_text) -> bool {
+  auto& auto_hdlr = GpgAutomatonHandler::GetInstance(ctx.GetChannel());
+
+  int uid_index = -1;
+  int i = 0;
+  for (const auto& u : key->UIDs()) {
+    if (u.GetUID() == uid) {
+      uid_index = i + 1;  // gpgme uid index starts from 1
+      break;
+    }
+    ++i;
+  }
+
   if (uid_index < 2 || uid_index > static_cast<int>(key->UIDs().size())) {
     LOG_W() << "illegal uid index: " << uid_index;
     return false;
@@ -237,52 +258,12 @@ auto RevokeUIDGnuPGImpl(GpgAutomatonHandler& auto_hdlr, const GpgKeyPtr& key,
   return err == GPG_ERR_NO_ERROR && succ;
 }
 
-}  // namespace
-
-GpgUIDOperator::GpgUIDOperator(int channel)
-    : SingletonFunctionObject<GpgUIDOperator>(channel) {}
-
-auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& uid) -> bool {
-  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-    return AddUIDRpgpImpl(ctx_, key, uid);
-  }
-  return AddUIDGnuPGImpl(ctx_, key, uid);
-}
-
-auto GpgUIDOperator::SetPrimaryUID(const GpgKeyPtr& key, const QString& uid)
-    -> bool {
-  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-    return SetPrimaryUIDRpgpImpl(ctx_, key, uid);
-  }
-
+auto SetPrimaryUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                            const QString& uid) -> bool {
   auto err = CheckGpgError(gpgme_op_set_uid_flag(
-      ctx_.DefaultContext(), static_cast<gpgme_key_t>(*key), uid.toUtf8(),
+      ctx.DefaultContext(), static_cast<gpgme_key_t>(*key), uid.toUtf8(),
       "primary", nullptr));
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
-}
-
-auto GpgUIDOperator::AddUID(const GpgKeyPtr& key, const QString& name,
-                            const QString& comment, const QString& email)
-    -> bool {
-  LOG_D() << "new uuid:" << name << comment << email;
-  return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
-}
-
-auto GpgUIDOperator::DeleteUID(const GpgKeyPtr& key, const QString& uid,
-                               int uid_index) -> bool {
-  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-    return DeleteUIDRpgpImpl(ctx_, key, uid);
-  }
-  return DeleteUIDGnuPGImpl(auto_, key, uid_index);
-}
-
-auto GpgUIDOperator::RevokeUID(const GpgKeyPtr& key, const QString& uid,
-                               int uid_index, int reason_code,
-                               const QString& reason_text) -> bool {
-  if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-    return RevokeUIDRpgpImpl(ctx_, key, uid, reason_code, reason_text);
-  }
-  return RevokeUIDGnuPGImpl(auto_, key, uid_index, reason_code, reason_text);
 }
 
 }  // namespace GpgFrontend
