@@ -29,7 +29,7 @@
 #include "KeyPackageOperator.h"
 
 #include "core/function/KeyPackageOperator.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -44,7 +44,7 @@ void KeyPackageOperator::GenerateKeyPackage(const QString& key_package_path,
                                             const GpgAbstractKeyPtrList& keys,
                                             const GFBuffer& pin, bool secret,
                                             const OperationCallback& cb) {
-  GpgKeyImportExporter::GetInstance(GetChannel())
+  KeyImportExportOperation::GetInstance(GetChannel())
       .ExportAllKeys(
           keys, secret, true, [=](GpgError err, const DataObjectPtr& data_obj) {
             if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
@@ -117,7 +117,7 @@ auto KeyPackageOperator::ImportKeyPackage(const QString& key_package_path,
   if (!key_data) return {{"Decrypt the Key Package Failed"}, {}};
 
   auto p_info =
-      GpgKeyImportExporter::GetInstance(GetChannel()).ImportKey(*key_data);
+      KeyImportExportOperation::GetInstance(GetChannel()).ImportKey(*key_data);
   if (!p_info) return {{"Import Key Data in the Key Package Failed"}, {}};
 
   return {QString{}, p_info};

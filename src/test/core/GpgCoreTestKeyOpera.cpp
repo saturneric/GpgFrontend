@@ -29,7 +29,7 @@
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
@@ -71,7 +71,7 @@ P8/Isa2Lcw9z0Xec1INfEmYQpGfTnRgJhfNlNHQZYgjIK20sETGvTTjJyPX3
 )";
 
 TEST_F(GpgCoreTest, CoreAddADSKTestA) {
-  auto info = GpgKeyImportExporter::GetInstance().ImportKey(
+  auto info = KeyImportExportOperation::GetInstance().ImportKey(
       GFBuffer(QString::fromLatin1(test_private_key_data)));
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);

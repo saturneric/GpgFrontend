@@ -32,7 +32,7 @@
 
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -386,7 +386,7 @@ void KeyMgmt::SlotExportKeyToClipboard() {
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Exporting"), [=](const OperaWaitingHd& op_hd) {
-        GpgKeyImportExporter::GetInstance(
+        KeyImportExportOperation::GetInstance(
             key_list_->GetCurrentGpgContextChannel())
             .ExportKeys(
                 keys, false, true, false, false,
@@ -471,7 +471,7 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Exporting"), [this, keys](const OperaWaitingHd& op_hd) {
-        GpgKeyImportExporter::GetInstance(
+        KeyImportExportOperation::GetInstance(
             key_list_->GetCurrentGpgContextChannel())
             .ExportKeys(
                 keys, false, true, false, true,

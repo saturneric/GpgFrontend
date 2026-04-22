@@ -482,8 +482,9 @@ void KeyList::dragEnterEvent(QDragEnterEvent* event) {
 
 void KeyList::import_keys(const QByteArray& in_buffer) {
   LOG_D() << "importing keys to channel:" << current_gpg_context_channel_;
-  auto result = GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
-                    .ImportKey(GFBuffer(in_buffer));
+  auto result =
+      KeyImportExportOperation::GetInstance(current_gpg_context_channel_)
+          .ImportKey(GFBuffer(in_buffer));
 
   auto* connection = new QMetaObject::Connection;
   *connection = connect(
@@ -563,8 +564,8 @@ void KeyList::sync_keys_from_key_server(
                               << key_data.ConvertToQString();
 
                       auto result =
-                          GpgKeyImportExporter::GetInstance(channel).ImportKey(
-                              GFBuffer(key_data));
+                          KeyImportExportOperation::GetInstance(channel)
+                              .ImportKey(GFBuffer(key_data));
                       if (result->imported == 1) {
                         status = tr("The key has been updated");
                       } else {

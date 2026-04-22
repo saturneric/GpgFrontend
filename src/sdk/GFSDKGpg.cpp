@@ -33,7 +33,7 @@
 
 #include "GFSDKBasic.h"
 #include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
@@ -116,7 +116,7 @@ auto GF_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id, int ascii)
   if (key == nullptr) return nullptr;
 
   auto [err, buffer] =
-      GpgFrontend::GpgKeyImportExporter::GetInstance(channel).ExportKey(
+      GpgFrontend::KeyImportExportOperation::GetInstance(channel).ExportKey(
           key, false, ascii != 0, true);
 
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return nullptr;
@@ -313,7 +313,7 @@ auto GFGpgExportKey(int channel, char* key_id, int ascii, char** data,
   if (key == nullptr) return -1;
 
   auto [err, buffer] =
-      GpgFrontend::GpgKeyImportExporter::GetInstance(channel).ExportKey(
+      GpgFrontend::KeyImportExportOperation::GetInstance(channel).ExportKey(
           key, false, ascii != 0, false);
   if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return -1;
   auto byte_array = buffer.ConvertToQByteArray();

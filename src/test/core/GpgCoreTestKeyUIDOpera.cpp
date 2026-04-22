@@ -30,7 +30,7 @@
 #include "core/GpgConstants.h"
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/UserIdOperation.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
@@ -63,7 +63,7 @@ SHYYu2cZJuck+lVxAQDxcyljEIZKVqOpNfWRZyqcRvE8kr64PymJTAPYOVdBuA==
 namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
-  auto info = GpgKeyImportExporter::GetInstance().ImportKey(
+  auto info = KeyImportExportOperation::GetInstance().ImportKey(
       GFBuffer(QString::fromLatin1(test_private_key_data)));
 
   ASSERT_EQ(info->not_imported, 0);
@@ -99,7 +99,7 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
 
 TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
   GpgKeyGetter::GetInstance().FlushKeyCache();
-  auto info = GpgKeyImportExporter::GetInstance().ImportKey(
+  auto info = KeyImportExportOperation::GetInstance().ImportKey(
       GFBuffer(QString::fromLatin1(test_private_key_data)));
 
   ASSERT_EQ(info->not_imported, 0);

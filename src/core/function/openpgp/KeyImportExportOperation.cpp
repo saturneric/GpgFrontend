@@ -26,7 +26,7 @@
  *
  */
 
-#include "GpgKeyImportExporter.h"
+#include "KeyImportExportOperation.h"
 
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/KeyImportExportTraits.h"
@@ -34,43 +34,43 @@
 
 namespace GpgFrontend {
 
-GpgKeyImportExporter::GpgKeyImportExporter(int channel)
-    : SingletonFunctionObject<GpgKeyImportExporter>(channel),
+KeyImportExportOperation::KeyImportExportOperation(int channel)
+    : SingletonFunctionObject<KeyImportExportOperation>(channel),
       ctx_(GpgContext::GetInstance(SingletonFunctionObject::GetChannel())) {}
 
-auto GpgKeyImportExporter::ImportKey(const GFBuffer& in_buffer)
+auto KeyImportExportOperation::ImportKey(const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation> {
   return RunRegisteredForward<ImportKeyOpTag>(ctx_, in_buffer);
 }
 
-auto GpgKeyImportExporter::ImportRevCert(const GFBuffer& in_buffer)
+auto KeyImportExportOperation::ImportRevCert(const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation> {
   return RunRegisteredForward<ImportRevCertOpTag>(ctx_, in_buffer);
 }
 
-auto GpgKeyImportExporter::ExportKey(const GpgAbstractKeyPtr& key, bool secret,
-                                     bool ascii, bool shortest,
-                                     bool ssh_mode) const
+auto KeyImportExportOperation::ExportKey(const GpgAbstractKeyPtr& key,
+                                         bool secret, bool ascii, bool shortest,
+                                         bool ssh_mode) const
     -> std::tuple<GpgError, GFBuffer> {
   return RunRegisteredForward<ExportKeysOpTag>(
       ctx_, GpgAbstractKeyPtrList{key}, secret, ascii, shortest, ssh_mode);
 }
 
-void GpgKeyImportExporter::ExportKeys(const GpgAbstractKeyPtrList& keys,
-                                      bool secret, bool ascii, bool shortest,
-                                      bool ssh_mode,
-                                      const GpgOperationCallback& cb) const {
+void KeyImportExportOperation::ExportKeys(
+    const GpgAbstractKeyPtrList& keys, bool secret, bool ascii, bool shortest,
+    bool ssh_mode, const GpgOperationCallback& cb) const {
   RunRegisteredAsync<ExportKeysAsyncOpTag>(ctx_, cb, keys, secret, ascii,
                                            shortest, ssh_mode);
 }
 
-void GpgKeyImportExporter::ExportAllKeys(const GpgAbstractKeyPtrList& keys,
-                                         bool secret, bool ascii,
-                                         const GpgOperationCallback& cb) const {
+void KeyImportExportOperation::ExportAllKeys(
+    const GpgAbstractKeyPtrList& keys, bool secret, bool ascii,
+    const GpgOperationCallback& cb) const {
   RunRegisteredAsync<ExportAllKeysOpTag>(ctx_, cb, keys, secret, ascii);
 }
 
-auto GpgKeyImportExporter::ExportSubkey(const QString& fpr, bool ascii) const
+auto KeyImportExportOperation::ExportSubkey(const QString& fpr,
+                                            bool ascii) const
     -> std::tuple<GpgError, GFBuffer> {
   return RunRegisteredForward<ExportSubkeyOpTag>(ctx_, fpr, ascii);
 }

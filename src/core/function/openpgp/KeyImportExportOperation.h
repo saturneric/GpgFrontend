@@ -41,15 +41,15 @@ class GpgImportInformation;
  * @brief
  *
  */
-class GF_CORE_EXPORT GpgKeyImportExporter
-    : public SingletonFunctionObject<GpgKeyImportExporter> {
+class GF_CORE_EXPORT KeyImportExportOperation
+    : public SingletonFunctionObject<KeyImportExportOperation> {
  public:
   /**
    * @brief Construct a new Gpg Key Import Exporter object
    *
    * @param channel
    */
-  explicit GpgKeyImportExporter(
+  explicit KeyImportExportOperation(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**

@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgKeyGenerateInfo.h"
 
 namespace GpgFrontend {

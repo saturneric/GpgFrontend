@@ -38,7 +38,7 @@ auto GenerateKeyWithSubkeyRpgpImpl(
     GpgContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError {
-  auto& kie = GpgKeyImportExporter::GetInstance(ctx.GetChannel());
+  auto& kie = KeyImportExportOperation::GetInstance(ctx.GetChannel());
 
   Rust::GfrKeyConfig key_config;
   key_config.algo = KeyAlgoId2GfrKeyAlgo(p_params->GetAlgo().Id());
@@ -115,7 +115,7 @@ auto GenerateKeyRpgpImpl(GpgContext& ctx,
 auto GenerateSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
                             const QSharedPointer<KeyGenerateInfo>& params,
                             const DataObjectPtr& data_object) -> GpgError {
-  auto& kie = GpgKeyImportExporter::GetInstance(ctx.GetChannel());
+  auto& kie = KeyImportExportOperation::GetInstance(ctx.GetChannel());
 
   if (key == nullptr) {
     LOG_E() << "primary key is null";

@@ -28,7 +28,7 @@
 
 #include "MainWindow.h"
 #include "core/function/GFBufferFactory.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
@@ -70,7 +70,7 @@ void MainWindow::slot_append_selected_keys() {
   auto keys = m_key_list_->GetSelectedKeys();
   if (keys.empty()) return;
 
-  auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance(
+  auto [err, gf_buffer] = KeyImportExportOperation::GetInstance(
                               m_key_list_->GetCurrentGpgContextChannel())
                               .ExportKey(keys.front(), false, true, false);
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {

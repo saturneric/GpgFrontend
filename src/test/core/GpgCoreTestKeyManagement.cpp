@@ -31,7 +31,7 @@
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 
@@ -110,7 +110,7 @@ namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
   auto info =
-      GpgKeyImportExporter::GetInstance(kGpgFrontendDefaultChannel)
+      KeyImportExportOperation::GetInstance(kGpgFrontendDefaultChannel)
           .ImportKey(GFBuffer(QString::fromLatin1(test_private_key_data)));
 
   ASSERT_EQ(info->not_imported, 0);
@@ -141,7 +141,7 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
 }
 
 TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
-  auto info = GpgKeyImportExporter::GetInstance().ImportKey(
+  auto info = KeyImportExportOperation::GetInstance().ImportKey(
       GFBuffer(QString::fromLatin1(test_private_key_data)));
 
   ASSERT_EQ(info->not_imported, 0);
@@ -206,7 +206,7 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 }
 
 TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
-  auto info = GpgKeyImportExporter::GetInstance().ImportKey(
+  auto info = KeyImportExportOperation::GetInstance().ImportKey(
       GFBuffer(QString::fromLatin1(test_private_key_data)));
 
   ASSERT_EQ(info->not_imported, 0);

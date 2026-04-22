@@ -30,7 +30,7 @@
 
 #include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/gpg/GpgKeyManager.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -498,7 +498,7 @@ void KeyPairSubkeyTab::slot_export_subkey() {
   const auto& s_key = get_selected_subkey();
 
   auto [err, gf_buffer] =
-      GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+      KeyImportExportOperation::GetInstance(current_gpg_context_channel_)
           .ExportSubkey(s_key.Fingerprint(), true);
 
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {

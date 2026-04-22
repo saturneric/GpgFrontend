@@ -35,7 +35,7 @@
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/IOUtils.h"
 
@@ -67,7 +67,7 @@ void ImportPrivateKeys() {
         GpgFrontend::ReadFileGFBuffer(QString(":/test/key") + "/" + key_file);
 
     if (success) {
-      auto info = GpgFrontend::GpgKeyImportExporter::GetInstance(
+      auto info = GpgFrontend::KeyImportExportOperation::GetInstance(
                       GpgFrontend::kGpgFrontendDefaultChannel)
                       .ImportKey(gf_buffer);
 

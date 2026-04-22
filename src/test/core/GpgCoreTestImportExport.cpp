@@ -28,13 +28,13 @@
 
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, CoreExportSubkeyTestA) {
-  auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportSubkey(
+  auto [err, gf_buffer] = KeyImportExportOperation::GetInstance().ExportSubkey(
       "F89C95A05088CC93", true);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -49,7 +49,7 @@ TEST_F(GpgCoreTest, CoreExportSubkeyTestA) {
 }
 
 TEST_F(GpgCoreTest, CoreExportSubkeyTestB) {
-  auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportSubkey(
+  auto [err, gf_buffer] = KeyImportExportOperation::GetInstance().ExportSubkey(
       "F89C95A05088CC93!", true);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -64,7 +64,7 @@ TEST_F(GpgCoreTest, CoreExportSubkeyTestB) {
 }
 
 TEST_F(GpgCoreTest, CoreExportSubkeyTestC) {
-  auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportSubkey(
+  auto [err, gf_buffer] = KeyImportExportOperation::GetInstance().ExportSubkey(
       "CFF986E51BBC2F46064C2136F89C95A05088CC93", true);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
@@ -79,7 +79,7 @@ TEST_F(GpgCoreTest, CoreExportSubkeyTestC) {
 }
 
 TEST_F(GpgCoreTest, CoreExportSubkeyTestD) {
-  auto [err, gf_buffer] = GpgKeyImportExporter::GetInstance().ExportSubkey(
+  auto [err, gf_buffer] = KeyImportExportOperation::GetInstance().ExportSubkey(
       "CFF986E51BBC2F46064C2136F89C95A05088CC93!", true);
 
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);

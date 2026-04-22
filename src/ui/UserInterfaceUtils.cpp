@@ -192,8 +192,9 @@ void CommonUtils::SlotImportKeys(QWidget *parent, int channel,
                                  const GFBuffer &in_buffer, bool rev_cert) {
   auto info =
       rev_cert
-          ? GpgKeyImportExporter::GetInstance(channel).ImportRevCert(in_buffer)
-          : GpgKeyImportExporter::GetInstance(channel).ImportKey(in_buffer);
+          ? KeyImportExportOperation::GetInstance(channel).ImportRevCert(
+                in_buffer)
+          : KeyImportExportOperation::GetInstance(channel).ImportKey(in_buffer);
   auto *connection = new QMetaObject::Connection;
   *connection = connect(UISignalStation::GetInstance(),
                         &UISignalStation::SignalKeyDatabaseRefreshDone, this,

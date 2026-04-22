@@ -32,7 +32,7 @@
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgKeyOpera.h"
-#include "core/function/openpgp/GpgKeyImportExporter.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgKey.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -182,7 +182,7 @@ void KeyPairOperaTab::slot_export_key(bool secret, bool ascii, bool shortest,
   auto* task = new Thread::Task(
       [=](const DataObjectPtr& data_object) -> int {
         auto [err, gf_buffer] =
-            GpgKeyImportExporter::GetInstance(current_gpg_context_channel_)
+            KeyImportExportOperation::GetInstance(current_gpg_context_channel_)
                 .ExportKey(m_key_, secret, ascii, shortest);
         data_object->Swap({err, gf_buffer});
         return 0;
