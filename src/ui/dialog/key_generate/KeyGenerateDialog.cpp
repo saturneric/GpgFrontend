@@ -29,8 +29,8 @@
 #include "KeyGenerateDialog.h"
 
 #include "core/function/gpg/GpgKeyOpera.h"
+#include "core/function/openpgp/GpgKeyGenerateOpera.h"
 #include "core/model/CacheObject.h"
-#include "core/typedef/GpgTypedef.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
@@ -954,7 +954,7 @@ void KeyGenerateDialog::slot_easy_combination_changed(const QString& mode) {
 void KeyGenerateDialog::do_generate() {
   auto f = [this, gen_key_info =
                       this->gen_key_info_](const OperaWaitingHd& hd) -> void {
-    GpgKeyOpera::GetInstance(channel_).GenerateKeyWithSubkey(
+    GpgKeyGenerateOpera::GetInstance(channel_).GenerateKeyWithSubkey(
         gen_key_info, gen_subkey_info_,
         [this, hd](GpgError err, const DataObjectPtr&) {
           // stop showing waiting dialog

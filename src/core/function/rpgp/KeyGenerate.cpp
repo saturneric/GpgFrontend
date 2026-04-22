@@ -35,9 +35,11 @@
 
 namespace GpgFrontend {
 auto GenerateKeyWithSubkeyRpgpImpl(
-    GpgKeyImportExporter& kie, const QSharedPointer<KeyGenerateInfo>& p_params,
+    GpgContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError {
+  auto& kie = GpgKeyImportExporter::GetInstance(ctx.GetChannel());
+
   Rust::GfrKeyConfig key_config;
   key_config.algo = KeyAlgoId2GfrKeyAlgo(p_params->GetAlgo().Id());
   key_config.can_sign = p_params->IsAllowSign();
@@ -104,16 +106,17 @@ auto GenerateKeyWithSubkeyRpgpImpl(
   return GPG_ERR_NO_ERROR;
 }
 
-auto GenerateKeyRpgpImpl(GpgKeyImportExporter& kie,
+auto GenerateKeyRpgpImpl(GpgContext& ctx,
                          const QSharedPointer<KeyGenerateInfo>& params,
                          const DataObjectPtr& data_object) -> GpgError {
-  return GenerateKeyWithSubkeyRpgpImpl(kie, params, nullptr, data_object);
+  return GenerateKeyWithSubkeyRpgpImpl(ctx, params, nullptr, data_object);
 }
 
-auto GenerateSubKeyRpgpImpl(GpgContext& ctx, GpgKeyImportExporter& kie,
-                            const GpgKeyPtr& key,
+auto GenerateSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
                             const QSharedPointer<KeyGenerateInfo>& params,
                             const DataObjectPtr& data_object) -> GpgError {
+  auto& kie = GpgKeyImportExporter::GetInstance(ctx.GetChannel());
+
   if (key == nullptr) {
     LOG_E() << "primary key is null";
     return GPG_ERR_GENERAL;

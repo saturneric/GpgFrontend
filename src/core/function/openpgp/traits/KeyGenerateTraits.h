@@ -28,47 +28,26 @@
 
 #pragma once
 
-#include "core/function/openpgp/GpgKeyImportExporter.h"
-#include "core/model/GpgKeyGenerateInfo.h"
+#include "core/function/openpgp/Op.h"
+
+// Engine Impl
+#include "core/function/gpg/KeyGenerate.h"
+#include "core/function/rpgp/KeyGenerate.h"
 
 namespace GpgFrontend {
 
-/**
- * @brief
- *
- * @param kie
- * @param p_params
- * @param s_params
- * @param data_object
- * @return GpgError
- */
-auto GenerateKeyWithSubkeyRpgpImpl(
-    GpgContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
-    const QSharedPointer<KeyGenerateInfo>& s_params,
-    const DataObjectPtr& data_object) -> GpgError;
+GF_DEF_OP_TRAITS(GenerateKeyTag, "op_generate_key", &GenerateKeyGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &GenerateKeyGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &GenerateKeyRpgpImpl});
 
-/**
- * @brief
- *
- * @param kie
- * @param params
- * @param data_object
- * @return GpgError
- */
-auto GenerateKeyRpgpImpl(GpgContext& ctx,
-                         const QSharedPointer<KeyGenerateInfo>& params,
-                         const DataObjectPtr& data_object) -> GpgError;
+GF_DEF_OP_TRAITS(GenerateSubKeyTag, "op_generate_subkey",
+                 &GenerateSubKeyGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &GenerateSubKeyGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &GenerateSubKeyRpgpImpl});
 
-/**
- * @brief
- *
- * @param kie
- * @param primary_key_id
- * @param params
- * @param data_object
- * @return GpgError
- */
-auto GenerateSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
-                            const QSharedPointer<KeyGenerateInfo>& params,
-                            const DataObjectPtr& data_object) -> GpgError;
+GF_DEF_OP_TRAITS(GenerateKeyWithSubKeyTag, "op_generate_key_with_subkey",
+                 &GenerateKeyWithSubkeyGnuPGImpl,
+                 {OpenPGPEngine::kGNUPG, &GenerateKeyWithSubkeyGnuPGImpl},
+                 {OpenPGPEngine::kRPGP, &GenerateKeyWithSubkeyRpgpImpl});
+
 }  // namespace GpgFrontend

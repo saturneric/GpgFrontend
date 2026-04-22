@@ -44,97 +44,81 @@ class KeyGenerateInfo;
  * @brief
  *
  */
-class GF_CORE_EXPORT GpgKeyOpera : public SingletonFunctionObject<GpgKeyOpera> {
+class GF_CORE_EXPORT GpgKeyGenerateOpera
+    : public SingletonFunctionObject<GpgKeyGenerateOpera> {
  public:
   /**
    * @brief Construct a new Gpg Key Opera object
    *
    * @param channel
    */
-  explicit GpgKeyOpera(
+  explicit GpgKeyGenerateOpera(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
    * @brief
    *
-   * @param key_ids
-   */
-  void DeleteKeys(const GpgAbstractKeyPtrList& keys);
-
-  /**
-   * @brief
-   *
-   * @param key_id
-   */
-  void DeleteKey(const GpgAbstractKeyPtr& key_id);
-
-  /**
-   * @brief Set the Expire object
-   *
-   * @param key
-   * @param subkey_fpr
-   * @param expires
-   * @return GpgError
-   */
-  auto SetExpire(const GpgKeyPtr& key, const SubkeyId& subkey_fpr,
-                 std::unique_ptr<QDateTime>& expires) -> GpgError;
-
-  /**
-   * @brief
-   *
-   * @param key
-   * @param output_file_name
-   */
-  void GenerateRevokeCert(const GpgKeyPtr& key, const QString& output_path,
-                          int revocation_reason_code,
-                          const QString& revocation_reason_text);
-
-  /**
-   * @brief
-   *
-   * @param key
+   * @param params
+   * @param result
    * @return GpgFrontend::GpgError
    */
-  void ModifyPassword(const GpgKeyPtr& key, const GpgOperationCallback&);
+  void GenerateKey(const QSharedPointer<KeyGenerateInfo>&,
+                   const GpgOperationCallback&);
+
+  /**
+   * @brief
+   *
+   * @param params
+   */
+  auto GenerateKeySync(const QSharedPointer<KeyGenerateInfo>& params)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief
    *
    * @param key
-   * @param tofu_policy
+   * @param params
    * @return GpgFrontend::GpgError
    */
-  auto ModifyTOFUPolicy(const GpgKeyPtr& key, gpgme_tofu_policy_t tofu_policy)
-      -> GpgError;
+  void GenerateSubkey(const GpgKeyPtr& key,
+                      const QSharedPointer<KeyGenerateInfo>& params,
+                      const GpgOperationCallback&);
 
   /**
    * @brief
    *
    * @param key
-   * @param adsk
+   * @param params
    */
-  void AddADSK(const GpgKeyPtr& key, const GpgSubKey& adsk,
-               const GpgOperationCallback&);
+  auto GenerateSubkeySync(const GpgKeyPtr& key,
+                          const QSharedPointer<KeyGenerateInfo>& params)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief
    *
-   * @param key
-   * @param adsk
-   * @return GpgError
+   * @param params
+   * @param subkey_params
+   * @param callback
    */
-  auto AddADSKSync(const GpgKeyPtr& key, const GpgSubKey& adsk)
+  void GenerateKeyWithSubkey(const QSharedPointer<KeyGenerateInfo>& p_params,
+                             const QSharedPointer<KeyGenerateInfo>& s_params,
+                             const GpgOperationCallback&);
+
+  /**
+   * @brief
+   *
+   * @param params
+   * @param subkey_params
+   * @param callback
+   */
+  auto GenerateKeyWithSubkeySync(
+      const QSharedPointer<KeyGenerateInfo>& p_params,
+      const QSharedPointer<KeyGenerateInfo>& s_params)
       -> std::tuple<GpgError, DataObjectPtr>;
 
  private:
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
-
-  GpgKeyGetter& key_getter_ =
-      GpgKeyGetter::GetInstance(SingletonFunctionObject::GetChannel());  ///<
-
-  GpgKeyImportExporter& key_import_exporter_ =
-      GpgKeyImportExporter::GetInstance(
-          SingletonFunctionObject::GetChannel());  ///<
 };
 }  // namespace GpgFrontend

@@ -36,39 +36,40 @@ namespace GpgFrontend {
 /**
  * @brief
  *
- * @param kie
+ * @param ctx
+ * @param params
+ * @param data_object
+ * @return GpgError
+ */
+auto GenerateKeyGnuPGImpl(GpgContext& ctx,
+                          const QSharedPointer<KeyGenerateInfo>& params,
+                          const DataObjectPtr& data_object) -> GpgError;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param key
+ * @param params
+ * @param data_object
+ * @return GpgError
+ */
+auto GenerateSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                             const QSharedPointer<KeyGenerateInfo>& params,
+                             const DataObjectPtr& data_object) -> GpgError;
+
+/**
+ * @brief
+ *
+ * @param ctx
  * @param p_params
  * @param s_params
  * @param data_object
  * @return GpgError
  */
-auto GenerateKeyWithSubkeyRpgpImpl(
+auto GenerateKeyWithSubkeyGnuPGImpl(
     GpgContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError;
 
-/**
- * @brief
- *
- * @param kie
- * @param params
- * @param data_object
- * @return GpgError
- */
-auto GenerateKeyRpgpImpl(GpgContext& ctx,
-                         const QSharedPointer<KeyGenerateInfo>& params,
-                         const DataObjectPtr& data_object) -> GpgError;
-
-/**
- * @brief
- *
- * @param kie
- * @param primary_key_id
- * @param params
- * @param data_object
- * @return GpgError
- */
-auto GenerateSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
-                            const QSharedPointer<KeyGenerateInfo>& params,
-                            const DataObjectPtr& data_object) -> GpgError;
 }  // namespace GpgFrontend
