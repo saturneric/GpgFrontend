@@ -28,9 +28,9 @@
 
 #include "GlobalSettingStation.h"
 
-#include "GpgFrontendBuildInstallInfo.h"
+#include <set>
 
-//
+#include "GpgFrontendBuildInstallInfo.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/FilesystemUtils.h"
 
@@ -237,7 +237,7 @@ class GlobalSettingStation::Impl {
   auto GetAppSecureKeyDir() -> QString { return app_secure_path(); }
 
   auto IsEngineSupported(OpenPGPEngine engine) -> bool {
-    return supported_engines_.contains(engine);
+    return supported_engines_.count(engine) > 0;
   }
 
   auto AddSupportedOpenPPGEngine(OpenPGPEngine engine) -> void {
@@ -245,7 +245,7 @@ class GlobalSettingStation::Impl {
   }
 
   auto RemoveSupportedOpenPPGEngine(OpenPGPEngine engine) -> void {
-    supported_engines_.remove(engine);
+    supported_engines_.erase(engine);
   }
 
   auto HasSupportedEngine() -> bool { return !supported_engines_.empty(); }
@@ -286,7 +286,10 @@ class GlobalSettingStation::Impl {
   QMap<GFBuffer, GFBuffer> app_secure_keys_;
   GFBuffer active_key_id_;
   GFBuffer legacy_key_id_;
-  QSet<OpenPGPEngine> supported_engines_;
+
+  // we do not use QSet because it has different behavior on qt5 and qt6, which
+  // causes compile error on qt5. using std::set for better compatibility.
+  std::set<OpenPGPEngine> supported_engines_;
 };
 
 GlobalSettingStation::GlobalSettingStation(int channel) noexcept
