@@ -28,7 +28,7 @@
 
 #include "GpgKeyImportExporter.h"
 
-#include "core/function/openpgp/Async.h"
+#include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/KeyImportExportTraits.h"
 #include "core/model/GpgImportInformation.h"
 

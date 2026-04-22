@@ -28,7 +28,7 @@
 
 #include "MessageCryptoOperation.h"
 
-#include "core/function/openpgp/Async.h"
+#include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/MessageCryptoTraits.h"
 
 namespace GpgFrontend {

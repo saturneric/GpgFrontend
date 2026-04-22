@@ -28,7 +28,7 @@
 
 #include "KeyGenerationOperation.h"
 
-#include "core/function/openpgp/Async.h"
+#include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/KeyGenerationTraits.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgKeyGenerateInfo.h"

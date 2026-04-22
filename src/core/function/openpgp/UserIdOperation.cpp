@@ -27,7 +27,8 @@
  */
 
 #include "UserIdOperation.h"
-#include "core/function/openpgp/Async.h"
+
+#include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/UserIdOperaTraits.h"
 
 namespace GpgFrontend {

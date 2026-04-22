@@ -29,7 +29,7 @@
 #pragma once
 
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/openpgp/Op.h"
+#include "core/function/openpgp/helper/Op.h"
 #include "core/utils/AsyncUtils.h"
 
 namespace GpgFrontend {
