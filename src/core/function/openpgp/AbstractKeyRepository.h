@@ -41,21 +41,21 @@ class GpgKeyTableModel;
  * @brief
  *
  */
-class GF_CORE_EXPORT GpgAbstractKeyGetter
-    : public SingletonFunctionObject<GpgAbstractKeyGetter> {
+class GF_CORE_EXPORT AbstractKeyRepository
+    : public SingletonFunctionObject<AbstractKeyRepository> {
  public:
   /**
    * @brief Construct a new Gpg Key Getter object
    *
    * @param channel
    */
-  explicit GpgAbstractKeyGetter(int channel = kGpgFrontendDefaultChannel);
+  explicit AbstractKeyRepository(int channel = kGpgFrontendDefaultChannel);
 
   /**
    * @brief Destroy the Gpg Key Getter object
    *
    */
-  ~GpgAbstractKeyGetter();
+  ~AbstractKeyRepository();
 
   /**
    * @brief Get the Key object

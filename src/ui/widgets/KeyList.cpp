@@ -31,7 +31,7 @@
 #include <cstddef>
 
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -48,7 +48,7 @@ namespace GpgFrontend::UI {
 KeyList::KeyList(QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
-      model_(GpgAbstractKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+      model_(AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetGpgKeyTableModel()),
       global_column_filter_(static_cast<GpgKeyTableColumn>(
           GetSettings()
@@ -64,7 +64,7 @@ KeyList::KeyList(int channel, KeyMenuAbility menu_ability,
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
       current_gpg_context_channel_(channel),
       menu_ability_(menu_ability),
-      model_(GpgAbstractKeyGetter::GetInstance(channel).GetGpgKeyTableModel()),
+      model_(AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel()),
       fixed_columns_filter_(fixed_columns_filter),
       global_column_filter_(static_cast<GpgKeyTableColumn>(
           GetSettings()
@@ -325,7 +325,7 @@ void KeyList::SlotRefresh() {
 
   LOG_D() << "request new key table module, current gpg context channel: "
           << current_gpg_context_channel_;
-  model_ = GpgAbstractKeyGetter::GetInstance(current_gpg_context_channel_)
+  model_ = AbstractKeyRepository::GetInstance(current_gpg_context_channel_)
                .GetGpgKeyTableModel();
 
   for (int i = 0; i < ui_->keyGroupTab->count(); i++) {
@@ -712,7 +712,7 @@ void KeyList::Init(int channel, KeyMenuAbility menu_ability,
   current_gpg_context_channel_ = channel;
   menu_ability_ = menu_ability;
   fixed_columns_filter_ = fixed_column_filter;
-  model_ = GpgAbstractKeyGetter::GetInstance(channel).GetGpgKeyTableModel();
+  model_ = AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel();
 
   init();
 }

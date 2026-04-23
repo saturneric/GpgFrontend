@@ -28,7 +28,7 @@
 
 #include "KeyImportDetailDialog.h"
 
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgImportInformation.h"
 
 namespace GpgFrontend::UI {
@@ -148,7 +148,7 @@ void KeyImportDetailDialog::create_keys_table() {
   for (const auto& imp_key : m_result_->imported_keys) {
     keys_table_->setRowCount(row + 1);
 
-    auto key = GpgAbstractKeyGetter::GetInstance(current_gpg_context_channel_)
+    auto key = AbstractKeyRepository::GetInstance(current_gpg_context_channel_)
                    .GetKey(imp_key.fpr);
     if (key == nullptr) continue;
 

@@ -30,7 +30,7 @@
 
 #include <utility>
 
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 
 namespace GpgFrontend::UI {
 
@@ -124,7 +124,7 @@ SubKeyPicker::SubKeyPicker(int channel, GpgAbstractKeyPtrList keys,
 
   GpgAbstractKeyPtrList ret;
 
-  auto& getter = GpgAbstractKeyGetter::GetInstance(channel_);
+  auto& getter = AbstractKeyRepository::GetInstance(channel_);
 
   for (const auto& k : keys) {
     GpgAbstractKeyPtr key = nullptr;

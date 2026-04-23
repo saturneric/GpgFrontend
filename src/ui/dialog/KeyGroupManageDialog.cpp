@@ -28,7 +28,7 @@
 
 #include "KeyGroupManageDialog.h"
 
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "ui/UISignalStation.h"
 #include "ui/widgets/KeyList.h"
 
@@ -151,7 +151,7 @@ void KeyGroupManageDialog::slot_notify_invalid_key_ids() {
 
   QStringList invalid_key_ids;
   for (const auto& key_id : key_ids) {
-    auto key = GpgAbstractKeyGetter::GetInstance(channel_).GetKey(key_id);
+    auto key = AbstractKeyRepository::GetInstance(channel_).GetKey(key_id);
     if (key == nullptr) invalid_key_ids.push_back(key_id);
   }
 
@@ -176,7 +176,7 @@ void KeyGroupManageDialog::slot_notify_invalid_key_ids() {
     }
   }
 
-  emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
+  emit UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
 }
 
 void KeyGroupManageDialog::slot_set_add_button_state() {

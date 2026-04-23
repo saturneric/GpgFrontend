@@ -33,8 +33,8 @@
 #include "core/GpgConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/IOUtils.h"
@@ -87,8 +87,8 @@ void ImportPrivateKeys() {
     }
   }
 
-  GpgFrontend::GpgAbstractKeyGetter::GetInstance().FlushCache();
-  GpgFrontend::GpgAbstractKeyGetter::GetInstance().Fetch();
+  GpgFrontend::AbstractKeyRepository::GetInstance().FlushCache();
+  GpgFrontend::AbstractKeyRepository::GetInstance().Fetch();
 }
 
 void ConfigureGpgContext() {

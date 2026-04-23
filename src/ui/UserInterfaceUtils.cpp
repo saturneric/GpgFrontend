@@ -30,7 +30,7 @@
 
 #include "core/GpgConstants.h"
 #include "core/function/CoreSignalStation.h"
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/model/GpgPassphraseContext.h"
@@ -330,7 +330,7 @@ void CommonUtils::slot_update_key_status() {
         // flush key cache for all GpgKeyGetter Intances.
         for (const auto &channel_id : GpgContext::GetAllChannelId()) {
           LOG_D() << "refreshing key database at channel: " << channel_id;
-          GpgAbstractKeyGetter::GetInstance(channel_id).FlushCache();
+          AbstractKeyRepository::GetInstance(channel_id).FlushCache();
         }
         LOG_D() << "refreshing key database at all channel done";
         return 0;

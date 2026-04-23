@@ -29,7 +29,7 @@
 #include "GpgKeyGroupGetter.h"
 
 #include "core/function/CacheManager.h"
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/struct/cache_object/KeyGroupsCO.h"
 #include "utils/GpgUtils.h"
 

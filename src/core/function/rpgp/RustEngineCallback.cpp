@@ -32,7 +32,7 @@
 
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GFKeyDatabase.h"
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgPassphraseContext.h"
 
 namespace GpgFrontend {
@@ -86,7 +86,7 @@ auto FetchPasswordCallback(int channel, const char* fpr, const char* info,
   QString qs_fpr = QString::fromUtf8(fpr).toUpper();
   GpgAbstractKeyPtr key = nullptr;
   if (qs_fpr.length() > 0) {
-    key = GpgAbstractKeyGetter::GetInstance(channel).GetKey(qs_fpr);
+    key = AbstractKeyRepository::GetInstance(channel).GetKey(qs_fpr);
   }
   auto qs_info = info != nullptr ? QString::fromUtf8(info) : QString();
 

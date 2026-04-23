@@ -28,7 +28,7 @@
 
 #include "GpgKeyTableProxyModel.h"
 
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyTableModel.h"

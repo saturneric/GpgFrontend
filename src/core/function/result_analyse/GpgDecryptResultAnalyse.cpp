@@ -28,7 +28,7 @@
 
 #include "GpgDecryptResultAnalyse.h"
 
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 
 GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
     int channel, GpgError m_error, GpgDecryptResult m_result)
@@ -104,7 +104,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
 void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
     QTextStream& stream, const GpgRecipient& recipient) {
   auto key =
-      GpgAbstractKeyGetter::GetInstance(GetChannel()).GetKey(recipient.keyid);
+      AbstractKeyRepository::GetInstance(GetChannel()).GetKey(recipient.keyid);
 
   if (key != nullptr) {
     stream << key->Name();

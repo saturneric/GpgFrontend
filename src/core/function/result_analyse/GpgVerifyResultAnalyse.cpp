@@ -28,7 +28,7 @@
 
 #include "GpgVerifyResultAnalyse.h"
 
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/LocalizedUtils.h"
 
@@ -238,7 +238,7 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(QTextStream &stream,
   LOG_D() << "Looking up key for fingerprint: " << fingerprint;
 
   auto key =
-      GpgAbstractKeyGetter::GetInstance(GetChannel()).GetKey(fingerprint);
+      AbstractKeyRepository::GetInstance(GetChannel()).GetKey(fingerprint);
   if (key != nullptr) {
     stream << "- " << tr("Signed By") << ": " << key->UID() << Qt::endl;
 

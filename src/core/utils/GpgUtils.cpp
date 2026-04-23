@@ -29,8 +29,8 @@
 #include "GpgUtils.h"
 
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
 #include "core/function/gpg/GpgComponentManager.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGroup.h"
 #include "core/model/KeyDatabaseInfo.h"
@@ -433,7 +433,7 @@ auto GF_CORE_EXPORT ConvertKey2GpgKeyList(int channel,
     } else if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
       auto key_ids = qSharedPointerDynamicCast<GpgKeyGroup>(key)->KeyIds();
       recipients += ConvertKey2GpgKeyList(
-          channel, GpgAbstractKeyGetter::GetInstance().GetKeys(key_ids));
+          channel, AbstractKeyRepository::GetInstance().GetKeys(key_ids));
     }
 
     s.insert(key->ID());

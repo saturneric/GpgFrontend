@@ -26,17 +26,17 @@
  *
  */
 
-#include "GpgAbstractKeyGetter.h"
+#include "AbstractKeyRepository.h"
 
 #include "core/model/GpgKeyTableModel.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
-GpgAbstractKeyGetter::GpgAbstractKeyGetter(int channel)
-    : SingletonFunctionObject<GpgAbstractKeyGetter>(channel) {};
+AbstractKeyRepository::AbstractKeyRepository(int channel)
+    : SingletonFunctionObject<AbstractKeyRepository>(channel){};
 
-auto GpgAbstractKeyGetter::Fetch() -> GpgAbstractKeyPtrList {
+auto AbstractKeyRepository::Fetch() -> GpgAbstractKeyPtrList {
   auto ret = GpgAbstractKeyPtrList{};
 
   auto keys = key_.Fetch();
@@ -52,24 +52,24 @@ auto GpgAbstractKeyGetter::Fetch() -> GpgAbstractKeyPtrList {
   return ret;
 }
 
-auto GpgAbstractKeyGetter::GetGpgKeyTableModel()
+auto AbstractKeyRepository::GetGpgKeyTableModel()
     -> QSharedPointer<GpgKeyTableModel> {
   return SecureCreateSharedObject<GpgKeyTableModel>(
       SingletonFunctionObject::GetChannel(), Fetch(), nullptr);
 }
 
-auto GpgAbstractKeyGetter::FlushCache() -> bool {
+auto AbstractKeyRepository::FlushCache() -> bool {
   return key_.FlushKeyCache() && kg_.FlushCache();
 }
 
-auto GpgAbstractKeyGetter::GetKey(const QString& key_id) -> GpgAbstractKeyPtr {
+auto AbstractKeyRepository::GetKey(const QString& key_id) -> GpgAbstractKeyPtr {
   if (IsKeyGroupID(key_id)) {
     return kg_.KeyGroup(key_id);
   }
   return key_.GetKeyORSubkeyPtr(key_id);
 }
 
-auto GpgAbstractKeyGetter::GetKeys(const QStringList& key_ids)
+auto AbstractKeyRepository::GetKeys(const QStringList& key_ids)
     -> GpgAbstractKeyPtrList {
   auto ret = GpgAbstractKeyPtrList{};
   for (const auto& key_id : key_ids) {
@@ -81,5 +81,5 @@ auto GpgAbstractKeyGetter::GetKeys(const QStringList& key_ids)
   return ret;
 }
 
-GpgAbstractKeyGetter::~GpgAbstractKeyGetter() = default;
+AbstractKeyRepository::~AbstractKeyRepository() = default;
 }  // namespace GpgFrontend

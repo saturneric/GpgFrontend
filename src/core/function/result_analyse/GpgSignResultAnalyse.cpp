@@ -28,7 +28,7 @@
 
 #include "GpgSignResultAnalyse.h"
 
-#include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/utils/LocalizedUtils.h"
 
 namespace GpgFrontend {
@@ -65,7 +65,7 @@ void GpgSignResultAnalyse::doAnalyse() {
 
       QString fpr = sign.GetFingerprint();
       auto sign_key =
-          GpgAbstractKeyGetter::GetInstance(GetChannel()).GetKey(fpr);
+          AbstractKeyRepository::GetInstance(GetChannel()).GetKey(fpr);
       if (sign_key != nullptr) {
         stream_ << "- " << tr("Signed By") << ": " << sign_key->UID()
                 << Qt::endl;
