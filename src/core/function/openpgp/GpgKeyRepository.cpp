@@ -34,7 +34,8 @@
 
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/rpgp/KeyStorage.h"
+#include "core/function/openpgp/helper/Async.h"
+#include "core/function/openpgp/traits/KeyStorageTraits.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -43,7 +44,10 @@ class GpgKeyRepository::Impl
     : public SingletonFunctionObject<GpgKeyRepository::Impl> {
  public:
   explicit Impl(int channel)
-      : SingletonFunctionObject<GpgKeyRepository::Impl>(channel) {}
+      : SingletonFunctionObject<GpgKeyRepository::Impl>(channel),
+        keys_search_cache_(
+            QSharedPointer<QMap<QString, GpgAbstractKeyPtr>>::create()),
+        keys_cache_(QSharedPointer<GpgKeyPtrList>::create()) {}
 
   auto GetKeyPtr(const QString& key_id, bool cache) -> GpgKeyPtr {
     // find in cache first
@@ -55,18 +59,11 @@ class GpgKeyRepository::Impl
               << "from cache failed, channel: " << GetChannel();
     }
 
-    if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-      return GetPubkeyPtr(key_id, true);
+    auto key_ptr = RunRegisteredForward<GetKeyPtrOpTag>(ctx_, key_id, true);
+    if (key_ptr == nullptr) {
+      key_ptr = GetPubkeyPtr(key_id, cache);
     }
-
-    gpgme_key_t p_key = nullptr;
-    gpgme_get_key(ctx_.DefaultContext(), key_id.toUtf8(), &p_key, 1);
-    if (p_key == nullptr) {
-      LOG_W() << "GpgKeyGetter GetKey p_key is null, fpr: " << key_id;
-      return GetPubkeyPtr(key_id, true);
-    }
-
-    return SecureCreateSharedObject<GpgKey>(p_key);
+    return key_ptr;
   }
 
   auto GetKey(const QString& key_id, bool cache) -> GpgKey {
@@ -93,21 +90,11 @@ class GpgKeyRepository::Impl
               << "from cache failed, channel: " << GetChannel();
     }
 
-    if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-      return get_key_rpgp_impl(key_id, false);
-    }
-
-    gpgme_key_t p_key = nullptr;
-    gpgme_get_key(ctx_.DefaultContext(), key_id.toUtf8(), &p_key, 0);
-    if (p_key == nullptr) {
-      LOG_W() << "GpgKeyGetter GetKey p_key is null, key id: " << key_id;
-      return nullptr;
-    }
-    return SecureCreateSharedObject<GpgKey>(p_key);
+    return RunRegisteredForward<GetKeyPtrOpTag>(ctx_, key_id, false);
   }
 
   auto FetchKey() -> GpgKeyPtrList {
-    if (keys_cache_.empty() || keys_search_cache_.empty()) {
+    if (keys_cache_->empty() || keys_search_cache_->empty()) {
       FlushKeyCache();
     }
 
@@ -115,7 +102,7 @@ class GpgKeyRepository::Impl
     {
       // get the lock
       std::lock_guard<std::mutex> lock(keys_cache_mutex_);
-      for (const auto& key : keys_cache_) {
+      for (const auto& key : *keys_cache_) {
         keys_list.push_back(key);
       }
     }
@@ -123,7 +110,7 @@ class GpgKeyRepository::Impl
   }
 
   auto FetchGpgKeyList() -> GpgAbstractKeyPtrList {
-    if (keys_search_cache_.empty()) {
+    if (keys_search_cache_->empty()) {
       FlushKeyCache();
     }
 
@@ -131,7 +118,7 @@ class GpgKeyRepository::Impl
     {
       // get the lock
       std::lock_guard<std::mutex> lock(keys_cache_mutex_);
-      for (const auto& key : keys_cache_) {
+      for (const auto& key : *keys_cache_) {
         keys_list.push_back(key);
       }
     }
@@ -141,20 +128,18 @@ class GpgKeyRepository::Impl
 
   auto FlushKeyCache() -> bool {
     // clear the keys cache
-    keys_cache_.clear();
-    keys_search_cache_.clear();
+    keys_cache_->clear();
+    keys_search_cache_->clear();
 
-    if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-      static bool first_flush = true;
-      if (first_flush) {
-        LOG_D() << "flush rpgp key cache, channel: " << GetChannel();
-        flush_key_db_rpgp_impl();
-        first_flush = false;
-      }
-      return flush_key_cache_rpgp_impl();
+    if (first_flush_) {
+      LOG_D() << "flush key cache for the first time, channel: "
+              << GetChannel();
+      RunRegisteredForward<FlushKeyDatabaseOpTag>(ctx_);
+      first_flush_ = false;
     }
 
-    return flush_key_cache_impl();
+    return RunRegisteredForward<FlushKeyCacheOpTag>(ctx_, keys_cache_,
+                                                    keys_search_cache_);
   }
 
   auto GetKeys(const KeyIdArgsList& ids) -> GpgKeyList {
@@ -174,67 +159,16 @@ class GpgKeyRepository::Impl
   }
 
   auto GetKeyORSubkeyPtr(const QString& key_id) -> GpgAbstractKeyPtr {
-    auto key = get_key_in_cache(key_id);
-
-    if (ctx_.Engine() == OpenPGPEngine::kRPGP) {
-      // get a key with subkey_match flag for rpgp backend
-      if (key == nullptr && key_id.endsWith("!")) {
-        return get_key_rpgp_impl(key_id, true);
-      }
-    }
-
-    if (ctx_.Engine() == OpenPGPEngine::kGNUPG) {
-      // get a key with subkey_match flag
-      if (key == nullptr && key_id.endsWith("!")) {
-        gpgme_key_t key;
-        auto err =
-            gpgme_get_key(ctx_.DefaultContext(), key_id.toUtf8(), &key, 1);
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR || key == nullptr) {
-          LOG_W() << "cannot get key with subkey_match flag: " << key_id;
-          return nullptr;
-        }
-        return SecureCreateSharedObject<GpgKey>(key);
-      }
-    }
-
-    if (key != nullptr) return key;
-
-    LOG_W() << "get key" << key_id
-            << "from cache failed, channel: " << GetChannel();
-
-    return nullptr;
+    return RunRegisteredForward<GetKeyPtrOpTag>(ctx_, key_id, true);
   }
 
  private:
-  /**
-   * @brief Get the gpgme context object
-   *
-   */
   GpgContext& ctx_ =
       GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
-
-  /**
-   * @brief shared mutex for the keys cache
-   *
-   */
+  bool first_flush_ = true;
   mutable std::mutex ctx_mutex_;
-
-  /**
-   * @brief cache the keys with key id
-   *
-   */
-  QMap<QString, GpgAbstractKeyPtr> keys_search_cache_;
-
-  /**
-   * @brief
-   *
-   */
-  QContainer<GpgKeyPtr> keys_cache_;
-
-  /**
-   * @brief shared mutex for the keys cache
-   *
-   */
+  QSharedPointer<QMap<QString, GpgAbstractKeyPtr>> keys_search_cache_;
+  QSharedPointer<GpgKeyPtrList> keys_cache_;
   mutable std::mutex keys_cache_mutex_;
 
   /**
@@ -246,176 +180,14 @@ class GpgKeyRepository::Impl
   auto get_key_in_cache(const QString& key_id) -> GpgAbstractKeyPtr {
     std::lock_guard<std::mutex> lock(keys_cache_mutex_);
 
-    if (keys_search_cache_.find(key_id) != keys_search_cache_.end()) {
+    if (keys_search_cache_->contains(key_id)) {
       std::lock_guard<std::mutex> lock(ctx_mutex_);
       // return a copy of the key in cache
-      return keys_search_cache_[key_id];
+      return keys_search_cache_->value(key_id);
     }
 
     // return a bad key
     return {};
-  }
-
-  auto flush_key_cache_impl() -> bool {
-    // init
-    GpgError err = gpgme_op_keylist_start(ctx_.DefaultContext(), nullptr, 0);
-
-    // for debug
-    assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
-
-    // return when error
-    if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
-
-    {
-      // get the lock
-      std::lock_guard<std::mutex> lock(keys_cache_mutex_);
-      gpgme_key_t key;
-      while ((err = gpgme_op_keylist_next(ctx_.DefaultContext(), &key)) ==
-             GPG_ERR_NO_ERROR) {
-        auto g_key = SecureCreateSharedObject<GpgKey>(key);
-
-        // detect if the key is in a smartcard
-        // if so, try to get full information using gpgme_get_key()
-        // this maybe a bug in gpgme
-        if (g_key->IsHasCardKey()) {
-          g_key = GetKeyPtr(g_key->ID(), false);
-        }
-
-        keys_cache_.push_back(g_key);
-        keys_search_cache_.insert(g_key->ID(), g_key);
-        keys_search_cache_.insert(g_key->Fingerprint(), g_key);
-
-        for (const auto& s_key : g_key->SubKeys()) {
-          if (s_key.ID() == g_key->ID()) continue;
-
-          // don't add adsk key or it will cause bugs
-          if (s_key.IsADSK()) continue;
-
-          // subkeys should be weaker than primary key
-          if (keys_search_cache_.contains(s_key.ID())) continue;
-
-          auto p_s_key = SecureCreateSharedObject<GpgSubKey>(s_key);
-          keys_search_cache_.insert(s_key.ID(), p_s_key);
-          keys_search_cache_.insert(s_key.Fingerprint(), p_s_key);
-        }
-      }
-    }
-
-    // for debug
-    assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_EOF);
-
-    err = gpgme_op_keylist_end(ctx_.DefaultContext());
-    assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
-
-    return true;
-  }
-
-  auto flush_key_cache_rpgp_impl() -> bool {
-    auto key_db = ctx_.KeyDatabase();
-    if (key_db == nullptr) {
-      LOG_E() << "key database is not initialized";
-      return false;
-    }
-
-    auto key_meta_list = key_db->GetMetadataList();
-    {
-      // get the lock
-      std::lock_guard<std::mutex> lock(keys_cache_mutex_);
-
-      for (const auto& meta : key_meta_list) {
-        auto key = QSharedPointer<GpgKey>::create(meta);
-        if (key == nullptr) {
-          LOG_W() << "cannot get key with fpr: " << meta.fpr;
-          continue;
-        }
-
-        keys_cache_.push_back(key);
-        keys_search_cache_.insert(key->Fingerprint(), key);
-        keys_search_cache_.insert(key->ID(), key);
-
-        for (const auto& s_key : key->SubKeys()) {
-          if (s_key.ID() == key->ID()) continue;
-
-          // don't add adsk key or it will cause bugs
-          if (s_key.IsADSK()) continue;
-
-          // subkeys should be weaker than primary key
-          if (keys_search_cache_.contains(s_key.ID())) continue;
-
-          auto p_s_key = SecureCreateSharedObject<GpgSubKey>(s_key);
-          keys_search_cache_.insert(s_key.ID(), p_s_key);
-          keys_search_cache_.insert(s_key.Fingerprint(), p_s_key);
-        }
-      }
-    }
-
-    return true;
-  }
-
-  auto flush_key_db_rpgp_impl() -> bool {
-    auto key_db = ctx_.KeyDatabase();
-    if (key_db == nullptr) {
-      LOG_E() << "key database is not initialized";
-      return false;
-    }
-
-    auto key_meta_list = key_db->GetMetadataList();
-    {
-      // get the lock
-      std::lock_guard<std::mutex> lock(keys_cache_mutex_);
-
-      for (const auto& meta : key_meta_list) {
-        if (!RefreshKeyMetaInDatabase(*key_db, meta.fpr)) {
-          LOG_W() << "refresh key meta in database failed, fpr: " << meta.fpr;
-        }
-      }
-    }
-
-    return true;
-  }
-
-  auto get_key_rpgp_impl(const QString& key_id, bool secret) -> GpgKeyPtr {
-    auto key_db = ctx_.KeyDatabase();
-    if (key_db == nullptr) {
-      LOG_E() << "cannot get key database for channel: " << GetChannel();
-      return nullptr;
-    }
-
-    std::optional<GFKeyMetadata> meta_list;
-    if (key_id.endsWith("!")) {
-      auto real_key_id = key_id.left(key_id.length() - 1);
-      meta_list = key_db->GetKeyMetadata(real_key_id);
-
-      if (!meta_list.has_value()) {
-        LOG_W() << "cannot get key metadata for key id: " << real_key_id;
-        return nullptr;
-      }
-
-      // mark the subkey metadata as marked if the key_id is a subkey id
-      for (auto& sub : meta_list->subkeys) {
-        if ((sub.fpr == sub.key_id || sub.fpr.contains(real_key_id))) {
-          LOG_D() << "mark subkey with key id: " << real_key_id << " as marked";
-          sub.marked = true;
-          break;
-        }
-      }
-
-    } else {
-      meta_list = key_db->GetKeyMetadata(key_id);
-    }
-
-    if (!meta_list.has_value()) {
-      LOG_W() << "cannot get key metadata for key id: " << key_id;
-      return nullptr;
-    }
-
-    if (secret && !meta_list->has_secret) {
-      LOG_W() << "key with fpr: " << key_id
-              << " does not have secret key, but requested to get secret key";
-      return nullptr;
-    }
-
-    return SecureCreateSharedObject<GpgKey>(meta_list.value());
   }
 };
 

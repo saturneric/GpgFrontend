@@ -29,6 +29,8 @@
 #pragma once
 
 #include "core/function/GFKeyDatabase.h"
+#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/typedef/GFTypedef.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -98,4 +100,39 @@ auto GetSecretKeysByKeyIdForSigning(GFKeyDatabase& key_db,
  */
 auto RefreshKeyMetaInDatabase(GFKeyDatabase& key_db, const QString& key_id)
     -> bool;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param key_id
+ * @param secret
+ * @return GpgKeyPtr
+ */
+auto GetKeyPtrRpgpImpl(GpgContext& ctx, const QString& key_id, bool secret)
+    -> GpgKeyPtr;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param repo
+ * @param keys_cache
+ * @param keys_search_cache
+ * @return true
+ * @return false
+ */
+auto FlushKeyCacheRpgpImpl(
+    GpgContext& ctx, const QSharedPointer<GpgKeyPtrList>& keys_cache,
+    const QSharedPointer<QMap<QString, GpgAbstractKeyPtr>>& keys_search_cache)
+    -> bool;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @return true
+ * @return false
+ */
+auto FlushKeyDatabaseRpgpImpl(GpgContext& ctx) -> bool;
 }  // namespace GpgFrontend

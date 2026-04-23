@@ -353,4 +353,107 @@ auto RefreshKeyMetaInDatabase(GFKeyDatabase& key_db, const QString& key_id)
   return true;
 }
 
+auto FlushKeyCacheRpgpImpl(
+    GpgContext& ctx, const QSharedPointer<GpgKeyPtrList>& keys_cache,
+    const QSharedPointer<QMap<QString, GpgAbstractKeyPtr>>& keys_search_cache)
+    -> bool {
+  auto key_db = ctx.KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "key database is not initialized";
+    return false;
+  }
+
+  auto key_meta_list = key_db->GetMetadataList();
+
+  for (const auto& meta : key_meta_list) {
+    auto key = QSharedPointer<GpgKey>::create(meta);
+    if (key == nullptr) {
+      LOG_W() << "cannot get key with fpr: " << meta.fpr;
+      continue;
+    }
+
+    keys_cache->push_back(key);
+    keys_search_cache->insert(key->Fingerprint(), key);
+    keys_search_cache->insert(key->ID(), key);
+
+    for (const auto& s_key : key->SubKeys()) {
+      if (s_key.ID() == key->ID()) continue;
+
+      // don't add adsk key or it will cause bugs
+      if (s_key.IsADSK()) continue;
+
+      // subkeys should be weaker than primary key
+      if (keys_search_cache->contains(s_key.ID())) continue;
+
+      auto p_s_key = SecureCreateSharedObject<GpgSubKey>(s_key);
+      keys_search_cache->insert(s_key.ID(), p_s_key);
+      keys_search_cache->insert(s_key.Fingerprint(), p_s_key);
+    }
+  }
+
+  return true;
+}
+
+auto GetKeyPtrRpgpImpl(GpgContext& ctx, const QString& key_id, bool secret)
+    -> GpgKeyPtr {
+  auto key_db = ctx.KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "cannot get key database for channel: " << ctx.GetChannel();
+    return nullptr;
+  }
+
+  std::optional<GFKeyMetadata> meta_list;
+  if (key_id.endsWith("!")) {
+    auto real_key_id = key_id.left(key_id.length() - 1);
+    meta_list = key_db->GetKeyMetadata(real_key_id);
+
+    if (!meta_list.has_value()) {
+      LOG_W() << "cannot get key metadata for key id: " << real_key_id;
+      return nullptr;
+    }
+
+    // mark the subkey metadata as marked if the key_id is a subkey id
+    for (auto& sub : meta_list->subkeys) {
+      if ((sub.fpr == sub.key_id || sub.fpr.contains(real_key_id))) {
+        LOG_D() << "mark subkey with key id: " << real_key_id << " as marked";
+        sub.marked = true;
+        break;
+      }
+    }
+
+  } else {
+    meta_list = key_db->GetKeyMetadata(key_id);
+  }
+
+  if (!meta_list.has_value()) {
+    LOG_W() << "cannot get key metadata for key id: " << key_id;
+    return nullptr;
+  }
+
+  if (secret && !meta_list->has_secret) {
+    LOG_W() << "key with fpr: " << key_id
+            << " does not have secret key, but requested to get secret key";
+    return nullptr;
+  }
+
+  return SecureCreateSharedObject<GpgKey>(meta_list.value());
+}
+
+auto FlushKeyDatabaseRpgpImpl(GpgContext& ctx) -> bool {
+  auto key_db = ctx.KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "key database is not initialized";
+    return false;
+  }
+
+  auto key_meta_list = key_db->GetMetadataList();
+  for (const auto& meta : key_meta_list) {
+    if (!RefreshKeyMetaInDatabase(*key_db, meta.fpr)) {
+      LOG_W() << "refresh key meta in database failed, fpr: " << meta.fpr;
+    }
+  }
+
+  return true;
+}
+
 }  // namespace GpgFrontend
