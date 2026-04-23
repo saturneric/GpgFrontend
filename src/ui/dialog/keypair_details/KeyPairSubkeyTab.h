@@ -29,7 +29,7 @@
 #pragma once
 
 #include "KeySetExpireDateDialog.h"
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
 
 namespace GpgFrontend::UI {

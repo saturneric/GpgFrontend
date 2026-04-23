@@ -41,7 +41,7 @@
 
 namespace GpgFrontend {
 
-auto DeleteKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
+auto DeleteKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
     -> bool {
   for (const auto& key : keys) {
     if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY && key->IsGood()) {
@@ -64,7 +64,7 @@ auto DeleteKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
   return true;
 }
 
-auto SetExpireGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto SetExpireGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                         const SubkeyId& skey_fpr,
                         const std::optional<QDateTime>& expires) -> GpgError {
   unsigned long expires_time = 0;
@@ -89,7 +89,7 @@ auto SetExpireGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return err;
 }
 
-auto GenerateRevCertGnuPGImpl(GpgContext& ctx_, const GpgKeyPtr& key,
+auto GenerateRevCertGnuPGImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
                               const QString& output_path, int reason_code,
                               const QString& reason_text) -> bool {
   // dealing with reason text
@@ -146,14 +146,14 @@ auto GenerateRevCertGnuPGImpl(GpgContext& ctx_, const GpgKeyPtr& key,
   return true;
 }
 
-auto ModifyKeyPassphraseGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto ModifyKeyPassphraseGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                   const DataObjectPtr& data_object)
     -> GpgError {
   return gpgme_op_passwd(ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
                          0);
 }
 
-auto AddADSKGnuPGIImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto AddADSKGnuPGIImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const GpgSubKey& adsk, const DataObjectPtr& data_object)
     -> GpgError {
   auto algo = adsk.Fingerprint();
@@ -174,7 +174,7 @@ auto AddADSKGnuPGIImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return CheckGpgError(err);
 }
 
-auto DeleteSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto DeleteSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                            int subkey_index) -> bool {
   auto& ah = GpgAutomatonHandler::GetInstance(ctx.GetChannel());
 
@@ -255,7 +255,7 @@ auto DeleteSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return err == GPG_ERR_NO_ERROR && succ;
 }
 
-auto RevokeSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto RevokeSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                            int subkey_index, int reason_code,
                            const QString& reason_text) -> bool {
   auto& ah = GpgAutomatonHandler::GetInstance(ctx.GetChannel());
@@ -373,8 +373,9 @@ auto RevokeSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return err == GPG_ERR_NO_ERROR && succ;
 }
 
-auto SetOwnerTrustLevelGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
-                                 int trust_level) -> bool {
+auto SetOwnerTrustLevelGnuPGImpl(OpenPGPContext& ctx,
+                                 const GpgAbstractKeyPtr& key, int trust_level)
+    -> bool {
   auto& ah = GpgAutomatonHandler::GetInstance(ctx.GetChannel());
 
   if (trust_level < 1 || trust_level > 5) {
@@ -462,7 +463,7 @@ auto SetOwnerTrustLevelGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
   return all_succ;
 }
 
-auto RevKeySignatureGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto RevKeySignatureGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                               const SignIdArgsList& signature_id) -> bool {
   auto& key_getter = GpgKeyRepository::GetInstance(ctx.GetChannel());
 
@@ -478,7 +479,7 @@ auto RevKeySignatureGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return true;
 }
 
-auto SignKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto SignKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                       const GpgAbstractKeyPtrList& keys, const QString& uid,
                       const std::optional<QDateTime>& expires) -> bool {
   SetSignersGnuPGImpl(ctx, keys, true);

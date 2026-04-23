@@ -38,7 +38,7 @@ EngineSupportIf::EngineSupportIf()
 EngineSupportIf::EngineSupportIf(OpenPGPEngine engine, QString version)
     : version_req_(std::move(version)), engine_req_(engine) {}
 
-auto EngineSupportIf::IsSupport(const GpgContext& ctx) const -> bool {
+auto EngineSupportIf::IsSupport(const OpenPGPContext& ctx) const -> bool {
   auto version = ctx.EngineVersion();
   auto engine = ctx.Engine();
 
@@ -49,10 +49,10 @@ auto EngineSupportIf::IsSupport(const GpgContext& ctx) const -> bool {
 
 auto GpgContextSupportIf(int channel,
                          const QContainer<EngineSupportIf>& if_cond) -> bool {
-  return std::any_of(if_cond.begin(), if_cond.end(),
-                     [=](const EngineSupportIf& cond) -> bool {
-                       return cond.IsSupport(GpgContext::GetInstance(channel));
-                     });
+  return std::any_of(
+      if_cond.begin(), if_cond.end(), [=](const EngineSupportIf& cond) -> bool {
+        return cond.IsSupport(OpenPGPContext::GetInstance(channel));
+      });
 }
 
 auto GpgContextSupportIfWithLog(int channel, const QString& log,
@@ -60,7 +60,7 @@ auto GpgContextSupportIfWithLog(int channel, const QString& log,
     -> bool {
   auto supported = GpgContextSupportIf(channel, if_cond);
   if (!supported) {
-    auto& ctx = GpgContext::GetInstance(channel);
+    auto& ctx = OpenPGPContext::GetInstance(channel);
     LOG_W() << "engine check failed, channel: " << channel
             << ", engine: " << ConvertOpenPGPEngine2String(ctx.Engine())
             << ", version: " << ctx.EngineVersion() << ", message: " << log;

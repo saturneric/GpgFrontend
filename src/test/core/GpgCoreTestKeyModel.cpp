@@ -29,8 +29,8 @@
 #include <gtest/gtest.h>
 
 #include "GpgCoreTest.h"
-#include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
@@ -38,8 +38,8 @@
 namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, CoreInitTest) {
-  auto& ctx = GpgContext::GetInstance(kGpgFrontendDefaultChannel);
-  auto& ctx_default = GpgContext::GetInstance();
+  auto& ctx = OpenPGPContext::GetInstance(kGpgFrontendDefaultChannel);
+  auto& ctx_default = OpenPGPContext::GetInstance();
   ASSERT_TRUE(ctx.Good());
   ASSERT_TRUE(ctx_default.Good());
 }

@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 
 #include <gpg-error.h>
 #include <gpgme.h>
@@ -135,7 +135,7 @@ class GpgAgentProcess {
   QString gpg_agent_path_;
 };
 
-class GpgContext::Impl {
+class OpenPGPContext::Impl {
  public:
   /**
    * @brief Construct a new Impl object
@@ -143,7 +143,7 @@ class GpgContext::Impl {
    * @param parent
    * @param args
    */
-  Impl(GpgContext *parent, const GpgContextInitArgs &args)
+  Impl(OpenPGPContext *parent, const OpenPGPContextInitArgs &args)
       : parent_(parent),
         args_(args),
         engine_(args.engine),
@@ -280,8 +280,8 @@ class GpgContext::Impl {
   }
 
  private:
-  GpgContext *parent_;
-  GpgContextInitArgs args_{};                 ///<
+  OpenPGPContext *parent_;
+  OpenPGPContextInitArgs args_{};             ///<
   gpgme_ctx_t ctx_ref_ = nullptr;             ///<
   gpgme_ctx_t binary_ctx_ref_ = nullptr;      ///<
   gpgme_ctx_t cms_ctx_ref_ = nullptr;         ///<
@@ -300,7 +300,7 @@ class GpgContext::Impl {
   QSharedPointer<GpgAgentProcess> agent_;
   QSharedPointer<GFKeyDatabase> key_db_;
 
-  void init(const GpgContextInitArgs &args) {
+  void init(const OpenPGPContextInitArgs &args) {
     // try to use rpgp backend if possible
     if (HasRustSupport() && engine_ == OpenPGPEngine::kRPGP) {
       assert(!database_path_.isEmpty());
@@ -403,7 +403,7 @@ class GpgContext::Impl {
   }
 
   auto common_ctx_initialize(const gpgme_ctx_t &ctx,
-                             const GpgContextInitArgs &args) -> bool {
+                             const OpenPGPContextInitArgs &args) -> bool {
     assert(ctx != nullptr);
 
     if (!gpgconf_path_.isEmpty()) {
@@ -453,7 +453,7 @@ class GpgContext::Impl {
     return true;
   }
 
-  auto cms_default_ctx_initialize(const GpgContextInitArgs &args) -> bool {
+  auto cms_default_ctx_initialize(const OpenPGPContextInitArgs &args) -> bool {
     gpgme_ctx_t p_ctx;
     if (auto err = CheckGpgError(gpgme_new(&p_ctx)); err != GPG_ERR_NO_ERROR) {
       LOG_W() << "get new gpg context error: "
@@ -481,7 +481,7 @@ class GpgContext::Impl {
     return true;
   }
 
-  auto cms_binary_ctx_initialize(const GpgContextInitArgs &args) -> bool {
+  auto cms_binary_ctx_initialize(const OpenPGPContextInitArgs &args) -> bool {
     gpgme_ctx_t p_ctx;
     if (auto err = CheckGpgError(gpgme_new(&p_ctx)); err != GPG_ERR_NO_ERROR) {
       LOG_W() << "get new gpg context error: "
@@ -509,7 +509,7 @@ class GpgContext::Impl {
     return true;
   }
 
-  auto binary_ctx_initialize(const GpgContextInitArgs &args) -> bool {
+  auto binary_ctx_initialize(const OpenPGPContextInitArgs &args) -> bool {
     gpgme_ctx_t p_ctx;
     if (auto err = CheckGpgError(gpgme_new(&p_ctx)); err != GPG_ERR_NO_ERROR) {
       LOG_W() << "get new gpg context error: "
@@ -528,7 +528,7 @@ class GpgContext::Impl {
     return true;
   }
 
-  auto default_ctx_initialize(const GpgContextInitArgs &args) -> bool {
+  auto default_ctx_initialize(const OpenPGPContextInitArgs &args) -> bool {
     gpgme_ctx_t p_ctx;
     if (CheckGpgError(gpgme_new(&p_ctx)) != GPG_ERR_NO_ERROR) {
       FLOG_W("get new ctx failed, default");
@@ -635,43 +635,46 @@ class GpgContext::Impl {
   }
 };
 
-GpgContext::GpgContext(int channel)
-    : SingletonFunctionObject<GpgContext>(channel),
-      p_(SecureCreateUniqueObject<Impl>(this, GpgContextInitArgs{})) {}
+OpenPGPContext::OpenPGPContext(int channel)
+    : SingletonFunctionObject<OpenPGPContext>(channel),
+      p_(SecureCreateUniqueObject<Impl>(this, OpenPGPContextInitArgs{})) {}
 
-GpgContext::GpgContext(GpgContextInitArgs args, int channel)
-    : SingletonFunctionObject<GpgContext>(channel),
+OpenPGPContext::OpenPGPContext(OpenPGPContextInitArgs args, int channel)
+    : SingletonFunctionObject<OpenPGPContext>(channel),
       p_(SecureCreateUniqueObject<Impl>(this, args)) {}
 
-auto GpgContext::Good() const -> bool { return p_->Good(); }
+auto OpenPGPContext::Good() const -> bool { return p_->Good(); }
 
-auto GpgContext::BinaryContext() -> gpgme_ctx_t { return p_->BinaryContext(); }
+auto OpenPGPContext::BinaryContext() -> gpgme_ctx_t {
+  return p_->BinaryContext();
+}
 
-auto GpgContext::DefaultContext() -> gpgme_ctx_t {
+auto OpenPGPContext::DefaultContext() -> gpgme_ctx_t {
   return p_->DefaultContext();
 }
 
-GpgContext::~GpgContext() = default;
+OpenPGPContext::~OpenPGPContext() = default;
 
-auto GpgContext::HomeDirectory() const -> QString {
+auto OpenPGPContext::HomeDirectory() const -> QString {
   return p_->HomeDirectory();
 }
 
-auto GpgContext::ComponentDirectory(GpgComponentType type) const -> QString {
+auto OpenPGPContext::ComponentDirectory(GpgComponentType type) const
+    -> QString {
   return p_->ComponentDirectories(type);
 }
 
-auto GpgContext::KeyDBName() const -> QString { return p_->KeyDBName(); }
+auto OpenPGPContext::KeyDBName() const -> QString { return p_->KeyDBName(); }
 
-auto GpgContext::RestartGpgAgent() -> bool { return p_->RestartGpgAgent(); }
+auto OpenPGPContext::RestartGpgAgent() -> bool { return p_->RestartGpgAgent(); }
 
-auto GpgContext::Engine() const -> OpenPGPEngine { return p_->Engine(); }
+auto OpenPGPContext::Engine() const -> OpenPGPEngine { return p_->Engine(); }
 
-auto GpgContext::EngineVersion() const -> QString {
+auto OpenPGPContext::EngineVersion() const -> QString {
   return p_->EngineVersion();
 }
 
-auto GpgContext::KeyDatabase() -> QSharedPointer<GFKeyDatabase> {
+auto OpenPGPContext::KeyDatabase() -> QSharedPointer<GFKeyDatabase> {
   return p_->KeyDatabase();
 }
 }  // namespace GpgFrontend

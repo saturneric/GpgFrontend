@@ -47,7 +47,8 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
       key_(std::move(key)) {
   assert(key_ != nullptr);
 
-  auto engine = GpgContext::GetInstance(current_gpg_context_channel_).Engine();
+  auto engine =
+      OpenPGPContext::GetInstance(current_gpg_context_channel_).Engine();
   engine_ = engine;
 
   create_subkey_list();

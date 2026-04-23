@@ -57,7 +57,7 @@ using EmptyOpTraits = OpTraits<EmptyOpTag>;
 using EmptyOpTraitsBase = OpTraitsBase<EmptyOpTraits>;
 
 template <typename Table, typename... Args>
-auto DispatchByEngine(GpgContext& ctx, const Table& table, Args&&... args)
+auto DispatchByEngine(OpenPGPContext& ctx, const Table& table, Args&&... args)
     -> decltype(std::declval<typename Table::value_type::second_type>()(
         ctx, std::forward<Args>(args)...)) {
   const auto engine = ctx.Engine();
@@ -76,9 +76,9 @@ template <typename Derived, typename Fn>
 struct DispatchOpTraitsBase;
 
 template <typename Derived, typename R, typename... Args>
-struct DispatchOpTraitsBase<Derived, R (*)(GpgContext&, Args...)>
+struct DispatchOpTraitsBase<Derived, R (*)(OpenPGPContext&, Args...)>
     : OpTraitsBase<Derived> {
-  static auto Call(GpgContext& ctx, Args... args) -> R {
+  static auto Call(OpenPGPContext& ctx, Args... args) -> R {
     return DispatchByEngine(ctx, Derived::ImplTable(), args...);
   }
 };

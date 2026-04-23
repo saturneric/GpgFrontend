@@ -29,7 +29,7 @@
 #pragma once
 
 #include "core/function/gpg/GpgAssuanHelper.h"
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 
 namespace GpgFrontend {
 
@@ -81,8 +81,8 @@ class GF_CORE_EXPORT GpgComponentManager
   void Reset();
 
  private:
-  GpgContext& ctx_ =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  OpenPGPContext& ctx_ =
+      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
   GpgAssuanHelper& assuan_ =
       GpgAssuanHelper::GetInstance(SingletonFunctionObject::GetChannel());
 

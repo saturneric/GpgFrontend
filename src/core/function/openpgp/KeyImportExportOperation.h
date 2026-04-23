@@ -29,7 +29,7 @@
 #pragma once
 
 #include "core/function/basic/GpgFunctionObject.h"
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GFBuffer.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -115,7 +115,7 @@ class GF_CORE_EXPORT KeyImportExportOperation
                      const GpgOperationCallback& cb) const;
 
  private:
-  GpgContext& ctx_;
+  OpenPGPContext& ctx_;
 };
 
 }  // namespace GpgFrontend

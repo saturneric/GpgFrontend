@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -116,7 +116,7 @@ class GF_CORE_EXPORT KeyGenerationOperation
       -> std::tuple<GpgError, DataObjectPtr>;
 
  private:
-  GpgContext& ctx_ =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+  OpenPGPContext& ctx_ =
+      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
 };
 }  // namespace GpgFrontend

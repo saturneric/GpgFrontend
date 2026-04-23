@@ -29,7 +29,7 @@
 #pragma once
 
 #include "core/GpgCoreRust.h"
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgAbstractKey.h"
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"

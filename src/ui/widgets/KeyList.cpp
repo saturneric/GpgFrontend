@@ -101,8 +101,8 @@ void KeyList::init() {
     LOG_D() << "context grt channel: " << channel
             << "database name: " << key_db_name;
 
-    auto bnd_type =
-        ConvertOpenPGPEngine2String(GpgContext::GetInstance(channel).Engine());
+    auto bnd_type = ConvertOpenPGPEngine2String(
+        OpenPGPContext::GetInstance(channel).Engine());
     auto* switch_context_action = new QAction(
         QString("[%2]: %3 (%1)").arg(bnd_type).arg(channel).arg(key_db_name),
         this);

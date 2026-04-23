@@ -42,7 +42,7 @@ class GFKeyDatabase;
  * @brief
  *
  */
-struct GpgContextInitArgs {
+struct OpenPGPContextInitArgs {
   OpenPGPEngine engine;  ///<
   QString db_name;       ///<
   QString db_path;       ///<
@@ -63,13 +63,14 @@ enum class GpgComponentType : std::uint8_t {
  * @brief
  *
  */
-class GF_CORE_EXPORT GpgContext : public SingletonFunctionObject<GpgContext> {
+class GF_CORE_EXPORT OpenPGPContext
+    : public SingletonFunctionObject<OpenPGPContext> {
  public:
-  explicit GpgContext(int channel);
+  explicit OpenPGPContext(int channel);
 
-  explicit GpgContext(GpgContextInitArgs args, int channel);
+  explicit OpenPGPContext(OpenPGPContextInitArgs args, int channel);
 
-  ~GpgContext();
+  ~OpenPGPContext();
 
   /**
    * @brief

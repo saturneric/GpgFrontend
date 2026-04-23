@@ -29,7 +29,7 @@
 #pragma once
 
 #include "core/function/basic/GpgFunctionObject.h"
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -288,7 +288,7 @@ class GF_CORE_EXPORT FileCryptoOperation
                             const GpgOperationCallback& cb);
 
  private:
-  GpgContext& ctx_ = GpgContext::GetInstance(
+  OpenPGPContext& ctx_ = OpenPGPContext::GetInstance(
       SingletonFunctionObject::GetChannel());  ///< Corresponding context
 };
 

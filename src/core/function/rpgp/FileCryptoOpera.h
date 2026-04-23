@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 
 namespace GpgFrontend {
 
@@ -43,7 +43,8 @@ namespace GpgFrontend {
  * @param data_object
  * @return GpgError
  */
-auto EncryptFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
+                         const GpgAbstractKeyPtrList& keys,
                          const QString& in_path, bool ascii,
                          const QString& out_path,
                          const DataObjectPtr& data_object) -> GpgError;
@@ -59,7 +60,7 @@ auto EncryptFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
  * @param data_object
  * @return GpgError
  */
-auto EncryptDirRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto EncryptDirRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                         const QString& in_path, bool ascii,
                         const QString& out_path, const GpgOperationCallback& cb)
     -> GpgError;
@@ -73,7 +74,7 @@ auto EncryptDirRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
  * @param data_object
  * @return GpgError
  */
-auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
+auto DecryptFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                          const QString& out_path,
                          const DataObjectPtr& data_object) -> GpgError;
 
@@ -86,7 +87,7 @@ auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
  * @param data_object
  * @return GpgError
  */
-auto DecryptArchiveRpgpImpl(GpgContext& ctx_, const QString& in_path,
+auto DecryptArchiveRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                             const QString& out_path,
                             const GpgOperationCallback& cb) -> GpgError;
 
@@ -101,7 +102,7 @@ auto DecryptArchiveRpgpImpl(GpgContext& ctx_, const QString& in_path,
  * @param data_object
  * @return GpgError
  */
-auto SignFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& key,
+auto SignFileRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& key,
                       const QString& in_path, bool ascii,
                       const QString& out_path, const DataObjectPtr& data_object)
     -> GpgError;
@@ -115,7 +116,7 @@ auto SignFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& key,
  * @param data_object
  * @return GpgError
  */
-auto VerifyFileRpgpImpl(GpgContext& ctx_, const QString& data_path,
+auto VerifyFileRpgpImpl(OpenPGPContext& ctx_, const QString& data_path,
                         const QString& sign_path,
                         const DataObjectPtr& data_object) -> GpgError;
 
@@ -131,7 +132,7 @@ auto VerifyFileRpgpImpl(GpgContext& ctx_, const QString& data_path,
  * @param data_object
  * @return GpgError
  */
-auto EncryptSignFileRpgpImpl(GpgContext& ctx,
+auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
                              const GpgAbstractKeyPtrList& enc_keys,
                              const GpgAbstractKeyPtrList& sign_keys,
                              const QString& in_path, bool ascii,
@@ -150,7 +151,7 @@ auto EncryptSignFileRpgpImpl(GpgContext& ctx,
  * @param cb
  * @return GpgError
  */
-auto EncryptSignDirRpgpImpl(GpgContext& ctx,
+auto EncryptSignDirRpgpImpl(OpenPGPContext& ctx,
                             const GpgAbstractKeyPtrList& enc_keys,
                             const GpgAbstractKeyPtrList& sign_keys,
                             const QString& in_path, bool ascii,
@@ -166,7 +167,7 @@ auto EncryptSignDirRpgpImpl(GpgContext& ctx,
  * @param data_object
  * @return GpgError
  */
-auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, const QString& in_path,
+auto DecryptVerifyFileRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                const QString& out_path,
                                const DataObjectPtr& data_object) -> GpgError;
 
@@ -179,7 +180,7 @@ auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, const QString& in_path,
  * @param data_object
  * @return GpgError
  */
-auto DecryptVerifyArchiveRpgpImpl(GpgContext& ctx, const QString& in_path,
+auto DecryptVerifyArchiveRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                   const QString& out_path,
                                   const GpgOperationCallback& cb) -> GpgError;
 
@@ -193,7 +194,7 @@ auto DecryptVerifyArchiveRpgpImpl(GpgContext& ctx, const QString& in_path,
  * @param data_object
  * @return GpgError
  */
-auto EncryptSymmetricFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
+auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                                   bool ascii, const QString& out_path,
                                   const DataObjectPtr& data_object) -> GpgError;
 
@@ -207,7 +208,7 @@ auto EncryptSymmetricFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
  * @param cb
  * @return GpgError
  */
-auto EncryptSymmetricDirRpgpImpl(GpgContext& ctx_, const QString& in_path,
+auto EncryptSymmetricDirRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                                  bool ascii, const QString& out_path,
                                  const GpgOperationCallback& cb) -> GpgError;
 

@@ -118,7 +118,7 @@ auto InteratorCbFunc(void* handle, const char* status, const char* args, int fd)
   return GPG_ERR_NO_ERROR;
 }
 
-auto DoInteractImpl(GpgContext& ctx_, const GpgKeyPtr& key, bool card_edit,
+auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
                     const QString& fpr,
                     AutomatonNextStateHandler next_state_handler,
                     AutomatonActionHandler action_handler, int flags)

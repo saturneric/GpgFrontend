@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgKey.h"
 #include "core/typedef/GpgTypedef.h"
 #include "ui/dialog/GeneralDialog.h"

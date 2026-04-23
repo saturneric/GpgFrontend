@@ -43,7 +43,7 @@ namespace GpgFrontend {
  * @return GpgError
  */
 auto GenerateKeyWithSubkeyRpgpImpl(
-    GpgContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
+    OpenPGPContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError;
 
@@ -55,7 +55,7 @@ auto GenerateKeyWithSubkeyRpgpImpl(
  * @param data_object
  * @return GpgError
  */
-auto GenerateKeyRpgpImpl(GpgContext& ctx,
+auto GenerateKeyRpgpImpl(OpenPGPContext& ctx,
                          const QSharedPointer<KeyGenerateInfo>& params,
                          const DataObjectPtr& data_object) -> GpgError;
 
@@ -68,7 +68,7 @@ auto GenerateKeyRpgpImpl(GpgContext& ctx,
  * @param data_object
  * @return GpgError
  */
-auto GenerateSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                             const QSharedPointer<KeyGenerateInfo>& params,
                             const DataObjectPtr& data_object) -> GpgError;
 }  // namespace GpgFrontend

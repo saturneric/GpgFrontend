@@ -36,7 +36,8 @@ namespace GpgFrontend {
 
 KeyImportExportOperation::KeyImportExportOperation(int channel)
     : SingletonFunctionObject<KeyImportExportOperation>(channel),
-      ctx_(GpgContext::GetInstance(SingletonFunctionObject::GetChannel())) {}
+      ctx_(OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel())) {
+}
 
 auto KeyImportExportOperation::ImportKey(const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation> {

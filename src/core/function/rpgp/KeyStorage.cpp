@@ -29,8 +29,8 @@
 #include "KeyStorage.h"
 
 #include "core/GpgCoreRust.h"
-#include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 
 namespace GpgFrontend {
 
@@ -164,7 +164,7 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
 }
 
 auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool {
-  auto key_db = GpgContext::GetInstance(channel).KeyDatabase();
+  auto key_db = OpenPGPContext::GetInstance(channel).KeyDatabase();
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";
     return false;
@@ -354,7 +354,7 @@ auto RefreshKeyMetaInDatabase(GFKeyDatabase& key_db, const QString& key_id)
 }
 
 auto FlushKeyCacheRpgpImpl(
-    GpgContext& ctx, const QSharedPointer<GpgKeyPtrList>& keys_cache,
+    OpenPGPContext& ctx, const QSharedPointer<GpgKeyPtrList>& keys_cache,
     const QSharedPointer<QMap<QString, GpgAbstractKeyPtr>>& keys_search_cache)
     -> bool {
   auto key_db = ctx.KeyDatabase();
@@ -394,7 +394,7 @@ auto FlushKeyCacheRpgpImpl(
   return true;
 }
 
-auto GetKeyPtrRpgpImpl(GpgContext& ctx, const QString& key_id, bool secret)
+auto GetKeyPtrRpgpImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
     -> GpgKeyPtr {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
@@ -439,7 +439,7 @@ auto GetKeyPtrRpgpImpl(GpgContext& ctx, const QString& key_id, bool secret)
   return SecureCreateSharedObject<GpgKey>(meta_list.value());
 }
 
-auto FlushKeyDatabaseRpgpImpl(GpgContext& ctx) -> bool {
+auto FlushKeyDatabaseRpgpImpl(OpenPGPContext& ctx) -> bool {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";

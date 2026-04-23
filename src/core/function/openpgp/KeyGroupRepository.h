@@ -30,7 +30,7 @@
 
 #include "core/function/CacheManager.h"
 #include "core/function/basic/GpgFunctionObject.h"
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgKeyGroup.h"
 
 namespace GpgFrontend {
@@ -189,8 +189,8 @@ class GF_CORE_EXPORT KeyGroupRepository
   auto IsKeyGroupDisabled(const QString& id) -> bool;
 
  private:
-  GpgContext& ctx_ =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  OpenPGPContext& ctx_ =
+      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
   CacheManager& cm_ =
       CacheManager::GetInstance(SingletonFunctionObject::GetChannel());
 

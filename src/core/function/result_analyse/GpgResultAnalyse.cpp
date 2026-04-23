@@ -30,7 +30,7 @@
 
 #include <algorithm>
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/GpgUtils.h"
 
 auto GpgFrontend::GpgResultAnalyse::GetResultReport() const -> QString {
@@ -55,7 +55,7 @@ auto GpgFrontend::GpgResultAnalyse::GetChannel() const -> int {
 }
 
 auto GpgFrontend::GpgResultAnalyse::EngineInfo() const -> QString {
-  auto& ctx = GpgContext::GetInstance(current_gpg_context_channel_);
+  auto& ctx = OpenPGPContext::GetInstance(current_gpg_context_channel_);
   auto version = ctx.EngineVersion();
   auto engine = ctx.Engine();
 

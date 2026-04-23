@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgImportInformation.h"
 
 namespace GpgFrontend {
@@ -40,7 +40,7 @@ namespace GpgFrontend {
  * @param in_buffer
  * @return auto
  */
-auto ImportKeyRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
+auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation>;
 
 /**
@@ -51,7 +51,7 @@ auto ImportKeyRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
  * @param secret
  * @return std::tuple<GpgError, GFBuffer>
  */
-auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
+auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                         bool secret, bool ascii, bool shortest, bool ssh_mode)
     -> std::tuple<GpgError, GFBuffer>;
 
@@ -67,10 +67,10 @@ auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
  * @param data_object
  * @return GpgError
  */
-auto ExportKeysAsyncRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                             bool secret, bool ascii, bool shortest,
-                             bool ssh_mode, const DataObjectPtr& data_object)
-    -> GpgError;
+auto ExportKeysAsyncRpgpImpl(OpenPGPContext& ctx,
+                             const GpgAbstractKeyPtrList& keys, bool secret,
+                             bool ascii, bool shortest, bool ssh_mode,
+                             const DataObjectPtr& data_object) -> GpgError;
 
 /**
  * @brief
@@ -84,9 +84,10 @@ auto ExportKeysAsyncRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
  * @param data_object
  * @return GpgError
  */
-auto ExportAllKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                           bool secret, bool ascii,
-                           const DataObjectPtr& data_object) -> GpgError;
+auto ExportAllKeysRpgpImpl(OpenPGPContext& ctx,
+                           const GpgAbstractKeyPtrList& keys, bool secret,
+                           bool ascii, const DataObjectPtr& data_object)
+    -> GpgError;
 
 /**
  * @brief
@@ -95,6 +96,6 @@ auto ExportAllKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
  * @param in_buffer
  * @return QSharedPointer<GpgImportInformation>
  */
-auto ImportRevCertRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
+auto ImportRevCertRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation>;
 }  // namespace GpgFrontend

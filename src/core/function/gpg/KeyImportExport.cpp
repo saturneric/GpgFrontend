@@ -36,7 +36,7 @@
 
 namespace GpgFrontend {
 
-auto ImportKeyGnuPGImpl(GpgContext& ctx, const GFBuffer& in_buffer)
+auto ImportKeyGnuPGImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation> {
   if (in_buffer.Empty()) return {};
 
@@ -59,7 +59,7 @@ auto ImportKeyGnuPGImpl(GpgContext& ctx, const GFBuffer& in_buffer)
   return import_info;
 }
 
-auto ExportKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
+auto ExportKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                          bool secret, bool ascii, bool shortest, bool ssh_mode)
     -> std::tuple<GpgError, GFBuffer> {
   if (keys.empty()) return {GPG_ERR_CANCELED, {}};
@@ -84,7 +84,7 @@ auto ExportKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
   return {err, data_out.Read2GFBuffer()};
 }
 
-auto ExportKeysAsyncGnuPGImpl(GpgContext& ctx,
+auto ExportKeysAsyncGnuPGImpl(OpenPGPContext& ctx,
                               const GpgAbstractKeyPtrList& keys, bool secret,
                               bool ascii, bool shortest, bool ssh_mode,
                               const DataObjectPtr& data_object) -> GpgError {
@@ -94,9 +94,10 @@ auto ExportKeysAsyncGnuPGImpl(GpgContext& ctx,
   return err;
 }
 
-auto ExportAllKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                            bool secret, bool ascii,
-                            const DataObjectPtr& data_object) -> GpgError {
+auto ExportAllKeysGnuPGImpl(OpenPGPContext& ctx,
+                            const GpgAbstractKeyPtrList& keys, bool secret,
+                            bool ascii, const DataObjectPtr& data_object)
+    -> GpgError {
   // 1. Export public keys first (secret=false, shortest=false,
   // ssh_mode=false)
   auto [err, buffer] =
@@ -118,7 +119,7 @@ auto ExportAllKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
   return GPG_ERR_NO_ERROR;
 }
 
-auto ExportSubkeyGnuPGImpl(GpgContext& ctx, const QString& fpr, bool ascii)
+auto ExportSubkeyGnuPGImpl(OpenPGPContext& ctx, const QString& fpr, bool ascii)
     -> std::tuple<GpgError, GFBuffer> {
   int mode = 0;
   mode |= GPGME_EXPORT_MODE_SECRET_SUBKEY;

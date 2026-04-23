@@ -51,7 +51,8 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
     : QWidget(parent), current_gpg_context_channel_(channel), m_key_(key) {
   assert(m_key_ != nullptr);
 
-  auto engine = GpgContext::GetInstance(current_gpg_context_channel_).Engine();
+  auto engine =
+      OpenPGPContext::GetInstance(current_gpg_context_channel_).Engine();
   engine_ = engine;
 
   // Set Menu

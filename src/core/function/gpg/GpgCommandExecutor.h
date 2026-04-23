@@ -29,7 +29,7 @@
 #pragma once
 
 #include "core/function/basic/GpgFunctionObject.h"
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/module/Module.h"
 
 namespace GpgFrontend {
@@ -143,8 +143,8 @@ class GF_CORE_EXPORT GpgCommandExecutor
   void GpgConfExecuteAsync(const ExecuteContext &);
 
  private:
-  GpgContext &ctx_ =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  OpenPGPContext &ctx_ =
+      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
 
 }  // namespace GpgFrontend

@@ -40,7 +40,8 @@
 
 namespace GpgFrontend {
 
-auto EncryptFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
+                         const GpgAbstractKeyPtrList& keys,
                          const QString& in_path, bool ascii,
                          const QString& out_path,
                          const DataObjectPtr& data_object) -> GpgError {
@@ -97,7 +98,7 @@ auto EncryptFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   return GPG_ERR_NO_ERROR;
 }
 
-auto EncryptDirRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto EncryptDirRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                         const QString& in_path, bool ascii,
                         const QString& out_path, const GpgOperationCallback& cb)
     -> GpgError {
@@ -112,7 +113,7 @@ auto EncryptDirRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
 }
 
 namespace {
-auto DecryptFileGeneralRpgpImpl(GpgContext& ctx_, bool is_archive,
+auto DecryptFileGeneralRpgpImpl(OpenPGPContext& ctx_, bool is_archive,
                                 const QString& in_path, const QString& out_path,
                                 const DataObjectPtr& data_object) -> GpgError {
   auto key_db = ctx_.KeyDatabase();
@@ -149,14 +150,14 @@ auto DecryptFileGeneralRpgpImpl(GpgContext& ctx_, bool is_archive,
 }
 }  // namespace
 
-auto DecryptFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
+auto DecryptFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                          const QString& out_path,
                          const DataObjectPtr& data_object) -> GpgError {
   return DecryptFileGeneralRpgpImpl(ctx_, false, in_path, out_path,
                                     data_object);
 }
 
-auto DecryptArchiveRpgpImpl(GpgContext& ctx_, const QString& in_path,
+auto DecryptArchiveRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                             const QString& out_path,
                             const GpgOperationCallback& cb) -> GpgError {
   RunGpgOperaAsync(ctx_.GetChannel(),
@@ -170,7 +171,7 @@ auto DecryptArchiveRpgpImpl(GpgContext& ctx_, const QString& in_path,
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
 }
 
-auto SignFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto SignFileRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                       const QString& in_path, bool ascii,
                       const QString& out_path, const DataObjectPtr& data_object)
     -> GpgError {
@@ -219,7 +220,7 @@ auto SignFileRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   return GPG_ERR_NO_ERROR;
 }
 
-auto VerifyFileRpgpImpl(GpgContext& ctx_, const QString& data_path,
+auto VerifyFileRpgpImpl(OpenPGPContext& ctx_, const QString& data_path,
                         const QString& sign_path,
                         const DataObjectPtr& data_object) -> GpgError {
   auto key_db = ctx_.KeyDatabase();
@@ -261,7 +262,7 @@ auto VerifyFileRpgpImpl(GpgContext& ctx_, const QString& data_path,
   return gf_err;
 }
 
-auto EncryptSignFileRpgpImpl(GpgContext& ctx,
+auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
                              const GpgAbstractKeyPtrList& enc_keys,
                              const GpgAbstractKeyPtrList& sign_keys,
                              const QString& in_path, bool ascii,
@@ -354,7 +355,7 @@ auto EncryptSignFileRpgpImpl(GpgContext& ctx,
   return GPG_ERR_NO_ERROR;
 }
 
-auto EncryptSignDirRpgpImpl(GpgContext& ctx,
+auto EncryptSignDirRpgpImpl(OpenPGPContext& ctx,
                             const GpgAbstractKeyPtrList& enc_keys,
                             const GpgAbstractKeyPtrList& sign_keys,
                             const QString& in_path, bool ascii,
@@ -372,7 +373,7 @@ auto EncryptSignDirRpgpImpl(GpgContext& ctx,
 }
 
 namespace {
-auto DecryptVerifyFileGeneralRpgpImpl(GpgContext& ctx, bool is_archive,
+auto DecryptVerifyFileGeneralRpgpImpl(OpenPGPContext& ctx, bool is_archive,
                                       const QString& in_path,
                                       const QString& out_path,
                                       const DataObjectPtr& data_object)
@@ -428,14 +429,14 @@ auto DecryptVerifyFileGeneralRpgpImpl(GpgContext& ctx, bool is_archive,
 }
 }  // namespace
 
-auto DecryptVerifyFileRpgpImpl(GpgContext& ctx, const QString& in_path,
+auto DecryptVerifyFileRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                const QString& out_path,
                                const DataObjectPtr& data_object) -> GpgError {
   return DecryptVerifyFileGeneralRpgpImpl(ctx, false, in_path, out_path,
                                           data_object);
 }
 
-auto DecryptVerifyArchiveRpgpImpl(GpgContext& ctx, const QString& in_path,
+auto DecryptVerifyArchiveRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                   const QString& out_path,
                                   const GpgOperationCallback& cb) -> GpgError {
   RunGpgOperaAsync(ctx.GetChannel(),
@@ -449,7 +450,7 @@ auto DecryptVerifyArchiveRpgpImpl(GpgContext& ctx, const QString& in_path,
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
 }
 
-auto EncryptSymmetricFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
+auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
                                   bool ascii, const QString& out_path,
                                   const DataObjectPtr& data_object)
     -> GpgError {
@@ -488,7 +489,7 @@ auto EncryptSymmetricFileRpgpImpl(GpgContext& ctx_, const QString& in_path,
   return GPG_ERR_NO_ERROR;
 }
 
-auto EncryptSymmetricDirRpgpImpl(GpgContext& ctx, const QString& in_path,
+auto EncryptSymmetricDirRpgpImpl(OpenPGPContext& ctx, const QString& in_path,
                                  bool ascii, const QString& out_path,
                                  const GpgOperationCallback& cb) -> GpgError {
   RunGpgOperaAsync(ctx.GetChannel(),

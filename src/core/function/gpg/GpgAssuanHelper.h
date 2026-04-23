@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 
 namespace GpgFrontend {
 
@@ -123,8 +123,8 @@ class GF_CORE_EXPORT GpgAssuanHelper
   void ResetAllConnections();
 
  private:
-  GpgContext& ctx_ =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  OpenPGPContext& ctx_ =
+      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
 
   QMap<GpgComponentType, QSharedPointer<struct gpgme_context>> ctx_map_;
   QString gpgconf_path_;

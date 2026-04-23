@@ -29,7 +29,7 @@
 #include "KeyDatabaseEditDialog.h"
 
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/MemoryUtils.h"
 #include "ui_KeyDatabaseEditDialog.h"
 
@@ -83,7 +83,7 @@ void KeyDatabaseEditDialog::init_ui() {
   ui_->keyDBBackendTypeComboBox->addItem("GnuPG", "GNUPG");
   ui_->keyDBBackendTypeComboBox->addItem("rPGP", "RPGP");
   if (channel_ != -1) {
-    auto backend_types = GpgContext::GetInstance(channel_).Engine();
+    auto backend_types = OpenPGPContext::GetInstance(channel_).Engine();
     ui_->keyDBBackendTypeComboBox->setCurrentIndex(
         backend_types == OpenPGPEngine::kRPGP ? 1 : 0);
   } else {

@@ -37,7 +37,7 @@
 
 namespace GpgFrontend {
 
-auto DeleteKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
+auto DeleteKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
     -> bool {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
@@ -65,7 +65,7 @@ auto DeleteKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
   return true;
 }
 
-auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                  const DataObjectPtr& data_object) -> GpgError {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
@@ -130,8 +130,8 @@ auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return GPG_ERR_NO_ERROR;
 }
 
-auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, int skey_idx)
-    -> bool {
+auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                          int skey_idx) -> bool {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";
@@ -203,7 +203,7 @@ auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, int skey_idx)
   return true;
 }
 
-auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                           int subkey_index, int reason_code,
                           const QString& reason_text) -> bool {
   auto key_db = ctx.KeyDatabase();
@@ -301,7 +301,7 @@ auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return true;
 }
 
-auto GenerateRevCertRpgpImpl(GpgContext& ctx_, const GpgKeyPtr& key,
+auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
                              const QString& output_path, int reason_code,
                              const QString& reason_text) -> bool {
   auto key_db = ctx_.KeyDatabase();

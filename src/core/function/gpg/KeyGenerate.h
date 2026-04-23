@@ -41,7 +41,7 @@ namespace GpgFrontend {
  * @param data_object
  * @return GpgError
  */
-auto GenerateKeyGnuPGImpl(GpgContext& ctx,
+auto GenerateKeyGnuPGImpl(OpenPGPContext& ctx,
                           const QSharedPointer<KeyGenerateInfo>& params,
                           const DataObjectPtr& data_object) -> GpgError;
 
@@ -54,7 +54,7 @@ auto GenerateKeyGnuPGImpl(GpgContext& ctx,
  * @param data_object
  * @return GpgError
  */
-auto GenerateSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto GenerateSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                              const QSharedPointer<KeyGenerateInfo>& params,
                              const DataObjectPtr& data_object) -> GpgError;
 
@@ -68,7 +68,7 @@ auto GenerateSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @return GpgError
  */
 auto GenerateKeyWithSubkeyGnuPGImpl(
-    GpgContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
+    OpenPGPContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError;
 

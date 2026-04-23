@@ -36,7 +36,7 @@
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
-auto GenerateKeyGnuPGImpl(GpgContext& ctx,
+auto GenerateKeyGnuPGImpl(OpenPGPContext& ctx,
                           const QSharedPointer<KeyGenerateInfo>& params,
                           const DataObjectPtr& data_object) -> GpgError {
   if (params == nullptr || params->GetAlgo() == KeyGenerateInfo::kNoneAlgo ||
@@ -78,7 +78,7 @@ auto GenerateKeyGnuPGImpl(GpgContext& ctx,
   return CheckGpgError(err);
 }
 
-auto GenerateSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto GenerateSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                              const QSharedPointer<KeyGenerateInfo>& params,
                              const DataObjectPtr& data_object) -> GpgError {
   if (params == nullptr || params->GetAlgo() == KeyGenerateInfo::kNoneAlgo ||
@@ -124,7 +124,7 @@ auto GenerateSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
 }
 
 auto GenerateKeyWithSubkeyGnuPGImpl(
-    GpgContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
+    OpenPGPContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError {
   auto& key_getter = GpgKeyRepository::GetInstance(ctx.GetChannel());

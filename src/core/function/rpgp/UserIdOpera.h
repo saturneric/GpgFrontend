@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 
 namespace GpgFrontend {
 
@@ -41,8 +41,8 @@ namespace GpgFrontend {
  * @return true
  * @return false
  */
-auto AddUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
-    -> bool;
+auto AddUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                    const QString& uid) -> bool;
 
 /**
  * @brief
@@ -53,7 +53,7 @@ auto AddUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
  * @return true
  * @return false
  */
-auto DeleteUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto DeleteUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const QString& uid) -> bool;
 
 /**
@@ -65,7 +65,7 @@ auto DeleteUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @return true
  * @return false
  */
-auto SetPrimaryUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                            const QString& uid) -> bool;
 
 /**
@@ -77,7 +77,7 @@ auto SetPrimaryUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @return true
  * @return false
  */
-auto RevokeUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const QString& uid, int reason_code,
                        const QString& reason_text) -> bool;
 }  // namespace GpgFrontend

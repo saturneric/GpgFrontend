@@ -28,19 +28,19 @@
 
 #include "KeyStorage.h"
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
-auto GetKeyPtrGnuPGImpl(GpgContext& ctx, const QString& key_id, bool secret)
+auto GetKeyPtrGnuPGImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
     -> GpgKeyPtr {
   gpgme_key_t p_key = nullptr;
   gpgme_get_key(ctx.DefaultContext(), key_id.toUtf8(), &p_key, secret ? 1 : 0);
   return SecureCreateSharedObject<GpgKey>(p_key);
 }
 
-auto FlushKeyDatabaseGnuPGImpl(GpgContext& ctx) -> bool {
+auto FlushKeyDatabaseGnuPGImpl(OpenPGPContext& ctx) -> bool {
   // init
   GpgError err = gpgme_op_keylist_start(ctx.DefaultContext(), nullptr, 0);
 
@@ -66,7 +66,7 @@ auto FlushKeyDatabaseGnuPGImpl(GpgContext& ctx) -> bool {
 }
 
 auto FlushKeyCacheGnuPGImpl(
-    GpgContext& ctx, const QSharedPointer<GpgKeyPtrList>& keys_cache,
+    OpenPGPContext& ctx, const QSharedPointer<GpgKeyPtrList>& keys_cache,
     const QSharedPointer<QMap<QString, GpgAbstractKeyPtr>>& keys_search_cache)
     -> bool {
   // init

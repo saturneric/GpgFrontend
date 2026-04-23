@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -39,7 +39,7 @@ namespace GpgFrontend {
  * @param ctx
  * @param keys
  */
-auto DeleteKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
+auto DeleteKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
     -> bool;
 
 /**
@@ -51,7 +51,7 @@ auto DeleteKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
  * @param expires
  * @return GpgError
  */
-auto SetExpireGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto SetExpireGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                         const SubkeyId& skey_fpr,
                         const std::optional<QDateTime>& expires) -> GpgError;
 /**
@@ -63,7 +63,7 @@ auto SetExpireGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @param revocation_reason_code
  * @param revocation_reason_text
  */
-auto GenerateRevCertGnuPGImpl(GpgContext& ctx_, const GpgKeyPtr& key,
+auto GenerateRevCertGnuPGImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
                               const QString& output_path, int reason_code,
                               const QString& reason_text) -> bool;
 
@@ -74,7 +74,7 @@ auto GenerateRevCertGnuPGImpl(GpgContext& ctx_, const GpgKeyPtr& key,
  * @param key
  * @return GpgError
  */
-auto ModifyKeyPassphraseGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto ModifyKeyPassphraseGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                   const DataObjectPtr& data_object) -> GpgError;
 
 /**
@@ -86,7 +86,7 @@ auto ModifyKeyPassphraseGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @return true
  * @return false
  */
-auto DeleteSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto DeleteSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                            int subkey_index) -> bool;
 
 /**
@@ -100,7 +100,7 @@ auto DeleteSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @return true
  * @return false
  */
-auto RevokeSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto RevokeSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                            int subkey_index, int reason_code,
                            const QString& reason_text) -> bool;
 /**
@@ -112,7 +112,7 @@ auto RevokeSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @param data_object
  * @return GpgError
  */
-auto AddADSKGnuPGIImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto AddADSKGnuPGIImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const GpgSubKey& adsk, const DataObjectPtr& data_object)
     -> GpgError;
 
@@ -127,7 +127,7 @@ auto AddADSKGnuPGIImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @return true
  * @return false
  */
-auto SignKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto SignKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                       const GpgAbstractKeyPtrList& keys, const QString& uid,
                       const std::optional<QDateTime>& expires) -> bool;
 
@@ -140,7 +140,7 @@ auto SignKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @return true
  * @return false
  */
-auto RevKeySignatureGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto RevKeySignatureGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                               const SignIdArgsList& signature_id) -> bool;
 
 /**
@@ -152,6 +152,7 @@ auto RevKeySignatureGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @return true
  * @return false
  */
-auto SetOwnerTrustLevelGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
-                                 int trust_level) -> bool;
+auto SetOwnerTrustLevelGnuPGImpl(OpenPGPContext& ctx,
+                                 const GpgAbstractKeyPtr& key, int trust_level)
+    -> bool;
 }  // namespace GpgFrontend

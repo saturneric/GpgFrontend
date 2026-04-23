@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GFBuffer.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -41,8 +41,8 @@ namespace GpgFrontend {
  * @param signers
  * @param ascii
  */
-void SetSignersGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
-                         bool ascii);
+void SetSignersGnuPGImpl(OpenPGPContext& ctx_,
+                         const GpgAbstractKeyPtrList& signers, bool ascii);
 
 /**
  * @brief
@@ -54,7 +54,7 @@ void SetSignersGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
  * @param data_object
  * @return GpgError
  */
-auto EncryptGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto EncryptGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                       const GFBuffer& in_buffer, bool ascii,
                       const DataObjectPtr& data_object) -> GpgError;
 
@@ -67,7 +67,7 @@ auto EncryptGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
  * @param data_object
  * @return GpgError
  */
-auto EncryptSymmetricGnuPGImpl(GpgContext& ctx, const GFBuffer& in_buffer,
+auto EncryptSymmetricGnuPGImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer,
                                bool ascii, const DataObjectPtr& data_object)
     -> GpgError;
 
@@ -79,7 +79,7 @@ auto EncryptSymmetricGnuPGImpl(GpgContext& ctx, const GFBuffer& in_buffer,
  * @param data_object
  * @return GpgError
  */
-auto DecryptGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+auto DecryptGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                       const DataObjectPtr& data_object) -> GpgError;
 
 /**
@@ -93,7 +93,7 @@ auto DecryptGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
  * @param data_object
  * @return GpgError
  */
-auto SignGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
+auto SignGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& signers,
                    const GFBuffer& in_buffer, GpgSignMode mode, bool ascii,
                    const DataObjectPtr& data_object) -> GpgError;
 
@@ -106,7 +106,7 @@ auto SignGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
  * @param data_object
  * @return GpgError
  */
-auto VerifyGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+auto VerifyGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                      const GFBuffer& sig_buffer,
                      const DataObjectPtr& data_object) -> GpgError;
 
@@ -121,7 +121,8 @@ auto VerifyGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
  * @param data_object
  * @return GpgError
  */
-auto EncryptSignGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto EncryptSignGnuPGImpl(OpenPGPContext& ctx_,
+                          const GpgAbstractKeyPtrList& keys,
                           const GpgAbstractKeyPtrList& signers,
                           const GFBuffer& in_buffer, bool ascii,
                           const DataObjectPtr& data_object) -> GpgError;
@@ -134,7 +135,7 @@ auto EncryptSignGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
  * @param data_object
  * @return GpgError
  */
-auto DecryptVerifyGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+auto DecryptVerifyGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                             const DataObjectPtr& data_object) -> GpgError;
 
 /**
@@ -144,6 +145,6 @@ auto DecryptVerifyGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
  * @param ascii
  * @return KeyArgsList
  */
-auto GetSignersGnuPGImpl(GpgContext& ctx_, bool ascii) -> KeyArgsList;
+auto GetSignersGnuPGImpl(OpenPGPContext& ctx_, bool ascii) -> KeyArgsList;
 
 }  // namespace GpgFrontend

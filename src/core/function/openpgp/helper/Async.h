@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/openpgp/helper/Op.h"
 #include "core/utils/AsyncUtils.h"
 
@@ -45,7 +45,7 @@ namespace GpgFrontend {
  * @param args
  */
 template <typename OpTag, typename... Args>
-void RunRegisteredAsync(GpgContext& ctx, const GpgOperationCallback& cb,
+void RunRegisteredAsync(OpenPGPContext& ctx, const GpgOperationCallback& cb,
                         Args&&... args) {
   auto stored_args =
       std::make_tuple(std::decay_t<Args>(std::forward<Args>(args))...);
@@ -74,7 +74,7 @@ void RunRegisteredAsync(GpgContext& ctx, const GpgOperationCallback& cb,
  * @return std::tuple<GpgError, DataObjectPtr>
  */
 template <typename OpTag, typename... Args>
-auto RunRegisteredSync(GpgContext& ctx, Args&&... args)
+auto RunRegisteredSync(OpenPGPContext& ctx, Args&&... args)
     -> std::tuple<GpgError, DataObjectPtr> {
   auto stored_args =
       std::make_tuple(std::decay_t<Args>(std::forward<Args>(args))...);
@@ -102,7 +102,7 @@ auto RunRegisteredSync(GpgContext& ctx, Args&&... args)
  * @return std::tuple<GpgError, DataObjectPtr>
  */
 template <typename OpTag, typename... Args>
-auto RunRegisteredForward(GpgContext& ctx, Args&&... args) {
+auto RunRegisteredForward(OpenPGPContext& ctx, Args&&... args) {
   auto stored_args =
       std::make_tuple(std::decay_t<Args>(std::forward<Args>(args))...);
 

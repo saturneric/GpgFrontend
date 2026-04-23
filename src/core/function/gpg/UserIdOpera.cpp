@@ -33,14 +33,14 @@
 
 namespace GpgFrontend {
 
-auto AddUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
-    -> bool {
+auto AddUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                     const QString& uid) -> bool {
   auto err = gpgme_op_adduid(ctx.DefaultContext(),
                              static_cast<gpgme_key_t>(*key), uid.toUtf8(), 0);
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;
 }
 
-auto DeleteUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto DeleteUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                         const QString& uid) -> bool {
   auto& auto_hdlr = GpgAutomatonHandler::GetInstance(ctx.GetChannel());
 
@@ -130,7 +130,7 @@ auto DeleteUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return err == GPG_ERR_NO_ERROR && succ;
 }
 
-auto RevokeUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto RevokeUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                         const QString& uid, int reason_code,
                         const QString& reason_text) -> bool {
   auto& auto_hdlr = GpgAutomatonHandler::GetInstance(ctx.GetChannel());
@@ -258,7 +258,7 @@ auto RevokeUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return err == GPG_ERR_NO_ERROR && succ;
 }
 
-auto SetPrimaryUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto SetPrimaryUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                             const QString& uid) -> bool {
   auto err = CheckGpgError(gpgme_op_set_uid_flag(
       ctx.DefaultContext(), static_cast<gpgme_key_t>(*key), uid.toUtf8(),

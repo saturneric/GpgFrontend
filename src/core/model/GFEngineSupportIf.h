@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 namespace GpgFrontend {
 
 /**
@@ -58,7 +58,7 @@ class GF_CORE_EXPORT EngineSupportIf {
    * @param ctx
    * @return auto
    */
-  [[nodiscard]] auto IsSupport(const GpgContext& ctx) const -> bool;
+  [[nodiscard]] auto IsSupport(const OpenPGPContext& ctx) const -> bool;
 
  private:
   QString version_req_;

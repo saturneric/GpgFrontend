@@ -55,7 +55,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
   ui_->setupUi(this);
   assert(key_ != nullptr);
 
-  auto engine = GpgContext::GetInstance(channel).Engine();
+  auto engine = OpenPGPContext::GetInstance(channel).Engine();
   LOG_D() << "current gpg engine: " << ConvertOpenPGPEngine2String(engine);
 
   ui_->expireLabel->setHidden(engine != OpenPGPEngine::kGNUPG);

@@ -65,8 +65,9 @@ void CreateArchiveHelper(const QString& in_path,
 }
 }  // namespace
 
-auto EncryptFileGpgDataImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
-                            GpgData& data_in, bool ascii, GpgData& data_out,
+auto EncryptFileGpgDataImpl(OpenPGPContext& ctx_,
+                            const GpgAbstractKeyPtrList& keys, GpgData& data_in,
+                            bool ascii, GpgData& data_out,
                             const DataObjectPtr& data_object) -> GpgError {
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
@@ -78,7 +79,8 @@ auto EncryptFileGpgDataImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   return err;
 }
 
-auto EncryptFileGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto EncryptFileGnuPGImpl(OpenPGPContext& ctx_,
+                          const GpgAbstractKeyPtrList& keys,
                           const QString& in_path, bool ascii,
                           const QString& out_path,
                           const DataObjectPtr& data_object) -> GpgError {
@@ -89,7 +91,7 @@ auto EncryptFileGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
                                 data_object);
 }
 
-auto EncryptDirGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
+auto EncryptDirGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                          const QString& in_path, bool ascii,
                          const QString& out_path,
                          const GpgOperationCallback& cb) -> GpgError {
@@ -109,14 +111,14 @@ auto EncryptDirGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
 }
 
-auto EncryptSymmetricFileGnuPGImpl(GpgContext& ctx_, const QString& in_path,
+auto EncryptSymmetricFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                                    bool ascii, const QString& out_path,
                                    const DataObjectPtr& data_object)
     -> GpgError {
   return EncryptFileGnuPGImpl(ctx_, {}, in_path, ascii, out_path, data_object);
 }
 
-auto EncryptSymmetricDirGnuPGImpl(GpgContext& ctx, const QString& in_path,
+auto EncryptSymmetricDirGnuPGImpl(OpenPGPContext& ctx, const QString& in_path,
                                   bool ascii, const QString& out_path,
                                   const GpgOperationCallback& cb) -> GpgError {
   auto ex = CreateStandardGFDataExchanger();
@@ -139,7 +141,7 @@ auto EncryptSymmetricDirGnuPGImpl(GpgContext& ctx, const QString& in_path,
 }
 
 namespace {
-auto DecryptVerifyFileGpgDataImpl(GpgContext& ctx_, GpgData& data_in,
+auto DecryptVerifyFileGpgDataImpl(OpenPGPContext& ctx_, GpgData& data_in,
                                   GpgData& data_out,
                                   const DataObjectPtr& data_object)
     -> GpgError {
@@ -154,7 +156,7 @@ auto DecryptVerifyFileGpgDataImpl(GpgContext& ctx_, GpgData& data_in,
 }
 }  // namespace
 
-auto DecryptVerifyFileGnuPGImpl(GpgContext& ctx_, const QString& in_path,
+auto DecryptVerifyFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                                 const QString& out_path,
                                 const DataObjectPtr& data_object) -> GpgError {
   GpgData data_in(in_path, true);
@@ -163,7 +165,7 @@ auto DecryptVerifyFileGnuPGImpl(GpgContext& ctx_, const QString& in_path,
   return DecryptVerifyFileGpgDataImpl(ctx_, data_in, data_out, data_object);
 }
 
-auto DecryptVerifyArchiveGnuPGImpl(GpgContext& ctx_, const QString& in_path,
+auto DecryptVerifyArchiveGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                                    const QString& out_path,
                                    const GpgOperationCallback& cb) -> GpgError {
   auto ex = ExtractArchiveHelper(out_path);
@@ -182,7 +184,7 @@ auto DecryptVerifyArchiveGnuPGImpl(GpgContext& ctx_, const QString& in_path,
 }
 
 namespace {
-auto DecryptFileGpgDataImpl(GpgContext& ctx_, GpgData& data_in,
+auto DecryptFileGpgDataImpl(OpenPGPContext& ctx_, GpgData& data_in,
                             GpgData& data_out, const DataObjectPtr& data_object)
     -> GpgError {
   auto err =
@@ -194,7 +196,7 @@ auto DecryptFileGpgDataImpl(GpgContext& ctx_, GpgData& data_in,
 }
 }  // namespace
 
-auto DecryptFileGnuPGImpl(GpgContext& ctx_, const QString& in_path,
+auto DecryptFileGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                           const QString& out_path,
                           const DataObjectPtr& data_object) -> GpgError {
   GpgData data_in(in_path, true);
@@ -203,7 +205,7 @@ auto DecryptFileGnuPGImpl(GpgContext& ctx_, const QString& in_path,
   return DecryptFileGpgDataImpl(ctx_, data_in, data_out, data_object);
 }
 
-auto DecryptArchiveGnuPGImpl(GpgContext& ctx_, const QString& in_path,
+auto DecryptArchiveGnuPGImpl(OpenPGPContext& ctx_, const QString& in_path,
                              const QString& out_path,
                              const GpgOperationCallback& cb) -> GpgError {
   auto ex = ExtractArchiveHelper(out_path);
@@ -222,7 +224,7 @@ auto DecryptArchiveGnuPGImpl(GpgContext& ctx_, const QString& in_path,
   return GPG_ERR_NO_ERROR;  // The actual result will be delivered via callback
 }
 
-auto SignFileGpgDataGnuPGImpl(GpgContext& ctx_,
+auto SignFileGpgDataGnuPGImpl(OpenPGPContext& ctx_,
                               const GpgAbstractKeyPtrList& keys,
                               GpgData& data_in, bool ascii, GpgData& data_out,
                               const DataObjectPtr& data_object) -> GpgError {
@@ -241,7 +243,7 @@ auto SignFileGpgDataGnuPGImpl(GpgContext& ctx_,
   return err;
 }
 
-auto SignFileGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto SignFileGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                        const QString& in_path, bool ascii,
                        const QString& out_path,
                        const DataObjectPtr& data_object) -> GpgError {
@@ -252,7 +254,7 @@ auto SignFileGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
                                   data_object);
 }
 
-auto VerifyFileGnuPGImpl(GpgContext& ctx_, const QString& data_path,
+auto VerifyFileGnuPGImpl(OpenPGPContext& ctx_, const QString& data_path,
                          const QString& sign_path,
                          const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
@@ -277,7 +279,7 @@ auto VerifyFileGnuPGImpl(GpgContext& ctx_, const QString& data_path,
 
 namespace {
 auto EncryptSignFileGpgDataGnuPGImpl(
-    GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+    OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
     const GpgAbstractKeyPtrList& signer_keys, GpgData& data_in, bool ascii,
     GpgData& data_out, const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
@@ -298,7 +300,7 @@ auto EncryptSignFileGpgDataGnuPGImpl(
 }
 }  // namespace
 
-auto EncryptSignFileGnuPGImpl(GpgContext& ctx_,
+auto EncryptSignFileGnuPGImpl(OpenPGPContext& ctx_,
                               const GpgAbstractKeyPtrList& keys,
                               const GpgAbstractKeyPtrList& signer_keys,
                               const QString& in_path, bool ascii,
@@ -311,7 +313,8 @@ auto EncryptSignFileGnuPGImpl(GpgContext& ctx_,
                                          ascii, data_out, data_object);
 }
 
-auto EncryptSignDirGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
+auto EncryptSignDirGnuPGImpl(OpenPGPContext& ctx,
+                             const GpgAbstractKeyPtrList& keys,
                              const GpgAbstractKeyPtrList& signer_keys,
                              const QString& in_path, bool ascii,
                              const QString& out_path,

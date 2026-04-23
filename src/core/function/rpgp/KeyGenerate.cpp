@@ -35,7 +35,7 @@
 
 namespace GpgFrontend {
 auto GenerateKeyWithSubkeyRpgpImpl(
-    GpgContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
+    OpenPGPContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError {
   auto& kie = KeyImportExportOperation::GetInstance(ctx.GetChannel());
@@ -106,13 +106,13 @@ auto GenerateKeyWithSubkeyRpgpImpl(
   return GPG_ERR_NO_ERROR;
 }
 
-auto GenerateKeyRpgpImpl(GpgContext& ctx,
+auto GenerateKeyRpgpImpl(OpenPGPContext& ctx,
                          const QSharedPointer<KeyGenerateInfo>& params,
                          const DataObjectPtr& data_object) -> GpgError {
   return GenerateKeyWithSubkeyRpgpImpl(ctx, params, nullptr, data_object);
 }
 
-auto GenerateSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                             const QSharedPointer<KeyGenerateInfo>& params,
                             const DataObjectPtr& data_object) -> GpgError {
   auto& kie = KeyImportExportOperation::GetInstance(ctx.GetChannel());

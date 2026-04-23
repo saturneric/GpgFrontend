@@ -35,8 +35,8 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/basic/SingletonStorage.h"
-#include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -566,9 +566,9 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   }
 
   // load default context
-  auto& default_ctx = GpgFrontend::GpgContext::CreateInstance(
+  auto& default_ctx = GpgFrontend::OpenPGPContext::CreateInstance(
       kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
-        GpgFrontend::GpgContextInitArgs args;
+        GpgFrontend::OpenPGPContextInitArgs args;
 
         const auto& default_key_db_info = key_dbs.front();
         args.db_name = default_key_db_info.name;
@@ -592,8 +592,9 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
         LOG_D() << "gpgme default context at channel 0, key db name:"
                 << args.db_name << "key db path:" << args.db_path;
 
-        return ConvertToChannelObjectPtr<>(SecureCreateUniqueObject<GpgContext>(
-            args, kGpgFrontendDefaultChannel));
+        return ConvertToChannelObjectPtr<>(
+            SecureCreateUniqueObject<OpenPGPContext>(
+                args, kGpgFrontendDefaultChannel));
       });
 
   if (!default_ctx.Good()) {
@@ -645,9 +646,9 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
           }
 
           // init ctx, also checking the basic env
-          auto& ctx = GpgFrontend::GpgContext::CreateInstance(
+          auto& ctx = GpgFrontend::OpenPGPContext::CreateInstance(
               channel_index, [=]() -> ChannelObjectPtr {
-                GpgFrontend::GpgContextInitArgs args;
+                GpgFrontend::OpenPGPContextInitArgs args;
 
                 args.db_name = key_db.name;
                 args.db_path = key_db.path;
@@ -660,7 +661,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
                         << args.db_path << "";
 
                 return ConvertToChannelObjectPtr<>(
-                    SecureCreateUniqueObject<GpgContext>(args, channel_index));
+                    SecureCreateUniqueObject<OpenPGPContext>(args,
+                                                             channel_index));
               });
 
           if (!ctx.Good()) {

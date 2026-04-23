@@ -42,7 +42,7 @@
 
 namespace GpgFrontend {
 
-auto EncryptRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                      const GFBuffer& in_buffer, bool ascii,
                      const DataObjectPtr& data_object) -> GpgError {
   auto key_db = ctx_.KeyDatabase();
@@ -89,7 +89,7 @@ auto EncryptRpgpImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   return GPG_ERR_NO_ERROR;
 }
 
-auto DecryptRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+auto DecryptRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                      const DataObjectPtr& data_object) -> GpgError {
   auto key_db = ctx_.KeyDatabase();
   if (!key_db) {
@@ -156,7 +156,7 @@ auto ExportKeyBlockForSigning(GFKeyDatabase& key_db,
 }
 }  // namespace
 
-auto SignRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& signers,
+auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
                   const GFBuffer& in_buffer, GpgSignMode mode, bool ascii,
                   const DataObjectPtr& data_object) -> GpgError {
   if (signers.isEmpty()) {
@@ -214,7 +214,7 @@ auto SignRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& signers,
   return GPG_ERR_NO_ERROR;
 }
 
-auto VerifyRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+auto VerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                     const GFBuffer& sig_buffer,
                     const DataObjectPtr& data_object) -> GpgError {
   auto key_db = ctx_.KeyDatabase();
@@ -248,7 +248,7 @@ auto VerifyRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
   return gf_err;
 }
 
-auto EncryptSignRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
+auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                          const GpgAbstractKeyPtrList& signers,
                          const GFBuffer& in_buffer, bool ascii,
                          const DataObjectPtr& data_object) -> GpgError {
@@ -330,7 +330,7 @@ auto EncryptSignRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
   return GPG_ERR_NO_ERROR;
 }
 
-auto DecryptVerifyRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+auto DecryptVerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                            const DataObjectPtr& data_object) -> GpgError {
   auto key_db = ctx_.KeyDatabase();
   if (!key_db) {
@@ -370,7 +370,7 @@ auto DecryptVerifyRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
   return (gf_err != GPG_ERR_NO_ERROR) ? gf_err : gf_err_2;
 }
 
-auto EncryptSymmetricRpgpImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+auto EncryptSymmetricRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                               bool ascii, const DataObjectPtr& data_object)
     -> GpgError {
   std::string name;

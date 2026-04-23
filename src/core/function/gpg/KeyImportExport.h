@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GFBuffer.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/typedef/GpgTypedef.h"
@@ -42,7 +42,7 @@ namespace GpgFrontend {
  * @param in_buffer
  * @return QSharedPointer<GpgImportInformation>
  */
-auto ImportKeyGnuPGImpl(GpgContext& ctx, const GFBuffer& in_buffer)
+auto ImportKeyGnuPGImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation>;
 
 /**
@@ -56,7 +56,7 @@ auto ImportKeyGnuPGImpl(GpgContext& ctx, const GFBuffer& in_buffer)
  * @param ssh_mode
  * @return std::tuple<GpgError, GFBuffer>
  */
-auto ExportKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
+auto ExportKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                          bool secret, bool ascii, bool shortest, bool ssh_mode)
     -> std::tuple<GpgError, GFBuffer>;
 
@@ -72,7 +72,7 @@ auto ExportKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
  * @param data_object
  * @return GpgError
  */
-auto ExportKeysAsyncGnuPGImpl(GpgContext& ctx,
+auto ExportKeysAsyncGnuPGImpl(OpenPGPContext& ctx,
                               const GpgAbstractKeyPtrList& keys, bool secret,
                               bool ascii, bool shortest, bool ssh_mode,
                               const DataObjectPtr& data_object) -> GpgError;
@@ -87,9 +87,10 @@ auto ExportKeysAsyncGnuPGImpl(GpgContext& ctx,
  * @param data_object
  * @return GpgError
  */
-auto ExportAllKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                            bool secret, bool ascii,
-                            const DataObjectPtr& data_object) -> GpgError;
+auto ExportAllKeysGnuPGImpl(OpenPGPContext& ctx,
+                            const GpgAbstractKeyPtrList& keys, bool secret,
+                            bool ascii, const DataObjectPtr& data_object)
+    -> GpgError;
 
 /**
  * @brief
@@ -99,6 +100,6 @@ auto ExportAllKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
  * @param ascii
  * @return std::tuple<GpgError, GFBuffer>
  */
-auto ExportSubkeyGnuPGImpl(GpgContext& ctx, const QString& fpr, bool ascii)
+auto ExportSubkeyGnuPGImpl(OpenPGPContext& ctx, const QString& fpr, bool ascii)
     -> std::tuple<GpgError, GFBuffer>;
 }  // namespace GpgFrontend

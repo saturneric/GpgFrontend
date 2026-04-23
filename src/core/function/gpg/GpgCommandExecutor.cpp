@@ -249,7 +249,7 @@ GpgCommandExecutor::ExecuteContext::ExecuteContext(
 GpgCommandExecutor::GpgCommandExecutor(int channel)
     : GpgFrontend::SingletonFunctionObject<GpgCommandExecutor>(channel) {}
 
-auto PrepareContext(const GpgContext &ctx_, const QString &path,
+auto PrepareContext(const OpenPGPContext &ctx_, const QString &path,
                     const GpgCommandExecutor::ExecuteContext &context)
     -> std::tuple<bool, GpgCommandExecutor::ExecuteContext> {
   if (context.cmd.isEmpty() && path.isEmpty()) {
@@ -277,7 +277,7 @@ auto PrepareContext(const GpgContext &ctx_, const QString &path,
 }
 
 auto PrepareExecuteSyncContext(
-    const GpgContext &ctx_, const QString &path,
+    const OpenPGPContext &ctx_, const QString &path,
     const GpgCommandExecutor::ExecuteContext &context)
     -> std::tuple<int, QByteArray, QByteArray> {
   auto ctx = context;
@@ -303,7 +303,7 @@ auto PrepareExecuteSyncContext(
 }
 
 void PrepareExecuteAsyncContext(
-    const GpgContext &ctx_, const QString &path,
+    const OpenPGPContext &ctx_, const QString &path,
     const GpgCommandExecutor::ExecuteContext &context) {
   auto [ret, ctx] = PrepareContext(ctx_, path, context);
   GpgFrontend::GpgCommandExecutor::ExecuteConcurrentlyAsync({ctx});

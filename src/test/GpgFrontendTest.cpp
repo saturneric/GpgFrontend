@@ -33,9 +33,9 @@
 #include "core/GpgConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/ChannelObject.h"
-#include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/IOUtils.h"
 
@@ -100,17 +100,17 @@ void ConfigureGpgContext() {
   LOG_D() << "db path of unit test: " << db_path.canonicalPath();
   Q_ASSERT(db_path.exists());
 
-  GpgFrontend::GpgContext::CreateInstance(
+  GpgFrontend::OpenPGPContext::CreateInstance(
       GpgFrontend::kGpgFrontendDefaultChannel,
       [=]() -> GpgFrontend::ChannelObjectPtr {
-        GpgFrontend::GpgContextInitArgs args;
+        GpgFrontend::OpenPGPContextInitArgs args;
         args.test_mode = true;
         args.offline_mode = true;
         args.db_name = "UNIT_TEST";
         args.db_path = db_path.path();
 
         return GpgFrontend::ConvertToChannelObjectPtr<>(
-            GpgFrontend::SecureCreateUniqueObject<GpgFrontend::GpgContext>(
+            GpgFrontend::SecureCreateUniqueObject<GpgFrontend::OpenPGPContext>(
                 args, GpgFrontend::kGpgFrontendDefaultChannel));
       });
 }

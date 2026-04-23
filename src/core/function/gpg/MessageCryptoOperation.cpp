@@ -39,8 +39,8 @@
 
 namespace GpgFrontend {
 
-void SetSignersGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
-                         bool ascii) {
+void SetSignersGnuPGImpl(OpenPGPContext& ctx_,
+                         const GpgAbstractKeyPtrList& signers, bool ascii) {
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
 
   gpgme_signers_clear(ctx);
@@ -60,7 +60,7 @@ void SetSignersGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
   }
 }
 
-auto EncryptGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto EncryptGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                       const GFBuffer& in_buffer, bool ascii,
                       const DataObjectPtr& data_object) -> GpgError {
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
@@ -80,13 +80,13 @@ auto EncryptGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   return err;
 }
 
-auto EncryptSymmetricGnuPGImpl(GpgContext& ctx, const GFBuffer& in_buffer,
+auto EncryptSymmetricGnuPGImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer,
                                bool ascii, const DataObjectPtr& data_object)
     -> GpgError {
   return EncryptGnuPGImpl(ctx, {}, in_buffer, ascii, data_object);
 }
 
-auto DecryptGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+auto DecryptGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                       const DataObjectPtr& data_object) -> GpgError {
   GpgData data_in(in_buffer);
   GpgData data_out;
@@ -101,7 +101,7 @@ auto DecryptGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
   return err;
 }
 
-auto SignGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
+auto SignGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& signers,
                    const GFBuffer& in_buffer, GpgSignMode mode, bool ascii,
                    const DataObjectPtr& data_object) -> GpgError {
   if (signers.empty()) return GPG_ERR_CANCELED;
@@ -124,7 +124,7 @@ auto SignGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& signers,
   return err;
 }
 
-auto VerifyGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+auto VerifyGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                      const GFBuffer& sig_buffer,
                      const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
@@ -149,7 +149,8 @@ auto VerifyGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
   return err;
 }
 
-auto EncryptSignGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
+auto EncryptSignGnuPGImpl(OpenPGPContext& ctx_,
+                          const GpgAbstractKeyPtrList& keys,
                           const GpgAbstractKeyPtrList& signers,
                           const GFBuffer& in_buffer, bool ascii,
                           const DataObjectPtr& data_object) -> GpgError {
@@ -178,7 +179,7 @@ auto EncryptSignGnuPGImpl(GpgContext& ctx_, const GpgAbstractKeyPtrList& keys,
   return err;
 }
 
-auto DecryptVerifyGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
+auto DecryptVerifyGnuPGImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
                             const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
 
@@ -197,7 +198,7 @@ auto DecryptVerifyGnuPGImpl(GpgContext& ctx_, const GFBuffer& in_buffer,
   return err;
 }
 
-auto GetSignersGnuPGImpl(GpgContext& ctx_, bool ascii) -> KeyArgsList {
+auto GetSignersGnuPGImpl(OpenPGPContext& ctx_, bool ascii) -> KeyArgsList {
   auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
 
   auto count = gpgme_signers_count(ctx);

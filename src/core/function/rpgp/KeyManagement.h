@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -39,7 +39,7 @@ namespace GpgFrontend {
  * @param ctx
  * @param keys
  */
-auto DeleteKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
+auto DeleteKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
     -> bool;
 
 /**
@@ -49,7 +49,7 @@ auto DeleteKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
  * @param keys
  * @return GpgError
  */
-auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                  const DataObjectPtr& data_object) -> GpgError;
 
 /**
@@ -60,8 +60,8 @@ auto ModifyKeyPassphraseRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @param skey_idx
  * @return GpgError
  */
-auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, int skey_idx)
-    -> bool;
+auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                          int skey_idx) -> bool;
 
 /**
  * @brief
@@ -74,7 +74,7 @@ auto DeleteSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, int skey_idx)
  * @return true
  * @return false
  */
-auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                           int subkey_index, int reason_code,
                           const QString& reason_text) -> bool;
 
@@ -88,7 +88,7 @@ auto RevokeSubKeyRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @return true
  * @return false
  */
-auto GenerateRevCertRpgpImpl(GpgContext& ctx_, const GpgKeyPtr& secret_key,
+auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& secret_key,
                              const QString& output_path, int reason_code,
                              const QString& reason_text) -> bool;
 }  // namespace GpgFrontend

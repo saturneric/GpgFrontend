@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -42,8 +42,8 @@ namespace GpgFrontend {
  * @return true
  * @return false
  */
-auto AddUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
-    -> bool;
+auto AddUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                     const QString& uid) -> bool;
 
 /**
  * @brief
@@ -54,7 +54,7 @@ auto AddUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
  * @return true
  * @return false
  */
-auto DeleteUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto DeleteUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                         const QString& uid) -> bool;
 
 /**
@@ -68,7 +68,7 @@ auto DeleteUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @return true
  * @return false
  */
-auto RevokeUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto RevokeUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                         const QString& uid, int reason_code,
                         const QString& reason_text) -> bool;
 
@@ -81,6 +81,6 @@ auto RevokeUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
  * @return true
  * @return false
  */
-auto SetPrimaryUIDGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto SetPrimaryUIDGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                             const QString& uid) -> bool;
 }  // namespace GpgFrontend

@@ -328,7 +328,7 @@ void CommonUtils::slot_update_key_status() {
   auto *refresh_task = new Thread::Task(
       [](DataObjectPtr) -> int {
         // flush key cache for all GpgKeyGetter Intances.
-        for (const auto &channel_id : GpgContext::GetAllChannelId()) {
+        for (const auto &channel_id : OpenPGPContext::GetAllChannelId()) {
           LOG_D() << "refreshing key database at channel: " << channel_id;
           AbstractKeyRepository::GetInstance(channel_id).FlushCache();
         }

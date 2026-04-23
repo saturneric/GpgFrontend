@@ -189,12 +189,12 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
           KeyGenerateInfo::GetSupportedSubkeyAlgo(channel)) {
   ui_->setupUi(this);
 
-  auto engine = GpgContext::GetInstance(channel).Engine();
+  auto engine = OpenPGPContext::GetInstance(channel).Engine();
   LOG_D() << "current gpg engine: " << ConvertOpenPGPEngine2String(engine);
 
   for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
     auto bnd_type = ConvertOpenPGPEngine2String(
-        GpgContext::GetInstance(key_db.channel).Engine());
+        OpenPGPContext::GetInstance(key_db.channel).Engine());
     ui_->keyDBIndexComboBox->insertItem(key_db.channel, QString("[%2]: %3 (%1)")
                                                             .arg(bnd_type)
                                                             .arg(key_db.channel)

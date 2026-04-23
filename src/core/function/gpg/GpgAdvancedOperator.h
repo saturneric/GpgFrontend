@@ -98,8 +98,8 @@ class GF_CORE_EXPORT GpgAdvancedOperator
  private:
   GpgCommandExecutor& exec_ =
       GpgCommandExecutor::GetInstance(SingletonFunctionObject::GetChannel());
-  GpgContext& ctx_ =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  OpenPGPContext& ctx_ =
+      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
   GpgComponentManager& mgr_ =
       GpgComponentManager::GetInstance(SingletonFunctionObject::GetChannel());
 };

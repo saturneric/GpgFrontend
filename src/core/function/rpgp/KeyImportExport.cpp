@@ -150,7 +150,7 @@ auto MergeGFKeyRpgpImpl(const QContainer<GFKey>& gf_keys, bool secret)
   return final_gf_keys.front();
 }
 
-auto ImportKeyRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
+auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation> {
   if (in_buffer.Empty()) return {};
 
@@ -200,7 +200,7 @@ auto ImportKeyRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
   return info;
 }
 
-auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
+auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
                         bool secret, bool ascii, bool shortest, bool ssh_mode)
     -> std::tuple<GpgError, GFBuffer> {
   auto key_db = ctx.KeyDatabase();
@@ -245,19 +245,20 @@ auto ExportKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
   return {GPG_ERR_NO_ERROR, GFBuffer(qs_armored)};
 }
 
-auto ExportKeysAsyncRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                             bool secret, bool ascii, bool shortest,
-                             bool ssh_mode, const DataObjectPtr& data_object)
-    -> GpgError {
+auto ExportKeysAsyncRpgpImpl(OpenPGPContext& ctx,
+                             const GpgAbstractKeyPtrList& keys, bool secret,
+                             bool ascii, bool shortest, bool ssh_mode,
+                             const DataObjectPtr& data_object) -> GpgError {
   auto [err, buffer] =
       ExportKeysRpgpImpl(ctx, keys, secret, ascii, shortest, ssh_mode);
   data_object->Swap({buffer});
   return err;
 }
 
-auto ExportAllKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
-                           bool secret, bool ascii,
-                           const DataObjectPtr& data_object) -> GpgError {
+auto ExportAllKeysRpgpImpl(OpenPGPContext& ctx,
+                           const GpgAbstractKeyPtrList& keys, bool secret,
+                           bool ascii, const DataObjectPtr& data_object)
+    -> GpgError {
   if (keys.empty()) return GPG_ERR_CANCELED;
 
   auto [err, buffer] =
@@ -276,7 +277,7 @@ auto ExportAllKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys,
   return err;
 }
 
-auto ImportRevCertRpgpImpl(GpgContext& ctx, const GFBuffer& in_buffer)
+auto ImportRevCertRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation> {
   if (in_buffer.Empty()) return {};
 

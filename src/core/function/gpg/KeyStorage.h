@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 
 namespace GpgFrontend {
 
@@ -40,7 +40,7 @@ namespace GpgFrontend {
  * @param secret
  * @return GpgKeyPtr
  */
-auto GetKeyPtrGnuPGImpl(GpgContext& ctx, const QString& key_id, bool secret)
+auto GetKeyPtrGnuPGImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
     -> GpgKeyPtr;
 
 /**
@@ -53,7 +53,7 @@ auto GetKeyPtrGnuPGImpl(GpgContext& ctx, const QString& key_id, bool secret)
  * @return false
  */
 auto FlushKeyCacheGnuPGImpl(
-    GpgContext& ctx, const QSharedPointer<GpgKeyPtrList>& keys_cache,
+    OpenPGPContext& ctx, const QSharedPointer<GpgKeyPtrList>& keys_cache,
     const QSharedPointer<QMap<QString, GpgAbstractKeyPtr>>& keys_search_cache)
     -> bool;
 
@@ -64,6 +64,6 @@ auto FlushKeyCacheGnuPGImpl(
  * @return true
  * @return false
  */
-auto FlushKeyDatabaseGnuPGImpl(GpgContext& ctx) -> bool;
+auto FlushKeyDatabaseGnuPGImpl(OpenPGPContext& ctx) -> bool;
 
 }  // namespace GpgFrontend

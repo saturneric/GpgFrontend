@@ -31,7 +31,7 @@
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgAssuanHelper.h"
 #include "core/function/gpg/GpgComponentManager.h"
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgOpenPGPCard.h"
 
 namespace GpgFrontend {
@@ -119,8 +119,8 @@ class GF_CORE_EXPORT GpgSmartCardManager
   auto IsSCDVersionSupported() -> bool;
 
  private:
-  GpgContext& ctx_ =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+  OpenPGPContext& ctx_ =
+      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
   GpgAssuanHelper& assuan_ =
       GpgAssuanHelper::GetInstance(SingletonFunctionObject::GetChannel());  ///<
   GpgComponentManager& info_ = GpgComponentManager::GetInstance(

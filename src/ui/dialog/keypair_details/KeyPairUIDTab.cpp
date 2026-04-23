@@ -44,7 +44,8 @@ KeyPairUIDTab::KeyPairUIDTab(int channel, GpgKeyPtr key, QWidget* parent)
       m_key_(std::move(key)) {
   assert(m_key_ != nullptr);
 
-  auto engine = GpgContext::GetInstance(current_gpg_context_channel_).Engine();
+  auto engine =
+      OpenPGPContext::GetInstance(current_gpg_context_channel_).Engine();
 
   create_uid_list();
   create_sign_list();

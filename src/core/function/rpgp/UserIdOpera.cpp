@@ -35,8 +35,8 @@
 
 namespace GpgFrontend {
 
-auto AddUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
-    -> bool {
+auto AddUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                    const QString& uid) -> bool {
   LOG_D() << "Adding UID: " << uid << " to key: " << key->Fingerprint()
           << " using RPGP backend";
 
@@ -100,7 +100,7 @@ auto AddUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key, const QString& uid)
   return true;
 }
 
-auto DeleteUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto DeleteUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const QString& uid) -> bool {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
@@ -170,7 +170,7 @@ auto DeleteUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return true;
 }
 
-auto SetPrimaryUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                            const QString& uid) -> bool {
   LOG_D() << "Adding UID: " << uid << " to key: " << key->Fingerprint()
           << " using RPGP backend";
@@ -236,7 +236,7 @@ auto SetPrimaryUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return true;
 }
 
-auto RevokeUIDRpgpImpl(GpgContext& ctx, const GpgKeyPtr& key,
+auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const QString& uid, int reason_code,
                        const QString& reason_text) -> bool {
   LOG_D() << "Revoking UID: " << uid << " from key: " << key->Fingerprint()

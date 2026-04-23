@@ -32,11 +32,9 @@
 
 #include <mutex>
 
-#include "core/function/GFKeyDatabase.h"
-#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/KeyStorageTraits.h"
-#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
@@ -163,8 +161,8 @@ class GpgKeyRepository::Impl
   }
 
  private:
-  GpgContext& ctx_ =
-      GpgContext::GetInstance(SingletonFunctionObject::GetChannel());
+  OpenPGPContext& ctx_ =
+      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
   bool first_flush_ = true;
   mutable std::mutex ctx_mutex_;
   QSharedPointer<QMap<QString, GpgAbstractKeyPtr>> keys_search_cache_;
