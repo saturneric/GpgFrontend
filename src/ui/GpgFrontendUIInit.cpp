@@ -81,8 +81,8 @@ void WaitEnvCheckingProcess() {
                         });
 
   QApplication::connect(CoreSignalStation::GetInstance(),
-                        &CoreSignalStation::SignalBadGnupgEnv, progress_dialog,
-                        [=]() {
+                        &CoreSignalStation::SignalBadOpenPGPEnv,
+                        progress_dialog, [=]() {
                           LOG_D() << "ui caught signal: core loading failed";
                           progress_dialog->finished(0);
                           progress_dialog->deleteLater();

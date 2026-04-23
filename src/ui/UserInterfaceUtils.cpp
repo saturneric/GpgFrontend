@@ -63,8 +63,8 @@ auto CommonUtils::GetInstance() -> CommonUtils * {
 
 CommonUtils::CommonUtils() : QWidget(nullptr) {
   connect(CoreSignalStation::GetInstance(),
-          &CoreSignalStation::SignalBadGnupgEnv, this,
-          &CommonUtils::SignalBadGnupgEnv);
+          &CoreSignalStation::SignalBadOpenPGPEnv, this,
+          &CommonUtils::SignalBadOpenPGPEnv);
   connect(this, &CommonUtils::SignalKeyStatusUpdated,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
@@ -88,21 +88,14 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
           &CommonUtils::SlotRestartApplication);
 
   connect(
-      this, &CommonUtils::SignalBadGnupgEnv, this, [=](const QString &reason) {
+      this, &CommonUtils::SignalBadOpenPGPEnv, this,
+      [=](const QString &reason) -> void {
         QMessageBox msg_box;
-        msg_box.setText(tr("Failed to Load GnuPG Context"));
+        msg_box.setText(tr("No Supported OpenPGP Engine Found"));
         msg_box.setInformativeText(
-            tr("It seems that GnuPG (gpg) is not properly installed. "
-               "Please refer to the <a "
-               "href='https://www.gpgfrontend.bktus.com/overview/faq/"
-               "#troubleshooting-gnupg-installation-issues'>FAQ</a> for "
-               "instructions on fixing the installation. After resolving the "
-               "issue, "
-               "relaunch GpgFrontend.<br /><br />"
-               "Alternatively, you can open the GnuPG Controller to configure "
-               "a custom GnuPG installation for GpgFrontend to use. Once set, "
-               "GpgFrontend will restart automatically.<br /><br />"
-               "Details: %1")
+            tr("It seems that no supported OpenPGP engine is available. "
+               "Please check your if GpgFrontend is properly installed and try "
+               "again. Reason: %1")
                 .arg(reason));
         msg_box.setStandardButtons(QMessageBox::Retry | QMessageBox::Cancel);
         msg_box.setDefaultButton(QMessageBox::Retry);
@@ -110,15 +103,10 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
 
         switch (ret) {
           case QMessageBox::Retry:
-            (new GnuPGControllerDialog(this))->exec();
             // Mark application for immediate restart
             application_need_to_restart_at_once_ = true;
             // Trigger application restart with deep restart code
             emit SignalRestartApplication(kDeepRestartCode);
-            break;
-          case QMessageBox::Cancel:
-            // Close application
-            emit SignalRestartApplication(0);
             break;
           default:
             // Default action: close application

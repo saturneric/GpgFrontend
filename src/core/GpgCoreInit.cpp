@@ -267,7 +267,7 @@ auto InitBasicPathWithGpgConf() -> bool {
   if (!GetComponentPathsByGpgConf(default_gpgconf_path)) {
     LOG_E() << "Cannot get components paths by gpgconf!"
             << "GpgFrontend cannot start under this situation!";
-    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         QCoreApplication::tr("Cannot get Infos from GpgConf"));
     return false;
   }
@@ -284,7 +284,7 @@ auto InitBasicPathWithGpgConf() -> bool {
   if (target_gpgconf_path.isEmpty()) {
     LOG_E() << "Cannot find gpgconf!"
             << "GpgFrontend cannot start under this situation!";
-    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         QCoreApplication::tr("Cannot Find GpgConf"));
     return false;
   }
@@ -292,7 +292,7 @@ auto InitBasicPathWithGpgConf() -> bool {
   if (target_gnupg_path.isEmpty()) {
     LOG_E() << "Cannot find GnuPG by gpgconf!"
             << "GpgFrontend cannot start under this situation!";
-    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         QCoreApplication::tr("Cannot Find GnuPG"));
     return false;
   }
@@ -499,7 +499,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     LOG_E() << "Oops, Basic Path init failed!"
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
-    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         QCoreApplication::tr("Basic Path Initiation Failed"));
     return -1;
   }
@@ -526,7 +526,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     LOG_E()
         << "No supported OpenPGP engine detected, GpgFrontend cannot start!";
     Module::UpsertRTValue("core", "env.state.openpgp_engine", -1);
-    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         QCoreApplication::tr("No Supported OpenPGP Engine Detected"));
     return -1;
   }
@@ -562,7 +562,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     LOG_E() << "Cannot find any valid key database!"
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
-    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         QCoreApplication::tr("No valid Key Database"));
     return -1;
   }
@@ -598,7 +598,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     LOG_E() << "Init GpgME Default Context failed!"
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
-    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         QCoreApplication::tr("GpgME Default Context Initiation Failed"));
     return -1;
   }
@@ -610,7 +610,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     LOG_E() << "Init GpgME Default Key Database failed!"
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
-    CoreSignalStation::GetInstance()->SignalBadGnupgEnv(
+    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
         QCoreApplication::tr("Gpg Default Key Database Initiation Failed"));
     return -1;
   };

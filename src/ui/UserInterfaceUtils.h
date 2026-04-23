@@ -165,7 +165,7 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  void SignalBadGnupgEnv(QString);
+  void SignalBadOpenPGPEnv(QString);
 
   /**
    * @brief emit when the key database is refreshed
