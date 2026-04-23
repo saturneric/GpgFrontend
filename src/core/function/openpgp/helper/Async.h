@@ -112,4 +112,16 @@ auto RunRegisteredForward(OpenPGPContext& ctx, Args&&... args) {
       },
       stored_args);
 }
+
+template <typename OpTag, typename... Args>
+auto RunRegisteredRawForward(OpenPGPEngine& engine, Args&&... args) {
+  auto stored_args =
+      std::make_tuple(std::decay_t<Args>(std::forward<Args>(args))...);
+
+  return std::apply(
+      [&](auto&&... unpacked) {
+        return OpTraits<OpTag>::Call(engine, unpacked...);
+      },
+      stored_args);
+}
 }  // namespace GpgFrontend

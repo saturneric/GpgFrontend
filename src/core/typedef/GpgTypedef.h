@@ -72,4 +72,12 @@ enum GpgOperation : uint16_t {
   kCERT = 1 << 7,
   kSYMMETRIC_ENCRYPT = 1 << 8
 };
+
+enum class GpgComponentType : std::uint8_t {
+  kGPG_AGENT,
+  kDIRMNGR,
+  kKEYBOXD,
+  kGPG_AGENT_SSH
+};
+
 }  // namespace GpgFrontend

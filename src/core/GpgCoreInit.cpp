@@ -37,6 +37,8 @@
 #include "core/function/basic/SingletonStorage.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
+#include "core/function/openpgp/helper/Async.h"
+#include "core/function/openpgp/traits/CommonTraits.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -565,39 +567,34 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     return -1;
   }
 
-  // load default context
-  auto& default_ctx = GpgFrontend::OpenPGPContext::CreateInstance(
-      kGpgFrontendDefaultChannel, [=]() -> ChannelObjectPtr {
-        GpgFrontend::OpenPGPContextInitArgs args;
+  // build default openpgp context
+  auto succ = [=]() -> auto{
+    OpenPGPContextInitArgs ctx_args;
 
-        const auto& default_key_db_info = key_dbs.front();
-        args.db_name = default_key_db_info.name;
-        args.db_path = default_key_db_info.path;
+    const auto& default_key_db_info = key_dbs.front();
+    ctx_args.db_name = default_key_db_info.name;
+    ctx_args.db_path = default_key_db_info.path;
 
-        LOG_I() << "default key db name:" << args.db_name
-                << "default key db path:" << args.db_path;
+    // default to gnupg backend if possible, or fallback to rpgp backend
+    if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+      ctx_args.engine = OpenPGPEngine::kGNUPG;
+      LOG_I() << "gnupg backend is supported, use gnupg backend as default";
+    } else {
+      ctx_args.engine = OpenPGPEngine::kRPGP;
+      LOG_W() << "gnupg backend is not supported, fallback to rpgp backend";
+    }
 
-        // default to gnupg backend if possible, or fallback to rpgp backend
-        if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-          args.engine = OpenPGPEngine::kGNUPG;
-          LOG_I() << "gnupg backend is supported, use gnupg backend as default";
-        } else {
-          args.engine = OpenPGPEngine::kRPGP;
-          LOG_W() << "gnupg backend is not supported, fallback to rpgp backend";
-        }
+    ctx_args.offline_mode = forbid_all_gnupg_connection;
+    ctx_args.auto_import_missing_key = auto_import_missing_key;
 
-        args.offline_mode = forbid_all_gnupg_connection;
-        args.auto_import_missing_key = auto_import_missing_key;
+    LOG_I() << "gpgme default context at channel 0, key db name:"
+            << ctx_args.db_name << "key db path:" << ctx_args.db_path;
 
-        LOG_D() << "gpgme default context at channel 0, key db name:"
-                << args.db_name << "key db path:" << args.db_path;
+    return RunRegisteredRawForward<BuildOpenPGPContextOpTag>(ctx_args.engine, 0,
+                                                             ctx_args);
+  };
 
-        return ConvertToChannelObjectPtr<>(
-            SecureCreateUniqueObject<OpenPGPContext>(
-                args, kGpgFrontendDefaultChannel));
-      });
-
-  if (!default_ctx.Good()) {
+  if (!succ()) {
     LOG_E() << "Init GpgME Default Context failed!"
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
@@ -645,33 +642,29 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
             continue;
           }
 
-          // init ctx, also checking the basic env
-          auto& ctx = GpgFrontend::OpenPGPContext::CreateInstance(
-              channel_index, [=]() -> ChannelObjectPtr {
-                GpgFrontend::OpenPGPContextInitArgs args;
+          auto succ = [=]() -> auto{
+            GpgFrontend::OpenPGPContextInitArgs args;
 
-                args.db_name = key_db.name;
-                args.db_path = key_db.path;
-                args.engine = key_db_engine;
-                args.offline_mode = forbid_all_gnupg_connection;
-                args.auto_import_missing_key = auto_import_missing_key;
+            args.db_name = key_db.name;
+            args.db_path = key_db.path;
+            args.engine = key_db_engine;
+            args.offline_mode = forbid_all_gnupg_connection;
+            args.auto_import_missing_key = auto_import_missing_key;
 
-                LOG_D() << "new gpgme context, channel" << channel_index
-                        << ", key db name" << args.db_name << "key db path"
-                        << args.db_path << "";
+            LOG_D() << "new gpgme context, channel" << channel_index
+                    << ", key db name" << args.db_name << "key db path"
+                    << args.db_path << "";
 
-                return ConvertToChannelObjectPtr<>(
-                    SecureCreateUniqueObject<OpenPGPContext>(args,
-                                                             channel_index));
-              });
+            return RunRegisteredRawForward<BuildOpenPGPContextOpTag>(
+                args.engine, channel_index, args);
+          };
 
-          if (!ctx.Good()) {
+          if (!succ()) {
             LOG_E() << "gpgme context init failed, index:" << channel_index;
             continue;
           }
 
-          if (!GpgKeyRepository::GetInstance(ctx.GetChannel())
-                   .FlushKeyCache()) {
+          if (!GpgKeyRepository::GetInstance(channel_index).FlushKeyCache()) {
             LOG_E() << "gpgme context init key cache failed, index:"
                     << channel_index;
             continue;

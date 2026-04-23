@@ -33,6 +33,7 @@
 #include <openssl/rand.h>
 
 #include "core/utils/GpgUtils.h"
+#include "function/gpg/GpgContext.h"
 
 namespace {
 constexpr std::array<char, 33> kZBase32Alphabet = {
@@ -75,8 +76,9 @@ auto SecureRandomGenerator::GnuPGGenerate(size_t size) -> GFBufferOrNone {
 
   GFBuffer buffer(size);
 
+  auto &g_ctx = GpgCtx(ctx_);
   GpgError err =
-      gpgme_op_random_bytes(ctx_.DefaultContext(), GPGME_RANDOM_MODE_NORMAL,
+      gpgme_op_random_bytes(g_ctx.DefaultContext(), GPGME_RANDOM_MODE_NORMAL,
                             buffer.Data(), buffer.Size());
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     LOG_W()
@@ -89,8 +91,9 @@ auto SecureRandomGenerator::GnuPGGenerate(size_t size) -> GFBufferOrNone {
 auto SecureRandomGenerator::GnuPGGenerateZBase32() -> GFBufferOrNone {
   GFBuffer buffer(31);
 
+  auto &g_ctx = GpgCtx(ctx_);
   GpgError err =
-      gpgme_op_random_bytes(ctx_.DefaultContext(), GPGME_RANDOM_MODE_ZBASE32,
+      gpgme_op_random_bytes(g_ctx.DefaultContext(), GPGME_RANDOM_MODE_ZBASE32,
                             buffer.Data(), buffer.Size());
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
     LOG_W()

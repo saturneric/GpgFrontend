@@ -28,227 +28,36 @@
 
 #include "core/function/openpgp/OpenPGPContext.h"
 
-#include <gpg-error.h>
-#include <gpgme.h>
-
 #include <cassert>
-#include <mutex>
 
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/basic/GpgFunctionObject.h"
-#include "core/function/gpg/GpgComponentManager.h"
+#include "core/function/openpgp/helper/Async.h"
+#include "core/function/openpgp/traits/CommonTraits.h"
 #include "core/module/ModuleManager.h"
-#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
-#include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
 
-class GpgAgentProcess {
- public:
-  explicit GpgAgentProcess(int channel, QString gpg_agent_path, QString db_path)
-      : channel_(channel),
-        db_path_(std::move(db_path)),
-        gpg_agent_path_(std::move(gpg_agent_path)) {}
-
-  auto Start() -> bool {
-    assert(!gpg_agent_path_.isEmpty());
-    assert(!db_path_.isEmpty());
-
-    if (gpg_agent_path_.trimmed().isEmpty()) {
-      LOG_E() << "gpg-agent path is empty!";
-      return false;
-    }
-
-    LOG_D() << "get gpg-agent path: " << gpg_agent_path_;
-    QFileInfo info(gpg_agent_path_);
-    if (!info.exists() || !info.isFile()) {
-      LOG_E() << "gpg-agent is not exists or is not a binary file!";
-      return false;
-    }
-
-    auto args = QStringList{};
-
-    if (!db_path_.isEmpty()) {
-      args.append({"--homedir", QDir::toNativeSeparators(db_path_)});
-    }
-
-    args.append({"--daemon", "--enable-ssh-support"});
-
-    // auto decide pinentry program path
-    auto pinentry = DecidePinentry();
-
-    // GFPinentryProgramPath
-    auto user_pinentry = qApp->property("GFPinentryProgramPath").toString();
-    if (!user_pinentry.isEmpty()) {
-      QFileInfo pinentry_info(user_pinentry);
-      if (pinentry_info.exists() && pinentry_info.isFile()) {
-        pinentry = pinentry_info.absoluteFilePath();
-      } else {
-        LOG_W() << "the user defined pinentry program path is illegal: "
-                << user_pinentry;
-      }
-    }
-
-    LOG_D() << "decided pinentry program path: " << pinentry;
-
-    if (!pinentry.trimmed().isEmpty()) {
-      args.append({"--pinentry-program", pinentry});
-    }
-
-    if (channel_ != kGpgFrontendDefaultChannel) {
-      args.append("--disable-scdaemon");
-    }
-
-    LOG_D() << "gpg-agent start args: " << args << "channel:" << channel_;
-
-    process_.setProgram(info.absoluteFilePath());
-    process_.setArguments(args);
-    process_.setProcessChannelMode(QProcess::MergedChannels);
-    process_.start();
-
-    if (!process_.waitForStarted()) {
-      LOG_W() << "timeout starting gpg-agent: " << gpg_agent_path_
-              << "ags: " << args;
-      return false;
-    }
-
-    return true;
-  }
-
-  ~GpgAgentProcess() {
-    if (process_.state() != QProcess::NotRunning) {
-      qInfo() << "killing gpg-agent, channel: " << channel_;
-      process_.terminate();
-      if (!process_.waitForFinished(3000)) {
-        process_.kill();
-        process_.waitForFinished();
-      }
-    }
-  }
-
- private:
-  int channel_;
-  QProcess process_;
-  QString db_path_;
-  QString gpg_agent_path_;
-};
-
 class OpenPGPContext::Impl {
  public:
-  /**
-   * @brief Construct a new Impl object
-   *
-   * @param parent
-   * @param args
-   */
   Impl(OpenPGPContext *parent, const OpenPGPContextInitArgs &args)
       : parent_(parent),
         args_(args),
         engine_(args.engine),
-        db_name_(args.db_name),
-        gpgconf_path_(Module::RetrieveRTValueTypedOrDefault<>(
-            "core", "gpgme.ctx.gpgconf_path", QString{})),
-        database_path_(args.db_path),
-        gpg_agent_path_(Module::RetrieveRTValueTypedOrDefault<>(
-            "core", "gnupg.components.gpg-agent.path", QString{})),
-        agent_(SecureCreateSharedObject<GpgAgentProcess>(
-            parent->GetChannel(), gpg_agent_path_, database_path_)) {
-    init(args);
-  }
+        key_db_name_(args.db_name),
+        key_db_path_(args.db_path) {}
 
   ~Impl() {
-    if (engine_ == OpenPGPEngine::kGNUPG) {
-      if (ctx_ref_ != nullptr) {
-        gpgme_release(ctx_ref_);
-      }
-
-      if (binary_ctx_ref_ != nullptr) {
-        gpgme_release(binary_ctx_ref_);
-      }
-    }
-
     if (key_db_ != nullptr) {
       key_db_.clear();
     }
   }
 
-  [[nodiscard]] auto BinaryContext() const -> gpgme_ctx_t {
-    assert(engine_ == OpenPGPEngine::kGNUPG);
-    return binary_ctx_ref_;
-  }
+  [[nodiscard]] auto KeyDBName() const -> QString { return key_db_name_; }
 
-  [[nodiscard]] auto DefaultContext() const -> gpgme_ctx_t {
-    assert(engine_ == OpenPGPEngine::kGNUPG);
-    return ctx_ref_;
-  }
-
-  [[nodiscard]] auto Good() const -> bool { return good_; }
-
-  auto SetPassphraseCb(const gpgme_ctx_t &ctx, gpgme_passphrase_cb_t cb)
-      -> bool {
-    if (gpgme_get_pinentry_mode(ctx) != GPGME_PINENTRY_MODE_LOOPBACK) {
-      if (CheckGpgError(gpgme_set_pinentry_mode(
-              ctx, GPGME_PINENTRY_MODE_LOOPBACK)) != GPG_ERR_NO_ERROR) {
-        return false;
-      }
-    }
-    gpgme_set_passphrase_cb(ctx, cb, reinterpret_cast<void *>(parent_));
-    return true;
-  }
-
-  static auto TestPassphraseCb(void *opaque, const char *uid_hint,
-                               const char *passphrase_info, int last_was_bad,
-                               int fd) -> gpgme_error_t {
-    QString passphrase = "abcdefg";
-    auto pass_bytes = passphrase.toLatin1();
-    auto pass_size = pass_bytes.size();
-    const auto *p_pass_bytes = pass_bytes.constData();
-
-    qsizetype res = 0;
-    if (pass_size > 0) {
-      qsizetype off = 0;
-      qsizetype ret = 0;
-      do {
-        ret = gpgme_io_write(fd, &p_pass_bytes[off], pass_size - off);
-        if (ret > 0) off += ret;
-      } while (ret > 0 && off != pass_size);
-      res = off;
-    }
-
-    res += gpgme_io_write(fd, "\n", 1);
-    return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
-  }
-
-  static auto TestStatusCb(void *hook, const char *keyword, const char *args)
-      -> gpgme_error_t {
-    FLOG_D("keyword %s", keyword);
-    return GPG_ERR_NO_ERROR;
-  }
-
-  [[nodiscard]] auto HomeDirectory() const -> QString { return database_path_; }
-
-  [[nodiscard]] auto ComponentDirectories(GpgComponentType type) const
-      -> QString {
-    return component_dirs_.value(component_type_to_q_string(type), "");
-  }
-
-  [[nodiscard]] auto KeyDBName() const -> QString { return db_name_; }
-
-  auto RestartGpgAgent() -> bool {
-    assert(engine_ == OpenPGPEngine::kGNUPG);
-
-    if (agent_ != nullptr) {
-      agent_ = SecureCreateSharedObject<GpgAgentProcess>(
-          parent_->GetChannel(), gpg_agent_path_, database_path_);
-    }
-
-    // ensure all gpg-agent are killed.
-    kill_gpg_agent();
-
-    return launch_gpg_agent();
-  }
+  [[nodiscard]] auto KeyDBPath() const -> QString { return key_db_path_; }
 
   auto Engine() -> OpenPGPEngine { return engine_; }
 
@@ -258,415 +67,69 @@ class OpenPGPContext::Impl {
   }
 
   auto EngineVersion() -> QString {
-    if (Engine() == OpenPGPEngine::kRPGP) {
-      return RustEngineVersion();
-    }
-
-    auto ver = GpgComponentManager::GetInstance(parent_->GetChannel())
-                   .GetGpgAgentVersion();
-
-    if (!ver.isEmpty()) {
-      return ver;
-    }
-
-    auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.gnupg_version", QString{});
-
-    if (!gnupg_version.isEmpty()) {
-      return gnupg_version;
-    }
-
-    return "0.0.0";
+    return RunRegisteredForward<GetEngineVersionOpTag>(*parent_);
   }
+
+  auto CommonInitialize() -> bool {
+    bool good = true;
+    if (key_db_name_.isEmpty()) {
+      LOG_E() << "key database name is empty";
+      good = false;
+      return false;
+    }
+
+    QFileInfo db_path_info(args_.db_path);
+    if (!db_path_info.exists() || !db_path_info.isDir()) {
+      LOG_E() << "key database path is not exists or is not a directory: "
+              << args_.db_path;
+      good = false;
+      return false;
+    }
+
+    key_db_path_ = db_path_info.absoluteFilePath();
+    assert(!key_db_path_.isEmpty());
+
+    key_db_ = SecureCreateSharedObject<GFKeyDatabase>();
+    good = key_db_->Init(key_db_path_);
+
+    if (!good) {
+      LOG_E() << "OpenPGPContext common initialization failed, channel: "
+              << parent_->GetChannel() << ", key db name: " << key_db_name_
+              << ", key db path: " << key_db_path_
+              << ", engine: " << ConvertOpenPGPEngine2String(engine_);
+    }
+
+    return good;
+  }
+
+  auto Args() -> OpenPGPContextInitArgs { return args_; }
 
  private:
   OpenPGPContext *parent_;
-  OpenPGPContextInitArgs args_{};             ///<
-  gpgme_ctx_t ctx_ref_ = nullptr;             ///<
-  gpgme_ctx_t binary_ctx_ref_ = nullptr;      ///<
-  gpgme_ctx_t cms_ctx_ref_ = nullptr;         ///<
-  gpgme_ctx_t cms_binary_ctx_ref_ = nullptr;  ///<
-  bool good_ = true;
-
-  std::mutex ctx_ref_lock_;
-  std::mutex binary_ctx_ref_lock_;
+  OpenPGPContextInitArgs args_{};  ///<
 
   OpenPGPEngine engine_;
-  QString db_name_;
-  QString gpgconf_path_;
-  QString database_path_;
-  QString gpg_agent_path_;
-  QMap<QString, QString> component_dirs_;
-  QSharedPointer<GpgAgentProcess> agent_;
+
+  QString key_db_name_;
+  QString key_db_path_;
   QSharedPointer<GFKeyDatabase> key_db_;
-
-  void init(const OpenPGPContextInitArgs &args) {
-    // try to use rpgp backend if possible
-    if (HasRustSupport() && engine_ == OpenPGPEngine::kRPGP) {
-      assert(!database_path_.isEmpty());
-
-      key_db_ = SecureCreateSharedObject<GFKeyDatabase>();
-      good_ = key_db_->Init(database_path_);
-    } else {
-      // fallback to gnupg backend
-      engine_ = OpenPGPEngine::kGNUPG;
-
-      assert(!gpgconf_path_.isEmpty());
-      assert(!database_path_.isEmpty());
-
-      // init
-      get_gpg_conf_dirs();
-      kill_gpg_agent();
-
-      good_ = launch_gpg_agent() && default_ctx_initialize(args) &&
-              binary_ctx_initialize(args) && cms_default_ctx_initialize(args) &&
-              cms_binary_ctx_initialize(args);
-    }
-
-    if (good_) {
-      Module::UpsertRTValue(
-          "core",
-          QString("gpgme.ctx.list.%1.channel").arg(parent_->GetChannel()),
-          parent_->GetChannel());
-      Module::UpsertRTValue(
-          "core",
-          QString("gpgme.ctx.list.%1.database_name").arg(parent_->GetChannel()),
-          args_.db_name);
-      Module::UpsertRTValue(
-          "core",
-          QString("gpgme.ctx.list.%1.database_path").arg(parent_->GetChannel()),
-          args_.db_path);
-      Module::UpsertRTValue(
-          "core",
-          QString("gpgme.ctx.list.%1.backend_type").arg(parent_->GetChannel()),
-          args_.engine);
-    }
-  }
-
-  static auto component_type_to_q_string(GpgComponentType type) -> QString {
-    switch (type) {
-      case GpgComponentType::kGPG_AGENT:
-        return "agent-socket";
-      case GpgComponentType::kGPG_AGENT_SSH:
-        return "agent-ssh-socket";
-      case GpgComponentType::kDIRMNGR:
-        return "dirmngr-socket";
-      case GpgComponentType::kKEYBOXD:
-        return "keyboxd-socket";
-      default:
-        return "";
-    }
-  }
-
-  static auto set_ctx_key_list_mode(const gpgme_ctx_t &ctx) -> bool {
-    assert(ctx != nullptr);
-
-    const auto gpgme_version = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.version", QString{"0.0.0"});
-    LOG_D() << "got gpgme version version from rt: " << gpgme_version;
-
-    if (gpgme_get_keylist_mode(ctx) == 0) {
-      FLOG_W("ctx is not a valid pointer, reported by gpgme_get_keylist_mode");
-      return false;
-    }
-
-    // set keylist mode
-    return CheckGpgError(gpgme_set_keylist_mode(
-               ctx, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
-                        GPGME_KEYLIST_MODE_SIGS |
-                        GPGME_KEYLIST_MODE_SIG_NOTATIONS)) == GPG_ERR_NO_ERROR;
-  }
-
-  auto set_ctx_openpgp_engine_info(gpgme_ctx_t ctx) -> bool {
-    const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", QString("gpgme.ctx.app_path"), QString{});
-
-    LOG_D() << "ctx set engine info, channel: " << parent_->GetChannel()
-            << ", db name: " << db_name_ << ", db path: " << database_path_
-            << ", app path: " << app_path;
-
-    assert(!db_name_.isEmpty());
-    assert(!database_path_.isEmpty());
-
-    auto app_path_buffer = app_path.toUtf8();
-    auto database_path_buffer = database_path_.toUtf8();
-
-    auto err = gpgme_ctx_set_engine_info(
-        ctx, gpgme_get_protocol(ctx),
-        app_path.isEmpty() ? nullptr : app_path_buffer,
-        database_path_.isEmpty() ? nullptr : database_path_buffer);
-
-    assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
-    return CheckGpgError(err) == GPG_ERR_NO_ERROR;
-
-    return true;
-  }
-
-  auto common_ctx_initialize(const gpgme_ctx_t &ctx,
-                             const OpenPGPContextInitArgs &args) -> bool {
-    assert(ctx != nullptr);
-
-    if (!gpgconf_path_.isEmpty()) {
-      LOG_D() << "set gpgconf path: " << gpgconf_path_;
-      auto err = gpgme_ctx_set_engine_info(ctx, GPGME_PROTOCOL_GPGCONF,
-                                           gpgconf_path_.toUtf8(), nullptr);
-
-      if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-        LOG_W() << "set gpg context engine info error: "
-                << DescribeGpgErrCode(err).second;
-        return false;
-      }
-    }
-
-    // set context offline mode
-    FLOG_D("gpg context: offline mode: %d", args_.offline_mode);
-    FLOG_D("gpg context: auto import missing key: %d",
-           args_.auto_import_missing_key);
-    gpgme_set_offline(ctx, args_.offline_mode ? 1 : 0);
-
-    // set option auto import missing key
-    if (!args_.offline_mode && args.auto_import_missing_key) {
-      if (CheckGpgError(gpgme_set_ctx_flag(ctx, "auto-key-retrieve", "1")) !=
-          GPG_ERR_NO_ERROR) {
-        return false;
-      }
-    }
-
-    if (!set_ctx_key_list_mode(ctx)) {
-      FLOG_D("set ctx key list mode failed");
-      return false;
-    }
-
-    // for unit test
-    if (args_.test_mode) {
-      if (!SetPassphraseCb(ctx, TestPassphraseCb)) {
-        FLOG_W("set passphrase cb failed, test");
-        return false;
-      }
-    }
-
-    if (!set_ctx_openpgp_engine_info(ctx)) {
-      FLOG_W("set gpgme context openpgp engine info failed");
-      return false;
-    }
-
-    return true;
-  }
-
-  auto cms_default_ctx_initialize(const OpenPGPContextInitArgs &args) -> bool {
-    gpgme_ctx_t p_ctx;
-    if (auto err = CheckGpgError(gpgme_new(&p_ctx)); err != GPG_ERR_NO_ERROR) {
-      LOG_W() << "get new gpg context error: "
-              << DescribeGpgErrCode(err).second;
-      return false;
-    }
-
-    assert(p_ctx != nullptr);
-    cms_ctx_ref_ = p_ctx;
-
-    if (auto err =
-            CheckGpgError(gpgme_set_protocol(cms_ctx_ref_, GPGME_PROTOCOL_CMS));
-        err != GPG_ERR_NO_ERROR) {
-      LOG_W() << "get new gpg context error: "
-              << DescribeGpgErrCode(err).second;
-      return false;
-    }
-
-    if (!common_ctx_initialize(cms_ctx_ref_, args)) {
-      FLOG_W("get new ctx failed, binary");
-      return false;
-    }
-
-    gpgme_set_armor(cms_ctx_ref_, 1);
-    return true;
-  }
-
-  auto cms_binary_ctx_initialize(const OpenPGPContextInitArgs &args) -> bool {
-    gpgme_ctx_t p_ctx;
-    if (auto err = CheckGpgError(gpgme_new(&p_ctx)); err != GPG_ERR_NO_ERROR) {
-      LOG_W() << "get new gpg context error: "
-              << DescribeGpgErrCode(err).second;
-      return false;
-    }
-
-    assert(p_ctx != nullptr);
-    cms_binary_ctx_ref_ = p_ctx;
-
-    if (auto err = CheckGpgError(
-            gpgme_set_protocol(cms_binary_ctx_ref_, GPGME_PROTOCOL_CMS));
-        err != GPG_ERR_NO_ERROR) {
-      LOG_W() << "get new gpg context error: "
-              << DescribeGpgErrCode(err).second;
-      return false;
-    }
-
-    if (!common_ctx_initialize(cms_binary_ctx_ref_, args)) {
-      FLOG_W("get new ctx failed, binary");
-      return false;
-    }
-
-    gpgme_set_armor(cms_binary_ctx_ref_, 0);
-    return true;
-  }
-
-  auto binary_ctx_initialize(const OpenPGPContextInitArgs &args) -> bool {
-    gpgme_ctx_t p_ctx;
-    if (auto err = CheckGpgError(gpgme_new(&p_ctx)); err != GPG_ERR_NO_ERROR) {
-      LOG_W() << "get new gpg context error: "
-              << DescribeGpgErrCode(err).second;
-      return false;
-    }
-    assert(p_ctx != nullptr);
-    binary_ctx_ref_ = p_ctx;
-
-    if (!common_ctx_initialize(binary_ctx_ref_, args)) {
-      FLOG_W("get new ctx failed, binary");
-      return false;
-    }
-
-    gpgme_set_armor(binary_ctx_ref_, 0);
-    return true;
-  }
-
-  auto default_ctx_initialize(const OpenPGPContextInitArgs &args) -> bool {
-    gpgme_ctx_t p_ctx;
-    if (CheckGpgError(gpgme_new(&p_ctx)) != GPG_ERR_NO_ERROR) {
-      FLOG_W("get new ctx failed, default");
-      return false;
-    }
-    assert(p_ctx != nullptr);
-    ctx_ref_ = p_ctx;
-
-    if (!common_ctx_initialize(ctx_ref_, args)) {
-      return false;
-    }
-
-    gpgme_set_armor(ctx_ref_, 1);
-    return true;
-  }
-
-  void get_gpg_conf_dirs() {
-    auto gpgconf_path = QFileInfo(this->gpgconf_path_).absoluteFilePath();
-    LOG_D() << "context: " << parent_->GetChannel()
-            << "gpgconf path: " << gpgconf_path;
-
-    auto args = QStringList{};
-
-    if (!HomeDirectory().isEmpty()) {
-      args.append({"--homedir", QDir::toNativeSeparators(HomeDirectory())});
-    }
-
-    args.append("--list-dirs");
-
-    QProcess process;
-    process.setProgram(gpgconf_path);
-    process.setArguments(args);
-    process.start();
-
-    if (!process.waitForFinished()) {
-      LOG_W() << "failed to execute gpgconf --list-dirs";
-      return;
-    }
-
-    const QString output = QString::fromUtf8(process.readAllStandardOutput());
-    const QStringList lines = output.split('\n', Qt::SkipEmptyParts);
-
-    for (const QString &line : lines) {
-      auto info_split_list = line.split(":");
-      if (info_split_list.size() != 2) continue;
-
-      auto configuration_name = info_split_list[0].trimmed();
-      auto configuration_value = info_split_list[1].trimmed();
-
-#ifdef Q_OS_WINDOWS
-      // replace some special substrings on windows
-      // platform
-      configuration_value.replace("%3a", ":");
-#endif
-
-      LOG_D() << "channel: " << parent_->GetChannel()
-              << "component: " << configuration_name
-              << "dir:" << configuration_value;
-
-      component_dirs_[configuration_name] = configuration_value;
-    }
-  }
-
-  auto kill_gpg_agent() -> bool {
-    auto gpgconf_path = QFileInfo(this->gpgconf_path_).absoluteFilePath();
-
-    if (gpgconf_path.trimmed().isEmpty()) {
-      LOG_E() << "gpgconf path is empty!";
-      return false;
-    }
-
-    LOG_D() << "get gpgconf path: " << gpgconf_path;
-
-    auto args = QStringList{};
-
-    if (!HomeDirectory().isEmpty()) {
-      args.append({"--homedir", QDir::toNativeSeparators(HomeDirectory())});
-    }
-
-    args.append({"--kill", "gpg-agent"});
-
-    LOG_D() << "gpgconf kill args: " << args
-            << "channel:" << parent_->GetChannel();
-
-    QProcess process;
-    process.setProgram(gpgconf_path);
-    process.setArguments(args);
-    process.setProcessChannelMode(QProcess::MergedChannels);
-    process.start();
-    if (!process.waitForFinished(3000)) {
-      LOG_W() << "timeout executing gpgconf: " << gpgconf_path
-              << "ags: " << args;
-      return false;
-    }
-
-    LOG_D() << "try to kill gpg-agent before launch: " << process.exitCode()
-            << "output: " << process.readAll();
-    return process.exitCode() == 0;
-  }
-
-  auto launch_gpg_agent() -> bool {
-    if (agent_ == nullptr) return false;
-    return agent_->Start();
-  }
 };
 
 OpenPGPContext::OpenPGPContext(int channel)
     : SingletonFunctionObject<OpenPGPContext>(channel),
       p_(SecureCreateUniqueObject<Impl>(this, OpenPGPContextInitArgs{})) {}
 
-OpenPGPContext::OpenPGPContext(OpenPGPContextInitArgs args, int channel)
+OpenPGPContext::OpenPGPContext(const OpenPGPContextInitArgs &args, int channel)
     : SingletonFunctionObject<OpenPGPContext>(channel),
       p_(SecureCreateUniqueObject<Impl>(this, args)) {}
 
-auto OpenPGPContext::Good() const -> bool { return p_->Good(); }
-
-auto OpenPGPContext::BinaryContext() -> gpgme_ctx_t {
-  return p_->BinaryContext();
-}
-
-auto OpenPGPContext::DefaultContext() -> gpgme_ctx_t {
-  return p_->DefaultContext();
-}
+auto OpenPGPContext::Good() const -> bool { return good_; }
 
 OpenPGPContext::~OpenPGPContext() = default;
 
-auto OpenPGPContext::HomeDirectory() const -> QString {
-  return p_->HomeDirectory();
-}
-
-auto OpenPGPContext::ComponentDirectory(GpgComponentType type) const
-    -> QString {
-  return p_->ComponentDirectories(type);
-}
-
 auto OpenPGPContext::KeyDBName() const -> QString { return p_->KeyDBName(); }
 
-auto OpenPGPContext::RestartGpgAgent() -> bool { return p_->RestartGpgAgent(); }
+auto OpenPGPContext::KeyDBPath() const -> QString { return p_->KeyDBPath(); }
 
 auto OpenPGPContext::Engine() const -> OpenPGPEngine { return p_->Engine(); }
 
@@ -677,4 +140,43 @@ auto OpenPGPContext::EngineVersion() const -> QString {
 auto OpenPGPContext::KeyDatabase() -> QSharedPointer<GFKeyDatabase> {
   return p_->KeyDatabase();
 }
+
+auto OpenPGPContext::init(const OpenPGPContextInitArgs &) -> bool {
+  LOG_D() << "OpenPGPContext init with engine: "
+          << ConvertOpenPGPEngine2String(Engine())
+          << ", key db name: " << KeyDBName()
+          << ", key db path: " << KeyDBPath() << ", channel: " << GetChannel();
+  return true;
+}
+
+auto OpenPGPContext::Initialize() -> bool {
+  auto args = p_->Args();
+
+  // First do the common initialization, which is shared by different engine
+  // implementation, then call the engine specific initialization after the
+  // common initialization
+  good_ = p_->CommonInitialize() && init(args);
+
+  if (good_) {
+    Module::UpsertRTValue(
+        "core", QString("gpgme.ctx.list.%1.channel").arg(GetChannel()),
+        GetChannel());
+    Module::UpsertRTValue(
+        "core", QString("gpgme.ctx.list.%1.database_name").arg(GetChannel()),
+        args.db_name);
+    Module::UpsertRTValue(
+        "core", QString("gpgme.ctx.list.%1.database_path").arg(GetChannel()),
+        args.db_path);
+    Module::UpsertRTValue(
+        "core", QString("gpgme.ctx.list.%1.backend_type").arg(GetChannel()),
+        args.engine);
+  } else {
+    LOG_E() << "OpenPGPContext initialization failed, channel: " << GetChannel()
+            << ", key db name: " << KeyDatabase()
+            << ", key db path: " << KeyDBPath()
+            << ", engine: " << ConvertOpenPGPEngine2String(Engine());
+  }
+  return Good();
+}
+
 }  // namespace GpgFrontend

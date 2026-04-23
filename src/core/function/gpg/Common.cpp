@@ -26,56 +26,45 @@
  *
  */
 
-//
-// Created by eric on 07.01.2023.
-//
+#include "Common.h"
 
-#include "GpgAdvancedOperator.h"
-
+#include "core/function/gpg/GpgComponentManager.h"
 #include "core/function/gpg/GpgContext.h"
-#include "core/model/GFEngineSupportIf.h"
+#include "core/module/ModuleManager.h"
 
 namespace GpgFrontend {
 
-auto GpgAdvancedOperator::ClearGpgPasswordCache() -> bool {
-  if (!GPG_CTX_MIN_SUPPORT()) return false;
+auto GetEngineVersionGnuPGImpl(OpenPGPContext& ctx) -> QString {
+  auto ver =
+      GpgComponentManager::GetInstance(ctx.GetChannel()).GetGpgAgentVersion();
 
-  return mgr_.ReloadGpgAgent();
+  if (!ver.isEmpty()) {
+    return ver;
+  }
+
+  auto gnupg_version = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.gnupg_version", QString{});
+
+  if (!gnupg_version.isEmpty()) {
+    return gnupg_version;
+  }
+
+  return "0.0.0";
 }
 
-auto GpgAdvancedOperator::ReloadAllGpgComponents() -> bool {
-  if (!GPG_CTX_MIN_SUPPORT()) return false;
+auto BuildOpenPGPContextGnuPGImpl(int channel,
+                                  const OpenPGPContextInitArgs& args) -> bool {
+  auto& ctx = GpgFrontend::OpenPGPContext::CreateInstance(
+      channel, [=]() -> ChannelObjectPtr {
+        return BuildContext<GpgContext>(channel, args);
+      });
 
-  return mgr_.ReloadGpgAgent();
+  if (!ctx.Good()) {
+    LOG_E() << "Failed to create OpenPGPContext for GnuPG engine, channel:"
+            << channel;
+  }
+
+  return ctx.Good();
 }
 
-auto GpgAdvancedOperator::KillAllGpgComponents() -> bool {
-  if (!GPG_CTX_MIN_SUPPORT()) return false;
-
-  mgr_.Reset();
-  return GpgCtx(ctx_).RestartGpgAgent();
-}
-
-auto GpgAdvancedOperator::ResetConfigures() -> bool {
-  if (!GPG_CTX_MIN_SUPPORT()) return false;
-
-  return mgr_.ReloadGpgAgent();
-}
-
-auto GpgAdvancedOperator::LaunchAllGpgComponents() -> bool {
-  if (!GPG_CTX_MIN_SUPPORT()) return false;
-
-  mgr_.Reset();
-  return GpgCtx(ctx_).RestartGpgAgent();
-}
-
-auto GpgAdvancedOperator::RestartGpgComponents() -> bool {
-  if (!GPG_CTX_MIN_SUPPORT()) return false;
-
-  mgr_.Reset();
-  return GpgCtx(ctx_).RestartGpgAgent();
-}
-
-GpgAdvancedOperator::GpgAdvancedOperator(int channel)
-    : SingletonFunctionObject<GpgAdvancedOperator>(channel) {}
 }  // namespace GpgFrontend

@@ -258,7 +258,7 @@ auto PrepareContext(const OpenPGPContext &ctx_, const QString &path,
   }
 
   LOG_D() << "got path:" << path << "context channel:" << ctx_.GetChannel()
-          << "home path: " << ctx_.HomeDirectory();
+          << "home path: " << ctx_.KeyDBPath();
 
   GpgCommandExecutor::ExecuteContext ctx = {
       context.cmd.isEmpty() ? path : context.cmd,
@@ -268,8 +268,8 @@ auto PrepareContext(const OpenPGPContext &ctx_, const QString &path,
       context.int_func,
   };
 
-  if (!ctx.arguments.contains("--homedir") && !ctx_.HomeDirectory().isEmpty()) {
-    ctx.arguments.prepend(QDir::toNativeSeparators((ctx_.HomeDirectory())));
+  if (!ctx.arguments.contains("--homedir") && !ctx_.KeyDBPath().isEmpty()) {
+    ctx.arguments.prepend(QDir::toNativeSeparators((ctx_.KeyDBPath())));
     ctx.arguments.prepend("--homedir");
   }
 

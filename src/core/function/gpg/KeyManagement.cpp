@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/MessageCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGroupRepository.h"
@@ -43,6 +44,7 @@ namespace GpgFrontend {
 
 auto DeleteKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
     -> bool {
+  auto& g_ctx = GpgCtx(ctx);
   for (const auto& key : keys) {
     if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY && key->IsGood()) {
       if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
@@ -52,7 +54,7 @@ auto DeleteKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
 
       auto k = qSharedPointerDynamicCast<GpgKey>(key);
       auto err = CheckGpgError(gpgme_op_delete_ext(
-          ctx.DefaultContext(), static_cast<gpgme_key_t>(*k),
+          g_ctx.DefaultContext(), static_cast<gpgme_key_t>(*k),
           GPGME_DELETE_ALLOW_SECRET | GPGME_DELETE_FORCE));
       if (err != GPG_ERR_NO_ERROR) {
         LOG_W() << "Failed to delete key: " << key->ID()
@@ -67,6 +69,7 @@ auto DeleteKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
 auto SetExpireGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                         const SubkeyId& skey_fpr,
                         const std::optional<QDateTime>& expires) -> GpgError {
+  auto& g_ctx = GpgCtx(ctx);
   unsigned long expires_time = 0;
 
   if (expires.has_value()) {
@@ -75,14 +78,14 @@ auto SetExpireGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   GpgError err;
   if (key->Fingerprint() == skey_fpr || skey_fpr.isEmpty()) {
-    err =
-        gpgme_op_setexpire(ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
-                           expires_time, nullptr, 0);
+    err = gpgme_op_setexpire(g_ctx.DefaultContext(),
+                             static_cast<gpgme_key_t>(*key), expires_time,
+                             nullptr, 0);
     assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
   } else {
-    err =
-        gpgme_op_setexpire(ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
-                           expires_time, skey_fpr.toUtf8(), 0);
+    err = gpgme_op_setexpire(g_ctx.DefaultContext(),
+                             static_cast<gpgme_key_t>(*key), expires_time,
+                             skey_fpr.toUtf8(), 0);
     assert(gpg_err_code(err) == GPG_ERR_NO_ERROR);
   }
 
@@ -101,7 +104,7 @@ auto GenerateRevCertGnuPGImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
   // get all components
   GpgCommandExecutor::ExecuteSync(
       {app_path,
-       QStringList{"--homedir", ctx_.HomeDirectory(), "--command-fd", "0",
+       QStringList{"--homedir", ctx_.KeyDBPath(), "--command-fd", "0",
                    "--status-fd", "1", "--no-tty", "-o", output_path,
                    "--gen-revoke", key->Fingerprint()},
        [=](int exit_code, const QString& p_out, const QString& p_err) {
@@ -149,19 +152,21 @@ auto GenerateRevCertGnuPGImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
 auto ModifyKeyPassphraseGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                   const DataObjectPtr& data_object)
     -> GpgError {
-  return gpgme_op_passwd(ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
+  auto& g_ctx = GpgCtx(ctx);
+  return gpgme_op_passwd(g_ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
                          0);
 }
 
 auto AddADSKGnuPGIImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const GpgSubKey& adsk, const DataObjectPtr& data_object)
     -> GpgError {
+  auto& g_ctx = GpgCtx(ctx);
   auto algo = adsk.Fingerprint();
   unsigned int flags = GPGME_CREATE_ADSK;
 
   LOG_D() << "add adsk args: " << key->ID() << algo;
 
-  auto err = gpgme_op_createsubkey(ctx.DefaultContext(),
+  auto err = gpgme_op_createsubkey(g_ctx.DefaultContext(),
                                    static_cast<gpgme_key_t>(*key),
                                    algo.toLatin1(), 0, 0, flags);
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
@@ -170,7 +175,7 @@ auto AddADSKGnuPGIImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   }
 
   data_object->Swap(
-      {GpgGenerateKeyResult{gpgme_op_genkey_result(ctx.DefaultContext())}});
+      {GpgGenerateKeyResult{gpgme_op_genkey_result(g_ctx.DefaultContext())}});
   return CheckGpgError(err);
 }
 
@@ -465,6 +470,7 @@ auto SetOwnerTrustLevelGnuPGImpl(OpenPGPContext& ctx,
 
 auto RevKeySignatureGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                               const SignIdArgsList& signature_id) -> bool {
+  auto& g_ctx = GpgCtx(ctx);
   auto& key_getter = GpgKeyRepository::GetInstance(ctx.GetChannel());
 
   for (const auto& sign_id : signature_id) {
@@ -472,7 +478,7 @@ auto RevKeySignatureGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     assert(signing_key.IsGood());
 
     auto err = CheckGpgError(gpgme_op_revsig(
-        ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
+        g_ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
         static_cast<gpgme_key_t>(signing_key), sign_id.second.toUtf8(), 0));
     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
   }
@@ -482,6 +488,7 @@ auto RevKeySignatureGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 auto SignKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                       const GpgAbstractKeyPtrList& keys, const QString& uid,
                       const std::optional<QDateTime>& expires) -> bool {
+  auto& g_ctx = GpgCtx(ctx);
   SetSignersGnuPGImpl(ctx, keys, true);
 
   unsigned int flags = 0;
@@ -494,7 +501,7 @@ auto SignKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   }
 
   auto err = CheckGpgError(
-      gpgme_op_keysign(ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
+      gpgme_op_keysign(g_ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
                        uid.toUtf8(), expires_time_t, flags));
 
   return CheckGpgError(err) == GPG_ERR_NO_ERROR;

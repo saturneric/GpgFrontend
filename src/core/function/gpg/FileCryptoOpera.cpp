@@ -28,6 +28,7 @@
 #include "FileCryptoOpera.h"
 
 #include "core/function/ArchiveFileOperator.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/function/gpg/MessageCryptoOperation.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgDecryptResult.h"
@@ -69,8 +70,9 @@ auto EncryptFileGpgDataImpl(OpenPGPContext& ctx_,
                             const GpgAbstractKeyPtrList& keys, GpgData& data_in,
                             bool ascii, GpgData& data_out,
                             const DataObjectPtr& data_object) -> GpgError {
+  auto& g_ctx = GpgCtx(ctx_);
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
-  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+  auto* ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
 
   auto err = CheckGpgError(
       gpgme_op_encrypt(ctx, keys.isEmpty() ? nullptr : recipients.data(),
@@ -145,12 +147,13 @@ auto DecryptVerifyFileGpgDataImpl(OpenPGPContext& ctx_, GpgData& data_in,
                                   GpgData& data_out,
                                   const DataObjectPtr& data_object)
     -> GpgError {
+  auto& g_ctx = GpgCtx(ctx_);
   auto err = CheckGpgError(
-      gpgme_op_decrypt_verify(ctx_.DefaultContext(), data_in, data_out));
+      gpgme_op_decrypt_verify(g_ctx.DefaultContext(), data_in, data_out));
 
   data_object->Swap({
-      GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext())),
-      GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+      GpgDecryptResult(gpgme_op_decrypt_result(g_ctx.DefaultContext())),
+      GpgVerifyResult(gpgme_op_verify_result(g_ctx.DefaultContext())),
   });
   return err;
 }
@@ -187,10 +190,11 @@ namespace {
 auto DecryptFileGpgDataImpl(OpenPGPContext& ctx_, GpgData& data_in,
                             GpgData& data_out, const DataObjectPtr& data_object)
     -> GpgError {
-  auto err =
-      CheckGpgError(gpgme_op_decrypt(ctx_.DefaultContext(), data_in, data_out));
+  auto& g_ctx = GpgCtx(ctx_);
+  auto err = CheckGpgError(
+      gpgme_op_decrypt(g_ctx.DefaultContext(), data_in, data_out));
   data_object->Swap(
-      {GpgDecryptResult(gpgme_op_decrypt_result(ctx_.DefaultContext()))});
+      {GpgDecryptResult(gpgme_op_decrypt_result(g_ctx.DefaultContext()))});
 
   return err;
 }
@@ -230,10 +234,12 @@ auto SignFileGpgDataGnuPGImpl(OpenPGPContext& ctx_,
                               const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
 
+  GpgContext& g_ctx = GpgCtx(ctx_);
+
   // Set Singers of this opera
   SetSignersGnuPGImpl(ctx_, keys, ascii);
 
-  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+  auto* ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
   err = CheckGpgError(
       gpgme_op_sign(ctx, data_in, data_out, GPGME_SIG_MODE_DETACH));
 
@@ -259,19 +265,20 @@ auto VerifyFileGnuPGImpl(OpenPGPContext& ctx_, const QString& data_path,
                          const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
 
+  auto& g_ctx = GpgCtx(ctx_);
   GpgData data_in(data_path, true);
   GpgData data_out;
   if (!sign_path.isEmpty()) {
     GpgData sig_data(sign_path, true);
     err = CheckGpgError(
-        gpgme_op_verify(ctx_.DefaultContext(), sig_data, data_in, nullptr));
+        gpgme_op_verify(g_ctx.DefaultContext(), sig_data, data_in, nullptr));
   } else {
     err = CheckGpgError(
-        gpgme_op_verify(ctx_.DefaultContext(), data_in, nullptr, data_out));
+        gpgme_op_verify(g_ctx.DefaultContext(), data_in, nullptr, data_out));
   }
 
   data_object->Swap({
-      GpgVerifyResult(gpgme_op_verify_result(ctx_.DefaultContext())),
+      GpgVerifyResult(gpgme_op_verify_result(g_ctx.DefaultContext())),
   });
 
   return err;
@@ -283,11 +290,12 @@ auto EncryptSignFileGpgDataGnuPGImpl(
     const GpgAbstractKeyPtrList& signer_keys, GpgData& data_in, bool ascii,
     GpgData& data_out, const DataObjectPtr& data_object) -> GpgError {
   GpgError err;
+  auto& g_ctx = GpgCtx(ctx_);
   auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
 
   SetSignersGnuPGImpl(ctx_, signer_keys, ascii);
 
-  auto* ctx = ascii ? ctx_.DefaultContext() : ctx_.BinaryContext();
+  auto* ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
   err = CheckGpgError(gpgme_op_encrypt_sign(
       ctx, recipients.data(), GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
 

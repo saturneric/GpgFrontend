@@ -52,13 +52,6 @@ struct OpenPGPContextInitArgs {
   bool auto_import_missing_key = false;  ///<
 };
 
-enum class GpgComponentType : std::uint8_t {
-  kGPG_AGENT,
-  kDIRMNGR,
-  kKEYBOXD,
-  kGPG_AGENT_SSH
-};
-
 /**
  * @brief
  *
@@ -66,11 +59,34 @@ enum class GpgComponentType : std::uint8_t {
 class GF_CORE_EXPORT OpenPGPContext
     : public SingletonFunctionObject<OpenPGPContext> {
  public:
+  /**
+   * @brief Construct a new Open P G P Context object
+   *
+   * @param channel
+   */
   explicit OpenPGPContext(int channel);
 
-  explicit OpenPGPContext(OpenPGPContextInitArgs args, int channel);
+  /**
+   * @brief Construct a new Open P G P Context object
+   *
+   * @param args
+   * @param channel
+   */
+  explicit OpenPGPContext(const OpenPGPContextInitArgs &args, int channel);
 
+  /**
+   * @brief Destroy the Open P G P Context object
+   *
+   */
   ~OpenPGPContext();
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto Initialize() -> bool;
 
   /**
    * @brief
@@ -97,20 +113,6 @@ class GF_CORE_EXPORT OpenPGPContext
   /**
    * @brief
    *
-   * @return gpgme_ctx_t
-   */
-  auto BinaryContext() -> gpgme_ctx_t;
-
-  /**
-   * @brief
-   *
-   * @return gpgme_ctx_t
-   */
-  auto DefaultContext() -> gpgme_ctx_t;
-
-  /**
-   * @brief
-   *
    * @return QString
    */
   [[nodiscard]] auto KeyDBName() const -> QString;
@@ -120,22 +122,7 @@ class GF_CORE_EXPORT OpenPGPContext
    *
    * @return QString
    */
-  [[nodiscard]] auto HomeDirectory() const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto ComponentDirectory(GpgComponentType) const -> QString;
-
-  /**
-   * @brief
-   *
-   * @return true
-   * @return false
-   */
-  auto RestartGpgAgent() -> bool;
+  [[nodiscard]] auto KeyDBPath() const -> QString;
 
   /**
    * @brief
@@ -144,8 +131,29 @@ class GF_CORE_EXPORT OpenPGPContext
    */
   auto KeyDatabase() -> QSharedPointer<GFKeyDatabase>;
 
+ protected:
+  /**
+   * @brief
+   *
+   * @param args
+   * @return true
+   * @return false
+   */
+  virtual auto init(const OpenPGPContextInitArgs &args) -> bool;
+
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;
+  bool good_ = false;  ///<
 };
+
+template <typename T>
+auto BuildContext(int channel, OpenPGPContextInitArgs args)
+    -> ChannelObjectPtr {
+  auto o = SecureCreateUniqueObject<T>(args, channel);
+  o->Initialize();
+
+  auto c_o = ConvertToChannelObjectPtr<>(std::move(o));
+  return c_o;
+}
 }  // namespace GpgFrontend

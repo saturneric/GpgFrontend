@@ -35,7 +35,6 @@
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgComponentManager.h"
-#include "core/model/DataObject.h"
 
 namespace GpgFrontend {
 

@@ -583,4 +583,19 @@ auto ConvertOpenPGPEngine2String(OpenPGPEngine type) -> QString {
       return "Unknown";
   }
 }
+
+auto ConvertComponentType2String(GpgComponentType type) -> QString {
+  switch (type) {
+    case GpgComponentType::kGPG_AGENT:
+      return "agent-socket";
+    case GpgComponentType::kGPG_AGENT_SSH:
+      return "agent-ssh-socket";
+    case GpgComponentType::kDIRMNGR:
+      return "dirmngr-socket";
+    case GpgComponentType::kKEYBOXD:
+      return "keyboxd-socket";
+    default:
+      return "";
+  }
+}
 }  // namespace GpgFrontend

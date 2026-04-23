@@ -28,6 +28,7 @@
 
 #include "KeyGenerate.h"
 
+#include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgGenerateKeyResult.h"
@@ -44,6 +45,7 @@ auto GenerateKeyGnuPGImpl(OpenPGPContext& ctx,
     return GPG_ERR_CANCELED;
   }
 
+  auto& g_ctx = GpgCtx(ctx);
   const auto userid = params->GetUserid();
   const auto algo = params->GetAlgo().Id();
 
@@ -65,12 +67,12 @@ auto GenerateKeyGnuPGImpl(OpenPGPContext& ctx,
           << params->IsAllowSign() << params->IsAllowAuth()
           << !params->IsSubKey();
 
-  err = gpgme_op_createkey(ctx.DefaultContext(), userid.toUtf8(), algo.toUtf8(),
-                           0, expires, nullptr, flags);
+  err = gpgme_op_createkey(g_ctx.DefaultContext(), userid.toUtf8(),
+                           algo.toUtf8(), 0, expires, nullptr, flags);
 
   if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
     data_object->Swap(
-        {GpgGenerateKeyResult{gpgme_op_genkey_result(ctx.DefaultContext())}});
+        {GpgGenerateKeyResult{gpgme_op_genkey_result(g_ctx.DefaultContext())}});
   } else {
     data_object->Swap({GpgGenerateKeyResult{}});
   }
@@ -86,6 +88,7 @@ auto GenerateSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     return GPG_ERR_CANCELED;
   }
 
+  auto& g_ctx = GpgCtx(ctx);
   auto algo = params->GetAlgo().Id();
   LOG_D() << "primary subkey algo: " << algo
           << ", sub algo: " << params->SubAlgo().Id();
@@ -110,7 +113,7 @@ auto GenerateSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   LOG_D() << "subkey generation args: " << key->ID() << algo << expires
           << flags;
 
-  auto err = gpgme_op_createsubkey(ctx.DefaultContext(),
+  auto err = gpgme_op_createsubkey(g_ctx.DefaultContext(),
                                    static_cast<gpgme_key_t>(*key),
                                    algo.toLatin1(), 0, expires, flags);
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
@@ -119,7 +122,7 @@ auto GenerateSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   }
 
   data_object->Swap(
-      {GpgGenerateKeyResult{gpgme_op_genkey_result(ctx.DefaultContext())}});
+      {GpgGenerateKeyResult{gpgme_op_genkey_result(g_ctx.DefaultContext())}});
   return CheckGpgError(err);
 }
 

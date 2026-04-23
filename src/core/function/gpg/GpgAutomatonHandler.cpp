@@ -28,6 +28,7 @@
 
 #include "GpgAutomatonHandler.h"
 
+#include "core/function/gpg/GpgContext.h"
 #include "core/model/GFEngineSupportIf.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
@@ -123,6 +124,7 @@ auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
                     AutomatonNextStateHandler next_state_handler,
                     AutomatonActionHandler action_handler, int flags)
     -> std::tuple<GpgError, bool> {
+  auto& g_ctx = GpgCtx(ctx_);
   gpgme_key_t p_key = key == nullptr ? nullptr : static_cast<gpgme_key_t>(*key);
 
   AutomatonHandelStruct handle(card_edit, fpr);
@@ -131,7 +133,7 @@ auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
   GpgData data_out;
 
   auto err =
-      gpgme_op_interact(ctx_.DefaultContext(), p_key, flags, InteratorCbFunc,
+      gpgme_op_interact(g_ctx.DefaultContext(), p_key, flags, InteratorCbFunc,
                         static_cast<void*>(&handle), data_out);
   return {err, handle.Success()};
 }

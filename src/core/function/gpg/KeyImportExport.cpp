@@ -28,6 +28,7 @@
 
 #include "KeyImportExport.h"
 
+#include "core/function/gpg/GpgContext.h"
 #include "core/function/rpgp/KeyImportExport.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgImportInformation.h"
@@ -40,12 +41,13 @@ auto ImportKeyGnuPGImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation> {
   if (in_buffer.Empty()) return {};
 
+  auto& g_ctx = GpgCtx(ctx);
   GpgData data_in(in_buffer);
-  auto err = CheckGpgError(gpgme_op_import(ctx.BinaryContext(), data_in));
+  auto err = CheckGpgError(gpgme_op_import(g_ctx.BinaryContext(), data_in));
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {};
 
   gpgme_import_result_t result;
-  result = gpgme_op_import_result(ctx.BinaryContext());
+  result = gpgme_op_import_result(g_ctx.BinaryContext());
   gpgme_import_status_t status = result->imports;
 
   auto import_info = SecureCreateSharedObject<GpgImportInformation>(result);
@@ -74,8 +76,9 @@ auto ExportKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
   // Last entry data_in array has to be nullptr
   keys_array.push_back(nullptr);
 
+  auto& g_ctx = GpgCtx(ctx);
   GpgData data_out;
-  auto* r_ctx = ascii ? ctx.DefaultContext() : ctx.BinaryContext();
+  auto* r_ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
   auto err = gpgme_op_export_keys(r_ctx, keys_array.data(), mode, data_out);
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
     return {err, {}};
@@ -127,10 +130,11 @@ auto ExportSubkeyGnuPGImpl(OpenPGPContext& ctx, const QString& fpr, bool ascii)
   auto pattern = fpr;
   if (!fpr.endsWith("!")) pattern += "!";
 
+  auto& g_ctx = GpgCtx(ctx);
   GpgData data_out;
-  auto* g_ctx = ascii ? ctx.DefaultContext() : ctx.BinaryContext();
+  auto* r_ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
   auto err =
-      gpgme_op_export(g_ctx, pattern.toLatin1().constData(), mode, data_out);
+      gpgme_op_export(r_ctx, pattern.toLatin1().constData(), mode, data_out);
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) return {err, {}};
 
   return {err, data_out.Read2GFBuffer()};

@@ -72,14 +72,39 @@ auto DispatchByEngine(OpenPGPContext& ctx, const Table& table, Args&&... args)
   return {};
 }
 
+template <typename Table, typename... Args>
+auto DispatchByEngine(OpenPGPEngine engine, const Table& table, Args&&... args)
+    -> decltype(std::declval<typename Table::value_type::second_type>()(
+        std::forward<Args>(args)...)) {
+  for (const auto& [supported_engine, fn] : table) {
+    if (supported_engine == engine) {
+      return fn(std::forward<Args>(args)...);
+    }
+  }
+
+  LOG_E() << "no implementation found for engine: " << static_cast<int>(engine);
+  assert(false && "no implementation found for the current engine");
+  return {};
+}
+
 template <typename Derived, typename Fn>
 struct DispatchOpTraitsBase;
+
+template <typename Derived, typename Fn>
+struct DispatchOpTraitsRaw;
 
 template <typename Derived, typename R, typename... Args>
 struct DispatchOpTraitsBase<Derived, R (*)(OpenPGPContext&, Args...)>
     : OpTraitsBase<Derived> {
   static auto Call(OpenPGPContext& ctx, Args... args) -> R {
     return DispatchByEngine(ctx, Derived::ImplTable(), args...);
+  }
+};
+
+template <typename Derived, typename R, typename... Args>
+struct DispatchOpTraitsRaw<Derived, R (*)(Args...)> : OpTraitsBase<Derived> {
+  static auto Call(OpenPGPEngine engine, Args... args) -> R {
+    return DispatchByEngine(engine, Derived::ImplTable(), args...);
   }
 };
 
@@ -110,4 +135,16 @@ struct DispatchOpTraitsBase<Derived, R (*)(OpenPGPContext&, Args...)>
     static auto Versions() -> const auto& { return VERS_FN(); }             \
   };
 
+#define GF_DEF_OP_TRAITS_RAW(TAG, OPNAME, FN_REF, ...)                      \
+  struct TAG {};                                                            \
+  template <>                                                               \
+  struct OpTraits<TAG>                                                      \
+      : DispatchOpTraitsRaw<OpTraits<TAG>, decltype(FN_REF)> {              \
+    static constexpr const char* kOpName = OPNAME;                          \
+    using ImplFn = decltype(FN_REF);                                        \
+    static auto ImplTable() -> const auto& {                                \
+      static const QContainer<EngineOpImpl<ImplFn>> kTable = {__VA_ARGS__}; \
+      return kTable;                                                        \
+    }                                                                       \
+  };
 }  // namespace GpgFrontend

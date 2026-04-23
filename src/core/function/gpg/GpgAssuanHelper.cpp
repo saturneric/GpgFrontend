@@ -28,7 +28,7 @@
 
 #include "GpgAssuanHelper.h"
 
-#include "core/model/GFEngineSupportIf.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 
@@ -44,7 +44,7 @@ GpgAssuanHelper::~GpgAssuanHelper() = default;
 auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> GpgError {
   if (ctx_map_.contains(type)) return GPG_ERR_NO_ERROR;
 
-  auto socket_path = ctx_.ComponentDirectory(type);
+  auto socket_path = GpgCtx(ctx_).ComponentDirectory(type);
   if (socket_path.isEmpty()) {
     LOG_W() << "socket path of component: " << component_type_to_q_string(type)
             << " is empty";

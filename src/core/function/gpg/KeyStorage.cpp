@@ -28,6 +28,7 @@
 
 #include "KeyStorage.h"
 
+#include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/GpgUtils.h"
 
@@ -35,14 +36,17 @@ namespace GpgFrontend {
 
 auto GetKeyPtrGnuPGImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
     -> GpgKeyPtr {
+  auto& g_ctx = GpgCtx(ctx);
   gpgme_key_t p_key = nullptr;
-  gpgme_get_key(ctx.DefaultContext(), key_id.toUtf8(), &p_key, secret ? 1 : 0);
+  gpgme_get_key(g_ctx.DefaultContext(), key_id.toUtf8(), &p_key,
+                secret ? 1 : 0);
   return SecureCreateSharedObject<GpgKey>(p_key);
 }
 
 auto FlushKeyDatabaseGnuPGImpl(OpenPGPContext& ctx) -> bool {
   // init
-  GpgError err = gpgme_op_keylist_start(ctx.DefaultContext(), nullptr, 0);
+  auto& g_ctx = GpgCtx(ctx);
+  GpgError err = gpgme_op_keylist_start(g_ctx.DefaultContext(), nullptr, 0);
 
   // for debug
   assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
@@ -51,7 +55,7 @@ auto FlushKeyDatabaseGnuPGImpl(OpenPGPContext& ctx) -> bool {
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
 
   gpgme_key_t key;
-  while ((err = gpgme_op_keylist_next(ctx.DefaultContext(), &key)) ==
+  while ((err = gpgme_op_keylist_next(g_ctx.DefaultContext(), &key)) ==
          GPG_ERR_NO_ERROR) {
     SecureCreateSharedObject<GpgKey>(key);
   }
@@ -59,7 +63,7 @@ auto FlushKeyDatabaseGnuPGImpl(OpenPGPContext& ctx) -> bool {
   // for debug
   assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_EOF);
 
-  err = gpgme_op_keylist_end(ctx.DefaultContext());
+  err = gpgme_op_keylist_end(g_ctx.DefaultContext());
   assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
 
   return true;
@@ -70,7 +74,8 @@ auto FlushKeyCacheGnuPGImpl(
     const QSharedPointer<QMap<QString, GpgAbstractKeyPtr>>& keys_search_cache)
     -> bool {
   // init
-  GpgError err = gpgme_op_keylist_start(ctx.DefaultContext(), nullptr, 0);
+  auto& g_ctx = GpgCtx(ctx);
+  GpgError err = gpgme_op_keylist_start(g_ctx.DefaultContext(), nullptr, 0);
 
   // for debug
   assert(CheckGpgError(err) == GPG_ERR_NO_ERROR);
@@ -79,7 +84,7 @@ auto FlushKeyCacheGnuPGImpl(
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return false;
 
   gpgme_key_t key;
-  while ((err = gpgme_op_keylist_next(ctx.DefaultContext(), &key)) ==
+  while ((err = gpgme_op_keylist_next(g_ctx.DefaultContext(), &key)) ==
          GPG_ERR_NO_ERROR) {
     auto g_key = SecureCreateSharedObject<GpgKey>(key);
 
@@ -112,7 +117,7 @@ auto FlushKeyCacheGnuPGImpl(
   // for debug
   assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_EOF);
 
-  err = gpgme_op_keylist_end(ctx.DefaultContext());
+  err = gpgme_op_keylist_end(g_ctx.DefaultContext());
   assert(CheckGpgError2ErrCode(err, GPG_ERR_EOF) == GPG_ERR_NO_ERROR);
 
   return true;
