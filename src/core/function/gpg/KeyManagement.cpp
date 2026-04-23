@@ -30,9 +30,9 @@
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
-#include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/gpg/GpgKeyGroupGetter.h"
 #include "core/function/gpg/MessageCryptoOperation.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/KeyGroupRepository.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/module/ModuleManager.h"
@@ -46,7 +46,7 @@ auto DeleteKeysGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
   for (const auto& key : keys) {
     if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY && key->IsGood()) {
       if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
-        GpgKeyGroupGetter::GetInstance(ctx.GetChannel()).Remove(key->ID());
+        KeyGroupRepository::GetInstance(ctx.GetChannel()).Remove(key->ID());
         continue;
       }
 
@@ -255,8 +255,9 @@ auto DeleteSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
   return err == GPG_ERR_NO_ERROR && succ;
 }
 
-auto RevokeSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key, int subkey_index,
-                      int reason_code, const QString& reason_text) -> bool {
+auto RevokeSubKeyGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
+                           int subkey_index, int reason_code,
+                           const QString& reason_text) -> bool {
   auto& ah = GpgAutomatonHandler::GetInstance(ctx.GetChannel());
 
   if (subkey_index < 0 ||
@@ -463,7 +464,7 @@ auto SetOwnerTrustLevelGnuPGImpl(GpgContext& ctx, const GpgAbstractKeyPtr& key,
 
 auto RevKeySignatureGnuPGImpl(GpgContext& ctx, const GpgKeyPtr& key,
                               const SignIdArgsList& signature_id) -> bool {
-  auto& key_getter = GpgKeyGetter::GetInstance(ctx.GetChannel());
+  auto& key_getter = GpgKeyRepository::GetInstance(ctx.GetChannel());
 
   for (const auto& sign_id : signature_id) {
     auto signing_key = key_getter.GetKey(sign_id.first);

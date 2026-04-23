@@ -28,7 +28,7 @@
 
 #include "KeyPairUIDTab.h"
 
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/UserIdOperation.h"
 #include "ui/UISignalStation.h"
@@ -433,7 +433,7 @@ void KeyPairUIDTab::slot_del_sign() {
     return;
   }
 
-  if (!GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+  if (!GpgKeyRepository::GetInstance(current_gpg_context_channel_)
            .GetKey(selected_signs.front().first)
            .IsGood()) {
     QMessageBox::critical(
@@ -467,8 +467,9 @@ void KeyPairUIDTab::slot_del_sign() {
 
 void KeyPairUIDTab::slot_refresh_key() {
   // refresh the key
-  auto refreshed_key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                           .GetKeyPtr(m_key_->ID());
+  auto refreshed_key =
+      GpgKeyRepository::GetInstance(current_gpg_context_channel_)
+          .GetKeyPtr(m_key_->ID());
   assert(refreshed_key != nullptr);
 
   std::swap(this->m_key_, refreshed_key);

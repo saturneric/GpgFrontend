@@ -30,7 +30,7 @@
 
 #include "core/GpgCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
-#include "core/function/gpg/GpgKeyGroupGetter.h"
+#include "core/function/openpgp/KeyGroupRepository.h"
 #include "core/function/rpgp/KeyImportExport.h"
 #include "core/function/rpgp/RustEngineCallback.h"
 #include "core/utils/IOUtils.h"
@@ -49,7 +49,7 @@ auto DeleteKeysRpgpImpl(GpgContext& ctx, const GpgAbstractKeyPtrList& keys)
     LOG_D() << "Deleting key: " << key->ID();
 
     if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
-      GpgKeyGroupGetter::GetInstance(ctx.GetChannel()).Remove(key->ID());
+      KeyGroupRepository::GetInstance(ctx.GetChannel()).Remove(key->ID());
       continue;
     }
 

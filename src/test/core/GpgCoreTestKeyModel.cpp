@@ -30,7 +30,7 @@
 
 #include "GpgCoreTest.h"
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
@@ -55,7 +55,7 @@ TEST_F(GpgCoreTest, GpgDataTest) {
 }
 
 TEST_F(GpgCoreTest, GpgKeyTest) {
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
   ASSERT_TRUE(key.IsGood());
   ASSERT_TRUE(key.IsPrivateKey());
@@ -99,7 +99,7 @@ TEST_F(GpgCoreTest, GpgKeyTest) {
 }
 
 TEST_F(GpgCoreTest, GpgSubKeyTest) {
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
   auto s_keys = key.SubKeys();
   ASSERT_EQ(s_keys.size(), 2);
@@ -143,7 +143,7 @@ TEST_F(GpgCoreTest, GpgSubKeyTest) {
 }
 
 TEST_F(GpgCoreTest, GpgUIDTest) {
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
   auto uids = key.UIDs();
   ASSERT_EQ(uids.size(), 1);
@@ -158,7 +158,7 @@ TEST_F(GpgCoreTest, GpgUIDTest) {
 }
 
 TEST_F(GpgCoreTest, GpgKeySignatureTest) {
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
   auto uids = key.UIDs();
   ASSERT_EQ(uids.size(), 1);
@@ -182,10 +182,10 @@ TEST_F(GpgCoreTest, GpgKeySignatureTest) {
 }
 
 TEST_F(GpgCoreTest, GpgKeyGetterTest) {
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKeyPtr("9490795B78F8AFE9F93BD09281704859182661FB");
   ASSERT_TRUE(key != nullptr);
-  auto keys = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).Fetch();
+  auto keys = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel).Fetch();
 
   EXPECT_GT(keys.size(), 0);
   ASSERT_TRUE(std::find(keys.begin(), keys.end(), key) != keys.end());

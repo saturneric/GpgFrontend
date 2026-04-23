@@ -27,8 +27,8 @@
  */
 
 #include "GpgCoreTest.h"
-#include "core/function/gpg/GpgKeyGetter.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
@@ -40,7 +40,7 @@
 namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, CoreFileEncryptDecrTest) {
-  auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
+  auto encrypt_key = GpgKeyRepository::GetInstance().GetPubkeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(encrypt_key != nullptr);
 
@@ -73,7 +73,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptDecrTest) {
 }
 
 TEST_F(GpgCoreTest, CoreFileEncryptDecrBinaryTest) {
-  auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
+  auto encrypt_key = GpgKeyRepository::GetInstance().GetPubkeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(encrypt_key != nullptr);
 
@@ -169,7 +169,7 @@ TEST_F(GpgCoreTest, CoreFileEncryptSymmetricDecrBinaryTest) {
 }
 
 TEST_F(GpgCoreTest, CoreFileSignVerifyNormalTest) {
-  auto sign_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
+  auto sign_key = GpgKeyRepository::GetInstance().GetPubkeyPtr(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ASSERT_TRUE(sign_key != nullptr);
 
@@ -197,7 +197,7 @@ TEST_F(GpgCoreTest, CoreFileSignVerifyNormalTest) {
 }
 
 TEST_F(GpgCoreTest, CoreFileSignVerifyNormalBinaryTest) {
-  auto sign_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto sign_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ASSERT_TRUE(sign_key != nullptr);
 
@@ -228,11 +228,11 @@ TEST_F(GpgCoreTest, CoreFileSignVerifyNormalBinaryTest) {
 }
 
 TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyTest) {
-  auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
+  auto encrypt_key = GpgKeyRepository::GetInstance().GetPubkeyPtr(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ASSERT_TRUE(encrypt_key != nullptr);
 
-  auto sign_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto sign_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "8933EB283A18995F45D61DAC021D89771B680FFB");
   ASSERT_TRUE(sign_key != nullptr);
 
@@ -277,10 +277,10 @@ TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyTest) {
 }
 
 TEST_F(GpgCoreTest, CoreFileEncryptSignDecrVerifyBinaryTest) {
-  auto encrypt_key = GpgKeyGetter::GetInstance().GetPubkeyPtr(
+  auto encrypt_key = GpgKeyRepository::GetInstance().GetPubkeyPtr(
       "467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ASSERT_TRUE(encrypt_key != nullptr);
-  auto sign_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto sign_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "8933EB283A18995F45D61DAC021D89771B680FFB");
   ASSERT_TRUE(sign_key != nullptr);
 

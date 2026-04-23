@@ -29,7 +29,7 @@
 #include "KeyPairDetailTab.h"
 
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/model/GpgKey.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
@@ -275,8 +275,9 @@ void KeyPairDetailTab::slot_refresh_key_info() {
 
 void KeyPairDetailTab::slot_refresh_key() {
   // refresh the key
-  auto refreshed_key = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
-                           .GetKeyPtr(key_->ID());
+  auto refreshed_key =
+      GpgKeyRepository::GetInstance(current_gpg_context_channel_)
+          .GetKeyPtr(key_->ID());
   assert(refreshed_key != nullptr);
 
   std::swap(this->key_, refreshed_key);

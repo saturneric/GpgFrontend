@@ -33,7 +33,7 @@
 
 namespace GpgFrontend {
 
-class GpgKeyGroupGetter;
+class KeyGroupRepository;
 
 /**
  * @brief
@@ -250,7 +250,7 @@ class GF_CORE_EXPORT GpgKeyGroup : public GpgAbstractKey {
    * @brief Set the Disabled object
    *
    */
-  void SetKeyGroupGetter(GpgKeyGroupGetter*);
+  void SetKeyGroupGetter(KeyGroupRepository*);
 
  private:
   QString id_;
@@ -260,7 +260,7 @@ class GF_CORE_EXPORT GpgKeyGroup : public GpgAbstractKey {
   QStringList key_ids_;
   QDateTime creation_time_;
 
-  GpgKeyGroupGetter* getter_ = nullptr;
+  KeyGroupRepository* getter_ = nullptr;
 };
 
 }  // namespace GpgFrontend

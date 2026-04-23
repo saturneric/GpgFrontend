@@ -36,7 +36,7 @@
 #include "core/function/basic/ChannelObject.h"
 #include "core/function/basic/SingletonStorage.h"
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -607,7 +607,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
 
   Module::UpsertRTValue("core", "env.state.ctx", 1);
 
-  if (!GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).FlushKeyCache()) {
+  if (!GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+           .FlushKeyCache()) {
     LOG_E() << "Init GpgME Default Key Database failed!"
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
@@ -667,7 +668,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
             continue;
           }
 
-          if (!GpgKeyGetter::GetInstance(ctx.GetChannel()).FlushKeyCache()) {
+          if (!GpgKeyRepository::GetInstance(ctx.GetChannel())
+                   .FlushKeyCache()) {
             LOG_E() << "gpgme context init key cache failed, index:"
                     << channel_index;
             continue;

@@ -116,15 +116,15 @@ struct GpgKeyGroupTreeNode {
   [[nodiscard]] auto KeyIds() const -> QStringList;
 };
 
-class GF_CORE_EXPORT GpgKeyGroupGetter
-    : public SingletonFunctionObject<GpgKeyGroupGetter> {
+class GF_CORE_EXPORT KeyGroupRepository
+    : public SingletonFunctionObject<KeyGroupRepository> {
  public:
   /**
    * @brief GpgKeyGroupGetter constructor
    *
    * @param channel channel
    */
-  explicit GpgKeyGroupGetter(
+  explicit KeyGroupRepository(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**

@@ -108,7 +108,7 @@ void KeyGroupManageDialog::slot_add_to_key_group() {
   QSet<QString> set;
 
   GpgAbstractKeyPtrList failed_keys;
-  auto& getter = GpgKeyGroupGetter::GetInstance(channel_);
+  auto& getter = KeyGroupRepository::GetInstance(channel_);
   for (const auto& key : keys) {
     if (!getter.AddKey2KeyGroup(key_group_->ID(), key)) {
       failed_keys.push_back(key);
@@ -135,7 +135,7 @@ void KeyGroupManageDialog::slot_add_to_key_group() {
 void KeyGroupManageDialog::slot_remove_from_key_group() {
   auto keys = ui_->keyGroupKeyList->GetCheckedKeys();
 
-  auto& getter = GpgKeyGroupGetter::GetInstance(channel_);
+  auto& getter = KeyGroupRepository::GetInstance(channel_);
   for (const auto& key : keys) {
     getter.RemoveKeyFromKeyGroup(key_group_->ID(), key->ID());
   }
@@ -170,7 +170,7 @@ void KeyGroupManageDialog::slot_notify_invalid_key_ids() {
 
   if (reply == QMessageBox::Yes) {
     auto key_ids = key_group_->KeyIds();
-    auto& getter = GpgKeyGroupGetter::GetInstance(channel_);
+    auto& getter = KeyGroupRepository::GetInstance(channel_);
     for (const auto& key_id : invalid_key_ids) {
       getter.RemoveKeyFromKeyGroup(key_group_->ID(), key_id);
     }

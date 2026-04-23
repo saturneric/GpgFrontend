@@ -28,7 +28,7 @@
 
 #include "KeyGroupCreationDialog.h"
 
-#include "core/function/gpg/GpgKeyGroupGetter.h"
+#include "core/function/openpgp/KeyGroupRepository.h"
 #include "core/model/GpgKeyGroup.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
@@ -102,7 +102,7 @@ void KeyGroupCreationDialog::slot_create_new_uid() {
   if (error_string.isEmpty()) {
     auto p_kg =
         GpgKeyGroup{name_->text(), email_->text(), comment_->text(), key_ids_};
-    GpgKeyGroupGetter::GetInstance(current_gpg_context_channel_)
+    KeyGroupRepository::GetInstance(current_gpg_context_channel_)
         .AddKeyGroup(p_kg);
 
     emit SignalCreated();

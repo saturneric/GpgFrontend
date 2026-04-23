@@ -26,7 +26,7 @@
  *
  */
 
-#include "GpgKeyGetter.h"
+#include "GpgKeyRepository.h"
 
 #include <gpg-error.h>
 
@@ -39,10 +39,11 @@
 
 namespace GpgFrontend {
 
-class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
+class GpgKeyRepository::Impl
+    : public SingletonFunctionObject<GpgKeyRepository::Impl> {
  public:
   explicit Impl(int channel)
-      : SingletonFunctionObject<GpgKeyGetter::Impl>(channel) {}
+      : SingletonFunctionObject<GpgKeyRepository::Impl>(channel) {}
 
   auto GetKeyPtr(const QString& key_id, bool cache) -> GpgKeyPtr {
     // find in cache first
@@ -418,39 +419,40 @@ class GpgKeyGetter::Impl : public SingletonFunctionObject<GpgKeyGetter::Impl> {
   }
 };
 
-GpgKeyGetter::GpgKeyGetter(int channel)
-    : SingletonFunctionObject<GpgKeyGetter>(channel),
+GpgKeyRepository::GpgKeyRepository(int channel)
+    : SingletonFunctionObject<GpgKeyRepository>(channel),
       p_(SecureCreateUniqueObject<Impl>(channel)) {}
 
-GpgKeyGetter::~GpgKeyGetter() = default;
+GpgKeyRepository::~GpgKeyRepository() = default;
 
-auto GpgKeyGetter::GetKey(const QString& key_id, bool use_cache) -> GpgKey {
+auto GpgKeyRepository::GetKey(const QString& key_id, bool use_cache) -> GpgKey {
   return p_->GetKey(key_id, use_cache);
 }
 
-auto GpgKeyGetter::GetKeyPtr(const QString& key_id, bool use_cache)
+auto GpgKeyRepository::GetKeyPtr(const QString& key_id, bool use_cache)
     -> QSharedPointer<GpgKey> {
   return p_->GetKeyPtr(key_id, use_cache);
 }
 
-auto GpgKeyGetter::GetPubkey(const QString& key_id, bool use_cache) -> GpgKey {
+auto GpgKeyRepository::GetPubkey(const QString& key_id, bool use_cache)
+    -> GpgKey {
   return p_->GetPubkey(key_id, use_cache);
 }
 
-auto GpgKeyGetter::GetPubkeyPtr(const QString& key_id, bool use_cache)
+auto GpgKeyRepository::GetPubkeyPtr(const QString& key_id, bool use_cache)
     -> GpgKeyPtr {
   return p_->GetPubkeyPtr(key_id, use_cache);
 }
 
-auto GpgKeyGetter::FlushKeyCache() -> bool { return p_->FlushKeyCache(); }
+auto GpgKeyRepository::FlushKeyCache() -> bool { return p_->FlushKeyCache(); }
 
-auto GpgKeyGetter::GetKeys(const KeyIdArgsList& ids) -> GpgKeyList {
+auto GpgKeyRepository::GetKeys(const KeyIdArgsList& ids) -> GpgKeyList {
   return p_->GetKeys(ids);
 }
 
-auto GpgKeyGetter::Fetch() -> GpgKeyPtrList { return p_->Fetch(); }
+auto GpgKeyRepository::Fetch() -> GpgKeyPtrList { return p_->Fetch(); }
 
-auto GpgKeyGetter::GetKeyORSubkeyPtr(const QString& key_id)
+auto GpgKeyRepository::GetKeyORSubkeyPtr(const QString& key_id)
     -> GpgAbstractKeyPtr {
   return p_->GetKeyORSubkeyPtr(key_id);
 }

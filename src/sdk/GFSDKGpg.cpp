@@ -32,7 +32,7 @@
 #include <cstring>
 
 #include "GFSDKBasic.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
@@ -68,8 +68,8 @@ auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
 
   GpgFrontend::GpgAbstractKeyPtrList signer_keys;
   for (const auto& signer_id : singer_ids) {
-    auto key =
-        GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKeyPtr(signer_id);
+    auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
+        signer_id);
     if (key != nullptr) signer_keys.push_back(key);
   }
 
@@ -111,7 +111,7 @@ auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
 
 auto GF_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id, int ascii)
     -> char* {
-  auto key = GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKeyPtr(
+  auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
       GFUnStrDup(key_id));
   if (key == nullptr) return nullptr;
 
@@ -126,7 +126,7 @@ auto GF_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id, int ascii)
 
 auto GF_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
                                       GFGpgKeyUID** ps) -> int {
-  auto key = GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKey(
+  auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKey(
       GFUnStrDup(key_id));
 
   if (!key.IsGood()) return -1;
@@ -160,7 +160,7 @@ auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
 
   GpgFrontend::GpgAbstractKeyPtrList encrypt_keys;
   for (const auto& encrypt_key_id : encrypt_key_ids) {
-    auto key = GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKeyPtr(
+    auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
         encrypt_key_id);
     if (key != nullptr) encrypt_keys.push_back(key);
   }
@@ -308,7 +308,7 @@ auto GFGpgCurrentGpgContextChannel() -> int {
 
 auto GFGpgExportKey(int channel, char* key_id, int ascii, char** data,
                     int* size) -> int {
-  auto key = GpgFrontend::GpgKeyGetter::GetInstance(channel).GetKeyPtr(
+  auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
       GFUnStrDup(key_id));
   if (key == nullptr) return -1;
 

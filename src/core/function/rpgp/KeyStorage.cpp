@@ -30,7 +30,7 @@
 
 #include "core/GpgCoreRust.h"
 #include "core/function/gpg/GpgContext.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 
 namespace GpgFrontend {
 
@@ -197,7 +197,7 @@ auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool {
     return false;
   }
 
-  GpgKeyGetter::GetInstance(channel).FlushKeyCache();
+  GpgKeyRepository::GetInstance(channel).FlushKeyCache();
   return succ;
 }
 

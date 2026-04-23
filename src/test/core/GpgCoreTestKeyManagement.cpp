@@ -28,7 +28,7 @@
 
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/model/GpgImportInformation.h"
@@ -115,7 +115,7 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
 
@@ -127,8 +127,8 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
   ASSERT_WITHIN(KeyManagementOperation::GetInstance().DeleteSubkey(key, 2),
                 3000);
 
-  GpgKeyGetter::GetInstance().FlushKeyCache();
-  key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
 
@@ -147,15 +147,15 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
 
   ASSERT_WITHIN(
       KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 1), 3000);
 
-  GpgKeyGetter::GetInstance().FlushKeyCache();
-  key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
 
@@ -165,8 +165,8 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
   ASSERT_WITHIN(
       KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 2), 3000);
 
-  GpgKeyGetter::GetInstance().FlushKeyCache();
-  key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
 
@@ -175,8 +175,8 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
   ASSERT_WITHIN(
       KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 3), 3000);
 
-  GpgKeyGetter::GetInstance().FlushKeyCache();
-  key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
 
@@ -185,8 +185,8 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
   ASSERT_WITHIN(
       KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 4), 3000);
 
-  GpgKeyGetter::GetInstance().FlushKeyCache();
-  key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
 
@@ -195,8 +195,8 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
   ASSERT_WITHIN(
       KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 5), 3000);
 
-  GpgKeyGetter::GetInstance().FlushKeyCache();
-  key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key->IsGood());
 
@@ -220,7 +220,7 @@ TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
 
@@ -233,8 +233,8 @@ TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
                     key, 2, 2, QString("H\nE\nLL\nO\n\n")),
                 3000);
 
-  GpgKeyGetter::GetInstance().FlushKeyCache();
-  key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
 

@@ -28,7 +28,7 @@
 
 #include "core/model/GpgKeyGroup.h"
 
-#include "core/function/gpg/GpgKeyGroupGetter.h"
+#include "core/function/openpgp/KeyGroupRepository.h"
 
 namespace GpgFrontend {
 
@@ -118,7 +118,7 @@ void GpgKeyGroup::SetKeyIds(QStringList key_ids) {
   key_ids_ = std::move(key_ids);
 }
 
-void GpgKeyGroup::SetKeyGroupGetter(GpgKeyGroupGetter *getter) {
+void GpgKeyGroup::SetKeyGroupGetter(KeyGroupRepository *getter) {
   getter_ = getter;
 }
 }  // namespace GpgFrontend

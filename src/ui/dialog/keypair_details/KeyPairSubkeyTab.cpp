@@ -28,7 +28,7 @@
 
 #include "KeyPairSubkeyTab.h"
 
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/utils/CommonUtils.h"
@@ -478,7 +478,7 @@ auto KeyPairSubkeyTab::get_selected_subkey() -> const GpgSubKey& {
 }
 
 void KeyPairSubkeyTab::slot_refresh_key_info() {
-  key_ = GpgKeyGetter::GetInstance(current_gpg_context_channel_)
+  key_ = GpgKeyRepository::GetInstance(current_gpg_context_channel_)
              .GetKeyPtr(key_->ID());
   assert(key_ != nullptr);
 }

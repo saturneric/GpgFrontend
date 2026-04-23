@@ -28,7 +28,7 @@
 
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/model/GpgGenerateKeyResult.h"
@@ -77,13 +77,13 @@ TEST_F(GpgCoreTest, CoreAddADSKTestA) {
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKeyPtr("5C4D80546EB6E52F");
   ASSERT_TRUE(key->IsGood());
   ASSERT_TRUE(key->IsPrivateKey());
   ASSERT_TRUE(key->IsHasMasterKey());
 
-  auto key_b = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key_b = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                    .GetKey("467F14220CE8DCF780CF4BAD8465C55B25C9B7D1");
   ASSERT_TRUE(key_b.IsGood());
   ASSERT_TRUE(key_b.IsPrivateKey());
@@ -102,8 +102,8 @@ TEST_F(GpgCoreTest, CoreAddADSKTestA) {
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
 
-  GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel).FlushKeyCache();
-  key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel).FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("5C4D80546EB6E52F");
   ASSERT_TRUE(key->IsGood());
   ASSERT_TRUE(key->IsPrivateKey());

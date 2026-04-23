@@ -26,21 +26,21 @@
  *
  */
 
-#include "GpgKeyGroupGetter.h"
+#include "KeyGroupRepository.h"
 
 #include "core/function/CacheManager.h"
-#include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/struct/cache_object/KeyGroupsCO.h"
 #include "utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
-GpgKeyGroupGetter::GpgKeyGroupGetter(int channel)
-    : SingletonFunctionObject<GpgKeyGroupGetter>(channel) {
+KeyGroupRepository::KeyGroupRepository(int channel)
+    : SingletonFunctionObject<KeyGroupRepository>(channel) {
   fetch_key_groups();
 }
 
-auto GpgKeyGroupGetter::Fetch() -> QContainer<QSharedPointer<GpgKeyGroup>> {
+auto KeyGroupRepository::Fetch() -> QContainer<QSharedPointer<GpgKeyGroup>> {
   QContainer<QSharedPointer<GpgKeyGroup>> ret;
   for (const auto& node : key_groups_forest_) {
     ret.push_back(node->key_group);
@@ -48,7 +48,7 @@ auto GpgKeyGroupGetter::Fetch() -> QContainer<QSharedPointer<GpgKeyGroup>> {
   return ret;
 }
 
-void GpgKeyGroupGetter::Remove(const QString& id) {
+void KeyGroupRepository::Remove(const QString& id) {
   if (id.isEmpty() || !key_groups_forest_.contains(id)) return;
 
   auto target_node = key_groups_forest_.value(id);
@@ -62,7 +62,7 @@ void GpgKeyGroupGetter::Remove(const QString& id) {
   FlushCache();
 }
 
-void GpgKeyGroupGetter::fetch_key_groups() {
+void KeyGroupRepository::fetch_key_groups() {
   key_groups_forest_.clear();
   auto key = QString("kgs:%1").arg(ctx_.KeyDBName());
   auto json = cm_.LoadDurableCache(key);
@@ -86,7 +86,7 @@ void GpgKeyGroupGetter::fetch_key_groups() {
   check_all_key_groups();
 }
 
-void GpgKeyGroupGetter::persist_key_groups() {
+void KeyGroupRepository::persist_key_groups() {
   auto key = QString("kgs:%1").arg(ctx_.KeyDBName());
 
   KeyGroupsCO key_groups;
@@ -102,13 +102,13 @@ void GpgKeyGroupGetter::persist_key_groups() {
   cm_.SaveDurableCache(key, QJsonDocument{key_groups.ToJson()}, true);
 }
 
-auto GpgKeyGroupGetter::KeyGroup(const QString& id)
+auto KeyGroupRepository::KeyGroup(const QString& id)
     -> QSharedPointer<GpgKeyGroup> {
   if (!key_groups_forest_.contains(id)) return nullptr;
   return key_groups_forest_.value(id)->key_group;
 }
 
-void GpgKeyGroupGetter::check_key_group(
+void KeyGroupRepository::check_key_group(
     const QSharedPointer<GpgKeyGroupTreeNode>& node) {
   if (node == nullptr || node->disabled) return;
 
@@ -130,7 +130,7 @@ void GpgKeyGroupGetter::check_key_group(
       }
 
     } else {
-      auto key = GpgKeyGetter::GetInstance(GetChannel()).GetKeyPtr(key_id);
+      auto key = GpgKeyRepository::GetInstance(GetChannel()).GetKeyPtr(key_id);
       if (key == nullptr || !key->IsHasEncrCap()) {
         node->disabled = true;
         return;
@@ -139,7 +139,7 @@ void GpgKeyGroupGetter::check_key_group(
   }
 }
 
-void GpgKeyGroupGetter::check_all_key_groups() {
+void KeyGroupRepository::check_all_key_groups() {
   for (const auto& node : key_groups_forest_) node->disabled = false;
 
   for (const auto& node : key_groups_forest_) {
@@ -152,7 +152,7 @@ void GpgKeyGroupGetter::check_all_key_groups() {
   }
 }
 
-auto GpgKeyGroupGetter::FlushCache() -> bool {
+auto KeyGroupRepository::FlushCache() -> bool {
   for (const auto& node : key_groups_forest_.values()) {
     node->Apply();
   }
@@ -162,7 +162,7 @@ auto GpgKeyGroupGetter::FlushCache() -> bool {
   return true;
 }
 
-void GpgKeyGroupGetter::build_gpg_key_group_tree() {
+void KeyGroupRepository::build_gpg_key_group_tree() {
   for (const auto& node : key_groups_forest_) {
     LOG_D() << "load key group: " << node->key_group->ID()
             << "ids: " << node->key_group->KeyIds();
@@ -182,7 +182,7 @@ void GpgKeyGroupGetter::build_gpg_key_group_tree() {
   }
 }
 
-void GpgKeyGroupGetter::AddKeyGroup(const GpgKeyGroup& key_group) {
+void KeyGroupRepository::AddKeyGroup(const GpgKeyGroup& key_group) {
   auto node = SecureCreateSharedObject<GpgKeyGroupTreeNode>(key_group);
   node->key_group->SetKeyGroupGetter(this);
 
@@ -200,8 +200,8 @@ void GpgKeyGroupGetter::AddKeyGroup(const GpgKeyGroup& key_group) {
   FlushCache();
 }
 
-auto GpgKeyGroupGetter::AddKey2KeyGroup(const QString& id,
-                                        const GpgAbstractKeyPtr& key) -> bool {
+auto KeyGroupRepository::AddKey2KeyGroup(const QString& id,
+                                         const GpgAbstractKeyPtr& key) -> bool {
   if (!key_groups_forest_.contains(id)) return false;
   auto key_group = key_groups_forest_.value(id);
 
@@ -222,8 +222,8 @@ auto GpgKeyGroupGetter::AddKey2KeyGroup(const QString& id,
   return ret;
 }
 
-auto GpgKeyGroupGetter::RemoveKeyFromKeyGroup(const QString& id,
-                                              const QString& key_id) -> bool {
+auto KeyGroupRepository::RemoveKeyFromKeyGroup(const QString& id,
+                                               const QString& key_id) -> bool {
   if (!key_groups_forest_.contains(id)) return false;
   auto key_group = key_groups_forest_.value(id);
 
@@ -303,7 +303,7 @@ auto GpgKeyGroupTreeNode::RemoveNonKeyGroupKey(const QString& key) -> bool {
   return true;
 }
 
-auto GpgKeyGroupGetter::IsKeyGroupDisabled(const QString& id) -> bool {
+auto KeyGroupRepository::IsKeyGroupDisabled(const QString& id) -> bool {
   if (!key_groups_forest_.contains(id)) return false;
   auto node = key_groups_forest_.value(id);
   return node->disabled;

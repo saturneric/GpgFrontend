@@ -38,21 +38,21 @@ namespace GpgFrontend {
  * @brief
  *
  */
-class GF_CORE_EXPORT GpgKeyGetter
-    : public SingletonFunctionObject<GpgKeyGetter> {
+class GF_CORE_EXPORT GpgKeyRepository
+    : public SingletonFunctionObject<GpgKeyRepository> {
  public:
   /**
    * @brief Construct a new Gpg Key Getter object
    *
    * @param channel
    */
-  explicit GpgKeyGetter(int channel = kGpgFrontendDefaultChannel);
+  explicit GpgKeyRepository(int channel = kGpgFrontendDefaultChannel);
 
   /**
    * @brief Destroy the Gpg Key Getter object
    *
    */
-  ~GpgKeyGetter();
+  ~GpgKeyRepository();
 
   /**
    * @brief Get the Key object

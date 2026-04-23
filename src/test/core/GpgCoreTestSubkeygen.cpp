@@ -27,7 +27,7 @@
  */
 
 #include "GpgCoreTest.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/model/GpgGenerateKeyResult.h"
@@ -39,7 +39,7 @@
 namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto p_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key != nullptr);
 
@@ -64,7 +64,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
@@ -83,7 +83,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyRSA2048Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto p_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key != nullptr);
 
@@ -108,7 +108,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
@@ -127,7 +127,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyDSA2048Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto p_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key != nullptr);
 
@@ -152,7 +152,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
@@ -171,7 +171,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyELG2048Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto p_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key != nullptr);
 
@@ -196,7 +196,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
@@ -215,7 +215,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyED25519Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto p_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key != nullptr);
 
@@ -240,7 +240,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
@@ -259,7 +259,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyCV25519Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto p_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key != nullptr);
 
@@ -283,7 +283,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
@@ -302,7 +302,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyNISTP256Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto p_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key != nullptr);
 
@@ -326,7 +326,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
@@ -345,7 +345,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyBRAINPOOLP256R1Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto p_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key != nullptr);
 
@@ -369,7 +369,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 
@@ -388,7 +388,7 @@ TEST_F(GpgCoreTest, GenerateSubkeyX448Test) {
 }
 
 TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
-  auto p_key = GpgKeyGetter::GetInstance().GetKeyPtr(
+  auto p_key = GpgKeyRepository::GetInstance().GetKeyPtr(
       "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
   ASSERT_TRUE(p_key != nullptr);
 
@@ -412,7 +412,7 @@ TEST_F(GpgCoreTest, GenerateSubkeySECP256K1Test) {
   auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
   ASSERT_TRUE(result.IsGood());
   ASSERT_FALSE(result.GetFingerprint().isEmpty());
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey(result.GetFingerprint());
   ASSERT_TRUE(key.IsGood());
 

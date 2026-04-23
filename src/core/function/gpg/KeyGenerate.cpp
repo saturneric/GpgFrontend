@@ -28,7 +28,7 @@
 
 #include "KeyGenerate.h"
 
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKeyGenerateInfo.h"
@@ -127,7 +127,7 @@ auto GenerateKeyWithSubkeyGnuPGImpl(
     GpgContext& ctx, const QSharedPointer<KeyGenerateInfo>& p_params,
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError {
-  auto& key_getter = GpgKeyGetter::GetInstance(ctx.GetChannel());
+  auto& key_getter = GpgKeyRepository::GetInstance(ctx.GetChannel());
 
   auto err = GenerateKeyGnuPGImpl(ctx, p_params, data_object);
 

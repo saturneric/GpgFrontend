@@ -29,8 +29,8 @@
 #pragma once
 
 #include "core/function/basic/GpgFunctionObject.h"
-#include "core/function/gpg/GpgKeyGetter.h"
-#include "core/function/gpg/GpgKeyGroupGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/KeyGroupRepository.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -94,9 +94,9 @@ class GF_CORE_EXPORT AbstractKeyRepository
   auto GetGpgKeyTableModel() -> QSharedPointer<GpgKeyTableModel>;
 
  private:
-  GpgKeyGetter& key_ =
-      GpgKeyGetter::GetInstance(SingletonFunctionObject::GetChannel());
-  GpgKeyGroupGetter& kg_ =
-      GpgKeyGroupGetter::GetInstance(SingletonFunctionObject::GetChannel());
+  GpgKeyRepository& key_ =
+      GpgKeyRepository::GetInstance(SingletonFunctionObject::GetChannel());
+  KeyGroupRepository& kg_ =
+      KeyGroupRepository::GetInstance(SingletonFunctionObject::GetChannel());
 };
 }  // namespace GpgFrontend

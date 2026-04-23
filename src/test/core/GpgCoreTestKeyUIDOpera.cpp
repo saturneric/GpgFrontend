@@ -28,7 +28,7 @@
 
 #include "GpgCoreTest.h"
 #include "core/GpgConstants.h"
-#include "core/function/gpg/GpgKeyGetter.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/UserIdOperation.h"
@@ -69,7 +69,7 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKeyPtr("F2D8DFA5F109DE47");
   ASSERT_TRUE(key->IsGood());
 
@@ -83,8 +83,8 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
 
   ASSERT_TRUE(res);
 
-  GpgKeyGetter::GetInstance().FlushKeyCache();
-  key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("F2D8DFA5F109DE47");
   ASSERT_TRUE(key != nullptr);
 
@@ -94,18 +94,18 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
   ASSERT_EQ(uids[2].GetUID(), "hhhhhh(hhhhhhh)<hhhhh@hhhh.hhhh>");
 
   KeyManagementOperation::GetInstance().DeleteKey(key);
-  GpgKeyGetter::GetInstance().FlushKeyCache();
+  GpgKeyRepository::GetInstance().FlushKeyCache();
 }
 
 TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
-  GpgKeyGetter::GetInstance().FlushKeyCache();
+  GpgKeyRepository::GetInstance().FlushKeyCache();
   auto info = KeyImportExportOperation::GetInstance().ImportKey(
       GFBuffer(QString::fromLatin1(test_private_key_data)));
 
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);
 
-  auto key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKeyPtr("F2D8DFA5F109DE47");
   ASSERT_TRUE(key != nullptr);
 
@@ -119,8 +119,8 @@ TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
 
   ASSERT_TRUE(res);
 
-  GpgKeyGetter::GetInstance().FlushKeyCache();
-  key = GpgKeyGetter::GetInstance(kGpgFrontendDefaultChannel)
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("F2D8DFA5F109DE47");
   ASSERT_TRUE(key != nullptr);
 
@@ -131,7 +131,7 @@ TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
   ASSERT_TRUE(uids[2].GetRevoked());
 
   KeyManagementOperation::GetInstance().DeleteKey(key);
-  GpgKeyGetter::GetInstance().FlushKeyCache();
+  GpgKeyRepository::GetInstance().FlushKeyCache();
 }
 
 }  // namespace GpgFrontend::Test
