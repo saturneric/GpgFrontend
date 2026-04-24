@@ -73,9 +73,11 @@ jobs:
           if [ "${{ matrix.sandbox }}" = "ON" ]; then
             echo "OS_IDENTIFIER=${{ matrix.os }}-sandbox" >> $GITHUB_ENV
             echo "SANDBOX_CMAKE_FLAG=-DGPGFRONTEND_XCODE_ENABLE_SANDBOX=ON" >> $GITHUB_ENV
+            echo "CODE_SIGNING_IDENTITY=${{secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
           else
             echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
             echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
+            echo "CODE_SIGNING_IDENTITY=${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
           fi
 
       - name: ccache
@@ -289,7 +291,7 @@ jobs:
             cp ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile ${{github.workspace}}/build/package/GpgFrontend.app/Contents/embedded.provisionprofile
           fi
 
-          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
+          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite -s "${{env.CODE_SIGNING_IDENTITY}}"
 
           # Sign the app bundle. If sandboxing is enabled, we need to add the entitlements flag to the codesign command.
           if [ "${{ env.SANDBOX_CMAKE_FLAG }}" != "" ]; then
@@ -299,7 +301,7 @@ jobs:
           fi
 
           # Sign the app bundle with the specified identity and provisioning profile.
-          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp $ENTITLEMENTS_FLAG ${{github.workspace}}/build/package/GpgFrontend.app
+          codesign -s "${{env.CODE_SIGNING_IDENTITY}}" -f --deep --options=runtime --timestamp $ENTITLEMENTS_FLAG ${{github.workspace}}/build/package/GpgFrontend.app
         if: runner.os == 'macOS'
 
       - name: Package & Sign App Bundle (macOS)
