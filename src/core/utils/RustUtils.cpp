@@ -29,6 +29,7 @@
 #include "RustUtils.h"
 
 #include "core/function/GFKeyDatabase.h"
+#include "core/function/rpgp/KeyStorage.h"
 
 namespace GpgFrontend {
 
@@ -133,7 +134,8 @@ auto SniffRecipients(GFKeyDatabase& key_db, const GFBuffer& in_buffer)
     };
 
     auto meta = key_db.GetKeyMetadata(recipient.key_id);
-    recipient.status = !meta ? GPG_ERR_NO_KEY : GPG_ERR_NO_ERROR;
+    auto gf_key = GetKeyByKeyIdsForDecryption(key_db, {recipient.key_id});
+    recipient.status = !gf_key ? GPG_ERR_NO_KEY : GPG_ERR_NO_ERROR;
 
     recipients.push_back(recipient);
   }
