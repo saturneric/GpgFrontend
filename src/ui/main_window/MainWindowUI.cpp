@@ -30,6 +30,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
@@ -470,6 +471,13 @@ void MainWindow::create_menus() {
     advance_menu_->addAction(smart_card_controller_open_act_);
   }
   advance_menu_->addAction(module_controller_open_act_);
+
+  // Hide the "Advanced" menu if running in sandbox, since most of the features
+  // in the "Advanced" menu are not useful in sandbox and may cause confusion to
+  // users.
+  if (IsRunningInSandBox()) {
+    advance_menu_->setVisible(false);
+  }
 
   view_menu_ = menuBar()->addMenu(tr("View"));
 
