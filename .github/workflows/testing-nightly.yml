@@ -134,7 +134,7 @@ jobs:
           # be embedded in the app bundle.
           if [ "${{ matrix.sandbox }}" = "ON" ]; then
             cp $PP_PATH ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile
-          else
+          fi
         if: runner.os == 'macOS'
 
       - name: Install Qt6
