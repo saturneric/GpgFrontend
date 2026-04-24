@@ -31,6 +31,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/dialog/KeyDatabaseEditDialog.h"
 
@@ -42,7 +43,8 @@ namespace GpgFrontend::UI {
 KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabasesSettings>()),
-      app_path_(GlobalSettingStation::GetInstance().GetAppDir()) {
+      app_path_(GlobalSettingStation::GetInstance().GetAppDir()),
+      is_sandbox_(IsFlatpakENV() || IsRunningInAppSandbox()) {
   ui_->setupUi(this);
 
   ui_->keyDatabaseTable->clear();
@@ -53,12 +55,23 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   ui_->keyDatabaseTable->setColumnCount(static_cast<int>(column_titles.size()));
   ui_->keyDatabaseTable->setHorizontalHeaderLabels(column_titles);
 
+  // no focus (rectangle around tableitems)
+  // may be it should focus on whole row
+  ui_->keyDatabaseTable->setFocusPolicy(Qt::NoFocus);
+  ui_->keyDatabaseTable->setAlternatingRowColors(true);
+
+  ui_->keyDatabaseTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+  ui_->keyDatabaseTable->setSelectionMode(QAbstractItemView::SingleSelection);
+  ui_->keyDatabaseTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
   popup_menu_ = new QMenu(this);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Up);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Down);
   popup_menu_->addAction(ui_->actionMove_Key_Database_To_Top);
   popup_menu_->addAction(ui_->actionOpen_Key_Database);
-  popup_menu_->addAction(ui_->actionEdit_Key_Database);
+  if (!is_sandbox_) {
+    popup_menu_->addAction(ui_->actionEdit_Key_Database);
+  }
   popup_menu_->addAction(ui_->actionRemove_Selected_Key_Database);
 
   connect(ui_->actionRemove_Selected_Key_Database, &QAction::triggered, this,
@@ -108,10 +121,10 @@ void KeyDatabasesTab::ApplySettings() {
 }
 
 void KeyDatabasesTab::contextMenuEvent(QContextMenuEvent* event) {
+  if (ui_->keyDatabaseTable->selectedItems().isEmpty()) return;
+
+  popup_menu_->exec(event->globalPos());
   QWidget::contextMenuEvent(event);
-  if (ui_->keyDatabaseTable->selectedItems().length() > 0) {
-    popup_menu_->exec(event->globalPos());
-  }
 }
 
 void KeyDatabasesTab::slot_refresh_key_database_table() {
@@ -155,6 +168,7 @@ void KeyDatabasesTab::slot_refresh_key_database_table() {
   }
   ui_->keyDatabaseTable->resizeColumnsToContents();
 }
+
 void KeyDatabasesTab::slot_open_key_database() {
   const auto row_size = ui_->keyDatabaseTable->rowCount();
 
@@ -167,6 +181,7 @@ void KeyDatabasesTab::slot_open_key_database() {
     break;
   }
 }
+
 void KeyDatabasesTab::slot_move_up_key_database() {
   const auto row_size = ui_->keyDatabaseTable->rowCount();
 
@@ -196,6 +211,7 @@ void KeyDatabasesTab::slot_move_up_key_database() {
 
   emit SignalDeepRestartNeeded();
 }
+
 void KeyDatabasesTab::slot_move_to_top_key_database() {
   const auto row_size = ui_->keyDatabaseTable->rowCount();
 
@@ -257,6 +273,7 @@ void KeyDatabasesTab::slot_move_down_key_database() {
 
   emit SignalDeepRestartNeeded();
 }
+
 void KeyDatabasesTab::slot_edit_key_database() {
   const auto row_size = ui_->keyDatabaseTable->rowCount();
   if (row_size <= 0) {
@@ -325,6 +342,7 @@ void KeyDatabasesTab::slot_edit_key_database() {
 
   dialog->show();
 }
+
 void KeyDatabasesTab::slot_add_new_key_database() {
   auto* dialog = new KeyDatabaseEditDialog(key_db_infos_, this);
 
@@ -336,47 +354,72 @@ void KeyDatabasesTab::slot_add_new_key_database() {
     return;
   }
 
-  connect(dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
-          [this](const QString& name, const QString& backend_type,
-                 const QString& path) -> void {
-            auto& key_databases = key_db_infos_;
-            for (const auto& key_database : key_databases) {
-              if (QFileInfo(key_database.path) == QFileInfo(path)) {
-                QMessageBox::warning(
-                    this, tr("Duplicate Key Database Paths"),
-                    tr("The newly added key database path duplicates a "
-                       "previously existing one."));
-                return;
-              }
-            }
+  connect(
+      dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
+      [this](const QString& name, const QString& backend_type,
+             const QString& path) -> void {
+        auto& key_databases = key_db_infos_;
+        for (const auto& key_database : key_databases) {
+          if (QFileInfo(key_database.path) == QFileInfo(path)) {
+            QMessageBox::warning(
+                this, tr("Duplicate Key Database Paths"),
+                tr("The newly added key database path duplicates a "
+                   "previously existing one."));
+            return;
+          }
+        }
 
-            auto key_db_fs_path =
-                GpgFrontend::GetCanonicalKeyDatabasePath(app_path_, path);
-            if (key_db_fs_path.isEmpty()) {
-              QMessageBox::warning(this, tr("Invalid Key Database Paths"),
-                                   tr("The edited key database path is not a "
-                                      "valid path that GpgFrontend can use"));
-              return;
-            }
+        QFileInfo file_info(path);
+        if (file_info.exists() && !file_info.isDir()) {
+          QMessageBox::warning(
+              this, tr("Invalid Key Database Path"),
+              tr("The specified key database path points to an existing file. "
+                 "Please specify a path that does not exist or points to a "
+                 "directory."));
+          return;
+        }
 
-            LOG_D() << "new key database path, name: " << name
-                    << "path: " << path << "canonical path: " << key_db_fs_path;
+        // if not exist, try to create an empty directory at the path.
+        if (!file_info.exists()) {
+          QDir dir;
+          if (!QDir(file_info.absoluteFilePath()).mkpath(".")) {
+            QMessageBox::warning(
+                this, tr("Failed to Create Key Database Directory"),
+                tr("GpgFrontend failed to create a directory at the specified "
+                   "key database path. Please check the path and your "
+                   "permissions."));
+            return;
+          }
+        }
 
-            KeyDatabaseInfo key_database;
-            key_database.name = name;
-            key_database.backend_type = backend_type;
-            key_database.path = key_db_fs_path;
-            key_database.origin_path = path;
-            key_database.channel = static_cast<int>(key_databases.size());
-            key_databases.append(key_database);
+        auto key_db_fs_path =
+            GpgFrontend::GetCanonicalKeyDatabasePath(app_path_, path);
+        if (key_db_fs_path.isEmpty()) {
+          QMessageBox::warning(this, tr("Invalid Key Database Paths"),
+                               tr("The edited key database path is not a "
+                                  "valid path that GpgFrontend can use"));
+          return;
+        }
 
-            // refresh ui
-            slot_refresh_key_database_table();
+        LOG_D() << "new key database path, name: " << name << "path: " << path
+                << "canonical path: " << key_db_fs_path;
 
-            emit SignalDeepRestartNeeded();
-          });
+        KeyDatabaseInfo key_database;
+        key_database.name = name;
+        key_database.backend_type = backend_type;
+        key_database.path = key_db_fs_path;
+        key_database.origin_path = path;
+        key_database.channel = static_cast<int>(key_databases.size());
+        key_databases.append(key_database);
+
+        // refresh ui
+        slot_refresh_key_database_table();
+
+        emit SignalDeepRestartNeeded();
+      });
   dialog->show();
 }
+
 void KeyDatabasesTab::slot_remove_existing_key_database() {
   const auto row_size = ui_->keyDatabaseTable->rowCount();
 

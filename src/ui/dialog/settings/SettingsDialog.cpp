@@ -114,6 +114,12 @@ void SettingsDialog::SlotAccept() {
   general_tab_->ApplySettings();
   appearance_tab_->ApplySettings();
   network_tab_->ApplySettings();
+  key_dbs_tab_->ApplySettings();
+
+  LOG_D() << "flushing qt event loop to ensure all pending events are "
+             "processed before applying the settings";
+  QCoreApplication::sendPostedEvents(nullptr, 0);
+  QCoreApplication::processEvents(QEventLoop::AllEvents);
 
   if (restart_mode_ != kNonRestartCode) {
     emit SignalRestartNeeded(restart_mode_);

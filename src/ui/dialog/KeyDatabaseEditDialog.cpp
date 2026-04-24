@@ -30,7 +30,10 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/OpenPGPContext.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/MemoryUtils.h"
+
+//
 #include "ui_KeyDatabaseEditDialog.h"
 
 namespace GpgFrontend::UI {
@@ -39,7 +42,8 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(
     : GeneralDialog("KeyDatabaseEditDialog", parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabaseEditDialog>()),
       channel_(-1),
-      key_database_infos_(std::move(key_db_infos)) {
+      key_database_infos_(std::move(key_db_infos)),
+      is_sandbox_(IsFlatpakENV() || IsRunningInAppSandbox()) {
   ui_->setupUi(this);
 
   init_ui();
@@ -102,23 +106,60 @@ void KeyDatabaseEditDialog::init_ui() {
 
   this->setWindowTitle(tr("Key Database Info"));
 
+  // In sandbox, we should automatically generate the key database path in the
+  // sandbox directory, and hide the select button and convert to relative path
+  // option, since the user cannot access files outside the sandbox, which means
+  // the key database must be inside the sandbox.
+  if (is_sandbox_) {
+    ui_->selectKeyDBButton->setHidden(true);
+    ui_->convert2RelativePathCheckBox->setHidden(true);
+    ui_->convert2RelativePathCheckBox->setChecked(false);
+    ui_->keyDBPathLabel->setText(
+        tr("Key Database Path (Automatically Generated)"));
+    ui_->keyDBPathShowLabel->setHidden(false);
+  }
+
   connect(ui_->selectKeyDBButton, &QPushButton::clicked, this, [this](bool) {
     auto path = QFileDialog::getExistingDirectory(
-        this, tr("Open Directory"), {},
+        this, tr("Open Directory"),
+        default_path_.isEmpty() ? QDir::homePath() : default_path_,
         QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+    if (path.trimmed().isEmpty()) return;
+
+    LOG_D() << "selected key database path: " << path;
     if (!check_custom_gnupg_key_database_path(path)) {
       QMessageBox::critical(this, tr("Illegal GnuPG Key Database Path"),
                             tr("Target GnuPG Key Database Path is not an "
                                "exists readable directory."));
     }
 
-    if (!path.trimmed().isEmpty() && path != path_) {
+    if (path != path_) {
       path_ = QFileInfo(path).absoluteFilePath();
 
       ui_->keyDBPathShowLabel->setText(path_);
       ui_->keyDBPathShowLabel->setHidden(false);
+      ui_->keyDBPathLabel->setText(tr("Key Database Path"));
     }
   });
+
+  if (default_path_.isEmpty()) {
+    connect(ui_->keyDBNameLineEdit, &QLineEdit::textChanged, this,
+            [this](const QString& text) -> void {
+              name_ = text;
+              path_ = GetGSS().GetAppDir() + "/dbs/" + name_;
+              ui_->keyDBPathShowLabel->setText(path_);
+              ui_->keyDBPathLabel->setText(
+                  tr("Key Database Path (Automatically Generated)"));
+              ui_->keyDBPathShowLabel->setHidden(false);
+            });
+  }
+
+  // suggest a key db name if it's a new key db
+  if (default_name_.isEmpty()) {
+    ui_->keyDBNameLineEdit->setText(
+        QString("Key DB %1").arg(key_database_infos_.size() + 1));
+  }
 
   connect(ui_->globalButtonBox, &QDialogButtonBox::accepted, this,
           &KeyDatabaseEditDialog::slot_button_box_accepted);

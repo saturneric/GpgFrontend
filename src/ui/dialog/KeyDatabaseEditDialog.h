@@ -58,6 +58,7 @@ class KeyDatabaseEditDialog : public GeneralDialog {
   QString path_;
   QString backend_type_;
   QContainer<KeyDatabaseInfo> key_database_infos_;
+  bool is_sandbox_ = false;
 
   void init_ui();
 

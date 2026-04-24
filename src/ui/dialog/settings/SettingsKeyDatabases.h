@@ -86,6 +86,7 @@ class KeyDatabasesTab : public QWidget {
   const QString app_path_;
   QContainer<KeyDatabaseInfo> active_key_db_infos_;
   QContainer<KeyDatabaseInfo> key_db_infos_;
+  bool is_sandbox_ = false;
 
   /**
    * @brief
