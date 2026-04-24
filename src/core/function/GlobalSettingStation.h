@@ -256,6 +256,13 @@ class GF_CORE_EXPORT GlobalSettingStation
    */
   auto HasSupportedEngine() -> bool;
 
+  /**
+   * @brief
+   *
+   * @return QStringList
+   */
+  auto AllSupportedEngines() -> QStringList;
+
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;

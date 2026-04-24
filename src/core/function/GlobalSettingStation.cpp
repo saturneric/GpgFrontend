@@ -33,6 +33,7 @@
 #include "GpgFrontendBuildInstallInfo.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/FilesystemUtils.h"
+#include "core/utils/GpgUtils.h"
 
 #ifdef Q_OS_LINUX
 #include "core/utils/CommonUtils.h"
@@ -250,6 +251,14 @@ class GlobalSettingStation::Impl {
 
   auto HasSupportedEngine() -> bool { return !supported_engines_.empty(); }
 
+  [[nodiscard]] auto AllSupportedEngines() const -> QStringList {
+    QStringList engines;
+    for (const auto& engine : supported_engines_) {
+      engines.append(ConvertOpenPGPEngine2String(engine));
+    }
+    return engines;
+  }
+
  private:
   [[nodiscard]] auto app_config_file_path() const -> QString {
     return app_config_path_ + "/config.ini";
@@ -403,6 +412,9 @@ auto GlobalSettingStation::GetLegacyAppSecureKey() -> GFBuffer {
 
 auto GlobalSettingStation::HasSupportedEngine() -> bool {
   return p_->HasSupportedEngine();
+}
+auto GlobalSettingStation::AllSupportedEngines() -> QStringList {
+  return p_->AllSupportedEngines();
 }
 
 auto GetGSS() -> GlobalSettingStation& {

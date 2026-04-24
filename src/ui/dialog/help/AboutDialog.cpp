@@ -30,6 +30,7 @@
 
 #include <openssl/opensslv.h>
 
+#include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "ui/UIModuleManager.h"
@@ -194,14 +195,20 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
       qApp->property("GFPinentryProgramPath").toString();
 
   auto* main_layout = new QVBoxLayout(this);
-  auto* status_form = new QFormLayout();
+  main_layout->setContentsMargins(16, 16, 16, 16);
+  main_layout->setSpacing(12);
+
+  auto* status_group = new QGroupBox(tr("Application Status"), this);
+  auto* status_form = new QFormLayout(status_group);
 
   status_form->setRowWrapPolicy(QFormLayout::DontWrapRows);
-  status_form->setFieldGrowthPolicy(QFormLayout::FieldsStayAtSizeHint);
-  status_form->setFormAlignment(Qt::AlignHCenter | Qt::AlignTop);
-  status_form->setLabelAlignment(Qt::AlignLeft);
+  status_form->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+  status_form->setFormAlignment(Qt::AlignTop);
+  status_form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  status_form->setHorizontalSpacing(18);
+  status_form->setVerticalSpacing(8);
 
-  const QString secure_level_str = [secure_level]() {
+  const QString secure_level_str = [secure_level, this]() {
     switch (secure_level) {
       case 0:
         return tr("Default");
@@ -216,40 +223,66 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
     }
   }();
 
-  // Running mode string
   const QString portable_mode_str =
       portable_mode ? tr("Portable Mode") : tr("Installed Mode");
 
-  // Self-check string
   const QString self_check_str =
       self_check ? tr("Self-Check Active") : tr("Self-Check Disabled");
 
-  // GnuPG Offline Mode string
   const QString gnupg_offline_mode_str =
       gnupg_offline_mode ? tr("Active") : tr("Disabled");
 
-  // Pinentry Program Path string
   const QString pinentry_program_path_str = pinentry_program_path.isEmpty()
                                                 ? tr("Default Pinentry Program")
                                                 : pinentry_program_path;
 
-  // Add rows to form
-  status_form->addRow(tr("Security Level:"), new QLabel(secure_level_str));
-  status_form->addRow(tr("Running Mode:"), new QLabel(portable_mode_str));
-  status_form->addRow(tr("Self-Check Status:"), new QLabel(self_check_str));
+  const auto make_value_label = [this](const QString& text) {
+    auto* label = new QLabel(text, this);
+    label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    label->setWordWrap(true);
+    return label;
+  };
+
+  status_form->addRow(tr("Security Level:"),
+                      make_value_label(secure_level_str));
+  status_form->addRow(tr("Running Mode:"), make_value_label(portable_mode_str));
+  status_form->addRow(tr("Self-Check Status:"),
+                      make_value_label(self_check_str));
   status_form->addRow(tr("GnuPG Offline Mode:"),
-                      new QLabel(gnupg_offline_mode_str));
+                      make_value_label(gnupg_offline_mode_str));
   status_form->addRow(tr("Pinentry Program Path:"),
-                      new QLabel(pinentry_program_path_str));
+                      make_value_label(pinentry_program_path_str));
 
-  auto* tip_label = new QLabel(tr(
-      "Tips: The above parameters reflect how the application was started. "));
+  main_layout->addWidget(status_group);
+
+  const auto active_engines = GetGSS().AllSupportedEngines();
+
+  if (!active_engines.isEmpty()) {
+    auto* engines_group = new QGroupBox(tr("Supported OpenPGP Engines"), this);
+    auto* engines_layout = new QVBoxLayout(engines_group);
+
+    auto* engines_view = new QListView(engines_group);
+    auto* engines_model = new QStringListModel(active_engines, engines_view);
+
+    engines_view->setModel(engines_model);
+    engines_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    engines_view->setSelectionMode(QAbstractItemView::NoSelection);
+    engines_view->setFocusPolicy(Qt::NoFocus);
+    engines_view->setUniformItemSizes(true);
+
+    engines_layout->addWidget(engines_view);
+    // engines_layout->addStretch();
+    main_layout->addWidget(engines_group);
+  }
+
+  auto* tip_label = new QLabel(
+      tr("Tips: The above parameters reflect how the application was started."),
+      this);
   tip_label->setWordWrap(true);
+  tip_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
-  main_layout->addLayout(status_form);
   main_layout->addStretch();
   main_layout->addWidget(tip_label);
-  setLayout(main_layout);
 }
 
 }  // namespace GpgFrontend::UI
