@@ -140,7 +140,7 @@ class Task::Impl {
               // set task returning code
               SetRTN(rtn);
 
-#ifdef NDEBUG
+#ifdef GF_BUILD_DEBUG
               try {
                 if (callback_) {
                   callback_(rtn_, data_object_);

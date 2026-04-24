@@ -43,6 +43,13 @@ aux_source_directory(. CORE_SOURCE)
 # register core
 register_library(core LIBRARY_TARGET ${CORE_SOURCE})
 
+target_compile_definitions(${LIBRARY_TARGET} PUBLIC
+  $<$<CONFIG:Debug>:GF_BUILD_DEBUG=1>
+  $<$<CONFIG:RelWithDebInfo>:GF_BUILD_RELWITHDEBINFO=1>
+  $<$<CONFIG:Release>:GF_BUILD_RELEASE=1>
+  $<$<CONFIG:MinSizeRel>:GF_BUILD_MINSIZEREL=1>
+)
+
 # link gnupg libraries
 if(BUILD_AND_STATIC_LINK_GPGME)
   # if we need to static link gpgme
