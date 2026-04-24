@@ -43,7 +43,7 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabaseEditDialog>()),
       channel_(-1),
       key_database_infos_(std::move(key_db_infos)),
-      is_sandbox_(IsFlatpakENV() || IsRunningInAppSandbox()) {
+      is_sandbox_(IsRunningInSandBox()) {
   ui_->setupUi(this);
 
   init_ui();
@@ -147,7 +147,7 @@ void KeyDatabaseEditDialog::init_ui() {
     connect(ui_->keyDBNameLineEdit, &QLineEdit::textChanged, this,
             [this](const QString& text) -> void {
               name_ = text;
-              path_ = GetGSS().GetAppDir() + "/dbs/" + name_;
+              path_ = GetGSS().GetAppDataPath() + "/dbs/" + name_;
               ui_->keyDBPathShowLabel->setText(path_);
               ui_->keyDBPathLabel->setText(
                   tr("Key Database Path (Automatically Generated)"));
