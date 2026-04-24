@@ -44,7 +44,7 @@ use pgp::{
     packet::Signature,
     ser::Serialize,
 };
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::io::{self, BufReader, Cursor};
 
 pub struct ExtractUserId {
@@ -343,42 +343,84 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     }
 }
 
+fn split_pgp_blocks(input: &str) -> Vec<String> {
+    let mut blocks = Vec::new();
+    let mut current_block = String::new();
+    let mut in_block = false;
+
+    for line in input.lines() {
+        if line.contains("-----BEGIN PGP") {
+            in_block = true;
+            current_block.clear();
+        }
+
+        if in_block {
+            current_block.push_str(line);
+            current_block.push('\n');
+        }
+
+        if line.contains("-----END PGP") {
+            in_block = false;
+            blocks.push(current_block.clone());
+        }
+    }
+
+    blocks
+}
+
 // Main extraction function supporting multiple keys
 pub fn extract_metadata_many_internal(
     key_blocks: &str,
 ) -> Result<Vec<ExtractedMetadata>, GfrStatus> {
-    let mut results = Vec::new();
-    let mut processed_fprs = HashSet::new();
+    let mut results_map: HashMap<String, ExtractedMetadata> = HashMap::new();
 
-    // 1. Parse all available secret keys first
-    if let Ok((sk_iter, _)) = SignedSecretKey::from_string_many(key_blocks) {
-        for sk_res in sk_iter {
-            if let Ok(sk) = sk_res {
-                let metadata = build_secret_metadata(&sk);
-                // Record the fingerprint to prevent duplicate processing later
-                processed_fprs.insert(metadata.fpr.clone());
-                results.push(metadata);
-            }
-        }
+    let individual_blocks = split_pgp_blocks(key_blocks);
+
+    if individual_blocks.is_empty() {
+        return Err(GfrStatus::ErrorInvalidInput);
     }
 
-    // 2. Parse all public keys and filter out the ones already processed as secret keys
-    if let Ok((pk_iter, _)) = SignedPublicKey::from_string_many(key_blocks) {
-        for pk_res in pk_iter {
-            if let Ok(pk) = pk_res {
-                let fpr = pk.fingerprint().to_string();
+    for block in individual_blocks {
+        if let Ok((sk_iter, _)) = SignedSecretKey::from_string_many(&block) {
+            for sk_res in sk_iter {
+                if let Ok(sk) = sk_res {
+                    let fpr = sk.fingerprint().to_string();
+                    let mut metadata = build_secret_metadata(&sk);
 
-                // Skip if this key was already extracted with its secret material
-                if !processed_fprs.contains(&fpr) {
-                    let metadata = build_public_metadata(&pk);
-                    processed_fprs.insert(fpr);
-                    results.push(metadata);
+                    metadata.secret_key_block = sk.to_armored_string(ArmorOptions::default()).ok();
+
+                    let public_key = SignedPublicKey::from(sk.clone());
+                    metadata.public_key_block = public_key
+                        .to_armored_string(ArmorOptions::default())
+                        .unwrap_or_default();
+
+                    results_map.insert(fpr, metadata);
+                }
+            }
+        }
+
+        if let Ok((pk_iter, _)) = SignedPublicKey::from_string_many(&block) {
+            for pk_res in pk_iter {
+                if let Ok(pk) = pk_res {
+                    let fpr = pk.fingerprint().to_string();
+
+                    if !results_map.contains_key(&fpr) {
+                        let mut metadata = build_public_metadata(&pk);
+
+                        metadata.public_key_block = pk
+                            .to_armored_string(ArmorOptions::default())
+                            .unwrap_or_default();
+                        metadata.secret_key_block = None;
+
+                        results_map.insert(fpr, metadata);
+                    }
                 }
             }
         }
     }
 
-    // 3. If no keys were successfully parsed, return an error
+    let results: Vec<ExtractedMetadata> = results_map.into_values().collect();
+
     if results.is_empty() {
         return Err(GfrStatus::ErrorInvalidInput);
     }

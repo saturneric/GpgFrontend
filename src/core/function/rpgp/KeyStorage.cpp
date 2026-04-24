@@ -110,8 +110,7 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
   auto err = Rust::gfr_crypto_extract_metadata(
       key_block_data.data(), &out_meta_array, &out_meta_count);
   if (err != Rust::GfrStatus::Success) {
-    LOG_E() << "gfr_crypto_extract_metadata error, code: "
-            << static_cast<int>(err);
+    LOG_E() << "gfr_crypto_extract_metadata error: " << static_cast<int>(err);
     return {};
   }
 
@@ -119,46 +118,16 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
 
   for (size_t i = 0; i < out_meta_count; ++i) {
     const auto& out_metadata = out_meta_array[i];
+
     auto key = ParseGfrMetadata(out_metadata);
-    LOG_D() << "extracted key metadata, fpr: " << key.metadata.fpr
-            << ", key_id: " << key.metadata.key_id
-            << ", user_ids: " << key.metadata.user_ids.size()
-            << ", created_at: " << key.metadata.created_at
-            << ", has_secret: " << key.metadata.has_secret
-            << ", is_revoked: " << key.metadata.is_revoked
-            << ", algo: " << key.metadata.algo
-            << ", key_length: " << key.metadata.key_length
-            << ", can_sign: " << key.metadata.can_sign
-            << ", can_encrypt: " << key.metadata.can_encrypt
-            << ", can_auth: " << key.metadata.can_auth
-            << ", can_certify: " << key.metadata.can_certify
-            << ", subkeys: " << key.metadata.subkeys.size();
+
+    LOG_D() << "Extracted key: " << key.metadata.fpr
+            << " has_sk: " << key.metadata.has_secret;
     keys.push_back(key);
   }
 
+  // 3. 清理内存
   Rust::gfr_free_metadata_array(out_meta_array, out_meta_count);
-
-  for (auto& key : keys) {
-    auto meta = key.metadata;
-
-    if (meta.has_secret && key.blocks.public_key.isEmpty()) {
-      char* public_key = nullptr;
-      auto err = Rust::gfr_crypto_extract_public_key(key_block_data.data(),
-                                                     &public_key);
-
-      if (err != Rust::GfrStatus::Success) {
-        LOG_E() << "gfr_crypto_extract_public_key error, code: "
-                << static_cast<int>(err);
-        return {};
-      }
-
-      key.blocks.public_key = QString::fromUtf8(public_key);
-      Rust::gfr_crypto_free_string(public_key);
-
-    } else if (!meta.has_secret && key.blocks.public_key.isEmpty()) {
-      key.blocks.public_key = key_block_data;
-    }
-  }
 
   return keys;
 }
