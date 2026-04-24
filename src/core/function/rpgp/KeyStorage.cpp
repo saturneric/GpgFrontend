@@ -344,7 +344,7 @@ auto RefreshKeyMetaInDatabase(GFKeyDatabase& key_db, const QString& key_id)
     return disable_and_err();
   }
 
-  if (!key_db.SaveKey(final_key.metadata, final_key.blocks)) {
+  if (!key_db.SaveKey(final_key.metadata, final_key.blocks, false)) {
     LOG_E() << "failed to refresh key metadata for key with id: " << key_id;
     return disable_and_err();
   }
