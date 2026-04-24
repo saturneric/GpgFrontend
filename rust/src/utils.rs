@@ -37,17 +37,25 @@ use rsa::traits::PublicKeyParts;
 
 use crate::{
     cache::{PasswordCache, PasswordCacheKey, PasswordCachePolicy},
-    types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
+    types::{
+        GfrFreeCb, GfrKeyAlgo, GfrPassphraseState, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus,
+    },
 };
 use std::{
     ffi::{CString, c_char},
     ptr::null_mut,
 };
 
+pub struct PassphraseStateInternal {
+    pub fpr: String,
+    pub info: String,
+    pub retry: bool,
+    pub ask_for_new: bool,
+}
+
 pub fn fetch_password_internal(
     channel: i32,
-    fpr: &str,
-    info: &str,
+    state: PassphraseStateInternal,
     fetch_cb: Option<GfrPasswordFetchCb>,
     free_cb: Option<GfrFreeCb>,
 ) -> Result<Vec<u8>, GfrStatus> {
@@ -59,20 +67,21 @@ pub fn fetch_password_internal(
         return Err(GfrStatus::ErrorFetchPasswordFailed); // Password required but no callback provided
     };
 
-    let info_c = CString::new(info).unwrap_or_default();
-    let fpr_c = CString::new(fpr).unwrap_or_default();
+    let info_c = CString::new(state.info).unwrap_or_default();
+    let fpr_c = CString::new(state.fpr.to_uppercase()).unwrap_or_default();
+
+    let passphrase_state = GfrPassphraseState {
+        fpr: fpr_c.as_ptr() as *mut c_char,
+        info: info_c.as_ptr() as *mut c_char,
+        retry: state.retry,
+        ask_for_new: state.ask_for_new,
+    };
 
     let mut pwd_ptr: *mut u8 = null_mut();
 
     // If a password fetch callback is provided, use it to get the password
     // ret > 0 indicates success, and it shows the length of the password returned
-    let ret = fetch_fn(
-        channel,
-        fpr_c.as_ptr() as *const c_char,
-        info_c.as_ptr() as *const c_char,
-        &mut pwd_ptr,
-        null_mut(),
-    );
+    let ret = fetch_fn(channel, passphrase_state, &mut pwd_ptr, null_mut());
 
     // Callback indicated failure or no password provided
     if ret <= 0 || pwd_ptr.is_null() {
@@ -102,16 +111,15 @@ pub fn fetch_password_with_cache(
     cache: Option<&PasswordCache>,
     policy: PasswordCachePolicy,
     channel: i32,
-    fpr: &str,
-    info: &str,
+    state: PassphraseStateInternal,
     fetch_cb: Option<GfrPasswordFetchCb>,
     free_cb: Option<GfrFreeCb>,
 ) -> Result<Vec<u8>, GfrStatus> {
-    let fpr = fpr.to_uppercase();
+    let fpr = state.fpr.to_uppercase();
     let key = PasswordCacheKey {
         channel,
         fpr: fpr.to_string(),
-        info: info.to_string().to_uppercase(),
+        info: state.info.to_string().to_uppercase(),
     };
 
     let mut policy = policy;
@@ -128,7 +136,7 @@ pub fn fetch_password_with_cache(
                 }
             }
 
-            let pwd = fetch_password_internal(channel, &fpr, info, fetch_cb, free_cb)?;
+            let pwd = fetch_password_internal(channel, state, fetch_cb, free_cb)?;
 
             if let Some(cache) = cache {
                 cache.put(key, pwd.clone());
@@ -137,16 +145,14 @@ pub fn fetch_password_with_cache(
             Ok(pwd)
         }
 
-        PasswordCachePolicy::Bypass => {
-            fetch_password_internal(channel, &fpr, info, fetch_cb, free_cb)
-        }
+        PasswordCachePolicy::Bypass => fetch_password_internal(channel, state, fetch_cb, free_cb),
 
         PasswordCachePolicy::Refresh => {
             if let Some(cache) = cache {
                 cache.remove(&key);
             }
 
-            let pwd = fetch_password_internal(channel, &fpr, info, fetch_cb, free_cb)?;
+            let pwd = fetch_password_internal(channel, state, fetch_cb, free_cb)?;
 
             if let Some(cache) = cache {
                 cache.put(key, pwd.clone());

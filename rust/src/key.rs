@@ -31,7 +31,7 @@ use crate::err::IntoGfrResult;
 use crate::keygen::GeneratedKeys;
 use crate::types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus};
 use crate::utils::{
-    build_revocation_reason_subpacket, determine_algo, extract_key_length,
+    PassphraseStateInternal, build_revocation_reason_subpacket, determine_algo, extract_key_length,
     fetch_password_with_cache,
 };
 use pgp::armor::{self, BlockType};
@@ -521,8 +521,12 @@ fn fetch_old_and_new_passwords(
             Some(&PASSWORD_CACHE),
             PasswordCachePolicy::Default,
             channel,
-            target_fpr,
-            unlock_purpose,
+            PassphraseStateInternal {
+                fpr: target_fpr.to_string(),
+                info: unlock_purpose.to_string(),
+                retry: false,
+                ask_for_new: false,
+            },
             fetch_pwd_cb,
             free_cb,
         )?;
@@ -540,8 +544,12 @@ fn fetch_old_and_new_passwords(
         Some(&PASSWORD_CACHE),
         PasswordCachePolicy::Bypass,
         channel,
-        target_fpr,
-        new_purpose,
+        PassphraseStateInternal {
+            fpr: target_fpr.to_string(),
+            info: new_purpose.to_string(),
+            retry: false,
+            ask_for_new: true,
+        },
         fetch_pwd_cb,
         free_cb,
     )?;
@@ -745,8 +753,12 @@ pub fn revoke_subkey_internal(
             Some(&PASSWORD_CACHE),
             PasswordCachePolicy::Default,
             channel,
-            &fpr,
-            "Revoke Subkey",
+            PassphraseStateInternal {
+                fpr: fpr.clone(),
+                info: "Unlock Primary Key to revoke subkey".to_string(),
+                retry: false,
+                ask_for_new: false,
+            },
             fetch_cb,
             free_cb,
         )?
@@ -838,8 +850,12 @@ pub fn generate_key_rev_cert_internal(
             Some(&PASSWORD_CACHE),
             PasswordCachePolicy::Default,
             channel,
-            &fpr,
-            "Generate Key Revocation Certificate",
+            PassphraseStateInternal {
+                fpr: fpr.clone(),
+                info: "Generate Key Revocation Certificate".to_string(),
+                retry: false,
+                ask_for_new: false,
+            },
             fetch_cb,
             free_cb,
         )?

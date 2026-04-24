@@ -39,15 +39,20 @@ use crate::{
         GfrFreeCb, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrRecipientStatus,
         GfrSecretKeyFetchCb, GfrSignMode, GfrSignatureStatus, GfrStatus,
     },
-    utils::fetch_password_with_cache,
+    utils::{PassphraseStateInternal, fetch_password_with_cache},
 };
 use core::fmt;
 use log::debug;
 use pgp::{
-    armor::Dearmor, composed::{
+    armor::Dearmor,
+    composed::{
         ArmorOptions, CleartextSignedMessage, Deserializable, DetachedSignature, Esk, Message,
         MessageBuilder, SignedPublicKey, SignedSecretKey,
-    }, crypto::{hash::HashAlgorithm, sym::SymmetricKeyAlgorithm}, packet::{Packet, PacketParser}, ser::Serialize, types::{KeyDetails, Password, SecretParams, StringToKey}
+    },
+    crypto::{hash::HashAlgorithm, sym::SymmetricKeyAlgorithm},
+    packet::{Packet, PacketParser},
+    ser::Serialize,
+    types::{KeyDetails, Password, SecretParams, StringToKey},
 };
 use rand::thread_rng;
 use std::{
@@ -216,8 +221,12 @@ where
                 Some(&PASSWORD_CACHE),
                 PasswordCachePolicy::Default,
                 channel,
-                fpr,
-                "Signing",
+                PassphraseStateInternal {
+                    fpr: fpr.to_string(),
+                    info: "Signing".to_string(),
+                    retry: false,
+                    ask_for_new: false,
+                },
                 fetch_cb,
                 free_cb,
             )?;
@@ -570,8 +579,12 @@ where
                     Some(&PASSWORD_CACHE),
                     PasswordCachePolicy::Default,
                     channel,
-                    fpr,
-                    "Signing",
+                    PassphraseStateInternal {
+                        fpr: fpr.to_string(),
+                        info: "Unlock key for signing".to_string(),
+                        retry: false,
+                        ask_for_new: false,
+                    },
                     fetch_cb,
                     free_cb,
                 )?;
@@ -773,8 +786,12 @@ fn decrypt_message_with_password(
         Some(&PASSWORD_CACHE),
         PasswordCachePolicy::Bypass,
         channel,
-        "",
-        "Symmetric Decryption",
+        PassphraseStateInternal {
+            fpr: String::new(),
+            info: "Symmetric Decryption".to_string(),
+            retry: false,
+            ask_for_new: false,
+        },
         fetch_pwd_cb,
         free_cb,
     )?;
@@ -887,8 +904,12 @@ where
                 Some(&PASSWORD_CACHE),
                 PasswordCachePolicy::Default,
                 channel,
-                &target_fpr_for_pwd,
-                "Decryption",
+                PassphraseStateInternal {
+                    fpr: target_fpr_for_pwd.clone(),
+                    info: "Decryption".to_string(),
+                    retry: false,
+                    ask_for_new: false,
+                },
                 fetch_pwd_cb,
                 free_cb,
             )?;
@@ -1133,8 +1154,12 @@ where
         Some(&PASSWORD_CACHE),
         PasswordCachePolicy::Bypass,
         channel,
-        "",
-        "Symmetric Encryption",
+        PassphraseStateInternal {
+            fpr: String::new(),
+            info: "Symmetric Encryption".to_string(),
+            retry: false,
+            ask_for_new: false,
+        },
         fetch_pwd_cb,
         free_cb,
     )?;

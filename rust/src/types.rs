@@ -310,11 +310,19 @@ pub type GfrSecretKeyFetchCb = extern "C" fn(
 // Callback to free the memory allocated by the fetch callback.
 pub type GfrFreeCb = extern "C" fn(ptr: *mut c_void, user_data: *mut c_void);
 
+// Structure representing the state passed to the password fetch callback
+#[repr(C)]
+pub struct GfrPassphraseState {
+    pub fpr: *mut c_char,
+    pub info: *mut c_char,
+    pub retry: bool,
+    pub ask_for_new: bool,
+}
+
 // Callback to fetch a password for a given key hint (e.g., fingerprint).
 pub type GfrPasswordFetchCb = extern "C" fn(
     channel: i32,
-    fpr: *const c_char,
-    info: *const c_char,
+    state: GfrPassphraseState,
     out_pwd: *mut *mut u8,
     user_data: *mut c_void,
 ) -> i32;

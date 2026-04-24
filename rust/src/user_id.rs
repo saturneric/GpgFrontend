@@ -38,8 +38,8 @@ use crate::{
     err::IntoGfrResult,
     types::{GfrFreeCb, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
     utils::{
-        build_revocation_reason_subpacket, choose_template_self_sig, fetch_password_with_cache,
-        has_is_primary_true, is_self_signature_from_primary,
+        PassphraseStateInternal, build_revocation_reason_subpacket, choose_template_self_sig,
+        fetch_password_with_cache, has_is_primary_true, is_self_signature_from_primary,
     },
 };
 
@@ -87,8 +87,12 @@ pub fn add_user_id_internal(
             Some(&PASSWORD_CACHE),
             PasswordCachePolicy::Default,
             channel,
-            &fpr,
-            "Add User ID",
+            PassphraseStateInternal {
+                fpr,
+                info: "Add User ID".to_string(),
+                retry: false,
+                ask_for_new: false,
+            },
             fetch_cb,
             free_cb,
         )?
@@ -206,8 +210,12 @@ pub fn set_primary_user_id_internal(
             Some(&PASSWORD_CACHE),
             PasswordCachePolicy::Default,
             channel,
-            &fpr,
-            "Set Primary User ID",
+            PassphraseStateInternal {
+                fpr,
+                info: "Set Primary User ID".to_string(),
+                retry: false,
+                ask_for_new: false,
+            },
             fetch_cb,
             free_cb,
         )?
@@ -308,8 +316,12 @@ pub fn revoke_user_id_internal(
             Some(&PASSWORD_CACHE),
             PasswordCachePolicy::Default,
             channel,
-            &fpr,
-            "Revoke User ID",
+            PassphraseStateInternal {
+                fpr,
+                info: "Revoke User ID".to_string(),
+                retry: false,
+                ask_for_new: false,
+            },
             fetch_cb,
             free_cb,
         )?

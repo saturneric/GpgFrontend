@@ -30,7 +30,7 @@ use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::IntoGfrResult,
     types::{GfrFreeCb, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
-    utils::{fetch_password_with_cache, resolve_key_type},
+    utils::{PassphraseStateInternal, fetch_password_with_cache, resolve_key_type},
 };
 use log::{debug, error};
 use pgp::{
@@ -123,8 +123,12 @@ pub fn create_key_internal(
             Some(&PASSWORD_CACHE),
             PasswordCachePolicy::Refresh,
             0, // Index 0 for primary key
-            "",
-            "Generate Primary Key",
+            PassphraseStateInternal {
+                fpr: String::new(), // No fingerprint yet for a new key
+                info: "Generate Primary Key".to_string(),
+                retry: false,
+                ask_for_new: true,
+            },
             fetch_pwd_cb,
             free_cb,
         )?
@@ -138,8 +142,12 @@ pub fn create_key_internal(
             Some(&PASSWORD_CACHE),
             PasswordCachePolicy::Refresh,
             0, // Index 0 for primary key
-            "",
-            "Generate Primary Key (Confirm)",
+            PassphraseStateInternal {
+                fpr: String::new(), // No fingerprint yet for a new key
+                info: "Generate Primary Key (Confirm)".to_string(),
+                retry: false,
+                ask_for_new: true,
+            },
             fetch_pwd_cb,
             free_cb,
         )?
@@ -171,8 +179,12 @@ pub fn create_key_internal(
                 Some(&PASSWORD_CACHE),
                 PasswordCachePolicy::Refresh,
                 ((index + 1) as u32).try_into().unwrap(), // Use a different index for each subkey
-                "",
-                "Generate Subkey associated with Primary Key",
+                PassphraseStateInternal {
+                    fpr: String::new(), // No fingerprint yet for a new key
+                    info: format!("Set password for Subkey {}", index + 1),
+                    retry: false,
+                    ask_for_new: true,
+                },
                 fetch_pwd_cb,
                 free_cb,
             )?;
@@ -233,8 +245,12 @@ pub fn add_subkey_internal(
             Some(&PASSWORD_CACHE),
             PasswordCachePolicy::Refresh,
             channel,
-            &fingerprint_str,
-            "Unlock Primary Key to generate subkey",
+            PassphraseStateInternal {
+                fpr: fingerprint_str.clone(),
+                info: "Unlock Primary Key to generate subkey".to_string(),
+                retry: false,
+                ask_for_new: false,
+            },
             fetch_pwd_cb,
             free_cb,
         )?;
@@ -330,8 +346,12 @@ pub fn add_subkey_internal(
             Some(&PASSWORD_CACHE),
             PasswordCachePolicy::Refresh,
             channel,
-            "",
-            "Set password for new subkey",
+            PassphraseStateInternal {
+                fpr: String::new(),
+                info: "Set password for new subkey".to_string(),
+                retry: false,
+                ask_for_new: true,
+            },
             fetch_pwd_cb,
             free_cb,
         )?;
@@ -341,8 +361,12 @@ pub fn add_subkey_internal(
             Some(&PASSWORD_CACHE),
             PasswordCachePolicy::Refresh,
             channel,
-            "",
-            "Set password for new subkey (Confirm)",
+            PassphraseStateInternal {
+                fpr: String::new(),
+                info: "Set password for new subkey (Confirm)".to_string(),
+                retry: false,
+                ask_for_new: true,
+            },
             fetch_pwd_cb,
             free_cb,
         )?;
