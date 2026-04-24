@@ -120,6 +120,12 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
   ui_->autoFetchKeyPublishStatusCheckBox->setText(
       tr("Automatically fetch key publish status from key server."));
 
+  auto if_gnupg_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
+  if (!if_gnupg_supported) {
+    ui_->forbidALLGnuPGNetworkConnectionCheckBox->setHidden(true);
+    ui_->autoFetchKeyPublishStatusCheckBox->setHidden(true);
+  }
+
   Module::TriggerEvent(
       "NETWORK_SETTINGS_TAB_UI_CREATED",
       {

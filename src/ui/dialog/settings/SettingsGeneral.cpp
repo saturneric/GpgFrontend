@@ -30,6 +30,7 @@
 
 #include "SettingsDialog.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/utils/CommonUtils.h"
 #include "ui_GeneralSettings.h"
 
 namespace GpgFrontend::UI {
@@ -43,6 +44,13 @@ GeneralTab::GeneralTab(QWidget* parent)
 
   ui_->clearGpgPasswordCacheCheckBox->setText(
       tr("Clear gpg password cache when closing GpgFrontend."));
+
+  // Hide the "Clear gpg password cache" option if GnuPG is not supported, since
+  // this option is not useful without GnuPG and may cause confusion to users.
+  auto if_gnupg_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
+  if (!if_gnupg_supported) {
+    ui_->clearGpgPasswordCacheCheckBox->setHidden(true);
+  }
 
   ui_->modulePolicyLabel->setText(tr("Module Loading Policy:"));
   ui_->modulePolicyComboBox->addItem(tr("Only Integrated Modules"),
@@ -80,6 +88,13 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->clearAllDataObjectsButton->setText(
       tr("Clear All Data Objects (Total Size: %1)")
           .arg(GlobalSettingStation::GetInstance().GetDataObjectsFilesSize()));
+
+  // Hide the "Data" group box if running in sandbox, since the features in the
+  // "Data" group box are not useful in sandbox and may cause confusion to
+  // users.
+  if (IsRunningInSandBox()) {
+    ui_->dataBox->setHidden(true);
+  }
 
   ui_->revealInFileExplorerButton->setText(tr("Reveal in File Explorer"));
 
