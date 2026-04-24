@@ -182,7 +182,7 @@ class GlobalSettingStation::Impl {
 
 #ifdef Q_OS_MACOS
 
-#ifdef GF_BUILD_DEBUG
+#ifndef GF_BUILD_DEBUG
     return exec_binary_path + "/../PlugIns";
 #endif
 
