@@ -28,23 +28,31 @@
 
 #pragma once
 
-#include "core/function/openpgp/helper/Op.h"
-#include "core/function/openpgp/support/CommonOpSupport.h"
-
-// Engine Impl
-#include "core/function/gpg/Common.h"
-#include "core/function/rpgp/Common.h"
+#include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {
 
-GF_DEF_OP_IMPL_TRAITS(GetEngineVersionOpTag, &GetEngineVersionGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &GetEngineVersionGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &GetEngineVersionRpgpImpl});
+GF_DEF_OP_SUPPORT_TRAITS(ImportKeyOpTag, "op_import_key",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
 
-GF_DEF_OP_IMPL_TRAITS_RAW(BuildOpenPGPContextOpTag,
-                          &BuildOpenPGPContextGnuPGImpl,
-                          {OpenPGPEngine::kGNUPG,
-                           &BuildOpenPGPContextGnuPGImpl},
-                          {OpenPGPEngine::kRPGP, &BuildOpenPGPContextRpgpImpl});
+GF_DEF_OP_SUPPORT_TRAITS(ImportRevCertOpTag, "op_import_rev_cert",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
+
+GF_DEF_OP_SUPPORT_TRAITS(ExportKeysOpTag, "op_export_key",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
+
+GF_DEF_OP_SUPPORT_TRAITS(ExportKeysAsyncOpTag, "op_export_keys_async",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
+
+GF_DEF_OP_SUPPORT_TRAITS(ExportAllKeysOpTag, "op_export_all_keys",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
+
+GF_DEF_OP_SUPPORT_TRAITS(ExportSubkeyOpTag, "op_export_subkey",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"});
 
 }  // namespace GpgFrontend

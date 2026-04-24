@@ -28,23 +28,20 @@
 
 #pragma once
 
-#include "core/function/openpgp/helper/Op.h"
-#include "core/function/openpgp/support/CommonOpSupport.h"
-
-// Engine Impl
-#include "core/function/gpg/Common.h"
-#include "core/function/rpgp/Common.h"
+#include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {
 
-GF_DEF_OP_IMPL_TRAITS(GetEngineVersionOpTag, &GetEngineVersionGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &GetEngineVersionGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &GetEngineVersionRpgpImpl});
+GF_DEF_OP_SUPPORT_TRAITS(FlushKeyDatabaseOpTag, "op_flush_key_database",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
 
-GF_DEF_OP_IMPL_TRAITS_RAW(BuildOpenPGPContextOpTag,
-                          &BuildOpenPGPContextGnuPGImpl,
-                          {OpenPGPEngine::kGNUPG,
-                           &BuildOpenPGPContextGnuPGImpl},
-                          {OpenPGPEngine::kRPGP, &BuildOpenPGPContextRpgpImpl});
+GF_DEF_OP_SUPPORT_TRAITS(FlushKeyCacheOpTag, "op_flush_key_cache",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
+
+GF_DEF_OP_SUPPORT_TRAITS(GetKeyPtrOpTag, "op_get_key_ptr",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
 
 }  // namespace GpgFrontend

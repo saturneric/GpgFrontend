@@ -67,7 +67,9 @@ class OpenPGPContext::Impl {
   }
 
   auto EngineVersion() -> QString {
-    return RunRegisteredForward<GetEngineVersionOpTag>(*parent_);
+    // only check if the operation is routable, without checking if it's fully
+    // runnable, to avoid looping call.
+    return RunRegisteredRoutableForward<GetEngineVersionOpTag>(*parent_);
   }
 
   auto CommonInitialize() -> bool {

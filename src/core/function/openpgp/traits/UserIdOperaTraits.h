@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/openpgp/helper/Op.h"
+#include "core/function/openpgp/support/UserIdOperaOpSupport.h"
 
 // Engine Impl
 #include "core/function/gpg/UserIdOpera.h"
@@ -36,21 +37,20 @@
 
 namespace GpgFrontend {
 
-GF_DEF_OP_TRAITS(AddUserIdOpTag, "op_add_user_id", &AddUIDGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &AddUIDGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &AddUIDRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(AddUserIdOpTag, &AddUIDGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &AddUIDGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &AddUIDRpgpImpl});
 
-GF_DEF_OP_TRAITS(SetPrimaryUserIdOpTag, "op_set_primary_user_id",
-                 &SetPrimaryUIDGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &SetPrimaryUIDGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &SetPrimaryUIDRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(SetPrimaryUserIdOpTag, &SetPrimaryUIDGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &SetPrimaryUIDGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &SetPrimaryUIDRpgpImpl});
 
-GF_DEF_OP_TRAITS(DeleteUserIdOpTag, "op_delete_user_id", &DeleteUIDGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &DeleteUIDGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &DeleteUIDRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(DeleteUserIdOpTag, &DeleteUIDGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &DeleteUIDGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &DeleteUIDRpgpImpl});
 
-GF_DEF_OP_TRAITS(RevokeUserIdOpTag, "op_revoke_user_id", &RevokeUIDGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &RevokeUIDGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &RevokeUIDRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(RevokeUserIdOpTag, &RevokeUIDGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &RevokeUIDGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &RevokeUIDRpgpImpl});
 
 }  // namespace GpgFrontend

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/openpgp/helper/Op.h"
+#include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 
 // Engine Impl
 #include "core/function/gpg/KeyGenerate.h"
@@ -36,18 +37,16 @@
 
 namespace GpgFrontend {
 
-GF_DEF_OP_TRAITS(GenerateKeyTag, "op_generate_key", &GenerateKeyGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &GenerateKeyGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &GenerateKeyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(GenerateKeyTag, &GenerateKeyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &GenerateKeyGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &GenerateKeyRpgpImpl});
 
-GF_DEF_OP_TRAITS(GenerateSubKeyTag, "op_generate_subkey",
-                 &GenerateSubKeyGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &GenerateSubKeyGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &GenerateSubKeyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(GenerateSubKeyTag, &GenerateSubKeyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &GenerateSubKeyGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &GenerateSubKeyRpgpImpl});
 
-GF_DEF_OP_TRAITS(GenerateKeyWithSubKeyTag, "op_generate_key_with_subkey",
-                 &GenerateKeyWithSubkeyGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &GenerateKeyWithSubkeyGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &GenerateKeyWithSubkeyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(GenerateKeyWithSubKeyTag, &GenerateKeyWithSubkeyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &GenerateKeyWithSubkeyGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &GenerateKeyWithSubkeyRpgpImpl});
 
 }  // namespace GpgFrontend

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/openpgp/helper/Op.h"
+#include "core/function/openpgp/support/KeyManagementOpSupport.h"
 
 // Engine Impl
 #include "core/function/gpg/KeyManagement.h"
@@ -36,50 +37,39 @@
 
 namespace GpgFrontend {
 
-GF_DEF_OP_TRAITS(DeleteKeysOpTag, "op_delete_keys", &DeleteKeysGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &DeleteKeysGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &DeleteKeysRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(DeleteKeysOpTag, &DeleteKeysGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &DeleteKeysGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &DeleteKeysRpgpImpl});
 
-GF_DEF_OP_TRAITS(ModifyKeyPassphraseOpTag, "op_modify_key_passphrase",
-                 &ModifyKeyPassphraseGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &ModifyKeyPassphraseGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &ModifyKeyPassphraseRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(ModifyKeyPassphraseOpTag, &ModifyKeyPassphraseGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &ModifyKeyPassphraseGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &ModifyKeyPassphraseRpgpImpl});
 
-GF_DEF_OP_TRAITS(SetExpireOpTag, "op_set_expire", &SetExpireGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &SetExpireGnuPGImpl});
+GF_DEF_OP_IMPL_TRAITS(SetExpireOpTag, &SetExpireGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &SetExpireGnuPGImpl});
 
-GF_DEF_OP_TRAITS(GenerateRevCertOpTag, "op_generate_rev_cert",
-                 &GenerateRevCertGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &GenerateRevCertGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &GenerateRevCertRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(GenerateRevCertOpTag, &GenerateRevCertGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &GenerateRevCertGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &GenerateRevCertRpgpImpl});
 
-GF_DEF_OP_TRAITS(RevokeSubKeyOpTag, "op_revoke_subkey", &RevokeSubKeyGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &RevokeSubKeyGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &RevokeSubKeyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(RevokeSubKeyOpTag, &RevokeSubKeyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &RevokeSubKeyGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &RevokeSubKeyRpgpImpl});
 
-GF_DEF_OP_TRAITS(DeleteSubKeyOpTag, "op_delete_subkey", &DeleteSubKeyGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &DeleteSubKeyGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &DeleteSubKeyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(DeleteSubKeyOpTag, &DeleteSubKeyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &DeleteSubKeyGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &DeleteSubKeyRpgpImpl});
 
-inline auto AddADSKVersions() -> const QContainer<EngineSupportIf>& {
-  static const QContainer<EngineSupportIf> kVersions = {
-      {OpenPGPEngine::kGNUPG, "2.4.1"}};
-  return kVersions;
-}
-
-GF_DEF_OP_TRAITS_PLUS(AddADSKOpTag, "op_add_adsk", &AddADSKGnuPGIImpl,
-                      AddADSKVersions,
+GF_DEF_OP_IMPL_TRAITS(AddADSKOpTag, &AddADSKGnuPGIImpl,
                       {OpenPGPEngine::kGNUPG, &AddADSKGnuPGIImpl});
 
-GF_DEF_OP_TRAITS(SignKeyOpTag, "op_sign_key", &SignKeyGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &SignKeyGnuPGImpl});
+GF_DEF_OP_IMPL_TRAITS(SignKeyOpTag, &SignKeyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &SignKeyGnuPGImpl});
 
-GF_DEF_OP_TRAITS(RevKeySignatureOpTag, "op_rev_key_signature",
-                 &RevKeySignatureGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &RevKeySignatureGnuPGImpl});
+GF_DEF_OP_IMPL_TRAITS(RevKeySignatureOpTag, &RevKeySignatureGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &RevKeySignatureGnuPGImpl});
 
-GF_DEF_OP_TRAITS(SetOwnerTrustLevelOpTag, "op_set_owner_trust_level",
-                 &SetOwnerTrustLevelGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &SetOwnerTrustLevelGnuPGImpl});
+GF_DEF_OP_IMPL_TRAITS(SetOwnerTrustLevelOpTag, &SetOwnerTrustLevelGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &SetOwnerTrustLevelGnuPGImpl});
 
 }  // namespace GpgFrontend

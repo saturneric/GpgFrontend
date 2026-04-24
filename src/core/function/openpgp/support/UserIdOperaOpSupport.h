@@ -28,23 +28,24 @@
 
 #pragma once
 
-#include "core/function/openpgp/helper/Op.h"
-#include "core/function/openpgp/support/CommonOpSupport.h"
-
-// Engine Impl
-#include "core/function/gpg/Common.h"
-#include "core/function/rpgp/Common.h"
+#include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {
 
-GF_DEF_OP_IMPL_TRAITS(GetEngineVersionOpTag, &GetEngineVersionGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &GetEngineVersionGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &GetEngineVersionRpgpImpl});
+GF_DEF_OP_SUPPORT_TRAITS(AddUserIdOpTag, "op_add_user_id",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
 
-GF_DEF_OP_IMPL_TRAITS_RAW(BuildOpenPGPContextOpTag,
-                          &BuildOpenPGPContextGnuPGImpl,
-                          {OpenPGPEngine::kGNUPG,
-                           &BuildOpenPGPContextGnuPGImpl},
-                          {OpenPGPEngine::kRPGP, &BuildOpenPGPContextRpgpImpl});
+GF_DEF_OP_SUPPORT_TRAITS(SetPrimaryUserIdOpTag, "op_set_primary_user_id",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
+
+GF_DEF_OP_SUPPORT_TRAITS(DeleteUserIdOpTag, "op_delete_user_id",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
+
+GF_DEF_OP_SUPPORT_TRAITS(RevokeUserIdOpTag, "op_revoke_user_id",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
 
 }  // namespace GpgFrontend

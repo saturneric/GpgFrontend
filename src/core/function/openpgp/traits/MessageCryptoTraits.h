@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/openpgp/helper/Op.h"
+#include "core/function/openpgp/support/MessageCryptoOpSupport.h"
 
 // Engine Impl
 #include "core/function/gpg/MessageCryptoOperation.h"
@@ -36,34 +37,32 @@
 
 namespace GpgFrontend {
 
-GF_DEF_OP_TRAITS(EncryptOpTag, "op_encrypt", &EncryptGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &EncryptGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &EncryptRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(EncryptOpTag, &EncryptGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &EncryptGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &EncryptRpgpImpl});
 
-GF_DEF_OP_TRAITS(EncryptSymmetricOpTag, "op_encrypt_symmetric",
-                 &EncryptSymmetricGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &EncryptSymmetricGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &EncryptSymmetricRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(EncryptSymmetricOpTag, &EncryptSymmetricGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &EncryptSymmetricGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &EncryptSymmetricRpgpImpl});
 
-GF_DEF_OP_TRAITS(DecryptOpTag, "op_decrypt", &DecryptGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &DecryptGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &DecryptRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(DecryptOpTag, &DecryptGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &DecryptGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &DecryptRpgpImpl});
 
-GF_DEF_OP_TRAITS(VerifyOpTag, "op_verify", &VerifyGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &VerifyGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &VerifyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(VerifyOpTag, &VerifyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &VerifyGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &VerifyRpgpImpl});
 
-GF_DEF_OP_TRAITS(SignOpTag, "op_sign", &SignGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &SignGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &SignRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(SignOpTag, &SignGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &SignGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &SignRpgpImpl});
 
-GF_DEF_OP_TRAITS(EncryptSignOpTag, "op_encrypt_sign", &EncryptSignGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &EncryptSignGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &EncryptSignRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(EncryptSignOpTag, &EncryptSignGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &EncryptSignGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &EncryptSignRpgpImpl});
 
-GF_DEF_OP_TRAITS(DecryptVerifyOpTag, "op_decrypt_verify",
-                 &DecryptVerifyGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &DecryptVerifyGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &DecryptVerifyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(DecryptVerifyOpTag, &DecryptVerifyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &DecryptVerifyGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &DecryptVerifyRpgpImpl});
 
 }  // namespace GpgFrontend

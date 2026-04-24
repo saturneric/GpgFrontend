@@ -28,23 +28,16 @@
 
 #pragma once
 
-#include "core/function/openpgp/helper/Op.h"
-#include "core/function/openpgp/support/CommonOpSupport.h"
-
-// Engine Impl
-#include "core/function/gpg/Common.h"
-#include "core/function/rpgp/Common.h"
+#include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {
 
-GF_DEF_OP_IMPL_TRAITS(GetEngineVersionOpTag, &GetEngineVersionGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &GetEngineVersionGnuPGImpl},
-                      {OpenPGPEngine::kRPGP, &GetEngineVersionRpgpImpl});
+GF_DEF_OP_SUPPORT_TRAITS(GetEngineVersionOpTag, "op_get_engine_version",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
 
-GF_DEF_OP_IMPL_TRAITS_RAW(BuildOpenPGPContextOpTag,
-                          &BuildOpenPGPContextGnuPGImpl,
-                          {OpenPGPEngine::kGNUPG,
-                           &BuildOpenPGPContextGnuPGImpl},
-                          {OpenPGPEngine::kRPGP, &BuildOpenPGPContextRpgpImpl});
+GF_DEF_OP_SUPPORT_TRAITS(BuildOpenPGPContextOpTag, "op_build_openpgp_context",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
 
 }  // namespace GpgFrontend

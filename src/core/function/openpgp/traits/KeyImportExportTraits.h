@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/openpgp/helper/Op.h"
+#include "core/function/openpgp/support/KeyImportExportOpSupport.h"
 
 // Engine Impl
 #include "core/function/gpg/KeyImportExport.h"
@@ -36,29 +37,27 @@
 
 namespace GpgFrontend {
 
-GF_DEF_OP_TRAITS(ImportKeyOpTag, "op_import_key", &ImportKeyGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &ImportKeyGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &ImportKeyRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(ImportKeyOpTag, &ImportKeyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &ImportKeyGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &ImportKeyRpgpImpl});
 
-GF_DEF_OP_TRAITS(ImportRevCertOpTag, "op_import_rev_cert", &ImportKeyGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &ImportKeyGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &ImportRevCertRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(ImportRevCertOpTag, &ImportKeyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &ImportKeyGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &ImportRevCertRpgpImpl});
 
-GF_DEF_OP_TRAITS(ExportKeysOpTag, "op_export_key", &ExportKeysGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &ExportKeysGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &ExportKeysRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(ExportKeysOpTag, &ExportKeysGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &ExportKeysGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &ExportKeysRpgpImpl});
 
-GF_DEF_OP_TRAITS(ExportKeysAsyncOpTag, "op_export_keys_async",
-                 &ExportKeysAsyncGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &ExportKeysAsyncGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &ExportKeysAsyncRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(ExportKeysAsyncOpTag, &ExportKeysAsyncGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &ExportKeysAsyncGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &ExportKeysAsyncRpgpImpl});
 
-GF_DEF_OP_TRAITS(ExportAllKeysOpTag, "op_export_all_keys",
-                 &ExportAllKeysGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &ExportAllKeysGnuPGImpl},
-                 {OpenPGPEngine::kRPGP, &ExportAllKeysRpgpImpl});
+GF_DEF_OP_IMPL_TRAITS(ExportAllKeysOpTag, &ExportAllKeysGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &ExportAllKeysGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &ExportAllKeysRpgpImpl});
 
-GF_DEF_OP_TRAITS(ExportSubkeyOpTag, "op_export_subkey", &ExportSubkeyGnuPGImpl,
-                 {OpenPGPEngine::kGNUPG, &ExportSubkeyGnuPGImpl});
+GF_DEF_OP_IMPL_TRAITS(ExportSubkeyOpTag, &ExportSubkeyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &ExportSubkeyGnuPGImpl});
 
 }  // namespace GpgFrontend
