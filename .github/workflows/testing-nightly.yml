@@ -291,10 +291,11 @@ jobs:
             cp ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile ${{github.workspace}}/build/package/GpgFrontend.app/Contents/embedded.provisionprofile
           fi
 
-          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite -s "${{env.CODE_SIGNING_IDENTITY}}"
+          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite -codesign="${{env.CODE_SIGNING_IDENTITY}}"
 
-          # Sign the app bundle. If sandboxing is enabled, we need to add the entitlements flag to the codesign command.
-          if [ "${{ env.SANDBOX_CMAKE_FLAG }}" != "" ]; then
+          # Sign the app bundle. If sandboxing is enabled, we need to add the
+          # entitlements flag to the codesign command.
+          if [ "${{ matrix.sandbox }}" = "ON" ]; then
             ENTITLEMENTS_FLAG="--entitlements ${{github.workspace}}/resource/entitlements/GpgFrontend.entitlements"
           else
             ENTITLEMENTS_FLAG=""
@@ -322,7 +323,7 @@ jobs:
         run: |
           mkdir ${{github.workspace}}/build/upload-artifact
           productbuild --component ${{github.workspace}}/build/package/GpgFrontend.app /Applications \
-            --sign "${{secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY}}" \
+            --sign "${{env.CODE_SIGNING_IDENTITY}}" \
             ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.pkg
           echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
