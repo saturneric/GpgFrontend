@@ -50,6 +50,12 @@ target_compile_definitions(${LIBRARY_TARGET} PUBLIC
   $<$<CONFIG:MinSizeRel>:GF_BUILD_MINSIZEREL=1>
 )
 
+if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
+  target_compile_definitions(gf_core PUBLIC
+    $<$<BOOL:${ENABLE_MACOS_SANDBOX}>:GF_MACOS_SANDBOX_BUILD=1>
+  )
+endif()
+
 # link gnupg libraries
 if(BUILD_AND_STATIC_LINK_GPGME)
   # if we need to static link gpgme

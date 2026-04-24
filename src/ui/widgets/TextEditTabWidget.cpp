@@ -34,6 +34,7 @@
 #include "core/model/CacheObject.h"
 #include "core/model/GFBuffer.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/widgets/FilePage.h"
@@ -271,10 +272,17 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
 }
 
 void TextEditTabWidget::SlotOpenDefaultPath() {
-  const auto home_path_as_file_panel_default_path =
+  auto home_path_as_file_panel_default_path =
       GetSettings()
           .value("basic/home_path_as_file_panel_default_path", true)
           .toBool();
+
+  // In macOS sandbox, we should always use home path as default path for file
+  // panel, otherwise the file dialog will open in a directory in the sandbox
+  // with no files, which is not a good user experience.
+  if (IsRunningInMacOSSandbox()) {
+    home_path_as_file_panel_default_path = true;
+  }
 
   auto* page =
       new FilePage(qobject_cast<QWidget*>(parent()),

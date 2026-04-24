@@ -85,4 +85,15 @@ auto HasRustSupport() -> bool {
   return false
 #endif
 }
+
+auto GF_CORE_EXPORT IsRunningInMacOSSandbox() -> bool {
+  // This is a simple heuristic check. In the future, we might want to
+  // check for specific environment variables or other indicators of the
+  // sandbox.
+#ifdef GF_MACOS_SANDBOX_BUILD
+  return true;
+#else
+  return false;
+#endif
+}
 };  // namespace GpgFrontend
