@@ -92,7 +92,7 @@ auto MergeGFKeyRpgpImpl(const QContainer<GFKey>& gf_keys, bool secret)
     QString res_armored;
     if (secret && (out_sec != nullptr) && strlen(out_sec) > 0) {
       res_armored = QString::fromUtf8(out_sec);
-    } else if (out_pub && strlen(out_pub) > 0) {
+    } else if ((out_pub != nullptr) && strlen(out_pub) > 0) {
       res_armored = QString::fromUtf8(out_pub);
     }
 

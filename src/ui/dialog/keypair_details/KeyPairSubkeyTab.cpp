@@ -394,8 +394,8 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   export_subkey_button_->setText(s_key.IsHasCertCap() ? tr("Export Primary Key")
                                                       : tr("Export Subkey"));
   export_subkey_button_->setDisabled(
-      !key_->IsPrivateKey() || s_key.IsHasCertCap() || !s_key.IsSecretKey() ||
-      !if_export_subkey_supported);
+      !key_->IsPrivateKey() || s_key.IsHasCertCap() || !s_key.IsSecretKey());
+  export_subkey_button_->setHidden(!if_export_subkey_supported);
 
   key_type_var_label_->setText(s_key.IsHasCertCap() ? tr("Primary Key")
                                                     : tr("Subkey"));
