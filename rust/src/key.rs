@@ -554,6 +554,22 @@ fn fetch_old_and_new_passwords(
         free_cb,
     )?;
 
+    // confirm the new password works before applying it to avoid
+    // accidentally mistyping and ending up with a key that can't be unlocked anymore.
+    fetch_password_with_cache(
+        Some(&PASSWORD_CACHE),
+        PasswordCachePolicy::Bypass,
+        channel,
+        PassphraseStateInternal {
+            fpr: target_fpr.to_string(),
+            info: "Confirm the new password".to_string(),
+            retry: false,
+            ask_for_new: true,
+        },
+        fetch_pwd_cb,
+        free_cb,
+    )?;
+
     if new_pwd_bytes.is_empty() {
         return Err(GfrStatus::ErrorFetchPasswordFailed);
     }
