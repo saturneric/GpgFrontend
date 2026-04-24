@@ -30,28 +30,38 @@
 
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/typedef/CoreTypedef.h"
-#include "ui/dialog/GeneralDialog.h"
 
-class Ui_GnuPGControllerDialog;
+class Ui_KeyDatabasesSettings;
 
 namespace GpgFrontend::UI {
-class GnuPGControllerDialog : public GeneralDialog {
+class KeyList;
+
+/**
+ * @brief
+ *
+ */
+class KeyDatabasesTab : public QWidget {
   Q_OBJECT
+
  public:
   /**
    * @brief Construct a new General Tab object
    *
    * @param parent
    */
-  explicit GnuPGControllerDialog(QWidget* parent = nullptr);
+  explicit KeyDatabasesTab(QWidget* parent = nullptr);
 
- public slots:
+  /**
+   * @brief Set the Settings object
+   *
+   */
+  void SetSettings();
 
   /**
    * @brief
    *
    */
-  void SlotAccept();
+  void ApplySettings();
 
  signals:
 
@@ -60,56 +70,69 @@ class GnuPGControllerDialog : public GeneralDialog {
    *
    * @param needed
    */
-  void SignalRestartNeeded(int);
+  void SignalDeepRestartNeeded();
 
- private slots:
-
+ protected:
   /**
    * @brief
    *
-   * @param needed
+   * @param event
    */
-  void slot_set_restart_needed(int);
-
-  /**
-   * @brief
-   *
-   */
-  void slot_update_custom_gnupg_install_path_label(int state);
+  void contextMenuEvent(QContextMenuEvent* event) override;
 
  private:
-  QSharedPointer<Ui_GnuPGControllerDialog> ui_;  ///<
+  QSharedPointer<Ui_KeyDatabasesSettings> ui_;  ///<
+  QMenu* popup_menu_{};
   const QString app_path_;
-  int restart_mode_{0};  ///<
-  QString custom_key_database_path_;
-  QString custom_gnupg_path_;
-
-  /**
-   * @brief Get the Restart Needed object
-   *
-   * @return true
-   * @return false
-   */
-  [[nodiscard]] auto get_restart_needed() const -> int;
-
-  /**
-   * @brief Set the settings object
-   *
-   */
-  void set_settings();
+  QContainer<KeyDatabaseInfo> active_key_db_infos_;
+  QContainer<KeyDatabaseInfo> key_db_infos_;
 
   /**
    * @brief
    *
    */
-  void apply_settings();
+  void slot_refresh_key_database_table();
 
   /**
    * @brief
    *
-   * @return true
-   * @return false
    */
-  auto check_custom_gnupg_path(const QString& path) -> bool;
+  void slot_open_key_database();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_move_up_key_database();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_move_to_top_key_database();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_move_down_key_database();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_edit_key_database();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_add_new_key_database();
+
+  /**
+   * @brief
+   *
+   */
+  void slot_remove_existing_key_database();
 };
 }  // namespace GpgFrontend::UI

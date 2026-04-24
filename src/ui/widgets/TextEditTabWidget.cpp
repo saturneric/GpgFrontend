@@ -288,6 +288,8 @@ void TextEditTabWidget::SlotOpenDefaultPath() {
   // panel, otherwise the file dialog will open in a directory in the sandbox
   // with no files, which is not a good user experience.
   if (IsRunningInMacOSSandbox()) {
+    LOG_D() << "Running in macOS sandbox, using home path as default path for "
+               "file panel.";
     home_path_as_file_panel_default_path = true;
     default_path =
         QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);

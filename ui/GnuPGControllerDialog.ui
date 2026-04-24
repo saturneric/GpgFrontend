@@ -31,13 +31,6 @@
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_7">
              <item>
-              <widget class="QCheckBox" name="asciiModeCheckBox">
-               <property name="text">
-                <string>Use Binary Mode for File Operations</string>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QCheckBox" name="gpgmeDebugLogCheckBox">
                <property name="text">
                 <string>Enable GpgME Debug Log</string>
@@ -58,67 +51,15 @@
          <item>
           <spacer name="verticalSpacer">
            <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
+            <enum>Qt::Vertical</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>20</width>
-             <height>40</height>
+             <width>40</width>
+             <height>20</height>
             </size>
            </property>
           </spacer>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="tab_2">
-        <attribute name="title">
-         <string>Key Database</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_4">
-         <item>
-          <widget class="QTableWidget" name="keyDatabaseTable">
-           <property name="editTriggers">
-            <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
-           </property>
-           <property name="dragEnabled">
-            <bool>false</bool>
-           </property>
-           <property name="dragDropOverwriteMode">
-            <bool>false</bool>
-           </property>
-           <property name="dragDropMode">
-            <enum>QAbstractItemView::DragDropMode::NoDragDrop</enum>
-           </property>
-           <property name="defaultDropAction">
-            <enum>Qt::DropAction::IgnoreAction</enum>
-           </property>
-           <property name="selectionMode">
-            <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
-           </property>
-           <property name="selectionBehavior">
-            <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
-           </property>
-           <property name="columnCount">
-            <number>2</number>
-           </property>
-           <column>
-            <property name="text">
-             <string>Name</string>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>Path</string>
-            </property>
-           </column>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="addNewKeyDatabaseButton">
-           <property name="text">
-            <string>Add New Key Database</string>
-           </property>
-          </widget>
          </item>
         </layout>
        </widget>
@@ -165,12 +106,12 @@
          <item>
           <spacer name="verticalSpacer_2">
            <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
+            <enum>Qt::Vertical</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>20</width>
-             <height>40</height>
+             <width>40</width>
+             <height>20</height>
             </size>
            </property>
           </spacer>
@@ -188,80 +129,14 @@
      </item>
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
-       <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
-       </property>
        <property name="standardButtons">
-        <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+        <set>QDialogButtonBox::NoButton</set>
        </property>
       </widget>
      </item>
     </layout>
    </item>
   </layout>
-  <action name="actionRemove_Selected_Key_Database">
-   <property name="text">
-    <string>Remove</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionOpen_Key_Database">
-   <property name="text">
-    <string>Open</string>
-   </property>
-   <property name="toolTip">
-    <string>Open Key database by System File Expolrer</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionMove_Key_Database_To_Top">
-   <property name="text">
-    <string>Move To Top</string>
-   </property>
-   <property name="toolTip">
-    <string>Move this Key Database Item to the top of the list</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionMove_Key_Database_Up">
-   <property name="text">
-    <string>Move Up</string>
-   </property>
-   <property name="toolTip">
-    <string>Move this Key Database Item up</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionEdit_Key_Database">
-   <property name="text">
-    <string>Edit</string>
-   </property>
-   <property name="toolTip">
-    <string>Edit this Key Database Item</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionMove_Key_Database_Down">
-   <property name="text">
-    <string>Move Down</string>
-   </property>
-   <property name="toolTip">
-    <string>Move this Key Database Item down</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
  </widget>
  <resources/>
  <connections>

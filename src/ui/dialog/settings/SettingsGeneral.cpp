@@ -69,15 +69,14 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->importConfirmationCheckBox->setText(
       tr("Import files dropped on the Key List without confirmation."));
 
+  ui_->asciiModeCheckBox->setText(tr("Use Binary Mode for File Operations"));
+
   ui_->langBox->setTitle(tr("Language"));
   ui_->langNoteLabel->setText(
       "<b>" + tr("NOTE") + tr(": ") + "</b>" +
       tr("GpgFrontend will restart automatically if you change the language!"));
 
   ui_->dataBox->setTitle(tr("Data"));
-  ui_->clearAllLogFilesButton->setText(
-      tr("Clear All Log (Total Size: %1)")
-          .arg(GlobalSettingStation::GetInstance().GetLogFilesSize()));
   ui_->clearAllDataObjectsButton->setText(
       tr("Clear All Data Objects (Total Size: %1)")
           .arg(GlobalSettingStation::GetInstance().GetDataObjectsFilesSize()));
@@ -90,13 +89,6 @@ GeneralTab::GeneralTab(QWidget* parent)
   }
   connect(ui_->langSelectBox, qOverload<int>(&QComboBox::currentIndexChanged),
           this, &GeneralTab::SignalRestartNeeded);
-
-  connect(ui_->clearAllLogFilesButton, &QPushButton::clicked, this, [=]() {
-    GlobalSettingStation::GetInstance().ClearAllLogFiles();
-    ui_->clearAllLogFilesButton->setText(
-        tr("Clear All Log (Total Size: %1)")
-            .arg(GlobalSettingStation::GetInstance().GetLogFilesSize()));
-  });
 
   connect(ui_->clearAllDataObjectsButton, &QPushButton::clicked, this, [=]() {
     QMessageBox::StandardButton reply;
@@ -132,7 +124,6 @@ void GeneralTab::SetSettings() {
   } else {
     ui_->textEditorRadioButton->setChecked(true);
   }
-
   auto home_path_as_file_panel_default_path =
       settings.value("basic/home_path_as_file_panel_default_path", true)
           .toBool();
@@ -170,6 +161,12 @@ void GeneralTab::SetSettings() {
     ui_->modulePolicyComboBox->findData("only_integrated");
   }
 
+  auto non_ascii_at_file_operation =
+      settings.value("gnupg/non_ascii_at_file_operation", true).toBool();
+  if (non_ascii_at_file_operation) {
+    ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
+  }
+
   auto lang_key = settings.value("basic/lang").toString();
   auto lang_value = lang_.value(lang_key);
   if (!lang_.empty()) {
@@ -198,6 +195,8 @@ void GeneralTab::ApplySettings() {
   settings.setValue("basic/lang", lang_.key(ui_->langSelectBox->currentText()));
   settings.setValue("basic/module_loading_policy",
                     ui_->modulePolicyComboBox->currentData().toString());
+  settings.setValue("gnupg/non_ascii_at_file_operation",
+                    ui_->asciiModeCheckBox->isChecked());
 }
 
 }  // namespace GpgFrontend::UI

@@ -31,6 +31,7 @@
 #include "core/GpgConstants.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
+#include "ui/dialog/settings/SettingsKeyDatabases.h"
 #include "ui/dialog/settings/SettingsNetwork.h"
 #include "ui/main_window/MainWindow.h"
 
@@ -42,6 +43,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   general_tab_ = new GeneralTab();
   appearance_tab_ = new AppearanceTab();
   network_tab_ = new NetworkTab();
+  key_dbs_tab_ = new KeyDatabasesTab();
 
   auto* main_layout = new QVBoxLayout();
   main_layout->addWidget(tab_widget_);
@@ -50,6 +52,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   tab_widget_->addTab(general_tab_, tr("General"));
   tab_widget_->addTab(appearance_tab_, tr("Appearance"));
   tab_widget_->addTab(network_tab_, tr("Network"));
+  tab_widget_->addTab(key_dbs_tab_, tr("Key Databases"));
 
 #ifdef Q_OS_MACOS
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
@@ -79,6 +82,9 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   // restart core and ui
   connect(appearance_tab_, &AppearanceTab::SignalRestartNeeded, this,
           &SettingsDialog::slot_declare_a_restart);
+
+  connect(key_dbs_tab_, &KeyDatabasesTab::SignalDeepRestartNeeded, this,
+          &SettingsDialog::slot_declare_a_deep_restart);
 
   // announce main window
   connect(this, &SettingsDialog::SignalRestartNeeded,

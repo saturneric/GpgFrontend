@@ -111,6 +111,13 @@
             </property>
            </widget>
           </item>
+          <item>
+           <widget class="QCheckBox" name="asciiModeCheckBox">
+            <property name="text">
+             <string>Use Binary Mode for File Operations</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
@@ -155,13 +162,6 @@
            <widget class="QPushButton" name="revealInFileExplorerButton">
             <property name="text">
              <string>Reveal in File Explorer</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="clearAllLogFilesButton">
-            <property name="text">
-             <string>Clear All Log Files</string>
             </property>
            </widget>
           </item>

@@ -36,6 +36,7 @@ class GeneralTab;
 class AppearanceTab;
 class KeyserverTab;
 class NetworkTab;
+class KeyDatabasesTab;
 
 /**
  * @brief
@@ -56,6 +57,7 @@ class SettingsDialog : public GeneralDialog {
   AppearanceTab* appearance_tab_;  ///<
   KeyserverTab* key_server_tab_;   ///<
   NetworkTab* network_tab_;        ///<
+  KeyDatabasesTab* key_dbs_tab_;   ///<
 
   /**
    * @brief
