@@ -78,11 +78,11 @@ if(XCODE_BUILD)
   if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
     message(STATUS "Build Application With App Sandbox")
     set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
-    set(APP_ENTITLEMENTS_FILE "${CMAKE_SOURCE_DIR}/resource/entitlements/GpgFrontend.entitlements")
+    set(APP_ENTITLEMENTS_FILE "${CMAKE_SOURCE_DIR}/resource/entitlements/Sandbox.entitlements")
   else()
     message(STATUS "Build Application Without App Sandbox")
     set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "No")
-    set(APP_ENTITLEMENTS_FILE "${CMAKE_SOURCE_DIR}/resource/plist/entitlement.plist")
+    set(APP_ENTITLEMENTS_FILE "${CMAKE_SOURCE_DIR}/resource/entitlements/Normal.entitlements")
   endif()
 
   set_target_properties(${APP_NAME} PROPERTIES
