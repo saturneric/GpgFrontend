@@ -162,7 +162,7 @@ void LogViewDialog::slot_copy_to_clipboard() {
 void LogViewDialog::slot_save_to_file() {
   const QString file_path = QFileDialog::getSaveFileName(
       this, tr("Save Logs"),
-      QString("logs_%1.txt")
+      QString("gf_logs_%1.txt")
           .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss")),
       tr("Text Files (*.txt);;All Files (*)"));
 
