@@ -27,6 +27,7 @@
  */
 
 #include "MainWindow.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
@@ -460,9 +461,13 @@ void MainWindow::create_menus() {
   advance_menu_->addAction(reload_components_act_);
   advance_menu_->addAction(restart_components_act_);
   advance_menu_->addSeparator();
-  advance_menu_->addAction(gnupg_controller_open_act_);
+  // Only show GnuPG Controller and Smart Card Controller if GnuPG is supported,
+  // since they are not useful for other engines.
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+    advance_menu_->addAction(gnupg_controller_open_act_);
+    advance_menu_->addAction(smart_card_controller_open_act_);
+  }
   advance_menu_->addAction(module_controller_open_act_);
-  advance_menu_->addAction(smart_card_controller_open_act_);
 
   view_menu_ = menuBar()->addMenu(tr("View"));
 
