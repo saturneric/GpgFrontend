@@ -58,9 +58,15 @@ KeyNewUIDDialog::KeyNewUIDDialog(int channel, GpgKeyPtr key, QWidget* parent)
   grid_layout->addWidget(comment_, 2, 1);
 
   grid_layout->addWidget(create_button_, 3, 0, 1, 2);
-  grid_layout->addWidget(
-      new QLabel(tr("Notice: The New UID Created will be set as Primary.")), 4,
-      0, 1, 2);
+
+  auto engine =
+      OpenPGPContext::GetInstance(current_gpg_context_channel_).Engine();
+  if (engine == OpenPGPEngine::kGNUPG) {
+    grid_layout->addWidget(
+        new QLabel(tr("Notice: The New UID Created will be set as Primary.")),
+        4, 0, 1, 2);
+  }
+
   grid_layout->addWidget(error_label_, 5, 0, 1, 2);
 
   connect(create_button_, &QPushButton::clicked, this,
