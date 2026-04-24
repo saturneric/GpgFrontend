@@ -29,7 +29,6 @@
 #pragma once
 
 #include "core/function/KeyPackageOperator.h"
-#include "core/model/GFBuffer.h"
 #include "core/typedef/GpgTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
 

@@ -28,6 +28,8 @@
 
 #include "PassphraseGenerator.h"
 
+#include "core/function/GlobalSettingStation.h"
+
 namespace GpgFrontend {
 
 auto PassphraseGenerator::Generate(int len) -> GFBufferOrNone {
@@ -36,10 +38,38 @@ auto PassphraseGenerator::Generate(int len) -> GFBufferOrNone {
       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
       "abcdefghijklmnopqrstuvwxyz"};
 
-  auto buffer = rand_.GnuPGGenerate(len);
-  if (!buffer || buffer->Empty() || buffer->Size() < static_cast<size_t>(len)) {
-    LOG_E() << "generate random bytes failed, len: " << len;
-    return {};
+  GFBufferOrNone buffer;
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+    buffer = rand_.GnuPGGenerate(len);
+    if (!buffer || buffer->Empty() ||
+        buffer->Size() < static_cast<size_t>(len)) {
+      LOG_E() << "generate random bytes using gnupg failed, len: " << len;
+    }
+  }
+
+  if (!buffer) {
+    LOG_W() << "generate random bytes using gnupg failed, fallback to openssl, "
+               "len: "
+            << len;
+    buffer = SecureRandomGenerator::OpenSSLGenerate(len);
+    if (!buffer || buffer->Empty() ||
+        buffer->Size() < static_cast<size_t>(len)) {
+      LOG_E() << "generate random bytes using openssl failed, len: " << len;
+    }
+  }
+
+  // fallback to qt random generator, which is not cryptographically secure, but
+  // better than nothing
+  if (!buffer) {
+    LOG_W() << "generate random bytes using gnupg and openssl failed, fallback "
+               "to qt random generator, len: "
+            << len;
+    QByteArray random_bytes(len, 0);
+    for (int i = 0; i < len; ++i) {
+      auto byte = QRandomGenerator::global()->bounded(-65535, 65535);
+      random_bytes[i] = static_cast<char>(byte & 0xFF);
+    }
+    buffer = GFBuffer(random_bytes);
   }
 
   GFBuffer result(len);
