@@ -277,17 +277,20 @@ void TextEditTabWidget::SlotOpenDefaultPath() {
           .value("basic/home_path_as_file_panel_default_path", true)
           .toBool();
 
+  auto default_path = home_path_as_file_panel_default_path
+                          ? QDir::homePath()
+                          : QDir::currentPath();
+
   // In macOS sandbox, we should always use home path as default path for file
   // panel, otherwise the file dialog will open in a directory in the sandbox
   // with no files, which is not a good user experience.
   if (IsRunningInMacOSSandbox()) {
     home_path_as_file_panel_default_path = true;
+    default_path =
+        QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
   }
 
-  auto* page =
-      new FilePage(qobject_cast<QWidget*>(parent()),
-                   home_path_as_file_panel_default_path ? QDir::homePath()
-                                                        : QDir::currentPath());
+  auto* page = new FilePage(qobject_cast<QWidget*>(parent()), default_path);
   page->setProperty("type", "file");
 
   auto index = this->addTab(page, QString());

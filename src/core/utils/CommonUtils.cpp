@@ -29,7 +29,6 @@
 #include "CommonUtils.h"
 
 #include "core/module/ModuleManager.h"
-#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
