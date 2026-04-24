@@ -44,6 +44,9 @@ GF_DEF_OP_SUPPORT_TRAITS(ExportKeysOpTag, "op_export_key",
                          {OpenPGPEngine::kGNUPG, "2.2.0"},
                          {OpenPGPEngine::kRPGP, "0.1.0"});
 
+GF_DEF_OP_SUPPORT_TRAITS(ExportKeyAsOpenSSHFormatOpTag, "op_export_as_ssh_key",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"});
+
 GF_DEF_OP_SUPPORT_TRAITS(ExportKeysAsyncOpTag, "op_export_keys_async",
                          {OpenPGPEngine::kGNUPG, "2.2.0"},
                          {OpenPGPEngine::kRPGP, "0.1.0"});

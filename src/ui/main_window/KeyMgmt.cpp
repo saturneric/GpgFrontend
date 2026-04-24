@@ -34,6 +34,7 @@
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
+#include "core/function/openpgp/support/KeyImportExportOpSupport.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/module/ModuleManager.h"
@@ -229,10 +230,15 @@ void KeyMgmt::create_actions() {
   connect(export_key_to_file_act_, &QAction::triggered, this,
           &KeyMgmt::SlotExportKeyToKeyPackage);
 
+  auto if_export_as_ssh_supported =
+      IsOpSupported<ExportKeyAsOpenSSHFormatOpTag>(
+          key_list_->GetCurrentGpgContextChannel());
+
   export_key_as_open_ssh_format_ = new QAction(tr("Export As OpenSSH"), this);
   export_key_as_open_ssh_format_->setIcon(QIcon(":/icons/ssh-key.png"));
   export_key_as_open_ssh_format_->setToolTip(
       tr("Export Checked Key As OpenSSH Format to File"));
+  export_key_as_open_ssh_format_->setVisible(if_export_as_ssh_supported);
   connect(export_key_as_open_ssh_format_, &QAction::triggered, this,
           &KeyMgmt::SlotExportAsOpenSSHFormat);
 

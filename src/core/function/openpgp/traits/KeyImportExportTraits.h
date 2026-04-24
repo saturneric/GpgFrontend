@@ -49,6 +49,9 @@ GF_DEF_OP_IMPL_TRAITS(ExportKeysOpTag, &ExportKeysGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &ExportKeysGnuPGImpl},
                       {OpenPGPEngine::kRPGP, &ExportKeysRpgpImpl});
 
+GF_DEF_OP_IMPL_TRAITS(ExportKeyAsOpenSSHFormatOpTag, &ExportKeysGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &ExportKeysGnuPGImpl});
+
 GF_DEF_OP_IMPL_TRAITS(ExportKeysAsyncOpTag, &ExportKeysAsyncGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &ExportKeysAsyncGnuPGImpl},
                       {OpenPGPEngine::kRPGP, &ExportKeysAsyncRpgpImpl});
