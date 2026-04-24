@@ -84,8 +84,12 @@ void KeyDatabaseEditDialog::init_ui() {
   }
 
   ui_->keyDBBackendTypeComboBox->clear();
-  ui_->keyDBBackendTypeComboBox->addItem("GnuPG", "GNUPG");
-  ui_->keyDBBackendTypeComboBox->addItem("rPGP", "RPGP");
+
+  auto engines = GetGSS().AllSupportedEngines();W
+  for (const auto& engine : engines) {
+    ui_->keyDBBackendTypeComboBox->addItem(engine, engine.toUpper());
+  }
+
   if (channel_ != -1) {
     auto backend_types = OpenPGPContext::GetInstance(channel_).Engine();
     ui_->keyDBBackendTypeComboBox->setCurrentIndex(
