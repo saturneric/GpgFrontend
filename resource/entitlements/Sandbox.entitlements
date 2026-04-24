@@ -14,7 +14,7 @@
     </array>
 
     <key>com.apple.security.app-sandbox</key>
-    <false/>
+    <true/>
 
     <key>com.apple.security.files.user-selected.read-write</key>
     <true/>
