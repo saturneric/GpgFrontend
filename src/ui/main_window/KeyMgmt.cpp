@@ -34,6 +34,7 @@
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
+#include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -630,6 +631,10 @@ void KeyMgmt::slot_popup_menu_by_key_list(QContextMenuEvent* event,
 
   auto keys = key_table->GetSelectedKeys();
   if (keys.isEmpty()) return;
+
+  auto if_owner_trust_level_supported = IsOpSupported<SetOwnerTrustLevelOpTag>(
+      key_list_->GetCurrentGpgContextChannel());
+  set_owner_trust_of_key_act_->setVisible(if_owner_trust_level_supported);
 
   const auto& key = keys.front();
   generate_subkey_act_->setVisible(

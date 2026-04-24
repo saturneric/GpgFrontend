@@ -31,6 +31,7 @@
 #include <algorithm>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
@@ -305,6 +306,10 @@ void MainWindow::slot_popup_menu_by_key_list(QContextMenuEvent* event,
     remove_key_from_favourtie_act_->setVisible(false);
     add_key_2_favourite_act_->setVisible(true);
   }
+
+  auto if_owner_trust_level_supported = IsOpSupported<SetOwnerTrustLevelOpTag>(
+      m_key_list_->GetCurrentGpgContextChannel());
+  set_owner_trust_of_key_act_->setVisible(if_owner_trust_level_supported);
 
   popup_menu_->popup(event->globalPos());
 }
