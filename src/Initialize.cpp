@@ -253,25 +253,39 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
 
   if (ctx->unit_test_mode || kill_all_gnupg_daemon_at_close) {
     for (const auto &channel : OpenPGPContext::GetAllChannelId()) {
+      auto &ctx = OpenPGPContext::GetInstance(channel);
+      if (ctx.Engine() != OpenPGPEngine::kGNUPG) continue;
+
       GpgAdvancedOperator::GetInstance(channel).KillAllGpgComponents();
     }
   } else if (clear_gpg_password_cache) {
     for (const auto &channel : OpenPGPContext::GetAllChannelId()) {
+      auto &ctx = OpenPGPContext::GetInstance(channel);
+      if (ctx.Engine() != OpenPGPEngine::kGNUPG) continue;
+
       GpgAdvancedOperator::GetInstance(channel).ClearGpgPasswordCache();
     }
   }
 
 #endif
 
+  qDebug() << "GpgFrontend is shutting down...";
+
   // first should shutdown the module system
   GpgFrontend::Module::ShutdownGpgFrontendModules();
+
+  qDebug() << "GpgFrontend modules shutdown completed.";
 
   // then shutdown the core
   GpgFrontend::DestroyGpgFrontendCore();
 
+  qInfo() << "GpgFrontend exited normally.";
+
   // deep restart mode
   if (ctx->rtn == GpgFrontend::kDeepRestartCode ||
       ctx->rtn == GpgFrontend::kCrashCode) {
+    qInfo() << "relaunching application with deep restart mode, code: "
+            << ctx->rtn;
     QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
   };
 }
