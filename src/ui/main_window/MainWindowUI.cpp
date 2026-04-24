@@ -556,17 +556,16 @@ void MainWindow::create_tool_bars() {
 }
 
 void MainWindow::create_status_bar() {
+  // Show the current OpenPGP engine and version in the status bar
+  engine_status_label_ = new QLabel(this);
+  engine_status_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  engine_status_label_->setToolTip(tr("Current OpenPGP backend and version"));
+
+  statusBar()->addPermanentWidget(engine_status_label_);
+
   auto* status_bar_box = new QWidget();
   auto* status_bar_box_layout = new QHBoxLayout();
-  // QPixmap* pixmap;
 
-  // icon which should be shown if there are files in attachments-folder
-  //  pixmap = new QPixmap(":/icons/statusbar_icon.png");
-  //  statusBarIcon = new QLabel();
-  //  statusBar()->addWidget(statusBarIcon);
-  //
-  //  statusBarIcon->setPixmap(*pixmap);
-  //  statusBar()->insertPermanentWidget(0, statusBarIcon, 0);
   statusBar()->showMessage(tr("Ready"), 2000);
   status_bar_box->setLayout(status_bar_box_layout);
 }

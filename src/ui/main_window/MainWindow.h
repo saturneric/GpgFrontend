@@ -612,6 +612,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* show_log_view_act_{};              ///<
 
   QLabel* status_bar_icon_{};  ///<
+  QLabel* engine_status_label_ = nullptr;
 
   KeyList* m_key_list_{};          ///<
   InfoBoardWidget* info_board_{};  ///<
@@ -772,6 +773,12 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    *
    */
   auto slot_show_log_view() -> void;
+
+  /**
+   * @brief
+   *
+   */
+  void slot_update_engine_status();
 };
 
 }  // namespace GpgFrontend::UI

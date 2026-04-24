@@ -417,6 +417,8 @@ void TextEditTabWidget::SlotRestoreTextEditorsCache() {
 
     const auto title = json["title"].toString();
     const auto base64_content = json["content"].toString();
+    auto type = json["type"].toString();
+    type = type.trimmed().toLower();
 
     auto encrypted_content =
         GFBufferFactory::FromBase64(GFBuffer(base64_content));

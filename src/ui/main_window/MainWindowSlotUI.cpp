@@ -30,6 +30,7 @@
 #include "core/GpgConstants.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/SettingsObject.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/LogViewDialog.h"
 #include "ui/dialog/Wizard.h"
@@ -409,6 +410,22 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
   }
 
   slot_update_crypto_operations_menu(operations_menu_mask_ & mask & temp);
+}
+
+void MainWindow::slot_update_engine_status() {
+  auto& ctx =
+      OpenPGPContext::GetInstance(m_key_list_->GetCurrentGpgContextChannel());
+
+  const auto engine = ctx.Engine();
+
+  auto engine_name = ConvertOpenPGPEngine2String(engine);
+  auto version = ctx.EngineVersion();
+  if (version.isEmpty()) {
+    engine_status_label_->setText(tr("Engine: %1").arg(engine_name));
+  } else {
+    engine_status_label_->setText(
+        tr("Engine: %1 %2").arg(engine_name, version));
+  }
 }
 
 }  // namespace GpgFrontend::UI

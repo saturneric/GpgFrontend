@@ -294,7 +294,12 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   load_easy_profile_config();
 
   QString info_text;
-  info_text += (tr("GnuPG Version: %1") + "\n\n").arg(GnuPGVersion());
+
+  auto& ctx = OpenPGPContext::GetInstance(channel_);
+
+  info_text += (tr("%1 Version: %2") + "\n\n")
+                   .arg(ConvertOpenPGPEngine2String(ctx.Engine()))
+                   .arg(ctx.EngineVersion());
 
   info_text +=
       tr("If subkey is specified, it will be generated together with the "

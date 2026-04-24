@@ -162,6 +162,8 @@ void MainWindow::Init() noexcept {
 
     connect(m_key_list_, &KeyList::SignalRequestContextMenu, this,
             &MainWindow::slot_popup_menu_by_key_list);
+    connect(m_key_list_, &KeyList::SignalRefreshDatabase, this,
+            [=]() { slot_update_engine_status(); });
 
     restore_settings();
 
@@ -176,6 +178,9 @@ void MainWindow::Init() noexcept {
 
     // check if there are invalid key databases and notify user
     check_and_notify_invalid_key_dbs();
+
+    // update the OpenPGP engine status in the status bar
+    slot_update_engine_status();
 
     // loading process is done
     emit SignalLoaded();
