@@ -55,7 +55,9 @@ auto TaskRunnerGetter::GetTaskRunner(TaskRunnerType runner_type)
 
 void TaskRunnerGetter::StopAllTeakRunner() {
   for (const auto& [key, value] : task_runners_) {
+    LOG_D() << "Stopping task runner: " << static_cast<int>(key);
     if (value->IsRunning()) {
+      LOG_D() << "Task runner is running, stopping it...";
       value->Stop();
     }
   }

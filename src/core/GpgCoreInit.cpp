@@ -755,11 +755,15 @@ void StartMonitorCoreInitializationStatus() {
 
 void DestroyGpgFrontendCore() {
   // stop all task runner
+  qDebug() << "Stopping all task runner...";
   Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
+
+  qDebug() << "Flushing all cache storage...";
 
   CacheManager::GetInstance().FlushCacheStorage();
 
   // destroy all singleton objects
+  qDebug() << "Destroying all singleton objects...";
   SingletonStorageCollection::Destroy();
 }
 

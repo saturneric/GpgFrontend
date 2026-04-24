@@ -45,7 +45,10 @@ class TaskRunner::Impl : public QThread {
     task->setParent(nullptr);
     task->moveToThread(this);
 
-    task->SafelyRun();
+    // use queued connection to ensure the task will be executed in the thread's
+    // event loop
+    QMetaObject::invokeMethod(
+        task, [task]() -> void { task->SafelyRun(); }, Qt::QueuedConnection);
   }
 
   auto RegisterTask(const QString& name, const Task::TaskRunnable& runnable,
@@ -130,7 +133,9 @@ void TaskRunner::Start() { p_->start(); }
 
 void TaskRunner::Stop() {
   p_->quit();
-  p_->wait();
+  if (!p_->wait(3000)) {
+    LOG_W() << "TaskRunner stop timeout";
+  }
 }
 
 auto TaskRunner::GetThread() -> QThread* { return p_.get(); }
