@@ -34,7 +34,7 @@
 #include "core/model/CacheObject.h"
 #include "core/model/GFBuffer.h"
 #include "core/module/ModuleManager.h"
-#include "core/utils/BuildInfoUtils.h"
+#include "core/utils/CommonUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/widgets/FilePage.h"
@@ -287,7 +287,7 @@ void TextEditTabWidget::SlotOpenDefaultPath() {
   // In macOS sandbox, we should always use home path as default path for file
   // panel, otherwise the file dialog will open in a directory in the sandbox
   // with no files, which is not a good user experience.
-  if (IsRunningInMacOSSandbox()) {
+  if (IsRunningInAppSandbox()) {
     LOG_D() << "Running in macOS sandbox, using home path as default path for "
                "file panel.";
     home_path_as_file_panel_default_path = true;

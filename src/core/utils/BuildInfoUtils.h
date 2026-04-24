@@ -149,13 +149,4 @@ auto GF_CORE_EXPORT IsCheckReleaseCommitHash() -> bool;
  * @return auto
  */
 auto GF_CORE_EXPORT HasRustSupport() -> bool;
-
-/**
- * @brief
- *
- * @return true
- * @return false
- */
-auto GF_CORE_EXPORT IsRunningInMacOSSandbox() -> bool;
-
 }  // namespace GpgFrontend

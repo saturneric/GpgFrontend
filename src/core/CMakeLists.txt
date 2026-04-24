@@ -51,9 +51,8 @@ target_compile_definitions(${LIBRARY_TARGET} PUBLIC
 )
 
 if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
-  target_compile_definitions(${LIBRARY_TARGET} PUBLIC
-    $<$<BOOL:${ENABLE_MACOS_SANDBOX}>:GF_MACOS_SANDBOX_BUILD=1>
-  )
+  message(STATUS "Enabling macOS sandbox for Xcode build")
+  target_link_libraries(${LIBRARY_TARGET} PRIVATE "-framework Security")
 endif()
 
 # link gnupg libraries

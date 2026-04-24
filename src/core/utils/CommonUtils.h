@@ -90,6 +90,14 @@ auto GF_CORE_EXPORT IsAppImageENV() -> bool;
 /**
  * @brief
  *
+ * @return true
+ * @return false
+ */
+auto GF_CORE_EXPORT IsRunningInAppSandbox() -> bool;
+
+/**
+ * @brief
+ *
  * @param s
  * @return int
  */
