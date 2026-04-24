@@ -113,6 +113,10 @@ else()
   set(USE_SYSTEM_OPENSSL 0)
 endif()
 
+if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
+  set(APPLE_SANDBOX 1)
+endif()
+
 # C++
 
 # options for ccache
@@ -277,6 +281,9 @@ if(APPLE)
     set(XCODE_CODE_SIGN_IDENTITY "\"${XCODE_CODE_SIGN_IDENTITY}\"")
     message(STATUS "XCODE_CODE_SIGN_IDENTITY ${XCODE_CODE_SIGN_IDENTITY}")
 
+    # For macOS sandbox, we need to define APPLE_SANDBOX for the source code to
+    # conditionally compile the code related to sandbox, and we also need to
+    # link the Security framework for the sandbox entitlements.
     if(APPLE_SANDBOX)
       add_compile_definitions(APPLE_SANDBOX)
     endif()

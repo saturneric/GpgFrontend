@@ -50,7 +50,7 @@ target_compile_definitions(${LIBRARY_TARGET} PUBLIC
   $<$<CONFIG:MinSizeRel>:GF_BUILD_MINSIZEREL=1>
 )
 
-if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
+if(APPLE_SANDBOX)
   message(STATUS "Enabling macOS sandbox for Xcode build")
   target_link_libraries(${LIBRARY_TARGET} PRIVATE "-framework Security")
 endif()

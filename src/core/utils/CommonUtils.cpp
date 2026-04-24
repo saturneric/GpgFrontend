@@ -138,7 +138,7 @@ auto IsCoreEnvInitialized() -> bool {
   return Module::RetrieveRTValueTypedOrDefault("core", "env.state.ctx", 0) == 1;
 }
 
-#ifdef __APPLE__
+#ifdef APPLE_SANDBOX
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <Security/Security.h>
