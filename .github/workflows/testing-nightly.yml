@@ -128,6 +128,13 @@ jobs:
 
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+
+          # copy the provisioning profile to the repository root for later use,
+          # because the sandboxing feature requires the provisioning profile to
+          # be embedded in the app bundle.
+          if [ "${{ matrix.sandbox }}" = "ON" ]; then
+            cp $PP_PATH ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile
+          else
         if: runner.os == 'macOS'
 
       - name: Install Qt6
@@ -274,6 +281,14 @@ jobs:
 
       - name: Deploy Qt & Code Sign (macOS)
         run: |
+
+          # Copy the provisioning profile to the app bundle if sandboxing is
+          # enabled, because the sandboxing feature requires the provisioning
+          # profile to be embedded in the app bundle.
+          if [ "${{ matrix.sandbox }}" = "ON" ]; then
+            cp ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile ${{github.workspace}}/build/package/GpgFrontend.app/Contents/embedded.provisionprofile
+          fi
+
           macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
 
           # Sign the app bundle. If sandboxing is enabled, we need to add the entitlements flag to the codesign command.
