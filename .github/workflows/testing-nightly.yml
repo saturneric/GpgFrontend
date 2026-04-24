@@ -509,6 +509,13 @@ jobs:
           pattern: gpgfrontend-*
           merge-multiple: true
 
+      - name: Ignore Non-Artifact Files
+        run: |
+          # Remove MAS specific .pkg files if they exist, since they are not
+          # needed for the release and we only want to keep the main artifacts
+          # (dmg, AppImage, zip).
+          find artifacts/ -type f ! -name '*.pkg' -delete
+
       - name: Generate SHA256 checksums
         run: |
           sha256sum artifacts/* > artifacts/SHA256SUMS.txt
