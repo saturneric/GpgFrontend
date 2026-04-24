@@ -208,8 +208,6 @@ auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
   auto qs_armored = QString::fromUtf8(out_armored_string);
   Rust::gfr_crypto_free_string(out_armored_string);
 
-  LOG_D() << "exported armored string: " << qs_armored;
-
   return {GPG_ERR_NO_ERROR, GFBuffer(qs_armored)};
 }
 
