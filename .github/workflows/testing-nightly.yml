@@ -73,7 +73,7 @@ jobs:
           if [ "${{ matrix.sandbox }}" = "ON" ]; then
             echo "OS_IDENTIFIER=${{ matrix.os }}-sandbox" >> $GITHUB_ENV
             echo "SANDBOX_CMAKE_FLAG=-DGPGFRONTEND_XCODE_ENABLE_SANDBOX=ON" >> $GITHUB_ENV
-            echo "CODE_SIGNING_IDENTITY=${{secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
+            echo "CODE_SIGNING_IDENTITY=${{secrets.MAS_APPLICATION_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
           else
             echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
             echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
@@ -118,13 +118,15 @@ jobs:
 
           # Import the certificates and provisioning profile into the keychain
           echo -n "${{secrets.MACOS_CERTIFICATE}}" | base64 --decode -o $APP_CERT_PATH
-          echo -n "${{secrets.MAS_INSTALLER_CERT}}" | base64 --decode -o $INSTALLER_CERT_PATH
+          echo -n "${{secrets.MAS_INSTALLER_CERT}}" | base64 --decode -o $MAS_INSTALLER_CERT_PATH
+          echo -n "${{secrets.MAS_APPLICATION_CERT}}" | base64 --decode -o $MAS_APP_CERT_PATH
 
           security create-keychain -p gpgfrontend build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p gpgfrontend build.keychain
           security import $APP_CERT_PATH -k build.keychain -P ${{secrets.MAOS_CERTIFICATE_PWD}} -T /usr/bin/codesign
-          security import $INSTALLER_CERT_PATH -k build.keychain -P ${{secrets.MAS_INSTALLER_CERT_PWD}} -T /usr/bin/productbuild
+          security import $MAS_INSTALLER_CERT_PATH -k build.keychain -P ${{secrets.MAS_INSTALLER_CERT_PWD}} -T /usr/bin/productbuild
+          security import $MAS_APP_CERT_PATH -k build.keychain -P ${{secrets.MAS_APPLICATION_CERT_PWD}} -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
           security set-keychain-settings -lut 3600
 
@@ -291,6 +293,8 @@ jobs:
             cp ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile ${{github.workspace}}/build/package/GpgFrontend.app/Contents/embedded.provisionprofile
           fi
 
+          # Use macdeployqt to deploy the Qt frameworks and plugins, and sign
+          # the app bundle in one step.
           macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite -codesign="${{env.CODE_SIGNING_IDENTITY}}"
 
           # Sign the app bundle. If sandboxing is enabled, we need to add the
@@ -323,7 +327,7 @@ jobs:
         run: |
           mkdir ${{github.workspace}}/build/upload-artifact
           productbuild --component ${{github.workspace}}/build/package/GpgFrontend.app /Applications \
-            --sign "${{env.CODE_SIGNING_IDENTITY}}" \
+            --sign "${{secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY}}" \
             ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.pkg
           echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
           echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
