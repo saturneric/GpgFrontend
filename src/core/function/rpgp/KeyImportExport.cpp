@@ -34,6 +34,7 @@
 
 namespace GpgFrontend {
 
+namespace {
 auto MergeGFKeyRpgpImpl(const QContainer<GFKey>& gf_keys, bool secret)
     -> std::optional<GFKey> {
   if (gf_keys.empty()) {
@@ -41,114 +42,80 @@ auto MergeGFKeyRpgpImpl(const QContainer<GFKey>& gf_keys, bool secret)
     return std::nullopt;
   }
 
-  QContainer<QByteArray> armored_key_blocks;
+  QContainer<QByteArray> blocks_to_merge;
+  bool has_any_secret = false;
+
   for (const auto& gf_key : gf_keys) {
-    if (gf_key.metadata.fpr.isEmpty()) {
-      LOG_E() << "skipping key with empty fingerprint";
-      continue;
+    if (gf_key.metadata.fpr.isEmpty()) continue;
+
+    QByteArray block;
+    if (!gf_key.blocks.secret_key.isEmpty()) {
+      block = gf_key.blocks.secret_key.toUtf8();
+      has_any_secret = true;
+    } else if (!gf_key.blocks.public_key.isEmpty()) {
+      block = gf_key.blocks.public_key.toUtf8();
     }
 
-    if (secret) {
-      if (!gf_key.metadata.has_secret) {
-        LOG_E() << "skipping key without secret key block: "
-                << gf_key.metadata.fpr;
-        continue;
-      }
-
-      if (gf_key.blocks.secret_key.isEmpty()) {
-        LOG_E() << "skipping key with empty secret key block: "
-                << gf_key.metadata.fpr;
-        continue;
-      }
-
-      armored_key_blocks.push_back(gf_key.blocks.secret_key.toUtf8());
-      continue;
+    if (!block.isEmpty()) {
+      blocks_to_merge.push_back(block);
     }
-
-    if (gf_key.blocks.public_key.isEmpty()) {
-      LOG_E() << "skipping key with empty public key block: "
-              << gf_key.metadata.fpr;
-      continue;
-    }
-    armored_key_blocks.push_back(gf_key.blocks.public_key.toUtf8());
   }
 
-  if (armored_key_blocks.empty()) {
-    LOG_E() << "no valid key blocks found for merging";
+  if (secret && !has_any_secret) {
+    LOG_E() << "secret merge requested but no secret blocks provided";
     return std::nullopt;
   }
 
-  if (armored_key_blocks.size() == 1) {
-    auto pd_gf_keys = GetGFKeysFromKeyBlock(GFBuffer(armored_key_blocks[0]));
-    if (pd_gf_keys.empty()) {
-      LOG_E() << "failed to extract any keys from the provided key block";
-      return std::nullopt;
-    }
-
-    if (pd_gf_keys.size() > 1) {
-      LOG_W() << "multiple keys extracted from single key block, returning the "
-                 "first one. count: "
-              << pd_gf_keys.size();
-    }
-
-    return pd_gf_keys.front();
+  if (blocks_to_merge.empty()) {
+    return std::nullopt;
   }
 
-  std::vector<char*> key_block_ptrs;
-  for (const auto& block : armored_key_blocks) {
-    key_block_ptrs.push_back(const_cast<char*>(block.data()));
-  }
+  QByteArray current_merged_block = blocks_to_merge.front();
 
-  char* out_pub = nullptr;
-  char* out_sec = nullptr;
+  for (size_t i = 1; i < static_cast<size_t>(blocks_to_merge.size()); ++i) {
+    char* out_sec = nullptr;
+    char* out_pub = nullptr;
 
-  for (size_t idx = 1; idx < static_cast<size_t>(armored_key_blocks.size());
-       ++idx) {
-    auto* base_block_ptrs = key_block_ptrs[idx - 1];
-    auto* incoming_block_ptr = key_block_ptrs[idx];
     auto err = Rust::gfr_crypto_merge_key_blocks(
-        base_block_ptrs, incoming_block_ptr, &out_sec, &out_pub);
+        current_merged_block.constData(),  // base
+        blocks_to_merge[i].constData(),    // incoming
+        &out_sec, &out_pub);
 
     if (err != Rust::GfrStatus::Success) {
-      LOG_E() << "gfr_export_merged_keys error, code: "
-              << static_cast<int>(err);
+      LOG_E() << "Merge failed at index " << i
+              << " code: " << static_cast<int>(err);
+      if (out_sec != nullptr) Rust::gfr_crypto_free_string(out_sec);
+      if (out_pub != nullptr) Rust::gfr_crypto_free_string(out_pub);
       return std::nullopt;
     }
 
-    auto qs_armored = QString::fromUtf8(out_pub);
-    Rust::gfr_crypto_free_string(out_pub);
+    QString res_armored;
+    if (secret && (out_sec != nullptr) && strlen(out_sec) > 0) {
+      res_armored = QString::fromUtf8(out_sec);
+    } else if (out_pub && strlen(out_pub) > 0) {
+      res_armored = QString::fromUtf8(out_pub);
+    }
 
-    auto qs_sec_armored = QString::fromUtf8(out_sec);
-    Rust::gfr_crypto_free_string(out_sec);
+    if (out_sec != nullptr) Rust::gfr_crypto_free_string(out_sec);
+    if (out_pub != nullptr) Rust::gfr_crypto_free_string(out_pub);
 
-    if (secret && !qs_sec_armored.isEmpty()) {
-      armored_key_blocks[idx] = qs_sec_armored.toUtf8();
-    } else if (!secret && !qs_armored.isEmpty()) {
-      armored_key_blocks[idx] = qs_armored.toUtf8();
-    } else {
-      LOG_E() << "merged armored string is empty after merging block index "
-              << idx;
+    if (res_armored.isEmpty()) {
+      LOG_E() << "Merge resulted in empty string at index " << i;
       return std::nullopt;
     }
 
-    LOG_D() << "merged armored string: " << qs_armored;
+    current_merged_block = res_armored.toUtf8();
   }
 
-  auto final_gf_keys =
-      GetGFKeysFromKeyBlock(GFBuffer(armored_key_blocks.back()));
+  auto final_gf_keys = GetGFKeysFromKeyBlock(GFBuffer(current_merged_block));
   if (final_gf_keys.empty()) {
-    LOG_E() << "failed to extract any keys from the merged key block";
+    LOG_E() << "failed to parse final merged key block";
     return std::nullopt;
-  }
-
-  if (final_gf_keys.size() > 1) {
-    LOG_W() << "multiple keys extracted from merged key block, returning the "
-               "first one. count: "
-            << final_gf_keys.size();
   }
 
   return final_gf_keys.front();
 }
+}  // namespace
 
 auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     -> QSharedPointer<GpgImportInformation> {
@@ -175,8 +142,9 @@ auto ImportKeyRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     if (db_gf_key) {
       LOG_I() << "key with fpr: " << pd_gf_key.metadata.fpr
               << " already exists in database, merging with the imported key";
-      final_gf_key = MergeGFKeyRpgpImpl({pd_gf_key, *db_gf_key},
-                                        pd_gf_key.metadata.has_secret);
+      final_gf_key = MergeGFKeyRpgpImpl(
+          {pd_gf_key, *db_gf_key},
+          pd_gf_key.metadata.has_secret || db_gf_key->metadata.has_secret);
     } else {
       final_gf_key = pd_gf_key;
     }

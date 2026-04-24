@@ -1082,80 +1082,100 @@ pub fn merge_key_block_internal(
     base_block: &str,
     incoming_block: &str,
 ) -> Result<GeneratedKeys, GfrStatus> {
-    if let Ok((mut base_sk, _)) = SignedSecretKey::from_string(base_block) {
-        if let Ok((incoming_sk, _)) = SignedSecretKey::from_string(incoming_block) {
-            if base_sk.fingerprint() != incoming_sk.fingerprint() {
+    let base_sk = SignedSecretKey::from_string(base_block).ok();
+    let base_pk = SignedPublicKey::from_string(base_block).ok();
+    let inc_sk = SignedSecretKey::from_string(incoming_block).ok();
+    let inc_pk = SignedPublicKey::from_string(incoming_block).ok();
+
+    match (base_sk, inc_sk) {
+        (Some((mut target_sk, _)), Some((other_sk, _))) => {
+            if target_sk.fingerprint() != other_sk.fingerprint() {
                 return Err(GfrStatus::ErrorInvalidInput);
             }
-
-            merge_key_components(
-                &mut base_sk.details.direct_signatures,
-                &mut base_sk.details.revocation_signatures,
-                &mut base_sk.details.users,
-                &incoming_sk.details.direct_signatures,
-                &incoming_sk.details.revocation_signatures,
-                &incoming_sk.details.users,
-            )?;
-
-            return export_secret_key(base_sk);
+            merge_sk_into_sk(&mut target_sk, &other_sk)?;
+            export_secret_key(target_sk)
         }
 
-        if let Ok((incoming_pk, _)) = SignedPublicKey::from_string(incoming_block) {
-            if base_sk.fingerprint() != incoming_pk.fingerprint() {
-                return Err(GfrStatus::ErrorInvalidInput);
-            }
-
-            merge_key_components(
-                &mut base_sk.details.direct_signatures,
-                &mut base_sk.details.revocation_signatures,
-                &mut base_sk.details.users,
-                &incoming_pk.details.direct_signatures,
-                &incoming_pk.details.revocation_signatures,
-                &incoming_pk.details.users,
-            )?;
-
-            for incoming_sub in &incoming_pk.public_subkeys {
-                let incoming_fpr = incoming_sub.key.fingerprint().to_string();
-                if let Some(dst_sub) = base_sk
-                    .secret_subkeys
-                    .iter_mut()
-                    .find(|s| s.key.fingerprint().to_string() == incoming_fpr)
-                {
-                    merge_signatures(&mut dst_sub.signatures, &incoming_sub.signatures)?;
+        (Some((mut target_sk, _)), None) => {
+            if let Some((other_pk, _)) = inc_pk {
+                if target_sk.fingerprint() != other_pk.fingerprint() {
+                    return Err(GfrStatus::ErrorInvalidInput);
                 }
+                merge_pk_into_sk(&mut target_sk, &other_pk)?;
             }
-            return export_secret_key(base_sk);
-        }
-        return Err(GfrStatus::ErrorInvalidInput);
-    }
-
-    if let Ok((mut base_pk, _)) = SignedPublicKey::from_string(base_block) {
-        let incoming_pk = if let Ok((sk, _)) = SignedSecretKey::from_string(incoming_block) {
-            SignedPublicKey::from(sk)
-        } else if let Ok((pk, _)) = SignedPublicKey::from_string(incoming_block) {
-            pk
-        } else {
-            return Err(GfrStatus::ErrorInvalidInput);
-        };
-
-        if base_pk.fingerprint() != incoming_pk.fingerprint() {
-            return Err(GfrStatus::ErrorInvalidInput);
+            export_secret_key(target_sk)
         }
 
-        merge_key_components(
-            &mut base_pk.details.direct_signatures,
-            &mut base_pk.details.revocation_signatures,
-            &mut base_pk.details.users,
-            &incoming_pk.details.direct_signatures,
-            &incoming_pk.details.revocation_signatures,
-            &incoming_pk.details.users,
-        )?;
-        merge_public_subkeys(&mut base_pk.public_subkeys, &incoming_pk.public_subkeys)?;
+        (None, Some((mut target_sk, _))) => {
+            if let Some((other_pk, _)) = base_pk {
+                if target_sk.fingerprint() != other_pk.fingerprint() {
+                    return Err(GfrStatus::ErrorInvalidInput);
+                }
+                merge_pk_into_sk(&mut target_sk, &other_pk)?;
+            }
+            export_secret_key(target_sk)
+        }
 
-        return export_public_key(base_pk);
+        (None, None) => {
+            if let (Some((mut target_pk, _)), Some((other_pk, _))) = (base_pk, inc_pk) {
+                if target_pk.fingerprint() != other_pk.fingerprint() {
+                    return Err(GfrStatus::ErrorInvalidInput);
+                }
+                merge_key_components(
+                    &mut target_pk.details.direct_signatures,
+                    &mut target_pk.details.revocation_signatures,
+                    &mut target_pk.details.users,
+                    &other_pk.details.direct_signatures,
+                    &other_pk.details.revocation_signatures,
+                    &other_pk.details.users,
+                )?;
+                merge_public_subkeys(&mut target_pk.public_subkeys, &other_pk.public_subkeys)?;
+                export_public_key(target_pk)
+            } else {
+                Err(GfrStatus::ErrorInvalidInput)
+            }
+        }
     }
+}
 
-    Err(GfrStatus::ErrorInvalidInput)
+fn merge_sk_into_sk(
+    target: &mut SignedSecretKey,
+    source: &SignedSecretKey,
+) -> Result<(), GfrStatus> {
+    merge_key_components(
+        &mut target.details.direct_signatures,
+        &mut target.details.revocation_signatures,
+        &mut target.details.users,
+        &source.details.direct_signatures,
+        &source.details.revocation_signatures,
+        &source.details.users,
+    )
+}
+
+fn merge_pk_into_sk(
+    target: &mut SignedSecretKey,
+    source: &SignedPublicKey,
+) -> Result<(), GfrStatus> {
+    merge_key_components(
+        &mut target.details.direct_signatures,
+        &mut target.details.revocation_signatures,
+        &mut target.details.users,
+        &source.details.direct_signatures,
+        &source.details.revocation_signatures,
+        &source.details.users,
+    )?;
+
+    for incoming_sub in &source.public_subkeys {
+        let incoming_fpr = incoming_sub.key.fingerprint().to_string();
+        if let Some(dst_sub) = target
+            .secret_subkeys
+            .iter_mut()
+            .find(|s| s.key.fingerprint().to_string() == incoming_fpr)
+        {
+            merge_signatures(&mut dst_sub.signatures, &incoming_sub.signatures)?;
+        }
+    }
+    Ok(())
 }
 
 fn parse_signatures_from_armor(block: &str) -> Result<Vec<Signature>, GfrStatus> {
