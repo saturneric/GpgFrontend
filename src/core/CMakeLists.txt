@@ -51,7 +51,7 @@ target_compile_definitions(${LIBRARY_TARGET} PUBLIC
 )
 
 if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
-  target_compile_definitions(gf_core PUBLIC
+  target_compile_definitions(${LIBRARY_TARGET} PUBLIC
     $<$<BOOL:${ENABLE_MACOS_SANDBOX}>:GF_MACOS_SANDBOX_BUILD=1>
   )
 endif()
