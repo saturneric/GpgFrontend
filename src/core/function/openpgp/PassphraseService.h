@@ -28,45 +28,38 @@
 
 #pragma once
 
-#include "core/GpgCoreRust.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 
 namespace GpgFrontend {
 
-extern "C" {
+// State struct for passphrase request, can be extended in the future if needed
+struct PassphraseState {
+  QString info;  ///< Additional info to show in the passphrase dialog
+  QString fpr;   ///< Fingerprint of the key related to the passphrase request
+  bool retry = false;  ///< Indicates if this is a retry after a failed attempt
+  bool ask_for_new = false;  ///< Indicates if the user should be prompted to
+                             ///< set a new passphrase
+};
 
-/**
- * @brief
- *
- * @param fpr
- * @param user_data
- * @return char*
- */
-auto FetchPublicKeyCallback(const char* fpr, void* user_data) -> char*;
+class GF_CORE_EXPORT PassphraseService
+    : public SingletonFunctionObject<PassphraseService> {
+ public:
+  /**
+   * @brief Construct a new Passphrase Service object
+   *
+   * @param channel
+   */
+  explicit PassphraseService(int channel);
 
-/**
- * @brief
- *
- * @param fpr
- * @param user_data
- * @return char*
- */
-auto FetchSecretKeyCallback(const char* fpr, void* user_data) -> char*;
+  /**
+   * @brief
+   *
+   * @param state
+   * @return QString
+   */
+  auto RequestPassphrase(const PassphraseState& state) -> QString;
 
-/**
- * @brief
- *
- */
-void FreeCallback(void* ptr, void*);
-
-/**
- * @brief
- *
- * @param key_hint_fpr
- * @param user_data
- * @return char*
- */
-auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
-                           uint8_t** out_pwd, void* /*user_data*/) -> int;
-}
-
+ private:
+  OpenPGPContext& ctx_ = OpenPGPContext::GetInstance(GetChannel());
+};
 }  // namespace GpgFrontend

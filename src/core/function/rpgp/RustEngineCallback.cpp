@@ -30,10 +30,9 @@
 
 #include <cstring>
 
-#include "core/function/CoreSignalStation.h"
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
-#include "core/model/GpgPassphraseContext.h"
+#include "core/function/openpgp/PassphraseService.h"
 
 namespace GpgFrontend {
 
@@ -81,54 +80,17 @@ auto FetchSecretKeyCallback(const char* fpr, void* user_data) -> char* {
   return nullptr;
 }
 
-auto FetchPasswordCallback(int channel, const char* fpr, const char* info,
+auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
                            uint8_t** out_pwd, void* /*user_data*/) -> int {
-  QString qs_fpr = QString::fromUtf8(fpr).toUpper();
-  GpgAbstractKeyPtr key = nullptr;
-  if (qs_fpr.length() > 0) {
-    key = AbstractKeyRepository::GetInstance(channel).GetKey(qs_fpr);
-  }
-  auto qs_info = info != nullptr ? QString::fromUtf8(info) : QString();
+  PassphraseState pp_state{
+      .info = state.info != nullptr ? QString::fromUtf8(state.info) : QString(),
+      .fpr = QString::fromUtf8(state.fpr).toUpper(),
+      .retry = state.retry,
+      .ask_for_new = state.ask_for_new,
+  };
 
-  LOG_D() << "Rust FFI requested password for key fpr: " << qs_fpr
-          << ", info: " << qs_info << ", channel: " << channel;
-
-  if (key) {
-    LOG_D() << "Key ID: " << key->ID() << ", User IDs: " << key->UID().size();
-  } else {
-    LOG_D() << "No key found for fpr: " << qs_fpr;
-  }
-
-  QString result_pwd;
-
-  auto c = QSharedPointer<GpgPassphraseContext>::create(channel, key, qs_info,
-                                                        false, false);
-
-  QEventLoop loop;
-  QTimer timeout_timer;
-  timeout_timer.setSingleShot(true);
-  QObject::connect(&timeout_timer, &QTimer::timeout, &loop, &QEventLoop::quit);
-
-  QObject::connect(
-      CoreSignalStation::GetInstance(),
-      &CoreSignalStation::SignalUserInputPassphraseReady, &loop,
-      [&result_pwd, &c, &qs_fpr,
-       &loop](const QSharedPointer<GpgPassphraseContext>& ctx) -> void {
-        if ((qs_fpr.isEmpty() && ctx->GetKey() == nullptr) ||
-            (c->GetKey() != nullptr &&
-             ctx->GetKey()->ID() == c->GetKey()->ID())) {
-          result_pwd = ctx->GetPassphrase();
-        }
-        loop.quit();
-      });
-
-  QTimer::singleShot(0, [c]() -> void {
-    emit CoreSignalStation::GetInstance()->SignalNeedUserInputPassphrase(c);
-  });
-
-  timeout_timer.start(60000);
-  loop.exec();
-  timeout_timer.stop();
+  QString result_pwd =
+      PassphraseService::GetInstance(channel).RequestPassphrase(pp_state);
 
   if (result_pwd.isEmpty()) {
     *out_pwd = nullptr;

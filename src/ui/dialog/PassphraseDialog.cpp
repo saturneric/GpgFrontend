@@ -52,7 +52,6 @@ PassphraseDialog::PassphraseDialog(
       tr("Please enter the passphrase required for the current operation."),
       this);
   info_label->setWordWrap(true);
-  info_label->setStyleSheet("color: palette(mid);");
 
   auto* details_frame = new QFrame(this);
   details_frame->setObjectName("detailsFrame");
@@ -63,7 +62,12 @@ PassphraseDialog::PassphraseDialog(
   QString detail_text =
       tr("Passphrase info: %1").arg(ctx_->GetPassphraseInfo());
 
-  if (auto key = ctx_->GetKey()) {
+  if (ctx->IsAskForNew()) {
+    detail_text += tr("\nThis passphrase will be used to set a new password.");
+  }
+
+  auto key = ctx_->GetKey();
+  if (key != nullptr) {
     detail_text += tr("\nKey ID: %1").arg(key->ID());
     detail_text += tr("\nKey UID: %1").arg(key->UID());
   }
