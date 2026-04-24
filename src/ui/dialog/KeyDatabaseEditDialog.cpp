@@ -85,7 +85,7 @@ void KeyDatabaseEditDialog::init_ui() {
 
   ui_->keyDBBackendTypeComboBox->clear();
 
-  auto engines = GetGSS().AllSupportedEngines();W
+  auto engines = GetGSS().AllSupportedEngines();
   for (const auto& engine : engines) {
     ui_->keyDBBackendTypeComboBox->addItem(engine, engine.toUpper());
   }

@@ -286,7 +286,19 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
       ctx->rtn == GpgFrontend::kCrashCode) {
     qInfo() << "relaunching application with deep restart mode, code: "
             << ctx->rtn;
-    QProcess::startDetached(qApp->arguments()[0], qApp->arguments());
+#ifdef Q_OS_MACOS
+    QStringList args = qApp->arguments();
+    if (!args.isEmpty()) {
+      args.removeFirst();
+    }
+    GpgFrontend::RelaunchApplication(args);
+#else
+    QStringList args = qApp->arguments();
+    if (!args.isEmpty()) {
+      const auto program = args.takeFirst();
+      QProcess::startDetached(program, args);
+    }
+#endif
   };
 }
 
