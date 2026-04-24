@@ -53,15 +53,22 @@ struct OpSupportTraitsBase {
    * @brief Check whether this operation is supported by current context.
    */
   static auto IsSupported(const OpenPGPContext& ctx) -> bool {
-    for (const auto& requirement : Derived::Versions()) {
-      if (requirement.IsSupport(ctx)) return true;
-    }
-    return false;
+    auto versions = Derived::Versions();
+    return std::any_of(versions.begin(), versions.end(),
+                       [&](const EngineSupportIf& requirement) -> bool {
+                         return requirement.IsSupport(ctx);
+                       });
   }
 };
 
 template <typename OpTag>
 auto IsOpSupported(const OpenPGPContext& ctx) -> bool {
+  return OpSupportTraits<OpTag>::IsSupported(ctx);
+}
+
+template <typename OpTag>
+auto IsOpSupported(int channel) -> bool {
+  auto& ctx = OpenPGPContext::GetInstance(channel);
   return OpSupportTraits<OpTag>::IsSupported(ctx);
 }
 

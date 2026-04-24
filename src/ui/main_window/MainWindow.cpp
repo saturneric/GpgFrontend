@@ -121,6 +121,8 @@ void MainWindow::Init() noexcept {
             &MainWindow::SlotOpenFile);
 
 #ifndef Q_OS_WINDOWS
+    // check if GnuPG is configured to use a GUI pinentry, and if not, show a
+    // warning message to user
     if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
       connect(this, &MainWindow::SignalLoaded, this, [=]() {
         QTimer::singleShot(3000, [self = QPointer<MainWindow>(this)]() -> void {

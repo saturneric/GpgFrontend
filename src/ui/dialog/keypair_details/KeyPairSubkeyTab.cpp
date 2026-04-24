@@ -31,6 +31,9 @@
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
+#include "core/function/openpgp/support/KeyGenerationOpSupport.h"
+#include "core/function/openpgp/support/KeyImportExportOpSupport.h"
+#include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
@@ -59,9 +62,11 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
 
   auto* uid_buttons_layout = new QGridLayout();
 
+  auto if_add_subkey_supported = IsOpSupported<GenerateSubKeyTag>(channel);
   auto* add_subkey_button = new QPushButton(tr("New Subkey"));
   auto* add_adsk_button = new QPushButton(tr("Add ADSK(s)"));
-  if (!key_->IsPrivateKey() || !key_->IsHasMasterKey()) {
+  if (!key_->IsPrivateKey() || !key_->IsHasMasterKey() ||
+      !if_add_subkey_supported) {
     add_subkey_button->setDisabled(true);
     add_subkey_button->hide();
 
@@ -69,7 +74,9 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
     add_adsk_button->hide();
   }
 
-  if (!GpgContextSupportIf(channel, {{OpenPGPEngine::kGNUPG, "2.4.1"}})) {
+  auto if_adsk_supported = IsOpSupported<AddADSKOpTag>(channel);
+
+  if (!key_->IsPrivateKey() || !if_adsk_supported) {
     add_adsk_button->setDisabled(true);
     add_adsk_button->hide();
   }
@@ -137,10 +144,11 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   subkey_detail_layout->addWidget(card_key_label_, 10, 1, 1, 2);
   subkey_detail_layout->addWidget(fingerprint_var_label_, 11, 1, 1, 2);
 
+  auto if_export_subkey_supported = IsOpSupported<ExportSubkeyOpTag>(channel);
   export_subkey_button_ = new QPushButton(tr("Export Subkey"));
   export_subkey_button_->setFlat(true);
-  export_subkey_button_->setDisabled(engine_ != OpenPGPEngine::kGNUPG);
-  if (engine_ != OpenPGPEngine::kGNUPG) {
+  export_subkey_button_->setDisabled(!if_export_subkey_supported);
+  if (!if_export_subkey_supported) {
     export_subkey_button_->setToolTip(
         tr("Exporting subkeys is only supported for GnuPG"));
   }
@@ -293,13 +301,6 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
 }
 
 void KeyPairSubkeyTab::slot_add_subkey() {
-  if (!GpgContextSupportIf(current_gpg_context_channel_,
-                           {{OpenPGPEngine::kGNUPG, "2.2.0"},
-                            {OpenPGPEngine::kRPGP, "0.1.0"}})) {
-    CommonUtils::RaiseMessageBoxNotSupported(this);
-    return;
-  }
-
   new SubkeyGenerateDialog(current_gpg_context_channel_, key_, this);
 }
 
@@ -387,11 +388,14 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   fingerprint_var_label_->setText(BeautifyFingerprint(s_key.Fingerprint()));
   fingerprint_var_label_->setWordWrap(true);  // for x448 and ed448
 
+  auto if_export_subkey_supported =
+      IsOpSupported<ExportSubkeyOpTag>(current_gpg_context_channel_);
+
   export_subkey_button_->setText(s_key.IsHasCertCap() ? tr("Export Primary Key")
                                                       : tr("Export Subkey"));
   export_subkey_button_->setDisabled(
       !key_->IsPrivateKey() || s_key.IsHasCertCap() || !s_key.IsSecretKey() ||
-      engine_ != OpenPGPEngine::kGNUPG);
+      !if_export_subkey_supported);
 
   key_type_var_label_->setText(s_key.IsHasCertCap() ? tr("Primary Key")
                                                     : tr("Subkey"));
@@ -452,10 +456,15 @@ void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
     revoke_subkey_act_->setDisabled((!s_key.IsSecretKey() && !s_key.IsADSK()) ||
                                     s_key.IsRevoked());
 
+    auto if_export_subkey_supported =
+        IsOpSupported<ExportSubkeyOpTag>(current_gpg_context_channel_);
+    auto if_delete_subkey_supported =
+        IsOpSupported<DeleteSubKeyOpTag>(current_gpg_context_channel_);
+
     // only allow export subkey when using GnuPG, since rpgp doesn't support
     // exporting subkeys for now
-    export_subkey_act_->setDisabled(engine_ != OpenPGPEngine::kGNUPG);
-    delete_subkey_act_->setDisabled(engine_ != OpenPGPEngine::kGNUPG);
+    export_subkey_act_->setDisabled(!if_export_subkey_supported);
+    delete_subkey_act_->setDisabled(!if_delete_subkey_supported);
 
     subkey_opera_menu_->exec(event->globalPos());
   }

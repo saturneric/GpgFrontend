@@ -30,6 +30,7 @@
 
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
+#include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/CacheObject.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
@@ -189,9 +190,6 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
           KeyGenerateInfo::GetSupportedSubkeyAlgo(channel)) {
   ui_->setupUi(this);
 
-  auto engine = OpenPGPContext::GetInstance(channel).Engine();
-  LOG_D() << "current gpg engine: " << ConvertOpenPGPEngine2String(engine);
-
   for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
     auto bnd_type = ConvertOpenPGPEngine2String(
         OpenPGPContext::GetInstance(key_db.channel).Engine());
@@ -207,16 +205,18 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
     ui_->easyValidityPeriodComboBox->addItem(option.display);
   }
 
+  auto if_expire_options_supported = IsOpSupported<SetExpireOpTag>(channel);
+
   // the rPGP backend has very limited support for key generation, so we disable
   // some options when rPGP is used as the backend engine.
-  ui_->easyValidPeriodLabel->setHidden(engine != OpenPGPEngine::kGNUPG);
-  ui_->easyValidityPeriodComboBox->setHidden(engine != OpenPGPEngine::kGNUPG);
-  ui_->pExpireCheckBox->setHidden(engine != OpenPGPEngine::kGNUPG);
-  ui_->sExpireCheckBox->setHidden(engine != OpenPGPEngine::kGNUPG);
-  ui_->pExpireDateTimeEdit->setHidden(engine != OpenPGPEngine::kGNUPG);
-  ui_->sExpireDateTimeEdit->setHidden(engine != OpenPGPEngine::kGNUPG);
-  ui_->pExpireDateLabel->setHidden(engine != OpenPGPEngine::kGNUPG);
-  ui_->sExpireDateLabel->setHidden(engine != OpenPGPEngine::kGNUPG);
+  ui_->easyValidPeriodLabel->setHidden(!if_expire_options_supported);
+  ui_->easyValidityPeriodComboBox->setHidden(!if_expire_options_supported);
+  ui_->pExpireCheckBox->setHidden(!if_expire_options_supported);
+  ui_->sExpireCheckBox->setHidden(!if_expire_options_supported);
+  ui_->pExpireDateTimeEdit->setHidden(!if_expire_options_supported);
+  ui_->sExpireDateTimeEdit->setHidden(!if_expire_options_supported);
+  ui_->pExpireDateLabel->setHidden(!if_expire_options_supported);
+  ui_->sExpireDateLabel->setHidden(!if_expire_options_supported);
 
   ui_->easyCombinationComboBox->addItems({
       tr("Primary Key Only"),

@@ -31,6 +31,7 @@
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/UserIdOperation.h"
+#include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "ui/UISignalStation.h"
 #include "ui/dialog/RevocationOptionsDialog.h"
 #include "ui/dialog/keypair_details/KeyNewUIDDialog.h"
@@ -43,9 +44,6 @@ KeyPairUIDTab::KeyPairUIDTab(int channel, GpgKeyPtr key, QWidget* parent)
       current_gpg_context_channel_(channel),
       m_key_(std::move(key)) {
   assert(m_key_ != nullptr);
-
-  auto engine =
-      OpenPGPContext::GetInstance(current_gpg_context_channel_).Engine();
 
   create_uid_list();
   create_sign_list();
@@ -75,10 +73,13 @@ KeyPairUIDTab::KeyPairUIDTab(int channel, GpgKeyPtr key, QWidget* parent)
   sign_grid_layout->addWidget(sig_list_, 0, 0);
   sign_grid_layout->setContentsMargins(0, 10, 0, 0);
 
+  auto if_sign_key_supported =
+      IsOpSupported<SignKeyOpTag>(current_gpg_context_channel_);
+
   auto* sign_group_box = new QGroupBox();
   sign_group_box->setLayout(sign_grid_layout);
   sign_group_box->setTitle(tr("Signature of Selected UID"));
-  sign_group_box->setHidden(engine != OpenPGPEngine::kGNUPG);
+  sign_group_box->setHidden(!if_sign_key_supported);
 
   auto* vbox_layout = new QVBoxLayout();
   vbox_layout->addWidget(uid_group_box);

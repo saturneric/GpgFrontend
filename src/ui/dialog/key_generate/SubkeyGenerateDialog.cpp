@@ -31,7 +31,7 @@
 #include <cassert>
 
 #include "core/function/openpgp/KeyGenerationOperation.h"
-#include "core/function/openpgp/KeyManagementOperation.h"
+#include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -55,12 +55,11 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
   ui_->setupUi(this);
   assert(key_ != nullptr);
 
-  auto engine = OpenPGPContext::GetInstance(channel).Engine();
-  LOG_D() << "current gpg engine: " << ConvertOpenPGPEngine2String(engine);
+  auto if_expire_options_supported = IsOpSupported<SetExpireOpTag>(channel);
 
-  ui_->expireLabel->setHidden(engine != OpenPGPEngine::kGNUPG);
-  ui_->expireDateTimeEdit->setHidden(engine != OpenPGPEngine::kGNUPG);
-  ui_->nonExpiredCheckBox->setHidden(engine != OpenPGPEngine::kGNUPG);
+  ui_->expireLabel->setHidden(!if_expire_options_supported);
+  ui_->expireDateTimeEdit->setHidden(!if_expire_options_supported);
+  ui_->nonExpiredCheckBox->setHidden(!if_expire_options_supported);
 
   ui_->algoLabel->setText(tr("Algorithm"));
   ui_->keyLengthLabel->setText(tr("Key Length"));

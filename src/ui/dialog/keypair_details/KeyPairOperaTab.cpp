@@ -28,11 +28,14 @@
 
 #include "KeyPairOperaTab.h"
 
+#include <utility>
+
 #include "KeySetExpireDateDialog.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
+#include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/GpgKey.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -48,12 +51,10 @@
 namespace GpgFrontend::UI {
 
 KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
-    : QWidget(parent), current_gpg_context_channel_(channel), m_key_(key) {
+    : QWidget(parent),
+      current_gpg_context_channel_(channel),
+      m_key_(std::move(key)) {
   assert(m_key_ != nullptr);
-
-  auto engine =
-      OpenPGPContext::GetInstance(current_gpg_context_channel_).Engine();
-  engine_ = engine;
 
   // Set Menu
   CreateOperaMenu();
@@ -77,7 +78,9 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
     export_h_box_layout->addWidget(export_private_button);
 
     if (m_key_->IsHasMasterKey()) {
-      if (engine == OpenPGPEngine::kGNUPG) {
+      auto if_expire_options_supported = IsOpSupported<SetExpireOpTag>(channel);
+
+      if (if_expire_options_supported) {
         auto* edit_expires_button =
             new QPushButton(tr("Modify Expiration Datetime (Primary Key)"));
         connect(edit_expires_button, &QPushButton::clicked, this,
@@ -101,6 +104,8 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
     vbox_p_k->addWidget(revoke_cert_opera_button);
   }
 
+  auto if_owner_trust_level_supported =
+      IsOpSupported<SetOwnerTrustLevelOpTag>(channel);
   auto* set_owner_trust_level_button =
       new QPushButton(tr("Set Owner Trust Level"));
   connect(set_owner_trust_level_button, &QPushButton::clicked, this,
@@ -109,7 +114,7 @@ KeyPairOperaTab::KeyPairOperaTab(int channel, GpgKeyPtr key, QWidget* parent)
   opera_key_box->setLayout(vbox_p_k);
   m_vbox->addWidget(opera_key_box);
   // modify owner trust of public key
-  if (!m_key_->IsPrivateKey() && engine == OpenPGPEngine::kGNUPG) {
+  if (!m_key_->IsPrivateKey() && if_owner_trust_level_supported) {
     vbox_p_k->addWidget(set_owner_trust_level_button);
   }
   m_vbox->addStretch(0);
@@ -147,13 +152,11 @@ void KeyPairOperaTab::CreateOperaMenu() {
 
   secret_key_export_opera_menu_->addAction(export_full_secret_key);
 
-  if (engine_ == OpenPGPEngine::kGNUPG) {
-    auto* export_shortest_secret_key =
-        new QAction(tr("Export Shortest Secret Key"), this);
-    connect(export_shortest_secret_key, &QAction::triggered, this,
-            &KeyPairOperaTab::slot_export_short_private_key);
-    secret_key_export_opera_menu_->addAction(export_shortest_secret_key);
-  }
+  auto* export_shortest_secret_key =
+      new QAction(tr("Export Shortest Secret Key"), this);
+  connect(export_shortest_secret_key, &QAction::triggered, this,
+          &KeyPairOperaTab::slot_export_short_private_key);
+  secret_key_export_opera_menu_->addAction(export_shortest_secret_key);
 
   rev_cert_opera_menu_ = new QMenu(this);
 

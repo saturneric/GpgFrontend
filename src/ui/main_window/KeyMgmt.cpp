@@ -33,6 +33,7 @@
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
+#include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -172,6 +173,8 @@ void KeyMgmt::create_actions() {
   generate_key_pair_act_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_N));
   generate_key_pair_act_->setIcon(QIcon(":/icons/key_generate.png"));
   generate_key_pair_act_->setToolTip(tr("Generate KeyPair"));
+  generate_key_pair_act_->setDisabled(
+      !IsOpSupported<GenerateKeyTag>(key_list_->GetCurrentGpgContextChannel()));
   connect(generate_key_pair_act_, &QAction::triggered, this,
           &KeyMgmt::SlotGenerateKeyDialog);
 
@@ -180,6 +183,8 @@ void KeyMgmt::create_actions() {
       QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_N));
   generate_subkey_act_->setIcon(QIcon(":/icons/key_generate.png"));
   generate_subkey_act_->setToolTip(tr("Generate Subkey For Selected KeyPair"));
+  generate_subkey_act_->setDisabled(!IsOpSupported<GenerateSubKeyTag>(
+      key_list_->GetCurrentGpgContextChannel()));
   connect(generate_subkey_act_, &QAction::triggered, this,
           &KeyMgmt::SlotGenerateSubKey);
 
@@ -421,24 +426,10 @@ void KeyMgmt::SlotExportKeyToClipboard() {
 }
 
 void KeyMgmt::SlotGenerateKeyDialog() {
-  if (!GpgContextSupportIf(key_list_->GetCurrentGpgContextChannel(),
-                           {{OpenPGPEngine::kGNUPG, "2.2.0"},
-                            {OpenPGPEngine::kRPGP, "0.1.0"}})) {
-    CommonUtils::RaiseMessageBoxNotSupported(this);
-    return;
-  }
-
   new KeyGenerateDialog(key_list_->GetCurrentGpgContextChannel(), this);
 }
 
 void KeyMgmt::SlotGenerateSubKey() {
-  if (!GpgContextSupportIf(key_list_->GetCurrentGpgContextChannel(),
-                           {{OpenPGPEngine::kGNUPG, "2.2.0"},
-                            {OpenPGPEngine::kRPGP, "0.1.0"}})) {
-    CommonUtils::RaiseMessageBoxNotSupported(this);
-    return;
-  }
-
   auto key = key_list_->GetSelectedGpgKey();
   if (key == nullptr) return;
 

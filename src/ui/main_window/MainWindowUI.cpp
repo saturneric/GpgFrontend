@@ -27,6 +27,7 @@
  */
 
 #include "MainWindow.h"
+#include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
@@ -205,15 +206,10 @@ void MainWindow::create_actions() {
       create_action("generate_key_pair", tr("New Keypair"),
                     ":/icons/keypairs.png", tr("Generate KeyPair"));
   connect(generate_key_pair_act_, &QAction::triggered, this, [=]() -> void {
-    if (!GpgContextSupportIf(m_key_list_->GetCurrentGpgContextChannel(),
-                             {{OpenPGPEngine::kGNUPG, "2.2.0"},
-                              {OpenPGPEngine::kRPGP, "0.1.0"}})) {
-      CommonUtils::RaiseMessageBoxNotSupported(this);
-      return;
-    }
-
     new KeyGenerateDialog(m_key_list_->GetCurrentGpgContextChannel(), this);
   });
+  generate_key_pair_act_->setDisabled(!IsOpSupported<GenerateKeyTag>(
+      m_key_list_->GetCurrentGpgContextChannel()));
 
   import_key_from_file_act_ = create_action("import_key_from_file", tr("File"),
                                             ":/icons/import_key_from_file.png",
