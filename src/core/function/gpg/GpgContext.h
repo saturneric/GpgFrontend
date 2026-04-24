@@ -81,6 +81,14 @@ class GpgContext : public OpenPGPContext {
   /**
    * @brief
    *
+   * @return true
+   * @return false
+   */
+  auto KillGpgAgent() -> bool;
+
+  /**
+   * @brief
+   *
    * @param type
    * @return QString
    */

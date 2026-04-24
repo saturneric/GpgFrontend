@@ -53,7 +53,7 @@ auto GpgAdvancedOperator::KillAllGpgComponents() -> bool {
   if (!GPG_CTX_MIN_SUPPORT()) return false;
 
   mgr_.Reset();
-  return GpgCtx(ctx_).RestartGpgAgent();
+  return GpgCtx(ctx_).KillGpgAgent();
 }
 
 auto GpgAdvancedOperator::ResetConfigures() -> bool {

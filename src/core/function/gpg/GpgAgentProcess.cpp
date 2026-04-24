@@ -94,6 +94,9 @@ auto GpgAgentProcess::Start() -> bool {
     return false;
   }
 
+  LOG_D() << "gpg-agent started, channel: " << channel_
+          << "pid: " << process_.processId();
+
   return true;
 }
 

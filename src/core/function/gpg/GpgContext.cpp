@@ -71,6 +71,16 @@ auto GpgContext::RestartGpgAgent() -> bool {
   return launch_gpg_agent();
 }
 
+auto GpgContext::KillGpgAgent() -> bool {
+  if (agent_ != nullptr) {
+    agent_ = SecureCreateSharedObject<GpgAgentProcess>(
+        GetChannel(), gpg_agent_path_, KeyDBPath());
+  }
+
+  // ensure all gpg-agent are killed.
+  return kill_gpg_agent();
+}
+
 [[nodiscard]] auto GpgContext::ComponentDirectory(GpgComponentType type) const
     -> QString {
   return component_dirs_.value(ConvertComponentType2String(type), "");
