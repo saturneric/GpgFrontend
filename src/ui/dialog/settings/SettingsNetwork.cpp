@@ -124,6 +124,7 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
   if (!if_gnupg_supported) {
     ui_->forbidALLGnuPGNetworkConnectionCheckBox->setHidden(true);
     ui_->autoFetchKeyPublishStatusCheckBox->setHidden(true);
+    ui_->capabilityGroupBox->setHidden(true);
   }
 
   Module::TriggerEvent(
