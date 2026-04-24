@@ -123,7 +123,7 @@ class TextEditTabWidget : public QTabWidget {
    * @details put a * in front of current tabs title, if current textedit is
    * modified
    */
-  void SlotShowModified();
+  void SlotShowModified(bool changed);
 
   /**
    * @brief

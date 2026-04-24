@@ -156,13 +156,23 @@ void TextEdit::SlotSave() {
   }
 
   auto* page = CurPage();
-  if (page == nullptr || page->property("type").toString().isEmpty()) return;
+  if (page == nullptr) return;
 
   auto type = page->property("type").toString();
+  if (type.isEmpty()) {
+    QMessageBox::warning(
+        this, tr("Unknown Tab Type"),
+        tr("The current tab has an unknown type. Cannot save."));
+    return;
+  }
+
+  LOG_D() << "Saving file for tab type: " << type
+          << ", page object name: " << page->objectName();
 
   if (type == "text") {
     auto filename = CurPageTextEdit()->GetFilePath();
     filename.isEmpty() ? SlotSaveAs() : saveFile(filename);
+    return;
   }
 
   if (type == "file") return;
@@ -460,26 +470,6 @@ void TextEdit::SlotPrint() {
 
   // statusBar()->showMessage(tr("Ready"), 2000);
 #endif
-}
-
-void TextEdit::SlotShowModified(bool changed) const {
-  // get current tab
-  int index = tab_widget_->currentIndex();
-  QString title = tab_widget_->tabText(index);
-
-  // if changed
-  if (!changed) {
-    tab_widget_->setTabText(index, title.remove(0, 2));
-    return;
-  }
-
-  // if doc is modified now, add leading * to title,
-  // otherwise remove the leading * from the title
-  if (CurTextPage()->GetTextPage()->document()->isModified()) {
-    tab_widget_->setTabText(index, title.trimmed().prepend("* "));
-  } else {
-    tab_widget_->setTabText(index, title.remove(0, 2));
-  }
 }
 
 void TextEdit::SlotSwitchTabUp() const {

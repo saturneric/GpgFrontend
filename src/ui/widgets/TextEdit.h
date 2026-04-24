@@ -230,12 +230,6 @@ class TextEdit : public QWidget {
   void SlotNewFileBrowserTabWithDirectory();
 
   /**
-   * @details put a * in front of current tabs title, if current textedit is
-   * modified
-   */
-  void SlotShowModified(bool) const;
-
-  /**
    * @details close the current tab and decrease TabWidget->count by \a 1
    *
    */

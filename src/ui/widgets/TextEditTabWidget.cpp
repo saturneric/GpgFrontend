@@ -122,6 +122,7 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
   auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
   if (result) {
     auto* page = new PlainTextEditorPage(path);
+    page->setProperty("type", "text");
     connect(page->GetTextPage()->document(),
             &QTextDocument::modificationChanged, this,
             &TextEditTabWidget::SlotShowModified);
@@ -136,6 +137,7 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
     QApplication::restoreOverrideCursor();
     page->GetTextPage()->setFocus();
     page->ReadFile();
+
   } else {
     QMessageBox::warning(
         this, tr("Warning"),
@@ -145,20 +147,21 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
   file.close();
 }
 
-void TextEditTabWidget::SlotShowModified() {
+void TextEditTabWidget::SlotShowModified(bool changed) {
   if (CurTextPage() == nullptr) return;
 
   // get current tab
   int index = this->currentIndex();
   QString title = this->tabText(index).trimmed();
 
-  if (title.startsWith("*")) return;
+  LOG_D() << "Tab index: " << index << ", title: " << title << ", modified: "
+          << CurTextPage()->GetTextPage()->document()->isModified();
 
   // if doc is modified now, add leading * to title,
   // otherwise remove the leading * from the title
-  if (CurTextPage()->GetTextPage()->document()->isModified()) {
+  if (changed && !title.startsWith("*")) {
     this->setTabText(index, title.prepend("* "));
-  } else {
+  } else if (!changed && title.startsWith("*")) {
     this->setTabText(index, title.remove(0, 2));
   }
 }
@@ -193,7 +196,7 @@ void TextEditTabWidget::slot_save_status_to_cache_for_recovery() {
 }
 
 auto TextEditTabWidget::SlotNewPlainTextTab() -> QWidget* {
-  const auto header = generate_new_title("T", "txt");
+  const auto header = generate_new_title("untitled", "txt");
   const auto icon = QIcon(":/icons/file.png");
   return SlotNewTab("text", header, icon);
 }
@@ -208,8 +211,8 @@ auto TextEditTabWidget::SlotNewTab(const QString& type, const QString& title,
   page->GetTextPage()->setFocus();
   page->setProperty("type", type);
 
-  connect(page->GetTextPage(), &QPlainTextEdit::textChanged, this,
-          &TextEditTabWidget::SlotShowModified);
+  connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
+          this, &TextEditTabWidget::SlotShowModified);
   connect(page->GetTextPage(), &QPlainTextEdit::selectionChanged, this,
           &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
 
@@ -227,7 +230,7 @@ void TextEditTabWidget::SlotNewTabWithGFBuffer(QString title,
     // set title
     header = title;
   } else {
-    header = generate_new_title("T", title);
+    header = generate_new_title("untitled", title);
   }
 
   auto* page = new PlainTextEditorPage();
@@ -255,7 +258,7 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
     // set title
     header = title;
   } else {
-    header = generate_new_title("T", title);
+    header = generate_new_title("untitled", title);
   }
 
   auto* page = new PlainTextEditorPage();
