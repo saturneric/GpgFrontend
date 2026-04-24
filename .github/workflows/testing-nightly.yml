@@ -105,7 +105,8 @@ jobs:
       - name: Codesign Configuration (macOS)
         run: |
           APP_CERT_PATH=$RUNNER_TEMP/app_certificate.p12
-          INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.p12
+          MAS_INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.p12
+          MAS_APP_CERT_PATH=$RUNNER_TEMP/mas_app_certificate.p12
 
           if [ "${{ matrix.sandbox }}" == "ON" ]; then
             PP_PATH=$RUNNER_TEMP/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile
