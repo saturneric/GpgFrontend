@@ -179,4 +179,8 @@ auto IsRunningInAppSandbox() -> bool {
 auto IsRunningInAppSandbox() -> bool { return false; }
 
 #endif
+
+auto IsRunningInSandBox() -> bool {
+  return IsFlatpakENV() || IsRunningInAppSandbox();
+}
 }  // namespace GpgFrontend

@@ -457,12 +457,14 @@ void MainWindow::create_menus() {
   key_menu_->addAction(open_key_management_act_);
 
   advance_menu_ = menuBar()->addMenu(tr("Advanced"));
-  advance_menu_->addAction(clean_gpg_password_cache_act_);
-  advance_menu_->addAction(reload_components_act_);
-  advance_menu_->addAction(restart_components_act_);
-  advance_menu_->addSeparator();
-  // Only show GnuPG Controller and Smart Card Controller if GnuPG is supported,
-  // since they are not useful for other engines.
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+    advance_menu_->addAction(clean_gpg_password_cache_act_);
+    advance_menu_->addAction(reload_components_act_);
+    advance_menu_->addAction(restart_components_act_);
+    advance_menu_->addSeparator();
+  }
+  // Only show GnuPG Controller and Smart Card Controller if GnuPG is
+  // supported, since they are not useful for other engines.
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     advance_menu_->addAction(gnupg_controller_open_act_);
     advance_menu_->addAction(smart_card_controller_open_act_);

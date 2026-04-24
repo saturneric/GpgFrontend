@@ -98,6 +98,14 @@ auto GF_CORE_EXPORT IsRunningInAppSandbox() -> bool;
 /**
  * @brief
  *
+ * @return true
+ * @return false
+ */
+auto GF_CORE_EXPORT IsRunningInSandBox() -> bool;
+
+/**
+ * @brief
+ *
  * @param s
  * @return int
  */

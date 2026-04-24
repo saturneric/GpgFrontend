@@ -44,7 +44,7 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabasesSettings>()),
       app_path_(GlobalSettingStation::GetInstance().GetAppDir()),
-      is_sandbox_(IsFlatpakENV() || IsRunningInAppSandbox()) {
+      is_sandbox_(IsRunningInSandBox()) {
   ui_->setupUi(this);
 
   ui_->keyDatabaseTable->clear();
