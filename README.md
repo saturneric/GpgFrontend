@@ -5,8 +5,8 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/saturneric/GpgFrontend)
 
-A modern "Enigma" built on [GnuPG](https://www.gnupg.org/). It brings easy and
-trustworthy to your privacy life.
+A modern "Enigma" for OpenPGP. It makes encryption, signing, and key management
+easier and more trustworthy in everyday privacy workflows.
 
 <img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;z-index: 1000;" src="https://image.cdn.bktus.com/i/2024/02/24/248b2e18-a120-692e-e6bc-42ca30be9011.webp" alt="GpgFrontend"/>
 
@@ -16,21 +16,20 @@ trustworthy to your privacy life.
 - Cross-platform: Native support for Windows, macOS and Linux.
 - Portable: Run directly from a USB drive and carry your keys.
 - Flexible: Manage keys separately through multiple key databases.
+- Compatible: Mature GnuPG support with a newer rPGP engine.
 - Privacy-focused: Using multiple approaches to enhance safety.
 
 > If you like GpgFrontend, you can give it a ⭐ on GitHub as donation. :)
 
-**Planned Next Release:** 
+**Planned Next Release:**
 
+- v2.2.0+ (Mainline): Introduces an experimental rpgp engine for OpenPGP v6 (RFC
+  9580), while **GnuPG** remains the default, primary, and fully supported
+  backend. The rpgp engine is under active development and may evolve over time.
 - v2.1.x (Stable): Dedicated to maximum stability and reliability, this series
   will remain in maintenance mode with regular releases every two months. The
   focus is strictly on bug fixes and security updates, with no new major
   features or breaking changes planned.
-- v2.2.0+ (Mainline): Expected in the next 4–6 months, this version introduces
-  an optional rpgp backend for OpenPGPv6 (RFC 9580) support. While this branch
-  may be less stable due to its experimental nature, **GnuPG** remains our
-  primary, long-term strategic backend and will continue as the default,
-  fully-supported choice across all versions.
 
 ## Table of Contents
 
