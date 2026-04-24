@@ -52,6 +52,10 @@ From version v2.1.8 onwards, we no longer support Ubuntu 20.04, as the LTS life
 cycle of this version had ended by then. Continuing to use this version of
 Ubuntu is therefore not safe.
 
+From version v2.1.11 onwards, we no longer support macOS 13, as it discontinued
+by GitHub Action. Given its age and the anticipated discontinuation of support
+by Apple, it is wise to drop it.
+
 ## Reporting a Vulnerability
 
 In case you wish to report a vulnerability, please avoid raising an issue

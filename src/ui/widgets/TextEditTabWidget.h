@@ -77,14 +77,16 @@ class TextEditTabWidget : public QTabWidget {
    * @param icon
    * @param title
    */
-  auto SlotNewTab(const QString& type, const QString& title, const QIcon& icon)
-      -> QWidget*;
+  // NOLINTNEXTLINE
+  QWidget* SlotNewTab(const QString& type, const QString& title,
+                      const QIcon& icon);
 
   /**
    * @brief
    *
+   * @return QWidget*
    */
-  auto SlotNewPlainTextTab() -> QWidget*;
+  QWidget* SlotNewPlainTextTab();  // NOLINT
 
   /**
    * @brief

@@ -22,11 +22,15 @@ trustworthy to your privacy life.
 
 **Planned Next Release:** 
 
-- v2.2.0+ Roadmap: Expected in the coming months, this version introduces an
-  optional rpgp backend for OpenPGPv6 (RFC 9580) support. GnuPG will remain the
-  default; however, both backends can be used simultaneously. Although rpgp will
-  initially have fewer features than GnuPG, I plan to bridge this gap through
-  gradual improvements.
+- v2.1.x (Stable): Dedicated to maximum stability and reliability, this series
+  will remain in maintenance mode with regular releases every two months. The
+  focus is strictly on bug fixes and security updates, with no new major
+  features or breaking changes planned.
+- v2.2.0+ (Mainline): Expected in the next 4–6 months, this version introduces
+  an optional rpgp backend for OpenPGPv6 (RFC 9580) support. While this branch
+  may be less stable due to its experimental nature, **GnuPG** remains our
+  primary, long-term strategic backend and will continue as the default,
+  fully-supported choice across all versions.
 
 ## Table of Contents
 
