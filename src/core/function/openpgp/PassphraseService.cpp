@@ -53,7 +53,7 @@ auto PassphraseService::RequestPassphrase(const PassphraseState& state)
 
   t_state.fpr = t_state.fpr.trimmed().toUpper();
 
-  if (t_state.fpr.isEmpty()) {
+  if (!t_state.fpr.isEmpty()) {
     key = AbstractKeyRepository::GetInstance(GetChannel()).GetKey(t_state.fpr);
     if (key == nullptr) {
       LOG_W()
