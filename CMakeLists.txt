@@ -377,8 +377,13 @@ configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/sdk/GFSDKBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/sdk/GFSDKBuildInfo.h @ONLY)
 
+# configure plist for macOS bundle
 if(APPLE)
-  configure_file(${CMAKE_SOURCE_DIR}/resource/plist/ExportOptions.plist.in ${CMAKE_BINARY_DIR}/ExportOptions.plist @ONLY)
+  if(APPLE_SANDBOX)
+    configure_file(${CMAKE_SOURCE_DIR}/resource/plist/ExportOptionsSandbox.plist.in ${CMAKE_BINARY_DIR}/ExportOptions.plist @ONLY)
+  else()
+    configure_file(${CMAKE_SOURCE_DIR}/resource/plist/ExportOptions.plist.in ${CMAKE_BINARY_DIR}/ExportOptions.plist @ONLY)
+  endif()
 endif()
 
 # binary and libraries output path
