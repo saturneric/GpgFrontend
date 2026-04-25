@@ -136,8 +136,6 @@ jobs:
           PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
           mkdir -p "$PROFILE_DIR"
           cp "$PP_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile"
-          ls -la "$PROFILE_DIR"
-          security cms -D -i "$PROFILE_DIR/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile" | plutil -p -
 
           # copy the provisioning profile to the repository root for later use,
           # because the sandboxing feature requires the provisioning profile to
@@ -274,7 +272,7 @@ jobs:
             -DCMAKE_OSX_DEPLOYMENT_TARGET=${DEPLOY_TARGET} \
             -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}" \
             -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
-            -DGPGFRONTEND_XCODE_APPID="${{secrets.GPGFRONTEND_XOCDE_APPID}}" \
+            -DGPGFRONTEND_XCODE_APPID="com.bktus.gpgfrontend" \
             -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{env.PROVISIONING_PROFILE_UUID}}" \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
             ${{env.SANDBOX_CMAKE_FLAG}}
@@ -295,9 +293,7 @@ jobs:
             archive \
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
-            PRODUCT_BUNDLE_IDENTIFIER="${{secrets.GPGFRONTEND_XOCDE_APPID}}" \
-            CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}" \
-            PROVISIONING_PROFILE_SPECIFIER="GpgFrontend_Mac_App_Store_Profile"
+            CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}"
           mkdir ${{github.workspace}}/build/package
           xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
             -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
