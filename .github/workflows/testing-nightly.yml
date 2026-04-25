@@ -297,39 +297,17 @@ jobs:
             CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}"
           mkdir ${{github.workspace}}/build/package
 
-          APP="${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app"
-
-          echo "==== archived app signature ===="
-          codesign -dv --verbose=4 "$APP" 2>&1 || true
-
-          echo "==== archived app entitlements ===="
-          codesign -d --entitlements :- "$APP" 2>&1 || true
-
-          echo "==== archive info ===="
-          /usr/libexec/PlistBuddy -c "Print :ApplicationProperties" \
-            "${{github.workspace}}/build/GpgFrontend.xcarchive/Info.plist" || true
-
-          cat "${{github.workspace}}/build/ExportOptions.plist"
-          PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile"
-          security cms -D -i "$PROFILE" > /tmp/profile.plist
-
-          /usr/libexec/PlistBuddy -c "Print :Name" /tmp/profile.plist
-          /usr/libexec/PlistBuddy -c "Print :UUID" /tmp/profile.plist
-          /usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" /tmp/profile.plist
-
-          mkdir -p /tmp/profile-certs
-          /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates:0" /tmp/profile.plist > /tmp/profile-certs/cert0.der
-          openssl x509 -inform DER -in /tmp/profile-certs/cert0.der -noout -subject -fingerprint -sha1
-
-          # xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
-          #   -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
-          #   -exportPath ${{github.workspace}}/build/package/
-
-          # skip exporting the archive, because we will use macdeployqt to
-          # deploy the Qt frameworks and plugins, and sign the app bundle in one
-          # step, which is more suitable for our use case.
-          mkdir -p ${{github.workspace}}/build/package
-          cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app ${{github.workspace}}/build/package/
+          if [ "${{ matrix.sandbox }}" = "ON" ]; then
+            # skip exporting the archive, because we will use macdeployqt to
+            # deploy the Qt frameworks and plugins, and sign the app bundle in one
+            # step, which is more suitable for our use case.
+            mkdir -p ${{github.workspace}}/build/package
+            cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app ${{github.workspace}}/build/package/
+          else
+            xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
+              -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
+              -exportPath ${{github.workspace}}/build/package/
+          fi
         if: runner.os == 'macOS'
 
       - name: Deploy Qt & Code Sign (macOS)
