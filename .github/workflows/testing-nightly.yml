@@ -297,6 +297,18 @@ jobs:
             CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}"
           mkdir ${{github.workspace}}/build/package
 
+          APP="${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app"
+
+          echo "==== archived app signature ===="
+          codesign -dv --verbose=4 "$APP" 2>&1 || true
+
+          echo "==== archived app entitlements ===="
+          codesign -d --entitlements :- "$APP" 2>&1 || true
+
+          echo "==== archive info ===="
+          /usr/libexec/PlistBuddy -c "Print :ApplicationProperties" \
+            "${{github.workspace}}/build/GpgFrontend.xcarchive/Info.plist" || true
+
           cat "${{github.workspace}}/build/ExportOptions.plist"
           PROFILE="$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile"
           security cms -D -i "$PROFILE" > /tmp/profile.plist
