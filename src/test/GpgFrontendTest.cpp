@@ -92,4 +92,20 @@ auto WaitFor(std::function<bool()> cond, int timeout_ms) -> bool {
 
   return matched;
 }
+
+auto GenerateRandomString(size_t length) -> QString {
+  const QString characters =
+      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  std::random_device random_device;
+  std::mt19937 generator(random_device());
+  std::uniform_int_distribution<> distribution(0, characters.size() - 1);
+
+  QString random_string;
+  for (size_t i = 0; i < length; ++i) {
+    random_string += characters[distribution(generator)];
+  }
+
+  return random_string;
+}
+
 }  // namespace GpgFrontend::Test

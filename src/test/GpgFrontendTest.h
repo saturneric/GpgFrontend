@@ -94,4 +94,12 @@ auto WaitFor(std::function<bool()> cond, int timeout_ms = 5000) -> bool;
 
 const int kGpgChannelForUnitTest = 0;
 const int kRpgpChannelForUnitTest = 1;
+
+/**
+ * @brief
+ *
+ * @param length
+ * @return QString
+ */
+auto GenerateRandomString(size_t length) -> QString;
 }  // namespace GpgFrontend::Test

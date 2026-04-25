@@ -26,56 +26,26 @@
  *
  */
 
-#include "GpgCoreTest.h"
+#include "RpgpCoreTest.h"
 
 #include "core/GpgCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend::Test {
 
-bool GpgCoreTest::is_gnupg_available = false;
+bool RpgpCoreTest::is_rpgp_available = false;
 
 namespace {
 
-auto TestPassphraseCb(void* opaque, const char* uid_hint,
-                      const char* passphrase_info, int last_was_bad, int fd)
-    -> gpgme_error_t {
-  QString passphrase = "abcdefg";
-  auto pass_bytes = passphrase.toLatin1();
-  auto pass_size = pass_bytes.size();
-  const auto* p_pass_bytes = pass_bytes.constData();
-
-  qsizetype res = 0;
-  if (pass_size > 0) {
-    qsizetype off = 0;
-    qsizetype ret = 0;
-    do {
-      ret = gpgme_io_write(fd, &p_pass_bytes[off], pass_size - off);
-      if (ret > 0) off += ret;
-    } while (ret > 0 && off != pass_size);
-    res = off;
-  }
-
-  res += gpgme_io_write(fd, "\n", 1);
-  return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
-}
-
-auto TestStatusCb(void* hook, const char* keyword, const char* args)
-    -> gpgme_error_t {
-  FLOG_D("keyword %s", keyword);
-  return GPG_ERR_NO_ERROR;
-}
-
 void ImportPrivateKeys() {
-  auto key_files = QDir(":/test/key").entryList();
+  auto key_files = QDir(":/test/rpgp_key").entryList();
 
   for (const auto& key_file : key_files) {
     auto [success, gf_buffer] =
-        ReadFileGFBuffer(QString(":/test/key") + "/" + key_file);
+        ReadFileGFBuffer(QString(":/test/rpgp_key") + "/" + key_file);
 
     if (success) {
       auto info = KeyImportExportOperation::GetInstance(
@@ -83,23 +53,23 @@ void ImportPrivateKeys() {
                       .ImportKey(gf_buffer);
 
       if (info == nullptr) {
-        LOG_E() << "import key for unit test failed: " << key_file;
+        LOG_E() << "import rpgp key for unit test failed: " << key_file;
         continue;
       }
 
-      LOG_D() << "unit test key(s) imported: " << info->imported;
+      LOG_D() << "unit test rpgp key(s) imported: " << info->imported;
 
       for (const auto& key : info->imported_keys) {
-        LOG_D() << "(+) unit test key: " << key.fpr;
+        LOG_D() << "(+) unit test rpgp key: " << key.fpr;
       }
 
     } else {
-      FLOG_W() << "read from key file failed: " << key_file;
+      FLOG_W() << "read from rpgp key file failed: " << key_file;
     }
   }
 
-  AbstractKeyRepository::GetInstance().FlushCache();
-  AbstractKeyRepository::GetInstance().Fetch();
+  AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushCache();
+  AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest).Fetch();
 }
 
 auto ConfigureGpgContext() -> bool {
@@ -112,13 +82,10 @@ auto ConfigureGpgContext() -> bool {
   Q_ASSERT(db_path.exists());
 
   auto succ = GpgFrontend::BuildOpenPGPContext(
-      kGpgChannelForUnitTest, GpgFrontend::OpenPGPContextInitArgs{
-                                  .engine = GpgFrontend::OpenPGPEngine::kGNUPG,
-                                  .db_name = "test-db",
-                                  .db_path = db_path.canonicalPath(),
-                                  .offline_mode = true,
-                                  .auto_import_missing_key = false,
-                              });
+      kRpgpChannelForUnitTest, GpgFrontend::OpenPGPContextInitArgs{
+                                   .engine = GpgFrontend::OpenPGPEngine::kRPGP,
+                                   .db_name = "test-rpgp-db",
+                                   .db_path = db_path.canonicalPath()});
 
   LOG_D() << "configure gpg context for unit test, db path: "
           << db_path.canonicalPath();
@@ -127,40 +94,36 @@ auto ConfigureGpgContext() -> bool {
     LOG_E() << "configure gpg context for unit test failed";
     return false;
   }
-
-  auto& ctx =
-      GpgCtx(GpgFrontend::OpenPGPContext::GetInstance(kGpgChannelForUnitTest));
-  ctx.SetPassphraseCb(ctx.DefaultContext(), TestPassphraseCb);
-  ctx.SetPassphraseCb(ctx.BinaryContext(), TestPassphraseCb);
   return true;
 };
 }  // namespace
 
-void GpgCoreTest::SetUpTestSuite() {
-  GpgCoreTest::is_gnupg_available =
-      GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
+void RpgpCoreTest::SetUpTestSuite() {
+  RpgpCoreTest::is_rpgp_available =
+      GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP);
 
-  if (!GpgCoreTest::is_gnupg_available) {
-    LOG_W() << "GnuPG is not available, some tests will be skipped.";
+  if (!RpgpCoreTest::is_rpgp_available) {
+    LOG_W() << "rPGP is not available, some tests will be skipped.";
     return;
   }
 
   if (!ConfigureGpgContext()) {
     LOG_E() << "configure gpg context for unit test failed, some tests will be "
                "skipped.";
-    GpgCoreTest::is_gnupg_available = false;
+    RpgpCoreTest::is_rpgp_available = false;
     return;
   }
+
   ImportPrivateKeys();
 }
 
-void GpgCoreTest::TearDownTestSuite() {}
+void RpgpCoreTest::TearDownTestSuite() {}
 
-void GpgCoreTest::SetUp() {
-  if (!GpgCoreTest::is_gnupg_available) {
-    GTEST_SKIP() << "GnuPG Engine is not available.";
+void RpgpCoreTest::SetUp() {
+  if (!RpgpCoreTest::is_rpgp_available) {
+    GTEST_SKIP() << "rPGP Engine is not available.";
   }
 }
 
-void GpgCoreTest::TearDown() {}
+void RpgpCoreTest::TearDown() {}
 }  // namespace GpgFrontend::Test

@@ -30,9 +30,11 @@
 
 #include <gtest/gtest.h>
 
+#include "GpgFrontendTest.h"
+
 namespace GpgFrontend::Test {
 
-class GpgCoreTest : public ::testing::Test {
+class RpgpCoreTest : public ::testing::Test {
  public:
   /**
    * @brief Set the Up Test Suite object
@@ -59,7 +61,7 @@ class GpgCoreTest : public ::testing::Test {
   void TearDown() override;
 
  protected:
-  static bool is_gnupg_available;
+  static bool is_rpgp_available;
 };
 
 }  // namespace GpgFrontend::Test

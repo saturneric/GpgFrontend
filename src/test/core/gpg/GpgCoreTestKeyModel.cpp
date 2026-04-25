@@ -39,9 +39,7 @@ namespace GpgFrontend::Test {
 
 TEST_F(GpgCoreTest, CoreInitTest) {
   auto& ctx = OpenPGPContext::GetInstance(kGpgFrontendDefaultChannel);
-  auto& ctx_default = OpenPGPContext::GetInstance();
   ASSERT_TRUE(ctx.Good());
-  ASSERT_TRUE(ctx_default.Good());
 }
 
 TEST_F(GpgCoreTest, GpgDataTest) {

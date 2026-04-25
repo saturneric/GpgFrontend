@@ -30,6 +30,7 @@ find_package(GTest REQUIRED)
 
 aux_source_directory(./core TEST_SOURCE)
 aux_source_directory(./core/gpg TEST_SOURCE)
+aux_source_directory(./core/rpgp TEST_SOURCE)
 aux_source_directory(. TEST_SOURCE)
 
 # define test library
