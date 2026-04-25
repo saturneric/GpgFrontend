@@ -61,6 +61,13 @@ class GeneralMainWindow : public QMainWindow {
   void closeEvent(QCloseEvent* event) override;
 
   /**
+   * @brief
+   *
+   * @param event
+   */
+  void showEvent(QShowEvent* event) override;
+
+  /**
    *
    */
   void setPosCenterOfScreen();

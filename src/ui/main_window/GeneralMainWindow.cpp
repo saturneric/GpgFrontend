@@ -37,16 +37,20 @@ namespace GpgFrontend::UI {
 
 GeneralMainWindow::GeneralMainWindow(QString id, QWidget *parent)
     : QMainWindow(parent), id_(std::move(id)) {
-  // restore settings when constructing the main window, so that the size and
-  // position of the main window can be restored before it is shown for the
-  // first time.
-  restoreSettings();
-
   // should delete itself at closing by default
   setAttribute(Qt::WA_DeleteOnClose);
 }
 
 GeneralMainWindow::~GeneralMainWindow() = default;
+
+void GeneralMainWindow::showEvent(QShowEvent *event) {
+  QMainWindow::showEvent(event);
+
+  // restore settings when constructing the main window, so that the size and
+  // position of the main window can be restored before it is shown for the
+  // first time.
+  restoreSettings();
+}
 
 void GeneralMainWindow::closeEvent(QCloseEvent *event) {
   // save size and position
@@ -82,6 +86,10 @@ void GeneralMainWindow::restoreSettings() noexcept {
             pos_ = parent_rect.center() -
                    QPoint(size_.width() / 2, size_.height() / 2);
           }
+
+          // add a small offset to avoid completely overlapping with parent if
+          // the window is opened multiple times
+          pos_ += QPoint(24, 24);
         }
       }
 
@@ -99,7 +107,14 @@ void GeneralMainWindow::restoreSettings() noexcept {
 
       setGeometry(target_rect);
     } else {
-      movePosition2CenterOfParent();
+      LOG_D() << "general main window: " << id_
+              << ", no window geometry data to restore, move to center of "
+                 "parent or screen";
+      if (this->parent() != nullptr) {
+        movePosition2CenterOfParent();
+      } else {
+        setPosCenterOfScreen();
+      }
     }
 
     // appearance
