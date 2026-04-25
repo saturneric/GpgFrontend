@@ -90,6 +90,33 @@ class PlainTextEditorPage : public QWidget {
    */
   void Clear();
 
+  /**
+   * @brief
+   *
+   */
+  void InitEditorStyle();
+
+  /**
+   * @brief
+   *
+   */
+  void UpdateStatusBar();
+
+  /**
+   * @brief Set the Loading State object
+   *
+   * @param loading
+   * @param message
+   */
+  void SetLoadingState(bool loading, const QString& message = {});
+
+  /**
+   * @brief Set the Editor Modified object
+   *
+   * @param modified
+   */
+  void SetEditorModified(bool modified);
+
  public slots:
 
   /**

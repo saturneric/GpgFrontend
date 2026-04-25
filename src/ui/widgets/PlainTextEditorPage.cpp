@@ -36,45 +36,182 @@
 
 namespace GpgFrontend::UI {
 
+namespace {
+namespace {
+
+auto ContainsFontFamily(const QString &family) -> bool {
+  const auto families = QFontDatabase::families();
+  return std::any_of(families.cbegin(), families.cend(),
+                     [&family](const QString &item) {
+                       return item.compare(family, Qt::CaseInsensitive) == 0;
+                     });
+}
+
+auto PreferredMonospaceFont() -> QFont {
+  QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+
+#if defined(Q_OS_MACOS)
+  if (ContainsFontFamily(QStringLiteral("Menlo"))) {
+    font.setFamily(QStringLiteral("Menlo"));
+  } else if (ContainsFontFamily(QStringLiteral("Monaco"))) {
+    font.setFamily(QStringLiteral("Monaco"));
+  }
+#elif defined(Q_OS_WIN)
+  if (ContainsFontFamily(QStringLiteral("Cascadia Mono"))) {
+    font.setFamily(QStringLiteral("Cascadia Mono"));
+  } else if (ContainsFontFamily(QStringLiteral("Consolas"))) {
+    font.setFamily(QStringLiteral("Consolas"));
+  } else if (ContainsFontFamily(QStringLiteral("Courier New"))) {
+    font.setFamily(QStringLiteral("Courier New"));
+  }
+#else
+  if (ContainsFontFamily(QStringLiteral("DejaVu Sans Mono"))) {
+    font.setFamily(QStringLiteral("DejaVu Sans Mono"));
+  } else if (ContainsFontFamily(QStringLiteral("Liberation Mono"))) {
+    font.setFamily(QStringLiteral("Liberation Mono"));
+  } else if (ContainsFontFamily(QStringLiteral("Noto Sans Mono"))) {
+    font.setFamily(QStringLiteral("Noto Sans Mono"));
+  }
+#endif
+
+  font.setStyleHint(QFont::Monospace);
+  font.setFixedPitch(true);
+  return font;
+}
+
+}  // namespace
+}  // namespace
+
 PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_PlainTextEditor>()),
       full_file_path_(std::move(file_path)) {
   ui_->setupUi(this);
+  InitEditorStyle();
 
   ui_->textPage->setFocus();
-  ui_->loadingLabel->setHidden(true);
-
-  // font size
-  AppearanceSO appearance(SettingsObject("general_settings_state"));
-  ui_->textPage->setFont(QFont("Courier", appearance.text_editor_font_size));
-
   this->setAttribute(Qt::WA_DeleteOnClose);
 
-  this->ui_->characterLabel->setText(tr("0 character"));
-  this->ui_->lfLabel->setHidden(true);
-  this->ui_->encodingLabel->setText("Unicode");
-  this->ui_->textPage->setAcceptDrops(false);
-
-  setAcceptDrops(false);
-
-  connect(ui_->textPage, &QPlainTextEdit::textChanged, this, [=]() {
-    // if file is loading
+  connect(ui_->textPage, &QPlainTextEdit::textChanged, this, [this]() {
     if (!read_done_) return;
 
-    auto text = ui_->textPage->document()->toPlainText();
-    auto str = tr("%1 character(s)").arg(text.size());
-    this->ui_->characterLabel->setText(str);
+    UpdateStatusBar();
+    SetEditorModified(ui_->textPage->document()->isModified());
   });
 
   if (full_file_path_.isEmpty()) {
     read_done_ = true;
-    ui_->loadingLabel->setHidden(true);
+    SetLoadingState(false);
   } else {
     read_done_ = false;
-    ui_->loadingLabel->setText(tr("Loading..."));
-    ui_->loadingLabel->setHidden(false);
+    SetLoadingState(true, tr("Loading..."));
   }
+}
+
+void PlainTextEditorPage::InitEditorStyle() {
+  setObjectName(QStringLiteral("PlainTextEditorPage"));
+
+  ui_->textPage->setObjectName(QStringLiteral("PlainTextEditor"));
+  ui_->textPage->setAcceptDrops(false);
+  ui_->textPage->setLineWrapMode(QPlainTextEdit::WidgetWidth);
+  ui_->textPage->setTabStopDistance(
+      QFontMetricsF(ui_->textPage->font()).horizontalAdvance(' ') * 4);
+  ui_->textPage->setUndoRedoEnabled(true);
+  ui_->textPage->setCursorWidth(2);
+  ui_->textPage->setCenterOnScroll(true);
+
+  QFont editor_font = PreferredMonospaceFont();
+
+  AppearanceSO appearance(SettingsObject("general_settings_state"));
+  editor_font.setPointSize(appearance.text_editor_font_size);
+  editor_font.setFixedPitch(true);
+
+  ui_->textPage->setFont(editor_font);
+
+  ui_->loadingLabel->setHidden(true);
+  ui_->loadingLabel->setAlignment(Qt::AlignCenter);
+  ui_->loadingLabel->setText(tr("Loading..."));
+
+  ui_->characterLabel->setText(tr("0 character(s)"));
+  ui_->characterLabel->setToolTip(tr("Number of characters in the editor."));
+
+  ui_->lfLabel->setText(tr("LF"));
+  ui_->lfLabel->setToolTip(tr("Line ending style."));
+  ui_->lfLabel->setHidden(false);
+
+  ui_->encodingLabel->setText(tr("UTF-8"));
+  ui_->encodingLabel->setToolTip(tr("Text encoding."));
+
+  setAcceptDrops(false);
+
+  setStyleSheet(R"(
+QWidget#PlainTextEditorPage QPlainTextEdit#PlainTextEditor {
+  border: 1px solid palette(mid);
+  border-radius: 6px;
+  background: palette(base);
+  selection-background-color: palette(highlight);
+  selection-color: palette(highlighted-text);
+}
+
+QWidget#PlainTextEditorPage QLabel {
+  padding: 2px 6px;
+}
+
+QWidget#PlainTextEditorPage QLabel[statusBadge="true"] {
+  border: 1px solid palette(mid);
+  border-radius: 5px;
+  background: palette(alternate-base);
+}
+
+QWidget#PlainTextEditorPage QLabel[loading="true"] {
+  font-weight: 600;
+  color: palette(highlight);
+}
+)");
+
+  auto polish_label = [](QLabel *label) {
+    label->style()->unpolish(label);
+    label->style()->polish(label);
+  };
+
+  ui_->characterLabel->setProperty("statusBadge", true);
+  ui_->lfLabel->setProperty("statusBadge", true);
+  ui_->encodingLabel->setProperty("statusBadge", true);
+
+  polish_label(ui_->characterLabel);
+  polish_label(ui_->lfLabel);
+  polish_label(ui_->encodingLabel);
+}
+
+void PlainTextEditorPage::SetLoadingState(bool loading,
+                                          const QString &message) {
+  ui_->loadingLabel->setHidden(!loading);
+  ui_->loadingLabel->setProperty("loading", loading);
+  ui_->loadingLabel->style()->unpolish(ui_->loadingLabel);
+  ui_->loadingLabel->style()->polish(ui_->loadingLabel);
+
+  if (loading) {
+    ui_->loadingLabel->setText(message.isEmpty() ? tr("Loading...") : message);
+  }
+
+  ui_->textPage->setEnabled(!loading);
+  ui_->textPage->setReadOnly(loading);
+}
+
+void PlainTextEditorPage::UpdateStatusBar() {
+  const auto char_count =
+      std::max(0, ui_->textPage->document()->characterCount() - 1);
+
+  ui_->characterLabel->setText(tr("%1 character(s)").arg(char_count));
+
+  ui_->lfLabel->setText(is_crlf_ ? tr("CRLF") : tr("LF"));
+  ui_->encodingLabel->setText(tr("UTF-8"));
+}
+
+void PlainTextEditorPage::SetEditorModified(bool modified) {
+  ui_->characterLabel->setToolTip(modified
+                                      ? tr("The document has unsaved changes.")
+                                      : tr("The document is unchanged."));
 }
 
 void PlainTextEditorPage::closeEvent(QCloseEvent *event) {
@@ -93,10 +230,9 @@ auto PlainTextEditorPage::GetPlainText() -> QString {
 }
 
 void PlainTextEditorPage::NotifyFileSaved() {
-  this->is_crlf_ = false;
-
-  this->ui_->lfLabel->setText(tr("lf"));
-  this->ui_->encodingLabel->setText(tr("UTF-8"));
+  ui_->textPage->document()->setModified(false);
+  SetEditorModified(false);
+  UpdateStatusBar();
 }
 
 void PlainTextEditorPage::SetFilePath(const QString &filePath) {
@@ -119,12 +255,11 @@ void PlainTextEditorPage::CloseNoteByClass(const char *className) {
 }
 
 void PlainTextEditorPage::slot_format_gpg_header() {
-  QString content = ui_->textPage->toPlainText();
+  const QString content = ui_->textPage->toPlainText();
 
-  // Get positions of the gpg-headers, if they exist
-  auto start = content.indexOf(GpgFrontend::PGP_SIGNED_BEGIN);
-  auto start_sig = content.indexOf(GpgFrontend::PGP_SIGNATURE_BEGIN);
-  auto end_sig = content.indexOf(GpgFrontend::PGP_SIGNATURE_END);
+  const auto start = content.indexOf(GpgFrontend::PGP_SIGNED_BEGIN);
+  const auto start_sig = content.indexOf(GpgFrontend::PGP_SIGNATURE_BEGIN);
+  const auto end_sig = content.indexOf(GpgFrontend::PGP_SIGNATURE_END);
 
   if (start < 0 || start_sig < 0 || end_sig < 0 || sign_marked_) {
     return;
@@ -132,34 +267,44 @@ void PlainTextEditorPage::slot_format_gpg_header() {
 
   sign_marked_ = true;
 
-  // Set the fontstyle for the header
   QTextCharFormat sign_format;
-  sign_format.setForeground(QBrush(QColor::fromRgb(80, 80, 80)));
-  sign_format.setFontPointSize(9);
+  sign_format.setForeground(QBrush(QColor::fromRgb(110, 110, 110)));
+  sign_format.setFontPointSize(
+      std::max(8, ui_->textPage->font().pointSize() - 1));
 
-  // set font style for the signature
   QTextCursor cursor(ui_->textPage->document());
+
+  const int signature_end =
+      end_sig + QString(GpgFrontend::PGP_SIGNATURE_END).size();
+
   cursor.setPosition(start_sig, QTextCursor::MoveAnchor);
-  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, end_sig);
+  cursor.setPosition(signature_end, QTextCursor::KeepAnchor);
   cursor.setCharFormat(sign_format);
 
-  // set the font style for the header
-  int head_end = content.indexOf("\n\n", start);
-  cursor.setPosition(start, QTextCursor::MoveAnchor);
-  cursor.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor, head_end);
-  cursor.setCharFormat(sign_format);
+  const int head_end = content.indexOf("\n\n", start);
+  if (head_end > start) {
+    cursor.setPosition(start, QTextCursor::MoveAnchor);
+    cursor.setPosition(head_end, QTextCursor::KeepAnchor);
+    cursor.setCharFormat(sign_format);
+  }
 }
 
 void PlainTextEditorPage::ReadFile() {
   read_done_ = false;
   read_bytes_ = 0;
+  last_insert_has_partial_cr_ = false;
+  sign_marked_ = false;
+  is_crlf_ = false;
 
   auto *text_page = this->GetTextPage();
-  text_page->setEnabled(false);
-  text_page->setReadOnly(true);
+
+  SetLoadingState(true, tr("Loading..."));
+
+  text_page->clear();
   text_page->blockSignals(true);
   text_page->document()->blockSignals(true);
-  ui_->loadingLabel->setHidden(false);
+  text_page->setUndoRedoEnabled(false);
+  text_page->document()->setModified(false);
 
   const auto target_path = this->full_file_path_;
 
@@ -167,6 +312,7 @@ void PlainTextEditorPage::ReadFile() {
       GpgFrontend::Thread::TaskRunnerGetter::GetInstance().GetTaskRunner();
 
   auto *read_task = new FileReadTask(target_path);
+
   connect(read_task, &FileReadTask::SignalFileBytesRead, this,
           &PlainTextEditorPage::slot_insert_text, Qt::QueuedConnection);
   connect(this, &PlainTextEditorPage::SignalUIBytesDisplayed, read_task,
@@ -174,16 +320,22 @@ void PlainTextEditorPage::ReadFile() {
 
   connect(this, &PlainTextEditorPage::close, read_task,
           [=]() { emit read_task->SignalTaskShouldEnd(0); });
+
   connect(read_task, &FileReadTask::SignalFileBytesReadEnd, this, [=]() {
-    // set the UI
     FLOG_D("file read done");
+
     this->read_done_ = true;
-    text_page->setEnabled(true);
-    text_page->document()->setModified(false);
+
     text_page->blockSignals(false);
     text_page->document()->blockSignals(false);
-    text_page->setReadOnly(false);
-    this->ui_->loadingLabel->setHidden(true);
+    text_page->setUndoRedoEnabled(true);
+    text_page->document()->setModified(false);
+
+    SetLoadingState(false);
+    UpdateStatusBar();
+    slot_format_gpg_header();
+
+    text_page->setFocus();
   });
 
   task_runner->PostTask(read_task);
@@ -198,32 +350,34 @@ auto BinaryToString(const QByteArray &source) -> QString {
 }
 
 void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
-  // If the previous data ended with a '\r' and the current data starts with
-  // '\n', combine them to form a complete '\r\n' to avoid incorrect line
-  // breaks.
   if (last_insert_has_partial_cr_ && !bytes_data.isEmpty() &&
       bytes_data.startsWith('\n')) {
-    bytes_data.prepend('\r');  // Prepend '\r' to ensure '\r\n' stays together.
+    bytes_data.prepend('\r');
   }
 
-  // Check if the current data ends with '\r'.
   if (!bytes_data.isEmpty() && bytes_data.endsWith('\r')) {
-    // If the data ends with '\r', set the flag indicating an incomplete line
-    // ending.
     last_insert_has_partial_cr_ = true;
-    // Remove the trailing '\r' and hold it for the next chunk of data.
     bytes_data.chop(1);
   } else {
-    // If the data does not end with '\r', reset the flag.
     last_insert_has_partial_cr_ = false;
   }
 
-  read_bytes_ += bytes_data.size();
+  if (!is_crlf_ && bytes_data.contains("\r\n")) {
+    is_crlf_ = true;
+  }
 
-  // insert the text to the text page
-  this->ui_->textPage->insertPlainText(bytes_data);
-  this->ui_->characterLabel->setText(
-      tr("%1 character(s)").arg(this->GetTextPage()->toPlainText().size()));
+  read_bytes_ += static_cast<size_t>(bytes_data.size());
+
+  ui_->textPage->insertPlainText(QString::fromUtf8(bytes_data));
+
+  const auto char_count =
+      std::max(0, ui_->textPage->document()->characterCount() - 1);
+
+  ui_->characterLabel->setText(tr("%1 character(s)").arg(char_count));
+
+  if (read_bytes_ > 0) {
+    ui_->loadingLabel->setText(tr("Loading... %1 KB").arg(read_bytes_ / 1024));
+  }
 
   QTimer::singleShot(25, this, &PlainTextEditorPage::SignalUIBytesDisplayed);
 }
@@ -231,16 +385,21 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
 auto PlainTextEditorPage::ReadDone() const -> bool { return this->read_done_; }
 
 void PlainTextEditorPage::Clear() {
-  // If the text page is not empty, we will clear it to avoid memory leak.
-  auto text = ui_->textPage->toPlainText();
-  if (!text.isEmpty()) {
-    // Fill the text page with bullet characters to avoid memory leak.
-    ui_->textPage->setPlainText(QString(text.size(), QChar(0x2022)));
-    text.fill(QLatin1Char('X'));
+  if (ui_ == nullptr || ui_->textPage == nullptr) return;
+
+  auto *editor = ui_->textPage;
+
+  editor->setUndoRedoEnabled(false);
+
+  const auto char_count = editor->document()->characterCount();
+  if (char_count > 1) {
+    editor->selectAll();
+    editor->insertPlainText(QString(char_count - 1, QChar(0x2022)));
   }
 
-  this->ui_->textPage->clear();
-  this->ui_->textPage->setUndoRedoEnabled(false);
-  this->ui_->textPage->setUndoRedoEnabled(true);
+  editor->clear();
+  editor->document()->clearUndoRedoStacks();
+  editor->setUndoRedoEnabled(true);
 }
+
 }  // namespace GpgFrontend::UI
