@@ -67,8 +67,6 @@ auto EncryptGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                       const DataObjectPtr& data_object) -> GpgError {
   auto& g_ctx = GpgCtx(ctx_);
 
-  LOG_D() << "encrypting message for keys: " << keys.front()->ID();
-
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
 
   QContainer<gpgme_key_t> gpg_recipients;

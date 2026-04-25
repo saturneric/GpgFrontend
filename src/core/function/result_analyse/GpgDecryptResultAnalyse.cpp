@@ -37,8 +37,6 @@ GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
 void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   auto recipients = this->result_.Recipients();
 
-  stream_ << "# " << tr("Decrypt") << " (" << EngineInfo() << ") ";
-
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
     stream_ << "- " << tr("Success") << " " << Qt::endl;
   } else {

@@ -82,12 +82,12 @@ auto ModifyKeyPassphraseGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
  *
  * @param ctx
  * @param key
- * @param subkey_index
+ * @param skey_index
  * @return true
  * @return false
  */
 auto DeleteSubKeyGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                           int subkey_index) -> bool;
+                           int skey_index) -> bool;
 
 /**
  * @brief

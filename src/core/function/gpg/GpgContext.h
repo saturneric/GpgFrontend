@@ -33,7 +33,7 @@
 
 namespace GpgFrontend {
 
-class GpgContext : public OpenPGPContext {
+class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
  public:
   /**
    * @brief Construct a new Gpg Context object

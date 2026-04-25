@@ -42,7 +42,10 @@ auto GetKeyPtrGnuPGImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
                 secret ? 1 : 0);
 
   if (p_key == nullptr) {
-    return GetKeyPtrGnuPGImpl(ctx, key_id, false);
+    if (secret) {
+      return GetKeyPtrGnuPGImpl(ctx, key_id, false);
+    }
+    return nullptr;
   }
   return SecureCreateSharedObject<GpgKey>(p_key);
 }
