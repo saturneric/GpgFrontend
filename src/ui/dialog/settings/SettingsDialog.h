@@ -83,6 +83,14 @@ class SettingsDialog : public GeneralDialog {
    */
   void SignalRestartNeeded(int);
 
+ protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void showEvent(QShowEvent* event) override;
+
  private:
   QTabWidget* tab_widget_;             ///<
   QDialogButtonBox* button_box_;       ///<

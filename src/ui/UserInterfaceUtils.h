@@ -70,6 +70,15 @@ void process_operation(QWidget* parent, const QString& waiting_title,
 /**
  * @brief
  *
+ * @param rect
+ * @param available
+ * @return QRect
+ */
+auto ClampRectToAvailableGeometry(QRect rect, const QRect& available) -> QRect;
+
+/**
+ * @brief
+ *
  */
 class CommonUtils : public QWidget {
   Q_OBJECT

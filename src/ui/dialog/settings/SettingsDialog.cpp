@@ -90,12 +90,19 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   connect(this, &SettingsDialog::SignalRestartNeeded,
           qobject_cast<MainWindow*>(parent), &MainWindow::SlotSetRestartNeeded);
 
-  this->setMinimumWidth(500);
-  this->adjustSize();
-
   this->show();
   this->raise();
   this->activateWindow();
+}
+
+void SettingsDialog::showEvent(QShowEvent* event) {
+  GeneralDialog::showEvent(event);
+
+  // If the window state has not been restored, move the dialog to the center of
+  // the parent window (if has parent) or the screen.
+  if (!isRectRestored()) {
+    movePosition2CenterOfParent();
+  }
 }
 
 void SettingsDialog::slot_declare_a_restart() {
