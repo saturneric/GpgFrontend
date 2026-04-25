@@ -234,6 +234,57 @@ class KeyList : public QWidget {
    */
   void RefreshKeyTable(int index);
 
+  /**
+   * @brief
+   *
+   */
+  void InitUiVisibility();
+
+  /**
+   * @brief
+   *
+   */
+  void InitUiStyle();
+
+  /**
+   * @brief
+   *
+   */
+  void InitContextMenu();
+
+  /**
+   * @brief
+   *
+   */
+  void InitColumnMenu();
+
+  /**
+   * @brief
+   *
+   */
+  void InitSignals();
+
+  /**
+   * @brief
+   *
+   */
+  void InitTexts();
+
+  /**
+   * @brief
+   *
+   */
+  void UpdateActionState();
+
+  /**
+   * @brief
+   *
+   * @param ability
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto HasAbility(KeyMenuAbility ability) const -> bool;
+
  public slots:
 
   /**
@@ -332,6 +383,8 @@ class KeyList : public QWidget {
   QAction* owner_trust_column_action_;
   QAction* subkeys_number_column_action_;
   QAction* comment_column_action_;
+
+  QTimer* search_timer_ = nullptr;
 
   /**
    * @brief
