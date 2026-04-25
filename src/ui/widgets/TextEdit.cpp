@@ -32,6 +32,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/QuitDialog.h"
@@ -77,7 +78,15 @@ void TextEdit::SlotNewDefaultWorkspaceTab() {
           .value("basic/default_workspace_as", "file_panel")
           .toString();
 
-  if (default_workspace_as == "file_panel") {
+  if (IsRunningInSandBox()) {
+    // In sandbox environment, the file panel may not work properly due to
+    // sandbox restrictions. So we use text editor as the default workspace to
+    // avoid potential issues.
+    LOG_W() << "Running in sandbox environment, switching default workspace "
+               "to text editor.";
+    tab_widget_->SlotNewPlainTextTab();
+
+  } else if (default_workspace_as == "file_panel") {
     tab_widget_->SlotOpenDefaultPath();
   } else {
     tab_widget_->SlotNewPlainTextTab();

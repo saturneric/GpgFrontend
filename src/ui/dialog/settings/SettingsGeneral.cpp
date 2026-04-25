@@ -89,11 +89,15 @@ GeneralTab::GeneralTab(QWidget* parent)
       tr("Clear All Data Objects (Total Size: %1)")
           .arg(GlobalSettingStation::GetInstance().GetDataObjectsFilesSize()));
 
-  // Hide the "Data" group box if running in sandbox, since the features in the
-  // "Data" group box are not useful in sandbox and may cause confusion to
-  // users.
+  // Hide some options if running in sandbox, since they are not useful in
+  // sandbox and may cause confusion to users.
   if (IsRunningInSandBox()) {
     ui_->dataBox->setHidden(true);
+    ui_->modulePolicyComboBox->setHidden(true);
+    ui_->modulePolicyLabel->setHidden(true);
+    ui_->defaultWorkspaceAsLabel->setHidden(true);
+    ui_->filePanelRadioButton->setHidden(true);
+    ui_->textEditorRadioButton->setHidden(true);
   }
 
   ui_->revealInFileExplorerButton->setText(tr("Reveal in File Explorer"));

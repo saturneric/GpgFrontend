@@ -284,15 +284,19 @@ void TextEditTabWidget::SlotOpenDefaultPath() {
                           ? QDir::homePath()
                           : QDir::currentPath();
 
-  // In sandbox, we should always use home path as default path for file
-  // panel, otherwise the file dialog will open in a directory in the sandbox
-  // with no files, which is not a good user experience.
+  // In sandbox, we should ask user to select a directory as the default path
+  // for file panel, because the sandbox may not have permission to access the
+  // default path.
   if (IsRunningInSandBox()) {
-    LOG_D() << "Running in a sandbox, using home path as default path for "
-               "file panel.";
-    home_path_as_file_panel_default_path = true;
-    default_path =
-        QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    LOG_D() << "Running in sandbox environment, asking user to select default "
+               "path for file panel.";
+    default_path = QFileDialog::getExistingDirectory(
+        this, tr("Select Default Path"), default_path);
+    if (default_path.isEmpty()) {
+      LOG_W()
+          << "No default path selected, switching to text editor workspace.";
+      return;
+    }
   }
 
   auto* page = new FilePage(qobject_cast<QWidget*>(parent()), default_path);
@@ -307,6 +311,8 @@ void TextEditTabWidget::SlotOpenDefaultPath() {
 
 void TextEditTabWidget::SlotOpenPath(const QString& target_path) {
   auto* page = new FilePage(qobject_cast<QWidget*>(parent()), target_path);
+  page->setProperty("type", "file");
+
   auto index = this->addTab(page, QString());
   this->setTabIcon(index, QIcon(":/icons/workspace.png"));
   this->setTabToolTip(index, target_path);
