@@ -41,6 +41,8 @@ class FileTreeView : public QTreeView {
    */
   explicit FileTreeView(QWidget* parent);
 
+  void InitViewStyle();
+
   /**
    */
   void SetPath(const QString& target_path);
@@ -74,6 +76,20 @@ class FileTreeView : public QTreeView {
    * @return QPoint
    */
   auto GetMousePointGlobal(const QPoint& point) -> QPoint;
+
+  /**
+   * @brief
+   *
+   * @return QModelIndex
+   */
+  [[nodiscard]] auto CurrentTargetDirectoryIndex() const -> QModelIndex;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto CurrentTargetDirectoryPath() const -> QString;
 
  protected:
   /**
@@ -255,6 +271,7 @@ class FileTreeView : public QTreeView {
   QAction* action_create_empty_file_;
   QAction* action_make_directory_;
   QAction* action_compress_files_;
+  QAction* action_open_with_system_default_application_;
 
   bool initial_resize_done_ = false;
 };

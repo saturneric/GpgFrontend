@@ -31,6 +31,7 @@
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/dialog/CreateFileSystemItemDialog.h"
 #include "ui/function/GpgOperaHelper.h"
 
 namespace GpgFrontend::UI {
@@ -42,6 +43,9 @@ FileTreeView::FileTreeView(QWidget* parent)
   current_path_ = dir_model_->rootPath();
 
   this->setModel(dir_model_);
+
+  InitViewStyle();
+
   this->setColumnWidth(0, 320);
   this->sortByColumn(0, Qt::AscendingOrder);
   this->setSortingEnabled(true);
@@ -60,20 +64,94 @@ FileTreeView::FileTreeView(QWidget* parent)
           &FileTreeView::slot_adjust_column_widths);
 }
 
+void FileTreeView::InitViewStyle() {
+  setObjectName(QStringLiteral("FileTreeView"));
+
+  setRootIsDecorated(true);
+  setItemsExpandable(true);
+  setExpandsOnDoubleClick(false);
+
+  setAlternatingRowColors(true);
+  setUniformRowHeights(true);
+  setAnimated(false);
+  setSortingEnabled(true);
+  sortByColumn(0, Qt::AscendingOrder);
+
+  setSelectionBehavior(QAbstractItemView::SelectRows);
+  setSelectionMode(QAbstractItemView::SingleSelection);
+  setEditTriggers(QAbstractItemView::NoEditTriggers);
+  setContextMenuPolicy(Qt::CustomContextMenu);
+
+  setAllColumnsShowFocus(true);
+  setMouseTracking(true);
+  setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+
+  header()->setStretchLastSection(false);
+  header()->setHighlightSections(false);
+  header()->setSectionsClickable(true);
+  header()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+
+  setColumnWidth(0, 360);
+  setColumnWidth(1, 90);
+  setColumnWidth(2, 120);
+  setColumnWidth(3, 160);
+
+  header()->setSectionResizeMode(0, QHeaderView::Interactive);
+  header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+  header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+  header()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+
+  setStyleSheet(R"(
+QTreeView#FileTreeView {
+  border: 1px solid palette(mid);
+  border-radius: 6px;
+  background: palette(base);
+  alternate-background-color: palette(alternate-base);
+  outline: 0;
+}
+
+QTreeView#FileTreeView::item {
+  min-height: 24px;
+  padding: 2px 4px;
+  border: none;
+}
+
+QTreeView#FileTreeView::item:hover {
+  background: palette(light);
+}
+
+QTreeView#FileTreeView::item:selected {
+  background: palette(highlight);
+  color: palette(highlighted-text);
+}
+
+QHeaderView::section {
+  padding: 5px 6px;
+  border: none;
+  border-bottom: 1px solid palette(mid);
+  background: palette(window);
+  font-weight: 600;
+}
+)");
+}
+
 void FileTreeView::selectionChanged(const QItemSelection& selected,
                                     const QItemSelection& deselected) {
   QTreeView::selectionChanged(selected, deselected);
 
   selected_paths_.clear();
-  if (!this->selectedIndexes().isEmpty()) {
-    QSet<QString> paths;
-    for (const auto& index : this->selectedIndexes()) {
-      const auto path = dir_model_->filePath(index);
-      if (path == current_path_) continue;
 
-      paths.insert(path);
-    }
-    selected_paths_.append(paths.values());
+  const auto rows = selectionModel()->selectedRows(0);
+  selected_paths_.reserve(rows.size());
+
+  for (const auto& index : rows) {
+    if (!index.isValid()) continue;
+
+    const auto path = dir_model_->filePath(index);
+    if (path.isEmpty() || path == current_path_) continue;
+
+    selected_paths_.append(path);
   }
 
   emit SignalSelectedChanged(selected_paths_);
@@ -83,39 +161,52 @@ void FileTreeView::SlotGoPath(const QString& target_path) {
   if (target_path.isEmpty()) {
     current_path_.clear();
     dir_model_->setRootPath("");
-    this->setRootIndex(dir_model_->index(""));
+    setRootIndex(dir_model_->index(""));
     slot_adjust_column_widths();
     emit SignalPathChanged(current_path_);
     return;
   }
 
-  const auto file_info = QFileInfo(target_path);
+  const QFileInfo file_info(target_path);
 
-  if (file_info.isDir() && file_info.isReadable() && file_info.isExecutable()) {
-    current_path_ = file_info.absoluteFilePath();
-    dir_model_->setRootPath(current_path_);
-    this->setRootIndex(dir_model_->index(current_path_));
-    slot_adjust_column_widths();
-    emit SignalPathChanged(current_path_);
-  } else {
-    QMessageBox::critical(
-        this, tr("Error"),
-        tr("The path is not exists, unprivileged or unreachable."));
+  if (!file_info.exists() || !file_info.isDir() || !file_info.isReadable() ||
+      !file_info.isExecutable()) {
+    LOG_W() << "invalid or inaccessible path:" << target_path;
+    return;
   }
-}
 
+  current_path_ = file_info.absoluteFilePath();
+  dir_model_->setRootPath(current_path_);
+  setRootIndex(dir_model_->index(current_path_));
+  clearSelection();
+
+  slot_adjust_column_widths();
+  emit SignalPathChanged(current_path_);
+}
 void FileTreeView::slot_file_tree_view_item_double_clicked(
     const QModelIndex& index) {
-  QFileInfo const file_info(dir_model_->fileInfo(index).absoluteFilePath());
+  if (!index.isValid()) return;
+
+  const QFileInfo file_info(dir_model_->fileInfo(index).absoluteFilePath());
+
   if (file_info.isFile()) {
     if (file_info.isReadable()) {
       emit SignalOpenFile(file_info.absoluteFilePath());
     } else {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("The file is unprivileged or unreachable."));
+      QMessageBox::warning(this, tr("Unable to Open File"),
+                           tr("The file cannot be read."));
     }
-  } else {
-    SlotGoPath(file_info.absoluteFilePath());
+    return;
+  }
+
+  if (file_info.isDir()) {
+    if (file_info.isReadable() && file_info.isExecutable()) {
+      SlotGoPath(file_info.absoluteFilePath());
+    } else {
+      QMessageBox::warning(
+          this, tr("Unable to Open Folder"),
+          tr("The folder cannot be opened. Please check permissions."));
+    }
   }
 }
 
@@ -166,88 +257,98 @@ auto FileTreeView::GetPathByClickPoint(const QPoint& point) -> QString {
 auto FileTreeView::GetSelectedPaths() -> QStringList { return selected_paths_; }
 
 auto FileTreeView::SlotDeleteSelectedItem() -> void {
-  QModelIndex const index = this->currentIndex();
-  QVariant const data = this->model()->data(index);
+  const auto paths = GetSelectedPaths();
+  if (paths.isEmpty()) return;
 
-  auto ret = QMessageBox::warning(this, tr("Warning"),
-                                  tr("Are you sure you want to delete it?"),
-                                  QMessageBox::Ok | QMessageBox::Cancel);
+  const auto path = paths.front();
+  const QFileInfo info(path);
+
+  const auto ret = QMessageBox::warning(
+      this, tr("Delete File or Folder"),
+      tr("Are you sure you want to delete \"%1\"?\n\nThis operation may not be "
+         "reversible.")
+          .arg(info.fileName()),
+      QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
 
   if (ret == QMessageBox::Cancel) return;
 
-  if (!dir_model_->remove(index)) {
-    QMessageBox::critical(this, tr("Error"),
-                          tr("Unable to delete the file or folder."));
+  const auto index = dir_model_->index(path);
+  if (!index.isValid() || !dir_model_->remove(index)) {
+    QMessageBox::warning(this, tr("Unable to Delete"),
+                         tr("The file or folder could not be deleted."));
   }
 }
 
 void FileTreeView::SlotMkdir() {
-  auto index = this->rootIndex();
-
-  QString new_dir_name;
-  bool ok;
-  new_dir_name = QInputDialog::getText(this, tr("Make New Directory"),
-                                       tr("Directory Name"), QLineEdit::Normal,
-                                       new_dir_name, &ok);
-  if (ok && !new_dir_name.isEmpty()) {
-    dir_model_->mkdir(index, new_dir_name);
-  }
+  clearSelection();
+  setCurrentIndex(rootIndex());
+  SlotMkdirBelowAtSelectedItem();
 }
 
 void FileTreeView::SlotMkdirBelowAtSelectedItem() {
-  auto index = this->currentIndex();
+  const auto target_dir = CurrentTargetDirectoryPath();
+  if (target_dir.isEmpty()) return;
 
-  QString new_dir_name;
-  bool ok;
-  new_dir_name = QInputDialog::getText(this, tr("Make New Directory"),
-                                       tr("Directory Name"), QLineEdit::Normal,
-                                       new_dir_name, &ok);
-  if (ok && !new_dir_name.isEmpty()) {
-    dir_model_->mkdir(index, new_dir_name);
+  CreateFileSystemItemDialog dialog(
+      CreateFileSystemItemDialog::ItemType::kFOLDER, target_dir, this);
+
+  if (dialog.exec() != QDialog::Accepted) return;
+
+  const auto new_path = dialog.GetPath();
+  const auto new_name = dialog.GetName();
+
+  const auto parent_index = dir_model_->index(target_dir);
+  if (!parent_index.isValid()) {
+    QMessageBox::warning(this, tr("Unable to Create Folder"),
+                         tr("The target folder is not available."));
+    return;
   }
+
+  const auto new_index = dir_model_->mkdir(parent_index, new_name);
+  if (!new_index.isValid()) {
+    QMessageBox::warning(
+        this, tr("Unable to Create Folder"),
+        tr("The folder could not be created. Please check permissions."));
+    return;
+  }
+
+  setCurrentIndex(new_index);
+  selectionModel()->select(new_index, QItemSelectionModel::ClearAndSelect |
+                                          QItemSelectionModel::Rows);
+  scrollTo(new_index, QAbstractItemView::PositionAtCenter);
 }
 
 void FileTreeView::SlotTouch() {
-  auto root_path = dir_model_->rootPath();
-
-  QString new_file_name;
-  bool ok;
-
-  new_file_name = QInputDialog::getText(
-      this, tr("Create Empty File"), tr("Filename (you can given extension)"),
-      QLineEdit::Normal, new_file_name, &ok);
-  if (ok && !new_file_name.isEmpty()) {
-    auto file_path = root_path + "/" + new_file_name;
-
-    QFile new_file(file_path);
-    if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("Unable to create the file."));
-    }
-    new_file.close();
-  }
+  clearSelection();
+  setCurrentIndex(rootIndex());
+  SlotTouchBelowAtSelectedItem();
 }
 
 void FileTreeView::SlotTouchBelowAtSelectedItem() {
-  if (selected_paths_.size() != 1) return;
+  const auto target_dir = CurrentTargetDirectoryPath();
+  if (target_dir.isEmpty()) return;
 
-  auto root_path(selected_paths_.front());
-  if (root_path.isEmpty()) root_path = dir_model_->rootPath();
+  CreateFileSystemItemDialog dialog(CreateFileSystemItemDialog::ItemType::kFILE,
+                                    target_dir, this);
 
-  QString new_file_name;
-  bool ok;
-  new_file_name = QInputDialog::getText(
-      this, tr("Create Empty File"), tr("Filename (you can given extension)"),
-      QLineEdit::Normal, new_file_name, &ok);
-  if (ok && !new_file_name.isEmpty()) {
-    auto file_path = root_path + "/" + new_file_name;
+  if (dialog.exec() != QDialog::Accepted) return;
 
-    QFile new_file(file_path);
-    if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("Unable to create the file."));
-    }
-    new_file.close();
+  QFile new_file(dialog.GetPath());
+  if (!new_file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) {
+    QMessageBox::warning(
+        this, tr("Unable to Create File"),
+        tr("The file could not be created. Please check permissions."));
+    return;
+  }
+
+  new_file.close();
+
+  const auto index = dir_model_->index(dialog.GetPath());
+  if (index.isValid()) {
+    setCurrentIndex(index);
+    selectionModel()->select(
+        index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+    scrollTo(index, QAbstractItemView::PositionAtCenter);
   }
 }
 
@@ -267,37 +368,57 @@ void FileTreeView::keyPressEvent(QKeyEvent* event) {
 void FileTreeView::SlotOpenSelectedItemBySystemApplication() {
   if (selected_paths_.size() != 1) return;
 
-  auto selected_path = selected_paths_.front();
-  QFileInfo const info(selected_path);
-  if (info.isDir()) {
-    const auto file_path = info.filePath().toUtf8();
-    QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path));
+  const auto selected_path = selected_paths_.front();
+  if (!QFileInfo::exists(selected_path)) return;
 
-  } else {
-    QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path));
-  }
+  QDesktopServices::openUrl(QUrl::fromLocalFile(selected_path));
 }
 
 void FileTreeView::SlotRenameSelectedItem() {
   if (selected_paths_.size() != 1) return;
 
-  bool ok;
-  auto selected_path = selected_paths_.front();
-  auto text = QInputDialog::getText(this, tr("Rename"), tr("New Filename"),
-                                    QLineEdit::Normal,
-                                    QFileInfo(selected_path).fileName(), &ok);
-  if (ok && !text.isEmpty()) {
-    auto file_info = QFileInfo(selected_path);
-    auto new_name_path = file_info.absolutePath() + "/" + text;
+  const auto selected_path = selected_paths_.front();
+  const QFileInfo file_info(selected_path);
 
-    if (!QDir().rename(file_info.absoluteFilePath(), new_name_path)) {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("Unable to rename the file or folder."));
-      return;
-    }
+  bool ok = false;
+  const auto text =
+      QInputDialog::getText(this, tr("Rename"), tr("New name:"),
+                            QLineEdit::Normal, file_info.fileName(), &ok);
 
-    // refresh
-    SlotGoPath(current_path_);
+  if (!ok) return;
+
+  const auto new_name = text.trimmed();
+  if (new_name.isEmpty() || new_name == file_info.fileName()) return;
+
+  if (new_name.contains("/") || new_name.contains("\\")) {
+    QMessageBox::warning(this, tr("Invalid Name"),
+                         tr("The name must not contain path separators."));
+    return;
+  }
+
+  const auto new_name_path =
+      QDir(file_info.absolutePath()).absoluteFilePath(new_name);
+
+  if (QFileInfo::exists(new_name_path)) {
+    QMessageBox::warning(this, tr("Name Already Exists"),
+                         tr("A file or folder with this name already exists."));
+    return;
+  }
+
+  if (!QDir().rename(file_info.absoluteFilePath(), new_name_path)) {
+    QMessageBox::warning(this, tr("Unable to Rename"),
+                         tr("The file or folder could not be renamed."));
+    return;
+  }
+
+  SlotGoPath(current_path_);
+
+  const auto index = dir_model_->index(new_name_path);
+  if (index.isValid()) {
+    setCurrentIndex(index);
+    selectionModel()->select(
+        index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+    scrollTo(index, QAbstractItemView::PositionAtCenter);
   }
 }
 
@@ -306,107 +427,137 @@ auto FileTreeView::GetMousePointGlobal(const QPoint& point) -> QPoint {
 }
 
 void FileTreeView::slot_create_popup_menu() {
-  popup_menu_ = new QMenu();
+  popup_menu_ = new QMenu(this);
 
-  action_open_file_ = new QAction(this);
-  action_open_file_->setText(tr("Open"));
+  action_open_file_ = new QAction(
+      QIcon::fromTheme(QStringLiteral("document-open")), tr("Open"), this);
   connect(action_open_file_, &QAction::triggered, this, [this](bool) {
     for (const auto& path : GetSelectedPaths()) emit SignalOpenFile(path);
   });
 
-  action_rename_file_ = new QAction(this);
-  action_rename_file_->setText(tr("Rename"));
+  action_open_with_system_default_application_ =
+      new QAction(QIcon::fromTheme(QStringLiteral("system-run")),
+                  tr("Open with Default Application"), this);
+  connect(action_open_with_system_default_application_, &QAction::triggered,
+          this, &FileTreeView::SlotOpenSelectedItemBySystemApplication);
+
+  action_rename_file_ = new QAction(
+      QIcon::fromTheme(QStringLiteral("edit-rename")), tr("Rename"), this);
   connect(action_rename_file_, &QAction::triggered, this,
           &FileTreeView::SlotRenameSelectedItem);
 
-  action_delete_file_ = new QAction(this);
-  action_delete_file_->setText(tr("Delete"));
+  action_delete_file_ = new QAction(
+      QIcon::fromTheme(QStringLiteral("edit-delete")), tr("Delete"), this);
   connect(action_delete_file_, &QAction::triggered, this,
           &FileTreeView::SlotDeleteSelectedItem);
 
-  action_calculate_hash_ = new QAction(this);
-  action_calculate_hash_->setText(tr("Calculate Hash"));
+  action_calculate_hash_ =
+      new QAction(QIcon::fromTheme(QStringLiteral("document-properties")),
+                  tr("Calculate Hash"), this);
   connect(action_calculate_hash_, &QAction::triggered, this,
           &FileTreeView::slot_calculate_hash);
 
-  action_make_directory_ = new QAction(this);
-  action_make_directory_->setText(tr("Directory"));
+  action_make_directory_ = new QAction(
+      QIcon::fromTheme(QStringLiteral("folder-new")), tr("Folder"), this);
   connect(action_make_directory_, &QAction::triggered, this,
           &FileTreeView::SlotMkdirBelowAtSelectedItem);
 
-  action_create_empty_file_ = new QAction(this);
-  action_create_empty_file_->setText(tr("File"));
+  action_create_empty_file_ = new QAction(
+      QIcon::fromTheme(QStringLiteral("document-new")), tr("Empty File"), this);
   connect(action_create_empty_file_, &QAction::triggered, this,
           &FileTreeView::SlotTouchBelowAtSelectedItem);
 
-  action_compress_files_ = new QAction(this);
-  action_compress_files_->setText(tr("Compress..."));
+  action_compress_files_ =
+      new QAction(QIcon::fromTheme(QStringLiteral("archive-insert")),
+                  tr("Compress..."), this);
   action_compress_files_->setVisible(false);
   connect(action_compress_files_, &QAction::triggered, this,
           &FileTreeView::slot_compress_files);
 
-  auto* action_open_with_system_default_application = new QAction(this);
-  action_open_with_system_default_application->setText(
-      tr("Open with Default System Application"));
-  connect(action_open_with_system_default_application, &QAction::triggered,
-          this, &FileTreeView::SlotOpenSelectedItemBySystemApplication);
-
-  new_item_action_menu_ = new QMenu(this);
-  new_item_action_menu_->setTitle(tr("New"));
+  new_item_action_menu_ = new QMenu(tr("New"), this);
+  new_item_action_menu_->setIcon(QIcon::fromTheme(QStringLiteral("list-add")));
   new_item_action_menu_->addAction(action_create_empty_file_);
   new_item_action_menu_->addAction(action_make_directory_);
 
   popup_menu_->addAction(action_open_file_);
-  popup_menu_->addAction(action_open_with_system_default_application);
-
+  popup_menu_->addAction(action_open_with_system_default_application_);
   popup_menu_->addSeparator();
   popup_menu_->addMenu(new_item_action_menu_);
   popup_menu_->addSeparator();
-
   popup_menu_->addAction(action_rename_file_);
   popup_menu_->addAction(action_delete_file_);
+  popup_menu_->addSeparator();
   popup_menu_->addAction(action_compress_files_);
   popup_menu_->addAction(action_calculate_hash_);
 }
 
 void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
-  auto target_path = this->GetPathByClickPoint(point);
-  auto select_paths = GetSelectedPaths();
+  const auto index = indexAt(point);
 
-  if (select_paths.size() != 1) return;
-
-  const auto& select_path = select_paths.front();
-  if (target_path.isEmpty() && !select_path.isEmpty()) {
-    target_path = select_path;
+  if (index.isValid()) {
+    if (!selectionModel()->isSelected(index)) {
+      selectionModel()->select(index, QItemSelectionModel::ClearAndSelect |
+                                          QItemSelectionModel::Rows);
+      setCurrentIndex(index);
+    }
+  } else {
+    clearSelection();
   }
 
-  QFileInfo file_info(target_path);
+  const auto select_paths = GetSelectedPaths();
+
+  QFileInfo file_info;
+  bool has_target = false;
+
+  if (index.isValid()) {
+    file_info = dir_model_->fileInfo(index);
+    has_target = file_info.exists();
+  } else if (select_paths.size() == 1) {
+    file_info = QFileInfo(select_paths.front());
+    has_target = file_info.exists();
+  }
 
   action_open_file_->setEnabled(false);
+  action_open_with_system_default_application_->setEnabled(false);
   action_rename_file_->setEnabled(false);
   action_delete_file_->setEnabled(false);
   action_calculate_hash_->setEnabled(false);
   action_make_directory_->setEnabled(false);
   action_create_empty_file_->setEnabled(false);
-  action_calculate_hash_->setEnabled(false);
 
-  if (file_info.exists()) {
-    action_open_file_->setEnabled(file_info.isFile() && file_info.isReadable());
-    action_rename_file_->setEnabled(true);
-    action_delete_file_->setEnabled(true);
+  const QFileInfo current_dir_info(current_path_);
+  const bool current_dir_writable = current_dir_info.exists() &&
+                                    current_dir_info.isDir() &&
+                                    current_dir_info.isWritable();
 
-    action_make_directory_->setEnabled(file_info.isDir() &&
-                                       file_info.isWritable());
-    action_create_empty_file_->setEnabled(file_info.isDir() &&
-                                          file_info.isWritable());
-    action_calculate_hash_->setEnabled(file_info.isFile() &&
-                                       file_info.isReadable());
-  } else {
-    action_create_empty_file_->setEnabled(true);
-    action_make_directory_->setEnabled(true);
+  if (!has_target) {
+    action_make_directory_->setEnabled(current_dir_writable);
+    action_create_empty_file_->setEnabled(current_dir_writable);
+    popup_menu_->exec(GetMousePointGlobal(point));
+    return;
   }
 
-  popup_menu_->exec(this->GetMousePointGlobal(point));
+  const bool single_selection = select_paths.size() <= 1;
+
+  action_open_file_->setEnabled(file_info.isFile() && file_info.isReadable());
+  action_open_with_system_default_application_->setEnabled(file_info.exists() &&
+                                                           single_selection);
+  action_rename_file_->setEnabled(
+      single_selection && file_info.exists() &&
+      QFileInfo(file_info.absolutePath()).isWritable());
+  action_delete_file_->setEnabled(
+      file_info.exists() && QFileInfo(file_info.absolutePath()).isWritable());
+
+  const bool target_dir_writable =
+      file_info.isDir() && file_info.exists() && file_info.isWritable();
+
+  action_make_directory_->setEnabled(target_dir_writable);
+  action_create_empty_file_->setEnabled(target_dir_writable);
+
+  action_calculate_hash_->setEnabled(file_info.isFile() &&
+                                     file_info.isReadable());
+
+  popup_menu_->exec(GetMousePointGlobal(point));
 }
 
 void FileTreeView::slot_calculate_hash() {
@@ -426,7 +577,7 @@ void FileTreeView::slot_calculate_hash() {
                 return;
               }
               auto result = ExtractParams<QString>(data_object, 0);
-              emit UISignalStation::GetInstance() -> SignalRefreshInfoBoard(
+              emit UISignalStation::GetInstance()->SignalRefreshInfoBoard(
                   result, InfoBoardStatus::INFO_ERROR_OK);
             },
             "calculate_file_hash");
@@ -445,57 +596,120 @@ void FileTreeView::paintEvent(QPaintEvent* event) {
 }
 
 void FileTreeView::mousePressEvent(QMouseEvent* event) {
+  if (!indexAt(event->pos()).isValid() && event->button() == Qt::LeftButton) {
+    clearSelection();
+    setCurrentIndex(QModelIndex());
+  }
+
   QTreeView::mousePressEvent(event);
 }
 
 void FileTreeView::slot_adjust_column_widths() {
+  if (dir_model_ == nullptr) return;
+
   for (int i = 1; i < dir_model_->columnCount(); ++i) {
-    this->resizeColumnToContents(i);
+    resizeColumnToContents(i);
+  }
+
+  if (columnWidth(0) < 280) {
+    setColumnWidth(0, 320);
   }
 }
 
 void FileTreeView::SlotSwitchBatchMode(bool batch) {
-  this->setSelectionMode(batch ? QAbstractItemView::MultiSelection
-                               : QAbstractItemView::SingleSelection);
+  setSelectionMode(batch ? QAbstractItemView::ExtendedSelection
+                         : QAbstractItemView::SingleSelection);
   selectionModel()->clearSelection();
+
+  setToolTip(batch ? tr("Batch mode is enabled. Use Ctrl or Shift to select "
+                        "multiple items.")
+                   : QString());
 }
 
 void FileTreeView::SetPath(const QString& target_path) {
   LOG_D() << "try to open target path:" << target_path;
 
-  QFileInfo info(target_path);
-  QString effective_path;
+  const QFileInfo input_info(target_path);
 
-  if (info.exists()) {
-    effective_path =
-        info.isFile() ? info.absolutePath() : info.absoluteFilePath();
+  QString effective_path;
+  QString file_to_select;
+
+  if (input_info.exists()) {
+    if (input_info.isFile()) {
+      effective_path = input_info.absolutePath();
+      file_to_select = input_info.absoluteFilePath();
+    } else {
+      effective_path = input_info.absoluteFilePath();
+    }
   } else {
     effective_path = QDir::currentPath();
   }
 
   LOG_D() << "effective path:" << effective_path;
 
+  const QFileInfo effective_info(effective_path);
+  if (!effective_info.exists() || !effective_info.isDir()) {
+    LOG_W() << "invalid path, fallback to current dir.";
+    effective_path = QDir::currentPath();
+  }
+
   dir_model_->setRootPath(effective_path);
   current_path_ = dir_model_->rootPath();
-  QModelIndex root_index = dir_model_->index(current_path_);
 
-  if (root_index.isValid()) {
+  const auto root_index = dir_model_->index(current_path_);
+  if (!root_index.isValid()) {
+    LOG_W() << "invalid root index:" << current_path_;
+    return;
+  }
+
+  setRootIndex(root_index);
+  emit SignalPathChanged(current_path_);
+
+  if (!file_to_select.isEmpty()) {
     QPointer<FileTreeView> self(this);
-    this->setRootIndex(root_index);
-    QTimer::singleShot(200, [=]() {
-      if (self != nullptr && info.isFile()) {
-        self->setCurrentIndex(dir_model_->index(info.absoluteFilePath()));
-        self->expand(currentIndex().parent());
-        self->scrollTo(currentIndex(), QAbstractItemView::PositionAtCenter);
-        self->selectionModel()->select(
-            currentIndex(),
-            QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-      }
+    QTimer::singleShot(200, this, [self, file_to_select]() {
+      if (self == nullptr) return;
+
+      const auto index = self->dir_model_->index(file_to_select);
+      if (!index.isValid()) return;
+
+      self->setCurrentIndex(index);
+      self->scrollTo(index, QAbstractItemView::PositionAtCenter);
+      self->selectionModel()->select(
+          index,
+          QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
     });
-  } else {
-    LOG_W() << "invalid path, fallback to current dir.";
-    current_path_ = QDir::currentPath();
-    this->setRootIndex(dir_model_->index(current_path_));
   }
 }
+
+auto FileTreeView::CurrentTargetDirectoryIndex() const -> QModelIndex {
+  auto index = currentIndex();
+
+  if (!index.isValid()) {
+    return rootIndex();
+  }
+
+  const auto info = dir_model_->fileInfo(index);
+  if (info.isDir()) {
+    return index;
+  }
+
+  return index.parent().isValid() ? index.parent() : rootIndex();
+}
+
+auto FileTreeView::CurrentTargetDirectoryPath() const -> QString {
+  auto index = currentIndex();
+
+  if (!index.isValid()) {
+    return current_path_;
+  }
+
+  const auto info = dir_model_->fileInfo(index);
+  if (info.isDir()) {
+    return info.absoluteFilePath();
+  }
+
+  return info.absolutePath();
+}
+
 }  // namespace GpgFrontend::UI
