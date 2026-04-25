@@ -36,7 +36,7 @@ class GeneralDialog : public QDialog {
    *
    * @param name
    */
-  explicit GeneralDialog(QString name, QWidget* parent = nullptr);
+  explicit GeneralDialog(QString name, QWidget *parent = nullptr);
 
   /**
    *
@@ -59,13 +59,21 @@ class GeneralDialog : public QDialog {
    * @brief
    *
    */
-  [[nodiscard]] auto isRectRestored() -> bool;
+  [[nodiscard]] auto isRectRestored() const -> bool;
 
   /**
    * @brief
    *
+   * @param event
    */
-  void showEvent(QShowEvent* event) override;
+  void closeEvent(QCloseEvent *event) override;
+
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void showEvent(QShowEvent *event) override;
 
  private slots:
   /**
@@ -89,5 +97,6 @@ class GeneralDialog : public QDialog {
   QRect parent_rect_;
   QRect screen_rect_;
   bool rect_restored_ = false;
+  bool is_first_show_ = true;
 };
 }  // namespace GpgFrontend::UI
