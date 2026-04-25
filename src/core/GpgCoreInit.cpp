@@ -477,6 +477,17 @@ auto InitGnuPGEnv() -> bool {
   return true;
 }
 
+auto BuildOpenPGPContext(int channel, OpenPGPContextInitArgs args) -> bool {
+  LOG_D() << "build context for channel: " << channel
+          << "db name: " << args.db_name << "db path: " << args.db_path
+          << "engine: "
+          << (args.engine == OpenPGPEngine::kGNUPG ? "gnupg" : "rpgp")
+          << "offline mode: " << args.offline_mode
+          << "auto import missing key: " << args.auto_import_missing_key;
+  return RunRegisteredRawForward<BuildOpenPGPContextOpTag>(args.engine, channel,
+                                                           args);
+}
+
 auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   // check gpgme env
   if (InitGnuPGEnv()) {

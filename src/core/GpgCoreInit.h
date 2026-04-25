@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/model/KeyDatabaseInfo.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 
 namespace GpgFrontend {
 
@@ -48,6 +48,17 @@ void GF_CORE_EXPORT DestroyGpgFrontendCore();
  *
  */
 auto GF_CORE_EXPORT InitGpgFrontendCore(CoreInitArgs) -> int;
+
+/**
+ * @brief
+ *
+ * @param channel
+ * @param args
+ * @return true
+ * @return false
+ */
+auto GF_CORE_EXPORT BuildOpenPGPContext(int channel,
+                                        OpenPGPContextInitArgs args) -> bool;
 
 /**
  * @brief

@@ -147,13 +147,6 @@ class GpgContext : public OpenPGPContext {
   auto kill_gpg_agent() -> bool;
 
   auto launch_gpg_agent() -> bool;
-
-  static auto test_passphrase_cb(void *opaque, const char *uid_hint,
-                                 const char *passphrase_info, int last_was_bad,
-                                 int fd) -> gpgme_error_t;
-
-  static auto test_status_cb(void *hook, const char *keyword, const char *args)
-      -> gpgme_error_t;
 };
 
 auto GF_CORE_EXPORT GpgCtx(OpenPGPContext &parent) -> GpgContext &;

@@ -205,14 +205,6 @@ auto GpgContext::common_ctx_initialize(const gpgme_ctx_t& ctx,
     return false;
   }
 
-  // for unit test
-  if (args.test_mode) {
-    if (!SetPassphraseCb(ctx, test_passphrase_cb)) {
-      FLOG_W("set passphrase cb failed, test");
-      return false;
-    }
-  }
-
   if (!set_ctx_openpgp_engine_info(ctx)) {
     FLOG_W("set gpgme context openpgp engine info failed");
     return false;
@@ -395,35 +387,6 @@ auto GpgContext::kill_gpg_agent() -> bool {
 auto GpgContext::launch_gpg_agent() -> bool {
   if (agent_ == nullptr) return false;
   return agent_->Start();
-}
-
-auto GpgContext::test_passphrase_cb(void* opaque, const char* uid_hint,
-                                    const char* passphrase_info,
-                                    int last_was_bad, int fd) -> gpgme_error_t {
-  QString passphrase = "abcdefg";
-  auto pass_bytes = passphrase.toLatin1();
-  auto pass_size = pass_bytes.size();
-  const auto* p_pass_bytes = pass_bytes.constData();
-
-  qsizetype res = 0;
-  if (pass_size > 0) {
-    qsizetype off = 0;
-    qsizetype ret = 0;
-    do {
-      ret = gpgme_io_write(fd, &p_pass_bytes[off], pass_size - off);
-      if (ret > 0) off += ret;
-    } while (ret > 0 && off != pass_size);
-    res = off;
-  }
-
-  res += gpgme_io_write(fd, "\n", 1);
-  return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
-}
-
-auto GpgContext::test_status_cb(void* hook, const char* keyword,
-                                const char* args) -> gpgme_error_t {
-  FLOG_D("keyword %s", keyword);
-  return GPG_ERR_NO_ERROR;
 }
 
 auto GF_CORE_EXPORT GpgCtx(OpenPGPContext& parent) -> GpgContext& {

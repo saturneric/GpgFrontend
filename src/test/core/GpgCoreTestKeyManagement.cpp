@@ -34,7 +34,7 @@
 #include "core/model/GpgImportInformation.h"
 #include "core/utils/GpgUtils.h"
 
-static const char *test_private_key_data = R"(
+static const char* test_private_key_data = R"(
 -----BEGIN PGP PRIVATE KEY BLOCK-----
 
 lQOYBGcSdI8BCACwi1n2Bx1v6qmQxRgrONYlmzKrSBvNyoSOdAVcTJDXYjdlNFCq
@@ -124,10 +124,11 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
   ASSERT_EQ(s_key.size(), 5);
   ASSERT_EQ(s_key[2].ID(), "2D1F9FC59B568A8C");
 
-  ASSERT_WITHIN(KeyManagementOperation::GetInstance().DeleteSubkey(key, 2),
+  ASSERT_WITHIN(KeyManagementOperation::GetInstance(kGpgChannelForUnitTest)
+                    .DeleteSubkey(key, 2),
                 3000);
 
-  GpgKeyRepository::GetInstance().FlushKeyCache();
+  GpgKeyRepository::GetInstance(kGpgChannelForUnitTest).FlushKeyCache();
   key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
@@ -137,7 +138,7 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
   ASSERT_EQ(s_key.size(), 4);
   ASSERT_EQ(s_key[2].ID(), "CE038203C4D03C3D");
 
-  KeyManagementOperation::GetInstance().DeleteKey(key);
+  KeyManagementOperation::GetInstance(kGpgChannelForUnitTest).DeleteKey(key);
 }
 
 TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {

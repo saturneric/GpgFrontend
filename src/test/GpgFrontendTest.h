@@ -92,4 +92,6 @@ auto WaitFor(std::function<bool()> cond, int timeout_ms = 5000) -> bool;
 #define ASSERT_WITHIN(cond, ms) \
   ASSERT_TRUE(WaitFor([&]() { return (cond); }, ms))
 
+const int kGpgChannelForUnitTest = 0;
+const int kRpgpChannelForUnitTest = 1;
 }  // namespace GpgFrontend::Test
