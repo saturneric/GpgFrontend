@@ -231,7 +231,7 @@ jobs:
           --disable-gpgsm-test \
           --disable-g13-test \
           --enable-w32-glib
-          make -j4
+          make -j$(nproc)
           make install
         if: runner.os == 'Windows'
 
@@ -368,7 +368,10 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
-          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+          cmake --build ${{ github.workspace }}/build \
+            --config ${{ env.BUILD_TYPE }} \
+            --parallel \
+            --verbose
         if: runner.os == 'Linux'
 
       - name: Package App Image (Linux)
@@ -423,7 +426,10 @@ jobs:
           cmake -G "Ninja" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
             ..
-          cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
+          cmake --build ${{ github.workspace }}/build \
+            --config ${{ env.BUILD_TYPE }} \
+            --parallel \
+            --verbose
         if: runner.os == 'Windows'
 
       - name: Generate Env Vars (Windows)
