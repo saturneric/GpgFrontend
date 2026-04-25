@@ -369,8 +369,6 @@ void KeyDatabasesTab::slot_edit_key_database() {
 }
 
 void KeyDatabasesTab::slot_add_new_key_database() {
-  auto* dialog = new KeyDatabaseEditDialog(key_db_infos_, this);
-
   if (key_db_infos_.size() >= 8) {
     QMessageBox::critical(
         this, tr("Maximum Key Database Limit Reached"),
@@ -378,6 +376,8 @@ void KeyDatabasesTab::slot_add_new_key_database() {
            "Please remove an existing database to add a new one."));
     return;
   }
+
+  auto* dialog = new KeyDatabaseEditDialog(key_db_infos_, this);
 
   connect(
       dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
