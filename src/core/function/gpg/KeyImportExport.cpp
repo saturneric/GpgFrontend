@@ -71,15 +71,18 @@ auto ExportKeysGnuPGImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
   if (shortest) mode |= GPGME_EXPORT_MODE_MINIMAL;
   if (ssh_mode) mode |= GPGME_EXPORT_MODE_SSH;
 
-  auto keys_array = Convert2RawGpgMEKeyList(ctx.GetChannel(), keys);
-
-  // Last entry data_in array has to be nullptr
-  keys_array.push_back(nullptr);
+  auto recipients = Convert2GpgKeyList(ctx.GetChannel(), keys);
+  QContainer<gpgme_key_t> gpg_recipients;
+  for (const auto& key : recipients) {
+    LOG_D() << "recipient key fpr: " << key.Fingerprint();
+    gpg_recipients.push_back(static_cast<gpgme_key_t>(key));
+  }
+  gpg_recipients.push_back(nullptr);
 
   auto& g_ctx = GpgCtx(ctx);
   GpgData data_out;
   auto* r_ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
-  auto err = gpgme_op_export_keys(r_ctx, keys_array.data(), mode, data_out);
+  auto err = gpgme_op_export_keys(r_ctx, gpg_recipients.data(), mode, data_out);
   if (gpgme_err_code(err) != GPG_ERR_NO_ERROR) {
     return {err, {}};
   }

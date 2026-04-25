@@ -66,14 +66,24 @@ auto EncryptGnuPGImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
                       const GFBuffer& in_buffer, bool ascii,
                       const DataObjectPtr& data_object) -> GpgError {
   auto& g_ctx = GpgCtx(ctx_);
-  auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
+
+  LOG_D() << "encrypting message for keys: " << keys.front()->ID();
+
+  auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
+
+  QContainer<gpgme_key_t> gpg_recipients;
+  for (const auto& key : recipients) {
+    LOG_D() << "recipient key fpr: " << key.Fingerprint();
+    gpg_recipients.push_back(static_cast<gpgme_key_t>(key));
+  }
+  gpg_recipients.push_back(nullptr);
 
   GpgData data_in(in_buffer);
   GpgData data_out;
 
   auto* ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
   auto err = CheckGpgError(
-      gpgme_op_encrypt(ctx, keys.isEmpty() ? nullptr : recipients.data(),
+      gpgme_op_encrypt(ctx, keys.isEmpty() ? nullptr : gpg_recipients.data(),
                        GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
   data_object->Swap({
       GpgEncryptResult(gpgme_op_encrypt_result(ctx)),
@@ -164,10 +174,14 @@ auto EncryptSignGnuPGImpl(OpenPGPContext& ctx_,
 
   GpgError err;
   auto& g_ctx = GpgCtx(ctx_);
-  auto recipients = Convert2RawGpgMEKeyList(ctx_.GetChannel(), keys);
 
-  // Last entry data_in array has to be nullptr
-  recipients.push_back(nullptr);
+  auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
+  QContainer<gpgme_key_t> gpg_recipients;
+  for (const auto& key : recipients) {
+    LOG_D() << "recipient key fpr: " << key.Fingerprint();
+    gpg_recipients.push_back(static_cast<gpgme_key_t>(key));
+  }
+  gpg_recipients.push_back(nullptr);
 
   SetSignersGnuPGImpl(ctx_, signers, ascii);
 
@@ -175,8 +189,9 @@ auto EncryptSignGnuPGImpl(OpenPGPContext& ctx_,
   GpgData data_out;
 
   auto* ctx = ascii ? g_ctx.DefaultContext() : g_ctx.BinaryContext();
-  err = CheckGpgError(gpgme_op_encrypt_sign(
-      ctx, recipients.data(), GPGME_ENCRYPT_ALWAYS_TRUST, data_in, data_out));
+  err = CheckGpgError(gpgme_op_encrypt_sign(ctx, gpg_recipients.data(),
+                                            GPGME_ENCRYPT_ALWAYS_TRUST, data_in,
+                                            data_out));
 
   data_object->Swap({
       GpgEncryptResult(gpgme_op_encrypt_result(ctx)),

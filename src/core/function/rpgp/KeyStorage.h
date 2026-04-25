@@ -76,7 +76,7 @@ auto GetKeyByKeyIdsForDecryption(GFKeyDatabase& key_db,
  * @return QContainer<QByteArray>
  */
 auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
-                                        const GpgAbstractKeyPtrList& keys)
+                                        const GpgKeyList& keys)
     -> QContainer<QByteArray>;
 
 /**

@@ -40,6 +40,10 @@ auto GetKeyPtrGnuPGImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
   gpgme_key_t p_key = nullptr;
   gpgme_get_key(g_ctx.DefaultContext(), key_id.toUtf8(), &p_key,
                 secret ? 1 : 0);
+
+  if (p_key == nullptr) {
+    return GetKeyPtrGnuPGImpl(ctx, key_id, false);
+  }
   return SecureCreateSharedObject<GpgKey>(p_key);
 }
 

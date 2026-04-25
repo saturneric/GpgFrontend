@@ -433,7 +433,8 @@ auto GF_CORE_EXPORT ConvertKey2GpgKeyList(int channel,
     } else if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
       auto key_ids = qSharedPointerDynamicCast<GpgKeyGroup>(key)->KeyIds();
       recipients += ConvertKey2GpgKeyList(
-          channel, AbstractKeyRepository::GetInstance().GetKeys(key_ids));
+          channel,
+          AbstractKeyRepository::GetInstance(channel).GetKeys(key_ids));
     }
 
     s.insert(key->ID());
@@ -445,18 +446,16 @@ auto GF_CORE_EXPORT ConvertKey2GpgKeyList(int channel,
   return recipients;
 }
 
-auto GF_CORE_EXPORT Convert2RawGpgMEKeyList(int channel,
-                                            const GpgAbstractKeyPtrList& keys)
-    -> QContainer<gpgme_key_t> {
-  QContainer<gpgme_key_t> recipients;
+auto GF_CORE_EXPORT Convert2GpgKeyList(int channel,
+                                       const GpgAbstractKeyPtrList& keys)
+    -> QContainer<GpgKey> {
+  QContainer<GpgKey> recipients;
 
   auto g_keys = ConvertKey2GpgKeyList(channel, keys);
   for (const auto& key : g_keys) {
-    recipients.push_back(
-        static_cast<gpgme_key_t>(*qSharedPointerDynamicCast<GpgKey>(key)));
+    recipients.push_back(*qSharedPointerDynamicCast<GpgKey>(key));
   }
 
-  recipients.push_back(nullptr);
   return recipients;
 }
 

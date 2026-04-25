@@ -51,9 +51,11 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
     return GPG_ERR_GENERAL;
   }
 
+  auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
+
   // 1. Vector to hold the actual memory of the UTF-8 strings
   QContainer<QByteArray> key_blocks_utf8 =
-      GetPublicKeysByKeyIdsForEncryption(*key_db, keys);
+      GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
     return GPG_ERR_GENERAL;  // Or appropriate error code
@@ -260,33 +262,17 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
 
   if (signers.isEmpty() || keys.isEmpty()) return GPG_ERR_INV_ARG;
 
-  // 1. Vector to hold the actual memory of the UTF-8 strings
-  QContainer<QByteArray> key_blocks_utf8;
+  auto recipients = Convert2GpgKeyList(ctx.GetChannel(), keys);
 
-  // 2. Vector to hold the pointers to pass to Rust FFI
-  std::vector<const char*> recipient_cstrs;
-
-  for (const auto& key : keys) {
-    auto key_block = key_db->GetKeyBlocks(key->Fingerprint());
-    if (!key_block || key_block->public_key.isEmpty()) {
-      LOG_W() << "No valid public key block found for key with fpr: "
-              << key->Fingerprint();
-      continue;
-    }
-
-    // Keep the QByteArray alive by pushing it to the vector
-    key_blocks_utf8.push_back(key_block->public_key.toUtf8());
-  }
-
+  QContainer<QByteArray> key_blocks_utf8 =
+      GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
     return GPG_ERR_GENERAL;  // Or appropriate error code
   }
 
-  // Pre-allocate space for performance
+  std::vector<const char*> recipient_cstrs;
   recipient_cstrs.reserve(key_blocks_utf8.size());
-
-  // Safely extract pointers from the valid memory blocks
   for (const auto& ba : key_blocks_utf8) {
     recipient_cstrs.push_back(ba.constData());
   }

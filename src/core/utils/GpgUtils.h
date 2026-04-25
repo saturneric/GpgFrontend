@@ -186,9 +186,9 @@ auto GF_CORE_EXPORT ConvertKey2GpgKeyList(int channel,
  * @param keys
  * @return QContainer<gpgme_key_t>
  */
-auto GF_CORE_EXPORT Convert2RawGpgMEKeyList(int channel,
-                                            const GpgAbstractKeyPtrList& keys)
-    -> QContainer<gpgme_key_t>;
+auto GF_CORE_EXPORT Convert2GpgKeyList(int channel,
+                                       const GpgAbstractKeyPtrList& keys)
+    -> QContainer<GpgKey>;
 
 /**
  * @brief

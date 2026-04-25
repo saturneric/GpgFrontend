@@ -37,6 +37,7 @@
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/AsyncUtils.h"
+#include "utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
@@ -51,8 +52,11 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
     return GPG_ERR_GENERAL;
   }
 
+  auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
+
   // 1. Vector to hold the actual memory of the UTF-8 strings
-  auto key_blocks_utf8 = GetPublicKeysByKeyIdsForEncryption(*key_db, keys);
+  auto key_blocks_utf8 =
+      GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
     return GPG_ERR_GENERAL;  // Or appropriate error code
@@ -276,33 +280,17 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
 
   if (sign_keys.isEmpty() || enc_keys.isEmpty()) return GPG_ERR_INV_ARG;
 
-  // 1. Vector to hold the actual memory of the UTF-8 strings
-  QContainer<QByteArray> key_blocks_utf8;
+  auto recipients = Convert2GpgKeyList(ctx.GetChannel(), enc_keys);
 
-  // 2. Vector to hold the pointers to pass to Rust FFI
-  std::vector<const char*> recipient_cstrs;
-
-  for (const auto& key : enc_keys) {
-    auto key_block = key_db->GetKeyBlocks(key->Fingerprint());
-    if (!key_block || key_block->public_key.isEmpty()) {
-      LOG_W() << "No valid public key block found for key with fpr: "
-              << key->Fingerprint();
-      continue;
-    }
-
-    // Keep the QByteArray alive by pushing it to the vector
-    key_blocks_utf8.push_back(key_block->public_key.toUtf8());
-  }
-
+  QContainer<QByteArray> key_blocks_utf8 =
+      GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
     return GPG_ERR_GENERAL;  // Or appropriate error code
   }
 
-  // Pre-allocate space for performance
+  std::vector<const char*> recipient_cstrs;
   recipient_cstrs.reserve(key_blocks_utf8.size());
-
-  // Safely extract pointers from the valid memory blocks
   for (const auto& ba : key_blocks_utf8) {
     recipient_cstrs.push_back(ba.constData());
   }

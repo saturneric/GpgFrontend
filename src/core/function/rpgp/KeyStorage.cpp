@@ -232,15 +232,15 @@ auto GetKeyByKeyIdsForDecryption(GFKeyDatabase& key_db,
 }
 
 auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
-                                        const GpgAbstractKeyPtrList& keys)
+                                        const GpgKeyList& keys)
     -> QContainer<QByteArray> {
   QContainer<QByteArray> result;
 
   for (const auto& key : keys) {
-    auto key_block = key_db.GetKeyBlocks(key->Fingerprint());
+    auto key_block = key_db.GetKeyBlocks(key.Fingerprint());
     if (!key_block || key_block->public_key.isEmpty()) {
       LOG_W() << "No valid public key block found for key with fpr: "
-              << key->Fingerprint();
+              << key.Fingerprint();
       continue;
     }
 
@@ -394,6 +394,10 @@ auto GetKeyPtrRpgpImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
     meta_list = key_db->GetKeyMetadata(key_id);
   }
 
+  LOG_D() << "GetKeyPtrRpgpImpl for key_id: " << key_id
+          << ", secret: " << secret
+          << ", found metadata: " << (meta_list.has_value() ? "yes" : "no");
+
   if (!meta_list.has_value()) {
     LOG_W() << "cannot get key metadata for key id: " << key_id;
     return nullptr;
@@ -402,7 +406,7 @@ auto GetKeyPtrRpgpImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
   if (secret && !meta_list->has_secret) {
     LOG_W() << "key with fpr: " << key_id
             << " does not have secret key, but requested to get secret key";
-    return nullptr;
+    return GetKeyPtrRpgpImpl(ctx, key_id, false);
   }
 
   return SecureCreateSharedObject<GpgKey>(meta_list.value());
