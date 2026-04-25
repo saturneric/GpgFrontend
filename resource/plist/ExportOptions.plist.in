@@ -11,7 +11,7 @@
 	<key>signingStyle</key>
 	<string>manual</string>
 	<key>signingCertificate</key>
-	<string>@GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY@</string>
+	<string>0548F8117F6F146EB4E01C2A0F09ADC2F9545980</string>
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>com.bktus.gpgfrontend</key>

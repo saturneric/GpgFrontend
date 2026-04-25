@@ -296,6 +296,8 @@ jobs:
             DEVELOPMENT_TEAM="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
             CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}"
           mkdir ${{github.workspace}}/build/package
+
+          cat "${{github.workspace}}/build/ExportOptions.plist"
           xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
             -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
             -exportPath ${{github.workspace}}/build/package/
