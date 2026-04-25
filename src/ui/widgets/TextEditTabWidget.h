@@ -68,6 +68,86 @@ class TextEditTabWidget : public QTabWidget {
    */
   [[nodiscard]] auto CurPage() -> QWidget*;
 
+  /**
+   * @brief
+   *
+   */
+  void InitTabStyle();
+
+  /**
+   * @brief
+   *
+   * @param page
+   * @param modified
+   */
+  void UpdateTabModifiedMark(QWidget* page, bool modified);
+
+  /**
+   * @brief Create a Plain Text Tab object
+   *
+   * @param title
+   * @param file_path
+   * @param icon
+   * @return PlainTextEditorPage*
+   */
+  auto CreatePlainTextTab(const QString& title, const QString& file_path,
+                          const QIcon& icon) -> PlainTextEditorPage*;
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return int
+   */
+  [[nodiscard]] auto FindTabByFilePath(const QString& path) const -> int;
+
+  /**
+   * @brief
+   *
+   * @param url
+   */
+  void OpenDroppedUrl(const QUrl& url);
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return QString
+   */
+  auto CompactPathForTab(const QString& path) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return QString
+   */
+  auto WorkspaceTitleFromPath(const QString& path) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param page
+   * @param path
+   */
+  void UpdateFilePageTabTitle(QWidget* page, const QString& path);
+
+  /**
+   * @brief
+   *
+   * @param title
+   * @return QString
+   */
+  auto NormalizeTabTitle(QString title) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return int
+   */
+  [[nodiscard]] auto FindFilePageByPath(const QString& path) const -> int;
+
  public slots:
 
   /**
@@ -139,6 +219,25 @@ class TextEditTabWidget : public QTabWidget {
    */
   void SlotRestoreTextEditorsCache();
 
+  /**
+   * @brief
+   *
+   * @param file_info
+   * @param error_message
+   * @return true
+   * @return false
+   */
+  auto CanOpenAsTextFile(const QFileInfo& file_info,
+                         QString* error_message) const -> bool;
+
+  /**
+   * @brief
+   *
+   * @param index
+   * @return QString
+   */
+  [[nodiscard]] auto PathForTab(int index) const -> QString;
+
  protected:
   /**
    * @brief
@@ -160,13 +259,6 @@ class TextEditTabWidget : public QTabWidget {
    *
    */
   void slot_save_status_to_cache_for_recovery();
-
-  /**
-   * @brief
-   *
-   * @param path
-   */
-  void slot_file_page_path_changed(const QString& path);
 
  private:
   int count_page_ = 0;

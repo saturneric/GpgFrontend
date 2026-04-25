@@ -84,6 +84,13 @@ class FilePage : public QWidget {
    */
   void UpdatePathCompletion(const QString& input);
 
+  /**
+   * @brief Get the Current Path object
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto GetCurrentPath() const -> QString;
+
  public slots:
   /**
    * @brief

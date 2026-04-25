@@ -453,6 +453,10 @@ void FilePage::UpdatePathCompletion(const QString& input) {
   }
 }
 
+[[nodiscard]] auto FilePage::GetCurrentPath() const -> QString {
+  return ui_->treeView->GetCurrentPath();
+}
+
 auto FilePage::update_harddisk_menu() -> void {
   const auto vols = QStorageInfo::mountedVolumes();
 

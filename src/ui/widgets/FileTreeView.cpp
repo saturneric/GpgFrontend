@@ -66,7 +66,7 @@ FileTreeView::FileTreeView(QWidget* parent)
 }
 
 void FileTreeView::InitViewStyle() {
-  setObjectName(QStringLiteral("FileTreeView"));
+  setProperty("gfFileTreeView", true);
 
   setRootIsDecorated(true);
   setItemsExpandable(true);
@@ -113,7 +113,7 @@ void FileTreeView::InitViewStyle() {
   header()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
 
   setStyleSheet(R"(
-QTreeView#FileTreeView {
+QTreeView[gfFileTreeView="true"] {
   border: 1px solid palette(mid);
   border-radius: 6px;
   background: palette(base);
@@ -121,22 +121,22 @@ QTreeView#FileTreeView {
   outline: 0;
 }
 
-QTreeView#FileTreeView::item {
+QTreeView[gfFileTreeView="true"]::item {
   min-height: 24px;
   padding: 2px 4px;
   border: none;
 }
 
-QTreeView#FileTreeView::item:hover {
+QTreeView[gfFileTreeView="true"]::item:hover {
   background: palette(light);
 }
 
-QTreeView#FileTreeView::item:selected {
+QTreeView[gfFileTreeView="true"]::item:selected {
   background: palette(highlight);
   color: palette(highlighted-text);
 }
 
-QHeaderView::section {
+QTreeView[gfFileTreeView="true"] QHeaderView::section {
   padding: 5px 6px;
   border: none;
   border-bottom: 1px solid palette(mid);
@@ -144,6 +144,9 @@ QHeaderView::section {
   font-weight: 600;
 }
 )");
+
+  style()->unpolish(this);
+  style()->polish(this);
 }
 
 void FileTreeView::selectionChanged(const QItemSelection& selected,

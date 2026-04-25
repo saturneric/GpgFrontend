@@ -42,7 +42,74 @@
 
 namespace GpgFrontend::UI {
 
+namespace {
+
+auto NormalizedExistingFilePath(const QString& path) -> QString {
+  QFileInfo info(path);
+  auto canonical = info.canonicalFilePath();
+  if (!canonical.isEmpty()) return QDir::cleanPath(canonical);
+  return QDir::cleanPath(info.absoluteFilePath());
+}
+
+class ScopedOverrideCursor {
+ public:
+  explicit ScopedOverrideCursor(const QCursor& cursor) {
+    QApplication::setOverrideCursor(cursor);
+  }
+
+  ~ScopedOverrideCursor() { QApplication::restoreOverrideCursor(); }
+};
+
+}  // namespace
+
 TextEditTabWidget::TextEditTabWidget(QWidget* parent) : QTabWidget(parent) {
+  InitTabStyle();
+
+  tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(
+      tabBar(), &QTabBar::customContextMenuRequested, this,
+      [this](const QPoint& pos) {
+        const int index = tabBar()->tabAt(pos);
+        if (index < 0) return;
+
+        QMenu menu(this);
+        auto* close_act = menu.addAction(tr("Close"));
+        auto* copy_path_act = menu.addAction(tr("Copy Path"));
+        auto* reveal_act = menu.addAction(tr("Reveal in File Browser"));
+        auto* text_page = qobject_cast<PlainTextEditorPage*>(widget(index));
+        auto* file_page = qobject_cast<FilePage*>(widget(index));
+
+        const auto tab_path = PathForTab(index);
+        copy_path_act->setEnabled(!tab_path.isEmpty());
+        reveal_act->setEnabled(!tab_path.isEmpty());
+
+        const bool has_path =
+            (text_page != nullptr && !text_page->GetFilePath().isEmpty()) ||
+            (file_page != nullptr && !file_page->GetCurrentPath().isEmpty());
+
+        copy_path_act->setEnabled(has_path);
+
+        const auto* selected = menu.exec(tabBar()->mapToGlobal(pos));
+        if (selected == close_act) {
+          emit tabCloseRequested(index);
+        } else if (selected == copy_path_act) {
+          const auto tab_path = PathForTab(index);
+          if (!tab_path.isEmpty()) {
+            QGuiApplication::clipboard()->setText(tab_path);
+          }
+        } else if (selected == reveal_act) {
+          const auto tab_path = PathForTab(index);
+          if (!tab_path.isEmpty()) {
+            const QFileInfo info(tab_path);
+            const auto reveal_path =
+                info.isFile() ? info.absolutePath() : info.absoluteFilePath();
+            QDesktopServices::openUrl(QUrl::fromLocalFile(reveal_path));
+          }
+        }
+      });
+}
+
+void TextEditTabWidget::InitTabStyle() {
   setAcceptDrops(true);
   setMovable(true);
   setTabsClosable(true);
@@ -50,61 +117,135 @@ TextEditTabWidget::TextEditTabWidget(QWidget* parent) : QTabWidget(parent) {
   setUsesScrollButtons(true);
   setElideMode(Qt::ElideRight);
   tabBar()->setExpanding(false);
+  tabBar()->setDrawBase(false);
+  tabBar()->setMovable(true);
+
+  setStyleSheet(R"(
+QTabWidget::pane {
+  border: 1px solid palette(mid);
+  border-radius: 6px;
+  top: -1px;
+}
+
+QTabBar::tab {
+  padding: 6px 12px;
+  margin-right: 2px;
+  border: 1px solid palette(mid);
+  border-bottom: none;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  background: palette(button);
+}
+
+QTabBar::tab:selected {
+  background: palette(base);
+  font-weight: 600;
+}
+
+QTabBar::tab:hover {
+  background: palette(light);
+}
+
+QTabBar::tab:!selected {
+  color: palette(mid);
+}
+)");
+}
+
+auto TextEditTabWidget::PathForTab(int index) const -> QString {
+  if (index < 0 || index >= count()) return {};
+
+  if (auto* page = qobject_cast<PlainTextEditorPage*>(widget(index))) {
+    return page->GetFilePath();
+  }
+
+  if (auto* page = qobject_cast<FilePage*>(widget(index))) {
+    return page->GetCurrentPath();
+  }
+
+  return {};
+}
+
+auto TextEditTabWidget::CanOpenAsTextFile(const QFileInfo& file_info,
+                                          QString* error_message) const
+    -> bool {
+  if (!file_info.exists() || !file_info.isFile()) {
+    if (error_message != nullptr) {
+      *error_message = tr("The file does not exist.");
+    }
+    return false;
+  }
+
+  constexpr qint64 kMaxTextEditorFileSize = 1024 * 1024;
+  if (file_info.size() > kMaxTextEditorFileSize) {
+    if (error_message != nullptr) {
+      *error_message = tr("The file \"%1\" is larger than 1 MB and will not be "
+                          "opened in the text editor.")
+                           .arg(file_info.fileName());
+    }
+    return false;
+  }
+
+  QFile file(file_info.absoluteFilePath());
+  if (!file.open(QIODevice::ReadOnly)) {
+    if (error_message != nullptr) {
+      *error_message =
+          tr("The file \"%1\" could not be opened.").arg(file_info.fileName());
+    }
+    return false;
+  }
+
+  const QByteArray sample = file.read(4096);
+  if (sample.contains('\0')) {
+    if (error_message != nullptr) {
+      *error_message = tr("The file \"%1\" appears to be a binary file and "
+                          "will not be opened.")
+                           .arg(file_info.fileName());
+    }
+    return false;
+  }
+
+  return true;
+}
+
+auto TextEditTabWidget::NormalizeTabTitle(QString title) -> QString {
+  title = title.trimmed();
+
+  while (title.startsWith("*")) {
+    title.remove(0, 1);
+    title = title.trimmed();
+  }
+
+  return title;
 }
 
 void TextEditTabWidget::dragEnterEvent(QDragEnterEvent* event) {
+  if (!event->mimeData()->hasUrls()) {
+    event->ignore();
+    return;
+  }
+
+  const auto urls = event->mimeData()->urls();
+  const bool has_local_file =
+      std::any_of(urls.cbegin(), urls.cend(),
+                  [](const QUrl& url) { return url.isLocalFile(); });
+
+  if (!has_local_file) {
+    event->ignore();
+    return;
+  }
+
   event->acceptProposedAction();
 }
 
 void TextEditTabWidget::dropEvent(QDropEvent* event) {
-  if (!event->mimeData()->hasUrls()) return;
+  if (!event->mimeData()->hasUrls()) {
+    event->ignore();
+    return;
+  }
 
-  auto urls = event->mimeData()->urls();
-
-  for (const auto& url : urls) {
-    QString local_file = url.toLocalFile();
-
-    QFileInfo file_info(local_file);
-    if (file_info.size() > static_cast<qint64>(1024 * 1024)) {
-      QMessageBox::warning(
-          this, tr("File Too Large"),
-          tr("The file \"%1\" is larger than 1MB and will not be opened.")
-              .arg(file_info.fileName()));
-      continue;
-    }
-
-    if (file_info.isFile()) {
-      QFile file(local_file);
-      if (!file.open(QIODevice::ReadOnly)) {
-        QMessageBox::warning(this, tr("File Open Error"),
-                             tr("The file \"%1\" could not be opened.")
-                                 .arg(file_info.fileName()));
-        continue;
-      }
-      QByteArray file_data = file.read(1024);
-      file.close();
-
-      if (file_data.contains('\0')) {
-        QMessageBox::warning(this, tr("Binary File Detected"),
-                             tr("The file \"%1\" appears to be a binary file "
-                                "and will not be opened.")
-                                 .arg(file_info.fileName()));
-        continue;
-      }
-
-      SlotOpenFile(local_file);
-    }
-
-    if (file_info.isDir()) {
-      if (!file_info.isReadable()) {
-        QMessageBox::warning(
-            this, tr("Directory Permission Denied"),
-            tr("You do not have permission to access the directory \"%1\".")
-                .arg(file_info.fileName()));
-        continue;
-      }
-      SlotOpenPath(file_info.absoluteFilePath());
-    }
+  for (const auto& url : event->mimeData()->urls()) {
+    OpenDroppedUrl(url);
   }
 
   event->acceptProposedAction();
@@ -112,58 +253,64 @@ void TextEditTabWidget::dropEvent(QDropEvent* event) {
 
 void TextEditTabWidget::SlotOpenFile(const QString& path) {
   QFileInfo file_info(path);
+  if (!file_info.exists() || !file_info.isFile()) {
+    QMessageBox::warning(
+        this, tr("File Open Error"),
+        tr("The file \"%1\" does not exist.").arg(file_info.fileName()));
+    return;
+  }
+
   auto event_id = FileExtensionEventId(file_info.suffix(), "OPEN_FILE");
   if (!event_id.isEmpty() && Module::IsEventListening(event_id)) {
     Module::TriggerEvent(event_id, {{"file_path", GFBuffer{path}}}, {});
     return;
   }
 
-  QFile file(path);
-  auto result = file.open(QIODevice::ReadOnly | QIODevice::Text);
-  if (result) {
-    auto* page = new PlainTextEditorPage(path);
-    page->setProperty("type", "text");
-    connect(page->GetTextPage()->document(),
-            &QTextDocument::modificationChanged, this,
-            &TextEditTabWidget::SlotShowModified);
-    // connect to cache recovery function
-    connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
-            this, &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
-
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    auto index = this->addTab(page, stripped_name(path));
-    this->setTabIcon(index, QIcon(":/icons/file.png"));
-    this->setCurrentIndex(this->count() - 1);
-    QApplication::restoreOverrideCursor();
-    page->GetTextPage()->setFocus();
-    page->ReadFile();
-
-  } else {
-    QMessageBox::warning(
-        this, tr("Warning"),
-        tr("Cannot read file %1:\n%2.").arg(path).arg(file.errorString()));
+  const int existing_index = FindTabByFilePath(path);
+  if (existing_index >= 0) {
+    setCurrentIndex(existing_index);
+    if (auto* page =
+            qobject_cast<PlainTextEditorPage*>(widget(existing_index))) {
+      page->GetTextPage()->setFocus();
+    }
+    return;
   }
 
-  file.close();
+  QString error_message;
+  if (!CanOpenAsTextFile(file_info, &error_message)) {
+    QMessageBox::warning(this, tr("File Open Error"), error_message);
+    return;
+  }
+
+  ScopedOverrideCursor wait_cursor(Qt::WaitCursor);
+  auto* page =
+      CreatePlainTextTab(stripped_name(path), path, QIcon(":/icons/file.png"));
+  page->ReadFile();
+}
+
+auto TextEditTabWidget::FindTabByFilePath(const QString& path) const -> int {
+  const auto target_path = NormalizedExistingFilePath(path);
+
+  for (int i = 0; i < count(); ++i) {
+    auto* page = qobject_cast<PlainTextEditorPage*>(widget(i));
+    if (page == nullptr) continue;
+
+    const auto page_path = page->GetFilePath();
+    if (page_path.isEmpty()) continue;
+
+    if (NormalizedExistingFilePath(page_path) == target_path) {
+      return i;
+    }
+  }
+
+  return -1;
 }
 
 void TextEditTabWidget::SlotShowModified(bool changed) {
-  if (CurTextPage() == nullptr) return;
+  auto* page = CurTextPage();
+  if (page == nullptr) return;
 
-  // get current tab
-  int index = this->currentIndex();
-  QString title = this->tabText(index).trimmed();
-
-  LOG_D() << "Tab index: " << index << ", title: " << title << ", modified: "
-          << CurTextPage()->GetTextPage()->document()->isModified();
-
-  // if doc is modified now, add leading * to title,
-  // otherwise remove the leading * from the title
-  if (changed && !title.startsWith("*")) {
-    this->setTabText(index, title.prepend("* "));
-  } else if (!changed && title.startsWith("*")) {
-    this->setTabText(index, title.remove(0, 2));
-  }
+  UpdateTabModifiedMark(page, changed);
 }
 
 auto TextEditTabWidget::CurTextPage() const -> PlainTextEditorPage* {
@@ -197,81 +344,41 @@ void TextEditTabWidget::slot_save_status_to_cache_for_recovery() {
 
 auto TextEditTabWidget::SlotNewPlainTextTab() -> QWidget* {
   const auto header = generate_new_title("untitled", "txt");
-  const auto icon = QIcon(":/icons/file.png");
-  return SlotNewTab("text", header, icon);
+  return CreatePlainTextTab(header, {}, QIcon(":/icons/file.png"));
 }
 
 auto TextEditTabWidget::SlotNewTab(const QString& type, const QString& title,
                                    const QIcon& icon) -> QWidget* {
-  auto* page = new PlainTextEditorPage();
-  auto index = this->addTab(page, title);
-  this->setTabIcon(index, icon);
-  this->setCurrentIndex(this->count() - 1);
-  this->setTabToolTip(index, title);
-  page->GetTextPage()->setFocus();
+  auto* page = CreatePlainTextTab(title, {}, icon);
   page->setProperty("type", type);
-
-  connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
-          this, &TextEditTabWidget::SlotShowModified);
-  connect(page->GetTextPage(), &QPlainTextEdit::selectionChanged, this,
-          &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
-
   return page;
 }
 
 void TextEditTabWidget::SlotNewTabWithGFBuffer(QString title,
                                                const GFBuffer& buffer) {
-  QString header;
-  if (!title.isEmpty()) {
-    // modify title
-    if (!title.isEmpty() && title[0] == '*') {
-      title.remove(0, 1);
-    }
-    // set title
-    header = title;
-  } else {
-    header = generate_new_title("untitled", title);
+  QString header = NormalizeTabTitle(title);
+  if (header.isEmpty()) {
+    header = generate_new_title("untitled", "txt");
   }
 
-  auto* page = new PlainTextEditorPage();
-  auto index = this->addTab(page, header);
-  this->setTabIcon(index, QIcon(":/icons/file.png"));
-  page->setProperty("type", "text");
-  page->GetTextPage()->setFocus();
-  connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
-          this, &TextEditTabWidget::SlotShowModified);
-  connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
-          this, &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
-
-  // set content with modified status
+  auto* page = CreatePlainTextTab(header, {}, QIcon(":/icons/file.png"));
   page->GetTextPage()->document()->setPlainText(buffer.ConvertToQString());
+  page->GetTextPage()->document()->setModified(true);
+  UpdateTabModifiedMark(page, true);
+  page->GetTextPage()->setFocus();
 }
 
 void TextEditTabWidget::SlotNewTabWithContent(QString title,
                                               const QString& content) {
-  QString header;
-  if (!title.isEmpty()) {
-    // modify title
-    if (!title.isEmpty() && title[0] == '*') {
-      title.remove(0, 1);
-    }
-    // set title
-    header = title;
-  } else {
-    header = generate_new_title("untitled", title);
+  auto header = NormalizeTabTitle(title);
+  if (header.isEmpty()) {
+    header = generate_new_title("untitled", "txt");
   }
 
-  auto* page = new PlainTextEditorPage();
-  auto index = this->addTab(page, header);
-  this->setTabIcon(index, QIcon(":/icons/file.png"));
-  page->GetTextPage()->setFocus();
-  connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
-          this, &TextEditTabWidget::SlotShowModified);
-  connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
-          this, &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
-
-  // set content with modified status
+  auto* page = CreatePlainTextTab(header, {}, QIcon(":/icons/file.png"));
   page->GetTextPage()->document()->setPlainText(content);
+  page->GetTextPage()->document()->setModified(true);
+  UpdateTabModifiedMark(page, true);
 }
 
 void TextEditTabWidget::SlotOpenDefaultPath() {
@@ -284,57 +391,90 @@ void TextEditTabWidget::SlotOpenDefaultPath() {
                           ? QDir::homePath()
                           : QDir::currentPath();
 
-  // In sandbox, we should ask user to select a directory as the default path
-  // for file panel, because the sandbox may not have permission to access the
-  // default path.
   if (IsRunningInSandBox()) {
-    LOG_D() << "Running in sandbox environment, asking user to select default "
-               "path for file panel.";
     default_path = QFileDialog::getExistingDirectory(
         this, tr("Select Default Path"), default_path);
     if (default_path.isEmpty()) {
-      LOG_W()
-          << "No default path selected, switching to text editor workspace.";
+      LOG_W() << "No default path selected.";
       return;
     }
   }
 
-  auto* page = new FilePage(qobject_cast<QWidget*>(parent()), default_path);
-  page->setProperty("type", "file");
+  SlotOpenPath(default_path);
+}
 
-  auto index = this->addTab(page, QString());
-  this->setTabIcon(index, QIcon(":/icons/workspace.png"));
-  this->setTabText(index, tr("Default Workspace"));
-  this->setCurrentIndex(this->count() - 1);
-  page->SlotGoPath();
+auto TextEditTabWidget::FindFilePageByPath(const QString& path) const -> int {
+  const auto target_path = QDir::cleanPath(QFileInfo(path).absoluteFilePath());
+
+  for (int i = 0; i < count(); ++i) {
+    auto* page = qobject_cast<FilePage*>(widget(i));
+    if (page == nullptr) continue;
+
+    const auto current_path =
+        QDir::cleanPath(QFileInfo(page->GetCurrentPath()).absoluteFilePath());
+
+    if (!current_path.isEmpty() && current_path == target_path) {
+      return i;
+    }
+
+    const auto initial_path_value = page->property("initial_path").toString();
+    if (!initial_path_value.isEmpty()) {
+      const auto initial_path =
+          QDir::cleanPath(QFileInfo(initial_path_value).absoluteFilePath());
+
+      if (initial_path == target_path) {
+        return i;
+      }
+    }
+  }
+
+  return -1;
 }
 
 void TextEditTabWidget::SlotOpenPath(const QString& target_path) {
+  const int existing_index = FindFilePageByPath(target_path);
+  if (existing_index >= 0) {
+    setCurrentIndex(existing_index);
+    return;
+  }
+
+  const auto abs_path = QFileInfo(target_path).absoluteFilePath();
+
   auto* page = new FilePage(qobject_cast<QWidget*>(parent()), target_path);
   page->setProperty("type", "file");
+  page->setProperty("initial_path", abs_path);
 
-  auto index = this->addTab(page, QString());
-  this->setTabIcon(index, QIcon(":/icons/workspace.png"));
-  this->setTabToolTip(index, target_path);
-  this->setCurrentIndex(this->count() - 1);
+  const auto title = WorkspaceTitleFromPath(abs_path);
+  page->setProperty("base_title", title);
+
+  const int index = addTab(page, QIcon(":/icons/workspace.png"), title);
+  setTabToolTip(index, abs_path);
+  setCurrentIndex(index);
+
   connect(page, &FilePage::SignalPathChanged, this,
-          &TextEditTabWidget::slot_file_page_path_changed);
+          [this, page](const QString& path) {
+            UpdateFilePageTabTitle(page, path);
+          });
+
   page->SlotGoPath();
 }
 
-void TextEditTabWidget::slot_file_page_path_changed(const QString& path) {
-  int index = this->currentIndex();
-  QString m_path;
-  QFileInfo file_info(path);
-  QString t_path = file_info.absoluteFilePath();
-  if (path.size() > 18) {
-    m_path = t_path.mid(t_path.size() - 18, 18).prepend("...");
-  } else {
-    m_path = t_path;
+void TextEditTabWidget::UpdateFilePageTabTitle(QWidget* page,
+                                               const QString& path) {
+  const int index = indexOf(page);
+  if (index < 0) return;
+
+  if (path.isEmpty()) {
+    setTabText(index, tr("Workspace"));
+    setTabToolTip(index, {});
+    return;
   }
 
-  this->setTabText(index, m_path);
-  this->setTabToolTip(index, t_path);
+  const auto absolute_path = QFileInfo(path).absoluteFilePath();
+  const auto title = WorkspaceTitleFromPath(absolute_path);
+  page->setProperty("base_title", title);
+  setTabText(index, title);
+  setTabToolTip(index, absolute_path);
 
   emit UISignalStation::GetInstance()->SignalMainWindowUpdateBasicOperaMenu(0);
 }
@@ -360,7 +500,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     }
 
     auto* document = target_page->GetTextPage()->document();
-    auto tab_title = this->tabText(i);
+    auto tab_title = NormalizeTabTitle(this->tabText(i));
     if (!target_page->ReadDone() || !target_page->isEnabled() ||
         !document->isModified()) {
       continue;
@@ -431,8 +571,10 @@ void TextEditTabWidget::SlotRestoreTextEditorsCache() {
 
     const auto title = json["title"].toString();
     const auto base64_content = json["content"].toString();
-    auto type = json["type"].toString();
-    type = type.trimmed().toLower();
+    const auto type = json["type"].toString().trimmed().toLower();
+    if (!type.isEmpty() && type != "text_editor") {
+      continue;
+    }
 
     auto encrypted_content =
         GFBufferFactory::FromBase64(GFBuffer(base64_content));
@@ -458,9 +600,98 @@ void TextEditTabWidget::SlotRestoreTextEditorsCache() {
 
 auto TextEditTabWidget::generate_new_title(const QString& prefix,
                                            const QString& suffix) -> QString {
-  return prefix + QString::number(++count_page_) + "." + suffix;
+  const auto normalized_suffix = suffix.trimmed();
+
+  if (normalized_suffix.isEmpty()) {
+    return prefix + QString::number(++count_page_);
+  }
+
+  return prefix + QString::number(++count_page_) + "." + normalized_suffix;
 }
 
 auto TextEditTabWidget::CurPage() -> QWidget* { return this->currentWidget(); }
+
+void TextEditTabWidget::UpdateTabModifiedMark(QWidget* page, bool modified) {
+  const int index = indexOf(page);
+  if (index < 0) return;
+
+  auto base_title = page->property("base_title").toString().trimmed();
+  if (base_title.isEmpty()) {
+    base_title = NormalizeTabTitle(tabText(index));
+    page->setProperty("base_title", base_title);
+  }
+
+  setTabText(index, modified ? "* " + base_title : base_title);
+}
+
+auto TextEditTabWidget::CreatePlainTextTab(const QString& title,
+                                           const QString& file_path,
+                                           const QIcon& icon)
+    -> PlainTextEditorPage* {
+  auto clean_title = NormalizeTabTitle(title);
+  if (clean_title.isEmpty()) {
+    clean_title = generate_new_title("untitled", "txt");
+  }
+
+  auto* page = new PlainTextEditorPage(file_path);
+  page->setProperty("type", "text");
+  page->setProperty("base_title", clean_title);
+
+  const int index = addTab(page, icon, clean_title);
+  setCurrentIndex(index);
+  setTabToolTip(index, file_path.isEmpty() ? clean_title : file_path);
+
+  connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
+          this, [this, page](bool modified) {
+            UpdateTabModifiedMark(page, modified);
+          });
+
+  connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
+          this, &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
+
+  page->GetTextPage()->setFocus();
+  return page;
+}
+
+void TextEditTabWidget::OpenDroppedUrl(const QUrl& url) {
+  if (!url.isLocalFile()) return;
+
+  const QString local_file = url.toLocalFile();
+  QFileInfo file_info(local_file);
+
+  if (!file_info.exists()) return;
+
+  if (file_info.isDir()) {
+    if (!file_info.isReadable() || !file_info.isExecutable()) {
+      QMessageBox::warning(
+          this, tr("Directory Permission Denied"),
+          tr("You do not have permission to access the directory \"%1\".")
+              .arg(file_info.fileName()));
+      return;
+    }
+
+    SlotOpenPath(file_info.absoluteFilePath());
+    return;
+  }
+
+  if (file_info.isFile()) {
+    SlotOpenFile(local_file);
+  }
+}
+
+auto TextEditTabWidget::WorkspaceTitleFromPath(const QString& path) -> QString {
+  const QFileInfo info(path);
+  auto name = info.fileName();
+
+  if (name.isEmpty()) {
+    const auto clean_path = QDir::cleanPath(path);
+    if (clean_path == QDir::rootPath()) {
+      return tr("Root");
+    }
+    name = clean_path;
+  }
+
+  return name.isEmpty() ? tr("Workspace") : name;
+}
 
 }  // namespace GpgFrontend::UI
