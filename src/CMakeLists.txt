@@ -62,6 +62,11 @@ if(XCODE_BUILD)
   # standard app bundle packing
   add_executable(${APP_NAME} MACOSX_BUNDLE ${GPGFRONTEND_MACOS_ICON} ${APP_SOURCE} ${RESOURCE_FILES})
 
+  if(NOT DEFINED GPGFRONTEND_BUILD_NUMBER OR "${GPGFRONTEND_BUILD_NUMBER}" STREQUAL "")
+    string(TIMESTAMP GPGFRONTEND_BUILD_NUMBER "%Y%m%d%H%M" UTC)
+    message(STATUS "GPGFRONTEND_BUILD_NUMBER is not set, using timestamp: ${GPGFRONTEND_BUILD_NUMBER}")
+  endif()
+
   set_target_properties(${APP_NAME} PROPERTIES
     BUNDLE True
     MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend

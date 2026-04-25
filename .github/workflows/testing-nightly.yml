@@ -267,7 +267,6 @@ jobs:
           fi
 
           echo "Set MacOS Deployment Target: $DEPLOY_TARGET"
-          echo "BUILD_NUMBER=$(date -u +%Y%m%d%H%M)" >> "$GITHUB_ENV"
 
           cmake -B ${{github.workspace}}/build -G Xcode \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
@@ -277,7 +276,6 @@ jobs:
             -DGPGFRONTEND_XCODE_APPID="${{secrets.GPGFRONTEND_XCODE_APPID}}" \
             -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{env.PROVISIONING_PROFILE_UUID}}" \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
-            -DGPGFRONTEND_BUILD_NUMBER="${BUILD_NUMBER}" \
             ${{env.SANDBOX_CMAKE_FLAG}}
             
           xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
