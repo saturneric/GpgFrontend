@@ -29,43 +29,44 @@
 #include "GeneralMainWindow.h"
 
 #include "core/model/SettingsObject.h"
-#include "ui/UIModuleManager.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/struct/settings_object/WindowStateSO.h"
 
 namespace GpgFrontend::UI {
 
-class GeneralWindowState {};
-
-GpgFrontend::UI::GeneralMainWindow::GeneralMainWindow(QString id,
-                                                      QWidget *parent)
+GeneralMainWindow::GeneralMainWindow(QString id, QWidget *parent)
     : QMainWindow(parent), id_(std::move(id)) {
-  slot_restore_settings();
+  // restore settings when constructing the main window, so that the size and
+  // position of the main window can be restored before it is shown for the
+  // first time.
+  restoreSettings();
 
   // should delete itself at closing by default
   setAttribute(Qt::WA_DeleteOnClose);
 }
 
-GpgFrontend::UI::GeneralMainWindow::~GeneralMainWindow() = default;
+GeneralMainWindow::~GeneralMainWindow() = default;
 
-void GpgFrontend::UI::GeneralMainWindow::closeEvent(QCloseEvent *event) {
+void GeneralMainWindow::closeEvent(QCloseEvent *event) {
   // save size and position
   slot_save_settings();
 
   QMainWindow::closeEvent(event);
 }
 
-void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
+void GeneralMainWindow::restoreSettings() noexcept {
   try {
     WindowStateSO window_state(SettingsObject(id_ + "_state"));
 
-    if (!window_state.window_state_data.isEmpty()) {
-      // state sets pos & size of dock-widgets
-      this->restoreState(
-          QByteArray::fromBase64(window_state.window_state_data.toUtf8()));
-    }
+    update_rect_cache();
 
-    this->setMinimumSize(800, 600);
+    const int min_width =
+        std::min(800, static_cast<int>(screen_rect_.width() * 0.95));
+    const int min_height =
+        std::min(600, static_cast<int>(screen_rect_.height() * 0.95));
+
+    setMinimumSize(min_width, min_height);
 
     // restore window size & location
     if (window_state.window_save) {
@@ -73,36 +74,30 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
       size_ = {window_state.width, window_state.height};
 
       if (this->parent() != nullptr) {
-        QPoint parent_pos = {0, 0};
-        QSize parent_size = {0, 0};
+        auto *parent_widget = qobject_cast<QWidget *>(parent());
+        if (parent_widget != nullptr) {
+          const auto parent_rect = parent_widget->geometry();
 
-        auto *parent_dialog = qobject_cast<QDialog *>(this->parent());
-        if (parent_dialog != nullptr) {
-          parent_pos = parent_dialog->pos();
-          parent_size = parent_dialog->size();
-        }
-
-        auto *parent_window = qobject_cast<QMainWindow *>(this->parent());
-        if (parent_window != nullptr) {
-          parent_pos = parent_window->pos();
-          parent_size = parent_window->size();
-        }
-
-        if (parent_pos != QPoint{0, 0}) {
-          QPoint const parent_center{
-              parent_pos.x() + (parent_size.width() / 2),
-              parent_pos.y() + (parent_size.height() / 2)};
-
-          pos_ = {parent_center.x() - (size_.width() / 2),
-                  parent_center.y() - (size_.height() / 2)};
+          if (parent_rect.isValid() && !parent_rect.isNull()) {
+            pos_ = parent_rect.center() -
+                   QPoint(size_.width() / 2, size_.height() / 2);
+          }
         }
       }
 
-      if (size_.width() < 800) size_.setWidth(800);
-      if (size_.height() < 600) size_.setHeight(600);
+      const int min_width =
+          std::min(800, static_cast<int>(screen_rect_.width() * 0.95));
+      const int min_height =
+          std::min(600, static_cast<int>(screen_rect_.height() * 0.95));
 
-      this->move(pos_);
-      this->resize(size_);
+      setMinimumSize(min_width, min_height);
+
+      update_rect_cache();
+
+      QRect target_rect{pos_, size_};
+      target_rect = ClampRectToAvailableGeometry(target_rect, screen_rect_);
+
+      setGeometry(target_rect);
     } else {
       movePosition2CenterOfParent();
     }
@@ -123,7 +118,7 @@ void GpgFrontend::UI::GeneralMainWindow::slot_restore_settings() noexcept {
   }
 }
 
-void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
+void GeneralMainWindow::slot_save_settings() noexcept {
   try {
     SettingsObject general_windows_state(id_ + "_state");
 
@@ -146,64 +141,107 @@ void GpgFrontend::UI::GeneralMainWindow::slot_save_settings() noexcept {
 }
 
 void GeneralMainWindow::setPosCenterOfScreen() {
-  // update cache
   update_rect_cache();
 
-  // update rect of current dialog
-  rect_ = this->geometry();
-  this->move(screen_rect_.center() -
-             QPoint(rect_.width() / 2, rect_.height() / 2));
+  QRect target_rect = rect_;
+
+  if (target_rect.width() <= 0) {
+    target_rect.setWidth(std::max(width(), 100));
+  }
+
+  if (target_rect.height() <= 0) {
+    target_rect.setHeight(std::max(height(), 100));
+  }
+
+  target_rect.moveCenter(screen_rect_.center());
+  target_rect = ClampRectToAvailableGeometry(target_rect, screen_rect_);
+
+  setGeometry(target_rect);
 }
 
 void GeneralMainWindow::movePosition2CenterOfParent() {
-  // update cache
   update_rect_cache();
 
-  if (parent_rect_.topLeft() != QPoint{0, 0} &&
-      parent_rect_.size() != QSize{0, 0}) {
-    if (rect_.width() <= 0) rect_.setWidth(100);
-    if (rect_.height() <= 0) rect_.setHeight(100);
+  QRect target_rect = rect_;
 
-    QPoint target_position =
-        parent_rect_.center() - QPoint(rect_.width() / 2, rect_.height() / 2);
-
-    this->move(target_position);
-  } else {
-    setPosCenterOfScreen();
+  if (target_rect.width() <= 0) {
+    target_rect.setWidth(std::max(width(), 100));
   }
+
+  if (target_rect.height() <= 0) {
+    target_rect.setHeight(std::max(height(), 100));
+  }
+
+  if (!parent_rect_.isNull() && parent_rect_.isValid()) {
+    target_rect.moveCenter(parent_rect_.center());
+  } else {
+    target_rect.moveCenter(screen_rect_.center());
+  }
+
+  // add a small offset to avoid completely overlapping with parent if the
+  // window is opened multiple times
+  target_rect.translate(24, 24);
+  target_rect = ClampRectToAvailableGeometry(target_rect, screen_rect_);
+  setGeometry(target_rect);
 }
 
 void GeneralMainWindow::update_rect_cache() {
-  // update size of current dialog
-  rect_ = this->geometry();
+  rect_ = geometry();
 
-  auto *screen = this->window()->screen();
-  screen_rect_ = screen->availableGeometry();
+  auto *parent_widget = qobject_cast<QWidget *>(parent());
 
-  // read pos and size from parent
-  if (this->parent() != nullptr) {
-    QRect parent_rect;
+  if (parent_widget != nullptr) {
+    parent_rect_ = parent_widget->geometry();
 
-    auto *parent_widget = qobject_cast<QWidget *>(this->parent());
-    if (parent_widget != nullptr) {
-      parent_rect = parent_widget->geometry();
-    } else {
-      auto *parent_dialog = qobject_cast<QDialog *>(this->parent());
-      if (parent_dialog != nullptr) {
-        parent_rect = parent_dialog->geometry();
-      } else {
-        auto *parent_window = qobject_cast<QMainWindow *>(this->parent());
-        if (parent_window != nullptr) {
-          parent_rect = parent_window->geometry();
-        }
-      }
+    auto *screen = parent_widget->screen();
+
+    if (screen == nullptr && parent_widget->windowHandle() != nullptr) {
+      screen = parent_widget->windowHandle()->screen();
     }
-    parent_rect_ = parent_rect;
-  } else {
-    // reset parent's pos and size
-    this->parent_rect_ = QRect{0, 0, 0, 0};
+
+    if (screen == nullptr) {
+      screen = QGuiApplication::primaryScreen();
+    }
+
+    screen_rect_ = screen != nullptr ? screen->availableGeometry()
+                                     : QRect(0, 0, 1024, 768);
+    return;
   }
+
+  parent_rect_ = QRect{0, 0, 0, 0};
+
+  auto *screen = this->screen();
+
+  if (screen == nullptr && this->windowHandle() != nullptr) {
+    screen = this->windowHandle()->screen();
+  }
+
+  if (screen == nullptr) {
+    screen = QGuiApplication::primaryScreen();
+  }
+
+  screen_rect_ =
+      screen != nullptr ? screen->availableGeometry() : QRect(0, 0, 1024, 768);
 }
 
 auto GeneralMainWindow::GetId() const -> QString { return id_; }
+
+auto GeneralMainWindow::restoreWindowState() noexcept -> bool {
+  try {
+    WindowStateSO window_state(SettingsObject(id_ + "_state"));
+
+    if (window_state.window_state_data.isEmpty()) {
+      LOG_D() << "general main window: " << id_
+              << ", no window state data to restore, skip restoring state";
+      return false;
+    }
+
+    return restoreState(
+        QByteArray::fromBase64(window_state.window_state_data.toUtf8()));
+  } catch (...) {
+    LOG_W() << "general main window: " << id_
+            << ", caught exception while restoring main window state";
+    return false;
+  }
+}
 }  // namespace GpgFrontend::UI

@@ -71,15 +71,22 @@ class GeneralMainWindow : public QMainWindow {
    */
   void movePosition2CenterOfParent();
 
+  /**
+   *
+   */
+  void restoreSettings() noexcept;
+
+  /**
+   * @brief
+   *
+   */
+  auto restoreWindowState() noexcept -> bool;
+
   QSize icon_size_;                 ///<
   int font_size_{};                 ///<
   Qt::ToolButtonStyle icon_style_;  ///<
 
  private slots:
-  /**
-   *
-   */
-  void slot_restore_settings() noexcept;
 
   /**
    *
