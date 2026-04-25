@@ -46,26 +46,26 @@ namespace GpgFrontend::UI {
 
 void MainWindow::create_actions() {
   new_tab_act_ = create_action(
-      "new_tab", tr("Text Editor"), ":/icons/misc_doc.png",
+      "new_tab", tr("New Text Editor"), ":/icons/misc_doc.png",
       tr("Open a new text editor"),
       {QKeySequence(Qt::CTRL | Qt::Key_N), QKeySequence(Qt::CTRL | Qt::Key_T)});
   connect(new_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotNewTab);
 
   browser_act_ = create_action(
-      "file_browser_dir", tr("File Panel (Files)"), ":/icons/file-operator.png",
+      "file_browser_dir", tr("New File Panel"), ":/icons/file-operator.png",
       tr("Open a new file panel"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
   connect(browser_act_, &QAction::triggered, this,
           &MainWindow::slot_default_file_tab);
 
-  browser_file_act_ = create_action(
-      "file_browser", tr("Open File"), ":/icons/file-operator.png",
-      tr("Open the file panel and point to a file"));
+  browser_file_act_ =
+      create_action("file_browser", tr("File..."), ":/icons/file-operator.png",
+                    tr("Open a file in the file panel"));
   connect(browser_file_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab);
 
   browser_dir_act_ = create_action(
-      "file_browser_dir", tr("Open Directory"), ":/icons/file-operator.png",
-      tr("Open the Files panel and point to a directory"));
+      "open_directory_in_file_panel", tr("Directory..."),
+      ":/icons/file-operator.png", tr("Open a directory in the file panel"));
   connect(browser_dir_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab_with_directory);
 
@@ -82,8 +82,9 @@ void MainWindow::create_actions() {
                              tr("Print Document"), {QKeySequence::Print});
   connect(print_act_, &QAction::triggered, edit_, &TextEdit::SlotPrint);
 
-  close_tab_act_ = create_action("close_tab", tr("Close"), ":/icons/close.png",
-                                 tr("Close file"), {QKeySequence::Close});
+  close_tab_act_ =
+      create_action("close_tab", tr("Close Tab"), ":/icons/close.png",
+                    tr("Close the current tab"), {QKeySequence::Close});
   connect(close_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotCloseTab);
 
   quit_act_ = create_action("quit", tr("Quit"), ":/icons/exit.png",
@@ -163,8 +164,8 @@ void MainWindow::create_actions() {
           &MainWindow::SlotGeneralEncrypt);
 
   encrypt_sign_act_ =
-      create_action("encrypt_sign", tr("Encrypt Sign"), ":/icons/encr-sign.png",
-                    tr("Encrypt and Sign Message"),
+      create_action("encrypt_sign", tr("Encrypt && Sign"),
+                    ":/icons/encr-sign.png", tr("Encrypt and Sign Message"),
                     {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E)});
   connect(encrypt_sign_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralEncryptSign);
@@ -176,7 +177,7 @@ void MainWindow::create_actions() {
           &MainWindow::SlotGeneralDecrypt);
 
   decrypt_verify_act_ =
-      create_action("decrypt_verify", tr("Decrypt Verify"),
+      create_action("decrypt_verify", tr("Decrypt && Verify"),
                     ":/icons/decr-verify.png", tr("Decrypt and Verify Message"),
                     {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D)});
   connect(decrypt_verify_act_, &QAction::triggered, this,
@@ -193,10 +194,10 @@ void MainWindow::create_actions() {
   connect(verify_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralVerify);
 
-  sym_encrypt_act_ = create_action("symmetric_encryption", tr("Sym. Encrypt"),
-                                   ":/icons/symmetric_encryption.png",
-                                   tr("Encrypt Message (Symmetric)"),
-                                   {QKeySequence(Qt::CTRL | Qt::Key_E)});
+  sym_encrypt_act_ = create_action(
+      "symmetric_encryption", tr("Sym. Encrypt"),
+      ":/icons/symmetric_encryption.png", tr("Encrypt Message (Symmetric)"),
+      {QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_E)});
   connect(sym_encrypt_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralEncrypt);
 
@@ -437,7 +438,7 @@ void MainWindow::create_menus() {
   edit_menu_->addSeparator();
   edit_menu_->addAction(open_settings_act_);
 
-  crypt_menu_ = menuBar()->addMenu(tr("Crypt"));
+  crypt_menu_ = menuBar()->addMenu(tr("Operations"));
   crypt_menu_->addAction(sym_encrypt_act_);
   crypt_menu_->addAction(encrypt_act_);
   crypt_menu_->addAction(encrypt_sign_act_);
@@ -505,46 +506,70 @@ void MainWindow::create_menus() {
       });
 }
 
+namespace {
+
+auto SetupMenuToolButton(QToolButton* button, QMenu* menu, const QIcon& icon,
+                         const QString& text, const QString& tooltip,
+                         Qt::ToolButtonStyle style, QSize size) -> void {
+  button->setMenu(menu);
+  button->setPopupMode(QToolButton::InstantPopup);
+  button->setIcon(icon);
+  button->setText(text);
+  button->setToolTip(tooltip);
+  button->setFocusPolicy(Qt::NoFocus);
+  button->setAutoRaise(false);
+  button->setToolButtonStyle(style);
+  button->setIconSize(size);
+}
+
+auto SetupToolBar(QToolBar* toolbar, Qt::ToolButtonStyle style, QSize size)
+    -> void {
+  toolbar->setMovable(true);
+  toolbar->setFloatable(false);
+  toolbar->setIconSize(QSize(18, 18));
+  toolbar->setToolButtonStyle(style);
+  toolbar->setIconSize(size);
+}
+
+}  // namespace
+
 void MainWindow::create_tool_bars() {
   file_tool_bar_ = addToolBar(tr("File"));
   file_tool_bar_->setObjectName("fileToolBar");
+  SetupToolBar(file_tool_bar_, icon_style_, icon_size_);
 
-  open_button_ = new QToolButton();
-  open_button_->setMenu(open_menu_);
-  open_button_->setPopupMode(QToolButton::InstantPopup);
-  open_button_->setIcon(QIcon(":/icons/open.png"));
-  open_button_->setToolTip(tr("Open ..."));
-  open_button_->setText(tr("Open"));
-
+  open_button_ = new QToolButton(this);
+  SetupMenuToolButton(open_button_, open_menu_, QIcon(":/icons/open.png"),
+                      tr("Open"), tr("Open a file or directory"), icon_style_,
+                      icon_size_);
   file_tool_bar_->addWidget(open_button_);
 
-  // add dropdown menu for workspace
-  workspace_button_ = new QToolButton();
-  workspace_button_->setMenu(workspace_menu_);
-  workspace_button_->setPopupMode(QToolButton::InstantPopup);
-  workspace_button_->setIcon(QIcon(":/icons/workspace.png"));
-  workspace_button_->setToolTip(tr("Open Workspace as..."));
-  workspace_button_->setText(tr("Workspace"));
-
+  workspace_button_ = new QToolButton(this);
+  SetupMenuToolButton(workspace_button_, workspace_menu_,
+                      QIcon(":/icons/workspace.png"), tr("Workspace"),
+                      tr("Open a text editor or file panel"), icon_style_,
+                      icon_size_);
   file_tool_bar_->addWidget(workspace_button_);
+
+  file_tool_bar_->addSeparator();
+  file_tool_bar_->addAction(save_act_);
 
   view_menu_->addAction(file_tool_bar_->toggleViewAction());
 
   crypt_tool_bar_ = addToolBar(tr("Operations"));
   crypt_tool_bar_->setObjectName("cryptToolBar");
-
+  SetupToolBar(crypt_tool_bar_, icon_style_, icon_size_);
   view_menu_->addAction(crypt_tool_bar_->toggleViewAction());
 
-  key_tool_bar_ = addToolBar(tr("Key"));
+  key_tool_bar_ = addToolBar(tr("Keys"));
   key_tool_bar_->setObjectName("keyToolBar");
+  SetupToolBar(key_tool_bar_, icon_style_, icon_size_);
 
-  // Add dropdown menu for key import to keytoolbar
-  import_button_ = new QToolButton();
-  import_button_->setMenu(import_key_menu_);
-  import_button_->setPopupMode(QToolButton::InstantPopup);
-  import_button_->setIcon(QIcon(":/icons/key_import.png"));
-  import_button_->setToolTip(tr("Import key from..."));
-  import_button_->setText(tr("Import key"));
+  import_button_ = new QToolButton(this);
+  SetupMenuToolButton(import_button_, import_key_menu_,
+                      QIcon(":/icons/key_import.png"), tr("Import"),
+                      tr("Import a key from file, editor, or clipboard"),
+                      icon_style_, icon_size_);
 
   key_tool_bar_->addAction(generate_key_pair_act_);
   key_tool_bar_->addWidget(import_button_);
@@ -554,14 +579,16 @@ void MainWindow::create_tool_bars() {
 
   edit_tool_bar_ = addToolBar(tr("Edit"));
   edit_tool_bar_->setObjectName("editToolBar");
+  SetupToolBar(edit_tool_bar_, icon_style_, icon_size_);
   edit_tool_bar_->addAction(copy_act_);
   edit_tool_bar_->addAction(paste_act_);
   edit_tool_bar_->addAction(select_all_act_);
   edit_tool_bar_->hide();
   view_menu_->addAction(edit_tool_bar_->toggleViewAction());
 
-  special_edit_tool_bar_ = addToolBar(tr("Special Edit"));
+  special_edit_tool_bar_ = addToolBar(tr("Text Tools"));
   special_edit_tool_bar_->setObjectName("specialEditToolBar");
+  SetupToolBar(special_edit_tool_bar_, icon_style_, icon_size_);
   special_edit_tool_bar_->addAction(quote_act_);
   special_edit_tool_bar_->addAction(clean_double_line_breaks_act_);
   special_edit_tool_bar_->addAction(add_pgp_header_act_);
@@ -726,6 +753,28 @@ void MainWindow::apply_default_layout() {
 
     resizeDocks({info_board_dock_}, {info_height}, Qt::Vertical);
   }
+}
+
+void MainWindow::init_main_window_style() {
+  setStyleSheet(R"(
+QToolBar {
+  spacing: 3px;
+  padding: 2px;
+  border: none;
+  background: palette(window);
+}
+
+QToolBar::separator {
+  width: 1px;
+  margin: 4px 5px;
+  background: palette(mid);
+}
+
+QStatusBar {
+  border-top: 1px solid palette(mid);
+  background: palette(window);
+}
+)");
 }
 
 }  // namespace GpgFrontend::UI

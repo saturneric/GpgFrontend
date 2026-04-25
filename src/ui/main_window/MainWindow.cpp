@@ -89,6 +89,7 @@ void MainWindow::Init() noexcept {
     create_tool_bars();
     create_status_bar();
     create_dock_windows();
+    init_main_window_style();
 
     // show menu bar
     this->menuBar()->show();
@@ -284,8 +285,13 @@ auto MainWindow::create_action(const QString& id, const QString& name,
                                const QContainer<QKeySequence>& shortcuts)
     -> QAction* {
   auto* action = new QAction(name, this);
-  action->setIcon(QIcon(icon));
+
+  if (!icon.isEmpty()) {
+    action->setIcon(QIcon(icon));
+  }
+
   action->setToolTip(too_tip);
+  action->setStatusTip(too_tip);
 
   if (!shortcuts.isEmpty()) {
     action->setShortcuts(

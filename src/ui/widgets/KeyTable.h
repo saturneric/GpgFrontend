@@ -58,6 +58,12 @@ struct KeyTable : public QTableView {
           [](const GpgAbstractKey*) -> bool { return true; });
 
   /**
+   * @brief Construct a new Init Table Style object
+   *
+   */
+  void InitTableStyle();
+
+  /**
    * @brief
    *
    * @param model
@@ -70,18 +76,6 @@ struct KeyTable : public QTableView {
    * @return KeyIdArgsListPtr&
    */
   [[nodiscard]] auto GetCheckedKeys() const -> GpgAbstractKeyPtrList;
-
-  /**
-   * @brief
-   *
-   */
-  void UncheckALL() const;
-
-  /**
-   * @brief
-   *
-   */
-  void CheckALL() const;
 
   /**
    * @brief
@@ -184,6 +178,7 @@ struct KeyTable : public QTableView {
   QSharedPointer<GpgKeyTableModel> model_;
   GpgKeyTableProxyModel proxy_model_;
   GpgKeyTableColumn column_filter_;
+  bool bulk_checking_ = false;
 };
 
 }  // namespace GpgFrontend::UI
