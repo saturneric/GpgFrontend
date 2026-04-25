@@ -149,4 +149,11 @@ auto GF_CORE_EXPORT IsCheckReleaseCommitHash() -> bool;
  * @return auto
  */
 auto GF_CORE_EXPORT HasRustSupport() -> bool;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GF_CORE_EXPORT GetAppDisplayName() -> QString;
 }  // namespace GpgFrontend

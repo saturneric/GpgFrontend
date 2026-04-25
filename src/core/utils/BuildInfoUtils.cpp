@@ -85,4 +85,6 @@ auto HasRustSupport() -> bool {
   return false
 #endif
 }
+
+auto GetAppDisplayName() -> QString { return {APP_DISPLAY_NAME}; }
 };  // namespace GpgFrontend

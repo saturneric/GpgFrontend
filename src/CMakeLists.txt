@@ -62,25 +62,17 @@ if(XCODE_BUILD)
   # standard app bundle packing
   add_executable(${APP_NAME} MACOSX_BUNDLE ${GPGFRONTEND_MACOS_ICON} ${APP_SOURCE} ${RESOURCE_FILES})
 
-  # generate build number for macOS app bundle, format: YYYYMMDDHHMM, e.g. 202406101230
+  # set bundle properties
   string(TIMESTAMP MACOSX_APP_BUILD_NUMBER "%Y%m%d%H%M" UTC)
-  message(STATUS "macOS App Build Number: ${MACOSX_APP_BUILD_NUMBER}")
+  set(MACOSX_APP_BUNDLE_ID "com.bktus.gpgfrontend")
 
-  # Set macOS app bundle display name
   if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
     message(STATUS "Build Application With App Sandbox")
-
-    # if sandbox enabled, use "GpgFrontend Lite" as display name to distinguish
-    # from the non-sandbox version
-    set(MACOSX_APP_DISPLAY_NAME "GpgFrontend Lite")
-    set(MACOSX_APP_BUNDLE_ID "com.bktus.gpgfrontend")
     set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
     set(APP_ENTITLEMENTS_FILE "${CMAKE_SOURCE_DIR}/resource/entitlements/Sandbox.entitlements")
     set(PROVISIONING_PROFILE_NAME "GpgFrontend_Mac_App_Store_Profile")
   else()
     message(STATUS "Build Application Without App Sandbox")
-    set(MACOSX_APP_DISPLAY_NAME "GpgFrontend")
-    set(MACOSX_APP_BUNDLE_ID "com.bktus.gpgfrontend")
     set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "No")
     set(APP_ENTITLEMENTS_FILE "${CMAKE_SOURCE_DIR}/resource/entitlements/Normal.entitlements")
     set(PROVISIONING_PROFILE_NAME "GpgFrontend")
@@ -89,8 +81,8 @@ if(XCODE_BUILD)
   set_target_properties(${APP_NAME} PROPERTIES
     BUNDLE True
     MACOSX_BUNDLE_GUI_IDENTIFIER ${MACOSX_APP_BUNDLE_ID}
-    MACOSX_BUNDLE_BUNDLE_NAME ${MACOSX_APP_DISPLAY_NAME}
-    MACOSX_BUNDLE_DISPLAY_NAME ${MACOSX_APP_DISPLAY_NAME}
+    MACOSX_BUNDLE_BUNDLE_NAME ${GPGFRONTEND_APP_DISPLAY_NAME}
+    MACOSX_BUNDLE_DISPLAY_NAME ${GPGFRONTEND_APP_DISPLAY_NAME}
     MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${MACOSX_APP_BUILD_NUMBER}

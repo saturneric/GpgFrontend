@@ -59,3 +59,9 @@
  *
  */
 #define HTTP_REQUEST_USER_AGENT "@HTTP_REQUEST_USER_AGENT@"
+
+/**
+ * @brief App Display Name
+ *
+ */
+#define APP_DISPLAY_NAME "@GPGFRONTEND_APP_DISPLAY_NAME@"

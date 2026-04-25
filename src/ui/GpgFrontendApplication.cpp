@@ -41,28 +41,11 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
   GpgFrontend::UI::GpgFrontendApplication::setWindowIcon(app_icon);
 #endif
 
-  QString application_display_name = GetProjectName();
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-  const auto commit_short_hash = GetProjectBuildGitCommitHash().last(6);
-#else
-  const auto commit_short_hash = GetProjectBuildGitCommitHash().right(6);
-#endif
-
-  if (GetProjectBuildGitBranchName().contains("develop")) {
-    application_display_name += " " +
-
-                                QString("Testing (%1)").arg(commit_short_hash);
-  } else if (GetProjectBuildGitBranchName().contains("dev/")) {
-    application_display_name +=
-        " " + QString("Develop (%1)").arg(commit_short_hash);
-  }
-
   // set the extra information of the build
   GpgFrontendApplication::setApplicationVersion(GetProjectVersion());
   // prevent the "Unknown Organization" in conf path issue on some platforms
   GpgFrontendApplication::setApplicationName(GetProjectName());
-  GpgFrontendApplication::setApplicationDisplayName(application_display_name);
+  GpgFrontendApplication::setApplicationDisplayName(GetAppDisplayName());
   GpgFrontendApplication::setOrganizationName(GetProjectOrganization());
   GpgFrontendApplication::setQuitOnLastWindowClosed(true);
 

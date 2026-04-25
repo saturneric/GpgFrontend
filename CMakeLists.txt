@@ -371,6 +371,22 @@ message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Build C Flags: ${CMAKE_C_FLAGS}")
 message(STATUS "Build C++ Flags: ${CMAKE_CXX_FLAGS}")
 
+# Decide the name of the app
+set(GPGFRONTEND_APP_BASE_DISPLAY_NAME "GpgFrontend")
+
+if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
+  set(GPGFRONTEND_APP_BASE_DISPLAY_NAME "GpgFrontend Lite")
+endif()
+
+set(GPGFRONTEND_APP_DISPLAY_NAME "${GPGFRONTEND_APP_BASE_DISPLAY_NAME}")
+
+if(GIT_BRANCH_NAME MATCHES "develop")
+  set(GPGFRONTEND_APP_DISPLAY_NAME
+    "${GPGFRONTEND_APP_BASE_DISPLAY_NAME} Testing")
+endif()
+
+message(STATUS "App Display Name: ${GPGFRONTEND_APP_DISPLAY_NAME}")
+
 # Set build information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
