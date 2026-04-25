@@ -121,6 +121,27 @@ class FileTreeView : public QTreeView {
    */
   void mousePressEvent(QMouseEvent* event) override;
 
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void dragEnterEvent(QDragEnterEvent* event) override;
+
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void dragMoveEvent(QDragMoveEvent* event) override;
+
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void dropEvent(QDropEvent* event) override;
+
  signals:
 
   /**
@@ -274,5 +295,48 @@ class FileTreeView : public QTreeView {
   QAction* action_open_with_system_default_application_;
 
   bool initial_resize_done_ = false;
+
+  /**
+   * @brief Get the drop target directory object
+   *
+   * @param pos
+   * @return QString
+   */
+  [[nodiscard]] auto get_drop_target_directory(const QPoint& pos) const
+      -> QString;
+
+  /**
+   * @brief
+   *
+   * @param source_path
+   * @param target_dir
+   * @return true
+   * @return false
+   */
+  auto move_path_to_directory(const QString& source_path,
+                              const QString& target_dir) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param source_path
+   * @param target_dir
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto is_move_into_itself_or_child(
+      const QString& source_path, const QString& target_dir) const -> bool;
+
+  /**
+   * @brief
+   *
+   * @param source_paths
+   * @param target_dir
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto is_same_directory_move(const QStringList& source_paths,
+                                            const QString& target_dir) const
+      -> bool;
 };
 }  // namespace GpgFrontend::UI
