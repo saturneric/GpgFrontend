@@ -40,6 +40,31 @@
 
 namespace GpgFrontend::UI {
 
+namespace {
+
+auto CreateTableItem(const QString& text,
+                     Qt::Alignment alignment = Qt::AlignVCenter | Qt::AlignLeft)
+    -> QTableWidgetItem* {
+  auto* item = new QTableWidgetItem(text);
+  item->setTextAlignment(alignment);
+  item->setToolTip(text);
+  return item;
+}
+
+auto CreateStatusItem(bool active) -> QTableWidgetItem* {
+  auto* item = new QTableWidgetItem(active ? QObject::tr("Active")
+                                           : QObject::tr("Inactive"));
+  item->setTextAlignment(Qt::AlignCenter);
+
+  QFont font = item->font();
+  font.setBold(true);
+  item->setFont(font);
+
+  return item;
+}
+
+}  // namespace
+
 KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyDatabasesSettings>()),
@@ -63,6 +88,33 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   ui_->keyDatabaseTable->setSelectionBehavior(QAbstractItemView::SelectRows);
   ui_->keyDatabaseTable->setSelectionMode(QAbstractItemView::SingleSelection);
   ui_->keyDatabaseTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+  auto* table = ui_->keyDatabaseTable;
+
+  table->setShowGrid(false);
+  table->setWordWrap(false);
+  table->setMouseTracking(true);
+  table->setSortingEnabled(false);
+
+  table->verticalHeader()->setVisible(true);
+  table->verticalHeader()->setDefaultSectionSize(34);
+
+  auto* header = table->horizontalHeader();
+  header->setHighlightSections(false);
+  header->setStretchLastSection(true);
+  header->setMinimumSectionSize(90);
+
+  table->setColumnWidth(0, 160);  // Name
+  table->setColumnWidth(1, 120);  // Backend Type
+  table->setColumnWidth(2, 100);  // Status
+  table->setColumnWidth(3, 260);  // Path
+  table->setColumnWidth(4, 320);  // Real Path
+
+  header->setSectionResizeMode(0, QHeaderView::Interactive);
+  header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+  header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+  header->setSectionResizeMode(3, QHeaderView::Stretch);
+  header->setSectionResizeMode(4, QHeaderView::Stretch);
 
   popup_menu_ = new QMenu(this);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Up);
@@ -127,149 +179,122 @@ void KeyDatabasesTab::contextMenuEvent(QContextMenuEvent* event) {
   QWidget::contextMenuEvent(event);
 }
 
-void KeyDatabasesTab::slot_refresh_key_database_table() {
+void KeyDatabasesTab::slot_refresh_key_database_table(int selected_row) {
   auto& key_databases = key_db_infos_;
-  ui_->keyDatabaseTable->setRowCount(static_cast<int>(key_databases.size()));
 
-  int index = 0;
-  for (const auto& key_db : key_databases) {
+  auto* table = ui_->keyDatabaseTable;
+  table->setUpdatesEnabled(false);
+  table->clearContents();
+  table->setRowCount(static_cast<int>(key_databases.size()));
+
+  for (int index = 0; index < key_databases.size(); index++) {
+    const auto& key_db = key_databases[index];
+
     LOG_D() << "key database table item index: " << index
             << "name: " << key_db.name << "path: " << key_db.path;
 
-    auto* i_name = new QTableWidgetItem(key_db.name);
-    i_name->setTextAlignment(Qt::AlignCenter);
-
-    ui_->keyDatabaseTable->setVerticalHeaderItem(
+    table->setVerticalHeaderItem(
         index, new QTableWidgetItem(QString::number(index + 1)));
-    ui_->keyDatabaseTable->setItem(index, 0, i_name);
+
+    auto* i_name = CreateTableItem(key_db.name, Qt::AlignCenter);
+    table->setItem(index, 0, i_name);
 
     auto backend_type_display = key_db.backend_type.isEmpty()
-                                    ? "GNUPG"
+                                    ? QStringLiteral("GNUPG")
                                     : key_db.backend_type.toUpper().trimmed();
-    auto* i_backend_type = new QTableWidgetItem(backend_type_display);
-    i_backend_type->setTextAlignment(Qt::AlignCenter);
-    ui_->keyDatabaseTable->setItem(index, 1, i_backend_type);
 
-    auto is_active =
+    auto* i_backend_type =
+        CreateTableItem(backend_type_display, Qt::AlignCenter);
+    table->setItem(index, 1, i_backend_type);
+
+    const auto is_active =
         std::find_if(active_key_db_infos_.begin(), active_key_db_infos_.end(),
-                     [key_db](const KeyDatabaseInfo& i) -> bool {
+                     [&key_db](const KeyDatabaseInfo& i) -> bool {
                        return i.name == key_db.name;
                      }) != active_key_db_infos_.end();
-    ui_->keyDatabaseTable->setItem(
-        index, 2,
-        new QTableWidgetItem(is_active ? tr("Active") : tr("Inactive")));
 
-    ui_->keyDatabaseTable->setItem(index, 3,
-                                   new QTableWidgetItem(key_db.origin_path));
+    table->setItem(index, 2, CreateStatusItem(is_active));
 
-    ui_->keyDatabaseTable->setItem(
-        index, 4, new QTableWidgetItem(is_active ? key_db.path : tr("N/A")));
-    index++;
+    auto* i_origin_path = CreateTableItem(key_db.origin_path);
+    table->setItem(index, 3, i_origin_path);
+
+    const auto real_path = is_active ? key_db.path : tr("N/A");
+    auto* i_real_path = CreateTableItem(real_path);
+    if (!is_active) {
+      i_real_path->setForeground(QBrush(QColor(150, 150, 150)));
+    }
+    table->setItem(index, 4, i_real_path);
   }
-  ui_->keyDatabaseTable->resizeColumnsToContents();
+
+  if (selected_row >= 0 && selected_row < table->rowCount()) {
+    table->selectRow(selected_row);
+  } else {
+    table->clearSelection();
+  }
+
+  table->setUpdatesEnabled(true);
 }
 
 void KeyDatabasesTab::slot_open_key_database() {
-  const auto row_size = ui_->keyDatabaseTable->rowCount();
+  const auto selected_rows =
+      ui_->keyDatabaseTable->selectionModel()->selectedRows();
 
-  auto& key_databases = key_db_infos_;
-  for (int i = 0; i < row_size; i++) {
-    auto* const item = ui_->keyDatabaseTable->item(i, 1);
-    if (!item->isSelected()) continue;
-    LOG_D() << "try to open key db at path: " << key_databases[i].path;
-    QDesktopServices::openUrl(QUrl::fromLocalFile(key_databases[i].path));
-    break;
-  }
+  if (selected_rows.isEmpty()) return;
+
+  const int row = selected_rows.first().row();
+  if (row < 0 || row >= key_db_infos_.size()) return;
+
+  const auto& key_database = key_db_infos_[row];
+
+  LOG_D() << "try to open key db at path: " << key_database.path;
+  QDesktopServices::openUrl(QUrl::fromLocalFile(key_database.path));
 }
 
 void KeyDatabasesTab::slot_move_up_key_database() {
-  const auto row_size = ui_->keyDatabaseTable->rowCount();
+  const auto selected_rows =
+      ui_->keyDatabaseTable->selectionModel()->selectedRows();
 
-  if (row_size <= 0) return;
+  if (selected_rows.isEmpty()) return;
 
-  auto& key_databases = key_db_infos_;
+  const int row = selected_rows.first().row();
+  if (row <= 0) return;
 
-  for (int i = 0; i < row_size; i++) {
-    auto* const item = ui_->keyDatabaseTable->item(i, 1);
-    if (!item->isSelected()) continue;
+  key_db_infos_.swapItemsAt(row, row - 1);
 
-    if (i == 0) {
-      return;
-    }
-
-    key_databases.swapItemsAt(i, i - 1);
-
-    for (int k = 0; k < ui_->keyDatabaseTable->columnCount(); k++) {
-      ui_->keyDatabaseTable->item(i, k)->setSelected(false);
-      ui_->keyDatabaseTable->item(i - 1, k)->setSelected(true);
-    }
-
-    break;
-  }
-
-  this->slot_refresh_key_database_table();
+  slot_refresh_key_database_table(row - 1);
 
   emit SignalDeepRestartNeeded();
 }
 
 void KeyDatabasesTab::slot_move_to_top_key_database() {
-  const auto row_size = ui_->keyDatabaseTable->rowCount();
+  const auto selected_rows =
+      ui_->keyDatabaseTable->selectionModel()->selectedRows();
 
-  if (row_size <= 0) return;
+  if (selected_rows.isEmpty()) return;
 
-  auto& key_databases = key_db_infos_;
+  const int row = selected_rows.first().row();
+  if (row <= 0) return;
 
-  for (int i = 0; i < row_size; i++) {
-    auto* const item = ui_->keyDatabaseTable->item(i, 1);
-    if (!item->isSelected()) continue;
+  auto selected_item = key_db_infos_.takeAt(row);
+  key_db_infos_.insert(0, selected_item);
 
-    if (i == 0) {
-      return;
-    }
-
-    auto selected_item = key_databases.takeAt(i);
-    key_databases.insert(0, selected_item);
-
-    for (int k = 0; k < ui_->keyDatabaseTable->columnCount(); k++) {
-      ui_->keyDatabaseTable->item(i, k)->setSelected(false);
-    }
-    for (int k = 0; k < ui_->keyDatabaseTable->columnCount(); k++) {
-      ui_->keyDatabaseTable->item(0, k)->setSelected(true);
-    }
-
-    break;
-  }
-
-  this->slot_refresh_key_database_table();
+  slot_refresh_key_database_table(0);
 
   emit SignalDeepRestartNeeded();
 }
+
 void KeyDatabasesTab::slot_move_down_key_database() {
-  const auto row_size = ui_->keyDatabaseTable->rowCount();
+  const auto selected_rows =
+      ui_->keyDatabaseTable->selectionModel()->selectedRows();
 
-  if (row_size <= 0) return;
+  if (selected_rows.isEmpty()) return;
 
-  auto& key_databases = key_db_infos_;
+  const int row = selected_rows.first().row();
+  if (row < 0 || row >= key_db_infos_.size() - 1) return;
 
-  for (int i = row_size - 1; i >= 0; i--) {
-    auto* const item = ui_->keyDatabaseTable->item(i, 1);
-    if (!item->isSelected()) continue;
+  key_db_infos_.swapItemsAt(row, row + 1);
 
-    if (i == row_size - 1) {
-      return;
-    }
-
-    key_databases.swapItemsAt(i, i + 1);
-
-    for (int k = 0; k < ui_->keyDatabaseTable->columnCount(); k++) {
-      ui_->keyDatabaseTable->item(i, k)->setSelected(false);
-      ui_->keyDatabaseTable->item(i + 1, k)->setSelected(true);
-    }
-
-    break;
-  }
-
-  this->slot_refresh_key_database_table();
+  slot_refresh_key_database_table(row + 1);
 
   emit SignalDeepRestartNeeded();
 }
@@ -421,27 +446,30 @@ void KeyDatabasesTab::slot_add_new_key_database() {
 }
 
 void KeyDatabasesTab::slot_remove_existing_key_database() {
-  const auto row_size = ui_->keyDatabaseTable->rowCount();
+  const auto selected_rows =
+      ui_->keyDatabaseTable->selectionModel()->selectedRows();
 
-  auto& key_databases = key_db_infos_;
-  for (int i = 0; i < row_size; i++) {
-    auto* const item = ui_->keyDatabaseTable->item(i, 1);
-    if (!item->isSelected()) continue;
+  if (selected_rows.isEmpty()) return;
 
-    QMessageBox::StandardButton reply = QMessageBox::question(
-        this, tr("Confirm Deletion"),
-        tr("Are you sure you want to delete the selected key database?"),
-        QMessageBox::Yes | QMessageBox::No);
+  const auto row = selected_rows.first().row();
+  if (row < 0 || row >= key_db_infos_.size()) return;
 
-    if (reply != QMessageBox::Yes) {
-      return;
-    }
+  QMessageBox::StandardButton reply =
+      QMessageBox::question(this, tr("Confirm Deletion"),
+                            tr("Are you sure you want to remove the selected "
+                               "key database from the list?"),
+                            QMessageBox::Yes | QMessageBox::No);
 
-    key_databases.removeAt(i);
-    break;
-  }
+  if (reply != QMessageBox::Yes) return;
 
-  this->slot_refresh_key_database_table();
+  key_db_infos_.removeAt(row);
+
+  const int next_selected_row =
+      key_db_infos_.isEmpty()
+          ? -1
+          : std::min(row, static_cast<int>(key_db_infos_.size() - 1));
+
+  slot_refresh_key_database_table(next_selected_row);
 
   emit SignalDeepRestartNeeded();
 }

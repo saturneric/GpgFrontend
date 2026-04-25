@@ -92,7 +92,7 @@ class KeyDatabasesTab : public QWidget {
    * @brief
    *
    */
-  void slot_refresh_key_database_table();
+  void slot_refresh_key_database_table(int selected_row = -1);
 
   /**
    * @brief
