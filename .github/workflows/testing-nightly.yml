@@ -133,8 +133,11 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
           security set-keychain-settings -lut 3600
 
-          mkdir -p "~/Library/MobileDevice/Provisioning Profiles"
-          cp "$PP_PATH" "~/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile"
+          PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILE_DIR"
+          cp "$PP_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile"
+          ls -la "$PROFILE_DIR"
+          security cms -D -i "$PROFILE_DIR/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile" | plutil -p -
 
           # copy the provisioning profile to the repository root for later use,
           # because the sandboxing feature requires the provisioning profile to
@@ -294,7 +297,7 @@ jobs:
             DEVELOPMENT_TEAM="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
             PRODUCT_BUNDLE_IDENTIFIER="${{secrets.GPGFRONTEND_XOCDE_APPID}}" \
             CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}" \
-            PROVISIONING_PROFILE="${{env.PROVISIONING_PROFILE_UUID}}"
+            PROVISIONING_PROFILE_SPECIFIER="GpgFrontend_Mac_App_Store_Profile"
           mkdir ${{github.workspace}}/build/package
           xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
             -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
@@ -554,7 +557,7 @@ jobs:
           # Remove MAS specific .pkg files if they exist, since they are not
           # needed for the release and we only want to keep the main artifacts
           # (dmg, AppImage, zip).
-          find artifacts/ -type f ! -name '*.pkg' -delete
+          find artifacts/ -type f -name '*.pkg' -delete
 
       - name: Generate SHA256 checksums
         run: |
