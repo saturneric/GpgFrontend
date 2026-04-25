@@ -62,16 +62,26 @@ if(XCODE_BUILD)
   # standard app bundle packing
   add_executable(${APP_NAME} MACOSX_BUNDLE ${GPGFRONTEND_MACOS_ICON} ${APP_SOURCE} ${RESOURCE_FILES})
 
-  string(TIMESTAMP GPGFRONTEND_BUILD_NUMBER "%Y%m%d%H%M" UTC)
-  message(STATUS "GPGFRONTEND_BUILD_NUMBER: ${GPGFRONTEND_BUILD_NUMBER}")
+  # generate build number for macOS app bundle, format: YYYYMMDDHHMM, e.g. 202406101230
+  string(TIMESTAMP MACOSX_APP_BUILD_NUMBER "%Y%m%d%H%M" UTC)
+  message(STATUS "macOS App Build Number: ${MACOSX_APP_BUILD_NUMBER}")
+
+  # Set macOS app bundle display name
+  if(GPGFRONTEND_XCODE_ENABLE_SANDBOX)
+    # if sandbox enabled, use "GpgFrontend Lite" as display name to distinguish
+    # from the non-sandbox version
+    set(MACOSX_APP_DISPLAY_NAME "GpgFrontend Lite")
+  else()
+    set(MACOSX_APP_DISPLAY_NAME "GpgFrontend")
+  endif()
 
   set_target_properties(${APP_NAME} PROPERTIES
     BUNDLE True
     MACOSX_BUNDLE_GUI_IDENTIFIER com.bktus.gpgfrontend
-    MACOSX_BUNDLE_BUNDLE_NAME ${APP_NAME}
+    MACOSX_BUNDLE_BUNDLE_NAME ${MACOSX_APP_DISPLAY_NAME}
     MACOSX_BUNDLE_LONG_VERSION_STRING ${BUILD_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION}
-    MACOSX_BUNDLE_BUNDLE_VERSION ${GPGFRONTEND_BUILD_NUMBER}
+    MACOSX_BUNDLE_BUNDLE_VERSION ${MACOSX_APP_BUILD_NUMBER}
     MACOSX_BUNDLE_COPYRIGHT "GPL-3.0"
     MACOSX_BUNDLE_INFO_STRING "An OpenPGP Crypto Tool"
     MACOSX_BUNDLE_ICON_FILE "gpgfrontend.icns"
