@@ -327,7 +327,7 @@ jobs:
           # Sign the app bundle. If sandboxing is enabled, we need to add the
           # entitlements flag to the codesign command.
           if [ "${{ matrix.sandbox }}" = "ON" ]; then
-            ENTITLEMENTS_FLAG="--entitlements ${{github.workspace}}/resource/entitlements/GpgFrontend.entitlements"
+            ENTITLEMENTS_FLAG="--entitlements ${{github.workspace}}/resource/entitlements/Sandbox.entitlements"
           else
             ENTITLEMENTS_FLAG=""
           fi
