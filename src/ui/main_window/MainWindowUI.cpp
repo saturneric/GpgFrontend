@@ -476,7 +476,7 @@ void MainWindow::create_menus() {
   // in the "Advanced" menu are not useful in sandbox and may cause confusion to
   // users.
   if (IsRunningInSandBox()) {
-    advance_menu_->setVisible(false);
+    advance_menu_->menuAction()->setVisible(false);
   }
 
   view_menu_ = menuBar()->addMenu(tr("View"));
