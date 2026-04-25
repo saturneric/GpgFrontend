@@ -88,52 +88,17 @@ void InfoBoardWidget::InitUI() {
   setStyleSheet(R"(
 QWidget#InfoBoardWidget QTextEdit {
   border: 1px solid palette(mid);
-  border-radius: 6px;
-  padding: 6px;
+  padding: 4px;
   background: palette(base);
   selection-background-color: palette(highlight);
   selection-color: palette(highlighted-text);
 }
 
-QWidget#InfoBoardWidget QTextEdit[status="ok"] {
-  border: 1px solid #2e7d32;
-}
-
-QWidget#InfoBoardWidget QTextEdit[status="warn"] {
-  border: 1px solid #ef6c00;
-}
-
-QWidget#InfoBoardWidget QTextEdit[status="critical"] {
-  border: 1px solid #c62828;
-}
-
+QWidget#InfoBoardWidget QTextEdit[status="ok"],
+QWidget#InfoBoardWidget QTextEdit[status="warn"],
+QWidget#InfoBoardWidget QTextEdit[status="critical"],
 QWidget#InfoBoardWidget QTextEdit[status="neutral"] {
   border: 1px solid palette(mid);
-}
-
-QWidget#InfoBoardWidget QToolButton {
-  min-width: 28px;
-  min-height: 26px;
-  padding: 3px;
-  border: 1px solid palette(mid);
-  border-radius: 5px;
-  background: palette(button);
-}
-
-QWidget#InfoBoardWidget QToolButton:hover {
-  background: palette(light);
-}
-
-QWidget#InfoBoardWidget QPushButton {
-  min-height: 26px;
-  padding: 3px 10px;
-  border: 1px solid palette(mid);
-  border-radius: 5px;
-  background: palette(button);
-}
-
-QWidget#InfoBoardWidget QPushButton:hover {
-  background: palette(light);
 }
 )");
 

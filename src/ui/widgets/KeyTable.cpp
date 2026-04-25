@@ -120,22 +120,13 @@ void KeyTable::InitTableStyle() {
 
   setStyleSheet(R"(
 QTableView[gfKeyTable="true"] {
-  border: none;
-  background: palette(base);
-  alternate-background-color: palette(alternate-base);
-  selection-background-color: palette(highlight);
-  selection-color: palette(highlighted-text);
   outline: 0;
 }
 
 QTableView[gfKeyTable="true"]::item {
-  min-height: 26px;
-  padding: 3px 6px;
+  min-height: 24px;
+  padding: 2px 5px;
   border: none;
-}
-
-QTableView[gfKeyTable="true"]::item:hover {
-  background: palette(light);
 }
 
 QTableView[gfKeyTable="true"]::item:selected {
@@ -144,17 +135,12 @@ QTableView[gfKeyTable="true"]::item:selected {
 }
 
 QTableView[gfKeyTable="true"] QHeaderView::section {
-  padding: 5px 6px;
+  padding: 4px 6px;
   border: none;
-  border-bottom: 1px solid palette(mid);
-  background: palette(window);
-  font-weight: 600;
 }
 
 QTableView[gfKeyTable="true"] QTableCornerButton::section {
   border: none;
-  border-bottom: 1px solid palette(mid);
-  background: palette(window);
 }
 )");
 

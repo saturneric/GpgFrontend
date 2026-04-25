@@ -123,33 +123,20 @@ void TextEditTabWidget::InitTabStyle() {
   setStyleSheet(R"(
 QTabWidget::pane {
   border: 1px solid palette(mid);
-  border-radius: 6px;
-  top: -1px;
 }
 
 QTabBar::tab {
-  padding: 6px 12px;
-  margin-right: 2px;
-  border: 1px solid palette(mid);
-  border-bottom: none;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-  background: palette(button);
+  padding: 4px 10px;
+  margin-right: 1px;
 }
 
 QTabBar::tab:selected {
-  background: palette(base);
-  font-weight: 600;
-}
-
-QTabBar::tab:hover {
-  background: palette(light);
-}
-
-QTabBar::tab:!selected {
-  color: palette(mid);
+  font-weight: 500;
 }
 )");
+
+  style()->unpolish(this);
+  style()->polish(this);
 }
 
 auto TextEditTabWidget::PathForTab(int index) const -> QString {

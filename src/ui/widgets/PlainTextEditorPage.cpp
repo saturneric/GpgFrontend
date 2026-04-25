@@ -147,24 +147,16 @@ void PlainTextEditorPage::InitEditorStyle() {
   setStyleSheet(R"(
 QWidget#PlainTextEditorPage QPlainTextEdit#PlainTextEditor {
   border: 1px solid palette(mid);
-  border-radius: 6px;
   background: palette(base);
   selection-background-color: palette(highlight);
   selection-color: palette(highlighted-text);
 }
 
 QWidget#PlainTextEditorPage QLabel {
-  padding: 2px 6px;
-}
-
-QWidget#PlainTextEditorPage QLabel[statusBadge="true"] {
-  border: 1px solid palette(mid);
-  border-radius: 5px;
-  background: palette(alternate-base);
+  padding: 1px 5px;
 }
 
 QWidget#PlainTextEditorPage QLabel[loading="true"] {
-  font-weight: 600;
   color: palette(highlight);
 }
 )");

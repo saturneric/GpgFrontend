@@ -110,14 +110,10 @@ void FileTreeView::InitViewStyle() {
   header()->setSectionResizeMode(0, QHeaderView::Interactive);
   header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
   header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
-  header()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+  header()->setSectionResizeMode(3, QHeaderView::Stretch);
 
   setStyleSheet(R"(
 QTreeView[gfFileTreeView="true"] {
-  border: 1px solid palette(mid);
-  border-radius: 6px;
-  background: palette(base);
-  alternate-background-color: palette(alternate-base);
   outline: 0;
 }
 
@@ -127,21 +123,9 @@ QTreeView[gfFileTreeView="true"]::item {
   border: none;
 }
 
-QTreeView[gfFileTreeView="true"]::item:hover {
-  background: palette(light);
-}
-
 QTreeView[gfFileTreeView="true"]::item:selected {
   background: palette(highlight);
   color: palette(highlighted-text);
-}
-
-QTreeView[gfFileTreeView="true"] QHeaderView::section {
-  padding: 5px 6px;
-  border: none;
-  border-bottom: 1px solid palette(mid);
-  background: palette(window);
-  font-weight: 600;
 }
 )");
 
