@@ -300,14 +300,13 @@ void MainWindow::slot_result_analyse_show_helper(
 void MainWindow::slot_result_analyse_show_helper(
     const QContainer<GpgOperaResult>& opera_results) {
   if (opera_results.empty()) {
-    slot_refresh_info_board(0, "");
+    slot_refresh_info_board(0, tr("No operation result available."));
     return;
   }
 
-  int overall_status = 1;  // Initialize to OK
-  QStringList report;
-  QStringList summary;
+  int overall_status = 1;
 
+  QStringList detail_sections;
   QStringList failed_tags;
   QStringList warning_tags;
 
@@ -316,54 +315,66 @@ void MainWindow::slot_result_analyse_show_helper(
   int warn_count = 0;
 
   for (const auto& opera_result : opera_results) {
-    // Update overall status
     overall_status = std::min(overall_status, opera_result.status);
 
     QString status_text;
     if (opera_result.status < 0) {
-      status_text = tr("FAIL");
+      status_text = tr("FAILED");
       failed_tags << opera_result.tag;
       fail_count++;
     } else if (opera_result.status > 0) {
       status_text = tr("OK");
       success_count++;
     } else {
-      status_text = tr("WARN");
+      status_text = tr("WARNING");
       warning_tags << opera_result.tag;
       warn_count++;
     }
 
-    // Append detailed report for each operation
-    report.append(QString("[ %1 ] %2\n\n%3\n")
-                      .arg(status_text, opera_result.tag, opera_result.report));
+    QString section;
+    section += tr("Object: %1").arg(opera_result.tag) + "\n";
+    section += tr("Status: %1").arg(status_text) + "\n";
+
+    const auto report_text = opera_result.report.trimmed();
+    if (!report_text.isEmpty()) {
+      section += "\n";
+      section += report_text;
+      section += "\n";
+    }
+
+    detail_sections << section.trimmed();
   }
 
-  // Prepare summary section
-  summary.append("# " + tr("Summary Report") + "\n\n");
-  summary.append("- " + tr("Total Operations: %1").arg(opera_results.size()) +
-                 "\n");
-  summary.append("- " + tr("Successful: %1").arg(success_count) + "\n");
-  summary.append("- " + tr("Warnings: %1").arg(warn_count) + "\n");
-  summary.append("- " + tr("Failures: %1").arg(fail_count) + "\n");
+  QString final_report;
 
-  if (!failed_tags.isEmpty()) {
-    summary.append("- " +
-                   tr("Failed Objects: %1").arg(failed_tags.join(", ") + "\n"));
+  if (opera_results.size() > 1) {
+    QStringList summary;
+    summary << tr("Summary");
+    summary << QString(40, QLatin1Char('-'));
+    summary << tr("Total operations: %1").arg(opera_results.size());
+    summary << tr("Successful: %1").arg(success_count);
+    summary << tr("Warnings: %1").arg(warn_count);
+    summary << tr("Failures: %1").arg(fail_count);
+
+    if (!failed_tags.isEmpty()) {
+      summary << tr("Failed objects: %1").arg(failed_tags.join(", "));
+    }
+
+    if (!warning_tags.isEmpty()) {
+      summary << tr("Warning objects: %1").arg(warning_tags.join(", "));
+    }
+
+    final_report += summary.join("\n");
+    final_report += "\n\n";
+    final_report += tr("Details");
+    final_report += "\n";
+    final_report += QString(40, QLatin1Char('-'));
+    final_report += "\n";
   }
 
-  if (!warning_tags.isEmpty()) {
-    summary.append(
-        "- " + tr("Warning Objects: %1").arg(warning_tags.join(", ") + "\n"));
-  }
+  final_report += detail_sections.join("\n\n");
 
-  // Display the final report in the info board
-  if (opera_results.size() == 1) {
-    slot_refresh_info_board(overall_status, report.join(""));
-
-  } else {
-    slot_refresh_info_board(overall_status,
-                            summary.join("") + "\n\n" + report.join(""));
-  }
+  slot_refresh_info_board(overall_status, final_report.trimmed());
 }
 
 void MainWindow::slot_refresh_info_board(int status, const QString& text) {
