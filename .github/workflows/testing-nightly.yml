@@ -78,8 +78,8 @@ jobs:
           else
             echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
             echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
-            echo "CODE_SIGNING_IDENTITY=${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
-            echo "PROVISIONING_PROFILE_UUID=${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}" >> $GITHUB_ENV
+            echo "CODE_SIGNING_IDENTITY=${{secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
+            echo "PROVISIONING_PROFILE_UUID=${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_UUID}}" >> $GITHUB_ENV
           fi
 
       - name: ccache
@@ -114,20 +114,20 @@ jobs:
             PP_PATH=$RUNNER_TEMP/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile
             echo -n "${{secrets.MAS_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
           else
-            PP_PATH=$RUNNER_TEMP/${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}.provisionprofile
-            echo -n "${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
+            PP_PATH=$RUNNER_TEMP/${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_UUID}}.provisionprofile
+            echo -n "${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
           fi
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # Import the certificates and provisioning profile into the keychain
-          echo -n "${{secrets.MACOS_CERTIFICATE}}" | base64 --decode -o $APP_CERT_PATH
+          echo -n "${{secrets.DEVELOP_ID_CERT}}" | base64 --decode -o $APP_CERT_PATH
           echo -n "${{secrets.MAS_INSTALLER_CERT}}" | base64 --decode -o $MAS_INSTALLER_CERT_PATH
           echo -n "${{secrets.MAS_APPLICATION_CERT}}" | base64 --decode -o $MAS_APP_CERT_PATH
 
           security create-keychain -p gpgfrontend build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p gpgfrontend build.keychain
-          security import $APP_CERT_PATH -k build.keychain -P ${{secrets.MAOS_CERTIFICATE_PWD}} -T /usr/bin/codesign
+          security import $APP_CERT_PATH -k build.keychain -P ${{secrets.DEVELOP_ID_CERT_PWD}} -T /usr/bin/codesign
           security import $MAS_INSTALLER_CERT_PATH -k build.keychain -P ${{secrets.MAS_INSTALLER_CERT_PWD}} -T /usr/bin/productbuild
           security import $MAS_APP_CERT_PATH -k build.keychain -P ${{secrets.MAS_APPLICATION_CERT_PWD}} -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
@@ -333,7 +333,7 @@ jobs:
           hdiutil create ${{github.workspace}}/build/tmp.dmg -ov \
             -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/
           mkdir ${{github.workspace}}/build/upload-artifact
-          create-dmg --codesign "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
+          create-dmg --codesign "${{secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
           mv ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg \
             ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \
