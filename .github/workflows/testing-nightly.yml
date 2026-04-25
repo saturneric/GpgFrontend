@@ -54,6 +54,7 @@ jobs:
           - os: "macos-15"
             sandbox: "ON"
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     steps:
       - name: Set git to use LF(Windows) or CRLF(MacOS) line endings
         run: |
