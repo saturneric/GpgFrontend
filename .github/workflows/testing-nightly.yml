@@ -49,10 +49,6 @@ jobs:
             "macos-26",
             "windows-2022",
           ]
-        sandbox: ["OFF"]
-        include:
-          - os: "macos-15"
-            sandbox: "ON"
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -71,26 +67,17 @@ jobs:
       - name: Setup Sandbox Environment Variables
         shell: bash
         run: |
-          if [ "${{ matrix.sandbox }}" = "ON" ]; then
-            echo "OS_IDENTIFIER=${{ matrix.os }}-sandbox" >> $GITHUB_ENV
-            echo "SANDBOX_CMAKE_FLAG=-DGPGFRONTEND_XCODE_ENABLE_SANDBOX=ON" >> $GITHUB_ENV
-            echo "CODE_SIGNING_IDENTITY=${{secrets.MAS_APPLICATION_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
-            echo "PROVISIONING_PROFILE_UUID=${{secrets.MAS_PROVISIONING_PROFILE_UUID}}" >> $GITHUB_ENV
-          else
-            echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
-            echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
-            echo "CODE_SIGNING_IDENTITY=${{secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
-            echo "PROVISIONING_PROFILE_UUID=${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_UUID}}" >> $GITHUB_ENV
-          fi
+          echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
+          echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
+          echo "CODE_SIGNING_IDENTITY=${{secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
+          echo "PROVISIONING_PROFILE_UUID=${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_UUID}}" >> $GITHUB_ENV
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}-${{ matrix.os }}
-
-      - name: Get Short SHA of Commit
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Install Dependence (Linux)
         run: |
@@ -111,13 +98,8 @@ jobs:
           MAS_INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.p12
           MAS_APP_CERT_PATH=$RUNNER_TEMP/mas_app_certificate.p12
 
-          if [ "${{ matrix.sandbox }}" == "ON" ]; then
-            PP_PATH=$RUNNER_TEMP/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile
-            echo -n "${{secrets.MAS_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
-          else
-            PP_PATH=$RUNNER_TEMP/${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_UUID}}.provisionprofile
-            echo -n "${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
-          fi
+          PP_PATH=$RUNNER_TEMP/${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_UUID}}.provisionprofile
+          echo -n "${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # Import the certificates and provisioning profile into the keychain
@@ -138,12 +120,6 @@ jobs:
           mkdir -p "$PROFILE_DIR"
           cp "$PP_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile"
 
-          # copy the provisioning profile to the repository root for later use,
-          # because the sandboxing feature requires the provisioning profile to
-          # be embedded in the app bundle.
-          if [ "${{ matrix.sandbox }}" = "ON" ]; then
-            cp $PP_PATH ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile
-          fi
         if: runner.os == 'macOS'
 
       - name: Install Qt6
@@ -193,6 +169,12 @@ jobs:
 
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust -> build/cargo
+          shared-key: rust-nightly-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
+          cache-on-failure: true
+        if: runner.os == 'Linux' || runner.os == 'macOS'
 
       - name: Build GpgME (macOS)
         run: |
@@ -277,8 +259,7 @@ jobs:
             -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}" \
             -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
             -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{env.PROVISIONING_PROFILE_UUID}}" \
-            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
-            ${{env.SANDBOX_CMAKE_FLAG}}
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
             
           xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
 
@@ -299,43 +280,27 @@ jobs:
             CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}"
           mkdir ${{github.workspace}}/build/package
 
-          if [ "${{ matrix.sandbox }}" = "ON" ]; then
-            # skip exporting the archive, because we will use macdeployqt to
-            # deploy the Qt frameworks and plugins, and sign the app bundle in one
-            # step, which is more suitable for our use case.
-            mkdir -p ${{github.workspace}}/build/package
-            cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app ${{github.workspace}}/build/package/
-          else
-            xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
-              -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
-              -exportPath ${{github.workspace}}/build/package/
-          fi
+          xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
+            -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
+            -exportPath ${{github.workspace}}/build/package/
         if: runner.os == 'macOS'
 
       - name: Deploy Qt & Code Sign (macOS)
         run: |
-
-          # Copy the provisioning profile to the app bundle if sandboxing is
-          # enabled, because the sandboxing feature requires the provisioning
-          # profile to be embedded in the app bundle.
-          if [ "${{ matrix.sandbox }}" = "ON" ]; then
-            cp ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile ${{github.workspace}}/build/package/GpgFrontend.app/Contents/embedded.provisionprofile
-          fi
-
           # Use macdeployqt to deploy the Qt frameworks and plugins, and sign
           # the app bundle in one step.
-          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite -codesign="${{env.CODE_SIGNING_IDENTITY}}"
-
-          # Sign the app bundle. If sandboxing is enabled, we need to add the
-          # entitlements flag to the codesign command.
-          if [ "${{ matrix.sandbox }}" = "ON" ]; then
-            ENTITLEMENTS_FLAG="--entitlements ${{github.workspace}}/resource/entitlements/Sandbox.entitlements"
-          else
-            ENTITLEMENTS_FLAG=""
-          fi
+          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app \
+            -verbose=2 \
+            -always-overwrite \
+            -codesign="${{env.CODE_SIGNING_IDENTITY}}"
 
           # Sign the app bundle with the specified identity and provisioning profile.
-          codesign -s "${{env.CODE_SIGNING_IDENTITY}}" -f --deep --options=runtime --timestamp $ENTITLEMENTS_FLAG ${{github.workspace}}/build/package/GpgFrontend.app
+          codesign -s "${{env.CODE_SIGNING_IDENTITY}}" \
+            -f --deep --options=runtime --timestamp \
+            ${{github.workspace}}/build/package/GpgFrontend.app
+
+          codesign --verify --deep --strict --verbose=4 \
+            ${{github.workspace}}/build/package/GpgFrontend.app
         if: runner.os == 'macOS'
 
       - name: Package & Sign App Bundle (macOS)
@@ -347,20 +312,10 @@ jobs:
           mkdir ${{github.workspace}}/build/upload-artifact
           create-dmg --codesign "${{secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
           mv ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg \
-            ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.dmg
+            ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \
-            ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.zip
-        if: runner.os == 'macOS' && matrix.sandbox == 'OFF'
-
-      - name: Create Installer Package (macOS)
-        run: |
-          mkdir ${{github.workspace}}/build/upload-artifact
-          productbuild --component ${{github.workspace}}/build/package/GpgFrontend.app /Applications \
-            --sign "${{secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY}}" \
-            ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.pkg
-          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
-        if: runner.os == 'macOS' && matrix.sandbox == 'ON'
+            ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.zip
+        if: runner.os == 'macOS'
 
       - name: Notarize Release Build (macOS)
         run: |
@@ -368,10 +323,8 @@ jobs:
           --apple-id ${{secrets.APPLE_DEVELOPER_ID}} \
           --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}} \
           --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
-          ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.sha_short}}.zip
-          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
-        if: runner.os == 'macOS' && matrix.sandbox == 'OFF'
+          ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.zip
+        if: runner.os == 'macOS'
 
       - name: Build GpgFrontend (Linux)
         run: |
@@ -426,8 +379,6 @@ jobs:
             -extra-plugins=iconengines,platforms,sqldrivers/libqsqlite.so \
             -appimage \
             -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
-          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: runner.os == 'Linux'
 
       - name: Build GpgFrontend (Windows)
@@ -442,12 +393,6 @@ jobs:
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
             --verbose
-        if: runner.os == 'Windows'
-
-      - name: Generate Env Vars (Windows)
-        run: |
-          echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
-          echo "BUILD_TYPE_LOWER=$("${{env.BUILD_TYPE}}".ToLower())" >> $env:GITHUB_ENV
         if: runner.os == 'Windows'
 
       - name: Download GnuPG Binary Release (Windows)
@@ -519,21 +464,21 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Upload Artifact (Linux)
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v7
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/Gpg_Frontend*.AppImage*
         if: runner.os == 'Linux'
 
       - name: Upload Artifact (macOS)
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v7
         with:
           name: gpgfrontend-${{env.OS_IDENTIFIER}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*
         if: runner.os == 'macOS'
 
       - name: Upload Artifact (Windows)
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v7
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*

@@ -211,6 +211,7 @@ else()
 endif()
 
 set(OPENSSL_BUILD_VERSION "3.6.2")
+
 # We will always use static libraries for openssl for the support of application
 # self-checking. This may avoid the potential issues of corrupted shared library
 # loading.

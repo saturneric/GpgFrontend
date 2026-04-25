@@ -1,0 +1,229 @@
+# Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
+#
+# This file is part of GpgFrontend.
+#
+# GpgFrontend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GpgFrontend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+#
+# The initial version of the source code is inherited from
+# the gpg4usb project, which is under GPL-3.0-or-later.
+#
+# All the source code of GpgFrontend was modified and released by
+# Saturneric <eric@bktus.com> starting on May 12, 2021.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+name: Build Nightly (MAS Sandbox)
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: RelWithDebInfo
+  GNUPG_VERSION: "2.5.18"
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: ["macos-15"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set git to use LF(Windows) or CRLF(MacOS) line endings
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - uses: actions/checkout@v6
+        with:
+          ref: "develop"
+          lfs: "false"
+          submodules: recursive
+
+      - name: Setup Environment Variables
+        shell: bash
+        run: |
+          echo "OS_IDENTIFIER=${{ matrix.os }}-sandbox" >> $GITHUB_ENV
+          echo "CODE_SIGNING_IDENTITY=${{secrets.MAS_APPLICATION_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
+          echo "PROVISIONING_PROFILE_UUID=${{secrets.MAS_PROVISIONING_PROFILE_UUID}}" >> $GITHUB_ENV
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ github.job }}-${{ matrix.os }}
+
+      - name: Codesign Configuration
+        run: |
+          APP_CERT_PATH=$RUNNER_TEMP/app_certificate.p12
+          MAS_INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.p12
+          MAS_APP_CERT_PATH=$RUNNER_TEMP/mas_app_certificate.p12
+
+          PP_PATH=$RUNNER_TEMP/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile
+          echo -n "${{secrets.MAS_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # Import the certificates and provisioning profile into the keychain
+          echo -n "${{secrets.DEVELOP_ID_CERT}}" | base64 --decode -o $APP_CERT_PATH
+          echo -n "${{secrets.MAS_INSTALLER_CERT}}" | base64 --decode -o $MAS_INSTALLER_CERT_PATH
+          echo -n "${{secrets.MAS_APPLICATION_CERT}}" | base64 --decode -o $MAS_APP_CERT_PATH
+
+          security create-keychain -p gpgfrontend build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p gpgfrontend build.keychain
+          security import $APP_CERT_PATH -k build.keychain -P ${{secrets.DEVELOP_ID_CERT_PWD}} -T /usr/bin/codesign
+          security import $MAS_INSTALLER_CERT_PATH -k build.keychain -P ${{secrets.MAS_INSTALLER_CERT_PWD}} -T /usr/bin/productbuild
+          security import $MAS_APP_CERT_PATH -k build.keychain -P ${{secrets.MAS_APPLICATION_CERT_PWD}} -T /usr/bin/codesign -T /usr/bin/xcodebuild -T /usr/bin/productbuild -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
+          security set-keychain-settings -lut 3600
+
+          PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILE_DIR"
+          cp "$PP_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile"
+
+          # copy the provisioning profile to the repository root for later use,
+          # because the sandboxing feature requires the provisioning profile to
+          # be embedded in the app bundle.
+          cp $PP_PATH ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile
+
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.10.3"
+          cache: "true"
+
+      - name: Install Dependence (macOS)
+        run: |
+          brew install --formula automake texinfo libarchive googletest
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust -> build/cargo
+          shared-key: rust-nightly-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
+          cache-on-failure: true
+
+      - name: Build GpgME
+        run: |
+          cd ${{github.workspace}}/third_party/gpgme
+          export CC="ccache gcc"
+          export CXX="ccache g++"
+          ./autogen.sh
+          mkdir build && cd build
+          ../configure --enable-static \
+          --disable-shared \
+          --enable-silent-rules \
+          --disable-dependency-tracking \
+          --enable-languages=cl \
+          --disable-gpgconf-test \
+          --disable-gpg-test \
+          --disable-gpgsm-test \
+          --disable-g13-test
+          make -j4
+          sudo make install
+
+      - name: Build GpgFrontend
+        run: |
+          MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
+          MACOS_MINOR=$(sw_vers -productVersion | cut -d. -f2)
+
+          if [[ "$MACOS_MAJOR" == "13" ]]; then
+            DEPLOY_TARGET="13.0"
+          elif [[ "$MACOS_MAJOR" == "14" ]]; then
+            DEPLOY_TARGET="14.0"
+          elif [[ "$MACOS_MAJOR" == "15" ]]; then
+            DEPLOY_TARGET="15.0"
+          elif [[ "$MACOS_MAJOR" == "26" ]]; then
+            DEPLOY_TARGET="26.0"
+          else
+            DEPLOY_TARGET="${MACOS_MAJOR}.${MACOS_MINOR}"
+          fi
+
+          echo "Set MacOS Deployment Target: $DEPLOY_TARGET"
+
+          cmake -B ${{github.workspace}}/build -G Xcode \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=${DEPLOY_TARGET} \
+            -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}" \
+            -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
+            -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{env.PROVISIONING_PROFILE_UUID}}" \
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
+            -DGPGFRONTEND_XCODE_ENABLE_SANDBOX=ON
+            
+          xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
+
+          echo "CODE_SIGNING_IDENTITY=${{env.CODE_SIGNING_IDENTITY}}"
+          echo "PROFILE_UUID=${{env.PROVISIONING_PROFILE_UUID}}"
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
+          security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile" | plutil -p -
+          security find-identity -v -p codesigning
+
+          cd ${{github.workspace}}/build/
+          xcodebuild -project ${{github.workspace}}/build/GpgFrontend.xcodeproj \
+            -scheme GpgFrontend \
+            -configuration "${{env.BUILD_TYPE}}" \
+            -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
+            CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}"
+          mkdir ${{github.workspace}}/build/package
+
+          # skip exporting the archive, because we will use macdeployqt to
+          # deploy the Qt frameworks and plugins, and sign the app bundle in one
+          # step, which is more suitable for our use case.
+          mkdir -p ${{github.workspace}}/build/package
+          cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app ${{github.workspace}}/build/package/
+
+      - name: Deploy Qt & Code Sign
+        run: |
+          # Copy the provisioning profile to the app bundle if sandboxing is
+          # enabled, because the sandboxing feature requires the provisioning
+          # profile to be embedded in the app bundle.
+          cp ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile ${{github.workspace}}/build/package/GpgFrontend.app/Contents/embedded.provisionprofile
+
+          # Use macdeployqt to deploy the Qt frameworks and plugins, and sign
+          # the app bundle in one step.
+          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app \
+            -verbose=2 \
+            -appstore-compliant \
+            -always-overwrite \
+            -codesign="${{env.CODE_SIGNING_IDENTITY}}"
+
+          codesign -s "${{env.CODE_SIGNING_IDENTITY}}" \
+            -f --deep --options=runtime --timestamp \
+            --entitlements ${{github.workspace}}/resource/entitlements/Sandbox.entitlements \
+            ${{github.workspace}}/build/package/GpgFrontend.app
+
+          codesign --verify --deep --strict --verbose=4 \
+            ${{github.workspace}}/build/package/GpgFrontend.app
+      - name: Create Installer Package
+        run: |
+          mkdir ${{github.workspace}}/build/upload-artifact
+          productbuild --component ${{github.workspace}}/build/package/GpgFrontend.app /Applications \
+            --sign "${{secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY}}" \
+            ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.pkg
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: gpgfrontend-${{env.OS_IDENTIFIER}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          path: ${{github.workspace}}/build/upload-artifact/*
