@@ -64,7 +64,6 @@ option(GPGFRONTEND_BUILD_STRIP_RPATH "Strip RPATH from binaries for packaging" O
 # xcode build options
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
 option(GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "NONE")
-option(GPGFRONTEND_XCODE_APPID "GpgFrontend Apple AppID" "NONE")
 option(GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProfile UUID" "NONE")
 option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
