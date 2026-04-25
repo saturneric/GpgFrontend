@@ -289,6 +289,11 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->sAlgoComboBox->addItems(
       QStringList(s_algo_set.cbegin(), s_algo_set.cend()));
 
+  QRegularExpression safe_string_re(R"([a-zA-Z0-9\s\.\-_]+)");
+  auto* safe_validator = new QRegularExpressionValidator(safe_string_re, this);
+  ui_->nameEdit->setValidator(safe_validator);
+  ui_->commentEdit->setValidator(safe_validator);
+
   set_signal_slot_config();
 
   load_easy_profile_config();
@@ -351,7 +356,7 @@ void KeyGenerateDialog::slot_key_gen_accept() {
   QString buffer;
   QTextStream err_stream(&buffer);
 
-  if (ui_->nameEdit->text().size() < 5) {
+  if (ui_->nameEdit->text().trimmed().size() < 5) {
     err_stream << " -> " << tr("Name must contain at least five characters.")
                << Qt::endl;
   }

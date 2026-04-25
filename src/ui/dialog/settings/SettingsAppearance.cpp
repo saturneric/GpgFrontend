@@ -183,6 +183,9 @@ void AppearanceTab::ApplySettings() {
     case 3:
       icon_size = 32;
       break;
+    default:
+      icon_size = 24;
+      break;
   }
 
   appearance.tool_bar_icon_height = icon_size;

@@ -123,6 +123,10 @@ void KeyDatabaseEditDialog::init_ui() {
     ui_->keyDBPathShowLabel->setHidden(false);
   }
 
+  QRegularExpression safe_string_re(R"([a-zA-Z0-9\s\-_]+)");
+  auto* safe_validator = new QRegularExpressionValidator(safe_string_re, this);
+  ui_->keyDBNameLineEdit->setValidator(safe_validator);
+
   connect(ui_->selectKeyDBButton, &QPushButton::clicked, this, [this](bool) {
     auto path = QFileDialog::getExistingDirectory(
         this, tr("Open Directory"),
