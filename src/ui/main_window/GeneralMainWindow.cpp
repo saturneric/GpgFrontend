@@ -37,6 +37,17 @@ namespace GpgFrontend::UI {
 
 GeneralMainWindow::GeneralMainWindow(QString id, QWidget *parent)
     : QMainWindow(parent), id_(std::move(id)) {
+  // restore appearance settings
+  AppearanceSO appearance(SettingsObject("general_settings_state"));
+
+  icon_size_ = {appearance.tool_bar_icon_width,
+                appearance.tool_bar_icon_height};
+  font_size_ = appearance.info_board_font_size;
+  icon_style_ = appearance.tool_bar_button_style;
+
+  this->setIconSize(icon_size_);
+  this->setToolButtonStyle(icon_style_);
+
   // should delete itself at closing by default
   setAttribute(Qt::WA_DeleteOnClose);
 }
@@ -116,17 +127,6 @@ void GeneralMainWindow::restoreSettings() noexcept {
         setPosCenterOfScreen();
       }
     }
-
-    // appearance
-    AppearanceSO appearance(SettingsObject("general_settings_state"));
-
-    icon_size_ = {appearance.tool_bar_icon_width,
-                  appearance.tool_bar_icon_height};
-    font_size_ = appearance.info_board_font_size;
-
-    this->setIconSize(icon_size_);
-    this->setToolButtonStyle(appearance.tool_bar_button_style);
-    icon_style_ = toolButtonStyle();
 
   } catch (...) {
     LOG_W() << "general main window: " << id_ << ", caught exception";
