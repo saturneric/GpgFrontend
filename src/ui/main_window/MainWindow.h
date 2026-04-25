@@ -779,6 +779,12 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    *
    */
   void slot_update_engine_status();
+
+  /**
+   * @brief
+   *
+   */
+  void apply_default_layout();
 };
 
 }  // namespace GpgFrontend::UI

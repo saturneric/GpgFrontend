@@ -132,7 +132,11 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   this->statusBar()->show();
 
   setWindowTitle(tr("KeyPair Management"));
-  setMinimumSize(QSize(640, 480));
+
+  const bool state_restored = restoreWindowState();
+  if (!state_restored) {
+    QTimer::singleShot(0, this, [this]() -> void { apply_default_layout(); });
+  }
 
   popup_menu_ = new QMenu(this);
 
@@ -647,4 +651,53 @@ void KeyMgmt::slot_popup_menu_by_key_list(QContextMenuEvent* event,
       key->KeyType() == GpgAbstractKeyType::kGPG_KEY && key->IsPrivateKey());
   popup_menu_->exec(event->globalPos());
 }
+
+namespace {
+
+auto ClampInt(int value, int min, int max) -> int {
+  return std::clamp(value, min, max);
+}
+
+auto CurrentAvailableGeometry(QWidget* widget) -> QRect {
+  const auto* screen = widget != nullptr && widget->screen() != nullptr
+                           ? widget->screen()
+                           : QGuiApplication::primaryScreen();
+
+  if (screen == nullptr) {
+    return QRect(0, 0, 1200, 760);
+  }
+
+  return screen->availableGeometry();
+}
+
+}  // namespace
+
+void KeyMgmt::apply_default_layout() {
+  const QRect available = CurrentAvailableGeometry(this);
+
+  constexpr double kWindowScale = 0.88;
+  constexpr double kTargetAspect = 4.0 / 3.0;
+
+  int target_width =
+      ClampInt(static_cast<int>(available.width() * kWindowScale), 800, 1280);
+
+  int target_height =
+      ClampInt(static_cast<int>(target_width / kTargetAspect), 600, 960);
+
+  if (target_height > static_cast<int>(available.height() * kWindowScale)) {
+    target_height =
+        ClampInt(static_cast<int>(available.height() * kWindowScale), 560, 900);
+
+    target_width =
+        ClampInt(static_cast<int>(target_height * kTargetAspect), 760, 1280);
+  }
+
+  setMinimumSize(
+      QSize(std::min(760, static_cast<int>(available.width() * 0.90)),
+            std::min(560, static_cast<int>(available.height() * 0.90))));
+
+  resize(target_width, target_height);
+  movePosition2CenterOfParent();
+}
+
 }  // namespace GpgFrontend::UI

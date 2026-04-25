@@ -650,4 +650,83 @@ void MainWindow::create_dock_windows() {
           [=]() { slot_update_operations_menu_by_checked_keys(~0); });
 }
 
+namespace {
+
+auto ClampInt(int value, int min, int max) -> int {
+  return std::clamp(value, min, max);
+}
+
+auto CurrentAvailableGeometry(QWidget* widget) -> QRect {
+  const auto* screen = widget != nullptr && widget->screen() != nullptr
+                           ? widget->screen()
+                           : QGuiApplication::primaryScreen();
+
+  if (screen == nullptr) {
+    return QRect(0, 0, 1200, 760);
+  }
+
+  return screen->availableGeometry();
+}
+
+}  // namespace
+
+void MainWindow::apply_default_layout() {
+  const QRect available = CurrentAvailableGeometry(this);
+
+  constexpr double kWindowScale = 0.82;
+  constexpr double kTargetAspect = 4.0 / 3.0;
+
+  constexpr double kKeyListRatio =
+      0.382;  // The golden ratio conjugate, which is (sqrt(5) - 1) / 2
+  constexpr double kInfoBoardRatio = 0.30;
+
+  int target_width =
+      ClampInt(static_cast<int>(available.width() * kWindowScale), 860, 1280);
+
+  int target_height =
+      ClampInt(static_cast<int>(target_width / kTargetAspect), 620, 960);
+
+  if (target_height > static_cast<int>(available.height() * kWindowScale)) {
+    target_height =
+        ClampInt(static_cast<int>(available.height() * kWindowScale), 600, 860);
+
+    target_width =
+        ClampInt(static_cast<int>(target_height * kTargetAspect), 860, 1280);
+  }
+
+  resize(target_width, target_height);
+
+  if (key_list_dock_ != nullptr) {
+    const int key_min_width = available.width() < 1100 ? 220 : 260;
+
+    const int key_max_width =
+        ClampInt(static_cast<int>(target_width * 0.48), 360, 560);
+
+    const int key_width =
+        ClampInt(static_cast<int>(target_width * kKeyListRatio), key_min_width,
+                 key_max_width);
+
+    key_list_dock_->setMinimumWidth(key_min_width);
+    key_list_dock_->setMaximumWidth(key_max_width);
+
+    resizeDocks({key_list_dock_}, {key_width}, Qt::Horizontal);
+  }
+
+  if (info_board_dock_ != nullptr) {
+    const int info_min_height = available.height() < 750 ? 90 : 120;
+
+    const int info_max_height =
+        ClampInt(static_cast<int>(target_height * 0.30), 180, 300);
+
+    const int info_height =
+        ClampInt(static_cast<int>(target_height * kInfoBoardRatio),
+                 info_min_height, info_max_height);
+
+    info_board_dock_->setMinimumHeight(info_min_height);
+    info_board_dock_->setMaximumHeight(info_max_height);
+
+    resizeDocks({info_board_dock_}, {info_height}, Qt::Vertical);
+  }
+}
+
 }  // namespace GpgFrontend::UI

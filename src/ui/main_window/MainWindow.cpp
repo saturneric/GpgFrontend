@@ -168,6 +168,11 @@ void MainWindow::Init() noexcept {
 
     restore_settings();
 
+    const bool state_restored = restoreWindowState();
+    if (!state_restored) {
+      QTimer::singleShot(0, this, [this]() -> void { apply_default_layout(); });
+    }
+
     info_board_->AssociateTabWidget(edit_->TabWidget());
 
     slot_switch_menu_control_mode(0);
