@@ -335,8 +335,29 @@ class FileTreeView : public QTreeView {
    * @return true
    * @return false
    */
-  [[nodiscard]] auto is_same_directory_move(const QStringList& source_paths,
-                                            const QString& target_dir) const
-      -> bool;
+  [[nodiscard]] auto is_same_directory_operation(
+      const QStringList& source_paths, const QString& target_dir) const -> bool;
+
+  /**
+   * @brief
+   *
+   * @param source_path
+   * @param target_dir
+   * @return true
+   * @return false
+   */
+  auto copy_path_to_directory(const QString& source_path,
+                              const QString& target_dir) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param source_dir
+   * @param target_dir
+   * @return true
+   * @return false
+   */
+  auto copy_directory_recursive(const QString& source_dir,
+                                const QString& target_dir) -> bool;
 };
 }  // namespace GpgFrontend::UI

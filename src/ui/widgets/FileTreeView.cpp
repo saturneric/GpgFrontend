@@ -606,7 +606,8 @@ void FileTreeView::paintEvent(QPaintEvent* event) {
 }
 
 void FileTreeView::mousePressEvent(QMouseEvent* event) {
-  if (!indexAt(event->pos()).isValid() && event->button() == Qt::LeftButton) {
+  if (!indexAt(event->position().toPoint()).isValid() &&
+      event->button() == Qt::LeftButton) {
     clearSelection();
     setCurrentIndex(QModelIndex());
   }
@@ -723,37 +724,37 @@ auto FileTreeView::CurrentTargetDirectoryPath() const -> QString {
 }
 
 void FileTreeView::dragEnterEvent(QDragEnterEvent* event) {
-  if (event->source() != this) {
+  if (!event->mimeData()->hasUrls()) {
     event->ignore();
     return;
   }
 
-  if (event->mimeData()->hasUrls()) {
+  if (event->source() == this) {
     event->setDropAction(Qt::MoveAction);
-    event->accept();
-    return;
+  } else {
+    event->setDropAction(Qt::CopyAction);
   }
 
-  event->ignore();
+  event->accept();
 }
 
 void FileTreeView::dragMoveEvent(QDragMoveEvent* event) {
-  if (event->source() != this) {
+  if (!event->mimeData()->hasUrls()) {
     event->ignore();
     return;
   }
 
-  if (event->mimeData()->hasUrls()) {
-    const auto target_dir = get_drop_target_directory(event->pos());
+  const auto target_dir =
+      get_drop_target_directory(event->position().toPoint());
 
-    if (!target_dir.isEmpty() && QFileInfo(target_dir).isWritable()) {
-      event->setDropAction(Qt::MoveAction);
-      event->accept();
-      return;
-    }
+  if (target_dir.isEmpty() || !QFileInfo(target_dir).isWritable()) {
+    event->ignore();
+    return;
   }
 
-  event->ignore();
+  event->setDropAction(event->source() == this ? Qt::MoveAction
+                                               : Qt::CopyAction);
+  event->accept();
 }
 
 auto FileTreeView::get_drop_target_directory(const QPoint& pos) const
@@ -845,16 +846,23 @@ auto FileTreeView::move_path_to_directory(const QString& source_path,
   return true;
 }
 
-auto FileTreeView::is_same_directory_move(const QStringList& source_paths,
-                                          const QString& target_dir) const
+auto FileTreeView::is_same_directory_operation(const QStringList& source_paths,
+                                               const QString& target_dir) const
     -> bool {
-  const auto clean_target_dir =
+  auto clean_target_dir =
       QDir::cleanPath(QFileInfo(target_dir).absoluteFilePath());
+
+#ifdef Q_OS_WIN
+  clean_target_dir.replace("\\", "/");
+#endif
 
   for (const auto& source_path : source_paths) {
     const QFileInfo source_info(source_path);
-    const auto source_dir =
-        QDir::cleanPath(source_info.absoluteDir().absolutePath());
+    auto source_dir = QDir::cleanPath(source_info.absoluteDir().absolutePath());
+
+#ifdef Q_OS_WIN
+    source_dir.replace("\\", "/");
+#endif
 
     if (source_dir != clean_target_dir) {
       return false;
@@ -865,17 +873,16 @@ auto FileTreeView::is_same_directory_move(const QStringList& source_paths,
 }
 
 void FileTreeView::dropEvent(QDropEvent* event) {
-  if (event->source() != this) {
-    event->ignore();
-    return;
-  }
-
   if (!event->mimeData()->hasUrls()) {
     event->ignore();
     return;
   }
 
-  const auto target_dir = get_drop_target_directory(event->pos());
+  const bool internal_drag = event->source() == this;
+  const auto operation = internal_drag ? Qt::MoveAction : Qt::CopyAction;
+
+  const auto target_dir =
+      get_drop_target_directory(event->position().toPoint());
   if (target_dir.isEmpty()) {
     event->ignore();
     return;
@@ -884,7 +891,8 @@ void FileTreeView::dropEvent(QDropEvent* event) {
   const QFileInfo target_info(target_dir);
   if (!target_info.exists() || !target_info.isDir() ||
       !target_info.isWritable()) {
-    QMessageBox::warning(this, tr("Move Failed"),
+    QMessageBox::warning(this,
+                         internal_drag ? tr("Move Failed") : tr("Copy Failed"),
                          tr("The target folder is not writable."));
     event->ignore();
     return;
@@ -907,7 +915,12 @@ void FileTreeView::dropEvent(QDropEvent* event) {
     return;
   }
 
-  if (is_same_directory_move(source_paths, target_dir)) {
+  if (internal_drag && is_same_directory_operation(source_paths, target_dir)) {
+    event->ignore();
+    return;
+  }
+
+  if (!internal_drag && is_same_directory_operation(source_paths, target_dir)) {
     event->ignore();
     return;
   }
@@ -919,10 +932,21 @@ void FileTreeView::dropEvent(QDropEvent* event) {
       continue;
     }
 
-    if (is_move_into_itself_or_child(source_path, target_dir)) {
+    if (internal_drag &&
+        is_move_into_itself_or_child(source_path, target_dir)) {
       QMessageBox::warning(
           this, tr("Move Failed"),
           tr("Cannot move \"%1\" into itself or one of its subfolders.")
+              .arg(source_info.fileName()));
+      event->ignore();
+      return;
+    }
+
+    if (!internal_drag && source_info.isDir() &&
+        is_move_into_itself_or_child(source_path, target_dir)) {
+      QMessageBox::warning(
+          this, tr("Copy Failed"),
+          tr("Cannot copy \"%1\" into itself or one of its subfolders.")
               .arg(source_info.fileName()));
       event->ignore();
       return;
@@ -931,25 +955,38 @@ void FileTreeView::dropEvent(QDropEvent* event) {
 
   QMessageBox box(this);
   box.setIcon(QMessageBox::Question);
-  box.setWindowTitle(tr("Move Items"));
-  box.setText(
-      source_paths.size() == 1
-          ? tr("Move \"%1\" to \"%2\"?")
-                .arg(QFileInfo(source_paths.front()).fileName(), target_dir)
-          : tr("Move %1 items to \"%2\"?")
-                .arg(source_paths.size())
-                .arg(target_dir));
 
-  auto* move_button = box.addButton(tr("Move"), QMessageBox::AcceptRole);
+  if (internal_drag) {
+    box.setWindowTitle(tr("Move Items"));
+    box.setText(
+        source_paths.size() == 1
+            ? tr(R"(Move "%1" to "%2"?)")
+                  .arg(QFileInfo(source_paths.front()).fileName(), target_dir)
+            : tr("Move %1 items to \"%2\"?")
+                  .arg(source_paths.size())
+                  .arg(target_dir));
+  } else {
+    box.setWindowTitle(tr("Copy Items"));
+    box.setText(
+        source_paths.size() == 1
+            ? tr(R"(Copy "%1" to "%2"?)")
+                  .arg(QFileInfo(source_paths.front()).fileName(), target_dir)
+            : tr("Copy %1 items to \"%2\"?")
+                  .arg(source_paths.size())
+                  .arg(target_dir));
+  }
+
+  auto* confirm_button = box.addButton(internal_drag ? tr("Move") : tr("Copy"),
+                                       QMessageBox::AcceptRole);
   box.addButton(QMessageBox::Cancel);
   box.exec();
 
-  if (box.clickedButton() != move_button) {
+  if (box.clickedButton() != confirm_button) {
     event->ignore();
     return;
   }
 
-  QStringList moved_paths;
+  QStringList result_paths;
   bool all_ok = true;
 
   for (const auto& source_path : source_paths) {
@@ -957,20 +994,27 @@ void FileTreeView::dropEvent(QDropEvent* event) {
     const auto new_path =
         QDir(target_dir).absoluteFilePath(source_info.fileName());
 
-    if (!move_path_to_directory(source_path, target_dir)) {
+    bool ok = false;
+    if (internal_drag) {
+      ok = move_path_to_directory(source_path, target_dir);
+    } else {
+      ok = copy_path_to_directory(source_path, target_dir);
+    }
+
+    if (!ok) {
       all_ok = false;
       continue;
     }
 
-    moved_paths.append(new_path);
+    result_paths.append(new_path);
   }
 
   SlotGoPath(current_path_);
 
   selectionModel()->clearSelection();
 
-  for (const auto& moved_path : moved_paths) {
-    const auto index = dir_model_->index(moved_path);
+  for (const auto& result_path : result_paths) {
+    const auto index = dir_model_->index(result_path);
     if (!index.isValid()) continue;
 
     setCurrentIndex(index);
@@ -979,15 +1023,122 @@ void FileTreeView::dropEvent(QDropEvent* event) {
     scrollTo(index, QAbstractItemView::PositionAtCenter);
   }
 
-  event->setDropAction(Qt::MoveAction);
+  event->setDropAction(operation);
   event->accept();
 
   if (!all_ok) {
     QMessageBox::warning(
-        this, tr("Move Partially Completed"),
-        tr("Some items could not be moved. Please check permissions or whether "
-           "the target is on another volume."));
+        this,
+        internal_drag ? tr("Move Partially Completed")
+                      : tr("Copy Partially Completed"),
+        internal_drag
+            ? tr("Some items could not be moved. Please check permissions or "
+                 "whether the target is on another volume.")
+            : tr("Some items could not be copied. Please check permissions."));
   }
+}
+
+auto FileTreeView::copy_path_to_directory(const QString& source_path,
+                                          const QString& target_dir) -> bool {
+  const QFileInfo source_info(source_path);
+  const QFileInfo target_info(target_dir);
+
+  if (!source_info.exists() || !target_info.exists() || !target_info.isDir()) {
+    return false;
+  }
+
+  if (!target_info.isWritable()) {
+    return false;
+  }
+
+  const auto target_path =
+      QDir(target_dir).absoluteFilePath(source_info.fileName());
+
+  if (QFileInfo::exists(target_path)) {
+    QMessageBox::warning(
+        this, tr("Copy Failed"),
+        tr("A file or folder named \"%1\" already exists in the target folder.")
+            .arg(source_info.fileName()));
+    return false;
+  }
+
+  if (source_info.isDir()) {
+    return copy_directory_recursive(source_info.absoluteFilePath(),
+                                    target_path);
+  }
+
+  if (source_info.isFile()) {
+    if (!QFile::copy(source_info.absoluteFilePath(), target_path)) {
+      QMessageBox::warning(
+          this, tr("Copy Failed"),
+          tr("Unable to copy \"%1\". Please check permissions.")
+              .arg(source_info.fileName()));
+      return false;
+    }
+
+    return true;
+  }
+
+  QMessageBox::warning(this, tr("Copy Failed"),
+                       tr("\"%1\" is not a regular file or folder.")
+                           .arg(source_info.fileName()));
+  return false;
+}
+
+auto FileTreeView::copy_directory_recursive(const QString& source_dir,
+                                            const QString& target_dir) -> bool {
+  const QDir source(source_dir);
+
+  if (!source.exists()) {
+    return false;
+  }
+
+  if (QFileInfo::exists(target_dir)) {
+    QMessageBox::warning(this, tr("Copy Failed"),
+                         tr("The target folder \"%1\" already exists.")
+                             .arg(QFileInfo(target_dir).fileName()));
+    return false;
+  }
+
+  QDir target_parent(QFileInfo(target_dir).absolutePath());
+  if (!target_parent.mkpath(QFileInfo(target_dir).fileName())) {
+    QMessageBox::warning(this, tr("Copy Failed"),
+                         tr("Unable to create target folder \"%1\".")
+                             .arg(QFileInfo(target_dir).fileName()));
+    return false;
+  }
+
+  const auto entries = source.entryInfoList(
+      QDir::NoDotAndDotDot | QDir::AllEntries | QDir::Hidden | QDir::System,
+      QDir::DirsFirst | QDir::Name);
+
+  for (const auto& entry : entries) {
+    const auto source_path = entry.absoluteFilePath();
+    const auto target_path =
+        QDir(target_dir).absoluteFilePath(entry.fileName());
+
+    if (entry.isDir()) {
+      if (!copy_directory_recursive(source_path, target_path)) {
+        return false;
+      }
+      continue;
+    }
+
+    if (entry.isFile()) {
+      if (!QFile::copy(source_path, target_path)) {
+        QMessageBox::warning(
+            this, tr("Copy Failed"),
+            tr("Unable to copy \"%1\".").arg(entry.fileName()));
+        return false;
+      }
+      continue;
+    }
+
+    // symbolic links, special files, sockets, etc.
+    LOG_W() << "skip unsupported file system entry:" << source_path;
+  }
+
+  return true;
 }
 
 }  // namespace GpgFrontend::UI
