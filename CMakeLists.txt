@@ -67,6 +67,7 @@ option(GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY "GpgFrontend Signing Certificate" "N
 option(GPGFRONTEND_XCODE_APPID "GpgFrontend Apple AppID" "NONE")
 option(GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID "GpgFrontend ProvisioningProfile UUID" "NONE")
 option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
+option(GPGFRONTEND_BUILD_NUMBER "Build Number For Xcode Build" "1")
 
 # check options
 option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
