@@ -9,7 +9,7 @@
 	<key>compileBitcode</key>
 	<true/>
 	<key>signingStyle</key>
-	<string>manual</string>
+	<string>automatic</string>
 	<key>signingCertificate</key>
 	<string>@GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY@</string>
 	<key>provisioningProfiles</key>

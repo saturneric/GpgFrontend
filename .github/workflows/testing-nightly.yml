@@ -130,7 +130,7 @@ jobs:
           security unlock-keychain -p gpgfrontend build.keychain
           security import $APP_CERT_PATH -k build.keychain -P ${{secrets.DEVELOP_ID_CERT_PWD}} -T /usr/bin/codesign
           security import $MAS_INSTALLER_CERT_PATH -k build.keychain -P ${{secrets.MAS_INSTALLER_CERT_PWD}} -T /usr/bin/productbuild
-          security import $MAS_APP_CERT_PATH -k build.keychain -P ${{secrets.MAS_APPLICATION_CERT_PWD}} -T /usr/bin/codesign
+          security import $MAS_APP_CERT_PATH -k build.keychain -P ${{secrets.MAS_APPLICATION_CERT_PWD}} -T /usr/bin/codesign -T /usr/bin/xcodebuild -T /usr/bin/productbuild -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
           security set-keychain-settings -lut 3600
 
