@@ -62,4 +62,10 @@ WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent)
 void WaitingDialog::SlotUpdateValue(int value) {
   if (pb_->maximum() > 0) pb_->setValue(value);
 }
+
+void WaitingDialog::showEvent(QShowEvent* event) {
+  GeneralDialog::showEvent(event);
+  this->movePosition2CenterOfParent();
+}
+
 }  // namespace GpgFrontend::UI

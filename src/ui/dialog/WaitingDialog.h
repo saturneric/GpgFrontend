@@ -56,6 +56,14 @@ class WaitingDialog : public GeneralDialog {
    */
   void SlotUpdateValue(int value);
 
+ protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void showEvent(QShowEvent* event) override;
+
  signals:
 
   /**
