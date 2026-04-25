@@ -192,8 +192,7 @@ jobs:
         if: runner.os == 'Linux' || runner.os == 'macOS'
 
       - name: Cache Cargo
-      - uses: Swatinem/rust-cache@v2
-        if: runner.os == 'Linux' || runner.os == 'macOS'
+        uses: Swatinem/rust-cache@v2
 
       - name: Build GpgME (macOS)
         run: |
