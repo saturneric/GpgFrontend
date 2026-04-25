@@ -32,9 +32,6 @@
 #include <openssl/provider.h>
 #include <openssl/rand.h>
 
-#include "core/utils/GpgUtils.h"
-#include "function/gpg/GpgContext.h"
-
 namespace {
 constexpr std::array<char, 33> kZBase32Alphabet = {
     {"ybndrfg8ejkmcpqxot1uwisza345h769"}};
@@ -69,39 +66,6 @@ namespace GpgFrontend {
 
 SecureRandomGenerator::SecureRandomGenerator(int channel)
     : SingletonFunctionObject<SecureRandomGenerator>(channel) {}
-
-auto SecureRandomGenerator::GnuPGGenerate(size_t size) -> GFBufferOrNone {
-  size = std::max(size, static_cast<size_t>(8));
-  size = std::min(size, static_cast<size_t>(1024));
-
-  GFBuffer buffer(size);
-
-  auto &g_ctx = GpgCtx(ctx_);
-  GpgError err =
-      gpgme_op_random_bytes(g_ctx.DefaultContext(), GPGME_RANDOM_MODE_NORMAL,
-                            buffer.Data(), buffer.Size());
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-    LOG_W()
-        << "gpg failed to generate random bytes, falling back to openssl...";
-    return OpenSSLGenerate(size);
-  }
-  return buffer;
-}
-
-auto SecureRandomGenerator::GnuPGGenerateZBase32() -> GFBufferOrNone {
-  GFBuffer buffer(31);
-
-  auto &g_ctx = GpgCtx(ctx_);
-  GpgError err =
-      gpgme_op_random_bytes(g_ctx.DefaultContext(), GPGME_RANDOM_MODE_ZBASE32,
-                            buffer.Data(), buffer.Size());
-  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-    LOG_W()
-        << "gpg failed to generate random zbase 32, falling back to openssl...";
-    return OpenSSLGenerateZBase32();
-  }
-  return buffer;
-}
 
 auto SecureRandomGenerator::OpenSSLGenerate(size_t size) -> GFBufferOrNone {
   GFBuffer buffer(size);

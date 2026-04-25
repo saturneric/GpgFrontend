@@ -59,21 +59,6 @@ class GF_CORE_EXPORT SecureRandomGenerator
    */
   static auto OpenSSLGenerateZBase32() -> GFBufferOrNone;
 
-  /**
-   * @brief
-   *
-   * @param size
-   * @return GFBufferOrNone
-   */
-  auto GnuPGGenerate(size_t size) -> GFBufferOrNone;
-
-  /**
-   * @brief
-   *
-   * @return GFBufferOrNone
-   */
-  auto GnuPGGenerateZBase32() -> GFBufferOrNone;
-
  private:
   OpenPGPContext& ctx_ =
       OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
