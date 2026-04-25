@@ -676,31 +676,30 @@ void MainWindow::apply_default_layout() {
   constexpr double kWindowScale = 0.82;
   constexpr double kTargetAspect = 4.0 / 3.0;
 
-  constexpr double kKeyListRatio =
-      0.382;  // The golden ratio conjugate, which is (sqrt(5) - 1) / 2
+  constexpr double kKeyListRatio = 0.35;
   constexpr double kInfoBoardRatio = 0.30;
 
   int target_width =
-      ClampInt(static_cast<int>(available.width() * kWindowScale), 860, 1280);
+      ClampInt(static_cast<int>(available.width() * kWindowScale), 900, 1360);
 
   int target_height =
-      ClampInt(static_cast<int>(target_width / kTargetAspect), 620, 960);
+      ClampInt(static_cast<int>(target_width / kTargetAspect), 660, 980);
 
   if (target_height > static_cast<int>(available.height() * kWindowScale)) {
     target_height =
-        ClampInt(static_cast<int>(available.height() * kWindowScale), 600, 860);
+        ClampInt(static_cast<int>(available.height() * kWindowScale), 620, 900);
 
     target_width =
-        ClampInt(static_cast<int>(target_height * kTargetAspect), 860, 1280);
+        ClampInt(static_cast<int>(target_height * kTargetAspect), 900, 1360);
   }
 
   resize(target_width, target_height);
 
   if (key_list_dock_ != nullptr) {
-    const int key_min_width = available.width() < 1100 ? 220 : 260;
+    const int key_min_width = available.width() < 1100 ? 260 : 300;
 
     const int key_max_width =
-        ClampInt(static_cast<int>(target_width * 0.48), 360, 560);
+        ClampInt(static_cast<int>(target_width * 0.55), 420, 640);
 
     const int key_width =
         ClampInt(static_cast<int>(target_width * kKeyListRatio), key_min_width,
@@ -713,10 +712,10 @@ void MainWindow::apply_default_layout() {
   }
 
   if (info_board_dock_ != nullptr) {
-    const int info_min_height = available.height() < 750 ? 90 : 120;
+    const int info_min_height = available.height() < 750 ? 120 : 150;
 
     const int info_max_height =
-        ClampInt(static_cast<int>(target_height * 0.30), 180, 300);
+        ClampInt(static_cast<int>(target_height * 0.40), 240, 380);
 
     const int info_height =
         ClampInt(static_cast<int>(target_height * kInfoBoardRatio),
