@@ -185,7 +185,7 @@ jobs:
           --disable-gpg-test \
           --disable-gpgsm-test \
           --disable-g13-test
-          make -j4
+          make -j$(sysctl -n hw.logicalcpu)
           sudo make install
         if: runner.os == 'macOS'
 
