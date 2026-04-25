@@ -49,6 +49,12 @@ class FilePage : public QWidget {
   explicit FilePage(QWidget* parent, const QString&);
 
   /**
+   * @brief
+   *
+   */
+  void InitUIStyle();
+
+  /**
    * @brief Get the Selected object
    *
    * @return QString
@@ -70,6 +76,13 @@ class FilePage : public QWidget {
    * @return false
    */
   [[nodiscard]] auto IsASCIIMode() const -> bool;
+
+  /**
+   * @brief
+   *
+   * @param input
+   */
+  void UpdatePathCompletion(const QString& input);
 
  public slots:
   /**
@@ -114,19 +127,11 @@ class FilePage : public QWidget {
    */
   void SignalMainWindowUpdateBasicOperaMenu(unsigned int);
 
- protected:
-  /**
-   * @brief
-   *
-   * @param event
-   */
-  void keyPressEvent(QKeyEvent* event) override;
-
  private:
   QSharedPointer<Ui_FilePage> ui_;  ///<
 
-  QCompleter* path_edit_completer_;        ///<
-  QStringListModel* path_complete_model_;  ///<
+  QCompleter* path_edit_completer_ = nullptr;
+  QStringListModel* path_complete_model_ = nullptr;
 
   QMenu* popup_menu_{};           ///<
   QMenu* option_popup_menu_{};    ///<
