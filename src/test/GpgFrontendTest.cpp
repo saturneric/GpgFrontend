@@ -43,118 +43,7 @@ Q_LOGGING_CATEGORY(test, "test")
 
 auto GF_TEST_EXPORT GFTestValidateSymbol() -> int { return 0; }
 
-namespace {
-auto GenerateRandomString(size_t length) -> QString {
-  const QString characters =
-      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  std::random_device random_device;
-  std::mt19937 generator(random_device());
-  std::uniform_int_distribution<> distribution(0, characters.size() - 1);
-
-  QString random_string;
-  for (size_t i = 0; i < length; ++i) {
-    random_string += characters[distribution(generator)];
-  }
-
-  return random_string;
-}
-
-void ImportPrivateKeys() {
-  auto key_files = QDir(":/test/key").entryList();
-
-  for (const auto& key_file : key_files) {
-    auto [success, gf_buffer] =
-        GpgFrontend::ReadFileGFBuffer(QString(":/test/key") + "/" + key_file);
-
-    if (success) {
-      auto info = GpgFrontend::KeyImportExportOperation::GetInstance(
-                      GpgFrontend::kGpgFrontendDefaultChannel)
-                      .ImportKey(gf_buffer);
-
-      if (info == nullptr) {
-        LOG_E() << "import key for unit test failed: " << key_file;
-        continue;
-      }
-
-      LOG_D() << "unit test key(s) imported: " << info->imported;
-
-      for (const auto& key : info->imported_keys) {
-        LOG_D() << "(+) unit test key: " << key.fpr;
-      }
-
-    } else {
-      FLOG_W() << "read from key file failed: " << key_file;
-    }
-  }
-
-  GpgFrontend::AbstractKeyRepository::GetInstance().FlushCache();
-  GpgFrontend::AbstractKeyRepository::GetInstance().Fetch();
-}
-
-auto TestPassphraseCb(void* opaque, const char* uid_hint,
-                      const char* passphrase_info, int last_was_bad, int fd)
-    -> gpgme_error_t {
-  QString passphrase = "abcdefg";
-  auto pass_bytes = passphrase.toLatin1();
-  auto pass_size = pass_bytes.size();
-  const auto* p_pass_bytes = pass_bytes.constData();
-
-  qsizetype res = 0;
-  if (pass_size > 0) {
-    qsizetype off = 0;
-    qsizetype ret = 0;
-    do {
-      ret = gpgme_io_write(fd, &p_pass_bytes[off], pass_size - off);
-      if (ret > 0) off += ret;
-    } while (ret > 0 && off != pass_size);
-    res = off;
-  }
-
-  res += gpgme_io_write(fd, "\n", 1);
-  return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
-}
-
-auto TestStatusCb(void* hook, const char* keyword, const char* args)
-    -> gpgme_error_t {
-  FLOG_D("keyword %s", keyword);
-  return GPG_ERR_NO_ERROR;
-}
-
-}  // namespace
-
 namespace GpgFrontend::Test {
-
-auto ConfigureGpgContext() -> bool {
-  auto db_path = QDir(QDir::tempPath() + "/" + GenerateRandomString(12));
-
-  if (db_path.exists()) db_path.rmdir(".");
-  db_path.mkpath(".");
-
-  LOG_D() << "db path of unit test: " << db_path.canonicalPath();
-  Q_ASSERT(db_path.exists());
-
-  auto succ = GpgFrontend::BuildOpenPGPContext(
-      kGpgChannelForUnitTest, GpgFrontend::OpenPGPContextInitArgs{
-                                  .engine = GpgFrontend::OpenPGPEngine::kGNUPG,
-                                  .db_name = "test-db",
-                                  .db_path = db_path.canonicalPath(),
-                                  .offline_mode = true,
-                                  .auto_import_missing_key = false,
-                              });
-
-  LOG_D() << "configure gpg context for unit test, db path: "
-          << db_path.canonicalPath();
-
-  if (!succ) {
-    LOG_E() << "configure gpg context for unit test failed";
-    return false;
-  }
-
-  auto& ctx =
-      GpgCtx(GpgFrontend::OpenPGPContext::GetInstance(kGpgChannelForUnitTest));
-  ctx.SetPassphraseCb(ctx.DefaultContext(), TestPassphraseCb);
-  ctx.SetPassphraseCb(ctx.BinaryContext(), TestPassphraseCb);
-};
 
 void SetupGlobalTestEnv() {
   auto app_path = GlobalSettingStation::GetInstance().GetAppDir();
@@ -164,12 +53,9 @@ void SetupGlobalTestEnv() {
 
   LOG_I() << "test config file path: " << test_config_path;
   LOG_I() << "test data file path: " << test_data_path;
-
-  ImportPrivateKeys();
 }
 
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {
-  ConfigureGpgContext();
   SetupGlobalTestEnv();
 
   testing::InitGoogleTest(&args.argc, args.argv);

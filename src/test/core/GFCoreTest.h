@@ -26,4 +26,19 @@
  *
  */
 
-#include "GpgCoreTest.h"
+#pragma once
+
+#include <gtest/gtest.h>
+
+#include "GpgFrontendTest.h"
+
+namespace GpgFrontend::Test {
+
+class GFCoreTest : public ::testing::Test {
+ public:
+  void SetUp() override;
+
+  void TearDown() override;
+};
+
+}  // namespace GpgFrontend::Test

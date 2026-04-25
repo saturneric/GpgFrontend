@@ -29,25 +29,23 @@
 #include <chrono>
 #include <thread>
 
-#include "GpgCoreTest.h"
-#include "core/GpgConstants.h"
+#include "GFCoreTest.h"
 #include "core/function/CacheManager.h"
-#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
 
-TEST_F(GpgCoreTest, CoreCacheTestA) {
+TEST_F(GFCoreTest, CoreCacheTestA) {
   CacheManager::GetInstance().SaveCache("ABC", "DEF");
   ASSERT_EQ(CacheManager::GetInstance().LoadCache("ABC"), QString("DEF"));
   ASSERT_EQ(CacheManager::GetInstance().LoadCache("ABCGG"), QString());
 }
 
-TEST_F(GpgCoreTest, CoreCacheTestB) {
+TEST_F(GFCoreTest, CoreCacheTestB) {
   CacheManager::GetInstance().SaveCache("ABCDE", "DEFG", 3);
   ASSERT_EQ(CacheManager::GetInstance().LoadCache("ABCDE"), QString("DEFG"));
 }
 
-TEST_F(GpgCoreTest, CoreCacheTestC) {
+TEST_F(GFCoreTest, CoreCacheTestC) {
   CacheManager::GetInstance().SaveCache("ABCDEF", "DEFEEE", 2);
   ASSERT_EQ(CacheManager::GetInstance().LoadCache("ABCDEF"), QString("DEFEEE"));
   std::this_thread::sleep_for(std::chrono::milliseconds(4000));

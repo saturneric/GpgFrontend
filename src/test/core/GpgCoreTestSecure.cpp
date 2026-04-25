@@ -26,7 +26,7 @@
  *
  */
 
-#include "GpgCoreTest.h"
+#include "GFCoreTest.h"
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/SecureRandomGenerator.h"
@@ -156,33 +156,13 @@ TEST(SecureMemoryAllocatorTest, ParallelSecAllocAndFree) {
   for (auto& t : threads) t.join();
 }
 
-TEST_F(GpgCoreTest, CoreSecureTestA) {
-  auto buffer = SecureRandomGenerator::GetInstance().GnuPGGenerateZBase32();
-  ASSERT_TRUE(buffer.has_value());
-  ASSERT_EQ(buffer->Size(), 31);
-}
-
-TEST_F(GpgCoreTest, CoreSecureTestB) {
-  auto buffer = SecureRandomGenerator::GetInstance().GnuPGGenerate(1);
-  ASSERT_TRUE(buffer.has_value());
-  ASSERT_EQ(buffer->Size(), 8);
-
-  buffer = SecureRandomGenerator::GetInstance().GnuPGGenerate(8);
-  ASSERT_TRUE(buffer.has_value());
-  ASSERT_EQ(buffer->Size(), 8);
-
-  buffer = SecureRandomGenerator::GetInstance().GnuPGGenerate(512);
-  ASSERT_TRUE(buffer.has_value());
-  ASSERT_EQ(buffer->Size(), 512);
-}
-
-TEST_F(GpgCoreTest, CoreSecureTestC) {
+TEST_F(GFCoreTest, CoreSecureTestC) {
   auto buffer = SecureRandomGenerator::OpenSSLGenerate(256);
   ASSERT_TRUE(buffer.has_value());
   ASSERT_EQ(buffer->Size(), 256);
 }
 
-TEST_F(GpgCoreTest, CoreSecureTestD) {
+TEST_F(GFCoreTest, CoreSecureTestD) {
   auto key = SecureRandomGenerator::OpenSSLGenerate(256);
   ASSERT_TRUE(key.has_value());
   ASSERT_EQ(key->Size(), 256);
@@ -196,7 +176,7 @@ TEST_F(GpgCoreTest, CoreSecureTestD) {
   ASSERT_EQ(decrypted, plaintext);
 }
 
-TEST_F(GpgCoreTest, CoreSecureTestE) {
+TEST_F(GFCoreTest, CoreSecureTestE) {
   GFBuffer plaintext(QString::fromUtf8("HELLO WORLD! HELLO!!!"));
 
   auto encoded = GFBufferFactory::ToBase64(plaintext);
@@ -207,7 +187,7 @@ TEST_F(GpgCoreTest, CoreSecureTestE) {
   ASSERT_EQ(*decoded, plaintext);
 }
 
-TEST_F(GpgCoreTest, CoreSecureTestF) {
+TEST_F(GFCoreTest, CoreSecureTestF) {
   GFBuffer plaintext(QString::fromUtf8("LOL!!! HELLO WORLD! HELLO!!!"));
   ASSERT_TRUE(!plaintext.Empty());
 
@@ -217,7 +197,7 @@ TEST_F(GpgCoreTest, CoreSecureTestF) {
             "b30649a855a5bbca09084a0b351aace5cfb850e583dea1b3e1782c3123c36113");
 }
 
-TEST_F(GpgCoreTest, CoreSecureTestG) {
+TEST_F(GFCoreTest, CoreSecureTestG) {
   GFBuffer plaintext(QString::fromUtf8("LOL!!! HELLO WORLD! HELLO!!!"));
   ASSERT_TRUE(!plaintext.Empty());
 

@@ -26,11 +26,11 @@
  *
  */
 
-#include "GpgCoreTest.h"
+#include "GFCoreTest.h"
 
 namespace GpgFrontend::Test {
 
-void GpgCoreTest::TearDown() {}
+void GFCoreTest::TearDown() {}
 
-void GpgCoreTest::SetUp() {}
+void GFCoreTest::SetUp() {}
 }  // namespace GpgFrontend::Test

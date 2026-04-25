@@ -36,9 +36,32 @@ namespace GpgFrontend::Test {
 
 class GpgCoreTest : public ::testing::Test {
  public:
+  /**
+   * @brief Set the Up Test Suite object
+   *
+   */
+  static void SetUpTestSuite();
+
+  /**
+   * @brief
+   *
+   */
+  static void TearDownTestSuite();
+
+  /**
+   * @brief Set the Up object
+   *
+   */
   void SetUp() override;
 
+  /**
+   * @brief
+   *
+   */
   void TearDown() override;
+
+ protected:
+  static bool is_gnupg_available;
 };
 
 }  // namespace GpgFrontend::Test
