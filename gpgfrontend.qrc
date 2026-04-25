@@ -120,11 +120,11 @@
         <file alias="harddisk.png">resource/lfs/icons/harddisk.png</file>
     </qresource>
     <qresource prefix="/test/key">
-        <file alias="pv1.key">resource/lfs/test/data/pv1.key</file>
-        <file alias="pv2.key">resource/lfs/test/data/pv2.key</file>
-        <file alias="pv3.key">resource/lfs/test/data/pv3.key</file>
-        <file alias="pv4.key">resource/lfs/test/data/pv4.key</file>
-        <file alias="tester.key">resource/lfs/test/data/tester.key</file>
+        <file alias="pv1.key">resource/lfs/test/gpg/data/pv1.key</file>
+        <file alias="pv2.key">resource/lfs/test/gpg/data/pv2.key</file>
+        <file alias="pv3.key">resource/lfs/test/gpg/data/pv3.key</file>
+        <file alias="pv4.key">resource/lfs/test/gpg/data/pv4.key</file>
+        <file alias="tester.key">resource/lfs/test/gpg/data/tester.key</file>
     </qresource>
     <qresource prefix="/">
         <file alias="TRANSLATORS">TRANSLATORS</file>
