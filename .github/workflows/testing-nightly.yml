@@ -321,9 +321,15 @@ jobs:
           /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates:0" /tmp/profile.plist > /tmp/profile-certs/cert0.der
           openssl x509 -inform DER -in /tmp/profile-certs/cert0.der -noout -subject -fingerprint -sha1
 
-          xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
-            -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
-            -exportPath ${{github.workspace}}/build/package/
+          # xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
+          #   -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
+          #   -exportPath ${{github.workspace}}/build/package/
+
+          # skip exporting the archive, because we will use macdeployqt to
+          # deploy the Qt frameworks and plugins, and sign the app bundle in one
+          # step, which is more suitable for our use case.
+          mkdir -p ${{github.workspace}}/build/package
+          cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app ${{github.workspace}}/build/package/
         if: runner.os == 'macOS'
 
       - name: Deploy Qt & Code Sign (macOS)
