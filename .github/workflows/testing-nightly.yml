@@ -277,6 +277,13 @@ jobs:
             ${{env.SANDBOX_CMAKE_FLAG}}
             
           xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
+
+          echo "CODE_SIGNING_IDENTITY=${{env.CODE_SIGNING_IDENTITY}}"
+          echo "PROFILE_UUID=${{env.PROVISIONING_PROFILE_UUID}}"
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
+          security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile" | plutil -p -
+          security find-identity -v -p codesigning
+
           cd ${{github.workspace}}/build/
           xcodebuild -project ${{github.workspace}}/build/GpgFrontend.xcodeproj \
             -scheme GpgFrontend \
