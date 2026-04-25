@@ -9,9 +9,7 @@
 	<key>compileBitcode</key>
 	<true/>
 	<key>signingStyle</key>
-	<string>automatic</string>
-	<key>signingCertificate</key>
-	<string>@GPGFRONTEND_XCODE_CODE_SIGN_IDENTITY@</string>
+	<string>manual</string>
 	<key>provisioningProfiles</key>
 	<dict>
 		<key>com.bktus.gpgfrontend</key>
