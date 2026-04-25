@@ -259,10 +259,7 @@ auto VerifyFileRpgpImpl(OpenPGPContext& ctx_, const QString& data_path,
           << (result.is_verified ? "VALID" : "INVALID")
           << ", Signatures found: " << result.signatures.size();
 
-  data_object->Swap({
-      GpgVerifyResult{result},
-      GFBuffer{},
-  });
+  data_object->Swap({GpgVerifyResult{result}});
   return gf_err;
 }
 
@@ -407,11 +404,8 @@ auto DecryptVerifyFileGeneralRpgpImpl(OpenPGPContext& ctx, bool is_archive,
 
   Rust::gfr_crypto_free_decrypt_and_verify_result(&decrypt_verify_result);
 
-  data_object->Swap({
-      GpgDecryptResult(decrypt_result),
-      GpgVerifyResult(verify_result),
-      decrypt_result.data,
-  });
+  data_object->Swap(
+      {GpgDecryptResult(decrypt_result), GpgVerifyResult(verify_result)});
 
   return (gf_err != GPG_ERR_NO_ERROR) ? gf_err : gf_err_2;
 }

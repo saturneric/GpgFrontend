@@ -261,6 +261,8 @@ auto HandleVerifyResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
     goto end;
   }
 
+  LOG_D() << "Verification success. Processing results...";
+
   // success case, convert the result
   result = GfrVerifyResultC2GFVerifyResult(gfr_result);
 
