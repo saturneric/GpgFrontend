@@ -1,6 +1,6 @@
 # GpgFrontend
 
-![Language](https://img.shields.io/badge/language-C%2B%2B-green)
+![Languages](https://img.shields.io/badge/languages-C%2B%2B%20%7C%20Rust-blue)
 ![License](https://img.shields.io/badge/License-GPL--3.0-orange)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/saturneric/GpgFrontend)
