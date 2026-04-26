@@ -2573,11 +2573,6 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="352"/>
-        <source>%1 Version: %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1252"/>
         <source>Save Profile</source>
         <translation type="unfinished"></translation>
@@ -2691,6 +2686,11 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="335"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="607"/>
         <source>None</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="352"/>
+        <source>%1 Engine Version: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -4714,38 +4714,38 @@ After installing it, please restart GpgFrontend. The configuration file will be 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="201"/>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="204"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="209"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="212"/>
         <source>Critical error occur while loading GpgFrontend.</source>
         <translation type="unfinished">Une erreur critique s&apos;est produite lors du chargement de GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="203"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="211"/>
         <source>Loading Failed</source>
         <translation type="unfinished">Échec du chargement</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="337"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="345"/>
         <source>Name: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="338"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="346"/>
         <source>Path: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="351"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="359"/>
         <source>Invalid Key Databases</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="356"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="364"/>
         <source>Detected %1 invalid key database(s).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="359"/>
+        <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="367"/>
         <source>The application cannot load these databases. Please review the details below and fix the issues in the GnuPG Controller.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4768,8 +4768,8 @@ After installing it, please restart GpgFrontend. The configuration file will be 
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="199"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="446"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="669"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="448"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="673"/>
         <source>The selected keypair cannot be used for encryption.</source>
         <translation type="unfinished">La paire de clés sélectionnée ne peut pas être utilisée pour le chiffrement.</translation>
     </message>
@@ -4815,15 +4815,15 @@ Do you want to continue?</source>
         <translation type="unfinished">Par exemple la clé suivante&#xa0;:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="376"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="528"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="378"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="532"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="528"/>
         <source>Encrypting</source>
         <translation type="unfinished">Chiffrement</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="414"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="573"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="416"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="577"/>
         <source>Decrypting</source>
         <translation type="unfinished">Déchiffrement</translation>
     </message>
@@ -4838,46 +4838,46 @@ Do you want to continue?</source>
         <translation type="unfinished">Veuillez vérifier la clé dans la boîte à outils de clé à droite.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="389"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="584"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="391"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="588"/>
         <source>The selected key contains a key that does not actually have a sign usage.</source>
         <translation type="unfinished">La clé sélectionnée contient une clé qui n&apos;a pas réellement d&apos;utilisation de signe.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="400"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="609"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="402"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="613"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="604"/>
         <source>Signing</source>
         <translation type="unfinished">Signature</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="635"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="639"/>
         <source>File to be Verified</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="636"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="640"/>
         <source>Please provide An ABSOLUTE Path 
 If Data And Signature is COMBINED within a single file, KEEP THIS EMPTY: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="428"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="655"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="430"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="659"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="464"/>
         <source>Verifying</source>
         <translation type="unfinished">Vérification</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="465"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="710"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="469"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="714"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="699"/>
         <source>Encrypting and Signing</source>
         <translation type="unfinished">Chiffrement et signature</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="479"/>
-        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="755"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="483"/>
+        <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="759"/>
         <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="761"/>
         <source>Decrypting and Verifying</source>
         <translation type="unfinished">Déchiffrement et vérification</translation>
@@ -5418,7 +5418,7 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="666"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="668"/>
         <source>Status Panel</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5753,7 +5753,7 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="unfinished">Prêt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="616"/>
+        <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="614"/>
         <source>Key ToolBox</source>
         <translation type="unfinished">Boîte à outils clé</translation>
     </message>
@@ -6036,50 +6036,80 @@ Would you like to fetch these keys from the key server?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="63"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="66"/>
         <source>Passphrase info: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="66"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="69"/>
         <source>
 This passphrase will be used to set a new password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="71"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="74"/>
         <source>
 Key ID: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="72"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="75"/>
         <source>
 Key UID: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="80"/>
-        <source>Passphrase</source>
-        <translation type="unfinished">Phrase secrète</translation>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="186"/>
+        <source>Empty Passphrase</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="87"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="187"/>
+        <source>Passphrase cannot be empty. Please enter a valid passphrase.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="196"/>
+        <source>Passphrase Mismatch</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="197"/>
+        <source>The two passphrases do not match. Please enter them again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="92"/>
         <source>Enter your passphrase here</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="99"/>
+        <source>Enter your passphrase again</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="109"/>
         <source>Show</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="102"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="126"/>
+        <source>Passphrase:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="129"/>
+        <source>Confirm:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="139"/>
         <source>OK</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="103"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="138"/>
         <source>Cancel</source>
         <translation type="unfinished">Annuler</translation>
     </message>
@@ -6087,72 +6117,67 @@ Key UID: %1</source>
 <context>
     <name>GpgFrontend::UI::PlainTextEditorPage</name>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="138"/>
-        <source>0 character(s)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="139"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="158"/>
         <source>Number of characters in the editor.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="141"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="213"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="160"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="237"/>
         <source>LF</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="142"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="161"/>
         <source>Line ending style.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="146"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="165"/>
         <source>Text encoding.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="207"/>
-        <source>Ln %1, Col %2 · %3 character(s)%4</source>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="231"/>
+        <source>Ln %1, Col %2 · %3 chars%4</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="213"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="237"/>
         <source>CRLF</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="219"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="243"/>
         <source>The document has unsaved changes.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="220"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="244"/>
         <source>The document is unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="383"/>
-        <source>%1 character(s)</source>
-        <translation type="unfinished">%1 caractère(s)</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="386"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="399"/>
         <source>Loading... %1 KB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="110"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="136"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="189"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="307"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="113"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="155"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="213"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="331"/>
         <source>Loading...</source>
         <translation type="unfinished">Chargement...</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="145"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="214"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="157"/>
+        <source>Ln 1, Col 1 · 0 chars</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="164"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="238"/>
         <source>UTF-8</source>
         <translation type="unfinished">UTF-8</translation>
     </message>
@@ -6292,32 +6317,32 @@ Key UID: %1</source>
 <context>
     <name>GpgFrontend::UI::SignersPicker</name>
     <message>
-        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="37"/>
+        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="52"/>
+        <source>Please select one or more private keys that should be used for signing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="80"/>
         <source>Confirm</source>
         <translation type="unfinished">Confirmer</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="38"/>
+        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="84"/>
         <source>Cancel</source>
         <translation type="unfinished">Annuler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="52"/>
+        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="68"/>
         <source>Signers</source>
         <translation type="unfinished">Signataires</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="61"/>
+        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="46"/>
         <source>Select Signer(s)</source>
         <translation type="unfinished">Sélectionnez le(s) signataire(s)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="65"/>
-        <source>Please select one or more private keys you use for signing.</source>
-        <translation type="unfinished">Veuillez sélectionner une ou plusieurs clés privées à utiliser pour la signature.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="81"/>
+        <location filename="../../../../src/ui/dialog/SignersPicker.cpp" line="42"/>
         <source>Signers Picker</source>
         <translation type="unfinished"></translation>
     </message>
@@ -6893,38 +6918,43 @@ Key UID: %1</source>
 <context>
     <name>GpgFrontend::UI::SubKeyPicker</name>
     <message>
-        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="42"/>
-        <source>Select Signing Key(s) &amp; Subkey(s)</source>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="46"/>
+        <source>Select Signing Key(s) &amp;&amp; Subkey(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="48"/>
-        <source>Choose the primary key(s) or one or more subkeys:</source>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="51"/>
+        <source>Choose Signing Subkey(s)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="81"/>
-        <source>Multiple signing subkeys have been detected among your selected keys, which makes it unclear which key should be used for signing. Please select the primary key(s) or one or more subkeys with signing capability to proceed.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="91"/>
-        <source>Confirm</source>
-        <translation type="unfinished">Confirmer</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="92"/>
-        <source>Cancel</source>
-        <translation type="unfinished">Annuler</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="96"/>
-        <source>No Subkeys Selected</source>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="57"/>
+        <source>Choose the primary key(s) or one or more signing-capable subkeys to use for this operation.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="97"/>
-        <source>Please select at least one Subkey.</source>
+        <source>Multiple signing subkeys were detected among the selected keys. Please choose exactly the key material that should be used for signing.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="112"/>
+        <source>Confirm</source>
+        <translation type="unfinished">Confirmer</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="116"/>
+        <source>Cancel</source>
+        <translation type="unfinished">Annuler</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="120"/>
+        <source>No Subkeys Selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/SubKeyPicker.cpp" line="121"/>
+        <source>Please select at least one signing key or signing subkey.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -7015,7 +7045,7 @@ Key UID: %1</source>
     <name>GpgFrontend::UI::TextEdit</name>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="231"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="477"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="533"/>
         <source>Warning</source>
         <translation type="unfinished">Avertissement</translation>
     </message>
@@ -7119,7 +7149,7 @@ Key UID: %1</source>
         <translation type="unfinished">Si vous n&apos;enregistrez pas ces fichiers, toutes les modifications sont perdues.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="477"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="533"/>
         <source>No document to print</source>
         <translation type="unfinished"></translation>
     </message>
