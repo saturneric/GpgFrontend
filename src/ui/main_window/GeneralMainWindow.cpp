@@ -56,11 +56,15 @@ GeneralMainWindow::~GeneralMainWindow() = default;
 
 void GeneralMainWindow::showEvent(QShowEvent *event) {
   QMainWindow::showEvent(event);
+  RestoreSettingsOnce();
+}
 
-  // restore settings when constructing the main window, so that the size and
-  // position of the main window can be restored before it is shown for the
-  // first time.
+auto GeneralMainWindow::RestoreSettingsOnce() noexcept -> bool {
+  if (settings_restored_) return false;
+
+  settings_restored_ = true;
   restoreSettings();
+  return true;
 }
 
 void GeneralMainWindow::closeEvent(QCloseEvent *event) {

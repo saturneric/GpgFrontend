@@ -169,10 +169,18 @@ void MainWindow::Init() noexcept {
 
     restore_settings();
 
+    // Important: restore window geometry before restoring QMainWindow dock
+    // state. Otherwise docks may be restored against a too-small default window
+    // size.
+    RestoreSettingsOnce();
+
     const bool state_restored = restoreWindowState();
-    if (!state_restored) {
-      QTimer::singleShot(0, this, [this]() -> void { apply_default_layout(); });
-    }
+
+    QTimer::singleShot(0, this, [this, state_restored]() -> void {
+      if (!state_restored) {
+        apply_default_layout();
+      }
+    });
 
     info_board_->AssociateTabWidget(edit_->TabWidget());
 

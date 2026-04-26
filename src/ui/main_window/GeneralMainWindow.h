@@ -53,6 +53,14 @@ class GeneralMainWindow : public QMainWindow {
    */
   [[nodiscard]] auto GetId() const -> QString;
 
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto RestoreSettingsOnce() noexcept -> bool;
+
  protected:
   /**
    *
@@ -113,5 +121,6 @@ class GeneralMainWindow : public QMainWindow {
   QRect rect_;
   QRect screen_rect_;
   QRect parent_rect_;
+  bool settings_restored_ = false;
 };
 }  // namespace GpgFrontend::UI

@@ -611,13 +611,13 @@ void MainWindow::create_status_bar() {
 }
 
 void MainWindow::create_dock_windows() {
-  /* KeyList-Dock window
-   */
   key_list_dock_ = new QDockWidget(tr("Key ToolBox"), this);
-  key_list_dock_->setObjectName("EncryptDock");
+  key_list_dock_->setObjectName(QStringLiteral("keyListDock"));
   key_list_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
                                   Qt::RightDockWidgetArea);
-  // key_list_dock_->setMinimumWidth(460);
+  key_list_dock_->setMinimumWidth(260);
+  key_list_dock_->setMaximumWidth(QWIDGETSIZE_MAX);
+
   addDockWidget(Qt::RightDockWidgetArea, key_list_dock_);
 
   m_key_list_->AddListGroupTab(
@@ -658,17 +658,27 @@ void MainWindow::create_dock_windows() {
                !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
       });
 
+  m_key_list_->setMinimumWidth(260);
+  m_key_list_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
   m_key_list_->SlotRefresh();
 
   key_list_dock_->setWidget(m_key_list_);
   view_menu_->addAction(key_list_dock_->toggleViewAction());
 
   info_board_dock_ = new QDockWidget(tr("Status Panel"), this);
-  info_board_dock_->setObjectName("Status Panel");
+  info_board_dock_->setObjectName(QStringLiteral("infoBoardDock"));
   info_board_dock_->setAllowedAreas(Qt::BottomDockWidgetArea);
+  info_board_dock_->setMinimumHeight(120);
+  info_board_dock_->setMaximumHeight(QWIDGETSIZE_MAX);
+
   addDockWidget(Qt::BottomDockWidgetArea, info_board_dock_);
   info_board_dock_->setWidget(info_board_);
-  info_board_dock_->widget()->layout()->setContentsMargins(0, 0, 0, 0);
+
+  if (info_board_dock_->widget() != nullptr &&
+      info_board_dock_->widget()->layout() != nullptr) {
+    info_board_dock_->widget()->layout()->setContentsMargins(0, 0, 0, 0);
+  }
+
   view_menu_->addAction(info_board_dock_->toggleViewAction());
 
   connect(m_key_list_, &KeyList::SignalKeyChecked, this,
@@ -699,20 +709,19 @@ void MainWindow::apply_default_layout() {
   const QRect available = CurrentAvailableGeometry(this);
 
   constexpr double kWindowScale = 0.82;
-  constexpr double kTargetAspect = 4.0 / 3.0;
-
+  constexpr double kTargetAspect = 1.45;
   constexpr double kKeyListRatio = 0.35;
-  constexpr double kInfoBoardRatio = 0.30;
+  constexpr double kInfoBoardRatio = 0.20;
 
   int target_width =
       ClampInt(static_cast<int>(available.width() * kWindowScale), 900, 1360);
 
   int target_height =
-      ClampInt(static_cast<int>(target_width / kTargetAspect), 660, 980);
+      ClampInt(static_cast<int>(target_width / kTargetAspect), 700, 1000);
 
   if (target_height > static_cast<int>(available.height() * kWindowScale)) {
     target_height =
-        ClampInt(static_cast<int>(available.height() * kWindowScale), 620, 900);
+        ClampInt(static_cast<int>(available.height() * kWindowScale), 680, 960);
 
     target_width =
         ClampInt(static_cast<int>(target_height * kTargetAspect), 900, 1360);
@@ -724,33 +733,39 @@ void MainWindow::apply_default_layout() {
     const int key_min_width = available.width() < 1100 ? 260 : 300;
 
     const int key_max_width =
-        ClampInt(static_cast<int>(target_width * 0.55), 420, 640);
+        ClampInt(static_cast<int>(target_width * 0.48), 420, 620);
 
     const int key_width =
         ClampInt(static_cast<int>(target_width * kKeyListRatio), key_min_width,
                  key_max_width);
 
     key_list_dock_->setMinimumWidth(key_min_width);
-    key_list_dock_->setMaximumWidth(key_max_width);
+    key_list_dock_->setMaximumWidth(QWIDGETSIZE_MAX);
 
     resizeDocks({key_list_dock_}, {key_width}, Qt::Horizontal);
   }
 
   if (info_board_dock_ != nullptr) {
-    const int info_min_height = available.height() < 750 ? 120 : 150;
+    const int info_min_height = available.height() < 750 ? 110 : 135;
 
     const int info_max_height =
-        ClampInt(static_cast<int>(target_height * 0.40), 240, 380);
+        ClampInt(static_cast<int>(target_height * 0.34), 220, 340);
 
     const int info_height =
         ClampInt(static_cast<int>(target_height * kInfoBoardRatio),
                  info_min_height, info_max_height);
 
     info_board_dock_->setMinimumHeight(info_min_height);
-    info_board_dock_->setMaximumHeight(info_max_height);
+    info_board_dock_->setMaximumHeight(QWIDGETSIZE_MAX);
 
     resizeDocks({info_board_dock_}, {info_height}, Qt::Vertical);
   }
+
+  QRect target_rect = frameGeometry();
+  target_rect.setSize(size());
+  target_rect.moveCenter(available.center());
+  target_rect = ClampRectToAvailableGeometry(target_rect, available);
+  move(target_rect.topLeft());
 }
 
 void MainWindow::init_main_window_style() {
