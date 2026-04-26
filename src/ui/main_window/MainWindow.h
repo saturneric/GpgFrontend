@@ -49,6 +49,11 @@ struct GpgOperaContext;
 struct GpgOperaContextBasement;
 struct KeyTable;
 
+struct SafeOutputPath {
+  QString final_path;
+  QString temp_path;
+};
+
 /**
  * @brief
  *
@@ -801,50 +806,11 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   /**
    * @brief
    *
-   */
-  auto make_safe_temp_output_path(const QString& final_path) -> QString;
-
-  /**
-   * @brief
-   *
-   * @param temp_path
-   * @param final_path
-   * @return true
-   * @return false
-   */
-  auto commit_safe_output_file(const QString& temp_path,
-                               const QString& final_path) -> bool;
-
-  struct SafeOutputPath {
-    QString final_path;
-    QString temp_path;
-  };
-
-  /**
-   * @brief
-   *
-   * @param outputs
-   */
-  void cleanup_safe_output_files(const QContainer<SafeOutputPath>& outputs);
-
-  /**
-   * @brief
-   *
    * @param outputs
    * @return true
    * @return false
    */
   auto commit_safe_output_files(const QContainer<SafeOutputPath>& outputs)
-      -> bool;
-
-  /**
-   * @brief
-   *
-   * @param results
-   * @return true
-   * @return false
-   */
-  auto is_file_opera_successful(const QContainer<GpgOperaResult>& results)
       -> bool;
 
   /**
@@ -858,15 +824,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       const QString& task,
       const QSharedPointer<GpgOperaContextBasement>& contexts,
       const QContainer<SafeOutputPath>& safe_outputs);
-
-  /**
-   * @brief
-   *
-   */
-  auto prepare_safe_output_path(const QString& final_path,
-                                QStringList* final_output_paths,
-                                QContainer<SafeOutputPath>* safe_outputs)
-      -> QString;
 };
 
 }  // namespace GpgFrontend::UI

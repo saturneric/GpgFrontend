@@ -27,10 +27,8 @@
  */
 
 #include "MainWindow.h"
-#include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
-#include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
 #include "ui/dialog/SubKeyPicker.h"
@@ -41,8 +39,8 @@
 
 namespace GpgFrontend::UI {
 
-auto MainWindow::make_safe_temp_output_path(const QString& final_path)
-    -> QString {
+namespace {
+auto MakeSafeTempOutputPath(const QString& final_path) -> QString {
   const QFileInfo info(final_path);
   const auto dir = info.absolutePath();
   const auto base_name = info.fileName();
@@ -61,8 +59,8 @@ auto MainWindow::make_safe_temp_output_path(const QString& final_path)
   return temp_path;
 }
 
-auto MainWindow::commit_safe_output_file(const QString& temp_path,
-                                         const QString& final_path) -> bool {
+auto CommitSafeOutputFile(const QString& temp_path, const QString& final_path)
+    -> bool {
   if (!QFileInfo::exists(temp_path)) {
     return false;
   }
@@ -100,8 +98,7 @@ auto MainWindow::commit_safe_output_file(const QString& temp_path,
   return true;
 }
 
-void MainWindow::cleanup_safe_output_files(
-    const QContainer<SafeOutputPath>& outputs) {
+void CleanupSafeOutputFiles(const QContainer<SafeOutputPath>& outputs) {
   for (const auto& output : outputs) {
     if (!output.temp_path.isEmpty() && QFileInfo::exists(output.temp_path)) {
       QFile::remove(output.temp_path);
@@ -109,29 +106,46 @@ void MainWindow::cleanup_safe_output_files(
   }
 }
 
-auto MainWindow::commit_safe_output_files(
-    const QContainer<SafeOutputPath>& outputs) -> bool {
-  for (const auto& output : outputs) {
-    if (!commit_safe_output_file(output.temp_path, output.final_path)) {
-      QMessageBox::critical(
-          this, tr("Error"),
-          tr("Failed to finalize output file:\n\n%1").arg(output.final_path));
-
-      cleanup_safe_output_files(outputs);
-      return false;
-    }
-  }
-
-  return true;
-}
-
-auto MainWindow::is_file_opera_successful(
-    const QContainer<GpgOperaResult>& results) -> bool {
+auto IsFileOperaSuccessful(const QContainer<GpgOperaResult>& results) -> bool {
   if (results.empty()) return false;
 
   return std::all_of(
       results.cbegin(), results.cend(),
       [](const GpgOperaResult& result) -> bool { return result.status > 0; });
+}
+
+auto PrepareSafeOutputPath(const QString& final_path,
+                           QStringList* final_output_paths,
+                           QContainer<SafeOutputPath>* safe_outputs)
+    -> QString {
+  if (final_output_paths == nullptr || safe_outputs == nullptr) return {};
+
+  const auto temp_path = MakeSafeTempOutputPath(final_path);
+
+  final_output_paths->append(final_path);
+  safe_outputs->push_back({
+      final_path,
+      temp_path,
+  });
+
+  return temp_path;
+}
+}  // namespace
+
+auto MainWindow::commit_safe_output_files(
+    const QContainer<SafeOutputPath>& outputs) -> bool {
+  for (const auto& output : outputs) {
+    if (!CommitSafeOutputFile(output.temp_path, output.final_path)) {
+      QMessageBox::critical(
+          this, tr("Error"),
+          tr("Failed to finalize output file:\n\n%1").arg(output.final_path));
+
+      CleanupSafeOutputFiles(outputs);
+      return false;
+    }
+  }
+
+  return true;
 }
 
 void MainWindow::exec_file_operas_helper(
@@ -140,12 +154,12 @@ void MainWindow::exec_file_operas_helper(
     const QContainer<SafeOutputPath>& safe_outputs) {
   GpgOperaHelper::WaitForMultipleOperas(this, task, contexts->operas);
 
-  const bool success = is_file_opera_successful(contexts->opera_results);
+  const bool success = IsFileOperaSuccessful(contexts->opera_results);
 
   if (!success) {
     LOG_E()
         << "One or more file operations failed. Cleaning up temporary files.";
-    cleanup_safe_output_files(safe_outputs);
+    CleanupSafeOutputFiles(safe_outputs);
     slot_result_analyse_show_helper(contexts->opera_results);
     return;
   }
@@ -153,7 +167,7 @@ void MainWindow::exec_file_operas_helper(
   if (!commit_safe_output_files(safe_outputs)) {
     LOG_E() << "Failed to commit output files. Temporary files have been "
                "cleaned up.";
-    cleanup_safe_output_files(safe_outputs);
+    CleanupSafeOutputFiles(safe_outputs);
 
     slot_refresh_info_board(
         -1,
@@ -168,22 +182,6 @@ void MainWindow::exec_file_operas_helper(
              "been finalized.";
 
   slot_result_analyse_show_helper(contexts->opera_results);
-}
-
-auto MainWindow::prepare_safe_output_path(
-    const QString& final_path, QStringList* final_output_paths,
-    QContainer<SafeOutputPath>* safe_outputs) -> QString {
-  if (final_output_paths == nullptr || safe_outputs == nullptr) return {};
-
-  const auto temp_path = make_safe_temp_output_path(final_path);
-
-  final_output_paths->append(final_path);
-  safe_outputs->push_back({
-      final_path,
-      temp_path,
-  });
-
-  return temp_path;
 }
 
 auto MainWindow::encrypt_operation_key_validate(
@@ -501,16 +499,16 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
     if (info.isDir()) {
       const auto final_path =
           SetExtensionOfOutputFileForArchive(path, kENCRYPT, contexts->ascii);
-      const auto temp_path = prepare_safe_output_path(
-          final_path, &final_output_paths, &safe_outputs);
+      const auto temp_path =
+          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
 
       contexts->GetContextPath(1).append(path);
       contexts->GetContextOutPath(1).append(temp_path);
     } else {
       const auto final_path =
           SetExtensionOfOutputFile(path, kENCRYPT, contexts->ascii);
-      const auto temp_path = prepare_safe_output_path(
-          final_path, &final_output_paths, &safe_outputs);
+      const auto temp_path =
+          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
 
       contexts->GetContextPath(0).append(path);
       contexts->GetContextOutPath(0).append(temp_path);
@@ -546,16 +544,16 @@ void MainWindow::SlotFileDecrypt(const QStringList& paths) {
     if (extension == "tar.gpg" || extension == "tar.asc") {
       const auto final_path =
           SetExtensionOfOutputFileForArchive(path, kDECRYPT, contexts->ascii);
-      const auto temp_path = prepare_safe_output_path(
-          final_path, &final_output_paths, &safe_outputs);
+      const auto temp_path =
+          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
 
       contexts->GetContextPath(1).append(path);
       contexts->GetContextOutPath(1).append(temp_path);
     } else {
       const auto final_path =
           SetExtensionOfOutputFile(path, kDECRYPT, contexts->ascii);
-      const auto temp_path = prepare_safe_output_path(
-          final_path, &final_output_paths, &safe_outputs);
+      const auto temp_path =
+          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
 
       contexts->GetContextPath(0).append(path);
       contexts->GetContextOutPath(0).append(temp_path);
@@ -595,8 +593,8 @@ void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
   for (const auto& path : paths) {
     const auto final_path =
         SetExtensionOfOutputFile(path, kSIGN, contexts->ascii);
-    const auto temp_path = prepare_safe_output_path(
-        final_path, &final_output_paths, &safe_outputs);
+    const auto temp_path =
+        PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
 
     contexts->GetContextPath(0).append(path);
     contexts->GetContextOutPath(0).append(temp_path);
@@ -683,16 +681,16 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
     if (info.isDir()) {
       const auto final_path =
           SetExtensionOfOutputFileForArchive(path, kENCRYPT, contexts->ascii);
-      const auto temp_path = prepare_safe_output_path(
-          final_path, &final_output_paths, &safe_outputs);
+      const auto temp_path =
+          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
 
       contexts->GetContextPath(1).append(path);
       contexts->GetContextOutPath(1).append(temp_path);
     } else {
       const auto final_path =
           SetExtensionOfOutputFile(path, kENCRYPT, contexts->ascii);
-      const auto temp_path = prepare_safe_output_path(
-          final_path, &final_output_paths, &safe_outputs);
+      const auto temp_path =
+          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
 
       contexts->GetContextPath(0).append(path);
       contexts->GetContextOutPath(0).append(temp_path);
@@ -728,16 +726,16 @@ void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
     if (extension == "tar.gpg" || extension == "tar.asc") {
       const auto final_path =
           SetExtensionOfOutputFileForArchive(path, kDECRYPT, contexts->ascii);
-      const auto temp_path = prepare_safe_output_path(
-          final_path, &final_output_paths, &safe_outputs);
+      const auto temp_path =
+          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
 
       contexts->GetContextPath(1).append(path);
       contexts->GetContextOutPath(1).append(temp_path);
     } else {
       const auto final_path =
           SetExtensionOfOutputFile(path, kDECRYPT, contexts->ascii);
-      const auto temp_path = prepare_safe_output_path(
-          final_path, &final_output_paths, &safe_outputs);
+      const auto temp_path =
+          PrepareSafeOutputPath(final_path, &final_output_paths, &safe_outputs);
 
       contexts->GetContextPath(0).append(path);
       contexts->GetContextOutPath(0).append(temp_path);
