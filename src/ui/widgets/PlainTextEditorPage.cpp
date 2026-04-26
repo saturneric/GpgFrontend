@@ -37,11 +37,20 @@
 namespace GpgFrontend::UI {
 
 namespace {
-namespace {
+
+auto FontFamilies() -> QStringList {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  return QFontDatabase::families();
+#else
+  QFontDatabase font_database;
+  return font_database.families();
+#endif
+}
 
 auto ContainsFontFamily(const QString &family) -> bool {
-  const auto families = QFontDatabase::families();
-  return std::any_of(families.cbegin(), families.cend(),
+  static const auto kFamilies = FontFamilies();
+
+  return std::any_of(kFamilies.cbegin(), kFamilies.cend(),
                      [&family](const QString &item) {
                        return item.compare(family, Qt::CaseInsensitive) == 0;
                      });
@@ -79,7 +88,6 @@ auto PreferredMonospaceFont() -> QFont {
   return font;
 }
 
-}  // namespace
 }  // namespace
 
 PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
