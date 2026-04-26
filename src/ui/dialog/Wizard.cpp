@@ -29,6 +29,7 @@
 #include "Wizard.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend::UI {
 
@@ -177,6 +178,13 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   dont_show_wizard_checkbox_ =
       new QCheckBox(tr("Don't show this setup wizard again"));
   dont_show_wizard_checkbox_->setChecked(true);
+
+  // If running in a sandbox, we should hide the update checking option since it
+  // won't work and may cause confusion
+  if (IsRunningInSandBox()) {
+    check_updates_checkbox_->setHidden(true);
+    check_updates_checkbox_->setChecked(false);
+  }
 
   // I think update checking should be off by default for privacy reasons
   check_updates_checkbox_ = new QCheckBox(tr("Check for updates on startup"));
