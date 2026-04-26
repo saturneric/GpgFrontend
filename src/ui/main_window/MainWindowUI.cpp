@@ -31,7 +31,6 @@
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
-#include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/controller/GnuPGControllerDialog.h"
