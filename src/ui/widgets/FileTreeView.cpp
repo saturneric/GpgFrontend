@@ -1089,6 +1089,7 @@ void FileTreeView::dropEvent(QDropEvent* event) {
 
   QStringList result_paths;
   bool all_ok = true;
+  bool detailed_error_shown = false;
 
   for (const auto& source_path : source_paths) {
     const QFileInfo source_info(source_path);
@@ -1104,6 +1105,7 @@ void FileTreeView::dropEvent(QDropEvent* event) {
 
     if (!ok) {
       all_ok = false;
+      detailed_error_shown = true;
       continue;
     }
 
@@ -1139,7 +1141,7 @@ void FileTreeView::dropEvent(QDropEvent* event) {
     }
   }
 
-  if (!all_ok) {
+  if (!all_ok && !detailed_error_shown) {
     QMessageBox::warning(
         this,
         internal_drag ? tr("Move Partially Completed")
