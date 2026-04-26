@@ -128,25 +128,7 @@ pub fn create_key_internal(
                 info: "Generate Primary Key".to_string(),
                 retry: false,
                 ask_for_new: true,
-            },
-            fetch_pwd_cb,
-            free_cb,
-        )?
-    } else {
-        Vec::new()
-    };
-
-    // Ask user to re-enter the password for confirmation if a passphrase is required for the primary key
-    let primary_pwd_bytes_confirm = if key_config.has_passphrase {
-        fetch_password_with_cache(
-            Some(&PASSWORD_CACHE),
-            PasswordCachePolicy::Refresh,
-            0, // Index 0 for primary key
-            PassphraseStateInternal {
-                fpr: String::new(), // No fingerprint yet for a new key
-                info: "Generate Primary Key (Confirm)".to_string(),
-                retry: false,
-                ask_for_new: true,
+                should_confirm: true, // Ask user to enter the password twice for confirmation when generating a new key
             },
             fetch_pwd_cb,
             free_cb,
@@ -157,10 +139,6 @@ pub fn create_key_internal(
 
     if key_config.has_passphrase && primary_pwd_bytes.is_empty() {
         return Err(GfrStatus::ErrorFetchPasswordFailed);
-    }
-
-    if primary_pwd_bytes != primary_pwd_bytes_confirm {
-        return Err(GfrStatus::ErrorPasswordMismatch);
     }
 
     if !primary_pwd_bytes.is_empty() {
@@ -184,6 +162,7 @@ pub fn create_key_internal(
                     info: format!("Set password for Subkey {}", index + 1),
                     retry: false,
                     ask_for_new: true,
+                    should_confirm: false,
                 },
                 fetch_pwd_cb,
                 free_cb,
@@ -250,6 +229,7 @@ pub fn add_subkey_internal(
                 info: "Unlock Primary Key to generate subkey".to_string(),
                 retry: false,
                 ask_for_new: false,
+                should_confirm: false,
             },
             fetch_pwd_cb,
             free_cb,
@@ -351,21 +331,7 @@ pub fn add_subkey_internal(
                 info: "Set password for new subkey".to_string(),
                 retry: false,
                 ask_for_new: true,
-            },
-            fetch_pwd_cb,
-            free_cb,
-        )?;
-
-        // Ask user to re-enter the password for confirmation if a passphrase is required for the subkey
-        let subkey_pwd_bytes_retry = fetch_password_with_cache(
-            Some(&PASSWORD_CACHE),
-            PasswordCachePolicy::Refresh,
-            channel,
-            PassphraseStateInternal {
-                fpr: String::new(),
-                info: "Set password for new subkey (Confirm)".to_string(),
-                retry: false,
-                ask_for_new: true,
+                should_confirm: true,
             },
             fetch_pwd_cb,
             free_cb,
@@ -374,11 +340,6 @@ pub fn add_subkey_internal(
         if subkey_pwd_bytes.is_empty() {
             log::error!("Password requested for new subkey but none provided.");
             return Err(GfrStatus::ErrorFetchPasswordFailed);
-        }
-
-        if subkey_pwd_bytes != subkey_pwd_bytes_retry {
-            log::error!("Subkey password confirmation does not match.");
-            return Err(GfrStatus::ErrorPasswordMismatch);
         }
 
         let sub_password = Password::from(subkey_pwd_bytes.as_slice());

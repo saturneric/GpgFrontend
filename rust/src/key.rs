@@ -568,6 +568,7 @@ fn fetch_old_and_new_passwords(
                 info: unlock_purpose.to_string(),
                 retry: false,
                 ask_for_new: false,
+                should_confirm: false,
             },
             fetch_pwd_cb,
             free_cb,
@@ -591,22 +592,7 @@ fn fetch_old_and_new_passwords(
             info: new_purpose.to_string(),
             retry: false,
             ask_for_new: true,
-        },
-        fetch_pwd_cb,
-        free_cb,
-    )?;
-
-    // confirm the new password works before applying it to avoid
-    // accidentally mistyping and ending up with a key that can't be unlocked anymore.
-    fetch_password_with_cache(
-        Some(&PASSWORD_CACHE),
-        PasswordCachePolicy::Bypass,
-        channel,
-        PassphraseStateInternal {
-            fpr: target_fpr.to_string(),
-            info: "Confirm the new password".to_string(),
-            retry: false,
-            ask_for_new: true,
+            should_confirm: true,
         },
         fetch_pwd_cb,
         free_cb,
@@ -816,6 +802,7 @@ pub fn revoke_subkey_internal(
                 info: "Unlock Primary Key to revoke subkey".to_string(),
                 retry: false,
                 ask_for_new: false,
+                should_confirm: false,
             },
             fetch_cb,
             free_cb,
@@ -913,6 +900,7 @@ pub fn generate_key_rev_cert_internal(
                 info: "Generate Key Revocation Certificate".to_string(),
                 retry: false,
                 ask_for_new: false,
+                should_confirm: false,
             },
             fetch_cb,
             free_cb,

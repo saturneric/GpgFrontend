@@ -53,6 +53,9 @@ class PassphraseDialog : public QDialog {
  private:
   QSharedPointer<GpgPassphraseContext> ctx_;
   QLineEdit* password_edit_ = nullptr;
+  QLineEdit* confirm_password_edit_ = nullptr;
   QCheckBox* show_password_checkbox_ = nullptr;
+
+  [[nodiscard]] auto validate_passphrase_input() -> bool;
 };
 }  // namespace GpgFrontend::UI

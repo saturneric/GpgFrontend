@@ -35,12 +35,12 @@ PassphraseDialog::PassphraseDialog(
     : QDialog(parent), ctx_(ctx) {
   setWindowTitle(tr("Passphrase Required"));
   setModal(true);
-  resize(460, 220);
-  setMinimumWidth(420);
+  setMinimumWidth(480);
+  resize(520, ctx_->ShouldConfirm() ? 360 : 310);
 
   auto* main_layout = new QVBoxLayout(this);
-  main_layout->setContentsMargins(20, 20, 20, 20);
-  main_layout->setSpacing(12);
+  main_layout->setContentsMargins(22, 22, 22, 18);
+  main_layout->setSpacing(14);
 
   auto* title_label = new QLabel(tr("Enter Passphrase"), this);
   QFont title_font = title_label->font();
@@ -55,6 +55,9 @@ PassphraseDialog::PassphraseDialog(
 
   auto* details_frame = new QFrame(this);
   details_frame->setObjectName("detailsFrame");
+  details_frame->setFrameShape(QFrame::StyledPanel);
+  details_frame->setFrameShadow(QFrame::Plain);
+
   auto* details_layout = new QVBoxLayout(details_frame);
   details_layout->setContentsMargins(12, 10, 12, 10);
   details_layout->setSpacing(6);
@@ -62,7 +65,7 @@ PassphraseDialog::PassphraseDialog(
   QString detail_text =
       tr("Passphrase info: %1").arg(ctx_->GetPassphraseInfo());
 
-  if (ctx->IsAskForNew()) {
+  if (ctx_->IsAskForNew()) {
     detail_text += tr("\nThis passphrase will be used to set a new password.");
   }
 
@@ -77,35 +80,71 @@ PassphraseDialog::PassphraseDialog(
   details_label->setWordWrap(true);
   details_layout->addWidget(details_label);
 
-  auto* pwd_label = new QLabel(tr("Passphrase"), this);
-
-  auto* pwd_layout = new QHBoxLayout();
-  pwd_layout->setSpacing(8);
+  auto* form_layout = new QFormLayout();
+  form_layout->setContentsMargins(0, 2, 0, 0);
+  form_layout->setHorizontalSpacing(14);
+  form_layout->setVerticalSpacing(10);
+  form_layout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+  form_layout->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
   password_edit_ = new QLineEdit(this);
   password_edit_->setEchoMode(QLineEdit::Password);
   password_edit_->setPlaceholderText(tr("Enter your passphrase here"));
+#ifndef Q_OS_MACOS
+  password_edit_->setMinimumHeight(30);
+#endif
+
+  confirm_password_edit_ = new QLineEdit(this);
+  confirm_password_edit_->setEchoMode(QLineEdit::Password);
+  confirm_password_edit_->setPlaceholderText(tr("Enter your passphrase again"));
+#ifndef Q_OS_MACOS
+  confirm_password_edit_->setMinimumHeight(30);
+#endif
+
+  auto* password_row = new QWidget(this);
+  auto* password_row_layout = new QHBoxLayout(password_row);
+  password_row_layout->setContentsMargins(0, 0, 0, 0);
+  password_row_layout->setSpacing(8);
 
   show_password_checkbox_ = new QCheckBox(tr("Show"), this);
+
   connect(show_password_checkbox_, &QCheckBox::toggled, this,
           [this](bool checked) {
-            password_edit_->setEchoMode(checked ? QLineEdit::Normal
-                                                : QLineEdit::Password);
+            const auto echo_mode =
+                checked ? QLineEdit::Normal : QLineEdit::Password;
+
+            password_edit_->setEchoMode(echo_mode);
+
+            if (confirm_password_edit_ != nullptr) {
+              confirm_password_edit_->setEchoMode(echo_mode);
+            }
           });
 
-  pwd_layout->addWidget(password_edit_, 1);
-  pwd_layout->addWidget(show_password_checkbox_);
+  password_row_layout->addWidget(password_edit_, 1);
+  password_row_layout->addWidget(show_password_checkbox_);
+
+  form_layout->addRow(tr("Passphrase:"), password_row);
+
+  if (ctx_->ShouldConfirm()) {
+    form_layout->addRow(tr("Confirm:"), confirm_password_edit_);
+  } else {
+    confirm_password_edit_->hide();
+  }
 
   auto* button_layout = new QHBoxLayout();
+  button_layout->setContentsMargins(0, 6, 0, 0);
   button_layout->addStretch();
 
-  auto* ok_button = new QPushButton(tr("OK"), this);
   auto* cancel_button = new QPushButton(tr("Cancel"), this);
+  auto* ok_button = new QPushButton(tr("OK"), this);
 
   ok_button->setDefault(true);
   ok_button->setAutoDefault(true);
 
-  connect(ok_button, &QPushButton::clicked, this, [this]() { accept(); });
+  connect(ok_button, &QPushButton::clicked, this, [this]() {
+    if (!validate_passphrase_input()) return;
+    accept();
+  });
   connect(cancel_button, &QPushButton::clicked, this, [this]() { reject(); });
 
   button_layout->addWidget(cancel_button);
@@ -114,16 +153,47 @@ PassphraseDialog::PassphraseDialog(
   main_layout->addWidget(title_label);
   main_layout->addWidget(info_label);
   main_layout->addWidget(details_frame);
-  main_layout->addWidget(pwd_label);
-  main_layout->addLayout(pwd_layout);
-  main_layout->addSpacing(6);
+  main_layout->addLayout(form_layout);
   main_layout->addLayout(button_layout);
 
   password_edit_->setFocus();
+
+  adjustSize();
+  resize(std::max(width(), 520), height());
 }
 
 [[nodiscard]] auto PassphraseDialog::Passphrase() const -> QString {
   return password_edit_->text();
+}
+
+[[nodiscard]] auto PassphraseDialog::validate_passphrase_input() -> bool {
+  if (password_edit_ == nullptr) {
+    return false;
+  }
+
+  if (!ctx_->ShouldConfirm()) {
+    return true;
+  }
+
+  if (confirm_password_edit_ == nullptr) {
+    return false;
+  }
+
+  const auto passphrase = password_edit_->text();
+  const auto confirmation = confirm_password_edit_->text();
+
+  if (passphrase != confirmation) {
+    QMessageBox::warning(this, tr("Passphrase Mismatch"),
+                         tr("The two passphrases do not match. "
+                            "Please enter them again."));
+
+    confirm_password_edit_->clear();
+    confirm_password_edit_->setFocus();
+    confirm_password_edit_->selectAll();
+    return false;
+  }
+
+  return true;
 }
 
 }  // namespace GpgFrontend::UI

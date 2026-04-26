@@ -28,18 +28,16 @@
 
 #include "GpgPassphraseContext.h"
 
-#include <utility>
-
 namespace GpgFrontend {
 
 GpgPassphraseContext::GpgPassphraseContext(int channel, GpgAbstractKeyPtr key,
-                                           QString passphrase_info,
-                                           bool prev_was_bad, bool ask_for_new)
+                                           const PassphraseState& state)
     : channel_(channel),
-      passphrase_info_(std::move(passphrase_info)),
+      passphrase_info_(state.info),
       key_(std::move(key)),
-      prev_was_bad_(prev_was_bad),
-      ask_for_new_(ask_for_new) {}
+      prev_was_bad_(state.retry),
+      ask_for_new_(state.ask_for_new),
+      should_confirm_(state.should_confirm) {}
 
 GpgPassphraseContext::GpgPassphraseContext() = default;
 
@@ -62,4 +60,8 @@ auto GpgPassphraseContext::GetPassphraseInfo() const -> QString {
 auto GpgPassphraseContext::IsPreWasBad() const -> bool { return prev_was_bad_; }
 
 auto GpgPassphraseContext::IsAskForNew() const -> bool { return ask_for_new_; }
+
+auto GpgPassphraseContext::ShouldConfirm() const -> bool {
+  return should_confirm_;
+}
 }  // namespace GpgFrontend

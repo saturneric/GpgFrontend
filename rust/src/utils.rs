@@ -51,6 +51,7 @@ pub struct PassphraseStateInternal {
     pub info: String,
     pub retry: bool,
     pub ask_for_new: bool,
+    pub should_confirm: bool, // User will be asked to confirm the new password by entering it twice if this is true
 }
 
 pub fn fetch_password_internal(
@@ -75,6 +76,7 @@ pub fn fetch_password_internal(
         info: info_c.as_ptr() as *mut c_char,
         retry: state.retry,
         ask_for_new: state.ask_for_new,
+        should_confirm: state.should_confirm,
     };
 
     let mut pwd_ptr: *mut u8 = null_mut();

@@ -87,6 +87,7 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
       .fpr = QString::fromUtf8(state.fpr).toUpper(),
       .retry = state.retry,
       .ask_for_new = state.ask_for_new,
+      .should_confirm = state.should_confirm,
   };
 
   QString result_pwd =

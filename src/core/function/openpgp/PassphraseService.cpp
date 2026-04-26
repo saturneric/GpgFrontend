@@ -63,8 +63,8 @@ auto PassphraseService::RequestPassphrase(const PassphraseState& state)
   }
 
   QString result_pwd;
-  auto c = QSharedPointer<GpgPassphraseContext>::create(
-      GetChannel(), key, t_state.info, t_state.retry, t_state.ask_for_new);
+  auto c =
+      QSharedPointer<GpgPassphraseContext>::create(GetChannel(), key, t_state);
 
   QEventLoop loop;
   QTimer timeout_timer;

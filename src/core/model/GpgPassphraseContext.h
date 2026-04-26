@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include "core/function/openpgp/PassphraseService.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -37,9 +38,8 @@ namespace GpgFrontend {
 class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
   Q_OBJECT
  public:
-  GpgPassphraseContext(int channel, GpgAbstractKeyPtr fpr,
-                       QString passphrase_info, bool prev_was_bad,
-                       bool ask_for_new);
+  GpgPassphraseContext(int channel, GpgAbstractKeyPtr key,
+                       const PassphraseState& state);
 
   GpgPassphraseContext();
 
@@ -57,6 +57,8 @@ class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
 
   [[nodiscard]] auto IsAskForNew() const -> bool;
 
+  [[nodiscard]] auto ShouldConfirm() const -> bool;
+
  private:
   int channel_;
   QString passphrase_info_;
@@ -64,6 +66,7 @@ class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
   QString passphrase_;
   bool prev_was_bad_;
   bool ask_for_new_;
+  bool should_confirm_;
 };
 
 }  // namespace GpgFrontend

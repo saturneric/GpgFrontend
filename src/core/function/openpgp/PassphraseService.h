@@ -34,11 +34,23 @@ namespace GpgFrontend {
 
 // State struct for passphrase request, can be extended in the future if needed
 struct PassphraseState {
-  QString info;  ///< Additional info to show in the passphrase dialog
-  QString fpr;   ///< Fingerprint of the key related to the passphrase request
-  bool retry = false;  ///< Indicates if this is a retry after a failed attempt
-  bool ask_for_new = false;  ///< Indicates if the user should be prompted to
-                             ///< set a new passphrase
+  // Additional info to show in the passphrase dialog
+  QString info;
+
+  // Fingerprint of the key related to the passphrase request
+  QString fpr;
+
+  // Indicates if this is a retry after a failed attempt
+  bool retry = false;
+
+  // Indicates if the user should be prompted to set a new passphrase
+  // if fingerprint is empty, this field should be true to indicate that the
+  // passphrase is not for an existing key
+  bool ask_for_new = false;
+
+  ///< Indicates if the user should be asked to confirm the passphrase (e.g.,
+  ///< for new passphrase setting)
+  bool should_confirm = false;
 };
 
 class GF_CORE_EXPORT PassphraseService

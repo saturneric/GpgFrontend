@@ -56,6 +56,18 @@ pub enum GfrStatus {
     // --- IO & Execution Errors ---
     ErrorIo = -13, // File read/write failures
     ErrorDecryptionFailed = -8,
+
+    ErrorCanceled = -15,
+    ErrorNoPublicKey = -16,
+    ErrorNoSecretKey = -17,
+    ErrorBadSignature = -18,
+    ErrorExpiredKey = -19,
+    ErrorRevokedKey = -20,
+    ErrorUnusableKey = -21,
+    ErrorUnsupportedFeature = -22,
+    ErrorNoData = -23,
+    ErrorBadArmor = -24,
+    ErrorBadPassphrase = -25,
 }
 
 impl fmt::Display for GfrStatus {
@@ -317,6 +329,7 @@ pub struct GfrPassphraseState {
     pub info: *mut c_char,
     pub retry: bool,
     pub ask_for_new: bool,
+    pub should_confirm: bool,
 }
 
 // Callback to fetch a password for a given key hint (e.g., fingerprint).
