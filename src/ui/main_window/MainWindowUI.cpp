@@ -711,7 +711,7 @@ void MainWindow::apply_default_layout() {
   constexpr double kWindowScale = 0.82;
   constexpr double kTargetAspect = 1.45;
   constexpr double kKeyListRatio = 0.35;
-  constexpr double kInfoBoardRatio = 0.20;
+  constexpr double kInfoBoardRatio = 0.30;
 
   int target_width =
       ClampInt(static_cast<int>(available.width() * kWindowScale), 900, 1360);
