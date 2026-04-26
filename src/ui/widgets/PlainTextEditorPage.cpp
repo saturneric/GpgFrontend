@@ -99,6 +99,9 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
     SetEditorModified(ui_->textPage->document()->isModified());
   });
 
+  connect(ui_->textPage, &QPlainTextEdit::cursorPositionChanged, this,
+          &PlainTextEditorPage::UpdateStatusBar);
+
   if (full_file_path_.isEmpty()) {
     read_done_ = true;
     SetLoadingState(false);
@@ -194,7 +197,18 @@ void PlainTextEditorPage::UpdateStatusBar() {
   const auto char_count =
       std::max(0, ui_->textPage->document()->characterCount() - 1);
 
-  ui_->characterLabel->setText(tr("%1 character(s)").arg(char_count));
+  const auto cursor = ui_->textPage->textCursor();
+  const int line = cursor.blockNumber() + 1;
+  const int column = cursor.positionInBlock() + 1;
+  const auto modified_mark = ui_->textPage->document()->isModified()
+                                 ? QStringLiteral(" · *")
+                                 : QString();
+
+  ui_->characterLabel->setText(tr("Ln %1, Col %2 · %3 character(s)%4")
+                                   .arg(line)
+                                   .arg(column)
+                                   .arg(char_count)
+                                   .arg(modified_mark));
 
   ui_->lfLabel->setText(is_crlf_ ? tr("CRLF") : tr("LF"));
   ui_->encodingLabel->setText(tr("UTF-8"));
@@ -322,6 +336,7 @@ void PlainTextEditorPage::ReadFile() {
     text_page->document()->blockSignals(false);
     text_page->setUndoRedoEnabled(true);
     text_page->document()->setModified(false);
+    text_page->document()->clearUndoRedoStacks();
 
     SetLoadingState(false);
     UpdateStatusBar();
