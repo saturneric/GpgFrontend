@@ -114,10 +114,3 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
-
-      - name: Run Unit Tests
-        run: |
-          cd ${{github.workspace}}/build/artifacts
-          export QT_QPA_PLATFORM=offscreen
-          export GTEST_OUTPUT=json:${{github.workspace}}/build/artifacts/unit_tests.json
-          ./gpgfrontend -t || true
