@@ -691,8 +691,13 @@ void FileTreeView::paintEvent(QPaintEvent* event) {
 }
 
 void FileTreeView::mousePressEvent(QMouseEvent* event) {
-  if (!indexAt(event->position().toPoint()).isValid() &&
-      event->button() == Qt::LeftButton) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  auto pos = event->position().toPoint();
+#else
+  auto pos = event->pos();
+#endif
+
+  if (!indexAt(pos).isValid() && event->button() == Qt::LeftButton) {
     clearSelection();
     setCurrentIndex(QModelIndex());
   }
@@ -829,8 +834,13 @@ void FileTreeView::dragMoveEvent(QDragMoveEvent* event) {
     return;
   }
 
-  const auto target_dir =
-      get_drop_target_directory(event->position().toPoint());
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  auto pos = event->position().toPoint();
+#else
+  auto pos = event->pos();
+#endif
+
+  const auto target_dir = get_drop_target_directory(pos);
 
   if (target_dir.isEmpty() || !QFileInfo(target_dir).isWritable()) {
     event->ignore();
@@ -965,9 +975,13 @@ void FileTreeView::dropEvent(QDropEvent* event) {
 
   const bool internal_drag = event->source() == this;
   const auto operation = internal_drag ? Qt::MoveAction : Qt::CopyAction;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  auto pos = event->position().toPoint();
+#else
+  auto pos = event->pos();
+#endif
 
-  const auto target_dir =
-      get_drop_target_directory(event->position().toPoint());
+  const auto target_dir = get_drop_target_directory(pos);
   if (target_dir.isEmpty()) {
     event->ignore();
     return;
