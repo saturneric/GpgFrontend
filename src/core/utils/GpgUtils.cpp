@@ -111,6 +111,57 @@ auto TextIsSigned(QString text) -> int {
   return 0;
 }
 
+namespace {
+
+auto ChopSuffixIfEndsWith(QString path, const QString& suffix)
+    -> std::optional<QString> {
+  if (!path.endsWith(suffix, Qt::CaseInsensitive)) {
+    return std::nullopt;
+  }
+
+  path.chop(suffix.size());
+  return path;
+}
+
+auto RemoveKnownArchiveEncryptedSuffix(const QString& input_path) -> QString {
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".tar.gpg"))) {
+    return *out;
+  }
+
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".tar.asc"))) {
+    return *out;
+  }
+
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".tar.pgp"))) {
+    return *out;
+  }
+
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".gpg"))) {
+    if (out->endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive)) {
+      out->chop(QStringLiteral(".tar").size());
+    }
+    return *out;
+  }
+
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".asc"))) {
+    if (out->endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive)) {
+      out->chop(QStringLiteral(".tar").size());
+    }
+    return *out;
+  }
+
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".pgp"))) {
+    if (out->endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive)) {
+      out->chop(QStringLiteral(".tar").size());
+    }
+    return *out;
+  }
+
+  return input_path + QStringLiteral(".out");
+}
+
+}  // namespace
+
 auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
                               bool ascii) -> QString {
   const QFileInfo file_info(path);
@@ -163,7 +214,7 @@ auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
 auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
                                         bool ascii) -> QString {
   const QFileInfo file_info(path);
-  auto input_path = file_info.absoluteFilePath();
+  const auto input_path = file_info.absoluteFilePath();
 
   switch (opera) {
     case kENCRYPT:
@@ -181,29 +232,7 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
 
     case kDECRYPT:
     case kDECRYPT_VERIFY: {
-      QString out_path = input_path;
-
-      if (out_path.endsWith(QStringLiteral(".tar.gpg"), Qt::CaseInsensitive)) {
-        out_path.chop(QStringLiteral(".gpg").size());
-        return out_path;
-      }
-
-      if (out_path.endsWith(QStringLiteral(".tar.asc"), Qt::CaseInsensitive)) {
-        out_path.chop(QStringLiteral(".asc").size());
-        return out_path;
-      }
-
-      if (out_path.endsWith(QStringLiteral(".gpg"), Qt::CaseInsensitive)) {
-        out_path.chop(QStringLiteral(".gpg").size());
-        return out_path + QStringLiteral(".tar");
-      }
-
-      if (out_path.endsWith(QStringLiteral(".asc"), Qt::CaseInsensitive)) {
-        out_path.chop(QStringLiteral(".asc").size());
-        return out_path + QStringLiteral(".tar");
-      }
-
-      return input_path + QStringLiteral(".tar");
+      return RemoveKnownArchiveEncryptedSuffix(input_path);
     }
 
     default:
