@@ -301,6 +301,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     subkey_list_->setItem(row, 4, tmp4);
 
     auto* tmp5 = new QTableWidgetItem(QLocale().toString(s_key.CreationTime()));
+    tmp5->setToolTip(tmp5->text());
     tmp5->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 5, tmp5);
 
@@ -309,6 +310,7 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
           s_key.ExpirationTime().toSecsSinceEpoch() == 0
               ? tr("Never Expire")
               : QLocale().toString(s_key.ExpirationTime()));
+      tmp6->setToolTip(tmp6->text());
       tmp6->setTextAlignment(Qt::AlignCenter);
       subkey_list_->setItem(row, 6, tmp6);
     }
