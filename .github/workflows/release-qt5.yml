@@ -23,19 +23,24 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-name: Build Release (Qt5)
+name: Build Legacy Qt5
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
+
   pull_request:
-    branches: [main]
+    branches:
+      - main
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
+
+  workflow_dispatch:
 
 env:
   BUILD_TYPE: Release
@@ -65,9 +70,24 @@ jobs:
         with:
           key: release-qt5-${{ github.job }}-${{ matrix.os }}
 
-      - name: Get Short SHA of Commit
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+      - name: Setup Environment Variables
+        shell: bash
+        run: |
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "BUILD_TYPE_LOWER=$(echo $BUILD_TYPE | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        if: runner.os == 'Linux'
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust -> build/cargo
+          shared-key: rust-qt5-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
+          cache-on-failure: true
+        if: runner.os == 'Linux'
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
@@ -94,6 +114,7 @@ jobs:
             mingw-w64-x86_64-texinfo
             mingw-w64-x86_64-libassuan
             mingw-w64-x86_64-ccache
+            mingw-w64-x86_64-rust
         if: runner.os == 'Windows'
 
       - name: Install Dependence (Linux)
@@ -159,7 +180,10 @@ jobs:
             -DGPGFRONTEND_QT5_BUILD=ON \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
             ..
-          cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
+          cmake --build . \
+            --config ${{ env.BUILD_TYPE }} \
+            --parallel \
+            --verbose
         if: runner.os == 'Windows'
 
       - name: Build GpgFrontend (Linux)
@@ -170,7 +194,10 @@ jobs:
             -DGPGFRONTEND_QT5_BUILD=ON \
             -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
-          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+          cmake --build ${{ github.workspace }}/build \
+            --config ${{ env.BUILD_TYPE }} \
+            --parallel \
+            --verbose
         if: runner.os == 'Linux'
 
       - name: Package App Image (Linux)
@@ -186,15 +213,7 @@ jobs:
             -extra-plugins=iconengines,platforms \
             -appimage \
             -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
-          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: runner.os == 'Linux'
-
-      - name: Generate Env Vars (Windows)
-        run: |
-          echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
-          echo "BUILD_TYPE_LOWER=$("${{env.BUILD_TYPE}}".ToLower())" >> $env:GITHUB_ENV
-        if: runner.os == 'Windows'
 
       - name: Download GnuPG Binary Release (Windows)
         shell: msys2 {0}
@@ -256,19 +275,19 @@ jobs:
           windeployqt-qt5 --no-translations --force ./artifacts/bin/GpgFrontend.exe
           mkdir upload-artifact
           cd artifacts
-          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.zip *
+          zip -r ../upload-artifact/GpgFrontend-qt5-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.zip *
         if: runner.os == 'Windows'
 
       - name: Upload Artifact(Linux)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gpgfrontend-qt5-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
           path: ${{github.workspace}}/build/upload-artifact/Gpg_Frontend*.AppImage*
         if: runner.os == 'Linux'
 
       - name: Upload Artifact (Windows)
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          name: gpgfrontend-qt5-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*
         if: runner.os == 'Windows'
