@@ -120,18 +120,23 @@ void TextEditTabWidget::InitTabStyle() {
   tabBar()->setDrawBase(false);
   tabBar()->setMovable(true);
 
-  setStyleSheet(R"(
-QTabWidget::pane {
-  border: 1px solid palette(mid);
-}
+  tabBar()->setProperty("gfTextEditTabBar", true);
+  tabBar()->style()->unpolish(tabBar());
+  tabBar()->style()->polish(tabBar());
 
-QTabBar::tab {
+  setStyleSheet(R"(
+QTabBar[gfTextEditTabBar="true"]::tab {
   padding: 4px 10px;
   margin-right: 1px;
+  color: palette(window-text);
 }
 
-QTabBar::tab:selected {
-  font-weight: 500;
+QTabBar[gfTextEditTabBar="true"]::tab:selected {
+  color: palette(window-text);
+}
+
+QTabBar[gfTextEditTabBar="true"]::tab:disabled {
+  color: palette(mid);
 }
 )");
 
