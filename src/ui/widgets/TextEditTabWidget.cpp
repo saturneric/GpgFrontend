@@ -403,16 +403,6 @@ auto TextEditTabWidget::FindFilePageByPath(const QString& path) const -> int {
     if (!current_path.isEmpty() && current_path == target_path) {
       return i;
     }
-
-    const auto initial_path_value = page->property("initial_path").toString();
-    if (!initial_path_value.isEmpty()) {
-      const auto initial_path =
-          QDir::cleanPath(QFileInfo(initial_path_value).absoluteFilePath());
-
-      if (initial_path == target_path) {
-        return i;
-      }
-    }
   }
 
   return -1;
