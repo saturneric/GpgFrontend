@@ -61,6 +61,18 @@ jobs:
         with:
           key: codeql-${{ github.job }}-${{ matrix.os }}
 
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            rust -> build/cargo
+          shared-key: rust-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
+          cache-on-failure: true
+        if: runner.os == 'Linux'
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
