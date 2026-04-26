@@ -32,6 +32,8 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/function/openpgp/helper/OpSupport.h"
+#include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -44,6 +46,24 @@
 #include "ui_KeyList.h"
 
 namespace GpgFrontend::UI {
+
+namespace {
+
+auto IsOwnerTrustSupported(int channel) -> bool {
+  return GpgFrontend::IsOpSupported<GpgFrontend::SetOwnerTrustLevelOpTag>(
+      channel);
+}
+
+auto ApplyEngineColumnFilter(int channel, GpgKeyTableColumn columns)
+    -> GpgKeyTableColumn {
+  if (!IsOwnerTrustSupported(channel)) {
+    columns = columns & ~GpgKeyTableColumn::kOWNER_TRUST;
+  }
+
+  return columns;
+}
+
+}  // namespace
 
 KeyList::KeyList(QWidget* parent)
     : QWidget(parent),
@@ -189,6 +209,10 @@ void KeyList::InitContextMenu() {
 
       current_gpg_context_channel_ = channel;
       ui_->channelLcdNumber->display(channel);
+
+      InitColumnMenu();
+      UpdateKeyTableColumnType(global_column_filter_);
+
       emit SignalRefreshDatabase();
     });
 
@@ -221,7 +245,10 @@ void KeyList::InitColumnMenu() {
                                        : global_column_filter_ & ~column);
     });
 
-    if ((fixed_columns_filter_ & column) != GpgKeyTableColumn::kNONE) {
+    auto effective_fixed_columns = ApplyEngineColumnFilter(
+        current_gpg_context_channel_, fixed_columns_filter_);
+
+    if ((effective_fixed_columns & column) != GpgKeyTableColumn::kNONE) {
       column_type_menu->addAction(action);
     }
   };
@@ -731,7 +758,11 @@ void KeyList::check_all() {
 
 void KeyList::UpdateKeyTableColumnType(GpgKeyTableColumn column_type) {
   global_column_filter_ = column_type;
-  emit SignalColumnTypeChange(fixed_columns_filter_ & global_column_filter_);
+
+  const auto effective_fixed_columns = ApplyEngineColumnFilter(
+      current_gpg_context_channel_, fixed_columns_filter_);
+
+  emit SignalColumnTypeChange(effective_fixed_columns & global_column_filter_);
 }
 
 auto KeyList::GetCurrentGpgContextChannel() const -> int {

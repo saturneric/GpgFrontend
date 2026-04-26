@@ -28,9 +28,7 @@
 
 #pragma once
 
-#include "KeySetExpireDateDialog.h"
-#include "core/function/openpgp/OpenPGPContext.h"
-#include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend::UI {
 
@@ -149,6 +147,15 @@ class KeyPairSubkeyTab : public QWidget {
   QAction* edit_subkey_act_;
   QAction* delete_subkey_act_;
   QAction* revoke_subkey_act_;
+
+  bool add_subkey_supported_ = false;
+  bool add_adsk_supported_ = false;
+  bool set_expire_supported_ = false;
+  bool export_subkey_supported_ = false;
+  bool delete_subkey_supported_ = false;
+  bool revoke_subkey_supported_ = false;
+
+  QLabel* expire_title_label_ = nullptr;
 
   /**
    * @brief Create a subkey list object

@@ -41,6 +41,8 @@
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/ADSKsPicker.h"
 #include "ui/dialog/RevocationOptionsDialog.h"
+#include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
+#include "ui/dialog/keypair_details/KeySetExpireDateDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -54,6 +56,13 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
       OpenPGPContext::GetInstance(current_gpg_context_channel_).Engine();
   engine_ = engine;
 
+  add_subkey_supported_ = IsOpSupported<GenerateSubKeyTag>(channel);
+  add_adsk_supported_ = IsOpSupported<AddADSKOpTag>(channel);
+  set_expire_supported_ = IsOpSupported<SetExpireOpTag>(channel);
+  export_subkey_supported_ = IsOpSupported<ExportSubkeyOpTag>(channel);
+  delete_subkey_supported_ = IsOpSupported<DeleteSubKeyOpTag>(channel);
+  revoke_subkey_supported_ = IsOpSupported<RevokeSubKeyOpTag>(channel);
+
   create_subkey_list();
   create_subkey_opera_menu();
 
@@ -62,27 +71,32 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
 
   auto* uid_buttons_layout = new QGridLayout();
 
-  auto if_add_subkey_supported = IsOpSupported<GenerateSubKeyTag>(channel);
   auto* add_subkey_button = new QPushButton(tr("New Subkey"));
   auto* add_adsk_button = new QPushButton(tr("Add ADSK(s)"));
-  if (!key_->IsPrivateKey() || !key_->IsHasMasterKey() ||
-      !if_add_subkey_supported) {
-    add_subkey_button->setDisabled(true);
-    add_subkey_button->hide();
 
-    add_adsk_button->setDisabled(true);
-    add_adsk_button->hide();
-  }
+  const bool can_add_subkey =
+      key_->IsPrivateKey() && key_->IsHasMasterKey() && add_subkey_supported_;
 
-  auto if_adsk_supported = IsOpSupported<AddADSKOpTag>(channel);
+  const bool can_add_adsk =
+      key_->IsPrivateKey() && key_->IsHasMasterKey() && add_adsk_supported_;
 
-  if (!key_->IsPrivateKey() || !if_adsk_supported) {
-    add_adsk_button->setDisabled(true);
-    add_adsk_button->hide();
-  }
+  add_subkey_button->setVisible(can_add_subkey);
+  add_subkey_button->setEnabled(can_add_subkey);
+
+  add_adsk_button->setVisible(can_add_adsk);
+  add_adsk_button->setEnabled(can_add_adsk);
 
   uid_buttons_layout->addWidget(add_subkey_button, 0, 0);
   uid_buttons_layout->addWidget(add_adsk_button, 0, 1);
+
+  export_subkey_button_ = new QPushButton(tr("Export Subkey"));
+  export_subkey_button_->setFlat(true);
+  export_subkey_button_->setVisible(export_subkey_supported_);
+  export_subkey_button_->setEnabled(export_subkey_supported_);
+  if (!export_subkey_supported_) {
+    export_subkey_button_->setToolTip(tr(
+        "Exporting subkeys is not supported by the current OpenPGP backend."));
+  }
 
   auto* base_layout = new QVBoxLayout();
 
@@ -92,23 +106,6 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   subkey_list_layout->setContentsMargins(0, 10, 0, 0);
 
   auto* subkey_detail_layout = new QGridLayout();
-
-  subkey_detail_layout->addWidget(new QLabel(tr("Key ID") + ": "), 0, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Key Type") + ": "), 1, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Algorithm") + ": "), 2, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Algorithm Detail") + ": "), 3,
-                                  0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Key Size") + ": "), 4, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Usage") + ": "), 5, 0);
-  subkey_detail_layout->addWidget(
-      new QLabel(tr("Expires On (Local Time)") + ": "), 6, 0);
-  subkey_detail_layout->addWidget(
-      new QLabel(tr("Create Date (Local Time)") + ": "), 7, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Existence") + ": "), 8, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Revoked") + ": "), 9, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Key in Smart Card") + ": "),
-                                  10, 0);
-  subkey_detail_layout->addWidget(new QLabel(tr("Fingerprint") + ": "), 11, 0);
 
   key_type_var_label_ = new QLabel();
   key_id_var_label_ = new QLabel();
@@ -126,33 +123,82 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   created_var_label_->setWordWrap(true);
   expire_var_label_->setWordWrap(true);
   usage_var_label_->setWordWrap(true);
+  fingerprint_var_label_->setWordWrap(true);
 
-  // make keyid & fingerprint selectable for copy
   key_id_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
   fingerprint_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
-  subkey_detail_layout->addWidget(key_id_var_label_, 0, 1, 1, 1);
-  subkey_detail_layout->addWidget(key_type_var_label_, 1, 1, 1, 2);
-  subkey_detail_layout->addWidget(algorithm_var_label_, 2, 1, 1, 2);
-  subkey_detail_layout->addWidget(algorithm_detail_var_label_, 3, 1, 1, 2);
-  subkey_detail_layout->addWidget(key_size_var_label_, 4, 1, 1, 2);
-  subkey_detail_layout->addWidget(usage_var_label_, 5, 1, 1, 2);
-  subkey_detail_layout->addWidget(expire_var_label_, 6, 1, 1, 2);
-  subkey_detail_layout->addWidget(created_var_label_, 7, 1, 1, 2);
-  subkey_detail_layout->addWidget(master_key_exist_var_label_, 8, 1, 1, 2);
-  subkey_detail_layout->addWidget(revoke_var_label_, 9, 1, 1, 2);
-  subkey_detail_layout->addWidget(card_key_label_, 10, 1, 1, 2);
-  subkey_detail_layout->addWidget(fingerprint_var_label_, 11, 1, 1, 2);
+  auto add_title_label = [](const QString& text) {
+    auto* label = new QLabel(text + ": ");
+    label->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    return label;
+  };
 
-  auto if_export_subkey_supported = IsOpSupported<ExportSubkeyOpTag>(channel);
-  export_subkey_button_ = new QPushButton(tr("Export Subkey"));
-  export_subkey_button_->setFlat(true);
-  export_subkey_button_->setDisabled(!if_export_subkey_supported);
-  if (!if_export_subkey_supported) {
-    export_subkey_button_->setToolTip(
-        tr("Exporting subkeys is only supported for GnuPG"));
+  int detail_row = 0;
+
+  subkey_detail_layout->addWidget(add_title_label(tr("Key ID")), detail_row, 0);
+  subkey_detail_layout->addWidget(key_id_var_label_, detail_row, 1, 1, 1);
+  subkey_detail_layout->addWidget(export_subkey_button_, detail_row, 2);
+  ++detail_row;
+
+  subkey_detail_layout->addWidget(add_title_label(tr("Key Type")), detail_row,
+                                  0);
+  subkey_detail_layout->addWidget(key_type_var_label_, detail_row, 1, 1, 2);
+  ++detail_row;
+
+  subkey_detail_layout->addWidget(add_title_label(tr("Algorithm")), detail_row,
+                                  0);
+  subkey_detail_layout->addWidget(algorithm_var_label_, detail_row, 1, 1, 2);
+  ++detail_row;
+
+  subkey_detail_layout->addWidget(add_title_label(tr("Algorithm Detail")),
+                                  detail_row, 0);
+  subkey_detail_layout->addWidget(algorithm_detail_var_label_, detail_row, 1, 1,
+                                  2);
+  ++detail_row;
+
+  subkey_detail_layout->addWidget(add_title_label(tr("Key Size")), detail_row,
+                                  0);
+  subkey_detail_layout->addWidget(key_size_var_label_, detail_row, 1, 1, 2);
+  ++detail_row;
+
+  subkey_detail_layout->addWidget(add_title_label(tr("Usage")), detail_row, 0);
+  subkey_detail_layout->addWidget(usage_var_label_, detail_row, 1, 1, 2);
+  ++detail_row;
+
+  if (set_expire_supported_) {
+    expire_title_label_ = add_title_label(tr("Expires On (Local Time)"));
+    subkey_detail_layout->addWidget(expire_title_label_, detail_row, 0);
+    subkey_detail_layout->addWidget(expire_var_label_, detail_row, 1, 1, 2);
+    ++detail_row;
   }
-  subkey_detail_layout->addWidget(export_subkey_button_, 0, 2);
+
+  subkey_detail_layout->addWidget(
+      add_title_label(tr("Create Date (Local Time)")), detail_row, 0);
+  subkey_detail_layout->addWidget(created_var_label_, detail_row, 1, 1, 2);
+  ++detail_row;
+
+  subkey_detail_layout->addWidget(add_title_label(tr("Existence")), detail_row,
+                                  0);
+  subkey_detail_layout->addWidget(master_key_exist_var_label_, detail_row, 1, 1,
+                                  2);
+  ++detail_row;
+
+  subkey_detail_layout->addWidget(add_title_label(tr("Revoked")), detail_row,
+                                  0);
+  subkey_detail_layout->addWidget(revoke_var_label_, detail_row, 1, 1, 2);
+  ++detail_row;
+
+  subkey_detail_layout->addWidget(add_title_label(tr("Key in Smart Card")),
+                                  detail_row, 0);
+  subkey_detail_layout->addWidget(card_key_label_, detail_row, 1, 1, 2);
+  ++detail_row;
+
+  subkey_detail_layout->addWidget(add_title_label(tr("Fingerprint")),
+                                  detail_row, 0);
+  subkey_detail_layout->addWidget(fingerprint_var_label_, detail_row, 1, 1, 2);
+  ++detail_row;
+
   connect(export_subkey_button_, &QPushButton::clicked, this,
           &KeyPairSubkeyTab::slot_export_subkey);
 
@@ -195,29 +241,29 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
 void KeyPairSubkeyTab::create_subkey_list() {
   subkey_list_ = new QTableWidget(this);
 
-  subkey_list_->setColumnCount(5);
+  subkey_list_->setColumnCount(set_expire_supported_ ? 7 : 6);
+
   subkey_list_->horizontalHeader()->setSectionResizeMode(
       QHeaderView::ResizeToContents);
   subkey_list_->verticalHeader()->hide();
   subkey_list_->setShowGrid(false);
   subkey_list_->setSelectionBehavior(QAbstractItemView::SelectRows);
-
-  // tableitems not editable
+  subkey_list_->setSelectionMode(QAbstractItemView::SingleSelection);
   subkey_list_->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
-  // no focus (rectangle around tableitems)
-  // may be it should focus on whole row
   subkey_list_->setFocusPolicy(Qt::NoFocus);
   subkey_list_->setAlternatingRowColors(true);
 
   QStringList labels;
   labels << tr("Key ID") << tr("Key Type") << tr("Key Size") << tr("Algorithm")
-         << tr("Algorithm Detail") << tr("Create Date") << tr("Expire Date");
+         << tr("Algorithm Detail") << tr("Create Date");
+
+  if (set_expire_supported_) {
+    labels << tr("Expire Date");
+  }
 
   subkey_list_->setHorizontalHeaderLabels(labels);
   subkey_list_->horizontalHeader()->setStretchLastSection(true);
 }
-
 void KeyPairSubkeyTab::slot_refresh_subkey_list() {
   int row = 0;
 
@@ -258,26 +304,32 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
     tmp5->setTextAlignment(Qt::AlignCenter);
     subkey_list_->setItem(row, 5, tmp5);
 
-    auto* tmp6 =
-        new QTableWidgetItem(s_key.ExpirationTime().toSecsSinceEpoch() == 0
-                                 ? tr("Never Expire")
-                                 : QLocale().toString(s_key.ExpirationTime()));
-    tmp6->setTextAlignment(Qt::AlignCenter);
-    subkey_list_->setItem(row, 6, tmp6);
+    if (set_expire_supported_) {
+      auto* tmp6 = new QTableWidgetItem(
+          s_key.ExpirationTime().toSecsSinceEpoch() == 0
+              ? tr("Never Expire")
+              : QLocale().toString(s_key.ExpirationTime()));
+      tmp6->setTextAlignment(Qt::AlignCenter);
+      subkey_list_->setItem(row, 6, tmp6);
+    }
 
     if (row == 0) {
       for (auto i = 0; i < subkey_list_->columnCount(); i++) {
-        for (auto i = 0; i < subkey_list_->columnCount(); i++) {
-          auto font = subkey_list_->item(row, i)->font();
-          font.setBold(true);
-          subkey_list_->item(row, i)->setFont(font);
-        }
+        auto* item = subkey_list_->item(row, i);
+        if (item == nullptr) continue;
+
+        auto font = item->font();
+        font.setBold(true);
+        subkey_list_->item(row, i)->setFont(font);
       }
     }
 
     if (s_key.IsExpired() || s_key.IsRevoked()) {
       for (auto i = 0; i < subkey_list_->columnCount(); i++) {
-        auto font = subkey_list_->item(row, i)->font();
+        auto* item = subkey_list_->item(row, i);
+        if (item == nullptr) continue;
+
+        auto font = item->font();
         font.setStrikeOut(true);
         subkey_list_->item(row, i)->setFont(font);
       }
@@ -285,7 +337,10 @@ void KeyPairSubkeyTab::slot_refresh_subkey_list() {
 
     if (!s_key.IsSecretKey()) {
       for (auto i = 0; i < subkey_list_->columnCount(); i++) {
-        auto font = subkey_list_->item(row, i)->font();
+        auto* item = subkey_list_->item(row, i);
+        if (item == nullptr) continue;
+
+        auto font = item->font();
         font.setWeight(QFont::ExtraLight);
         font.setItalic(true);
         subkey_list_->item(row, i)->setFont(font);
@@ -325,23 +380,6 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
   key_id_var_label_->setText(s_key.ID());
   key_size_var_label_->setText(QString::number(s_key.KeyLength()));
 
-  time_t subkey_time_t = s_key.ExpirationTime().toSecsSinceEpoch();
-
-  expire_var_label_->setText(subkey_time_t == 0
-                                 ? tr("Never Expires")
-                                 : QLocale().toString(s_key.ExpirationTime()));
-
-  if (subkey_time_t != 0 &&
-      s_key.ExpirationTime() < QDateTime::currentDateTime()) {
-    auto palette_expired = expire_var_label_->palette();
-    palette_expired.setColor(expire_var_label_->foregroundRole(), Qt::red);
-    expire_var_label_->setPalette(palette_expired);
-  } else {
-    auto palette_valid = expire_var_label_->palette();
-    palette_valid.setColor(expire_var_label_->foregroundRole(), Qt::darkGreen);
-    expire_var_label_->setPalette(palette_valid);
-  }
-
   algorithm_var_label_->setText(s_key.PublicKeyAlgo());
   algorithm_detail_var_label_->setText(s_key.Algo());
   created_var_label_->setText(QLocale().toString(s_key.CreationTime()));
@@ -375,14 +413,33 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
     master_key_exist_var_label_->setPalette(palette_valid);
   }
 
-  if (!s_key.IsCardKey()) {
-    auto palette_expired = card_key_label_->palette();
-    palette_expired.setColor(card_key_label_->foregroundRole(), Qt::red);
-    card_key_label_->setPalette(palette_expired);
+  card_key_label_->setText(smart_card_info);
+
+  auto card_palette = card_key_label_->palette();
+  if (s_key.IsCardKey()) {
+    card_palette.setColor(card_key_label_->foregroundRole(), Qt::darkGreen);
   } else {
-    auto palette_valid = card_key_label_->palette();
-    palette_valid.setColor(card_key_label_->foregroundRole(), Qt::darkGreen);
-    card_key_label_->setPalette(palette_valid);
+    card_palette.setColor(card_key_label_->foregroundRole(),
+                          palette().color(QPalette::WindowText));
+  }
+  card_key_label_->setPalette(card_palette);
+
+  if (set_expire_supported_) {
+    const time_t subkey_time_t = s_key.ExpirationTime().toSecsSinceEpoch();
+
+    expire_var_label_->setText(
+        subkey_time_t == 0 ? tr("Never Expires")
+                           : QLocale().toString(s_key.ExpirationTime()));
+
+    auto palette = expire_var_label_->palette();
+    palette.setColor(expire_var_label_->foregroundRole(),
+                     subkey_time_t != 0 && s_key.ExpirationTime() <
+                                               QDateTime::currentDateTime()
+                         ? Qt::red
+                         : Qt::darkGreen);
+    expire_var_label_->setPalette(palette);
+  } else {
+    expire_var_label_->clear();
   }
 
   fingerprint_var_label_->setText(BeautifyFingerprint(s_key.Fingerprint()));
@@ -401,15 +458,11 @@ void KeyPairSubkeyTab::slot_refresh_subkey_detail() {
                                                     : tr("Subkey"));
 
   revoke_var_label_->setText(s_key.IsRevoked() ? tr("Yes") : tr("No"));
-  if (!s_key.IsRevoked()) {
-    auto palette_expired = revoke_var_label_->palette();
-    palette_expired.setColor(revoke_var_label_->foregroundRole(), Qt::red);
-    revoke_var_label_->setPalette(palette_expired);
-  } else {
-    auto palette_valid = revoke_var_label_->palette();
-    palette_valid.setColor(revoke_var_label_->foregroundRole(), Qt::darkGreen);
-    revoke_var_label_->setPalette(palette_valid);
-  }
+
+  auto revoke_palette = revoke_var_label_->palette();
+  revoke_palette.setColor(revoke_var_label_->foregroundRole(),
+                          s_key.IsRevoked() ? Qt::red : Qt::darkGreen);
+  revoke_var_label_->setPalette(revoke_palette);
 }
 
 void KeyPairSubkeyTab::create_subkey_opera_menu() {
@@ -430,13 +483,29 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
   connect(revoke_subkey_act_, &QAction::triggered, this,
           &KeyPairSubkeyTab::slot_revoke_subkey);
 
-  subkey_opera_menu_->addAction(export_subkey_act_);
-  subkey_opera_menu_->addAction(edit_subkey_act_);
-  subkey_opera_menu_->addAction(revoke_subkey_act_);
-  subkey_opera_menu_->addAction(delete_subkey_act_);
+  if (export_subkey_supported_) {
+    subkey_opera_menu_->addAction(export_subkey_act_);
+  }
+
+  if (set_expire_supported_) {
+    subkey_opera_menu_->addAction(edit_subkey_act_);
+  }
+
+  if (revoke_subkey_supported_) {
+    subkey_opera_menu_->addAction(revoke_subkey_act_);
+  }
+
+  if (delete_subkey_supported_) {
+    subkey_opera_menu_->addAction(delete_subkey_act_);
+  }
 }
 
 void KeyPairSubkeyTab::slot_edit_subkey() {
+  if (!set_expire_supported_) return;
+
+  const auto& s_key = get_selected_subkey();
+  if (!s_key.IsSecretKey()) return;
+
   auto* dialog =
       new KeySetExpireDateDialog(current_gpg_context_channel_, key_,
                                  get_selected_subkey().Fingerprint(), this);
@@ -444,30 +513,33 @@ void KeyPairSubkeyTab::slot_edit_subkey() {
 }
 
 void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
-  // must have primary key before do any actions on subkey
-  if (key_->IsHasMasterKey() && !subkey_list_->selectedItems().isEmpty()) {
-    const auto& s_key = get_selected_subkey();
-
-    if (s_key.IsHasCertCap()) return;
-
-    export_subkey_act_->setDisabled(!s_key.IsSecretKey() || s_key.IsADSK());
-    edit_subkey_act_->setDisabled(!s_key.IsSecretKey());
-    delete_subkey_act_->setDisabled(!s_key.IsSecretKey() && !s_key.IsADSK());
-    revoke_subkey_act_->setDisabled((!s_key.IsSecretKey() && !s_key.IsADSK()) ||
-                                    s_key.IsRevoked());
-
-    auto if_export_subkey_supported =
-        IsOpSupported<ExportSubkeyOpTag>(current_gpg_context_channel_);
-    auto if_delete_subkey_supported =
-        IsOpSupported<DeleteSubKeyOpTag>(current_gpg_context_channel_);
-
-    // only allow export subkey when using GnuPG, since rpgp doesn't support
-    // exporting subkeys for now
-    export_subkey_act_->setDisabled(!if_export_subkey_supported);
-    delete_subkey_act_->setDisabled(!if_delete_subkey_supported);
-
-    subkey_opera_menu_->exec(event->globalPos());
+  if (!key_->IsHasMasterKey() || subkey_list_->selectedItems().isEmpty()) {
+    return;
   }
+
+  const auto& s_key = get_selected_subkey();
+  if (s_key.IsHasCertCap()) return;
+
+  const bool can_export =
+      export_subkey_supported_ && s_key.IsSecretKey() && !s_key.IsADSK();
+
+  const bool can_edit_expire = set_expire_supported_ && s_key.IsSecretKey();
+
+  const bool can_delete =
+      delete_subkey_supported_ && (s_key.IsSecretKey() || s_key.IsADSK());
+
+  const bool can_revoke = revoke_subkey_supported_ &&
+                          (s_key.IsSecretKey() || s_key.IsADSK()) &&
+                          !s_key.IsRevoked();
+
+  export_subkey_act_->setEnabled(can_export);
+  edit_subkey_act_->setEnabled(can_edit_expire);
+  delete_subkey_act_->setEnabled(can_delete);
+  revoke_subkey_act_->setEnabled(can_revoke);
+
+  if (subkey_opera_menu_->isEmpty()) return;
+
+  subkey_opera_menu_->exec(event->globalPos());
 }
 
 auto KeyPairSubkeyTab::get_selected_subkey() -> const GpgSubKey& {
@@ -488,12 +560,21 @@ auto KeyPairSubkeyTab::get_selected_subkey() -> const GpgSubKey& {
 }
 
 void KeyPairSubkeyTab::slot_refresh_key_info() {
-  key_ = GpgKeyRepository::GetInstance(current_gpg_context_channel_)
-             .GetKeyPtr(key_->ID());
-  assert(key_ != nullptr);
+  auto refreshed_key =
+      GpgKeyRepository::GetInstance(current_gpg_context_channel_)
+          .GetKeyPtr(key_->ID());
+
+  if (refreshed_key == nullptr || !refreshed_key->IsGood()) {
+    LOG_W() << "failed to refresh subkey tab, key id:" << key_->ID();
+    return;
+  }
+
+  key_ = refreshed_key;
 }
 
 void KeyPairSubkeyTab::slot_export_subkey() {
+  if (!export_subkey_supported_) return;
+
   int ret = QMessageBox::question(
       this, tr("Exporting Subkey"),
       "<h3>" + tr("You are about to export a private subkey.") + "</h3>\n" +
@@ -540,6 +621,8 @@ void KeyPairSubkeyTab::slot_export_subkey() {
 }
 
 void KeyPairSubkeyTab::slot_delete_subkey() {
+  if (!delete_subkey_supported_) return;
+
   const auto& s_key = get_selected_subkey();
 
   QString message = tr("<h3>You are about to delete the subkey:</h3><br />"
@@ -587,6 +670,7 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
 }
 
 void KeyPairSubkeyTab::slot_revoke_subkey() {
+  if (!revoke_subkey_supported_) return;
   const auto& s_key = get_selected_subkey();
 
   QString message = tr("<h3>Revoke Subkey Confirmation</h3><br />"

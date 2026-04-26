@@ -30,6 +30,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/GpgKey.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
@@ -41,6 +42,12 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
       current_gpg_context_channel_(channel),
       key_(std::move(key)) {
   assert(key_->IsGood());
+
+  owner_trust_supported_ =
+      IsOpSupported<SetOwnerTrustLevelOpTag>(current_gpg_context_channel_);
+
+  expire_supported_ =
+      IsOpSupported<SetExpireOpTag>(current_gpg_context_channel_);
 
   owner_box_ = new QGroupBox(tr("Owner"));
   key_box_ = new QGroupBox(tr("Primary Key"));
@@ -85,30 +92,77 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   vbox_od->addWidget(email_var_label_, 1, 1);
   vbox_od->addWidget(comment_var_label_, 2, 1);
 
-  vbox_kd->addWidget(new QLabel(tr("Key ID") + ": "), 0, 0);
-  vbox_kd->addWidget(new QLabel(tr("Algorithm") + ": "), 1, 0);
-  vbox_kd->addWidget(new QLabel(tr("Algorithm Detail") + ": "), 2, 0);
-  vbox_kd->addWidget(new QLabel(tr("Key Size") + ": "), 3, 0);
-  vbox_kd->addWidget(new QLabel(tr("Usage") + ": "), 4, 0);
-  vbox_kd->addWidget(new QLabel(tr("Owner Trust Level") + ": "), 5, 0);
-  vbox_kd->addWidget(new QLabel(tr("Create Date (Local Time)") + ": "), 6, 0);
-  vbox_kd->addWidget(new QLabel(tr("Expires on (Local Time)") + ": "), 7, 0);
-  vbox_kd->addWidget(new QLabel(tr("Last Update (Local Time)") + ": "), 8, 0);
-  vbox_kd->addWidget(new QLabel(tr("Primary Key Existence") + ": "), 9, 0);
+  auto add_title_label = [](const QString& text) -> QLabel* {
+    auto* label = new QLabel(text + ": ");
+    label->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+    return label;
+  };
 
-  key_id_var_label_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  vbox_kd->addWidget(key_id_var_label_, 0, 1, 1, 1);
-  vbox_kd->addWidget(algorithm_var_label_, 1, 1, 1, 2);
-  vbox_kd->addWidget(algorithm_detail_var_label_, 2, 1, 1, 2);
-  vbox_kd->addWidget(key_size_var_label_, 3, 1, 1, 2);
-  vbox_kd->addWidget(usage_var_label_, 4, 1, 1, 2);
-  vbox_kd->addWidget(owner_trust_var_label_, 5, 1, 1, 2);
-  vbox_kd->addWidget(created_var_label_, 6, 1, 1, 2);
-  vbox_kd->addWidget(expire_var_label_, 7, 1, 1, 2);
-  vbox_kd->addWidget(last_update_var_label_, 8, 1, 1, 2);
-  vbox_kd->addWidget(primary_key_exist_var_label_, 9, 1, 1, 2);
+  int key_row = 0;
+
+  vbox_kd->addWidget(add_title_label(tr("Key ID")), key_row, 0);
+  vbox_kd->addWidget(key_id_var_label_, key_row, 1, 1, 1);
 
   auto* copy_key_id_button = new QPushButton(tr("Copy"));
+  copy_key_id_button->setFlat(true);
+  copy_key_id_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  vbox_kd->addWidget(copy_key_id_button, key_row, 2);
+
+  connect(copy_key_id_button, &QPushButton::clicked, this, [=]() {
+    const auto key_id = key_id_var_label_->text().trimmed();
+    QApplication::clipboard()->setText(key_id);
+  });
+
+  ++key_row;
+
+  vbox_kd->addWidget(add_title_label(tr("Algorithm")), key_row, 0);
+  vbox_kd->addWidget(algorithm_var_label_, key_row, 1, 1, 2);
+  ++key_row;
+
+  vbox_kd->addWidget(add_title_label(tr("Algorithm Detail")), key_row, 0);
+  vbox_kd->addWidget(algorithm_detail_var_label_, key_row, 1, 1, 2);
+  ++key_row;
+
+  vbox_kd->addWidget(add_title_label(tr("Key Size")), key_row, 0);
+  vbox_kd->addWidget(key_size_var_label_, key_row, 1, 1, 2);
+  ++key_row;
+
+  vbox_kd->addWidget(add_title_label(tr("Usage")), key_row, 0);
+  vbox_kd->addWidget(usage_var_label_, key_row, 1, 1, 2);
+  ++key_row;
+
+  if (owner_trust_supported_) {
+    owner_trust_title_label_ = add_title_label(tr("Owner Trust Level"));
+    vbox_kd->addWidget(owner_trust_title_label_, key_row, 0);
+    vbox_kd->addWidget(owner_trust_var_label_, key_row, 1, 1, 2);
+    ++key_row;
+  } else {
+    owner_trust_var_label_->hide();
+  }
+
+  vbox_kd->addWidget(add_title_label(tr("Create Date (Local Time)")), key_row,
+                     0);
+  vbox_kd->addWidget(created_var_label_, key_row, 1, 1, 2);
+  ++key_row;
+
+  if (expire_supported_) {
+    expire_title_label_ = add_title_label(tr("Expires on (Local Time)"));
+    vbox_kd->addWidget(expire_title_label_, key_row, 0);
+    vbox_kd->addWidget(expire_var_label_, key_row, 1, 1, 2);
+    ++key_row;
+  } else {
+    expire_var_label_->hide();
+  }
+
+  vbox_kd->addWidget(add_title_label(tr("Last Update (Local Time)")), key_row,
+                     0);
+  vbox_kd->addWidget(last_update_var_label_, key_row, 1, 1, 2);
+  ++key_row;
+
+  vbox_kd->addWidget(add_title_label(tr("Primary Key Existence")), key_row, 0);
+  vbox_kd->addWidget(primary_key_exist_var_label_, key_row, 1, 1, 2);
+  ++key_row;
+
   copy_key_id_button->setFlat(true);
   copy_key_id_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   vbox_kd->addWidget(copy_key_id_button, 0, 2);
@@ -195,16 +249,6 @@ void KeyPairDetailTab::slot_refresh_key_info() {
     primary_key_exist_var_label_->setPalette(palette_valid);
   }
 
-  if (key_->IsExpired()) {
-    auto palette_expired = expire_var_label_->palette();
-    palette_expired.setColor(expire_var_label_->foregroundRole(), Qt::red);
-    expire_var_label_->setPalette(palette_expired);
-  } else {
-    auto palette_valid = expire_var_label_->palette();
-    palette_valid.setColor(expire_var_label_->foregroundRole(), Qt::darkGreen);
-    expire_var_label_->setPalette(palette_valid);
-  }
-
   name_var_label_->setText(key_->Name());
   email_var_label_->setText(key_->Email());
 
@@ -222,7 +266,11 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   if (key_->IsHasAuthCap()) usage_steam << tr("Auth") << " ";
 
   usage_var_label_->setText(usage_steam.readAll());
-  owner_trust_var_label_->setText(key_->OwnerTrust());
+  if (owner_trust_supported_) {
+    owner_trust_var_label_->setText(key_->OwnerTrust());
+  } else {
+    owner_trust_var_label_->clear();
+  }
 
   QString key_size_val;
   QString key_expire_val;
@@ -233,10 +281,19 @@ void KeyPairDetailTab::slot_refresh_key_info() {
 
   key_size_val = QString::number(key_->PrimaryKeyLength());
 
-  if (key_->ExpirationTime().toSecsSinceEpoch() == 0) {
-    expire_var_label_->setText(tr("Never Expire"));
+  if (expire_supported_) {
+    if (key_->ExpirationTime().toSecsSinceEpoch() == 0) {
+      expire_var_label_->setText(tr("Never Expire"));
+    } else {
+      expire_var_label_->setText(QLocale().toString(key_->ExpirationTime()));
+    }
+
+    auto palette = expire_var_label_->palette();
+    palette.setColor(expire_var_label_->foregroundRole(),
+                     key_->IsExpired() ? Qt::red : Qt::darkGreen);
+    expire_var_label_->setPalette(palette);
   } else {
-    expire_var_label_->setText(QLocale().toString((key_->ExpirationTime())));
+    expire_var_label_->clear();
   }
 
   key_algo_val = key_->PublicKeyAlgo();

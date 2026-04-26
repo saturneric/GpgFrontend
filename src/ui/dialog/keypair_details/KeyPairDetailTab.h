@@ -96,6 +96,12 @@ class KeyPairDetailTab : public QWidget {
   QLabel* icon_label_;  ///<
   QLabel* exp_label_;   ///<
 
+  bool expire_supported_ = true;
+  bool owner_trust_supported_ = true;
+
+  QLabel* owner_trust_title_label_ = nullptr;
+  QLabel* expire_title_label_ = nullptr;
+
  public:
   /**
    * @brief Construct a new Key Pair Detail Tab object
