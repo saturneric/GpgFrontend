@@ -338,6 +338,15 @@ auto HandleVerifyResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
       gf_err = GPG_ERR_EIO;
       goto end;
     }
+
+    if (err == Rust::GfrStatus::ErrorInternal) {
+      LOG_E() << "Verification failed: An internal error occurred in the "
+                 "verification process.";
+      gf_err = GPG_ERR_NO_DATA;
+      goto end;
+    }
+
+    gf_err = GPG_ERR_GENERAL;
   }
 
   LOG_D() << "Verification success. Processing results...";
