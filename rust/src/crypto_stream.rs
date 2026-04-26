@@ -790,7 +790,7 @@ fn decrypt_message_with_password(
             fpr: String::new(),
             info: "Symmetric Decryption".to_string(),
             retry: false,
-            ask_for_new: false,
+            ask_for_new: true, // For symmetric decryption, we always want to ask for a new password and bypass cache to avoid false hits
         },
         fetch_pwd_cb,
         free_cb,
