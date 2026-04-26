@@ -71,7 +71,6 @@ jobs:
             rust -> build/cargo
           shared-key: rust-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
           cache-on-failure: true
-        if: runner.os == 'Linux'
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
