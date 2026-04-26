@@ -14,6 +14,7 @@ it's recommended to always use the latest version of the application.
 | 1.x.x   | :x:                |
 | 2.x.x   | :x:                |
 | 2.1.x   | :white_check_mark: |
+| 2.2.x   | :white_check_mark: |
 
 ## Platform & Library Support
 

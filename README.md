@@ -31,6 +31,8 @@ easier and more trustworthy in everyday privacy workflows.
   focus is strictly on bug fixes and security updates, with no new major
   features or breaking changes planned.
 
+The main branch now includes the experimental rPGP backend.
+
 ## Table of Contents
 
 - [GpgFrontend](#gpgfrontend)
