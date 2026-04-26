@@ -57,8 +57,25 @@ class SignersPicker : public GeneralDialog {
    */
   auto GetCheckedSigners() -> GpgAbstractKeyPtrList;
 
+ private slots:
+
+  /**
+   * @brief
+   *
+   */
+  void update_confirm_button_state();
+
+ protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void showEvent(QShowEvent* event) override;
+
  private:
   KeyList* key_list_;  ///<
+  QPushButton* confirm_button_ = nullptr;
 };
 
 }  // namespace GpgFrontend::UI

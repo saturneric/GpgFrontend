@@ -39,104 +39,146 @@ SubKeyPicker::SubKeyPicker(int channel, GpgAbstractKeyPtrList keys,
     : GeneralDialog("SubKeyPicker", parent),
       channel_(channel),
       buffered_keys_(std::move(keys)) {
-  setWindowTitle(tr("Select Signing Key(s) & Subkey(s)"));
+#ifdef Q_OS_MACOS
+  setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+#endif
+
+  setWindowTitle(tr("Select Signing Key(s) && Subkey(s)"));
   setModal(true);
+  setMinimumSize(560, 420);
+  resize(680, 480);
 
-  auto* layout = new QVBoxLayout(this);
+  auto* title_label = new QLabel(tr("Choose Signing Subkey(s)"));
+  auto title_font = title_label->font();
+  title_font.setBold(true);
+  title_label->setFont(title_font);
 
-  layout->addWidget(
-      new QLabel(tr("Choose the primary key(s) or one or more subkeys:")));
+  auto* desc_label =
+      new QLabel(tr("Choose the primary key(s) or one or more signing-capable "
+                    "subkeys to use for this operation."));
+  desc_label->setWordWrap(true);
 
   QVector<QString> key_ids;
+  key_ids.reserve(buffered_keys_.size() * 2);
 
   for (const auto& k : buffered_keys_) {
-    if (k->KeyType() != GpgAbstractKeyType::kGPG_KEY) continue;
+    if (k == nullptr || k->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
+      continue;
+    }
 
     auto gpg_key = qSharedPointerDynamicCast<GpgKey>(k);
     if (gpg_key == nullptr) continue;
 
     for (const auto& s_key : gpg_key->SubKeys()) {
-      if (s_key.IsHasSignCap()) key_ids.push_back(s_key.Fingerprint());
+      if (s_key.IsHasSignCap()) {
+        key_ids.push_back(s_key.Fingerprint());
+      }
     }
   }
 
   tree_view_ = new KeyTreeView(
       channel_,
       [](GpgAbstractKey* k) {
-        return k->KeyType() == GpgAbstractKeyType::kGPG_KEY ||
-               k->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY;
+        return k != nullptr &&
+               (k->KeyType() == GpgAbstractKeyType::kGPG_KEY ||
+                k->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY);
       },
-      [=](const GpgAbstractKey* k) {
-        return key_ids.contains(k->Fingerprint());
+      [key_ids](const GpgAbstractKey* k) {
+        return k != nullptr && key_ids.contains(k->Fingerprint());
       });
 
-  connect(tree_view_, &KeyTreeView::SignalKeysChecked, this,
-          [=](const GpgAbstractKeyPtrList& keys) {
-            confirm_btn_->setDisabled(keys.empty());
-          });
+  tree_view_->setUniformRowHeights(true);
+  tree_view_->setAlternatingRowColors(true);
+  tree_view_->setSelectionBehavior(QAbstractItemView::SelectRows);
+  tree_view_->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  tree_view_->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-  tree_view_->setStyleSheet("QTreeView::item { height: 28px; }");
-  layout->addWidget(tree_view_);
-
-  auto* tips_label = new QLabel(tr(
-      "Multiple signing subkeys have been detected among your selected keys, "
-      "which makes it unclear which key should be used for signing. "
-      "Please select the primary key(s) or one or more subkeys with signing "
-      "capability to proceed."));
+  auto* tips_label = new QLabel(
+      tr("Multiple signing subkeys were detected among the selected keys. "
+         "Please choose exactly the key material that should be used for "
+         "signing."));
   tips_label->setWordWrap(true);
-  tips_label->setStyleSheet("color: #666; margin-bottom: 6px;");
 
-  layout->addWidget(tips_label);
+  auto tips_palette = tips_label->palette();
+  tips_palette.setColor(
+      QPalette::WindowText,
+      palette().color(QPalette::Disabled, QPalette::WindowText));
+  tips_label->setPalette(tips_palette);
 
-  confirm_btn_ = new QPushButton(tr("Confirm"));
-  cancel_btn_ = new QPushButton(tr("Cancel"));
+  auto* button_box = new QDialogButtonBox(
+      QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
 
-  connect(confirm_btn_, &QPushButton::clicked, this, [=]() {
-    if (tree_view_->GetAllCheckedKeys().isEmpty()) {
+  confirm_btn_ = button_box->button(QDialogButtonBox::Ok);
+  confirm_btn_->setText(tr("Confirm"));
+  confirm_btn_->setEnabled(false);
+
+  cancel_btn_ = button_box->button(QDialogButtonBox::Cancel);
+  cancel_btn_->setText(tr("Cancel"));
+
+  connect(button_box, &QDialogButtonBox::accepted, this, [this]() {
+    if (tree_view_ == nullptr || tree_view_->GetAllCheckedKeys().isEmpty()) {
       QMessageBox::information(this, tr("No Subkeys Selected"),
-                               tr("Please select at least one Subkey."));
-
+                               tr("Please select at least one signing key or "
+                                  "signing subkey."));
       return;
     }
+
     accept();
   });
-  connect(cancel_btn_, &QPushButton::clicked, this, &QDialog::reject);
 
-  auto* btn_layout = new QHBoxLayout();
-  btn_layout->addStretch();
-  btn_layout->addWidget(confirm_btn_);
-  btn_layout->addWidget(cancel_btn_);
-  layout->addLayout(btn_layout);
+  connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-  this->setMinimumWidth(480);
+  connect(tree_view_, &KeyTreeView::SignalKeysChecked, this,
+          &SubKeyPicker::update_confirm_button_state);
 
-  confirm_btn_->setDisabled(true);
+  auto* layout = new QVBoxLayout(this);
+  layout->setContentsMargins(10, 10, 10, 10);
+  layout->setSpacing(8);
 
-  movePosition2CenterOfParent();
+  layout->addWidget(title_label);
+  layout->addWidget(desc_label);
+  layout->addWidget(tree_view_, 1);
+  layout->addWidget(tips_label);
+  layout->addWidget(button_box);
 
-  // should not delete itself at closing by default
   setAttribute(Qt::WA_DeleteOnClose, false);
-};
+
+  update_confirm_button_state();
+
+  if (!isRectRestored()) {
+    movePosition2CenterOfParent();
+  }
+}
+
+void SubKeyPicker::update_confirm_button_state() {
+  if (confirm_btn_ == nullptr || tree_view_ == nullptr) return;
+  confirm_btn_->setEnabled(!tree_view_->GetAllCheckedKeys().isEmpty());
+}
 
 [[nodiscard]] auto SubKeyPicker::GetSelectedKeyWithFlags() const
     -> GpgAbstractKeyPtrList {
+  if (tree_view_ == nullptr) return {};
+
   const auto keys = tree_view_->GetAllCheckedKeys();
 
   GpgAbstractKeyPtrList ret;
-
   auto& getter = AbstractKeyRepository::GetInstance(channel_);
 
   for (const auto& k : keys) {
-    GpgAbstractKeyPtr key = nullptr;
+    if (k == nullptr) continue;
 
-    if (k->KeyType() == GpgAbstractKeyType::kGPG_KEY ||
-        k->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY) {
-      key = getter.GetKey(k->Fingerprint() + "!");
+    if (k->KeyType() != GpgAbstractKeyType::kGPG_KEY &&
+        k->KeyType() != GpgAbstractKeyType::kGPG_SUBKEY) {
+      continue;
     }
 
-    if (key) ret.push_back(key);
+    auto key = getter.GetKey(k->Fingerprint() + "!");
+    if (key != nullptr) {
+      ret.push_back(key);
+    }
   }
 
   return ret;
 }
+
 }  // namespace GpgFrontend::UI
