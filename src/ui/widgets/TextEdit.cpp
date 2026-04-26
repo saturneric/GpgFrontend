@@ -381,8 +381,64 @@ void TextEdit::SlotSetGFBuffer2CurTextPage(const GFBuffer& buffer) {
 }
 
 void TextEdit::SlotAppendText2CurTextPage(const QString& text) {
-  if (CurTextPage() == nullptr) SlotNewTab();
-  CurTextPage()->GetTextPage()->appendPlainText(text);
+  SlotAppendText2CurTextPage(text, false);
+}
+
+void TextEdit::SlotAppendText2CurTextPageAndReveal(const QString& text) {
+  SlotAppendText2CurTextPage(text, true);
+}
+
+void TextEdit::SlotAppendText2CurTextPage(const QString& text, bool reveal) {
+  if (text.isEmpty()) return;
+
+  if (CurTextPage() == nullptr) {
+    SlotNewTab();
+  }
+
+  auto* page = CurTextPage();
+  if (page == nullptr) return;
+
+  auto* edit = page->GetTextPage();
+  if (edit == nullptr) return;
+
+  auto* scroll_bar = edit->verticalScrollBar();
+  const int old_scroll_value = scroll_bar != nullptr ? scroll_bar->value() : 0;
+  const QTextCursor old_cursor = edit->textCursor();
+
+  QTextCursor append_cursor(edit->document());
+  append_cursor.movePosition(QTextCursor::End);
+
+  append_cursor.beginEditBlock();
+
+  const auto current_text = edit->toPlainText();
+  if (!current_text.isEmpty() && !current_text.endsWith('\n') &&
+      !text.startsWith('\n')) {
+    append_cursor.insertText(QStringLiteral("\n"));
+  }
+
+  append_cursor.insertText(text);
+
+  if (!text.endsWith('\n')) {
+    append_cursor.insertText(QStringLiteral("\n"));
+  }
+
+  append_cursor.endEditBlock();
+
+  if (reveal) {
+    edit->setTextCursor(append_cursor);
+    edit->ensureCursorVisible();
+  } else {
+    edit->setTextCursor(old_cursor);
+    if (scroll_bar != nullptr) {
+      scroll_bar->setValue(old_scroll_value);
+      QTimer::singleShot(0, edit, [edit, old_scroll_value]() {
+        if (edit == nullptr || edit->verticalScrollBar() == nullptr) return;
+        edit->verticalScrollBar()->setValue(old_scroll_value);
+      });
+    }
+  }
+
+  edit->document()->setModified(true);
 }
 
 auto TextEdit::CurTextPage() const -> PlainTextEditorPage* {

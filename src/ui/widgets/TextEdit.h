@@ -302,6 +302,21 @@ class TextEdit : public QWidget {
   /**
    * @brief
    *
+   * @param text
+   * @param reveal
+   */
+  void SlotAppendText2CurTextPage(const QString& text, bool reveal);
+
+  /**
+   * @brief
+   *
+   * @param text
+   */
+  void SlotAppendText2CurTextPageAndReveal(const QString& text);
+
+  /**
+   * @brief
+   *
    * @param buffer
    */
   void SlotSetGFBuffer2CurTextPage(const GFBuffer& buffer);

@@ -100,7 +100,10 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
   });
 
   connect(ui_->textPage, &QPlainTextEdit::cursorPositionChanged, this,
-          &PlainTextEditorPage::UpdateStatusBar);
+          [this]() {
+            if (!read_done_) return;
+            UpdateStatusBar();
+          });
 
   if (full_file_path_.isEmpty()) {
     read_done_ = true;
@@ -121,7 +124,6 @@ void PlainTextEditorPage::InitEditorStyle() {
       QFontMetricsF(ui_->textPage->font()).horizontalAdvance(' ') * 4);
   ui_->textPage->setUndoRedoEnabled(true);
   ui_->textPage->setCursorWidth(2);
-  ui_->textPage->setCenterOnScroll(true);
 
   QFont editor_font = PreferredMonospaceFont();
 
@@ -131,11 +133,28 @@ void PlainTextEditorPage::InitEditorStyle() {
 
   ui_->textPage->setFont(editor_font);
 
+  auto setup_status_label = [](QLabel *label, const QString &width_sample) {
+    QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    font.setStyleHint(QFont::Monospace);
+    font.setFixedPitch(true);
+
+#ifdef Q_OS_MACOS
+    font.setPointSize(std::max(10, font.pointSize()));
+#else
+    font.setPointSize(std::max(9, font.pointSize()));
+#endif
+
+    label->setFont(font);
+    label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    label->setAlignment(Qt::AlignCenter);
+    label->setMinimumWidth(QFontMetrics(font).horizontalAdvance(width_sample));
+  };
+
   ui_->loadingLabel->setHidden(true);
   ui_->loadingLabel->setAlignment(Qt::AlignCenter);
   ui_->loadingLabel->setText(tr("Loading..."));
 
-  ui_->characterLabel->setText(tr("0 character(s)"));
+  ui_->characterLabel->setText(tr("Ln 1, Col 1 · 0 chars"));
   ui_->characterLabel->setToolTip(tr("Number of characters in the editor."));
 
   ui_->lfLabel->setText(tr("LF"));
@@ -144,6 +163,11 @@ void PlainTextEditorPage::InitEditorStyle() {
 
   ui_->encodingLabel->setText(tr("UTF-8"));
   ui_->encodingLabel->setToolTip(tr("Text encoding."));
+
+  setup_status_label(ui_->characterLabel,
+                     QStringLiteral("Ln 9999, Col 999 · 999999 chars · *"));
+  setup_status_label(ui_->lfLabel, QStringLiteral("CRLF"));
+  setup_status_label(ui_->encodingLabel, QStringLiteral("UTF-8"));
 
   setAcceptDrops(false);
 
@@ -204,7 +228,7 @@ void PlainTextEditorPage::UpdateStatusBar() {
                                  ? QStringLiteral(" · *")
                                  : QString();
 
-  ui_->characterLabel->setText(tr("Ln %1, Col %2 · %3 character(s)%4")
+  ui_->characterLabel->setText(tr("Ln %1, Col %2 · %3 chars%4")
                                    .arg(line)
                                    .arg(column)
                                    .arg(char_count)
@@ -348,14 +372,6 @@ void PlainTextEditorPage::ReadFile() {
   task_runner->PostTask(read_task);
 }
 
-auto BinaryToString(const QByteArray &source) -> QString {
-  static const char kSyms[] = "0123456789ABCDEF";
-  QString buffer;
-  QTextStream ss(&buffer);
-  for (auto c : source) ss << kSyms[((c >> 4) & 0xf)] << kSyms[c & 0xf] << " ";
-  return buffer;
-}
-
 void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
   if (last_insert_has_partial_cr_ && !bytes_data.isEmpty() &&
       bytes_data.startsWith('\n')) {
@@ -377,10 +393,7 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
 
   ui_->textPage->insertPlainText(QString::fromUtf8(bytes_data));
 
-  const auto char_count =
-      std::max(0, ui_->textPage->document()->characterCount() - 1);
-
-  ui_->characterLabel->setText(tr("%1 character(s)").arg(char_count));
+  UpdateStatusBar();
 
   if (read_bytes_ > 0) {
     ui_->loadingLabel->setText(tr("Loading... %1 KB").arg(read_bytes_ / 1024));
@@ -406,7 +419,11 @@ void PlainTextEditorPage::Clear() {
 
   editor->clear();
   editor->document()->clearUndoRedoStacks();
+  editor->document()->setModified(false);
   editor->setUndoRedoEnabled(true);
+
+  UpdateStatusBar();
+  SetEditorModified(false);
 }
 
 void PlainTextEditorPage::ApplyAppearanceSettings() {
