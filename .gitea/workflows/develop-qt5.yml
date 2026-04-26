@@ -27,7 +27,7 @@ name: Develop CI Qt5 Build
 
 on:
   push:
-    branches: ["develop", "dev/**"]
+    branches: ["develop", "dev/**", "main"]
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
