@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
+# Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 #
 # This file is part of GpgFrontend.
 #
@@ -23,13 +23,35 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-name: Build Nightly
+name: Build
 
 on:
   push:
     branches:
       - develop
+      - main
+    paths-ignore:
+      - "resource/lfs/locale/**"
+      - "**.md"
+
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths-ignore:
+      - "resource/lfs/locale/**"
+      - "**.md"
+
   workflow_dispatch:
+    inputs:
+      build_mode:
+        description: "Build mode"
+        required: true
+        default: "nightly"
+        type: choice
+        options:
+          - nightly
+          - release
 
 env:
   BUILD_TYPE: RelWithDebInfo
@@ -60,19 +82,50 @@ jobs:
 
       - uses: actions/checkout@v6
         with:
-          ref: "develop"
           lfs: "false"
           submodules: recursive
 
-      - name: Setup Sandbox Environment Variables
+      - name: Setup Build Mode
         shell: bash
         run: |
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            BUILD_MODE="${{ github.event.inputs.build_mode }}"
+            if [[ "${BUILD_MODE}" == "release" ]]; then
+              BUILD_TYPE_EFFECTIVE="Release"
+            else
+              BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+            fi
+
+          elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            BUILD_MODE="pr"
+            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+
+          elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            BUILD_MODE="release"
+            BUILD_TYPE_EFFECTIVE="Release"
+
+          elif [[ "${GITHUB_REF_NAME}" == "develop" ]]; then
+            BUILD_MODE="nightly"
+            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+
+          else
+            BUILD_MODE="nightly"
+            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+          fi
+
+          echo "BUILD_MODE=${BUILD_MODE}" >> $GITHUB_ENV
+          echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}" >> $GITHUB_ENV
+          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE_EFFECTIVE} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
           echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
           echo "CODE_SIGNING_IDENTITY=${{secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
           echo "PROVISIONING_PROFILE_UUID=${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_UUID}}" >> $GITHUB_ENV
-          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
+
+          echo "Build mode: ${BUILD_MODE}"
+          echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
@@ -165,7 +218,7 @@ jobs:
         with:
           workspaces: |
             rust -> build/cargo
-          shared-key: rust-nightly-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
+          shared-key: rust-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
           cache-on-failure: true
         if: runner.os == 'Linux' || runner.os == 'macOS'
 
@@ -310,7 +363,7 @@ jobs:
             ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.zip
         if: runner.os == 'macOS'
 
-      - name: Notarize Release Build (macOS)
+      - name: Notarize macOS Build (macOS)
         run: |
           xcrun notarytool submit \
           --apple-id ${{secrets.APPLE_DEVELOPER_ID}} \
@@ -480,11 +533,13 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    # Only publish nightly release from develop branch.
+    # Stable releases are packaged manually/offline.
+    if: github.event_name != 'pull_request' && github.ref_name == 'develop'
     environment: nightly-release-approval
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: "develop"
           lfs: "false"
           submodules: recursive
 
@@ -494,7 +549,7 @@ jobs:
         run: |
           cd ${{github.workspace}}
           gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes || true
-          git tag -f nightly develop
+          git tag -f nightly $GITHUB_SHA
           git push origin nightly --force
 
       - name: Download Artifacts
