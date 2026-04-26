@@ -193,10 +193,11 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
     auto bnd_type = ConvertOpenPGPEngine2String(
         OpenPGPContext::GetInstance(key_db.channel).Engine());
-    ui_->keyDBIndexComboBox->insertItem(key_db.channel, QString("[%2]: %3 (%1)")
-                                                            .arg(bnd_type)
-                                                            .arg(key_db.channel)
-                                                            .arg(key_db.name));
+    ui_->keyDBIndexComboBox->addItem(QString("[%2]: %3 (%1)")
+                                         .arg(bnd_type)
+                                         .arg(key_db.channel)
+                                         .arg(key_db.name),
+                                     key_db.channel);
   }
   ui_->keyDBIndexComboBox->setCurrentIndex(channel);
   ui_->keyDBIndexComboBox->setEnabled(false);
@@ -355,9 +356,6 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
 void KeyGenerateDialog::InitUi() {
   setObjectName(QStringLiteral("KeyGenerateDialog"));
 
-  setMinimumSize(620, 680);
-  resize(680, 760);
-
 #ifdef Q_OS_MACOS
   setWindowFlag(Qt::WindowContextHelpButtonHint, false);
 #endif
@@ -368,18 +366,19 @@ void KeyGenerateDialog::InitUi() {
 
   ui_->statusPlainTextEdit->setReadOnly(true);
   ui_->statusPlainTextEdit->setLineWrapMode(QPlainTextEdit::WidgetWidth);
-  ui_->statusPlainTextEdit->setMaximumHeight(170);
-  ui_->statusPlainTextEdit->setMinimumHeight(120);
+
   ui_->statusPlainTextEdit->setFocusPolicy(Qt::ClickFocus);
 
   QFont status_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+#ifndef Q_OS_MACOS
   status_font.setPointSize(std::max(10, status_font.pointSize()));
+#endif
   status_font.setStyleHint(QFont::Monospace);
   status_font.setFixedPitch(true);
   ui_->statusPlainTextEdit->setFont(status_font);
 
   const auto setup_combo = [](QComboBox* combo) {
-    combo->setMinimumContentsLength(22);
+    combo->setMinimumContentsLength(14);
     combo->setSizeAdjustPolicy(
         QComboBox::AdjustToMinimumContentsLengthWithIcon);
   };
@@ -396,7 +395,6 @@ void KeyGenerateDialog::InitUi() {
   setup_combo(ui_->scndKeyLengthComboBox);
 
   const auto setup_button = [](QPushButton* button) {
-    button->setMinimumHeight(30);
     button->setAutoDefault(false);
   };
 
@@ -406,35 +404,31 @@ void KeyGenerateDialog::InitUi() {
   setup_button(ui_->generateButton);
 
   ui_->generateButton->setDefault(true);
-  ui_->generateButton->setMinimumHeight(34);
 
-  ui_->nameEdit->setMinimumHeight(28);
-  ui_->emailEdit->setMinimumHeight(28);
-  ui_->commentEdit->setMinimumHeight(28);
+#ifndef Q_OS_MACOS
+  ui_->generateButton->setMinimumHeight(32);
+#endif
 
   ui_->pExpireDateTimeEdit->setCalendarPopup(true);
   ui_->sExpireDateTimeEdit->setCalendarPopup(true);
 
   setStyleSheet(R"(
 QDialog#KeyGenerateDialog QGroupBox {
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 QDialog#KeyGenerateDialog QGroupBox::title {
   subcontrol-origin: margin;
   left: 8px;
-  padding: 0 4px;
+  padding: 0 3px;
 }
 
 QDialog#KeyGenerateDialog QPlainTextEdit {
-  border: 1px solid palette(mid);
-  background: palette(base);
   selection-background-color: palette(highlight);
   selection-color: palette(highlighted-text);
 }
 
 QDialog#KeyGenerateDialog QPushButton#generateButton {
-  min-height: 34px;
   font-weight: 600;
 }
 )");
