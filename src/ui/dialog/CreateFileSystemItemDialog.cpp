@@ -96,7 +96,6 @@ CreateFileSystemItemDialog::CreateFileSystemItemDialog(
 
   hint_label_ = new QLabel(this);
   hint_label_->setWordWrap(true);
-  hint_label_->setStyleSheet("color: palette(mid);");
 
   auto* form_layout = new QFormLayout();
   form_layout->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
