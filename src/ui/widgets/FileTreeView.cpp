@@ -36,6 +36,36 @@
 
 namespace GpgFrontend::UI {
 
+namespace {
+
+auto SelectedItemsText(const QStringList& paths) -> QString {
+  if (paths.size() == 1) {
+    return QFileInfo(paths.front()).fileName();
+  }
+
+  return QObject::tr("%1 item(s)").arg(paths.size());
+}
+
+void NotifyStatus(const QString& text, int timeout = 3000) {
+  emit UISignalStation::GetInstance()->SignalRefreshStatusBar(text, timeout);
+}
+
+auto MovePathToTrash(const QString& path) -> bool {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+  return QFile::moveToTrash(path);
+#else
+  QFileInfo info(path);
+  if (info.isDir()) {
+    QDir dir(path);
+    return dir.removeRecursively();
+  }
+
+  return QFile::remove(path);
+#endif
+}
+
+}  // namespace
+
 FileTreeView::FileTreeView(QWidget* parent)
     : QTreeView(parent), dir_model_(new QFileSystemModel(this)) {
   dir_model_->setReadOnly(false);
@@ -257,22 +287,44 @@ auto FileTreeView::SlotDeleteSelectedItem() -> void {
   const auto paths = GetSelectedPaths();
   if (paths.isEmpty()) return;
 
-  const auto path = paths.front();
-  const QFileInfo info(path);
+  const auto display_text = SelectedItemsText(paths);
 
   const auto ret = QMessageBox::warning(
-      this, tr("Delete File or Folder"),
-      tr("Are you sure you want to delete \"%1\"?\n\nThis operation may not be "
-         "reversible.")
-          .arg(info.fileName()),
+      this, tr("Move to Trash"),
+      paths.size() == 1
+          ? tr("Move \"%1\" to Trash?").arg(display_text)
+          : tr("Move %1 selected items to Trash?").arg(paths.size()),
       QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel);
 
   if (ret == QMessageBox::Cancel) return;
 
-  const auto index = dir_model_->index(path);
-  if (!index.isValid() || !dir_model_->remove(index)) {
-    QMessageBox::warning(this, tr("Unable to Delete"),
-                         tr("The file or folder could not be deleted."));
+  QStringList failed_paths;
+  QStringList trashed_paths;
+
+  for (const auto& path : paths) {
+    if (path.isEmpty() || !QFileInfo::exists(path)) continue;
+
+    if (MovePathToTrash(path)) {
+      trashed_paths.append(path);
+    } else {
+      failed_paths.append(path);
+    }
+  }
+
+  SlotGoPath(current_path_);
+
+  if (!failed_paths.isEmpty()) {
+    QMessageBox::warning(
+        this, tr("Unable to Move to Trash"),
+        failed_paths.size() == 1
+            ? tr("The item \"%1\" could not be moved to Trash.")
+                  .arg(QFileInfo(failed_paths.front()).fileName())
+            : tr("%1 item(s) could not be moved to Trash.")
+                  .arg(failed_paths.size()));
+  }
+
+  if (!trashed_paths.isEmpty()) {
+    NotifyStatus(tr("Moved %1 item(s) to Trash.").arg(trashed_paths.size()));
   }
 }
 
@@ -313,6 +365,7 @@ void FileTreeView::SlotMkdirBelowAtSelectedItem() {
   selectionModel()->select(new_index, QItemSelectionModel::ClearAndSelect |
                                           QItemSelectionModel::Rows);
   scrollTo(new_index, QAbstractItemView::PositionAtCenter);
+  NotifyStatus(tr("Created folder: %1").arg(new_name));
 }
 
 void FileTreeView::SlotTouch() {
@@ -347,19 +400,37 @@ void FileTreeView::SlotTouchBelowAtSelectedItem() {
         index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
     scrollTo(index, QAbstractItemView::PositionAtCenter);
   }
+  NotifyStatus(
+      tr("Created file: %1").arg(QFileInfo(dialog.GetPath()).fileName()));
 }
 
 void FileTreeView::keyPressEvent(QKeyEvent* event) {
-  QTreeView::keyPressEvent(event);
-
-  if (this->currentIndex().isValid()) {
-    if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) {
-      slot_file_tree_view_item_double_clicked(this->currentIndex());
-    } else if (event->key() == Qt::Key_Delete ||
-               event->key() == Qt::Key_Backspace) {
-      SlotDeleteSelectedItem();
-    }
+  if (event->key() == Qt::Key_Backspace) {
+    SlotUpLevel();
+    event->accept();
+    return;
   }
+
+  if (event->key() == Qt::Key_F2) {
+    SlotRenameSelectedItem();
+    event->accept();
+    return;
+  }
+
+  if (event->key() == Qt::Key_Delete) {
+    SlotDeleteSelectedItem();
+    event->accept();
+    return;
+  }
+
+  if ((event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) &&
+      currentIndex().isValid()) {
+    slot_file_tree_view_item_double_clicked(currentIndex());
+    event->accept();
+    return;
+  }
+
+  QTreeView::keyPressEvent(event);
 }
 
 void FileTreeView::SlotOpenSelectedItemBySystemApplication() {
@@ -376,6 +447,7 @@ void FileTreeView::SlotRenameSelectedItem() {
 
   const auto selected_path = selected_paths_.front();
   const QFileInfo file_info(selected_path);
+  const auto old_name = file_info.fileName();
 
   bool ok = false;
   const auto text =
@@ -417,6 +489,8 @@ void FileTreeView::SlotRenameSelectedItem() {
         index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
     scrollTo(index, QAbstractItemView::PositionAtCenter);
   }
+
+  NotifyStatus(tr(R"(Renamed "%1" to "%2".)").arg(old_name, new_name));
 }
 
 auto FileTreeView::GetMousePointGlobal(const QPoint& point) -> QPoint {
@@ -443,8 +517,9 @@ void FileTreeView::slot_create_popup_menu() {
   connect(action_rename_file_, &QAction::triggered, this,
           &FileTreeView::SlotRenameSelectedItem);
 
-  action_delete_file_ = new QAction(
-      QIcon::fromTheme(QStringLiteral("edit-delete")), tr("Delete"), this);
+  action_delete_file_ =
+      new QAction(QIcon::fromTheme(QStringLiteral("user-trash")),
+                  tr("Move to Trash"), this);
   connect(action_delete_file_, &QAction::triggered, this,
           &FileTreeView::SlotDeleteSelectedItem);
 
@@ -471,6 +546,16 @@ void FileTreeView::slot_create_popup_menu() {
   connect(action_compress_files_, &QAction::triggered, this,
           &FileTreeView::slot_compress_files);
 
+  action_copy_path_ = new QAction(QIcon::fromTheme(QStringLiteral("edit-copy")),
+                                  tr("Copy Path"), this);
+  connect(action_copy_path_, &QAction::triggered, this,
+          &FileTreeView::SlotCopyPath);
+
+  action_refresh_ = new QAction(
+      QIcon::fromTheme(QStringLiteral("view-refresh")), tr("Refresh"), this);
+  connect(action_refresh_, &QAction::triggered, this,
+          &FileTreeView::SlotRefresh);
+
   new_item_action_menu_ = new QMenu(tr("New"), this);
   new_item_action_menu_->setIcon(QIcon::fromTheme(QStringLiteral("list-add")));
   new_item_action_menu_->addAction(action_create_empty_file_);
@@ -479,11 +564,16 @@ void FileTreeView::slot_create_popup_menu() {
   popup_menu_->addAction(action_open_file_);
   popup_menu_->addAction(action_open_with_system_default_application_);
   popup_menu_->addSeparator();
+
   popup_menu_->addMenu(new_item_action_menu_);
   popup_menu_->addSeparator();
+
   popup_menu_->addAction(action_rename_file_);
   popup_menu_->addAction(action_delete_file_);
+  popup_menu_->addAction(action_copy_path_);
   popup_menu_->addSeparator();
+
+  popup_menu_->addAction(action_refresh_);
   popup_menu_->addAction(action_compress_files_);
   popup_menu_->addAction(action_calculate_hash_);
 }
@@ -521,6 +611,8 @@ void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
   action_calculate_hash_->setEnabled(false);
   action_make_directory_->setEnabled(false);
   action_create_empty_file_->setEnabled(false);
+  action_copy_path_->setEnabled(false);
+  action_refresh_->setEnabled(true);
 
   const QFileInfo current_dir_info(current_path_);
   const bool current_dir_writable = current_dir_info.exists() &&
@@ -530,12 +622,14 @@ void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
   if (!has_target) {
     action_make_directory_->setEnabled(current_dir_writable);
     action_create_empty_file_->setEnabled(current_dir_writable);
+    action_refresh_->setEnabled(true);
     popup_menu_->exec(GetMousePointGlobal(point));
     return;
   }
 
   const bool single_selection = select_paths.size() <= 1;
 
+  action_copy_path_->setEnabled(!select_paths.isEmpty());
   action_open_file_->setEnabled(file_info.isFile() && file_info.isReadable());
   action_open_with_system_default_application_->setEnabled(file_info.exists() &&
                                                            single_selection);
@@ -543,7 +637,12 @@ void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
       single_selection && file_info.exists() &&
       QFileInfo(file_info.absolutePath()).isWritable());
   action_delete_file_->setEnabled(
-      file_info.exists() && QFileInfo(file_info.absolutePath()).isWritable());
+      !select_paths.isEmpty() &&
+      std::all_of(
+          select_paths.cbegin(), select_paths.cend(), [](const QString& path) {
+            const QFileInfo info(path);
+            return info.exists() && QFileInfo(info.absolutePath()).isWritable();
+          }));
 
   const bool target_dir_writable =
       file_info.isDir() && file_info.exists() && file_info.isWritable();
@@ -903,11 +1002,13 @@ void FileTreeView::dropEvent(QDropEvent* event) {
   }
 
   if (internal_drag && is_same_directory_operation(source_paths, target_dir)) {
+    NotifyStatus(tr("The source and target folder are the same."), 2000);
     event->ignore();
     return;
   }
 
   if (!internal_drag && is_same_directory_operation(source_paths, target_dir)) {
+    NotifyStatus(tr("The source and target folder are the same."), 2000);
     event->ignore();
     return;
   }
@@ -1012,6 +1113,18 @@ void FileTreeView::dropEvent(QDropEvent* event) {
 
   event->setDropAction(operation);
   event->accept();
+
+  if (!result_paths.isEmpty()) {
+    NotifyStatus(internal_drag
+                     ? tr("Moved %1 item(s).").arg(result_paths.size())
+                     : tr("Copied %1 item(s).").arg(result_paths.size()));
+
+    if (internal_drag &&
+        is_same_directory_operation(source_paths, target_dir)) {
+      event->ignore();
+      return;
+    }
+  }
 
   if (!all_ok) {
     QMessageBox::warning(
@@ -1126,6 +1239,46 @@ auto FileTreeView::copy_directory_recursive(const QString& source_dir,
   }
 
   return true;
+}
+
+void FileTreeView::SlotCopyPath() {
+  const auto paths = GetSelectedPaths();
+  if (paths.isEmpty()) return;
+
+  QGuiApplication::clipboard()->setText(paths.join(QChar::LineFeed));
+
+  emit UISignalStation::GetInstance()->SignalRefreshStatusBar(
+      paths.size() == 1 ? tr("Path copied to clipboard.")
+                        : tr("%1 paths copied to clipboard.").arg(paths.size()),
+      2000);
+}
+
+void FileTreeView::SlotRefresh() {
+  if (current_path_.isEmpty()) {
+    dir_model_->setRootPath(QString());
+    setRootIndex(dir_model_->index(QString()));
+    slot_adjust_column_widths();
+
+    emit UISignalStation::GetInstance()->SignalRefreshStatusBar(
+        tr("File list refreshed."), 1500);
+    return;
+  }
+
+  const QFileInfo info(current_path_);
+  if (!info.exists() || !info.isDir() || !info.isReadable() ||
+      !info.isExecutable()) {
+    QMessageBox::warning(
+        this, tr("Unable to Refresh"),
+        tr("The current folder no longer exists or cannot be opened."));
+
+    SlotGoPath(QDir::homePath());
+    return;
+  }
+
+  SlotGoPath(current_path_);
+
+  emit UISignalStation::GetInstance()->SignalRefreshStatusBar(
+      tr("File list refreshed."), 1500);
 }
 
 }  // namespace GpgFrontend::UI

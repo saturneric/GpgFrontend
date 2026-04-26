@@ -238,6 +238,18 @@ class FileTreeView : public QTreeView {
    */
   void SlotSwitchBatchMode(bool);
 
+  /**
+   * @brief
+   *
+   */
+  void SlotCopyPath();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotRefresh();
+
  private slots:
 
   /**
@@ -293,6 +305,8 @@ class FileTreeView : public QTreeView {
   QAction* action_make_directory_;
   QAction* action_compress_files_;
   QAction* action_open_with_system_default_application_;
+  QAction* action_copy_path_ = nullptr;
+  QAction* action_refresh_ = nullptr;
 
   bool initial_resize_done_ = false;
 

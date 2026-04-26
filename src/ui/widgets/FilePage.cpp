@@ -387,6 +387,7 @@ auto FilePage::IsBatchMode() const -> bool {
 }
 
 auto FilePage::IsASCIIMode() const -> bool { return ascii_mode_; }
+
 void FilePage::UpdatePathCompletion(const QString& input) {
   if (input.trimmed().isEmpty()) {
     path_complete_model_->setStringList({});
