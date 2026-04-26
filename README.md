@@ -21,17 +21,15 @@ easier and more trustworthy in everyday privacy workflows.
 
 > If you like GpgFrontend, you can give it a ⭐ on GitHub as donation. :)
 
-**Planned Next Release:**
+**Release Channels:**
 
-- v2.2.0+ (Mainline): Introduces an experimental rpgp engine for OpenPGP v6 (RFC
-  9580), while **GnuPG** remains the default, primary, and fully supported
-  backend. The rpgp engine is under active development and may evolve over time.
-- v2.1.x (Stable): Dedicated to maximum stability and reliability, this series
-  will remain in maintenance mode with regular releases every two months. The
-  focus is strictly on bug fixes and security updates, with no new major
-  features or breaking changes planned.
-
-The main branch now includes the experimental rPGP backend.
+- v2.2.0+ (Mainline): The main branch includes an experimental rPGP engine for
+  OpenPGP v6 (RFC 9580), while **GnuPG** remains the default, primary, and fully
+  supported backend. rPGP-related features are under active development and may
+  evolve over time.
+- v2.1.x (Stable): Dedicated to maximum stability and reliability. This series
+  remains in maintenance mode, focusing on bug fixes and security updates, with
+  no new major features or breaking changes planned.
 
 ## Table of Contents
 
@@ -40,7 +38,7 @@ The main branch now includes the experimental rPGP backend.
   - [User Manual](#user-manual)
   - [Supported Languages](#supported-languages)
   - [Modules](#modules)
-  - [Contributing \& Bugs Report](#contributing--bugs-report)
+  - [Contributing \& Bug Reports](#contributing--bug-reports)
     - [For Developers](#for-developers)
   - [Project's Logo](#projects-logo)
   - [Mission and Origins](#mission-and-origins)
@@ -52,8 +50,8 @@ The main branch now includes the experimental rPGP backend.
 For detailed instructions on installation, usage, and troubleshooting, please
 refer to the [User Manual](https://www.gpgfrontend.bktus.com/overview/glance).
 The User Manual is the primary and most up-to-date resource for all users who
-want to use GpgFrontend. It provides guidance and some introductions on basic
-concepts, ensuring you have the best practices at the most of the time.
+want to use GpgFrontend. It provides guidance on basic concepts, common
+workflows, and recommended practices for using GpgFrontend effectively.
 
 > The source code for the user manual is maintained in this
 > [repository](https://github.com/saturneric/GpgFrontend-Manual.git).
@@ -78,15 +76,15 @@ work](https://www.gpgfrontend.bktus.com/appendix/translate-interface).
 ## Modules
 
 GpgFrontend supports extensive module development, allowing users to customize
-their experience or get rid of unwanted features. Modules can encapsulate
+their experience and enable only the features they need. Modules can encapsulate
 functionality, enabling users to enable or disable features as needed. Users can
 refer to existing module code for guidance [Module
 Repository](https://github.com/saturneric/GpgFrontend-Modules.git) to reach a
 broader audience.
 
-## Contributing & Bugs Report
+## Contributing & Bug Reports
 
-Feel free to dive in! [Open an
+Contributions, bug reports, and suggestions are welcome. You can [open an
 issue](https://github.com/saturneric/GpgFrontend/issues/new) or submit PRs if
 you prefer to use GitHub. For anonymous users, Git patches can be delivered by
 [mail](mailto:eric@bktus.com). If you don't have a GitHub account or prefer not
@@ -96,16 +94,13 @@ to register, you are welcome to communicate with me via email.
 
 ### For Developers
 
-Although the GpgFrontend's UI looks simple, architecture and design behind it
-are actually not easy for beginners, especially for developers who are not
-familiar with C++, Qt, and multithreading. I was struggling hard in these areas
-since the beginning of the project as well. [An AI-assisted
-Wiki](https://deepwiki.com/saturneric/GpgFrontend) has been created through
-analysis of the GpgFrontend source code. I've glanced through it and I would say
-that it can be of great help, but for some details, it's not entirely accurate.
-Therefore, I would recommend developers to read the source code with the help of
-the wiki, but not to rely on it completely. If you have any questions about the
-code, feel free to ask me directly or open an issue on GitHub.
+Although GpgFrontend's UI looks simple, its architecture is not trivial,
+especially for developers unfamiliar with C++, Qt, asynchronous workflows, and
+multithreading. An [AI-assisted
+Wiki](https://deepwiki.com/saturneric/GpgFrontend) is available based on
+source-code analysis. It can be helpful for navigation and high-level
+understanding, but it may not be fully accurate in all implementation details.
+Please use it together with the source code rather than as a replacement for it.
 
 For setting up the development environment, please refer to the [Development
 Environment Setup Guide](https://gpgfrontend.bktus.com/appendix/setup-dev-env).
