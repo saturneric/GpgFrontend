@@ -117,6 +117,12 @@ class PlainTextEditorPage : public QWidget {
    */
   void SetEditorModified(bool modified);
 
+  /**
+   * @brief
+   *
+   */
+  void ApplyAppearanceSettings();
+
  public slots:
 
   /**

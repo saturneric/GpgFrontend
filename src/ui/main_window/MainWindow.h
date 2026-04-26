@@ -96,6 +96,12 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   [[nodiscard]] auto GF_UI_EXPORT GetCurrentGpgContextChannel() const -> int;
 
+  /**
+   * @brief
+   *
+   */
+  void ApplyAppearanceSettingsToOpenedWidgets();
+
  signals:
 
   /**

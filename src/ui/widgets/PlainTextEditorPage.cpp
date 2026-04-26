@@ -409,4 +409,16 @@ void PlainTextEditorPage::Clear() {
   editor->setUndoRedoEnabled(true);
 }
 
+void PlainTextEditorPage::ApplyAppearanceSettings() {
+  AppearanceSO appearance(SettingsObject("general_settings_state"));
+
+  QFont editor_font = PreferredMonospaceFont();
+  editor_font.setPointSize(appearance.text_editor_font_size);
+  editor_font.setFixedPitch(true);
+
+  ui_->textPage->setFont(editor_font);
+  ui_->textPage->setTabStopDistance(
+      QFontMetricsF(editor_font).horizontalAdvance(QLatin1Char(' ')) * 4);
+}
+
 }  // namespace GpgFrontend::UI

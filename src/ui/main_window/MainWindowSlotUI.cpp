@@ -122,10 +122,12 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
 void MainWindow::slot_open_settings_dialog() {
   auto* dialog = new SettingsDialog(this);
 
+  connect(dialog, &SettingsDialog::SignalAppearanceChanged, this,
+          [this]() { ApplyAppearanceSettingsToOpenedWidgets(); });
+
   connect(dialog, &SettingsDialog::finished, this, [this]() {
-    AppearanceSO appearance(SettingsObject("general_settings_state"));
     restore_settings();
-    // restart main window if necessary
+
     if (restart_mode_ != kNonRestartCode) {
       auto ok = edit_->MaybeSaveAnyTab();
       if (ok) emit SignalRestartApplication(restart_mode_);

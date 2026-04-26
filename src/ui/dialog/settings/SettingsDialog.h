@@ -83,6 +83,11 @@ class SettingsDialog : public GeneralDialog {
    */
   void SignalRestartNeeded(int);
 
+  /**
+   * @brief Emitted after appearance settings are applied.
+   */
+  void SignalAppearanceChanged();
+
  protected:
   /**
    * @brief

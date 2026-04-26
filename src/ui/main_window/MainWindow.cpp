@@ -369,4 +369,28 @@ auto MainWindow::check_and_notify_invalid_key_dbs() -> void {
   msg_box->show();
 }
 
+void MainWindow::ApplyAppearanceSettingsToOpenedWidgets() {
+  if (edit_ != nullptr && edit_->TabWidget() != nullptr) {
+    auto* tab_widget = edit_->TabWidget();
+
+    for (int i = 0; i < tab_widget->count(); ++i) {
+      auto* page = qobject_cast<PlainTextEditorPage*>(tab_widget->widget(i));
+      if (page == nullptr) continue;
+
+      page->ApplyAppearanceSettings();
+    }
+  }
+
+  if (info_board_ != nullptr) {
+    AppearanceSO const appearance(SettingsObject("general_settings_state"));
+
+    const auto text_edits = info_board_->findChildren<QTextEdit*>();
+    for (auto* text_edit : text_edits) {
+      QFont font = text_edit->font();
+      font.setPointSize(appearance.info_board_font_size);
+      text_edit->setFont(font);
+    }
+  }
+}
+
 }  // namespace GpgFrontend::UI
