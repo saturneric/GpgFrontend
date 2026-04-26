@@ -64,6 +64,18 @@ class KeyTreeView : public QTreeView {
                        QWidget* parent = nullptr);
 
   /**
+   * @brief
+   *
+   */
+  void InitViewStyle();
+
+  /**
+   * @brief
+   *
+   */
+  void ResetModel();
+
+  /**
    * @brief Get the Key By Index object
    *
    * @param index
@@ -128,9 +140,17 @@ class KeyTreeView : public QTreeView {
   void paintEvent(QPaintEvent* event) override;
 
  private:
-  bool init_;
-  int channel_;
-  QSharedPointer<GpgKeyTreeModel> model_;  ///<
+  bool init_ = false;
+  int channel_ = kGpgFrontendDefaultChannel;
+
+  GpgKeyTreeModel::Detector checkable_detector_ = [](GpgAbstractKey*) -> bool {
+    return false;
+  };
+
+  GpgKeyTreeProxyModel::KeyFilter key_filter_ =
+      [](const GpgAbstractKey*) -> bool { return true; };
+
+  QSharedPointer<GpgKeyTreeModel> model_;
   GpgKeyTreeProxyModel proxy_model_;
 
   void slot_adjust_column_widths();
