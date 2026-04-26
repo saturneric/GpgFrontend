@@ -1158,7 +1158,7 @@ where
             fpr: String::new(),
             info: "Symmetric Encryption".to_string(),
             retry: false,
-            ask_for_new: false,
+            ask_for_new: true,
         },
         fetch_pwd_cb,
         free_cb,
