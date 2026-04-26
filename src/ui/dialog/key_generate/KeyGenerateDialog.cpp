@@ -196,6 +196,8 @@ void CompactLayout(QLayout* layout, int margin, int spacing) {
   }
 }
 
+#ifdef Q_OS_MACOS
+
 void SetFormLayoutCompact(QFormLayout* layout) {
   if (layout == nullptr) return;
 
@@ -212,6 +214,8 @@ void SetGridLayoutCompact(QGridLayout* layout) {
   layout->setHorizontalSpacing(8);
   layout->setVerticalSpacing(5);
 }
+
+#endif
 
 }  // namespace
 
