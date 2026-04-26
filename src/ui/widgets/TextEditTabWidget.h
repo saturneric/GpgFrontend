@@ -227,8 +227,9 @@ class TextEditTabWidget : public QTabWidget {
    * @return true
    * @return false
    */
-  auto CanOpenAsTextFile(const QFileInfo& file_info,
-                         QString* error_message) const -> bool;
+  // NOLINTNEXTLINE
+  bool CanOpenAsTextFile(const QFileInfo& file_info,
+                         QString* error_message) const;
 
   /**
    * @brief
@@ -236,7 +237,8 @@ class TextEditTabWidget : public QTabWidget {
    * @param index
    * @return QString
    */
-  [[nodiscard]] auto PathForTab(int index) const -> QString;
+  // NOLINTNEXTLINE
+  QString PathForTab(int index) const;
 
  protected:
   /**
