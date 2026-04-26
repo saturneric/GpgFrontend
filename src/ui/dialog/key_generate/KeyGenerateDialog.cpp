@@ -349,7 +349,7 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
 
   auto& ctx = OpenPGPContext::GetInstance(channel_);
 
-  info_text += (tr("%1 Version: %2") + "\n\n")
+  info_text += (tr("%1 Engine Version: %2") + "\n\n")
                    .arg(ConvertOpenPGPEngine2String(ctx.Engine()))
                    .arg(ctx.EngineVersion());
 
