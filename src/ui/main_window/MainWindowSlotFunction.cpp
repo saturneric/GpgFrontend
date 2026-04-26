@@ -811,17 +811,34 @@ auto MainWindow::handle_module_error(QMap<QString, GFBuffer> p) -> bool {
 void MainWindow::slot_gpg_opera_buffer_show_helper(
     const QContainer<GpgOperaResult>& results) {
   for (const auto& result : results) {
+    if (result.status <= 0) continue;
     if (result.o_buffer.Empty()) continue;
+
     edit_->SlotFillTextEditWithText(result.o_buffer);
+    return;
   }
 }
 
-void MainWindow::exec_operas_helper(
+auto MainWindow::exec_operas_helper(
     const QString& task,
-    const QSharedPointer<GpgOperaContextBasement>& contexts) {
+    const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
   GpgOperaHelper::WaitForMultipleOperas(this, task, contexts->operas);
-  slot_gpg_opera_buffer_show_helper(contexts->opera_results);
+
+  bool all_success = !contexts->opera_results.empty();
+
+  for (const auto& result : contexts->opera_results) {
+    if (result.status <= 0) {
+      all_success = false;
+      break;
+    }
+  }
+
+  if (all_success) {
+    slot_gpg_opera_buffer_show_helper(contexts->opera_results);
+  }
+
   slot_result_analyse_show_helper(contexts->opera_results);
+  return all_success;
 }
 
 }  // namespace GpgFrontend::UI

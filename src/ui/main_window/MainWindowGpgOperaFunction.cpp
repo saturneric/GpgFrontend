@@ -362,13 +362,15 @@ void MainWindow::SlotEncrypt() {
   if (!encrypt_operation_key_validate(contexts)) return;
 
   auto plain_text = edit_->CurPlainText();
+  if (plain_text.isEmpty()) return;
+
   GFBuffer secure_plain_text(plain_text);
 
-  // clear plain text in memory
   plain_text.fill(QLatin1Char('X'));
-  text_edit->Clear();
+  plain_text.clear();
 
   contexts->GetContextBuffer(0).append(secure_plain_text);
+
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasEncrypt);
@@ -451,13 +453,15 @@ void MainWindow::SlotEncryptSign() {
   if (!fuzzy_signature_key_elimination(contexts)) return;
 
   auto plain_text = edit_->CurPlainText();
+  if (plain_text.isEmpty()) return;
+
   GFBuffer secure_plain_text(plain_text);
 
-  // clear plain text in memory
   plain_text.fill(QLatin1Char('X'));
-  text_edit->Clear();
+  plain_text.clear();
 
   contexts->GetContextBuffer(0).append(secure_plain_text);
+
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasEncryptSign);
