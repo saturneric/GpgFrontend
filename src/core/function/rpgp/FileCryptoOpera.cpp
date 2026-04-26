@@ -71,8 +71,10 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
 
   auto in_file_path_utf8 = in_path.toUtf8();
   auto out_file_path_utf8 = out_path.toUtf8();
-  Rust::GfrEncryptResultC encrypt_result;
+
   Rust::GfrStatus status;
+  Rust::GfrEncryptResultC encrypt_result;
+  memset(&encrypt_result, 0, sizeof(encrypt_result));
 
   auto is_directory = QFileInfo(in_path).isDir();
   if (is_directory) {
@@ -90,16 +92,11 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
         recipient_cstrs.data(), recipient_cstrs.size(), ascii, &encrypt_result);
   }
 
-  if (status != Rust::GfrStatus::Success) {
-    LOG_E() << "Rust FFI encryption failed.";
-    return GPG_ERR_GENERAL;
-  }
-
-  GFEncryptResult result = GfrEncryptResultC2GFEncryptResult(encrypt_result);
+  auto [gf_err, result] = HandleEncryptResult({}, status, encrypt_result);
   Rust::gfr_crypto_free_encrypt_result(&encrypt_result);
 
   data_object->Swap({GpgEncryptResult(result)});
-  return GPG_ERR_NO_ERROR;
+  return gf_err;
 }
 
 auto EncryptDirRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
@@ -205,6 +202,7 @@ auto SignFileRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
   auto in_file_path_utf8 = in_path.toUtf8();
   auto out_file_path_utf8 = out_path.toUtf8();
   Rust::GfrSignResultC sign_result;
+  memset(&sign_result, 0, sizeof(sign_result));
 
   auto status = Rust::gfr_crypto_sign_file(
       ctx_.GetChannel(), in_file_path_utf8.constData(),
@@ -212,16 +210,11 @@ auto SignFileRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
       key_block_cstrs.size(), FetchPasswordCallback, FreeCallback,
       Rust::GfrSignMode::Detached, ascii, &sign_result);
 
-  if (status != Rust::GfrStatus::Success) {
-    LOG_E() << "Rust FFI signing failed.";
-    return GPG_ERR_GENERAL;
-  }
-
-  GFSignResult result = GfrSignResultC2GFSignResult(sign_result);
+  auto [gf_err, result] = HandleSignResult({}, status, sign_result);
   Rust::gfr_crypto_free_sign_result(&sign_result);
 
   data_object->Swap({GpgSignResult(result)});
-  return GPG_ERR_NO_ERROR;
+  return gf_err;
 }
 
 auto VerifyFileRpgpImpl(OpenPGPContext& ctx_, const QString& data_path,
@@ -322,22 +315,27 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
         FetchPasswordCallback, FreeCallback, ascii, &encrypt_sign_result);
   }
 
-  if (err != Rust::GfrStatus::Success) {
-    LOG_E() << "Rust FFI encrypt_and_sign failed with status: "
-            << static_cast<int>(err);
-    return GPG_ERR_GENERAL;
-  }
+  auto [gf_err, encrypt_result] =
+      HandleEncryptResult({}, err,
+                          Rust::GfrEncryptResultC{
+                              .data = encrypt_sign_result.data,
+                              .data_len = encrypt_sign_result.data_len,
+                              .meta = encrypt_sign_result.encrypt_meta,
+                          });
 
-  GFEncryptAndSignResult result =
-      GfrEncryptAndSignResultC2GFEncryptAndSignResult(encrypt_sign_result);
+  auto [gf_err_2, sign_result] = HandleSignResult(
+      {}, err,
+      Rust::GfrSignResultC{.data = encrypt_sign_result.data,
+                           .data_len = encrypt_sign_result.data_len,
+                           .meta = encrypt_sign_result.sign_meta});
   Rust::gfr_crypto_free_encrypt_and_sign_result(&encrypt_sign_result);
 
   data_object->Swap({
-      GpgEncryptResult(result.encrypt_result),
-      GpgSignResult(result.sign_result),
+      GpgEncryptResult(encrypt_result),
+      GpgSignResult(sign_result),
   });
 
-  return GPG_ERR_NO_ERROR;
+  return (gf_err != GPG_ERR_NO_ERROR) ? gf_err : gf_err_2;
 }
 
 auto EncryptSignDirRpgpImpl(OpenPGPContext& ctx,
@@ -438,8 +436,10 @@ auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
     -> GpgError {
   auto in_file_path_utf8 = in_path.toUtf8();
   auto out_file_path_utf8 = out_path.toUtf8();
-  Rust::GfrEncryptResultC encrypt_result;
+
   Rust::GfrStatus status;
+  Rust::GfrEncryptResultC encrypt_result;
+  memset(&encrypt_result, 0, sizeof(encrypt_result));
 
   auto is_directory = QFileInfo(in_path).isDir();
   if (is_directory) {
@@ -459,16 +459,11 @@ auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
         FreeCallback, &encrypt_result);
   }
 
-  if (status != Rust::GfrStatus::Success) {
-    LOG_E() << "Rust FFI encryption failed.";
-    return GPG_ERR_GENERAL;
-  }
-
-  GFEncryptResult result = GfrEncryptResultC2GFEncryptResult(encrypt_result);
+  auto [gf_err, result] = HandleEncryptResult({}, status, encrypt_result);
   Rust::gfr_crypto_free_encrypt_result(&encrypt_result);
 
   data_object->Swap({GpgEncryptResult(result)});
-  return GPG_ERR_NO_ERROR;
+  return gf_err;
 }
 
 auto EncryptSymmetricDirRpgpImpl(OpenPGPContext& ctx, const QString& in_path,

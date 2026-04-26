@@ -202,6 +202,38 @@ auto GfrDecryptAndVerifyResultC2GFDecryptAndVerifyResult(
   return result;
 }
 
+auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
+                         Rust::GfrEncryptResultC gfr_result)
+    -> std::tuple<GpgError, GFEncryptResult> {
+  LOG_D() << "Handling encrypt result. Rust status: " << static_cast<int>(err);
+
+  GpgError gf_err = GPG_ERR_NO_ERROR;
+  GFEncryptResult result;
+  if (err != Rust::GfrStatus::Success) {
+    if (err == Rust::GfrStatus::ErrorInvalidInput) {
+      LOG_E() << "Encryption failed: No data to encrypt.";
+      gf_err = GPG_ERR_INV_DATA;
+      goto end;
+    }
+
+    if (err == Rust::GfrStatus::ErrorNoKey) {
+      LOG_E() << "Encryption failed: No valid recipient keys provided.";
+      gf_err = GPG_ERR_NO_KEY;
+      goto end;
+    }
+
+    LOG_E() << "Encryption failed: An unknown error occurred.";
+    gf_err = GPG_ERR_GENERAL;
+    goto end;
+  }
+
+  // success case, convert the result
+  result = GfrEncryptResultC2GFEncryptResult(gfr_result);
+
+end:
+  return {gf_err, result};
+}
+
 auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
                          Rust::GfrStatus err,
                          Rust::GfrDecryptResultC gfr_result)
@@ -214,6 +246,19 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
     if (err == Rust::GfrStatus::ErrorInvalidInput) {
       LOG_E() << "Decryption failed: No encrypted data found.";
       gf_err = GPG_ERR_INV_DATA;
+      goto end;
+    }
+
+    if (err == Rust::GfrStatus::ErrorBadPassphrase) {
+      LOG_E() << "Decryption failed: Incorrect passphrase.";
+      gf_err = GPG_ERR_BAD_PASSPHRASE;
+      goto end;
+    }
+
+    if (err == Rust::GfrStatus::ErrorDecryptionFailed) {
+      LOG_E() << "Decryption failed: Decryption process failed. This could be "
+                 "due to incorrect passphrase, bad key, or corrupted data.";
+      gf_err = GPG_ERR_DECRYPT_FAILED;
       goto end;
     }
 
@@ -243,6 +288,37 @@ end:
   return {gf_err, result};
 }
 
+auto HandleSignResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
+                      Rust::GfrSignResultC gfr_result)
+    -> std::tuple<GpgError, GFSignResult> {
+  LOG_D() << "Handling sign result. Rust status: " << static_cast<int>(err);
+
+  GpgError gf_err = GPG_ERR_NO_ERROR;
+  GFSignResult result;
+  if (err != Rust::GfrStatus::Success) {
+    if (err == Rust::GfrStatus::ErrorInvalidInput) {
+      LOG_E() << "Signing failed: No data to sign.";
+      gf_err = GPG_ERR_INV_DATA;
+      goto end;
+    }
+
+    if (err == Rust::GfrStatus::ErrorBadPassphrase) {
+      LOG_E() << "Signing failed: Incorrect passphrase.";
+      gf_err = GPG_ERR_BAD_PASSPHRASE;
+      goto end;
+    }
+
+    gf_err = GPG_ERR_GENERAL;
+    goto end;
+  }
+
+  // success case, convert the result
+  result = GfrSignResultC2GFSignResult(gfr_result);
+
+end:
+  return {gf_err, result};
+}
+
 auto HandleVerifyResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
                         Rust::GfrVerifyResultC gfr_result)
     -> std::tuple<GpgError, GFVerifyResult> {
@@ -257,8 +333,11 @@ auto HandleVerifyResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
       goto end;
     }
 
-    gf_err = GPG_ERR_GENERAL;
-    goto end;
+    if (err == Rust::GfrStatus::ErrorIo) {
+      LOG_E() << "Verification failed: I/O error occurred while reading data.";
+      gf_err = GPG_ERR_EIO;
+      goto end;
+    }
   }
 
   LOG_D() << "Verification success. Processing results...";

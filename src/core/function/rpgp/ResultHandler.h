@@ -93,12 +93,36 @@ auto GF_CORE_EXPORT GfrDecryptAndVerifyResultC2GFDecryptAndVerifyResult(
  * @param in_buffer
  * @param err
  * @param gfr_result
+ * @return std::tuple<GpgError, GFEncryptResult>
+ */
+auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
+                         Rust::GfrEncryptResultC gfr_result)
+    -> std::tuple<GpgError, GFEncryptResult>;
+
+/**
+ * @brief
+ *
+ * @param in_buffer
+ * @param err
+ * @param gfr_result
  * @return std::tuple<GpgError, GFDecryptResult>
  */
 auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
                          Rust::GfrStatus err,
                          Rust::GfrDecryptResultC gfr_result)
     -> std::tuple<GpgError, GFDecryptResult>;
+
+/**
+ * @brief
+ *
+ * @param in_buffer
+ * @param err
+ * @param gfr_result
+ * @return std::tuple<GpgError, GFSignResult>
+ */
+auto HandleSignResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
+                      Rust::GfrSignResultC gfr_result)
+    -> std::tuple<GpgError, GFSignResult>;
 
 /**
  * @brief

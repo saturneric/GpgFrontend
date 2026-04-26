@@ -38,7 +38,6 @@
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/GpgUtils.h"
-#include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
 
@@ -79,16 +78,12 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
       in_buffer.Size(), recipient_cstrs.data(), recipient_cstrs.size(), ascii,
       &encrypt_result);
 
-  if (status != Rust::GfrStatus::Success) {
-    LOG_E() << "Rust FFI encryption failed.";
-    return GPG_ERR_GENERAL;
-  }
-
-  GFEncryptResult result = GfrEncryptResultC2GFEncryptResult(encrypt_result);
+  auto [gf_err, result] =
+      HandleEncryptResult(in_buffer, status, encrypt_result);
   Rust::gfr_crypto_free_encrypt_result(&encrypt_result);
 
   data_object->Swap({GpgEncryptResult(result), result.data});
-  return GPG_ERR_NO_ERROR;
+  return gf_err;
 }
 
 auto DecryptRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
@@ -192,6 +187,7 @@ auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
   }
 
   Rust::GfrSignResultC sign_result;
+  memset(&sign_result, 0, sizeof(sign_result));
 
   auto status = Rust::gfr_crypto_sign_data(
       ctx.GetChannel(), name_utf8.constData(),
@@ -199,13 +195,7 @@ auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
       c_skeys.data(), c_skeys.size(), FetchPasswordCallback, FreeCallback,
       rs_mode, ascii, &sign_result);
 
-  if (status != Rust::GfrStatus::Success || sign_result.data == nullptr) {
-    LOG_E() << "Rust FFI multi-signature failed with status: "
-            << static_cast<int>(status);
-    return GPG_ERR_GENERAL;
-  }
-
-  GFSignResult result = GfrSignResultC2GFSignResult(sign_result);
+  auto [gf_err, result] = HandleSignResult(in_buffer, status, sign_result);
   Rust::gfr_crypto_free_sign_result(&sign_result);
 
   data_object->Swap({
@@ -213,7 +203,7 @@ auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
       result.data,
   });
 
-  return GPG_ERR_NO_ERROR;
+  return gf_err;
 }
 
 auto VerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
@@ -297,20 +287,25 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
       c_skeys.size(), FetchPasswordCallback, FreeCallback, ascii,
       &encrypt_sign_result);
 
-  if (err != Rust::GfrStatus::Success) {
-    LOG_E() << "Rust FFI encrypt_and_sign failed with status: "
-            << static_cast<int>(err);
-    return GPG_ERR_GENERAL;
-  }
+  auto [gf_err, encrypt_result] =
+      HandleEncryptResult(in_buffer, err,
+                          Rust::GfrEncryptResultC{
+                              .data = encrypt_sign_result.data,
+                              .data_len = encrypt_sign_result.data_len,
+                              .meta = encrypt_sign_result.encrypt_meta,
+                          });
 
-  GFEncryptAndSignResult result =
-      GfrEncryptAndSignResultC2GFEncryptAndSignResult(encrypt_sign_result);
+  auto [gf_err_2, sign_result] = HandleSignResult(
+      in_buffer, err,
+      Rust::GfrSignResultC{.data = encrypt_sign_result.data,
+                           .data_len = encrypt_sign_result.data_len,
+                           .meta = encrypt_sign_result.sign_meta});
   Rust::gfr_crypto_free_encrypt_and_sign_result(&encrypt_sign_result);
 
   data_object->Swap({
-      GpgEncryptResult(result.encrypt_result),
-      GpgSignResult(result.sign_result),
-      result.data,
+      GpgEncryptResult(encrypt_result),
+      GpgSignResult(sign_result),
+      encrypt_result.data,
   });
 
   return GPG_ERR_NO_ERROR;

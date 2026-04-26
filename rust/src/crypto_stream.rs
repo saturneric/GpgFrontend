@@ -337,7 +337,7 @@ where
 
                     log::warn!("Signing failed for {}. Evicting bad password.", fpr);
                     PASSWORD_CACHE.remove_by_fpr(&fpr);
-                    Err(GfrStatus::ErrorInternal)
+                    Err(GfrStatus::ErrorBadPassphrase)
                 });
 
                 if let Ok(out_data) = res {
@@ -351,6 +351,12 @@ where
                     return Ok(SignStreamResultInternal {
                         signatures: created_signatures,
                     });
+                } else {
+                    log::error!(
+                        "Failed to create cleartext signature for one of the keys. Error: {:?}",
+                        res
+                    );
+                    return Err(res.err().unwrap_or(GfrStatus::ErrorInternal));
                 }
             }
 
@@ -405,7 +411,7 @@ where
 
                     log::warn!("Signing failed for {}. Evicting bad password.", fpr);
                     PASSWORD_CACHE.remove_by_fpr(&fpr);
-                    Err(GfrStatus::ErrorInternal)
+                    Err(GfrStatus::ErrorBadPassphrase)
                 });
 
                 if let Ok(out_data) = res {
@@ -419,6 +425,12 @@ where
                     return Ok(SignStreamResultInternal {
                         signatures: created_signatures,
                     });
+                } else {
+                    log::error!(
+                        "Failed to create detached signature for one of the keys. Error: {:?}",
+                        res
+                    );
+                    return Err(res.err().unwrap_or(GfrStatus::ErrorInternal));
                 }
             }
 
@@ -800,7 +812,7 @@ fn decrypt_message_with_password(
     )?;
 
     if password.is_empty() {
-        return Err(GfrStatus::ErrorInvalidInput);
+        return Err(GfrStatus::ErrorBadPassphrase);
     }
 
     let msg_pw = Password::from(password.as_slice());
@@ -1169,7 +1181,7 @@ where
         free_cb,
     )?;
     if password.is_empty() {
-        return Err(GfrStatus::ErrorInvalidInput);
+        return Err(GfrStatus::ErrorBadPassphrase);
     }
 
     let msg_pw = Password::from(password.as_slice());
