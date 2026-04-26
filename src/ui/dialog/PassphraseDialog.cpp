@@ -182,6 +182,16 @@ PassphraseDialog::PassphraseDialog(
   const auto passphrase = password_edit_->text();
   const auto confirmation = confirm_password_edit_->text();
 
+  if (passphrase.isEmpty()) {
+    QMessageBox::warning(this, tr("Empty Passphrase"),
+                         tr("Passphrase cannot be empty. Please enter a valid "
+                            "passphrase."));
+
+    password_edit_->setFocus();
+    password_edit_->selectAll();
+    return false;
+  }
+
   if (passphrase != confirmation) {
     QMessageBox::warning(this, tr("Passphrase Mismatch"),
                          tr("The two passphrases do not match. "
