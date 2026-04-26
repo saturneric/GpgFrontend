@@ -173,6 +173,46 @@ auto EasyModeConfToJson(
 
   return obj;
 }
+
+void CompactLayout(QLayout* layout, int margin, int spacing) {
+  if (layout == nullptr) return;
+
+  layout->setContentsMargins(margin, margin, margin, margin);
+  layout->setSpacing(spacing);
+
+  for (int i = 0; i < layout->count(); ++i) {
+    auto* item = layout->itemAt(i);
+    if (item == nullptr) continue;
+
+    if (auto* child_layout = item->layout(); child_layout != nullptr) {
+      CompactLayout(child_layout, margin, spacing);
+    }
+
+    if (auto* widget = item->widget(); widget != nullptr) {
+      if (auto* widget_layout = widget->layout(); widget_layout != nullptr) {
+        CompactLayout(widget_layout, margin, spacing);
+      }
+    }
+  }
+}
+
+void SetFormLayoutCompact(QFormLayout* layout) {
+  if (layout == nullptr) return;
+
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setHorizontalSpacing(8);
+  layout->setVerticalSpacing(5);
+  layout->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+}
+
+void SetGridLayoutCompact(QGridLayout* layout) {
+  if (layout == nullptr) return;
+
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setHorizontalSpacing(8);
+  layout->setVerticalSpacing(5);
+}
+
 }  // namespace
 
 namespace GpgFrontend::UI {
@@ -199,7 +239,9 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
                                          .arg(key_db.name),
                                      key_db.channel);
   }
-  ui_->keyDBIndexComboBox->setCurrentIndex(channel);
+  const int key_db_combo_index = ui_->keyDBIndexComboBox->findData(channel);
+  ui_->keyDBIndexComboBox->setCurrentIndex(
+      key_db_combo_index >= 0 ? key_db_combo_index : 0);
   ui_->keyDBIndexComboBox->setEnabled(false);
 
   for (const auto& option : k_expire_options_list_) {
@@ -358,6 +400,30 @@ void KeyGenerateDialog::InitUi() {
 
 #ifdef Q_OS_MACOS
   setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+  CompactLayout(layout(), 4, 5);
+
+  ui_->profileGroupBox->setFlat(true);
+  ui_->basicGroupBox->setFlat(true);
+
+  SetFormLayoutCompact(ui_->formLayout_2);
+  SetFormLayoutCompact(ui_->formLayout);
+  SetFormLayoutCompact(ui_->formLayout_3);
+
+  SetGridLayoutCompact(ui_->gridLayout_2);
+  SetGridLayoutCompact(ui_->gridLayout_4);
+
+  ui_->verticalLayout_2->setContentsMargins(6, 6, 6, 6);
+  ui_->verticalLayout_2->setSpacing(5);
+
+  ui_->verticalLayout->setContentsMargins(0, 0, 0, 0);
+  ui_->verticalLayout->setSpacing(4);
+
+  ui_->verticalLayout_3->setContentsMargins(6, 6, 6, 6);
+  ui_->verticalLayout_4->setContentsMargins(6, 6, 6, 6);
+  ui_->verticalLayout_7->setContentsMargins(6, 6, 6, 6);
+
+  ui_->profileGroupBox->layout()->setContentsMargins(8, 8, 8, 8);
+  ui_->basicGroupBox->layout()->setContentsMargins(8, 8, 8, 8);
 #endif
 
   ui_->tabWidget->setDocumentMode(true);
@@ -413,16 +479,6 @@ void KeyGenerateDialog::InitUi() {
   ui_->sExpireDateTimeEdit->setCalendarPopup(true);
 
   setStyleSheet(R"(
-QDialog#KeyGenerateDialog QGroupBox {
-  margin-top: 8px;
-}
-
-QDialog#KeyGenerateDialog QGroupBox::title {
-  subcontrol-origin: margin;
-  left: 8px;
-  padding: 0 3px;
-}
-
 QDialog#KeyGenerateDialog QPlainTextEdit {
   selection-background-color: palette(highlight);
   selection-color: palette(highlighted-text);
