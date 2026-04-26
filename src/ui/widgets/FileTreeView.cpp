@@ -63,7 +63,6 @@ auto MovePathToTrash(const QString& path) -> bool {
   return QFile::remove(path);
 #endif
 }
-
 }  // namespace
 
 FileTreeView::FileTreeView(QWidget* parent)
