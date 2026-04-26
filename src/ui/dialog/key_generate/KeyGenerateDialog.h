@@ -65,6 +65,12 @@ class KeyGenerateDialog : public GeneralDialog {
    */
   explicit KeyGenerateDialog(int channel, QWidget* parent = nullptr);
 
+  /**
+   * @brief 
+   * 
+   */
+  void InitUi();
+
  signals:
   /**
    * @brief

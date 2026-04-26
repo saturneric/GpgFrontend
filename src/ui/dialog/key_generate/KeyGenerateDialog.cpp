@@ -189,6 +189,7 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
       supported_subkey_algos_(
           KeyGenerateInfo::GetSupportedSubkeyAlgo(channel)) {
   ui_->setupUi(this);
+  InitUi();
 
   for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
     auto bnd_type = ConvertOpenPGPEngine2String(
@@ -239,7 +240,7 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
       tr("Save current configuration as a new profile"));
   ui_->deletePushButton->setText(tr("Delete"));
   ui_->deletePushButton->setToolTip(tr("Delete current selected profile"));
-  ui_->reset2DefaultPushButton->setText(tr("Reset To Default"));
+  ui_->reset2DefaultPushButton->setText(tr("Reset"));
   ui_->reset2DefaultPushButton->setToolTip(
       tr("Reset profile list to default configuration"));
 
@@ -350,6 +351,94 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   this->show();
   this->raise();
   this->activateWindow();
+}
+
+void KeyGenerateDialog::InitUi() {
+  setObjectName(QStringLiteral("KeyGenerateDialog"));
+
+  setMinimumSize(620, 680);
+  resize(680, 760);
+
+#ifdef Q_OS_MACOS
+  setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+#endif
+
+  ui_->tabWidget->setDocumentMode(true);
+  ui_->tabWidget->setUsesScrollButtons(true);
+  ui_->tabWidget->setElideMode(Qt::ElideRight);
+
+  ui_->statusPlainTextEdit->setReadOnly(true);
+  ui_->statusPlainTextEdit->setLineWrapMode(QPlainTextEdit::WidgetWidth);
+  ui_->statusPlainTextEdit->setMaximumHeight(170);
+  ui_->statusPlainTextEdit->setMinimumHeight(120);
+  ui_->statusPlainTextEdit->setFocusPolicy(Qt::ClickFocus);
+
+  QFont status_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+  status_font.setPointSize(std::max(10, status_font.pointSize()));
+  status_font.setStyleHint(QFont::Monospace);
+  status_font.setFixedPitch(true);
+  ui_->statusPlainTextEdit->setFont(status_font);
+
+  const auto setup_combo = [](QComboBox* combo) {
+    combo->setMinimumContentsLength(22);
+    combo->setSizeAdjustPolicy(
+        QComboBox::AdjustToMinimumContentsLengthWithIcon);
+  };
+
+  setup_combo(ui_->keyDBIndexComboBox);
+  setup_combo(ui_->easyProfileComboBox);
+  setup_combo(ui_->easyCombinationComboBox);
+  setup_combo(ui_->easyValidityPeriodComboBox);
+  setup_combo(ui_->pAlgoComboBox);
+  setup_combo(ui_->pKeyLengthComboBox);
+  setup_combo(ui_->sAlgoComboBox);
+  setup_combo(ui_->sKeyLengthComboBox);
+  setup_combo(ui_->scndAlgoComboBox);
+  setup_combo(ui_->scndKeyLengthComboBox);
+
+  const auto setup_button = [](QPushButton* button) {
+    button->setMinimumHeight(30);
+    button->setAutoDefault(false);
+  };
+
+  setup_button(ui_->savePushButton);
+  setup_button(ui_->deletePushButton);
+  setup_button(ui_->reset2DefaultPushButton);
+  setup_button(ui_->generateButton);
+
+  ui_->generateButton->setDefault(true);
+  ui_->generateButton->setMinimumHeight(34);
+
+  ui_->nameEdit->setMinimumHeight(28);
+  ui_->emailEdit->setMinimumHeight(28);
+  ui_->commentEdit->setMinimumHeight(28);
+
+  ui_->pExpireDateTimeEdit->setCalendarPopup(true);
+  ui_->sExpireDateTimeEdit->setCalendarPopup(true);
+
+  setStyleSheet(R"(
+QDialog#KeyGenerateDialog QGroupBox {
+  margin-top: 10px;
+}
+
+QDialog#KeyGenerateDialog QGroupBox::title {
+  subcontrol-origin: margin;
+  left: 8px;
+  padding: 0 4px;
+}
+
+QDialog#KeyGenerateDialog QPlainTextEdit {
+  border: 1px solid palette(mid);
+  background: palette(base);
+  selection-background-color: palette(highlight);
+  selection-color: palette(highlighted-text);
+}
+
+QDialog#KeyGenerateDialog QPushButton#generateButton {
+  min-height: 34px;
+  font-weight: 600;
+}
+)");
 }
 
 void KeyGenerateDialog::slot_key_gen_accept() {
@@ -1097,10 +1186,11 @@ void KeyGenerateDialog::slot_save_as_easy_profile_config() {
         "t";
   }
 
-  if (gen_subkey_info_->SubAlgo().Id() != KeyGenerateInfo::kNoneAlgo.Id()) {
+  if (gen_subkey_info_ != nullptr &&
+      gen_subkey_info_->SubAlgo().Id() != KeyGenerateInfo::kNoneAlgo.Id()) {
     conf.s_key_sub_algo = gen_subkey_info_->SubAlgo().Id();
   } else {
-    conf.s_key_sub_algo = "";
+    conf.s_key_sub_algo.clear();
   }
 
   LOG_D() << "try to save easy mode config, ss_algo: " << conf.s_key_sub_algo;

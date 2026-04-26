@@ -28,6 +28,9 @@
    </property>
    <item>
     <layout class="QFormLayout" name="formLayout_2">
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::ExpandingFieldsGrow</enum>
+     </property>
      <item row="0" column="0">
       <widget class="QLabel" name="nameLabel">
        <property name="text">
@@ -85,7 +88,7 @@
         <enum>QTabWidget::North</enum>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <property name="documentMode">
         <bool>true</bool>
@@ -136,7 +139,7 @@
               <item>
                <widget class="QPushButton" name="reset2DefaultPushButton">
                 <property name="text">
-                 <string>Reset to Default</string>
+                 <string>Reset</string>
                 </property>
                </widget>
               </item>
@@ -200,16 +203,6 @@
            <property name="sizeType">
             <enum>QSizePolicy::MinimumExpanding</enum>
            </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <spacer name="verticalSpacer">
            <property name="sizeHint" stdset="0">
             <size>
              <width>20</width>
@@ -461,18 +454,34 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="generateButton">
-     <property name="text">
-      <string>Generate</string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="generateButton">
+       <property name="text">
+        <string>Generate</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>tabWidget</tabstop>
   <tabstop>statusPlainTextEdit</tabstop>
-  <tabstop>generateButton</tabstop>
   <tabstop>pExpireCheckBox</tabstop>
   <tabstop>pExpireDateTimeEdit</tabstop>
   <tabstop>pEncrCheckBox</tabstop>
