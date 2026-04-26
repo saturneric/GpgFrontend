@@ -216,8 +216,11 @@ void MainWindow::restore_settings() {
   prohibit_update_checking_ =
       settings.value("network/prohibit_update_check").toBool();
 
-  // set appearance
   AppearanceSO const appearance(SettingsObject("general_settings_state"));
+
+  icon_style_ = appearance.tool_bar_button_style;
+  icon_size_ =
+      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height);
 
   crypt_tool_bar_->clear();
 
@@ -246,21 +249,7 @@ void MainWindow::restore_settings() {
     crypt_tool_bar_->addAction(sym_encrypt_act_);
   }
 
-  icon_style_ = appearance.tool_bar_button_style;
-  open_button_->setToolButtonStyle(icon_style_);
-  import_button_->setToolButtonStyle(icon_style_);
-  workspace_button_->setToolButtonStyle(icon_style_);
-  this->setToolButtonStyle(icon_style_);
-
-  // icons ize
-  this->setIconSize(
-      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
-  open_button_->setIconSize(
-      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
-  import_button_->setIconSize(
-      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
-  workspace_button_->setIconSize(
-      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
+  apply_tool_bar_appearance();
 }
 
 void MainWindow::close_attachment_dock() {

@@ -526,7 +526,6 @@ auto SetupToolBar(QToolBar* toolbar, Qt::ToolButtonStyle style, QSize size)
     -> void {
   toolbar->setMovable(true);
   toolbar->setFloatable(false);
-  toolbar->setIconSize(QSize(18, 18));
   toolbar->setToolButtonStyle(style);
   toolbar->setIconSize(size);
 }
@@ -775,6 +774,41 @@ QStatusBar {
   background: palette(window);
 }
 )");
+}
+
+void MainWindow::apply_tool_bar_appearance() {
+  const auto tool_button_style = icon_style_;
+  const auto icon_size = icon_size_;
+
+  const QList<QToolBar*> toolbars = {
+      file_tool_bar_, crypt_tool_bar_,        key_tool_bar_,
+      edit_tool_bar_, special_edit_tool_bar_,
+  };
+
+  for (auto* toolbar : toolbars) {
+    if (toolbar == nullptr) continue;
+
+    toolbar->setToolButtonStyle(tool_button_style);
+    toolbar->setIconSize(icon_size);
+  }
+
+  const QList<QToolButton*> menu_buttons = {
+      open_button_,
+      workspace_button_,
+      import_button_,
+  };
+
+  for (auto* button : menu_buttons) {
+    if (button == nullptr) continue;
+
+    button->setToolButtonStyle(tool_button_style);
+    button->setIconSize(icon_size);
+    button->updateGeometry();
+    button->update();
+  }
+
+  setToolButtonStyle(tool_button_style);
+  setIconSize(icon_size);
 }
 
 }  // namespace GpgFrontend::UI

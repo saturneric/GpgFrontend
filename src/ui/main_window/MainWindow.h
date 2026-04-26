@@ -791,6 +791,12 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    *
    */
   void init_main_window_style();
+
+  /**
+   * @brief
+   *
+   */
+  void apply_tool_bar_appearance();
 };
 
 }  // namespace GpgFrontend::UI
