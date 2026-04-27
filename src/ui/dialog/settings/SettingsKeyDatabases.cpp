@@ -110,7 +110,7 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   table->setColumnWidth(3, 260);  // Path
   table->setColumnWidth(4, 320);  // Real Path
 
-  header->setSectionResizeMode(0, QHeaderView::Interactive);
+  header->setSectionResizeMode(0, QHeaderView::ResizeToContents);
   header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
   header->setSectionResizeMode(2, QHeaderView::ResizeToContents);
   header->setSectionResizeMode(3, QHeaderView::Stretch);
