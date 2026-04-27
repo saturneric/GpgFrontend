@@ -29,6 +29,7 @@
 #include "SettingsDialog.h"
 
 #include "core/GpgConstants.h"
+#include "core/utils/CommonUtils.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
 #include "ui/dialog/settings/SettingsKeyDatabases.h"
@@ -51,7 +52,13 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
   tab_widget_->addTab(general_tab_, tr("General"));
   tab_widget_->addTab(appearance_tab_, tr("Appearance"));
-  tab_widget_->addTab(network_tab_, tr("Network"));
+
+  // network settings is not available in sandbox environment, so only add the
+  // tab when not running in sandbox
+  if (!IsRunningInSandBox()) {
+    tab_widget_->addTab(network_tab_, tr("Network"));
+  }
+
   tab_widget_->addTab(key_dbs_tab_, tr("Key Databases"));
 
 #ifdef Q_OS_MACOS
