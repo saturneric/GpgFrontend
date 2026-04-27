@@ -316,7 +316,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   main_layout->setContentsMargins(18, 18, 18, 18);
   main_layout->setSpacing(14);
 
-  const QString secure_level_str = [this, secure_level]() {
+  const QString secure_level_str = [secure_level]() {
     switch (secure_level) {
       case 0:
         return tr("Default");
@@ -354,11 +354,14 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
                       CreateValueLabel(portable_mode_str, status_widget));
   status_form->addRow(tr("Self-Check Status:"),
                       CreateValueLabel(self_check_str, status_widget));
-  status_form->addRow(tr("GnuPG Offline Mode:"),
-                      CreateValueLabel(gnupg_offline_mode_str, status_widget));
-  status_form->addRow(
-      tr("Pinentry Program Path:"),
-      CreateValueLabel(pinentry_program_path_str, status_widget));
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+    status_form->addRow(
+        tr("GnuPG Offline Mode:"),
+        CreateValueLabel(gnupg_offline_mode_str, status_widget));
+    status_form->addRow(
+        tr("Pinentry Program Path:"),
+        CreateValueLabel(pinentry_program_path_str, status_widget));
+  }
 
   main_layout->addWidget(
       CreateCard(tr("Application Status"), status_widget, content));
