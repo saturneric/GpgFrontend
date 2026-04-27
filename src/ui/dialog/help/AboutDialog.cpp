@@ -208,7 +208,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   status_form->setHorizontalSpacing(18);
   status_form->setVerticalSpacing(8);
 
-  const QString secure_level_str = [secure_level, this]() {
+  const QString secure_level_str = [secure_level]() {
     switch (secure_level) {
       case 0:
         return tr("Default");
