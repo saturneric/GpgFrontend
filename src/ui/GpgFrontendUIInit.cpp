@@ -61,12 +61,10 @@ void WaitEnvCheckingProcess() {
   progress_dialog->setMinimum(0);
 
   auto* waiting_dialog_label = new QLabel(
-      QCoreApplication::tr("Loading GnuPG Info...") + "<br /><br />" +
+      QCoreApplication::tr("Loading Essential Info...") + "<br /><br />" +
       QCoreApplication::tr(
-          "If this process is too slow, please set the key "
-          "server address appropriately in the gnupg configuration "
-          "file (depending "
-          "on the network situation in your country or region)."));
+          "This may take a few seconds or minutes according to your default "
+          "openpgp engine, please wait patiently."));
 
   waiting_dialog_label->setWordWrap(true);
   progress_dialog->setLabel(waiting_dialog_label);
