@@ -67,7 +67,7 @@ auto PlainTextEditor::LineNumberAreaWidth() const -> int {
   }
 
   const int space =
-      12 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
+      12 + (fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits);
 
   return space;
 }
