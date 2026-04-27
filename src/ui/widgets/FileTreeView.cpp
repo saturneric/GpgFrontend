@@ -542,8 +542,6 @@ void FileTreeView::slot_create_popup_menu() {
       new QAction(QIcon::fromTheme(QStringLiteral("archive-insert")),
                   tr("Compress..."), this);
   action_compress_files_->setVisible(false);
-  connect(action_compress_files_, &QAction::triggered, this,
-          &FileTreeView::slot_compress_files);
 
   action_copy_path_ = new QAction(QIcon::fromTheme(QStringLiteral("edit-copy")),
                                   tr("Copy Path"), this);
@@ -679,17 +677,6 @@ void FileTreeView::slot_calculate_hash() {
       });
 }
 
-void FileTreeView::slot_compress_files() {}
-
-void FileTreeView::paintEvent(QPaintEvent* event) {
-  QTreeView::paintEvent(event);
-
-  // if (!initial_resize_done_) {
-  //   slot_adjust_column_widths();
-  //   initial_resize_done_ = true;
-  // }
-}
-
 void FileTreeView::mousePressEvent(QMouseEvent* event) {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   auto pos = event->position().toPoint();
@@ -781,21 +768,6 @@ void FileTreeView::SetPath(const QString& target_path) {
           QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
     });
   }
-}
-
-auto FileTreeView::current_target_directory_index() const -> QModelIndex {
-  auto index = currentIndex();
-
-  if (!index.isValid()) {
-    return rootIndex();
-  }
-
-  const auto info = dir_model_->fileInfo(index);
-  if (info.isDir()) {
-    return index;
-  }
-
-  return index.parent().isValid() ? index.parent() : rootIndex();
 }
 
 auto FileTreeView::current_target_directory_path() const -> QString {
