@@ -60,6 +60,7 @@ auto CreateLinkCard(const QString& title, const QString& description,
   auto* frame = new QFrame;
   frame->setObjectName(QStringLiteral("WizardLinkCard"));
   frame->setFrameShape(QFrame::StyledPanel);
+  frame->setCursor(Qt::PointingHandCursor);
 
   auto* title_label = CreateBodyLabel(
       QStringLiteral("<a href=\"%1\"><b>%2</b></a>").arg(url, title));
@@ -75,11 +76,23 @@ auto CreateLinkCard(const QString& title, const QString& description,
   return frame;
 }
 
-auto CreateSectionTitle(const QString& text) -> QLabel* {
-  auto* label = new QLabel(QStringLiteral("<b>%1</b>").arg(text));
-  label->setTextFormat(Qt::RichText);
-  label->setWordWrap(true);
-  return label;
+auto CreateInfoCard(const QString& title, const QString& description)
+    -> QFrame* {
+  auto* frame = new QFrame;
+  frame->setObjectName(QStringLiteral("WizardInfoCard"));
+  frame->setFrameShape(QFrame::StyledPanel);
+
+  auto* title_label = CreateBodyLabel(QStringLiteral("<b>%1</b>").arg(title));
+
+  auto* desc_label = CreateMutedLabel(description);
+
+  auto* layout = new QVBoxLayout(frame);
+  layout->setContentsMargins(14, 10, 14, 10);
+  layout->setSpacing(4);
+  layout->addWidget(title_label);
+  layout->addWidget(desc_label);
+
+  return frame;
 }
 
 }  // namespace
@@ -97,7 +110,7 @@ Wizard::Wizard(QWidget* parent) : QWizard(parent) {
   setOption(QWizard::NoBackButtonOnStartPage);
   setOption(QWizard::HaveHelpButton, false);
 
-  resize(680, 460);
+  resize(680, 500);
 
   const auto logo =
       QPixmap(QStringLiteral(":/icons/gpgfrontend_logo.png"))
@@ -148,6 +161,13 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
       tr("Get a quick tour of the main features and common workflows."),
       QStringLiteral("https://gpgfrontend.bktus.com/overview/glance"));
 
+  auto* concepts_card = CreateLinkCard(
+      tr("Fundamental concepts"),
+      tr("Understand public keys, private keys, encryption, signing, and "
+         "trust."),
+      QStringLiteral(
+          "https://gpgfrontend.bktus.com/guides/fundamental-concepts/"));
+
   auto* layout = new QVBoxLayout;
   layout->setContentsMargins(8, 8, 8, 8);
   layout->setSpacing(14);
@@ -155,6 +175,7 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   layout->addWidget(privacy_label);
   layout->addSpacing(8);
   layout->addWidget(overview_card);
+  layout->addWidget(concepts_card);
   layout->addStretch();
 
   setLayout(layout);
@@ -168,14 +189,12 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
 
   auto* layout = new QVBoxLayout;
   layout->setContentsMargins(8, 8, 8, 8);
-  layout->setSpacing(12);
+  layout->setSpacing(10);
 
   layout->addWidget(CreateLinkCard(
-      tr("Fundamental concepts"),
-      tr("Understand public keys, private keys, encryption, signing, and "
-         "trust."),
-      QStringLiteral(
-          "https://gpgfrontend.bktus.com/guides/fundamental-concepts/")));
+      tr("Generate a new Key Pair"),
+      tr("Learn how to create your own key pairs."),
+      QStringLiteral("https://gpgfrontend.bktus.com/guides/generate-key/")));
 
   layout->addWidget(CreateLinkCard(
       tr("Text operations"),
@@ -187,11 +206,18 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
       tr("Learn how to encrypt, decrypt, sign, and verify files securely."),
       QStringLiteral("https://gpgfrontend.bktus.com/guides/file-operations/")));
 
+  layout->addWidget(CreateLinkCard(
+      tr("View key pair information"),
+      tr("Learn how to inspect key details, user IDs, fingerprints, and key "
+         "capabilities."),
+      QStringLiteral(
+          "https://gpgfrontend.bktus.com/guides/view-keypair-info/")));
+
   auto* hint_label = CreateMutedLabel(
       tr("You can also skip these guides and start using GpgFrontend "
          "directly."));
 
-  layout->addSpacing(4);
+  layout->addSpacing(2);
   layout->addWidget(hint_label);
   layout->addStretch();
 
@@ -226,24 +252,25 @@ void ChoosePage::slot_jump_page(const QString& page) {
 
 ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   setTitle(tr("Ready to use"));
+  setSubTitle(
+      tr("GpgFrontend is ready. You can adjust these options before "
+         "finishing."));
 
-  auto* done_label = CreateBodyLabel(
-      tr("<b>You're all set.</b><br><br>"
-         "You can now create or import keys, encrypt files, sign messages, and "
-         "verify signatures."));
+  auto* layout = new QVBoxLayout;
+  layout->setContentsMargins(8, 8, 8, 8);
+  layout->setSpacing(10);
 
-  auto* next_steps_title = CreateSectionTitle(tr("Useful next steps"));
+  layout->addWidget(CreateLinkCard(
+      tr("Contact and feedback"),
+      tr("Report issues, ask questions, or send feedback to help improve "
+         "GpgFrontend."),
+      QStringLiteral("https://gpgfrontend.bktus.com/overview/contact/")));
 
-  auto* key_hint = CreateMutedLabel(
-      tr("Start by creating a new key pair or importing an existing public or "
-         "private key."));
-
-  auto* support_label = CreateBodyLabel(
-      tr("If you encounter a problem, you can "
-         "<a href=\"https://github.com/saturneric/GpgFrontend/issues\">submit "
-         "an issue on GitHub</a> or "
-         "<a href=\"https://gpgfrontend.bktus.com/overview/contact/\">contact "
-         "the developer</a>."));
+  layout->addWidget(CreateLinkCard(
+      tr("Submit an issue on GitHub"),
+      tr("Use GitHub issues if you want to report a bug or track a technical "
+         "problem."),
+      QStringLiteral("https://github.com/saturneric/GpgFrontend/issues")));
 
   check_updates_checkbox_ = new QCheckBox(tr("Check for updates on startup"));
   check_updates_checkbox_->setChecked(false);
@@ -260,15 +287,6 @@ ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
   registerField(QStringLiteral("hideWizard"), dont_show_wizard_checkbox_);
   registerField(QStringLiteral("checkUpdate"), check_updates_checkbox_);
 
-  auto* layout = new QVBoxLayout;
-  layout->setContentsMargins(8, 8, 8, 8);
-  layout->setSpacing(12);
-  layout->addWidget(done_label);
-  layout->addSpacing(4);
-  layout->addWidget(next_steps_title);
-  layout->addWidget(key_hint);
-  layout->addSpacing(4);
-  layout->addWidget(support_label);
   layout->addSpacing(8);
   layout->addWidget(check_updates_checkbox_);
   layout->addWidget(dont_show_wizard_checkbox_);
