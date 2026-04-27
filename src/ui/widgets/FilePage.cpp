@@ -135,7 +135,7 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_FilePage>()) {
   ui_->setupUi(this);
-  InitUIStyle();
+  init_ui_style();
 
   connect(ui_->upPathButton, &QToolButton::clicked, ui_->treeView,
           &FileTreeView::SlotUpLevel);
@@ -161,7 +161,7 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
           &FilePage::SlotGoPath);
 
   connect(ui_->pathEdit, &QLineEdit::textEdited, this,
-          [this](const QString& text) { UpdatePathCompletion(text); });
+          [this](const QString& text) { update_path_completion(text); });
 
   connect(path_edit_completer_,
           QOverload<const QString&>::of(&QCompleter::activated), this,
@@ -255,7 +255,7 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   QTimer::singleShot(200, this, &FilePage::update_harddisk_menu_periodic);
 }
 
-void FilePage::InitUIStyle() {
+void FilePage::init_ui_style() {
   setObjectName(QStringLiteral("FilePage"));
 
   ui_->pathEdit->setClearButtonEnabled(true);
@@ -388,7 +388,7 @@ auto FilePage::IsBatchMode() const -> bool {
 
 auto FilePage::IsASCIIMode() const -> bool { return ascii_mode_; }
 
-void FilePage::UpdatePathCompletion(const QString& input) {
+void FilePage::update_path_completion(const QString& input) {
   if (input.trimmed().isEmpty()) {
     path_complete_model_->setStringList({});
     return;

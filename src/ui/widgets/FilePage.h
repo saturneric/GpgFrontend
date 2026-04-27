@@ -49,12 +49,6 @@ class FilePage : public QWidget {
   explicit FilePage(QWidget* parent, const QString&);
 
   /**
-   * @brief
-   *
-   */
-  void InitUIStyle();
-
-  /**
    * @brief Get the Selected object
    *
    * @return QString
@@ -76,13 +70,6 @@ class FilePage : public QWidget {
    * @return false
    */
   [[nodiscard]] auto IsASCIIMode() const -> bool;
-
-  /**
-   * @brief
-   *
-   * @param input
-   */
-  void UpdatePathCompletion(const QString& input);
 
   /**
    * @brief Get the Current Path object
@@ -147,8 +134,6 @@ class FilePage : public QWidget {
 
   QSet<QString> last_volume_keys_;  ///<
 
- private slots:
-
   /**
    * @brief
    *
@@ -166,6 +151,19 @@ class FilePage : public QWidget {
    *
    */
   void update_harddisk_menu_periodic();
+
+  /**
+   * @brief
+   *
+   */
+  void init_ui_style();
+
+  /**
+   * @brief
+   *
+   * @param input
+   */
+  void update_path_completion(const QString& input);
 };
 
 }  // namespace GpgFrontend::UI

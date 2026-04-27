@@ -334,7 +334,7 @@ void FileTreeView::SlotMkdir() {
 }
 
 void FileTreeView::SlotMkdirBelowAtSelectedItem() {
-  const auto target_dir = CurrentTargetDirectoryPath();
+  const auto target_dir = current_target_directory_path();
   if (target_dir.isEmpty()) return;
 
   CreateFileSystemItemDialog dialog(
@@ -374,7 +374,7 @@ void FileTreeView::SlotTouch() {
 }
 
 void FileTreeView::SlotTouchBelowAtSelectedItem() {
-  const auto target_dir = CurrentTargetDirectoryPath();
+  const auto target_dir = current_target_directory_path();
   if (target_dir.isEmpty()) return;
 
   CreateFileSystemItemDialog dialog(CreateFileSystemItemDialog::ItemType::kFILE,
@@ -783,7 +783,7 @@ void FileTreeView::SetPath(const QString& target_path) {
   }
 }
 
-auto FileTreeView::CurrentTargetDirectoryIndex() const -> QModelIndex {
+auto FileTreeView::current_target_directory_index() const -> QModelIndex {
   auto index = currentIndex();
 
   if (!index.isValid()) {
@@ -798,7 +798,7 @@ auto FileTreeView::CurrentTargetDirectoryIndex() const -> QModelIndex {
   return index.parent().isValid() ? index.parent() : rootIndex();
 }
 
-auto FileTreeView::CurrentTargetDirectoryPath() const -> QString {
+auto FileTreeView::current_target_directory_path() const -> QString {
   auto index = currentIndex();
 
   if (!index.isValid()) {

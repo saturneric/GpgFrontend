@@ -235,15 +235,6 @@ class KeyList : public QWidget {
    */
   void RefreshKeyTable(int index);
 
-  /**
-   * @brief
-   *
-   * @param ability
-   * @return true
-   * @return false
-   */
-  [[nodiscard]] auto HasAbility(KeyMenuAbility ability) const -> bool;
-
  public slots:
 
   /**
@@ -427,6 +418,15 @@ class KeyList : public QWidget {
    *
    */
   void update_action_state();
+
+  /**
+   * @brief
+   *
+   * @param ability
+   * @return true
+   * @return false
+   */
+  [[nodiscard]] auto has_ability(KeyMenuAbility ability) const -> bool;
 };
 
 }  // namespace GpgFrontend::UI

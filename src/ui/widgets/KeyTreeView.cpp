@@ -61,7 +61,7 @@ KeyTreeView::KeyTreeView(int channel,
   init();
 }
 
-void KeyTreeView::InitViewStyle() {
+void KeyTreeView::init_view_style() {
   setProperty("gfKeyTreeView", true);
 
   setRootIsDecorated(true);
@@ -148,7 +148,7 @@ auto KeyTreeView::GetAllCheckedSubKey() -> QContainer<GpgSubKey> {
 void KeyTreeView::init() {
   setModel(&proxy_model_);
 
-  InitViewStyle();
+  init_view_style();
 
   connect(this, &QTreeView::doubleClicked, this,
           [this](const QModelIndex& index) {
@@ -163,7 +163,7 @@ void KeyTreeView::init() {
 
   connect(UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefreshDone, this,
-          &KeyTreeView::ResetModel);
+          &KeyTreeView::reset_model);
 
   connect(model_.get(), &GpgKeyTreeModel::SignalKeyCheckedChanged, this,
           [this](GpgAbstractKey*, bool) {
@@ -171,7 +171,7 @@ void KeyTreeView::init() {
           });
 }
 
-void KeyTreeView::ResetModel() {
+void KeyTreeView::reset_model() {
   init_ = false;
 
   model_ = SecureCreateSharedObject<GpgKeyTreeModel>(
@@ -203,7 +203,7 @@ void KeyTreeView::SetChannel(int channel) {
   LOG_D() << "new channel for key tree view: " << channel;
 
   channel_ = channel;
-  ResetModel();
+  reset_model();
 }
 
 auto KeyTreeView::GetKeyByIndex(QModelIndex index) -> GpgAbstractKeyPtr {
@@ -221,7 +221,7 @@ auto KeyTreeView::GetKeyByIndex(QModelIndex index) -> GpgAbstractKeyPtr {
   return item->SharedKey();
 }
 
-void KeyTreeView::Refresh() { ResetModel(); }
+void KeyTreeView::Refresh() { reset_model(); }
 
 auto KeyTreeView::GetAllCheckedKeys() -> GpgAbstractKeyPtrList {
   return model_->GetAllCheckedKeys();

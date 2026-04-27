@@ -77,20 +77,6 @@ class FileTreeView : public QTreeView {
    */
   auto GetMousePointGlobal(const QPoint& point) -> QPoint;
 
-  /**
-   * @brief
-   *
-   * @return QModelIndex
-   */
-  [[nodiscard]] auto CurrentTargetDirectoryIndex() const -> QModelIndex;
-
-  /**
-   * @brief
-   *
-   * @return QString
-   */
-  [[nodiscard]] auto CurrentTargetDirectoryPath() const -> QString;
-
  protected:
   /**
    * @brief
@@ -373,5 +359,19 @@ class FileTreeView : public QTreeView {
    */
   auto copy_directory_recursive(const QString& source_dir,
                                 const QString& target_dir) -> bool;
+
+  /**
+   * @brief
+   *
+   * @return QModelIndex
+   */
+  [[nodiscard]] auto current_target_directory_index() const -> QModelIndex;
+
+  /**
+   * @brief
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto current_target_directory_path() const -> QString;
 };
 }  // namespace GpgFrontend::UI

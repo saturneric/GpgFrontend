@@ -56,7 +56,7 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
       proxy_model_(model_, select_type, column_filter, std::move(filter), this),
       column_filter_(column_filter) {
   setModel(&proxy_model_);
-  InitTableStyle();
+  init_table_style();
 
   connect(CommonUtils::GetInstance(), &CommonUtils::SignalFavoritesChanged,
           &proxy_model_, &GpgKeyTableProxyModel::SignalFavoritesChanged);
@@ -87,7 +87,7 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
           });
 }
 
-void KeyTable::InitTableStyle() {
+void KeyTable::init_table_style() {
   setProperty("gfKeyTable", true);
 
   verticalHeader()->hide();

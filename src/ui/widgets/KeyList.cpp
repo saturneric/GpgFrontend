@@ -95,7 +95,7 @@ KeyList::KeyList(int channel, KeyMenuAbility menu_ability,
   init();
 }
 
-auto KeyList::HasAbility(KeyMenuAbility ability) const -> bool {
+auto KeyList::has_ability(KeyMenuAbility ability) const -> bool {
   using T = std::underlying_type_t<KeyMenuAbility>;
 
   return (static_cast<T>(menu_ability_) & static_cast<T>(ability)) !=
@@ -105,15 +105,15 @@ auto KeyList::HasAbility(KeyMenuAbility ability) const -> bool {
 void KeyList::init_ui_visibility() {
   ui_->menuWidget->setHidden(menu_ability_ == KeyMenuAbility::kNONE);
 
-  ui_->refreshKeyListButton->setHidden(!HasAbility(KeyMenuAbility::kREFRESH));
-  ui_->syncButton->setHidden(!HasAbility(KeyMenuAbility::kSYNC_PUBLIC_KEY));
-  ui_->checkALLButton->setHidden(!HasAbility(KeyMenuAbility::kCHECK_ALL));
-  ui_->uncheckButton->setHidden(!HasAbility(KeyMenuAbility::kUNCHECK_ALL));
-  ui_->columnTypeButton->setHidden(!HasAbility(KeyMenuAbility::kCOLUMN_FILTER));
-  ui_->searchBarEdit->setHidden(!HasAbility(KeyMenuAbility::kSEARCH_BAR));
+  ui_->refreshKeyListButton->setHidden(!has_ability(KeyMenuAbility::kREFRESH));
+  ui_->syncButton->setHidden(!has_ability(KeyMenuAbility::kSYNC_PUBLIC_KEY));
+  ui_->checkALLButton->setHidden(!has_ability(KeyMenuAbility::kCHECK_ALL));
+  ui_->uncheckButton->setHidden(!has_ability(KeyMenuAbility::kUNCHECK_ALL));
+  ui_->columnTypeButton->setHidden(!has_ability(KeyMenuAbility::kCOLUMN_FILTER));
+  ui_->searchBarEdit->setHidden(!has_ability(KeyMenuAbility::kSEARCH_BAR));
   ui_->switchContextButton->setHidden(
-      !HasAbility(KeyMenuAbility::kKEY_DATABASE));
-  ui_->keyGroupButton->setHidden(!HasAbility(KeyMenuAbility::kKEY_GROUP));
+      !has_ability(KeyMenuAbility::kKEY_DATABASE));
+  ui_->keyGroupButton->setHidden(!has_ability(KeyMenuAbility::kKEY_GROUP));
 }
 
 void KeyList::init_ui_style() {

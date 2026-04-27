@@ -58,12 +58,6 @@ struct KeyTable : public QTableView {
           [](const GpgAbstractKey*) -> bool { return true; });
 
   /**
-   * @brief Construct a new Init Table Style object
-   *
-   */
-  void InitTableStyle();
-
-  /**
    * @brief
    *
    * @param model
@@ -179,6 +173,12 @@ struct KeyTable : public QTableView {
   GpgKeyTableProxyModel proxy_model_;
   GpgKeyTableColumn column_filter_;
   bool bulk_checking_ = false;
+
+  /**
+   * @brief Construct a new Init Table Style object
+   *
+   */
+  void init_table_style();
 };
 
 }  // namespace GpgFrontend::UI
