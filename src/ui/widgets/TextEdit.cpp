@@ -36,7 +36,6 @@
 #include "core/utils/IOUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/QuitDialog.h"
-#include "ui/widgets/HelpPage.h"
 #include "ui/widgets/TextEditTabWidget.h"
 
 namespace GpgFrontend::UI {
@@ -64,12 +63,6 @@ auto TextEdit::SlotNewTab() -> QWidget* {
 
 void TextEdit::SlotNewTabWithContent(QString title, const QString& content) {
   tab_widget_->SlotNewTabWithContent(std::move(title), content);
-}
-
-void TextEdit::SlotNewHelpTab(const QString& title, const QString& path) const {
-  auto* page = new HelpPage(path);
-  tab_widget_->addTab(page, title);
-  tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
 }
 
 void TextEdit::SlotNewDefaultWorkspaceTab() {
@@ -498,13 +491,23 @@ void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
 
 void TextEdit::LoadFile(const QString& fileName) {
   auto [succ, buffer] = ReadFileGFBuffer(fileName);
+  if (!succ) {
+    QMessageBox::warning(this, tr("File Open Error"),
+                         tr("The file \"%1\" could not be opened.")
+                             .arg(QFileInfo(fileName).fileName()));
+    return;
+  }
+
+  if (CurTextPage() == nullptr) {
+    SlotNewTab();
+  }
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   CurTextPage()->GetTextPage()->setPlainText(buffer.ConvertToQString());
   QApplication::restoreOverrideCursor();
+
   CurPageTextEdit()->SetFilePath(fileName);
   tab_widget_->setTabText(tab_widget_->currentIndex(), stripped_name(fileName));
-  // statusBar()->showMessage(tr("File loaded"), 2000);
 }
 
 auto TextEdit::stripped_name(const QString& full_file_name) -> QString {
@@ -517,7 +520,7 @@ void TextEdit::SlotPrint() {
   }
 
 #ifndef QT_NO_PRINTER
-  QTextDocument* document;
+  QTextDocument* document = nullptr;
   if (CurTextPage() != nullptr) {
     document = CurTextPage()->GetTextPage()->document();
   }

@@ -37,329 +37,408 @@ namespace GpgFrontend::UI {
 
 class TextEditTabWidget;
 
+/**
+ * @brief Main tabbed workspace widget for text editing and file browsing.
+ *
+ * TextEdit owns the central TextEditTabWidget used by the main window. It
+ * provides high-level operations for creating, opening, saving, closing and
+ * switching tabs.
+ *
+ * A tab can be a plain-text editor page, a file browser page, or a custom tab
+ * provided by modules. TextEdit dispatches common UI actions to the currently
+ * active tab where possible, for example cut/copy/paste, undo/redo, printing,
+ * saving and text insertion.
+ *
+ * TextEdit also handles unsaved-document checks before closing tabs or exiting
+ * the application.
+ */
 class TextEdit : public QWidget {
   Q_OBJECT
+
  public:
   /**
-   * @brief
+   * @brief Constructs the main text-edit workspace.
+   *
+   * The constructor creates the internal tab widget, installs it into the
+   * layout, connects tab-close handling, disables drag-and-drop on this
+   * wrapper, and opens the default workspace tab.
+   *
+   * @param parent Parent widget.
    */
   explicit TextEdit(QWidget* parent);
 
   /**
-   * @details Load the content of file into the current textpage
+   * @brief Loads a file into the current plain-text editor page.
    *
-   * @param fileName QString containing the filename to load
-   * @return nothing
+   * The file is read into a GFBuffer and its text representation is inserted
+   * into the current text page. The current page file path and tab title are
+   * updated afterwards.
+   *
+   * @param fileName File path to load.
    */
   void LoadFile(const QString& fileName);
 
   /**
-   * @details Checks if there are unsaved documents in any tab,
-   *  which may need to be saved. Call this function before
-   *  closing the programme or all tabs.
-   * @return \li false, if the close event should be aborted.
-   *         \li true, otherwise
+   * @brief Checks all tabs for unsaved documents before closing.
+   *
+   * If text-editor page restoration is enabled, unsaved text editors are cached
+   * and the method returns true. Otherwise, the user is asked whether to save,
+   * discard or cancel depending on the number of modified tabs.
+   *
+   * @return true if closing can continue, false if it should be aborted.
    */
   auto MaybeSaveAnyTab() -> bool;
 
   /**
-   * @brief
+   * @brief Returns the number of currently opened tabs.
    *
-   * @return int
+   * @return Tab count.
    */
   [[nodiscard]] auto TabCount() const -> int;
 
   /**
-   * @details textpage of the currently activated tab
-   * @return \li reference to QTextEdit if tab has one
-   *         \li 0 otherwise (e.g. if helppage)
+   * @brief Returns the current plain-text editor page.
+   *
+   * @return Current PlainTextEditorPage, or nullptr if the current tab is not a
+   *         text editor page.
    */
   [[nodiscard]] auto CurTextPage() const -> PlainTextEditorPage*;
 
   /**
-   * @brief
+   * @brief Returns the current file browser page.
    *
-   * @return FilePage*
+   * @return Current FilePage, or nullptr if the current tab is not a file page.
    */
   [[nodiscard]] auto CurFilePage() const -> FilePage*;
 
   /**
-   * @details  List of currently unsaved tabs.
-   * @returns QHash<int, QString> Hash of tab indexes and title of unsaved tabs.
+   * @brief Returns all modified text-editor tabs.
+   *
+   * Only finished-loading PlainTextEditorPage tabs whose documents are modified
+   * are included.
+   *
+   * @return Hash mapping tab indexes to display names of unsaved documents.
    */
   [[nodiscard]] auto UnsavedDocuments() const -> QHash<int, QString>;
 
   /**
-   * @details textpage of the currently activated tab
-   * @return \li reference to QTextEdit if tab has one
-   *         \li 0 otherwise (e.g. if helppage)
+   * @brief Returns the plain text of the current text editor page.
+   *
+   * @return Current plain text, or an empty string if the current tab is not a
+   *         text editor page.
    */
   [[nodiscard]] auto CurPlainText() const -> QString;
 
   /**
-   * @brief
+   * @brief Returns the underlying tab widget.
    *
-   * @return QTabWidget*
+   * @return Pointer to the internal QTabWidget.
    */
   [[nodiscard]] auto TabWidget() const -> QTabWidget*;
 
   /**
-   * @details Return pointer to the currently activated text edit tab page.
+   * @brief Returns the current plain-text editor page.
    *
+   * This is an alias for the current text editor page accessor used by parts of
+   * the UI code.
+   *
+   * @return Current PlainTextEditorPage, or nullptr.
    */
   [[nodiscard]] auto CurPageTextEdit() const -> PlainTextEditorPage*;
 
   /**
-   * @details Return pointer to the currently activated file tree view tab page.
+   * @brief Returns the current file browser page.
    *
+   * This is an alias for the current file page accessor used by parts of the UI
+   * code.
+   *
+   * @return Current FilePage, or nullptr.
    */
   [[nodiscard]] auto CurPageFileTreeView() const -> FilePage*;
 
   /**
-   * @brief
+   * @brief Returns the currently active tab page.
    *
-   * @return QWidget*
+   * @return Current tab widget page, or nullptr if no page is available.
    */
   [[nodiscard]] auto CurPage() -> QWidget*;
 
  public slots:
-
   /**
-   * @details Insert a ">" at the beginning of every line of current
-   * textedit.
+   * @brief Quotes every line in the current text editor.
+   *
+   * A "> " prefix is inserted at the beginning of each line. The whole
+   * operation is grouped as one undo/redo edit block.
    */
   void SlotQuote() const;
 
   /**
-   * @details replace the text of currently active textedit with given text.
-   * @param text to fill on.
+   * @brief Replaces the current text editor content with text.
+   *
+   * Undo/redo is temporarily disabled while the text is replaced. The document
+   * is marked as modified afterwards.
+   *
+   * @param text Text to insert.
    */
   void SlotFillTextEditWithText(const QString& text) const;
 
   /**
-   * @details replace the text of currently active textedit with given text.
-   * @param text to fill on.
+   * @brief Replaces the current text editor content with a GFBuffer.
+   *
+   * The buffer is converted to QString before being inserted.
+   *
+   * @param buffer Buffer whose text representation should be inserted.
    */
   void SlotFillTextEditWithText(const GFBuffer& buffer) const;
 
   /**
-   * @details Saves the content of the current tab, if it has a filepath
-   * otherwise it calls saveAs for the current tab
+   * @brief Saves the current tab.
+   *
+   * For text-editor tabs, this saves to the existing file path or opens Save As
+   * when no file path is assigned. File browser tabs are ignored. Custom tab
+   * types may handle saving through the module event system.
    */
   void SlotSave();
 
   /**
-   * @details Opens a savefiledialog and calls save_file with the choosen
-   * filename.
+   * @brief Opens a Save File dialog and saves the current text-editor page.
    *
-   * @return Return the return value of the savefile method
+   * @return true if saving succeeds or no text page is active, otherwise false.
    */
   bool SlotSaveAs();  // NOLINT
 
   /**
-   * @details Show an OpenFileDoalog and open the file in a new tab.
-   * Shows an error dialog, if the open fails.
-   * Set the focus to the tab of the opened file.
+   * @brief Opens one or more files in new text-editor tabs.
+   *
+   * The method shows a file-open dialog and delegates each selected file to
+   * SlotOpenFile().
    */
   void SlotOpen();
 
   /**
-   * @details Open a print-dialog for the current tab
+   * @brief Prints the current text editor document.
+   *
+   * A print dialog is shown before printing. If the current tab has no text
+   * document, a warning is shown.
    */
   void SlotPrint();
 
   /**
-   * @brief
+   * @brief Creates a new plain-text editor tab.
    *
-   * @return QWidget*
+   * @return Newly created tab page.
    */
   QWidget* SlotNewTab();  // NOLINT
 
   /**
-   * @brief
+   * @brief Creates a new custom tab.
    *
-   * @param type
-   * @param title
-   * @param icon
-   * @return QWidget*
+   * Custom tabs are identified by a type string and may be handled by modules
+   * or other higher-level UI logic.
+   *
+   * @param type Custom tab type.
+   * @param title Tab title.
+   * @param icon Tab icon.
+   * @return Newly created tab page.
    */
-  // NOLINTNEXTLINE
   QWidget* SlotNewCustomTab(const QString& type, const QString& title,
-                            const QIcon& icon);
+                            const QIcon& icon);  // NOLINT
 
   /**
-   * @details
+   * @brief Creates a new text-editor tab with predefined content.
    *
+   * @param title Tab title.
+   * @param content Initial text content.
    */
   void SlotNewTabWithContent(QString title, const QString& content);
 
   /**
-   * @details Adds a new tab with opening file by path
+   * @brief Opens a file path in a text-editor tab after validation.
+   *
+   * The file must be a readable regular file, smaller than the configured hard
+   * limit used here, and must not appear to be binary based on the first bytes.
+   *
+   * @param path File path to open.
    */
   void SlotOpenFile(const QString& path);
 
   /**
-   * @details Adds a new tab with the given title and opens given html file.
-   * Increase Tab-Count by one
-   * @param title title for the tab
-   * @param path  path for html file to show
-   */
-  void SlotNewHelpTab(const QString& title, const QString& path) const;
-
-  /**
-   * @brief
+   * @brief Opens the default workspace tab.
    *
+   * The default workspace is selected from settings. In sandbox mode, a plain
+   * text editor is used instead of the file panel to avoid sandbox-related file
+   * browser issues. Cached text editor tabs are restored afterwards.
    */
   void SlotNewDefaultWorkspaceTab();
 
   /**
-   * @brief
-   *
+   * @brief Opens the default file browser tab.
    */
   void SlotOpenDefaultFileBrowserTab();
 
   /**
-   * New File Tab to do file operation
+   * @brief Opens a file browser tab from a selected file path.
+   *
+   * The user selects a file through a file dialog. The containing path is then
+   * opened by the tab widget.
    */
   void SlotNewFileBrowserTab();
 
   /**
-   * @brief
+   * @brief Opens a file browser tab from a selected directory.
    *
+   * The user selects a directory through a directory dialog, and that directory
+   * is opened by the tab widget.
    */
   void SlotNewFileBrowserTabWithDirectory();
 
   /**
-   * @details close the current tab and decrease TabWidget->count by \a 1
+   * @brief Closes the current tab.
    *
+   * Unsaved text-editor content is checked before the tab is removed.
    */
   void SlotCloseTab();
 
   /**
-   * @details Switch to the next tab.
-   *
+   * @brief Switches to the next tab.
    */
   void SlotSwitchTabUp() const;
 
   /**
-   * @details Switch to the previous tab.
-   *
+   * @brief Switches to the previous tab.
    */
   void SlotSwitchTabDown() const;
 
   /**
-   * @details Cut selected text in current text page.
+   * @brief Cuts selected text from the current text editor.
    */
   void SlotCut() const;
 
   /**
-   * @details Copy selected text of current text page to clipboard.
+   * @brief Copies selected text from the current text editor.
    */
   void SlotCopy() const;
 
   /**
-   * @details Paste text from clipboard to current text page.
+   * @brief Pastes clipboard text into the current text editor.
    */
   void SlotPaste() const;
 
   /**
-   * @details Undo last change in current textpage.
-   *
+   * @brief Undoes the last change in the current text editor.
    */
   void SlotUndo() const;
 
   /**
-   * @brief  redo last change in current text page
-   *
+   * @brief Redoes the last undone change in the current text editor.
    */
   void SlotRedo() const;
 
   /**
-   * @brief
-   *
+   * @brief Zooms in the current text editor.
    */
   void SlotZoomIn() const;
 
   /**
-   * @brief
-   *
+   * @brief Zooms out the current text editor.
    */
   void SlotZoomOut() const;
 
   /**
-   * @brief select all in current text page
-   *
+   * @brief Selects all text in the current text editor.
    */
   void SlotSelectAll() const;
 
   /**
-   * @brief
+   * @brief Appends text to the current text editor without revealing it.
    *
-   * @param text
+   * If no text editor is active, a new text tab is created first.
+   *
+   * @param text Text to append.
    */
   void SlotAppendText2CurTextPage(const QString& text);
 
   /**
-   * @brief
+   * @brief Appends text to the current text editor.
    *
-   * @param text
-   * @param reveal
+   * The method preserves the old cursor and scroll position unless @p reveal is
+   * true. A newline is inserted before or after the appended text when needed.
+   * The document is marked as modified.
+   *
+   * @param text Text to append.
+   * @param reveal true to scroll to and reveal the appended text.
    */
   void SlotAppendText2CurTextPage(const QString& text, bool reveal);
 
   /**
-   * @brief
+   * @brief Appends text to the current text editor and reveals it.
    *
-   * @param text
+   * @param text Text to append.
    */
   void SlotAppendText2CurTextPageAndReveal(const QString& text);
 
   /**
-   * @brief
+   * @brief Replaces the current text editor content with a GFBuffer.
    *
-   * @param buffer
+   * If no text editor is active, a new text tab is created first.
+   *
+   * @param buffer Buffer to convert and insert.
    */
   void SlotSetGFBuffer2CurTextPage(const GFBuffer& buffer);
 
   /**
-   * @brief
+   * @brief Returns the underlying tab widget.
    *
-   * @return QTabWidget*
+   * Slot-style accessor kept for signal/slot based callers.
+   *
+   * @return Pointer to the internal QTabWidget.
    */
   QTabWidget* SlotGetTabWidget();  // NOLINT
 
  protected:
   /**
-   * @brief Saves the content of currentTab to the file filename
+   * @brief Saves the current plain-text editor page to a file.
    *
-   * @param fileName
+   * On success, the tab title, page file path, document modified state and page
+   * save notification state are updated.
+   *
+   * @param file_name Target file path.
+   * @return true if the file is saved successfully, otherwise false.
    */
   auto saveFile(const QString& file_name) -> bool;
 
  private slots:
-
   /**
-   * @details Remove the tab with given index
+   * @brief Removes a tab after checking for unsaved changes.
    *
-   * @param index Tab-number to remove
+   * The target tab is made current before the save check. If closing is
+   * allowed, the tab is removed and scheduled for deletion.
+   *
+   * @param index Tab index to remove.
    */
   void slot_remove_tab(int index);
 
  private:
-  TextEditTabWidget* tab_widget_;  ///< widget containing the tabs of the editor
+  TextEditTabWidget* tab_widget_;  ///< Tab widget containing workspace pages.
 
   /**
-   * @details return just a filename stripped of a whole path
+   * @brief Extracts the base file name from a full path.
    *
-   * @param a filename path
-   * @return QString containing the filename
+   * @param full_file_name Full file path.
+   * @return File name without parent directory path.
    */
   static auto stripped_name(const QString& full_file_name) -> QString;
 
   /**
-   * @brief
+   * @brief Checks whether the current text-editor tab should be saved.
    *
-   * @param askToSave
+   * If the current page is not a text editor or is not modified, the method
+   * returns true. If the document has unsaved changes, the user may be asked to
+   * save, discard or cancel depending on @p askToSave.
+   *
+   * @param askToSave true to show a save/discard/cancel dialog, false to save
+   *                  directly without asking.
+   * @return true if closing or continuing is allowed, otherwise false.
    */
   auto maybe_save_current_tab(bool askToSave) -> bool;
 };
