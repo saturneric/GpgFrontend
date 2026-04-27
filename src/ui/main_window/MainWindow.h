@@ -139,6 +139,13 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   void closeEvent(QCloseEvent* event) override;
 
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void showEvent(QShowEvent* event) override;
+
  public slots:
 
   /**
@@ -324,10 +331,12 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   void slot_find();
 
+  void slot_start_wizard();
+
   /**
    * @details start the wizard
    */
-  void slot_start_wizard();
+  void slot_maybe_show_wizard();
 
   /**
    * @details Import keys from currently active tab to keylist if possible.
@@ -634,6 +643,8 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   bool attachment_dock_created_{};         ///<
   int restart_mode_{0};                    ///<
   bool prohibit_update_checking_ = false;  ///<
+  bool show_wizard_on_startup_ = false;    ///<
+  bool wizard_checked_ = false;            ///<
   unsigned int operations_menu_mask_ = ~0;
 
   /**

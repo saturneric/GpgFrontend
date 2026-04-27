@@ -167,6 +167,7 @@ void MainWindow::Init() noexcept {
     connect(m_key_list_, &KeyList::SignalRefreshDatabase, this,
             [=]() { slot_update_engine_status(); });
 
+    // restore settings and window state
     restore_settings();
 
     // Important: restore window geometry before restoring QMainWindow dock
@@ -185,11 +186,6 @@ void MainWindow::Init() noexcept {
     info_board_->AssociateTabWidget(edit_->TabWidget());
 
     slot_switch_menu_control_mode(0);
-
-    // check if need to open wizard window
-    if (GetSettings().value("wizard/show_wizard", true).toBool()) {
-      slot_start_wizard();
-    }
 
     // check if there are invalid key databases and notify user
     check_and_notify_invalid_key_dbs();
@@ -222,7 +218,8 @@ void MainWindow::restore_settings() {
   }
 
   prohibit_update_checking_ =
-      settings.value("network/prohibit_update_check").toBool();
+      settings.value("network/prohibit_update_check", true).toBool();
+  show_wizard_on_startup_ = settings.value("wizard/show_wizard", true).toBool();
 
   AppearanceSO const appearance(SettingsObject("general_settings_state"));
 
@@ -275,6 +272,15 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     return;
   }
   GeneralMainWindow::closeEvent(event);
+}
+
+void MainWindow::showEvent(QShowEvent* event) {
+  GeneralMainWindow::showEvent(event);
+
+  if (wizard_checked_) return;
+  wizard_checked_ = true;
+
+  QTimer::singleShot(0, this, [this]() -> void { slot_maybe_show_wizard(); });
 }
 
 auto MainWindow::create_action(const QString& id, const QString& name,
