@@ -26,6 +26,8 @@
  *
  */
 
+#include "GpgFrontend.h"
+
 #ifdef Q_OS_MACOS
 
 #include <QStringList>
@@ -35,6 +37,7 @@
 
 namespace GpgFrontend {
 
+// NOLINTNEXTLINE
 bool RelaunchApplication(const QStringList& arguments) {
   @autoreleasepool {
     NSURL* bundle_url = [[NSBundle mainBundle] bundleURL];

@@ -310,6 +310,10 @@ if(MINGW)
 elseif(APPLE)
   message(STATUS "Link Application Library For macOS")
   target_sources(${APP_NAME} PRIVATE platform/MacRelaunch.mm)
+  set_source_files_properties(
+    platform/MacRelaunch.mm
+    PROPERTIES SKIP_PRECOMPILE_HEADERS ON
+  )
   find_library(APPKIT_FRAMEWORK AppKit REQUIRED)
   target_link_libraries(${APP_NAME} ${APPKIT_FRAMEWORK})
 else()
