@@ -95,7 +95,7 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_PlainTextEditor>()),
       full_file_path_(std::move(file_path)) {
   ui_->setupUi(this);
-  InitEditorStyle();
+  init_editor_style();
 
   ui_->textPage->setFocus();
   this->setAttribute(Qt::WA_DeleteOnClose);
@@ -103,26 +103,26 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
   connect(ui_->textPage, &QPlainTextEdit::textChanged, this, [this]() {
     if (!read_done_) return;
 
-    UpdateStatusBar();
-    SetEditorModified(ui_->textPage->document()->isModified());
+    update_status_bar();
+    set_editor_modified(ui_->textPage->document()->isModified());
   });
 
   connect(ui_->textPage, &QPlainTextEdit::cursorPositionChanged, this,
           [this]() {
             if (!read_done_) return;
-            UpdateStatusBar();
+            update_status_bar();
           });
 
   if (full_file_path_.isEmpty()) {
     read_done_ = true;
-    SetLoadingState(false);
+    set_loading_state(false);
   } else {
     read_done_ = false;
-    SetLoadingState(true, tr("Loading..."));
+    set_loading_state(true, tr("Loading..."));
   }
 }
 
-void PlainTextEditorPage::InitEditorStyle() {
+void PlainTextEditorPage::init_editor_style() {
   setObjectName(QStringLiteral("PlainTextEditorPage"));
 
   ui_->textPage->setObjectName(QStringLiteral("PlainTextEditor"));
@@ -210,7 +210,7 @@ QWidget#PlainTextEditorPage QLabel[loading="true"] {
   polish_label(ui_->encodingLabel);
 }
 
-void PlainTextEditorPage::SetLoadingState(bool loading,
+void PlainTextEditorPage::set_loading_state(bool loading,
                                           const QString &message) {
   ui_->loadingLabel->setHidden(!loading);
   ui_->loadingLabel->setProperty("loading", loading);
@@ -225,7 +225,7 @@ void PlainTextEditorPage::SetLoadingState(bool loading,
   ui_->textPage->setReadOnly(loading);
 }
 
-void PlainTextEditorPage::UpdateStatusBar() {
+void PlainTextEditorPage::update_status_bar() {
   const auto char_count =
       std::max(0, ui_->textPage->document()->characterCount() - 1);
 
@@ -246,7 +246,7 @@ void PlainTextEditorPage::UpdateStatusBar() {
   ui_->encodingLabel->setText(tr("UTF-8"));
 }
 
-void PlainTextEditorPage::SetEditorModified(bool modified) {
+void PlainTextEditorPage::set_editor_modified(bool modified) {
   ui_->characterLabel->setToolTip(modified
                                       ? tr("The document has unsaved changes.")
                                       : tr("The document is unchanged."));
@@ -269,8 +269,8 @@ auto PlainTextEditorPage::GetPlainText() -> QString {
 
 void PlainTextEditorPage::NotifyFileSaved() {
   ui_->textPage->document()->setModified(false);
-  SetEditorModified(false);
-  UpdateStatusBar();
+  set_editor_modified(false);
+  update_status_bar();
 }
 
 void PlainTextEditorPage::SetFilePath(const QString &filePath) {
@@ -336,7 +336,7 @@ void PlainTextEditorPage::ReadFile() {
 
   auto *text_page = this->GetTextPage();
 
-  SetLoadingState(true, tr("Loading..."));
+  set_loading_state(true, tr("Loading..."));
 
   text_page->clear();
   text_page->blockSignals(true);
@@ -370,8 +370,8 @@ void PlainTextEditorPage::ReadFile() {
     text_page->document()->setModified(false);
     text_page->document()->clearUndoRedoStacks();
 
-    SetLoadingState(false);
-    UpdateStatusBar();
+    set_loading_state(false);
+    update_status_bar();
     slot_format_gpg_header();
 
     text_page->setFocus();
@@ -401,7 +401,7 @@ void PlainTextEditorPage::slot_insert_text(QByteArray bytes_data) {
 
   ui_->textPage->insertPlainText(QString::fromUtf8(bytes_data));
 
-  UpdateStatusBar();
+  update_status_bar();
 
   if (read_bytes_ > 0) {
     ui_->loadingLabel->setText(tr("Loading... %1 KB").arg(read_bytes_ / 1024));
@@ -430,8 +430,8 @@ void PlainTextEditorPage::Clear() {
   editor->document()->setModified(false);
   editor->setUndoRedoEnabled(true);
 
-  UpdateStatusBar();
-  SetEditorModified(false);
+  update_status_bar();
+  set_editor_modified(false);
 }
 
 void PlainTextEditorPage::ApplyAppearanceSettings() {

@@ -96,7 +96,7 @@ class KeyList : public QWidget {
    */
   explicit KeyList(
       int channel, KeyMenuAbility menu_ability,
-      GpgKeyTableColumn fixed_column_filter = GpgKeyTableColumn::kALL,
+      GpgKeyTableColumn fixed_columns_filter = GpgKeyTableColumn::kALL,
       QWidget* parent = nullptr);
 
   /**
@@ -106,8 +106,9 @@ class KeyList : public QWidget {
    * @param menu_ability
    * @param fixed_column_filter
    */
-  void Init(int channel, KeyMenuAbility menu_ability,
-            GpgKeyTableColumn fixed_column_filter = GpgKeyTableColumn::kALL);
+  void InitAfter(
+      int channel, KeyMenuAbility menu_ability,
+      GpgKeyTableColumn fixed_columns_filter = GpgKeyTableColumn::kALL);
 
   /**
    * @brief
@@ -233,48 +234,6 @@ class KeyList : public QWidget {
    * @param index
    */
   void RefreshKeyTable(int index);
-
-  /**
-   * @brief
-   *
-   */
-  void InitUiVisibility();
-
-  /**
-   * @brief
-   *
-   */
-  void InitUiStyle();
-
-  /**
-   * @brief
-   *
-   */
-  void InitContextMenu();
-
-  /**
-   * @brief
-   *
-   */
-  void InitColumnMenu();
-
-  /**
-   * @brief
-   *
-   */
-  void InitSignals();
-
-  /**
-   * @brief
-   *
-   */
-  void InitTexts();
-
-  /**
-   * @brief
-   *
-   */
-  void UpdateActionState();
 
   /**
    * @brief
@@ -426,6 +385,48 @@ class KeyList : public QWidget {
       const KeyIdArgsList& key_ids,
       const std::function<void(const QString&, const QString&, size_t, size_t)>&
           callback) const;
+
+  /**
+   * @brief
+   *
+   */
+  void init_ui_visibility();
+
+  /**
+   * @brief
+   *
+   */
+  void init_ui_style();
+
+  /**
+   * @brief
+   *
+   */
+  void init_context_menu();
+
+  /**
+   * @brief
+   *
+   */
+  void init_column_menu();
+
+  /**
+   * @brief
+   *
+   */
+  void init_signals();
+
+  /**
+   * @brief
+   *
+   */
+  void init_texts();
+
+  /**
+   * @brief
+   *
+   */
+  void update_action_state();
 };
 
 }  // namespace GpgFrontend::UI

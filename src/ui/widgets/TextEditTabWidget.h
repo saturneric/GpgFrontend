@@ -68,86 +68,6 @@ class TextEditTabWidget : public QTabWidget {
    */
   [[nodiscard]] auto CurPage() -> QWidget*;
 
-  /**
-   * @brief
-   *
-   */
-  void InitTabStyle();
-
-  /**
-   * @brief
-   *
-   * @param page
-   * @param modified
-   */
-  void UpdateTabModifiedMark(QWidget* page, bool modified);
-
-  /**
-   * @brief Create a Plain Text Tab object
-   *
-   * @param title
-   * @param file_path
-   * @param icon
-   * @return PlainTextEditorPage*
-   */
-  auto CreatePlainTextTab(const QString& title, const QString& file_path,
-                          const QIcon& icon) -> PlainTextEditorPage*;
-
-  /**
-   * @brief
-   *
-   * @param path
-   * @return int
-   */
-  [[nodiscard]] auto FindTabByFilePath(const QString& path) const -> int;
-
-  /**
-   * @brief
-   *
-   * @param url
-   */
-  void OpenDroppedUrl(const QUrl& url);
-
-  /**
-   * @brief
-   *
-   * @param path
-   * @return QString
-   */
-  auto CompactPathForTab(const QString& path) -> QString;
-
-  /**
-   * @brief
-   *
-   * @param path
-   * @return QString
-   */
-  auto WorkspaceTitleFromPath(const QString& path) -> QString;
-
-  /**
-   * @brief
-   *
-   * @param page
-   * @param path
-   */
-  void UpdateFilePageTabTitle(QWidget* page, const QString& path);
-
-  /**
-   * @brief
-   *
-   * @param title
-   * @return QString
-   */
-  auto NormalizeTabTitle(QString title) -> QString;
-
-  /**
-   * @brief
-   *
-   * @param path
-   * @return int
-   */
-  [[nodiscard]] auto FindFilePageByPath(const QString& path) const -> int;
-
  public slots:
 
   /**
@@ -222,18 +142,6 @@ class TextEditTabWidget : public QTabWidget {
   /**
    * @brief
    *
-   * @param file_info
-   * @param error_message
-   * @return true
-   * @return false
-   */
-  // NOLINTNEXTLINE
-  bool CanOpenAsTextFile(const QFileInfo& file_info,
-                         QString* error_message) const;
-
-  /**
-   * @brief
-   *
    * @param index
    * @return QString
    */
@@ -282,6 +190,89 @@ class TextEditTabWidget : public QTabWidget {
    */
   auto generate_new_title(const QString& prefix, const QString& suffix)
       -> QString;
+
+  /**
+   * @brief
+   *
+   */
+  void init_tab_style();
+
+  /**
+   * @brief
+   *
+   * @param page
+   * @param modified
+   */
+  void update_tab_modified_mark(QWidget* page, bool modified);
+
+  /**
+   * @brief Create a Plain Text Tab object
+   *
+   * @param title
+   * @param file_path
+   * @param icon
+   * @return PlainTextEditorPage*
+   */
+  auto create_plain_text_tab(const QString& title, const QString& file_path,
+                             const QIcon& icon) -> PlainTextEditorPage*;
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return int
+   */
+  [[nodiscard]] auto find_tab_by_file_path(const QString& path) const -> int;
+
+  /**
+   * @brief
+   *
+   * @param url
+   */
+  void open_dropped_url(const QUrl& url);
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return QString
+   */
+  auto compact_path_for_tab(const QString& path) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return QString
+   */
+  auto workspace_title_from_path(const QString& path) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param page
+   * @param path
+   */
+  void update_file_page_tab_title(QWidget* page, const QString& path);
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return int
+   */
+  [[nodiscard]] auto find_file_page_by_path(const QString& path) const -> int;
+
+  /**
+   * @brief
+   *
+   * @param file_info
+   * @param error_message
+   * @return true
+   * @return false
+   */
+  static auto can_open_as_text_file(const QFileInfo& file_info,
+                                    QString* error_message) -> bool;
 };
 
 }  // namespace GpgFrontend::UI

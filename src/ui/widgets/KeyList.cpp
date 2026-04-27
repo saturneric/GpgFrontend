@@ -102,7 +102,7 @@ auto KeyList::HasAbility(KeyMenuAbility ability) const -> bool {
          static_cast<T>(KeyMenuAbility::kNONE);
 }
 
-void KeyList::InitUiVisibility() {
+void KeyList::init_ui_visibility() {
   ui_->menuWidget->setHidden(menu_ability_ == KeyMenuAbility::kNONE);
 
   ui_->refreshKeyListButton->setHidden(!HasAbility(KeyMenuAbility::kREFRESH));
@@ -116,7 +116,7 @@ void KeyList::InitUiVisibility() {
   ui_->keyGroupButton->setHidden(!HasAbility(KeyMenuAbility::kKEY_GROUP));
 }
 
-void KeyList::InitUiStyle() {
+void KeyList::init_ui_style() {
   setObjectName(QStringLiteral("KeyList"));
 
   ui_->menuWidget->setObjectName(QStringLiteral("KeyListMenu"));
@@ -152,7 +152,7 @@ void KeyList::InitUiStyle() {
   ui_->keyGroupTab->tabBar()->setDrawBase(false);
 }
 
-void KeyList::InitTexts() {
+void KeyList::init_texts() {
   ui_->refreshKeyListButton->setText(tr("Refresh"));
   ui_->refreshKeyListButton->setToolTip(
       tr("Refresh the key list to synchronize changes."));
@@ -181,7 +181,7 @@ void KeyList::InitTexts() {
   ui_->switchContextButton->setToolTip(tr("Switch between key databases."));
 }
 
-void KeyList::InitContextMenu() {
+void KeyList::init_context_menu() {
   auto* gpg_context_menu = new QMenu(this);
   auto* gpg_context_groups = new QActionGroup(this);
   gpg_context_groups->setExclusive(true);
@@ -210,7 +210,7 @@ void KeyList::InitContextMenu() {
       current_gpg_context_channel_ = channel;
       ui_->channelLcdNumber->display(channel);
 
-      InitColumnMenu();
+      init_column_menu();
       UpdateKeyTableColumnType(global_column_filter_);
 
       emit SignalRefreshDatabase();
@@ -229,7 +229,7 @@ void KeyList::InitContextMenu() {
   ui_->switchContextButton->setMenu(gpg_context_menu);
 }
 
-void KeyList::InitColumnMenu() {
+void KeyList::init_column_menu() {
   auto* column_type_menu = new QMenu(this);
 
   auto add_column_action = [this, column_type_menu](QAction*& action,
@@ -274,7 +274,7 @@ void KeyList::InitColumnMenu() {
   ui_->columnTypeButton->setMenu(column_type_menu);
 }
 
-void KeyList::InitSignals() {
+void KeyList::init_signals() {
   connect(this, &KeyList::SignalRefreshDatabase, UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
   connect(UISignalStation::GetInstance(),
@@ -315,10 +315,10 @@ void KeyList::InitSignals() {
           &KeyList::slot_new_key_group);
 
   connect(this, &KeyList::SignalKeyChecked, this,
-          [this]() { UpdateActionState(); });
+          [this]() { update_action_state(); });
 }
 
-void KeyList::UpdateActionState() {
+void KeyList::update_action_state() {
   const bool has_key_table =
       ui_ != nullptr && ui_->keyGroupTab != nullptr &&
       qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget()) != nullptr;
@@ -356,10 +356,10 @@ void KeyList::UpdateActionState() {
 }
 
 void KeyList::init() {
-  InitUiVisibility();
-  InitUiStyle();
-  InitContextMenu();
-  InitColumnMenu();
+  init_ui_visibility();
+  init_ui_style();
+  init_context_menu();
+  init_column_menu();
 
   ui_->keyGroupTab->clear();
 
@@ -368,9 +368,9 @@ void KeyList::init() {
 
   ui_->channelLcdNumber->display(current_gpg_context_channel_);
 
-  InitSignals();
-  InitTexts();
-  UpdateActionState();
+  init_signals();
+  init_texts();
+  update_action_state();
 
   setAcceptDrops(true);
 }
@@ -639,7 +639,7 @@ void KeyList::sync_keys_from_key_server(
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
         ->PostTask(new Thread::Task(
-            [=](const DataObjectPtr& data_obj) -> int {
+            [=](const DataObjectPtr&) -> int {
               // rate limit
               QThread::msleep(200);
               // call
@@ -649,8 +649,8 @@ void KeyList::sync_keys_from_key_server(
                       {"key_id", GFBuffer{key_id}},
                   },
                   [key_id, channel, callback, current_index, all_index](
-                      Module::EventIdentifier i,
-                      Module::Event::ListenerIdentifier ei,
+                      const Module::EventIdentifier&,
+                      const Module::Event::ListenerIdentifier&,
                       Module::Event::Params p) {
                     QString status;
 
@@ -815,11 +815,11 @@ void KeyList::RefreshKeyTable(int index) {
   key_table->RefreshProxyModel();
 }
 
-void KeyList::Init(int channel, KeyMenuAbility menu_ability,
-                   GpgKeyTableColumn fixed_column_filter) {
+void KeyList::InitAfter(int channel, KeyMenuAbility menu_ability,
+                        GpgKeyTableColumn fixed_columns_filter) {
   current_gpg_context_channel_ = channel;
   menu_ability_ = menu_ability;
-  fixed_columns_filter_ = fixed_column_filter;
+  fixed_columns_filter_ = fixed_columns_filter;
   model_ = AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel();
 
   init();

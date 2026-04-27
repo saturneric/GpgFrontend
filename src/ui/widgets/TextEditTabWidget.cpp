@@ -60,10 +60,21 @@ class ScopedOverrideCursor {
   ~ScopedOverrideCursor() { QApplication::restoreOverrideCursor(); }
 };
 
+auto NormalizeTabTitle(QString title) -> QString {
+  title = title.trimmed();
+
+  while (title.startsWith("*")) {
+    title.remove(0, 1);
+    title = title.trimmed();
+  }
+
+  return title;
+}
+
 }  // namespace
 
 TextEditTabWidget::TextEditTabWidget(QWidget* parent) : QTabWidget(parent) {
-  InitTabStyle();
+  init_tab_style();
 
   tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(
@@ -109,7 +120,7 @@ TextEditTabWidget::TextEditTabWidget(QWidget* parent) : QTabWidget(parent) {
       });
 }
 
-void TextEditTabWidget::InitTabStyle() {
+void TextEditTabWidget::init_tab_style() {
   setAcceptDrops(true);
   setMovable(true);
   setTabsClosable(true);
@@ -174,9 +185,8 @@ auto TextEditTabWidget::PathForTab(int index) const -> QString {
   return {};
 }
 
-auto TextEditTabWidget::CanOpenAsTextFile(const QFileInfo& file_info,
-                                          QString* error_message) const
-    -> bool {
+auto TextEditTabWidget::can_open_as_text_file(const QFileInfo& file_info,
+                                              QString* error_message) -> bool {
   if (!file_info.exists() || !file_info.isFile()) {
     if (error_message != nullptr) {
       *error_message = tr("The file does not exist.");
@@ -184,7 +194,8 @@ auto TextEditTabWidget::CanOpenAsTextFile(const QFileInfo& file_info,
     return false;
   }
 
-  constexpr qint64 kMaxTextEditorFileSize = 1024 * 1024;
+  constexpr auto kMaxTextEditorFileSize =
+      static_cast<const qint64>(1024 * 1024);
   if (file_info.size() > kMaxTextEditorFileSize) {
     if (error_message != nullptr) {
       *error_message = tr("The file \"%1\" is larger than 1 MB and will not be "
@@ -216,17 +227,6 @@ auto TextEditTabWidget::CanOpenAsTextFile(const QFileInfo& file_info,
   return true;
 }
 
-auto TextEditTabWidget::NormalizeTabTitle(QString title) -> QString {
-  title = title.trimmed();
-
-  while (title.startsWith("*")) {
-    title.remove(0, 1);
-    title = title.trimmed();
-  }
-
-  return title;
-}
-
 void TextEditTabWidget::dragEnterEvent(QDragEnterEvent* event) {
   if (!event->mimeData()->hasUrls()) {
     event->ignore();
@@ -253,7 +253,7 @@ void TextEditTabWidget::dropEvent(QDropEvent* event) {
   }
 
   for (const auto& url : event->mimeData()->urls()) {
-    OpenDroppedUrl(url);
+    open_dropped_url(url);
   }
 
   event->acceptProposedAction();
@@ -274,7 +274,7 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
     return;
   }
 
-  const int existing_index = FindTabByFilePath(path);
+  const int existing_index = find_tab_by_file_path(path);
   if (existing_index >= 0) {
     setCurrentIndex(existing_index);
     if (auto* page =
@@ -285,18 +285,19 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
   }
 
   QString error_message;
-  if (!CanOpenAsTextFile(file_info, &error_message)) {
+  if (!can_open_as_text_file(file_info, &error_message)) {
     QMessageBox::warning(this, tr("File Open Error"), error_message);
     return;
   }
 
   ScopedOverrideCursor wait_cursor(Qt::WaitCursor);
-  auto* page =
-      CreatePlainTextTab(stripped_name(path), path, QIcon(":/icons/file.png"));
+  auto* page = create_plain_text_tab(stripped_name(path), path,
+                                     QIcon(":/icons/file.png"));
   page->ReadFile();
 }
 
-auto TextEditTabWidget::FindTabByFilePath(const QString& path) const -> int {
+auto TextEditTabWidget::find_tab_by_file_path(const QString& path) const
+    -> int {
   const auto target_path = NormalizedExistingFilePath(path);
 
   for (int i = 0; i < count(); ++i) {
@@ -318,7 +319,7 @@ void TextEditTabWidget::SlotShowModified(bool changed) {
   auto* page = CurTextPage();
   if (page == nullptr) return;
 
-  UpdateTabModifiedMark(page, changed);
+  update_tab_modified_mark(page, changed);
 }
 
 auto TextEditTabWidget::CurTextPage() const -> PlainTextEditorPage* {
@@ -352,41 +353,41 @@ void TextEditTabWidget::slot_save_status_to_cache_for_recovery() {
 
 auto TextEditTabWidget::SlotNewPlainTextTab() -> QWidget* {
   const auto header = generate_new_title("untitled", "txt");
-  return CreatePlainTextTab(header, {}, QIcon(":/icons/file.png"));
+  return create_plain_text_tab(header, {}, QIcon(":/icons/file.png"));
 }
 
 auto TextEditTabWidget::SlotNewTab(const QString& type, const QString& title,
                                    const QIcon& icon) -> QWidget* {
-  auto* page = CreatePlainTextTab(title, {}, icon);
+  auto* page = create_plain_text_tab(title, {}, icon);
   page->setProperty("type", type);
   return page;
 }
 
 void TextEditTabWidget::SlotNewTabWithGFBuffer(QString title,
                                                const GFBuffer& buffer) {
-  QString header = NormalizeTabTitle(title);
+  QString header = NormalizeTabTitle(std::move(title));
   if (header.isEmpty()) {
     header = generate_new_title("untitled", "txt");
   }
 
-  auto* page = CreatePlainTextTab(header, {}, QIcon(":/icons/file.png"));
+  auto* page = create_plain_text_tab(header, {}, QIcon(":/icons/file.png"));
   page->GetTextPage()->document()->setPlainText(buffer.ConvertToQString());
   page->GetTextPage()->document()->setModified(true);
-  UpdateTabModifiedMark(page, true);
+  update_tab_modified_mark(page, true);
   page->GetTextPage()->setFocus();
 }
 
 void TextEditTabWidget::SlotNewTabWithContent(QString title,
                                               const QString& content) {
-  auto header = NormalizeTabTitle(title);
+  auto header = NormalizeTabTitle(std::move(title));
   if (header.isEmpty()) {
     header = generate_new_title("untitled", "txt");
   }
 
-  auto* page = CreatePlainTextTab(header, {}, QIcon(":/icons/file.png"));
+  auto* page = create_plain_text_tab(header, {}, QIcon(":/icons/file.png"));
   page->GetTextPage()->document()->setPlainText(content);
   page->GetTextPage()->document()->setModified(true);
-  UpdateTabModifiedMark(page, true);
+  update_tab_modified_mark(page, true);
 }
 
 void TextEditTabWidget::SlotOpenDefaultPath() {
@@ -411,7 +412,8 @@ void TextEditTabWidget::SlotOpenDefaultPath() {
   SlotOpenPath(default_path);
 }
 
-auto TextEditTabWidget::FindFilePageByPath(const QString& path) const -> int {
+auto TextEditTabWidget::find_file_page_by_path(const QString& path) const
+    -> int {
   const auto target_path = QDir::cleanPath(QFileInfo(path).absoluteFilePath());
 
   for (int i = 0; i < count(); ++i) {
@@ -430,7 +432,7 @@ auto TextEditTabWidget::FindFilePageByPath(const QString& path) const -> int {
 }
 
 void TextEditTabWidget::SlotOpenPath(const QString& target_path) {
-  const int existing_index = FindFilePageByPath(target_path);
+  const int existing_index = find_file_page_by_path(target_path);
   if (existing_index >= 0) {
     setCurrentIndex(existing_index);
     return;
@@ -442,7 +444,7 @@ void TextEditTabWidget::SlotOpenPath(const QString& target_path) {
   page->setProperty("type", "file");
   page->setProperty("initial_path", abs_path);
 
-  const auto title = WorkspaceTitleFromPath(abs_path);
+  const auto title = workspace_title_from_path(abs_path);
   page->setProperty("base_title", title);
 
   const int index = addTab(page, QIcon(":/icons/workspace.png"), title);
@@ -451,14 +453,14 @@ void TextEditTabWidget::SlotOpenPath(const QString& target_path) {
 
   connect(page, &FilePage::SignalPathChanged, this,
           [this, page](const QString& path) {
-            UpdateFilePageTabTitle(page, path);
+            update_file_page_tab_title(page, path);
           });
 
   page->SlotGoPath();
 }
 
-void TextEditTabWidget::UpdateFilePageTabTitle(QWidget* page,
-                                               const QString& path) {
+void TextEditTabWidget::update_file_page_tab_title(QWidget* page,
+                                                   const QString& path) {
   const int index = indexOf(page);
   if (index < 0) return;
 
@@ -469,7 +471,7 @@ void TextEditTabWidget::UpdateFilePageTabTitle(QWidget* page,
   }
 
   const auto absolute_path = QFileInfo(path).absoluteFilePath();
-  const auto title = WorkspaceTitleFromPath(absolute_path);
+  const auto title = workspace_title_from_path(absolute_path);
   page->setProperty("base_title", title);
   setTabText(index, title);
   setTabToolTip(index, absolute_path);
@@ -609,7 +611,7 @@ auto TextEditTabWidget::generate_new_title(const QString& prefix,
 
 auto TextEditTabWidget::CurPage() -> QWidget* { return this->currentWidget(); }
 
-void TextEditTabWidget::UpdateTabModifiedMark(QWidget* page, bool modified) {
+void TextEditTabWidget::update_tab_modified_mark(QWidget* page, bool modified) {
   const int index = indexOf(page);
   if (index < 0) return;
 
@@ -622,9 +624,9 @@ void TextEditTabWidget::UpdateTabModifiedMark(QWidget* page, bool modified) {
   setTabText(index, modified ? "* " + base_title : base_title);
 }
 
-auto TextEditTabWidget::CreatePlainTextTab(const QString& title,
-                                           const QString& file_path,
-                                           const QIcon& icon)
+auto TextEditTabWidget::create_plain_text_tab(const QString& title,
+                                              const QString& file_path,
+                                              const QIcon& icon)
     -> PlainTextEditorPage* {
   auto clean_title = NormalizeTabTitle(title);
   if (clean_title.isEmpty()) {
@@ -641,7 +643,7 @@ auto TextEditTabWidget::CreatePlainTextTab(const QString& title,
 
   connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
           this, [this, page](bool modified) {
-            UpdateTabModifiedMark(page, modified);
+            update_tab_modified_mark(page, modified);
           });
 
   connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
@@ -651,7 +653,7 @@ auto TextEditTabWidget::CreatePlainTextTab(const QString& title,
   return page;
 }
 
-void TextEditTabWidget::OpenDroppedUrl(const QUrl& url) {
+void TextEditTabWidget::open_dropped_url(const QUrl& url) {
   if (!url.isLocalFile()) return;
 
   const QString local_file = url.toLocalFile();
@@ -677,7 +679,8 @@ void TextEditTabWidget::OpenDroppedUrl(const QUrl& url) {
   }
 }
 
-auto TextEditTabWidget::WorkspaceTitleFromPath(const QString& path) -> QString {
+auto TextEditTabWidget::workspace_title_from_path(const QString& path)
+    -> QString {
   const QFileInfo info(path);
   auto name = info.fileName();
 

@@ -94,33 +94,6 @@ class PlainTextEditorPage : public QWidget {
    * @brief
    *
    */
-  void InitEditorStyle();
-
-  /**
-   * @brief
-   *
-   */
-  void UpdateStatusBar();
-
-  /**
-   * @brief Set the Loading State object
-   *
-   * @param loading
-   * @param message
-   */
-  void SetLoadingState(bool loading, const QString& message = {});
-
-  /**
-   * @brief Set the Editor Modified object
-   *
-   * @param modified
-   */
-  void SetEditorModified(bool modified);
-
-  /**
-   * @brief
-   *
-   */
   void ApplyAppearanceSettings();
 
  public slots:
@@ -166,14 +139,6 @@ class PlainTextEditorPage : public QWidget {
    */
   void closeEvent(QCloseEvent* event) override;
 
- private:
-  QString full_file_path_;  ///< The path to the file handled in the tab
-  bool sign_marked_{};  ///< true, if the signed header is marked, false if not
-  bool read_done_ = false;  ///<
-  size_t read_bytes_ = 0;   ///<
-  bool is_crlf_ = false;    ///<
-  bool last_insert_has_partial_cr_ = false;
-
  private slots:
 
   /**
@@ -187,6 +152,41 @@ class PlainTextEditorPage : public QWidget {
    * @param data
    */
   void slot_insert_text(QByteArray bytes_data);
+
+ private:
+  QString full_file_path_;  ///< The path to the file handled in the tab
+  bool sign_marked_{};  ///< true, if the signed header is marked, false if not
+  bool read_done_ = false;  ///<
+  size_t read_bytes_ = 0;   ///<
+  bool is_crlf_ = false;    ///<
+  bool last_insert_has_partial_cr_ = false;
+
+  /**
+   * @brief
+   *
+   */
+  void init_editor_style();
+
+  /**
+   * @brief
+   *
+   */
+  void update_status_bar();
+
+  /**
+   * @brief Set the Loading State object
+   *
+   * @param loading
+   * @param message
+   */
+  void set_loading_state(bool loading, const QString& message = {});
+
+  /**
+   * @brief Set the Editor Modified object
+   *
+   * @param modified
+   */
+  void set_editor_modified(bool modified);
 };
 
 }  // namespace GpgFrontend::UI

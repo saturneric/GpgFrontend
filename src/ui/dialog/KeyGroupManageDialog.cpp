@@ -51,7 +51,7 @@ KeyGroupManageDialog::KeyGroupManageDialog(
   connect(ui_->removeButton, &QPushButton::clicked, this,
           &KeyGroupManageDialog::slot_remove_from_key_group);
 
-  ui_->keyGroupKeyList->Init(
+  ui_->keyGroupKeyList->InitAfter(
       channel, KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
       GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
           GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kKEY_ID |
@@ -65,7 +65,7 @@ KeyGroupManageDialog::KeyGroupManageDialog(
       });
   ui_->keyGroupKeyList->SlotRefresh();
 
-  ui_->keyList->Init(
+  ui_->keyList->InitAfter(
       channel, KeyMenuAbility::kCOLUMN_FILTER | KeyMenuAbility::kSEARCH_BAR,
       GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
           GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kKEY_ID |
