@@ -46,8 +46,19 @@ void MainWindow::SlotSetStatusBarText(const QString& text) {
 
 void MainWindow::slot_start_wizard() {
   auto* wizard = new Wizard(this);
-  wizard->show();
-  wizard->setModal(true);
+  wizard->setAttribute(Qt::WA_DeleteOnClose);
+  wizard->setWindowModality(Qt::ApplicationModal);
+
+#ifdef Q_OS_MACOS
+  wizard->setWindowFlag(Qt::Dialog, true);
+#endif
+
+  wizard->open();
+
+  QTimer::singleShot(0, wizard, [wizard]() {
+    wizard->raise();
+    wizard->activateWindow();
+  });
 }
 
 void MainWindow::slot_maybe_show_wizard() {
