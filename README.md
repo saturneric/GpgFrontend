@@ -21,21 +21,13 @@ easier and more trustworthy in everyday privacy workflows.
 
 > If you like GpgFrontend, you can give it a ⭐ on GitHub as donation. :)
 
-**Release Channels:**
-
-- v2.2.0+ (Mainline): The main branch includes an experimental rPGP engine for
-  OpenPGP v6 (RFC 9580), while **GnuPG** remains the default, primary, and fully
-  supported backend. rPGP-related features are under active development and may
-  evolve over time.
-- v2.1.x (Stable): Dedicated to maximum stability and reliability. This series
-  remains in maintenance mode, focusing on bug fixes and security updates, with
-  no new major features or breaking changes planned.
-
 ## Table of Contents
 
 - [GpgFrontend](#gpgfrontend)
   - [Table of Contents](#table-of-contents)
   - [User Manual](#user-manual)
+  - [GpgFrontend Lite](#gpgfrontend-lite)
+  - [Release Channels](#release-channels)
   - [Supported Languages](#supported-languages)
   - [Modules](#modules)
   - [Contributing \& Bug Reports](#contributing--bug-reports)
@@ -55,6 +47,32 @@ workflows, and recommended practices for using GpgFrontend effectively.
 
 > The source code for the user manual is maintained in this
 > [repository](https://github.com/saturneric/GpgFrontend-Manual.git).
+
+## GpgFrontend Lite
+
+**GpgFrontend Lite** is the official Mac App Store edition of GpgFrontend: a
+self-contained, sandbox-friendly macOS app using the rPGP engine instead of
+GnuPG.
+
+Use the regular desktop edition for full GnuPG integration, advanced settings,
+existing GnuPG workflows, and the complete feature set. Use Lite for simple
+everyday OpenPGP operations on macOS or for experimenting with the new 2.2.x /
+rPGP-based workflow. Some advanced features are not available in Lite.
+
+[![Download on the Mac App Store](https://tools.applemediaservices.com/api/badges/download-on-the-mac-app-store/black/en-us?size=200x67)](https://apps.apple.com/app/gpgfrontend-lite/id6763597446)
+
+For more details, see the [FAQ](https://gpgfrontend.bktus.com/overview/faq/#why-is-there-a-separate-gpgfrontend-lite-edition).
+
+## Release Channels
+
+- **v2.2.0+ (Mainline):** The main branch includes an experimental rPGP engine
+  for OpenPGP v6 (RFC 9580), while **GnuPG** remains the default, primary, and
+  recommended backend for mature workflows. rPGP-related features are under
+  active development and may evolve over time.
+
+- **v2.1.x (Stable):** Dedicated to maximum stability and reliability. This
+  series remains in maintenance mode, focusing on bug fixes and security
+  updates, with no new major features or breaking changes planned.
 
 ## Supported Languages
 
