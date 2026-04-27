@@ -36,19 +36,109 @@
 #include "ui/UIModuleManager.h"
 
 namespace GpgFrontend::UI {
+namespace {
+
+auto CreateBodyLabel(const QString& text, QWidget* parent = nullptr)
+    -> QLabel* {
+  auto* label = new QLabel(text, parent);
+  label->setWordWrap(true);
+  label->setTextFormat(Qt::RichText);
+  label->setTextInteractionFlags(Qt::TextBrowserInteraction |
+                                 Qt::TextSelectableByMouse);
+  label->setOpenExternalLinks(true);
+  return label;
+}
+
+auto CreateValueLabel(const QString& text, QWidget* parent = nullptr)
+    -> QLabel* {
+  auto* label = new QLabel(text, parent);
+  label->setWordWrap(true);
+  label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  return label;
+}
+
+auto CreateCard(const QString& title, QWidget* content,
+                QWidget* parent = nullptr) -> QFrame* {
+  auto* frame = new QFrame(parent);
+  frame->setObjectName(QStringLiteral("AboutCard"));
+  frame->setFrameShape(QFrame::StyledPanel);
+
+  auto* title_label = new QLabel(QStringLiteral("<b>%1</b>").arg(title), frame);
+  title_label->setTextFormat(Qt::RichText);
+  title_label->setWordWrap(true);
+
+  auto* layout = new QVBoxLayout(frame);
+  layout->setContentsMargins(14, 12, 14, 12);
+  layout->setSpacing(8);
+  layout->addWidget(title_label);
+  layout->addWidget(content);
+
+  return frame;
+}
+
+auto CreateInfoForm(QWidget* parent = nullptr) -> QFormLayout* {
+  auto* form = new QFormLayout(parent);
+  form->setRowWrapPolicy(QFormLayout::WrapLongRows);
+  form->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
+  form->setFormAlignment(Qt::AlignTop);
+  form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  form->setHorizontalSpacing(18);
+  form->setVerticalSpacing(8);
+  return form;
+}
+
+auto CreateBuildInfoText() -> QString {
+  return QStringLiteral(
+             "GpgFrontend: %1\n"
+             "Qt: %2\n"
+             "GPGME: %3\n"
+             "Assuan: %4\n"
+             "Libarchive: %5\n"
+             "OpenSSL: %6\n"
+             "Git Branch: %7\n"
+             "Git Commit: %8\n"
+             "Built at: %9")
+      .arg(GetProjectVersion(), GetProjectQtVersion(), GetProjectGpgMEVersion(),
+           GetProjectAssuanVersion(), GetProjectLibarchiveVersion(),
+           GetProjectOpenSSLVersion(), GetProjectBuildGitBranchName(),
+           GetProjectBuildGitCommitHash(),
+           QLocale().toString(GetProjectBuildTimestamp()));
+}
+
+auto CreateCopyButton(const QString& text, const QString& content,
+                      QWidget* parent = nullptr) -> QPushButton* {
+  auto* button = new QPushButton(text, parent);
+
+  QObject::connect(button, &QPushButton::clicked, button, [content]() {
+    QApplication::clipboard()->setText(content);
+  });
+
+  return button;
+}
+
+auto CreateScrollArea(QWidget* content, QWidget* parent = nullptr)
+    -> QScrollArea* {
+  auto* scroll_area = new QScrollArea(parent);
+  scroll_area->setWidget(content);
+  scroll_area->setWidgetResizable(true);
+  scroll_area->setFrameShape(QFrame::NoFrame);
+  return scroll_area;
+}
+
+}  // namespace
 
 AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
     : GeneralDialog(typeid(AboutDialog).name(), parent) {
-  this->setWindowTitle(tr("About") + " " + qApp->applicationName());
+  setWindowTitle(tr("About") + " " + qApp->applicationDisplayName());
 
-  auto* tab_widget = new QTabWidget;
-  auto* info_tab = new InfoTab();
-  auto* translators_tab = new TranslatorsTab();
-  auto* status_tab = new StatusTab();
+  auto* tab_widget = new QTabWidget(this);
+  auto* info_tab = new InfoTab(tab_widget);
+  auto* translators_tab = new TranslatorsTab(tab_widget);
+  auto* status_tab = new StatusTab(tab_widget);
 
   tab_widget->setDocumentMode(true);
 
-  tab_widget->addTab(info_tab, tr("About GpgFrontend"));
+  tab_widget->addTab(info_tab, tr("About"));
   tab_widget->addTab(translators_tab, tr("Translators"));
   tab_widget->addTab(status_tab, tr("Status"));
 
@@ -59,9 +149,10 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
       });
 
   int default_index = 0;
-  for (int i = 0; i < tab_widget->count(); i++) {
+  for (int i = 0; i < tab_widget->count(); ++i) {
     if (tab_widget->tabText(i) == default_tab_name) {
       default_index = i;
+      break;
     }
   }
 
@@ -69,118 +160,144 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
     tab_widget->setCurrentIndex(default_index);
   }
 
-  auto* main_layout = new QVBoxLayout;
+  auto* main_layout = new QVBoxLayout(this);
+  main_layout->setContentsMargins(8, 8, 8, 8);
   main_layout->addWidget(tab_widget);
-  main_layout->setContentsMargins(QMargins{5, 0, 5, 0});
   setLayout(main_layout);
-
-  this->show();
-  this->raise();
-  this->activateWindow();
 }
 
 void AboutDialog::showEvent(QShowEvent* ev) { QDialog::showEvent(ev); }
 
 InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
+  auto* content = new QWidget(this);
+  auto* main_layout = new QVBoxLayout(content);
+  main_layout->setContentsMargins(18, 18, 18, 18);
+  main_layout->setSpacing(14);
+
   auto pixmap =
-      QPixmap(":/icons/gpgfrontend_logo.png")
-          .scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-  auto* pixmap_label = new QLabel;
+      QPixmap(QStringLiteral(":/icons/gpgfrontend_logo.png"))
+          .scaled(112, 112, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+  auto* pixmap_label = new QLabel(content);
   pixmap_label->setPixmap(pixmap);
-  pixmap_label->setMinimumSize({150, 150});
   pixmap_label->setAlignment(Qt::AlignCenter);
 
-  QString app_info = QString(R"(
-    <div align="center">
-      <span style="font-size:20px; font-weight:bold;">%1</span>
-      <br/> <br/>
-      <span style="font-size:16px;">%2</span>
-    </div>
-)")
-                         .arg(qApp->applicationDisplayName())
-                         .arg(GetProjectVersion());
+  auto* title_label = new QLabel(
+      QStringLiteral(
+          "<div align=\"center\">"
+          "<span style=\"font-size:22px; font-weight:600;\">%1</span>"
+          "<br/>"
+          "<span style=\"font-size:14px;\">%2</span>"
+          "</div>")
+          .arg(qApp->applicationDisplayName(), GetProjectVersion()),
+      content);
+  title_label->setTextFormat(Qt::RichText);
+  title_label->setAlignment(Qt::AlignCenter);
+  title_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
-  auto* app_info_label = new QLabel(app_info);
-  app_info_label->setTextFormat(Qt::RichText);
-  app_info_label->setAlignment(Qt::AlignCenter);
-  app_info_label->setWordWrap(true);
+  auto* tagline_label = CreateBodyLabel(
+      QStringLiteral("<div align=\"center\">%1</div>")
+          .arg(tr("A user-friendly OpenPGP tool for encryption, signing, and "
+                  "key management.")),
+      content);
+  tagline_label->setAlignment(Qt::AlignCenter);
 
-  auto* sep = new QFrame;
-  sep->setFrameShape(QFrame::HLine);
-  sep->setFrameShadow(QFrame::Sunken);
+  main_layout->addWidget(pixmap_label);
+  main_layout->addWidget(title_label);
+  main_layout->addWidget(tagline_label);
 
-  auto developer_info =
-      QString(R"(
-      <b>%1</b>Saturneric<br><br>
-      %2
-      <a href="https://github.com/saturneric/GpgFrontend/issues">GitHub</a>
-      %3
-      <a href="mailto:eric@bktus.com">eric@bktus.com</a>
-  )")
-          .arg(tr("Developer:") + " ")
-          .arg(
-              tr("If you have any questions or suggestions, raise an issue at"))
-          .arg(tr("or send a mail to my private email at"));
+  auto* developer_label = CreateBodyLabel(
+      QStringLiteral(
+          "%1<br/><br/>"
+          "<a href=\"https://github.com/saturneric/GpgFrontend/issues\">%2</a>"
+          "<br/>"
+          "<a href=\"https://gpgfrontend.bktus.com/overview/contact/\">%3</a>"
+          "<br/>"
+          "<a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>")
+          .arg(tr("Developed and maintained by Saturneric."),
+               tr("Report an issue on GitHub"), tr("Contact the developer")),
+      content);
 
-  auto* dev_group = new QGroupBox(tr("Developer"));
-  auto* dev_layout = new QVBoxLayout;
-  auto* dev_label = new QLabel(developer_info);
-  dev_label->setTextFormat(Qt::RichText);
-  dev_label->setWordWrap(true);
-  dev_label->setOpenExternalLinks(true);
-  dev_layout->addWidget(dev_label);
-  dev_group->setLayout(dev_layout);
+  main_layout->addWidget(CreateCard(tr("Developer"), developer_label, content));
 
-  auto* build_group = new QGroupBox(tr("Build Information"));
-  auto* build_form = new QFormLayout();
+  auto* build_widget = new QWidget(content);
+  auto* build_layout = new QVBoxLayout(build_widget);
+  build_layout->setContentsMargins(0, 0, 0, 0);
+  build_layout->setSpacing(10);
 
-  build_form->addRow(tr("Qt"), new QLabel(GetProjectQtVersion()));
-  build_form->addRow(tr("GPGME"), new QLabel(GetProjectGpgMEVersion()));
-  build_form->addRow(tr("Assuan"), new QLabel(GetProjectAssuanVersion()));
-  build_form->addRow(tr("Libarchive"),
-                     new QLabel(GetProjectLibarchiveVersion()));
-  build_form->addRow(tr("OpenSSL"), new QLabel(GetProjectOpenSSLVersion()));
-  build_form->addRow(tr("Git Branch:"),
-                     new QLabel(GetProjectBuildGitBranchName()));
-  build_form->addRow(tr("Git Commit:"),
-                     new QLabel(GetProjectBuildGitCommitHash()));
+  auto* build_form_widget = new QWidget(build_widget);
+  auto* build_form = CreateInfoForm(build_form_widget);
+  build_form_widget->setLayout(build_form);
+
+  build_form->addRow(
+      tr("Qt:"), CreateValueLabel(GetProjectQtVersion(), build_form_widget));
+  build_form->addRow(tr("GPGME:"), CreateValueLabel(GetProjectGpgMEVersion(),
+                                                    build_form_widget));
+  build_form->addRow(tr("Assuan:"), CreateValueLabel(GetProjectAssuanVersion(),
+                                                     build_form_widget));
+  build_form->addRow(
+      tr("Libarchive:"),
+      CreateValueLabel(GetProjectLibarchiveVersion(), build_form_widget));
+  build_form->addRow(
+      tr("OpenSSL:"),
+      CreateValueLabel(GetProjectOpenSSLVersion(), build_form_widget));
+  build_form->addRow(
+      tr("Git Branch:"),
+      CreateValueLabel(GetProjectBuildGitBranchName(), build_form_widget));
+  build_form->addRow(
+      tr("Git Commit:"),
+      CreateValueLabel(GetProjectBuildGitCommitHash(), build_form_widget));
   build_form->addRow(
       tr("Built at:"),
-      new QLabel(QLocale().toString(GetProjectBuildTimestamp())));
+      CreateValueLabel(QLocale().toString(GetProjectBuildTimestamp()),
+                       build_form_widget));
 
-  build_form->setRowWrapPolicy(QFormLayout::DontWrapRows);
-  build_form->setFieldGrowthPolicy(QFormLayout::FieldsStayAtSizeHint);
-  build_form->setFormAlignment(Qt::AlignHCenter | Qt::AlignTop);
-  build_form->setLabelAlignment(Qt::AlignLeft);
-  build_group->setLayout(build_form);
+  auto* copy_button = CreateCopyButton(tr("Copy Build Information"),
+                                       CreateBuildInfoText(), build_widget);
 
-  auto* main_layout = new QVBoxLayout(this);
-  main_layout->addWidget(pixmap_label);
-  main_layout->addSpacing(15);
-  main_layout->addWidget(app_info_label);
-  main_layout->addWidget(sep);
-  main_layout->addWidget(dev_group);
-  main_layout->addWidget(build_group, 1);
+  build_layout->addWidget(build_form_widget);
+  build_layout->addWidget(copy_button, 0, Qt::AlignRight);
+
+  main_layout->addWidget(
+      CreateCard(tr("Build Information"), build_widget, content));
+
   main_layout->addStretch();
 
-  setObjectName("InfoTab");
+  auto* outer_layout = new QVBoxLayout(this);
+  outer_layout->setContentsMargins(0, 0, 0, 0);
+  outer_layout->addWidget(content);
+  setLayout(outer_layout);
+
+  setObjectName(QStringLiteral("InfoTab"));
 }
 
 TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
-  QFile translators_file(":/TRANSLATORS");
-
-  translators_file.open(QIODevice::ReadOnly);
-  auto* label = new QLabel(translators_file.readAll());
   auto* main_layout = new QVBoxLayout(this);
-  main_layout->addWidget(label);
-  main_layout->addStretch();
+  main_layout->setContentsMargins(18, 18, 18, 18);
+  main_layout->setSpacing(12);
 
-  auto* notice_label = new QLabel(
-      tr("If you think there are any problems with the translation, why not "
-         "participate in the translation work? If you want to participate, "
-         "please read the document or contact me via email."),
+  auto* title_label = CreateBodyLabel(
+      QStringLiteral("<b>%1</b>").arg(tr("Thanks to all translators")), this);
+
+  auto* browser = new QTextBrowser(this);
+  browser->setOpenExternalLinks(true);
+  browser->setReadOnly(true);
+
+  QFile translators_file(QStringLiteral(":/TRANSLATORS"));
+  if (translators_file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    browser->setPlainText(QString::fromUtf8(translators_file.readAll()));
+  } else {
+    browser->setPlainText(tr("Translator information is not available."));
+  }
+
+  auto* notice_label = CreateBodyLabel(
+      tr("If you find a translation issue or want to help improve "
+         "localization, please contact the developer or submit a "
+         "contribution."),
       this);
-  notice_label->setWordWrap(true);
+
+  main_layout->addWidget(title_label);
+  main_layout->addWidget(browser, 1);
   main_layout->addWidget(notice_label);
 
   setLayout(main_layout);
@@ -194,21 +311,12 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   const QString pinentry_program_path =
       qApp->property("GFPinentryProgramPath").toString();
 
-  auto* main_layout = new QVBoxLayout(this);
-  main_layout->setContentsMargins(16, 16, 16, 16);
-  main_layout->setSpacing(12);
+  auto* content = new QWidget(this);
+  auto* main_layout = new QVBoxLayout(content);
+  main_layout->setContentsMargins(18, 18, 18, 18);
+  main_layout->setSpacing(14);
 
-  auto* status_group = new QGroupBox(tr("Application Status"), this);
-  auto* status_form = new QFormLayout(status_group);
-
-  status_form->setRowWrapPolicy(QFormLayout::DontWrapRows);
-  status_form->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
-  status_form->setFormAlignment(Qt::AlignTop);
-  status_form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-  status_form->setHorizontalSpacing(18);
-  status_form->setVerticalSpacing(8);
-
-  const QString secure_level_str = [secure_level]() {
+  const QString secure_level_str = [this, secure_level]() {
     switch (secure_level) {
       case 0:
         return tr("Default");
@@ -236,53 +344,55 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
                                                 ? tr("Default Pinentry Program")
                                                 : pinentry_program_path;
 
-  const auto make_value_label = [this](const QString& text) {
-    auto* label = new QLabel(text, this);
-    label->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    label->setWordWrap(true);
-    return label;
-  };
+  auto* status_widget = new QWidget(content);
+  auto* status_form = CreateInfoForm(status_widget);
+  status_widget->setLayout(status_form);
 
   status_form->addRow(tr("Security Level:"),
-                      make_value_label(secure_level_str));
-  status_form->addRow(tr("Running Mode:"), make_value_label(portable_mode_str));
+                      CreateValueLabel(secure_level_str, status_widget));
+  status_form->addRow(tr("Running Mode:"),
+                      CreateValueLabel(portable_mode_str, status_widget));
   status_form->addRow(tr("Self-Check Status:"),
-                      make_value_label(self_check_str));
+                      CreateValueLabel(self_check_str, status_widget));
   status_form->addRow(tr("GnuPG Offline Mode:"),
-                      make_value_label(gnupg_offline_mode_str));
-  status_form->addRow(tr("Pinentry Program Path:"),
-                      make_value_label(pinentry_program_path_str));
+                      CreateValueLabel(gnupg_offline_mode_str, status_widget));
+  status_form->addRow(
+      tr("Pinentry Program Path:"),
+      CreateValueLabel(pinentry_program_path_str, status_widget));
 
-  main_layout->addWidget(status_group);
+  main_layout->addWidget(
+      CreateCard(tr("Application Status"), status_widget, content));
 
   const auto active_engines = GetGSS().AllSupportedEngines();
 
   if (!active_engines.isEmpty()) {
-    auto* engines_group = new QGroupBox(tr("Supported OpenPGP Engines"), this);
-    auto* engines_layout = new QVBoxLayout(engines_group);
+    auto* engines_widget = new QWidget(content);
+    auto* engines_layout = new QVBoxLayout(engines_widget);
+    engines_layout->setContentsMargins(0, 0, 0, 0);
+    engines_layout->setSpacing(6);
 
-    auto* engines_view = new QListView(engines_group);
-    auto* engines_model = new QStringListModel(active_engines, engines_view);
+    for (const auto& engine : active_engines) {
+      auto* engine_label =
+          CreateValueLabel(QStringLiteral("• %1").arg(engine), engines_widget);
+      engines_layout->addWidget(engine_label);
+    }
 
-    engines_view->setModel(engines_model);
-    engines_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    engines_view->setSelectionMode(QAbstractItemView::NoSelection);
-    engines_view->setFocusPolicy(Qt::NoFocus);
-    engines_view->setUniformItemSizes(true);
-
-    engines_layout->addWidget(engines_view);
-    // engines_layout->addStretch();
-    main_layout->addWidget(engines_group);
+    main_layout->addWidget(
+        CreateCard(tr("Supported OpenPGP Engines"), engines_widget, content));
   }
 
-  auto* tip_label = new QLabel(
-      tr("Tips: The above parameters reflect how the application was started."),
-      this);
-  tip_label->setWordWrap(true);
-  tip_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  auto* tip_label = CreateBodyLabel(
+      tr("Tip: These values reflect the current startup environment and may "
+         "help when reporting issues."),
+      content);
 
   main_layout->addStretch();
   main_layout->addWidget(tip_label);
+
+  auto* outer_layout = new QVBoxLayout(this);
+  outer_layout->setContentsMargins(0, 0, 0, 0);
+  outer_layout->addWidget(CreateScrollArea(content, this));
+  setLayout(outer_layout);
 }
 
 }  // namespace GpgFrontend::UI

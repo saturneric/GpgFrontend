@@ -284,8 +284,12 @@ void MainWindow::create_actions() {
   about_act_ = create_action("about", tr("About"), ":/icons/help.png",
                              tr("Show the application's About box"));
   about_act_->setMenuRole(QAction::AboutRole);
-  connect(about_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(0, this); });
+  connect(about_act_, &QAction::triggered, this, [=]() {
+    auto* dialog = new AboutDialog(0, this);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+  });
 
   start_wizard_act_ =
       create_action("start_wizard", tr("Open Wizard"), ":/icons/wizard.png",
