@@ -48,76 +48,120 @@ namespace {
 QContainer<QTranslator*> registered_translators;
 QContainer<QByteArray> loaded_qm_datum;
 
-};  // namespace
+[[noreturn]] void TerminateSelfImmediately() {
+  qWarning() << "Application startup was canceled. Terminating process.";
+  std::_Exit(0);
+}
+
+}  // namespace
 
 extern void InitUITranslations();
 
 void WaitEnvCheckingProcess() {
   FLOG_D() << "we need to wait for env checking process";
 
-  // create and show loading window before starting the main window
-  auto* progress_dialog = new QProgressDialog();
-  progress_dialog->setMaximum(0);
-  progress_dialog->setMinimum(0);
-
-  auto* waiting_dialog_label = new QLabel(
-      QCoreApplication::tr("Loading Essential Info...") + "<br /><br />" +
-      QCoreApplication::tr(
-          "This may take a few seconds or minutes according to your default "
-          "openpgp engine, please wait patiently."));
-
-  waiting_dialog_label->setWordWrap(true);
-  progress_dialog->setLabel(waiting_dialog_label);
-  progress_dialog->resize(420, 120);
-
-  QApplication::connect(CoreSignalStation::GetInstance(),
-                        &CoreSignalStation::SignalCoreFullyLoaded,
-                        progress_dialog, [=]() {
-                          LOG_D() << "ui caught signal: core fully loaded";
-                          progress_dialog->finished(0);
-                          progress_dialog->deleteLater();
-                        });
-
-  QApplication::connect(CoreSignalStation::GetInstance(),
-                        &CoreSignalStation::SignalBadOpenPGPEnv,
-                        progress_dialog, [=]() {
-                          LOG_D() << "ui caught signal: core loading failed";
-                          progress_dialog->finished(0);
-                          progress_dialog->deleteLater();
-                        });
-
-  // new local event looper
-  QEventLoop looper;
-  QApplication::connect(CoreSignalStation::GetInstance(),
-                        &CoreSignalStation::SignalCoreFullyLoaded, &looper,
-                        &QEventLoop::quit);
-
-  QApplication::connect(progress_dialog, &QProgressDialog::canceled, [=]() {
-    FLOG_D("cancel clicked on waiting dialog");
-    QApplication::quit();
-    exit(0);
-  });
-
   auto env_state =
       Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all", 0);
   FLOG_D("ui is ready to wait for env initialized, env_state: %d", env_state);
 
-  // check twice to avoid some unlucky sitations
   if (env_state == 1) {
     FLOG_D("env state turned initialized before the looper start");
-    progress_dialog->finished(0);
-    progress_dialog->deleteLater();
     return;
   }
 
-  // show the loading window
-  progress_dialog->setModal(true);
-  progress_dialog->raise();
-  progress_dialog->activateWindow();
-  progress_dialog->setFocus();
-  progress_dialog->show();
+  auto* dialog = new QDialog(nullptr);
+  dialog->setAttribute(Qt::WA_DeleteOnClose);
+  dialog->setWindowTitle(QCoreApplication::tr("Starting GpgFrontend"));
+  dialog->setModal(true);
+  dialog->setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+  dialog->setWindowFlag(Qt::MSWindowsFixedSizeDialogHint, true);
 
-  // block the main thread until the gpg context is loaded
+  auto* title_label =
+      new QLabel(QCoreApplication::tr("Loading essential information"));
+  auto title_font = title_label->font();
+  title_font.setBold(true);
+  title_font.setPointSize(title_font.pointSize() + 1);
+  title_label->setFont(title_font);
+
+  auto* message_label = new QLabel(QCoreApplication::tr(
+      "GpgFrontend is checking your OpenPGP environment and preparing the "
+      "default engine. This may take a few seconds."));
+  message_label->setWordWrap(true);
+
+  auto* hint_label = new QLabel(QCoreApplication::tr(
+      "Please keep this window open while the initialization is running."));
+  hint_label->setWordWrap(true);
+
+  auto* progress_bar = new QProgressBar;
+  progress_bar->setRange(0, 0);
+  progress_bar->setTextVisible(false);
+
+  auto* cancel_button = new QPushButton(QCoreApplication::tr("Cancel"));
+
+  auto* button_layout = new QHBoxLayout;
+  button_layout->addStretch();
+  button_layout->addWidget(cancel_button);
+
+  auto* layout = new QVBoxLayout(dialog);
+  layout->setContentsMargins(24, 20, 24, 20);
+  layout->setSpacing(12);
+  layout->addWidget(title_label);
+  layout->addWidget(message_label);
+  layout->addSpacing(4);
+  layout->addWidget(progress_bar);
+  layout->addWidget(hint_label);
+  layout->addSpacing(4);
+  layout->addLayout(button_layout);
+
+  dialog->resize(460, dialog->sizeHint().height());
+
+  QEventLoop looper;
+
+  const auto close_dialog = [dialog]() {
+    LOG_D() << "closing env checking dialog";
+
+    if (dialog != nullptr) {
+      dialog->accept();
+      dialog->deleteLater();
+    }
+  };
+
+  QApplication::connect(CoreSignalStation::GetInstance(),
+                        &CoreSignalStation::SignalCoreFullyLoaded, dialog,
+                        [close_dialog]() {
+                          LOG_D() << "ui caught signal: core fully loaded";
+                          close_dialog();
+                        });
+
+  QApplication::connect(CoreSignalStation::GetInstance(),
+                        &CoreSignalStation::SignalBadOpenPGPEnv, dialog,
+                        [close_dialog]() {
+                          LOG_D() << "ui caught signal: core loading failed";
+                          close_dialog();
+                        });
+
+  QApplication::connect(CoreSignalStation::GetInstance(),
+                        &CoreSignalStation::SignalCoreFullyLoaded, &looper,
+                        &QEventLoop::quit);
+
+  QApplication::connect(CoreSignalStation::GetInstance(),
+                        &CoreSignalStation::SignalBadOpenPGPEnv, &looper,
+                        &QEventLoop::quit);
+
+  QApplication::connect(cancel_button, &QPushButton::clicked, dialog, []() {
+    FLOG_D("cancel clicked on waiting dialog");
+    TerminateSelfImmediately();
+  });
+
+  QApplication::connect(dialog, &QDialog::rejected, dialog, []() {
+    FLOG_D("waiting dialog rejected");
+    TerminateSelfImmediately();
+  });
+
+  dialog->show();
+  dialog->raise();
+  dialog->activateWindow();
+
   looper.exec();
 }
 
