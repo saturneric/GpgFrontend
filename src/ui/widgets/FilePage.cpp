@@ -163,13 +163,6 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   connect(ui_->pathEdit, &QLineEdit::textEdited, this,
           [this](const QString& text) { update_path_completion(text); });
 
-  connect(path_edit_completer_,
-          QOverload<const QString&>::of(&QCompleter::activated), this,
-          [this](const QString& path) {
-            ui_->pathEdit->setText(path);
-            ui_->pathEdit->setCursorPosition(path.size());
-          });
-
   connect(ui_->pathEdit, &QLineEdit::returnPressed, this,
           &FilePage::SlotGoPath);
 
