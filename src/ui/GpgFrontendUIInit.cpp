@@ -96,6 +96,11 @@ void WaitEnvCheckingProcess() {
   progress_bar->setRange(0, 0);
   progress_bar->setTextVisible(false);
 
+#if defined(Q_OS_MACOS)
+  progress_bar->setFixedHeight(14);
+  progress_bar->setMinimumWidth(360);
+#endif
+
   auto* cancel_button = new QPushButton(QCoreApplication::tr("Cancel"));
 
   auto* button_layout = new QHBoxLayout;
