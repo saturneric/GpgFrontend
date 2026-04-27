@@ -139,13 +139,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   void closeEvent(QCloseEvent* event) override;
 
-  /**
-   * @brief
-   *
-   * @param event
-   */
-  void showEvent(QShowEvent* event) override;
-
  public slots:
 
   /**
@@ -331,6 +324,10 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   void slot_find();
 
+  /**
+   * @brief
+   *
+   */
   void slot_start_wizard();
 
   /**

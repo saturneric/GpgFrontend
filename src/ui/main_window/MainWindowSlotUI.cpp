@@ -48,14 +48,32 @@ void MainWindow::slot_start_wizard() {
   auto* wizard = new Wizard(this);
   wizard->setAttribute(Qt::WA_DeleteOnClose);
   wizard->setWindowModality(Qt::ApplicationModal);
+
+#ifdef Q_OS_MACOS
+  wizard->setWindowFlag(Qt::Dialog, true);
+#endif
+
   wizard->open();
-  wizard->raise();
-  wizard->activateWindow();
+
+  QTimer::singleShot(0, wizard, [wizard]() {
+    wizard->raise();
+    wizard->activateWindow();
+  });
 }
 
 void MainWindow::slot_maybe_show_wizard() {
+  if (wizard_checked_) {
+    return;
+  }
+  wizard_checked_ = true;
+
   if (!show_wizard_on_startup_) {
     LOG_D() << "Wizard on startup is disabled. Skipping wizard.";
+    return;
+  }
+
+  if (!isVisible()) {
+    LOG_W() << "Main window is not visible yet. Skipping startup wizard.";
     return;
   }
 

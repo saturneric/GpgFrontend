@@ -167,6 +167,14 @@ void MainWindow::Init() noexcept {
     connect(m_key_list_, &KeyList::SignalRefreshDatabase, this,
             [=]() { slot_update_engine_status(); });
 
+    connect(this, &MainWindow::SignalLoaded, this, [this]() {
+      QTimer::singleShot(100, this,
+                         [self = QPointer<MainWindow>(this)]() -> void {
+                           if (self == nullptr) return;
+                           self->slot_maybe_show_wizard();
+                         });
+    });
+
     // restore settings and window state
     restore_settings();
 
@@ -175,8 +183,9 @@ void MainWindow::Init() noexcept {
     // size.
     RestoreSettingsOnce();
 
+    // If no previous state is saved, apply a default layout after the event
+    // loop starts.
     const bool state_restored = restoreWindowState();
-
     QTimer::singleShot(0, this, [this, state_restored]() -> void {
       if (!state_restored) {
         apply_default_layout();
@@ -272,15 +281,6 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     return;
   }
   GeneralMainWindow::closeEvent(event);
-}
-
-void MainWindow::showEvent(QShowEvent* event) {
-  GeneralMainWindow::showEvent(event);
-
-  if (wizard_checked_) return;
-  wizard_checked_ = true;
-
-  QTimer::singleShot(0, this, [this]() -> void { slot_maybe_show_wizard(); });
 }
 
 auto MainWindow::create_action(const QString& id, const QString& name,
