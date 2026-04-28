@@ -281,6 +281,7 @@ pub fn determine_algo(public_params: &PublicParams) -> GfrKeyAlgo {
             }
         }
         PublicParams::Ed25519(_) => GfrKeyAlgo::ED25519,
+        PublicParams::X25519(_) => GfrKeyAlgo::CV25519,
         PublicParams::Ed448(_) => GfrKeyAlgo::ED448,
         PublicParams::X448(_) => GfrKeyAlgo::X448,
         PublicParams::ECDH(p) => match p.curve() {
@@ -323,6 +324,7 @@ pub fn extract_key_length(public_params: &PublicParams) -> Option<u32> {
         PublicParams::ECDSA(p) => Some(p.curve().nbits() as u32),
 
         PublicParams::EdDSALegacy(_) => Some(255),
+        PublicParams::X25519(_) => Some(255),
 
         PublicParams::MlKem768X25519(_) => Some(768),
         PublicParams::MlKem1024X448(_) => Some(1024),

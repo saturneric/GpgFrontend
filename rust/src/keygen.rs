@@ -29,7 +29,7 @@
 use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::IntoGfrResult,
-    types::{GfrFreeCb, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
+    types::{GfrFreeCb, GfrKeyAlgo, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
     utils::{
         PassphraseStateInternal, check_if_should_use_key_ver_v6, fetch_password_with_cache,
         resolve_key_type,
@@ -38,8 +38,8 @@ use crate::{
 use log::error;
 use pgp::{
     composed::{
-        ArmorOptions, Deserializable, EncryptionCaps, SecretKeyParamsBuilder, SignedPublicKey,
-        SignedSecretKey, SignedSecretSubKey, SubkeyParamsBuilder,
+        ArmorOptions, Deserializable, EncryptionCaps, KeyType, SecretKeyParamsBuilder,
+        SignedPublicKey, SignedSecretKey, SignedSecretSubKey, SubkeyParamsBuilder,
     },
     packet::{KeyFlags, PubKeyInner, PublicSubkey, SecretSubkey},
     types::{KeyDetails, KeyVersion, Password, Timestamp},
@@ -70,14 +70,20 @@ pub fn keygen_dynamic(
     for config in s_key_configs {
         let k_type = resolve_key_type(&config.algo, config.can_encrypt)?;
         let mut builder = SubkeyParamsBuilder::default();
+        builder.key_type(k_type);
 
         if use_v6 {
             // For v6 keys, we need to set the version explicitly to V6 in the builder
             builder.version(KeyVersion::V6);
+
+            // For certain algorithms like CV25519, we also need to set the key
+            // type to X25519 for encryption capabilities in v6 keys
+            if config.algo == GfrKeyAlgo::CV25519 {
+                builder.key_type(KeyType::X25519);
+            }
         }
 
         builder
-            .key_type(k_type)
             .can_sign(config.can_sign)
             .can_authenticate(config.can_auth)
             .can_encrypt(if config.can_encrypt {
@@ -264,7 +270,15 @@ pub fn add_subkey_internal(
     }
 
     // 3. Generate the raw secret subkey materials (using the generate pattern from tests)
-    let sub_k_type = resolve_key_type(&config.algo, config.can_encrypt)?;
+    let mut sub_k_type = resolve_key_type(&config.algo, config.can_encrypt)?;
+    if secret_key.version() == KeyVersion::V6 {
+        // For v6 keys, we need to set the version explicitly to V6 in the public key inner
+        // and also ensure the key type is set correctly for certain algorithms like CV25519
+        if config.algo == GfrKeyAlgo::CV25519 {
+            sub_k_type = KeyType::X25519;
+        }
+    }
+
     let mut rng = thread_rng();
 
     let (public_params, secret_params) = sub_k_type.generate(&mut rng).into_gfr()?;
