@@ -56,6 +56,14 @@ class KeyImportDetailDialog : public GeneralDialog {
                                  QSharedPointer<GpgImportInformation> result,
                                  QWidget* parent = nullptr);
 
+ protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void showEvent(QShowEvent* event) override;
+
  private:
   /**
    * @brief Create a general info box object
