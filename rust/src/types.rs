@@ -101,6 +101,8 @@ pub enum GfrKeyAlgo {
     DSA1024,
     DSA2048,
     DSA3072,
+    KYBER768X25519, // Encryption-only KEM using X25519, with 768-bit security level
+    KYBER1024X448,  // Encryption-only KEM using X448, with 1024-bit security level
 }
 
 #[repr(C)]

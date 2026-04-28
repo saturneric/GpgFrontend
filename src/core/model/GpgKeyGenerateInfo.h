@@ -37,8 +37,8 @@ class GF_CORE_EXPORT KeyAlgo {
   KeyAlgo() = default;
 
   KeyAlgo(QString id, QString name, QString type, int length, int opera,
-          QContainer<EngineSupportIf> support_if,
-          QContainer<KeyAlgo> sub_algos = {});
+          EngineSupportList support_if,
+          QContainer<QPair<KeyAlgo, EngineSupportList>> sub_algos = {});
 
   KeyAlgo(const KeyAlgo &) = default;
 
@@ -62,9 +62,9 @@ class GF_CORE_EXPORT KeyAlgo {
 
   [[nodiscard]] auto CanCert() const -> bool;
 
-  [[nodiscard]] auto SupportedVersion() const -> QContainer<EngineSupportIf>;
+  [[nodiscard]] auto SupportedVersion() const -> EngineSupportList;
 
-  [[nodiscard]] auto SubAlgos() const -> QContainer<KeyAlgo>;
+  [[nodiscard]] auto SubAlgos(int channel) const -> QContainer<KeyAlgo>;
 
  private:
   QString id_;
@@ -75,10 +75,10 @@ class GF_CORE_EXPORT KeyAlgo {
   bool sign_;
   bool auth_;
   bool cert_;
-  QContainer<EngineSupportIf> support_ifs_;
+  EngineSupportList support_ifs_;
 
   // for hybrid algorithms
-  QContainer<KeyAlgo> sub_algos_;
+  QContainer<QPair<KeyAlgo, EngineSupportList>> sub_algos_;
 };
 
 class GF_CORE_EXPORT KeyGenerateInfo : public QObject {

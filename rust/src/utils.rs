@@ -38,7 +38,8 @@ use rsa::traits::PublicKeyParts;
 use crate::{
     cache::{PasswordCache, PasswordCacheKey, PasswordCachePolicy},
     types::{
-        GfrFreeCb, GfrKeyAlgo, GfrPassphraseState, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus,
+        GfrFreeCb, GfrKeyAlgo, GfrKeyConfig, GfrPassphraseState, GfrPasswordFetchCb,
+        GfrRevocationCode, GfrStatus,
     },
 };
 use std::{
@@ -241,6 +242,9 @@ pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType,
         GfrKeyAlgo::DSA2048 => Ok(KeyType::Dsa(DsaKeySize::B2048)),
         GfrKeyAlgo::DSA3072 => Ok(KeyType::Dsa(DsaKeySize::B3072)),
 
+        GfrKeyAlgo::KYBER768X25519 => Ok(KeyType::MlKem768X25519),
+        GfrKeyAlgo::KYBER1024X448 => Ok(KeyType::MlKem1024X448),
+
         GfrKeyAlgo::Unknown => Err(GfrStatus::ErrorUnsupportedAlgorithm),
     }
 }
@@ -287,8 +291,33 @@ pub fn determine_algo(public_params: &PublicParams) -> GfrKeyAlgo {
             ECCCurve::Secp256k1 => GfrKeyAlgo::SECP256K1,
             _ => GfrKeyAlgo::Unknown,
         },
+        PublicParams::MlKem768X25519(_) => GfrKeyAlgo::KYBER768X25519,
+        PublicParams::MlKem1024X448(_) => GfrKeyAlgo::KYBER1024X448,
         _ => GfrKeyAlgo::Unknown, // Fallback
     }
+}
+
+pub fn check_if_quantum_hybrid_algo(algo: &GfrKeyAlgo) -> bool {
+    matches!(algo, GfrKeyAlgo::KYBER768X25519 | GfrKeyAlgo::KYBER1024X448)
+}
+
+pub fn check_if_should_use_key_ver_v6(
+    primary_algo: &GfrKeyConfig,
+    sub_algos: &[GfrKeyConfig],
+) -> bool {
+    // If the primary key is a post-quantum hybrid, we must use V6 keys to ensure correct version byte
+    if check_if_quantum_hybrid_algo(&primary_algo.algo) {
+        return true;
+    }
+
+    // If any subkey is a post-quantum hybrid, we must also use V6 keys
+    for sub in sub_algos {
+        if check_if_quantum_hybrid_algo(&sub.algo) {
+            return true;
+        }
+    }
+
+    false
 }
 
 pub fn extract_key_length(public_params: &PublicParams) -> Option<u32> {
@@ -303,6 +332,9 @@ pub fn extract_key_length(public_params: &PublicParams) -> Option<u32> {
         PublicParams::ECDH(p) => Some(p.curve().nbits() as u32),
 
         PublicParams::ECDSA(p) => Some(p.curve().nbits() as u32),
+
+        PublicParams::MlKem768X25519(_) => Some(768),
+        PublicParams::MlKem1024X448(_) => Some(1024),
 
         _ => None,
     }

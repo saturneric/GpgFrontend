@@ -685,7 +685,8 @@ void KeyGenerateDialog::refresh_widgets_state() {
   ui_->easyCombinationComboBox->blockSignals(false);
 
   // handle sub algo related widgets
-  QContainer<KeyAlgo> sub_algos = gen_subkey_info_->GetAlgo().SubAlgos();
+  QContainer<KeyAlgo> sub_algos =
+      gen_subkey_info_->GetAlgo().SubAlgos(channel_);
   if (!sub_algos.empty()) {
     ui_->scndAlgoComboBox->setEnabled(true);
     ui_->scndAlgoComboBox->setHidden(false);

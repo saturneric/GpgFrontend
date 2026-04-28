@@ -57,7 +57,18 @@ auto GenerateKeyWithSubkeyRpgpImpl(
 
   if (s_params != nullptr) {
     std::array<Rust::GfrKeyConfig, 1> s_key_configs;
-    s_key_configs[0].algo = KeyAlgoId2GfrKeyAlgo(s_params->GetAlgo().Id());
+
+    auto algo = s_params->GetAlgo().Id();
+
+    // For hybrid key generation, the primary key algorithm string is appended
+    // with the subkey algorithm string, separated by an underscore.
+    if (s_params->SubAlgo().Id() != KeyGenerateInfo::kNoneAlgo.Id() &&
+        !s_params->SubAlgo().Id().isEmpty()) {
+      algo += "_" + s_params->SubAlgo().Id();
+      LOG_D() << "hybrid subkey algo detected: " << algo;
+    }
+
+    s_key_configs[0].algo = KeyAlgoId2GfrKeyAlgo(algo);
 
     if (s_key_configs[0].algo == Rust::GfrKeyAlgo::Unknown) {
       LOG_E() << "Unsupported subkey algorithm: " << s_params->GetAlgo().Id();
@@ -140,8 +151,18 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     return GPG_ERR_UNSUPPORTED_OPERATION;
   }
 
+  auto algo = params->GetAlgo().Id();
+
+  // For hybrid key generation, the primary key algorithm string is appended
+  // with the subkey algorithm string, separated by an underscore.
+  if (params->SubAlgo().Id() != KeyGenerateInfo::kNoneAlgo.Id() &&
+      !params->SubAlgo().Id().isEmpty()) {
+    algo += "_" + params->SubAlgo().Id();
+    LOG_D() << "hybrid subkey algo detected: " << algo;
+  }
+
   Rust::GfrKeyConfig key_config;
-  key_config.algo = KeyAlgoId2GfrKeyAlgo(params->GetAlgo().Id());
+  key_config.algo = KeyAlgoId2GfrKeyAlgo(algo);
   key_config.can_sign = params->IsAllowSign();
   key_config.can_encrypt = params->IsAllowEncr();
   key_config.can_auth = params->IsAllowAuth();
@@ -176,9 +197,13 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   LOG_D() << "generated subkey, armored public key: " << armored_p_key;
 
   auto import_info = kie.ImportKey(GFBuffer(armored_s_key));
+  if (import_info->imported == 0) {
+    LOG_E() << "failed to import generated subkey into database";
+    data_object->Swap({GpgGenerateKeyResult{}});
+    return GPG_ERR_GENERAL;
+  }
 
   data_object->Swap({
-      GpgGenerateKeyResult{QString::fromUtf8(kg_result.fingerprint)},
       GpgGenerateKeyResult{QString::fromUtf8(kg_result.fingerprint)},
   });
   return GPG_ERR_NO_ERROR;

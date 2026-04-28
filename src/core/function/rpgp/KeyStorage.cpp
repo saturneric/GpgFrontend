@@ -111,7 +111,7 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
       key_block_data.data(), &out_meta_array, &out_meta_count);
   if (err != Rust::GfrStatus::Success) {
     LOG_E() << "gfr_crypto_extract_metadata error: " << static_cast<int>(err);
-    return {};
+    return {};  // Return an empty container on error
   }
 
   QContainer<GFKey> keys;
@@ -126,9 +126,7 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
     keys.push_back(key);
   }
 
-  // 3. 清理内存
   Rust::gfr_free_metadata_array(out_meta_array, out_meta_count);
-
   return keys;
 }
 

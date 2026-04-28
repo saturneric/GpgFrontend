@@ -111,4 +111,6 @@ auto GF_CORE_EXPORT GpgContextSupportIfWithLog(
 // GpgConstants.h
 #define GPG_CTX_MIN_SUPPORT() GPG_CTX_SUPPORT_IF(kGpgMinimalSupportVersion)
 
+using EngineSupportList = QContainer<EngineSupportIf>;
+
 }  // namespace GpgFrontend

@@ -30,7 +30,10 @@ use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::IntoGfrResult,
     types::{GfrFreeCb, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
-    utils::{PassphraseStateInternal, fetch_password_with_cache, resolve_key_type},
+    utils::{
+        PassphraseStateInternal, check_if_should_use_key_ver_v6, fetch_password_with_cache,
+        resolve_key_type,
+    },
 };
 use log::{debug, error};
 use pgp::{
@@ -57,9 +60,22 @@ pub fn keygen_dynamic(
     let primary_type = resolve_key_type(&key_config.algo, false)?;
     let mut subkeys = Vec::new();
 
+    let use_v6 = check_if_should_use_key_ver_v6(&key_config, s_key_configs);
+    if use_v6 {
+        log::info!(
+            "Using V6 key version for generation due to presence of post-quantum hybrid algorithm."
+        );
+    }
+
     for config in s_key_configs {
         let k_type = resolve_key_type(&config.algo, config.can_encrypt)?;
         let mut builder = SubkeyParamsBuilder::default();
+
+        if use_v6 {
+            // For v6 keys, we need to set the version explicitly to V6 in the builder
+            builder.version(KeyVersion::V6);
+        }
+
         builder
             .key_type(k_type)
             .can_sign(config.can_sign)
@@ -77,7 +93,13 @@ pub fn keygen_dynamic(
         );
     }
 
-    let signed = SecretKeyParamsBuilder::default()
+    let mut builder = SecretKeyParamsBuilder::default();
+
+    if use_v6 {
+        builder.version(KeyVersion::V6);
+    }
+
+    let signed = builder
         .key_type(primary_type)
         .can_certify(true)
         .can_sign(key_config.can_sign)
@@ -259,7 +281,7 @@ pub fn add_subkey_internal(
 
     // Assemble the inner public key part
     let pub_inner = PubKeyInner::new(
-        KeyVersion::V4, // Usually V4 is still the default compatibility standard
+        secret_key.version(), // Use the same version as the primary key
         sub_k_type.to_alg(),
         Timestamp::now(),
         None,

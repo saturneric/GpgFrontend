@@ -366,32 +366,112 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kHybridSubKeyAlgos = {
      "HYBRID-KEM",
      768,
      kENCRYPT,
-     {{OpenPGPEngine::kGNUPG, "2.5.0"}},
+     {{OpenPGPEngine::kGNUPG, "2.5.0"}, {OpenPGPEngine::kRPGP, "0.1.2"}},
      {
-         kSubKeyAlgos[9],   // cv25519
-         kSubKeyAlgos[10],  // nistp256
-         kSubKeyAlgos[11],  // nistp384
-         kSubKeyAlgos[12],  // nistp521
-         kSubKeyAlgos[13],  // brainpoolp256r1
-         kSubKeyAlgos[14],  // brainpoolp384r1
-         kSubKeyAlgos[15],  // brainpoolp512r1
-         kSubKeyAlgos[16],  // x448
+         {
+             kSubKeyAlgos[9],  // cv25519
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+                 {OpenPGPEngine::kRPGP, "0.1.2"},
+             },
+         },
+         {
+             kSubKeyAlgos[10],  // nistp256
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[11],  // nistp384
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[12],  // nistp521
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[13],  // brainpoolp256r1
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[14],  // brainpoolp384r1
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[15],  // brainpoolp512r1
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[16],  // x448
+             {{OpenPGPEngine::kGNUPG, "2.5.0"}},
+         },
      }},
     {"kyber1024",
      "Kyber",
      "HYBRID-KEM",
      1024,
      kENCRYPT,
-     {{OpenPGPEngine::kGNUPG, "2.5.0"}},
+     {{OpenPGPEngine::kGNUPG, "2.5.0"}, {OpenPGPEngine::kRPGP, "0.1.2"}},
      {
-         kSubKeyAlgos[9],   // cv25519
-         kSubKeyAlgos[10],  // nistp256
-         kSubKeyAlgos[11],  // nistp384
-         kSubKeyAlgos[12],  // nistp521
-         kSubKeyAlgos[13],  // brainpoolp256r1
-         kSubKeyAlgos[14],  // brainpoolp384r1
-         kSubKeyAlgos[15],  // brainpoolp512r1
-         kSubKeyAlgos[16],  // x448
+         {
+             kSubKeyAlgos[9],  // cv25519
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[10],  // nistp256
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[11],  // nistp384
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[12],  // nistp521
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[13],  // brainpoolp256r1
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[14],  // brainpoolp384r1
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[15],  // brainpoolp512r1
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+             },
+         },
+         {
+             kSubKeyAlgos[16],  // x448
+             {
+                 {OpenPGPEngine::kGNUPG, "2.5.0"},
+                 {OpenPGPEngine::kRPGP, "0.1.2"},
+             },
+         },
      }},
 };
 
@@ -765,8 +845,8 @@ void KeyGenerateInfo::SetAllowAuth(bool m_allow_authentication) {
 }
 
 KeyAlgo::KeyAlgo(QString id, QString name, QString type, int length, int opera,
-                 QContainer<EngineSupportIf> support_ifs,
-                 QContainer<KeyAlgo> sub_algos)
+                 EngineSupportList support_ifs,
+                 QContainer<QPair<KeyAlgo, EngineSupportList>> sub_algos)
     : id_(std::move(id)),
       name_(std::move(name)),
       type_(std::move(type)),
@@ -803,8 +883,14 @@ auto KeyAlgo::operator==(const KeyAlgo &o) const -> bool {
   return this->id_ == o.id_;
 }
 
-[[nodiscard]] auto KeyAlgo::SubAlgos() const -> QContainer<KeyAlgo> {
-  return sub_algos_;
+[[nodiscard]] auto KeyAlgo::SubAlgos(int channel) const -> QContainer<KeyAlgo> {
+  auto result = QContainer<KeyAlgo>();
+  for (const auto &sub_algo : sub_algos_) {
+    if (GpgContextSupportIf(channel, sub_algo.second)) {
+      result.append(sub_algo.first);
+    }
+  }
+  return result;
 }
 
 [[nodiscard]] auto KeyGenerateInfo::SubAlgo() const -> const KeyAlgo & {

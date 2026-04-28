@@ -253,7 +253,8 @@ void SubkeyGenerateDialog::refresh_widgets_state() {
 
   // Enable or disable second algo combo box according to whether current algo
   // has sub algos
-  QContainer<KeyAlgo> sub_algos = gen_subkey_info_->GetAlgo().SubAlgos();
+  QContainer<KeyAlgo> sub_algos =
+      gen_subkey_info_->GetAlgo().SubAlgos(current_gpg_context_channel_);
   if (!sub_algos.empty()) {
     ui_->scndAlgoComboBox->setEnabled(true);
     ui_->scndAlgoComboBox->setHidden(false);
