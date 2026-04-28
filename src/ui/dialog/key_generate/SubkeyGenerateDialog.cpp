@@ -51,7 +51,7 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
       key_(std::move(key)),
       gen_subkey_info_(SecureCreateSharedObject<KeyGenerateInfo>(true)),
       supported_subkey_algos_(KeyGenerateInfo::GetSupportedSubkeyAlgo(
-          current_gpg_context_channel_)) {
+          current_gpg_context_channel_, *key_)) {
   ui_->setupUi(this);
   assert(key_ != nullptr);
 

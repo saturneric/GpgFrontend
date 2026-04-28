@@ -71,4 +71,15 @@ auto GenerateKeyRpgpImpl(OpenPGPContext& ctx,
 auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                             const QSharedPointer<KeyGenerateInfo>& params,
                             const DataObjectPtr& data_object) -> GpgError;
+
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param key
+ * @return QContainer<KeyAlgo>
+ */
+auto FilterKeyAlgoByKeyRpgpImpl(OpenPGPContext& ctx, const GpgKey& key,
+                                const QContainer<KeyAlgo>& algos)
+    -> QContainer<KeyAlgo>;
 }  // namespace GpgFrontend

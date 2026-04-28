@@ -72,4 +72,15 @@ auto GenerateKeyWithSubkeyGnuPGImpl(
     const QSharedPointer<KeyGenerateInfo>& s_params,
     const DataObjectPtr& data_object) -> GpgError;
 
+/**
+ * @brief
+ *
+ * @param ctx
+ * @param key
+ * @return QContainer<KeyAlgo>
+ */
+auto FilterKeyAlgoByKeyGnuPGImpl(
+    OpenPGPContext& ctx, const GpgKey& key, const QContainer<KeyAlgo>& algos)
+    -> QContainer<KeyAlgo>;
+
 }  // namespace GpgFrontend

@@ -49,4 +49,8 @@ GF_DEF_OP_IMPL_TRAITS(GenerateKeyWithSubKeyTag, &GenerateKeyWithSubkeyGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &GenerateKeyWithSubkeyGnuPGImpl},
                       {OpenPGPEngine::kRPGP, &GenerateKeyWithSubkeyRpgpImpl});
 
+GF_DEF_OP_IMPL_TRAITS(FilterKeyAlgoByKeyTag, &FilterKeyAlgoByKeyGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &FilterKeyAlgoByKeyGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &FilterKeyAlgoByKeyRpgpImpl});
+
 }  // namespace GpgFrontend

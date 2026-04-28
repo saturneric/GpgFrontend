@@ -346,6 +346,13 @@ class GF_CORE_EXPORT GpgKey : public GpgAbstractKey {
    */
   [[nodiscard]] auto PrimaryKey() const -> GpgSubKey;
 
+  /**
+   * @brief
+   *
+   * @return int
+   */
+  [[nodiscard]] auto KeyVersion() const -> int;
+
  private:
   QSharedPointer<struct _gpgme_key> key_ref_ = nullptr;  ///<
   QSharedPointer<GFKeyMetadata> km_ref_ = nullptr;       ///<

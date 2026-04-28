@@ -30,7 +30,8 @@
 
 #include <cassert>
 
-#include "core/utils/GpgUtils.h"
+#include "core/function/openpgp/helper/Async.h"
+#include "core/function/openpgp/traits/KeyGenerationTraits.h"
 
 namespace GpgFrontend {
 
@@ -513,6 +514,13 @@ auto KeyGenerateInfo::GetSupportedSubkeyAlgo(int channel)
   });
 
   return algos;
+}
+
+auto KeyGenerateInfo::GetSupportedSubkeyAlgo(int channel, const GpgKey &key)
+    -> QContainer<KeyAlgo> {
+  auto algos = GetSupportedSubkeyAlgo(channel);
+  auto &ctx = OpenPGPContext::GetInstance(channel);
+  return RunRegisteredForward<FilterKeyAlgoByKeyTag>(ctx, key, algos);
 }
 
 KeyGenerateInfo::KeyGenerateInfo(bool is_subkey)

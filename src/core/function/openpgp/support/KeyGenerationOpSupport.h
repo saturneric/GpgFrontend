@@ -45,4 +45,8 @@ GF_DEF_OP_SUPPORT_TRAITS(GenerateKeyWithSubKeyTag,
                          {OpenPGPEngine::kGNUPG, "2.2.0"},
                          {OpenPGPEngine::kRPGP, "0.1.0"});
 
+GF_DEF_OP_SUPPORT_TRAITS(FilterKeyAlgoByKeyTag, "op_filter_key_algo_by_key",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.0"});
+
 }  // namespace GpgFrontend

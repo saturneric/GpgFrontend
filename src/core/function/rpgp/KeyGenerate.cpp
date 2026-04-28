@@ -209,4 +209,42 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   return GPG_ERR_NO_ERROR;
 }
 
+auto FilterKeyAlgoByKeyRpgpImpl(OpenPGPContext& ctx, const GpgKey& key,
+                                const QContainer<KeyAlgo>& algos)
+    -> QContainer<KeyAlgo> {
+  auto key_ver = key.KeyVersion();
+  QContainer<KeyAlgo> filtered_algos;
+
+  if (key_ver == 0) {
+    LOG_E() << "invalid primary key version: " << key_ver;
+    return {};
+  }
+
+  for (const auto& algo : algos) {
+    auto algo_id = algo.Id();
+
+    if (algo_id == "none") {
+      // "none" algorithm is always allowed, skip the version check.
+      filtered_algos.prepend(algo);
+      continue;
+    }
+
+    if (key_ver == 6) {
+      // For primary keys of version 4, any subkey algorithm is allowed.
+      filtered_algos.append(algo);
+      continue;
+    }
+
+    if (algo_id == "ky768" || algo_id == "kyber768" || algo_id == "ky024" ||
+        algo_id == "kyber1024") {
+      // Kyber subkeys are only allowed for primary keys of version 6.
+      continue;
+    }
+
+    filtered_algos.append(algo);
+  }
+
+  return filtered_algos;
+}
+
 }  // namespace GpgFrontend

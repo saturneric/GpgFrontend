@@ -306,6 +306,12 @@ auto GpgKey::PrimaryKey() const -> GpgSubKey {
   return GpgSubKey(key_ref_, key_ref_->subkeys);
 }
 
+[[nodiscard]] auto GpgKey::KeyVersion() const -> int {
+  if (km_ref_ != nullptr) return km_ref_->key_ver;
+  return 0;  // GPGME does not provide key version, return 0 to indicate unknown
+             // version
+}
+
 auto GpgKey::KeyType() const -> GpgAbstractKeyType {
   return GpgAbstractKeyType::kGPG_KEY;
 }

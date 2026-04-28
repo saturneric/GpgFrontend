@@ -105,11 +105,21 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
   static auto GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo>;
 
   /**
-   * @brief Get the Supported Subkey Algo object
+   * @brief get supported subkey algorithms without considering the primary key
    *
    * @return const QContainer<KeyGenAlgo>&
    */
   static auto GetSupportedSubkeyAlgo(int channel) -> QContainer<KeyAlgo>;
+
+  /**
+   * @brief get supported subkey algorithms based on the primary key
+   *
+   * @param channel
+   * @param key
+   * @return auto
+   */
+  static auto GetSupportedSubkeyAlgo(int channel, const GpgKey &key)
+      -> QContainer<KeyAlgo>;
 
   /**
    * @brief
