@@ -65,6 +65,7 @@ auto KeyAlgoId2GfrKeyAlgo(const QString& algo_id) -> Rust::GfrKeyAlgo {
   if (algo_id == "dsa2048") return Rust::GfrKeyAlgo::DSA2048;
   if (algo_id == "dsa3072") return Rust::GfrKeyAlgo::DSA3072;
   if (algo_id == "dsa") return Rust::GfrKeyAlgo::DSA2048;
+  if (algo_id == "ed25519legacy") return Rust::GfrKeyAlgo::ED25519LEGACY;
   if (algo_id == "kyber768_cv25519") return Rust::GfrKeyAlgo::KYBER768X25519;
   if (algo_id == "kyber1024_x448") return Rust::GfrKeyAlgo::KYBER1024X448;
   if (algo_id == "ky768_cv25519") return Rust::GfrKeyAlgo::KYBER768X25519;
@@ -110,6 +111,8 @@ auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoName(Rust::GfrKeyAlgo algo) -> QString {
       return "DSA 2048";
     case Rust::GfrKeyAlgo::DSA3072:
       return "DSA 3072";
+    case Rust::GfrKeyAlgo::ED25519LEGACY:
+      return "ED25519";
     case Rust::GfrKeyAlgo::KYBER768X25519:
       return "Kyber768_X25519";
     case Rust::GfrKeyAlgo::KYBER1024X448:

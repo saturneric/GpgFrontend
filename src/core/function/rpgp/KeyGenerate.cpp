@@ -230,9 +230,12 @@ auto FilterKeyAlgoByKeyRpgpImpl(OpenPGPContext& ctx, const GpgKey& key,
     }
 
     if (key_ver == 6) {
-      // For primary keys of version 4, any subkey algorithm is allowed.
+      // ED25519-LEGACY is not allowed for subkeys of v6 primary keys, because
+      // it is a non-standard variant of Ed25519 and may cause compatibility
+      // issues. It is only kept for backward compatibility with old keys, but
+      // should not be used for new key generation.
+      if (algo_id == "ed25519legacy") continue;
       filtered_algos.append(algo);
-      continue;
     }
 
     if (algo_id == "ky768" || algo_id == "kyber768" || algo_id == "ky024" ||
@@ -241,6 +244,8 @@ auto FilterKeyAlgoByKeyRpgpImpl(OpenPGPContext& ctx, const GpgKey& key,
       continue;
     }
 
+    // For other algorithms, there is no specific limitation based on primary
+    // key version
     filtered_algos.append(algo);
   }
 

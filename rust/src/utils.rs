@@ -242,6 +242,8 @@ pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType,
         GfrKeyAlgo::DSA2048 => Ok(KeyType::Dsa(DsaKeySize::B2048)),
         GfrKeyAlgo::DSA3072 => Ok(KeyType::Dsa(DsaKeySize::B3072)),
 
+        GfrKeyAlgo::ED25519LEGACY => Ok(KeyType::Ed25519Legacy),
+
         GfrKeyAlgo::KYBER768X25519 => Ok(KeyType::MlKem768X25519),
         GfrKeyAlgo::KYBER1024X448 => Ok(KeyType::MlKem1024X448),
 
@@ -291,9 +293,31 @@ pub fn determine_algo(public_params: &PublicParams) -> GfrKeyAlgo {
             ECCCurve::Secp256k1 => GfrKeyAlgo::SECP256K1,
             _ => GfrKeyAlgo::Unknown,
         },
+        PublicParams::EdDSALegacy(_) => GfrKeyAlgo::ED25519LEGACY,
         PublicParams::MlKem768X25519(_) => GfrKeyAlgo::KYBER768X25519,
         PublicParams::MlKem1024X448(_) => GfrKeyAlgo::KYBER1024X448,
         _ => GfrKeyAlgo::Unknown, // Fallback
+    }
+}
+
+pub fn extract_key_length(public_params: &PublicParams) -> Option<u32> {
+    match public_params {
+        PublicParams::RSA(p) => Some(p.key.n().bits() as u32),
+        PublicParams::DSA(p) => Some(p.key.components().p().bits() as u32),
+
+        PublicParams::Ed25519(_) => Some(255),
+        PublicParams::Ed448(_) => Some(448),
+        PublicParams::X448(_) => Some(448),
+
+        PublicParams::ECDH(p) => Some(p.curve().nbits() as u32),
+        PublicParams::ECDSA(p) => Some(p.curve().nbits() as u32),
+
+        PublicParams::EdDSALegacy(_) => Some(255),
+
+        PublicParams::MlKem768X25519(_) => Some(768),
+        PublicParams::MlKem1024X448(_) => Some(1024),
+
+        _ => None,
     }
 }
 
@@ -318,26 +342,6 @@ pub fn check_if_should_use_key_ver_v6(
     }
 
     false
-}
-
-pub fn extract_key_length(public_params: &PublicParams) -> Option<u32> {
-    match public_params {
-        PublicParams::RSA(p) => Some(p.key.n().bits() as u32),
-        PublicParams::DSA(p) => Some(p.key.components().p().bits() as u32),
-
-        PublicParams::Ed25519(_) => Some(255),
-        PublicParams::Ed448(_) => Some(448),
-        PublicParams::X448(_) => Some(448),
-
-        PublicParams::ECDH(p) => Some(p.curve().nbits() as u32),
-
-        PublicParams::ECDSA(p) => Some(p.curve().nbits() as u32),
-
-        PublicParams::MlKem768X25519(_) => Some(768),
-        PublicParams::MlKem1024X448(_) => Some(1024),
-
-        _ => None,
-    }
 }
 
 pub fn is_self_signature_from_primary(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
