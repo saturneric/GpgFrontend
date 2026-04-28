@@ -239,7 +239,9 @@ auto FilterKeyAlgoByKeyRpgpImpl(OpenPGPContext& ctx, const GpgKey& key,
     }
 
     if (algo_id == "ky768" || algo_id == "kyber768" || algo_id == "ky024" ||
-        algo_id == "kyber1024") {
+        algo_id == "kyber1024" || algo_id == "mldsa65_ed25519" ||
+        algo_id == "mldsa87_ed448" || algo_id == "slhdsake128s" ||
+        algo_id == "slhdsake128f" || algo_id == "slhdsake256s") {
       // Kyber subkeys are only allowed for primary keys of version 6.
       continue;
     }

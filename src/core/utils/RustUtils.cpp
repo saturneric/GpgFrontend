@@ -70,6 +70,11 @@ auto KeyAlgoId2GfrKeyAlgo(const QString& algo_id) -> Rust::GfrKeyAlgo {
   if (algo_id == "kyber1024_x448") return Rust::GfrKeyAlgo::KYBER1024X448;
   if (algo_id == "ky768_cv25519") return Rust::GfrKeyAlgo::KYBER768X25519;
   if (algo_id == "ky1024_x448") return Rust::GfrKeyAlgo::KYBER1024X448;
+  if (algo_id == "mldsa65_ed25519") return Rust::GfrKeyAlgo::MLDSA65ED25519;
+  if (algo_id == "mldsa87_ed448") return Rust::GfrKeyAlgo::MLDSA87ED448;
+  if (algo_id == "slhdsashake128s") return Rust::GfrKeyAlgo::SLHDSASHAKE128S;
+  if (algo_id == "slhdsashake128f") return Rust::GfrKeyAlgo::SLHDSASHAKE128F;
+  if (algo_id == "slhdsashake256s") return Rust::GfrKeyAlgo::SLHDSASHAKE256S;
 
   LOG_W() << "Unknown key algo id: " << algo_id;
   return Rust::GfrKeyAlgo::Unknown;
@@ -117,6 +122,16 @@ auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoName(Rust::GfrKeyAlgo algo) -> QString {
       return "Kyber768_X25519";
     case Rust::GfrKeyAlgo::KYBER1024X448:
       return "Kyber1024_X448";
+    case Rust::GfrKeyAlgo::MLDSA65ED25519:
+      return "ML-DSA-65_ED25519";
+    case Rust::GfrKeyAlgo::MLDSA87ED448:
+      return "ML-DSA-87_ED448";
+    case Rust::GfrKeyAlgo::SLHDSASHAKE128S:
+      return "SLH-DSA-SHAKE-128S";
+    case Rust::GfrKeyAlgo::SLHDSASHAKE128F:
+      return "SLH-DSA-SHAKE-128F";
+    case Rust::GfrKeyAlgo::SLHDSASHAKE256S:
+      return "SLH-DSA-SHAKE-256S";
     default:
       return "Unknown";
   }

@@ -246,6 +246,11 @@ pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType,
 
         GfrKeyAlgo::KYBER768X25519 => Ok(KeyType::MlKem768X25519),
         GfrKeyAlgo::KYBER1024X448 => Ok(KeyType::MlKem1024X448),
+        GfrKeyAlgo::MLDSA65ED25519 => Ok(KeyType::MlDsa65Ed25519),
+        GfrKeyAlgo::MLDSA87ED448 => Ok(KeyType::MlDsa87Ed448),
+        GfrKeyAlgo::SLHDSASHAKE128S => Ok(KeyType::SlhDsaShake128s),
+        GfrKeyAlgo::SLHDSASHAKE128F => Ok(KeyType::SlhDsaShake128f),
+        GfrKeyAlgo::SLHDSASHAKE256S => Ok(KeyType::SlhDsaShake256s),
 
         GfrKeyAlgo::Unknown => Err(GfrStatus::ErrorUnsupportedAlgorithm),
     }
@@ -296,6 +301,11 @@ pub fn determine_algo(public_params: &PublicParams) -> GfrKeyAlgo {
         PublicParams::EdDSALegacy(_) => GfrKeyAlgo::ED25519LEGACY,
         PublicParams::MlKem768X25519(_) => GfrKeyAlgo::KYBER768X25519,
         PublicParams::MlKem1024X448(_) => GfrKeyAlgo::KYBER1024X448,
+        PublicParams::MlDsa65Ed25519(_) => GfrKeyAlgo::MLDSA65ED25519,
+        PublicParams::MlDsa87Ed448(_) => GfrKeyAlgo::MLDSA87ED448,
+        PublicParams::SlhDsaShake128s(_) => GfrKeyAlgo::SLHDSASHAKE128S,
+        PublicParams::SlhDsaShake128f(_) => GfrKeyAlgo::SLHDSASHAKE128F,
+        PublicParams::SlhDsaShake256s(_) => GfrKeyAlgo::SLHDSASHAKE256S,
         _ => GfrKeyAlgo::Unknown, // Fallback
     }
 }
@@ -317,12 +327,28 @@ pub fn extract_key_length(public_params: &PublicParams) -> Option<u32> {
         PublicParams::MlKem768X25519(_) => Some(768),
         PublicParams::MlKem1024X448(_) => Some(1024),
 
+        PublicParams::MlDsa65Ed25519(_) => Some(65),
+        PublicParams::MlDsa87Ed448(_) => Some(87),
+
+        PublicParams::SlhDsaShake128s(_) => Some(128),
+        PublicParams::SlhDsaShake128f(_) => Some(128),
+        PublicParams::SlhDsaShake256s(_) => Some(256),
+
         _ => None,
     }
 }
 
 pub fn check_if_quantum_hybrid_algo(algo: &GfrKeyAlgo) -> bool {
-    matches!(algo, GfrKeyAlgo::KYBER768X25519 | GfrKeyAlgo::KYBER1024X448)
+    matches!(
+        algo,
+        GfrKeyAlgo::KYBER768X25519
+            | GfrKeyAlgo::KYBER1024X448
+            | GfrKeyAlgo::MLDSA65ED25519
+            | GfrKeyAlgo::MLDSA87ED448
+            | GfrKeyAlgo::SLHDSASHAKE128S
+            | GfrKeyAlgo::SLHDSASHAKE128F
+            | GfrKeyAlgo::SLHDSASHAKE256S
+    )
 }
 
 pub fn check_if_should_use_key_ver_v6(

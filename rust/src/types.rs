@@ -115,8 +115,14 @@ pub enum GfrKeyAlgo {
     // those old versions. New keys should use the standard ED25519.
     ED25519LEGACY,
     // Post-quantum algorithms (non-standard, for experimental use only)
+    // We use Kyber not ML-KEM for gnupg compatibility
     KYBER768X25519,
     KYBER1024X448,
+    MLDSA65ED25519,
+    MLDSA87ED448,
+    SLHDSASHAKE128S,
+    SLHDSASHAKE128F,
+    SLHDSASHAKE256S,
 }
 
 #[repr(C)]
