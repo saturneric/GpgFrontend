@@ -180,6 +180,62 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos = {
         kSIGN | kAUTH | kCERT,
         {{OpenPGPEngine::kGNUPG, "2.3.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
     },
+
+    {
+        "slhdsashake128s",
+        "SLH-DSA-SHAKE-128S",
+        "SLH-DSA",
+        128,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kRPGP, "0.1.2"}},
+    },
+    {
+        "slhdsashake128f",
+        "SLH-DSA-SHAKE-128F",
+        "SLH-DSA",
+        128,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kRPGP, "0.1.2"}},
+    },
+    {
+        "slhdsashake256s",
+        "SLH-DSA-SHAKE-256S",
+        "SLH-DSA",
+        256,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kRPGP, "0.1.2"}},
+    },
+};
+
+const QContainer<KeyAlgo> KeyGenerateInfo::kHybridPrimaryKeyAlgo = {
+    {"mldsa65",
+     "MLD-DSA-65",
+     "HYBRID-SIGN",
+     65,
+     kSIGN | kAUTH,
+     {{OpenPGPEngine::kRPGP, "0.1.2"}},
+     {
+         {
+             kPrimaryKeyAlgos[8],  // ed25519
+             {
+                 {OpenPGPEngine::kRPGP, "0.1.2"},
+             },
+         },
+     }},
+    {"mldsa87",
+     "MLD-DSA-87",
+     "HYBRID-SIGN",
+     87,
+     kSIGN | kAUTH,
+     {{OpenPGPEngine::kRPGP, "0.1.2"}},
+     {
+         {
+             kPrimaryKeyAlgos[15],  // ed448
+             {
+                 {OpenPGPEngine::kRPGP, "0.1.2"},
+             },
+         },
+     }},
 };
 
 const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = {
@@ -358,6 +414,41 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = {
         kENCRYPT,
         {{OpenPGPEngine::kGNUPG, "2.2.0"}},
     },
+
+    {
+        "ed448",
+        "ED448",
+        "EdDSA",
+        448,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kRPGP, "0.1.2"}},
+    },
+
+    {
+        "slhdsashake128s",
+        "SLH-DSA-SHAKE-128S",
+        "SLH-DSA",
+        128,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kRPGP, "0.1.2"}},
+    },
+    {
+        "slhdsashake128f",
+        "SLH-DSA-SHAKE-128F",
+        "SLH-DSA",
+        128,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kRPGP, "0.1.2"}},
+    },
+    {
+        "slhdsashake256s",
+        "SLH-DSA-SHAKE-256S",
+        "SLH-DSA",
+        256,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kRPGP, "0.1.2"}},
+    },
+
 };
 
 // Refer: https://lists.gnupg.org/pipermail/gnupg-devel/2024-May/035537.html
@@ -474,6 +565,34 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kHybridSubKeyAlgos = {
              },
          },
      }},
+    {"mldsa65",
+     "MLD-DSA-65",
+     "HYBRID-SIGN",
+     65,
+     kSIGN | kAUTH,
+     {{OpenPGPEngine::kRPGP, "0.1.2"}},
+     {
+         {
+             kSubKeyAlgos[8],  // ed25519
+             {
+                 {OpenPGPEngine::kRPGP, "0.1.2"},
+             },
+         },
+     }},
+    {"mldsa87",
+     "MLD-DSA-87",
+     "HYBRID-SIGN",
+     87,
+     kSIGN | kAUTH,
+     {{OpenPGPEngine::kRPGP, "0.1.2"}},
+     {
+         {
+             kSubKeyAlgos[22],  // ed448
+             {
+                 {OpenPGPEngine::kRPGP, "0.1.2"},
+             },
+         },
+     }},
 };
 
 auto KeyGenerateInfo::GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo> {
@@ -483,6 +602,29 @@ auto KeyGenerateInfo::GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo> {
     if (!GpgContextSupportIf(channel, algo.SupportedVersion())) continue;
 
     algos.append(algo);
+  }
+
+  // Add hybrid primary key algos if supported since we only have few hybrid
+  // primary key algos, we can directly add them as a normal algo temperately.
+  for (const auto &algo : kHybridPrimaryKeyAlgo) {
+    if (!GpgContextSupportIf(channel, algo.SupportedVersion())) continue;
+
+    for (const auto &hybrid_algo : algo.SubAlgos(channel)) {
+      auto cap_opera = 0;
+      if (hybrid_algo.CanCert()) cap_opera |= kCERT;
+      if (hybrid_algo.CanEncrypt()) cap_opera |= kENCRYPT;
+      if (hybrid_algo.CanSign()) cap_opera |= kSIGN;
+      if (hybrid_algo.CanAuth()) cap_opera |= kAUTH;
+
+      algos.append(KeyAlgo{
+          algo.Id() + "_" + hybrid_algo.Id(),
+          algo.Name() + "_" + hybrid_algo.Name(),
+          "HYBRID",
+          algo.KeyLength(),
+          cap_opera,
+          algo.SupportedVersion(),
+      });
+    }
   }
 
   std::sort(algos.begin(), algos.end(), [](const KeyAlgo &a, const KeyAlgo &b) {
@@ -502,7 +644,7 @@ auto KeyGenerateInfo::GetSupportedSubkeyAlgo(int channel)
     algos.append(algo);
   }
 
-  // Add hybrid subkey algos if supported by current GPG version
+  // Add hybrid subkey algos if supported
   for (const auto &algo : kHybridSubKeyAlgos) {
     if (!GpgContextSupportIf(channel, algo.SupportedVersion())) continue;
 

@@ -86,6 +86,7 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
  public:
   static const KeyAlgo kNoneAlgo;
   static const QContainer<KeyAlgo> kPrimaryKeyAlgos;
+  static const QContainer<KeyAlgo> kHybridPrimaryKeyAlgo;
   static const QContainer<KeyAlgo> kSubKeyAlgos;
   static const QContainer<KeyAlgo> kHybridSubKeyAlgos;
 
