@@ -395,6 +395,11 @@ pub fn extract_metadata_many_internal(
                         .unwrap_or_default();
 
                     results_map.insert(fpr, metadata);
+                } else {
+                    log::error!(
+                        "Failed to parse a secret key from block: {}",
+                        sk_res.err().unwrap()
+                    );
                 }
             }
         }
@@ -414,10 +419,20 @@ pub fn extract_metadata_many_internal(
 
                         results_map.insert(fpr, metadata);
                     }
+                } else {
+                    log::error!(
+                        "Failed to parse a public key from block: {}",
+                        pk_res.err().unwrap()
+                    );
                 }
             }
         }
     }
+
+    log::info!(
+        "Completed processing all blocks. Total unique keys found: {}",
+        results_map.len()
+    );
 
     let results: Vec<ExtractedMetadata> = results_map.into_values().collect();
 
