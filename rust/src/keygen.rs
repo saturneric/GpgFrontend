@@ -35,7 +35,7 @@ use crate::{
         resolve_key_type,
     },
 };
-use log::{debug, error};
+use log::error;
 use pgp::{
     composed::{
         ArmorOptions, Deserializable, EncryptionCaps, SecretKeyParamsBuilder, SignedPublicKey,
@@ -124,16 +124,6 @@ pub fn create_key_internal(
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
     free_cb: Option<GfrFreeCb>,
 ) -> Result<GeneratedKeys, GfrStatus> {
-    debug!(
-        "Creating key for user_id: {}, algo: {:?}, can_sign: {}, can_encrypt: {}, can_auth: {}, subkey_count: {}",
-        user_id,
-        key_config.algo,
-        key_config.can_sign,
-        key_config.can_encrypt,
-        key_config.can_auth,
-        s_key_configs.len()
-    );
-
     let mut secret_key =
         keygen_dynamic(user_id, &key_config, s_key_configs).map_err(|e: anyhow::Error| {
             error!("Key generation failed: {}", e);

@@ -136,16 +136,31 @@ pub struct SignResultInternal {
 }
 
 /// Helper to extract exact target (!) from the armored string prefix
-pub fn parse_signer_block(raw: &str) -> (Option<String>, &str) {
-    if let Some(idx) = raw.find("-----BEGIN PGP") {
-        let prefix = raw[..idx].trim();
-        if prefix.ends_with('!') {
-            let target = prefix.trim_end_matches('!').trim().to_uppercase();
-            return (Some(target), &raw[idx..]);
+pub fn parse_signer_block(block: &str) -> (Option<String>, &str) {
+    let trimmed = block.trim_start();
+
+    if let Some(pos) = trimmed.find("-----BEGIN PGP") {
+        let prefix = trimmed[..pos].trim();
+
+        if let Some(target) = prefix.strip_suffix('!') {
+            let target = normalize_key_identifier(target);
+
+            if !target.is_empty() {
+                return (Some(target), &trimmed[pos..]);
+            }
         }
-        return (None, &raw[idx..]);
+
+        return (None, &trimmed[pos..]);
     }
-    (None, raw)
+
+    (None, trimmed)
+}
+
+fn normalize_key_identifier(s: &str) -> String {
+    s.chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<String>()
+        .to_uppercase()
 }
 
 /// A typed wrapper to avoid Trait Object (&dyn) issues when passing to builder methods
@@ -177,10 +192,35 @@ impl<'a> SelectedKey<'a> {
     }
 }
 
+fn key_identifier_matches(fpr: &str, key_id: &str, target: &str) -> bool {
+    let fpr = normalize_key_identifier(fpr);
+    let key_id = normalize_key_identifier(key_id);
+    let target = normalize_key_identifier(target);
+
+    if target.is_empty() {
+        return false;
+    }
+
+    // Full fingerprint match
+    if fpr == target {
+        return true;
+    }
+
+    // Long key id match
+    if key_id == target {
+        return true;
+    }
+
+    // Allow shortened suffix matching only for shorter user-provided identifiers.
+    // For example: last 16 hex chars.
+    fpr.ends_with(&target) || key_id.ends_with(&target)
+}
+
 /// Helper to find the signing key (either primary or subkey) that matches the
 /// specified target (if any), and execute the provided action with that key if
 /// found.
-/// Core routing mechanism for exact target matching (!) or automatic fallback
+///
+/// Core routing mechanism for exact target matching (!) or automatic fallback.
 pub fn with_signing_key<'a, F, R>(
     skey: &'a SignedSecretKey,
     target_fpr: Option<&str>,
@@ -193,26 +233,68 @@ where
     // EXACT MATCH MODE (!)
     // ==========================================
     if let Some(target) = target_fpr {
-        for subkey in &skey.secret_subkeys {
-            let fpr = subkey.key.fingerprint().to_string().to_uppercase();
-            let kid = subkey.key.legacy_key_id().to_string().to_uppercase();
+        let target = normalize_key_identifier(target);
 
-            // Match exact subkey AND ensure it has signing capabilities
-            if (fpr.ends_with(target) || kid.ends_with(target)) && subkey.key.algorithm().can_sign()
-            {
+        if target.is_empty() {
+            return Err(crate::types::GfrStatus::ErrorInvalidInput);
+        }
+
+        log::info!("Requested signing target: {}", target);
+
+        for subkey in &skey.secret_subkeys {
+            let fpr = subkey.key.fingerprint().to_string();
+            let kid = subkey.key.legacy_key_id().to_string();
+
+            log::info!(
+                "Available signing subkey: fpr={}, keyid={}, algo={:?}, can_sign_algo={}",
+                fpr,
+                kid,
+                subkey.key.algorithm(),
+                subkey.key.algorithm().can_sign(),
+            );
+
+            if key_identifier_matches(&fpr, &kid, &target) {
+                if !subkey.key.algorithm().can_sign() {
+                    log::error!(
+                        "Requested subkey is not signing-capable: fpr={}, keyid={}, algo={:?}",
+                        fpr,
+                        kid,
+                        subkey.key.algorithm(),
+                    );
+                    return Err(crate::types::GfrStatus::ErrorInvalidInput);
+                }
+
+                log::info!("Selected marked signing subkey: fpr={}, keyid={}", fpr, kid,);
+
                 return action(SelectedKey::Sub(&subkey.key));
             }
         }
 
-        let primary_fpr = skey.primary_key.fingerprint().to_string().to_uppercase();
-        let primary_kid = skey.primary_key.legacy_key_id().to_string().to_uppercase();
-        if (primary_fpr.ends_with(target) || primary_kid.ends_with(target))
-            && skey.primary_key.algorithm().can_sign()
-        {
+        let primary_fpr = skey.primary_key.fingerprint().to_string();
+        let primary_kid = skey.primary_key.legacy_key_id().to_string();
+
+        if key_identifier_matches(&primary_fpr, &primary_kid, &target) {
+            if !skey.primary_key.algorithm().can_sign() {
+                log::error!(
+                    "Requested primary key is not signing-capable: fpr={}, keyid={}, algo={:?}",
+                    primary_fpr,
+                    primary_kid,
+                    skey.primary_key.algorithm(),
+                );
+                return Err(crate::types::GfrStatus::ErrorInvalidInput);
+            }
+
+            log::info!(
+                "Selected marked primary signing key: fpr={}, keyid={}",
+                primary_fpr,
+                primary_kid,
+            );
+
             return action(SelectedKey::Primary(&skey.primary_key));
         }
 
-        return Err(crate::types::GfrStatus::ErrorInvalidInput); // Target not found
+        log::error!("Requested signing target not found: {}", target);
+        return Err(crate::types::GfrStatus::ErrorInvalidInput);
     }
 
     // ==========================================
@@ -220,15 +302,23 @@ where
     // ==========================================
     for subkey in &skey.secret_subkeys {
         if subkey.key.algorithm().can_sign() {
+            log::info!(
+                "No target specified. Selected first signing-capable subkey: fpr={}",
+                subkey.key.fingerprint(),
+            );
             return action(SelectedKey::Sub(&subkey.key));
         }
     }
 
     if skey.primary_key.algorithm().can_sign() {
+        log::info!(
+            "No target specified. Selected primary signing key: fpr={}",
+            skey.primary_key.fingerprint(),
+        );
         return action(SelectedKey::Primary(&skey.primary_key));
     }
 
-    Err(crate::types::GfrStatus::ErrorInvalidInput) // No signing capabilities found
+    Err(crate::types::GfrStatus::ErrorInvalidInput)
 }
 
 pub fn sign_internal(
@@ -278,25 +368,21 @@ pub struct SignatureResultInternal {
 }
 
 pub fn cert_contains_issuer(cert: &SignedPublicKey, issuer_hex: &str) -> bool {
-    if cert
-        .primary_key
-        .fingerprint()
-        .to_string()
-        .eq_ignore_ascii_case(issuer_hex)
-    {
+    if key_identifier_matches(
+        &cert.primary_key.fingerprint().to_string(),
+        &cert.primary_key.legacy_key_id().to_string(),
+        issuer_hex,
+    ) {
         return true;
     }
-    for subkey in &cert.public_subkeys {
-        if subkey
-            .key
-            .fingerprint()
-            .to_string()
-            .eq_ignore_ascii_case(issuer_hex)
-        {
-            return true;
-        }
-    }
-    false
+
+    cert.public_subkeys.iter().any(|subkey| {
+        key_identifier_matches(
+            &subkey.key.fingerprint().to_string(),
+            &subkey.key.legacy_key_id().to_string(),
+            issuer_hex,
+        )
+    })
 }
 
 pub fn algo_to_string_simple(algo: PublicKeyAlgorithm) -> String {
