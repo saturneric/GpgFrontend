@@ -38,6 +38,7 @@ namespace {
 auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
   GFKey key;
   GFKeyMetadata& meta = key.metadata;
+  meta.key_ver = static_cast<int>(gfr_meta.ver);
   meta.fpr = QString::fromUtf8(gfr_meta.fpr);
   meta.key_id = QString::fromUtf8(gfr_meta.key_id);
   meta.created_at = static_cast<qint64>(gfr_meta.created_at);
@@ -65,6 +66,7 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
   for (size_t i = 0; i < gfr_meta.subkey_count; ++i) {
     const auto& subkey_meta = gfr_meta.subkeys[i];
     GFSubKeyMetadata sub_meta;
+    sub_meta.key_ver = static_cast<int>(subkey_meta.ver);
     sub_meta.fpr = QString::fromUtf8(subkey_meta.fpr);
     sub_meta.key_id = QString::fromUtf8(subkey_meta.key_id);
     sub_meta.created_at = static_cast<qint64>(subkey_meta.created_at);
@@ -76,18 +78,6 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
     sub_meta.can_auth = subkey_meta.can_auth;
     sub_meta.can_certify = subkey_meta.can_certify;
     sub_meta.is_revoked = subkey_meta.is_revoked;
-
-    LOG_D() << "Parsed subkey metadata, fpr: " << sub_meta.fpr
-            << ", key_id: " << sub_meta.key_id
-            << ", created_at: " << sub_meta.created_at
-            << ", has_secret: " << sub_meta.has_secret
-            << ", algo: " << sub_meta.algo
-            << ", key_length: " << sub_meta.key_length
-            << ", can_sign: " << sub_meta.can_sign
-            << ", can_encrypt: " << sub_meta.can_encrypt
-            << ", can_auth: " << sub_meta.can_auth
-            << ", can_certify: " << sub_meta.can_certify
-            << ", is_revoked: " << sub_meta.is_revoked;
 
     meta.subkeys.push_back(sub_meta);
   }

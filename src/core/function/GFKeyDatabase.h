@@ -153,7 +153,7 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * @return true
    * @return false
    */
-  auto create_schema_v1() -> bool;
+  auto create_schema_latest() -> bool;
 
   /**
    * @brief Load subkeys for a given primary key fingerprint
@@ -225,6 +225,14 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * @return false
    */
   auto is_database_empty() -> bool;
+
+  /**
+   * @brief
+   *
+   * @return true
+   * @return false
+   */
+  auto migrate_v1_to_v2() -> bool;
 };
 
 }  // namespace GpgFrontend

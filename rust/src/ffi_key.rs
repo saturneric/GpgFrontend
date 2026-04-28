@@ -88,6 +88,7 @@ pub extern "C" fn gfr_crypto_extract_metadata(
             let mut c_subkeys = Vec::with_capacity(meta.subkeys.len());
             for sub in meta.subkeys {
                 c_subkeys.push(GfrSubkeyMetadataC {
+                    ver: sub.ver,
                     fpr: CString::new(sub.fpr)
                         .map_err(|_| GfrStatus::ErrorInternal)?
                         .into_raw(),
@@ -130,6 +131,7 @@ pub extern "C" fn gfr_crypto_extract_metadata(
 
             // Assemble the C-compatible metadata struct
             c_metadata_list.push(GfrKeyMetadataC {
+                ver: meta.ver,
                 fpr: c_fpr.into_raw(),
                 key_id: c_key_id.into_raw(),
                 user_ids: user_ids_ptr,

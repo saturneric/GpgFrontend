@@ -29,7 +29,9 @@
 use crate::cache::{PASSWORD_CACHE, PasswordCachePolicy};
 use crate::err::IntoGfrResult;
 use crate::keygen::GeneratedKeys;
-use crate::types::{GfrFreeCb, GfrKeyAlgo, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus};
+use crate::types::{
+    GfrFreeCb, GfrKeyAlgo, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus,
+};
 use crate::utils::{
     PassphraseStateInternal, build_revocation_reason_subpacket, determine_algo, extract_key_length,
     fetch_password_with_cache,
@@ -38,7 +40,7 @@ use pgp::armor::{self, BlockType};
 use pgp::composed::SignedPublicSubKey;
 use pgp::crypto::hash::HashAlgorithm;
 use pgp::packet::{Packet, PacketHeader, SignatureConfig, SignatureType, Subpacket, SubpacketData};
-use pgp::types::{KeyDetails, Password, SecretParams, SignedUser};
+use pgp::types::{KeyDetails, KeyVersion, Password, SecretParams, SignedUser};
 use pgp::{
     composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
     packet::Signature,
@@ -54,6 +56,7 @@ pub struct ExtractUserId {
 }
 
 pub struct ExtractedSubkey {
+    pub ver: GfrOpenPGPKeyVersion,
     pub fpr: String,
     pub key_id: String,
     pub algo: GfrKeyAlgo,
@@ -68,6 +71,7 @@ pub struct ExtractedSubkey {
 }
 
 pub struct ExtractedMetadata {
+    pub ver: GfrOpenPGPKeyVersion,
     pub fpr: String,
     pub key_id: String,
     pub algo: GfrKeyAlgo,
@@ -157,6 +161,16 @@ fn is_subkey_revoked(signatures: &[Signature], primary_fpr_bytes: &[u8]) -> bool
         .any(|sig| is_self_subkey_revocation(sig, primary_fpr_bytes))
 }
 
+impl From<KeyVersion> for GfrOpenPGPKeyVersion {
+    fn from(version: KeyVersion) -> Self {
+        match version {
+            KeyVersion::V4 => GfrOpenPGPKeyVersion::V4,
+            KeyVersion::V6 => GfrOpenPGPKeyVersion::V6,
+            _ => GfrOpenPGPKeyVersion::Unknown,
+        }
+    }
+}
+
 // Helper: Extract metadata from a secret key
 fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     let pk = SignedPublicKey::from(sk.clone());
@@ -169,6 +183,7 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         let key_length = extract_key_length(sub.key.public_params());
         let is_revoked = is_subkey_revoked(&sub.signatures, &primary_fpr_bytes);
         subs.push(ExtractedSubkey {
+            ver: sub.version().into(),
             fpr: sub.key.fingerprint().to_string(),
             key_id: sub.key.legacy_key_id().to_string(),
             algo: determine_algo(sub.key.public_params()),
@@ -231,6 +246,7 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         || is_primary_key_revoked(&pk.details.direct_signatures, &primary_fpr_bytes);
 
     ExtractedMetadata {
+        ver: pk.version().into(),
         fpr: pk.primary_key.fingerprint().to_string(),
         key_id: pk.primary_key.legacy_key_id().to_string(),
         algo: determine_algo(pk.primary_key.public_params()),
@@ -262,6 +278,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
         let key_length = extract_key_length(sub.key.public_params()).unwrap_or(0);
         let is_revoked = is_subkey_revoked(&sub.signatures, &primary_fpr_bytes);
         subs.push(ExtractedSubkey {
+            ver: sub.version().into(),
             fpr: sub.key.fingerprint().to_string(),
             key_id: sub.key.legacy_key_id().to_string(),
             algo: determine_algo(sub.key.public_params()),
@@ -323,6 +340,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     let is_revoked = is_primary_key_revoked(&pk.details.revocation_signatures, &primary_fpr_bytes)
         || is_primary_key_revoked(&pk.details.direct_signatures, &primary_fpr_bytes);
     ExtractedMetadata {
+        ver: pk.version().into(),
         fpr: pk.primary_key.fingerprint().to_string(),
         key_id: pk.primary_key.legacy_key_id().to_string(),
         user_ids,

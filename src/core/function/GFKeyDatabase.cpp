@@ -33,7 +33,7 @@
 
 namespace GpgFrontend {
 
-static constexpr int kCurrentSchemaVersion = 1;
+static constexpr int kCurrentSchemaVersion = 2;
 
 namespace {
 
@@ -55,6 +55,19 @@ auto PrimaryKeyAsSubKey(const GFKeyMetadata& meta) -> GFSubKeyMetadata {
   return sub;
 }
 }  // namespace
+
+GFKeyDatabase::~GFKeyDatabase() {
+  if (db_.isOpen()) {
+    db_.close();
+  }
+
+  if (!connection_name_.isEmpty()) {
+    const auto conn_name = connection_name_;
+    db_ = QSqlDatabase();
+    QSqlDatabase::removeDatabase(conn_name);
+    connection_name_.clear();
+  }
+}
 
 auto GFKeyDatabase::connect_db(const QString& path) -> bool {
   if (!connection_name_.isEmpty()) {
@@ -82,7 +95,7 @@ auto GFKeyDatabase::GetMetadataList() -> QContainer<GFKeyMetadata> {
 
   if (query.exec(R"(
         SELECT fpr, key_id, algo, created_at, has_secret, is_revoked, is_disabled, key_length,
-               can_sign, can_encrypt, can_auth, can_certify, update_time
+               can_sign, can_encrypt, can_auth, can_certify, update_time, key_ver
         FROM key_metadata
       )")) {
     while (query.next()) {
@@ -102,6 +115,7 @@ auto GFKeyDatabase::GetMetadataList() -> QContainer<GFKeyMetadata> {
       meta.update_time =
           QDateTime::fromString(query.value(12).toString(), Qt::ISODate)
               .toSecsSinceEpoch();
+      meta.key_ver = query.value(13).toInt();
 
       // Load user IDs for this primary key
       meta.user_ids = load_user_ids_for_parent(meta.fpr);
@@ -221,12 +235,13 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
   // 1. Save Primary Key Metadata
   query.prepare(R"(
     INSERT OR REPLACE INTO key_metadata 
-    (fpr, key_id, algo, created_at, has_secret, is_revoked, is_disabled, key_length, can_sign, can_encrypt, can_auth, can_certify, update_time)
-    VALUES (:fpr, :key_id, :algo, :created_at, :has_secret, :is_revoked, :is_disabled, :key_length, :can_sign, :can_encrypt, :can_auth, :can_certify, :update_time)
+    (fpr, key_id, algo, key_ver, created_at, has_secret, is_revoked, is_disabled, key_length, can_sign, can_encrypt, can_auth, can_certify, update_time)
+    VALUES (:fpr, :key_id, :algo, :key_ver, :created_at, :has_secret, :is_revoked, :is_disabled, :key_length, :can_sign, :can_encrypt, :can_auth, :can_certify, :update_time)
   )");
   query.bindValue(":fpr", meta.fpr.toUpper());
   query.bindValue(":key_id", meta.key_id.toUpper());
   query.bindValue(":algo", meta.algo);
+  query.bindValue(":key_ver", meta.key_ver);
   query.bindValue(":created_at", meta.created_at);
   query.bindValue(":has_secret", meta.has_secret ? 1 : 0);
   query.bindValue(":is_revoked", meta.is_revoked ? 1 : 0);
@@ -281,8 +296,8 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
 
   query.prepare(R"(
     INSERT INTO subkey_metadata 
-    (fpr, parent_fpr, key_id, algo, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth, is_revoked)
-    VALUES (:fpr, :parent_fpr, :key_id, :algo, :created_at, :has_secret, :key_length, :can_sign, :can_encrypt, :can_auth, :is_revoked)
+    (fpr, parent_fpr, key_id, algo, key_ver, created_at, has_secret, key_length, can_sign, can_encrypt, can_auth, can_certify, is_revoked)
+    VALUES (:fpr, :parent_fpr, :key_id, :algo, :key_ver, :created_at, :has_secret, :key_length, :can_sign, :can_encrypt, :can_auth, :can_certify, :is_revoked)
   )");
 
   for (const auto& sub : meta.subkeys) {
@@ -296,6 +311,7 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
     query.bindValue(":parent_fpr", meta.fpr.toUpper());
     query.bindValue(":key_id", sub.key_id.toUpper());
     query.bindValue(":algo", sub.algo);
+    query.bindValue(":key_ver", sub.key_ver);
     query.bindValue(":created_at", sub.created_at);
     query.bindValue(":has_secret", sub.has_secret ? 1 : 0);
     query.bindValue(":can_sign", sub.can_sign ? 1 : 0);
@@ -385,7 +401,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
   return {};
 }
 
-auto GFKeyDatabase::create_schema_v1() -> bool {
+auto GFKeyDatabase::create_schema_latest() -> bool {
   QSqlQuery query(db_);
 
   // 1. Primary key metadata table with new capability fields
@@ -394,6 +410,7 @@ auto GFKeyDatabase::create_schema_v1() -> bool {
       fpr TEXT PRIMARY KEY COLLATE NOCASE,
       key_id TEXT NOT NULL COLLATE NOCASE,
       algo INTEGER,
+      key_ver INTEGER NOT NULL DEFAULT 0,
       key_length INTEGER DEFAULT 0,
       created_at INTEGER,
       has_secret INTEGER DEFAULT 0,
@@ -414,6 +431,7 @@ auto GFKeyDatabase::create_schema_v1() -> bool {
       parent_fpr TEXT NOT NULL COLLATE NOCASE,
       key_id TEXT NOT NULL COLLATE NOCASE,
       algo INTEGER,
+      key_ver INTEGER NOT NULL DEFAULT 0,
       created_at INTEGER,
       key_length INTEGER DEFAULT 0,
       has_secret INTEGER DEFAULT 0,
@@ -479,7 +497,7 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
   QContainer<GFSubKeyMetadata> subkeys;
   QSqlQuery query(db_);
   query.prepare(R"(
-    SELECT fpr, key_id, algo, created_at, has_secret, is_revoked, key_length, can_sign, can_encrypt, can_auth, can_certify
+    SELECT fpr, key_id, algo, created_at, has_secret, is_revoked, key_length, can_sign, can_encrypt, can_auth, can_certify, key_ver
     FROM subkey_metadata WHERE parent_fpr = :parent_fpr
   )");
   query.bindValue(":parent_fpr", parent_fpr);
@@ -499,6 +517,7 @@ auto GFKeyDatabase::load_subkeys_for_parent(const QString& parent_fpr)
       sub.can_encrypt = query.value(8).toBool();
       sub.can_auth = query.value(9).toBool();
       sub.can_certify = query.value(10).toBool();
+      sub.key_ver = query.value(11).toInt();
       subkeys.append(sub);
     }
   }
@@ -644,7 +663,7 @@ auto GFKeyDatabase::ensure_schema() -> bool {
   if (version == 0) {
     if (is_database_empty()) {
       LOG_I() << "empty database detected, creating schema v1";
-      if (!create_schema_v1()) {
+      if (!create_schema_latest()) {
         return false;
       }
       if (!set_schema_version(1)) {
@@ -656,16 +675,15 @@ auto GFKeyDatabase::ensure_schema() -> bool {
 
   while (version < kCurrentSchemaVersion) {
     switch (version) {
-        // case 1:
-        //   if (!migrate_v1_to_v2()) {
-        //     return false;
-        //   }
-        //   if (!set_schema_version(2)) {
-        //     return false;
-        //   }
-        //   version = 2;
-        //   break;
-
+      case 1:
+        if (!migrate_v1_to_v2()) {
+          return false;
+        }
+        if (!set_schema_version(2)) {
+          return false;
+        }
+        version = 2;
+        break;
       default:
         LOG_E() << "unsupported schema version:" << version;
         return false;
@@ -724,16 +742,27 @@ auto GFKeyDatabase::is_database_empty() -> bool {
                      });
 }
 
-GFKeyDatabase::~GFKeyDatabase() {
-  if (db_.isOpen()) {
-    db_.close();
+auto GFKeyDatabase::migrate_v1_to_v2() -> bool {
+  QSqlQuery query(db_);
+
+  if (!column_exists("key_metadata", "key_ver")) {
+    if (!query.exec("ALTER TABLE key_metadata "
+                    "ADD COLUMN key_ver INTEGER NOT NULL DEFAULT 0")) {
+      LOG_E() << "failed to add key_metadata.key_ver:"
+              << query.lastError().text();
+      return false;
+    }
   }
 
-  if (!connection_name_.isEmpty()) {
-    const auto conn_name = connection_name_;
-    db_ = QSqlDatabase();
-    QSqlDatabase::removeDatabase(conn_name);
-    connection_name_.clear();
+  if (!column_exists("subkey_metadata", "key_ver")) {
+    if (!query.exec("ALTER TABLE subkey_metadata "
+                    "ADD COLUMN key_ver INTEGER NOT NULL DEFAULT 0")) {
+      LOG_E() << "failed to add subkey_metadata.key_ver:"
+              << query.lastError().text();
+      return false;
+    }
   }
+
+  return true;
 }
 }  // namespace GpgFrontend

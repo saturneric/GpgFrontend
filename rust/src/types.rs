@@ -81,6 +81,14 @@ impl Error for GfrStatus {}
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GfrOpenPGPKeyVersion {
+    Unknown = 0,
+    V4 = 4,
+    V6 = 6,
+}
+
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GfrKeyAlgo {
     Unknown = 0,
     ED25519,
@@ -141,6 +149,7 @@ pub struct GfrKeyGenerateResult {
 
 #[repr(C)]
 pub struct GfrSubkeyMetadataC {
+    pub ver: GfrOpenPGPKeyVersion,
     pub fpr: *mut c_char,
     pub key_id: *mut c_char,
     pub algo: GfrKeyAlgo,
@@ -163,6 +172,7 @@ pub struct GfrUserIdC {
 
 #[repr(C)]
 pub struct GfrKeyMetadataC {
+    pub ver: GfrOpenPGPKeyVersion,
     pub fpr: *mut c_char,
     pub key_id: *mut c_char,
 
