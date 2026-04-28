@@ -117,23 +117,22 @@ fn is_primary_key_revoked(signatures: &[Signature], primary_fpr_bytes: &[u8]) ->
         .any(|sig| is_self_key_revocation(sig, primary_fpr_bytes))
 }
 
-// Helper to extract metadata flags from a list of signatures. This is used for both primary and subkeys.
-fn extract_capabilities(signatures: &[Signature]) -> (bool, bool, bool, bool) {
+fn extract_capabilities<'a, I>(signatures: I) -> (bool, bool, bool, bool)
+where
+    I: IntoIterator<Item = &'a Signature>,
+{
     let mut can_sign = false;
     let mut can_encrypt = false;
     let mut can_auth = false;
     let mut can_certify = false;
 
     for sig in signatures {
-        // Get the KeyFlags struct directly
         let flags = sig.key_flags();
 
-        // Call the boolean methods provided by the KeyFlags struct
         if flags.sign() {
             can_sign = true;
         }
 
-        // PGP defines two types of encryption flags, checking either is usually sufficient
         if flags.encrypt_comms() || flags.encrypt_storage() {
             can_encrypt = true;
         }
@@ -179,7 +178,8 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     let primary_fpr_bytes = sk.primary_key.fingerprint().as_bytes().to_vec();
 
     for sub in &sk.secret_subkeys {
-        let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(&sub.signatures);
+        let (can_sign, can_encrypt, can_auth, can_certify) =
+            extract_capabilities(sub.signatures.iter());
         let key_length = extract_key_length(sub.key.public_params());
         let is_revoked = is_subkey_revoked(&sub.signatures, &primary_fpr_bytes);
         subs.push(ExtractedSubkey {
@@ -235,12 +235,16 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         user_ids.insert(0, primary_uid);
     }
 
-    // use the signatures of the actual primary user ID (after reordering) to determine capabilities
-    let primary_user_sigs: &[pgp::packet::Signature] = users
+    let primary_user_sigs = users
         .get(primary_idx)
         .map(|u| u.signatures.as_slice())
         .unwrap_or(&[]);
-    let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(primary_user_sigs);
+    let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(
+        pk.details
+            .direct_signatures
+            .iter()
+            .chain(primary_user_sigs.iter()),
+    );
     let key_length = extract_key_length(pk.primary_key.public_params());
     let is_revoked = is_primary_key_revoked(&pk.details.revocation_signatures, &primary_fpr_bytes)
         || is_primary_key_revoked(&pk.details.direct_signatures, &primary_fpr_bytes);
@@ -274,7 +278,8 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     let primary_fpr_bytes = pk.primary_key.fingerprint().as_bytes().to_vec();
 
     for sub in &pk.public_subkeys {
-        let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(&sub.signatures);
+        let (can_sign, can_encrypt, can_auth, can_certify) =
+            extract_capabilities(sub.signatures.iter());
         let key_length = extract_key_length(sub.key.public_params()).unwrap_or(0);
         let is_revoked = is_subkey_revoked(&sub.signatures, &primary_fpr_bytes);
         subs.push(ExtractedSubkey {
@@ -331,11 +336,17 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     }
 
     // use the signatures of the actual primary user ID (after reordering) to determine capabilities
-    let primary_user_sigs: &[pgp::packet::Signature] = users
+    let primary_user_sigs = users
         .get(primary_idx)
         .map(|u| u.signatures.as_slice())
         .unwrap_or(&[]);
-    let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(primary_user_sigs);
+
+    let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(
+        pk.details
+            .direct_signatures
+            .iter()
+            .chain(primary_user_sigs.iter()),
+    );
     let key_length = extract_key_length(pk.primary_key.public_params());
     let is_revoked = is_primary_key_revoked(&pk.details.revocation_signatures, &primary_fpr_bytes)
         || is_primary_key_revoked(&pk.details.direct_signatures, &primary_fpr_bytes);
