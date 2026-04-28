@@ -157,6 +157,9 @@ class GpgKeyRepository::Impl
   }
 
   auto GetKeyORSubkeyPtr(const QString& key_id) -> GpgAbstractKeyPtr {
+    auto key = get_key_in_cache(key_id);
+    if (key != nullptr) return key;
+
     return RunRegisteredForward<GetKeyPtrOpTag>(ctx_, key_id, true);
   }
 
