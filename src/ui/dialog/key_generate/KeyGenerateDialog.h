@@ -45,15 +45,20 @@ class KeyGenerateDialog : public GeneralDialog {
  public:
   struct EasyModeConf {
     QString name;
+
     QString key_algo;
+    QString key_algo_type;
     QString key_validity;
 
-    bool has_s_key;
+    bool has_s_key = false;
     QString s_key_algo;
+    QString s_key_algo_type;
     QString s_key_validity;
-    QString s_key_sub_algo;
 
-    bool hidden;
+    QString s_key_sub_algo;
+    QString s_key_sub_algo_type;
+
+    bool hidden = false;
   };
 
   /**
@@ -66,8 +71,8 @@ class KeyGenerateDialog : public GeneralDialog {
   explicit KeyGenerateDialog(int channel, QWidget* parent = nullptr);
 
   /**
-   * @brief 
-   * 
+   * @brief
+   *
    */
   void InitUi();
 
