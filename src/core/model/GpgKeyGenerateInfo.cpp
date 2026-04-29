@@ -35,6 +35,29 @@
 
 namespace GpgFrontend {
 
+namespace {
+
+auto FindAlgoByIdAndType(const QContainer<KeyAlgo> &algos, const QString &id,
+                         const QString &type) -> KeyAlgo {
+  const auto it =
+      std::find_if(algos.cbegin(), algos.cend(), [&](const KeyAlgo &algo) {
+        return algo.Id() == id && algo.Type() == type;
+      });
+
+  assert(it != algos.cend());
+  return it != algos.cend() ? *it : KeyAlgo{};
+}
+
+auto FindSubAlgo(const QString &id, const QString &type) -> KeyAlgo {
+  return FindAlgoByIdAndType(KeyGenerateInfo::kSubKeyAlgos, id, type);
+}
+
+auto FindPrimaryAlgo(const QString &id, const QString &type) -> KeyAlgo {
+  return FindAlgoByIdAndType(KeyGenerateInfo::kPrimaryKeyAlgos, id, type);
+}
+
+}  // namespace
+
 const KeyAlgo KeyGenerateInfo::kNoneAlgo = {
     "none",
     KeyGenerateInfo::tr("None"),
@@ -216,7 +239,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kHybridPrimaryKeyAlgo = {
      {{OpenPGPEngine::kRPGP, "0.1.2"}},
      {
          {
-             kPrimaryKeyAlgos[8],  // ed25519
+             FindPrimaryAlgo("ed25519", "EdDSA"),  // ed25519
              {
                  {OpenPGPEngine::kRPGP, "0.1.2"},
              },
@@ -230,7 +253,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kHybridPrimaryKeyAlgo = {
      {{OpenPGPEngine::kRPGP, "0.1.2"}},
      {
          {
-             kPrimaryKeyAlgos[15],  // ed448
+             FindPrimaryAlgo("ed448", "EdDSA"),  // ed448
              {
                  {OpenPGPEngine::kRPGP, "0.1.2"},
              },
@@ -338,6 +361,30 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = {
         {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
     },
     {
+        "nistp256",
+        "NIST",
+        "ECDSA",
+        256,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
+    },
+    {
+        "nistp384",
+        "NIST",
+        "ECDSA",
+        384,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
+    },
+    {
+        "nistp521",
+        "NIST",
+        "ECDSA",
+        521,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
+    },
+    {
         "brainpoolp256r1",
         "BrainPooL",
         "ECDH",
@@ -359,6 +406,30 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = {
         "ECDH",
         512,
         kENCRYPT,
+        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
+    },
+    {
+        "brainpoolp256r1",
+        "BrainPooL",
+        "ECDSA",
+        256,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
+    },
+    {
+        "brainpoolp384r1",
+        "BrainPooL",
+        "ECDSA",
+        384,
+        kSIGN | kAUTH,
+        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
+    },
+    {
+        "brainpoolp512r1",
+        "BrainPooL",
+        "ECDSA",
+        512,
+        kSIGN | kAUTH,
         {{OpenPGPEngine::kGNUPG, "2.3.0"}},
     },
     {
@@ -461,50 +532,50 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kHybridSubKeyAlgos = {
      {{OpenPGPEngine::kGNUPG, "2.5.0"}, {OpenPGPEngine::kRPGP, "0.1.2"}},
      {
          {
-             kSubKeyAlgos[9],  // cv25519
+             FindSubAlgo("cv25519", "ECDH"),  // cv25519
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
                  {OpenPGPEngine::kRPGP, "0.1.2"},
              },
          },
          {
-             kSubKeyAlgos[10],  // nistp256
+             FindSubAlgo("nistp256", "ECDH"),  // nistp256
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[11],  // nistp384
+             FindSubAlgo("nistp384", "ECDH"),  // nistp384
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[12],  // nistp521
+             FindSubAlgo("nistp521", "ECDH"),  // nistp521
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[13],  // brainpoolp256r1
+             FindSubAlgo("brainpoolp256r1", "ECDH"),  // brainpoolp256r1
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[14],  // brainpoolp384r1
+             FindSubAlgo("brainpoolp384r1", "ECDH"),  // brainpoolp384r1
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[15],  // brainpoolp512r1
+             FindSubAlgo("brainpoolp512r1", "ECDH"),  // brainpoolp512r1
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[16],  // x448
+             FindSubAlgo("x448", "ECDH"),  // x448
              {{OpenPGPEngine::kGNUPG, "2.5.0"}},
          },
      }},
@@ -516,49 +587,49 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kHybridSubKeyAlgos = {
      {{OpenPGPEngine::kGNUPG, "2.5.0"}, {OpenPGPEngine::kRPGP, "0.1.2"}},
      {
          {
-             kSubKeyAlgos[9],  // cv25519
+             FindSubAlgo("cv25519", "ECDH"),  // cv25519
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[10],  // nistp256
+             FindSubAlgo("nistp256", "ECDH"),  // nistp256
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[11],  // nistp384
+             FindSubAlgo("nistp384", "ECDH"),  // nistp384
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[12],  // nistp521
+             FindSubAlgo("nistp521", "ECDH"),  // nistp521
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[13],  // brainpoolp256r1
+             FindSubAlgo("brainpoolp256r1", "ECDH"),  // brainpoolp256r1
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[14],  // brainpoolp384r1
+             FindSubAlgo("brainpoolp384r1", "ECDH"),  // brainpoolp384r1
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[15],  // brainpoolp512r1
+             FindSubAlgo("brainpoolp512r1", "ECDH"),  // brainpoolp512r1
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
              },
          },
          {
-             kSubKeyAlgos[16],  // x448
+             FindSubAlgo("x448", "ECDH"),  // x448
              {
                  {OpenPGPEngine::kGNUPG, "2.5.0"},
                  {OpenPGPEngine::kRPGP, "0.1.2"},
@@ -573,7 +644,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kHybridSubKeyAlgos = {
      {{OpenPGPEngine::kRPGP, "0.1.2"}},
      {
          {
-             kSubKeyAlgos[8],  // ed25519
+             FindSubAlgo("ed25519", "EdDSA"),  // ed25519
              {
                  {OpenPGPEngine::kRPGP, "0.1.2"},
              },
@@ -587,7 +658,7 @@ const QContainer<KeyAlgo> KeyGenerateInfo::kHybridSubKeyAlgos = {
      {{OpenPGPEngine::kRPGP, "0.1.2"}},
      {
          {
-             kSubKeyAlgos[22],  // ed448
+             FindSubAlgo("ed448", "EdDSA"),  // ed448
              {
                  {OpenPGPEngine::kRPGP, "0.1.2"},
              },
@@ -628,7 +699,10 @@ auto KeyGenerateInfo::GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo> {
   }
 
   std::sort(algos.begin(), algos.end(), [](const KeyAlgo &a, const KeyAlgo &b) {
-    return a.Name() < b.Name() && a.KeyLength() < b.KeyLength();
+    if (a.Name() != b.Name()) return a.Name() < b.Name();
+    if (a.KeyLength() != b.KeyLength()) return a.KeyLength() < b.KeyLength();
+    if (a.Type() != b.Type()) return a.Type() < b.Type();
+    return a.Id() < b.Id();
   });
 
   return algos;
@@ -1030,7 +1104,11 @@ auto KeyAlgo::SupportedVersion() const -> QContainer<EngineSupportIf> {
 }
 
 auto KeyAlgo::operator==(const KeyAlgo &o) const -> bool {
-  return this->id_ == o.id_;
+  return id_ == o.id_ && type_ == o.type_ && length_ == o.length_;
+}
+
+auto KeyAlgo::operator!=(const KeyAlgo &o) const -> bool {
+  return !(*this == o);
 }
 
 [[nodiscard]] auto KeyAlgo::SubAlgos(int channel) const -> QContainer<KeyAlgo> {
