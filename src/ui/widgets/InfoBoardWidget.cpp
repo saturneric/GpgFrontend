@@ -172,7 +172,7 @@ void InfoBoardWidget::SetInfoBoard(const QString& text,
 
   const auto final_text = body.isEmpty()
                               ? tr("[%1] No details available.").arg(title)
-                              : tr("[%1] %2").arg(title, body);
+                              : QString("[%1] %2").arg(title, body);
 
   ui_->infoBoard->setPlainText(final_text);
   ui_->infoBoard->moveCursor(QTextCursor::Start);
