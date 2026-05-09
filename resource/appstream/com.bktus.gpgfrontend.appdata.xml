@@ -23,47 +23,43 @@
   
   <description>
     <p>
-      GpgFrontend is a modern "Enigma" built on GnuPG, bringing effortless and
-      trustworthy privacy to your digital life. It is a powerful yet simple
-      OpenPGP GUI designed for both beginners and experts.
+      A modern "Enigma" for OpenPGP. It makes encryption, signing, and key
+      management easier and more trustworthy in everyday privacy workflows.
     </p>
     <ul>
-      <li>Easy: Encrypt and sign your texts, files, and more with one click.</li>
+      <li>Easy: Encrypt and sign your texts, files and more.</li>
       <li>Cross-platform: Native support for Windows, macOS and Linux.</li>
-      <li>Portable: Run directly from a USB drive and carry your keys anywhere.</li>
-      <li>Flexible: Manage keys separately through multiple independent databases.</li>
-      <li>Privacy-focused: Multiple approaches to enhance safety with latest GnuPG support.</li>
+      <li>Portable: Run directly from a USB drive and carry your keys.</li>
+      <li>Flexible: Manage keys separately through multiple key databases.</li>
+      <li>Compatible: Mature GnuPG support with a newer rPGP engine.</li>
+      <li>Privacy-focused: Using multiple approaches to enhance safety.</li>
     </ul>
   </description>
 
   <screenshots>
     <screenshot type="default">
-      <image>https://image.cdn.bktus.com/i/2025/06/25/1d53089c71f47c9c039bdb070d1526feb7ab6792.png</image>
-      <caption>Default Workspace</caption>
-    </screenshot>
-    <screenshot>
-      <image>https://image.cdn.bktus.com/i/2025/06/25/4d59e0a14bbac37f2d7c7ffc3a0cdb4439df4c26.png</image>
-      <caption>Verify Signature of File</caption>
-    </screenshot>
-    <screenshot>
-      <image>https://image.cdn.bktus.com/i/2025/06/25/b1590e858f7480578b9584d3d9ecafddc54772e6.png</image>
-      <caption>Verify Signature of Email</caption>
-    </screenshot>
-    <screenshot>
-      <image>https://image.cdn.bktus.com/i/2025/06/25/ae4de317dd6ae3d799dc6544c77ffc1e8550926d.png</image>
+      <image>https://image.cdn.bktus.com/i/2026/05/09/e52d15b54c558df107ee920325b9e73be3b01013.png</image>
       <caption>Encrypt Text</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2025/06/25/94c2c33b11c612d502ab226c0aa89c96809f98d5.png</image>
+      <image>https://image.cdn.bktus.com/i/2026/05/09/e422b4f157ee4222852a293e6a2f292a0763c577.png</image>
+      <caption>Verify Signature</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2026/05/09/f9afecdeaff9fed54b2f7e060f684d7293fd195e.png</image>
+      <caption>Verify Signature of File</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2026/05/09/aa2abf775bee0a5676593998624dfe99772accf7.png</image>
       <caption>Key Generation</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2025/06/25/438adc94e18d9bdf66c2e92272e0c1c36e6bdb48.png</image>
-      <caption>Key Information</caption>
+      <image>https://image.cdn.bktus.com/i/2026/05/09/02fc3a10c4d4b3182ac4dd8722c3d9e4f2bc08cc.png</image>
+      <caption>Keychain</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2025/06/25/72cbd33f559d53f5591eb2690e1dd998f35752b4.png</image>
-      <caption>Key Structure</caption>
+      <image>https://image.cdn.bktus.com/i/2026/05/09/fdd12cb7f8277d334177eae91ddd46de3c388484.png</image>
+      <caption>Key Management</caption>
     </screenshot>
   </screenshots>
 
@@ -77,6 +73,7 @@
   </keywords>
 
   <releases>
+    <release version="2.2.0" date="2026-05-09"/>
     <release version="2.1.11" date="2026-04-10"/>
     <release version="2.1.10" date="2025-10-25"/>
     <release version="2.1.9" date="2025-06-18"/>
