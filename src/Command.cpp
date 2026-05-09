@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
+ * Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
  *
  * This file is part of GpgFrontend.
  *
@@ -170,26 +170,29 @@ auto PrintEnvInfo() -> int {
 
 auto ParseLogLevel(const QString& log_level) -> int {
   // default value
-  if (log_level == "none") return 0;
+  auto level = log_level.toLower();
+  if (level == "none") {
+    level = "error";
+  }
 
-  if (log_level == "debug") {
+  if (level == "debug") {
     SetGFLogLevel(static_cast<int>(GFLogLevel::kDEBUG));
     QLoggingCategory::setFilterRules(
         BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kDEBUG)));
-  } else if (log_level == "info") {
+  } else if (level == "info") {
     SetGFLogLevel(static_cast<int>(GFLogLevel::kINFO));
     QLoggingCategory::setFilterRules(
         BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kINFO)));
-  } else if (log_level == "warn") {
+  } else if (level == "warn") {
     SetGFLogLevel(static_cast<int>(GFLogLevel::kWARNING));
     QLoggingCategory::setFilterRules(
         BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kWARNING)));
-  } else if (log_level == "error") {
+  } else if (level == "error") {
     SetGFLogLevel(static_cast<int>(GFLogLevel::kCRITICAL));
     QLoggingCategory::setFilterRules(
         BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kCRITICAL)));
   } else {
-    qWarning() << "unknown log level: " << log_level;
+    qWarning() << "unknown log level: " << level;
   }
   return 0;
 }
