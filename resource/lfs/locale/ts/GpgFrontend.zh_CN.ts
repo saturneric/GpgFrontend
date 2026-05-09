@@ -1295,12 +1295,12 @@
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="191"/>
         <source>Use ASCII Armor</source>
-        <translation>使用 ASCII 装甲</translation>
+        <translation>使用 ASCII 封装</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="193"/>
         <source>Use ASCII armored output for file operations.</source>
-        <translation>文件操作时使用 ASCII 装甲输出。</translation>
+        <translation>文件操作时使用 ASCII 封装输出。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="225"/>

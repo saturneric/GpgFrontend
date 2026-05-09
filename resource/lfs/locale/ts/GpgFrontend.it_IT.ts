@@ -346,7 +346,7 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="96"/>
         <source>Localized</source>
-        <translation></translation>
+        <translation>Localizzato</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="110"/>
@@ -705,7 +705,7 @@
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="129"/>
         <source>Key ID: %1 Reason: %2</source>
         <translatorcomment>ID chiave: %1 Motivo: %2</translatorcomment>
-        <translation></translation>
+        <translation>ID chiave: %1 Motivo: %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="141"/>
@@ -1428,7 +1428,7 @@
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="280"/>
         <source>Move %1 selected items to Trash?</source>
-        <translation></translation>
+        <translation>Spostare i %1 elementi selezionati nel Cestino?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="302"/>
@@ -1935,69 +1935,69 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="42"/>
         <source>Enable GpgME Debug Log</source>
-        <translation type="unfinished">Abilita registro debug GpgME</translation>
+        <translation>Abilita log di debug GpgME</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="44"/>
         <source>Enable verbose GpgME logs for troubleshooting. This may include technical details about GnuPG operations.</source>
-        <translation type="unfinished"></translation>
+        <translation>Abilita log GpgME dettagliati per la risoluzione dei problemi. Potrebbero includere dettagli tecnici sulle operazioni di GnuPG.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="47"/>
         <source>Use Custom GnuPG</source>
-        <translation type="unfinished">Usa GnuPG personalizzato</translation>
+        <translation>Usa GnuPG personalizzato</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="48"/>
         <source>Select GnuPG Path</source>
-        <translation type="unfinished">Seleziona Percorso GnuPG</translation>
+        <translation>Seleziona percorso GnuPG</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="50"/>
         <source>Terminate GnuPG background processes on exit</source>
-        <translation type="unfinished"></translation>
+        <translation>Termina i processi in background di GnuPG all&apos;uscita</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="52"/>
         <source>This may affect other applications that are using GnuPG.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ciò potrebbe influire su altre applicazioni che utilizzano GnuPG.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="54"/>
         <source>Forbid all GnuPG network connection.</source>
-        <translation type="unfinished">Proibisci tutte le connessioni di rete GnuPG.</translation>
+        <translation>Vieta tutte le connessioni di rete di GnuPG.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="58"/>
         <source>Select the directory that contains the &quot;gpgconf&quot; executable.</source>
-        <translation type="unfinished"></translation>
+        <translation>Seleziona la directory che contiene l&apos;eseguibile &quot;gpgconf&quot;.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="86"/>
         <source>Open Directory</source>
-        <translation type="unfinished">Apri Rubrica</translation>
+        <translation>Apri directory</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="228"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="235"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="249"/>
         <source>Illegal GnuPG Path</source>
-        <translation type="unfinished">Percorso GnuPG illegale</translation>
+        <translation>Percorso GnuPG non valido</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="229"/>
         <source>Target GnuPG Path is not an exists readable directory.</source>
-        <translation type="unfinished">Target GnuPG Path non è una directory leggibile esistente.</translation>
+        <translation>Il percorso GnuPG di destinazione non è una directory leggibile esistente.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="236"/>
         <source>Target GnuPG Path is not an absolute path.</source>
-        <translation type="unfinished">Target GnuPG Path non è un percorso assoluto.</translation>
+        <translation>Il percorso GnuPG di destinazione non è un percorso assoluto.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="250"/>
         <source>Target GnuPG Path contains no &quot;gpgconf&quot; executable.</source>
-        <translation type="unfinished">Il percorso GnuPG di destinazione non contiene l&apos;eseguibile &quot;gpgconf&quot;.</translation>
+        <translation>Il percorso GnuPG di destinazione non contiene l&apos;eseguibile &quot;gpgconf&quot;.</translation>
     </message>
 </context>
 <context>
@@ -2040,7 +2040,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="235"/>
         <source>Critical Error</source>
         <translatorcomment>Errore critico</translatorcomment>
-        <translation></translation>
+        <translation>Errore critico</translation>
     </message>
 </context>
 <context>
@@ -2158,7 +2158,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="236"/>
         <source>Assuan:</source>
-        <translation></translation>
+        <translation>Assuan:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="239"/>
@@ -2619,13 +2619,13 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="440"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="453"/>
         <source>Second Algorithm</source>
-        <translation type="unfinished"></translation>
+        <translation>Secondo algoritmo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="441"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="454"/>
         <source>Second Key Length</source>
-        <translation type="unfinished"></translation>
+        <translation>Lunghezza seconda chiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="442"/>
@@ -3912,7 +3912,7 @@ GpgFrontend ora tenterà di importare la/le chiave/i.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="312"/>
         <source>Generate revocation certificate</source>
-        <translation></translation>
+        <translation>Genera certificato di revoca</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="346"/>
@@ -4412,7 +4412,7 @@ GpgFrontend ora tenterà di importare la/le chiave/i.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="527"/>
         <source>Failed to revoke the UID. Please try again.</source>
-        <translation></translation>
+        <translation>Revoca dell&apos;UID non riuscita. Riprovare.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="530"/>
@@ -4783,7 +4783,9 @@ Dopo l&apos;installazione, riavvia GpgFrontend. Il file di configurazione verrà
         <source>Failed to finalize output file:
 
 %1</source>
-        <translation></translation>
+        <translation>Impossibile finalizzare il file di output:
+
+%1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="174"/>
@@ -6069,17 +6071,17 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="70"/>
         <source>This passphrase will be used to set a new password.</source>
-        <translation type="unfinished"></translation>
+        <translation>Questa frase segreta verrà utilizzata per impostare una nuova password.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="75"/>
         <source>Key ID: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>ID chiave: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="76"/>
         <source>Key UID: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>UID chiave: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="100"/>
@@ -6304,7 +6306,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="68"/>
         <source>GnuPG</source>
-        <translation type="unfinished"></translation>
+        <translation>GnuPG</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="83"/>
@@ -6830,7 +6832,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="324"/>
         <source>Standard</source>
-        <translation></translation>
+        <translation>Standard</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="326"/>
@@ -7021,12 +7023,12 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="73"/>
         <source>Second Algorithm</source>
-        <translation type="unfinished"></translation>
+        <translation>Algoritmo della seconda chiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="74"/>
         <source>Second Key Length</source>
-        <translation type="unfinished"></translation>
+        <translation>Lunghezza della seconda chiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="331"/>
@@ -7568,7 +7570,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="112"/>
         <source>%1  ·  %2</source>
-        <translation></translation>
+        <translation>%1  ·  %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="46"/>
