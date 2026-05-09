@@ -33,34 +33,31 @@
 #include "core/model/GFBuffer.h"
 
 namespace GpgFrontend {
+
 class GF_CORE_EXPORT SecureRandomGenerator
     : public SingletonFunctionObject<SecureRandomGenerator> {
  public:
-  /**
-   * @brief Construct a new Secure Random Generator object
-   *
-   * @param channel
-   */
   explicit SecureRandomGenerator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
-   * @brief
+   * @brief Generate cryptographically secure random bytes.
    *
-   * @param size
+   * @param size number of bytes to generate
    * @return GFBufferOrNone
    */
-  static auto OpenSSLGenerate(size_t size) -> GFBufferOrNone;
+  static auto Generate(size_t size) -> GFBufferOrNone;
 
   /**
-   * @brief
+   * @brief Generate a z-base-32 encoded random identifier.
    *
    * @return GFBufferOrNone
    */
-  static auto OpenSSLGenerateZBase32() -> GFBufferOrNone;
+  static auto GenerateZBase32() -> GFBufferOrNone;
 
  private:
   OpenPGPContext& ctx_ =
-      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
-};  // namespace GpgFrontend
+
+}  // namespace GpgFrontend

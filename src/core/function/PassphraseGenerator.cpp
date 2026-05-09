@@ -37,9 +37,9 @@ auto PassphraseGenerator::Generate(int len) -> GFBufferOrNone {
       "abcdefghijklmnopqrstuvwxyz"};
 
   GFBufferOrNone buffer;
-  buffer = SecureRandomGenerator::OpenSSLGenerate(len);
+  buffer = SecureRandomGenerator::Generate(len);
   if (!buffer || buffer->Empty() || buffer->Size() < static_cast<size_t>(len)) {
-    LOG_E() << "generate random bytes using openssl failed, len: " << len;
+    LOG_E() << "generate random bytes failed, len: " << len;
   }
 
   // fallback to qt random generator, which is not cryptographically secure, but
@@ -70,7 +70,7 @@ auto PassphraseGenerator::Generate(int len) -> GFBufferOrNone {
 }
 
 auto PassphraseGenerator::GenerateBytes(int len) -> GFBufferOrNone {
-  auto buffer = rand_.OpenSSLGenerate(len);
+  auto buffer = SecureRandomGenerator::Generate(len);
   if (!buffer || buffer->Empty() || buffer->Size() < static_cast<size_t>(len)) {
     LOG_E() << "generate random bytes failed, len: " << len;
     return {};
@@ -79,7 +79,7 @@ auto PassphraseGenerator::GenerateBytes(int len) -> GFBufferOrNone {
 }
 
 auto PassphraseGenerator::GenerateBytesByOpenSSL(int len) -> GFBufferOrNone {
-  auto buffer = SecureRandomGenerator::OpenSSLGenerate(len);
+  auto buffer = SecureRandomGenerator::Generate(len);
   if (!buffer || buffer->Empty() || buffer->Size() < static_cast<size_t>(len)) {
     LOG_E() << "generate random bytes failed, len: " << len;
     return {};

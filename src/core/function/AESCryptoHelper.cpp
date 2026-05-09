@@ -28,336 +28,160 @@
 
 #include "AESCryptoHelper.h"
 
-#include <openssl/err.h>
-#include <openssl/evp.h>
-#include <openssl/kdf.h>
+#include <sodium.h>
 
 #include "core/function/SecureRandomGenerator.h"
 
 namespace {
 
-auto EvpEncryptImpl(const GpgFrontend::GFBuffer& plaintext,
-                    const GpgFrontend::GFBuffer& key,
-                    GpgFrontend::GFBuffer& out_iv,
-                    GpgFrontend::GFBuffer& out_tag, const EVP_CIPHER* cipher,
-                    const GpgFrontend::GFBuffer& aad)
-    -> GpgFrontend::GFBufferOrNone {
-  const int key_len = EVP_CIPHER_key_length(cipher);
-  Q_ASSERT(key.Size() == static_cast<size_t>(key_len));
-  if (key.Size() != static_cast<size_t>(key_len)) {
-    LOG_E() << "key size is mismatch: " << key.Size()
-            << "expected size: " << key_len;
-    return {};
+constexpr std::string_view kMagic = "GFSEC2";
+constexpr size_t kMagicLen = kMagic.size();
+
+constexpr size_t kSaltLen = crypto_pwhash_SALTBYTES;
+constexpr size_t kNonceLen = crypto_aead_xchacha20poly1305_ietf_NPUBBYTES;
+constexpr size_t kTagLen = crypto_aead_xchacha20poly1305_ietf_ABYTES;
+constexpr size_t kKeyLen = crypto_aead_xchacha20poly1305_ietf_KEYBYTES;
+
+constexpr unsigned long long kArgon2OpsLimit = 3;
+constexpr size_t kArgon2MemLimit = 65536ULL * 1024ULL;  // 64 MiB
+
+auto EnsureSodiumInit() -> bool {
+  static const int kRc = sodium_init();
+  if (kRc < 0) {
+    LOG_E() << "sodium_init failed";
+    return false;
   }
-
-  const int iv_len = EVP_CIPHER_iv_length(cipher);
-
-  auto iv = GpgFrontend::SecureRandomGenerator::OpenSSLGenerate(iv_len);
-  if (!iv) return {};
-
-  out_iv = iv_len > 0 ? *iv : GpgFrontend::GFBuffer{};
-
-  auto* ctx = EVP_CIPHER_CTX_new();
-  if (ctx == nullptr) {
-    LOG_E() << "EVP_CIPHER_CTX_new failed";
-    return {};
-  }
-  GpgFrontend::GFBuffer ciphertext(plaintext.Size() +
-                                   EVP_CIPHER_block_size(cipher));
-  int len = 0;
-  int ciphertext_len = 0;
-
-  auto ret = EVP_EncryptInit_ex(ctx, cipher, nullptr, nullptr, nullptr);
-  if (ret != 1) {
-    LOG_E() << "EVP_EncryptInit_ex failed";
-    EVP_CIPHER_CTX_free(ctx);
-    return {};
-  }
-
-  if (iv_len > 0) {
-    if (EVP_CIPHER_mode(cipher) == EVP_CIPH_GCM_MODE) {
-      ret = EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, iv_len, nullptr);
-      if (ret != 1) {
-        LOG_E() << "EVP_CIPHER_CTX_ctrl Set IV length failed";
-        EVP_CIPHER_CTX_free(ctx);
-        return {};
-      }
-    }
-  }
-
-  ret = EVP_EncryptInit_ex(
-      ctx, nullptr, nullptr, reinterpret_cast<const unsigned char*>(key.Data()),
-      iv_len > 0 ? reinterpret_cast<const unsigned char*>(out_iv.Data())
-                 : nullptr);
-  if (ret != 1) {
-    LOG_E() << "EVP_EncryptInit_ex failed";
-    EVP_CIPHER_CTX_free(ctx);
-    return {};
-  }
-
-  // GCM/CCM mode
-  if (!aad.Empty() && EVP_CIPHER_mode(cipher) == EVP_CIPH_GCM_MODE) {
-    ret = EVP_EncryptUpdate(ctx, nullptr, &len,
-                            reinterpret_cast<const unsigned char*>(aad.Data()),
-                            static_cast<int>(aad.Size()));
-    if (ret != 1) {
-      LOG_E() << "AAD EncryptUpdate failed";
-      EVP_CIPHER_CTX_free(ctx);
-      return {};
-    }
-  }
-
-  ret = EVP_EncryptUpdate(
-      ctx, reinterpret_cast<unsigned char*>(ciphertext.Data()), &len,
-      reinterpret_cast<const unsigned char*>(plaintext.Data()),
-      static_cast<int>(plaintext.Size()));
-  if (ret != 1) {
-    LOG_E() << "EVP_EncryptUpdate failed";
-    EVP_CIPHER_CTX_free(ctx);
-    return {};
-  }
-
-  ciphertext_len = len;
-
-  ret = EVP_EncryptFinal_ex(
-      ctx, reinterpret_cast<unsigned char*>(ciphertext.Data()) + len, &len);
-  if (ret != 1) {
-    LOG_E() << "EVP_EncryptFinal_ex failed";
-    EVP_CIPHER_CTX_free(ctx);
-    return {};
-  }
-
-  ciphertext_len += len;
-  ciphertext.Resize(ciphertext_len);
-
-  if (EVP_CIPHER_mode(cipher) == EVP_CIPH_GCM_MODE) {
-    out_tag = GpgFrontend::GFBuffer(16);
-    ret = EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG,
-                              static_cast<int>(out_tag.Size()), out_tag.Data());
-    if (ret != 1) {
-      LOG_E() << "GET_TAG failed";
-      EVP_CIPHER_CTX_free(ctx);
-      return {};
-    }
-  } else {
-    out_tag = GpgFrontend::GFBuffer();
-  }
-
-  EVP_CIPHER_CTX_free(ctx);
-  return ciphertext;
+  return true;
 }
 
-auto EvpDecryptImpl(const GpgFrontend::GFBuffer& ciphertext,
-                    const GpgFrontend::GFBuffer& key,
-                    const GpgFrontend::GFBuffer& iv,
-                    const GpgFrontend::GFBuffer& tag, const EVP_CIPHER* cipher,
-                    const GpgFrontend::GFBuffer& aad = {})
-    -> GpgFrontend::GFBufferOrNone {
-  const int key_len = EVP_CIPHER_key_length(cipher);
-  Q_ASSERT(key.Size() == static_cast<size_t>(key_len));
-  if (key.Size() != static_cast<size_t>(key_len)) {
-    LOG_E() << "key size is mismatch: " << key.Size()
-            << "expected size: " << key_len;
-    return {};
-  }
-
-  const int iv_len = EVP_CIPHER_iv_length(cipher);
-  Q_ASSERT(iv.Size() == static_cast<size_t>(iv_len));
-  if (iv.Size() != static_cast<size_t>(iv_len)) {
-    LOG_E() << "iv size is mismatch: " << iv.Size();
-    return {};
-  }
-
-  auto* ctx = EVP_CIPHER_CTX_new();
-  if (ctx == nullptr) {
-    LOG_E() << "EVP_CIPHER_CTX_new failed";
-    return {};
-  }
-
-  GpgFrontend::GFBuffer plaintext(ciphertext.Size());
-  int len = 0;
-  int plaintext_len = 0;
-
-  auto ret = EVP_DecryptInit_ex(ctx, cipher, nullptr, nullptr, nullptr);
-  if (ret != 1) {
-    LOG_E() << "EVP_DecryptInit_ex failed";
-    EVP_CIPHER_CTX_free(ctx);
-    return {};
-  }
-
-  if (iv_len > 0) {
-    if (EVP_CIPHER_mode(cipher) == EVP_CIPH_GCM_MODE) {
-      ret = EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, iv_len, nullptr);
-      if (ret != 1) {
-        LOG_E() << "EVP_CIPHER_CTX_ctrl Set IV length failed";
-        EVP_CIPHER_CTX_free(ctx);
-        return {};
-      }
-    }
-  }
-
-  ret = EVP_DecryptInit_ex(
-      ctx, nullptr, nullptr, reinterpret_cast<const unsigned char*>(key.Data()),
-      iv_len > 0 ? reinterpret_cast<const unsigned char*>(iv.Data()) : nullptr);
-  if (ret != 1) {
-    LOG_E() << "EVP_DecryptInit_ex failed";
-    EVP_CIPHER_CTX_free(ctx);
-    return {};
-  }
-
-  if (!aad.Empty() && EVP_CIPHER_mode(cipher) == EVP_CIPH_GCM_MODE) {
-    ret = EVP_DecryptUpdate(ctx, nullptr, &len,
-                            reinterpret_cast<const unsigned char*>(aad.Data()),
-                            static_cast<int>(aad.Size()));
-    if (ret != 1) {
-      LOG_E() << "AAD DecryptUpdate failed";
-      EVP_CIPHER_CTX_free(ctx);
-      return {};
-    }
-  }
-
-  ret = EVP_DecryptUpdate(
-      ctx, reinterpret_cast<unsigned char*>(plaintext.Data()), &len,
-      reinterpret_cast<const unsigned char*>(ciphertext.Data()),
-      static_cast<int>(ciphertext.Size()));
-  if (ret != 1) {
-    LOG_E() << "EVP_DecryptUpdate failed";
-    EVP_CIPHER_CTX_free(ctx);
-    return {};
-  }
-  plaintext_len = len;
-
-  if (EVP_CIPHER_mode(cipher) == EVP_CIPH_GCM_MODE) {
-    if (tag.Size() != 16) {
-      LOG_E() << "GCM tag size invalid: " << tag.Size();
-      EVP_CIPHER_CTX_free(ctx);
-      return {};
-    }
-    ret = EVP_CIPHER_CTX_ctrl(
-        ctx, EVP_CTRL_GCM_SET_TAG, static_cast<int>(tag.Size()),
-        const_cast<unsigned char*>(
-            reinterpret_cast<const unsigned char*>(tag.Data())));
-    if (ret != 1) {
-      LOG_E() << "SET_TAG failed";
-      EVP_CIPHER_CTX_free(ctx);
-      return {};
-    }
-  }
-
-  ret = EVP_DecryptFinal_ex(
-      ctx, reinterpret_cast<unsigned char*>(plaintext.Data()) + plaintext_len,
-      &len);
-  EVP_CIPHER_CTX_free(ctx);
-
-  if (ret != 1) {
-    LOG_E() << "EVP_DecryptFinal_ex failed: tag/PKCS7 mismatch or corrupted";
-    return {};
-  }
-
-  plaintext_len += len;
-  plaintext.Resize(plaintext_len);
-
-  return plaintext;
+auto MakeMagicBuffer() -> GpgFrontend::GFBuffer {
+  GpgFrontend::GFBuffer magic(kMagicLen);
+  std::memcpy(magic.Data(), kMagic.data(), kMagicLen);
+  return magic;
 }
 
-auto DeriveKeyArgon2(const GpgFrontend::GFBuffer& passphrase,
-                     const GpgFrontend::GFBuffer& salt, int key_len = 32,
-                     int t_cost = 3, int m_cost = 65536, int parallelism = 4)
+auto HasMagic(const GpgFrontend::GFBuffer& buffer) -> bool {
+  if (buffer.Size() < kMagicLen) return false;
+  return std::memcmp(buffer.Data(), kMagic.data(), kMagicLen) == 0;
+}
+
+auto DeriveKeySodium(const GpgFrontend::GFBuffer& passphrase,
+                     const GpgFrontend::GFBuffer& salt)
     -> GpgFrontend::GFBufferOrNone {
-  GpgFrontend::GFBuffer key(key_len);
+  if (!EnsureSodiumInit()) return {};
 
-  auto* kdf = EVP_KDF_fetch(nullptr, "ARGON2ID", nullptr);
-  if (kdf == nullptr) {
-    LOG_E() << "EVP_KDF_fetch failed";
+  if (salt.Size() != kSaltLen) {
+    LOG_E() << "invalid salt size:" << salt.Size() << "expected:" << kSaltLen;
     return {};
   }
 
-  EVP_KDF_CTX* kctx = EVP_KDF_CTX_new(kdf);
-  if (kctx == nullptr) {
-    LOG_E() << "EVP_KDF_CTX_new failed";
-    EVP_KDF_free(kdf);
-    return {};
-  }
+  GpgFrontend::GFBuffer key(kKeyLen);
 
-  std::array<OSSL_PARAM, 6> params = {
-      {OSSL_PARAM_octet_string("pass", const_cast<char*>(passphrase.Data()),
-                               passphrase.Size()),
-       OSSL_PARAM_octet_string("salt", const_cast<char*>(salt.Data()),
-                               salt.Size()),
-       OSSL_PARAM_int("t", &t_cost), OSSL_PARAM_int("m", &m_cost),
-       OSSL_PARAM_int("p", &parallelism), OSSL_PARAM_END}};
+  const int rc = crypto_pwhash(
+      reinterpret_cast<unsigned char*>(key.Data()),
+      static_cast<unsigned long long>(key.Size()), passphrase.Data(),
+      static_cast<unsigned long long>(passphrase.Size()),
+      reinterpret_cast<const unsigned char*>(salt.Data()), kArgon2OpsLimit,
+      kArgon2MemLimit, crypto_pwhash_ALG_ARGON2ID13);
 
-  int rc = EVP_KDF_derive(kctx, reinterpret_cast<unsigned char*>(key.Data()),
-                          key.Size(), params.data());
-
-  EVP_KDF_CTX_free(kctx);
-  EVP_KDF_free(kdf);
-
-  if (rc != 1) {
-    LOG_E() << "EVP_KDF_derive failed";
+  if (rc != 0) {
+    LOG_E() << "crypto_pwhash failed";
     return {};
   }
 
   return key;
 }
 
-auto EncryptImpl(const EVP_CIPHER* cipher, const GpgFrontend::GFBuffer& raw_key,
-                 const GpgFrontend::GFBuffer& plaintext)
-
+auto SodiumEncryptImpl(const GpgFrontend::GFBuffer& raw_key,
+                       const GpgFrontend::GFBuffer& plaintext)
     -> GpgFrontend::GFBufferOrNone {
-  Q_ASSERT(cipher != nullptr);
-  if (cipher == nullptr) return {};
+  if (!EnsureSodiumInit()) return {};
 
-  GpgFrontend::GFBuffer iv;
-  GpgFrontend::GFBuffer tag;
-
-  auto salt = GpgFrontend::SecureRandomGenerator::OpenSSLGenerate(16);
+  auto salt = GpgFrontend::SecureRandomGenerator::Generate(kSaltLen);
   if (!salt) return {};
 
-  auto key = DeriveKeyArgon2(raw_key, *salt, EVP_CIPHER_key_length(cipher));
+  auto nonce = GpgFrontend::SecureRandomGenerator::Generate(kNonceLen);
+  if (!nonce) return {};
+
+  auto key = DeriveKeySodium(raw_key, *salt);
   if (!key) return {};
 
-  auto ciphertext = EvpEncryptImpl(plaintext, *key, iv, tag, cipher, {});
-  if (!ciphertext) return {};
+  GpgFrontend::GFBuffer ciphertext(plaintext.Size());
+  GpgFrontend::GFBuffer tag(kTagLen);
+
+  const int rc = crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
+      reinterpret_cast<unsigned char*>(ciphertext.Data()),
+      reinterpret_cast<unsigned char*>(tag.Data()), nullptr,
+      reinterpret_cast<const unsigned char*>(plaintext.Data()),
+      static_cast<unsigned long long>(plaintext.Size()), nullptr, 0, nullptr,
+      reinterpret_cast<const unsigned char*>(nonce->Data()),
+      reinterpret_cast<const unsigned char*>(key->Data()));
+
+  sodium_memzero(key->Data(), key->Size());
+
+  if (rc != 0) {
+    LOG_E() << "crypto_aead_xchacha20poly1305_ietf_encrypt_detached failed";
+    return {};
+  }
+
+  auto magic = MakeMagicBuffer();
 
   GpgFrontend::GFBuffer encrypted;
-  encrypted.Combine({*salt, iv, *ciphertext, tag});
+  encrypted.Combine({magic, *salt, *nonce, ciphertext, tag});
 
   return encrypted;
 }
 
-auto DecryptImpl(const EVP_CIPHER* cipher, const GpgFrontend::GFBuffer& raw_key,
-                 const GpgFrontend::GFBuffer& encrypted)
+auto SodiumDecryptImpl(const GpgFrontend::GFBuffer& raw_key,
+                       const GpgFrontend::GFBuffer& encrypted)
     -> GpgFrontend::GFBufferOrNone {
-  Q_ASSERT(cipher != nullptr);
-  if (cipher == nullptr) return {};
+  if (!EnsureSodiumInit()) return {};
 
-  constexpr size_t kSaltLen = 16;
-  constexpr size_t kIvLen = 12;
-  constexpr size_t kTagLen = 16;
+  constexpr size_t kMinLen = kMagicLen + kSaltLen + kNonceLen + kTagLen;
 
-  if (encrypted.Size() < kSaltLen + kIvLen + kTagLen) {
-    LOG_E() << "ciphertext too short";
+  if (encrypted.Size() < kMinLen) {
+    LOG_E() << "encrypted buffer too short:" << encrypted.Size();
     return {};
   }
 
-  auto salt = encrypted.Left(kSaltLen);
-  auto iv = encrypted.Mid(kSaltLen, kIvLen);
-  auto tag =
-      encrypted.Mid(static_cast<ssize_t>(encrypted.Size() - kTagLen), kTagLen);
-  auto ciphertext = encrypted.Mid(
-      kSaltLen + kIvLen,
-      static_cast<ssize_t>(encrypted.Size() - kSaltLen - kIvLen - kTagLen));
-
-  auto key = DeriveKeyArgon2(raw_key, salt, EVP_CIPHER_key_length(cipher));
-  if (!key) return {};
-
-  if (ciphertext.Empty()) {
-    LOG_W() << "ciphertext is empty, will only check tag authentication";
+  if (!HasMagic(encrypted)) {
+    LOG_E() << "invalid encrypted buffer magic";
+    return {};
   }
 
-  auto plaintext = EvpDecryptImpl(ciphertext, *key, iv, tag, cipher);
-  if (!plaintext) return {};
+  const size_t salt_offset = kMagicLen;
+  const size_t nonce_offset = salt_offset + kSaltLen;
+  const size_t ciphertext_offset = nonce_offset + kNonceLen;
+  const size_t ciphertext_len =
+      encrypted.Size() - kMagicLen - kSaltLen - kNonceLen - kTagLen;
+  const size_t tag_offset = encrypted.Size() - kTagLen;
+
+  auto salt = encrypted.Mid(static_cast<ssize_t>(salt_offset), kSaltLen);
+  auto nonce = encrypted.Mid(static_cast<ssize_t>(nonce_offset), kNonceLen);
+  auto ciphertext = encrypted.Mid(static_cast<ssize_t>(ciphertext_offset),
+                                  static_cast<ssize_t>(ciphertext_len));
+  auto tag = encrypted.Mid(static_cast<ssize_t>(tag_offset), kTagLen);
+
+  auto key = DeriveKeySodium(raw_key, salt);
+  if (!key) return {};
+
+  GpgFrontend::GFBuffer plaintext(ciphertext.Size());
+
+  const int rc = crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
+      reinterpret_cast<unsigned char*>(plaintext.Data()), nullptr,
+      reinterpret_cast<const unsigned char*>(ciphertext.Data()),
+      static_cast<unsigned long long>(ciphertext.Size()),
+      reinterpret_cast<const unsigned char*>(tag.Data()), nullptr, 0,
+      reinterpret_cast<const unsigned char*>(nonce.Data()),
+      reinterpret_cast<const unsigned char*>(key->Data()));
+
+  sodium_memzero(key->Data(), key->Size());
+
+  if (rc != 0) {
+    LOG_E() << "crypto_aead_xchacha20poly1305_ietf_decrypt_detached failed:"
+            << "tag mismatch or corrupted data";
+    return {};
+  }
 
   return plaintext;
 }
@@ -369,24 +193,25 @@ namespace GpgFrontend {
 auto AESCryptoHelper::GCMEncrypt(const GpgFrontend::GFBuffer& raw_key,
                                  const GpgFrontend::GFBuffer& plaintext)
     -> GFBufferOrNone {
-  return EncryptImpl(EVP_aes_256_gcm(), raw_key, plaintext);
+  return SodiumEncryptImpl(raw_key, plaintext);
 }
 
 auto AESCryptoHelper::GCMDecrypt(const GpgFrontend::GFBuffer& raw_key,
                                  const GpgFrontend::GFBuffer& encrypted)
     -> GFBufferOrNone {
-  return DecryptImpl(EVP_aes_256_gcm(), raw_key, encrypted);
+  return SodiumDecryptImpl(raw_key, encrypted);
 }
+
 auto AESCryptoHelper::GCMEncryptLite(const GpgFrontend::GFBuffer& raw_key,
                                      const GpgFrontend::GFBuffer& plaintext)
     -> GFBufferOrNone {
-  return EncryptImpl(EVP_aes_128_gcm(), raw_key, plaintext);
+  return SodiumEncryptImpl(raw_key, plaintext);
 }
 
 auto AESCryptoHelper::GCMDecryptLite(const GpgFrontend::GFBuffer& raw_key,
                                      const GpgFrontend::GFBuffer& encrypted)
     -> GFBufferOrNone {
-  return DecryptImpl(EVP_aes_128_gcm(), raw_key, encrypted);
+  return SodiumDecryptImpl(raw_key, encrypted);
 }
 
 }  // namespace GpgFrontend

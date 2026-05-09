@@ -28,33 +28,56 @@
 
 #include "SecureRandomGenerator.h"
 
-#include <openssl/err.h>
-#include <openssl/provider.h>
-#include <openssl/rand.h>
+#include <sodium.h>
+
+#include <cstdint>
+#include <cstring>
+#include <string_view>
 
 namespace {
-constexpr std::array<char, 33> kZBase32Alphabet = {
-    {"ybndrfg8ejkmcpqxot1uwisza345h769"}};
 
-auto ZBase32Encode(const GpgFrontend::GFBuffer &data) -> GpgFrontend::GFBuffer {
+constexpr std::string_view kZBase32Alphabet =
+    "ybndrfg8ejkmcpqxot1uwisza345h769";
+
+static_assert(kZBase32Alphabet.size() == 32);
+
+auto EnsureSodiumInit() -> bool {
+  static const int kRc = sodium_init();
+  if (kRc < 0) {
+    LOG_E() << "sodium_init failed";
+    return false;
+  }
+  return true;
+}
+
+auto ZBase32Encode(const GpgFrontend::GFBuffer& data) -> GpgFrontend::GFBuffer {
   GpgFrontend::GFBuffer result;
-  int buffer = 0;
+
+  std::uint32_t buffer = 0;
   int bits_left = 0;
 
   for (size_t i = 0; i < data.Size(); ++i) {
-    buffer = (buffer << 8) | static_cast<unsigned char>(data.Data()[i]);
+    buffer = (buffer << 8) | static_cast<std::uint8_t>(
+                                 static_cast<unsigned char>(data.Data()[i]));
     bits_left += 8;
 
     while (bits_left >= 5) {
-      int index = (buffer >> (bits_left - 5)) & 0x1F;
-      result.Append(&kZBase32Alphabet[index], 1);
+      const auto index =
+          static_cast<size_t>((buffer >> (bits_left - 5)) & 0x1F);
+      result.Append(kZBase32Alphabet.data() + index, 1);
       bits_left -= 5;
+    }
+
+    if (bits_left > 0) {
+      buffer &= (1U << bits_left) - 1U;
+    } else {
+      buffer = 0;
     }
   }
 
   if (bits_left > 0) {
-    int index = (buffer << (5 - bits_left)) & 0x1F;
-    result.Append(&kZBase32Alphabet[index], 1);
+    const auto index = static_cast<size_t>((buffer << (5 - bits_left)) & 0x1F);
+    result.Append(kZBase32Alphabet.data() + index, 1);
   }
 
   return result;
@@ -67,31 +90,29 @@ namespace GpgFrontend {
 SecureRandomGenerator::SecureRandomGenerator(int channel)
     : SingletonFunctionObject<SecureRandomGenerator>(channel) {}
 
-auto SecureRandomGenerator::OpenSSLGenerate(size_t size) -> GFBufferOrNone {
+auto SecureRandomGenerator::Generate(size_t size) -> GFBufferOrNone {
+  if (!EnsureSodiumInit()) return {};
+
   GFBuffer buffer(size);
 
-  auto *data = reinterpret_cast<unsigned char *>(buffer.Data());
-  int bytes = static_cast<int>(size);
-
-  if (RAND_priv_bytes(data, bytes) != 1) {
-    auto err = ERR_get_error();
-    std::array<char, 256> err_buf = {0};
-    ERR_error_string_n(err, err_buf.data(), sizeof(err_buf));
-    LOG_D() << "RAND_priv_bytes failed: " << err_buf.data();
-    return {};
+  if (size > 0) {
+    randombytes_buf(buffer.Data(), buffer.Size());
   }
+
   return buffer;
 }
 
-auto SecureRandomGenerator::OpenSSLGenerateZBase32() -> GFBufferOrNone {
-  auto buffer = OpenSSLGenerate(20);
+auto SecureRandomGenerator::GenerateZBase32() -> GFBufferOrNone {
+  auto buffer = Generate(20);
   if (!buffer) return {};
 
   auto z_buffer = ZBase32Encode(*buffer);
+
   if (z_buffer.Size() > 31) {
     z_buffer.Resize(31);
   }
+
   return z_buffer;
 }
 
-};  // namespace GpgFrontend
+}  // namespace GpgFrontend

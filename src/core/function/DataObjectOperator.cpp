@@ -28,9 +28,7 @@
 
 #include "DataObjectOperator.h"
 
-#include <openssl/err.h>
-#include <openssl/evp.h>
-#include <openssl/kdf.h>
+#include <sodium.h>
 
 #include "core/function/GFBufferFactory.h"
 #include "core/function/PassphraseGenerator.h"
@@ -38,72 +36,68 @@
 
 namespace {
 
-auto LogOpenSSLError(const QString& context) -> void {
-  unsigned long err = ERR_get_error();
-  std::array<char, 256> err_buf;
-  ERR_error_string_n(err, err_buf.data(), err_buf.size());
-  LOG_E() << context << " failed: " << err_buf.data();
+constexpr std::string_view kObjectKeyDeriveDomain = "GpgFrontend.DataObject.v2";
+
+auto EnsureSodiumInit() -> bool {
+  static const int kRc = sodium_init();
+  if (kRc < 0) {
+    LOG_E() << "sodium_init failed";
+    return false;
+  }
+  return true;
 }
 
 auto DeriveObjectKey(const GpgFrontend::GFBuffer& key,
                      const GpgFrontend::GFBuffer& context)
     -> GpgFrontend::GFBufferOrNone {
-  GpgFrontend::GFBuffer out(32);
-  auto outlen = out.Size();
+  if (!EnsureSodiumInit()) return {};
 
-  EVP_PKEY_CTX* pctx = EVP_PKEY_CTX_new_id(EVP_PKEY_HKDF, nullptr);
-  if (pctx == nullptr) {
-    LogOpenSSLError("EVP_PKEY_CTX_new_id");
+  if (key.Empty() || context.Empty()) {
+    LOG_E() << "DeriveObjectKey received empty key or context";
     return {};
   }
 
-  if (EVP_PKEY_derive_init(pctx) <= 0) {
-    LogOpenSSLError("EVP_PKEY_derive_init");
-    EVP_PKEY_CTX_free(pctx);
+  GpgFrontend::GFBuffer normalized_key(crypto_generichash_KEYBYTES);
+
+  if (key.Size() == crypto_generichash_KEYBYTES) {
+    std::memcpy(normalized_key.Data(), key.Data(), normalized_key.Size());
+  } else {
+    const int key_hash_rc = crypto_generichash(
+        reinterpret_cast<unsigned char*>(normalized_key.Data()),
+        normalized_key.Size(),
+        reinterpret_cast<const unsigned char*>(key.Data()),
+        static_cast<unsigned long long>(key.Size()), nullptr, 0);
+
+    if (key_hash_rc != 0) {
+      LOG_E() << "crypto_generichash normalize key failed";
+      return {};
+    }
+  }
+
+  GpgFrontend::GFBuffer input;
+  input.Combine({GpgFrontend::GFBuffer(kObjectKeyDeriveDomain.data(),
+                                       kObjectKeyDeriveDomain.size()),
+                 context});
+
+  GpgFrontend::GFBuffer out(crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
+
+  const int rc = crypto_generichash(
+      reinterpret_cast<unsigned char*>(out.Data()), out.Size(),
+      reinterpret_cast<const unsigned char*>(input.Data()),
+      static_cast<unsigned long long>(input.Size()),
+      reinterpret_cast<const unsigned char*>(normalized_key.Data()),
+      normalized_key.Size());
+
+  sodium_memzero(normalized_key.Data(), normalized_key.Size());
+
+  if (rc != 0) {
+    LOG_E() << "crypto_generichash derive object key failed";
     return {};
   }
 
-  if (EVP_PKEY_CTX_set_hkdf_md(pctx, EVP_sha256()) <= 0) {
-    LogOpenSSLError("EVP_PKEY_CTX_set_hkdf_md");
-    EVP_PKEY_CTX_free(pctx);
-    return {};
-  }
-
-  std::array<unsigned char, 1> empty_salt = {{0}};
-  if (EVP_PKEY_CTX_set1_hkdf_salt(pctx, empty_salt.data(), empty_salt.size()) <=
-      0) {
-    LogOpenSSLError("EVP_PKEY_CTX_set1_hkdf_salt");
-    EVP_PKEY_CTX_free(pctx);
-    return {};
-  }
-
-  if (EVP_PKEY_CTX_set1_hkdf_key(
-          pctx, reinterpret_cast<const unsigned char*>(key.Data()),
-          static_cast<int>(key.Size())) <= 0) {
-    LogOpenSSLError("EVP_PKEY_CTX_set1_hkdf_key");
-    EVP_PKEY_CTX_free(pctx);
-    return {};
-  }
-
-  if (EVP_PKEY_CTX_add1_hkdf_info(
-          pctx, reinterpret_cast<const unsigned char*>(context.Data()),
-          static_cast<int>(context.Size())) <= 0) {
-    LogOpenSSLError("EVP_PKEY_CTX_add1_hkdf_info");
-    EVP_PKEY_CTX_free(pctx);
-    return {};
-  }
-
-  if (EVP_PKEY_derive(pctx, reinterpret_cast<unsigned char*>(out.Data()),
-                      &outlen) <= 0) {
-    LogOpenSSLError("EVP_PKEY_derive failed");
-    EVP_PKEY_CTX_free(pctx);
-    return {};
-  }
-
-  EVP_PKEY_CTX_free(pctx);
-  out.Resize(static_cast<ssize_t>(outlen));
   return out;
 }
+
 }  // namespace
 
 namespace GpgFrontend {

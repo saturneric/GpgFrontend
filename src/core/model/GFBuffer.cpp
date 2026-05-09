@@ -28,8 +28,7 @@
 
 #include "GFBuffer.h"
 
-#include <openssl/crypto.h>
-#include <openssl/evp.h>
+#include <sodium.h>
 
 #include <cstddef>
 #include <cstring>
@@ -208,7 +207,7 @@ auto GFBuffer::Right(ssize_t len) const -> GFBuffer {
 
 void GFBuffer::Zeroize() {
   if (impl_ && (impl_->sec_ptr_ != nullptr) && impl_->sec_size_ > 0) {
-    OPENSSL_cleanse(impl_->sec_ptr_, impl_->sec_size_);
+    sodium_memzero(impl_->sec_ptr_, impl_->sec_size_);
   }
 }
 

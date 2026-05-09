@@ -28,48 +28,31 @@
 
 #include "IOUtils.h"
 
-#include <openssl/err.h>
-#include <openssl/evp.h>
-
 #include "core/utils/FilesystemUtils.h"
 
 namespace {
-auto GetFileHashOpenSSL(const QString& file_path, const EVP_MD* md_type)
-    -> QByteArray {
+
+auto GetFileHashQt(const QString& file_path,
+                   QCryptographicHash::Algorithm algorithm) -> QByteArray {
   QFile file(file_path);
   if (!file.open(QIODevice::ReadOnly)) return {};
 
-  EVP_MD_CTX* ctx = EVP_MD_CTX_new();
-  if (ctx == nullptr) return {};
-
-  if (EVP_DigestInit_ex(ctx, md_type, nullptr) != 1) {
-    EVP_MD_CTX_free(ctx);
-    return {};
-  }
+  QCryptographicHash hash(algorithm);
 
   GpgFrontend::GFBuffer buffer(GpgFrontend::kSecBufferSize);
-  const auto buffer_size = static_cast<qsizetype>(buffer.Size());
+  const auto buffer_size = static_cast<qint64>(buffer.Size());
+
   while (!file.atEnd()) {
-    auto n = file.read(buffer.Data(), buffer_size);
-    Q_ASSERT(n <= buffer_size);
-    if (n <= 0 || n > buffer_size) break;
+    const auto n = file.read(buffer.Data(), buffer_size);
+    if (n < 0) return {};
+    if (n == 0) break;
 
-    if (EVP_DigestUpdate(ctx, buffer.Data(), n) != 1) {
-      EVP_MD_CTX_free(ctx);
-      return {};
-    }
+    hash.addData(QByteArrayView(buffer.Data(), n));
   }
 
-  std::array<unsigned char, EVP_MAX_MD_SIZE> md_value;
-  unsigned int md_len = 0;
-  if (EVP_DigestFinal_ex(ctx, md_value.data(), &md_len) != 1) {
-    EVP_MD_CTX_free(ctx);
-    return {};
-  }
-  EVP_MD_CTX_free(ctx);
-
-  return {reinterpret_cast<const char*>(md_value.data()), md_len};
+  return hash.result();
 }
+
 }  // namespace
 
 namespace GpgFrontend {
@@ -132,9 +115,9 @@ auto CalculateHash(const QString& file_path) -> QString {
   QTextStream ss(&buffer);
 
   if (info.isFile() && info.isReadable()) {
-    auto md5 = GetFileHashOpenSSL(file_path, EVP_md5()).toHex();
-    auto sha1 = GetFileHashOpenSSL(file_path, EVP_sha1()).toHex();
-    auto sha256 = GetFileHashOpenSSL(file_path, EVP_sha256()).toHex();
+    auto md5 = GetFileHashQt(file_path, QCryptographicHash::Md5).toHex();
+    auto sha1 = GetFileHashQt(file_path, QCryptographicHash::Sha1).toHex();
+    auto sha256 = GetFileHashQt(file_path, QCryptographicHash::Sha256).toHex();
 
     ss << "# " << QCoreApplication::tr("File Hash Information") << Qt::endl;
     ss << "- " << QCoreApplication::tr("Filename") << QCoreApplication::tr(": ")
@@ -150,13 +133,16 @@ auto CalculateHash(const QString& file_path) -> QString {
        << Qt::endl;
 
     // md5
-    ss << "- " << "MD5" << QCoreApplication::tr(": ") << md5 << Qt::endl;
+    ss << "- "
+       << "MD5" << QCoreApplication::tr(": ") << md5 << Qt::endl;
 
     // sha1
-    ss << "- " << "SHA1" << QCoreApplication::tr(": ") << sha1 << Qt::endl;
+    ss << "- "
+       << "SHA1" << QCoreApplication::tr(": ") << sha1 << Qt::endl;
 
     // sha1
-    ss << "- " << "SHA256" << QCoreApplication::tr(": ") << sha256 << Qt::endl;
+    ss << "- "
+       << "SHA256" << QCoreApplication::tr(": ") << sha256 << Qt::endl;
 
     ss << Qt::endl;
 

@@ -30,16 +30,16 @@
 
 namespace GpgFrontend {
 
-auto GF_CORE_EXPORT SMAMalloc(size_t size) -> void *;
+auto GF_CORE_EXPORT SMAMalloc(size_t size) -> void*;
 
-auto GF_CORE_EXPORT SMARealloc(void *ptr, size_t size) -> void *;
+auto GF_CORE_EXPORT SMARealloc(void* ptr, size_t size) -> void*;
 
-void GF_CORE_EXPORT SMAFree(void *ptr);
+void GF_CORE_EXPORT SMAFree(void* ptr);
 
-auto GF_CORE_EXPORT SMASecMalloc(size_t size) -> void *;
+auto GF_CORE_EXPORT SMASecMalloc(size_t size) -> void*;
 
-auto GF_CORE_EXPORT SMASecRealloc(void *ptr, size_t size) -> void *;
+auto GF_CORE_EXPORT SMASecRealloc(void* ptr, size_t size) -> void*;
 
-void GF_CORE_EXPORT SMASecFree(void *ptr);
+void GF_CORE_EXPORT SMASecFree(void* ptr);
 
 }  // namespace GpgFrontend

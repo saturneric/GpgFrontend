@@ -28,12 +28,24 @@
 
 #include "GFBufferFactory.h"
 
-#include <openssl/evp.h>
-#include <openssl/hmac.h>
-#include <openssl/sha.h>
+#include <sodium.h>
 
 #include "core/function/AESCryptoHelper.h"
+#include "core/function/SecureRandomGenerator.h"
 #include "core/utils/IOUtils.h"
+
+namespace {
+
+auto EnsureSodiumInit() -> bool {
+  static const int kRc = sodium_init();
+  if (kRc < 0) {
+    LOG_E() << "sodium_init failed";
+    return false;
+  }
+  return true;
+}
+
+}  // namespace
 
 namespace GpgFrontend {
 
@@ -41,6 +53,7 @@ GFBufferFactory::GFBufferFactory(int channel)
     : SingletonFunctionObject<GFBufferFactory>(channel) {}
 
 auto GFBufferFactory::Compress(const GFBuffer& buffer) -> GFBufferOrNone {
+  Q_UNUSED(buffer);
   return {};
 }
 
@@ -59,7 +72,10 @@ auto GFBufferFactory::Decrypt(const GFBuffer& passphase, const GFBuffer& buffer)
 auto GFBufferFactory::FromFile(const class QString& path) -> GFBufferOrNone {
   auto [succ, buffer] = ReadFileGFBuffer(path);
   Q_ASSERT(succ);
-  if (!succ) LOG_E() << "read gf buffer from file failed: " << path;
+  if (!succ) {
+    LOG_E() << "read gf buffer from file failed: " << path;
+    return {};
+  }
   return buffer;
 }
 
@@ -73,63 +89,99 @@ auto GFBufferFactory::ToFile(const class QString& path, const GFBuffer& buffer)
 
 auto GFBufferFactory::ToBase64(const GFBuffer& buffer) -> GFBufferOrNone {
   if (buffer.Empty()) return {};
-  GFBuffer ret((4 * ((buffer.Size() + 2) / 3)) + 1);
-  int out_len =
-      EVP_EncodeBlock(reinterpret_cast<unsigned char*>(ret.Data()),
-                      reinterpret_cast<const unsigned char*>(buffer.Data()),
-                      static_cast<int>(buffer.Size()));
-  if (out_len < 0) return {};
-  ret.Resize(out_len);
+  if (!EnsureSodiumInit()) return {};
+
+  const auto out_len =
+      sodium_base64_encoded_len(buffer.Size(), sodium_base64_VARIANT_ORIGINAL);
+
+  GFBuffer ret(out_len);
+
+  char* encoded =
+      sodium_bin2base64(ret.Data(), ret.Size(),
+                        reinterpret_cast<const unsigned char*>(buffer.Data()),
+                        buffer.Size(), sodium_base64_VARIANT_ORIGINAL);
+
+  if (encoded == nullptr) {
+    LOG_E() << "sodium_bin2base64 failed";
+    return {};
+  }
+
+  const auto real_len = std::strlen(ret.Data());
+  ret.Resize(static_cast<ssize_t>(real_len));
+
+  return ret;
+}
+
+auto GFBufferFactory::FromBase64(const GFBuffer& buffer) -> GFBufferOrNone {
+  if (buffer.Empty()) return {};
+  if (!EnsureSodiumInit()) return {};
+
+  GFBuffer ret(((buffer.Size() / 4) * 3) + 3);
+
+  size_t decoded_len = 0;
+
+  const int rc =
+      sodium_base642bin(reinterpret_cast<unsigned char*>(ret.Data()),
+                        ret.Size(), buffer.Data(), buffer.Size(), nullptr,
+                        &decoded_len, nullptr, sodium_base64_VARIANT_ORIGINAL);
+
+  if (rc != 0) {
+    LOG_E() << "sodium_base642bin failed";
+    return {};
+  }
+
+  ret.Resize(static_cast<ssize_t>(decoded_len));
   return ret;
 }
 
 auto GFBufferFactory::ToSha256(const GFBuffer& buffer) -> GFBufferOrNone {
   if (buffer.Empty()) return {};
-  GFBuffer ret(32);
+  if (!EnsureSodiumInit()) return {};
 
-  auto* res =
-      SHA256(reinterpret_cast<const unsigned char*>(buffer.Data()),
-             buffer.Size(), reinterpret_cast<unsigned char*>(ret.Data()));
-  if (res != nullptr) return ret;
+  GFBuffer ret(crypto_hash_sha256_BYTES);
 
-  return {};
+  const int rc =
+      crypto_hash_sha256(reinterpret_cast<unsigned char*>(ret.Data()),
+                         reinterpret_cast<const unsigned char*>(buffer.Data()),
+                         static_cast<unsigned long long>(buffer.Size()));
+
+  if (rc != 0) {
+    LOG_E() << "crypto_hash_sha256 failed";
+    return {};
+  }
+
+  return ret;
 }
 
 auto GFBufferFactory::ToHMACSha256(const GFBuffer& key, const GFBuffer& data)
     -> GFBufferOrNone {
-  unsigned int out_len = 0;
-  std::array<unsigned char, EVP_MAX_MD_SIZE> out;
+  if (key.Empty() || data.Empty()) return {};
+  if (!EnsureSodiumInit()) return {};
 
-  auto* result = HMAC(EVP_sha256(), key.Data(), static_cast<int>(key.Size()),
-                      reinterpret_cast<const unsigned char*>(data.Data()),
-                      data.Size(), out.data(), &out_len);
-  if (result == nullptr) return {};
+  GFBuffer normalized_key(crypto_auth_hmacsha256_KEYBYTES);
 
-  return GFBuffer(reinterpret_cast<const char*>(out.data()), out_len);
-}
-
-auto GFBufferFactory::FromBase64(const GFBuffer& buffer) -> GFBufferOrNone {
-  if (buffer.Empty()) return {};
-
-  GFBuffer ret(((buffer.Size() + 1) / 4) * 3);
-
-  int decoded_len =
-      EVP_DecodeBlock(reinterpret_cast<unsigned char*>(ret.Data()),
-                      reinterpret_cast<const unsigned char*>(buffer.Data()),
-                      static_cast<int>(buffer.Size()));
-
-  if (decoded_len < 0) return {};
-
-  int pad = 0;
-  if (buffer.Size() >= 2) {
-    const char* d = buffer.Data();
-    if (d[buffer.Size() - 1] == '=') pad++;
-    if (d[buffer.Size() - 2] == '=') pad++;
+  if (key.Size() == crypto_auth_hmacsha256_KEYBYTES) {
+    std::memcpy(normalized_key.Data(), key.Data(), normalized_key.Size());
+  } else {
+    crypto_hash_sha256(reinterpret_cast<unsigned char*>(normalized_key.Data()),
+                       reinterpret_cast<const unsigned char*>(key.Data()),
+                       static_cast<unsigned long long>(key.Size()));
   }
 
-  int real_len = decoded_len - pad;
-  if (real_len < 0) return {};
-  ret.Resize(real_len);
+  GFBuffer ret(crypto_auth_hmacsha256_BYTES);
+
+  const int rc = crypto_auth_hmacsha256(
+      reinterpret_cast<unsigned char*>(ret.Data()),
+      reinterpret_cast<const unsigned char*>(data.Data()),
+      static_cast<unsigned long long>(data.Size()),
+      reinterpret_cast<const unsigned char*>(normalized_key.Data()));
+
+  sodium_memzero(normalized_key.Data(), normalized_key.Size());
+
+  if (rc != 0) {
+    LOG_E() << "crypto_auth_hmacsha256 failed";
+    return {};
+  }
 
   return ret;
 }
@@ -137,7 +189,7 @@ auto GFBufferFactory::FromBase64(const GFBuffer& buffer) -> GFBufferOrNone {
 auto GFBufferFactory::RandomOpenSSLPassphase(int len) -> GFBufferOrNone {
   len = std::max(len, 16);
   len = std::min(len, 512);
-  return PassphraseGenerator::GenerateBytesByOpenSSL(len);
+  return SecureRandomGenerator::Generate(static_cast<size_t>(len));
 }
 
 auto GFBufferFactory::RandomGpgPassphase(int len) -> GFBufferOrNone {
@@ -147,9 +199,8 @@ auto GFBufferFactory::RandomGpgPassphase(int len) -> GFBufferOrNone {
 }
 
 auto GFBufferFactory::RandomGpgZBasePassphase(int len) -> GFBufferOrNone {
-  len = std::max(len, 31);
-  len = std::min(len, 31);
-  return ph_gen_.Generate(len);
+  Q_UNUSED(len);
+  return SecureRandomGenerator::GenerateZBase32();
 }
 
 auto GFBufferFactory::EncryptLite(const GFBuffer& passphase,
@@ -163,4 +214,5 @@ auto GFBufferFactory::DecryptLite(const GFBuffer& passphase,
   if (buffer.Empty()) return {};
   return AESCryptoHelper::GCMDecryptLite(passphase, buffer);
 }
+
 }  // namespace GpgFrontend
