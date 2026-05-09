@@ -33,6 +33,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SignersPicker.h"
 #include "ui/function/GpgOperaHelper.h"
@@ -275,7 +276,15 @@ void MainWindow::slot_verifying_unknown_signature_helper(
                             QMessageBox::Yes | QMessageBox::No);
 
   if (user_response == QMessageBox::Yes) {
-    slot_import_keys_from_key_server(fpr_set.values());
+    if (Module::IsEventListening("REQUEST_SEARCH_PUBLIC_KEY_BY_FINGERPRINT")) {
+      const auto fpr_values = fpr_set.values();
+      Module::TriggerEvent("REQUEST_SEARCH_PUBLIC_KEY_BY_FINGERPRINT",
+                           {
+                               {"fingerprint", GFBuffer(fpr_values.first())},
+                               {"parent", GFBuffer(RegisterQObject(this))},
+                           });
+    }
+
   } else {
     QMessageBox::information(
         this, tr("Verification Incomplete"),
