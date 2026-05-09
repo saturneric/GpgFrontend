@@ -552,8 +552,8 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     int index;
     QString title;
     QString file_path;
+    QString page_type;
     GFBuffer content;
-    QString type;
   };
 
   QContainer<TextEditorStatus> unsaved_pages;
@@ -577,12 +577,17 @@ void TextEditTabWidget::SlotCacheTextEditors() {
 
     auto content = document->toRawText();
 
+    auto page_type = target_page->property("type").toString().trimmed();
+    if (page_type.isEmpty()) {
+      page_type = "text";
+    }
+
     unsaved_pages.push_back({
         i,
         tab_title,
         target_page->GetFilePath(),
+        page_type,
         GFBuffer(content),
-        "text_editor",
     });
 
     content.fill('X');
@@ -600,7 +605,8 @@ void TextEditTabWidget::SlotCacheTextEditors() {
   for (const auto& page : unsaved_pages) {
     QJsonObject page_json;
     page_json["index"] = page.index;
-    page_json["type"] = page.type;
+    page_json["type"] = page.page_type;
+    page_json["recovery_type"] = "text_editor";
     page_json["title"] = page.title;
     page_json["file_path"] = page.file_path;
 
@@ -705,9 +711,31 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
 
     const auto title = json["title"].toString();
     const auto base64_content = json["content"].toString();
-    const auto type = json["type"].toString().trimmed().toLower();
+    const auto file_path = json["file_path"].toString();
 
-    if (!type.isEmpty() && type != "text_editor") {
+    auto page_type = json["type"].toString().trimmed().toLower();
+    auto recovery_type = json["recovery_type"].toString().trimmed().toLower();
+
+    // Backward compatibility:
+    // old cache used "type": "text_editor".
+    if (recovery_type.isEmpty() && page_type == "text_editor") {
+      recovery_type = "text_editor";
+      page_type = "text";
+    }
+
+    if (recovery_type.isEmpty()) {
+      recovery_type = "text_editor";
+    }
+
+    if (page_type.isEmpty()) {
+      page_type = "text";
+    }
+
+    // Only recovery_type decides which recovery handler to use.
+    // page_type is the restored tab's semantic type and can be "text", "email",
+    // or other text-editor-backed custom types.
+    if (recovery_type != "text_editor") {
+      remaining_pages.push_back(value_ref);
       continue;
     }
 
@@ -732,14 +760,15 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
             create_plain_text_tab(NormalizeTabTitle(title).isEmpty()
                                       ? generate_new_title("untitled", "txt")
                                       : NormalizeTabTitle(title),
-                                  {}, QIcon(":/icons/file.png"));
+                                  file_path, QIcon(":/icons/file.png"));
 
         {
           ScopedRecoverySuspend recovery_suspend(page);
+          page->setProperty("type", page_type);
+          page->setProperty("recovered_from_cache", true);
           page->GetTextPage()->document()->setPlainText(
               content->ConvertToQString());
           page->GetTextPage()->document()->setModified(true);
-          page->setProperty("recovered_from_cache", true);
           update_tab_modified_mark(page, true);
         }
 
