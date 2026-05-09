@@ -326,7 +326,6 @@ void MainWindow::slot_result_analyse_show_helper(
 
     QString section;
     section += tr("Object: %1").arg(opera_result.tag) + "\n";
-    section += tr("Status: %1").arg(status_text) + "\n";
 
     const auto report_text = opera_result.report.trimmed();
     if (!report_text.isEmpty()) {
