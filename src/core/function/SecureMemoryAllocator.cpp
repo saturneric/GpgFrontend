@@ -37,6 +37,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 namespace GpgFrontend {
 class SecureMemoryAllocator;
