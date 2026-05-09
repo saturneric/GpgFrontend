@@ -92,7 +92,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++ ninja-build
-          sudo apt-get -y install libarchive-dev libgpgme-dev
+          sudo apt-get -y install libarchive-dev libgpgme-dev libssl-dev libsodium-dev
           sudo apt-get -y install gpg
 
       - name: Build googletest
