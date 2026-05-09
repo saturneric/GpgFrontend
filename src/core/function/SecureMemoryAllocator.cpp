@@ -110,7 +110,6 @@ class SecureMemoryAllocator {
 
   auto reg_mem(void* ptr, size_t size, bool secure) -> void;
   auto take_info(void* ptr) -> std::optional<AllocationInfo>;
-  auto get_info(void* ptr) -> std::optional<AllocationInfo>;
 
  private:
   int secure_level_ = 0;
@@ -155,24 +154,12 @@ auto SecureMemoryAllocator::take_info(void* ptr)
   return info;
 }
 
-auto SecureMemoryAllocator::get_info(void* ptr)
-    -> std::optional<AllocationInfo> {
-  if (ptr == nullptr) return {};
-
-  QMutexLocker locker(&mutex_);
-
-  if (!allocated_.contains(ptr)) {
-    FLOG_W() << "this memory address was not allocated by "
-                "SecureMemoryAllocator:"
-             << ptr;
-    return {};
-  }
-
-  return allocated_.value(ptr);
-}
-
 auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
   if (size == 0) return nullptr;
+
+  if (secure_level_ < 1) {
+    return std::malloc(size);
+  }
 
   auto* ptr = NormalAllocate(size);
   reg_mem(ptr, size, false);
@@ -181,6 +168,14 @@ auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
 }
 
 auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
+  if (secure_level_ < 1) {
+    if (size == 0) {
+      std::free(ptr);
+      return nullptr;
+    }
+    return std::realloc(ptr, size);
+  }
+
   if (ptr == nullptr) return Allocate(size);
 
   if (size == 0) {
@@ -192,31 +187,32 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
   if (!old_info) return nullptr;
 
   if (old_info->secure) {
-    FLOG_W() << "SMARealloc called for secure memory; redirecting to "
-                "SecReallocate-like behavior";
+    FLOG_W()
+        << "SMARealloc called for secure memory; using secure reallocation";
 
-    auto* new_ptr = SecAllocate(size);
+    auto* new_ptr = sodium_malloc(size);
     if (new_ptr == nullptr) {
       reg_mem(ptr, old_info->size, true);
+      FLOG_F("sodium_malloc failed");
       return nullptr;
     }
 
+    std::memset(new_ptr, 0, size);
     std::memcpy(new_ptr, ptr, std::min(size, old_info->size));
+
+    reg_mem(new_ptr, size, true);
     sodium_free(ptr);
     return new_ptr;
   }
 
-  auto* new_ptr = std::realloc(ptr, size);
+  auto* new_ptr = NormalAllocate(size);
   if (new_ptr == nullptr) {
     reg_mem(ptr, old_info->size, false);
-    FLOG_F("realloc failed");
     return nullptr;
   }
 
-  if (size > old_info->size) {
-    std::memset(static_cast<unsigned char*>(new_ptr) + old_info->size, 0,
-                size - old_info->size);
-  }
+  std::memcpy(new_ptr, ptr, std::min(size, old_info->size));
+  NormalDeallocate(ptr, old_info->size, true);
 
   reg_mem(new_ptr, size, false);
   return new_ptr;
@@ -224,6 +220,11 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
 
 void SecureMemoryAllocator::Deallocate(void* ptr) {
   if (ptr == nullptr) return;
+
+  if (secure_level_ < 1) {
+    std::free(ptr);
+    return;
+  }
 
   auto info = take_info(ptr);
   if (!info) return;
@@ -258,6 +259,10 @@ auto SecureMemoryAllocator::SecAllocate(size_t size) -> void* {
 }
 
 auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
+  if (secure_level_ < 2) {
+    return Reallocate(ptr, size);
+  }
+
   if (ptr == nullptr) return SecAllocate(size);
 
   if (size == 0) {
@@ -287,6 +292,11 @@ auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
 
 void SecureMemoryAllocator::SecDeallocate(void* ptr) {
   if (ptr == nullptr) return;
+
+  if (secure_level_ < 2) {
+    Deallocate(ptr);
+    return;
+  }
 
   auto info = take_info(ptr);
   if (!info) return;
