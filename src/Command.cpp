@@ -171,9 +171,7 @@ auto PrintEnvInfo() -> int {
 auto ParseLogLevel(const QString& log_level) -> int {
   // default value
   auto level = log_level.toLower();
-  if (level == "none") {
-    level = "error";
-  }
+  if (level == "none") level = "error";
 
   if (level == "debug") {
     SetGFLogLevel(static_cast<int>(GFLogLevel::kDEBUG));
