@@ -45,7 +45,6 @@
 #include "ui/dialog/KeyGroupManageDialog.h"
 #include "ui/dialog/PassphraseDialog.h"
 #include "ui/dialog/WaitingDialog.h"
-#include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 

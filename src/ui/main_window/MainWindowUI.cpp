@@ -33,7 +33,6 @@
 #include "core/utils/CommonUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/dialog/controller/GnuPGControllerDialog.h"
 #include "ui/dialog/controller/ModuleControllerDialog.h"
 #include "ui/dialog/controller/SmartCardControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
@@ -260,12 +259,6 @@ void MainWindow::create_actions() {
   connect(restart_components_act_, &QAction::triggered, this,
           &MainWindow::slot_restart_gpg_components);
 
-  gnupg_controller_open_act_ = create_action(
-      "gnupg_controller_open", tr("Open GnuPG Controller"),
-      ":/icons/configure.png", tr("Open GnuPG Controller Dialog"));
-  connect(gnupg_controller_open_act_, &QAction::triggered, this,
-          [this]() { (new GnuPGControllerDialog(this))->exec(); });
-
   module_controller_open_act_ =
       create_action("module_controller_open", tr("Open Module Controller"),
                     ":/icons/module.png", tr("Open Module Controller Dialog"));
@@ -471,7 +464,6 @@ void MainWindow::create_menus() {
   // Only show GnuPG Controller and Smart Card Controller if GnuPG is
   // supported, since they are not useful for other engines.
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    advance_menu_->addAction(gnupg_controller_open_act_);
     advance_menu_->addAction(smart_card_controller_open_act_);
   }
   advance_menu_->addAction(module_controller_open_act_);

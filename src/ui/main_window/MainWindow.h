@@ -584,7 +584,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* clean_double_line_breaks_act_{};  ///<  Action to remove double
   QAction* generate_key_pair_act_{};
 
-  QAction* gnupg_controller_open_act_{};       ///<
   QAction* module_controller_open_act_{};      ///<
   QAction* smart_card_controller_open_act_{};  ///<
 
