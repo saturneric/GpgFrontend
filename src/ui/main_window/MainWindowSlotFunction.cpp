@@ -207,16 +207,17 @@ void MainWindow::slot_import_keys_from_key_server(const QStringList& fprs) {
     Thread::TaskRunnerGetter::GetInstance()
         .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Network)
         ->PostTask(new Thread::Task(
-            [=](const DataObjectPtr& data_obj) -> int {
+            [=](const DataObjectPtr&) -> int {
               Module::TriggerEvent(
                   "REQUEST_GET_PUBLIC_KEY_BY_FINGERPRINT",
                   {
                       {"fingerprint", GFBuffer{fpr}},
                   },
-                  [fpr, all_key_data, remaining_tasks, this, channel](
-                      Module::EventIdentifier i,
-                      Module::Event::ListenerIdentifier ei,
-                      Module::Event::Params p) {
+                  [fpr, all_key_data, remaining_tasks,
+                   that = QPointer<MainWindow>(this),
+                   channel](Module::EventIdentifier i,
+                            Module::Event::ListenerIdentifier ei,
+                            Module::Event::Params p) -> void {
                     if (p["ret"] != "0" || !p["error_msg"].Empty()) {
                       LOG_E()
                           << "An error occurred trying to get data from key:"
@@ -233,7 +234,7 @@ void MainWindow::slot_import_keys_from_key_server(const QStringList& fprs) {
 
                     // all tasks are done
                     if (*remaining_tasks == 0) {
-                      CommonUtils::GetInstance()->ImportKeys(this, channel,
+                      CommonUtils::GetInstance()->ImportKeys(that, channel,
                                                              *all_key_data);
                     }
                   });
