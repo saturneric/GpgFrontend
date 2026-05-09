@@ -202,14 +202,7 @@ if(BUILD_AND_STATIC_LINK_GPGME AND XCODE_BUILD)
 endif()
 
 # Introduce Rust support
-include(FetchContent)
-
-FetchContent_Declare(
-  Corrosion
-  GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git
-  GIT_TAG v0.6.1 # Optionally specify a commit hash, version tag or branch here
-)
-FetchContent_MakeAvailable(Corrosion)
+add_subdirectory(corrosion)
 
 # Import targets defined in a package or workspace manifest `Cargo.toml` file
 corrosion_import_crate(MANIFEST_PATH ${CMAKE_SOURCE_DIR}/rust/Cargo.toml)
