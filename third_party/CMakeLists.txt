@@ -201,23 +201,6 @@ if(BUILD_AND_STATIC_LINK_GPGME AND XCODE_BUILD)
   target_link_libraries(GnuPGDeps INTERFACE ${GPGME_STATIC_LIB} ${ASSUAN_STATIC_LIB} ${GPG_ERROR_STATIC_LIB})
 endif()
 
-# Introduce OpenSSL targets
-if(USE_SYSTEM_OPENSSL)
-  set(SYSTEM_OPENSSL ON)
-  set(BUILD_OPENSSL OFF)
-else()
-  set(SYSTEM_OPENSSL OFF)
-  set(BUILD_OPENSSL ON)
-endif()
-
-set(OPENSSL_BUILD_VERSION "3.6.2")
-
-# We will always use static libraries for openssl for the support of application
-# self-checking. This may avoid the potential issues of corrupted shared library
-# loading.
-set(OPENSSL_USE_STATIC_LIBS ON)
-add_subdirectory(openssl-cmake)
-
 # Introduce Rust support
 include(FetchContent)
 
