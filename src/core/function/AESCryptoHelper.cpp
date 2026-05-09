@@ -30,6 +30,8 @@
 
 #include <sodium.h>
 
+#include <cstring>
+
 #include "core/function/SecureRandomGenerator.h"
 
 namespace {
