@@ -168,10 +168,10 @@ TEST_F(GFCoreTest, CoreSecureTestD) {
   ASSERT_EQ(key->Size(), 256);
 
   GFBuffer plaintext(QString::fromUtf8("HELLO WORLD!"));
-  auto encrypted = AESCryptoHelper::GCMEncrypt(*key, plaintext);
+  auto encrypted = AESCryptoHelper::Encrypt(*key, plaintext);
   ASSERT_TRUE(encrypted.has_value());
 
-  auto decrypted = AESCryptoHelper::GCMDecrypt(*key, *encrypted);
+  auto decrypted = AESCryptoHelper::Decrypt(*key, *encrypted);
   ASSERT_TRUE(decrypted.has_value());
   ASSERT_EQ(decrypted, plaintext);
 }

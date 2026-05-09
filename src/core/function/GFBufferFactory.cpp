@@ -62,13 +62,13 @@ auto GFBufferFactory::Compress(const GFBuffer& buffer) -> GFBufferOrNone {
 auto GFBufferFactory::Encrypt(const GFBuffer& passphase, const GFBuffer& buffer)
     -> GFBufferOrNone {
   if (buffer.Empty()) return {};
-  return AESCryptoHelper::GCMEncrypt(passphase, buffer);
+  return AESCryptoHelper::Encrypt(passphase, buffer);
 }
 
 auto GFBufferFactory::Decrypt(const GFBuffer& passphase, const GFBuffer& buffer)
     -> GFBufferOrNone {
   if (buffer.Empty()) return {};
-  return AESCryptoHelper::GCMDecrypt(passphase, buffer);
+  return AESCryptoHelper::Decrypt(passphase, buffer);
 }
 
 auto GFBufferFactory::FromFile(const class QString& path) -> GFBufferOrNone {
@@ -208,13 +208,13 @@ auto GFBufferFactory::RandomGpgZBasePassphase(int len) -> GFBufferOrNone {
 auto GFBufferFactory::EncryptLite(const GFBuffer& passphase,
                                   const GFBuffer& buffer) -> GFBufferOrNone {
   if (buffer.Empty()) return {};
-  return AESCryptoHelper::GCMEncryptLite(passphase, buffer);
+  return AESCryptoHelper::EncryptLite(passphase, buffer);
 }
 
 auto GFBufferFactory::DecryptLite(const GFBuffer& passphase,
                                   const GFBuffer& buffer) -> GFBufferOrNone {
   if (buffer.Empty()) return {};
-  return AESCryptoHelper::GCMDecryptLite(passphase, buffer);
+  return AESCryptoHelper::DecryptLite(passphase, buffer);
 }
 
 }  // namespace GpgFrontend

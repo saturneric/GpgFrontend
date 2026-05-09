@@ -94,8 +94,56 @@ auto DeriveKeySodium(const GpgFrontend::GFBuffer& passphrase,
   return key;
 }
 
+auto DeriveKeyLiteSodium(const GpgFrontend::GFBuffer& raw_key,
+                         const GpgFrontend::GFBuffer& salt)
+    -> GpgFrontend::GFBufferOrNone {
+  if (!EnsureSodiumInit()) return {};
+
+  if (salt.Size() != kSaltLen) {
+    LOG_E() << "invalid salt size:" << salt.Size() << "expected:" << kSaltLen;
+    return {};
+  }
+
+  if (raw_key.Size() == 0) {
+    LOG_E() << "empty raw key for lite key derivation";
+    return {};
+  }
+
+  GpgFrontend::GFBuffer key(kKeyLen);
+
+  static constexpr std::string_view kDomain =
+      "GpgFrontend-Lite-XChaCha20Poly1305-v1";
+
+  crypto_generichash_state state;
+
+  if (crypto_generichash_init(&state, nullptr, 0, key.Size()) != 0) {
+    LOG_E() << "crypto_generichash_init failed";
+    return {};
+  }
+
+  crypto_generichash_update(
+      &state, reinterpret_cast<const unsigned char*>(kDomain.data()),
+      kDomain.size());
+
+  crypto_generichash_update(
+      &state, reinterpret_cast<const unsigned char*>(salt.Data()), salt.Size());
+
+  crypto_generichash_update(
+      &state, reinterpret_cast<const unsigned char*>(raw_key.Data()),
+      raw_key.Size());
+
+  if (crypto_generichash_final(&state,
+                               reinterpret_cast<unsigned char*>(key.Data()),
+                               key.Size()) != 0) {
+    LOG_E() << "crypto_generichash_final failed";
+    return {};
+  }
+
+  return key;
+}
+
 auto SodiumEncryptImpl(const GpgFrontend::GFBuffer& raw_key,
-                       const GpgFrontend::GFBuffer& plaintext)
+                       const GpgFrontend::GFBuffer& plaintext, bool lite)
     -> GpgFrontend::GFBufferOrNone {
   if (!EnsureSodiumInit()) return {};
 
@@ -105,7 +153,8 @@ auto SodiumEncryptImpl(const GpgFrontend::GFBuffer& raw_key,
   auto nonce = GpgFrontend::SecureRandomGenerator::Generate(kNonceLen);
   if (!nonce) return {};
 
-  auto key = DeriveKeySodium(raw_key, *salt);
+  auto key = lite ? DeriveKeyLiteSodium(raw_key, *salt)
+                  : DeriveKeySodium(raw_key, *salt);
   if (!key) return {};
 
   GpgFrontend::GFBuffer ciphertext(plaintext.Size());
@@ -135,7 +184,7 @@ auto SodiumEncryptImpl(const GpgFrontend::GFBuffer& raw_key,
 }
 
 auto SodiumDecryptImpl(const GpgFrontend::GFBuffer& raw_key,
-                       const GpgFrontend::GFBuffer& encrypted)
+                       const GpgFrontend::GFBuffer& encrypted, bool lite)
     -> GpgFrontend::GFBufferOrNone {
   if (!EnsureSodiumInit()) return {};
 
@@ -164,7 +213,8 @@ auto SodiumDecryptImpl(const GpgFrontend::GFBuffer& raw_key,
                                   static_cast<ssize_t>(ciphertext_len));
   auto tag = encrypted.Mid(static_cast<ssize_t>(tag_offset), kTagLen);
 
-  auto key = DeriveKeySodium(raw_key, salt);
+  auto key = lite ? DeriveKeyLiteSodium(raw_key, salt)
+                  : DeriveKeySodium(raw_key, salt);
   if (!key) return {};
 
   GpgFrontend::GFBuffer plaintext(ciphertext.Size());
@@ -192,28 +242,28 @@ auto SodiumDecryptImpl(const GpgFrontend::GFBuffer& raw_key,
 
 namespace GpgFrontend {
 
-auto AESCryptoHelper::GCMEncrypt(const GpgFrontend::GFBuffer& raw_key,
-                                 const GpgFrontend::GFBuffer& plaintext)
+auto AESCryptoHelper::Encrypt(const GpgFrontend::GFBuffer& raw_key,
+                              const GpgFrontend::GFBuffer& plaintext)
     -> GFBufferOrNone {
-  return SodiumEncryptImpl(raw_key, plaintext);
+  return SodiumEncryptImpl(raw_key, plaintext, false);
 }
 
-auto AESCryptoHelper::GCMDecrypt(const GpgFrontend::GFBuffer& raw_key,
-                                 const GpgFrontend::GFBuffer& encrypted)
+auto AESCryptoHelper::Decrypt(const GpgFrontend::GFBuffer& raw_key,
+                              const GpgFrontend::GFBuffer& encrypted)
     -> GFBufferOrNone {
-  return SodiumDecryptImpl(raw_key, encrypted);
+  return SodiumDecryptImpl(raw_key, encrypted, false);
 }
 
-auto AESCryptoHelper::GCMEncryptLite(const GpgFrontend::GFBuffer& raw_key,
-                                     const GpgFrontend::GFBuffer& plaintext)
+auto AESCryptoHelper::EncryptLite(const GpgFrontend::GFBuffer& raw_key,
+                                  const GpgFrontend::GFBuffer& plaintext)
     -> GFBufferOrNone {
-  return SodiumEncryptImpl(raw_key, plaintext);
+  return SodiumEncryptImpl(raw_key, plaintext, true);
 }
 
-auto AESCryptoHelper::GCMDecryptLite(const GpgFrontend::GFBuffer& raw_key,
-                                     const GpgFrontend::GFBuffer& encrypted)
+auto AESCryptoHelper::DecryptLite(const GpgFrontend::GFBuffer& raw_key,
+                                  const GpgFrontend::GFBuffer& encrypted)
     -> GFBufferOrNone {
-  return SodiumDecryptImpl(raw_key, encrypted);
+  return SodiumDecryptImpl(raw_key, encrypted, true);
 }
 
 }  // namespace GpgFrontend
