@@ -30,6 +30,8 @@
 
 #include <sodium.h>
 
+#include <cstring>
+
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/SecureRandomGenerator.h"
 #include "core/utils/IOUtils.h"
