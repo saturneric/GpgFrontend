@@ -47,7 +47,7 @@ auto GetFileHashQt(const QString& file_path,
     if (n < 0) return {};
     if (n == 0) break;
 
-    hash.addData(QByteArrayView(buffer.Data(), n));
+    hash.addData(QByteArray::fromRawData(buffer.Data(), n));
   }
 
   return hash.result();
