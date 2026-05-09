@@ -28,10 +28,7 @@
 
 #include "Security.h"
 
-#include <openssl/crypto.h>
-#include <openssl/err.h>
-#include <openssl/evp.h>
-#include <openssl/kdf.h>
+#include <sodium.h>
 
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
@@ -68,37 +65,51 @@ namespace GpgFrontend {
 auto DeriveKeyArgon2(const GFBuffer &passphrase, const GFBuffer &salt,
                      int key_len, int t_cost, int m_cost, int parallelism)
     -> GFBufferOrNone {
+  if (key_len <= 0) {
+    qCritical() << "invalid key_len";
+    return {};
+  }
+
+  if (t_cost <= 0) {
+    qCritical() << "invalid Argon2 t_cost";
+    return {};
+  }
+
+  if (m_cost <= 0) {
+    qCritical() << "invalid Argon2 m_cost";
+    return {};
+  }
+
+  if (parallelism != 1) {
+    qWarning() << "libsodium crypto_pwhash does not expose Argon2 parallelism;"
+               << "requested parallelism:" << parallelism << "will be ignored";
+  }
+
+  if (sodium_init() < 0) {
+    qCritical() << "sodium_init failed";
+    return {};
+  }
+
+  if (salt.Size() != crypto_pwhash_SALTBYTES) {
+    qCritical() << "invalid Argon2 salt size for libsodium:" << salt.Size()
+                << "expected:" << crypto_pwhash_SALTBYTES;
+    return {};
+  }
+
   GFBuffer key(key_len);
 
-  auto *kdf = EVP_KDF_fetch(nullptr, "ARGON2ID", nullptr);
-  if (kdf == nullptr) {
-    qCritical() << "EVP_KDF_fetch failed";
-    return {};
-  }
+  const auto opslimit = static_cast<unsigned long long>(t_cost);
+  const auto memlimit = static_cast<size_t>(m_cost) * 1024U;
 
-  EVP_KDF_CTX *kctx = EVP_KDF_CTX_new(kdf);
-  if (kctx == nullptr) {
-    qCritical() << "EVP_KDF_CTX_new failed";
-    EVP_KDF_free(kdf);
-    return {};
-  }
+  const int rc = crypto_pwhash(
+      reinterpret_cast<unsigned char *>(key.Data()),
+      static_cast<unsigned long long>(key.Size()), passphrase.Data(),
+      static_cast<unsigned long long>(passphrase.Size()),
+      reinterpret_cast<const unsigned char *>(salt.Data()), opslimit, memlimit,
+      crypto_pwhash_ALG_ARGON2ID13);
 
-  std::array<OSSL_PARAM, 6> params = {
-      {OSSL_PARAM_octet_string("pass", const_cast<char *>(passphrase.Data()),
-                               passphrase.Size()),
-       OSSL_PARAM_octet_string("salt", const_cast<char *>(salt.Data()),
-                               salt.Size()),
-       OSSL_PARAM_int("t", &t_cost), OSSL_PARAM_int("m", &m_cost),
-       OSSL_PARAM_int("p", &parallelism), OSSL_PARAM_END}};
-
-  int rc = EVP_KDF_derive(kctx, reinterpret_cast<unsigned char *>(key.Data()),
-                          key.Size(), params.data());
-
-  EVP_KDF_CTX_free(kctx);
-  EVP_KDF_free(kdf);
-
-  if (rc != 1) {
-    qCritical() << "EVP_KDF_derive failed";
+  if (rc != 0) {
+    qCritical() << "crypto_pwhash failed";
     return {};
   }
 
@@ -116,9 +127,8 @@ auto CalculateKeyId(const GFBuffer &pin, const GFBuffer &key) -> GFBuffer {
 auto FetchTimeRelatedAppSecureKey(const GFBuffer &pin) -> GFBuffer {
   auto &gss = GlobalSettingStation::GetInstance();
 
-  // do rotation per week
   const qint64 timestamp = QDateTime::currentSecsSinceEpoch() /
-                           (static_cast<qint64>(60 * 60 * 24 * 7));
+                           static_cast<qint64>(60 * 60 * 24 * 7);
 
   auto salt = Require(
       GFBufferFactory::ToSha256(
@@ -133,16 +143,19 @@ auto FetchTimeRelatedAppSecureKey(const GFBuffer &pin) -> GFBuffer {
               QObject::tr("Failed to derive time-rotated key; falling back to "
                           "less-secure key."));
 
-  auto key_id = Require(
-      GFBufferFactory::ToHMACSha256(pin, key),
-      QObject::tr("Time Rotation Secure Key Generation Failed"),
-      QObject::tr(
-          "Failed to compute key ID; falling back to less-secure key."));
+  auto key_id =
+      Require(GFBufferFactory::ToHMACSha256(pin, key),
+              QObject::tr("Time Rotation Secure Key Generation Failed"),
+              QObject::tr("Failed to compute key ID."));
 
   Q_ASSERT(!key_id.Empty());
 
-  // set app secure key
   gss.SetActiveKeyId(key_id);
+
+  const auto key_path = gss.GetAppSecureKeyDir() + "/" +
+                        key_id.ConvertToQByteArray().toHex().left(16) + ".key";
+
+  if (QFileInfo(key_path).exists()) return key;
 
   auto e_key = GFBufferFactory::Encrypt(pin, key);
   if (!e_key) {
@@ -155,19 +168,6 @@ auto FetchTimeRelatedAppSecureKey(const GFBuffer &pin) -> GFBuffer {
     return key;
   }
 
-  auto e_key_id = Require(
-      GFBufferFactory::ToHMACSha256(pin, *e_key),
-      QObject::tr("Time Rotation Secure Key Generation Failed"),
-      QObject::tr("Failed to generate a secure application key using OpenSSL. "
-                  "A less secure fallback key will be used. Please check your "
-                  "system's cryptography support."));
-  Q_ASSERT(!e_key_id.Empty());
-
-  const auto key_path = gss.GetAppSecureKeyDir() + "/" +
-                        e_key_id.ConvertToQByteArray().toHex().left(16) +
-                        ".key";
-
-  if (QFileInfo(key_path).exists()) return key;
   RequireWriteSuccess(GFBufferFactory::ToFile(key_path, *e_key), key_path);
   return key;
 }
@@ -203,7 +203,7 @@ auto NewLegacyAppSecureKey(const GFBuffer &pin) -> GFBuffer {
           QObject::tr("Failed to encrypt the secure key with your PIN. The key "
                       "will not be saved to disk."),
           QMessageBox::Ok);
-      abort();
+      std::_Exit(1);
     }
     key = e_key;
   }
@@ -234,12 +234,14 @@ auto InitLegacyAppSecureKey(const GFBuffer &pin) -> bool {
 
   GFBuffer legacy_key;
   GFBuffer legacy_key_id;
-  if (!QFileInfo(gss.GetLegacyAppSecureKeyPath()).exists()) {
+  const auto path = gss.GetLegacyAppSecureKeyPath();
+  qDebug() << "legacy app secure key path: " << path;
+  if (!QFileInfo(path).exists()) {
     legacy_key = NewLegacyAppSecureKey(pin);
     legacy_key_id = CalculateKeyId(pin, legacy_key);
     Q_ASSERT(!legacy_key.Empty());
   } else {
-    auto l_key_path = gss.GetLegacyAppSecureKeyPath();
+    const auto &l_key_path = path;
 
     auto key = GFBufferFactory::FromFile(l_key_path);
     if (!key) {

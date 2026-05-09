@@ -32,11 +32,6 @@
 #include <gpg-error.h>
 #include <gpgme.h>
 
-// OpenSSL
-#include <openssl/err.h>
-#include <openssl/evp.h>
-#include <openssl/pem.h>
-
 #include "test/GpgFrontendTest.h"
 
 #if defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
@@ -126,7 +121,7 @@ auto FindLoadedLibraries(const QStringList &keywords) -> QStringList {
     for (unsigned int i = 0; i < (cb_needed / sizeof(HMODULE)); ++i) {
       wchar_t sz_mod_name[MAX_PATH];
       if (GetModuleFileNameW(h_mods[i], sz_mod_name,
-                            sizeof(sz_mod_name) / sizeof(wchar_t))) {
+                             sizeof(sz_mod_name) / sizeof(wchar_t))) {
         auto mod = QString::fromWCharArray(sz_mod_name);
         for (const auto &kw : keywords) {
           if (mod.contains(kw, Qt::CaseInsensitive)) {

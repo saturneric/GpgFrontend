@@ -28,10 +28,7 @@
 
 #include "Initialize.h"
 
-#include <openssl/crypto.h>
-#include <openssl/err.h>
-
-#include <cstddef>
+#include <sodium.h>
 
 #include "core/GFLog.h"
 #include "core/GpgCoreInit.h"
@@ -74,32 +71,19 @@ void PreInit(const GFCxtWPtr &p_ctx) {
           ? app->property("GFLogRingBufferCapacity").toInt()
           : 1024;
 
-  // initialize log system and set log handler
   GFLogManager::Instance().InitRingBuffer(ring_capacity);
   qInstallMessageHandler(GFMessageHandler);
 
-  // High Secure Level
-  const auto secure_level = app->property("GFSecureLevel").toInt();
-  if (secure_level > 1) {
-    // OpenSSL Alloc 32 MB Secure Memory
-    auto ret =
-        CRYPTO_secure_malloc_init(static_cast<size_t>(32 * 1024 * 1024), 32);
-    if (ret == 0) {
-      std::array<char, 256> err_buf;
-      ERR_error_string_n(ERR_get_error(), err_buf.data(), sizeof(err_buf));
+  if (sodium_init() < 0) {
+    qCritical() << "Failed to initialize libsodium.";
 
-      qWarning() << "Failed to initialize OpenSSL secure memory:"
-                 << QString::fromLatin1(err_buf.data(), err_buf.size());
+    QMessageBox::critical(
+        nullptr, "Initialization Failed",
+        QString("Failed to initialize libsodium.\n"
+                "Secure random generation and local encryption are not "
+                "available."));
 
-      QMessageBox::warning(
-          nullptr, "Initialization Failed",
-          QString("Failed to initialize OpenSSL secure memory.\n"
-                  "Some secure operations may not be available.\n"
-                  "Reason: %1")
-              .arg(QString::fromLatin1(err_buf.data(), err_buf.size())));
-    }
-
-    Q_ASSERT(CRYPTO_secure_malloc_initialized());
+    std::_Exit(1);
   }
 
   const int log_level = app->property("GFLogLevel").toInt();
