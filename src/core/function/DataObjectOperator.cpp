@@ -30,6 +30,8 @@
 
 #include <sodium.h>
 
+#include <cstring>
+
 #include "core/function/GFBufferFactory.h"
 #include "core/function/PassphraseGenerator.h"
 #include "core/utils/IOUtils.h"
