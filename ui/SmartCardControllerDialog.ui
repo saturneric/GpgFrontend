@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>858</width>
-    <height>713</height>
+    <width>923</width>
+    <height>789</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,0">
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
@@ -34,6 +34,12 @@
        </item>
        <item>
         <widget class="QTextEdit" name="cardInfoEdit">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="readOnly">
           <bool>true</bool>
          </property>
@@ -81,14 +87,23 @@
      <item>
       <widget class="Line" name="line">
        <property name="orientation">
-        <enum>Qt::Orientation::Vertical</enum>
+        <enum>Qt::Vertical</enum>
        </property>
       </widget>
      </item>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetDefaultConstraint</enum>
+       </property>
        <item>
         <widget class="QGroupBox" name="operationGroupBox">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="title">
           <string>Operations</string>
          </property>
@@ -133,7 +148,7 @@
             <item>
              <widget class="Line" name="line_2">
               <property name="orientation">
-               <enum>Qt::Orientation::Horizontal</enum>
+               <enum>Qt::Vertical</enum>
               </property>
              </widget>
             </item>
@@ -160,12 +175,9 @@
             </item>
             <item>
              <spacer name="verticalSpacer">
-              <property name="orientation">
-               <enum>Qt::Orientation::Vertical</enum>
-              </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>20</width>
+                <width>5</width>
                 <height>40</height>
                </size>
               </property>
@@ -193,12 +205,12 @@
        <item>
         <spacer name="verticalSpacer_2">
          <property name="orientation">
-          <enum>Qt::Orientation::Vertical</enum>
+          <enum>Qt::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>20</width>
-           <height>40</height>
+           <width>5</width>
+           <height>20</height>
           </size>
          </property>
         </spacer>
