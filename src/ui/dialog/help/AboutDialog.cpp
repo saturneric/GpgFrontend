@@ -95,13 +95,14 @@ auto CreateBuildInfoText() -> QString {
              "Assuan: %4\n"
              "Libarchive: %5\n"
              "OpenSSL: %6\n"
-             "Git Branch: %7\n"
-             "Git Commit: %8\n"
-             "Built at: %9")
+             "Sodium: %7\n"
+             "Git Branch: %8\n"
+             "Git Commit: %9\n"
+             "Built at: %10")
       .arg(GetProjectVersion(), GetProjectQtVersion(), GetProjectGpgMEVersion(),
            GetProjectAssuanVersion(), GetProjectLibarchiveVersion(),
-           GetProjectOpenSSLVersion(), GetProjectBuildGitBranchName(),
-           GetProjectBuildGitCommitHash(),
+           GetProjectOpenSSLVersion(), GetSodiumVersion(),
+           GetProjectBuildGitBranchName(), GetProjectBuildGitCommitHash(),
            QLocale().toString(GetProjectBuildTimestamp()));
 }
 
@@ -241,6 +242,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   build_form->addRow(
       tr("OpenSSL:"),
       CreateValueLabel(GetProjectOpenSSLVersion(), build_form_widget));
+  build_form->addRow(tr("Sodium:"),
+                     CreateValueLabel(GetSodiumVersion(), build_form_widget));
   build_form->addRow(
       tr("Git Branch:"),
       CreateValueLabel(GetProjectBuildGitBranchName(), build_form_widget));

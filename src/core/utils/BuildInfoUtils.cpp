@@ -33,6 +33,7 @@
 #include <gpg-error.h>
 #include <gpgme.h>
 #include <openssl/opensslv.h>
+#include <sodium.h>
 
 #include "GpgFrontendBuildInfo.h"
 
@@ -87,4 +88,12 @@ auto HasRustSupport() -> bool {
 }
 
 auto GetAppDisplayName() -> QString { return {APP_DISPLAY_NAME}; }
+
+auto GetSodiumVersion() -> QString {
+  if (sodium_init() < 0) {
+    return {};
+  }
+
+  return QString::fromLatin1(sodium_version_string());
+}
 };  // namespace GpgFrontend

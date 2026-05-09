@@ -156,4 +156,11 @@ auto GF_CORE_EXPORT HasRustSupport() -> bool;
  * @return QString
  */
 auto GF_CORE_EXPORT GetAppDisplayName() -> QString;
+
+/**
+ * @brief
+ *
+ * @return QString
+ */
+auto GF_CORE_EXPORT GetSodiumVersion() -> QString;
 }  // namespace GpgFrontend
