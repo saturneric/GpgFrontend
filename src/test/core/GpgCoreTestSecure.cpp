@@ -157,13 +157,13 @@ TEST(SecureMemoryAllocatorTest, ParallelSecAllocAndFree) {
 }
 
 TEST_F(GFCoreTest, CoreSecureTestC) {
-  auto buffer = SecureRandomGenerator::OpenSSLGenerate(256);
+  auto buffer = SecureRandomGenerator::Generate(256);
   ASSERT_TRUE(buffer.has_value());
   ASSERT_EQ(buffer->Size(), 256);
 }
 
 TEST_F(GFCoreTest, CoreSecureTestD) {
-  auto key = SecureRandomGenerator::OpenSSLGenerate(256);
+  auto key = SecureRandomGenerator::Generate(256);
   ASSERT_TRUE(key.has_value());
   ASSERT_EQ(key->Size(), 256);
 
