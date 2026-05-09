@@ -239,10 +239,12 @@ class TextEdit : public QWidget {
    * @param type Custom tab type.
    * @param title Tab title.
    * @param icon Tab icon.
+   * @param icon_name Icon name.
    * @return Newly created tab page.
    */
+  // NOLINTNEXTLINE
   QWidget* SlotNewCustomTab(const QString& type, const QString& title,
-                            const QIcon& icon);  // NOLINT
+                            const QIcon& icon, const QString& icon_name);
 
   /**
    * @brief Creates a new text-editor tab with predefined content.

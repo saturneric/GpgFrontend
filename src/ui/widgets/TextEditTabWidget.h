@@ -80,7 +80,7 @@ class TextEditTabWidget : public QTabWidget {
    */
   // NOLINTNEXTLINE
   QWidget* SlotNewTab(const QString& type, const QString& title,
-                      const QIcon& icon);
+                      const QIcon& icon, const QString& icon_name);
 
   /**
    * @brief
@@ -155,6 +155,12 @@ class TextEditTabWidget : public QTabWidget {
   /**
    * @brief
    *
+   */
+  void SlotRefreshRecoveryCache();
+
+  /**
+   * @brief
+   *
    * @param index
    * @return QString
    */
@@ -181,10 +187,9 @@ class TextEditTabWidget : public QTabWidget {
   int text_page_data_modified_count_ = 0;
 
   QTimer* recovery_cache_timer_ = nullptr;
-  QContainer<QPointer<PlainTextEditorPage>> recovery_dirty_pages_;
+  QList<QPointer<PlainTextEditorPage>> recovery_dirty_pages_;
   QPointer<PlainTextEditorPage> last_current_text_page_;
   bool recovery_restoring_ = false;
-
   /**
    * @brief
    *
@@ -225,7 +230,8 @@ class TextEditTabWidget : public QTabWidget {
    * @return PlainTextEditorPage*
    */
   auto create_plain_text_tab(const QString& title, const QString& file_path,
-                             const QIcon& icon) -> PlainTextEditorPage*;
+                             const QIcon& icon, const QString& icon_name)
+      -> PlainTextEditorPage*;
 
   /**
    * @brief

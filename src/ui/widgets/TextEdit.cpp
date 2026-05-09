@@ -216,10 +216,9 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
     page->SetFilePath(file_name);
     page->NotifyFileSaved();
 
-    // The file has been intentionally saved by the user. Rewrite recovery cache
-    // after saving, so the cache is cleared for this page and won't be restored
-    // later.
-    tab_widget_->SlotTabClosedForRecovery();
+    // The document has been saved. Rewrite recovery cache immediately so stale
+    // unsaved content will not be restored on next startup.
+    tab_widget_->SlotRefreshRecoveryCache();
 
     file.close();
     return true;
@@ -256,9 +255,6 @@ void TextEdit::slot_remove_tab(int index) {
     return;
   }
 
-  // get the index of the actual current tab
-  int last_index = tab_widget_->currentIndex();
-
   // set the focus to argument index
   tab_widget_->setCurrentIndex(index);
 
@@ -266,16 +262,14 @@ void TextEdit::slot_remove_tab(int index) {
     auto* tab = tab_widget_->widget(index);
     tab_widget_->removeTab(index);
 
-    // If the tab was the last one, set the current index to the last tab.
     if (tab_widget_->count() > 0) {
-      tab_widget_->setCurrentIndex(
-          std::clamp(index >= last_index ? last_index : last_index - 1, 0,
-                     tab_widget_->count() - 1));
+      const int new_index = std::min(index, tab_widget_->count() - 1);
+      tab_widget_->setCurrentIndex(new_index);
     }
 
-    // The tab has been intentionally closed by the user. Rewrite recovery cache
-    // after removeTab(), so the closed tab is no longer recoverable.
-    tab_widget_->SlotTabClosedForRecovery();
+    // The user intentionally closed this tab. Rewrite recovery cache after
+    // removeTab(), so the closed tab will not be recovered again.
+    tab_widget_->SlotRefreshRecoveryCache();
 
     if (tab != nullptr) {
       tab->close();
@@ -681,8 +675,9 @@ void TextEdit::SlotOpenDefaultFileBrowserTab() {
 auto TextEdit::CurPage() -> QWidget* { return tab_widget_->CurPage(); }
 
 auto TextEdit::SlotNewCustomTab(const QString& type, const QString& title,
-                                const QIcon& icon) -> QWidget* {
-  return tab_widget_->SlotNewTab(type, title, icon);
+                                const QIcon& icon, const QString& icon_name)
+    -> QWidget* {
+  return tab_widget_->SlotNewTab(type, title, icon, icon_name);
 }
 
 auto TextEdit::SlotGetTabWidget() -> QTabWidget* { return tab_widget_; }

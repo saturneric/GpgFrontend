@@ -355,7 +355,7 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
 
   ScopedOverrideCursor wait_cursor(Qt::WaitCursor);
   auto* page = create_plain_text_tab(stripped_name(path), path,
-                                     QIcon(":/icons/file.png"));
+                                     QIcon(":/icons/file.png"), {});
 
   {
     ScopedRecoverySuspend recovery_suspend(page);
@@ -410,13 +410,23 @@ auto TextEditTabWidget::stripped_name(const QString& full_file_name)
 
 auto TextEditTabWidget::SlotNewPlainTextTab() -> QWidget* {
   const auto header = generate_new_title("untitled", "txt");
-  return create_plain_text_tab(header, {}, QIcon(":/icons/file.png"));
+  return create_plain_text_tab(header, {}, QIcon(":/icons/file.png"), {});
 }
 
 auto TextEditTabWidget::SlotNewTab(const QString& type, const QString& title,
-                                   const QIcon& icon) -> QWidget* {
-  auto* page = create_plain_text_tab(title, {}, icon);
+                                   const QIcon& icon, const QString& icon_name)
+    -> QWidget* {
+  auto* page = create_plain_text_tab(title, {}, icon, icon_name);
   page->setProperty("type", type);
+
+  if (!icon_name.trimmed().isEmpty()) {
+    page->setProperty("icon_name", icon_name.trimmed());
+    const int index = indexOf(page);
+    if (index >= 0) {
+      setTabIcon(index, QIcon(icon_name.trimmed()));
+    }
+  }
+
   return page;
 }
 
@@ -427,7 +437,7 @@ void TextEditTabWidget::SlotNewTabWithGFBuffer(QString title,
     header = generate_new_title("untitled", "txt");
   }
 
-  auto* page = create_plain_text_tab(header, {}, QIcon(":/icons/file.png"));
+  auto* page = create_plain_text_tab(header, {}, QIcon(":/icons/file.png"), {});
 
   {
     ScopedRecoverySuspend recovery_suspend(page);
@@ -446,7 +456,7 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
     header = generate_new_title("untitled", "txt");
   }
 
-  auto* page = create_plain_text_tab(header, {}, QIcon(":/icons/file.png"));
+  auto* page = create_plain_text_tab(header, {}, QIcon(":/icons/file.png"), {});
 
   {
     ScopedRecoverySuspend recovery_suspend(page);
@@ -553,6 +563,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     QString title;
     QString file_path;
     QString page_type;
+    QString icon_name;
     GFBuffer content;
   };
 
@@ -582,11 +593,17 @@ void TextEditTabWidget::SlotCacheTextEditors() {
       page_type = "text";
     }
 
+    auto icon_name = target_page->property("icon_name").toString().trimmed();
+    if (icon_name.isEmpty()) {
+      icon_name = QStringLiteral(":/icons/file.png");
+    }
+
     unsaved_pages.push_back({
         i,
         tab_title,
         target_page->GetFilePath(),
         page_type,
+        icon_name,
         GFBuffer(content),
     });
 
@@ -609,6 +626,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     page_json["recovery_type"] = "text_editor";
     page_json["title"] = page.title;
     page_json["file_path"] = page.file_path;
+    page_json["icon_name"] = page.icon_name;
 
     auto encrypted_content =
         GFBufferFactory::Encrypt(gss.GetActiveAppSecureKey(), page.content);
@@ -650,14 +668,14 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
   const bool restore_text_editor_page =
       GetSettings().value("basic/restore_text_editor_page", false).toBool();
   if (!restore_text_editor_page) {
-    ClearEditorPagesRecoveryCache();
+    ClearEditorPagesRecoveryCache(true);
     return;
   }
 
   LOG_D() << "restoring text editor cache...";
 
   auto json_data =
-      CacheManager::GetInstance().LoadDurableCache("editor_pages_cache");
+      CacheManager::GetInstance().LoadDurableCache(kEditorPagesCacheKey);
 
   LOG_D() << "editor_pages_cache loaded"
           << ", json content:" << json_data.toJson();
@@ -666,7 +684,6 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
 
   QJsonArray json_array;
   if (json_data.isArray()) {
-    // Backward compatibility with old cache format.
     json_array = json_data.array();
   } else if (json_data.isObject()) {
     json_array = json_data.object().value("pages").toArray();
@@ -690,7 +707,7 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
   });
 
   auto& gss = GlobalSettingStation::GetInstance();
-  QJsonArray remaining_pages;
+  QJsonArray next_recovery_pages;
   QPointer<PlainTextEditorPage> last_restored_page;
   int restored_count = 0;
 
@@ -698,14 +715,14 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     bool restored = false;
 
     if (!value_ref.isObject()) {
-      remaining_pages.push_back(value_ref);
+      next_recovery_pages.push_back(value_ref);
       continue;
     }
 
     auto json = value_ref.toObject();
 
     if (!json.contains("title") || !json.contains("content")) {
-      remaining_pages.push_back(value_ref);
+      next_recovery_pages.push_back(value_ref);
       continue;
     }
 
@@ -713,36 +730,50 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     const auto base64_content = json["content"].toString();
     const auto file_path = json["file_path"].toString();
 
-    auto page_type = json["type"].toString().trimmed().toLower();
-    auto recovery_type = json["recovery_type"].toString().trimmed().toLower();
+    auto icon_name = json["icon_name"].toString().trimmed();
+    if (icon_name.isEmpty()) {
+      icon_name = json["icon"].toString().trimmed();
+    }
+    if (icon_name.isEmpty()) {
+      icon_name = QStringLiteral(":/icons/file.png");
+    }
+
+    auto page_type = json["type"].toString().trimmed();
+    auto page_type_key = page_type.toLower();
+
+    auto recovery_type = json["recovery_type"].toString().trimmed();
+    auto recovery_type_key = recovery_type.toLower();
 
     // Backward compatibility:
     // old cache used "type": "text_editor".
-    if (recovery_type.isEmpty() && page_type == "text_editor") {
+    if (recovery_type_key.isEmpty() && page_type_key == "text_editor") {
       recovery_type = "text_editor";
+      recovery_type_key = "text_editor";
       page_type = "text";
+      page_type_key = "text";
     }
 
-    if (recovery_type.isEmpty()) {
+    if (recovery_type_key.isEmpty()) {
       recovery_type = "text_editor";
+      recovery_type_key = "text_editor";
     }
 
     if (page_type.isEmpty()) {
       page_type = "text";
+      page_type_key = "text";
     }
 
     // Only recovery_type decides which recovery handler to use.
-    // page_type is the restored tab's semantic type and can be "text", "email",
-    // or other text-editor-backed custom types.
-    if (recovery_type != "text_editor") {
-      remaining_pages.push_back(value_ref);
+    // page_type is semantic type, e.g. "text", "email", module-defined type.
+    if (recovery_type_key != "text_editor") {
+      next_recovery_pages.push_back(value_ref);
       continue;
     }
 
     auto encrypted_content =
         GFBufferFactory::FromBase64(GFBuffer(base64_content));
     if (!encrypted_content) {
-      remaining_pages.push_back(value_ref);
+      next_recovery_pages.push_back(value_ref);
       continue;
     }
 
@@ -754,18 +785,31 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     if (!key.Empty()) {
       auto content = GFBufferFactory::Decrypt(key, *encrypted_content);
       if (content) {
-        LOG_D() << "restoring text editor tab, title:" << title;
+        const auto restore_title = NormalizeTabTitle(title).isEmpty()
+                                       ? generate_new_title("untitled", "txt")
+                                       : NormalizeTabTitle(title);
 
-        auto* page =
-            create_plain_text_tab(NormalizeTabTitle(title).isEmpty()
-                                      ? generate_new_title("untitled", "txt")
-                                      : NormalizeTabTitle(title),
-                                  file_path, QIcon(":/icons/file.png"));
+        LOG_D() << "restoring text editor tab"
+                << ", title:" << restore_title << ", type:" << page_type
+                << ", recovery_type:" << recovery_type
+                << ", icon:" << icon_name;
+
+        auto* page = create_plain_text_tab(restore_title, file_path,
+                                           QIcon(icon_name), icon_name);
 
         {
           ScopedRecoverySuspend recovery_suspend(page);
+
           page->setProperty("type", page_type);
+          page->setProperty("recovery_type", recovery_type);
           page->setProperty("recovered_from_cache", true);
+          page->setProperty("icon_name", icon_name);
+
+          const int page_index = indexOf(page);
+          if (page_index >= 0) {
+            setTabIcon(page_index, QIcon(icon_name));
+          }
+
           page->GetTextPage()->document()->setPlainText(
               content->ConvertToQString());
           page->GetTextPage()->document()->setModified(true);
@@ -778,26 +822,32 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
         ++restored_count;
 
         LOG_D() << "restored text editor page"
-                << ", title:" << title << ", index:" << indexOf(page)
+                << ", title:" << restore_title << ", index:" << indexOf(page)
                 << ", tab count:" << count();
+
+        // Important:
+        // Keep the recovery entry after successful restore. The restored page
+        // is still unsaved. If the app crashes again before the user
+        // edits/saves/closes it, this entry must still be available.
+        next_recovery_pages.push_back(value_ref);
 
         restored = true;
       }
     }
 
     if (!restored) {
-      remaining_pages.push_back(value_ref);
+      next_recovery_pages.push_back(value_ref);
     }
   }
 
-  if (remaining_pages.isEmpty()) {
+  if (next_recovery_pages.isEmpty()) {
     ClearEditorPagesRecoveryCache(true);
   } else {
     QJsonObject root;
     root["version"] = 2;
     root["updated_at"] =
         QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
-    root["pages"] = remaining_pages;
+    root["pages"] = next_recovery_pages;
     SaveEditorPagesRecoveryCache(root, true);
   }
 
@@ -847,18 +897,28 @@ void TextEditTabWidget::update_tab_modified_mark(QWidget* page, bool modified) {
 
 auto TextEditTabWidget::create_plain_text_tab(const QString& title,
                                               const QString& file_path,
-                                              const QIcon& icon)
+                                              const QIcon& icon,
+                                              const QString& icon_name)
     -> PlainTextEditorPage* {
   auto clean_title = NormalizeTabTitle(title);
   if (clean_title.isEmpty()) {
     clean_title = generate_new_title("untitled", "txt");
   }
 
+  const bool has_explicit_icon_name = !icon_name.trimmed().isEmpty();
+  const auto effective_icon_name = has_explicit_icon_name
+                                       ? icon_name.trimmed()
+                                       : QStringLiteral(":/icons/file.png");
+
+  const QIcon effective_icon =
+      has_explicit_icon_name ? QIcon(effective_icon_name) : icon;
+
   auto* page = new PlainTextEditorPage(file_path);
   page->setProperty("type", "text");
   page->setProperty("base_title", clean_title);
+  page->setProperty("icon_name", effective_icon_name);
 
-  const int index = addTab(page, icon, clean_title);
+  const int index = addTab(page, effective_icon, clean_title);
   setCurrentIndex(index);
   setTabToolTip(index, file_path.isEmpty() ? clean_title : file_path);
 
@@ -954,6 +1014,15 @@ void TextEditTabWidget::flush_recovery_cache(bool force) {
   }
 }
 
+void TextEditTabWidget::SlotRefreshRecoveryCache() {
+  if (recovery_cache_timer_ != nullptr) {
+    recovery_cache_timer_->stop();
+  }
+
+  recovery_dirty_pages_.clear();
+
+  SlotCacheTextEditors();
+}
 void TextEditTabWidget::SlotTabClosedForRecovery() {
   if (recovery_cache_timer_ != nullptr) {
     recovery_cache_timer_->stop();
