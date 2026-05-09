@@ -31,6 +31,14 @@ endif()
 # Introduce GpgME
 find_package(Gpgme REQUIRED)
 
+# Introduce libsodium
+# Note: We use libsodium for some non-OpenPGP related cryptographic operations,
+# such as hashing and key derivation, to avoid the usage of newer OpenSSL APIs
+# that may not be available in the system OpenSSL library, which can cause
+# compatibility issues and conflicts with other software that relies on the
+# system OpenSSL.
+find_package(Sodium REQUIRED)
+
 # add libraries
 include(${CMAKE_SOURCE_DIR}/cmake/LibraryRegistry.cmake)
 add_subdirectory(core)
@@ -302,7 +310,7 @@ endif()
 target_link_libraries(${APP_NAME} gf_core gf_ui gf_test)
 
 # link OpenSSL for secure mechanism
-target_link_libraries(${APP_NAME} ssl crypto)
+target_link_libraries(${APP_NAME} sodium)
 
 if(MINGW)
   message(STATUS "Link Application Library For MINGW")
