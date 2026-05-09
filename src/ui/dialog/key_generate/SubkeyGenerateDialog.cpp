@@ -70,6 +70,8 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
   ui_->authCheckBox->setText(tr("Authentication"));
   ui_->nonExpiredCheckBox->setText(tr("Non Expired"));
   ui_->nonPassphraseCheckBox->setText(tr("No Passphrase"));
+  ui_->scndAlgoLabel->setText(tr("Second Algorithm"));
+  ui_->scndKeyLengthLabel->setText(tr("Second Key Length"));
 
   const auto min_date_time = QDateTime::currentDateTime().addDays(3);
   ui_->expireDateTimeEdit->setMinimumDateTime(min_date_time);
@@ -189,7 +191,7 @@ void SubkeyGenerateDialog::set_signal_slot_config() {
         gen_subkey_info_->SetSubAlgo(base_algo);
       } else {
         gen_subkey_info_->SetAlgo(base_algo);
-}
+      }
     } else {
       if (is_sub_algo) gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
     }
@@ -212,7 +214,7 @@ void SubkeyGenerateDialog::set_signal_slot_config() {
         gen_subkey_info_->SetSubAlgo(exact_algo);
       } else {
         gen_subkey_info_->SetAlgo(exact_algo);
-}
+      }
     }
     validate_generate_button();
   };

@@ -450,6 +450,8 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->sExpireDateLabel->setText(tr("Expire Date"));
   ui_->sKeyLengthLabel->setText(tr("Key Length"));
   ui_->sUsageLabel->setText(tr("Usage"));
+  ui_->scndAlgoLabel->setText(tr("Second Algorithm"));
+  ui_->scndKeyLengthLabel->setText(tr("Second Key Length"));
   ui_->sEncrCheckBox->setText(tr("Encrypt"));
   ui_->sSignCheckBox->setText(tr("Sign"));
   ui_->sAuthCheckBox->setText(tr("Authentication"));
