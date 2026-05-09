@@ -144,12 +144,11 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
 }
 
 void CommonUtils::RaiseMessageBox(QWidget *parent, GpgError err) {
-  GpgErrorDesc desc = DescribeGpgErrCode(err);
   GpgErrorCode err_code = CheckGpgError2ErrCode(err);
 
   if (err_code == GPG_ERR_NO_ERROR) {
     QMessageBox::information(parent, tr("Success"),
-                             tr("Gpg Operation succeed."));
+                             tr("Operation completed successfully."));
   } else {
     RaiseFailureMessageBox(parent, err);
   }
@@ -158,8 +157,8 @@ void CommonUtils::RaiseMessageBox(QWidget *parent, GpgError err) {
 void CommonUtils::RaiseMessageBoxNotSupported(QWidget *parent) {
   QMessageBox::warning(
       parent, tr("Operation Not Supported"),
-      tr("The current GnuPG version is too low and does not support this "
-         "operation. Please upgrade your GnuPG version to continue."));
+      tr("The current OpenPGP engine does not support this operation. "
+         "Please use a supported engine or upgrade the engine version."));
 }
 
 void CommonUtils::RaiseFailureMessageBox(QWidget *parent, GpgError err,

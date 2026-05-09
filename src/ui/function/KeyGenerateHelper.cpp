@@ -82,20 +82,21 @@ auto GetAlgoByNameType(const QString& name, const QString& type,
 
 void SetKeyLengthComboxBoxByAlgo(QComboBox* combo,
                                  const QContainer<KeyAlgo>& algos) {
+  if (combo == nullptr) return;
+
   combo->clear();
 
-  QContainer<KeyAlgo> sorted_algos(algos.begin(), algos.end());
-  std::sort(sorted_algos.begin(), sorted_algos.end(),
-            [](const KeyAlgo& a, const KeyAlgo& b) {
-              return a.KeyLength() < b.KeyLength();
-            });
+  QSet<int> added_lengths;
 
-  QStringList key_lengths;
-  for (const auto& algo : sorted_algos) {
-    key_lengths.append(QString::number(algo.KeyLength()));
+  for (const auto& algo : algos) {
+    const auto key_length = algo.KeyLength();
+    if (key_length <= 0) continue;
+
+    if (added_lengths.contains(key_length)) continue;
+    added_lengths.insert(key_length);
+
+    combo->addItem(QString::number(key_length), key_length);
   }
-
-  combo->addItems(key_lengths);
 }
 
 void PopulateAlgoComboBox(QComboBox* combo_box,
@@ -139,6 +140,7 @@ void PopulateAlgoComboBox(QComboBox* combo_box,
     data["id"] = algo.Id();
     data["name"] = algo.Name();
     data["type"] = algo.Type();
+    data["length"] = algo.KeyLength();
 
     combo_box->addItem(label, data);
   }
