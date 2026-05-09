@@ -108,9 +108,9 @@ class SecureMemoryAllocator {
 
   ~SecureMemoryAllocator();
 
-  auto Register(void* ptr, size_t size, bool secure) -> void;
-  auto TakeInfo(void* ptr) -> std::optional<AllocationInfo>;
-  auto GetInfo(void* ptr) -> std::optional<AllocationInfo>;
+  auto reg_mem(void* ptr, size_t size, bool secure) -> void;
+  auto take_info(void* ptr) -> std::optional<AllocationInfo>;
+  auto get_info(void* ptr) -> std::optional<AllocationInfo>;
 
  private:
   int secure_level_ = 0;
@@ -127,7 +127,7 @@ SecureMemoryAllocator::SecureMemoryAllocator(int secure_level)
 
 SecureMemoryAllocator::~SecureMemoryAllocator() = default;
 
-auto SecureMemoryAllocator::Register(void* ptr, size_t size, bool secure)
+auto SecureMemoryAllocator::reg_mem(void* ptr, size_t size, bool secure)
     -> void {
   if (ptr == nullptr) return;
 
@@ -137,7 +137,7 @@ auto SecureMemoryAllocator::Register(void* ptr, size_t size, bool secure)
   allocated_.insert(ptr, AllocationInfo{size, secure});
 }
 
-auto SecureMemoryAllocator::TakeInfo(void* ptr)
+auto SecureMemoryAllocator::take_info(void* ptr)
     -> std::optional<AllocationInfo> {
   if (ptr == nullptr) return {};
 
@@ -155,7 +155,7 @@ auto SecureMemoryAllocator::TakeInfo(void* ptr)
   return info;
 }
 
-auto SecureMemoryAllocator::GetInfo(void* ptr)
+auto SecureMemoryAllocator::get_info(void* ptr)
     -> std::optional<AllocationInfo> {
   if (ptr == nullptr) return {};
 
@@ -175,7 +175,7 @@ auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
   if (size == 0) return nullptr;
 
   auto* ptr = NormalAllocate(size);
-  Register(ptr, size, false);
+  reg_mem(ptr, size, false);
 
   return ptr;
 }
@@ -188,7 +188,7 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
     return nullptr;
   }
 
-  auto old_info = TakeInfo(ptr);
+  auto old_info = take_info(ptr);
   if (!old_info) return nullptr;
 
   if (old_info->secure) {
@@ -197,7 +197,7 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
 
     auto* new_ptr = SecAllocate(size);
     if (new_ptr == nullptr) {
-      Register(ptr, old_info->size, true);
+      reg_mem(ptr, old_info->size, true);
       return nullptr;
     }
 
@@ -208,7 +208,7 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
 
   auto* new_ptr = std::realloc(ptr, size);
   if (new_ptr == nullptr) {
-    Register(ptr, old_info->size, false);
+    reg_mem(ptr, old_info->size, false);
     FLOG_F("realloc failed");
     return nullptr;
   }
@@ -218,14 +218,14 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
                 size - old_info->size);
   }
 
-  Register(new_ptr, size, false);
+  reg_mem(new_ptr, size, false);
   return new_ptr;
 }
 
 void SecureMemoryAllocator::Deallocate(void* ptr) {
   if (ptr == nullptr) return;
 
-  auto info = TakeInfo(ptr);
+  auto info = take_info(ptr);
   if (!info) return;
 
   if (info->secure) {
@@ -252,7 +252,7 @@ auto SecureMemoryAllocator::SecAllocate(size_t size) -> void* {
   }
 
   std::memset(ptr, 0, size);
-  Register(ptr, size, true);
+  reg_mem(ptr, size, true);
 
   return ptr;
 }
@@ -265,12 +265,12 @@ auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
     return nullptr;
   }
 
-  auto old_info = TakeInfo(ptr);
+  auto old_info = take_info(ptr);
   if (!old_info) return nullptr;
 
   auto* new_ptr = SecAllocate(size);
   if (new_ptr == nullptr) {
-    Register(ptr, old_info->size, old_info->secure);
+    reg_mem(ptr, old_info->size, old_info->secure);
     return nullptr;
   }
 
@@ -288,7 +288,7 @@ auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
 void SecureMemoryAllocator::SecDeallocate(void* ptr) {
   if (ptr == nullptr) return;
 
-  auto info = TakeInfo(ptr);
+  auto info = take_info(ptr);
   if (!info) return;
 
   if (info->secure) {
