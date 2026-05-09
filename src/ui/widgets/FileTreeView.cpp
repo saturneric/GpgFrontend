@@ -165,22 +165,7 @@ QTreeView[gfFileTreeView="true"]::item:selected {
 void FileTreeView::selectionChanged(const QItemSelection& selected,
                                     const QItemSelection& deselected) {
   QTreeView::selectionChanged(selected, deselected);
-
-  selected_paths_.clear();
-
-  const auto rows = selectionModel()->selectedRows(0);
-  selected_paths_.reserve(rows.size());
-
-  for (const auto& index : rows) {
-    if (!index.isValid()) continue;
-
-    const auto path = dir_model_->filePath(index);
-    if (path.isEmpty() || path == current_path_) continue;
-
-    selected_paths_.append(path);
-  }
-
-  emit SignalSelectedChanged(selected_paths_);
+  sync_selected_paths_from_selection();
 }
 
 void FileTreeView::SlotGoPath(const QString& target_path) {
@@ -479,15 +464,7 @@ void FileTreeView::SlotRenameSelectedItem() {
     return;
   }
 
-  SlotGoPath(current_path_);
-
-  const auto index = dir_model_->index(new_name_path);
-  if (index.isValid()) {
-    setCurrentIndex(index);
-    selectionModel()->select(
-        index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-    scrollTo(index, QAbstractItemView::PositionAtCenter);
-  }
+  refresh_current_path_and_select_paths({new_name_path});
 
   NotifyStatus(tr(R"(Renamed "%1" to "%2".)").arg(old_name, new_name));
 }
@@ -1084,19 +1061,7 @@ void FileTreeView::dropEvent(QDropEvent* event) {
     result_paths.append(new_path);
   }
 
-  SlotGoPath(current_path_);
-
-  selectionModel()->clearSelection();
-
-  for (const auto& result_path : result_paths) {
-    const auto index = dir_model_->index(result_path);
-    if (!index.isValid()) continue;
-
-    setCurrentIndex(index);
-    selectionModel()->select(
-        index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
-    scrollTo(index, QAbstractItemView::PositionAtCenter);
-  }
+  refresh_current_path_and_select_paths(result_paths);
 
   event->setDropAction(operation);
   event->accept();
@@ -1266,6 +1231,70 @@ void FileTreeView::SlotRefresh() {
 
   emit UISignalStation::GetInstance()->SignalRefreshStatusBar(
       tr("File list refreshed."), 1500);
+}
+
+void FileTreeView::sync_selected_paths_from_selection() {
+  selected_paths_.clear();
+
+  if (selectionModel() == nullptr || dir_model_ == nullptr) {
+    emit SignalSelectedChanged(selected_paths_);
+    return;
+  }
+
+  const auto rows = selectionModel()->selectedRows(0);
+  selected_paths_.reserve(rows.size());
+
+  for (const auto& index : rows) {
+    if (!index.isValid()) continue;
+
+    const auto path = dir_model_->filePath(index);
+    if (path.isEmpty() || path == current_path_) continue;
+
+    selected_paths_.append(path);
+  }
+
+  emit SignalSelectedChanged(selected_paths_);
+}
+
+void FileTreeView::refresh_current_path_and_select_paths(
+    const QStringList& paths) {
+  SlotGoPath(current_path_);
+
+  QPointer<FileTreeView> self(this);
+
+  QTimer::singleShot(200, this, [self, paths]() {
+    if (self == nullptr) return;
+    if (self->dir_model_ == nullptr || self->selectionModel() == nullptr) {
+      return;
+    }
+
+    self->selectionModel()->clearSelection();
+
+    QModelIndex first_valid_index;
+
+    for (const auto& path : paths) {
+      if (path.isEmpty()) continue;
+
+      const auto index = self->dir_model_->index(path);
+      if (!index.isValid()) continue;
+
+      if (!first_valid_index.isValid()) {
+        first_valid_index = index;
+      }
+
+      self->selectionModel()->select(
+          index, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    }
+
+    if (first_valid_index.isValid()) {
+      self->setCurrentIndex(first_valid_index);
+      self->scrollTo(first_valid_index, QAbstractItemView::PositionAtCenter);
+    } else {
+      self->setCurrentIndex(QModelIndex());
+    }
+
+    self->sync_selected_paths_from_selection();
+  });
 }
 
 }  // namespace GpgFrontend::UI

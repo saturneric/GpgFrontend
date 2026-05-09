@@ -495,6 +495,23 @@ class FileTreeView : public QTreeView {
    * @return Target directory path.
    */
   [[nodiscard]] auto current_target_directory_path() const -> QString;
+
+  /**
+   * @brief Rebuilds cached selected paths from the current selection model and
+   * emits SignalSelectedChanged().
+   */
+  void sync_selected_paths_from_selection();
+
+  /**
+   * @brief Refreshes the current directory and selects paths after the
+   * QFileSystemModel has had time to update.
+   *
+   * This is useful after copy, move, rename and other file-system operations
+   * where QFileSystemModel updates asynchronously.
+   *
+   * @param paths Paths to select after refresh.
+   */
+  void refresh_current_path_and_select_paths(const QStringList& paths);
 };
 
 }  // namespace GpgFrontend::UI
