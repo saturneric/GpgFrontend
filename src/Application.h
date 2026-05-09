@@ -35,6 +35,13 @@ namespace GpgFrontend {
 /**
  * @brief
  *
+ * @param level
+ */
+void SetGFLogLevel(int level);
+
+/**
+ * @brief
+ *
  * @param type
  * @param context
  * @param msg

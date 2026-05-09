@@ -173,15 +173,19 @@ auto ParseLogLevel(const QString& log_level) -> int {
   if (log_level == "none") return 0;
 
   if (log_level == "debug") {
+    SetGFLogLevel(static_cast<int>(GFLogLevel::kDEBUG));
     QLoggingCategory::setFilterRules(
         BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kDEBUG)));
   } else if (log_level == "info") {
+    SetGFLogLevel(static_cast<int>(GFLogLevel::kINFO));
     QLoggingCategory::setFilterRules(
         BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kINFO)));
   } else if (log_level == "warn") {
+    SetGFLogLevel(static_cast<int>(GFLogLevel::kWARNING));
     QLoggingCategory::setFilterRules(
         BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kWARNING)));
   } else if (log_level == "error") {
+    SetGFLogLevel(static_cast<int>(GFLogLevel::kCRITICAL));
     QLoggingCategory::setFilterRules(
         BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kCRITICAL)));
   } else {

@@ -36,6 +36,16 @@
 #include "core/GFLog.h"
 #include "ui/GpgFrontendApplication.h"
 
+namespace {
+auto BoolText(bool value) -> QString {
+  return value ? QStringLiteral("true") : QStringLiteral("false");
+}
+
+auto DisplayPath(const QString& path) -> QString {
+  return path.isEmpty() ? QStringLiteral("<empty>") : path;
+}
+}  // namespace
+
 namespace GpgFrontend {
 
 void GpgFrontendContext::load_env_conf_set_properties() {
@@ -49,8 +59,9 @@ void GpgFrontendContext::load_env_conf_set_properties() {
 
   property("GFSelfCheck", s.value("SelfCheck", false).toBool());
   property("GFSecureLevel", s.value("SecureLevel", 0).toInt());
-  property("GFLogLevel",
-           s.value("LogLevel", static_cast<int>(GFLogLevel::kWARNING)).toInt());
+  property(
+      "GFLogLevel",
+      s.value("LogLevel", static_cast<int>(GFLogLevel::kCRITICAL)).toInt());
   property("GFPortableMode", s.value("PortableMode", false).toBool());
   property("GFGnuPGOfflineMode", s.value("GnuPGOfflineMode", false).toBool());
   property("GFPinentryProgramPath",
@@ -58,22 +69,27 @@ void GpgFrontendContext::load_env_conf_set_properties() {
   property("GFLogRingBufferCapacity",
            s.value("LogRingBufferCapacity", 1024).toInt());
 
-  qInfo() << "ENV"
-          << "GFSelfCheck" << property("GFSelfCheck").toInt();
-  qInfo() << "ENV"
-          << "GFSecureLevel" << property("GFSecureLevel").toInt();
-  qInfo() << "ENV"
-          << "GFLogLevel" << property("GFLogLevel").toInt();
-  qInfo() << "ENV"
-          << "GFPortableMode" << property("GFPortableMode").toBool();
-  qInfo() << "ENV"
-          << "GFGnuPGOfflineMode" << property("GFGnuPGOfflineMode").toBool();
-  qInfo() << "ENV"
-          << "GFPinentryProgramPath"
-          << property("GFPinentryProgramPath").toString();
-  qInfo() << "ENV"
-          << "GFLogRingBufferCapacity"
-          << property("GFLogRingBufferCapacity").toInt();
+  const auto self_check = property("GFSelfCheck").toInt();
+  const auto secure_level = property("GFSecureLevel").toInt();
+  const auto log_level = property("GFLogLevel").toInt();
+  const auto portable_mode = property("GFPortableMode").toBool();
+  const auto gpg_offline_mode = property("GFGnuPGOfflineMode").toBool();
+  const auto pinentry_program_path =
+      property("GFPinentryProgramPath").toString();
+  const auto ring_buffer_capacity = property("GFLogRingBufferCapacity").toInt();
+
+  qInfo().noquote().nospace()
+      << "\n"
+      << "================ GpgFrontend Startup Environment ================\n"
+      << "Self Check              : " << self_check << "\n"
+      << "Secure Level            : " << secure_level << "\n"
+      << "Log Level               : " << log_level << "\n"
+      << "Portable Mode           : " << BoolText(portable_mode) << "\n"
+      << "GnuPG Offline Mode      : " << BoolText(gpg_offline_mode) << "\n"
+      << "Pinentry Program Path   : " << DisplayPath(pinentry_program_path)
+      << "\n"
+      << "Log Ring Buffer Capacity: " << ring_buffer_capacity << "\n"
+      << "==================================================================";
 }
 
 void GpgFrontendContext::InitApplication() {

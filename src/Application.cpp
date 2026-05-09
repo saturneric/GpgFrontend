@@ -36,10 +36,49 @@
 #include "GpgFrontendContext.h"
 #include "Initialize.h"
 
+namespace {
+
+std::atomic<int> g_log_level{static_cast<int>(GpgFrontend::GFLogLevel::kINFO)};
+
+auto ShouldLogMessage(QtMsgType type, GpgFrontend::GFLogLevel level) -> bool {
+  switch (level) {
+    case GpgFrontend::GFLogLevel::kDEBUG:
+      return true;
+
+    case GpgFrontend::GFLogLevel::kINFO:
+      return type != QtDebugMsg;
+
+    case GpgFrontend::GFLogLevel::kWARNING:
+      return type != QtDebugMsg && type != QtInfoMsg;
+
+    case GpgFrontend::GFLogLevel::kCRITICAL:
+      return type == QtCriticalMsg || type == QtFatalMsg;
+
+    case GpgFrontend::GFLogLevel::kFATAL:
+      return type == QtFatalMsg;
+
+    default:
+      return type != QtDebugMsg;
+  }
+}
+
+}  // namespace
+
 namespace GpgFrontend {
+
+void SetGFLogLevel(int level) {
+  g_log_level.store(level, std::memory_order_relaxed);
+}
 
 void GFMessageHandler(QtMsgType type, const QMessageLogContext& context,
                       const QString& msg) {
+  const auto level =
+      static_cast<GFLogLevel>(g_log_level.load(std::memory_order_relaxed));
+
+  if (!ShouldLogMessage(type, level)) {
+    return;
+  }
+
   const QString formatted = qFormatLogMessage(type, context, msg);
 
   GFLogEntry entry;

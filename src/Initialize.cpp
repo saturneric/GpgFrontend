@@ -88,6 +88,7 @@ void PreInit(const GFCxtWPtr &p_ctx) {
 
   const int log_level = app->property("GFLogLevel").toInt();
   QLoggingCategory::setFilterRules(BuildQtLoggingFilterRules(log_level));
+  SetGFLogLevel(log_level);
 
 #ifdef RELEASE
   qSetMessagePattern(
