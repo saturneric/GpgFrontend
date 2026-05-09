@@ -47,7 +47,13 @@ auto GenerateKeyGnuPGImpl(OpenPGPContext& ctx,
 
   auto& g_ctx = GpgCtx(ctx);
   const auto userid = params->GetUserid();
-  const auto algo = params->GetAlgo().Id();
+  auto algo = params->GetAlgo().Id();
+
+  if (params->SubAlgo().Id() != KeyGenerateInfo::kNoneAlgo.Id() &&
+      !params->SubAlgo().Id().isEmpty()) {
+    algo += "_" + params->SubAlgo().Id();
+    LOG_D() << "hybrid key algo: " << algo;
+  }
 
   unsigned long expires =
       QDateTime::currentDateTime().secsTo(params->GetExpireTime());

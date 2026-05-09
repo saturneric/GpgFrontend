@@ -66,13 +66,14 @@ PassphraseDialog::PassphraseDialog(
       tr("Passphrase info: %1").arg(ctx_->GetPassphraseInfo());
 
   if (ctx_->IsAskForNew()) {
-    detail_text += tr("\nThis passphrase will be used to set a new password.");
+    detail_text +=
+        "\n" + tr("This passphrase will be used to set a new password.");
   }
 
   auto key = ctx_->GetKey();
   if (key != nullptr) {
-    detail_text += tr("\nKey ID: %1").arg(key->ID());
-    detail_text += tr("\nKey UID: %1").arg(key->UID());
+    detail_text += "\n" + tr("Key ID: %1").arg(key->ID());
+    detail_text += "\n" + tr("Key UID: %1").arg(key->UID());
   }
 
   auto* details_label = new QLabel(detail_text, details_frame);

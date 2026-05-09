@@ -41,11 +41,22 @@ auto GenerateKeyWithSubkeyRpgpImpl(
   auto& kie = KeyImportExportOperation::GetInstance(ctx.GetChannel());
 
   Rust::GfrKeyConfig key_config;
-  key_config.algo = KeyAlgoId2GfrKeyAlgo(p_params->GetAlgo().Id());
   key_config.can_sign = p_params->IsAllowSign();
   key_config.can_encrypt = p_params->IsAllowEncr();
   key_config.can_auth = p_params->IsAllowAuth();
   key_config.has_passphrase = !p_params->IsNoPassPhrase();
+
+  auto algo = p_params->GetAlgo().Id();
+
+  // For hybrid key generation, the primary key algorithm string is appended
+  // with the subkey algorithm string, separated by an underscore.
+  if (p_params->SubAlgo().Id() != KeyGenerateInfo::kNoneAlgo.Id() &&
+      !p_params->SubAlgo().Id().isEmpty()) {
+    algo += "_" + p_params->SubAlgo().Id();
+    LOG_D() << "hybrid primary key algo detected: " << algo;
+  }
+
+  key_config.algo = KeyAlgoId2GfrKeyAlgo(algo);
 
   if (key_config.algo == Rust::GfrKeyAlgo::Unknown) {
     LOG_E() << "Unsupported key algorithm: " << p_params->GetAlgo().Id();

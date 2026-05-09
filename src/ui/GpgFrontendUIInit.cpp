@@ -53,10 +53,6 @@ QContainer<QByteArray> loaded_qm_datum;
   std::_Exit(0);
 }
 
-}  // namespace
-
-extern void InitUITranslations();
-
 void WaitEnvCheckingProcess() {
   FLOG_D() << "we need to wait for env checking process";
 
@@ -169,6 +165,10 @@ void WaitEnvCheckingProcess() {
 
   looper.exec();
 }
+
+}  // namespace
+
+extern void InitUITranslations();
 
 void PreInitGpgFrontendUI() { CommonUtils::GetInstance(); }
 

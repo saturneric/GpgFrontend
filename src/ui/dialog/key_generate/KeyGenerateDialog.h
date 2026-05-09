@@ -50,6 +50,9 @@ class KeyGenerateDialog : public GeneralDialog {
     QString key_algo_type;
     QString key_validity;
 
+    QString key_sub_algo;
+    QString key_sub_algo_type;
+
     bool has_s_key = false;
     QString s_key_algo;
     QString s_key_algo_type;
@@ -254,6 +257,12 @@ class KeyGenerateDialog : public GeneralDialog {
    *
    */
   void flush_easy_profile_config_cache();
+
+  /**
+   * @brief
+   *
+   */
+  void refresh_primary_hybrid_algo_widgets_state();
 };
 
 }  // namespace GpgFrontend::UI

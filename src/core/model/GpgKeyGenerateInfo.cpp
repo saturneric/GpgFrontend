@@ -677,25 +677,11 @@ auto KeyGenerateInfo::GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo> {
 
   // Add hybrid primary key algos if supported since we only have few hybrid
   // primary key algos, we can directly add them as a normal algo temperately.
+  // Add hybrid subkey algos if supported
   for (const auto &algo : kHybridPrimaryKeyAlgo) {
     if (!GpgContextSupportIf(channel, algo.SupportedVersion())) continue;
 
-    for (const auto &hybrid_algo : algo.SubAlgos(channel)) {
-      auto cap_opera = 0;
-      if (hybrid_algo.CanCert()) cap_opera |= kCERT;
-      if (hybrid_algo.CanEncrypt()) cap_opera |= kENCRYPT;
-      if (hybrid_algo.CanSign()) cap_opera |= kSIGN;
-      if (hybrid_algo.CanAuth()) cap_opera |= kAUTH;
-
-      algos.append(KeyAlgo{
-          algo.Id() + "_" + hybrid_algo.Id(),
-          algo.Name() + "_" + hybrid_algo.Name(),
-          "HYBRID",
-          algo.KeyLength(),
-          cap_opera,
-          algo.SupportedVersion(),
-      });
-    }
+    algos.append(algo);
   }
 
   std::sort(algos.begin(), algos.end(), [](const KeyAlgo &a, const KeyAlgo &b) {
@@ -726,7 +712,10 @@ auto KeyGenerateInfo::GetSupportedSubkeyAlgo(int channel)
   }
 
   std::sort(algos.begin(), algos.end(), [](const KeyAlgo &a, const KeyAlgo &b) {
-    return a.Name() < b.Name() && a.KeyLength() < b.KeyLength();
+    if (a.Name() != b.Name()) return a.Name() < b.Name();
+    if (a.KeyLength() != b.KeyLength()) return a.KeyLength() < b.KeyLength();
+    if (a.Type() != b.Type()) return a.Type() < b.Type();
+    return a.Id() < b.Id();
   });
 
   return algos;

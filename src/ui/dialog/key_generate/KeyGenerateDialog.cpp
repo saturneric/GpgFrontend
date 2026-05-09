@@ -78,15 +78,27 @@ auto SetComboCurrentAlgo(QComboBox* combo, const GpgFrontend::KeyAlgo& algo)
 }
 
 auto MakeDefaultEasyModeConf() -> QJsonArray {
-  auto make_entry = [](const QString& name, const QString& p_algo,
-                       const QString& p_type, const QString& s_algo = "",
-                       const QString& s_type = "", const QString& ss_algo = "",
-                       const QString& ss_type = "",
-                       bool hidden = false) -> QJsonObject {
+  auto make_entry =
+      [](const QString& name, const QString& p_algo, const QString& p_type,
+         const QString& s_algo = "", const QString& s_type = "",
+         const QString& ss_algo = "", const QString& ss_type = "",
+         const QString& p_sub_algo = "", const QString& p_sub_type = "",
+         bool hidden = false) -> QJsonObject {
     QJsonObject obj;
     obj["name"] = name;
-    obj["primary"] =
-        QJsonObject{{"algo", p_algo}, {"type", p_type}, {"validity", "2y"}};
+
+    QJsonObject primary{
+        {"algo", p_algo},
+        {"type", p_type},
+        {"validity", "2y"},
+    };
+
+    if (!p_sub_algo.isEmpty()) {
+      primary["sub_algo"] = p_sub_algo;
+      primary["sub_algo_type"] = p_sub_type;
+    }
+
+    obj["primary"] = primary;
 
     if (!s_algo.isEmpty()) {
       auto subkey_obj =
@@ -156,6 +168,22 @@ auto EasyModeConfFromJson(const QJsonObject& obj)
   conf.key_algo = raw_algo.toLower();
   conf.key_algo_type = primary.value("type").toString().trimmed();
 
+  if (primary.contains("sub_algo") &&
+      !primary.value("sub_algo").toString().trimmed().isEmpty()) {
+    auto raw_key_sub_algo = primary.value("sub_algo").toString().trimmed();
+    conf.key_sub_algo = raw_key_sub_algo.toLower();
+    conf.key_sub_algo_type =
+        primary.value("sub_algo_type").toString().trimmed();
+
+    if (conf.key_sub_algo_type.isEmpty()) {
+      auto [ss_found, ss_algo] =
+          GpgFrontend::KeyGenerateInfo::SearchSubKeyAlgo(conf.key_sub_algo);
+      if (ss_found) {
+        conf.key_sub_algo_type = ss_algo.Type();
+      }
+    }
+  }
+
   conf.key_validity = primary.value("validity").toString();
   conf.hidden = obj.value("hidden").toBool(false);
 
@@ -222,6 +250,12 @@ auto EasyModeConfToJson(
   primary["algo"] = conf.key_algo;
   primary["type"] = conf.key_algo_type;
   primary["validity"] = conf.key_validity;
+
+  if (!conf.key_sub_algo.isEmpty()) {
+    primary["sub_algo"] = conf.key_sub_algo;
+    primary["sub_algo_type"] = conf.key_sub_algo_type;
+  }
+
   obj["primary"] = primary;
 
   if (conf.has_s_key) {
@@ -360,6 +394,8 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->pAlgoLabel->setText(tr("Algorithm"));
   ui_->pExpireDateLabel->setText(tr("Validity Period"));
   ui_->pKeyLengthLabel->setText(tr("Key Length"));
+  ui_->pScndAlgoLabel->setText(tr("Second Algorithm"));
+  ui_->pScndKeyLengthLabel->setText(tr("Second Key Length"));
   ui_->pUsageLabel->setText(tr("Usage"));
   ui_->pEncrCheckBox->setText(tr("Encrypt"));
   ui_->pSignCheckBox->setText(tr("Sign"));
@@ -514,6 +550,8 @@ void KeyGenerateDialog::InitUi() {
   setup_combo(ui_->easyValidityPeriodComboBox);
   setup_combo(ui_->pAlgoComboBox);
   setup_combo(ui_->pKeyLengthComboBox);
+  setup_combo(ui_->pScndAlgoComboBox);
+  setup_combo(ui_->pScndKeyLengthComboBox);
   setup_combo(ui_->sAlgoComboBox);
   setup_combo(ui_->sKeyLengthComboBox);
   setup_combo(ui_->scndAlgoComboBox);
@@ -623,6 +661,8 @@ void KeyGenerateDialog::refresh_widgets_state() {
   ui_->pKeyLengthComboBox->setCurrentText(
       QString::number(gen_key_info_->GetKeyLength()));
   ui_->pKeyLengthComboBox->blockSignals(false);
+
+  refresh_primary_hybrid_algo_widgets_state();
 
   ui_->pEncrCheckBox->blockSignals(true);
   ui_->pEncrCheckBox->setCheckState(
@@ -956,6 +996,25 @@ void KeyGenerateDialog::set_signal_slot_config() {
         refresh_hybrid_algo_widgets_state();
       });
 
+  connect(ui_->pScndAlgoComboBox, &QComboBox::currentTextChanged, this,
+          [this](const QString& text) -> void {
+            Q_UNUSED(text)
+
+            const auto sub_algos = gen_key_info_->GetAlgo().SubAlgos(channel_);
+            const auto [name, type] =
+                ComboCurrentNameType(ui_->pScndAlgoComboBox);
+
+            auto [found, algo] = GetAlgoByNameType(name, type, sub_algos);
+            if (found) {
+              gen_key_info_->SetSubAlgo(algo);
+              slot_set_easy_key_algo_2_custom();
+            } else {
+              gen_key_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+            }
+
+            refresh_primary_hybrid_algo_widgets_state();
+          });
+
   connect(ui_->easyProfileComboBox,
           qOverload<int>(&QComboBox::currentIndexChanged), this,
           &KeyGenerateDialog::slot_easy_profile_changed);
@@ -965,6 +1024,7 @@ void KeyGenerateDialog::set_signal_slot_config() {
 
   connect(ui_->pExpireDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
           [=](const QDateTime& dt) {
+            if (gen_key_info_ == nullptr) return;
             gen_key_info_->SetExpireTime(dt);
 
             slot_set_easy_valid_date_2_custom();
@@ -972,6 +1032,7 @@ void KeyGenerateDialog::set_signal_slot_config() {
 
   connect(ui_->sExpireDateTimeEdit, &QDateTimeEdit::dateTimeChanged, this,
           [=](const QDateTime& dt) {
+            if (gen_subkey_info_ == nullptr) return;
             gen_subkey_info_->SetExpireTime(dt);
 
             slot_set_easy_valid_date_2_custom();
@@ -1005,6 +1066,21 @@ void KeyGenerateDialog::set_signal_slot_config() {
 
             if (found) {
               gen_subkey_info_->SetAlgo(algo);
+              slot_set_easy_key_algo_2_custom();
+            }
+          });
+
+  connect(ui_->pScndKeyLengthComboBox, &QComboBox::currentTextChanged, this,
+          [this](const QString& text) -> void {
+            const auto sub_algos = gen_key_info_->GetAlgo().SubAlgos(channel_);
+            const auto [name, type] =
+                ComboCurrentNameType(ui_->pScndAlgoComboBox);
+
+            auto [found, algo] = GetAlgoByNameTypeAndKeyLength(
+                name, type, text.toInt(), sub_algos);
+
+            if (found) {
+              gen_key_info_->SetSubAlgo(algo);
               slot_set_easy_key_algo_2_custom();
             }
           });
@@ -1070,6 +1146,8 @@ void KeyGenerateDialog::sync_gen_key_algo_info() {
   } else {
     gen_key_info_->SetAlgo(KeyGenerateInfo::kNoneAlgo);
   }
+
+  gen_key_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
 }
 
 void KeyGenerateDialog::sync_gen_subkey_algo_info() {
@@ -1119,7 +1197,24 @@ void KeyGenerateDialog::slot_easy_profile_changed(int index) {
 
   auto [found, algo] = GetAlgoByIdType(c.key_algo, c.key_algo_type,
                                        supported_primary_key_algos_);
-  if (found) gen_key_info_->SetAlgo(algo);
+  if (found) {
+    gen_key_info_->SetAlgo(algo);
+
+    if (c.key_sub_algo.isEmpty()) {
+      gen_key_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+    } else {
+      const auto sub_algos = algo.SubAlgos(channel_);
+
+      auto [sub_found, sub_algo] =
+          GetAlgoByIdType(c.key_sub_algo, c.key_sub_algo_type, sub_algos);
+
+      if (sub_found) {
+        gen_key_info_->SetSubAlgo(sub_algo);
+      } else {
+        gen_key_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+      }
+    }
+  }
 
   auto dt = ParseValidityString(c.key_validity);
   gen_key_info_->SetNonExpired(c.key_validity == "forever" ||
@@ -1287,6 +1382,15 @@ void KeyGenerateDialog::load_easy_profile_config() {
                                          supported_primary_key_algos_);
     if (!found) continue;  // skip config with unsupported algo
 
+    if (!item.key_sub_algo.isEmpty()) {
+      const auto sub_algos = algo.SubAlgos(channel_);
+
+      auto [p_sub_found, p_sub_algo] =
+          GetAlgoByIdType(item.key_sub_algo, item.key_sub_algo_type, sub_algos);
+
+      if (!p_sub_found) continue;
+    }
+
     if (item.has_s_key) {
       auto [s_found, s_algo] = GetAlgoByIdType(
           item.s_key_algo, item.s_key_algo_type, supported_subkey_algos_);
@@ -1333,6 +1437,14 @@ void KeyGenerateDialog::slot_save_as_easy_profile_config() {
   conf.key_algo_type = gen_key_info_->GetAlgo().Type();
   conf.key_validity =
       gen_key_info_->IsNonExpired() ? "forever" : expire_option.key;
+
+  if (gen_key_info_->SubAlgo().Id() != KeyGenerateInfo::kNoneAlgo.Id()) {
+    conf.key_sub_algo = gen_key_info_->SubAlgo().Id();
+    conf.key_sub_algo_type = gen_key_info_->SubAlgo().Type();
+  } else {
+    conf.key_sub_algo.clear();
+    conf.key_sub_algo_type.clear();
+  }
 
   if (conf.key_validity == "custom") {
     conf.key_validity =
@@ -1516,4 +1628,71 @@ void KeyGenerateDialog::refresh_hybrid_algo_widgets_state() {
 
   ui_->scndKeyLengthComboBox->blockSignals(false);
 }
+
+void KeyGenerateDialog::refresh_primary_hybrid_algo_widgets_state() {
+  const auto sub_algos = gen_key_info_->GetAlgo().SubAlgos(channel_);
+
+  if (sub_algos.isEmpty()) {
+    ui_->pScndAlgoComboBox->blockSignals(true);
+    ui_->pScndAlgoComboBox->clear();
+    ui_->pScndAlgoComboBox->setEnabled(false);
+    ui_->pScndAlgoComboBox->setHidden(true);
+    ui_->pScndAlgoComboBox->blockSignals(false);
+
+    ui_->pScndKeyLengthComboBox->blockSignals(true);
+    ui_->pScndKeyLengthComboBox->clear();
+    ui_->pScndKeyLengthComboBox->setEnabled(false);
+    ui_->pScndKeyLengthComboBox->setHidden(true);
+    ui_->pScndKeyLengthComboBox->blockSignals(false);
+
+    ui_->pScndAlgoLabel->setHidden(true);
+    ui_->pScndKeyLengthLabel->setHidden(true);
+
+    gen_key_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+    return;
+  }
+
+  ui_->pScndAlgoLabel->setHidden(false);
+  ui_->pScndAlgoComboBox->setEnabled(true);
+  ui_->pScndAlgoComboBox->setHidden(false);
+
+  ui_->pScndAlgoComboBox->blockSignals(true);
+  PopulateAlgoComboBox(ui_->pScndAlgoComboBox, sub_algos);
+  ui_->pScndAlgoComboBox->blockSignals(false);
+
+  if (!gen_key_info_->SubAlgo().Id().isEmpty() &&
+      gen_key_info_->SubAlgo() != KeyGenerateInfo::kNoneAlgo) {
+    ui_->pScndAlgoComboBox->blockSignals(true);
+    SetComboCurrentAlgo(ui_->pScndAlgoComboBox, gen_key_info_->SubAlgo());
+    ui_->pScndAlgoComboBox->blockSignals(false);
+  } else if (ui_->pScndAlgoComboBox->count() > 0) {
+    ui_->pScndAlgoComboBox->blockSignals(true);
+    ui_->pScndAlgoComboBox->setCurrentIndex(0);
+
+    const auto [id, type] = ComboCurrentIdType(ui_->pScndAlgoComboBox);
+    auto [found, algo] = GetAlgoByIdType(id, type, sub_algos);
+    if (found) {
+      gen_key_info_->SetSubAlgo(algo);
+    }
+
+    ui_->pScndAlgoComboBox->blockSignals(false);
+  }
+
+  ui_->pScndKeyLengthLabel->setHidden(false);
+  ui_->pScndKeyLengthComboBox->setEnabled(true);
+  ui_->pScndKeyLengthComboBox->setHidden(false);
+
+  ui_->pScndKeyLengthComboBox->blockSignals(true);
+
+  const auto [name, type] = ComboCurrentNameType(ui_->pScndAlgoComboBox);
+
+  SetKeyLengthComboxBoxByAlgo(ui_->pScndKeyLengthComboBox,
+                              SearchAlgoByNameType(name, type, sub_algos));
+
+  ui_->pScndKeyLengthComboBox->setCurrentText(
+      QString::number(gen_key_info_->SubAlgo().KeyLength()));
+
+  ui_->pScndKeyLengthComboBox->blockSignals(false);
+}
+
 }  // namespace GpgFrontend::UI
