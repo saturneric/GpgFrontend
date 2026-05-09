@@ -125,7 +125,6 @@ class CacheManager::Impl : public QObject {
 
     if (!durable_cache_storage_.exists(key)) {
       durable_cache_storage_.insert(key, load_cache_storage(key, {}));
-      durable_cache_modified_ = true;
     }
 
     auto cache = LoadSecDurableCache(key);
@@ -154,7 +153,6 @@ class CacheManager::Impl : public QObject {
 
     if (!durable_cache_storage_.exists(key)) {
       durable_cache_storage_.insert(key, load_cache_storage(key, {}));
-      durable_cache_modified_ = true;
     }
 
     auto cache = durable_cache_storage_.get(key);
@@ -227,9 +225,8 @@ class CacheManager::Impl : public QObject {
    *
    */
   void slot_flush_cache_storage() {
-    if (!durable_cache_modified_) return;
-
-    FLOG_D() << "flushing durable cache to disk...";
+    if (!durable_cache_modified_.exchange(false)) return;
+    LOG_D() << "flushing durable cache to disk...";
 
     for (const auto& cache : durable_cache_storage_.mirror()) {
       if (cache.second.Empty()) continue;
@@ -239,7 +236,6 @@ class CacheManager::Impl : public QObject {
     }
 
     opera_.StoreDataObj(drk_key_, QJsonDocument(key_storage_));
-    durable_cache_modified_ = false;
   }
 
  private:
@@ -286,7 +282,8 @@ class CacheManager::Impl : public QObject {
     }
 
     for (const auto& key : registered_key_list) {
-      load_cache_storage(key.toString(), {});
+      const auto key_str = key.toString();
+      durable_cache_storage_.insert(key_str, load_cache_storage(key_str, {}));
     }
 
     key_storage_ = registered_key_list;

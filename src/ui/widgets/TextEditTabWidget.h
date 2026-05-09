@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/GFBuffer.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend::UI {
 
@@ -142,6 +143,18 @@ class TextEditTabWidget : public QTabWidget {
   /**
    * @brief
    *
+   */
+  void SlotRestoreTextEditorsCacheNow();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotTabClosedForRecovery();
+
+  /**
+   * @brief
+   *
    * @param index
    * @return QString
    */
@@ -163,16 +176,14 @@ class TextEditTabWidget : public QTabWidget {
    */
   void dropEvent(QDropEvent* event) override;
 
- private slots:
-  /**
-   * @brief
-   *
-   */
-  void slot_save_status_to_cache_for_recovery();
-
  private:
   int count_page_ = 0;
   int text_page_data_modified_count_ = 0;
+
+  QTimer* recovery_cache_timer_ = nullptr;
+  QContainer<QPointer<PlainTextEditorPage>> recovery_dirty_pages_;
+  QPointer<PlainTextEditorPage> last_current_text_page_;
+  bool recovery_restoring_ = false;
 
   /**
    * @brief
@@ -273,6 +284,20 @@ class TextEditTabWidget : public QTabWidget {
    */
   static auto can_open_as_text_file(const QFileInfo& file_info,
                                     QString* error_message) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param page
+   */
+  void schedule_recovery_cache(PlainTextEditorPage* page);
+
+  /**
+   * @brief
+   *
+   * @param force
+   */
+  void flush_recovery_cache(bool force = false);
 };
 
 }  // namespace GpgFrontend::UI

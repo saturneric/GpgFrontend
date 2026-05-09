@@ -216,6 +216,11 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
     page->SetFilePath(file_name);
     page->NotifyFileSaved();
 
+    // The file has been intentionally saved by the user. Rewrite recovery cache
+    // after saving, so the cache is cleared for this page and won't be restored
+    // later.
+    tab_widget_->SlotTabClosedForRecovery();
+
     file.close();
     return true;
   }
@@ -261,11 +266,17 @@ void TextEdit::slot_remove_tab(int index) {
     auto* tab = tab_widget_->widget(index);
     tab_widget_->removeTab(index);
 
-    // if the tab was the last one, set the current index to the last tab
-    tab_widget_->setCurrentIndex(index >= last_index ? last_index
-                                                     : last_index - 1);
+    // If the tab was the last one, set the current index to the last tab.
+    if (tab_widget_->count() > 0) {
+      tab_widget_->setCurrentIndex(
+          std::clamp(index >= last_index ? last_index : last_index - 1, 0,
+                     tab_widget_->count() - 1));
+    }
 
-    // close and destroy tab
+    // The tab has been intentionally closed by the user. Rewrite recovery cache
+    // after removeTab(), so the closed tab is no longer recoverable.
+    tab_widget_->SlotTabClosedForRecovery();
+
     if (tab != nullptr) {
       tab->close();
       tab->deleteLater();
@@ -281,17 +292,20 @@ void TextEdit::slot_remove_tab(int index) {
  */
 auto TextEdit::maybe_save_current_tab(bool ask_to_save) -> bool {
   PlainTextEditorPage* page = CurPageTextEdit();
-  // if this page is no textedit, there should be nothing to save
   if (page == nullptr) return true;
 
   QTextDocument* document = page->GetTextPage()->document();
+  if (document == nullptr) return true;
 
-  if (page->ReadDone() && document->isModified()) {
+  if (document->isModified()) {
     QMessageBox::StandardButton result = QMessageBox::Cancel;
 
-    // write title of tab to docname and remove the leading *
     QString doc_name = tab_widget_->tabText(tab_widget_->currentIndex());
-    doc_name.remove(0, 2);
+    doc_name = doc_name.trimmed();
+    while (doc_name.startsWith("*")) {
+      doc_name.remove(0, 1);
+      doc_name = doc_name.trimmed();
+    }
 
     const QString& file_path = page->GetFilePath();
     if (ask_to_save) {
@@ -306,13 +320,15 @@ auto TextEdit::maybe_save_current_tab(bool ask_to_save) -> bool {
               "<br/>",
           QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     }
+
     if ((result == QMessageBox::Save) || (!ask_to_save)) {
       if (file_path.isEmpty()) return SlotSaveAs();
       return saveFile(file_path);
     }
+
     return result == QMessageBox::Discard;
   }
-  page->deleteLater();
+
   return true;
 }
 
@@ -559,20 +575,25 @@ void TextEdit::SlotSwitchTabDown() const {
  *   return a hash of tabindexes and title of unsaved tabs
  */
 auto TextEdit::UnsavedDocuments() const -> QHash<int, QString> {
-  QHash<int, QString> unsaved_docs;  // this list could be used to implement
-                                     // gedit like "unsaved changed"-dialog
+  QHash<int, QString> unsaved_docs;
 
   for (int i = 0; i < tab_widget_->count(); i++) {
     auto* ep = qobject_cast<PlainTextEditorPage*>(tab_widget_->widget(i));
-    if (ep != nullptr && ep->ReadDone() &&
-        ep->GetTextPage()->document()->isModified()) {
-      QString doc_name = tab_widget_->tabText(i);
-
-      // remove * before name of modified doc
-      doc_name.remove(0, 2);
-      unsaved_docs.insert(i, doc_name);
+    if (ep == nullptr || ep->GetTextPage() == nullptr ||
+        ep->GetTextPage()->document() == nullptr ||
+        !ep->GetTextPage()->document()->isModified()) {
+      continue;
     }
+
+    QString doc_name = tab_widget_->tabText(i).trimmed();
+    while (doc_name.startsWith("*")) {
+      doc_name.remove(0, 1);
+      doc_name = doc_name.trimmed();
+    }
+
+    unsaved_docs.insert(i, doc_name);
   }
+
   return unsaved_docs;
 }
 

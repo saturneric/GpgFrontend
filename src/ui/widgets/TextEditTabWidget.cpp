@@ -71,15 +71,76 @@ auto NormalizeTabTitle(QString title) -> QString {
   return title;
 }
 
+class ScopedRecoverySuspend {
+ public:
+  explicit ScopedRecoverySuspend(QObject* object) : object_(object) {
+    if (object_ != nullptr) {
+      object_->setProperty("recovery_suspended", true);
+    }
+  }
+
+  ~ScopedRecoverySuspend() {
+    if (object_ != nullptr) {
+      object_->setProperty("recovery_suspended", false);
+    }
+  }
+
+ private:
+  QObject* object_ = nullptr;
+};
+
+auto ContainsPagePointer(
+    const QList<QPointer<GpgFrontend::UI::PlainTextEditorPage>>& pages,
+    GpgFrontend::UI::PlainTextEditorPage* page) -> bool {
+  if (page == nullptr) return false;
+
+  return std::any_of(
+      pages.cbegin(), pages.cend(),
+      [page](const QPointer<GpgFrontend::UI::PlainTextEditorPage>& p) {
+        return p == page;
+      });
+}
+
+constexpr auto kEditorPagesCacheKey = "editor_pages_cache";
+
+void SaveEditorPagesRecoveryCache(const QJsonObject& object,
+                                  bool flush = true) {
+  CacheManager::GetInstance().SaveDurableCache(kEditorPagesCacheKey,
+                                               QJsonDocument(object), flush);
+}
+
+void ClearEditorPagesRecoveryCache(bool flush = true) {
+  CacheManager::GetInstance().SaveDurableCache(
+      kEditorPagesCacheKey, QJsonDocument(QJsonObject()), flush);
+}
+
 }  // namespace
 
 TextEditTabWidget::TextEditTabWidget(QWidget* parent) : QTabWidget(parent) {
   init_tab_style();
 
+  recovery_cache_timer_ = new QTimer(this);
+  recovery_cache_timer_->setSingleShot(true);
+  recovery_cache_timer_->setInterval(1200);
+
+  connect(recovery_cache_timer_, &QTimer::timeout, this,
+          [this]() -> void { flush_recovery_cache(false); });
+
+  connect(qApp, &QCoreApplication::aboutToQuit, this,
+          [this]() -> void { flush_recovery_cache(true); });
+
+  connect(this, &QTabWidget::currentChanged, this, [this](int) -> void {
+    if (ContainsPagePointer(recovery_dirty_pages_, last_current_text_page_)) {
+      flush_recovery_cache(false);
+    }
+
+    last_current_text_page_ = CurTextPage();
+  });
+
   tabBar()->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(
       tabBar(), &QTabBar::customContextMenuRequested, this,
-      [this](const QPoint& pos) {
+      [this](const QPoint& pos) -> void {
         const int index = tabBar()->tabAt(pos);
         if (index < 0) return;
 
@@ -118,6 +179,8 @@ TextEditTabWidget::TextEditTabWidget(QWidget* parent) : QTabWidget(parent) {
           }
         }
       });
+
+  last_current_text_page_ = CurTextPage();
 }
 
 void TextEditTabWidget::init_tab_style() {
@@ -293,7 +356,11 @@ void TextEditTabWidget::SlotOpenFile(const QString& path) {
   ScopedOverrideCursor wait_cursor(Qt::WaitCursor);
   auto* page = create_plain_text_tab(stripped_name(path), path,
                                      QIcon(":/icons/file.png"));
-  page->ReadFile();
+
+  {
+    ScopedRecoverySuspend recovery_suspend(page);
+    page->ReadFile();
+  }
 }
 
 auto TextEditTabWidget::find_tab_by_file_path(const QString& path) const
@@ -341,16 +408,6 @@ auto TextEditTabWidget::stripped_name(const QString& full_file_name)
   return QFileInfo(full_file_name).fileName();
 }
 
-void TextEditTabWidget::slot_save_status_to_cache_for_recovery() {
-  if (this->text_page_data_modified_count_++ % 8 != 0) return;
-
-  bool restore_text_editor_page =
-      GetSettings().value("basic/restore_text_editor_page", false).toBool();
-  if (!restore_text_editor_page) return;
-
-  SlotCacheTextEditors();
-}
-
 auto TextEditTabWidget::SlotNewPlainTextTab() -> QWidget* {
   const auto header = generate_new_title("untitled", "txt");
   return create_plain_text_tab(header, {}, QIcon(":/icons/file.png"));
@@ -371,9 +428,14 @@ void TextEditTabWidget::SlotNewTabWithGFBuffer(QString title,
   }
 
   auto* page = create_plain_text_tab(header, {}, QIcon(":/icons/file.png"));
-  page->GetTextPage()->document()->setPlainText(buffer.ConvertToQString());
-  page->GetTextPage()->document()->setModified(true);
-  update_tab_modified_mark(page, true);
+
+  {
+    ScopedRecoverySuspend recovery_suspend(page);
+    page->GetTextPage()->document()->setPlainText(buffer.ConvertToQString());
+    page->GetTextPage()->document()->setModified(true);
+    update_tab_modified_mark(page, true);
+  }
+
   page->GetTextPage()->setFocus();
 }
 
@@ -385,9 +447,13 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
   }
 
   auto* page = create_plain_text_tab(header, {}, QIcon(":/icons/file.png"));
-  page->GetTextPage()->document()->setPlainText(content);
-  page->GetTextPage()->document()->setModified(true);
-  update_tab_modified_mark(page, true);
+
+  {
+    ScopedRecoverySuspend recovery_suspend(page);
+    page->GetTextPage()->document()->setPlainText(content);
+    page->GetTextPage()->document()->setModified(true);
+    update_tab_modified_mark(page, true);
+  }
 }
 
 void TextEditTabWidget::SlotOpenDefaultPath() {
@@ -480,11 +546,12 @@ void TextEditTabWidget::update_file_page_tab_title(QWidget* page,
 }
 
 void TextEditTabWidget::SlotCacheTextEditors() {
-  int tab_count = this->count();
+  const int tab_count = this->count();
 
   struct TextEditorStatus {
     int index;
     QString title;
+    QString file_path;
     GFBuffer content;
     QString type;
   };
@@ -493,16 +560,18 @@ void TextEditTabWidget::SlotCacheTextEditors() {
 
   for (int i = 0; i < tab_count; i++) {
     auto* target_page = qobject_cast<PlainTextEditorPage*>(this->widget(i));
-
-    // if this page is no textedit, there should be nothing to save
-    if (target_page == nullptr) {
-      continue;
-    }
+    if (target_page == nullptr) continue;
 
     auto* document = target_page->GetTextPage()->document();
     auto tab_title = NormalizeTabTitle(this->tabText(i));
-    if (!target_page->ReadDone() || !target_page->isEnabled() ||
+
+    if (!target_page->isEnabled() || document == nullptr ||
         !document->isModified()) {
+      continue;
+    }
+
+    const bool is_file_backed = !target_page->GetFilePath().isEmpty();
+    if (is_file_backed && !target_page->ReadDone()) {
       continue;
     }
 
@@ -511,6 +580,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     unsaved_pages.push_back({
         i,
         tab_title,
+        target_page->GetFilePath(),
         GFBuffer(content),
         "text_editor",
     });
@@ -519,14 +589,20 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     content.clear();
   }
 
+  if (unsaved_pages.empty()) {
+    ClearEditorPagesRecoveryCache(true);
+    return;
+  }
+
   auto& gss = GlobalSettingStation::GetInstance();
-  CacheObject cache("editor_pages_cache");
   QJsonArray unsaved_page_array;
+
   for (const auto& page : unsaved_pages) {
     QJsonObject page_json;
     page_json["index"] = page.index;
     page_json["type"] = page.type;
     page_json["title"] = page.title;
+    page_json["file_path"] = page.file_path;
 
     auto encrypted_content =
         GFBufferFactory::Encrypt(gss.GetActiveAppSecureKey(), page.content);
@@ -542,60 +618,176 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     unsaved_page_array.push_back(page_json);
   }
 
-  cache.setArray(unsaved_page_array);
+  if (unsaved_page_array.isEmpty()) {
+    ClearEditorPagesRecoveryCache(true);
+    return;
+  }
+
+  QJsonObject root;
+  root["version"] = 2;
+  root["updated_at"] =
+      QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
+  root["pages"] = unsaved_page_array;
+
+  LOG_D() << "caching text editor status, unsaved page count:"
+          << unsaved_pages.size();
+
+  SaveEditorPagesRecoveryCache(root, true);
 }
 
 void TextEditTabWidget::SlotRestoreTextEditorsCache() {
-  bool restore_text_editor_page =
+  QTimer::singleShot(200, this,
+                     [this]() -> void { SlotRestoreTextEditorsCacheNow(); });
+}
+
+void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
+  const bool restore_text_editor_page =
       GetSettings().value("basic/restore_text_editor_page", false).toBool();
   if (!restore_text_editor_page) {
-    CacheObject cache("editor_pages_cache");
-    cache.setObject(QJsonObject());
+    ClearEditorPagesRecoveryCache();
     return;
   }
+
+  LOG_D() << "restoring text editor cache...";
 
   auto json_data =
       CacheManager::GetInstance().LoadDurableCache("editor_pages_cache");
 
-  if (json_data.isEmpty() || !json_data.isArray()) return;
+  LOG_D() << "editor_pages_cache loaded"
+          << ", json content:" << json_data.toJson();
+
+  if (json_data.isEmpty()) return;
+
+  QJsonArray json_array;
+  if (json_data.isArray()) {
+    // Backward compatibility with old cache format.
+    json_array = json_data.array();
+  } else if (json_data.isObject()) {
+    json_array = json_data.object().value("pages").toArray();
+  } else {
+    return;
+  }
+
+  if (json_array.isEmpty()) {
+    ClearEditorPagesRecoveryCache(true);
+    return;
+  }
+
+  recovery_restoring_ = true;
+  auto restore_guard = qScopeGuard([this]() {
+    recovery_restoring_ = false;
+    recovery_dirty_pages_.clear();
+
+    if (recovery_cache_timer_ != nullptr) {
+      recovery_cache_timer_->stop();
+    }
+  });
 
   auto& gss = GlobalSettingStation::GetInstance();
-  auto json_array = json_data.array();
+  QJsonArray remaining_pages;
+  QPointer<PlainTextEditorPage> last_restored_page;
+  int restored_count = 0;
+
   for (const auto& value_ref : json_array) {
-    if (!value_ref.isObject()) continue;
+    bool restored = false;
+
+    if (!value_ref.isObject()) {
+      remaining_pages.push_back(value_ref);
+      continue;
+    }
+
     auto json = value_ref.toObject();
 
     if (!json.contains("title") || !json.contains("content")) {
+      remaining_pages.push_back(value_ref);
       continue;
     }
 
     const auto title = json["title"].toString();
     const auto base64_content = json["content"].toString();
     const auto type = json["type"].toString().trimmed().toLower();
+
     if (!type.isEmpty() && type != "text_editor") {
       continue;
     }
 
     auto encrypted_content =
         GFBufferFactory::FromBase64(GFBuffer(base64_content));
-    if (!encrypted_content) continue;
+    if (!encrypted_content) {
+      remaining_pages.push_back(value_ref);
+      continue;
+    }
 
     auto key_id = QByteArray::fromHex(json["key_id"].toString().toLatin1());
     auto key = gss.GetAppSecureKey(GFBuffer(key_id));
     key_id.fill('X');
     key_id.clear();
 
-    if (key.Empty()) continue;
+    if (!key.Empty()) {
+      auto content = GFBufferFactory::Decrypt(key, *encrypted_content);
+      if (content) {
+        LOG_D() << "restoring text editor tab, title:" << title;
 
-    auto content = GFBufferFactory::Decrypt(key, *encrypted_content);
-    if (!content) continue;
+        auto* page =
+            create_plain_text_tab(NormalizeTabTitle(title).isEmpty()
+                                      ? generate_new_title("untitled", "txt")
+                                      : NormalizeTabTitle(title),
+                                  {}, QIcon(":/icons/file.png"));
 
-    LOG_D() << "restoring text editor tab, title: " << title;
-    SlotNewTabWithGFBuffer(title, *content);
+        {
+          ScopedRecoverySuspend recovery_suspend(page);
+          page->GetTextPage()->document()->setPlainText(
+              content->ConvertToQString());
+          page->GetTextPage()->document()->setModified(true);
+          page->setProperty("recovered_from_cache", true);
+          update_tab_modified_mark(page, true);
+        }
+
+        page->GetTextPage()->setFocus();
+
+        last_restored_page = page;
+        ++restored_count;
+
+        LOG_D() << "restored text editor page"
+                << ", title:" << title << ", index:" << indexOf(page)
+                << ", tab count:" << count();
+
+        restored = true;
+      }
+    }
+
+    if (!restored) {
+      remaining_pages.push_back(value_ref);
+    }
   }
 
-  CacheObject cache("editor_pages_cache");
-  cache.setObject(QJsonObject());
+  if (remaining_pages.isEmpty()) {
+    ClearEditorPagesRecoveryCache(true);
+  } else {
+    QJsonObject root;
+    root["version"] = 2;
+    root["updated_at"] =
+        QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs);
+    root["pages"] = remaining_pages;
+    SaveEditorPagesRecoveryCache(root, true);
+  }
+
+  if (last_restored_page != nullptr) {
+    const int restored_index = indexOf(last_restored_page);
+    if (restored_index >= 0) {
+      setCurrentIndex(restored_index);
+      last_restored_page->GetTextPage()->setFocus();
+
+      LOG_D() << "activated restored text editor tab"
+              << ", index:" << restored_index
+              << ", restored count:" << restored_count
+              << ", tab count:" << count();
+    } else {
+      LOG_W() << "restored text editor page is no longer in tab widget"
+              << ", restored count:" << restored_count
+              << ", tab count:" << count();
+    }
+  }
 }
 
 auto TextEditTabWidget::generate_new_title(const QString& prefix,
@@ -647,7 +839,7 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
           });
 
   connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
-          this, &TextEditTabWidget::slot_save_status_to_cache_for_recovery);
+          this, [this, page]() -> void { schedule_recovery_cache(page); });
 
   page->GetTextPage()->setFocus();
   return page;
@@ -693,6 +885,54 @@ auto TextEditTabWidget::workspace_title_from_path(const QString& path)
   }
 
   return name.isEmpty() ? tr("Workspace") : name;
+}
+
+void TextEditTabWidget::schedule_recovery_cache(PlainTextEditorPage* page) {
+  if (page == nullptr) return;
+  if (recovery_restoring_) return;
+  if (page->property("recovery_suspended").toBool()) return;
+
+  const bool restore_text_editor_page =
+      GetSettings().value("basic/restore_text_editor_page", false).toBool();
+  if (!restore_text_editor_page) return;
+
+  auto* document = page->GetTextPage()->document();
+  if (document == nullptr || !document->isModified()) return;
+
+  if (!ContainsPagePointer(recovery_dirty_pages_, page)) {
+    recovery_dirty_pages_.push_back(QPointer<PlainTextEditorPage>(page));
+  }
+
+  if (recovery_cache_timer_ != nullptr) {
+    recovery_cache_timer_->start();
+  }
+}
+
+void TextEditTabWidget::flush_recovery_cache(bool force) {
+  const bool restore_text_editor_page =
+      GetSettings().value("basic/restore_text_editor_page", false).toBool();
+
+  if (!restore_text_editor_page) return;
+
+  if (!force && recovery_dirty_pages_.isEmpty()) return;
+
+  SlotCacheTextEditors();
+
+  recovery_dirty_pages_.clear();
+
+  if (recovery_cache_timer_ != nullptr) {
+    recovery_cache_timer_->stop();
+  }
+}
+
+void TextEditTabWidget::SlotTabClosedForRecovery() {
+  if (recovery_cache_timer_ != nullptr) {
+    recovery_cache_timer_->stop();
+  }
+
+  recovery_dirty_pages_.clear();
+
+  SlotCacheTextEditors();
 }
 
 }  // namespace GpgFrontend::UI
