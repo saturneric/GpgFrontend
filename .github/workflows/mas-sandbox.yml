@@ -116,7 +116,7 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install --formula automake texinfo libarchive googletest
+          brew install --formula automake texinfo libarchive googletest libsodium
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable

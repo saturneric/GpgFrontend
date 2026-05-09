@@ -27,9 +27,19 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    paths-ignore:
+      - "resource/lfs/locale/**"
+      - "**.md"
+
   pull_request:
-    branches: [main]
+    branches:
+      - main
+    paths-ignore:
+      - "resource/lfs/locale/**"
+      - "**.md"
+
   schedule:
     - cron: "19 14 * * 2"
 
