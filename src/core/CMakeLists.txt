@@ -63,8 +63,8 @@ else()
   target_link_libraries(${LIBRARY_TARGET} PUBLIC gpgme assuan gpg-error)
 endif()
 
-# link openssl
-target_link_libraries(${LIBRARY_TARGET} PUBLIC ssl crypto)
+# link libsodium
+target_link_libraries(${LIBRARY_TARGET} PUBLIC sodium)
 
 # configure libarchive
 if(APPLE)
