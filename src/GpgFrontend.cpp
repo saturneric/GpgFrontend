@@ -26,11 +26,8 @@
  *
  */
 
-#include <openssl/provider.h>
 #include <qcommandlineparser.h>
 #include <qloggingcategory.h>
-
-#include <cstddef>
 
 //
 #include "Application.h"
@@ -47,14 +44,6 @@
  * @return
  */
 auto main(int argc, char* argv[]) -> int {
-  // OpenSSL
-  auto* defp = OSSL_PROVIDER_load(nullptr, "default");
-  if (defp == nullptr) {
-    qFatal(
-        "The OpenSSL default provider cannot be loaded, and features "
-        "such as CSPRNG are not available!");
-  }
-
   // initialize qt resources
   Q_INIT_RESOURCE(gpgfrontend);
 
