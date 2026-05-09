@@ -164,6 +164,8 @@ const auto kBaseLibs = QStringList{
     "Qt6Network",
     "Qt6Svg",
     "Qt6Xml",
+    // libsodium
+    "libsodium",
 };
 
 auto ValidateLibrary(const QString &lib_path) -> std::tuple<QString, bool> {
