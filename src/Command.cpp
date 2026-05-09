@@ -185,12 +185,10 @@ auto ParseLogLevel(const QString& log_level) -> int {
     SetGFLogLevel(static_cast<int>(GFLogLevel::kWARNING));
     QLoggingCategory::setFilterRules(
         BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kWARNING)));
-  } else if (level == "error") {
+  } else {
     SetGFLogLevel(static_cast<int>(GFLogLevel::kCRITICAL));
     QLoggingCategory::setFilterRules(
         BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kCRITICAL)));
-  } else {
-    qWarning() << "unknown log level: " << level;
   }
   return 0;
 }
