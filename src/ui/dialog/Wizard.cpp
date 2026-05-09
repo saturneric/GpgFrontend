@@ -75,26 +75,6 @@ auto CreateLinkCard(const QString& title, const QString& description,
 
   return frame;
 }
-
-auto CreateInfoCard(const QString& title, const QString& description)
-    -> QFrame* {
-  auto* frame = new QFrame;
-  frame->setObjectName(QStringLiteral("WizardInfoCard"));
-  frame->setFrameShape(QFrame::StyledPanel);
-
-  auto* title_label = CreateBodyLabel(QStringLiteral("<b>%1</b>").arg(title));
-
-  auto* desc_label = CreateMutedLabel(description);
-
-  auto* layout = new QVBoxLayout(frame);
-  layout->setContentsMargins(14, 10, 14, 10);
-  layout->setSpacing(4);
-  layout->addWidget(title_label);
-  layout->addWidget(desc_label);
-
-  return frame;
-}
-
 }  // namespace
 
 Wizard::Wizard(QWidget* parent) : QWizard(parent) {

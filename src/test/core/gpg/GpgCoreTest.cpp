@@ -64,12 +64,6 @@ auto TestPassphraseCb(void* opaque, const char* uid_hint,
   return res == pass_size + 1 ? 0 : GPG_ERR_CANCELED;
 }
 
-auto TestStatusCb(void* hook, const char* keyword, const char* args)
-    -> gpgme_error_t {
-  FLOG_D("keyword %s", keyword);
-  return GPG_ERR_NO_ERROR;
-}
-
 void ImportPrivateKeys() {
   auto key_files = QDir(":/test/key").entryList();
 
