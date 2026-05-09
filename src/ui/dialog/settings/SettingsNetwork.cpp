@@ -55,44 +55,6 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
           });
 #endif
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(
-      ui_->autoFetchKeyPublishStatusCheckBox, &QCheckBox::checkStateChanged,
-      this, [=](Qt::CheckState state) {
-        ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
-            state == Qt::Checked
-                ? Qt::Unchecked
-                : ui_->forbidALLGnuPGNetworkConnectionCheckBox->checkState());
-      });
-#else
-  connect(
-      ui_->autoFetchKeyPublishStatusCheckBox, &QCheckBox::stateChanged, this,
-      [=](int state) {
-        ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
-            state == Qt::Checked
-                ? Qt::Unchecked
-                : ui_->forbidALLGnuPGNetworkConnectionCheckBox->checkState());
-      });
-#endif
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
-  connect(ui_->forbidALLGnuPGNetworkConnectionCheckBox,
-          &QCheckBox::checkStateChanged, this, [=](Qt::CheckState state) {
-            ui_->autoFetchKeyPublishStatusCheckBox->setCheckState(
-                state == Qt::Checked
-                    ? Qt::Unchecked
-                    : ui_->autoFetchKeyPublishStatusCheckBox->checkState());
-          });
-#else
-  connect(ui_->forbidALLGnuPGNetworkConnectionCheckBox,
-          &QCheckBox::stateChanged, this, [=](int state) {
-            ui_->autoFetchKeyPublishStatusCheckBox->setCheckState(
-                state == Qt::Checked
-                    ? Qt::Unchecked
-                    : ui_->autoFetchKeyPublishStatusCheckBox->checkState());
-          });
-#endif
-
   connect(
       ui_->proxyTypeComboBox, &QComboBox::currentTextChanged, this,
       [=](const QString &current_text) { switch_ui_proxy_type(current_text); });
@@ -115,14 +77,11 @@ GpgFrontend::UI::NetworkTab::NetworkTab(QWidget *parent)
 
   ui_->checkProxyConnectionButton->setText(
       tr("Apply Proxy Settings and Check Proxy Connection"));
-  ui_->forbidALLGnuPGNetworkConnectionCheckBox->setText(
-      tr("Forbid all GnuPG network connection."));
   ui_->autoFetchKeyPublishStatusCheckBox->setText(
       tr("Automatically fetch key publish status from key server."));
 
   auto if_gnupg_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
   if (!if_gnupg_supported) {
-    ui_->forbidALLGnuPGNetworkConnectionCheckBox->setHidden(true);
     ui_->autoFetchKeyPublishStatusCheckBox->setHidden(true);
     ui_->capabilityGroupBox->setHidden(true);
   }
@@ -167,11 +126,6 @@ void GpgFrontend::UI::NetworkTab::SetSettings() {
   ui_->enableProxyCheckBox->setCheckState(proxy_enable ? Qt::Checked
                                                        : Qt::Unchecked);
 
-  auto forbid_all_gnupg_connection =
-      settings.value("network/forbid_all_gnupg_connection").toBool();
-  ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
-      forbid_all_gnupg_connection ? Qt::Checked : Qt::Unchecked);
-
   auto auto_fetch_key_publish_status =
       settings.value("network/auto_fetch_key_publish_status", false).toBool();
   ui_->autoFetchKeyPublishStatusCheckBox->setCheckState(
@@ -196,8 +150,7 @@ void GpgFrontend::UI::NetworkTab::ApplySettings() {
   settings.setValue("proxy/port", ui_->portSpin->value());
   settings.setValue("proxy/proxy_type", ui_->proxyTypeComboBox->currentText());
   settings.setValue("proxy/enable", ui_->enableProxyCheckBox->isChecked());
-  settings.setValue("network/forbid_all_gnupg_connection",
-                    ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked());
+
   settings.setValue("network/auto_fetch_key_publish_status",
                     ui_->autoFetchKeyPublishStatusCheckBox->isChecked());
 

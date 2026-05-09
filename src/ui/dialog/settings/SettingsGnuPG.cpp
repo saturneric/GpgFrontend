@@ -26,49 +26,37 @@
  *
  */
 
-#include "GnuPGControllerDialog.h"
+#include "SettingsGnuPG.h"
 
 #include "core/function/GlobalSettingStation.h"
-#include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
-#include "core/struct/settings_object/KeyDatabaseListSO.h"
-#include "core/utils/GpgUtils.h"
-#include "ui/UISignalStation.h"
-#include "ui/dialog/GeneralDialog.h"
-#include "ui/dialog/KeyDatabaseEditDialog.h"
-
-//
-#include "ui_GnuPGControllerDialog.h"
+#include "ui_GnuPGSettings.h"
 
 namespace GpgFrontend::UI {
 
-GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
-    : GeneralDialog("GnuPGControllerDialog", parent),
-      ui_(GpgFrontend::SecureCreateSharedObject<Ui_GnuPGControllerDialog>()),
-      app_path_(GlobalSettingStation::GetInstance().GetAppDir()) {
+GnuPGTab::GnuPGTab(QWidget* parent)
+    : QWidget(parent),
+      ui_(GpgFrontend::SecureCreateSharedObject<Ui_GnuPGSettings>()) {
   ui_->setupUi(this);
 
   ui_->gpgmeDebugLogCheckBox->setText(tr("Enable GpgME Debug Log"));
+  ui_->gpgmeDebugLogCheckBox->setToolTip(
+      tr("Enable verbose GpgME logs for troubleshooting. This may include "
+         "technical details about GnuPG operations."));
+
   ui_->useCustomGnuPGInstallPathCheckBox->setText(tr("Use Custom GnuPG"));
   ui_->useCustomGnuPGInstallPathButton->setText(tr("Select GnuPG Path"));
   ui_->killAllGnuPGDaemonCheckBox->setText(
-      tr("Kill all gnupg daemon at close"));
+      tr("Terminate GnuPG background processes on exit"));
+  ui_->killAllGnuPGDaemonCheckBox->setToolTip(
+      tr("This may affect other applications that are using GnuPG."));
+  ui_->forbidALLGnuPGNetworkConnectionCheckBox->setText(
+      tr("Forbid all GnuPG network connection."));
 
   // tips
   ui_->customGnuPGPathTipsLabel->setText(
-      tr("Tips: please select a directory where \"gpgconf\" is located in."));
-  ui_->restartTipsLabel->setText(
-      tr("Tips: notice that modify any of these settings will cause an "
-         "Application restart."));
+      tr("Select the directory that contains the \"gpgconf\" executable."));
 
-  ui_->tabWidget->setTabText(0, tr("General"));
-  ui_->tabWidget->setTabText(1, tr("Key Database"));
-  ui_->tabWidget->setTabText(2, tr("Advanced"));
-
-  // announce main window
-  connect(this, &GnuPGControllerDialog::SignalRestartNeeded,
-          UISignalStation::GetInstance(),
-          &UISignalStation::SignalRestartApplication);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
   connect(
       ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::checkStateChanged,
@@ -85,42 +73,50 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::checkStateChanged,
-          this,
-          &GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label);
+          this, &GnuPGTab::slot_update_custom_gnupg_install_path_label);
 #else
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
-          this,
-          &GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label);
+          this, &GnuPGTab::slot_update_custom_gnupg_install_path_label);
 #endif
 
   connect(
       ui_->useCustomGnuPGInstallPathButton, &QPushButton::clicked, this,
-      [=]() -> void {
-        QString selected_custom_gnupg_install_path =
-            QFileDialog::getExistingDirectory(
-                this, tr("Open Directory"), {},
-                QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+      [this]() -> void {
+        const auto selected_path = QFileDialog::getExistingDirectory(
+            this, tr("Open Directory"), custom_gnupg_path_,
+            QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
-        custom_gnupg_path_ = selected_custom_gnupg_install_path;
+        if (selected_path.isEmpty()) {
+          return;
+        }
 
-        // announce the restart
-        this->slot_set_restart_needed(kDeepRestartCode);
+        if (!check_custom_gnupg_path(selected_path)) {
+          return;
+        }
 
-        // update ui
-        this->slot_update_custom_gnupg_install_path_label(
-            this->ui_->useCustomGnuPGInstallPathCheckBox->checkState());
+        if (custom_gnupg_path_ == selected_path) {
+          return;
+        }
+
+        custom_gnupg_path_ = selected_path;
+        ui_->currentCustomGnuPGInstallPathLabel->setText(custom_gnupg_path_);
+
+        emit SignalDeepRestartNeeded();
+
+        slot_update_custom_gnupg_install_path_label(
+            ui_->useCustomGnuPGInstallPathCheckBox->checkState());
       });
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
   connect(ui_->gpgmeDebugLogCheckBox, &QCheckBox::checkStateChanged, this,
           [=](Qt::CheckState) {
             // announce the restart
-            this->slot_set_restart_needed(kDeepRestartCode);
+            SignalDeepRestartNeeded();
           });
 #else
   connect(ui_->gpgmeDebugLogCheckBox, &QCheckBox::stateChanged, this, [=](int) {
     // announce the restart
-    this->slot_set_restart_needed(kDeepRestartCode);
+    SignalDeepRestartNeeded();
   });
 #endif
 
@@ -128,44 +124,69 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::checkStateChanged,
           this, [=](Qt::CheckState) {
             // announce the restart
-            this->slot_set_restart_needed(kDeepRestartCode);
+            SignalDeepRestartNeeded();
           });
 #else
   connect(ui_->useCustomGnuPGInstallPathCheckBox, &QCheckBox::stateChanged,
           this, [=](int) {
             // announce the restart
-            this->slot_set_restart_needed(kDeepRestartCode);
+            SignalDeepRestartNeeded();
           });
 #endif
 
-#ifdef Q_OS_MACOS
-  // macOS style settings
-  ui_->buttonBox->setDisabled(true);
-  ui_->buttonBox->setHidden(true);
-
-  connect(this, &QDialog::finished, this, &GnuPGControllerDialog::SlotAccept);
-#else
-  connect(ui_->buttonBox, &QDialogButtonBox::accepted, this,
-          &GnuPGControllerDialog::SlotAccept);
-  connect(ui_->buttonBox, &QDialogButtonBox::rejected, this,
-          &GnuPGControllerDialog::reject);
-#endif
-
-  setWindowTitle(tr("GnuPG Controller"));
-  set_settings();
+  SetSettings();
 }
 
-void GnuPGControllerDialog::SlotAccept() {
-  apply_settings();
+void GnuPGTab::SetSettings() {
+  QSignalBlocker blocker1(ui_->gpgmeDebugLogCheckBox);
+  QSignalBlocker blocker2(ui_->killAllGnuPGDaemonCheckBox);
+  QSignalBlocker blocker3(ui_->useCustomGnuPGInstallPathCheckBox);
 
-  if (get_restart_needed() != 0) {
-    emit SignalRestartNeeded(get_restart_needed());
+  auto settings = GetSettings();
+
+  ui_->gpgmeDebugLogCheckBox->setChecked(
+      settings.value("gnupg/enable_gpgme_debug_log", false).toBool());
+
+  ui_->killAllGnuPGDaemonCheckBox->setChecked(
+      settings.value("gnupg/kill_all_gnupg_daemon_at_close", true).toBool());
+
+  auto forbid_all_gnupg_connection =
+      settings.value("network/forbid_all_gnupg_connection").toBool();
+  ui_->forbidALLGnuPGNetworkConnectionCheckBox->setCheckState(
+      forbid_all_gnupg_connection ? Qt::Checked : Qt::Unchecked);
+
+  const auto use_custom_gnupg_install_path =
+      settings.value("gnupg/use_custom_gnupg_install_path", false).toBool();
+
+  ui_->useCustomGnuPGInstallPathCheckBox->setChecked(
+      use_custom_gnupg_install_path);
+
+  custom_gnupg_path_ =
+      settings.value("gnupg/custom_gnupg_install_path").toString();
+
+  slot_update_custom_gnupg_install_path_label(
+      use_custom_gnupg_install_path ? Qt::Checked : Qt::Unchecked);
+}
+
+void GnuPGTab::ApplySettings() {
+  auto settings = GpgFrontend::GetSettings();
+
+  const auto use_custom = ui_->useCustomGnuPGInstallPathCheckBox->isChecked();
+
+  settings.setValue("gnupg/use_custom_gnupg_install_path", use_custom);
+  settings.setValue("gnupg/enable_gpgme_debug_log",
+                    ui_->gpgmeDebugLogCheckBox->isChecked());
+  settings.setValue("gnupg/kill_all_gnupg_daemon_at_close",
+                    ui_->killAllGnuPGDaemonCheckBox->isChecked());
+  settings.setValue("network/forbid_all_gnupg_connection",
+                    ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked());
+
+  if (use_custom) {
+    settings.setValue("gnupg/custom_gnupg_install_path", custom_gnupg_path_);
   }
-  close();
 }
 
-void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
-    int state) {
+void GnuPGTab::slot_update_custom_gnupg_install_path_label(int state) {
   // hide label (not necessary to show the default path)
   this->ui_->currentCustomGnuPGInstallPathLabel->setHidden(
       state != Qt::CheckState::Checked);
@@ -198,56 +219,7 @@ void GnuPGControllerDialog::slot_update_custom_gnupg_install_path_label(
   }
 }
 
-void GnuPGControllerDialog::set_settings() {
-  auto settings = GetSettings();
-
-  auto enable_gpgme_debug_log =
-      settings.value("gnupg/enable_gpgme_debug_log", false).toBool();
-  if (enable_gpgme_debug_log) {
-    ui_->gpgmeDebugLogCheckBox->setCheckState(Qt::Checked);
-  }
-
-  auto kill_all_gnupg_daemon_at_close =
-      settings.value("gnupg/kill_all_gnupg_daemon_at_close", true).toBool();
-  if (kill_all_gnupg_daemon_at_close) {
-    ui_->killAllGnuPGDaemonCheckBox->setCheckState(Qt::Checked);
-  }
-
-  auto use_custom_gnupg_install_path =
-      settings.value("gnupg/use_custom_gnupg_install_path", false).toBool();
-  if (use_custom_gnupg_install_path) {
-    ui_->useCustomGnuPGInstallPathCheckBox->setCheckState(Qt::Checked);
-  }
-
-  this->slot_update_custom_gnupg_install_path_label(
-      use_custom_gnupg_install_path ? Qt::Checked : Qt::Unchecked);
-
-  this->slot_set_restart_needed(kNonRestartCode);
-}
-
-void GnuPGControllerDialog::apply_settings() {
-  auto settings = GpgFrontend::GetSettings();
-
-  settings.setValue("gnupg/use_custom_gnupg_install_path",
-                    ui_->useCustomGnuPGInstallPathCheckBox->isChecked());
-  settings.setValue("gnupg/enable_gpgme_debug_log",
-                    ui_->gpgmeDebugLogCheckBox->isChecked());
-  settings.setValue("gnupg/custom_gnupg_install_path",
-                    ui_->currentCustomGnuPGInstallPathLabel->text());
-  settings.setValue("gnupg/kill_all_gnupg_daemon_at_close",
-                    ui_->killAllGnuPGDaemonCheckBox->isChecked());
-}
-
-auto GnuPGControllerDialog::get_restart_needed() const -> int {
-  return this->restart_mode_;
-}
-
-void GnuPGControllerDialog::slot_set_restart_needed(int mode) {
-  this->restart_mode_ = mode;
-}
-
-auto GnuPGControllerDialog::check_custom_gnupg_path(const QString& path)
-    -> bool {
+auto GnuPGTab::check_custom_gnupg_path(const QString& path) -> bool {
   if (path.isEmpty()) return false;
 
   QFileInfo const dir_info(path);
@@ -262,6 +234,7 @@ auto GnuPGControllerDialog::check_custom_gnupg_path(const QString& path)
   if (!dir.isAbsolute()) {
     QMessageBox::critical(this, tr("Illegal GnuPG Path"),
                           tr("Target GnuPG Path is not an absolute path."));
+    return false;
   }
 
 #ifdef Q_OS_WINDOWS

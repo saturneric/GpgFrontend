@@ -28,30 +28,31 @@
 
 #pragma once
 
-#include "core/model/KeyDatabaseInfo.h"
-#include "core/typedef/CoreTypedef.h"
-#include "ui/dialog/GeneralDialog.h"
-
-class Ui_GnuPGControllerDialog;
+class Ui_GnuPGSettings;
 
 namespace GpgFrontend::UI {
-class GnuPGControllerDialog : public GeneralDialog {
+class GnuPGTab : public QWidget {
   Q_OBJECT
+
  public:
   /**
-   * @brief Construct a new General Tab object
+   * @brief Construct a new GnuPG Tab object
    *
    * @param parent
    */
-  explicit GnuPGControllerDialog(QWidget* parent = nullptr);
+  explicit GnuPGTab(QWidget* parent = nullptr);
 
- public slots:
+  /**
+   * @brief Set the Settings object
+   *
+   */
+  void SetSettings();
 
   /**
    * @brief
    *
    */
-  void SlotAccept();
+  void ApplySettings();
 
  signals:
 
@@ -60,16 +61,9 @@ class GnuPGControllerDialog : public GeneralDialog {
    *
    * @param needed
    */
-  void SignalRestartNeeded(int);
+  void SignalDeepRestartNeeded();
 
  private slots:
-
-  /**
-   * @brief
-   *
-   * @param needed
-   */
-  void slot_set_restart_needed(int);
 
   /**
    * @brief
@@ -78,31 +72,8 @@ class GnuPGControllerDialog : public GeneralDialog {
   void slot_update_custom_gnupg_install_path_label(int state);
 
  private:
-  QSharedPointer<Ui_GnuPGControllerDialog> ui_;  ///<
-  const QString app_path_;
-  int restart_mode_{0};  ///<
-  QString custom_key_database_path_;
+  QSharedPointer<Ui_GnuPGSettings> ui_;  ///<
   QString custom_gnupg_path_;
-
-  /**
-   * @brief Get the Restart Needed object
-   *
-   * @return true
-   * @return false
-   */
-  [[nodiscard]] auto get_restart_needed() const -> int;
-
-  /**
-   * @brief Set the settings object
-   *
-   */
-  void set_settings();
-
-  /**
-   * @brief
-   *
-   */
-  void apply_settings();
 
   /**
    * @brief

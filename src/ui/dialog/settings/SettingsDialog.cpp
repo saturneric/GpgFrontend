@@ -29,9 +29,11 @@
 #include "SettingsDialog.h"
 
 #include "core/GpgConstants.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
+#include "ui/dialog/settings/SettingsGnuPG.h"
 #include "ui/dialog/settings/SettingsKeyDatabases.h"
 #include "ui/dialog/settings/SettingsNetwork.h"
 #include "ui/main_window/MainWindow.h"
@@ -45,6 +47,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   appearance_tab_ = new AppearanceTab();
   network_tab_ = new NetworkTab();
   key_dbs_tab_ = new KeyDatabasesTab();
+  gnupg_tab_ = new GnuPGTab();
 
   auto* main_layout = new QVBoxLayout();
   main_layout->addWidget(tab_widget_);
@@ -60,6 +63,10 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   }
 
   tab_widget_->addTab(key_dbs_tab_, tr("Key Databases"));
+
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+    tab_widget_->addTab(gnupg_tab_, tr("GnuPG"));
+  }
 
 #ifdef Q_OS_MACOS
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
@@ -91,6 +98,9 @@ SettingsDialog::SettingsDialog(QWidget* parent)
           &SettingsDialog::slot_declare_a_restart);
 
   connect(key_dbs_tab_, &KeyDatabasesTab::SignalDeepRestartNeeded, this,
+          &SettingsDialog::slot_declare_a_deep_restart);
+
+  connect(gnupg_tab_, &GnuPGTab::SignalDeepRestartNeeded, this,
           &SettingsDialog::slot_declare_a_deep_restart);
 
   // announce main window

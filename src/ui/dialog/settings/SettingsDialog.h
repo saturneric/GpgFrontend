@@ -37,6 +37,7 @@ class AppearanceTab;
 class KeyserverTab;
 class NetworkTab;
 class KeyDatabasesTab;
+class GnuPGTab;
 
 /**
  * @brief
@@ -58,6 +59,7 @@ class SettingsDialog : public GeneralDialog {
   KeyserverTab* key_server_tab_;   ///<
   NetworkTab* network_tab_;        ///<
   KeyDatabasesTab* key_dbs_tab_;   ///<
+  GnuPGTab* gnupg_tab_;            ///<
 
   /**
    * @brief
