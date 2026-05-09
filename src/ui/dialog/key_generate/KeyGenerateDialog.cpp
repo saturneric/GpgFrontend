@@ -78,67 +78,110 @@ auto SetComboCurrentAlgo(QComboBox* combo, const GpgFrontend::KeyAlgo& algo)
 }
 
 auto MakeDefaultEasyModeConf() -> QJsonArray {
-  auto make_entry =
-      [](const QString& name, const QString& p_algo, const QString& p_type,
-         const QString& s_algo = "", const QString& s_type = "",
-         const QString& ss_algo = "", const QString& ss_type = "",
-         const QString& p_sub_algo = "", const QString& p_sub_type = "",
-         bool hidden = false) -> QJsonObject {
-    QJsonObject obj;
-    obj["name"] = name;
-
+  auto make_primary = [](const QString& algo, const QString& type,
+                         const QString& sub_algo = "",
+                         const QString& sub_algo_type = "") -> QJsonObject {
     QJsonObject primary{
-        {"algo", p_algo},
-        {"type", p_type},
+        {"algo", algo},
+        {"type", type},
         {"validity", "2y"},
     };
 
-    if (!p_sub_algo.isEmpty()) {
-      primary["sub_algo"] = p_sub_algo;
-      primary["sub_algo_type"] = p_sub_type;
+    if (!sub_algo.isEmpty()) {
+      primary["sub_algo"] = sub_algo;
+      primary["sub_algo_type"] = sub_algo_type;
     }
 
+    return primary;
+  };
+
+  auto make_subkey = [](const QString& algo, const QString& type,
+                        const QString& sub_algo = "",
+                        const QString& sub_algo_type = "") -> QJsonObject {
+    QJsonObject subkey{
+        {"algo", algo},
+        {"type", type},
+        {"validity", "2y"},
+    };
+
+    if (!sub_algo.isEmpty()) {
+      subkey["sub_algo"] = sub_algo;
+      subkey["sub_algo_type"] = sub_algo_type;
+    }
+
+    return subkey;
+  };
+
+  auto make_entry = [](const QString& name, const QJsonObject& primary,
+                       const QJsonObject& subkey = {},
+                       bool hidden = false) -> QJsonObject {
+    QJsonObject obj;
+    obj["name"] = name;
     obj["primary"] = primary;
+    obj["hidden"] = hidden;
 
-    if (!s_algo.isEmpty()) {
-      auto subkey_obj =
-          QJsonObject{{"algo", s_algo}, {"type", s_type}, {"validity", "2y"}};
-
-      if (!ss_algo.isEmpty()) {
-        subkey_obj["sub_algo"] = ss_algo;
-        subkey_obj["sub_algo_type"] = ss_type;
-      }
-
-      obj["subkey"] = subkey_obj;
+    if (!subkey.isEmpty()) {
+      obj["subkey"] = subkey;
     }
 
-    obj["hidden"] = hidden;
     return obj;
   };
 
   return QJsonArray{
-      make_entry("Ed25519 / X25519 (Modern & Fast)", "ED25519", "EdDSA",
-                 "CV25519", "ECDH"),
+      // Recommended modern default.
+      make_entry("Ed25519 / X25519 (Modern & Fast)",
+                 make_primary("ed25519", "EdDSA"),
+                 make_subkey("cv25519", "ECDH")),
 
-      make_entry("RSA-3072 (Balanced)", "RSA3072", "RSA"),
+      // Higher classical security level.
+      make_entry("Ed448 / X448 (High Security)", make_primary("ed448", "EdDSA"),
+                 make_subkey("x448", "ECDH")),
 
-      make_entry("NIST P-384 (Standard)", "NISTP384", "ECDSA", "NISTP384",
-                 "ECDH"),
+      // Conservative compatibility profiles.
+      make_entry("RSA-3072 (Balanced Compatibility)",
+                 make_primary("rsa3072", "RSA")),
 
-      make_entry("Brainpool P-256 (EU Standard)", "BRAINPOOLP256R1", "ECDSA",
-                 "BRAINPOOLP256R1", "ECDH"),
+      make_entry("RSA-4096 (High Compatibility)",
+                 make_primary("rsa4096", "RSA")),
 
-      make_entry("RSA-4096 (Higher Security)", "RSA4096", "RSA"),
+      // Standards-oriented ECC profiles.
+      make_entry("NIST P-384 (Standard ECC)", make_primary("nistp384", "ECDSA"),
+                 make_subkey("nistp384", "ECDH")),
 
-      make_entry("Ed448 (High Security)", "ED448", "EdDSA", "X448", "ECDH"),
+      make_entry("Brainpool P-256 (EU Standard ECC)",
+                 make_primary("brainpoolp256r1", "ECDSA"),
+                 make_subkey("brainpoolp256r1", "ECDH")),
 
-      make_entry("Ed448 + Kyber-1024 (PQC Hybrid)", "ED448", "EdDSA",
-                 "KYBER1024", "HYBRID-KEM", "X448", "ECDH"),
+      // PQC hybrid encryption with classical signing primary.
+      // This is useful for GnuPG 2.5.x style hybrid encryption profiles.
+      make_entry("Ed25519 / ML-KEM-768 + X25519 (PQC Encryption Hybrid)",
+                 make_primary("ed25519", "EdDSA"),
+                 make_subkey("ky768", "HYBRID-KEM", "cv25519", "ECDH")),
 
-      make_entry("RSA-2048 (Legacy)", "RSA2048", "RSA"),
+      make_entry("Ed448 / ML-KEM-1024 + X448 (PQC Encryption Hybrid)",
+                 make_primary("ed448", "EdDSA"),
+                 make_subkey("kyber1024", "HYBRID-KEM", "x448", "ECDH")),
 
-      make_entry("DSA-2048 + ELG-2048 (Deprecated)", "DSA2048", "DSA",
-                 "ELG2048", "ELG-E"),
+      // Full PQC hybrid signing primary + PQC hybrid encryption subkey.
+      // These will only be shown when the selected engine supports them.
+      make_entry("ML-DSA-65 + Ed25519 / ML-KEM-768 + X25519 (Full PQC Hybrid)",
+                 make_primary("mldsa65", "HYBRID-SIGN", "ed25519", "EdDSA"),
+                 make_subkey("ky768", "HYBRID-KEM", "cv25519", "ECDH")),
+
+      make_entry("ML-DSA-87 + Ed448 / ML-KEM-1024 + X448 (Full PQC Hybrid)",
+                 make_primary("mldsa87", "HYBRID-SIGN", "ed448", "EdDSA"),
+                 make_subkey("kyber1024", "HYBRID-KEM", "x448", "ECDH")),
+
+      // Legacy profiles. Keep visible only if you still want users to find
+      // them.
+      make_entry("RSA-2048 (Legacy Compatibility)",
+                 make_primary("rsa2048", "RSA")),
+
+      // Deprecated profile. Keep in default config but hidden from normal
+      // users.
+      make_entry("DSA-2048 + ELG-2048 (Deprecated)",
+                 make_primary("dsa2048", "DSA"),
+                 make_subkey("elg2048", "ELG-E"), true),
   };
 }
 
