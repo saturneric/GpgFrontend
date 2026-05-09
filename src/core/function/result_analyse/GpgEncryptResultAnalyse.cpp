@@ -37,7 +37,7 @@ GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(int channel, GpgError error,
     : GpgResultAnalyse(channel), error_(error), result_(result) {}
 
 void GpgEncryptResultAnalyse::doAnalyse() {
-  stream_ << "# " << tr("Encrypt") << " (" << EngineInfo() << ") ";
+  stream_ << "# " << tr("Encrypt Operation") << " (" << EngineInfo() << ") ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
     stream_ << "- " << tr("Success") << " " << Qt::endl;
