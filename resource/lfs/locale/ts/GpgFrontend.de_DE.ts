@@ -744,18 +744,18 @@
 <context>
     <name>GpgFrontend::UI::AboutDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="132"/>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="141"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="133"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="142"/>
         <source>About</source>
         <translation>Über</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="143"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="144"/>
         <source>Status</source>
         <translation>Status</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="142"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="143"/>
         <source>Translators</source>
         <translation>Übersetzer</translation>
     </message>
@@ -2123,77 +2123,82 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::InfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="221"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="222"/>
         <source>Developer</source>
         <translation>Entwickler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="200"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="201"/>
         <source>A user-friendly OpenPGP tool for encryption, signing, and key management.</source>
         <translation>Ein benutzerfreundliches OpenPGP-Werkzeug für Verschlüsselung, Signierung und Schlüsselverwaltung.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="217"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="218"/>
         <source>Developed and maintained by Saturneric.</source>
         <translation>Entwickelt und gewartet von Saturneric.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="218"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="219"/>
         <source>Report an issue on GitHub</source>
         <translation>Problem auf GitHub melden</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="218"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="219"/>
         <source>Contact the developer</source>
         <translation>Den Entwickler kontaktieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="233"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="234"/>
         <source>Qt:</source>
         <translation>Qt:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="234"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="235"/>
         <source>GPGME:</source>
         <translation>GPGME:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="236"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="237"/>
         <source>Assuan:</source>
         <translation>Assuan:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="239"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="240"/>
         <source>Libarchive:</source>
         <translation>Libarchive:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="242"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="243"/>
         <source>OpenSSL:</source>
         <translation>OpenSSL:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="245"/>
+        <source>Sodium:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="248"/>
         <source>Git Branch:</source>
         <translation>Git-Branch:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="248"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="251"/>
         <source>Git Commit:</source>
         <translation>Git-Commit:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="251"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="254"/>
         <source>Built at:</source>
         <translation>Build-Zeitpunkt:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="255"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="258"/>
         <source>Copy Build Information</source>
         <translation>Build-Informationen kopieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="262"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="265"/>
         <source>Build Information</source>
         <translation>Informationen erstellen</translation>
     </message>
@@ -4834,7 +4839,7 @@ Möchten Sie fortfahren?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="378"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="532"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="527"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="537"/>
         <source>Encrypting</source>
         <translation>Verschlüsselung</translation>
     </message>
@@ -4863,7 +4868,7 @@ Möchten Sie fortfahren?</translation>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="402"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="613"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="603"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="613"/>
         <source>Signing</source>
         <translation>Unterzeichnen</translation>
     </message>
@@ -4882,31 +4887,31 @@ Fals Daten und Signatur in einer Datei COMBINIERT sind, LASSEN SIE DIES LEER: </
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="430"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="659"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="463"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="473"/>
         <source>Verifying</source>
         <translation>Verifizierung</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="469"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="714"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="698"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="708"/>
         <source>Encrypting and Signing</source>
         <translation>Verschlüsseln und Signieren</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="483"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="759"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="760"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="770"/>
         <source>Decrypting and Verifying</source>
         <translation>Entschlüsseln und Verifizieren</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="266"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="268"/>
         <source>Missing Keys</source>
         <translation>Fehlende Schlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="267"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="269"/>
         <source>Some signatures cannot be verified because the corresponding keys are missing.
 
 The following fingerprints are missing:
@@ -4921,168 +4926,168 @@ Die folgenden Fingerabdrücke fehlen:
 Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="280"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="290"/>
         <source>Verification Incomplete</source>
         <translation>Verifizierung unvollständig</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="281"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="291"/>
         <source>Verification was incomplete due to missing keys. You can manually import the keys later.</source>
         <translation>Die Verifizierung war unvollständig, weil Schlüssel fehlten. Sie können die Schlüssel später manuell importieren.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="82"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="83"/>
         <source>Localize</source>
         <translation>Ortszeit</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="85"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="86"/>
         <source>UTC</source>
         <translation>koordinierte Weltzeit</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="96"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="97"/>
         <source>Local Time</source>
         <translation>Ortszeit</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="319"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="329"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="296"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="306"/>
         <source>No operation result available.</source>
         <translation>Kein Vorgangsergebnis verfügbar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="315"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="325"/>
         <source>FAILED</source>
         <translation>FEHLGESCHLAGEN</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="322"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="332"/>
         <source>WARNING</source>
         <translation>WARNUNG</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="328"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="338"/>
         <source>Object: %1</source>
         <translation>Objekt: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="344"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="354"/>
         <source>Summary</source>
         <translation>Zusammenfassung</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="346"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="356"/>
         <source>Total operations: %1</source>
         <translation>Gesamte Vorgänge: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="352"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="362"/>
         <source>Failed objects: %1</source>
         <translation>Fehlgeschlagene Objekte: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="356"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="366"/>
         <source>Warning objects: %1</source>
         <translation>Warnungen bei Objekten: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="361"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="371"/>
         <source>Details</source>
         <translation>Details</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="400"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="449"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="501"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="570"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="646"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="743"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="410"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="459"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="511"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="580"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="656"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="753"/>
         <source>Unsupported Operation</source>
         <translation>Nicht unterstützter Vorgang</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="401"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="411"/>
         <source>The decrypt operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>Der Entschlüsselungsvorgang für den Tab-Typ &apos;%1&apos; wird nicht unterstützt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="450"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="460"/>
         <source>The verify operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>Der Verifizierungsvorgang für den Tab-Typ &apos;%1&apos; wird nicht unterstützt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="502"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="512"/>
         <source>The encryption operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>Der Verschlüsselungsvorgang für den Tab-Typ &apos;%1&apos; wird nicht unterstützt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="509"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="580"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="656"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="675"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="519"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="590"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="666"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="685"/>
         <source>No Key Selected</source>
         <translation>Kein Schlüssel ausgewählt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="510"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="520"/>
         <source>Please select a key for encryption.</source>
         <translation>Bitte wählen Sie einen Schlüssel für die Verschlüsselung aus.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="571"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="581"/>
         <source>The sign operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>Der Signiervorgang für den Tab-Typ &apos;%1&apos; wird nicht unterstützt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="647"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="657"/>
         <source>The encrypt and sign operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>Der Verschlüsselungs- und Signiervorgang für den Tab-Typ &apos;%1&apos; wird nicht unterstützt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="657"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="667"/>
         <source>Please select a key for encrypt the EML.</source>
         <translation>Bitte wählen Sie einen Schlüssel für die Verschlüsselung der E-Mail.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="744"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="754"/>
         <source>The decrypt and verify operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>Der Entschlüsselungs- und Verifizierungsvorgang für den Tab-Typ &apos;%1&apos; wird nicht unterstützt.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="581"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="676"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="591"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="686"/>
         <source>Please select a key for signing the EML.</source>
         <translation>Bitte wählen Sie einen Schlüssel zum Signieren der E-Mail.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="347"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="357"/>
         <source>Successful: %1</source>
         <translation>Erfolg: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="348"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="358"/>
         <source>Warnings: %1</source>
         <translation>Warnungen: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="349"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="359"/>
         <source>Failures: %1</source>
         <translation>Misserfolge: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="586"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="681"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="596"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="691"/>
         <source>Multiple Keys Selected</source>
         <translation>Mehrere Schlüssel ausgewählt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="587"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="682"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="597"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="692"/>
         <source>Please select only one key to sign the EML.</source>
         <translation>Bitte wählen Sie nur einen Schlüssel zum Signieren der E-Mail.</translation>
     </message>
@@ -6820,102 +6825,102 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
 <context>
     <name>GpgFrontend::UI::StatusTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="367"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="370"/>
         <source>Application Status</source>
         <translation>Anwendungsstatus</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="322"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="325"/>
         <source>Default</source>
         <translation>Standard</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="324"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="327"/>
         <source>Standard</source>
         <translation>Standard</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="326"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="329"/>
         <source>Enhanced</source>
         <translation>Erweitert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="328"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="331"/>
         <source>High</source>
         <translation>Hoch</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="330"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="333"/>
         <source>Unknown</source>
         <translation>Unbekannt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="335"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="338"/>
         <source>Portable Mode</source>
         <translation>Portabler Modus</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="335"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="338"/>
         <source>Installed Mode</source>
         <translation>Installierter Modus</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="338"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="341"/>
         <source>Self-Check Active</source>
         <translation>Selbstprüfung aktiv</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="338"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="341"/>
         <source>Self-Check Disabled</source>
         <translation>Selbstprüfung deaktiviert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="341"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="344"/>
         <source>Active</source>
         <translation>Aktiv</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="341"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="344"/>
         <source>Disabled</source>
         <translation>Deaktiviert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="347"/>
         <source>Default Pinentry Program</source>
         <translation>Standard Pinentry Programm</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="351"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="354"/>
         <source>Security Level:</source>
         <translation>Sicherheitsstufe:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="353"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="356"/>
         <source>Running Mode:</source>
         <translation>Betriebsmodus:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="355"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="358"/>
         <source>Self-Check Status:</source>
         <translation>Status der Selbstprüfung:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="359"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="362"/>
         <source>GnuPG Offline Mode:</source>
         <translation>GnuPG Offline-Modus:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="362"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="365"/>
         <source>Pinentry Program Path:</source>
         <translation>Pinentry-Programmpfad:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="384"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="387"/>
         <source>Supported OpenPGP Engines</source>
         <translation>Unterstützte OpenPGP-Engines</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="388"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="391"/>
         <source>Tip: These values reflect the current startup environment and may help when reporting issues.</source>
         <translation>Tipp: Diese Werte spiegeln die aktuelle Startumgebung wider und können bei der Meldung von Problemen hilfreich sein.</translation>
     </message>
@@ -7254,17 +7259,17 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
 <context>
     <name>GpgFrontend::UI::TranslatorsTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="280"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="283"/>
         <source>Thanks to all translators</source>
         <translation>Danke an alle Übersetzer</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="290"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="293"/>
         <source>Translator information is not available.</source>
         <translation>Übersetzerinformationen sind nicht verfügbar.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="294"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="297"/>
         <source>If you find a translation issue or want to help improve localization, please contact the developer or submit a contribution.</source>
         <translation>Wenn Sie einen Übersetzungsfehler finden oder bei der Lokalisierung helfen möchten, kontaktieren Sie bitte den Entwickler oder reichen Sie einen Beitrag ein.</translation>
     </message>
@@ -7314,55 +7319,55 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
 <context>
     <name>QCoreApplication</name>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="139"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="122"/>
         <source>File Hash Information</source>
         <translation>Datei-Hash-Informationen</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="140"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="166"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="123"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="152"/>
         <source>Filename</source>
         <translation>Dateiname</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="140"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="123"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="128"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="132"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="137"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="141"/>
         <location filename="../../../../src/core/utils/IOUtils.cpp" line="145"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="149"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="153"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="156"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="159"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="166"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="152"/>
         <source>: </source>
         <translation>: </translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="144"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="148"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="127"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="131"/>
         <source>File Size</source>
         <translation>Dateigröße</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="164"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="150"/>
         <source>Error: cannot read target file</source>
         <translation>Fehler: Zieldatei kann nicht gelesen werden</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="197"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="183"/>
         <source>target path doesn&apos;t exists</source>
         <translation>Zielpfad existiert nicht</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="203"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="189"/>
         <source>do NOT have permission to write path</source>
         <translation>habe KEINE Schreibberechtigung für den Pfad</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="209"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="195"/>
         <source>do NOT have permission to read/write file</source>
         <translation>habe KEINE Lese-/Schreibberechtigung für die Datei</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="212"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="198"/>
         <source>Success</source>
         <translation>erfolgreich</translation>
     </message>
@@ -7445,85 +7450,78 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="90"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="79"/>
         <source>Program Self-Test Failed</source>
         <translation>Programminterner Selbsttest fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="91"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="80"/>
         <source>The application has detected an issue while verifying essential libraries and binaries that were digitally signed during the build. This means one or more files may have been altered or are being loaded from the wrong location. For security reasons, the program must now exit.</source>
         <translation>Die Anwendung hat beim Überprüfen wichtiger, während der Erstellung digital signierter Bibliotheken und Binärdateien ein Problem festgestellt. Das bedeutet, dass eine oder mehrere Dateien verändert wurden oder aus einem falschen Verzeichnis geladen werden. Aus Sicherheitsgründen wird das Programm nun beendet.</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="120"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="109"/>
         <source>PIN Required</source>
         <translation>PIN erforderlich</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="121"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="110"/>
         <source>High security mode is enabled.</source>
         <translation>Hoher Sicherheitsmodus ist aktiviert.</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="122"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="111"/>
         <source>To unlock the application please enter your PIN.</source>
         <translation>Bitte geben Sie Ihre PIN ein, um die Anwendung zu entsperren.</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="54"/>
+        <location filename="../../../../src/Security.cpp" line="51"/>
         <location filename="../../../../src/Security.cpp" line="217"/>
         <source>Save Key Failed</source>
         <translation>Schlüssel konnte nicht gespeichert werden</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="55"/>
+        <location filename="../../../../src/Security.cpp" line="52"/>
         <location filename="../../../../src/Security.cpp" line="218"/>
         <source>Failed to save the secure key to disk at: %1</source>
         <translation>Der sichere Schlüssel konnte nicht auf dem Laufwerk gespeichert werden: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="58"/>
+        <location filename="../../../../src/Security.cpp" line="55"/>
         <location filename="../../../../src/Security.cpp" line="221"/>
         <source>Please check your storage or try running as administrator.</source>
         <translation>Bitte überprüfen Sie Ihren Speicher oder versuchen Sie, das Programm als Administrator auszuführen.</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="126"/>
-        <location filename="../../../../src/Security.cpp" line="132"/>
-        <location filename="../../../../src/Security.cpp" line="138"/>
-        <location filename="../../../../src/Security.cpp" line="160"/>
+        <location filename="../../../../src/Security.cpp" line="136"/>
+        <location filename="../../../../src/Security.cpp" line="142"/>
+        <location filename="../../../../src/Security.cpp" line="148"/>
         <source>Time Rotation Secure Key Generation Failed</source>
         <translation>Erstellung des zeitbasierten Sicherheitsschlüssels fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="127"/>
+        <location filename="../../../../src/Security.cpp" line="137"/>
         <source>Failed to generate a salt; falling back to less-secure key.</source>
         <translation>Salz konnte nicht generiert werden; es wird ein weniger sicherer Schlüssel verwendet.</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="133"/>
+        <location filename="../../../../src/Security.cpp" line="143"/>
         <source>Failed to derive time-rotated key; falling back to less-secure key.</source>
         <translation>Zeitbasierten Schlüssel konnte nicht abgeleitet werden; es wird ein weniger sicherer Schlüssel verwendet.</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="139"/>
-        <source>Failed to compute key ID; falling back to less-secure key.</source>
-        <translation>Schlüssel-ID konnte nicht berechnet werden; es wird ein weniger sicherer Schlüssel verwendet.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/Security.cpp" line="151"/>
+        <location filename="../../../../src/Security.cpp" line="164"/>
         <location filename="../../../../src/Security.cpp" line="202"/>
         <source>Encrypt Key Failed</source>
         <translation>Schlüsselverschlüsselung fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="152"/>
+        <location filename="../../../../src/Security.cpp" line="165"/>
         <location filename="../../../../src/Security.cpp" line="203"/>
         <source>Failed to encrypt the secure key with your PIN. The key will not be saved to disk.</source>
         <translation>Der sichere Schlüssel konnte nicht mit Ihrer PIN verschlüsselt werden. Der Schlüssel wird nicht gespeichert.</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="161"/>
         <location filename="../../../../src/Security.cpp" line="186"/>
         <source>Failed to generate a secure application key using OpenSSL. A less secure fallback key will be used. Please check your system&apos;s cryptography support.</source>
         <translation>Ein sicherer Anwendungsschlüssel konnte mit OpenSSL nicht erzeugt werden. Es wird ein weniger sicherer Ausweichschlüssel verwendet. Bitte überprüfen Sie die Kryptografie-Unterstützung Ihres Systems.</translation>
@@ -7534,26 +7532,31 @@ Möchten Sie diese Schlüssel vom Schlüsselserver abrufen</translation>
         <translation>Erstellung des sicheren Schlüssels fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="248"/>
-        <location filename="../../../../src/Security.cpp" line="273"/>
-        <location filename="../../../../src/Security.cpp" line="323"/>
+        <location filename="../../../../src/Security.cpp" line="149"/>
+        <source>Failed to compute key ID.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/Security.cpp" line="250"/>
+        <location filename="../../../../src/Security.cpp" line="275"/>
+        <location filename="../../../../src/Security.cpp" line="325"/>
         <source>App Secure Key Error</source>
         <translation>Fehler mit dem Anwendungssicherheitsschlüssel</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="249"/>
-        <location filename="../../../../src/Security.cpp" line="324"/>
+        <location filename="../../../../src/Security.cpp" line="251"/>
+        <location filename="../../../../src/Security.cpp" line="326"/>
         <source>Failed to read the application secure key from disk at: %1</source>
         <translation>Der Anwendungssicherheitsschlüssel konnte nicht vom Laufwerk gelesen werden: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="253"/>
-        <location filename="../../../../src/Security.cpp" line="328"/>
+        <location filename="../../../../src/Security.cpp" line="255"/>
+        <location filename="../../../../src/Security.cpp" line="330"/>
         <source>Please ensure the key file exists and is accessible, or try re-initializing the secure key.</source>
         <translation>Bitte stellen Sie sicher, dass die Schlüsseldatei existiert und zugänglich ist, oder versuchen Sie, den Sicherheitsschlüssel neu zu initialisieren.</translation>
     </message>
     <message>
-        <location filename="../../../../src/Security.cpp" line="274"/>
+        <location filename="../../../../src/Security.cpp" line="276"/>
         <source>Failed to decrypt the application secure key. Your PIN may be incorrect, or the key file may be corrupted.Please clear the secure key and try again.</source>
         <translation>Der Anwendungssicherheitsschlüssel konnte nicht entschlüsselt werden. Ihre PIN ist möglicherweise falsch oder die Schlüsseldatei ist beschädigt. Bitte löschen Sie den Sicherheitsschlüssel und versuchen Sie es erneut.</translation>
     </message>
