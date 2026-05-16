@@ -16,7 +16,7 @@ fn main() {
         fs::create_dir_all(&output_file).expect("failed to create include directory");
     }
 
-    output_file.push("GpgCoreRust.h");
+    output_file.push("GFCoreRust.h");
 
     let config = cbindgen::Config::from_root_or_default(&crate_dir);
 

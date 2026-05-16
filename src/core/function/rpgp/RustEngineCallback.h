@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/GpgCoreRust.h"
+#include "core/GFCoreRust.h"
 
 namespace GpgFrontend {
 

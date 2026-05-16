@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "GpgCoreRust.h"
+#include "GFCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
 #include "core/model/GFBuffer.h"
 #include "core/typedef/GFTypedef.h"

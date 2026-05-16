@@ -30,8 +30,8 @@
 
 #include <sodium.h>
 
-#include "core/GFLog.h"
-#include "core/GpgCoreInit.h"
+#include "core/GFCoreInit.h"
+#include "core/GFCoreLog.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"

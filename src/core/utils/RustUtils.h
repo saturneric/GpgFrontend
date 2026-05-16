@@ -30,7 +30,7 @@
 
 #ifdef HAS_RUST_SUPPORT
 
-#include "core/GpgCoreRust.h"
+#include "core/GFCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
 #include "core/typedef/GFTypedef.h"
 

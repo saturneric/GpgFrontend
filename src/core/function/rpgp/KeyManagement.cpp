@@ -28,7 +28,7 @@
 
 #include "KeyManagement.h"
 
-#include "core/GpgCoreRust.h"
+#include "core/GFCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/openpgp/KeyGroupRepository.h"
 #include "core/function/rpgp/KeyImportExport.h"

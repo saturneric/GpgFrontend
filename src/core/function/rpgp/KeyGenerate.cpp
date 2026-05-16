@@ -28,7 +28,7 @@
 
 #include "KeyGenerate.h"
 
-#include "core/GpgCoreRust.h"
+#include "core/GFCoreRust.h"
 #include "core/function/rpgp/RustEngineCallback.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/utils/RustUtils.h"

@@ -25,7 +25,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
-#include "GFLog.h"
+#include "GFCoreLog.h"
 
 namespace GpgFrontend {
 

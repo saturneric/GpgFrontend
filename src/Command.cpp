@@ -34,8 +34,8 @@
 #include <qstring.h>
 #include <qtextstream.h>
 
-#include "core/GFLog.h"
-#include "core/GpgCoreInit.h"
+#include "core/GFCoreInit.h"
+#include "core/GFCoreLog.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"

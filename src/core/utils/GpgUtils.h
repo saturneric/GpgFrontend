@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/GpgCoreRust.h"
+#include "core/GFCoreRust.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgAbstractKey.h"
 #include "core/model/KeyDatabaseInfo.h"
@@ -49,7 +49,8 @@ namespace GpgFrontend {
 auto GF_CORE_EXPORT CheckGpgError(GpgError err) -> GpgError;
 
 /**
- * @brief Log a warning with the error and an additional comment if @p err is non-zero.
+ * @brief Log a warning with the error and an additional comment if @p err is
+ * non-zero.
  *
  * @param gpgmeError gpgme error value
  * @param comment additional context string included in the log message
@@ -73,7 +74,8 @@ auto GF_CORE_EXPORT CheckGpgError2ErrCode(
  * @brief Return a (source, description) pair describing the given error.
  *
  * @param err gpgme error value
- * @return GpgErrorDesc with the error source name and human-readable description
+ * @return GpgErrorDesc with the error source name and human-readable
+ * description
  */
 auto GF_CORE_EXPORT DescribeGpgErrCode(GpgError err) -> GpgErrorDesc;
 
@@ -86,7 +88,8 @@ auto GF_CORE_EXPORT DescribeGpgErrCode(GpgError err) -> GpgErrorDesc;
 auto GF_CORE_EXPORT TextIsSigned(BypeArrayRef text) -> int;
 
 /**
- * @brief Return the output file path with an extension appropriate for the given operation.
+ * @brief Return the output file path with an extension appropriate for the
+ * given operation.
  *
  * @param path input file path to derive the output path from
  * @param opera GPG operation type (encrypt, sign, etc.)
@@ -136,7 +139,8 @@ auto GF_CORE_EXPORT GetKeyDatabasesBySettings()
     -> QContainer<KeyDatabaseItemSO>;
 
 /**
- * @brief Return key database infos for custom (non-GPG) databases from settings.
+ * @brief Return key database infos for custom (non-GPG) databases from
+ * settings.
  *
  * @return list of KeyDatabaseInfo for custom databases
  */
@@ -159,7 +163,8 @@ auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo>;
 auto GF_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString;
 
 /**
- * @brief Extract key ID strings from a list of abstract keys for the given channel.
+ * @brief Extract key ID strings from a list of abstract keys for the given
+ * channel.
  *
  * @param channel OpenPGP context channel
  * @param keys list of abstract key pointers
@@ -192,7 +197,8 @@ auto GF_CORE_EXPORT Convert2GpgKeyList(int channel,
     -> QContainer<GpgKey>;
 
 /**
- * @brief Return a string describing the usage flags of an abstract key (e.g. "ESCA").
+ * @brief Return a string describing the usage flags of an abstract key (e.g.
+ * "ESCA").
  *
  * @param key abstract key to inspect
  * @return usage string composed of capability letters
@@ -209,7 +215,8 @@ auto GF_CORE_EXPORT GetUsagesByAbstractKey(const GpgAbstractKey* key)
 auto GF_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* key) -> GpgKey;
 
 /**
- * @brief Return whether the given key ID refers to a key group rather than a single key.
+ * @brief Return whether the given key ID refers to a key group rather than a
+ * single key.
  *
  * @param id key identifier to test
  * @return true if the ID refers to a key group
@@ -217,7 +224,8 @@ auto GF_CORE_EXPORT GetGpgKeyByGpgAbstractKey(GpgAbstractKey* key) -> GpgKey;
 auto GF_CORE_EXPORT IsKeyGroupID(const KeyId& id) -> bool;
 
 /**
- * @brief Return whether the gpg-agent version on @p channel is greater than @p version.
+ * @brief Return whether the gpg-agent version on @p channel is greater than @p
+ * version.
  *
  * @param channel OpenPGP context channel
  * @param version version string to compare against
@@ -241,7 +249,8 @@ auto GF_CORE_EXPORT DecidePinentry() -> QString;
 auto GF_CORE_EXPORT GnuPGVersion() -> QString;
 
 /**
- * @brief Parse a raw user ID string (e.g. "Name <email>") into a GFUserId structure.
+ * @brief Parse a raw user ID string (e.g. "Name <email>") into a GFUserId
+ * structure.
  *
  * @param raw_id raw user ID string
  * @return parsed GFUserId with name, comment, and email fields

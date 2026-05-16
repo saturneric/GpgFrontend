@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/GFLog.h"
+#include "core/GFCoreLog.h"
 #include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {

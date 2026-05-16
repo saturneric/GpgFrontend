@@ -28,7 +28,7 @@
 
 #include "RpgpCoreTest.h"
 
-#include "core/GpgCoreInit.h"
+#include "core/GFCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"

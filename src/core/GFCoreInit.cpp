@@ -25,16 +25,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
-#include "GpgCoreInit.h"
+#include "GFCoreInit.h"
 
 #include <gpgme.h>
 
-#include "core/GpgCoreRust.h"
+#include "core/GFCoreRust.h"
 #include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/basic/ChannelObject.h"
-#include "core/function/basic/SingletonStorage.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/openpgp/helper/Async.h"
@@ -45,7 +43,6 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "core/utils/MemoryUtils.h"
 #include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {

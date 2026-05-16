@@ -29,7 +29,7 @@
 //! C-compatible (`#[repr(C)]`) types shared across the FFI boundary.
 //!
 //! All structs and enums in this module are layout-compatible with the
-//! corresponding C/C++ declarations in `GpgCoreRust.h`. Callers must free
+//! corresponding C/C++ declarations in `GFCoreRust.h`. Callers must free
 //! any heap-allocated pointer fields using the corresponding
 //! `gfr_crypto_free_*` functions in `ffi_mem`.
 

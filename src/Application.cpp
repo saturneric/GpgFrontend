@@ -28,7 +28,7 @@
 
 #include "Application.h"
 
-#include "core/GFLog.h"
+#include "core/GFCoreLog.h"
 #include "core/GpgConstants.h"
 #include "ui/GpgFrontendUIInit.h"
 

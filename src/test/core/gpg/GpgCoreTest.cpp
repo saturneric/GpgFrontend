@@ -28,7 +28,7 @@
 
 #include "GpgCoreTest.h"
 
-#include "core/GpgCoreInit.h"
+#include "core/GFCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
