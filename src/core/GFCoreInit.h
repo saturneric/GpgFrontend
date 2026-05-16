@@ -32,53 +32,67 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief Core initialization arguments.
+ */
 struct CoreInitArgs {
   bool gather_external_gnupg_info;
   bool unit_test_mode;
 };
 
 /**
- * @brief
- *
+ * @brief Destroy and clean up the GpgFrontend core, stopping all task
+ * runners, flushing cache storage, and destroying singleton objects.
  */
 void GF_CORE_EXPORT DestroyGpgFrontendCore();
 
 /**
- * @brief
+ * @brief Initialize the GpgFrontend core subsystem, including GnuPG
+ * and rPGP engine detection, basic path resolution, and default OpenPGP
+ * context construction.
  *
+ * @param args Core initialization parameters.
+ * @return int 0 on success, -1 on failure.
  */
-auto GF_CORE_EXPORT InitGpgFrontendCore(CoreInitArgs) -> int;
+auto GF_CORE_EXPORT InitGpgFrontendCore(CoreInitArgs args) -> int;
 
 /**
- * @brief
+ * @brief Build an OpenPGP context on the given channel with the specified
+ * initialization arguments (engine type, database name/path, offline mode,
+ * auto-import settings).
  *
- * @param channel
- * @param args
- * @return true
- * @return false
+ * @param channel The channel index for the new context.
+ * @param args Context initialization arguments.
+ * @return true if the context was created successfully.
+ * @return false otherwise.
  */
 auto GF_CORE_EXPORT BuildOpenPGPContext(int channel,
                                         OpenPGPContextInitArgs args) -> bool;
 
 /**
- * @brief
- *
+ * @brief Start a background task that monitors the core initialization
+ * status and signals when the core (including modules and key databases)
+ * is fully loaded.
  */
 void GF_CORE_EXPORT StartMonitorCoreInitializationStatus();
 
 /**
- * @brief
+ * @brief Initialize the GpgME (GPG Made Easy) library, verify backend
+ * engines (OpenPGP, GPGCONF, CMS), and enforce minimum GnuPG version
+ * requirements.
  *
- * @return true
- * @return false
+ * @return true if GpgME initialized successfully.
+ * @return false otherwise.
  */
 auto GF_CORE_EXPORT InitGpgME() -> bool;
 
 /**
- * @brief
+ * @brief Resolve and initialize the basic filesystem paths used by the
+ * core, including the gpgconf executable path, GnuPG binary path, and
+ * the default key database (home) directory.
  *
- * @return true
- * @return false
+ * @return true if basic path initialization succeeded.
+ * @return false otherwise.
  */
 auto GF_CORE_EXPORT InitBasicPath() -> bool;
 

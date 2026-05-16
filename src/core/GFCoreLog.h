@@ -31,10 +31,11 @@
 namespace GpgFrontend {
 
 /**
- * @brief
+ * @brief Builds Qt logging filter rules string based on the given log level,
+ * suppressing all log categories below the specified threshold.
  *
- * @param level
- * @return QString
+ * @param level log level threshold as integer
+ * @return QString filter rules string for QLoggingCategory
  */
 auto GF_CORE_EXPORT BuildQtLoggingFilterRules(int level) -> QString;
 
@@ -46,6 +47,10 @@ enum class GFLogLevel : uint8_t {
   kFATAL = 4
 };
 
+/**
+ * @brief Represents a single log entry with metadata such as timestamp,
+ * severity type, source file, and message content.
+ */
 struct GFLogEntry {
   QDateTime timestamp;
   QtMsgType type;
@@ -62,36 +67,38 @@ class GFLogRingBuffer {
   /**
    * @brief Construct a new GFLogRingBuffer object
    *
-   * @param capacity
+   * @param capacity maximum number of log entries the buffer can hold
    */
   explicit GFLogRingBuffer(int capacity = 1024)
       : capacity_(capacity), buffer_(capacity) {}
 
   /**
-   * @brief
+   * @brief Appends a log entry to the ring buffer, overwriting the oldest
+   * entry when the buffer is full.
    *
-   * @param entry
+   * @param entry log entry to store
    */
   void Push(GFLogEntry entry);
 
   /**
-   * @brief
+   * @brief Returns a chronological snapshot of all entries currently stored
+   * in the buffer.
    *
-   * @return QVector<GFLogEntry>
+   * @return QVector<GFLogEntry> ordered copy of buffered log entries
    */
   auto Snapshot() const -> QVector<GFLogEntry>;
 
   /**
-   * @brief
+   * @brief Returns the current number of entries in the buffer.
    *
-   * @return int
+   * @return int number of buffered entries
    */
   auto Size() const -> int;
 
   /**
-   * @brief
+   * @brief Returns the maximum capacity of the ring buffer.
    *
-   * @return int
+   * @return int max entries the buffer can hold
    */
   auto Capacity() const -> int;
 
@@ -107,30 +114,30 @@ class GFLogRingBuffer {
 class GF_CORE_EXPORT GFLogManager {
  public:
   /**
-   * @brief
+   * @brief Returns the singleton instance of the log manager.
    *
-   * @return GFLogManager&
+   * @return GFLogManager& reference to the singleton instance
    */
   static auto Instance() -> GFLogManager&;
 
   /**
-   * @brief
+   * @brief Initializes the internal ring buffer with the specified capacity.
    *
-   * @param capacity
+   * @param capacity maximum number of log entries to buffer
    */
   void InitRingBuffer(int capacity);
 
   /**
-   * @brief
+   * @brief Thread-safe push of a log entry into the ring buffer.
    *
-   * @param entry
+   * @param entry log entry to store
    */
   void Push(const GFLogEntry& entry);
 
   /**
-   * @brief
+   * @brief Thread-safe snapshot of all buffered log entries.
    *
-   * @return QVector<GFLogEntry>
+   * @return QVector<GFLogEntry> ordered copy of buffered log entries
    */
   auto Snapshot() const -> QVector<GFLogEntry>;
 
