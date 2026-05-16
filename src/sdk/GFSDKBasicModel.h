@@ -33,19 +33,38 @@
 
 extern "C" {
 
-// MAX STRLEN -> 64 MB
+/// Maximum allowed string length for SDK string operations (32 MiB).
 constexpr int32_t kGfStrlenMax = static_cast<const int32_t>(1024 * 1024 * 32);
 
+/**
+ * @brief Callback invoked after a command finishes executing.
+ * @param data   User-supplied context pointer passed to GFExecuteCommandSync.
+ * @param errcode Exit code returned by the command process.
+ * @param out    Null-terminated standard output of the command.
+ * @param err    Null-terminated standard error of the command.
+ */
 using GFCommandExecuteCallback = void (*)(void* data, int errcode,
                                           const char* out, const char* err);
 
+/**
+ * @brief Execution context for a single command in a batch operation.
+ *
+ * Used with GFExecuteCommandBatchSync to submit multiple commands at once.
+ * The @p data pointer must be freed by the caller after the callback returns.
+ */
 using GFCommandExecuteContext = struct {
-  char* cmd;
-  int32_t argc;
-  char** argv;
-  GFCommandExecuteCallback cb;
-  void* data;  ///< must free by user
+  char* cmd;                  ///< Command path or name to execute.
+  int32_t argc;               ///< Number of arguments in @p argv.
+  char** argv;                ///< Argument array of length @p argc.
+  GFCommandExecuteCallback cb; ///< Callback invoked on completion.
+  void* data;                 ///< User context pointer; must be freed by caller.
 };
 
+/**
+ * @brief Callback that supplies translation data for a given locale.
+ * @param locale BCP-47 locale string (e.g. "en_US").
+ * @param data   Output pointer set to a caller-owned buffer with the data.
+ * @return 0 on success, non-zero on failure.
+ */
 using GFTranslatorDataReader = int (*)(const char* locale, char** data);
 }

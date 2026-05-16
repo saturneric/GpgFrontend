@@ -30,41 +30,62 @@
 
 extern "C" {
 
+/**
+ * @brief A singly-linked list node for arbitrary key-value module metadata.
+ *
+ * Returned by GFModuleAPIGetModuleMetaData to describe the module.
+ */
 struct GFModuleMetaData {
-  const char *key;
-  const char *value;
-  GFModuleMetaData *next;
+  const char *key;          ///< Metadata key string.
+  const char *value;        ///< Metadata value string.
+  GFModuleMetaData *next;   ///< Next node, or nullptr at end of list.
 };
 
+/**
+ * @brief A singly-linked list node carrying one named parameter of an event.
+ */
 struct GFModuleEventParam {
-  const char *name;
-  const char *value;
-  GFModuleEventParam *next;
+  const char *name;           ///< Parameter name.
+  const char *value;          ///< Parameter value.
+  GFModuleEventParam *next;   ///< Next parameter, or nullptr at end of list.
 };
 
+/**
+ * @brief Describes a module event dispatched by the event system.
+ */
 struct GFModuleEvent {
-  const char *id;
-  const char *trigger_id;
-  GFModuleEventParam *params;
+  const char *id;             ///< Unique event identifier (upper-case).
+  const char *trigger_id;     ///< ID of the event that triggered this one.
+  GFModuleEventParam *params; ///< Linked list of event parameters; may be nullptr.
 };
 
+/// Returns the GpgFrontend SDK version the module was compiled against.
 using GFModuleAPIGetModuleGFSDKVersion = auto (*)() -> const char *;
 
+/// Returns the Qt version the module was compiled against.
 using GFModuleAPIGetModuleQtEnvVersion = auto (*)() -> const char *;
 
+/// Returns the module's unique identifier string (lower-case, dot-separated).
 using GFModuleAPIGetModuleID = auto (*)() -> const char *;
 
+/// Returns the module's version string.
 using GFModuleAPIGetModuleVersion = auto (*)() -> const char *;
 
+/// Returns a linked list of key-value metadata describing the module.
 using GFModuleAPIGetModuleMetaData = auto (*)() -> GFModuleMetaData *;
 
+/// Called once to register the module with the module manager. Return 0 on success.
 using GFModuleAPIRegisterModule = auto (*)() -> int;
 
+/// Called to activate the module; subscribe to events here. Return 0 on success.
 using GFModuleAPIActivateModule = auto (*)() -> int;
 
+/// Called when the module receives an event to handle. Return 0 on success.
 using GFModuleAPIExecuteModule = auto (*)(GFModuleEvent *) -> int;
 
+/// Called to deactivate the module; unsubscribe from events here. Return 0 on success.
 using GFModuleAPIDeactivateModule = auto (*)() -> int;
 
+/// Called once to unregister and clean up the module. Return 0 on success.
 using GFModuleAPIUnregisterModule = auto (*)() -> int;
 };

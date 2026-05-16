@@ -30,8 +30,19 @@
 
 extern "C" {
 
+/**
+ * @brief Compares two software version strings using semantic versioning rules.
+ * @param current_version Version string of the running software (e.g. "2.1.0").
+ * @param latest_version  Version string to compare against.
+ * @return Negative if current < latest, 0 if equal, positive if current > latest.
+ */
 auto GF_SDK_EXPORT GFCompareSoftwareVersion(const char *current_version,
                                             const char *latest_version) -> int;
 
+/**
+ * @brief Returns the HTTP User-Agent string used for outbound requests.
+ * @return Null-terminated User-Agent string. Do not free; valid for the
+ *         lifetime of the application.
+ */
 auto GF_SDK_EXPORT GFHttpRequestUserAgent() -> const char *;
 }

@@ -32,15 +32,62 @@
 
 extern "C" {
 
+/**
+ * @brief Creates a QObject-derived GUI object on the main (UI) thread.
+ *
+ * If called from a non-UI thread, the factory is dispatched to the main thread
+ * via a blocking queued connection before returning.
+ *
+ * @param factory Callback that constructs the GUI object.
+ * @param data    User data forwarded to @p factory.
+ * @return Opaque pointer to the created QObject, or nullptr on failure.
+ */
 auto GF_SDK_EXPORT GFUICreateGUIObject(QObjectFactory factory, void* data)
     -> void*;
 
+/**
+ * @brief Retrieves a registered GUI object by its string identifier.
+ *
+ * @param id Null-terminated identifier of the GUI object.
+ * @return Opaque QObject pointer, or nullptr if not found or @p id is nullptr.
+ */
 auto GF_SDK_EXPORT GFUIGetGUIObject(const char* id) -> void*;
 
+/**
+ * @brief Shows a QDialog on the main thread.
+ *
+ * The dialog must have been created on the main thread. The call returns
+ * immediately after scheduling the show; it does not wait for the dialog to
+ * close.
+ *
+ * @param dialog Opaque pointer to a QDialog instance.
+ * @param parent Opaque pointer to a QWidget parent, or nullptr for no parent.
+ * @return true if the dialog was shown successfully, false on error.
+ */
 auto GF_SDK_EXPORT GFUIShowDialog(void* dialog, void* parent) -> bool;
 
+/**
+ * @brief Returns a pointer to the application-wide QSettings object.
+ *
+ * The returned pointer is valid for the lifetime of the application and must
+ * not be deleted by the caller.
+ *
+ * @return Opaque pointer to the global QSettings instance.
+ */
 auto GF_SDK_EXPORT GFUIGlobalSettings() -> void*;
 
+/**
+ * @brief Associates a file extension with an event prefix for open-file
+ *        handling.
+ *
+ * When the user opens a file with the given extension, the UI emits an event
+ * named @p event_prefix + "." + extension.
+ *
+ * @param extension    File extension string without the leading dot (e.g.
+ *                     "gpg").
+ * @param event_prefix Prefix used to construct the event identifier.
+ * @return 0 on success, -1 if either argument is nullptr.
+ */
 auto GF_SDK_EXPORT GFUIRegisterFileExtensionHandleEvent(
     const char* extension, const char* event_prefix) -> int;
 }

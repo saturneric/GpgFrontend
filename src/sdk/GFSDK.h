@@ -30,13 +30,33 @@
 
 extern "C" {
 
-void GF_SDK_EXPORT GFModuleLogTrace(const char*);
+/**
+ * @brief Emits a trace-level log message from a module.
+ * @param msg Null-terminated message string.
+ */
+void GF_SDK_EXPORT GFModuleLogTrace(const char* msg);
 
-void GF_SDK_EXPORT GFModuleLogDebug(const char*);
+/**
+ * @brief Emits a debug-level log message from a module.
+ * @param msg Null-terminated message string.
+ */
+void GF_SDK_EXPORT GFModuleLogDebug(const char* msg);
 
-void GF_SDK_EXPORT GFModuleLogInfo(const char*);
+/**
+ * @brief Emits an info-level log message from a module.
+ * @param msg Null-terminated message string.
+ */
+void GF_SDK_EXPORT GFModuleLogInfo(const char* msg);
 
-void GF_SDK_EXPORT GFModuleLogWarn(const char*);
+/**
+ * @brief Emits a warning-level log message from a module.
+ * @param msg Null-terminated message string.
+ */
+void GF_SDK_EXPORT GFModuleLogWarn(const char* msg);
 
-void GF_SDK_EXPORT GFModuleLogError(const char*);
+/**
+ * @brief Emits an error-level log message from a module.
+ * @param msg Null-terminated message string.
+ */
+void GF_SDK_EXPORT GFModuleLogError(const char* msg);
 }
