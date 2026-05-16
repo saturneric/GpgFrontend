@@ -26,12 +26,20 @@
  *
  */
 
+//! Tar archive helpers for directory encryption and decryption workflows.
+
 use std::{
     fs::File, io::{Seek, SeekFrom}, path::Path
 };
 
 use crate::{err::set_last_error, types::GfrStatus};
 
+/// Pack a directory into an anonymous temporary tar archive.
+///
+/// Returns `(tempfile, filename_hint)` where `tempfile` is already seeked back
+/// to offset 0, ready for the caller to read. The temp file is deleted when
+/// the `File` handle is dropped. The `{}` inner scope around the builder
+/// ensures the tar trailer is flushed before the seek.
 pub fn build_tar_tempfile_from_directory(in_dir_path: &str) -> Result<(File, String), GfrStatus> {
     let dir_path = Path::new(in_dir_path);
     if !dir_path.is_dir() {

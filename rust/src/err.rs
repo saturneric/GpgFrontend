@@ -26,6 +26,14 @@
  *
  */
 
+//! Thread-local last-error storage and `IntoGfrResult` conversion trait.
+//!
+//! Every FFI call that may fail stores a human-readable message in a
+//! thread-local `LAST_ERROR` slot. C++ retrieves it via `gfr_get_last_error_msg`
+//! after checking the returned `GfrStatus` code. The slot is independent per
+//! OS thread, so concurrent operations on different channels do not clobber
+//! each other's error messages.
+
 use crate::types::GfrStatus;
 use std::cell::RefCell;
 use std::ffi::CString;
@@ -35,21 +43,27 @@ thread_local! {
     static LAST_ERROR: RefCell<String> = const { RefCell::new(String::new()) };
 }
 
-// Helper to set the last error message from within Rust
+/// Record a detailed error message for the current thread.
+///
+/// Called by internal code immediately before returning a `GfrStatus` error so
+/// C++ can retrieve the full message with `gfr_get_last_error_msg`.
 pub fn set_last_error(msg: &str) {
     LAST_ERROR.with(|e| {
         *e.borrow_mut() = msg.to_string();
     });
 }
 
-// Helper to clear the last error before starting a new operation
+/// Clear the thread-local error slot before starting a new operation.
 pub fn clear_last_error() {
     LAST_ERROR.with(|e| {
         e.borrow_mut().clear();
     });
 }
 
-// FFI function for C++ to retrieve the detailed error message
+/// Return the last error message for the current thread as a heap-allocated C string.
+///
+/// Returns null when no error has been set since the last `clear_last_error` call.
+/// The caller must free the returned pointer with `gfr_crypto_free_string`.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_get_last_error_msg() -> *mut c_char {
     LAST_ERROR.with(|e| {
@@ -62,12 +76,12 @@ pub extern "C" fn gfr_get_last_error_msg() -> *mut c_char {
     })
 }
 
-// Trait to convert external results into our FFI status
+/// Convert a foreign `Result` into a `Result<T, GfrStatus>`, logging and storing
+/// the error message as a side effect.
 pub trait IntoGfrResult<T> {
     fn into_gfr(self) -> Result<T, GfrStatus>;
 }
 
-// Implementation for rpgp's Result type
 impl<T> IntoGfrResult<T> for Result<T, pgp::errors::Error> {
     fn into_gfr(self) -> Result<T, GfrStatus> {
         match self {
@@ -118,7 +132,6 @@ impl<T> IntoGfrResult<T> for Result<T, pgp::errors::Error> {
     }
 }
 
-// Implementation for standard IO errors
 impl<T> IntoGfrResult<T> for Result<T, std::io::Error> {
     fn into_gfr(self) -> Result<T, GfrStatus> {
         match self {

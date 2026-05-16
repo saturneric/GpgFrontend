@@ -26,6 +26,16 @@
  *
  */
 
+//! In-memory (buffered) OpenPGP operations — encrypt, decrypt, sign, verify.
+//!
+//! Each function here is a thin adapter over the streaming equivalents in
+//! `crypto_stream`: it wraps a `&[u8]` in a `Cursor` and a `Vec<u8>` in a
+//! writer, then delegates to the stream implementation. Result types mirror
+//! those of the streaming layer with an additional `data: Vec<u8>` payload.
+//!
+//! Signing-key resolution helpers (`parse_signer_block`, `with_signing_key`,
+//! `cert_contains_issuer`) are also housed here and shared with `crypto_stream`.
+
 use crate::{
     crypto_stream::{
         decrypt_and_verify_stream_internal, encrypt_and_sign_stream_internal,
@@ -52,11 +62,13 @@ use std::{
     io::{Cursor, Read},
 };
 
+/// A recipient whose session key could not be encrypted.
 pub struct InvalidRecipientInternal {
     pub fpr: String,
     pub reason: GfrStatus,
 }
 
+/// Result of an in-memory encryption operation.
 pub struct EncryptResultInternal {
     pub data: Vec<u8>,
     pub invalid_recipients: Vec<InvalidRecipientInternal>,
@@ -79,18 +91,26 @@ pub fn encrypt_internal(
     })
 }
 
+/// A single decryption recipient key as found in the encrypted message.
 pub struct RecipientResultInternal {
-    pub key_id: String, // PGP PKESK only exposes 16-char Key ID, not full Fingerprint
+    /// 16-character hex key ID (OpenPGP PKESK packets expose the key ID, not the full fingerprint).
+    pub key_id: String,
     pub pub_algo: String,
     pub status: GfrRecipientStatus,
 }
 
+/// Result of an in-memory decryption operation.
 pub struct DecryptResultInternal {
     pub data: Vec<u8>,
+    /// Filename from the OpenPGP literal data packet (may be empty).
     pub filename: String,
     pub recipients: Vec<RecipientResultInternal>,
 }
 
+/// Decrypt an in-memory buffer, auto-detecting ASCII armor.
+///
+/// Checks for the `-----BEGIN PGP MESSAGE-----` header to decide the format;
+/// no `ascii_armor` parameter is needed on this variant.
 pub fn decrypt_internal(
     channel: i32,
     encrypted_data: &[u8],
@@ -130,12 +150,19 @@ pub fn decrypt_internal(
     })
 }
 
+/// Result of an in-memory signing operation.
 pub struct SignResultInternal {
     pub data: Vec<u8>,
     pub signatures: Vec<SignatureResultInternal>,
 }
 
-/// Helper to extract exact target (!) from the armored string prefix
+/// Extract an optional target subkey fingerprint from the armored block prefix.
+///
+/// The caller may prepend a fingerprint (or key ID) followed by `!` to the
+/// armor block to force signing with a specific subkey, e.g.:
+/// `"AABBCCDD!\n-----BEGIN PGP PRIVATE KEY BLOCK-----\n..."`.
+/// Returns `(Some(fingerprint), armor_block)` if a valid `!`-terminated prefix
+/// is present, otherwise `(None, full_block)`.
 pub fn parse_signer_block(block: &str) -> (Option<String>, &str) {
     let trimmed = block.trim_start();
 
@@ -163,7 +190,10 @@ fn normalize_key_identifier(s: &str) -> String {
         .to_uppercase()
 }
 
-/// A typed wrapper to avoid Trait Object (&dyn) issues when passing to builder methods
+/// Holds a reference to either a primary signing key or a signing subkey.
+///
+/// Using an enum instead of `&dyn` avoids virtual dispatch overhead and lets
+/// rpgp's generic builder methods receive the concrete key type they expect.
 pub enum SelectedKey<'a> {
     Primary(&'a SecretKey),
     Sub(&'a SecretSubkey),
@@ -352,21 +382,31 @@ pub fn sign_internal(
     })
 }
 
+/// Result of an in-memory verification operation.
 pub struct VerifyResultInternal {
+    /// Extracted plaintext (inline/clear-text modes); empty for detached.
     pub data: Vec<u8>,
+    /// True if at least one signature verified successfully.
     pub is_verified: bool,
     pub signatures: Vec<SignatureResultInternal>,
 }
 
+/// Per-signature verification result, shared by all crypto and crypto_stream operations.
 pub struct SignatureResultInternal {
+    /// Issuer fingerprint (uppercase hex). May be empty for anonymous signers.
     pub fpr: String,
     pub status: GfrSignatureStatus,
+    /// Unix timestamp from the Signature Creation Time subpacket (0 if absent).
     pub created_at: u32,
     pub pub_algo: String,
     pub hash_algo: String,
     pub sig_type: GfrSignMode,
 }
 
+/// Return true if `cert`'s primary key or any subkey matches `issuer_hex`.
+///
+/// `issuer_hex` may be a full fingerprint, a 16-char long key ID, or a suffix
+/// thereof. Comparison is normalised to uppercase with whitespace stripped.
 pub fn cert_contains_issuer(cert: &SignedPublicKey, issuer_hex: &str) -> bool {
     if key_identifier_matches(
         &cert.primary_key.fingerprint().to_string(),
@@ -390,6 +430,9 @@ pub fn algo_to_string_simple(algo: PublicKeyAlgorithm) -> String {
     format!("{:?}", algo)
 }
 
+/// Extract issuer fingerprints and algorithm metadata from signature packets
+/// without verifying them. All returned entries have status `NoKey`; the caller
+/// updates statuses after fetching and checking the actual public keys.
 pub fn sniff_signatures(data: &[u8], mode: GfrSignMode) -> Vec<SignatureResultInternal> {
     let mut results = Vec::new();
     let mut dearmored = Vec::new();
@@ -460,9 +503,14 @@ fn fetch_certs_for_signatures(
     certs
 }
 
+/// Verify a signed in-memory buffer and return the extracted plaintext.
+///
+/// `sig_data` is only inspected in `Detached` mode; pass `&[]` for inline and
+/// clear-text modes. Verification is skipped (but not an error) when
+/// `fetch_pubkey_cb` is `None`.
 pub fn verify_internal(
     data: &[u8],
-    sig_data: &[u8], // Used only for Detached mode
+    sig_data: &[u8],
     mode: GfrSignMode,
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
     free_cb: Option<GfrFreeCb>,
@@ -624,6 +672,11 @@ pub fn verify_internal(
     }
 }
 
+/// Extract comma-separated recipient key IDs and signer fingerprints from a
+/// signed or encrypted data buffer.
+///
+/// Returns `(recipients_csv, issuers_csv)`. Clear-text messages are handled as
+/// a special case before packet parsing; no decryption is performed.
 pub fn get_signature_issuers_internal(data: &[u8]) -> Result<(String, String), GfrStatus> {
     let mut recipients = Vec::new();
     let mut issuers = Vec::new();
@@ -695,7 +748,7 @@ pub fn get_signature_issuers_internal(data: &[u8]) -> Result<(String, String), G
     Ok((recipients.join(","), issuers.join(",")))
 }
 
-// Internal struct combining both signatures created and invalid recipients skipped
+/// Result of a combined in-memory encrypt-and-sign operation.
 pub struct EncryptAndSignResultInternal {
     pub data: Vec<u8>,
     pub signatures: Vec<SignatureResultInternal>,
@@ -734,7 +787,7 @@ pub fn encrypt_and_sign_internal(
         invalid_recipients: stream_result.invalid_recipients,
     })
 }
-// Internal struct for the combined Decrypt + Verify operation
+/// Result of a combined in-memory decrypt-and-verify operation.
 pub struct DecryptAndVerifyResultInternal {
     pub data: Vec<u8>,
     pub filename: String,

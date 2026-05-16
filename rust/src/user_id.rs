@@ -26,6 +26,12 @@
  *
  */
 
+//! User ID management: add, delete, update, set-primary, and revoke.
+//!
+//! All functions accept and return armored key blocks. They try to parse the
+//! block as a secret key first; if that fails they fall back to a public key.
+//! Operations that require signing (add, update, revoke) only work on secret keys.
+
 use pgp::{
     composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
     crypto::{hash::HashAlgorithm, public_key},
@@ -43,6 +49,10 @@ use crate::{
     },
 };
 
+/// Remove the user ID matching `target_uid` from the key block.
+///
+/// Works on both secret and public keys (tries secret first). Returns
+/// `ErrorInvalidInput` when the UID is not found.
 pub fn delete_user_id_internal(key_block: &str, target_uid: &str) -> Result<String, GfrStatus> {
     if let Ok((mut skey, _)) = SignedSecretKey::from_string(key_block) {
         let initial_len = skey.details.users.len();
@@ -71,6 +81,11 @@ pub fn delete_user_id_internal(key_block: &str, target_uid: &str) -> Result<Stri
     Err(GfrStatus::ErrorInvalidData)
 }
 
+/// Add a new user ID to a secret key block and sign it with the primary key.
+///
+/// The primary key must be unlocked; its passphrase is fetched via the callback.
+/// The new self-signature is a v4 `PositiveCertification` with key flags copied
+/// from the most-recent existing self-signature.
 pub fn add_user_id_internal(
     channel: i32,
     secret_key_block: &str,
@@ -117,6 +132,11 @@ pub fn add_user_id_internal(
     skey.to_armored_string(ArmorOptions::default()).into_gfr()
 }
 
+/// Replace one user ID string with another and re-sign it.
+///
+/// Creates a new `PositiveCertification` self-signature for `new_uid_str` and
+/// drops the old user ID (with its old signatures). The primary key must be
+/// unlocked.
 pub fn update_user_id_internal(
     channel: i32,
     secret_key_block: &str,
@@ -187,6 +207,11 @@ fn build_updated_self_sig_config(
     Ok(cfg)
 }
 
+/// Mark a user ID as the primary one by adding an `IsPrimary(true)` self-signature.
+///
+/// OpenPGP clients treat the most-recent self-signature with `IsPrimary(true)`
+/// as the primary UID; this function adds such a signature to `target_uid`
+/// without touching the other UIDs.
 pub fn set_primary_user_id_internal(
     channel: i32,
     secret_key_block: &str,
@@ -292,6 +317,10 @@ pub fn set_primary_user_id_internal(
     skey.to_armored_string(ArmorOptions::default()).into_gfr()
 }
 
+/// Revoke a user ID by appending a `CertRevocation` self-signature.
+///
+/// Does not delete the UID; it remains in the key block but is marked
+/// revoked so conforming implementations hide it from normal display.
 pub fn revoke_user_id_internal(
     channel: i32,
     secret_key_block: &str,

@@ -26,6 +26,13 @@
  *
  */
 
+//! Key block manipulation: metadata extraction, merging, password change,
+//! subkey deletion/revocation, and revocation certificate generation/import.
+//!
+//! All functions operate on armored OpenPGP key blocks (strings) and return
+//! updated armored blocks. No key material is stored; the caller is responsible
+//! for persisting the returned blocks.
+
 use crate::cache::{PASSWORD_CACHE, PasswordCachePolicy};
 use crate::err::IntoGfrResult;
 use crate::keygen::GeneratedKeys;
@@ -49,12 +56,14 @@ use pgp::{
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::io::{self, BufReader, Cursor};
 
+/// A single user ID extracted from a key block.
 pub struct ExtractUserId {
     pub user_id: String,
     pub is_primary: bool,
     pub is_revoked: bool,
 }
 
+/// Metadata for a single subkey within a key block.
 pub struct ExtractedSubkey {
     pub ver: GfrOpenPGPKeyVersion,
     pub fpr: String,
@@ -70,6 +79,11 @@ pub struct ExtractedSubkey {
     pub can_auth: bool,
 }
 
+/// Full metadata for a primary key, including its subkeys and user IDs.
+///
+/// `secret_key_block` is `None` for public-only keys. Both armored blocks
+/// are always re-exported from the parsed key objects (not taken verbatim from
+/// the input) to ensure they are canonical.
 pub struct ExtractedMetadata {
     pub ver: GfrOpenPGPKeyVersion,
     pub fpr: String,
@@ -397,7 +411,11 @@ fn split_pgp_blocks(input: &str) -> Vec<String> {
     blocks
 }
 
-// Main extraction function supporting multiple keys
+/// Parse one or more armored PGP key blocks and return metadata for each unique key.
+///
+/// The input may contain concatenated armor blocks. If the same fingerprint
+/// appears as both a secret and a public block, the secret key entry wins
+/// (the public-only block is skipped via the `entry().or_insert_with()` pattern).
 pub fn extract_metadata_many_internal(
     key_blocks: &str,
 ) -> Result<Vec<ExtractedMetadata>, GfrStatus> {
@@ -470,7 +488,9 @@ pub fn extract_metadata_many_internal(
     Ok(results)
 }
 
-// Extract a public key armored string from a secret key armored string
+/// Derive the public key from an armored secret key block.
+///
+/// Strips all secret key material and re-exports only the public components.
 pub fn extract_public_key_internal(secret_block: &str) -> Result<String, GfrStatus> {
     // 1. Parse the armored secret key block
     let (secret_key, _) =
@@ -503,6 +523,10 @@ impl Serialize for MergedRawKeys {
     }
 }
 
+/// Merge multiple armored key blocks into a single public key armor block.
+///
+/// If an input block is a secret key it is accepted and its public component
+/// is extracted. The merge is done at the raw packet level (no re-signing).
 pub fn export_merged_public_keys(key_blocks: &[&str]) -> Result<String, GfrStatus> {
     let mut combined_bytes = Vec::new();
 
@@ -548,6 +572,9 @@ pub fn export_merged_public_keys(key_blocks: &[&str]) -> Result<String, GfrStatu
     String::from_utf8(armored_output).map_err(|_| GfrStatus::ErrorArmorFailed)
 }
 
+/// Merge multiple armored secret key blocks into a single secret key armor block.
+///
+/// All input blocks must be secret keys; a public-key block returns `ErrorInvalidInput`.
 pub fn export_merged_secret_keys(key_blocks: &[&str]) -> Result<String, GfrStatus> {
     let mut combined_bytes = Vec::new();
 
@@ -649,6 +676,10 @@ fn fetch_old_and_new_passwords(
     Ok((old_pw, new_pw))
 }
 
+/// Change the passphrase protecting the key at `target_fpr` within a secret key block.
+///
+/// `target_fpr` may refer to the primary key or any subkey. The entire key block
+/// is re-exported after the change, so the returned block contains all keys.
 pub fn modify_key_password_internal(
     channel: i32,
     secret_key_block: &str,
@@ -753,6 +784,9 @@ pub fn modify_key_password_internal(
     Err(GfrStatus::ErrorInvalidInput)
 }
 
+/// Remove a subkey from a secret key block.
+///
+/// Attempting to delete the primary key fingerprint returns `ErrorInvalidInput`.
 pub fn delete_subkey_internal(
     secret_key_block: &str,
     target_subkey_fpr: &str,
@@ -799,6 +833,10 @@ pub fn delete_subkey_internal(
     })
 }
 
+/// Add a revocation self-signature to the subkey at `target_subkey_fpr`.
+///
+/// Requires unlocking the primary key to sign the revocation; targeting the
+/// primary key fingerprint is rejected with `ErrorInvalidInput`.
 pub fn revoke_subkey_internal(
     channel: i32,
     secret_key_block: &str,
@@ -917,6 +955,13 @@ pub fn revoke_subkey_internal(
     })
 }
 
+/// Generate a standalone revocation certificate for the primary key.
+///
+/// The certificate is a single v4 `KeyRevocation` signature packet wrapped in
+/// a "PUBLIC KEY BLOCK" armor. It can be imported into any key block with the
+/// matching fingerprint via `import_rev_cert_internal`. A v4 signature is used
+/// even for v6 keys because revocation certificate interoperability matters more
+/// than version consistency.
 pub fn generate_key_rev_cert_internal(
     channel: i32,
     secret_key_block: &str,
@@ -1150,6 +1195,15 @@ fn merge_key_components(
     Ok(())
 }
 
+/// Merge two armored key blocks for the same fingerprint.
+///
+/// Handles all four combinations of (secret, public) × (secret, public):
+/// - secret + secret → merged secret
+/// - secret + public → secret enriched with public signatures
+/// - public + secret → secret enriched with public signatures
+/// - public + public → merged public
+///
+/// Returns `ErrorInvalidInput` if the fingerprints don't match.
 pub fn merge_key_block_internal(
     base_block: &str,
     incoming_block: &str,
@@ -1274,6 +1328,11 @@ fn parse_signatures_from_armor(block: &str) -> Result<Vec<Signature>, GfrStatus>
     }
 }
 
+/// Apply a revocation certificate to a key block.
+///
+/// The certificate's issuer fingerprint must match the base key's primary key;
+/// mismatched fingerprints return `ErrorInvalidInput`. Duplicate revocation
+/// signatures are deduplicated before the key is re-exported.
 pub fn import_rev_cert_internal(
     base_key_block: &str,
     rev_cert_block: &str,
@@ -1317,6 +1376,7 @@ pub fn import_rev_cert_internal(
     Err(GfrStatus::ErrorInvalidInput)
 }
 
+/// Extract the fingerprint of the key targeted by a revocation certificate.
 pub fn extract_rev_cert_target_fpr_internal(rev_cert_block: &str) -> Result<String, GfrStatus> {
     let rev_sigs = extract_key_revocation_signatures(rev_cert_block)?;
     let sig = rev_sigs.first().ok_or(GfrStatus::ErrorInvalidInput)?;

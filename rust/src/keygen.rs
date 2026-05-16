@@ -26,6 +26,12 @@
  *
  */
 
+//! OpenPGP key and subkey generation.
+//!
+//! `keygen_dynamic` builds a `SignedSecretKey` from a `GfrKeyConfig`; the
+//! higher-level `create_key_internal` and `add_subkey_internal` wrap it with
+//! optional passphrase protection and armored export.
+
 use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::IntoGfrResult,
@@ -46,12 +52,18 @@ use pgp::{
 };
 use rand::thread_rng;
 
+/// Armored key material produced by a generation or modification operation.
 pub struct GeneratedKeys {
     pub secret: String,
     pub public: String,
     pub fingerprint: String,
 }
 
+/// Build a `SignedSecretKey` from a primary key config and a list of subkey configs.
+///
+/// Forces OpenPGP v6 format when any key uses a post-quantum hybrid algorithm.
+/// For v6 keys, `CV25519` is mapped to `X25519` and `ED25519` to `Ed25519` per
+/// the v6 key type naming convention in the rPGP crate.
 pub fn keygen_dynamic(
     uid: &str,
     key_config: &GfrKeyConfig,
@@ -123,6 +135,12 @@ pub fn keygen_dynamic(
     Ok(signed)
 }
 
+/// Generate a new primary key with subkeys and optionally protect them with passphrases.
+///
+/// The passphrase callback is called once per key component that has
+/// `has_passphrase: true`. Callers that don't want passphrase protection
+/// should set `has_passphrase: false` on all configs and pass `None` for
+/// the callbacks.
 pub fn create_key_internal(
     user_id: &str,
     key_config: GfrKeyConfig,
@@ -218,6 +236,10 @@ pub fn create_key_internal(
     })
 }
 
+/// Generate a new subkey and attach it to an existing secret key block.
+///
+/// The primary key must be unlocked to re-sign the new subkey binding
+/// signature; its passphrase is fetched via the callback if needed.
 pub fn add_subkey_internal(
     channel: i32,
     key_block: &str,

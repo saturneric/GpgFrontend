@@ -26,6 +26,11 @@
  *
  */
 
+//! Shared utility functions and types used across the crypto and key modules.
+//!
+//! Covers: passphrase fetching (with and without cache), algorithm resolution,
+//! key-version selection, signature helpers, and revocation subpacket building.
+
 use pgp::{
     bytes::Bytes,
     composed::{DsaKeySize, KeyType},
@@ -47,14 +52,26 @@ use std::{
     ptr::null_mut,
 };
 
+/// Describes the passphrase request context passed to the UI callback.
 pub struct PassphraseStateInternal {
+    /// Fingerprint of the key being unlocked; empty for symmetric operations.
     pub fpr: String,
+    /// Human-readable purpose shown in the dialog (e.g. "Decryption", "Signing").
     pub info: String,
+    /// True when retrying after a wrong passphrase.
     pub retry: bool,
+    /// True when the user should create a new passphrase rather than unlock an existing key.
     pub ask_for_new: bool,
-    pub should_confirm: bool, // User will be asked to confirm the new password by entering it twice if this is true
+    /// True when the user must type the passphrase twice to confirm (e.g. when setting).
+    pub should_confirm: bool,
 }
 
+/// Invoke the C++ passphrase callback and return the passphrase as owned bytes.
+///
+/// The callback returns `ret > 0` (number of bytes) on success; `ret <= 0` or
+/// a null pointer means the user cancelled or an error occurred. The C++ buffer
+/// is copied into Rust memory before the free callback is called, so the order
+/// is: copy → free.
 pub fn fetch_password_internal(
     channel: i32,
     state: PassphraseStateInternal,
@@ -110,6 +127,10 @@ pub fn fetch_password_internal(
     Ok(password)
 }
 
+/// Fetch a passphrase, consulting the in-memory cache according to `policy`.
+///
+/// If `fpr` is empty the cache is automatically bypassed regardless of policy,
+/// because there is no key to look up by.
 pub fn fetch_password_with_cache(
     cache: Option<&PasswordCache>,
     policy: PasswordCachePolicy,
@@ -166,6 +187,12 @@ pub fn fetch_password_with_cache(
     }
 }
 
+/// Map a `GfrKeyAlgo` and encryption intent to the rPGP `KeyType`.
+///
+/// For Curve25519-family algorithms, `can_encrypt` selects the curve variant:
+/// `false` → Ed25519 (signing), `true` → ECDH Curve25519 (encryption).
+/// Both `ED25519` and `CV25519` map to the same underlying curves — the
+/// distinction is only in the intended usage expressed by `can_encrypt`.
 pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType, GfrStatus> {
     match algo {
         GfrKeyAlgo::ED25519 | GfrKeyAlgo::CV25519 => {
@@ -256,6 +283,9 @@ pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType,
     }
 }
 
+/// Reverse-map rPGP public-key parameters to a `GfrKeyAlgo` variant.
+///
+/// RSA and DSA bit-lengths are bucketed to the nearest standard size.
 pub fn determine_algo(public_params: &PublicParams) -> GfrKeyAlgo {
     match public_params {
         PublicParams::RSA(p) => {
@@ -340,6 +370,10 @@ pub fn extract_key_length(public_params: &PublicParams) -> Option<u32> {
     }
 }
 
+/// Return true if `algo` is a post-quantum hybrid algorithm.
+///
+/// PQC algorithms require OpenPGP v6 keys; this is checked during key generation
+/// to enforce the correct version byte in the generated packet.
 pub fn check_if_quantum_hybrid_algo(algo: &GfrKeyAlgo) -> bool {
     matches!(
         algo,
@@ -353,6 +387,7 @@ pub fn check_if_quantum_hybrid_algo(algo: &GfrKeyAlgo) -> bool {
     )
 }
 
+/// Return true when any key in the request requires OpenPGP v6 format.
 pub fn check_if_should_use_key_ver_v6(
     primary_algo: &GfrKeyConfig,
     sub_algos: &[GfrKeyConfig],
@@ -418,6 +453,11 @@ fn sig_creation_time_value(sig: &Signature) -> u64 {
         .unwrap_or(0)
 }
 
+/// Pick the best self-signature to use as a template when re-signing a user ID.
+///
+/// Prefers the most-recent signature that carries a `KeyFlags` subpacket, so
+/// the re-generated signature preserves the original capability flags. Falls
+/// back to the most-recent signature without key flags when none have them.
 pub fn choose_template_self_sig<'a>(self_sigs: &[&'a Signature]) -> Option<&'a Signature> {
     self_sigs
         .iter()

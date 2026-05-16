@@ -39,6 +39,7 @@ use std::{
 };
 use zeroize::Zeroize;
 
+/// A passphrase buffer that zeroes its memory when dropped.
 #[derive(Debug)]
 pub struct CachedSecret {
     data: Vec<u8>,
@@ -67,21 +68,25 @@ struct PasswordCacheEntry {
     expires_at: Instant,
 }
 
+/// Controls how the passphrase cache is consulted for a given operation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PasswordCachePolicy {
-    /// search cache first, if not found or expired, then fetch and update cache
+    /// Check the cache first; on miss, fetch from the callback and store the result.
     Default,
-
-    /// completely bypass the cache, neither read nor write
+    /// Skip the cache entirely — neither read from nor write to it.
+    ///
+    /// Used for symmetric operations where no fingerprint is available to key
+    /// the cache on, and for the "set new password" flow.
     Bypass,
-
-    /// force re-fetching the password:
-    /// 1. first delete the old cache
-    /// 2. then re-prompt for the password
-    /// 3. finally update the cache with the new password
+    /// Evict the existing entry, re-prompt the user, then store the new value.
+    ///
+    /// Used after a bad-passphrase error to force the user to re-enter.
     Refresh,
 }
 
+/// Cache lookup key: a combination of channel, key fingerprint, and operation context.
+///
+/// FPR comparisons are case-insensitive (normalised to uppercase on insert/lookup).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PasswordCacheKey {
     pub channel: i32,
@@ -89,6 +94,7 @@ pub struct PasswordCacheKey {
     pub info: String,
 }
 
+/// Thread-safe TTL cache for decryption passphrases. Entries are zeroed on eviction or drop.
 #[derive(Clone)]
 pub struct PasswordCache {
     inner: Arc<Mutex<HashMap<PasswordCacheKey, PasswordCacheEntry>>>,
