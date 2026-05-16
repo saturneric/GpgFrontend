@@ -26,6 +26,19 @@
  *
  */
 
+// FFI boundary functions intentionally dereference raw pointer arguments after
+// null-checking them. The functions are `extern "C"` (callable from C++ without
+// the `unsafe` keyword) and all unsafe operations are guarded by explicit
+// `unsafe {}` blocks. Suppressing per-function is impractical at this scale.
+#![allow(clippy::not_unsafe_ptr_arg_deref)]
+// FFI boundary functions that map 1-to-1 to C API entry points necessarily
+// have as many arguments as the C signature requires; grouping into structs
+// would break the ABI contract with the C++ caller.
+#![allow(clippy::too_many_arguments)]
+// Some nested if-let patterns are clearer when left as two separate conditions
+// rather than merged with `&&`, particularly when the bodies are large.
+#![allow(clippy::collapsible_if)]
+
 //! Rust crypto engine for GpgFrontend (rPGP backend).
 //!
 //! Exposes a C-compatible FFI surface consumed by the C++ core. All exported

@@ -194,7 +194,7 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
             can_auth,
             can_certify,
             key_length: key_length.unwrap_or(0),
-            is_revoked: is_revoked,
+            is_revoked,
         });
     }
 
@@ -293,7 +293,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
             can_encrypt,
             can_auth,
             can_certify,
-            key_length: key_length,
+            key_length,
             is_revoked,
         });
     }
@@ -438,16 +438,14 @@ pub fn extract_metadata_many_internal(
                 if let Ok(pk) = pk_res {
                     let fpr = pk.fingerprint().to_string();
 
-                    if !results_map.contains_key(&fpr) {
+                    results_map.entry(fpr).or_insert_with(|| {
                         let mut metadata = build_public_metadata(&pk);
-
                         metadata.public_key_block = pk
                             .to_armored_string(ArmorOptions::default())
                             .unwrap_or_default();
                         metadata.secret_key_block = None;
-
-                        results_map.insert(fpr, metadata);
-                    }
+                        metadata
+                    });
                 } else {
                     log::error!(
                         "Failed to parse a public key from block: {}",
@@ -1001,7 +999,7 @@ pub fn generate_key_rev_cert_internal(
     headers.insert(
         String::from("Comment"),
         vec![String::from(
-            format!("This is a revocation certificate.").as_str(),
+            "This is a revocation certificate.",
         )],
     );
 

@@ -317,10 +317,14 @@ pub extern "C" fn gfr_crypto_free_encrypt_and_sign_result(result: *mut GfrEncryp
 ///
 /// # Safety
 /// `result` must point to a struct populated by `gfr_crypto_decrypt_and_verify_*`.
+/// Passing null is a no-op.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_free_decrypt_and_verify_result(
     result: *mut GfrDecryptAndVerifyResultC,
 ) {
+    if result.is_null() {
+        return;
+    }
     unsafe {
         // 1. Free the payload data
         if !(*result).data.is_null() && (*result).data_len > 0 {
@@ -369,7 +373,7 @@ pub unsafe extern "C" fn gfr_free_metadata_array(metadata_ptr: *mut GfrKeyMetada
             let _ = unsafe { CString::from_raw(meta.secret_key_block as *mut _) };
         }
 
-        if meta.user_ids.is_null() == false && meta.user_id_count > 0 {
+        if !meta.user_ids.is_null() && meta.user_id_count > 0 {
             let uids_slice =
                 unsafe { std::slice::from_raw_parts_mut(meta.user_ids, meta.user_id_count) };
             for uid in uids_slice.iter_mut() {

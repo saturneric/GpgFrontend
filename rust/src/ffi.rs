@@ -50,7 +50,7 @@ pub extern "C" fn gfr_rust_hello() {
 pub extern "C" fn gfr_rust_engine_version() -> *mut c_char {
     let ver_str =
         CString::new(env!("CARGO_PKG_VERSION")).unwrap_or_else(|_| CString::new("0.0.0").unwrap());
-    return ver_str.into_raw();
+    ver_str.into_raw()
 }
 
 /// Initialise the `env_logger` backend at INFO level, writing to stdout.

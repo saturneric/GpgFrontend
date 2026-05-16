@@ -32,8 +32,7 @@ use std::ffi::CString;
 use std::os::raw::c_char;
 
 thread_local! {
-    // Thread-local storage for the last error message
-    static LAST_ERROR: RefCell<String> = RefCell::new(String::new());
+    static LAST_ERROR: RefCell<String> = const { RefCell::new(String::new()) };
 }
 
 // Helper to set the last error message from within Rust

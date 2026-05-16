@@ -60,7 +60,7 @@ pub fn keygen_dynamic(
     let primary_type = resolve_key_type(&key_config.algo, false)?;
     let mut subkeys = Vec::new();
 
-    let use_v6 = check_if_should_use_key_ver_v6(&key_config, s_key_configs);
+    let use_v6 = check_if_should_use_key_ver_v6(key_config, s_key_configs);
     if use_v6 {
         log::info!(
             "Using V6 key version for generation due to presence of post-quantum hybrid algorithm."

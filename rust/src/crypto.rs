@@ -418,9 +418,9 @@ pub fn sniff_signatures(data: &[u8], mode: GfrSignMode) -> Vec<SignatureResultIn
                     .any(|r: &SignatureResultInternal| r.fpr == fpr)
                 {
                     results.push(SignatureResultInternal {
-                        fpr: fpr,
+                        fpr,
                         status: GfrSignatureStatus::NoKey,
-                        created_at: sig.created().map(|d| d.as_secs() as u32).unwrap_or(0),
+                        created_at: sig.created().map(|d| d.as_secs()).unwrap_or(0),
                         pub_algo: pub_algo_id,
                         hash_algo: hash_algo_id,
                         sig_type: mode,
@@ -542,7 +542,7 @@ pub fn verify_internal(
 
             // Sniff directly from the parsed message
             let mut signatures = Vec::new();
-            for sig in msg.signatures().into_iter() {
+            for sig in msg.signatures().iter() {
                 for issuer in sig.issuer_fingerprint() {
                     let fpr = issuer.to_string();
                     if !signatures
@@ -557,7 +557,7 @@ pub fn verify_internal(
                         signatures.push(SignatureResultInternal {
                             fpr,
                             status: GfrSignatureStatus::NoKey,
-                            created_at: sig.created().map(|d| d.as_secs() as u32).unwrap_or(0),
+                            created_at: sig.created().map(|d| d.as_secs()).unwrap_or(0),
                             pub_algo,
                             hash_algo,
                             sig_type: mode,
@@ -631,12 +631,11 @@ pub fn get_signature_issuers_internal(data: &[u8]) -> Result<(String, String), G
     // 1. First, attempt to parse as a Cleartext Signed Message
     if let Ok(text_str) = std::str::from_utf8(data) {
         if let Ok((msg, _)) = CleartextSignedMessage::from_string(text_str) {
-            for sig in msg.signatures().into_iter() {
+            for sig in msg.signatures().iter() {
                 for issuer in sig.issuer_key_id() {
                     issuers.push(issuer.to_string());
                 }
             }
-            // Cleartext messages only contain signatures, not encrypted recipients
             issuers.sort();
             issuers.dedup();
             return Ok((recipients.join(","), issuers.join(",")));
@@ -656,40 +655,33 @@ pub fn get_signature_issuers_internal(data: &[u8]) -> Result<(String, String), G
     // 3. Parse standard PGP packets
     let parser = PacketParser::new(Cursor::new(payload));
 
-    for packet_result in parser {
-        if let Ok(packet) = packet_result {
-            match packet {
-                // Sniff Recipient (for Encryption)
-                Packet::PublicKeyEncryptedSessionKey(pkesk) => {
-                    if let Ok(id) = pkesk.id() {
-                        recipients.push(id.to_string());
-                    }
+    for packet in parser.flatten() {
+        match packet {
+            Packet::PublicKeyEncryptedSessionKey(pkesk) => {
+                if let Ok(id) = pkesk.id() {
+                    recipients.push(id.to_string());
                 }
-                // Sniff Signer from OnePassSignature (Appears at the start of inline signatures)
-                Packet::OnePassSignature(ops) => {
-                    // Match on the version-specific enum to extract the identifier
-                    match ops.version_specific() {
-                        pgp::packet::OpsVersionSpecific::V3 { key_id } => {
-                            // V3 OPS directly contains a KeyId
-                            issuers.push(key_id.to_string());
-                        }
-                        pgp::packet::OpsVersionSpecific::V6 { fingerprint, .. } => {
-                            // V6 OPS contains a 32-byte fingerprint. Format it safely as an uppercase HEX string.
-                            let fp_str: String =
-                                fingerprint.iter().map(|b| format!("{:02X}", b)).collect();
-                            issuers.push(fp_str);
-                        }
-                        _ => {}
-                    }
-                }
-                // Sniff Signer from Signature packet (Used in detached signatures or end of inline)
-                Packet::Signature(sig) => {
-                    for issuer in sig.issuer_key_id() {
-                        issuers.push(issuer.to_string());
-                    }
-                }
-                _ => {}
             }
+            Packet::OnePassSignature(ops) => {
+                match ops.version_specific() {
+                    pgp::packet::OpsVersionSpecific::V3 { key_id } => {
+                        issuers.push(key_id.to_string());
+                    }
+                    pgp::packet::OpsVersionSpecific::V6 { fingerprint, .. } => {
+                        // V6 OPS uses a 32-byte fingerprint encoded as uppercase hex
+                        let fp_str: String =
+                            fingerprint.iter().map(|b| format!("{:02X}", b)).collect();
+                        issuers.push(fp_str);
+                    }
+                    _ => {}
+                }
+            }
+            Packet::Signature(sig) => {
+                for issuer in sig.issuer_key_id() {
+                    issuers.push(issuer.to_string());
+                }
+            }
+            _ => {}
         }
     }
 

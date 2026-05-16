@@ -141,7 +141,7 @@ pub fn sniff_recipients(data: &[u8]) -> Vec<RecipientResultInternal> {
                 results.push(RecipientResultInternal {
                     key_id: id.to_string(),
                     pub_algo: algo,
-                    status: GfrRecipientStatus::NoKey, // Default to NoKey until proven otherwise
+                    status: GfrRecipientStatus::NoKey,
                 });
             }
         }
@@ -310,57 +310,54 @@ where
                 .map_err(|_| GfrStatus::ErrorInvalidInput)?;
             let text_str = std::str::from_utf8(&data).map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-            for (skey, target) in &parsed_keys {
-                let res = with_signing_key(skey, target.as_deref(), |selected_key| {
-                    let fpr = selected_key.fpr();
-                    let is_enc = selected_key.is_encrypted();
-                    let algo_str = algo_to_string_simple(selected_key.algorithm());
-                    let pwd = fetch_pwd_for_key(is_enc, &fpr)?;
+            match parsed_keys.first() {
+                None => Err(GfrStatus::ErrorInvalidInput),
+                Some((skey, target)) => {
+                    let res = with_signing_key(skey, target.as_deref(), |selected_key| {
+                        let fpr = selected_key.fpr();
+                        let is_enc = selected_key.is_encrypted();
+                        let algo_str = algo_to_string_simple(selected_key.algorithm());
+                        let pwd = fetch_pwd_for_key(is_enc, &fpr)?;
 
-                    let msg_res = match selected_key {
-                        SelectedKey::Primary(k) => {
-                            CleartextSignedMessage::sign(&mut rng, text_str, k, &pwd)
+                        let msg_res = match selected_key {
+                            SelectedKey::Primary(k) => {
+                                CleartextSignedMessage::sign(&mut rng, text_str, k, &pwd)
+                            }
+                            SelectedKey::Sub(k) => {
+                                CleartextSignedMessage::sign(&mut rng, text_str, k, &pwd)
+                            }
+                        };
+
+                        if let Ok(msg) = msg_res {
+                            record_sig(fpr, algo_str);
+                            let out = msg
+                                .to_armored_string(ArmorOptions::default())
+                                .map_err(|_| GfrStatus::ErrorArmorFailed)?
+                                .into_bytes();
+                            return Ok(out);
                         }
-                        SelectedKey::Sub(k) => {
-                            CleartextSignedMessage::sign(&mut rng, text_str, k, &pwd)
-                        }
-                    };
 
-                    if let Ok(msg) = msg_res {
-                        record_sig(fpr, algo_str);
-                        let out = msg
-                            .to_armored_string(ArmorOptions::default())
-                            .map_err(|_| GfrStatus::ErrorArmorFailed)?
-                            .into_bytes();
-                        return Ok(out);
-                    }
-
-                    log::warn!("Signing failed for {}. Evicting bad password.", fpr);
-                    PASSWORD_CACHE.remove_by_fpr(&fpr);
-                    Err(GfrStatus::ErrorBadPassphrase)
-                });
-
-                if let Ok(out_data) = res {
-                    output_stream
-                        .write_all(&out_data)
-                        .map_err(|_| GfrStatus::ErrorInternal)?;
-                    output_stream
-                        .flush()
-                        .map_err(|_| GfrStatus::ErrorInternal)?;
-
-                    return Ok(SignStreamResultInternal {
-                        signatures: created_signatures,
+                        log::warn!("Signing failed for {}. Evicting bad password.", fpr);
+                        PASSWORD_CACHE.remove_by_fpr(&fpr);
+                        Err(GfrStatus::ErrorBadPassphrase)
                     });
-                } else {
-                    log::error!(
-                        "Failed to create cleartext signature for one of the keys. Error: {:?}",
-                        res
-                    );
-                    return Err(res.err().unwrap_or(GfrStatus::ErrorInternal));
+
+                    if let Ok(out_data) = res {
+                        output_stream
+                            .write_all(&out_data)
+                            .map_err(|_| GfrStatus::ErrorInternal)?;
+                        output_stream
+                            .flush()
+                            .map_err(|_| GfrStatus::ErrorInternal)?;
+                        Ok(SignStreamResultInternal {
+                            signatures: created_signatures,
+                        })
+                    } else {
+                        log::error!("Failed to create cleartext signature. Error: {:?}", res);
+                        Err(res.err().unwrap_or(GfrStatus::ErrorInternal))
+                    }
                 }
             }
-
-            Err(GfrStatus::ErrorInvalidInput)
         }
 
         // ---------------------------------------------------------
@@ -374,67 +371,64 @@ where
                 .read_to_end(&mut data)
                 .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-            for (skey, target) in &parsed_keys {
-                let res = with_signing_key(skey, target.as_deref(), |selected_key| {
-                    let fpr = selected_key.fpr();
-                    let is_enc = selected_key.is_encrypted();
-                    let algo_str = algo_to_string_simple(selected_key.algorithm());
-                    let pwd = fetch_pwd_for_key(is_enc, &fpr)?;
+            match parsed_keys.first() {
+                None => Err(GfrStatus::ErrorInvalidInput),
+                Some((skey, target)) => {
+                    let res = with_signing_key(skey, target.as_deref(), |selected_key| {
+                        let fpr = selected_key.fpr();
+                        let is_enc = selected_key.is_encrypted();
+                        let algo_str = algo_to_string_simple(selected_key.algorithm());
+                        let pwd = fetch_pwd_for_key(is_enc, &fpr)?;
 
-                    let sig_res = match selected_key {
-                        SelectedKey::Primary(k) => DetachedSignature::sign_binary_data(
-                            &mut rng,
-                            k,
-                            &pwd,
-                            HashAlgorithm::Sha512,
-                            &*data,
-                        ),
-                        SelectedKey::Sub(k) => DetachedSignature::sign_binary_data(
-                            &mut rng,
-                            k,
-                            &pwd,
-                            HashAlgorithm::Sha512,
-                            &*data,
-                        ),
-                    };
-
-                    if let Ok(sig) = sig_res {
-                        record_sig(fpr, algo_str);
-                        let out = if ascii_armor {
-                            sig.to_armored_bytes(None.into())
-                                .map_err(|_| GfrStatus::ErrorArmorFailed)?
-                        } else {
-                            sig.to_bytes().map_err(|_| GfrStatus::ErrorInternal)?
+                        let sig_res = match selected_key {
+                            SelectedKey::Primary(k) => DetachedSignature::sign_binary_data(
+                                &mut rng,
+                                k,
+                                &pwd,
+                                HashAlgorithm::Sha512,
+                                &*data,
+                            ),
+                            SelectedKey::Sub(k) => DetachedSignature::sign_binary_data(
+                                &mut rng,
+                                k,
+                                &pwd,
+                                HashAlgorithm::Sha512,
+                                &*data,
+                            ),
                         };
-                        return Ok(out);
-                    }
 
-                    log::warn!("Signing failed for {}. Evicting bad password.", fpr);
-                    PASSWORD_CACHE.remove_by_fpr(&fpr);
-                    Err(GfrStatus::ErrorBadPassphrase)
-                });
+                        if let Ok(sig) = sig_res {
+                            record_sig(fpr, algo_str);
+                            let out = if ascii_armor {
+                                sig.to_armored_bytes(None.into())
+                                    .map_err(|_| GfrStatus::ErrorArmorFailed)?
+                            } else {
+                                sig.to_bytes().map_err(|_| GfrStatus::ErrorInternal)?
+                            };
+                            return Ok(out);
+                        }
 
-                if let Ok(out_data) = res {
-                    output_stream
-                        .write_all(&out_data)
-                        .map_err(|_| GfrStatus::ErrorInternal)?;
-                    output_stream
-                        .flush()
-                        .map_err(|_| GfrStatus::ErrorInternal)?;
-
-                    return Ok(SignStreamResultInternal {
-                        signatures: created_signatures,
+                        log::warn!("Signing failed for {}. Evicting bad password.", fpr);
+                        PASSWORD_CACHE.remove_by_fpr(&fpr);
+                        Err(GfrStatus::ErrorBadPassphrase)
                     });
-                } else {
-                    log::error!(
-                        "Failed to create detached signature for one of the keys. Error: {:?}",
-                        res
-                    );
-                    return Err(res.err().unwrap_or(GfrStatus::ErrorInternal));
+
+                    if let Ok(out_data) = res {
+                        output_stream
+                            .write_all(&out_data)
+                            .map_err(|_| GfrStatus::ErrorInternal)?;
+                        output_stream
+                            .flush()
+                            .map_err(|_| GfrStatus::ErrorInternal)?;
+                        Ok(SignStreamResultInternal {
+                            signatures: created_signatures,
+                        })
+                    } else {
+                        log::error!("Failed to create detached signature. Error: {:?}", res);
+                        Err(res.err().unwrap_or(GfrStatus::ErrorInternal))
+                    }
                 }
             }
-
-            Err(GfrStatus::ErrorInvalidInput)
         }
     }
 }
@@ -937,7 +931,7 @@ where
         let pwd_fn = Password::from(password.as_slice());
         decrypted = parsed_message
             .decrypt(&pwd_fn, &skey)
-            .map_err(|e| {
+            .inspect_err(|_| {
                 if needs_password {
                     log::warn!(
                         "Asymmetric decryption failed. Evicting bad password for FPR: {}",
@@ -945,7 +939,6 @@ where
                     );
                     PASSWORD_CACHE.remove_by_fpr(&target_fpr_for_pwd);
                 }
-                e
             })
             .into_gfr()?;
 
@@ -997,7 +990,7 @@ where
                             signatures.push(SignatureResultInternal {
                                 fpr,
                                 status: GfrSignatureStatus::NoKey,
-                                created_at: sig.created().map(|d| d.as_secs() as u32).unwrap_or(0),
+                                created_at: sig.created().map(|d| d.as_secs()).unwrap_or(0),
                                 pub_algo,
                                 hash_algo,
                                 sig_type: GfrSignMode::Inline,
