@@ -26,6 +26,6 @@
  *
  */
 
-#include "core/GpgConstants.h"
+#include "core/GFConstants.h"
 
 namespace GpgFrontend {}  // namespace GpgFrontend

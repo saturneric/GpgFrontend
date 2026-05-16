@@ -28,7 +28,7 @@
 
 #include "SettingsDialog.h"
 
-#include "core/GpgConstants.h"
+#include "core/GFConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/dialog/settings/SettingsAppearance.h"

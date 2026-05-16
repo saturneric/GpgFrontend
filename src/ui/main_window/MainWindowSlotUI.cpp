@@ -27,7 +27,7 @@
  */
 
 #include "MainWindow.h"
-#include "core/GpgConstants.h"
+#include "core/GFConstants.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UserInterfaceUtils.h"

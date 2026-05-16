@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/GpgConstants.h"
+#include "core/GFConstants.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {

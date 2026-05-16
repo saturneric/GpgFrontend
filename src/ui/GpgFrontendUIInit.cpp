@@ -30,7 +30,7 @@
 
 #include <QtNetwork>
 
-#include "core/GpgConstants.h"
+#include "core/GFConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/GpgPassphraseContext.h"

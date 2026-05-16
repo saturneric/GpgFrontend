@@ -28,8 +28,8 @@
 
 #include "Application.h"
 
+#include "core/GFConstants.h"
 #include "core/GFCoreLog.h"
-#include "core/GpgConstants.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main

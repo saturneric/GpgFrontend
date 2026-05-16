@@ -30,7 +30,7 @@
 
 #include <mutex>
 
-#include "core/GpgConstants.h"
+#include "core/GFConstants.h"
 #include "core/thread/TaskRunner.h"
 
 namespace GpgFrontend::Thread {

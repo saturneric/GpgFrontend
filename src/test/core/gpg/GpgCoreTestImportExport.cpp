@@ -27,7 +27,7 @@
  */
 
 #include "GpgCoreTest.h"
-#include "core/GpgConstants.h"
+#include "core/GFConstants.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/utils/GpgUtils.h"
 

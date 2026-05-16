@@ -28,7 +28,7 @@
 
 #include "UserInterfaceUtils.h"
 
-#include "core/GpgConstants.h"
+#include "core/GFConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/CacheObject.h"

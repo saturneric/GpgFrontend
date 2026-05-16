@@ -109,7 +109,7 @@ auto GF_CORE_EXPORT GpgContextSupportIfWithLog(
 // a helper macro to check if the current gpg engine support the minimum
 // required version, it will be used in most of the functions that have gpg
 // engine  requirements, the minimum required version is defined in
-// GpgConstants.h
+// GFConstants.h
 #define GPG_CTX_MIN_SUPPORT() GPG_CTX_SUPPORT_IF(kGpgMinimalSupportVersion)
 
 using EngineSupportList = QContainer<EngineSupportIf>;

@@ -103,7 +103,7 @@ endif()
 target_precompile_headers(${LIBRARY_TARGET}
   PUBLIC ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h
   PUBLIC GpgFrontendCore.h
-  PUBLIC GpgConstants.h)
+  PUBLIC GFConstants.h)
 
 # link for different platforms
 if(MINGW)
