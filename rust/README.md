@@ -5,8 +5,6 @@ OpenPGP operations to the C++ core of GpgFrontend. It is compiled as a static
 library (`libgf_rust.a`) and its public C API is generated automatically at
 build time by **cbindgen** into `src/core/GpgCoreRust.h`.
 
----
-
 ## High-level picture
 
 ```
@@ -42,8 +40,6 @@ C++ core (GpgFrontend)
 The FFI layer is thin: it converts raw pointers to Rust types, calls an
 internal function, converts the result back to raw pointers, and returns a
 `GfrStatus` code. No business logic lives in `ffi/`.
-
----
 
 ## Module reference
 
@@ -181,8 +177,6 @@ Single function: `build_tar_tempfile_from_directory` packs a directory into an
 anonymous temporary file (auto-deleted on drop) and returns the file handle
 seeked to offset 0, ready for the caller to read.
 
----
-
 ## FFI contract
 
 ### Memory ownership
@@ -227,8 +221,6 @@ detailed message to the thread-local last-error slot. C++ should call
 `gfr_get_last_error_msg()` (and free the result with `gfr_crypto_free_string`)
 whenever a function returns a non-zero status.
 
----
-
 ## Key design decisions
 
 ### Signing key selection — the `!` protocol
@@ -263,8 +255,6 @@ Symmetric encryption/decryption uses `PasswordCachePolicy::Bypass` because
 there is no fingerprint to key the cache on. The cache entry would create false
 hits across unrelated symmetric messages.
 
----
-
 ## Build notes
 
 ### cbindgen generates the C header
@@ -286,8 +276,6 @@ Three lints are suppressed in `lib.rs` for legitimate reasons:
   40+ `extern "C"` functions `unsafe` would break the C caller.
 - **`too_many_arguments`** — FFI functions mirror C entry points 1-to-1; grouping args would change the ABI.
 - **`collapsible_if`** — nested `if let` is kept where let-chains cannot be used (cbindgen constraint).
-
----
 
 ## Adding a new operation
 
