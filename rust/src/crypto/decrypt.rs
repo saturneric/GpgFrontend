@@ -377,7 +377,7 @@ pub fn decrypt_and_verify_archive_internal(
     fetch_pubkey_cb: Option<crate::types::GfrPublicKeyFetchCb>,
     free_cb: Option<crate::types::GfrFreeCb>,
     user_data: *mut std::ffi::c_void,
-) -> Result<crate::crypto::DecryptAndVerifyResultInternal, crate::types::GfrStatus> {
+) -> Result<DecryptAndVerifyResultInternal, crate::types::GfrStatus> {
     let out_dir = Path::new(out_dir_path);
 
     // 1. Ensure the target extraction directory exists
@@ -403,7 +403,7 @@ pub fn decrypt_and_verify_archive_internal(
 
     // 4. Perform stream decryption and signature verification
     log::info!("Decrypting file into temporary archive...");
-    let stream_result = crate::crypto_stream::decrypt_and_verify_stream_internal(
+    let stream_result = decrypt_and_verify_stream_internal(
         channel,
         in_file,
         &mut temp_archive,
@@ -432,8 +432,90 @@ pub fn decrypt_and_verify_archive_internal(
     })?;
 
     // 7. Assemble the return result (pure file stream operation, so payload data is empty)
-    Ok(crate::crypto::DecryptAndVerifyResultInternal {
+    Ok(DecryptAndVerifyResultInternal {
         data: Vec::new(),
+        filename: stream_result.filename,
+        recipients: stream_result.recipients,
+        is_verified: stream_result.is_verified,
+        signatures: stream_result.signatures,
+    })
+}
+
+/// Decrypt an in-memory buffer, auto-detecting ASCII armor.
+///
+/// Checks for the `-----BEGIN PGP MESSAGE-----` header to decide the format;
+/// no `ascii_armor` parameter is needed on this variant.
+pub fn decrypt_internal(
+    channel: i32,
+    encrypted_data: &[u8],
+    fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+    user_data: *mut c_void,
+) -> Result<DecryptResultInternal, GfrStatus> {
+    let mut output_data = Vec::new();
+
+    // Auto-detect ASCII armor by checking for the standard PGP header.
+    // If it's not valid UTF-8, it's definitely a binary packet.
+    let is_armor = std::str::from_utf8(encrypted_data)
+        .map(|s| s.trim_start().starts_with("-----BEGIN PGP MESSAGE-----"))
+        .unwrap_or(false);
+
+    // Wrap the in-memory byte slice into a Read stream
+    let input_cursor = Cursor::new(encrypted_data);
+
+    // Delegate all the heavy lifting to the stream implementation
+    let stream_result = decrypt_and_verify_stream_internal(
+        channel,
+        input_cursor,
+        &mut output_data, // Passes as Write stream
+        is_armor,
+        fetch_seckey_cb,
+        fetch_pwd_cb,
+        None, // fetch_pubkey_cb is not needed for decryption-only
+        free_cb,
+        user_data,
+    )?;
+
+    Ok(DecryptResultInternal {
+        data: output_data,
+        filename: stream_result.filename,
+        recipients: stream_result.recipients,
+    })
+}
+
+/// Decrypt and verify a combined encrypt+sign in-memory buffer.
+pub fn decrypt_and_verify_internal(
+    channel: i32,
+    encrypted_data: &[u8],
+    fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+    user_data: *mut std::ffi::c_void,
+) -> Result<DecryptAndVerifyResultInternal, GfrStatus> {
+    let mut output_data = Vec::new();
+
+    let is_armor = std::str::from_utf8(encrypted_data)
+        .map(|s| s.trim_start().starts_with("-----BEGIN PGP MESSAGE-----"))
+        .unwrap_or(false);
+
+    let input_cursor = Cursor::new(encrypted_data);
+
+    let stream_result = decrypt_and_verify_stream_internal(
+        channel,
+        input_cursor,
+        &mut output_data,
+        is_armor,
+        fetch_seckey_cb,
+        fetch_pwd_cb,
+        fetch_pubkey_cb,
+        free_cb,
+        user_data,
+    )?;
+
+    Ok(DecryptAndVerifyResultInternal {
+        data: output_data,
         filename: stream_result.filename,
         recipients: stream_result.recipients,
         is_verified: stream_result.is_verified,

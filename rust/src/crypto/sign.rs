@@ -296,3 +296,35 @@ where
         }
     }
 }
+
+/// Sign an in-memory buffer with one or more secret keys.
+pub fn sign_internal(
+    channel: i32,
+    name: &str,
+    data: &[u8],
+    secret_key_blocks: &[&str],
+    fetch_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+    mode: GfrSignMode,
+    ascii_armor: bool,
+) -> Result<SignResultInternal, GfrStatus> {
+    let mut output_data = Vec::new();
+    let input_cursor = Cursor::new(data);
+
+    let stream_result = sign_stream_internal(
+        channel,
+        name,
+        input_cursor,
+        &mut output_data,
+        secret_key_blocks,
+        fetch_cb,
+        free_cb,
+        mode,
+        ascii_armor,
+    )?;
+
+    Ok(SignResultInternal {
+        data: output_data,
+        signatures: stream_result.signatures,
+    })
+}

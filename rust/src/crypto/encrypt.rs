@@ -70,12 +70,12 @@ pub fn encrypt_directory_internal(
     out_file_path: &str,
     public_key_blocks: &[&str],
     ascii_armor: bool,
-) -> Result<crate::crypto_stream::EncryptStreamResultInternal, crate::types::GfrStatus> {
+) -> Result<EncryptStreamResultInternal, crate::types::GfrStatus> {
     let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
     let out_file = create_output_file(out_file_path)?;
 
     log::info!("Encrypting tar archive...");
-    crate::crypto_stream::encrypt_stream_internal(
+    encrypt_stream_internal(
         &filename_hint,
         temp_archive,
         out_file,
@@ -257,12 +257,12 @@ pub fn encrypt_and_sign_directory_internal(
     fetch_pwd_cb: Option<crate::types::GfrPasswordFetchCb>,
     free_cb: Option<crate::types::GfrFreeCb>,
     ascii_armor: bool,
-) -> Result<crate::crypto::EncryptAndSignResultInternal, crate::types::GfrStatus> {
+) -> Result<EncryptAndSignResultInternal, crate::types::GfrStatus> {
     let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
     let out_file = create_output_file(out_file_path)?;
 
     log::info!("Encrypting and signing tar archive...");
-    let stream_result = crate::crypto_stream::encrypt_and_sign_stream_internal(
+    let stream_result = encrypt_and_sign_stream_internal(
         channel,
         &filename_hint,
         temp_archive,
@@ -274,7 +274,7 @@ pub fn encrypt_and_sign_directory_internal(
         ascii_armor,
     )?;
 
-    Ok(crate::crypto::EncryptAndSignResultInternal {
+    Ok(EncryptAndSignResultInternal {
         data: Vec::new(),
         signatures: stream_result.signatures,
         invalid_recipients: stream_result.invalid_recipients,
@@ -368,4 +368,56 @@ pub fn encrypt_directory_with_password_internal(
     )?;
 
     Ok(SymmetricEncryptStreamResultInternal {})
+}
+
+/// Encrypt an in-memory buffer with the given public keys.
+pub fn encrypt_internal(
+    name: &str,
+    data: &[u8],
+    public_key_blocks: &[&str],
+    ascii_armor: bool,
+) -> Result<EncryptResultInternal, GfrStatus> {
+    let mut output = Vec::new();
+
+    let stream_result =
+        encrypt_stream_internal(name, data, &mut output, public_key_blocks, ascii_armor)?;
+
+    Ok(EncryptResultInternal {
+        data: output,
+        invalid_recipients: stream_result.invalid_recipients,
+    })
+}
+
+/// Encrypt and sign an in-memory buffer in a single operation.
+pub fn encrypt_and_sign_internal(
+    channel: i32,
+    name: &str,
+    data: &[u8],
+    public_key_blocks: &[&str],
+    secret_key_blocks: &[&str],
+    fetch_cb: Option<GfrPasswordFetchCb>,
+    free_cb: Option<GfrFreeCb>,
+    ascii_armor: bool,
+) -> Result<EncryptAndSignResultInternal, GfrStatus> {
+    let mut output_data = Vec::new();
+    let input_cursor = Cursor::new(data);
+
+    // Delegate processing to the streaming pipeline
+    let stream_result = encrypt_and_sign_stream_internal(
+        channel,
+        name,
+        input_cursor,
+        &mut output_data, // Safely handles the output as a Write stream
+        public_key_blocks,
+        secret_key_blocks,
+        fetch_cb,
+        free_cb,
+        ascii_armor,
+    )?;
+
+    Ok(EncryptAndSignResultInternal {
+        data: output_data,
+        signatures: stream_result.signatures,
+        invalid_recipients: stream_result.invalid_recipients,
+    })
 }

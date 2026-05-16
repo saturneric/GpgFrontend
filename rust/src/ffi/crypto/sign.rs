@@ -213,7 +213,7 @@ pub extern "C" fn gfr_crypto_sign_file(
         })?;
 
         // 6. Perform the streaming signature
-        let stream_result = crate::crypto_stream::sign_stream_internal(
+        let stream_result = crate::crypto::sign_stream_internal(
             channel,
             &filename_hint,
             in_file,
@@ -429,7 +429,7 @@ pub extern "C" fn gfr_crypto_verify_file(
                 let sig_data =
                     std::fs::read(sig_path_str).map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-                let stream_result = crate::crypto_stream::verify_detached_stream_internal(
+                let stream_result = crate::crypto::verify_detached_stream_internal(
                     in_file,
                     &sig_data,
                     Some(fetch_pubkey_cb),

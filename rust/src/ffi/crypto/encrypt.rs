@@ -26,7 +26,7 @@
  *
  */
 
-use crate::crypto_stream::{self, encrypt_and_sign_directory_internal};
+use crate::crypto::{self, encrypt_and_sign_directory_internal};
 use crate::types::{
     GfrEncryptAndSignResultC, GfrEncryptResultC, GfrFreeCb, GfrInvalidRecipientC,
     GfrPasswordFetchCb, GfrSignatureResultC, GfrStatus,
@@ -196,7 +196,7 @@ pub extern "C" fn gfr_crypto_encrypt_file(
         })?;
 
         // 6. Perform the streaming encryption
-        let stream_result = crypto_stream::encrypt_stream_internal(
+        let stream_result = crypto::encrypt_stream_internal(
             &filename_hint,
             in_file,
             out_file,
@@ -288,7 +288,7 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
         }
 
         // 6. Perform the streaming encryption
-        let stream_result = crypto_stream::encrypt_directory_internal(
+        let stream_result = crypto::encrypt_directory_internal(
             in_path_str,
             out_path_str,
             &key_blocks,
@@ -538,7 +538,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
         })?;
 
         // 7. Execute core stream logic
-        let stream_result = crate::crypto_stream::encrypt_and_sign_stream_internal(
+        let stream_result = crate::crypto::encrypt_and_sign_stream_internal(
             channel,
             &filename_hint,
             in_file,
@@ -767,7 +767,7 @@ pub extern "C" fn gfr_crypto_encrypt_data_symmetric(
 
         let mut out_buf = Vec::new();
 
-        crypto_stream::encrypt_stream_with_password_internal(
+        crypto::encrypt_stream_with_password_internal(
             channel,
             name_str,
             data_slice,
@@ -848,7 +848,7 @@ pub extern "C" fn gfr_crypto_encrypt_file_symmetric(
         })?;
 
         // 5. Execute streaming symmetric encryption
-        crypto_stream::encrypt_stream_with_password_internal(
+        crypto::encrypt_stream_with_password_internal(
             channel,
             &filename_hint,
             in_file,
@@ -907,7 +907,7 @@ pub extern "C" fn gfr_crypto_encrypt_directory_symmetric(
             .to_str()
             .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-        crypto_stream::encrypt_directory_with_password_internal(
+        crypto::encrypt_directory_with_password_internal(
             channel,
             in_path_str,
             out_path_str,

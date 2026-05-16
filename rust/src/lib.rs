@@ -63,7 +63,6 @@ pub mod ffi;
 pub mod types;
 
 mod crypto;
-mod crypto_stream;
 mod err;
 mod key;
 mod keygen;

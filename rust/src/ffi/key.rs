@@ -32,7 +32,7 @@
 //! passphrase changes, subkey deletion/revocation, revocation certificate
 //! generation and import, and key block merging.
 
-use crate::crypto_stream::sniff_recipients;
+use crate::crypto::sniff_recipients;
 use crate::err::clear_last_error;
 use crate::key::{
     delete_subkey_internal, extract_rev_cert_target_fpr_internal, generate_key_rev_cert_internal,

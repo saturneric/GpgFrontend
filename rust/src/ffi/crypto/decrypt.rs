@@ -26,7 +26,7 @@
  *
  */
 
-use crate::crypto_stream::{self, decrypt_and_verify_archive_internal};
+use crate::crypto::{self, decrypt_and_verify_archive_internal};
 use crate::err::clear_last_error;
 use crate::types::{
     GfrDecryptAndVerifyResultC, GfrDecryptResultC, GfrPasswordFetchCb,
@@ -165,7 +165,7 @@ pub extern "C" fn gfr_crypto_decrypt_file(
             GfrStatus::ErrorInvalidInput
         })?;
 
-        let stream_result = crypto_stream::decrypt_and_verify_stream_internal(
+        let stream_result = crypto::decrypt_and_verify_stream_internal(
             channel,
             in_file,
             out_file,
@@ -251,7 +251,7 @@ pub extern "C" fn gfr_crypto_decrypt_archive(
             .to_str()
             .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-        let stream_result = crypto_stream::decrypt_and_verify_archive_internal(
+        let stream_result = crypto::decrypt_and_verify_archive_internal(
             channel,
             in_path_str,
             out_path_str,
@@ -458,7 +458,7 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_file(
         // 4. Execute stream logic
         // This will read the encrypted file in chunks, decrypt it, decompress it,
         // verify inline signatures, and write the plaintext straight to out_file.
-        let stream_result = crate::crypto_stream::decrypt_and_verify_stream_internal(
+        let stream_result = crate::crypto::decrypt_and_verify_stream_internal(
             channel,
             in_file,
             out_file,
