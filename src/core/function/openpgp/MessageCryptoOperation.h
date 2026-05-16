@@ -36,66 +36,73 @@
 namespace GpgFrontend {
 
 /**
- * @brief Basic operation collection
+ * @brief Singleton for in-memory OpenPGP message crypto operations.
  *
+ * Each method has an async variant (callback-based) and a synchronous variant.
+ * Async methods post to the GPG task runner; sync methods execute on the
+ * calling thread.
  */
 class GF_CORE_EXPORT MessageCryptoOperation
     : public SingletonFunctionObject<MessageCryptoOperation> {
  public:
   /**
-   * @brief Construct a new Basic Operator object
+   * @brief Construct the operation handler for the given singleton channel.
    *
-   * @param channel Channel corresponding to the context
+   * @param channel singleton channel identifier
    */
   explicit MessageCryptoOperation(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
-   * @brief
+   * @brief Encrypt a message buffer with the given recipient keys (async).
    *
+   * @param keys recipient public keys
+   * @param in_buffer plaintext data to encrypt
+   * @param ascii if true, produce ASCII-armored output
+   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
    */
-  void Encrypt(const GpgAbstractKeyPtrList&, const GFBuffer&, bool,
-               const GpgOperationCallback&);
+  void Encrypt(const GpgAbstractKeyPtrList& keys, const GFBuffer& in_buffer,
+               bool ascii, const GpgOperationCallback& cb);
 
   /**
-   * @brief
+   * @brief Encrypt a message buffer with the given recipient keys (sync).
    *
+   * @param keys recipient public keys
+   * @param in_buffer plaintext data to encrypt
+   * @param ascii if true, produce ASCII-armored output
+   * @return tuple of (GpgError, DataObjectPtr)
    */
-  auto EncryptSync(const GpgAbstractKeyPtrList&, const GFBuffer&, bool)
-      -> std::tuple<GpgError, DataObjectPtr>;
+  auto EncryptSync(const GpgAbstractKeyPtrList& keys, const GFBuffer& in_buffer,
+                   bool ascii) -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
-   * @brief Call the interface provided by GPGME to symmetrical encryption
+   * @brief Encrypt a message buffer symmetrically (password-based, async).
    *
-   * @param in_buffer Data for encryption
-   * @param out_buffer Encrypted data
-   * @param result Encrypted results
-   * @return GpgError
+   * @param in_buffer plaintext data to encrypt
+   * @param ascii if true, produce ASCII-armored output
+   * @param cb callback invoked on completion
    */
   void EncryptSymmetric(const GFBuffer& in_buffer, bool ascii,
                         const GpgOperationCallback& cb);
 
   /**
-   * @brief
+   * @brief Encrypt a message buffer symmetrically (sync).
    *
-   * @param in_buffer
-   * @param ascii
-   * @param cb
-   * @return std::tuple<GpgError, DataObjectPtr>
+   * @param in_buffer plaintext data to encrypt
+   * @param ascii if true, produce ASCII-armored output
+   * @return tuple of (GpgError, DataObjectPtr)
    */
   auto EncryptSymmetricSync(const GFBuffer& in_buffer, bool ascii)
       -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
+   * @brief Encrypt and sign a message buffer simultaneously (async).
    *
-   * @brief  Call the interface provided by gpgme to perform encryption and
-   * signature operations at the same time.
-   *
-   * @param keys List of public keys
-   * @param signers Private key for signatures
-   * @param in_buffer Data for operation
-   * @param ascii ascii mode
-   * @return
+   * @param keys recipient public keys for encryption
+   * @param signers private keys for signing
+   * @param in_buffer plaintext data
+   * @param ascii if true, produce ASCII-armored output
+   * @param cb callback invoked on completion
    */
   void EncryptSign(const GpgAbstractKeyPtrList& keys,
                    const GpgAbstractKeyPtrList& signers,
@@ -103,13 +110,13 @@ class GF_CORE_EXPORT MessageCryptoOperation
                    const GpgOperationCallback& cb);
 
   /**
-   * @brief
+   * @brief Encrypt and sign a message buffer simultaneously (sync).
    *
-   * @param keys
-   * @param signers
-   * @param in_buffer
-   * @param ascii
-   * @param cb
+   * @param keys recipient public keys for encryption
+   * @param signers private keys for signing
+   * @param in_buffer plaintext data
+   * @param ascii if true, produce ASCII-armored output
+   * @return tuple of (GpgError, DataObjectPtr)
    */
   auto EncryptSignSync(const GpgAbstractKeyPtrList& keys,
                        const GpgAbstractKeyPtrList& signers,
@@ -117,97 +124,91 @@ class GF_CORE_EXPORT MessageCryptoOperation
       -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
-   * @brief Call the interface provided by gpgme for decryption operation
+   * @brief Decrypt an encrypted message buffer (async).
    *
-   * @param in_buffer data that needs to be decrypted
-   * @param out_buffer decrypted data
-   * @param result the result of the operation
-   * @return error code
+   * @param in_buffer ciphertext data to decrypt
+   * @param cb callback invoked on completion with decryption result
    */
   void Decrypt(const GFBuffer& in_buffer, const GpgOperationCallback& cb);
 
   /**
-   * @brief
+   * @brief Decrypt an encrypted message buffer (sync).
    *
-   * @param in_buffer
+   * @param in_buffer ciphertext data to decrypt
+   * @return tuple of (GpgError, DataObjectPtr) containing the decryption result
    */
   auto DecryptSync(const GFBuffer& in_buffer)
       -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
-   * @brief  Call the interface provided by gpgme to perform decryption and
-   * verification operations at the same time.
+   * @brief Decrypt and verify a combined encrypted+signed message buffer
+   * (async).
    *
-   * @param in_buffer data to be manipulated
-   * @param out_buffer data resulting from decryption operation
-   * @param decrypt_result the result of the decrypting operation
-   * @param verify_result the result of the verifying operation
-   * @return error code
+   * @param in_buffer encrypted and signed data
+   * @param cb callback invoked on completion with both decrypt and verify
+   * results
    */
   void DecryptVerify(const GFBuffer& in_buffer, const GpgOperationCallback& cb);
 
   /**
-   * @brief
+   * @brief Decrypt and verify a combined encrypted+signed message buffer
+   * (sync).
    *
-   * @param in_buffer
+   * @param in_buffer encrypted and signed data
+   * @return tuple of (GpgError, DataObjectPtr) containing both results
    */
   auto DecryptVerifySync(const GFBuffer& in_buffer)
       -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
-   * @brief Call the interface provided by gpgme for verification operation
+   * @brief Verify the signature on a message buffer (async).
    *
-   * @param in_buffer data that needs to be verified
-   * @param out_buffer verified data
-   * @param result the result of the operation
-   * @return error code
+   * @param in_buffer signed data (or plaintext for detached signatures)
+   * @param sig_buffer detached signature buffer; pass empty GFBuffer for inline
+   * signatures
+   * @param cb callback invoked on completion with verification result
    */
   void Verify(const GFBuffer& in_buffer, const GFBuffer& sig_buffer,
               const GpgOperationCallback& cb);
 
   /**
-   * @brief
+   * @brief Verify the signature on a message buffer (sync).
    *
-   * @param in_buffer
-   * @param sig_buffer
-   * @param cb
-   * @return std::tuple<GpgError, DataObjectPtr>
+   * @param in_buffer signed data
+   * @param sig_buffer detached signature buffer; pass empty GFBuffer for inline
+   * signatures
+   * @return tuple of (GpgError, DataObjectPtr) containing the verification
+   * result
    */
   auto VerifySync(const GFBuffer& in_buffer, const GFBuffer& sig_buffer)
       -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
-   * @brief  Call the interface provided by gpgme for signing operation
+   * @brief Sign a message buffer with the given private keys (async).
    *
-   * The signing modes are as follows:
-   * `GPGME_SIG_MODE_NORMAL'
-   *      A normal signature is made, the output includes the plaintext and the
-   *      signature.
-   * `GPGME_SIG_MODE_DETACH'
-   *      A detached signature is made.
-   * `GPGME_SIG_MODE_CLEAR'
-   *      A clear text signature is made. The ASCII armor and text mode settings
-   *      of the context are ignored.
+   * Signing modes:
+   * - GPGME_SIG_MODE_NORMAL: output includes both plaintext and signature.
+   * - GPGME_SIG_MODE_DETACH: produces a detached signature only.
+   * - GPGME_SIG_MODE_CLEAR: clear-text signature; ignores ASCII armor and text
+   * mode settings.
    *
-   * @param signers private keys for signing operations
-   * @param in_buffer data that needs to be signed
-   * @param out_buffer verified data
-   * @param mode signing mode
-   * @param result the result of the operation
-   * @return error code
+   * @param signers private keys to sign with
+   * @param in_buffer data to sign
+   * @param mode signing mode (normal, detached, or clear)
+   * @param ascii if true, produce ASCII-armored output (ignored in CLEAR mode)
+   * @param cb callback invoked on completion with sign result
    */
   void Sign(const GpgAbstractKeyPtrList& signers, const GFBuffer& in_buffer,
             GpgSignMode mode, bool ascii, const GpgOperationCallback& cb);
 
   /**
-   * @brief
+   * @brief Sign a message buffer with the given private keys (sync).
    *
-   * @param signers
-   * @param in_buffer
-   * @param mode
-   * @param ascii
-   * @param cb
-   * @return std::tuple<GpgError, DataObjectPtr>
+   * @param signers private keys to sign with
+   * @param in_buffer data to sign
+   * @param mode signing mode
+   * @param ascii if true, produce ASCII-armored output
+   * @return tuple of (GpgError, DataObjectPtr) containing the sign result
    */
   auto SignSync(const GpgAbstractKeyPtrList& signers, const GFBuffer& in_buffer,
                 GpgSignMode mode, bool ascii)
@@ -215,6 +216,7 @@ class GF_CORE_EXPORT MessageCryptoOperation
 
  private:
   OpenPGPContext& ctx_ = OpenPGPContext::GetInstance(
-      SingletonFunctionObject::GetChannel());  ///< Corresponding context
+      SingletonFunctionObject::GetChannel());  ///< OpenPGP context for this
+                                               ///< channel
 };
 }  // namespace GpgFrontend

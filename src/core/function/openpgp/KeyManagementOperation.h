@@ -34,140 +34,146 @@
 namespace GpgFrontend {
 
 /**
- * @brief
+ * @brief Singleton for key lifecycle management operations.
  *
+ * Covers deletion, expiry, passphrase changes, revocation certificate
+ * generation, subkey management, trust assignment, and key certification.
  */
 class GF_CORE_EXPORT KeyManagementOperation
     : public SingletonFunctionObject<KeyManagementOperation> {
  public:
   /**
-   * @brief Construct a new Gpg Key Opera object
+   * @brief Construct the operation handler for the given singleton channel.
    *
-   * @param channel
+   * @param channel singleton channel identifier
    */
   explicit KeyManagementOperation(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
-   * @brief
+   * @brief Delete a list of keys from the keyring.
    *
-   * @param key_ids
+   * @param keys list of keys to delete (both public and secret material)
    */
   void DeleteKeys(const GpgAbstractKeyPtrList& keys);
 
   /**
-   * @brief
+   * @brief Delete a single key from the keyring.
    *
-   * @param key_id
+   * @param key key to delete
    */
-  void DeleteKey(const GpgAbstractKeyPtr& key_id);
+  void DeleteKey(const GpgAbstractKeyPtr& key);
 
   /**
-   * @brief Set the Expire object
+   * @brief Set or clear the expiry date of a primary key or subkey.
    *
-   * @param key
-   * @param skey_fpr
-   * @param expires
-   * @return GpgError
+   * @param key primary key whose expiry is to be set
+   * @param skey_fpr fingerprint of the subkey to update, or empty for the
+   * primary key
+   * @param expires new expiry date, or empty optional to remove the expiry
+   * @return GpgError; GPG_ERR_NO_ERROR on success
    */
   auto SetExpire(const GpgKeyPtr& key, const SubkeyId& skey_fpr,
                  const std::optional<QDateTime>& expires) -> GpgError;
+
   /**
-   * @brief
+   * @brief Generate a revocation certificate for the given key and write it to
+   * a file.
    *
-   * @param key
-   * @param output_path
-   * @param reason_code
-   * @param reason_text
+   * @param key key for which to generate the certificate
+   * @param output_path destination file path for the revocation certificate
+   * @param reason_code revocation reason code (0=no reason, 1=compromised,
+   * 2=superseded, 3=no longer used)
+   * @param reason_text human-readable reason description
    */
   void GenerateRevokeCert(const GpgKeyPtr& key, const QString& output_path,
                           int reason_code, const QString& reason_text);
 
   /**
-   * @brief
+   * @brief Change the passphrase protecting the given key (async).
    *
-   * @param key
-   * @return GpgFrontend::GpgError
+   * @param key key whose passphrase should be changed
+   * @param cb callback invoked on completion
    */
-  void ModifyPassword(const GpgKeyPtr& key, const GpgOperationCallback&);
+  void ModifyPassword(const GpgKeyPtr& key, const GpgOperationCallback& cb);
 
   /**
-   * @brief
+   * @brief Add an Additional Decryption Subkey (ADSK) to the given key (async).
    *
-   * @param key
-   * @param adsk
+   * @param key primary key to add the ADSK to
+   * @param adsk subkey to add as an ADSK
+   * @param cb callback invoked on completion
    */
   void AddADSK(const GpgKeyPtr& key, const GpgSubKey& adsk,
-               const GpgOperationCallback&);
+               const GpgOperationCallback& cb);
 
   /**
-   * @brief
+   * @brief Add an Additional Decryption Subkey (ADSK) to the given key (sync).
    *
-   * @param key
-   * @param adsk
-   * @return GpgError
+   * @param key primary key to add the ADSK to
+   * @param adsk subkey to add as an ADSK
+   * @return tuple of (GpgError, DataObjectPtr)
    */
   auto AddADSKSync(const GpgKeyPtr& key, const GpgSubKey& adsk)
       -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
-   * @brief
+   * @brief Certify (sign) a key's user IDs with the given signer keys.
    *
-   * @param key
-   * @param keys
-   * @param uid
-   * @param expires
-   * @return true
-   * @return false
+   * @param key key to certify
+   * @param keys list of signer keys to certify with
+   * @param uid user ID string to certify (empty means all user IDs)
+   * @param expires optional expiry for the certification signature
+   * @return true on success, false on failure
    */
   auto SignKey(const GpgKeyPtr& key, const GpgAbstractKeyPtrList& keys,
                const QString& uid, const std::optional<QDateTime>& expires)
       -> bool;
 
   /**
-   * @brief
+   * @brief Revoke specific certifications (key signatures) on the given key.
    *
-   * @param key
-   * @param signature_id
-   * @return true
-   * @return false
+   * @param key key whose certifications are to be revoked
+   * @param signature_id list of signature IDs to revoke
+   * @return true if the revocations were applied successfully
    */
   auto RevKeySignature(const GpgKeyPtr& key, const SignIdArgsList& signature_id)
       -> bool;
 
   /**
-   * @brief
+   * @brief Set the owner-trust level for the given key.
    *
-   * @return
+   * @param key key whose trust level is to be updated
+   * @param trust_level gpgme trust level integer (e.g. GPGME_VALIDITY_FULL)
+   * @return true on success
    */
   auto SetOwnerTrustLevel(const GpgAbstractKeyPtr& key, int trust_level)
       -> bool;
 
   /**
-   * @brief
+   * @brief Delete a subkey from the given primary key.
    *
-   * @param key
-   * @param subkey_index
-   * @return true
-   * @return false
+   * @param key primary key containing the subkey
+   * @param skey_idx zero-based index of the subkey to delete in the subkey list
+   * @return true on success
    */
   auto DeleteSubkey(const GpgKeyPtr& key, int skey_idx) -> bool;
 
   /**
-   * @brief
+   * @brief Revoke a subkey of the given primary key.
    *
-   * @param key
-   * @param subkey_index
-   * @param reason_code
-   * @param reason_text
-   * @return true
-   * @return false
+   * @param key primary key containing the subkey
+   * @param skey_idx zero-based index of the subkey to revoke
+   * @param reason_code revocation reason code
+   * @param reason_text human-readable reason description
+   * @return true on success
    */
   auto RevokeSubkey(const GpgKeyPtr& key, int skey_idx, int reason_code,
                     const QString& reason_text) -> bool;
 
  private:
+  // OpenPGP context for this channel.
   OpenPGPContext& ctx_ =
-      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
 }  // namespace GpgFrontend

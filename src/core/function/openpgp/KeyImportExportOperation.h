@@ -37,42 +37,49 @@
 namespace GpgFrontend {
 
 /**
- * @brief
+ * @brief Singleton for importing and exporting OpenPGP key material.
  *
+ * Provides synchronous import and both synchronous and asynchronous export
+ * operations. All operations use the engine-dispatched OpTraits machinery.
  */
 class GF_CORE_EXPORT KeyImportExportOperation
     : public SingletonFunctionObject<KeyImportExportOperation> {
  public:
   /**
-   * @brief Construct a new Gpg Key Import Exporter object
+   * @brief Construct the operation handler for the given singleton channel.
    *
-   * @param channel
+   * @param channel singleton channel identifier
    */
   explicit KeyImportExportOperation(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
-   * @brief
+   * @brief Import key material from an armored or binary buffer.
    *
-   * @param inBuffer
-   * @return GpgImportInformation
+   * @param buffer key data buffer to import
+   * @return import information describing what was imported; nullptr on failure
    */
-  auto ImportKey(const GFBuffer&) -> QSharedPointer<GpgImportInformation>;
+  auto ImportKey(const GFBuffer& buffer)
+      -> QSharedPointer<GpgImportInformation>;
 
   /**
-   * @brief
+   * @brief Import a revocation certificate from a buffer.
    *
-   * @return QSharedPointer<GpgImportInformation>
+   * @param buffer revocation certificate data to import
+   * @return import information; nullptr on failure
    */
-  auto ImportRevCert(const GFBuffer&) -> QSharedPointer<GpgImportInformation>;
+  auto ImportRevCert(const GFBuffer& buffer)
+      -> QSharedPointer<GpgImportInformation>;
 
   /**
-   * @brief
+   * @brief Export a single key to a buffer.
    *
-   * @param key
-   * @param secret
-   * @param ascii
-   * @return std::tuple<GpgError, GFBuffer>
+   * @param key key to export
+   * @param secret if true, include secret key material
+   * @param ascii if true, produce ASCII-armored output
+   * @param shortest if true, export the minimal representation
+   * @param ssh_mode if true, export in OpenSSH format (GnuPG only)
+   * @return tuple of (GpgError, GFBuffer containing the exported key data)
    */
   [[nodiscard]] auto ExportKey(const GpgAbstractKeyPtr& key, bool secret,
                                bool ascii, bool shortest,
@@ -80,40 +87,46 @@ class GF_CORE_EXPORT KeyImportExportOperation
       -> std::tuple<GpgError, GFBuffer>;
 
   /**
-   * @brief
+   * @brief Export a subkey by its fingerprint.
    *
-   * @param fpr
-   * @param ascii
-   * @return std::tuple<GpgError, GFBuffer>
+   * @param fpr subkey fingerprint
+   * @param ascii if true, produce ASCII-armored output
+   * @return tuple of (GpgError, GFBuffer containing the subkey data)
    */
   [[nodiscard]] auto ExportSubkey(const QString& fpr, bool ascii) const
       -> std::tuple<GpgError, GFBuffer>;
 
   /**
-   * @brief
+   * @brief Export a list of keys to a buffer (async).
    *
-   * @param keys
-   * @param outBuffer
-   * @param secret
-   * @return true
-   * @return false
+   * @param keys list of keys to export
+   * @param secret if true, include secret key material
+   * @param ascii if true, produce ASCII-armored output
+   * @param shortest if true, export minimal representations
+   * @param ssh_mode if true, export in OpenSSH format
+   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
    */
   void ExportKeys(const GpgAbstractKeyPtrList& keys, bool secret, bool ascii,
                   bool shortest, bool ssh_mode,
                   const GpgOperationCallback& cb) const;
 
   /**
-   * @brief
+   * @brief Export all key material (public and optionally secret) for a list of
+   * keys (async).
    *
-   * @param keys
-   * @param secret
-   * @param ascii
-   * @param cb
+   * Unlike ExportKeys(), this always exports the full key including all subkeys
+   * and user IDs.
+   *
+   * @param keys list of keys to export
+   * @param secret if true, include secret key material
+   * @param ascii if true, produce ASCII-armored output
+   * @param cb callback invoked on completion
    */
   void ExportAllKeys(const GpgAbstractKeyPtrList& keys, bool secret, bool ascii,
                      const GpgOperationCallback& cb) const;
 
  private:
+  // OpenPGP context for this channel.
   OpenPGPContext& ctx_;
 };
 

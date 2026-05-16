@@ -32,46 +32,60 @@
 
 namespace GpgFrontend {
 
-// State struct for passphrase request, can be extended in the future if needed
+/**
+ * @brief Context passed to PassphraseService::RequestPassphrase describing the
+ * request.
+ */
 struct PassphraseState {
-  // Additional info to show in the passphrase dialog
+  // Additional informational text to display in the passphrase dialog.
   QString info;
 
-  // Fingerprint of the key related to the passphrase request
+  // Fingerprint of the key the passphrase is needed for; empty if no existing
+  // key.
   QString fpr;
 
-  // Indicates if this is a retry after a failed attempt
+  // True if this is a retry after a previously incorrect passphrase.
   bool retry = false;
 
-  // Indicates if the user should be prompted to set a new passphrase
-  // if fingerprint is empty, this field should be true to indicate that the
-  // passphrase is not for an existing key
+  // True if the user should be prompted to enter a new passphrase rather than
+  // unlock an existing key. Must be true when fpr is empty.
   bool ask_for_new = false;
 
-  ///< Indicates if the user should be asked to confirm the passphrase (e.g.,
-  ///< for new passphrase setting)
+  // True if the user should be asked to confirm the passphrase (e.g. when
+  // setting a new one).
   bool should_confirm = false;
 };
 
+/**
+ * @brief Singleton service that prompts the user for a passphrase.
+ *
+ * Delegates to the UI layer via the OpenPGP context's passphrase callback.
+ * One instance per channel; each channel has its own associated context.
+ */
 class GF_CORE_EXPORT PassphraseService
     : public SingletonFunctionObject<PassphraseService> {
  public:
   /**
-   * @brief Construct a new Passphrase Service object
+   * @brief Construct the service for the given singleton channel.
    *
-   * @param channel
+   * @param channel singleton channel identifier
    */
   explicit PassphraseService(int channel);
 
   /**
-   * @brief
+   * @brief Prompt the user for a passphrase and return the entered value.
    *
-   * @param state
-   * @return QString
+   * Blocks until the user provides input or cancels. Returns an empty string
+   * if the user cancels.
+   *
+   * @param state request context (key fingerprint, retry flag, confirmation
+   * flag, etc.)
+   * @return passphrase entered by the user, or empty string on cancellation
    */
   auto RequestPassphrase(const PassphraseState& state) -> QString;
 
  private:
+  // OpenPGP context for this channel, used to route the passphrase callback.
   OpenPGPContext& ctx_ = OpenPGPContext::GetInstance(GetChannel());
 };
 }  // namespace GpgFrontend

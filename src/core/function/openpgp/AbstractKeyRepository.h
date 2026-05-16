@@ -38,64 +38,68 @@ namespace GpgFrontend {
 class GpgKeyTableModel;
 
 /**
- * @brief
+ * @brief Unified singleton repository for looking up both GPG keys and key
+ * groups.
  *
+ * Delegates to GpgKeyRepository and KeyGroupRepository. Callers that need
+ * a key or key group should use this class rather than accessing the
+ * underlying repositories directly.
  */
 class GF_CORE_EXPORT AbstractKeyRepository
     : public SingletonFunctionObject<AbstractKeyRepository> {
  public:
   /**
-   * @brief Construct a new Gpg Key Getter object
+   * @brief Construct the repository for the given singleton channel.
    *
-   * @param channel
+   * @param channel singleton channel identifier
    */
   explicit AbstractKeyRepository(int channel = kGpgFrontendDefaultChannel);
 
-  /**
-   * @brief Destroy the Gpg Key Getter object
-   *
-   */
   ~AbstractKeyRepository();
 
   /**
-   * @brief Get the Key object
+   * @brief Look up a key (GPG key or key group) by its key ID or fingerprint.
    *
-   * @param fpr
-   * @return GpgKey
+   * @param key_id key ID or fingerprint string
+   * @return shared pointer to the abstract key, or nullptr if not found
    */
   auto GetKey(const QString& key_id) -> GpgAbstractKeyPtr;
 
   /**
-   * @brief Get the Keys object
+   * @brief Look up multiple keys by their key IDs or fingerprints.
    *
-   * @param key_ids
-   * @return auto
+   * @param key_ids list of key ID or fingerprint strings
+   * @return list of abstract key pointers (nullptr entries for missing keys)
    */
   auto GetKeys(const QStringList& key_ids) -> GpgAbstractKeyPtrList;
 
   /**
-   * @brief Get all the keys by receiving a linked list
+   * @brief Return all keys and key groups known to this channel.
    *
-   * @return KeyLinkListPtr
+   * @return list of all abstract key pointers
    */
   auto Fetch() -> GpgAbstractKeyPtrList;
 
   /**
-   * @brief flush the keys in the cache
+   * @brief Flush the key cache, forcing the next Fetch() to reload from
+   * storage.
    *
+   * @return true if the cache was flushed successfully
    */
   auto FlushCache() -> bool;
 
   /**
-   * @brief
+   * @brief Return the QAbstractTableModel for displaying GPG keys in a view.
    *
-   * @return GpgKeyTableModel
+   * @return shared pointer to the GpgKeyTableModel for this channel
    */
   auto GetGpgKeyTableModel() -> QSharedPointer<GpgKeyTableModel>;
 
  private:
+  // Underlying GPG key repository for this channel.
   GpgKeyRepository& key_ =
       GpgKeyRepository::GetInstance(SingletonFunctionObject::GetChannel());
+  // Underlying key group repository for this channel.
   KeyGroupRepository& kg_ =
       KeyGroupRepository::GetInstance(SingletonFunctionObject::GetChannel());
 };

@@ -40,114 +40,137 @@ namespace GpgFrontend {
 class GFKeyDatabase;
 
 /**
- * @brief
+ * @brief Initialisation arguments for an OpenPGP context.
  *
+ * Passed to the OpenPGPContext constructor to select the engine, the key
+ * database to use, and optional behavioural flags.
  */
 struct OpenPGPContextInitArgs {
-  OpenPGPEngine engine;  ///<
-  QString db_name;       ///<
-  QString db_path;       ///<
-
-  bool test_mode = false;                ///<
-  bool offline_mode = false;             ///<
-  bool auto_import_missing_key = false;  ///<
+  // OpenPGP engine to use (e.g. GnuPG or rPGP)
+  OpenPGPEngine engine;
+  // Logical name for the key database
+  QString db_name;
+  // Filesystem path to the key database directory
+  QString db_path;
+  // If true, run in test mode (relaxed constraints)
+  bool test_mode = false;
+  // If true, disable network access for key retrieval
+  bool offline_mode = false;
+  // If true, automatically import missing keys during verification
+  bool auto_import_missing_key = false;
 };
 
 /**
- * @brief
+ * @brief Singleton holding an initialised OpenPGP engine context for a channel.
  *
+ * Each channel has exactly one OpenPGPContext. The context owns the engine
+ * session, the key database handle, and the associated configuration.
+ * Call Initialize() after construction; check Good() before use.
  */
 class GF_CORE_EXPORT OpenPGPContext
     : public SingletonFunctionObject<OpenPGPContext> {
  public:
   /**
-   * @brief Construct a new Open P G P Context object
+   * @brief Construct a context on the given channel with default initialisation
+   * arguments.
    *
-   * @param channel
+   * @param channel singleton channel identifier
    */
   explicit OpenPGPContext(int channel);
 
   /**
-   * @brief Construct a new Open P G P Context object
+   * @brief Construct a context on the given channel with explicit
+   * initialisation arguments.
    *
-   * @param args
-   * @param channel
+   * @param args engine, database, and flag configuration
+   * @param channel singleton channel identifier
    */
-  explicit OpenPGPContext(const OpenPGPContextInitArgs &args, int channel);
+  explicit OpenPGPContext(const OpenPGPContextInitArgs& args, int channel);
 
-  /**
-   * @brief Destroy the Open P G P Context object
-   *
-   */
   ~OpenPGPContext();
 
   /**
-   * @brief
+   * @brief Initialise the engine context using the stored arguments.
    *
-   * @return true
-   * @return false
+   * @return true if initialisation succeeded, false otherwise
    */
   auto Initialize() -> bool;
 
   /**
-   * @brief
+   * @brief Return whether the context was successfully initialised.
    *
-   * @return true
-   * @return false
+   * @return true if Initialize() completed without error
    */
   [[nodiscard]] auto Good() const -> bool;
 
   /**
-   * @brief
+   * @brief Return the OpenPGP engine type this context uses.
    *
-   * @return OpenPGPEngine
+   * @return engine enum value (e.g. kGNUPG or kRPGP)
    */
   [[nodiscard]] auto Engine() const -> OpenPGPEngine;
 
   /**
-   * @brief
+   * @brief Return the version string of the active engine.
    *
-   * @return QString
+   * @return engine version string (e.g. "2.4.3")
    */
   [[nodiscard]] auto EngineVersion() const -> QString;
 
   /**
-   * @brief
+   * @brief Return the logical name of the key database for this context.
    *
-   * @return QString
+   * @return key database name string
    */
   [[nodiscard]] auto KeyDBName() const -> QString;
 
   /**
-   * @brief
+   * @brief Return the filesystem path of the key database directory.
    *
-   * @return QString
+   * @return absolute path to the key database
    */
   [[nodiscard]] auto KeyDBPath() const -> QString;
 
   /**
-   * @brief
+   * @brief Return a shared pointer to the GFKeyDatabase for this context.
    *
-   * @return QSharedPointer<GFKeyDatabase>
+   * @return shared pointer to the key database; never null after successful
+   * initialisation
    */
   auto KeyDatabase() -> QSharedPointer<GFKeyDatabase>;
 
  protected:
   /**
-   * @brief
+   * @brief Engine-specific initialisation hook called by Initialize().
    *
-   * @param args
-   * @return true
-   * @return false
+   * Subclasses may override to perform additional setup after the base context
+   * is prepared.
+   *
+   * @param args initialisation arguments
+   * @return true on success, false on failure
    */
-  virtual auto init(const OpenPGPContextInitArgs &args) -> bool;
+  virtual auto init(const OpenPGPContextInitArgs& args) -> bool;
 
  private:
   class Impl;
   SecureUniquePtr<Impl> p_;
-  bool good_ = false;  ///<
+  // True after Initialize() completes successfully.
+  bool good_ = false;
 };
 
+/**
+ * @brief Construct a T (OpenPGPContext subclass) on @p channel and initialise
+ * it.
+ *
+ * Allocates a T via SecureCreateUniqueObject, calls Initialize(), converts the
+ * unique_ptr to a ChannelObjectPtr, and returns it for registration with the
+ * singleton system.
+ *
+ * @tparam T concrete OpenPGPContext subclass to instantiate
+ * @param channel singleton channel identifier
+ * @param args initialisation arguments forwarded to T's constructor
+ * @return ChannelObjectPtr owning the constructed and initialised T
+ */
 template <typename T>
 auto BuildContext(int channel, OpenPGPContextInitArgs args)
     -> ChannelObjectPtr {

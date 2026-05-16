@@ -35,87 +35,96 @@
 namespace GpgFrontend {
 
 /**
- * @brief
+ * @brief Singleton repository for GPG keys on a given channel.
  *
+ * Provides cached lookups by key ID or fingerprint for primary keys, public
+ * keys, and subkeys. The cache can be flushed to force a reload from the
+ * underlying key database.
  */
 class GF_CORE_EXPORT GpgKeyRepository
     : public SingletonFunctionObject<GpgKeyRepository> {
  public:
   /**
-   * @brief Construct a new Gpg Key Getter object
+   * @brief Construct the repository for the given singleton channel.
    *
-   * @param channel
+   * @param channel singleton channel identifier
    */
   explicit GpgKeyRepository(int channel = kGpgFrontendDefaultChannel);
 
-  /**
-   * @brief Destroy the Gpg Key Getter object
-   *
-   */
   ~GpgKeyRepository();
 
   /**
-   * @brief Get the Key object
+   * @brief Look up a GPG key by key ID or fingerprint.
    *
-   * @param fpr
-   * @return GpgKey
+   * @param key_id key ID or fingerprint string
+   * @param use_cache if true, serve from cache when available; if false, bypass
+   * cache
+   * @return GpgKey value, or an invalid GpgKey if not found
    */
   auto GetKey(const QString& key_id, bool use_cache = true) -> GpgKey;
 
   /**
-   * @brief Get the Key Ptr object
+   * @brief Look up a GPG key by key ID or fingerprint and return a shared
+   * pointer.
    *
-   * @param key_id
-   * @param use_cache
-   * @return QSharedPointer<GpgKey>
+   * @param key_id key ID or fingerprint string
+   * @param use_cache if true, serve from cache when available
+   * @return shared pointer to the GpgKey, or nullptr if not found
    */
   auto GetKeyPtr(const QString& key_id, bool use_cache = true)
       -> QSharedPointer<GpgKey>;
 
   /**
-   * @brief Get the Pubkey object
+   * @brief Look up a public key (no secret material) by key ID or fingerprint.
    *
-   * @param fpr
-   * @return GpgKey
+   * @param key_id key ID or fingerprint string
+   * @param use_cache if true, serve from cache when available
+   * @return GpgKey value representing the public key, or invalid if not found
    */
   auto GetPubkey(const QString& key_id, bool use_cache = true) -> GpgKey;
 
   /**
-   * @brief Get the Pubkey Ptr object
+   * @brief Look up a public key by key ID or fingerprint and return a shared
+   * pointer.
    *
-   * @param key_id
-   * @param use_cache
-   * @return GpgKeyPtr
+   * @param key_id key ID or fingerprint string
+   * @param use_cache if true, serve from cache when available
+   * @return shared pointer to the public GpgKey, or nullptr if not found
    */
   auto GetPubkeyPtr(const QString& key_id, bool use_cache = true) -> GpgKeyPtr;
 
   /**
-   * @brief Get the Pubkey Ptr object
+   * @brief Look up a key or subkey by key ID, returning an abstract key
+   * pointer.
    *
-   * @param key_id
-   * @param use_cache
-   * @return GpgKeyPtr
+   * Returns a GpgKey if the ID matches a primary key, or a GpgSubKey pointer
+   * if it matches a subkey.
+   *
+   * @param key_id key ID or fingerprint string (primary or subkey)
+   * @return abstract key pointer, or nullptr if not found
    */
   auto GetKeyORSubkeyPtr(const QString& key_id) -> GpgAbstractKeyPtr;
 
   /**
-   * @brief
+   * @brief Return all GPG keys known to this channel.
    *
-   * @return QContainer<QSharedPointer<GpgKey>>
+   * @return list of shared pointers to all GpgKey objects
    */
   auto Fetch() -> QContainer<QSharedPointer<GpgKey>>;
 
   /**
-   * @brief flush the keys in the cache
+   * @brief Flush the key cache, forcing the next lookup to reload from the
+   * database.
    *
+   * @return true if the cache was flushed successfully
    */
   auto FlushKeyCache() -> bool;
 
   /**
-   * @brief Get the Keys object
+   * @brief Look up multiple GPG keys by their key IDs.
    *
-   * @param ids
-   * @return KeyListPtr
+   * @param key_ids list of key ID strings to look up
+   * @return list of GpgKey objects (invalid entries for missing keys)
    */
   auto GetKeys(const KeyIdArgsList& key_ids) -> GpgKeyList;
 

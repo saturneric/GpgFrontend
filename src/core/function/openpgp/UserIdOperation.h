@@ -32,74 +32,79 @@
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
+
 /**
- * @brief
+ * @brief Singleton for user ID (UID) management operations on OpenPGP keys.
  *
+ * Provides adding, deleting, revoking, and setting the primary UID on a key.
  */
 class GF_CORE_EXPORT UserIdOperation
     : public SingletonFunctionObject<UserIdOperation> {
  public:
   /**
-   * @brief Construct a new Gpg UID Opera object
+   * @brief Construct the operation handler for the given singleton channel.
    *
-   * @param channel
+   * @param channel singleton channel identifier
    */
   explicit UserIdOperation(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
-   * create a new uid in certain key pair
+   * @brief Add a new user ID to the given key using a pre-formatted UID string.
+   *
    * @param key target key pair
-   * @param uid uid args(combine name&comment&email)
-   * @return if successful
+   * @param uid user ID string in "Name (Comment) <email>" format
+   * @return true on success
    */
   auto AddUID(const GpgKeyPtr& key, const QString& uid) -> bool;
 
   /**
-   * create a new uid in certain key pair
+   * @brief Add a new user ID to the given key from individual
+   * name/comment/email components.
+   *
    * @param key target key pair
-   * @param name
-   * @param comment
-   * @param email
-   * @return
+   * @param name display name
+   * @param comment optional comment string
+   * @param email email address
+   * @return true on success
    */
   auto AddUID(const GpgKeyPtr& key, const QString& name, const QString& comment,
               const QString& email) -> bool;
 
   /**
-   * @brief
+   * @brief Delete a user ID from the given key.
    *
-   * @param key
-   * @param uid_index
-   * @return true
-   * @return false
+   * @param key key to modify
+   * @param uid user ID string identifying the UID to delete
+   * @return true on success
    */
   auto DeleteUID(const GpgKeyPtr& key, const QString& uid) -> bool;
 
   /**
-   * @brief
+   * @brief Revoke a user ID on the given key.
    *
-   * @param key
-   * @param uid_index
-   * @param reason_code
-   * @param reason_text
-   * @return true
-   * @return false
+   * @param key key to modify
+   * @param uid user ID string identifying the UID to revoke
+   * @param reason_code revocation reason code
+   * @param reason_text human-readable reason description
+   * @return true on success
    */
   auto RevokeUID(const GpgKeyPtr& key, const QString& uid, int reason_code,
                  const QString& reason_text) -> bool;
 
   /**
-   * Set one of a uid of a key pair as primary
+   * @brief Set the given user ID as the primary UID of the key.
+   *
    * @param key target key pair
-   * @param uid target uid
-   * @return if successful
+   * @param uid user ID string to promote as primary
+   * @return true on success
    */
   auto SetPrimaryUID(const GpgKeyPtr& key, const QString& uid) -> bool;
 
  private:
+  // OpenPGP context for this channel.
   OpenPGPContext& ctx_ =
-      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());  ///<
+      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
 };
 
 }  // namespace GpgFrontend
