@@ -52,19 +52,14 @@
 //!
 //! # Module layout
 //! - `ffi` — basic runtime entry points (version, logger init)
-//! - `ffi_crypto` — message and file encrypt/decrypt/sign/verify operations
-//! - `ffi_key` — key block manipulation (metadata, password, subkey, revocation)
-//! - `ffi_keygen` — key and subkey generation
-//! - `ffi_mem` — memory deallocation helpers for FFI-owned pointers
-//! - `ffi_user_id` — user ID add/delete/update/revoke/set-primary operations
+//! - `ffi::crypto` — message and file encrypt/decrypt/sign/verify operations
+//! - `ffi::key` — key block manipulation (metadata, password, subkey, revocation)
+//! - `ffi::keygen` — key and subkey generation
+//! - `ffi::mem` — memory deallocation helpers for FFI-owned pointers
+//! - `ffi::user_id` — user ID add/delete/update/revoke/set-primary operations
 //! - `types` — `#[repr(C)]` types shared across the FFI boundary
 
 pub mod ffi;
-pub mod ffi_crypto;
-pub mod ffi_key;
-pub mod ffi_keygen;
-pub mod ffi_mem;
-pub mod ffi_user_id;
 pub mod types;
 
 mod crypto;

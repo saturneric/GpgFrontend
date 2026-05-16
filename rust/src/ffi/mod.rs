@@ -32,6 +32,12 @@ use std::ffi::{CString, c_char};
 
 use log::LevelFilter;
 
+pub mod crypto;
+pub mod key;
+pub mod keygen;
+pub mod mem;
+pub mod user_id;
+
 /// Log a greeting that includes the Rust engine version. Used to confirm the
 /// Rust library was loaded successfully at application startup.
 #[unsafe(no_mangle)]
