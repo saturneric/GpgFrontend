@@ -31,25 +31,83 @@
 #include "core/module/GlobalRegisterTable.h"
 
 namespace GpgFrontend::Module {
+
+/**
+ * @brief QAbstractItemModel adaptor that exposes a GlobalRegisterTable as a
+ * tree.
+ *
+ * Provides a read-only view of the register table's namespace/key hierarchy
+ * suitable for display in a QTreeView. Each tree node corresponds to a
+ * GlobalRegisterTable node (namespace, key, or value).
+ */
 class GF_CORE_EXPORT GlobalRegisterTableTreeModel : public QAbstractItemModel {
  public:
-  explicit GlobalRegisterTableTreeModel(GlobalRegisterTable *grt,
-                                        QObject *parent);
+  /**
+   * @brief Construct the model backed by @p grt.
+   *
+   * @param grt pointer to the GlobalRegisterTable to display; must outlive this
+   * model
+   * @param parent optional parent QObject
+   */
+  explicit GlobalRegisterTableTreeModel(GlobalRegisterTable* grt,
+                                        QObject* parent);
 
-  [[nodiscard]] auto rowCount(const QModelIndex &parent) const -> int override;
+  /**
+   * @brief Return the number of child rows under @p parent.
+   *
+   * @param parent parent index (invalid index = root)
+   * @return number of child nodes
+   */
+  [[nodiscard]] auto rowCount(const QModelIndex& parent) const -> int override;
 
-  [[nodiscard]] auto columnCount(const QModelIndex &parent) const
+  /**
+   * @brief Return the number of columns (fixed: namespace, key, value, type).
+   *
+   * @param parent unused
+   * @return column count
+   */
+  [[nodiscard]] auto columnCount(const QModelIndex& parent) const
       -> int override;
 
-  [[nodiscard]] auto data(const QModelIndex &index, int role) const
+  /**
+   * @brief Return the data for the given index and role.
+   *
+   * @param index model index to query
+   * @param role Qt item data role
+   * @return the data value, or an invalid QVariant if not applicable
+   */
+  [[nodiscard]] auto data(const QModelIndex& index, int role) const
       -> QVariant override;
 
-  [[nodiscard]] auto index(int row, int column, const QModelIndex &parent) const
+  /**
+   * @brief Return the model index for the item at (@p row, @p column) under @p
+   * parent.
+   *
+   * @param row row within the parent
+   * @param column column index
+   * @param parent parent model index
+   * @return model index for the requested item
+   */
+  [[nodiscard]] auto index(int row, int column, const QModelIndex& parent) const
       -> QModelIndex override;
 
-  [[nodiscard]] auto parent(const QModelIndex &index) const
+  /**
+   * @brief Return the parent index of the given @p index.
+   *
+   * @param index child model index
+   * @return parent model index, or an invalid index if @p index is a root node
+   */
+  [[nodiscard]] auto parent(const QModelIndex& index) const
       -> QModelIndex override;
 
+  /**
+   * @brief Return the header label for the given section and orientation.
+   *
+   * @param section column or row number
+   * @param orientation Qt::Horizontal for column headers
+   * @param role Qt item data role
+   * @return header label, or an invalid QVariant if not applicable
+   */
   [[nodiscard]] auto headerData(int section, Qt::Orientation orientation,
                                 int role) const -> QVariant override;
 

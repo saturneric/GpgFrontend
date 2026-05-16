@@ -30,17 +30,25 @@
 
 namespace GpgFrontend::Module {
 
+// Reserved for future module initialisation arguments.
 struct ModuleInitArgs {};
 
 /**
- * @brief init the module library
+ * @brief Load, register, and activate all built-in and configured modules.
  *
+ * Must be called once during application startup after the ModuleManager
+ * singleton has been created.
+ *
+ * @param args reserved initialisation arguments (currently unused)
  */
 void GF_CORE_EXPORT LoadGpgFrontendModules(ModuleInitArgs args);
 
 /**
- * @brief shutdown the module library
+ * @brief Deactivate and unregister all modules, then shut down the module
+ * system.
  *
+ * Must be called once during application shutdown before the ModuleManager
+ * singleton is destroyed.
  */
 void GF_CORE_EXPORT ShutdownGpgFrontendModules();
 

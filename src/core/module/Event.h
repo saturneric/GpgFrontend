@@ -46,6 +46,14 @@ using EventIdentifier = QString;
 using EventTriggerIdentifier = QString;
 using Events = QContainer<Event>;
 
+/**
+ * @brief A named, parameterized event in the module system.
+ *
+ * Each Event carries a string identifier, an optional key-value parameter map
+ * (Params), and an optional callback. The callback is always invoked on the
+ * thread that constructed the event. A unique trigger UUID is generated for
+ * every instance so that individual dispatches can be tracked.
+ */
 class GF_CORE_EXPORT Event {
  public:
   using ParameterValue = std::any;
@@ -55,35 +63,98 @@ class GF_CORE_EXPORT Event {
 
   using EventCallback =
       std::function<void(EventIdentifier, ListenerIdentifier, Params)>;
+
   struct ParameterInitializer {
     QString key;
     GFBuffer value;
   };
 
-  explicit Event(const QString&, const Params& = {}, EventCallback = nullptr);
+  /**
+   * @brief Construct an event with the given identifier, optional parameters,
+   * and optional callback.
+   *
+   * @param event_id string identifier for this event type
+   * @param params initial key-value parameters (default: empty)
+   * @param callback function invoked on the construction thread when
+   * ExecuteCallback() is called (default: none)
+   */
+  explicit Event(const QString& event_id, const Params& params = {},
+                 EventCallback callback = nullptr);
 
   ~Event();
 
+  /**
+   * @brief Look up a parameter value by key.
+   *
+   * @param key parameter key
+   * @return the value if found, or empty if the key is absent
+   */
   auto operator[](const QString& key) const -> std::optional<ParameterValue>;
 
+  /**
+   * @brief Return true if both events refer to the same underlying object.
+   */
   auto operator==(const Event& other) const -> bool;
 
+  /**
+   * @brief Return true if the events refer to different underlying objects.
+   */
   auto operator!=(const Event& other) const -> bool;
 
+  /**
+   * @brief Order events by their implementation pointer (for use in sorted
+   * containers).
+   */
   auto operator<(const Event& other) const -> bool;
 
   auto operator<=(const Event& other) const -> bool;
 
+  /**
+   * @brief Return the event identifier as a string.
+   */
   explicit operator QString() const;
 
+  /**
+   * @brief Return the event type identifier (e.g. "core.KeyUpdated").
+   *
+   * @return event identifier string
+   */
   auto GetIdentifier() -> EventIdentifier;
 
+  /**
+   * @brief Return the unique trigger UUID generated for this dispatch instance.
+   *
+   * @return trigger identifier string (UUID)
+   */
   auto GetTriggerIdentifier() -> EventTriggerIdentifier;
 
+  /**
+   * @brief Add or update a key-value parameter on the event.
+   *
+   * @param key parameter key
+   * @param value parameter value
+   */
   void AddParameter(const QString& key, const GFBuffer& value);
 
-  void ExecuteCallback(ListenerIdentifier, const Params&);
+  /**
+   * @brief Invoke the event callback on the construction thread.
+   *
+   * Delivers @p listener_id and @p params to the callback via
+   * QMetaObject::invokeMethod to ensure cross-thread safety.
+   *
+   * @param listener_id identifier of the module that handled the event
+   * @param params result parameters to pass back to the caller
+   */
+  void ExecuteCallback(ListenerIdentifier listener_id, const Params& params);
 
+  /**
+   * @brief Serialize the event to a C-ABI GFModuleEvent struct for SDK use.
+   *
+   * The returned pointer is heap-allocated with SMAMalloc and must be freed
+   * by the caller.
+   *
+   * @return pointer to the allocated GFModuleEvent struct
+   */
   auto ToModuleEvent() -> GFModuleEvent*;
 
  private:
@@ -91,12 +162,22 @@ class GF_CORE_EXPORT Event {
   SecureUniquePtr<Impl> p_;
 };
 
+/**
+ * @brief Construct an EventReference (shared Event) with the given parameters.
+ *
+ * @tparam Args unused (kept for API compatibility)
+ * @param event_id event type identifier
+ * @param params key-value parameters
+ * @param e_cb optional callback invoked when the event is handled
+ * @return shared pointer to the new Event
+ */
 template <typename... Args>
 auto MakeEvent(const EventIdentifier& event_id, const Event::Params& params,
                Event::EventCallback e_cb) -> EventReference {
   return GpgFrontend::SecureCreateSharedObject<Event>(event_id, params, e_cb);
 }
 
+// A no-op EventCallback suitable as a default when no callback is needed.
 const Event::EventCallback kEmptyEventCallback =
     [](const Event::EventIdentifier&, const Event::ListenerIdentifier&,
        const Event::Params&) {};
