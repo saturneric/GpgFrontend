@@ -211,7 +211,7 @@ QWidget#PlainTextEditorPage QLabel[loading="true"] {
 }
 
 void PlainTextEditorPage::set_loading_state(bool loading,
-                                          const QString &message) {
+                                            const QString &message) {
   ui_->loadingLabel->setHidden(!loading);
   ui_->loadingLabel->setProperty("loading", loading);
   ui_->loadingLabel->style()->unpolish(ui_->loadingLabel);
@@ -295,9 +295,9 @@ void PlainTextEditorPage::CloseNoteByClass(const char *className) {
 void PlainTextEditorPage::slot_format_gpg_header() {
   const QString content = ui_->textPage->toPlainText();
 
-  const auto start = content.indexOf(GpgFrontend::PGP_SIGNED_BEGIN);
-  const auto start_sig = content.indexOf(GpgFrontend::PGP_SIGNATURE_BEGIN);
-  const auto end_sig = content.indexOf(GpgFrontend::PGP_SIGNATURE_END);
+  const auto start = content.indexOf(GpgFrontend::kPgpSignedBegin);
+  const auto start_sig = content.indexOf(GpgFrontend::kPgpSignatureBegin);
+  const auto end_sig = content.indexOf(GpgFrontend::kPgpSignatureEnd);
 
   if (start < 0 || start_sig < 0 || end_sig < 0 || sign_marked_) {
     return;
@@ -313,7 +313,7 @@ void PlainTextEditorPage::slot_format_gpg_header() {
   QTextCursor cursor(ui_->textPage->document());
 
   const int signature_end =
-      end_sig + QString(GpgFrontend::PGP_SIGNATURE_END).size();
+      end_sig + QString(GpgFrontend::kPgpSignatureEnd).size();
 
   cursor.setPosition(start_sig, QTextCursor::MoveAnchor);
   cursor.setPosition(signature_end, QTextCursor::KeepAnchor);

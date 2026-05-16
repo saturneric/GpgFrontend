@@ -43,17 +43,17 @@ constexpr int kGpgFrontendDefaultChannel = 0;   ///<
 constexpr int kGpgFrontendNonAsciiChannel = 2;  ///<
 
 // HEADER
-constexpr const char* PGP_CRYPT_BEGIN = "-----BEGIN PGP MESSAGE-----";  ///<
-constexpr const char* PGP_CRYPT_END = "-----END PGP MESSAGE-----";      ///<
-constexpr const char* PGP_SIGNED_BEGIN =
-    "-----BEGIN PGP SIGNED MESSAGE-----";                              ///<
-constexpr const char* PGP_SIGNED_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_SIGNATURE_BEGIN =
-    "-----BEGIN PGP SIGNATURE-----";                                      ///<
-constexpr const char* PGP_SIGNATURE_END = "-----END PGP SIGNATURE-----";  ///<
-constexpr const char* PGP_PUBLIC_KEY_BEGIN =
+constexpr const char* kPgpCryptBegin = "-----BEGIN PGP MESSAGE-----";  ///<
+constexpr const char* kPgpCryptEnd = "-----END PGP MESSAGE-----";      ///<
+constexpr const char* kPgpSignedBegin =
+    "-----BEGIN PGP SIGNED MESSAGE-----";                             ///<
+constexpr const char* kPgpSignedEnd = "-----END PGP SIGNATURE-----";  ///<
+constexpr const char* kPgpSignatureBegin =
+    "-----BEGIN PGP SIGNATURE-----";                                     ///<
+constexpr const char* kPgpSignatureEnd = "-----END PGP SIGNATURE-----";  ///<
+constexpr const char* kPgpPublicKeyBegin =
     "-----BEGIN PGP PUBLIC KEY BLOCK-----";  ///<
-constexpr const char* PGP_PRIVATE_KEY_BEGIN =
+constexpr const char* kPgpPrivateKeyBegin =
     "-----BEGIN PGP PRIVATE KEY BLOCK-----";  ///<
 
 constexpr const char* kGpgMinimalSupportVersion =

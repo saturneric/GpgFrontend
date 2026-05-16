@@ -101,11 +101,11 @@ auto CheckGpgError(GpgError err, const QString& /*comment*/) -> GpgError {
 
 auto TextIsSigned(QString text) -> int {
   auto trim_text = Trim(text);
-  if (trim_text.startsWith(PGP_SIGNED_BEGIN) &&
-      trim_text.endsWith(PGP_SIGNED_END)) {
+  if (trim_text.startsWith(kPgpSignedBegin) &&
+      trim_text.endsWith(kPgpSignedEnd)) {
     return 2;
   }
-  if (text.contains(PGP_SIGNED_BEGIN) && text.contains(PGP_SIGNED_END)) {
+  if (text.contains(kPgpSignedBegin) && text.contains(kPgpSignedEnd)) {
     return 1;
   }
   return 0;
