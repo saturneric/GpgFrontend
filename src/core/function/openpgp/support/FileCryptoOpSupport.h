@@ -28,6 +28,17 @@
 
 #pragma once
 
+/**
+ * @file FileCryptoOpSupport.h
+ * @brief Engine/version support tags for file and directory/archive crypto operations.
+ *
+ * File operations: FileEncrypt, FileEncryptSymmetric, FileDecrypt, FileSign,
+ * FileVerify, FileEncryptSign, FileDecryptVerify.
+ *
+ * Directory/archive operations: DirEncrypt, DirEncryptSymmetric, DirEncryptSign,
+ * ArchiveDecrypt, ArchiveDecryptVerify.
+ */
+
 #include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {

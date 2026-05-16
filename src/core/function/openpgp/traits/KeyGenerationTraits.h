@@ -28,6 +28,14 @@
 
 #pragma once
 
+/**
+ * @file KeyGenerationTraits.h
+ * @brief OpTraits specializations for key generation operations.
+ *
+ * Wires GenerateKey, GenerateSubKey, GenerateKeyWithSubKey, FilterKeyAlgoByKey
+ * op tags to GnuPG and rPGP implementations.
+ */
+
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 

@@ -28,6 +28,14 @@
 
 #pragma once
 
+/**
+ * @file MessageCryptoOpSupport.h
+ * @brief Engine/version support tags for message (in-memory) crypto operations.
+ *
+ * Defines op tags for: Encrypt, EncryptSymmetric, Decrypt, Verify, Sign,
+ * EncryptSign, DecryptVerify.
+ */
+
 #include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {

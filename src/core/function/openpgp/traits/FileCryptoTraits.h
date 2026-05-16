@@ -28,6 +28,16 @@
 
 #pragma once
 
+/**
+ * @file FileCryptoTraits.h
+ * @brief OpTraits specialisations for file and directory/archive crypto
+ * operations.
+ *
+ * Wires file encrypt, decrypt, sign, verify, encrypt+sign, decrypt+verify op
+ * tags and their directory/archive counterparts to GnuPG and rPGP
+ * implementations.
+ */
+
 #include "core/function/openpgp/helper/Op.h"
 
 // Support Meta

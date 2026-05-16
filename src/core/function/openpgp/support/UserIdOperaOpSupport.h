@@ -28,6 +28,13 @@
 
 #pragma once
 
+/**
+ * @file UserIdOperaOpSupport.h
+ * @brief Engine/version support tags for user ID management operations.
+ *
+ * Defines op tags for: AddUserId, SetPrimaryUserId, DeleteUserId, RevokeUserId.
+ */
+
 #include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {

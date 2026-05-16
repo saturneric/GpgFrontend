@@ -28,6 +28,15 @@
 
 #pragma once
 
+/**
+ * @file KeyImportExportOpSupport.h
+ * @brief Engine/version support tags for key import and export operations.
+ *
+ * Defines op tags for: ImportKey, ImportRevCert, ExportKeys,
+ * ExportKeyAsOpenSSHFormat (GnuPG only), ExportKeysAsync, ExportAllKeys,
+ * ExportSubkey (GnuPG only).
+ */
+
 #include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {

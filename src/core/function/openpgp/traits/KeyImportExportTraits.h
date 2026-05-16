@@ -28,6 +28,15 @@
 
 #pragma once
 
+/**
+ * @file KeyImportExportTraits.h
+ * @brief OpTraits specializations for key import and export operations.
+ *
+ * Wires ImportKey, ImportRevCert, ExportKeys, ExportKeyAsOpenSSHFormat,
+ * ExportKeysAsync, ExportAllKeys, ExportSubkey op tags to their engine
+ * implementations (GnuPG and where applicable rPGP).
+ */
+
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/KeyImportExportOpSupport.h"
 

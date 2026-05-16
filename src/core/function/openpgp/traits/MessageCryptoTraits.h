@@ -28,6 +28,14 @@
 
 #pragma once
 
+/**
+ * @file MessageCryptoTraits.h
+ * @brief OpTraits specializations for message (in-memory) crypto operations.
+ *
+ * Wires Encrypt, EncryptSymmetric, Decrypt, Verify, Sign, EncryptSign,
+ * DecryptVerify op tags to GnuPG and rPGP implementations.
+ */
+
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/MessageCryptoOpSupport.h"
 

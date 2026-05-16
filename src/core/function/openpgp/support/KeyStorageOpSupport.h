@@ -28,6 +28,13 @@
 
 #pragma once
 
+/**
+ * @file KeyStorageOpSupport.h
+ * @brief Engine/version support tags for key storage operations.
+ *
+ * Defines op tags for: FlushKeyDatabase, FlushKeyCache, GetKeyPtr.
+ */
+
 #include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {

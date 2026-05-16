@@ -34,23 +34,36 @@
 
 namespace GpgFrontend {
 
+// Primary template — specialised by GF_DEF_OP_SUPPORT_TRAITS for each op tag.
 template <typename OpTag>
 struct OpSupportTraits;
 
+/**
+ * @brief CRTP base providing engine/version support checking for an operation.
+ *
+ * Derived specialisations supply a static Versions() method returning a list
+ * of EngineSupportIf requirements. IsSupported() returns true when the current
+ * context satisfies at least one requirement.
+ *
+ * @tparam Derived the concrete OpSupportTraits specialisation
+ */
 template <typename Derived>
 struct OpSupportTraitsBase {
   /**
-   * @brief Return the operation support requirements.
+   * @brief Return the engine/version requirements for this operation.
    *
-   * Each EngineSupportIf contains engine requirement and optional version
-   * requirement.
+   * @return const reference to the list of EngineSupportIf requirements
    */
   static auto SupportRequirements() -> const auto& {
     return Derived::Versions();
   }
 
   /**
-   * @brief Check whether this operation is supported by current context.
+   * @brief Return whether @p ctx satisfies at least one engine/version
+   * requirement.
+   *
+   * @param ctx OpenPGP context to test
+   * @return true if the context's engine and version match any requirement
    */
   static auto IsSupported(const OpenPGPContext& ctx) -> bool {
     auto versions = Derived::Versions();
@@ -61,22 +74,59 @@ struct OpSupportTraitsBase {
   }
 };
 
+/**
+ * @brief Return whether the operation identified by @p OpTag is supported by @p
+ * ctx.
+ *
+ * @tparam OpTag operation tag type defined by GF_DEF_OP_SUPPORT_TRAITS
+ * @param ctx OpenPGP context to test
+ * @return true if the operation is supported
+ */
 template <typename OpTag>
 auto IsOpSupported(const OpenPGPContext& ctx) -> bool {
   return OpSupportTraits<OpTag>::IsSupported(ctx);
 }
 
+/**
+ * @brief Return whether the operation identified by @p OpTag is supported on @p
+ * channel.
+ *
+ * @tparam OpTag operation tag type defined by GF_DEF_OP_SUPPORT_TRAITS
+ * @param channel OpenPGP context channel to test
+ * @return true if the operation is supported on that channel
+ */
 template <typename OpTag>
 auto IsOpSupported(int channel) -> bool {
   auto& ctx = OpenPGPContext::GetInstance(channel);
   return OpSupportTraits<OpTag>::IsSupported(ctx);
 }
 
+/**
+ * @brief Return the engine/version requirements for the operation identified by
+ * @p OpTag.
+ *
+ * @tparam OpTag operation tag type defined by GF_DEF_OP_SUPPORT_TRAITS
+ * @return const reference to the list of EngineSupportIf requirements
+ */
 template <typename OpTag>
 auto GetOpSupportRequirements() -> const auto& {
   return OpSupportTraits<OpTag>::SupportRequirements();
 }
 
+/**
+ * @brief Define an operation tag and its engine/version support requirements.
+ *
+ * Creates an empty struct named @p TAG and a specialisation of OpSupportTraits
+ * for it. The variadic arguments are EngineSupportIf initialisers specifying
+ * which engines and minimum versions support this operation.
+ *
+ * Usage:
+ * @code
+ * GF_DEF_OP_SUPPORT_TRAITS(MyOpTag, "op_my_op",
+ *     {OpenPGPEngine::kGNUPG, "2.2.0"},
+ *     {OpenPGPEngine::kRPGP,  "0.1.0"});
+ * @endcode
+ */
 #define GF_DEF_OP_SUPPORT_TRAITS(TAG, OPNAME, ...)                          \
   struct TAG {};                                                            \
   template <>                                                               \

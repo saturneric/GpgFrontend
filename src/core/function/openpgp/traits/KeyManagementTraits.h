@@ -28,6 +28,15 @@
 
 #pragma once
 
+/**
+ * @file KeyManagementTraits.h
+ * @brief OpTraits specializations for key management operations.
+ *
+ * Wires DeleteKeys, ModifyKeyPassphrase, SetExpire, GenerateRevCert,
+ * RevokeSubKey, DeleteSubKey, AddADSK, SignKey, RevKeySignature,
+ * SetOwnerTrustLevel op tags to their engine implementations.
+ */
+
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 

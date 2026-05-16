@@ -28,6 +28,16 @@
 
 #pragma once
 
+/**
+ * @file KeyManagementOpSupport.h
+ * @brief Engine/version support tags for key management operations.
+ *
+ * Defines op tags for: DeleteKeys, ModifyKeyPassphrase, SetExpire (GnuPG only),
+ * GenerateRevCert, RevokeSubKey, DeleteSubKey, AddADSK (GnuPG >= 2.4.1),
+ * SignKey (GnuPG only), RevKeySignature (GnuPG only), SetOwnerTrustLevel (GnuPG
+ * only).
+ */
+
 #include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {

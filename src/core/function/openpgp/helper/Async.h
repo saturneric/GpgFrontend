@@ -35,14 +35,20 @@
 namespace GpgFrontend {
 
 /**
- * @brief
+ * @brief Schedule an OpTraits<OpTag> operation on the GPG task runner and
+ * invoke @p cb on completion.
  *
- * @tparam OpTag
- * @tparam Args
- * @param channel
- * @param ctx
- * @param cb
- * @param args
+ * Checks engine/version support via OpTraits<OpTag>::Versions(), then posts the
+ * operation to the GPG task runner. The callback is delivered to the calling
+ * thread when done.
+ *
+ * @tparam OpTag operation tag whose OpTraits specialization provides Call() and
+ * Versions()
+ * @tparam Args  argument types forwarded to OpTraits<OpTag>::Call()
+ * @param ctx  OpenPGP context to execute the operation on
+ * @param cb   callback invoked on the calling thread with (GpgError,
+ * DataObjectPtr)
+ * @param args arguments forwarded to the operation implementation
  */
 template <typename OpTag, typename... Args>
 void RunRegisteredAsync(OpenPGPContext& ctx, const GpgOperationCallback& cb,
@@ -64,14 +70,17 @@ void RunRegisteredAsync(OpenPGPContext& ctx, const GpgOperationCallback& cb,
 }
 
 /**
- * @brief
+ * @brief Run an OpTraits<OpTag> operation synchronously on the calling thread.
  *
- * @tparam OpTag
- * @tparam Args
- * @param channel
- * @param ctx
- * @param args
- * @return std::tuple<GpgError, DataObjectPtr>
+ * Checks engine/version support via OpTraits<OpTag>::Versions() and executes
+ * the operation immediately without posting to a task runner.
+ *
+ * @tparam OpTag operation tag whose OpTraits specialization provides Call() and
+ * Versions()
+ * @tparam Args  argument types forwarded to OpTraits<OpTag>::Call()
+ * @param ctx  OpenPGP context to execute the operation on
+ * @param args arguments forwarded to the operation implementation
+ * @return tuple of (GpgError, DataObjectPtr) with the operation result
  */
 template <typename OpTag, typename... Args>
 auto RunRegisteredSync(OpenPGPContext& ctx, Args&&... args)
@@ -93,13 +102,16 @@ auto RunRegisteredSync(OpenPGPContext& ctx, Args&&... args)
 }
 
 /**
- * @brief
+ * @brief Call OpTraits<OpTag>::Call() directly, forwarding all arguments.
  *
- * @tparam OpTag
- * @tparam Args
- * @param ctx
- * @param args
- * @return std::tuple<GpgError, DataObjectPtr>
+ * Invokes the operation synchronously without any async dispatch or support
+ * check. Asserts that an implementation exists for the context's engine.
+ *
+ * @tparam OpTag operation tag whose OpTraits specialization provides Call()
+ * @tparam Args  argument types forwarded to OpTraits<OpTag>::Call()
+ * @param ctx  OpenPGP context passed as the first argument to Call()
+ * @param args remaining arguments forwarded to Call()
+ * @return whatever OpTraits<OpTag>::Call() returns
  */
 template <typename OpTag, typename... Args>
 auto RunRegisteredForward(OpenPGPContext& ctx, Args&&... args) {
@@ -114,13 +126,20 @@ auto RunRegisteredForward(OpenPGPContext& ctx, Args&&... args) {
 }
 
 /**
- * @brief
+ * @brief Call OpTraits<OpTag>::RoutableCall() directly, forwarding all
+ * arguments.
  *
- * @tparam OpTag
- * @tparam Args
- * @param ctx
- * @param args
- * @return std::tuple<GpgError, DataObjectPtr>
+ * Like RunRegisteredForward() but uses RoutableCall(), which only asserts that
+ * an implementation exists for the engine — it does not check version support.
+ * Use when you want to dispatch to any available implementation regardless of
+ * version constraints.
+ *
+ * @tparam OpTag operation tag whose OpTraits specialization provides
+ * RoutableCall()
+ * @tparam Args  argument types forwarded to RoutableCall()
+ * @param ctx  OpenPGP context passed as the first argument to RoutableCall()
+ * @param args remaining arguments forwarded to RoutableCall()
+ * @return whatever OpTraits<OpTag>::RoutableCall() returns
  */
 template <typename OpTag, typename... Args>
 auto RunRegisteredRoutableForward(OpenPGPContext& ctx, Args&&... args) {
@@ -134,6 +153,20 @@ auto RunRegisteredRoutableForward(OpenPGPContext& ctx, Args&&... args) {
       stored_args);
 }
 
+/**
+ * @brief Call OpTraits<OpTag>::Call() dispatching by raw OpenPGPEngine enum.
+ *
+ * Used for operations whose implementation does not take an OpenPGPContext&
+ * (defined with GF_DEF_OP_IMPL_TRAITS_RAW). The engine is passed directly
+ * without a context object.
+ *
+ * @tparam OpTag operation tag whose OpTraits specialization provides a raw
+ * Call()
+ * @tparam Args  argument types forwarded to Call()
+ * @param engine engine enum value used for dispatch
+ * @param args   arguments forwarded to the selected implementation
+ * @return whatever OpTraits<OpTag>::Call() returns
+ */
 template <typename OpTag, typename... Args>
 auto RunRegisteredRawForward(OpenPGPEngine& engine, Args&&... args) {
   auto stored_args =
@@ -145,4 +178,5 @@ auto RunRegisteredRawForward(OpenPGPEngine& engine, Args&&... args) {
       },
       stored_args);
 }
+
 }  // namespace GpgFrontend

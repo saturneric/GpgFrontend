@@ -28,6 +28,14 @@
 
 #pragma once
 
+/**
+ * @file KeyGenerationOpSupport.h
+ * @brief Engine/version support tags for key generation operations.
+ *
+ * Defines op tags for: GenerateKey, GenerateSubKey, GenerateKeyWithSubKey,
+ * FilterKeyAlgoByKey.
+ */
+
 #include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {

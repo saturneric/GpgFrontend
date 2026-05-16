@@ -28,6 +28,14 @@
 
 #pragma once
 
+/**
+ * @file UserIdOperaTraits.h
+ * @brief OpTraits specializations for user ID management operations.
+ *
+ * Wires AddUserId, SetPrimaryUserId, DeleteUserId, RevokeUserId op tags to
+ * GnuPG and rPGP implementations.
+ */
+
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/UserIdOperaOpSupport.h"
 

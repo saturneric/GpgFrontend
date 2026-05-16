@@ -28,6 +28,14 @@
 
 #pragma once
 
+/**
+ * @file CommonTraits.h
+ * @brief OpTraits specializations for common OpenPGP context operations.
+ *
+ * Wires GetEngineVersionOpTag and BuildOpenPGPContextOpTag to their GnuPG and
+ * rPGP engine implementations.
+ */
+
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/CommonOpSupport.h"
 

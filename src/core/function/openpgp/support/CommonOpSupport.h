@@ -28,6 +28,15 @@
 
 #pragma once
 
+/**
+ * @file CommonOpSupport.h
+ * @brief Engine/version support tags for common OpenPGP context operations.
+ *
+ * Defines op tags and their EngineSupportIf requirements for:
+ * - GetEngineVersionOpTag: query the active engine version
+ * - BuildOpenPGPContextOpTag: construct an OpenPGP context
+ */
+
 #include "core/function/openpgp/helper/OpSupport.h"
 
 namespace GpgFrontend {

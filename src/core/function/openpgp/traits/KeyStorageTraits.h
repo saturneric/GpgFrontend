@@ -28,6 +28,14 @@
 
 #pragma once
 
+/**
+ * @file KeyStorageTraits.h
+ * @brief OpTraits specializations for key storage operations.
+ *
+ * Wires FlushKeyDatabase, FlushKeyCache, GetKeyPtr op tags to GnuPG and rPGP
+ * implementations.
+ */
+
 #include "core/function/openpgp/helper/Op.h"
 #include "core/function/openpgp/support/KeyStorageOpSupport.h"
 
