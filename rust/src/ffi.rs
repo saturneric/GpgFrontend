@@ -26,10 +26,14 @@
  *
  */
 
+//! Basic runtime entry points: version query and logger initialisation.
+
 use std::ffi::{CString, c_char};
 
 use log::LevelFilter;
 
+/// Log a greeting that includes the Rust engine version. Used to confirm the
+/// Rust library was loaded successfully at application startup.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_rust_hello() {
     log::info!(
@@ -38,6 +42,10 @@ pub extern "C" fn gfr_rust_hello() {
     );
 }
 
+/// Return the Rust engine version string as a heap-allocated C string.
+///
+/// The caller is responsible for freeing the returned pointer with
+/// `gfr_crypto_free_string`.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_rust_engine_version() -> *mut c_char {
     let ver_str =
@@ -45,6 +53,10 @@ pub extern "C" fn gfr_rust_engine_version() -> *mut c_char {
     return ver_str.into_raw();
 }
 
+/// Initialise the `env_logger` backend at INFO level, writing to stdout.
+///
+/// Safe to call multiple times; subsequent calls are no-ops if the logger
+/// was already initialized.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_init_logger() {
     let _ = env_logger::builder()

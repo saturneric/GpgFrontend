@@ -25,6 +25,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
  */
+
+//! FFI entry points for user ID (UID) management operations.
+//!
+//! All functions operate on armored key blocks passed as C strings and write
+//! an updated armored key block to an output pointer. The caller must free the
+//! returned string with `gfr_crypto_free_string`.
+
 use crate::types::{GfrFreeCb, GfrRevocationCode, GfrStatus};
 use crate::user_id::{
     add_user_id_internal, delete_user_id_internal, revoke_user_id_internal,
@@ -36,6 +43,13 @@ use std::{
     panic::catch_unwind,
 };
 
+/// Delete the user ID matching `target_uid` from the armored `key_block`.
+///
+/// On success `*out_block` is set to a heap-allocated updated armored key
+/// block. Free it with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// `key_block`, `target_uid`, and `out_block` must all be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_delete_user_id(
     key_block: *const c_char,
@@ -68,6 +82,13 @@ pub extern "C" fn gfr_crypto_delete_user_id(
     }
 }
 
+/// Add `new_uid` to the armored `secret_key_block`.
+///
+/// The primary key passphrase is obtained via `fetch_pwd_cb`/`free_cb`.
+/// On success `*out_block` is set to a heap-allocated updated armored key block.
+///
+/// # Safety
+/// `secret_key_block`, `new_uid`, and `out_block` must all be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_add_user_id(
     channel: i32,
@@ -111,6 +132,13 @@ pub extern "C" fn gfr_crypto_add_user_id(
     }
 }
 
+/// Replace `old_uid` with `new_uid` in the armored `secret_key_block`.
+///
+/// The primary key passphrase is obtained via `fetch_pwd_cb`/`free_cb`.
+/// On success `*out_block` is set to a heap-allocated updated armored key block.
+///
+/// # Safety
+/// `secret_key_block`, `old_uid`, `new_uid`, and `out_block` must all be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_update_user_id(
     channel: i32,
@@ -161,6 +189,13 @@ pub extern "C" fn gfr_crypto_update_user_id(
     }
 }
 
+/// Mark `target_uid` as the primary user ID in the armored `secret_key_block`.
+///
+/// The primary key passphrase is obtained via `fetch_pwd_cb`/`free_cb`.
+/// On success `*out_block` is set to a heap-allocated updated armored key block.
+///
+/// # Safety
+/// `secret_key_block`, `target_uid`, and `out_block` must all be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_set_primary_user_id(
     channel: i32,
@@ -170,8 +205,6 @@ pub extern "C" fn gfr_crypto_set_primary_user_id(
     free_cb: crate::types::GfrFreeCb,
     out_block: *mut *mut std::os::raw::c_char,
 ) -> GfrStatus {
-    // crate::error_handler::clear_last_error();
-
     let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
         if secret_key_block.is_null() || target_uid.is_null() || out_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
@@ -208,6 +241,16 @@ pub extern "C" fn gfr_crypto_set_primary_user_id(
     }
 }
 
+/// Revoke `target_uid` in the armored `secret_key_block`.
+///
+/// `reason_code` identifies why the UID is being revoked; `reason_text` is an
+/// optional human-readable description (may be null). The passphrase is
+/// obtained via `fetch_pwd_cb`/`free_cb`. On success `*out_block` is set to a
+/// heap-allocated updated armored key block.
+///
+/// # Safety
+/// `secret_key_block`, `target_uid`, and `out_block` must all be non-null.
+/// `reason_text` may be null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_revoke_user_id(
     channel: i32,

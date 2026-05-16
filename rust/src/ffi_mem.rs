@@ -26,6 +26,13 @@
  *
  */
 
+//! Memory deallocation helpers for all heap-allocated FFI output values.
+//!
+//! Each function here is the counterpart to one or more FFI functions that
+//! transfer heap ownership to the C++ caller. The caller **must** use the
+//! matching `gfr_crypto_free_*` function — passing pointers to `free()` or
+//! any other allocator is undefined behaviour.
+
 use crate::types::{
     GfrDecryptAndVerifyResultC, GfrDecryptMetadataC, GfrDecryptResultC, GfrEncryptAndSignResultC,
     GfrEncryptMetadataC, GfrEncryptResultC, GfrKeyGenerateResult, GfrKeyMetadataC,
@@ -33,6 +40,10 @@ use crate::types::{
 };
 use std::ffi::{CString, c_char};
 
+/// Free a heap-allocated C string returned by any `gfr_*` function.
+///
+/// # Safety
+/// `ptr` must have been allocated by the Rust engine. Passing null is a no-op.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_free_string(ptr: *mut c_char) {
     if !ptr.is_null() {
@@ -40,6 +51,11 @@ pub extern "C" fn gfr_crypto_free_string(ptr: *mut c_char) {
     }
 }
 
+/// Free a raw byte buffer returned in a `data`/`data_len` pair by any `gfr_*` function.
+///
+/// # Safety
+/// `ptr` and `len` must exactly match a previously returned `data`/`data_len` pair.
+/// Passing null or len 0 is a no-op.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_free_buffer(ptr: *mut u8, len: usize) {
     if !ptr.is_null() && len > 0 {
@@ -49,6 +65,11 @@ pub extern "C" fn gfr_crypto_free_buffer(ptr: *mut u8, len: usize) {
     }
 }
 
+/// Free all heap-allocated string fields within a `GfrKeyGenerateResult`.
+///
+/// # Safety
+/// `result` must point to a `GfrKeyGenerateResult` populated by `gfr_crypto_generate_key`
+/// or `gfr_crypto_add_subkey`. Passing null is a no-op.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_free_key_generate_result(result: *mut GfrKeyGenerateResult) {
     if result.is_null() {
@@ -292,6 +313,10 @@ pub extern "C" fn gfr_crypto_free_encrypt_and_sign_result(result: *mut GfrEncryp
     }
 }
 
+/// Free all heap-allocated fields within a `GfrDecryptAndVerifyResultC`.
+///
+/// # Safety
+/// `result` must point to a struct populated by `gfr_crypto_decrypt_and_verify_*`.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_free_decrypt_and_verify_result(
     result: *mut GfrDecryptAndVerifyResultC,
@@ -310,6 +335,15 @@ pub extern "C" fn gfr_crypto_free_decrypt_and_verify_result(
     }
 }
 
+/// Free a `GfrKeyMetadataC` array returned by `gfr_crypto_extract_metadata`.
+///
+/// Recursively frees all heap-allocated string fields in each entry (fingerprints,
+/// key IDs, armored blocks, user IDs, and subkeys) before freeing the outer array.
+///
+/// # Safety
+/// `metadata_ptr` must have been set by `gfr_crypto_extract_metadata` and
+/// `count` must match the returned `*out_metadata_count`. Passing null or 0
+/// count is a no-op.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn gfr_free_metadata_array(metadata_ptr: *mut GfrKeyMetadataC, count: usize) {
     if metadata_ptr.is_null() || count == 0 {

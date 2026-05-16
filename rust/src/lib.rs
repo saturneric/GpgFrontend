@@ -26,6 +26,26 @@
  *
  */
 
+//! Rust crypto engine for GpgFrontend (rPGP backend).
+//!
+//! Exposes a C-compatible FFI surface consumed by the C++ core. All exported
+//! symbols use `#[unsafe(no_mangle)]` and follow a consistent contract:
+//! - Return `GfrStatus::ErrorInvalidInput` for null pointer or out-of-range arguments.
+//! - Return `GfrStatus::ErrorPanic` if a Rust panic is caught via `catch_unwind`.
+//! - Return `GfrStatus::Success` (0) on success.
+//!
+//! Heap memory transferred to the caller must be freed with the corresponding
+//! `gfr_crypto_free_*` function exported from `ffi_mem`.
+//!
+//! # Module layout
+//! - `ffi` — basic runtime entry points (version, logger init)
+//! - `ffi_crypto` — message and file encrypt/decrypt/sign/verify operations
+//! - `ffi_key` — key block manipulation (metadata, password, subkey, revocation)
+//! - `ffi_keygen` — key and subkey generation
+//! - `ffi_mem` — memory deallocation helpers for FFI-owned pointers
+//! - `ffi_user_id` — user ID add/delete/update/revoke/set-primary operations
+//! - `types` — `#[repr(C)]` types shared across the FFI boundary
+
 pub mod ffi;
 pub mod ffi_crypto;
 pub mod ffi_key;

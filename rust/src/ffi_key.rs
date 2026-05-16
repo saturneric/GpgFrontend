@@ -26,6 +26,12 @@
  *
  */
 
+//! FFI entry points for key block manipulation.
+//!
+//! Covers metadata extraction, public-key derivation, recipient sniffing,
+//! passphrase changes, subkey deletion/revocation, revocation certificate
+//! generation and import, and key block merging.
+
 use crate::crypto_stream::sniff_recipients;
 use crate::err::clear_last_error;
 use crate::key::{
@@ -46,6 +52,14 @@ use std::{
     panic::catch_unwind,
 };
 
+/// Parse an armored key block and return an array of key metadata structs.
+///
+/// On success `*out_metadata` points to a heap-allocated array of
+/// `*out_metadata_count` `GfrKeyMetadataC` structs. Free the array with
+/// `gfr_free_metadata_array`.
+///
+/// # Safety
+/// All pointer arguments must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_extract_metadata(
     key_block: *const std::os::raw::c_char,
@@ -171,6 +185,13 @@ pub extern "C" fn gfr_crypto_extract_metadata(
     }
 }
 
+/// Extract the public key from an armored secret key block.
+///
+/// On success `*out_public_block` is set to a heap-allocated armored public
+/// key string. Free it with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// `secret_block` and `out_public_block` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_extract_public_key(
     secret_block: *const c_char,
@@ -208,6 +229,17 @@ pub extern "C" fn gfr_crypto_extract_public_key(
     }
 }
 
+/// Sniff the recipient key IDs from an encrypted data buffer without decrypting.
+///
+/// On success `*out_recipients` points to a heap-allocated array of
+/// `*out_count` `GfrRecipientResultC` structs. Free with
+/// `gfr_crypto_free_decrypt_result` or manually via `gfr_crypto_free_string`.
+///
+/// Returns `ErrorInvalidData` if no recipients are found.
+///
+/// # Safety
+/// `in_data`, `out_recipients`, and `out_count` must be non-null;
+/// `in_data` must point to at least `in_len` bytes.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_get_recipients(
     in_data: *const u8,
@@ -265,6 +297,16 @@ pub extern "C" fn gfr_crypto_get_recipients(
     }
 }
 
+/// Merge multiple armored key blocks and export the combined result.
+///
+/// `keys_ptr` is an array of `keys_len` armored key block C strings. If
+/// `secret` is true, the merged secret key is returned; otherwise only the
+/// public key is included. On success `*out_armored_ptr` is set to a
+/// heap-allocated armored key string. Free with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// `keys_ptr` must point to a valid array of `keys_len` non-null C strings;
+/// `out_armored_ptr` must be non-null.
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn gfr_export_merged_keys(
     keys_ptr: *const *const c_char,
@@ -336,6 +378,14 @@ pub unsafe extern "C" fn gfr_export_merged_keys(
     }
 }
 
+/// Change the passphrase protecting the subkey at `target_fpr` within `secret_key_block`.
+///
+/// The current passphrase and the new passphrase are both fetched via
+/// `fetch_pwd_cb`/`free_cb`. On success `*out_secret_block` is set to a
+/// heap-allocated updated armored secret key block. Free with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// `secret_key_block`, `target_fpr`, and `out_secret_block` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_modify_key_password(
     channel: i32,
@@ -390,6 +440,13 @@ pub extern "C" fn gfr_crypto_modify_key_password(
     }
 }
 
+/// Remove the subkey identified by `target_subkey_fpr` from `secret_key_block`.
+///
+/// On success `*out_secret_block` is set to a heap-allocated updated armored
+/// secret key block. Free with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// `secret_key_block`, `target_subkey_fpr`, and `out_secret_block` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_delete_subkey(
     secret_key_block: *const c_char,
@@ -435,6 +492,15 @@ pub extern "C" fn gfr_crypto_delete_subkey(
     }
 }
 
+/// Revoke the subkey at `target_subkey_fpr` within `secret_key_block`.
+///
+/// `reason_code` and `reason_text` (may be null) describe the revocation.
+/// The passphrase is fetched via `fetch_pwd_cb`/`free_cb`. On success
+/// `*out_secret_block` is set to a heap-allocated updated armored secret key block.
+///
+/// # Safety
+/// `secret_key_block`, `target_subkey_fpr`, and `out_secret_block` must be non-null.
+/// `reason_text` may be null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_revoke_subkey(
     channel: i32,
@@ -503,6 +569,16 @@ pub extern "C" fn gfr_crypto_revoke_subkey(
     }
 }
 
+/// Generate a revocation certificate for the primary key in `secret_key_block`.
+///
+/// `reason_code` and `reason_text` (may be null) describe the revocation reason.
+/// The passphrase is fetched via `fetch_pwd_cb`/`free_cb`. On success
+/// `*out_cert_block` is set to a heap-allocated armored revocation certificate.
+/// Free with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// `secret_key_block` and `out_cert_block` must be non-null.
+/// `reason_text` may be null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_generate_key_rev_cert(
     channel: i32,
@@ -565,6 +641,14 @@ pub extern "C" fn gfr_crypto_generate_key_rev_cert(
     }
 }
 
+/// Merge `incoming_block` into `base_block`, returning updated public and secret blocks.
+///
+/// Useful for importing certification signatures or subkeys from an external source.
+/// On success `*out_public_block` is always populated; `*out_secret_block` is
+/// populated only if a secret key is present. Free with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// All four pointer arguments must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_merge_key_blocks(
     base_block: *const c_char,
@@ -630,6 +714,14 @@ pub extern "C" fn gfr_crypto_merge_key_blocks(
     }
 }
 
+/// Apply a revocation certificate to a key block.
+///
+/// Merges `rev_cert_block` into `base_key_block`. On success both output
+/// pointers are populated with updated armored key blocks (secret may remain
+/// null if no secret key is present). Free with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// All four pointer arguments must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_import_rev_cert(
     base_key_block: *const c_char,
@@ -692,6 +784,13 @@ pub extern "C" fn gfr_crypto_import_rev_cert(
     }
 }
 
+/// Extract the fingerprint of the key targeted by a revocation certificate.
+///
+/// On success `*out_fpr` is set to a heap-allocated fingerprint string.
+/// Free with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// `rev_cert_block` and `out_fpr` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_extract_rev_cert_target_fpr(
     rev_cert_block: *const c_char,

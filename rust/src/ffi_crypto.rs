@@ -26,6 +26,14 @@
  *
  */
 
+//! FFI entry points for OpenPGP message and file encrypt/decrypt/sign/verify operations.
+//!
+//! Each operation has an in-memory variant (`*_data`) and a file-streaming
+//! variant (`*_file` / `*_directory` / `*_archive`). For file variants the
+//! `data`/`data_len` fields of the result struct are null/0 and output is
+//! written directly to disk. All result structs must be freed with the
+//! corresponding `gfr_crypto_free_*` function from `ffi_mem`.
+
 use crate::crypto::get_signature_issuers_internal;
 use crate::crypto_stream::{
     self, decrypt_and_verify_archive_internal, encrypt_and_sign_directory_internal,
@@ -45,6 +53,15 @@ use std::{
     panic::catch_unwind,
 };
 
+/// Encrypt an in-memory buffer with the given public keys.
+///
+/// `name` is embedded as the filename hint in the literal data packet.
+/// `pub_keys` is an array of `pub_keys_count` armored public key block strings.
+/// On success `out_result` is populated; free with `gfr_crypto_free_encrypt_result`.
+///
+/// # Safety
+/// `name`, `in_data`, `pub_keys`, and `out_result` must be non-null;
+/// `in_data` must point to at least `in_len` bytes.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_data(
     name: *const c_char,
@@ -125,6 +142,13 @@ pub extern "C" fn gfr_crypto_encrypt_data(
     }
 }
 
+/// Encrypt a file with the given public keys, writing ciphertext to `out_file_path`.
+///
+/// `out_result.data` is null on success; only metadata (invalid recipients) is populated.
+/// Free with `gfr_crypto_free_encrypt_result`.
+///
+/// # Safety
+/// `in_file_path`, `out_file_path`, `pub_keys`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_file(
     in_file_path: *const c_char,
@@ -227,6 +251,13 @@ pub extern "C" fn gfr_crypto_encrypt_file(
     }
 }
 
+/// Pack a directory into a tar archive and encrypt it with the given public keys.
+///
+/// Output is written to `out_file_path`. `out_result.data` is null on success.
+/// Free with `gfr_crypto_free_encrypt_result`.
+///
+/// # Safety
+/// `in_dir_path`, `out_file_path`, `pub_keys`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_directory(
     in_dir_path: *const c_char,
@@ -311,6 +342,14 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
     }
 }
 
+/// Decrypt an in-memory ciphertext buffer.
+///
+/// Secret keys and passphrases are fetched via the provided callbacks.
+/// On success `out_result` is populated with the plaintext and recipient info.
+/// Free with `gfr_crypto_free_decrypt_result`.
+///
+/// # Safety
+/// `in_data` and `out_result` must be non-null; `in_data` must point to at least `in_len` bytes.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_decrypt_data(
     channel: i32,
@@ -384,6 +423,13 @@ pub extern "C" fn gfr_crypto_decrypt_data(
     }
 }
 
+/// Decrypt a ciphertext file, writing the plaintext to `out_file_path`.
+///
+/// `out_result.data` is null; only metadata is populated.
+/// Free with `gfr_crypto_free_decrypt_result`.
+///
+/// # Safety
+/// `in_file_path`, `out_file_path`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_decrypt_file(
     channel: i32,
@@ -474,6 +520,13 @@ pub extern "C" fn gfr_crypto_decrypt_file(
     }
 }
 
+/// Decrypt an encrypted archive file and extract its contents to `out_file_path`.
+///
+/// `out_result.data` is null; only metadata is populated.
+/// Free with `gfr_crypto_free_decrypt_result`.
+///
+/// # Safety
+/// `in_file_path`, `out_file_path`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_decrypt_archive(
     channel: i32,
@@ -553,6 +606,15 @@ pub extern "C" fn gfr_crypto_decrypt_archive(
     }
 }
 
+/// Sign an in-memory buffer with the given secret keys.
+///
+/// `mode` selects inline, clear-text, or detached signature format.
+/// On success `out_result` contains the signed data and per-signature results.
+/// Free with `gfr_crypto_free_sign_result`.
+///
+/// # Safety
+/// `name`, `in_data`, `secret_keys`, and `out_result` must be non-null;
+/// `in_data` must point to at least `in_len` bytes.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_sign_data(
     channel: i32,
@@ -646,6 +708,13 @@ pub extern "C" fn gfr_crypto_sign_data(
     }
 }
 
+/// Sign a file with the given secret keys, writing the signed output to `out_file_path`.
+///
+/// `out_result.data` is null; only signature metadata is populated.
+/// Free with `gfr_crypto_free_sign_result`.
+///
+/// # Safety
+/// `in_file_path`, `out_file_path`, `secret_keys`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_sign_file(
     channel: i32,
@@ -760,6 +829,16 @@ pub extern "C" fn gfr_crypto_sign_file(
     }
 }
 
+/// Verify the signature(s) on an in-memory data buffer.
+///
+/// For detached mode `sig_data`/`sig_len` must point to the separate signature.
+/// Public keys are fetched on demand via `fetch_pubkey_cb`/`free_cb`.
+/// On success `out_result` contains the verified payload and per-signature status.
+/// Free with `gfr_crypto_free_verify_result`.
+///
+/// # Safety
+/// `in_data` and `out_result` must be non-null. `sig_data` may be null for
+/// inline/clear-text modes.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_verify_data(
     in_data: *const u8,
@@ -849,6 +928,16 @@ pub extern "C" fn gfr_crypto_verify_data(
     }
 }
 
+/// Verify the signature(s) on a file.
+///
+/// For detached mode `sig_file_path` must point to the signature file.
+/// For inline/clear-text modes `out_file_path` (may be null) receives the
+/// extracted plaintext. Public keys are fetched via `fetch_pubkey_cb`/`free_cb`.
+/// Free with `gfr_crypto_free_verify_result`.
+///
+/// # Safety
+/// `in_file_path` and `out_result` must be non-null. `sig_file_path` and
+/// `out_file_path` may be null depending on `mode`.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_verify_file(
     in_file_path: *const c_char,
@@ -994,6 +1083,13 @@ pub extern "C" fn gfr_crypto_verify_file(
     }
 }
 
+/// Extract issuer fingerprints from a signed data buffer as a comma-separated string.
+///
+/// On success `*out_issuers` is set to a heap-allocated CSV string of fingerprints.
+/// Free with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// `in_data` and `out_issuers` must be non-null; `in_data` must be at least `in_len` bytes.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_get_signature_issuers(
     in_data: *const u8,
@@ -1022,6 +1118,14 @@ pub extern "C" fn gfr_crypto_get_signature_issuers(
     }
 }
 
+/// Encrypt and sign an in-memory buffer in a single operation.
+///
+/// `pub_keys` are the recipient keys; `secret_keys` are the signing keys.
+/// On success `out_result` contains the ciphertext and combined metadata.
+/// Free with `gfr_crypto_free_encrypt_and_sign_result`.
+///
+/// # Safety
+/// `name`, `in_data`, `pub_keys`, `secret_keys`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
     channel: i32,
@@ -1142,6 +1246,13 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
     }
 }
 
+/// Encrypt and sign a file in a single streaming operation.
+///
+/// Output is written to `out_file_path`. `out_result.data` is null.
+/// Free with `gfr_crypto_free_encrypt_and_sign_result`.
+///
+/// # Safety
+/// `in_file_path`, `out_file_path`, `pub_keys`, `secret_keys`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
     channel: i32,
@@ -1288,6 +1399,13 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
     }
 }
 
+/// Pack a directory into a tar archive, then encrypt and sign it in a single operation.
+///
+/// Output is written to `out_file_path`. `out_result.data` is null.
+/// Free with `gfr_crypto_free_encrypt_and_sign_result`.
+///
+/// # Safety
+/// `in_dir_path`, `out_file_path`, `pub_keys`, `secret_keys`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
     channel: i32,
@@ -1410,6 +1528,14 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
     }
 }
 
+/// Decrypt and verify an in-memory combined encrypt+sign buffer.
+///
+/// Keys and passphrases are fetched via the provided callbacks.
+/// On success `out_result` contains plaintext, decrypt metadata, and verify metadata.
+/// Free with `gfr_crypto_free_decrypt_and_verify_result`.
+///
+/// # Safety
+/// `in_data` and `out_result` must be non-null; `in_data` must be at least `in_len` bytes.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
     channel: i32,
@@ -1508,6 +1634,13 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
     }
 }
 
+/// Decrypt and verify a combined encrypt+sign file, writing plaintext to `out_file_path`.
+///
+/// `out_result.data` is null; metadata is populated. Keys and passphrases are
+/// fetched via the provided callbacks. Free with `gfr_crypto_free_decrypt_and_verify_result`.
+///
+/// # Safety
+/// `in_file_path`, `out_file_path`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_decrypt_and_verify_file(
     channel: i32,
@@ -1634,6 +1767,13 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_file(
     }
 }
 
+/// Decrypt and verify an encrypted archive, extracting its contents to `out_dir_path`.
+///
+/// `out_result.data` is null; metadata is populated. Free with
+/// `gfr_crypto_free_decrypt_and_verify_result`.
+///
+/// # Safety
+/// `in_file_path`, `out_dir_path`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_decrypt_and_verify_archive(
     channel: i32,
@@ -1740,6 +1880,14 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_archive(
     }
 }
 
+/// Symmetrically encrypt an in-memory buffer using a password.
+///
+/// The password is fetched via `fetch_pwd_cb`/`free_cb`. On success
+/// `out_result` contains the ciphertext; `meta.invalid_recipients` is null.
+/// Free with `gfr_crypto_free_encrypt_result`.
+///
+/// # Safety
+/// `name`, `in_data`, and `out_result` must be non-null; `in_data` must be at least `in_len` bytes.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_data_symmetric(
     channel: i32,
@@ -1796,6 +1944,12 @@ pub extern "C" fn gfr_crypto_encrypt_data_symmetric(
     }
 }
 
+/// Symmetrically encrypt a file using a password, writing ciphertext to `out_file_path`.
+///
+/// `out_result.data` is null. Free with `gfr_crypto_free_encrypt_result`.
+///
+/// # Safety
+/// `in_file_path`, `out_file_path`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_file_symmetric(
     channel: i32,
@@ -1868,6 +2022,13 @@ pub extern "C" fn gfr_crypto_encrypt_file_symmetric(
     }
 }
 
+/// Pack a directory into a tar archive and symmetrically encrypt it with a password.
+///
+/// Output is written to `out_file_path`. `out_result.data` is null.
+/// Free with `gfr_crypto_free_encrypt_result`.
+///
+/// # Safety
+/// `in_dir_path`, `out_file_path`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_directory_symmetric(
     channel: i32,

@@ -1,3 +1,33 @@
+/*
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
+ *
+ * This file is part of GpgFrontend.
+ *
+ * GpgFrontend is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * GpgFrontend is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
+ *
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ */
+
+//! FFI entry points for key and subkey generation.
+
 use crate::keygen::{GeneratedKeys, add_subkey_internal, create_key_internal};
 use crate::types::{GfrFreeCb, GfrKeyConfig, GfrKeyGenerateResult, GfrPasswordFetchCb, GfrStatus};
 
@@ -6,6 +36,20 @@ use std::{
     panic::catch_unwind,
 };
 
+/// Generate a new primary key with optional subkeys.
+///
+/// Creates a primary key for `user_id` using `key_config`, then appends
+/// `s_key_count` subkeys described by `s_key_configs`. If the key or any
+/// subkey requires a passphrase the `fetch_pwd_cb`/`free_cb` pair is used
+/// to obtain and release it.
+///
+/// On success the result fields of `o_result` are populated with
+/// heap-allocated armored key blocks and the fingerprint. Free them with
+/// `gfr_crypto_free_key_generate_result`.
+///
+/// # Safety
+/// `user_id` and `o_result` must be non-null. `s_key_configs` must be
+/// non-null when `s_key_count > 0`.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_generate_key(
     user_id: *const c_char,
@@ -74,6 +118,18 @@ pub extern "C" fn gfr_crypto_generate_key(
     }
 }
 
+/// Add a new subkey to an existing key block.
+///
+/// Reads the primary key from the armored `key_block`, generates a new
+/// subkey according to `config`, and returns updated armored key blocks in
+/// `o_result`. The passphrase protecting the primary key is fetched via the
+/// `fetch_pwd_cb`/`free_cb` pair.
+///
+/// On success `o_result` is populated with heap-allocated strings. Free them
+/// with `gfr_crypto_free_key_generate_result`.
+///
+/// # Safety
+/// `key_block` and `o_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_add_subkey(
     channel: i32,
@@ -92,7 +148,6 @@ pub extern "C" fn gfr_crypto_add_subkey(
             .to_str()
             .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-        // Call the internal implementation
         let keys = add_subkey_internal(
             channel,
             key_block_str,
@@ -107,7 +162,6 @@ pub extern "C" fn gfr_crypto_add_subkey(
     match result {
         Ok(inner_result) => match inner_result {
             Ok(keys) => {
-                // Convert Rust Strings to CStrings, handling internal null byte errors
                 let Ok(c_s) = CString::new(keys.secret) else {
                     return GfrStatus::ErrorInternal;
                 };
@@ -118,7 +172,6 @@ pub extern "C" fn gfr_crypto_add_subkey(
                     return GfrStatus::ErrorInternal;
                 };
 
-                // Transfer ownership of the pointers to the out parameter
                 unsafe {
                     *o_result = GfrKeyGenerateResult {
                         secret_key: c_s.into_raw(),
