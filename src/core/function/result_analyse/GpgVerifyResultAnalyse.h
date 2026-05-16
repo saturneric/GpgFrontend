@@ -33,73 +33,101 @@
 #include "core/model/GpgVerifyResult.h"
 
 namespace GpgFrontend {
+
 /**
- * @brief
+ * @brief Analyses a GpgVerifyResult and formats a human-readable verification
+ * report.
  *
+ * The generated report covers the overall success or failure, the sign
+ * timestamp, and per-signature details including validity, trust level,
+ * expiry, revocation, and missing-key conditions. Fingerprints of signatures
+ * whose public key is not present in the keyring are collected and available
+ * via GetUnknownSignatures().
  */
 class GF_CORE_EXPORT GpgVerifyResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
   /**
-   * @brief Construct a new Verify Result Analyse object
+   * @brief Construct the analyser with the verification result to examine.
    *
-   * @param error
-   * @param result
+   * @param channel OpenPGP context channel
+   * @param error gpgme error code returned by the verify operation
+   * @param result verification result object containing the signature list
    */
   explicit GpgVerifyResultAnalyse(int channel, GpgError error,
                                   GpgVerifyResult result);
 
   /**
-   * @brief Get the Signatures object
+   * @brief Return the raw gpgme signature list from the verify result.
    *
-   * @return gpgme_signature_t
+   * @return pointer to the first gpgme_signature_t, or nullptr if the result is
+   * invalid
    */
   [[nodiscard]] auto GetSignatures() const -> gpgme_signature_t;
 
   /**
-   * @brief
+   * @brief Transfer ownership of the underlying GpgVerifyResult out of this
+   * object.
    *
-   * @return GpgVerifyResult
+   * @return the GpgVerifyResult held by this analyser
    */
   auto TakeChargeOfResult() -> GpgVerifyResult;
 
   /**
-   * @brief Get the Unknown Signatures object
+   * @brief Return fingerprints of signatures whose public key was not found in
+   * the keyring.
    *
-   * @return QStringList
+   * Populated during doAnalyse() for each GPG_ERR_NO_PUBKEY signature.
+   *
+   * @return list of fingerprint strings for unknown signers
    */
   [[nodiscard]] auto GetUnknownSignatures() const -> QStringList;
 
  protected:
   /**
-   * @brief
+   * @brief Write the formatted verification report to stream_.
    *
+   * Reports the overall status and, for each signature, its validity,
+   * trust level, and any warnings (expired signature/key, revoked key,
+   * missing CRL). Collects unknown-signer fingerprints into
+   * unknown_signer_fpr_list_.
    */
   void doAnalyse() final;
 
  private:
   /**
-   * @brief
+   * @brief Write signer details for a signature whose key is present in the
+   * keyring.
    *
-   * @param stream
-   * @param sign
-   * @return true
-   * @return false
+   * Looks up the key via AbstractKeyRepository. If found, writes the signer
+   * UID, key ID, key creation date, public-key algorithm, hash algorithm, and
+   * sign timestamps. If not found, writes the fingerprint and lowers the
+   * status to 0.
+   *
+   * @param stream output stream to write into
+   * @param sign signature to describe
+   * @return true if the key was found, false if the signer is unknown
    */
   auto print_signer(QTextStream &stream, GpgSignature sign) -> bool;
 
   /**
-   * @brief
+   * @brief Write signer details for a signature whose key is absent from the
+   * keyring.
    *
-   * @param stream
-   * @param sign
-   * @return true
-   * @return false
+   * Writes the fingerprint (or "<unknown>"), public-key algorithm, hash
+   * algorithm, and sign timestamps without performing a key lookup.
+   *
+   * @param stream output stream to write into
+   * @param sign signature to describe
+   * @return always true
    */
   auto print_signer_without_key(QTextStream &stream, GpgSignature sign) -> bool;
 
-  GpgError error_;          ///<
-  GpgVerifyResult result_;  ///<
+  // gpgme error code from the verify operation
+  GpgError error_;
+  // Verification result containing the signature list
+  GpgVerifyResult result_;
+  // Fingerprints of signers whose key was not found
   QStringList unknown_signer_fpr_list_;
 };
 

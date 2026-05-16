@@ -31,69 +31,101 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief Abstract base class for accumulating a formatted report of an OpenPGP
+ * operation result.
+ *
+ * Subclasses implement doAnalyse() to write Markdown-formatted text into
+ * stream_, which is backed by buffer_. The accumulated report is retrieved via
+ * GetResultReport(). An integer status tracks the worst-case outcome seen so
+ * far: 1 = success, 0 = warning or partial success, -1 = failure, -2 = cannot
+ * verify (e.g. key missing). Analyse() is idempotent; doAnalyse() is called at
+ * most once.
+ */
 class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
   Q_OBJECT
  public:
   /**
-   * @brief Construct a new Result Analyse object
+   * @brief Construct the analyser for the given OpenPGP context channel.
    *
+   * @param channel channel ID of the OpenPGP context whose result is being
+   * analysed
    */
   explicit GpgResultAnalyse(int channel)
       : current_gpg_context_channel_(channel){};
 
   /**
-   * @brief Get the Result Report object
+   * @brief Return the Markdown-formatted operation report.
    *
-   * @return const QString
+   * Call Analyse() before this to ensure the report has been generated.
+   *
+   * @return formatted report string accumulated by doAnalyse()
    */
   [[nodiscard]] auto GetResultReport() const -> QString;
 
   /**
-   * @brief Get the Status object
+   * @brief Return the accumulated worst-case status code.
    *
-   * @return int
+   * Status values: 1 = success, 0 = warning/partial, -1 = failure,
+   * -2 = cannot verify (key missing). The value only decreases; it is never
+   * raised by setStatus().
+   *
+   * @return current status code
    */
   [[nodiscard]] auto GetStatus() const -> int;
 
   /**
-   * @brief Get the Channel object
+   * @brief Return the OpenPGP context channel used by this analyser.
    *
-   * @return int
+   * @return channel ID
    */
   [[nodiscard]] auto GetChannel() const -> int;
 
   /**
-   * @brief
+   * @brief Return a human-readable engine identifier string (e.g. "GPG
+   * v2.4.1").
    *
-   * @return QString
+   * @return engine name and version string from the current channel's OpenPGP
+   * context
    */
   [[nodiscard]] auto EngineInfo() const -> QString;
 
   /**
-   * @brief
+   * @brief Run the analysis, populating the report and status. Idempotent.
    *
+   * Calls doAnalyse() on the first invocation and sets a flag to prevent
+   * subsequent calls from re-running the analysis.
    */
   void Analyse();
 
  protected:
   /**
-   * @brief
+   * @brief Perform the operation-specific analysis and write output to stream_.
    *
+   * Implemented by each concrete subclass. Called exactly once by Analyse().
    */
   virtual void doAnalyse() = 0;
 
   /**
-   * @brief Set the status object
+   * @brief Lower the accumulated status to at most @p m_status.
    *
-   * @param m_status
+   * Takes effect only when @p m_status is less than the current status_,
+   * so the status can only worsen over the lifetime of the analyser.
+   *
+   * @param m_status new candidate status value
    */
   void setStatus(int m_status);
 
+  // OpenPGP context channel for this analysis
   int current_gpg_context_channel_;
+  // Backing buffer for stream_
   QString buffer_;
-  QTextStream stream_ = QTextStream(&buffer_);  ///<
-  int status_ = 1;                              ///<
-  bool analysed_ = false;                       ///<
+  // Output stream written to by doAnalyse()
+  QTextStream stream_ = QTextStream(&buffer_);
+  // Accumulated worst-case status (starts at 1 = success)
+  int status_ = 1;
+  // True after Analyse() has been called once
+  bool analysed_ = false;
 };
 
 }  // namespace GpgFrontend

@@ -32,31 +32,42 @@
 #include "core/model/GpgEncryptResult.h"
 
 namespace GpgFrontend {
+
 /**
- * @brief
+ * @brief Analyses a GpgEncryptResult and formats a human-readable encryption
+ * report.
  *
+ * The generated report shows overall success or failure and, on failure,
+ * lists any invalid recipients together with their fingerprints and error
+ * reasons.
  */
 class GF_CORE_EXPORT GpgEncryptResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
   /**
-   * @brief Construct a new Encrypt Result Analyse object
+   * @brief Construct the analyser with the encryption result to examine.
    *
-   * @param error
-   * @param result
+   * @param channel OpenPGP context channel
+   * @param error gpgme error code returned by the encrypt operation
+   * @param result encryption result object containing invalid-recipient
+   * information
    */
   explicit GpgEncryptResultAnalyse(int channel, GpgError error,
                                    GpgEncryptResult result);
 
  protected:
   /**
-   * @brief
+   * @brief Write the formatted encryption report to stream_.
    *
+   * Reports success or failure. On failure, lists each invalid recipient
+   * with its fingerprint and the reason the encryption was rejected.
    */
   void doAnalyse() final;
 
  private:
-  GpgError error_;           ///<
-  GpgEncryptResult result_;  ///<
+  // gpgme error code from the encrypt operation
+  GpgError error_;
+  // Encryption result containing invalid-recipient details
+  GpgEncryptResult result_;
 };
 }  // namespace GpgFrontend

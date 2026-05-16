@@ -34,32 +34,43 @@
 namespace GpgFrontend {
 
 /**
- * @brief
+ * @brief Analyses a GpgSignResult and formats a human-readable signing report.
  *
+ * The generated report shows overall success or failure, then for each new
+ * signature lists the sign mode, signer identity, key ID, public-key algorithm,
+ * hash algorithm, and creation timestamp. Invalid signers are listed with their
+ * fingerprint and error reason.
  */
 class GF_CORE_EXPORT GpgSignResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
   /**
-   * @brief Construct a new Sign Result Analyse object
+   * @brief Construct the analyser with the signing result to examine.
    *
-   * @param error
-   * @param result
+   * @param channel OpenPGP context channel
+   * @param error gpgme error code returned by the sign operation
+   * @param result signing result object containing new signatures and invalid
+   * signers
    */
   explicit GpgSignResultAnalyse(int channel, GpgError error,
                                 GpgSignResult result);
 
  protected:
   /**
-   * @brief
+   * @brief Write the formatted signing report to stream_.
    *
+   * Reports success or failure. For each valid new signature, writes the sign
+   * mode, signer UID, key ID, public-key algorithm, hash algorithm, and sign
+   * date (UTC and localized). For each invalid signer, writes the fingerprint
+   * and error reason and lowers the status to 0.
    */
   void doAnalyse() override;
 
  private:
-  GpgError error_;  ///<
-
-  GpgSignResult result_;  ///<
+  // gpgme error code from the sign operation
+  GpgError error_;
+  // Signing result containing new signatures and invalid signers
+  GpgSignResult result_;
 };
 
 }  // namespace GpgFrontend

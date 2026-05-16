@@ -34,39 +34,53 @@
 namespace GpgFrontend {
 
 /**
- * @brief
+ * @brief Analyses a GpgDecryptResult and formats a human-readable decryption
+ * report.
  *
+ * The generated report lists the overall success or failure, the symmetric
+ * encryption algorithm, message integrity protection status, and details for
+ * each recipient (key ID, name, public-key algorithm, and status).
  */
 class GF_CORE_EXPORT GpgDecryptResultAnalyse : public GpgResultAnalyse {
   Q_OBJECT
  public:
   /**
-   * @brief Construct a new Decrypt Result Analyse object
+   * @brief Construct the analyser with the decryption result to examine.
    *
-   * @param m_error
-   * @param m_result
+   * @param channel OpenPGP context channel
+   * @param m_error gpgme error code returned by the decrypt operation
+   * @param m_result decryption result object containing recipients and metadata
    */
   explicit GpgDecryptResultAnalyse(int channel, GpgError m_error,
                                    GpgDecryptResult m_result);
 
  protected:
   /**
-   * @brief
+   * @brief Write the formatted decryption report to stream_.
    *
+   * Reports success or failure, lists general state (filename, MIME flag,
+   * message integrity protection, symmetric algorithm), and for each recipient
+   * prints the key identity, key ID, public-key algorithm, and status.
    */
   void doAnalyse() final;
 
  private:
   /**
-   * @brief
+   * @brief Write a single recipient entry to @p stream.
    *
-   * @param stream
-   * @param recipient
+   * Looks up the recipient key via AbstractKeyRepository. If the key is found,
+   * prints the name and email; otherwise prints "<unknown>" and lowers the
+   * status to 0.
+   *
+   * @param stream output stream to write into
+   * @param recipient recipient record from the decrypt result
    */
   void print_recipient(QTextStream& stream, const GpgRecipient& recipient);
 
-  GpgError error_;           ///<
-  GpgDecryptResult result_;  ///<
+  // gpgme error code from the decrypt operation
+  GpgError error_;
+  // Decryption result containing recipient and metadata info
+  GpgDecryptResult result_;
 };
 
 }  // namespace GpgFrontend
