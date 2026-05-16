@@ -26,6 +26,17 @@
  *
  */
 
+//! Streaming OpenPGP operations for data and file I/O.
+//!
+//! Each sub-module handles one operation family:
+//! - [`encrypt`] — public-key and symmetric encryption, encrypt-and-sign
+//! - [`sign`]    — inline, clear-text, and detached signing
+//! - [`verify`]  — detached-signature verification over seekable streams
+//! - [`decrypt`] — decryption with optional integrated signature verification
+//!
+//! All internal result types carry only Rust-owned data; the FFI layer in
+//! `ffi::crypto` converts them into the `GfrXxxResultC` structs expected by C++.
+
 pub(crate) use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     crypto::{
@@ -72,31 +83,42 @@ pub use encrypt::*;
 pub use sign::*;
 pub use verify::*;
 
+/// Result of a public-key encryption stream operation.
 pub struct EncryptStreamResultInternal {
+    /// Recipients whose session key could not be encrypted (parse or algorithm failure).
     pub invalid_recipients: Vec<InvalidRecipientInternal>,
 }
 
+/// Result of a signing stream operation.
 pub struct SignStreamResultInternal {
+    /// One entry per signing key that produced a signature packet.
     pub signatures: Vec<SignatureResultInternal>,
 }
 
+/// Result of a detached-signature verification operation.
 pub struct VerifyStreamResultInternal {
+    /// True if at least one signature verified successfully against a fetched key.
     pub is_verified: bool,
     pub signatures: Vec<SignatureResultInternal>,
 }
 
+/// Result of a combined encrypt-and-sign stream operation.
 pub struct EncryptAndSignStreamResultInternal {
     pub signatures: Vec<SignatureResultInternal>,
     pub invalid_recipients: Vec<InvalidRecipientInternal>,
 }
 
+/// Result of a combined decrypt-and-verify stream operation.
 pub struct DecryptAndVerifyStreamResultInternal {
+    /// Filename embedded in the OpenPGP literal data packet (may be empty).
     pub filename: String,
     pub recipients: Vec<RecipientResultInternal>,
+    /// True if at least one embedded signature verified successfully.
     pub is_verified: bool,
     pub signatures: Vec<SignatureResultInternal>,
 }
 
+/// Placeholder result for symmetric encryption; carries no additional data.
 pub struct SymmetricEncryptStreamResultInternal {}
 
 pub(crate) fn create_output_file(out_file_path: &str) -> Result<File, GfrStatus> {
@@ -107,8 +129,16 @@ pub(crate) fn create_output_file(out_file_path: &str) -> Result<File, GfrStatus>
     })
 }
 
+/// A parsed signing key paired with an optional target subkey fingerprint.
+///
+/// The second element selects which subkey to sign with. `None` means "use
+/// whatever `with_signing_key` selects by capability".
 pub(crate) type ParsedSigner = (SignedSecretKey, Option<String>);
 
+/// Parse armored secret key blocks into [`ParsedSigner`] pairs.
+///
+/// Each block may be prefixed with a fingerprint hint (see `parse_signer_block`)
+/// to pin a specific subkey for signing.
 pub(crate) fn parse_secret_signers(
     secret_key_blocks: &[&str],
 ) -> Result<Vec<ParsedSigner>, GfrStatus> {
@@ -124,7 +154,11 @@ pub(crate) fn parse_secret_signers(
     Ok(parsed_keys)
 }
 
-// Helper to sniff all intended recipients from the encrypted data
+/// Extract recipient key IDs from an encrypted buffer without decrypting it.
+///
+/// Reads only the `PublicKeyEncryptedSessionKey` (PKESK) packets from the
+/// OpenPGP envelope. No session key is recovered; all returned entries have
+/// status `NoKey` — the caller updates statuses after decryption.
 pub fn sniff_recipients(data: &[u8]) -> Vec<RecipientResultInternal> {
     let mut results = Vec::new();
     let mut dearmored = Vec::new();

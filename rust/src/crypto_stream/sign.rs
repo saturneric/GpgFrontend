@@ -28,6 +28,19 @@
 
 use super::*;
 
+/// Sign a stream or buffer with one or more secret keys.
+///
+/// The three modes have different buffering requirements:
+/// - **Inline** — true streaming; the builder consumes the input reader directly
+///   and can sign multiple keys in a single pass.
+/// - **ClearText** — the entire input is buffered to memory because rPGP
+///   requires `&str` for CRLF normalization. Only the first key is used.
+/// - **Detached** — the entire input is buffered to compute the hash. Only
+///   the first key is used.
+///
+/// ClearText and Detached use only `parsed_keys.first()` by design: the
+/// OpenPGP clear-text and detached formats do not compose well with multiple
+/// independent signers in a single-pass stream.
 pub fn sign_stream_internal<R, W>(
     channel: i32,
     name: &str,
@@ -157,8 +170,6 @@ where
         // MODE 1: CLEARTEXT SIGNATURE (Buffered)
         // ---------------------------------------------------------
         GfrSignMode::ClearText => {
-            // rpgp strictly requires a &str for cleartext signing due to CRLF normalization.
-            // We must buffer the stream into memory.
             let mut data = Vec::new();
             input_stream
                 .read_to_end(&mut data)
@@ -219,8 +230,6 @@ where
         // MODE 2: DETACHED SIGNATURE (Buffered)
         // ---------------------------------------------------------
         GfrSignMode::Detached => {
-            // rpgp's standard detached signature API requires &[u8].
-            // Buffering the payload to memory to compute the hash.
             let mut data = Vec::new();
             input_stream
                 .read_to_end(&mut data)

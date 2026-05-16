@@ -28,6 +28,12 @@
 
 use super::*;
 
+/// Verify a detached signature against a data stream.
+///
+/// `data_stream` must implement `Seek` because the verifier rewinds it before
+/// testing each fetched public key — rPGP's signature API is not resumable.
+/// The signature is tried against both the primary key and every subkey to
+/// work around rpgp's strict identity matching.
 pub fn verify_detached_stream_internal<R>(
     mut data_stream: R,
     sig_data: &[u8],

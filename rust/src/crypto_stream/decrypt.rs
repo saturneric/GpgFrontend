@@ -28,6 +28,11 @@
 
 use super::*;
 
+/// Inspect the ESK (Encrypted Session Key) packets of a parsed message.
+///
+/// Returns `(has_pkesk, has_skesk, recipients)` where `has_pkesk` indicates
+/// public-key session keys are present and `has_skesk` indicates symmetric
+/// (password-based) session keys. No decryption is performed.
 fn analyze_encrypted_envelope(
     parsed_message: &Message,
 ) -> Result<(bool, bool, Vec<RecipientResultInternal>), GfrStatus> {
@@ -66,6 +71,11 @@ fn analyze_encrypted_envelope(
     Err(GfrStatus::ErrorInvalidData)
 }
 
+/// Decrypt a symmetrically-encrypted message using a user-supplied passphrase.
+///
+/// Always bypasses the password cache and always asks for a new password
+/// (`ask_for_new: true`) because symmetric encryption has no fingerprint to
+/// key the cache on, so a stale cache entry would silently fail.
 fn decrypt_message_with_password(
     channel: i32,
     parsed_message: Message,
@@ -98,6 +108,15 @@ fn decrypt_message_with_password(
         .map_err(|_| GfrStatus::ErrorDecryptionFailed)
 }
 
+/// Decrypt and optionally verify a stream in a single pipeline.
+///
+/// Handles both symmetric (passphrase) and asymmetric (public-key) ciphertext
+/// by inspecting the ESK packets first. Verification is performed only when
+/// `fetch_pubkey_cb` is `Some` and the decrypted payload contains signatures;
+/// passing `None` skips verification entirely without error.
+///
+/// Anonymous recipients (`key_id = "0000000000000000"`) are accepted — the
+/// message was encrypted without embedding recipient key IDs (hidden recipients).
 pub fn decrypt_and_verify_stream_internal<R, W>(
     channel: i32,
     input_stream: R,
@@ -343,7 +362,11 @@ where
     })
 }
 
-/// Stream decryption and extraction of a Tar directory
+/// Decrypt an encrypted archive and unpack its tar contents to a directory.
+///
+/// Decrypts into an anonymous temporary file (never touches disk as named data)
+/// then unpacks the tar in a second pass. The temp file is dropped automatically
+/// after extraction completes.
 pub fn decrypt_and_verify_archive_internal(
     channel: i32,
     in_file_path: &str,

@@ -28,6 +28,10 @@
 
 use super::*;
 
+/// Encrypt a stream with one or more public keys (no signature).
+///
+/// Thin wrapper around [`encrypt_and_sign_stream_internal`] with an empty
+/// signer list, so the signing phase is skipped entirely.
 pub fn encrypt_stream_internal<R, W>(
     filename_hint: &str,
     input_stream: R,
@@ -57,7 +61,10 @@ where
     })
 }
 
-/// Package a directory as a Tar and encrypt it as a stream
+/// Pack a directory into a temporary tar archive, then encrypt it with public keys.
+///
+/// The tar file is created in the OS temp directory as an anonymous file and is
+/// removed automatically when the handle is dropped.
 pub fn encrypt_directory_internal(
     in_dir_path: &str,
     out_file_path: &str,
@@ -77,13 +84,18 @@ pub fn encrypt_directory_internal(
     )
 }
 
+/// Encrypt a stream with public keys and optionally sign it.
+///
+/// Pass an empty `secret_key_blocks` slice to encrypt without signing; the
+/// signing phase is skipped entirely in that case. Uses SEIPD v1 (AES-256)
+/// and 512 KiB partial packets for streaming efficiency on large payloads.
 pub fn encrypt_and_sign_stream_internal<R, W>(
     channel: i32,
     name: &str,
     input_stream: R,
     mut output_stream: W,
     public_key_blocks: &[&str],
-    secret_key_blocks: &[&str], // If empty, performs ENCRYPT ONLY
+    secret_key_blocks: &[&str],
     fetch_cb: Option<GfrPasswordFetchCb>,
     free_cb: Option<GfrFreeCb>,
     ascii_armor: bool,
@@ -235,6 +247,7 @@ where
     })
 }
 
+/// Pack a directory into a tar archive, then encrypt and sign it in one pass.
 pub fn encrypt_and_sign_directory_internal(
     channel: i32,
     in_dir_path: &str,
@@ -268,6 +281,11 @@ pub fn encrypt_and_sign_directory_internal(
     })
 }
 
+/// Symmetrically encrypt a stream with a user-supplied passphrase.
+///
+/// The password is always fetched fresh via the callback (cache bypassed) and
+/// the user is asked to confirm it. Key derivation uses Argon2id via the
+/// OpenPGP `StringToKey` mechanism, so decryption requires an rPGP-aware tool.
 pub fn encrypt_stream_with_password_internal<R, W>(
     channel: i32,
     name: &str,
@@ -326,7 +344,7 @@ where
     Ok(())
 }
 
-/// Package a directory as a Tar and encrypt it as a stream
+/// Pack a directory into a tar archive, then symmetrically encrypt it with a passphrase.
 pub fn encrypt_directory_with_password_internal(
     channel: i32,
     in_dir_path: &str,
