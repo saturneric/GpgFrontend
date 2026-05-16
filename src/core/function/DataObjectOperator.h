@@ -36,103 +36,125 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief Singleton operator for storing and retrieving encrypted data objects.
+ *
+ * Provides key-by-name and reference-based access to data objects persisted on
+ * disk. JSON and raw binary variants are both supported. All objects are
+ * encrypted with a per-object key derived from the application's secure key
+ * material via libsodium (XChaCha20-Poly1305).
+ */
 class GF_CORE_EXPORT DataObjectOperator
     : public SingletonFunctionObject<DataObjectOperator> {
  public:
   /**
-   * @brief DataObjectOperator constructor
+   * @brief Construct and initialise the operator, loading key material from
+   * GlobalSettingStation.
    *
-   * @param channel channel
+   * @param channel singleton channel identifier
    */
   explicit DataObjectOperator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
-   * @brief
+   * @brief Encrypt and store a JSON document on disk under the given key.
    *
-   * @param key
-   * @param value
-   * @return QString
+   * @param key logical name used to derive the storage reference
+   * @param value JSON document to encrypt and store
+   * @return hex-encoded reference string to the stored object, or empty on
+   * failure
    */
   auto StoreDataObj(const QString &key, const QJsonDocument &value) -> QString;
 
   /**
-   * @brief Get the Data Object object
+   * @brief Decrypt and retrieve a JSON data object by logical key name.
    *
-   * @param key
-   * @return std::optional<QJsonDocument>
+   * @param key logical name identifying the stored object
+   * @return decrypted JSON document, or empty if not found or decryption fails
    */
   auto GetDataObject(const QString &key) -> std::optional<QJsonDocument>;
 
   /**
-   * @brief Get the Data Object By Ref object
+   * @brief Decrypt and retrieve a JSON data object by its hex-encoded
+   * reference.
    *
-   * @param ref
-   * @return std::optional<QJsonDocument>
+   * @param ref hex-encoded 64-character reference string
+   * @return decrypted JSON document, or empty if not found or decryption fails
    */
   auto GetDataObjectByRef(const QString &ref) -> std::optional<QJsonDocument>;
 
   /**
-   * @brief
+   * @brief Encrypt and store raw binary data on disk under the given key.
    *
-   * @param key
-   * @param value
-   * @return QString
+   * @param key logical name used to derive the storage reference
+   * @param value binary data to encrypt and store
+   * @return hex-encoded reference string to the stored object, or empty on
+   * failure
    */
   auto StoreSecDataObj(const QString &key, const GFBuffer &value) -> QString;
 
   /**
-   * @brief Get the Sec Data Object object
+   * @brief Decrypt and retrieve a raw binary data object by logical key name.
    *
-   * @param key
-   * @return GFBufferOrNone
+   * @param key logical name identifying the stored object
+   * @return decrypted data buffer, or empty if not found or decryption fails
    */
   auto GetSecDataObject(const QString &key) -> GFBufferOrNone;
 
   /**
-   * @brief Get the Sec Data Object By Ref object
+   * @brief Decrypt and retrieve a raw binary data object by its hex-encoded
+   * reference.
    *
-   * @param ref
-   * @return GFBufferOrNone
+   * @param ref hex-encoded 64-character reference string
+   * @return decrypted data buffer, or empty if not found or decryption fails
    */
   auto GetSecDataObjectByRef(const QString &ref) -> GFBufferOrNone;
 
  private:
   GlobalSettingStation &gss_ =
-      GlobalSettingStation::GetInstance();  ///< GlobalSettingStation
+      GlobalSettingStation::GetInstance();  ///< Reference to the global setting
+                                            ///< station for key material and
+                                            ///< storage paths
   GFBuffer l_key_;                          ///< Legacy key
   GFBuffer key_;                            ///< Active key
   GFBuffer key_id_;                         ///< Active key Id
 
   /**
-   * @brief Get the object ref object
+   * @brief Derive the binary storage reference for the given object name.
    *
-   * @param key
-   * @return QByteArray
+   * Computes HMAC-SHA256 of @p obj_name using the legacy key. If @p obj_name
+   * is empty, a cryptographically random reference is generated instead.
+   *
+   * @param obj_name logical object name, or empty to generate a random
+   * reference
+   * @return binary reference (HMAC-SHA256 digest)
    */
   auto get_object_ref(const QString &obj_name) -> GFBuffer;
 
   /**
-   * @brief
+   * @brief Read and decrypt a binary data object from disk using its reference.
    *
-   * @param ref
-   * @return GFBufferOrNone
+   * @param ref binary reference identifying the stored object
+   * @return decrypted data buffer, or empty on failure
    */
   auto read_decr_object(const GFBuffer &ref) -> GFBufferOrNone;
 
   /**
-   * @brief
+   * @brief Encrypt a value and write it to disk at the path derived from the
+   * reference.
    *
-   * @param ref
-   * @return GFBufferOrNone
+   * @param ref binary reference identifying the storage location
+   * @param value binary data to encrypt and store
+   * @return hex-encoded reference string, or empty on failure
    */
   auto write_encr_object(const GFBuffer &ref, const GFBuffer &value) -> QString;
 
   /**
-   * @brief
+   * @brief Read, decrypt, and parse a JSON data object from disk using its
+   * reference.
    *
-   * @param ref
-   * @return std::optional<QJsonDocument>
+   * @param ref binary reference identifying the stored object
+   * @return parsed JSON document, or empty on failure
    */
   auto read_decr_json_object(const GFBuffer &ref)
       -> std::optional<QJsonDocument>;

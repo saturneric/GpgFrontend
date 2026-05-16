@@ -36,230 +36,245 @@
 namespace GpgFrontend {
 
 /**
- * @class GlobalSettingStation
- * @brief Singleton class for managing global settings in the application.
+ * @brief Singleton managing application configuration, directory paths, and
+ * cryptographic key material.
  *
- * This class handles reading and writing of global settings, as well as
- * managing application directories and resource paths.
+ * Provides access to the platform-appropriate QSettings store, resolves all
+ * application directory paths (data, logs, config, modules, secure storage),
+ * and maintains the in-memory store of app secure keys indexed by their IDs.
+ * In portable mode, data is placed alongside the executable instead of the
+ * OS user-data directory.
  */
 class GF_CORE_EXPORT GlobalSettingStation
     : public SingletonFunctionObject<GlobalSettingStation> {
  public:
   /**
-   * @brief Construct a new Global Setting Station object
+   * @brief Construct the station, initialise application directories, and
+   * detect portable mode.
    *
+   * @param channel singleton channel identifier
    */
   explicit GlobalSettingStation(
       int channel = SingletonFunctionObject::GetDefaultChannel()) noexcept;
 
   /**
-   * @brief Destroy the Global Setting Station object
-   *
+   * @brief Destroy the station and release all held key material.
    */
   ~GlobalSettingStation() noexcept override;
 
   /**
-   * @brief Get the Settings object
+   * @brief Open and return the application settings store.
    *
-   * @return QSettings
+   * Returns an INI-backed QSettings on Windows and in portable mode; otherwise
+   * returns the platform-native QSettings.
+   *
+   * @return QSettings instance configured for the current platform and mode
    */
   [[nodiscard]] auto GetSettings() const -> QSettings;
 
   /**
-   * @brief Get the App Dir object
+   * @brief Return the path to the application executable directory.
    *
-   * @return QString
+   * @return absolute path to the directory containing the application binary
    */
   [[nodiscard]] auto GetAppDir() const -> QString;
 
   /**
-   * @brief Gets the application data directory.
-   * @return Path to the application data directory.
+   * @brief Return the path to the application's writable data directory.
+   *
+   * @return absolute path to the app-local data directory
    */
   [[nodiscard]] auto GetAppDataPath() const -> QString;
 
   /**
-   * @brief Get the Log Dir object
+   * @brief Return the path to the application's log directory.
    *
-   * @return QString
+   * @return absolute path to the log directory
    */
   [[nodiscard]] auto GetAppLogPath() const -> QString;
 
   /**
-   * @brief Get the Log Dir object
+   * @brief Return the path to the application's configuration file.
    *
-   * @return QString
+   * @return absolute path to config.ini
    */
   [[nodiscard]] auto GetConfigPath() const -> QString;
 
   /**
-   * @brief Get the Config Dir Path object
+   * @brief Return the path to the application's configuration directory.
    *
-   * @return QString
+   * @return absolute path to the configuration directory
    */
   [[nodiscard]] auto GetConfigDirPath() const -> QString;
 
   /**
-   * @brief Get the Modules Dir object
+   * @brief Return the path to the modules directory.
    *
-   * @return QString
+   * @return absolute path to the modules directory
    */
   [[nodiscard]] auto GetModulesDir() const -> QString;
 
   /**
-   * @brief Get the Data Objects Dir object
+   * @brief Return the path to the encrypted data objects directory.
    *
-   * @return QString
+   * @return absolute path to the data objects directory
    */
   [[nodiscard]] auto GetDataObjectsDir() const -> QString;
 
   /**
-   * @brief Get the Log Files Size object
+   * @brief Return the total size of all log files as a human-friendly string.
    *
-   * @return QString
+   * @return formatted size string (e.g. "4.2 MB")
    */
   [[nodiscard]] auto GetLogFilesSize() const -> QString;
 
   /**
-   * @brief Get the Data Objects Files Size object
+   * @brief Return the total size of all data object files as a human-friendly
+   * string.
    *
-   * @return QString
+   * @return formatted size string (e.g. "1.1 MB")
    */
   [[nodiscard]] auto GetDataObjectsFilesSize() const -> QString;
 
   /**
-   * @brief clear all log files
-   *
+   * @brief Delete all log files from the log directory.
    */
   void ClearAllLogFiles() const;
 
   /**
-   * @brief clear all data objects
-   *
+   * @brief Delete all files from the data objects directory.
    */
   void ClearAllDataObjects() const;
 
   /**
-   * @brief Get the Integrated Module Path object
+   * @brief Return the bundled module directory, resolving the correct path for
+   * the current platform and environment.
    *
-   * @return QString
+   * Accounts for AppImage, Flatpak, Windows, macOS bundle, and standard
+   * install layouts, falling back to a sibling "modules" directory.
+   *
+   * @return absolute path to the integrated module directory
    */
   [[nodiscard]] auto GetIntegratedModulePath() const -> QString;
 
   /**
-   * @brief
+   * @brief Return whether the application is running in portable mode.
    *
-   * @return true
-   * @return false
+   * In portable mode, data is stored alongside the executable rather than
+   * in the OS user-data directory.
+   *
+   * @return true if portable mode is active, false otherwise
    */
   [[nodiscard]] auto IsProtableMode() const -> bool;
 
   /**
-   * @brief Get the App Secure Key Path object
+   * @brief Return the path to the legacy app secure key file.
    *
-   * @return QString
+   * @return absolute path to the legacy key file (secure/app.key)
    */
   auto GetLegacyAppSecureKeyPath() -> QString;
 
   /**
-   * @brief Get the App Secure Key Dir object
+   * @brief Return the path to the secure key storage directory.
    *
-   * @return QString
+   * @return absolute path to the secure directory
    */
   auto GetAppSecureKeyDir() -> QString;
 
   /**
-   * @brief Set the Active Key Id object
+   * @brief Set the active encryption key ID used by the application.
    *
-   * @param id
+   * @param id binary key ID to register as active
    */
   void SetActiveKeyId(const GFBuffer& id);
 
   /**
-   * @brief Set the Legacy Key Id object
+   * @brief Set the legacy encryption key ID.
    *
-   * @param id
+   * @param id binary key ID to register as the legacy key
    */
   void SetLegacyKeyId(const GFBuffer& id);
 
   /**
-   * @brief Set the Active Key Id object
+   * @brief Return the currently registered active encryption key ID.
    *
-   * @param id
+   * @return binary key ID of the active key
    */
   auto GetActiveKeyId() -> GFBuffer;
 
   /**
-   * @brief Get the Active Key object
+   * @brief Return the active app encryption key, looked up by the active key
+   * ID.
    *
-   * @return GFBuffer
+   * @return binary key material for the active key
    */
   auto GetActiveAppSecureKey() -> GFBuffer;
 
   /**
-   * @brief Get the Legacy App Secure Key object
+   * @brief Return the legacy app encryption key, looked up by the legacy key
+   * ID.
    *
-   * @return GFBuffer
+   * @return binary key material for the legacy key
    */
   auto GetLegacyAppSecureKey() -> GFBuffer;
 
   /**
-   * @brief Get the App Secure Key object
+   * @brief Look up an app secure key by its ID.
    *
-   * @return GFBuffer
+   * @param id binary key ID to look up
+   * @return corresponding key material, or an empty GFBuffer if not found
    */
   auto GetAppSecureKey(const GFBuffer& id) -> GFBuffer;
 
   /**
-   * @brief Set the App Secure Key object
+   * @brief Add key-ID pairs to the in-memory app secure key store.
    *
-   * @return auto
+   * @param keys map of key IDs to their corresponding key material
    */
   void AppendAppSecureKeys(const QMap<GFBuffer, GFBuffer>& keys);
 
   /**
-   * @brief Get the Legacy Secure Key object
+   * @brief Return the legacy app encryption key (equivalent to
+   * GetLegacyAppSecureKey).
    *
-   * @param id
-   * @return GFBuffer
+   * @return binary key material for the legacy key
    */
   auto GetLegacySecureKey() -> GFBuffer;
 
   /**
-   * @brief
+   * @brief Return whether the given OpenPGP engine is registered as supported.
    *
-   * @param engine
-   * @return true
-   * @return false
+   * @param engine engine to query
+   * @return true if the engine is in the supported set, false otherwise
    */
   auto IsEngineSupported(OpenPGPEngine engine) -> bool;
 
   /**
-   * @brief Set the Supported Open P P G Engine object
+   * @brief Register an OpenPGP engine as supported.
    *
-   * @param engines
+   * @param engine engine to add to the supported set
    */
   auto AddSupportedEngine(OpenPGPEngine engine) -> void;
 
   /**
-   * @brief
+   * @brief Remove an OpenPGP engine from the supported set.
    *
-   * @param engine
+   * @param engine engine to remove
    */
   auto RemoveSupportedEngine(OpenPGPEngine engine) -> void;
 
   /**
-   * @brief
+   * @brief Return whether at least one OpenPGP engine is registered as
+   * supported.
    *
-   * @return true
-   * @return false
+   * @return true if the supported engine set is non-empty, false otherwise
    */
   auto HasSupportedEngine() -> bool;
 
   /**
-   * @brief
+   * @brief Return the string names of all supported OpenPGP engines.
    *
-   * @return QStringList
+   * @return list of engine name strings
    */
   auto AllSupportedEngines() -> QStringList;
 
@@ -269,16 +284,17 @@ class GF_CORE_EXPORT GlobalSettingStation
 };
 
 /**
- * @brief
+ * @brief Return a reference to the GlobalSettingStation singleton instance.
  *
- * @return GlobalSettingStation&
+ * @return reference to the singleton
  */
 auto GF_CORE_EXPORT GetGSS() -> GlobalSettingStation&;
 
 /**
- * @brief
+ * @brief Convenience wrapper that returns the application QSettings via the
+ * singleton.
  *
- * @return QSettings
+ * @return QSettings configured for the current platform and mode
  */
 auto GF_CORE_EXPORT GetSettings() -> QSettings;
 

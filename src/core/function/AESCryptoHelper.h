@@ -33,21 +33,73 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief Singleton helper for symmetric authenticated encryption using
+ * XChaCha20-Poly1305.
+ *
+ * Two variants are provided:
+ * - Standard (`Encrypt`/`Decrypt`): derives the session key with Argon2id,
+ *   suitable for lower-entropy passphrases but computationally expensive.
+ * - Lite (`EncryptLite`/`DecryptLite`): derives the session key with BLAKE2b,
+ *   fast and intended for already-high-entropy raw keys such as KDF output.
+ *
+ * On-disk format: magic (6 bytes) | salt | nonce | ciphertext | Poly1305 tag.
+ */
 class GF_CORE_EXPORT AESCryptoHelper
     : public SingletonFunctionObject<AESCryptoHelper> {
  public:
   AESCryptoHelper();
 
+  /**
+   * @brief Encrypt plaintext using XChaCha20-Poly1305 with Argon2id key
+   * derivation.
+   *
+   * Suitable for passphrases or other lower-entropy key material; Argon2id
+   * makes brute-force attacks expensive but is slow per call.
+   *
+   * @param raw_key passphrase or raw key material used for key derivation
+   * @param plaintext data to encrypt
+   * @return authenticated ciphertext (magic | salt | nonce | ciphertext | tag),
+   * or empty on failure
+   */
   static auto Encrypt(const GpgFrontend::GFBuffer& raw_key,
                       const GpgFrontend::GFBuffer& plaintext) -> GFBufferOrNone;
 
+  /**
+   * @brief Decrypt a buffer produced by Encrypt().
+   *
+   * @param raw_key passphrase or raw key material used during encryption
+   * @param encrypted ciphertext buffer including magic, salt, nonce, and tag
+   * @return decrypted plaintext, or empty if authentication fails or input is
+   * malformed
+   */
   static auto Decrypt(const GpgFrontend::GFBuffer& raw_key,
                       const GpgFrontend::GFBuffer& encrypted) -> GFBufferOrNone;
 
+  /**
+   * @brief Encrypt plaintext using XChaCha20-Poly1305 with fast BLAKE2b key
+   * derivation.
+   *
+   * Intended for already-high-entropy keys (e.g. output of a KDF). Much faster
+   * than Encrypt() but provides no resistance against brute-force on weak keys.
+   *
+   * @param raw_key high-entropy raw key used for key derivation
+   * @param plaintext data to encrypt
+   * @return authenticated ciphertext (magic | salt | nonce | ciphertext | tag),
+   * or empty on failure
+   */
   static auto EncryptLite(const GpgFrontend::GFBuffer& raw_key,
                           const GpgFrontend::GFBuffer& plaintext)
       -> GFBufferOrNone;
 
+  /**
+   * @brief Decrypt a buffer produced by EncryptLite().
+   *
+   * @param raw_key high-entropy raw key used during encryption
+   * @param encrypted ciphertext buffer including magic, salt, nonce, and tag
+   * @return decrypted plaintext, or empty if authentication fails or input is
+   * malformed
+   */
   static auto DecryptLite(const GpgFrontend::GFBuffer& raw_key,
                           const GpgFrontend::GFBuffer& encrypted)
       -> GFBufferOrNone;

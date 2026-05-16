@@ -34,203 +34,227 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief SQLite-backed store for OpenPGP key metadata, subkeys, user IDs, and
+ * armored key blocks.
+ *
+ * Each instance owns a uniquely named QSqlDatabase connection. The connection
+ * is closed and removed from the Qt registry on destruction. Call Init() before
+ * any other method; schema creation and migration to the current version are
+ * performed automatically at that point.
+ */
 class GF_CORE_EXPORT GFKeyDatabase {
  public:
   /**
-   * @brief Construct a new GFKeyDatabase object
-   *
+   * @brief Default-construct a database handle. Call Init() before use.
    */
   GFKeyDatabase() = default;
 
   /**
-   * @brief Destroy the GFKeyDatabase object
-   *
+   * @brief Close the database connection and remove it from the Qt registry.
    */
   ~GFKeyDatabase();
 
   /**
-   * @brief
+   * @brief Open or create the database at @p path and migrate the schema if
+   * needed.
    *
-   * @param path
-   * @return true
-   * @return false
+   * Creates the directory and database file (gf_keydb.sqlite) if they do not
+   * exist, enables WAL and foreign-key pragmas, and runs any pending
+   * migrations.
+   *
+   * @param path directory in which to place the database file
+   * @return true on success, false if the directory, connection, or schema
+   * setup fails
    */
   auto Init(const QString& path) -> bool;
 
   /**
-   * @brief Get the Metadata List object
+   * @brief Return all primary key metadata records with their user IDs and
+   * subkeys.
    *
-   * @return QContainer<GFKeyMetadata>
+   * @return list of GFKeyMetadata, each including associated user IDs and
+   * subkeys
    */
   auto GetMetadataList() -> QContainer<GFKeyMetadata>;
 
   /**
-   * @brief Get the Key Blocks object
+   * @brief Return the armored public and secret key blocks for a given key.
    *
-   * @param identifier
-   * @return std::optional<GFKeyBlocks>
+   * @param identifier primary fingerprint or key ID (primary or subkey)
+   * @return key blocks if found, or empty if the identifier cannot be resolved
    */
   auto GetKeyBlocks(const QString& identifier) -> std::optional<GFKeyBlocks>;
 
   /**
-   * @brief Get the Key object by identifier (can be either fingerprint or key
-   * ID)
+   * @brief Return the full key record (metadata and blocks) for a given
+   * identifier.
    *
-   * @param identifier
-   * @return std::optional<GFKey>
+   * @param identifier fingerprint or key ID (primary or subkey)
+   * @return complete GFKey on success, or empty if not found
    */
   auto GetKeyByIdentifier(const QString& identifier) -> std::optional<GFKey>;
 
   /**
-   * @brief
+   * @brief Insert or replace a key record in a single transaction.
    *
-   * @param metadata
-   * @param blocks
-   * @return true
-   * @return false
+   * Saves primary key metadata, user IDs, subkeys, and key blocks together.
+   * If @p update_ts is true the update_time column is set to the current UTC
+   * time; otherwise the timestamp from @p metadata is preserved.
+   *
+   * @param metadata primary key metadata including user IDs and subkeys
+   * @param blocks armored public and secret key data
+   * @param update_ts if true, stamp update_time with the current time
+   * @return true if the transaction committed successfully, false otherwise
    */
   auto SaveKey(const GFKeyMetadata& metadata, const GFKeyBlocks& blocks,
                bool update_ts = true) -> bool;
 
   /**
-   * @brief Get the Key object
+   * @brief Return metadata for the primary key identified by fingerprint or key
+   * ID.
    *
-   * @param identifier
-   * @return QString
+   * @param identifier fingerprint or key ID (primary or subkey)
+   * @return GFKeyMetadata including user IDs and subkeys, or empty if not found
    */
   auto GetKeyMetadata(const QString& identifier)
       -> std::optional<GFKeyMetadata>;
 
   /**
-   * @brief Delete a key and its associated subkeys and blocks from the database
+   * @brief Delete a key and its cascaded subkeys, user IDs, and blocks from the
+   * database.
    *
-   * @param fpr
-   * @return true
-   * @return false
+   * @param fpr primary fingerprint of the key to delete
+   * @return true if the key was found and deleted, false otherwise
    */
   auto DeleteKey(const QString& fpr) -> bool;
 
   /**
-   * @brief
+   * @brief Resolve a fingerprint or key ID to the corresponding primary key
+   * fingerprint.
    *
-   * @param identifier
-   * @return QString
+   * Accepts fingerprints and key IDs for both primary keys and subkeys.
+   *
+   * @param identifier fingerprint or key ID to resolve
+   * @return primary fingerprint string, or an empty string if not found
    */
   auto ResolvePrimaryFpr(const QString& identifier) -> QString;
 
   /**
-   * @brief Get the Schema Version object
+   * @brief Return the current SQLite schema version (PRAGMA user_version).
    *
-   * @return int
+   * @return schema version integer, or -1 on error
    */
   auto GetSchemaVersion() -> int;
 
   /**
-   * @brief
+   * @brief Mark a key as disabled without removing it from the database.
    *
-   * @param fpr
-   * @return true
-   * @return false
+   * @param fpr primary fingerprint of the key to disable
+   * @return true if the key was found and updated, false otherwise
    */
   auto DisableKey(const QString& fpr) -> bool;
 
  private:
-  QSqlDatabase db_;          ///<
-  QString connection_name_;  ///< Store the unique connection name for cleanup
+  QSqlDatabase db_;          ///< SQLite database connection
+  QString connection_name_;  ///< Unique connection name used to remove the
+                             ///< connection on destruction
 
   /**
-   * @brief
+   * @brief Open a QSQLITE connection to the database file at @p path.
    *
-   * @param path
-   * @return true
-   * @return false
+   * Generates a unique connection name on first call. Returns false if the
+   * database cannot be opened or a connection is already initialised.
+   *
+   * @param path absolute path to the SQLite database file
+   * @return true if the connection is open, false on error
    */
   auto connect_db(const QString& path) -> bool;
 
   /**
-   * @brief
+   * @brief Create all tables at the current schema version.
    *
-   * @return true
-   * @return false
+   * Creates key_metadata, subkey_metadata, key_blocks, and user_ids tables.
+   *
+   * @return true on success, false if any CREATE TABLE statement fails
    */
   auto create_schema_latest() -> bool;
 
   /**
-   * @brief Load subkeys for a given primary key fingerprint
+   * @brief Load all subkeys belonging to the given primary key fingerprint.
    *
-   * @param db
-   * @param parent_fpr
-   * @return QList<GFSubKeyMetadata>
+   * @param parent_fpr primary key fingerprint
+   * @return list of GFSubKeyMetadata for that primary key
    */
   auto load_subkeys_for_parent(const QString& parent_fpr)
       -> QContainer<GFSubKeyMetadata>;
 
   /**
-   * @brief
+   * @brief Load all user IDs belonging to the primary key identified by @p fpr.
    *
-   * @param fpr
-   * @return QContainer<GFUserId>
+   * @param fpr fingerprint or key ID; resolved to the primary fingerprint
+   * internally
+   * @return list of GFUserId, primary UID first
    */
   auto load_user_ids_for_parent(const QString& fpr) -> QContainer<GFUserId>;
 
   /**
-   * @brief
+   * @brief Enable recommended SQLite pragmas: foreign keys, WAL journal mode,
+   * and synchronous=NORMAL.
    *
-   * @return true
-   * @return false
+   * @return true if foreign_keys was enabled successfully (WAL and synchronous
+   * failures are warned but not fatal)
    */
   auto enable_pragmas() -> bool;
 
   /**
-   * @brief
+   * @brief Read the schema version and run migrations until the database is
+   * current.
    *
-   * @return true
-   * @return false
+   * @return true if the schema is at the expected version, false on any
+   * migration error
    */
   auto ensure_schema() -> bool;
 
   /**
-   * @brief Set the schema version object
+   * @brief Write @p version to the SQLite user_version PRAGMA.
    *
-   * @param version
-   * @return true
-   * @return false
+   * @param version schema version to record
+   * @return true on success, false if the PRAGMA statement fails
    */
   auto set_schema_version(int version) -> bool;
 
   /**
-   * @brief
+   * @brief Return whether the named table exists in the database.
    *
-   * @param table_name
-   * @return true
-   * @return false
+   * @param table_name table to check
+   * @return true if the table exists, false otherwise
    */
   auto table_exists(const QString& table_name) -> bool;
 
   /**
-   * @brief
+   * @brief Return whether the named column exists in the given table.
    *
-   * @param table_name
-   * @param column_name
-   * @return true
-   * @return false
+   * @param table_name table to inspect
+   * @param column_name column to look for
+   * @return true if the column exists, false otherwise
    */
   auto column_exists(const QString& table_name, const QString& column_name)
       -> bool;
 
   /**
-   * @brief
+   * @brief Return whether the database contains no user-created tables.
    *
-   * @return true
-   * @return false
+   * @return true if no user tables exist, false otherwise
    */
   auto is_database_empty() -> bool;
 
   /**
-   * @brief
+   * @brief Migrate the schema from version 1 to version 2.
    *
-   * @return true
-   * @return false
+   * Adds the key_ver column to key_metadata and subkey_metadata if not present.
+   *
+   * @return true on success, false if any ALTER TABLE statement fails
    */
   auto migrate_v1_to_v2() -> bool;
 };

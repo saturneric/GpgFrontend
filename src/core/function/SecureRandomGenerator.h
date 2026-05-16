@@ -34,9 +34,23 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief Singleton providing cryptographically secure random data via
+ * libsodium.
+ *
+ * All generation methods use libsodium's randombytes_buf, which is seeded from
+ * the OS entropy source. The class requires libsodium to be successfully
+ * initialised before any Generate call; if initialisation fails the call
+ * returns empty.
+ */
 class GF_CORE_EXPORT SecureRandomGenerator
     : public SingletonFunctionObject<SecureRandomGenerator> {
  public:
+  /**
+   * @brief Construct the generator for the given singleton channel.
+   *
+   * @param channel singleton channel identifier
+   */
   explicit SecureRandomGenerator(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
@@ -44,20 +58,26 @@ class GF_CORE_EXPORT SecureRandomGenerator
    * @brief Generate cryptographically secure random bytes.
    *
    * @param size number of bytes to generate
-   * @return GFBufferOrNone
+   * @return buffer containing @p size random bytes, or empty if libsodium
+   *         initialisation failed
    */
   static auto Generate(size_t size) -> GFBufferOrNone;
 
   /**
    * @brief Generate a z-base-32 encoded random identifier.
    *
-   * @return GFBufferOrNone
+   * Generates 20 random bytes and encodes them with the z-base-32 alphabet,
+   * producing a 31-character human-readable string.
+   *
+   * @return z-base-32 encoded random buffer (31 characters), or empty on
+   * failure
    */
   static auto GenerateZBase32() -> GFBufferOrNone;
 
  private:
-  OpenPGPContext& ctx_ =
-      OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
+  OpenPGPContext& ctx_ = OpenPGPContext::GetInstance(
+      SingletonFunctionObject::GetChannel());  ///< OpenPGP context held to
+                                               ///< ensure channel lifetime
 };
 
 }  // namespace GpgFrontend
