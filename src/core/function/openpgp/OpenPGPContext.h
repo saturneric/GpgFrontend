@@ -33,6 +33,7 @@
 #include <cstdint>
 
 #include "core/function/basic/GpgFunctionObject.h"
+#include "core/typedef/GFTypedef.h"
 
 namespace GpgFrontend {
 

@@ -36,40 +36,55 @@ class SingletonStorage;
 using SingletonStoragePtr =
     std::unique_ptr<SingletonStorage, SecureObjectDeleter<SingletonStorage>>;
 
+/**
+ * @brief Process-wide registry that maps type hash codes to their
+ * SingletonStorage.
+ *
+ * This is the root of the channel-based singleton system. Each distinct type
+ * gets its own SingletonStorage, lazily created on first access. The global
+ * instance is managed via GetInstance() and Destroy(); both are not thread-safe
+ * with respect to each other and should only be called from the main thread
+ * at startup and shutdown.
+ */
 class GF_CORE_EXPORT SingletonStorageCollection {
  public:
   /**
-   * @brief
-   *
+   * @brief Construct the collection with an empty storage map.
    */
   SingletonStorageCollection() noexcept;
 
   /**
-   * @brief
-   *
+   * @brief Destroy the collection and all contained SingletonStorage instances.
    */
   ~SingletonStorageCollection();
 
   /**
-   * @brief Get the Instance object
+   * @brief Return the global SingletonStorageCollection instance, creating it
+   * if needed.
    *
-   * @return SingletonStorageCollection*
+   * @return pointer to the global instance; never null after the first call
    */
   static auto GetInstance() -> SingletonStorageCollection*;
 
   /**
-   * @brief
+   * @brief Destroy the global instance, releasing all singleton storage and
+   * instances.
    *
+   * Must be called from the main thread during application shutdown, after all
+   * channels have been released.
    */
   static void Destroy();
 
   /**
-   * @brief Get the Singleton Storage object
+   * @brief Return (or lazily create) the SingletonStorage for the given type.
    *
-   * @param singleton_function_object
-   * @return SingletonStorage*
+   * Thread-safe; a new empty SingletonStorage is created on first access for
+   * any given type.
+   *
+   * @param type_id type_info of the singleton type
+   * @return pointer to the SingletonStorage for that type; never null
    */
-  auto GetSingletonStorage(const std::type_info&) -> SingletonStorage*;
+  auto GetSingletonStorage(const std::type_info& type_id) -> SingletonStorage*;
 
  private:
   class Impl;

@@ -29,6 +29,8 @@
 #pragma once
 
 #include "core/function/openpgp/OpenPGPContext.h"
+#include "core/model/DataObject.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 

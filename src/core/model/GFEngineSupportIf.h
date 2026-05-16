@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/function/openpgp/OpenPGPContext.h"
+
 namespace GpgFrontend {
 
 /**

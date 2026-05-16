@@ -38,43 +38,74 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief Look up an existing singleton instance for the given type and channel.
+ *
+ * Acquires the per-channel lock before querying SingletonStorageCollection.
+ *
+ * @param type type_info of the singleton type
+ * @param channel channel ID to look up
+ * @return pointer to the existing ChannelObject, or nullptr if not found
+ */
 auto GF_CORE_EXPORT GetChannelObjectInstance(const std::type_info& type,
                                              int channel) -> ChannelObject*;
 
+/**
+ * @brief Store a new singleton instance for the given type and channel.
+ *
+ * Acquires the per-channel lock before inserting into
+ * SingletonStorageCollection.
+ *
+ * @param type type_info of the singleton type
+ * @param channel channel ID to assign
+ * @param channel_object owning pointer to the new instance
+ * @return raw pointer to the stored instance
+ */
 auto GF_CORE_EXPORT CreateChannelObjectInstance(
     const std::type_info& type, int channel,
     SecureUniquePtr<ChannelObject> channel_object) -> ChannelObject*;
 
+/**
+ * @brief Return the per-type mutex used to guard GetInstance create-or-get.
+ *
+ * Each type has its own mutex so that concurrent GetInstance() calls for
+ * different types do not block each other.
+ *
+ * @param type type_info of the singleton type
+ * @return reference to the per-type mutex
+ */
 auto GF_CORE_EXPORT GetGlobalFunctionObjectTypeLock(const std::type_info& type)
     -> std::mutex&;
 
 /**
- * @brief
+ * @brief CRTP base that provides per-channel singleton lifecycle management.
  *
- * @tparam T
+ * Derive from SingletonFunctionObject<T> to gain GetInstance(),
+ * CreateInstance(), ReleaseChannel(), and related helpers. Instances are
+ * created on first access, stored in SingletonStorage, and retrieved by channel
+ * ID. Copy and move are deleted; construction is protected.
+ *
+ * @tparam T the concrete derived type (CRTP)
  */
 template <typename T>
 class SingletonFunctionObject : public ChannelObject {
  public:
-  /**
-   * @brief prohibit copy
-   *
-   */
   SingletonFunctionObject(const SingletonFunctionObject<T>&) = delete;
-
-  /**
-   * @brief prohibit copy
-   *
-   * @return SingletonFunctionObject&
-   */
   auto operator=(const SingletonFunctionObject<T>&)
       -> SingletonFunctionObject& = delete;
+  SingletonFunctionObject(T&&) = delete;
+  SingletonFunctionObject(const T&) = delete;
+  void operator=(const T&) = delete;
 
   /**
-   * @brief Get the Instance object
+   * @brief Return the T singleton for the given channel, creating it if needed.
    *
-   * @param channel
-   * @return T&
+   * Thread-safe: acquires the per-type lock to check for an existing instance,
+   * then the per-channel lock to create one if absent.
+   *
+   * @param channel channel ID to retrieve (defaults to
+   * kGpgFrontendDefaultChannel)
+   * @return reference to the T singleton on that channel
    */
   static auto GetInstance(int channel = GpgFrontend::kGpgFrontendDefaultChannel)
       -> T& {
@@ -93,11 +124,14 @@ class SingletonFunctionObject : public ChannelObject {
   }
 
   /**
-   * @brief Create a Instance object
+   * @brief Create or replace the T singleton for the given channel using a
+   * custom factory.
    *
-   * @param channel
-   * @param factory
-   * @return T&
+   * The factory must return a ChannelObjectPtr owning a T instance.
+   *
+   * @param channel channel ID to assign
+   * @param factory callable returning a ChannelObjectPtr
+   * @return reference to the newly stored T instance
    */
   static auto CreateInstance(
       int channel, const std::function<ChannelObjectPtr(void)>& factory) -> T& {
@@ -111,10 +145,9 @@ class SingletonFunctionObject : public ChannelObject {
   }
 
   /**
-   * @brief
+   * @brief Destroy and remove the T singleton for the given channel.
    *
-   * @param channel
-   * @return T&
+   * @param channel channel ID whose instance should be released
    */
   static void ReleaseChannel(int channel) {
     SingletonStorageCollection::GetInstance()
@@ -123,27 +156,27 @@ class SingletonFunctionObject : public ChannelObject {
   }
 
   /**
-   * @brief Get the Default Channel object
+   * @brief Return the default channel identifier (kGpgFrontendDefaultChannel).
    *
-   * @return int
+   * @return default channel ID
    */
   static auto GetDefaultChannel() -> int {
     return ChannelObject::GetDefaultChannel();
   }
 
   /**
-   * @brief Get the Channel object
+   * @brief Return the channel ID this instance is associated with.
    *
-   * @return int
+   * @return channel ID
    */
   [[nodiscard]] auto GetChannel() const -> int {
     return ChannelObject::GetChannel();
   }
 
   /**
-   * @brief Get the All Channel Id object
+   * @brief Return all channel IDs that currently have a live T instance.
    *
-   * @return QContainer<int>
+   * @return list of active channel IDs for type T
    */
   static auto GetAllChannelId() -> QContainer<int> {
     return SingletonStorageCollection::GetInstance()
@@ -151,42 +184,22 @@ class SingletonFunctionObject : public ChannelObject {
         ->GetAllChannelId();
   }
 
-  /**
-   * @brief Construct a new Singleton Function Object object
-   *
-   */
-  SingletonFunctionObject(T&&) = delete;
-
-  /**
-   * @brief Construct a new Singleton Function Object object
-   *
-   */
-  SingletonFunctionObject(const T&) = delete;
-
-  /**
-   * @brief
-   *
-   */
-  void operator=(const T&) = delete;
-
  protected:
   /**
-   * @brief Construct a new Singleton Function Object object
-   *
+   * @brief Construct on the default channel.
    */
   SingletonFunctionObject() = default;
 
   /**
-   * @brief Construct a new Singleton Function Object object
+   * @brief Construct on the given channel.
    *
-   * @param channel
+   * @param channel channel ID for this instance
    */
   explicit SingletonFunctionObject(int channel)
       : ChannelObject(channel, typeid(T).name()) {}
 
   /**
-   * @brief Destroy the Singleton Function Object object
-   *
+   * @brief Virtual destructor to allow correct cleanup of derived types.
    */
   virtual ~SingletonFunctionObject() = default;
 };

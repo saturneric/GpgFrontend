@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/GFEngineSupportIf.h"
+#include "core/model/GpgKey.h"
 #include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {

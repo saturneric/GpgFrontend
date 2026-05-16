@@ -28,8 +28,8 @@
 
 #pragma once
 
-#include "core/function/SecureMemoryAllocator.h"
-#include "core/typedef/GpgTypedef.h"
+#include "core/typedef/CoreTypedef.h"
+#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
@@ -37,48 +37,59 @@ class ChannelObject;
 
 using ChannelObjectPtr = SecureUniquePtr<ChannelObject>;
 
+/**
+ * @brief Thread-safe per-type container that maps channel IDs to singleton
+ * instances.
+ *
+ * Each type registered in the channel system has exactly one SingletonStorage.
+ * Internally it holds a shared-mutex-protected map from channel ID to
+ * ChannelObjectPtr. Typically managed via SingletonStorageCollection.
+ */
 class GF_CORE_EXPORT SingletonStorage {
  public:
   /**
-   * @brief
-   *
+   * @brief Construct an empty storage.
    */
   SingletonStorage() noexcept;
 
   /**
-   * @brief
-   *
+   * @brief Destroy the storage and all owned singleton instances.
    */
   ~SingletonStorage();
 
   /**
-   * @brief
+   * @brief Destroy and remove the singleton instance for the given channel.
    *
-   * @param channel
+   * @param channel channel ID whose instance should be released
    */
   void ReleaseChannel(int channel);
 
   /**
-   * @brief
+   * @brief Return the singleton instance for the given channel, or nullptr if
+   * none exists.
    *
-   * @param channel
-   * @return T*
+   * @param channel channel ID to look up
+   * @return pointer to the ChannelObject, or nullptr if not found
    */
   auto FindObjectInChannel(int channel) -> ChannelObject*;
 
   /**
-   * @brief Get the All Channel Id object
+   * @brief Return all channel IDs that currently have a live instance.
    *
-   * @return QContainer<int>
+   * @return list of active channel IDs
    */
   auto GetAllChannelId() -> QContainer<int>;
 
   /**
-   * @brief Set a new object in channel object
+   * @brief Store a new singleton instance for the given channel.
    *
-   * @param channel
-   * @param p_obj
-   * @return T*
+   * Takes ownership of @p p_obj, sets its channel ID, and returns a raw
+   * pointer to the stored object. Any previous instance for that channel is
+   * replaced.
+   *
+   * @param channel channel ID to assign
+   * @param p_obj owning pointer to the new instance
+   * @return raw pointer to the stored instance, or nullptr if @p p_obj is null
    */
   auto SetObjectInChannel(int channel, ChannelObjectPtr p_obj)
       -> ChannelObject*;

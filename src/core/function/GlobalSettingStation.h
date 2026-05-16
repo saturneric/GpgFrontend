@@ -32,6 +32,7 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/GFBuffer.h"
+#include "core/typedef/GFTypedef.h"
 
 namespace GpgFrontend {
 

@@ -32,6 +32,7 @@
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgKeyGroup.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 

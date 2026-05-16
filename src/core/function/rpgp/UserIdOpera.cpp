@@ -32,6 +32,7 @@
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/rpgp/KeyImportExport.h"
 #include "core/function/rpgp/RustEngineCallback.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 

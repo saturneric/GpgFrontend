@@ -77,9 +77,11 @@ auto DeriveObjectKey(const GpgFrontend::GFBuffer& key,
   }
 
   GpgFrontend::GFBuffer input;
-  input.Combine({GpgFrontend::GFBuffer(kObjectKeyDeriveDomain.data(),
-                                       kObjectKeyDeriveDomain.size()),
-                 context});
+  input.Combine({
+      GpgFrontend::GFBuffer(kObjectKeyDeriveDomain.data(),
+                            kObjectKeyDeriveDomain.size()),
+      context,
+  });
 
   GpgFrontend::GFBuffer out(crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
 
