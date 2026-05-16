@@ -37,65 +37,71 @@
 namespace GpgFrontend {
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the version string of the embedded Rust crypto engine.
+ * @return Rust engine version string
  */
 auto GF_CORE_EXPORT RustEngineVersion() -> QString;
 
 /**
- * @brief
+ * @brief Convert an algorithm identifier string to the corresponding Rust
+ * GfrKeyAlgo enum value.
  *
- * @param algo_id
- * @return Rust::GfrKeyAlgo
+ * @param algo_id algorithm identifier string (e.g. "Ed25519")
+ * @return corresponding Rust::GfrKeyAlgo enum value
  */
 auto GF_CORE_EXPORT KeyAlgoId2GfrKeyAlgo(const QString& algo_id)
     -> Rust::GfrKeyAlgo;
 
 /**
- * @brief convert GfrKeyAlgo to human readable key algo name
+ * @brief Convert a Rust GfrKeyAlgo enum value to a human-readable algorithm
+ * name.
  *
- * @param algo
- * @return QString
+ * @param algo GfrKeyAlgo enum value
+ * @return human-readable algorithm name string
  */
 auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoName(Rust::GfrKeyAlgo algo) -> QString;
 
 /**
- * @brief
+ * @brief Analyse an encrypted buffer to identify the intended recipients.
  *
- * @param in_buffer
- * @return QStringList
+ * Uses the Rust engine to parse recipient key IDs from @p in_buffer and
+ * look them up in @p key_db.
+ *
+ * @param key_db key database to resolve recipient key IDs against
+ * @param in_buffer encrypted data buffer to analyse
+ * @return list of GFRecipient structures for each identified recipient
  */
 auto GF_CORE_EXPORT SniffRecipients(GFKeyDatabase& key_db,
                                     const GFBuffer& in_buffer)
     -> QContainer<GFRecipient>;
 
 /**
- * @brief
+ * @brief Extract issuer key IDs from a signed data buffer.
  *
- * @param in_buffer
- * @return QStringList
+ * @param in_buffer signed or signed-and-encrypted data buffer
+ * @return list of issuer key ID strings found in the buffer
  */
 auto GF_CORE_EXPORT SniffIssuerKeyIds(const GFBuffer& in_buffer) -> QStringList;
 
 /**
- * @brief
+ * @brief Retrieve armored public key blocks needed to verify the given key IDs.
  *
- * @param key_db
- * @param key_ids
- * @return QString
+ * @param key_db key database to look up keys in
+ * @param key_ids list of key IDs to retrieve
+ * @return list of armored public key blocks (one per found key)
  */
 auto GF_CORE_EXPORT GetKeyBlocksForVerification(GFKeyDatabase& key_db,
                                                 const QStringList& key_ids)
     -> QContainer<QByteArray>;
 
 /**
- * @brief
+ * @brief Retrieve armored key blocks for the given key IDs.
  *
- * @param key_db
- * @param key_ids
- * @param secret
- * @return QContainer<QByteArray>
+ * @param key_db key database to look up keys in
+ * @param key_ids list of key IDs to retrieve
+ * @param secret if true, include secret key material; otherwise return only
+ * public keys
+ * @return list of armored key blocks (one per found key)
  */
 auto GF_CORE_EXPORT GetArmoredKeyBlocksForKeys(GFKeyDatabase& key_db,
                                                const QStringList& key_ids,

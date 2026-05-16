@@ -31,24 +31,28 @@
 namespace GpgFrontend {
 
 /**
- * @brief set a temp cache under a certain key
+ * @brief Store a string value in the runtime cache under the given key.
  *
+ * @param key cache key
+ * @param value string value to store
  */
-void GF_CORE_EXPORT SetCacheValue(const QString &key, QString value);
+void GF_CORE_EXPORT SetCacheValue(const QString& key, QString value);
 
 /**
- * @brief after get the temp cache, its value will be imediately ease in
- * storage
+ * @brief Retrieve and immediately remove a value from the runtime cache.
  *
- * @return QString
+ * The entry is erased on retrieval so each value can only be read once.
+ *
+ * @param key cache key
+ * @return the cached string, or an empty string if the key is not found
  */
-auto GF_CORE_EXPORT GetCacheValue(const QString &key) -> QString;
+auto GF_CORE_EXPORT GetCacheValue(const QString& key) -> QString;
 
 /**
- * @brief imediately ease temp cache in storage
+ * @brief Remove a value from the runtime cache without returning it.
  *
- * @return QString
+ * @param key cache key to erase
  */
-void GF_CORE_EXPORT ResetCacheValue(const QString &);
+void GF_CORE_EXPORT ResetCacheValue(const QString& key);
 
 }  // namespace GpgFrontend

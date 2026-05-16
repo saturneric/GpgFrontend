@@ -33,107 +33,112 @@
 namespace GpgFrontend {
 
 /**
- * @brief
+ * @brief Format a fingerprint string with spaces every five characters.
  *
- * @param fingerprint
- * @return QString
+ * @param fingerprint raw fingerprint string (hex, no spaces)
+ * @return formatted fingerprint with spaces for readability
  */
 auto GF_CORE_EXPORT BeautifyFingerprint(QString fingerprint) -> QString;
 
 /**
- * @brief
+ * @brief Compare two software version strings.
  *
- * @param a
- * @param b
- * @return int
+ * Strips a leading 'v' prefix if present, then compares dot-separated
+ * numeric components.
+ *
+ * @param a first version string
+ * @param b second version string
+ * @return 1 if a > b, -1 if a < b, 0 if equal
  */
-auto GF_CORE_EXPORT GFCompareSoftwareVersion(const QString &a, const QString &b)
+auto GF_CORE_EXPORT GFCompareSoftwareVersion(const QString& a, const QString& b)
     -> int;
 
 /**
- * @brief
+ * @brief Duplicate a QString as a heap-allocated C string via SMAMalloc.
  *
- * @return char*
+ * The caller is responsible for freeing the returned pointer with SMAFree.
+ *
+ * @param s string to duplicate
+ * @return null-terminated C string copy
  */
-auto GF_CORE_EXPORT GFStrDup(const QString &) -> char *;
+auto GF_CORE_EXPORT GFStrDup(const QString& s) -> char*;
 
 /**
- * @brief
+ * @brief Duplicate a GFBuffer as a heap-allocated byte array via SMAMalloc.
  *
- * @return char*
+ * The caller is responsible for freeing the returned pointer with SMAFree.
+ *
+ * @param s buffer to duplicate
+ * @return heap-allocated copy of the buffer contents
  */
-auto GF_CORE_EXPORT GFBufferDup(const GFBuffer &s) -> char *;
+auto GF_CORE_EXPORT GFBufferDup(const GFBuffer& s) -> char*;
 
 /**
- * @brief
+ * @brief Convert a C string to a QString.
  *
- * @return QString
+ * @param s null-terminated C string; may be nullptr (returns empty string)
+ * @return resulting QString
  */
-auto GF_CORE_EXPORT GFUnStrDup(const char *) -> QString;
+auto GF_CORE_EXPORT GFUnStrDup(const char* s) -> QString;
 
 /**
- * @brief
- *
- * @return true
- * @return false
+ * @brief Return whether the application is running inside a Flatpak sandbox.
+ * @return true if the FLATPAK_ID environment variable is set
  */
 auto GF_CORE_EXPORT IsFlatpakENV() -> bool;
 
 /**
- * @brief
- *
- * @return true
- * @return false
+ * @brief Return whether the application is running as an AppImage.
+ * @return true if the APPIMAGE environment variable is set
  */
 auto GF_CORE_EXPORT IsAppImageENV() -> bool;
 
 /**
- * @brief
- *
- * @return true
- * @return false
+ * @brief Return whether the application is running inside an app-level sandbox
+ * (e.g. macOS sandbox).
+ * @return true if a platform-level app sandbox is detected
  */
 auto GF_CORE_EXPORT IsRunningInAppSandbox() -> bool;
 
 /**
- * @brief
+ * @brief Return whether the application is running inside any sandbox
+ * environment.
  *
- * @return true
- * @return false
+ * Covers Flatpak, AppImage, macOS sandbox, and similar.
+ *
+ * @return true if any sandbox is detected
  */
 auto GF_CORE_EXPORT IsRunningInSandBox() -> bool;
 
 /**
- * @brief
+ * @brief Parse a hex-encoded version tuple string into a comparable integer.
  *
- * @param s
- * @return int
+ * @param s hex-encoded version string
+ * @return integer representation of the version tuple
  */
-auto GF_CORE_EXPORT ParseHexEncodedVersionTuple(const QString &s) -> int;
+auto GF_CORE_EXPORT ParseHexEncodedVersionTuple(const QString& s) -> int;
 
 /**
- * @brief
+ * @brief Return whether the given string looks like a valid email address.
  *
- * @return true
- * @return false
+ * @param s string to test
+ * @return true if the string matches a basic email address pattern
  */
-auto GF_CORE_EXPORT IsEmailAddress(const QString &) -> bool;
+auto GF_CORE_EXPORT IsEmailAddress(const QString& s) -> bool;
 
 /**
- * @brief if a > b
+ * @brief Return whether version string @p a is strictly greater than @p b.
  *
- * @param a
- * @param b
- * @return auto
+ * @param a first version string
+ * @param b second version string
+ * @return true if a > b, false if a <= b or @p a is empty
  */
-auto GF_CORE_EXPORT GFSoftwareVersionGreaterThan(const QString &a,
-                                                 const QString &b) -> bool;
+auto GF_CORE_EXPORT GFSoftwareVersionGreaterThan(const QString& a,
+                                                 const QString& b) -> bool;
 
 /**
- * @brief
- *
- * @return true
- * @return false
+ * @brief Return whether the core environment has been fully initialised.
+ * @return true if core initialisation is complete
  */
 auto GF_CORE_EXPORT IsCoreEnvInitialized() -> bool;
 

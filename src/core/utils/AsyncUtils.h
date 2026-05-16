@@ -36,12 +36,21 @@
 namespace GpgFrontend {
 
 /**
- * @brief
+ * @brief Run a GPG operation asynchronously on the dedicated GPG task runner.
  *
- * @param runnable
- * @param callback
- * @param operation
- * @param minimal_version
+ * Checks @p support_ifs against the context capabilities first; if the
+ * operation is unsupported the callback is invoked with GPG_ERR_NOT_SUPPORTED
+ * immediately and a null TaskHandler is returned. Otherwise the runnable is
+ * executed on the GPG thread and the callback is delivered to the calling
+ * thread on completion.
+ *
+ * @param channel OpenPGP context channel
+ * @param runnable GPG operation to execute on the runner thread
+ * @param callback function invoked on the calling thread with (GpgError,
+ * DataObjectPtr)
+ * @param operation human-readable operation name used for task identification
+ * @param support_ifs engine capability requirements that must be satisfied
+ * @return TaskHandler for the scheduled task, or a null handler if unsupported
  */
 auto GF_CORE_EXPORT
 RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
@@ -50,12 +59,16 @@ RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
     -> Thread::Task::TaskHandler;
 
 /**
- * @brief
+ * @brief Run a GPG operation synchronously on the calling thread.
  *
- * @param runnable
- * @param operation
- * @param minimal_version
- * @return std::tuple<GpgError, DataObjectPtr>
+ * Checks @p support_ifs first; if unsupported returns immediately with
+ * GPG_ERR_NOT_SUPPORTED.
+ *
+ * @param channel OpenPGP context channel
+ * @param runnable GPG operation to execute
+ * @param operation human-readable operation name (used for logging)
+ * @param support_ifs engine capability requirements that must be satisfied
+ * @return tuple of (GpgError, DataObjectPtr) with the operation result
  */
 auto GF_CORE_EXPORT RunGpgOperaSync(
     int channel, const GpgOperaRunnable& runnable, const QString& operation,
@@ -63,11 +76,13 @@ auto GF_CORE_EXPORT RunGpgOperaSync(
     -> std::tuple<GpgError, DataObjectPtr>;
 
 /**
- * @brief
+ * @brief Run an I/O operation asynchronously on the dedicated I/O task runner.
  *
- * @param runnable
- * @param callback
- * @param operation
+ * @param runnable I/O operation to execute on the runner thread
+ * @param callback function invoked on the calling thread with (GFError,
+ * DataObjectPtr)
+ * @param operation human-readable operation name used for task identification
+ * @return TaskHandler for the scheduled task
  */
 auto GF_CORE_EXPORT RunIOOperaAsync(const OperaRunnable& runnable,
                                     const OperationCallback& callback,
@@ -75,12 +90,13 @@ auto GF_CORE_EXPORT RunIOOperaAsync(const OperaRunnable& runnable,
     -> Thread::Task::TaskHandler;
 
 /**
- * @brief
+ * @brief Run a general operation asynchronously on the default task runner.
  *
- * @param runnable
- * @param callback
- * @param operation
- * @return Thread::Task::TaskHandler
+ * @param runnable operation to execute on the runner thread
+ * @param callback function invoked on the calling thread with (GFError,
+ * DataObjectPtr)
+ * @param operation human-readable operation name used for task identification
+ * @return TaskHandler for the scheduled task
  */
 auto GF_CORE_EXPORT RunOperaAsync(const OperaRunnable& runnable,
                                   const OperationCallback& callback,

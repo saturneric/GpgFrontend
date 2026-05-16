@@ -31,45 +31,47 @@
 namespace GpgFrontend {
 
 /**
- * @brief Get the file extension object
+ * @brief Return the file extension of the given path (without the dot).
  *
- * @param path
- * @return QString
+ * @param path file path
+ * @return extension string (e.g. "txt"), or empty if none
  */
 auto GF_CORE_EXPORT GetFileExtension(const QString& path) -> QString;
 
 /**
- * @brief Get the only file name with path object
+ * @brief Return the file name component of the given path, including any
+ * extension.
  *
- * @param path
- * @return QString
+ * @param path file path
+ * @return file name string without the directory prefix
  */
 auto GF_CORE_EXPORT GetOnlyFileNameWithPath(const QString& path) -> QString;
 
 /**
- * @brief Get the File Size By Path object
+ * @brief Return the total size in bytes of all files matching the pattern under
+ * @p path.
  *
- * @param path The path of the file
- * @param filename_pattern The pattern of the file name, e.g. "*.txt"
- * @return int64_t
+ * @param path directory to search
+ * @param filename_pattern glob pattern for file names (e.g. "*.log")
+ * @return total size in bytes
  */
 auto GF_CORE_EXPORT GetFileSizeByPath(const QString& path,
                                       const QString& filename_pattern)
     -> int64_t;
 
 /**
- * @brief Get the Human Readable File Size object
+ * @brief Format a byte count as a human-friendly size string (e.g. "4.2 MB").
  *
- * @param size
- * @return QString
+ * @param size size in bytes
+ * @return formatted size string
  */
 auto GF_CORE_EXPORT GetHumanFriendlyFileSize(int64_t size) -> QString;
 
 /**
- * @brief
+ * @brief Delete all files matching the pattern under the given directory.
  *
- * @param path
- * @param filename_pattern
+ * @param path directory to search
+ * @param filename_pattern glob pattern for file names to delete (e.g. "*.log")
  */
 void GF_CORE_EXPORT DeleteAllFilesByPattern(const QString& path,
                                             const QString& filename_pattern);

@@ -31,136 +31,117 @@
 namespace GpgFrontend {
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the project name (e.g. "GpgFrontend").
+ * @return project name string
  */
 auto GF_CORE_EXPORT GetProjectName() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the project organisation name.
+ * @return organisation name string
  */
 auto GF_CORE_EXPORT GetProjectOrganization() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the release version string (e.g. "2.1.3").
+ * @return version string
  */
 auto GF_CORE_EXPORT GetProjectVersion() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the build-specific version string (may include commit info).
+ * @return build version string
  */
 auto GF_CORE_EXPORT GetProjectBuildVersion() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the UTC timestamp at which the binary was built.
+ * @return build timestamp as QDateTime
  */
 auto GF_CORE_EXPORT GetProjectBuildTimestamp() -> QDateTime;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the Git branch name recorded at build time.
+ * @return git branch name string
  */
 auto GF_CORE_EXPORT GetProjectBuildGitBranchName() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the Git commit hash recorded at build time.
+ * @return git commit hash string
  */
 auto GF_CORE_EXPORT GetProjectBuildGitCommitHash() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the git-describe version string recorded at build time.
+ * @return git-describe version string
  */
 auto GF_CORE_EXPORT GetProjectBuildGitVersion() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the Qt version the application was built against.
+ * @return Qt version string
  */
 auto GF_CORE_EXPORT GetProjectQtVersion() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the OpenSSL version linked at build time.
+ * @return OpenSSL version string
  */
 auto GF_CORE_EXPORT GetProjectOpenSSLVersion() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the libarchive version linked at build time.
+ * @return libarchive version string
  */
 auto GF_CORE_EXPORT GetProjectLibarchiveVersion() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the GpgME version linked at build time.
+ * @return GpgME version string
  */
 auto GF_CORE_EXPORT GetProjectGpgMEVersion() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the Assuan library version linked at build time.
+ * @return Assuan version string
  */
 auto GF_CORE_EXPORT GetProjectAssuanVersion() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the gpg-error library version linked at build time.
+ * @return gpg-error version string
  */
 auto GF_CORE_EXPORT GetProjectGpgErrorVersion() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the HTTP User-Agent string used by the application.
+ * @return User-Agent header value string
  */
 auto GF_CORE_EXPORT GetHttpRequestUserAgent() -> QString;
 
 /**
- * @brief
- *
- * @return true
- * @return false
+ * @brief Return whether release commit hash verification is enabled.
+ * @return true if commit hash checking is active
  */
 auto GF_CORE_EXPORT IsCheckReleaseCommitHash() -> bool;
 
 /**
- * @brief
- *
- * @return auto
+ * @brief Return whether the binary was compiled with Rust support.
+ * @return true if Rust support is available
  */
 auto GF_CORE_EXPORT HasRustSupport() -> bool;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the localised display name of the application.
+ * @return application display name string
  */
 auto GF_CORE_EXPORT GetAppDisplayName() -> QString;
 
 /**
- * @brief
- *
- * @return QString
+ * @brief Return the libsodium version linked at build time.
+ * @return libsodium version string
  */
 auto GF_CORE_EXPORT GetSodiumVersion() -> QString;
+
 }  // namespace GpgFrontend

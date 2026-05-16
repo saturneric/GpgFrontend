@@ -33,111 +33,114 @@
 namespace GpgFrontend {
 
 /**
- * @brief
+ * @brief Read the entire contents of a file into a GFBuffer.
  *
- * @param file_name
- * @return GFBuffer
+ * @param file_name path to the file to read
+ * @return tuple of (success flag, buffer containing file contents)
  */
-auto GF_CORE_EXPORT ReadFileGFBuffer(const QString &file_name)
+auto GF_CORE_EXPORT ReadFileGFBuffer(const QString& file_name)
     -> std::tuple<bool, GFBuffer>;
 
 /**
- * @brief
+ * @brief Write a GFBuffer to a file, overwriting any existing content.
  *
- * @param file_name
- * @param data
- * @return true
- * @return false
+ * @param file_name destination file path
+ * @param data binary data to write
+ * @return true on success, false if the file could not be opened or written
  */
-auto GF_CORE_EXPORT WriteFileGFBuffer(const QString &file_name, GFBuffer data)
+auto GF_CORE_EXPORT WriteFileGFBuffer(const QString& file_name, GFBuffer data)
     -> bool;
 
 /**
- * @brief read file content
+ * @brief Read the entire contents of a file into a QByteArray.
  *
- * @param file_name file name
- * @param data data read from file
- * @return true if success
- * @return false if failed
+ * @param file_name path to the file to read
+ * @param data output parameter filled with the file contents on success
+ * @return true on success, false if the file could not be opened
  */
-auto GF_CORE_EXPORT ReadFile(const QString &file_name, QByteArray &data)
+auto GF_CORE_EXPORT ReadFile(const QString& file_name, QByteArray& data)
     -> bool;
 
 /**
- * @brief write file content
+ * @brief Write a QByteArray to a file, overwriting any existing content.
  *
- * @param file_name file name
- * @param data data to write to file
- * @return true if success
- * @return false if failed
+ * @param file_name destination file path
+ * @param data data to write
+ * @return true on success, false if the file could not be opened or written
  */
-auto GF_CORE_EXPORT WriteFile(const QString &file_name, const QByteArray &data)
+auto GF_CORE_EXPORT WriteFile(const QString& file_name, const QByteArray& data)
     -> bool;
 
 /**
- * calculate the hash of a file
- * @param file_path
- * @return
+ * @brief Calculate the SHA-256 hash of a file and return it as a hex string.
+ *
+ * @param file_path path to the file to hash
+ * @return hex-encoded SHA-256 digest string
  */
-auto GF_CORE_EXPORT CalculateHash(const QString &file_path) -> QString;
+auto GF_CORE_EXPORT CalculateHash(const QString& file_path) -> QString;
 
 /**
- * @brief
+ * @brief Calculate a checksum of a binary file and return it as a hex string.
  *
- * @param path
- * @return QString
+ * @param path path to the binary file
+ * @return hex-encoded checksum string
  */
-auto GF_CORE_EXPORT CalculateBinaryChacksum(const QString &path) -> QString;
+auto GF_CORE_EXPORT CalculateBinaryChacksum(const QString& path) -> QString;
 
 /**
- * @brief
+ * @brief Write a string buffer to a file, overwriting any existing content.
  *
- * @param path
- * @param out_buffer
- * @return true
- * @return false
+ * @param path destination file path
+ * @param out_buffer string content to write
+ * @return true on success, false if the file could not be opened or written
  */
-auto GF_CORE_EXPORT WriteBufferToFile(const QString &path,
-                                      const QString &out_buffer) -> bool;
+auto GF_CORE_EXPORT WriteBufferToFile(const QString& path,
+                                      const QString& out_buffer) -> bool;
 
 /**
- * @brief
+ * @brief Return the path to a new temporary file in the system temp directory.
  *
- * @return QString
+ * @return absolute path to a temporary file (not yet created)
  */
 auto GF_CORE_EXPORT GetTempFilePath() -> QString;
 
 /**
- * @brief
+ * @brief Create a temporary file, write string @p data to it, and return its
+ * path.
  *
- * @param data
- * @return QString
+ * @param data string content to write
+ * @return absolute path to the created temporary file, or empty on failure
  */
-auto GF_CORE_EXPORT CreateTempFileAndWriteData(const QString &data) -> QString;
+auto GF_CORE_EXPORT CreateTempFileAndWriteData(const QString& data) -> QString;
 
 /**
- * @brief
+ * @brief Create a temporary file, write binary @p data to it, and return its
+ * path.
  *
- * @param data
- * @return QString
+ * @param data binary content to write
+ * @return absolute path to the created temporary file, or empty on failure
  */
-auto GF_CORE_EXPORT CreateTempFileAndWriteData(const GFBuffer &data) -> QString;
+auto GF_CORE_EXPORT CreateTempFileAndWriteData(const GFBuffer& data) -> QString;
 
 /**
- * @brief
+ * @brief Check whether a file at @p path can be read from or written to.
  *
- * @param path
- * @param read
- * @return std::tuple<bool, QString>
+ * @param path file path to check
+ * @param read true to check readability, false to check writability
+ * @return tuple of (ok flag, error message string); error string is empty on
+ * success
  */
-auto GF_CORE_EXPORT TargetFilePreCheck(const QString &path, bool read)
+auto GF_CORE_EXPORT TargetFilePreCheck(const QString& path, bool read)
     -> std::tuple<bool, QString>;
 
 /**
- * @brief
+ * @brief Return the full compound extension of a file path (e.g. ".tar.gz").
  *
- * @param path
- * @return QString
+ * Unlike QFileInfo::suffix(), this includes all dot-separated suffix
+ * components starting from the first dot in the file name.
+ *
+ * @param path file path
+ * @return full extension string including all dots, or empty if none
  */
 auto GF_CORE_EXPORT GetFullExtension(QString path) -> QString;
 

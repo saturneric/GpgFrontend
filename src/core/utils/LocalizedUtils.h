@@ -30,8 +30,20 @@
 
 namespace GpgFrontend {
 
-auto GF_CORE_EXPORT GetLocalizedDateByTimestamp(time_t) -> QString;
+/**
+ * @brief Format a Unix timestamp as a date string in the system locale.
+ *
+ * @param timestamp Unix time_t value to format
+ * @return date string formatted according to the current locale
+ */
+auto GF_CORE_EXPORT GetLocalizedDateByTimestamp(time_t timestamp) -> QString;
 
-auto GF_CORE_EXPORT GetUTCDateByTimestamp(time_t) -> QString;
+/**
+ * @brief Format a Unix timestamp as a UTC date string.
+ *
+ * @param timestamp Unix time_t value to format
+ * @return date string in UTC
+ */
+auto GF_CORE_EXPORT GetUTCDateByTimestamp(time_t timestamp) -> QString;
 
 }  // namespace GpgFrontend
