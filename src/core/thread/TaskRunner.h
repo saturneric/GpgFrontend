@@ -28,91 +28,105 @@
 
 #pragma once
 
-#include "core/GpgFrontendCore.h"
-#include "core/function/SecureMemoryAllocator.h"
 #include "core/thread/Task.h"
 
 namespace GpgFrontend::Thread {
 
+/**
+ * @brief Owns a dedicated QThread and serialises Task execution on it.
+ *
+ * Tasks posted via PostTask() are moved to the runner's thread and executed
+ * sequentially through its event loop. PostConcurrentTask() submits to the
+ * global QThreadPool instead. PostScheduleTask() delays execution by a given
+ * number of seconds. RegisterTask() creates a task, tracks it, and returns a
+ * TaskHandler for deferred start or cancellation.
+ */
 class GF_CORE_EXPORT TaskRunner : public QObject {
   Q_OBJECT
  public:
   /**
-   * @brief Construct a new Task Runner object
-   *
+   * @brief Construct the runner. Call Start() to launch the worker thread.
    */
   TaskRunner();
 
-  /**
-   * @brief Destroy the Task Runner object
-   *
-   */
   ~TaskRunner() override;
 
   /**
-   * @brief
-   *
+   * @brief Start the dedicated worker thread and its event loop.
    */
   void Start();
 
   /**
-   * @brief
-   *
+   * @brief Stop the worker thread and block until it exits.
    */
   void Stop();
 
   /**
-   * @brief Get the Thread object
+   * @brief Return the underlying QThread owned by this runner.
    *
-   * @return QThread*
+   * @return pointer to the internal QThread
    */
   auto GetThread() -> QThread*;
 
   /**
-   * @brief
+   * @brief Return whether the worker thread is currently running.
    *
-   * @return true
-   * @return false
+   * @return true if the thread is active
    */
   auto IsRunning() -> bool;
 
   /**
-   * @brief
+   * @brief Move @p task to the runner thread and schedule it for execution.
    *
-   * @param task
+   * The task is executed via a queued connection on the thread's event loop.
+   *
+   * @param task heap-allocated task to execute; ownership is transferred
    */
   void PostTask(Task* task);
 
   /**
-   * @brief
+   * @brief Construct a Task from the given runnable and schedule it on the
+   * runner thread.
    *
-   * @param runner
-   * @param cb
+   * @param name human-readable task name
+   * @param runnable function to execute on the runner thread
+   * @param callback function invoked on the caller's thread after completion
+   * @param data data object passed to runnable and callback
    */
-  void PostTask(const QString&, const Task::TaskRunnable&,
-                const Task::TaskCallback&, DataObjectPtr);
+  void PostTask(const QString& name, const Task::TaskRunnable& runnable,
+                const Task::TaskCallback& callback, DataObjectPtr data);
 
   /**
-   * @brief
+   * @brief Construct a Task, register it in the pending-task map, and return a
+   * handle.
    *
-   * @return std::tuple<QPointer<Task>, TaskTrigger>
+   * The task is not started until TaskHandler::Start() is called.
+   *
+   * @param name human-readable task name
+   * @param runnable function to execute on the runner thread
+   * @param callback function invoked on the caller's thread after completion
+   * @param data data object passed to runnable and callback
+   * @return TaskHandler wrapping the created task
    */
-  auto RegisterTask(const QString&, const Task::TaskRunnable&,
-                    const Task::TaskCallback&, DataObjectPtr)
+  auto RegisterTask(const QString& name, const Task::TaskRunnable& runnable,
+                    const Task::TaskCallback& callback, DataObjectPtr data)
       -> Task::TaskHandler;
 
   /**
-   * @brief
+   * @brief Submit @p task to the global QThreadPool for concurrent execution.
    *
-   * @param task
+   * Unlike PostTask(), this does not use the runner's dedicated thread.
+   *
+   * @param task heap-allocated task to execute concurrently
    */
   void PostConcurrentTask(Task* task);
 
   /**
-   * @brief
+   * @brief Schedule @p task to run on the runner thread after @p seconds
+   * seconds.
    *
-   * @param task
-   * @param seconds
+   * @param task heap-allocated task to execute
+   * @param seconds delay in seconds before execution
    */
   void PostScheduleTask(Task* task, size_t seconds);
 

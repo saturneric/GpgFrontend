@@ -28,35 +28,73 @@
 
 #pragma once
 
-#include "core/GpgFrontendCore.h"
 #include "core/thread/Task.h"
 
 namespace GpgFrontend::UI {
 
 /**
- * @brief
+ * @brief Task that reads a file in fixed-size chunks and emits each chunk as a
+ * signal.
  *
+ * Uses an event-loop-driven approach: each chunk triggers SignalFileBytesRead,
+ * then SignalFileBytesReadNext to schedule the next read. This keeps the runner
+ * thread responsive. HoldOnLifeCycle(true) prevents auto-deletion between
+ * reads. SignalFileBytesReadEnd is emitted when the file is fully read or does
+ * not exist.
  */
 class GF_CORE_EXPORT FileReadTask : public GpgFrontend::Thread::Task {
   Q_OBJECT
  public:
+  /**
+   * @brief Construct a task to read the file at @p path.
+   *
+   * @param path absolute or relative path to the file to read
+   */
   explicit FileReadTask(QString path);
 
-  virtual ~FileReadTask() override;
+  ~FileReadTask() override;
 
+  /**
+   * @brief Open the file and begin the chunked read sequence.
+   *
+   * Returns -1 if the file cannot be opened or is not readable.
+   *
+   * @return 0 on success, -1 on open failure
+   */
   int Run() override;
 
  signals:
+  /**
+   * @brief Emitted for each chunk of data read from the file.
+   *
+   * @param bytes the chunk of bytes read (up to 8192 bytes per emission)
+   */
   void SignalFileBytesRead(QByteArray bytes);
+
+  /**
+   * @brief Emitted when the entire file has been read or the file does not
+   * exist.
+   */
   void SignalFileBytesReadEnd();
+
+  /**
+   * @brief Emitted internally to trigger reading the next chunk.
+   */
   void SignalFileBytesReadNext();
 
  private:
+  // Absolute path of the file to read.
   QString read_file_path_;
+  // File handle kept open across chunk reads.
   QFile target_file_;
-  QEventLoop looper;
+  // Event loop used to interleave chunk reads with the runner's event loop.
+  QEventLoop looper_;
 
  private slots:
+  /**
+   * @brief Read the next chunk and emit SignalFileBytesRead, or emit
+   * SignalFileBytesReadEnd and SignalTaskShouldEnd when done.
+   */
   void slot_read_bytes();
 };
 
