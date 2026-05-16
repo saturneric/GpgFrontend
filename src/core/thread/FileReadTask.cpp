@@ -59,13 +59,12 @@ auto FileReadTask::Run() -> int {
 
 void FileReadTask::slot_read_bytes() {
   QByteArray read_buffer;
-  if (QByteArray read_buffer;
-      !target_file_.atEnd() &&
-      (read_buffer = target_file_.read(kBufferSize)).size() > 0) {
+  if (!target_file_.atEnd()) read_buffer = target_file_.read(kBufferSize);
+
+  if (!read_buffer.isEmpty()) {
     emit SignalFileBytesRead(std::move(read_buffer));
   } else {
     emit SignalFileBytesReadEnd();
-    // announce finish task
     emit SignalTaskShouldEnd(0);
   }
 }
