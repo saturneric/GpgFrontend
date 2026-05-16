@@ -1,4 +1,4 @@
-# GpgFrontend Rust Engine — Architecture
+# GpgFrontend Rust Engine
 
 The `rust/` directory is a self-contained Rust crate (`gf-rust`) that provides
 OpenPGP operations to the C++ core of GpgFrontend. It is compiled as a static
