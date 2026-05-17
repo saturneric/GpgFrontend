@@ -34,25 +34,73 @@
 
 #include "core/function/GFBufferFactory.h"
 #include "core/function/PassphraseGenerator.h"
+#include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"
 
 namespace {
 
 constexpr std::string_view kObjectKeyDeriveDomain = "GpgFrontend.DataObject.v2";
 
-auto EnsureSodiumInit() -> bool {
-  static const int kRc = sodium_init();
-  if (kRc < 0) {
-    LOG_E() << "sodium_init failed";
-    return false;
-  }
-  return true;
-}
+enum class DataObjectHealth {
+  OK,
+  INVALID_FILE_NAME,
+  FILE_TOO_SMALL,
+  READ_FAILED,
+  MISSING_KEY,
+  DECRYPT_FAILED,
+  INVALID_JSON,
+};
+
+struct DataObjectCheckResult {
+  QString ref_hex;
+  QString path;
+  DataObjectHealth health;
+  QByteArray key_id_hex;
+  qint64 size = 0;
+  QDateTime last_modified;
+};
+
+enum class DataObjectGCAction {
+  NONE,
+  QUARANTINE,
+  DELETE,
+};
+
+struct DataObjectGCPolicy {
+  bool dry_run = true;
+  bool delete_missing_key = false;
+  bool delete_decrypt_failed = false;
+  int missing_key_grace_days = 30;
+  int decrypt_failed_grace_days = 30;
+  int quarantine_grace_days = 7;
+};
+
+struct DataObjectGCReport {
+  int total = 0;
+  int ok = 0;
+  int invalid_name = 0;
+  int missing_key = 0;
+  int decrypt_failed = 0;
+  int file_too_small = 0;
+  int read_failed = 0;
+  int invalid_json = 0;
+  int quarantined = 0;
+  int deleted = 0;
+};
+
+struct DataObjectGCContext {
+  DataObjectGCPolicy policy;
+  DataObjectGCReport report;
+  QJsonObject state;
+  QString state_path;
+  bool state_dirty = false;
+};
 
 auto DeriveObjectKey(const GpgFrontend::GFBuffer& key,
                      const GpgFrontend::GFBuffer& context)
     -> GpgFrontend::GFBufferOrNone {
-  if (!EnsureSodiumInit()) return {};
+  if (!GpgFrontend::EnsureSodiumInit()) return {};
 
   if (key.Empty() || context.Empty()) {
     LOG_E() << "DeriveObjectKey received empty key or context";
@@ -102,6 +150,560 @@ auto DeriveObjectKey(const GpgFrontend::GFBuffer& key,
   return out;
 }
 
+auto CheckDataObjectByRef(const QString& ref_hex, bool expect_json)
+    -> DataObjectCheckResult {
+  DataObjectCheckResult r;
+  r.ref_hex = ref_hex;
+
+  if (ref_hex.size() != 64 ||
+      QByteArray::fromHex(ref_hex.toLatin1()).size() != 32) {
+    r.health = DataObjectHealth::INVALID_FILE_NAME;
+    return r;
+  }
+
+  const auto ref =
+      GpgFrontend::GFBuffer(QByteArray::fromHex(ref_hex.toLatin1()));
+  const auto ref_path =
+      GpgFrontend::GetGSS().GetDataObjectsDir() + "/" + ref_hex;
+  r.path = ref_path;
+
+  QFileInfo fi(ref_path);
+  r.size = fi.size();
+  r.last_modified = fi.lastModified();
+
+  auto [succ, data] = GpgFrontend::ReadFileGFBuffer(ref_path);
+  if (!succ) {
+    r.health = DataObjectHealth::READ_FAILED;
+    return r;
+  }
+
+  if (data.Size() <= 32) {
+    r.health = DataObjectHealth::FILE_TOO_SMALL;
+    return r;
+  }
+
+  auto key_id = data.Left(32);
+  r.key_id_hex = key_id.ConvertToQByteArray().toHex();
+
+  auto key = GpgFrontend::GetGSS().GetAppSecureKey(key_id);
+  if (key.Empty()) {
+    r.health = DataObjectHealth::MISSING_KEY;
+    return r;
+  }
+
+  auto encrypted = data.Right(static_cast<int>(data.Size() - key_id.Size()));
+  if (encrypted.Empty()) {
+    r.health = DataObjectHealth::FILE_TOO_SMALL;
+    return r;
+  }
+
+  auto drv_key = DeriveObjectKey(key, ref);
+  if (!drv_key) {
+    r.health = DataObjectHealth::DECRYPT_FAILED;
+    return r;
+  }
+
+  auto plaintext =
+      GpgFrontend::GFBufferFactory::DecryptLite(*drv_key, encrypted);
+  if (!plaintext) {
+    r.health = DataObjectHealth::DECRYPT_FAILED;
+    return r;
+  }
+
+  if (expect_json) {
+    QJsonParseError err;
+    QJsonDocument::fromJson(plaintext->ConvertToQByteArray(), &err);
+    if (err.error != QJsonParseError::NoError) {
+      r.health = DataObjectHealth::INVALID_JSON;
+      return r;
+    }
+  }
+
+  r.health = DataObjectHealth::OK;
+  return r;
+}
+
+auto IsValidRefHex(const QString& s) -> bool {
+  return s.size() == 64 && QByteArray::fromHex(s.toLatin1()).size() == 32;
+}
+
+auto NowUtc() -> QDateTime { return QDateTime::currentDateTimeUtc(); }
+
+auto EnsureDir(const QString& path) -> bool {
+  QDir dir(path);
+  if (dir.exists()) return true;
+  return dir.mkpath(".");
+}
+
+auto DataObjectQuarantineDir(GpgFrontend::GlobalSettingStation& gss)
+    -> QString {
+  return gss.GetDataObjectsDir() + ".quarantine";
+}
+
+auto DataObjectGcStatePath(GpgFrontend::GlobalSettingStation& gss) -> QString {
+  return gss.GetDataObjectsDir() + ".gc.json";
+}
+
+auto HealthToString(DataObjectHealth h) -> QString {
+  switch (h) {
+    case DataObjectHealth::OK:
+      return "ok";
+    case DataObjectHealth::INVALID_FILE_NAME:
+      return "invalid_file_name";
+    case DataObjectHealth::FILE_TOO_SMALL:
+      return "file_too_small";
+    case DataObjectHealth::READ_FAILED:
+      return "read_failed";
+    case DataObjectHealth::MISSING_KEY:
+      return "missing_key";
+    case DataObjectHealth::DECRYPT_FAILED:
+      return "decrypt_failed";
+    case DataObjectHealth::INVALID_JSON:
+      return "invalid_json";
+  }
+  return "unknown";
+}
+
+auto IsDeleteAllowed(DataObjectHealth h, const DataObjectGCPolicy& policy)
+    -> bool {
+  switch (h) {
+    case DataObjectHealth::INVALID_FILE_NAME:
+    case DataObjectHealth::FILE_TOO_SMALL:
+      return true;
+
+    case DataObjectHealth::MISSING_KEY:
+      return policy.delete_missing_key;
+
+    case DataObjectHealth::DECRYPT_FAILED:
+      return policy.delete_decrypt_failed;
+
+    case DataObjectHealth::READ_FAILED:
+      return false;
+
+    case DataObjectHealth::INVALID_JSON:
+      return false;
+
+    case DataObjectHealth::OK:
+      return false;
+  }
+
+  return false;
+}
+
+auto GraceDaysFor(DataObjectHealth h, const DataObjectGCPolicy& policy) -> int {
+  switch (h) {
+    case DataObjectHealth::MISSING_KEY:
+      return policy.missing_key_grace_days;
+
+    case DataObjectHealth::DECRYPT_FAILED:
+      return policy.decrypt_failed_grace_days;
+
+    case DataObjectHealth::FILE_TOO_SMALL:
+    case DataObjectHealth::INVALID_FILE_NAME:
+    default:
+      return policy.quarantine_grace_days;
+  }
+}
+
+auto LoadGcState(const QString& path) -> QJsonObject {
+  QFile f(path);
+  if (!f.exists()) return {};
+
+  if (!f.open(QIODevice::ReadOnly)) {
+    LOG_W() << "failed to open data object gc state:" << path;
+    return {};
+  }
+
+  QJsonParseError err;
+  const auto doc = QJsonDocument::fromJson(f.readAll(), &err);
+  if (err.error != QJsonParseError::NoError || !doc.isObject()) {
+    LOG_W() << "failed to parse data object gc state:" << path
+            << err.errorString();
+    return {};
+  }
+
+  return doc.object();
+}
+
+auto SaveGcState(const QString& path, const QJsonObject& state) -> bool {
+  QFile f(path);
+  if (!f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+    LOG_W() << "failed to write data object gc state:" << path;
+    return false;
+  }
+
+  f.write(QJsonDocument(state).toJson(QJsonDocument::Indented));
+  return true;
+}
+
+auto DaysSince(const QString& iso_utc) -> int {
+  const auto t = QDateTime::fromString(iso_utc, Qt::ISODateWithMs);
+  if (!t.isValid()) return 0;
+
+  return static_cast<int>(t.daysTo(NowUtc()));
+}
+
+auto MoveFileReplacing(const QString& src, const QString& dst) -> bool {
+  QFile::remove(dst);
+
+  if (QFile::rename(src, dst)) return true;
+
+  if (!QFile::copy(src, dst)) return false;
+
+  return QFile::remove(src);
+}
+
+auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
+                             DataObjectGCContext* ctx) -> DataObjectGCAction {
+  if (ctx == nullptr) return DataObjectGCAction::NONE;
+
+  const auto& policy = ctx->policy;
+  auto& report = ctx->report;
+  auto& state = ctx->state;
+
+  if (result.health == DataObjectHealth::OK || result.path.isEmpty()) {
+    return DataObjectGCAction::NONE;
+  }
+
+  QFileInfo src_info(result.path);
+  if (!src_info.exists()) {
+    return DataObjectGCAction::NONE;
+  }
+
+  const auto ref_hex =
+      result.ref_hex.isEmpty() ? src_info.fileName() : result.ref_hex;
+
+  auto& gss = GpgFrontend::GetGSS();
+
+  const auto now = NowUtc().toString(Qt::ISODateWithMs);
+  auto item = state.value(ref_hex).toObject();
+
+  if (item.isEmpty()) {
+    item.insert("ref", ref_hex);
+    item.insert("first_seen", now);
+  }
+
+  item.insert("last_seen", now);
+  item.insert("reason", HealthToString(result.health));
+  item.insert("path", result.path);
+  item.insert("size", static_cast<double>(result.size));
+
+  if (!result.key_id_hex.isEmpty()) {
+    item.insert("key_id", QString::fromLatin1(result.key_id_hex));
+  }
+
+  const auto first_seen = item.value("first_seen").toString(now);
+  const auto grace_days = GraceDaysFor(result.health, policy);
+
+  const auto quarantine_dir = DataObjectQuarantineDir(gss);
+  const auto quarantine_abs = QFileInfo(quarantine_dir).absoluteFilePath();
+  const bool already_quarantined = src_info.absolutePath() == quarantine_abs;
+
+  const auto base_time_str =
+      already_quarantined ? item.value("quarantined_at").toString(first_seen)
+                          : first_seen;
+
+  const auto age_days = DaysSince(base_time_str);
+
+  const bool delete_allowed = IsDeleteAllowed(result.health, policy);
+  if (!delete_allowed) {
+    item.insert("action", "record_only");
+    state.insert(ref_hex, item);
+    ctx->state_dirty = true;
+    return DataObjectGCAction::NONE;
+  }
+
+  if (policy.dry_run) {
+    item.insert("action", "dry_run");
+    item.insert("would_quarantine_or_delete", true);
+    state.insert(ref_hex, item);
+    ctx->state_dirty = true;
+    return DataObjectGCAction::NONE;
+  }
+
+  if (already_quarantined) {
+    if (age_days < grace_days) {
+      item.insert("action", "quarantined_waiting_delete");
+      item.insert("grace_days", grace_days);
+      state.insert(ref_hex, item);
+      ctx->state_dirty = true;
+      return DataObjectGCAction::NONE;
+    }
+
+    if (!QFile::remove(result.path)) {
+      item.insert("action", "delete_failed");
+      state.insert(ref_hex, item);
+      ctx->state_dirty = true;
+
+      LOG_W() << "failed to delete quarantined data object:" << result.path;
+      return DataObjectGCAction::NONE;
+    }
+
+    state.remove(ref_hex);
+    ctx->state_dirty = true;
+
+    report.deleted++;
+
+    LOG_W() << "deleted quarantined data object:" << ref_hex;
+    return DataObjectGCAction::DELETE;
+  }
+
+  if (result.health == DataObjectHealth::MISSING_KEY && age_days < grace_days) {
+    item.insert("action", "missing_key_waiting");
+    item.insert("grace_days", grace_days);
+    state.insert(ref_hex, item);
+    ctx->state_dirty = true;
+
+    LOG_W() << "data object missing key, waiting grace period, ref:" << ref_hex;
+    return DataObjectGCAction::NONE;
+  }
+
+  if (!EnsureDir(quarantine_dir)) {
+    item.insert("action", "quarantine_failed");
+    state.insert(ref_hex, item);
+    ctx->state_dirty = true;
+
+    LOG_W() << "failed to create quarantine dir:" << quarantine_dir;
+    return DataObjectGCAction::NONE;
+  }
+
+  const auto quarantine_path = quarantine_dir + "/" + src_info.fileName();
+
+  if (!MoveFileReplacing(result.path, quarantine_path)) {
+    item.insert("action", "quarantine_failed");
+    state.insert(ref_hex, item);
+    ctx->state_dirty = true;
+
+    LOG_W() << "failed to quarantine data object:" << result.path
+            << "to:" << quarantine_path;
+    return DataObjectGCAction::NONE;
+  }
+
+  item.insert("action", "quarantined");
+  item.insert("quarantine_path", quarantine_path);
+  item.insert("quarantined_at", now);
+  state.insert(ref_hex, item);
+  ctx->state_dirty = true;
+
+  report.quarantined++;
+
+  LOG_W() << "quarantined data object:" << ref_hex
+          << "reason:" << HealthToString(result.health);
+
+  return DataObjectGCAction::QUARANTINE;
+}
+
+auto CompactGcState(DataObjectGCContext* ctx) -> void {
+  if (ctx == nullptr || ctx->state.isEmpty()) return;
+
+  QJsonObject compacted;
+  const auto now = NowUtc();
+
+  for (auto it = ctx->state.begin(); it != ctx->state.end(); ++it) {
+    const auto ref = it.key();
+    const auto item = it.value().toObject();
+
+    if (item.isEmpty()) {
+      ctx->state_dirty = true;
+      continue;
+    }
+
+    const auto path = item.value("path").toString();
+    const auto quarantine_path = item.value("quarantine_path").toString();
+    const auto action = item.value("action").toString();
+    const auto last_seen_str = item.value("last_seen").toString();
+
+    const bool src_exists = !path.isEmpty() && QFileInfo::exists(path);
+    const bool quarantine_exists =
+        !quarantine_path.isEmpty() && QFileInfo::exists(quarantine_path);
+
+    if (!src_exists && !quarantine_exists) {
+      ctx->state_dirty = true;
+      continue;
+    }
+
+    if (src_exists && IsValidRefHex(QFileInfo(path).fileName())) {
+      const auto check =
+          CheckDataObjectByRef(QFileInfo(path).fileName(), false);
+
+      if (check.health == DataObjectHealth::OK) {
+        ctx->state_dirty = true;
+        continue;
+      }
+    }
+
+    const auto last_seen =
+        QDateTime::fromString(last_seen_str, Qt::ISODateWithMs);
+
+    if (last_seen.isValid()) {
+      const auto age_days = static_cast<int>(last_seen.daysTo(now));
+
+      if (action == "dry_run" && age_days >= 7) {
+        ctx->state_dirty = true;
+        continue;
+      }
+
+      if (action == "record_only" && age_days >= 90) {
+        ctx->state_dirty = true;
+        continue;
+      }
+
+      if ((action == "delete_failed" || action == "quarantine_failed") &&
+          age_days >= 90) {
+        ctx->state_dirty = true;
+        continue;
+      }
+    }
+
+    compacted.insert(ref, item);
+  }
+
+  if (compacted.size() != ctx->state.size()) {
+    ctx->state = compacted;
+    ctx->state_dirty = true;
+  }
+}
+
+auto SaveOrRemoveGcState(const QString& path, const QJsonObject& state)
+    -> bool {
+  if (state.isEmpty()) {
+    if (QFileInfo::exists(path)) {
+      return QFile::remove(path);
+    }
+    return true;
+  }
+
+  return SaveGcState(path, state);
+}
+
+auto RunDataObjectGC(const DataObjectGCPolicy& policy) -> DataObjectGCReport {
+  auto& gss = GpgFrontend::GetGSS();
+
+  DataObjectGCContext ctx;
+  ctx.policy = policy;
+  ctx.state_path = DataObjectGcStatePath(gss);
+  ctx.state = LoadGcState(ctx.state_path);
+
+  const QDir dir(gss.GetDataObjectsDir());
+
+  if (dir.exists()) {
+    const auto entries =
+        dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+
+    for (const auto& info : entries) {
+      ctx.report.total++;
+
+      const auto name = info.fileName();
+
+      DataObjectCheckResult result;
+
+      if (IsValidRefHex(name)) {
+        result = CheckDataObjectByRef(name, false);
+      } else {
+        result.ref_hex = name;
+        result.path = info.absoluteFilePath();
+        result.health = DataObjectHealth::INVALID_FILE_NAME;
+        result.size = info.size();
+        result.last_modified = info.lastModified();
+      }
+
+      switch (result.health) {
+        case DataObjectHealth::OK:
+          ctx.report.ok++;
+
+          // If the object is healthy but has an existing GC state entry, it
+          // means the object was previously unhealthy but has since recovered
+          // (e.g. the key was restored). In this case we can clean up the GC
+          // state entry.
+          if (ctx.state.contains(name)) {
+            ctx.state.remove(name);
+            ctx.state_dirty = true;
+          }
+          continue;
+
+        case DataObjectHealth::INVALID_FILE_NAME:
+          ctx.report.invalid_name++;
+          break;
+
+        case DataObjectHealth::FILE_TOO_SMALL:
+          ctx.report.file_too_small++;
+          break;
+
+        case DataObjectHealth::READ_FAILED:
+          ctx.report.read_failed++;
+          break;
+
+        case DataObjectHealth::MISSING_KEY:
+          ctx.report.missing_key++;
+          break;
+
+        case DataObjectHealth::DECRYPT_FAILED:
+          ctx.report.decrypt_failed++;
+          break;
+
+        case DataObjectHealth::INVALID_JSON:
+          ctx.report.invalid_json++;
+          break;
+      }
+
+      MaybeQuarantineOrDelete(result, &ctx);
+    }
+  }
+
+  const auto quarantine_dir = DataObjectQuarantineDir(gss);
+  const QDir qdir(quarantine_dir);
+
+  if (qdir.exists()) {
+    const auto quarantine_entries =
+        qdir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+
+    for (const auto& info : quarantine_entries) {
+      ctx.report.total++;
+
+      DataObjectCheckResult result;
+      result.ref_hex = info.fileName();
+      result.path = info.absoluteFilePath();
+      result.health = IsValidRefHex(info.fileName())
+                          ? DataObjectHealth::DECRYPT_FAILED
+                          : DataObjectHealth::INVALID_FILE_NAME;
+      result.size = info.size();
+      result.last_modified = info.lastModified();
+
+      MaybeQuarantineOrDelete(result, &ctx);
+    }
+  }
+
+  CompactGcState(&ctx);
+
+  if (ctx.state_dirty) {
+    SaveOrRemoveGcState(ctx.state_path, ctx.state);
+  }
+
+  return ctx.report;
+}
+
+auto NormalPolicy() -> DataObjectGCPolicy {
+  return {
+      .dry_run = false,
+      .delete_missing_key = true,
+      .delete_decrypt_failed = false,
+      .missing_key_grace_days = 7,
+      .decrypt_failed_grace_days = 7,
+      .quarantine_grace_days = 30,
+  };
+}
+
+auto HighSecurityPolicy() -> DataObjectGCPolicy {
+  return {
+      .dry_run = false,
+      .delete_missing_key = true,
+      .delete_decrypt_failed = true,
+      .missing_key_grace_days = 3,
+      .decrypt_failed_grace_days = 3,
+      .quarantine_grace_days = 7,
+  };
+}
+
 }  // namespace
 
 namespace GpgFrontend {
@@ -115,6 +717,29 @@ DataObjectOperator::DataObjectOperator(int channel)
 
   l_key_ = gss_.GetLegacyAppSecureKey();
   Q_ASSERT(!l_key_.Empty());
+
+  auto secure_level = SecureLevelFromApp();
+
+  Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
+      ->PostTask("data_object_gc",
+                 [secure_level](const DataObjectPtr&) -> int {
+                   auto report =
+                       RunDataObjectGC(secure_level >= 2 ? HighSecurityPolicy()
+                                                         : NormalPolicy());
+                   LOG_I() << "data object GC run report: total="
+                           << report.total << " ok=" << report.ok
+                           << " invalid_name=" << report.invalid_name
+                           << " file_too_small=" << report.file_too_small
+                           << " read_failed=" << report.read_failed
+                           << " missing_key=" << report.missing_key
+                           << " decrypt_failed=" << report.decrypt_failed
+                           << " invalid_json=" << report.invalid_json
+                           << " quarantined=" << report.quarantined
+                           << " deleted=" << report.deleted;
+                   return 0;
+                 },
+                 Thread::Task::TaskCallback{}, {});
 }
 
 auto DataObjectOperator::StoreDataObj(const QString& key,
