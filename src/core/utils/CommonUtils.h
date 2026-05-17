@@ -142,4 +142,21 @@ auto GF_CORE_EXPORT GFSoftwareVersionGreaterThan(const QString& a,
  */
 auto GF_CORE_EXPORT IsCoreEnvInitialized() -> bool;
 
+/**
+ * @brief Ensure that the Sodium library is initialised.
+ *
+ * @return true if Sodium is initialised successfully or was already
+ * initialised, false if
+ * @return false if Sodium initialization fails
+ */
+auto GF_CORE_EXPORT EnsureSodiumInit() -> bool;
+
+/**
+ * @brief Get the secure level of the application from the "GFSecureLevel"
+ * property of the QApplication instance.
+ *
+ * @return int secure level, or 0 if the property is not set or qApp is null
+ */
+auto GF_CORE_EXPORT SecureLevelFromApp() -> int;
+
 }  // namespace GpgFrontend

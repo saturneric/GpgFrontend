@@ -39,6 +39,8 @@
 #include <cstring>
 #include <optional>
 
+#include "core/utils/CommonUtils.h"
+
 namespace GpgFrontend {
 class SecureMemoryAllocator;
 }
@@ -48,20 +50,10 @@ namespace {
 QMutex instance_mutex;
 GpgFrontend::SecureMemoryAllocator* instance = nullptr;
 
-auto EnsureSodiumInit() -> bool {
-  static const int kRc = sodium_init();
-  return kRc >= 0;
-}
-
 struct AllocationInfo {
   size_t size = 0;
   bool secure = false;
 };
-
-auto SecureLevelFromApp() -> int {
-  if (qApp == nullptr) return 0;
-  return qApp->property("GFSecureLevel").toInt();
-}
 
 auto NormalAllocate(size_t size) -> void* {
   if (size == 0) return nullptr;

@@ -28,6 +28,8 @@
 
 #include "CommonUtils.h"
 
+#include <sodium.h>
+
 #include "core/module/ModuleManager.h"
 
 namespace GpgFrontend {
@@ -136,6 +138,20 @@ auto IsEmailAddress(const QString& str) -> bool {
 
 auto IsCoreEnvInitialized() -> bool {
   return Module::RetrieveRTValueTypedOrDefault("core", "env.state.ctx", 0) == 1;
+}
+
+auto EnsureSodiumInit() -> bool {
+  static const int kRc = sodium_init();
+  if (kRc < 0) {
+    LOG_E() << "sodium_init failed";
+    return false;
+  }
+  return true;
+}
+
+auto SecureLevelFromApp() -> int {
+  if (qApp == nullptr) return 0;
+  return qApp->property("GFSecureLevel").toInt();
 }
 
 #ifdef APPLE_SANDBOX

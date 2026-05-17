@@ -33,6 +33,7 @@
 #include <cstring>
 
 #include "core/function/SecureRandomGenerator.h"
+#include "core/utils/CommonUtils.h"
 
 namespace {
 
@@ -46,15 +47,6 @@ constexpr size_t kKeyLen = crypto_aead_xchacha20poly1305_ietf_KEYBYTES;
 
 constexpr unsigned long long kArgon2OpsLimit = 3;
 constexpr size_t kArgon2MemLimit = 65536ULL * 1024ULL;  // 64 MiB
-
-auto EnsureSodiumInit() -> bool {
-  static const int kRc = sodium_init();
-  if (kRc < 0) {
-    LOG_E() << "sodium_init failed";
-    return false;
-  }
-  return true;
-}
 
 auto MakeMagicBuffer() -> GpgFrontend::GFBuffer {
   GpgFrontend::GFBuffer magic(kMagicLen);
@@ -70,7 +62,7 @@ auto HasMagic(const GpgFrontend::GFBuffer& buffer) -> bool {
 auto DeriveKeySodium(const GpgFrontend::GFBuffer& passphrase,
                      const GpgFrontend::GFBuffer& salt)
     -> GpgFrontend::GFBufferOrNone {
-  if (!EnsureSodiumInit()) return {};
+  if (!GpgFrontend::EnsureSodiumInit()) return {};
 
   if (salt.Size() != kSaltLen) {
     LOG_E() << "invalid salt size:" << salt.Size() << "expected:" << kSaltLen;
@@ -97,7 +89,7 @@ auto DeriveKeySodium(const GpgFrontend::GFBuffer& passphrase,
 auto DeriveKeyLiteSodium(const GpgFrontend::GFBuffer& raw_key,
                          const GpgFrontend::GFBuffer& salt)
     -> GpgFrontend::GFBufferOrNone {
-  if (!EnsureSodiumInit()) return {};
+  if (!GpgFrontend::EnsureSodiumInit()) return {};
 
   if (salt.Size() != kSaltLen) {
     LOG_E() << "invalid salt size:" << salt.Size() << "expected:" << kSaltLen;
@@ -145,7 +137,7 @@ auto DeriveKeyLiteSodium(const GpgFrontend::GFBuffer& raw_key,
 auto SodiumEncryptImpl(const GpgFrontend::GFBuffer& raw_key,
                        const GpgFrontend::GFBuffer& plaintext, bool lite)
     -> GpgFrontend::GFBufferOrNone {
-  if (!EnsureSodiumInit()) return {};
+  if (!GpgFrontend::EnsureSodiumInit()) return {};
 
   auto salt = GpgFrontend::SecureRandomGenerator::Generate(kSaltLen);
   if (!salt) return {};
@@ -186,7 +178,7 @@ auto SodiumEncryptImpl(const GpgFrontend::GFBuffer& raw_key,
 auto SodiumDecryptImpl(const GpgFrontend::GFBuffer& raw_key,
                        const GpgFrontend::GFBuffer& encrypted, bool lite)
     -> GpgFrontend::GFBufferOrNone {
-  if (!EnsureSodiumInit()) return {};
+  if (!GpgFrontend::EnsureSodiumInit()) return {};
 
   constexpr size_t kMinLen = kMagicLen + kSaltLen + kNonceLen + kTagLen;
 
