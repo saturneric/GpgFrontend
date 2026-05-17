@@ -405,26 +405,17 @@ auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
 
   const auto age_days = DaysSince(base_time_str);
 
-  const bool delete_allowed = IsDeleteAllowed(result.health, policy);
-  if (!delete_allowed) {
-    item.insert("action", "record_only");
-    state.insert(ref_hex, item);
-    ctx->state_dirty = true;
-    return DataObjectGCAction::NONE;
-  }
-
-  if (policy.dry_run) {
-    item.insert("action", "dry_run");
-    item.insert("would_quarantine_or_delete", true);
-    state.insert(ref_hex, item);
-    ctx->state_dirty = true;
-    return DataObjectGCAction::NONE;
-  }
-
+  // Files already in quarantine were approved for deletion on a previous run.
+  // IsDeleteAllowed only applies to the decision to quarantine from the main
+  // dir, so check this before the delete_allowed gate.
   if (already_quarantined) {
-    if (age_days < grace_days) {
+    if (policy.dry_run) {
+      return DataObjectGCAction::NONE;
+    }
+
+    if (age_days < policy.quarantine_grace_days) {
       item.insert("action", "quarantined_waiting_delete");
-      item.insert("grace_days", grace_days);
+      item.insert("grace_days", policy.quarantine_grace_days);
       state.insert(ref_hex, item);
       ctx->state_dirty = true;
       return DataObjectGCAction::NONE;
@@ -446,6 +437,22 @@ auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
 
     LOG_W() << "deleted quarantined data object:" << ref_hex;
     return DataObjectGCAction::DELETE;
+  }
+
+  const bool delete_allowed = IsDeleteAllowed(result.health, policy);
+  if (!delete_allowed) {
+    item.insert("action", "record_only");
+    state.insert(ref_hex, item);
+    ctx->state_dirty = true;
+    return DataObjectGCAction::NONE;
+  }
+
+  if (policy.dry_run) {
+    item.insert("action", "dry_run");
+    item.insert("would_quarantine_or_delete", true);
+    state.insert(ref_hex, item);
+    ctx->state_dirty = true;
+    return DataObjectGCAction::NONE;
   }
 
   if (result.health == DataObjectHealth::MISSING_KEY && age_days < grace_days) {
