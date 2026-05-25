@@ -32,10 +32,10 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/QuitDialog.h"
-#include "ui/widgets/HelpPage.h"
 #include "ui/widgets/TextEditTabWidget.h"
 
 namespace GpgFrontend::UI {
@@ -65,19 +65,21 @@ void TextEdit::SlotNewTabWithContent(QString title, const QString& content) {
   tab_widget_->SlotNewTabWithContent(std::move(title), content);
 }
 
-void TextEdit::SlotNewHelpTab(const QString& title, const QString& path) const {
-  auto* page = new HelpPage(path);
-  tab_widget_->addTab(page, title);
-  tab_widget_->setCurrentIndex(tab_widget_->count() - 1);
-}
-
 void TextEdit::SlotNewDefaultWorkspaceTab() {
   const auto default_workspace_as =
       GetSettings()
           .value("basic/default_workspace_as", "file_panel")
           .toString();
 
-  if (default_workspace_as == "file_panel") {
+  if (IsRunningInSandBox()) {
+    // In sandbox environment, the file panel may not work properly due to
+    // sandbox restrictions. So we use text editor as the default workspace to
+    // avoid potential issues.
+    LOG_W() << "Running in sandbox environment, switching default workspace "
+               "to text editor.";
+    tab_widget_->SlotNewPlainTextTab();
+
+  } else if (default_workspace_as == "file_panel") {
     tab_widget_->SlotOpenDefaultPath();
   } else {
     tab_widget_->SlotNewPlainTextTab();
@@ -156,13 +158,23 @@ void TextEdit::SlotSave() {
   }
 
   auto* page = CurPage();
-  if (page == nullptr || page->property("type").toString().isEmpty()) return;
+  if (page == nullptr) return;
 
   auto type = page->property("type").toString();
+  if (type.isEmpty()) {
+    QMessageBox::warning(
+        this, tr("Unknown Tab Type"),
+        tr("The current tab has an unknown type. Cannot save."));
+    return;
+  }
+
+  LOG_D() << "Saving file for tab type: " << type
+          << ", page object name: " << page->objectName();
 
   if (type == "text") {
     auto filename = CurPageTextEdit()->GetFilePath();
     filename.isEmpty() ? SlotSaveAs() : saveFile(filename);
+    return;
   }
 
   if (type == "file") return;
@@ -204,6 +216,10 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
     page->SetFilePath(file_name);
     page->NotifyFileSaved();
 
+    // The document has been saved. Rewrite recovery cache immediately so stale
+    // unsaved content will not be restored on next startup.
+    tab_widget_->SlotRefreshRecoveryCache();
+
     file.close();
     return true;
   }
@@ -239,9 +255,6 @@ void TextEdit::slot_remove_tab(int index) {
     return;
   }
 
-  // get the index of the actual current tab
-  int last_index = tab_widget_->currentIndex();
-
   // set the focus to argument index
   tab_widget_->setCurrentIndex(index);
 
@@ -249,11 +262,15 @@ void TextEdit::slot_remove_tab(int index) {
     auto* tab = tab_widget_->widget(index);
     tab_widget_->removeTab(index);
 
-    // if the tab was the last one, set the current index to the last tab
-    tab_widget_->setCurrentIndex(index >= last_index ? last_index
-                                                     : last_index - 1);
+    if (tab_widget_->count() > 0) {
+      const int new_index = std::min(index, tab_widget_->count() - 1);
+      tab_widget_->setCurrentIndex(new_index);
+    }
 
-    // close and destroy tab
+    // The user intentionally closed this tab. Rewrite recovery cache after
+    // removeTab(), so the closed tab will not be recovered again.
+    tab_widget_->SlotRefreshRecoveryCache();
+
     if (tab != nullptr) {
       tab->close();
       tab->deleteLater();
@@ -269,17 +286,20 @@ void TextEdit::slot_remove_tab(int index) {
  */
 auto TextEdit::maybe_save_current_tab(bool ask_to_save) -> bool {
   PlainTextEditorPage* page = CurPageTextEdit();
-  // if this page is no textedit, there should be nothing to save
   if (page == nullptr) return true;
 
   QTextDocument* document = page->GetTextPage()->document();
+  if (document == nullptr) return true;
 
-  if (page->ReadDone() && document->isModified()) {
+  if (document->isModified()) {
     QMessageBox::StandardButton result = QMessageBox::Cancel;
 
-    // write title of tab to docname and remove the leading *
     QString doc_name = tab_widget_->tabText(tab_widget_->currentIndex());
-    doc_name.remove(0, 2);
+    doc_name = doc_name.trimmed();
+    while (doc_name.startsWith("*")) {
+      doc_name.remove(0, 1);
+      doc_name = doc_name.trimmed();
+    }
 
     const QString& file_path = page->GetFilePath();
     if (ask_to_save) {
@@ -294,13 +314,15 @@ auto TextEdit::maybe_save_current_tab(bool ask_to_save) -> bool {
               "<br/>",
           QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     }
+
     if ((result == QMessageBox::Save) || (!ask_to_save)) {
       if (file_path.isEmpty()) return SlotSaveAs();
       return saveFile(file_path);
     }
+
     return result == QMessageBox::Discard;
   }
-  page->deleteLater();
+
   return true;
 }
 
@@ -362,8 +384,64 @@ void TextEdit::SlotSetGFBuffer2CurTextPage(const GFBuffer& buffer) {
 }
 
 void TextEdit::SlotAppendText2CurTextPage(const QString& text) {
-  if (CurTextPage() == nullptr) SlotNewTab();
-  CurTextPage()->GetTextPage()->appendPlainText(text);
+  SlotAppendText2CurTextPage(text, false);
+}
+
+void TextEdit::SlotAppendText2CurTextPageAndReveal(const QString& text) {
+  SlotAppendText2CurTextPage(text, true);
+}
+
+void TextEdit::SlotAppendText2CurTextPage(const QString& text, bool reveal) {
+  if (text.isEmpty()) return;
+
+  if (CurTextPage() == nullptr) {
+    SlotNewTab();
+  }
+
+  auto* page = CurTextPage();
+  if (page == nullptr) return;
+
+  auto* edit = page->GetTextPage();
+  if (edit == nullptr) return;
+
+  auto* scroll_bar = edit->verticalScrollBar();
+  const int old_scroll_value = scroll_bar != nullptr ? scroll_bar->value() : 0;
+  const QTextCursor old_cursor = edit->textCursor();
+
+  QTextCursor append_cursor(edit->document());
+  append_cursor.movePosition(QTextCursor::End);
+
+  append_cursor.beginEditBlock();
+
+  const auto current_text = edit->toPlainText();
+  if (!current_text.isEmpty() && !current_text.endsWith('\n') &&
+      !text.startsWith('\n')) {
+    append_cursor.insertText(QStringLiteral("\n"));
+  }
+
+  append_cursor.insertText(text);
+
+  if (!text.endsWith('\n')) {
+    append_cursor.insertText(QStringLiteral("\n"));
+  }
+
+  append_cursor.endEditBlock();
+
+  if (reveal) {
+    edit->setTextCursor(append_cursor);
+    edit->ensureCursorVisible();
+  } else {
+    edit->setTextCursor(old_cursor);
+    if (scroll_bar != nullptr) {
+      scroll_bar->setValue(old_scroll_value);
+      QTimer::singleShot(0, edit, [edit, old_scroll_value]() {
+        if (edit == nullptr || edit->verticalScrollBar() == nullptr) return;
+        edit->verticalScrollBar()->setValue(old_scroll_value);
+      });
+    }
+  }
+
+  edit->document()->setModified(true);
 }
 
 auto TextEdit::CurTextPage() const -> PlainTextEditorPage* {
@@ -423,13 +501,23 @@ void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
 
 void TextEdit::LoadFile(const QString& fileName) {
   auto [succ, buffer] = ReadFileGFBuffer(fileName);
+  if (!succ) {
+    QMessageBox::warning(this, tr("File Open Error"),
+                         tr("The file \"%1\" could not be opened.")
+                             .arg(QFileInfo(fileName).fileName()));
+    return;
+  }
+
+  if (CurTextPage() == nullptr) {
+    SlotNewTab();
+  }
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   CurTextPage()->GetTextPage()->setPlainText(buffer.ConvertToQString());
   QApplication::restoreOverrideCursor();
+
   CurPageTextEdit()->SetFilePath(fileName);
   tab_widget_->setTabText(tab_widget_->currentIndex(), stripped_name(fileName));
-  // statusBar()->showMessage(tr("File loaded"), 2000);
 }
 
 auto TextEdit::stripped_name(const QString& full_file_name) -> QString {
@@ -442,7 +530,7 @@ void TextEdit::SlotPrint() {
   }
 
 #ifndef QT_NO_PRINTER
-  QTextDocument* document;
+  QTextDocument* document = nullptr;
   if (CurTextPage() != nullptr) {
     document = CurTextPage()->GetTextPage()->document();
   }
@@ -460,26 +548,6 @@ void TextEdit::SlotPrint() {
 
   // statusBar()->showMessage(tr("Ready"), 2000);
 #endif
-}
-
-void TextEdit::SlotShowModified(bool changed) const {
-  // get current tab
-  int index = tab_widget_->currentIndex();
-  QString title = tab_widget_->tabText(index);
-
-  // if changed
-  if (!changed) {
-    tab_widget_->setTabText(index, title.remove(0, 2));
-    return;
-  }
-
-  // if doc is modified now, add leading * to title,
-  // otherwise remove the leading * from the title
-  if (CurTextPage()->GetTextPage()->document()->isModified()) {
-    tab_widget_->setTabText(index, title.trimmed().prepend("* "));
-  } else {
-    tab_widget_->setTabText(index, title.remove(0, 2));
-  }
 }
 
 void TextEdit::SlotSwitchTabUp() const {
@@ -501,20 +569,25 @@ void TextEdit::SlotSwitchTabDown() const {
  *   return a hash of tabindexes and title of unsaved tabs
  */
 auto TextEdit::UnsavedDocuments() const -> QHash<int, QString> {
-  QHash<int, QString> unsaved_docs;  // this list could be used to implement
-                                     // gedit like "unsaved changed"-dialog
+  QHash<int, QString> unsaved_docs;
 
   for (int i = 0; i < tab_widget_->count(); i++) {
     auto* ep = qobject_cast<PlainTextEditorPage*>(tab_widget_->widget(i));
-    if (ep != nullptr && ep->ReadDone() &&
-        ep->GetTextPage()->document()->isModified()) {
-      QString doc_name = tab_widget_->tabText(i);
-
-      // remove * before name of modified doc
-      doc_name.remove(0, 2);
-      unsaved_docs.insert(i, doc_name);
+    if (ep == nullptr || ep->GetTextPage() == nullptr ||
+        ep->GetTextPage()->document() == nullptr ||
+        !ep->GetTextPage()->document()->isModified()) {
+      continue;
     }
+
+    QString doc_name = tab_widget_->tabText(i).trimmed();
+    while (doc_name.startsWith("*")) {
+      doc_name.remove(0, 1);
+      doc_name = doc_name.trimmed();
+    }
+
+    unsaved_docs.insert(i, doc_name);
   }
+
   return unsaved_docs;
 }
 
@@ -602,8 +675,9 @@ void TextEdit::SlotOpenDefaultFileBrowserTab() {
 auto TextEdit::CurPage() -> QWidget* { return tab_widget_->CurPage(); }
 
 auto TextEdit::SlotNewCustomTab(const QString& type, const QString& title,
-                                const QIcon& icon) -> QWidget* {
-  return tab_widget_->SlotNewTab(type, title, icon);
+                                const QIcon& icon, const QString& icon_name)
+    -> QWidget* {
+  return tab_widget_->SlotNewTab(type, title, icon, icon_name);
 }
 
 auto TextEdit::SlotGetTabWidget() -> QTabWidget* { return tab_widget_; }
