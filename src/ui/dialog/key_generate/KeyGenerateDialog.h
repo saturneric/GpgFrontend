@@ -238,7 +238,7 @@ class KeyGenerateDialog : public GeneralDialog {
    * @brief
    *
    */
-  void create_sync_gen_subkey_info();
+  void create_sync_gen_subkey_info(bool sync_from_ui = true);
 
   /**
    * @brief
