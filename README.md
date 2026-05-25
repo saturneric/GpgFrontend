@@ -16,7 +16,6 @@ easier and more trustworthy in everyday privacy workflows.
 - Cross-platform: Native support for Windows, macOS and Linux.
 - Portable: Run directly from a USB drive and carry your keys.
 - Flexible: Manage keys separately through multiple key databases.
-- Compatible: Mature GnuPG support with a newer rPGP engine.
 - Privacy-focused: Using multiple approaches to enhance safety.
 
 > If you like GpgFrontend, you can give it a ⭐ on GitHub as donation. :)
