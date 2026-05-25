@@ -29,6 +29,7 @@
 #include "KeyGroupManageDialog.h"
 
 #include "core/function/gpg/GpgAbstractKeyGetter.h"
+#include "core/function/gpg/GpgKeyGroupGetter.h"
 #include "ui/UISignalStation.h"
 #include "ui/widgets/KeyList.h"
 
@@ -96,11 +97,19 @@ KeyGroupManageDialog::KeyGroupManageDialog(
   this->setModal(true);
   this->setWindowTitle(tr("Key Group Management"));
 
-  movePosition2CenterOfParent();
-
   this->show();
   this->raise();
   this->activateWindow();
+}
+
+void KeyGroupManageDialog::showEvent(QShowEvent* event) {
+  GeneralDialog::showEvent(event);
+
+  // If the window state has not been restored, move the dialog to the center of
+  // the parent window (if has parent) or the screen.
+  if (!isRectRestored()) {
+    movePosition2CenterOfParent();
+  }
 }
 
 void KeyGroupManageDialog::slot_add_to_key_group() {

@@ -54,6 +54,9 @@ class KeyGroupManageDialog : public GeneralDialog {
                                 const QSharedPointer<GpgKeyGroup>& key_group,
                                 QWidget* parent = nullptr);
 
+ protected:
+  void showEvent(QShowEvent* event) override;
+
  private slots:
 
   /**
