@@ -34,7 +34,7 @@ endif()
 
 # define project
 project(GpgFrontend
-  VERSION 2.1.11
+  VERSION 2.1.12
   DESCRIPTION "GpgFrontend is a modern, cross-platform, open-source GUI for OpenPGP encryption."
   HOMEPAGE_URL "https://gpgfrontend.bktus.com"
   LANGUAGES CXX)
@@ -71,7 +71,6 @@ option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 # check options
 option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
 option(GPGFRONTEND_USE_SYSTEM_OPENSSL "Use system OpenSSL instead of building it" OFF)
-option(GPGFRONTEND_RUST_SUPPORT "Enable Rust support for GpgFrontend" OFF)
 
 if(GPGFRONTEND_BUILD_APP_IMAGE)
   set(BUILD_APP_IMAGE 1)
@@ -112,12 +111,6 @@ if(GPGFRONTEND_USE_SYSTEM_OPENSSL)
   set(USE_SYSTEM_OPENSSL 1)
 else()
   set(USE_SYSTEM_OPENSSL 0)
-endif()
-
-if (GPGFRONTEND_RUST_SUPPORT)
-  set(BUILD_RUST_SUPPORT 1)
-else()
-  set(BUILD_RUST_SUPPORT 0)
 endif()
 
 # C++
