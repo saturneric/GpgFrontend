@@ -120,4 +120,15 @@ auto GF_CORE_EXPORT GFSoftwareVersionGreaterThan(const QString &a,
  * @return false
  */
 auto GF_CORE_EXPORT IsCoreEnvInitialized() -> bool;
+
+/**
+ * @brief Return whether the application is running inside any sandbox
+ * environment.
+ *
+ * Covers Flatpak, AppImage, macOS sandbox, and similar.
+ *
+ * @return true if any sandbox is detected
+ */
+auto GF_CORE_EXPORT IsRunningInSandBox() -> bool;
+
 }  // namespace GpgFrontend
