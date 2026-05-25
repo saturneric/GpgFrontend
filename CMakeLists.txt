@@ -70,7 +70,6 @@ option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 
 # check options
 option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
-option(GPGFRONTEND_USE_SYSTEM_OPENSSL "Use system OpenSSL instead of building it" OFF)
 
 if(GPGFRONTEND_BUILD_APP_IMAGE)
   set(BUILD_APP_IMAGE 1)
@@ -105,12 +104,6 @@ if(GPGFRONTEND_LINK_GPGME_INTO_CORE)
   set(BUILD_AND_STATIC_LINK_GPGME 1)
 else()
   set(BUILD_AND_STATIC_LINK_GPGME 0)
-endif()
-
-if(GPGFRONTEND_USE_SYSTEM_OPENSSL)
-  set(USE_SYSTEM_OPENSSL 1)
-else()
-  set(USE_SYSTEM_OPENSSL 0)
 endif()
 
 # C++
@@ -246,12 +239,6 @@ if(MINGW)
   message(STATUS "Build Environment MINGW")
 
   set(OS_PLATFORM 0)
-
-  # for mingw, we will always use the system openssl, since it's easier to get
-  # it working on windows and the openssl project provides official pre-built
-  # binaries for windows. And in the msys2 environment, the openssl is also
-  # available as a package, and it's often the latest version.
-  set(USE_SYSTEM_OPENSSL 1)
 
   include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/src
