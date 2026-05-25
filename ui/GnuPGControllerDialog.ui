@@ -58,12 +58,12 @@
          <item>
           <spacer name="verticalSpacer">
            <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
+            <enum>Qt::Vertical</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>20</width>
-             <height>40</height>
+             <width>40</width>
+             <height>20</height>
             </size>
            </property>
           </spacer>
@@ -78,7 +78,7 @@
          <item>
           <widget class="QTableWidget" name="keyDatabaseTable">
            <property name="editTriggers">
-            <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+            <set>QAbstractItemView::NoEditTriggers</set>
            </property>
            <property name="dragEnabled">
             <bool>false</bool>
@@ -87,16 +87,16 @@
             <bool>false</bool>
            </property>
            <property name="dragDropMode">
-            <enum>QAbstractItemView::DragDropMode::NoDragDrop</enum>
+            <enum>QAbstractItemView::NoDragDrop</enum>
            </property>
            <property name="defaultDropAction">
-            <enum>Qt::DropAction::IgnoreAction</enum>
+            <enum>Qt::IgnoreAction</enum>
            </property>
            <property name="selectionMode">
-            <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+            <enum>QAbstractItemView::NoSelection</enum>
            </property>
            <property name="selectionBehavior">
-            <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+            <enum>QAbstractItemView::SelectItems</enum>
            </property>
            <property name="columnCount">
             <number>2</number>
@@ -165,12 +165,12 @@
          <item>
           <spacer name="verticalSpacer_2">
            <property name="orientation">
-            <enum>Qt::Orientation::Vertical</enum>
+            <enum>Qt::Vertical</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>20</width>
-             <height>40</height>
+             <width>40</width>
+             <height>20</height>
             </size>
            </property>
           </spacer>
@@ -188,11 +188,8 @@
      </item>
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
-       <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
-       </property>
        <property name="standardButtons">
-        <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+        <set>QDialogButtonBox::NoButton</set>
        </property>
       </widget>
      </item>
@@ -204,7 +201,7 @@
     <string>Remove</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
   <action name="actionOpen_Key_Database">
@@ -215,7 +212,7 @@
     <string>Open Key database by System File Expolrer</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
   <action name="actionMove_Key_Database_To_Top">
@@ -226,7 +223,7 @@
     <string>Move this Key Database Item to the top of the list</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
   <action name="actionMove_Key_Database_Up">
@@ -237,7 +234,7 @@
     <string>Move this Key Database Item up</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
   <action name="actionEdit_Key_Database">
@@ -248,7 +245,7 @@
     <string>Edit this Key Database Item</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
   <action name="actionMove_Key_Database_Down">
@@ -259,7 +256,7 @@
     <string>Move this Key Database Item down</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
  </widget>
