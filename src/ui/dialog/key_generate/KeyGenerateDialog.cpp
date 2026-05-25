@@ -61,18 +61,23 @@ auto ComboCurrentIdType(QComboBox* combo) -> QPair<QString, QString> {
 
 auto SetComboCurrentAlgo(QComboBox* combo, const GpgFrontend::KeyAlgo& algo)
     -> bool {
-  if (combo == nullptr) return false;
+  if (combo == nullptr) {
+    return false;
+  }
 
   for (int i = 0; i < combo->count(); ++i) {
     const auto data = combo->itemData(i).toMap();
 
-    if (data.value("id").toString() == algo.Id() &&
-        data.value("name").toString() == algo.Name() &&
+    if (data.value("name").toString() == algo.Name() &&
         data.value("type").toString() == algo.Type()) {
       combo->setCurrentIndex(i);
       return true;
     }
   }
+
+  LOG_W() << "failed to set combo current algo:"
+          << "id=" << algo.Id() << "name=" << algo.Name()
+          << "type=" << algo.Type() << "length=" << algo.KeyLength();
 
   return false;
 }
@@ -1293,7 +1298,17 @@ void KeyGenerateDialog::slot_easy_profile_changed(int index) {
   if ((c.has_s_key && c.key_validity == c.s_key_validity) || !c.has_s_key) {
     const auto expire_option =
         k_expire_options_.value(c.key_validity, k_custom_expire_option_);
-    ui_->easyValidityPeriodComboBox->setCurrentText(expire_option.display);
+    ui_->easyValidityPeriodComboBox->blockSignals(true);
+
+    if ((c.has_s_key && c.key_validity == c.s_key_validity) || !c.has_s_key) {
+      const auto expire_option =
+          k_expire_options_.value(c.key_validity, k_custom_expire_option_);
+      ui_->easyValidityPeriodComboBox->setCurrentText(expire_option.display);
+    } else {
+      ui_->easyValidityPeriodComboBox->setCurrentText(tr("Custom"));
+    }
+
+    ui_->easyValidityPeriodComboBox->blockSignals(false);
   } else {
     slot_set_easy_valid_date_2_custom();
   }
@@ -1327,7 +1342,7 @@ void KeyGenerateDialog::slot_easy_profile_changed(int index) {
 
   if (c.has_s_key) {
     if (gen_subkey_info_ == nullptr) {
-      create_sync_gen_subkey_info();
+      create_sync_gen_subkey_info(false);
     }
 
     auto [s_found, s_algo] = GetAlgoByIdType(c.s_key_algo, c.s_key_algo_type,
@@ -1432,13 +1447,16 @@ void KeyGenerateDialog::do_generate() {
   GpgOperaHelper::WaitForOpera(this, tr("Generating"), f);
 }
 
-void KeyGenerateDialog::create_sync_gen_subkey_info() {
+void KeyGenerateDialog::create_sync_gen_subkey_info(bool sync_from_ui) {
   if (gen_subkey_info_ == nullptr) {
     gen_subkey_info_ = SecureCreateSharedObject<KeyGenerateInfo>(true);
   }
 
-  sync_gen_subkey_algo_info();
-  slot_easy_valid_date_changed(ui_->easyValidityPeriodComboBox->currentText());
+  if (sync_from_ui) {
+    sync_gen_subkey_algo_info();
+    slot_easy_valid_date_changed(
+        ui_->easyValidityPeriodComboBox->currentText());
+  }
 }
 
 void KeyGenerateDialog::load_easy_profile_config() {
