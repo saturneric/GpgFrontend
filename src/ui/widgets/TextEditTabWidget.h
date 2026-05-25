@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/GFBuffer.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend::UI {
 
@@ -79,7 +80,7 @@ class TextEditTabWidget : public QTabWidget {
    */
   // NOLINTNEXTLINE
   QWidget* SlotNewTab(const QString& type, const QString& title,
-                      const QIcon& icon);
+                      const QIcon& icon, const QString& icon_name);
 
   /**
    * @brief
@@ -125,7 +126,7 @@ class TextEditTabWidget : public QTabWidget {
    * @details put a * in front of current tabs title, if current textedit is
    * modified
    */
-  void SlotShowModified();
+  void SlotShowModified(bool changed);
 
   /**
    * @brief
@@ -138,6 +139,33 @@ class TextEditTabWidget : public QTabWidget {
    *
    */
   void SlotRestoreTextEditorsCache();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotRestoreTextEditorsCacheNow();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotTabClosedForRecovery();
+
+  /**
+   * @brief
+   *
+   */
+  void SlotRefreshRecoveryCache();
+
+  /**
+   * @brief
+   *
+   * @param index
+   * @return QString
+   */
+  // NOLINTNEXTLINE
+  QString PathForTab(int index) const;
 
  protected:
   /**
@@ -154,24 +182,14 @@ class TextEditTabWidget : public QTabWidget {
    */
   void dropEvent(QDropEvent* event) override;
 
- private slots:
-  /**
-   * @brief
-   *
-   */
-  void slot_save_status_to_cache_for_recovery();
-
-  /**
-   * @brief
-   *
-   * @param path
-   */
-  void slot_file_page_path_changed(const QString& path);
-
  private:
   int count_page_ = 0;
   int text_page_data_modified_count_ = 0;
 
+  QTimer* recovery_cache_timer_ = nullptr;
+  QList<QPointer<PlainTextEditorPage>> recovery_dirty_pages_;
+  QPointer<PlainTextEditorPage> last_current_text_page_;
+  bool recovery_restoring_ = false;
   /**
    * @brief
    *
@@ -188,6 +206,104 @@ class TextEditTabWidget : public QTabWidget {
    */
   auto generate_new_title(const QString& prefix, const QString& suffix)
       -> QString;
+
+  /**
+   * @brief
+   *
+   */
+  void init_tab_style();
+
+  /**
+   * @brief
+   *
+   * @param page
+   * @param modified
+   */
+  void update_tab_modified_mark(QWidget* page, bool modified);
+
+  /**
+   * @brief Create a Plain Text Tab object
+   *
+   * @param title
+   * @param file_path
+   * @param icon
+   * @return PlainTextEditorPage*
+   */
+  auto create_plain_text_tab(const QString& title, const QString& file_path,
+                             const QIcon& icon, const QString& icon_name)
+      -> PlainTextEditorPage*;
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return int
+   */
+  [[nodiscard]] auto find_tab_by_file_path(const QString& path) const -> int;
+
+  /**
+   * @brief
+   *
+   * @param url
+   */
+  void open_dropped_url(const QUrl& url);
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return QString
+   */
+  auto compact_path_for_tab(const QString& path) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return QString
+   */
+  auto workspace_title_from_path(const QString& path) -> QString;
+
+  /**
+   * @brief
+   *
+   * @param page
+   * @param path
+   */
+  void update_file_page_tab_title(QWidget* page, const QString& path);
+
+  /**
+   * @brief
+   *
+   * @param path
+   * @return int
+   */
+  [[nodiscard]] auto find_file_page_by_path(const QString& path) const -> int;
+
+  /**
+   * @brief
+   *
+   * @param file_info
+   * @param error_message
+   * @return true
+   * @return false
+   */
+  static auto can_open_as_text_file(const QFileInfo& file_info,
+                                    QString* error_message) -> bool;
+
+  /**
+   * @brief
+   *
+   * @param page
+   */
+  void schedule_recovery_cache(PlainTextEditorPage* page);
+
+  /**
+   * @brief
+   *
+   * @param force
+   */
+  void flush_recovery_cache(bool force = false);
 };
 
 }  // namespace GpgFrontend::UI
