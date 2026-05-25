@@ -92,6 +92,34 @@ class InfoBoardWidget : public QWidget {
   void SetInfoBoard(const QString& text,
                     GpgFrontend::UI::InfoBoardStatus verify_label_status);
 
+  /**
+   * @brief
+   *
+   */
+  void InitUI();
+
+  /**
+   * @brief
+   *
+   */
+  void UpdateActionButtons();
+
+  /**
+   * @brief
+   *
+   * @param status
+   */
+  void ApplyStatusStyle(GpgFrontend::UI::InfoBoardStatus status);
+
+  /**
+   * @brief
+   *
+   * @param status
+   * @return QString
+   */
+  [[nodiscard]] auto StatusTitle(GpgFrontend::UI::InfoBoardStatus status) const
+      -> QString;
+
  public slots:
 
   /**
