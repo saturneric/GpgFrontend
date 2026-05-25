@@ -92,8 +92,9 @@ KeyDetailsDialog::KeyDetailsDialog(int channel, const GpgKeyPtr& key,
 
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setLayout(main_layout);
-  this->setWindowTitle(QString(tr("Key Details") + " (Key DB Index: %1)")
-                           .arg(current_gpg_context_channel_));
+  this->setWindowTitle(
+      QString(tr("Key Details") + " (" + tr("Key DB Index: %1") + ")")
+          .arg(current_gpg_context_channel_));
   this->setModal(true);
 
   this->show();
