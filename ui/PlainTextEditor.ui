@@ -32,7 +32,7 @@
       <number>0</number>
      </property>
      <item>
-      <widget class="QPlainTextEdit" name="textPage"/>
+      <widget class="GpgFrontend::UI::PlainTextEditor" name="textPage"/>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -41,6 +41,9 @@
        </property>
        <property name="leftMargin">
         <number>5</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
        </property>
        <property name="rightMargin">
         <number>5</number>
@@ -55,12 +58,12 @@
        <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
+          <enum>Qt::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>40</width>
-           <height>20</height>
+           <width>20</width>
+           <height>10</height>
           </size>
          </property>
         </spacer>
@@ -92,6 +95,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GpgFrontend::UI::PlainTextEditor</class>
+   <extends>QPlainTextEdit</extends>
+   <header>ui/widgets/PlainTextEditor.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
