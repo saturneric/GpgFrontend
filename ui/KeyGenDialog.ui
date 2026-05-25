@@ -28,6 +28,9 @@
    </property>
    <item>
     <layout class="QFormLayout" name="formLayout_2">
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::ExpandingFieldsGrow</enum>
+     </property>
      <item row="0" column="0">
       <widget class="QLabel" name="nameLabel">
        <property name="text">
@@ -85,7 +88,7 @@
         <enum>QTabWidget::North</enum>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>1</number>
        </property>
        <property name="documentMode">
         <bool>true</bool>
@@ -136,7 +139,7 @@
               <item>
                <widget class="QPushButton" name="reset2DefaultPushButton">
                 <property name="text">
-                 <string>Reset to Default</string>
+                 <string>Reset</string>
                 </property>
                </widget>
               </item>
@@ -209,16 +212,6 @@
           </spacer>
          </item>
          <item>
-          <spacer name="verticalSpacer">
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>20</width>
-             <height>40</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
           <layout class="QHBoxLayout" name="horizontalLayout"/>
          </item>
         </layout>
@@ -231,37 +224,16 @@
          <item>
           <layout class="QGridLayout" name="gridLayout_2">
            <item row="2" column="0">
-            <widget class="QLabel" name="pExpireDateLabel">
+            <widget class="QLabel" name="pScndAlgoLabel">
              <property name="text">
-              <string>Expire Date</string>
+              <string>Second Algorithm</string>
              </property>
             </widget>
            </item>
-           <item row="7" column="0" colspan="3">
-            <widget class="QCheckBox" name="pExpireCheckBox">
-             <property name="text">
-              <string>Non Expired</string>
-             </property>
-            </widget>
+           <item row="0" column="1" colspan="2">
+            <widget class="QComboBox" name="pAlgoComboBox"/>
            </item>
-           <item row="2" column="1" colspan="2">
-            <widget class="QDateTimeEdit" name="pExpireDateTimeEdit"/>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="pAlgoLabel">
-             <property name="text">
-              <string>Algorithm</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="pUsageLabel">
-             <property name="text">
-              <string>Usage</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1" colspan="2">
+           <item row="7" column="1" colspan="2">
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
               <widget class="QCheckBox" name="pEncrCheckBox">
@@ -286,10 +258,24 @@
              </item>
             </layout>
            </item>
-           <item row="0" column="1" colspan="2">
-            <widget class="QComboBox" name="pAlgoComboBox"/>
+           <item row="7" column="0">
+            <widget class="QLabel" name="pUsageLabel">
+             <property name="text">
+              <string>Usage</string>
+             </property>
+            </widget>
            </item>
-           <item row="6" column="0" colspan="3">
+           <item row="4" column="0">
+            <widget class="QLabel" name="pExpireDateLabel">
+             <property name="text">
+              <string>Expire Date</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1" colspan="2">
+            <widget class="QComboBox" name="pScndAlgoComboBox"/>
+           </item>
+           <item row="8" column="0" colspan="3">
             <widget class="QCheckBox" name="noPassphraseCheckBox">
              <property name="text">
               <string>No Passphrase</string>
@@ -303,8 +289,35 @@
              </property>
             </widget>
            </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="pAlgoLabel">
+             <property name="text">
+              <string>Algorithm</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1" colspan="2">
+            <widget class="QDateTimeEdit" name="pExpireDateTimeEdit"/>
+           </item>
+           <item row="9" column="0" colspan="3">
+            <widget class="QCheckBox" name="pExpireCheckBox">
+             <property name="text">
+              <string>Non Expired</string>
+             </property>
+            </widget>
+           </item>
            <item row="1" column="1" colspan="2">
             <widget class="QComboBox" name="pKeyLengthComboBox"/>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="pScndKeyLengthLabel">
+             <property name="text">
+              <string>Second Key Length</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1" colspan="2">
+            <widget class="QComboBox" name="pScndKeyLengthComboBox"/>
            </item>
           </layout>
          </item>
@@ -461,18 +474,21 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="generateButton">
-     <property name="text">
-      <string>Generate</string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QPushButton" name="generateButton">
+       <property name="text">
+        <string>Generate</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>tabWidget</tabstop>
   <tabstop>statusPlainTextEdit</tabstop>
-  <tabstop>generateButton</tabstop>
   <tabstop>pExpireCheckBox</tabstop>
   <tabstop>pExpireDateTimeEdit</tabstop>
   <tabstop>pEncrCheckBox</tabstop>

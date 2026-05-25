@@ -45,15 +45,23 @@ class KeyGenerateDialog : public GeneralDialog {
  public:
   struct EasyModeConf {
     QString name;
+
     QString key_algo;
+    QString key_algo_type;
     QString key_validity;
 
-    bool has_s_key;
-    QString s_key_algo;
-    QString s_key_validity;
-    QString s_key_sub_algo;
+    QString key_sub_algo;
+    QString key_sub_algo_type;
 
-    bool hidden;
+    bool has_s_key = false;
+    QString s_key_algo;
+    QString s_key_algo_type;
+    QString s_key_validity;
+
+    QString s_key_sub_algo;
+    QString s_key_sub_algo_type;
+
+    bool hidden = false;
   };
 
   /**
@@ -64,6 +72,12 @@ class KeyGenerateDialog : public GeneralDialog {
    * @param parent The parent of this widget
    */
   explicit KeyGenerateDialog(int channel, QWidget* parent = nullptr);
+
+  /**
+   * @brief
+   *
+   */
+  void InitUi();
 
  signals:
   /**
@@ -243,6 +257,12 @@ class KeyGenerateDialog : public GeneralDialog {
    *
    */
   void flush_easy_profile_config_cache();
+
+  /**
+   * @brief
+   *
+   */
+  void refresh_primary_hybrid_algo_widgets_state();
 };
 
 }  // namespace GpgFrontend::UI
