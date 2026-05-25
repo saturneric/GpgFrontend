@@ -1,12 +1,12 @@
 # GpgFrontend
 
-![Language](https://img.shields.io/badge/language-C%2B%2B-green)
+![Languages](https://img.shields.io/badge/languages-C%2B%2B%20%7C%20Rust-blue)
 ![License](https://img.shields.io/badge/License-GPL--3.0-orange)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/saturneric/GpgFrontend)
 
-A modern "Enigma" built on [GnuPG](https://www.gnupg.org/). It brings easy and
-trustworthy to your privacy life.
+A modern "Enigma" for OpenPGP. It makes encryption, signing, and key management
+easier and more trustworthy in everyday privacy workflows.
 
 <img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;z-index: 1000;" src="https://image.cdn.bktus.com/i/2024/02/24/248b2e18-a120-692e-e6bc-42ca30be9011.webp" alt="GpgFrontend"/>
 
@@ -16,30 +16,20 @@ trustworthy to your privacy life.
 - Cross-platform: Native support for Windows, macOS and Linux.
 - Portable: Run directly from a USB drive and carry your keys.
 - Flexible: Manage keys separately through multiple key databases.
+- Compatible: Mature GnuPG support with a newer rPGP engine.
 - Privacy-focused: Using multiple approaches to enhance safety.
 
 > If you like GpgFrontend, you can give it a ⭐ on GitHub as donation. :)
-
-**Planned Next Release:** 
-
-- v2.1.x (Stable): Dedicated to maximum stability and reliability, this series
-  will remain in maintenance mode with regular releases every two months. The
-  focus is strictly on bug fixes and security updates, with no new major
-  features or breaking changes planned.
-- v2.2.0+ (Mainline): Expected in the next 4–6 months, this version introduces
-  an optional rpgp backend for OpenPGPv6 (RFC 9580) support. While this branch
-  may be less stable due to its experimental nature, **GnuPG** remains our
-  primary, long-term strategic backend and will continue as the default,
-  fully-supported choice across all versions.
 
 ## Table of Contents
 
 - [GpgFrontend](#gpgfrontend)
   - [Table of Contents](#table-of-contents)
   - [User Manual](#user-manual)
+  - [Release Channels](#release-channels)
   - [Supported Languages](#supported-languages)
   - [Modules](#modules)
-  - [Contributing \& Bugs Report](#contributing--bugs-report)
+  - [Contributing \& Bug Reports](#contributing--bug-reports)
     - [For Developers](#for-developers)
   - [Project's Logo](#projects-logo)
   - [Mission and Origins](#mission-and-origins)
@@ -51,11 +41,22 @@ trustworthy to your privacy life.
 For detailed instructions on installation, usage, and troubleshooting, please
 refer to the [User Manual](https://www.gpgfrontend.bktus.com/overview/glance).
 The User Manual is the primary and most up-to-date resource for all users who
-want to use GpgFrontend. It provides guidance and some introductions on basic
-concepts, ensuring you have the best practices at the most of the time.
+want to use GpgFrontend. It provides guidance on basic concepts, common
+workflows, and recommended practices for using GpgFrontend effectively.
 
 > The source code for the user manual is maintained in this
 > [repository](https://github.com/saturneric/GpgFrontend-Manual.git).
+
+## Release Channels
+
+- **v2.2.0+ (Mainline):** The main branch includes an experimental rPGP engine
+  for OpenPGP v6 (RFC 9580), while **GnuPG** remains the default, primary, and
+  recommended backend for mature workflows. rPGP-related features are under
+  active development and may evolve over time.
+
+- **v2.1.x (Stable):** Dedicated to maximum stability and reliability. This
+  series remains in maintenance mode, focusing on bug fixes and security
+  updates, with no new major features or breaking changes planned.
 
 ## Supported Languages
 
@@ -67,6 +68,7 @@ GpgFrontend currently supports an array of languages including:
 - German
 - Italian
 - Spanish
+- Russian
 
 And these translations are contributed by our community: [SHOW](TRANSLATORS)
 
@@ -77,15 +79,15 @@ work](https://www.gpgfrontend.bktus.com/appendix/translate-interface).
 ## Modules
 
 GpgFrontend supports extensive module development, allowing users to customize
-their experience or get rid of unwanted features. Modules can encapsulate
+their experience and enable only the features they need. Modules can encapsulate
 functionality, enabling users to enable or disable features as needed. Users can
 refer to existing module code for guidance [Module
 Repository](https://github.com/saturneric/GpgFrontend-Modules.git) to reach a
 broader audience.
 
-## Contributing & Bugs Report
+## Contributing & Bug Reports
 
-Feel free to dive in! [Open an
+Contributions, bug reports, and suggestions are welcome. You can [open an
 issue](https://github.com/saturneric/GpgFrontend/issues/new) or submit PRs if
 you prefer to use GitHub. For anonymous users, Git patches can be delivered by
 [mail](mailto:eric@bktus.com). If you don't have a GitHub account or prefer not
@@ -95,16 +97,13 @@ to register, you are welcome to communicate with me via email.
 
 ### For Developers
 
-Although the GpgFrontend's UI looks simple, architecture and design behind it
-are actually not easy for beginners, especially for developers who are not
-familiar with C++, Qt, and multithreading. I was struggling hard in these areas
-since the beginning of the project as well. [An AI-assisted
-Wiki](https://deepwiki.com/saturneric/GpgFrontend) has been created through
-analysis of the GpgFrontend source code. I've glanced through it and I would say
-that it can be of great help, but for some details, it's not entirely accurate.
-Therefore, I would recommend developers to read the source code with the help of
-the wiki, but not to rely on it completely. If you have any questions about the
-code, feel free to ask me directly or open an issue on GitHub.
+Although GpgFrontend's UI looks simple, its architecture is not trivial,
+especially for developers unfamiliar with C++, Qt, asynchronous workflows, and
+multithreading. An [AI-assisted
+Wiki](https://deepwiki.com/saturneric/GpgFrontend) is available based on
+source-code analysis. It can be helpful for navigation and high-level
+understanding, but it may not be fully accurate in all implementation details.
+Please use it together with the source code rather than as a replacement for it.
 
 For setting up the development environment, please refer to the [Development
 Environment Setup Guide](https://gpgfrontend.bktus.com/appendix/setup-dev-env).
