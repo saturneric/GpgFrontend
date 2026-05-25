@@ -536,7 +536,11 @@ auto KeyAlgo::CanCert() const -> bool { return cert_; }
 auto KeyAlgo::SupportedVersion() const -> QString { return supported_version_; }
 
 auto KeyAlgo::operator==(const KeyAlgo &o) const -> bool {
-  return this->id_ == o.id_;
+  return id_ == o.id_ && type_ == o.type_ && length_ == o.length_;
+}
+
+auto KeyAlgo::operator!=(const KeyAlgo &o) const -> bool {
+  return !(*this == o);
 }
 
 [[nodiscard]] auto KeyAlgo::SubAlgos() const -> QContainer<KeyAlgo> {

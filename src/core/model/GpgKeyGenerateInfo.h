@@ -45,6 +45,8 @@ class GF_CORE_EXPORT KeyAlgo {
 
   auto operator==(const KeyAlgo &o) const -> bool;
 
+  auto operator!=(const KeyAlgo &o) const -> bool;
+
   [[nodiscard]] auto Id() const -> QString;
 
   [[nodiscard]] auto Name() const -> QString;
