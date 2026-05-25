@@ -72,6 +72,19 @@ GnuPGControllerDialog::GnuPGControllerDialog(QWidget* parent)
   column_titles << tr("Name") << tr("Status") << tr("Path") << tr("Real Path");
   ui_->keyDatabaseTable->setColumnCount(static_cast<int>(column_titles.size()));
   ui_->keyDatabaseTable->setHorizontalHeaderLabels(column_titles);
+  ui_->keyDatabaseTable->setSelectionMode(QAbstractItemView::SingleSelection);
+  ui_->keyDatabaseTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+  ui_->keyDatabaseTable->setContextMenuPolicy(Qt::CustomContextMenu);
+
+  connect(
+      ui_->keyDatabaseTable, &QTableWidget::customContextMenuRequested, this,
+      [this](const QPoint& pos) {
+        auto* item = ui_->keyDatabaseTable->itemAt(pos);
+        if (!item) return;
+
+        ui_->keyDatabaseTable->selectRow(item->row());
+        popup_menu_->exec(ui_->keyDatabaseTable->viewport()->mapToGlobal(pos));
+      });
 
   popup_menu_ = new QMenu(this);
   popup_menu_->addAction(ui_->actionMove_Key_Database_Up);
@@ -356,8 +369,6 @@ auto GnuPGControllerDialog::check_custom_gnupg_path(const QString& path)
 }
 
 void GnuPGControllerDialog::slot_add_new_key_database() {
-  auto* dialog = new KeyDatabaseEditDialog(key_db_infos_, this);
-
   if (key_db_infos_.size() >= 8) {
     QMessageBox::critical(
         this, tr("Maximum Key Database Limit Reached"),
@@ -366,6 +377,7 @@ void GnuPGControllerDialog::slot_add_new_key_database() {
     return;
   }
 
+  auto* dialog = new KeyDatabaseEditDialog(key_db_infos_, this);
   connect(dialog, &KeyDatabaseEditDialog::SignalKeyDatabaseInfoAccepted, this,
           [this](const QString& name, const QString& path) {
             auto& key_databases = key_db_infos_;
@@ -441,13 +453,6 @@ void GnuPGControllerDialog::slot_refresh_key_database_table() {
     index++;
   }
   ui_->keyDatabaseTable->resizeColumnsToContents();
-}
-
-void GnuPGControllerDialog::contextMenuEvent(QContextMenuEvent* event) {
-  QDialog::contextMenuEvent(event);
-  if (ui_->keyDatabaseTable->selectedItems().length() > 0) {
-    popup_menu_->exec(event->globalPos());
-  }
 }
 
 void GnuPGControllerDialog::slot_remove_existing_key_database() {

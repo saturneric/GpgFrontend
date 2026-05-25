@@ -162,13 +162,5 @@ class GnuPGControllerDialog : public GeneralDialog {
    * @return false
    */
   auto check_custom_gnupg_path(const QString& path) -> bool;
-
- protected:
-  /**
-   * @brief
-   *
-   * @param event
-   */
-  void contextMenuEvent(QContextMenuEvent* event) override;
 };
 }  // namespace GpgFrontend::UI
