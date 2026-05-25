@@ -30,23 +30,37 @@
 
 namespace GpgFrontend::UI {
 
-auto SearchAlgoByName(const QString& name,
-                      const QContainer<KeyAlgo>& algos) -> QContainer<KeyAlgo> {
+auto GetAlgoById(const QString& id, const QContainer<KeyAlgo>& algos)
+    -> std::tuple<bool, KeyAlgo> {
+  for (const auto& algo : algos) {
+    if (algo.Id() != id) continue;
+    return {true, algo};
+  }
+
+  return {};
+}
+
+auto SearchAlgoByNameType(const QString& name, const QString& type,
+                          const QContainer<KeyAlgo>& algos)
+    -> QContainer<KeyAlgo> {
   QContainer<KeyAlgo> res;
 
   for (const auto& algo : algos) {
     if (algo.Name() != name) continue;
+    if (algo.Type() != type) continue;
     res.append(algo);
   }
 
   return res;
 }
 
-auto GetAlgoByNameAndKeyLength(const QString& name, int key_length,
-                               const QContainer<KeyAlgo>& algos)
+auto GetAlgoByNameTypeAndKeyLength(const QString& name, const QString& type,
+                                   int key_length,
+                                   const QContainer<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo> {
   for (const auto& algo : algos) {
     if (algo.Name() != name) continue;
+    if (algo.Type() != type) continue;
     if (algo.KeyLength() != key_length) continue;
     return {true, algo};
   }
@@ -54,10 +68,12 @@ auto GetAlgoByNameAndKeyLength(const QString& name, int key_length,
   return {};
 }
 
-auto GetAlgoByName(const QString& name, const QContainer<KeyAlgo>& algos)
+auto GetAlgoByNameType(const QString& name, const QString& type,
+                       const QContainer<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo> {
   for (const auto& algo : algos) {
     if (algo.Name() != name) continue;
+    if (algo.Type() != type) continue;
     return {true, algo};
   }
 
@@ -66,19 +82,80 @@ auto GetAlgoByName(const QString& name, const QContainer<KeyAlgo>& algos)
 
 void SetKeyLengthComboxBoxByAlgo(QComboBox* combo,
                                  const QContainer<KeyAlgo>& algos) {
+  if (combo == nullptr) return;
+
   combo->clear();
 
-  QContainer<KeyAlgo> sorted_algos(algos.begin(), algos.end());
+  QSet<int> added_lengths;
+
+  for (const auto& algo : algos) {
+    const auto key_length = algo.KeyLength();
+    if (key_length <= 0) continue;
+
+    if (added_lengths.contains(key_length)) continue;
+    added_lengths.insert(key_length);
+
+    combo->addItem(QString::number(key_length), key_length);
+  }
+}
+
+void PopulateAlgoComboBox(QComboBox* combo_box,
+                          const QContainer<KeyAlgo>& algos) {
+  if (combo_box == nullptr) return;
+
+  auto sorted_algos = algos;
+
   std::sort(sorted_algos.begin(), sorted_algos.end(),
-            [](const KeyAlgo& a, const KeyAlgo& b) {
-              return a.KeyLength() < b.KeyLength();
+            [](const KeyAlgo& a, const KeyAlgo& b) -> bool {
+              if (a.Id() == "none" && b.Id() != "none") return true;
+              if (b.Id() == "none" && a.Id() != "none") return false;
+
+              if (a.Name() != b.Name()) return a.Name() < b.Name();
+              if (a.Type() != b.Type()) return a.Type() < b.Type();
+              if (a.KeyLength() != b.KeyLength()) {
+                return a.KeyLength() < b.KeyLength();
+              }
+              return a.Id() < b.Id();
             });
 
-  QStringList key_lengths;
+  combo_box->clear();
+
+  QString last_label;
+  QString last_type;
+
   for (const auto& algo : sorted_algos) {
-    key_lengths.append(QString::number(algo.KeyLength()));
+    QString label;
+
+    if (algo.Id() == "none") {
+      label = algo.Name();
+    } else {
+      label = QString("%1 (%2)").arg(algo.Name(), algo.Type());
+    }
+
+    if (label == last_label && algo.Type() == last_type) continue;
+    last_label = label;
+    last_type = algo.Type();
+
+    QVariantMap data;
+    data["id"] = algo.Id();
+    data["name"] = algo.Name();
+    data["type"] = algo.Type();
+    data["length"] = algo.KeyLength();
+
+    combo_box->addItem(label, data);
+  }
+}
+
+auto GetAlgoByIdType(const QString& id, const QString& type,
+                     const QContainer<KeyAlgo>& algos)
+    -> std::tuple<bool, KeyAlgo> {
+  for (const auto& algo : algos) {
+    if (algo.Id() != id) continue;
+    if (!type.isEmpty() && algo.Type() != type) continue;
+    return {true, algo};
   }
 
-  combo->addItems(key_lengths);
+  return {};
 }
+
 }  // namespace GpgFrontend::UI
