@@ -72,12 +72,6 @@ class KeyPairUIDTab : public QWidget {
    * @brief
    *
    */
-  void slot_refresh_tofu_info();
-
-  /**
-   * @brief
-   *
-   */
   void slot_refresh_sig_list();
 
   /**
