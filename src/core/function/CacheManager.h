@@ -33,132 +33,153 @@
 
 namespace GpgFrontend {
 
+/**
+ * @brief Singleton manager providing two-tier caching: runtime and durable.
+ *
+ * Runtime cache: volatile in-memory LRU store with optional TTL, holding
+ * strings (SaveCache/LoadCache) or raw binary (SaveSecCache/LoadSecCache).
+ *
+ * Durable cache: encrypted on-disk store backed by DataObjectOperator,
+ * holding JSON (SaveDurableCache/LoadDurableCache) or raw binary
+ * (SaveSecDurableCache/LoadSecDurableCache). Dirty entries are flushed to
+ * disk automatically every 15 seconds or on an explicit FlushCacheStorage().
+ */
 class GF_CORE_EXPORT CacheManager
     : public SingletonFunctionObject<CacheManager> {
  public:
   /**
-   * @brief Construct a new Cache Manager object
+   * @brief Construct the cache manager and load all durable cache entries from
+   * disk.
    *
-   * @param channel
+   * @param channel singleton channel identifier
    */
   explicit CacheManager(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
   /**
-   * @brief Destroy the Cache Manager object
-   *
+   * @brief Destroy the cache manager, releasing all runtime and durable cache
+   * state.
    */
   ~CacheManager() override;
 
   /**
-   * @brief
+   * @brief Store a string value in the runtime in-memory cache.
    *
-   * @param key
-   * @param value
+   * @param key cache key
+   * @param value string value to store
+   * @param ttl time-to-live in seconds from now, or -1 for no expiry
    */
   void SaveCache(const QString& key, QString value, qint64 ttl = -1);
 
   /**
-   * @brief
+   * @brief Store a raw binary value in the runtime in-memory cache.
    *
-   * @param key
-   * @param value
+   * @param key cache key
+   * @param value binary value to store
+   * @param ttl time-to-live in seconds from now, or -1 for no expiry
    */
   void SaveSecCache(const QString& key, const GFBuffer& value, qint64 ttl = -1);
 
   /**
-   * @brief
+   * @brief Store a JSON document in the durable encrypted on-disk cache.
    *
-   * @param key
-   * @param value
-   * @param flush
+   * @param key cache key
+   * @param value JSON document to store
+   * @param flush if true, write dirty entries to disk immediately
    */
   void SaveDurableCache(const QString& key, const QJsonDocument& value,
                         bool flush = false);
 
   /**
-   * @brief
+   * @brief Store a raw binary value in the durable encrypted on-disk cache.
    *
-   * @param key
-   * @param value
-   * @param flush
+   * @param key cache key
+   * @param value binary value to store
+   * @param flush if true, write dirty entries to disk immediately
    */
   void SaveSecDurableCache(const QString& key, const GFBuffer& value,
                            bool flush = false);
 
   /**
-   * @brief
+   * @brief Retrieve a string value from the runtime cache.
    *
-   * @param key
-   * @param value
+   * Returns an empty string if the key is absent or the entry has expired.
+   *
+   * @param key cache key
+   * @return cached string, or empty if not found or expired
    */
   auto LoadCache(const QString& key) -> QString;
 
   /**
-   * @brief
+   * @brief Retrieve a raw binary value from the runtime cache.
    *
-   * @param key
-   * @param value
+   * Returns an empty GFBuffer if the key is absent or the entry has expired.
+   *
+   * @param key cache key
+   * @return cached binary value, or empty if not found or expired
    */
   auto LoadSecCache(const QString& key) -> GFBuffer;
 
   /**
-   * @brief
+   * @brief Retrieve a raw binary value from the durable cache, loading from
+   * disk if needed.
    *
-   * @param key
-   * @return QJsonDocument
+   * @param key cache key
+   * @return cached binary value, or empty if not found
    */
   auto LoadSecDurableCache(const QString& key) -> GFBuffer;
 
   /**
-   * @brief
+   * @brief Retrieve a raw binary value from the durable cache, returning a
+   * default if absent.
    *
-   * @param key
-   * @param default_value
-   * @return QJsonDocument
+   * @param key cache key
+   * @param default_value value to return if the key is not found
+   * @return cached binary value, or default_value if not found
    */
   auto LoadSecDurableCache(const QString& key, const GFBuffer& default_value)
       -> GFBuffer;
 
   /**
-   * @brief
+   * @brief Retrieve a JSON document from the durable cache, loading from disk
+   * if needed.
    *
-   * @param key
-   * @return QJsonDocument
+   * @param key cache key
+   * @return cached JSON document, or an empty document if not found
    */
   auto LoadDurableCache(const QString& key) -> QJsonDocument;
 
   /**
-   * @brief
+   * @brief Retrieve a JSON document from the durable cache, returning a default
+   * if absent.
    *
-   * @param key
-   * @param default_value
-   * @return QJsonDocument
+   * @param key cache key
+   * @param default_value value to return if the key is not found
+   * @return cached JSON document, or default_value if not found
    */
   auto LoadDurableCache(const QString& key, QJsonDocument default_value)
       -> QJsonDocument;
 
   /**
-   * @brief
+   * @brief Remove an entry from the runtime in-memory cache.
    *
-   * @param key
-   * @return auto
+   * @param key cache key to remove
    */
   void ResetCache(const QString& key);
 
   /**
-   * @brief
+   * @brief Remove an entry from the durable cache.
    *
-   * @param key
-   * @return true
-   * @return false
+   * @param key cache key to remove
+   * @return true if the key existed and was removed, false if it was not found
    */
   auto ResetDurableCache(const QString& key) -> bool;
 
   /**
-   * @brief
+   * @brief Immediately flush all pending durable cache writes to disk.
    *
-   * @return void
+   * This is called automatically on a 15-second timer; use this to force
+   * an early flush, for example before application shutdown.
    */
   void FlushCacheStorage();
 
