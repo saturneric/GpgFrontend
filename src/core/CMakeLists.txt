@@ -71,6 +71,15 @@ target_include_directories(${LIBRARY_TARGET} PRIVATE ${LibArchive_INCLUDE_DIR})
 # link libarchive
 target_link_libraries(${LIBRARY_TARGET} PRIVATE archive)
 
+# link argon2
+#
+# for argon2, we prefer to use the one provided by openssl, but if it's not
+# available, we will fallback to the standalone libargon2.
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(ARGON2 REQUIRED IMPORTED_TARGET libargon2)
+
+target_link_libraries(${LIBRARY_TARGET} PRIVATE PkgConfig::ARGON2)
+
 # link qt
 target_link_libraries(${LIBRARY_TARGET} PUBLIC Qt::Core Qt::Gui)
 

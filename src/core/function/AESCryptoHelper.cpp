@@ -28,9 +28,15 @@
 
 #include "AESCryptoHelper.h"
 
+#include <openssl/core_names.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/kdf.h>
+
+// introduce argon2 for key derivation.
+// In some older systems, the openssl version may not support argon2, so we use
+// the standalone argon2 library.
+#include <argon2.h>
 
 #include "core/function/SecureRandomGenerator.h"
 
@@ -260,16 +266,48 @@ auto EvpDecryptImpl(const GpgFrontend::GFBuffer& ciphertext,
   return plaintext;
 }
 
+auto DeriveKeyArgon2CompatLibargon2(const GpgFrontend::GFBuffer& passphrase,
+                                    const GpgFrontend::GFBuffer& salt,
+                                    int key_len = 32)
+    -> GpgFrontend::GFBufferOrNone {
+  if (key_len <= 0) {
+    LOG_E() << "invalid key length";
+    return {};
+  }
+
+  if (salt.Size() < 8) {
+    LOG_E() << "invalid Argon2 salt length";
+    return {};
+  }
+  GpgFrontend::GFBuffer key(key_len);
+
+  // Match OpenSSL ARGON2ID defaults when "t", "m", "p" were ignored.
+  const uint32_t t_cost = 3;
+  const uint32_t m_cost =
+      8;  // OpenSSL ARGON2_MIN_MEMORY: 2 * 4 sync points = 8 KiB
+  const uint32_t lanes = 1;
+
+  const int rc = argon2id_hash_raw(t_cost, m_cost, lanes, passphrase.Data(),
+                                   passphrase.Size(), salt.Data(), salt.Size(),
+                                   key.Data(), key.Size());
+
+  if (rc != ARGON2_OK) {
+    LOG_E() << "argon2id_hash_raw failed:" << argon2_error_message(rc);
+    return {};
+  }
+
+  return key;
+}
+
 auto DeriveKeyArgon2(const GpgFrontend::GFBuffer& passphrase,
-                     const GpgFrontend::GFBuffer& salt, int key_len = 32,
-                     int t_cost = 3, int m_cost = 65536, int parallelism = 4)
+                     const GpgFrontend::GFBuffer& salt, int key_len = 32)
     -> GpgFrontend::GFBufferOrNone {
   GpgFrontend::GFBuffer key(key_len);
 
   auto* kdf = EVP_KDF_fetch(nullptr, "ARGON2ID", nullptr);
   if (kdf == nullptr) {
-    LOG_E() << "EVP_KDF_fetch failed";
-    return {};
+    LOG_W() << "EVP_KDF_fetch \"ARGON2ID\" failed, fallback to libargon2";
+    return DeriveKeyArgon2CompatLibargon2(passphrase, salt, key_len);
   }
 
   EVP_KDF_CTX* kctx = EVP_KDF_CTX_new(kdf);
@@ -280,12 +318,14 @@ auto DeriveKeyArgon2(const GpgFrontend::GFBuffer& passphrase,
   }
 
   std::array<OSSL_PARAM, 6> params = {
-      {OSSL_PARAM_octet_string("pass", const_cast<char*>(passphrase.Data()),
-                               passphrase.Size()),
-       OSSL_PARAM_octet_string("salt", const_cast<char*>(salt.Data()),
-                               salt.Size()),
-       OSSL_PARAM_int("t", &t_cost), OSSL_PARAM_int("m", &m_cost),
-       OSSL_PARAM_int("p", &parallelism), OSSL_PARAM_END}};
+      OSSL_PARAM_construct_octet_string(
+          OSSL_KDF_PARAM_PASSWORD,
+          const_cast<void*>(static_cast<const void*>(passphrase.Data())),
+          passphrase.Size()),
+      OSSL_PARAM_construct_octet_string(
+          OSSL_KDF_PARAM_SALT,
+          const_cast<void*>(static_cast<const void*>(salt.Data())),
+          salt.Size())};
 
   int rc = EVP_KDF_derive(kctx, reinterpret_cast<unsigned char*>(key.Data()),
                           key.Size(), params.data());
