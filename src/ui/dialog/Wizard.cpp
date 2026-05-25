@@ -28,115 +28,179 @@
 
 #include "Wizard.h"
 
+#include <QCheckBox>
+#include <QFrame>
+#include <QLabel>
+#include <QMetaEnum>
+#include <QPixmap>
+#include <QVBoxLayout>
+
 #include "core/function/GlobalSettingStation.h"
+#include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend::UI {
+namespace {
+
+auto CreateBodyLabel(const QString& text) -> QLabel* {
+  auto* label = new QLabel(text);
+  label->setWordWrap(true);
+  label->setTextFormat(Qt::RichText);
+  label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+  label->setOpenExternalLinks(true);
+  return label;
+}
+
+auto CreateMutedLabel(const QString& text) -> QLabel* {
+  auto* label = CreateBodyLabel(text);
+  return label;
+}
+
+auto CreateLinkCard(const QString& title, const QString& description,
+                    const QString& url) -> QFrame* {
+  auto* frame = new QFrame;
+  frame->setObjectName(QStringLiteral("WizardLinkCard"));
+  frame->setFrameShape(QFrame::StyledPanel);
+  frame->setCursor(Qt::PointingHandCursor);
+
+  auto* title_label = CreateBodyLabel(
+      QStringLiteral("<a href=\"%1\"><b>%2</b></a>").arg(url, title));
+
+  auto* desc_label = CreateMutedLabel(description);
+
+  auto* layout = new QVBoxLayout(frame);
+  layout->setContentsMargins(14, 10, 14, 10);
+  layout->setSpacing(4);
+  layout->addWidget(title_label);
+  layout->addWidget(desc_label);
+
+  return frame;
+}
+}  // namespace
 
 Wizard::Wizard(QWidget* parent) : QWizard(parent) {
   setPage(kPAGE_INTRO, new IntroPage(this));
   setPage(kPAGE_CHOOSE, new ChoosePage(this));
   setPage(kPAGE_CONCLUSION, new ConclusionPage(this));
-#ifndef Q_WS_MAC
-  setWizardStyle(ModernStyle);
+
+#if !defined(Q_OS_MACOS)
+  setWizardStyle(QWizard::ModernStyle);
 #endif
-  setWindowTitle(tr("First Start Wizard"));
 
-  setPixmap(QWizard::LogoPixmap,
-            QPixmap(":/icons/gpgfrontend_logo.png").scaled(64, 64));
+  setWindowTitle(tr("Welcome to GpgFrontend"));
+  setOption(QWizard::NoBackButtonOnStartPage);
+  setOption(QWizard::HaveHelpButton, false);
 
-  int next_page_id = GetSettings().value("wizard.next_page", -1).toInt();
-  setStartId(next_page_id);
+  resize(680, 500);
+
+  const auto logo =
+      QPixmap(QStringLiteral(":/icons/gpgfrontend_logo.png"))
+          .scaled(72, 72, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+  setPixmap(QWizard::LogoPixmap, logo);
+
+  const int next_page_id =
+      GetSettings()
+          .value(QStringLiteral("wizard.next_page"), kPAGE_INTRO)
+          .toInt();
+
+  if (next_page_id >= kPAGE_INTRO && next_page_id <= kPAGE_CONCLUSION) {
+    setStartId(next_page_id);
+  } else {
+    setStartId(kPAGE_INTRO);
+  }
 
   connect(this, &Wizard::accepted, this, &Wizard::slot_wizard_accepted);
 }
 
 void Wizard::slot_wizard_accepted() {
   auto settings = GetSettings();
-  settings.setValue("wizard/show_wizard", !field("showWizard").toBool());
-  settings.setValue("network/prohibit_update_checking",
-                    !field("checkUpdate").toBool());
+
+  settings.setValue(QStringLiteral("wizard/show_wizard"),
+                    !field(QStringLiteral("hideWizard")).toBool());
+
+  settings.setValue(QStringLiteral("network/prohibit_update_check"),
+                    !field(QStringLiteral("checkUpdate")).toBool());
 }
 
 IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   setTitle(tr("Welcome to GpgFrontend"));
-  setSubTitle(tr("Your OpenPGP encryption companion."));
+  setSubTitle(
+      tr("A simple and privacy-focused OpenPGP tool for text and files."));
 
-  // Intro text
-  auto* intro_label = new QLabel(
-      tr("<b>GpgFrontend</b> is a free, user-friendly, and cross-platform tool "
-         "for "
-         "OpenPGP encryption, decryption, and signing of text and files.") +
-      "<br><br>" + tr("To get started, take a quick look at the") +
-      " <a href='https://gpgfrontend.bktus.com/overview/glance'>" +
-      tr("Overview Page") + "</a>." + " " +
-      tr("It will open in your default browser."));
-  intro_label->setTextFormat(Qt::RichText);
-  intro_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  intro_label->setOpenExternalLinks(true);
-  intro_label->setWordWrap(true);
+  auto* intro_label = CreateBodyLabel(
+      tr("<b>GpgFrontend</b> helps you encrypt, decrypt, sign, and verify "
+         "messages and files with OpenPGP. This short wizard will point you to "
+         "the most useful places to start."));
 
-  // Language info
-  auto* lang_label =
-      new QLabel(tr("GpgFrontend will automatically use the language of your "
-                    "system if supported. "
-                    "You can change the language later in settings."));
-  lang_label->setWordWrap(true);
+  auto* privacy_label = CreateMutedLabel(
+      tr("You can change language, update checking, key database, and "
+         "appearance settings later from the application settings."));
 
-  // Layout
+  auto* overview_card = CreateLinkCard(
+      tr("Open the overview page"),
+      tr("Get a quick tour of the main features and common workflows."),
+      QStringLiteral("https://gpgfrontend.bktus.com/overview/glance"));
+
+  auto* concepts_card = CreateLinkCard(
+      tr("Fundamental concepts"),
+      tr("Understand public keys, private keys, encryption, signing, and "
+         "trust."),
+      QStringLiteral(
+          "https://gpgfrontend.bktus.com/guides/fundamental-concepts/"));
+
   auto* layout = new QVBoxLayout;
+  layout->setContentsMargins(8, 8, 8, 8);
+  layout->setSpacing(14);
   layout->addWidget(intro_label);
-  layout->addSpacing(20);
-  layout->addWidget(lang_label);
+  layout->addWidget(privacy_label);
+  layout->addSpacing(8);
+  layout->addWidget(overview_card);
+  layout->addWidget(concepts_card);
   layout->addStretch();
+
   setLayout(layout);
 }
 
 auto IntroPage::nextId() const -> int { return Wizard::kPAGE_CHOOSE; }
 
 ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
-  setTitle(tr("Welcome to GpgFrontend"));
-  setSubTitle(tr("These quick guides will help you get started."));
+  setTitle(tr("Choose a guide"));
+  setSubTitle(tr("Pick a topic if you want to learn the basics first."));
 
   auto* layout = new QVBoxLayout;
+  layout->setContentsMargins(8, 8, 8, 8);
+  layout->setSpacing(10);
 
-  // Section 1: Fundamental Concepts
-  auto* concepts_title = new QLabel(tr("<b>New to encryption?</b>"));
-  auto* concepts_desc = new QLabel(
-      tr("Understand the basics of OpenPGP and how GpgFrontend works."));
-  auto* concepts_link = new QLabel(
-      "<a "
-      "href=\"https://gpgfrontend.bktus.com/guides/fundamental-concepts/\">" +
-      tr("Fundamental Concepts") + "</a>");
+  layout->addWidget(CreateLinkCard(
+      tr("Generate a new Key Pair"),
+      tr("Learn how to create your own key pairs."),
+      QStringLiteral("https://gpgfrontend.bktus.com/guides/generate-key/")));
 
-  // Section 2: Text operations
-  auto* textops_title = new QLabel(tr("<b>Working with text?</b>"));
-  auto* textops_desc = new QLabel(
-      tr("Learn how to encrypt, decrypt, sign, and verify text messages."));
-  auto* textops_link = new QLabel(
-      "<a href=\"https://gpgfrontend.bktus.com/guides/text-opetations/\">" +
-      tr("Text Operations Guide") + "</a>");
+  layout->addWidget(CreateLinkCard(
+      tr("Text operations"),
+      tr("Learn how to encrypt, decrypt, sign, and verify text messages."),
+      QStringLiteral("https://gpgfrontend.bktus.com/guides/text-operations/")));
 
-  // Section 3: File operations
-  auto* fileops_title = new QLabel(tr("<b>Working with files?</b>"));
-  auto* fileops_desc =
-      new QLabel(tr("Learn how to encrypt, sign, and verify files securely."));
-  auto* fileops_link = new QLabel(
-      "<a href=\"https://gpgfrontend.bktus.com/guides/file-operations/\">" +
-      tr("File Operations Guide") + "</a>");
+  layout->addWidget(CreateLinkCard(
+      tr("File operations"),
+      tr("Learn how to encrypt, decrypt, sign, and verify files securely."),
+      QStringLiteral("https://gpgfrontend.bktus.com/guides/file-operations/")));
 
-  // All labels: uniform setup
-  const QList<QLabel*> labels = {concepts_title, concepts_desc, concepts_link,
-                                 textops_title,  textops_desc,  textops_link,
-                                 fileops_title,  fileops_desc,  fileops_link};
-  for (auto* l : labels) {
-    l->setTextFormat(Qt::RichText);
-    l->setTextInteractionFlags(Qt::TextBrowserInteraction);
-    l->setOpenExternalLinks(true);
-    l->setWordWrap(true);
-    layout->addWidget(l);
-  }
+  layout->addWidget(CreateLinkCard(
+      tr("View key pair information"),
+      tr("Learn how to inspect key details, user IDs, fingerprints, and key "
+         "capabilities."),
+      QStringLiteral(
+          "https://gpgfrontend.bktus.com/guides/view-keypair-info/")));
 
-  layout->addStretch();  // push content upward
+  auto* hint_label = CreateMutedLabel(
+      tr("You can also skip these guides and start using GpgFrontend "
+         "directly."));
+
+  layout->addSpacing(2);
+  layout->addWidget(hint_label);
+  layout->addStretch();
+
   setLayout(layout);
 
   next_page_ = Wizard::kPAGE_CONCLUSION;
@@ -145,55 +209,69 @@ ChoosePage::ChoosePage(QWidget* parent) : QWizardPage(parent) {
 auto ChoosePage::nextId() const -> int { return next_page_; }
 
 void ChoosePage::slot_jump_page(const QString& page) {
-  QMetaObject const qmo = Wizard::staticMetaObject;
-  int const index = qmo.indexOfEnumerator("WizardPages");
-  QMetaEnum const m = qmo.enumerator(index);
+  const QMetaObject qmo = Wizard::staticMetaObject;
+  const int index = qmo.indexOfEnumerator("WizardPages");
 
-  next_page_ = m.keyToValue(page.toUtf8().data());
+  if (index < 0) {
+    next_page_ = Wizard::kPAGE_CONCLUSION;
+    wizard()->next();
+    return;
+  }
+
+  const QMetaEnum meta_enum = qmo.enumerator(index);
+  const int page_id = meta_enum.keyToValue(page.toUtf8().constData());
+
+  if (page_id >= Wizard::kPAGE_INTRO && page_id <= Wizard::kPAGE_CONCLUSION) {
+    next_page_ = page_id;
+  } else {
+    next_page_ = Wizard::kPAGE_CONCLUSION;
+  }
+
   wizard()->next();
 }
 
 ConclusionPage::ConclusionPage(QWidget* parent) : QWizardPage(parent) {
-  setTitle(tr("You're all set!"));
-  setSubTitle(tr("GpgFrontend is ready to use."));
+  setTitle(tr("Ready to use"));
+  setSubTitle(
+      tr("GpgFrontend is ready. You can adjust these options before "
+         "finishing."));
 
-  auto* bottom_label = new QLabel(
-      tr("GpgFrontend is now fully set up and ready to go.") + "<br><br>" +
-      tr("If you encounter any issues or have questions, feel free to ") +
-      "<a href=\"https://github.com/saturneric/GpgFrontend/issues\">" +
-      tr("submit an issue on GitHub") + "</a> " + tr("or ") +
-      "<a href=\"https://gpgfrontend.bktus.com/overview/contact/\">" +
-      tr("contact the developer") + "</a>." + "<br>" +
-      tr("Any feedback is welcome and valuable!"));
-  bottom_label->setTextFormat(Qt::RichText);
-  bottom_label->setTextInteractionFlags(Qt::TextBrowserInteraction);
-  bottom_label->setOpenExternalLinks(true);
-  bottom_label->setWordWrap(true);
+  auto* layout = new QVBoxLayout;
+  layout->setContentsMargins(8, 8, 8, 8);
+  layout->setSpacing(10);
 
-  // Option checkboxes
-  open_help_check_box_ = new QCheckBox(tr("Open offline help now"));
-  open_help_check_box_->setChecked(true);
+  layout->addWidget(CreateLinkCard(
+      tr("Contact and feedback"),
+      tr("Report issues, ask questions, or send feedback to help improve "
+         "GpgFrontend."),
+      QStringLiteral("https://gpgfrontend.bktus.com/overview/contact/")));
+
+  layout->addWidget(CreateLinkCard(
+      tr("Submit an issue on GitHub"),
+      tr("Use GitHub issues if you want to report a bug or track a technical "
+         "problem."),
+      QStringLiteral("https://github.com/saturneric/GpgFrontend/issues")));
+
+  check_updates_checkbox_ = new QCheckBox(tr("Check for updates on startup"));
+  check_updates_checkbox_->setChecked(false);
+
+  if (IsRunningInSandBox()) {
+    check_updates_checkbox_->setHidden(true);
+    check_updates_checkbox_->setChecked(false);
+  }
 
   dont_show_wizard_checkbox_ =
       new QCheckBox(tr("Don't show this setup wizard again"));
   dont_show_wizard_checkbox_->setChecked(true);
 
-  // I think update checking should be off by default for privacy reasons
-  check_updates_checkbox_ = new QCheckBox(tr("Check for updates on startup"));
-  check_updates_checkbox_->setChecked(false);
+  registerField(QStringLiteral("hideWizard"), dont_show_wizard_checkbox_);
+  registerField(QStringLiteral("checkUpdate"), check_updates_checkbox_);
 
-  // Register fields
-  registerField("showWizard", dont_show_wizard_checkbox_);
-  registerField("checkUpdate", check_updates_checkbox_);
-
-  // Layout
-  auto* layout = new QVBoxLayout;
-  layout->addWidget(bottom_label);
-  layout->addSpacing(15);
-  // layout->addWidget(open_help_check_box_);
+  layout->addSpacing(8);
   layout->addWidget(check_updates_checkbox_);
   layout->addWidget(dont_show_wizard_checkbox_);
   layout->addStretch();
+
   setLayout(layout);
 }
 
