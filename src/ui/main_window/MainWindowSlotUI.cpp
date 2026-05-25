@@ -29,12 +29,10 @@
 #include "MainWindow.h"
 #include "core/GpgConstants.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
-#include "core/model/SettingsObject.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/dialog/settings/SettingsDialog.h"
 #include "ui/main_window/KeyMgmt.h"
-#include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -46,8 +44,38 @@ void MainWindow::SlotSetStatusBarText(const QString& text) {
 
 void MainWindow::slot_start_wizard() {
   auto* wizard = new Wizard(this);
-  wizard->show();
-  wizard->setModal(true);
+  wizard->setAttribute(Qt::WA_DeleteOnClose);
+  wizard->setWindowModality(Qt::ApplicationModal);
+
+#ifdef Q_OS_MACOS
+  wizard->setWindowFlag(Qt::Dialog, true);
+#endif
+
+  wizard->open();
+
+  QTimer::singleShot(0, wizard, [wizard]() {
+    wizard->raise();
+    wizard->activateWindow();
+  });
+}
+
+void MainWindow::slot_maybe_show_wizard() {
+  if (wizard_checked_) {
+    return;
+  }
+  wizard_checked_ = true;
+
+  if (!show_wizard_on_startup_) {
+    LOG_D() << "Wizard on startup is disabled. Skipping wizard.";
+    return;
+  }
+
+  if (!isVisible()) {
+    LOG_W() << "Main window is not visible yet. Skipping startup wizard.";
+    return;
+  }
+
+  slot_start_wizard();
 }
 
 void MainWindow::slot_open_key_management() {
@@ -404,24 +432,4 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
 
   slot_update_crypto_operations_menu(operations_menu_mask_ & mask & temp);
 }
-
-void MainWindow::slot_maybe_show_wizard() {
-  if (wizard_checked_) {
-    return;
-  }
-  wizard_checked_ = true;
-
-  if (!show_wizard_on_startup_) {
-    LOG_D() << "Wizard on startup is disabled. Skipping wizard.";
-    return;
-  }
-
-  if (!isVisible()) {
-    LOG_W() << "Main window is not visible yet. Skipping startup wizard.";
-    return;
-  }
-
-  slot_start_wizard();
-}
-
 }  // namespace GpgFrontend::UI
