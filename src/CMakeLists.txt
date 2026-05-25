@@ -234,6 +234,10 @@ if(MINGW)
   file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libcrypto-*.dll")
   list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
 
+  unset(_libDllPath)
+  file(GLOB _libDllPath "${MSYS64_BIN_PATH}/libargon2*.dll")
+  list(APPEND ALL_RUNTIME_DEP_PATH_LIST ${_libDllPath})
+
   # dll with only name
   set(ALL_RUNTIME_DLL_FILES "")
 
