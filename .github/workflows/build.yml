@@ -107,7 +107,7 @@ jobs:
             BUILD_MODE="pr"
             BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
 
-          elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+          elif [[ "${GITHUB_REF_NAME}" == "main" || "${GITHUB_REF_NAME}" == release/* ]]; then
             BUILD_MODE="release"
             BUILD_TYPE_EFFECTIVE="Release"
 
