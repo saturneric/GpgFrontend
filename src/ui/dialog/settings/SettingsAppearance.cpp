@@ -43,8 +43,6 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   ui_->generalBox->setTitle(tr("General"));
 
   ui_->themaLabel->setText(tr("Theme"));
-  ui_->windowStateCheckBox->setText(
-      tr("Save window size and position on exit."));
 
   ui_->toolbarIconBox->setTitle(tr("Toolbar Icon"));
 
@@ -114,10 +112,6 @@ void AppearanceTab::SetSettings() {
       break;
   }
 
-  if (appearance.save_window_state) {
-    ui_->windowStateCheckBox->setCheckState(Qt::Checked);
-  }
-
   auto info_board_info_font_size = appearance.info_board_font_size;
   if (info_board_info_font_size < 9 || info_board_info_font_size > 18) {
     info_board_info_font_size = 10;
@@ -183,6 +177,9 @@ void AppearanceTab::ApplySettings() {
     case 3:
       icon_size = 32;
       break;
+    default:
+      icon_size = 24;
+      break;
   }
 
   appearance.tool_bar_icon_height = icon_size;
@@ -205,7 +202,7 @@ void AppearanceTab::ApplySettings() {
   }
   appearance.tool_bar_button_style = icon_style;
 
-  appearance.save_window_state = ui_->windowStateCheckBox->isChecked();
+  appearance.save_window_state = true;
   appearance.info_board_font_size =
       ui_->fontSizeInformationBoardSpinBox->value();
   appearance.text_editor_font_size =

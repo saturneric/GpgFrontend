@@ -29,6 +29,8 @@
 #include "SettingsDialog.h"
 
 #include "core/GpgConstants.h"
+#include "core/function/GlobalSettingStation.h"
+#include "core/utils/CommonUtils.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
 #include "ui/dialog/settings/SettingsNetwork.h"
@@ -49,7 +51,12 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
   tab_widget_->addTab(general_tab_, tr("General"));
   tab_widget_->addTab(appearance_tab_, tr("Appearance"));
-  tab_widget_->addTab(network_tab_, tr("Network"));
+
+  // network settings is not available in sandbox environment, so only add the
+  // tab when not running in sandbox
+  if (!IsRunningInSandBox()) {
+    tab_widget_->addTab(network_tab_, tr("Network"));
+  }
 
 #ifdef Q_OS_MACOS
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
@@ -84,12 +91,19 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   connect(this, &SettingsDialog::SignalRestartNeeded,
           qobject_cast<MainWindow*>(parent), &MainWindow::SlotSetRestartNeeded);
 
-  this->setMinimumWidth(500);
-  this->adjustSize();
-
   this->show();
   this->raise();
   this->activateWindow();
+}
+
+void SettingsDialog::showEvent(QShowEvent* event) {
+  GeneralDialog::showEvent(event);
+
+  // If the window state has not been restored, move the dialog to the center of
+  // the parent window (if has parent) or the screen.
+  if (!isRectRestored()) {
+    movePosition2CenterOfParent();
+  }
 }
 
 void SettingsDialog::slot_declare_a_restart() {
@@ -109,9 +123,17 @@ void SettingsDialog::SlotAccept() {
   appearance_tab_->ApplySettings();
   network_tab_->ApplySettings();
 
+  emit SignalAppearanceChanged();
+
+  LOG_D() << "flushing qt event loop to ensure all pending events are "
+             "processed before applying the settings";
+  QCoreApplication::sendPostedEvents(nullptr, 0);
+  QCoreApplication::processEvents(QEventLoop::AllEvents);
+
   if (restart_mode_ != kNonRestartCode) {
     emit SignalRestartNeeded(restart_mode_);
   }
+
   close();
 }
 

@@ -36,6 +36,8 @@ class GeneralTab;
 class AppearanceTab;
 class KeyserverTab;
 class NetworkTab;
+class KeyDatabasesTab;
+class GnuPGTab;
 
 /**
  * @brief
@@ -56,6 +58,8 @@ class SettingsDialog : public GeneralDialog {
   AppearanceTab* appearance_tab_;  ///<
   KeyserverTab* key_server_tab_;   ///<
   NetworkTab* network_tab_;        ///<
+  KeyDatabasesTab* key_dbs_tab_;   ///<
+  GnuPGTab* gnupg_tab_;            ///<
 
   /**
    * @brief
@@ -80,6 +84,19 @@ class SettingsDialog : public GeneralDialog {
    * @param needed
    */
   void SignalRestartNeeded(int);
+
+  /**
+   * @brief Emitted after appearance settings are applied.
+   */
+  void SignalAppearanceChanged();
+
+ protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void showEvent(QShowEvent* event) override;
 
  private:
   QTabWidget* tab_widget_;             ///<
