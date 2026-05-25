@@ -230,6 +230,19 @@ class GF_CORE_EXPORT GlobalSettingStation
   SecureUniquePtr<Impl> p_;
 };
 
+/**
+ * @brief Return a reference to the GlobalSettingStation singleton instance.
+ *
+ * @return reference to the singleton
+ */
+auto GF_CORE_EXPORT GetGSS() -> GlobalSettingStation&;
+
+/**
+ * @brief Convenience wrapper that returns the application QSettings via the
+ * singleton.
+ *
+ * @return QSettings configured for the current platform and mode
+ */
 auto GF_CORE_EXPORT GetSettings() -> QSettings;
 
 }  // namespace GpgFrontend

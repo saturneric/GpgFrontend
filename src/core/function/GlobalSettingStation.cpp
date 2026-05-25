@@ -325,9 +325,6 @@ auto GlobalSettingStation::GetIntegratedModulePath() const -> QString {
 auto GlobalSettingStation::IsProtableMode() const -> bool {
   return p_->IsProtableMode();
 }
-auto GetSettings() -> QSettings {
-  return GlobalSettingStation::GetInstance().GetSettings();
-}
 
 auto GlobalSettingStation::GetAppSecureKey(const GFBuffer& id) -> GFBuffer {
   return p_->GetAppSecureKey(id);
@@ -373,4 +370,11 @@ void GlobalSettingStation::SetLegacyKeyId(const GFBuffer& id) {
 auto GlobalSettingStation::GetLegacyAppSecureKey() -> GFBuffer {
   return p_->GetLegacyKey();
 }
+
+auto GetGSS() -> GlobalSettingStation& {
+  return GlobalSettingStation::GetInstance();
+}
+
+auto GetSettings() -> QSettings { return GetGSS().GetSettings(); }
+
 }  // namespace GpgFrontend
