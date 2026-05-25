@@ -27,9 +27,19 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    paths-ignore:
+      - "resource/lfs/locale/**"
+      - "**.md"
+
   pull_request:
-    branches: [main]
+    branches:
+      - main
+    paths-ignore:
+      - "resource/lfs/locale/**"
+      - "**.md"
+
   schedule:
     - cron: "19 14 * * 2"
 
@@ -71,7 +81,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++ ninja-build
-          sudo apt-get -y install libarchive-dev libgpgme-dev
+          sudo apt-get -y install libarchive-dev libgpgme-dev libssl-dev
           sudo apt-get -y install gpg
 
       - name: Build googletest

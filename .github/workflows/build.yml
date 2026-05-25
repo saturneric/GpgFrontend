@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
+# Copyright (C) 2021-2026 Saturneric <eric@bktus.com>
 #
 # This file is part of GpgFrontend.
 #
@@ -23,16 +23,40 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-name: Build Nightly
+name: Build
 
 on:
   push:
     branches:
       - develop
+      - main
+      - release/*
+    paths-ignore:
+      - "resource/lfs/locale/**"
+      - "**.md"
+
+  pull_request:
+    branches:
+      - develop
+      - main
+      - release/*
+    paths-ignore:
+      - "resource/lfs/locale/**"
+      - "**.md"
+
   workflow_dispatch:
+    inputs:
+      build_mode:
+        description: "Build mode"
+        required: true
+        default: "nightly"
+        type: choice
+        options:
+          - nightly
+          - release
 
 env:
-  BUILD_TYPE: Release
+  BUILD_TYPE: RelWithDebInfo
   GNUPG_VERSION: "2.5.18"
 
 jobs:
@@ -50,6 +74,7 @@ jobs:
             "windows-2022",
           ]
     runs-on: ${{ matrix.os }}
+    continue-on-error: true
     steps:
       - name: Set git to use LF(Windows) or CRLF(MacOS) line endings
         run: |
@@ -59,25 +84,62 @@ jobs:
 
       - uses: actions/checkout@v6
         with:
-          ref: "develop"
           lfs: "false"
           submodules: recursive
+
+      - name: Setup Build Mode
+        shell: bash
+        run: |
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            BUILD_MODE="${{ github.event.inputs.build_mode }}"
+            if [[ "${BUILD_MODE}" == "release" ]]; then
+              BUILD_TYPE_EFFECTIVE="Release"
+            else
+              BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+            fi
+
+          elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            BUILD_MODE="pr"
+            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+
+          elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            BUILD_MODE="release"
+            BUILD_TYPE_EFFECTIVE="Release"
+
+          elif [[ "${GITHUB_REF_NAME}" == "develop" ]]; then
+            BUILD_MODE="nightly"
+            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+
+          else
+            BUILD_MODE="nightly"
+            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+          fi
+
+          echo "BUILD_MODE=${BUILD_MODE}" >> $GITHUB_ENV
+          echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}" >> $GITHUB_ENV
+          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE_EFFECTIVE} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+          echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
+          echo "CODE_SIGNING_IDENTITY=${{secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
+          echo "PROVISIONING_PROFILE_UUID=${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_UUID}}" >> $GITHUB_ENV
+
+          echo "Build mode: ${BUILD_MODE}"
+          echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           key: ${{ github.job }}-${{ matrix.os }}
 
-      - name: Get Short SHA of Commit
-        id: vars
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
       - name: Install Dependence (Linux)
         run: |
           sudo apt-get update
           sudo apt-get -y install build-essential binutils git autoconf automake gettext texinfo
           sudo apt-get -y install gcc g++ ninja-build
-          sudo apt-get -y install libarchive-dev libssl-dev
+          sudo apt-get -y install libarchive-dev libssl-dev libargon2-dev
           sudo apt-get -y install gpgsm libxcb-xinerama0 libxcb-icccm4-dev libcups2-dev libdrm-dev libegl1-mesa-dev
           sudo apt-get -y install libfuse2 libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0 gyp
@@ -87,22 +149,25 @@ jobs:
 
       - name: Codesign Configuration (macOS)
         run: |
-          CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          PP_PATH=$RUNNER_TEMP/${{secrets.GPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID}}.provisionprofile
+          APP_CERT_PATH=$RUNNER_TEMP/app_certificate.p12
+
+          PP_PATH=$RUNNER_TEMP/${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_UUID}}.provisionprofile
+          echo -n "${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
-          echo -n "${{secrets.MACOS_CERTIFICATE}}" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "${{secrets.GPGFRONTEND_XCODE_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
+          # Import the certificates and provisioning profile into the keychain
+          echo -n "${{secrets.DEVELOP_ID_CERT}}" | base64 --decode -o $APP_CERT_PATH
 
           security create-keychain -p gpgfrontend build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p gpgfrontend build.keychain
-          security import $CERTIFICATE_PATH -k build.keychain -P ${{secrets.MAOS_CERTIFICATE_PWD}} -T /usr/bin/codesign
+          security import $APP_CERT_PATH -k build.keychain -P ${{secrets.DEVELOP_ID_CERT_PWD}} -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
           security set-keychain-settings -lut 3600
 
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles
+          PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILE_DIR"
+          cp "$PP_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile"
         if: runner.os == 'macOS'
 
       - name: Install Qt6
@@ -114,7 +179,7 @@ jobs:
 
       - name: Install Dependence (macOS)
         run: |
-          brew install --formula automake texinfo libarchive googletest create-dmg
+          brew install --formula automake texinfo libarchive googletest create-dmg argon2
         if: runner.os == 'macOS'
 
       - name: Set up MinGW (Windows)
@@ -143,6 +208,7 @@ jobs:
             mingw-w64-x86_64-texinfo
             mingw-w64-x86_64-libassuan
             mingw-w64-x86_64-ccache
+            mingw-w64-x86_64-argon2
         if: runner.os == 'Windows'
 
       - name: Build GpgME (macOS)
@@ -161,7 +227,7 @@ jobs:
           --disable-gpg-test \
           --disable-gpgsm-test \
           --disable-g13-test
-          make -j4
+          make -j$(sysctl -n hw.logicalcpu)
           sudo make install
         if: runner.os == 'macOS'
 
@@ -186,7 +252,7 @@ jobs:
           --disable-gpgsm-test \
           --disable-g13-test \
           --enable-w32-glib
-          make -j4
+          make -j$(nproc)
           make install
         if: runner.os == 'Windows'
 
@@ -225,16 +291,30 @@ jobs:
           cmake -B ${{github.workspace}}/build -G Xcode \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=${DEPLOY_TARGET} \
-            -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" \
+            -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}" \
             -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
-            -DGPGFRONTEND_XCODE_APPID="${{secrets.GPGFRONTEND_XOCDE_APPID}}" \
-            -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{secrets.GPGFRONTEND_XOCDE_PROVISIONING_PROFILE_UUID}}" \
+            -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{env.PROVISIONING_PROFILE_UUID}}" \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
+            
           xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
+
+          echo "CODE_SIGNING_IDENTITY=${{env.CODE_SIGNING_IDENTITY}}"
+          echo "PROFILE_UUID=${{env.PROVISIONING_PROFILE_UUID}}"
+          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
+          security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile" | plutil -p -
+          security find-identity -v -p codesigning
+
           cd ${{github.workspace}}/build/
-          xcodebuild -scheme GpgFrontend -configuration "${{env.BUILD_TYPE}}"\
-            -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive archive
+          xcodebuild -project ${{github.workspace}}/build/GpgFrontend.xcodeproj \
+            -scheme GpgFrontend \
+            -configuration "${{env.BUILD_TYPE}}" \
+            -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
+            archive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
+            CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}"
           mkdir ${{github.workspace}}/build/package
+
           xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
             -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
             -exportPath ${{github.workspace}}/build/package/
@@ -242,8 +322,20 @@ jobs:
 
       - name: Deploy Qt & Code Sign (macOS)
         run: |
-          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app -verbose=2 -appstore-compliant -always-overwrite
-          codesign -s "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" -f --deep --options=runtime --timestamp ${{github.workspace}}/build/package/GpgFrontend.app
+          # Use macdeployqt to deploy the Qt frameworks and plugins, and sign
+          # the app bundle in one step.
+          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app \
+            -verbose=2 \
+            -always-overwrite \
+            -codesign="${{env.CODE_SIGNING_IDENTITY}}"
+
+          # Sign the app bundle with the specified identity and provisioning profile.
+          codesign -s "${{env.CODE_SIGNING_IDENTITY}}" \
+            -f --deep --options=runtime --timestamp \
+            ${{github.workspace}}/build/package/GpgFrontend.app
+
+          codesign --verify --deep --strict --verbose=4 \
+            ${{github.workspace}}/build/package/GpgFrontend.app
         if: runner.os == 'macOS'
 
       - name: Package & Sign App Bundle (macOS)
@@ -253,22 +345,20 @@ jobs:
           hdiutil create ${{github.workspace}}/build/tmp.dmg -ov \
             -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/
           mkdir ${{github.workspace}}/build/upload-artifact
-          create-dmg --codesign "${{secrets.GPGFRONTEND_XOCDE_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
+          create-dmg --codesign "${{secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
           mv ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg \
-            ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{matrix.os}}-${{env.sha_short}}.dmg
+            ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.dmg
           mv ${{github.workspace}}/build/GpgFrontend.app.zip \
-            ${{github.workspace}}/build/GpgFrontend-${{matrix.os}}-${{env.sha_short}}.zip
+            ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.zip
         if: runner.os == 'macOS'
 
-      - name: Notarize Release Build (macOS)
+      - name: Notarize macOS Build (macOS)
         run: |
           xcrun notarytool submit \
           --apple-id ${{secrets.APPLE_DEVELOPER_ID}} \
           --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}} \
           --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
-          ${{github.workspace}}/build/GpgFrontend-${{matrix.os}}-${{env.sha_short}}.zip
-          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE} | tr '[:upper:]' '[:lower:]')" >> ${GITHUB_ENV}
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
+          ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.zip
         if: runner.os == 'macOS'
 
       - name: Build GpgFrontend (Linux)
@@ -278,11 +368,27 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
-          cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+          cmake --build ${{ github.workspace }}/build \
+            --config ${{ env.BUILD_TYPE }} \
+            --parallel \
+            --verbose
         if: runner.os == 'Linux'
 
       - name: Package App Image (Linux)
         run: |
+          QT_PLUGIN_DIR=$(qmake -query QT_INSTALL_PLUGINS)
+          echo "Found Qt plugin dir: $QT_PLUGIN_DIR"
+
+          # enter the sqldrivers directory
+          cd $QT_PLUGIN_DIR/sqldrivers
+
+          # remove all non-sqlite drivers to reduce the size of the final AppImage
+          find . -type f ! -name '*sqlite*' -delete
+          ls -l
+
+          # return to the root of the repository
+          cd ${{github.workspace}}
+
           mkdir ${{github.workspace}}/build/upload-artifact
           cd ${{github.workspace}}/build/upload-artifact
 
@@ -305,11 +411,9 @@ jobs:
             ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
             $EXTRA_ARGS \
             -no-translations \
-            -extra-plugins=iconengines,platforms \
+            -extra-plugins=iconengines,platforms,sqldrivers/libqsqlite.so \
             -appimage \
             -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
-          echo "BUILD_TYPE_LOWER=${BUILD_TYPE,,}" >> ${GITHUB_ENV}
-          echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> ${GITHUB_ENV}
         if: runner.os == 'Linux'
 
       - name: Build GpgFrontend (Windows)
@@ -320,13 +424,10 @@ jobs:
           cmake -G "Ninja" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
             ..
-          cmake --build . --config ${{env.BUILD_TYPE}}  -- -j 4
-        if: runner.os == 'Windows'
-
-      - name: Generate Env Vars (Windows)
-        run: |
-          echo "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" >> $env:GITHUB_ENV
-          echo "BUILD_TYPE_LOWER=$("${{env.BUILD_TYPE}}".ToLower())" >> $env:GITHUB_ENV
+          cmake --build . \
+            --config ${{ env.BUILD_TYPE }} \
+            --parallel \
+            --verbose
         if: runner.os == 'Windows'
 
       - name: Download GnuPG Binary Release (Windows)
@@ -398,21 +499,21 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Upload Artifact (Linux)
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v7
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/Gpg_Frontend*.AppImage*
         if: runner.os == 'Linux'
 
       - name: Upload Artifact (macOS)
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          name: gpgfrontend-${{env.OS_IDENTIFIER}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*
         if: runner.os == 'macOS'
 
       - name: Upload Artifact (Windows)
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v7
         with:
           name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*
@@ -421,11 +522,13 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    # Only publish nightly release from develop branch.
+    # Stable releases are packaged manually/offline.
+    if: github.event_name != 'pull_request' && github.ref_name == 'develop'
     environment: nightly-release-approval
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: "develop"
           lfs: "false"
           submodules: recursive
 
@@ -435,7 +538,7 @@ jobs:
         run: |
           cd ${{github.workspace}}
           gh release delete nightly --repo saturneric/GpgFrontend --cleanup-tag --yes || true
-          git tag -f nightly develop
+          git tag -f nightly $GITHUB_SHA
           git push origin nightly --force
 
       - name: Download Artifacts
@@ -444,6 +547,13 @@ jobs:
           path: artifacts/
           pattern: gpgfrontend-*
           merge-multiple: true
+
+      - name: Ignore Non-Artifact Files
+        run: |
+          # Remove MAS specific .pkg files if they exist, since they are not
+          # needed for the release and we only want to keep the main artifacts
+          # (dmg, AppImage, zip).
+          find artifacts/ -type f -name '*.pkg' -delete
 
       - name: Generate SHA256 checksums
         run: |
