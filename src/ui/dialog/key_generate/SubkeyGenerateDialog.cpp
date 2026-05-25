@@ -29,7 +29,6 @@
 #include "SubkeyGenerateDialog.h"
 
 #include <cassert>
-#include <cstddef>
 
 #include "core/function/gpg/GpgKeyOpera.h"
 #include "core/utils/GpgUtils.h"
@@ -42,6 +41,61 @@
 #include "ui_SubkeyGenDialog.h"
 
 namespace GpgFrontend::UI {
+
+namespace {
+
+auto ComboCurrentNameType(QComboBox* combo) -> QPair<QString, QString> {
+  if (combo == nullptr) return {};
+
+  const auto data = combo->currentData().toMap();
+  return {data.value("name").toString(), data.value("type").toString()};
+}
+
+auto SetComboCurrentAlgo(QComboBox* combo, const GpgFrontend::KeyAlgo& algo)
+    -> bool {
+  if (combo == nullptr) return false;
+
+  for (int i = 0; i < combo->count(); ++i) {
+    const auto data = combo->itemData(i).toMap();
+
+    if (data.value("id").toString() == algo.Id() &&
+        data.value("name").toString() == algo.Name() &&
+        data.value("type").toString() == algo.Type()) {
+      combo->setCurrentIndex(i);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+auto IsAlgoInList(const GpgFrontend::KeyAlgo& algo,
+                  const QContainer<GpgFrontend::KeyAlgo>& algos) -> bool {
+  return std::any_of(
+      algos.cbegin(), algos.cend(),
+      [&](const GpgFrontend::KeyAlgo& item) { return item == algo; });
+}
+
+auto ComboCurrentAlgo(QComboBox* combo,
+                      const QContainer<GpgFrontend::KeyAlgo>& algos)
+    -> GpgFrontend::KeyAlgo {
+  if (combo == nullptr || combo->currentIndex() < 0) {
+    return GpgFrontend::KeyGenerateInfo::kNoneAlgo;
+  }
+
+  const auto data = combo->currentData().toMap();
+  const auto id = data.value("id").toString();
+  const auto type = data.value("type").toString();
+
+  auto it = std::find_if(algos.cbegin(), algos.cend(),
+                         [&](const GpgFrontend::KeyAlgo& algo) {
+                           return algo.Id() == id && algo.Type() == type;
+                         });
+
+  return it != algos.cend() ? *it : GpgFrontend::KeyGenerateInfo::kNoneAlgo;
+}
+
+}  // namespace
 
 SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
                                            QWidget* parent)
@@ -64,17 +118,16 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
   ui_->authCheckBox->setText(tr("Authentication"));
   ui_->nonExpiredCheckBox->setText(tr("Non Expired"));
   ui_->nonPassphraseCheckBox->setText(tr("No Passphrase"));
+  ui_->scndAlgoLabel->setText(tr("Second Algorithm"));
+  ui_->scndKeyLengthLabel->setText(tr("Second Key Length"));
 
   const auto min_date_time = QDateTime::currentDateTime().addDays(3);
   ui_->expireDateTimeEdit->setMinimumDateTime(min_date_time);
   ui_->expireDateTimeEdit->setDateTime(
       QDateTime::currentDateTime().addYears(2));
 
-  QSet<QString> algo_set;
-  for (const auto& algo : supported_subkey_algos_) {
-    algo_set.insert(algo.Name());
-  }
-  ui_->algoComboBox->addItems(QStringList(algo_set.cbegin(), algo_set.cend()));
+  // populate algo combo box with supported subkey algos
+  PopulateAlgoComboBox(ui_->algoComboBox, supported_subkey_algos_);
 
   ui_->expireDateTimeEdit->setDateTime(gen_subkey_info_->GetExpireTime());
   ui_->expireDateTimeEdit->setDisabled(gen_subkey_info_->IsNonExpired());
@@ -146,33 +199,124 @@ void SubkeyGenerateDialog::set_signal_slot_config() {
   });
 #endif
 
-  connect(ui_->algoComboBox, &QComboBox::currentTextChanged, this,
-          [=](const QString& text) -> void {
-            auto [found, algo] = GetAlgoByName(text, supported_subkey_algos_);
-            ui_->generateButton->setDisabled(!found);
-            if (found) gen_subkey_info_->SetAlgo(algo);
+  auto get_exact_algo = [](QComboBox* algo_combo, QComboBox* len_combo,
+                           const QContainer<KeyAlgo>& algos) {
+    if (algo_combo == nullptr || len_combo == nullptr ||
+        algo_combo->currentIndex() < 0) {
+      return std::make_tuple(false, KeyAlgo{});
+    }
 
-            refresh_widgets_state();
+    const auto data = algo_combo->currentData().toMap();
+    const auto name = data.value("name").toString();
+    const auto type = data.value("type").toString();
+    const auto key_len = len_combo->currentText().toInt();
 
-            if (ui_->scndAlgoComboBox->isEnabled()) {
-              auto [found, algo] =
-                  GetAlgoByName(ui_->scndAlgoComboBox->currentText(),
-                                supported_subkey_algos_);
-              if (found) {
-                gen_subkey_info_->SetSubAlgo(algo);
-              }
-            } else {
-              gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
-            }
-          });
+    return GetAlgoByNameTypeAndKeyLength(name, type, key_len, algos);
+  };
 
-  connect(ui_->scndAlgoComboBox, &QComboBox::currentTextChanged, this,
-          [=](const QString& text) -> void {
-            auto [found, algo] = GetAlgoByName(text, supported_subkey_algos_);
-            ui_->generateButton->setDisabled(!found);
-            if (found) gen_subkey_info_->SetSubAlgo(algo);
-            refresh_hybrid_algo_widgets_state();
-          });
+  auto validate_generate_button = [this, get_exact_algo]() -> void {
+    const auto [primary_found, primary_algo] = get_exact_algo(
+        ui_->algoComboBox, ui_->keyLengthComboBox, supported_subkey_algos_);
+
+    bool secondary_found = true;
+    const auto sub_algos = gen_subkey_info_->GetAlgo().SubAlgos();
+
+    if (!sub_algos.isEmpty()) {
+      secondary_found =
+          gen_subkey_info_->SubAlgo() != KeyGenerateInfo::kNoneAlgo;
+    }
+
+    ui_->generateButton->setDisabled(!(primary_found && secondary_found));
+  };
+
+  auto on_primary_algo_changed = [this, validate_generate_button](int index) {
+    if (index < 0) {
+      gen_subkey_info_->SetAlgo(KeyGenerateInfo::kNoneAlgo);
+      gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+      refresh_widgets_state();
+      validate_generate_button();
+      return;
+    }
+
+    auto algo = ComboCurrentAlgo(ui_->algoComboBox, supported_subkey_algos_);
+    gen_subkey_info_->SetAlgo(algo);
+    gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+
+    refresh_widgets_state();
+    validate_generate_button();
+  };
+
+  auto on_primary_length_changed = [this, get_exact_algo,
+                                    validate_generate_button](const QString&) {
+    const auto [found, exact_algo] = get_exact_algo(
+        ui_->algoComboBox, ui_->keyLengthComboBox, supported_subkey_algos_);
+
+    if (!found) {
+      validate_generate_button();
+      return;
+    }
+
+    const auto old_sub_algo = gen_subkey_info_->SubAlgo();
+
+    gen_subkey_info_->SetAlgo(exact_algo);
+
+    const auto sub_algos = gen_subkey_info_->GetAlgo().SubAlgos();
+
+    if (old_sub_algo != KeyGenerateInfo::kNoneAlgo &&
+        IsAlgoInList(old_sub_algo, sub_algos)) {
+      gen_subkey_info_->SetSubAlgo(old_sub_algo);
+    } else {
+      gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+    }
+
+    refresh_widgets_state();
+    validate_generate_button();
+  };
+
+  auto on_secondary_algo_changed = [this, validate_generate_button](int index) {
+    const auto sub_algos = gen_subkey_info_->GetAlgo().SubAlgos();
+
+    if (index < 0 || sub_algos.isEmpty()) {
+      gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+      refresh_hybrid_algo_widgets_state();
+      validate_generate_button();
+      return;
+    }
+
+    auto algo = ComboCurrentAlgo(ui_->scndAlgoComboBox, sub_algos);
+    gen_subkey_info_->SetSubAlgo(algo);
+
+    refresh_hybrid_algo_widgets_state();
+    validate_generate_button();
+  };
+
+  auto on_secondary_length_changed =
+      [this, get_exact_algo, validate_generate_button](const QString&) {
+        const auto sub_algos = gen_subkey_info_->GetAlgo().SubAlgos();
+
+        const auto [found, exact_algo] = get_exact_algo(
+            ui_->scndAlgoComboBox, ui_->scndKeyLengthComboBox, sub_algos);
+
+        if (found) {
+          gen_subkey_info_->SetSubAlgo(exact_algo);
+        }
+
+        validate_generate_button();
+      };
+
+  connect(ui_->algoComboBox,
+          QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          on_primary_algo_changed);
+
+  connect(ui_->keyLengthComboBox, &QComboBox::currentTextChanged, this,
+          on_primary_length_changed);
+
+  connect(ui_->scndAlgoComboBox,
+          QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          on_secondary_algo_changed);
+
+  connect(ui_->scndKeyLengthComboBox, &QComboBox::currentTextChanged, this,
+          on_secondary_length_changed);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
   connect(ui_->nonPassphraseCheckBox, &QCheckBox::checkStateChanged, this,
@@ -185,35 +329,22 @@ void SubkeyGenerateDialog::set_signal_slot_config() {
             gen_subkey_info_->SetNonPassPhrase(state == Qt::Checked);
           });
 #endif
-
-  connect(ui_->keyLengthComboBox, &QComboBox::currentTextChanged, this,
-          [this](const QString& text) -> void {
-            auto [found, algo] = GetAlgoByNameAndKeyLength(
-                ui_->algoComboBox->currentText(), text.toInt(),
-                supported_subkey_algos_);
-
-            if (found) gen_subkey_info_->SetAlgo(algo);
-          });
-
-  connect(ui_->scndKeyLengthComboBox, &QComboBox::currentTextChanged, this,
-          [this](const QString& text) -> void {
-            auto [found, algo] = GetAlgoByNameAndKeyLength(
-                ui_->scndAlgoComboBox->currentText(), text.toInt(),
-                supported_subkey_algos_);
-
-            if (found) gen_subkey_info_->SetSubAlgo(algo);
-          });
 }
 
 void SubkeyGenerateDialog::refresh_widgets_state() {
   ui_->algoComboBox->blockSignals(true);
-  ui_->algoComboBox->setCurrentText(gen_subkey_info_->GetAlgo().Name());
+  SetComboCurrentAlgo(ui_->algoComboBox, gen_subkey_info_->GetAlgo());
   ui_->algoComboBox->blockSignals(false);
 
   ui_->keyLengthComboBox->blockSignals(true);
-  SetKeyLengthComboxBoxByAlgo(ui_->keyLengthComboBox,
-                              SearchAlgoByName(ui_->algoComboBox->currentText(),
-                                               supported_subkey_algos_));
+
+  auto data = ui_->algoComboBox->currentData().toMap();
+  auto name = data["name"].toString();
+  auto type = data["type"].toString();
+  SetKeyLengthComboxBoxByAlgo(
+      ui_->keyLengthComboBox,
+      SearchAlgoByNameType(name, type, supported_subkey_algos_));
+
   ui_->keyLengthComboBox->setCurrentText(
       QString::number(gen_subkey_info_->GetKeyLength()));
   ui_->keyLengthComboBox->blockSignals(false);
@@ -247,7 +378,8 @@ void SubkeyGenerateDialog::refresh_widgets_state() {
 
   // Enable or disable second algo combo box according to whether current algo
   // has sub algos
-  QContainer<KeyAlgo> sub_algos = gen_subkey_info_->GetAlgo().SubAlgos();
+  const auto sub_algos = gen_subkey_info_->GetAlgo().SubAlgos();
+
   if (!sub_algos.empty()) {
     ui_->scndAlgoComboBox->setEnabled(true);
     ui_->scndAlgoComboBox->setHidden(false);
@@ -256,20 +388,43 @@ void SubkeyGenerateDialog::refresh_widgets_state() {
 
     ui_->scndAlgoComboBox->blockSignals(true);
     ui_->scndAlgoComboBox->clear();
-    QSet<QString> sub_algo_names;
-    for (const auto& algo : sub_algos) {
-      sub_algo_names.insert(algo.Name());
+    PopulateAlgoComboBox(ui_->scndAlgoComboBox, sub_algos);
+
+    const auto current_sub_algo = gen_subkey_info_->SubAlgo();
+    const bool current_sub_algo_supported =
+        current_sub_algo != KeyGenerateInfo::kNoneAlgo &&
+        IsAlgoInList(current_sub_algo, sub_algos);
+
+    if (current_sub_algo_supported) {
+      SetComboCurrentAlgo(ui_->scndAlgoComboBox, current_sub_algo);
+    } else if (ui_->scndAlgoComboBox->count() > 0) {
+      ui_->scndAlgoComboBox->setCurrentIndex(0);
+
+      const auto default_sub_algo =
+          ComboCurrentAlgo(ui_->scndAlgoComboBox, sub_algos);
+      gen_subkey_info_->SetSubAlgo(default_sub_algo);
+    } else {
+      gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
     }
-    for (const auto& algo_name : sub_algo_names) {
-      ui_->scndAlgoComboBox->addItem(algo_name);
-    }
+
     ui_->scndAlgoComboBox->blockSignals(false);
   } else {
-    ui_->scndAlgoComboBox->setEnabled(false);
+    gen_subkey_info_->SetSubAlgo(KeyGenerateInfo::kNoneAlgo);
+
+    ui_->scndAlgoComboBox->blockSignals(true);
     ui_->scndAlgoComboBox->clear();
+    ui_->scndAlgoComboBox->setEnabled(false);
     ui_->scndAlgoComboBox->setHidden(true);
+    ui_->scndAlgoComboBox->blockSignals(false);
+
     ui_->scndAlgoLabel->setHidden(true);
     ui_->scndKeyLengthLabel->setHidden(true);
+
+    ui_->scndKeyLengthComboBox->blockSignals(true);
+    ui_->scndKeyLengthComboBox->clear();
+    ui_->scndKeyLengthComboBox->setEnabled(false);
+    ui_->scndKeyLengthComboBox->setHidden(true);
+    ui_->scndKeyLengthComboBox->blockSignals(false);
   }
 
   refresh_hybrid_algo_widgets_state();
@@ -282,6 +437,16 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
   if (gen_subkey_info_->GetAlgo() == KeyGenerateInfo::kNoneAlgo) {
     err_stream << " -> " << tr("Please give a valid subkey algorithm.")
                << Qt::endl;
+  }
+
+  const auto sub_algos = gen_subkey_info_->GetAlgo().SubAlgos();
+
+  if (!sub_algos.isEmpty()) {
+    if (gen_subkey_info_->SubAlgo() == KeyGenerateInfo::kNoneAlgo ||
+        !IsAlgoInList(gen_subkey_info_->SubAlgo(), sub_algos)) {
+      err_stream << " -> " << tr("Please give a valid second algorithm.")
+                 << Qt::endl;
+    }
   }
 
   if (!gen_subkey_info_->IsNonExpired() &&
@@ -304,46 +469,58 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
       this, tr("Generating"),
       [this, key = this->key_, gen_key_info = this->gen_subkey_info_](
           const OperaWaitingHd& hd) -> void {
-        GpgKeyOpera::GetInstance(current_gpg_context_channel_)
-            .GenerateSubkey(
-                key, gen_key_info,
-                [this, hd](GpgError err, const DataObjectPtr&) -> void {
-                  // stop showing waiting dialog
-                  hd();
+        GpgKeyOpera::GetInstance().GenerateSubkey(
+            key, gen_key_info,
+            [this, hd](GpgError err, const DataObjectPtr&) -> void {
+              // stop showing waiting dialog
+              hd();
 
-                  if (CheckGpgError(err) == GPG_ERR_USER_1) {
-                    QMessageBox::critical(this, tr("Error"),
-                                          tr("Unknown error occurred"));
-                    return;
-                  }
+              if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                QMessageBox::critical(this, tr("Error"),
+                                      tr("Unknown error occurred"));
+                return;
+              }
 
-                  CommonUtils::RaiseMessageBox(this, err);
-                  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                    emit UISignalStation::GetInstance()
-                        -> SignalKeyDatabaseRefresh();
-                  }
-                });
+              CommonUtils::RaiseMessageBox(this, err);
+              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                emit UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
+              }
+            });
       });
   this->done(0);
 }
 
 void SubkeyGenerateDialog::refresh_hybrid_algo_widgets_state() {
-  if (ui_->scndAlgoComboBox->isHidden()) {
-    ui_->scndKeyLengthComboBox->setEnabled(false);
+  const auto sub_algos = gen_subkey_info_->GetAlgo().SubAlgos();
+
+  if (sub_algos.isEmpty() || ui_->scndAlgoComboBox->isHidden()) {
+    ui_->scndKeyLengthComboBox->blockSignals(true);
     ui_->scndKeyLengthComboBox->clear();
+    ui_->scndKeyLengthComboBox->setEnabled(false);
     ui_->scndKeyLengthComboBox->setHidden(true);
+    ui_->scndKeyLengthComboBox->blockSignals(false);
+
+    ui_->scndKeyLengthLabel->setHidden(true);
     return;
   }
 
+  ui_->scndKeyLengthLabel->setHidden(false);
   ui_->scndKeyLengthComboBox->setEnabled(true);
   ui_->scndKeyLengthComboBox->setHidden(false);
+
   ui_->scndKeyLengthComboBox->blockSignals(true);
-  SetKeyLengthComboxBoxByAlgo(
-      ui_->scndKeyLengthComboBox,
-      SearchAlgoByName(ui_->scndAlgoComboBox->currentText(),
-                       supported_subkey_algos_));
-  ui_->scndKeyLengthComboBox->setCurrentText(
-      QString::number(gen_subkey_info_->SubAlgo().KeyLength()));
+
+  const auto [name, type] = ComboCurrentNameType(ui_->scndAlgoComboBox);
+
+  SetKeyLengthComboxBoxByAlgo(ui_->scndKeyLengthComboBox,
+                              SearchAlgoByNameType(name, type, sub_algos));
+
+  if (gen_subkey_info_->SubAlgo() != KeyGenerateInfo::kNoneAlgo) {
+    ui_->scndKeyLengthComboBox->setCurrentText(
+        QString::number(gen_subkey_info_->SubAlgo().KeyLength()));
+  }
+
   ui_->scndKeyLengthComboBox->blockSignals(false);
 }
+
 }  // namespace GpgFrontend::UI
