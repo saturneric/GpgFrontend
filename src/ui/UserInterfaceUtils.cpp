@@ -324,7 +324,7 @@ void CommonUtils::slot_update_key_from_server_finished(
   }
 
   // refresh the key database
-  emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
+  emit UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
 
   auto *connection = new QMetaObject::Connection;
   *connection =
@@ -424,5 +424,36 @@ void CommonUtils::OpenDetailsDialogByKey(QWidget *parent, int channel,
 void GF_UI_EXPORT CommonUtils::ImportKeys(QWidget *parent, int channel,
                                           const GFBuffer &in_buffer) {
   SlotImportKeys(parent, channel, in_buffer);
+}
+
+auto ClampRectToAvailableGeometry(QRect rect, const QRect &available) -> QRect {
+  const int max_width = static_cast<int>(available.width() * 0.95);
+  const int max_height = static_cast<int>(available.height() * 0.95);
+
+  if (rect.width() > max_width) {
+    rect.setWidth(max_width);
+  }
+
+  if (rect.height() > max_height) {
+    rect.setHeight(max_height);
+  }
+
+  if (rect.left() < available.left()) {
+    rect.moveLeft(available.left());
+  }
+
+  if (rect.top() < available.top()) {
+    rect.moveTop(available.top());
+  }
+
+  if (rect.right() > available.right()) {
+    rect.moveRight(available.right());
+  }
+
+  if (rect.bottom() > available.bottom()) {
+    rect.moveBottom(available.bottom());
+  }
+
+  return rect;
 }
 }  // namespace GpgFrontend::UI

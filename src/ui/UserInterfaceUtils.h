@@ -47,25 +47,11 @@ class TextEdit;
 /**
  * @brief
  *
- * @param parent
- * @param info_board
- * @param error
- * @param verify_result
+ * @param rect
+ * @param available
+ * @return QRect
  */
-void show_verify_details(QWidget* parent, InfoBoardWidget* info_board,
-                         GpgError error, const GpgVerifyResult& verify_result);
-
-/**
- * @brief
- *
- * @param parent
- * @param waiting_title
- * @param func
- */
-void process_operation(QWidget* parent, const QString& waiting_title,
-                       Thread::Task::TaskRunnable func,
-                       Thread::Task::TaskCallback callback = nullptr,
-                       DataObjectPtr data_object = nullptr);
+auto ClampRectToAvailableGeometry(QRect rect, const QRect& available) -> QRect;
 
 /**
  * @brief
