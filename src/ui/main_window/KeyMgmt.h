@@ -176,6 +176,12 @@ class KeyMgmt : public GeneralMainWindow {
    * @param uidList
    */
   void delete_keys_with_warning(const GpgAbstractKeyPtrList& keys);
+
+  /**
+   * @brief
+   *
+   */
+  void apply_default_layout();
 };
 
 }  // namespace GpgFrontend::UI
