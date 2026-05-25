@@ -96,7 +96,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: "6.7.2"
+          version: "6.11.1"
           cache: "true"
 
       - name: Build GpgFrontend (Linux)
