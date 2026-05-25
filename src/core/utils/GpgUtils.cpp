@@ -111,73 +111,133 @@ auto TextIsSigned(QString text) -> int {
   return 0;
 }
 
+namespace {
+
+auto ChopSuffixIfEndsWith(QString path, const QString& suffix)
+    -> std::optional<QString> {
+  if (!path.endsWith(suffix, Qt::CaseInsensitive)) {
+    return std::nullopt;
+  }
+
+  path.chop(suffix.size());
+  return path;
+}
+
+auto RemoveKnownArchiveEncryptedSuffix(const QString& input_path) -> QString {
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".tar.gpg"))) {
+    return *out;
+  }
+
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".tar.asc"))) {
+    return *out;
+  }
+
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".tar.pgp"))) {
+    return *out;
+  }
+
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".gpg"))) {
+    if (out->endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive)) {
+      out->chop(QStringLiteral(".tar").size());
+    }
+    return *out;
+  }
+
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".asc"))) {
+    if (out->endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive)) {
+      out->chop(QStringLiteral(".tar").size());
+    }
+    return *out;
+  }
+
+  if (auto out = ChopSuffixIfEndsWith(input_path, QStringLiteral(".pgp"))) {
+    if (out->endsWith(QStringLiteral(".tar"), Qt::CaseInsensitive)) {
+      out->chop(QStringLiteral(".tar").size());
+    }
+    return *out;
+  }
+
+  return input_path + QStringLiteral(".out");
+}
+
+}  // namespace
+
 auto SetExtensionOfOutputFile(const QString& path, GpgOperation opera,
                               bool ascii) -> QString {
-  auto file_info = QFileInfo(path);
-  QString new_extension;
-  QString current_extension = file_info.suffix();
+  const QFileInfo file_info(path);
+  const auto input_path = file_info.absoluteFilePath();
 
-  if (ascii) {
-    switch (opera) {
-      case kENCRYPT:
-      case kSIGN:
-      case kENCRYPT_SIGN:
-        new_extension = current_extension + ".asc";
-        break;
-      default:
-        break;
-    }
-  } else {
-    switch (opera) {
-      case kENCRYPT:
-      case kENCRYPT_SIGN:
-        new_extension = current_extension + ".gpg";
-        break;
-      case kSIGN:
-        new_extension = current_extension + ".sig";
-        break;
-      default:
-        break;
-    }
-  }
+  switch (opera) {
+    case kENCRYPT:
+    case kENCRYPT_SIGN:
+      return input_path +
+             (ascii ? QStringLiteral(".asc") : QStringLiteral(".gpg"));
 
-  if (!new_extension.isEmpty()) {
-    return file_info.absolutePath() + "/" + file_info.completeBaseName() + "." +
-           new_extension;
+    case kSIGN:
+      return input_path +
+             (ascii ? QStringLiteral(".asc") : QStringLiteral(".sig"));
+
+    case kDECRYPT:
+    case kDECRYPT_VERIFY: {
+      auto out_path = input_path;
+
+      if (out_path.endsWith(QStringLiteral(".tar.gpg"), Qt::CaseInsensitive)) {
+        out_path.chop(QStringLiteral(".gpg").size());
+      } else if (out_path.endsWith(QStringLiteral(".tar.asc"),
+                                   Qt::CaseInsensitive)) {
+        out_path.chop(QStringLiteral(".asc").size());
+      } else if (out_path.endsWith(QStringLiteral(".gpg"),
+                                   Qt::CaseInsensitive)) {
+        out_path.chop(QStringLiteral(".gpg").size());
+      } else if (out_path.endsWith(QStringLiteral(".pgp"),
+                                   Qt::CaseInsensitive)) {
+        out_path.chop(QStringLiteral(".pgp").size());
+      } else if (out_path.endsWith(QStringLiteral(".asc"),
+                                   Qt::CaseInsensitive)) {
+        out_path.chop(QStringLiteral(".asc").size());
+      } else {
+        out_path += QStringLiteral(".out");
+      }
+
+      if (out_path == input_path || out_path.isEmpty()) {
+        out_path = input_path + QStringLiteral(".out");
+      }
+
+      return out_path;
+    }
+
+    default:
+      return input_path + QStringLiteral(".out");
   }
-  return file_info.absolutePath() + "/" + file_info.completeBaseName();
 }
 
 auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
                                         bool ascii) -> QString {
-  QString extension;
-  auto file_info = QFileInfo(path);
+  const QFileInfo file_info(path);
+  const auto input_path = file_info.absoluteFilePath();
 
-  if (ascii) {
-    switch (opera) {
-      case kENCRYPT:
-      case kENCRYPT_SIGN:
-        if (file_info.completeSuffix() != "tar") extension += ".tar";
-        extension += ".asc";
-        return QFileInfo(path).absoluteFilePath() + extension;
-        break;
-      default:
-        break;
+  switch (opera) {
+    case kENCRYPT:
+    case kENCRYPT_SIGN: {
+      QString out_path = input_path;
+
+      if (!file_info.fileName().endsWith(QStringLiteral(".tar"),
+                                         Qt::CaseInsensitive)) {
+        out_path += QStringLiteral(".tar");
+      }
+
+      out_path += ascii ? QStringLiteral(".asc") : QStringLiteral(".gpg");
+      return out_path;
     }
-  } else {
-    switch (opera) {
-      case kENCRYPT:
-      case kENCRYPT_SIGN:
-        if (file_info.completeSuffix() != "tar") extension += ".tar";
-        extension += ".gpg";
-        return QFileInfo(path).absoluteFilePath() + extension;
-        break;
-      default:
-        break;
+
+    case kDECRYPT:
+    case kDECRYPT_VERIFY: {
+      return RemoveKnownArchiveEncryptedSuffix(input_path);
     }
+
+    default:
+      return input_path + QStringLiteral(".out");
   }
-
-  return file_info.absolutePath() + "/" + file_info.baseName();
 }
 
 static QContainer<KeyDatabaseInfo> gpg_key_database_info_cache;
@@ -345,11 +405,11 @@ auto GetKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
   auto key_db_infos = GetAllKeyDatabaseInfoBySettings();
 
   // filter out invalid key databases
-  key_db_infos.erase(std::remove_if(key_db_infos.begin(), key_db_infos.end(),
-                                    [](const auto& key_db_info) -> auto {
-                                      return !key_db_info.valid;
-                                    }),
-                     key_db_infos.end());
+  key_db_infos.erase(
+      std::remove_if(
+          key_db_infos.begin(), key_db_infos.end(),
+          [](const auto& key_db_info) -> auto{ return !key_db_info.valid; }),
+      key_db_infos.end());
 
   return key_db_infos;
 }
