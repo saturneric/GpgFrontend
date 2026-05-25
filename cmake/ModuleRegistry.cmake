@@ -23,6 +23,39 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+# module_add_translations(<target>
+# TS_FILES <file>...
+# [SOURCES <file>...]
+# [INCLUDE_DIRECTORIES <dir>...])
+#
+# Adds Qt translation support to a module target, handling both the standard
+# path and the Xcode path transparently.
+function(module_add_translations target)
+  cmake_parse_arguments(MAT "" "" "TS_FILES;SOURCES;INCLUDE_DIRECTORIES" ${ARGN})
+
+  if(NOT MAT_TS_FILES)
+    message(FATAL_ERROR "module_add_translations: TS_FILES is required")
+  endif()
+
+  if(NOT XCODE_BUILD)
+    qt_add_translations(${target}
+      RESOURCE_PREFIX "/i18n"
+      TS_FILES ${MAT_TS_FILES}
+      SOURCES ${MAT_SOURCES}
+      INCLUDE_DIRECTORIES ${MAT_INCLUDE_DIRECTORIES})
+  else()
+    set(i18n_target "${target}_i18n")
+    add_custom_target(${i18n_target} ALL)
+    qt_add_lrelease(${i18n_target}
+      TS_FILES ${MAT_TS_FILES}
+      QM_FILES_OUTPUT_VARIABLE TRANSLATIONS_QM)
+    qt_add_resources(${target} ${i18n_target}
+      PREFIX "/i18n"
+      BASE ${CMAKE_CURRENT_BINARY_DIR}
+      FILES ${TRANSLATIONS_QM})
+  endif()
+endfunction()
+
 function(register_module name out_var)
   if(NOT ARGN)
     message(FATAL_ERROR "register_module(${name} ...) requires at least one source file")
