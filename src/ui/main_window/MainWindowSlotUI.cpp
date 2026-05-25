@@ -403,4 +403,23 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
   slot_update_crypto_operations_menu(operations_menu_mask_ & mask & temp);
 }
 
+void MainWindow::slot_maybe_show_wizard() {
+  if (wizard_checked_) {
+    return;
+  }
+  wizard_checked_ = true;
+
+  if (!show_wizard_on_startup_) {
+    LOG_D() << "Wizard on startup is disabled. Skipping wizard.";
+    return;
+  }
+
+  if (!isVisible()) {
+    LOG_W() << "Main window is not visible yet. Skipping startup wizard.";
+    return;
+  }
+
+  slot_start_wizard();
+}
+
 }  // namespace GpgFrontend::UI

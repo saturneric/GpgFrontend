@@ -91,6 +91,12 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   [[nodiscard]] auto GF_UI_EXPORT GetCurrentGpgContextChannel() const -> int;
 
+  /**
+   * @brief
+   *
+   */
+  void ApplyAppearanceSettingsToOpenedWidgets();
+
  signals:
 
   /**
@@ -662,6 +668,29 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   auto check_and_notify_invalid_key_dbs() -> void;
 
+  /**
+   * @brief
+   *
+   */
+  void apply_default_layout();
+
+  /**
+   * @brief Construct a new init main window style object
+   *
+   */
+  void init_main_window_style();
+
+  /**
+   * @brief
+   *
+   */
+  void apply_tool_bar_appearance();
+
+  /**
+   * @details start the wizard
+   */
+  void slot_maybe_show_wizard();
+
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
   QMenu* edit_menu_{};        ///<  Submenu for text-operations
@@ -754,6 +783,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* import_key_from_clipboard_act_{};  ///<
 
   QLabel* status_bar_icon_{};  ///<
+  QLabel* engine_status_label_ = nullptr;
 
   KeyList* m_key_list_{};          ///<
   InfoBoardWidget* info_board_{};  ///<
@@ -764,6 +794,8 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   bool attachment_dock_created_{};         ///<
   int restart_mode_{0};                    ///<
   bool prohibit_update_checking_ = false;  ///<
+  bool show_wizard_on_startup_ = false;    ///<
+  bool wizard_checked_ = false;            ///<
   unsigned int operations_menu_mask_ = ~0;
 };
 

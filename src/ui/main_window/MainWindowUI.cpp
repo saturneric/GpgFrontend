@@ -28,6 +28,7 @@
 
 #include "MainWindow.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
@@ -43,26 +44,26 @@ namespace GpgFrontend::UI {
 
 void MainWindow::create_actions() {
   new_tab_act_ = create_action(
-      "new_tab", tr("Text Editor"), ":/icons/misc_doc.png",
+      "new_tab", tr("New Text Editor"), ":/icons/misc_doc.png",
       tr("Open a new text editor"),
       {QKeySequence(Qt::CTRL | Qt::Key_N), QKeySequence(Qt::CTRL | Qt::Key_T)});
   connect(new_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotNewTab);
 
   browser_act_ = create_action(
-      "file_browser_dir", tr("File Panel (Files)"), ":/icons/file-operator.png",
+      "file_browser_dir", tr("New File Panel"), ":/icons/file-operator.png",
       tr("Open a new file panel"), {QKeySequence(Qt::CTRL | Qt::Key_B)});
   connect(browser_act_, &QAction::triggered, this,
           &MainWindow::slot_default_file_tab);
 
-  browser_file_act_ = create_action(
-      "file_browser", tr("Open File"), ":/icons/file-operator.png",
-      tr("Open the file panel and point to a file"));
+  browser_file_act_ =
+      create_action("file_browser", tr("File..."), ":/icons/file-operator.png",
+                    tr("Open a file in the file panel"));
   connect(browser_file_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab);
 
   browser_dir_act_ = create_action(
-      "file_browser_dir", tr("Open Directory"), ":/icons/file-operator.png",
-      tr("Open the Files panel and point to a directory"));
+      "open_directory_in_file_panel", tr("Directory..."),
+      ":/icons/file-operator.png", tr("Open a directory in the file panel"));
   connect(browser_dir_act_, &QAction::triggered, this,
           &MainWindow::slot_open_file_tab_with_directory);
 
@@ -79,8 +80,9 @@ void MainWindow::create_actions() {
                              tr("Print Document"), {QKeySequence::Print});
   connect(print_act_, &QAction::triggered, edit_, &TextEdit::SlotPrint);
 
-  close_tab_act_ = create_action("close_tab", tr("Close"), ":/icons/close.png",
-                                 tr("Close file"), {QKeySequence::Close});
+  close_tab_act_ =
+      create_action("close_tab", tr("Close Tab"), ":/icons/close.png",
+                    tr("Close the current tab"), {QKeySequence::Close});
   connect(close_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotCloseTab);
 
   quit_act_ = create_action("quit", tr("Quit"), ":/icons/exit.png",
@@ -160,8 +162,8 @@ void MainWindow::create_actions() {
           &MainWindow::SlotGeneralEncrypt);
 
   encrypt_sign_act_ =
-      create_action("encrypt_sign", tr("Encrypt Sign"), ":/icons/encr-sign.png",
-                    tr("Encrypt and Sign Message"),
+      create_action("encrypt_sign", tr("Encrypt && Sign"),
+                    ":/icons/encr-sign.png", tr("Encrypt and Sign Message"),
                     {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E)});
   connect(encrypt_sign_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralEncryptSign);
@@ -173,7 +175,7 @@ void MainWindow::create_actions() {
           &MainWindow::SlotGeneralDecrypt);
 
   decrypt_verify_act_ =
-      create_action("decrypt_verify", tr("Decrypt Verify"),
+      create_action("decrypt_verify", tr("Decrypt && Verify"),
                     ":/icons/decr-verify.png", tr("Decrypt and Verify Message"),
                     {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_D)});
   connect(decrypt_verify_act_, &QAction::triggered, this,
@@ -190,10 +192,10 @@ void MainWindow::create_actions() {
   connect(verify_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralVerify);
 
-  sym_encrypt_act_ = create_action("symmetric_encryption", tr("Sym. Encrypt"),
-                                   ":/icons/symmetric_encryption.png",
-                                   tr("Encrypt Message (Symmetric)"),
-                                   {QKeySequence(Qt::CTRL | Qt::Key_E)});
+  sym_encrypt_act_ = create_action(
+      "symmetric_encryption", tr("Sym. Encrypt"),
+      ":/icons/symmetric_encryption.png", tr("Encrypt Message (Symmetric)"),
+      {QKeySequence(Qt::CTRL | Qt::ALT | Qt::Key_E)});
   connect(sym_encrypt_act_, &QAction::triggered, this,
           &MainWindow::SlotGeneralEncrypt);
 
@@ -204,12 +206,7 @@ void MainWindow::create_actions() {
   generate_key_pair_act_ =
       create_action("generate_key_pair", tr("New Keypair"),
                     ":/icons/keypairs.png", tr("Generate KeyPair"));
-  connect(generate_key_pair_act_, &QAction::triggered, this, [=]() {
-    if (!CheckGpgVersion(m_key_list_->GetCurrentGpgContextChannel(), "2.2.0")) {
-      CommonUtils::RaiseMessageBoxNotSupported(this);
-      return;
-    }
-
+  connect(generate_key_pair_act_, &QAction::triggered, this, [=]() -> void {
     new KeyGenerateDialog(m_key_list_->GetCurrentGpgContextChannel(), this);
   });
 
@@ -284,8 +281,12 @@ void MainWindow::create_actions() {
   about_act_ = create_action("about", tr("About"), ":/icons/help.png",
                              tr("Show the application's About box"));
   about_act_->setMenuRole(QAction::AboutRole);
-  connect(about_act_, &QAction::triggered, this,
-          [=]() { new AboutDialog(0, this); });
+  connect(about_act_, &QAction::triggered, this, [=]() {
+    auto* dialog = new AboutDialog(0, this);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+  });
 
   start_wizard_act_ =
       create_action("start_wizard", tr("Open Wizard"), ":/icons/wizard.png",
@@ -431,7 +432,7 @@ void MainWindow::create_menus() {
   edit_menu_->addSeparator();
   edit_menu_->addAction(open_settings_act_);
 
-  crypt_menu_ = menuBar()->addMenu(tr("Crypt"));
+  crypt_menu_ = menuBar()->addMenu(tr("Operations"));
   crypt_menu_->addAction(sym_encrypt_act_);
   crypt_menu_->addAction(encrypt_act_);
   crypt_menu_->addAction(encrypt_sign_act_);
@@ -457,8 +458,15 @@ void MainWindow::create_menus() {
   advance_menu_->addAction(restart_components_act_);
   advance_menu_->addSeparator();
   advance_menu_->addAction(gnupg_controller_open_act_);
-  advance_menu_->addAction(module_controller_open_act_);
   advance_menu_->addAction(smart_card_controller_open_act_);
+  advance_menu_->addAction(module_controller_open_act_);
+
+  // Hide the "Advanced" menu if running in sandbox, since most of the features
+  // in the "Advanced" menu are not useful in sandbox and may cause confusion to
+  // users.
+  if (IsRunningInSandBox()) {
+    advance_menu_->menuAction()->setVisible(false);
+  }
 
   view_menu_ = menuBar()->addMenu(tr("View"));
 
@@ -485,46 +493,69 @@ void MainWindow::create_menus() {
       });
 }
 
+namespace {
+
+auto SetupMenuToolButton(QToolButton* button, QMenu* menu, const QIcon& icon,
+                         const QString& text, const QString& tooltip,
+                         Qt::ToolButtonStyle style, QSize size) -> void {
+  button->setMenu(menu);
+  button->setPopupMode(QToolButton::InstantPopup);
+  button->setIcon(icon);
+  button->setText(text);
+  button->setToolTip(tooltip);
+  button->setFocusPolicy(Qt::NoFocus);
+  button->setAutoRaise(false);
+  button->setToolButtonStyle(style);
+  button->setIconSize(size);
+}
+
+auto SetupToolBar(QToolBar* toolbar, Qt::ToolButtonStyle style, QSize size)
+    -> void {
+  toolbar->setMovable(true);
+  toolbar->setFloatable(false);
+  toolbar->setToolButtonStyle(style);
+  toolbar->setIconSize(size);
+}
+
+}  // namespace
+
 void MainWindow::create_tool_bars() {
   file_tool_bar_ = addToolBar(tr("File"));
   file_tool_bar_->setObjectName("fileToolBar");
+  SetupToolBar(file_tool_bar_, icon_style_, icon_size_);
 
-  open_button_ = new QToolButton();
-  open_button_->setMenu(open_menu_);
-  open_button_->setPopupMode(QToolButton::InstantPopup);
-  open_button_->setIcon(QIcon(":/icons/open.png"));
-  open_button_->setToolTip(tr("Open ..."));
-  open_button_->setText(tr("Open"));
-
+  open_button_ = new QToolButton(this);
+  SetupMenuToolButton(open_button_, open_menu_, QIcon(":/icons/open.png"),
+                      tr("Open"), tr("Open a file or directory"), icon_style_,
+                      icon_size_);
   file_tool_bar_->addWidget(open_button_);
 
-  // add dropdown menu for workspace
-  workspace_button_ = new QToolButton();
-  workspace_button_->setMenu(workspace_menu_);
-  workspace_button_->setPopupMode(QToolButton::InstantPopup);
-  workspace_button_->setIcon(QIcon(":/icons/workspace.png"));
-  workspace_button_->setToolTip(tr("Open Workspace as..."));
-  workspace_button_->setText(tr("Workspace"));
-
+  workspace_button_ = new QToolButton(this);
+  SetupMenuToolButton(workspace_button_, workspace_menu_,
+                      QIcon(":/icons/workspace.png"), tr("Workspace"),
+                      tr("Open a text editor or file panel"), icon_style_,
+                      icon_size_);
   file_tool_bar_->addWidget(workspace_button_);
+
+  file_tool_bar_->addSeparator();
+  file_tool_bar_->addAction(save_act_);
 
   view_menu_->addAction(file_tool_bar_->toggleViewAction());
 
   crypt_tool_bar_ = addToolBar(tr("Operations"));
   crypt_tool_bar_->setObjectName("cryptToolBar");
-
+  SetupToolBar(crypt_tool_bar_, icon_style_, icon_size_);
   view_menu_->addAction(crypt_tool_bar_->toggleViewAction());
 
-  key_tool_bar_ = addToolBar(tr("Key"));
+  key_tool_bar_ = addToolBar(tr("Keys"));
   key_tool_bar_->setObjectName("keyToolBar");
+  SetupToolBar(key_tool_bar_, icon_style_, icon_size_);
 
-  // Add dropdown menu for key import to keytoolbar
-  import_button_ = new QToolButton();
-  import_button_->setMenu(import_key_menu_);
-  import_button_->setPopupMode(QToolButton::InstantPopup);
-  import_button_->setIcon(QIcon(":/icons/key_import.png"));
-  import_button_->setToolTip(tr("Import key from..."));
-  import_button_->setText(tr("Import key"));
+  import_button_ = new QToolButton(this);
+  SetupMenuToolButton(import_button_, import_key_menu_,
+                      QIcon(":/icons/key_import.png"), tr("Import"),
+                      tr("Import a key from file, editor, or clipboard"),
+                      icon_style_, icon_size_);
 
   key_tool_bar_->addAction(generate_key_pair_act_);
   key_tool_bar_->addWidget(import_button_);
@@ -534,14 +565,16 @@ void MainWindow::create_tool_bars() {
 
   edit_tool_bar_ = addToolBar(tr("Edit"));
   edit_tool_bar_->setObjectName("editToolBar");
+  SetupToolBar(edit_tool_bar_, icon_style_, icon_size_);
   edit_tool_bar_->addAction(copy_act_);
   edit_tool_bar_->addAction(paste_act_);
   edit_tool_bar_->addAction(select_all_act_);
   edit_tool_bar_->hide();
   view_menu_->addAction(edit_tool_bar_->toggleViewAction());
 
-  special_edit_tool_bar_ = addToolBar(tr("Special Edit"));
+  special_edit_tool_bar_ = addToolBar(tr("Text Tools"));
   special_edit_tool_bar_->setObjectName("specialEditToolBar");
+  SetupToolBar(special_edit_tool_bar_, icon_style_, icon_size_);
   special_edit_tool_bar_->addAction(quote_act_);
   special_edit_tool_bar_->addAction(clean_double_line_breaks_act_);
   special_edit_tool_bar_->addAction(add_pgp_header_act_);
@@ -551,29 +584,29 @@ void MainWindow::create_tool_bars() {
 }
 
 void MainWindow::create_status_bar() {
+  // Show the current OpenPGP engine and version in the status bar
+  engine_status_label_ = new QLabel(this);
+  engine_status_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  engine_status_label_->setToolTip(tr("Current OpenPGP backend and version"));
+  engine_status_label_->setText(tr("GnuPG: %1 ").arg(GnuPGVersion()));
+
+  statusBar()->addPermanentWidget(engine_status_label_);
+
   auto* status_bar_box = new QWidget();
   auto* status_bar_box_layout = new QHBoxLayout();
-  // QPixmap* pixmap;
 
-  // icon which should be shown if there are files in attachments-folder
-  //  pixmap = new QPixmap(":/icons/statusbar_icon.png");
-  //  statusBarIcon = new QLabel();
-  //  statusBar()->addWidget(statusBarIcon);
-  //
-  //  statusBarIcon->setPixmap(*pixmap);
-  //  statusBar()->insertPermanentWidget(0, statusBarIcon, 0);
   statusBar()->showMessage(tr("Ready"), 2000);
   status_bar_box->setLayout(status_bar_box_layout);
 }
 
 void MainWindow::create_dock_windows() {
-  /* KeyList-Dock window
-   */
   key_list_dock_ = new QDockWidget(tr("Key ToolBox"), this);
-  key_list_dock_->setObjectName("EncryptDock");
+  key_list_dock_->setObjectName(QStringLiteral("keyListDock"));
   key_list_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
                                   Qt::RightDockWidgetArea);
-  // key_list_dock_->setMinimumWidth(460);
+  key_list_dock_->setMinimumWidth(260);
+  key_list_dock_->setMaximumWidth(QWIDGETSIZE_MAX);
+
   addDockWidget(Qt::RightDockWidgetArea, key_list_dock_);
 
   m_key_list_->AddListGroupTab(
@@ -614,21 +647,171 @@ void MainWindow::create_dock_windows() {
                !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
       });
 
+  m_key_list_->setMinimumWidth(260);
+  m_key_list_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
   m_key_list_->SlotRefresh();
 
   key_list_dock_->setWidget(m_key_list_);
   view_menu_->addAction(key_list_dock_->toggleViewAction());
 
   info_board_dock_ = new QDockWidget(tr("Status Panel"), this);
-  info_board_dock_->setObjectName("Status Panel");
+  info_board_dock_->setObjectName(QStringLiteral("infoBoardDock"));
   info_board_dock_->setAllowedAreas(Qt::BottomDockWidgetArea);
+  info_board_dock_->setMinimumHeight(120);
+  info_board_dock_->setMaximumHeight(QWIDGETSIZE_MAX);
+
   addDockWidget(Qt::BottomDockWidgetArea, info_board_dock_);
   info_board_dock_->setWidget(info_board_);
-  info_board_dock_->widget()->layout()->setContentsMargins(0, 0, 0, 0);
+
+  if (info_board_dock_->widget() != nullptr &&
+      info_board_dock_->widget()->layout() != nullptr) {
+    info_board_dock_->widget()->layout()->setContentsMargins(0, 0, 0, 0);
+  }
+
   view_menu_->addAction(info_board_dock_->toggleViewAction());
 
   connect(m_key_list_, &KeyList::SignalKeyChecked, this,
           [=]() { slot_update_operations_menu_by_checked_keys(~0); });
+}
+
+namespace {
+
+auto ClampInt(int value, int min, int max) -> int {
+  return std::clamp(value, min, max);
+}
+
+auto CurrentAvailableGeometry(QWidget* widget) -> QRect {
+  const auto* screen = widget != nullptr && widget->screen() != nullptr
+                           ? widget->screen()
+                           : QGuiApplication::primaryScreen();
+
+  if (screen == nullptr) {
+    return QRect(0, 0, 1200, 760);
+  }
+
+  return screen->availableGeometry();
+}
+
+}  // namespace
+
+void MainWindow::apply_default_layout() {
+  const QRect available = CurrentAvailableGeometry(this);
+
+  constexpr double kWindowScale = 0.82;
+  constexpr double kTargetAspect = 1.45;
+  constexpr double kKeyListRatio = 0.35;
+  constexpr double kInfoBoardRatio = 0.30;
+
+  int target_width =
+      ClampInt(static_cast<int>(available.width() * kWindowScale), 900, 1360);
+
+  int target_height =
+      ClampInt(static_cast<int>(target_width / kTargetAspect), 700, 1000);
+
+  if (target_height > static_cast<int>(available.height() * kWindowScale)) {
+    target_height =
+        ClampInt(static_cast<int>(available.height() * kWindowScale), 680, 960);
+
+    target_width =
+        ClampInt(static_cast<int>(target_height * kTargetAspect), 900, 1360);
+  }
+
+  resize(target_width, target_height);
+
+  if (key_list_dock_ != nullptr) {
+    const int key_min_width = available.width() < 1100 ? 260 : 300;
+
+    const int key_max_width =
+        ClampInt(static_cast<int>(target_width * 0.48), 420, 620);
+
+    const int key_width =
+        ClampInt(static_cast<int>(target_width * kKeyListRatio), key_min_width,
+                 key_max_width);
+
+    key_list_dock_->setMinimumWidth(key_min_width);
+    key_list_dock_->setMaximumWidth(QWIDGETSIZE_MAX);
+
+    resizeDocks({key_list_dock_}, {key_width}, Qt::Horizontal);
+  }
+
+  if (info_board_dock_ != nullptr) {
+    const int info_min_height = available.height() < 750 ? 110 : 135;
+
+    const int info_max_height =
+        ClampInt(static_cast<int>(target_height * 0.34), 220, 340);
+
+    const int info_height =
+        ClampInt(static_cast<int>(target_height * kInfoBoardRatio),
+                 info_min_height, info_max_height);
+
+    info_board_dock_->setMinimumHeight(info_min_height);
+    info_board_dock_->setMaximumHeight(QWIDGETSIZE_MAX);
+
+    resizeDocks({info_board_dock_}, {info_height}, Qt::Vertical);
+  }
+
+  QRect target_rect = frameGeometry();
+  target_rect.setSize(size());
+  target_rect.moveCenter(available.center());
+  target_rect = ClampRectToAvailableGeometry(target_rect, available);
+  move(target_rect.topLeft());
+}
+
+void MainWindow::init_main_window_style() {
+  setStyleSheet(R"(
+QToolBar {
+  spacing: 3px;
+  padding: 2px;
+  border: none;
+  background: palette(window);
+}
+
+QToolBar::separator {
+  width: 1px;
+  margin: 4px 5px;
+  background: palette(mid);
+}
+
+QStatusBar {
+  border-top: 1px solid palette(mid);
+  background: palette(window);
+}
+)");
+}
+
+void MainWindow::apply_tool_bar_appearance() {
+  const auto tool_button_style = icon_style_;
+  const auto icon_size = icon_size_;
+
+  const QList<QToolBar*> toolbars = {
+      file_tool_bar_, crypt_tool_bar_,        key_tool_bar_,
+      edit_tool_bar_, special_edit_tool_bar_,
+  };
+
+  for (auto* toolbar : toolbars) {
+    if (toolbar == nullptr) continue;
+
+    toolbar->setToolButtonStyle(tool_button_style);
+    toolbar->setIconSize(icon_size);
+  }
+
+  const QList<QToolButton*> menu_buttons = {
+      open_button_,
+      workspace_button_,
+      import_button_,
+  };
+
+  for (auto* button : menu_buttons) {
+    if (button == nullptr) continue;
+
+    button->setToolButtonStyle(tool_button_style);
+    button->setIconSize(icon_size);
+    button->updateGeometry();
+    button->update();
+  }
+
+  setToolButtonStyle(tool_button_style);
+  setIconSize(icon_size);
 }
 
 }  // namespace GpgFrontend::UI

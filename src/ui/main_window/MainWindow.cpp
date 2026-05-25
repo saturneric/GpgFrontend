@@ -88,6 +88,7 @@ void MainWindow::Init() noexcept {
     create_tool_bars();
     create_status_bar();
     create_dock_windows();
+    init_main_window_style();
 
     // show menu bar
     this->menuBar()->show();
@@ -121,8 +122,10 @@ void MainWindow::Init() noexcept {
             &MainWindow::SlotOpenFile);
 
 #ifndef Q_OS_WINDOWS
+    // check if GnuPG is configured to use a GUI pinentry, and if not, show a
+    // warning message to user
     connect(this, &MainWindow::SignalLoaded, this, [=]() {
-      QTimer::singleShot(3000, [self = QPointer<MainWindow>(this)]() {
+      QTimer::singleShot(3000, [self = QPointer<MainWindow>(this)]() -> void {
         if (self && DecidePinentry().isEmpty()) {
           QMessageBox::warning(
               self, tr("GUI Pinentry Not Found"),
@@ -158,17 +161,34 @@ void MainWindow::Init() noexcept {
 
     connect(m_key_list_, &KeyList::SignalRequestContextMenu, this,
             &MainWindow::slot_popup_menu_by_key_list);
+    connect(this, &MainWindow::SignalLoaded, this, [this]() {
+      QTimer::singleShot(100, this,
+                         [self = QPointer<MainWindow>(this)]() -> void {
+                           if (self == nullptr) return;
+                           self->slot_maybe_show_wizard();
+                         });
+    });
 
+    // restore settings and window state
     restore_settings();
+
+    // Important: restore window geometry before restoring QMainWindow dock
+    // state. Otherwise docks may be restored against a too-small default window
+    // size.
+    RestoreSettingsOnce();
+
+    // If no previous state is saved, apply a default layout after the event
+    // loop starts.
+    const bool state_restored = restoreWindowState();
+    QTimer::singleShot(0, this, [this, state_restored]() -> void {
+      if (!state_restored) {
+        apply_default_layout();
+      }
+    });
 
     info_board_->AssociateTabWidget(edit_->TabWidget());
 
     slot_switch_menu_control_mode(0);
-
-    // check if need to open wizard window
-    if (GetSettings().value("wizard/show_wizard", true).toBool()) {
-      slot_start_wizard();
-    }
 
     // check if there are invalid key databases and notify user
     check_and_notify_invalid_key_dbs();
@@ -198,10 +218,14 @@ void MainWindow::restore_settings() {
   }
 
   prohibit_update_checking_ =
-      settings.value("network/prohibit_update_check").toBool();
+      settings.value("network/prohibit_update_check", true).toBool();
+  show_wizard_on_startup_ = settings.value("wizard/show_wizard", true).toBool();
 
-  // set appearance
   AppearanceSO const appearance(SettingsObject("general_settings_state"));
+
+  icon_style_ = appearance.tool_bar_button_style;
+  icon_size_ =
+      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height);
 
   crypt_tool_bar_->clear();
 
@@ -230,21 +254,7 @@ void MainWindow::restore_settings() {
     crypt_tool_bar_->addAction(sym_encrypt_act_);
   }
 
-  icon_style_ = appearance.tool_bar_button_style;
-  open_button_->setToolButtonStyle(icon_style_);
-  import_button_->setToolButtonStyle(icon_style_);
-  workspace_button_->setToolButtonStyle(icon_style_);
-  this->setToolButtonStyle(icon_style_);
-
-  // icons ize
-  this->setIconSize(
-      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
-  open_button_->setIconSize(
-      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
-  import_button_->setIconSize(
-      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
-  workspace_button_->setIconSize(
-      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height));
+  apply_tool_bar_appearance();
 }
 
 void MainWindow::close_attachment_dock() {
@@ -269,8 +279,13 @@ auto MainWindow::create_action(const QString& id, const QString& name,
                                const QContainer<QKeySequence>& shortcuts)
     -> QAction* {
   auto* action = new QAction(name, this);
-  action->setIcon(QIcon(icon));
+
+  if (!icon.isEmpty()) {
+    action->setIcon(QIcon(icon));
+  }
+
   action->setToolTip(too_tip);
+  action->setStatusTip(too_tip);
 
   if (!shortcuts.isEmpty()) {
     action->setShortcuts(
@@ -306,13 +321,19 @@ auto MainWindow::GetCurrentGpgContextChannel() const -> int {
 
 auto MainWindow::check_and_notify_invalid_key_dbs() -> void {
   auto key_dbs = GetAllKeyDatabaseInfoBySettings();
+  auto active_dbs = GetGpgKeyDatabaseInfos();
 
   // 1. Filter and identify invalid databases
   QString details;
   int invalid_count = 0;
 
   for (const auto& key_db : key_dbs) {
-    if (!key_db.valid) {
+    bool is_active = std::find_if(active_dbs.begin(), active_dbs.end(),
+                                  [key_db](const KeyDatabaseInfo& i) -> bool {
+                                    return i.name == key_db.name;
+                                  }) != active_dbs.end();
+
+    if (!key_db.valid || !is_active) {
       invalid_count++;
       details += tr("Name: %1").arg(key_db.name) + "\n" +
                  tr("Path: %1").arg(key_db.origin_path) + "\n\n";
@@ -347,6 +368,30 @@ auto MainWindow::check_and_notify_invalid_key_dbs() -> void {
   // 4. Execute and Handle Interaction
   LOG_W() << "Invalid key databases detected count: " << invalid_count;
   msg_box->show();
+}
+
+void MainWindow::ApplyAppearanceSettingsToOpenedWidgets() {
+  if (edit_ != nullptr && edit_->TabWidget() != nullptr) {
+    auto* tab_widget = edit_->TabWidget();
+
+    for (int i = 0; i < tab_widget->count(); ++i) {
+      auto* page = qobject_cast<PlainTextEditorPage*>(tab_widget->widget(i));
+      if (page == nullptr) continue;
+
+      page->ApplyAppearanceSettings();
+    }
+  }
+
+  if (info_board_ != nullptr) {
+    AppearanceSO const appearance(SettingsObject("general_settings_state"));
+
+    const auto text_edits = info_board_->findChildren<QTextEdit*>();
+    for (auto* text_edit : text_edits) {
+      QFont font = text_edit->font();
+      font.setPointSize(appearance.info_board_font_size);
+      text_edit->setFont(font);
+    }
+  }
 }
 
 }  // namespace GpgFrontend::UI
