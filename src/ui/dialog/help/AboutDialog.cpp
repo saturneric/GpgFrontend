@@ -216,7 +216,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
           "<br/>"
           "<a href=\"mailto:eric@bktus.com\">eric@bktus.com</a>")
           .arg(tr("Developed and maintained by Saturneric."),
-               tr("Report an issue on GitHub"), tr("Contact the developer")),
+               tr("Report an issue on GitHub"),
+               tr("About and contact information")),
       content);
 
   main_layout->addWidget(CreateCard(tr("Developer"), developer_label, content));
