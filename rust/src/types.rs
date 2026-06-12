@@ -36,6 +36,8 @@
 use core::fmt;
 use std::{error::Error, ffi::c_void, os::raw::c_char};
 
+use zeroize::{Zeroize, ZeroizeOnDrop};
+
 /// Return status code for all exported FFI functions.
 ///
 /// A value of `Success` (0) indicates the operation completed without error.
@@ -180,7 +182,7 @@ pub enum GfrSignMode {
 
 /// Reason code used when revoking a key or subkey.
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Zeroize, ZeroizeOnDrop)]
 pub enum GfrRevocationCode {
     NoReason = 0,
     Superseded = 1,
@@ -191,6 +193,7 @@ pub enum GfrRevocationCode {
 
 /// Configuration for generating a primary key or subkey.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrKeyConfig {
     /// Algorithm to use for this key.
     pub algo: GfrKeyAlgo,
@@ -209,6 +212,7 @@ pub struct GfrKeyConfig {
 /// All pointer fields are heap-allocated and must be freed with
 /// `gfr_crypto_free_key_generate_result`.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrKeyGenerateResult {
     /// Armored secret key block.
     pub secret_key: *mut c_char,
@@ -223,6 +227,7 @@ pub struct GfrKeyGenerateResult {
 /// All pointer fields are heap-allocated; free the enclosing `GfrKeyMetadataC`
 /// array with `gfr_free_metadata_array`.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrSubkeyMetadataC {
     /// OpenPGP key version.
     pub ver: GfrOpenPGPKeyVersion,
@@ -248,6 +253,7 @@ pub struct GfrSubkeyMetadataC {
 
 /// A single OpenPGP user ID with its revocation and primary status.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrUserIdC {
     /// User ID string in "Name (Comment) <email>" format.
     pub user_id: *mut c_char,
@@ -262,6 +268,7 @@ pub struct GfrUserIdC {
 /// All pointer fields are heap-allocated; free the array with
 /// `gfr_free_metadata_array`.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrKeyMetadataC {
     /// OpenPGP key version.
     pub ver: GfrOpenPGPKeyVersion,
@@ -321,6 +328,7 @@ pub enum GfrSignatureStatus {
 /// All pointer fields are heap-allocated; free the enclosing result struct
 /// with `gfr_crypto_free_verify_result` or `gfr_crypto_free_verify_metadata`.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrSignatureResultC {
     /// The type of signature (Inline, ClearText, Detached).
     pub sig_type: GfrSignMode,
@@ -350,6 +358,7 @@ pub enum GfrRecipientStatus {
 
 /// Information about a single decryption recipient key.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrRecipientResultC {
     /// Key ID string of the recipient subkey used to encrypt the session key.
     pub key_id: *mut c_char,
@@ -361,6 +370,7 @@ pub struct GfrRecipientResultC {
 
 /// An invalid (rejected) encryption recipient.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrInvalidRecipientC {
     /// Fingerprint of the rejected recipient.
     pub fpr: *mut c_char,
@@ -370,6 +380,7 @@ pub struct GfrInvalidRecipientC {
 
 /// Metadata produced by a signing operation.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrSignMetadataC {
     /// Array of per-signature results.
     pub signatures: *mut GfrSignatureResultC,
@@ -379,6 +390,7 @@ pub struct GfrSignMetadataC {
 
 /// Metadata produced by an encryption operation.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrEncryptMetadataC {
     /// Array of recipients that could not be encrypted to.
     pub invalid_recipients: *mut GfrInvalidRecipientC,
@@ -388,6 +400,7 @@ pub struct GfrEncryptMetadataC {
 
 /// Metadata produced by a decryption operation.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrDecryptMetadataC {
     /// Embedded filename from the OpenPGP literal data packet, or null.
     pub filename: *mut c_char,
@@ -399,6 +412,7 @@ pub struct GfrDecryptMetadataC {
 
 /// Metadata produced by a verification operation.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrVerifyMetadataC {
     /// Array of per-signature results.
     pub signatures: *mut GfrSignatureResultC,
@@ -414,6 +428,7 @@ pub struct GfrVerifyMetadataC {
 /// file-based operations they are null/0 and the output was written to disk.
 /// Free with `gfr_crypto_free_encrypt_result`.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrEncryptResultC {
     /// Ciphertext bytes, or null for file-based operations.
     pub data: *mut u8,
@@ -425,6 +440,7 @@ pub struct GfrEncryptResultC {
 
 /// Result of a decryption operation. Free with `gfr_crypto_free_decrypt_result`.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrDecryptResultC {
     /// Decrypted plaintext bytes, or null for file-based operations.
     pub data: *mut u8,
@@ -436,6 +452,7 @@ pub struct GfrDecryptResultC {
 
 /// Result of a signing operation. Free with `gfr_crypto_free_sign_result`.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrSignResultC {
     /// Signed data bytes (payload + signature for inline; signature only for detached).
     pub data: *mut u8,
@@ -447,6 +464,7 @@ pub struct GfrSignResultC {
 
 /// Result of a verification operation. Free with `gfr_crypto_free_verify_result`.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrVerifyResultC {
     /// Extracted plaintext bytes (for inline/clear-text modes), or null.
     pub data: *mut u8,
@@ -459,6 +477,7 @@ pub struct GfrVerifyResultC {
 /// Result of a combined encrypt-and-sign operation.
 /// Free with `gfr_crypto_free_encrypt_and_sign_result`.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrEncryptAndSignResultC {
     /// Ciphertext bytes, or null for file-based operations.
     pub data: *mut u8,
@@ -473,6 +492,7 @@ pub struct GfrEncryptAndSignResultC {
 /// Result of a combined decrypt-and-verify operation.
 /// Free with `gfr_crypto_free_decrypt_and_verify_result`.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrDecryptAndVerifyResultC {
     /// Decrypted plaintext bytes, or null for file-based operations.
     pub data: *mut u8,
@@ -506,6 +526,7 @@ pub type GfrFreeCb = extern "C" fn(ptr: *mut c_void, user_data: *mut c_void);
 
 /// State passed to a passphrase fetch callback describing the request context.
 #[repr(C)]
+#[derive(Zeroize, ZeroizeOnDrop)]
 pub struct GfrPassphraseState {
     /// Fingerprint of the key the passphrase is needed for; may be null.
     pub fpr: *mut c_char,

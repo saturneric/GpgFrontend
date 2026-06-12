@@ -20,7 +20,7 @@ rand = "0.8"
 rsa = "0.9.10"
 tar = "0.4.45"
 tempfile = "3.27.0"
-zeroize = "1.8.2"
+zeroize = {"1.8.2", features = ["derive"]}
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2.186"
