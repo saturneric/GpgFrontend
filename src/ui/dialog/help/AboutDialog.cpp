@@ -294,9 +294,10 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
   }
 
   auto* notice_label = CreateBodyLabel(
-      tr("If you find a translation issue or want to help improve "
-         "localization, please contact the developer or submit a "
-         "contribution."),
+      tr("If you want to help improve "
+         "localization, please read the <a "
+         "href='https://gpgfrontend.bktus.com/appendix/translate-interface/"
+         "'>translation guide</a>.!"),
       this);
 
   main_layout->addWidget(title_label);
