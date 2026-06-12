@@ -32,6 +32,7 @@
 //! has a 5-minute TTL; the cache is bypassed when no fingerprint is known.
 
 use once_cell::sync::Lazy;
+use std::io;
 use std::{
     collections::HashMap,
     sync::{Arc, Mutex},
@@ -39,26 +40,107 @@ use std::{
 };
 use zeroize::Zeroize;
 
+#[cfg(unix)]
+fn lock_memory(buf: &[u8]) -> io::Result<()> {
+    if buf.is_empty() {
+        return Ok(());
+    }
+
+    let ret = unsafe { libc::mlock(buf.as_ptr() as *const libc::c_void, buf.len()) };
+
+    if ret == 0 {
+        Ok(())
+    } else {
+        Err(io::Error::last_os_error())
+    }
+}
+
+#[cfg(unix)]
+fn unlock_memory(buf: &[u8]) -> io::Result<()> {
+    if buf.is_empty() {
+        return Ok(());
+    }
+
+    let ret = unsafe { libc::munlock(buf.as_ptr() as *const libc::c_void, buf.len()) };
+
+    if ret == 0 {
+        Ok(())
+    } else {
+        Err(io::Error::last_os_error())
+    }
+}
+
+#[cfg(windows)]
+fn lock_memory(buf: &[u8]) -> io::Result<()> {
+    use windows_sys::Win32::System::Memory::VirtualLock;
+
+    if buf.is_empty() {
+        return Ok(());
+    }
+
+    let ok = unsafe { VirtualLock(buf.as_ptr() as *const core::ffi::c_void, buf.len()) };
+
+    if ok != 0 {
+        Ok(())
+    } else {
+        Err(io::Error::last_os_error())
+    }
+}
+
+#[cfg(windows)]
+fn unlock_memory(buf: &[u8]) -> io::Result<()> {
+    use windows_sys::Win32::System::Memory::VirtualUnlock;
+
+    if buf.is_empty() {
+        return Ok(());
+    }
+
+    let ok = unsafe { VirtualUnlock(buf.as_ptr() as *const core::ffi::c_void, buf.len()) };
+
+    if ok != 0 {
+        Ok(())
+    } else {
+        Err(io::Error::last_os_error())
+    }
+}
+
+#[cfg(not(any(unix, windows)))]
+fn lock_memory(_buf: &[u8]) -> io::Result<()> {
+    Ok(())
+}
+
+#[cfg(not(any(unix, windows)))]
+fn unlock_memory(_buf: &[u8]) -> io::Result<()> {
+    Ok(())
+}
+
 /// A passphrase buffer that zeroes its memory when dropped.
 #[derive(Debug)]
 pub struct CachedSecret {
     data: Vec<u8>,
+    locked: bool, // if locked, the secret is currently in use and should not be evicted from the cache
 }
 
 impl CachedSecret {
-    pub fn new(mut data: Vec<u8>) -> Self {
-        data.shrink_to_fit();
-        Self { data }
+    pub fn new(data: Vec<u8>) -> Self {
+        let locked = lock_memory(&data).is_ok();
+        Self { data, locked }
     }
 
     pub fn as_slice(&self) -> &[u8] {
-        &self.data
+        &self.data.as_slice()
     }
 }
 
 impl Drop for CachedSecret {
     fn drop(&mut self) {
+        // Zero the memory before dropping.
         self.data.zeroize();
+
+        // Unlock the memory if it was successfully locked. This is a best-effort attempt;
+        if self.locked {
+            let _ = unlock_memory(&self.data);
+        }
     }
 }
 

@@ -22,5 +22,11 @@ tar = "0.4.45"
 tempfile = "3.27.0"
 zeroize = "1.8.2"
 
+[target.'cfg(unix)'.dependencies]
+libc = "0.2.186"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = "0.61.2"
+
 [build-dependencies]
 cbindgen = "0.29.2"

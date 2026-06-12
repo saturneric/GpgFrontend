@@ -839,6 +839,7 @@ dependencies = [
  "anyhow",
  "cbindgen",
  "env_logger",
+ "libc",
  "log",
  "once_cell",
  "pgp",
@@ -846,6 +847,7 @@ dependencies = [
  "rsa",
  "tar",
  "tempfile",
+ "windows-sys",
  "zeroize",
 ]
 
