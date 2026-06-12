@@ -461,6 +461,15 @@ install(FILES "${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.meta
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/metainfo"
   COMPONENT runtime)
 
+install(FILES "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/256x256/apps/com.bktus.gpgfrontend.png"
+  DESTINATION "."
+  COMPONENT runtime)
+
+install(FILES "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/256x256/apps/com.bktus.gpgfrontend.png"
+  DESTINATION "."
+  RENAME ".DirIcon"
+  COMPONENT runtime)
+
 #
 # Icons and pixmaps
 #
@@ -468,13 +477,13 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/"
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/pixmaps")
 
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/"
-  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor")
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor"
+  COMPONENT runtime)
 
 # Optional
 foreach(size IN ITEMS 32 48 64 128 256 512)
   install(FILES "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/${size}x${size}/apps/com.bktus.gpgfrontend.png"
     DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/${size}x${size}/apps"
-    RENAME "gpgfrontend.png"
     COMPONENT runtime)
 endforeach()
 
