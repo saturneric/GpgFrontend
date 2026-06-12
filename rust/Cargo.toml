@@ -8,7 +8,7 @@ license = "GPL-3.0-or-later"
 
 [lib]
 name = "gf_rust"
-crate-type=["staticlib"]
+crate-type = ["staticlib"]
 
 [dependencies]
 anyhow = "1.0.102"
@@ -20,13 +20,13 @@ rand = "0.8"
 rsa = "0.9.10"
 tar = "0.4.45"
 tempfile = "3.27.0"
-zeroize = { version = "1.8.2", features = ["derive"]}
+zeroize = { version = "1.8.2", features = ["derive"] }
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2.186"
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = "0.61.2"
+windows-sys = { "version" = "0.61.2", features = ["Win32_System_Memory"] }
 
 [build-dependencies]
 cbindgen = "0.29.2"
