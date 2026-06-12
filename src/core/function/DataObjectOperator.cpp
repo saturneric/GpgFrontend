@@ -43,13 +43,13 @@ namespace {
 constexpr std::string_view kObjectKeyDeriveDomain = "GpgFrontend.DataObject.v2";
 
 enum class DataObjectHealth {
-  OK,
-  INVALID_FILE_NAME,
-  FILE_TOO_SMALL,
-  READ_FAILED,
-  MISSING_KEY,
-  DECRYPT_FAILED,
-  INVALID_JSON,
+  kOK,
+  kINVALID_FILE_NAME,
+  kFILE_TOO_SMALL,
+  kREAD_FAILED,
+  kMISSING_KEY,
+  kDECRYPT_FAILED,
+  kINVALID_JSON,
 };
 
 struct DataObjectCheckResult {
@@ -62,9 +62,9 @@ struct DataObjectCheckResult {
 };
 
 enum class DataObjectGCAction {
-  NONE,
-  QUARANTINE,
-  DELETE,
+  kGCA_NONE,
+  kGCA_QUARANTINE,
+  kGCA_DELETE,
 };
 
 struct DataObjectGCPolicy {
@@ -157,7 +157,7 @@ auto CheckDataObjectByRef(const QString& ref_hex, bool expect_json)
 
   if (ref_hex.size() != 64 ||
       QByteArray::fromHex(ref_hex.toLatin1()).size() != 32) {
-    r.health = DataObjectHealth::INVALID_FILE_NAME;
+    r.health = DataObjectHealth::kINVALID_FILE_NAME;
     return r;
   }
 
@@ -173,12 +173,12 @@ auto CheckDataObjectByRef(const QString& ref_hex, bool expect_json)
 
   auto [succ, data] = GpgFrontend::ReadFileGFBuffer(ref_path);
   if (!succ) {
-    r.health = DataObjectHealth::READ_FAILED;
+    r.health = DataObjectHealth::kREAD_FAILED;
     return r;
   }
 
   if (data.Size() <= 32) {
-    r.health = DataObjectHealth::FILE_TOO_SMALL;
+    r.health = DataObjectHealth::kFILE_TOO_SMALL;
     return r;
   }
 
@@ -187,26 +187,26 @@ auto CheckDataObjectByRef(const QString& ref_hex, bool expect_json)
 
   auto key = GpgFrontend::GetGSS().GetAppSecureKey(key_id);
   if (key.Empty()) {
-    r.health = DataObjectHealth::MISSING_KEY;
+    r.health = DataObjectHealth::kMISSING_KEY;
     return r;
   }
 
   auto encrypted = data.Right(static_cast<int>(data.Size() - key_id.Size()));
   if (encrypted.Empty()) {
-    r.health = DataObjectHealth::FILE_TOO_SMALL;
+    r.health = DataObjectHealth::kFILE_TOO_SMALL;
     return r;
   }
 
   auto drv_key = DeriveObjectKey(key, ref);
   if (!drv_key) {
-    r.health = DataObjectHealth::DECRYPT_FAILED;
+    r.health = DataObjectHealth::kDECRYPT_FAILED;
     return r;
   }
 
   auto plaintext =
       GpgFrontend::GFBufferFactory::DecryptLite(*drv_key, encrypted);
   if (!plaintext) {
-    r.health = DataObjectHealth::DECRYPT_FAILED;
+    r.health = DataObjectHealth::kDECRYPT_FAILED;
     return r;
   }
 
@@ -214,12 +214,12 @@ auto CheckDataObjectByRef(const QString& ref_hex, bool expect_json)
     QJsonParseError err;
     QJsonDocument::fromJson(plaintext->ConvertToQByteArray(), &err);
     if (err.error != QJsonParseError::NoError) {
-      r.health = DataObjectHealth::INVALID_JSON;
+      r.health = DataObjectHealth::kINVALID_JSON;
       return r;
     }
   }
 
-  r.health = DataObjectHealth::OK;
+  r.health = DataObjectHealth::kOK;
   return r;
 }
 
@@ -246,19 +246,19 @@ auto DataObjectGcStatePath(GpgFrontend::GlobalSettingStation& gss) -> QString {
 
 auto HealthToString(DataObjectHealth h) -> QString {
   switch (h) {
-    case DataObjectHealth::OK:
+    case DataObjectHealth::kOK:
       return "ok";
-    case DataObjectHealth::INVALID_FILE_NAME:
+    case DataObjectHealth::kINVALID_FILE_NAME:
       return "invalid_file_name";
-    case DataObjectHealth::FILE_TOO_SMALL:
+    case DataObjectHealth::kFILE_TOO_SMALL:
       return "file_too_small";
-    case DataObjectHealth::READ_FAILED:
+    case DataObjectHealth::kREAD_FAILED:
       return "read_failed";
-    case DataObjectHealth::MISSING_KEY:
+    case DataObjectHealth::kMISSING_KEY:
       return "missing_key";
-    case DataObjectHealth::DECRYPT_FAILED:
+    case DataObjectHealth::kDECRYPT_FAILED:
       return "decrypt_failed";
-    case DataObjectHealth::INVALID_JSON:
+    case DataObjectHealth::kINVALID_JSON:
       return "invalid_json";
   }
   return "unknown";
@@ -267,23 +267,23 @@ auto HealthToString(DataObjectHealth h) -> QString {
 auto IsDeleteAllowed(DataObjectHealth h, const DataObjectGCPolicy& policy)
     -> bool {
   switch (h) {
-    case DataObjectHealth::INVALID_FILE_NAME:
-    case DataObjectHealth::FILE_TOO_SMALL:
+    case DataObjectHealth::kINVALID_FILE_NAME:
+    case DataObjectHealth::kFILE_TOO_SMALL:
       return true;
 
-    case DataObjectHealth::MISSING_KEY:
+    case DataObjectHealth::kMISSING_KEY:
       return policy.delete_missing_key;
 
-    case DataObjectHealth::DECRYPT_FAILED:
+    case DataObjectHealth::kDECRYPT_FAILED:
       return policy.delete_decrypt_failed;
 
-    case DataObjectHealth::READ_FAILED:
+    case DataObjectHealth::kREAD_FAILED:
       return false;
 
-    case DataObjectHealth::INVALID_JSON:
+    case DataObjectHealth::kINVALID_JSON:
       return false;
 
-    case DataObjectHealth::OK:
+    case DataObjectHealth::kOK:
       return false;
   }
 
@@ -292,14 +292,14 @@ auto IsDeleteAllowed(DataObjectHealth h, const DataObjectGCPolicy& policy)
 
 auto GraceDaysFor(DataObjectHealth h, const DataObjectGCPolicy& policy) -> int {
   switch (h) {
-    case DataObjectHealth::MISSING_KEY:
+    case DataObjectHealth::kMISSING_KEY:
       return policy.missing_key_grace_days;
 
-    case DataObjectHealth::DECRYPT_FAILED:
+    case DataObjectHealth::kDECRYPT_FAILED:
       return policy.decrypt_failed_grace_days;
 
-    case DataObjectHealth::FILE_TOO_SMALL:
-    case DataObjectHealth::INVALID_FILE_NAME:
+    case DataObjectHealth::kFILE_TOO_SMALL:
+    case DataObjectHealth::kINVALID_FILE_NAME:
     default:
       return policy.quarantine_grace_days;
   }
@@ -355,19 +355,19 @@ auto MoveFileReplacing(const QString& src, const QString& dst) -> bool {
 
 auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
                              DataObjectGCContext* ctx) -> DataObjectGCAction {
-  if (ctx == nullptr) return DataObjectGCAction::NONE;
+  if (ctx == nullptr) return DataObjectGCAction::kGCA_NONE;
 
   const auto& policy = ctx->policy;
   auto& report = ctx->report;
   auto& state = ctx->state;
 
-  if (result.health == DataObjectHealth::OK || result.path.isEmpty()) {
-    return DataObjectGCAction::NONE;
+  if (result.health == DataObjectHealth::kOK || result.path.isEmpty()) {
+    return DataObjectGCAction::kGCA_NONE;
   }
 
   QFileInfo src_info(result.path);
   if (!src_info.exists()) {
-    return DataObjectGCAction::NONE;
+    return DataObjectGCAction::kGCA_NONE;
   }
 
   const auto ref_hex =
@@ -410,7 +410,7 @@ auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
   // dir, so check this before the delete_allowed gate.
   if (already_quarantined) {
     if (policy.dry_run) {
-      return DataObjectGCAction::NONE;
+      return DataObjectGCAction::kGCA_NONE;
     }
 
     if (age_days < policy.quarantine_grace_days) {
@@ -418,7 +418,7 @@ auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
       item.insert("grace_days", policy.quarantine_grace_days);
       state.insert(ref_hex, item);
       ctx->state_dirty = true;
-      return DataObjectGCAction::NONE;
+      return DataObjectGCAction::kGCA_NONE;
     }
 
     if (!QFile::remove(result.path)) {
@@ -427,7 +427,7 @@ auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
       ctx->state_dirty = true;
 
       LOG_W() << "failed to delete quarantined data object:" << result.path;
-      return DataObjectGCAction::NONE;
+      return DataObjectGCAction::kGCA_NONE;
     }
 
     state.remove(ref_hex);
@@ -436,7 +436,7 @@ auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
     report.deleted++;
 
     LOG_W() << "deleted quarantined data object:" << ref_hex;
-    return DataObjectGCAction::DELETE;
+    return DataObjectGCAction::kGCA_DELETE;
   }
 
   const bool delete_allowed = IsDeleteAllowed(result.health, policy);
@@ -444,7 +444,7 @@ auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
     item.insert("action", "record_only");
     state.insert(ref_hex, item);
     ctx->state_dirty = true;
-    return DataObjectGCAction::NONE;
+    return DataObjectGCAction::kGCA_NONE;
   }
 
   if (policy.dry_run) {
@@ -452,17 +452,18 @@ auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
     item.insert("would_quarantine_or_delete", true);
     state.insert(ref_hex, item);
     ctx->state_dirty = true;
-    return DataObjectGCAction::NONE;
+    return DataObjectGCAction::kGCA_NONE;
   }
 
-  if (result.health == DataObjectHealth::MISSING_KEY && age_days < grace_days) {
+  if (result.health == DataObjectHealth::kMISSING_KEY &&
+      age_days < grace_days) {
     item.insert("action", "missing_key_waiting");
     item.insert("grace_days", grace_days);
     state.insert(ref_hex, item);
     ctx->state_dirty = true;
 
     LOG_W() << "data object missing key, waiting grace period, ref:" << ref_hex;
-    return DataObjectGCAction::NONE;
+    return DataObjectGCAction::kGCA_NONE;
   }
 
   if (!EnsureDir(quarantine_dir)) {
@@ -471,7 +472,7 @@ auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
     ctx->state_dirty = true;
 
     LOG_W() << "failed to create quarantine dir:" << quarantine_dir;
-    return DataObjectGCAction::NONE;
+    return DataObjectGCAction::kGCA_NONE;
   }
 
   const auto quarantine_path = quarantine_dir + "/" + src_info.fileName();
@@ -483,7 +484,7 @@ auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
 
     LOG_W() << "failed to quarantine data object:" << result.path
             << "to:" << quarantine_path;
-    return DataObjectGCAction::NONE;
+    return DataObjectGCAction::kGCA_NONE;
   }
 
   item.insert("action", "quarantined");
@@ -497,7 +498,7 @@ auto MaybeQuarantineOrDelete(const DataObjectCheckResult& result,
   LOG_W() << "quarantined data object:" << ref_hex
           << "reason:" << HealthToString(result.health);
 
-  return DataObjectGCAction::QUARANTINE;
+  return DataObjectGCAction::kGCA_QUARANTINE;
 }
 
 auto CompactGcState(DataObjectGCContext* ctx) -> void {
@@ -533,7 +534,7 @@ auto CompactGcState(DataObjectGCContext* ctx) -> void {
       const auto check =
           CheckDataObjectByRef(QFileInfo(path).fileName(), false);
 
-      if (check.health == DataObjectHealth::OK) {
+      if (check.health == DataObjectHealth::kOK) {
         ctx->state_dirty = true;
         continue;
       }
@@ -609,13 +610,13 @@ auto RunDataObjectGC(const DataObjectGCPolicy& policy) -> DataObjectGCReport {
       } else {
         result.ref_hex = name;
         result.path = info.absoluteFilePath();
-        result.health = DataObjectHealth::INVALID_FILE_NAME;
+        result.health = DataObjectHealth::kINVALID_FILE_NAME;
         result.size = info.size();
         result.last_modified = info.lastModified();
       }
 
       switch (result.health) {
-        case DataObjectHealth::OK:
+        case DataObjectHealth::kOK:
           ctx.report.ok++;
 
           // If the object is healthy but has an existing GC state entry, it
@@ -628,27 +629,27 @@ auto RunDataObjectGC(const DataObjectGCPolicy& policy) -> DataObjectGCReport {
           }
           continue;
 
-        case DataObjectHealth::INVALID_FILE_NAME:
+        case DataObjectHealth::kINVALID_FILE_NAME:
           ctx.report.invalid_name++;
           break;
 
-        case DataObjectHealth::FILE_TOO_SMALL:
+        case DataObjectHealth::kFILE_TOO_SMALL:
           ctx.report.file_too_small++;
           break;
 
-        case DataObjectHealth::READ_FAILED:
+        case DataObjectHealth::kREAD_FAILED:
           ctx.report.read_failed++;
           break;
 
-        case DataObjectHealth::MISSING_KEY:
+        case DataObjectHealth::kMISSING_KEY:
           ctx.report.missing_key++;
           break;
 
-        case DataObjectHealth::DECRYPT_FAILED:
+        case DataObjectHealth::kDECRYPT_FAILED:
           ctx.report.decrypt_failed++;
           break;
 
-        case DataObjectHealth::INVALID_JSON:
+        case DataObjectHealth::kINVALID_JSON:
           ctx.report.invalid_json++;
           break;
       }
@@ -671,8 +672,8 @@ auto RunDataObjectGC(const DataObjectGCPolicy& policy) -> DataObjectGCReport {
       result.ref_hex = info.fileName();
       result.path = info.absoluteFilePath();
       result.health = IsValidRefHex(info.fileName())
-                          ? DataObjectHealth::DECRYPT_FAILED
-                          : DataObjectHealth::INVALID_FILE_NAME;
+                          ? DataObjectHealth::kDECRYPT_FAILED
+                          : DataObjectHealth::kINVALID_FILE_NAME;
       result.size = info.size();
       result.last_modified = info.lastModified();
 
