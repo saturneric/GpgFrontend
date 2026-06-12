@@ -36,9 +36,10 @@ use pgp::{
     composed::{DsaKeySize, KeyType},
     crypto::ecc_curve::ECCCurve,
     packet::{RevocationCode, Signature, Subpacket, SubpacketData},
-    types::{PublicParams, Timestamp},
+    types::{Password, PublicParams, Timestamp},
 };
 use rsa::traits::PublicKeyParts;
+use zeroize::Zeroizing;
 
 use crate::{
     cache::{PasswordCache, PasswordCacheKey, PasswordCachePolicy},
@@ -77,7 +78,7 @@ pub fn fetch_password_internal(
     state: PassphraseStateInternal,
     fetch_cb: Option<GfrPasswordFetchCb>,
     free_cb: Option<GfrFreeCb>,
-) -> Result<Vec<u8>, GfrStatus> {
+) -> Result<Zeroizing<Vec<u8>>, GfrStatus> {
     let Some(fetch_fn) = fetch_cb else {
         return Err(GfrStatus::ErrorInvalidInput); // Free callback is required if fetch callback is provided
     };
@@ -124,7 +125,7 @@ pub fn fetch_password_internal(
     free_fn(pwd_ptr as *mut std::ffi::c_void, null_mut());
 
     log::debug!("Fetched password via callback");
-    Ok(password)
+    Ok(Zeroizing::new(password))
 }
 
 /// Fetch a passphrase, consulting the in-memory cache according to `policy`.
@@ -138,7 +139,7 @@ pub fn fetch_password_with_cache(
     state: PassphraseStateInternal,
     fetch_cb: Option<GfrPasswordFetchCb>,
     free_cb: Option<GfrFreeCb>,
-) -> Result<Vec<u8>, GfrStatus> {
+) -> Result<Zeroizing<Vec<u8>>, GfrStatus> {
     let fpr = state.fpr.to_uppercase();
     let key = PasswordCacheKey {
         channel,
@@ -156,14 +157,14 @@ pub fn fetch_password_with_cache(
             if let Some(cache) = cache {
                 if let Some(pwd) = cache.get(&key) {
                     log::debug!("Password cache hit");
-                    return Ok(pwd);
+                    return Ok(Zeroizing::new(pwd));
                 }
             }
 
             let pwd = fetch_password_internal(channel, state, fetch_cb, free_cb)?;
 
             if let Some(cache) = cache {
-                cache.put(key, pwd.clone());
+                cache.put(key, pwd.to_vec());
             }
 
             Ok(pwd)
@@ -179,7 +180,7 @@ pub fn fetch_password_with_cache(
             let pwd = fetch_password_internal(channel, state, fetch_cb, free_cb)?;
 
             if let Some(cache) = cache {
-                cache.put(key, pwd.clone());
+                cache.put(key, pwd.to_vec());
             }
 
             Ok(pwd)
@@ -502,4 +503,8 @@ pub fn build_revocation_reason_subpacket(
     };
 
     sp.map_err(|_| GfrStatus::ErrorInternal)
+}
+
+pub fn password_from_zeroizing_bytes(bytes: Zeroizing<Vec<u8>>) -> Password {
+    Password::from(move || Zeroizing::new(bytes.as_slice().to_vec()))
 }

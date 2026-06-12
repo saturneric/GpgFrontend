@@ -26,6 +26,10 @@
  *
  */
 
+use zeroize::Zeroizing;
+
+use crate::utils::password_from_zeroizing_bytes;
+
 use super::*;
 
 /// Encrypt a stream with one or more public keys (no signature).
@@ -137,7 +141,7 @@ where
                     fetch_cb,
                     free_cb,
                 )?;
-                Ok(Password::from(pwd_bytes.as_slice()))
+                Ok(password_from_zeroizing_bytes(pwd_bytes))
             } else {
                 debug!("Target secret key is unlocked. Bypassing password callback for signing.");
                 Ok(Password::empty())
@@ -307,7 +311,7 @@ where
 
     let mut enc_builder = builder.seipd_v1(&mut rng, SymmetricKeyAlgorithm::AES256);
 
-    let password: Vec<u8> = fetch_password_with_cache(
+    let password: Zeroizing<Vec<u8>> = fetch_password_with_cache(
         Some(&PASSWORD_CACHE),
         PasswordCachePolicy::Bypass,
         channel,
@@ -325,10 +329,8 @@ where
         return Err(GfrStatus::ErrorBadPassphrase);
     }
 
-    let msg_pw = Password::from(password.as_slice());
-
+    let msg_pw = password_from_zeroizing_bytes(password);
     let s2k = StringToKey::new_argon2(&mut rng, 1, 4, 21);
-
     enc_builder.encrypt_with_password(s2k, &msg_pw).into_gfr()?;
 
     let result = if ascii_armor {

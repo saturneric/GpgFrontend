@@ -26,6 +26,10 @@
  *
  */
 
+use zeroize::Zeroizing;
+
+use crate::utils::password_from_zeroizing_bytes;
+
 use super::*;
 
 /// Inspect the ESK (Encrypted Session Key) packets of a parsed message.
@@ -101,7 +105,7 @@ fn decrypt_message_with_password(
         return Err(GfrStatus::ErrorBadPassphrase);
     }
 
-    let msg_pw = Password::from(password.as_slice());
+    let msg_pw = password_from_zeroizing_bytes(password);
 
     parsed_message
         .decrypt_with_password(&msg_pw)
@@ -208,7 +212,7 @@ where
             }
         }
 
-        let mut password = Vec::<u8>::new();
+        let mut password = Zeroizing::new(Vec::<u8>::new());
         if needs_password {
             password = fetch_password_with_cache(
                 Some(&PASSWORD_CACHE),
@@ -229,7 +233,7 @@ where
         }
 
         // 5. Initialize streaming decryption
-        let pwd_fn = Password::from(password.as_slice());
+        let pwd_fn = password_from_zeroizing_bytes(password);
         decrypted = parsed_message
             .decrypt(&pwd_fn, &skey)
             .inspect_err(|_| {

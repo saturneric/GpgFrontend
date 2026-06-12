@@ -26,6 +26,8 @@
  *
  */
 
+use crate::utils::password_from_zeroizing_bytes;
+
 use super::*;
 
 /// Sign a stream or buffer with one or more secret keys.
@@ -99,7 +101,7 @@ where
                 fetch_cb,
                 free_cb,
             )?;
-            Ok(Password::from(pwd_bytes.as_slice()))
+            Ok(password_from_zeroizing_bytes(pwd_bytes))
         } else {
             Ok(Password::empty())
         }

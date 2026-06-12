@@ -38,7 +38,7 @@ use crate::{
     types::{GfrFreeCb, GfrKeyAlgo, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
     utils::{
         PassphraseStateInternal, check_if_should_use_key_ver_v6, fetch_password_with_cache,
-        resolve_key_type,
+        password_from_zeroizing_bytes, resolve_key_type,
     },
 };
 use log::error;
@@ -51,6 +51,7 @@ use pgp::{
     types::{KeyDetails, KeyVersion, Password, Timestamp},
 };
 use rand::thread_rng;
+use zeroize::{Zeroize, Zeroizing};
 
 /// Armored key material produced by a generation or modification operation.
 pub struct GeneratedKeys {
@@ -170,7 +171,7 @@ pub fn create_key_internal(
             free_cb,
         )?
     } else {
-        Vec::new()
+        Zeroizing::new(Vec::<u8>::new())
     };
 
     if key_config.has_passphrase && primary_pwd_bytes.is_empty() {
@@ -179,7 +180,7 @@ pub fn create_key_internal(
 
     if !primary_pwd_bytes.is_empty() {
         // Encrypt Primary Key with the primary password
-        let primary_password = Password::from(primary_pwd_bytes.as_slice());
+        let primary_password = password_from_zeroizing_bytes(primary_pwd_bytes);
         secret_key
             .primary_key
             .set_password(thread_rng(), &primary_password)
@@ -206,7 +207,7 @@ pub fn create_key_internal(
 
             // If the subkey password is provided, apply it
             if !subkey_pwd_bytes.is_empty() {
-                let sub_password = Password::from(subkey_pwd_bytes.as_slice());
+                let sub_password = password_from_zeroizing_bytes(subkey_pwd_bytes);
                 subkey
                     .key
                     .set_password(thread_rng(), &sub_password)
@@ -279,7 +280,7 @@ pub fn add_subkey_internal(
             log::error!("Password required to unlock primary key but none provided.");
             return Err(GfrStatus::ErrorFetchPasswordFailed);
         }
-        primary_pw = Password::from(pwd_bytes.as_slice());
+        primary_pw = password_from_zeroizing_bytes(pwd_bytes);
 
         // Dry-run unlock to verify the password is correct before we proceed
         if secret_key
@@ -390,7 +391,7 @@ pub fn add_subkey_internal(
             return Err(GfrStatus::ErrorFetchPasswordFailed);
         }
 
-        let sub_password = Password::from(subkey_pwd_bytes.as_slice());
+        let sub_password = password_from_zeroizing_bytes(subkey_pwd_bytes);
         raw_subkey
             .set_password(&mut rng, &sub_password)
             .map_err(|_| GfrStatus::ErrorPasswordFailed)?;

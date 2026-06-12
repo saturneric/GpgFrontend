@@ -38,6 +38,7 @@ use pgp::{
     packet::{Signature, SignatureConfig, SignatureType, Subpacket, SubpacketData},
     types::{KeyDetails, PacketHeaderVersion, Password, SecretParams, Tag, Timestamp},
 };
+use zeroize::Zeroizing;
 
 use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
@@ -46,6 +47,7 @@ use crate::{
     utils::{
         PassphraseStateInternal, build_revocation_reason_subpacket, choose_template_self_sig,
         fetch_password_with_cache, has_is_primary_true, is_self_signature_from_primary,
+        password_from_zeroizing_bytes,
     },
 };
 
@@ -113,9 +115,9 @@ pub fn add_user_id_internal(
             free_cb,
         )?
     } else {
-        Vec::new()
+        Zeroizing::new(Vec::new())
     };
-    let pwd = Password::from(pwd_bytes.as_slice());
+    let pwd = password_from_zeroizing_bytes(pwd_bytes);
 
     let new_uid = pgp::packet::UserId::from_str(PacketHeaderVersion::New, new_uid_str)
         .map_err(|_| GfrStatus::ErrorInternal)?;
@@ -247,9 +249,9 @@ pub fn set_primary_user_id_internal(
             free_cb,
         )?
     } else {
-        Vec::new()
+        Zeroizing::new(Vec::new())
     };
-    let pwd = Password::from(pwd_bytes.as_slice());
+    let pwd = password_from_zeroizing_bytes(pwd_bytes);
 
     let pk = skey.primary_key.public_key();
     let primary_fpr = skey.primary_key.fingerprint();
@@ -358,9 +360,9 @@ pub fn revoke_user_id_internal(
             free_cb,
         )?
     } else {
-        Vec::new()
+        Zeroizing::new(Vec::new())
     };
-    let pwd = Password::from(pwd_bytes.as_slice());
+    let pwd = password_from_zeroizing_bytes(pwd_bytes);
 
     let pk = skey.primary_key.public_key();
     let primary_fpr = skey.primary_key.fingerprint();

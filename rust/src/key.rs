@@ -41,7 +41,7 @@ use crate::types::{
 };
 use crate::utils::{
     PassphraseStateInternal, build_revocation_reason_subpacket, determine_algo, extract_key_length,
-    fetch_password_with_cache,
+    fetch_password_with_cache, password_from_zeroizing_bytes,
 };
 use pgp::armor::{self, BlockType};
 use pgp::composed::SignedPublicSubKey;
@@ -55,6 +55,7 @@ use pgp::{
 };
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::io::{self, BufReader, Cursor};
+use zeroize::Zeroizing;
 
 /// A single user ID extracted from a key block.
 pub struct ExtractUserId {
@@ -647,7 +648,7 @@ fn fetch_old_and_new_passwords(
             return Err(GfrStatus::ErrorFetchPasswordFailed);
         }
 
-        Some(Password::from(old_pwd_bytes.as_slice()))
+        Some(password_from_zeroizing_bytes(old_pwd_bytes))
     } else {
         None
     };
@@ -671,7 +672,7 @@ fn fetch_old_and_new_passwords(
         return Err(GfrStatus::ErrorFetchPasswordFailed);
     }
 
-    let new_pw = Password::from(new_pwd_bytes.as_slice());
+    let new_pw = password_from_zeroizing_bytes(new_pwd_bytes);
 
     Ok((old_pw, new_pw))
 }
@@ -888,9 +889,9 @@ pub fn revoke_subkey_internal(
             free_cb,
         )?
     } else {
-        Vec::new()
+        Zeroizing::new(Vec::new())
     };
-    let pwd = Password::from(pwd_bytes.as_slice());
+    let pwd = password_from_zeroizing_bytes(pwd_bytes);
 
     let pk = secret_key.primary_key.public_key();
     let primary_fpr = secret_key.primary_key.fingerprint();
@@ -993,9 +994,9 @@ pub fn generate_key_rev_cert_internal(
             free_cb,
         )?
     } else {
-        Vec::new()
+        Zeroizing::new(Vec::new())
     };
-    let pwd = Password::from(pwd_bytes.as_slice());
+    let pwd = password_from_zeroizing_bytes(pwd_bytes);
 
     if is_enc {
         let inner = skey
@@ -1043,9 +1044,7 @@ pub fn generate_key_rev_cert_internal(
     let mut headers = BTreeMap::new();
     headers.insert(
         String::from("Comment"),
-        vec![String::from(
-            "This is a revocation certificate.",
-        )],
+        vec![String::from("This is a revocation certificate.")],
     );
 
     armor::write(
