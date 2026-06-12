@@ -28,6 +28,122 @@
 
 #include "PassphraseDialog.h"
 
+namespace {
+
+auto PassphraseStrengthDescription(int strength) -> QString {
+  if (strength < 20) {
+    return QObject::tr("Very weak");
+  }
+  if (strength < 40) {
+    return QObject::tr("Weak");
+  }
+  if (strength < 60) {
+    return QObject::tr("Fair");
+  }
+  if (strength < 80) {
+    return QObject::tr("Good");
+  }
+  return QObject::tr("Strong");
+}
+
+auto PassphraseStrengthColor(int strength) -> QString {
+  if (strength < 20) {
+    return QStringLiteral("#e53935");
+  }
+  if (strength < 40) {
+    return QStringLiteral("#fb8c00");
+  }
+  if (strength < 60) {
+    return QStringLiteral("#fbc02d");
+  }
+  if (strength < 80) {
+    return QStringLiteral("#7cb342");
+  }
+  return QStringLiteral("#43a047");
+}
+
+// Penalizes repeated characters (e.g. "aaaa") and sequential runs
+// (e.g. "abcd", "4321") of three or more characters, which the
+// per-character-class score would otherwise rate as strong.
+auto CalculatePatternPenalty(const QString& text) -> int {
+  const int length = static_cast<int>(text.size());
+  if (length < 3) {
+    return 0;
+  }
+
+  auto penalty = 0;
+  auto repeat_run = 1;
+  auto sequence_run = 1;
+
+  for (int i = 1; i < length; ++i) {
+    const auto prev = text[i - 1].unicode();
+    const auto curr = text[i].unicode();
+
+    repeat_run = curr == prev ? repeat_run + 1 : 1;
+    if (repeat_run >= 3) {
+      penalty += 6;
+    }
+
+    const auto step = curr - prev;
+    if (i >= 2 && step == prev - text[i - 2].unicode() &&
+        (step == 1 || step == -1)) {
+      sequence_run += 1;
+    } else {
+      sequence_run = 1;
+    }
+    if (sequence_run >= 3) {
+      penalty += 6;
+    }
+  }
+
+  return penalty;
+}
+
+auto CalculatePassphraseStrength(const QString& text) -> int {
+  if (text.isEmpty()) {
+    return 0;
+  }
+
+  const int length = static_cast<int>(text.size());
+
+  bool has_lower = false;
+  bool has_upper = false;
+  bool has_digit = false;
+  bool has_symbol = false;
+
+  for (const auto ch : text) {
+    if (ch.isLower()) {
+      has_lower = true;
+    } else if (ch.isUpper()) {
+      has_upper = true;
+    } else if (ch.isDigit()) {
+      has_digit = true;
+    } else {
+      has_symbol = true;
+    }
+  }
+
+  auto score = 0;
+  score += std::min(length * 5, 35);
+  score += has_lower ? 10 : 0;
+  score += has_upper ? 15 : 0;
+  score += has_digit ? 15 : 0;
+  score += has_symbol ? 20 : 0;
+
+  if (length >= 12) {
+    score += 5;
+  }
+  if (length >= 16) {
+    score += 5;
+  }
+
+  score -= CalculatePatternPenalty(text);
+
+  return std::clamp(score, 0, 100);
+}
+
+}  // namespace
+
 namespace GpgFrontend::UI {
 
 PassphraseDialog::PassphraseDialog(
@@ -121,10 +237,32 @@ PassphraseDialog::PassphraseDialog(
             }
           });
 
+  connect(password_edit_, &QLineEdit::textChanged, this,
+          [this](const QString& text) { update_passphrase_strength(text); });
+
   password_row_layout->addWidget(password_edit_, 1);
   password_row_layout->addWidget(show_password_checkbox_);
 
   form_layout->addRow(tr("Passphrase:"), password_row);
+
+  auto* strength_widget = new QWidget(this);
+  auto* strength_layout = new QHBoxLayout(strength_widget);
+  strength_layout->setContentsMargins(0, 0, 0, 0);
+  strength_layout->setSpacing(8);
+
+  passphrase_strength_bar_ = new QProgressBar(strength_widget);
+  passphrase_strength_bar_->setRange(0, 100);
+  passphrase_strength_bar_->setTextVisible(false);
+  passphrase_strength_bar_->setFixedHeight(8);
+
+  passphrase_strength_label_ = new QLabel(strength_widget);
+  passphrase_strength_label_->setMinimumWidth(80);
+  passphrase_strength_label_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+  strength_layout->addWidget(passphrase_strength_bar_, 1);
+  strength_layout->addWidget(passphrase_strength_label_);
+
+  form_layout->addRow(tr("Strength:"), strength_widget);
 
   if (ctx_->ShouldConfirm()) {
     form_layout->addRow(tr("Confirm:"), confirm_password_edit_);
@@ -157,6 +295,7 @@ PassphraseDialog::PassphraseDialog(
   main_layout->addLayout(form_layout);
   main_layout->addLayout(button_layout);
 
+  update_passphrase_strength(password_edit_->text());
   password_edit_->setFocus();
 
   adjustSize();
@@ -216,6 +355,28 @@ void PassphraseDialog::Clear() {
   if (confirm_password_edit_ != nullptr) {
     confirm_password_edit_->clear();
   }
+}
+
+void PassphraseDialog::update_passphrase_strength(const QString& text) {
+  if (passphrase_strength_bar_ == nullptr ||
+      passphrase_strength_label_ == nullptr) {
+    return;
+  }
+
+  const auto strength = CalculatePassphraseStrength(text);
+  const auto color = PassphraseStrengthColor(strength);
+
+  passphrase_strength_bar_->setValue(strength);
+  passphrase_strength_bar_->setStyleSheet(
+      QStringLiteral(
+          "QProgressBar { border: none; border-radius: 4px; "
+          "background-color: rgba(128, 128, 128, 60); }"
+          "QProgressBar::chunk { border-radius: 4px; background-color: %1; }")
+          .arg(color));
+
+  passphrase_strength_label_->setStyleSheet(
+      QStringLiteral("color: %1; font-weight: 600;").arg(color));
+  passphrase_strength_label_->setText(PassphraseStrengthDescription(strength));
 }
 
 }  // namespace GpgFrontend::UI

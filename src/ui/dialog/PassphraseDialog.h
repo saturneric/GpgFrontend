@@ -44,7 +44,7 @@ class PassphraseDialog : public QDialog {
                             QWidget* parent = nullptr);
 
   /**
-   * @brief
+   * @brief Get the entered passphrase
    *
    * @return QString
    */
@@ -60,7 +60,10 @@ class PassphraseDialog : public QDialog {
   QLineEdit* password_edit_ = nullptr;
   QLineEdit* confirm_password_edit_ = nullptr;
   QCheckBox* show_password_checkbox_ = nullptr;
+  QProgressBar* passphrase_strength_bar_ = nullptr;
+  QLabel* passphrase_strength_label_ = nullptr;
 
   [[nodiscard]] auto validate_passphrase_input() -> bool;
+  void update_passphrase_strength(const QString& text);
 };
 }  // namespace GpgFrontend::UI
