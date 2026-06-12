@@ -43,7 +43,7 @@ use zeroize::Zeroizing;
 use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::IntoGfrResult,
-    types::{GfrFreeCb, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
+    types::{GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
     utils::{
         PassphraseStateInternal, build_revocation_reason_subpacket, choose_template_self_sig,
         fetch_password_with_cache, has_is_primary_true, is_self_signature_from_primary,
@@ -93,7 +93,6 @@ pub fn add_user_id_internal(
     secret_key_block: &str,
     new_uid_str: &str,
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<String, GfrStatus> {
     let (mut skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
     let fpr = skey.primary_key.fingerprint().to_string();
@@ -112,7 +111,6 @@ pub fn add_user_id_internal(
                 should_confirm: false,
             },
             fetch_cb,
-            free_cb,
         )?
     } else {
         Zeroizing::new(Vec::new())
@@ -145,10 +143,8 @@ pub fn update_user_id_internal(
     old_uid: &str,
     new_uid: &str,
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<String, GfrStatus> {
-    let block_with_new =
-        add_user_id_internal(channel, secret_key_block, new_uid, fetch_cb, free_cb)?;
+    let block_with_new = add_user_id_internal(channel, secret_key_block, new_uid, fetch_cb)?;
     delete_user_id_internal(&block_with_new, old_uid)
 }
 
@@ -219,7 +215,6 @@ pub fn set_primary_user_id_internal(
     secret_key_block: &str,
     target_uid_str: &str,
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<String, GfrStatus> {
     let (mut skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
 
@@ -246,7 +241,6 @@ pub fn set_primary_user_id_internal(
                 should_confirm: false,
             },
             fetch_cb,
-            free_cb,
         )?
     } else {
         Zeroizing::new(Vec::new())
@@ -330,7 +324,6 @@ pub fn revoke_user_id_internal(
     reason_code: GfrRevocationCode,
     reason_text: Option<&str>,
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<String, GfrStatus> {
     let (mut skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
 
@@ -357,7 +350,6 @@ pub fn revoke_user_id_internal(
                 should_confirm: false,
             },
             fetch_cb,
-            free_cb,
         )?
     } else {
         Zeroizing::new(Vec::new())

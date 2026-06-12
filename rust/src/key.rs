@@ -37,7 +37,7 @@ use crate::cache::{PASSWORD_CACHE, PasswordCachePolicy};
 use crate::err::IntoGfrResult;
 use crate::keygen::GeneratedKeys;
 use crate::types::{
-    GfrFreeCb, GfrKeyAlgo, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus,
+    GfrKeyAlgo, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus,
 };
 use crate::utils::{
     PassphraseStateInternal, build_revocation_reason_subpacket, determine_algo, extract_key_length,
@@ -626,7 +626,6 @@ fn fetch_old_and_new_passwords(
     unlock_purpose: &str,
     new_purpose: &str,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<(Option<Password>, Password), GfrStatus> {
     let old_pw = if is_encrypted {
         let old_pwd_bytes = fetch_password_with_cache(
@@ -641,7 +640,6 @@ fn fetch_old_and_new_passwords(
                 should_confirm: false,
             },
             fetch_pwd_cb,
-            free_cb,
         )?;
 
         if old_pwd_bytes.is_empty() {
@@ -665,7 +663,6 @@ fn fetch_old_and_new_passwords(
             should_confirm: true,
         },
         fetch_pwd_cb,
-        free_cb,
     )?;
 
     if new_pwd_bytes.is_empty() {
@@ -686,7 +683,6 @@ pub fn modify_key_password_internal(
     secret_key_block: &str,
     target_fpr: &str,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<GeneratedKeys, GfrStatus> {
     let (mut secret_key, _) = SignedSecretKey::from_string(secret_key_block).map_err(|e| {
         log::error!("Failed to parse secret key block: {}", e);
@@ -710,7 +706,6 @@ pub fn modify_key_password_internal(
             "Unlock Primary Key to change password",
             "Set new password for Primary Key",
             fetch_pwd_cb,
-            free_cb,
         )?;
 
         if let Some(old_pw) = old_pw {
@@ -757,7 +752,6 @@ pub fn modify_key_password_internal(
             "Unlock Subkey to change password",
             "Set new password for Subkey",
             fetch_pwd_cb,
-            free_cb,
         )?;
 
         if let Some(old_pw) = old_pw {
@@ -845,7 +839,6 @@ pub fn revoke_subkey_internal(
     reason_code: GfrRevocationCode,
     reason_text: Option<&str>,
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<GeneratedKeys, GfrStatus> {
     let (mut secret_key, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
 
@@ -886,7 +879,6 @@ pub fn revoke_subkey_internal(
                 should_confirm: false,
             },
             fetch_cb,
-            free_cb,
         )?
     } else {
         Zeroizing::new(Vec::new())
@@ -969,7 +961,6 @@ pub fn generate_key_rev_cert_internal(
     reason_code: GfrRevocationCode,
     reason_text: Option<&str>,
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<String, GfrStatus> {
     use pgp::packet::Packet;
 
@@ -991,7 +982,6 @@ pub fn generate_key_rev_cert_internal(
                 should_confirm: false,
             },
             fetch_cb,
-            free_cb,
         )?
     } else {
         Zeroizing::new(Vec::new())

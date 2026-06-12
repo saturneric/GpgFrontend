@@ -542,9 +542,6 @@ pub type GfrSecretKeyFetchCb = extern "C" fn(
     user_data: *mut std::ffi::c_void,
 ) -> *mut std::os::raw::c_char;
 
-/// Callback to free memory allocated by a fetch callback.
-pub type GfrFreeCb = extern "C" fn(ptr: *mut c_void, user_data: *mut c_void);
-
 /// State passed to a passphrase fetch callback describing the request context.
 #[repr(C)]
 #[derive(Zeroize, ZeroizeOnDrop)]

@@ -54,7 +54,6 @@ pub extern "C" fn gfr_crypto_decrypt_data(
     in_len: usize,
     fetch_sec_key_cb: GfrSecretKeyFetchCb,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: crate::types::GfrFreeCb,
     user_data: *mut std::ffi::c_void,
     out_result: *mut GfrDecryptResultC,
 ) -> GfrStatus {
@@ -71,7 +70,6 @@ pub extern "C" fn gfr_crypto_decrypt_data(
             data_slice,
             Some(fetch_sec_key_cb),
             Some(fetch_pwd_cb),
-            Some(free_cb),
             user_data,
         )?;
 
@@ -135,7 +133,6 @@ pub extern "C" fn gfr_crypto_decrypt_file(
     ascii: bool,
     fetch_sec_key_cb: GfrSecretKeyFetchCb,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: crate::types::GfrFreeCb,
     user_data: *mut std::ffi::c_void,
     out_result: *mut GfrDecryptResultC,
 ) -> GfrStatus {
@@ -173,7 +170,6 @@ pub extern "C" fn gfr_crypto_decrypt_file(
             Some(fetch_sec_key_cb),
             Some(fetch_pwd_cb),
             None, // fetch_pubkey_cb is not needed for decryption-only
-            Some(free_cb),
             user_data,
         )?;
 
@@ -232,7 +228,6 @@ pub extern "C" fn gfr_crypto_decrypt_archive(
     ascii: bool,
     fetch_sec_key_cb: GfrSecretKeyFetchCb,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: crate::types::GfrFreeCb,
     user_data: *mut std::ffi::c_void,
     out_result: *mut GfrDecryptResultC,
 ) -> GfrStatus {
@@ -259,7 +254,6 @@ pub extern "C" fn gfr_crypto_decrypt_archive(
             Some(fetch_sec_key_cb),
             Some(fetch_pwd_cb),
             None, // fetch_pubkey_cb is not needed for decryption-only
-            Some(free_cb),
             user_data,
         )?;
 
@@ -319,7 +313,6 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
     fetch_sec_key_cb: GfrSecretKeyFetchCb,
     fetch_pwd_cb: GfrPasswordFetchCb,
     fetch_pubkey_cb: crate::types::GfrPublicKeyFetchCb,
-    free_cb: crate::types::GfrFreeCb,
     user_data: *mut std::ffi::c_void,
     out_result: *mut GfrDecryptAndVerifyResultC,
 ) -> GfrStatus {
@@ -336,7 +329,6 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
             Some(fetch_sec_key_cb),
             Some(fetch_pwd_cb),
             Some(fetch_pubkey_cb),
-            Some(free_cb),
             user_data,
         )?;
 
@@ -425,7 +417,6 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_file(
     fetch_sec_key_cb: GfrSecretKeyFetchCb,
     fetch_pwd_cb: GfrPasswordFetchCb,
     fetch_pubkey_cb: crate::types::GfrPublicKeyFetchCb,
-    free_cb: crate::types::GfrFreeCb,
     user_data: *mut std::ffi::c_void,
     out_result: *mut GfrDecryptAndVerifyResultC,
 ) -> GfrStatus {
@@ -466,7 +457,6 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_file(
             Some(fetch_sec_key_cb),
             Some(fetch_pwd_cb),
             Some(fetch_pubkey_cb),
-            Some(free_cb),
             user_data,
         )?;
 
@@ -558,7 +548,6 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_archive(
     fetch_sec_key_cb: crate::types::GfrSecretKeyFetchCb,
     fetch_pwd_cb: crate::types::GfrPasswordFetchCb,
     fetch_pubkey_cb: crate::types::GfrPublicKeyFetchCb,
-    free_cb: crate::types::GfrFreeCb,
     user_data: *mut std::ffi::c_void,
     out_result: *mut GfrDecryptAndVerifyResultC,
 ) -> GfrStatus {
@@ -585,7 +574,6 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_archive(
             Some(fetch_sec_key_cb),
             Some(fetch_pwd_cb),
             Some(fetch_pubkey_cb),
-            Some(free_cb),
             user_data,
         )?;
 

@@ -38,7 +38,6 @@ pub fn verify_detached_stream_internal<R>(
     mut data_stream: R,
     sig_data: &[u8],
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     user_data: *mut std::ffi::c_void,
 ) -> Result<VerifyStreamResultInternal, GfrStatus>
 where
@@ -71,8 +70,9 @@ where
                         certs.push(cert);
                     }
                 }
-                if let Some(f_cb) = free_cb {
-                    f_cb(c_key_block as *mut std::ffi::c_void, user_data);
+
+                unsafe {
+                    gfc_secure_free_cstr(c_key_block);
                 }
             }
         }
@@ -149,7 +149,6 @@ pub fn verify_internal(
     sig_data: &[u8],
     mode: GfrSignMode,
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     user_data: *mut std::ffi::c_void,
 ) -> Result<VerifyResultInternal, GfrStatus> {
     // Helper closure to update signature statuses uniformly across all modes.
@@ -185,7 +184,7 @@ pub fn verify_internal(
 
             let mut signatures = sniff_signatures(data, mode);
             let certs =
-                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, free_cb, user_data);
+                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
             for cert in &certs {
@@ -251,7 +250,7 @@ pub fn verify_internal(
             }
 
             let certs =
-                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, free_cb, user_data);
+                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
             for cert in &certs {
@@ -286,7 +285,7 @@ pub fn verify_internal(
 
             let mut signatures = sniff_signatures(sig_data, mode);
             let certs =
-                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, free_cb, user_data);
+                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
             for cert in &certs {

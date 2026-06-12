@@ -59,6 +59,8 @@
 //! - `ffi::user_id` — user ID add/delete/update/revoke/set-primary operations
 //! - `types` — `#[repr(C)]` types shared across the FFI boundary
 
+pub mod host;
+
 pub mod ffi;
 pub mod types;
 

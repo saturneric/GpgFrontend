@@ -32,7 +32,7 @@
 //! an updated armored key block to an output pointer. The caller must free the
 //! returned string with `gfr_crypto_free_string`.
 
-use crate::types::{GfrFreeCb, GfrRevocationCode, GfrStatus};
+use crate::types::{GfrRevocationCode, GfrStatus};
 use crate::user_id::{
     add_user_id_internal, delete_user_id_internal, revoke_user_id_internal,
     set_primary_user_id_internal, update_user_id_internal,
@@ -84,7 +84,7 @@ pub extern "C" fn gfr_crypto_delete_user_id(
 
 /// Add `new_uid` to the armored `secret_key_block`.
 ///
-/// The primary key passphrase is obtained via `fetch_pwd_cb`/`free_cb`.
+/// The primary key passphrase is obtained via `fetch_pwd_cb`.
 /// On success `*out_block` is set to a heap-allocated updated armored key block.
 ///
 /// # Safety
@@ -95,7 +95,6 @@ pub extern "C" fn gfr_crypto_add_user_id(
     secret_key_block: *const c_char,
     new_uid: *const c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     out_block: *mut *mut c_char,
 ) -> GfrStatus {
     clear_last_error();
@@ -110,13 +109,7 @@ pub extern "C" fn gfr_crypto_add_user_id(
             .unwrap_or("");
         let uid_str = unsafe { CStr::from_ptr(new_uid) }.to_str().unwrap_or("");
 
-        let new_block = add_user_id_internal(
-            channel,
-            block_str,
-            uid_str,
-            Some(fetch_pwd_cb),
-            Some(free_cb),
-        )?;
+        let new_block = add_user_id_internal(channel, block_str, uid_str, Some(fetch_pwd_cb))?;
 
         unsafe {
             *out_block = CString::new(new_block).unwrap_or_default().into_raw();
@@ -134,7 +127,7 @@ pub extern "C" fn gfr_crypto_add_user_id(
 
 /// Replace `old_uid` with `new_uid` in the armored `secret_key_block`.
 ///
-/// The primary key passphrase is obtained via `fetch_pwd_cb`/`free_cb`.
+/// The primary key passphrase is obtained via `fetch_pwd_cb`.
 /// On success `*out_block` is set to a heap-allocated updated armored key block.
 ///
 /// # Safety
@@ -146,7 +139,6 @@ pub extern "C" fn gfr_crypto_update_user_id(
     old_uid: *const c_char,
     new_uid: *const c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     out_block: *mut *mut c_char,
 ) -> GfrStatus {
     clear_last_error();
@@ -166,14 +158,8 @@ pub extern "C" fn gfr_crypto_update_user_id(
         let old_str = unsafe { CStr::from_ptr(old_uid) }.to_str().unwrap_or("");
         let new_str = unsafe { CStr::from_ptr(new_uid) }.to_str().unwrap_or("");
 
-        let new_block = update_user_id_internal(
-            channel,
-            block_str,
-            old_str,
-            new_str,
-            Some(fetch_pwd_cb),
-            Some(free_cb),
-        )?;
+        let new_block =
+            update_user_id_internal(channel, block_str, old_str, new_str, Some(fetch_pwd_cb))?;
 
         unsafe {
             *out_block = CString::new(new_block).unwrap_or_default().into_raw();
@@ -191,7 +177,7 @@ pub extern "C" fn gfr_crypto_update_user_id(
 
 /// Mark `target_uid` as the primary user ID in the armored `secret_key_block`.
 ///
-/// The primary key passphrase is obtained via `fetch_pwd_cb`/`free_cb`.
+/// The primary key passphrase is obtained via `fetch_pwd_cb`.
 /// On success `*out_block` is set to a heap-allocated updated armored key block.
 ///
 /// # Safety
@@ -201,8 +187,7 @@ pub extern "C" fn gfr_crypto_set_primary_user_id(
     channel: i32,
     secret_key_block: *const std::os::raw::c_char,
     target_uid: *const std::os::raw::c_char,
-    fetch_pwd_cb: crate::types::GfrPasswordFetchCb,
-    free_cb: crate::types::GfrFreeCb,
+    fetch_pwd_cb: GfrPasswordFetchCb,
     out_block: *mut *mut std::os::raw::c_char,
 ) -> GfrStatus {
     let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
@@ -217,13 +202,8 @@ pub extern "C" fn gfr_crypto_set_primary_user_id(
             .to_str()
             .unwrap_or("");
 
-        let new_block = set_primary_user_id_internal(
-            channel,
-            block_str,
-            uid_str,
-            Some(fetch_pwd_cb),
-            Some(free_cb),
-        )?;
+        let new_block =
+            set_primary_user_id_internal(channel, block_str, uid_str, Some(fetch_pwd_cb))?;
 
         unsafe {
             *out_block = std::ffi::CString::new(new_block)
@@ -245,7 +225,7 @@ pub extern "C" fn gfr_crypto_set_primary_user_id(
 ///
 /// `reason_code` identifies why the UID is being revoked; `reason_text` is an
 /// optional human-readable description (may be null). The passphrase is
-/// obtained via `fetch_pwd_cb`/`free_cb`. On success `*out_block` is set to a
+/// obtained via `fetch_pwd_cb`. On success `*out_block` is set to a
 /// heap-allocated updated armored key block.
 ///
 /// # Safety
@@ -259,7 +239,6 @@ pub extern "C" fn gfr_crypto_revoke_user_id(
     reason_code: GfrRevocationCode,
     reason_text: *const c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     out_block: *mut *mut c_char,
 ) -> GfrStatus {
     clear_last_error();
@@ -300,7 +279,6 @@ pub extern "C" fn gfr_crypto_revoke_user_id(
             reason_code,
             reason_text,
             Some(fetch_pwd_cb),
-            Some(free_cb),
         )?;
 
         let c_new_block = CString::new(new_block).map_err(|_| GfrStatus::ErrorInternal)?;

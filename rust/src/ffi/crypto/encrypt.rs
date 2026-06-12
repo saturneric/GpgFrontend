@@ -28,8 +28,8 @@
 
 use crate::crypto::{self, encrypt_and_sign_directory_internal};
 use crate::types::{
-    GfrEncryptAndSignResultC, GfrEncryptResultC, GfrFreeCb, GfrInvalidRecipientC,
-    GfrPasswordFetchCb, GfrSignatureResultC, GfrStatus,
+    GfrEncryptAndSignResultC, GfrEncryptResultC, GfrInvalidRecipientC, GfrPasswordFetchCb,
+    GfrSignatureResultC, GfrStatus,
 };
 use std::fs::File;
 use std::path::Path;
@@ -196,13 +196,8 @@ pub extern "C" fn gfr_crypto_encrypt_file(
         })?;
 
         // 6. Perform the streaming encryption
-        let stream_result = crypto::encrypt_stream_internal(
-            &filename_hint,
-            in_file,
-            out_file,
-            &key_blocks,
-            ascii,
-        )?;
+        let stream_result =
+            crypto::encrypt_stream_internal(&filename_hint, in_file, out_file, &key_blocks, ascii)?;
 
         // 7. Process invalid recipients array and leak it to C
         let mut c_invalid_recs = Vec::with_capacity(stream_result.invalid_recipients.len());
@@ -288,12 +283,8 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
         }
 
         // 6. Perform the streaming encryption
-        let stream_result = crypto::encrypt_directory_internal(
-            in_path_str,
-            out_path_str,
-            &key_blocks,
-            ascii,
-        )?;
+        let stream_result =
+            crypto::encrypt_directory_internal(in_path_str, out_path_str, &key_blocks, ascii)?;
 
         // 7. Process invalid recipients array and leak it to C
         let mut c_invalid_recs = Vec::with_capacity(stream_result.invalid_recipients.len());
@@ -347,7 +338,6 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
     secret_keys: *const *const c_char,
     signers_count: usize,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     ascii: bool,
     out_result: *mut GfrEncryptAndSignResultC,
 ) -> GfrStatus {
@@ -395,7 +385,6 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
             &pkey_blocks,
             &skey_blocks,
             Some(fetch_pwd_cb),
-            Some(free_cb),
             ascii,
         )?;
 
@@ -472,7 +461,6 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
     secret_keys: *const *const c_char,
     signers_count: usize,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     ascii: bool,
     out_result: *mut GfrEncryptAndSignResultC,
 ) -> GfrStatus {
@@ -546,7 +534,6 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
             &pkey_blocks,
             &skey_blocks,
             Some(fetch_pwd_cb),
-            Some(free_cb),
             ascii,
         )?;
 
@@ -625,7 +612,6 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
     secret_keys: *const *const std::os::raw::c_char,
     signers_count: usize,
     fetch_pwd_cb: crate::types::GfrPasswordFetchCb,
-    free_cb: crate::types::GfrFreeCb,
     ascii: bool,
     out_result: *mut GfrEncryptAndSignResultC,
 ) -> GfrStatus {
@@ -676,7 +662,6 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
             &pkey_blocks,
             &skey_blocks,
             Some(fetch_pwd_cb),
-            Some(free_cb),
             ascii,
         )?;
 
@@ -751,7 +736,6 @@ pub extern "C" fn gfr_crypto_encrypt_data_symmetric(
     in_len: usize,
     ascii: bool,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     out_result: *mut GfrEncryptResultC,
 ) -> GfrStatus {
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
@@ -773,7 +757,6 @@ pub extern "C" fn gfr_crypto_encrypt_data_symmetric(
             data_slice,
             &mut out_buf,
             Some(fetch_pwd_cb),
-            Some(free_cb),
             ascii,
         )?;
 
@@ -812,7 +795,6 @@ pub extern "C" fn gfr_crypto_encrypt_file_symmetric(
     out_file_path: *const c_char,
     ascii: bool,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     out_result: *mut GfrEncryptResultC,
 ) -> GfrStatus {
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
@@ -854,7 +836,6 @@ pub extern "C" fn gfr_crypto_encrypt_file_symmetric(
             in_file,
             out_file,
             Some(fetch_pwd_cb),
-            Some(free_cb),
             ascii,
         )?;
 
@@ -891,7 +872,6 @@ pub extern "C" fn gfr_crypto_encrypt_directory_symmetric(
     out_file_path: *const c_char,
     ascii: bool,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     out_result: *mut GfrEncryptResultC,
 ) -> GfrStatus {
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
@@ -912,7 +892,6 @@ pub extern "C" fn gfr_crypto_encrypt_directory_symmetric(
             in_path_str,
             out_path_str,
             Some(fetch_pwd_cb),
-            Some(free_cb),
             ascii,
         )?;
 

@@ -28,7 +28,7 @@
 
 use crate::crypto::get_signature_issuers_internal;
 use crate::types::{
-    GfrFreeCb, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrSignMode, GfrSignResultC,
+    GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrSignMode, GfrSignResultC,
     GfrSignatureResultC, GfrStatus, GfrVerifyResultC,
 };
 use std::fs::File;
@@ -57,7 +57,6 @@ pub extern "C" fn gfr_crypto_sign_data(
     secret_keys: *const *const c_char,
     signers_count: usize,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     mode: GfrSignMode,
     ascii: bool,
     out_result: *mut GfrSignResultC,
@@ -93,7 +92,6 @@ pub extern "C" fn gfr_crypto_sign_data(
             data_slice,
             &skey_blocks,
             Some(fetch_pwd_cb),
-            Some(free_cb),
             mode,
             ascii,
         )?;
@@ -155,7 +153,6 @@ pub extern "C" fn gfr_crypto_sign_file(
     secret_keys: *const *const c_char,
     signers_count: usize,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     mode: GfrSignMode,
     ascii: bool,
     out_result: *mut GfrSignResultC,
@@ -220,7 +217,6 @@ pub extern "C" fn gfr_crypto_sign_file(
             out_file,
             &skey_blocks,
             Some(fetch_pwd_cb),
-            Some(free_cb),
             mode,
             ascii,
         )?;
@@ -279,7 +275,6 @@ pub extern "C" fn gfr_crypto_verify_data(
     sig_data: *const u8,
     sig_len: usize,
     fetch_pubkey_cb: crate::types::GfrPublicKeyFetchCb,
-    free_cb: crate::types::GfrFreeCb,
     user_data: *mut std::ffi::c_void,
     mode: GfrSignMode,
     out_result: *mut GfrVerifyResultC,
@@ -304,7 +299,6 @@ pub extern "C" fn gfr_crypto_verify_data(
             sig_slice,
             mode,
             Some(fetch_pubkey_cb),
-            Some(free_cb),
             user_data,
         )?;
 
@@ -377,7 +371,6 @@ pub extern "C" fn gfr_crypto_verify_file(
     sig_file_path: *const c_char, // Used for Detached mode (.sig file)
     out_file_path: *const c_char, // Optional: Extracted plaintext output for Inline mode
     fetch_pubkey_cb: GfrPublicKeyFetchCb,
-    free_cb: GfrFreeCb,
     user_data: *mut std::ffi::c_void,
     mode: GfrSignMode,
     out_result: *mut GfrVerifyResultC,
@@ -433,7 +426,6 @@ pub extern "C" fn gfr_crypto_verify_file(
                     in_file,
                     &sig_data,
                     Some(fetch_pubkey_cb),
-                    Some(free_cb),
                     user_data,
                 )?;
 
@@ -453,7 +445,6 @@ pub extern "C" fn gfr_crypto_verify_file(
                     &[], // sig_data is not needed for inline
                     mode,
                     Some(fetch_pubkey_cb),
-                    Some(free_cb),
                     user_data,
                 )?;
 

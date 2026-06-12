@@ -26,9 +26,11 @@
  *
  */
 
+use std::ffi::c_char;
+
 use zeroize::Zeroizing;
 
-use crate::utils::password_from_zeroizing_bytes;
+use crate::{host::gfc_secure_free_cstr, utils::password_from_zeroizing_bytes};
 
 use super::*;
 
@@ -84,7 +86,6 @@ fn decrypt_message_with_password(
     channel: i32,
     parsed_message: Message,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<Message, GfrStatus> {
     let password = fetch_password_with_cache(
         Some(&PASSWORD_CACHE),
@@ -98,7 +99,6 @@ fn decrypt_message_with_password(
             should_confirm: false,
         },
         fetch_pwd_cb,
-        free_cb,
     )?;
 
     if password.is_empty() {
@@ -129,7 +129,6 @@ pub fn decrypt_and_verify_stream_internal<R, W>(
     fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     user_data: *mut c_void,
 ) -> Result<DecryptAndVerifyStreamResultInternal, GfrStatus>
 where
@@ -157,7 +156,7 @@ where
     let mut decrypted: Message;
     if has_skesk {
         debug!("Message is encrypted with a passphrase. Attempting password-based decryption.");
-        decrypted = decrypt_message_with_password(channel, parsed_message, fetch_pwd_cb, free_cb)?;
+        decrypted = decrypt_message_with_password(channel, parsed_message, fetch_pwd_cb)?;
     } else {
         // 3. Request Secret Key from C++
         let mut target_skey: Option<SignedSecretKey> = None;
@@ -175,9 +174,8 @@ where
                             matched_recipient_id = rec.key_id.clone();
                         }
                     }
-                    if let Some(f_cb) = free_cb {
-                        f_cb(c_key_block as *mut c_void, user_data);
-                    }
+                    unsafe { gfc_secure_free_cstr(c_key_block as *mut c_char) };
+
                     if target_skey.is_some() {
                         break;
                     }
@@ -226,7 +224,6 @@ where
                     should_confirm: false,
                 },
                 fetch_pwd_cb,
-                free_cb,
             )?;
         } else {
             debug!("Target secret key is unlocked. Bypassing password callback.");
@@ -319,9 +316,7 @@ where
                             certs.push(cert);
                         }
                     }
-                    if let Some(f_cb) = free_cb {
-                        f_cb(c_key_block as *mut c_void, user_data);
-                    }
+                    unsafe { gfc_secure_free_cstr(c_key_block as *mut c_char) };
                 }
             }
         }
@@ -379,7 +374,6 @@ pub fn decrypt_and_verify_archive_internal(
     fetch_seckey_cb: Option<crate::types::GfrSecretKeyFetchCb>,
     fetch_pwd_cb: Option<crate::types::GfrPasswordFetchCb>,
     fetch_pubkey_cb: Option<crate::types::GfrPublicKeyFetchCb>,
-    free_cb: Option<crate::types::GfrFreeCb>,
     user_data: *mut std::ffi::c_void,
 ) -> Result<DecryptAndVerifyResultInternal, crate::types::GfrStatus> {
     let out_dir = Path::new(out_dir_path);
@@ -415,7 +409,6 @@ pub fn decrypt_and_verify_archive_internal(
         fetch_seckey_cb,
         fetch_pwd_cb,
         fetch_pubkey_cb,
-        free_cb,
         user_data,
     )?;
 
@@ -454,7 +447,6 @@ pub fn decrypt_internal(
     encrypted_data: &[u8],
     fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     user_data: *mut c_void,
 ) -> Result<DecryptResultInternal, GfrStatus> {
     let mut output_data = Vec::new();
@@ -477,7 +469,6 @@ pub fn decrypt_internal(
         fetch_seckey_cb,
         fetch_pwd_cb,
         None, // fetch_pubkey_cb is not needed for decryption-only
-        free_cb,
         user_data,
     )?;
 
@@ -495,7 +486,6 @@ pub fn decrypt_and_verify_internal(
     fetch_seckey_cb: Option<GfrSecretKeyFetchCb>,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     user_data: *mut std::ffi::c_void,
 ) -> Result<DecryptAndVerifyResultInternal, GfrStatus> {
     let mut output_data = Vec::new();
@@ -514,7 +504,6 @@ pub fn decrypt_and_verify_internal(
         fetch_seckey_cb,
         fetch_pwd_cb,
         fetch_pubkey_cb,
-        free_cb,
         user_data,
     )?;
 

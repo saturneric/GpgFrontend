@@ -29,7 +29,7 @@
 //! FFI entry points for key and subkey generation.
 
 use crate::keygen::{GeneratedKeys, add_subkey_internal, create_key_internal};
-use crate::types::{GfrFreeCb, GfrKeyConfig, GfrKeyGenerateResult, GfrPasswordFetchCb, GfrStatus};
+use crate::types::{GfrKeyConfig, GfrKeyGenerateResult, GfrPasswordFetchCb, GfrStatus};
 
 use std::{
     ffi::{CStr, CString, c_char},
@@ -40,7 +40,7 @@ use std::{
 ///
 /// Creates a primary key for `user_id` using `key_config`, then appends
 /// `s_key_count` subkeys described by `s_key_configs`. If the key or any
-/// subkey requires a passphrase the `fetch_pwd_cb`/`free_cb` pair is used
+/// subkey requires a passphrase the `fetch_pwd_cb` is used
 /// to obtain and release it.
 ///
 /// On success the result fields of `o_result` are populated with
@@ -57,7 +57,6 @@ pub extern "C" fn gfr_crypto_generate_key(
     s_key_configs: *const GfrKeyConfig,
     s_key_count: usize,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     o_result: *mut GfrKeyGenerateResult,
 ) -> GfrStatus {
     let result = catch_unwind(|| -> Result<GeneratedKeys, GfrStatus> {
@@ -78,13 +77,7 @@ pub extern "C" fn gfr_crypto_generate_key(
             configs = unsafe { std::slice::from_raw_parts(s_key_configs, s_key_count) };
         }
 
-        let keys = create_key_internal(
-            user_id_str,
-            key_config,
-            configs,
-            Some(fetch_pwd_cb),
-            Some(free_cb),
-        )?;
+        let keys = create_key_internal(user_id_str, key_config, configs, Some(fetch_pwd_cb))?;
 
         Ok(keys)
     });
@@ -123,7 +116,7 @@ pub extern "C" fn gfr_crypto_generate_key(
 /// Reads the primary key from the armored `key_block`, generates a new
 /// subkey according to `config`, and returns updated armored key blocks in
 /// `o_result`. The passphrase protecting the primary key is fetched via the
-/// `fetch_pwd_cb`/`free_cb` pair.
+/// `fetch_pwd_cb`.
 ///
 /// On success `o_result` is populated with heap-allocated strings. Free them
 /// with `gfr_crypto_free_key_generate_result`.
@@ -136,7 +129,6 @@ pub extern "C" fn gfr_crypto_add_subkey(
     key_block: *const c_char,
     config: GfrKeyConfig,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     o_result: *mut GfrKeyGenerateResult,
 ) -> GfrStatus {
     let result = catch_unwind(|| -> Result<GeneratedKeys, GfrStatus> {
@@ -148,13 +140,7 @@ pub extern "C" fn gfr_crypto_add_subkey(
             .to_str()
             .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-        let keys = add_subkey_internal(
-            channel,
-            key_block_str,
-            &config,
-            Some(fetch_pwd_cb),
-            Some(free_cb),
-        )?;
+        let keys = add_subkey_internal(channel, key_block_str, &config, Some(fetch_pwd_cb))?;
 
         Ok(keys)
     });

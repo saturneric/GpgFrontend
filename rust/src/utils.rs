@@ -43,9 +43,10 @@ use zeroize::Zeroizing;
 
 use crate::{
     cache::{PasswordCache, PasswordCacheKey, PasswordCachePolicy},
+    host::gfc_secure_free_cstr,
     types::{
-        GfrFreeCb, GfrKeyAlgo, GfrKeyConfig, GfrPassphraseState, GfrPasswordFetchCb,
-        GfrRevocationCode, GfrStatus,
+        GfrKeyAlgo, GfrKeyConfig, GfrPassphraseState, GfrPasswordFetchCb, GfrRevocationCode,
+        GfrStatus,
     },
 };
 use std::{
@@ -77,14 +78,9 @@ pub fn fetch_password_internal(
     channel: i32,
     state: PassphraseStateInternal,
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<Zeroizing<Vec<u8>>, GfrStatus> {
     let Some(fetch_fn) = fetch_cb else {
         return Err(GfrStatus::ErrorInvalidInput); // Free callback is required if fetch callback is provided
-    };
-
-    let Some(free_fn) = free_cb else {
-        return Err(GfrStatus::ErrorFetchPasswordFailed); // Password required but no callback provided
     };
 
     let info_c = CString::new(state.info).unwrap_or_default();
@@ -113,7 +109,7 @@ pub fn fetch_password_internal(
     let pwd_slice = unsafe { std::slice::from_raw_parts(pwd_ptr, ret as usize) };
 
     if pwd_slice.is_empty() {
-        free_fn(pwd_ptr as *mut std::ffi::c_void, null_mut());
+        unsafe { gfc_secure_free_cstr(pwd_ptr as *mut std::ffi::c_char) };
         return Err(GfrStatus::ErrorInvalidInput); // Empty password provided
     }
 
@@ -122,7 +118,7 @@ pub fn fetch_password_internal(
     password.extend_from_slice(pwd_slice);
 
     // 2. NOW FREE THE MEMORY in C++
-    free_fn(pwd_ptr as *mut std::ffi::c_void, null_mut());
+    unsafe { gfc_secure_free_cstr(pwd_ptr as *mut std::ffi::c_char) };
 
     log::debug!("Fetched password via callback");
     Ok(Zeroizing::new(password))
@@ -138,7 +134,6 @@ pub fn fetch_password_with_cache(
     channel: i32,
     state: PassphraseStateInternal,
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<Zeroizing<Vec<u8>>, GfrStatus> {
     let fpr = state.fpr.to_uppercase();
     let key = PasswordCacheKey {
@@ -161,7 +156,7 @@ pub fn fetch_password_with_cache(
                 }
             }
 
-            let pwd = fetch_password_internal(channel, state, fetch_cb, free_cb)?;
+            let pwd = fetch_password_internal(channel, state, fetch_cb)?;
 
             if let Some(cache) = cache {
                 cache.put(key, pwd.to_vec());
@@ -170,14 +165,14 @@ pub fn fetch_password_with_cache(
             Ok(pwd)
         }
 
-        PasswordCachePolicy::Bypass => fetch_password_internal(channel, state, fetch_cb, free_cb),
+        PasswordCachePolicy::Bypass => fetch_password_internal(channel, state, fetch_cb),
 
         PasswordCachePolicy::Refresh => {
             if let Some(cache) = cache {
                 cache.remove(&key);
             }
 
-            let pwd = fetch_password_internal(channel, state, fetch_cb, free_cb)?;
+            let pwd = fetch_password_internal(channel, state, fetch_cb)?;
 
             if let Some(cache) = cache {
                 cache.put(key, pwd.to_vec());

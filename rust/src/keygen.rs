@@ -35,7 +35,7 @@
 use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::IntoGfrResult,
-    types::{GfrFreeCb, GfrKeyAlgo, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
+    types::{GfrKeyAlgo, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
     utils::{
         PassphraseStateInternal, check_if_should_use_key_ver_v6, fetch_password_with_cache,
         password_from_zeroizing_bytes, resolve_key_type,
@@ -147,7 +147,6 @@ pub fn create_key_internal(
     key_config: GfrKeyConfig,
     s_key_configs: &[GfrKeyConfig],
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<GeneratedKeys, GfrStatus> {
     let mut secret_key =
         keygen_dynamic(user_id, &key_config, s_key_configs).map_err(|e: anyhow::Error| {
@@ -168,7 +167,6 @@ pub fn create_key_internal(
                 should_confirm: true, // Ask user to enter the password twice for confirmation when generating a new key
             },
             fetch_pwd_cb,
-            free_cb,
         )?
     } else {
         Zeroizing::new(Vec::<u8>::new())
@@ -202,7 +200,6 @@ pub fn create_key_internal(
                     should_confirm: false,
                 },
                 fetch_pwd_cb,
-                free_cb,
             )?;
 
             // If the subkey password is provided, apply it
@@ -246,7 +243,6 @@ pub fn add_subkey_internal(
     key_block: &str,
     config: &GfrKeyConfig,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
 ) -> Result<GeneratedKeys, GfrStatus> {
     // 1. Parse the existing secret key block
     let (mut secret_key, _) = SignedSecretKey::from_string(key_block).map_err(|e| {
@@ -273,7 +269,6 @@ pub fn add_subkey_internal(
                 should_confirm: false,
             },
             fetch_pwd_cb,
-            free_cb,
         )?;
 
         if pwd_bytes.is_empty() {
@@ -383,7 +378,6 @@ pub fn add_subkey_internal(
                 should_confirm: true,
             },
             fetch_pwd_cb,
-            free_cb,
         )?;
 
         if subkey_pwd_bytes.is_empty() {

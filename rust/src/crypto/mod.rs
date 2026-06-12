@@ -38,13 +38,14 @@
 //! All internal result types carry only Rust-owned data; the FFI layer in
 //! `ffi::crypto` converts them into the `GfrXxxResultC` structs expected by C++.
 
+use crate::host::gfc_secure_free_cstr;
 pub(crate) use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::{IntoGfrResult, set_last_error},
     tar::build_tar_tempfile_from_directory,
     types::{
-        GfrFreeCb, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrRecipientStatus,
-        GfrSecretKeyFetchCb, GfrSignMode, GfrSignatureStatus, GfrStatus,
+        GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrRecipientStatus, GfrSecretKeyFetchCb,
+        GfrSignMode, GfrSignatureStatus, GfrStatus,
     },
     utils::{PassphraseStateInternal, fetch_password_with_cache},
 };
@@ -459,7 +460,6 @@ pub fn sniff_signatures(data: &[u8], mode: GfrSignMode) -> Vec<SignatureResultIn
 fn fetch_certs_for_signatures(
     signatures: &[SignatureResultInternal],
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     user_data: *mut std::ffi::c_void,
 ) -> Vec<SignedPublicKey> {
     let mut certs = Vec::new();
@@ -474,8 +474,9 @@ fn fetch_certs_for_signatures(
                         certs.push(cert);
                     }
                 }
-                if let Some(f_cb) = free_cb {
-                    f_cb(c_key_block as *mut std::ffi::c_void, user_data);
+
+                unsafe {
+                    gfc_secure_free_cstr(c_key_block);
                 }
             }
         }

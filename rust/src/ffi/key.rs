@@ -43,8 +43,8 @@ use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
 };
 use crate::types::{
-    GfrFreeCb, GfrKeyMetadataC, GfrPasswordFetchCb, GfrRecipientResultC, GfrRevocationCode,
-    GfrStatus, GfrSubkeyMetadataC, GfrUserIdC,
+    GfrKeyMetadataC, GfrPasswordFetchCb, GfrRecipientResultC, GfrRevocationCode, GfrStatus,
+    GfrSubkeyMetadataC, GfrUserIdC,
 };
 use std::slice;
 use std::{
@@ -349,7 +349,7 @@ pub unsafe extern "C" fn gfr_export_merged_keys(
 /// Change the passphrase protecting the subkey at `target_fpr` within `secret_key_block`.
 ///
 /// The current passphrase and the new passphrase are both fetched via
-/// `fetch_pwd_cb`/`free_cb`. On success `*out_secret_block` is set to a
+/// `fetch_pwd_cb`. On success `*out_secret_block` is set to a
 /// heap-allocated updated armored secret key block. Free with `gfr_crypto_free_string`.
 ///
 /// # Safety
@@ -360,7 +360,6 @@ pub extern "C" fn gfr_crypto_modify_key_password(
     secret_key_block: *const c_char,
     target_fpr: *const c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     out_secret_block: *mut *mut c_char,
 ) -> GfrStatus {
     clear_last_error();
@@ -384,13 +383,8 @@ pub extern "C" fn gfr_crypto_modify_key_password(
             .to_str()
             .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-        let generated = modify_key_password_internal(
-            channel,
-            block_str,
-            fpr_str,
-            Some(fetch_pwd_cb),
-            Some(free_cb),
-        )?;
+        let generated =
+            modify_key_password_internal(channel, block_str, fpr_str, Some(fetch_pwd_cb))?;
 
         let c_secret = CString::new(generated.secret).map_err(|_| GfrStatus::ErrorInternal)?;
 
@@ -463,7 +457,7 @@ pub extern "C" fn gfr_crypto_delete_subkey(
 /// Revoke the subkey at `target_subkey_fpr` within `secret_key_block`.
 ///
 /// `reason_code` and `reason_text` (may be null) describe the revocation.
-/// The passphrase is fetched via `fetch_pwd_cb`/`free_cb`. On success
+/// The passphrase is fetched via `fetch_pwd_cb`. On success
 /// `*out_secret_block` is set to a heap-allocated updated armored secret key block.
 ///
 /// # Safety
@@ -477,7 +471,6 @@ pub extern "C" fn gfr_crypto_revoke_subkey(
     reason_code: GfrRevocationCode,
     reason_text: *const c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     out_secret_block: *mut *mut c_char,
 ) -> GfrStatus {
     clear_last_error();
@@ -518,7 +511,6 @@ pub extern "C" fn gfr_crypto_revoke_subkey(
             reason_code,
             reason_text,
             Some(fetch_pwd_cb),
-            Some(free_cb),
         )?;
 
         let secret_cstr = CString::new(result.secret).map_err(|_| GfrStatus::ErrorInternal)?;
@@ -540,7 +532,7 @@ pub extern "C" fn gfr_crypto_revoke_subkey(
 /// Generate a revocation certificate for the primary key in `secret_key_block`.
 ///
 /// `reason_code` and `reason_text` (may be null) describe the revocation reason.
-/// The passphrase is fetched via `fetch_pwd_cb`/`free_cb`. On success
+/// The passphrase is fetched via `fetch_pwd_cb`. On success
 /// `*out_cert_block` is set to a heap-allocated armored revocation certificate.
 /// Free with `gfr_crypto_free_string`.
 ///
@@ -554,7 +546,6 @@ pub extern "C" fn gfr_crypto_generate_key_rev_cert(
     reason_code: GfrRevocationCode,
     reason_text: *const c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
-    free_cb: GfrFreeCb,
     out_cert_block: *mut *mut c_char,
 ) -> GfrStatus {
     clear_last_error();
@@ -590,7 +581,6 @@ pub extern "C" fn gfr_crypto_generate_key_rev_cert(
             reason_code,
             reason_text,
             Some(fetch_pwd_cb),
-            Some(free_cb),
         )?;
 
         let cert_cstr = CString::new(cert).map_err(|_| GfrStatus::ErrorInternal)?;

@@ -56,7 +56,6 @@ where
         public_key_blocks,
         &[], // Empty secret keys skips the signing phase!
         None,
-        None,
         ascii_armor,
     )?;
 
@@ -101,7 +100,6 @@ pub fn encrypt_and_sign_stream_internal<R, W>(
     public_key_blocks: &[&str],
     secret_key_blocks: &[&str],
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     ascii_armor: bool,
 ) -> Result<EncryptAndSignStreamResultInternal, GfrStatus>
 where
@@ -139,7 +137,6 @@ where
                         should_confirm: false,
                     },
                     fetch_cb,
-                    free_cb,
                 )?;
                 Ok(password_from_zeroizing_bytes(pwd_bytes))
             } else {
@@ -259,7 +256,6 @@ pub fn encrypt_and_sign_directory_internal(
     public_key_blocks: &[&str],
     secret_key_blocks: &[&str],
     fetch_pwd_cb: Option<crate::types::GfrPasswordFetchCb>,
-    free_cb: Option<crate::types::GfrFreeCb>,
     ascii_armor: bool,
 ) -> Result<EncryptAndSignResultInternal, crate::types::GfrStatus> {
     let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
@@ -274,7 +270,6 @@ pub fn encrypt_and_sign_directory_internal(
         public_key_blocks,
         secret_key_blocks,
         fetch_pwd_cb,
-        free_cb,
         ascii_armor,
     )?;
 
@@ -296,7 +291,6 @@ pub fn encrypt_stream_with_password_internal<R, W>(
     input_stream: R,
     mut output_stream: W,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     ascii_armor: bool,
 ) -> Result<(), GfrStatus>
 where
@@ -323,7 +317,6 @@ where
             should_confirm: true, // Should confirm for symmetric encryption to avoid accidental encryptions with wrong passwords
         },
         fetch_pwd_cb,
-        free_cb,
     )?;
     if password.is_empty() {
         return Err(GfrStatus::ErrorBadPassphrase);
@@ -352,7 +345,6 @@ pub fn encrypt_directory_with_password_internal(
     in_dir_path: &str,
     out_file_path: &str,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     ascii_armor: bool,
 ) -> Result<SymmetricEncryptStreamResultInternal, crate::types::GfrStatus> {
     let (temp_archive, filename_hint) = build_tar_tempfile_from_directory(in_dir_path)?;
@@ -365,7 +357,6 @@ pub fn encrypt_directory_with_password_internal(
         temp_archive,
         out_file,
         fetch_pwd_cb,
-        free_cb,
         ascii_armor,
     )?;
 
@@ -398,7 +389,6 @@ pub fn encrypt_and_sign_internal(
     public_key_blocks: &[&str],
     secret_key_blocks: &[&str],
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     ascii_armor: bool,
 ) -> Result<EncryptAndSignResultInternal, GfrStatus> {
     let mut output_data = Vec::new();
@@ -413,7 +403,6 @@ pub fn encrypt_and_sign_internal(
         public_key_blocks,
         secret_key_blocks,
         fetch_cb,
-        free_cb,
         ascii_armor,
     )?;
 

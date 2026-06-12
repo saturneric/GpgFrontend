@@ -50,7 +50,6 @@ pub fn sign_stream_internal<R, W>(
     mut output_stream: W,
     secret_key_blocks: &[&str],
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     mode: GfrSignMode,
     ascii_armor: bool,
 ) -> Result<SignStreamResultInternal, GfrStatus>
@@ -64,6 +63,12 @@ where
 
     // 1. Parse Keys and Extract Exact Targets
     let parsed_keys = parse_secret_signers(secret_key_blocks)?;
+
+    log::info!(
+        "Parsed {} secret key blocks for signing operation '{}'",
+        parsed_keys.len(),
+        name
+    );
 
     let mut rng = thread_rng();
     let mut created_signatures = Vec::new();
@@ -99,7 +104,6 @@ where
                     should_confirm: false,
                 },
                 fetch_cb,
-                free_cb,
             )?;
             Ok(password_from_zeroizing_bytes(pwd_bytes))
         } else {
@@ -306,7 +310,6 @@ pub fn sign_internal(
     data: &[u8],
     secret_key_blocks: &[&str],
     fetch_cb: Option<GfrPasswordFetchCb>,
-    free_cb: Option<GfrFreeCb>,
     mode: GfrSignMode,
     ascii_armor: bool,
 ) -> Result<SignResultInternal, GfrStatus> {
@@ -320,7 +323,6 @@ pub fn sign_internal(
         &mut output_data,
         secret_key_blocks,
         fetch_cb,
-        free_cb,
         mode,
         ascii_armor,
     )?;
