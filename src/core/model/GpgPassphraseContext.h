@@ -38,32 +38,43 @@ namespace GpgFrontend {
 class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
   Q_OBJECT
  public:
-  GpgPassphraseContext(int channel, GpgAbstractKeyPtr key,
-                       const PassphraseState& state);
+  GpgPassphraseContext(int channel, GpgAbstractKeyPtr key);
 
   GpgPassphraseContext();
 
-  void SetPassphrase(const QString& passphrase);
+  ~GpgPassphraseContext();
+
+  void SetPassphrase(const GFBuffer& passphrase);
 
   [[nodiscard]] auto GetChannel() const -> int;
 
-  [[nodiscard]] auto GetPassphrase() const -> QString;
+  void SetChannel(int channel);
+
+  [[nodiscard]] auto GetPassphrase() const -> GFBuffer;
 
   [[nodiscard]] auto GetKey() const -> GpgAbstractKeyPtr;
 
   [[nodiscard]] auto GetPassphraseInfo() const -> QString;
 
+  void SetPassphraseInfo(const QString& info);
+
   [[nodiscard]] auto IsPreWasBad() const -> bool;
+
+  void SetPrevWasBad(bool was_bad);
 
   [[nodiscard]] auto IsAskForNew() const -> bool;
 
+  void SetAskForNew(bool ask_for_new);
+
   [[nodiscard]] auto ShouldConfirm() const -> bool;
+
+  void SetShouldConfirm(bool should_confirm);
 
  private:
   int channel_;
   QString passphrase_info_;
   GpgAbstractKeyPtr key_;
-  QString passphrase_;
+  GFBuffer passphrase_;
   bool prev_was_bad_;
   bool ask_for_new_;
   bool should_confirm_;

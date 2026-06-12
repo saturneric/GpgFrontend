@@ -53,7 +53,7 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
   auto recipients = Convert2GpgKeyList(ctx_.GetChannel(), keys);
 
   // 1. Vector to hold the actual memory of the UTF-8 strings
-  QContainer<QByteArray> key_blocks_utf8 =
+  QContainer<GFBuffer> key_blocks_utf8 =
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
@@ -64,7 +64,7 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
   std::vector<const char*> recipient_cstrs;
   recipient_cstrs.reserve(key_blocks_utf8.size());
   for (const auto& ba : key_blocks_utf8) {
-    recipient_cstrs.push_back(ba.constData());
+    recipient_cstrs.push_back(ba.Data());
   }
 
   std::string name;
@@ -100,7 +100,7 @@ auto DecryptRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
   auto err = Rust::gfr_crypto_decrypt_data(
       ctx_.GetChannel(), reinterpret_cast<const uint8_t*>(in_buffer.Data()),
       in_buffer.Size(), FetchSecretKeyCallback, FetchPasswordCallback,
-      FreeCallback, key_db.data(), &decrypt_result);
+      key_db.data(), &decrypt_result);
 
   auto [gf_err, result] =
       HandleDecryptResult(*key_db, in_buffer, err, decrypt_result);
@@ -116,18 +116,19 @@ auto DecryptRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
 namespace {
 auto ExportKeyBlockForSigning(GFKeyDatabase& key_db,
                               const GpgAbstractKeyPtrList& keys)
-    -> std::tuple<GpgError, QContainer<QByteArray>> {
-  QContainer<QByteArray> skey_utf8_list;
+    -> std::tuple<GpgError, QContainer<GFBuffer>> {
+  QContainer<GFBuffer> skey_utf8_list;
   // Fetch key blocks and safely store memory
   for (const auto& signer : keys) {
     auto blocks = key_db.GetKeyBlocks(signer->Fingerprint());
-    if (!blocks || blocks->secret_key.isEmpty()) {
+    if (!blocks || blocks->secret_key.Empty()) {
       LOG_E() << "Failed to find secret key block for FPR: "
               << signer->Fingerprint();
       return {GPG_ERR_NO_SECKEY, {}};
     }
 
-    auto skey_data = blocks->secret_key.toUtf8();
+    auto skey_data = blocks->secret_key;
+    auto data = GFBuffer();
 
     // If the signer is a GPG key, check if there's a marked subkey and use it
     // for signing if available and valid.
@@ -140,13 +141,18 @@ auto ExportKeyBlockForSigning(GFKeyDatabase& key_db,
                   << " for signing instead of primary key with fpr: "
                   << signer->Fingerprint();
           auto prefix = sub.Fingerprint().toUtf8() + "!\n";
-          skey_data.prepend(prefix);
+          data.Combine({GFBuffer(prefix), skey_data});
           break;
         }
+
+        LOG_D() << "No marked subkey found for key with fpr: "
+                << signer->Fingerprint()
+                << ", using primary key block for signing.";
+        data = skey_data;
       }
     }
 
-    skey_utf8_list.push_back(skey_data);
+    skey_utf8_list.push_back(data);
   }
 
   return {GPG_ERR_NO_ERROR, skey_utf8_list};
@@ -172,7 +178,7 @@ auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
   std::vector<const char*> c_skeys;
   c_skeys.reserve(skey_utf8_list.size());
   for (const auto& i : skey_utf8_list) {
-    c_skeys.push_back(i.constData());
+    c_skeys.push_back(i.Data());
   }
 
   QByteArray name_utf8;
@@ -192,8 +198,8 @@ auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
   auto status = Rust::gfr_crypto_sign_data(
       ctx.GetChannel(), name_utf8.constData(),
       reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
-      c_skeys.data(), c_skeys.size(), FetchPasswordCallback, FreeCallback,
-      rs_mode, ascii, &sign_result);
+      c_skeys.data(), c_skeys.size(), FetchPasswordCallback, rs_mode, ascii,
+      &sign_result);
 
   auto [gf_err, result] = HandleSignResult(in_buffer, status, sign_result);
   Rust::gfr_crypto_free_sign_result(&sign_result);
@@ -221,7 +227,7 @@ auto VerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
   auto status = Rust::gfr_crypto_verify_data(
       reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
       reinterpret_cast<const uint8_t*>(sig_buffer.Data()), sig_buffer.Size(),
-      FetchPublicKeyCallback, FreeCallback, key_db.data(),
+      FetchPublicKeyCallback, key_db.data(),
       sig_buffer.Empty() ? Rust::GfrSignMode::ClearText
                          : Rust::GfrSignMode::Detached,
       &verify_result);
@@ -254,7 +260,7 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
 
   auto recipients = Convert2GpgKeyList(ctx.GetChannel(), keys);
 
-  QContainer<QByteArray> key_blocks_utf8 =
+  QContainer<GFBuffer> key_blocks_utf8 =
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
@@ -264,7 +270,7 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
   std::vector<const char*> recipient_cstrs;
   recipient_cstrs.reserve(key_blocks_utf8.size());
   for (const auto& ba : key_blocks_utf8) {
-    recipient_cstrs.push_back(ba.constData());
+    recipient_cstrs.push_back(ba.Data());
   }
 
   auto skey_utf8_list = GetSecretKeysByKeyIdForSigning(*key_db, signers);
@@ -273,7 +279,7 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
   std::vector<const char*> c_skeys;
   c_skeys.reserve(skey_utf8_list.size());
   for (const auto& i : skey_utf8_list) {
-    c_skeys.push_back(i.constData());
+    c_skeys.push_back(i.Data());
   }
 
   QString name;
@@ -284,8 +290,7 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
       ctx.GetChannel(), name.toUtf8().constData(),
       reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
       recipient_cstrs.data(), recipient_cstrs.size(), c_skeys.data(),
-      c_skeys.size(), FetchPasswordCallback, FreeCallback, ascii,
-      &encrypt_sign_result);
+      c_skeys.size(), FetchPasswordCallback, ascii, &encrypt_sign_result);
 
   auto [gf_err, encrypt_result] =
       HandleEncryptResult(in_buffer, err,
@@ -325,8 +330,7 @@ auto DecryptVerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
   auto err = Rust::gfr_crypto_decrypt_and_verify_data(
       ctx_.GetChannel(), reinterpret_cast<const uint8_t*>(in_buffer.Data()),
       in_buffer.Size(), FetchSecretKeyCallback, FetchPasswordCallback,
-      FetchPublicKeyCallback, FreeCallback, key_db.data(),
-      &decrypt_verify_result);
+      FetchPublicKeyCallback, key_db.data(), &decrypt_verify_result);
 
   auto [gf_err, decrypt_result] =
       HandleDecryptResult(*key_db, in_buffer, err,
@@ -361,7 +365,7 @@ auto EncryptSymmetricRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
   auto status = Rust::gfr_crypto_encrypt_data_symmetric(
       ctx_.GetChannel(), name.c_str(),
       reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
-      ascii, FetchPasswordCallback, FreeCallback, &encrypt_result);
+      ascii, FetchPasswordCallback, &encrypt_result);
 
   if (status != Rust::GfrStatus::Success) {
     LOG_E() << "Rust FFI symmetric encryption failed.";

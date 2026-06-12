@@ -30,22 +30,26 @@
 
 namespace GpgFrontend {
 
-GpgPassphraseContext::GpgPassphraseContext(int channel, GpgAbstractKeyPtr key,
-                                           const PassphraseState& state)
-    : channel_(channel),
-      passphrase_info_(state.info),
-      key_(std::move(key)),
-      prev_was_bad_(state.retry),
-      ask_for_new_(state.ask_for_new),
-      should_confirm_(state.should_confirm) {}
+GpgPassphraseContext::GpgPassphraseContext(int channel, GpgAbstractKeyPtr key)
+    : channel_(channel), key_(std::move(key)) {}
 
 GpgPassphraseContext::GpgPassphraseContext() = default;
 
-auto GpgPassphraseContext::GetPassphrase() const -> QString {
+GpgPassphraseContext::~GpgPassphraseContext() {
+  passphrase_info_.fill('X');
+  passphrase_info_.clear();
+  channel_ = -1;
+  key_ = nullptr;
+  prev_was_bad_ = false;
+  ask_for_new_ = false;
+  should_confirm_ = false;
+}
+
+auto GpgPassphraseContext::GetPassphrase() const -> GFBuffer {
   return passphrase_;
 }
 
-void GpgPassphraseContext::SetPassphrase(const QString& passphrase) {
+void GpgPassphraseContext::SetPassphrase(const GFBuffer& passphrase) {
   passphrase_ = passphrase;
 }
 
@@ -64,4 +68,23 @@ auto GpgPassphraseContext::IsAskForNew() const -> bool { return ask_for_new_; }
 auto GpgPassphraseContext::ShouldConfirm() const -> bool {
   return should_confirm_;
 }
+
+void GpgPassphraseContext::SetChannel(int channel) { channel_ = channel; }
+
+void GpgPassphraseContext::SetPassphraseInfo(const QString& info) {
+  passphrase_info_ = info;
+}
+
+void GpgPassphraseContext::SetPrevWasBad(bool was_bad) {
+  prev_was_bad_ = was_bad;
+}
+
+void GpgPassphraseContext::SetAskForNew(bool ask_for_new) {
+  ask_for_new_ = ask_for_new;
+}
+
+void GpgPassphraseContext::SetShouldConfirm(bool should_confirm) {
+  should_confirm_ = should_confirm;
+}
+
 }  // namespace GpgFrontend

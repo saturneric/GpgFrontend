@@ -28,39 +28,11 @@
 
 #pragma once
 
-#include "core/GFCoreRust.h"
-
-namespace GpgFrontend {
-
 extern "C" {
 
-/**
- * @brief
- *
- * @param fpr
- * @param user_data
- * @return char*
- */
-auto FetchPublicKeyCallback(const char* fpr, void* user_data) -> char*;
+// NOLINTNEXTLINE
+void *gfc_secure_free_cstr(char *cstr);
 
-/**
- * @brief
- *
- * @param fpr
- * @param user_data
- * @return char*
- */
-auto FetchSecretKeyCallback(const char* fpr, void* user_data) -> char*;
-
-/**
- * @brief
- *
- * @param key_hint_fpr
- * @param user_data
- * @return char*
- */
-auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
-                           uint8_t** out_pwd, void* /*user_data*/) -> int;
+// NOLINTNEXTLINE
+void gfc_secure_free(void *ptr, void *);
 }
-
-}  // namespace GpgFrontend

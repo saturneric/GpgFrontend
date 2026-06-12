@@ -87,14 +87,14 @@ auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     return GPG_ERR_GENERAL;
   }
 
-  if (key_block_data->secret_key.isEmpty()) {
+  if (key_block_data->secret_key.Empty()) {
     LOG_E() << "secret key block is empty for key with fpr: " << meta->fpr;
     return GPG_ERR_GENERAL;
   }
 
-  auto key_block_utf8 = key_block_data->secret_key.toUtf8();
-  if (key_block_utf8.isEmpty()) {
-    LOG_E() << "key block data is empty for key with fpr: " << meta->fpr;
+  auto key_block_utf8 = key_block_data->secret_key;
+  if (key_block_utf8 == nullptr) {
+    LOG_E() << "key block data is null for key with fpr: " << meta->fpr;
     return GPG_ERR_GENERAL;
   }
 
@@ -102,8 +102,8 @@ auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   char* out_secret_block = nullptr;
 
   auto err = Rust::gfr_crypto_modify_key_password(
-      ctx.GetChannel(), key_block_utf8.constData(), key_fpr_utf8.constData(),
-      FetchPasswordCallback, FreeCallback, &out_secret_block);
+      ctx.GetChannel(), key_block_utf8.Data(), key_fpr_utf8.constData(),
+      FetchPasswordCallback, &out_secret_block);
 
   if (err != Rust::GfrStatus::Success) {
     LOG_E() << "gfr_crypto_modify_key_password error, code: "
@@ -160,13 +160,13 @@ auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     return false;
   }
 
-  if (key_block_data->secret_key.isEmpty()) {
+  if (key_block_data->secret_key.Empty()) {
     LOG_E() << "secret key block is empty for key with fpr: " << meta->fpr;
     return false;
   }
 
-  auto key_block_utf8 = key_block_data->secret_key.toUtf8();
-  if (key_block_utf8.isEmpty()) {
+  auto key_block_utf8 = key_block_data->secret_key;
+  if (key_block_utf8.Empty()) {
     LOG_E() << "key block data is empty for key with fpr: " << meta->fpr;
     return false;
   }
@@ -175,7 +175,7 @@ auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   char* out_secret_block = nullptr;
 
   auto err = Rust::gfr_crypto_delete_subkey(
-      key_block_utf8.constData(), target_subkey_fpr.toUtf8().constData(),
+      key_block_utf8.Data(), target_subkey_fpr.toUtf8().constData(),
       &out_secret_block);
 
   if (err != Rust::GfrStatus::Success) {
@@ -235,13 +235,13 @@ auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     return false;
   }
 
-  if (key_block_data->secret_key.isEmpty()) {
+  if (key_block_data->secret_key.Empty()) {
     LOG_E() << "secret key block is empty for key with fpr: " << meta->fpr;
     return false;
   }
 
-  auto key_block_utf8 = key_block_data->secret_key.toUtf8();
-  if (key_block_utf8.isEmpty()) {
+  auto key_block_utf8 = key_block_data->secret_key;
+  if (key_block_utf8.Empty()) {
     LOG_E() << "key block data is empty for key with fpr: " << meta->fpr;
     return false;
   }
@@ -270,11 +270,10 @@ auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   char* out_secret_block = nullptr;
 
   auto err = Rust::gfr_crypto_revoke_subkey(
-      ctx.GetChannel(), key_block_utf8.constData(),
+      ctx.GetChannel(), key_block_utf8.Data(),
       target_subkey_fpr.toUtf8().constData(),
       static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
-      reason_text_utf8.constData(), FetchPasswordCallback, FreeCallback,
-      &out_secret_block);
+      reason_text_utf8.constData(), FetchPasswordCallback, &out_secret_block);
 
   if (err != Rust::GfrStatus::Success) {
     LOG_E() << "gfr_crypto_revoke_subkey error, code: "
@@ -324,14 +323,14 @@ auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
     return false;
   }
 
-  if (key_block_data->secret_key.isEmpty()) {
+  if (key_block_data->secret_key.Empty()) {
     LOG_E() << "secret key block is empty for key with fpr: " << meta->fpr;
     return false;
   }
 
-  auto key_block_utf8 = key_block_data->secret_key.toUtf8();
-  if (key_block_utf8.isEmpty()) {
-    LOG_E() << "key block data is empty for key with fpr: " << meta->fpr;
+  auto key_block_utf8 = key_block_data->secret_key;
+  if (key_block_utf8 == nullptr) {
+    LOG_E() << "key block data is null for key with fpr: " << meta->fpr;
     return false;
   }
 
@@ -359,10 +358,9 @@ auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
   char* out_secret_block = nullptr;
 
   auto err = Rust::gfr_crypto_generate_key_rev_cert(
-      ctx_.GetChannel(), key_block_utf8.constData(),
+      ctx_.GetChannel(), key_block_utf8.Data(),
       static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
-      reason_text_utf8.constData(), FetchPasswordCallback, FreeCallback,
-      &out_secret_block);
+      reason_text_utf8.constData(), FetchPasswordCallback, &out_secret_block);
 
   if (err != Rust::GfrStatus::Success) {
     LOG_E() << "gfr_crypto_generate_key_rev_cert error, code: "

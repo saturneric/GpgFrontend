@@ -31,7 +31,6 @@
 #include <cstring>
 
 #include "core/function/GFKeyDatabase.h"
-#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/PassphraseService.h"
 
 namespace GpgFrontend {
@@ -45,14 +44,14 @@ auto FetchPublicKeyCallback(const char* fpr, void* user_data) -> char* {
   LOG_D() << "Rust FFI requested public key for issuer: " << fingerprint;
 
   auto key_block = key_db->GetKeyBlocks(fingerprint);
-  if (key_block && !key_block->public_key.isEmpty()) {
-    QByteArray utf8 = key_block->public_key.toUtf8();
+  if (key_block && !key_block->public_key.Empty()) {
     // Allocate memory using strdup (or standard malloc) for Rust to safely
     // consume
     char* c_str = reinterpret_cast<char*>(
-        SMAMalloc(utf8.size() + 1));  // +1 for null terminator
-    std::memcpy(c_str, utf8.constData(), utf8.size());
-    c_str[utf8.size()] = '\0';
+        SMAMalloc(key_block->public_key.Size() + 1));  // +1 for null terminator
+    std::memcpy(c_str, key_block->public_key.Data(),
+                key_block->public_key.Size());
+    c_str[key_block->public_key.Size()] = '\0';
     return c_str;
   }
   return nullptr;
@@ -67,14 +66,14 @@ auto FetchSecretKeyCallback(const char* fpr, void* user_data) -> char* {
   LOG_D() << "Rust FFI requested secret key for issuer: " << fingerprint;
 
   auto key_block = key_db->GetKeyBlocks(fingerprint);
-  if (key_block && !key_block->secret_key.isEmpty()) {
-    QByteArray utf8 = key_block->secret_key.toUtf8();
+  if (key_block && !key_block->secret_key.Empty()) {
     // Allocate memory using strdup (or standard malloc) for Rust to safely
     // consume
     char* c_str = reinterpret_cast<char*>(
-        SMAMalloc(utf8.size() + 1));  // +1 for null terminator
-    std::memcpy(c_str, utf8.constData(), utf8.size());
-    c_str[utf8.size()] = '\0';
+        SMAMalloc(key_block->secret_key.Size() + 1));  // +1 for null terminator
+    std::memcpy(c_str, key_block->secret_key.Data(),
+                key_block->secret_key.Size());
+    c_str[key_block->secret_key.Size()] = '\0';
     return c_str;
   }
   return nullptr;
@@ -90,34 +89,20 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
       .should_confirm = state.should_confirm,
   };
 
-  QString result_pwd =
+  auto result_pwd =
       PassphraseService::GetInstance(channel).RequestPassphrase(pp_state);
 
-  if (result_pwd.isEmpty()) {
+  if (result_pwd.Empty()) {
     *out_pwd = nullptr;
     return 0;
   }
 
-  // Convert QString to UTF-8 byte array
-  QByteArray utf8_pwd = result_pwd.toUtf8();
-
   // Allocate raw memory for Rust to consume
-  auto* c_pwd = reinterpret_cast<uint8_t*>(SMAMalloc(utf8_pwd.size()));
-  std::memcpy(c_pwd, utf8_pwd.constData(), utf8_pwd.size());
-
-  // Attempt to clear the Qt buffers (Best effort since QString handles its own
-  // memory)
-  result_pwd.fill('X');
-  utf8_pwd.fill('X');
+  auto* c_pwd = reinterpret_cast<uint8_t*>(SMAMalloc(result_pwd.Size()));
+  std::memcpy(c_pwd, result_pwd.Data(), result_pwd.Size());
 
   *out_pwd = c_pwd;
-  return static_cast<int>(utf8_pwd.size());
-}
-
-void FreeCallback(void* ptr, void*) {
-  if (ptr != nullptr) {
-    SMAFree(ptr);
-  }
+  return static_cast<int>(result_pwd.Size());
 }
 
 }  // namespace GpgFrontend

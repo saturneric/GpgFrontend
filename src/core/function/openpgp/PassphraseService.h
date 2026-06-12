@@ -54,6 +54,17 @@ struct PassphraseState {
   // True if the user should be asked to confirm the passphrase (e.g. when
   // setting a new one).
   bool should_confirm = false;
+
+  ~PassphraseState() {
+    // Clear sensitive data
+    info.fill('X');
+    info.clear();
+    fpr.fill('X');
+    fpr.clear();
+    retry = false;
+    ask_for_new = false;
+    should_confirm = false;
+  }
 };
 
 /**
@@ -82,7 +93,7 @@ class GF_CORE_EXPORT PassphraseService
    * flag, etc.)
    * @return passphrase entered by the user, or empty string on cancellation
    */
-  auto RequestPassphrase(const PassphraseState& state) -> QString;
+  auto RequestPassphrase(const PassphraseState& state) -> GFBuffer;
 
  private:
   // OpenPGP context for this channel, used to route the passphrase callback.

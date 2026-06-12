@@ -153,8 +153,8 @@ auto GFKeyDatabase::GetKeyBlocks(const QString& identifier)
 
   if (query.exec() && query.next()) {
     GFKeyBlocks blocks;
-    blocks.public_key = query.value(0).toString();
-    blocks.secret_key = query.value(1).toString();
+    blocks.public_key = GFBuffer(query.value(0).toString());
+    blocks.secret_key = GFBuffer(query.value(1).toString());
     return blocks;
   }
 
@@ -334,9 +334,8 @@ auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
     VALUES (:fpr, :public_key, :secret_key)
   )");
   query.bindValue(":fpr", meta.fpr.toUpper());
-  query.bindValue(":public_key", blocks.public_key);
-  query.bindValue(":secret_key",
-                  blocks.secret_key.isEmpty() ? QString{} : blocks.secret_key);
+  query.bindValue(":public_key", blocks.public_key.ConvertToQString());
+  query.bindValue(":secret_key", blocks.secret_key.ConvertToQString());
 
   if (!query.exec()) {
     LOG_E() << "SaveKey blocks error: " << query.lastError().text();

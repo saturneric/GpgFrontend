@@ -94,11 +94,11 @@ auto GenerateKeyWithSubkeyRpgpImpl(
     err = Rust::gfr_crypto_generate_key(
         p_params->GetUserid().toUtf8().constData(), key_config,
         s_key_configs.data(), s_key_configs.size(), FetchPasswordCallback,
-        FreeCallback, &kg_result);
+        &kg_result);
   } else {
     err = Rust::gfr_crypto_generate_key(
         p_params->GetUserid().toUtf8().constData(), key_config, nullptr, 0,
-        FetchPasswordCallback, FreeCallback, &kg_result);
+        FetchPasswordCallback, &kg_result);
   }
 
   if (err != Rust::GfrStatus::Success) {
@@ -186,16 +186,16 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   Rust::GfrKeyGenerateResult kg_result;
 
-  auto key_block_data = gf_key->blocks.secret_key.toUtf8();
-  if (key_block_data.isEmpty()) {
+  auto key_block_data = gf_key->blocks.secret_key;
+  if (key_block_data.Empty()) {
     LOG_E() << "primary key block data is empty, primary key fpr: "
             << key->Fingerprint();
     return GPG_ERR_GENERAL;
   }
 
-  auto err = Rust::gfr_crypto_add_subkey(
-      ctx.GetChannel(), key_block_data.constData(), key_config,
-      FetchPasswordCallback, FreeCallback, &kg_result);
+  auto err = Rust::gfr_crypto_add_subkey(ctx.GetChannel(),
+                                         key_block_data.Data(), key_config,
+                                         FetchPasswordCallback, &kg_result);
   if (err != Rust::GfrStatus::Success) {
     data_object->Swap({GpgGenerateKeyResult{}});
     LOG_D() << "gfr_crypto_add_subkey error, code: " << static_cast<int>(err);

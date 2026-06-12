@@ -42,21 +42,21 @@ auto MergeGFKeyRpgpImpl(const QContainer<GFKey>& gf_keys, bool secret)
     return std::nullopt;
   }
 
-  QContainer<QByteArray> blocks_to_merge;
+  QContainer<GFBuffer> blocks_to_merge;
   bool has_any_secret = false;
 
   for (const auto& gf_key : gf_keys) {
     if (gf_key.metadata.fpr.isEmpty()) continue;
 
-    QByteArray block;
-    if (!gf_key.blocks.secret_key.isEmpty()) {
-      block = gf_key.blocks.secret_key.toUtf8();
+    GFBuffer block;
+    if (!gf_key.blocks.secret_key.Empty()) {
+      block = gf_key.blocks.secret_key;
       has_any_secret = true;
-    } else if (!gf_key.blocks.public_key.isEmpty()) {
-      block = gf_key.blocks.public_key.toUtf8();
+    } else if (!gf_key.blocks.public_key.Empty()) {
+      block = gf_key.blocks.public_key;
     }
 
-    if (!block.isEmpty()) {
+    if (!block.Empty()) {
       blocks_to_merge.push_back(block);
     }
   }
@@ -70,15 +70,15 @@ auto MergeGFKeyRpgpImpl(const QContainer<GFKey>& gf_keys, bool secret)
     return std::nullopt;
   }
 
-  QByteArray current_merged_block = blocks_to_merge.front();
+  GFBuffer current_merged_block = blocks_to_merge.front();
 
   for (size_t i = 1; i < static_cast<size_t>(blocks_to_merge.size()); ++i) {
     char* out_sec = nullptr;
     char* out_pub = nullptr;
 
     auto err = Rust::gfr_crypto_merge_key_blocks(
-        current_merged_block.constData(),  // base
-        blocks_to_merge[i].constData(),    // incoming
+        current_merged_block.Data(),  // base
+        blocks_to_merge[i].Data(),    // incoming
         &out_sec, &out_pub);
 
     if (err != Rust::GfrStatus::Success) {
@@ -89,22 +89,22 @@ auto MergeGFKeyRpgpImpl(const QContainer<GFKey>& gf_keys, bool secret)
       return std::nullopt;
     }
 
-    QString res_armored;
+    GFBuffer res_armored;
     if (secret && (out_sec != nullptr) && strlen(out_sec) > 0) {
-      res_armored = QString::fromUtf8(out_sec);
+      res_armored = GFBuffer(out_sec);
     } else if ((out_pub != nullptr) && strlen(out_pub) > 0) {
-      res_armored = QString::fromUtf8(out_pub);
+      res_armored = GFBuffer(out_pub);
     }
 
     if (out_sec != nullptr) Rust::gfr_crypto_free_string(out_sec);
     if (out_pub != nullptr) Rust::gfr_crypto_free_string(out_pub);
 
-    if (res_armored.isEmpty()) {
+    if (res_armored.Empty()) {
       LOG_E() << "Merge resulted in empty string at index " << i;
       return std::nullopt;
     }
 
-    current_merged_block = res_armored.toUtf8();
+    current_merged_block = res_armored;
   }
 
   auto final_gf_keys = GetGFKeysFromKeyBlock(GFBuffer(current_merged_block));
@@ -194,7 +194,7 @@ auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
 
   std::vector<char*> key_block_ptrs;
   for (const auto& block : key_blocks) {
-    key_block_ptrs.push_back(const_cast<char*>(block.data()));
+    key_block_ptrs.push_back(const_cast<char*>(block.Data()));
   }
 
   auto err =
@@ -288,27 +288,27 @@ auto ImportRevCertRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
     return {};
   }
 
-  QByteArray key_block_utf8;
+  GFBuffer key_block_utf8;
   if (db_gf_key->metadata.has_secret) {
-    if (db_gf_key->blocks.secret_key.isEmpty()) {
+    if (db_gf_key->blocks.secret_key.Empty()) {
       LOG_E()
           << "key with matching fingerprint does not have a secret key block";
       return {};
     }
-    key_block_utf8 = db_gf_key->blocks.secret_key.toUtf8();
+    key_block_utf8 = db_gf_key->blocks.secret_key;
   } else {
-    if (db_gf_key->blocks.public_key.isEmpty()) {
+    if (db_gf_key->blocks.public_key.Empty()) {
       LOG_E()
           << "key with matching fingerprint does not have a public key block";
       return {};
     }
-    key_block_utf8 = db_gf_key->blocks.public_key.toUtf8();
+    key_block_utf8 = db_gf_key->blocks.public_key;
   }
 
   char* out_sec = nullptr;
   char* out_pub = nullptr;
   status = Rust::gfr_crypto_import_rev_cert(
-      key_block_utf8.data(), in_buffer_utf8.data(), &out_sec, &out_pub);
+      key_block_utf8.Data(), in_buffer_utf8.data(), &out_sec, &out_pub);
 
   if (status != Rust::GfrStatus::Success) {
     LOG_E() << "gfr_crypto_import_rev_cert failed with status: "

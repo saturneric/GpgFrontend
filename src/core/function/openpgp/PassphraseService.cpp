@@ -39,10 +39,10 @@ PassphraseService::PassphraseService(int channel)
     : SingletonFunctionObject(channel) {}
 
 auto PassphraseService::RequestPassphrase(const PassphraseState& state)
-    -> QString {
+    -> GFBuffer {
   GpgAbstractKeyPtr key = nullptr;
 
-  if (!state.ask_for_new && state.fpr.trimmed().isEmpty()) {
+  if (!state.ask_for_new && state.info.trimmed().isEmpty()) {
     LOG_W()
         << "Passphrase request with empty fingerprint and not asking for new "
            "passphrase. This may lead to incorrect key association.";
@@ -50,7 +50,6 @@ auto PassphraseService::RequestPassphrase(const PassphraseState& state)
   }
 
   auto t_state = state;  // Make a mutable copy of the state
-
   t_state.fpr = t_state.fpr.trimmed().toUpper();
 
   if (!t_state.fpr.isEmpty()) {
@@ -62,9 +61,12 @@ auto PassphraseService::RequestPassphrase(const PassphraseState& state)
     }
   }
 
-  QString result_pwd;
-  auto c =
-      QSharedPointer<GpgPassphraseContext>::create(GetChannel(), key, t_state);
+  GFBuffer result_pwd;
+  auto c = QSharedPointer<GpgPassphraseContext>::create(GetChannel(), key);
+  c->SetPassphraseInfo(t_state.info);
+  c->SetPrevWasBad(t_state.retry);
+  c->SetAskForNew(t_state.ask_for_new);
+  c->SetShouldConfirm(t_state.should_confirm);
 
   QEventLoop loop;
   QTimer timeout_timer;
@@ -81,7 +83,7 @@ auto PassphraseService::RequestPassphrase(const PassphraseState& state)
       });
 
   QTimer::singleShot(0, [c]() -> void {
-    emit CoreSignalStation::GetInstance()->SignalNeedUserInputPassphrase(c);
+    emit CoreSignalStation::GetInstance() -> SignalNeedUserInputPassphrase(c);
   });
 
   timeout_timer.start(60000);

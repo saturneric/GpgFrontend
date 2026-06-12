@@ -92,7 +92,7 @@ auto GF_CORE_EXPORT SniffIssuerKeyIds(const GFBuffer& in_buffer) -> QStringList;
  */
 auto GF_CORE_EXPORT GetKeyBlocksForVerification(GFKeyDatabase& key_db,
                                                 const QStringList& key_ids)
-    -> QContainer<QByteArray>;
+    -> QContainer<GFBuffer>;
 
 /**
  * @brief Retrieve armored key blocks for the given key IDs.
@@ -106,7 +106,7 @@ auto GF_CORE_EXPORT GetKeyBlocksForVerification(GFKeyDatabase& key_db,
 auto GF_CORE_EXPORT GetArmoredKeyBlocksForKeys(GFKeyDatabase& key_db,
                                                const QStringList& key_ids,
                                                bool secret)
-    -> QContainer<QByteArray>;
+    -> QContainer<GFBuffer>;
 
 }  // namespace GpgFrontend
 

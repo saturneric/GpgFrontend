@@ -188,15 +188,12 @@ auto SniffIssuerKeyIds(const GFBuffer& in_buffer) -> QStringList {
 }
 auto GetKeyBlocksForVerification(GFKeyDatabase& key_db,
                                  const QStringList& key_ids)
-    -> QContainer<QByteArray> {
-  QContainer<QByteArray> verified_keys_utf8;
+    -> QContainer<GFBuffer> {
+  QContainer<GFBuffer> verified_keys_utf8;
   for (const auto& issuer_id : key_ids) {
     auto key = key_db.GetKeyBlocks(issuer_id);
-    if (key && !key->public_key.isEmpty()) {
-      LOG_D() << "Found public key block for issuer_id: " << issuer_id
-              << ", public key: " << key->public_key;
-
-      verified_keys_utf8.push_back(key->public_key.toUtf8());
+    if (key && !key->public_key.Empty()) {
+      verified_keys_utf8.push_back(key->public_key);
     }
   }
   return verified_keys_utf8;
@@ -204,8 +201,8 @@ auto GetKeyBlocksForVerification(GFKeyDatabase& key_db,
 
 auto GetArmoredKeyBlocksForKeys(GFKeyDatabase& key_db,
                                 const QStringList& key_ids, bool secret)
-    -> QContainer<QByteArray> {
-  QContainer<QByteArray> key_blocks;
+    -> QContainer<GFBuffer> {
+  QContainer<GFBuffer> key_blocks;
 
   for (const auto& key_id : key_ids) {
     auto key_block = key_db.GetKeyBlocks(key_id);
@@ -214,24 +211,24 @@ auto GetArmoredKeyBlocksForKeys(GFKeyDatabase& key_db,
       continue;
     }
 
-    if (secret && key_block->secret_key.isEmpty()) {
+    if (secret && key_block->secret_key.Empty()) {
       LOG_W() << "requested secret key export, but secret key block is empty "
                  "for fpr: "
               << key_id;
       continue;
     }
 
-    if (!secret && key_block->public_key.isEmpty()) {
-      if (key_block->secret_key.isEmpty()) {
+    if (!secret && key_block->public_key.Empty()) {
+      if (key_block->secret_key.Empty()) {
         LOG_W() << "requested public key export, but public key block is empty "
                    "for fpr: "
                 << key_id;
         continue;
       }
 
-      auto secret_key_block = key_block->secret_key.toUtf8();
+      auto secret_key_block = key_block->secret_key;
       char* public_key = nullptr;
-      auto err = Rust::gfr_crypto_extract_public_key(secret_key_block.data(),
+      auto err = Rust::gfr_crypto_extract_public_key(secret_key_block.Data(),
                                                      &public_key);
 
       if (err != Rust::GfrStatus::Success) {
@@ -240,14 +237,14 @@ auto GetArmoredKeyBlocksForKeys(GFKeyDatabase& key_db,
         continue;
       }
 
-      auto public_key_qs = QString::fromUtf8(public_key);
-      key_blocks.push_back(public_key_qs.toUtf8());
+      auto public_key_qs = GFBuffer(public_key);
+      key_blocks.push_back(public_key_qs);
       Rust::gfr_crypto_free_string(public_key);
       continue;
     }
 
     key_blocks.push_back(
-        (secret ? key_block->secret_key : key_block->public_key).toUtf8());
+        (secret ? key_block->secret_key : key_block->public_key));
   }
 
   return key_blocks;

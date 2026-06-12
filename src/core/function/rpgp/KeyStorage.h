@@ -73,22 +73,22 @@ auto GetKeyByKeyIdsForDecryption(GFKeyDatabase& key_db,
  *
  * @param key_db
  * @param key_ids
- * @return QContainer<QByteArray>
+ * @return QContainer<GFBuffer>
  */
 auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
                                         const GpgKeyList& keys)
-    -> QContainer<QByteArray>;
+    -> QContainer<GFBuffer>;
 
 /**
  * @brief Get the Secret Keys By Key Id For Signing object
  *
  * @param key_db
  * @param key
- * @return QContainer<QByteArray>
+ * @return QContainer<GFBuffer>
  */
 auto GetSecretKeysByKeyIdForSigning(GFKeyDatabase& key_db,
                                     const GpgAbstractKeyPtrList& key)
-    -> QContainer<QByteArray>;
+    -> QContainer<GFBuffer>;
 
 /**
  * @brief

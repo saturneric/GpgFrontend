@@ -58,8 +58,8 @@ auto AddUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     return false;
   }
 
-  auto secret_key_block = gf_key->blocks.secret_key.toUtf8();
-  if (secret_key_block.isEmpty()) {
+  auto secret_key_block = gf_key->blocks.secret_key;
+  if (secret_key_block.Empty()) {
     LOG_E() << "Secret key block is empty for key: " << key->Fingerprint();
     return false;
   }
@@ -68,8 +68,8 @@ auto AddUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   char* out_block = nullptr;
   auto status = Rust::gfr_crypto_add_user_id(
-      ctx.GetChannel(), secret_key_block.constData(), uid_utf8.constData(),
-      FetchPasswordCallback, FreeCallback, &out_block);
+      ctx.GetChannel(), secret_key_block.Data(), uid_utf8.constData(),
+      FetchPasswordCallback, &out_block);
 
   LOG_D() << "Rust function gfr_crypto_add_user_id returned status: "
           << static_cast<int>(status);
@@ -130,15 +130,15 @@ auto DeleteUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   auto uid_utf8 = uid.toUtf8();
 
-  auto secret_key_block = gf_key->blocks.secret_key.toUtf8();
-  if (secret_key_block.isEmpty()) {
+  auto secret_key_block = gf_key->blocks.secret_key;
+  if (secret_key_block.Empty()) {
     LOG_E() << "Secret key block is empty for key: " << key->Fingerprint();
     return false;
   }
 
   char* out_block = nullptr;
   auto status = Rust::gfr_crypto_delete_user_id(
-      secret_key_block.constData(), uid_utf8.constData(), &out_block);
+      secret_key_block.Data(), uid_utf8.constData(), &out_block);
 
   LOG_D() << "Rust function gfr_crypto_delete_user_id returned status: "
           << static_cast<int>(status);
@@ -193,8 +193,8 @@ auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     return false;
   }
 
-  auto secret_key_block = gf_key->blocks.secret_key.toUtf8();
-  if (secret_key_block.isEmpty()) {
+  auto secret_key_block = gf_key->blocks.secret_key;
+  if (secret_key_block.Empty()) {
     LOG_E() << "Secret key block is empty for key: " << key->Fingerprint();
     return false;
   }
@@ -203,8 +203,8 @@ auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   char* out_block = nullptr;
   auto status = Rust::gfr_crypto_set_primary_user_id(
-      ctx.GetChannel(), secret_key_block.constData(), uid_utf8.constData(),
-      FetchPasswordCallback, FreeCallback, &out_block);
+      ctx.GetChannel(), secret_key_block.Data(), uid_utf8.constData(),
+      FetchPasswordCallback, &out_block);
 
   LOG_D() << "Rust function gfr_crypto_set_primary_user_id returned status: "
           << static_cast<int>(status);
@@ -260,8 +260,8 @@ auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     return false;
   }
 
-  auto secret_key_block = gf_key->blocks.secret_key.toUtf8();
-  if (secret_key_block.isEmpty()) {
+  auto secret_key_block = gf_key->blocks.secret_key;
+  if (secret_key_block.Empty()) {
     LOG_E() << "Secret key block is empty for key: " << key->Fingerprint();
     return false;
   }
@@ -281,10 +281,9 @@ auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   char* out_block = nullptr;
   auto status = Rust::gfr_crypto_revoke_user_id(
-      ctx.GetChannel(), secret_key_block.constData(), uid_utf8.constData(),
+      ctx.GetChannel(), secret_key_block.Data(), uid_utf8.constData(),
       static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
-      reason_text_utf8.constData(), FetchPasswordCallback, FreeCallback,
-      &out_block);
+      reason_text_utf8.constData(), FetchPasswordCallback, &out_block);
 
   LOG_D() << "Rust function gfr_crypto_revoke_user_id returned status: "
           << static_cast<int>(status);

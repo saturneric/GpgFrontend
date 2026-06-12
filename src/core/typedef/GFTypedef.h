@@ -102,8 +102,8 @@ struct GFKeyMetadata {
 };
 
 struct GFKeyBlocks {
-  QString public_key;
-  QString secret_key;
+  GFBuffer public_key;
+  GFBuffer secret_key;
 };
 
 struct GFKey {

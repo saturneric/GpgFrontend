@@ -66,7 +66,7 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
   std::vector<const char*> recipient_cstrs;
   recipient_cstrs.reserve(key_blocks_utf8.size());
   for (const auto& ba : key_blocks_utf8) {
-    recipient_cstrs.push_back(ba.constData());
+    recipient_cstrs.push_back(ba.Data());
   }
 
   auto in_file_path_utf8 = in_path.toUtf8();
@@ -134,12 +134,12 @@ auto DecryptFileGeneralRpgpImpl(OpenPGPContext& ctx_, bool is_archive,
     err = Rust::gfr_crypto_decrypt_archive(
         ctx_.GetChannel(), in_file_path_utf8.constData(),
         out_file_path_utf8.constData(), false, FetchSecretKeyCallback,
-        FetchPasswordCallback, FreeCallback, key_db.data(), &decrypt_result);
+        FetchPasswordCallback, key_db.data(), &decrypt_result);
   } else {
     err = Rust::gfr_crypto_decrypt_file(
         ctx_.GetChannel(), in_file_path_utf8.constData(),
         out_file_path_utf8.constData(), false, FetchSecretKeyCallback,
-        FetchPasswordCallback, FreeCallback, key_db.data(), &decrypt_result);
+        FetchPasswordCallback, key_db.data(), &decrypt_result);
   }
 
   auto [gf_err, result] =
@@ -196,7 +196,7 @@ auto SignFileRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
 
   std::vector<const char*> key_block_cstrs;
   for (const auto& ba : key_block_utf8) {
-    key_block_cstrs.push_back(ba.constData());
+    key_block_cstrs.push_back(ba.Data());
   }
 
   auto in_file_path_utf8 = in_path.toUtf8();
@@ -207,7 +207,7 @@ auto SignFileRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
   auto status = Rust::gfr_crypto_sign_file(
       ctx_.GetChannel(), in_file_path_utf8.constData(),
       out_file_path_utf8.constData(), key_block_cstrs.data(),
-      key_block_cstrs.size(), FetchPasswordCallback, FreeCallback,
+      key_block_cstrs.size(), FetchPasswordCallback,
       Rust::GfrSignMode::Detached, ascii, &sign_result);
 
   auto [gf_err, result] = HandleSignResult({}, status, sign_result);
@@ -236,12 +236,12 @@ auto VerifyFileRpgpImpl(OpenPGPContext& ctx_, const QString& data_path,
   if (sign_path.isEmpty()) {
     err = Rust::gfr_crypto_verify_file(
         data_file_path_utf8.constData(), sign_file_path_utf8.constData(),
-        nullptr, FetchPublicKeyCallback, FreeCallback, key_db.data(),
+        nullptr, FetchPublicKeyCallback, key_db.data(),
         Rust::GfrSignMode::Inline, &verify_result);
   } else {
     err = Rust::gfr_crypto_verify_file(
         data_file_path_utf8.constData(), sign_file_path_utf8.constData(),
-        nullptr, FetchPublicKeyCallback, FreeCallback, key_db.data(),
+        nullptr, FetchPublicKeyCallback, key_db.data(),
         Rust::GfrSignMode::Detached, &verify_result);
   }
 
@@ -272,7 +272,7 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
 
   auto recipients = Convert2GpgKeyList(ctx.GetChannel(), enc_keys);
 
-  QContainer<QByteArray> key_blocks_utf8 =
+  QContainer<GFBuffer> key_blocks_utf8 =
       GetPublicKeysByKeyIdsForEncryption(*key_db, recipients);
   if (key_blocks_utf8.empty()) {
     LOG_E() << "No valid recipients found for encryption.";
@@ -282,7 +282,7 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
   std::vector<const char*> recipient_cstrs;
   recipient_cstrs.reserve(key_blocks_utf8.size());
   for (const auto& ba : key_blocks_utf8) {
-    recipient_cstrs.push_back(ba.constData());
+    recipient_cstrs.push_back(ba.Data());
   }
 
   auto skey_utf8_list = GetSecretKeysByKeyIdForSigning(*key_db, sign_keys);
@@ -293,7 +293,7 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
   // Extract C-string pointers
   c_skeys.reserve(skey_utf8_list.size());
   for (const auto& i : skey_utf8_list) {
-    c_skeys.push_back(i.constData());
+    c_skeys.push_back(i.Data());
   }
 
   Rust::GfrStatus err;
@@ -306,13 +306,13 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
         ctx.GetChannel(), in_path.toUtf8().constData(),
         out_path.toUtf8().constData(), recipient_cstrs.data(),
         recipient_cstrs.size(), c_skeys.data(), c_skeys.size(),
-        FetchPasswordCallback, FreeCallback, ascii, &encrypt_sign_result);
+        FetchPasswordCallback, ascii, &encrypt_sign_result);
   } else {
     err = Rust::gfr_crypto_encrypt_and_sign_file(
         ctx.GetChannel(), in_path.toUtf8().constData(),
         out_path.toUtf8().constData(), recipient_cstrs.data(),
         recipient_cstrs.size(), c_skeys.data(), c_skeys.size(),
-        FetchPasswordCallback, FreeCallback, ascii, &encrypt_sign_result);
+        FetchPasswordCallback, ascii, &encrypt_sign_result);
   }
 
   auto [gf_err, encrypt_result] =
@@ -378,14 +378,14 @@ auto DecryptVerifyFileGeneralRpgpImpl(OpenPGPContext& ctx, bool is_archive,
     err = Rust::gfr_crypto_decrypt_and_verify_archive(
         ctx.GetChannel(), in_file_path_utf8.constData(),
         out_file_path_utf8.constData(), false, FetchSecretKeyCallback,
-        FetchPasswordCallback, FetchPublicKeyCallback, FreeCallback,
-        key_db.data(), &decrypt_verify_result);
+        FetchPasswordCallback, FetchPublicKeyCallback, key_db.data(),
+        &decrypt_verify_result);
   } else {
     err = Rust::gfr_crypto_decrypt_and_verify_file(
         ctx.GetChannel(), in_file_path_utf8.constData(),
         out_file_path_utf8.constData(), false, FetchSecretKeyCallback,
-        FetchPasswordCallback, FetchPublicKeyCallback, FreeCallback,
-        key_db.data(), &decrypt_verify_result);
+        FetchPasswordCallback, FetchPublicKeyCallback, key_db.data(),
+        &decrypt_verify_result);
   }
 
   auto [gf_err, decrypt_result] =
@@ -449,14 +449,14 @@ auto EncryptSymmetricFileRpgpImpl(OpenPGPContext& ctx_, const QString& in_path,
     status = Rust::gfr_crypto_encrypt_directory_symmetric(
         ctx_.GetChannel(), in_file_path_utf8.constData(),
         out_file_path_utf8.constData(), ascii, FetchPasswordCallback,
-        FreeCallback, &encrypt_result);
+        &encrypt_result);
   } else {
     // Call Rust FFI. Ensure in_buffer is a null-terminated C-string if Rust
     // expects it.
     status = Rust::gfr_crypto_encrypt_file_symmetric(
         ctx_.GetChannel(), in_file_path_utf8.constData(),
         out_file_path_utf8.constData(), ascii, FetchPasswordCallback,
-        FreeCallback, &encrypt_result);
+        &encrypt_result);
   }
 
   auto [gf_err, result] = HandleEncryptResult({}, status, encrypt_result);

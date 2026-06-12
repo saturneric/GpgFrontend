@@ -84,9 +84,9 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
 
   GFKeyBlocks& blocks = key.blocks;
   if (meta.has_secret) {
-    blocks.secret_key = QString::fromUtf8(gfr_meta.secret_key_block);
+    blocks.secret_key = GFBuffer(gfr_meta.secret_key_block);
   }
-  blocks.public_key = QString::fromUtf8(gfr_meta.public_key_block);
+  blocks.public_key = GFBuffer(gfr_meta.public_key_block);
 
   return key;
 }
@@ -137,7 +137,7 @@ auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool {
     return false;
   }
 
-  if (key.blocks.public_key.isEmpty()) {
+  if (key.blocks.public_key.Empty()) {
     LOG_E() << "key blocks must contain a valid public key block";
     return false;
   }
@@ -199,7 +199,7 @@ auto GetKeyByKeyIdsForDecryption(GFKeyDatabase& key_db,
     // searching
     if (found_usable_secret) {
       auto key = key_db.GetKeyByIdentifier(meta_opt->fpr);
-      if (key && !key->blocks.secret_key.isEmpty()) {
+      if (key && !key->blocks.secret_key.Empty()) {
         result = *key;
         break;
       }
@@ -221,19 +221,19 @@ auto GetKeyByKeyIdsForDecryption(GFKeyDatabase& key_db,
 
 auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
                                         const GpgKeyList& keys)
-    -> QContainer<QByteArray> {
-  QContainer<QByteArray> result;
+    -> QContainer<GFBuffer> {
+  QContainer<GFBuffer> result;
 
   for (const auto& key : keys) {
     auto key_block = key_db.GetKeyBlocks(key.Fingerprint());
-    if (!key_block || key_block->public_key.isEmpty()) {
+    if (!key_block || key_block->public_key.Empty()) {
       LOG_W() << "No valid public key block found for key with fpr: "
               << key.Fingerprint();
       continue;
     }
 
     // Keep the QByteArray alive by pushing it to the vector
-    result.push_back(key_block->public_key.toUtf8());
+    result.push_back(key_block->public_key);
   }
 
   return result;
@@ -241,19 +241,19 @@ auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
 
 auto GetSecretKeysByKeyIdForSigning(GFKeyDatabase& key_db,
                                     const GpgAbstractKeyPtrList& key)
-    -> QContainer<QByteArray> {
-  QContainer<QByteArray> result;
+    -> QContainer<GFBuffer> {
+  QContainer<GFBuffer> result;
 
   for (const auto& k : key) {
     auto key_block = key_db.GetKeyBlocks(k->Fingerprint());
-    if (!key_block || key_block->secret_key.isEmpty()) {
+    if (!key_block || key_block->secret_key.Empty()) {
       LOG_W() << "No valid secret key block found for key with fpr: "
               << k->Fingerprint();
       continue;
     }
 
     // Keep the QByteArray alive by pushing it to the vector
-    result.push_back(key_block->secret_key.toUtf8());
+    result.push_back(key_block->secret_key);
   }
 
   return result;
@@ -276,16 +276,15 @@ auto RefreshKeyMetaInDatabase(GFKeyDatabase& key_db, const QString& key_id)
   };
 
   auto key_blocks = key->blocks;
-  auto key_block = key_blocks.secret_key.isEmpty() ? key_blocks.public_key
-                                                   : key_blocks.secret_key;
-  if (key_block.isEmpty()) {
+  auto key_block = key_blocks.secret_key.Empty() ? key_blocks.public_key
+                                                 : key_blocks.secret_key;
+  if (key_block.Empty()) {
     LOG_E() << "no valid key block found for key with id: " << key_id
             << " to refresh metadata";
     return disable_and_err();
   }
 
-  auto key_block_utf8 = key_block.toUtf8();
-  auto keys = GetGFKeysFromKeyBlock(GFBuffer(key_block_utf8));
+  auto keys = GetGFKeysFromKeyBlock(key_block);
   if (keys.empty()) {
     LOG_E() << "cannot parse key blocks for key with id: " << key_id
             << " to refresh metadata";
