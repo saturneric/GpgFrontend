@@ -51,7 +51,7 @@ use pgp::{
     types::{KeyDetails, KeyVersion, Password, Timestamp},
 };
 use rand::thread_rng;
-use zeroize::{Zeroize, Zeroizing};
+use zeroize::Zeroizing;
 
 /// Armored key material produced by a generation or modification operation.
 pub struct GeneratedKeys {

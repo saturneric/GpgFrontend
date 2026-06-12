@@ -36,7 +36,7 @@ use pgp::{
     composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
     crypto::{hash::HashAlgorithm, public_key},
     packet::{Signature, SignatureConfig, SignatureType, Subpacket, SubpacketData},
-    types::{KeyDetails, PacketHeaderVersion, Password, SecretParams, Tag, Timestamp},
+    types::{KeyDetails, PacketHeaderVersion, SecretParams, Tag, Timestamp},
 };
 use zeroize::Zeroizing;
 

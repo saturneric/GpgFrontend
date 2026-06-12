@@ -33,7 +33,6 @@
 //! matching `gfr_crypto_free_*` function — passing pointers to `free()` or
 //! any other allocator is undefined behaviour.
 
-use pgp::bytes;
 use zeroize::Zeroize;
 
 use crate::types::{
