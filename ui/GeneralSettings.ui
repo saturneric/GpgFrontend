@@ -26,14 +26,14 @@
          <layout class="QVBoxLayout" name="verticalLayout_3">
           <item>
            <layout class="QFormLayout" name="formLayout">
-            <item row="0" column="0">
+            <item row="1" column="0">
              <widget class="QLabel" name="modulePolicyLabel">
               <property name="text">
                <string>Module Loading Policy</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
+            <item row="1" column="1">
              <widget class="QComboBox" name="modulePolicyComboBox">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -43,12 +43,22 @@
               </property>
              </widget>
             </item>
-            <item row="1" column="0" colspan="2">
+            <item row="2" column="0" colspan="2">
              <widget class="QCheckBox" name="clearGpgPasswordCacheCheckBox">
               <property name="text">
                <string>Clear gpg password cache when closing GpgFrontend.</string>
               </property>
              </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="defaultEngineLabel">
+              <property name="text">
+               <string>Default Engine</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QComboBox" name="defaultEngineComboBox"/>
             </item>
            </layout>
           </item>
@@ -134,7 +144,7 @@
           <item>
            <widget class="QComboBox" name="langSelectBox">
             <property name="sizeAdjustPolicy">
-             <enum>QComboBox::AdjustToContents</enum>
+             <enum>QComboBox::SizeAdjustPolicy::AdjustToContents</enum>
             </property>
            </widget>
           </item>
@@ -180,7 +190,7 @@
      <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
-        <enum>Qt::Vertical</enum>
+        <enum>Qt::Orientation::Vertical</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>

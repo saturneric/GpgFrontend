@@ -554,6 +554,11 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   auto auto_import_missing_key =
       settings.value("network/auto_import_missing_key", false).toBool();
 
+  // user can also explicitly set default engine to rpgp if they want to, even
+  // when gnupg is supported.
+  auto default_engine =
+      settings.value("basic/default_engine", "GNUPG").toString().toUpper();
+
   // unit test mode
   if (args.unit_test_mode) {
     Module::UpsertRTValue("core", "env.state.basic", 1);
@@ -576,7 +581,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   }
 
   // build default openpgp context
-  auto succ = [=]() -> auto{
+  auto succ = [=]() -> auto {
     OpenPGPContextInitArgs ctx_args;
 
     const auto& default_key_db_info = key_dbs.front();
@@ -584,7 +589,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     ctx_args.db_path = default_key_db_info.path;
 
     // default to gnupg backend if possible, or fallback to rpgp backend
-    if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+    if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG) &&
+        default_engine.toUpper().trimmed() == "GNUPG") {
       ctx_args.engine = OpenPGPEngine::kGNUPG;
       LOG_I() << "gnupg backend is supported, use gnupg backend as default";
     } else {
@@ -650,7 +656,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
             continue;
           }
 
-          auto succ = [=]() -> auto{
+          auto succ = [=]() -> auto {
             GpgFrontend::OpenPGPContextInitArgs args;
 
             args.db_name = key_db.name;

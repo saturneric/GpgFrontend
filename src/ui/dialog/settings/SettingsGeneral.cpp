@@ -52,6 +52,11 @@ GeneralTab::GeneralTab(QWidget* parent)
     ui_->clearGpgPasswordCacheCheckBox->setHidden(true);
   }
 
+  ui_->defaultEngineLabel->setText(tr("Default Engine:"));
+  for (const auto& engine : GetGSS().AllSupportedEngines()) {
+    ui_->defaultEngineComboBox->addItem(engine, engine.toUpper());
+  }
+
   ui_->modulePolicyLabel->setText(tr("Module Loading Policy:"));
   ui_->modulePolicyComboBox->addItem(tr("Only Integrated Modules"),
                                      "only_integrated");
@@ -182,6 +187,15 @@ void GeneralTab::SetSettings() {
     ui_->modulePolicyComboBox->findData("only_integrated");
   }
 
+  auto default_engine =
+      settings.value("basic/default_engine", "GNUPG").toString().toUpper();
+  int engine_index = ui_->defaultEngineComboBox->findData(default_engine);
+  if (engine_index != -1) {
+    ui_->defaultEngineComboBox->setCurrentIndex(engine_index);
+  } else {
+    ui_->defaultEngineComboBox->setCurrentIndex(0);
+  }
+
   auto non_ascii_at_file_operation =
       settings.value("gnupg/non_ascii_at_file_operation", true).toBool();
   if (non_ascii_at_file_operation) {
@@ -218,6 +232,9 @@ void GeneralTab::ApplySettings() {
                     ui_->modulePolicyComboBox->currentData().toString());
   settings.setValue("gnupg/non_ascii_at_file_operation",
                     ui_->asciiModeCheckBox->isChecked());
+  settings.setValue(
+      "basic/default_engine",
+      ui_->defaultEngineComboBox->currentData().toString().toUpper());
 }
 
 }  // namespace GpgFrontend::UI

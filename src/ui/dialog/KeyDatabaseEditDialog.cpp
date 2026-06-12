@@ -95,7 +95,16 @@ void KeyDatabaseEditDialog::init_ui() {
     ui_->keyDBBackendTypeComboBox->setCurrentIndex(
         backend_types == OpenPGPEngine::kRPGP ? 1 : 0);
   } else {
-    ui_->keyDBBackendTypeComboBox->setCurrentIndex(0);
+    auto default_engine = GetSettings()
+                              .value("basic/default_engine", "GNUPG")
+                              .toString()
+                              .toUpper();
+    int engine_index = ui_->keyDBBackendTypeComboBox->findData(default_engine);
+    if (engine_index != -1) {
+      ui_->keyDBBackendTypeComboBox->setCurrentIndex(engine_index);
+    } else {
+      ui_->keyDBBackendTypeComboBox->setCurrentIndex(0);
+    }
   }
 
   if (channel_ != -1) {
