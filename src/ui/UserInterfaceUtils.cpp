@@ -125,21 +125,16 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
         PassphraseDialog dialog(c, parent_widget);
 
         if (dialog.exec() == QDialog::Accepted) {
-          auto result_pwd = dialog.Passphrase();
-          if (!result_pwd.isEmpty()) {
-            c->SetPassphrase(result_pwd);
-          } else {
-            c->SetPassphrase(QString());
-          }
-
-          result_pwd.fill(u'\0');
-          result_pwd.clear();
+          c->SetPassphrase(dialog.Passphrase());
         } else {
-          c->SetPassphrase(QString());
+          c->SetPassphrase(
+              GFBuffer());  // Set empty passphrase to indicate cancellation
         }
 
-        emit CoreSignalStation::GetInstance()->SignalUserInputPassphraseReady(
-            c);
+        dialog.Clear();  // Clear the passphrase from memory as soon as possible
+
+        emit CoreSignalStation::GetInstance()
+            -> SignalUserInputPassphraseReady(c);
       });
 }
 
@@ -343,7 +338,7 @@ void CommonUtils::slot_update_key_from_server_finished(
   }
 
   // refresh the key database
-  emit UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
+  emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
 
   auto *connection = new QMetaObject::Connection;
   *connection =

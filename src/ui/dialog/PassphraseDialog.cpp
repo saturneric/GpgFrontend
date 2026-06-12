@@ -163,8 +163,9 @@ PassphraseDialog::PassphraseDialog(
   resize(std::max(width(), 520), height());
 }
 
-[[nodiscard]] auto PassphraseDialog::Passphrase() const -> QString {
-  return password_edit_->text();
+[[nodiscard]] auto PassphraseDialog::Passphrase() const -> GFBuffer {
+  return password_edit_ != nullptr ? GFBuffer(password_edit_->text())
+                                   : GFBuffer();
 }
 
 [[nodiscard]] auto PassphraseDialog::validate_passphrase_input() -> bool {
@@ -205,6 +206,16 @@ PassphraseDialog::PassphraseDialog(
   }
 
   return true;
+}
+
+void PassphraseDialog::Clear() {
+  if (password_edit_ != nullptr) {
+    password_edit_->clear();
+  }
+
+  if (confirm_password_edit_ != nullptr) {
+    confirm_password_edit_->clear();
+  }
 }
 
 }  // namespace GpgFrontend::UI

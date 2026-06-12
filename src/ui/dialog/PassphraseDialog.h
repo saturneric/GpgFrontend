@@ -48,7 +48,12 @@ class PassphraseDialog : public QDialog {
    *
    * @return QString
    */
-  [[nodiscard]] auto Passphrase() const -> QString;
+  [[nodiscard]] auto Passphrase() const -> GFBuffer;
+
+  /**
+   * @brief Clear the passphrase input fields and context.
+   */
+  void Clear();
 
  private:
   QSharedPointer<GpgPassphraseContext> ctx_;
