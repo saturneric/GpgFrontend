@@ -49,7 +49,11 @@ KeyImportDetailDialog::KeyImportDetailDialog(
   }
 
   auto* mv_box = new QVBoxLayout();
+  mv_box->setContentsMargins(16, 16, 16, 12);
+  mv_box->setSpacing(12);
 
+  this->create_header_box();
+  mv_box->addWidget(header_box_);
   this->create_general_info_box();
   mv_box->addWidget(general_info_box_);
   this->create_keys_table();
@@ -60,7 +64,7 @@ KeyImportDetailDialog::KeyImportDetailDialog(
   this->setLayout(mv_box);
   this->setWindowTitle(tr("Key Import Details"));
 
-  this->setMinimumSize(QSize(600, 300));
+  this->setMinimumSize(QSize(680, 420));
   this->adjustSize();
 
   this->setModal(true);
@@ -75,62 +79,126 @@ void KeyImportDetailDialog::showEvent(QShowEvent* event) {
   this->movePosition2CenterOfParent();
 }
 
-void KeyImportDetailDialog::create_general_info_box() {
-  // GridBox for general import information
-  general_info_box_ = new QGroupBox(tr("General key info"));
-  auto* general_info_box_layout = new QGridLayout(general_info_box_);
+void KeyImportDetailDialog::create_header_box() {
+  header_box_ = new QFrame(this);
+  header_box_->setObjectName("importSummaryFrame");
+  header_box_->setFrameShape(QFrame::StyledPanel);
+  header_box_->setFrameShadow(QFrame::Plain);
 
-  general_info_box_layout->addWidget(new QLabel(tr("Considered") + ": "), 1, 0);
-  general_info_box_layout->addWidget(
-      new QLabel(QString::number(m_result_->considered)), 1, 1);
-  int row = 2;
-  if (m_result_->unchanged != 0) {
-    general_info_box_layout->addWidget(
-        new QLabel(tr("Public unchanged") + ": "), row, 0);
-    general_info_box_layout->addWidget(
-        new QLabel(QString::number(m_result_->unchanged)), row, 1);
-    row++;
-  }
-  if (m_result_->imported != 0) {
-    general_info_box_layout->addWidget(new QLabel(tr("Imported") + ": "), row,
-                                       0);
-    general_info_box_layout->addWidget(
-        new QLabel(QString::number(m_result_->imported)), row, 1);
-    row++;
-  }
+  auto* header_layout = new QHBoxLayout(header_box_);
+  header_layout->setContentsMargins(14, 12, 14, 12);
+  header_layout->setSpacing(14);
+
+  const auto imported_total =
+      m_result_->imported + m_result_->secret_imported;
+  const auto updated_total = m_result_->new_user_ids +
+                             m_result_->new_sub_keys +
+                             m_result_->new_signatures;
+
+  QString icon_path = ":/icons/info.png";
+  QString title;
+  QString summary;
+
   if (m_result_->not_imported != 0) {
-    general_info_box_layout->addWidget(new QLabel(tr("Not Imported") + ": "),
-                                       row, 0);
-    general_info_box_layout->addWidget(
-        new QLabel(QString::number(m_result_->not_imported)), row, 1);
-    row++;
-  }
-  if (m_result_->secret_read != 0) {
-    general_info_box_layout->addWidget(new QLabel(tr("Private Read") + ": "),
-                                       row, 0);
-    general_info_box_layout->addWidget(
-        new QLabel(QString::number(m_result_->secret_read)), row, 1);
-    row++;
-  }
-  if (m_result_->secret_imported != 0) {
-    general_info_box_layout->addWidget(
-        new QLabel(tr("Private Imported") + ": "), row, 0);
-    general_info_box_layout->addWidget(
-        new QLabel(QString::number(m_result_->secret_imported)), row, 1);
-    row++;
-  }
-  if (m_result_->secret_unchanged != 0) {
-    general_info_box_layout->addWidget(
-        new QLabel(tr("Private Unchanged") + ": "), row, 0);
-    general_info_box_layout->addWidget(
-        new QLabel(QString::number(m_result_->secret_unchanged)), row, 1);
+    icon_path = ":/icons/warning.png";
+    title = tr("Import Completed with Issues");
+    summary = tr("%1 of %2 key(s) could not be imported.")
+                  .arg(m_result_->not_imported)
+                  .arg(m_result_->considered);
+  } else if (imported_total != 0 || updated_total != 0) {
+    icon_path = ":/icons/check.png";
+    title = tr("Import Successful");
+    summary =
+        tr("Successfully processed %1 key(s).").arg(m_result_->considered);
+  } else {
+    title = tr("Nothing to Import");
+    summary = tr("All %1 key(s) are already up to date.")
+                  .arg(m_result_->considered);
   }
 
-  if (m_result_->new_revocations != 0) {
-    general_info_box_layout->addWidget(new QLabel(tr("New Revocations") + ": "),
-                                       row, 0);
-    general_info_box_layout->addWidget(
-        new QLabel(QString::number(m_result_->new_revocations)), row, 1);
+  auto* icon_label = new QLabel(header_box_);
+  icon_label->setPixmap(QPixmap(icon_path).scaled(
+      40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  icon_label->setFixedSize(40, 40);
+
+  auto* text_layout = new QVBoxLayout();
+  text_layout->setSpacing(4);
+
+  auto* title_label = new QLabel(title, header_box_);
+  auto title_font = title_label->font();
+  title_font.setPointSize(title_font.pointSize() + 2);
+  title_font.setBold(true);
+  title_label->setFont(title_font);
+
+  auto* summary_label = new QLabel(summary, header_box_);
+  summary_label->setWordWrap(true);
+
+  text_layout->addWidget(title_label);
+  text_layout->addWidget(summary_label);
+
+  header_layout->addWidget(icon_label, 0, Qt::AlignTop);
+  header_layout->addLayout(text_layout, 1);
+}
+
+void KeyImportDetailDialog::create_general_info_box() {
+  general_info_box_ = new QGroupBox(tr("Summary"), this);
+
+  auto* layout = new QGridLayout(general_info_box_);
+  layout->setHorizontalSpacing(28);
+  layout->setVerticalSpacing(10);
+
+  struct StatEntry {
+    QString label;
+    int value;
+    QString color;
+  };
+
+  static const auto kGreen = QStringLiteral("#43a047");
+  static const auto kBlue = QStringLiteral("#1e88e5");
+  static const auto kGray = QStringLiteral("#757575");
+  static const auto kRed = QStringLiteral("#e53935");
+
+  const QList<StatEntry> entries = {
+      {tr("Considered"), m_result_->considered, kGray},
+      {tr("Imported"), m_result_->imported, kGreen},
+      {tr("Unchanged"), m_result_->unchanged, kGray},
+      {tr("Not Imported"), m_result_->not_imported, kRed},
+      {tr("Private Keys Read"), m_result_->secret_read, kBlue},
+      {tr("Private Keys Imported"), m_result_->secret_imported, kGreen},
+      {tr("Private Keys Unchanged"), m_result_->secret_unchanged, kGray},
+      {tr("New Revocations"), m_result_->new_revocations, kRed},
+  };
+
+  static const int kColumns = 4;
+  int col = 0;
+  int row = 0;
+  for (const auto& entry : entries) {
+    if (entry.value == 0 && entry.label != tr("Considered")) continue;
+
+    auto* cell = new QWidget(general_info_box_);
+    auto* cell_layout = new QVBoxLayout(cell);
+    cell_layout->setContentsMargins(0, 0, 0, 0);
+    cell_layout->setSpacing(2);
+
+    auto* value_label = new QLabel(QString::number(entry.value), cell);
+    auto value_font = value_label->font();
+    value_font.setPointSize(value_font.pointSize() + 4);
+    value_font.setBold(true);
+    value_label->setFont(value_font);
+    value_label->setStyleSheet(QStringLiteral("color: %1;").arg(entry.color));
+
+    auto* caption_label = new QLabel(entry.label, cell);
+    caption_label->setStyleSheet(QStringLiteral("color: #888888;"));
+
+    cell_layout->addWidget(value_label);
+    cell_layout->addWidget(caption_label);
+
+    layout->addWidget(cell, row, col);
+    col++;
+    if (col >= kColumns) {
+      col = 0;
+      row++;
+    }
   }
 }
 
@@ -139,8 +207,9 @@ void KeyImportDetailDialog::create_keys_table() {
   keys_table_->setRowCount(0);
   keys_table_->setColumnCount(4);
   keys_table_->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  // Nothing is selectable
-  keys_table_->setSelectionMode(QAbstractItemView::NoSelection);
+  keys_table_->setSelectionMode(QAbstractItemView::SingleSelection);
+  keys_table_->setSelectionBehavior(QAbstractItemView::SelectRows);
+  keys_table_->setAlternatingRowColors(true);
 
   QStringList header_labels;
   header_labels << tr("Name") << tr("Email") << tr("Status")
@@ -148,25 +217,40 @@ void KeyImportDetailDialog::create_keys_table() {
   keys_table_->verticalHeader()->hide();
 
   keys_table_->setHorizontalHeaderLabels(header_labels);
+
+  QFont monospace_font(QStringLiteral("monospace"));
+
   int row = 0;
   for (const auto& imp_key : m_result_->imported_keys) {
-    keys_table_->setRowCount(row + 1);
-
     auto key = AbstractKeyRepository::GetInstance(current_gpg_context_channel_)
                    .GetKey(imp_key.fpr);
     if (key == nullptr) continue;
 
+    keys_table_->setRowCount(row + 1);
+
     keys_table_->setItem(row, 0, new QTableWidgetItem(key->Name()));
     keys_table_->setItem(row, 1, new QTableWidgetItem(key->Email()));
-    keys_table_->setItem(
-        row, 2, new QTableWidgetItem(get_status_string(imp_key.import_status)));
-    keys_table_->setItem(row, 3, new QTableWidgetItem(imp_key.fpr));
+
+    auto* status_item =
+        new QTableWidgetItem(get_status_string(imp_key.import_status));
+    status_item->setForeground(get_status_color(imp_key.import_status));
+    keys_table_->setItem(row, 2, status_item);
+
+    auto* fpr_item = new QTableWidgetItem(imp_key.fpr);
+    fpr_item->setFont(monospace_font);
+    keys_table_->setItem(row, 3, fpr_item);
+
     row++;
   }
+
   keys_table_->horizontalHeader()->setSectionResizeMode(
       0, QHeaderView::ResizeToContents);
-  keys_table_->horizontalHeader()->setStretchLastSection(true);
-  keys_table_->resizeColumnsToContents();
+  keys_table_->horizontalHeader()->setSectionResizeMode(1,
+                                                        QHeaderView::Stretch);
+  keys_table_->horizontalHeader()->setSectionResizeMode(
+      2, QHeaderView::ResizeToContents);
+  keys_table_->horizontalHeader()->setSectionResizeMode(
+      3, QHeaderView::ResizeToContents);
 }
 
 auto KeyImportDetailDialog::get_status_string(int key_status) -> QString {
@@ -199,6 +283,20 @@ auto KeyImportDetailDialog::get_status_string(int key_status) -> QString {
     }
   }
   return status_string;
+}
+
+auto KeyImportDetailDialog::get_status_color(int key_status) -> QColor {
+  // keystatus is greater than 15, if key is private
+  if (key_status > 15) {
+    key_status = key_status - 16;
+  }
+  if (key_status == 0) {
+    return {0x9e, 0x9e, 0x9e};  // unchanged -> gray
+  }
+  if (key_status == 1) {
+    return {0x43, 0xa0, 0x47};  // new key -> green
+  }
+  return {0x1e, 0x88, 0xe5};  // new uid/signature/subkey -> blue
 }
 
 void KeyImportDetailDialog::create_button_box() {

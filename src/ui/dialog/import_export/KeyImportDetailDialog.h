@@ -66,6 +66,12 @@ class KeyImportDetailDialog : public GeneralDialog {
 
  private:
   /**
+   * @brief Create the header box object showing an overall summary
+   *
+   */
+  void create_header_box();
+
+  /**
    * @brief Create a general info box object
    *
    */
@@ -91,10 +97,18 @@ class KeyImportDetailDialog : public GeneralDialog {
    */
   static auto get_status_string(int) -> QString;
 
-  QTableWidget* keys_table_{};      ///<
-  QGroupBox* general_info_box_{};   ///<
-  QGroupBox* key_info_box_{};       ///<
-  QDialogButtonBox* button_box_{};  ///<
+  /**
+   * @brief Get the color associated with a key status
+   *
+   * @param keyStatus
+   * @return QColor
+   */
+  static auto get_status_color(int) -> QColor;
+
+  QFrame* header_box_{};             ///<
+  QTableWidget* keys_table_{};       ///<
+  QGroupBox* general_info_box_{};    ///<
+  QDialogButtonBox* button_box_{};   ///<
 
   int current_gpg_context_channel_;
   QSharedPointer<GpgImportInformation> m_result_;  ///<
