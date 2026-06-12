@@ -103,6 +103,7 @@
         <file alias="minus.png">resource/lfs/icons/minus.png</file>
         <file alias="database.png">resource/lfs/icons/database.png</file>
         <file alias="publish.png">resource/lfs/icons/publish.png</file>
+        <file alias="check.png">resource/lfs/icons/check.png</file>
         <file alias="email-check.png">resource/lfs/icons/email-check.png</file>
         <file alias="email-open.png">resource/lfs/icons/email-open.png</file>
         <file alias="export-email.png">resource/lfs/icons/export-email.png</file>
