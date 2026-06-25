@@ -66,10 +66,13 @@ class LogViewDialog : public GeneralDialog {
   void init_ui();
 
   static auto format_entry(const GFLogEntry& entry) -> QString;
+  void update_status_label(qsizetype total);
 
  private:
   GFLogManager& lm_ = GFLogManager::Instance();
   QPlainTextEdit* log_text_edit_ = nullptr;
+  QLineEdit* filter_edit_ = nullptr;
+  QLabel* status_label_ = nullptr;
   qsizetype last_log_count_ = 0;
 
   QPushButton* refresh_button_ = nullptr;

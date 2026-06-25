@@ -46,6 +46,36 @@ auto LogTypeToString(QtMsgType type) -> QString {
   return "?";
 }
 
+class LogHighlighter : public QSyntaxHighlighter {
+ public:
+  explicit LogHighlighter(QTextDocument* parent) : QSyntaxHighlighter(parent) {}
+
+ protected:
+  void highlightBlock(const QString& text) override {
+    static const QRegularExpression kLevelRe(R"(\[([DIWCF])\])");
+    const auto match = kLevelRe.match(text);
+    if (!match.hasMatch()) return;
+
+    QTextCharFormat fmt;
+    const auto level = match.captured(1);
+
+    if (level == "D") {
+      fmt.setForeground(QColor(130, 130, 130));
+    } else if (level == "W") {
+      fmt.setForeground(QColor(200, 130, 0));
+    } else if (level == "C") {
+      fmt.setForeground(QColor(220, 60, 60));
+    } else if (level == "F") {
+      fmt.setForeground(QColor(200, 0, 0));
+      fmt.setFontWeight(QFont::Bold);
+    } else {
+      return;
+    }
+
+    setFormat(0, static_cast<int>(text.length()), fmt);
+  }
+};
+
 }  // namespace
 
 namespace GpgFrontend::UI {
@@ -58,37 +88,75 @@ LogViewDialog::LogViewDialog(QWidget* parent)
 
 void LogViewDialog::init_ui() {
   setWindowTitle(tr("Application Logs"));
-  resize(900, 600);
+  resize(960, 640);
 
+  // Header row: bold title + live entry count
+  auto* title_label = new QLabel(tr("Application Logs"), this);
+  QFont title_font = title_label->font();
+  title_font.setPointSize(title_font.pointSize() + 2);
+  title_font.setBold(true);
+  title_label->setFont(title_font);
+
+  status_label_ = new QLabel(tr("No entries"), this);
+  status_label_->setStyleSheet(QStringLiteral("color: gray;"));
+
+  auto* header_layout = new QHBoxLayout();
+  header_layout->addWidget(title_label);
+  header_layout->addStretch();
+  header_layout->addWidget(status_label_);
+
+  // Filter bar
+  filter_edit_ = new QLineEdit(this);
+  filter_edit_->setPlaceholderText(tr("Filter logs…"));
+  filter_edit_->setClearButtonEnabled(true);
+
+  // Log text area with monospace font and syntax highlighting
   log_text_edit_ = new QPlainTextEdit(this);
   log_text_edit_->setReadOnly(true);
   log_text_edit_->setLineWrapMode(QPlainTextEdit::NoWrap);
 
+  QFont mono_font(QStringLiteral("Monospace"));
+  mono_font.setStyleHint(QFont::TypeWriter);
+  log_text_edit_->setFont(mono_font);
+
+  new LogHighlighter(log_text_edit_->document());
+
+  // Visual separator above button bar
+  auto* separator = new QFrame(this);
+  separator->setFrameShape(QFrame::HLine);
+  separator->setFrameShadow(QFrame::Sunken);
+
+  // Buttons
   refresh_button_ = new QPushButton(tr("Refresh"), this);
   copy_button_ = new QPushButton(tr("Copy"), this);
   save_button_ = new QPushButton(tr("Save"), this);
   clear_button_ = new QPushButton(tr("Clear View"), this);
   close_button_ = new QPushButton(tr("Close"), this);
+  close_button_->setDefault(true);
 
   auto_refresh_checkbox_ = new QCheckBox(tr("Auto Refresh"), this);
-
   auto_refresh_timer_ = new QTimer(this);
   auto_refresh_timer_->setInterval(1000);
 
   auto* button_layout = new QHBoxLayout();
+  button_layout->setSpacing(6);
   button_layout->addWidget(refresh_button_);
   button_layout->addWidget(copy_button_);
   button_layout->addWidget(save_button_);
   button_layout->addWidget(clear_button_);
+  button_layout->addSpacing(8);
   button_layout->addWidget(auto_refresh_checkbox_);
   button_layout->addStretch();
   button_layout->addWidget(close_button_);
 
-  auto* main_layout = new QVBoxLayout();
+  auto* main_layout = new QVBoxLayout(this);
+  main_layout->setContentsMargins(16, 16, 16, 12);
+  main_layout->setSpacing(10);
+  main_layout->addLayout(header_layout);
+  main_layout->addWidget(filter_edit_);
   main_layout->addWidget(log_text_edit_);
+  main_layout->addWidget(separator);
   main_layout->addLayout(button_layout);
-
-  setLayout(main_layout);
 
   connect(refresh_button_, &QPushButton::clicked, this,
           &LogViewDialog::ReloadLogs);
@@ -99,11 +167,15 @@ void LogViewDialog::init_ui() {
   connect(clear_button_, &QPushButton::clicked, this,
           &LogViewDialog::slot_clear_view);
   connect(close_button_, &QPushButton::clicked, this, &QDialog::accept);
-
   connect(auto_refresh_checkbox_, &QCheckBox::toggled, this,
           &LogViewDialog::slot_auto_refresh_toggled);
   connect(auto_refresh_timer_, &QTimer::timeout, this,
           &LogViewDialog::ReloadLogs);
+  connect(filter_edit_, &QLineEdit::textChanged, this, [this]() -> void {
+    log_text_edit_->clear();
+    last_log_count_ = 0;
+    ReloadLogs();
+  });
 
   setAttribute(Qt::WA_DeleteOnClose);
 }
@@ -121,27 +193,46 @@ auto LogViewDialog::format_entry(const GFLogEntry& entry) -> QString {
 
 void LogViewDialog::ReloadLogs() {
   const auto logs = lm_.Snapshot();
-
-  if (logs.size() == last_log_count_) return;
-
-  if (logs.size() < last_log_count_) {
-    // Ring buffer wrapped — rebuild from scratch
-    log_text_edit_->clear();
-    last_log_count_ = 0;
-  }
+  const QString filter = filter_edit_->text().trimmed();
 
   const bool at_bottom = log_text_edit_->verticalScrollBar()->value() ==
                          log_text_edit_->verticalScrollBar()->maximum();
 
-  for (qsizetype i = last_log_count_; i < logs.size(); ++i) {
-    log_text_edit_->appendPlainText(format_entry(logs[i]));
+  if (filter.isEmpty()) {
+    if (logs.size() == last_log_count_) {
+      update_status_label(logs.size());
+      return;
+    }
+
+    if (logs.size() < last_log_count_) {
+      log_text_edit_->clear();
+      last_log_count_ = 0;
+    }
+
+    for (qsizetype i = last_log_count_; i < logs.size(); ++i) {
+      log_text_edit_->appendPlainText(format_entry(logs[i]));
+    }
+    last_log_count_ = logs.size();
+  } else {
+    log_text_edit_->clear();
+    for (const auto& entry : logs) {
+      const auto line = format_entry(entry);
+      if (line.contains(filter, Qt::CaseInsensitive)) {
+        log_text_edit_->appendPlainText(line);
+      }
+    }
   }
-  last_log_count_ = logs.size();
 
   if (at_bottom) {
     log_text_edit_->verticalScrollBar()->setValue(
         log_text_edit_->verticalScrollBar()->maximum());
   }
+
+  update_status_label(logs.size());
+}
+
+void LogViewDialog::update_status_label(qsizetype total) {
+  status_label_->setText(tr("%1 entries").arg(total));
 }
 
 void LogViewDialog::slot_copy_to_clipboard() {
