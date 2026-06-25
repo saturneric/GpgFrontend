@@ -65,17 +65,12 @@ class LogViewDialog : public GeneralDialog {
    */
   void init_ui();
 
-  /**
-   * @brief
-   *
-   * @param logs
-   * @return QString
-   */
-  static auto build_log_text(const QVector<GFLogEntry>& logs) -> QString;
+  static auto format_entry(const GFLogEntry& entry) -> QString;
 
  private:
   GFLogManager& lm_ = GFLogManager::Instance();
   QPlainTextEdit* log_text_edit_ = nullptr;
+  qsizetype last_log_count_ = 0;
 
   QPushButton* refresh_button_ = nullptr;
   QPushButton* copy_button_ = nullptr;

@@ -108,55 +108,46 @@ void LogViewDialog::init_ui() {
   setAttribute(Qt::WA_DeleteOnClose);
 }
 
-auto LogViewDialog::build_log_text(const QVector<GFLogEntry>& logs) -> QString {
-  QString text;
-  text.reserve(logs.size() * 128);
+auto LogViewDialog::format_entry(const GFLogEntry& entry) -> QString {
+  if (!entry.formatted_message.isEmpty()) return entry.formatted_message;
 
-  for (const auto& entry : logs) {
-    if (!entry.formatted_message.isEmpty()) {
-      text += entry.formatted_message;
-      text += '\n';
-      continue;
-    }
+  const QString ts = entry.timestamp.isValid()
+                         ? entry.timestamp.toString("yyyyMMdd hh:mm:ss.zzz")
+                         : "00000000 00:00:00.000";
 
-    const QString ts = entry.timestamp.isValid()
-                           ? entry.timestamp.toString("yyyyMMdd hh:mm:ss.zzz")
-                           : "00000000 00:00:00.000";
-
-    text +=
-        QString("[%1] [%2] [%3] %4\n")
-            .arg(ts, LogTypeToString(entry.type), entry.category, QString());
-  }
-
-  return text;
+  return QString("[%1] [%2] [%3] %4")
+      .arg(ts, LogTypeToString(entry.type), entry.category, entry.raw_message);
 }
 
 void LogViewDialog::ReloadLogs() {
   const auto logs = lm_.Snapshot();
-  const QString text = build_log_text(logs);
 
-  const auto old_scroll = log_text_edit_->verticalScrollBar()->value();
-  const bool at_bottom =
-      old_scroll == log_text_edit_->verticalScrollBar()->maximum();
+  if (logs.size() == last_log_count_) return;
 
-  log_text_edit_->setPlainText(text);
+  if (logs.size() < last_log_count_) {
+    // Ring buffer wrapped — rebuild from scratch
+    log_text_edit_->clear();
+    last_log_count_ = 0;
+  }
+
+  const bool at_bottom = log_text_edit_->verticalScrollBar()->value() ==
+                         log_text_edit_->verticalScrollBar()->maximum();
+
+  for (qsizetype i = last_log_count_; i < logs.size(); ++i) {
+    log_text_edit_->appendPlainText(format_entry(logs[i]));
+  }
+  last_log_count_ = logs.size();
 
   if (at_bottom) {
     log_text_edit_->verticalScrollBar()->setValue(
         log_text_edit_->verticalScrollBar()->maximum());
-  } else {
-    log_text_edit_->verticalScrollBar()->setValue(old_scroll);
   }
 }
 
 void LogViewDialog::slot_copy_to_clipboard() {
   auto* clipboard = QGuiApplication::clipboard();
   if (clipboard == nullptr) return;
-
   clipboard->setText(log_text_edit_->toPlainText());
-
-  QMessageBox::information(this, tr("Copied"),
-                           tr("Logs have been copied to the clipboard."));
 }
 
 void LogViewDialog::slot_save_to_file() {
@@ -194,9 +185,13 @@ void LogViewDialog::slot_save_to_file() {
                            tr("Logs have been saved successfully."));
 }
 
-void LogViewDialog::slot_clear_view() { log_text_edit_->clear(); }
+void LogViewDialog::slot_clear_view() {
+  log_text_edit_->clear();
+  last_log_count_ = 0;
+}
 
 void LogViewDialog::slot_auto_refresh_toggled(bool checked) {
+  clear_button_->setEnabled(!checked);
   if (checked) {
     auto_refresh_timer_->start();
   } else {
