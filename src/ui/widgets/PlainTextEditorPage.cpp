@@ -56,33 +56,8 @@ auto ContainsFontFamily(const QString &family) -> bool {
                      });
 }
 
-auto PreferredMonospaceFont() -> QFont {
+auto DefaultMonospaceFont() -> QFont {
   QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-
-#if defined(Q_OS_MACOS)
-  if (ContainsFontFamily(QStringLiteral("Menlo"))) {
-    font.setFamily(QStringLiteral("Menlo"));
-  } else if (ContainsFontFamily(QStringLiteral("Monaco"))) {
-    font.setFamily(QStringLiteral("Monaco"));
-  }
-#elif defined(Q_OS_WIN)
-  if (ContainsFontFamily(QStringLiteral("Cascadia Mono"))) {
-    font.setFamily(QStringLiteral("Cascadia Mono"));
-  } else if (ContainsFontFamily(QStringLiteral("Consolas"))) {
-    font.setFamily(QStringLiteral("Consolas"));
-  } else if (ContainsFontFamily(QStringLiteral("Courier New"))) {
-    font.setFamily(QStringLiteral("Courier New"));
-  }
-#else
-  if (ContainsFontFamily(QStringLiteral("DejaVu Sans Mono"))) {
-    font.setFamily(QStringLiteral("DejaVu Sans Mono"));
-  } else if (ContainsFontFamily(QStringLiteral("Liberation Mono"))) {
-    font.setFamily(QStringLiteral("Liberation Mono"));
-  } else if (ContainsFontFamily(QStringLiteral("Noto Sans Mono"))) {
-    font.setFamily(QStringLiteral("Noto Sans Mono"));
-  }
-#endif
-
   font.setStyleHint(QFont::Monospace);
   font.setFixedPitch(true);
   return font;
@@ -128,18 +103,23 @@ void PlainTextEditorPage::init_editor_style() {
   ui_->textPage->setObjectName(QStringLiteral("PlainTextEditor"));
   ui_->textPage->setAcceptDrops(false);
   ui_->textPage->setLineWrapMode(QPlainTextEdit::WidgetWidth);
-  ui_->textPage->setTabStopDistance(
-      QFontMetricsF(ui_->textPage->font()).horizontalAdvance(' ') * 4);
   ui_->textPage->setUndoRedoEnabled(true);
   ui_->textPage->setCursorWidth(2);
 
-  QFont editor_font = PreferredMonospaceFont();
-
   AppearanceSO appearance(SettingsObject("general_settings_state"));
+
+  QFont editor_font = DefaultMonospaceFont();
+  if (!appearance.text_editor_font_family.isEmpty() &&
+      ContainsFontFamily(appearance.text_editor_font_family)) {
+    editor_font.setFamily(appearance.text_editor_font_family);
+  }
   editor_font.setPointSize(appearance.text_editor_font_size);
   editor_font.setFixedPitch(true);
 
   ui_->textPage->setFont(editor_font);
+  ui_->textPage->setTabStopDistance(
+      QFontMetricsF(editor_font).horizontalAdvance(' ') *
+      appearance.text_editor_tab_size);
 
   auto setup_status_label = [](QLabel *label, const QString &width_sample) {
     QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
@@ -437,13 +417,18 @@ void PlainTextEditorPage::Clear() {
 void PlainTextEditorPage::ApplyAppearanceSettings() {
   AppearanceSO appearance(SettingsObject("general_settings_state"));
 
-  QFont editor_font = PreferredMonospaceFont();
+  QFont editor_font = DefaultMonospaceFont();
+  if (!appearance.text_editor_font_family.isEmpty() &&
+      ContainsFontFamily(appearance.text_editor_font_family)) {
+    editor_font.setFamily(appearance.text_editor_font_family);
+  }
   editor_font.setPointSize(appearance.text_editor_font_size);
   editor_font.setFixedPitch(true);
 
   ui_->textPage->setFont(editor_font);
   ui_->textPage->setTabStopDistance(
-      QFontMetricsF(editor_font).horizontalAdvance(QLatin1Char(' ')) * 4);
+      QFontMetricsF(editor_font).horizontalAdvance(QLatin1Char(' ')) *
+      appearance.text_editor_tab_size);
 }
 
 }  // namespace GpgFrontend::UI

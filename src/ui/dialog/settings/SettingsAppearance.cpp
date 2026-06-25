@@ -118,11 +118,45 @@ void AppearanceTab::SetSettings() {
   }
   ui_->fontSizeInformationBoardSpinBox->setValue(info_board_info_font_size);
 
+  ui_->textEditorFontComboBox->clear();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+  for (const auto& family : QFontDatabase::families()) {
+    if (QFontDatabase::isFixedPitch(family)) {
+      ui_->textEditorFontComboBox->addItem(family);
+    }
+  }
+#else
+  {
+    QFontDatabase db;
+    for (const auto& family : db.families()) {
+      if (db.isFixedPitch(family)) {
+        ui_->textEditorFontComboBox->addItem(family);
+      }
+    }
+  }
+#endif
+
+  auto text_editor_font_family = appearance.text_editor_font_family;
+  if (text_editor_font_family.isEmpty()) {
+    text_editor_font_family =
+        QFontDatabase::systemFont(QFontDatabase::FixedFont).family();
+  }
+  auto font_index =
+      ui_->textEditorFontComboBox->findText(text_editor_font_family);
+  ui_->textEditorFontComboBox->setCurrentIndex(font_index != -1 ? font_index
+                                                                : 0);
+
   auto text_editor_info_font_size = appearance.text_editor_font_size;
   if (text_editor_info_font_size < 9 || text_editor_info_font_size > 18) {
     text_editor_info_font_size = 10;
   }
-  ui_->fontSizeTextEditorLabelSpinBox->setValue(text_editor_info_font_size);
+  ui_->textEditorFontSizeSpinBox->setValue(text_editor_info_font_size);
+
+  auto text_editor_tab_size = appearance.text_editor_tab_size;
+  if (text_editor_tab_size < 1 || text_editor_tab_size > 16) {
+    text_editor_tab_size = 4;
+  }
+  ui_->textEditorTabSizeSpinBox->setValue(text_editor_tab_size);
 
   // init available styles
   for (const auto& s : QStyleFactory::keys()) {
@@ -205,8 +239,10 @@ void AppearanceTab::ApplySettings() {
   appearance.save_window_state = true;
   appearance.info_board_font_size =
       ui_->fontSizeInformationBoardSpinBox->value();
-  appearance.text_editor_font_size =
-      ui_->fontSizeTextEditorLabelSpinBox->value();
+  appearance.text_editor_font_family =
+      ui_->textEditorFontComboBox->currentText();
+  appearance.text_editor_font_size = ui_->textEditorFontSizeSpinBox->value();
+  appearance.text_editor_tab_size = ui_->textEditorTabSizeSpinBox->value();
 
   appearance.tool_bar_crypto_operas_type = 0;
   appearance.tool_bar_crypto_operas_type |=

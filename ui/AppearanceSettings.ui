@@ -23,15 +23,15 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
+         <layout class="QFormLayout" name="formLayout_2">
+          <item row="0" column="0">
            <widget class="QLabel" name="themaLabel">
             <property name="text">
              <string>Theme</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="0" column="1">
            <widget class="QComboBox" name="themeComboBox"/>
           </item>
          </layout>
@@ -40,22 +40,47 @@
       </widget>
      </item>
      <item>
-      <widget class="QGroupBox" name="fontSizeBox">
+      <widget class="QGroupBox" name="groupBox">
        <property name="title">
-        <string>Font Size</string>
+        <string>Text Editor</string>
        </property>
-       <layout class="QGridLayout" name="gridLayout_8">
-        <item row="0" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_5">
-          <item>
-           <widget class="QLabel" name="fontSizeTextEditorLabel">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <layout class="QFormLayout" name="textEditorFormLayout">
+          <property name="sizeConstraint">
+           <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+          </property>
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
+          </property>
+          <property name="rowWrapPolicy">
+           <enum>QFormLayout::RowWrapPolicy::DontWrapRows</enum>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="textEditorFontLabel">
             <property name="text">
-             <string>Text Editor</string>
+             <string>Font Family</string>
             </property>
            </widget>
           </item>
-          <item>
-           <widget class="QSpinBox" name="fontSizeTextEditorLabelSpinBox">
+          <item row="0" column="1">
+           <widget class="QComboBox" name="textEditorFontComboBox"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="fontSizeTextEditorLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Font Size</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QSpinBox" name="textEditorFontSizeSpinBox">
             <property name="minimum">
              <number>9</number>
             </property>
@@ -67,18 +92,37 @@
             </property>
            </widget>
           </item>
-         </layout>
-        </item>
-        <item row="1" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QLabel" name="fontSizeInformationBoardLabel">
+          <item row="2" column="0">
+           <widget class="QLabel" name="textEditorTabSizeLabel">
             <property name="text">
-             <string>Information Board</string>
+             <string>Tab Size</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="2" column="1">
+           <widget class="QSpinBox" name="textEditorTabSizeSpinBox"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="fontSizeBox">
+       <property name="title">
+        <string>Status Panel</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="0" column="0">
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="fontSizeInformationBoardLabel">
+            <property name="text">
+             <string>Font Size</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
            <widget class="QSpinBox" name="fontSizeInformationBoardSpinBox">
             <property name="minimum">
              <number>9</number>
@@ -184,7 +228,7 @@
           <item>
            <layout class="QGridLayout" name="gridLayout_3" rowstretch="0,0,0,0,0,0,0,0" columnstretch="0,0" rowminimumheight="0,0,0,0,0,0,0,0">
             <property name="sizeConstraint">
-             <enum>QLayout::SetDefaultConstraint</enum>
+             <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
             </property>
             <item row="0" column="1">
              <widget class="QCheckBox" name="decrCheckBox">
@@ -245,7 +289,7 @@
      <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
-        <enum>Qt::Vertical</enum>
+        <enum>Qt::Orientation::Vertical</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
