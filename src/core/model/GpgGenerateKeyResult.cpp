@@ -57,8 +57,18 @@ auto GpgGenerateKeyResult::operator=(const GpgGenerateKeyResult &)
 GpgGenerateKeyResult::~GpgGenerateKeyResult() = default;
 
 GpgGenerateKeyResult::GpgGenerateKeyResult(const QString &fingerprint) {
-  result_ref_ = QSharedPointer<struct _gpgme_op_genkey_result>::create();
-  result_ref_->fpr = fingerprint.toUtf8().data();
+  // The gpgme result struct stores the fingerprint as a raw char*. Keep the
+  // backing buffer alive for as long as the shared result by tying its lifetime
+  // to the QSharedPointer deleter; pointing fpr at a temporary QByteArray would
+  // dangle the moment this constructor returns.
+  auto *fpr_storage = new QByteArray(fingerprint.toUtf8());
+  auto *raw = new struct _gpgme_op_genkey_result();
+  raw->fpr = fpr_storage->data();
+  result_ref_ = QSharedPointer<struct _gpgme_op_genkey_result>(
+      raw, [fpr_storage](gpgme_genkey_result_t p) -> void {
+        delete fpr_storage;
+        delete p;
+      });
 }
 
 }  // namespace GpgFrontend

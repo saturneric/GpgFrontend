@@ -116,14 +116,15 @@ auto GenerateKeyWithSubkeyRpgpImpl(
 
   auto armored_s_key = QString::fromUtf8(kg_result.secret_key);
   auto armored_p_key = QString::fromUtf8(kg_result.public_key);
+  auto fingerprint = QString::fromUtf8(kg_result.fingerprint);
 
   Rust::gfr_crypto_free_key_generate_result(&kg_result);
 
   auto import_info = kie.ImportKey(GFBuffer(armored_s_key));
 
   data_object->Swap({
-      GpgGenerateKeyResult{QString::fromUtf8(kg_result.fingerprint)},
-      GpgGenerateKeyResult{QString::fromUtf8(kg_result.fingerprint)},
+      GpgGenerateKeyResult{fingerprint},
+      GpgGenerateKeyResult{fingerprint},
   });
   return GPG_ERR_NO_ERROR;
 }
