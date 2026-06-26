@@ -100,6 +100,7 @@ struct GF_CORE_EXPORT GpgNewSigInfo {
  */
 struct GF_CORE_EXPORT GpgRecipientInfo {
   QString uid;         ///< Recipient UID "Name <email>", or empty if key absent
+  QString fingerprint; ///< Full fingerprint of the recipient key or subkey
   QString keyId;       ///< Key ID reported by GPGME (may be a subkey ID)
   QString pubkeyAlgo;  ///< Public-key algorithm used to encrypt the session key
   bool keyFound;       ///< True when the key was located in the local keyring
@@ -182,6 +183,10 @@ struct GF_CORE_EXPORT GpgOpResultInfo {
   /// Symmetric cipher used for the session key, e.g. "AES256".
   /// Empty when the algorithm is not reported by the engine.
   QString symmetricAlgo;
+
+  /// SHA-256 hash of the input material (hex-encoded).
+  /// Populated for Sign/Verify operations to identify the processed data.
+  QString inputHash;
 
   /// Merge another GpgOpResultInfo into this one.
   /// Used by combined operations (Encrypt+Sign, Decrypt+Verify) to combine

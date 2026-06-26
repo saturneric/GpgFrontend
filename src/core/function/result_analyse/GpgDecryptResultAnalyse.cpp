@@ -114,17 +114,27 @@ void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
   auto key =
       AbstractKeyRepository::GetInstance(GetChannel()).GetKey(recipient.keyid);
 
+  GpgRecipientInfo ri;
+  ri.keyId = recipient.keyid;
+  ri.pubkeyAlgo = recipient.pubkey_algo;
+
   if (key != nullptr) {
+    ri.uid = key->UID();
+    ri.fingerprint = key->Fingerprint();
+    ri.keyFound = true;
     op_info_.details << key->UID();
     stream << key->Name();
     if (!key->Comment().isEmpty()) stream << "(" << key->Comment() << ")";
     if (!key->Email().isEmpty()) stream << "<" << key->Email() << ">";
   } else {
     const auto kid = QStringLiteral("0x%1").arg(recipient.keyid);
+    ri.keyFound = false;
     op_info_.details << kid;
     stream << tr("<unknown>") << " (" << kid << ")";
     setStatus(0);
   }
+
+  op_info_.recipients.append(ri);
 
   stream << Qt::endl;
 
