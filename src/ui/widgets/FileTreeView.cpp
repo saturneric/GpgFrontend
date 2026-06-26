@@ -647,8 +647,28 @@ void FileTreeView::slot_calculate_hash() {
                 return;
               }
               auto result = ExtractParams<QString>(data_object, 0);
-              emit UISignalStation::GetInstance()->SignalRefreshInfoBoard(
-                  result, InfoBoardStatus::INFO_ERROR_OK);
+
+              InfoBoardCard card;
+              card.title = tr("File Hash Information");
+              card.status = InfoBoardStatus::kINFO_ERROR_OK;
+
+              const QStringList lines = result.split(QLatin1Char('\n'));
+              for (const QString& raw_line : lines) {
+                const QString line = raw_line.trimmed();
+                if (!line.startsWith(QLatin1String("- "))) continue;
+                const QString body = line.mid(2);
+                const int colon_pos = body.indexOf(QLatin1String(": "));
+                if (colon_pos < 0) continue;
+                card.fields.append(
+                    {body.left(colon_pos), body.mid(colon_pos + 2)});
+              }
+
+              QContainer<InfoBoardCard> cards;
+              cards.append(card);
+
+              emit UISignalStation::GetInstance()->SignalRefreshInfoBoardCards(
+                  result, InfoBoardStatus::kINFO_ERROR_OK, cards, card.title,
+                  {}, {}, {});
             },
             "calculate_file_hash");
       });
