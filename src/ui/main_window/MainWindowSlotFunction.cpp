@@ -299,11 +299,11 @@ void MainWindow::slot_result_analyse_show_helper(
     const GpgResultAnalyse& result_analyse) {
   info_board_->SlotReset();
   const auto info = result_analyse.GetOpInfo();
-  InfoBoardStatus status_enum = INFO_ERROR_WARN;
+  InfoBoardStatus status_enum = kINFO_ERROR_WARN;
   if (info.status < 0) {
-    status_enum = INFO_ERROR_CRITICAL;
+    status_enum = kINFO_ERROR_CRITICAL;
   } else if (info.status > 0) {
-    status_enum = INFO_ERROR_OK;
+    status_enum = kINFO_ERROR_OK;
   }
   info_board_->SetInfoBoardWithOpInfo(info.report, status_enum, info);
 }
@@ -385,11 +385,11 @@ void MainWindow::slot_result_analyse_show_helper(
   final_report += detail_sections.join("\n\n");
 
   info_board_->SlotReset();
-  InfoBoardStatus status_enum = INFO_ERROR_WARN;
+  InfoBoardStatus status_enum = kINFO_ERROR_WARN;
   if (overall_status < 0) {
-    status_enum = INFO_ERROR_CRITICAL;
+    status_enum = kINFO_ERROR_CRITICAL;
   } else if (overall_status > 0) {
-    status_enum = INFO_ERROR_OK;
+    status_enum = kINFO_ERROR_OK;
   }
   info_board_->SetInfoBoardFromResults(final_report.trimmed(), status_enum,
                                        opera_results);
@@ -399,11 +399,11 @@ void MainWindow::slot_refresh_info_board(int status, const QString& text) {
   info_board_->SlotReset();
 
   if (status < 0) {
-    info_board_->SlotRefresh(text, INFO_ERROR_CRITICAL);
+    info_board_->SlotRefresh(text, kINFO_ERROR_CRITICAL);
   } else if (status > 0) {
-    info_board_->SlotRefresh(text, INFO_ERROR_OK);
+    info_board_->SlotRefresh(text, kINFO_ERROR_OK);
   } else {
-    info_board_->SlotRefresh(text, INFO_ERROR_WARN);
+    info_board_->SlotRefresh(text, kINFO_ERROR_WARN);
   }
 }
 
@@ -414,11 +414,11 @@ void MainWindow::slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
   auto combined = r_a.GetOpInfo();
   combined.Merge(r_b.GetOpInfo());
 
-  InfoBoardStatus status_enum = INFO_ERROR_WARN;
+  InfoBoardStatus status_enum = kINFO_ERROR_WARN;
   if (combined.status < 0) {
-    status_enum = INFO_ERROR_CRITICAL;
+    status_enum = kINFO_ERROR_CRITICAL;
   } else if (combined.status > 0) {
-    status_enum = INFO_ERROR_OK;
+    status_enum = kINFO_ERROR_OK;
   }
 
   info_board_->SetInfoBoardWithOpInfo(combined.report, status_enum, combined);
