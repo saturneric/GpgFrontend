@@ -1591,6 +1591,28 @@ auto InfoBoardWidget::populate_extra_from_op_info(QVBoxLayout* extra_layout,
     }
   }
 
+  // Decrypt: one card per recipient key
+  if (info.operation.contains(tr("Decrypt"))) {
+    for (const auto& reci : info.recipients) {
+      const InfoBoardStatus cs = reci.keyFound ? kINFO_ERROR_OK : kINFO_ERROR_WARN;
+      QFrame* card = nullptr;
+      QVBoxLayout* cl = nullptr;
+      create_card(cs, card, cl);
+      add_header(cl, card, cs, tr("Decryption Recipient"));
+
+      if (!reci.uid.isEmpty()) {
+        add_field(cl, card, tr("Recipient"), reci.uid);
+      } else if (!reci.fingerprint.isEmpty()) {
+        add_field(cl, card, tr("Fingerprint"), reci.fingerprint);
+      }
+      add_field(cl, card, tr("Key ID"), reci.keyId);
+      add_field(cl, card, tr("Algorithm"), reci.pubkeyAlgo);
+
+      extra_layout->addWidget(card);
+      has_content = true;
+    }
+  }
+
   return has_content;
 }
 
@@ -1692,7 +1714,8 @@ auto InfoBoardWidget::build_op_info_copy_lines(
   for (const auto& inv : info.invalidSigners) {
     lines << tr("  Invalid signer: %1 — %2").arg(inv.first, inv.second);
   }
-  if (info.operation.contains(tr("Encrypt"))) {
+  if (info.operation.contains(tr("Encrypt")) ||
+      info.operation.contains(tr("Decrypt"))) {
     for (const auto& reci : info.recipients) {
       const QString who =
           reci.uid.isEmpty() ? reci.fingerprint : reci.uid;

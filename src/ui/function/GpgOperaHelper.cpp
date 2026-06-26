@@ -105,23 +105,20 @@ void GpgOperaHelper::BuildOperas(QSharedPointer<GpgOperaContextBasement>& base,
 }
 
 template <typename AnalyseType>
-void HandleExtraLogicIfNeeded(const QSharedPointer<GpgOperaContext>& context,
-                              const AnalyseType& analyse) {}
+void HandleExtraLogicIfNeeded(const QSharedPointer<GpgOperaContext>&,
+                              const AnalyseType&, GpgOpResultInfo&) {}
 
 template <>
 void HandleExtraLogicIfNeeded<GpgVerifyResultAnalyse>(
     const QSharedPointer<GpgOperaContext>& context,
-    const GpgVerifyResultAnalyse& analyse) {
+    const GpgVerifyResultAnalyse& analyse, GpgOpResultInfo&) {
   context->base->unknown_fprs.append(analyse.GetUnknownSignatures());
 }
 
-template <typename AnalyseType>
-void PopulateEncryptRecipientsIfNeeded(const QSharedPointer<GpgOperaContext>&,
-                                       GpgOpResultInfo&) {}
-
 template <>
-void PopulateEncryptRecipientsIfNeeded<GpgEncryptResultAnalyse>(
-    const QSharedPointer<GpgOperaContext>& context, GpgOpResultInfo& info) {
+void HandleExtraLogicIfNeeded<GpgEncryptResultAnalyse>(
+    const QSharedPointer<GpgOperaContext>& context,
+    const GpgEncryptResultAnalyse&, GpgOpResultInfo& info) {
   if (context->base->keys.isEmpty()) return;
   for (const auto& key : context->base->keys) {
     if (key == nullptr) continue;
@@ -178,14 +175,12 @@ auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
           auto result_analyse = AnalyseType(channel, err, result);
           result_analyse.Analyse();
 
-          HandleExtraLogicIfNeeded(context, result_analyse);
-
           auto opera_result = GpgOperaResult{
               result_analyse.GetOpInfo(),
               QFileInfo(path.isEmpty() ? o_path : path).fileName()};
           opera_result.op_info.inputHash = *input_hash;
-          PopulateEncryptRecipientsIfNeeded<AnalyseType>(context,
-                                                         opera_result.op_info);
+          HandleExtraLogicIfNeeded<AnalyseType>(context, result_analyse,
+                                                opera_result.op_info);
 
           opera_results.append(opera_result);
         });
@@ -238,17 +233,16 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
           auto result_analyse_1 = AnalyseTypeA(channel, err, result_1);
           result_analyse_1.Analyse();
 
-          HandleExtraLogicIfNeeded(context, result_analyse_1);
-
           auto result_analyse_2 = AnalyseTypeB(channel, err, result_2);
           result_analyse_2.Analyse();
 
-          HandleExtraLogicIfNeeded(context, result_analyse_2);
-
           auto info = result_analyse_1.GetOpInfo();
+          HandleExtraLogicIfNeeded<AnalyseTypeA>(context, result_analyse_1,
+                                                 info);
           info.Merge(result_analyse_2.GetOpInfo());
+          HandleExtraLogicIfNeeded<AnalyseTypeB>(context, result_analyse_2,
+                                                 info);
           info.inputHash = *input_hash;
-          PopulateEncryptRecipientsIfNeeded<AnalyseTypeA>(context, info);
 
           opera_results.append(GpgOperaResult{
               std::move(info),
@@ -296,12 +290,10 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
       auto result_analyse = AnalyseType(channel, err, result);
       result_analyse.Analyse();
 
-      HandleExtraLogicIfNeeded(context, result_analyse);
-
       auto opera_result = GpgOperaResult{result_analyse.GetOpInfo()};
       opera_result.op_info.inputHash = input_hash;
-      PopulateEncryptRecipientsIfNeeded<AnalyseType>(context,
-                                                     opera_result.op_info);
+      HandleExtraLogicIfNeeded<AnalyseType>(context, result_analyse,
+                                            opera_result.op_info);
 
       auto o_buffer = ExtractParams<GFBuffer>(data_obj, 1);
       opera_result.o_buffer = o_buffer;
@@ -352,15 +344,13 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
       auto result_analyse_1 = AnalyseTypeA(channel, err, result_1);
       result_analyse_1.Analyse();
 
-      HandleExtraLogicIfNeeded(context, result_analyse_1);
-
       auto result_analyse_2 = AnalyseTypeB(channel, err, result_2);
       result_analyse_2.Analyse();
 
-      HandleExtraLogicIfNeeded(context, result_analyse_2);
-
       auto info = result_analyse_1.GetOpInfo();
+      HandleExtraLogicIfNeeded<AnalyseTypeA>(context, result_analyse_1, info);
       info.Merge(result_analyse_2.GetOpInfo());
+      HandleExtraLogicIfNeeded<AnalyseTypeB>(context, result_analyse_2, info);
       info.inputHash = input_hash;
 
       auto opera_result = GpgOperaResult{std::move(info)};
