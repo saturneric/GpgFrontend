@@ -40,6 +40,7 @@
 #include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/struct/GpgOperaResult.h"
 #include "ui/widgets/FindWidget.h"
+#include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -296,8 +297,15 @@ void MainWindow::slot_verifying_unknown_signature_helper(
 
 void MainWindow::slot_result_analyse_show_helper(
     const GpgResultAnalyse& result_analyse) {
-  slot_refresh_info_board(result_analyse.GetStatus(),
-                          result_analyse.GetResultReport());
+  info_board_->SlotReset();
+  const auto info = result_analyse.GetOpInfo();
+  InfoBoardStatus status_enum = INFO_ERROR_WARN;
+  if (info.status < 0) {
+    status_enum = INFO_ERROR_CRITICAL;
+  } else if (info.status > 0) {
+    status_enum = INFO_ERROR_OK;
+  }
+  info_board_->SetInfoBoardWithOpInfo(info.report, status_enum, info);
 }
 
 void MainWindow::slot_result_analyse_show_helper(
@@ -318,14 +326,14 @@ void MainWindow::slot_result_analyse_show_helper(
   int warn_count = 0;
 
   for (const auto& opera_result : opera_results) {
-    overall_status = std::min(overall_status, opera_result.status);
+    overall_status = std::min(overall_status, opera_result.op_info.status);
 
     QString status_text;
-    if (opera_result.status < 0) {
+    if (opera_result.op_info.status < 0) {
       status_text = tr("FAILED");
       failed_tags << opera_result.tag;
       fail_count++;
-    } else if (opera_result.status > 0) {
+    } else if (opera_result.op_info.status > 0) {
       status_text = tr("OK");
       success_count++;
     } else {
@@ -337,7 +345,7 @@ void MainWindow::slot_result_analyse_show_helper(
     QString section;
     section += tr("Object: %1").arg(opera_result.tag) + "\n";
 
-    const auto report_text = opera_result.report.trimmed();
+    const auto report_text = opera_result.op_info.report.trimmed();
     if (!report_text.isEmpty()) {
       section += "\n";
       section += report_text;
@@ -376,7 +384,15 @@ void MainWindow::slot_result_analyse_show_helper(
 
   final_report += detail_sections.join("\n\n");
 
-  slot_refresh_info_board(overall_status, final_report.trimmed());
+  info_board_->SlotReset();
+  InfoBoardStatus status_enum = INFO_ERROR_WARN;
+  if (overall_status < 0) {
+    status_enum = INFO_ERROR_CRITICAL;
+  } else if (overall_status > 0) {
+    status_enum = INFO_ERROR_OK;
+  }
+  info_board_->SetInfoBoardFromResults(final_report.trimmed(), status_enum,
+                                       opera_results);
 }
 
 void MainWindow::slot_refresh_info_board(int status, const QString& text) {
@@ -395,8 +411,17 @@ void MainWindow::slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
                                                  const GpgResultAnalyse& r_b) {
   info_board_->SlotReset();
 
-  slot_refresh_info_board(std::min(r_a.GetStatus(), r_b.GetStatus()),
-                          r_a.GetResultReport() + r_b.GetResultReport());
+  auto combined = r_a.GetOpInfo();
+  combined.Merge(r_b.GetOpInfo());
+
+  InfoBoardStatus status_enum = INFO_ERROR_WARN;
+  if (combined.status < 0) {
+    status_enum = INFO_ERROR_CRITICAL;
+  } else if (combined.status > 0) {
+    status_enum = INFO_ERROR_OK;
+  }
+
+  info_board_->SetInfoBoardWithOpInfo(combined.report, status_enum, combined);
 }
 
 void MainWindow::SlotCustomDecrypt(const QString& type) {
@@ -820,7 +845,7 @@ auto MainWindow::handle_module_error(QMap<QString, GFBuffer> p) -> bool {
 void MainWindow::slot_gpg_opera_buffer_show_helper(
     const QContainer<GpgOperaResult>& results) {
   for (const auto& result : results) {
-    if (result.status <= 0) continue;
+    if (result.op_info.status <= 0) continue;
     if (result.o_buffer.Empty()) continue;
 
     edit_->SlotFillTextEditWithText(result.o_buffer);
@@ -836,7 +861,7 @@ auto MainWindow::exec_operas_helper(
   bool all_success = !contexts->opera_results.empty();
 
   for (const auto& result : contexts->opera_results) {
-    if (result.status <= 0) {
+    if (result.op_info.status <= 0) {
       all_success = false;
       break;
     }
