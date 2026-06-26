@@ -32,7 +32,7 @@
 //! an updated armored key block to an output pointer. The caller must free the
 //! returned string with `gfr_crypto_free_string`.
 
-use crate::types::{GfrRevocationCode, GfrStatus};
+use crate::types::{GfrBuffer, GfrRevocationCode, GfrStatus};
 use crate::user_id::{
     add_user_id_internal, delete_user_id_internal, revoke_user_id_internal,
     set_primary_user_id_internal, update_user_id_internal,
@@ -52,18 +52,18 @@ use std::{
 /// `key_block`, `target_uid`, and `out_block` must all be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_delete_user_id(
-    key_block: *const c_char,
+    key_block: GfrBuffer,
     target_uid: *const c_char,
     out_block: *mut *mut c_char,
 ) -> GfrStatus {
     clear_last_error();
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if key_block.is_null() || target_uid.is_null() || out_block.is_null() {
+        if target_uid.is_null() || out_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let block_str = unsafe { CStr::from_ptr(key_block) }.to_str().unwrap_or("");
+        let block_str = unsafe { key_block.as_str() }?;
         let uid_str = unsafe { CStr::from_ptr(target_uid) }.to_str().unwrap_or("");
 
         let new_block = delete_user_id_internal(block_str, uid_str)?;
@@ -92,7 +92,7 @@ pub extern "C" fn gfr_crypto_delete_user_id(
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_add_user_id(
     channel: i32,
-    secret_key_block: *const c_char,
+    secret_key_block: GfrBuffer,
     new_uid: *const c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
     out_block: *mut *mut c_char,
@@ -100,13 +100,11 @@ pub extern "C" fn gfr_crypto_add_user_id(
     clear_last_error();
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if secret_key_block.is_null() || new_uid.is_null() || out_block.is_null() {
+        if new_uid.is_null() || out_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let block_str = unsafe { CStr::from_ptr(secret_key_block) }
-            .to_str()
-            .unwrap_or("");
+        let block_str = unsafe { secret_key_block.as_str() }?;
         let uid_str = unsafe { CStr::from_ptr(new_uid) }.to_str().unwrap_or("");
 
         let new_block = add_user_id_internal(channel, block_str, uid_str, Some(fetch_pwd_cb))?;
@@ -135,7 +133,7 @@ pub extern "C" fn gfr_crypto_add_user_id(
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_update_user_id(
     channel: i32,
-    secret_key_block: *const c_char,
+    secret_key_block: GfrBuffer,
     old_uid: *const c_char,
     new_uid: *const c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
@@ -144,17 +142,14 @@ pub extern "C" fn gfr_crypto_update_user_id(
     clear_last_error();
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if secret_key_block.is_null()
-            || old_uid.is_null()
+        if old_uid.is_null()
             || new_uid.is_null()
             || out_block.is_null()
         {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let block_str = unsafe { CStr::from_ptr(secret_key_block) }
-            .to_str()
-            .unwrap_or("");
+        let block_str = unsafe { secret_key_block.as_str() }?;
         let old_str = unsafe { CStr::from_ptr(old_uid) }.to_str().unwrap_or("");
         let new_str = unsafe { CStr::from_ptr(new_uid) }.to_str().unwrap_or("");
 
@@ -185,19 +180,17 @@ pub extern "C" fn gfr_crypto_update_user_id(
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_set_primary_user_id(
     channel: i32,
-    secret_key_block: *const std::os::raw::c_char,
+    secret_key_block: GfrBuffer,
     target_uid: *const std::os::raw::c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
     out_block: *mut *mut std::os::raw::c_char,
 ) -> GfrStatus {
     let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
-        if secret_key_block.is_null() || target_uid.is_null() || out_block.is_null() {
+        if target_uid.is_null() || out_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let block_str = unsafe { std::ffi::CStr::from_ptr(secret_key_block) }
-            .to_str()
-            .unwrap_or("");
+        let block_str = unsafe { secret_key_block.as_str() }?;
         let uid_str = unsafe { std::ffi::CStr::from_ptr(target_uid) }
             .to_str()
             .unwrap_or("");
@@ -234,7 +227,7 @@ pub extern "C" fn gfr_crypto_set_primary_user_id(
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_revoke_user_id(
     channel: i32,
-    secret_key_block: *const c_char,
+    secret_key_block: GfrBuffer,
     target_uid: *const c_char,
     reason_code: GfrRevocationCode,
     reason_text: *const c_char,
@@ -250,13 +243,11 @@ pub extern "C" fn gfr_crypto_revoke_user_id(
     }
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if secret_key_block.is_null() || target_uid.is_null() || out_block.is_null() {
+        if target_uid.is_null() || out_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let block_str = unsafe { CStr::from_ptr(secret_key_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let block_str = unsafe { secret_key_block.as_str() }?;
 
         let uid_str = unsafe { CStr::from_ptr(target_uid) }
             .to_str()

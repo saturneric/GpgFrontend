@@ -117,6 +117,58 @@ impl fmt::Display for GfrStatus {
 
 impl Error for GfrStatus {}
 
+/// Safe buffer type for passing binary data across FFI boundary.
+///
+/// Contains a pointer and explicit length, avoiding null-termination issues.
+/// Used for key blocks, signatures, and other binary data.
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct GfrBuffer {
+    /// Pointer to the data. May be null if len is 0.
+    pub data: *const u8,
+    /// Length of the data in bytes.
+    pub len: usize,
+}
+
+impl GfrBuffer {
+    /// Create an empty GfrBuffer.
+    pub const fn empty() -> Self {
+        Self {
+            data: std::ptr::null(),
+            len: 0,
+        }
+    }
+
+    /// Check if the buffer is empty (null pointer or zero length).
+    pub fn is_empty(&self) -> bool {
+        self.data.is_null() || self.len == 0
+    }
+
+    /// Convert to a byte slice. Returns None if the pointer is null.
+    ///
+    /// # Safety
+    /// The caller must ensure the pointer is valid for `len` bytes.
+    pub unsafe fn as_slice(&self) -> Option<&[u8]> {
+        if self.data.is_null() {
+            None
+        } else {
+            Some(unsafe { std::slice::from_raw_parts(self.data, self.len) })
+        }
+    }
+
+    /// Convert to a UTF-8 string slice. Returns error if the data is not valid UTF-8.
+    ///
+    /// # Safety
+    /// The caller must ensure the pointer is valid for `len` bytes.
+    pub unsafe fn as_str(&self) -> Result<&str, GfrStatus> {
+        if self.is_empty() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+        let bytes = unsafe { std::slice::from_raw_parts(self.data, self.len) };
+        std::str::from_utf8(bytes).map_err(|_| GfrStatus::ErrorInvalidInput)
+    }
+}
+
 /// OpenPGP key version identifier.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Zeroize)]

@@ -29,7 +29,9 @@
 //! FFI entry points for key and subkey generation.
 
 use crate::keygen::{GeneratedKeys, add_subkey_internal, create_key_internal};
-use crate::types::{GfrKeyConfig, GfrKeyGenerateResult, GfrPasswordFetchCb, GfrStatus};
+use crate::types::{
+    GfrBuffer, GfrKeyConfig, GfrKeyGenerateResult, GfrPasswordFetchCb, GfrStatus,
+};
 
 use std::{
     ffi::{CStr, CString, c_char},
@@ -122,23 +124,21 @@ pub extern "C" fn gfr_crypto_generate_key(
 /// with `gfr_crypto_free_key_generate_result`.
 ///
 /// # Safety
-/// `key_block` and `o_result` must be non-null.
+/// `o_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_add_subkey(
     channel: i32,
-    key_block: *const c_char,
+    key_block: GfrBuffer,
     config: GfrKeyConfig,
     fetch_pwd_cb: GfrPasswordFetchCb,
     o_result: *mut GfrKeyGenerateResult,
 ) -> GfrStatus {
     let result = catch_unwind(|| -> Result<GeneratedKeys, GfrStatus> {
-        if key_block.is_null() || o_result.is_null() {
+        if o_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let key_block_str = unsafe { CStr::from_ptr(key_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let key_block_str = unsafe { key_block.as_str() }?;
 
         let keys = add_subkey_internal(channel, key_block_str, &config, Some(fetch_pwd_cb))?;
 

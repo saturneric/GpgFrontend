@@ -43,8 +43,8 @@ use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
 };
 use crate::types::{
-    GfrKeyMetadataC, GfrPasswordFetchCb, GfrRecipientResultC, GfrRevocationCode, GfrStatus,
-    GfrSubkeyMetadataC, GfrUserIdC,
+    GfrBuffer, GfrKeyMetadataC, GfrPasswordFetchCb, GfrRecipientResultC, GfrRevocationCode,
+    GfrStatus, GfrSubkeyMetadataC, GfrUserIdC,
 };
 use std::slice;
 use std::{
@@ -62,19 +62,16 @@ use std::{
 /// All pointer arguments must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_extract_metadata(
-    key_block: *const std::os::raw::c_char,
+    key_block: GfrBuffer,
     out_metadata: *mut *mut GfrKeyMetadataC,
     out_metadata_count: *mut usize,
 ) -> GfrStatus {
-    // Check for null pointers
-    if key_block.is_null() || out_metadata.is_null() || out_metadata_count.is_null() {
+    if out_metadata.is_null() || out_metadata_count.is_null() {
         return GfrStatus::ErrorInvalidInput;
     }
 
     let result = std::panic::catch_unwind(|| -> Result<(), GfrStatus> {
-        let block_str = unsafe { CStr::from_ptr(key_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let block_str = unsafe { key_block.as_str() }?;
 
         // Get the list of metadata from the internal function
         let meta_list = crate::key::extract_metadata_many_internal(block_str)?;
@@ -194,19 +191,15 @@ pub extern "C" fn gfr_crypto_extract_metadata(
 /// `secret_block` and `out_public_block` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_extract_public_key(
-    secret_block: *const c_char,
+    secret_block: GfrBuffer,
     out_public_block: *mut *mut c_char,
 ) -> GfrStatus {
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        // Null pointer check
-        if secret_block.is_null() || out_public_block.is_null() {
+        if out_public_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        // Safely convert C string to Rust string slice
-        let block_str = unsafe { CStr::from_ptr(secret_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let block_str = unsafe { secret_block.as_str() }?;
 
         // Perform the extraction
         let pub_key_str = extract_public_key_internal(block_str)?;
@@ -357,7 +350,7 @@ pub unsafe extern "C" fn gfr_export_merged_keys(
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_modify_key_password(
     channel: i32,
-    secret_key_block: *const c_char,
+    secret_key_block: GfrBuffer,
     target_fpr: *const c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
     out_secret_block: *mut *mut c_char,
@@ -371,13 +364,11 @@ pub extern "C" fn gfr_crypto_modify_key_password(
     }
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if secret_key_block.is_null() || target_fpr.is_null() || out_secret_block.is_null() {
+        if target_fpr.is_null() || out_secret_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let block_str = unsafe { CStr::from_ptr(secret_key_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let block_str = unsafe { secret_key_block.as_str() }?;
 
         let fpr_str = unsafe { CStr::from_ptr(target_fpr) }
             .to_str()
@@ -411,7 +402,7 @@ pub extern "C" fn gfr_crypto_modify_key_password(
 /// `secret_key_block`, `target_subkey_fpr`, and `out_secret_block` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_delete_subkey(
-    secret_key_block: *const c_char,
+    secret_key_block: GfrBuffer,
     target_subkey_fpr: *const c_char,
     out_secret_block: *mut *mut c_char,
 ) -> GfrStatus {
@@ -424,13 +415,11 @@ pub extern "C" fn gfr_crypto_delete_subkey(
     }
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if secret_key_block.is_null() || target_subkey_fpr.is_null() || out_secret_block.is_null() {
+        if target_subkey_fpr.is_null() || out_secret_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let block_str = unsafe { CStr::from_ptr(secret_key_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let block_str = unsafe { secret_key_block.as_str() }?;
 
         let fpr_str = unsafe { CStr::from_ptr(target_subkey_fpr) }
             .to_str()
@@ -466,7 +455,7 @@ pub extern "C" fn gfr_crypto_delete_subkey(
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_revoke_subkey(
     channel: i32,
-    secret_key_block: *const c_char,
+    secret_key_block: GfrBuffer,
     target_subkey_fpr: *const c_char,
     reason_code: GfrRevocationCode,
     reason_text: *const c_char,
@@ -482,13 +471,11 @@ pub extern "C" fn gfr_crypto_revoke_subkey(
     }
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if secret_key_block.is_null() || target_subkey_fpr.is_null() || out_secret_block.is_null() {
+        if target_subkey_fpr.is_null() || out_secret_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let block_str = unsafe { CStr::from_ptr(secret_key_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let block_str = unsafe { secret_key_block.as_str() }?;
 
         let subkey_fpr_str = unsafe { CStr::from_ptr(target_subkey_fpr) }
             .to_str()
@@ -542,7 +529,7 @@ pub extern "C" fn gfr_crypto_revoke_subkey(
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_generate_key_rev_cert(
     channel: i32,
-    secret_key_block: *const c_char,
+    secret_key_block: GfrBuffer,
     reason_code: GfrRevocationCode,
     reason_text: *const c_char,
     fetch_pwd_cb: GfrPasswordFetchCb,
@@ -557,13 +544,11 @@ pub extern "C" fn gfr_crypto_generate_key_rev_cert(
     }
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if secret_key_block.is_null() || out_cert_block.is_null() {
+        if out_cert_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let block_str = unsafe { CStr::from_ptr(secret_key_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let block_str = unsafe { secret_key_block.as_str() }?;
 
         let reason_text = if reason_text.is_null() {
             None
@@ -609,8 +594,8 @@ pub extern "C" fn gfr_crypto_generate_key_rev_cert(
 /// All four pointer arguments must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_merge_key_blocks(
-    base_block: *const c_char,
-    incoming_block: *const c_char,
+    base_block: GfrBuffer,
+    incoming_block: GfrBuffer,
     out_secret_block: *mut *mut c_char,
     out_public_block: *mut *mut c_char,
 ) -> GfrStatus {
@@ -629,21 +614,13 @@ pub extern "C" fn gfr_crypto_merge_key_blocks(
     }
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if base_block.is_null()
-            || incoming_block.is_null()
-            || out_secret_block.is_null()
-            || out_public_block.is_null()
-        {
+        if out_secret_block.is_null() || out_public_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let base_str = unsafe { CStr::from_ptr(base_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let base_str = unsafe { base_block.as_str() }?;
 
-        let incoming_str = unsafe { CStr::from_ptr(incoming_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let incoming_str = unsafe { incoming_block.as_str() }?;
 
         let merged = merge_key_block_internal(base_str, incoming_str)?;
 
@@ -680,8 +657,8 @@ pub extern "C" fn gfr_crypto_merge_key_blocks(
 /// All four pointer arguments must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_import_rev_cert(
-    base_key_block: *const c_char,
-    rev_cert_block: *const c_char,
+    base_key_block: GfrBuffer,
+    rev_cert_block: GfrBuffer,
     out_secret_block: *mut *mut c_char,
     out_public_block: *mut *mut c_char,
 ) -> GfrStatus {
@@ -700,21 +677,13 @@ pub extern "C" fn gfr_crypto_import_rev_cert(
     }
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if base_key_block.is_null()
-            || rev_cert_block.is_null()
-            || out_secret_block.is_null()
-            || out_public_block.is_null()
-        {
+        if out_secret_block.is_null() || out_public_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let base_str = unsafe { CStr::from_ptr(base_key_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let base_str = unsafe { base_key_block.as_str() }?;
 
-        let cert_str = unsafe { CStr::from_ptr(rev_cert_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let cert_str = unsafe { rev_cert_block.as_str() }?;
 
         let merged = import_rev_cert_internal(base_str, cert_str)?;
 
@@ -749,7 +718,7 @@ pub extern "C" fn gfr_crypto_import_rev_cert(
 /// `rev_cert_block` and `out_fpr` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_extract_rev_cert_target_fpr(
-    rev_cert_block: *const c_char,
+    rev_cert_block: GfrBuffer,
     out_fpr: *mut *mut c_char,
 ) -> GfrStatus {
     clear_last_error();
@@ -761,13 +730,11 @@ pub extern "C" fn gfr_crypto_extract_rev_cert_target_fpr(
     }
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if rev_cert_block.is_null() || out_fpr.is_null() {
+        if out_fpr.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        let cert_str = unsafe { CStr::from_ptr(rev_cert_block) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let cert_str = unsafe { rev_cert_block.as_str() }?;
 
         let fpr = extract_rev_cert_target_fpr_internal(cert_str)?;
 

@@ -28,8 +28,8 @@
 
 use crate::crypto::{self, encrypt_and_sign_directory_internal};
 use crate::types::{
-    GfrEncryptAndSignResultC, GfrEncryptResultC, GfrInvalidRecipientC, GfrPasswordFetchCb,
-    GfrSignatureResultC, GfrStatus,
+    GfrBuffer, GfrEncryptAndSignResultC, GfrEncryptResultC, GfrInvalidRecipientC,
+    GfrPasswordFetchCb, GfrSignatureResultC, GfrStatus,
 };
 use std::fs::File;
 use std::path::Path;
@@ -53,7 +53,7 @@ pub extern "C" fn gfr_crypto_encrypt_data(
     name: *const c_char,
     in_data: *const u8,
     in_len: usize,
-    pub_keys: *const *const c_char,
+    pub_keys: *const GfrBuffer,
     pub_keys_count: usize,
     ascii: bool,
     out_result: *mut GfrEncryptResultC,
@@ -71,17 +71,12 @@ pub extern "C" fn gfr_crypto_encrypt_data(
         // Convert the plaintext C string to a Rust string slice
         let data_slice = unsafe { slice::from_raw_parts(in_data, in_len) };
 
-        // Convert the C array of strings into a Rust Vec<&str>
+        // Convert the C array of GfrBuffer into a Rust Vec<&str>
         let mut key_blocks = Vec::with_capacity(pub_keys_count);
         unsafe {
             let keys_slice = std::slice::from_raw_parts(pub_keys, pub_keys_count);
-            for &key_ptr in keys_slice {
-                if key_ptr.is_null() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                let key_str = CStr::from_ptr(key_ptr)
-                    .to_str()
-                    .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+            for gfr_buf in keys_slice {
+                let key_str = gfr_buf.as_str()?;
                 key_blocks.push(key_str);
             }
         }
@@ -139,7 +134,7 @@ pub extern "C" fn gfr_crypto_encrypt_data(
 pub extern "C" fn gfr_crypto_encrypt_file(
     in_file_path: *const c_char,
     out_file_path: *const c_char,
-    pub_keys: *const *const c_char,
+    pub_keys: *const GfrBuffer,
     pub_keys_count: usize,
     ascii: bool,
     out_result: *mut GfrEncryptResultC,
@@ -169,17 +164,12 @@ pub extern "C" fn gfr_crypto_encrypt_file(
             .unwrap_or_default()
             .to_string_lossy();
 
-        // 4. Convert the C array of strings into a Rust Vec<&str>
+        // 4. Convert the C array of GfrBuffer into a Rust Vec<&str>
         let mut key_blocks = Vec::with_capacity(pub_keys_count);
         unsafe {
             let keys_slice = std::slice::from_raw_parts(pub_keys, pub_keys_count);
-            for &key_ptr in keys_slice {
-                if key_ptr.is_null() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                let key_str = CStr::from_ptr(key_ptr)
-                    .to_str()
-                    .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+            for gfr_buf in keys_slice {
+                let key_str = gfr_buf.as_str()?;
                 key_blocks.push(key_str);
             }
         }
@@ -243,7 +233,7 @@ pub extern "C" fn gfr_crypto_encrypt_file(
 pub extern "C" fn gfr_crypto_encrypt_directory(
     in_dir_path: *const c_char,
     out_file_path: *const c_char,
-    pub_keys: *const *const c_char,
+    pub_keys: *const GfrBuffer,
     pub_keys_count: usize,
     ascii: bool,
     out_result: *mut GfrEncryptResultC,
@@ -267,17 +257,12 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
             .to_str()
             .map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-        // 4. Convert the C array of strings into a Rust Vec<&str>
+        // 4. Convert the C array of GfrBuffer into a Rust Vec<&str>
         let mut key_blocks = Vec::with_capacity(pub_keys_count);
         unsafe {
             let keys_slice = std::slice::from_raw_parts(pub_keys, pub_keys_count);
-            for &key_ptr in keys_slice {
-                if key_ptr.is_null() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                let key_str = CStr::from_ptr(key_ptr)
-                    .to_str()
-                    .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+            for gfr_buf in keys_slice {
+                let key_str = gfr_buf.as_str()?;
                 key_blocks.push(key_str);
             }
         }
@@ -333,9 +318,9 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
     name: *const c_char,
     in_data: *const u8,
     in_len: usize,
-    pub_keys: *const *const c_char,
+    pub_keys: *const GfrBuffer,
     pub_keys_count: usize,
-    secret_keys: *const *const c_char,
+    secret_keys: *const GfrBuffer,
     signers_count: usize,
     fetch_pwd_cb: GfrPasswordFetchCb,
     ascii: bool,
@@ -358,22 +343,16 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
         let mut pkey_blocks = Vec::with_capacity(pub_keys_count);
         unsafe {
             let pkeys_slice = slice::from_raw_parts(pub_keys, pub_keys_count);
-            for &key_ptr in pkeys_slice {
-                if key_ptr.is_null() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                pkey_blocks.push(CStr::from_ptr(key_ptr).to_str().unwrap_or(""));
+            for gfr_buf in pkeys_slice {
+                pkey_blocks.push(gfr_buf.as_str()?);
             }
         }
 
         let mut skey_blocks = Vec::with_capacity(signers_count);
         unsafe {
             let sk_slice = slice::from_raw_parts(secret_keys, signers_count);
-            for &sk_ptr in sk_slice {
-                if sk_ptr.is_null() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                skey_blocks.push(CStr::from_ptr(sk_ptr).to_str().unwrap_or(""));
+            for gfr_buf in sk_slice {
+                skey_blocks.push(gfr_buf.as_str()?);
             }
         }
 
@@ -456,9 +435,9 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
     channel: i32,
     in_file_path: *const c_char,
     out_file_path: *const c_char,
-    pub_keys: *const *const c_char,
+    pub_keys: *const GfrBuffer,
     pub_keys_count: usize,
-    secret_keys: *const *const c_char,
+    secret_keys: *const GfrBuffer,
     signers_count: usize,
     fetch_pwd_cb: GfrPasswordFetchCb,
     ascii: bool,
@@ -494,11 +473,8 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
         let mut pkey_blocks = Vec::with_capacity(pub_keys_count);
         unsafe {
             let pkeys_slice = std::slice::from_raw_parts(pub_keys, pub_keys_count);
-            for &key_ptr in pkeys_slice {
-                if key_ptr.is_null() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                pkey_blocks.push(std::ffi::CStr::from_ptr(key_ptr).to_str().unwrap_or(""));
+            for gfr_buf in pkeys_slice {
+                pkey_blocks.push(gfr_buf.as_str()?);
             }
         }
 
@@ -506,11 +482,8 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
         let mut skey_blocks = Vec::with_capacity(signers_count);
         unsafe {
             let sk_slice = std::slice::from_raw_parts(secret_keys, signers_count);
-            for &sk_ptr in sk_slice {
-                if sk_ptr.is_null() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                skey_blocks.push(std::ffi::CStr::from_ptr(sk_ptr).to_str().unwrap_or(""));
+            for gfr_buf in sk_slice {
+                skey_blocks.push(gfr_buf.as_str()?);
             }
         }
 
@@ -607,9 +580,9 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
     channel: i32,
     in_dir_path: *const std::os::raw::c_char,
     out_file_path: *const std::os::raw::c_char,
-    pub_keys: *const *const std::os::raw::c_char,
+    pub_keys: *const GfrBuffer,
     pub_keys_count: usize,
-    secret_keys: *const *const std::os::raw::c_char,
+    secret_keys: *const GfrBuffer,
     signers_count: usize,
     fetch_pwd_cb: crate::types::GfrPasswordFetchCb,
     ascii: bool,
@@ -636,22 +609,16 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
         let mut pkey_blocks = Vec::with_capacity(pub_keys_count);
         unsafe {
             let pkeys_slice = std::slice::from_raw_parts(pub_keys, pub_keys_count);
-            for &key_ptr in pkeys_slice {
-                if key_ptr.is_null() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                pkey_blocks.push(std::ffi::CStr::from_ptr(key_ptr).to_str().unwrap_or(""));
+            for gfr_buf in pkeys_slice {
+                pkey_blocks.push(gfr_buf.as_str()?);
             }
         }
 
         let mut skey_blocks = Vec::with_capacity(signers_count);
         unsafe {
             let sk_slice = std::slice::from_raw_parts(secret_keys, signers_count);
-            for &sk_ptr in sk_slice {
-                if sk_ptr.is_null() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                skey_blocks.push(std::ffi::CStr::from_ptr(sk_ptr).to_str().unwrap_or(""));
+            for gfr_buf in sk_slice {
+                skey_blocks.push(gfr_buf.as_str()?);
             }
         }
 

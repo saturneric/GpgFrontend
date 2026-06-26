@@ -28,7 +28,7 @@
 
 use crate::crypto::get_signature_issuers_internal;
 use crate::types::{
-    GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrSignMode, GfrSignResultC,
+    GfrBuffer, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrSignMode, GfrSignResultC,
     GfrSignatureResultC, GfrStatus, GfrVerifyResultC,
 };
 use std::fs::File;
@@ -54,7 +54,7 @@ pub extern "C" fn gfr_crypto_sign_data(
     name: *const c_char,
     in_data: *const u8,
     in_len: usize,
-    secret_keys: *const *const c_char,
+    secret_keys: *const GfrBuffer,
     signers_count: usize,
     fetch_pwd_cb: GfrPasswordFetchCb,
     mode: GfrSignMode,
@@ -73,15 +73,8 @@ pub extern "C" fn gfr_crypto_sign_data(
 
         unsafe {
             let sk_slice = slice::from_raw_parts(secret_keys, signers_count);
-            for &sk_ptr in sk_slice {
-                if sk_ptr.is_null() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                skey_blocks.push(
-                    CStr::from_ptr(sk_ptr)
-                        .to_str()
-                        .map_err(|_| GfrStatus::ErrorInvalidInput)?,
-                );
+            for gfr_buf in sk_slice {
+                skey_blocks.push(gfr_buf.as_str()?);
             }
         }
 
@@ -150,7 +143,7 @@ pub extern "C" fn gfr_crypto_sign_file(
     channel: i32,
     in_file_path: *const c_char,
     out_file_path: *const c_char,
-    secret_keys: *const *const c_char,
+    secret_keys: *const GfrBuffer,
     signers_count: usize,
     fetch_pwd_cb: GfrPasswordFetchCb,
     mode: GfrSignMode,
@@ -186,15 +179,8 @@ pub extern "C" fn gfr_crypto_sign_file(
         let mut skey_blocks = Vec::with_capacity(signers_count);
         unsafe {
             let sk_slice = slice::from_raw_parts(secret_keys, signers_count);
-            for &sk_ptr in sk_slice {
-                if sk_ptr.is_null() {
-                    return Err(GfrStatus::ErrorInvalidInput);
-                }
-                skey_blocks.push(
-                    CStr::from_ptr(sk_ptr)
-                        .to_str()
-                        .map_err(|_| GfrStatus::ErrorInvalidInput)?,
-                );
+            for gfr_buf in sk_slice {
+                skey_blocks.push(gfr_buf.as_str()?);
             }
         }
 
