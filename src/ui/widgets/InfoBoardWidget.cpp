@@ -28,8 +28,6 @@
 
 #include "ui/widgets/InfoBoardWidget.h"
 
-#include <QPrinter>
-
 #include "core/function/result_analyse/GpgOpResultInfo.h"
 #include "core/model/SettingsObject.h"
 #include "ui/UISignalStation.h"
@@ -908,7 +906,7 @@ void InfoBoardWidget::update_status_page(
 
 void InfoBoardWidget::populate_details_section(
     const GpgFrontend::GpgOpResultInfo& info, InfoBoardStatus status) {
-  if (info.description.isEmpty() && info.details.isEmpty()) return;
+  if (info.details.isEmpty()) return;
 
   if (info.operation.contains(tr("Decrypt"))) {
     key_details_->setText(tr("RECIPIENT"));
@@ -923,17 +921,6 @@ void InfoBoardWidget::populate_details_section(
   if (dc_layout == nullptr) return;
 
   delete_widgets_in_layout(dc_layout, 0);
-
-  if (!info.description.isEmpty()) {
-    auto* desc_label = new QLabel(info.description, details_container_);
-    desc_label->setWordWrap(true);
-    desc_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    desc_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    desc_label->setStyleSheet(
-        QStringLiteral("color: palette(mid); font-style: italic; padding: 4px "
-                       "0; border-bottom: 1px solid palette(mid);"));
-    dc_layout->addWidget(desc_label);
-  }
 
   const QColor accent = StatusColor(status);
   const QString chip_style = build_chip_stylesheet(accent);
@@ -958,7 +945,7 @@ void InfoBoardWidget::populate_extra_section(
 
   delete_widgets_in_layout(l, 0);
 
-  const QString desc = info.description;
+  const QString& desc = info.description;
   if (!desc.isEmpty()) {
     auto* desc_label = new QLabel(desc, extra_widget_);
     desc_label->setWordWrap(true);
@@ -1103,9 +1090,8 @@ void InfoBoardWidget::update_status_page_from_results(
     }
   }
 
-  // Details row
-  const bool show_details = !agg_details.isEmpty() || !agg_description.isEmpty();
-  if (show_details) {
+  // Details row — chips only, no description
+  if (!agg_details.isEmpty()) {
     if (agg_operation == tr("Decrypt")) {
       key_details_->setText(tr("RECIPIENT"));
     } else if (agg_operation == tr("Sign") || agg_operation == tr("Verify")) {
@@ -1117,17 +1103,6 @@ void InfoBoardWidget::update_status_page_from_results(
     if (auto* dc_layout =
             qobject_cast<QVBoxLayout*>(details_container_->layout())) {
       delete_widgets_in_layout(dc_layout, 0);
-
-      if (!agg_description.isEmpty()) {
-        auto* desc_label = new QLabel(agg_description, details_container_);
-        desc_label->setWordWrap(true);
-        desc_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-        desc_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-        desc_label->setStyleSheet(
-            QStringLiteral("color: palette(mid); font-style: italic; padding: "
-                           "4px 0; border-bottom: 1px solid palette(mid);"));
-        dc_layout->addWidget(desc_label);
-      }
 
       const QString chip_bg = QStringLiteral("rgba(100,100,100,10)");
       const QString chip_border = QStringLiteral("rgba(100,100,100,30)");
@@ -1673,6 +1648,55 @@ void InfoBoardWidget::slot_copy() {
   });
 }
 
+void InfoBoardWidget::export_doc_as_png(const QString& file_path) {
+  const qreal export_scale = 3.0;
+  QPixmap pm(doc_frame_->size() * export_scale);
+  pm.fill(Qt::transparent);
+
+  QPainter painter(&pm);
+  painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+  painter.scale(export_scale, export_scale);
+  doc_frame_->render(&painter);
+  painter.end();
+
+  if (pm.isNull()) {
+    QMessageBox::warning(this, tr("Unable to Save"),
+                         tr("The content could not be captured."));
+    return;
+  }
+
+  QImage image = pm.toImage();
+  image.setText(QStringLiteral("Software"), QStringLiteral("GpgFrontend"));
+  image.setText(QStringLiteral("Title"), tr("GpgFrontend Security Report"));
+  image.setText(QStringLiteral("Description"),
+                tr("Cryptographic operation result report"));
+  image.setText(QStringLiteral("Creation Time"),
+                QDateTime::currentDateTime().toString(Qt::ISODate));
+
+  if (!current_id_.isEmpty())
+    image.setText(QStringLiteral("Document ID"), current_id_);
+
+  if (hash_label_ != nullptr && !hash_label_->text().isEmpty()) {
+    const QString hash_text = hash_label_->text();
+    const QString prefix = tr("Hash: ");
+    image.setText(QStringLiteral("Document Hash"),
+                  hash_text.startsWith(prefix)
+                      ? hash_text.mid(static_cast<int>(prefix.length()))
+                      : hash_text);
+  }
+
+  if (val_status_ != nullptr && !val_status_->text().isEmpty())
+    image.setText(QStringLiteral("Status"), val_status_->text());
+
+  if (val_operation_ != nullptr && !val_operation_->text().isEmpty())
+    image.setText(QStringLiteral("Operation"), val_operation_->text());
+
+  if (!image.save(file_path))
+    QMessageBox::warning(this, tr("Unable to Save"),
+                         tr("The image could not be saved."));
+}
+
 void InfoBoardWidget::slot_save() {
   if (doc_scroll_ != nullptr && doc_scroll_->isVisible() &&
       doc_frame_ != nullptr) {
@@ -1680,108 +1704,13 @@ void InfoBoardWidget::slot_save() {
         QStringLiteral("GpgFrontend_%1")
             .arg(current_id_.isEmpty() ? QStringLiteral("Document")
                                        : current_id_);
-    QString selected_filter;
-    const auto file_path = QFileDialog::getSaveFileName(
+    QString file_path = QFileDialog::getSaveFileName(
         this, tr("Export Certificate"), suggested,
-        tr("PDF Document (*.pdf);;PNG Image (*.png);;All Files (*)"),
-        &selected_filter);
+        tr("PNG Image (*.png);;All Files (*)"));
     if (file_path.isEmpty()) return;
-
-    if (selected_filter.contains(QStringLiteral("PDF"))) {
-      QString final_path = file_path;
-      if (!final_path.endsWith(QStringLiteral(".pdf"), Qt::CaseInsensitive)) {
-        final_path += QStringLiteral(".pdf");
-      }
-      QPrinter printer(QPrinter::HighResolution);
-      printer.setOutputFormat(QPrinter::PdfFormat);
-      printer.setOutputFileName(final_path);
-      printer.setPageSize(QPageSize(QPageSize::A4));
-      printer.setPageMargins(QMarginsF(28, 28, 28, 28));
-
-      const QRectF page_rect = printer.pageRect(QPrinter::Point);
-      const qreal scale_x = page_rect.width() / doc_frame_->width();
-      const qreal scale_y = page_rect.height() / doc_frame_->height();
-      const qreal scale = qMin(scale_x, scale_y);
-
-      QPixmap pm(doc_frame_->size());
-      pm.fill(Qt::white);
-      doc_frame_->render(&pm);
-
-      QPainter p(&printer);
-      const qreal scaled_w = pm.width() * scale;
-      const qreal scaled_h = pm.height() * scale;
-      const qreal offset_x = (page_rect.width() - scaled_w) / 2.0;
-      const qreal offset_y = (page_rect.height() - scaled_h) / 2.0;
-      p.drawPixmap(QRectF(offset_x, offset_y, scaled_w, scaled_h).toRect(), pm);
-      p.end();
-    } else {
-      QString final_path = file_path;
-      if (!final_path.endsWith(QStringLiteral(".png"), Qt::CaseInsensitive)) {
-        final_path += QStringLiteral(".png");
-      }
-
-      const qreal export_scale = 3.0;
-      const QSize scaled_size = doc_frame_->size() * export_scale;
-
-      QPixmap pm(scaled_size);
-      pm.fill(Qt::transparent);
-
-      QPainter painter(&pm);
-      painter.setRenderHint(QPainter::Antialiasing, true);
-      painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-      painter.scale(export_scale, export_scale);
-      doc_frame_->render(&painter);
-      painter.end();
-
-      if (pm.isNull()) {
-        QMessageBox::warning(this, tr("Unable to Save"),
-                             tr("The content could not be captured."));
-        return;
-      }
-
-      // Convert to QImage to add metadata
-      QImage image = pm.toImage();
-
-      // Add PNG metadata
-      image.setText(QStringLiteral("Software"), QStringLiteral("GpgFrontend"));
-      image.setText(QStringLiteral("Title"), tr("GpgFrontend Security Report"));
-      image.setText(QStringLiteral("Description"),
-                    tr("Cryptographic operation result report"));
-
-      if (!current_id_.isEmpty()) {
-        image.setText(QStringLiteral("Document ID"), current_id_);
-      }
-
-      // Extract hash from footer label
-      if (hash_label_ != nullptr && !hash_label_->text().isEmpty()) {
-        const QString hash_text = hash_label_->text();
-        // Remove "Hash: " prefix if present
-        const QString hash_value =
-            hash_text.startsWith(tr("Hash: "))
-                ? hash_text.mid(static_cast<int>(tr("Hash: ").length()))
-                : hash_text;
-        image.setText(QStringLiteral("Document Hash"), hash_value);
-      }
-
-      // Add timestamp
-      image.setText(QStringLiteral("Creation Time"),
-                    QDateTime::currentDateTime().toString(Qt::ISODate));
-
-      // Add status if available
-      if (val_status_ != nullptr && !val_status_->text().isEmpty()) {
-        image.setText(QStringLiteral("Status"), val_status_->text());
-      }
-
-      // Add operation if available
-      if (val_operation_ != nullptr && !val_operation_->text().isEmpty()) {
-        image.setText(QStringLiteral("Operation"), val_operation_->text());
-      }
-
-      if (!image.save(final_path)) {
-        QMessageBox::warning(this, tr("Unable to Save"),
-                             tr("The image could not be saved."));
-      }
-    }
+    if (!file_path.endsWith(QStringLiteral(".png"), Qt::CaseInsensitive))
+      file_path += QStringLiteral(".png");
+    export_doc_as_png(file_path);
     return;
   }
 

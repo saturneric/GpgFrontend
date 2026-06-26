@@ -193,6 +193,8 @@ class InfoBoardWidget : public QWidget {
   void populate_extra_section_generic(QVBoxLayout* layout, QWidget* parent,
                                       const QContainer<InfoBoardCard>& cards);
 
+  void export_doc_as_png(const QString& file_path);
+
   void reset_document_view();
   void clear_document_fields();
 };
