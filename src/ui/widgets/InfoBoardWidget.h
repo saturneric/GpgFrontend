@@ -104,7 +104,7 @@ class InfoBoardWidget : public QWidget {
 
  private:
   struct StyleConstants {
-    static constexpr int kStampSize = 72;
+    static constexpr int kStampSize = 60;
     static constexpr int kIndicatorSize = 14;
     static constexpr int kKeyColumnWidth = 86;
     static constexpr int kCardKeyWidth = 76;

@@ -256,20 +256,24 @@ auto InfoBoardWidget::build_header_html(InfoBoardStatus status,
                                         const QString& accent) const
     -> QString {
   const QString text_color = palette().color(QPalette::WindowText).name();
-  QString html = QStringLiteral(
-                     "<span style='font-size:9pt; color:%1; "
+  const int base = font().pointSize();
+  const int small_pt = std::max(7, base - 1);
+  const int large_pt = base + 2;
+  QString html =
+      QStringLiteral("<span style='font-size:%3pt; color:%1; "
                      "letter-spacing:2px;'>%2</span>")
-                     .arg(text_color, tr("GPGFRONTEND SECURITY REPORT"));
+          .arg(text_color, tr("GPGFRONTEND SECURITY REPORT"),
+               QString::number(small_pt));
   if (!subtitle.isEmpty()) {
-    html +=
-        QStringLiteral("<br/><span style='font-size:10pt; color:%1;'>%2</span>")
-            .arg(text_color, subtitle);
+    html += QStringLiteral(
+                "<br/><span style='font-size:%3pt; color:%1;'>%2</span>")
+                .arg(text_color, subtitle, QString::number(base));
   }
   const QString symbol = build_status_symbol(status);
   html += QStringLiteral(
-              "<br/><br/><span style='font-size:12pt; font-weight:bold; "
+              "<br/><br/><span style='font-size:%3pt; font-weight:bold; "
               "color:%1;'>%2</span>")
-              .arg(accent, symbol);
+              .arg(accent, symbol, QString::number(large_pt));
   return html;
 }
 
@@ -542,7 +546,7 @@ void InfoBoardWidget::SlotReset() {
 }
 
 void InfoBoardWidget::setup_status_page_layout(QVBoxLayout* page_layout) {
-  page_layout->setContentsMargins(12, 12, 12, 12);
+  page_layout->setContentsMargins(0, 0, 0, 0);
   page_layout->setSpacing(8);
 
   placeholder_label_ = new QLabel(
@@ -555,12 +559,11 @@ void InfoBoardWidget::setup_status_page_layout(QVBoxLayout* page_layout) {
 
   doc_frame_ = new DocFrame(ui_->page_1);
   doc_frame_->setObjectName(QStringLiteral("DocFrame"));
-  doc_frame_->setVisible(false);
 }
 
 void InfoBoardWidget::create_field_rows(QWidget* parent,
                                         QVBoxLayout* fields_layout) {
-  fields_layout->setContentsMargins(0, 4, 0, 4);
+  fields_layout->setContentsMargins(0, 2, 0, 2);
   fields_layout->setSpacing(5);
 
   auto make_key_label = [&](const QString& text, QWidget* p) -> QLabel* {
@@ -670,8 +673,8 @@ void InfoBoardWidget::init_status_page() {
   setup_status_page_layout(page_layout);
 
   auto* doc_layout = new QVBoxLayout(doc_frame_);
-  doc_layout->setContentsMargins(16, 14, 16, 12);
-  doc_layout->setSpacing(8);
+  doc_layout->setContentsMargins(12, 10, 12, 6);
+  doc_layout->setSpacing(4);
 
   // Header row
   auto* header_row = new QHBoxLayout();
@@ -717,15 +720,25 @@ void InfoBoardWidget::init_status_page() {
   doc_layout->addWidget(fields_widget);
   doc_layout->addWidget(extra_sep_);
   doc_layout->addWidget(extra_widget_);
-  doc_layout->addStretch(1);
+  doc_layout->addSpacing(4);
 
   create_footer(doc_layout);
+
+  // Wrap the report card in a top-aligned container so that, when the content
+  // is shorter than the viewport, the leftover space falls outside the bordered
+  // DocFrame instead of stretching it.
+  auto* scroll_content = new QWidget(ui_->page_1);
+  auto* scroll_layout = new QVBoxLayout(scroll_content);
+  scroll_layout->setContentsMargins(0, 0, 0, 0);
+  scroll_layout->setSpacing(0);
+  scroll_layout->addWidget(doc_frame_);
+  scroll_layout->addStretch(1);
 
   doc_scroll_ = new QScrollArea(ui_->page_1);
   doc_scroll_->setWidgetResizable(true);
   doc_scroll_->setFrameShape(QFrame::NoFrame);
   doc_scroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  doc_scroll_->setWidget(doc_frame_);
+  doc_scroll_->setWidget(scroll_content);
   doc_scroll_->setVisible(false);
 
   page_layout->addWidget(placeholder_label_, 1, Qt::AlignCenter);
@@ -1037,8 +1050,9 @@ void InfoBoardWidget::populate_extra_section(
   if (!desc.isEmpty()) {
     auto* desc_label = new QLabel(extra_widget_);
     desc_label->setTextFormat(Qt::RichText);
-    desc_label->setText(
-        QStringLiteral("<span style='font-size:11pt;'>%1</span>").arg(desc));
+    desc_label->setText(QStringLiteral("<span style='font-size:%1pt;'>%2</span>")
+                            .arg(font().pointSize())
+                            .arg(desc));
     desc_label->setWordWrap(true);
     desc_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     desc_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -1073,7 +1087,8 @@ void InfoBoardWidget::populate_details_section_generic(
     desc_label->setTextFormat(Qt::RichText);
     desc_label->setText(
         QStringLiteral(
-            "<span style='font-size:11pt; font-style:italic;'>%1</span>")
+            "<span style='font-size:%1pt; font-style:italic;'>%2</span>")
+            .arg(font().pointSize())
             .arg(description));
     desc_label->setWordWrap(true);
     desc_label->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -1276,7 +1291,8 @@ void InfoBoardWidget::update_status_page_from_results(
     auto* desc_label = new QLabel(extra_widget_);
     desc_label->setTextFormat(Qt::RichText);
     desc_label->setText(
-        QStringLiteral("<span style='font-size:11pt;'>%1</span>")
+        QStringLiteral("<span style='font-size:%1pt;'>%2</span>")
+            .arg(font().pointSize())
             .arg(agg_desc));
     desc_label->setWordWrap(true);
     desc_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
