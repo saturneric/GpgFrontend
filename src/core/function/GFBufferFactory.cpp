@@ -155,6 +155,29 @@ auto GFBufferFactory::ToSha256(const GFBuffer& buffer) -> GFBufferOrNone {
   return ret;
 }
 
+auto GFBufferFactory::ToSha256(
+    const std::function<void(const GFBufferFactory::Sha256Chunk&)>& feeder)
+    -> GFBufferOrNone {
+  if (!EnsureSodiumInit()) return {};
+
+  crypto_hash_sha256_state state;
+  if (crypto_hash_sha256_init(&state) != 0) return {};
+
+  feeder([&state](const void* data, const size_t len) {
+    crypto_hash_sha256_update(&state,
+                              static_cast<const unsigned char*>(data),
+                              static_cast<unsigned long long>(len));
+  });
+
+  GFBuffer ret(crypto_hash_sha256_BYTES);
+  if (crypto_hash_sha256_final(
+          &state, reinterpret_cast<unsigned char*>(ret.Data())) != 0) {
+    return {};
+  }
+
+  return ret;
+}
+
 auto GFBufferFactory::ToHMACSha256(const GFBuffer& key, const GFBuffer& data)
     -> GFBufferOrNone {
   if (key.Empty() || data.Empty()) return {};

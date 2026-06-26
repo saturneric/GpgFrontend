@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "core/function/PassphraseGenerator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/GFBuffer.h"
@@ -97,6 +99,22 @@ class GF_CORE_EXPORT GFBufferFactory
    * fails
    */
   static auto ToSha256(const GFBuffer& buffer) -> GFBufferOrNone;
+
+  /// Callback type passed to the streaming ToSha256 overload.
+  using Sha256Chunk = std::function<void(const void*, size_t)>;
+
+  /**
+   * @brief Compute SHA-256 by streaming chunks through a feeder callable.
+   *
+   * The caller invokes @p feeder, which receives a @c Sha256Chunk. Each call
+   * to that chunk appends bytes to the running hash state. This avoids
+   * materializing the entire input in one allocation.
+   *
+   * @param feeder callable that drives data feeding via the chunk callback
+   * @return 32-byte SHA-256 digest, or empty on initialisation failure
+   */
+  static auto ToSha256(
+      const std::function<void(const Sha256Chunk&)>& feeder) -> GFBufferOrNone;
 
   /**
    * @brief Compute HMAC-SHA256 of @p data authenticated with @p key.
