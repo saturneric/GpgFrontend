@@ -35,7 +35,7 @@
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/dialog/SignersPicker.h"
+#include "ui/dialog/SigningKeysPicker.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/struct/GpgOperaResult.h"
@@ -693,16 +693,16 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
     return;
   }
 
-  auto picker = QSharedPointer<SignersPicker>(
-      new SignersPicker(m_key_list_->GetCurrentGpgContextChannel(), this),
-      [](SignersPicker* picker) { picker->deleteLater(); });
+  auto picker = QSharedPointer<SigningKeysPicker>(
+      new SigningKeysPicker(m_key_list_->GetCurrentGpgContextChannel(), this),
+      [](SigningKeysPicker* picker) { picker->deleteLater(); });
 
   picker->exec();
 
   // return when canceled
   if (picker->result() == QDialog::Rejected) return;
 
-  auto signer_keys = picker->GetCheckedSigners();
+  auto signer_keys = picker->GetSigningKeys();
   assert(std::all_of(signer_keys.begin(), signer_keys.end(),
                      [](const auto& key) { return key->IsGood(); }));
 

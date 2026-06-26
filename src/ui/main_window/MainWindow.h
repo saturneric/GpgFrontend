@@ -773,16 +773,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   /**
    * @brief
    *
-   * @param contexts
-   * @return true
-   * @return false
-   */
-  auto fuzzy_signature_key_elimination(
-      const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
-
-  /**
-   * @brief
-   *
    */
   auto check_and_notify_invalid_key_dbs() -> void;
 

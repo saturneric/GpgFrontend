@@ -29,53 +29,30 @@
 #pragma once
 
 #include "core/typedef/GpgTypedef.h"
-#include "ui/dialog//GeneralDialog.h"
+#include "ui/dialog/GeneralDialog.h"
 
 namespace GpgFrontend::UI {
 
-class KeyList;
+class KeyTreeView;
 
-/**
- * @brief
- *
- */
-class SignersPicker : public GeneralDialog {
+class SigningKeysPicker : public GeneralDialog {
   Q_OBJECT
 
  public:
-  /**
-   * @brief Construct a new Signers Picker object
-   *
-   * @param parent
-   */
-  explicit SignersPicker(int channel, QWidget* parent = nullptr);
+  explicit SigningKeysPicker(int channel, QWidget* parent = nullptr);
 
-  /**
-   * @brief Get the Checked Signers object
-   *
-   * @return GpgFrontend::KeyIdArgsListPtr
-   */
-  auto GetCheckedSigners() -> GpgAbstractKeyPtrList;
+  [[nodiscard]] auto GetSigningKeys() const -> GpgAbstractKeyPtrList;
 
  private slots:
-
-  /**
-   * @brief
-   *
-   */
   void update_confirm_button_state();
 
  protected:
-  /**
-   * @brief
-   *
-   * @param event
-   */
   void showEvent(QShowEvent* event) override;
 
  private:
-  KeyList* key_list_;  ///<
-  QPushButton* confirm_button_ = nullptr;
+  int channel_;
+  KeyTreeView* tree_view_;
+  QPushButton* confirm_btn_ = nullptr;
 };
 
 }  // namespace GpgFrontend::UI
