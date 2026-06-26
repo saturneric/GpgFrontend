@@ -193,7 +193,7 @@ pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType,
     match algo {
         GfrKeyAlgo::ED25519 | GfrKeyAlgo::CV25519 => {
             if can_encrypt {
-                Ok(KeyType::ECDH(ECCCurve::Curve25519))
+                Ok(KeyType::ECDH(ECCCurve::Curve25519Legacy))
             } else {
                 Ok(KeyType::Ed25519)
             }
@@ -311,7 +311,7 @@ pub fn determine_algo(public_params: &PublicParams) -> GfrKeyAlgo {
         PublicParams::Ed448(_) => GfrKeyAlgo::ED448,
         PublicParams::X448(_) => GfrKeyAlgo::X448,
         PublicParams::ECDH(p) => match p.curve() {
-            ECCCurve::Curve25519 => GfrKeyAlgo::CV25519,
+            ECCCurve::Curve25519Legacy => GfrKeyAlgo::CV25519,
             ECCCurve::P256 => GfrKeyAlgo::NISTP256,
             ECCCurve::P384 => GfrKeyAlgo::NISTP384,
             ECCCurve::P521 => GfrKeyAlgo::NISTP521,
