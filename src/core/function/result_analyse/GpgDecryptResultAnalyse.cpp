@@ -107,6 +107,37 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   }
 
   stream_ << Qt::endl;
+
+  if (status_ > 0) {
+    if (!op_info_.filename.isEmpty()) {
+      op_info_.description =
+          tr("Decrypted successfully. The original filename is \"%1\".")
+              .arg(op_info_.filename);
+    } else {
+      op_info_.description =
+          tr("The message has been decrypted successfully and is now readable.");
+    }
+  } else if (status_ == 0) {
+    if (!op_info_.messageIntegrityProtected) {
+      op_info_.description =
+          tr("Decrypted, but message integrity protection is absent — this "
+             "may be a legacy message that cannot detect tampering.");
+    } else {
+      int unknown = 0;
+      for (const auto& r : op_info_.recipients) {
+        if (!r.keyFound) unknown++;
+      }
+      op_info_.description =
+          unknown > 0
+              ? tr("Decrypted, but %n recipient key(s) could not be found in "
+                   "your keyring.",
+                   "", unknown)
+              : tr("Decrypted with warnings — please review the details.");
+    }
+  } else {
+    op_info_.description =
+        tr("Decryption failed: %1.").arg(gpgme_strerror(error_));
+  }
 }
 
 void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(

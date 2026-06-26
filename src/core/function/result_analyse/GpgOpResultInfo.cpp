@@ -44,6 +44,13 @@ void GpgOpResultInfo::Merge(const GpgOpResultInfo& other) {
     operation += QStringLiteral(" + ") + other.operation;
   }
 
+  // Description: concatenate with newline, skip empty
+  if (description.isEmpty()) {
+    description = other.description;
+  } else if (!other.description.isEmpty()) {
+    description += QStringLiteral("\n") + other.description;
+  }
+
   // Engine: first non-empty wins
   if (engine.isEmpty()) engine = other.engine;
 

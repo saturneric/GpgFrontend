@@ -211,6 +211,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
         << tr("Could not find information that can be used for verification.")
         << Qt::endl;
     setStatus(0);
+    op_info_.description =
+        tr("No verifiable signatures were found in the data.");
     return;
   }
 
@@ -279,6 +281,76 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
     }
 
     op_info_.signatures << sig_info;
+  }
+
+  const auto& sigs = op_info_.signatures;
+
+  auto any_validity = [&](GpgSigValidity v) -> bool {
+    return std::any_of(sigs.begin(), sigs.end(),
+                       [v](const GpgVerifySigInfo& s) -> bool {
+                         return s.validity == v;
+                       });
+  };
+  auto all_validity = [&](GpgSigValidity v) -> bool {
+    return !sigs.isEmpty() &&
+           std::all_of(sigs.begin(), sigs.end(),
+                       [v](const GpgVerifySigInfo& s) -> bool {
+                         return s.validity == v;
+                       });
+  };
+
+  if (status_ > 0) {
+    if (all_validity(GpgSigValidity::kFULLY_VALID)) {
+      const QString uid = sigs.size() == 1 ? sigs.first().signer.uid : QString();
+      op_info_.description =
+          uid.isEmpty()
+              ? tr("The signature is fully valid and trusted. The data has "
+                   "not been tampered with.")
+              : tr("The signature by %1 is fully valid and trusted. The data "
+                   "has not been tampered with.")
+                    .arg(uid);
+    } else {
+      op_info_.description =
+          tr("The signature is valid, but the signing key is not fully "
+             "trusted. You may need to set a higher trust level.");
+    }
+  } else if (status_ == 0) {
+    if (any_validity(GpgSigValidity::kKEY_MISSING)) {
+      op_info_.description =
+          tr("Verification incomplete — the signing key is not in your "
+             "keyring. Please import the signer's public key.");
+    } else if (any_validity(GpgSigValidity::kVALID_NOT_FULLY_TRUSTED)) {
+      op_info_.description =
+          tr("The signature is valid but the signing key is not fully "
+             "trusted. Consider setting a higher trust level for that key.");
+    } else {
+      op_info_.description =
+          tr("Verification completed with warnings — please review the "
+             "details.");
+    }
+  } else {
+    if (any_validity(GpgSigValidity::kINVALID)) {
+      op_info_.description =
+          tr("Invalid signature detected — the data may have been tampered "
+             "with or the signature is corrupt.");
+    } else if (any_validity(GpgSigValidity::kKEY_REVOKED)) {
+      op_info_.description =
+          tr("Signature verification failed — the signing key has been "
+             "revoked.");
+    } else if (any_validity(GpgSigValidity::kSIG_EXPIRED)) {
+      op_info_.description =
+          tr("Signature verification failed — this signature has expired.");
+    } else if (any_validity(GpgSigValidity::kKEY_EXPIRED)) {
+      op_info_.description =
+          tr("Signature verification failed — the signing key has expired.");
+    } else if (any_validity(GpgSigValidity::kKEY_MISSING)) {
+      op_info_.description =
+          tr("Cannot verify — the signing key is not available in your "
+             "keyring.");
+    } else {
+      op_info_.description =
+          tr("Signature verification failed — please review the details.");
+    }
   }
 }
 

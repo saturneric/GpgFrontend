@@ -141,6 +141,33 @@ void GpgSignResultAnalyse::doAnalyse() {
     }
     stream_ << Qt::endl;
   }
+
+  if (status_ > 0) {
+    if (!op_info_.newSignatures.isEmpty() &&
+        !op_info_.newSignatures.first().signer.uid.isEmpty()) {
+      op_info_.description =
+          tr("Signed by %1. Recipients can verify this data came from you and "
+             "was not altered.")
+              .arg(op_info_.newSignatures.first().signer.uid);
+    } else {
+      op_info_.description =
+          tr("A digital signature has been created. Recipients can verify "
+             "this data came from you and was not altered.");
+    }
+  } else if (status_ == 0) {
+    if (!op_info_.invalidSigners.isEmpty()) {
+      op_info_.description =
+          tr("Signing completed, but %n signer(s) could not be used — please "
+             "review the details.",
+             "", static_cast<int>(op_info_.invalidSigners.size()));
+    } else {
+      op_info_.description =
+          tr("Signing completed with warnings — please review the details.");
+    }
+  } else {
+    op_info_.description =
+        tr("Signing failed: %1.").arg(gpgme_strerror(error_));
+  }
 }
 
 }  // namespace GpgFrontend

@@ -78,6 +78,21 @@ void GpgEncryptResultAnalyse::doAnalyse() {
   }
 
   stream_ << Qt::endl;
+
+  if (status_ > 0) {
+    const auto* raw = result_.GetRaw();
+    const bool has_invalid =
+        raw != nullptr && raw->invalid_recipients != nullptr;
+    op_info_.description =
+        has_invalid
+            ? tr("Encrypted with warnings — some recipients could not be "
+                 "added. Please review the invalid recipient list.")
+            : tr("Your data has been encrypted. Only the intended recipients "
+                 "can decrypt and read it.");
+  } else {
+    op_info_.description =
+        tr("Encryption failed: %1.").arg(gpgme_strerror(error_));
+  }
 }
 
 }  // namespace GpgFrontend

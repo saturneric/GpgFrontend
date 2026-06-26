@@ -141,8 +141,9 @@ struct GF_CORE_EXPORT GpgOpResultInfo {
   int status = 1;  ///< Operation status: >0 success, 0 warning, <0 error
   QString report;  ///< Formatted text report for display
 
-  QString operation;  ///< Human-readable operation name, e.g. "Sign", "Verify"
-  QString engine;     ///< Engine version string, e.g. "GPG v2.4.1"
+  QString operation;    ///< Human-readable operation name, e.g. "Sign", "Verify"
+  QString description;  ///< Plain-language summary set by result analyse for UI display
+  QString engine;       ///< Engine version string, e.g. "GPG v2.4.1"
 
   /// Flat list of signer/recipient UIDs or fingerprints for compact display.
   /// Populated by every subclass; kept for backward-compatible single-line use.
