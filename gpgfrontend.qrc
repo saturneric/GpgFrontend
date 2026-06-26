@@ -119,6 +119,10 @@
         <file alias="keypairs.png">resource/lfs/icons/keypairs.png</file>
         <file alias="open.png">resource/lfs/icons/open.png</file>
         <file alias="harddisk.png">resource/lfs/icons/harddisk.png</file>
+        <file alias="stamp_success.png">resource/lfs/icons/stamp_success.png</file>
+        <file alias="stamp_warning.png">resource/lfs/icons/stamp_warning.png</file>
+        <file alias="stamp_failed.png">resource/lfs/icons/stamp_failed.png</file>
+        <file alias="stamp_info.png">resource/lfs/icons/stamp_info.png</file>
     </qresource>
     <qresource prefix="/test/key">
         <file alias="pv1.key">resource/lfs/test/gpg/data/pv1.key</file>
