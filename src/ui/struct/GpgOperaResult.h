@@ -28,17 +28,21 @@
 
 #pragma once
 
+#include "core/function/result_analyse/GpgOpResultInfo.h"
 #include "core/model/GFBuffer.h"
 
 namespace GpgFrontend::UI {
 
 struct GpgOperaResult {
-  int status;
-  QString report;
-  QString tag;
-  GFBuffer o_buffer;
+  QString tag;        ///< Display tag (e.g., filename for file operations)
+  GFBuffer o_buffer;  ///< Output buffer (for message operations)
+  GpgFrontend::GpgOpResultInfo op_info;  ///< Structured operation result info
 
-  GpgOperaResult(int status, QString report, QString tag);
+  /// Construct from GpgOpResultInfo and optional display tag
+  explicit GpgOperaResult(GpgFrontend::GpgOpResultInfo info, QString tag = {});
+
+  /// Merge another GpgOperaResult into this one (delegates to op_info.merge)
+  void Merge(const GpgOperaResult& other);
 };
 
 }  // namespace GpgFrontend::UI

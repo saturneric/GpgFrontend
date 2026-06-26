@@ -30,7 +30,11 @@
 
 namespace GpgFrontend::UI {
 
-GpgOperaResult::GpgOperaResult(int status, QString report, QString tag)
-    : status(status), report(std::move(report)), tag(std::move(tag)) {}
+GpgOperaResult::GpgOperaResult(GpgFrontend::GpgOpResultInfo info, QString tag)
+    : tag(std::move(tag)), op_info(std::move(info)) {}
+
+void GpgOperaResult::Merge(const GpgOperaResult& other) {
+  op_info.Merge(other.op_info);
+}
 
 }  // namespace GpgFrontend::UI
