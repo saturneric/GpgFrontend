@@ -101,8 +101,12 @@ auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   auto key_fpr_utf8 = key->Fingerprint().toUtf8();
   char* out_secret_block = nullptr;
 
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(key_block_utf8.Data()),
+      key_block_utf8.Size()};
+
   auto err = Rust::gfr_crypto_modify_key_password(
-      ctx.GetChannel(), key_block_utf8.Data(), key_fpr_utf8.constData(),
+      ctx.GetChannel(), key_block_buffer, key_fpr_utf8.constData(),
       FetchPasswordCallback, &out_secret_block);
 
   if (err != Rust::GfrStatus::Success) {
@@ -174,8 +178,12 @@ auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   auto key_fpr_utf8 = key->Fingerprint().toUtf8();
   char* out_secret_block = nullptr;
 
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(key_block_utf8.Data()),
+      key_block_utf8.Size()};
+
   auto err = Rust::gfr_crypto_delete_subkey(
-      key_block_utf8.Data(), target_subkey_fpr.toUtf8().constData(),
+      key_block_buffer, target_subkey_fpr.toUtf8().constData(),
       &out_secret_block);
 
   if (err != Rust::GfrStatus::Success) {
@@ -269,8 +277,12 @@ auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   auto key_fpr_utf8 = key->Fingerprint().toUtf8();
   char* out_secret_block = nullptr;
 
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(key_block_utf8.Data()),
+      key_block_utf8.Size()};
+
   auto err = Rust::gfr_crypto_revoke_subkey(
-      ctx.GetChannel(), key_block_utf8.Data(),
+      ctx.GetChannel(), key_block_buffer,
       target_subkey_fpr.toUtf8().constData(),
       static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
       reason_text_utf8.constData(), FetchPasswordCallback, &out_secret_block);
@@ -357,8 +369,12 @@ auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
   auto key_fpr_utf8 = key->Fingerprint().toUtf8();
   char* out_secret_block = nullptr;
 
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(key_block_utf8.Data()),
+      key_block_utf8.Size()};
+
   auto err = Rust::gfr_crypto_generate_key_rev_cert(
-      ctx_.GetChannel(), key_block_utf8.Data(),
+      ctx_.GetChannel(), key_block_buffer,
       static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
       reason_text_utf8.constData(), FetchPasswordCallback, &out_secret_block);
 

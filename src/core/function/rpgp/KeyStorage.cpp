@@ -97,8 +97,12 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey> {
   Rust::GfrKeyMetadataC* out_meta_array = nullptr;
   auto key_block_data = buffer.ConvertToQByteArray();
 
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(key_block_data.data()),
+      static_cast<uintptr_t>(key_block_data.size())};
+
   auto err = Rust::gfr_crypto_extract_metadata(
-      key_block_data.data(), &out_meta_array, &out_meta_count);
+      key_block_buffer, &out_meta_array, &out_meta_count);
   if (err != Rust::GfrStatus::Success) {
     LOG_E() << "gfr_crypto_extract_metadata error: " << static_cast<int>(err);
     return {};  // Return an empty container on error

@@ -62,11 +62,12 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
     return GPG_ERR_GENERAL;  // Or appropriate error code
   }
 
-  // 2. Vector to hold the pointers to pass to Rust FFI
-  std::vector<const char*> recipient_cstrs;
-  recipient_cstrs.reserve(key_blocks_utf8.size());
+  // 2. Vector to hold the GfrBuffer structs to pass to Rust FFI
+  std::vector<Rust::GfrBuffer> recipient_buffers;
+  recipient_buffers.reserve(key_blocks_utf8.size());
   for (const auto& ba : key_blocks_utf8) {
-    recipient_cstrs.push_back(ba.Data());
+    recipient_buffers.push_back(
+        {reinterpret_cast<const uint8_t*>(ba.Data()), ba.Size()});
   }
 
   auto in_file_path_utf8 = in_path.toUtf8();
@@ -83,13 +84,15 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
     // of the tar archive.
     status = Rust::gfr_crypto_encrypt_directory(
         in_file_path_utf8.constData(), out_file_path_utf8.constData(),
-        recipient_cstrs.data(), recipient_cstrs.size(), ascii, &encrypt_result);
+        recipient_buffers.data(), recipient_buffers.size(), ascii,
+        &encrypt_result);
   } else {
     // Call Rust FFI. Ensure in_buffer is a null-terminated C-string if Rust
     // expects it.
     status = Rust::gfr_crypto_encrypt_file(
         in_file_path_utf8.constData(), out_file_path_utf8.constData(),
-        recipient_cstrs.data(), recipient_cstrs.size(), ascii, &encrypt_result);
+        recipient_buffers.data(), recipient_buffers.size(), ascii,
+        &encrypt_result);
   }
 
   auto [gf_err, result] = HandleEncryptResult({}, status, encrypt_result);
@@ -194,9 +197,10 @@ auto SignFileRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
     return GPG_ERR_GENERAL;
   }
 
-  std::vector<const char*> key_block_cstrs;
+  std::vector<Rust::GfrBuffer> key_block_buffers;
   for (const auto& ba : key_block_utf8) {
-    key_block_cstrs.push_back(ba.Data());
+    key_block_buffers.push_back(
+        {reinterpret_cast<const uint8_t*>(ba.Data()), ba.Size()});
   }
 
   auto in_file_path_utf8 = in_path.toUtf8();
@@ -206,8 +210,8 @@ auto SignFileRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
 
   auto status = Rust::gfr_crypto_sign_file(
       ctx_.GetChannel(), in_file_path_utf8.constData(),
-      out_file_path_utf8.constData(), key_block_cstrs.data(),
-      key_block_cstrs.size(), FetchPasswordCallback,
+      out_file_path_utf8.constData(), key_block_buffers.data(),
+      key_block_buffers.size(), FetchPasswordCallback,
       Rust::GfrSignMode::Detached, ascii, &sign_result);
 
   auto [gf_err, result] = HandleSignResult({}, status, sign_result);
@@ -279,21 +283,23 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
     return GPG_ERR_GENERAL;  // Or appropriate error code
   }
 
-  std::vector<const char*> recipient_cstrs;
-  recipient_cstrs.reserve(key_blocks_utf8.size());
+  std::vector<Rust::GfrBuffer> recipient_buffers;
+  recipient_buffers.reserve(key_blocks_utf8.size());
   for (const auto& ba : key_blocks_utf8) {
-    recipient_cstrs.push_back(ba.Data());
+    recipient_buffers.push_back(
+        {reinterpret_cast<const uint8_t*>(ba.Data()), ba.Size()});
   }
 
   auto skey_utf8_list = GetSecretKeysByKeyIdForSigning(*key_db, sign_keys);
-  std::vector<const char*> c_skeys;
+  std::vector<Rust::GfrBuffer> c_skeys;
 
   // Fetch key blocks and safely store memory
 
-  // Extract C-string pointers
+  // Extract GfrBuffer structs
   c_skeys.reserve(skey_utf8_list.size());
   for (const auto& i : skey_utf8_list) {
-    c_skeys.push_back(i.Data());
+    c_skeys.push_back(
+        {reinterpret_cast<const uint8_t*>(i.Data()), i.Size()});
   }
 
   Rust::GfrStatus err;
@@ -304,14 +310,14 @@ auto EncryptSignFileRpgpImpl(OpenPGPContext& ctx,
   if (is_directory) {
     err = Rust::gfr_crypto_encrypt_and_sign_directory(
         ctx.GetChannel(), in_path.toUtf8().constData(),
-        out_path.toUtf8().constData(), recipient_cstrs.data(),
-        recipient_cstrs.size(), c_skeys.data(), c_skeys.size(),
+        out_path.toUtf8().constData(), recipient_buffers.data(),
+        recipient_buffers.size(), c_skeys.data(), c_skeys.size(),
         FetchPasswordCallback, ascii, &encrypt_sign_result);
   } else {
     err = Rust::gfr_crypto_encrypt_and_sign_file(
         ctx.GetChannel(), in_path.toUtf8().constData(),
-        out_path.toUtf8().constData(), recipient_cstrs.data(),
-        recipient_cstrs.size(), c_skeys.data(), c_skeys.size(),
+        out_path.toUtf8().constData(), recipient_buffers.data(),
+        recipient_buffers.size(), c_skeys.data(), c_skeys.size(),
         FetchPasswordCallback, ascii, &encrypt_sign_result);
   }
 

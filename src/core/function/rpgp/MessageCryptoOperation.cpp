@@ -60,11 +60,12 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
     return GPG_ERR_GENERAL;  // Or appropriate error code
   }
 
-  // 2. Vector to hold the pointers to pass to Rust FFI
-  std::vector<const char*> recipient_cstrs;
-  recipient_cstrs.reserve(key_blocks_utf8.size());
+  // 2. Vector to hold the GfrBuffer structs to pass to Rust FFI
+  std::vector<Rust::GfrBuffer> recipient_buffers;
+  recipient_buffers.reserve(key_blocks_utf8.size());
   for (const auto& ba : key_blocks_utf8) {
-    recipient_cstrs.push_back(ba.Data());
+    recipient_buffers.push_back(
+        {reinterpret_cast<const uint8_t*>(ba.Data()), ba.Size()});
   }
 
   std::string name;
@@ -75,8 +76,8 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
   // expects it.
   auto status = Rust::gfr_crypto_encrypt_data(
       name.c_str(), reinterpret_cast<const uint8_t*>(in_buffer.Data()),
-      in_buffer.Size(), recipient_cstrs.data(), recipient_cstrs.size(), ascii,
-      &encrypt_result);
+      in_buffer.Size(), recipient_buffers.data(), recipient_buffers.size(),
+      ascii, &encrypt_result);
 
   auto [gf_err, result] =
       HandleEncryptResult(in_buffer, status, encrypt_result);
@@ -128,10 +129,8 @@ auto ExportKeyBlockForSigning(GFKeyDatabase& key_db,
     }
 
     auto skey_data = blocks->secret_key;
-    auto data = GFBuffer();
+    auto data = skey_data;
 
-    // If the signer is a GPG key, check if there's a marked subkey and use it
-    // for signing if available and valid.
     if (signer->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
       auto key = GetGpgKeyByGpgAbstractKey(signer.data());
 
@@ -141,14 +140,10 @@ auto ExportKeyBlockForSigning(GFKeyDatabase& key_db,
                   << " for signing instead of primary key with fpr: "
                   << signer->Fingerprint();
           auto prefix = sub.Fingerprint().toUtf8() + "!\n";
+          data = GFBuffer();
           data.Combine({GFBuffer(prefix), skey_data});
           break;
         }
-
-        LOG_D() << "No marked subkey found for key with fpr: "
-                << signer->Fingerprint()
-                << ", using primary key block for signing.";
-        data = skey_data;
       }
     }
 
@@ -174,11 +169,12 @@ auto SignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& signers,
     return err;
   }
 
-  // Extract C-string pointers
-  std::vector<const char*> c_skeys;
+  // Extract GfrBuffer structs
+  std::vector<Rust::GfrBuffer> c_skeys;
   c_skeys.reserve(skey_utf8_list.size());
   for (const auto& i : skey_utf8_list) {
-    c_skeys.push_back(i.Data());
+    c_skeys.push_back(
+        {reinterpret_cast<const uint8_t*>(i.Data()), i.Size()});
   }
 
   QByteArray name_utf8;
@@ -267,19 +263,21 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
     return GPG_ERR_GENERAL;  // Or appropriate error code
   }
 
-  std::vector<const char*> recipient_cstrs;
-  recipient_cstrs.reserve(key_blocks_utf8.size());
+  std::vector<Rust::GfrBuffer> recipient_buffers;
+  recipient_buffers.reserve(key_blocks_utf8.size());
   for (const auto& ba : key_blocks_utf8) {
-    recipient_cstrs.push_back(ba.Data());
+    recipient_buffers.push_back(
+        {reinterpret_cast<const uint8_t*>(ba.Data()), ba.Size()});
   }
 
   auto skey_utf8_list = GetSecretKeysByKeyIdForSigning(*key_db, signers);
 
-  // Extract C-string pointers
-  std::vector<const char*> c_skeys;
+  // Extract GfrBuffer structs
+  std::vector<Rust::GfrBuffer> c_skeys;
   c_skeys.reserve(skey_utf8_list.size());
   for (const auto& i : skey_utf8_list) {
-    c_skeys.push_back(i.Data());
+    c_skeys.push_back(
+        {reinterpret_cast<const uint8_t*>(i.Data()), i.Size()});
   }
 
   QString name;
@@ -289,7 +287,7 @@ auto EncryptSignRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
   auto err = Rust::gfr_crypto_encrypt_and_sign_data(
       ctx.GetChannel(), name.toUtf8().constData(),
       reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
-      recipient_cstrs.data(), recipient_cstrs.size(), c_skeys.data(),
+      recipient_buffers.data(), recipient_buffers.size(), c_skeys.data(),
       c_skeys.size(), FetchPasswordCallback, ascii, &encrypt_sign_result);
 
   auto [gf_err, encrypt_result] =

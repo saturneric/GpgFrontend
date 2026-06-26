@@ -193,9 +193,13 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
     return GPG_ERR_GENERAL;
   }
 
-  auto err = Rust::gfr_crypto_add_subkey(ctx.GetChannel(),
-                                         key_block_data.Data(), key_config,
-                                         FetchPasswordCallback, &kg_result);
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(key_block_data.Data()),
+      key_block_data.Size()};
+
+  auto err = Rust::gfr_crypto_add_subkey(ctx.GetChannel(), key_block_buffer,
+                                         key_config, FetchPasswordCallback,
+                                         &kg_result);
   if (err != Rust::GfrStatus::Success) {
     data_object->Swap({GpgGenerateKeyResult{}});
     LOG_D() << "gfr_crypto_add_subkey error, code: " << static_cast<int>(err);

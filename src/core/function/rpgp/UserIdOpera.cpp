@@ -67,8 +67,13 @@ auto AddUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   auto uid_utf8 = uid.toUtf8();
 
   char* out_block = nullptr;
+
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(secret_key_block.Data()),
+      secret_key_block.Size()};
+
   auto status = Rust::gfr_crypto_add_user_id(
-      ctx.GetChannel(), secret_key_block.Data(), uid_utf8.constData(),
+      ctx.GetChannel(), key_block_buffer, uid_utf8.constData(),
       FetchPasswordCallback, &out_block);
 
   LOG_D() << "Rust function gfr_crypto_add_user_id returned status: "
@@ -137,8 +142,13 @@ auto DeleteUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   }
 
   char* out_block = nullptr;
+
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(secret_key_block.Data()),
+      secret_key_block.Size()};
+
   auto status = Rust::gfr_crypto_delete_user_id(
-      secret_key_block.Data(), uid_utf8.constData(), &out_block);
+      key_block_buffer, uid_utf8.constData(), &out_block);
 
   LOG_D() << "Rust function gfr_crypto_delete_user_id returned status: "
           << static_cast<int>(status);
@@ -202,8 +212,13 @@ auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   auto uid_utf8 = uid.toUtf8();
 
   char* out_block = nullptr;
+
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(secret_key_block.Data()),
+      secret_key_block.Size()};
+
   auto status = Rust::gfr_crypto_set_primary_user_id(
-      ctx.GetChannel(), secret_key_block.Data(), uid_utf8.constData(),
+      ctx.GetChannel(), key_block_buffer, uid_utf8.constData(),
       FetchPasswordCallback, &out_block);
 
   LOG_D() << "Rust function gfr_crypto_set_primary_user_id returned status: "
@@ -280,8 +295,13 @@ auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   }
 
   char* out_block = nullptr;
+
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(secret_key_block.Data()),
+      secret_key_block.Size()};
+
   auto status = Rust::gfr_crypto_revoke_user_id(
-      ctx.GetChannel(), secret_key_block.Data(), uid_utf8.constData(),
+      ctx.GetChannel(), key_block_buffer, uid_utf8.constData(),
       static_cast<Rust::GfrRevocationCode>(mapped_reason_code),
       reason_text_utf8.constData(), FetchPasswordCallback, &out_block);
 

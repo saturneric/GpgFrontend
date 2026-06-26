@@ -76,9 +76,16 @@ auto MergeGFKeyRpgpImpl(const QContainer<GFKey>& gf_keys, bool secret)
     char* out_sec = nullptr;
     char* out_pub = nullptr;
 
+    Rust::GfrBuffer base_buffer = {
+        reinterpret_cast<const uint8_t*>(current_merged_block.Data()),
+        current_merged_block.Size()};
+    Rust::GfrBuffer incoming_buffer = {
+        reinterpret_cast<const uint8_t*>(blocks_to_merge[i].Data()),
+        blocks_to_merge[i].Size()};
+
     auto err = Rust::gfr_crypto_merge_key_blocks(
-        current_merged_block.Data(),  // base
-        blocks_to_merge[i].Data(),    // incoming
+        base_buffer,      // base
+        incoming_buffer,  // incoming
         &out_sec, &out_pub);
 
     if (err != Rust::GfrStatus::Success) {
@@ -255,8 +262,13 @@ auto ImportRevCertRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
           << in_buffer_utf8.size();
 
   char* out_fpr = nullptr;
+
+  Rust::GfrBuffer rev_cert_buffer = {
+      reinterpret_cast<const uint8_t*>(in_buffer_utf8.data()),
+      static_cast<uintptr_t>(in_buffer_utf8.size())};
+
   auto status = Rust::gfr_crypto_extract_rev_cert_target_fpr(
-      in_buffer_utf8.data(), &out_fpr);
+      rev_cert_buffer, &out_fpr);
 
   if (status != Rust::GfrStatus::Success) {
     LOG_E() << "gfr_crypto_extract_rev_cert_target_fpr failed with status: "
@@ -307,8 +319,13 @@ auto ImportRevCertRpgpImpl(OpenPGPContext& ctx, const GFBuffer& in_buffer)
 
   char* out_sec = nullptr;
   char* out_pub = nullptr;
+
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(key_block_utf8.Data()),
+      key_block_utf8.Size()};
+
   status = Rust::gfr_crypto_import_rev_cert(
-      key_block_utf8.Data(), in_buffer_utf8.data(), &out_sec, &out_pub);
+      key_block_buffer, rev_cert_buffer, &out_sec, &out_pub);
 
   if (status != Rust::GfrStatus::Success) {
     LOG_E() << "gfr_crypto_import_rev_cert failed with status: "
