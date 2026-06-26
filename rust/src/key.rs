@@ -44,7 +44,7 @@ use crate::utils::{
     fetch_password_with_cache, password_from_zeroizing_bytes,
 };
 use pgp::armor::{self, BlockType};
-use pgp::composed::SignedPublicSubKey;
+use pgp::composed::{SignedPublicSubKey, SignedSecretSubKey};
 use pgp::crypto::hash::HashAlgorithm;
 use pgp::packet::{Packet, PacketHeader, SignatureConfig, SignatureType, Subpacket, SubpacketData};
 use pgp::types::{KeyDetails, KeyVersion, Password, SecretParams, SignedUser};
@@ -1264,7 +1264,31 @@ fn merge_sk_into_sk(
         &source.details.direct_signatures,
         &source.details.revocation_signatures,
         &source.details.users,
-    )
+    )?;
+
+    merge_secret_subkeys(&mut target.secret_subkeys, &source.secret_subkeys)?;
+
+    Ok(())
+}
+
+fn merge_secret_subkeys(
+    dst: &mut Vec<SignedSecretSubKey>,
+    src: &[SignedSecretSubKey],
+) -> Result<(), GfrStatus> {
+    for src_sub in src {
+        let src_fpr = src_sub.key.fingerprint().to_string();
+
+        if let Some(dst_sub) = dst
+            .iter_mut()
+            .find(|s| s.key.fingerprint().to_string() == src_fpr)
+        {
+            merge_signatures(&mut dst_sub.signatures, &src_sub.signatures)?;
+        } else {
+            dst.push(src_sub.clone());
+        }
+    }
+
+    Ok(())
 }
 
 fn merge_pk_into_sk(
