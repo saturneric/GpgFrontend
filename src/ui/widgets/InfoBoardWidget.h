@@ -109,8 +109,6 @@ class InfoBoardWidget : public QWidget {
     static constexpr int kKeyColumnWidth = 86;
     static constexpr int kCardKeyWidth = 76;
     static constexpr int kMaxResultCards = 6;
-    static constexpr int kWatermarkFontSize = 54;
-    static constexpr int kIconPadding = 80;
   };
 
   QSharedPointer<Ui_InfoBoard> ui_;

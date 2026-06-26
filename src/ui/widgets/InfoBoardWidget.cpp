@@ -36,54 +36,45 @@
 
 namespace {
 
-// Internal QFrame subclass that paints a diagonal watermark behind children.
+// Internal QFrame subclass that paints a logo watermark behind children.
 class DocFrame final : public QFrame {
  public:
   using QFrame::QFrame;
 
-  void SetWatermark(const QString& text, const QColor& color) {
-    watermark_text_ = text;
-    watermark_color_ = color;
+  void SetWatermark(const QString& /*text*/, const QColor& /*color*/) {
+    watermark_active_ = true;
+    if (watermark_pixmap_.isNull()) {
+      watermark_pixmap_ =
+          QPixmap(QStringLiteral(":/icons/gpgfrontend_logo.png"));
+    }
     update();
   }
 
   void ClearWatermark() {
-    watermark_text_.clear();
+    watermark_active_ = false;
     update();
   }
 
  protected:
   void paintEvent(QPaintEvent* ev) override {
     QFrame::paintEvent(ev);
-    if (watermark_text_.isEmpty()) return;
+    if (!watermark_active_ || watermark_pixmap_.isNull()) return;
+
+    constexpr int kWatermarkSize = 320;
+    const QPixmap scaled =
+        watermark_pixmap_.scaled(kWatermarkSize, kWatermarkSize,
+                                 Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
     QPainter p(this);
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setRenderHint(QPainter::TextAntialiasing);
-
-    QFont f = font();
-    f.setPointSize(54);
-    f.setBold(true);
-    f.setLetterSpacing(QFont::AbsoluteSpacing, 10);
-    p.setFont(f);
-
-    QColor c = watermark_color_;
-    c.setAlpha(14);
-    p.setPen(c);
-
-    p.save();
-    p.translate(width() / 2.0, height() / 2.0);
-    p.rotate(-35);
-    const QFontMetrics fm(f);
-    const int tw = fm.horizontalAdvance(watermark_text_);
-    p.drawText(QRect(-(tw + 80) / 2, -40, tw + 80, 80), Qt::AlignCenter,
-               watermark_text_);
-    p.restore();
+    p.setRenderHint(QPainter::SmoothPixmapTransform);
+    p.setOpacity(0.06);
+    p.drawPixmap((width() - scaled.width()) / 2,
+                 (height() - scaled.height()) / 2, scaled);
   }
 
  private:
-  QString watermark_text_;
-  QColor watermark_color_;
+  bool watermark_active_ = false;
+  QPixmap watermark_pixmap_;
 };
 
 }  // namespace
@@ -222,8 +213,10 @@ auto InfoBoardWidget::StatusDescription(InfoBoardStatus status,
                        .arg(op);
     case kINFO_ERROR_CRITICAL:
       return op.isEmpty()
-                 ? tr("The operation failed. See the details for more information.")
-                 : tr("%1 failed. See the details for more information.").arg(op);
+                 ? tr("The operation failed. See the details for more "
+                      "information.")
+                 : tr("%1 failed. See the details for more information.")
+                       .arg(op);
     default:
       return {};
   }
@@ -1704,9 +1697,9 @@ void InfoBoardWidget::slot_save() {
         QStringLiteral("GpgFrontend_%1")
             .arg(current_id_.isEmpty() ? QStringLiteral("Document")
                                        : current_id_);
-    QString file_path = QFileDialog::getSaveFileName(
-        this, tr("Export Certificate"), suggested,
-        tr("PNG Image (*.png);;All Files (*)"));
+    QString file_path =
+        QFileDialog::getSaveFileName(this, tr("Export Certificate"), suggested,
+                                     tr("PNG Image (*.png);;All Files (*)"));
     if (file_path.isEmpty()) return;
     if (!file_path.endsWith(QStringLiteral(".png"), Qt::CaseInsensitive))
       file_path += QStringLiteral(".png");
