@@ -65,11 +65,11 @@ auto TestPassphraseCb(void* opaque, const char* uid_hint,
 }
 
 void ImportPrivateKeys() {
-  auto key_files = QDir(":/test/key").entryList();
+  auto key_files = QDir(":/test/gpg_keys").entryList();
 
   for (const auto& key_file : key_files) {
     auto [success, gf_buffer] =
-        ReadFileGFBuffer(QString(":/test/key") + "/" + key_file);
+        ReadFileGFBuffer(QString(":/test/gpg_keys") + "/" + key_file);
 
     if (success) {
       auto info = KeyImportExportOperation::GetInstance(

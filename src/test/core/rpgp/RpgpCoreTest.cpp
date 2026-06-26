@@ -32,6 +32,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/rpgp/PasswordFetcher.h"
 #include "core/utils/IOUtils.h"
 
 namespace GpgFrontend::Test {
@@ -41,15 +42,14 @@ bool RpgpCoreTest::is_rpgp_available = false;
 namespace {
 
 void ImportPrivateKeys() {
-  auto key_files = QDir(":/test/rpgp_key").entryList();
+  auto key_files = QDir(":/test/rpgp_keys").entryList();
 
   for (const auto& key_file : key_files) {
     auto [success, gf_buffer] =
-        ReadFileGFBuffer(QString(":/test/rpgp_key") + "/" + key_file);
+        ReadFileGFBuffer(QString(":/test/rpgp_keys") + "/" + key_file);
 
     if (success) {
-      auto info = KeyImportExportOperation::GetInstance(
-                      GpgFrontend::kGpgFrontendDefaultChannel)
+      auto info = KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
                       .ImportKey(gf_buffer);
 
       if (info == nullptr) {
@@ -113,6 +113,12 @@ void RpgpCoreTest::SetUpTestSuite() {
     RpgpCoreTest::is_rpgp_available = false;
     return;
   }
+
+  SetChannelPasswordFetcher(
+      kRpgpChannelForUnitTest,
+      [](const PassphraseState&) -> GFBuffer {
+        return GFBuffer(QString("123456"));
+      });
 
   ImportPrivateKeys();
 }

@@ -124,12 +124,17 @@
         <file alias="stamp_failed.png">resource/lfs/icons/stamp_failed.png</file>
         <file alias="stamp_info.png">resource/lfs/icons/stamp_info.png</file>
     </qresource>
-    <qresource prefix="/test/key">
+    <qresource prefix="/test/gpg_keys">
         <file alias="pv1.key">resource/lfs/test/gpg/data/pv1.key</file>
         <file alias="pv2.key">resource/lfs/test/gpg/data/pv2.key</file>
         <file alias="pv3.key">resource/lfs/test/gpg/data/pv3.key</file>
         <file alias="pv4.key">resource/lfs/test/gpg/data/pv4.key</file>
         <file alias="tester.key">resource/lfs/test/gpg/data/tester.key</file>
+    </qresource>
+    <qresource prefix="/test/rpgp_keys">
+        <file alias="key1.asc">resource/lfs/test/rpgp/key1.asc</file>
+        <file alias="key2.asc">resource/lfs/test/rpgp/key2.asc</file>
+        <file alias="key3.asc">resource/lfs/test/rpgp/key3.asc</file>
     </qresource>
     <qresource prefix="/">
         <file alias="TRANSLATORS">TRANSLATORS</file>
