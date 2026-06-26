@@ -98,6 +98,14 @@ class UISignalStation : public QObject {
   void SignalRefreshInfoBoard(const QString& text,
                               InfoBoardStatus verify_label_status);
 
+  void SignalRefreshInfoBoardCards(const QString& text,
+                                   InfoBoardStatus verify_label_status,
+                                   const QContainer<InfoBoardCard>& cards,
+                                   const QString& operation,
+                                   const QString& description,
+                                   const QString& details_title,
+                                   const QStringList& details_items);
+
   /**
    * @brief
    *

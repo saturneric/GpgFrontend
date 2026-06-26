@@ -28,131 +28,173 @@
 
 #pragma once
 
-#include "PlainTextEditorPage.h"
-#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
+#include "core/function/result_analyse/GpgOpResultInfo.h"
+#include "core/typedef/CoreTypedef.h"
+#include "ui/struct/GpgOperaResult.h"
 
 class Ui_InfoBoard;
 
 namespace GpgFrontend::UI {
 
-/**
- * @details Enumeration for the status of Verify label
- */
-typedef enum {
-  INFO_ERROR_OK = 0,
-  INFO_ERROR_WARN = 1,
-  INFO_ERROR_CRITICAL = 2,
-  INFO_ERROR_NEUTRAL = 3,
-} InfoBoardStatus;
+enum InfoBoardStatus : uint8_t {
+  kINFO_ERROR_OK = 0,
+  kINFO_ERROR_WARN = 1,
+  kINFO_ERROR_CRITICAL = 2,
+  kINFO_ERROR_NEUTRAL = 3,
+};
 
 class TextEditTabWidget;
 
-/**
- * @brief Class for handling the verify label shown at bottom of a textedit-page
- */
+struct InfoBoardCard {
+  QString title;
+  InfoBoardStatus status{kINFO_ERROR_NEUTRAL};
+  QContainer<QPair<QString, QString>> fields;
+};
+
 class InfoBoardWidget : public QWidget {
   Q_OBJECT
+
  public:
-  /**
-   * @brief
-   *
-   * @param ctx The GPGme-Context
-   * @param parent The parent widget
-   */
   explicit InfoBoardWidget(QWidget* parent);
 
-  /**
-   * @brief
-   *
-   * @param tab
-   */
   void AssociateTabWidget(QTabWidget* tab);
-
-  /**
-   * @brief
-   *
-   */
   void ResetOptionActionsMenu();
 
-  /**
-   * @details Set the text and background-color of verify notification.
-   *
-   * @param text The text to be set.
-   * @param verify_label_status The status of label to set the specified color.
-   */
-  void SetInfoBoard(const QString& text,
-                    GpgFrontend::UI::InfoBoardStatus verify_label_status);
+  void SetInfoBoard(const QString& text, InfoBoardStatus status,
+                    const QString& content_hash = {});
+  void SetInfoBoardCards(const QString& text, InfoBoardStatus status,
+                         const QContainer<InfoBoardCard>& cards,
+                         const QString& operation = {},
+                         const QString& description = {},
+                         const QString& details_title = {},
+                         const QStringList& details_items = {},
+                         const QString& content_hash = {});
+  void SetInfoBoardFromResults(const QString& text,
+                               InfoBoardStatus overall_status,
+                               const QContainer<GpgOperaResult>& results);
+  void SetInfoBoardWithOpInfo(const QString& text, InfoBoardStatus status,
+                              const GpgFrontend::GpgOpResultInfo& info);
 
-  /**
-   * @brief
-   *
-   */
   void InitUI();
-
-  /**
-   * @brief
-   *
-   */
   void UpdateActionButtons();
 
-  /**
-   * @brief
-   *
-   * @param status
-   */
-  void ApplyStatusStyle(GpgFrontend::UI::InfoBoardStatus status);
+  void ApplyStatusStyle(InfoBoardStatus status);
 
-  /**
-   * @brief
-   *
-   * @param status
-   * @return QString
-   */
-  [[nodiscard]] auto StatusTitle(GpgFrontend::UI::InfoBoardStatus status) const
+  [[nodiscard]] auto StatusTitle(InfoBoardStatus status) const -> QString;
+  [[nodiscard]] auto StatusColor(InfoBoardStatus status) const -> QColor;
+  [[nodiscard]] auto StatusIconPath(InfoBoardStatus status) const -> QString;
+  [[nodiscard]] auto StatusDescription(InfoBoardStatus status,
+                                       const QString& operation) const
       -> QString;
 
  public slots:
-
-  /**
-   * @brief
-   *
-   */
   void SlotReset();
-
-  /**
-   * @details Refresh the contents of dialog.
-   */
-  void SlotRefresh(const QString& text,
-                   GpgFrontend::UI::InfoBoardStatus status);
+  void SlotRefresh(const QString& text, InfoBoardStatus status);
+  void SlotRefreshWithCards(const QString& text, InfoBoardStatus status,
+                            const QContainer<InfoBoardCard>& cards,
+                            const QString& operation,
+                            const QString& description,
+                            const QString& details_title,
+                            const QStringList& details_items);
 
  private slots:
-
-  /**
-   * @brief
-   *
-   */
   void slot_copy();
-
-  /**
-   * @brief
-   *
-   */
   void slot_save();
+  void slot_tab_changed(int index);
 
  private:
-  QSharedPointer<Ui_InfoBoard> ui_;  ///<
+  struct StyleConstants {
+    static constexpr int kStampSize = 72;
+    static constexpr int kIndicatorSize = 14;
+    static constexpr int kKeyColumnWidth = 86;
+    static constexpr int kCardKeyWidth = 76;
+    static constexpr int kMaxResultCards = 6;
+    static constexpr int kWatermarkFontSize = 54;
+    static constexpr int kIconPadding = 80;
+  };
 
-  QTextEdit* m_text_page_{
-      nullptr};  ///< TextEdit associated to the notification
-  QTabWidget* m_tab_widget_{nullptr};  ///<
+  QSharedPointer<Ui_InfoBoard> ui_;
 
-  /**
-   * @brief
-   *
-   * @param layout
-   * @param start_index
-   */
-  void delete_widgets_in_layout(QLayout* layout, int start_index = 0);
+  QTextEdit* text_page_{nullptr};
+  QTabWidget* tab_widget_{nullptr};
+
+  QLabel* placeholder_label_{nullptr};
+  QScrollArea* doc_scroll_{nullptr};
+  QFrame* doc_frame_{nullptr};
+  QLabel* stamp_label_{nullptr};
+  QLabel* header_label_{nullptr};
+  QFrame* sep_top_{nullptr};
+
+  QFrame* row_operation_{nullptr};
+  QLabel* val_operation_{nullptr};
+  QFrame* row_status_{nullptr};
+  QLabel* val_status_{nullptr};
+  QFrame* row_details_{nullptr};
+  QLabel* key_details_{nullptr};
+  QWidget* details_container_{nullptr};
+  QFrame* row_engine_{nullptr};
+  QLabel* val_engine_{nullptr};
+
+  QFrame* extra_sep_{nullptr};
+  QWidget* extra_widget_{nullptr};
+  QLabel* time_label_{nullptr};
+  QLabel* id_label_{nullptr};
+  QLabel* hash_label_{nullptr};
+  QString current_id_;
+  QString current_input_hash_;
+  bool user_selected_details_tab_{false};
+
+  void init_status_page();
+  void update_status_page(const QString& text, InfoBoardStatus status,
+                          const QString& content_hash = {},
+                          const QString& operation = {},
+                          const QString& description = {},
+                          const QContainer<InfoBoardCard>& cards = {},
+                          const QString& details_title = {},
+                          const QStringList& details_items = {});
+  void update_doc_header(InfoBoardStatus status, const QString& operation,
+                         const QString& engine, const QString& count_summary);
+  void update_status_page_from_results(
+      InfoBoardStatus status, const QContainer<GpgOperaResult>& results);
+  auto populate_extra_from_op_info(QVBoxLayout* layout, QWidget* parent,
+                                   const GpgFrontend::GpgOpResultInfo& info)
+      -> bool;
+  void render_cards(QVBoxLayout* layout, QWidget* parent,
+                    const QContainer<InfoBoardCard>& cards);
+
+  static auto make_stamp_pixmap(const QColor& color, const QString& icon_path,
+                                int size) -> QPixmap;
+  static void delete_widgets_in_layout(QLayout* layout, int start_index = 0);
+
+  void setup_tool_buttons();
+  void setup_info_board();
+  void setup_status_page_layout(QVBoxLayout* page_layout);
+  void create_field_rows(QWidget* parent, QVBoxLayout* fields_layout);
+  void create_footer(QVBoxLayout* doc_layout);
+
+  [[nodiscard]] auto build_status_symbol(InfoBoardStatus status) const
+      -> QString;
+  [[nodiscard]] auto build_header_html(InfoBoardStatus status,
+                                       const QString& subtitle,
+                                       const QString& accent) const -> QString;
+  [[nodiscard]] auto build_card_stylesheet(const QColor& color) const
+      -> QString;
+  [[nodiscard]] auto build_chip_stylesheet(const QColor& color) const
+      -> QString;
+
+  void populate_details_section(const GpgFrontend::GpgOpResultInfo& info,
+                                InfoBoardStatus status);
+  void populate_details_section_generic(const QString& title,
+                                        const QStringList& items,
+                                        InfoBoardStatus status,
+                                        const QString& description = {});
+  void populate_extra_section(const GpgFrontend::GpgOpResultInfo& info,
+                              InfoBoardStatus status);
+  void populate_extra_section_generic(QVBoxLayout* layout, QWidget* parent,
+                                      const QContainer<InfoBoardCard>& cards);
+
+  void reset_document_view();
+  void clear_document_fields();
 };
 
 }  // namespace GpgFrontend::UI
