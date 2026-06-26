@@ -28,6 +28,7 @@
 
 #include "GpgOperaHelper.h"
 
+#include "core/function/GFBufferFactory.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
@@ -55,16 +56,18 @@ void StartFileHashComputation(const QString& path, HashCallback callback) {
             QFile file(path);
             if (!file.open(QIODevice::ReadOnly)) return 0;
 
-            QCryptographicHash hash(QCryptographicHash::Sha256);
             constexpr auto kBufferSize = static_cast<const qint64>(64 * 1024);
+            const auto result = GpgFrontend::GFBufferFactory::ToSha256(
+                [&file](const GpgFrontend::GFBufferFactory::Sha256Chunk& update)
+                    -> void {
+                  while (!file.atEnd()) {
+                    const QByteArray chunk = file.read(kBufferSize);
+                    if (chunk.isEmpty()) break;
+                    update(chunk.constData(), static_cast<size_t>(chunk.size()));
+                  }
+                });
 
-            while (!file.atEnd()) {
-              const QByteArray chunk = file.read(kBufferSize);
-              if (chunk.isEmpty()) break;
-              hash.addData(chunk);
-            }
-
-            *hash_holder = hash.result().toHex();
+            if (result) *hash_holder = result->ConvertToQByteArray().toHex();
             return 0;
           },
           [hash_holder, callback = std::move(callback)](
@@ -261,11 +264,9 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
   const auto& buffer = context->buffers[index];
   auto& opera_results = context->base->opera_results;
 
-  // Compute SHA-256 hash of input buffer for sign/verify operations
+  const auto hash_result = GFBufferFactory::ToSha256(buffer);
   const QString input_hash =
-      QCryptographicHash::hash(buffer.ConvertToQByteArray(),
-                               QCryptographicHash::Sha256)
-          .toHex();
+      hash_result ? hash_result->ConvertToQByteArray().toHex() : QString();
 
   return [=, &opera_results](const OperaWaitingHd& op_hd) {
     opera_func(buffer, [=, &opera_results](GpgError err,
@@ -318,11 +319,9 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
   const auto& buffer = context->buffers[index];
   auto& opera_results = context->base->opera_results;
 
-  // Compute SHA-256 hash of input buffer for sign/verify operations
+  const auto hash_result = GFBufferFactory::ToSha256(buffer);
   const QString input_hash =
-      QCryptographicHash::hash(buffer.ConvertToQByteArray(),
-                               QCryptographicHash::Sha256)
-          .toHex();
+      hash_result ? hash_result->ConvertToQByteArray().toHex() : QString();
 
   return [=, &opera_results](const OperaWaitingHd& op_hd) {
     opera_func(buffer, [=, &opera_results](GpgError err,
