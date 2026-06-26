@@ -33,7 +33,7 @@ namespace GpgFrontend::UI {
 GpgOperaResult::GpgOperaResult(GpgFrontend::GpgOpResultInfo info, QString tag)
     : tag(std::move(tag)), op_info(std::move(info)) {}
 
-void GpgOperaResult::Merge(const GpgOperaResult& other) {
+void GpgOperaResult::merge(const GpgOperaResult& other) {
   op_info.Merge(other.op_info);
 }
 
