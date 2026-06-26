@@ -26,7 +26,6 @@ easier and more trustworthy in everyday privacy workflows.
 - [GpgFrontend](#gpgfrontend)
   - [Table of Contents](#table-of-contents)
   - [User Manual](#user-manual)
-  - [GpgFrontend Lite](#gpgfrontend-lite)
   - [Release Channels](#release-channels)
   - [Supported Languages](#supported-languages)
   - [Modules](#modules)
@@ -47,21 +46,6 @@ workflows, and recommended practices for using GpgFrontend effectively.
 
 > The source code for the user manual is maintained in this
 > [repository](https://github.com/saturneric/GpgFrontend-Manual.git).
-
-## GpgFrontend Lite
-
-**GpgFrontend Lite** is the official Mac App Store edition of GpgFrontend: a
-self-contained, sandbox-friendly macOS app using the rPGP engine instead of
-GnuPG.
-
-Use the regular desktop edition for full GnuPG integration, advanced settings,
-existing GnuPG workflows, and the complete feature set. Use Lite for simple
-everyday OpenPGP operations on macOS or for experimenting with the new 2.2.x /
-rPGP-based workflow. Some advanced features are not available in Lite.
-
-[![Download on the Mac App Store](https://tools.applemediaservices.com/api/badges/download-on-the-mac-app-store/black/en-us?size=200x67)](https://apps.apple.com/app/gpgfrontend-lite/id6763597446)
-
-For more details, see the [FAQ](https://gpgfrontend.bktus.com/overview/faq/#why-is-there-a-separate-gpgfrontend-lite-edition).
 
 ## Release Channels
 
