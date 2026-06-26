@@ -228,7 +228,12 @@ auto GetArmoredKeyBlocksForKeys(GFKeyDatabase& key_db,
 
       auto secret_key_block = key_block->secret_key;
       char* public_key = nullptr;
-      auto err = Rust::gfr_crypto_extract_public_key(secret_key_block.Data(),
+
+      Rust::GfrBuffer key_block_buffer = {
+          reinterpret_cast<const uint8_t*>(secret_key_block.Data()),
+          secret_key_block.Size()};
+
+      auto err = Rust::gfr_crypto_extract_public_key(key_block_buffer,
                                                      &public_key);
 
       if (err != Rust::GfrStatus::Success) {
