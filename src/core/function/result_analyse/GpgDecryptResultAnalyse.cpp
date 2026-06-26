@@ -120,7 +120,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   } else if (status_ == 0) {
     if (!op_info_.messageIntegrityProtected) {
       op_info_.description =
-          tr("Decrypted, but message integrity protection is absent — this "
+          tr("Decrypted, but message integrity protection is absent. This "
              "may be a legacy message that cannot detect tampering.");
     } else {
       int unknown = 0;
@@ -132,7 +132,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
               ? tr("Decrypted, but %n recipient key(s) could not be found in "
                    "your keyring.",
                    "", unknown)
-              : tr("Decrypted with warnings — please review the details.");
+              : tr("Decrypted with warnings. Please review the details.");
     }
   } else {
     op_info_.description =

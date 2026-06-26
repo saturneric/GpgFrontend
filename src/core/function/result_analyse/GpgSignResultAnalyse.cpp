@@ -157,12 +157,12 @@ void GpgSignResultAnalyse::doAnalyse() {
   } else if (status_ == 0) {
     if (!op_info_.invalidSigners.isEmpty()) {
       op_info_.description =
-          tr("Signing completed, but %n signer(s) could not be used — please "
+          tr("Signing completed, but %n signer(s) could not be used. Please "
              "review the details.",
              "", static_cast<int>(op_info_.invalidSigners.size()));
     } else {
       op_info_.description =
-          tr("Signing completed with warnings — please review the details.");
+          tr("Signing completed with warnings. Please review the details.");
     }
   } else {
     op_info_.description =

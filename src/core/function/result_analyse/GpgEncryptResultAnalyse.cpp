@@ -85,7 +85,7 @@ void GpgEncryptResultAnalyse::doAnalyse() {
         raw != nullptr && raw->invalid_recipients != nullptr;
     op_info_.description =
         has_invalid
-            ? tr("Encrypted with warnings — some recipients could not be "
+            ? tr("Encrypted with warnings. Some recipients could not be "
                  "added. Please review the invalid recipient list.")
             : tr("Your data has been encrypted. Only the intended recipients "
                  "can decrypt and read it.");

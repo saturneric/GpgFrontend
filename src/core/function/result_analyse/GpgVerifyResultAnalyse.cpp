@@ -317,7 +317,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   } else if (status_ == 0) {
     if (any_validity(GpgSigValidity::kKEY_MISSING)) {
       op_info_.description =
-          tr("Verification incomplete — the signing key is not in your "
+          tr("Verification incomplete. The signing key is not in your "
              "keyring. Please import the signer's public key.");
     } else if (any_validity(GpgSigValidity::kVALID_NOT_FULLY_TRUSTED)) {
       op_info_.description =
@@ -325,31 +325,31 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
              "trusted. Consider setting a higher trust level for that key.");
     } else {
       op_info_.description =
-          tr("Verification completed with warnings — please review the "
+          tr("Verification completed with warnings. Please review the "
              "details.");
     }
   } else {
     if (any_validity(GpgSigValidity::kINVALID)) {
       op_info_.description =
-          tr("Invalid signature detected — the data may have been tampered "
+          tr("Invalid signature detected. The data may have been tampered "
              "with or the signature is corrupt.");
     } else if (any_validity(GpgSigValidity::kKEY_REVOKED)) {
       op_info_.description =
-          tr("Signature verification failed — the signing key has been "
+          tr("Signature verification failed. The signing key has been "
              "revoked.");
     } else if (any_validity(GpgSigValidity::kSIG_EXPIRED)) {
       op_info_.description =
-          tr("Signature verification failed — this signature has expired.");
+          tr("Signature verification failed. This signature has expired.");
     } else if (any_validity(GpgSigValidity::kKEY_EXPIRED)) {
       op_info_.description =
-          tr("Signature verification failed — the signing key has expired.");
+          tr("Signature verification failed. The signing key has expired.");
     } else if (any_validity(GpgSigValidity::kKEY_MISSING)) {
       op_info_.description =
-          tr("Cannot verify — the signing key is not available in your "
+          tr("Cannot verify. The signing key is not available in your "
              "keyring.");
     } else {
       op_info_.description =
-          tr("Signature verification failed — please review the details.");
+          tr("Signature verification failed. Please review the details.");
     }
   }
 }
