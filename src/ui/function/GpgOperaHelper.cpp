@@ -37,8 +37,44 @@
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
+#include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/dialog/WaitingDialog.h"
+
+namespace {
+
+using HashCallback = std::function<void(const QString&)>;
+
+void StartFileHashComputation(const QString& path, HashCallback callback) {
+  auto hash_holder = GpgFrontend::SecureCreateSharedObject<QString>();
+  GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
+      .GetTaskRunner(GpgFrontend::Thread::TaskRunnerGetter::kTaskRunnerType_IO)
+      ->PostTask(
+          QStringLiteral("ComputeFileSha256"),
+          [path, hash_holder](const GpgFrontend::DataObjectPtr&) -> int {
+            QFile file(path);
+            if (!file.open(QIODevice::ReadOnly)) return 0;
+
+            QCryptographicHash hash(QCryptographicHash::Sha256);
+            constexpr auto kBufferSize = static_cast<const qint64>(64 * 1024);
+
+            while (!file.atEnd()) {
+              const QByteArray chunk = file.read(kBufferSize);
+              if (chunk.isEmpty()) break;
+              hash.addData(chunk);
+            }
+
+            *hash_holder = hash.result().toHex();
+            return 0;
+          },
+          [hash_holder, callback = std::move(callback)](
+              int, const GpgFrontend::DataObjectPtr&) {
+            if (callback) callback(*hash_holder);
+          },
+          nullptr);
+}
+
+}  // namespace
 
 namespace GpgFrontend::UI {
 
@@ -76,6 +112,26 @@ void HandleExtraLogicIfNeeded<GpgVerifyResultAnalyse>(
   context->base->unknown_fprs.append(analyse.GetUnknownSignatures());
 }
 
+template <typename AnalyseType>
+void PopulateEncryptRecipientsIfNeeded(const QSharedPointer<GpgOperaContext>&,
+                                       GpgOpResultInfo&) {}
+
+template <>
+void PopulateEncryptRecipientsIfNeeded<GpgEncryptResultAnalyse>(
+    const QSharedPointer<GpgOperaContext>& context, GpgOpResultInfo& info) {
+  if (context->base->keys.isEmpty()) return;
+  for (const auto& key : context->base->keys) {
+    if (key == nullptr) continue;
+    GpgRecipientInfo ri;
+    ri.uid = key->UID();
+    ri.fingerprint = key->Fingerprint();
+    ri.keyId = key->ID();
+    ri.pubkeyAlgo = key->PublicKeyAlgo();
+    ri.keyFound = true;
+    info.recipients.append(ri);
+  }
+}
+
 template <typename ResultType, typename AnalyseType, typename OperaFunc>
 auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
     QSharedPointer<GpgOperaContext>& context, int channel, int index,
@@ -84,23 +140,34 @@ auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
   const auto& o_path = context->o_paths[index];
   auto& opera_results = context->base->opera_results;
 
+  auto input_hash = SecureCreateSharedObject<QString>();
+
+  // Start hash computation with callback
+  StartFileHashComputation(
+      path, [input_hash](const QString& hash) { *input_hash = hash; });
+
   return [=, &opera_results](const OperaWaitingHd& op_hd) {
     opera_func(
         path, o_path,
         [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-          // stop waiting
           op_hd();
 
           if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
-            opera_results.append({-1, "# " + tr("Operation Not Supported"),
-                                  QFileInfo(path).fileName()});
+            GpgOpResultInfo info;
+            info.status = -1;
+            info.report = "# " + tr("Operation Not Supported");
+            opera_results.append(
+                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
             return;
           }
 
           if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
               !data_obj->Check<ResultType>()) {
+            GpgOpResultInfo info;
+            info.status = -1;
+            info.report = "# " + tr("Critical Error");
             opera_results.append(
-                {-1, "# " + tr("Critical Error"), QFileInfo(path).fileName()});
+                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
             return;
           }
 
@@ -110,9 +177,14 @@ auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
 
           HandleExtraLogicIfNeeded(context, result_analyse);
 
-          opera_results.append(
-              {result_analyse.GetStatus(), result_analyse.GetResultReport(),
-               QFileInfo(path.isEmpty() ? o_path : path).fileName()});
+          auto opera_result = GpgOperaResult{
+              result_analyse.GetOpInfo(),
+              QFileInfo(path.isEmpty() ? o_path : path).fileName()};
+          opera_result.op_info.inputHash = *input_hash;
+          PopulateEncryptRecipientsIfNeeded<AnalyseType>(context,
+                                                         opera_result.op_info);
+
+          opera_results.append(opera_result);
         });
   };
 }
@@ -126,23 +198,34 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
   const auto& o_path = context->o_paths[index];
   auto& opera_results = context->base->opera_results;
 
+  auto input_hash = SecureCreateSharedObject<QString>();
+
+  // Start hash computation with callback
+  StartFileHashComputation(
+      path, [input_hash](const QString& hash) { *input_hash = hash; });
+
   return [=, &opera_results](const OperaWaitingHd& op_hd) {
     opera_func(
         path, o_path,
         [=, &opera_results](GpgError err, const DataObjectPtr& data_obj) {
-          // stop waiting
           op_hd();
 
           if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
-            opera_results.append({-1, "# " + tr("Operation Not Supported"),
-                                  QFileInfo(path).fileName()});
+            GpgOpResultInfo info;
+            info.status = -1;
+            info.report = "# " + tr("Operation Not Supported");
+            opera_results.append(
+                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
             return;
           }
 
           if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
               !data_obj->Check<ResultTypeA, ResultTypeB>()) {
+            GpgOpResultInfo info;
+            info.status = -1;
+            info.report = "# " + tr("Critical Error");
             opera_results.append(
-                {-1, "# " + tr("Critical Error"), QFileInfo(path).fileName()});
+                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
             return;
           }
 
@@ -159,12 +242,14 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
 
           HandleExtraLogicIfNeeded(context, result_analyse_2);
 
-          opera_results.append(
-              {std::min(result_analyse_1.GetStatus(),
-                        result_analyse_2.GetStatus()),
-               result_analyse_1.GetResultReport() +
-                   result_analyse_2.GetResultReport(),
-               QFileInfo(path.isEmpty() ? o_path : path).fileName()});
+          auto info = result_analyse_1.GetOpInfo();
+          info.Merge(result_analyse_2.GetOpInfo());
+          info.inputHash = *input_hash;
+          PopulateEncryptRecipientsIfNeeded<AnalyseTypeA>(context, info);
+
+          opera_results.append(GpgOperaResult{
+              std::move(info),
+              QFileInfo(path.isEmpty() ? o_path : path).fileName()});
         });
   };
 }
@@ -176,6 +261,12 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
   const auto& buffer = context->buffers[index];
   auto& opera_results = context->base->opera_results;
 
+  // Compute SHA-256 hash of input buffer for sign/verify operations
+  const QString input_hash =
+      QCryptographicHash::hash(buffer.ConvertToQByteArray(),
+                               QCryptographicHash::Sha256)
+          .toHex();
+
   return [=, &opera_results](const OperaWaitingHd& op_hd) {
     opera_func(buffer, [=, &opera_results](GpgError err,
                                            const DataObjectPtr& data_obj) {
@@ -183,13 +274,19 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
       op_hd();
 
       if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
-        opera_results.append({-1, "# " + tr("Operation Not Supported"), {}});
+        GpgOpResultInfo info;
+        info.status = -1;
+        info.report = "# " + tr("Operation Not Supported");
+        opera_results.append(GpgOperaResult{std::move(info)});
         return;
       }
 
       if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
           !data_obj->Check<ResultType, GFBuffer>()) {
-        opera_results.append({-1, "# " + tr("Critical Error"), {}});
+        GpgOpResultInfo info;
+        info.status = -1;
+        info.report = "# " + tr("Critical Error");
+        opera_results.append(GpgOperaResult{std::move(info)});
         return;
       }
 
@@ -200,8 +297,10 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
 
       HandleExtraLogicIfNeeded(context, result_analyse);
 
-      auto opera_result = GpgOperaResult{
-          result_analyse.GetStatus(), result_analyse.GetResultReport(), {}};
+      auto opera_result = GpgOperaResult{result_analyse.GetOpInfo()};
+      opera_result.op_info.inputHash = input_hash;
+      PopulateEncryptRecipientsIfNeeded<AnalyseType>(context,
+                                                     opera_result.op_info);
 
       auto o_buffer = ExtractParams<GFBuffer>(data_obj, 1);
       opera_result.o_buffer = o_buffer;
@@ -219,6 +318,12 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
   const auto& buffer = context->buffers[index];
   auto& opera_results = context->base->opera_results;
 
+  // Compute SHA-256 hash of input buffer for sign/verify operations
+  const QString input_hash =
+      QCryptographicHash::hash(buffer.ConvertToQByteArray(),
+                               QCryptographicHash::Sha256)
+          .toHex();
+
   return [=, &opera_results](const OperaWaitingHd& op_hd) {
     opera_func(buffer, [=, &opera_results](GpgError err,
                                            const DataObjectPtr& data_obj) {
@@ -226,13 +331,19 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
       op_hd();
 
       if (CheckGpgError(err) == GPG_ERR_NOT_SUPPORTED) {
-        opera_results.append({-1, "# " + tr("Operation Not Supported"), {}});
+        GpgOpResultInfo info;
+        info.status = -1;
+        info.report = "# " + tr("Operation Not Supported");
+        opera_results.append(GpgOperaResult{std::move(info)});
         return;
       }
 
       if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
           !data_obj->Check<ResultTypeA, ResultTypeB, GFBuffer>()) {
-        opera_results.append({-1, "# " + tr("Critical Error"), {}});
+        GpgOpResultInfo info;
+        info.status = -1;
+        info.report = "# " + tr("Critical Error");
+        opera_results.append(GpgOperaResult{std::move(info)});
         return;
       }
 
@@ -249,11 +360,11 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
 
       HandleExtraLogicIfNeeded(context, result_analyse_2);
 
-      auto opera_result = GpgOperaResult{
-          std::min(result_analyse_1.GetStatus(), result_analyse_2.GetStatus()),
-          result_analyse_1.GetResultReport() +
-              result_analyse_2.GetResultReport(),
-          {}};
+      auto info = result_analyse_1.GetOpInfo();
+      info.Merge(result_analyse_2.GetOpInfo());
+      info.inputHash = input_hash;
+
+      auto opera_result = GpgOperaResult{std::move(info)};
 
       auto o_buffer = ExtractParams<GFBuffer>(data_obj, 2);
       opera_result.o_buffer = o_buffer;
