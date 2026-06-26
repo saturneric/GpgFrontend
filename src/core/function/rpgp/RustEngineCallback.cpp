@@ -29,11 +29,28 @@
 #include "RustEngineCallback.h"
 
 #include <cstring>
+#include <mutex>
+#include <unordered_map>
 
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/openpgp/PassphraseService.h"
+#include "core/function/rpgp/PasswordFetcher.h"
 
 namespace GpgFrontend {
+
+namespace {
+std::mutex g_fetcher_mutex;
+std::unordered_map<int, PasswordFetcher> g_channel_fetchers;
+}  // namespace
+
+void SetChannelPasswordFetcher(int channel, PasswordFetcher fetcher) {
+  std::lock_guard<std::mutex> lock(g_fetcher_mutex);
+  if (fetcher) {
+    g_channel_fetchers[channel] = std::move(fetcher);
+  } else {
+    g_channel_fetchers.erase(channel);
+  }
+}
 
 auto FetchPublicKeyCallback(const char* fpr, void* user_data) -> char* {
   if ((fpr == nullptr) || (user_data == nullptr)) return nullptr;
@@ -89,7 +106,24 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
       .should_confirm = state.should_confirm,
   };
 
-  auto result_pwd =
+  GFBuffer result_pwd;
+
+  {
+    std::lock_guard<std::mutex> lock(g_fetcher_mutex);
+    auto it = g_channel_fetchers.find(channel);
+    if (it != g_channel_fetchers.end() && it->second) {
+      result_pwd = it->second(pp_state);
+    }
+  }
+
+  if (!result_pwd.Empty()) {
+    auto* c_pwd = reinterpret_cast<uint8_t*>(SMAMalloc(result_pwd.Size()));
+    std::memcpy(c_pwd, result_pwd.Data(), result_pwd.Size());
+    *out_pwd = c_pwd;
+    return static_cast<int>(result_pwd.Size());
+  }
+
+  result_pwd =
       PassphraseService::GetInstance(channel).RequestPassphrase(pp_state);
 
   if (result_pwd.Empty()) {

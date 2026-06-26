@@ -91,4 +91,5 @@ auto PassphraseService::RequestPassphrase(const PassphraseState& state)
   timeout_timer.stop();
   return result_pwd;
 }
+
 }  // namespace GpgFrontend
