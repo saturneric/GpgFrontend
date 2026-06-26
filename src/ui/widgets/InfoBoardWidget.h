@@ -189,10 +189,17 @@ class InfoBoardWidget : public QWidget {
                                         const QString& description = {});
   void populate_extra_section(const GpgFrontend::GpgOpResultInfo& info,
                               InfoBoardStatus status);
-  void populate_extra_section_generic(QVBoxLayout* layout, QWidget* parent,
-                                      const QContainer<InfoBoardCard>& cards);
 
   void export_doc_as_png(const QString& file_path);
+
+  void set_info_board_text(const QString& text, InfoBoardStatus status);
+  auto create_card(QWidget* parent, InfoBoardStatus status) const -> QFrame*;
+  void add_card_header(QVBoxLayout* card_layout, QWidget* parent,
+                       InfoBoardStatus status, const QString& title) const;
+  void add_card_field(QVBoxLayout* card_layout, QWidget* parent,
+                      const QString& key, const QString& value) const;
+  auto create_detail_chip(QWidget* parent, const QString& text,
+                          InfoBoardStatus status) const -> QLabel*;
 
   [[nodiscard]] auto build_op_info_copy_lines(
       const GpgFrontend::GpgOpResultInfo& info) const -> QStringList;

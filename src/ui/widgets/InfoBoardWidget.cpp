@@ -31,6 +31,7 @@
 #include "core/function/result_analyse/GpgOpResultInfo.h"
 #include "core/model/SettingsObject.h"
 #include "ui/UISignalStation.h"
+#include "ui/function/InfoBoardCardConverter.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_InfoBoard.h"
 
@@ -236,7 +237,8 @@ auto InfoBoardWidget::StatusTitle(InfoBoardStatus status) const -> QString {
   }
 }
 
-QString InfoBoardWidget::build_status_symbol(InfoBoardStatus status) const {
+auto InfoBoardWidget::build_status_symbol(InfoBoardStatus status) const
+    -> QString {
   switch (status) {
     case kINFO_ERROR_OK:
       return QStringLiteral("✓  ") + StatusTitle(status).toUpper();
@@ -253,18 +255,19 @@ auto InfoBoardWidget::build_header_html(InfoBoardStatus status,
                                         const QString& subtitle,
                                         const QString& accent) const
     -> QString {
+  const QString text_color = palette().color(QPalette::WindowText).name();
   QString html = QStringLiteral(
-                     "<span style='font-size:7pt; color:gray; "
-                     "letter-spacing:2px;'>%1</span>")
-                     .arg(tr("GPGFRONTEND SECURITY REPORT"));
+                     "<span style='font-size:9pt; color:%1; "
+                     "letter-spacing:2px;'>%2</span>")
+                     .arg(text_color, tr("GPGFRONTEND SECURITY REPORT"));
   if (!subtitle.isEmpty()) {
-    html += QStringLiteral(
-                "<br/><span style='font-size:8pt; color:gray;'>%1</span>")
-                .arg(subtitle);
+    html +=
+        QStringLiteral("<br/><span style='font-size:10pt; color:%1;'>%2</span>")
+            .arg(text_color, subtitle);
   }
   const QString symbol = build_status_symbol(status);
   html += QStringLiteral(
-              "<br/><br/><span style='font-size:14pt; font-weight:bold; "
+              "<br/><br/><span style='font-size:12pt; font-weight:bold; "
               "color:%1;'>%2</span>")
               .arg(accent, symbol);
   return html;
@@ -296,6 +299,94 @@ auto InfoBoardWidget::build_chip_stylesheet(const QColor& color) const
              "background-color: %1; border: 1px solid %2;"
              " border-radius: 4px; padding: 3px 8px;")
       .arg(chip_bg, chip_border);
+}
+
+void InfoBoardWidget::set_info_board_text(const QString& text,
+                                          InfoBoardStatus status) {
+  ApplyStatusStyle(status);
+  ui_->infoBoard->clear();
+
+  const auto title = StatusTitle(status);
+  const auto body = text.trimmed();
+
+  const auto final_text = body.isEmpty()
+                              ? tr("[%1] No details available.").arg(title)
+                              : QString("[%1] %2").arg(title, body);
+
+  ui_->infoBoard->setPlainText(final_text);
+  ui_->infoBoard->moveCursor(QTextCursor::Start);
+}
+
+auto InfoBoardWidget::create_card(QWidget* parent, InfoBoardStatus status) const
+    -> QFrame* {
+  const QColor ic = StatusColor(status);
+  auto* card = new QFrame(parent);
+  card->setObjectName(QStringLiteral("DocResultRow"));
+  card->setStyleSheet(build_card_stylesheet(ic));
+  auto* cl = new QVBoxLayout(card);
+  cl->setContentsMargins(10, 6, 10, 6);
+  cl->setSpacing(3);
+  return card;
+}
+
+void InfoBoardWidget::add_card_header(QVBoxLayout* card_layout, QWidget* parent,
+                                      InfoBoardStatus status,
+                                      const QString& title) const {
+  const QColor ic = StatusColor(status);
+  auto* hdr = new QHBoxLayout();
+  hdr->setContentsMargins(0, 0, 0, 2);
+  hdr->setSpacing(6);
+  auto* icon = new QLabel(parent);
+  icon->setFixedSize(16, 16);
+  icon->setPixmap(
+      QPixmap(StatusIconPath(status))
+          .scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  auto* lbl = new QLabel(title, parent);
+  lbl->setStyleSheet(
+      QStringLiteral("color: %1; font-weight: bold;").arg(ic.name()));
+  hdr->addWidget(icon, 0, Qt::AlignVCenter);
+  hdr->addWidget(lbl, 1);
+  card_layout->addLayout(hdr);
+}
+
+void InfoBoardWidget::add_card_field(QVBoxLayout* card_layout, QWidget* parent,
+                                     const QString& key,
+                                     const QString& value) const {
+  if (value.isEmpty()) return;
+  constexpr int kKeyW = StyleConstants::kCardKeyWidth;
+  auto* row = new QHBoxLayout();
+  row->setContentsMargins(0, 1, 0, 1);
+  row->setSpacing(6);
+  auto* kl = new QLabel(key, parent);
+  QFont kf = kl->font();
+  kf.setBold(true);
+  kf.setPointSize(std::max(7, kf.pointSize() - 1));
+  kl->setFont(kf);
+  kl->setStyleSheet(QStringLiteral("color: palette(text);"));
+  kl->setFixedWidth(kKeyW);
+  kl->setAlignment(Qt::AlignRight | Qt::AlignTop);
+  auto* vl = new QLabel(value, parent);
+  vl->setWordWrap(true);
+  vl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+  QFont vf = vl->font();
+  vf.setPointSize(std::max(7, vf.pointSize() - 1));
+  vl->setFont(vf);
+  vl->setStyleSheet(QStringLiteral("color: palette(text);"));
+  row->addWidget(kl);
+  row->addWidget(vl, 1);
+  card_layout->addLayout(row);
+}
+
+auto InfoBoardWidget::create_detail_chip(QWidget* parent, const QString& text,
+                                         InfoBoardStatus status) const
+    -> QLabel* {
+  const QColor accent = StatusColor(status);
+  auto* chip = new QLabel(text, parent);
+  chip->setWordWrap(true);
+  chip->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+  chip->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+  chip->setStyleSheet(build_chip_stylesheet(accent));
+  return chip;
 }
 
 void InfoBoardWidget::ApplyStatusStyle(InfoBoardStatus status) {
@@ -330,18 +421,7 @@ void InfoBoardWidget::ApplyStatusStyle(InfoBoardStatus status) {
 
 void InfoBoardWidget::SetInfoBoard(const QString& text, InfoBoardStatus status,
                                    const QString& content_hash) {
-  ApplyStatusStyle(status);
-  ui_->infoBoard->clear();
-
-  const auto title = StatusTitle(status);
-  const auto body = text.trimmed();
-
-  const auto final_text = body.isEmpty()
-                              ? tr("[%1] No details available.").arg(title)
-                              : QString("[%1] %2").arg(title, body);
-
-  ui_->infoBoard->setPlainText(final_text);
-  ui_->infoBoard->moveCursor(QTextCursor::Start);
+  set_info_board_text(text, status);
 
   if (status != kINFO_ERROR_NEUTRAL && doc_frame_ != nullptr) {
     update_status_page(text, status, content_hash);
@@ -363,18 +443,7 @@ void InfoBoardWidget::SetInfoBoardCards(
     const QContainer<InfoBoardCard>& cards, const QString& operation,
     const QString& description, const QString& details_title,
     const QStringList& details_items, const QString& content_hash) {
-  ApplyStatusStyle(status);
-  ui_->infoBoard->clear();
-
-  const auto title = StatusTitle(status);
-  const auto body = text.trimmed();
-
-  const auto final_text = body.isEmpty()
-                              ? tr("[%1] No details available.").arg(title)
-                              : QString("[%1] %2").arg(title, body);
-
-  ui_->infoBoard->setPlainText(final_text);
-  ui_->infoBoard->moveCursor(QTextCursor::Start);
+  set_info_board_text(text, status);
 
   if (status != kINFO_ERROR_NEUTRAL && doc_frame_ != nullptr) {
     update_status_page(text, status, content_hash, operation, description,
@@ -482,7 +551,7 @@ void InfoBoardWidget::setup_status_page_layout(QVBoxLayout* page_layout) {
   placeholder_label_->setAlignment(Qt::AlignCenter);
   placeholder_label_->setWordWrap(true);
   placeholder_label_->setStyleSheet(
-      QStringLiteral("color: palette(mid); font-style: italic;"));
+      QStringLiteral("color: palette(windowText); font-style: italic;"));
 
   doc_frame_ = new DocFrame(ui_->page_1);
   doc_frame_->setObjectName(QStringLiteral("DocFrame"));
@@ -502,7 +571,7 @@ void InfoBoardWidget::create_field_rows(QWidget* parent,
     kf.setBold(true);
     kf.setPointSize(std::max(7, kf.pointSize() - 1));
     lbl->setFont(kf);
-    lbl->setStyleSheet(QStringLiteral("color: palette(mid);"));
+    lbl->setStyleSheet(QStringLiteral("color: palette(text);"));
     return lbl;
   };
 
@@ -569,7 +638,7 @@ void InfoBoardWidget::create_footer(QVBoxLayout* doc_layout) {
 
   QFont footer_font = font();
   footer_font.setPointSize(std::max(7, footer_font.pointSize() - 2));
-  const QString footer_style = QStringLiteral("color: palette(mid);");
+  const QString footer_style = QStringLiteral("color: palette(text);");
 
   id_label_ = new QLabel(doc_frame_);
   id_label_->setFont(footer_font);
@@ -766,11 +835,12 @@ void InfoBoardWidget::update_status_page(
 
   QString resolved_operation = operation;
   QString resolved_description = description;
-  if (resolved_description.isEmpty() && !resolved_operation.isEmpty())
+  if (resolved_description.isEmpty() && !resolved_operation.isEmpty()) {
     resolved_description = StatusDescription(status, resolved_operation);
+  }
   QContainer<InfoBoardCard> resolved_cards = cards;
-  QString resolved_details_title = details_title;
-  QStringList resolved_details_items = details_items;
+  const QString& resolved_details_title = details_title;
+  const QStringList& resolved_details_items = details_items;
 
   if (resolved_cards.isEmpty() && resolved_details_items.isEmpty()) {
     const QString hash_title = tr("File Hash Information");
@@ -827,8 +897,8 @@ void InfoBoardWidget::update_status_page(
   if (!resolved_cards.isEmpty()) {
     auto* extra_layout = qobject_cast<QVBoxLayout*>(extra_widget_->layout());
     if (extra_layout != nullptr) {
-      populate_extra_section_generic(extra_layout, extra_widget_,
-                                     resolved_cards);
+      delete_widgets_in_layout(extra_layout, 0);
+      render_cards(extra_layout, extra_widget_, resolved_cards);
       has_extra = true;
     }
   }
@@ -904,11 +974,11 @@ void InfoBoardWidget::update_status_page(
       lines << current_id_;
       lines << QString(current_id_.length(), QLatin1Char('-'));
     }
-    if (!resolved_operation.isEmpty())
+    if (!resolved_operation.isEmpty()) {
       lines << tr("Operation: %1").arg(resolved_operation);
+    }
     lines << tr("Status:    %1").arg(build_status_symbol(status));
-    if (!content_hash.isEmpty())
-      lines << tr("SHA-256:   %1").arg(content_hash);
+    if (!content_hash.isEmpty()) lines << tr("SHA-256:   %1").arg(content_hash);
     if (!resolved_description.isEmpty()) lines << resolved_description;
     if (!resolved_details_items.isEmpty()) {
       const QString key = resolved_details_title.isEmpty()
@@ -920,8 +990,9 @@ void InfoBoardWidget::update_status_page(
     for (const auto& card : resolved_cards) {
       lines << QString();
       lines << card.title;
-      for (const auto& f : card.fields)
+      for (const auto& f : card.fields) {
         lines << QStringLiteral("  %1: %2").arg(f.first, f.second);
+      }
     }
     lines << QString() << time_label_->text();
     current_copy_text_ = lines.join(QLatin1Char('\n'));
@@ -946,22 +1017,15 @@ void InfoBoardWidget::populate_details_section(
 
   delete_widgets_in_layout(dc_layout, 0);
 
-  const QColor accent = StatusColor(status);
-  const QString chip_style = build_chip_stylesheet(accent);
-
   for (const auto& detail : info.details) {
-    auto* chip = new QLabel(detail, details_container_);
-    chip->setWordWrap(true);
-    chip->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    chip->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    chip->setStyleSheet(chip_style);
-    dc_layout->addWidget(chip);
+    dc_layout->addWidget(
+        create_detail_chip(details_container_, detail, status));
   }
   row_details_->setVisible(true);
 }
 
 void InfoBoardWidget::populate_extra_section(
-    const GpgFrontend::GpgOpResultInfo& info, InfoBoardStatus status) {
+    const GpgFrontend::GpgOpResultInfo& info, InfoBoardStatus /*status*/) {
   if (extra_widget_ == nullptr) return;
 
   auto* l = qobject_cast<QVBoxLayout*>(extra_widget_->layout());
@@ -971,7 +1035,10 @@ void InfoBoardWidget::populate_extra_section(
 
   const QString& desc = info.description;
   if (!desc.isEmpty()) {
-    auto* desc_label = new QLabel(desc, extra_widget_);
+    auto* desc_label = new QLabel(extra_widget_);
+    desc_label->setTextFormat(Qt::RichText);
+    desc_label->setText(
+        QStringLiteral("<span style='font-size:11pt;'>%1</span>").arg(desc));
     desc_label->setWordWrap(true);
     desc_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     desc_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -1002,37 +1069,25 @@ void InfoBoardWidget::populate_details_section_generic(
 
   // Add description at the top if provided
   if (!description.isEmpty()) {
-    auto* desc_label = new QLabel(description, details_container_);
+    auto* desc_label = new QLabel(details_container_);
+    desc_label->setTextFormat(Qt::RichText);
+    desc_label->setText(
+        QStringLiteral(
+            "<span style='font-size:11pt; font-style:italic;'>%1</span>")
+            .arg(description));
     desc_label->setWordWrap(true);
     desc_label->setAlignment(Qt::AlignLeft | Qt::AlignTop);
     desc_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     desc_label->setStyleSheet(
-        QStringLiteral("color: palette(mid); font-style: italic; padding: 4px "
+        QStringLiteral("color: palette(text); padding: 4px "
                        "0; border-bottom: 1px solid palette(mid);"));
     dc_layout->addWidget(desc_label);
   }
 
-  const QColor accent = StatusColor(status);
-  const QString chip_style = build_chip_stylesheet(accent);
-
   for (const auto& item : items) {
-    auto* chip = new QLabel(item, details_container_);
-    chip->setWordWrap(true);
-    chip->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    chip->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    chip->setStyleSheet(chip_style);
-    dc_layout->addWidget(chip);
+    dc_layout->addWidget(create_detail_chip(details_container_, item, status));
   }
   row_details_->setVisible(true);
-}
-
-void InfoBoardWidget::populate_extra_section_generic(
-    QVBoxLayout* layout, QWidget* parent,
-    const QContainer<InfoBoardCard>& cards) {
-  if (layout == nullptr || parent == nullptr) return;
-
-  delete_widgets_in_layout(layout, 0);
-  render_cards(layout, parent, cards);
 }
 
 void InfoBoardWidget::SetInfoBoardWithOpInfo(
@@ -1056,23 +1111,26 @@ void InfoBoardWidget::SetInfoBoardWithOpInfo(
       lines << current_id_;
       lines << QString(current_id_.length(), QLatin1Char('-'));
     }
-    if (!info.operation.isEmpty())
+    if (!info.operation.isEmpty()) {
       lines << tr("Operation: %1").arg(info.operation);
+    }
     lines << tr("Status:    %1").arg(build_status_symbol(status));
     if (!info.engine.isEmpty()) lines << tr("Engine:    %1").arg(info.engine);
-    if (!info.inputHash.isEmpty())
+    if (!info.inputHash.isEmpty()) {
       lines << tr("SHA-256:   %1").arg(info.inputHash);
+    }
     if (!info.description.isEmpty()) lines << info.description;
-    if (!info.details.isEmpty())
-      lines << tr("Details:   %1").arg(
-          info.details.join(QStringLiteral(", ")));
+    if (!info.details.isEmpty()) {
+      lines << tr("Details:   %1").arg(info.details.join(QStringLiteral(", ")));
+    }
     const QStringList card_lines = build_op_info_copy_lines(info);
     if (!card_lines.isEmpty()) {
       lines << QString();
       lines.append(card_lines);
     }
-    if (time_label_ != nullptr && !time_label_->text().isEmpty())
+    if (time_label_ != nullptr && !time_label_->text().isEmpty()) {
       lines << QString() << time_label_->text();
+    }
     current_copy_text_ = lines.join(QLatin1Char('\n'));
   }
 }
@@ -1215,7 +1273,11 @@ void InfoBoardWidget::update_status_page_from_results(
                                ? StatusDescription(status, agg_operation)
                                : agg_description;
   if (!agg_desc.isEmpty()) {
-    auto* desc_label = new QLabel(agg_desc, extra_widget_);
+    auto* desc_label = new QLabel(extra_widget_);
+    desc_label->setTextFormat(Qt::RichText);
+    desc_label->setText(
+        QStringLiteral("<span style='font-size:11pt;'>%1</span>")
+            .arg(agg_desc));
     desc_label->setWordWrap(true);
     desc_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     desc_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
@@ -1236,7 +1298,7 @@ void InfoBoardWidget::update_status_page_from_results(
       QFont f = more->font();
       f.setPointSize(std::max(7, f.pointSize() - 1));
       more->setFont(f);
-      more->setStyleSheet(QStringLiteral("color: palette(mid);"));
+      more->setStyleSheet(QStringLiteral("color: palette(text);"));
       extra_layout->addWidget(more);
       break;
     }
@@ -1297,19 +1359,21 @@ void InfoBoardWidget::update_status_page_from_results(
       lines << current_id_;
       lines << QString(current_id_.length(), QLatin1Char('-'));
     }
-    if (!agg_operation.isEmpty())
+    if (!agg_operation.isEmpty()) {
       lines << tr("Operation: %1").arg(agg_operation);
+    }
     lines << tr("Status:    %1").arg(build_status_symbol(status));
     if (!agg_engine.isEmpty()) lines << tr("Engine:    %1").arg(agg_engine);
     if (!count_summary.isEmpty()) lines << count_summary;
     if (!agg_desc.isEmpty()) lines << agg_desc;
-    if (!agg_details.isEmpty())
-      lines << tr("Details:   %1").arg(
-          agg_details.join(QStringLiteral(", ")));
+    if (!agg_details.isEmpty()) {
+      lines << tr("Details:   %1").arg(agg_details.join(QStringLiteral(", ")));
+    }
     for (const auto& r : results) {
       QStringList card_lines;
-      if (!r.op_info.inputHash.isEmpty())
+      if (!r.op_info.inputHash.isEmpty()) {
         card_lines << tr("  SHA-256: %1").arg(r.op_info.inputHash);
+      }
       card_lines.append(build_op_info_copy_lines(r.op_info));
       if (!card_lines.isEmpty()) {
         lines << QString();
@@ -1328,292 +1392,15 @@ auto InfoBoardWidget::populate_extra_from_op_info(QVBoxLayout* extra_layout,
     -> bool {
   if (extra_layout == nullptr || parent == nullptr) return false;
 
-  auto create_card = [&](InfoBoardStatus cs, QFrame*& out_card,
-                         QVBoxLayout*& out_layout) {
-    const QColor ic = StatusColor(cs);
-    out_card = new QFrame(parent);
-    out_card->setObjectName(QStringLiteral("DocResultRow"));
-    out_card->setStyleSheet(build_card_stylesheet(ic));
-    out_layout = new QVBoxLayout(out_card);
-    out_layout->setContentsMargins(10, 6, 10, 6);
-    out_layout->setSpacing(3);
-  };
-
-  auto add_header = [&](QVBoxLayout* cl, QWidget* p, InfoBoardStatus cs,
-                        const QString& title) {
-    const QColor ic = StatusColor(cs);
-    auto* hdr = new QHBoxLayout();
-    hdr->setContentsMargins(0, 0, 0, 2);
-    hdr->setSpacing(6);
-    auto* icon = new QLabel(p);
-    icon->setFixedSize(16, 16);
-    icon->setPixmap(
-        QPixmap(StatusIconPath(cs))
-            .scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    auto* lbl = new QLabel(title, p);
-    lbl->setStyleSheet(
-        QStringLiteral("color: %1; font-weight: bold;").arg(ic.name()));
-    hdr->addWidget(icon, 0, Qt::AlignVCenter);
-    hdr->addWidget(lbl, 1);
-    cl->addLayout(hdr);
-  };
-
-  constexpr int kKeyW = StyleConstants::kCardKeyWidth;
-  auto add_field = [&](QVBoxLayout* cl, QWidget* p, const QString& key,
-                       const QString& val) {
-    if (val.isEmpty()) return;
-    auto* row = new QHBoxLayout();
-    row->setContentsMargins(0, 1, 0, 1);
-    row->setSpacing(6);
-    auto* kl = new QLabel(key, p);
-    QFont kf = kl->font();
-    kf.setBold(true);
-    kf.setPointSize(std::max(7, kf.pointSize() - 1));
-    kl->setFont(kf);
-    kl->setStyleSheet(QStringLiteral("color: palette(mid);"));
-    kl->setFixedWidth(kKeyW);
-    kl->setAlignment(Qt::AlignRight | Qt::AlignTop);
-    auto* vl = new QLabel(val, p);
-    vl->setWordWrap(true);
-    vl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    QFont vf = vl->font();
-    vf.setPointSize(std::max(8, vf.pointSize() - 1));
-    vl->setFont(vf);
-    row->addWidget(kl);
-    row->addWidget(vl, 1);
-    cl->addLayout(row);
-  };
-
-  bool has_content = false;
-
-  // Show input hash card for all operations
   if (!info.inputHash.isEmpty()) {
     current_input_hash_ = info.inputHash;
-    QFrame* card = nullptr;
-    QVBoxLayout* cl = nullptr;
-    create_card(kINFO_ERROR_NEUTRAL, card, cl);
-    add_header(cl, card, kINFO_ERROR_NEUTRAL, tr("Input Material Hash"));
-
-    auto* hash_row = new QHBoxLayout();
-    hash_row->setContentsMargins(0, 2, 0, 2);
-    hash_row->setSpacing(6);
-
-    auto* hash_key = new QLabel(tr("SHA-256"), card);
-    QFont kf = hash_key->font();
-    kf.setBold(true);
-    kf.setPointSize(std::max(7, kf.pointSize() - 1));
-    hash_key->setFont(kf);
-    hash_key->setStyleSheet(QStringLiteral("color: palette(mid);"));
-    hash_key->setFixedWidth(kKeyW);
-    hash_key->setAlignment(Qt::AlignRight | Qt::AlignTop);
-
-    auto* hash_val = new QLabel(info.inputHash, card);
-    hash_val->setWordWrap(true);
-    hash_val->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    QFont vf = hash_val->font();
-    vf.setFamily(QStringLiteral("Monospace"));
-    vf.setPointSize(std::max(7, vf.pointSize() - 1));
-    hash_val->setFont(vf);
-    hash_val->setStyleSheet(QStringLiteral("color: palette(text);"));
-
-    hash_row->addWidget(hash_key);
-    hash_row->addWidget(hash_val, 1);
-    cl->addLayout(hash_row);
-
-    extra_layout->addWidget(card);
-    has_content = true;
   }
 
-  // Verify: one card per signature
-  for (const auto& sig : info.signatures) {
-    const InfoBoardStatus cs = [&]() -> InfoBoardStatus {
-      switch (sig.validity) {
-        case GpgSigValidity::kFULLY_VALID:
-          return kINFO_ERROR_OK;
-        case GpgSigValidity::kVALID_NOT_FULLY_TRUSTED:
-        case GpgSigValidity::kVALID_WITH_ISSUES:
-        case GpgSigValidity::kSIG_EXPIRED:
-        case GpgSigValidity::kKEY_EXPIRED:
-          return kINFO_ERROR_WARN;
-        default:
-          return kINFO_ERROR_CRITICAL;
-      }
-    }();
+  const auto cards = convert_op_info_to_cards(info);
+  if (cards.isEmpty()) return false;
 
-    const QString vtext = [&]() -> QString {
-      switch (sig.validity) {
-        case GpgSigValidity::kFULLY_VALID:
-          return tr("Fully Valid");
-        case GpgSigValidity::kVALID_WITH_ISSUES:
-          return tr("Valid (with Issues)");
-        case GpgSigValidity::kVALID_NOT_FULLY_TRUSTED:
-          return tr("Valid (Not Fully Trusted)");
-        case GpgSigValidity::kINVALID:
-          return tr("Invalid");
-        case GpgSigValidity::kKEY_MISSING:
-          return tr("Key Missing");
-        case GpgSigValidity::kKEY_REVOKED:
-          return tr("Key Revoked");
-        case GpgSigValidity::kSIG_EXPIRED:
-          return tr("Signature Expired");
-        case GpgSigValidity::kKEY_EXPIRED:
-          return tr("Key Expired");
-        case GpgSigValidity::kERROR:
-          return tr("Verification Error");
-        default:
-          return tr("Unknown");
-      }
-    }();
-
-    QFrame* card = nullptr;
-    QVBoxLayout* cl = nullptr;
-    create_card(cs, card, cl);
-    add_header(cl, card, cs, vtext);
-
-    if (!sig.signer.uid.isEmpty()) {
-      add_field(cl, card, tr("Signer"), sig.signer.uid);
-    } else if (!sig.signer.fingerprint.isEmpty()) {
-      add_field(cl, card, tr("Fingerprint"), sig.signer.fingerprint);
-    }
-    add_field(cl, card, tr("Key ID"), sig.signer.keyId);
-    if (!sig.signer.pubkeyAlgo.isEmpty() || !sig.signer.hashAlgo.isEmpty()) {
-      QString algo = sig.signer.pubkeyAlgo;
-      if (!sig.signer.hashAlgo.isEmpty()) {
-        algo += QStringLiteral(" / ") + sig.signer.hashAlgo;
-      }
-      add_field(cl, card, tr("Algorithm"), algo);
-    }
-    if (sig.signer.signTime.isValid()) {
-      add_field(cl, card, tr("Signed"),
-                QLocale().toString(sig.signer.signTime.toLocalTime(),
-                                   QLocale::ShortFormat));
-    }
-    for (const auto& w : sig.warnings) {
-      auto* wl = new QLabel(QStringLiteral("⚠  ") + w, card);
-      wl->setWordWrap(true);
-      QFont wf = wl->font();
-      wf.setPointSize(std::max(7, wf.pointSize() - 1));
-      wl->setFont(wf);
-      wl->setStyleSheet(QStringLiteral("color: %1;")
-                            .arg(StatusColor(kINFO_ERROR_WARN).name()));
-      cl->addWidget(wl);
-    }
-
-    extra_layout->addWidget(card);
-    has_content = true;
-  }
-
-  // Sign: one card per new signature
-  for (const auto& ns : info.newSignatures) {
-    QFrame* card = nullptr;
-    QVBoxLayout* cl = nullptr;
-    create_card(kINFO_ERROR_OK, card, cl);
-    add_header(cl, card, kINFO_ERROR_OK, tr("Signature Created"));
-
-    if (!ns.signer.uid.isEmpty()) {
-      add_field(cl, card, tr("Signer"), ns.signer.uid);
-    } else if (!ns.signer.fingerprint.isEmpty()) {
-      add_field(cl, card, tr("Fingerprint"), ns.signer.fingerprint);
-    }
-    add_field(cl, card, tr("Key ID"), ns.signer.keyId);
-    add_field(cl, card, tr("Mode"), ns.sigMode);
-    if (!ns.signer.pubkeyAlgo.isEmpty() || !ns.signer.hashAlgo.isEmpty()) {
-      QString algo = ns.signer.pubkeyAlgo;
-      if (!ns.signer.hashAlgo.isEmpty()) {
-        algo += QStringLiteral(" / ") + ns.signer.hashAlgo;
-      }
-      add_field(cl, card, tr("Algorithm"), algo);
-    }
-    if (ns.signer.signTime.isValid()) {
-      add_field(cl, card, tr("Signed"),
-                QLocale().toString(ns.signer.signTime.toLocalTime(),
-                                   QLocale::ShortFormat));
-    }
-
-    extra_layout->addWidget(card);
-    has_content = true;
-  }
-
-  // Sign: one card per invalid signer
-  for (const auto& inv : info.invalidSigners) {
-    QFrame* card = nullptr;
-    QVBoxLayout* cl = nullptr;
-    create_card(kINFO_ERROR_WARN, card, cl);
-    add_header(cl, card, kINFO_ERROR_WARN, tr("Invalid Signer"));
-    add_field(cl, card, tr("Fingerprint"), inv.first);
-    add_field(cl, card, tr("Reason"), inv.second);
-    extra_layout->addWidget(card);
-    has_content = true;
-  }
-
-  // Decrypt: one metadata card
-  const bool is_decrypt_with_data =
-      info.newSignatures.isEmpty() && info.invalidSigners.isEmpty() &&
-      (!info.recipients.isEmpty() || !info.details.isEmpty()) &&
-      info.operation.contains(tr("Decrypt"));
-  if (is_decrypt_with_data) {
-    const InfoBoardStatus meta_cs =
-        info.messageIntegrityProtected ? kINFO_ERROR_OK : kINFO_ERROR_WARN;
-    QFrame* card = nullptr;
-    QVBoxLayout* cl = nullptr;
-    create_card(meta_cs, card, cl);
-    add_header(cl, card, meta_cs, tr("Message Metadata"));
-
-    add_field(cl, card, tr("File"), info.filename);
-    add_field(cl, card, tr("Cipher"), info.symmetricAlgo);
-    add_field(cl, card, tr("MIME"), info.mimeEncoded ? tr("Yes") : tr("No"));
-    add_field(cl, card, tr("Integrity"),
-              info.messageIntegrityProtected ? tr("Protected")
-                                             : tr("Not Protected (unsafe)"));
-
-    extra_layout->addWidget(card);
-    has_content = true;
-  }
-
-  // Encrypt: one card per recipient key
-  if (info.operation.contains(tr("Encrypt"))) {
-    for (const auto& reci : info.recipients) {
-      QFrame* card = nullptr;
-      QVBoxLayout* cl = nullptr;
-      create_card(kINFO_ERROR_OK, card, cl);
-      add_header(cl, card, kINFO_ERROR_OK, tr("Encryption Recipient"));
-
-      if (!reci.uid.isEmpty()) {
-        add_field(cl, card, tr("Recipient"), reci.uid);
-      } else if (!reci.fingerprint.isEmpty()) {
-        add_field(cl, card, tr("Fingerprint"), reci.fingerprint);
-      }
-      add_field(cl, card, tr("Key ID"), reci.keyId);
-      add_field(cl, card, tr("Algorithm"), reci.pubkeyAlgo);
-
-      extra_layout->addWidget(card);
-      has_content = true;
-    }
-  }
-
-  // Decrypt: one card per recipient key
-  if (info.operation.contains(tr("Decrypt"))) {
-    for (const auto& reci : info.recipients) {
-      const InfoBoardStatus cs = reci.keyFound ? kINFO_ERROR_OK : kINFO_ERROR_WARN;
-      QFrame* card = nullptr;
-      QVBoxLayout* cl = nullptr;
-      create_card(cs, card, cl);
-      add_header(cl, card, cs, tr("Decryption Recipient"));
-
-      if (!reci.uid.isEmpty()) {
-        add_field(cl, card, tr("Recipient"), reci.uid);
-      } else if (!reci.fingerprint.isEmpty()) {
-        add_field(cl, card, tr("Fingerprint"), reci.fingerprint);
-      }
-      add_field(cl, card, tr("Key ID"), reci.keyId);
-      add_field(cl, card, tr("Algorithm"), reci.pubkeyAlgo);
-
-      extra_layout->addWidget(card);
-      has_content = true;
-    }
-  }
-
-  return has_content;
+  render_cards(extra_layout, parent, cards);
+  return true;
 }
 
 void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
@@ -1621,30 +1408,9 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
   if (layout == nullptr || parent == nullptr) return;
 
   for (const auto& card_data : cards) {
-    const QColor card_color = StatusColor(card_data.status);
-    const QString card_icon_path = StatusIconPath(card_data.status);
-
-    auto* card = new QFrame(parent);
-    card->setObjectName(QStringLiteral("DocResultRow"));
-    card->setStyleSheet(build_card_stylesheet(card_color));
-    auto* cl = new QVBoxLayout(card);
-    cl->setContentsMargins(10, 6, 10, 6);
-    cl->setSpacing(3);
-
-    auto* hdr = new QHBoxLayout();
-    hdr->setContentsMargins(0, 0, 0, 2);
-    hdr->setSpacing(6);
-    auto* icon = new QLabel(card);
-    icon->setFixedSize(16, 16);
-    icon->setPixmap(
-        QPixmap(card_icon_path)
-            .scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    auto* lbl = new QLabel(card_data.title, card);
-    lbl->setStyleSheet(
-        QStringLiteral("color: %1; font-weight: bold;").arg(card_color.name()));
-    hdr->addWidget(icon, 0, Qt::AlignVCenter);
-    hdr->addWidget(lbl, 1);
-    cl->addLayout(hdr);
+    auto* card = create_card(parent, card_data.status);
+    auto* cl = qobject_cast<QVBoxLayout*>(card->layout());
+    add_card_header(cl, card, card_data.status, card_data.title);
 
     constexpr int kKeyW = StyleConstants::kCardKeyWidth;
     for (const auto& field : card_data.fields) {
@@ -1657,7 +1423,7 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
       kf.setBold(true);
       kf.setPointSize(std::max(7, kf.pointSize() - 1));
       kl->setFont(kf);
-      kl->setStyleSheet(QStringLiteral("color: palette(mid);"));
+      kl->setStyleSheet(QStringLiteral("color: palette(text);"));
       kl->setFixedWidth(kKeyW);
       kl->setAlignment(Qt::AlignRight | Qt::AlignTop);
 
@@ -1717,11 +1483,9 @@ auto InfoBoardWidget::build_op_info_copy_lines(
   if (info.operation.contains(tr("Encrypt")) ||
       info.operation.contains(tr("Decrypt"))) {
     for (const auto& reci : info.recipients) {
-      const QString who =
-          reci.uid.isEmpty() ? reci.fingerprint : reci.uid;
+      const QString who = reci.uid.isEmpty() ? reci.fingerprint : reci.uid;
       if (!who.isEmpty()) lines << tr("  Recipient: %1").arg(who);
-      if (!reci.keyId.isEmpty())
-        lines << tr("  Key ID: %1").arg(reci.keyId);
+      if (!reci.keyId.isEmpty()) lines << tr("  Key ID: %1").arg(reci.keyId);
     }
   }
   return lines;
@@ -1768,8 +1532,9 @@ void InfoBoardWidget::export_doc_as_png(const QString& file_path) {
   image.setText(QStringLiteral("Creation Time"),
                 QDateTime::currentDateTime().toString(Qt::ISODate));
 
-  if (!current_id_.isEmpty())
+  if (!current_id_.isEmpty()) {
     image.setText(QStringLiteral("Document ID"), current_id_);
+  }
 
   if (hash_label_ != nullptr && !hash_label_->text().isEmpty()) {
     const QString hash_text = hash_label_->text();
@@ -1780,24 +1545,30 @@ void InfoBoardWidget::export_doc_as_png(const QString& file_path) {
                       : hash_text);
   }
 
-  if (val_status_ != nullptr && !val_status_->text().isEmpty())
+  if (val_status_ != nullptr && !val_status_->text().isEmpty()) {
     image.setText(QStringLiteral("Status"), val_status_->text());
+  }
 
-  if (val_operation_ != nullptr && !val_operation_->text().isEmpty())
+  if (val_operation_ != nullptr && !val_operation_->text().isEmpty()) {
     image.setText(QStringLiteral("Operation"), val_operation_->text());
+  }
 
-  if (val_engine_ != nullptr && !val_engine_->text().isEmpty())
+  if (val_engine_ != nullptr && !val_engine_->text().isEmpty()) {
     image.setText(QStringLiteral("Engine"), val_engine_->text());
+  }
 
-  if (!current_input_hash_.isEmpty())
+  if (!current_input_hash_.isEmpty()) {
     image.setText(QStringLiteral("Input Hash"), current_input_hash_);
+  }
 
-  if (!current_copy_text_.isEmpty())
+  if (!current_copy_text_.isEmpty()) {
     image.setText(QStringLiteral("Comment"), current_copy_text_);
+  }
 
-  if (!image.save(file_path))
+  if (!image.save(file_path)) {
     QMessageBox::warning(this, tr("Unable to Save"),
                          tr("The image could not be saved."));
+  }
 }
 
 void InfoBoardWidget::slot_save() {
@@ -1811,8 +1582,9 @@ void InfoBoardWidget::slot_save() {
         QFileDialog::getSaveFileName(this, tr("Export Certificate"), suggested,
                                      tr("PNG Image (*.png);;All Files (*)"));
     if (file_path.isEmpty()) return;
-    if (!file_path.endsWith(QStringLiteral(".png"), Qt::CaseInsensitive))
+    if (!file_path.endsWith(QStringLiteral(".png"), Qt::CaseInsensitive)) {
       file_path += QStringLiteral(".png");
+    }
     export_doc_as_png(file_path);
     return;
   }
