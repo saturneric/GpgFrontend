@@ -262,7 +262,13 @@ PassphraseDialog::PassphraseDialog(
   strength_layout->addWidget(passphrase_strength_bar_, 1);
   strength_layout->addWidget(passphrase_strength_label_);
 
-  form_layout->addRow(tr("Strength:"), strength_widget);
+  if (ctx_->IsAskForNew()) {
+    form_layout->addRow(tr("Strength:"), strength_widget);
+  } else {
+    passphrase_strength_bar_->setVisible(false);
+    passphrase_strength_label_->setVisible(false);
+    strength_widget->hide();
+  }
 
   if (ctx_->ShouldConfirm()) {
     form_layout->addRow(tr("Confirm:"), confirm_password_edit_);
