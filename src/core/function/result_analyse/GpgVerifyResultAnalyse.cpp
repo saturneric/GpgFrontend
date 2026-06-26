@@ -39,6 +39,9 @@ GpgFrontend::GpgVerifyResultAnalyse::GpgVerifyResultAnalyse(
 void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   auto signatures = this->result_.GetSignature();
 
+  op_info_.operation = tr("Verify");
+  op_info_.engine = EngineInfo();
+
   stream_ << "# " << tr("Verify Operation") << " (" << EngineInfo() << ") ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
@@ -209,6 +212,73 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
         << Qt::endl;
     setStatus(0);
     return;
+  }
+
+  for (const auto& sign : signatures) {
+    GpgVerifySigInfo sig_info;
+
+    sig_info.signer.fingerprint = sign.GetFingerprint();
+    sig_info.signer.pubkeyAlgo = sign.GetPubkeyAlgo();
+    sig_info.signer.hashAlgo = sign.GetHashAlgo();
+    sig_info.signer.signTime = sign.GetCreateTime().toUTC();
+
+    auto key =
+        AbstractKeyRepository::GetInstance(GetChannel()).GetKey(sign.GetFingerprint());
+    if (key != nullptr) {
+      sig_info.signer.uid = key->UID();
+      sig_info.signer.keyId = key->ID();
+      op_info_.details << key->UID();
+    } else if (!sign.GetFingerprint().isEmpty()) {
+      op_info_.details << sign.GetFingerprint();
+    }
+
+    switch (gpg_err_code(sign.GetStatus())) {
+      case GPG_ERR_BAD_SIGNATURE:
+        sig_info.validity = GpgSigValidity::kINVALID;
+        break;
+      case GPG_ERR_NO_ERROR: {
+        bool is_fully_valid = (sign.GetSummary() & GPGME_SIGSUM_VALID) != 0;
+        bool is_green = (sign.GetSummary() & GPGME_SIGSUM_GREEN) != 0;
+        bool is_red = (sign.GetSummary() & GPGME_SIGSUM_RED) != 0;
+        if (is_fully_valid && is_green) {
+          sig_info.validity = GpgSigValidity::kFULLY_VALID;
+        } else if (is_red) {
+          sig_info.validity = GpgSigValidity::kVALID_WITH_ISSUES;
+        } else {
+          sig_info.validity = GpgSigValidity::kVALID_NOT_FULLY_TRUSTED;
+        }
+        if ((sign.GetSummary() & GPGME_SIGSUM_SIG_EXPIRED) != 0)
+          sig_info.warnings << tr("Signature has expired");
+        if ((sign.GetSummary() & GPGME_SIGSUM_KEY_MISSING) != 0)
+          sig_info.warnings << tr("Signing key is missing");
+        if ((sign.GetSummary() & GPGME_SIGSUM_KEY_REVOKED) != 0)
+          sig_info.warnings << tr("Signing key has been revoked");
+        if ((sign.GetSummary() & GPGME_SIGSUM_KEY_EXPIRED) != 0)
+          sig_info.warnings << tr("Signing key has expired");
+        if ((sign.GetSummary() & GPGME_SIGSUM_CRL_MISSING) != 0)
+          sig_info.warnings << tr("Certificate revocation list is missing");
+        break;
+      }
+      case GPG_ERR_NO_PUBKEY:
+        sig_info.validity = GpgSigValidity::kKEY_MISSING;
+        break;
+      case GPG_ERR_CERT_REVOKED:
+        sig_info.validity = GpgSigValidity::kKEY_REVOKED;
+        break;
+      case GPG_ERR_SIG_EXPIRED:
+        sig_info.validity = GpgSigValidity::kSIG_EXPIRED;
+        break;
+      case GPG_ERR_KEY_EXPIRED:
+        sig_info.validity = GpgSigValidity::kKEY_EXPIRED;
+        break;
+      case GPG_ERR_GENERAL:
+        sig_info.validity = GpgSigValidity::kERROR;
+        break;
+      default:
+        sig_info.validity = GpgSigValidity::kUNKNOWN;
+    }
+
+    op_info_.signatures << sig_info;
   }
 }
 

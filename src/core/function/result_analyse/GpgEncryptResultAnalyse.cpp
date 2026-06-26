@@ -37,6 +37,9 @@ GpgEncryptResultAnalyse::GpgEncryptResultAnalyse(int channel, GpgError error,
     : GpgResultAnalyse(channel), error_(error), result_(result) {}
 
 void GpgEncryptResultAnalyse::doAnalyse() {
+  op_info_.operation = tr("Encrypt");
+  op_info_.engine = EngineInfo();
+
   stream_ << "# " << tr("Encrypt Operation") << " (" << EngineInfo() << ") ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {

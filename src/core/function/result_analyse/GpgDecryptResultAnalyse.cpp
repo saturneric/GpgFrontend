@@ -37,6 +37,9 @@ GpgFrontend::GpgDecryptResultAnalyse::GpgDecryptResultAnalyse(
 void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
   auto recipients = this->result_.Recipients();
 
+  op_info_.operation = tr("Decrypt");
+  op_info_.engine = EngineInfo();
+
   stream_ << "# " << tr("Decrypt Operation") << " (" << EngineInfo() << ") ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
@@ -58,6 +61,11 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
     stream_ << Qt::endl;
 
     stream_ << "## " << tr("General State") << ": " << Qt::endl;
+
+    op_info_.filename = result_.Filename();
+    op_info_.mimeEncoded = result_.MIME();
+    op_info_.messageIntegrityProtected = result_.MessageIntegrityProtected();
+    op_info_.symmetricAlgo = result_.SymmetricEncryptionAlgorithm();
 
     if (!result_.Filename().isEmpty()) {
       stream_ << "- " << tr("File Name") << ": " << result_.Filename()
@@ -87,7 +95,7 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
     int index = 0;
     for (const auto& recipient : recipients) {
       // check
-      if (recipient.keyid == nullptr) return;
+      if (recipient.keyid == nullptr) continue;
       stream_ << "### " << tr("Recipient") << " [" << ++index << "]: ";
       print_recipient(stream_, recipient);
       stream_ << Qt::endl
@@ -107,11 +115,14 @@ void GpgFrontend::GpgDecryptResultAnalyse::print_recipient(
       AbstractKeyRepository::GetInstance(GetChannel()).GetKey(recipient.keyid);
 
   if (key != nullptr) {
+    op_info_.details << key->UID();
     stream << key->Name();
     if (!key->Comment().isEmpty()) stream << "(" << key->Comment() << ")";
     if (!key->Email().isEmpty()) stream << "<" << key->Email() << ">";
   } else {
-    stream << "<" << tr("unknown") << ">";
+    const auto kid = QStringLiteral("0x%1").arg(recipient.keyid);
+    op_info_.details << kid;
+    stream << tr("<unknown>") << " (" << kid << ")";
     setStatus(0);
   }
 

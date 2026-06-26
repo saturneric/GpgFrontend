@@ -37,6 +37,10 @@ auto GpgFrontend::GpgResultAnalyse::GetResultReport() const -> QString {
   return *stream_.string();
 }
 
+auto GpgFrontend::GpgResultAnalyse::GetOpInfo() const -> GpgOpResultInfo {
+  return op_info_;
+}
+
 auto GpgFrontend::GpgResultAnalyse::GetStatus() const -> int { return status_; }
 
 void GpgFrontend::GpgResultAnalyse::setStatus(int m_status) {
@@ -46,6 +50,8 @@ void GpgFrontend::GpgResultAnalyse::setStatus(int m_status) {
 void GpgFrontend::GpgResultAnalyse::Analyse() {
   if (!analysed_) {
     doAnalyse();
+    op_info_.status = status_;
+    op_info_.report = buffer_;
     analysed_ = true;
   }
 }

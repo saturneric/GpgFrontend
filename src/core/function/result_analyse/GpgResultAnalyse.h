@@ -28,6 +28,7 @@
 #pragma once
 
 #include "GFCoreExport.h"
+#include "GpgOpResultInfo.h"
 
 namespace GpgFrontend {
 
@@ -91,6 +92,15 @@ class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
   [[nodiscard]] auto EngineInfo() const -> QString;
 
   /**
+   * @brief Return the structured operation info populated by doAnalyse().
+   *
+   * Call Analyse() before this to ensure the info has been populated.
+   *
+   * @return structured info with operation name, engine, and key details
+   */
+  [[nodiscard]] auto GetOpInfo() const -> GpgOpResultInfo;
+
+  /**
    * @brief Run the analysis, populating the report and status. Idempotent.
    *
    * Calls doAnalyse() on the first invocation and sets a flag to prevent
@@ -116,6 +126,8 @@ class GF_CORE_EXPORT GpgResultAnalyse : public QObject {
    */
   void setStatus(int m_status);
 
+  // Structured result info populated by doAnalyse()
+  GpgOpResultInfo op_info_;
   // OpenPGP context channel for this analysis
   int current_gpg_context_channel_;
   // Backing buffer for stream_

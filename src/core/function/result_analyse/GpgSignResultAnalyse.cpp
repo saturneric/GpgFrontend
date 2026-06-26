@@ -41,6 +41,9 @@ void GpgSignResultAnalyse::doAnalyse() {
   auto signatures = this->result_.Signatures();
   auto invalid_signers = this->result_.InvalidSigners();
 
+  op_info_.operation = tr("Sign");
+  op_info_.engine = EngineInfo();
+
   stream_ << "# " << tr("Sign Operation") << " (" << EngineInfo() << ") ";
 
   if (gpgme_err_code(error_) == GPG_ERR_NO_ERROR) {
@@ -66,7 +69,19 @@ void GpgSignResultAnalyse::doAnalyse() {
       QString fpr = sign.GetFingerprint();
       auto sign_key =
           AbstractKeyRepository::GetInstance(GetChannel()).GetKey(fpr);
+
+      GpgNewSigInfo new_sig;
+      new_sig.sigMode = sign.GetSigType();
+      new_sig.signer.fingerprint = fpr;
+      new_sig.signer.pubkeyAlgo = sign.GetPubkeyAlgo();
+      new_sig.signer.hashAlgo = sign.GetHashAlgo();
+      new_sig.signer.signTime = sign.GetCreateTime().toUTC();
+
       if (sign_key != nullptr) {
+        op_info_.details << sign_key->UID();
+        new_sig.signer.uid = sign_key->UID();
+        new_sig.signer.keyId = sign_key->ID();
+
         stream_ << "- " << tr("Signed By") << ": " << sign_key->UID()
                 << Qt::endl;
 
@@ -99,6 +114,8 @@ void GpgSignResultAnalyse::doAnalyse() {
                      sign.GetCreateTime().toSecsSinceEpoch())
               << Qt::endl;
 
+      op_info_.newSignatures << new_sig;
+
       stream_ << Qt::endl
               << "---------------------------------------" << Qt::endl
               << Qt::endl;
@@ -117,9 +134,10 @@ void GpgSignResultAnalyse::doAnalyse() {
               << Qt::endl;
       stream_ << "- " << tr("Fingerprint") << ": " << invalid_signer.first
               << Qt::endl;
-      stream_ << "- " << tr("Reason") << ": "
-              << gpgme_strerror(invalid_signer.second) << Qt::endl;
+      const QString reason = gpgme_strerror(invalid_signer.second);
+      stream_ << "- " << tr("Reason") << ": " << reason << Qt::endl;
       stream_ << "---------------------------------------" << Qt::endl;
+      op_info_.invalidSigners << qMakePair(invalid_signer.first, reason);
     }
     stream_ << Qt::endl;
   }
