@@ -187,9 +187,21 @@ pub fn verify_internal(
                 fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
+            // verify() only checks signature at index 0; iterate all indices for multi-signer messages.
+            let num_sigs = if let Message::Signed { ref reader, .. } = msg {
+                reader.num_signatures()
+            } else {
+                0
+            };
+
             for cert in &certs {
-                let is_cert_valid = msg.verify(cert).is_ok()
-                    || cert.public_subkeys.iter().any(|sk| msg.verify(sk).is_ok());
+                let is_cert_valid = (0..num_sigs).any(|i| {
+                    msg.verify_nested_explicit(i, cert).is_ok()
+                        || cert
+                            .public_subkeys
+                            .iter()
+                            .any(|sk| msg.verify_nested_explicit(i, sk).is_ok())
+                });
 
                 let found =
                     update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
