@@ -71,15 +71,6 @@ class InfoBoardWidget : public QWidget {
   /**
    * @brief
    *
-   * @param name
-   * @param action
-   */
-  void AddOptionalAction(const QString& name,
-                         const std::function<void()>& action);
-
-  /**
-   * @brief
-   *
    */
   void ResetOptionActionsMenu();
 

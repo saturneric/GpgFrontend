@@ -40,7 +40,7 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent)
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_InfoBoard>()) {
   ui_->setupUi(this);
 
-  ui_->actionButtonLayout->addStretch();
+  ui_->externalLayout->addStretch();
 
   InitUI();
 
@@ -102,6 +102,8 @@ QWidget#InfoBoardWidget QTextEdit[status="neutral"] {
 }
 )");
 
+  ui_->statusIndicatorLabel->setFixedSize(14, 14);
+
   ApplyStatusStyle(INFO_ERROR_NEUTRAL);
   UpdateActionButtons();
 }
@@ -159,6 +161,11 @@ void InfoBoardWidget::ApplyStatusStyle(InfoBoardStatus status) {
   auto pal = ui_->infoBoard->palette();
   pal.setColor(QPalette::Text, text_color);
   ui_->infoBoard->setPalette(pal);
+
+  ui_->statusIndicatorLabel->setStyleSheet(
+      QStringLiteral("background-color: %1; border-radius: 7px;")
+          .arg(text_color.name()));
+  ui_->statusIndicatorLabel->setToolTip(StatusTitle(status));
 }
 
 void InfoBoardWidget::SetInfoBoard(const QString& text,
@@ -194,21 +201,6 @@ void InfoBoardWidget::AssociateTabWidget(QTabWidget* tab) {
           &InfoBoardWidget::SlotReset);
   // reset
   this->SlotReset();
-}
-
-void InfoBoardWidget::AddOptionalAction(const QString& name,
-                                        const std::function<void()>& action) {
-  auto* action_button = new QPushButton(name, this);
-  action_button->setFocusPolicy(Qt::NoFocus);
-  action_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  action_button->setProperty("optionalInfoBoardAction", true);
-
-  ui_->actionButtonLayout->insertWidget(
-      std::max(0, ui_->actionButtonLayout->count() - 1), action_button);
-
-  connect(action_button, &QPushButton::clicked, this, [action]() {
-    if (action) action();
-  });
 }
 
 void InfoBoardWidget::ResetOptionActionsMenu() {
