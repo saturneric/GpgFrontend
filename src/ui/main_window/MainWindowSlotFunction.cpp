@@ -845,7 +845,6 @@ auto MainWindow::handle_module_error(QMap<QString, GFBuffer> p) -> bool {
 void MainWindow::slot_gpg_opera_buffer_show_helper(
     const QContainer<GpgOperaResult>& results) {
   for (const auto& result : results) {
-    if (result.op_info.status <= 0) continue;
     if (result.o_buffer.Empty()) continue;
 
     edit_->SlotFillTextEditWithText(result.o_buffer);
@@ -867,9 +866,7 @@ auto MainWindow::exec_operas_helper(
     }
   }
 
-  if (all_success) {
-    slot_gpg_opera_buffer_show_helper(contexts->opera_results);
-  }
+  slot_gpg_opera_buffer_show_helper(contexts->opera_results);
 
   slot_result_analyse_show_helper(contexts->opera_results);
   return all_success;
