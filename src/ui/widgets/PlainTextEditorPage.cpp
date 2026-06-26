@@ -28,6 +28,7 @@
 
 #include "PlainTextEditorPage.h"
 
+#include "core/function/GFBufferFactory.h"
 #include "core/model/SettingsObject.h"
 #include "core/thread/FileReadTask.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -80,6 +81,7 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
 
     update_status_bar();
     set_editor_modified(ui_->textPage->document()->isModified());
+    sha256_timer_->start();
   });
 
   connect(ui_->textPage, &QPlainTextEdit::cursorPositionChanged, this,
@@ -87,6 +89,12 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
             if (!read_done_) return;
             update_status_bar();
           });
+
+  sha256_timer_ = new QTimer(this);
+  sha256_timer_->setSingleShot(true);
+  sha256_timer_->setInterval(500);
+  connect(sha256_timer_, &QTimer::timeout, this,
+          &PlainTextEditorPage::slot_update_sha256);
 
   if (full_file_path_.isEmpty()) {
     read_done_ = true;
@@ -156,6 +164,11 @@ void PlainTextEditorPage::init_editor_style() {
                      QStringLiteral("Ln 9999, Col 999 · 999999 chars · *"));
   setup_status_label(ui_->lfLabel, QStringLiteral("CRLF"));
   setup_status_label(ui_->encodingLabel, QStringLiteral("UTF-8"));
+  setup_status_label(ui_->sha256Label,
+                     QStringLiteral("SHA256: a1b2c3d4e5f67890…"));
+
+  ui_->sha256Label->setText(QStringLiteral("SHA256: —"));
+  ui_->sha256Label->setToolTip(tr("SHA-256 checksum of editor content."));
 
   setAcceptDrops(false);
 
@@ -184,15 +197,18 @@ QWidget#PlainTextEditorPage QLabel[loading="true"] {
   ui_->characterLabel->setProperty("statusBadge", true);
   ui_->lfLabel->setProperty("statusBadge", true);
   ui_->encodingLabel->setProperty("statusBadge", true);
+  ui_->sha256Label->setProperty("statusBadge", true);
 
   polish_label(ui_->characterLabel);
   polish_label(ui_->lfLabel);
   polish_label(ui_->encodingLabel);
+  polish_label(ui_->sha256Label);
 }
 
 void PlainTextEditorPage::set_loading_state(bool loading,
                                             const QString &message) {
   ui_->loadingLabel->setHidden(!loading);
+  ui_->sha256Label->setHidden(loading);
   ui_->loadingLabel->setProperty("loading", loading);
   ui_->loadingLabel->style()->unpolish(ui_->loadingLabel);
   ui_->loadingLabel->style()->polish(ui_->loadingLabel);
@@ -307,6 +323,33 @@ void PlainTextEditorPage::slot_format_gpg_header() {
   }
 }
 
+void PlainTextEditorPage::slot_update_sha256() {
+  if (!read_done_) return;
+
+  const auto* doc = ui_->textPage->document();
+  const auto result =
+      GFBufferFactory::ToSha256([doc](const GFBufferFactory::Sha256Chunk& update) -> void {
+        auto block = doc->begin();
+        while (block != doc->end()) {
+          const auto utf8 = block.text().toUtf8();
+          update(utf8.constData(), static_cast<size_t>(utf8.size()));
+          block = block.next();
+          if (block != doc->end()) {
+            const char nl = '\n';
+            update(&nl, 1);
+          }
+        }
+      });
+
+  if (!result) return;
+
+  const auto hex = result->ConvertToQByteArray().toHex();
+  ui_->sha256Label->setText(
+      QStringLiteral("SHA256: %1…").arg(QString(hex.left(16))));
+  ui_->sha256Label->setToolTip(
+      QStringLiteral("SHA256: %1").arg(QString(hex)));
+}
+
 void PlainTextEditorPage::ReadFile() {
   read_done_ = false;
   read_bytes_ = 0;
@@ -353,6 +396,7 @@ void PlainTextEditorPage::ReadFile() {
     set_loading_state(false);
     update_status_bar();
     slot_format_gpg_header();
+    slot_update_sha256();
 
     text_page->setFocus();
   });

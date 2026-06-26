@@ -192,6 +192,13 @@ class PlainTextEditorPage : public QWidget {
   void slot_format_gpg_header();
 
   /**
+   * @brief Computes SHA-256 of the current editor content and updates the
+   * footer label. The abbreviated hash is shown as text; the full hash is in
+   * the tooltip.
+   */
+  void slot_update_sha256();
+
+  /**
    * @brief Inserts one chunk of file bytes into the editor.
    *
    * The byte chunk is decoded as UTF-8, inserted into the editor, and counted
@@ -210,6 +217,7 @@ class PlainTextEditorPage : public QWidget {
   bool is_crlf_ = false;    ///< Whether CRLF line endings were detected.
   bool last_insert_has_partial_cr_ =
       false;  ///< Whether previous chunk ended with '\r'.
+  QTimer* sha256_timer_ = nullptr;  ///< Debounce timer for SHA-256 updates.
 
   /**
    * @brief Initializes editor styling, status labels and page stylesheet.
