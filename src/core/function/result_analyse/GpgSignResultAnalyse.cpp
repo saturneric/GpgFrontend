@@ -143,12 +143,15 @@ void GpgSignResultAnalyse::doAnalyse() {
   }
 
   if (status_ > 0) {
-    if (!op_info_.newSignatures.isEmpty() &&
-        !op_info_.newSignatures.first().signer.uid.isEmpty()) {
+    QStringList signers;
+    for (const auto& sig : op_info_.newSignatures) {
+      if (!sig.signer.uid.isEmpty()) signers << sig.signer.uid;
+    }
+    if (!signers.isEmpty()) {
       op_info_.description =
           tr("Signed by %1. Recipients can verify this data came from you and "
              "was not altered.")
-              .arg(op_info_.newSignatures.first().signer.uid);
+              .arg(signers.join(tr(", ")));
     } else {
       op_info_.description =
           tr("A digital signature has been created. Recipients can verify "
