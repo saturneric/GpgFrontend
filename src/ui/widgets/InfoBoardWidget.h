@@ -140,6 +140,7 @@ class InfoBoardWidget : public QWidget {
   QLabel* hash_label_{nullptr};
   QString current_id_;
   QString current_input_hash_;
+  QString current_copy_text_;
   bool user_selected_details_tab_{false};
 
   void init_status_page();
@@ -192,6 +193,9 @@ class InfoBoardWidget : public QWidget {
                                       const QContainer<InfoBoardCard>& cards);
 
   void export_doc_as_png(const QString& file_path);
+
+  [[nodiscard]] auto build_op_info_copy_lines(
+      const GpgFrontend::GpgOpResultInfo& info) const -> QStringList;
 
   void reset_document_view();
   void clear_document_fields();

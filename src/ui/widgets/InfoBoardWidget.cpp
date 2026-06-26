@@ -426,6 +426,7 @@ void InfoBoardWidget::clear_document_fields() {
   if (hash_label_ != nullptr) hash_label_->clear();
   current_id_.clear();
   current_input_hash_.clear();
+  current_copy_text_.clear();
 
   if (doc_frame_ != nullptr)
     static_cast<DocFrame*>(doc_frame_)->ClearWatermark();
@@ -895,6 +896,36 @@ void InfoBoardWidget::update_status_page(
 
   placeholder_label_->setVisible(false);
   doc_scroll_->setVisible(true);
+
+  // Build plain-text copy of document content
+  {
+    QStringList lines;
+    if (!current_id_.isEmpty()) {
+      lines << current_id_;
+      lines << QString(current_id_.length(), QLatin1Char('-'));
+    }
+    if (!resolved_operation.isEmpty())
+      lines << tr("Operation: %1").arg(resolved_operation);
+    lines << tr("Status:    %1").arg(build_status_symbol(status));
+    if (!content_hash.isEmpty())
+      lines << tr("SHA-256:   %1").arg(content_hash);
+    if (!resolved_description.isEmpty()) lines << resolved_description;
+    if (!resolved_details_items.isEmpty()) {
+      const QString key = resolved_details_title.isEmpty()
+                              ? tr("DETAILS")
+                              : resolved_details_title;
+      lines << QStringLiteral("%1:  %2").arg(
+          key, resolved_details_items.join(QStringLiteral(", ")));
+    }
+    for (const auto& card : resolved_cards) {
+      lines << QString();
+      lines << card.title;
+      for (const auto& f : card.fields)
+        lines << QStringLiteral("  %1: %2").arg(f.first, f.second);
+    }
+    lines << QString() << time_label_->text();
+    current_copy_text_ = lines.join(QLatin1Char('\n'));
+  }
 }
 
 void InfoBoardWidget::populate_details_section(
@@ -1017,6 +1048,33 @@ void InfoBoardWidget::SetInfoBoardWithOpInfo(
   if (sep_top_ != nullptr) sep_top_->setVisible(has_details);
 
   populate_extra_section(info, status);
+
+  // Rebuild copy text now that full op_info content is populated
+  {
+    QStringList lines;
+    if (!current_id_.isEmpty()) {
+      lines << current_id_;
+      lines << QString(current_id_.length(), QLatin1Char('-'));
+    }
+    if (!info.operation.isEmpty())
+      lines << tr("Operation: %1").arg(info.operation);
+    lines << tr("Status:    %1").arg(build_status_symbol(status));
+    if (!info.engine.isEmpty()) lines << tr("Engine:    %1").arg(info.engine);
+    if (!info.inputHash.isEmpty())
+      lines << tr("SHA-256:   %1").arg(info.inputHash);
+    if (!info.description.isEmpty()) lines << info.description;
+    if (!info.details.isEmpty())
+      lines << tr("Details:   %1").arg(
+          info.details.join(QStringLiteral(", ")));
+    const QStringList card_lines = build_op_info_copy_lines(info);
+    if (!card_lines.isEmpty()) {
+      lines << QString();
+      lines.append(card_lines);
+    }
+    if (time_label_ != nullptr && !time_label_->text().isEmpty())
+      lines << QString() << time_label_->text();
+    current_copy_text_ = lines.join(QLatin1Char('\n'));
+  }
 }
 
 void InfoBoardWidget::delete_widgets_in_layout(QLayout* layout,
@@ -1231,6 +1289,37 @@ void InfoBoardWidget::update_status_page_from_results(
   const auto now =
       QLocale().toString(QDateTime::currentDateTime(), QLocale::ShortFormat);
   time_label_->setText(tr("Issued:  %1").arg(now));
+
+  // Build plain-text copy of document content
+  {
+    QStringList lines;
+    if (!current_id_.isEmpty()) {
+      lines << current_id_;
+      lines << QString(current_id_.length(), QLatin1Char('-'));
+    }
+    if (!agg_operation.isEmpty())
+      lines << tr("Operation: %1").arg(agg_operation);
+    lines << tr("Status:    %1").arg(build_status_symbol(status));
+    if (!agg_engine.isEmpty()) lines << tr("Engine:    %1").arg(agg_engine);
+    if (!count_summary.isEmpty()) lines << count_summary;
+    if (!agg_desc.isEmpty()) lines << agg_desc;
+    if (!agg_details.isEmpty())
+      lines << tr("Details:   %1").arg(
+          agg_details.join(QStringLiteral(", ")));
+    for (const auto& r : results) {
+      QStringList card_lines;
+      if (!r.op_info.inputHash.isEmpty())
+        card_lines << tr("  SHA-256: %1").arg(r.op_info.inputHash);
+      card_lines.append(build_op_info_copy_lines(r.op_info));
+      if (!card_lines.isEmpty()) {
+        lines << QString();
+        if (!r.tag.isEmpty()) lines << r.tag;
+        lines.append(card_lines);
+      }
+    }
+    lines << QString() << tr("Issued:  %1").arg(now);
+    current_copy_text_ = lines.join(QLatin1Char('\n'));
+  }
 }
 
 auto InfoBoardWidget::populate_extra_from_op_info(QVBoxLayout* extra_layout,
@@ -1583,56 +1672,45 @@ void InfoBoardWidget::slot_tab_changed(int index) {
   user_selected_details_tab_ = (index > 0);
 }
 
-void InfoBoardWidget::slot_copy() {
-  if (doc_scroll_ != nullptr && doc_scroll_->isVisible()) {
-    QStringList lines;
-    if (!current_id_.isEmpty()) {
-      lines << current_id_;
-      lines << QString(current_id_.length(), QLatin1Char('-'));
-    }
-    if (val_operation_ != nullptr && !val_operation_->text().isEmpty()) {
-      lines << tr("Operation: %1").arg(val_operation_->text());
-    }
-    if (val_status_ != nullptr && !val_status_->text().isEmpty()) {
-      lines << tr("Status:    %1").arg(val_status_->text());
-    }
-    if (val_engine_ != nullptr && !val_engine_->text().isEmpty()) {
-      lines << tr("Engine:    %1").arg(val_engine_->text());
-    }
-    if (!current_input_hash_.isEmpty()) {
-      lines << tr("SHA-256:   %1").arg(current_input_hash_);
-    }
-    if (row_details_ != nullptr && row_details_->isVisible() &&
-        key_details_ != nullptr && details_container_ != nullptr) {
-      const auto* l = qobject_cast<QVBoxLayout*>(details_container_->layout());
-      if (l != nullptr) {
-        QStringList details;
-        for (int i = 0; i < l->count(); ++i) {
-          auto* item = l->itemAt(i);
-          if (item != nullptr) {
-            auto* lbl = qobject_cast<QLabel*>(item->widget());
-            if (lbl != nullptr && !lbl->text().isEmpty()) {
-              details << lbl->text();
-            }
-          }
-        }
-        if (!details.isEmpty()) {
-          lines << tr("%1:  %2").arg(key_details_->text(), details.join(", "));
-        }
-      }
-    }
-    if (!time_label_->text().isEmpty()) {
-      lines << time_label_->text();
-    }
-    QGuiApplication::clipboard()->setText(lines.join(QLatin1Char('\n')));
-    ui_->copyToolButton->setToolTip(tr("Copied"));
-    QTimer::singleShot(1200, this, [this]() {
-      ui_->copyToolButton->setToolTip(tr("Copy status text"));
-    });
-    return;
+auto InfoBoardWidget::build_op_info_copy_lines(
+    const GpgOpResultInfo& info) const -> QStringList {
+  QStringList lines;
+  for (const auto& sig : info.signatures) {
+    const QString who =
+        sig.signer.uid.isEmpty() ? sig.signer.fingerprint : sig.signer.uid;
+    if (!who.isEmpty()) lines << tr("  Signer: %1").arg(who);
+    if (!sig.signer.keyId.isEmpty())
+      lines << tr("  Key ID: %1").arg(sig.signer.keyId);
   }
+  for (const auto& ns : info.newSignatures) {
+    const QString who =
+        ns.signer.uid.isEmpty() ? ns.signer.fingerprint : ns.signer.uid;
+    if (!who.isEmpty()) lines << tr("  Signed: %1").arg(who);
+    if (!ns.signer.keyId.isEmpty())
+      lines << tr("  Key ID: %1").arg(ns.signer.keyId);
+  }
+  for (const auto& inv : info.invalidSigners) {
+    lines << tr("  Invalid signer: %1 — %2").arg(inv.first, inv.second);
+  }
+  if (info.operation.contains(tr("Encrypt"))) {
+    for (const auto& reci : info.recipients) {
+      const QString who =
+          reci.uid.isEmpty() ? reci.fingerprint : reci.uid;
+      if (!who.isEmpty()) lines << tr("  Recipient: %1").arg(who);
+      if (!reci.keyId.isEmpty())
+        lines << tr("  Key ID: %1").arg(reci.keyId);
+    }
+  }
+  return lines;
+}
 
-  const auto text = ui_->infoBoard->toPlainText();
+void InfoBoardWidget::slot_copy() {
+  QString text;
+  if (doc_scroll_ != nullptr && doc_scroll_->isVisible()) {
+    text = current_copy_text_;
+  } else {
+    text = ui_->infoBoard->toPlainText();
+  }
   if (text.trimmed().isEmpty()) return;
   QGuiApplication::clipboard()->setText(text);
   ui_->copyToolButton->setToolTip(tr("Copied"));
@@ -1684,6 +1762,15 @@ void InfoBoardWidget::export_doc_as_png(const QString& file_path) {
 
   if (val_operation_ != nullptr && !val_operation_->text().isEmpty())
     image.setText(QStringLiteral("Operation"), val_operation_->text());
+
+  if (val_engine_ != nullptr && !val_engine_->text().isEmpty())
+    image.setText(QStringLiteral("Engine"), val_engine_->text());
+
+  if (!current_input_hash_.isEmpty())
+    image.setText(QStringLiteral("Input Hash"), current_input_hash_);
+
+  if (!current_copy_text_.isEmpty())
+    image.setText(QStringLiteral("Comment"), current_copy_text_);
 
   if (!image.save(file_path))
     QMessageBox::warning(this, tr("Unable to Save"),
