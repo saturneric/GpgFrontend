@@ -33,6 +33,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "core/utils/RustUtils.h"
 #include "ui/UIModuleManager.h"
 
 namespace GpgFrontend::UI {
@@ -142,6 +143,10 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
   tab_widget->addTab(info_tab, tr("About"));
   tab_widget->addTab(translators_tab, tr("Translators"));
   tab_widget->addTab(status_tab, tr("Status"));
+
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
+    tab_widget->addTab(new RpgpEngineTab(tab_widget), tr("Rust Engine"));
+  }
 
   Module::TriggerEvent(
       "ABOUT_DIALOG_TABS_MOUNTED",
@@ -401,6 +406,93 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   outer_layout->setContentsMargins(0, 0, 0, 0);
   outer_layout->addWidget(CreateScrollArea(content, this));
   setLayout(outer_layout);
+}
+
+RpgpEngineTab::RpgpEngineTab(QWidget* parent) : QWidget(parent) {
+  const auto info = RustEngineBuildInfo();
+
+  const auto or_unknown = [](const QString& value) -> QString {
+    return value.isEmpty() ? tr("Unknown") : value;
+  };
+
+  auto* content = new QWidget(this);
+  auto* main_layout = new QVBoxLayout(content);
+  main_layout->setContentsMargins(18, 18, 18, 18);
+  main_layout->setSpacing(14);
+
+  auto* intro_label = CreateBodyLabel(
+      tr("GpgFrontend supports multiple OpenPGP backends. Alongside GnuPG, it "
+         "can use a Rust-based engine (rPGP), giving you the freedom to choose "
+         "the backend that best fits your needs. The details below describe the "
+         "rPGP engine compiled into this build."),
+      content);
+  main_layout->addWidget(intro_label);
+
+  // Engine card: version, compiler, target, profile.
+  auto* engine_widget = new QWidget(content);
+  auto* engine_form = CreateInfoForm(engine_widget);
+  engine_widget->setLayout(engine_form);
+
+  engine_form->addRow(
+      tr("Engine Version:"),
+      CreateValueLabel(or_unknown(info.engine_version), engine_widget));
+  engine_form->addRow(
+      tr("Rust Compiler:"),
+      CreateValueLabel(or_unknown(info.rustc_version), engine_widget));
+  if (!info.target.isEmpty()) {
+    engine_form->addRow(tr("Target:"),
+                        CreateValueLabel(info.target, engine_widget));
+  }
+  if (!info.profile.isEmpty()) {
+    engine_form->addRow(tr("Build Profile:"),
+                        CreateValueLabel(info.profile, engine_widget));
+  }
+
+  main_layout->addWidget(CreateCard(tr("rPGP Engine"), engine_widget, content));
+
+  // Dependency card: key crate versions.
+  if (!info.dependencies.isEmpty()) {
+    auto* deps_widget = new QWidget(content);
+    auto* deps_form = CreateInfoForm(deps_widget);
+    deps_widget->setLayout(deps_form);
+
+    for (const auto& dep : info.dependencies) {
+      deps_form->addRow(QStringLiteral("%1:").arg(dep.first),
+                        CreateValueLabel(dep.second, deps_widget));
+    }
+
+    main_layout->addWidget(
+        CreateCard(tr("Key Dependencies"), deps_widget, content));
+  }
+
+  // Assemble a plain-text summary for the copy button.
+  QStringList lines;
+  lines
+      << QStringLiteral("Rust Engine: %1").arg(or_unknown(info.engine_version))
+      << QStringLiteral("Rust Compiler: %1")
+             .arg(or_unknown(info.rustc_version));
+  if (!info.target.isEmpty()) {
+    lines << QStringLiteral("Target: %1").arg(info.target);
+  }
+  if (!info.profile.isEmpty()) {
+    lines << QStringLiteral("Build Profile: %1").arg(info.profile);
+  }
+  for (const auto& dep : info.dependencies) {
+    lines << QStringLiteral("%1: %2").arg(dep.first, dep.second);
+  }
+
+  auto* copy_button = CreateCopyButton(tr("Copy Engine Information"),
+                                       lines.join(QLatin1Char('\n')), content);
+  main_layout->addWidget(copy_button, 0, Qt::AlignRight);
+
+  main_layout->addStretch();
+
+  auto* outer_layout = new QVBoxLayout(this);
+  outer_layout->setContentsMargins(0, 0, 0, 0);
+  outer_layout->addWidget(CreateScrollArea(content, this));
+  setLayout(outer_layout);
+
+  setObjectName(QStringLiteral("RpgpEngineTab"));
 }
 
 }  // namespace GpgFrontend::UI

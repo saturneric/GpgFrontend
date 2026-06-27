@@ -95,4 +95,14 @@ class StatusTab : public QWidget {
   explicit StatusTab(QWidget* parent = nullptr);
 };
 
+/**
+ * @brief Tab showing details of the embedded Rust (rPGP) engine: engine and
+ * compiler versions, build target, and key dependency versions.
+ */
+class RpgpEngineTab : public QWidget {
+  Q_OBJECT
+ public:
+  explicit RpgpEngineTab(QWidget* parent = nullptr);
+};
+
 }  // namespace GpgFrontend::UI
