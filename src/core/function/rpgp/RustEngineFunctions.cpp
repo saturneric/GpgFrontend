@@ -28,6 +28,8 @@
 
 #include "RustEngineFunctions.h"
 
+#include <cstring>
+
 #include "core/function/SecureMemoryAllocator.h"
 
 // NOLINTNEXTLINE
