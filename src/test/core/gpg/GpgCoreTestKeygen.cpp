@@ -124,6 +124,20 @@ TEST_F(GpgCoreTest, IsEccAlgoTest) {
   }
 }
 
+TEST_F(GpgCoreTest, KeyVersionRoundTripTest) {
+  auto info = QSharedPointer<KeyGenerateInfo>::create();
+
+  // Default is "engine decides" (0) so callers that never touch the field keep
+  // the engine's native behavior.
+  ASSERT_EQ(info->GetKeyVersion(), 0);
+
+  info->SetKeyVersion(4);
+  ASSERT_EQ(info->GetKeyVersion(), 4);
+
+  info->SetKeyVersion(6);
+  ASSERT_EQ(info->GetKeyVersion(), 6);
+}
+
 TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
   auto p_info = QSharedPointer<KeyGenerateInfo>::create();
   p_info->SetName("foo_0");
