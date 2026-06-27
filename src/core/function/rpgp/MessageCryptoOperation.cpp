@@ -28,6 +28,7 @@
 
 #include "MessageCryptoOperation.h"
 
+#include "core/GFConstants.h"
 #include "core/GFCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/rpgp/KeyStorage.h"
@@ -220,13 +221,23 @@ auto VerifyRpgpImpl(OpenPGPContext& ctx_, const GFBuffer& in_buffer,
   Rust::GfrVerifyResultC verify_result;
   memset(&verify_result, 0, sizeof(verify_result));
 
+  // Pick the verification mode. A non-empty detached signature is unambiguous.
+  // When the signature is embedded, the payload may be either an inline signed
+  // message ("BEGIN PGP MESSAGE") or a cleartext signed message ("BEGIN PGP
+  // SIGNED MESSAGE"); only the latter is ClearText. Detect the cleartext armor
+  // header explicitly and treat everything else (armored or binary) as Inline.
+  Rust::GfrSignMode mode = Rust::GfrSignMode::Inline;
+  if (!sig_buffer.Empty()) {
+    mode = Rust::GfrSignMode::Detached;
+  } else if (in_buffer.ConvertToQByteArray().trimmed().startsWith(
+                 kPgpSignedBegin)) {
+    mode = Rust::GfrSignMode::ClearText;
+  }
+
   auto status = Rust::gfr_crypto_verify_data(
       reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
       reinterpret_cast<const uint8_t*>(sig_buffer.Data()), sig_buffer.Size(),
-      FetchPublicKeyCallback, key_db.data(),
-      sig_buffer.Empty() ? Rust::GfrSignMode::ClearText
-                         : Rust::GfrSignMode::Detached,
-      &verify_result);
+      FetchPublicKeyCallback, key_db.data(), mode, &verify_result);
 
   auto [gf_err, result] = HandleVerifyResult(in_buffer, status, verify_result);
   Rust::gfr_crypto_free_verify_result(&verify_result);
