@@ -28,12 +28,33 @@
 
 #include "GpgAutomatonHandler.h"
 
+#include <chrono>
+#include <thread>
+
 #include "core/function/gpg/GpgContext.h"
 #include "core/model/GFEngineSupportIf.h"
 #include "core/model/GpgData.h"
 #include "core/model/GpgKey.h"
 
 namespace GpgFrontend {
+
+namespace {
+// If GnuPG re-issues the exact same prompt this many times in a row, our reply
+// is not advancing the session (livelock); give up. Legitimate edit-key flows
+// never repeat a single prompt anywhere near this often.
+constexpr int kMaxConsecutiveSamePrompts = 16;
+
+// Hard cap on the total number of prompts handled in one interaction, as a
+// backstop against pathological loops that vary their prompts.
+constexpr int kMaxTotalPrompts = 256;
+
+// How often the watchdog polls the async operation for completion.
+constexpr int kInteractPollIntervalMs = 20;
+
+// After cancelling a timed-out operation, how long we keep draining gpgme to
+// let the cancellation settle so the shared context stays reusable.
+constexpr int kInteractCancelDrainMs = 1000;
+}  // namespace
 
 GpgAutomatonHandler::GpgAutomatonHandler(int channel)
     : SingletonFunctionObject<GpgAutomatonHandler>(channel) {}
@@ -93,6 +114,16 @@ auto InteratorCbFunc(void* handle, const char* status, const char* args, int fd)
 
   handel->SetPromptStatus(status_s, args_s);
 
+  // Guard against a livelock: if our reply never satisfies GnuPG it keeps
+  // re-prompting and gpgme_op_interact would never return. Abort cleanly so the
+  // caller gets a failure instead of a hung process.
+  if (handel->Stuck()) {
+    LOG_W() << "gpg interaction appears stuck on prompt:" << status_s
+            << ", args:" << args_s << "- aborting to avoid hang";
+    handel->SetSuccess(false);
+    return GPG_ERR_GENERAL;
+  }
+
   AutomatonState next_state = handel->NextState(status_s, args_s);
   if (next_state == GpgAutomatonHandler::kAS_ERROR) {
     FLOG_D("handel next state caught error, abort...");
@@ -122,25 +153,93 @@ auto InteratorCbFunc(void* handle, const char* status, const char* args, int fd)
 auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
                     const QString& fpr,
                     AutomatonNextStateHandler next_state_handler,
-                    AutomatonActionHandler action_handler, int flags)
-    -> std::tuple<GpgError, bool> {
+                    AutomatonActionHandler action_handler, int flags,
+                    int timeout_ms) -> std::tuple<GpgError, bool> {
   auto& g_ctx = GpgCtx(ctx_);
+  gpgme_ctx_t ctx = g_ctx.DefaultContext();
   gpgme_key_t p_key = key == nullptr ? nullptr : static_cast<gpgme_key_t>(*key);
 
-  AutomatonHandelStruct handle(card_edit, fpr);
-  handle.SetHandler(std::move(next_state_handler), std::move(action_handler));
+  // Card edits may legitimately block for a long time (hardware / the user
+  // touching the card), so we keep the original synchronous, unbounded call.
+  if (card_edit) {
+    AutomatonHandelStruct handle(card_edit, fpr);
+    handle.SetHandler(std::move(next_state_handler), std::move(action_handler));
 
-  GpgData data_out;
+    GpgData data_out;
+    auto err = gpgme_op_interact(ctx, p_key, flags, InteratorCbFunc,
+                                 static_cast<void*>(&handle), data_out);
+    return {err, handle.Success()};
+  }
+
+  // Key edits: run the interaction asynchronously and drive it ourselves so a
+  // gpgme operation that blocks internally (the callback never re-fires) can
+  // still be bounded by a wall-clock deadline instead of hanging the caller.
+  //
+  // The handle and output buffer are heap-owned: on the unhappy path we may
+  // have to cancel and, if the cancellation doesn't settle, abandon (leak) them
+  // rather than free memory the gpgme worker might still touch.
+  auto handle = std::make_unique<AutomatonHandelStruct>(card_edit, fpr);
+  handle->SetHandler(std::move(next_state_handler), std::move(action_handler));
+  auto data_out = std::make_unique<GpgData>();
 
   auto err =
-      gpgme_op_interact(g_ctx.DefaultContext(), p_key, flags, InteratorCbFunc,
-                        static_cast<void*>(&handle), data_out);
-  return {err, handle.Success()};
+      gpgme_op_interact_start(ctx, p_key, flags, InteratorCbFunc,
+                              static_cast<void*>(handle.get()), *data_out);
+  if (err != GPG_ERR_NO_ERROR) return {err, false};
+
+  // Measure real wall-clock elapsed, not poll iterations: a single gpgme_wait
+  // (or a callback it invokes) can take a while, so counting iterations would
+  // undercount and let the deadline slip well past timeout_ms.
+  const auto start = std::chrono::steady_clock::now();
+  const auto deadline = start + std::chrono::milliseconds(timeout_ms);
+  for (;;) {
+    gpgme_error_t status = GPG_ERR_NO_ERROR;
+    if (gpgme_wait(ctx, &status, 0) == ctx) {
+      // Operation finished; status carries its result.
+      return {status, handle->Success()};
+    }
+
+    if (std::chrono::steady_clock::now() >= deadline) break;
+
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(kInteractPollIntervalMs));
+  }
+
+  const auto waited_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+                             std::chrono::steady_clock::now() - start)
+                             .count();
+  LOG_W() << "gpg key interaction timed out after" << waited_ms
+          << "ms, cancelling...";
+  gpgme_cancel_async(ctx);
+
+  // Drain the cancellation so the shared context returns to a usable state.
+  const auto drain_deadline = std::chrono::steady_clock::now() +
+                              std::chrono::milliseconds(kInteractCancelDrainMs);
+  for (;;) {
+    gpgme_error_t status = GPG_ERR_NO_ERROR;
+    if (gpgme_wait(ctx, &status, 0) == ctx) {
+      // Cancellation settled; safe to let the buffers free normally.
+      return {GPG_ERR_TIMEOUT, false};
+    }
+
+    if (std::chrono::steady_clock::now() >= drain_deadline) break;
+
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(kInteractPollIntervalMs));
+  }
+
+  // The operation refused to cancel in time. Abandon the buffers so the gpgme
+  // worker can't dereference freed memory; a small one-off leak beats a crash.
+  LOG_E() << "gpg interaction did not cancel within" << kInteractCancelDrainMs
+          << "ms; abandoning handle to avoid use-after-free";
+  [[maybe_unused]] auto* leaked_handle = handle.release();
+  [[maybe_unused]] auto* leaked_data = data_out.release();
+  return {GPG_ERR_TIMEOUT, false};
 }
 
 auto GpgAutomatonHandler::DoInteract(
     const GpgKeyPtr& key, AutomatonNextStateHandler next_state_handler,
-    AutomatonActionHandler action_handler, int flags)
+    AutomatonActionHandler action_handler, int flags, int timeout_ms)
     -> std::tuple<GpgError, bool> {
   if (!GPG_CTX_MIN_SUPPORT()) return {GPG_ERR_NOT_SUPPORTED, false};
 
@@ -149,7 +248,7 @@ auto GpgAutomatonHandler::DoInteract(
 
   return DoInteractImpl(ctx_, key, false, key->Fingerprint(),
                         std::move(next_state_handler),
-                        std::move(action_handler), flags);
+                        std::move(action_handler), flags, timeout_ms);
 }
 
 auto GpgAutomatonHandler::DoCardInteract(
@@ -157,9 +256,12 @@ auto GpgAutomatonHandler::DoCardInteract(
     AutomatonActionHandler action_handler) -> std::tuple<GpgError, bool> {
   if (!GPG_CTX_MIN_SUPPORT()) return {GPG_ERR_NOT_SUPPORTED, false};
 
+  // timeout_ms is ignored on the card path (card edits run unbounded); pass the
+  // default just to satisfy the signature.
   return DoInteractImpl(ctx_, nullptr, true, serial_number,
                         std::move(next_state_handler),
-                        std::move(action_handler), GPGME_INTERACT_CARD);
+                        std::move(action_handler), GPGME_INTERACT_CARD,
+                        kDefaultInteractTimeoutMs);
 }
 
 auto GpgAutomatonHandler::AutomatonHandelStruct::NextState(QString gpg_status,
@@ -212,8 +314,20 @@ auto GpgAutomatonHandler::AutomatonHandelStruct::PromptStatus() const
 
 void GpgAutomatonHandler::AutomatonHandelStruct::SetPromptStatus(QString status,
                                                                  QString args) {
+  if (status == prompt_status_ && args == prompt_args_) {
+    ++prompt_repeat_count_;
+  } else {
+    prompt_repeat_count_ = 0;
+  }
+  ++prompt_total_count_;
+
   prompt_status_ = std::move(status);
   prompt_args_ = std::move(args);
+}
+
+auto GpgAutomatonHandler::AutomatonHandelStruct::Stuck() const -> bool {
+  return prompt_repeat_count_ >= kMaxConsecutiveSamePrompts ||
+         prompt_total_count_ >= kMaxTotalPrompts;
 }
 
 auto GpgAutomatonHandler::AutomatonHandelStruct::SerialNumber() const

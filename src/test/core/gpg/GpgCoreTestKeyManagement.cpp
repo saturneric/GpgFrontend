@@ -26,8 +26,12 @@
  *
  */
 
+#include <chrono>
+#include <thread>
+
 #include "GpgCoreTest.h"
 #include "core/GFConstants.h"
+#include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
@@ -247,6 +251,95 @@ TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
   ASSERT_TRUE(s_key[2].IsRevoked());
 
   KeyManagementOperation::GetInstance().DeleteKey(key);
+}
+
+// Verifies the in-callback no-progress guard (AutomatonHandelStruct::Stuck()):
+// a handler that always replies with an invalid command makes GnuPG re-issue
+// the same prompt forever. The handler must detect the livelock and abort with
+// a failure instead of spinning inside gpgme_op_interact.
+TEST_F(GpgCoreTest, CoreAutomatonLivelockGuardA) {
+  auto info = KeyImportExportOperation::GetInstance().ImportKey(
+      GFBuffer(QString::fromLatin1(test_private_key_data)));
+  ASSERT_EQ(info->imported, 1);
+
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                 .GetKeyPtr("822D7E13F5B85D7D");
+  ASSERT_TRUE(key->IsGood());
+
+  // Never advance to a terminal state: route every prompt back to kAS_COMMAND.
+  GpgAutomatonHandler::AutomatonNextStateHandler next_state_handler =
+      [](AutomatonState, const QString&, const QString&) {
+        return GpgAutomatonHandler::kAS_COMMAND;
+      };
+  // Always answer with a bogus command that gpg rejects and re-prompts.
+  GpgAutomatonHandler::AutomatonActionHandler action_handler =
+      [](AutomatonHandelStruct&, AutomatonState) {
+        return QString("thisisnotavalidcommand");
+      };
+
+  // Drive it off-thread: if the guard regressed, gpgme_op_interact would hang
+  // and RunWithin returns nullopt (assertion fails) rather than deadlocking the
+  // whole test process.
+  auto result = RunWithin(
+      [&]() {
+        auto [err, succ] =
+            GpgAutomatonHandler::GetInstance(kGpgChannelForUnitTest)
+                .DoInteract(key, next_state_handler, action_handler);
+        // The guard aborts the session, so it must report failure.
+        return !succ && err != static_cast<GpgError>(GPG_ERR_NO_ERROR);
+      },
+      10000);
+  ASSERT_EQ(result, std::make_optional(true));
+
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+            .GetKeyPtr("822D7E13F5B85D7D");
+  if (key != nullptr) KeyManagementOperation::GetInstance().DeleteKey(key);
+}
+
+// Verifies the async watchdog (gpgme_op_interact_start + bounded gpgme_wait):
+// an interaction that stalls past its deadline must be cancelled and reported
+// as a timeout, not left to hang. The action handler sleeps longer than the
+// (tiny, injected) deadline while keeping the session pending.
+TEST_F(GpgCoreTest, CoreAutomatonWatchdogTimeoutA) {
+  auto info = KeyImportExportOperation::GetInstance().ImportKey(
+      GFBuffer(QString::fromLatin1(test_private_key_data)));
+  ASSERT_EQ(info->imported, 1);
+
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                 .GetKeyPtr("822D7E13F5B85D7D");
+  ASSERT_TRUE(key->IsGood());
+
+  constexpr int kTinyTimeoutMs = 200;
+  constexpr int kStallMs = 600;
+
+  GpgAutomatonHandler::AutomatonNextStateHandler next_state_handler =
+      [](AutomatonState, const QString&, const QString&) {
+        return GpgAutomatonHandler::kAS_COMMAND;
+      };
+  // Stall past the deadline, then keep the session alive ("list" re-prompts) so
+  // the operation is still pending when the watchdog checks the clock.
+  GpgAutomatonHandler::AutomatonActionHandler action_handler =
+      [kStallMs](AutomatonHandelStruct&, AutomatonState) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(kStallMs));
+        return QString("list");
+      };
+
+  auto result = RunWithin(
+      [&]() {
+        auto [err, succ] =
+            GpgAutomatonHandler::GetInstance(kGpgChannelForUnitTest)
+                .DoInteract(key, next_state_handler, action_handler, 0,
+                            kTinyTimeoutMs);
+        return !succ && err == static_cast<GpgError>(GPG_ERR_TIMEOUT);
+      },
+      10000);
+  ASSERT_EQ(result, std::make_optional(true));
+
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+            .GetKeyPtr("822D7E13F5B85D7D");
+  if (key != nullptr) KeyManagementOperation::GetInstance().DeleteKey(key);
 }
 
 }  // namespace GpgFrontend::Test

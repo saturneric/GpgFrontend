@@ -80,16 +80,28 @@ class GF_CORE_EXPORT GpgAutomatonHandler
     [[nodiscard]] auto SerialNumber() const -> QString;
     [[nodiscard]] auto PromptStatus() const -> std::tuple<QString, QString>;
 
+    /**
+     * @brief Whether the interaction looks stuck and should be aborted.
+     *
+     * Returns true when GnuPG keeps re-issuing the same prompt because our
+     * reply never satisfies it (e.g. an out-of-range value that gpg rejects
+     * and re-asks), or when the total number of prompts exceeds a sane cap.
+     * Without this, gpgme_op_interact would spin/block forever.
+     */
+    [[nodiscard]] auto Stuck() const -> bool;
+
    private:
     AutomatonState current_state_ = kAS_START;
     AutomatonNextStateHandler next_state_handler_;
     AutomatonActionHandler action_handler_;
     bool success_ = true;
     bool card_edit_;
-    bool key_consider_id_matched_;
+    bool key_consider_id_matched_ = false;
     QString id_;
     QString prompt_status_;
     QString prompt_args_;
+    int prompt_repeat_count_ = 0;
+    int prompt_total_count_ = 0;
   };
 
   /**
@@ -100,6 +112,11 @@ class GF_CORE_EXPORT GpgAutomatonHandler
   explicit GpgAutomatonHandler(
       int channel = SingletonFunctionObject::GetDefaultChannel());
 
+  // Default wall-clock budget (ms) for a non-card key-edit interaction before
+  // the watchdog cancels it. Generous on purpose; exposed so callers (and
+  // tests) can override it with a tighter bound.
+  static constexpr int kDefaultInteractTimeoutMs = 30000;
+
   /**
    * @brief
    *
@@ -107,12 +124,15 @@ class GF_CORE_EXPORT GpgAutomatonHandler
    * @param next_state_handler
    * @param action_handler
    * @param flags
+   * @param timeout_ms wall-clock budget before the watchdog cancels the
+   *        interaction; ignored for card edits (see DoCardInteract).
    * @return true
    * @return false
    */
   auto DoInteract(const GpgKeyPtr& key,
                   AutomatonNextStateHandler next_state_handler,
-                  AutomatonActionHandler action_handler, int flags = 0)
+                  AutomatonActionHandler action_handler, int flags = 0,
+                  int timeout_ms = kDefaultInteractTimeoutMs)
       -> std::tuple<GpgError, bool>;
 
   /**
