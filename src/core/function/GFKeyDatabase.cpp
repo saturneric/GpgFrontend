@@ -389,7 +389,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
   QSqlQuery query(db_);
   query.prepare(R"(
     SELECT fpr, key_id, algo, created_at, has_secret, is_revoked, key_length,
-           can_sign, can_encrypt, can_auth, can_certify, update_time
+           can_sign, can_encrypt, can_auth, can_certify, update_time, key_ver
     FROM key_metadata WHERE fpr = :fpr
   )");
   // Bind the resolved fingerprint, not the original identifier!
@@ -411,6 +411,7 @@ auto GFKeyDatabase::GetKeyMetadata(const QString& identifier)
     meta.update_time =
         QDateTime::fromString(query.value(11).toString(), Qt::ISODate)
             .toSecsSinceEpoch();
+    meta.key_ver = query.value(12).toInt();
 
     // Load user IDs
     meta.user_ids = load_user_ids_for_parent(meta.fpr);

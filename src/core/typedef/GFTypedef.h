@@ -60,7 +60,7 @@ struct GFUserId {
 };
 
 struct GFSubKeyMetadata {
-  int key_ver;
+  int key_ver = 0;
   QString fpr;
   QString key_id;
   int algo;
@@ -79,7 +79,7 @@ struct GFSubKeyMetadata {
 };
 
 struct GFKeyMetadata {
-  int key_ver;
+  int key_ver = 0;
   QString fpr;
   QString key_id;
 
