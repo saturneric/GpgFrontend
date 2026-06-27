@@ -36,6 +36,7 @@
 #include <QVBoxLayout>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend::UI {
@@ -53,6 +54,35 @@ auto CreateBodyLabel(const QString& text) -> QLabel* {
 auto CreateMutedLabel(const QString& text) -> QLabel* {
   auto* label = CreateBodyLabel(text);
   return label;
+}
+
+// A branded hero header for the very first wizard page: the GpgFrontend
+// wordmark, its version, and a short tagline. The logo itself already lives in
+// the wizard header band on every page, so the hero stays a text wordmark to
+// avoid showing the logo twice while still making the first thing a new user
+// sees unmistakably GpgFrontend rather than a wall of text.
+auto CreateBrandHeader() -> QWidget* {
+  auto* widget = new QWidget;
+
+  auto* name_label = new QLabel(
+      QStringLiteral(
+          "<span style=\"font-size:24px; font-weight:600;\">GpgFrontend</span>"
+          "&nbsp;&nbsp;"
+          "<span style=\"font-size:13px; color:gray;\">%1</span>")
+          .arg(GetProjectVersion()));
+  name_label->setTextFormat(Qt::RichText);
+  name_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+
+  auto* tagline_label = CreateMutedLabel(QWizardPage::tr(
+      "A simple, privacy-focused OpenPGP tool for text, files, and keys."));
+
+  auto* layout = new QVBoxLayout(widget);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(2);
+  layout->addWidget(name_label);
+  layout->addWidget(tagline_label);
+
+  return widget;
 }
 
 auto CreateLinkCard(const QString& title, const QString& description,
@@ -93,9 +123,8 @@ auto CreateStarCard(const QString& title, const QString& description,
                      "}"));
 
   auto* title_label = CreateBodyLabel(
-      QStringLiteral(
-          "<a href=\"%1\" style=\"text-decoration:none;\">&#9733; "
-          "<b>%2</b></a>")
+      QStringLiteral("<a href=\"%1\" style=\"text-decoration:none;\">&#9733; "
+                     "<b>%2</b></a>")
           .arg(url, title));
 
   auto* desc_label = CreateMutedLabel(description);
@@ -157,8 +186,7 @@ void Wizard::slot_wizard_accepted() {
 
 IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   setTitle(tr("Welcome to GpgFrontend"));
-  setSubTitle(
-      tr("A simple and privacy-focused OpenPGP tool for text and files."));
+  setSubTitle(tr("Let's get you started in just a moment."));
 
   auto* intro_label = CreateBodyLabel(
       tr("<b>GpgFrontend</b> helps you encrypt, decrypt, sign, and verify "
@@ -190,12 +218,13 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   auto* layout = new QVBoxLayout;
   layout->setContentsMargins(8, 8, 8, 8);
   layout->setSpacing(14);
+  layout->addWidget(CreateBrandHeader());
   layout->addWidget(intro_label);
-  layout->addWidget(privacy_label);
-  layout->addSpacing(8);
+  layout->addSpacing(4);
   layout->addWidget(star_card);
   layout->addWidget(overview_card);
   layout->addWidget(concepts_card);
+  layout->addWidget(privacy_label);
   layout->addStretch();
 
   setLayout(layout);
