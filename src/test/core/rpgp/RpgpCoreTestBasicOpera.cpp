@@ -77,6 +77,43 @@ TEST_F(RpgpCoreTest, CoreEncryptDecryptTest) {
   ASSERT_EQ(decr_out_buffer, buffer);
 }
 
+TEST_F(RpgpCoreTest, CoreEncryptReportsActualRecipientSubKeyTest) {
+  auto encrypt_key =
+      GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+          .GetPubkeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(encrypt_key != nullptr);
+
+  auto buffer = GFBuffer(QString("Hello RPGP!"));
+
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSync({encrypt_key}, buffer, true);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
+
+  auto encr_result = ExtractParams<GpgEncryptResult>(data_object, 0);
+  auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
+
+  // The engine must report the subkey it actually encrypted to, not the
+  // certify-only primary key (BDB8BB6BDDFA8497).
+  auto recipients = encr_result.Recipients();
+  ASSERT_EQ(recipients.size(), 1);
+  EXPECT_FALSE(recipients.front().keyid.isEmpty());
+  EXPECT_FALSE(recipients.front().pubkey_algo.isEmpty());
+  EXPECT_NE(recipients.front().keyid, QString("BDB8BB6BDDFA8497"));
+
+  // The reported recipient subkey must match what decryption reads from the
+  // PKESK packets of the produced ciphertext.
+  auto [err_0, data_object_0] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .DecryptSync(encr_out_buffer);
+  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+
+  auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
+  ASSERT_FALSE(decr_result.Recipients().empty());
+  EXPECT_EQ(recipients.front().keyid, decr_result.Recipients().front().keyid);
+}
+
 TEST_F(RpgpCoreTest, CoreDecryptInvalidDataReportsDetailTest) {
   // Feed data that is not an OpenPGP message at all. The rPGP engine must fail
   // and, unlike a bare status code, expose a human-readable detail so the user
