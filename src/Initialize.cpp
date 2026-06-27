@@ -30,6 +30,11 @@
 
 #include <sodium.h>
 
+#include <chrono>
+#include <cstdio>
+#include <cstdlib>
+#include <thread>
+
 #include "core/GFCoreInit.h"
 #include "core/GFCoreLog.h"
 #include "core/function/CoreSignalStation.h"
@@ -218,16 +223,53 @@ void InitGlobalBasicEnvSync(const GFCxtWPtr &p_ctx) {
   loop.exec();
 }
 
+namespace {
+
+/// Hard deadline for the whole shutdown sequence. On a healthy machine teardown
+/// is sub-second; if we are still alive after this, something is wedged (most
+/// commonly gpgme_release() blocked on a stuck gpg-agent on Windows).
+constexpr int kShutdownWatchdogTimeoutMs = 10000;
+
+/**
+ * @brief Arm a detached watchdog that force-exits the process if shutdown
+ * hangs.
+ *
+ * The GUI is already gone by the time we shut down the environment, so a wedged
+ * gpg child must never be allowed to keep GpgFrontend alive as a headless
+ * background process. If the deadline elapses we bypass the (possibly blocking)
+ * C++/Qt static destructors and terminate immediately via std::quick_exit().
+ *
+ * Uses no Qt/logging facilities from the timer thread since they may already be
+ * torn down by the time it fires; plain stderr is safe.
+ */
+void ArmShutdownWatchdog(int timeout_ms) {
+  std::thread([timeout_ms]() -> void {
+    std::this_thread::sleep_for(std::chrono::milliseconds(timeout_ms));
+    std::fputs(
+        "shutdown watchdog fired: teardown wedged, forcing process exit\n",
+        stderr);
+    std::fflush(stderr);
+    std::quick_exit(0);
+  }).detach();
+}
+
+}  // namespace
+
 void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
     return;
   }
 
-  // On window platform, the gpg-agent is running as a subprocess. It will be
-  // closed automatically when the application is closing.
-#ifndef Q_OS_WINDOWS
+  // Backstop: never linger headless if teardown wedges. Not armed under the
+  // unit-test runner, which has its own timeout and must fail loudly instead of
+  // being force-exited with a success code.
+  if (!ctx->unit_test_mode) ArmShutdownWatchdog(kShutdownWatchdogTimeoutMs);
 
+  // Kill the gnupg daemons *before* destroying the contexts. This applies on
+  // Windows too: the gpg-agent there does not exit with its parent (--daemon is
+  // effectively a no-op), so a live agent would otherwise keep an assuan
+  // connection open and block gpgme_release() during DestroyGpgFrontendCore().
   auto clear_gpg_password_cache =
       GetSettings().value("basic/clear_gpg_password_cache", false).toBool();
 
@@ -251,8 +293,6 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
       GpgAdvancedOperator::GetInstance(channel).ClearGpgPasswordCache();
     }
   }
-
-#endif
 
   qDebug() << "GpgFrontend is shutting down...";
 

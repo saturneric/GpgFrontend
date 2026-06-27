@@ -42,12 +42,30 @@ GpgContext::GpgContext(const OpenPGPContextInitArgs& args, int channel)
     : OpenPGPContext(args, channel) {}
 
 GpgContext::~GpgContext() {
+  // Kill the agent *before* releasing any context. On Windows in particular the
+  // gpg-agent does not reliably exit with its parent (the --daemon flag is
+  // effectively a no-op there), so a live agent can keep an assuan connection
+  // open. gpgme_release() then blocks trying to tear that connection down,
+  // which strands the whole process at shutdown (GUI gone, process lingering).
+  // gpgconf --kill is the reliable way to stop it; doing it here also protects
+  // teardown paths that don't go through ShutdownGlobalBasicEnv().
+  kill_gpg_agent();
+  agent_.reset();
+
   if (ctx_ref_ != nullptr) {
     gpgme_release(ctx_ref_);
   }
 
   if (binary_ctx_ref_ != nullptr) {
     gpgme_release(binary_ctx_ref_);
+  }
+
+  if (cms_ctx_ref_ != nullptr) {
+    gpgme_release(cms_ctx_ref_);
+  }
+
+  if (cms_binary_ctx_ref_ != nullptr) {
+    gpgme_release(cms_binary_ctx_ref_);
   }
 }
 
@@ -399,7 +417,10 @@ auto GpgContext::kill_gpg_agent() -> bool {
     args.append({"--homedir", QDir::toNativeSeparators(KeyDBPath())});
   }
 
-  args.append({"--kill", "gpg-agent"});
+  // Kill *all* gnupg components (gpg-agent, scdaemon, dirmngr, keyboxd, ...),
+  // not just gpg-agent: any of them can hold an assuan connection that blocks
+  // gpgme_release() at shutdown.
+  args.append({"--kill", "all"});
 
   LOG_D() << "gpgconf kill args: " << args << "channel:" << GetChannel();
 
@@ -413,7 +434,7 @@ auto GpgContext::kill_gpg_agent() -> bool {
     return false;
   }
 
-  LOG_D() << "try to kill gpg-agent before launch: " << process.exitCode()
+  LOG_D() << "try to kill all gnupg components: " << process.exitCode()
           << "output: " << process.readAll();
   return process.exitCode() == 0;
 }
