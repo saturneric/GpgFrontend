@@ -118,6 +118,9 @@ jobs:
       - name: Run Unit Tests
         # Hard timeout so a hung test can never stall the pipeline forever.
         timeout-minutes: 20
+        env:
+          # CI has no X display; run Qt headless via the offscreen plugin.
+          QT_QPA_PLATFORM: offscreen
         run: |
           # `timeout` gives a clean non-zero exit (124) if the suite wedges,
           # belt-and-suspenders alongside the step-level timeout-minutes above.
