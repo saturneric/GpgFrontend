@@ -32,6 +32,7 @@
 
 #include <cstring>
 
+#include "core/GFCoreInit.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/PassphraseGenerator.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -727,6 +728,16 @@ DataObjectOperator::DataObjectOperator(int channel)
   Q_ASSERT(!l_key_.Empty());
 
   auto secure_level = SecureLevelFromApp();
+
+  // Do not spawn the background GC task during shutdown. Teardown can lazily
+  // reconstruct this operator (e.g. via CacheManager flush) after the task
+  // runners were stopped; the GC task would then run on a freshly-started IO
+  // thread and dereference singleton storage that DestroyGpgFrontendCore() is
+  // concurrently destroying — a use-after-free.
+  if (IsCoreShuttingDown()) {
+    FLOG_D("core is shutting down, skip posting data object gc task");
+    return;
+  }
 
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)

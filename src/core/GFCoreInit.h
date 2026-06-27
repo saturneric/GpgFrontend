@@ -47,6 +47,18 @@ struct CoreInitArgs {
 void GF_CORE_EXPORT DestroyGpgFrontendCore();
 
 /**
+ * @brief Whether the core has begun shutting down.
+ *
+ * Set at the very start of DestroyGpgFrontendCore(). Background subsystems
+ * (notably the DataObjectOperator GC task) check this before posting new
+ * long-running work: spawning a task during teardown can race the singleton
+ * storage being destroyed and dereference it after it is gone.
+ *
+ * @return true once DestroyGpgFrontendCore() has started.
+ */
+auto GF_CORE_EXPORT IsCoreShuttingDown() -> bool;
+
+/**
  * @brief Initialize the GpgFrontend core subsystem, including GnuPG
  * and rPGP engine detection, basic path resolution, and default OpenPGP
  * context construction.

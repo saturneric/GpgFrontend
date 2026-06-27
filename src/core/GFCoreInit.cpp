@@ -29,6 +29,8 @@
 
 #include <gpgme.h>
 
+#include <atomic>
+
 #include "core/GFCoreRust.h"
 #include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
@@ -48,6 +50,8 @@
 namespace GpgFrontend {
 
 namespace {
+
+std::atomic<bool> k_core_shutting_down = false;
 
 auto VerifyGpgconfPath(const QFileInfo& gnupg_install_fs_path) -> bool {
   return gnupg_install_fs_path.isAbsolute() && gnupg_install_fs_path.exists() &&
@@ -767,7 +771,15 @@ void StartMonitorCoreInitializationStatus() {
       ->PostTask(task);
 }
 
+auto IsCoreShuttingDown() -> bool { return k_core_shutting_down.load(); }
+
 void DestroyGpgFrontendCore() {
+  // Mark teardown as in progress before touching anything. Background
+  // subsystems check this so they do not spawn new work (e.g. the
+  // DataObjectOperator GC task) that could outlive the singleton storage we
+  // are about to destroy.
+  k_core_shutting_down.store(true);
+
   // stop all task runner
   qDebug() << "Stopping all task runner...";
   Thread::TaskRunnerGetter::GetInstance().StopAllTeakRunner();
