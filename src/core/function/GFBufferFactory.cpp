@@ -183,30 +183,27 @@ auto GFBufferFactory::ToHMACSha256(const GFBuffer& key, const GFBuffer& data)
   if (key.Empty() || data.Empty()) return {};
   if (!EnsureSodiumInit()) return {};
 
-  GFBuffer normalized_key(crypto_auth_hmacsha256_KEYBYTES);
-
-  if (key.Size() == crypto_auth_hmacsha256_KEYBYTES) {
-    std::memcpy(normalized_key.Data(), key.Data(), normalized_key.Size());
-  } else {
-    crypto_hash_sha256(reinterpret_cast<unsigned char*>(normalized_key.Data()),
-                       reinterpret_cast<const unsigned char*>(key.Data()),
-                       static_cast<unsigned long long>(key.Size()));
-  }
-
-  GFBuffer ret(crypto_auth_hmacsha256_BYTES);
-
-  const int rc = crypto_auth_hmacsha256(
-      reinterpret_cast<unsigned char*>(ret.Data()),
-      reinterpret_cast<const unsigned char*>(data.Data()),
-      static_cast<unsigned long long>(data.Size()),
-      reinterpret_cast<const unsigned char*>(normalized_key.Data()));
-
-  sodium_memzero(normalized_key.Data(), normalized_key.Size());
-
-  if (rc != 0) {
-    LOG_E() << "crypto_auth_hmacsha256 failed";
+  // The one-shot crypto_auth_hmacsha256() reads a fixed 32-byte key. To produce
+  // RFC 2104 compliant HMAC for keys of any length (short keys are zero-padded
+  // to the block size, long keys are hashed) use the streaming API, which does
+  // the standard key processing internally.
+  crypto_auth_hmacsha256_state state;
+  if (crypto_auth_hmacsha256_init(
+          &state, reinterpret_cast<const unsigned char*>(key.Data()),
+          key.Size()) != 0) {
+    LOG_E() << "crypto_auth_hmacsha256_init failed";
     return {};
   }
+
+  crypto_auth_hmacsha256_update(
+      &state, reinterpret_cast<const unsigned char*>(data.Data()),
+      static_cast<unsigned long long>(data.Size()));
+
+  GFBuffer ret(crypto_auth_hmacsha256_BYTES);
+  crypto_auth_hmacsha256_final(&state,
+                               reinterpret_cast<unsigned char*>(ret.Data()));
+
+  sodium_memzero(&state, sizeof state);
 
   return ret;
 }
