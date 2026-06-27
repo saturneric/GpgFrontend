@@ -71,7 +71,16 @@ auto main(int argc, char* argv[]) -> int {
       {{{}, "self-check"}, "check libraries and executables validity"},
   });
 
-  parser.process(*ctx->GetApp());
+  // Hold back GoogleTest flags (`--gtest_*`) from the app's parser, which would
+  // otherwise reject them as unknown options. They are consumed later by
+  // testing::InitGoogleTest, which reads the unmodified argv during RunTest, so
+  // `gpgfrontend -t --gtest_filter=...` works without the GTEST_* env vars.
+  QStringList parser_args;
+  for (const auto& arg : QCoreApplication::arguments()) {
+    if (arg.startsWith("--gtest_")) continue;
+    parser_args << arg;
+  }
+  parser.process(parser_args);
 
   const auto self_check = app->property("GFSelfCheck").toBool();
   if ((self_check || parser.isSet("self-check")) && !ValidateLibraries()) {
