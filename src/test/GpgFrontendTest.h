@@ -33,6 +33,7 @@
 #include <QLoggingCategory>
 
 // std
+#include <optional>
 #include <thread>
 #include <vector>
 
@@ -104,8 +105,23 @@ auto WaitFor(std::function<bool()> cond, int timeout_ms = 5000) -> bool;
  */
 auto RunWithTimeout(std::function<bool()> op, int timeout_ms) -> bool;
 
+/**
+ * @brief Like RunWithTimeout(), but distinguishes a timeout from a completed
+ * operation: returns std::nullopt on timeout, otherwise the operation's result.
+ *
+ * Use this for negative assertions where the operation is expected to return
+ * false: RunWithTimeout() collapses timeout and a genuine false into the same
+ * value, so a hang would masquerade as the expected false and pass silently.
+ */
+auto RunWithin(std::function<bool()> op, int timeout_ms) -> std::optional<bool>;
+
 #define ASSERT_OP_WITHIN(op, ms) \
   ASSERT_TRUE(RunWithTimeout([&]() { return (op); }, ms))
+
+// Asserts the op completes within ms (did not hang) and returns false.
+#define ASSERT_OP_FALSE_WITHIN(op, ms)                 \
+  ASSERT_EQ((RunWithin([&]() { return (op); }, (ms))), \
+            std::make_optional(false))
 
 const int kGpgChannelForUnitTest = 0;
 const int kRpgpChannelForUnitTest = 1;

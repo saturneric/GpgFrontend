@@ -203,13 +203,13 @@ TEST_F(GpgCoreTest, CoreSetOwnerTrustA) {
 
   ASSERT_EQ(key->OwnerTrustLevel(), 5);
 
-  ASSERT_FALSE(
-      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 0));
+  ASSERT_OP_FALSE_WITHIN(
+      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 0), 3000);
 
-  ASSERT_FALSE(
-      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, -1));
-  ASSERT_FALSE(
-      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 6));
+  ASSERT_OP_FALSE_WITHIN(
+      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, -1), 3000);
+  ASSERT_OP_FALSE_WITHIN(
+      KeyManagementOperation::GetInstance().SetOwnerTrustLevel(key, 6), 3000);
 
   KeyManagementOperation::GetInstance().DeleteKey(key);
 }

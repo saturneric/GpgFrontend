@@ -33,6 +33,7 @@
 #include <chrono>
 #include <future>
 #include <memory>
+#include <optional>
 #include <thread>
 
 #include "core/function/GlobalSettingStation.h"
@@ -90,7 +91,8 @@ auto WaitFor(std::function<bool()> cond, int timeout_ms) -> bool {
   return matched;
 }
 
-auto RunWithTimeout(std::function<bool()> op, int timeout_ms) -> bool {
+auto RunWithin(std::function<bool()> op, int timeout_ms)
+    -> std::optional<bool> {
   auto task = std::make_shared<std::packaged_task<bool()>>(std::move(op));
   auto future = task->get_future();
 
@@ -100,9 +102,13 @@ auto RunWithTimeout(std::function<bool()> op, int timeout_ms) -> bool {
 
   if (future.wait_for(std::chrono::milliseconds(timeout_ms)) !=
       std::future_status::ready) {
-    return false;
+    return std::nullopt;
   }
   return future.get();
+}
+
+auto RunWithTimeout(std::function<bool()> op, int timeout_ms) -> bool {
+  return RunWithin(std::move(op), timeout_ms).value_or(false);
 }
 
 auto GenerateRandomString(size_t length) -> QString {

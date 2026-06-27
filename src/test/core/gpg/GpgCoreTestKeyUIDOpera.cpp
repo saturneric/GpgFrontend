@@ -78,10 +78,9 @@ TEST_F(GpgCoreTest, CoreDeleteUIDTestA) {
   ASSERT_EQ(uids.size(), 4);
   ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
 
-  auto res = UserIdOperation::GetInstance().DeleteUID(
-      key, "gggggg(ggggg)<ggggg@ggg.ggg>");
-
-  ASSERT_TRUE(res);
+  ASSERT_OP_WITHIN(UserIdOperation::GetInstance().DeleteUID(
+                       key, "gggggg(ggggg)<ggggg@ggg.ggg>"),
+                   3000);
 
   GpgKeyRepository::GetInstance().FlushKeyCache();
   key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
@@ -114,10 +113,10 @@ TEST_F(GpgCoreTest, CoreRevokeUIDTestA) {
   ASSERT_EQ(uids.size(), 4);
   ASSERT_EQ(uids[2].GetUID(), "gggggg(ggggg)<ggggg@ggg.ggg>");
 
-  auto res = UserIdOperation::GetInstance().RevokeUID(
-      key, "gggggg(ggggg)<ggggg@ggg.ggg>", 4, "H\nEEEEEL\n\n\n\nL   \n0\n");
-
-  ASSERT_TRUE(res);
+  ASSERT_OP_WITHIN(
+      UserIdOperation::GetInstance().RevokeUID(
+          key, "gggggg(ggggg)<ggggg@ggg.ggg>", 4, "H\nEEEEEL\n\n\n\nL   \n0\n"),
+      3000);
 
   GpgKeyRepository::GetInstance().FlushKeyCache();
   key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
