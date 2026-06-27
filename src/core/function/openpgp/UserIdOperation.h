@@ -101,6 +101,54 @@ class GF_CORE_EXPORT UserIdOperation
    */
   auto SetPrimaryUID(const GpgKeyPtr& key, const QString& uid) -> bool;
 
+  /**
+   * @brief Asynchronously add a new user ID from individual components.
+   *
+   * Runs the operation on the GPG task runner so the caller's thread stays
+   * responsive (e.g. to show a waiting dialog). The callback is delivered on
+   * the calling thread with GPG_ERR_NO_ERROR on success.
+   *
+   * @param key target key pair
+   * @param name display name
+   * @param comment optional comment string
+   * @param email email address
+   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
+   */
+  void AddUID(const GpgKeyPtr& key, const QString& name, const QString& comment,
+              const QString& email, const GpgOperationCallback& cb);
+
+  /**
+   * @brief Asynchronously delete a user ID from the given key.
+   *
+   * @param key key to modify
+   * @param uid user ID string identifying the UID to delete
+   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
+   */
+  void DeleteUID(const GpgKeyPtr& key, const QString& uid,
+                 const GpgOperationCallback& cb);
+
+  /**
+   * @brief Asynchronously revoke a user ID on the given key.
+   *
+   * @param key key to modify
+   * @param uid user ID string identifying the UID to revoke
+   * @param reason_code revocation reason code
+   * @param reason_text human-readable reason description
+   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
+   */
+  void RevokeUID(const GpgKeyPtr& key, const QString& uid, int reason_code,
+                 const QString& reason_text, const GpgOperationCallback& cb);
+
+  /**
+   * @brief Asynchronously set the given user ID as the primary UID.
+   *
+   * @param key target key pair
+   * @param uid user ID string to promote as primary
+   * @param cb callback invoked on completion with (GpgError, DataObjectPtr)
+   */
+  void SetPrimaryUID(const GpgKeyPtr& key, const QString& uid,
+                     const GpgOperationCallback& cb);
+
  private:
   // OpenPGP context for this channel.
   OpenPGPContext& ctx_ =

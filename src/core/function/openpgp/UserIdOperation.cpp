@@ -30,6 +30,7 @@
 
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/UserIdOperaTraits.h"
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
@@ -66,6 +67,61 @@ auto UserIdOperation::RevokeUID(const GpgKeyPtr& key, const QString& uid,
     -> bool {
   return RunRegisteredForward<RevokeUserIdOpTag>(ctx_, key, uid, reason_code,
                                                  reason_text);
+}
+
+void UserIdOperation::AddUID(const GpgKeyPtr& key, const QString& name,
+                             const QString& comment, const QString& email,
+                             const GpgOperationCallback& cb) {
+  if (!IsValidUserIdComponent(name) || !IsValidUserIdComponent(comment)) {
+    LOG_E() << "refusing to add UID with malformed name or comment component";
+    cb(GPG_ERR_INV_VALUE, nullptr);
+    return;
+  }
+
+  RunGpgOperaAsync(
+      ctx_.GetChannel(),
+      [this, key, uid = AssembleUserId(name, comment, email)](
+          const DataObjectPtr&) -> GpgError {
+        return AddUID(key, uid) ? GPG_ERR_NO_ERROR : GPG_ERR_GENERAL;
+      },
+      cb, OpTraits<AddUserIdOpTag>::kOpName,
+      OpTraits<AddUserIdOpTag>::Versions());
+}
+
+void UserIdOperation::DeleteUID(const GpgKeyPtr& key, const QString& uid,
+                                const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      ctx_.GetChannel(),
+      [this, key, uid](const DataObjectPtr&) -> GpgError {
+        return DeleteUID(key, uid) ? GPG_ERR_NO_ERROR : GPG_ERR_GENERAL;
+      },
+      cb, OpTraits<DeleteUserIdOpTag>::kOpName,
+      OpTraits<DeleteUserIdOpTag>::Versions());
+}
+
+void UserIdOperation::RevokeUID(const GpgKeyPtr& key, const QString& uid,
+                                int reason_code, const QString& reason_text,
+                                const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      ctx_.GetChannel(),
+      [this, key, uid, reason_code, reason_text](
+          const DataObjectPtr&) -> GpgError {
+        return RevokeUID(key, uid, reason_code, reason_text) ? GPG_ERR_NO_ERROR
+                                                             : GPG_ERR_GENERAL;
+      },
+      cb, OpTraits<RevokeUserIdOpTag>::kOpName,
+      OpTraits<RevokeUserIdOpTag>::Versions());
+}
+
+void UserIdOperation::SetPrimaryUID(const GpgKeyPtr& key, const QString& uid,
+                                    const GpgOperationCallback& cb) {
+  RunGpgOperaAsync(
+      ctx_.GetChannel(),
+      [this, key, uid](const DataObjectPtr&) -> GpgError {
+        return SetPrimaryUID(key, uid) ? GPG_ERR_NO_ERROR : GPG_ERR_GENERAL;
+      },
+      cb, OpTraits<SetPrimaryUserIdOpTag>::kOpName,
+      OpTraits<SetPrimaryUserIdOpTag>::Versions());
 }
 
 }  // namespace GpgFrontend

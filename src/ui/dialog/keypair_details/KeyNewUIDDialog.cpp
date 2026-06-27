@@ -32,6 +32,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/function/GpgOperaHelper.h"
 
 namespace GpgFrontend::UI {
 KeyNewUIDDialog::KeyNewUIDDialog(int channel, GpgKeyPtr key, QWidget* parent)
@@ -108,14 +109,22 @@ void KeyNewUIDDialog::slot_create_new_uid() {
   }
   auto error_string = error_stream.readAll();
   if (error_string.isEmpty()) {
-    if (UserIdOperation::GetInstance(current_gpg_context_channel_)
-            .AddUID(m_key_, name_->text(), comment_->text(), email_->text())) {
-      emit finished(1);
-      emit SignalUIDCreated();
-    } else {
-      emit finished(-1);
-    }
+    auto f = [this](const OperaWaitingHd& hd) {
+      UserIdOperation::GetInstance(current_gpg_context_channel_)
+          .AddUID(m_key_, name_->text(), comment_->text(), email_->text(),
+                  [this, hd](GpgError err, const DataObjectPtr&) {
+                    // stop showing the waiting dialog
+                    hd();
 
+                    if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                      emit finished(1);
+                      emit SignalUIDCreated();
+                    } else {
+                      emit finished(-1);
+                    }
+                  });
+    };
+    GpgOperaHelper::WaitForOpera(this, tr("Creating UID"), f);
   } else {
     /**
      * create error message

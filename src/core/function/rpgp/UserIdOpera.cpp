@@ -31,6 +31,7 @@
 #include "core/GFCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/rpgp/KeyImportExport.h"
+#include "core/function/rpgp/KeyStorage.h"
 #include "core/function/rpgp/RustEngineCallback.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -72,9 +73,9 @@ auto AddUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
       reinterpret_cast<const uint8_t*>(secret_key_block.Data()),
       secret_key_block.Size()};
 
-  auto status = Rust::gfr_crypto_add_user_id(
-      ctx.GetChannel(), key_block_buffer, uid_utf8.constData(),
-      FetchPasswordCallback, &out_block);
+  auto status = Rust::gfr_crypto_add_user_id(ctx.GetChannel(), key_block_buffer,
+                                             uid_utf8.constData(),
+                                             FetchPasswordCallback, &out_block);
 
   LOG_D() << "Rust function gfr_crypto_add_user_id returned status: "
           << static_cast<int>(status);
@@ -171,9 +172,10 @@ auto DeleteUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   LOG_D() << "Successfully deleted UID: " << uid << " from key: " << key;
 
-  auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
-  if (info == nullptr || info->imported_keys.empty()) {
-    LOG_E() << "Failed to import updated key block after deleting UID: " << uid
+  // Replace (do not merge), merging would re-add the deleted UID from the
+  // existing database entry.
+  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str))) {
+    LOG_E() << "Failed to store updated key block after deleting UID: " << uid
             << " from key: " << key->Fingerprint();
     return false;
   }
@@ -242,9 +244,10 @@ auto SetPrimaryUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   LOG_D() << "Successfully set primary UID: " << uid << " for key: " << key;
 
-  auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
-  if (info == nullptr || info->imported_keys.empty()) {
-    LOG_E() << "Failed to import updated key block after setting primary UID: "
+  // Replace (do not merge) — merging would keep the previous primary UID's
+  // self-signature and defeat the change.
+  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str))) {
+    LOG_E() << "Failed to store updated key block after setting primary UID: "
             << uid << " for key: " << key->Fingerprint();
     return false;
   }
@@ -327,9 +330,10 @@ auto RevokeUIDRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   LOG_D() << "Successfully revoked UID: " << uid
           << " for key: " << key->Fingerprint();
 
-  auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
-  if (info == nullptr || info->imported_keys.empty()) {
-    LOG_E() << "Failed to import updated key block after revoking UID: " << uid
+  // Replace (do not merge) so the revocation self-signature is stored as the
+  // authoritative state of the key.
+  if (!ReplaceKeyInDatabaseRpgp(ctx.GetChannel(), GFBuffer(out_block_str))) {
+    LOG_E() << "Failed to store updated key block after revoking UID: " << uid
             << " for key: " << key->Fingerprint();
     return false;
   }
