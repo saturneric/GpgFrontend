@@ -109,7 +109,11 @@ impl<T, E: std::fmt::Display> RecordErr<T> for Result<T, E> {
     fn record_err_with(self, f: impl FnOnce() -> GfrStatus) -> Result<T, GfrStatus> {
         self.map_err(|e| {
             let msg = e.to_string();
-            log::error!("rPGP operation failed: {}", msg);
+            // `warn`, not `error`: several of these sites wrap I/O errors that are
+            // actually user cancellations (mapped to `ErrorCanceled` by the
+            // status closure). The C++ layer decides the real severity once it
+            // knows the final status.
+            log::warn!("rPGP operation reported: {}", msg);
             set_last_error(&msg);
             f()
         })
