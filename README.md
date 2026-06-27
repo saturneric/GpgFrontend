@@ -5,8 +5,10 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/d1750e052a85430a8f1f84e58a0fceda)](https://www.codacy.com/gh/saturneric/GpgFrontend/dashboard?utm_source=github.com&utm_medium=referral&utm_content=saturneric/GpgFrontend&utm_campaign=Badge_Grade)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/saturneric/GpgFrontend)
 
-A modern "Enigma" for OpenPGP. It makes encryption, signing, and key management
-easier and more trustworthy in everyday privacy workflows.
+A modern, cross-platform OpenPGP tool with a unique dual-engine core: switch
+freely between the battle-tested **GnuPG** and a modern, memory-safe Rust
+**rPGP** backend. It makes encryption, signing, and key management easier and
+more trustworthy in everyday privacy workflows.
 
 <img width="100" height="100" align="right" style="position: absolute;right: 0;padding: 12px;top:12px;z-index: 1000;" src="https://image.cdn.bktus.com/i/2024/02/24/248b2e18-a120-692e-e6bc-42ca30be9011.webp" alt="GpgFrontend"/>
 
@@ -16,7 +18,7 @@ easier and more trustworthy in everyday privacy workflows.
 - Cross-platform: Native support for Windows, macOS and Linux.
 - Portable: Run directly from a USB drive and carry your keys.
 - Flexible: Manage keys separately through multiple key databases.
-- Compatible: Mature GnuPG support with a newer rPGP engine.
+- Dual-engine: Switch freely between the mature GnuPG and the Rust rPGP backend.
 - Privacy-focused: Using multiple approaches to enhance safety.
 
 > If you like GpgFrontend, you can give it a ⭐ on GitHub as donation. :)
