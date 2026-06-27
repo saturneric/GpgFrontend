@@ -28,6 +28,7 @@
 
 #include "GpgKeyGenerateInfo.h"
 
+#include <array>
 #include <cassert>
 
 #include "core/function/openpgp/helper/Async.h"
@@ -57,614 +58,277 @@ auto FindPrimaryAlgo(const QString &id, const QString &type) -> KeyAlgo {
   return FindAlgoByIdAndType(KeyGenerateInfo::kPrimaryKeyAlgos, id, type);
 }
 
+// --- Family generators -----------------------------------------------------
+// Several families differ only by key length (and, between primary and subkey
+// use, by allowed operations). Generate them from a single source of truth
+// instead of repeating near-identical entries.
+
+auto RsaFamily(int opera) -> QContainer<KeyAlgo> {
+  QContainer<KeyAlgo> algos;
+  for (int bits : {1024, 2048, 3072, 4096}) {
+    algos.append(KeyAlgoSpec{.id = QString("rsa%1").arg(bits),
+                             .name = "RSA",
+                             .type = "RSA",
+                             .length = bits,
+                             .opera = opera,
+                             .support = {{OpenPGPEngine::kGNUPG, "2.2.0"},
+                                         {OpenPGPEngine::kRPGP, "0.1.0"}}});
+  }
+  return algos;
+}
+
+auto DsaFamily(int opera) -> QContainer<KeyAlgo> {
+  QContainer<KeyAlgo> algos;
+  for (int bits : {1024, 2048, 3072}) {
+    algos.append(KeyAlgoSpec{.id = QString("dsa%1").arg(bits),
+                             .name = "DSA",
+                             .type = "DSA",
+                             .length = bits,
+                             .opera = opera,
+                             .support = {{OpenPGPEngine::kGNUPG, "2.2.0"},
+                                         {OpenPGPEngine::kRPGP, "0.1.0"}}});
+  }
+  return algos;
+}
+
+auto ElgamalFamily() -> QContainer<KeyAlgo> {
+  QContainer<KeyAlgo> algos;
+  for (int bits : {1024, 2048, 3072, 4096}) {
+    algos.append(KeyAlgoSpec{.id = QString("elg%1").arg(bits),
+                             .name = "ELG-E",
+                             .type = "ELG-E",
+                             .length = bits,
+                             .opera = kENCRYPT,
+                             .support = {{OpenPGPEngine::kGNUPG, "2.2.0"}}});
+  }
+  return algos;
+}
+
+// One ECC curve as it should appear for a given role (signing or encryption);
+// the operation bitmask is supplied by the caller because it differs between
+// primary keys and subkeys.
+struct EccCurveSpec {
+  QString id;
+  QString name;
+  QString type;  ///< "EdDSA", "ECDSA" or "ECDH"
+  int length;
+  EngineSupportList support;
+};
+
+auto EccFamily(int opera, const QContainer<EccCurveSpec> &curves)
+    -> QContainer<KeyAlgo> {
+  QContainer<KeyAlgo> algos;
+  algos.reserve(curves.size());
+  for (const auto &c : curves) {
+    algos.append(KeyAlgoSpec{.id = c.id,
+                             .name = c.name,
+                             .type = c.type,
+                             .length = c.length,
+                             .opera = opera,
+                             .support = c.support});
+  }
+  return algos;
+}
+
+auto SlhDsaFamily(int opera) -> QContainer<KeyAlgo> {
+  struct Variant {
+    const char *id;
+    const char *name;
+    int length;
+  };
+  static constexpr std::array kVariants = {
+      Variant{"slhdsashake128s", "SLH-DSA-SHAKE-128S", 128},
+      Variant{"slhdsashake128f", "SLH-DSA-SHAKE-128F", 128},
+      Variant{"slhdsashake256s", "SLH-DSA-SHAKE-256S", 256},
+  };
+
+  QContainer<KeyAlgo> algos;
+  for (const auto &v : kVariants) {
+    algos.append(KeyAlgoSpec{.id = v.id,
+                             .name = v.name,
+                             .type = "SLH-DSA",
+                             .length = v.length,
+                             .opera = opera,
+                             .support = {{OpenPGPEngine::kRPGP, "0.1.2"}},
+                             .traits = kPQC});
+  }
+  return algos;
+}
+
+// The Kyber hybrid KEMs pair with the same set of classical ECDH curves; only
+// the cv25519 and x448 partners differ in engine support between key sizes.
+auto KyberHybridCurves(const EngineSupportList &cv25519_support,
+                       const EngineSupportList &x448_support)
+    -> QContainer<QPair<KeyAlgo, EngineSupportList>> {
+  const EngineSupportList gnupg_only{{OpenPGPEngine::kGNUPG, "2.5.0"}};
+  return {
+      {FindSubAlgo("cv25519", "ECDH"), cv25519_support},
+      {FindSubAlgo("nistp256", "ECDH"), gnupg_only},
+      {FindSubAlgo("nistp384", "ECDH"), gnupg_only},
+      {FindSubAlgo("nistp521", "ECDH"), gnupg_only},
+      {FindSubAlgo("brainpoolp256r1", "ECDH"), gnupg_only},
+      {FindSubAlgo("brainpoolp384r1", "ECDH"), gnupg_only},
+      {FindSubAlgo("brainpoolp512r1", "ECDH"), gnupg_only},
+      {FindSubAlgo("x448", "ECDH"), x448_support},
+  };
+}
+
 }  // namespace
 
-const KeyAlgo KeyGenerateInfo::kNoneAlgo = {
-    "none",
-    KeyGenerateInfo::tr("None"),
-    "None",
-    0,
-    0,
-    {{OpenPGPEngine::kGNUPG, "0.0.0"}, {OpenPGPEngine::kRPGP, "0.0.0"}}};
+const KeyAlgo KeyGenerateInfo::kNoneAlgo =
+    KeyAlgoSpec{.id = "none",
+                .name = KeyGenerateInfo::tr("None"),
+                .type = "None",
+                .length = 0,
+                .opera = kNONE,
+                .support = {{OpenPGPEngine::kGNUPG, "0.0.0"},
+                            {OpenPGPEngine::kRPGP, "0.0.0"}}};
 
-const QContainer<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos = {
-    kNoneAlgo,
+const QContainer<KeyAlgo> KeyGenerateInfo::kPrimaryKeyAlgos =
+    []() -> QContainer<KeyAlgo> {
+  QContainer<KeyAlgo> algos{kNoneAlgo};
 
-    /**
-     * Algorithm (DSA) as a government standard for digital signatures.
-     * Originally, it supported key lengths between 512 and 1024 bits.
-     * Recently, NIST has declared 512-bit keys obsolete:
-     * now, DSA is available in 1024, 2048 and 3072-bit lengths.
-     */
-    {
-        "rsa1024",
-        "RSA",
-        "RSA",
-        1024,
-        kENCRYPT | kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "rsa2048",
-        "RSA",
-        "RSA",
-        2048,
-        kENCRYPT | kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "rsa3072",
-        "RSA",
-        "RSA",
-        3072,
-        kENCRYPT | kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "rsa4096",
-        "RSA",
-        "RSA",
-        4096,
-        kENCRYPT | kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "dsa1024",
-        "DSA",
-        "DSA",
-        1024,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "dsa2048",
-        "DSA",
-        "DSA",
-        2048,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "dsa3072",
-        "DSA",
-        "DSA",
-        3072,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "ed25519",
-        "ED25519",
-        "EdDSA",
-        255,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "nistp256",
-        "NIST",
-        "ECDSA",
-        256,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "nistp384",
-        "NIST",
-        "ECDSA",
-        384,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "nistp521",
-        "NIST",
-        "ECDSA",
-        521,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "brainpoolp256r1",
-        "BrainPooL",
-        "ECDSA",
-        256,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
-    },
-    {
-        "brainpoolp384r1",
-        "BrainPooL",
-        "ECDSA",
-        384,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
-    },
-    {
-        "brainpoolp512r1",
-        "BrainPooL",
-        "ECDSA",
-        512,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
-    },
-    {
-        "ed448",
-        "ED448",
-        "EdDSA",
-        448,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "secp256k1",
-        "SECP256K1",
-        "EdDSA",
-        256,
-        kSIGN | kAUTH | kCERT,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
+  algos += RsaFamily(kENCRYPT | kSIGN | kAUTH | kCERT);
+  algos += DsaFamily(kSIGN | kAUTH | kCERT);
 
-    {
-        "slhdsashake128s",
-        "SLH-DSA-SHAKE-128S",
-        "SLH-DSA",
-        128,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kRPGP, "0.1.2"}},
-    },
-    {
-        "slhdsashake128f",
-        "SLH-DSA-SHAKE-128F",
-        "SLH-DSA",
-        128,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kRPGP, "0.1.2"}},
-    },
-    {
-        "slhdsashake256s",
-        "SLH-DSA-SHAKE-256S",
-        "SLH-DSA",
-        256,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kRPGP, "0.1.2"}},
-    },
-};
+  // ECC: every curve here is a primary (signing/cert) key.
+  const EngineSupportList ecc_gnupg_rpgp{{OpenPGPEngine::kGNUPG, "2.2.0"},
+                                         {OpenPGPEngine::kRPGP, "0.1.0"}};
+  const EngineSupportList ecc_gnupg23{{OpenPGPEngine::kGNUPG, "2.3.0"}};
+  const EngineSupportList ecc_gnupg23_rpgp{{OpenPGPEngine::kGNUPG, "2.3.0"},
+                                           {OpenPGPEngine::kRPGP, "0.1.0"}};
+
+  algos +=
+      EccFamily(kSIGN | kAUTH | kCERT,
+                {
+                    {"ed25519", "ED25519", "EdDSA", 255, ecc_gnupg_rpgp},
+                    {"nistp256", "NIST", "ECDSA", 256, ecc_gnupg_rpgp},
+                    {"nistp384", "NIST", "ECDSA", 384, ecc_gnupg_rpgp},
+                    {"nistp521", "NIST", "ECDSA", 521, ecc_gnupg_rpgp},
+                    {"brainpoolp256r1", "BrainPooL", "ECDSA", 256, ecc_gnupg23},
+                    {"brainpoolp384r1", "BrainPooL", "ECDSA", 384, ecc_gnupg23},
+                    {"brainpoolp512r1", "BrainPooL", "ECDSA", 512, ecc_gnupg23},
+                    {"ed448", "ED448", "EdDSA", 448, ecc_gnupg23_rpgp},
+                    {"secp256k1", "SECP256K1", "EdDSA", 256, ecc_gnupg23_rpgp},
+                });
+
+  algos += SlhDsaFamily(kSIGN | kAUTH);
+
+  return algos;
+}();
 
 const QContainer<KeyAlgo> KeyGenerateInfo::kHybridPrimaryKeyAlgo = {
-    {"mldsa65",
-     "ML-DSA",
-     "HYBRID-SIGN",
-     65,
-     kSIGN | kAUTH,
-     {{OpenPGPEngine::kRPGP, "0.1.2"}},
-     {
-         {
-             FindPrimaryAlgo("ed25519", "EdDSA"),  // ed25519
-             {
-                 {OpenPGPEngine::kRPGP, "0.1.2"},
-             },
-         },
-     }},
-    {"mldsa87",
-     "ML-DSA",
-     "HYBRID-SIGN",
-     87,
-     kSIGN | kAUTH,
-     {{OpenPGPEngine::kRPGP, "0.1.2"}},
-     {
-         {
-             FindPrimaryAlgo("ed448", "EdDSA"),  // ed448
-             {
-                 {OpenPGPEngine::kRPGP, "0.1.2"},
-             },
-         },
-     }},
+    KeyAlgoSpec{.id = "mldsa65",
+                .name = "ML-DSA",
+                .type = "HYBRID-SIGN",
+                .length = 65,
+                .opera = kSIGN | kAUTH,
+                .support = {{OpenPGPEngine::kRPGP, "0.1.2"}},
+                .sub_algos = {{FindPrimaryAlgo("ed25519", "EdDSA"),
+                               {{OpenPGPEngine::kRPGP, "0.1.2"}}}},
+                .traits = kPQC},
+    KeyAlgoSpec{.id = "mldsa87",
+                .name = "ML-DSA",
+                .type = "HYBRID-SIGN",
+                .length = 87,
+                .opera = kSIGN | kAUTH,
+                .support = {{OpenPGPEngine::kRPGP, "0.1.2"}},
+                .sub_algos = {{FindPrimaryAlgo("ed448", "EdDSA"),
+                               {{OpenPGPEngine::kRPGP, "0.1.2"}}}},
+                .traits = kPQC},
 };
 
-const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos = {
-    kNoneAlgo,
+const QContainer<KeyAlgo> KeyGenerateInfo::kSubKeyAlgos =
+    []() -> QContainer<KeyAlgo> {
+  QContainer<KeyAlgo> algos{kNoneAlgo};
 
-    {
-        "rsa1024",
-        "RSA",
-        "RSA",
-        1024,
-        kENCRYPT | kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "rsa2048",
-        "RSA",
-        "RSA",
-        2048,
-        kENCRYPT | kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "rsa3072",
-        "RSA",
-        "RSA",
-        3072,
-        kENCRYPT | kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "rsa4096",
-        "RSA",
-        "RSA",
-        4096,
-        kENCRYPT | kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "dsa1024",
-        "DSA",
-        "DSA",
-        1024,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "dsa2048",
-        "DSA",
-        "DSA",
-        2048,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "dsa3072",
-        "DSA",
-        "DSA",
-        3072,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "ed25519",
-        "ED25519",
-        "EdDSA",
-        255,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "cv25519",
-        "CV25519",
-        "ECDH",
-        255,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "nistp256",
-        "NIST",
-        "ECDH",
-        256,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "nistp384",
-        "NIST",
-        "ECDH",
-        384,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "nistp521",
-        "NIST",
-        "ECDH",
-        521,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "nistp256",
-        "NIST",
-        "ECDSA",
-        256,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "nistp384",
-        "NIST",
-        "ECDSA",
-        384,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "nistp521",
-        "NIST",
-        "ECDSA",
-        521,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "brainpoolp256r1",
-        "BrainPooL",
-        "ECDH",
-        256,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
-    },
-    {
-        "brainpoolp384r1",
-        "BrainPooL",
-        "ECDH",
-        384,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
-    },
-    {
-        "brainpoolp512r1",
-        "BrainPooL",
-        "ECDH",
-        512,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
-    },
-    {
-        "brainpoolp256r1",
-        "BrainPooL",
-        "ECDSA",
-        256,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
-    },
-    {
-        "brainpoolp384r1",
-        "BrainPooL",
-        "ECDSA",
-        384,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
-    },
-    {
-        "brainpoolp512r1",
-        "BrainPooL",
-        "ECDSA",
-        512,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
-    },
-    {
-        "x448",
-        "X448",
-        "ECDH",
-        448,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}, {OpenPGPEngine::kRPGP, "0.1.0"}},
-    },
-    {
-        "secp256k1",
-        "SECP256K1",
-        "ECDH",
-        256,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.3.0"}},
-    },
+  algos += RsaFamily(kENCRYPT | kSIGN | kAUTH);
+  algos += DsaFamily(kSIGN | kAUTH);
 
-    /**
-     * GnuPG supports the Elgamal asymmetric encryption algorithm in key lengths
-     * ranging from 1024 to 4096 bits.
-     */
-    {
-        "elg1024",
-        "ELG-E",
-        "ELG-E",
-        1024,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}},
-    },
-    {
-        "elg2048",
-        "ELG-E",
-        "ELG-E",
-        2048,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}},
-    },
-    {
-        "elg3072",
-        "ELG-E",
-        "ELG-E",
-        3072,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}},
-    },
-    {
-        "elg4096",
-        "ELG-E",
-        "ELG-E",
-        4096,
-        kENCRYPT,
-        {{OpenPGPEngine::kGNUPG, "2.2.0"}},
-    },
+  // ECC signing/auth curves.
+  const EngineSupportList ecc_gnupg_rpgp{{OpenPGPEngine::kGNUPG, "2.2.0"},
+                                         {OpenPGPEngine::kRPGP, "0.1.0"}};
+  const EngineSupportList ecc_gnupg23{{OpenPGPEngine::kGNUPG, "2.3.0"}};
+  const EngineSupportList ecc_gnupg23_rpgp{{OpenPGPEngine::kGNUPG, "2.3.0"},
+                                           {OpenPGPEngine::kRPGP, "0.1.0"}};
 
-    {
-        "ed448",
-        "ED448",
-        "EdDSA",
-        448,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kRPGP, "0.1.2"}},
-    },
+  algos += EccFamily(
+      kSIGN | kAUTH,
+      {
+          {"ed25519", "ED25519", "EdDSA", 255, ecc_gnupg_rpgp},
+          {"nistp256", "NIST", "ECDSA", 256, ecc_gnupg_rpgp},
+          {"nistp384", "NIST", "ECDSA", 384, ecc_gnupg_rpgp},
+          {"nistp521", "NIST", "ECDSA", 521, ecc_gnupg_rpgp},
+          {"brainpoolp256r1", "BrainPooL", "ECDSA", 256, ecc_gnupg23},
+          {"brainpoolp384r1", "BrainPooL", "ECDSA", 384, ecc_gnupg23},
+          {"brainpoolp512r1", "BrainPooL", "ECDSA", 512, ecc_gnupg23},
+          {"ed448", "ED448", "EdDSA", 448, {{OpenPGPEngine::kRPGP, "0.1.2"}}},
+      });
 
-    {
-        "slhdsashake128s",
-        "SLH-DSA-SHAKE-128S",
-        "SLH-DSA",
-        128,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kRPGP, "0.1.2"}},
-    },
-    {
-        "slhdsashake128f",
-        "SLH-DSA-SHAKE-128F",
-        "SLH-DSA",
-        128,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kRPGP, "0.1.2"}},
-    },
-    {
-        "slhdsashake256s",
-        "SLH-DSA-SHAKE-256S",
-        "SLH-DSA",
-        256,
-        kSIGN | kAUTH,
-        {{OpenPGPEngine::kRPGP, "0.1.2"}},
-    },
+  // ECC encryption curves (ECDH).
+  algos += EccFamily(
+      kENCRYPT, {
+                    {"cv25519", "CV25519", "ECDH", 255, ecc_gnupg_rpgp},
+                    {"nistp256", "NIST", "ECDH", 256, ecc_gnupg_rpgp},
+                    {"nistp384", "NIST", "ECDH", 384, ecc_gnupg_rpgp},
+                    {"nistp521", "NIST", "ECDH", 521, ecc_gnupg_rpgp},
+                    {"brainpoolp256r1", "BrainPooL", "ECDH", 256, ecc_gnupg23},
+                    {"brainpoolp384r1", "BrainPooL", "ECDH", 384, ecc_gnupg23},
+                    {"brainpoolp512r1", "BrainPooL", "ECDH", 512, ecc_gnupg23},
+                    {"x448", "X448", "ECDH", 448, ecc_gnupg23_rpgp},
+                    {"secp256k1", "SECP256K1", "ECDH", 256, ecc_gnupg23},
+                });
 
-};
+  algos += ElgamalFamily();
+  algos += SlhDsaFamily(kSIGN | kAUTH);
+
+  return algos;
+}();
 
 // Refer: https://lists.gnupg.org/pipermail/gnupg-devel/2024-May/035537.html
 const QContainer<KeyAlgo> KeyGenerateInfo::kHybridSubKeyAlgos = {
-    {"ky768",
-     "Kyber",
-     "HYBRID-KEM",
-     768,
-     kENCRYPT,
-     {{OpenPGPEngine::kGNUPG, "2.5.0"}, {OpenPGPEngine::kRPGP, "0.1.2"}},
-     {
-         {
-             FindSubAlgo("cv25519", "ECDH"),  // cv25519
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-                 {OpenPGPEngine::kRPGP, "0.1.2"},
-             },
-         },
-         {
-             FindSubAlgo("nistp256", "ECDH"),  // nistp256
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("nistp384", "ECDH"),  // nistp384
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("nistp521", "ECDH"),  // nistp521
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("brainpoolp256r1", "ECDH"),  // brainpoolp256r1
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("brainpoolp384r1", "ECDH"),  // brainpoolp384r1
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("brainpoolp512r1", "ECDH"),  // brainpoolp512r1
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("x448", "ECDH"),  // x448
-             {{OpenPGPEngine::kGNUPG, "2.5.0"}},
-         },
-     }},
-    {"kyber1024",
-     "Kyber",
-     "HYBRID-KEM",
-     1024,
-     kENCRYPT,
-     {{OpenPGPEngine::kGNUPG, "2.5.0"}, {OpenPGPEngine::kRPGP, "0.1.2"}},
-     {
-         {
-             FindSubAlgo("cv25519", "ECDH"),  // cv25519
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("nistp256", "ECDH"),  // nistp256
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("nistp384", "ECDH"),  // nistp384
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("nistp521", "ECDH"),  // nistp521
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("brainpoolp256r1", "ECDH"),  // brainpoolp256r1
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("brainpoolp384r1", "ECDH"),  // brainpoolp384r1
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("brainpoolp512r1", "ECDH"),  // brainpoolp512r1
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-             },
-         },
-         {
-             FindSubAlgo("x448", "ECDH"),  // x448
-             {
-                 {OpenPGPEngine::kGNUPG, "2.5.0"},
-                 {OpenPGPEngine::kRPGP, "0.1.2"},
-             },
-         },
-     }},
-    {"mldsa65",
-     "ML-DSA",
-     "HYBRID-SIGN",
-     65,
-     kSIGN | kAUTH,
-     {{OpenPGPEngine::kRPGP, "0.1.2"}},
-     {
-         {
-             FindSubAlgo("ed25519", "EdDSA"),  // ed25519
-             {
-                 {OpenPGPEngine::kRPGP, "0.1.2"},
-             },
-         },
-     }},
-    {"mldsa87",
-     "ML-DSA",
-     "HYBRID-SIGN",
-     87,
-     kSIGN | kAUTH,
-     {{OpenPGPEngine::kRPGP, "0.1.2"}},
-     {
-         {
-             FindSubAlgo("ed448", "EdDSA"),  // ed448
-             {
-                 {OpenPGPEngine::kRPGP, "0.1.2"},
-             },
-         },
-     }},
+    KeyAlgoSpec{
+        .id = "ky768",
+        .name = "Kyber",
+        .type = "HYBRID-KEM",
+        .length = 768,
+        .opera = kENCRYPT,
+        .support = {{OpenPGPEngine::kGNUPG, "2.5.0"},
+                    {OpenPGPEngine::kRPGP, "0.1.2"}},
+        .sub_algos = KyberHybridCurves(
+            {{OpenPGPEngine::kGNUPG, "2.5.0"}, {OpenPGPEngine::kRPGP, "0.1.2"}},
+            {{OpenPGPEngine::kGNUPG, "2.5.0"}}),
+        .traits = kPQC},
+    KeyAlgoSpec{
+        .id = "kyber1024",
+        .name = "Kyber",
+        .type = "HYBRID-KEM",
+        .length = 1024,
+        .opera = kENCRYPT,
+        .support = {{OpenPGPEngine::kGNUPG, "2.5.0"},
+                    {OpenPGPEngine::kRPGP, "0.1.2"}},
+        .sub_algos = KyberHybridCurves({{OpenPGPEngine::kGNUPG, "2.5.0"}},
+                                       {{OpenPGPEngine::kGNUPG, "2.5.0"},
+                                        {OpenPGPEngine::kRPGP, "0.1.2"}}),
+        .traits = kPQC},
+    KeyAlgoSpec{.id = "mldsa65",
+                .name = "ML-DSA",
+                .type = "HYBRID-SIGN",
+                .length = 65,
+                .opera = kSIGN | kAUTH,
+                .support = {{OpenPGPEngine::kRPGP, "0.1.2"}},
+                .sub_algos = {{FindSubAlgo("ed25519", "EdDSA"),
+                               {{OpenPGPEngine::kRPGP, "0.1.2"}}}},
+                .traits = kPQC},
+    KeyAlgoSpec{.id = "mldsa87",
+                .name = "ML-DSA",
+                .type = "HYBRID-SIGN",
+                .length = 87,
+                .opera = kSIGN | kAUTH,
+                .support = {{OpenPGPEngine::kRPGP, "0.1.2"}},
+                .sub_algos = {{FindSubAlgo("ed448", "EdDSA"),
+                               {{OpenPGPEngine::kRPGP, "0.1.2"}}}},
+                .traits = kPQC},
 };
 
 auto KeyGenerateInfo::GetSupportedKeyAlgo(int channel) -> QContainer<KeyAlgo> {
@@ -1058,20 +722,19 @@ void KeyGenerateInfo::SetAllowAuth(bool m_allow_authentication) {
   return allow_change_authentication_;
 }
 
-KeyAlgo::KeyAlgo(QString id, QString name, QString type, int length, int opera,
-                 EngineSupportList support_ifs,
-                 QContainer<QPair<KeyAlgo, EngineSupportList>> sub_algos)
-    : id_(std::move(id)),
-      name_(std::move(name)),
-      type_(std::move(type)),
-      length_(length),
-      support_ifs_(std::move(support_ifs)),
-      sub_algos_(std::move(sub_algos)) {
-  encrypt_ = ((opera & kENCRYPT) != 0);
-  sign_ = ((opera & kSIGN) != 0);
-  auth_ = ((opera & kAUTH) != 0);
-  cert_ = ((opera & kCERT) != 0);
-};
+KeyAlgo::KeyAlgo(const KeyAlgoSpec &spec)
+    : id_(spec.id),
+      name_(spec.name),
+      type_(spec.type),
+      length_(spec.length),
+      support_ifs_(spec.support),
+      sub_algos_(spec.sub_algos),
+      traits_(spec.traits) {
+  encrypt_ = ((spec.opera & kENCRYPT) != 0);
+  sign_ = ((spec.opera & kSIGN) != 0);
+  auth_ = ((spec.opera & kAUTH) != 0);
+  cert_ = ((spec.opera & kCERT) != 0);
+}
 
 auto KeyAlgo::Id() const -> QString { return id_; }
 
@@ -1088,6 +751,8 @@ auto KeyAlgo::CanSign() const -> bool { return sign_; }
 auto KeyAlgo::CanAuth() const -> bool { return auth_; }
 
 auto KeyAlgo::CanCert() const -> bool { return cert_; }
+
+auto KeyAlgo::IsPostQuantum() const -> bool { return (traits_ & kPQC) != 0; }
 
 auto KeyAlgo::SupportedVersion() const -> QContainer<EngineSupportIf> {
   return support_ifs_;

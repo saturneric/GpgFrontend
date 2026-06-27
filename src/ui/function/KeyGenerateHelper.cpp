@@ -30,6 +30,27 @@
 
 namespace GpgFrontend::UI {
 
+void AddComboSectionHeader(QComboBox* combo_box, const QString& text) {
+  if (combo_box == nullptr) return;
+
+  combo_box->addItem(text);
+
+  auto* model = qobject_cast<QStandardItemModel*>(combo_box->model());
+  if (model == nullptr) return;
+
+  auto* item = model->item(combo_box->count() - 1);
+  if (item == nullptr) return;
+
+  item->setFlags(item->flags() & ~(Qt::ItemIsSelectable | Qt::ItemIsEnabled));
+  item->setData(combo_box->palette().color(QPalette::Disabled, QPalette::Text),
+                Qt::ForegroundRole);
+  item->setData(Qt::AlignCenter, Qt::TextAlignmentRole);
+
+  auto font = item->font();
+  font.setItalic(true);
+  item->setData(font, Qt::FontRole);
+}
+
 auto GetAlgoById(const QString& id, const QContainer<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo> {
   for (const auto& algo : algos) {
@@ -110,6 +131,11 @@ void PopulateAlgoComboBox(QComboBox* combo_box,
               if (a.Id() == "none" && b.Id() != "none") return true;
               if (b.Id() == "none" && a.Id() != "none") return false;
 
+              // Keep all post-quantum algorithms grouped together at the end.
+              if (a.IsPostQuantum() != b.IsPostQuantum()) {
+                return !a.IsPostQuantum();
+              }
+
               if (a.Name() != b.Name()) return a.Name() < b.Name();
               if (a.Type() != b.Type()) return a.Type() < b.Type();
               if (a.KeyLength() != b.KeyLength()) {
@@ -122,6 +148,7 @@ void PopulateAlgoComboBox(QComboBox* combo_box,
 
   QString last_label;
   QString last_type;
+  bool pqc_header_added = false;
 
   for (const auto& algo : sorted_algos) {
     QString label;
@@ -135,6 +162,13 @@ void PopulateAlgoComboBox(QComboBox* combo_box,
     if (label == last_label && algo.Type() == last_type) continue;
     last_label = label;
     last_type = algo.Type();
+
+    // Mark where the post-quantum block begins with a section header so these
+    // quantum-resistant options stand out instead of being buried in the list.
+    if (algo.IsPostQuantum() && !pqc_header_added) {
+      AddComboSectionHeader(combo_box, QObject::tr("Post-Quantum"));
+      pqc_header_added = true;
+    }
 
     QVariantMap data;
     data["id"] = algo.Id();

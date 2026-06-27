@@ -57,6 +57,37 @@ TEST_F(GpgCoreTest, SearchSubKeyAlgoTest) {
   ASSERT_EQ(algo.KeyLength(), 2048);
 }
 
+TEST_F(GpgCoreTest, IsPostQuantumAlgoTest) {
+  // Classical algorithms must not be flagged as post-quantum.
+  auto [find_rsa, rsa] = KeyGenerateInfo::SearchPrimaryKeyAlgo("rsa2048");
+  ASSERT_TRUE(find_rsa);
+  ASSERT_FALSE(rsa.IsPostQuantum());
+
+  auto [find_ed, ed] = KeyGenerateInfo::SearchPrimaryKeyAlgo("ed25519");
+  ASSERT_TRUE(find_ed);
+  ASSERT_FALSE(ed.IsPostQuantum());
+
+  ASSERT_FALSE(KeyGenerateInfo::kNoneAlgo.IsPostQuantum());
+
+  // SLH-DSA is a stateless hash-based post-quantum signature algorithm.
+  auto [find_slh, slh] =
+      KeyGenerateInfo::SearchPrimaryKeyAlgo("slhdsashake128s");
+  ASSERT_TRUE(find_slh);
+  ASSERT_TRUE(slh.IsPostQuantum());
+
+  // Every hybrid primary algorithm (ML-DSA) is post-quantum.
+  ASSERT_FALSE(KeyGenerateInfo::kHybridPrimaryKeyAlgo.isEmpty());
+  for (const auto& algo : KeyGenerateInfo::kHybridPrimaryKeyAlgo) {
+    ASSERT_TRUE(algo.IsPostQuantum()) << algo.Id().toStdString();
+  }
+
+  // Every hybrid subkey algorithm (Kyber KEM, ML-DSA sign) is post-quantum.
+  ASSERT_FALSE(KeyGenerateInfo::kHybridSubKeyAlgos.isEmpty());
+  for (const auto& algo : KeyGenerateInfo::kHybridSubKeyAlgos) {
+    ASSERT_TRUE(algo.IsPostQuantum()) << algo.Id().toStdString();
+  }
+}
+
 TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
   auto p_info = QSharedPointer<KeyGenerateInfo>::create();
   p_info->SetName("foo_0");

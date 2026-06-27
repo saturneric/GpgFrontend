@@ -33,13 +33,27 @@
 #include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
+
+/**
+ * @brief Intrinsic, non-operational properties of a key algorithm.
+ *
+ * Unlike GpgOperation (what a key can *do*), traits describe what an algorithm
+ * *is*. Stored as a bitmask so an algorithm can carry several traits.
+ */
+enum KeyAlgoTrait : uint16_t {
+  kALGO_TRAIT_NONE = 0,
+  kPQC = 1 << 0,  ///< post-quantum / quantum-resistant
+};
+
+struct KeyAlgoSpec;
+
 class GF_CORE_EXPORT KeyAlgo {
  public:
   KeyAlgo() = default;
 
-  KeyAlgo(QString id, QString name, QString type, int length, int opera,
-          EngineSupportList support_if,
-          QContainer<QPair<KeyAlgo, EngineSupportList>> sub_algos = {});
+  // Implicit on purpose: lets the algorithm tables be written as readable,
+  // designated-initialized KeyAlgoSpec literals.
+  KeyAlgo(const KeyAlgoSpec &spec);  // NOLINT(google-explicit-constructor)
 
   KeyAlgo(const KeyAlgo &) = default;
 
@@ -65,6 +79,16 @@ class GF_CORE_EXPORT KeyAlgo {
 
   [[nodiscard]] auto CanCert() const -> bool;
 
+  /**
+   * @brief Whether this algorithm is post-quantum (quantum-resistant).
+   *
+   * Covers the NIST PQC suite exposed through the OpenPGP draft: ML-KEM
+   * (Kyber hybrid), ML-DSA (hybrid signing) and SLH-DSA.
+   *
+   * @return true if the algorithm provides post-quantum resistance.
+   */
+  [[nodiscard]] auto IsPostQuantum() const -> bool;
+
   [[nodiscard]] auto SupportedVersion() const -> EngineSupportList;
 
   [[nodiscard]] auto SubAlgos(int channel) const -> QContainer<KeyAlgo>;
@@ -82,6 +106,27 @@ class GF_CORE_EXPORT KeyAlgo {
 
   // for hybrid algorithms
   QContainer<QPair<KeyAlgo, EngineSupportList>> sub_algos_;
+
+  int traits_ =
+      kALGO_TRAIT_NONE;  ///< intrinsic algorithm traits (KeyAlgoTrait)
+};
+
+/**
+ * @brief Plain, designated-initializable description of a key algorithm.
+ *
+ * Used to declare the algorithm tables with named fields instead of positional
+ * arguments. Implicitly converts to KeyAlgo.
+ */
+struct KeyAlgoSpec {
+  QString id;                 ///< unique algorithm id (e.g. "rsa2048")
+  QString name;               ///< display name (e.g. "RSA")
+  QString type;               ///< crypto family (e.g. "RSA", "ECDSA")
+  int length = 0;             ///< key length in bits
+  int opera = 0;              ///< GpgOperation capability bitmask
+  EngineSupportList support;  ///< per-engine minimum versions
+  QContainer<QPair<KeyAlgo, EngineSupportList>> sub_algos =
+      {};                         ///< for hybrids
+  int traits = kALGO_TRAIT_NONE;  ///< KeyAlgoTrait bitmask
 };
 
 class GF_CORE_EXPORT KeyGenerateInfo : public QObject {

@@ -97,6 +97,15 @@ void PopulateAlgoComboBox(QComboBox* combo_box,
                           const QContainer<KeyAlgo>& algos);
 
 /**
+ * @brief Append a non-selectable, visually distinct section header to a combo
+ * box, used to group related entries (e.g. post-quantum algorithms/profiles).
+ *
+ * @param combo_box
+ * @param text the (already translated) header label
+ */
+void AddComboSectionHeader(QComboBox* combo_box, const QString& text);
+
+/**
  * @brief Get the Algo By Id And Type object
  *
  * If type is empty, this function falls back to id-only matching for backward
