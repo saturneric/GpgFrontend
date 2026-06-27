@@ -845,6 +845,11 @@ auto MainWindow::handle_module_error(QMap<QString, GFBuffer> p) -> bool {
 void MainWindow::slot_gpg_opera_buffer_show_helper(
     const QContainer<GpgOperaResult>& results) {
   for (const auto& result : results) {
+    // Never replace the editor content with the output of a failed operation.
+    // A failed decrypt can still carry a non-empty buffer (e.g. gpg extracts
+    // the cleartext payload of a clear-signed message), and writing it back
+    // would silently overwrite the user's input with leaked plaintext.
+    if (result.op_info.status < 0) continue;
     if (result.o_buffer.Empty()) continue;
 
     edit_->SlotFillTextEditWithText(result.o_buffer);
