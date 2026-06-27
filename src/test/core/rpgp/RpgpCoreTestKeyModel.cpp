@@ -121,7 +121,7 @@ TEST_F(RpgpCoreTest, GpgUIDTest) {
   ASSERT_EQ(uid0.GetName(), "uuuuuu");
   ASSERT_EQ(uid0.GetComment(), "uuuuu");
   ASSERT_EQ(uid0.GetEmail(), "uuuuu@uuu.uuu");
-  ASSERT_EQ(uid0.GetUID(), "uuuuuu(uuuuu)<uuuuu@uuu.uuu>");
+  ASSERT_EQ(uid0.GetUID(), "uuuuuu (uuuuu) <uuuuu@uuu.uuu>");
   ASSERT_FALSE(uid0.GetInvalid());
   ASSERT_FALSE(uid0.GetRevoked());
 
@@ -129,7 +129,7 @@ TEST_F(RpgpCoreTest, GpgUIDTest) {
   ASSERT_EQ(uid1.GetName(), "gggggg");
   ASSERT_EQ(uid1.GetComment(), "ggggg");
   ASSERT_EQ(uid1.GetEmail(), "ggggg@ggg.gggggg");
-  ASSERT_EQ(uid1.GetUID(), "gggggg(ggggg)<ggggg@ggg.gggggg>");
+  ASSERT_EQ(uid1.GetUID(), "gggggg (ggggg) <ggggg@ggg.gggggg>");
   ASSERT_FALSE(uid1.GetInvalid());
   ASSERT_FALSE(uid1.GetRevoked());
 }
