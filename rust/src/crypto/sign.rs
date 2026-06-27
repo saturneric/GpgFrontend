@@ -168,10 +168,12 @@ where
                 }
             }
 
-            result.map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
-            output_stream
-                .flush()
-                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
+            result.record_err_with(|| {
+                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
+            })?;
+            output_stream.flush().record_err_with(|| {
+                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
+            })?;
 
             Ok(SignStreamResultInternal {
                 signatures: created_signatures,
@@ -183,10 +185,10 @@ where
         // ---------------------------------------------------------
         GfrSignMode::ClearText => {
             let mut data = Vec::new();
-            input_stream
-                .read_to_end(&mut data)
-                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput))?;
-            let text_str = std::str::from_utf8(&data).map_err(|_| GfrStatus::ErrorInvalidInput)?;
+            input_stream.read_to_end(&mut data).record_err_with(|| {
+                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
+            })?;
+            let text_str = std::str::from_utf8(&data).record_err(GfrStatus::ErrorInvalidInput)?;
 
             if parsed_keys.is_empty() {
                 return Err(GfrStatus::ErrorInvalidInput);
@@ -232,9 +234,10 @@ where
                                     )
                                     .map_err(|_| GfrStatus::ErrorInternal)?];
                                 }
-                                config.sign(k, &pwd, cursor).map_err(|_| {
+                                config.sign(k, &pwd, cursor).map_err(|e| {
                                     log::warn!("Cleartext signing failed for {}. Evicting bad password.", fpr);
                                     PASSWORD_CACHE.remove_by_fpr(&fpr);
+                                    set_last_error(&format!("signing failed for key {}: {}", fpr, e));
                                     GfrStatus::ErrorBadPassphrase
                                 })?
                             }
@@ -260,9 +263,10 @@ where
                                     )
                                     .map_err(|_| GfrStatus::ErrorInternal)?];
                                 }
-                                config.sign(k, &pwd, cursor).map_err(|_| {
+                                config.sign(k, &pwd, cursor).map_err(|e| {
                                     log::warn!("Cleartext signing failed for {}. Evicting bad password.", fpr);
                                     PASSWORD_CACHE.remove_by_fpr(&fpr);
+                                    set_last_error(&format!("signing failed for key {}: {}", fpr, e));
                                     GfrStatus::ErrorBadPassphrase
                                 })?
                             }
@@ -301,9 +305,9 @@ where
         // ---------------------------------------------------------
         GfrSignMode::Detached => {
             let mut data = Vec::new();
-            input_stream
-                .read_to_end(&mut data)
-                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput))?;
+            input_stream.read_to_end(&mut data).record_err_with(|| {
+                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
+            })?;
 
             if parsed_keys.is_empty() {
                 return Err(GfrStatus::ErrorInvalidInput);
@@ -336,20 +340,24 @@ where
                         ),
                     };
 
-                    if let Ok(sig) = sig_res {
-                        record_sig(fpr, algo_str);
-                        let out = if ascii_armor {
-                            sig.to_armored_bytes(None.into())
-                                .map_err(|_| GfrStatus::ErrorArmorFailed)?
-                        } else {
-                            sig.to_bytes().map_err(|_| GfrStatus::ErrorInternal)?
-                        };
-                        return Ok(out);
+                    match sig_res {
+                        Ok(sig) => {
+                            record_sig(fpr, algo_str);
+                            let out = if ascii_armor {
+                                sig.to_armored_bytes(None.into())
+                                    .record_err(GfrStatus::ErrorArmorFailed)?
+                            } else {
+                                sig.to_bytes().record_err(GfrStatus::ErrorInternal)?
+                            };
+                            return Ok(out);
+                        }
+                        Err(e) => {
+                            log::warn!("Signing failed for {}. Evicting bad password.", fpr);
+                            PASSWORD_CACHE.remove_by_fpr(&fpr);
+                            set_last_error(&format!("signing failed for key {}: {}", fpr, e));
+                            Err(GfrStatus::ErrorBadPassphrase)
+                        }
                     }
-
-                    log::warn!("Signing failed for {}. Evicting bad password.", fpr);
-                    PASSWORD_CACHE.remove_by_fpr(&fpr);
-                    Err(GfrStatus::ErrorBadPassphrase)
                 })?;
 
                 all_out.extend_from_slice(&res);

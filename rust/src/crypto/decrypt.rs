@@ -74,6 +74,7 @@ fn analyze_encrypted_envelope(
         return Ok((has_pkesk, has_skesk, recipients));
     }
 
+    set_last_error("message has no encrypted session-key packet (not an encrypted message)");
     Err(GfrStatus::ErrorInvalidData)
 }
 
@@ -109,7 +110,7 @@ fn decrypt_message_with_password(
 
     parsed_message
         .decrypt_with_password(&msg_pw)
-        .map_err(|_| GfrStatus::ErrorDecryptionFailed)
+        .record_err(GfrStatus::ErrorDecryptionFailed)
 }
 
 /// Decrypt and optionally verify a stream in a single pipeline.
@@ -141,16 +142,21 @@ where
     // 1. Parse PGP outer envelope (consumes headers only)
     let parsed_message = if ascii_armor {
         Message::from_armor(buf_input)
-            .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput))?
+            .record_err_with(|| {
+                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
+            })?
             .0
     } else {
         Message::from_reader(buf_input)
-            .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput))?
+            .record_err_with(|| {
+                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput)
+            })?
             .0
     };
 
     let (_, has_skesk, mut recipients) = analyze_encrypted_envelope(&parsed_message)?;
     if !has_skesk && recipients.is_empty() {
+        set_last_error("input is not an OpenPGP encrypted message");
         return Err(GfrStatus::ErrorInvalidData);
     }
 
@@ -184,7 +190,10 @@ where
             }
         }
 
-        let skey = target_skey.ok_or(GfrStatus::ErrorNoKey)?;
+        let skey = target_skey.ok_or_else(|| {
+            set_last_error("no available secret key matches any recipient of this message");
+            GfrStatus::ErrorNoKey
+        })?;
 
         // 4. Check if unlocking is needed
         let mut needs_password = false;
@@ -410,12 +419,14 @@ pub fn decrypt_and_verify_archive_internal(
     // 2. Open the encrypted input file
     let in_file = File::open(in_file_path).map_err(|e| {
         log::error!("Failed to open encrypted input file: {}", e);
+        set_last_error(&format!("cannot open encrypted input file: {}", e));
         crate::types::GfrStatus::ErrorIo
     })?;
 
     // 3. Create an anonymous temporary file as a secure buffer for decrypted data
     let mut temp_archive = tempfile::tempfile().map_err(|e| {
         log::error!("Failed to create temp file for decryption: {}", e);
+        set_last_error(&format!("cannot create temporary file for decryption: {}", e));
         crate::types::GfrStatus::ErrorIo
     })?;
 
@@ -435,7 +446,7 @@ pub fn decrypt_and_verify_archive_internal(
     // 5. Move the temporary file cursor back to the beginning, preparing for extraction
     temp_archive
         .seek(SeekFrom::Start(0))
-        .map_err(|_| crate::types::GfrStatus::ErrorIo)?;
+        .record_err(crate::types::GfrStatus::ErrorIo)?;
 
     // 6. Perform Tar extraction operation
     log::info!(
@@ -445,6 +456,7 @@ pub fn decrypt_and_verify_archive_internal(
     let mut archive = tar::Archive::new(temp_archive);
     archive.unpack(out_dir).map_err(|e| {
         log::error!("Failed to unpack tar archive: {}", e);
+        set_last_error(&format!("decrypted data is not a valid archive: {}", e));
         crate::types::GfrStatus::ErrorInvalidData // Extraction failure may indicate the content is not a valid tar archive
     })?;
 

@@ -52,7 +52,7 @@ where
     let sig_msg = DetachedSignature::from_armor_single(Cursor::new(sig_data))
         .map(|(s, _)| s)
         .or_else(|_| DetachedSignature::from_bytes(sig_data))
-        .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        .record_err(GfrStatus::ErrorInvalidInput)?;
 
     // 2. Sniff signature metadata to know WHO signed it before fetching keys
     let mut signatures = sniff_signatures(sig_data, GfrSignMode::Detached);
@@ -121,7 +121,7 @@ where
         // Rewind the stream to the beginning before starting verification
         data_stream
             .seek(SeekFrom::Start(0))
-            .map_err(|_| GfrStatus::ErrorInternal)?;
+            .record_err(GfrStatus::ErrorInternal)?;
 
         // Try verifying with the primary key first
         let mut is_cert_valid = {
@@ -139,7 +139,7 @@ where
                 // We MUST rewind the stream before each subsequent verification attempt!
                 data_stream
                     .seek(SeekFrom::Start(0))
-                    .map_err(|_| GfrStatus::ErrorInternal)?;
+                    .record_err(GfrStatus::ErrorInternal)?;
 
                 let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut data_stream);
                 if sig_msg.signature.verify(subkey, &mut cancellable).is_ok() {
@@ -255,7 +255,7 @@ pub fn verify_internal(
         // MODE 1: CLEARTEXT SIGNATURE
         // ---------------------------------------------------------
         GfrSignMode::ClearText => {
-            let text_str = std::str::from_utf8(data).map_err(|_| GfrStatus::ErrorInvalidInput)?;
+            let text_str = std::str::from_utf8(data).record_err(GfrStatus::ErrorInvalidInput)?;
             let (msg, _) = CleartextSignedMessage::from_string(text_str).into_gfr()?;
 
             // Sniff directly from the parsed message

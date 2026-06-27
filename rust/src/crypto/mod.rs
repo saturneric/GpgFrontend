@@ -41,7 +41,7 @@
 use crate::host::gfc_secure_free_cstr;
 pub(crate) use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
-    err::{IntoGfrResult, set_last_error},
+    err::{IntoGfrResult, RecordErr, set_last_error},
     tar::build_tar_tempfile_from_directory,
     types::{
         GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrRecipientStatus, GfrSecretKeyFetchCb,

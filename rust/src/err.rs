@@ -62,16 +62,19 @@ pub fn clear_last_error() {
 
 /// Return the last error message for the current thread as a heap-allocated C string.
 ///
-/// Returns null when no error has been set since the last `clear_last_error` call.
-/// The caller must free the returned pointer with `gfr_crypto_free_string`.
+/// Returns null when no error is pending. Reading **consumes** the message: the
+/// thread-local slot is cleared afterwards, so a stale detail from a previous
+/// operation can never be mistaken for the current one even when a later failure
+/// path returns a bare status without recording a message. The caller must free
+/// the returned pointer with `gfr_crypto_free_string`.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_get_last_error_msg() -> *mut c_char {
     LAST_ERROR.with(|e| {
-        let msg = e.borrow();
+        let msg = std::mem::take(&mut *e.borrow_mut());
         if msg.is_empty() {
             std::ptr::null_mut()
         } else {
-            CString::new(msg.clone()).unwrap_or_default().into_raw()
+            CString::new(msg).unwrap_or_default().into_raw()
         }
     })
 }
@@ -80,6 +83,37 @@ pub extern "C" fn gfr_get_last_error_msg() -> *mut c_char {
 /// the error message as a side effect.
 pub trait IntoGfrResult<T> {
     fn into_gfr(self) -> Result<T, GfrStatus>;
+}
+
+/// Record an arbitrary error's message before collapsing it into a `GfrStatus`.
+///
+/// Use this instead of the lossy `.map_err(|_| GfrStatus::X)` pattern so the
+/// specific cause (e.g. "checksum mismatch", "unsupported algorithm") survives
+/// for C++ to retrieve via `gfr_get_last_error_msg`, the way GnuPG surfaces
+/// `gpg_strerror` text. When the source error is a `pgp::errors::Error`, prefer
+/// [`IntoGfrResult::into_gfr`], which also picks the most precise status itself.
+pub trait RecordErr<T> {
+    /// Record the error message, then map to the fixed `status`.
+    fn record_err(self, status: GfrStatus) -> Result<T, GfrStatus>;
+
+    /// Record the error message, then map to the status produced by `f`
+    /// (e.g. `cancel::status_or_canceled(channel, ...)`).
+    fn record_err_with(self, f: impl FnOnce() -> GfrStatus) -> Result<T, GfrStatus>;
+}
+
+impl<T, E: std::fmt::Display> RecordErr<T> for Result<T, E> {
+    fn record_err(self, status: GfrStatus) -> Result<T, GfrStatus> {
+        self.record_err_with(|| status)
+    }
+
+    fn record_err_with(self, f: impl FnOnce() -> GfrStatus) -> Result<T, GfrStatus> {
+        self.map_err(|e| {
+            let msg = e.to_string();
+            log::error!("rPGP operation failed: {}", msg);
+            set_last_error(&msg);
+            f()
+        })
+    }
 }
 
 impl<T> IntoGfrResult<T> for Result<T, pgp::errors::Error> {

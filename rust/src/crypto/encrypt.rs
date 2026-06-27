@@ -242,10 +242,12 @@ where
         enc_builder.to_writer(&mut rng, &mut output_stream)
     };
 
-    result.map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
-    output_stream
-        .flush()
-        .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
+    result.record_err_with(|| {
+        crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
+    })?;
+    output_stream.flush().record_err_with(|| {
+        crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
+    })?;
 
     Ok(EncryptAndSignStreamResultInternal {
         signatures: created_signatures,
@@ -339,10 +341,12 @@ where
         enc_builder.to_writer(&mut rng, &mut output_stream)
     };
 
-    result.map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
-    output_stream
-        .flush()
-        .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
+    result.record_err_with(|| {
+        crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
+    })?;
+    output_stream.flush().record_err_with(|| {
+        crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
+    })?;
     Ok(())
 }
 
