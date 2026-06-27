@@ -200,6 +200,13 @@ auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   auto out_block_str = QString::fromUtf8(out_secret_block);
   Rust::gfr_crypto_free_string(out_secret_block);
 
+  if (!key_db->DeleteKey(meta->fpr)) {
+    LOG_E() << "Failed to delete old key from database before re-import for "
+               "key with fpr: "
+            << key->Fingerprint();
+    return false;
+  }
+
   auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
   if (info == nullptr || info->imported_keys.empty()) {
     LOG_E() << "Failed to import updated key block after deleting subkey for "
@@ -300,6 +307,13 @@ auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   auto out_block_str = QString::fromUtf8(out_secret_block);
   Rust::gfr_crypto_free_string(out_secret_block);
+
+  if (!key_db->DeleteKey(meta->fpr)) {
+    LOG_E() << "Failed to delete old key from database before re-import for "
+               "key with fpr: "
+            << key->Fingerprint();
+    return false;
+  }
 
   auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
   if (info == nullptr || info->imported_keys.empty()) {
