@@ -29,9 +29,7 @@
 //! FFI entry points for key and subkey generation.
 
 use crate::keygen::{GeneratedKeys, add_subkey_internal, create_key_internal};
-use crate::types::{
-    GfrBuffer, GfrKeyConfig, GfrKeyGenerateResult, GfrPasswordFetchCb, GfrStatus,
-};
+use crate::types::{GfrBuffer, GfrKeyConfig, GfrKeyGenerateResult, GfrPasswordFetchCb, GfrStatus};
 
 use std::{
     ffi::{CStr, CString, c_char},

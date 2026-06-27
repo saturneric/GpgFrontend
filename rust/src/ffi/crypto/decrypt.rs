@@ -29,8 +29,8 @@
 use crate::crypto::{self, decrypt_and_verify_archive_internal};
 use crate::err::clear_last_error;
 use crate::types::{
-    GfrDecryptAndVerifyResultC, GfrDecryptResultC, GfrPasswordFetchCb,
-    GfrRecipientResultC, GfrSecretKeyFetchCb, GfrSignatureResultC, GfrStatus,
+    GfrDecryptAndVerifyResultC, GfrDecryptResultC, GfrPasswordFetchCb, GfrRecipientResultC,
+    GfrSecretKeyFetchCb, GfrSignatureResultC, GfrStatus,
 };
 use std::fs::File;
 use std::slice;

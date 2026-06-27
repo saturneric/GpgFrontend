@@ -242,12 +242,11 @@ where
         enc_builder.to_writer(&mut rng, &mut output_stream)
     };
 
-    result.record_err_with(|| {
-        crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
-    })?;
-    output_stream.flush().record_err_with(|| {
-        crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
-    })?;
+    result
+        .record_err_with(|| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
+    output_stream
+        .flush()
+        .record_err_with(|| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
 
     Ok(EncryptAndSignStreamResultInternal {
         signatures: created_signatures,
@@ -341,12 +340,11 @@ where
         enc_builder.to_writer(&mut rng, &mut output_stream)
     };
 
-    result.record_err_with(|| {
-        crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
-    })?;
-    output_stream.flush().record_err_with(|| {
-        crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
-    })?;
+    result
+        .record_err_with(|| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
+    output_stream
+        .flush()
+        .record_err_with(|| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
     Ok(())
 }
 
@@ -384,8 +382,14 @@ pub fn encrypt_internal(
 ) -> Result<EncryptResultInternal, GfrStatus> {
     let mut output = Vec::new();
 
-    let stream_result =
-        encrypt_stream_internal(channel, name, data, &mut output, public_key_blocks, ascii_armor)?;
+    let stream_result = encrypt_stream_internal(
+        channel,
+        name,
+        data,
+        &mut output,
+        public_key_blocks,
+        ascii_armor,
+    )?;
 
     Ok(EncryptResultInternal {
         data: output,

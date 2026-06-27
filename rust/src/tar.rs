@@ -29,7 +29,9 @@
 //! Tar archive helpers for directory encryption and decryption workflows.
 
 use std::{
-    fs::File, io::{Seek, SeekFrom}, path::Path
+    fs::File,
+    io::{Seek, SeekFrom},
+    path::Path,
 };
 
 use crate::{err::set_last_error, types::GfrStatus};

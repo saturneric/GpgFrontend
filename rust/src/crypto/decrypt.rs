@@ -426,7 +426,10 @@ pub fn decrypt_and_verify_archive_internal(
     // 3. Create an anonymous temporary file as a secure buffer for decrypted data
     let mut temp_archive = tempfile::tempfile().map_err(|e| {
         log::error!("Failed to create temp file for decryption: {}", e);
-        set_last_error(&format!("cannot create temporary file for decryption: {}", e));
+        set_last_error(&format!(
+            "cannot create temporary file for decryption: {}",
+            e
+        ));
         crate::types::GfrStatus::ErrorIo
     })?;
 

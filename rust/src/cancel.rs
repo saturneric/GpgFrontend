@@ -54,9 +54,7 @@ static CANCEL_FLAGS: LazyLock<RwLock<HashMap<i32, bool>>> =
 pub fn set_cancelled(channel: i32, cancelled: bool) {
     // Recover from a poisoned lock rather than propagating a panic across the
     // FFI boundary; the critical section only touches the map.
-    let mut map = CANCEL_FLAGS
-        .write()
-        .unwrap_or_else(|e| e.into_inner());
+    let mut map = CANCEL_FLAGS.write().unwrap_or_else(|e| e.into_inner());
     if cancelled {
         map.insert(channel, true);
     } else {
@@ -78,7 +76,10 @@ pub fn is_cancelled(channel: i32) -> bool {
 /// `IntoGfrResult`) so a user cancel is not reported as a generic failure.
 ///
 /// [`ErrorCanceled`]: crate::types::GfrStatus::ErrorCanceled
-pub fn status_or_canceled(channel: i32, fallback: crate::types::GfrStatus) -> crate::types::GfrStatus {
+pub fn status_or_canceled(
+    channel: i32,
+    fallback: crate::types::GfrStatus,
+) -> crate::types::GfrStatus {
     if is_cancelled(channel) {
         crate::types::GfrStatus::ErrorCanceled
     } else {

@@ -288,12 +288,12 @@ where
                 .map_err(|_| GfrStatus::ErrorArmorFailed)?
                 .into_bytes();
 
-            output_stream
-                .write_all(&out)
-                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
-            output_stream
-                .flush()
-                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
+            output_stream.write_all(&out).map_err(|_| {
+                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
+            })?;
+            output_stream.flush().map_err(|_| {
+                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
+            })?;
 
             Ok(SignStreamResultInternal {
                 signatures: created_signatures,
@@ -368,12 +368,12 @@ where
                 return Err(GfrStatus::ErrorInvalidInput);
             }
 
-            output_stream
-                .write_all(&all_out)
-                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
-            output_stream
-                .flush()
-                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
+            output_stream.write_all(&all_out).map_err(|_| {
+                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
+            })?;
+            output_stream.flush().map_err(|_| {
+                crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal)
+            })?;
 
             Ok(SignStreamResultInternal {
                 signatures: created_signatures,

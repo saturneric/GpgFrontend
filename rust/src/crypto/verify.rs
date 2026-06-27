@@ -141,7 +141,8 @@ where
                     .seek(SeekFrom::Start(0))
                     .record_err(GfrStatus::ErrorInternal)?;
 
-                let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut data_stream);
+                let mut cancellable =
+                    crate::cancel::CancellableReader::new(channel, &mut data_stream);
                 if sig_msg.signature.verify(subkey, &mut cancellable).is_ok() {
                     is_cert_valid = true;
                     break;
@@ -206,8 +207,7 @@ pub fn verify_internal(
                 .into_gfr()?;
 
             let mut signatures = sniff_signatures(data, mode);
-            let certs =
-                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
+            let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
             // verify() only checks signature at index 0; iterate all indices for multi-signer messages.
@@ -284,8 +284,7 @@ pub fn verify_internal(
                 }
             }
 
-            let certs =
-                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
+            let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
             for cert in &certs {
@@ -319,8 +318,7 @@ pub fn verify_internal(
                 .into_gfr()?;
 
             let mut signatures = sniff_signatures(sig_data, mode);
-            let certs =
-                fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
+            let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
             for cert in &certs {

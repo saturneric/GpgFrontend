@@ -142,10 +142,7 @@ pub extern "C" fn gfr_crypto_update_user_id(
     clear_last_error();
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if old_uid.is_null()
-            || new_uid.is_null()
-            || out_block.is_null()
-        {
+        if old_uid.is_null() || new_uid.is_null() || out_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
