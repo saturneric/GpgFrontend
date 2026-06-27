@@ -723,26 +723,31 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
 void StartMonitorCoreInitializationStatus() {
   auto* task = new Thread::Task(
       [=](const DataObjectPtr&) -> int {
-        int core_init_state = Module::RetrieveRTValueTypedOrDefault<>(
-            "core", "env.state.basic", 0);
+        // Every poll below dereferences singleton storage (RTValue lookups,
+        // ModuleManager, CoreSignalStation). This task spins in synchronous
+        // loops that never return until the core finishes initializing, so
+        // TaskRunner::Stop()'s quit()/wait() cannot interrupt it. If teardown
+        // begins while we are still waiting, DestroyGpgFrontendCore() would
+        // destroy that storage out from under us. Bail out as soon as shutdown
+        // is observed (it is set before the task runners are stopped) so the
+        // thread exits and Stop() can join it before Destroy() runs.
         for (;;) {
-          if (core_init_state != 0) break;
-          core_init_state = Module::RetrieveRTValueTypedOrDefault<>(
+          if (IsCoreShuttingDown()) return -1;
+          int core_init_state = Module::RetrieveRTValueTypedOrDefault<>(
               "core", "env.state.basic", 0);
+          if (core_init_state < 0) return -1;
+          if (core_init_state != 0) break;
 
           LOG_D() << "monitor: core env is still initializing, waiting...";
           QThread::msleep(100);
         }
 
-        if (core_init_state < 0) return -1;
-
         // waiting for module first
-        bool module_init_done =
-            Module::ModuleManager::GetInstance().IsAllModulesRegistered();
         for (;;) {
-          if (module_init_done) break;
-          module_init_done =
-              Module::ModuleManager::GetInstance().IsAllModulesRegistered();
+          if (IsCoreShuttingDown()) return -1;
+          if (Module::ModuleManager::GetInstance().IsAllModulesRegistered()) {
+            break;
+          }
 
           LOG_D() << "monitor: some modules are still going to be registered, "
                      "waiting...";
@@ -750,18 +755,18 @@ void StartMonitorCoreInitializationStatus() {
         }
         LOG_D() << "monitor: good, all module are registered.";
 
-        int key_db_init_state = Module::RetrieveRTValueTypedOrDefault<>(
-            "core", "env.state.key_dbs", 0);
         for (;;) {
-          if (key_db_init_state != 0) break;
-          key_db_init_state = Module::RetrieveRTValueTypedOrDefault<>(
+          if (IsCoreShuttingDown()) return -1;
+          int key_db_init_state = Module::RetrieveRTValueTypedOrDefault<>(
               "core", "env.state.key_dbs", 0);
+          if (key_db_init_state != 0) break;
 
           LOG_D() << "monitor: key dbs are still initializing, waiting...";
           QThread::msleep(15);
         }
         LOG_D() << "monitor: good, all key db are loaded.";
 
+        if (IsCoreShuttingDown()) return -1;
         LOG_D()
             << "monitor: core is fully initialized, sending signal to ui...";
         Module::UpsertRTValue("core", "env.state.all", 1);
