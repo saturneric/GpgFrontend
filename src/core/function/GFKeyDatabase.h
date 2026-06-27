@@ -257,6 +257,20 @@ class GF_CORE_EXPORT GFKeyDatabase {
    * @return true on success, false if any ALTER TABLE statement fails
    */
   auto migrate_v1_to_v2() -> bool;
+
+  /**
+   * @brief Restrict the database directory and files to the current user via OS
+   * permissions.
+   *
+   * Sets the storage directory to owner-only (0700) and the database file and
+   * its WAL/SHM sidecars to owner read/write (0600), protecting the plaintext
+   * key material from other local users. Missing sidecar files are skipped.
+   *
+   * @param db_dir storage directory holding the database file
+   * @param db_file absolute path to the SQLite database file
+   */
+  static void secure_storage_permissions(const QString& db_dir,
+                                         const QString& db_file);
 };
 
 }  // namespace GpgFrontend
