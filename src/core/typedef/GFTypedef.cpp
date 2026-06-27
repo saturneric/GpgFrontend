@@ -42,10 +42,7 @@ GFUserId::GFUserId(QString name, QString email, QString comment,
       is_primary(is_primary) {}
 
 [[nodiscard]] auto GFUserId::ToString() const -> QString {
-  if (comment.isEmpty()) {
-    return QString("%1<%2>").arg(name, email);
-  }
-  return QString("%1(%2)<%3>").arg(name, comment, email);
+  return AssembleUserId(name, comment, email);
 }
 
 }  // namespace GpgFrontend

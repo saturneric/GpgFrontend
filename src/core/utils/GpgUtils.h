@@ -258,6 +258,33 @@ auto GF_CORE_EXPORT GnuPGVersion() -> QString;
 auto GF_CORE_EXPORT ParseUserId(const QString& raw_id) -> GFUserId;
 
 /**
+ * @brief Assemble a user ID string from its components following the RFC 2822
+ * mail name-addr convention referenced by RFC 9580 §5.12 / RFC 4880 §5.11.
+ *
+ * Produces "Name (Comment) <email>", or "Name <email>" when the comment is
+ * empty. Components are trimmed and empty optional parts are omitted.
+ *
+ * @param name display name
+ * @param comment optional comment
+ * @param email email address
+ * @return assembled user ID string
+ */
+auto GF_CORE_EXPORT AssembleUserId(const QString& name, const QString& comment,
+                                   const QString& email) -> QString;
+
+/**
+ * @brief Check whether a user ID component (name or comment) is well-formed for
+ * use in an RFC 2822 mail name-addr.
+ *
+ * Rejects the structural delimiters '(', ')', '<', '>' and any control
+ * characters, which would otherwise produce a malformed or corrupted UID.
+ *
+ * @param component name or comment string to validate
+ * @return true if the component contains no forbidden characters
+ */
+auto GF_CORE_EXPORT IsValidUserIdComponent(const QString& component) -> bool;
+
+/**
  * @brief Convert an OpenPGPEngine enum value to its string name.
  *
  * @param type engine enum value

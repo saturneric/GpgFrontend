@@ -632,6 +632,29 @@ auto ParseUserId(const QString& raw_id) -> GFUserId {
   return uid;
 }
 
+auto AssembleUserId(const QString& name, const QString& comment,
+                    const QString& email) -> QString {
+  const auto trimmed_name = name.trimmed();
+  const auto trimmed_comment = comment.trimmed();
+  const auto trimmed_email = email.trimmed();
+
+  QString uid = trimmed_name;
+  if (!trimmed_comment.isEmpty()) {
+    if (!uid.isEmpty()) uid += ' ';
+    uid += QString("(%1)").arg(trimmed_comment);
+  }
+  if (!trimmed_email.isEmpty()) {
+    if (!uid.isEmpty()) uid += ' ';
+    uid += QString("<%1>").arg(trimmed_email);
+  }
+  return uid;
+}
+
+auto IsValidUserIdComponent(const QString& component) -> bool {
+  static const QRegularExpression kForbidden(R"([()<>\x00-\x1F\x7F])");
+  return !component.contains(kForbidden);
+}
+
 auto ConvertOpenPGPEngine2String(OpenPGPEngine type) -> QString {
   switch (type) {
     case OpenPGPEngine::kGNUPG:

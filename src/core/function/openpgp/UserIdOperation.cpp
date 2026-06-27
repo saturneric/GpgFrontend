@@ -30,6 +30,7 @@
 
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/UserIdOperaTraits.h"
+#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
@@ -48,7 +49,11 @@ auto UserIdOperation::SetPrimaryUID(const GpgKeyPtr& key, const QString& uid)
 auto UserIdOperation::AddUID(const GpgKeyPtr& key, const QString& name,
                              const QString& comment, const QString& email)
     -> bool {
-  return AddUID(key, QString("%1(%2)<%3>").arg(name).arg(comment).arg(email));
+  if (!IsValidUserIdComponent(name) || !IsValidUserIdComponent(comment)) {
+    LOG_E() << "refusing to add UID with malformed name or comment component";
+    return false;
+  }
+  return AddUID(key, AssembleUserId(name, comment, email));
 }
 
 auto UserIdOperation::DeleteUID(const GpgKeyPtr& key, const QString& uid)
