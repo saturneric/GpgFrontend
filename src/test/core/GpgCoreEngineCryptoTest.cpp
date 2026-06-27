@@ -26,9 +26,12 @@
  *
  */
 
+#include <algorithm>
+
 #include "GpgCoreEngineTest.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
+#include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
@@ -245,6 +248,126 @@ TEST_P(GpgCoreEngineTest, Stress) {
   }
 
   DeleteKey(key);
+}
+
+// ---------------------------------------------------------------------------
+// Stress: export -> import round-trips.
+//
+// The armored/binary buffer crosses the engine (and, for rPGP, the Rust FFI)
+// boundary in both directions every iteration. This is a prime spot for buffer
+// ownership / lifetime bugs (use-after-free, double-free, truncation), so it is
+// worth hammering. Run under ASan/Valgrind for the most signal.
+// ---------------------------------------------------------------------------
+
+TEST_P(GpgCoreEngineTest, ImportExportRoundtripStress) {
+  auto key = GenerateFullKey("import_export_stress");
+  ASSERT_TRUE(key != nullptr);
+  const auto fpr = key->Fingerprint().toUpper();
+
+  // Export/import parses whole keys, so cap the churn to keep the default
+  // stress phase bounded while still exercising the path thousands of times
+  // across both engines.
+  const int iterations = std::min(StressIterations(), 300);
+  for (int i = 0; i < iterations; ++i) {
+    auto [sec_err, secret_buf] =
+        KeyImportExportOperation::GetInstance(Channel())
+            .ExportKey(key, true, true, false);
+    ASSERT_EQ(CheckGpgError(sec_err), GPG_ERR_NO_ERROR)
+        << "export secret failed at iteration " << i;
+    ASSERT_FALSE(secret_buf.Empty()) << "empty secret export at iteration " << i;
+
+    auto sec_info =
+        KeyImportExportOperation::GetInstance(Channel()).ImportKey(secret_buf);
+    ASSERT_TRUE(sec_info != nullptr)
+        << "secret import failed at iteration " << i;
+
+    auto [pub_err, public_buf] =
+        KeyImportExportOperation::GetInstance(Channel())
+            .ExportKey(key, false, true, false);
+    ASSERT_EQ(CheckGpgError(pub_err), GPG_ERR_NO_ERROR)
+        << "export public failed at iteration " << i;
+    ASSERT_FALSE(public_buf.Empty()) << "empty public export at iteration " << i;
+
+    auto pub_info =
+        KeyImportExportOperation::GetInstance(Channel()).ImportKey(public_buf);
+    ASSERT_TRUE(pub_info != nullptr)
+        << "public import failed at iteration " << i;
+  }
+
+  GpgKeyRepository::GetInstance(Channel()).FlushKeyCache();
+  auto reloaded = GpgKeyRepository::GetInstance(Channel()).GetKeyPtr(fpr);
+  ASSERT_TRUE(reloaded != nullptr) << "key vanished after import/export churn";
+  EXPECT_EQ(reloaded->Fingerprint().toUpper(), fpr);
+
+  DeleteKey(key);
+}
+
+// ---------------------------------------------------------------------------
+// Stress: rebuild the key model from the engine and walk every accessor.
+//
+// FlushKeyCache() forces the repository to re-read the key from the engine each
+// iteration, then every getter (which, for rPGP, copies a string out of Rust)
+// is exercised. A dangling pointer or stale buffer at the FFI boundary -- the
+// exact class of bug behind the recent fingerprint-lifetime fix -- shows up
+// here, especially under a sanitizer.
+// ---------------------------------------------------------------------------
+
+TEST_P(GpgCoreEngineTest, KeyModelTraversalStress) {
+  auto key = GenerateFullKey("model_traversal_stress");
+  ASSERT_TRUE(key != nullptr);
+  const auto fpr = key->Fingerprint().toUpper();
+
+  const int iterations = StressIterations();
+  qsizetype sink = 0;  // observe the traversal so nothing is optimized away.
+  for (int i = 0; i < iterations; ++i) {
+    GpgKeyRepository::GetInstance(Channel()).FlushKeyCache();
+    auto k = GpgKeyRepository::GetInstance(Channel()).GetKeyPtr(fpr);
+    ASSERT_TRUE(k != nullptr) << "key lookup failed at iteration " << i;
+
+    sink += k->ID().size() + k->Name().size() + k->Email().size() +
+            k->Fingerprint().size() + k->PublicKeyAlgo().size() +
+            k->Algo().size();
+
+    for (const auto& sub : k->SubKeys()) {
+      sink += sub.ID().size() + sub.Fingerprint().size() + sub.Algo().size() +
+              sub.PublicKeyAlgo().size();
+      sink += static_cast<qsizetype>(sub.KeyLength());
+      sink += static_cast<qsizetype>(sub.IsHasEncrCap());
+      sink += static_cast<qsizetype>(sub.IsRevoked());
+      sink += sub.CreationTime().toSecsSinceEpoch();
+    }
+
+    for (const auto& uid : k->UIDs()) {
+      sink += uid.GetName().size() + uid.GetEmail().size() +
+              uid.GetComment().size() + uid.GetUID().size();
+      auto sigs = uid.GetSignatures();
+      if (sigs != nullptr) sink += sigs->size();
+    }
+  }
+
+  EXPECT_GT(sink, 0);
+  DeleteKey(key);
+}
+
+// ---------------------------------------------------------------------------
+// Stress: generate -> delete churn on the key database.
+//
+// Repeatedly inserting and removing whole keys exercises the engine's key-DB
+// allocation/free paths. Key generation is comparatively expensive, so this is
+// capped well below the other stress counts.
+// ---------------------------------------------------------------------------
+
+TEST_P(GpgCoreEngineTest, GenerateDeleteChurnStress) {
+  const int iterations = std::min(StressIterations(), 30);
+  for (int i = 0; i < iterations; ++i) {
+    auto key = GenerateFullKey(QString("churn_%1").arg(i));
+    ASSERT_TRUE(key != nullptr) << "key generation failed at iteration " << i;
+    EXPECT_TRUE(key->IsGood());
+    EXPECT_TRUE(key->IsPrivateKey());
+    EXPECT_FALSE(key->SubKeys().empty());
+
+    DeleteKey(key);
+  }
 }
 
 }  // namespace GpgFrontend::Test
