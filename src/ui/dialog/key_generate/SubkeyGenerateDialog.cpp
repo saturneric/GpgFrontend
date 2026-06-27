@@ -478,14 +478,21 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
     return;
   }
 
+  // WaitForOpera() runs a nested event loop and returns only after the
+  // completion callback below has run, so the flag reliably reflects the
+  // outcome by the time it returns.
+  auto succeeded = std::make_shared<bool>(false);
+
   GpgOperaHelper::WaitForOpera(
       this, tr("Generating"),
-      [this, key = this->key_, gen_key_info = this->gen_subkey_info_](
+      [this, succeeded, key = this->key_,
+       gen_key_info = this->gen_subkey_info_](
           const OperaWaitingHd& hd) -> void {
         KeyGenerationOperation::GetInstance(current_gpg_context_channel_)
             .GenerateSubkey(
                 key, gen_key_info,
-                [this, hd](GpgError err, const DataObjectPtr&) -> void {
+                [this, hd, succeeded](GpgError err,
+                                      const DataObjectPtr&) -> void {
                   // stop showing waiting dialog
                   hd();
 
@@ -495,14 +502,31 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
                     return;
                   }
 
-                  CommonUtils::RaiseMessageBox(this, err);
-                  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                    emit UISignalStation::GetInstance()
-                        ->SignalKeyDatabaseRefresh();
+                  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                    // Report the failure on the still-open dialog so the user
+                    // can adjust and retry; success is handled by the caller.
+                    CommonUtils::RaiseMessageBox(this, err);
+                    return;
                   }
+
+                  *succeeded = true;
+                  emit UISignalStation::GetInstance()
+                      ->SignalKeyDatabaseRefresh();
                 });
       });
-  this->done(0);
+
+  // Keep the dialog open on failure so the user can adjust and retry without
+  // losing the entered configuration. Only close on success.
+  if (!*succeeded) return;
+
+  // Close the dialog first, then confirm to the user anchored to the parent
+  // window, so the success notice doesn't appear layered over a dialog that is
+  // about to disappear.
+  auto* notify_parent = this->parentWidget();
+  this->accept();
+
+  QMessageBox::information(notify_parent, tr("Success"),
+                          tr("Subkey generation completed successfully."));
 }
 
 void SubkeyGenerateDialog::refresh_hybrid_algo_widgets_state() {

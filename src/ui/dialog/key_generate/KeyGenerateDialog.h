@@ -244,7 +244,7 @@ class KeyGenerateDialog : public GeneralDialog {
    * @brief
    *
    */
-  void do_generate();
+  auto do_generate() -> bool;
 
   /**
    * @brief

@@ -723,8 +723,18 @@ void KeyGenerateDialog::slot_key_gen_accept() {
 
   LOG_D() << "try to generate key at gpg context channel: " << channel_;
 
-  do_generate();
-  this->done(0);
+  // Keep the dialog open on failure so the user can adjust and retry without
+  // losing the entered configuration. Only close on success.
+  if (!do_generate()) return;
+
+  // Close the dialog first, then confirm to the user anchored to the parent
+  // window, so the success notice doesn't appear layered over a dialog that is
+  // about to disappear.
+  auto* notify_parent = this->parentWidget();
+  this->accept();
+
+  QMessageBox::information(notify_parent, tr("Success"),
+                           tr("Key generation completed successfully."));
 }
 
 void KeyGenerateDialog::refresh_widgets_state() {
@@ -1425,12 +1435,17 @@ void KeyGenerateDialog::slot_easy_combination_changed(const QString& mode) {
   refresh_widgets_state();
 }
 
-void KeyGenerateDialog::do_generate() {
-  auto f = [this, gen_key_info =
-                      this->gen_key_info_](const OperaWaitingHd& hd) -> void {
+auto KeyGenerateDialog::do_generate() -> bool {
+  // WaitForOpera() runs a nested event loop and returns only after the
+  // completion callback below has run, so the flag reliably reflects the
+  // outcome by the time this function returns.
+  auto succeeded = std::make_shared<bool>(false);
+
+  auto f = [this, succeeded, gen_key_info = this->gen_key_info_](
+               const OperaWaitingHd& hd) -> void {
     KeyGenerationOperation::GetInstance(channel_).GenerateKeyWithSubkey(
         gen_key_info, gen_subkey_info_,
-        [this, hd](GpgError err, const DataObjectPtr&) {
+        [this, hd, succeeded](GpgError err, const DataObjectPtr&) {
           // stop showing waiting dialog
           hd();
 
@@ -1440,15 +1455,20 @@ void KeyGenerateDialog::do_generate() {
             return;
           }
 
-          CommonUtils::RaiseMessageBox(
-              this->parentWidget() != nullptr ? this->parentWidget() : this,
-              err);
-          if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-            emit SignalKeyGenerated();
+          if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+            // Report the failure on the still-open dialog so the user can fix
+            // the input and retry; success is handled by the caller.
+            CommonUtils::RaiseMessageBox(this, err);
+            return;
           }
+
+          *succeeded = true;
+          emit SignalKeyGenerated();
         });
   };
   GpgOperaHelper::WaitForOpera(this, tr("Generating"), f);
+
+  return *succeeded;
 }
 
 void KeyGenerateDialog::create_sync_gen_subkey_info(bool sync_from_ui) {
