@@ -28,6 +28,26 @@
 
 #pragma once
 
+namespace GpgFrontend {
+
+/**
+ * @brief Configure the rPGP passphrase cache timeouts (in seconds) and apply
+ * them immediately to the running engine.
+ *
+ * Declared unconditionally so it is callable from targets (e.g. the UI) that
+ * are not compiled with HAS_RUST_SUPPORT; it is a no-op when the Rust engine is
+ * not built in.
+ *
+ * @param ttl_secs sliding idle window, renewed on each cache hit; a value of 0
+ * leaves the engine's current timeouts untouched
+ * @param max_ttl_secs absolute cap measured from first entry; clamped up to at
+ * least @p ttl_secs
+ */
+void GF_CORE_EXPORT SetRpgpPasswordCacheTtl(uint64_t ttl_secs,
+                                            uint64_t max_ttl_secs);
+
+}  // namespace GpgFrontend
+
 #ifdef HAS_RUST_SUPPORT
 
 #include "core/GFCoreRust.h"

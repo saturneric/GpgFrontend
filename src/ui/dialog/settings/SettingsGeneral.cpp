@@ -31,6 +31,7 @@
 #include "SettingsDialog.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/RustUtils.h"
 #include "ui_GeneralSettings.h"
 
 namespace GpgFrontend::UI {
@@ -55,6 +56,31 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->defaultEngineLabel->setText(tr("Default Engine:"));
   for (const auto& engine : GetGSS().AllSupportedEngines()) {
     ui_->defaultEngineComboBox->addItem(engine, engine.toUpper());
+  }
+
+  // rPGP passphrase cache timeouts, presented in minutes (stored in seconds).
+  ui_->rpgpCacheTtlLabel->setText(tr("rPGP Password Cache TTL (minutes):"));
+  ui_->rpgpCacheTtlSpinBox->setRange(1, 1440);  // 1 minute .. 24 hours
+  ui_->rpgpCacheTtlSpinBox->setSuffix(tr(" min"));
+  ui_->rpgpCacheTtlSpinBox->setToolTip(
+      tr("Idle time the rPGP engine keeps an entered passphrase cached. The "
+         "window is renewed each time the passphrase is used."));
+
+  ui_->rpgpCacheMaxTtlLabel->setText(
+      tr("rPGP Password Cache Max TTL (minutes):"));
+  ui_->rpgpCacheMaxTtlSpinBox->setRange(1, 10080);  // 1 minute .. 7 days
+  ui_->rpgpCacheMaxTtlSpinBox->setSuffix(tr(" min"));
+  ui_->rpgpCacheMaxTtlSpinBox->setToolTip(
+      tr("Absolute lifetime of a cached passphrase, measured from when it was "
+         "first entered, regardless of use. Never shorter than the TTL."));
+
+  // Only relevant to the rPGP engine; hide entirely when it is unavailable.
+  auto if_rpgp_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP);
+  if (!if_rpgp_supported) {
+    ui_->rpgpCacheTtlLabel->setHidden(true);
+    ui_->rpgpCacheTtlSpinBox->setHidden(true);
+    ui_->rpgpCacheMaxTtlLabel->setHidden(true);
+    ui_->rpgpCacheMaxTtlSpinBox->setHidden(true);
   }
 
   ui_->modulePolicyLabel->setText(tr("Module Loading Policy:"));
@@ -196,6 +222,17 @@ void GeneralTab::SetSettings() {
     ui_->defaultEngineComboBox->setCurrentIndex(0);
   }
 
+  // Stored in seconds; presented in minutes (rounded up so a sub-minute value
+  // never collapses to 0, which would disable the cache).
+  auto cache_ttl_secs =
+      settings.value("engine/password_cache_ttl", 600).toLongLong();
+  auto cache_max_ttl_secs =
+      settings.value("engine/password_cache_max_ttl", 7200).toLongLong();
+  ui_->rpgpCacheTtlSpinBox->setValue(
+      static_cast<int>(qMax<qint64>(1, (cache_ttl_secs + 59) / 60)));
+  ui_->rpgpCacheMaxTtlSpinBox->setValue(
+      static_cast<int>(qMax<qint64>(1, (cache_max_ttl_secs + 59) / 60)));
+
   auto non_ascii_at_file_operation =
       settings.value("gnupg/non_ascii_at_file_operation", true).toBool();
   if (non_ascii_at_file_operation) {
@@ -235,6 +272,23 @@ void GeneralTab::ApplySettings() {
   settings.setValue(
       "basic/default_engine",
       ui_->defaultEngineComboBox->currentData().toString().toUpper());
+
+  // Convert the minute-based UI values back to seconds. The max cap can never
+  // be shorter than the sliding window; clamp here so the stored values are
+  // sane (the engine clamps again defensively).
+  qint64 cache_ttl_secs =
+      static_cast<qint64>(ui_->rpgpCacheTtlSpinBox->value()) * 60;
+  qint64 cache_max_ttl_secs = qMax<qint64>(
+      cache_ttl_secs,
+      static_cast<qint64>(ui_->rpgpCacheMaxTtlSpinBox->value()) * 60);
+  settings.setValue("engine/password_cache_ttl",
+                    static_cast<qulonglong>(cache_ttl_secs));
+  settings.setValue("engine/password_cache_max_ttl",
+                    static_cast<qulonglong>(cache_max_ttl_secs));
+
+  // Apply immediately so the new timeouts take effect without a restart.
+  SetRpgpPasswordCacheTtl(static_cast<uint64_t>(cache_ttl_secs),
+                          static_cast<uint64_t>(cache_max_ttl_secs));
 }
 
 }  // namespace GpgFrontend::UI

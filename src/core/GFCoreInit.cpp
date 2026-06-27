@@ -503,6 +503,16 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     LOG_I() << "Rust support detected, rPGP engine is available.";
     LOG_I() << "rPGP engine version: " << RustEngineVersion();
 
+    // Configure the rPGP passphrase cache timeouts (seconds). Defaults mirror
+    // gpg-agent: a 10-minute sliding idle window capped by a 2-hour absolute
+    // maximum. A ttl of 0 leaves the engine's built-in defaults untouched.
+    auto settings = GetSettings();
+    auto cache_ttl =
+        settings.value("engine/password_cache_ttl", 600).toULongLong();
+    auto cache_max_ttl =
+        settings.value("engine/password_cache_max_ttl", 7200).toULongLong();
+    SetRpgpPasswordCacheTtl(cache_ttl, cache_max_ttl);
+
     GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
   }
 

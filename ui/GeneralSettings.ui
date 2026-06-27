@@ -43,13 +43,6 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="0" colspan="2">
-             <widget class="QCheckBox" name="clearGpgPasswordCacheCheckBox">
-              <property name="text">
-               <string>Clear gpg password cache when closing GpgFrontend.</string>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="0">
              <widget class="QLabel" name="defaultEngineLabel">
               <property name="text">
@@ -59,6 +52,33 @@
             </item>
             <item row="0" column="1">
              <widget class="QComboBox" name="defaultEngineComboBox"/>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="rpgpCacheTtlLabel">
+              <property name="text">
+               <string>Password Cache TTL</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QSpinBox" name="rpgpCacheTtlSpinBox"/>
+            </item>
+            <item row="5" column="0">
+             <widget class="QLabel" name="rpgpCacheMaxTtlLabel">
+              <property name="text">
+               <string>Password Cache Max TTL</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="1">
+             <widget class="QSpinBox" name="rpgpCacheMaxTtlSpinBox"/>
+            </item>
+            <item row="6" column="0">
+             <widget class="QCheckBox" name="clearGpgPasswordCacheCheckBox">
+              <property name="text">
+               <string>Clear gpg password cache when closing GpgFrontend.</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>

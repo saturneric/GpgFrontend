@@ -45,6 +45,17 @@ auto GF_CORE_EXPORT RustEngineVersion() -> QString {
   return version;
 }
 
+void SetRpgpPasswordCacheTtl(uint64_t ttl_secs, uint64_t max_ttl_secs) {
+#ifdef HAS_RUST_SUPPORT
+  Rust::gfr_set_password_cache_ttl(ttl_secs, max_ttl_secs);
+  LOG_I() << "applied rPGP password cache ttl:" << ttl_secs
+          << "s, max ttl:" << max_ttl_secs << "s";
+#else
+  (void)ttl_secs;
+  (void)max_ttl_secs;
+#endif
+}
+
 auto KeyAlgoId2GfrKeyAlgo(const QString& algo_id) -> Rust::GfrKeyAlgo {
   if (algo_id == "ed25519") return Rust::GfrKeyAlgo::ED25519;
   if (algo_id == "cv25519") return Rust::GfrKeyAlgo::CV25519;
@@ -233,8 +244,8 @@ auto GetArmoredKeyBlocksForKeys(GFKeyDatabase& key_db,
           reinterpret_cast<const uint8_t*>(secret_key_block.Data()),
           secret_key_block.Size()};
 
-      auto err = Rust::gfr_crypto_extract_public_key(key_block_buffer,
-                                                     &public_key);
+      auto err =
+          Rust::gfr_crypto_extract_public_key(key_block_buffer, &public_key);
 
       if (err != Rust::GfrStatus::Success) {
         LOG_E() << "gfr_crypto_extract_public_key error, code: "
