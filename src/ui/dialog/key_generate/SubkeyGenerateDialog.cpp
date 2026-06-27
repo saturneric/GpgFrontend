@@ -426,10 +426,14 @@ void SubkeyGenerateDialog::refresh_widgets_state() {
         current_sub_algo != KeyGenerateInfo::kNoneAlgo &&
         IsAlgoInList(current_sub_algo, sub_algos);
 
+    const auto first_selectable =
+        FirstSelectableComboIndex(ui_->scndAlgoComboBox);
     if (current_sub_algo_supported) {
       SetComboCurrentAlgo(ui_->scndAlgoComboBox, current_sub_algo);
-    } else if (ui_->scndAlgoComboBox->count() > 0) {
-      ui_->scndAlgoComboBox->setCurrentIndex(0);
+    } else if (first_selectable >= 0) {
+      // Skip any leading section header (e.g. "ECC") so the default lands on a
+      // real algorithm rather than a non-selectable family label.
+      ui_->scndAlgoComboBox->setCurrentIndex(first_selectable);
 
       const auto default_sub_algo =
           ComboCurrentAlgo(ui_->scndAlgoComboBox, sub_algos);

@@ -441,6 +441,24 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
    */
   void SetSubAlgo(const KeyAlgo &);
 
+  /**
+   * @brief Get the requested OpenPGP key format version.
+   *
+   * Only meaningful for engines that can emit more than one key format (e.g.
+   * rPGP). 0 means "let the engine decide" (typically v4); 4 and 6 request the
+   * v4 / v6 packet format respectively.
+   *
+   * @return requested key version (0 = engine default).
+   */
+  [[nodiscard]] auto GetKeyVersion() const -> int;
+
+  /**
+   * @brief Set the requested OpenPGP key format version.
+   *
+   * @param version 0 for engine default, or 4 / 6 for the v4 / v6 packet format.
+   */
+  void SetKeyVersion(int version);
+
  private:
   bool subkey_ = false;  ///<
   QString name_;         ///<
@@ -449,6 +467,7 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
 
   KeyAlgo algo_;      ///<
   KeyAlgo sub_algo_;  ///< for hybrid subkey
+  int key_version_ = 0;  ///< requested key format version (0 = engine default)
   QDateTime expired_;
   bool non_expired_ = false;  ///<
 

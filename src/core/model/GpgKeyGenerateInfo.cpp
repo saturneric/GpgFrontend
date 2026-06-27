@@ -786,4 +786,10 @@ auto KeyAlgo::operator!=(const KeyAlgo &o) const -> bool {
 void KeyGenerateInfo::SetSubAlgo(const KeyAlgo &sub_algo) {
   sub_algo_ = sub_algo;
 }
+
+[[nodiscard]] auto KeyGenerateInfo::GetKeyVersion() const -> int {
+  return key_version_;
+}
+
+void KeyGenerateInfo::SetKeyVersion(int version) { key_version_ = version; }
 }  // namespace GpgFrontend

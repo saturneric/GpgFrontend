@@ -129,6 +129,17 @@ auto KeyAlgoId2GfrKeyAlgo(const QString& algo_id) -> Rust::GfrKeyAlgo {
   return Rust::GfrKeyAlgo::Unknown;
 }
 
+auto KeyVersion2GfrKeyVersion(int version) -> Rust::GfrOpenPGPKeyVersion {
+  switch (version) {
+    case 4:
+      return Rust::GfrOpenPGPKeyVersion::V4;
+    case 6:
+      return Rust::GfrOpenPGPKeyVersion::V6;
+    default:
+      return Rust::GfrOpenPGPKeyVersion::Unknown;
+  }
+}
+
 auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoName(Rust::GfrKeyAlgo algo) -> QString {
   switch (algo) {
     case Rust::GfrKeyAlgo::ED25519:

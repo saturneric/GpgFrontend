@@ -469,7 +469,13 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->pKeyLengthLabel->setText(tr("Key Length"));
   ui_->pScndAlgoLabel->setText(tr("Second Algorithm"));
   ui_->pScndKeyLengthLabel->setText(tr("Second Key Length"));
+  ui_->pKeyFormatLabel->setText(tr("Key Format"));
   ui_->pUsageLabel->setText(tr("Usage"));
+
+  // v4 stays the interoperable default; v6 (RFC 9580) is opt-in because much of
+  // the ecosystem still has weak v6 support.
+  ui_->pKeyFormatComboBox->addItem(tr("v4 (Compatible)"), 4);
+  ui_->pKeyFormatComboBox->addItem(tr("v6 (Modern)"), 6);
   ui_->pEncrCheckBox->setText(tr("Encrypt"));
   ui_->pSignCheckBox->setText(tr("Sign"));
   ui_->pAuthCheckBox->setText(tr("Authentication"));
@@ -622,6 +628,7 @@ void KeyGenerateDialog::InitUi() {
   setup_combo(ui_->pKeyLengthComboBox);
   setup_combo(ui_->pScndAlgoComboBox);
   setup_combo(ui_->pScndKeyLengthComboBox);
+  setup_combo(ui_->pKeyFormatComboBox);
   setup_combo(ui_->sAlgoComboBox);
   setup_combo(ui_->sKeyLengthComboBox);
   setup_combo(ui_->scndAlgoComboBox);
@@ -752,6 +759,7 @@ void KeyGenerateDialog::refresh_widgets_state() {
   ui_->pKeyLengthComboBox->blockSignals(false);
 
   refresh_primary_hybrid_algo_widgets_state();
+  refresh_key_version_widgets_state();
 
   ui_->pEncrCheckBox->blockSignals(true);
   ui_->pEncrCheckBox->setCheckState(
@@ -901,9 +909,13 @@ void KeyGenerateDialog::refresh_widgets_state() {
       ui_->scndAlgoComboBox->blockSignals(true);
       SetComboCurrentAlgo(ui_->scndAlgoComboBox, gen_subkey_info_->SubAlgo());
       ui_->scndAlgoComboBox->blockSignals(false);
-    } else if (ui_->scndAlgoComboBox->count() > 0) {
+    } else if (const auto first_selectable =
+                   FirstSelectableComboIndex(ui_->scndAlgoComboBox);
+               first_selectable >= 0) {
       ui_->scndAlgoComboBox->blockSignals(true);
-      ui_->scndAlgoComboBox->setCurrentIndex(0);
+      // Skip any leading section header (e.g. "ECC") so the default lands on a
+      // real algorithm rather than a non-selectable family label.
+      ui_->scndAlgoComboBox->setCurrentIndex(first_selectable);
       const auto [id, type] = ComboCurrentIdType(ui_->scndAlgoComboBox);
       auto [found, algo] = GetAlgoByIdType(id, type, sub_algos);
       if (found) gen_subkey_info_->SetSubAlgo(algo);
@@ -1055,6 +1067,12 @@ void KeyGenerateDialog::set_signal_slot_config() {
             sync_gen_key_algo_info();
             slot_set_easy_key_algo_2_custom();
             refresh_widgets_state();
+          });
+
+  connect(ui_->pKeyFormatComboBox, &QComboBox::currentIndexChanged, this,
+          [this](int) -> void {
+            const auto data = ui_->pKeyFormatComboBox->currentData();
+            if (data.isValid()) gen_key_info_->SetKeyVersion(data.toInt());
           });
 
   connect(
@@ -1570,10 +1588,24 @@ void KeyGenerateDialog::load_easy_profile_config() {
 
   // The map key must match each profile's final combo index (section headers
   // occupy an index but are not selectable profiles).
-  auto add_profiles = [this](const QContainer<EasyModeConf>& profiles) {
+  //
+  // Track the Ed25519 (Curve25519) profile so it can be the default selection:
+  // it is the recommended modern, fast default. The first match wins, and since
+  // ECC profiles are added before PQC ones this resolves to the pure
+  // Ed25519/X25519 profile rather than a PQC hybrid that also uses an Ed25519
+  // primary.
+  int preferred_default_index = -1;
+  auto add_profiles = [this, &preferred_default_index](
+                          const QContainer<EasyModeConf>& profiles) {
     for (const auto& item : profiles) {
-      easy_profile_conf_index_.insert(ui_->easyProfileComboBox->count(), item);
+      const int index = ui_->easyProfileComboBox->count();
+      easy_profile_conf_index_.insert(index, item);
       ui_->easyProfileComboBox->addItem(item.name);
+
+      if (preferred_default_index < 0 && item.key_algo == "ed25519" &&
+          item.key_algo_type.compare("EdDSA", Qt::CaseInsensitive) == 0) {
+        preferred_default_index = index;
+      }
     }
   };
 
@@ -1594,8 +1626,10 @@ void KeyGenerateDialog::load_easy_profile_config() {
   ui_->easyProfileComboBox->blockSignals(false);
 
   ui_->easyProfileComboBox->setCurrentIndex(
-      easy_profile_conf_index_.isEmpty() ? 0
-                                         : easy_profile_conf_index_.firstKey());
+      preferred_default_index >= 0 ? preferred_default_index
+      : easy_profile_conf_index_.isEmpty()
+          ? 0
+          : easy_profile_conf_index_.firstKey());
 
   refresh_widgets_state();
 }
@@ -1848,10 +1882,14 @@ void KeyGenerateDialog::refresh_primary_hybrid_algo_widgets_state() {
 
   ui_->pScndAlgoComboBox->blockSignals(true);
 
+  const auto first_selectable =
+      FirstSelectableComboIndex(ui_->pScndAlgoComboBox);
   if (current_sub_algo_supported) {
     SetComboCurrentAlgo(ui_->pScndAlgoComboBox, current_sub_algo);
-  } else if (ui_->pScndAlgoComboBox->count() > 0) {
-    ui_->pScndAlgoComboBox->setCurrentIndex(0);
+  } else if (first_selectable >= 0) {
+    // Skip any leading section header (e.g. "ECC") so the default lands on a
+    // real algorithm rather than a non-selectable family label.
+    ui_->pScndAlgoComboBox->setCurrentIndex(first_selectable);
 
     const auto algo = ComboCurrentAlgo(ui_->pScndAlgoComboBox, sub_algos);
     gen_key_info_->SetSubAlgo(algo);
@@ -1875,6 +1913,45 @@ void KeyGenerateDialog::refresh_primary_hybrid_algo_widgets_state() {
       QString::number(gen_key_info_->SubAlgo().KeyLength()));
 
   ui_->pScndKeyLengthComboBox->blockSignals(false);
+}
+
+void KeyGenerateDialog::refresh_key_version_widgets_state() {
+  // Only engines that can emit more than one key format expose this choice.
+  // GnuPG generates v4 keys and ignores the requested version entirely.
+  const bool engine_supports_choice =
+      OpenPGPContext::GetInstance(channel_).Engine() == OpenPGPEngine::kRPGP;
+
+  ui_->pKeyFormatLabel->setHidden(!engine_supports_choice);
+  ui_->pKeyFormatComboBox->setHidden(!engine_supports_choice);
+  if (!engine_supports_choice) return;
+
+  // Post-quantum algorithms are only defined for the v6 key format, so when any
+  // selected algorithm is post-quantum we pin the format to v6 and lock it.
+  const auto is_pqc = [](const KeyAlgo& a) { return a.IsPostQuantum(); };
+  bool force_v6 =
+      is_pqc(gen_key_info_->GetAlgo()) || is_pqc(gen_key_info_->SubAlgo());
+  if (gen_subkey_info_ != nullptr) {
+    force_v6 = force_v6 || is_pqc(gen_subkey_info_->GetAlgo()) ||
+               is_pqc(gen_subkey_info_->SubAlgo());
+  }
+
+  if (force_v6) {
+    gen_key_info_->SetKeyVersion(6);
+  } else if (gen_key_info_->GetKeyVersion() == 0) {
+    // Default to the interoperable v4 format until the user opts into v6.
+    gen_key_info_->SetKeyVersion(4);
+  }
+
+  ui_->pKeyFormatComboBox->blockSignals(true);
+  const int index =
+      ui_->pKeyFormatComboBox->findData(gen_key_info_->GetKeyVersion());
+  ui_->pKeyFormatComboBox->setCurrentIndex(index >= 0 ? index : 0);
+  ui_->pKeyFormatComboBox->blockSignals(false);
+
+  ui_->pKeyFormatComboBox->setDisabled(force_v6);
+  ui_->pKeyFormatComboBox->setToolTip(
+      force_v6 ? tr("Post-quantum algorithms require the v6 key format.")
+               : QString());
 }
 
 }  // namespace GpgFrontend::UI

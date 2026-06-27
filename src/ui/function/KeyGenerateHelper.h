@@ -106,6 +106,19 @@ void PopulateAlgoComboBox(QComboBox* combo_box,
 void AddComboSectionHeader(QComboBox* combo_box, const QString& text);
 
 /**
+ * @brief Return the index of the first selectable item in a combo box.
+ *
+ * A combo box populated by PopulateAlgoComboBox may begin with a non-selectable
+ * section header (e.g. "ECC" when every algorithm is an elliptic curve), so
+ * index 0 is not necessarily a valid default. Use this to pick a real default
+ * instead of blindly selecting index 0.
+ *
+ * @param combo_box
+ * @return the first index whose item is selectable and enabled, or -1 if none
+ */
+auto FirstSelectableComboIndex(const QComboBox* combo_box) -> int;
+
+/**
  * @brief Get the Algo By Id And Type object
  *
  * If type is empty, this function falls back to id-only matching for backward

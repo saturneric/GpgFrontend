@@ -263,6 +263,15 @@ class KeyGenerateDialog : public GeneralDialog {
    *
    */
   void refresh_primary_hybrid_algo_widgets_state();
+
+  /**
+   * @brief Refresh the key-format (v4/v6) selector.
+   *
+   * Shown only for engines that can emit more than one key format. Post-quantum
+   * algorithms are pinned to v6 (the only format they are defined for) and the
+   * control is locked while such an algorithm is selected.
+   */
+  void refresh_key_version_widgets_state();
 };
 
 }  // namespace GpgFrontend::UI

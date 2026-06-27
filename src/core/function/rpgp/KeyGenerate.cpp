@@ -45,6 +45,7 @@ auto GenerateKeyWithSubkeyRpgpImpl(
   key_config.can_encrypt = p_params->IsAllowEncr();
   key_config.can_auth = p_params->IsAllowAuth();
   key_config.has_passphrase = !p_params->IsNoPassPhrase();
+  key_config.ver = KeyVersion2GfrKeyVersion(p_params->GetKeyVersion());
 
   auto algo = p_params->GetAlgo().Id();
 
@@ -90,6 +91,8 @@ auto GenerateKeyWithSubkeyRpgpImpl(
     s_key_configs[0].can_encrypt = s_params->IsAllowEncr();
     s_key_configs[0].can_auth = s_params->IsAllowAuth();
     s_key_configs[0].has_passphrase = !s_params->IsNoPassPhrase();
+    // Subkeys inherit the primary key's format version; the engine ignores this.
+    s_key_configs[0].ver = Rust::GfrOpenPGPKeyVersion::Unknown;
 
     err = Rust::gfr_crypto_generate_key(
         p_params->GetUserid().toUtf8().constData(), key_config,
@@ -179,6 +182,8 @@ auto GenerateSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   key_config.can_encrypt = params->IsAllowEncr();
   key_config.can_auth = params->IsAllowAuth();
   key_config.has_passphrase = !params->IsNoPassPhrase();
+  // A new subkey always adopts the existing primary key's format version.
+  key_config.ver = Rust::GfrOpenPGPKeyVersion::Unknown;
 
   if (key_config.algo == Rust::GfrKeyAlgo::Unknown) {
     LOG_E() << "Unsupported subkey algorithm: " << params->GetAlgo().Id();

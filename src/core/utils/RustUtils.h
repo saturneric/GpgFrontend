@@ -96,6 +96,17 @@ auto GF_CORE_EXPORT KeyAlgoId2GfrKeyAlgo(const QString& algo_id)
     -> Rust::GfrKeyAlgo;
 
 /**
+ * @brief Convert a key format version integer to the Rust GfrOpenPGPKeyVersion
+ * enum value.
+ *
+ * @param version key version (4 or 6); any other value maps to Unknown,
+ * letting the engine pick its default.
+ * @return corresponding Rust::GfrOpenPGPKeyVersion enum value
+ */
+auto GF_CORE_EXPORT KeyVersion2GfrKeyVersion(int version)
+    -> Rust::GfrOpenPGPKeyVersion;
+
+/**
  * @brief Convert a Rust GfrKeyAlgo enum value to a human-readable algorithm
  * name.
  *

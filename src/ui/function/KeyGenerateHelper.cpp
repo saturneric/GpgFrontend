@@ -51,6 +51,26 @@ void AddComboSectionHeader(QComboBox* combo_box, const QString& text) {
   item->setData(font, Qt::FontRole);
 }
 
+auto FirstSelectableComboIndex(const QComboBox* combo_box) -> int {
+  if (combo_box == nullptr) return -1;
+
+  const auto* model = qobject_cast<QStandardItemModel*>(combo_box->model());
+  for (int i = 0; i < combo_box->count(); ++i) {
+    if (model == nullptr) return i;  // no flag info: any item is selectable
+
+    const auto* item = model->item(i);
+    if (item == nullptr) continue;
+
+    const auto flags = item->flags();
+    if (flags.testFlag(Qt::ItemIsSelectable) &&
+        flags.testFlag(Qt::ItemIsEnabled)) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
 auto GetAlgoById(const QString& id, const QContainer<KeyAlgo>& algos)
     -> std::tuple<bool, KeyAlgo> {
   for (const auto& algo : algos) {
