@@ -139,6 +139,29 @@ auto GF_CORE_EXPORT GetKeyDatabasesBySettings()
     -> QContainer<KeyDatabaseItemSO>;
 
 /**
+ * @brief Reconcile the macOS app-sandbox key database list against the
+ * filesystem.
+ *
+ * The filesystem scan (@p discovered) is authoritative for which user databases
+ * exist and their paths; @p stored only supplies recoverable metadata (backend
+ * type, channel/order) matched by name. The channel-0 @p default_db is always
+ * kept. Backend types not present in @p supported_backends are replaced by a
+ * supported default (gnupg when available, else rpgp).
+ *
+ * Exposed primarily for unit testing of the reconciliation logic.
+ *
+ * @param default_db the channel-0 DEFAULT database (path already resolved)
+ * @param discovered name/path entries scanned from the fixed dbs/ directory
+ * @param stored the persisted key database list (metadata source)
+ * @param supported_backends backend types whose engine is available
+ * @return the reconciled, channel-normalized key database list
+ */
+auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
+    KeyDatabaseItemSO default_db, QContainer<KeyDatabaseItemSO> discovered,
+    const QContainer<KeyDatabaseItemSO>& stored,
+    const QSet<QString>& supported_backends) -> QContainer<KeyDatabaseItemSO>;
+
+/**
  * @brief Return key database infos for custom (non-GPG) databases from
  * settings.
  *

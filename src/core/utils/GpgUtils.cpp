@@ -286,7 +286,218 @@ auto GF_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString {
   return info[channel].name;
 }
 
+namespace {
+
+// Set of backend types whose engine is actually available in this build. The
+// macOS app sandbox ships the rpgp-only "lite" variant, while Flathub carries
+// both gnupg and rpgp.
+auto SupportedKeyDatabaseBackends() -> QSet<QString> {
+  QSet<QString> backends;
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) backends.insert("gnupg");
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) backends.insert("rpgp");
+  return backends;
+}
+
+// Build the channel-0 "DEFAULT" key database entry. Its path is derived from
+// the gpgme context (or an app-data fallback), never from a fixed user dir.
+auto MakeDefaultKeyDatabaseItem() -> KeyDatabaseItemSO {
+  KeyDatabaseItemSO key_db;
+
+  // try to get default key database path from gpgme context
+  // if gpgme checking failed, this is likely to be empty
+  auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
+      "core", "gpgme.ctx.default_database_path", QString{});
+  LOG_D() << "got default key database path from context: " << home_path;
+  assert(!home_path.isEmpty());
+
+  if (home_path.isEmpty()) {
+    LOG_E() << "failed to get default key database path from gpgme context, "
+               "fallback to default app data path";
+
+    // this should not happen, but just in case, fallback to app data path
+    home_path =
+        GlobalSettingStation::GetInstance().GetAppDataPath() + "/rpgp_db";
+
+    // since we cannot get default key database path from gpgme context, it's
+    // likely that gpgme is not working properly, we should fallback to rpgp
+    GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
+  }
+
+  key_db.channel = 0;
+  key_db.name = "DEFAULT";
+
+  // default to gnupg backend if possible if gnupg backend is not supported,
+  // fallback to rpgp backend, and set the default key database path to rpgp
+  // default path
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+    key_db.backend_type = "gnupg";
+    LOG_I() << "gnupg backend is supported, use gnupg backend as default";
+  } else {
+    // fallback to rpgp backend
+    key_db.backend_type = "rpgp";
+    LOG_W() << "gnupg backend is not supported, fallback to rpgp backend";
+  }
+
+  // in portable mode, convert home path to relative path to app dir
+  if (GlobalSettingStation::GetInstance().IsProtableMode()) {
+    home_path = QDir(GlobalSettingStation::GetInstance().GetAppDir())
+                    .relativeFilePath(home_path);
+  }
+
+  key_db.path = home_path;
+  return key_db;
+}
+
+// Sort entries by channel, then resolve duplicate channels by incrementing so
+// every key database ends up with a unique, ascending channel.
+void NormalizeKeyDatabaseChannels(QContainer<KeyDatabaseItemSO>& key_dbs) {
+  std::sort(key_dbs.begin(), key_dbs.end(),
+            [](const auto& a, const auto& b) -> bool {
+              return a.channel < b.channel;
+            });
+
+  for (auto it = key_dbs.begin(); it != key_dbs.end(); ++it) {
+    auto next_it = std::next(it);
+    while (next_it != key_dbs.end() && next_it->channel == it->channel) {
+      next_it->channel = it->channel + 1;
+      ++next_it;
+    }
+  }
+}
+
+// Scan the fixed sandbox directory (<app-data>/dbs) for user key databases,
+// returning a name/path entry per subdirectory found.
+auto ScanSandboxKeyDatabaseDir() -> QContainer<KeyDatabaseItemSO> {
+  QContainer<KeyDatabaseItemSO> discovered;
+
+  const auto dbs_root =
+      GlobalSettingStation::GetInstance().GetAppDataPath() + "/dbs";
+  QDir dbs_dir(dbs_root);
+  if (!dbs_dir.exists()) {
+    LOG_D() << "sandbox key database dir does not exist, skip scan:" << dbs_root;
+    return discovered;
+  }
+
+  const auto entries =
+      dbs_dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+  for (const auto& entry : entries) {
+    KeyDatabaseItemSO key_db;
+    key_db.name = entry.fileName();
+    key_db.path = entry.absoluteFilePath();
+    LOG_I() << "discovered sandbox key database:" << key_db.name
+            << "path:" << key_db.path;
+    discovered.append(key_db);
+  }
+  return discovered;
+}
+
+}  // namespace
+
+// Reconcile the sandbox key database list from the filesystem scan. The
+// filesystem (`discovered`) is authoritative for which user databases exist and
+// their paths; `stored` only supplies recoverable metadata (backend type,
+// channel/order) matched by name. The channel-0 `default_db` is always kept and
+// never sourced from the scan. Any backend type not present in
+// `supported_backends` is dropped in favour of a supported default (gnupg when
+// available, else rpgp) - this is what keeps the rpgp-only macOS lite build from
+// honouring a stale "gnupg" type carried over in settings.
+auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
+    KeyDatabaseItemSO default_db, QContainer<KeyDatabaseItemSO> discovered,
+    const QContainer<KeyDatabaseItemSO>& stored,
+    const QSet<QString>& supported_backends) -> QContainer<KeyDatabaseItemSO> {
+  const auto pick_default_backend = [&]() -> QString {
+    return supported_backends.contains("gnupg") ? "gnupg" : "rpgp";
+  };
+  const auto is_supported = [&](const QString& type) -> bool {
+    return supported_backends.contains(type.toLower().trimmed());
+  };
+
+  // index stored entries by name to recover metadata for discovered databases
+  QMap<QString, KeyDatabaseItemSO> stored_by_name;
+  for (const auto& db : stored) {
+    if (!db.name.isEmpty()) stored_by_name.insert(db.name, db);
+  }
+
+  QContainer<KeyDatabaseItemSO> key_dbs;
+
+  // channel-0 DEFAULT database keeps its derived path; recover/validate backend
+  if (const auto it = stored_by_name.constFind(default_db.name);
+      it != stored_by_name.constEnd() && is_supported(it->backend_type)) {
+    default_db.backend_type = it->backend_type;
+  }
+  if (!is_supported(default_db.backend_type)) {
+    default_db.backend_type = pick_default_backend();
+  }
+  default_db.channel = 0;
+  key_dbs.append(default_db);
+
+  int next_channel = 1;
+  for (auto& key_db : discovered) {
+    if (key_db.name.isEmpty()) continue;
+    // never let a scanned dir shadow the channel-0 DEFAULT database
+    if (key_db.name == default_db.name) continue;
+
+    if (const auto it = stored_by_name.constFind(key_db.name);
+        it != stored_by_name.constEnd()) {
+      key_db.backend_type = is_supported(it->backend_type)
+                                ? it->backend_type
+                                : pick_default_backend();
+      key_db.channel = it->channel;
+    } else {
+      key_db.backend_type = pick_default_backend();
+      key_db.channel = next_channel;
+    }
+    next_channel = std::max(next_channel, key_db.channel) + 1;
+    key_dbs.append(key_db);
+  }
+
+  NormalizeKeyDatabaseChannels(key_dbs);
+  return key_dbs;
+}
+
+// macOS app sandbox: user key databases live under a fixed directory
+// (<app-data>/dbs/<name>). The absolute container path can drift from what was
+// persisted, so the filesystem - not the stored settings paths - is the source
+// of truth for which databases actually exist. We scan that fixed directory and
+// only recover metadata (backend type, channel/order) from settings by name.
+//
+// NOTE: this is intentionally gated on the macOS-only app sandbox, not the
+// broader IsRunningInSandBox(): the Flatpak data dir is a stable bind-mount, so
+// stored paths stay valid there and a rescan would be both unnecessary and
+// wrong (Flatpak databases are not constrained to the dbs/ layout).
+namespace {
+
+auto GetKeyDatabasesByAppSandboxScan() -> QContainer<KeyDatabaseItemSO> {
+  auto key_db_list_so = SettingsObject("key_database_list");
+  auto stored = KeyDatabaseListSO(key_db_list_so);
+
+  auto key_dbs = ReconcileSandboxKeyDatabaseList(
+      MakeDefaultKeyDatabaseItem(), ScanSandboxKeyDatabaseDir(),
+      stored.key_databases, SupportedKeyDatabaseBackends());
+
+  // persist the reconciled list so settings stay in sync with disk
+  KeyDatabaseListSO reconciled;
+  reconciled.key_databases = key_dbs;
+  key_db_list_so.Store(reconciled.ToJson());
+
+  for (const auto& key_db : key_dbs) {
+    LOG_I() << "got sandbox key database:" << key_db.name
+            << ", path:" << key_db.path;
+  }
+
+  return key_dbs;
+}
+
+}  // namespace
+
 auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
+  // In the macOS app sandbox the stored settings paths may not match the
+  // databases that actually exist under the fixed dbs/ path, so rebuild the
+  // list from a filesystem scan instead of trusting settings.
+  if (IsRunningInAppSandbox()) {
+    return GetKeyDatabasesByAppSandboxScan();
+  }
+
   auto key_db_list_so = SettingsObject("key_database_list");
   auto key_db_list = KeyDatabaseListSO(key_db_list_so);
   auto& key_dbs = key_db_list.key_databases;
@@ -307,67 +518,10 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
   key_dbs = std::move(tmp_key_dbs);
 
   if (key_dbs.empty()) {
-    KeyDatabaseItemSO key_db;
-
-    // try to get default key database path from gpgme context
-    // if gpgme checking failed, this is likely to be empty
-    auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
-        "core", "gpgme.ctx.default_database_path", QString{});
-    LOG_D() << "got default key database path from context: " << home_path;
-    assert(!home_path.isEmpty());
-
-    if (home_path.isEmpty()) {
-      LOG_E() << "failed to get default key database path from gpgme context, "
-                 "fallback to default app data path";
-
-      // this should not happen, but just in case, fallback to app data path
-      home_path =
-          GlobalSettingStation::GetInstance().GetAppDataPath() + "/rpgp_db";
-
-      // since we cannot get default key database path from gpgme context, it's
-      // likely that gpgme is not working properly, we should fallback to rpgp
-      GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
-    }
-
-    key_db.channel = 0;
-    key_db.name = "DEFAULT";
-
-    // default to gnupg backend if possible if gnupg backend is not supported,
-    // fallback to rpgp backend, and set the default key database path to rpgp
-    // default path
-    if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-      key_db.backend_type = "gnupg";
-      LOG_I() << "gnupg backend is supported, use gnupg backend as default";
-    } else {
-      // fallback to rpgp backend
-      key_db.backend_type = "rpgp";
-      LOG_W() << "gnupg backend is not supported, fallback to rpgp backend";
-    }
-
-    // in portable mode, convert home path to relative path to app dir
-    if (GlobalSettingStation::GetInstance().IsProtableMode()) {
-      home_path = QDir(GlobalSettingStation::GetInstance().GetAppDir())
-                      .relativeFilePath(home_path);
-    }
-
-    key_db.path = home_path;
-    key_dbs.append(key_db);
+    key_dbs.append(MakeDefaultKeyDatabaseItem());
   }
 
-  // Sort by channel
-  std::sort(key_dbs.begin(), key_dbs.end(),
-            [](const auto& a, const auto& b) -> bool {
-              return a.channel < b.channel;
-            });
-
-  // Resolve duplicate channels by incrementing
-  for (auto it = key_dbs.begin(); it != key_dbs.end(); ++it) {
-    auto next_it = std::next(it);
-    while (next_it != key_dbs.end() && next_it->channel == it->channel) {
-      next_it->channel = it->channel + 1;
-      ++next_it;
-    }
-  }
+  NormalizeKeyDatabaseChannels(key_dbs);
 
   key_db_list_so.Store(key_db_list.ToJson());
 
