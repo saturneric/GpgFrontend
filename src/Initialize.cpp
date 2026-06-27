@@ -237,7 +237,7 @@ constexpr int kShutdownWatchdogTimeoutMs = 10000;
  * The GUI is already gone by the time we shut down the environment, so a wedged
  * gpg child must never be allowed to keep GpgFrontend alive as a headless
  * background process. If the deadline elapses we bypass the (possibly blocking)
- * C++/Qt static destructors and terminate immediately via std::quick_exit().
+ * C++/Qt static destructors and terminate immediately via std::_Exit().
  *
  * Uses no Qt/logging facilities from the timer thread since they may already be
  * torn down by the time it fires; plain stderr is safe.
@@ -249,7 +249,7 @@ void ArmShutdownWatchdog(int timeout_ms) {
         "shutdown watchdog fired: teardown wedged, forcing process exit\n",
         stderr);
     std::fflush(stderr);
-    std::quick_exit(0);
+    std::_Exit(0);
   }).detach();
 }
 
@@ -331,12 +331,14 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
   // launched. Everything left is Qt/X11 + static-destructor teardown that the
   // OS reclaims on exit anyway. Skip it via quick_exit() so we terminate
   // immediately instead of blocking on, e.g., the ~5s X11 clipboard-manager
-  // handoff during QApplication destruction. Not done under the unit-test
-  // runner, where atexit handlers (LeakSanitizer, gtest) must still run.
+  // handoff during QApplication destruction. _Exit() (not quick_exit(), which
+  // is unavailable on macOS libc++) skips static destructors and atexit
+  // handlers. Not done under the unit-test runner, where those handlers
+  // (LeakSanitizer, gtest) must still run.
   if (!ctx->unit_test_mode) {
     std::fflush(stdout);
     std::fflush(stderr);
-    std::quick_exit(ctx->rtn);
+    std::_Exit(ctx->rtn);
   }
 }
 
