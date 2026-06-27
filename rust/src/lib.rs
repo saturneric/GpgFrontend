@@ -64,6 +64,7 @@ pub mod host;
 pub mod ffi;
 pub mod types;
 
+mod cancel;
 mod crypto;
 mod err;
 mod key;

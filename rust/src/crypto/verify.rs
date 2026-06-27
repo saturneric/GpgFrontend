@@ -35,6 +35,7 @@ use super::*;
 /// The signature is tried against both the primary key and every subkey to
 /// work around rpgp's strict identity matching.
 pub fn verify_detached_stream_internal<R>(
+    channel: i32,
     mut data_stream: R,
     sig_data: &[u8],
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
@@ -106,24 +107,42 @@ where
     };
 
     // 4. Stream Verification
+    //
+    // Hashing the data stream is the long-running part, so each pass reads
+    // through a `CancellableReader` that aborts mid-hash once the user cancels.
+    // `verify` only reports success/failure, so after the passes we consult the
+    // cancel flag directly and surface `ErrorCanceled` rather than a spurious
+    // "not verified" result.
     for cert in &certs {
+        if crate::cancel::is_cancelled(channel) {
+            return Err(GfrStatus::ErrorCanceled);
+        }
+
         // Rewind the stream to the beginning before starting verification
         data_stream
             .seek(SeekFrom::Start(0))
             .map_err(|_| GfrStatus::ErrorInternal)?;
 
         // Try verifying with the primary key first
-        let mut is_cert_valid = sig_msg.signature.verify(cert, &mut data_stream).is_ok();
+        let mut is_cert_valid = {
+            let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut data_stream);
+            sig_msg.signature.verify(cert, &mut cancellable).is_ok()
+        };
 
         // Fallback: If primary key fails, test subkeys (to bypass rpgp's strict identity matching)
         if !is_cert_valid {
             for subkey in &cert.public_subkeys {
+                if crate::cancel::is_cancelled(channel) {
+                    return Err(GfrStatus::ErrorCanceled);
+                }
+
                 // We MUST rewind the stream before each subsequent verification attempt!
                 data_stream
                     .seek(SeekFrom::Start(0))
                     .map_err(|_| GfrStatus::ErrorInternal)?;
 
-                if sig_msg.signature.verify(subkey, &mut data_stream).is_ok() {
+                let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut data_stream);
+                if sig_msg.signature.verify(subkey, &mut cancellable).is_ok() {
                     is_cert_valid = true;
                     break;
                 }
@@ -131,6 +150,10 @@ where
         }
 
         update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
+    }
+
+    if crate::cancel::is_cancelled(channel) {
+        return Err(GfrStatus::ErrorCanceled);
     }
 
     Ok(VerifyStreamResultInternal {

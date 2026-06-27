@@ -353,6 +353,7 @@ pub extern "C" fn gfr_crypto_verify_data(
 /// `out_file_path` may be null depending on `mode`.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_verify_file(
+    channel: i32,
     in_file_path: *const c_char,
     sig_file_path: *const c_char, // Used for Detached mode (.sig file)
     out_file_path: *const c_char, // Optional: Extracted plaintext output for Inline mode
@@ -409,6 +410,7 @@ pub extern "C" fn gfr_crypto_verify_file(
                     std::fs::read(sig_path_str).map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
                 let stream_result = crate::crypto::verify_detached_stream_internal(
+                    channel,
                     in_file,
                     &sig_data,
                     Some(fetch_pubkey_cb),

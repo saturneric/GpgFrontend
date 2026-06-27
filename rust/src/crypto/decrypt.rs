@@ -135,16 +135,17 @@ where
     R: Read + Send + Sync + fmt::Debug,
     W: Write + Send + Sync,
 {
-    let buf_input = BufReader::new(input_stream);
+    // Wrap the source so a user cancel request aborts the streaming read.
+    let buf_input = BufReader::new(crate::cancel::CancellableReader::new(channel, input_stream));
 
     // 1. Parse PGP outer envelope (consumes headers only)
     let parsed_message = if ascii_armor {
         Message::from_armor(buf_input)
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?
+            .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput))?
             .0
     } else {
         Message::from_reader(buf_input)
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?
+            .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput))?
             .0
     };
 
@@ -264,7 +265,17 @@ where
     }
 
     // 8. Stream Execution
-    std::io::copy(&mut decrypted, &mut output_stream).into_gfr()?;
+    //
+    // This is the bulk transfer and the main cancellation checkpoint: the
+    // `CancellableReader` deep in `decrypted` aborts the read once a cancel is
+    // requested for this channel. `into_gfr` cannot see the channel, so check
+    // the flag first and surface `ErrorCanceled`; otherwise fall through to the
+    // normal error mapping (which also records a detailed message).
+    let copy_result = std::io::copy(&mut decrypted, &mut output_stream);
+    if copy_result.is_err() && crate::cancel::is_cancelled(channel) {
+        return Err(GfrStatus::ErrorCanceled);
+    }
+    copy_result.into_gfr()?;
     output_stream.flush().into_gfr()?;
 
     // ==========================================

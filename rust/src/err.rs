@@ -87,6 +87,11 @@ impl<T> IntoGfrResult<T> for Result<T, pgp::errors::Error> {
         match self {
             Ok(val) => Ok(val),
             Err(err) => {
+                // Note: cancellation is detected at the streaming call sites
+                // (which know their channel) before calling `into_gfr`, since
+                // this trait has no channel context to consult a per-channel
+                // flag with.
+
                 // 1. record the detailed error message for C++ retrieval
                 let err_str = err.to_string();
                 log::error!("rPGP Error: {}", err_str);

@@ -50,6 +50,7 @@ use std::{
 /// `in_data` must point to at least `in_len` bytes.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_data(
+    channel: i32,
     name: *const c_char,
     in_data: *const u8,
     in_len: usize,
@@ -83,7 +84,7 @@ pub extern "C" fn gfr_crypto_encrypt_data(
 
         // Perform the encryption using the updated internal function
         let mut internal_result =
-            crate::crypto::encrypt_internal(name_str, data_slice, &key_blocks, ascii)?;
+            crate::crypto::encrypt_internal(channel, name_str, data_slice, &key_blocks, ascii)?;
 
         // 1. Process output payload data
         internal_result.data.shrink_to_fit();
@@ -132,6 +133,7 @@ pub extern "C" fn gfr_crypto_encrypt_data(
 /// `in_file_path`, `out_file_path`, `pub_keys`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_file(
+    channel: i32,
     in_file_path: *const c_char,
     out_file_path: *const c_char,
     pub_keys: *const GfrBuffer,
@@ -186,8 +188,14 @@ pub extern "C" fn gfr_crypto_encrypt_file(
         })?;
 
         // 6. Perform the streaming encryption
-        let stream_result =
-            crypto::encrypt_stream_internal(&filename_hint, in_file, out_file, &key_blocks, ascii)?;
+        let stream_result = crypto::encrypt_stream_internal(
+            channel,
+            &filename_hint,
+            in_file,
+            out_file,
+            &key_blocks,
+            ascii,
+        )?;
 
         // 7. Process invalid recipients array and leak it to C
         let mut c_invalid_recs = Vec::with_capacity(stream_result.invalid_recipients.len());
@@ -231,6 +239,7 @@ pub extern "C" fn gfr_crypto_encrypt_file(
 /// `in_dir_path`, `out_file_path`, `pub_keys`, and `out_result` must be non-null.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_encrypt_directory(
+    channel: i32,
     in_dir_path: *const c_char,
     out_file_path: *const c_char,
     pub_keys: *const GfrBuffer,
@@ -268,8 +277,13 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
         }
 
         // 6. Perform the streaming encryption
-        let stream_result =
-            crypto::encrypt_directory_internal(in_path_str, out_path_str, &key_blocks, ascii)?;
+        let stream_result = crypto::encrypt_directory_internal(
+            channel,
+            in_path_str,
+            out_path_str,
+            &key_blocks,
+            ascii,
+        )?;
 
         // 7. Process invalid recipients array and leak it to C
         let mut c_invalid_recs = Vec::with_capacity(stream_result.invalid_recipients.len());

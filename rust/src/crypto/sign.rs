@@ -47,7 +47,7 @@ use super::*;
 pub fn sign_stream_internal<R, W>(
     channel: i32,
     name: &str,
-    mut input_stream: R,
+    input_stream: R,
     mut output_stream: W,
     secret_key_blocks: &[&str],
     fetch_cb: Option<GfrPasswordFetchCb>,
@@ -64,6 +64,11 @@ where
 
     // 1. Parse Keys and Extract Exact Targets
     let parsed_keys = parse_secret_signers(secret_key_blocks)?;
+
+    // Wrap the source so a user cancel request aborts the streaming read,
+    // whether the mode hands the reader to rPGP (Inline) or drains it to a
+    // buffer (ClearText / Detached).
+    let mut input_stream = crate::cancel::CancellableReader::new(channel, input_stream);
 
     log::info!(
         "Parsed {} secret key blocks for signing operation '{}'",
@@ -163,10 +168,10 @@ where
                 }
             }
 
-            result.map_err(|_| GfrStatus::ErrorInternal)?;
+            result.map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
             output_stream
                 .flush()
-                .map_err(|_| GfrStatus::ErrorInternal)?;
+                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
 
             Ok(SignStreamResultInternal {
                 signatures: created_signatures,
@@ -180,7 +185,7 @@ where
             let mut data = Vec::new();
             input_stream
                 .read_to_end(&mut data)
-                .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput))?;
             let text_str = std::str::from_utf8(&data).map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
             if parsed_keys.is_empty() {
@@ -281,10 +286,10 @@ where
 
             output_stream
                 .write_all(&out)
-                .map_err(|_| GfrStatus::ErrorInternal)?;
+                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
             output_stream
                 .flush()
-                .map_err(|_| GfrStatus::ErrorInternal)?;
+                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
 
             Ok(SignStreamResultInternal {
                 signatures: created_signatures,
@@ -298,7 +303,7 @@ where
             let mut data = Vec::new();
             input_stream
                 .read_to_end(&mut data)
-                .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInvalidInput))?;
 
             if parsed_keys.is_empty() {
                 return Err(GfrStatus::ErrorInvalidInput);
@@ -357,10 +362,10 @@ where
 
             output_stream
                 .write_all(&all_out)
-                .map_err(|_| GfrStatus::ErrorInternal)?;
+                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
             output_stream
                 .flush()
-                .map_err(|_| GfrStatus::ErrorInternal)?;
+                .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
 
             Ok(SignStreamResultInternal {
                 signatures: created_signatures,

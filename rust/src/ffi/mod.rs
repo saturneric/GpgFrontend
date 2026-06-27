@@ -59,6 +59,18 @@ pub extern "C" fn gfr_rust_engine_version() -> *mut c_char {
     ver_str.into_raw()
 }
 
+/// Request or clear cancellation of the crypto operation on `channel`.
+///
+/// Pass `true` to abort the in-flight streaming operation on that channel as
+/// soon as it reads its next chunk; pass `false` to reset the channel's flag
+/// before starting a new operation. Each channel has its own flag, so
+/// cancelling one channel never affects another. The aborted operation
+/// surfaces as `GfrStatus::ErrorCanceled`.
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_set_operation_cancelled(channel: i32, cancelled: bool) {
+    crate::cancel::set_cancelled(channel, cancelled);
+}
+
 /// Initialise the `env_logger` backend at INFO level, writing to stdout.
 ///
 /// Safe to call multiple times; subsequent calls are no-ops if the logger

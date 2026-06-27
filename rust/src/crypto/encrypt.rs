@@ -37,6 +37,7 @@ use super::*;
 /// Thin wrapper around [`encrypt_and_sign_stream_internal`] with an empty
 /// signer list, so the signing phase is skipped entirely.
 pub fn encrypt_stream_internal<R, W>(
+    channel: i32,
     filename_hint: &str,
     input_stream: R,
     output_stream: W,
@@ -49,7 +50,7 @@ where
 {
     // Delegate to the shared engine, passing empty arrays for signing
     let result = encrypt_and_sign_stream_internal(
-        0, // Dummy channel
+        channel,
         filename_hint,
         input_stream,
         output_stream,
@@ -69,6 +70,7 @@ where
 /// The tar file is created in the OS temp directory as an anonymous file and is
 /// removed automatically when the handle is dropped.
 pub fn encrypt_directory_internal(
+    channel: i32,
     in_dir_path: &str,
     out_file_path: &str,
     public_key_blocks: &[&str],
@@ -79,6 +81,7 @@ pub fn encrypt_directory_internal(
 
     log::info!("Encrypting tar archive...");
     encrypt_stream_internal(
+        channel,
         &filename_hint,
         temp_archive,
         out_file,
@@ -111,6 +114,8 @@ where
 
     let parsed_skeys = parse_secret_signers(secret_key_blocks)?;
 
+    // Wrap the source so a user cancel request aborts the streaming read.
+    let input_stream = crate::cancel::CancellableReader::new(channel, input_stream);
     let mut builder = MessageBuilder::from_reader(filename_bytes, input_stream);
     builder.partial_chunk_size(512 * 1024).into_gfr()?; // Set chunk size to 512KB for better performance on large files
 
@@ -237,10 +242,10 @@ where
         enc_builder.to_writer(&mut rng, &mut output_stream)
     };
 
-    result.map_err(|_| GfrStatus::ErrorInternal)?;
+    result.map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
     output_stream
         .flush()
-        .map_err(|_| GfrStatus::ErrorInternal)?;
+        .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
 
     Ok(EncryptAndSignStreamResultInternal {
         signatures: created_signatures,
@@ -300,6 +305,8 @@ where
     let mut rng = thread_rng();
     let filename_bytes = name.as_bytes().to_vec();
 
+    // Wrap the source so a user cancel request aborts the streaming read.
+    let input_stream = crate::cancel::CancellableReader::new(channel, input_stream);
     let mut builder = MessageBuilder::from_reader(filename_bytes, input_stream);
     builder.partial_chunk_size(512 * 1024).into_gfr()?;
 
@@ -332,10 +339,10 @@ where
         enc_builder.to_writer(&mut rng, &mut output_stream)
     };
 
-    result.map_err(|_| GfrStatus::ErrorInternal)?;
+    result.map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
     output_stream
         .flush()
-        .map_err(|_| GfrStatus::ErrorInternal)?;
+        .map_err(|_| crate::cancel::status_or_canceled(channel, GfrStatus::ErrorInternal))?;
     Ok(())
 }
 
@@ -365,6 +372,7 @@ pub fn encrypt_directory_with_password_internal(
 
 /// Encrypt an in-memory buffer with the given public keys.
 pub fn encrypt_internal(
+    channel: i32,
     name: &str,
     data: &[u8],
     public_key_blocks: &[&str],
@@ -373,7 +381,7 @@ pub fn encrypt_internal(
     let mut output = Vec::new();
 
     let stream_result =
-        encrypt_stream_internal(name, data, &mut output, public_key_blocks, ascii_armor)?;
+        encrypt_stream_internal(channel, name, data, &mut output, public_key_blocks, ascii_armor)?;
 
     Ok(EncryptResultInternal {
         data: output,
