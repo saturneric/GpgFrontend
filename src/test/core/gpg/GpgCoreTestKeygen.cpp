@@ -579,6 +579,9 @@ TEST_F(GpgCoreTest, GenerateKeyED448Test) {
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
           .GenerateKeySync(p_info);
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+    GTEST_SKIP() << "ed448 algorithm is not support by this GnuPG version";
+  }
   ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
   ASSERT_EQ(data_object->GetObjectSize(), 1);
   ASSERT_TRUE(data_object->Check<GpgGenerateKeyResult>());
