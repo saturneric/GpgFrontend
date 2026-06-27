@@ -356,8 +356,6 @@ void InfoBoardWidget::init_status_page() {
 
   page_layout->addWidget(placeholder_label_, 1, Qt::AlignCenter);
   page_layout->addWidget(doc_scroll_, 1);
-
-  ui_->tabWidget->setCurrentIndex(0);
 }
 
 auto InfoBoardWidget::make_stamp_pixmap(const QColor& color,
@@ -436,6 +434,9 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
 
     constexpr int kKeyW = StyleConstants::kCardKeyWidth;
     for (const auto& field : card_data.fields) {
+      // Skip fields with no value so the card stays compact.
+      if (field.second.isEmpty()) continue;
+
       auto* row = new QHBoxLayout();
       row->setContentsMargins(0, 1, 0, 1);
       row->setSpacing(6);

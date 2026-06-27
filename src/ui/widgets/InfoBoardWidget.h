@@ -101,7 +101,6 @@ class InfoBoardWidget : public QWidget {
   void slot_copy();
   void slot_save();
   void slot_open_magnifier();
-  void slot_tab_changed(int index);
 
  private:
   struct StyleConstants {
@@ -116,6 +115,7 @@ class InfoBoardWidget : public QWidget {
 
   QTextEdit* text_page_{nullptr};
   QTabWidget* tab_widget_{nullptr};
+  QButtonGroup* view_group_{nullptr};
 
   QLabel* placeholder_label_{nullptr};
   QScrollArea* doc_scroll_{nullptr};
@@ -142,7 +142,11 @@ class InfoBoardWidget : public QWidget {
   QString current_id_;
   QString current_input_hash_;
   QString current_copy_text_;
-  bool user_selected_details_tab_{false};
+
+  void setup_view_switcher();
+  void set_active_view(int index, bool persist = true);
+  [[nodiscard]] auto load_persisted_view() const -> int;
+  void persist_view(int index) const;
 
   void init_status_page();
   void update_status_page(const QString& text, InfoBoardStatus status,

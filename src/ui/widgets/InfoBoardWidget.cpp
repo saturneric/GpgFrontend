@@ -53,9 +53,6 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent)
   connect(ui_->clearToolButton, &QToolButton::clicked, this,
           &InfoBoardWidget::SlotReset);
 
-  connect(ui_->tabWidget, &QTabWidget::currentChanged, this,
-          [this]() { UpdateActionButtons(); });
-
   connect(UISignalStation::GetInstance(),
           &UISignalStation::SignalRefreshInfoBoard, this,
           &InfoBoardWidget::SlotRefresh);
@@ -120,8 +117,61 @@ void InfoBoardWidget::InitUI() {
                                           StyleConstants::kIndicatorSize);
 
   init_status_page();
+  setup_view_switcher();
   ApplyStatusStyle(kINFO_ERROR_NEUTRAL);
   UpdateActionButtons();
+}
+
+void InfoBoardWidget::setup_view_switcher() {
+  // Keep these as native checkable tool buttons rather than a
+  // stylesheet-painted pill: an exclusive group renders the active segment with
+  // the platform's own "checked" look, which stays correct across themes and
+  // platforms.
+  ui_->segStatusButton->setToolTip(tr("Show the summary report"));
+  ui_->segDetailsButton->setToolTip(tr("Show the raw status text"));
+  for (auto* button : {ui_->segStatusButton, ui_->segDetailsButton}) {
+    button->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    button->setFocusPolicy(Qt::NoFocus);
+  }
+
+  view_group_ = new QButtonGroup(this);
+  view_group_->setExclusive(true);
+  view_group_->addButton(ui_->segStatusButton, 0);
+  view_group_->addButton(ui_->segDetailsButton, 1);
+
+  connect(view_group_, &QButtonGroup::idClicked, this,
+          [this](int id) { set_active_view(id); });
+  connect(ui_->stackedWidget, &QStackedWidget::currentChanged, this,
+          [this]() { UpdateActionButtons(); });
+
+  // Restore the view the user last looked at; the choice is remembered across
+  // operations and sessions rather than being reset on every result.
+  set_active_view(load_persisted_view(), false);
+}
+
+void InfoBoardWidget::set_active_view(int index, bool persist) {
+  index = index == 1 ? 1 : 0;
+  ui_->stackedWidget->setCurrentIndex(index);
+  if (auto* button = view_group_->button(index);
+      button != nullptr && !button->isChecked()) {
+    button->setChecked(true);
+  }
+  if (persist) persist_view(index);
+  UpdateActionButtons();
+}
+
+auto InfoBoardWidget::load_persisted_view() const -> int {
+  SettingsObject so("info_board_state");
+  if (const auto v = so["view_index"]; v.isDouble()) {
+    return v.toInt() == 1 ? 1 : 0;
+  }
+  return 0;
+}
+
+void InfoBoardWidget::persist_view(int index) const {
+  SettingsObject so("info_board_state");
+  so["view_index"] = index;
+  so.Store(so);
 }
 
 void InfoBoardWidget::UpdateActionButtons() {
@@ -131,10 +181,10 @@ void InfoBoardWidget::UpdateActionButtons() {
   ui_->clearToolButton->setEnabled(has_text);
 
   // The magnifier inspects the rendered report, so it is only meaningful while
-  // a generated document is on screen and the Status tab (index 0) is active.
-  const bool on_status_tab = ui_->tabWidget->currentIndex() == 0;
+  // a generated document is on screen and the Status view (index 0) is active.
+  const bool on_status_view = ui_->stackedWidget->currentIndex() == 0;
   const bool has_document = doc_scroll_ != nullptr && doc_scroll_->isVisible();
-  ui_->magnifierToolButton->setEnabled(has_document && on_status_tab);
+  ui_->magnifierToolButton->setEnabled(has_document && on_status_view);
 }
 
 auto InfoBoardWidget::StatusColor(InfoBoardStatus status) const -> QColor {
@@ -269,9 +319,6 @@ void InfoBoardWidget::SetInfoBoard(const QString& text, InfoBoardStatus status,
 
   if (status != kINFO_ERROR_NEUTRAL && doc_frame_ != nullptr) {
     update_status_page(text, status, content_hash);
-    if (!user_selected_details_tab_) {
-      ui_->tabWidget->setCurrentIndex(0);
-    }
   }
 
   UpdateActionButtons();
@@ -292,9 +339,6 @@ void InfoBoardWidget::SetInfoBoardCards(
   if (status != kINFO_ERROR_NEUTRAL && doc_frame_ != nullptr) {
     update_status_page(text, status, content_hash, operation, description,
                        cards, details_title, details_items);
-    if (!user_selected_details_tab_) {
-      ui_->tabWidget->setCurrentIndex(0);
-    }
   }
 
   UpdateActionButtons();
@@ -316,8 +360,6 @@ void InfoBoardWidget::AssociateTabWidget(QTabWidget* tab) {
   connect(tab, &QTabWidget::tabBarClicked, this, &InfoBoardWidget::SlotReset);
   connect(tab, &QTabWidget::tabCloseRequested, this,
           &InfoBoardWidget::SlotReset);
-  connect(tab, &QTabWidget::currentChanged, this,
-          &InfoBoardWidget::slot_tab_changed);
   SlotReset();
 }
 
@@ -377,16 +419,8 @@ void InfoBoardWidget::SlotReset() {
   ResetOptionActionsMenu();
   UpdateActionButtons();
 
-  if (!user_selected_details_tab_) {
-    ui_->tabWidget->setCurrentIndex(0);
-  }
-
   reset_document_view();
   clear_document_fields();
-}
-
-void InfoBoardWidget::slot_tab_changed(int index) {
-  user_selected_details_tab_ = (index > 0);
 }
 
 }  // namespace GpgFrontend::UI
