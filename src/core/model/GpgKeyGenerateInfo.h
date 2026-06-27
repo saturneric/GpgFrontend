@@ -43,6 +43,7 @@ namespace GpgFrontend {
 enum KeyAlgoTrait : uint16_t {
   kALGO_TRAIT_NONE = 0,
   kPQC = 1 << 0,  ///< post-quantum / quantum-resistant
+  kECC = 1 << 1,  ///< elliptic-curve family (EdDSA / ECDSA / ECDH)
 };
 
 struct KeyAlgoSpec;
@@ -88,6 +89,16 @@ class GF_CORE_EXPORT KeyAlgo {
    * @return true if the algorithm provides post-quantum resistance.
    */
   [[nodiscard]] auto IsPostQuantum() const -> bool;
+
+  /**
+   * @brief Whether this algorithm belongs to the elliptic-curve family.
+   *
+   * Carried as the kECC trait, set centrally for every curve by the ECC family
+   * generator. Used to group curves together in the UI.
+   *
+   * @return true if the algorithm is elliptic-curve based.
+   */
+  [[nodiscard]] auto IsEcc() const -> bool;
 
   [[nodiscard]] auto SupportedVersion() const -> EngineSupportList;
 

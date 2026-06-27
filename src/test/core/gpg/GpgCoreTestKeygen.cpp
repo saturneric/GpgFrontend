@@ -88,6 +88,42 @@ TEST_F(GpgCoreTest, IsPostQuantumAlgoTest) {
   }
 }
 
+TEST_F(GpgCoreTest, IsEccAlgoTest) {
+  // Non-ECC classical algorithms must not be flagged as ECC.
+  auto [find_rsa, rsa] = KeyGenerateInfo::SearchPrimaryKeyAlgo("rsa2048");
+  ASSERT_TRUE(find_rsa);
+  ASSERT_FALSE(rsa.IsEcc());
+
+  auto [find_dsa, dsa] = KeyGenerateInfo::SearchPrimaryKeyAlgo("dsa2048");
+  ASSERT_TRUE(find_dsa);
+  ASSERT_FALSE(dsa.IsEcc());
+
+  ASSERT_FALSE(KeyGenerateInfo::kNoneAlgo.IsEcc());
+
+  // EdDSA / ECDSA / ECDH curves are elliptic-curve algorithms.
+  auto [find_ed, ed] = KeyGenerateInfo::SearchPrimaryKeyAlgo("ed25519");
+  ASSERT_TRUE(find_ed);
+  ASSERT_TRUE(ed.IsEcc());
+
+  auto [find_nist, nist] = KeyGenerateInfo::SearchPrimaryKeyAlgo("nistp256");
+  ASSERT_TRUE(find_nist);
+  ASSERT_TRUE(nist.IsEcc());
+
+  auto [find_cv, cv] = KeyGenerateInfo::SearchSubKeyAlgo("cv25519");
+  ASSERT_TRUE(find_cv);
+  ASSERT_TRUE(cv.IsEcc());
+
+  // Post-quantum algorithms are not part of the ECC family.
+  auto [find_slh, slh] =
+      KeyGenerateInfo::SearchPrimaryKeyAlgo("slhdsashake128s");
+  ASSERT_TRUE(find_slh);
+  ASSERT_FALSE(slh.IsEcc());
+
+  for (const auto& algo : KeyGenerateInfo::kHybridSubKeyAlgos) {
+    ASSERT_FALSE(algo.IsEcc()) << algo.Id().toStdString();
+  }
+}
+
 TEST_F(GpgCoreTest, GenerateKeyRSA2048Test) {
   auto p_info = QSharedPointer<KeyGenerateInfo>::create();
   p_info->SetName("foo_0");

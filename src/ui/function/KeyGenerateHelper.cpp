@@ -126,14 +126,20 @@ void PopulateAlgoComboBox(QComboBox* combo_box,
 
   auto sorted_algos = algos;
 
-  std::sort(sorted_algos.begin(), sorted_algos.end(),
-            [](const KeyAlgo& a, const KeyAlgo& b) -> bool {
-              if (a.Id() == "none" && b.Id() != "none") return true;
-              if (b.Id() == "none" && a.Id() != "none") return false;
+  // Order the list into family tiers: "none" first, then non-ECC classical
+  // algorithms, then the elliptic-curve family, then post-quantum. ECC and
+  // post-quantum each get a section header so they are easy to find.
+  const auto family_tier = [](const KeyAlgo& a) -> int {
+    if (a.Id() == "none") return 0;
+    if (a.IsPostQuantum()) return 3;
+    if (a.IsEcc()) return 2;
+    return 1;
+  };
 
-              // Keep all post-quantum algorithms grouped together at the end.
-              if (a.IsPostQuantum() != b.IsPostQuantum()) {
-                return !a.IsPostQuantum();
+  std::sort(sorted_algos.begin(), sorted_algos.end(),
+            [&](const KeyAlgo& a, const KeyAlgo& b) -> bool {
+              if (family_tier(a) != family_tier(b)) {
+                return family_tier(a) < family_tier(b);
               }
 
               if (a.Name() != b.Name()) return a.Name() < b.Name();
@@ -148,6 +154,7 @@ void PopulateAlgoComboBox(QComboBox* combo_box,
 
   QString last_label;
   QString last_type;
+  bool ecc_header_added = false;
   bool pqc_header_added = false;
 
   for (const auto& algo : sorted_algos) {
@@ -162,6 +169,13 @@ void PopulateAlgoComboBox(QComboBox* combo_box,
     if (label == last_label && algo.Type() == last_type) continue;
     last_label = label;
     last_type = algo.Type();
+
+    // Label the elliptic-curve block so the many curve options read as one
+    // family instead of a long flat list.
+    if (algo.IsEcc() && !algo.IsPostQuantum() && !ecc_header_added) {
+      AddComboSectionHeader(combo_box, QObject::tr("ECC"));
+      ecc_header_added = true;
+    }
 
     // Mark where the post-quantum block begins with a section header so these
     // quantum-resistant options stand out instead of being buried in the list.

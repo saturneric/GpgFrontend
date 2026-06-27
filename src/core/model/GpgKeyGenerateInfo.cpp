@@ -125,7 +125,8 @@ auto EccFamily(int opera, const QContainer<EccCurveSpec> &curves)
                              .type = c.type,
                              .length = c.length,
                              .opera = opera,
-                             .support = c.support});
+                             .support = c.support,
+                             .traits = kECC});
   }
   return algos;
 }
@@ -753,6 +754,8 @@ auto KeyAlgo::CanAuth() const -> bool { return auth_; }
 auto KeyAlgo::CanCert() const -> bool { return cert_; }
 
 auto KeyAlgo::IsPostQuantum() const -> bool { return (traits_ & kPQC) != 0; }
+
+auto KeyAlgo::IsEcc() const -> bool { return (traits_ & kECC) != 0; }
 
 auto KeyAlgo::SupportedVersion() const -> QContainer<EngineSupportIf> {
   return support_ifs_;
