@@ -325,21 +325,6 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
     }
 #endif
   };
-
-  // Our orderly shutdown is complete: caches flushed, gpg daemons killed, core
-  // singletons destroyed, and (for deep restart) the replacement already
-  // launched. Everything left is Qt/X11 + static-destructor teardown that the
-  // OS reclaims on exit anyway. Skip it via quick_exit() so we terminate
-  // immediately instead of blocking on, e.g., the ~5s X11 clipboard-manager
-  // handoff during QApplication destruction. _Exit() (not quick_exit(), which
-  // is unavailable on macOS libc++) skips static destructors and atexit
-  // handlers. Not done under the unit-test runner, where those handlers
-  // (LeakSanitizer, gtest) must still run.
-  if (!ctx->unit_test_mode) {
-    std::fflush(stdout);
-    std::fflush(stderr);
-    std::_Exit(ctx->rtn);
-  }
 }
 
 }  // namespace GpgFrontend
