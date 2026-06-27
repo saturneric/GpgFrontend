@@ -81,4 +81,11 @@ auto GpgEncryptResult::InvalidRecipients()
   return result;
 }
 
+auto GpgEncryptResult::ErrorDetail() -> QString {
+  if (gf_result_ref_ != nullptr) {
+    return gf_result_ref_->error_detail;
+  }
+  return {};
+}
+
 }  // namespace GpgFrontend

@@ -141,23 +141,31 @@ struct GFInvalidRecipient {
 struct GFEncryptResult {
   GFBuffer data;
   QContainer<GFInvalidRecipient> invalid_recipients;
+  QString
+      error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
 };
 
 struct GFDecryptResult {
   GFBuffer data;
   QString filename;
   QContainer<GFRecipient> recipients;
+  QString
+      error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
 };
 
 struct GFSignResult {
   GFBuffer data;
   QContainer<GFSignature> signatures;
+  QString
+      error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
 };
 
 struct GFVerifyResult {
   QByteArray data;
   QContainer<GFSignature> signatures;
   bool is_verified;
+  QString
+      error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
 };
 
 struct GFEncryptAndSignResult {

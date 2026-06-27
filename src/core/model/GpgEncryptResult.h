@@ -40,6 +40,10 @@ class GF_CORE_EXPORT GpgEncryptResult {
 
   auto InvalidRecipients() -> QContainer<std::tuple<QString, GpgError>>;
 
+  /// Engine-specific, human-readable failure detail (rPGP only). Empty for the
+  /// GnuPG engine, where `gpgme_strerror` already provides the description.
+  auto ErrorDetail() -> QString;
+
   explicit GpgEncryptResult(gpgme_encrypt_result_t);
 
   explicit GpgEncryptResult(const GFEncryptResult&);

@@ -86,6 +86,13 @@ auto GpgSignResult::HashAlgo() -> QString {
   return gpgme_hash_algo_name(result_ref_->signatures->hash_algo);
 }
 
+auto GpgSignResult::ErrorDetail() -> QString {
+  if (gf_result_ref_ != nullptr) {
+    return gf_result_ref_->error_detail;
+  }
+  return {};
+}
+
 auto GpgSignResult::Signatures() -> QContainer<GpgSignature> {
   QContainer<GpgSignature> signatures;
 

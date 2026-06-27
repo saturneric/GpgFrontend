@@ -51,6 +51,10 @@ class GF_CORE_EXPORT GpgDecryptResult {
 
   auto SymmetricEncryptionAlgorithm() -> QString;
 
+  /// Engine-specific, human-readable failure detail (rPGP only). Empty for the
+  /// GnuPG engine, where `gpgme_strerror` already provides the description.
+  auto ErrorDetail() -> QString;
+
   explicit GpgDecryptResult(gpgme_decrypt_result_t);
 
   explicit GpgDecryptResult(const GFDecryptResult&);

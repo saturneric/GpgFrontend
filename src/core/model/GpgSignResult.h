@@ -45,6 +45,10 @@ class GF_CORE_EXPORT GpgSignResult {
 
   auto InvalidSigners() -> QContainer<std::pair<QString, GpgError>>;
 
+  /// Engine-specific, human-readable failure detail (rPGP only). Empty for the
+  /// GnuPG engine, where `gpgme_strerror` already provides the description.
+  auto ErrorDetail() -> QString;
+
   explicit GpgSignResult(gpgme_sign_result_t);
 
   explicit GpgSignResult(const GFSignResult&);

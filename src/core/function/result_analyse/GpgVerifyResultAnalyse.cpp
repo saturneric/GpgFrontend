@@ -49,6 +49,10 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   } else {
     stream_ << " - " << tr("Failed") << ": " << gpgme_strerror(error_)
             << Qt::endl;
+    if (!result_.ErrorDetail().isEmpty()) {
+      stream_ << "    - " << tr("Detail") << ": " << result_.ErrorDetail()
+              << Qt::endl;
+    }
     setStatus(-1);
   }
 
@@ -73,7 +77,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
     bool can_continue = true;
 
     int count = 1;
-    for (const auto &sign : signatures) {
+    for (const auto& sign : signatures) {
       stream_ << "### " << tr("Signature [%1]:").arg(count++) << Qt::endl;
       stream_ << "- " << tr("Status") << ": ";
       switch (gpg_err_code(sign.GetStatus())) {
@@ -119,7 +123,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
 
           if (!warnings.isEmpty()) {
             stream_ << "  - " << tr("Warnings") << ":" << Qt::endl;
-            for (const auto &warning : warnings) {
+            for (const auto& warning : warnings) {
               stream_ << "    - " << warning << Qt::endl;
             }
           }
@@ -224,8 +228,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
     sig_info.signer.hashAlgo = sign.GetHashAlgo();
     sig_info.signer.signTime = sign.GetCreateTime().toUTC();
 
-    auto key =
-        AbstractKeyRepository::GetInstance(GetChannel()).GetKey(sign.GetFingerprint());
+    auto key = AbstractKeyRepository::GetInstance(GetChannel())
+                   .GetKey(sign.GetFingerprint());
     if (key != nullptr) {
       sig_info.signer.uid = key->UID();
       sig_info.signer.keyId = key->ID();
@@ -286,10 +290,9 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
   const auto& sigs = op_info_.signatures;
 
   auto any_validity = [&](GpgSigValidity v) -> bool {
-    return std::any_of(sigs.begin(), sigs.end(),
-                       [v](const GpgVerifySigInfo& s) -> bool {
-                         return s.validity == v;
-                       });
+    return std::any_of(
+        sigs.begin(), sigs.end(),
+        [v](const GpgVerifySigInfo& s) -> bool { return s.validity == v; });
   };
   auto all_validity = [&](GpgSigValidity v) -> bool {
     return !sigs.isEmpty() &&
@@ -301,7 +304,8 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
 
   if (status_ > 0) {
     if (all_validity(GpgSigValidity::kFULLY_VALID)) {
-      const QString uid = sigs.size() == 1 ? sigs.first().signer.uid : QString();
+      const QString uid =
+          sigs.size() == 1 ? sigs.first().signer.uid : QString();
       op_info_.description =
           uid.isEmpty()
               ? tr("The signature is fully valid and trusted. The data has "
@@ -355,7 +359,7 @@ void GpgFrontend::GpgVerifyResultAnalyse::doAnalyse() {
 }
 
 auto GpgFrontend::GpgVerifyResultAnalyse::print_signer_without_key(
-    QTextStream &stream, GpgSignature sign) -> bool {
+    QTextStream& stream, GpgSignature sign) -> bool {
   stream_ << "- " << tr("Signed By") << "(" << tr("Fingerprint") << ")"
           << ": "
           << (sign.GetFingerprint().isEmpty() ? tr("<unknown>")
@@ -372,7 +376,7 @@ auto GpgFrontend::GpgVerifyResultAnalyse::print_signer_without_key(
   return true;
 }
 
-auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(QTextStream &stream,
+auto GpgFrontend::GpgVerifyResultAnalyse::print_signer(QTextStream& stream,
                                                        GpgSignature sign)
     -> bool {
   auto fingerprint = sign.GetFingerprint();

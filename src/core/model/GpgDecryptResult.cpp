@@ -130,4 +130,11 @@ auto GpgDecryptResult::SymmetricEncryptionAlgorithm() -> QString {
   return {};
 }
 
+auto GpgDecryptResult::ErrorDetail() -> QString {
+  if (gf_result_ref_ != nullptr) {
+    return gf_result_ref_->error_detail;
+  }
+  return {};
+}
+
 }  // namespace GpgFrontend

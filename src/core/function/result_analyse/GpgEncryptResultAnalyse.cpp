@@ -47,6 +47,10 @@ void GpgEncryptResultAnalyse::doAnalyse() {
   } else {
     stream_ << "- " << tr("Failed") << ": " << gpgme_strerror(error_)
             << Qt::endl;
+    if (!result_.ErrorDetail().isEmpty()) {
+      stream_ << "    - " << tr("Detail") << ": " << result_.ErrorDetail()
+              << Qt::endl;
+    }
     setStatus(-1);
   }
 
@@ -80,7 +84,7 @@ void GpgEncryptResultAnalyse::doAnalyse() {
   stream_ << Qt::endl;
 
   if (status_ > 0) {
-    const auto* raw = result_.GetRaw();
+    const auto *raw = result_.GetRaw();
     const bool has_invalid =
         raw != nullptr && raw->invalid_recipients != nullptr;
     op_info_.description =
@@ -90,8 +94,11 @@ void GpgEncryptResultAnalyse::doAnalyse() {
             : tr("Your data has been encrypted. Only the intended recipients "
                  "can decrypt and read it.");
   } else {
+    const auto detail = result_.ErrorDetail();
     op_info_.description =
-        tr("Encryption failed: %1.").arg(gpgme_strerror(error_));
+        tr("Encryption failed: %1.")
+            .arg(detail.isEmpty() ? QString::fromUtf8(gpgme_strerror(error_))
+                                  : detail);
   }
 }
 

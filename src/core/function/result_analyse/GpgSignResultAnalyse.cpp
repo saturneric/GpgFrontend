@@ -51,6 +51,10 @@ void GpgSignResultAnalyse::doAnalyse() {
   } else {
     stream_ << "- " << tr("Failed") << " " << gpgme_strerror(error_)
             << Qt::endl;
+    if (!result_.ErrorDetail().isEmpty()) {
+      stream_ << "    - " << tr("Detail") << ": " << result_.ErrorDetail()
+              << Qt::endl;
+    }
     setStatus(-1);
   }
 
@@ -168,8 +172,11 @@ void GpgSignResultAnalyse::doAnalyse() {
           tr("Signing completed with warnings. Please review the details.");
     }
   } else {
+    const auto detail = result_.ErrorDetail();
     op_info_.description =
-        tr("Signing failed: %1.").arg(gpgme_strerror(error_));
+        tr("Signing failed: %1.")
+            .arg(detail.isEmpty() ? QString::fromUtf8(gpgme_strerror(error_))
+                                  : detail);
   }
 }
 

@@ -72,4 +72,11 @@ auto GpgVerifyResult::GetSignature() const -> QContainer<GpgSignature> {
   }
   return signatures;
 }
+
+auto GpgVerifyResult::ErrorDetail() const -> QString {
+  if (gf_result_ref_ != nullptr) {
+    return gf_result_ref_->error_detail;
+  }
+  return {};
+}
 }  // namespace GpgFrontend

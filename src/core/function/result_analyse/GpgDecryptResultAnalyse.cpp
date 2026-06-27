@@ -48,6 +48,10 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
     stream_ << "- " << tr("Failed") << ": " << gpgme_strerror(error_)
             << Qt::endl;
     setStatus(-1);
+    if (!result_.ErrorDetail().isEmpty()) {
+      stream_ << "    - " << tr("Detail") << ": " << result_.ErrorDetail()
+              << Qt::endl;
+    }
     if (!result_.UnsupportedAlgorithm().isEmpty()) {
       stream_ << Qt::endl;
       stream_ << "## " << tr("Unsupported Algo") << ": "
@@ -114,8 +118,8 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
           tr("Decrypted successfully. The original filename is \"%1\".")
               .arg(op_info_.filename);
     } else {
-      op_info_.description =
-          tr("The message has been decrypted successfully and is now readable.");
+      op_info_.description = tr(
+          "The message has been decrypted successfully and is now readable.");
     }
   } else if (status_ == 0) {
     if (!op_info_.messageIntegrityProtected) {
@@ -135,8 +139,11 @@ void GpgFrontend::GpgDecryptResultAnalyse::doAnalyse() {
               : tr("Decrypted with warnings. Please review the details.");
     }
   } else {
+    const auto detail = result_.ErrorDetail();
     op_info_.description =
-        tr("Decryption failed: %1.").arg(gpgme_strerror(error_));
+        tr("Decryption failed: %1.")
+            .arg(detail.isEmpty() ? QString::fromUtf8(gpgme_strerror(error_))
+                                  : detail);
   }
 }
 

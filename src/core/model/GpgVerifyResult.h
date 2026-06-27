@@ -40,6 +40,10 @@ class GF_CORE_EXPORT GpgVerifyResult {
 
   [[nodiscard]] auto GetSignature() const -> QContainer<GpgSignature>;
 
+  /// Engine-specific, human-readable failure detail (rPGP only). Empty for the
+  /// GnuPG engine, where `gpgme_strerror` already provides the description.
+  [[nodiscard]] auto ErrorDetail() const -> QString;
+
   explicit GpgVerifyResult(gpgme_verify_result_t);
 
   explicit GpgVerifyResult(const GFVerifyResult&);
