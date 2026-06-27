@@ -104,6 +104,10 @@ struct GF_CORE_EXPORT GpgRecipientInfo {
   QString keyId;       ///< Key ID reported by GPGME (may be a subkey ID)
   QString pubkeyAlgo;  ///< Public-key algorithm used to encrypt the session key
   bool keyFound;       ///< True when the key was located in the local keyring
+  bool algoIsPrimaryKey =
+      false;  ///< True when pubkeyAlgo/keyId describe the primary key rather
+              ///< than the encryption subkey actually used (GnuPG engine, which
+              ///< does not report the recipient subkey)
 };
 
 /**

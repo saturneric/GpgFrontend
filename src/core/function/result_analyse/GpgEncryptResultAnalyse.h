@@ -55,6 +55,10 @@ class GF_CORE_EXPORT GpgEncryptResultAnalyse : public GpgResultAnalyse {
   explicit GpgEncryptResultAnalyse(int channel, GpgError error,
                                    GpgEncryptResult result);
 
+  /// The underlying encryption result. Used by UI consumers to read the actual
+  /// recipient subkeys reported by the engine (rPGP).
+  [[nodiscard]] auto GetResult() const -> GpgEncryptResult { return result_; }
+
  protected:
   /**
    * @brief Write the formatted encryption report to stream_.

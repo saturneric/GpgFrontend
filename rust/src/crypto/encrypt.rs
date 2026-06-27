@@ -62,6 +62,7 @@ where
 
     Ok(EncryptStreamResultInternal {
         invalid_recipients: result.invalid_recipients,
+        recipients: result.recipients,
     })
 }
 
@@ -189,6 +190,7 @@ where
 
     let mut has_recipient = false;
     let mut invalid_recipients = Vec::new();
+    let mut recipients = Vec::new();
 
     for block in public_key_blocks {
         match SignedPublicKey::from_string(block) {
@@ -199,6 +201,13 @@ where
                 for subkey in &cert.public_subkeys {
                     if subkey.key.algorithm().can_encrypt() {
                         if enc_builder.encrypt_to_key(&mut rng, subkey).is_ok() {
+                            // Record the subkey actually used so callers can show
+                            // the real recipient key ID and algorithm.
+                            recipients.push(RecipientResultInternal {
+                                key_id: subkey.key.legacy_key_id().to_string(),
+                                pub_algo: algo_to_string_simple(subkey.key.algorithm()),
+                                status: GfrRecipientStatus::Success,
+                            });
                             added_for_this_cert = true;
                             has_recipient = true;
                             break;
@@ -211,6 +220,11 @@ where
                         .encrypt_to_key(&mut rng, &cert.primary_key)
                         .is_ok()
                     {
+                        recipients.push(RecipientResultInternal {
+                            key_id: cert.primary_key.legacy_key_id().to_string(),
+                            pub_algo: algo_to_string_simple(cert.primary_key.algorithm()),
+                            status: GfrRecipientStatus::Success,
+                        });
                         added_for_this_cert = true;
                         has_recipient = true;
                     }
@@ -251,6 +265,7 @@ where
     Ok(EncryptAndSignStreamResultInternal {
         signatures: created_signatures,
         invalid_recipients,
+        recipients,
     })
 }
 
@@ -283,6 +298,7 @@ pub fn encrypt_and_sign_directory_internal(
         data: Vec::new(),
         signatures: stream_result.signatures,
         invalid_recipients: stream_result.invalid_recipients,
+        recipients: stream_result.recipients,
     })
 }
 
@@ -394,6 +410,7 @@ pub fn encrypt_internal(
     Ok(EncryptResultInternal {
         data: output,
         invalid_recipients: stream_result.invalid_recipients,
+        recipients: stream_result.recipients,
     })
 }
 
@@ -426,5 +443,6 @@ pub fn encrypt_and_sign_internal(
         data: output_data,
         signatures: stream_result.signatures,
         invalid_recipients: stream_result.invalid_recipients,
+        recipients: stream_result.recipients,
     })
 }

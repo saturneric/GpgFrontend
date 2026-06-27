@@ -26,10 +26,10 @@
  *
  */
 
-use crate::crypto::{self, encrypt_and_sign_directory_internal};
+use crate::crypto::{self, RecipientResultInternal, encrypt_and_sign_directory_internal};
 use crate::types::{
     GfrBuffer, GfrEncryptAndSignResultC, GfrEncryptResultC, GfrInvalidRecipientC,
-    GfrPasswordFetchCb, GfrSignatureResultC, GfrStatus,
+    GfrPasswordFetchCb, GfrRecipientResultC, GfrSignatureResultC, GfrStatus,
 };
 use std::fs::File;
 use std::path::Path;
@@ -38,6 +38,28 @@ use std::{
     ffi::{CStr, CString, c_char},
     panic::catch_unwind,
 };
+
+/// Convert the actually-used recipients into a leaked C array.
+///
+/// Mirrors the invalid-recipient handling: the returned pointer/count are owned
+/// by C and must be released via `gfr_crypto_free_encrypt_metadata`.
+fn leak_recipients_c_array(
+    recipients: Vec<RecipientResultInternal>,
+) -> (*mut GfrRecipientResultC, usize) {
+    let mut c_recipients = Vec::with_capacity(recipients.len());
+    for rec in recipients {
+        c_recipients.push(GfrRecipientResultC {
+            key_id: CString::new(rec.key_id).unwrap_or_default().into_raw(),
+            pub_algo: CString::new(rec.pub_algo).unwrap_or_default().into_raw(),
+            status: rec.status,
+        });
+    }
+    let mut boxed = c_recipients.into_boxed_slice();
+    let ptr = boxed.as_mut_ptr();
+    let count = boxed.len();
+    std::mem::forget(boxed); // Leak array to C
+    (ptr, count)
+}
 
 /// Encrypt an in-memory buffer with the given public keys.
 ///
@@ -108,12 +130,17 @@ pub extern "C" fn gfr_crypto_encrypt_data(
         let recs_count = boxed_recs.len();
         std::mem::forget(boxed_recs); // Leak array to C
 
+        let (recipients_ptr, recipients_count) =
+            leak_recipients_c_array(internal_result.recipients);
+
         // 3. Populate the output struct safely
         unsafe {
             (*out_result).data = data_ptr;
             (*out_result).data_len = data_len;
             (*out_result).meta.invalid_recipients = recs_ptr;
             (*out_result).meta.invalid_recipient_count = recs_count;
+            (*out_result).meta.recipients = recipients_ptr;
+            (*out_result).meta.recipient_count = recipients_count;
         }
 
         Ok(())
@@ -213,6 +240,9 @@ pub extern "C" fn gfr_crypto_encrypt_file(
         let recs_count = boxed_recs.len();
         std::mem::forget(boxed_recs); // Leak array to C
 
+        let (recipients_ptr, recipients_count) =
+            leak_recipients_c_array(stream_result.recipients);
+
         // 8. Populate the output metadata struct safely
         // Note: For files, we only need to pass back the metadata.
         unsafe {
@@ -220,6 +250,8 @@ pub extern "C" fn gfr_crypto_encrypt_file(
             (*out_result).data_len = 0;
             (*out_result).meta.invalid_recipients = recs_ptr;
             (*out_result).meta.invalid_recipient_count = recs_count;
+            (*out_result).meta.recipients = recipients_ptr;
+            (*out_result).meta.recipient_count = recipients_count;
         }
 
         Ok(())
@@ -301,6 +333,9 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
         let recs_count = boxed_recs.len();
         std::mem::forget(boxed_recs); // Leak array to C
 
+        let (recipients_ptr, recipients_count) =
+            leak_recipients_c_array(stream_result.recipients);
+
         // 8. Populate the output metadata struct safely
         // Note: For files, we only need to pass back the metadata.
         unsafe {
@@ -308,6 +343,8 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
             (*out_result).data_len = 0;
             (*out_result).meta.invalid_recipients = recs_ptr;
             (*out_result).meta.invalid_recipient_count = recs_count;
+            (*out_result).meta.recipients = recipients_ptr;
+            (*out_result).meta.recipient_count = recipients_count;
         }
 
         Ok(())
@@ -420,6 +457,9 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
         let recs_count = boxed_recs.len();
         std::mem::forget(boxed_recs);
 
+        let (recipients_ptr, recipients_count) =
+            leak_recipients_c_array(internal_result.recipients);
+
         // 4. Assign to C struct
         unsafe {
             (*out_result).data = data_ptr;
@@ -428,6 +468,8 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
             (*out_result).sign_meta.signature_count = sigs_count;
             (*out_result).encrypt_meta.invalid_recipients = recs_ptr;
             (*out_result).encrypt_meta.invalid_recipient_count = recs_count;
+            (*out_result).encrypt_meta.recipients = recipients_ptr;
+            (*out_result).encrypt_meta.recipient_count = recipients_count;
         }
 
         Ok(())
@@ -565,6 +607,9 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
         let recs_count = boxed_recs.len();
         std::mem::forget(boxed_recs);
 
+        let (recipients_ptr, recipients_count) =
+            leak_recipients_c_array(stream_result.recipients);
+
         // 10. Populate the output struct safely
         unsafe {
             (*out_result).data = std::ptr::null_mut(); // No in-memory payload for file ops
@@ -573,6 +618,8 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
             (*out_result).sign_meta.signature_count = sigs_count;
             (*out_result).encrypt_meta.invalid_recipients = recs_ptr;
             (*out_result).encrypt_meta.invalid_recipient_count = recs_count;
+            (*out_result).encrypt_meta.recipients = recipients_ptr;
+            (*out_result).encrypt_meta.recipient_count = recipients_count;
         }
 
         Ok(())
@@ -685,6 +732,9 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
         let recs_count = boxed_recs.len();
         std::mem::forget(boxed_recs);
 
+        let (recipients_ptr, recipients_count) =
+            leak_recipients_c_array(internal_result.recipients);
+
         unsafe {
             (*out_result).data = std::ptr::null_mut();
             (*out_result).data_len = 0;
@@ -692,6 +742,8 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_directory(
             (*out_result).sign_meta.signature_count = sigs_count;
             (*out_result).encrypt_meta.invalid_recipients = recs_ptr;
             (*out_result).encrypt_meta.invalid_recipient_count = recs_count;
+            (*out_result).encrypt_meta.recipients = recipients_ptr;
+            (*out_result).encrypt_meta.recipient_count = recipients_count;
         }
 
         Ok(())
@@ -755,6 +807,8 @@ pub extern "C" fn gfr_crypto_encrypt_data_symmetric(
             (*out_result).data_len = data_len;
             (*out_result).meta.invalid_recipients = std::ptr::null_mut();
             (*out_result).meta.invalid_recipient_count = 0;
+            (*out_result).meta.recipients = std::ptr::null_mut();
+            (*out_result).meta.recipient_count = 0;
         }
 
         Ok(())
@@ -831,6 +885,8 @@ pub extern "C" fn gfr_crypto_encrypt_file_symmetric(
             (*out_result).data_len = 0;
             (*out_result).meta.invalid_recipients = std::ptr::null_mut();
             (*out_result).meta.invalid_recipient_count = 0;
+            (*out_result).meta.recipients = std::ptr::null_mut();
+            (*out_result).meta.recipient_count = 0;
         }
 
         Ok(())
@@ -885,6 +941,8 @@ pub extern "C" fn gfr_crypto_encrypt_directory_symmetric(
             (*out_result).data_len = 0;
             (*out_result).meta.invalid_recipients = std::ptr::null_mut();
             (*out_result).meta.invalid_recipient_count = 0;
+            (*out_result).meta.recipients = std::ptr::null_mut();
+            (*out_result).meta.recipient_count = 0;
         }
 
         Ok(())

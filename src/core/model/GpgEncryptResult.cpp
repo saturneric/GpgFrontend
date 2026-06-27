@@ -81,6 +81,18 @@ auto GpgEncryptResult::InvalidRecipients()
   return result;
 }
 
+auto GpgEncryptResult::Recipients() -> QContainer<GpgRecipient> {
+  QContainer<GpgRecipient> result;
+
+  if (gf_result_ref_ != nullptr) {
+    for (const auto& r : gf_result_ref_->recipients) {
+      result.push_back(GpgRecipient(r));
+    }
+  }
+
+  return result;
+}
+
 auto GpgEncryptResult::ErrorDetail() -> QString {
   if (gf_result_ref_ != nullptr) {
     return gf_result_ref_->error_detail;

@@ -90,6 +90,8 @@ pub struct InvalidRecipientInternal {
 pub struct EncryptResultInternal {
     pub data: Vec<u8>,
     pub invalid_recipients: Vec<InvalidRecipientInternal>,
+    /// Subkeys the session key was actually encrypted to (one per valid recipient).
+    pub recipients: Vec<RecipientResultInternal>,
 }
 
 /// A single decryption recipient key as found in the encrypted message.
@@ -140,6 +142,8 @@ pub struct EncryptAndSignResultInternal {
     pub data: Vec<u8>,
     pub signatures: Vec<SignatureResultInternal>,
     pub invalid_recipients: Vec<InvalidRecipientInternal>,
+    /// Subkeys the session key was actually encrypted to (one per valid recipient).
+    pub recipients: Vec<RecipientResultInternal>,
 }
 
 /// Result of a combined in-memory decrypt-and-verify operation.
@@ -187,6 +191,8 @@ impl<'a> SelectedKey<'a> {
 pub struct EncryptStreamResultInternal {
     /// Recipients whose session key could not be encrypted (parse or algorithm failure).
     pub invalid_recipients: Vec<InvalidRecipientInternal>,
+    /// Subkeys the session key was actually encrypted to (one per valid recipient).
+    pub recipients: Vec<RecipientResultInternal>,
 }
 
 /// Result of a signing stream operation.
@@ -206,6 +212,8 @@ pub struct VerifyStreamResultInternal {
 pub struct EncryptAndSignStreamResultInternal {
     pub signatures: Vec<SignatureResultInternal>,
     pub invalid_recipients: Vec<InvalidRecipientInternal>,
+    /// Subkeys the session key was actually encrypted to (one per valid recipient).
+    pub recipients: Vec<RecipientResultInternal>,
 }
 
 /// Result of a combined decrypt-and-verify stream operation.

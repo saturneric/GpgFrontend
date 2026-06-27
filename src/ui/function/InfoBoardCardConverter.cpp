@@ -99,7 +99,9 @@ void add_recipient_fields(InfoBoardCard& card, const GpgRecipientInfo& reci) {
     card.fields.append({QObject::tr("Fingerprint"), reci.fingerprint});
   }
   card.fields.append({QObject::tr("Key ID"), reci.keyId});
-  card.fields.append({QObject::tr("Algorithm"), reci.pubkeyAlgo});
+  card.fields.append({reci.algoIsPrimaryKey ? QObject::tr("Primary Key Algorithm")
+                                            : QObject::tr("Algorithm"),
+                      reci.pubkeyAlgo});
 }
 
 }  // namespace

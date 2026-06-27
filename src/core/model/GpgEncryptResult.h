@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/model/GpgRecipient.h"
 #include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
@@ -39,6 +40,11 @@ class GF_CORE_EXPORT GpgEncryptResult {
   auto GetRaw() -> gpgme_encrypt_result_t;
 
   auto InvalidRecipients() -> QContainer<std::tuple<QString, GpgError>>;
+
+  /// Subkeys the session key was actually encrypted to, as reported by the
+  /// engine (rPGP). Empty for the GnuPG engine, which does not expose the
+  /// recipient subkey used.
+  auto Recipients() -> QContainer<GpgRecipient>;
 
   /// Engine-specific, human-readable failure detail (rPGP only). Empty for the
   /// GnuPG engine, where `gpgme_strerror` already provides the description.

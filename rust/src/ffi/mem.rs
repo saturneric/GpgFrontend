@@ -161,6 +161,24 @@ pub extern "C" fn gfr_crypto_free_encrypt_metadata(meta: *mut GfrEncryptMetadata
         }
         (*meta).invalid_recipients = std::ptr::null_mut();
         (*meta).invalid_recipient_count = 0;
+
+        if !(*meta).recipients.is_null() && (*meta).recipient_count > 0 {
+            let recs_slice =
+                std::slice::from_raw_parts_mut((*meta).recipients, (*meta).recipient_count);
+            for rec in recs_slice.iter_mut() {
+                if !rec.key_id.is_null() {
+                    secure_free_c_string(rec.key_id);
+                }
+                if !rec.pub_algo.is_null() {
+                    secure_free_c_string(rec.pub_algo);
+                }
+            }
+            let array_ptr =
+                std::ptr::slice_from_raw_parts_mut((*meta).recipients, (*meta).recipient_count);
+            drop(Box::from_raw(array_ptr));
+        }
+        (*meta).recipients = std::ptr::null_mut();
+        (*meta).recipient_count = 0;
     }
 }
 

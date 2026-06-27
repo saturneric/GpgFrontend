@@ -85,6 +85,23 @@ auto ParseEncryptResultMeta(const Rust::GfrEncryptMetadataC& m)
     });
   }
 
+  for (size_t i = 0; i < m.recipient_count; ++i) {
+    const auto& rec = m.recipients[i];
+    GpgError status;
+    if (rec.status == Rust::GfrRecipientStatus::Success) {
+      status = GPG_ERR_NO_ERROR;
+    } else if (rec.status == Rust::GfrRecipientStatus::NoKey) {
+      status = GPG_ERR_NO_KEY;
+    } else {
+      status = GPG_ERR_GENERAL;
+    }
+    result.recipients.push_back({
+        QString::fromUtf8(rec.key_id).toUpper(),
+        QString::fromUtf8(rec.pub_algo),
+        status,
+    });
+  }
+
   return result;
 }
 

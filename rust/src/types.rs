@@ -464,6 +464,11 @@ pub struct GfrEncryptMetadataC {
     pub invalid_recipients: *mut GfrInvalidRecipientC,
     /// Number of entries in `invalid_recipients`.
     pub invalid_recipient_count: usize,
+    /// Array of subkeys the session key was actually encrypted to.
+    #[zeroize(skip)]
+    pub recipients: *mut GfrRecipientResultC,
+    /// Number of entries in `recipients`.
+    pub recipient_count: usize,
 }
 
 /// Metadata produced by a decryption operation.

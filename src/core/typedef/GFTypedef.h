@@ -141,6 +141,9 @@ struct GFInvalidRecipient {
 struct GFEncryptResult {
   GFBuffer data;
   QContainer<GFInvalidRecipient> invalid_recipients;
+  /// Subkeys the session key was actually encrypted to (rPGP). Empty for GPGME,
+  /// which does not report the recipient subkey used.
+  QContainer<GFRecipient> recipients;
   QString
       error_detail;  ///< Engine-specific failure detail (rPGP), may be empty.
 };
