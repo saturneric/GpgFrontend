@@ -28,14 +28,26 @@
 
 //! In-memory TTL cache for decryption passphrases, keyed by (channel, fingerprint, info).
 //!
-//! Entries are zeroized on eviction or drop. The global `PASSWORD_CACHE` singleton
-//! has a 5-minute TTL; the cache is bypassed when no fingerprint is known.
+//! Entries are zeroized on eviction or drop. Each entry has two deadlines,
+//! modelled on gpg-agent's `default-cache-ttl` / `max-cache-ttl`:
+//!
+//! * a **sliding** idle window (`ttl`) that is renewed on every cache hit, so a
+//!   passphrase that keeps being used does not expire mid-session, and
+//! * an **absolute** cap (`max_ttl`) measured from first entry, which the
+//!   sliding window can never extend past.
+//!
+//! The global `PASSWORD_CACHE` singleton defaults to a 10-minute sliding window
+//! and a 2-hour hard cap; both are reconfigurable at runtime via
+//! [`PasswordCache::set_ttl`]. The cache is bypassed when no fingerprint is known.
 
 use once_cell::sync::Lazy;
 use std::io;
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicU64, Ordering},
+    },
     time::{Duration, Instant},
 };
 use zeroize::Zeroize;
@@ -147,7 +159,10 @@ impl Drop for CachedSecret {
 #[derive(Debug)]
 struct PasswordCacheEntry {
     secret: CachedSecret,
+    /// Sliding deadline, renewed on each cache hit; never extended past `hard_expires_at`.
     expires_at: Instant,
+    /// Absolute deadline from first insertion; the sliding window cannot exceed it.
+    hard_expires_at: Instant,
 }
 
 /// Controls how the passphrase cache is consulted for a given operation.
@@ -177,48 +192,81 @@ pub struct PasswordCacheKey {
 }
 
 /// Thread-safe TTL cache for decryption passphrases. Entries are zeroed on eviction or drop.
+///
+/// The `ttl` (sliding) and `max_ttl` (absolute) deadlines are stored as atomics
+/// in seconds so they can be reconfigured at runtime via [`set_ttl`](Self::set_ttl)
+/// without rebuilding the cache or losing existing entries.
 #[derive(Clone)]
 pub struct PasswordCache {
     inner: Arc<Mutex<HashMap<PasswordCacheKey, PasswordCacheEntry>>>,
-    ttl: Duration,
+    ttl_secs: Arc<AtomicU64>,
+    max_ttl_secs: Arc<AtomicU64>,
 }
 
 impl PasswordCache {
-    pub fn new(ttl: Duration) -> Self {
+    pub fn new(ttl: Duration, max_ttl: Duration) -> Self {
         Self {
             inner: Arc::new(Mutex::new(HashMap::new())),
-            ttl,
+            ttl_secs: Arc::new(AtomicU64::new(ttl.as_secs())),
+            // The hard cap can never be shorter than the sliding window.
+            max_ttl_secs: Arc::new(AtomicU64::new(max_ttl.as_secs().max(ttl.as_secs()))),
         }
+    }
+
+    /// Current sliding idle window.
+    fn ttl(&self) -> Duration {
+        Duration::from_secs(self.ttl_secs.load(Ordering::Relaxed))
+    }
+
+    /// Current absolute cap from first insertion.
+    fn max_ttl(&self) -> Duration {
+        Duration::from_secs(self.max_ttl_secs.load(Ordering::Relaxed))
+    }
+
+    /// Reconfigure the cache timeouts. `max_ttl` is clamped up to at least `ttl`
+    /// so the absolute cap can never be shorter than the sliding window. Only
+    /// affects entries inserted or refreshed after this call.
+    pub fn set_ttl(&self, ttl: Duration, max_ttl: Duration) {
+        let ttl = ttl.as_secs();
+        self.ttl_secs.store(ttl, Ordering::Relaxed);
+        self.max_ttl_secs
+            .store(max_ttl.as_secs().max(ttl), Ordering::Relaxed);
     }
 
     pub fn get(&self, key: &PasswordCacheKey) -> Option<Vec<u8>> {
         let mut key = key.clone();
         key.fpr = key.fpr.to_uppercase(); // Ensure FPR is case-insensitive
         let now = Instant::now();
+        let ttl = self.ttl();
         let mut guard = self.inner.lock().expect("password cache poisoned");
 
-        let expired = guard
-            .get(&key)
-            .map(|e| e.expires_at <= now)
-            .unwrap_or(false);
+        let entry = guard.get_mut(&key)?;
 
-        if expired {
+        // Evict once either the sliding window or the absolute cap has elapsed.
+        if entry.expires_at <= now || entry.hard_expires_at <= now {
             guard.remove(&key);
             return None;
         }
 
-        guard.get(&key).map(|e| e.secret.as_slice().to_vec())
+        // Slide the idle window forward on use, but never past the hard cap.
+        entry.expires_at = (now + ttl).min(entry.hard_expires_at);
+        Some(entry.secret.as_slice().to_vec())
     }
 
     pub fn put(&self, key: PasswordCacheKey, value: Vec<u8>) {
         let mut key = key;
         key.fpr = key.fpr.to_uppercase(); // Ensure FPR is case-insitive
+        let now = Instant::now();
+        let max_ttl = self.max_ttl();
+        // The initial sliding deadline must also respect the hard cap.
+        let ttl = self.ttl().min(max_ttl);
         let mut guard = self.inner.lock().expect("password cache poisoned");
         guard.insert(
             key,
             PasswordCacheEntry {
                 secret: CachedSecret::new(value),
-                expires_at: Instant::now() + self.ttl,
+                expires_at: now + ttl,
+                hard_expires_at: now + max_ttl,
             },
         );
     }
@@ -237,5 +285,83 @@ impl PasswordCache {
     }
 }
 
+/// Global passphrase cache: 10-minute sliding window, 2-hour absolute cap,
+/// mirroring gpg-agent's `default-cache-ttl` / `max-cache-ttl` defaults.
 pub static PASSWORD_CACHE: Lazy<PasswordCache> =
-    Lazy::new(|| PasswordCache::new(Duration::from_secs(300)));
+    Lazy::new(|| PasswordCache::new(Duration::from_secs(600), Duration::from_secs(7200)));
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn key() -> PasswordCacheKey {
+        PasswordCacheKey {
+            channel: 0,
+            fpr: "DEADBEEF".to_string(),
+            info: "decrypt".to_string(),
+        }
+    }
+
+    #[test]
+    fn get_returns_stored_value() {
+        let cache = PasswordCache::new(Duration::from_secs(600), Duration::from_secs(7200));
+        cache.put(key(), b"secret".to_vec());
+        assert_eq!(cache.get(&key()).as_deref(), Some(b"secret".as_ref()));
+    }
+
+    #[test]
+    fn fpr_lookup_is_case_insensitive() {
+        let cache = PasswordCache::new(Duration::from_secs(600), Duration::from_secs(7200));
+        let mut lower = key();
+        lower.fpr = "deadbeef".to_string();
+        cache.put(lower, b"secret".to_vec());
+        assert_eq!(cache.get(&key()).as_deref(), Some(b"secret".as_ref()));
+    }
+
+    #[test]
+    fn entry_expires_after_sliding_window() {
+        let cache = PasswordCache::new(Duration::from_millis(0), Duration::from_secs(7200));
+        cache.put(key(), b"secret".to_vec());
+        // A zero-length idle window means the entry is already stale on next access.
+        assert_eq!(cache.get(&key()), None);
+    }
+
+    #[test]
+    fn new_clamps_hard_cap_up_to_sliding_window() {
+        // A hard cap shorter than the sliding window is nonsensical; the
+        // constructor must raise it so the cap is never the shorter of the two.
+        let cache = PasswordCache::new(Duration::from_secs(600), Duration::from_secs(60));
+        assert_eq!(cache.ttl(), Duration::from_secs(600));
+        assert_eq!(cache.max_ttl(), Duration::from_secs(600));
+    }
+
+    #[test]
+    fn fresh_entry_within_both_windows_is_returned() {
+        // ttl < max_ttl: a just-inserted entry is inside both deadlines and a
+        // read both returns it and slides the idle window forward.
+        let cache = PasswordCache::new(Duration::from_secs(600), Duration::from_secs(7200));
+        cache.put(key(), b"secret".to_vec());
+        assert_eq!(cache.get(&key()).as_deref(), Some(b"secret".as_ref()));
+        assert_eq!(cache.get(&key()).as_deref(), Some(b"secret".as_ref()));
+    }
+
+    #[test]
+    fn set_ttl_clamps_max_below_ttl() {
+        let cache = PasswordCache::new(Duration::from_secs(600), Duration::from_secs(7200));
+        cache.set_ttl(Duration::from_secs(900), Duration::from_secs(300));
+        // max_ttl is clamped up to ttl, so it can never be the shorter of the two.
+        assert_eq!(cache.max_ttl(), Duration::from_secs(900));
+        assert_eq!(cache.ttl(), Duration::from_secs(900));
+    }
+
+    #[test]
+    fn remove_by_fpr_evicts_all_matching_entries() {
+        let cache = PasswordCache::new(Duration::from_secs(600), Duration::from_secs(7200));
+        let mut other_info = key();
+        other_info.info = "sign".to_string();
+        cache.put(key(), b"a".to_vec());
+        cache.put(other_info, b"b".to_vec());
+        cache.remove_by_fpr("deadbeef");
+        assert_eq!(cache.get(&key()), None);
+    }
+}

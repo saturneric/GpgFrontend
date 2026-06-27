@@ -71,6 +71,32 @@ pub extern "C" fn gfr_set_operation_cancelled(channel: i32, cancelled: bool) {
     crate::cancel::set_cancelled(channel, cancelled);
 }
 
+/// Configure the passphrase cache timeouts, in seconds.
+///
+/// `ttl_secs` is the sliding idle window, renewed on every cache hit;
+/// `max_ttl_secs` is the absolute cap measured from first entry, which the
+/// sliding window can never extend past. `max_ttl_secs` is clamped up to at
+/// least `ttl_secs`.
+///
+/// A `ttl_secs` of 0 leaves the built-in defaults untouched, to avoid
+/// accidentally disabling the cache via an unset setting; pass `max_ttl_secs`
+/// 0 to mean "no cap beyond the sliding window".
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_set_password_cache_ttl(ttl_secs: u64, max_ttl_secs: u64) {
+    if ttl_secs == 0 {
+        return;
+    }
+    let max_secs = if max_ttl_secs == 0 {
+        ttl_secs
+    } else {
+        max_ttl_secs
+    };
+    crate::cache::PASSWORD_CACHE.set_ttl(
+        std::time::Duration::from_secs(ttl_secs),
+        std::time::Duration::from_secs(max_secs),
+    );
+}
+
 /// Initialise the `env_logger` backend at INFO level, writing to stdout.
 ///
 /// Safe to call multiple times; subsequent calls are no-ops if the logger
