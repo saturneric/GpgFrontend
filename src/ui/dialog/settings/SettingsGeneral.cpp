@@ -142,6 +142,12 @@ GeneralTab::GeneralTab(QWidget* parent)
   connect(ui_->langSelectBox, qOverload<int>(&QComboBox::currentIndexChanged),
           this, &GeneralTab::SignalRestartNeeded);
 
+  // Changing the default engine re-initializes the core, so a deep restart
+  // (core + UI) is required for the new engine to take effect.
+  connect(ui_->defaultEngineComboBox,
+          qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &GeneralTab::SignalDeepRestartNeeded);
+
   connect(ui_->clearAllDataObjectsButton, &QPushButton::clicked, this, [=]() {
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(
@@ -167,6 +173,10 @@ GeneralTab::GeneralTab(QWidget* parent)
 }
 
 void GeneralTab::SetSettings() {
+  // Populating the controls below must not be mistaken for user edits that
+  // would announce a restart.
+  QSignalBlocker engine_blocker(ui_->defaultEngineComboBox);
+
   auto settings = GetSettings();
 
   auto default_workspace_as =
