@@ -73,8 +73,7 @@ TEST_F(RpgpCoreTest, GpgKeyTest) {
   ASSERT_EQ(key.PublicKeyAlgo(), "ED25519");
   ASSERT_EQ(key.Algo(), "ED25519");
   ASSERT_EQ(key.PrimaryKeyLength(), 255);
-  ASSERT_EQ(key.CreationTime(),
-            QDateTime::fromSecsSinceEpoch(1782481927));
+  ASSERT_EQ(key.CreationTime(), QDateTime::fromSecsSinceEpoch(1782481927));
 
   ASSERT_EQ(key.OwnerTrust(), "Ultimate");
   ASSERT_FALSE(key.IsExpired());
@@ -93,8 +92,7 @@ TEST_F(RpgpCoreTest, GpgSubKeyTest) {
   ASSERT_EQ(p_key.PublicKeyAlgo(), "ED25519");
   ASSERT_EQ(p_key.Algo(), "ED25519");
   ASSERT_EQ(p_key.KeyLength(), 255);
-  ASSERT_EQ(p_key.CreationTime(),
-            QDateTime::fromSecsSinceEpoch(1782481927));
+  ASSERT_EQ(p_key.CreationTime(), QDateTime::fromSecsSinceEpoch(1782481927));
   ASSERT_FALSE(p_key.IsCardKey());
 
   auto& s_key = s_keys.back();
@@ -159,8 +157,7 @@ TEST_F(RpgpCoreTest, GpgKeyGetterTest) {
   auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
                  .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
   ASSERT_TRUE(key != nullptr);
-  auto keys =
-      GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).Fetch();
+  auto keys = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).Fetch();
 
   EXPECT_GT(keys.size(), 0);
   ASSERT_TRUE(std::find(keys.begin(), keys.end(), key) != keys.end());
