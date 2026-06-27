@@ -33,7 +33,25 @@
 
 namespace GpgFrontend::UI {
 
+namespace {
+
+auto CollectFingerprints(const GpgAbstractKeyPtrList& keys) -> QSet<QString> {
+  QSet<QString> ret;
+  for (const auto& k : keys) {
+    if (k == nullptr) continue;
+    ret.insert(k->Fingerprint());
+  }
+  return ret;
+}
+
+}  // namespace
+
 SigningKeysPicker::SigningKeysPicker(int channel, QWidget* parent)
+    : SigningKeysPicker(channel, {}, parent) {}
+
+SigningKeysPicker::SigningKeysPicker(int channel,
+                                     const GpgAbstractKeyPtrList& restrict_keys,
+                                     QWidget* parent)
     : GeneralDialog("SigningKeysPicker", parent),
       channel_(channel),
       tree_view_(new KeyTreeView(
@@ -44,12 +62,17 @@ SigningKeysPicker::SigningKeysPicker(int channel, QWidget* parent)
                     k->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY) &&
                    k->IsHasSignCap();
           },
-          [](const GpgAbstractKey* k) -> bool {
+          [allowed = CollectFingerprints(restrict_keys)](
+              const GpgAbstractKey* k) -> bool {
             if (k == nullptr || !k->IsGood()) return false;
+            // Subkey rows are only reached when their primary key already
+            // passed this filter, so restricting at the primary level is
+            // enough.
             if (k->KeyType() == GpgAbstractKeyType::kGPG_SUBKEY) {
               return k->IsHasSignCap();
             }
-            return k->IsPrivateKey() && k->IsHasSignCap();
+            if (!(k->IsPrivateKey() && k->IsHasSignCap())) return false;
+            return allowed.isEmpty() || allowed.contains(k->Fingerprint());
           })) {
 #ifdef Q_OS_MACOS
   setWindowFlag(Qt::WindowContextHelpButtonHint, false);

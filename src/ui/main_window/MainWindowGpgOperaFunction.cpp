@@ -364,7 +364,8 @@ void MainWindow::SlotSign() {
 
   if (sign_keys.isEmpty() || ambiguous) {
     auto picker = QSharedPointer<SigningKeysPicker>(
-        new SigningKeysPicker(m_key_list_->GetCurrentGpgContextChannel(), this),
+        new SigningKeysPicker(m_key_list_->GetCurrentGpgContextChannel(),
+                              sign_keys, this),
         [](SigningKeysPicker* p) { p->deleteLater(); });
     picker->exec();
     if (picker->result() == QDialog::Rejected) return;

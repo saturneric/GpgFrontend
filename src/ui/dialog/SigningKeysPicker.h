@@ -41,6 +41,18 @@ class SigningKeysPicker : public GeneralDialog {
  public:
   explicit SigningKeysPicker(int channel, QWidget* parent = nullptr);
 
+  /**
+   * @brief Restrict the selectable keys to the given set.
+   *
+   * When @p restrict_keys is non-empty, only those keys (and their signing
+   * subkeys) are shown; everything else in the keyring is filtered out. This is
+   * used when the user has already checked specific keys in the key toolbox
+   * before triggering a signing operation. An empty list shows all signing
+   * keys.
+   */
+  SigningKeysPicker(int channel, const GpgAbstractKeyPtrList& restrict_keys,
+                    QWidget* parent = nullptr);
+
   [[nodiscard]] auto GetSigningKeys() const -> GpgAbstractKeyPtrList;
 
  private slots:
