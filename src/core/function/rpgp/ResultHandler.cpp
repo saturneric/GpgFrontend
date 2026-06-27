@@ -49,6 +49,20 @@ auto FetchRustErrorDetail() -> QString {
   Rust::gfr_crypto_free_string(msg);
   return detail;
 }
+
+/// Drain the engine's pending error detail and, unless the failure was a user
+/// cancellation, store it on the result and log it. The slot is always drained
+/// (even on cancel) so a stale message cannot leak into a later operation; a
+/// cancellation is a deliberate user action, not a failure that needs a reason.
+void RecordEngineDetail(Rust::GfrStatus err, QString& detail_out,
+                        const char* op) {
+  auto detail = FetchRustErrorDetail();
+  if (err == Rust::GfrStatus::ErrorCanceled) return;
+  detail_out = detail;
+  if (!detail.isEmpty()) {
+    LOG_E() << op << "failed, engine detail:" << detail;
+  }
+}
 auto ParseEncryptResultMeta(const Rust::GfrEncryptMetadataC& m)
     -> GFEncryptResult {
   GFEncryptResult result;
@@ -226,10 +240,7 @@ auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
   GpgError gf_err = GPG_ERR_NO_ERROR;
   GFEncryptResult result;
   if (err != Rust::GfrStatus::Success) {
-    result.error_detail = FetchRustErrorDetail();
-    if (!result.error_detail.isEmpty()) {
-      LOG_E() << "Encryption failed, engine detail:" << result.error_detail;
-    }
+    RecordEngineDetail(err, result.error_detail, "Encryption");
 
     if (err == Rust::GfrStatus::ErrorCanceled) {
       LOG_D() << "Encryption cancelled by user.";
@@ -270,10 +281,7 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
   GpgError gf_err = GPG_ERR_NO_ERROR;
   GFDecryptResult result;
   if (err != Rust::GfrStatus::Success) {
-    result.error_detail = FetchRustErrorDetail();
-    if (!result.error_detail.isEmpty()) {
-      LOG_E() << "Decryption failed, engine detail:" << result.error_detail;
-    }
+    RecordEngineDetail(err, result.error_detail, "Decryption");
 
     if (err == Rust::GfrStatus::ErrorCanceled) {
       LOG_D() << "Decryption cancelled by user.";
@@ -334,10 +342,7 @@ auto HandleSignResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
   GpgError gf_err = GPG_ERR_NO_ERROR;
   GFSignResult result;
   if (err != Rust::GfrStatus::Success) {
-    result.error_detail = FetchRustErrorDetail();
-    if (!result.error_detail.isEmpty()) {
-      LOG_E() << "Signing failed, engine detail:" << result.error_detail;
-    }
+    RecordEngineDetail(err, result.error_detail, "Signing");
 
     if (err == Rust::GfrStatus::ErrorCanceled) {
       LOG_D() << "Signing cancelled by user.";
@@ -376,10 +381,7 @@ auto HandleVerifyResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
   GpgError gf_err = GPG_ERR_NO_ERROR;
   GFVerifyResult result;
   if (err != Rust::GfrStatus::Success) {
-    result.error_detail = FetchRustErrorDetail();
-    if (!result.error_detail.isEmpty()) {
-      LOG_E() << "Verification failed, engine detail:" << result.error_detail;
-    }
+    RecordEngineDetail(err, result.error_detail, "Verification");
 
     if (err == Rust::GfrStatus::ErrorCanceled) {
       LOG_D() << "Verification cancelled by user.";

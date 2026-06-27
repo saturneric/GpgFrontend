@@ -74,6 +74,23 @@ TEST_F(RpgpCoreTest, CoreEncryptDecryptTest) {
   ASSERT_EQ(decr_out_buffer, buffer);
 }
 
+TEST_F(RpgpCoreTest, CoreDecryptInvalidDataReportsDetailTest) {
+  // Feed data that is not an OpenPGP message at all. The rPGP engine must fail
+  // and, unlike a bare status code, expose a human-readable detail so the user
+  // learns *why* it failed (mirroring GnuPG's gpg_strerror precision).
+  auto garbage = GFBuffer(QString("this is definitely not an OpenPGP message"));
+
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .DecryptSync(garbage);
+
+  ASSERT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE((data_object->Check<GpgDecryptResult, GFBuffer>()));
+
+  auto decr_result = ExtractParams<GpgDecryptResult>(data_object, 0);
+  ASSERT_FALSE(decr_result.ErrorDetail().isEmpty());
+}
+
 TEST_F(RpgpCoreTest, CoreEncryptSymmetricDecryptTest) {
   auto encrypt_text = GFBuffer(QString("Hello RPGP Symmetric!"));
   auto [err, data_object] =
