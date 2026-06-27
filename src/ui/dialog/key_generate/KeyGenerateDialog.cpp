@@ -1519,7 +1519,13 @@ void KeyGenerateDialog::load_easy_profile_config() {
   ui_->easyProfileComboBox->clear();
   ui_->easyProfileComboBox->addItem(tr("Custom"));
 
-  int index = 1;
+  // Collect supported, visible profiles and split them into family tiers so the
+  // elliptic-curve and quantum-resistant profiles each get their own header.
+  // A profile's family is taken from its primary key algorithm.
+  QContainer<EasyModeConf> classical_profiles;
+  QContainer<EasyModeConf> ecc_profiles;
+  QContainer<EasyModeConf> pqc_profiles;
+
   for (const auto& item : easy_mode_conf) {
     if (item.hidden || item.name.isEmpty()) continue;
 
@@ -1536,13 +1542,16 @@ void KeyGenerateDialog::load_easy_profile_config() {
       if (!p_sub_found) continue;
     }
 
+    bool is_pqc = algo.IsPostQuantum();
+    const bool is_ecc = algo.IsEcc();
+
     if (item.has_s_key) {
       auto [s_found, s_algo] = GetAlgoByIdType(
           item.s_key_algo, item.s_key_algo_type, supported_subkey_algos_);
 
       if (!s_found) continue;  // skip config with unsupported subkey algo
 
-      if (item.has_s_key && !item.s_key_sub_algo.isEmpty()) {
+      if (!item.s_key_sub_algo.isEmpty()) {
         const auto sub_algos = s_algo.SubAlgos(channel_);
 
         auto [ss_found, ss_algo] = GetAlgoByIdType(
@@ -1550,10 +1559,34 @@ void KeyGenerateDialog::load_easy_profile_config() {
 
         if (!ss_found) continue;
       }
+
+      if (s_algo.IsPostQuantum()) is_pqc = true;
     }
 
-    easy_profile_conf_index_.insert(index++, item);
-    ui_->easyProfileComboBox->addItem(item.name);
+    auto& bucket =
+        is_pqc ? pqc_profiles : (is_ecc ? ecc_profiles : classical_profiles);
+    bucket.push_back(item);
+  }
+
+  // The map key must match each profile's final combo index (section headers
+  // occupy an index but are not selectable profiles).
+  auto add_profiles = [this](const QContainer<EasyModeConf>& profiles) {
+    for (const auto& item : profiles) {
+      easy_profile_conf_index_.insert(ui_->easyProfileComboBox->count(), item);
+      ui_->easyProfileComboBox->addItem(item.name);
+    }
+  };
+
+  add_profiles(classical_profiles);
+
+  if (!ecc_profiles.isEmpty()) {
+    AddComboSectionHeader(ui_->easyProfileComboBox, tr("ECC"));
+    add_profiles(ecc_profiles);
+  }
+
+  if (!pqc_profiles.isEmpty()) {
+    AddComboSectionHeader(ui_->easyProfileComboBox, tr("Post-Quantum"));
+    add_profiles(pqc_profiles);
   }
 
   easy_mode_conf_ = easy_mode_conf;

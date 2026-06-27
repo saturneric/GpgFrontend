@@ -139,9 +139,28 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
   ui_->expireDateTimeEdit->setDateTime(gen_subkey_info_->GetExpireTime());
   ui_->expireDateTimeEdit->setDisabled(gen_subkey_info_->IsNonExpired());
 
-  ui_->statusPlainTextEdit->appendPlainText(
-      tr("Tipps: if the key pair has a passphrase, the subkey's "
-         "passphrase must be equal to it."));
+  const auto engine =
+      OpenPGPContext::GetInstance(current_gpg_context_channel_).Engine();
+
+  // The "subkey passphrase must equal the primary key's" constraint is a GnuPG
+  // behaviour; rPGP does not impose it, so only show this tip for GnuPG.
+  if (engine == OpenPGPEngine::kGNUPG) {
+    ui_->statusPlainTextEdit->appendPlainText(
+        tr("Tipps: if the key pair has a passphrase, the subkey's "
+           "passphrase must be equal to it."));
+  }
+
+  // Post-quantum (PQC) subkey algorithms require a v6 primary key; for a v4
+  // primary key they are filtered out of the algorithm list above. Tell the
+  // user why instead of leaving them silently absent. KeyVersion() reports 0
+  // when the engine does not expose the key format (e.g. GnuPG), so only show
+  // this when the key is known to be v4.
+  if (key_->KeyVersion() == 4) {
+    ui_->statusPlainTextEdit->appendPlainText(
+        tr("Note: post-quantum (PQC) subkey algorithms are unavailable here "
+           "because the primary key uses the v4 key format. Generate a v6 key "
+           "to use PQC algorithms."));
+  }
 
   this->setWindowTitle(tr("Generate New Subkey"));
   this->setAttribute(Qt::WA_DeleteOnClose);
@@ -486,33 +505,34 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
   GpgOperaHelper::WaitForOpera(
       this, tr("Generating"),
       [this, succeeded, key = this->key_,
-       gen_key_info = this->gen_subkey_info_](
-          const OperaWaitingHd& hd) -> void {
+       gen_key_info =
+           this->gen_subkey_info_](const OperaWaitingHd& hd) -> void {
         KeyGenerationOperation::GetInstance(current_gpg_context_channel_)
-            .GenerateSubkey(
-                key, gen_key_info,
-                [this, hd, succeeded](GpgError err,
-                                      const DataObjectPtr&) -> void {
-                  // stop showing waiting dialog
-                  hd();
+            .GenerateSubkey(key, gen_key_info,
+                            [this, hd, succeeded](
+                                GpgError err, const DataObjectPtr&) -> void {
+                              // stop showing waiting dialog
+                              hd();
 
-                  if (CheckGpgError(err) == GPG_ERR_USER_1) {
-                    QMessageBox::critical(this, tr("Error"),
-                                          tr("Unknown error occurred"));
-                    return;
-                  }
+                              if (CheckGpgError(err) == GPG_ERR_USER_1) {
+                                QMessageBox::critical(
+                                    this, tr("Error"),
+                                    tr("Unknown error occurred"));
+                                return;
+                              }
 
-                  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                    // Report the failure on the still-open dialog so the user
-                    // can adjust and retry; success is handled by the caller.
-                    CommonUtils::RaiseMessageBox(this, err);
-                    return;
-                  }
+                              if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                                // Report the failure on the still-open dialog
+                                // so the user can adjust and retry; success is
+                                // handled by the caller.
+                                CommonUtils::RaiseMessageBox(this, err);
+                                return;
+                              }
 
-                  *succeeded = true;
-                  emit UISignalStation::GetInstance()
-                      ->SignalKeyDatabaseRefresh();
-                });
+                              *succeeded = true;
+                              emit UISignalStation::GetInstance()
+                                  -> SignalKeyDatabaseRefresh();
+                            });
       });
 
   // Keep the dialog open on failure so the user can adjust and retry without
@@ -526,7 +546,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
   this->accept();
 
   QMessageBox::information(notify_parent, tr("Success"),
-                          tr("Subkey generation completed successfully."));
+                           tr("Subkey generation completed successfully."));
 }
 
 void SubkeyGenerateDialog::refresh_hybrid_algo_widgets_state() {
