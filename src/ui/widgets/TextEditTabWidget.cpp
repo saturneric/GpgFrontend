@@ -552,7 +552,8 @@ void TextEditTabWidget::update_file_page_tab_title(QWidget* page,
   setTabText(index, title);
   setTabToolTip(index, absolute_path);
 
-  emit UISignalStation::GetInstance()->SignalMainWindowUpdateBasicOperaMenu(0);
+  emit UISignalStation::GetInstance()
+      -> SignalMainWindowUpdateBasicOperaMenu(0);
 }
 
 void TextEditTabWidget::SlotCacheTextEditors() {
@@ -676,9 +677,6 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
 
   auto json_data =
       CacheManager::GetInstance().LoadDurableCache(kEditorPagesCacheKey);
-
-  LOG_D() << "editor_pages_cache loaded"
-          << ", json content:" << json_data.toJson();
 
   if (json_data.isEmpty()) return;
 
