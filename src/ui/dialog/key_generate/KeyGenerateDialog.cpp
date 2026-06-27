@@ -411,10 +411,12 @@ auto GenerateRandomIdentity() -> RandomIdentity {
 
   auto* rng = QRandomGenerator::global();
 
-  // Random base-36 tokens (lowercase letters + digits). 64 bits of entropy is
-  // far more than enough to keep them unique and unguessable.
+  // Random 8-char base-36 tokens (lowercase letters + digits). 36^8 ~= 2.8e12
+  // combinations is plenty to keep them unique and unguessable.
   const auto random_token = [rng]() -> QString {
-    return QString::number(rng->generate64(), 36).rightJustified(8, '0');
+    constexpr quint64 kBase36Pow8 = 2821109907456ULL;  // 36^8
+    return QString::number(rng->generate64() % kBase36Pow8, 36)
+        .rightJustified(8, '0');
   };
 
   const auto user_token = random_token();
