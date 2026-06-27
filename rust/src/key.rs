@@ -101,7 +101,7 @@ pub struct ExtractedMetadata {
     pub user_ids: Vec<ExtractUserId>,
     pub subkeys: Vec<ExtractedSubkey>,
     pub public_key_block: String,
-    pub secret_key_block: Option<String>,
+    pub secret_key_block: Option<Zeroizing<String>>,
 }
 
 fn is_self_signature_from_primary(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
@@ -281,7 +281,10 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         public_key_block: pk
             .to_armored_string(ArmorOptions::default())
             .unwrap_or_default(),
-        secret_key_block: sk.to_armored_string(ArmorOptions::default()).ok(),
+        secret_key_block: sk
+            .to_armored_string(ArmorOptions::default())
+            .ok()
+            .map(Zeroizing::new),
         key_length: key_length.unwrap_or(0),
     }
 }
@@ -435,7 +438,10 @@ pub fn extract_metadata_many_internal(
                     let fpr = sk.fingerprint().to_string();
                     let mut metadata = build_secret_metadata(&sk);
 
-                    metadata.secret_key_block = sk.to_armored_string(ArmorOptions::default()).ok();
+                    metadata.secret_key_block = sk
+                        .to_armored_string(ArmorOptions::default())
+                        .ok()
+                        .map(Zeroizing::new);
 
                     let public_key = SignedPublicKey::from(sk.clone());
                     metadata.public_key_block = public_key
@@ -730,7 +736,7 @@ pub fn modify_key_password_internal(
             .into_gfr()?;
 
         return Ok(GeneratedKeys {
-            secret: armored_s_key,
+            secret: Zeroizing::new(armored_s_key),
             public: armored_p_key,
             fingerprint: whole_fpr,
         });
@@ -770,7 +776,7 @@ pub fn modify_key_password_internal(
             .into_gfr()?;
 
         return Ok(GeneratedKeys {
-            secret: armored_s_key,
+            secret: Zeroizing::new(armored_s_key),
             public: armored_p_key,
             fingerprint: whole_fpr,
         });
@@ -822,7 +828,7 @@ pub fn delete_subkey_internal(
         .into_gfr()?;
 
     Ok(GeneratedKeys {
-        secret: armored_s_key,
+        secret: Zeroizing::new(armored_s_key),
         public: armored_p_key,
         fingerprint: fingerprint_str,
     })
@@ -942,7 +948,7 @@ pub fn revoke_subkey_internal(
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     Ok(GeneratedKeys {
-        secret: armored_s_key,
+        secret: Zeroizing::new(armored_s_key),
         public: armored_p_key,
         fingerprint: fpr,
     })
@@ -1130,7 +1136,7 @@ fn dedup_signatures_in_place(sigs: &mut Vec<Signature>) -> Result<(), GfrStatus>
 
 fn export_secret_key(sk: SignedSecretKey) -> Result<GeneratedKeys, GfrStatus> {
     let fingerprint = sk.fingerprint().to_string();
-    let secret = sk.to_armored_string(ArmorOptions::default()).into_gfr()?;
+    let secret = Zeroizing::new(sk.to_armored_string(ArmorOptions::default()).into_gfr()?);
     let public = SignedPublicKey::from(sk)
         .to_armored_string(ArmorOptions::default())
         .into_gfr()?;
@@ -1147,7 +1153,7 @@ fn export_public_key(pk: SignedPublicKey) -> Result<GeneratedKeys, GfrStatus> {
     let public = pk.to_armored_string(ArmorOptions::default()).into_gfr()?;
 
     Ok(GeneratedKeys {
-        secret: String::new(),
+        secret: Zeroizing::new(String::new()),
         public,
         fingerprint,
     })

@@ -65,7 +65,7 @@ pub extern "C" fn gfr_crypto_decrypt_data(
         let data_slice = unsafe { slice::from_raw_parts(in_data, in_len) };
 
         // Perform decryption
-        let mut internal_result = crate::crypto::decrypt_internal(
+        let internal_result = crate::crypto::decrypt_internal(
             channel,
             data_slice,
             Some(fetch_sec_key_cb),
@@ -74,10 +74,14 @@ pub extern "C" fn gfr_crypto_decrypt_data(
         )?;
 
         // 1. Process Payload
-        internal_result.data.shrink_to_fit();
-        let data_ptr = internal_result.data.as_mut_ptr();
-        let data_len = internal_result.data.len();
-        std::mem::forget(internal_result.data);
+        // Convert to a boxed slice so the backing allocation's capacity is
+        // guaranteed to equal its length; `gfr_crypto_free_buffer` rebuilds the
+        // Vec with `capacity == len`, which would be UB if `shrink_to_fit` left
+        // excess capacity.
+        let mut data_boxed = internal_result.data.into_boxed_slice();
+        let data_ptr = data_boxed.as_mut_ptr();
+        let data_len = data_boxed.len();
+        std::mem::forget(data_boxed);
 
         // 2. Process Filename
         let c_filename = CString::new(internal_result.filename)
@@ -323,7 +327,7 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
 
         let data_slice = unsafe { std::slice::from_raw_parts(in_data, in_len) };
 
-        let mut internal_result = crate::crypto::decrypt_and_verify_internal(
+        let internal_result = crate::crypto::decrypt_and_verify_internal(
             channel,
             data_slice,
             Some(fetch_sec_key_cb),
@@ -332,10 +336,14 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_data(
             user_data,
         )?;
 
-        internal_result.data.shrink_to_fit();
-        let data_ptr = internal_result.data.as_mut_ptr();
-        let data_len = internal_result.data.len();
-        std::mem::forget(internal_result.data);
+        // Convert to a boxed slice so the backing allocation's capacity is
+        // guaranteed to equal its length; `gfr_crypto_free_buffer` rebuilds the
+        // Vec with `capacity == len`, which would be UB if `shrink_to_fit` left
+        // excess capacity.
+        let mut data_boxed = internal_result.data.into_boxed_slice();
+        let data_ptr = data_boxed.as_mut_ptr();
+        let data_len = data_boxed.len();
+        std::mem::forget(data_boxed);
 
         let c_filename = std::ffi::CString::new(internal_result.filename)
             .unwrap_or_default()

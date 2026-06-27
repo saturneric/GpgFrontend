@@ -55,7 +55,7 @@ use crate::{
 ///
 /// Works on both secret and public keys (tries secret first). Returns
 /// `ErrorInvalidInput` when the UID is not found.
-pub fn delete_user_id_internal(key_block: &str, target_uid: &str) -> Result<String, GfrStatus> {
+pub fn delete_user_id_internal(key_block: &str, target_uid: &str) -> Result<Zeroizing<String>, GfrStatus> {
     if let Ok((mut skey, _)) = SignedSecretKey::from_string(key_block) {
         let initial_len = skey.details.users.len();
         skey.details
@@ -65,7 +65,10 @@ pub fn delete_user_id_internal(key_block: &str, target_uid: &str) -> Result<Stri
         if skey.details.users.len() == initial_len {
             return Err(GfrStatus::ErrorInvalidInput);
         }
-        return skey.to_armored_string(ArmorOptions::default()).into_gfr();
+        return skey
+            .to_armored_string(ArmorOptions::default())
+            .into_gfr()
+            .map(Zeroizing::new);
     }
 
     if let Ok((mut pkey, _)) = SignedPublicKey::from_string(key_block) {
@@ -77,7 +80,10 @@ pub fn delete_user_id_internal(key_block: &str, target_uid: &str) -> Result<Stri
         if pkey.details.users.len() == initial_len {
             return Err(GfrStatus::ErrorInvalidInput);
         }
-        return pkey.to_armored_string(ArmorOptions::default()).into_gfr();
+        return pkey
+            .to_armored_string(ArmorOptions::default())
+            .into_gfr()
+            .map(Zeroizing::new);
     }
 
     Err(GfrStatus::ErrorInvalidData)
@@ -93,7 +99,7 @@ pub fn add_user_id_internal(
     secret_key_block: &str,
     new_uid_str: &str,
     fetch_cb: Option<GfrPasswordFetchCb>,
-) -> Result<String, GfrStatus> {
+) -> Result<Zeroizing<String>, GfrStatus> {
     let (mut skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
     let fpr = skey.primary_key.fingerprint().to_string();
 
@@ -129,7 +135,9 @@ pub fn add_user_id_internal(
 
     skey.details.users.push(signed_user);
 
-    skey.to_armored_string(ArmorOptions::default()).into_gfr()
+    skey.to_armored_string(ArmorOptions::default())
+        .into_gfr()
+        .map(Zeroizing::new)
 }
 
 /// Replace one user ID string with another and re-sign it.
@@ -143,9 +151,9 @@ pub fn update_user_id_internal(
     old_uid: &str,
     new_uid: &str,
     fetch_cb: Option<GfrPasswordFetchCb>,
-) -> Result<String, GfrStatus> {
+) -> Result<Zeroizing<String>, GfrStatus> {
     let block_with_new = add_user_id_internal(channel, secret_key_block, new_uid, fetch_cb)?;
-    delete_user_id_internal(&block_with_new, old_uid)
+    delete_user_id_internal(block_with_new.as_str(), old_uid)
 }
 
 fn build_updated_self_sig_config(
@@ -215,7 +223,7 @@ pub fn set_primary_user_id_internal(
     secret_key_block: &str,
     target_uid_str: &str,
     fetch_cb: Option<GfrPasswordFetchCb>,
-) -> Result<String, GfrStatus> {
+) -> Result<Zeroizing<String>, GfrStatus> {
     let (mut skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
 
     let target_idx = skey
@@ -310,7 +318,9 @@ pub fn set_primary_user_id_internal(
         skey.details.users.insert(0, primary_user);
     }
 
-    skey.to_armored_string(ArmorOptions::default()).into_gfr()
+    skey.to_armored_string(ArmorOptions::default())
+        .into_gfr()
+        .map(Zeroizing::new)
 }
 
 /// Revoke a user ID by appending a `CertRevocation` self-signature.
@@ -324,7 +334,7 @@ pub fn revoke_user_id_internal(
     reason_code: GfrRevocationCode,
     reason_text: Option<&str>,
     fetch_cb: Option<GfrPasswordFetchCb>,
-) -> Result<String, GfrStatus> {
+) -> Result<Zeroizing<String>, GfrStatus> {
     let (mut skey, _) = SignedSecretKey::from_string(secret_key_block).into_gfr()?;
 
     let target_idx = skey
@@ -392,5 +402,7 @@ pub fn revoke_user_id_internal(
 
     user.signatures.push(revoke_sig);
 
-    skey.to_armored_string(ArmorOptions::default()).into_gfr()
+    skey.to_armored_string(ArmorOptions::default())
+        .into_gfr()
+        .map(Zeroizing::new)
 }

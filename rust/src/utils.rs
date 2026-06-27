@@ -96,12 +96,20 @@ pub fn fetch_password_internal(
 
     let mut pwd_ptr: *mut u8 = null_mut();
 
-    // If a password fetch callback is provided, use it to get the password
-    // ret > 0 indicates success, and it shows the length of the password returned
+    // If a password fetch callback is provided, use it to get the password.
+    // The callback returns the password length: `ret > 0` indicates success and
+    // is the number of bytes written to `*out_pwd`; `ret <= 0` means the user
+    // cancelled or an error occurred.
     let ret = fetch_fn(channel, passphrase_state, &mut pwd_ptr, null_mut());
 
-    // Callback indicated failure or no password provided
+    // Callback indicated failure or no password provided. Defensively free any
+    // buffer the callback may still have allocated (e.g. a buggy callback that
+    // returns a non-positive length but writes a pointer), so secret bytes are
+    // never leaked unwiped on the error path.
     if ret <= 0 || pwd_ptr.is_null() {
+        if !pwd_ptr.is_null() {
+            unsafe { gfc_secure_free_cstr(pwd_ptr as *mut std::ffi::c_char) };
+        }
         return Err(GfrStatus::ErrorFetchPasswordFailed);
     }
 

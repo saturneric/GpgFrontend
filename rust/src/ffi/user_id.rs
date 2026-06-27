@@ -69,7 +69,9 @@ pub extern "C" fn gfr_crypto_delete_user_id(
         let new_block = delete_user_id_internal(block_str, uid_str)?;
 
         unsafe {
-            *out_block = CString::new(new_block).unwrap_or_default().into_raw();
+            *out_block = CString::new(new_block.as_bytes())
+                .unwrap_or_default()
+                .into_raw();
         }
 
         Ok(())
@@ -110,7 +112,9 @@ pub extern "C" fn gfr_crypto_add_user_id(
         let new_block = add_user_id_internal(channel, block_str, uid_str, Some(fetch_pwd_cb))?;
 
         unsafe {
-            *out_block = CString::new(new_block).unwrap_or_default().into_raw();
+            *out_block = CString::new(new_block.as_bytes())
+                .unwrap_or_default()
+                .into_raw();
         }
 
         Ok(())
@@ -154,7 +158,9 @@ pub extern "C" fn gfr_crypto_update_user_id(
             update_user_id_internal(channel, block_str, old_str, new_str, Some(fetch_pwd_cb))?;
 
         unsafe {
-            *out_block = CString::new(new_block).unwrap_or_default().into_raw();
+            *out_block = CString::new(new_block.as_bytes())
+                .unwrap_or_default()
+                .into_raw();
         }
 
         Ok(())
@@ -196,7 +202,7 @@ pub extern "C" fn gfr_crypto_set_primary_user_id(
             set_primary_user_id_internal(channel, block_str, uid_str, Some(fetch_pwd_cb))?;
 
         unsafe {
-            *out_block = std::ffi::CString::new(new_block)
+            *out_block = std::ffi::CString::new(new_block.as_bytes())
                 .unwrap_or_default()
                 .into_raw();
         }
@@ -269,7 +275,8 @@ pub extern "C" fn gfr_crypto_revoke_user_id(
             Some(fetch_pwd_cb),
         )?;
 
-        let c_new_block = CString::new(new_block).map_err(|_| GfrStatus::ErrorInternal)?;
+        let c_new_block =
+            CString::new(new_block.as_bytes()).map_err(|_| GfrStatus::ErrorInternal)?;
 
         unsafe {
             *out_block = c_new_block.into_raw();

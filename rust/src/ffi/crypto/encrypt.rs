@@ -83,14 +83,16 @@ pub extern "C" fn gfr_crypto_encrypt_data(
         }
 
         // Perform the encryption using the updated internal function
-        let mut internal_result =
+        let internal_result =
             crate::crypto::encrypt_internal(channel, name_str, data_slice, &key_blocks, ascii)?;
 
-        // 1. Process output payload data
-        internal_result.data.shrink_to_fit();
-        let data_ptr = internal_result.data.as_mut_ptr();
-        let data_len = internal_result.data.len();
-        std::mem::forget(internal_result.data); // Leak payload to C
+        // 1. Process output payload data.
+        // Boxed slice guarantees `capacity == len` for the allocation handed to
+        // C; `gfr_crypto_free_buffer` reconstructs the Vec with `capacity == len`.
+        let mut data_boxed = internal_result.data.into_boxed_slice();
+        let data_ptr = data_boxed.as_mut_ptr();
+        let data_len = data_boxed.len();
+        std::mem::forget(data_boxed); // Leak payload to C
 
         // 2. Process invalid recipients array
         let mut c_invalid_recs = Vec::with_capacity(internal_result.invalid_recipients.len());
@@ -371,7 +373,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
         }
 
         // Execute core logic
-        let mut internal_result = crate::crypto::encrypt_and_sign_internal(
+        let internal_result = crate::crypto::encrypt_and_sign_internal(
             channel,
             name_str,
             data_slice,
@@ -381,11 +383,12 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_data(
             ascii,
         )?;
 
-        // 1. Process data
-        internal_result.data.shrink_to_fit();
-        let data_ptr = internal_result.data.as_mut_ptr();
-        let data_len = internal_result.data.len();
-        std::mem::forget(internal_result.data);
+        // 1. Process data.
+        // Boxed slice guarantees `capacity == len` for the allocation handed to C.
+        let mut data_boxed = internal_result.data.into_boxed_slice();
+        let data_ptr = data_boxed.as_mut_ptr();
+        let data_len = data_boxed.len();
+        std::mem::forget(data_boxed);
 
         // 2. Process Signatures
         let mut c_signatures = Vec::with_capacity(internal_result.signatures.len());
@@ -741,10 +744,11 @@ pub extern "C" fn gfr_crypto_encrypt_data_symmetric(
             ascii,
         )?;
 
-        out_buf.shrink_to_fit();
-        let data_ptr = out_buf.as_mut_ptr();
-        let data_len = out_buf.len();
-        std::mem::forget(out_buf);
+        // Boxed slice guarantees `capacity == len` for the allocation handed to C.
+        let mut data_boxed = out_buf.into_boxed_slice();
+        let data_ptr = data_boxed.as_mut_ptr();
+        let data_len = data_boxed.len();
+        std::mem::forget(data_boxed);
 
         unsafe {
             (*out_result).data = data_ptr;

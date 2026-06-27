@@ -85,7 +85,7 @@ pub extern "C" fn gfr_crypto_generate_key(
     match result {
         Ok(inner_result) => match inner_result {
             Ok(keys) => {
-                let Ok(c_s) = CString::new(keys.secret) else {
+                let Ok(c_s) = CString::new(keys.secret.as_bytes()) else {
                     return GfrStatus::ErrorInternal;
                 };
                 let Ok(c_p) = CString::new(keys.public) else {
@@ -146,7 +146,7 @@ pub extern "C" fn gfr_crypto_add_subkey(
     match result {
         Ok(inner_result) => match inner_result {
             Ok(keys) => {
-                let Ok(c_s) = CString::new(keys.secret) else {
+                let Ok(c_s) = CString::new(keys.secret.as_bytes()) else {
                     return GfrStatus::ErrorInternal;
                 };
                 let Ok(c_p) = CString::new(keys.public) else {

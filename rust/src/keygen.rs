@@ -54,8 +54,12 @@ use rand::thread_rng;
 use zeroize::Zeroizing;
 
 /// Armored key material produced by a generation or modification operation.
+///
+/// `secret` holds armored private-key material and is wrapped in `Zeroizing` so
+/// the heap buffer is wiped on every drop path, not just when it reaches the FFI
+/// boundary.
 pub struct GeneratedKeys {
-    pub secret: String,
+    pub secret: Zeroizing<String>,
     pub public: String,
     pub fingerprint: String,
 }
@@ -228,7 +232,7 @@ pub fn create_key_internal(
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     Ok(GeneratedKeys {
-        secret: armored_s_key,
+        secret: Zeroizing::new(armored_s_key),
         public: armored_p_key,
         fingerprint,
     })
@@ -411,7 +415,7 @@ pub fn add_subkey_internal(
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     Ok(GeneratedKeys {
-        secret: armored_s_key,
+        secret: Zeroizing::new(armored_s_key),
         public: armored_p_key,
         fingerprint: fingerprint_str,
     })

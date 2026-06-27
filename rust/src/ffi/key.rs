@@ -80,17 +80,23 @@ pub extern "C" fn gfr_crypto_extract_metadata(
         let mut c_metadata_list = Vec::with_capacity(meta_list.len());
 
         for meta in meta_list {
-            let c_fpr = CString::new(meta.fpr).map_err(|_| GfrStatus::ErrorInternal)?;
-            let c_key_id = CString::new(meta.key_id).map_err(|_| GfrStatus::ErrorInternal)?;
+            // Use `unwrap_or_default` rather than `?` here: a fallible early
+            // return mid-loop would leak every C string and array already built
+            // (including secret key blocks). Interior NULs cannot occur in
+            // fingerprints/key IDs/armor; an empty string is a safe fallback.
+            let c_fpr = CString::new(meta.fpr).unwrap_or_default();
+            let c_key_id = CString::new(meta.key_id).unwrap_or_default();
 
             // Convert the new armored key blocks
             let c_pub_block = CString::new(meta.public_key_block)
-                .map_err(|_| GfrStatus::ErrorInternal)?
+                .unwrap_or_default()
                 .into_raw();
 
+            // `secret_str` is `Zeroizing<String>`: copy its bytes into the C
+            // string, then let the source wipe itself on drop at the arm's end.
             let c_sec_block = match meta.secret_key_block {
-                Some(secret_str) => CString::new(secret_str)
-                    .map_err(|_| GfrStatus::ErrorInternal)?
+                Some(secret_str) => CString::new(secret_str.as_bytes())
+                    .unwrap_or_default()
                     .into_raw(),
                 None => std::ptr::null_mut(), // Safe to use NULL for Option::None in C
             };
@@ -100,12 +106,8 @@ pub extern "C" fn gfr_crypto_extract_metadata(
             for sub in meta.subkeys {
                 c_subkeys.push(GfrSubkeyMetadataC {
                     ver: sub.ver,
-                    fpr: CString::new(sub.fpr)
-                        .map_err(|_| GfrStatus::ErrorInternal)?
-                        .into_raw(),
-                    key_id: CString::new(sub.key_id)
-                        .map_err(|_| GfrStatus::ErrorInternal)?
-                        .into_raw(),
+                    fpr: CString::new(sub.fpr).unwrap_or_default().into_raw(),
+                    key_id: CString::new(sub.key_id).unwrap_or_default().into_raw(),
                     algo: sub.algo,
                     created_at: sub.created_at,
                     has_secret: sub.has_secret,
@@ -127,9 +129,7 @@ pub extern "C" fn gfr_crypto_extract_metadata(
             let mut c_user_ids = Vec::with_capacity(meta.user_ids.len());
             for uid in meta.user_ids {
                 c_user_ids.push(GfrUserIdC {
-                    user_id: CString::new(uid.user_id)
-                        .map_err(|_| GfrStatus::ErrorInternal)?
-                        .into_raw(),
+                    user_id: CString::new(uid.user_id).unwrap_or_default().into_raw(),
                     is_primary: uid.is_primary,
                     is_revoked: uid.is_revoked,
                 });
@@ -377,7 +377,8 @@ pub extern "C" fn gfr_crypto_modify_key_password(
         let generated =
             modify_key_password_internal(channel, block_str, fpr_str, Some(fetch_pwd_cb))?;
 
-        let c_secret = CString::new(generated.secret).map_err(|_| GfrStatus::ErrorInternal)?;
+        let c_secret =
+            CString::new(generated.secret.as_bytes()).map_err(|_| GfrStatus::ErrorInternal)?;
 
         unsafe {
             *out_secret_block = c_secret.into_raw();
@@ -427,7 +428,8 @@ pub extern "C" fn gfr_crypto_delete_subkey(
 
         let result = delete_subkey_internal(block_str, fpr_str)?;
 
-        let secret_cstr = CString::new(result.secret).map_err(|_| GfrStatus::ErrorInternal)?;
+        let secret_cstr =
+            CString::new(result.secret.as_bytes()).map_err(|_| GfrStatus::ErrorInternal)?;
 
         unsafe {
             *out_secret_block = secret_cstr.into_raw();
@@ -500,7 +502,8 @@ pub extern "C" fn gfr_crypto_revoke_subkey(
             Some(fetch_pwd_cb),
         )?;
 
-        let secret_cstr = CString::new(result.secret).map_err(|_| GfrStatus::ErrorInternal)?;
+        let secret_cstr =
+            CString::new(result.secret.as_bytes()).map_err(|_| GfrStatus::ErrorInternal)?;
 
         unsafe {
             *out_secret_block = secret_cstr.into_raw();
@@ -631,7 +634,8 @@ pub extern "C" fn gfr_crypto_merge_key_blocks(
         }
 
         if !merged.secret.is_empty() {
-            let secret_cstr = CString::new(merged.secret).map_err(|_| GfrStatus::ErrorInternal)?;
+            let secret_cstr =
+                CString::new(merged.secret.as_bytes()).map_err(|_| GfrStatus::ErrorInternal)?;
             unsafe {
                 *out_secret_block = secret_cstr.into_raw();
             }
@@ -688,7 +692,8 @@ pub extern "C" fn gfr_crypto_import_rev_cert(
         let merged = import_rev_cert_internal(base_str, cert_str)?;
 
         if !merged.secret.is_empty() {
-            let secret_cstr = CString::new(merged.secret).map_err(|_| GfrStatus::ErrorInternal)?;
+            let secret_cstr =
+                CString::new(merged.secret.as_bytes()).map_err(|_| GfrStatus::ErrorInternal)?;
             unsafe {
                 *out_secret_block = secret_cstr.into_raw();
             }

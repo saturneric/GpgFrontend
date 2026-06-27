@@ -79,7 +79,7 @@ pub extern "C" fn gfr_crypto_sign_data(
         }
 
         // Perform the multi-signature and get the structured report
-        let mut internal_result = crate::crypto::sign_internal(
+        let internal_result = crate::crypto::sign_internal(
             channel,
             name_str,
             data_slice,
@@ -90,10 +90,12 @@ pub extern "C" fn gfr_crypto_sign_data(
         )?;
 
         // 1. Process the output payload (data)
-        internal_result.data.shrink_to_fit();
-        let data_ptr = internal_result.data.as_mut_ptr();
-        let data_len = internal_result.data.len();
-        std::mem::forget(internal_result.data); // Leak payload to C
+        // Boxed slice guarantees `capacity == len` for the allocation handed to
+        // C; `gfr_crypto_free_buffer` reconstructs the Vec with `capacity == len`.
+        let mut data_boxed = internal_result.data.into_boxed_slice();
+        let data_ptr = data_boxed.as_mut_ptr();
+        let data_len = data_boxed.len();
+        std::mem::forget(data_boxed); // Leak payload to C
 
         // 2. Process the signatures array
         let mut c_signatures = Vec::with_capacity(internal_result.signatures.len());
@@ -280,7 +282,7 @@ pub extern "C" fn gfr_crypto_verify_data(
         };
 
         // Call the updated internal function with callbacks instead of a static array
-        let mut internal_result = crate::crypto::verify_internal(
+        let internal_result = crate::crypto::verify_internal(
             data_slice,
             sig_slice,
             mode,
@@ -289,10 +291,12 @@ pub extern "C" fn gfr_crypto_verify_data(
         )?;
 
         // 1. Process the extracted payload (data)
-        internal_result.data.shrink_to_fit();
-        let data_ptr = internal_result.data.as_mut_ptr();
-        let data_len = internal_result.data.len();
-        std::mem::forget(internal_result.data); // Leak payload to C
+        // Boxed slice guarantees `capacity == len` for the allocation handed to
+        // C; `gfr_crypto_free_buffer` reconstructs the Vec with `capacity == len`.
+        let mut data_boxed = internal_result.data.into_boxed_slice();
+        let data_ptr = data_boxed.as_mut_ptr();
+        let data_len = data_boxed.len();
+        std::mem::forget(data_boxed); // Leak payload to C
 
         // 2. Process the signatures array
         let mut c_signatures = Vec::with_capacity(internal_result.signatures.len());
@@ -428,7 +432,7 @@ pub extern "C" fn gfr_crypto_verify_file(
                 let in_data =
                     std::fs::read(in_path_str).map_err(|_| GfrStatus::ErrorInvalidInput)?;
 
-                let mut internal_result = crate::crypto::verify_internal(
+                let internal_result = crate::crypto::verify_internal(
                     &in_data,
                     &[], // sig_data is not needed for inline
                     mode,
@@ -445,10 +449,11 @@ pub extern "C" fn gfr_crypto_verify_file(
                         GfrStatus::ErrorInternal
                     })?;
                 } else {
-                    internal_result.data.shrink_to_fit();
-                    out_data_ptr = internal_result.data.as_mut_ptr();
-                    out_data_len = internal_result.data.len();
-                    std::mem::forget(internal_result.data);
+                    // Boxed slice guarantees `capacity == len` for the C handoff.
+                    let mut data_boxed = internal_result.data.into_boxed_slice();
+                    out_data_ptr = data_boxed.as_mut_ptr();
+                    out_data_len = data_boxed.len();
+                    std::mem::forget(data_boxed);
                 }
             }
         }

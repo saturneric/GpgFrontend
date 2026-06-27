@@ -616,9 +616,10 @@ pub struct GfrPassphraseState {
 ///
 /// `channel` identifies the OpenPGP context requesting the passphrase.
 /// `state` describes the request (fingerprint, retry flag, etc.).
-/// On success the implementation writes a heap-allocated UTF-8 byte buffer
-/// to `*out_pwd` and returns 0; on cancellation or error it returns non-zero.
-/// The engine frees the buffer via `GfrFreeCb`.
+/// On success the implementation writes a heap-allocated UTF-8 byte buffer to
+/// `*out_pwd` and returns its length as a positive byte count; on cancellation
+/// or error it returns a value `<= 0` (and `*out_pwd` is ignored). The engine
+/// copies the buffer and then frees it via the host secure-free routine.
 pub type GfrPasswordFetchCb = extern "C" fn(
     channel: i32,
     state: GfrPassphraseState,
