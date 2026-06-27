@@ -221,7 +221,35 @@ auto GFKeyDatabase::Init(const QString& path) -> bool {
     return false;
   }
 
+  // The database stores key material (including secret keys) in plaintext, so
+  // restrict it to the current user via OS permissions by default.
+  secure_storage_permissions(db_home_info.absoluteFilePath(),
+                             key_db_file_info.absoluteFilePath());
+
   return true;
+}
+
+void GFKeyDatabase::secure_storage_permissions(const QString& db_dir,
+                                               const QString& db_file) {
+  // Restrict the storage directory to the owner only (0700) so other local
+  // users cannot traverse into it to reach the key material.
+  if (!QFile::setPermissions(db_dir, QFileDevice::ReadOwner |
+                                         QFileDevice::WriteOwner |
+                                         QFileDevice::ExeOwner)) {
+    LOG_W() << "failed to restrict permissions on key database directory:"
+            << db_dir;
+  }
+
+  // Restrict the database file and its WAL/SHM sidecars to the owner only
+  // (0600). The sidecars are created lazily, so only touch the ones present.
+  const QStringList db_files = {db_file, db_file + "-wal", db_file + "-shm"};
+  for (const auto& f : db_files) {
+    if (!QFileInfo::exists(f)) continue;
+    if (!QFile::setPermissions(
+            f, QFileDevice::ReadOwner | QFileDevice::WriteOwner)) {
+      LOG_W() << "failed to restrict permissions on key database file:" << f;
+    }
+  }
 }
 
 auto GFKeyDatabase::SaveKey(const GFKeyMetadata& meta,
