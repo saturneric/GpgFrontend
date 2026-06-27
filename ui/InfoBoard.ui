@@ -177,6 +177,20 @@
            </widget>
           </item>
           <item>
+           <widget class="QToolButton" name="magnifierToolButton">
+            <property name="toolTip">
+             <string>Magnify</string>
+            </property>
+            <property name="text">
+             <string>Magnify</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../gpgfrontend.qrc">
+              <normaloff>:/icons/magnifier.png</normaloff>:/icons/magnifier.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QToolButton" name="clearToolButton">
             <property name="toolTip">
              <string>Clear</string>

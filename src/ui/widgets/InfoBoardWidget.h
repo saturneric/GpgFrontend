@@ -100,6 +100,7 @@ class InfoBoardWidget : public QWidget {
  private slots:
   void slot_copy();
   void slot_save();
+  void slot_open_magnifier();
   void slot_tab_changed(int index);
 
  private:
@@ -190,6 +191,7 @@ class InfoBoardWidget : public QWidget {
   void populate_extra_section(const GpgFrontend::GpgOpResultInfo& info,
                               InfoBoardStatus status);
 
+  [[nodiscard]] auto render_doc_pixmap(qreal scale) const -> QPixmap;
   void export_doc_as_png(const QString& file_path);
 
   void set_info_board_text(const QString& text, InfoBoardStatus status);
