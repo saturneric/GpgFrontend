@@ -146,7 +146,8 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
   gpgme_ctx_t binary_ctx_ref_ = nullptr;      ///<
   gpgme_ctx_t cms_ctx_ref_ = nullptr;         ///<
   gpgme_ctx_t cms_binary_ctx_ref_ = nullptr;  ///<
-  OpenPGPContextInitArgs init_args_{};  ///< args used to initialise this context
+  OpenPGPContextInitArgs
+      init_args_{};  ///< args used to initialise this context
   std::mutex ctx_ref_lock_;
   std::mutex binary_ctx_ref_lock_;
   QString gpg_agent_path_;
