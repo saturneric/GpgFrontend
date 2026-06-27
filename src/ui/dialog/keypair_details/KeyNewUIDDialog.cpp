@@ -30,6 +30,7 @@
 
 #include "core/function/openpgp/UserIdOperation.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 
 namespace GpgFrontend::UI {
@@ -90,6 +91,16 @@ void KeyNewUIDDialog::slot_create_new_uid() {
 
   if ((name_->text()).size() < 5) {
     error_stream << "  " << tr("Name must contain at least five characters.")
+                 << Qt::endl;
+  }
+  // The name and comment become part of an RFC 2822 mail name-addr
+  // ("Name (Comment) <email>"); reject the structural delimiters '(', ')',
+  // '<', '>' and control characters or the resulting UID would be malformed.
+  if (!IsValidUserIdComponent(name_->text()) ||
+      !IsValidUserIdComponent(comment_->text())) {
+    error_stream << "  "
+                 << tr("Name and comment must not contain the characters '(', "
+                       "')', '<', '>' or control characters.")
                  << Qt::endl;
   }
   if (email_->text().isEmpty() || !IsEmailAddress(email_->text())) {

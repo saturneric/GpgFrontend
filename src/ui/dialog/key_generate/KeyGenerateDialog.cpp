@@ -502,11 +502,6 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   PopulateAlgoComboBox(ui_->pAlgoComboBox, supported_primary_key_algos_);
   PopulateAlgoComboBox(ui_->sAlgoComboBox, supported_subkey_algos_);
 
-  QRegularExpression safe_string_re(R"([a-zA-Z0-9\s\.\-_]+)");
-  auto* safe_validator = new QRegularExpressionValidator(safe_string_re, this);
-  ui_->nameEdit->setValidator(safe_validator);
-  ui_->commentEdit->setValidator(safe_validator);
-
   set_signal_slot_config();
 
   load_easy_profile_config();
@@ -668,6 +663,15 @@ void KeyGenerateDialog::slot_key_gen_accept() {
 
   if (ui_->nameEdit->text().trimmed().size() < 5) {
     err_stream << " -> " << tr("Name must contain at least five characters.")
+               << Qt::endl;
+  }
+  // The name and comment become part of an RFC 2822 mail name-addr; reject the
+  // structural delimiters '(', ')', '<', '>' and control characters.
+  if (!IsValidUserIdComponent(ui_->nameEdit->text()) ||
+      !IsValidUserIdComponent(ui_->commentEdit->text())) {
+    err_stream << " -> "
+               << tr("Name and comment must not contain the characters '(', "
+                     "')', '<', '>' or control characters.")
                << Qt::endl;
   }
   if (ui_->emailEdit->text().isEmpty() ||
