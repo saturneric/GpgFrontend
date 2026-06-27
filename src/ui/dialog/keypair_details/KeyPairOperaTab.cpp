@@ -227,6 +227,10 @@ void KeyPairOperaTab::slot_export_key(bool secret, bool ascii, bool shortest,
               tr("Couldn't open %1 for writing").arg(file_name));
           return;
         }
+
+        QMessageBox::information(
+            this, tr("Export Successful"),
+            tr("The key has been successfully exported to %1.").arg(filepath));
       });
 
   Thread::TaskRunnerGetter::GetInstance()
