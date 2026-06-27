@@ -53,7 +53,7 @@ TEST_F(RpgpCoreTest, GpgKeyTest) {
 
   ASSERT_TRUE(key.Protocol().isEmpty());
 
-  ASSERT_EQ(key.SubKeys().size(), 4);
+  ASSERT_EQ(key.SubKeys().size(), 5);
   ASSERT_EQ(key.UIDs().size(), 2);
 
   ASSERT_TRUE(key.IsHasCertCap());
@@ -84,15 +84,7 @@ TEST_F(RpgpCoreTest, GpgSubKeyTest) {
   auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
                  .GetKey("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
   auto s_keys = key.SubKeys();
-  for (int i = 0; i < static_cast<int>(s_keys.size()); ++i) {
-    auto& sk = s_keys[i];
-    qWarning() << "ZZSUBKEY" << i << "id" << sk.ID() << "algo" << sk.Algo()
-               << "revoked" << sk.IsRevoked() << "cert" << sk.IsHasCertCap()
-               << "auth" << sk.IsHasAuthCap() << "sign" << sk.IsHasSignCap()
-               << "encr" << sk.IsHasEncrCap() << "expired" << sk.IsExpired()
-               << "created" << sk.CreationTime().toSecsSinceEpoch();
-  }
-  ASSERT_EQ(s_keys.size(), 4);
+  ASSERT_EQ(s_keys.size(), 5);
 
   auto& p_key = s_keys.front();
 

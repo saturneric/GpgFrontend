@@ -32,6 +32,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/rpgp/PasswordFetcher.h"
 #include "core/utils/IOUtils.h"
 
@@ -70,6 +71,24 @@ void ImportPrivateKeys() {
 
   AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushCache();
   AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest).Fetch();
+}
+
+// Wipe the test channel's keyring and re-import the canonical keys, restoring
+// a pristine state. Tests that mutate keys (e.g. DeleteSubkey/RevokeSubkey)
+// would otherwise leak state into the read-only model tests; resetting before
+// every test keeps the suite order-independent (important when running a
+// subset via --gtest_filter).
+void ResetKeyringState() {
+  auto& repo = AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest);
+
+  auto keys = repo.Fetch();
+  if (!keys.empty()) {
+    KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+        .DeleteKeys(keys);
+  }
+  repo.FlushCache();
+
+  ImportPrivateKeys();
 }
 
 auto ConfigureGpgContext() -> bool {
@@ -129,6 +148,8 @@ void RpgpCoreTest::SetUp() {
   if (!RpgpCoreTest::is_rpgp_available) {
     GTEST_SKIP() << "rPGP Engine is not available.";
   }
+
+  ResetKeyringState();
 }
 
 void RpgpCoreTest::TearDown() {}
