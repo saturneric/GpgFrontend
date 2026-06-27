@@ -126,3 +126,23 @@ jobs:
           # belt-and-suspenders alongside the step-level timeout-minutes above.
           timeout 900 scripts/run_tests.sh --no-build --unit-only \
             --build-dir ${{github.workspace}}/build
+
+      - name: Run Stress Tests
+        # Separate section so a slow/flaky stress run is isolated from the unit
+        # gate and easy to spot in the pipeline.
+        timeout-minutes: 30
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          timeout 1500 scripts/run_tests.sh --no-build --stress-only \
+            --stress-iter 50 --build-dir ${{github.workspace}}/build
+
+      - name: Run Algorithm Coverage Tests
+        # Generates every declared key/subkey algorithm on each engine; slow
+        # (PQC keygen), so it gets its own section with a generous timeout.
+        timeout-minutes: 40
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          timeout 2100 scripts/run_tests.sh --no-build --coverage-only \
+            --build-dir ${{github.workspace}}/build

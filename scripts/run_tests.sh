@@ -18,8 +18,11 @@
 # Usage: scripts/run_tests.sh [options]
 #   -b, --build            Build the gpgfrontend target before running
 #       --no-build         Never build (fail if the binary is missing)
-#       --unit-only        Run only unit tests (excludes *Stress* tests)
+#       --unit-only        Run only unit tests (excludes *Stress* and the
+#                          algorithm-generation coverage sweep)
 #       --stress-only      Run only the *Stress* tests
+#       --coverage-only    Run only the algorithm-generation coverage sweep
+#                          (*GenerateAllDeclared*; sets GF_RUN_ALGO_COVERAGE=1)
 #       --rust-only        Run only the Rust (cargo test) phase
 #       --no-rust          Skip the Rust phase
 #   -i, --stress-iter N    Iterations per stress test    (default: 1000)
@@ -28,9 +31,19 @@
 #   -j, --jobs N           Parallel build jobs            (default: nproc)
 #   -h, --help             Show this help
 #
+# Phases (the "all" default runs rust + unit + stress + coverage, each in its
+# own section so a slow or flaky phase is isolated; CI runs them as separate
+# steps):
+#   rust      pure-Rust unit tests (cargo test)
+#   unit      fast C++/FFI tests   (excludes *Stress* and *GenerateAllDeclared*)
+#   stress    *Stress* tests       (GF_STRESS_ITER iterations)
+#   coverage  *GenerateAllDeclared* sweep (generates every declared key/subkey
+#             algorithm per engine; slow, so gated on GF_RUN_ALGO_COVERAGE=1)
+#
 # Examples:
 #   scripts/run_tests.sh --build
 #   scripts/run_tests.sh --stress-only --stress-iter 10000
+#   scripts/run_tests.sh --coverage-only
 #   scripts/run_tests.sh --filter '*GpgCoreEngineTest*'
 #   scripts/run_tests.sh --rust-only
 
@@ -40,10 +53,14 @@ set -uo pipefail
 BUILD_DIR="${BUILD_DIR:-build}"
 STRESS_ITER="${GF_STRESS_ITER:-1000}"
 DO_BUILD="auto"   # auto | yes | no
-MODE="all"        # all | unit | stress | custom | rust
+MODE="all"        # all | unit | stress | coverage | custom | rust
 RUN_RUST="auto"   # auto | no  (auto = include rust in all/unit modes)
 CUSTOM_FILTER=""
 JOBS="$(nproc 2>/dev/null || echo 4)"
+
+# GoogleTest filter for the algorithm-generation coverage sweep, shared between
+# the unit phase (which excludes it) and the dedicated coverage phase.
+COVERAGE_FILTER='*GenerateAllDeclared*'
 
 usage() {
   awk 'NR>1 && /^#/ {sub(/^# ?/, ""); print; next} NR>1 {exit}' "${BASH_SOURCE[0]}"
@@ -56,6 +73,7 @@ while [[ $# -gt 0 ]]; do
     --no-build)       DO_BUILD="no" ;;
     --unit-only)      MODE="unit" ;;
     --stress-only)    MODE="stress" ;;
+    --coverage-only)  MODE="coverage" ;;
     --rust-only)      MODE="rust" ;;
     --no-rust)        RUN_RUST="no" ;;
     -i|--stress-iter) STRESS_ITER="${2:?missing value for $1}"; shift ;;
@@ -98,9 +116,14 @@ mkdir -p "$RESULTS_DIR"
 if [[ -t 1 ]]; then export GTEST_COLOR="yes"; else export GTEST_COLOR="no"; fi
 
 # --- phase runner ----------------------------------------------------------
-# run_phase <name> <gtest-filter> <stress-iterations>
+# run_phase <name> <gtest-filter> <stress-iterations> [algo-coverage]
+# The optional 4th argument is the value for GF_RUN_ALGO_COVERAGE: pass "1" to
+# enable the (slow, opt-in) algorithm-generation sweep, or leave it empty so
+# those tests skip themselves. It is always exported (empty by default) so a
+# value inherited from the caller's environment never leaks into a phase that
+# should not run the sweep.
 run_phase() {
-  local name="$1" filter="$2" iter="$3"
+  local name="$1" filter="$2" iter="$3" algo_coverage="${4:-}"
   local log="$RESULTS_DIR/${name}.log"
 
   echo
@@ -108,11 +131,13 @@ run_phase() {
   echo "  Phase: ${name}"
   echo "  Filter: ${filter}"
   echo "  GF_STRESS_ITER: ${iter}"
+  echo "  GF_RUN_ALGO_COVERAGE: ${algo_coverage:-<unset>}"
   echo "============================================================"
 
   GTEST_FILTER="$filter" \
   GTEST_OUTPUT="xml:${RESULTS_DIR}/${name}.xml" \
   GF_STRESS_ITER="$iter" \
+  GF_RUN_ALGO_COVERAGE="$algo_coverage" \
     "$BIN" -t 2>&1 | tee "$log"
 
   # Exit code is unreliable; decide from the GoogleTest summary.
@@ -153,7 +178,9 @@ declare -a phases=()
 
 case "$MODE" in
   custom)
-    run_phase "custom" "$CUSTOM_FILTER" "$STRESS_ITER" || overall_rc=1
+    # Enable the sweep so a custom -f filter can target the coverage tests; it
+    # is harmless for any other filter (non-sweep tests ignore the variable).
+    run_phase "custom" "$CUSTOM_FILTER" "$STRESS_ITER" "1" || overall_rc=1
     phases+=("custom")
     ;;
   unit)
@@ -161,12 +188,16 @@ case "$MODE" in
       run_rust_phase || overall_rc=1
       phases+=("rust")
     fi
-    run_phase "unit" '*-*Stress*' "$STRESS_ITER" || overall_rc=1
+    run_phase "unit" "*-*Stress*:${COVERAGE_FILTER}" "$STRESS_ITER" || overall_rc=1
     phases+=("unit")
     ;;
   stress)
     run_phase "stress" '*Stress*' "$STRESS_ITER" || overall_rc=1
     phases+=("stress")
+    ;;
+  coverage)
+    run_phase "coverage" "$COVERAGE_FILTER" "$STRESS_ITER" "1" || overall_rc=1
+    phases+=("coverage")
     ;;
   rust)
     run_rust_phase || overall_rc=1
@@ -177,10 +208,12 @@ case "$MODE" in
       run_rust_phase || overall_rc=1
       phases+=("rust")
     fi
-    run_phase "unit" '*-*Stress*' "$STRESS_ITER" || overall_rc=1
+    run_phase "unit" "*-*Stress*:${COVERAGE_FILTER}" "$STRESS_ITER" || overall_rc=1
     phases+=("unit")
     run_phase "stress" '*Stress*' "$STRESS_ITER" || overall_rc=1
     phases+=("stress")
+    run_phase "coverage" "$COVERAGE_FILTER" "$STRESS_ITER" "1" || overall_rc=1
+    phases+=("coverage")
     ;;
 esac
 
