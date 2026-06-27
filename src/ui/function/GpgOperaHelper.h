@@ -301,22 +301,32 @@ class GpgOperaHelper : QObject {
       -> OperaWaitingCb;
 
   /**
-   * @brief
+   * @brief Run a single operation behind a modal waiting dialog.
    *
-   * @param err
+   * @param parent parent widget
+   * @param title dialog title
+   * @param opera operation to run
+   * @param cancel_channel if >= 0, show a Cancel button that cancels the GPG
+   *        operation running on this channel; pass -1 (default) for a
+   *        non-cancelable operation
    */
   static void WaitForOpera(QWidget* parent, const QString& title,
-                           const OperaWaitingCb& opera);
+                           const OperaWaitingCb& opera,
+                           int cancel_channel = -1);
 
   /**
-   * @brief
+   * @brief Run multiple operations behind a modal waiting dialog.
    *
-   * @param parent
-   * @param title
-   * @param operas
+   * @param parent parent widget
+   * @param title dialog title
+   * @param operas operations to run
+   * @param cancel_channel if >= 0, show a Cancel button that cancels the GPG
+   *        operations running on this channel (the in-flight one is aborted and
+   *        any still queued are skipped); pass -1 (default) for non-cancelable
    */
   static void WaitForMultipleOperas(QWidget* parent, const QString& title,
-                                    const QContainer<OperaWaitingCb>& operas);
+                                    const QContainer<OperaWaitingCb>& operas,
+                                    int cancel_channel = -1);
 };
 
 }  // namespace GpgFrontend::UI

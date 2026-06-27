@@ -855,7 +855,8 @@ void MainWindow::slot_gpg_opera_buffer_show_helper(
 auto MainWindow::exec_operas_helper(
     const QString& task,
     const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
-  GpgOperaHelper::WaitForMultipleOperas(this, task, contexts->operas);
+  GpgOperaHelper::WaitForMultipleOperas(
+      this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
 
   bool all_success = !contexts->opera_results.empty();
 

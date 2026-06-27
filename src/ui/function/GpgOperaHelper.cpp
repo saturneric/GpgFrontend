@@ -39,6 +39,7 @@
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/dialog/WaitingDialog.h"
 
@@ -63,7 +64,8 @@ void StartFileHashComputation(const QString& path, HashCallback callback) {
                   while (!file.atEnd()) {
                     const QByteArray chunk = file.read(kBufferSize);
                     if (chunk.isEmpty()) break;
-                    update(chunk.constData(), static_cast<size_t>(chunk.size()));
+                    update(chunk.constData(),
+                           static_cast<size_t>(chunk.size()));
                   }
                 });
 
@@ -161,6 +163,15 @@ auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
             return;
           }
 
+          if (CheckGpgError(err) == GPG_ERR_CANCELED) {
+            GpgOpResultInfo info;
+            info.status = -1;
+            info.report = "# " + tr("Operation Cancelled");
+            opera_results.append(
+                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
+            return;
+          }
+
           if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
               !data_obj->Check<ResultType>()) {
             GpgOpResultInfo info;
@@ -212,6 +223,15 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
             GpgOpResultInfo info;
             info.status = -1;
             info.report = "# " + tr("Operation Not Supported");
+            opera_results.append(
+                GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
+            return;
+          }
+
+          if (CheckGpgError(err) == GPG_ERR_CANCELED) {
+            GpgOpResultInfo info;
+            info.status = -1;
+            info.report = "# " + tr("Operation Cancelled");
             opera_results.append(
                 GpgOperaResult{std::move(info), QFileInfo(path).fileName()});
             return;
@@ -276,6 +296,14 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
         return;
       }
 
+      if (CheckGpgError(err) == GPG_ERR_CANCELED) {
+        GpgOpResultInfo info;
+        info.status = -1;
+        info.report = "# " + tr("Operation Cancelled");
+        opera_results.append(GpgOperaResult{std::move(info)});
+        return;
+      }
+
       if (CheckGpgError(err) == GPG_ERR_USER_1 || data_obj == nullptr ||
           !data_obj->Check<ResultType, GFBuffer>()) {
         GpgOpResultInfo info;
@@ -325,6 +353,14 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
         GpgOpResultInfo info;
         info.status = -1;
         info.report = "# " + tr("Operation Not Supported");
+        opera_results.append(GpgOperaResult{std::move(info)});
+        return;
+      }
+
+      if (CheckGpgError(err) == GPG_ERR_CANCELED) {
+        GpgOpResultInfo info;
+        info.status = -1;
+        info.report = "# " + tr("Operation Cancelled");
         opera_results.append(GpgOperaResult{std::move(info)});
         return;
       }
@@ -554,13 +590,21 @@ auto GpgOperaHelper::BuildOperasArchiveDecryptVerify(
 
 void GpgOperaHelper::WaitForMultipleOperas(
     QWidget* parent, const QString& title,
-    const QContainer<OperaWaitingCb>& operas) {
+    const QContainer<OperaWaitingCb>& operas, int cancel_channel) {
   if (operas.isEmpty()) return;
+
+  // Clear any leftover cancellation request for this channel before starting
+  // the batch. Only cancelable operations carry a channel to reset.
+  if (cancel_channel >= 0) ResetGpgOperationCancelState(cancel_channel);
 
   QEventLoop looper;
   QPointer<WaitingDialog> const dialog =
-      new WaitingDialog(title, operas.size() > 1, parent);
+      new WaitingDialog(title, operas.size() > 1, parent, cancel_channel >= 0);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
+  if (cancel_channel >= 0) {
+    connect(dialog, &WaitingDialog::SignalCancelRequested, dialog,
+            [cancel_channel]() { RequestCancelGpgOperation(cancel_channel); });
+  }
   dialog->show();
 
   std::atomic<int> remaining_tasks(static_cast<int>(operas.size()));
@@ -662,12 +706,22 @@ auto GpgOperaHelper::BuildOperasDecryptVerify(
 }
 
 void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
-                                  const OperaWaitingCb& opera) {
+                                  const OperaWaitingCb& opera,
+                                  int cancel_channel) {
+  // Clear any leftover cancellation request for this channel before starting
+  // the operation. Only cancelable operations carry a channel to reset.
+  if (cancel_channel >= 0) ResetGpgOperationCancelState(cancel_channel);
+
   QEventLoop looper;
   QPointer<WaitingDialog> const dialog =
-      new WaitingDialog(title, false, parent);
+      new WaitingDialog(title, false, parent, cancel_channel >= 0);
 
   QObject::connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
+  if (cancel_channel >= 0) {
+    QObject::connect(
+        dialog, &WaitingDialog::SignalCancelRequested, dialog,
+        [cancel_channel]() { RequestCancelGpgOperation(cancel_channel); });
+  }
   dialog->show();
 
   QMetaObject::invokeMethod(

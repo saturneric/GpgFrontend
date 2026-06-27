@@ -108,11 +108,10 @@ void CleanupSafeOutputFiles(const QContainer<SafeOutputPath>& outputs) {
 auto IsFileOperaSuccessful(const QContainer<GpgOperaResult>& results) -> bool {
   if (results.empty()) return false;
 
-  return std::all_of(
-      results.cbegin(), results.cend(),
-      [](const GpgOperaResult& result) -> bool {
-        return result.op_info.status > 0;
-      });
+  return std::all_of(results.cbegin(), results.cend(),
+                     [](const GpgOperaResult& result) -> bool {
+                       return result.op_info.status > 0;
+                     });
 }
 
 auto PrepareSafeOutputPath(const QString& final_path,
@@ -153,7 +152,8 @@ void MainWindow::exec_file_operas_helper(
     const QString& task,
     const QSharedPointer<GpgOperaContextBasement>& contexts,
     const QContainer<SafeOutputPath>& safe_outputs) {
-  GpgOperaHelper::WaitForMultipleOperas(this, task, contexts->operas);
+  GpgOperaHelper::WaitForMultipleOperas(
+      this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
 
   const bool success = IsFileOperaSuccessful(contexts->opera_results);
 

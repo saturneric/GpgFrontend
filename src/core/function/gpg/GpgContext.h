@@ -72,6 +72,20 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
   [[nodiscard]] auto DefaultContext() const -> gpgme_ctx_t;
 
   /**
+   * @brief Create a fresh, fully-initialised armored OpenPGP context.
+   *
+   * The returned context is configured identically to DefaultContext() (same
+   * engine, homedir / key database, key-list mode, armor) but is NOT shared:
+   * the caller owns it and must gpgme_release() it. Intended for operations
+   * that may wedge and prove un-cancellable (e.g. interactive edit-key
+   * sessions), so a stuck operation can be abandoned without poisoning the
+   * shared default context.
+   *
+   * @return a new gpgme context, or nullptr on failure.
+   */
+  [[nodiscard]] auto CreateDisposableContext() -> gpgme_ctx_t;
+
+  /**
    * @brief
    *
    * @return true
@@ -86,6 +100,17 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
    * @return false
    */
   auto KillGpgAgent() -> bool;
+
+  /**
+   * @brief Asynchronously cancel the GPG operation currently running on this
+   * context, if any.
+   *
+   * Uses gpgme_cancel_async(), which is thread-safe and intended to be called
+   * from a thread other than the one blocked in the synchronous operation. The
+   * blocked gpgme_op_* call returns GPG_ERR_CANCELED. Cancels both the default
+   * (armored) and binary contexts; harmless no-op when nothing is running.
+   */
+  void CancelCurrentOperation();
 
   /**
    * @brief
@@ -121,6 +146,7 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
   gpgme_ctx_t binary_ctx_ref_ = nullptr;      ///<
   gpgme_ctx_t cms_ctx_ref_ = nullptr;         ///<
   gpgme_ctx_t cms_binary_ctx_ref_ = nullptr;  ///<
+  OpenPGPContextInitArgs init_args_{};  ///< args used to initialise this context
   std::mutex ctx_ref_lock_;
   std::mutex binary_ctx_ref_lock_;
   QString gpg_agent_path_;

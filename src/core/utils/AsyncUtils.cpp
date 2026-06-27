@@ -28,12 +28,42 @@
 
 #include "AsyncUtils.h"
 
+#include <mutex>
+#include <unordered_set>
+
+#include "core/GFCoreRust.h"
+#include "core/function/gpg/GpgContext.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/DataObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 
 namespace GpgFrontend {
+
+namespace {
+// Per-channel cancellation flags shared between the UI thread (which requests a
+// cancel) and the GPG runner thread (which checks before starting a queued
+// operation). Keyed by channel so that cancelling an operation on one channel
+// never disturbs an operation on another. A channel is present in the set only
+// while a cancel is pending for it.
+std::mutex g_gpg_cancel_mutex;
+std::unordered_set<int> g_gpg_cancelled_channels;
+
+void SetChannelCancelled(int channel, bool cancelled) {
+  std::lock_guard<std::mutex> lock(g_gpg_cancel_mutex);
+  if (cancelled) {
+    g_gpg_cancelled_channels.insert(channel);
+  } else {
+    g_gpg_cancelled_channels.erase(channel);
+  }
+}
+
+auto IsChannelCancelled(int channel) -> bool {
+  std::lock_guard<std::mutex> lock(g_gpg_cancel_mutex);
+  return g_gpg_cancelled_channels.count(channel) != 0;
+}
+}  // namespace
 
 auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
                       const GpgOperationCallback& callback,
@@ -53,7 +83,12 @@ auto RunGpgOperaAsync(int channel, const GpgOperaRunnable& runnable,
               operation,
               [=](const DataObjectPtr& data_object) -> int {
                 auto custom_data_object = TransferParams();
-                auto err = runnable(custom_data_object);
+                // Skip operations that are still queued when a cancel has been
+                // requested (e.g. remaining files in a batch after the user
+                // cancels the one in progress).
+                auto err = IsChannelCancelled(channel)
+                               ? static_cast<GpgError>(GPG_ERR_CANCELED)
+                               : runnable(custom_data_object);
                 data_object->Swap({err, custom_data_object});
                 return 0;
               },
@@ -139,5 +174,34 @@ auto RunOperaAsync(const OperaRunnable& runnable,
               TransferParams());
   handler.Start();
   return handler;
+}
+
+void RequestCancelGpgOperation(int channel) {
+  SetChannelCancelled(channel, true);
+
+#ifdef HAS_RUST_SUPPORT
+  // Abort an in-flight rPGP streaming operation on this channel at its next
+  // chunk read.
+  Rust::gfr_set_operation_cancelled(channel, true);
+#endif
+
+  // Abort an in-flight GnuPG (gpgme) operation on this channel's context. Only
+  // GnuPG channels use a GpgContext; for rPGP channels the cast yields nullptr
+  // and the Rust cancel flag above already covers cancellation.
+  if (auto* gpg_ctx =
+          dynamic_cast<GpgContext*>(&OpenPGPContext::GetInstance(channel))) {
+    gpg_ctx->CancelCurrentOperation();
+  }
+}
+
+void ResetGpgOperationCancelState(int channel) {
+  SetChannelCancelled(channel, false);
+#ifdef HAS_RUST_SUPPORT
+  Rust::gfr_set_operation_cancelled(channel, false);
+#endif
+}
+
+auto IsGpgOperationCancelRequested(int channel) -> bool {
+  return IsChannelCancelled(channel);
 }
 }  // namespace GpgFrontend

@@ -59,6 +59,36 @@ GpgContext::~GpgContext() {
   return ctx_ref_;
 }
 
+auto GpgContext::CreateDisposableContext() -> gpgme_ctx_t {
+  gpgme_ctx_t p_ctx = nullptr;
+  if (CheckGpgError(gpgme_new(&p_ctx)) != GPG_ERR_NO_ERROR) {
+    LOG_W() << "failed to create disposable gpg context";
+    return nullptr;
+  }
+  assert(p_ctx != nullptr);
+
+  // Run the exact same initialisation as default_ctx_initialize() so the
+  // disposable context is configured identically to DefaultContext(): same
+  // gpgconf/OpenPGP engine info, key database (homedir), key-list mode, offline
+  // flag, and armor. Only the ownership differs (the caller releases it).
+  if (!common_ctx_initialize(p_ctx, init_args_)) {
+    LOG_W() << "failed to initialise disposable gpg context";
+    gpgme_release(p_ctx);
+    return nullptr;
+  }
+
+  gpgme_set_armor(p_ctx, 1);
+  return p_ctx;
+}
+
+void GpgContext::CancelCurrentOperation() {
+  // gpgme_cancel_async() is documented as thread-safe and meant to be called
+  // while another thread is blocked in the synchronous operation. It returns an
+  // error when no operation is pending; that case is benign and ignored.
+  if (ctx_ref_ != nullptr) gpgme_cancel_async(ctx_ref_);
+  if (binary_ctx_ref_ != nullptr) gpgme_cancel_async(binary_ctx_ref_);
+}
+
 auto GpgContext::RestartGpgAgent() -> bool {
   if (agent_ != nullptr) {
     agent_ = SecureCreateSharedObject<GpgAgentProcess>(
@@ -104,6 +134,10 @@ auto GpgContext::init(const OpenPGPContextInitArgs& args) -> bool {
 
   assert(Engine() == OpenPGPEngine::kGNUPG);
   assert(KeyDBPath().isEmpty() == false);
+
+  // Remember the init args so CreateDisposableContext() can build additional
+  // contexts configured exactly like this one.
+  init_args_ = args;
 
   gpgconf_path_ = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{}),

@@ -103,4 +103,39 @@ auto GF_CORE_EXPORT RunOperaAsync(const OperaRunnable& runnable,
                                   const QString& operation)
     -> Thread::Task::TaskHandler;
 
+/**
+ * @brief Request cancellation of the GPG operation currently running on
+ * @p channel.
+ *
+ * Engine-agnostic: aborts an in-flight rPGP streaming operation (via the
+ * channel's Rust cancel flag) and an in-flight GnuPG operation (via
+ * gpgme_cancel_async). The cancelled operation completes through its normal
+ * callback path with GPG_ERR_CANCELED. Also marks any operations still queued
+ * on the GPG runner for this channel so that they are skipped rather than
+ * executed. Cancellation is per-channel: other channels are unaffected. Safe to
+ * call when nothing is running.
+ *
+ * @param channel OpenPGP context channel of the operation to cancel
+ */
+void GF_CORE_EXPORT RequestCancelGpgOperation(int channel);
+
+/**
+ * @brief Clear the cancellation flag for @p channel.
+ *
+ * Call before starting a new operation (or batch of operations) on a channel so
+ * that a previous cancellation request for it does not affect the new work.
+ *
+ * @param channel OpenPGP context channel whose cancellation state to clear
+ */
+void GF_CORE_EXPORT ResetGpgOperationCancelState(int channel);
+
+/**
+ * @brief Return whether a cancellation has been requested for @p channel and
+ * not yet reset.
+ *
+ * @param channel OpenPGP context channel to query
+ * @return true if cancellation is pending for the channel
+ */
+auto GF_CORE_EXPORT IsGpgOperationCancelRequested(int channel) -> bool;
+
 }  // namespace GpgFrontend

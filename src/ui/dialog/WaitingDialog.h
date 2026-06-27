@@ -43,10 +43,13 @@ class WaitingDialog : public GeneralDialog {
    * @brief Construct a new Waiting Dialog object
    *
    * @param title
+   * @param range whether the progress bar shows determinate progress
    * @param parent
+   * @param cancelable if true, show a Cancel button that emits
+   *        SignalCancelRequested when clicked
    */
   explicit WaitingDialog(const QString& title, bool range,
-                         QWidget* parent = nullptr);
+                         QWidget* parent = nullptr, bool cancelable = false);
 
  public slots:
 
@@ -55,6 +58,12 @@ class WaitingDialog : public GeneralDialog {
    *
    */
   void SlotUpdateValue(int value);
+
+  /**
+   * @brief Put the dialog into the "cancelling" state: disable the Cancel
+   * button and indicate that the request is being processed.
+   */
+  void SlotMarkCancelling();
 
  protected:
   /**
@@ -73,8 +82,14 @@ class WaitingDialog : public GeneralDialog {
    */
   void SignalUpdateValue(int value);
 
+  /**
+   * @brief Emitted when the user clicks the Cancel button.
+   */
+  void SignalCancelRequested();
+
  private:
   QProgressBar* pb_;
+  QPushButton* cancel_button_ = nullptr;
 };
 
 }  // namespace GpgFrontend::UI

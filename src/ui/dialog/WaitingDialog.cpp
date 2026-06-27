@@ -32,7 +32,8 @@
 
 namespace GpgFrontend::UI {
 
-WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent)
+WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent,
+                             bool cancelable)
     : GeneralDialog("WaitingDialog", parent), pb_(new QProgressBar()) {
   pb_->setRange(0, range ? 100 : 0);
   pb_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -40,6 +41,20 @@ WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent)
 
   auto* layout = new QVBoxLayout();
   layout->addWidget(pb_);
+
+  if (cancelable) {
+    cancel_button_ = new QPushButton(tr("Cancel"));
+    connect(cancel_button_, &QPushButton::clicked, this, [this]() {
+      SlotMarkCancelling();
+      emit SignalCancelRequested();
+    });
+
+    auto* button_layout = new QHBoxLayout();
+    button_layout->addStretch();
+    button_layout->addWidget(cancel_button_);
+    layout->addLayout(button_layout);
+  }
+
   this->setLayout(layout);
 
   this->setModal(true);
@@ -47,7 +62,7 @@ WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent)
                        Qt::CustomizeWindowHint);
   this->setWindowTitle(title);
   this->setAttribute(Qt::WA_DeleteOnClose);
-  this->setFixedSize(240, 42);
+  this->setFixedSize(240, cancelable ? 80 : 42);
 
   connect(this, &WaitingDialog::SignalUpdateValue, this,
           &WaitingDialog::SlotUpdateValue);
@@ -61,6 +76,12 @@ WaitingDialog::WaitingDialog(const QString& title, bool range, QWidget* parent)
 
 void WaitingDialog::SlotUpdateValue(int value) {
   if (pb_->maximum() > 0) pb_->setValue(value);
+}
+
+void WaitingDialog::SlotMarkCancelling() {
+  if (cancel_button_ == nullptr) return;
+  cancel_button_->setEnabled(false);
+  cancel_button_->setText(tr("Cancelling..."));
 }
 
 void WaitingDialog::showEvent(QShowEvent* event) {
