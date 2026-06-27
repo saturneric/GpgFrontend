@@ -26,14 +26,20 @@
  *
  */
 
+#include <atomic>
+#include <thread>
+
 #include "GpgCoreTest.h"
+#include "GpgFrontendTest.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
+#include "core/model/GFEngineSupportIf.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
 #include "core/model/GpgVerifyResult.h"
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::Test {
@@ -275,6 +281,125 @@ TEST_F(GpgCoreTest, CoreEncryptSignDecrVerifyTest) {
   ASSERT_FALSE(verify_reult.GetSignature().empty());
   ASSERT_EQ(verify_reult.GetSignature().at(0).GetFingerprint(),
             "8933EB283A18995F45D61DAC021D89771B680FFB");
+}
+
+// --- Per-channel operation cancellation (GnuPG) ----------------------------
+//
+// GnuPG cancels differently from rPGP: an in-flight gpgme operation is aborted
+// with gpgme_cancel_async() (GpgContext::CancelCurrentOperation), while an
+// operation still queued on the GPG task runner is skipped via the per-channel
+// cancel flag. The flag is per channel, so cancelling one channel must never
+// disturb another.
+
+// Requesting/resetting a cancel on the GnuPG channel toggles only that
+// channel's flag, and requesting it while nothing is running is benign
+// (exercises gpgme_cancel_async on an idle context).
+TEST_F(GpgCoreTest, GnuPgCancelStatePerChannelTest) {
+  ResetGpgOperationCancelState(kGpgChannelForUnitTest);
+  ResetGpgOperationCancelState(kRpgpChannelForUnitTest);
+  ASSERT_FALSE(IsGpgOperationCancelRequested(kGpgChannelForUnitTest));
+  ASSERT_FALSE(IsGpgOperationCancelRequested(kRpgpChannelForUnitTest));
+
+  // Safe to call when nothing is in flight; only the GnuPG channel is marked.
+  RequestCancelGpgOperation(kGpgChannelForUnitTest);
+  ASSERT_TRUE(IsGpgOperationCancelRequested(kGpgChannelForUnitTest));
+  ASSERT_FALSE(IsGpgOperationCancelRequested(kRpgpChannelForUnitTest));
+
+  ResetGpgOperationCancelState(kGpgChannelForUnitTest);
+  ASSERT_FALSE(IsGpgOperationCancelRequested(kGpgChannelForUnitTest));
+}
+
+// A cancel pending on a channel makes operations still queued on the GPG task
+// runner be skipped with GPG_ERR_CANCELED instead of executed; resetting the
+// flag restores normal execution. This is the path that drops the remaining
+// files of a batch after the user cancels the one in progress.
+TEST_F(GpgCoreTest, GnuPgQueuedOperationSkipTest) {
+  const EngineSupportList support_ifs{{OpenPGPEngine::kGNUPG, "2.0.0"}};
+
+  ResetGpgOperationCancelState(kGpgChannelForUnitTest);
+  RequestCancelGpgOperation(kGpgChannelForUnitTest);
+
+  std::atomic<bool> ran{false};
+  std::atomic<bool> done{false};
+  GpgError reported = GPG_ERR_NO_ERROR;
+
+  RunGpgOperaAsync(
+      kGpgChannelForUnitTest,
+      [&](const DataObjectPtr&) -> GpgError {
+        ran = true;
+        return static_cast<GpgError>(GPG_ERR_NO_ERROR);
+      },
+      [&](GpgError err, const DataObjectPtr&) {
+        reported = err;
+        done = true;
+      },
+      "test_cancelled_skip", support_ifs);
+
+  ASSERT_TRUE(WaitFor([&]() { return done.load(); }));
+  ASSERT_FALSE(ran.load());
+  ASSERT_EQ(CheckGpgError(reported), GPG_ERR_CANCELED);
+
+  // After resetting, the queued operation actually runs.
+  ResetGpgOperationCancelState(kGpgChannelForUnitTest);
+  ran = false;
+  done = false;
+  reported = static_cast<GpgError>(GPG_ERR_CANCELED);
+
+  RunGpgOperaAsync(
+      kGpgChannelForUnitTest,
+      [&](const DataObjectPtr&) -> GpgError {
+        ran = true;
+        return static_cast<GpgError>(GPG_ERR_NO_ERROR);
+      },
+      [&](GpgError err, const DataObjectPtr&) {
+        reported = err;
+        done = true;
+      },
+      "test_cancelled_run", support_ifs);
+
+  ASSERT_TRUE(WaitFor([&]() { return done.load(); }));
+  ASSERT_TRUE(ran.load());
+  ASSERT_EQ(CheckGpgError(reported), GPG_ERR_NO_ERROR);
+}
+
+// A GnuPG encryption already running is aborted in-flight when a cancel is
+// requested for its channel (gpgme_cancel_async), surfacing as
+// GPG_ERR_CANCELED.
+TEST_F(GpgCoreTest, GnuPgInflightEncryptCancelTest) {
+  auto encrypt_key = GpgKeyRepository::GetInstance().GetPubkeyPtr(
+      "E87C6A2D8D95C818DE93B3AE6A2764F8298DEB29");
+  ASSERT_TRUE(encrypt_key != nullptr);
+
+  // A large plaintext so the engine spends long enough inside the operation for
+  // a concurrent cancel to land mid-flight.
+  auto big = GFBuffer(GenerateRandomString(size_t{16} * 1024 * 1024));
+
+  ResetGpgOperationCancelState(kGpgChannelForUnitTest);
+
+  std::atomic<bool> done{false};
+  std::atomic<unsigned> result_code{GPG_ERR_NO_ERROR};
+
+  std::thread worker([&]() {
+    auto [err, data_object] = MessageCryptoOperation::GetInstance().EncryptSync(
+        {encrypt_key}, big, true);
+    result_code = CheckGpgError(err);
+    done = true;
+  });
+
+  // Keep requesting cancellation until the worker reports completion. WaitFor
+  // pumps the event loop and re-evaluates this predicate roughly every 20ms, so
+  // the cancel is repeatedly delivered while the encryption is in flight.
+  WaitFor(
+      [&]() {
+        RequestCancelGpgOperation(kGpgChannelForUnitTest);
+        return done.load();
+      },
+      30000);
+
+  worker.join();
+  ResetGpgOperationCancelState(kGpgChannelForUnitTest);
+
+  ASSERT_EQ(result_code.load(), static_cast<unsigned>(GPG_ERR_CANCELED));
 }
 
 }  // namespace GpgFrontend::Test
