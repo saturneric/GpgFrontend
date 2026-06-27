@@ -75,6 +75,39 @@ auto CreateLinkCard(const QString& title, const QString& description,
 
   return frame;
 }
+
+// A highlighted variant of the link card used to invite the user to star the
+// project on GitHub. It mirrors the plain link card but carries a GitHub-star
+// amber accent and a star glyph so it stands out as a call to action instead of
+// reading as just another documentation link.
+auto CreateStarCard(const QString& title, const QString& description,
+                    const QString& url) -> QFrame* {
+  auto* frame = new QFrame;
+  frame->setObjectName(QStringLiteral("WizardStarCard"));
+  frame->setFrameShape(QFrame::StyledPanel);
+  frame->setCursor(Qt::PointingHandCursor);
+  frame->setStyleSheet(
+      QStringLiteral("QFrame#WizardStarCard {"
+                     "  border: 1px solid #e3b341;"
+                     "  border-radius: 8px;"
+                     "}"));
+
+  auto* title_label = CreateBodyLabel(
+      QStringLiteral(
+          "<a href=\"%1\" style=\"text-decoration:none;\">&#9733; "
+          "<b>%2</b></a>")
+          .arg(url, title));
+
+  auto* desc_label = CreateMutedLabel(description);
+
+  auto* layout = new QVBoxLayout(frame);
+  layout->setContentsMargins(14, 10, 14, 10);
+  layout->setSpacing(4);
+  layout->addWidget(title_label);
+  layout->addWidget(desc_label);
+
+  return frame;
+}
 }  // namespace
 
 Wizard::Wizard(QWidget* parent) : QWizard(parent) {
@@ -136,6 +169,12 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
       tr("You can change language, update checking, key database, and "
          "appearance settings later from the application settings."));
 
+  auto* star_card = CreateStarCard(
+      tr("Star GpgFrontend on GitHub"),
+      tr("GpgFrontend is free and open source. A star helps more people "
+         "discover it and keeps the project moving forward."),
+      QStringLiteral("https://github.com/saturneric/GpgFrontend"));
+
   auto* overview_card = CreateLinkCard(
       tr("Open the overview page"),
       tr("Get a quick tour of the main features and common workflows."),
@@ -154,6 +193,7 @@ IntroPage::IntroPage(QWidget* parent) : QWizardPage(parent) {
   layout->addWidget(intro_label);
   layout->addWidget(privacy_label);
   layout->addSpacing(8);
+  layout->addWidget(star_card);
   layout->addWidget(overview_card);
   layout->addWidget(concepts_card);
   layout->addStretch();
