@@ -199,9 +199,14 @@ auto ExportKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys,
 
   char* out_armored_string = nullptr;
 
+  std::vector<QByteArray> null_terminated_blocks;
   std::vector<char*> key_block_ptrs;
+  null_terminated_blocks.reserve(key_blocks.size());
+  key_block_ptrs.reserve(key_blocks.size());
+
   for (const auto& block : key_blocks) {
-    key_block_ptrs.push_back(const_cast<char*>(block.Data()));
+    null_terminated_blocks.push_back(block.ConvertToQByteArray());
+    key_block_ptrs.push_back(null_terminated_blocks.back().data());
   }
 
   auto err =
