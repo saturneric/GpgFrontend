@@ -156,28 +156,38 @@ auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
                     AutomatonActionHandler action_handler, int flags,
                     int timeout_ms) -> std::tuple<GpgError, bool> {
   auto& g_ctx = GpgCtx(ctx_);
-  gpgme_ctx_t ctx = g_ctx.DefaultContext();
   gpgme_key_t p_key = key == nullptr ? nullptr : static_cast<gpgme_key_t>(*key);
 
   // Card edits may legitimately block for a long time (hardware / the user
-  // touching the card), so we keep the original synchronous, unbounded call.
+  // touching the card), so we keep the original synchronous, unbounded call on
+  // the shared default context.
   if (card_edit) {
     AutomatonHandelStruct handle(card_edit, fpr);
     handle.SetHandler(std::move(next_state_handler), std::move(action_handler));
 
     GpgData data_out;
-    auto err = gpgme_op_interact(ctx, p_key, flags, InteratorCbFunc,
-                                 static_cast<void*>(&handle), data_out);
+    auto err =
+        gpgme_op_interact(g_ctx.DefaultContext(), p_key, flags, InteratorCbFunc,
+                          static_cast<void*>(&handle), data_out);
     return {err, handle.Success()};
   }
 
-  // Key edits: run the interaction asynchronously and drive it ourselves so a
-  // gpgme operation that blocks internally (the callback never re-fires) can
-  // still be bounded by a wall-clock deadline instead of hanging the caller.
+  // Key edits run on their OWN disposable context, never the shared default
+  // one. The reason: a wedged gpgme_op_interact cannot always be cancelled (gpg
+  // blocked at a prompt produces no I/O for gpgme_cancel_async to act on). If
+  // that happens on the shared context, every later operation on this channel
+  // is poisoned. By isolating the interaction we can simply abandon the whole
+  // context on an un-cancellable timeout; the shared context stays pristine.
+  gpgme_ctx_t ctx = g_ctx.CreateDisposableContext();
+  if (ctx == nullptr) return {GPG_ERR_GENERAL, false};
+
+  // Run the interaction asynchronously and drive it ourselves so a gpgme
+  // operation that blocks internally (the callback never re-fires) is still
+  // bounded by a wall-clock deadline instead of hanging the caller.
   //
-  // The handle and output buffer are heap-owned: on the unhappy path we may
-  // have to cancel and, if the cancellation doesn't settle, abandon (leak) them
-  // rather than free memory the gpgme worker might still touch.
+  // The handle and output buffer are heap-owned: on the unhappy path we abandon
+  // (leak) them together with the context rather than free memory the gpgme
+  // worker might still touch.
   auto handle = std::make_unique<AutomatonHandelStruct>(card_edit, fpr);
   handle->SetHandler(std::move(next_state_handler), std::move(action_handler));
   auto data_out = std::make_unique<GpgData>();
@@ -185,7 +195,10 @@ auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
   auto err =
       gpgme_op_interact_start(ctx, p_key, flags, InteratorCbFunc,
                               static_cast<void*>(handle.get()), *data_out);
-  if (err != GPG_ERR_NO_ERROR) return {err, false};
+  if (err != GPG_ERR_NO_ERROR) {
+    gpgme_release(ctx);
+    return {err, false};
+  }
 
   // Measure real wall-clock elapsed, not poll iterations: a single gpgme_wait
   // (or a callback it invokes) can take a while, so counting iterations would
@@ -196,6 +209,7 @@ auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
     gpgme_error_t status = GPG_ERR_NO_ERROR;
     if (gpgme_wait(ctx, &status, 0) == ctx) {
       // Operation finished; status carries its result.
+      gpgme_release(ctx);
       return {status, handle->Success()};
     }
 
@@ -212,13 +226,14 @@ auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
           << "ms, cancelling...";
   gpgme_cancel_async(ctx);
 
-  // Drain the cancellation so the shared context returns to a usable state.
+  // Drain the cancellation so the disposable context can be released cleanly.
   const auto drain_deadline = std::chrono::steady_clock::now() +
                               std::chrono::milliseconds(kInteractCancelDrainMs);
   for (;;) {
     gpgme_error_t status = GPG_ERR_NO_ERROR;
     if (gpgme_wait(ctx, &status, 0) == ctx) {
-      // Cancellation settled; safe to let the buffers free normally.
+      // Cancellation settled; the context is idle again, free everything.
+      gpgme_release(ctx);
       return {GPG_ERR_TIMEOUT, false};
     }
 
@@ -228,10 +243,12 @@ auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
         std::chrono::milliseconds(kInteractPollIntervalMs));
   }
 
-  // The operation refused to cancel in time. Abandon the buffers so the gpgme
-  // worker can't dereference freed memory; a small one-off leak beats a crash.
+  // The operation refused to cancel in time. Abandon the disposable context and
+  // its buffers so the still-running gpgme worker can't dereference freed
+  // memory. This leaks one context + a stuck gpg child, but the shared default
+  // context is untouched, so the rest of the channel keeps working.
   LOG_E() << "gpg interaction did not cancel within" << kInteractCancelDrainMs
-          << "ms; abandoning handle to avoid use-after-free";
+          << "ms; abandoning disposable context to avoid use-after-free";
   [[maybe_unused]] auto* leaked_handle = handle.release();
   [[maybe_unused]] auto* leaked_data = data_out.release();
   return {GPG_ERR_TIMEOUT, false};
