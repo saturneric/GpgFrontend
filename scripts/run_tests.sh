@@ -11,11 +11,17 @@
 #   2. `gpgfrontend -t` exits 0 even when tests fail, so success/failure is
 #      determined by parsing the GoogleTest summary, not the process exit code.
 #
+# The pure-Rust engine logic is covered by `cargo test` in rust/ and is run as
+# an additional "rust" phase (in the default and --unit-only modes), so a single
+# invocation exercises both the C++/FFI suite and the Rust unit tests.
+#
 # Usage: scripts/run_tests.sh [options]
 #   -b, --build            Build the gpgfrontend target before running
 #       --no-build         Never build (fail if the binary is missing)
 #       --unit-only        Run only unit tests (excludes *Stress* tests)
 #       --stress-only      Run only the *Stress* tests
+#       --rust-only        Run only the Rust (cargo test) phase
+#       --no-rust          Skip the Rust phase
 #   -i, --stress-iter N    Iterations per stress test    (default: 1000)
 #   -f, --filter PATTERN   Run a single GTEST_FILTER and nothing else
 #       --build-dir DIR    CMake build directory          (default: build)
@@ -26,6 +32,7 @@
 #   scripts/run_tests.sh --build
 #   scripts/run_tests.sh --stress-only --stress-iter 10000
 #   scripts/run_tests.sh --filter '*GpgCoreEngineTest*'
+#   scripts/run_tests.sh --rust-only
 
 set -uo pipefail
 
@@ -33,7 +40,8 @@ set -uo pipefail
 BUILD_DIR="${BUILD_DIR:-build}"
 STRESS_ITER="${GF_STRESS_ITER:-1000}"
 DO_BUILD="auto"   # auto | yes | no
-MODE="all"        # all | unit | stress | custom
+MODE="all"        # all | unit | stress | custom | rust
+RUN_RUST="auto"   # auto | no  (auto = include rust in all/unit modes)
 CUSTOM_FILTER=""
 JOBS="$(nproc 2>/dev/null || echo 4)"
 
@@ -48,6 +56,8 @@ while [[ $# -gt 0 ]]; do
     --no-build)       DO_BUILD="no" ;;
     --unit-only)      MODE="unit" ;;
     --stress-only)    MODE="stress" ;;
+    --rust-only)      MODE="rust" ;;
+    --no-rust)        RUN_RUST="no" ;;
     -i|--stress-iter) STRESS_ITER="${2:?missing value for $1}"; shift ;;
     -f|--filter)      MODE="custom"; CUSTOM_FILTER="${2:?missing value for $1}"; shift ;;
     --build-dir)      BUILD_DIR="${2:?missing value for $1}"; shift ;;
@@ -64,17 +74,22 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 BIN="$BUILD_DIR/artifacts/gpgfrontend"
+RUST_DIR="$REPO_ROOT/rust"
 
-if [[ "$DO_BUILD" == "yes" || ( "$DO_BUILD" == "auto" && ! -x "$BIN" ) ]]; then
-  echo "==> Building gpgfrontend ($BUILD_DIR, -j$JOBS)"
-  cmake --build "$BUILD_DIR" --target gpgfrontend -j"$JOBS" || {
-    echo "error: build failed" >&2; exit 1; }
-fi
+# The Rust phase is driven by cargo and needs neither the C++ binary nor a
+# CMake build, so skip all gpgfrontend build/lookup work in --rust-only mode.
+if [[ "$MODE" != "rust" ]]; then
+  if [[ "$DO_BUILD" == "yes" || ( "$DO_BUILD" == "auto" && ! -x "$BIN" ) ]]; then
+    echo "==> Building gpgfrontend ($BUILD_DIR, -j$JOBS)"
+    cmake --build "$BUILD_DIR" --target gpgfrontend -j"$JOBS" || {
+      echo "error: build failed" >&2; exit 1; }
+  fi
 
-if [[ ! -x "$BIN" ]]; then
-  echo "error: test binary not found: $BIN" >&2
-  echo "       run with --build, or build the 'gpgfrontend' target first." >&2
-  exit 1
+  if [[ ! -x "$BIN" ]]; then
+    echo "error: test binary not found: $BIN" >&2
+    echo "       run with --build, or build the 'gpgfrontend' target first." >&2
+    exit 1
+  fi
 fi
 
 RESULTS_DIR="$BUILD_DIR/test-results"
@@ -111,6 +126,27 @@ run_phase() {
   return 0
 }
 
+# --- rust phase runner -----------------------------------------------------
+# Runs the pure-Rust unit tests via `cargo test`. Unlike `gpgfrontend -t`,
+# cargo's exit code is authoritative, so it (not log parsing) decides the result.
+run_rust_phase() {
+  local log="$RESULTS_DIR/rust.log"
+
+  echo
+  echo "============================================================"
+  echo "  Phase: rust"
+  echo "  Runner: cargo test (${RUST_DIR})"
+  echo "============================================================"
+
+  if ! command -v cargo >/dev/null 2>&1; then
+    echo "warning: cargo not found; skipping rust phase" | tee "$log" >&2
+    return 0
+  fi
+
+  ( cd "$RUST_DIR" && cargo test ) 2>&1 | tee "$log"
+  return "${PIPESTATUS[0]}"
+}
+
 # --- run requested phases --------------------------------------------------
 overall_rc=0
 declare -a phases=()
@@ -121,6 +157,10 @@ case "$MODE" in
     phases+=("custom")
     ;;
   unit)
+    if [[ "$RUN_RUST" != "no" ]]; then
+      run_rust_phase || overall_rc=1
+      phases+=("rust")
+    fi
     run_phase "unit" '*-*Stress*' "$STRESS_ITER" || overall_rc=1
     phases+=("unit")
     ;;
@@ -128,7 +168,15 @@ case "$MODE" in
     run_phase "stress" '*Stress*' "$STRESS_ITER" || overall_rc=1
     phases+=("stress")
     ;;
+  rust)
+    run_rust_phase || overall_rc=1
+    phases+=("rust")
+    ;;
   all)
+    if [[ "$RUN_RUST" != "no" ]]; then
+      run_rust_phase || overall_rc=1
+      phases+=("rust")
+    fi
     run_phase "unit" '*-*Stress*' "$STRESS_ITER" || overall_rc=1
     phases+=("unit")
     run_phase "stress" '*Stress*' "$STRESS_ITER" || overall_rc=1
@@ -143,9 +191,17 @@ echo "  Summary"
 echo "============================================================"
 for p in "${phases[@]}"; do
   log="$RESULTS_DIR/${p}.log"
-  passed="$(grep -oE '\[  PASSED  \] [0-9]+ test' "$log" | grep -oE '[0-9]+' | head -1)"
-  failed="$(grep -oE '\[  FAILED  \] [0-9]+ test' "$log" | grep -oE '[0-9]+' | head -1)"
-  skipped="$(grep -oE '\[  SKIPPED \] [0-9]+ test' "$log" | grep -oE '[0-9]+' | head -1)"
+  if [[ "$p" == "rust" ]]; then
+    # cargo emits one "test result: ok. N passed; M failed; K ignored; ..."
+    # line per test binary (lib, integration, doc); sum across all of them.
+    passed="$(grep -oE '[0-9]+ passed' "$log" | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}')"
+    failed="$(grep -oE '[0-9]+ failed' "$log" | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}')"
+    skipped="$(grep -oE '[0-9]+ ignored' "$log" | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}')"
+  else
+    passed="$(grep -oE '\[  PASSED  \] [0-9]+ test' "$log" | grep -oE '[0-9]+' | head -1)"
+    failed="$(grep -oE '\[  FAILED  \] [0-9]+ test' "$log" | grep -oE '[0-9]+' | head -1)"
+    skipped="$(grep -oE '\[  SKIPPED \] [0-9]+ test' "$log" | grep -oE '[0-9]+' | head -1)"
+  fi
   printf '  %-8s passed=%-4s failed=%-4s skipped=%-4s  (%s)\n' \
     "$p" "${passed:-0}" "${failed:-0}" "${skipped:-0}" "$log"
 done
