@@ -253,6 +253,66 @@ TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
   KeyManagementOperation::GetInstance().DeleteKey(key);
 }
 
+// Verifies a timed-out key-edit interaction does not block later edits on the
+// same channel -- the regression guard for the CI cascade where a stuck edit's
+// keyring lock blocked every subsequent edit.
+//
+// The handler keeps gpg busy past the watchdog deadline; the watchdog cancels
+// the interaction (tearing down its disposable context and the gpg child, which
+// frees the lock), then a real edit op run afterwards must succeed.
+//
+// NB: a sleeping handler is always cancellable, so this exercises the clean
+// cancel path, not the un-cancellable gpgme_release()-on-abandon path. That
+// path only triggers for a genuinely wedged gpgme operation, which cannot be
+// reproduced deterministically here.
+TEST_F(GpgCoreTest, CoreAutomatonTimeoutDoesNotBlockNextEditA) {
+  auto info = KeyImportExportOperation::GetInstance().ImportKey(
+      GFBuffer(QString::fromLatin1(test_private_key_data)));
+  ASSERT_EQ(info->imported, 1);
+
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                 .GetKeyPtr("822D7E13F5B85D7D");
+  ASSERT_TRUE(key->IsGood());
+
+  GpgAutomatonHandler::AutomatonNextStateHandler hang_next_state =
+      [](AutomatonState, const QString&, const QString&) {
+        return GpgAutomatonHandler::kAS_COMMAND;
+      };
+  // Sleep longer than the 1s cancel-drain so cancellation never settles and the
+  // watchdog has to abandon + release the context.
+  GpgAutomatonHandler::AutomatonActionHandler hang_action =
+      [](AutomatonHandelStruct&, AutomatonState) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+        return QString("list");
+      };
+
+  // Tiny watchdog timeout forces the abandon path; expect a timeout result.
+  auto stuck = RunWithin(
+      [&]() {
+        auto [err, succ] =
+            GpgAutomatonHandler::GetInstance(kGpgChannelForUnitTest)
+                .DoInteract(key, hang_next_state, hang_action, 0, 200);
+        return !succ && err == static_cast<GpgError>(GPG_ERR_TIMEOUT);
+      },
+      15000);
+  ASSERT_EQ(stuck, std::make_optional(true));
+
+  // The stuck gpg child was killed, so its keyring lock is gone: a real edit op
+  // must now succeed promptly.
+  auto ok = RunWithin(
+      [&]() {
+        return KeyManagementOperation::GetInstance(kGpgChannelForUnitTest)
+            .SetOwnerTrustLevel(key, 1);
+      },
+      10000);
+  ASSERT_EQ(ok, std::make_optional(true));
+
+  GpgKeyRepository::GetInstance().FlushKeyCache();
+  key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+            .GetKeyPtr("822D7E13F5B85D7D");
+  if (key != nullptr) KeyManagementOperation::GetInstance().DeleteKey(key);
+}
+
 // Verifies the in-callback no-progress guard (AutomatonHandelStruct::Stuck()):
 // a handler that always replies with an invalid command makes GnuPG re-issue
 // the same prompt forever. The handler must detect the livelock and abort with

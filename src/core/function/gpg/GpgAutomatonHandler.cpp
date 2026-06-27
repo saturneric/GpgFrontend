@@ -142,8 +142,20 @@ auto InteratorCbFunc(void* handle, const char* status, const char* args, int fd)
     auto btye_array = cmd.toUtf8();
     gpgme_io_write(fd, btye_array, btye_array.size());
     gpgme_io_write(fd, "\n", 1);
+  } else if (status_s == "GET_LINE" &&
+             (args_s == "keyedit.prompt" || args_s == "cardedit.prompt")) {
+    // gpg is parked at the top-level edit menu and our state machine produced
+    // no command. Returning GPG_ERR_FALSE would let gpgme inject a default
+    // empty line, which just re-displays the menu and can livelock until
+    // Stuck() trips. At this menu "quit" is always valid, so drive gpg out
+    // cleanly instead -- it prevents the interaction from stalling here in the
+    // first place.
+    LOG_W() << "no command for" << args_s
+            << "- sending quit to leave edit menu";
+    gpgme_io_write(fd, "quit\n", 5);
   } else if (status_s.startsWith("GET_")) {
-    // avoid trapping in this state
+    // Some other prompt we have no answer for: fall back to gpgme's default
+    // handling rather than guessing an (possibly invalid) response.
     return GPG_ERR_FALSE;
   }
 
@@ -173,11 +185,13 @@ auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
   }
 
   // Key edits run on their OWN disposable context, never the shared default
-  // one. The reason: a wedged gpgme_op_interact cannot always be cancelled (gpg
-  // blocked at a prompt produces no I/O for gpgme_cancel_async to act on). If
-  // that happens on the shared context, every later operation on this channel
-  // is poisoned. By isolating the interaction we can simply abandon the whole
-  // context on an un-cancellable timeout; the shared context stays pristine.
+  // one. The reason: a wedged gpgme_op_interact cannot always be cancelled.
+  // Synchronous gpgme_cancel (see below) reaps the common case, but if even its
+  // channel teardown fails to wake a sufficiently stuck gpg, we must abandon
+  // the whole context. If that happened on the shared context, every later
+  // operation on this channel would be poisoned. By isolating the interaction
+  // we can discard the context on an un-cancellable timeout; the shared one
+  // stays pristine.
   gpgme_ctx_t ctx = g_ctx.CreateDisposableContext();
   if (ctx == nullptr) return {GPG_ERR_GENERAL, false};
 
@@ -224,9 +238,19 @@ auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
                              .count();
   LOG_W() << "gpg key interaction timed out after" << waited_ms
           << "ms, cancelling...";
-  gpgme_cancel_async(ctx);
+
+  // Use the SYNCHRONOUS gpgme_cancel here, not gpgme_cancel_async. Async cancel
+  // only takes effect "the next time I/O occurs in the context" -- but a wedged
+  // gpg is blocked at a prompt producing no I/O, so async cancel can never
+  // fire. Synchronous cancel takes effect immediately by tearing down gpg's I/O
+  // channels; closing the command/stdin pipe sends EOF to gpg, waking a process
+  // blocked in read() so it exits and frees its keyring lock. We are not inside
+  // gpgme_wait at this point (the poll loop above has exited), which the manual
+  // requires for gpgme_cancel on the global event loop.
+  gpgme_cancel(ctx);
 
   // Drain the cancellation so the disposable context can be released cleanly.
+  // After a synchronous cancel this normally settles on the first poll.
   const auto drain_deadline = std::chrono::steady_clock::now() +
                               std::chrono::milliseconds(kInteractCancelDrainMs);
   for (;;) {
@@ -243,14 +267,21 @@ auto DoInteractImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key, bool card_edit,
         std::chrono::milliseconds(kInteractPollIntervalMs));
   }
 
-  // The operation refused to cancel in time. Abandon the disposable context and
-  // its buffers so the still-running gpgme worker can't dereference freed
-  // memory. This leaks one context + a stuck gpg child, but the shared default
-  // context is untouched, so the rest of the channel keeps working.
+  // The operation refused to cancel within the drain window: gpg is wedged and
+  // still holding its keyring lock, which would block every later edit on this
+  // channel (gpg serialises edit sessions at the process level, below gpgme).
+  // Release the disposable context to tear down the engine and kill the stuck
+  // gpg child, freeing that lock. This is safe precisely because the context is
+  // disposable -- the shared default context is never touched.
+  //
+  // The handle/data buffers are leaked (ownership released, memory kept alive)
+  // rather than freed, in case gpgme_release() drives the callback one last
+  // time during teardown: a small one-off leak beats a use-after-free.
   LOG_E() << "gpg interaction did not cancel within" << kInteractCancelDrainMs
-          << "ms; abandoning disposable context to avoid use-after-free";
+          << "ms; releasing disposable context to kill the stuck gpg child";
   [[maybe_unused]] auto* leaked_handle = handle.release();
   [[maybe_unused]] auto* leaked_data = data_out.release();
+  gpgme_release(ctx);
   return {GPG_ERR_TIMEOUT, false};
 }
 
