@@ -162,6 +162,28 @@ auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool {
   return succ;
 }
 
+auto ReplaceKeyInDatabaseRpgp(int channel, const GFBuffer& in_buffer) -> bool {
+  if (in_buffer.Empty()) {
+    LOG_E() << "cannot replace key with an empty key block";
+    return false;
+  }
+
+  auto gf_keys = GetGFKeysFromKeyBlock(in_buffer);
+  if (gf_keys.empty()) {
+    LOG_E() << "failed to extract any keys from the provided key block";
+    return false;
+  }
+
+  bool ok = true;
+  for (const auto& gf_key : gf_keys) {
+    if (!CreateOrUpdateGFKeyInDatabase(channel, gf_key)) {
+      LOG_E() << "failed to replace key with fpr: " << gf_key.metadata.fpr;
+      ok = false;
+    }
+  }
+  return ok;
+}
+
 auto GetKeyByKeyIdsForDecryption(GFKeyDatabase& key_db,
                                  const QStringList& key_ids)
     -> std::optional<GFKey> {

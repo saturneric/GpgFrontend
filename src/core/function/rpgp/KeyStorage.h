@@ -58,6 +58,21 @@ auto GetGFKeysFromKeyBlock(const GFBuffer& buffer) -> QContainer<GFKey>;
 auto CreateOrUpdateGFKeyInDatabase(int channel, const GFKey& key) -> bool;
 
 /**
+ * @brief Replace the key(s) parsed from @p in_buffer in the database.
+ *
+ * Unlike ImportKeyRpgpImpl(), this does NOT merge with the existing key — the
+ * parsed key block overwrites the stored entry verbatim. Use this for in-place
+ * mutations (delete/revoke UID, set primary UID) where the new block already
+ * represents the complete, desired final state and a merge would resurrect
+ * removed data.
+ *
+ * @param channel OpenPGP context channel
+ * @param in_buffer armored key block to store
+ * @return true if all parsed keys were saved successfully
+ */
+auto ReplaceKeyInDatabaseRpgp(int channel, const GFBuffer& in_buffer) -> bool;
+
+/**
  * @brief Get the Key By Key Ids For Decryption object
  *
  * @param key_db
