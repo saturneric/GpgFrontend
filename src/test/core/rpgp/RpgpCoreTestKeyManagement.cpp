@@ -28,8 +28,11 @@
 
 #include "RpgpCoreTest.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
+#include "core/model/GpgGenerateKeyResult.h"
+#include "core/model/GpgKeyGenerateInfo.h"
 #include "core/utils/GpgUtils.h"
 
 static const char* test_private_key_data = R"(
@@ -147,6 +150,55 @@ TEST_F(RpgpCoreTest, CoreRevokeSubkeyTest) {
   s_keys = key->SubKeys();
   ASSERT_GE(s_keys.size(), 2);
   ASSERT_TRUE(s_keys[1].IsRevoked());
+}
+
+namespace {
+// Generate an Ed25519 primary key on the rPGP channel with the requested key
+// format version and return the imported key, or nullptr on failure.
+auto GenerateRpgpKeyWithVersion(int version, const QString& email)
+    -> GpgKeyPtr {
+  auto info = QSharedPointer<KeyGenerateInfo>::create();
+  info->SetName("version_probe");
+  info->SetEmail(email);
+
+  auto [found, algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("ed25519");
+  if (!found) return nullptr;
+  info->SetAlgo(algo);
+
+  info->SetNonExpired(true);
+  info->SetNonPassPhrase(true);
+  info->SetKeyVersion(version);
+
+  auto [err, data_object] =
+      KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
+          .GenerateKeySync(info);
+
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return nullptr;
+  if (data_object->GetObjectSize() < 1) return nullptr;
+
+  auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+  if (!result.IsGood() || result.GetFingerprint().isEmpty()) return nullptr;
+
+  GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
+  return GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+      .GetKeyPtr(result.GetFingerprint());
+}
+}  // namespace
+
+TEST_F(RpgpCoreTest, GenerateV4KeyTest) {
+  auto key = GenerateRpgpKeyWithVersion(4, "v4@gpgfrontend.bktus.com");
+  ASSERT_TRUE(key != nullptr);
+  EXPECT_EQ(key->KeyVersion(), 4);
+
+  KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
+}
+
+TEST_F(RpgpCoreTest, GenerateV6KeyTest) {
+  auto key = GenerateRpgpKeyWithVersion(6, "v6@gpgfrontend.bktus.com");
+  ASSERT_TRUE(key != nullptr);
+  EXPECT_EQ(key->KeyVersion(), 6);
+
+  KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
 }
 
 }  // namespace GpgFrontend::Test
