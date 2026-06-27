@@ -92,15 +92,21 @@ class KeyPairDetailTab : public QWidget {
   QLabel* usage_var_label_;
   QLabel* primary_key_exist_var_label_;
   QLabel* owner_trust_var_label_;
+  QLabel* key_version_var_label_;  ///< Label containing the OpenPGP key format
+                                   ///< version (e.g. v4, v6)
 
   QLabel* icon_label_;  ///<
   QLabel* exp_label_;   ///<
 
   bool expire_supported_ = true;
   bool owner_trust_supported_ = true;
+  bool key_version_supported_ = true;  ///< Whether the engine reports the key
+                                       ///< format version (rPGP does, GnuPG
+                                       ///< does not)
 
   QLabel* owner_trust_title_label_ = nullptr;
   QLabel* expire_title_label_ = nullptr;
+  QLabel* key_version_title_label_ = nullptr;
 
  public:
   /**

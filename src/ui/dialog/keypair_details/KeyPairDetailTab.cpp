@@ -49,6 +49,10 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   expire_supported_ =
       IsOpSupported<SetExpireOpTag>(current_gpg_context_channel_);
 
+  // the key format version is only reported by engines that parse the key
+  // packet (rPGP); GnuPG/GPGME does not expose it, so KeyVersion() returns 0.
+  key_version_supported_ = key_->KeyVersion() > 0;
+
   owner_box_ = new QGroupBox(tr("Owner"));
   key_box_ = new QGroupBox(tr("Primary Key"));
   fingerprint_box_ = new QGroupBox(tr("Fingerprint"));
@@ -75,6 +79,7 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   last_update_var_label_ = new QLabel();
   algorithm_var_label_ = new QLabel();
   algorithm_detail_var_label_ = new QLabel();
+  key_version_var_label_ = new QLabel();
   primary_key_exist_var_label_ = new QLabel();
 
   auto* mvbox = new QVBoxLayout();
@@ -122,6 +127,15 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   vbox_kd->addWidget(add_title_label(tr("Algorithm Detail")), key_row, 0);
   vbox_kd->addWidget(algorithm_detail_var_label_, key_row, 1, 1, 2);
   ++key_row;
+
+  if (key_version_supported_) {
+    key_version_title_label_ = add_title_label(tr("Key Format Version"));
+    vbox_kd->addWidget(key_version_title_label_, key_row, 0);
+    vbox_kd->addWidget(key_version_var_label_, key_row, 1, 1, 2);
+    ++key_row;
+  } else {
+    key_version_var_label_->hide();
+  }
 
   vbox_kd->addWidget(add_title_label(tr("Key Size")), key_row, 0);
   vbox_kd->addWidget(key_size_var_label_, key_row, 1, 1, 2);
@@ -270,6 +284,12 @@ void KeyPairDetailTab::slot_refresh_key_info() {
     owner_trust_var_label_->setText(key_->OwnerTrust());
   } else {
     owner_trust_var_label_->clear();
+  }
+
+  if (key_version_supported_) {
+    key_version_var_label_->setText(QString("v%1").arg(key_->KeyVersion()));
+  } else {
+    key_version_var_label_->clear();
   }
 
   QString key_size_val;
