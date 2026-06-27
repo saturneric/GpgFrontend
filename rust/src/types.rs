@@ -257,6 +257,11 @@ pub struct GfrKeyConfig {
     pub can_auth: bool,
     /// Whether the generated key should be protected by a passphrase.
     pub has_passphrase: bool,
+    /// Requested OpenPGP key format version for the primary key. `Unknown`
+    /// means "let the engine decide" (currently v4). Post-quantum algorithms
+    /// always force v6 regardless of this field. Ignored on subkey configs,
+    /// which inherit the primary key's version.
+    pub ver: GfrOpenPGPKeyVersion,
 }
 
 /// Output of a successful key generation operation.

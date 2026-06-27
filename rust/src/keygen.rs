@@ -35,7 +35,7 @@
 use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::IntoGfrResult,
-    types::{GfrKeyAlgo, GfrKeyConfig, GfrPasswordFetchCb, GfrStatus},
+    types::{GfrKeyAlgo, GfrKeyConfig, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrStatus},
     utils::{
         PassphraseStateInternal, check_if_should_use_key_ver_v6, fetch_password_with_cache,
         password_from_zeroizing_bytes, resolve_key_type,
@@ -66,9 +66,11 @@ pub struct GeneratedKeys {
 
 /// Build a `SignedSecretKey` from a primary key config and a list of subkey configs.
 ///
-/// Forces OpenPGP v6 format when any key uses a post-quantum hybrid algorithm.
-/// For v6 keys, `CV25519` is mapped to `X25519` and `ED25519` to `Ed25519` per
-/// the v6 key type naming convention in the rPGP crate.
+/// Honors the caller's requested key format (`key_config.ver`), but always
+/// forces OpenPGP v6 when any key uses a post-quantum hybrid algorithm, which is
+/// only defined for v6. For v6 keys, `CV25519` is mapped to `X25519` and
+/// `ED25519` to `Ed25519` per the v6 key type naming convention in the rPGP
+/// crate.
 pub fn keygen_dynamic(
     uid: &str,
     key_config: &GfrKeyConfig,
@@ -77,11 +79,16 @@ pub fn keygen_dynamic(
     let primary_type = resolve_key_type(&key_config.algo, false)?;
     let mut subkeys = Vec::new();
 
-    let use_v6 = check_if_should_use_key_ver_v6(key_config, s_key_configs);
-    if use_v6 {
+    // Post-quantum hybrids mandate v6; otherwise respect the caller's explicit
+    // request, defaulting to v4 when unspecified (`Unknown`) for interoperability.
+    let pqc_forces_v6 = check_if_should_use_key_ver_v6(key_config, s_key_configs);
+    let use_v6 = pqc_forces_v6 || key_config.ver == GfrOpenPGPKeyVersion::V6;
+    if pqc_forces_v6 {
         log::info!(
             "Using V6 key version for generation due to presence of post-quantum hybrid algorithm."
         );
+    } else if use_v6 {
+        log::info!("Using V6 key version for generation as requested by caller.");
     }
 
     for config in s_key_configs {
