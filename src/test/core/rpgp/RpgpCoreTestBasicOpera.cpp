@@ -26,6 +26,8 @@
  *
  */
 
+#include <algorithm>
+
 #include "RpgpCoreTest.h"
 #include "core/GFCoreRust.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
@@ -36,6 +38,7 @@
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/RustUtils.h"
 
 namespace GpgFrontend::Test {
 
@@ -385,6 +388,26 @@ TEST_F(RpgpCoreTest, CoreEncryptCancelOtherChannelTest) {
 #ifdef HAS_RUST_SUPPORT
   GpgFrontend::Rust::gfr_set_operation_cancelled(other_channel, false);
 #endif
+}
+
+TEST_F(RpgpCoreTest, EngineBuildInfoTest) {
+  const auto info = RustEngineBuildInfo();
+
+  // The engine version is reported (resolved inside gf_core, which is built
+  // with Rust support regardless of the test target's own definitions).
+  EXPECT_FALSE(info.engine_version.isEmpty());
+
+  // Build environment details are captured at compile time.
+  EXPECT_FALSE(info.rustc_version.isEmpty());
+
+  // The rPGP crate (pgp) must be present among the tracked dependencies.
+  EXPECT_FALSE(info.dependencies.isEmpty());
+  const bool has_pgp =
+      std::any_of(info.dependencies.cbegin(), info.dependencies.cend(),
+                  [](const auto& dep) {
+                    return dep.first == "pgp" && !dep.second.isEmpty();
+                  });
+  EXPECT_TRUE(has_pgp);
 }
 
 }  // namespace GpgFrontend::Test

@@ -56,6 +56,44 @@ void SetRpgpPasswordCacheTtl(uint64_t ttl_secs, uint64_t max_ttl_secs) {
 #endif
 }
 
+auto GF_CORE_EXPORT RustEngineBuildInfo() -> RpgpEngineInfo {
+  RpgpEngineInfo info;
+
+#ifdef HAS_RUST_SUPPORT
+  char* c_str = Rust::gfr_rust_engine_build_info();
+  if (c_str == nullptr) {
+    LOG_E() << "Failed to get Rust engine build info.";
+    return info;
+  }
+
+  auto raw = QString::fromUtf8(c_str);
+  Rust::gfr_crypto_free_string(c_str);
+
+  const auto lines = raw.split('\n', Qt::SkipEmptyParts);
+  for (const auto& line : lines) {
+    const auto sep = line.indexOf('\t');
+    if (sep < 0) continue;
+
+    const auto key = line.left(sep);
+    const auto value = line.mid(sep + 1);
+
+    if (key == "engine") {
+      info.engine_version = value;
+    } else if (key == "rustc") {
+      info.rustc_version = value;
+    } else if (key == "target") {
+      info.target = value;
+    } else if (key == "profile") {
+      info.profile = value;
+    } else if (key.startsWith("dep:")) {
+      info.dependencies.append({key.mid(4), value});
+    }
+  }
+#endif
+
+  return info;
+}
+
 auto KeyAlgoId2GfrKeyAlgo(const QString& algo_id) -> Rust::GfrKeyAlgo {
   if (algo_id == "ed25519") return Rust::GfrKeyAlgo::ED25519;
   if (algo_id == "cv25519") return Rust::GfrKeyAlgo::CV25519;

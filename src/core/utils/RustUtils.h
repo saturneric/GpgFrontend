@@ -46,6 +46,29 @@ namespace GpgFrontend {
 void GF_CORE_EXPORT SetRpgpPasswordCacheTtl(uint64_t ttl_secs,
                                             uint64_t max_ttl_secs);
 
+/**
+ * @brief Build-time details of the embedded Rust (rPGP) engine, suitable for
+ * display in the About dialog.
+ */
+struct RpgpEngineInfo {
+  QString engine_version;  ///< Rust engine crate (gf-rust) version
+  QString rustc_version;   ///< Compiler used to build the engine
+  QString target;          ///< Target triple the engine was built for
+  QString profile;         ///< Cargo build profile (e.g. "release")
+
+  /// Key dependency versions as (crate name, version) pairs, in display order.
+  QList<QPair<QString, QString>> dependencies;
+};
+
+/**
+ * @brief Return build-time details of the embedded Rust engine.
+ *
+ * Declared unconditionally so it is callable from targets (e.g. the UI) that
+ * are not compiled with HAS_RUST_SUPPORT; it returns a default-constructed
+ * (empty) value when the Rust engine is not built in.
+ */
+auto GF_CORE_EXPORT RustEngineBuildInfo() -> RpgpEngineInfo;
+
 }  // namespace GpgFrontend
 
 #ifdef HAS_RUST_SUPPORT
