@@ -49,6 +49,23 @@ class InfoTab : public QWidget {
 };
 
 /**
+ * @brief Tab showing build information: dependency versions, git revision, and
+ * build timestamp, with a button to copy the summary.
+ *
+ */
+class BuildInfoTab : public QWidget {
+  Q_OBJECT
+
+ public:
+  /**
+   * @brief Construct a new Build Info Tab object
+   *
+   * @param parent
+   */
+  explicit BuildInfoTab(QWidget* parent = nullptr);
+};
+
+/**
  * @brief Class containing the translator tab of about dialog
  *
  */

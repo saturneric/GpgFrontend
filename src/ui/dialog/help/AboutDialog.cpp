@@ -30,6 +30,9 @@
 
 #include <openssl/opensslv.h>
 
+#include <QDesktopServices>
+#include <functional>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
@@ -73,6 +76,87 @@ auto CreateCard(const QString& title, QWidget* content,
   layout->setSpacing(8);
   layout->addWidget(title_label);
   layout->addWidget(content);
+
+  return frame;
+}
+
+// A QFrame that invokes a callback when clicked. It needs no signals/slots, so
+// it deliberately omits Q_OBJECT and just overrides the mouse handler.
+class ClickableFrame : public QFrame {
+ public:
+  explicit ClickableFrame(std::function<void()> on_click,
+                          QWidget* parent = nullptr)
+      : QFrame(parent), on_click_(std::move(on_click)) {}
+
+ protected:
+  void mouseReleaseEvent(QMouseEvent* event) override {
+    if (event->button() == Qt::LeftButton && rect().contains(event->pos()) &&
+        on_click_) {
+      on_click_();
+    }
+    QFrame::mouseReleaseEvent(event);
+  }
+
+ private:
+  std::function<void()> on_click_;
+};
+
+// Open an external URL, degrading gracefully when the system has no browser or
+// URL handler (plausible on a hardened, offline machine): the URL is copied to
+// the clipboard and the user is told, so the link is never a dead end. Nothing
+// is opened unless the user explicitly clicks.
+void OpenExternalUrlWithFallback(QWidget* parent, const QString& url) {
+  if (QDesktopServices::openUrl(QUrl(url))) return;
+
+  QApplication::clipboard()->setText(url);
+  QMessageBox::information(
+      parent, QObject::tr("Open Link"),
+      QObject::tr("Could not open a web browser on this system.\n\n"
+                  "The link has been copied to your clipboard:\n%1")
+          .arg(url));
+}
+
+// A highlighted call-to-action card inviting the user to star the project on
+// GitHub. It carries a GitHub-star amber accent and a star glyph so it stands
+// out from the plain information cards, mirroring the same card in the setup
+// wizard. The whole card is clickable; the URL is opened only on that click,
+// with a clipboard fallback, and nothing is fetched.
+auto CreateStarCard(QWidget* parent = nullptr) -> QFrame* {
+  const auto url = QStringLiteral("https://github.com/saturneric/GpgFrontend");
+
+  auto* frame = new ClickableFrame(
+      [parent, url]() { OpenExternalUrlWithFallback(parent, url); }, parent);
+  frame->setObjectName(QStringLiteral("AboutStarCard"));
+  frame->setFrameShape(QFrame::StyledPanel);
+  frame->setCursor(Qt::PointingHandCursor);
+  frame->setStyleSheet(
+      QStringLiteral("QFrame#AboutStarCard {"
+                     "  border: 1px solid #e3b341;"
+                     "  border-radius: 8px;"
+                     "}"));
+
+  // The title looks like a link but isn't interactive itself: the parent frame
+  // handles the click so the whole card is the hit target.
+  auto* title_label = new QLabel(
+      QStringLiteral("<span style=\"color:#d29922;\">&#9733;</span> <b>%1</b>")
+          .arg(QObject::tr("Star GpgFrontend on GitHub")),
+      frame);
+  title_label->setTextFormat(Qt::RichText);
+  title_label->setWordWrap(true);
+  title_label->setTextInteractionFlags(Qt::NoTextInteraction);
+
+  auto* desc_label = new QLabel(
+      QObject::tr("GpgFrontend is free and open source. A star helps more "
+                  "people discover it and keeps the project moving forward."),
+      frame);
+  desc_label->setWordWrap(true);
+  desc_label->setTextInteractionFlags(Qt::NoTextInteraction);
+
+  auto* layout = new QVBoxLayout(frame);
+  layout->setContentsMargins(14, 10, 14, 10);
+  layout->setSpacing(4);
+  layout->addWidget(title_label);
+  layout->addWidget(desc_label);
 
   return frame;
 }
@@ -135,12 +219,14 @@ AboutDialog::AboutDialog(const QString& default_tab_name, QWidget* parent)
 
   auto* tab_widget = new QTabWidget(this);
   auto* info_tab = new InfoTab(tab_widget);
+  auto* build_info_tab = new BuildInfoTab(tab_widget);
   auto* translators_tab = new TranslatorsTab(tab_widget);
   auto* status_tab = new StatusTab(tab_widget);
 
   tab_widget->setDocumentMode(true);
 
   tab_widget->addTab(info_tab, tr("About"));
+  tab_widget->addTab(build_info_tab, tr("Build Information"));
   tab_widget->addTab(translators_tab, tr("Translators"));
   tab_widget->addTab(status_tab, tr("Status"));
 
@@ -212,6 +298,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   main_layout->addWidget(title_label);
   main_layout->addWidget(tagline_label);
 
+  main_layout->addWidget(CreateStarCard(content));
+
   auto* developer_label = CreateBodyLabel(
       QStringLiteral(
           "%1<br/><br/>"
@@ -227,6 +315,85 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
 
   main_layout->addWidget(CreateCard(tr("Developer"), developer_label, content));
 
+  // Resources card: static links to the project's main destinations. Each is
+  // opened only when the user clicks it; nothing is fetched here.
+  auto* resources_widget = new QWidget(content);
+  auto* resources_form = CreateInfoForm(resources_widget);
+  resources_widget->setLayout(resources_form);
+
+  const auto link = [](const QString& url, const QString& text) -> QString {
+    return QStringLiteral("<a href=\"%1\">%2</a>").arg(url, text);
+  };
+
+  resources_form->addRow(
+      tr("Website:"),
+      CreateBodyLabel(link(QStringLiteral("https://gpgfrontend.bktus.com"),
+                           QStringLiteral("gpgfrontend.bktus.com")),
+                      resources_widget));
+  resources_form->addRow(
+      tr("Documentation:"),
+      CreateBodyLabel(
+          link(QStringLiteral("https://gpgfrontend.bktus.com/overview/glance"),
+               tr("User guides and overview")),
+          resources_widget));
+  resources_form->addRow(
+      tr("Source code:"),
+      CreateBodyLabel(
+          link(QStringLiteral("https://github.com/saturneric/GpgFrontend"),
+               QStringLiteral("github.com/saturneric/GpgFrontend")),
+          resources_widget));
+  resources_form->addRow(
+      tr("Release notes:"),
+      CreateBodyLabel(
+          link(QStringLiteral(
+                   "https://github.com/saturneric/GpgFrontend/releases"),
+               tr("Changelog and downloads")),
+          resources_widget));
+
+  main_layout->addWidget(
+      CreateCard(tr("Resources"), resources_widget, content));
+
+  main_layout->addStretch();
+
+  // Footer: license notice and copyright, kept small and muted.
+  auto* license_label = CreateBodyLabel(
+      QStringLiteral("<div align=\"center\" style=\"color:gray;\">%1</div>")
+          .arg(tr("GpgFrontend is free software, licensed under "
+                  "<a href=\"https://www.gnu.org/licenses/gpl-3.0.html\">"
+                  "GPL-3.0-or-later</a>.")),
+      content);
+  license_label->setAlignment(Qt::AlignCenter);
+
+  auto* copyright_label = new QLabel(
+      QStringLiteral(
+          "<div align=\"center\" style=\"color:gray; font-size:12px;\">"
+          "&copy; 2021-2026 Saturneric &lt;eric@bktus.com&gt;</div>"),
+      content);
+  copyright_label->setTextFormat(Qt::RichText);
+  copyright_label->setAlignment(Qt::AlignCenter);
+  copyright_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+
+  main_layout->addWidget(license_label);
+  main_layout->addWidget(copyright_label);
+
+  // The About tab is intentionally not wrapped in a scroll area: its natural
+  // size hint flows up through the tab widget so the dialog adapts to fit this
+  // tab's content. The taller tabs (Build Information, Status, Rust Engine)
+  // keep their own scroll areas instead.
+  auto* outer_layout = new QVBoxLayout(this);
+  outer_layout->setContentsMargins(0, 0, 0, 0);
+  outer_layout->addWidget(content);
+  setLayout(outer_layout);
+
+  setObjectName(QStringLiteral("InfoTab"));
+}
+
+BuildInfoTab::BuildInfoTab(QWidget* parent) : QWidget(parent) {
+  auto* content = new QWidget(this);
+  auto* main_layout = new QVBoxLayout(content);
+  main_layout->setContentsMargins(18, 18, 18, 18);
+  main_layout->setSpacing(14);
+
   auto* build_widget = new QWidget(content);
   auto* build_layout = new QVBoxLayout(build_widget);
   build_layout->setContentsMargins(0, 0, 0, 0);
@@ -236,6 +403,8 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   auto* build_form = CreateInfoForm(build_form_widget);
   build_form_widget->setLayout(build_form);
 
+  build_form->addRow(tr("GpgFrontend:"),
+                     CreateValueLabel(GetProjectVersion(), build_form_widget));
   build_form->addRow(
       tr("Qt:"), CreateValueLabel(GetProjectQtVersion(), build_form_widget));
   build_form->addRow(tr("GPGME:"), CreateValueLabel(GetProjectGpgMEVersion(),
@@ -274,10 +443,10 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
 
   auto* outer_layout = new QVBoxLayout(this);
   outer_layout->setContentsMargins(0, 0, 0, 0);
-  outer_layout->addWidget(content);
+  outer_layout->addWidget(CreateScrollArea(content, this));
   setLayout(outer_layout);
 
-  setObjectName(QStringLiteral("InfoTab"));
+  setObjectName(QStringLiteral("BuildInfoTab"));
 }
 
 TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
@@ -423,7 +592,8 @@ RpgpEngineTab::RpgpEngineTab(QWidget* parent) : QWidget(parent) {
   auto* intro_label = CreateBodyLabel(
       tr("GpgFrontend supports multiple OpenPGP backends. Alongside GnuPG, it "
          "can use a Rust-based engine (rPGP), giving you the freedom to choose "
-         "the backend that best fits your needs. The details below describe the "
+         "the backend that best fits your needs. The details below describe "
+         "the "
          "rPGP engine compiled into this build."),
       content);
   main_layout->addWidget(intro_label);
