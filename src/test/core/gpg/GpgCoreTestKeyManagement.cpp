@@ -124,9 +124,9 @@ TEST_F(GpgCoreTest, CoreDeleteSubkeyTestA) {
   ASSERT_EQ(s_key.size(), 5);
   ASSERT_EQ(s_key[2].ID(), "2D1F9FC59B568A8C");
 
-  ASSERT_WITHIN(KeyManagementOperation::GetInstance(kGpgChannelForUnitTest)
-                    .DeleteSubkey(key, 2),
-                3000);
+  ASSERT_OP_WITHIN(KeyManagementOperation::GetInstance(kGpgChannelForUnitTest)
+                       .DeleteSubkey(key, 2),
+                   3000);
 
   GpgKeyRepository::GetInstance(kGpgChannelForUnitTest).FlushKeyCache();
   key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)

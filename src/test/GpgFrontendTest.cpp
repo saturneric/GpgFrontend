@@ -30,15 +30,12 @@
 
 #include <qglobal.h>
 
-#include "core/GFConstants.h"
-#include "core/GFCoreInit.h"
-#include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgContext.h"
-#include "core/function/openpgp/AbstractKeyRepository.h"
-#include "core/function/openpgp/KeyImportExportOperation.h"
-#include "core/model/GpgImportInformation.h"
-#include "core/utils/IOUtils.h"
+#include <chrono>
+#include <future>
+#include <memory>
+#include <thread>
 
+#include "core/function/GlobalSettingStation.h"
 Q_LOGGING_CATEGORY(test, "test")
 
 auto GF_TEST_EXPORT GFTestValidateSymbol() -> int { return 0; }
@@ -91,6 +88,21 @@ auto WaitFor(std::function<bool()> cond, int timeout_ms) -> bool {
   }
 
   return matched;
+}
+
+auto RunWithTimeout(std::function<bool()> op, int timeout_ms) -> bool {
+  auto task = std::make_shared<std::packaged_task<bool()>>(std::move(op));
+  auto future = task->get_future();
+
+  // Detach: if the operation hangs (e.g. a stuck gpg subprocess) we abandon the
+  // thread rather than block teardown. The test has already failed by then.
+  std::thread([task]() { (*task)(); }).detach();
+
+  if (future.wait_for(std::chrono::milliseconds(timeout_ms)) !=
+      std::future_status::ready) {
+    return false;
+  }
+  return future.get();
 }
 
 auto GenerateRandomString(size_t length) -> QString {

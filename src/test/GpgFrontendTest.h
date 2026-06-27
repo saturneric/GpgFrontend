@@ -92,6 +92,21 @@ auto WaitFor(std::function<bool()> cond, int timeout_ms = 5000) -> bool;
 #define ASSERT_WITHIN(cond, ms) \
   ASSERT_TRUE(WaitFor([&]() { return (cond); }, ms))
 
+/**
+ * @brief Run a blocking, bool-returning operation on a worker thread and wait
+ * up to timeout_ms for it to finish.
+ *
+ * Unlike WaitFor(), which evaluates the predicate synchronously on the calling
+ * thread, this runs the operation off-thread so a hung blocking call (e.g. a
+ * stuck gpgme_op_interact) is bounded by the timeout instead of hanging the
+ * whole test process. Returns false on timeout or when the operation returns
+ * false.
+ */
+auto RunWithTimeout(std::function<bool()> op, int timeout_ms) -> bool;
+
+#define ASSERT_OP_WITHIN(op, ms) \
+  ASSERT_TRUE(RunWithTimeout([&]() { return (op); }, ms))
+
 const int kGpgChannelForUnitTest = 0;
 const int kRpgpChannelForUnitTest = 1;
 
