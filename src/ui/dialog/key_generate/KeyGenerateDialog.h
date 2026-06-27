@@ -145,6 +145,12 @@ class KeyGenerateDialog : public GeneralDialog {
    */
   void slot_reset_easy_profile_config_to_default();
 
+  /**
+   * @brief Fill the name and email fields with a plausible random identity so
+   * the user does not have to type one for throwaway or test keys.
+   */
+  void slot_fill_random_identity();
+
  private:
   struct ExpireOption {
     QString key;      // "2y"

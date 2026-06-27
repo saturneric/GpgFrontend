@@ -391,6 +391,42 @@ auto ComboCurrentAlgo(
   return it != algos.cend() ? *it : GpgFrontend::KeyGenerateInfo::kNoneAlgo;
 }
 
+struct RandomIdentity {
+  QString name;
+  QString email;
+};
+
+// Build an anonymous, privacy-preserving identity so users don't have to
+// hand-type a name and email for throwaway or test keys. Deliberately avoids
+// any real-looking human name: the identity is an opaque random token that
+// carries no personal information and cannot impersonate a real person. Both
+// the local-part and the domain label are randomized, but the domain always
+// ends in an RFC 2606 / RFC 6761 reserved TLD (.test/.example/.invalid) so the
+// address is guaranteed never to route to a real domain. Generation stays
+// fully local.
+auto GenerateRandomIdentity() -> RandomIdentity {
+  // Reserved, non-routable TLDs: a random domain label under any of these can
+  // never collide with a domain someone actually owns.
+  static const QStringList kReservedTlds = {"test", "example", "invalid"};
+
+  auto* rng = QRandomGenerator::global();
+
+  // Random base-36 tokens (lowercase letters + digits). 64 bits of entropy is
+  // far more than enough to keep them unique and unguessable.
+  const auto random_token = [rng]() -> QString {
+    return QString::number(rng->generate64(), 36).rightJustified(8, '0');
+  };
+
+  const auto user_token = random_token();
+  const auto domain_label = random_token();
+  const auto tld = kReservedTlds.at(rng->bounded(kReservedTlds.size()));
+
+  RandomIdentity identity;
+  identity.name = QString("anon-%1").arg(user_token);
+  identity.email = QString("anon-%1@%2.%3").arg(user_token, domain_label, tld);
+  return identity;
+}
+
 }  // namespace
 
 namespace GpgFrontend::UI {
@@ -450,6 +486,11 @@ KeyGenerateDialog::KeyGenerateDialog(int channel, QWidget* parent)
   ui_->nameLabel->setText(tr("Name"));
   ui_->emailLabel->setText(tr("Email"));
   ui_->commentLabel->setText(tr("Comment"));
+
+  ui_->randomIdentityButton->setIcon(QIcon(":/icons/refresh.png"));
+  ui_->randomIdentityButton->setToolTip(
+      tr("Fill in a random anonymous identity (for throwaway or test keys)"));
+  ui_->randomIdentityButton->setAutoRaise(true);
   ui_->keyDBLabel->setText(tr("Key Database"));
   ui_->easyProfileLabel->setText(tr("Name"));
   ui_->combinationLabel->setText(tr("Combination"));
@@ -935,6 +976,9 @@ void KeyGenerateDialog::refresh_widgets_state() {
 void KeyGenerateDialog::set_signal_slot_config() {
   connect(ui_->generateButton, &QPushButton::clicked, this,
           &KeyGenerateDialog::slot_key_gen_accept);
+
+  connect(ui_->randomIdentityButton, &QToolButton::clicked, this,
+          &KeyGenerateDialog::slot_fill_random_identity);
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
   connect(
@@ -1804,6 +1848,12 @@ void KeyGenerateDialog::slot_reset_easy_profile_config_to_default() {
 
   easy_mode_conf_ = {};
   load_easy_profile_config();
+}
+
+void KeyGenerateDialog::slot_fill_random_identity() {
+  const auto identity = GenerateRandomIdentity();
+  ui_->nameEdit->setText(identity.name);
+  ui_->emailEdit->setText(identity.email);
 }
 
 void KeyGenerateDialog::refresh_hybrid_algo_widgets_state() {
