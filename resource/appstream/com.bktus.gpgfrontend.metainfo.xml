@@ -12,15 +12,18 @@
 
   <description>
     <p>
-      A modern "Enigma" for OpenPGP. It makes encryption, signing, and key
-      management easier and more trustworthy in everyday privacy workflows.
+      A modern, cross-platform OpenPGP tool with a unique dual-engine core:
+      switch freely between the battle-tested GnuPG and a modern, memory-safe
+      Rust rPGP backend. It makes encryption, signing, and key management easier
+      and more trustworthy in everyday privacy workflows.
     </p>
     <ul>
       <li>Easy: Encrypt and sign your texts, files and more.</li>
       <li>Cross-platform: Native support for Windows, macOS and Linux.</li>
       <li>Portable: Run directly from a USB drive and carry your keys.</li>
       <li>Flexible: Manage keys separately through multiple key databases.</li>
-      <li>Compatible: Mature GnuPG support with a newer rPGP engine.</li>
+      <li>Dual-engine: Switch freely between the mature GnuPG and the Rust rPGP backend.</li>
+      <li>Future-ready: Modern algorithms, including post-quantum keys.</li>
       <li>Privacy-focused: Using multiple approaches to enhance safety.</li>
     </ul>
   </description>
@@ -66,6 +69,7 @@
   <url type="vcs-browser">https://github.com/saturneric/GpgFrontend</url>
   
   <releases>
+    <release version="2.2.1" date="2026-06-28"/>
     <release version="2.2.0" date="2026-05-09"/>
     <release version="2.1.11" date="2026-04-10"/>
     <release version="2.1.10" date="2025-10-25"/>

@@ -34,8 +34,8 @@ endif()
 
 # define project
 project(GpgFrontend
-  VERSION 2.2.0
-  DESCRIPTION "A modern \"Enigma\" for OpenPGP. "
+  VERSION 2.2.1
+  DESCRIPTION "A modern, cross-platform OpenPGP tool with a unique dual-engine core."
   HOMEPAGE_URL "https://gpgfrontend.bktus.com"
   LANGUAGES CXX)
 
