@@ -210,6 +210,12 @@ auto HandleEncryptResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
   GpgError gf_err = GPG_ERR_NO_ERROR;
   GFEncryptResult result;
   if (err != Rust::GfrStatus::Success) {
+    if (err == Rust::GfrStatus::ErrorCanceled) {
+      LOG_D() << "Encryption cancelled by user.";
+      gf_err = GPG_ERR_CANCELED;
+      goto end;
+    }
+
     if (err == Rust::GfrStatus::ErrorInvalidInput) {
       LOG_E() << "Encryption failed: No data to encrypt.";
       gf_err = GPG_ERR_INV_DATA;
@@ -243,6 +249,12 @@ auto HandleDecryptResult(GFKeyDatabase& key_db, const GFBuffer& in_buffer,
   GpgError gf_err = GPG_ERR_NO_ERROR;
   GFDecryptResult result;
   if (err != Rust::GfrStatus::Success) {
+    if (err == Rust::GfrStatus::ErrorCanceled) {
+      LOG_D() << "Decryption cancelled by user.";
+      gf_err = GPG_ERR_CANCELED;
+      goto end;
+    }
+
     if (err == Rust::GfrStatus::ErrorInvalidInput) {
       LOG_E() << "Decryption failed: No encrypted data found.";
       gf_err = GPG_ERR_INV_DATA;
@@ -296,6 +308,12 @@ auto HandleSignResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
   GpgError gf_err = GPG_ERR_NO_ERROR;
   GFSignResult result;
   if (err != Rust::GfrStatus::Success) {
+    if (err == Rust::GfrStatus::ErrorCanceled) {
+      LOG_D() << "Signing cancelled by user.";
+      gf_err = GPG_ERR_CANCELED;
+      goto end;
+    }
+
     if (err == Rust::GfrStatus::ErrorInvalidInput) {
       LOG_E() << "Signing failed: No data to sign.";
       gf_err = GPG_ERR_INV_DATA;
@@ -327,6 +345,12 @@ auto HandleVerifyResult(const GFBuffer& in_buffer, Rust::GfrStatus err,
   GpgError gf_err = GPG_ERR_NO_ERROR;
   GFVerifyResult result;
   if (err != Rust::GfrStatus::Success) {
+    if (err == Rust::GfrStatus::ErrorCanceled) {
+      LOG_D() << "Verification cancelled by user.";
+      gf_err = GPG_ERR_CANCELED;
+      goto end;
+    }
+
     if (err == Rust::GfrStatus::ErrorInvalidInput) {
       LOG_E() << "Verification failed: No signature data found.";
       gf_err = GPG_ERR_INV_DATA;

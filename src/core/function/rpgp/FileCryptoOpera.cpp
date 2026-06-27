@@ -83,16 +83,16 @@ auto EncryptFileRpgpImpl(OpenPGPContext& ctx_,
     // and then pass it to the Rust FFI. The Rust FFI will handle the encryption
     // of the tar archive.
     status = Rust::gfr_crypto_encrypt_directory(
-        in_file_path_utf8.constData(), out_file_path_utf8.constData(),
-        recipient_buffers.data(), recipient_buffers.size(), ascii,
-        &encrypt_result);
+        ctx_.GetChannel(), in_file_path_utf8.constData(),
+        out_file_path_utf8.constData(), recipient_buffers.data(),
+        recipient_buffers.size(), ascii, &encrypt_result);
   } else {
     // Call Rust FFI. Ensure in_buffer is a null-terminated C-string if Rust
     // expects it.
     status = Rust::gfr_crypto_encrypt_file(
-        in_file_path_utf8.constData(), out_file_path_utf8.constData(),
-        recipient_buffers.data(), recipient_buffers.size(), ascii,
-        &encrypt_result);
+        ctx_.GetChannel(), in_file_path_utf8.constData(),
+        out_file_path_utf8.constData(), recipient_buffers.data(),
+        recipient_buffers.size(), ascii, &encrypt_result);
   }
 
   auto [gf_err, result] = HandleEncryptResult({}, status, encrypt_result);
@@ -239,14 +239,14 @@ auto VerifyFileRpgpImpl(OpenPGPContext& ctx_, const QString& data_path,
   Rust::GfrStatus err;
   if (sign_path.isEmpty()) {
     err = Rust::gfr_crypto_verify_file(
-        data_file_path_utf8.constData(), sign_file_path_utf8.constData(),
-        nullptr, FetchPublicKeyCallback, key_db.data(),
-        Rust::GfrSignMode::Inline, &verify_result);
+        ctx_.GetChannel(), data_file_path_utf8.constData(),
+        sign_file_path_utf8.constData(), nullptr, FetchPublicKeyCallback,
+        key_db.data(), Rust::GfrSignMode::Inline, &verify_result);
   } else {
     err = Rust::gfr_crypto_verify_file(
-        data_file_path_utf8.constData(), sign_file_path_utf8.constData(),
-        nullptr, FetchPublicKeyCallback, key_db.data(),
-        Rust::GfrSignMode::Detached, &verify_result);
+        ctx_.GetChannel(), data_file_path_utf8.constData(),
+        sign_file_path_utf8.constData(), nullptr, FetchPublicKeyCallback,
+        key_db.data(), Rust::GfrSignMode::Detached, &verify_result);
   }
 
   auto [gf_err, result] = HandleVerifyResult(GFBuffer{}, err, verify_result);

@@ -76,9 +76,10 @@ auto EncryptRpgpImpl(OpenPGPContext& ctx_, const GpgAbstractKeyPtrList& keys,
   // Call Rust FFI. Ensure in_buffer is a null-terminated C-string if Rust
   // expects it.
   auto status = Rust::gfr_crypto_encrypt_data(
-      name.c_str(), reinterpret_cast<const uint8_t*>(in_buffer.Data()),
-      in_buffer.Size(), recipient_buffers.data(), recipient_buffers.size(),
-      ascii, &encrypt_result);
+      ctx_.GetChannel(), name.c_str(),
+      reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
+      recipient_buffers.data(), recipient_buffers.size(), ascii,
+      &encrypt_result);
 
   auto [gf_err, result] =
       HandleEncryptResult(in_buffer, status, encrypt_result);
