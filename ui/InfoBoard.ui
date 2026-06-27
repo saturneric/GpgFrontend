@@ -34,14 +34,11 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QTabWidget" name="tabWidget">
+        <widget class="QStackedWidget" name="stackedWidget">
          <property name="currentIndex">
           <number>0</number>
          </property>
-         <widget class="QWidget" name="page_1" native="true">
-          <attribute name="title">
-           <string>Status</string>
-          </attribute>
+         <widget class="QWidget" name="page_1">
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <property name="leftMargin">
             <number>0</number>
@@ -57,10 +54,7 @@
            </property>
           </layout>
          </widget>
-         <widget class="QWidget" name="page_2" native="true">
-          <attribute name="title">
-           <string>Details</string>
-          </attribute>
+         <widget class="QWidget" name="page_2">
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <property name="spacing">
             <number>0</number>
@@ -132,6 +126,13 @@
            <number>0</number>
           </property>
           <item>
+           <widget class="Line" name="segLine">
+            <property name="orientation">
+             <enum>Qt::Orientation::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="statusIndicatorLabel">
             <property name="text">
              <string/>
@@ -142,6 +143,32 @@
            <widget class="Line" name="line_3">
             <property name="orientation">
              <enum>Qt::Orientation::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="segStatusButton">
+            <property name="text">
+             <string>Status</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="autoRaise">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="segDetailsButton">
+            <property name="text">
+             <string>Details</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="autoRaise">
+             <bool>false</bool>
             </property>
            </widget>
           </item>
