@@ -114,3 +114,12 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
+
+      - name: Run Unit Tests
+        # Hard timeout so a hung test can never stall the pipeline forever.
+        timeout-minutes: 20
+        run: |
+          # `timeout` gives a clean non-zero exit (124) if the suite wedges,
+          # belt-and-suspenders alongside the step-level timeout-minutes above.
+          timeout 900 scripts/run_tests.sh --no-build --unit-only \
+            --build-dir ${{github.workspace}}/build
