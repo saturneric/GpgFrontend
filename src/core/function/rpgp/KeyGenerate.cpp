@@ -125,10 +125,13 @@ auto GenerateKeyWithSubkeyRpgpImpl(
 
   auto import_info = kie.ImportKey(GFBuffer(armored_s_key));
 
-  data_object->Swap({
-      GpgGenerateKeyResult{fingerprint},
-      GpgGenerateKeyResult{fingerprint},
-  });
+  // Match the engine-wide contract (and the GnuPG impl): a primary-only
+  // generation yields a single result, a generation that also creates a subkey
+  // yields two. rPGP produces both in one shot, so the subkey slot reuses the
+  // primary fingerprint.
+  DataObject result{GpgGenerateKeyResult{fingerprint}};
+  if (s_params != nullptr) result.AppendObject(GpgGenerateKeyResult{fingerprint});
+  data_object->Swap(std::move(result));
   return GPG_ERR_NO_ERROR;
 }
 
