@@ -26,9 +26,13 @@
  *
  */
 
+#include <QDir>
+#include <QFile>
+#include <QTemporaryDir>
 #include <algorithm>
 
 #include "GpgCoreEngineTest.h"
+#include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
@@ -358,6 +362,89 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerify) {
   ASSERT_FALSE(verify_result.GetSignature().empty());
   EXPECT_EQ(verify_result.GetSignature().at(0).GetFingerprint().toUpper(),
             key->Fingerprint().toUpper());
+
+  DeleteKey(key);
+}
+
+// ---------------------------------------------------------------------------
+// Directory encrypt -> decrypt round-trip.
+//
+// Regression for a race in the GnuPG archive-decrypt path: the extraction task
+// (which drains the decrypted plaintext from the exchanger and writes the files
+// to disk) runs on a separate task runner from gpgme. The opera must not report
+// completion until extraction has fully finished, otherwise the trailing files
+// of the archive can be lost. We pack several files (mirroring the original
+// report of "A.txt", "A.txt.gpg", "A.txt.sig") and assert every one survives
+// the round-trip with identical content.
+// ---------------------------------------------------------------------------
+
+TEST_P(GpgCoreEngineTest, EncryptDecryptDirectoryRoundTrip) {
+  auto key = GenerateFullKey("dirroundtrip");
+  ASSERT_TRUE(key != nullptr);
+
+  QTemporaryDir work_dir;
+  ASSERT_TRUE(work_dir.isValid());
+
+  const QString src_dir = work_dir.path() + "/test";
+  ASSERT_TRUE(QDir().mkpath(src_dir));
+
+  // Keep the total decrypted size below the exchanger queue capacity so gpgme
+  // can dump the whole plaintext archive into the queue and return without
+  // waiting for the extractor. That maximizes the window in which the extractor
+  // is still writing files to disk after the gpg opera reports completion --
+  // exactly the window the race exploited. A few MB of payload makes that
+  // window large enough to catch deterministically.
+  const QContainer<QPair<QString, QByteArray>> files = {
+      {"A.txt", "plain content"},
+      {"A.txt.gpg", "pretend ciphertext"},
+      {"A.txt.sig", "pretend signature"},
+      {"B.bin", QByteArray(qsizetype{3} * 1024 * 1024, '\x42')},
+  };
+
+  for (const auto& [name, content] : files) {
+    QFile f(src_dir + "/" + name);
+    ASSERT_TRUE(f.open(QIODevice::WriteOnly));
+    ASSERT_EQ(f.write(content), content.size());
+    f.close();
+  }
+
+  const QString archive_path = work_dir.path() + "/test.tar.gpg";
+
+  bool encrypt_done = false;
+  GpgError encrypt_err = GPG_ERR_GENERAL;
+  FileCryptoOperation::GetInstance(Channel()).EncryptDirectory(
+      {key}, src_dir, false, archive_path,
+      [&](GpgError err, const DataObjectPtr&) {
+        encrypt_err = err;
+        encrypt_done = true;
+      });
+  WAIT_FOR_TRUE(encrypt_done, 10000);
+  ASSERT_EQ(CheckGpgError(encrypt_err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(QFileInfo::exists(archive_path));
+
+  const QString out_dir = work_dir.path() + "/out";
+  ASSERT_TRUE(QDir().mkpath(out_dir));
+
+  bool decrypt_done = false;
+  GpgError decrypt_err = GPG_ERR_GENERAL;
+  FileCryptoOperation::GetInstance(Channel()).DecryptArchive(
+      archive_path, out_dir, [&](GpgError err, const DataObjectPtr&) {
+        decrypt_err = err;
+        decrypt_done = true;
+      });
+  WAIT_FOR_TRUE(decrypt_done, 10000);
+  ASSERT_EQ(CheckGpgError(decrypt_err), GPG_ERR_NO_ERROR);
+
+  // Every packed file must reappear with identical content. A lost trailing
+  // file (the original bug) fails here.
+  for (const auto& [name, content] : files) {
+    QFile f(out_dir + "/" + name);
+    ASSERT_TRUE(f.open(QIODevice::ReadOnly))
+        << "missing extracted file: " << name.toStdString();
+    EXPECT_EQ(f.readAll(), content)
+        << "content mismatch for file: " << name.toStdString();
+    f.close();
+  }
 
   DeleteKey(key);
 }
