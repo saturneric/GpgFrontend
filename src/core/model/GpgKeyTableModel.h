@@ -39,6 +39,52 @@ namespace GpgFrontend {
 class GpgKey;
 class GpgKeyGroup;
 
+// Defined ahead of the typed enums below: lupdate's C++ parser mis-tracks the
+// namespace scope when a class/struct definition sits between a typed enum and
+// a following Q_OBJECT class, which would strip the GpgFrontend:: prefix from
+// GpgKeyTableModel's translation context and break its tr() lookups at runtime.
+class GF_CORE_EXPORT GpgKeyTableItem {
+ public:
+  GpgKeyTableItem() = default;
+
+  explicit GpgKeyTableItem(GpgAbstractKeyPtr key);
+
+  GpgKeyTableItem(const GpgKeyTableItem &);
+
+  /**
+   * @brief
+   *
+   * @return GpgAbstractKey*
+   */
+  [[nodiscard]] auto Key() const -> GpgAbstractKey *;
+
+  /**
+   * @brief
+   *
+   * @return GpgAbstractKeyPtr
+   */
+  [[nodiscard]] auto SharedKey() const -> GpgAbstractKeyPtr;
+
+  /**
+   * @brief
+   *
+   * @return bool
+   */
+  [[nodiscard]] auto Checked() const -> bool;
+
+  /**
+   * @brief Set the Checked object
+   *
+   * @return true
+   * @return false
+   */
+  void SetChecked(bool);
+
+ private:
+  GpgAbstractKeyPtr key_;
+  bool checked_ = false;
+};
+
 enum class GpgKeyTableColumn : unsigned int {
   kNONE = 0,
   kTYPE = 1 << 0,
@@ -111,48 +157,6 @@ inline auto operator&(GpgKeyTableDisplayMode lhs, GpgKeyTableDisplayMode rhs)
   using T = std::underlying_type_t<GpgKeyTableDisplayMode>;
   return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
 }
-
-class GF_CORE_EXPORT GpgKeyTableItem {
- public:
-  GpgKeyTableItem() = default;
-
-  explicit GpgKeyTableItem(GpgAbstractKeyPtr key);
-
-  GpgKeyTableItem(const GpgKeyTableItem &);
-
-  /**
-   * @brief
-   *
-   * @return GpgAbstractKey*
-   */
-  [[nodiscard]] auto Key() const -> GpgAbstractKey *;
-
-  /**
-   * @brief
-   *
-   * @return GpgAbstractKeyPtr
-   */
-  [[nodiscard]] auto SharedKey() const -> GpgAbstractKeyPtr;
-
-  /**
-   * @brief
-   *
-   * @return bool
-   */
-  [[nodiscard]] auto Checked() const -> bool;
-
-  /**
-   * @brief Set the Checked object
-   *
-   * @return true
-   * @return false
-   */
-  void SetChecked(bool);
-
- private:
-  GpgAbstractKeyPtr key_;
-  bool checked_ = false;
-};
 
 class GF_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
   Q_OBJECT

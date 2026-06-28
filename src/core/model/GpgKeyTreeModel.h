@@ -39,75 +39,11 @@
 
 namespace GpgFrontend {
 
-enum class GpgKeyTreeColumn : unsigned int {
-  kNONE = 0,
-  kTYPE = 1 << 1,
-  kIDENTITY = 1 << 2,
-  kKEY_ID = 1 << 3,
-  kUSAGE = 1 << 4,
-  kALGO = 1 << 5,
-  kCREATE_DATE = 1 << 6,
-  kALL = ~0U
-};
-
-inline auto operator|(GpgKeyTreeColumn lhs, GpgKeyTreeColumn rhs)
-    -> GpgKeyTreeColumn {
-  using T = std::underlying_type_t<GpgKeyTreeColumn>;
-  return static_cast<GpgKeyTreeColumn>(static_cast<T>(lhs) |
-                                       static_cast<T>(rhs));
-}
-
-inline auto operator|=(GpgKeyTreeColumn &lhs, GpgKeyTreeColumn rhs)
-    -> GpgKeyTreeColumn & {
-  lhs = lhs | rhs;
-  return lhs;
-}
-
-inline auto operator&(GpgKeyTreeColumn lhs, GpgKeyTreeColumn rhs)
-    -> GpgKeyTreeColumn {
-  using T = std::underlying_type_t<GpgKeyTreeColumn>;
-  return static_cast<GpgKeyTreeColumn>(static_cast<T>(lhs) &
-                                       static_cast<T>(rhs));
-}
-
-inline auto operator&=(GpgKeyTreeColumn &lhs, GpgKeyTreeColumn rhs)
-    -> GpgKeyTreeColumn & {
-  lhs = lhs & rhs;
-  return lhs;
-}
-
-inline auto operator~(GpgKeyTreeColumn hs) -> GpgKeyTreeColumn {
-  using T = std::underlying_type_t<GpgKeyTreeColumn>;
-  return static_cast<GpgKeyTreeColumn>(~static_cast<T>(hs));
-}
-
-enum class GpgKeyTreeDisplayMode : unsigned int {
-  kNONE = 0,
-  kPUBLIC_KEY = 1 << 0,
-  kPRIVATE_KEY = 1 << 1,
-  kFAVORITES = 1 << 2,
-  kALL = ~0U
-};
-
-inline auto operator|(GpgKeyTreeDisplayMode lhs, GpgKeyTreeDisplayMode rhs)
-    -> GpgKeyTreeDisplayMode {
-  using T = std::underlying_type_t<GpgKeyTreeDisplayMode>;
-  return static_cast<GpgKeyTreeDisplayMode>(static_cast<T>(lhs) |
-                                            static_cast<T>(rhs));
-}
-
-inline auto operator|=(GpgKeyTreeDisplayMode &lhs, GpgKeyTreeDisplayMode rhs)
-    -> GpgKeyTreeDisplayMode & {
-  lhs = lhs | rhs;
-  return lhs;
-}
-
-inline auto operator&(GpgKeyTreeDisplayMode lhs, GpgKeyTreeDisplayMode rhs)
-    -> bool {
-  using T = std::underlying_type_t<GpgKeyTreeDisplayMode>;
-  return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
-}
-
+// Defined ahead of the typed enums below: lupdate's C++ parser mis-tracks
+// the namespace scope when a class/struct definition sits between a typed enum
+// and a following Q_OBJECT class, which would strip the GpgFrontend:: prefix
+// from GpgKeyTreeModel's translation context and break its tr() lookups at
+// runtime.
 class GF_CORE_EXPORT GpgKeyTreeItem {
  public:
   GpgKeyTreeItem() = default;
@@ -237,6 +173,75 @@ class GF_CORE_EXPORT GpgKeyTreeItem {
   QSharedPointer<GpgAbstractKey> key_;
   GpgKeyTreeItem *parent_ = nullptr;
 };
+
+enum class GpgKeyTreeColumn : unsigned int {
+  kNONE = 0,
+  kTYPE = 1 << 1,
+  kIDENTITY = 1 << 2,
+  kKEY_ID = 1 << 3,
+  kUSAGE = 1 << 4,
+  kALGO = 1 << 5,
+  kCREATE_DATE = 1 << 6,
+  kALL = ~0U
+};
+
+inline auto operator|(GpgKeyTreeColumn lhs, GpgKeyTreeColumn rhs)
+    -> GpgKeyTreeColumn {
+  using T = std::underlying_type_t<GpgKeyTreeColumn>;
+  return static_cast<GpgKeyTreeColumn>(static_cast<T>(lhs) |
+                                       static_cast<T>(rhs));
+}
+
+inline auto operator|=(GpgKeyTreeColumn &lhs, GpgKeyTreeColumn rhs)
+    -> GpgKeyTreeColumn & {
+  lhs = lhs | rhs;
+  return lhs;
+}
+
+inline auto operator&(GpgKeyTreeColumn lhs, GpgKeyTreeColumn rhs)
+    -> GpgKeyTreeColumn {
+  using T = std::underlying_type_t<GpgKeyTreeColumn>;
+  return static_cast<GpgKeyTreeColumn>(static_cast<T>(lhs) &
+                                       static_cast<T>(rhs));
+}
+
+inline auto operator&=(GpgKeyTreeColumn &lhs, GpgKeyTreeColumn rhs)
+    -> GpgKeyTreeColumn & {
+  lhs = lhs & rhs;
+  return lhs;
+}
+
+inline auto operator~(GpgKeyTreeColumn hs) -> GpgKeyTreeColumn {
+  using T = std::underlying_type_t<GpgKeyTreeColumn>;
+  return static_cast<GpgKeyTreeColumn>(~static_cast<T>(hs));
+}
+
+enum class GpgKeyTreeDisplayMode : unsigned int {
+  kNONE = 0,
+  kPUBLIC_KEY = 1 << 0,
+  kPRIVATE_KEY = 1 << 1,
+  kFAVORITES = 1 << 2,
+  kALL = ~0U
+};
+
+inline auto operator|(GpgKeyTreeDisplayMode lhs, GpgKeyTreeDisplayMode rhs)
+    -> GpgKeyTreeDisplayMode {
+  using T = std::underlying_type_t<GpgKeyTreeDisplayMode>;
+  return static_cast<GpgKeyTreeDisplayMode>(static_cast<T>(lhs) |
+                                            static_cast<T>(rhs));
+}
+
+inline auto operator|=(GpgKeyTreeDisplayMode &lhs, GpgKeyTreeDisplayMode rhs)
+    -> GpgKeyTreeDisplayMode & {
+  lhs = lhs | rhs;
+  return lhs;
+}
+
+inline auto operator&(GpgKeyTreeDisplayMode lhs, GpgKeyTreeDisplayMode rhs)
+    -> bool {
+  using T = std::underlying_type_t<GpgKeyTreeDisplayMode>;
+  return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
+}
 
 class GF_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
   Q_OBJECT

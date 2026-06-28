@@ -40,7 +40,13 @@ namespace GpgFrontend {
  * Unlike GpgOperation (what a key can *do*), traits describe what an algorithm
  * *is*. Stored as a bitmask so an algorithm can carry several traits.
  */
-enum KeyAlgoTrait : uint16_t {
+// Deliberately left without an explicit underlying type. A typed enum here
+// (e.g. ': uint16_t') followed by the KeyAlgo/KeyAlgoSpec definitions below
+// makes lupdate's C++ parser mis-track the namespace scope and drop the
+// GpgFrontend:: prefix from KeyGenerateInfo's translation context, breaking its
+// tr() lookups at runtime. The traits are stored in an int anyway.
+// NOLINTNEXTLINE(performance-enum-size)
+enum KeyAlgoTrait {
   kALGO_TRAIT_NONE = 0,
   kPQC = 1 << 0,  ///< post-quantum / quantum-resistant
   kECC = 1 << 1,  ///< elliptic-curve family (EdDSA / ECDSA / ECDH)
@@ -455,7 +461,8 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
   /**
    * @brief Set the requested OpenPGP key format version.
    *
-   * @param version 0 for engine default, or 4 / 6 for the v4 / v6 packet format.
+   * @param version 0 for engine default, or 4 / 6 for the v4 / v6 packet
+   * format.
    */
   void SetKeyVersion(int version);
 
@@ -465,8 +472,8 @@ class GF_CORE_EXPORT KeyGenerateInfo : public QObject {
   QString email_;        ///<
   QString comment_;      ///<
 
-  KeyAlgo algo_;      ///<
-  KeyAlgo sub_algo_;  ///< for hybrid subkey
+  KeyAlgo algo_;         ///<
+  KeyAlgo sub_algo_;     ///< for hybrid subkey
   int key_version_ = 0;  ///< requested key format version (0 = engine default)
   QDateTime expired_;
   bool non_expired_ = false;  ///<

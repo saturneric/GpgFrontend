@@ -36,19 +36,20 @@ class Ui_InfoBoard;
 
 namespace GpgFrontend::UI {
 
+class TextEditTabWidget;
+struct InfoBoardCard;
+
+// NOTE: keep this typed enum immediately before InfoBoardWidget, and do not
+// insert any braced declaration (struct/class definition) between the two.
+// lupdate's C++ parser mis-tracks the namespace scope across a typed enum
+// followed by a braced declaration, which strips the GpgFrontend::UI:: prefix
+// from this class's translation context and breaks every tr() lookup at
+// runtime. InfoBoardCard is therefore defined below the class instead of here.
 enum InfoBoardStatus : uint8_t {
   kINFO_ERROR_OK = 0,
   kINFO_ERROR_WARN = 1,
   kINFO_ERROR_CRITICAL = 2,
   kINFO_ERROR_NEUTRAL = 3,
-};
-
-class TextEditTabWidget;
-
-struct InfoBoardCard {
-  QString title;
-  InfoBoardStatus status{kINFO_ERROR_NEUTRAL};
-  QContainer<QPair<QString, QString>> fields;
 };
 
 class InfoBoardWidget : public QWidget {
@@ -212,6 +213,14 @@ class InfoBoardWidget : public QWidget {
 
   void reset_document_view();
   void clear_document_fields();
+};
+
+// Defined here (rather than above the class) to keep the typed InfoBoardStatus
+// enum adjacent to InfoBoardWidget; see the note on that enum.
+struct InfoBoardCard {
+  QString title;
+  InfoBoardStatus status{kINFO_ERROR_NEUTRAL};
+  QContainer<QPair<QString, QString>> fields;
 };
 
 }  // namespace GpgFrontend::UI
