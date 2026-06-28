@@ -47,9 +47,25 @@
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/function/InfoBoardCardConverter.h"
 
 //
 #include "private/GFSDKPrivat.h"
+
+namespace {
+
+// Convert an analysed result into the Info Board card JSON modules forward to
+// the UI, reusing the same converter the native (non-module) operations use so
+// emailed results render identically.
+void EmitResultCards(const GpgFrontend::GpgOpResultInfo& info,
+                     const char** cards) {
+  if (cards == nullptr) return;
+  const auto card_list = GpgFrontend::UI::convert_op_info_to_cards(info);
+  *cards = GFStrDup(
+      QString::fromUtf8(GpgFrontend::UI::encode_info_board_cards(card_list)));
+}
+
+}  // namespace
 
 auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
                                  char* data, int sign_mode, int ascii,
@@ -328,46 +344,50 @@ auto GFGpgFreeResult(void* r) -> void {
 }
 
 auto GFAnalyseEncryptResult(int channel, gpgme_error_t err,
-                            gpgme_encrypt_result_t result, const char** analyse)
-    -> int {
+                            gpgme_encrypt_result_t result, const char** analyse,
+                            const char** cards) -> int {
   if (result == nullptr || analyse == nullptr) return -1;
 
   GpgFrontend::GpgEncryptResult result_obj(result);
   GpgFrontend::GpgEncryptResultAnalyse ra(channel, err, result_obj);
   ra.Analyse();
   *analyse = GFStrDup(ra.GetResultReport());
+  EmitResultCards(ra.GetOpInfo(), cards);
   return ra.GetStatus();
 }
 
 auto GFAnalyseDecryptResult(int channel, gpgme_error_t err,
-                            gpgme_decrypt_result_t result, const char** analyse)
-    -> int {
+                            gpgme_decrypt_result_t result, const char** analyse,
+                            const char** cards) -> int {
   if (result == nullptr || analyse == nullptr) return -1;
   GpgFrontend::GpgDecryptResult result_obj(result);
   GpgFrontend::GpgDecryptResultAnalyse ra(channel, err, result_obj);
   ra.Analyse();
   *analyse = GFStrDup(ra.GetResultReport());
+  EmitResultCards(ra.GetOpInfo(), cards);
   return ra.GetStatus();
 }
 
 auto GFAnalyseSignResult(int channel, gpgme_error_t err,
-                         gpgme_sign_result_t result, const char** analyse)
-    -> int {
+                         gpgme_sign_result_t result, const char** analyse,
+                         const char** cards) -> int {
   if (result == nullptr || analyse == nullptr) return -1;
   GpgFrontend::GpgSignResult result_obj(result);
   GpgFrontend::GpgSignResultAnalyse ra(channel, err, result_obj);
   ra.Analyse();
   *analyse = GFStrDup(ra.GetResultReport());
+  EmitResultCards(ra.GetOpInfo(), cards);
   return ra.GetStatus();
 }
 
 auto GFAnalyseVerifyResult(int channel, gpgme_error_t err,
-                           gpgme_verify_result_t result, const char** analyse)
-    -> int {
+                           gpgme_verify_result_t result, const char** analyse,
+                           const char** cards) -> int {
   if (result == nullptr || analyse == nullptr) return -1;
   GpgFrontend::GpgVerifyResult result_obj(result);
   GpgFrontend::GpgVerifyResultAnalyse ra(channel, err, result_obj);
   ra.Analyse();
   *analyse = GFStrDup(ra.GetResultReport());
+  EmitResultCards(ra.GetOpInfo(), cards);
   return ra.GetStatus();
 }

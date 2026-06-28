@@ -28,7 +28,6 @@
 
 #include "GpgOperaHelper.h"
 
-#include "core/function/CoreSignalStation.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
@@ -39,7 +38,6 @@
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgKey.h"
-#include "core/model/GpgPassphraseContext.h"
 #include "core/model/GpgSignResult.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/AsyncUtils.h"
@@ -58,21 +56,44 @@ constexpr int kWaitingDialogShowDelayMs = 1000;
 // this interval until focus returns before presenting it (see below).
 constexpr int kWaitingDialogFocusRecheckMs = 250;
 
+// True when a modal dialog other than `dialog` (and other than the context the
+// waiting dialog is meant to cover) is currently on top. The waiting dialog's
+// parent window, and any ancestor of it, are the expected modal context the
+// progress window should appear over; a *different* modal dialog is something
+// the operation popped up mid-flight that needs the user's input — the
+// passphrase prompt, or a module's own input dialog (e.g. the EML module asking
+// for sender/recipient/subject/cc/bcc). Presenting the (also modal) waiting
+// window now would stack above it and block its input.
+auto ForeignModalDialogIsActive(GpgFrontend::UI::WaitingDialog* dialog) -> bool {
+  auto* active_modal = QApplication::activeModalWidget();
+  if (active_modal == nullptr || active_modal == dialog) return false;
+
+  auto* parent = dialog->parentWidget();
+  if (parent == nullptr) return true;
+
+  return active_modal != parent->window() &&
+         !active_modal->isAncestorOf(parent);
+}
+
 // Create a single-shot timer (owned by the dialog) that shows the dialog only
 // after kWaitingDialogShowDelayMs has elapsed. If the operation finishes first,
 // the caller stops the timer and the dialog is never shown.
 //
-// The modal waiting window must never map while another application holds
-// focus: doing so makes the window manager switch focus to GpgFrontend, which
-// interrupts passphrase entry in GnuPG's external pinentry (a separate
-// process). QApplication::activeWindow() is null exactly when no GpgFrontend
-// window is active, i.e. another app (pinentry) owns focus; in that case keep
-// waiting and re-check shortly, presenting the dialog only once focus is ours.
+// Two conditions defer the show (re-checked shortly after):
+//   1. Another application holds focus: mapping the modal waiting window then
+//      makes the window manager switch focus to GpgFrontend, interrupting
+//      passphrase entry in GnuPG's external pinentry (a separate process).
+//      QApplication::activeWindow() is null exactly when no GpgFrontend window
+//      is active, i.e. another app (pinentry) owns focus.
+//   2. A foreign modal dialog is up (passphrase prompt, a module's input dialog
+//      such as the EML header editor): the waiting window would stack above it
+//      and block its input. See ForeignModalDialogIsActive().
 auto StartDeferredShowTimer(GpgFrontend::UI::WaitingDialog* dialog) -> QTimer* {
   auto* timer = new QTimer(dialog);
   timer->setSingleShot(true);
   QObject::connect(timer, &QTimer::timeout, dialog, [dialog, timer]() {
-    if (QApplication::activeWindow() == nullptr) {
+    if (QApplication::activeWindow() == nullptr ||
+        ForeignModalDialogIsActive(dialog)) {
       timer->start(kWaitingDialogFocusRecheckMs);
       return;
     }
@@ -80,30 +101,6 @@ auto StartDeferredShowTimer(GpgFrontend::UI::WaitingDialog* dialog) -> QTimer* {
   });
   timer->start(kWaitingDialogShowDelayMs);
   return timer;
-}
-
-// The modal waiting dialog must yield to the (also modal) passphrase dialog the
-// engine pops up mid-operation; otherwise it raises/activates itself on top and
-// steals input focus, blocking the user from typing the passphrase. While the
-// engine is collecting a passphrase, stop the deferred-show timer (and hide the
-// dialog if it is already up), then restart the timer once the passphrase has
-// been provided so a still-running operation can resume showing progress. The
-// connections are scoped to the dialog's lifetime via its QPointer receiver.
-void SuppressWaitingDialogWhileEnteringPassphrase(
-    const QPointer<GpgFrontend::UI::WaitingDialog>& dialog,
-    const QPointer<QTimer>& show_timer) {
-  auto* station = GpgFrontend::CoreSignalStation::GetInstance();
-  QObject::connect(
-      station, &GpgFrontend::CoreSignalStation::SignalNeedUserInputPassphrase,
-      dialog, [dialog, show_timer]() {
-        if (show_timer) show_timer->stop();
-        if (dialog && dialog->isVisible()) dialog->hide();
-      });
-  QObject::connect(
-      station, &GpgFrontend::CoreSignalStation::SignalUserInputPassphraseReady,
-      dialog, [show_timer]() {
-        if (show_timer) show_timer->start(kWaitingDialogShowDelayMs);
-      });
 }
 
 void StartFileHashComputation(const QString& path, HashCallback callback) {
@@ -708,7 +705,6 @@ void GpgOperaHelper::WaitForMultipleOperas(
 
   // Only present the dialog if the batch runs longer than the threshold.
   QPointer<QTimer> const show_timer = StartDeferredShowTimer(dialog);
-  SuppressWaitingDialogWhileEnteringPassphrase(dialog, show_timer);
 
   std::atomic<int> remaining_tasks(static_cast<int>(operas.size()));
   const auto tasks_count = operas.size();
@@ -829,7 +825,6 @@ void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
 
   // Only present the dialog if the operation runs longer than the threshold.
   QPointer<QTimer> const show_timer = StartDeferredShowTimer(dialog);
-  SuppressWaitingDialogWhileEnteringPassphrase(dialog, show_timer);
 
   QMetaObject::invokeMethod(
       parent,

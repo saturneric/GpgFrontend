@@ -40,12 +40,12 @@ extern "C" {
  * GFGpgFreeResult before freeing this struct.
  */
 struct GFGpgSignResult {
-  char* signature;                    ///< Signed/armored output data.
-  char* hash_algo;                    ///< Hash algorithm used (e.g. "SHA256").
-  char* capsule_id;                   ///< Opaque ID for UI capsule access.
-  char* error_string;                 ///< Human-readable error description.
-  gpgme_error_t gpgme_error;          ///< Raw GPGME error code.
-  gpgme_sign_result_t gpgme_sign_result; ///< Ref-counted GPGME result handle.
+  char* signature;            ///< Signed/armored output data.
+  char* hash_algo;            ///< Hash algorithm used (e.g. "SHA256").
+  char* capsule_id;           ///< Opaque ID for UI capsule access.
+  char* error_string;         ///< Human-readable error description.
+  gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
+  gpgme_sign_result_t gpgme_sign_result;  ///< Ref-counted GPGME result handle.
 };
 
 /**
@@ -55,11 +55,12 @@ struct GFGpgSignResult {
  * Release @p gpgme_encrypt_result with GFGpgFreeResult before freeing.
  */
 struct GFGpgEncryptionResult {
-  char* encrypted_data;                       ///< Encrypted output data.
-  char* capsule_id;                           ///< Opaque ID for UI capsule access.
-  char* error_string;                         ///< Human-readable error description.
-  gpgme_error_t gpgme_error;                  ///< Raw GPGME error code.
-  gpgme_encrypt_result_t gpgme_encrypt_result; ///< Ref-counted GPGME result handle.
+  char* encrypted_data;       ///< Encrypted output data.
+  char* capsule_id;           ///< Opaque ID for UI capsule access.
+  char* error_string;         ///< Human-readable error description.
+  gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
+  gpgme_encrypt_result_t
+      gpgme_encrypt_result;  ///< Ref-counted GPGME result handle.
 };
 
 /**
@@ -69,11 +70,12 @@ struct GFGpgEncryptionResult {
  * Release @p gpgme_decrypt_result with GFGpgFreeResult before freeing.
  */
 struct GFGpgDecryptResult {
-  char* decrypted_data;                       ///< Plaintext output data.
-  char* capsule_id;                           ///< Opaque ID for UI capsule access.
-  char* error_string;                         ///< Human-readable error description.
-  gpgme_error_t gpgme_error;                  ///< Raw GPGME error code.
-  gpgme_decrypt_result_t gpgme_decrypt_result; ///< Ref-counted GPGME result handle.
+  char* decrypted_data;       ///< Plaintext output data.
+  char* capsule_id;           ///< Opaque ID for UI capsule access.
+  char* error_string;         ///< Human-readable error description.
+  gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
+  gpgme_decrypt_result_t
+      gpgme_decrypt_result;  ///< Ref-counted GPGME result handle.
 };
 
 /**
@@ -83,10 +85,11 @@ struct GFGpgDecryptResult {
  * Release @p gpgme_verify_result with GFGpgFreeResult before freeing.
  */
 struct GFGpgVerifyResult {
-  char* capsule_id;                         ///< Opaque ID for UI capsule access.
-  char* error_string;                       ///< Human-readable error description.
-  gpgme_error_t gpgme_error;                ///< Raw GPGME error code.
-  gpgme_verify_result_t gpgme_verify_result; ///< Ref-counted GPGME result handle.
+  char* capsule_id;           ///< Opaque ID for UI capsule access.
+  char* error_string;         ///< Human-readable error description.
+  gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
+  gpgme_verify_result_t
+      gpgme_verify_result;  ///< Ref-counted GPGME result handle.
 };
 
 /**
@@ -95,9 +98,9 @@ struct GFGpgVerifyResult {
  * Allocated by GFGpgKeyPrimaryUID and must be freed with GFFreeMemory.
  */
 struct GFGpgKeyUID {
-  char* name;    ///< Display name from the UID packet.
-  char* email;   ///< Email address from the UID packet.
-  char* comment; ///< Optional comment from the UID packet.
+  char* name;     ///< Display name from the UID packet.
+  char* email;    ///< Email address from the UID packet.
+  char* comment;  ///< Optional comment from the UID packet.
 };
 
 /**
@@ -124,7 +127,8 @@ auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
  * @param key_ids_size Number of entries in @p key_ids.
  * @param data         Null-terminated plaintext to encrypt.
  * @param ascii        Non-zero to produce ASCII-armored output.
- * @param[out] result  Set to a newly allocated GFGpgEncryptionResult on success.
+ * @param[out] result  Set to a newly allocated GFGpgEncryptionResult on
+ * success.
  * @return 0 on success, -1 on failure (result->error_string is set).
  */
 auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
@@ -235,11 +239,15 @@ auto GF_SDK_EXPORT GFGpgFreeResult(void* r) -> void;
  * @param result        GPGME encryption result handle.
  * @param[out] analyse  Set to a caller-owned string with the analysis report;
  *                      free with GFFreeMemory.
+ * @param[out] cards    Optional; when non-null, set to a caller-owned JSON
+ *                      array string of Info Board cards for the result (free
+ *                      with GFFreeMemory). Pass nullptr to skip.
  * @return Status code: positive on success, negative on detected errors.
  */
 auto GF_SDK_EXPORT GFAnalyseEncryptResult(int channel, gpgme_error_t err,
                                           gpgme_encrypt_result_t result,
-                                          const char** analyse) -> int;
+                                          const char** analyse,
+                                          const char** cards) -> int;
 
 /**
  * @brief Analyses a GPGME signing result and produces a human-readable report.
@@ -249,11 +257,15 @@ auto GF_SDK_EXPORT GFAnalyseEncryptResult(int channel, gpgme_error_t err,
  * @param result        GPGME sign result handle.
  * @param[out] analyse  Set to a caller-owned string with the analysis report;
  *                      free with GFFreeMemory.
+ * @param[out] cards    Optional; when non-null, set to a caller-owned JSON
+ *                      array string of Info Board cards for the result (free
+ *                      with GFFreeMemory). Pass nullptr to skip.
  * @return Status code: positive on success, negative on detected errors.
  */
 auto GF_SDK_EXPORT GFAnalyseSignResult(int channel, gpgme_error_t err,
                                        gpgme_sign_result_t result,
-                                       const char** analyse) -> int;
+                                       const char** analyse, const char** cards)
+    -> int;
 
 /**
  * @brief Analyses a GPGME decryption result and produces a human-readable
@@ -264,11 +276,15 @@ auto GF_SDK_EXPORT GFAnalyseSignResult(int channel, gpgme_error_t err,
  * @param result        GPGME decrypt result handle.
  * @param[out] analyse  Set to a caller-owned string with the analysis report;
  *                      free with GFFreeMemory.
+ * @param[out] cards    Optional; when non-null, set to a caller-owned JSON
+ *                      array string of Info Board cards for the result (free
+ *                      with GFFreeMemory). Pass nullptr to skip.
  * @return Status code: positive on success, negative on detected errors.
  */
 auto GF_SDK_EXPORT GFAnalyseDecryptResult(int channel, gpgme_error_t err,
                                           gpgme_decrypt_result_t result,
-                                          const char** analyse) -> int;
+                                          const char** analyse,
+                                          const char** cards) -> int;
 
 /**
  * @brief Analyses a GPGME verification result and produces a human-readable
@@ -279,10 +295,14 @@ auto GF_SDK_EXPORT GFAnalyseDecryptResult(int channel, gpgme_error_t err,
  * @param result        GPGME verify result handle.
  * @param[out] analyse  Set to a caller-owned string with the analysis report;
  *                      free with GFFreeMemory.
+ * @param[out] cards    Optional; when non-null, set to a caller-owned JSON
+ *                      array string of Info Board cards for the result (free
+ *                      with GFFreeMemory). Pass nullptr to skip.
  * @return Status code: positive on success, negative on detected errors.
  */
 auto GF_SDK_EXPORT GFAnalyseVerifyResult(int channel, gpgme_error_t err,
                                          gpgme_verify_result_t result,
-                                         const char** analyse) -> int;
+                                         const char** analyse,
+                                         const char** cards) -> int;
 
 }  // extern "C"

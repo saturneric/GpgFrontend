@@ -28,9 +28,56 @@
 
 #include "ui/function/InfoBoardCardConverter.h"
 
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+
 namespace GpgFrontend::UI {
 
 namespace {
+
+auto status_to_string(InfoBoardStatus status) -> QString {
+  switch (status) {
+    case kINFO_ERROR_OK:
+      return QStringLiteral("ok");
+    case kINFO_ERROR_WARN:
+      return QStringLiteral("warn");
+    case kINFO_ERROR_CRITICAL:
+      return QStringLiteral("critical");
+    default:
+      return QStringLiteral("neutral");
+  }
+}
+
+auto status_from_string(const QString& s) -> InfoBoardStatus {
+  if (s == QLatin1String("ok")) return kINFO_ERROR_OK;
+  if (s == QLatin1String("warn")) return kINFO_ERROR_WARN;
+  if (s == QLatin1String("critical")) return kINFO_ERROR_CRITICAL;
+  return kINFO_ERROR_NEUTRAL;
+}
+
+auto card_to_json(const InfoBoardCard& card) -> QJsonObject {
+  QJsonArray fields;
+  for (const auto& f : card.fields) {
+    fields.append(QJsonArray{f.first, f.second});
+  }
+  return QJsonObject{{QStringLiteral("title"), card.title},
+                     {QStringLiteral("status"), status_to_string(card.status)},
+                     {QStringLiteral("fields"), fields}};
+}
+
+auto card_from_json(const QJsonObject& obj) -> InfoBoardCard {
+  InfoBoardCard card;
+  card.title = obj.value(QStringLiteral("title")).toString();
+  card.status =
+      status_from_string(obj.value(QStringLiteral("status")).toString());
+  for (const auto& fv : obj.value(QStringLiteral("fields")).toArray()) {
+    const auto pair = fv.toArray();
+    if (pair.size() != 2) continue;
+    card.fields.append({pair.at(0).toString(), pair.at(1).toString()});
+  }
+  return card;
+}
 
 auto sig_validity_to_status(GpgSigValidity validity) -> InfoBoardStatus {
   switch (validity) {
@@ -190,6 +237,36 @@ auto convert_op_info_to_cards(const GpgOpResultInfo& info)
   }
 
   return cards;
+}
+
+auto encode_info_board_cards(const QContainer<InfoBoardCard>& cards)
+    -> QByteArray {
+  QJsonArray arr;
+  for (const auto& card : cards) arr.append(card_to_json(card));
+  return QJsonDocument(arr).toJson(QJsonDocument::Compact);
+}
+
+auto decode_info_board_cards(const QByteArray& json) -> InfoBoardCardsPayload {
+  InfoBoardCardsPayload payload;
+
+  QJsonParseError err{};
+  const auto doc = QJsonDocument::fromJson(json, &err);
+  if (err.error != QJsonParseError::NoError || !doc.isObject()) return payload;
+
+  const auto obj = doc.object();
+  payload.operation = obj.value(QStringLiteral("operation")).toString();
+  payload.description = obj.value(QStringLiteral("description")).toString();
+  payload.details_title = obj.value(QStringLiteral("details_title")).toString();
+  for (const auto& item :
+       obj.value(QStringLiteral("details_items")).toArray()) {
+    payload.details_items.append(item.toString());
+  }
+  for (const auto& cv : obj.value(QStringLiteral("cards")).toArray()) {
+    if (cv.isObject()) payload.cards.append(card_from_json(cv.toObject()));
+  }
+
+  payload.valid = true;
+  return payload;
 }
 
 }  // namespace GpgFrontend::UI
