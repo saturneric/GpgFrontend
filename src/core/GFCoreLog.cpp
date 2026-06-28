@@ -94,9 +94,99 @@ auto GFLogManager::Instance() -> GFLogManager& {
   return instance;
 }
 
+GFLogManager::~GFLogManager() = default;
+
 void GFLogManager::InitRingBuffer(int capacity) {
   QMutexLocker locker(&mutex_);
   ring_buffer_ = std::make_unique<GFLogRingBuffer>(capacity);
+}
+
+void GFLogManager::InitFileLogger(const QString& log_dir, qint64 max_file_bytes,
+                                  int max_files) {
+  QMutexLocker locker(&mutex_);
+
+  // already logging to a file, or no destination given
+  if (log_stream_ != nullptr) return;
+  if (log_dir.trimmed().isEmpty()) return;
+
+  QDir dir(log_dir);
+  if (!dir.exists() && !dir.mkpath(".")) return;
+
+  max_file_bytes_ = max_file_bytes > 0 ? max_file_bytes : 5LL * 1024 * 1024;
+  max_files_ = max_files > 0 ? max_files : 1;
+  log_file_path_ = dir.absoluteFilePath("gpgfrontend.log");
+
+  auto file = std::make_unique<QFile>(log_file_path_);
+  if (!file->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+    // cannot open file: leave file logging disabled, ring/stderr still work
+    return;
+  }
+
+  log_file_ = std::move(file);
+  log_stream_ = std::make_unique<QTextStream>(log_file_.get());
+
+  // flush whatever was buffered before file logging started, so the file
+  // captures the full history including early startup entries.
+  if (ring_buffer_ != nullptr) {
+    for (const auto& entry : ring_buffer_->Snapshot()) {
+      *log_stream_ << entry.formatted_message << '\n';
+    }
+    log_stream_->flush();
+  }
+}
+
+void GFLogManager::StopFileLogger() {
+  QMutexLocker locker(&mutex_);
+  log_stream_.reset();
+  if (log_file_ != nullptr) {
+    log_file_->close();
+    log_file_.reset();
+  }
+}
+
+void GFLogManager::WriteEntryToFileUnlocked(const GFLogEntry& entry) {
+  if (log_stream_ == nullptr) return;
+
+  // flush every line: a hung or crashed startup must still leave the latest
+  // entry on disk, otherwise the file would be useless for the very failures
+  // it exists to diagnose.
+  *log_stream_ << entry.formatted_message << '\n';
+  log_stream_->flush();
+
+  if (log_file_ != nullptr && log_file_->size() >= max_file_bytes_) {
+    RotateUnlocked();
+  }
+}
+
+void GFLogManager::RotateUnlocked() {
+  log_stream_.reset();
+  if (log_file_ != nullptr) log_file_->close();
+  log_file_.reset();
+
+  const QFileInfo info(log_file_path_);
+  const auto backup_path = [&](int i) -> QString {
+    return info.absolutePath() + "/" + info.completeBaseName() + "." +
+           QString::number(i) + "." + info.suffix();
+  };
+
+  // drop the oldest backup, then shift the rest up by one
+  QFile::remove(backup_path(max_files_));
+  for (int i = max_files_ - 1; i >= 1; --i) {
+    if (QFile::exists(backup_path(i))) {
+      QFile::rename(backup_path(i), backup_path(i + 1));
+    }
+  }
+  if (QFile::exists(log_file_path_)) {
+    QFile::rename(log_file_path_, backup_path(1));
+  }
+
+  // reopen a fresh active file
+  auto file = std::make_unique<QFile>(log_file_path_);
+  if (file->open(QIODevice::WriteOnly | QIODevice::Truncate |
+                 QIODevice::Text)) {
+    log_file_ = std::move(file);
+    log_stream_ = std::make_unique<QTextStream>(log_file_.get());
+  }
 }
 
 void GFLogManager::Push(const GFLogEntry& entry) {
@@ -104,6 +194,7 @@ void GFLogManager::Push(const GFLogEntry& entry) {
   if (ring_buffer_ != nullptr) {
     ring_buffer_->Push(entry);
   }
+  WriteEntryToFileUnlocked(entry);
 }
 
 auto GFLogManager::Snapshot() const -> QVector<GFLogEntry> {

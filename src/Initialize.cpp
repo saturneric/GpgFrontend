@@ -164,6 +164,17 @@ void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) return;
 
+  // Start rotating file logging as early as possible. The settings station
+  // constructs on first access and creates the log directory, so from here on
+  // the whole startup sequence -- including failures that leave the app stuck
+  // on the loading screen -- is persisted to disk for later diagnosis (the
+  // ring buffer's earlier entries are flushed in by InitFileLogger). Skipped
+  // under the unit-test runner to avoid writing into the log directory.
+  if (!ctx->unit_test_mode) {
+    GFLogManager::Instance().InitFileLogger(
+        GlobalSettingStation::GetInstance().GetAppLogPath());
+  }
+
   // change path to search for related
   InitGlobalPathEnv();
 
@@ -239,8 +250,8 @@ constexpr int kShutdownWatchdogTimeoutMs = 10000;
 /// seen on Windows when several key databases each leave a slow-to-kill agent.
 std::atomic<bool> g_relaunch_pending = false;
 std::atomic<bool> g_relaunch_done = false;
-QString g_relaunch_program;    // NOLINT(*-avoid-non-const-global-variables)
-QStringList g_relaunch_args;   // NOLINT(*-avoid-non-const-global-variables)
+QString g_relaunch_program;   // NOLINT(*-avoid-non-const-global-variables)
+QStringList g_relaunch_args;  // NOLINT(*-avoid-non-const-global-variables)
 
 /**
  * @brief Relaunch the application for a pending deep restart, exactly once.
@@ -301,8 +312,8 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
   }
 
   // Capture relaunch parameters now, on the main thread and while qApp is still
-  // valid, so a pending deep restart can be honoured even if teardown wedges and
-  // the watchdog has to force-exit (see PerformDeepRestartRelaunch).
+  // valid, so a pending deep restart can be honoured even if teardown wedges
+  // and the watchdog has to force-exit (see PerformDeepRestartRelaunch).
   if (ctx->rtn == GpgFrontend::kDeepRestartCode ||
       ctx->rtn == GpgFrontend::kCrashCode) {
     QStringList args = qApp->arguments();

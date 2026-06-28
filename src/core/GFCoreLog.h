@@ -120,12 +120,46 @@ class GF_CORE_EXPORT GFLogManager {
    */
   static auto Instance() -> GFLogManager&;
 
+  ~GFLogManager();
+
   /**
    * @brief Initializes the internal ring buffer with the specified capacity.
    *
    * @param capacity maximum number of log entries to buffer
    */
   void InitRingBuffer(int capacity);
+
+  /**
+   * @brief Enables rotating file logging into the given directory.
+   *
+   * Writes every already-buffered and subsequent log entry to
+   * "gpgfrontend.log" inside @p log_dir, rotating to "gpgfrontend.<n>.log" once
+   * the active file exceeds @p max_file_bytes and keeping at most @p max_files
+   * rotated backups. Each entry is flushed immediately, so a hang or crash
+   * still leaves the most recent line on disk -- which is what makes a stuck
+   * startup diagnosable after the fact.
+   *
+   * Safe to call once the log directory exists (the settings station creates
+   * it on first access). Calling it again is a no-op while a file is already
+   * open. If the file cannot be opened, file logging is silently disabled and
+   * the ring buffer / stderr sinks keep working.
+   *
+   * @param log_dir directory that will hold the log files
+   * @param max_file_bytes size threshold that triggers rotation
+   * @param max_files maximum number of rotated backups to keep
+   */
+  void InitFileLogger(const QString& log_dir,
+                      qint64 max_file_bytes = 5LL * 1024 * 1024,
+                      int max_files = 5);
+
+  /**
+   * @brief Stops file logging and closes the active log file, if any.
+   *
+   * The ring buffer and stderr sinks are unaffected. Used to release the file
+   * handle (e.g. when the user disables file logging) and to reset state in
+   * tests. After this, InitFileLogger() can be called again.
+   */
+  void StopFileLogger();
 
   /**
    * @brief Thread-safe push of a log entry into the ring buffer.
@@ -144,8 +178,29 @@ class GF_CORE_EXPORT GFLogManager {
  private:
   GFLogManager() = default;
 
+  /**
+   * @brief Writes a single entry to the active log file and rotates if needed.
+   * Caller must hold mutex_.
+   */
+  void WriteEntryToFileUnlocked(const GFLogEntry& entry);
+
+  /**
+   * @brief Rotates the active log file, shifting backups and reopening fresh.
+   * Caller must hold mutex_.
+   */
+  void RotateUnlocked();
+
   mutable QMutex mutex_;
   std::unique_ptr<GFLogRingBuffer> ring_buffer_;
+
+  // file logging sink; nullptr until InitFileLogger() succeeds. log_file_ is
+  // declared before log_stream_ so the stream (which flushes on destruction)
+  // is torn down before the file it writes to is closed.
+  std::unique_ptr<QFile> log_file_;
+  std::unique_ptr<QTextStream> log_stream_;
+  QString log_file_path_;
+  qint64 max_file_bytes_ = 0;
+  int max_files_ = 0;
 };
 
 }  // namespace GpgFrontend
