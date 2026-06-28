@@ -32,7 +32,7 @@ on:
       - "resource/lfs/locale/**"
       - "**.md"
 env:
-  BUILD_TYPE: Debug
+  BUILD_TYPE: RelWithDebInfo
 
 jobs:
   build:
