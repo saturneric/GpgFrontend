@@ -48,6 +48,22 @@ namespace {
 
 using HashCallback = std::function<void(const QString&)>;
 
+// Crypto operations that complete quickly should not flash a waiting dialog.
+// Defer presenting the dialog until the operation has been running this long.
+constexpr int kWaitingDialogShowDelayMs = 1000;
+
+// Create a single-shot timer (owned by the dialog) that shows the dialog only
+// after kWaitingDialogShowDelayMs has elapsed. If the operation finishes first,
+// the caller stops the timer and the dialog is never shown.
+auto StartDeferredShowTimer(GpgFrontend::UI::WaitingDialog* dialog) -> QTimer* {
+  auto* timer = new QTimer(dialog);
+  timer->setSingleShot(true);
+  QObject::connect(timer, &QTimer::timeout, dialog,
+                   [dialog]() { dialog->show(); });
+  timer->start(kWaitingDialogShowDelayMs);
+  return timer;
+}
+
 void StartFileHashComputation(const QString& path, HashCallback callback) {
   auto hash_holder = GpgFrontend::SecureCreateSharedObject<QString>();
   GpgFrontend::Thread::TaskRunnerGetter::GetInstance()
@@ -647,7 +663,9 @@ void GpgOperaHelper::WaitForMultipleOperas(
     connect(dialog, &WaitingDialog::SignalCancelRequested, dialog,
             [cancel_channel]() { RequestCancelGpgOperation(cancel_channel); });
   }
-  dialog->show();
+
+  // Only present the dialog if the batch runs longer than the threshold.
+  QPointer<QTimer> const show_timer = StartDeferredShowTimer(dialog);
 
   std::atomic<int> remaining_tasks(static_cast<int>(operas.size()));
   const auto tasks_count = operas.size();
@@ -656,7 +674,7 @@ void GpgOperaHelper::WaitForMultipleOperas(
     QMetaObject::invokeMethod(
         parent,
         [=, &remaining_tasks]() {
-          opera([dialog, &remaining_tasks, tasks_count]() {
+          opera([dialog, show_timer, &remaining_tasks, tasks_count]() {
             if (dialog == nullptr) return;
             const auto pg_value =
                 static_cast<double>(tasks_count - remaining_tasks + 1) * 100.0 /
@@ -664,6 +682,7 @@ void GpgOperaHelper::WaitForMultipleOperas(
             emit dialog->SignalUpdateValue(static_cast<int>(pg_value));
             QCoreApplication::processEvents();
             if (--remaining_tasks == 0) {
+              if (show_timer) show_timer->stop();
               dialog->close();
               dialog->accept();
             }
@@ -764,12 +783,15 @@ void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
         dialog, &WaitingDialog::SignalCancelRequested, dialog,
         [cancel_channel]() { RequestCancelGpgOperation(cancel_channel); });
   }
-  dialog->show();
+
+  // Only present the dialog if the operation runs longer than the threshold.
+  QPointer<QTimer> const show_timer = StartDeferredShowTimer(dialog);
 
   QMetaObject::invokeMethod(
       parent,
       [=]() {
-        opera([dialog]() {
+        opera([dialog, show_timer]() {
+          if (show_timer) show_timer->stop();
           if (dialog) {
             dialog->close();
             dialog->accept();
