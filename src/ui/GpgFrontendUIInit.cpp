@@ -241,20 +241,35 @@ void InitGpgFrontendUI(QApplication* app) {
   InitUITranslations();
 
   auto settings = GetSettings();
-  auto theme = settings.value("appearance/theme").toString();
+  auto theme = settings.value("appearance/theme").toString().toLower();
 
-  // make appimage version look better; also default to Fusion on macOS
-#if defined(Q_OS_MACOS)
-  if (theme.isEmpty()) SetFusionAsDefaultStyle();
-#else
-  if (IsAppImageENV()) SetFusionAsDefaultStyle();
-#endif
-
-  // If user has explicitly set a theme in settings, use that instead
+  // Resolve the effective style. If the user has explicitly chosen a valid
+  // style, honor it; otherwise fall back to Fusion on macOS and on the AppImage
+  // build to make them look better.
   auto available_styles = QStyleFactory::keys();
   for (QString& s : available_styles) s = s.toLower();
+
+  QString effective_style;
   if (!theme.isEmpty() && available_styles.contains(theme)) {
-    QApplication::setStyle(QStyleFactory::create(theme));
+    effective_style = theme;
+  } else {
+#if defined(Q_OS_MACOS)
+    effective_style = "fusion";
+#else
+    if (IsAppImageENV()) effective_style = "fusion";
+#endif
+  }
+
+  // Apply the resolved style. Fusion always goes through the dedicated default
+  // treatment (which also sets the dark palette), regardless of whether it comes
+  // from the fallback above or from an explicitly saved setting. This keeps the
+  // appearance identical across launches: previously the dark palette was only
+  // applied when no theme was saved, so once "fusion" got persisted (e.g. by
+  // opening and closing the settings dialog) later launches silently dropped it.
+  if (effective_style.compare("fusion", Qt::CaseInsensitive) == 0) {
+    SetFusionAsDefaultStyle();
+  } else if (!effective_style.isEmpty()) {
+    QApplication::setStyle(QStyleFactory::create(effective_style));
   }
 
   // register meta types
