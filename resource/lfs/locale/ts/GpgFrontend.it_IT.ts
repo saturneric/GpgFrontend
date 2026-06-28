@@ -1152,27 +1152,27 @@
 <context>
     <name>GpgFrontend::UI::CommonUtils</name>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="145"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="290"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="147"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="292"/>
         <source>Success</source>
         <translation>Successo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="164"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="282"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="166"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="284"/>
         <source>Failure</source>
         <translation>Fallimento</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="201"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="208"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="336"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="420"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="203"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="210"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="338"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="422"/>
         <source>Error</source>
         <translation>Errore</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="193"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="195"/>
         <source>Open Key</source>
         <translation>Chiave aperta</translation>
     </message>
@@ -1187,97 +1187,97 @@
         <translation>Sembra che non sia disponibile alcun motore OpenPGP supportato. Verifica che GpgFrontend sia installato correttamente e riprova. Motivo: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="146"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="148"/>
         <source>Operation completed successfully.</source>
         <translation>Operazione completata con successo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="154"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="156"/>
         <source>Operation Not Supported</source>
         <translation>Operazione non supportata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="155"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="157"/>
         <source>The current OpenPGP engine does not support this operation. Please use a supported engine or upgrade the engine version.</source>
         <translation>Il motore OpenPGP corrente non supporta questa operazione. Si prega di utilizzare un motore supportato o di aggiornare la versione del motore.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="165"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="167"/>
         <source>Gpg Operation failed.</source>
         <translation>Operazione Gpg fallita.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="166"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="168"/>
         <source>Error code: %1</source>
         <translation>Codice di errore: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="167"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="169"/>
         <source>Source:  %1</source>
         <translation>Fonte: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="168"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="170"/>
         <source>Description: %1</source>
         <translation>Descrizione: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="169"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="171"/>
         <source>Error Message: %1</source>
         <translation>Messaggio di errore: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="194"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="196"/>
         <source>Keyring files</source>
         <translation>File portachiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="202"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="204"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation>Impossibile aprire questo file. Assicurati che questo sia un file regolare e che sia leggibile.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="209"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="211"/>
         <source>The target file is too large for a keyring.</source>
         <translation>Il file di destinazione è troppo grande per un portachiavi.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="215"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="217"/>
         <source>File Open Failed</source>
         <translation>Apertura file non riuscita</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="216"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="218"/>
         <source>Failed to open file: </source>
         <translation>Impossibile aprire il file: </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="263"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="265"/>
         <source>Processing</source>
         <translation>In lavorazione</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="283"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="285"/>
         <source>Failed to execute command.</source>
         <translation>Impossibile eseguire il comando.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="291"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="293"/>
         <source>Succeed in executing command.</source>
         <translation>Riuscire a eseguire il comando.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="293"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="295"/>
         <source>Warning</source>
         <translation>Avvertimento</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="294"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="296"/>
         <source>Finished executing command.</source>
         <translation>Terminata l&apos;esecuzione del comando.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="420"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="422"/>
         <source>Key Not Found.</source>
         <translation>Chiave non trovata.</translation>
     </message>
@@ -2366,26 +2366,26 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::GpgOperaHelper</name>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="202"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="267"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="336"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="397"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="259"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="324"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="393"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="454"/>
         <source>Operation Not Supported</source>
         <translation>Operazione non supportata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="211"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="276"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="344"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="405"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="268"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="333"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="401"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="462"/>
         <source>Operation Cancelled</source>
         <translation>Operazione annullata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="221"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="286"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="353"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="414"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="278"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="343"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="410"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="471"/>
         <source>Critical Error</source>
         <translatorcomment>Errore critico</translatorcomment>
         <translation>Errore critico</translation>
@@ -2974,85 +2974,90 @@ I risultati verranno visualizzati qui come documento di riepilogo.</translation>
         <translation>Percorso reale</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="221"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="129"/>
+        <source>Add New Key Database</source>
+        <translation>Aggiungi nuovo Database delle chiavi</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="223"/>
         <source>N/A</source>
         <translation>N/A</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="317"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="319"/>
         <source>No Key Database Selected</source>
         <translation>Nessun database di chiavi selezionato</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="318"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="320"/>
         <source>Please select a key database to edit.</source>
         <translation>Selezionare un database chiave da modificare.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="337"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="390"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="339"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="392"/>
         <source>Duplicate Key Database Paths</source>
         <translation>Percorsi del database delle chiavi duplicati</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="338"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="340"/>
         <source>The edited key database path duplicates a previously existing one.</source>
         <translation>Il percorso del database delle chiavi modificato duplica un percorso già esistente.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="348"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="423"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="350"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="425"/>
         <source>Invalid Key Database Paths</source>
         <translation>Percorsi del database delle chiavi non validi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="349"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="424"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="351"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="426"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
         <translation>Il percorso del database della chiave modificata non è un percorso valido che GpgFrontend può utilizzare</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="374"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="376"/>
         <source>Maximum Key Database Limit Reached</source>
         <translation>È stato raggiunto il limite massimo del database delle chiavi</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="375"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="377"/>
         <source>Currently, GpgFrontend supports a maximum of 8 key databases. Please remove an existing database to add a new one.</source>
         <translation>Attualmente, GpgFrontend supporta un massimo di 8 database di chiavi. Rimuovi un database esistente per aggiungerne uno nuovo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="391"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="393"/>
         <source>The newly added key database path duplicates a previously existing one.</source>
         <translation>Il percorso del database delle chiavi appena aggiunto duplica quello già esistente.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="400"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="402"/>
         <source>Invalid Key Database Path</source>
         <translation>Percorso del database della chiave non valido</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="401"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="403"/>
         <source>The specified key database path points to an existing file. Please specify a path that does not exist or points to a directory.</source>
         <translation>Il percorso del database chiave specificato punta a un file esistente. Si prega di specificare un percorso inesistente o che punti a una directory.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="412"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="414"/>
         <source>Failed to Create Key Database Directory</source>
         <translation>Impossibile creare la directory chiave del database</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="413"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="415"/>
         <source>GpgFrontend failed to create a directory at the specified key database path. Please check the path and your permissions.</source>
         <translation>GpgFrontend non è riuscito a creare una directory nel percorso del database chiave specificato. Verificare il percorso e le autorizzazioni.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="458"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="460"/>
         <source>Confirm Deletion</source>
         <translation>Conferma la cancellazione</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="459"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="461"/>
         <source>Are you sure you want to remove the selected key database from the list?</source>
         <translation>Sei sicuro di voler rimuovere il database chiave selezionato dall&apos;elenco?</translation>
     </message>
@@ -6815,22 +6820,22 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation>Informazioni sulla passphrase: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="333"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="352"/>
         <source>Empty Passphrase</source>
         <translation>Passphrase vuota</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="334"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="353"/>
         <source>Passphrase cannot be empty. Please enter a valid passphrase.</source>
         <translation>La passphrase non può essere vuota. Inserisci una passphrase valida.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="343"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="362"/>
         <source>Passphrase Mismatch</source>
         <translation>Passphrase non corrispondente</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="363"/>
         <source>The two passphrases do not match. Please enter them again.</source>
         <translation>Le due passphrase non corrispondono. Inseriscile di nuovo.</translation>
     </message>
@@ -6880,12 +6885,17 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation>Conferma:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="287"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="283"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="392"/>
+        <source>Closing in %1:%2</source>
+        <translation>Chiusura in %1:%2</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="286"/>
         <source>Cancel</source>
         <translation>Annulla</translation>
     </message>

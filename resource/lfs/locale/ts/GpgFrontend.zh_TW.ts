@@ -1148,27 +1148,27 @@
 <context>
     <name>GpgFrontend::UI::CommonUtils</name>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="145"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="290"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="147"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="292"/>
         <source>Success</source>
         <translation>成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="164"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="282"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="166"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="284"/>
         <source>Failure</source>
         <translation>失敗</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="201"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="208"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="336"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="420"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="203"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="210"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="338"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="422"/>
         <source>Error</source>
         <translation>錯誤</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="193"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="195"/>
         <source>Open Key</source>
         <translation>開啟金鑰</translation>
     </message>
@@ -1183,97 +1183,97 @@
         <translation>似乎沒有可用的 OpenPGP 引擎。請檢查 GpgFrontend 是否安裝正確並重試。原因：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="146"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="148"/>
         <source>Operation completed successfully.</source>
         <translation>操作成功完成。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="154"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="156"/>
         <source>Operation Not Supported</source>
         <translation>不支援此操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="155"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="157"/>
         <source>The current OpenPGP engine does not support this operation. Please use a supported engine or upgrade the engine version.</source>
         <translation>当前 OpenPGP 引擎不支持此操作。请使用受支持的引擎或升级引擎版本。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="165"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="167"/>
         <source>Gpg Operation failed.</source>
         <translation>Gpg 操作失敗。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="166"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="168"/>
         <source>Error code: %1</source>
         <translation>錯誤代碼：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="167"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="169"/>
         <source>Source:  %1</source>
         <translation>來源：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="168"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="170"/>
         <source>Description: %1</source>
         <translation>描述：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="169"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="171"/>
         <source>Error Message: %1</source>
         <translation>錯誤訊息：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="194"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="196"/>
         <source>Keyring files</source>
         <translation>金鑰環檔案</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="202"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="204"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation>無法開啟此檔案。請確保這是一個一般檔案且可讀取。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="209"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="211"/>
         <source>The target file is too large for a keyring.</source>
         <translation>目標檔案對於金鑰環而言過大。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="215"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="217"/>
         <source>File Open Failed</source>
         <translation>檔案開啟失敗</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="216"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="218"/>
         <source>Failed to open file: </source>
         <translation>無法開啟檔案：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="263"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="265"/>
         <source>Processing</source>
         <translation>處理中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="283"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="285"/>
         <source>Failed to execute command.</source>
         <translation>執行指令失敗。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="291"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="293"/>
         <source>Succeed in executing command.</source>
         <translation>成功執行指令。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="293"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="295"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="294"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="296"/>
         <source>Finished executing command.</source>
         <translation>指令執行完成。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="420"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="422"/>
         <source>Key Not Found.</source>
         <translation>找不到金鑰。</translation>
     </message>
@@ -2363,26 +2363,26 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::GpgOperaHelper</name>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="202"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="267"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="336"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="397"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="259"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="324"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="393"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="454"/>
         <source>Operation Not Supported</source>
         <translation>操作不被支援</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="211"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="276"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="344"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="405"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="268"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="333"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="401"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="462"/>
         <source>Operation Cancelled</source>
         <translation>操作已取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="221"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="286"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="353"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="414"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="278"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="343"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="410"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="471"/>
         <source>Critical Error</source>
         <translation>嚴重錯誤</translation>
     </message>
@@ -2969,85 +2969,90 @@ Results will appear here as a summary document.</source>
         <translation>實際路徑</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="221"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="129"/>
+        <source>Add New Key Database</source>
+        <translation>新增金鑰資料庫</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="223"/>
         <source>N/A</source>
         <translation>不適用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="317"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="319"/>
         <source>No Key Database Selected</source>
         <translation>未選擇金鑰資料庫</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="318"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="320"/>
         <source>Please select a key database to edit.</source>
         <translation>請選擇一個要編輯的金鑰資料庫。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="337"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="390"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="339"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="392"/>
         <source>Duplicate Key Database Paths</source>
         <translation>重複的金鑰資料庫路徑</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="338"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="340"/>
         <source>The edited key database path duplicates a previously existing one.</source>
         <translation>編輯後的金鑰資料庫路徑與現有的路徑重複。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="348"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="423"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="350"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="425"/>
         <source>Invalid Key Database Paths</source>
         <translation>無效的金鑰資料庫路徑</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="349"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="424"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="351"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="426"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
         <translation>編輯後的金鑰資料庫路徑不是 GpgFrontend 可使用的有效路徑</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="374"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="376"/>
         <source>Maximum Key Database Limit Reached</source>
         <translation>已達金鑰資料庫數量上限</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="375"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="377"/>
         <source>Currently, GpgFrontend supports a maximum of 8 key databases. Please remove an existing database to add a new one.</source>
         <translation>目前 GpgFrontend 最多支援 8 個金鑰資料庫。請先移除現有的資料庫以新增一個。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="391"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="393"/>
         <source>The newly added key database path duplicates a previously existing one.</source>
         <translation>新加入的金鑰資料庫路徑與現有的路徑重複。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="400"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="402"/>
         <source>Invalid Key Database Path</source>
         <translation>無效的金鑰資料庫路徑</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="401"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="403"/>
         <source>The specified key database path points to an existing file. Please specify a path that does not exist or points to a directory.</source>
         <translation>指定的金鑰資料庫路徑指向一個現有的檔案。請指定一個不存在的路徑或指向目錄的路徑。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="412"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="414"/>
         <source>Failed to Create Key Database Directory</source>
         <translation>無法建立金鑰資料庫目錄</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="413"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="415"/>
         <source>GpgFrontend failed to create a directory at the specified key database path. Please check the path and your permissions.</source>
         <translation>GpgFrontend 無法在指定的金鑰資料庫路徑建立目錄。請檢查該路徑及您的權限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="458"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="460"/>
         <source>Confirm Deletion</source>
         <translation>確認刪除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="459"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="461"/>
         <source>Are you sure you want to remove the selected key database from the list?</source>
         <translation>您確定要從清單中移除所選的金鑰資料庫嗎？</translation>
     </message>
@@ -6809,22 +6814,22 @@ Would you like to fetch these keys from the key server?</source>
         <translation>通行片語資訊：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="333"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="352"/>
         <source>Empty Passphrase</source>
         <translation>通行片語為空</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="334"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="353"/>
         <source>Passphrase cannot be empty. Please enter a valid passphrase.</source>
         <translation>通行片語不能為空。請輸入有效的通行片語。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="343"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="362"/>
         <source>Passphrase Mismatch</source>
         <translation>通行片語不符</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="363"/>
         <source>The two passphrases do not match. Please enter them again.</source>
         <translation>兩次輸入的通行片語不符。請重新輸入。</translation>
     </message>
@@ -6874,12 +6879,17 @@ Would you like to fetch these keys from the key server?</source>
         <translation>確認：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="287"/>
         <source>OK</source>
         <translation>確定</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="283"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="392"/>
+        <source>Closing in %1:%2</source>
+        <translation>將在 %1:%2 後關閉</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="286"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>

@@ -211,85 +211,85 @@
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
         <source>Select</source>
-        <translation type="unfinished">选择</translation>
+        <translation>选择</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
         <source>Type</source>
-        <translation type="unfinished">类型</translation>
+        <translation>类型</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
         <source>Name</source>
-        <translation type="unfinished">名称</translation>
+        <translation>名称</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
         <source>Email Address</source>
-        <translation type="unfinished">电子邮件地址</translation>
+        <translation>电子邮件地址</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="187"/>
         <source>Usage</source>
-        <translation type="unfinished">用法</translation>
+        <translation>用法</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="188"/>
         <source>Trust</source>
-        <translation type="unfinished">信任</translation>
+        <translation>信任</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
         <source>Key ID</source>
-        <translation type="unfinished">密钥 ID</translation>
+        <translation>密钥 ID</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
         <source>Create Date</source>
-        <translation type="unfinished">创建时间</translation>
+        <translation>创建时间</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
         <source>Algorithm</source>
-        <translation type="unfinished">算法</translation>
+        <translation>算法</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
         <source>Subkey(s)</source>
-        <translation type="unfinished">子密钥</translation>
+        <translation>子密钥</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="189"/>
         <source>Comment</source>
-        <translation type="unfinished">注释</translation>
+        <translation>注释</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="185"/>
         <source>ID</source>
-        <translation type="unfinished">ID</translation>
+        <translation>ID</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="186"/>
         <source>Algo</source>
-        <translation type="unfinished">算法</translation>
+        <translation>算法</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="190"/>
         <source>No Comment</source>
-        <translation type="unfinished">无注释</translation>
+        <translation>无注释</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="196"/>
         <source>SubKeys (up to 8):</source>
-        <translation type="unfinished">子密钥（最多 8 个）：</translation>
+        <translation>子密钥（最多 8 个）：</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="202"/>
         <source>ID: %1 | Algo: %2 | Usage: %3</source>
-        <translation type="unfinished">ID: %1 | 算法: %2 | 用法: %3</translation>
+        <translation>ID: %1 | 算法: %2 | 用法: %3</translation>
     </message>
 </context>
 <context>
@@ -297,37 +297,37 @@
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="41"/>
         <source>Select</source>
-        <translation type="unfinished">选择</translation>
+        <translation>选择</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="42"/>
         <source>Type</source>
-        <translation type="unfinished">类型</translation>
+        <translation>类型</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="43"/>
         <source>Identity</source>
-        <translation type="unfinished">身份</translation>
+        <translation>身份</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="44"/>
         <source>Key ID</source>
-        <translation type="unfinished">密钥 ID</translation>
+        <translation>密钥 ID</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="45"/>
         <source>Usage</source>
-        <translation type="unfinished">用法</translation>
+        <translation>用途</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="46"/>
         <source>Algorithm</source>
-        <translation type="unfinished">算法</translation>
+        <translation>算法</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="47"/>
         <source>Create Date</source>
-        <translation type="unfinished">创建时间</translation>
+        <translation>创建时间</translation>
     </message>
 </context>
 <context>
@@ -818,7 +818,7 @@
     <message>
         <location filename="../../../../src/core/model/GpgKeyGenerateInfo.cpp" line="181"/>
         <source>None</source>
-        <translation type="unfinished">无</translation>
+        <translation>无</translation>
     </message>
 </context>
 <context>
@@ -1148,27 +1148,27 @@
 <context>
     <name>GpgFrontend::UI::CommonUtils</name>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="145"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="290"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="147"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="292"/>
         <source>Success</source>
         <translation>成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="164"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="282"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="166"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="284"/>
         <source>Failure</source>
         <translation>失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="201"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="208"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="336"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="420"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="203"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="210"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="338"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="422"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="193"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="195"/>
         <source>Open Key</source>
         <translation>打开密钥</translation>
     </message>
@@ -1183,97 +1183,97 @@
         <translation>似乎没有可用的受支持的 OpenPGP 引擎。请检查 GpgFrontend 是否正确安装，然后重试。原因: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="146"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="148"/>
         <source>Operation completed successfully.</source>
         <translation>操作成功完成。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="154"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="156"/>
         <source>Operation Not Supported</source>
         <translation>操作不受支持</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="155"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="157"/>
         <source>The current OpenPGP engine does not support this operation. Please use a supported engine or upgrade the engine version.</source>
         <translation>当前 OpenPGP 引擎不支持此操作。请使用受支持的引擎或升级引擎版本。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="165"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="167"/>
         <source>Gpg Operation failed.</source>
         <translation>Gpg 操作失败。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="166"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="168"/>
         <source>Error code: %1</source>
         <translation>错误代码：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="167"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="169"/>
         <source>Source:  %1</source>
         <translation>来源：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="168"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="170"/>
         <source>Description: %1</source>
         <translation>描述：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="169"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="171"/>
         <source>Error Message: %1</source>
         <translation>错误信息：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="194"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="196"/>
         <source>Keyring files</source>
         <translation>密钥环文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="202"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="204"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation>无法打开此文件。请确保这是一个普通文件，并且有读取权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="209"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="211"/>
         <source>The target file is too large for a keyring.</source>
         <translation>目标文件对于密钥环来说太大。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="215"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="217"/>
         <source>File Open Failed</source>
         <translation>文件打开失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="216"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="218"/>
         <source>Failed to open file: </source>
         <translation>打开文件失败： </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="263"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="265"/>
         <source>Processing</source>
         <translation>处理中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="283"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="285"/>
         <source>Failed to execute command.</source>
         <translation>执行命令失败。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="291"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="293"/>
         <source>Succeed in executing command.</source>
         <translation>成功执行命令。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="293"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="295"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="294"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="296"/>
         <source>Finished executing command.</source>
         <translation>命令执行完毕。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="420"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="422"/>
         <source>Key Not Found.</source>
         <translation>未找到密钥。</translation>
     </message>
@@ -2362,26 +2362,26 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::GpgOperaHelper</name>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="202"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="267"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="336"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="397"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="259"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="324"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="393"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="454"/>
         <source>Operation Not Supported</source>
         <translation>操作不受支持</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="211"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="276"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="344"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="405"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="268"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="333"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="401"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="462"/>
         <source>Operation Cancelled</source>
         <translation>操作已取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="221"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="286"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="353"/>
-        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="414"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="278"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="343"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="410"/>
+        <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="471"/>
         <source>Critical Error</source>
         <translation>严重错误</translation>
     </message>
@@ -2391,125 +2391,125 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="69"/>
         <source>Copy</source>
-        <translation type="unfinished">复制</translation>
+        <translation>复制</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="70"/>
         <source>Save</source>
-        <translation type="unfinished">保存</translation>
+        <translation>保存</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="71"/>
         <source>Magnify</source>
-        <translation type="unfinished">放大</translation>
+        <translation>放大</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="72"/>
         <source>Clear</source>
-        <translation type="unfinished">清空</translation>
+        <translation>清除</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="74"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="46"/>
         <source>Copy status text</source>
-        <translation type="unfinished">复制状态文本</translation>
+        <translation>复制状态文本</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="75"/>
         <source>Save status text to file</source>
-        <translation type="unfinished">将状态文本保存到文件</translation>
+        <translation>将状态文本保存到文件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="76"/>
         <source>Magnify the generated document</source>
-        <translation type="unfinished">放大生成的文档</translation>
+        <translation>放大生成的文档</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="77"/>
         <source>Clear status panel</source>
-        <translation type="unfinished">清空状态面板</translation>
+        <translation>清除状态面板</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="91"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="431"/>
         <source>Operation status will appear here.</source>
-        <translation type="unfinished">此处将显示操作状态。</translation>
+        <translation>操作状态将显示在此处。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="142"/>
         <source>Status</source>
-        <translation type="unfinished">状态</translation>
+        <translation>状态</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="143"/>
         <source>Details</source>
-        <translation type="unfinished">详情</translation>
+        <translation>详细信息</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="144"/>
         <source>Show the summary report</source>
-        <translation type="unfinished">显示摘要报告</translation>
+        <translation>显示摘要报告</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="145"/>
         <source>Show the raw status text</source>
-        <translation type="unfinished">显示原始状态文本</translation>
+        <translation>显示原始状态文本</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="238"/>
         <source>The operation completed successfully.</source>
-        <translation type="unfinished">操作已成功完成。</translation>
+        <translation>操作已成功完成。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="239"/>
         <source>%1 completed successfully.</source>
-        <translation type="unfinished">%1 已成功完成。</translation>
+        <translation>%1 已成功完成。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="242"/>
         <source>Completed with warnings — please review the details.</source>
-        <translation type="unfinished">完成但存在警告 — 请查看详细信息。</translation>
+        <translation>完成时存在警告 — 请查看详细信息。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="243"/>
         <source>%1 completed with warnings — please review the details.</source>
-        <translation type="unfinished">%1 完成但存在警告 — 请查看详细信息。</translation>
+        <translation>%1 完成时存在警告 — 请查看详细信息。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="247"/>
         <source>The operation failed. See the details for more information.</source>
-        <translation type="unfinished">操作失败。请查看详细信息以获取更多信息。</translation>
+        <translation>操作失败。请查看详细信息以获取更多信息。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="249"/>
         <source>%1 failed. See the details for more information.</source>
-        <translation type="unfinished">%1 失败。请查看详细信息以获取更多信息。</translation>
+        <translation>%1 失败。请查看详细信息以获取更多信息。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="259"/>
         <source>Success</source>
-        <translation type="unfinished">成功</translation>
+        <translation>成功</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="261"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="500"/>
         <source>Warning</source>
-        <translation type="unfinished">警告</translation>
+        <translation>警告</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="263"/>
         <source>Error</source>
-        <translation type="unfinished">错误</translation>
+        <translation>错误</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="266"/>
         <source>Information</source>
-        <translation type="unfinished">信息</translation>
+        <translation>信息</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="293"/>
         <source>[%1] No details available.</source>
-        <translation type="unfinished">[%1] 无详细信息。</translation>
+        <translation>[%1] 无详细信息。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="411"/>
@@ -2520,233 +2520,233 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="326"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="447"/>
         <source>DETAILS</source>
-        <translation type="unfinished">详细信息</translation>
+        <translation>详情</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="46"/>
         <source>GPGFRONTEND SECURITY REPORT</source>
-        <translation type="unfinished">GPGFRONTEND 安全报告</translation>
+        <translation>GPGFRONTEND 安全报告</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="166"/>
         <source>No operation yet.
 Results will appear here as a summary document.</source>
-        <translation type="unfinished">暂无操作。
+        <translation>暂无操作。
 结果将作为摘要文档显示在此处。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="219"/>
         <source>OPERATION</source>
-        <translation type="unfinished">操作</translation>
+        <translation>操作</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="220"/>
         <source>STATUS</source>
-        <translation type="unfinished">状态</translation>
+        <translation>状态</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="221"/>
         <source>ENGINE</source>
-        <translation type="unfinished">引擎</translation>
+        <translation>引擎</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="44"/>
         <source>Copied</source>
-        <translation type="unfinished">已复制</translation>
+        <translation>已复制</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="85"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="132"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="166"/>
         <source>Unable to Save</source>
-        <translation type="unfinished">无法保存</translation>
+        <translation>无法保存</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="86"/>
         <source>The content could not be captured.</source>
-        <translation type="unfinished">无法捕获内容。</translation>
+        <translation>无法捕获内容。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="92"/>
         <source>GpgFrontend Security Report</source>
-        <translation type="unfinished">GpgFrontend 安全报告</translation>
+        <translation>GpgFrontend 安全报告</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="94"/>
         <source>Cryptographic operation result report</source>
-        <translation type="unfinished">加密操作结果报告</translation>
+        <translation>加密操作结果报告</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="104"/>
         <source>Hash: </source>
-        <translation type="unfinished">哈希：</translation>
+        <translation>哈希：</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="133"/>
         <source>The image could not be saved.</source>
-        <translation type="unfinished">无法保存图像。</translation>
+        <translation>无法保存图像。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="145"/>
         <source>Export Certificate</source>
-        <translation type="unfinished">导出证书</translation>
+        <translation>导出证书</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="146"/>
         <source>PNG Image (*.png);;All Files (*)</source>
-        <translation type="unfinished">PNG 图像 (*.png);;所有文件 (*)</translation>
+        <translation>PNG 图像 (*.png);;所有文件 (*)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="159"/>
         <source>Save Status Panel Content</source>
-        <translation type="unfinished">保存状态面板内容</translation>
+        <translation>保存状态面板内容</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="160"/>
         <source>Text Files (*.txt);;All Files (*)</source>
-        <translation type="unfinished">文本文件 (*.txt);;所有文件 (*)</translation>
+        <translation>文本文件 (*.txt);;所有文件 (*)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="167"/>
         <source>The file could not be saved. Please check the path and permissions.</source>
-        <translation type="unfinished">无法保存文件。请检查路径和权限。</translation>
+        <translation>无法保存文件。请检查路径和权限。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="102"/>
         <source>File Hash Information</source>
-        <translation type="unfinished">文件哈希信息</translation>
+        <translation>文件哈希信息</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="172"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="592"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="623"/>
         <source>Issued:  %1</source>
-        <translation type="unfinished">颁发： %1</translation>
+        <translation>签发日期：  %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="216"/>
         <source>Hash: %1</source>
-        <translation type="unfinished">哈希： %1</translation>
+        <translation>哈希： %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="221"/>
         <source>Export certificate as PNG image</source>
-        <translation type="unfinished">将证书导出为 PNG 图像</translation>
+        <translation>将证书导出为 PNG 图像</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="234"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="374"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="602"/>
         <source>Operation: %1</source>
-        <translation type="unfinished">操作： %1</translation>
+        <translation>操作： %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="236"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="376"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="604"/>
         <source>Status:    %1</source>
-        <translation type="unfinished">状态：    %1</translation>
+        <translation>状态：    %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="237"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="379"/>
         <source>SHA-256:   %1</source>
-        <translation type="unfinished">SHA-256：   %1</translation>
+        <translation>SHA-256:   %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="262"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="442"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="666"/>
         <source>Decrypt</source>
-        <translation type="unfinished">解密</translation>
+        <translation>解密</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="263"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="443"/>
         <source>RECIPIENT</source>
-        <translation type="unfinished">接收者</translation>
+        <translation>接收者</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="264"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
         <source>Sign</source>
-        <translation type="unfinished">签名</translation>
+        <translation>签名</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="265"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
         <source>Verify</source>
-        <translation type="unfinished">验证</translation>
+        <translation>验证</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="266"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="445"/>
         <source>SIGNER</source>
-        <translation type="unfinished">签署人</translation>
+        <translation>签署人</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="377"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="605"/>
         <source>Engine:    %1</source>
-        <translation type="unfinished">引擎：    %1</translation>
+        <translation>引擎:    %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="383"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="609"/>
         <source>Details:   %1</source>
-        <translation type="unfinished">详情：   %1</translation>
+        <translation>详情:   %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="497"/>
         <source>OK</source>
-        <translation type="unfinished">确定</translation>
+        <translation>确定</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="503"/>
         <source>Failed</source>
-        <translation type="unfinished">失败</translation>
+        <translation>失败</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="534"/>
         <source>… and %1 more</source>
-        <translation type="unfinished">… 还有 %1</translation>
+        <translation>… 还有 %1 项</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="614"/>
         <source>  SHA-256: %1</source>
-        <translation type="unfinished">SHA-256： %1</translation>
+        <translation>SHA-256: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="651"/>
         <source>  Signer: %1</source>
-        <translation type="unfinished">签署人： %1</translation>
+        <translation>签署人: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="653"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="660"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="670"/>
         <source>  Key ID: %1</source>
-        <translation type="unfinished">密钥 ID： %1</translation>
+        <translation>密钥 ID: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="658"/>
         <source>  Signed: %1</source>
-        <translation type="unfinished">签名： %1</translation>
+        <translation>签名: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="663"/>
         <source>  Invalid signer: %1 — %2</source>
-        <translation type="unfinished">无效的签署人： %1 — %2</translation>
+        <translation>无效签署人: %1 — %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="665"/>
         <source>Encrypt</source>
-        <translation type="unfinished">加密</translation>
+        <translation>加密</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="669"/>
         <source>  Recipient: %1</source>
-        <translation type="unfinished">接收者： %1</translation>
+        <translation>接收者: %1</translation>
     </message>
 </context>
 <context>
@@ -2968,85 +2968,90 @@ Results will appear here as a summary document.</source>
         <translation>实际路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="221"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="129"/>
+        <source>Add New Key Database</source>
+        <translation>添加新密钥数据库</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="223"/>
         <source>N/A</source>
         <translation>不适用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="317"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="319"/>
         <source>No Key Database Selected</source>
         <translation>未选择任何密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="318"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="320"/>
         <source>Please select a key database to edit.</source>
         <translation>请选择要编辑的密钥数据库。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="337"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="390"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="339"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="392"/>
         <source>Duplicate Key Database Paths</source>
         <translation>重复的密钥数据库路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="338"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="340"/>
         <source>The edited key database path duplicates a previously existing one.</source>
         <translation>编辑后的密钥数据库路径与先前存在的路径重复。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="348"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="423"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="350"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="425"/>
         <source>Invalid Key Database Paths</source>
         <translation>无效的密钥数据库路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="349"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="424"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="351"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="426"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
         <translation>编辑的密钥数据库路径不是 GpgFrontend 可以使用的有效路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="374"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="376"/>
         <source>Maximum Key Database Limit Reached</source>
         <translation>已达到密钥数据库上限</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="375"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="377"/>
         <source>Currently, GpgFrontend supports a maximum of 8 key databases. Please remove an existing database to add a new one.</source>
         <translation>目前，GpgFrontend 最多支持 8 个密钥数据库。要添加新数据库，请移除现有数据库。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="391"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="393"/>
         <source>The newly added key database path duplicates a previously existing one.</source>
         <translation>新添加的密钥数据库路径与先前存在的路径重复。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="400"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="402"/>
         <source>Invalid Key Database Path</source>
         <translation>无效的密钥数据库路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="401"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="403"/>
         <source>The specified key database path points to an existing file. Please specify a path that does not exist or points to a directory.</source>
         <translation>指定的密钥数据库路径指向一个已存在的文件。请指定一个不存在或指向目录的路径。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="412"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="414"/>
         <source>Failed to Create Key Database Directory</source>
         <translation>创建密钥数据库目录失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="413"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="415"/>
         <source>GpgFrontend failed to create a directory at the specified key database path. Please check the path and your permissions.</source>
         <translation>GpgFrontend 在指定的密钥数据库路径创建目录失败。请检查路径和您的权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="458"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="460"/>
         <source>Confirm Deletion</source>
         <translation>确认删除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="459"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="461"/>
         <source>Are you sure you want to remove the selected key database from the list?</source>
         <translation>你确定要从列表中移除选中的密钥数据库吗？</translation>
     </message>
@@ -6808,22 +6813,22 @@ Would you like to fetch these keys from the key server?</source>
         <translation>口令信息: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="333"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="352"/>
         <source>Empty Passphrase</source>
         <translation>口令为空</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="334"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="353"/>
         <source>Passphrase cannot be empty. Please enter a valid passphrase.</source>
         <translation>口令不能为空。请输入有效的口令。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="343"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="362"/>
         <source>Passphrase Mismatch</source>
         <translation>口令不匹配</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="363"/>
         <source>The two passphrases do not match. Please enter them again.</source>
         <translation>两个口令不匹配。请重新输入。</translation>
     </message>
@@ -6873,12 +6878,17 @@ Would you like to fetch these keys from the key server?</source>
         <translation>确认:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="284"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="287"/>
         <source>OK</source>
         <translation>确定</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="283"/>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="392"/>
+        <source>Closing in %1:%2</source>
+        <translation>将在 %1:%2 后关闭</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="286"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
