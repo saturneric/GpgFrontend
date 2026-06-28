@@ -49,8 +49,14 @@ GpgContext::~GpgContext() {
   // which strands the whole process at shutdown (GUI gone, process lingering).
   // gpgconf --kill is the reliable way to stop it; doing it here also protects
   // teardown paths that don't go through ShutdownGlobalBasicEnv().
-  kill_gpg_agent();
-  agent_.reset();
+  //
+  // Only kill when we still own an agent: KillGpgAgent() (used by the shutdown
+  // path) already releases it, and killing again would run a second redundant
+  // (and on Windows multi-second) `gpgconf --kill all` per context teardown.
+  if (agent_ != nullptr) {
+    kill_gpg_agent();
+    agent_.reset();
+  }
 
   if (ctx_ref_ != nullptr) {
     gpgme_release(ctx_ref_);
@@ -120,13 +126,16 @@ auto GpgContext::RestartGpgAgent() -> bool {
 }
 
 auto GpgContext::KillGpgAgent() -> bool {
-  if (agent_ != nullptr) {
-    agent_ = SecureCreateSharedObject<GpgAgentProcess>(
-        GetChannel(), gpg_agent_path_, KeyDBPath());
-  }
+  // `gpgconf --kill all` is the authoritative kill and does not depend on the
+  // child QProcess handle. Do NOT reassign agent_ to a fresh process first (as
+  // RestartGpgAgent must): that destroys the running GpgAgentProcess and, on
+  // Windows, burns a multi-second cross-thread QProcess wait in its destructor
+  // before we even reach gpgconf -- the dominant cost wedging shutdown.
+  auto ok = kill_gpg_agent();
 
-  // ensure all gpg-agent are killed.
-  return kill_gpg_agent();
+  // Release our handle so a later ~GpgContext won't kill a second time.
+  agent_.reset();
+  return ok;
 }
 
 [[nodiscard]] auto GpgContext::ComponentDirectory(GpgComponentType type) const

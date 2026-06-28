@@ -101,13 +101,17 @@ auto GpgAgentProcess::Start() -> bool {
 }
 
 GpgAgentProcess::~GpgAgentProcess() {
+  // The spawned gpg-agent is terminated authoritatively via `gpgconf --kill all`
+  // (GpgContext::kill_gpg_agent), which is always paired with releasing this
+  // object. Do NOT run any blocking QProcess wait here: this QProcess may have
+  // been created on a worker thread (channels are built off the main thread)
+  // while teardown runs on the main thread, so a cross-thread waitForFinished()
+  // cannot observe completion and burns its full timeout -- accumulated across
+  // channels that overran the shutdown watchdog and force-exited the process
+  // before a pending deep restart could relaunch. Just signal a kill and return.
   if (process_.state() != QProcess::NotRunning) {
     qInfo() << "killing gpg-agent, channel: " << channel_;
-    process_.terminate();
-    if (!process_.waitForFinished(3000)) {
-      process_.kill();
-      process_.waitForFinished();
-    }
+    process_.kill();
   }
 }
 }  // namespace GpgFrontend

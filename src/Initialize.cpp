@@ -30,6 +30,7 @@
 
 #include <sodium.h>
 
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -230,14 +231,49 @@ namespace {
 /// commonly gpgme_release() blocked on a stuck gpg-agent on Windows).
 constexpr int kShutdownWatchdogTimeoutMs = 10000;
 
+/// Relaunch parameters captured up-front (on the main thread, while qApp is
+/// still valid) so that a pending deep restart can be honoured even if teardown
+/// wedges and the watchdog has to force-exit. Without this, a wedged shutdown
+/// would std::_Exit() before the relaunch at the end of ShutdownGlobalBasicEnv,
+/// so the app would simply vanish instead of restarting -- exactly the symptom
+/// seen on Windows when several key databases each leave a slow-to-kill agent.
+std::atomic<bool> g_relaunch_pending = false;
+std::atomic<bool> g_relaunch_done = false;
+QString g_relaunch_program;    // NOLINT(*-avoid-non-const-global-variables)
+QStringList g_relaunch_args;   // NOLINT(*-avoid-non-const-global-variables)
+
+/**
+ * @brief Relaunch the application for a pending deep restart, exactly once.
+ *
+ * Called both from the normal end-of-teardown path and from the watchdog when
+ * teardown wedges; a compare-exchange guard guarantees only the first caller
+ * spawns a new instance. Safe to call from the detached watchdog thread:
+ * QProcess::startDetached() does not require an event loop.
+ */
+void PerformDeepRestartRelaunch() {
+  if (!g_relaunch_pending.load()) return;
+
+  bool expected = false;
+  if (!g_relaunch_done.compare_exchange_strong(expected, true)) return;
+
+  if (g_relaunch_program.isEmpty()) return;
+
+#ifdef Q_OS_MACOS
+  GpgFrontend::RelaunchApplication(g_relaunch_args);
+#else
+  QProcess::startDetached(g_relaunch_program, g_relaunch_args);
+#endif
+}
+
 /**
  * @brief Arm a detached watchdog that force-exits the process if shutdown
  * hangs.
  *
  * The GUI is already gone by the time we shut down the environment, so a wedged
  * gpg child must never be allowed to keep GpgFrontend alive as a headless
- * background process. If the deadline elapses we bypass the (possibly blocking)
- * C++/Qt static destructors and terminate immediately via std::_Exit().
+ * background process. If the deadline elapses we relaunch (when a deep restart
+ * is pending) and then bypass the (possibly blocking) C++/Qt static destructors
+ * and terminate immediately via std::_Exit().
  *
  * Uses no Qt/logging facilities from the timer thread since they may already be
  * torn down by the time it fires; plain stderr is safe.
@@ -249,6 +285,9 @@ void ArmShutdownWatchdog(int timeout_ms) {
         "shutdown watchdog fired: teardown wedged, forcing process exit\n",
         stderr);
     std::fflush(stderr);
+    // Honour a pending deep restart even though teardown wedged, otherwise the
+    // process would just disappear instead of coming back.
+    PerformDeepRestartRelaunch();
     std::_Exit(0);
   }).detach();
 }
@@ -259,6 +298,19 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
   GFCxtSPtr ctx = p_ctx.lock();
   if (ctx == nullptr) {
     return;
+  }
+
+  // Capture relaunch parameters now, on the main thread and while qApp is still
+  // valid, so a pending deep restart can be honoured even if teardown wedges and
+  // the watchdog has to force-exit (see PerformDeepRestartRelaunch).
+  if (ctx->rtn == GpgFrontend::kDeepRestartCode ||
+      ctx->rtn == GpgFrontend::kCrashCode) {
+    QStringList args = qApp->arguments();
+    if (!args.isEmpty()) {
+      g_relaunch_program = args.takeFirst();
+      g_relaunch_args = args;
+      g_relaunch_pending.store(true);
+    }
   }
 
   // Backstop: never linger headless if teardown wedges. Not armed under the
@@ -306,25 +358,13 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
 
   qInfo() << "GpgFrontend exited normally.";
 
-  // deep restart mode
-  if (ctx->rtn == GpgFrontend::kDeepRestartCode ||
-      ctx->rtn == GpgFrontend::kCrashCode) {
+  // deep restart mode: relaunch via the same helper the watchdog uses, so a
+  // normal teardown and a wedged one share one code path and never both spawn.
+  if (g_relaunch_pending.load()) {
     qInfo() << "relaunching application with deep restart mode, code: "
             << ctx->rtn;
-#ifdef Q_OS_MACOS
-    QStringList args = qApp->arguments();
-    if (!args.isEmpty()) {
-      args.removeFirst();
-    }
-    GpgFrontend::RelaunchApplication(args);
-#else
-    QStringList args = qApp->arguments();
-    if (!args.isEmpty()) {
-      const auto program = args.takeFirst();
-      QProcess::startDetached(program, args);
-    }
-#endif
-  };
+    PerformDeepRestartRelaunch();
+  }
 }
 
 }  // namespace GpgFrontend
