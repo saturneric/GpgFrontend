@@ -46,8 +46,18 @@ class GFKeyDatabase;
  * database to use, and optional behavioural flags.
  */
 struct OpenPGPContextInitArgs {
-  // OpenPGP engine to use (e.g. GnuPG or rPGP)
-  OpenPGPEngine engine;
+  // OpenPGP engine to use (e.g. GnuPG or rPGP).
+  //
+  // Defaults to rPGP, the always-available fallback engine. This matters for
+  // the placeholder context that OpenPGPContext::GetInstance() lazily
+  // auto-creates for a channel that has no real context (e.g. one whose context
+  // was already torn down during a deep restart). Without an explicit default
+  // the enum would value-initialise to kGNUPG (value 0), making such a
+  // placeholder masquerade as a runnable GnuPG context: an engine-support check
+  // would then route into the live gpg-agent query and dynamic_cast the
+  // placeholder to GpgContext, throwing and crashing the process before it can
+  // relaunch. Every real context sets this field explicitly.
+  OpenPGPEngine engine = OpenPGPEngine::kRPGP;
   // Logical name for the key database
   QString db_name;
   // Filesystem path to the key database directory

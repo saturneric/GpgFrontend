@@ -28,6 +28,7 @@
 
 #include "GpgCoreEngineTest.h"
 
+#include "core/GFConstants.h"
 #include "core/GFCoreInit.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgContext.h"
@@ -36,6 +37,7 @@
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/rpgp/PasswordFetcher.h"
+#include "core/model/GFEngineSupportIf.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
@@ -200,5 +202,29 @@ INSTANTIATE_TEST_SUITE_P(
     [](const ::testing::TestParamInfo<EngineTestParam>& info) {
       return info.param.name.toStdString();
     });
+
+// Regression test for the deep-restart crash that prevented the app from
+// relaunching after the first key database was added (macOS sandbox / rPGP
+// fallback). OpenPGPContext::GetInstance() lazily creates a placeholder context
+// for a channel that has no real context (e.g. one already torn down during the
+// restart). If that placeholder defaulted to the GnuPG engine, an engine
+// support check would call EngineVersion(), route into the live gpg-agent query
+// and dynamic_cast the placeholder to GpgContext, throwing and killing the
+// process before it could relaunch. The placeholder must instead report the
+// always-available rPGP engine and a GnuPG support check must simply fail.
+TEST(GpgCorePlaceholderContextTest, PlaceholderChannelIsNotGnuPG) {
+  // A channel never configured with a real context in any test.
+  constexpr int kUnusedChannel = 4096;
+
+  auto& ctx = OpenPGPContext::GetInstance(kUnusedChannel);
+  EXPECT_EQ(ctx.Engine(), OpenPGPEngine::kRPGP);
+
+  // Must not throw, and must report that GnuPG is not supported on this channel.
+  bool supported = true;
+  EXPECT_NO_THROW(supported = GpgContextSupportIf(
+                      kUnusedChannel,
+                      {{OpenPGPEngine::kGNUPG, kGpgMinimalSupportVersion}}));
+  EXPECT_FALSE(supported);
+}
 
 }  // namespace GpgFrontend::Test

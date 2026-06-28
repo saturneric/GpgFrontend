@@ -39,11 +39,15 @@ EngineSupportIf::EngineSupportIf(OpenPGPEngine engine, QString version)
     : version_req_(std::move(version)), engine_req_(engine) {}
 
 auto EngineSupportIf::IsSupport(const OpenPGPContext& ctx) const -> bool {
-  auto version = ctx.EngineVersion();
-  auto engine = ctx.Engine();
-
-  if (engine != engine_req_) return false;
-  if (GFCompareSoftwareVersion(version_req_, version) > 0) return false;
+  // Check the engine first and bail out early on a mismatch. EngineVersion()
+  // dispatches to the active engine's implementation, which for GnuPG performs a
+  // live gpg-agent query; querying it for a context whose engine cannot satisfy
+  // the requirement anyway is both wasteful and, for placeholder contexts,
+  // dangerous (it can reach code that assumes a GpgContext).
+  if (ctx.Engine() != engine_req_) return false;
+  if (GFCompareSoftwareVersion(version_req_, ctx.EngineVersion()) > 0) {
+    return false;
+  }
   return true;
 }
 
