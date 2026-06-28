@@ -216,8 +216,12 @@ void InitGpgFrontendUI(QApplication* app) {
   auto settings = GetSettings();
   auto theme = settings.value("appearance/theme").toString();
 
-  // make appimage version look better
+  // make appimage version look better; also default to Fusion on macOS
+#if defined(Q_OS_MACOS)
+  if (theme.isEmpty()) SetFusionAsDefaultStyle();
+#else
   if (IsAppImageENV()) SetFusionAsDefaultStyle();
+#endif
 
   // If user has explicitly set a theme in settings, use that instead
   auto available_styles = QStyleFactory::keys();
