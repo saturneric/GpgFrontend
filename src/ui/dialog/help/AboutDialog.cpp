@@ -321,34 +321,37 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
   auto* resources_form = CreateInfoForm(resources_widget);
   resources_widget->setLayout(resources_form);
 
-  const auto link = [](const QString& url, const QString& text) -> QString {
-    return QStringLiteral("<a href=\"%1\">%2</a>").arg(url, text);
+  // Build a single-line link label for a resource row. Word wrap is left off so
+  // the form's field column sizes to the full link text: a word-wrapped
+  // rich-text label reports a collapsed width hint here and gets clipped (e.g.
+  // "User guides and…", "github.com/…").
+  const auto link_label = [resources_widget](const QString& url,
+                                             const QString& text) -> QLabel* {
+    auto* label =
+        CreateBodyLabel(QStringLiteral("<a href=\"%1\">%2</a>").arg(url, text),
+                        resources_widget);
+    label->setWordWrap(false);
+    return label;
   };
 
   resources_form->addRow(
       tr("Website:"),
-      CreateBodyLabel(link(QStringLiteral("https://gpgfrontend.bktus.com"),
-                           QStringLiteral("gpgfrontend.bktus.com")),
-                      resources_widget));
+      link_label(QStringLiteral("https://gpgfrontend.bktus.com"),
+                 QStringLiteral("gpgfrontend.bktus.com")));
   resources_form->addRow(
       tr("Documentation:"),
-      CreateBodyLabel(
-          link(QStringLiteral("https://gpgfrontend.bktus.com/overview/glance"),
-               tr("User guides and overview")),
-          resources_widget));
+      link_label(
+          QStringLiteral("https://gpgfrontend.bktus.com/overview/glance"),
+          tr("User guides and overview")));
   resources_form->addRow(
       tr("Source code:"),
-      CreateBodyLabel(
-          link(QStringLiteral("https://github.com/saturneric/GpgFrontend"),
-               QStringLiteral("github.com/saturneric/GpgFrontend")),
-          resources_widget));
+      link_label(QStringLiteral("https://github.com/saturneric/GpgFrontend"),
+                 QStringLiteral("github.com/saturneric/GpgFrontend")));
   resources_form->addRow(
       tr("Release notes:"),
-      CreateBodyLabel(
-          link(QStringLiteral(
-                   "https://github.com/saturneric/GpgFrontend/releases"),
-               tr("Changelog and downloads")),
-          resources_widget));
+      link_label(
+          QStringLiteral("https://github.com/saturneric/GpgFrontend/releases"),
+          tr("Changelog and downloads")));
 
   main_layout->addWidget(
       CreateCard(tr("Resources"), resources_widget, content));
