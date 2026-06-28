@@ -203,11 +203,6 @@ void SetFusionAsDefaultStyle() {
   // Set Fusion style for better dark mode support across platforms
   QApplication::setStyle(QStyleFactory::create("Fusion"));
 
-#if defined(Q_OS_MACOS)
-  // On macOS, Fusion already picks up the system's light/dark palette, which
-  // fits the platform. The hand-rolled dark palette below looks out of place
-  // there, so we keep the native palette and only switch the style.
-#else
   // Check if system is using dark mode by comparing text/background lightness
   QPalette system_palette = QApplication::palette();
   QColor window_color = system_palette.color(QPalette::Window);
@@ -239,7 +234,6 @@ void SetFusionAsDefaultStyle() {
     // Apply the dark palette
     QApplication::setPalette(dark_palette);
   }
-#endif
 }
 
 void InitGpgFrontendUI(QApplication* app) {
