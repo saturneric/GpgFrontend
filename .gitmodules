@@ -3,16 +3,16 @@
 	url = https://github.com/qt/qttranslations.git
 [submodule "modules"]
 	path = modules
-	url = https://git.bktus.com/gpgfrontend/modules.git
+	url = https://github.com/saturneric/GpgFrontend-Modules.git
 [submodule "third_party/gpgme"]
 	path = third_party/gpgme
-	url = https://git.bktus.com/gpgfrontend/gpgme.git
+	url = https://github.com/gpg/gpgme.git
 [submodule "third_party/libassuan"]
 	path = third_party/libassuan
-	url = https://git.bktus.com/gpgfrontend/libassuan.git
+	url = https://github.com/gpg/libassuan.git
 [submodule "third_party/libgpg-error"]
 	path = third_party/libgpg-error
-	url = https://git.bktus.com/gpgfrontend/libgpg-error.git
+	url = https://github.com/gpg/libgpg-error.git
 [submodule "third_party/corrosion"]
 	path = third_party/corrosion
 	url = https://github.com/corrosion-rs/corrosion.git
