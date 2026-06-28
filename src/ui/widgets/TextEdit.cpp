@@ -104,41 +104,10 @@ void TextEdit::SlotNewFileBrowserTabWithDirectory() {
 }
 
 void TextEdit::SlotOpenFile(const QString& path) {
-  QFileInfo const info(path);
-  if (!info.isFile() || !info.isReadable()) {
-    QMessageBox::critical(
-        this, tr("Error"),
-        tr("Cannot open this file. Please make sure that this "
-           "is a regular file and it's readable."));
-    return;
-  }
-
-  if (info.size() > static_cast<qint64>(1024 * 1024)) {
-    QMessageBox::critical(
-        this, tr("Error"),
-        tr("Cannot open this file. The file is TOO LARGE (>1MB) for "
-           "GpgFrontend Text Editor."));
-    return;
-  }
-
-  QFile file(path);
-  if (!file.open(QIODevice::ReadOnly)) {
-    QMessageBox::warning(
-        this, tr("File Open Error"),
-        tr("The file \"%1\" could not be opened.").arg(info.fileName()));
-    return;
-  }
-
-  QByteArray file_data = file.read(1024);
-  file.close();
-
-  if (file_data.contains('\0')) {
-    QMessageBox::warning(this, tr("Binary File Detected"),
-                         tr("The file \"%1\" appears to be a binary file "
-                            "and will not be opened.")
-                             .arg(info.fileName()));
-    return;
-  }
+  // All open-time validation (regular/readable file, size limit, binary
+  // detection) and its user-facing messages live in
+  // TextEditTabWidget::SlotOpenFile via can_open_as_text_file(), so delegate
+  // here instead of duplicating the checks and their translation strings.
   tab_widget_->SlotOpenFile(path);
 }
 

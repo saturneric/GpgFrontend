@@ -258,10 +258,10 @@ auto TextEditTabWidget::can_open_as_text_file(const QFileInfo& file_info,
   }
 
   constexpr auto kMaxTextEditorFileSize =
-      static_cast<const qint64>(1024 * 1024);
+      static_cast<const qint64>(4 * 1024 * 1024);
   if (file_info.size() > kMaxTextEditorFileSize) {
     if (error_message != nullptr) {
-      *error_message = tr("The file \"%1\" is larger than 1 MB and will not be "
+      *error_message = tr("The file \"%1\" is larger than 4 MB and will not be "
                           "opened in the text editor.")
                            .arg(file_info.fileName());
     }

@@ -257,8 +257,9 @@ class TextEdit : public QWidget {
   /**
    * @brief Opens a file path in a text-editor tab after validation.
    *
-   * The file must be a readable regular file, smaller than the configured hard
-   * limit used here, and must not appear to be binary based on the first bytes.
+   * Delegates to TextEditTabWidget::SlotOpenFile, which performs all validation
+   * (readable regular file, file-size limit, binary detection) and reports any
+   * problem to the user.
    *
    * @param path File path to open.
    */
