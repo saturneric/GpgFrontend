@@ -1854,31 +1854,31 @@
         <translation>Calcul en cours</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="652"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="657"/>
         <source>File Hash Information</source>
         <translation>Informations de hachage du fichier</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="709"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="706"/>
         <source>Batch mode is enabled. Use Ctrl or Shift to select multiple items.</source>
         <translation>Le mode par lots est activé. Utilisez Ctrl ou Maj pour sélectionner plusieurs éléments.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="895"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="903"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="963"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1008"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="892"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="900"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="960"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1005"/>
         <source>Move Failed</source>
         <translation>Échec du déplacement</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="896"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1132"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="893"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1129"/>
         <source>A file or folder named &quot;%1&quot; already exists in the target folder.</source>
         <translation>Un fichier ou un dossier nommé &quot;%1&quot; existe déjà dans le dossier cible.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="904"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="901"/>
         <source>Unable to move &quot;%1&quot;.
 
 The target may be on another volume, or you may not have sufficient permissions.</source>
@@ -1887,156 +1887,156 @@ The target may be on another volume, or you may not have sufficient permissions.
 La cible est peut-être sur un autre volume, ou vous n&apos;avez pas les autorisations suffisantes.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="963"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1018"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1131"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1145"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1154"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1169"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1177"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1202"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="960"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1015"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1128"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1142"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1151"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1166"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1174"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1199"/>
         <source>Copy Failed</source>
         <translation>Échec de la copie</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="964"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="961"/>
         <source>The target folder is not writable.</source>
         <translation>Le dossier cible n&apos;est pas accessible en écriture.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="987"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="993"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="984"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="990"/>
         <source>The source and target folder are the same.</source>
         <translation>Le dossier source et le dossier cible sont identiques.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1009"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1006"/>
         <source>Cannot move &quot;%1&quot; into itself or one of its subfolders.</source>
         <translation>Impossible de déplacer &quot;%1&quot; dans lui-même ou dans l&apos;un de ses sous-dossiers.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1019"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1016"/>
         <source>Cannot copy &quot;%1&quot; into itself or one of its subfolders.</source>
         <translation>Impossible de copier &quot;%1&quot; dans lui-même ou dans l&apos;un de ses sous-dossiers.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1030"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1027"/>
         <source>Move Items</source>
         <translation>Déplacer les éléments</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1033"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1030"/>
         <source>Move &quot;%1&quot; to &quot;%2&quot;?</source>
         <translation>Déplacer &quot;%1&quot; vers &quot;%2&quot; ?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1035"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1032"/>
         <source>Move %1 items to &quot;%2&quot;?</source>
         <translation>Déplacer %1 éléments vers &quot;%2&quot; ?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1039"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1036"/>
         <source>Copy Items</source>
         <translation>Copier les éléments</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1042"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1039"/>
         <source>Copy &quot;%1&quot; to &quot;%2&quot;?</source>
         <translation>Copier &quot;%1&quot; vers &quot;%2&quot; ?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1044"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1041"/>
         <source>Copy %1 items to &quot;%2&quot;?</source>
         <translation>Copier %1 éléments vers &quot;%2&quot; ?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1049"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1046"/>
         <source>Move</source>
         <translation>Déplacer</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1049"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1046"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1091"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1088"/>
         <source>Moved %1 item(s).</source>
         <translation>%1 élément(s) déplacé(s).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1092"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1089"/>
         <source>Copied %1 item(s).</source>
         <translation>%1 élément(s) copié(s).</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1104"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1101"/>
         <source>Move Partially Completed</source>
         <translation>Déplacement partiellement terminé</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1105"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1102"/>
         <source>Copy Partially Completed</source>
         <translation>Copie partiellement terminée</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1107"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1104"/>
         <source>Some items could not be moved. Please check permissions or whether the target is on another volume.</source>
         <translation>Certains éléments n&apos;ont pas pu être déplacés. Veuillez vérifier les autorisations ou si la cible se trouve sur un autre volume.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1109"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1106"/>
         <source>Some items could not be copied. Please check permissions.</source>
         <translation>Certains éléments n&apos;ont pas pu être copiés. Veuillez vérifier les autorisations.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1146"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1143"/>
         <source>Unable to copy &quot;%1&quot;. Please check permissions.</source>
         <translation>Impossible de copier « %1 ». Veuillez vérifier les autorisations.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1155"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1152"/>
         <source>&quot;%1&quot; is not a regular file or folder.</source>
         <translation>« %1 » n&apos;est pas un fichier ou un dossier standard.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1170"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1167"/>
         <source>The target folder &quot;%1&quot; already exists.</source>
         <translation>Le dossier cible « %1 » existe déjà.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1178"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1175"/>
         <source>Unable to create target folder &quot;%1&quot;.</source>
         <translation>Impossible de créer le dossier cible « %1 ».</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1203"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1200"/>
         <source>Unable to copy &quot;%1&quot;.</source>
         <translation>Impossible de copier « %1 ».</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1223"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1220"/>
         <source>Path copied to clipboard.</source>
         <translation>Chemin copié dans le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1224"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1221"/>
         <source>%1 paths copied to clipboard.</source>
         <translation>%1 chemins copiés dans le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1235"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1253"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1232"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1250"/>
         <source>File list refreshed.</source>
         <translation>Liste des fichiers actualisée.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1243"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1240"/>
         <source>Unable to Refresh</source>
         <translation>Actualisation impossible</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1244"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1241"/>
         <source>The current folder no longer exists or cannot be opened.</source>
         <translation>Le dossier actuel n&apos;existe plus ou ne peut pas être ouvert.</translation>
     </message>
@@ -2495,7 +2495,7 @@ Cela entraînera la perte de toutes les positions de formulaires mises en cache,
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="261"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="500"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="468"/>
         <source>Warning</source>
         <translation>Avertissement</translation>
     </message>
@@ -2517,11 +2517,11 @@ Cela entraînera la perte de toutes les positions de formulaires mises en cache,
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="411"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="230"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="136"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="241"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="268"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="326"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="447"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="104"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="209"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="236"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="294"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="415"/>
         <source>DETAILS</source>
         <translation>DÉTAILS</translation>
     </message>
@@ -2615,139 +2615,138 @@ Les résultats apparaîtront ici sous forme de document récapitulatif.</transla
         <translation>Le fichier n&apos;a pas pu être sauvegardé. Veuillez vérifier le chemin et les autorisations.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="102"/>
         <source>File Hash Information</source>
-        <translation>Informations de hachage du fichier</translation>
+        <translation type="vanished">Informations de hachage du fichier</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="172"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="592"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="623"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="140"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="560"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="591"/>
         <source>Issued:  %1</source>
         <translation>Délivré :  %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="216"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="184"/>
         <source>Hash: %1</source>
         <translation>Hachage : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="221"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="189"/>
         <source>Export certificate as PNG image</source>
         <translation>Exporter le certificat en image PNG</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="234"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="374"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="602"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="202"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="342"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="570"/>
         <source>Operation: %1</source>
         <translation>Opération : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="236"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="376"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="604"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="204"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="344"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="572"/>
         <source>Status:    %1</source>
         <translation>Statut :    %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="237"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="379"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="205"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="347"/>
         <source>SHA-256:   %1</source>
         <translation>SHA-256 :   %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="262"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="442"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="666"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="230"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="410"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="634"/>
         <source>Decrypt</source>
         <translation>Déchiffrer</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="263"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="443"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="231"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="411"/>
         <source>RECIPIENT</source>
         <translation>DESTINATAIRE</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="264"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="232"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="412"/>
         <source>Sign</source>
         <translation>Signer</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="265"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="233"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="412"/>
         <source>Verify</source>
         <translation>Vérifier</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="266"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="445"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="234"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="413"/>
         <source>SIGNER</source>
         <translation>SIGNATAIRE</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="377"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="605"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="345"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="573"/>
         <source>Engine:    %1</source>
         <translation>Moteur :    %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="383"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="609"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="351"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="577"/>
         <source>Details:   %1</source>
         <translation>Détails :   %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="497"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="465"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="503"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="471"/>
         <source>Failed</source>
         <translation>Échec</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="534"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="502"/>
         <source>… and %1 more</source>
         <translation>… et %1 de plus</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="614"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="582"/>
         <source>  SHA-256: %1</source>
         <translation>SHA-256 : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="651"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="619"/>
         <source>  Signer: %1</source>
         <translation>Signataire : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="653"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="660"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="670"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="621"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="628"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="638"/>
         <source>  Key ID: %1</source>
         <translation>Identifiant de clé : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="658"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="626"/>
         <source>  Signed: %1</source>
         <translation>Signé : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="663"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="631"/>
         <source>  Invalid signer: %1 — %2</source>
         <translation>Signataire invalide : %1 — %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="665"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="633"/>
         <source>Encrypt</source>
         <translation>Chiffrer</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="669"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="637"/>
         <source>  Recipient: %1</source>
         <translation>Destinataire : %1</translation>
     </message>
@@ -7881,20 +7880,20 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
 <context>
     <name>GpgFrontend::UI::TextEdit</name>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="228"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="546"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="197"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="515"/>
         <source>Warning</source>
         <translation>Avertissement</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="229"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="198"/>
         <source>Cannot read file %1:
 %2.</source>
         <translation>Impossible de lire le fichier %1 :
 %2.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="147"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="116"/>
         <source>Open file</source>
         <translation>Ouvrir un fichier</translation>
     </message>
@@ -7905,90 +7904,82 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
         <translation>Ouvrir un fichier</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="110"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="118"/>
         <source>Error</source>
-        <translation>Erreur</translation>
+        <translation type="vanished">Erreur</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="111"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
-        <translation>Impossible d&apos;ouvrir ce fichier. Veuillez vous assurer qu&apos;il s&apos;agit d&apos;un fichier standard et qu&apos;il est lisible.</translation>
+        <translation type="vanished">Impossible d&apos;ouvrir ce fichier. Veuillez vous assurer qu&apos;il s&apos;agit d&apos;un fichier standard et qu&apos;il est lisible.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="119"/>
         <source>Cannot open this file. The file is TOO LARGE (&gt;1MB) for GpgFrontend Text Editor.</source>
-        <translation>Impossible d&apos;ouvrir ce fichier. Le fichier est TROP VOLUMINEUX (&gt;1 Mo) pour l&apos;éditeur de texte de GpgFrontend.</translation>
+        <translation type="vanished">Impossible d&apos;ouvrir ce fichier. Le fichier est TROP VOLUMINEUX (&gt;1 Mo) pour l&apos;éditeur de texte de GpgFrontend.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="127"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="505"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="474"/>
         <source>File Open Error</source>
         <translation>Erreur d&apos;ouverture de fichier</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="128"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="506"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="475"/>
         <source>The file &quot;%1&quot; could not be opened.</source>
         <translation>Le fichier &quot;%1&quot; n&apos;a pas pu être ouvert.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="136"/>
         <source>Binary File Detected</source>
-        <translation>Fichier binaire détecté</translation>
+        <translation type="vanished">Fichier binaire détecté</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="137"/>
         <source>The file &quot;%1&quot; appears to be a binary file and will not be opened.</source>
-        <translation>Le fichier &quot;%1&quot; semble être un fichier binaire et ne sera pas ouvert.</translation>
+        <translation type="vanished">Le fichier &quot;%1&quot; semble être un fichier binaire et ne sera pas ouvert.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="166"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="135"/>
         <source>Unknown Tab Type</source>
         <translation>Type d&apos;onglet inconnu</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="167"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="136"/>
         <source>The current tab has an unknown type. Cannot save.</source>
         <translation>L&apos;onglet actuel est d&apos;un type inconnu. Impossible d&apos;enregistrer.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="186"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="155"/>
         <source>Unsupported Operation</source>
         <translation>Opération non prise en charge</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="187"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="156"/>
         <source>The save file operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;opération d&apos;enregistrement de fichier pour le type d&apos;onglet &apos;%1&apos; n&apos;est pas prise en charge.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="247"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="216"/>
         <source>Save file</source>
         <translation>Enregistrer le fichier</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="307"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="276"/>
         <source>Unsaved document</source>
         <translation>Document non enregistré</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="308"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="277"/>
         <source>The document &quot;%1&quot; has been modified. Do you want to save your changes?</source>
         <translation>Le document &quot;%1&quot; a été modifié. Voulez-vous enregistrer vos modifications ?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="311"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="280"/>
         <source>Note:</source>
         <translation>Note :</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="312"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="281"/>
         <source>If you don&apos;t save these files, all changes are lost.</source>
         <translation>Si vous n&apos;enregistrez pas ces fichiers, toutes les modifications seront perdues.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="546"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="515"/>
         <source>No document to print</source>
         <translation>Aucun document à imprimer</translation>
     </message>
@@ -8027,9 +8018,13 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
         <translation>Le fichier n&apos;existe pas.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="264"/>
         <source>The file &quot;%1&quot; is larger than 1 MB and will not be opened in the text editor.</source>
-        <translation>Le fichier « %1 » dépasse 1 Mo et ne sera pas ouvert dans l&apos;éditeur de texte.</translation>
+        <translation type="vanished">Le fichier « %1 » dépasse 1 Mo et ne sera pas ouvert dans l&apos;éditeur de texte.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="264"/>
+        <source>The file &quot;%1&quot; is larger than 4 MB and will not be opened in the text editor.</source>
+        <translation>Le fichier « %1 » dépasse 4 Mo et ne sera pas ouvert dans l&apos;éditeur de texte.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="283"/>
@@ -8144,55 +8139,50 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
 <context>
     <name>QCoreApplication</name>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="122"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="146"/>
         <source>File Hash Information</source>
         <translation>Informations sur l&apos;empreinte du fichier</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="123"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="152"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="120"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="163"/>
         <source>Filename</source>
         <translation>Nom de fichier</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="123"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="128"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="132"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="137"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="141"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="145"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="152"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="148"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="163"/>
         <source>: </source>
         <translation>:</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="127"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="131"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="121"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="123"/>
         <source>File Size</source>
         <translation>Taille du fichier</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="150"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="161"/>
         <source>Error: cannot read target file</source>
         <translation>Erreur : impossible de lire le fichier cible</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="183"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="195"/>
         <source>target path doesn&apos;t exists</source>
         <translation>le chemin cible n&apos;existe pas</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="189"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="201"/>
         <source>do NOT have permission to write path</source>
         <translation>vous n&apos;avez pas la permission d&apos;écrire dans le chemin</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="195"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="207"/>
         <source>do NOT have permission to read/write file</source>
         <translation>vous n&apos;avez pas la permission de lire/écrire le fichier</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="198"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="210"/>
         <source>Success</source>
         <translation>Succès</translation>
     </message>
@@ -8519,7 +8509,7 @@ Le lien a été copié dans votre presse-papiers :
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="78"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="99"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="145"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="146"/>
         <source>Fingerprint</source>
         <translation>Empreinte</translation>
     </message>
@@ -8531,12 +8521,12 @@ Le lien a été copié dans votre presse-papiers :
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="86"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="103"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="104"/>
         <source>Algorithm</source>
         <translation>Algorithme</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="90"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="89"/>
         <source>Signed</source>
         <translation>Signé</translation>
     </message>
@@ -8546,58 +8536,58 @@ Le lien a été copié dans votre presse-papiers :
         <translation>destinataire</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="102"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="103"/>
         <source>Primary Key Algorithm</source>
         <translation>Algorithme de clé primaire</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="115"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="116"/>
         <source>Input Material Hash</source>
         <translation>Hachage des données d&apos;entrée</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="117"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="118"/>
         <source>SHA-256</source>
         <translation>SHA-256</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="134"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="135"/>
         <source>Signature Created</source>
         <translation>Signature créée</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="137"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="138"/>
         <source>Mode</source>
         <translation>Mode</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="143"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="144"/>
         <source>Invalid Signer</source>
         <translation>Signataire invalide</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="146"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="147"/>
         <source>Reason</source>
         <translation>Raison</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="153"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="180"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="154"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="182"/>
         <source>Decrypt</source>
         <translation>déchiffrer</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="156"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="157"/>
         <source>Message Metadata</source>
         <translation>Métadonnées du message</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="159"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="160"/>
         <source>File</source>
         <translation>Fichier</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="160"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="161"/>
         <source>Cipher</source>
         <translation>Chiffre</translation>
     </message>
@@ -8607,42 +8597,42 @@ Le lien a été copié dans votre presse-papiers :
         <translation>MIME</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="162"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="163"/>
         <source>Yes</source>
         <translation>Oui</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="162"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="164"/>
         <source>No</source>
         <translation>Non</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="164"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="165"/>
         <source>Integrity</source>
         <translation>Intégrité</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="165"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="167"/>
         <source>Protected</source>
         <translation>Protégé</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="166"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="168"/>
         <source>Not Protected (unsafe)</source>
         <translation>Non protégé (insécure)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="170"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="172"/>
         <source>Encrypt</source>
         <translation>Chiffrer</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="173"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="175"/>
         <source>Encryption Recipient</source>
         <translation>Destinataire de chiffrement</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="183"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="185"/>
         <source>Decryption Recipient</source>
         <translation>Destinataire de déchiffrement</translation>
     </message>

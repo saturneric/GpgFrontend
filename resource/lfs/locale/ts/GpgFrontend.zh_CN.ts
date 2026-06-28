@@ -1852,31 +1852,31 @@
         <translation>计算中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="652"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="657"/>
         <source>File Hash Information</source>
         <translation>文件哈希信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="709"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="706"/>
         <source>Batch mode is enabled. Use Ctrl or Shift to select multiple items.</source>
         <translation>批量模式已启用。使用 Ctrl 或 Shift 选择多个项目。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="895"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="903"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="963"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1008"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="892"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="900"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="960"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1005"/>
         <source>Move Failed</source>
         <translation>移动失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="896"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1132"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="893"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1129"/>
         <source>A file or folder named &quot;%1&quot; already exists in the target folder.</source>
         <translation>名为 &quot;%1&quot; 的文件或文件夹已在目标文件夹中存在。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="904"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="901"/>
         <source>Unable to move &quot;%1&quot;.
 
 The target may be on another volume, or you may not have sufficient permissions.</source>
@@ -1885,156 +1885,156 @@ The target may be on another volume, or you may not have sufficient permissions.
 目标可能在另一个卷上，或者您可能没有足够的权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="963"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1018"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1131"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1145"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1154"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1169"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1177"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1202"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="960"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1015"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1128"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1142"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1151"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1166"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1174"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1199"/>
         <source>Copy Failed</source>
         <translation>复制失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="964"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="961"/>
         <source>The target folder is not writable.</source>
         <translation>目标文件夹不可写。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="987"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="993"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="984"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="990"/>
         <source>The source and target folder are the same.</source>
         <translation>源文件夹和目标文件夹相同。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1009"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1006"/>
         <source>Cannot move &quot;%1&quot; into itself or one of its subfolders.</source>
         <translation>无法将 &quot;%1&quot; 移动到其自身或其子文件夹中。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1019"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1016"/>
         <source>Cannot copy &quot;%1&quot; into itself or one of its subfolders.</source>
         <translation>无法将 &quot;%1&quot; 复制到其自身或其子文件夹中。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1030"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1027"/>
         <source>Move Items</source>
         <translation>移动项目</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1033"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1030"/>
         <source>Move &quot;%1&quot; to &quot;%2&quot;?</source>
         <translation>将 &quot;%1&quot; 移动到 &quot;%2&quot;？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1035"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1032"/>
         <source>Move %1 items to &quot;%2&quot;?</source>
         <translation>将 %1 个项目移动到 &quot;%2&quot;？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1039"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1036"/>
         <source>Copy Items</source>
         <translation>复制项目</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1042"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1039"/>
         <source>Copy &quot;%1&quot; to &quot;%2&quot;?</source>
         <translation>将 &quot;%1&quot; 复制到 &quot;%2&quot;？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1044"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1041"/>
         <source>Copy %1 items to &quot;%2&quot;?</source>
         <translation>将 %1 个项目复制到 &quot;%2&quot;？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1049"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1046"/>
         <source>Move</source>
         <translation>移动</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1049"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1046"/>
         <source>Copy</source>
         <translation>复制</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1091"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1088"/>
         <source>Moved %1 item(s).</source>
         <translation>已移动 %1 个项目。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1092"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1089"/>
         <source>Copied %1 item(s).</source>
         <translation>已复制 %1 个项目。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1104"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1101"/>
         <source>Move Partially Completed</source>
         <translation>移动部分完成</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1105"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1102"/>
         <source>Copy Partially Completed</source>
         <translation>复制部分完成</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1107"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1104"/>
         <source>Some items could not be moved. Please check permissions or whether the target is on another volume.</source>
         <translation>某些项目无法移动。请检查权限或目标是否在另一个卷上。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1109"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1106"/>
         <source>Some items could not be copied. Please check permissions.</source>
         <translation>某些项目无法复制。请检查权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1146"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1143"/>
         <source>Unable to copy &quot;%1&quot;. Please check permissions.</source>
         <translation>无法复制 &quot;%1&quot;。请检查权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1155"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1152"/>
         <source>&quot;%1&quot; is not a regular file or folder.</source>
         <translation>&quot;%1&quot; 不是常规文件或文件夹。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1170"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1167"/>
         <source>The target folder &quot;%1&quot; already exists.</source>
         <translation>目标文件夹 &quot;%1&quot; 已存在。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1178"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1175"/>
         <source>Unable to create target folder &quot;%1&quot;.</source>
         <translation>无法创建目标文件夹 &quot;%1&quot;。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1203"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1200"/>
         <source>Unable to copy &quot;%1&quot;.</source>
         <translation>无法复制 &quot;%1&quot;。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1223"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1220"/>
         <source>Path copied to clipboard.</source>
         <translation>路径已复制到剪贴板。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1224"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1221"/>
         <source>%1 paths copied to clipboard.</source>
         <translation>%1 个路径已复制到剪贴板。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1235"/>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1253"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1232"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1250"/>
         <source>File list refreshed.</source>
         <translation>文件列表已刷新。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1243"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1240"/>
         <source>Unable to Refresh</source>
         <translation>无法刷新</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1244"/>
+        <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="1241"/>
         <source>The current folder no longer exists or cannot be opened.</source>
         <translation>当前文件夹不存在或无法打开。</translation>
     </message>
@@ -2492,7 +2492,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="261"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="500"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="468"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
@@ -2514,11 +2514,11 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="411"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="230"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="136"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="241"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="268"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="326"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="447"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="104"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="209"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="236"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="294"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="415"/>
         <source>DETAILS</source>
         <translation>详情</translation>
     </message>
@@ -2612,139 +2612,138 @@ Results will appear here as a summary document.</source>
         <translation>无法保存文件。请检查路径和权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="102"/>
         <source>File Hash Information</source>
-        <translation>文件哈希信息</translation>
+        <translation type="vanished">文件哈希信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="172"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="592"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="623"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="140"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="560"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="591"/>
         <source>Issued:  %1</source>
         <translation>签发日期：  %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="216"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="184"/>
         <source>Hash: %1</source>
         <translation>哈希： %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="221"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="189"/>
         <source>Export certificate as PNG image</source>
         <translation>将证书导出为 PNG 图像</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="234"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="374"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="602"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="202"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="342"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="570"/>
         <source>Operation: %1</source>
         <translation>操作： %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="236"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="376"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="604"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="204"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="344"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="572"/>
         <source>Status:    %1</source>
         <translation>状态：    %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="237"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="379"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="205"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="347"/>
         <source>SHA-256:   %1</source>
         <translation>SHA-256:   %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="262"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="442"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="666"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="230"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="410"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="634"/>
         <source>Decrypt</source>
         <translation>解密</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="263"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="443"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="231"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="411"/>
         <source>RECIPIENT</source>
         <translation>接收者</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="264"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="232"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="412"/>
         <source>Sign</source>
         <translation>签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="265"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="233"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="412"/>
         <source>Verify</source>
         <translation>验证</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="266"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="445"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="234"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="413"/>
         <source>SIGNER</source>
         <translation>签署人</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="377"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="605"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="345"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="573"/>
         <source>Engine:    %1</source>
         <translation>引擎:    %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="383"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="609"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="351"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="577"/>
         <source>Details:   %1</source>
         <translation>详情:   %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="497"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="465"/>
         <source>OK</source>
         <translation>确定</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="503"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="471"/>
         <source>Failed</source>
         <translation>失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="534"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="502"/>
         <source>… and %1 more</source>
         <translation>… 还有 %1 项</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="614"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="582"/>
         <source>  SHA-256: %1</source>
         <translation>SHA-256: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="651"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="619"/>
         <source>  Signer: %1</source>
         <translation>签署人: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="653"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="660"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="670"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="621"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="628"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="638"/>
         <source>  Key ID: %1</source>
         <translation>密钥 ID: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="658"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="626"/>
         <source>  Signed: %1</source>
         <translation>签名: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="663"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="631"/>
         <source>  Invalid signer: %1 — %2</source>
         <translation>无效签署人: %1 — %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="665"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="633"/>
         <source>Encrypt</source>
         <translation>加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="669"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="637"/>
         <source>  Recipient: %1</source>
         <translation>接收者: %1</translation>
     </message>
@@ -7878,20 +7877,20 @@ Would you like to fetch these keys from the key server?</source>
 <context>
     <name>GpgFrontend::UI::TextEdit</name>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="228"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="546"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="197"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="515"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="229"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="198"/>
         <source>Cannot read file %1:
 %2.</source>
         <translation>无法读取文件 %1:
 %2。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="147"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="116"/>
         <source>Open file</source>
         <translation>打开文件</translation>
     </message>
@@ -7902,90 +7901,82 @@ Would you like to fetch these keys from the key server?</source>
         <translation>打开文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="110"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="118"/>
         <source>Error</source>
-        <translation>错误</translation>
+        <translation type="vanished">错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="111"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
-        <translation>无法打开此文件。请确保这是一个普通文件，并且有读取权限。</translation>
+        <translation type="vanished">无法打开此文件。请确保这是一个普通文件，并且有读取权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="119"/>
         <source>Cannot open this file. The file is TOO LARGE (&gt;1MB) for GpgFrontend Text Editor.</source>
-        <translation>无法打开此文件。文件对于 GpgFrontend 文本编辑器来说过大（&gt;1MB）。</translation>
+        <translation type="vanished">无法打开此文件。文件对于 GpgFrontend 文本编辑器来说过大（&gt;1MB）。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="127"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="505"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="474"/>
         <source>File Open Error</source>
         <translation>打开文件失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="128"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="506"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="475"/>
         <source>The file &quot;%1&quot; could not be opened.</source>
         <translation>无法打开文件 &quot;%1&quot;。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="136"/>
         <source>Binary File Detected</source>
-        <translation>检测到二进制文件</translation>
+        <translation type="vanished">检测到二进制文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="137"/>
         <source>The file &quot;%1&quot; appears to be a binary file and will not be opened.</source>
-        <translation>文件&quot;%1&quot;似乎是二进制文件，无法打开。</translation>
+        <translation type="vanished">文件&quot;%1&quot;似乎是二进制文件，无法打开。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="166"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="135"/>
         <source>Unknown Tab Type</source>
         <translation>未知标签类型</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="167"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="136"/>
         <source>The current tab has an unknown type. Cannot save.</source>
         <translation>当前标签类型未知，无法保存。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="186"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="155"/>
         <source>Unsupported Operation</source>
         <translation>不支持的操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="187"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="156"/>
         <source>The save file operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>不支持对标签类型 &apos;%1&apos; 的保存文件操作。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="247"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="216"/>
         <source>Save file</source>
         <translation>保存文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="307"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="276"/>
         <source>Unsaved document</source>
         <translation>未保存的文档</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="308"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="277"/>
         <source>The document &quot;%1&quot; has been modified. Do you want to save your changes?</source>
         <translation>文档“%1”已被修改。是否要保存更改？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="311"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="280"/>
         <source>Note:</source>
         <translation>注意：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="312"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="281"/>
         <source>If you don&apos;t save these files, all changes are lost.</source>
         <translation>如果您不保存这些文件，所有更改都将丢失。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="546"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="515"/>
         <source>No document to print</source>
         <translation>没有要打印的文件</translation>
     </message>
@@ -8024,9 +8015,13 @@ Would you like to fetch these keys from the key server?</source>
         <translation>文件不存在。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="264"/>
         <source>The file &quot;%1&quot; is larger than 1 MB and will not be opened in the text editor.</source>
-        <translation>文件&quot;%1&quot;大于1 MB，无法在文本编辑器中打开。</translation>
+        <translation type="vanished">文件&quot;%1&quot;大于1 MB，无法在文本编辑器中打开。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="264"/>
+        <source>The file &quot;%1&quot; is larger than 4 MB and will not be opened in the text editor.</source>
+        <translation>文件&quot;%1&quot;大于4 MB，无法在文本编辑器中打开。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="283"/>
@@ -8141,55 +8136,50 @@ Would you like to fetch these keys from the key server?</source>
 <context>
     <name>QCoreApplication</name>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="122"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="146"/>
         <source>File Hash Information</source>
         <translation>文件哈希信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="123"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="152"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="120"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="163"/>
         <source>Filename</source>
         <translation>文件名</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="123"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="128"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="132"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="137"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="141"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="145"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="152"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="148"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="163"/>
         <source>: </source>
         <translation>： </translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="127"/>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="131"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="121"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="123"/>
         <source>File Size</source>
         <translation>文件大小</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="150"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="161"/>
         <source>Error: cannot read target file</source>
         <translation>错误：无法读取目标文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="183"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="195"/>
         <source>target path doesn&apos;t exists</source>
         <translation>目标路径不存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="189"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="201"/>
         <source>do NOT have permission to write path</source>
         <translation>缺少写入路径的权限</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="195"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="207"/>
         <source>do NOT have permission to read/write file</source>
         <translation>缺少读写文件的权限</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/IOUtils.cpp" line="198"/>
+        <location filename="../../../../src/core/utils/IOUtils.cpp" line="210"/>
         <source>Success</source>
         <translation>成功</translation>
     </message>
@@ -8516,7 +8506,7 @@ The link has been copied to your clipboard:
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="78"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="99"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="145"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="146"/>
         <source>Fingerprint</source>
         <translation>指纹</translation>
     </message>
@@ -8528,12 +8518,12 @@ The link has been copied to your clipboard:
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="86"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="103"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="104"/>
         <source>Algorithm</source>
         <translation>算法</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="90"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="89"/>
         <source>Signed</source>
         <translation>已签名</translation>
     </message>
@@ -8543,58 +8533,58 @@ The link has been copied to your clipboard:
         <translation>接收者</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="102"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="103"/>
         <source>Primary Key Algorithm</source>
         <translation>主密钥算法</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="115"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="116"/>
         <source>Input Material Hash</source>
         <translation>输入数据哈希</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="117"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="118"/>
         <source>SHA-256</source>
         <translation>SHA-256</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="134"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="135"/>
         <source>Signature Created</source>
         <translation>签名创建</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="137"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="138"/>
         <source>Mode</source>
         <translation>模式</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="143"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="144"/>
         <source>Invalid Signer</source>
         <translation>无效签署人</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="146"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="147"/>
         <source>Reason</source>
         <translation>原因</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="153"/>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="180"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="154"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="182"/>
         <source>Decrypt</source>
         <translation>解密</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="156"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="157"/>
         <source>Message Metadata</source>
         <translation>消息元数据</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="159"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="160"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="160"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="161"/>
         <source>Cipher</source>
         <translation>加密算法</translation>
     </message>
@@ -8604,42 +8594,42 @@ The link has been copied to your clipboard:
         <translation>MIME</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="162"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="163"/>
         <source>Yes</source>
         <translation>是</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="162"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="164"/>
         <source>No</source>
         <translation>否</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="164"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="165"/>
         <source>Integrity</source>
         <translation>完整性</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="165"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="167"/>
         <source>Protected</source>
         <translation>已保护</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="166"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="168"/>
         <source>Not Protected (unsafe)</source>
         <translation>未受保护（不安全）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="170"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="172"/>
         <source>Encrypt</source>
         <translation>加密</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="173"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="175"/>
         <source>Encryption Recipient</source>
         <translation>加密接收者</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="183"/>
+        <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="185"/>
         <source>Decryption Recipient</source>
         <translation>解密接收者</translation>
     </message>
