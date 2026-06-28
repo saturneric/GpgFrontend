@@ -477,9 +477,9 @@ jobs:
             exit 1
           fi
 
-          mkdir -p build/artifacts
-          unzip build/downloads/$FILE -d build/artifacts/
-          ls -l build/artifacts/
+          mkdir -p build/artifacts/gnupg
+          unzip -o build/downloads/$FILE -d build/artifacts/gnupg/
+          ls -l build/artifacts/gnupg/
         if: runner.os == 'Windows'
 
       - name: Package (Windows)
