@@ -257,15 +257,13 @@ auto FilterKeyAlgoByKeyRpgpImpl(OpenPGPContext& ctx, const GpgKey& key,
       // should not be used for new key generation.
       if (algo_id == "ed25519legacy") continue;
       filtered_algos.append(algo);
-    }
-
-    if (algo_id == "ky768" || algo_id == "kyber768" || algo_id == "ky024" ||
-        algo_id == "kyber1024" || algo_id == "mldsa65_ed25519" ||
-        algo_id == "mldsa87_ed448" || algo_id == "slhdsake128s" ||
-        algo_id == "slhdsake128f" || algo_id == "slhdsake256s") {
-      // Kyber subkeys are only allowed for primary keys of version 6.
       continue;
     }
+
+    // Post-quantum subkeys (Kyber KEM, ML-DSA, SLH-DSA) are only legal for v6
+    // primary keys; rPGP rejects them on v4 keys. Drive this off the algorithm's
+    // intrinsic PQC trait rather than an id list so new variants stay covered.
+    if (algo.IsPostQuantum()) continue;
 
     // For other algorithms, there is no specific limitation based on primary
     // key version
