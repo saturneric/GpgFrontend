@@ -122,7 +122,6 @@ void InfoBoardWidget::add_card_field(QVBoxLayout* card_layout, QWidget* parent,
                                      const QString& key,
                                      const QString& value) const {
   if (value.isEmpty()) return;
-  constexpr int kKeyW = StyleConstants::kCardKeyWidth;
   auto* row = new QHBoxLayout();
   row->setContentsMargins(0, 1, 0, 1);
   row->setSpacing(6);
@@ -132,7 +131,12 @@ void InfoBoardWidget::add_card_field(QVBoxLayout* card_layout, QWidget* parent,
   kf.setPointSize(std::max(7, kf.pointSize() - 1));
   kl->setFont(kf);
   kl->setStyleSheet(QStringLiteral("color: palette(text);"));
-  kl->setFixedWidth(kKeyW);
+  // Grow the key column with the label text (up to a max) instead of clipping.
+  const int key_w = std::min(std::max(StyleConstants::kCardKeyWidth,
+                                      QFontMetrics(kf).horizontalAdvance(key)),
+                             StyleConstants::kCardKeyMaxWidth);
+  kl->setFixedWidth(key_w);
+  kl->setWordWrap(true);
   kl->setAlignment(Qt::AlignRight | Qt::AlignTop);
   auto* vl = new QLabel(value, parent);
   vl->setWordWrap(true);
@@ -432,7 +436,21 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
     auto* cl = qobject_cast<QVBoxLayout*>(card->layout());
     add_card_header(cl, card, card_data.status, card_data.title);
 
-    constexpr int kKeyW = StyleConstants::kCardKeyWidth;
+    // Size the key column to the widest key actually present in this card so
+    // long labels (e.g. "Primary Key Algorithm") are not clipped, while still
+    // keeping every key in the card right-aligned to a shared column. Clamp to
+    // a max so a single long key can't crowd out the value column.
+    QFont kf = card->font();
+    kf.setBold(true);
+    kf.setPointSize(std::max(7, kf.pointSize() - 1));
+    const QFontMetrics kfm(kf);
+    int key_w = StyleConstants::kCardKeyWidth;
+    for (const auto& field : card_data.fields) {
+      if (field.second.isEmpty()) continue;
+      key_w = std::max(key_w, kfm.horizontalAdvance(field.first));
+    }
+    key_w = std::min(key_w, StyleConstants::kCardKeyMaxWidth);
+
     for (const auto& field : card_data.fields) {
       // Skip fields with no value so the card stays compact.
       if (field.second.isEmpty()) continue;
@@ -442,12 +460,11 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
       row->setSpacing(6);
 
       auto* kl = new QLabel(field.first, card);
-      QFont kf = kl->font();
-      kf.setBold(true);
-      kf.setPointSize(std::max(7, kf.pointSize() - 1));
       kl->setFont(kf);
       kl->setStyleSheet(QStringLiteral("color: palette(text);"));
-      kl->setFixedWidth(kKeyW);
+      kl->setFixedWidth(key_w);
+      // Wrap rather than clip the rare key that still exceeds the max column.
+      kl->setWordWrap(true);
       kl->setAlignment(Qt::AlignRight | Qt::AlignTop);
 
       auto* vl = new QLabel(field.second, card);

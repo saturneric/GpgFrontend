@@ -109,6 +109,7 @@ class InfoBoardWidget : public QWidget {
     static constexpr int kIndicatorSize = 14;
     static constexpr int kKeyColumnWidth = 86;
     static constexpr int kCardKeyWidth = 76;
+    static constexpr int kCardKeyMaxWidth = 160;
     static constexpr int kMaxResultCards = 6;
   };
 
