@@ -415,22 +415,42 @@ void MainWindow::slot_refresh_info_board_from_module(
   const int status = params.value("result_status").ConvertToQString().toInt();
   const QString text = params.value("result").ConvertToQString();
 
-  // Prefer the structured card payload the module provides; the Info Board
-  // itself never parses the report text. Fall back to the plain-text path when
-  // the payload is absent or malformed.
+  const InfoBoardStatus status_enum =
+      status < 0 ? kINFO_ERROR_CRITICAL
+                 : (status > 0 ? kINFO_ERROR_OK : kINFO_ERROR_WARN);
+
+  InfoBoardCardsPayload payload;
   if (params.contains("result_cards")) {
-    const auto payload = decode_info_board_cards(
+    payload = decode_info_board_cards(
         params.value("result_cards").ConvertToQByteArray());
-    if (payload.valid && !payload.cards.isEmpty()) {
-      const InfoBoardStatus status_enum =
-          status < 0 ? kINFO_ERROR_CRITICAL
-                     : (status > 0 ? kINFO_ERROR_OK : kINFO_ERROR_WARN);
-      info_board_->SlotReset();
-      info_board_->SetInfoBoardCards(
-          text, status_enum, payload.cards, payload.operation,
-          payload.description, payload.details_title, payload.details_items);
-      return;
-    }
+  }
+
+  // Prefer the structured card payload the module provides; the Info Board
+  // itself never parses the report text.
+  if (payload.valid && !payload.cards.isEmpty()) {
+    info_board_->SlotReset();
+    info_board_->SetInfoBoardCards(
+        text, status_enum, payload.cards, payload.operation,
+        payload.description, payload.details_title, payload.details_items);
+    return;
+  }
+
+  // A failure without structured cards: still render the card document so the
+  // Status view explains why the operation failed instead of appearing empty.
+  // The module's report already carries the reason and suggested solutions.
+  if (status < 0) {
+    const QString operation = payload.operation.isEmpty()
+                                  ? tr("Email Operation Failed")
+                                  : payload.operation;
+    const QString report = text.trimmed();
+    info_board_->SlotReset();
+    info_board_->SetInfoBoardCards(
+        text, kINFO_ERROR_CRITICAL, {}, operation,
+        tr("The operation could not be completed. See the reason and suggested "
+           "solutions below."),
+        report.isEmpty() ? QString() : tr("Report"),
+        report.isEmpty() ? QStringList{} : QStringList{report});
+    return;
   }
 
   slot_refresh_info_board(status, text);
