@@ -335,14 +335,9 @@ endif()
 
 # add i18n support
 set(LOCALE_TS_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/ts)
-set(TS_FILES
-  "${LOCALE_TS_PATH}/GpgFrontend.en_US.ts"
-  "${LOCALE_TS_PATH}/GpgFrontend.de_DE.ts"
-  "${LOCALE_TS_PATH}/GpgFrontend.fr_FR.ts"
-  "${LOCALE_TS_PATH}/GpgFrontend.zh_CN.ts"
-  "${LOCALE_TS_PATH}/GpgFrontend.zh_TW.ts"
-  "${LOCALE_TS_PATH}/GpgFrontend.it_IT.ts"
-  "${LOCALE_TS_PATH}/GpgFrontend.es_ES.ts")
+# Derived from the shared locale list (cmake/Translations.cmake) so the app and
+# every module ship the same set of languages.
+gpgfrontend_collect_ts_files(TS_FILES "GpgFrontend" "${LOCALE_TS_PATH}")
 file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 if(GPGFRONTEND_QT5_BUILD)

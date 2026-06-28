@@ -449,6 +449,9 @@ endif()
 
 add_subdirectory(third_party)
 
+# single source of truth for the UI locales shared by the app and all modules
+include(${CMAKE_SOURCE_DIR}/cmake/Translations.cmake)
+
 # modules are only for qt6
 if(BUILD_MODULES AND NOT GPGFRONTEND_QT5_BUILD)
   include(${CMAKE_SOURCE_DIR}/cmake/ModuleRegistry.cmake)
