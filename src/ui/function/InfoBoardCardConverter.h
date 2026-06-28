@@ -33,15 +33,15 @@
 
 namespace GpgFrontend::UI {
 
-auto convert_op_info_to_cards(const GpgFrontend::GpgOpResultInfo& info)
-    -> QContainer<InfoBoardCard>;
+auto GF_UI_EXPORT convert_op_info_to_cards(
+    const GpgFrontend::GpgOpResultInfo& info) -> QContainer<InfoBoardCard>;
 
 // Serialize cards to a JSON array string. Used by the SDK to hand structured
 // results to modules, which can only pass plain string key/value params; the
 // receiving UI slot decodes them back into cards so the Info Board never has to
 // parse a human-readable report.
-auto encode_info_board_cards(const QContainer<InfoBoardCard>& cards)
-    -> QByteArray;
+auto GF_UI_EXPORT
+encode_info_board_cards(const QContainer<InfoBoardCard>& cards) -> QByteArray;
 
 // Decoded form of a module's `result_cards` payload. `valid` is false when the
 // JSON was absent or malformed, in which case the caller should fall back to
