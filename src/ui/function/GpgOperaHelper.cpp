@@ -53,14 +53,30 @@ using HashCallback = std::function<void(const QString&)>;
 // Defer presenting the dialog until the operation has been running this long.
 constexpr int kWaitingDialogShowDelayMs = 1000;
 
+// When the dialog is due but another application currently holds focus, poll at
+// this interval until focus returns before presenting it (see below).
+constexpr int kWaitingDialogFocusRecheckMs = 250;
+
 // Create a single-shot timer (owned by the dialog) that shows the dialog only
 // after kWaitingDialogShowDelayMs has elapsed. If the operation finishes first,
 // the caller stops the timer and the dialog is never shown.
+//
+// The modal waiting window must never map while another application holds
+// focus: doing so makes the window manager switch focus to GpgFrontend, which
+// interrupts passphrase entry in GnuPG's external pinentry (a separate
+// process). QApplication::activeWindow() is null exactly when no GpgFrontend
+// window is active, i.e. another app (pinentry) owns focus; in that case keep
+// waiting and re-check shortly, presenting the dialog only once focus is ours.
 auto StartDeferredShowTimer(GpgFrontend::UI::WaitingDialog* dialog) -> QTimer* {
   auto* timer = new QTimer(dialog);
   timer->setSingleShot(true);
-  QObject::connect(timer, &QTimer::timeout, dialog,
-                   [dialog]() { dialog->show(); });
+  QObject::connect(timer, &QTimer::timeout, dialog, [dialog, timer]() {
+    if (QApplication::activeWindow() == nullptr) {
+      timer->start(kWaitingDialogFocusRecheckMs);
+      return;
+    }
+    dialog->show();
+  });
   timer->start(kWaitingDialogShowDelayMs);
   return timer;
 }
