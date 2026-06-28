@@ -2,7 +2,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Batch-refresh the Qt translation source (.ts) files of GpgFrontend and its
-# integrated modules.
+# integrated modules, keeping every target on the same set of languages.
+#
+# The list of supported locales lives in one place, cmake/Translations.cmake
+# (GPGFRONTEND_SUPPORTED_LOCALES). The application and every module derive their
+# .ts file set from it, and so does this script: for each target it makes sure a
+# <base>.<locale>.ts exists for every supported locale (creating the missing
+# ones) and then runs `lupdate` so newly added/changed tr() strings show up in
+# every locale as <translation type="unfinished">, ready for Qt Linguist.
 #
 # Two kinds of translation target are handled:
 #
@@ -18,14 +25,10 @@
 #     subtrees such as m_email/vmime/ are intentionally skipped, matching what
 #     the CMake build feeds to qt_add_translations().
 #
-# For every target this runs `lupdate` over its own sources so newly
-# added/changed tr() strings show up in every locale's .ts as
-# <translation type="unfinished">, ready to be filled in with Qt Linguist.
-#
 # This is offline: lupdate never touches the network. It does NOT translate
 # anything; it only syncs the source strings into the .ts files.
 #
-# Usage: scripts/update_module_translations.sh [options] [target ...]
+# Usage: scripts/update_translations.sh [options] [target ...]
 #   target             One or more target names to limit to. The application is
 #                      named "GpgFrontend"; modules use their dir name (e.g.
 #                      m_email). Default: the application plus every module
@@ -34,18 +37,20 @@
 #       --app-only     Process only the GpgFrontend application target.
 #       --no-obsolete  Drop entries that no longer exist in the sources
 #                      (passes -no-obsolete to lupdate).
-#       --list         List the targets that would be processed, then exit.
+#       --list         List the targets and supported locales, then exit.
 #       --modules-dir DIR  Root holding the module dirs (default: modules/src).
 #   -h, --help         Show this help.
 #
 # Environment:
 #   LUPDATE            Path to the lupdate binary (auto-detected otherwise).
+#   GPGFRONTEND_LOCALES  Space-separated locale list overriding the one parsed
+#                      from cmake/Translations.cmake (e.g. "en_US de_DE").
 #
 # Examples:
-#   scripts/update_module_translations.sh
-#   scripts/update_module_translations.sh GpgFrontend
-#   scripts/update_module_translations.sh m_email
-#   scripts/update_module_translations.sh --no-obsolete GpgFrontend m_email
+#   scripts/update_translations.sh
+#   scripts/update_translations.sh GpgFrontend
+#   scripts/update_translations.sh m_email
+#   scripts/update_translations.sh --no-obsolete GpgFrontend m_email
 
 set -uo pipefail
 
@@ -60,6 +65,7 @@ APP_TS_DIR="${REPO_ROOT}/resource/lfs/locale/ts"
 # Source roots scanned for the application target. test/ and sdk/ are left out
 # on purpose (see header).
 APP_SRC_ROOTS=("${REPO_ROOT}/src/core" "${REPO_ROOT}/src/ui")
+LOCALES_CMAKE="${REPO_ROOT}/cmake/Translations.cmake"
 NO_OBSOLETE=""
 LIST_ONLY="no"
 INCLUDE_APP="yes"
@@ -82,6 +88,30 @@ while [[ $# -gt 0 ]]; do
   esac
   shift
 done
+
+# --- determine the supported locale list -----------------------------------
+# Parse GPGFRONTEND_SUPPORTED_LOCALES out of cmake/Translations.cmake so the
+# script always tracks the same languages as the build. An env override wins.
+parse_supported_locales() {
+  [[ -f "${LOCALES_CMAKE}" ]] || return 1
+  # Grab everything between the set(...) opening and its closing paren, then
+  # keep only xx_YY tokens.
+  sed -n '/set(GPGFRONTEND_SUPPORTED_LOCALES/,/)/p' "${LOCALES_CMAKE}" \
+    | grep -oE '[a-z]{2}_[A-Z]{2}' | sort -u
+}
+
+declare -a LOCALES=()
+if [[ -n "${GPGFRONTEND_LOCALES:-}" ]]; then
+  read -r -a LOCALES <<<"${GPGFRONTEND_LOCALES}"
+else
+  mapfile -t LOCALES < <(parse_supported_locales)
+fi
+if [[ ${#LOCALES[@]} -eq 0 ]]; then
+  echo "error: no supported locales found." >&2
+  echo "       expected GPGFRONTEND_SUPPORTED_LOCALES in ${LOCALES_CMAKE}" >&2
+  echo "       (or set GPGFRONTEND_LOCALES=\"en_US de_DE ...\")" >&2
+  exit 1
+fi
 
 # --- locate lupdate --------------------------------------------------------
 find_lupdate() {
@@ -109,16 +139,31 @@ should_process() {
   return 1
 }
 
-# Collect the targets to process into parallel arrays. Each target is described
-# by a name, the directory holding its .ts files, and a "kind" that decides how
-# its sources are gathered ("app" = recursive over APP_SRC_ROOTS; "module" =
-# top-level sources of a single module dir).
-declare -a T_NAMES=() T_TS_DIRS=() T_KINDS=() T_SRC_DIRS=()
+# Derive a module's .ts base name (e.g. "ModuleEMail") from an existing .ts
+# file. en_US is mandatory, so match against it; fall back to any supported
+# locale.
+module_base_name() {
+  local ts_dir="$1" loc f
+  for loc in en_US "${LOCALES[@]}"; do
+    for f in "${ts_dir}"/*."${loc}".ts; do
+      [[ -e "$f" ]] || continue
+      basename "$f" ".${loc}.ts"; return 0
+    done
+  done
+  return 1
+}
+
+# Collect the targets to process into parallel arrays. Each target carries a
+# name, the .ts base name, the dir holding its .ts files, and a "kind" that
+# decides how its sources are gathered ("app" = recursive over APP_SRC_ROOTS;
+# "module" = top-level sources of a single module dir).
+declare -a T_NAMES=() T_BASES=() T_TS_DIRS=() T_KINDS=() T_SRC_DIRS=()
 
 # Application target.
 if [[ "${INCLUDE_APP}" == "yes" ]] && should_process "${APP_NAME}"; then
-  if [[ -d "${APP_TS_DIR}" ]] && compgen -G "${APP_TS_DIR}/${APP_NAME}.*.ts" >/dev/null; then
+  if [[ -d "${APP_TS_DIR}" ]]; then
     T_NAMES+=("${APP_NAME}")
+    T_BASES+=("${APP_NAME}")
     T_TS_DIRS+=("${APP_TS_DIR}")
     T_KINDS+=("app")
     T_SRC_DIRS+=("")  # app uses APP_SRC_ROOTS
@@ -136,9 +181,12 @@ if [[ "${APP_ONLY}" != "yes" ]]; then
     mod_dir="$(dirname "$ts_dir")"
     mod_name="$(basename "$mod_dir")"
     should_process "$mod_name" || continue
-    # Only consider modules that actually have .ts files to update.
-    compgen -G "${ts_dir}/*.ts" >/dev/null || continue
+    base="$(module_base_name "$ts_dir")" || {
+      echo "warning: ${mod_name}: cannot determine .ts base name, skipping" >&2
+      continue
+    }
     T_NAMES+=("$mod_name")
+    T_BASES+=("$base")
     T_TS_DIRS+=("$ts_dir")
     T_KINDS+=("module")
     T_SRC_DIRS+=("$mod_dir")
@@ -152,12 +200,14 @@ if [[ ${#T_NAMES[@]} -eq 0 ]]; then
 fi
 
 if [[ "${LIST_ONLY}" == "yes" ]]; then
+  echo "Supported locales: ${LOCALES[*]}"
   echo "Translation targets:"
-  for i in "${!T_NAMES[@]}"; do echo "  ${T_NAMES[$i]} (${T_KINDS[$i]})"; done
+  for i in "${!T_NAMES[@]}"; do echo "  ${T_NAMES[$i]} (${T_KINDS[$i]}, base ${T_BASES[$i]})"; done
   exit 0
 fi
 
 echo "Using lupdate: ${LUPDATE_BIN}"
+echo "Supported locales: ${LOCALES[*]}"
 
 # --- source gathering ------------------------------------------------------
 # Populate the global `sources` array for a target.
@@ -187,17 +237,40 @@ gather_sources() {
   esac
 }
 
+# Report .ts files in a dir whose locale is not in the supported set so stray
+# files (e.g. an orphaned ru_RU.ts or a mis-cased locale) get noticed.
+warn_unexpected_ts() {
+  local ts_dir="$1" base="$2" f loc supported
+  for f in "${ts_dir}/${base}".*.ts; do
+    [[ -e "$f" ]] || continue
+    loc="$(basename "$f" .ts)"; loc="${loc##*.}"
+    supported="no"
+    for l in "${LOCALES[@]}"; do [[ "$l" == "$loc" ]] && { supported="yes"; break; }; done
+    [[ "$supported" == "no" ]] && \
+      echo "    note: $(basename "$f") has unsupported locale '${loc}' (left untouched)"
+  done
+}
+
 # --- run lupdate per target ------------------------------------------------
 fail=0
 for i in "${!T_NAMES[@]}"; do
   name="${T_NAMES[$i]}"
+  base="${T_BASES[$i]}"
   ts_dir="${T_TS_DIRS[$i]}"
   kind="${T_KINDS[$i]}"
   src_dir="${T_SRC_DIRS[$i]}"
 
   declare -a sources=()
   gather_sources "$kind" "$src_dir"
-  mapfile -t ts_files < <(find "${ts_dir}" -maxdepth 1 -name '*.ts' | sort)
+
+  # Desired .ts set = one file per supported locale. lupdate creates any that
+  # are missing, so this is what brings every target onto the same languages.
+  declare -a ts_files=() created=()
+  for loc in "${LOCALES[@]}"; do
+    f="${ts_dir}/${base}.${loc}.ts"
+    [[ -e "$f" ]] || created+=("$(basename "$f")")
+    ts_files+=("$f")
+  done
 
   if [[ ${#sources[@]} -eq 0 ]]; then
     echo "==> ${name}: no sources found, skipping"
@@ -205,6 +278,9 @@ for i in "${!T_NAMES[@]}"; do
   fi
 
   echo "==> ${name}: ${#sources[@]} source(s) -> ${#ts_files[@]} .ts file(s)"
+  [[ ${#created[@]} -gt 0 ]] && echo "    creating: ${created[*]}"
+  warn_unexpected_ts "$ts_dir" "$base"
+
   # -locations absolute keeps the existing line-number style of the committed
   # .ts files (e.g. line="49") instead of switching to relative offsets.
   #

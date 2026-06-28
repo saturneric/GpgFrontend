@@ -27,7 +27,7 @@
 # application and every integrated module derive their Qt translation (.ts)
 # file set from this list, so the app and its modules always advertise exactly
 # the same set of languages. Add a locale here, then run
-# scripts/update_module_translations.sh to create the matching .ts files
+# scripts/update_translations.sh to create the matching .ts files
 # everywhere.
 set(GPGFRONTEND_SUPPORTED_LOCALES
   en_US
@@ -37,18 +37,21 @@ set(GPGFRONTEND_SUPPORTED_LOCALES
   es_ES
   zh_CN
   zh_TW
+  ru_RU
   CACHE INTERNAL "UI locales supported by GpgFrontend and its modules")
 
 # gpgfrontend_collect_ts_files(<out_var> <base_name> <ts_dir>)
 #
 # Expands GPGFRONTEND_SUPPORTED_LOCALES into the list of .ts paths
-#   <ts_dir>/<base_name>.<locale>.ts
+# <ts_dir>/<base_name>.<locale>.ts
 # and returns it in <out_var>. Use this instead of hand-listing TS_FILES so a
 # locale only ever has to be declared once (above).
 function(gpgfrontend_collect_ts_files out_var base_name ts_dir)
   set(_ts_files)
+
   foreach(_locale IN LISTS GPGFRONTEND_SUPPORTED_LOCALES)
     list(APPEND _ts_files "${ts_dir}/${base_name}.${_locale}.ts")
   endforeach()
+
   set(${out_var} "${_ts_files}" PARENT_SCOPE)
 endfunction()
