@@ -479,6 +479,16 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_refresh_info_board(int status, const QString& text);
 
   /**
+   * @brief Refresh the Info Board from a module operation result. When the
+   * params carry a structured `result_cards` payload, it is decoded into cards
+   * and rendered with the rich card layout; otherwise this falls back to the
+   * plain-text `result`/`result_status` path.
+   *
+   * @param params the module event callback params
+   */
+  void slot_refresh_info_board_from_module(const Module::Event::Params& params);
+
+  /**
    * @brief
    *
    */

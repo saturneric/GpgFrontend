@@ -37,6 +37,7 @@
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SigningKeysPicker.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/function/InfoBoardCardConverter.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/struct/GpgOperaResult.h"
 #include "ui/widgets/FindWidget.h"
@@ -407,6 +408,34 @@ void MainWindow::slot_refresh_info_board(int status, const QString& text) {
   }
 }
 
+void MainWindow::slot_refresh_info_board_from_module(
+    const Module::Event::Params& params) {
+  if (!params.contains("result") || !params.contains("result_status")) return;
+
+  const int status = params.value("result_status").ConvertToQString().toInt();
+  const QString text = params.value("result").ConvertToQString();
+
+  // Prefer the structured card payload the module provides; the Info Board
+  // itself never parses the report text. Fall back to the plain-text path when
+  // the payload is absent or malformed.
+  if (params.contains("result_cards")) {
+    const auto payload = decode_info_board_cards(
+        params.value("result_cards").ConvertToQByteArray());
+    if (payload.valid && !payload.cards.isEmpty()) {
+      const InfoBoardStatus status_enum =
+          status < 0 ? kINFO_ERROR_CRITICAL
+                     : (status > 0 ? kINFO_ERROR_OK : kINFO_ERROR_WARN);
+      info_board_->SlotReset();
+      info_board_->SetInfoBoardCards(
+          text, status_enum, payload.cards, payload.operation,
+          payload.description, payload.details_title, payload.details_items);
+      return;
+    }
+  }
+
+  slot_refresh_info_board(status, text);
+}
+
 void MainWindow::slot_result_analyse_show_helper(const GpgResultAnalyse& r_a,
                                                  const GpgResultAnalyse& r_b) {
   info_board_->SlotReset();
@@ -463,11 +492,7 @@ void MainWindow::SlotCustomDecrypt(const QString& type) {
           edit_->SlotSetGFBuffer2CurTextPage(p["data"]);
         }
 
-        if (p.contains("result") && p.contains("result_status")) {
-          slot_refresh_info_board(
-              p.value("result_status").ConvertToQString().toInt(),
-              p.value("result").ConvertToQString());
-        }
+        slot_refresh_info_board_from_module(p);
 
         return 0;
       });
@@ -514,11 +539,7 @@ void MainWindow::SlotCustomVerify(const QString& type) {
               // check if error occurred
               if (handle_module_error(p)) return -1;
 
-              if (p.contains("result") && p.contains("result_status")) {
-                slot_refresh_info_board(
-                    p.value("result_status").ConvertToQString().toInt(),
-                    p.value("result").ConvertToQString());
-              }
+              slot_refresh_info_board_from_module(p);
 
               return 0;
             });
@@ -584,11 +605,7 @@ void MainWindow::SlotCustomEncrypt(const QString& type) {
                 edit_->SlotSetGFBuffer2CurTextPage(p.value("data"));
               }
 
-              if (p.contains("result") && p.contains("result_status")) {
-                slot_refresh_info_board(
-                    p.value("result_status").ConvertToQString().toInt(),
-                    p.value("result").ConvertToQString());
-              }
+              slot_refresh_info_board_from_module(p);
 
               return 0;
             });
@@ -659,11 +676,7 @@ void MainWindow::SlotCustomSign(const QString& type) {
                 edit_->SlotSetGFBuffer2CurTextPage(p.value("data"));
               }
 
-              if (p.contains("result") && p.contains("result_status")) {
-                slot_refresh_info_board(
-                    p.value("result_status").ConvertToQString().toInt(),
-                    p.value("result").ConvertToQString());
-              }
+              slot_refresh_info_board_from_module(p);
 
               return 0;
             });
@@ -756,11 +769,7 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
                 edit_->SlotSetGFBuffer2CurTextPage(p.value("data"));
               }
 
-              if (p.contains("result") && p.contains("result_status")) {
-                slot_refresh_info_board(
-                    p.value("result_status").ConvertToQString().toInt(),
-                    p.value("result").ConvertToQString());
-              }
+              slot_refresh_info_board_from_module(p);
 
               return 0;
             });
@@ -815,11 +824,7 @@ void MainWindow::SlotCustomDecryptVerify(const QString& type) {
                 edit_->SlotSetGFBuffer2CurTextPage(p.value("data"));
               }
 
-              if (p.contains("result") && p.contains("result_status")) {
-                slot_refresh_info_board(
-                    p.value("result_status").ConvertToQString().toInt(),
-                    p.value("result").ConvertToQString());
-              }
+              slot_refresh_info_board_from_module(p);
 
               return 0;
             });
