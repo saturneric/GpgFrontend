@@ -56,14 +56,21 @@ class PassphraseDialog : public QDialog {
   void Clear();
 
  private:
+  /// Abort the operation if the user does not respond within this window.
+  static constexpr int kDefaultTimeoutSeconds = 120;
+
   QSharedPointer<GpgPassphraseContext> ctx_;
   QLineEdit* password_edit_ = nullptr;
   QLineEdit* confirm_password_edit_ = nullptr;
   QCheckBox* show_password_checkbox_ = nullptr;
   QProgressBar* passphrase_strength_bar_ = nullptr;
   QLabel* passphrase_strength_label_ = nullptr;
+  QLabel* timeout_label_ = nullptr;
+  QTimer* timeout_timer_ = nullptr;
+  int remaining_seconds_ = kDefaultTimeoutSeconds;
 
   [[nodiscard]] auto validate_passphrase_input() -> bool;
   void update_passphrase_strength(const QString& text);
+  void update_timeout_label();
 };
 }  // namespace GpgFrontend::UI

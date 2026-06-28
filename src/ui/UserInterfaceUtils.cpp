@@ -127,8 +127,10 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
         if (dialog.exec() == QDialog::Accepted) {
           c->SetPassphrase(dialog.Passphrase());
         } else {
-          c->SetPassphrase(
-              GFBuffer());  // Set empty passphrase to indicate cancellation
+          // Set empty passphrase and flag the explicit cancellation so the
+          // engine can surface GPG_ERR_CANCELED instead of a generic failure.
+          c->SetPassphrase(GFBuffer());
+          c->SetCancelled(true);
         }
 
         dialog.Clear();  // Clear the passphrase from memory as soon as possible

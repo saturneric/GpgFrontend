@@ -278,6 +278,9 @@ PassphraseDialog::PassphraseDialog(
 
   auto* button_layout = new QHBoxLayout();
   button_layout->setContentsMargins(0, 6, 0, 0);
+
+  timeout_label_ = new QLabel(this);
+  button_layout->addWidget(timeout_label_);
   button_layout->addStretch();
 
   auto* cancel_button = new QPushButton(tr("Cancel"), this);
@@ -303,6 +306,22 @@ PassphraseDialog::PassphraseDialog(
 
   update_passphrase_strength(password_edit_->text());
   password_edit_->setFocus();
+
+  // Abort the operation if the user does not respond within the timeout window.
+  // A rejected dialog yields an empty passphrase, which the caller treats as
+  // cancellation.
+  update_timeout_label();
+  timeout_timer_ = new QTimer(this);
+  timeout_timer_->setInterval(1000);
+  connect(timeout_timer_, &QTimer::timeout, this, [this]() {
+    if (--remaining_seconds_ <= 0) {
+      timeout_timer_->stop();
+      reject();
+      return;
+    }
+    update_timeout_label();
+  });
+  timeout_timer_->start();
 
   adjustSize();
   resize(std::max(width(), 520), height());
@@ -361,6 +380,18 @@ void PassphraseDialog::Clear() {
   if (confirm_password_edit_ != nullptr) {
     confirm_password_edit_->clear();
   }
+}
+
+void PassphraseDialog::update_timeout_label() {
+  if (timeout_label_ == nullptr) {
+    return;
+  }
+
+  const auto minutes = remaining_seconds_ / 60;
+  const auto seconds = remaining_seconds_ % 60;
+  timeout_label_->setText(tr("Closing in %1:%2")
+                              .arg(minutes)
+                              .arg(seconds, 2, 10, QLatin1Char('0')));
 }
 
 void PassphraseDialog::update_passphrase_strength(const QString& text) {
