@@ -62,6 +62,15 @@ InfoBoardWidget::InfoBoardWidget(QWidget* parent)
 }
 
 void InfoBoardWidget::setup_tool_buttons() {
+  // Set the captions and tooltips here (rather than relying on the values baked
+  // into the .ui file) so they are extracted under this widget's own
+  // translation context; strings left only in the .ui are not picked up by
+  // lupdate in this project.
+  ui_->copyToolButton->setText(tr("Copy"));
+  ui_->saveToolButton->setText(tr("Save"));
+  ui_->magnifierToolButton->setText(tr("Magnify"));
+  ui_->clearToolButton->setText(tr("Clear"));
+
   ui_->copyToolButton->setToolTip(tr("Copy status text"));
   ui_->saveToolButton->setToolTip(tr("Save status text to file"));
   ui_->magnifierToolButton->setToolTip(tr("Magnify the generated document"));
