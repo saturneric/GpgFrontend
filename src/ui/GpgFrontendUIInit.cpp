@@ -159,9 +159,36 @@ void WaitEnvCheckingProcess() {
     TerminateSelfImmediately();
   });
 
+  // The connections above already subscribe to the core's terminal state. They
+  // are edge-triggered and cross-thread, though, so they only fire reliably
+  // once looper.exec() is running. The gap is dialog->show(): on macOS it can
+  // pump the event loop, delivering a queued QEventLoop::quit before exec()
+  // starts -- where it is a no-op -- and the dialog would then wait forever
+  // even though the core is already initialized (exactly the fresh-install
+  // stall).
   dialog->show();
   dialog->raise();
   dialog->activateWindow();
+
+  // Authoritative re-check, placed after show() (the only thing that pumps
+  // events here) and immediately before blocking. The monitor publishes
+  // env.state.* before emitting its signals, so reading the state now closes
+  // the window the signals leave open -- no polling needed. From here to
+  // looper.exec() nothing pumps events, so any later transition is safely
+  // delivered to the running loop.
+  const auto core_reached_terminal_state = []() -> bool {
+    return Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.all",
+                                                   0) == 1 ||
+           Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic",
+                                                   0) < 0;
+  };
+
+  if (core_reached_terminal_state()) {
+    LOG_D()
+        << "core reached terminal state before waiting; skipping event loop";
+    close_dialog();
+    return;
+  }
 
   looper.exec();
 }
