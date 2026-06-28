@@ -127,6 +127,11 @@ void InfoBoardWidget::setup_view_switcher() {
   // stylesheet-painted pill: an exclusive group renders the active segment with
   // the platform's own "checked" look, which stays correct across themes and
   // platforms.
+  // Set the captions here (rather than relying on the values baked into the
+  // .ui file) so they are extracted under this widget's own translation
+  // context alongside every other string the widget owns.
+  ui_->segStatusButton->setText(tr("Status"));
+  ui_->segDetailsButton->setText(tr("Details"));
   ui_->segStatusButton->setToolTip(tr("Show the summary report"));
   ui_->segDetailsButton->setToolTip(tr("Show the raw status text"));
   for (auto* button : {ui_->segStatusButton, ui_->segDetailsButton}) {
