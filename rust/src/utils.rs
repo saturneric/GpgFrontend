@@ -45,8 +45,8 @@ use crate::{
     cache::{PasswordCache, PasswordCacheKey, PasswordCachePolicy},
     host::gfc_secure_free_cstr,
     types::{
-        GfrKeyAlgo, GfrKeyConfig, GfrPassphraseState, GfrPasswordFetchCb, GfrRevocationCode,
-        GfrStatus,
+        GfrKeyAlgo, GfrKeyConfig, GfrPassphraseState, GfrPasswordFetchCb, GfrPasswordFetchStatus,
+        GfrRevocationCode, GfrStatus,
     },
 };
 use std::{
@@ -70,10 +70,12 @@ pub struct PassphraseStateInternal {
 
 /// Invoke the C++ passphrase callback and return the passphrase as owned bytes.
 ///
-/// The callback returns `ret > 0` (number of bytes) on success; `ret <= 0` or
-/// a null pointer means the user cancelled or an error occurred. The C++ buffer
-/// is copied into Rust memory before the free callback is called, so the order
-/// is: copy → free.
+/// On success the callback returns `ret > 0` (number of bytes) and sets
+/// `out_status` to `Provided`. Otherwise it sets `out_status` to `Cancelled`
+/// (deliberate user cancellation) or `Failed` (timeout, missing provider,
+/// internal error), which this function maps to `ErrorCanceled` and
+/// `ErrorFetchPasswordFailed` respectively. The C++ buffer is copied into Rust
+/// memory before the free callback is called, so the order is: copy → free.
 pub fn fetch_password_internal(
     channel: i32,
     state: PassphraseStateInternal,
@@ -95,22 +97,36 @@ pub fn fetch_password_internal(
     };
 
     let mut pwd_ptr: *mut u8 = null_mut();
+    // Default to `Failed` so a callback that returns non-success without writing
+    // a status is treated as a fetch failure rather than mistaken for success.
+    let mut out_status = GfrPasswordFetchStatus::Failed;
 
     // If a password fetch callback is provided, use it to get the password.
-    // The callback returns the password length: `ret > 0` indicates success and
-    // is the number of bytes written to `*out_pwd`; `ret <= 0` means the user
-    // cancelled or an error occurred.
-    let ret = fetch_fn(channel, passphrase_state, &mut pwd_ptr, null_mut());
+    // On success it returns the byte count (`ret > 0`) and sets `out_status` to
+    // `Provided`; otherwise it reports the reason via `out_status`.
+    let ret = fetch_fn(
+        channel,
+        passphrase_state,
+        &mut pwd_ptr,
+        &mut out_status,
+        null_mut(),
+    );
 
-    // Callback indicated failure or no password provided. Defensively free any
-    // buffer the callback may still have allocated (e.g. a buggy callback that
-    // returns a non-positive length but writes a pointer), so secret bytes are
-    // never leaked unwiped on the error path.
-    if ret <= 0 || pwd_ptr.is_null() {
+    // Anything but a `Provided` status with a non-empty buffer is a non-success
+    // outcome. Defensively free any buffer the callback may still have allocated
+    // (e.g. a buggy callback that reports failure but writes a pointer), so
+    // secret bytes are never leaked unwiped on the error path, then map the
+    // reported reason to a specific status: the engine surfaces `ErrorCanceled`
+    // as GPG_ERR_CANCELED for a deliberate user cancellation, rather than a
+    // generic "General error".
+    if out_status != GfrPasswordFetchStatus::Provided || ret <= 0 || pwd_ptr.is_null() {
         if !pwd_ptr.is_null() {
             unsafe { gfc_secure_free_cstr(pwd_ptr as *mut std::ffi::c_char) };
         }
-        return Err(GfrStatus::ErrorFetchPasswordFailed);
+        return Err(match out_status {
+            GfrPasswordFetchStatus::Cancelled => GfrStatus::ErrorCanceled,
+            _ => GfrStatus::ErrorFetchPasswordFailed,
+        });
     }
 
     // safely create a slice from the returned pointer and length
@@ -510,4 +526,111 @@ pub fn build_revocation_reason_subpacket(
 
 pub fn password_from_zeroizing_bytes(bytes: Zeroizing<Vec<u8>>) -> Password {
     Password::from(move || Zeroizing::new(bytes.as_slice().to_vec()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::{GfrPassphraseState, GfrPasswordFetchStatus};
+    use std::ffi::c_void;
+
+    // Test stub for the host's secure-free routine. The mock callbacks below
+    // hand back leaked allocations, so there is nothing to reclaim here; the
+    // real C++ implementation is linked only in the full binary build.
+    #[unsafe(no_mangle)]
+    extern "C" fn gfc_secure_free_cstr(_ptr: *mut std::ffi::c_char) {}
+
+    fn state() -> PassphraseStateInternal {
+        PassphraseStateInternal {
+            fpr: "DEADBEEF".to_string(),
+            info: "Decryption".to_string(),
+            retry: false,
+            ask_for_new: false,
+            should_confirm: false,
+        }
+    }
+
+    extern "C" fn cb_provided(
+        _channel: i32,
+        _state: GfrPassphraseState,
+        out_pwd: *mut *mut u8,
+        out_status: *mut GfrPasswordFetchStatus,
+        _user_data: *mut c_void,
+    ) -> i32 {
+        // Leak a heap buffer; fetch_password_internal copies it out before
+        // invoking the (stubbed) free routine.
+        let mut v = b"secret".to_vec();
+        let ptr = v.as_mut_ptr();
+        let len = v.len();
+        std::mem::forget(v);
+        unsafe {
+            *out_pwd = ptr;
+            *out_status = GfrPasswordFetchStatus::Provided;
+        }
+        len as i32
+    }
+
+    extern "C" fn cb_cancelled(
+        _channel: i32,
+        _state: GfrPassphraseState,
+        _out_pwd: *mut *mut u8,
+        out_status: *mut GfrPasswordFetchStatus,
+        _user_data: *mut c_void,
+    ) -> i32 {
+        unsafe { *out_status = GfrPasswordFetchStatus::Cancelled };
+        0
+    }
+
+    extern "C" fn cb_failed(
+        _channel: i32,
+        _state: GfrPassphraseState,
+        _out_pwd: *mut *mut u8,
+        out_status: *mut GfrPasswordFetchStatus,
+        _user_data: *mut c_void,
+    ) -> i32 {
+        unsafe { *out_status = GfrPasswordFetchStatus::Failed };
+        0
+    }
+
+    // A callback that reports no status at all must be treated as a failure,
+    // never mistaken for a provided passphrase or a cancellation.
+    extern "C" fn cb_silent(
+        _channel: i32,
+        _state: GfrPassphraseState,
+        _out_pwd: *mut *mut u8,
+        _out_status: *mut GfrPasswordFetchStatus,
+        _user_data: *mut c_void,
+    ) -> i32 {
+        0
+    }
+
+    #[test]
+    fn provided_status_yields_passphrase() {
+        let pwd = fetch_password_internal(0, state(), Some(cb_provided)).expect("provided");
+        assert_eq!(pwd.as_slice(), b"secret");
+    }
+
+    #[test]
+    fn cancelled_status_maps_to_canceled_error() {
+        let err = fetch_password_internal(0, state(), Some(cb_cancelled)).unwrap_err();
+        assert_eq!(err, GfrStatus::ErrorCanceled);
+    }
+
+    #[test]
+    fn failed_status_maps_to_fetch_password_failed() {
+        let err = fetch_password_internal(0, state(), Some(cb_failed)).unwrap_err();
+        assert_eq!(err, GfrStatus::ErrorFetchPasswordFailed);
+    }
+
+    #[test]
+    fn missing_status_defaults_to_fetch_password_failed() {
+        let err = fetch_password_internal(0, state(), Some(cb_silent)).unwrap_err();
+        assert_eq!(err, GfrStatus::ErrorFetchPasswordFailed);
+    }
+
+    #[test]
+    fn absent_callback_is_invalid_input() {
+        let err = fetch_password_internal(0, state(), None).unwrap_err();
+        assert_eq!(err, GfrStatus::ErrorInvalidInput);
+    }
 }

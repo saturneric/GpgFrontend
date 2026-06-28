@@ -622,17 +622,38 @@ pub struct GfrPassphraseState {
     pub should_confirm: bool,
 }
 
+/// Outcome of a passphrase fetch callback, reported via its `out_status`
+/// out-parameter so the engine can tell a deliberate user cancellation apart
+/// from a fetch failure (timeout, missing provider, internal error). The byte
+/// length is still carried by the callback's return value.
+#[repr(C)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GfrPasswordFetchStatus {
+    /// A passphrase was provided; `*out_pwd` holds it and the return value is
+    /// its length.
+    Provided = 0,
+    /// The user explicitly declined (Cancel button or closing the dialog).
+    /// Mapped to `GfrStatus::ErrorCanceled`.
+    Cancelled = 1,
+    /// No passphrase could be obtained for any other reason (input timeout,
+    /// no provider registered, internal error). Mapped to
+    /// `GfrStatus::ErrorFetchPasswordFailed`.
+    Failed = 2,
+}
+
 /// Callback to prompt the user for a passphrase.
 ///
 /// `channel` identifies the OpenPGP context requesting the passphrase.
 /// `state` describes the request (fingerprint, retry flag, etc.).
 /// On success the implementation writes a heap-allocated UTF-8 byte buffer to
-/// `*out_pwd` and returns its length as a positive byte count; on cancellation
-/// or error it returns a value `<= 0` (and `*out_pwd` is ignored). The engine
-/// copies the buffer and then frees it via the host secure-free routine.
+/// `*out_pwd`, sets `*out_status` to `Provided`, and returns the buffer length
+/// as a positive byte count. Otherwise it sets `*out_status` to `Cancelled` or
+/// `Failed` (leaving `*out_pwd` untouched) and returns a value `<= 0`. The
+/// engine copies the buffer and then frees it via the host secure-free routine.
 pub type GfrPasswordFetchCb = extern "C" fn(
     channel: i32,
     state: GfrPassphraseState,
     out_pwd: *mut *mut u8,
+    out_status: *mut GfrPasswordFetchStatus,
     user_data: *mut c_void,
 ) -> i32;
