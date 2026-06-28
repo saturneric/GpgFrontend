@@ -41,7 +41,7 @@ GeneralTab::GeneralTab(QWidget* parent)
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_GeneralSettings>()) {
   ui_->setupUi(this);
 
-  ui_->cacheBox->setTitle(tr("Base"));
+  ui_->baseBox->setTitle(tr("Base"));
 
   ui_->clearGpgPasswordCacheCheckBox->setText(
       tr("Clear gpg password cache when closing GpgFrontend."));
@@ -124,13 +124,13 @@ GeneralTab::GeneralTab(QWidget* parent)
   // sandbox and may cause confusion to users.
   if (IsRunningInSandBox()) {
     ui_->dataBox->setHidden(true);
-    ui_->cacheBox->setHidden(true);
     ui_->modulePolicyComboBox->setHidden(true);
     ui_->modulePolicyLabel->setHidden(true);
     ui_->defaultWorkspaceAsLabel->setHidden(true);
     ui_->filePanelRadioButton->setHidden(true);
     ui_->textEditorRadioButton->setHidden(true);
     ui_->homePathAsDefaultPathcheckBox->setHidden(true);
+    ui_->clearGpgPasswordCacheCheckBox->setHidden(true);
   }
 
   ui_->revealInFileExplorerButton->setText(tr("Reveal in File Explorer"));
