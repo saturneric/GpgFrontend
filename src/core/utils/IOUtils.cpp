@@ -108,52 +108,64 @@ auto WriteFileGFBuffer(const QString& file_name, GFBuffer data) -> bool {
   return n == static_cast<decltype(n)>(data.Size());
 }
 
-auto CalculateHash(const QString& file_path) -> QString {
-  // Returns empty QByteArray() on failure.
+auto CalculateFileHashInfo(const QString& file_path)
+    -> QContainer<QPair<QString, QString>> {
+  QContainer<QPair<QString, QString>> fields;
+
   QFileInfo const info(file_path);
+  if (!info.isFile() || !info.isReadable()) return fields;
+
+  // Read and hash the file exactly once; everything else is derived from these
+  // fields so no consumer ever has to parse formatted text back into data.
+  fields.append({QCoreApplication::tr("Filename"), info.fileName()});
+  fields.append({QCoreApplication::tr("File Size") + QStringLiteral("(bytes)"),
+                 QString::number(info.size())});
+  fields.append({QCoreApplication::tr("File Size"),
+                 GetHumanFriendlyFileSize(info.size())});
+  fields.append(
+      {QStringLiteral("MD5"),
+       QString::fromLatin1(
+           GetFileHashQt(file_path, QCryptographicHash::Md5).toHex())});
+  fields.append(
+      {QStringLiteral("SHA1"),
+       QString::fromLatin1(
+           GetFileHashQt(file_path, QCryptographicHash::Sha1).toHex())});
+  fields.append(
+      {QStringLiteral("SHA256"),
+       QString::fromLatin1(
+           GetFileHashQt(file_path, QCryptographicHash::Sha256).toHex())});
+
+  return fields;
+}
+
+auto FormatFileHashInfo(const QContainer<QPair<QString, QString>>& fields)
+    -> QString {
   QString buffer;
   QTextStream ss(&buffer);
 
-  if (info.isFile() && info.isReadable()) {
-    auto md5 = GetFileHashQt(file_path, QCryptographicHash::Md5).toHex();
-    auto sha1 = GetFileHashQt(file_path, QCryptographicHash::Sha1).toHex();
-    auto sha256 = GetFileHashQt(file_path, QCryptographicHash::Sha256).toHex();
-
-    ss << "# " << QCoreApplication::tr("File Hash Information") << Qt::endl;
-    ss << "- " << QCoreApplication::tr("Filename") << QCoreApplication::tr(": ")
-       << info.fileName() << Qt::endl;
-
-    // read all data
-    ss << "- " << QCoreApplication::tr("File Size") << "(bytes)"
-       << QCoreApplication::tr(": ") << QString::number(info.size())
+  ss << "# " << QCoreApplication::tr("File Hash Information") << Qt::endl;
+  for (const auto& field : fields) {
+    ss << "- " << field.first << QCoreApplication::tr(": ") << field.second
        << Qt::endl;
+  }
+  ss << Qt::endl;
 
-    ss << "- " << QCoreApplication::tr("File Size")
-       << QCoreApplication::tr(": ") << GetHumanFriendlyFileSize(info.size())
-       << Qt::endl;
+  return ss.readAll();
+}
 
-    // md5
-    ss << "- "
-       << "MD5" << QCoreApplication::tr(": ") << md5 << Qt::endl;
-
-    // sha1
-    ss << "- "
-       << "SHA1" << QCoreApplication::tr(": ") << sha1 << Qt::endl;
-
-    // sha1
-    ss << "- "
-       << "SHA256" << QCoreApplication::tr(": ") << sha256 << Qt::endl;
-
-    ss << Qt::endl;
-
-  } else {
+auto CalculateHash(const QString& file_path) -> QString {
+  QFileInfo const info(file_path);
+  if (!info.isFile() || !info.isReadable()) {
+    QString buffer;
+    QTextStream ss(&buffer);
     ss << "# " << QCoreApplication::tr("Error: cannot read target file")
        << Qt::endl;
     ss << "- " << QCoreApplication::tr("Filename") << QCoreApplication::tr(": ")
        << info.fileName() << Qt::endl;
+    return ss.readAll();
   }
 
-  return ss.readAll();
+  return FormatFileHashInfo(CalculateFileHashInfo(file_path));
 }
 
 auto GetTempFilePath() -> QString {

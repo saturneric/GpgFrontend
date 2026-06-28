@@ -86,9 +86,9 @@ void add_signer_fields(InfoBoardCard& card, const GpgSignerInfo& signer) {
     card.fields.append({QObject::tr("Algorithm"), algo});
   }
   if (signer.signTime.isValid()) {
-    card.fields.append(
-        {QObject::tr("Signed"),
-         QLocale().toString(signer.signTime.toLocalTime(), QLocale::ShortFormat)});
+    card.fields.append({QObject::tr("Signed"),
+                        QLocale().toString(signer.signTime.toLocalTime(),
+                                           QLocale::ShortFormat)});
   }
 }
 
@@ -99,8 +99,9 @@ void add_recipient_fields(InfoBoardCard& card, const GpgRecipientInfo& reci) {
     card.fields.append({QObject::tr("Fingerprint"), reci.fingerprint});
   }
   card.fields.append({QObject::tr("Key ID"), reci.keyId});
-  card.fields.append({reci.algoIsPrimaryKey ? QObject::tr("Primary Key Algorithm")
-                                            : QObject::tr("Algorithm"),
+  card.fields.append({reci.algoIsPrimaryKey
+                          ? QObject::tr("Primary Key Algorithm")
+                          : QObject::tr("Algorithm"),
                       reci.pubkeyAlgo});
 }
 
@@ -158,12 +159,13 @@ auto convert_op_info_to_cards(const GpgOpResultInfo& info)
         info.messageIntegrityProtected ? kINFO_ERROR_OK : kINFO_ERROR_WARN;
     meta_card.fields.append({QObject::tr("File"), info.filename});
     meta_card.fields.append({QObject::tr("Cipher"), info.symmetricAlgo});
-    meta_card.fields.append(
-        {QObject::tr("MIME"), info.mimeEncoded ? QObject::tr("Yes") : QObject::tr("No")});
-    meta_card.fields.append(
-        {QObject::tr("Integrity"),
-         info.messageIntegrityProtected ? QObject::tr("Protected")
-                                        : QObject::tr("Not Protected (unsafe)")});
+    meta_card.fields.append({QObject::tr("MIME"), info.mimeEncoded
+                                                      ? QObject::tr("Yes")
+                                                      : QObject::tr("No")});
+    meta_card.fields.append({QObject::tr("Integrity"),
+                             info.messageIntegrityProtected
+                                 ? QObject::tr("Protected")
+                                 : QObject::tr("Not Protected (unsafe)")});
     cards.append(meta_card);
   }
 

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/GFBuffer.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
@@ -78,6 +79,30 @@ auto GF_CORE_EXPORT WriteFile(const QString& file_name, const QByteArray& data)
  * @return hex-encoded SHA-256 digest string
  */
 auto GF_CORE_EXPORT CalculateHash(const QString& file_path) -> QString;
+
+/**
+ * @brief Compute the file hash report as structured (key, value) field pairs.
+ *
+ * This is the source of truth for the hash report: the file is read and hashed
+ * exactly once here. Both the human-readable text (FormatFileHashInfo) and the
+ * UI card are derived from these fields, so nothing has to parse a formatted,
+ * localized string back into data.
+ *
+ * @param file_path path to the file to hash
+ * @return ordered list of (key, value) pairs, empty if the file is unreadable
+ */
+auto GF_CORE_EXPORT CalculateFileHashInfo(const QString& file_path)
+    -> QContainer<QPair<QString, QString>>;
+
+/**
+ * @brief Render the structured fields from CalculateFileHashInfo() into the
+ * human-readable report text shown in the raw details view.
+ *
+ * @param fields field pairs produced by CalculateFileHashInfo()
+ * @return formatted report text
+ */
+auto GF_CORE_EXPORT FormatFileHashInfo(
+    const QContainer<QPair<QString, QString>>& fields) -> QString;
 
 /**
  * @brief Calculate a checksum of a binary file and return it as a hex string.

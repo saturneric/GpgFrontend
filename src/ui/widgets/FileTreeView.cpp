@@ -47,7 +47,7 @@ auto SelectedItemsText(const QStringList& paths) -> QString {
 }
 
 void NotifyStatus(const QString& text, int timeout = 3000) {
-  emit UISignalStation::GetInstance()->SignalRefreshStatusBar(text, timeout);
+  emit UISignalStation::GetInstance() -> SignalRefreshStatusBar(text, timeout);
 }
 
 auto MovePathToTrash(const QString& path) -> bool {
@@ -638,37 +638,34 @@ void FileTreeView::slot_calculate_hash() {
       this->parentWidget(), tr("Calculating"), [=](const OperaWaitingHd& hd) {
         RunOperaAsync(
             [=](const DataObjectPtr& data_object) {
-              data_object->Swap({CalculateHash(selected_path)});
+              // Hash the file once and carry the structured fields across the
+              // async boundary; the card and the report text are both derived
+              // from them, so the Info Board never parses formatted text.
+              data_object->Swap({CalculateFileHashInfo(selected_path)});
               return 0;
             },
             [hd](int rtn, const DataObjectPtr& data_object) {
               hd();
-              if (rtn < 0 || !data_object->Check<QString>()) {
+              using HashFields = QContainer<QPair<QString, QString>>;
+              if (rtn < 0 || !data_object->Check<HashFields>()) {
                 return;
               }
-              auto result = ExtractParams<QString>(data_object, 0);
+              auto fields = ExtractParams<HashFields>(data_object, 0);
+              if (fields.isEmpty()) return;
 
               InfoBoardCard card;
               card.title = tr("File Hash Information");
               card.status = InfoBoardStatus::kINFO_ERROR_OK;
-
-              const QStringList lines = result.split(QLatin1Char('\n'));
-              for (const QString& raw_line : lines) {
-                const QString line = raw_line.trimmed();
-                if (!line.startsWith(QLatin1String("- "))) continue;
-                const QString body = line.mid(2);
-                const int colon_pos = body.indexOf(QLatin1String(": "));
-                if (colon_pos < 0) continue;
-                card.fields.append(
-                    {body.left(colon_pos), body.mid(colon_pos + 2)});
-              }
+              card.fields = fields;
 
               QContainer<InfoBoardCard> cards;
               cards.append(card);
 
-              emit UISignalStation::GetInstance()->SignalRefreshInfoBoardCards(
-                  result, InfoBoardStatus::kINFO_ERROR_OK, cards, card.title,
-                  {}, {}, {});
+              emit UISignalStation::GetInstance()
+                  -> SignalRefreshInfoBoardCards(
+                      FormatFileHashInfo(fields),
+                      InfoBoardStatus::kINFO_ERROR_OK, cards, card.title, {},
+                      {}, {});
             },
             "calculate_file_hash");
       });
@@ -1219,7 +1216,7 @@ void FileTreeView::SlotCopyPath() {
 
   QGuiApplication::clipboard()->setText(paths.join(QChar::LineFeed));
 
-  emit UISignalStation::GetInstance()->SignalRefreshStatusBar(
+  emit UISignalStation::GetInstance() -> SignalRefreshStatusBar(
       paths.size() == 1 ? tr("Path copied to clipboard.")
                         : tr("%1 paths copied to clipboard.").arg(paths.size()),
       2000);
@@ -1231,8 +1228,8 @@ void FileTreeView::SlotRefresh() {
     setRootIndex(dir_model_->index(QString()));
     slot_adjust_column_widths();
 
-    emit UISignalStation::GetInstance()->SignalRefreshStatusBar(
-        tr("File list refreshed."), 1500);
+    emit UISignalStation::GetInstance()
+        -> SignalRefreshStatusBar(tr("File list refreshed."), 1500);
     return;
   }
 
@@ -1249,8 +1246,8 @@ void FileTreeView::SlotRefresh() {
 
   SlotGoPath(current_path_);
 
-  emit UISignalStation::GetInstance()->SignalRefreshStatusBar(
-      tr("File list refreshed."), 1500);
+  emit UISignalStation::GetInstance()
+      -> SignalRefreshStatusBar(tr("File list refreshed."), 1500);
 }
 
 void FileTreeView::sync_selected_paths_from_selection() {

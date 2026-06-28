@@ -89,46 +89,14 @@ void InfoBoardWidget::update_status_page(
           " border-radius: 6px; }")
           .arg(border_subtle, accent));
 
-  QString resolved_operation = operation;
   QString resolved_description = description;
-  if (resolved_description.isEmpty() && !resolved_operation.isEmpty()) {
-    resolved_description = StatusDescription(status, resolved_operation);
+  if (resolved_description.isEmpty() && !operation.isEmpty()) {
+    resolved_description = StatusDescription(status, operation);
   }
-  QContainer<InfoBoardCard> resolved_cards = cards;
   const QString& resolved_details_title = details_title;
   const QStringList& resolved_details_items = details_items;
 
-  if (resolved_cards.isEmpty() && resolved_details_items.isEmpty()) {
-    const QString hash_title = tr("File Hash Information");
-    if (text.contains(hash_title)) {
-      resolved_operation = hash_title;
-      struct HashField {
-        QString key;
-        QString value;
-      };
-      QList<HashField> fields;
-      const QStringList lines = text.split(QLatin1Char('\n'));
-      for (const QString& raw_line : lines) {
-        const QString line = raw_line.trimmed();
-        if (!line.startsWith(QLatin1String("- "))) continue;
-        const QString body = line.mid(2);
-        const int colon_pos = body.indexOf(QLatin1String(": "));
-        if (colon_pos < 0) continue;
-        fields.append({body.left(colon_pos), body.mid(colon_pos + 2)});
-      }
-      if (!fields.isEmpty()) {
-        InfoBoardCard card;
-        card.title = hash_title;
-        card.status = status;
-        for (const auto& f : fields) {
-          card.fields.append({f.key, f.value});
-        }
-        resolved_cards.append(card);
-      }
-    }
-  }
-
-  update_doc_header(status, resolved_operation, {}, {});
+  update_doc_header(status, operation, {}, {});
 
   if (auto* l = qobject_cast<QVBoxLayout*>(details_container_->layout())) {
     delete_widgets_in_layout(l, 0);
@@ -150,11 +118,11 @@ void InfoBoardWidget::update_status_page(
   }
 
   bool has_extra = false;
-  if (!resolved_cards.isEmpty()) {
+  if (!cards.isEmpty()) {
     auto* extra_layout = qobject_cast<QVBoxLayout*>(extra_widget_->layout());
     if (extra_layout != nullptr) {
       delete_widgets_in_layout(extra_layout, 0);
-      render_cards(extra_layout, extra_widget_, resolved_cards);
+      render_cards(extra_layout, extra_widget_, cards);
       has_extra = true;
     }
   }
@@ -174,8 +142,8 @@ void InfoBoardWidget::update_status_page(
   // Build content string for hashing (all visible content)
   QString content_for_hash;
   content_for_hash += text;
-  content_for_hash += resolved_operation;
-  for (const auto& card : resolved_cards) {
+  content_for_hash += operation;
+  for (const auto& card : cards) {
     content_for_hash += card.title;
     for (const auto& field : card.fields) {
       content_for_hash += field.first + field.second;
@@ -230,8 +198,8 @@ void InfoBoardWidget::update_status_page(
       lines << current_id_;
       lines << QString(current_id_.length(), QLatin1Char('-'));
     }
-    if (!resolved_operation.isEmpty()) {
-      lines << tr("Operation: %1").arg(resolved_operation);
+    if (!operation.isEmpty()) {
+      lines << tr("Operation: %1").arg(operation);
     }
     lines << tr("Status:    %1").arg(build_status_symbol(status));
     if (!content_hash.isEmpty()) lines << tr("SHA-256:   %1").arg(content_hash);
@@ -243,7 +211,7 @@ void InfoBoardWidget::update_status_page(
       lines << QStringLiteral("%1:  %2").arg(
           key, resolved_details_items.join(QStringLiteral(", ")));
     }
-    for (const auto& card : resolved_cards) {
+    for (const auto& card : cards) {
       lines << QString();
       lines << card.title;
       for (const auto& f : card.fields) {
