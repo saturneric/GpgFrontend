@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>475</width>
-    <height>635</height>
+    <height>642</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -119,6 +119,9 @@
            <layout class="QVBoxLayout" name="verticalLayout_6">
             <item>
              <layout class="QFormLayout" name="formLayout">
+              <property name="fieldGrowthPolicy">
+               <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
+              </property>
               <item row="0" column="0">
                <widget class="QLabel" name="easyProfileLabel">
                 <property name="text">
@@ -180,6 +183,9 @@
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
              <layout class="QFormLayout" name="formLayout_3">
+              <property name="fieldGrowthPolicy">
+               <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
+              </property>
               <item row="2" column="0">
                <widget class="QLabel" name="easyValidPeriodLabel">
                 <property name="text">
