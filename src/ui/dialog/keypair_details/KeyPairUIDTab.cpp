@@ -377,9 +377,6 @@ void KeyPairUIDTab::slot_set_primary_uid() {
                                tr("An error occurred during the operation."));
                            return;
                          }
-                         QMessageBox::information(
-                             nullptr, tr("Successful Operation"),
-                             tr("Successfully set the Primary UID."));
                          emit SignalUpdateUIDInfo();
                        });
   };
