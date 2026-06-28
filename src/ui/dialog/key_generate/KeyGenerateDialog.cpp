@@ -1115,7 +1115,8 @@ void KeyGenerateDialog::set_signal_slot_config() {
             refresh_widgets_state();
           });
 
-  connect(ui_->pKeyFormatComboBox, &QComboBox::currentIndexChanged, this,
+  connect(ui_->pKeyFormatComboBox,
+          qOverload<int>(&QComboBox::currentIndexChanged), this,
           [this](int) -> void {
             const auto data = ui_->pKeyFormatComboBox->currentData();
             if (data.isValid()) gen_key_info_->SetKeyVersion(data.toInt());
