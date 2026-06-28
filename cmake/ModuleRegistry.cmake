@@ -38,7 +38,11 @@ function(module_add_translations target)
   endif()
 
   if(NOT XCODE_BUILD)
+    # Pin the lupdate scope to this module's own target. Without SOURCE_TARGETS,
+    # qt_add_translations walks the whole modules/ tree and funnels every other
+    # module's (and vmime's) strings into this module's .ts files.
     qt_add_translations(${target}
+      SOURCE_TARGETS ${target}
       RESOURCE_PREFIX "/i18n"
       TS_FILES ${MAT_TS_FILES}
       SOURCES ${MAT_SOURCES}
