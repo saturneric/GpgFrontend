@@ -752,42 +752,42 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="109"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="110"/>
         <source>ADSKs Picker</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="129"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="130"/>
         <source>Key ID: %1 Reason: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="141"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="142"/>
         <source>Unknown Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="142"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="143"/>
         <source>Caught unknown error while exporting the key.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="159"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="160"/>
         <source>Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="160"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="161"/>
         <source>Partially Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="163"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="164"/>
         <source>Failed to add all selected subkeys.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="164"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="165"/>
         <source>Some subkeys failed to be added as ADSKs.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -897,62 +897,62 @@
 <context>
     <name>GpgFrontend::UI::BuildInfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="406"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="409"/>
         <source>GpgFrontend:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="409"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="412"/>
         <source>Qt:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="410"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="413"/>
         <source>GPGME:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="412"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="415"/>
         <source>Assuan:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="415"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="418"/>
         <source>Libarchive:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="418"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="421"/>
         <source>OpenSSL:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="420"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="423"/>
         <source>Sodium:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="423"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="426"/>
         <source>Git Branch:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="426"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="429"/>
         <source>Git Commit:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="429"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="432"/>
         <source>Built at:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="433"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="436"/>
         <source>Copy Build Information</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="440"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="443"/>
         <source>Build Information</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2282,42 +2282,42 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="329"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="338"/>
         <source>Website:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="334"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="342"/>
         <source>Documentation:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="337"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="345"/>
         <source>User guides and overview</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="347"/>
         <source>Source code:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="346"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="351"/>
         <source>Release notes:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="350"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="354"/>
         <source>Changelog and downloads</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="354"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="357"/>
         <source>Resources</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="361"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="364"/>
         <source>GpgFrontend is free software, licensed under &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt;.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2592,12 +2592,12 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::KeyGenerateDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1386"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1481"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1487"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1584"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1753"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1791"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1387"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1482"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1488"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1585"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1754"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1792"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="167"/>
         <source>Custom</source>
         <translation type="unfinished"></translation>
@@ -2642,7 +2642,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="481"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="871"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1492"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1493"/>
         <source>Primary Key Only</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2696,7 +2696,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1739"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1740"/>
         <source>Save Profile</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2706,7 +2706,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1810"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1811"/>
         <source>Delete Profile</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2731,7 +2731,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1837"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1838"/>
         <source>Reset To Default</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2913,87 +2913,87 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1517"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1518"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1518"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1519"/>
         <source>Unknown error occurred</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1533"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1534"/>
         <source>Generating</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1661"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1662"/>
         <source>ECC</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1666"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1667"/>
         <source>Post-Quantum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1740"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1741"/>
         <source>Please enter profile name:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1748"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1754"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1762"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1776"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1792"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1804"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1749"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1755"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1763"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1777"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1793"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1805"/>
         <source>Notice</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1749"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1750"/>
         <source>Profile was not saved: Name cannot be empty.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1755"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1756"/>
         <source>The profile name &apos;Custom&apos; is reserved. Please choose another name.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1763"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1764"/>
         <source>Profile was not saved: Name cannot be longer than %1 characters.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1777"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1778"/>
         <source>Profile was not saved: Name already exists.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1793"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1794"/>
         <source>The &apos;Custom&apos; profile cannot be deleted.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1805"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1806"/>
         <source>Selected profile does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1811"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1812"/>
         <source>Are you sure you want to delete the profile &apos;%1&apos;?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1838"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1839"/>
         <source>Are you sure you want to reset the easy profile configuration to default? This action cannot be undone.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="2005"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="2006"/>
         <source>Post-quantum algorithms require the v6 key format.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -6481,47 +6481,47 @@ Would you like to fetch these keys from the key server?</source>
 <context>
     <name>GpgFrontend::UI::RpgpEngineTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="584"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="587"/>
         <source>Unknown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="593"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="596"/>
         <source>GpgFrontend supports multiple OpenPGP backends. Alongside GnuPG, it can use a Rust-based engine (rPGP), giving you the freedom to choose the backend that best fits your needs. The details below describe the rPGP engine compiled into this build.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="607"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="610"/>
         <source>Engine Version:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="610"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="613"/>
         <source>Rust Compiler:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="613"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="616"/>
         <source>Target:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="617"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="620"/>
         <source>Build Profile:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="621"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="624"/>
         <source>rPGP Engine</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="635"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="638"/>
         <source>Key Dependencies</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="654"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="657"/>
         <source>Copy Engine Information</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7128,102 +7128,102 @@ Would you like to fetch these keys from the key server?</source>
 <context>
     <name>GpgFrontend::UI::StatusTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="546"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="549"/>
         <source>Application Status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="501"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="504"/>
         <source>Default</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="503"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="506"/>
         <source>Standard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="505"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="508"/>
         <source>Enhanced</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="507"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="510"/>
         <source>High</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="509"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="512"/>
         <source>Unknown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="514"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
         <source>Portable Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="514"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
         <source>Installed Mode</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="520"/>
         <source>Self-Check Active</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="520"/>
         <source>Self-Check Disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="520"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="523"/>
         <source>Active</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="520"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="523"/>
         <source>Disabled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="523"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="526"/>
         <source>Default Pinentry Program</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="530"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="533"/>
         <source>Security Level:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="532"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="535"/>
         <source>Running Mode:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="534"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="537"/>
         <source>Self-Check Status:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="538"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="541"/>
         <source>GnuPG Offline Mode:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="541"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="544"/>
         <source>Pinentry Program Path:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="563"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="566"/>
         <source>Supported OpenPGP Engines</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="567"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="570"/>
         <source>Tip: These values reflect the current startup environment and may help when reporting issues.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7533,17 +7533,17 @@ Would you like to fetch these keys from the key server?</source>
 <context>
     <name>GpgFrontend::UI::TranslatorsTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="458"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="461"/>
         <source>Thanks to all translators</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="468"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="471"/>
         <source>Translator information is not available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="472"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="475"/>
         <source>If you want to help improve localization, please read the &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;translation guide&lt;/a&gt;.!</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7730,100 +7730,130 @@ Would you like to fetch these keys from the key server?</source>
 <context>
     <name>InfoBoardWidget</name>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="65"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="69"/>
+        <source>Copy</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="70"/>
+        <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="71"/>
+        <source>Magnify</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="72"/>
+        <source>Clear</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="74"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="46"/>
         <source>Copy status text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="66"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="75"/>
         <source>Save status text to file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="67"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="76"/>
         <source>Magnify the generated document</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="68"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="77"/>
         <source>Clear status panel</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="82"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="417"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="91"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="431"/>
         <source>Operation status will appear here.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="130"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="142"/>
+        <source>Status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="143"/>
+        <source>Details</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="144"/>
         <source>Show the summary report</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="131"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="145"/>
         <source>Show the raw status text</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="224"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="238"/>
         <source>The operation completed successfully.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="225"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="239"/>
         <source>%1 completed successfully.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="228"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="242"/>
         <source>Completed with warnings — please review the details.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="229"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="243"/>
         <source>%1 completed with warnings — please review the details.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="233"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="247"/>
         <source>The operation failed. See the details for more information.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="235"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="249"/>
         <source>%1 failed. See the details for more information.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="245"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="259"/>
         <source>Success</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="247"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="261"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="500"/>
         <source>Warning</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="249"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="263"/>
         <source>Error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="252"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="266"/>
         <source>Information</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="279"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="293"/>
         <source>[%1] No details available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="397"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="411"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="230"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="136"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="241"/>

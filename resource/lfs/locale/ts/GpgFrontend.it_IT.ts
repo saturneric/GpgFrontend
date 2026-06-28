@@ -6,7 +6,7 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="40"/>
         <source>Decrypt</source>
-        <translation type="unfinished">Decifra</translation>
+        <translation>Decifra</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="43"/>
@@ -26,7 +26,7 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="52"/>
         <source>Detail</source>
-        <translation type="unfinished"></translation>
+        <translation>Dettaglio</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="57"/>
@@ -83,40 +83,40 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="118"/>
         <source>Decrypted successfully. The original filename is &quot;%1&quot;.</source>
-        <translation type="unfinished"></translation>
+        <translation>Decifrato con successo. Il nome del file originale è &quot;%1&quot;.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="121"/>
         <source>The message has been decrypted successfully and is now readable.</source>
-        <translation type="unfinished"></translation>
+        <translation>Il messaggio è stato decifrato con successo ed è ora leggibile.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="127"/>
         <source>Decrypted, but message integrity protection is absent. This may be a legacy message that cannot detect tampering.</source>
-        <translation type="unfinished"></translation>
+        <translation>Decifrato, ma la protezione integrità messaggio è assente. Questo potrebbe essere un vecchio messaggio che non consente di rilevare manomissioni.</translation>
     </message>
     <message numerus="yes">
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="136"/>
         <source>Decrypted, but %n recipient key(s) could not be found in your keyring.</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>Decifrato, ma non è stata trovata la chiave di %n destinatario/i nel tuo portachiavi.</numerusform>
             <numerusform></numerusform>
         </translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="139"/>
         <source>Decrypted with warnings. Please review the details.</source>
-        <translation type="unfinished"></translation>
+        <translation>Decifrato con avvertimenti. Si prega di verificare i dettagli.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="144"/>
         <source>Decryption failed: %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Decifratura non riuscita: %1.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="171"/>
         <source>&lt;unknown&gt;</source>
-        <translation type="unfinished">&lt;sconosciuto&gt;</translation>
+        <translation>&lt;unknown&gt;</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgDecryptResultAnalyse.cpp" line="179"/>
@@ -149,7 +149,7 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="40"/>
         <source>Encrypt</source>
-        <translation type="unfinished">Cifra</translation>
+        <translation>Cifra</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="43"/>
@@ -169,7 +169,7 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="51"/>
         <source>Detail</source>
-        <translation type="unfinished"></translation>
+        <translation>Dettagli</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="63"/>
@@ -194,17 +194,17 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="92"/>
         <source>Encrypted with warnings. Some recipients could not be added. Please review the invalid recipient list.</source>
-        <translation type="unfinished"></translation>
+        <translation>Cifrato con avvertenze. Alcuni destinatari non sono stati aggiunti. Si prega di rivedere l&apos;elenco dei destinatari non validi.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="94"/>
         <source>Your data has been encrypted. Only the intended recipients can decrypt and read it.</source>
-        <translation type="unfinished"></translation>
+        <translation>I dati sono stati cifrati. Solo i destinatari previsti possono decifrarli e leggerli.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgEncryptResultAnalyse.cpp" line="99"/>
         <source>Encryption failed: %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Cifratura fallita: %1.</translation>
     </message>
 </context>
 <context>
@@ -227,7 +227,7 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="55"/>
         <source>Detail</source>
-        <translation type="unfinished"></translation>
+        <translation>Dettaglio</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="66"/>
@@ -285,35 +285,35 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="156"/>
         <source>Signed by %1. Recipients can verify this data came from you and was not altered.</source>
-        <translation type="unfinished"></translation>
+        <translation>Firmato da %1. I destinatari possono verificare che questi dati provengono da te e non sono stati alterati.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="158"/>
         <source>, </source>
-        <translation type="unfinished"></translation>
+        <translation>,</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="161"/>
         <source>A digital signature has been created. Recipients can verify this data came from you and was not altered.</source>
-        <translation type="unfinished"></translation>
+        <translation>È stata creata una firma digitale. I destinatari possono verificare che questi dati provengono da te e non sono stati alterati.</translation>
     </message>
     <message numerus="yes">
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="167"/>
         <source>Signing completed, but %n signer(s) could not be used. Please review the details.</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>Firma completata, ma non è stato possibile utilizzare %n firmatari. Si prega di rivedere i dettagli.</numerusform>
             <numerusform></numerusform>
         </translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="172"/>
         <source>Signing completed with warnings. Please review the details.</source>
-        <translation type="unfinished"></translation>
+        <translation>Firma completata con avvisi. Si prega di rivedere i dettagli.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="177"/>
         <source>Signing failed: %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Firma non riuscita: %1.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="107"/>
@@ -323,7 +323,7 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="44"/>
         <source>Sign</source>
-        <translation type="unfinished">Firma</translation>
+        <translation>Firma</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="109"/>
@@ -444,12 +444,12 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="42"/>
         <source>Verify</source>
-        <translation type="unfinished">Verifica</translation>
+        <translation>Verifica</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="53"/>
         <source>Detail</source>
-        <translation type="unfinished"></translation>
+        <translation>Dettagli</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="85"/>
@@ -589,67 +589,67 @@
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="219"/>
         <source>No verifiable signatures were found in the data.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nessuna firma verificabile è stata trovata nei dati.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="311"/>
         <source>The signature is fully valid and trusted. The data has not been tampered with.</source>
-        <translation type="unfinished"></translation>
+        <translation>La firma è completamente valida e attendibile. I dati non sono stati alterati.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="313"/>
         <source>The signature by %1 is fully valid and trusted. The data has not been tampered with.</source>
-        <translation type="unfinished"></translation>
+        <translation>La firma di %1 è completamente valida e attendibile. I dati non sono stati alterati.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="318"/>
         <source>The signature is valid, but the signing key is not fully trusted. You may need to set a higher trust level.</source>
-        <translation type="unfinished"></translation>
+        <translation>La firma è valida, ma la chiave di firma non è completamente attendibile. Potrebbe essere necessario impostare un livello di fiducia più elevato.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="324"/>
         <source>Verification incomplete. The signing key is not in your keyring. Please import the signer&apos;s public key.</source>
-        <translation type="unfinished"></translation>
+        <translation>Verifica incompleta. La chiave di firma non è presente nel portachiavi. Si prega di importare la chiave pubblica del firmatario.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="328"/>
         <source>The signature is valid but the signing key is not fully trusted. Consider setting a higher trust level for that key.</source>
-        <translation type="unfinished"></translation>
+        <translation>La firma è valida ma la chiave di firma non è completamente attendibile. Si consiglia di impostare un livello di fiducia più elevato per tale chiave.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="332"/>
         <source>Verification completed with warnings. Please review the details.</source>
-        <translation type="unfinished"></translation>
+        <translation>Verifica completata con avvisi. Si prega di rivedere i dettagli.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="338"/>
         <source>Invalid signature detected. The data may have been tampered with or the signature is corrupt.</source>
-        <translation type="unfinished"></translation>
+        <translation>Firma non valida rilevata. I dati potrebbero essere stati alterati o la firma è corrotta.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="342"/>
         <source>Signature verification failed. The signing key has been revoked.</source>
-        <translation type="unfinished"></translation>
+        <translation>Verifica della firma non riuscita. La chiave di firma è stata revocata.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="346"/>
         <source>Signature verification failed. This signature has expired.</source>
-        <translation type="unfinished"></translation>
+        <translation>Verifica della firma non riuscita. Questa firma è scaduta.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="349"/>
         <source>Signature verification failed. The signing key has expired.</source>
-        <translation type="unfinished"></translation>
+        <translation>Verifica della firma non riuscita. La chiave di firma è scaduta.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="352"/>
         <source>Cannot verify. The signing key is not available in your keyring.</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossibile verificare. La chiave di firma non è disponibile nel portachiavi.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="356"/>
         <source>Signature verification failed. Please review the details.</source>
-        <translation type="unfinished"></translation>
+        <translation>Verifica della firma non riuscita. Si prega di rivedere i dettagli.</translation>
     </message>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="393"/>
@@ -753,43 +753,43 @@
         <translation>ADSK (Additional Decryption Subkey) consente ad altri di crittografare i dati per te senza avere accesso alla tua chiave privata. Puoi controllare solo le sottochiavi con capacità di crittografia.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="109"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="110"/>
         <source>ADSKs Picker</source>
         <translation>Selettore ADSK</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="129"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="130"/>
         <source>Key ID: %1 Reason: %2</source>
         <translatorcomment>ID chiave: %1 Motivo: %2</translatorcomment>
         <translation>ID chiave: %1 Motivo: %2</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="141"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="142"/>
         <source>Unknown Error</source>
         <translation>Errore sconosciuto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="142"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="143"/>
         <source>Caught unknown error while exporting the key.</source>
         <translation>Rilevato errore sconosciuto durante l&apos;esportazione della chiave.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="159"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="160"/>
         <source>Failed</source>
         <translation>Fallito</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="160"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="161"/>
         <source>Partially Failed</source>
         <translation>Parzialmente fallito</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="163"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="164"/>
         <source>Failed to add all selected subkeys.</source>
         <translation>Impossibile aggiungere tutte le sottochiavi selezionate.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="164"/>
+        <location filename="../../../../src/ui/dialog/ADSKsPicker.cpp" line="165"/>
         <source>Some subkeys failed to be added as ADSKs.</source>
         <translation>Alcune sottochiavi non sono state aggiunte come ADSK.</translation>
     </message>
@@ -805,7 +805,7 @@
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="229"/>
         <source>Build Information</source>
-        <translation type="unfinished">Informazioni sulla versione</translation>
+        <translation>Informazioni di compilazione</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="231"/>
@@ -815,7 +815,7 @@
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="234"/>
         <source>Rust Engine</source>
-        <translation type="unfinished"></translation>
+        <translation>Motore Rust</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="230"/>
@@ -899,64 +899,64 @@
 <context>
     <name>GpgFrontend::UI::BuildInfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="406"/>
-        <source>GpgFrontend:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="409"/>
-        <source>Qt:</source>
-        <translation type="unfinished">Qt:</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="410"/>
-        <source>GPGME:</source>
-        <translation type="unfinished">GPGME:</translation>
+        <source>GpgFrontend:</source>
+        <translation>GpgFrontend:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="412"/>
-        <source>Assuan:</source>
-        <translation type="unfinished">Assuan:</translation>
+        <source>Qt:</source>
+        <translation>Qt:</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="413"/>
+        <source>GPGME:</source>
+        <translation>GPGME:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="415"/>
-        <source>Libarchive:</source>
-        <translation type="unfinished">Libarchive:</translation>
+        <source>Assuan:</source>
+        <translation>Assuan:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="418"/>
-        <source>OpenSSL:</source>
-        <translation type="unfinished">OpenSSL:</translation>
+        <source>Libarchive:</source>
+        <translation>Libarchive:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="420"/>
-        <source>Sodium:</source>
-        <translation type="unfinished"></translation>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="421"/>
+        <source>OpenSSL:</source>
+        <translation>OpenSSL:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="423"/>
-        <source>Git Branch:</source>
-        <translation type="unfinished">Ramo Git:</translation>
+        <source>Sodium:</source>
+        <translation>Sodium:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="426"/>
-        <source>Git Commit:</source>
-        <translation type="unfinished">Commit Git:</translation>
+        <source>Git Branch:</source>
+        <translation>Ramo Git:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="429"/>
+        <source>Git Commit:</source>
+        <translation>Commit Git:</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="432"/>
         <source>Built at:</source>
-        <translation type="unfinished">Realizzato a:</translation>
+        <translation>Compilato il:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="433"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="436"/>
         <source>Copy Build Information</source>
-        <translation type="unfinished">Copia le informazioni sulla build</translation>
+        <translation>Copia informazioni di compilazione</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="440"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="443"/>
         <source>Build Information</source>
-        <translation type="unfinished">Informazioni sulla versione</translation>
+        <translation>Informazioni di compilazione</translation>
     </message>
 </context>
 <context>
@@ -1286,32 +1286,32 @@
     <message>
         <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="93"/>
         <source>Document Preview</source>
-        <translation type="unfinished"></translation>
+        <translation>Anteprima documento</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="94"/>
         <source>Document Preview — %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Anteprima documento — %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="126"/>
         <source>Zoom out</source>
-        <translation type="unfinished">Rimpicciolisci</translation>
+        <translation>Riduci zoom</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="130"/>
         <source>Zoom in</source>
-        <translation type="unfinished">Ingrandisci</translation>
+        <translation>Aumenta zoom</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="134"/>
         <source>Fit to window</source>
-        <translation type="unfinished"></translation>
+        <translation>Adatta alla finestra</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/DocViewerDialog.cpp" line="137"/>
         <source>Actual size (100%)</source>
-        <translation type="unfinished"></translation>
+        <translation>Dimensione effettiva (100%)</translation>
     </message>
 </context>
 <context>
@@ -1726,7 +1726,7 @@
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="652"/>
         <source>File Hash Information</source>
-        <translation type="unfinished">Informazioni sull&apos;hash del file</translation>
+        <translation>Informazioni sull&apos;hash del file</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="709"/>
@@ -1984,33 +1984,33 @@ La destinazione potrebbe trovarsi su un altro volume oppure potresti non disporr
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="56"/>
         <source>Default Engine:</source>
-        <translation type="unfinished"></translation>
+        <translation>Motore predefinito:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="62"/>
         <source>rPGP Password Cache TTL (minutes):</source>
-        <translation type="unfinished"></translation>
+        <translation>TTL cache password rPGP (minuti):</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="64"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="72"/>
         <source> min</source>
-        <translation type="unfinished"></translation>
+        <translation>min</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="66"/>
         <source>Idle time the rPGP engine keeps an entered passphrase cached. The window is renewed each time the passphrase is used.</source>
-        <translation type="unfinished"></translation>
+        <translation>Tempo di inattività durante il quale il motore rPGP mantiene in cache la frase d&apos;accesso inserita. La finestra temporale viene rinnovata ogni volta che la frase d&apos;accesso viene utilizzata.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="70"/>
         <source>rPGP Password Cache Max TTL (minutes):</source>
-        <translation type="unfinished"></translation>
+        <translation>TTL massimo cache password rPGP (minuti):</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="74"/>
         <source>Absolute lifetime of a cached passphrase, measured from when it was first entered, regardless of use. Never shorter than the TTL.</source>
-        <translation type="unfinished"></translation>
+        <translation>Durata assoluta di una frase d&apos;accesso in cache, misurata dall&apos;inserimento iniziale, indipendentemente dall&apos;utilizzo. Non può mai essere inferiore al TTL.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="109"/>
@@ -2125,12 +2125,12 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="136"/>
         <source>Success</source>
-        <translation type="unfinished">Successo</translation>
+        <translation>Successo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="137"/>
         <source>Card key generation completed successfully.</source>
-        <translation type="unfinished"></translation>
+        <translation>Generazione della chiave della scheda completata con successo.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="143"/>
@@ -2247,7 +2247,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="344"/>
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="405"/>
         <source>Operation Cancelled</source>
-        <translation type="unfinished"></translation>
+        <translation>Operazione annullata</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="221"/>
@@ -2284,47 +2284,47 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="313"/>
         <source>About and contact information</source>
-        <translation type="unfinished"></translation>
+        <translation>Informazioni e contatti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="329"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="338"/>
         <source>Website:</source>
-        <translation type="unfinished"></translation>
+        <translation>Sito web:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="334"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="342"/>
         <source>Documentation:</source>
-        <translation type="unfinished"></translation>
+        <translation>Documentazione:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="337"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="345"/>
         <source>User guides and overview</source>
-        <translation type="unfinished"></translation>
+        <translation>Guide utente e panoramica</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="347"/>
         <source>Source code:</source>
-        <translation type="unfinished"></translation>
+        <translation>Codice sorgente:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="346"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="351"/>
         <source>Release notes:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="350"/>
-        <source>Changelog and downloads</source>
-        <translation type="unfinished"></translation>
+        <translation>Note di rilascio:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="354"/>
-        <source>Resources</source>
-        <translation type="unfinished"></translation>
+        <source>Changelog and downloads</source>
+        <translation>Registro delle modifiche e download</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="361"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="357"/>
+        <source>Resources</source>
+        <translation>Risorse</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="364"/>
         <source>GpgFrontend is free software, licensed under &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt;.</source>
-        <translation type="unfinished"></translation>
+        <translation>GpgFrontend è software libero, concesso in licenza sotto &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt;.</translation>
     </message>
 </context>
 <context>
@@ -2337,7 +2337,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="189"/>
         <source>Let&apos;s get you started in just a moment.</source>
-        <translation type="unfinished"></translation>
+        <translation>Iniziamo tra un attimo.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="192"/>
@@ -2352,12 +2352,12 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="201"/>
         <source>Star GpgFrontend on GitHub</source>
-        <translation type="unfinished"></translation>
+        <translation>Stella GpgFrontend su GitHub</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="202"/>
         <source>GpgFrontend is free and open source. A star helps more people discover it and keeps the project moving forward.</source>
-        <translation type="unfinished"></translation>
+        <translation>GpgFrontend è gratuito e open source. Una stella aiuta più persone a scoprirlo e mantiene il progetto in crescita.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="207"/>
@@ -2598,12 +2598,12 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::KeyGenerateDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1386"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1481"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1487"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1584"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1753"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1791"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1387"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1482"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1488"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1585"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1754"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1792"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.h" line="167"/>
         <source>Custom</source>
         <translation>Impiego</translation>
@@ -2648,7 +2648,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="481"/>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="871"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1492"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1493"/>
         <source>Primary Key Only</source>
         <translation>Solo Chiave Primaria</translation>
     </message>
@@ -2702,7 +2702,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation>Periodo di validità</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1739"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1740"/>
         <source>Save Profile</source>
         <translation>Salva Profilo</translation>
     </message>
@@ -2712,7 +2712,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation>Salva la configurazione corrente come nuovo profilo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1810"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1811"/>
         <source>Delete Profile</source>
         <translation>Elimina Profilo</translation>
     </message>
@@ -2737,7 +2737,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
         <translation>Elimina</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1837"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1838"/>
         <source>Reset To Default</source>
         <translation>Ripristina le impostazioni predefinite</translation>
     </message>
@@ -2749,7 +2749,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="494"/>
         <source>Fill in a random anonymous identity (for throwaway or test keys)</source>
-        <translation type="unfinished"></translation>
+        <translation>Inserisci un&apos;identità anonima casuale (per chiavi usa e getta o di test)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="506"/>
@@ -2777,7 +2777,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="515"/>
         <source>Key Format</source>
-        <translation type="unfinished"></translation>
+        <translation>Formato chiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="516"/>
@@ -2788,12 +2788,12 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="520"/>
         <source>v4 (Compatible)</source>
-        <translation type="unfinished"></translation>
+        <translation>v4 (Compatibile)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="521"/>
         <source>v6 (Modern)</source>
-        <translation type="unfinished"></translation>
+        <translation>v6 (Moderno)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="522"/>
@@ -2881,7 +2881,7 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="723"/>
         <source>Name and comment must not contain the characters &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; or control characters.</source>
-        <translation type="unfinished"></translation>
+        <translation>Il nome e il commento non devono contenere i caratteri &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; o caratteri di controllo.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="729"/>
@@ -2911,97 +2911,97 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="786"/>
         <source>Success</source>
-        <translation type="unfinished">Successo</translation>
+        <translation>Successo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="787"/>
         <source>Key generation completed successfully.</source>
-        <translation type="unfinished"></translation>
+        <translation>Generazione della chiave completata con successo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1517"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1518"/>
         <source>Error</source>
         <translation>Errore</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1518"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1519"/>
         <source>Unknown error occurred</source>
         <translation>Si è verificato un errore sconosciuto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1533"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1534"/>
         <source>Generating</source>
         <translation>Generazione</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1661"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1662"/>
         <source>ECC</source>
-        <translation type="unfinished"></translation>
+        <translation>ECC</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1666"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1667"/>
         <source>Post-Quantum</source>
-        <translation type="unfinished"></translation>
+        <translation>Post-quantum</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1740"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1741"/>
         <source>Please enter profile name:</source>
         <translation>Inserisci il nome del profilo:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1748"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1754"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1762"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1776"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1792"/>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1804"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1749"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1755"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1763"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1777"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1793"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1805"/>
         <source>Notice</source>
         <translation>Avviso</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1749"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1750"/>
         <source>Profile was not saved: Name cannot be empty.</source>
         <translation>Il profilo non è stato salvato: il nome non può essere vuoto.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1755"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1756"/>
         <source>The profile name &apos;Custom&apos; is reserved. Please choose another name.</source>
         <translation>Il nome del profilo &quot;Personalizzato&quot; è riservato. Scegli un altro nome.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1763"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1764"/>
         <source>Profile was not saved: Name cannot be longer than %1 characters.</source>
         <translation>Profilo non salvato: il nome non può essere più lungo di %1 caratteri.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1777"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1778"/>
         <source>Profile was not saved: Name already exists.</source>
         <translation>Profilo non salvato: il nome esiste già.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1793"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1794"/>
         <source>The &apos;Custom&apos; profile cannot be deleted.</source>
         <translation>Il profilo &quot;Personalizzato&quot; non può essere eliminato.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1805"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1806"/>
         <source>Selected profile does not exist.</source>
         <translation>Il profilo selezionato non esiste.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1811"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1812"/>
         <source>Are you sure you want to delete the profile &apos;%1&apos;?</source>
         <translation>Vuoi davvero eliminare il profilo &apos;%1&apos;?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1838"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1839"/>
         <source>Are you sure you want to reset the easy profile configuration to default? This action cannot be undone.</source>
         <translation>Sei sicuro di voler ripristinare la configurazione del profilo semplificato ai valori predefiniti? Questa azione è irreversibile.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="2005"/>
+        <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="2006"/>
         <source>Post-quantum algorithms require the v6 key format.</source>
-        <translation type="unfinished"></translation>
+        <translation>Gli algoritmi post-quantum richiedono il formato chiave v6.</translation>
     </message>
 </context>
 <context>
@@ -3173,52 +3173,52 @@ Queste chiavi non sono più disponibili. Vuoi rimuoverle dal gruppo?</translatio
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="104"/>
         <source>Import Completed with Issues</source>
-        <translation type="unfinished"></translation>
+        <translation>Importazione completata con problemi</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="105"/>
         <source>%1 of %2 key(s) could not be imported.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 di %2 chiave(i) non è stato possibile importare.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="110"/>
         <source>Import Successful</source>
-        <translation type="unfinished"></translation>
+        <translation>Importazione riuscita</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="112"/>
         <source>Successfully processed %1 key(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 chiave(i) elaborate con successo.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="114"/>
         <source>Nothing to Import</source>
-        <translation type="unfinished"></translation>
+        <translation>Nessuna chiave da importare</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="115"/>
         <source>All %1 key(s) are already up to date.</source>
-        <translation type="unfinished"></translation>
+        <translation>Tutte le %1 chiave(i) sono già aggiornate.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="144"/>
         <source>Summary</source>
-        <translation type="unfinished">Riepilogo</translation>
+        <translation>Riepilogo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="166"/>
         <source>Private Keys Read</source>
-        <translation type="unfinished"></translation>
+        <translation>Chiavi private lette</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="167"/>
         <source>Private Keys Imported</source>
-        <translation type="unfinished"></translation>
+        <translation>Chiavi private importate</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="168"/>
         <source>Private Keys Unchanged</source>
-        <translation type="unfinished"></translation>
+        <translation>Chiavi private invariate</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/import_export/KeyImportDetailDialog.cpp" line="269"/>
@@ -3806,7 +3806,7 @@ GpgFrontend ora tenterà di importare la/le chiave/i.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="103"/>
         <source>Name and comment must not contain the characters &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; or control characters.</source>
-        <translation type="unfinished"></translation>
+        <translation>Il nome e il commento non devono contenere i caratteri &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; o caratteri di controllo.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="108"/>
@@ -3816,7 +3816,7 @@ GpgFrontend ora tenterà di importare la/le chiave/i.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="127"/>
         <source>Creating UID</source>
-        <translation type="unfinished"></translation>
+        <translation>Creazione UID</translation>
     </message>
 </context>
 <context>
@@ -3874,7 +3874,7 @@ GpgFrontend ora tenterà di importare la/le chiave/i.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="132"/>
         <source>Key Format Version</source>
-        <translation type="unfinished"></translation>
+        <translation>Versione formato chiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="140"/>
@@ -4063,12 +4063,12 @@ GpgFrontend ora tenterà di importare la/le chiave/i.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="232"/>
         <source>Export Successful</source>
-        <translation type="unfinished"></translation>
+        <translation>Esportazione riuscita</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="233"/>
         <source>The key has been successfully exported to %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>La chiave è stata esportata con successo in %1.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairOperaTab.cpp" line="247"/>
@@ -4636,22 +4636,22 @@ GpgFrontend ora tenterà di importare la/le chiave/i.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="339"/>
         <source>Successfully deleted the UID.</source>
-        <translation type="unfinished"></translation>
+        <translation>UID eliminato con successo.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="343"/>
         <source>Deleting UID</source>
-        <translation type="unfinished"></translation>
+        <translation>Eliminazione UID</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="382"/>
         <source>Successfully set the Primary UID.</source>
-        <translation type="unfinished"></translation>
+        <translation>UID principale impostato con successo.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="386"/>
         <source>Setting Primary UID</source>
-        <translation type="unfinished"></translation>
+        <translation>Impostazione UID principale</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="522"/>
@@ -4691,7 +4691,7 @@ GpgFrontend ora tenterà di importare la/le chiave/i.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="567"/>
         <source>Revoking UID</source>
-        <translation type="unfinished"></translation>
+        <translation>Revoca UID</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairUIDTab.cpp" line="291"/>
@@ -4892,12 +4892,12 @@ GpgFrontend ora tenterà di importare la/le chiave/i.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="100"/>
         <source>No entries</source>
-        <translation type="unfinished"></translation>
+        <translation>Nessuna voce</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="110"/>
         <source>Filter logs…</source>
-        <translation type="unfinished"></translation>
+        <translation>Filtra i registri…</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="130"/>
@@ -4932,7 +4932,7 @@ GpgFrontend ora tenterà di importare la/le chiave/i.</translation>
     <message>
         <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="235"/>
         <source>%1 entries</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 voci</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/LogViewDialog.cpp" line="246"/>
@@ -6377,7 +6377,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="266"/>
         <source>Strength:</source>
-        <translation type="unfinished"></translation>
+        <translation>Forza:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="274"/>
@@ -6421,7 +6421,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="171"/>
         <source>SHA-256 checksum of editor content.</source>
-        <translation type="unfinished"></translation>
+        <translation>Checksum SHA-256 del contenuto dell&apos;editor.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="235"/>
@@ -6517,49 +6517,49 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
 <context>
     <name>GpgFrontend::UI::RpgpEngineTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="584"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="587"/>
         <source>Unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Sconosciuto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="593"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="596"/>
         <source>GpgFrontend supports multiple OpenPGP backends. Alongside GnuPG, it can use a Rust-based engine (rPGP), giving you the freedom to choose the backend that best fits your needs. The details below describe the rPGP engine compiled into this build.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="607"/>
-        <source>Engine Version:</source>
-        <translation type="unfinished"></translation>
+        <translation>GpgFrontend supporta più backend OpenPGP. Oltre a GnuPG, può utilizzare un motore basato su Rust (rPGP), offrendoti la libertà di scegliere il backend più adatto alle tue esigenze. I dettagli seguenti descrivono il motore rPGP compilato in questa versione.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="610"/>
-        <source>Rust Compiler:</source>
-        <translation type="unfinished"></translation>
+        <source>Engine Version:</source>
+        <translation>Versione del motore:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="613"/>
+        <source>Rust Compiler:</source>
+        <translation>Compilatore Rust:</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="616"/>
         <source>Target:</source>
-        <translation type="unfinished"></translation>
+        <translation>Target:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="617"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="620"/>
         <source>Build Profile:</source>
-        <translation type="unfinished"></translation>
+        <translation>Profilo di compilazione:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="621"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="624"/>
         <source>rPGP Engine</source>
-        <translation type="unfinished"></translation>
+        <translation>Motore rPGP</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="635"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="638"/>
         <source>Key Dependencies</source>
-        <translation type="unfinished"></translation>
+        <translation>Dipendenze chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="654"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="657"/>
         <source>Copy Engine Information</source>
-        <translation type="unfinished"></translation>
+        <translation>Copia informazioni del motore</translation>
     </message>
 </context>
 <context>
@@ -6650,7 +6650,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="159"/>
         <source>System Default</source>
-        <translation type="unfinished">Default del sistema</translation>
+        <translation>Predefinito di sistema</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="73"/>
@@ -6663,37 +6663,37 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/SigningKeysPicker.cpp" line="81"/>
         <source>Select Signing Key(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Seleziona chiave di firma</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SigningKeysPicker.cpp" line="86"/>
         <source>Choose Signing Key(s) or Subkey(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Seleziona chiave di firma o sottochiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SigningKeysPicker.cpp" line="92"/>
         <source>Select the private key(s) or specific signing subkey(s) to use for this operation. Expand a key to choose a particular subkey.</source>
-        <translation type="unfinished"></translation>
+        <translation>Seleziona la chiave privata o la sottochiave di firma specifica da utilizzare per questa operazione. Espandi una chiave per scegliere una sottochiave specifica.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SigningKeysPicker.cpp" line="106"/>
         <source>Confirm</source>
-        <translation type="unfinished">Conferma</translation>
+        <translation>Conferma</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SigningKeysPicker.cpp" line="109"/>
         <source>Cancel</source>
-        <translation type="unfinished">Annulla</translation>
+        <translation>Annulla</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SigningKeysPicker.cpp" line="114"/>
         <source>No Key Selected</source>
-        <translation type="unfinished">Nessuna chiave selezionata</translation>
+        <translation>Nessuna chiave selezionata</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SigningKeysPicker.cpp" line="115"/>
         <source>Please select at least one signing key or subkey.</source>
-        <translation type="unfinished"></translation>
+        <translation>Seleziona almeno una chiave di firma o una sottochiave.</translation>
     </message>
 </context>
 <context>
@@ -7164,102 +7164,102 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
 <context>
     <name>GpgFrontend::UI::StatusTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="546"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="549"/>
         <source>Application Status</source>
         <translation>Stato dell&apos;applicazione</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="501"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="504"/>
         <source>Default</source>
         <translation>Predefinito</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="503"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="506"/>
         <source>Standard</source>
         <translation>Standard</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="505"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="508"/>
         <source>Enhanced</source>
         <translation>Potenziato</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="507"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="510"/>
         <source>High</source>
         <translation>Alto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="509"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="512"/>
         <source>Unknown</source>
         <translation>Sconosciuto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="514"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
         <source>Portable Mode</source>
         <translation>Modalità Portatile</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="514"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
         <source>Installed Mode</source>
         <translation>Modalità installata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="520"/>
         <source>Self-Check Active</source>
         <translation>Autocontrollo attivo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="517"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="520"/>
         <source>Self-Check Disabled</source>
         <translation>Autocontrollo disabilitato</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="520"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="523"/>
         <source>Active</source>
         <translation>Attivo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="520"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="523"/>
         <source>Disabled</source>
         <translation>Disabilitato/a</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="523"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="526"/>
         <source>Default Pinentry Program</source>
         <translation>Programma predefinito di Pinentry</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="530"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="533"/>
         <source>Security Level:</source>
         <translation>Livello di sicurezza:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="532"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="535"/>
         <source>Running Mode:</source>
         <translation>Modalità di esecuzione:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="534"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="537"/>
         <source>Self-Check Status:</source>
         <translation>Stato dell&apos;autovalutazione:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="538"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="541"/>
         <source>GnuPG Offline Mode:</source>
         <translation>Modalità offline di GnuPG:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="541"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="544"/>
         <source>Pinentry Program Path:</source>
         <translation>Percorso del programma Pinentry:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="563"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="566"/>
         <source>Supported OpenPGP Engines</source>
         <translation>Motori OpenPGP supportati</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="567"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="570"/>
         <source>Tip: These values reflect the current startup environment and may help when reporting issues.</source>
         <translation>Suggerimento: questi valori riflettono l&apos;ambiente di avvio attuale e possono essere utili per segnalare eventuali problemi.</translation>
     </message>
@@ -7334,7 +7334,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="160"/>
         <source>Note: post-quantum (PQC) subkey algorithms are unavailable here because the primary key uses the v4 key format. Generate a v6 key to use PQC algorithms.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nota: gli algoritmi di sottochiave post-quantistici (PQC) non sono disponibili qui poiché la chiave primaria utilizza il formato chiave v4. Generare una chiave v6 per utilizzare gli algoritmi PQC.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="473"/>
@@ -7369,12 +7369,12 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="552"/>
         <source>Success</source>
-        <translation type="unfinished">Successo</translation>
+        <translation>Successo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/SubkeyGenerateDialog.cpp" line="553"/>
         <source>Subkey generation completed successfully.</source>
-        <translation type="unfinished"></translation>
+        <translation>Generazione della sottochiave completata con successo.</translation>
     </message>
 </context>
 <context>
@@ -7570,19 +7570,19 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
 <context>
     <name>GpgFrontend::UI::TranslatorsTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="458"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="461"/>
         <source>Thanks to all translators</source>
         <translation>Grazie a tutti i traduttori.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="468"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="471"/>
         <source>Translator information is not available.</source>
         <translation>Informazioni sul traduttore non disponibili.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="472"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="475"/>
         <source>If you want to help improve localization, please read the &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;translation guide&lt;/a&gt;.!</source>
-        <translation type="unfinished"></translation>
+        <translation>Se desideri contribuire a migliorare la localizzazione, consulta la &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;guida alla traduzione&lt;/a&gt;.!</translation>
     </message>
 </context>
 <context>
@@ -7590,12 +7590,12 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/ui/dialog/WaitingDialog.cpp" line="46"/>
         <source>Cancel</source>
-        <translation type="unfinished">Annulla</translation>
+        <translation>Annulla</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/WaitingDialog.cpp" line="84"/>
         <source>Cancelling...</source>
-        <translation type="unfinished"></translation>
+        <translation>Annullamento in corso...</translation>
     </message>
 </context>
 <context>
@@ -7645,85 +7645,85 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
         <source>Select</source>
-        <translation type="unfinished">Seleziona</translation>
+        <translation>Seleziona</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
         <source>Type</source>
-        <translation type="unfinished">Tipo</translation>
+        <translation>Tipo</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
         <source>Name</source>
-        <translation type="unfinished">Nome</translation>
+        <translation>Nome</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
         <source>Email Address</source>
-        <translation type="unfinished">Indirizzo email</translation>
+        <translation>Indirizzo email</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="187"/>
         <source>Usage</source>
-        <translation type="unfinished">Utilizzo</translation>
+        <translation>Utilizzo</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="188"/>
         <source>Trust</source>
-        <translation type="unfinished">Fiducia</translation>
+        <translation>Fiducia</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
         <source>Key ID</source>
-        <translation type="unfinished">ID chiave</translation>
+        <translation>ID chiave</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
         <source>Create Date</source>
-        <translation type="unfinished">Crea Data</translation>
+        <translation>Data di creazione</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
         <source>Algorithm</source>
-        <translation type="unfinished">Algoritmo</translation>
+        <translation>Algoritmo</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
         <source>Subkey(s)</source>
-        <translation type="unfinished">Sottochiave(i)</translation>
+        <translation>Sottochiavi</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="189"/>
         <source>Comment</source>
-        <translation type="unfinished">Commento</translation>
+        <translation>Commento</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="185"/>
         <source>ID</source>
-        <translation type="unfinished">ID</translation>
+        <translation>ID</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="186"/>
         <source>Algo</source>
-        <translation type="unfinished">Algo</translation>
+        <translation>Algoritmo</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="190"/>
         <source>No Comment</source>
-        <translation type="unfinished">Nessun Commento</translation>
+        <translation>Nessun commento</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="196"/>
         <source>SubKeys (up to 8):</source>
-        <translation type="unfinished">Sottochiavi (fino a 8):</translation>
+        <translation>Sottochiavi (fino a 8):</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="202"/>
         <source>ID: %1 | Algo: %2 | Usage: %3</source>
-        <translation type="unfinished">ID: %1 | Algoritmo: %2 | Utilizzo: %3</translation>
+        <translation>ID: %1 | Algoritmo: %2 | Utilizzo: %3</translation>
     </message>
 </context>
 <context>
@@ -7731,136 +7731,166 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="41"/>
         <source>Select</source>
-        <translation type="unfinished">Seleziona</translation>
+        <translation>Seleziona</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="42"/>
         <source>Type</source>
-        <translation type="unfinished">Tipo</translation>
+        <translation>Tipo</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="43"/>
         <source>Identity</source>
-        <translation type="unfinished">Identità</translation>
+        <translation>Identità</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="44"/>
         <source>Key ID</source>
-        <translation type="unfinished">ID chiave</translation>
+        <translation>ID chiave</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="45"/>
         <source>Usage</source>
-        <translation type="unfinished">Utilizzo</translation>
+        <translation>Utilizzo</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="46"/>
         <source>Algorithm</source>
-        <translation type="unfinished">Algoritmo</translation>
+        <translation>Algoritmo</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="47"/>
         <source>Create Date</source>
-        <translation type="unfinished">Crea Data</translation>
+        <translation>Data di creazione</translation>
     </message>
 </context>
 <context>
     <name>InfoBoardWidget</name>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="65"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="69"/>
+        <source>Copy</source>
+        <translation type="unfinished">Copia</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="70"/>
+        <source>Save</source>
+        <translation type="unfinished">Salva</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="71"/>
+        <source>Magnify</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="72"/>
+        <source>Clear</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="74"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="46"/>
         <source>Copy status text</source>
-        <translation type="unfinished">Copia lo stato del testo</translation>
+        <translation>Copia testo stato</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="66"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="75"/>
         <source>Save status text to file</source>
-        <translation type="unfinished">Salva lo stato del testo nel file</translation>
+        <translation>Salva testo stato su file</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="67"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="76"/>
         <source>Magnify the generated document</source>
-        <translation type="unfinished"></translation>
+        <translation>Ingrandisci il documento generato</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="68"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="77"/>
         <source>Clear status panel</source>
-        <translation type="unfinished">Cancella il pannello di stato</translation>
+        <translation>Pulisci pannello di stato</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="82"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="417"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="91"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="431"/>
         <source>Operation status will appear here.</source>
-        <translation type="unfinished">Lo stato dell&apos;operazione verrà visualizzato qui.</translation>
+        <translation>Lo stato dell&apos;operazione verrà visualizzato qui.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="130"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="142"/>
+        <source>Status</source>
+        <translation type="unfinished">Stato</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="143"/>
+        <source>Details</source>
+        <translation type="unfinished">Dettagli</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="144"/>
         <source>Show the summary report</source>
-        <translation type="unfinished"></translation>
+        <translation>Mostra il rapporto di riepilogo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="131"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="145"/>
         <source>Show the raw status text</source>
-        <translation type="unfinished"></translation>
+        <translation>Mostra il testo dello stato grezzo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="224"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="238"/>
         <source>The operation completed successfully.</source>
-        <translation type="unfinished"></translation>
+        <translation>L&apos;operazione è stata completata con successo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="225"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="239"/>
         <source>%1 completed successfully.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 completato con successo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="228"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="242"/>
         <source>Completed with warnings — please review the details.</source>
-        <translation type="unfinished"></translation>
+        <translation>Completato con avvertenze — verifica i dettagli.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="229"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="243"/>
         <source>%1 completed with warnings — please review the details.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="233"/>
-        <source>The operation failed. See the details for more information.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="235"/>
-        <source>%1 failed. See the details for more information.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="245"/>
-        <source>Success</source>
-        <translation type="unfinished">Successo</translation>
+        <translation>%1 completato con avvertenze — verifica i dettagli.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="247"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="500"/>
-        <source>Warning</source>
-        <translation type="unfinished">Avvertimento</translation>
+        <source>The operation failed. See the details for more information.</source>
+        <translation>L&apos;operazione non è riuscita. Consulta i dettagli per ulteriori informazioni.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="249"/>
+        <source>%1 failed. See the details for more information.</source>
+        <translation>%1 non è riuscita. Consulta i dettagli per ulteriori informazioni.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="259"/>
+        <source>Success</source>
+        <translation>Successo</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="261"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="500"/>
+        <source>Warning</source>
+        <translation>Avvertenza</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="263"/>
         <source>Error</source>
-        <translation type="unfinished">Errore</translation>
+        <translation>Errore</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="252"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="266"/>
         <source>Information</source>
-        <translation type="unfinished">Informazioni</translation>
+        <translation>Informazioni</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="279"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="293"/>
         <source>[%1] No details available.</source>
-        <translation type="unfinished">[%1] Nessun dettaglio disponibile.</translation>
+        <translation>[%1] Nessun dettaglio disponibile.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="397"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="411"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="230"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="136"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="241"/>
@@ -7868,232 +7898,233 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="326"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="447"/>
         <source>DETAILS</source>
-        <translation type="unfinished"></translation>
+        <translation>DETTAGLI</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="46"/>
         <source>GPGFRONTEND SECURITY REPORT</source>
-        <translation type="unfinished"></translation>
+        <translation>RELAZIONE DI SICUREZZA DI GPGFRONTEND</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="166"/>
         <source>No operation yet.
 Results will appear here as a summary document.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nessuna operazione eseguita.
+I risultati verranno visualizzati qui come documento di riepilogo.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="219"/>
         <source>OPERATION</source>
-        <translation type="unfinished"></translation>
+        <translation>OPERAZIONE</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="220"/>
         <source>STATUS</source>
-        <translation type="unfinished"></translation>
+        <translation>STATO</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="221"/>
         <source>ENGINE</source>
-        <translation type="unfinished"></translation>
+        <translation>MOTORE</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="44"/>
         <source>Copied</source>
-        <translation type="unfinished"></translation>
+        <translation>Copiato</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="85"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="132"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="166"/>
         <source>Unable to Save</source>
-        <translation type="unfinished">Impossibile salvare</translation>
+        <translation>Impossibile salvare</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="86"/>
         <source>The content could not be captured.</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossibile acquisire il contenuto.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="92"/>
         <source>GpgFrontend Security Report</source>
-        <translation type="unfinished"></translation>
+        <translation>Relazione di sicurezza di GpgFrontend</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="94"/>
         <source>Cryptographic operation result report</source>
-        <translation type="unfinished"></translation>
+        <translation>Report dei risultati delle operazioni crittografiche</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="104"/>
         <source>Hash: </source>
-        <translation type="unfinished"></translation>
+        <translation>Hash:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="133"/>
         <source>The image could not be saved.</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossibile salvare l&apos;immagine.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="145"/>
         <source>Export Certificate</source>
-        <translation type="unfinished"></translation>
+        <translation>Esporta certificato</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="146"/>
         <source>PNG Image (*.png);;All Files (*)</source>
-        <translation type="unfinished"></translation>
+        <translation>Immagini PNG (*.png);;Tutti i file (*)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="159"/>
         <source>Save Status Panel Content</source>
-        <translation type="unfinished">Salvataggio del contenuto del pannello di stato</translation>
+        <translation>Salva contenuto del pannello di stato</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="160"/>
         <source>Text Files (*.txt);;All Files (*)</source>
-        <translation type="unfinished">File di testo (*.txt);;Tutti i file (*)</translation>
+        <translation>File di testo (*.txt);;Tutti i file (*)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="167"/>
         <source>The file could not be saved. Please check the path and permissions.</source>
-        <translation type="unfinished">Impossibile salvare il file. Verificare il percorso e i permessi.</translation>
+        <translation>Impossibile salvare il file. Controllare il percorso e i permessi.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="102"/>
         <source>File Hash Information</source>
-        <translation type="unfinished">Informazioni sull&apos;hash del file</translation>
+        <translation>Informazioni sull&apos;hash del file</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="172"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="592"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="623"/>
         <source>Issued:  %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Emesso:  %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="216"/>
         <source>Hash: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Hash: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="221"/>
         <source>Export certificate as PNG image</source>
-        <translation type="unfinished"></translation>
+        <translation>Esporta certificato come immagine PNG</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="234"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="374"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="602"/>
         <source>Operation: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Operazione: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="236"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="376"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="604"/>
         <source>Status:    %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Stato:    %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="237"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="379"/>
         <source>SHA-256:   %1</source>
-        <translation type="unfinished"></translation>
+        <translation>SHA-256:   %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="262"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="442"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="666"/>
         <source>Decrypt</source>
-        <translation type="unfinished">Decifra</translation>
+        <translation>Decifra</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="263"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="443"/>
         <source>RECIPIENT</source>
-        <translation type="unfinished"></translation>
+        <translation>DESTINATARIO</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="264"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
         <source>Sign</source>
-        <translation type="unfinished">Firma</translation>
+        <translation>Firma</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="265"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
         <source>Verify</source>
-        <translation type="unfinished">Verifica</translation>
+        <translation>Verifica</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="266"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="445"/>
         <source>SIGNER</source>
-        <translation type="unfinished"></translation>
+        <translation>FIRMATARIO</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="377"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="605"/>
         <source>Engine:    %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Motore:    %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="383"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="609"/>
         <source>Details:   %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Dettagli:   %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="497"/>
         <source>OK</source>
-        <translation type="unfinished">OK</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="503"/>
         <source>Failed</source>
-        <translation type="unfinished">Fallito</translation>
+        <translation>Fallito</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="534"/>
         <source>… and %1 more</source>
-        <translation type="unfinished"></translation>
+        <translation>… e altri %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="614"/>
         <source>  SHA-256: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>SHA-256: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="651"/>
         <source>  Signer: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Firmatario: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="653"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="660"/>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="670"/>
         <source>  Key ID: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>ID chiave: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="658"/>
         <source>  Signed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Firmato: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="663"/>
         <source>  Invalid signer: %1 — %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Firmatario non valido: %1 — %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="665"/>
         <source>Encrypt</source>
-        <translation type="unfinished">Cifra</translation>
+        <translation>Cifra</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="669"/>
         <source>  Recipient: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Destinatario: %1</translation>
     </message>
 </context>
 <context>
@@ -8101,7 +8132,7 @@ Results will appear here as a summary document.</source>
     <message>
         <location filename="../../../../src/core/model/GpgKeyGenerateInfo.cpp" line="181"/>
         <source>None</source>
-        <translation type="unfinished">Nessuno</translation>
+        <translation>Nessuno</translation>
     </message>
 </context>
 <context>
@@ -8322,7 +8353,7 @@ Results will appear here as a summary document.</source>
     <message>
         <location filename="../../../../src/Security.cpp" line="149"/>
         <source>Failed to compute key ID.</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossibile calcolare l&apos;ID della chiave.</translation>
     </message>
     <message>
         <location filename="../../../../src/Security.cpp" line="250"/>
@@ -8376,7 +8407,7 @@ Results will appear here as a summary document.</source>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="113"/>
         <source>Open Link</source>
-        <translation type="unfinished"></translation>
+        <translation>Apri collegamento</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="114"/>
@@ -8384,237 +8415,240 @@ Results will appear here as a summary document.</source>
 
 The link has been copied to your clipboard:
 %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Impossibile aprire un browser web su questo sistema.
+
+Il collegamento è stato copiato negli appunti:
+%1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="142"/>
         <source>Star GpgFrontend on GitHub</source>
-        <translation type="unfinished"></translation>
+        <translation>Stella a GpgFrontend su GitHub</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="149"/>
         <source>GpgFrontend is free and open source. A star helps more people discover it and keeps the project moving forward.</source>
-        <translation type="unfinished"></translation>
+        <translation>GpgFrontend è gratuito e open source. Una stella aiuta più persone a scoprirlo e mantiene il progetto in crescita.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="35"/>
         <source>Very weak</source>
-        <translation type="unfinished"></translation>
+        <translation>Molto debole</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="38"/>
         <source>Weak</source>
-        <translation type="unfinished"></translation>
+        <translation>Debole</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="41"/>
         <source>Fair</source>
-        <translation type="unfinished"></translation>
+        <translation>Discreta</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="44"/>
         <source>Good</source>
-        <translation type="unfinished"></translation>
+        <translation>Buona</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="46"/>
         <source>Strong</source>
-        <translation type="unfinished"></translation>
+        <translation>Forte</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="52"/>
         <source>Fully Valid</source>
-        <translation type="unfinished">Completamente valida</translation>
+        <translation>Completamente valida</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="54"/>
         <source>Valid (with Issues)</source>
-        <translation type="unfinished"></translation>
+        <translation>Valida (con problemi)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="56"/>
         <source>Valid (Not Fully Trusted)</source>
-        <translation type="unfinished"></translation>
+        <translation>Valida (fiducia non completa)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="58"/>
         <source>Invalid</source>
-        <translation type="unfinished"></translation>
+        <translation>Non valida</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="60"/>
         <source>Key Missing</source>
-        <translation type="unfinished"></translation>
+        <translation>Chiave mancante</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="62"/>
         <source>Key Revoked</source>
-        <translation type="unfinished">Chiave revocata</translation>
+        <translation>Chiave revocata</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="64"/>
         <source>Signature Expired</source>
-        <translation type="unfinished">Firma scaduta</translation>
+        <translation>Firma scaduta</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="66"/>
         <source>Key Expired</source>
-        <translation type="unfinished"></translation>
+        <translation>Chiave scaduta</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="68"/>
         <source>Verification Error</source>
-        <translation type="unfinished">Errore di verifica</translation>
+        <translation>Errore di verifica</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="70"/>
         <source>Unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Sconosciuto</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="76"/>
         <source>Signer</source>
-        <translation type="unfinished">Firmatario</translation>
+        <translation>Firmatario</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="78"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="99"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="145"/>
         <source>Fingerprint</source>
-        <translation type="unfinished">Impronta digitale</translation>
+        <translation>Impronta digitale</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="80"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="101"/>
         <source>Key ID</source>
-        <translation type="unfinished">ID chiave</translation>
+        <translation>ID chiave</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="86"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="103"/>
         <source>Algorithm</source>
-        <translation type="unfinished">Algoritmo</translation>
+        <translation>Algoritmo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="90"/>
         <source>Signed</source>
-        <translation type="unfinished"></translation>
+        <translation>Firmato</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="97"/>
         <source>Recipient</source>
-        <translation type="unfinished">Destinatario</translation>
+        <translation>Destinatario</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="102"/>
         <source>Primary Key Algorithm</source>
-        <translation type="unfinished"></translation>
+        <translation>Algoritmo chiave primaria</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="115"/>
         <source>Input Material Hash</source>
-        <translation type="unfinished"></translation>
+        <translation>Hash del materiale di input</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="117"/>
         <source>SHA-256</source>
-        <translation type="unfinished"></translation>
+        <translation>SHA-256</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="134"/>
         <source>Signature Created</source>
-        <translation type="unfinished"></translation>
+        <translation>Firma creata</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="137"/>
         <source>Mode</source>
-        <translation type="unfinished"></translation>
+        <translation>Modalità</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="143"/>
         <source>Invalid Signer</source>
-        <translation type="unfinished"></translation>
+        <translation>Firmatario non valido</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="146"/>
         <source>Reason</source>
-        <translation type="unfinished">Motivo</translation>
+        <translation>Motivo</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="153"/>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="180"/>
         <source>Decrypt</source>
-        <translation type="unfinished">Decifra</translation>
+        <translation>Decifra</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="156"/>
         <source>Message Metadata</source>
-        <translation type="unfinished"></translation>
+        <translation>Metadati del messaggio</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="159"/>
         <source>File</source>
-        <translation type="unfinished">File</translation>
+        <translation>File</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="160"/>
         <source>Cipher</source>
-        <translation type="unfinished"></translation>
+        <translation>Cifrario</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="162"/>
         <source>MIME</source>
-        <translation type="unfinished">MIME</translation>
+        <translation>MIME</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="162"/>
         <source>Yes</source>
-        <translation type="unfinished">Sì</translation>
+        <translation>Sì</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="162"/>
         <source>No</source>
-        <translation type="unfinished">No</translation>
+        <translation>No</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="164"/>
         <source>Integrity</source>
-        <translation type="unfinished"></translation>
+        <translation>Integrità</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="165"/>
         <source>Protected</source>
-        <translation type="unfinished"></translation>
+        <translation>Protetto</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="166"/>
         <source>Not Protected (unsafe)</source>
-        <translation type="unfinished"></translation>
+        <translation>Non protetto (insicuro)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="170"/>
         <source>Encrypt</source>
-        <translation type="unfinished">Cifra</translation>
+        <translation>Cifra</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="173"/>
         <source>Encryption Recipient</source>
-        <translation type="unfinished"></translation>
+        <translation>Destinatario di cifratura</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="183"/>
         <source>Decryption Recipient</source>
-        <translation type="unfinished"></translation>
+        <translation>Destinatario di decifratura</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="196"/>
         <source>ECC</source>
-        <translation type="unfinished"></translation>
+        <translation>ECC</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/KeyGenerateHelper.cpp" line="203"/>
         <source>Post-Quantum</source>
-        <translation type="unfinished"></translation>
+        <translation>Post-quantistica</translation>
     </message>
 </context>
 <context>
@@ -8622,7 +8656,7 @@ The link has been copied to your clipboard:
     <message>
         <location filename="../../../../src/ui/dialog/Wizard.cpp" line="76"/>
         <source>A simple, privacy-focused OpenPGP tool for text, files, and keys.</source>
-        <translation type="unfinished"></translation>
+        <translation>Uno strumento OpenPGP semplice e attento alla privacy per testo, file e chiavi.</translation>
     </message>
 </context>
 </TS>
