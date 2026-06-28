@@ -39,6 +39,7 @@
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgKey.h"
+#include "core/model/GpgPassphraseContext.h"
 #include "core/model/GpgSignResult.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/AsyncUtils.h"
