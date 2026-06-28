@@ -28,6 +28,7 @@
 
 #include "GpgOperaHelper.h"
 
+#include "core/function/CoreSignalStation.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
@@ -62,6 +63,30 @@ auto StartDeferredShowTimer(GpgFrontend::UI::WaitingDialog* dialog) -> QTimer* {
                    [dialog]() { dialog->show(); });
   timer->start(kWaitingDialogShowDelayMs);
   return timer;
+}
+
+// The modal waiting dialog must yield to the (also modal) passphrase dialog the
+// engine pops up mid-operation; otherwise it raises/activates itself on top and
+// steals input focus, blocking the user from typing the passphrase. While the
+// engine is collecting a passphrase, stop the deferred-show timer (and hide the
+// dialog if it is already up), then restart the timer once the passphrase has
+// been provided so a still-running operation can resume showing progress. The
+// connections are scoped to the dialog's lifetime via its QPointer receiver.
+void SuppressWaitingDialogWhileEnteringPassphrase(
+    const QPointer<GpgFrontend::UI::WaitingDialog>& dialog,
+    const QPointer<QTimer>& show_timer) {
+  auto* station = GpgFrontend::CoreSignalStation::GetInstance();
+  QObject::connect(
+      station, &GpgFrontend::CoreSignalStation::SignalNeedUserInputPassphrase,
+      dialog, [dialog, show_timer]() {
+        if (show_timer) show_timer->stop();
+        if (dialog && dialog->isVisible()) dialog->hide();
+      });
+  QObject::connect(
+      station, &GpgFrontend::CoreSignalStation::SignalUserInputPassphraseReady,
+      dialog, [show_timer]() {
+        if (show_timer) show_timer->start(kWaitingDialogShowDelayMs);
+      });
 }
 
 void StartFileHashComputation(const QString& path, HashCallback callback) {
@@ -666,6 +691,7 @@ void GpgOperaHelper::WaitForMultipleOperas(
 
   // Only present the dialog if the batch runs longer than the threshold.
   QPointer<QTimer> const show_timer = StartDeferredShowTimer(dialog);
+  SuppressWaitingDialogWhileEnteringPassphrase(dialog, show_timer);
 
   std::atomic<int> remaining_tasks(static_cast<int>(operas.size()));
   const auto tasks_count = operas.size();
@@ -786,6 +812,7 @@ void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
 
   // Only present the dialog if the operation runs longer than the threshold.
   QPointer<QTimer> const show_timer = StartDeferredShowTimer(dialog);
+  SuppressWaitingDialogWhileEnteringPassphrase(dialog, show_timer);
 
   QMetaObject::invokeMethod(
       parent,
