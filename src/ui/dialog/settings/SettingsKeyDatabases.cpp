@@ -126,6 +126,8 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   }
   popup_menu_->addAction(ui_->actionRemove_Selected_Key_Database);
 
+  ui_->addNewKeyDatabaseButton->setText(tr("Add New Key Database"));
+
   connect(ui_->actionRemove_Selected_Key_Database, &QAction::triggered, this,
           &KeyDatabasesTab::slot_remove_existing_key_database);
 
