@@ -43,6 +43,19 @@ class GeneralDialog : public QDialog {
    */
   ~GeneralDialog() override;
 
+  /**
+   * @brief Prepare the dialog's geometry before the native window is mapped.
+   *
+   * On the first show we polish the widget, activate its layout and resolve the
+   * final size/position up front. Otherwise platforms that present eagerly
+   * (Windows) briefly map the window at its unpolished size hint and paint the
+   * unfilled backing store, so the user sees a small white frame that is then
+   * laid out again into the real dialog.
+   *
+   * @param visible
+   */
+  void setVisible(bool visible) override;
+
  protected:
   /**
    *
@@ -92,11 +105,17 @@ class GeneralDialog : public QDialog {
    */
   void update_rect_cache();
 
+  /**
+   * @brief Polish, size and restore the dialog's geometry. Runs exactly once,
+   * before the native window is first mapped.
+   */
+  void prepare_first_show();
+
   QString name_;  ///<
   QRect rect_;
   QRect parent_rect_;
   QRect screen_rect_;
   bool rect_restored_ = false;
-  bool is_first_show_ = true;
+  bool first_show_handled_ = false;
 };
 }  // namespace GpgFrontend::UI

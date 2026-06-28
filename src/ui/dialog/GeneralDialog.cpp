@@ -66,13 +66,37 @@ GeneralDialog::GeneralDialog(QString name, QWidget *parent)
   setAttribute(Qt::WA_DeleteOnClose);
 }
 
+void GeneralDialog::setVisible(bool visible) {
+  if (visible && !first_show_handled_) {
+    first_show_handled_ = true;
+    prepare_first_show();
+  }
+
+  QDialog::setVisible(visible);
+}
+
+void GeneralDialog::prepare_first_show() {
+  ensurePolished();
+
+  if (auto *l = layout(); l != nullptr) l->activate();
+
+  // Resolve the size hint up front, but never override a size the dialog set
+  // for itself (resize()/setFixedSize()/...), which Qt marks with WA_Resized.
+  if (!testAttribute(Qt::WA_Resized)) adjustSize();
+
+  // Apply any saved geometry before the window is mapped so there is no
+  // post-map resize/move jump.
+  slot_restore_settings();
+}
+
 void GeneralDialog::showEvent(QShowEvent *event) {
   QDialog::showEvent(event);
 
-  is_first_show_ = true;
-  if (is_first_show_) {
-    is_first_show_ = false;
-    slot_restore_settings();
+  // Geometry is normally prepared in setVisible() before the first map. This is
+  // only a safety net for show paths that bypass setVisible().
+  if (!first_show_handled_) {
+    first_show_handled_ = true;
+    prepare_first_show();
   }
 }
 
