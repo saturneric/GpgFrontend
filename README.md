@@ -14,12 +14,14 @@ more trustworthy in everyday privacy workflows.
 
 **Key Features**
 
-- Easy: Encrypt and sign your texts, files and more.
+- Easy: Encrypt and sign your texts, files and more in just a few clicks.
 - Cross-platform: Native support for Windows, macOS and Linux.
 - Portable: Run directly from a USB drive and carry your keys.
-- Flexible: Manage keys separately through multiple key databases.
+- Flexible: Manage keys separately through multiple isolated key databases.
 - Dual-engine: Switch freely between the mature GnuPG and the Rust rPGP backend.
-- Privacy-focused: Using multiple approaches to enhance safety.
+- Future-proof: Explore OpenPGP v6 (RFC 9580) and post-quantum algorithms.
+- Memory-safe: Sensitive data is guarded in secure memory while in use.
+- Privacy-focused: Everything runs locally, with no telemetry or tracking.
 
 > If you like GpgFrontend, you can give it a ⭐ on GitHub as donation. :)
 
@@ -51,21 +53,24 @@ workflows, and recommended practices for using GpgFrontend effectively.
 
 ## Release Channels
 
-- **v2.2.0+ (Mainline):** The main branch includes an experimental rPGP engine
-  for OpenPGP v6 (RFC 9580), while **GnuPG** remains the default, primary, and
-  recommended backend for mature workflows. rPGP-related features are under
-  active development and may evolve over time.
+- **v2.2.x (Stable, recommended):** The current stable series and the
+  recommended choice for daily use. It introduces the dual-engine core, adding
+  the Rust **rPGP** backend for OpenPGP v6 (RFC 9580) and post-quantum
+  algorithms alongside **GnuPG**, which remains the default and most
+  interoperable backend. rPGP-related features continue to evolve over time.
 
-- **v2.1.x (Stable):** Dedicated to maximum stability and reliability. This
-  series remains in maintenance mode, focusing on bug fixes and security
-  updates, with no new major features or breaking changes planned.
+- **v2.1.x (Legacy):** The previous GnuPG-only stable series. It remains in
+  maintenance mode, focusing on bug fixes and security updates, with no new
+  major features or breaking changes planned. Choose this if you need a pure
+  GnuPG build or are not ready to adopt the multi-engine 2.2 line.
 
 ## Supported Languages
 
 GpgFrontend currently supports an array of languages including:
 
 - English
-- Chinese
+- Chinese (Simplified)
+- Chinese (Traditional)
 - French
 - German
 - Italian
