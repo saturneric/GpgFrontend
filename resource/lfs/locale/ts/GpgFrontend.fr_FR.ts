@@ -208,6 +208,130 @@
     </message>
 </context>
 <context>
+    <name>GpgFrontend::GpgKeyTableModel</name>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
+        <source>Select</source>
+        <translation>Sélection</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
+        <source>Type</source>
+        <translation>Type</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
+        <source>Name</source>
+        <translation>Nom</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
+        <source>Email Address</source>
+        <translation>Adresse e-mail</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="187"/>
+        <source>Usage</source>
+        <translation>Utilisation</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="188"/>
+        <source>Trust</source>
+        <translation>Confiance</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
+        <source>Key ID</source>
+        <translation>Identifiant de clé</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
+        <source>Create Date</source>
+        <translation>Date de création</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
+        <source>Algorithm</source>
+        <translation>Algorithme</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
+        <source>Subkey(s)</source>
+        <translation>Sous-clé(s)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="189"/>
+        <source>Comment</source>
+        <translation>Commentaire</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="185"/>
+        <source>ID</source>
+        <translation>ID</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="186"/>
+        <source>Algo</source>
+        <translation>Algorithme</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="190"/>
+        <source>No Comment</source>
+        <translation>Aucun commentaire</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="196"/>
+        <source>SubKeys (up to 8):</source>
+        <translation>Sous-clés (jusqu&apos;à 8) :</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="202"/>
+        <source>ID: %1 | Algo: %2 | Usage: %3</source>
+        <translation>ID : %1 | Algorithme : %2 | Utilisation : %3</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::GpgKeyTreeModel</name>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="41"/>
+        <source>Select</source>
+        <translation>Sélectionner</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="42"/>
+        <source>Type</source>
+        <translation>Type</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="43"/>
+        <source>Identity</source>
+        <translation>Identité</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="44"/>
+        <source>Key ID</source>
+        <translation>Identifiant de clé</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="45"/>
+        <source>Usage</source>
+        <translation>Utilisation</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="46"/>
+        <source>Algorithm</source>
+        <translation>Algorithme</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="47"/>
+        <source>Create Date</source>
+        <translation>Date de création</translation>
+    </message>
+</context>
+<context>
     <name>GpgFrontend::GpgSignResultAnalyse</name>
     <message>
         <location filename="../../../../src/core/function/result_analyse/GpgSignResultAnalyse.cpp" line="47"/>
@@ -689,6 +813,14 @@
         <location filename="../../../../src/core/function/result_analyse/GpgVerifyResultAnalyse.cpp" line="410"/>
         <source>Hash Algo</source>
         <translation>Algorithme de hachage</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::KeyGenerateInfo</name>
+    <message>
+        <location filename="../../../../src/core/model/GpgKeyGenerateInfo.cpp" line="181"/>
+        <source>None</source>
+        <translation>Aucun</translation>
     </message>
 </context>
 <context>
@@ -2255,6 +2387,369 @@ Cela entraînera la perte de toutes les positions de formulaires mises en cache,
         <location filename="../../../../src/ui/function/GpgOperaHelper.cpp" line="414"/>
         <source>Critical Error</source>
         <translation>Erreur critique</translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::InfoBoardWidget</name>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="69"/>
+        <source>Copy</source>
+        <translation>Copier</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="70"/>
+        <source>Save</source>
+        <translation>Enregistrer</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="71"/>
+        <source>Magnify</source>
+        <translation>Agrandir</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="72"/>
+        <source>Clear</source>
+        <translation>Effacer</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="74"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="46"/>
+        <source>Copy status text</source>
+        <translation>Copier le texte du statut</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="75"/>
+        <source>Save status text to file</source>
+        <translation>Enregistrer le texte du statut dans un fichier</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="76"/>
+        <source>Magnify the generated document</source>
+        <translation>Agrandir le document généré</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="77"/>
+        <source>Clear status panel</source>
+        <translation>Effacer le panneau d’état</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="91"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="431"/>
+        <source>Operation status will appear here.</source>
+        <translation>Le statut de l’opération apparaîtra ici.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="142"/>
+        <source>Status</source>
+        <translation>Statut</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="143"/>
+        <source>Details</source>
+        <translation>Détails</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="144"/>
+        <source>Show the summary report</source>
+        <translation>Afficher le rapport récapitulatif</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="145"/>
+        <source>Show the raw status text</source>
+        <translation>Afficher le texte brut du statut</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="238"/>
+        <source>The operation completed successfully.</source>
+        <translation>L’opération s’est terminée avec succès.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="239"/>
+        <source>%1 completed successfully.</source>
+        <translation>%1 s’est terminé avec succès.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="242"/>
+        <source>Completed with warnings — please review the details.</source>
+        <translation>Terminé avec des avertissements — veuillez consulter les détails.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="243"/>
+        <source>%1 completed with warnings — please review the details.</source>
+        <translation>%1 terminé avec des avertissements — veuillez consulter les détails.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="247"/>
+        <source>The operation failed. See the details for more information.</source>
+        <translation>L’opération a échoué. Consultez les détails pour plus d’informations.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="249"/>
+        <source>%1 failed. See the details for more information.</source>
+        <translation>%1 a échoué. Consultez les détails pour plus d’informations.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="259"/>
+        <source>Success</source>
+        <translation>Succès</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="261"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="500"/>
+        <source>Warning</source>
+        <translation>Avertissement</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="263"/>
+        <source>Error</source>
+        <translation>Erreur</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="266"/>
+        <source>Information</source>
+        <translation>Information</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="293"/>
+        <source>[%1] No details available.</source>
+        <translation>[%1] Aucun détail disponible.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="411"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="230"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="136"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="241"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="268"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="326"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="447"/>
+        <source>DETAILS</source>
+        <translation>DÉTAILS</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="46"/>
+        <source>GPGFRONTEND SECURITY REPORT</source>
+        <translation>RAPPORT DE SÉCURITÉ GPGFRONTEND</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="166"/>
+        <source>No operation yet.
+Results will appear here as a summary document.</source>
+        <translation>Aucune opération pour le moment.
+Les résultats apparaîtront ici sous forme de document récapitulatif.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="219"/>
+        <source>OPERATION</source>
+        <translation>OPÉRATION</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="220"/>
+        <source>STATUS</source>
+        <translation>STATUT</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="221"/>
+        <source>ENGINE</source>
+        <translation>MOTEUR</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="44"/>
+        <source>Copied</source>
+        <translation>Copié</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="85"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="132"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="166"/>
+        <source>Unable to Save</source>
+        <translation>Impossible de sauvegarder</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="86"/>
+        <source>The content could not be captured.</source>
+        <translation>Le contenu n&apos;a pas pu être capturé.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="92"/>
+        <source>GpgFrontend Security Report</source>
+        <translation>Rapport de sécurité GpgFrontend</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="94"/>
+        <source>Cryptographic operation result report</source>
+        <translation>Rapport des résultats d&apos;opération cryptographique</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="104"/>
+        <source>Hash: </source>
+        <translation>Hachage :</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="133"/>
+        <source>The image could not be saved.</source>
+        <translation>L&apos;image n&apos;a pas pu être sauvegardée.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="145"/>
+        <source>Export Certificate</source>
+        <translation>Exporter le certificat</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="146"/>
+        <source>PNG Image (*.png);;All Files (*)</source>
+        <translation>Images PNG (*.png);;Tous les fichiers (*)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="159"/>
+        <source>Save Status Panel Content</source>
+        <translation>Sauvegarder le contenu du panneau d’état</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="160"/>
+        <source>Text Files (*.txt);;All Files (*)</source>
+        <translation>Fichiers texte (*.txt);;Tous les fichiers (*)</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="167"/>
+        <source>The file could not be saved. Please check the path and permissions.</source>
+        <translation>Le fichier n&apos;a pas pu être sauvegardé. Veuillez vérifier le chemin et les autorisations.</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="102"/>
+        <source>File Hash Information</source>
+        <translation>Informations de hachage du fichier</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="172"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="592"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="623"/>
+        <source>Issued:  %1</source>
+        <translation>Délivré :  %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="216"/>
+        <source>Hash: %1</source>
+        <translation>Hachage : %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="221"/>
+        <source>Export certificate as PNG image</source>
+        <translation>Exporter le certificat en image PNG</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="234"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="374"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="602"/>
+        <source>Operation: %1</source>
+        <translation>Opération : %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="236"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="376"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="604"/>
+        <source>Status:    %1</source>
+        <translation>Statut :    %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="237"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="379"/>
+        <source>SHA-256:   %1</source>
+        <translation>SHA-256 :   %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="262"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="442"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="666"/>
+        <source>Decrypt</source>
+        <translation>Déchiffrer</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="263"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="443"/>
+        <source>RECIPIENT</source>
+        <translation>DESTINATAIRE</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="264"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
+        <source>Sign</source>
+        <translation>Signer</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="265"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
+        <source>Verify</source>
+        <translation>Vérifier</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="266"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="445"/>
+        <source>SIGNER</source>
+        <translation>SIGNATAIRE</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="377"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="605"/>
+        <source>Engine:    %1</source>
+        <translation>Moteur :    %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="383"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="609"/>
+        <source>Details:   %1</source>
+        <translation>Détails :   %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="497"/>
+        <source>OK</source>
+        <translation>OK</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="503"/>
+        <source>Failed</source>
+        <translation>Échec</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="534"/>
+        <source>… and %1 more</source>
+        <translation>… et %1 de plus</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="614"/>
+        <source>  SHA-256: %1</source>
+        <translation>SHA-256 : %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="651"/>
+        <source>  Signer: %1</source>
+        <translation>Signataire : %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="653"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="660"/>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="670"/>
+        <source>  Key ID: %1</source>
+        <translation>Identifiant de clé : %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="658"/>
+        <source>  Signed: %1</source>
+        <translation>Signé : %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="663"/>
+        <source>  Invalid signer: %1 — %2</source>
+        <translation>Signataire invalide : %1 — %2</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="665"/>
+        <source>Encrypt</source>
+        <translation>Chiffrer</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="669"/>
+        <source>  Recipient: %1</source>
+        <translation>Destinataire : %1</translation>
     </message>
 </context>
 <context>
@@ -7634,501 +8129,6 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
         <location filename="../../../../src/core/model/GpgKey.cpp" line="117"/>
         <source>Ultimate</source>
         <translation>Ultime</translation>
-    </message>
-</context>
-<context>
-    <name>GpgKeyTableModel</name>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
-        <source>Select</source>
-        <translation>Sélection</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
-        <source>Type</source>
-        <translation>Type</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="43"/>
-        <source>Name</source>
-        <translation>Nom</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <source>Email Address</source>
-        <translation>Adresse e-mail</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="187"/>
-        <source>Usage</source>
-        <translation>Utilisation</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="44"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="188"/>
-        <source>Trust</source>
-        <translation>Confiance</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
-        <source>Key ID</source>
-        <translation>Identifiant de clé</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
-        <source>Create Date</source>
-        <translation>Date de création</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
-        <source>Algorithm</source>
-        <translation>Algorithme</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
-        <source>Subkey(s)</source>
-        <translation>Sous-clé(s)</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="189"/>
-        <source>Comment</source>
-        <translation>Commentaire</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="185"/>
-        <source>ID</source>
-        <translation>ID</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="186"/>
-        <source>Algo</source>
-        <translation>Algorithme</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="190"/>
-        <source>No Comment</source>
-        <translation>Aucun commentaire</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="196"/>
-        <source>SubKeys (up to 8):</source>
-        <translation>Sous-clés (jusqu&apos;à 8) :</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="202"/>
-        <source>ID: %1 | Algo: %2 | Usage: %3</source>
-        <translation>ID : %1 | Algorithme : %2 | Utilisation : %3</translation>
-    </message>
-</context>
-<context>
-    <name>GpgKeyTreeModel</name>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="41"/>
-        <source>Select</source>
-        <translation>Sélectionner</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="42"/>
-        <source>Type</source>
-        <translation>Type</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="43"/>
-        <source>Identity</source>
-        <translation>Identité</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="44"/>
-        <source>Key ID</source>
-        <translation>Identifiant de clé</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="45"/>
-        <source>Usage</source>
-        <translation>Utilisation</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="46"/>
-        <source>Algorithm</source>
-        <translation>Algorithme</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyTreeModel.cpp" line="47"/>
-        <source>Create Date</source>
-        <translation>Date de création</translation>
-    </message>
-</context>
-<context>
-    <name>InfoBoardWidget</name>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="69"/>
-        <source>Copy</source>
-        <translation>Copier</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="70"/>
-        <source>Save</source>
-        <translation>Enregistrer</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="71"/>
-        <source>Magnify</source>
-        <translation>Agrandir</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="72"/>
-        <source>Clear</source>
-        <translation>Effacer</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="74"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="46"/>
-        <source>Copy status text</source>
-        <translation>Copier le texte du statut</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="75"/>
-        <source>Save status text to file</source>
-        <translation>Enregistrer le texte du statut dans un fichier</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="76"/>
-        <source>Magnify the generated document</source>
-        <translation>Agrandir le document généré</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="77"/>
-        <source>Clear status panel</source>
-        <translation>Effacer le panneau d’état</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="91"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="431"/>
-        <source>Operation status will appear here.</source>
-        <translation>Le statut de l’opération apparaîtra ici.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="142"/>
-        <source>Status</source>
-        <translation>Statut</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="143"/>
-        <source>Details</source>
-        <translation>Détails</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="144"/>
-        <source>Show the summary report</source>
-        <translation>Afficher le rapport récapitulatif</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="145"/>
-        <source>Show the raw status text</source>
-        <translation>Afficher le texte brut du statut</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="238"/>
-        <source>The operation completed successfully.</source>
-        <translation>L’opération s’est terminée avec succès.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="239"/>
-        <source>%1 completed successfully.</source>
-        <translation>%1 s’est terminé avec succès.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="242"/>
-        <source>Completed with warnings — please review the details.</source>
-        <translation>Terminé avec des avertissements — veuillez consulter les détails.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="243"/>
-        <source>%1 completed with warnings — please review the details.</source>
-        <translation>%1 terminé avec des avertissements — veuillez consulter les détails.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="247"/>
-        <source>The operation failed. See the details for more information.</source>
-        <translation>L’opération a échoué. Consultez les détails pour plus d’informations.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="249"/>
-        <source>%1 failed. See the details for more information.</source>
-        <translation>%1 a échoué. Consultez les détails pour plus d’informations.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="259"/>
-        <source>Success</source>
-        <translation>Succès</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="261"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="500"/>
-        <source>Warning</source>
-        <translation>Avertissement</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="263"/>
-        <source>Error</source>
-        <translation>Erreur</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="266"/>
-        <source>Information</source>
-        <translation>Information</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="293"/>
-        <source>[%1] No details available.</source>
-        <translation>[%1] Aucun détail disponible.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="411"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="230"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="136"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="241"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="268"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="326"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="447"/>
-        <source>DETAILS</source>
-        <translation>DÉTAILS</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="46"/>
-        <source>GPGFRONTEND SECURITY REPORT</source>
-        <translation>RAPPORT DE SÉCURITÉ GPGFRONTEND</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="166"/>
-        <source>No operation yet.
-Results will appear here as a summary document.</source>
-        <translation>Aucune opération pour le moment.
-Les résultats apparaîtront ici sous forme de document récapitulatif.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="219"/>
-        <source>OPERATION</source>
-        <translation>OPÉRATION</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="220"/>
-        <source>STATUS</source>
-        <translation>STATUT</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetDocument.cpp" line="221"/>
-        <source>ENGINE</source>
-        <translation>MOTEUR</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="44"/>
-        <source>Copied</source>
-        <translation>Copié</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="85"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="132"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="166"/>
-        <source>Unable to Save</source>
-        <translation>Impossible de sauvegarder</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="86"/>
-        <source>The content could not be captured.</source>
-        <translation>Le contenu n&apos;a pas pu être capturé.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="92"/>
-        <source>GpgFrontend Security Report</source>
-        <translation>Rapport de sécurité GpgFrontend</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="94"/>
-        <source>Cryptographic operation result report</source>
-        <translation>Rapport des résultats d&apos;opération cryptographique</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="104"/>
-        <source>Hash: </source>
-        <translation>Hachage :</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="133"/>
-        <source>The image could not be saved.</source>
-        <translation>L&apos;image n&apos;a pas pu être sauvegardée.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="145"/>
-        <source>Export Certificate</source>
-        <translation>Exporter le certificat</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="146"/>
-        <source>PNG Image (*.png);;All Files (*)</source>
-        <translation>Images PNG (*.png);;Tous les fichiers (*)</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="159"/>
-        <source>Save Status Panel Content</source>
-        <translation>Sauvegarder le contenu du panneau d’état</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="160"/>
-        <source>Text Files (*.txt);;All Files (*)</source>
-        <translation>Fichiers texte (*.txt);;Tous les fichiers (*)</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetExport.cpp" line="167"/>
-        <source>The file could not be saved. Please check the path and permissions.</source>
-        <translation>Le fichier n&apos;a pas pu être sauvegardé. Veuillez vérifier le chemin et les autorisations.</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="102"/>
-        <source>File Hash Information</source>
-        <translation>Informations de hachage du fichier</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="172"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="592"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="623"/>
-        <source>Issued:  %1</source>
-        <translation>Délivré :  %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="216"/>
-        <source>Hash: %1</source>
-        <translation>Hachage : %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="221"/>
-        <source>Export certificate as PNG image</source>
-        <translation>Exporter le certificat en image PNG</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="234"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="374"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="602"/>
-        <source>Operation: %1</source>
-        <translation>Opération : %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="236"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="376"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="604"/>
-        <source>Status:    %1</source>
-        <translation>Statut :    %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="237"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="379"/>
-        <source>SHA-256:   %1</source>
-        <translation>SHA-256 :   %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="262"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="442"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="666"/>
-        <source>Decrypt</source>
-        <translation>Déchiffrer</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="263"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="443"/>
-        <source>RECIPIENT</source>
-        <translation>DESTINATAIRE</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="264"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
-        <source>Sign</source>
-        <translation>Signer</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="265"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="444"/>
-        <source>Verify</source>
-        <translation>Vérifier</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="266"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="445"/>
-        <source>SIGNER</source>
-        <translation>SIGNATAIRE</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="377"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="605"/>
-        <source>Engine:    %1</source>
-        <translation>Moteur :    %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="383"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="609"/>
-        <source>Details:   %1</source>
-        <translation>Détails :   %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="497"/>
-        <source>OK</source>
-        <translation>OK</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="503"/>
-        <source>Failed</source>
-        <translation>Échec</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="534"/>
-        <source>… and %1 more</source>
-        <translation>… et %1 de plus</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="614"/>
-        <source>  SHA-256: %1</source>
-        <translation>SHA-256 : %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="651"/>
-        <source>  Signer: %1</source>
-        <translation>Signataire : %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="653"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="660"/>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="670"/>
-        <source>  Key ID: %1</source>
-        <translation>Identifiant de clé : %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="658"/>
-        <source>  Signed: %1</source>
-        <translation>Signé : %1</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="663"/>
-        <source>  Invalid signer: %1 — %2</source>
-        <translation>Signataire invalide : %1 — %2</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="665"/>
-        <source>Encrypt</source>
-        <translation>Chiffrer</translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/widgets/InfoBoardWidgetResults.cpp" line="669"/>
-        <source>  Recipient: %1</source>
-        <translation>Destinataire : %1</translation>
-    </message>
-</context>
-<context>
-    <name>KeyGenerateInfo</name>
-    <message>
-        <location filename="../../../../src/core/model/GpgKeyGenerateInfo.cpp" line="181"/>
-        <source>None</source>
-        <translation>Aucun</translation>
     </message>
 </context>
 <context>
