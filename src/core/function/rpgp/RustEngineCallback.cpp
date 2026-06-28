@@ -97,7 +97,14 @@ auto FetchSecretKeyCallback(const char* fpr, void* user_data) -> char* {
 }
 
 auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
-                           uint8_t** out_pwd, void* /*user_data*/) -> int {
+                           uint8_t** out_pwd,
+                           Rust::GfrPasswordFetchStatus* out_status,
+                           void* /*user_data*/) -> int {
+  // Default to a non-cancellation failure; success and cancellation upgrade it.
+  if (out_status != nullptr) {
+    *out_status = Rust::GfrPasswordFetchStatus::Failed;
+  }
+
   PassphraseState pp_state{
       .info = state.info != nullptr ? QString::fromUtf8(state.info) : QString(),
       .fpr = QString::fromUtf8(state.fpr).toUpper(),
@@ -106,8 +113,10 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
       .should_confirm = state.should_confirm,
   };
 
+  // A programmatic fetcher (e.g. a cached or test-supplied passphrase) takes
+  // precedence over prompting the user. A non-empty result is always a provided
+  // passphrase; an empty one falls through to the interactive prompt below.
   GFBuffer result_pwd;
-
   {
     std::lock_guard<std::mutex> lock(g_fetcher_mutex);
     auto it = g_channel_fetchers.find(channel);
@@ -120,14 +129,25 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
     auto* c_pwd = reinterpret_cast<uint8_t*>(SMAMalloc(result_pwd.Size()));
     std::memcpy(c_pwd, result_pwd.Data(), result_pwd.Size());
     *out_pwd = c_pwd;
+    if (out_status != nullptr) {
+      *out_status = Rust::GfrPasswordFetchStatus::Provided;
+    }
     return static_cast<int>(result_pwd.Size());
   }
 
-  result_pwd =
-      PassphraseService::GetInstance(channel).RequestPassphrase(pp_state);
+  PassphraseRequestStatus request_status = PassphraseRequestStatus::kFailed;
+  result_pwd = PassphraseService::GetInstance(channel).RequestPassphrase(
+      pp_state, &request_status);
 
   if (result_pwd.Empty()) {
     *out_pwd = nullptr;
+    // Map a deliberate user cancellation to a distinct status so the engine
+    // surfaces GPG_ERR_CANCELED rather than a generic fetch failure; a timeout
+    // or any other empty result keeps the Failed default.
+    if (out_status != nullptr &&
+        request_status == PassphraseRequestStatus::kCancelled) {
+      *out_status = Rust::GfrPasswordFetchStatus::Cancelled;
+    }
     return 0;
   }
 
@@ -136,6 +156,9 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
   std::memcpy(c_pwd, result_pwd.Data(), result_pwd.Size());
 
   *out_pwd = c_pwd;
+  if (out_status != nullptr) {
+    *out_status = Rust::GfrPasswordFetchStatus::Provided;
+  }
   return static_cast<int>(result_pwd.Size());
 }
 

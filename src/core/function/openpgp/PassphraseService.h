@@ -68,6 +68,16 @@ struct PassphraseState {
 };
 
 /**
+ * @brief Outcome of a passphrase request, distinguishing a deliberate user
+ * cancellation from other empty results (timeout, no responder).
+ */
+enum class PassphraseRequestStatus {
+  kProvided,   ///< The user submitted a passphrase.
+  kCancelled,  ///< The user explicitly cancelled (Cancel / closed the dialog).
+  kFailed,     ///< No passphrase obtained for any other reason (e.g. timeout).
+};
+
+/**
  * @brief Singleton service that prompts the user for a passphrase.
  *
  * Delegates to the UI layer via the OpenPGP context's passphrase callback.
@@ -91,9 +101,13 @@ class GF_CORE_EXPORT PassphraseService
    *
    * @param state request context (key fingerprint, retry flag, confirmation
    * flag, etc.)
+   * @param out_status optional; receives why the request ended (provided,
+   * cancelled, or failed) so callers can map a cancellation to the right error.
    * @return passphrase entered by the user, or empty string on cancellation
    */
-  auto RequestPassphrase(const PassphraseState& state) -> GFBuffer;
+  auto RequestPassphrase(const PassphraseState& state,
+                         PassphraseRequestStatus* out_status = nullptr)
+      -> GFBuffer;
 
  private:
   // OpenPGP context for this channel, used to route the passphrase callback.

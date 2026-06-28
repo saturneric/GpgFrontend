@@ -38,8 +38,13 @@ namespace GpgFrontend {
 PassphraseService::PassphraseService(int channel)
     : SingletonFunctionObject(channel) {}
 
-auto PassphraseService::RequestPassphrase(const PassphraseState& state)
+auto PassphraseService::RequestPassphrase(const PassphraseState& state,
+                                          PassphraseRequestStatus* out_status)
     -> GFBuffer {
+  // Default to a non-cancellation failure; only the explicit paths below
+  // upgrade this to provided or cancelled.
+  if (out_status != nullptr) *out_status = PassphraseRequestStatus::kFailed;
+
   GpgAbstractKeyPtr key = nullptr;
 
   if (!state.ask_for_new && state.info.trimmed().isEmpty()) {
@@ -76,9 +81,16 @@ auto PassphraseService::RequestPassphrase(const PassphraseState& state)
   QObject::connect(
       CoreSignalStation::GetInstance(),
       &CoreSignalStation::SignalUserInputPassphraseReady, &loop,
-      [&result_pwd,
+      [&result_pwd, &out_status,
        &loop](const QSharedPointer<GpgPassphraseContext>& ctx) -> void {
         result_pwd = ctx->GetPassphrase();
+        // The user responded: either they submitted a passphrase or explicitly
+        // cancelled. A timeout never reaches here, so it keeps the kFailed
+        // default set above.
+        if (out_status != nullptr) {
+          *out_status = ctx->IsCancelled() ? PassphraseRequestStatus::kCancelled
+                                           : PassphraseRequestStatus::kProvided;
+        }
         loop.quit();
       });
 

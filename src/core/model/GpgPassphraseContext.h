@@ -70,6 +70,15 @@ class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
 
   void SetShouldConfirm(bool should_confirm);
 
+  /**
+   * @brief Whether the user explicitly declined to provide a passphrase
+   * (Cancel button or closing the dialog), as opposed to a timeout or an
+   * empty/failed request. Lets the engine surface GPG_ERR_CANCELED.
+   */
+  [[nodiscard]] auto IsCancelled() const -> bool;
+
+  void SetCancelled(bool cancelled);
+
  private:
   int channel_;
   QString passphrase_info_;
@@ -78,6 +87,7 @@ class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
   bool prev_was_bad_;
   bool ask_for_new_;
   bool should_confirm_;
+  bool cancelled_ = false;
 };
 
 }  // namespace GpgFrontend

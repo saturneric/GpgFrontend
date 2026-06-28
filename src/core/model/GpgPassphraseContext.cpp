@@ -43,6 +43,7 @@ GpgPassphraseContext::~GpgPassphraseContext() {
   prev_was_bad_ = false;
   ask_for_new_ = false;
   should_confirm_ = false;
+  cancelled_ = false;
 }
 
 auto GpgPassphraseContext::GetPassphrase() const -> GFBuffer {
@@ -85,6 +86,12 @@ void GpgPassphraseContext::SetAskForNew(bool ask_for_new) {
 
 void GpgPassphraseContext::SetShouldConfirm(bool should_confirm) {
   should_confirm_ = should_confirm;
+}
+
+auto GpgPassphraseContext::IsCancelled() const -> bool { return cancelled_; }
+
+void GpgPassphraseContext::SetCancelled(bool cancelled) {
+  cancelled_ = cancelled;
 }
 
 }  // namespace GpgFrontend

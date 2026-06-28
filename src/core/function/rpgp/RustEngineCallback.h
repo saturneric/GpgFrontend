@@ -60,7 +60,9 @@ auto FetchSecretKeyCallback(const char* fpr, void* user_data) -> char*;
  * @return char*
  */
 auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
-                           uint8_t** out_pwd, void* /*user_data*/) -> int;
+                           uint8_t** out_pwd,
+                           Rust::GfrPasswordFetchStatus* out_status,
+                           void* /*user_data*/) -> int;
 }
 
 }  // namespace GpgFrontend
