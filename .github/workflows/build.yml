@@ -130,7 +130,7 @@ jobs:
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ github.job }}-${{ matrix.os }}
+          key: ${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
 
       - name: Install Dependence (Linux)
         run: |
@@ -313,18 +313,6 @@ jobs:
 
       - name: Build GpgFrontend (macOS)
         run: |
-          # The macOS 26 / Xcode 26 runner image exports several
-          # *_DEPLOYMENT_TARGET environment variables at once. clang's Darwin
-          # driver aborts with "conflicting deployment targets ... present in
-          # environment" when more than one is set (it surfaces in CMake's
-          # AUTOMOC moc_predefs step). Clear them and let
-          # CMAKE_OSX_DEPLOYMENT_TARGET drive the deployment version instead.
-          echo "Deployment-target env vars set by the runner image:"
-          env | grep -i DEPLOYMENT_TARGET || echo "  (none)"
-          unset MACOSX_DEPLOYMENT_TARGET IPHONEOS_DEPLOYMENT_TARGET \
-                TVOS_DEPLOYMENT_TARGET WATCHOS_DEPLOYMENT_TARGET \
-                DRIVERKIT_DEPLOYMENT_TARGET XROS_DEPLOYMENT_TARGET
-
           MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
           MACOS_MINOR=$(sw_vers -productVersion | cut -d. -f2)
 
@@ -342,21 +330,35 @@ jobs:
 
           echo "Set MacOS Deployment Target: $DEPLOY_TARGET"
 
-          # The Xcode generator ignores CMAKE_<LANG>_COMPILER_LAUNCHER, so ccache
-          # is wired in via compiler-launcher attributes pointing at thin wrappers.
+          # Two problems are solved by the compiler wrappers below:
+          #
+          # 1. ccache: the Xcode generator ignores CMAKE_<LANG>_COMPILER_LAUNCHER,
+          #    so ccache is wired in by pointing the compiler at thin wrappers.
+          # 2. Deployment-target conflict (macOS 26 / Xcode 26 / AppleClang 21):
+          #    Xcode injects more than one *_DEPLOYMENT_TARGET variable into the
+          #    build environment, and the new clang aborts with "conflicting
+          #    deployment targets ... present in environment". The wrappers strip
+          #    every *_DEPLOYMENT_TARGET var and let the -mmacosx-version-min flag
+          #    / SDK drive the version instead. This is set on CMAKE_<LANG>_COMPILER
+          #    too, because CMake's AUTOMOC moc_predefs step invokes that compiler
+          #    directly (not the Xcode attribute and not the launcher).
+          #
           # Sloppiness is relaxed so ccache can cache precompiled headers; it is
           # written to the ccache config so it also applies to the xcodebuild step.
           ccache --set-config=sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime
           ccache -z
           CC_WRAPPER="${{github.workspace}}/ccache-clang"
           CXX_WRAPPER="${{github.workspace}}/ccache-clang++"
-          printf '#!/bin/sh\nexec ccache clang "$@"\n' > "$CC_WRAPPER"
-          printf '#!/bin/sh\nexec ccache clang++ "$@"\n' > "$CXX_WRAPPER"
+          UNSET_DT='unset MACOSX_DEPLOYMENT_TARGET IPHONEOS_DEPLOYMENT_TARGET TVOS_DEPLOYMENT_TARGET WATCHOS_DEPLOYMENT_TARGET DRIVERKIT_DEPLOYMENT_TARGET XROS_DEPLOYMENT_TARGET'
+          printf '#!/bin/sh\n%s\nexec ccache clang "$@"\n' "$UNSET_DT" > "$CC_WRAPPER"
+          printf '#!/bin/sh\n%s\nexec ccache clang++ "$@"\n' "$UNSET_DT" > "$CXX_WRAPPER"
           chmod +x "$CC_WRAPPER" "$CXX_WRAPPER"
 
           cmake -B ${{github.workspace}}/build -G Xcode \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=${DEPLOY_TARGET} \
+            -DCMAKE_C_COMPILER="$CC_WRAPPER" \
+            -DCMAKE_CXX_COMPILER="$CXX_WRAPPER" \
             -DCMAKE_XCODE_ATTRIBUTE_CC="$CC_WRAPPER" \
             -DCMAKE_XCODE_ATTRIBUTE_CXX="$CXX_WRAPPER" \
             -DCMAKE_XCODE_ATTRIBUTE_CLANG_ENABLE_MODULES=NO \
