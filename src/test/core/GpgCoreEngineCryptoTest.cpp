@@ -690,6 +690,48 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerifyWithPassphrase) {
   DeleteKey(key);
 }
 
+// ---------------------------------------------------------------------------
+// Stress: repeat the symmetric (passphrase-only) encrypt -> decrypt cycle.
+//
+// Symmetric encryption takes no recipient key; instead the engine invokes the
+// host passphrase-fetch callback for both encrypt and decrypt. For rPGP that
+// drives the same FetchPasswordCallback alloc/free path as the protected-key
+// tests, but repeatedly and without any key material in play. Varying the
+// payload size also crosses the kSecBufferSize (4KB) boundary in Read2GFBuffer's
+// realloc/append loop. No key is generated, so this runs the full stress count.
+// Run under ASan for signal: scripts/run_tests_asan.sh -f
+// '*EncryptSymmetricDecryptStress*'
+// ---------------------------------------------------------------------------
+
+TEST_P(GpgCoreEngineTest, EncryptSymmetricDecryptStress) {
+  const int iterations = StressIterations();
+  for (int i = 0; i < iterations; ++i) {
+    // Vary the size across the 4KB secure-buffer boundary that Read2GFBuffer
+    // chunks on, including sizes straddling multiples of it.
+    const int size = 1 + (i * 257) % (32 * 1024);
+    auto plain = GFBuffer(GenerateRandomString(size));
+
+    auto [enc_err, enc_obj] =
+        MessageCryptoOperation::GetInstance(Channel()).EncryptSymmetricSync(
+            plain, true);
+    ASSERT_EQ(CheckGpgError(enc_err), GPG_ERR_NO_ERROR)
+        << "symmetric encrypt failed at iteration " << i << " size " << size;
+    ASSERT_TRUE((enc_obj->Check<GpgEncryptResult, GFBuffer>()));
+    auto enc_result = ExtractParams<GpgEncryptResult>(enc_obj, 0);
+    ASSERT_TRUE(enc_result.InvalidRecipients().empty());
+    auto cipher = ExtractParams<GFBuffer>(enc_obj, 1);
+    ASSERT_FALSE(cipher.Empty());
+
+    auto [dec_err, dec_obj] =
+        MessageCryptoOperation::GetInstance(Channel()).DecryptSync(cipher);
+    ASSERT_EQ(CheckGpgError(dec_err), GPG_ERR_NO_ERROR)
+        << "symmetric decrypt failed at iteration " << i << " size " << size;
+    ASSERT_TRUE((dec_obj->Check<GpgDecryptResult, GFBuffer>()));
+    auto out = ExtractParams<GFBuffer>(dec_obj, 1);
+    ASSERT_EQ(out, plain) << "roundtrip mismatch at iteration " << i;
+  }
+}
+
 TEST_P(GpgCoreEngineTest, GenerateDeleteChurnStress) {
   const int iterations = std::min(StressIterations(), 30);
   for (int i = 0; i < iterations; ++i) {
