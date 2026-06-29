@@ -126,6 +126,9 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
   }
 
   if (!result_pwd.Empty()) {
+    // Length-delimited buffer: Rust reads exactly Size() bytes and frees it via
+    // gfc_secure_free_buffer(ptr, len) — no NUL terminator is needed or
+    // implied.
     auto* c_pwd = reinterpret_cast<uint8_t*>(SMAMalloc(result_pwd.Size()));
     std::memcpy(c_pwd, result_pwd.Data(), result_pwd.Size());
     *out_pwd = c_pwd;
@@ -151,7 +154,8 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
     return 0;
   }
 
-  // Allocate raw memory for Rust to consume
+  // Length-delimited buffer: Rust reads exactly Size() bytes and frees it via
+  // gfc_secure_free_buffer(ptr, len) — no NUL terminator is needed or implied.
   auto* c_pwd = reinterpret_cast<uint8_t*>(SMAMalloc(result_pwd.Size()));
   std::memcpy(c_pwd, result_pwd.Data(), result_pwd.Size());
 

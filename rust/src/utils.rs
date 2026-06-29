@@ -43,7 +43,7 @@ use zeroize::Zeroizing;
 
 use crate::{
     cache::{PasswordCache, PasswordCacheKey, PasswordCachePolicy},
-    host::gfc_secure_free_cstr,
+    host::gfc_secure_free_buffer,
     types::{
         GfrKeyAlgo, GfrKeyConfig, GfrPassphraseState, GfrPasswordFetchCb, GfrPasswordFetchStatus,
         GfrRevocationCode, GfrStatus,
@@ -121,7 +121,11 @@ pub fn fetch_password_internal(
     // generic "General error".
     if out_status != GfrPasswordFetchStatus::Provided || ret <= 0 || pwd_ptr.is_null() {
         if !pwd_ptr.is_null() {
-            unsafe { gfc_secure_free_cstr(pwd_ptr as *mut std::ffi::c_char) };
+            // The buffer length is the callback's returned byte count; on this
+            // failure path it may be <= 0, in which case there is nothing to
+            // wipe — pass 0 and just reclaim the allocation.
+            let len = if ret > 0 { ret as usize } else { 0 };
+            unsafe { gfc_secure_free_buffer(pwd_ptr, len) };
         }
         return Err(match out_status {
             GfrPasswordFetchStatus::Cancelled => GfrStatus::ErrorCanceled,
@@ -133,7 +137,7 @@ pub fn fetch_password_internal(
     let pwd_slice = unsafe { std::slice::from_raw_parts(pwd_ptr, ret as usize) };
 
     if pwd_slice.is_empty() {
-        unsafe { gfc_secure_free_cstr(pwd_ptr as *mut std::ffi::c_char) };
+        unsafe { gfc_secure_free_buffer(pwd_ptr, ret as usize) };
         return Err(GfrStatus::ErrorInvalidInput); // Empty password provided
     }
 
@@ -141,8 +145,8 @@ pub fn fetch_password_internal(
     let mut password = Vec::with_capacity(ret as usize);
     password.extend_from_slice(pwd_slice);
 
-    // 2. NOW FREE THE MEMORY in C++
-    unsafe { gfc_secure_free_cstr(pwd_ptr as *mut std::ffi::c_char) };
+    // 2. NOW FREE THE MEMORY in C++ by its exact length (never via strlen).
+    unsafe { gfc_secure_free_buffer(pwd_ptr, ret as usize) };
 
     log::debug!("Fetched password via callback");
     Ok(Zeroizing::new(password))
@@ -539,6 +543,9 @@ mod tests {
     // real C++ implementation is linked only in the full binary build.
     #[unsafe(no_mangle)]
     extern "C" fn gfc_secure_free_cstr(_ptr: *mut std::ffi::c_char) {}
+
+    #[unsafe(no_mangle)]
+    extern "C" fn gfc_secure_free_buffer(_ptr: *mut u8, _len: usize) {}
 
     fn state() -> PassphraseStateInternal {
         PassphraseStateInternal {

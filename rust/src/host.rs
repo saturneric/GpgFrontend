@@ -32,4 +32,11 @@ use std::ffi::c_char;
 
 unsafe extern "C" {
     pub fn gfc_secure_free_cstr(ptr: *mut c_char);
+
+    /// Securely free a length-delimited byte buffer the host handed us (e.g. the
+    /// passphrase bytes from the password-fetch callback). The length is passed
+    /// explicitly, so freeing never depends on a NUL terminator and can never
+    /// read past the allocation — unlike [`gfc_secure_free_cstr`], which scans
+    /// with `strlen` and must only be used on genuine C strings.
+    pub fn gfc_secure_free_buffer(ptr: *mut u8, len: usize);
 }

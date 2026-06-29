@@ -28,6 +28,8 @@
 
 #include "RustEngineFunctions.h"
 
+#include <sodium.h>
+
 #include <cstring>
 
 #include "core/function/SecureMemoryAllocator.h"
@@ -35,11 +37,24 @@
 // NOLINTNEXTLINE
 void *gfc_secure_free_cstr(char *cstr) {
   if (cstr != nullptr) {
-    // Use secure zeroing before freeing the memory
+    // Use secure zeroing before freeing the memory. NOTE: this derives the wipe
+    // length from strlen(), so it is ONLY safe for genuine NUL-terminated C
+    // strings. For length-delimited binary buffers (e.g. passphrase bytes) use
+    // gfc_secure_free_buffer() instead — strlen() here would read past the end.
     std::memset(cstr, 0, std::strlen(cstr));
     GpgFrontend::SMAFree(cstr);
   }
   return nullptr;
+}
+
+// NOLINTNEXTLINE
+void gfc_secure_free_buffer(uint8_t *ptr, size_t len) {
+  if (ptr == nullptr) return;
+  // Wipe exactly the bytes we own. sodium_memzero is not elided by the
+  // optimizer and we never scan for a terminator, so this cannot over-read the
+  // allocation.
+  if (len > 0) sodium_memzero(ptr, len);
+  GpgFrontend::SMAFree(ptr);
 }
 
 // NOLINTNEXTLINE

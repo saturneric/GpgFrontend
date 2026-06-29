@@ -28,6 +28,9 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+
 extern "C" {
 
 // NOLINTNEXTLINE
@@ -35,4 +38,12 @@ void *gfc_secure_free_cstr(char *cstr);
 
 // NOLINTNEXTLINE
 void gfc_secure_free(void *ptr, void *);
+
+// Securely free a length-delimited byte buffer allocated by the host
+// (SMAMalloc) and handed to the Rust engine. Unlike gfc_secure_free_cstr(), the
+// length is passed explicitly, so the wipe never depends on a NUL terminator
+// and can never read past the allocation. Use this for any non-C-string buffer
+// (e.g. the passphrase bytes returned by FetchPasswordCallback). Passing
+// nullptr / len 0 is a no-op free. NOLINTNEXTLINE
+void gfc_secure_free_buffer(uint8_t *ptr, size_t len);
 }
