@@ -146,3 +146,17 @@ jobs:
         run: |
           timeout 2100 scripts/run_tests.sh --no-build --coverage-only \
             --build-dir ${{github.workspace}}/build
+
+      - name: Run ASan/UBSan Stress Tests
+        # Separate sanitized build (build-asan/, gcc + ASan/UBSan) that hunts for
+        # memory corruption across the C++/Rust FFI boundary. It does a full
+        # instrumented rebuild and runs the *Stress* suite, so it is slow and
+        # gets the most generous timeout of all the test sections.
+        timeout-minutes: 60
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          timeout 3300 scripts/run_tests_asan.sh \
+            --build-dir ${{github.workspace}}/build-asan \
+            --stress-iter 200 \
+            --log-level info

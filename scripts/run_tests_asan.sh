@@ -25,6 +25,7 @@
 # Usage: scripts/run_tests_asan.sh [options]
 #   -i, --stress-iter N    Iterations per stress test     (default: 2000)
 #   -f, --filter PATTERN   GTEST_FILTER to run            (default: *Stress*)
+#   -l, --log-level LEVEL  App log level: debug|info|warn|error (default: warn)
 #       --reconfigure      Wipe build-asan/ and reconfigure from scratch
 #       --build-dir DIR    Sanitizer build directory      (default: build-asan)
 #   -j, --jobs N           Parallel build jobs            (default: nproc)
@@ -41,6 +42,7 @@ set -uo pipefail
 BUILD_DIR="${BUILD_DIR:-build-asan}"
 STRESS_ITER="${GF_STRESS_ITER:-2000}"
 FILTER='*Stress*'
+LOG_LEVEL="warn"
 RECONFIGURE="no"
 JOBS="$(nproc 2>/dev/null || echo 4)"
 
@@ -53,6 +55,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     -i|--stress-iter) STRESS_ITER="${2:?missing value for $1}"; shift ;;
     -f|--filter)      FILTER="${2:?missing value for $1}"; shift ;;
+    -l|--log-level)   LOG_LEVEL="${2:?missing value for $1}"; shift ;;
     --reconfigure)    RECONFIGURE="yes" ;;
     --build-dir)      BUILD_DIR="${2:?missing value for $1}"; shift ;;
     -j|--jobs)        JOBS="${2:?missing value for $1}"; shift ;;
@@ -121,6 +124,7 @@ echo
 echo "============================================================"
 echo "  Sanitizer stress run"
 echo "  Filter:         $FILTER"
+echo "  Log level:      $LOG_LEVEL"
 echo "  GF_STRESS_ITER: $STRESS_ITER"
 echo "  ASAN_OPTIONS:   $ASAN_OPTIONS"
 echo "  UBSAN_OPTIONS:  $UBSAN_OPTIONS"
@@ -129,7 +133,7 @@ echo "============================================================"
 GTEST_FILTER="$FILTER" \
 GTEST_OUTPUT="xml:${RESULTS_DIR}/asan-stress.xml" \
 GF_STRESS_ITER="$STRESS_ITER" \
-  "$BIN" -t 2>&1 | tee "$LOG"
+  "$BIN" -t -l "$LOG_LEVEL" 2>&1 | tee "$LOG"
 
 # --- verdict ---------------------------------------------------------------
 # Three independent failure signals: a sanitizer report, a GoogleTest failure,
