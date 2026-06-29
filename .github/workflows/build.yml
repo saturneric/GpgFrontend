@@ -224,6 +224,21 @@ jobs:
           cache-on-failure: true
         if: runner.os == 'Linux' || runner.os == 'macOS'
 
+      # rust-cache cannot locate the msys2/mingw cargo, so cache the registry and
+      # Corrosion's target dir directly for the Windows build.
+      - name: Cache Cargo (Windows)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ${{github.workspace}}/build/cargo
+          key: cargo-win-${{ matrix.os }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: |
+            cargo-win-${{ matrix.os }}-${{ env.BUILD_TYPE }}-
+        if: runner.os == 'Windows'
+
       - name: Cache GpgME (macOS)
         uses: actions/cache@v4
         with:
@@ -323,6 +338,18 @@ jobs:
 
       - name: Build GpgFrontend (macOS)
         run: |
+          # The macOS 26 / Xcode 26 runner image exports several
+          # *_DEPLOYMENT_TARGET environment variables at once. clang's Darwin
+          # driver aborts with "conflicting deployment targets ... present in
+          # environment" when more than one is set (it surfaces in CMake's
+          # AUTOMOC moc_predefs step). Clear them and let
+          # CMAKE_OSX_DEPLOYMENT_TARGET drive the deployment version instead.
+          echo "Deployment-target env vars set by the runner image:"
+          env | grep -i DEPLOYMENT_TARGET || echo "  (none)"
+          unset MACOSX_DEPLOYMENT_TARGET IPHONEOS_DEPLOYMENT_TARGET \
+                TVOS_DEPLOYMENT_TARGET WATCHOS_DEPLOYMENT_TARGET \
+                DRIVERKIT_DEPLOYMENT_TARGET XROS_DEPLOYMENT_TARGET
+
           MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
           MACOS_MINOR=$(sw_vers -productVersion | cut -d. -f2)
 
