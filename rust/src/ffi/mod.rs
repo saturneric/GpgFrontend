@@ -155,7 +155,12 @@ pub extern "C" fn gfr_set_password_cache_ttl(ttl_secs: u64, max_ttl_secs: u64) {
     );
 }
 
-/// Initialise the `env_logger` backend at INFO level, writing to stdout.
+/// Initialise the `env_logger` backend writing to stdout.
+///
+/// Defaults to INFO, but honours the `RUST_LOG` environment variable so the
+/// C++ side can align the Rust log level with the app's `--log-level` flag
+/// (see `ParseLogLevel`, which exports `RUST_LOG`). An explicit `RUST_LOG`
+/// set by the user always wins.
 ///
 /// Safe to call multiple times; subsequent calls are no-ops if the logger
 /// was already initialized.
@@ -164,5 +169,6 @@ pub extern "C" fn gfr_init_logger() {
     let _ = env_logger::builder()
         .target(env_logger::Target::Stdout)
         .filter_level(LevelFilter::Info)
+        .parse_default_env()
         .try_init();
 }

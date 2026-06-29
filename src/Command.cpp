@@ -173,22 +173,32 @@ auto ParseLogLevel(const QString& log_level) -> int {
   auto level = log_level.toLower();
   if (level == "none") level = "error";
 
+  GFLogLevel gf_level;
+  // env_logger level name for the Rust (rPGP) crate; keeps the Rust logger
+  // aligned with the C++ logger so both honour a single --log-level flag.
+  const char* rust_level;
   if (level == "debug") {
-    SetGFLogLevel(static_cast<int>(GFLogLevel::kDEBUG));
-    QLoggingCategory::setFilterRules(
-        BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kDEBUG)));
+    gf_level = GFLogLevel::kDEBUG;
+    rust_level = "debug";
   } else if (level == "info") {
-    SetGFLogLevel(static_cast<int>(GFLogLevel::kINFO));
-    QLoggingCategory::setFilterRules(
-        BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kINFO)));
+    gf_level = GFLogLevel::kINFO;
+    rust_level = "info";
   } else if (level == "warn") {
-    SetGFLogLevel(static_cast<int>(GFLogLevel::kWARNING));
-    QLoggingCategory::setFilterRules(
-        BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kWARNING)));
+    gf_level = GFLogLevel::kWARNING;
+    rust_level = "warn";
   } else {
-    SetGFLogLevel(static_cast<int>(GFLogLevel::kCRITICAL));
-    QLoggingCategory::setFilterRules(
-        BuildQtLoggingFilterRules(static_cast<int>(GFLogLevel::kCRITICAL)));
+    gf_level = GFLogLevel::kCRITICAL;
+    rust_level = "error";
+  }
+
+  SetGFLogLevel(static_cast<int>(gf_level));
+  QLoggingCategory::setFilterRules(
+      BuildQtLoggingFilterRules(static_cast<int>(gf_level)));
+
+  // Propagate to the Rust logger via RUST_LOG, read by gfr_init_logger() at
+  // core init (which runs after this). A RUST_LOG already set by the user wins.
+  if (!qEnvironmentVariableIsSet("RUST_LOG")) {
+    qputenv("RUST_LOG", rust_level);
   }
   return 0;
 }
