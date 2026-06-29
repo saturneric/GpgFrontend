@@ -50,11 +50,11 @@ using HashCallback = std::function<void(const QString&)>;
 
 // Crypto operations that complete quickly should not flash a waiting dialog.
 // Defer presenting the dialog until the operation has been running this long.
-constexpr int kWaitingDialogShowDelayMs = 1000;
+constexpr int kWaitingDialogShowDelayMs = 200;  // 200 ms
 
 // When the dialog is due but another application currently holds focus, poll at
 // this interval until focus returns before presenting it (see below).
-constexpr int kWaitingDialogFocusRecheckMs = 250;
+constexpr int kWaitingDialogFocusRecheckMs = 150;  // 150 ms
 
 // True when a modal dialog other than `dialog` (and other than the context the
 // waiting dialog is meant to cover) is currently on top. The waiting dialog's
@@ -64,7 +64,8 @@ constexpr int kWaitingDialogFocusRecheckMs = 250;
 // passphrase prompt, or a module's own input dialog (e.g. the EML module asking
 // for sender/recipient/subject/cc/bcc). Presenting the (also modal) waiting
 // window now would stack above it and block its input.
-auto ForeignModalDialogIsActive(GpgFrontend::UI::WaitingDialog* dialog) -> bool {
+auto ForeignModalDialogIsActive(GpgFrontend::UI::WaitingDialog* dialog)
+    -> bool {
   auto* active_modal = QApplication::activeModalWidget();
   if (active_modal == nullptr || active_modal == dialog) return false;
 
