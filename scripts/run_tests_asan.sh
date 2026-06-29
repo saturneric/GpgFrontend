@@ -80,7 +80,7 @@ fi
 if [[ ! -f "$BUILD_DIR/CMakeCache.txt" ]]; then
   echo "==> Configuring sanitizer build in $BUILD_DIR (gcc + ASan/UBSan)"
   cmake -S . -B "$BUILD_DIR" -G Ninja \
-    -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DGPGFRONTEND_LINK_GPGME_INTO_CORE=On \
     -DGPGFRONTEND_BUILD_MODULES=ON \
     -DCMAKE_C_FLAGS="$SAN_FLAGS" \

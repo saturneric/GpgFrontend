@@ -147,16 +147,28 @@ jobs:
           timeout 2100 scripts/run_tests.sh --no-build --coverage-only \
             --build-dir ${{github.workspace}}/build
 
+      # Persist the sanitizer build tree so only the FIRST run pays the full
+      # cold ASan rebuild; later runs restore build-asan/ and ninja relinks
+      # incrementally (ccache also warms ~/.ccache for the instrumented objects).
+      - name: Cache ASan build
+        uses: actions/cache@v3
+        with:
+          path: ${{github.workspace}}/build-asan
+          key: ${{ runner.os }}-build-asan-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-build-asan-
+
       - name: Run ASan/UBSan Stress Tests
         # Separate sanitized build (build-asan/, gcc + ASan/UBSan) that hunts for
         # memory corruption across the C++/Rust FFI boundary. It does a full
-        # instrumented rebuild and runs the *Stress* suite, so it is slow and
-        # gets the most generous timeout of all the test sections.
-        timeout-minutes: 60
+        # instrumented rebuild (cold on the first run, incremental afterwards via
+        # the cache above) and runs the *Stress* suite, so it is the slowest
+        # section and gets the most generous timeout.
+        timeout-minutes: 120
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
-          timeout 3300 scripts/run_tests_asan.sh \
+          timeout 6600 scripts/run_tests_asan.sh \
             --build-dir ${{github.workspace}}/build-asan \
             --stress-iter 200 \
             --log-level warn
