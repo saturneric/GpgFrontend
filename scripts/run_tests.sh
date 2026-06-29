@@ -27,6 +27,7 @@
 #       --no-rust          Skip the Rust phase
 #   -i, --stress-iter N    Iterations per stress test    (default: 1000)
 #   -f, --filter PATTERN   Run a single GTEST_FILTER and nothing else
+#   -l, --log-level LEVEL  App log level: debug|info|warn|error (default: warn)
 #       --build-dir DIR    CMake build directory          (default: build)
 #   -j, --jobs N           Parallel build jobs            (default: nproc)
 #   -h, --help             Show this help
@@ -52,6 +53,7 @@ set -uo pipefail
 # --- defaults --------------------------------------------------------------
 BUILD_DIR="${BUILD_DIR:-build}"
 STRESS_ITER="${GF_STRESS_ITER:-1000}"
+LOG_LEVEL="warn"
 DO_BUILD="auto"   # auto | yes | no
 MODE="all"        # all | unit | stress | coverage | custom | rust
 RUN_RUST="auto"   # auto | no  (auto = include rust in all/unit modes)
@@ -78,6 +80,7 @@ while [[ $# -gt 0 ]]; do
     --no-rust)        RUN_RUST="no" ;;
     -i|--stress-iter) STRESS_ITER="${2:?missing value for $1}"; shift ;;
     -f|--filter)      MODE="custom"; CUSTOM_FILTER="${2:?missing value for $1}"; shift ;;
+    -l|--log-level)   LOG_LEVEL="${2:?missing value for $1}"; shift ;;
     --build-dir)      BUILD_DIR="${2:?missing value for $1}"; shift ;;
     -j|--jobs)        JOBS="${2:?missing value for $1}"; shift ;;
     -h|--help)        usage; exit 0 ;;
@@ -130,6 +133,7 @@ run_phase() {
   echo "============================================================"
   echo "  Phase: ${name}"
   echo "  Filter: ${filter}"
+  echo "  Log level: ${LOG_LEVEL}"
   echo "  GF_STRESS_ITER: ${iter}"
   echo "  GF_RUN_ALGO_COVERAGE: ${algo_coverage:-<unset>}"
   echo "============================================================"
@@ -138,7 +142,7 @@ run_phase() {
   GTEST_OUTPUT="xml:${RESULTS_DIR}/${name}.xml" \
   GF_STRESS_ITER="$iter" \
   GF_RUN_ALGO_COVERAGE="$algo_coverage" \
-    "$BIN" -t 2>&1 | tee "$log"
+    "$BIN" -t -l "$LOG_LEVEL" 2>&1 | tee "$log"
 
   # Exit code is unreliable; decide from the GoogleTest summary.
   if grep -qE '^\[  FAILED  \]|[0-9]+ FAILED TEST' "$log"; then
