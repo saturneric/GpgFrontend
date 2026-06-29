@@ -63,19 +63,19 @@ struct GFSubKeyMetadata {
   int key_ver = 0;
   QString fpr;
   QString key_id;
-  int algo;
-  unsigned key_length;
+  int algo = 0;
+  unsigned key_length = 0;
 
-  qint64 created_at;
-  bool has_secret;
-  bool is_revoked;
+  qint64 created_at = 0;
+  bool has_secret = false;
+  bool is_revoked = false;
 
-  bool can_sign;
-  bool can_encrypt;
-  bool can_auth;
-  bool can_certify;
+  bool can_sign = false;
+  bool can_encrypt = false;
+  bool can_auth = false;
+  bool can_certify = false;
 
-  bool marked;
+  bool marked = false;
 };
 
 struct GFKeyMetadata {
@@ -85,18 +85,18 @@ struct GFKeyMetadata {
 
   QContainer<GFUserId> user_ids;
 
-  int algo;
-  unsigned key_length;
-  qint64 created_at;
-  qint64 update_time;
-  bool has_secret;
-  bool is_revoked;
-  bool is_disabled;
+  int algo = 0;
+  unsigned key_length = 0;
+  qint64 created_at = 0;
+  qint64 update_time = 0;
+  bool has_secret = false;
+  bool is_revoked = false;
+  bool is_disabled = false;
 
-  bool can_sign;
-  bool can_encrypt;
-  bool can_auth;
-  bool can_certify;
+  bool can_sign = false;
+  bool can_encrypt = false;
+  bool can_auth = false;
+  bool can_certify = false;
 
   QContainer<GFSubKeyMetadata> subkeys;
 };
