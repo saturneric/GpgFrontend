@@ -90,7 +90,6 @@ jobs:
         run: |
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
-          echo "GPGME_SHA=$(git -C third_party/gpgme rev-parse HEAD)" >> $GITHUB_ENV
 
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
             BUILD_MODE="${{ github.event.inputs.build_mode }}"
@@ -239,45 +238,26 @@ jobs:
             cargo-win-${{ matrix.os }}-${{ env.BUILD_TYPE }}-
         if: runner.os == 'Windows'
 
-      - name: Cache GpgME (macOS)
-        uses: actions/cache@v4
-        with:
-          path: ${{github.workspace}}/third_party/gpgme/build
-          key: gpgme-${{ matrix.os }}-${{ env.GPGME_SHA }}
-        if: runner.os == 'macOS'
-
       - name: Build GpgME (macOS)
         run: |
           cd ${{github.workspace}}/third_party/gpgme
           export CC="ccache gcc"
           export CXX="ccache g++"
-          if [ ! -f build/Makefile ]; then
-            ./autogen.sh
-            mkdir -p build && cd build
-            ../configure --enable-static \
-            --disable-shared \
-            --enable-silent-rules \
-            --disable-dependency-tracking \
-            --enable-languages=cl \
-            --disable-gpgconf-test \
-            --disable-gpg-test \
-            --disable-gpgsm-test \
-            --disable-g13-test
-            make -j$(sysctl -n hw.logicalcpu)
-          else
-            echo "Reusing cached GpgME build for ${GPGME_SHA}"
-            cd build
-          fi
+          ./autogen.sh
+          mkdir build && cd build
+          ../configure --enable-static \
+          --disable-shared \
+          --enable-silent-rules \
+          --disable-dependency-tracking \
+          --enable-languages=cl \
+          --disable-gpgconf-test \
+          --disable-gpg-test \
+          --disable-gpgsm-test \
+          --disable-g13-test
+          make -j$(sysctl -n hw.logicalcpu)
           sudo make install
           ccache -s
         if: runner.os == 'macOS'
-
-      - name: Cache GpgME (Windows)
-        uses: actions/cache@v4
-        with:
-          path: ${{github.workspace}}/third_party/gpgme/build
-          key: gpgme-${{ matrix.os }}-${{ env.GPGME_SHA }}
-        if: runner.os == 'Windows'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
@@ -287,25 +267,20 @@ jobs:
           export CC="ccache gcc"
           export CXX="ccache g++"
           export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
-          if [ ! -f build/Makefile ]; then
-            ./autogen.sh
-            mkdir -p build && cd build
-            ../configure --enable-maintainer-mode \
-            --enable-static \
-            --disable-shared \
-            --enable-silent-rules \
-            --disable-dependency-tracking \
-            --enable-languages=cl \
-            --disable-gpgconf-test \
-            --disable-gpg-test \
-            --disable-gpgsm-test \
-            --disable-g13-test \
-            --enable-w32-glib
-            make -j$(nproc)
-          else
-            echo "Reusing cached GpgME build for ${GPGME_SHA}"
-            cd build
-          fi
+          ./autogen.sh
+          mkdir build && cd build
+          ../configure --enable-maintainer-mode \
+          --enable-static \
+          --disable-shared \
+          --enable-silent-rules \
+          --disable-dependency-tracking \
+          --enable-languages=cl \
+          --disable-gpgconf-test \
+          --disable-gpg-test \
+          --disable-gpgsm-test \
+          --disable-g13-test \
+          --enable-w32-glib
+          make -j$(nproc)
           make install
           ccache -s
         if: runner.os == 'Windows'
