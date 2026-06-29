@@ -51,7 +51,9 @@ auto GpgVerifyResult::IsGood() const -> bool {
 }
 
 auto GpgVerifyResult::GetRaw() const -> gpgme_verify_result_t {
-  assert(gf_result_ref_ == nullptr);
+  // Only the native (GnuPG) path owns a gpgme result; rPGP-backed results keep
+  // their data in gf_result_ref_ and have no raw handle, so this returns
+  // nullptr for them. Callers must tolerate a null return.
   return result_ref_.get();
 }
 

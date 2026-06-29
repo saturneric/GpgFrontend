@@ -32,6 +32,10 @@
 #include "core/GFCoreRust.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
+#include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
+#include "core/function/result_analyse/GpgSignResultAnalyse.h"
+#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
 #include "core/model/GpgSignResult.h"
@@ -425,6 +429,83 @@ TEST_F(RpgpCoreTest, CoreEncryptCancelOtherChannelTest) {
 #ifdef HAS_RUST_SUPPORT
   GpgFrontend::Rust::gfr_set_operation_cancelled(other_channel, false);
 #endif
+}
+
+// Regression: rPGP-backed results carry no native gpgme_*_result handle; their
+// data lives in the Gpg*Result model instead. The result analysers must read
+// that engine-agnostic model so a successful operation is reported as success.
+// Previously the EML flow analysed a null gpgme handle and surfaced a perfectly
+// good sign/verify as "failed" (status -1). These analysers are exactly what the
+// SDK's analyse-by-capsule path drives, so a non-negative status here is the
+// guarantee that path relies on.
+TEST_F(RpgpCoreTest, CoreSignVerifyResultAnalyseEngineAgnosticTest) {
+  auto sign_key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                      .GetPubkeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(sign_key != nullptr);
+
+  auto sign_text = GFBuffer(QString("Hello RPGP!"));
+
+  // PGP/MIME (and therefore the EML flow this fixes) uses a detached signature,
+  // so exercise detached sign + verify here.
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .SignSync({sign_key}, sign_text, GPGME_SIG_MODE_DETACH, true);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  auto sign_result = ExtractParams<GpgSignResult>(data_object, 0);
+  auto sign_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
+
+  GpgSignResultAnalyse sign_analyse{kRpgpChannelForUnitTest, err, sign_result};
+  sign_analyse.Analyse();
+  EXPECT_GT(sign_analyse.GetStatus(), 0);
+  EXPECT_FALSE(sign_analyse.GetResultReport().isEmpty());
+
+  auto [err_0, data_object_0] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .VerifySync(sign_text, sign_out_buffer);
+  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 0);
+
+  GpgVerifyResultAnalyse verify_analyse{kRpgpChannelForUnitTest, err_0,
+                                        verify_result};
+  verify_analyse.Analyse();
+  // A good signature must never be reported as a failure (-1).
+  EXPECT_GE(verify_analyse.GetStatus(), 0);
+  EXPECT_FALSE(verify_analyse.GetResultReport().isEmpty());
+}
+
+TEST_F(RpgpCoreTest, CoreEncryptDecryptResultAnalyseEngineAgnosticTest) {
+  auto encrypt_key =
+      GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+          .GetPubkeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(encrypt_key != nullptr);
+
+  auto buffer = GFBuffer(QString("Hello RPGP!"));
+
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSync({encrypt_key}, buffer, true);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  auto encr_result = ExtractParams<GpgEncryptResult>(data_object, 0);
+  auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
+
+  GpgEncryptResultAnalyse encr_analyse{kRpgpChannelForUnitTest, err,
+                                       encr_result};
+  encr_analyse.Analyse();
+  EXPECT_GT(encr_analyse.GetStatus(), 0);
+  EXPECT_FALSE(encr_analyse.GetResultReport().isEmpty());
+
+  auto [err_0, data_object_0] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .DecryptSync(encr_out_buffer);
+  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
+
+  GpgDecryptResultAnalyse decr_analyse{kRpgpChannelForUnitTest, err_0,
+                                       decr_result};
+  decr_analyse.Analyse();
+  // A good decryption must never be reported as a failure (-1).
+  EXPECT_GE(decr_analyse.GetStatus(), 0);
+  EXPECT_FALSE(decr_analyse.GetResultReport().isEmpty());
 }
 
 TEST_F(RpgpCoreTest, EngineBuildInfoTest) {

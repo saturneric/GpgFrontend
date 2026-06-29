@@ -31,6 +31,9 @@
 // std::memset
 #include <cstring>
 
+// std::any_cast
+#include <any>
+
 #include "GFSDKBasic.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
@@ -38,6 +41,7 @@
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgSignResultAnalyse.h"
+#include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/DataObject.h"
 #include "core/model/GpgDecryptResult.h"
 #include "core/model/GpgEncryptResult.h"
@@ -113,8 +117,10 @@ auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
   auto capsule_id =
       GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
 
+  // rPGP-backed results have no raw gpgme handle (GetRaw() is null); only the
+  // analyse-by-capsule path can read them. Native results expose a raw handle.
   auto* raw_result = result.GetRaw();
-  gpgme_result_ref(raw_result);
+  if (raw_result != nullptr) gpgme_result_ref(raw_result);
 
   s->signature = GFStrDup(out_buffer.ConvertToQByteArray());
   s->hash_algo = GFStrDup(result.HashAlgo());
@@ -202,8 +208,10 @@ auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
   auto capsule_id =
       GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
 
+  // rPGP-backed results have no raw gpgme handle (GetRaw() is null); only the
+  // analyse-by-capsule path can read them. Native results expose a raw handle.
   auto* raw_result = result.GetRaw();
-  gpgme_result_ref(raw_result);
+  if (raw_result != nullptr) gpgme_result_ref(raw_result);
 
   s->encrypted_data = GFStrDup(out_buffer.ConvertToQByteArray());
   s->capsule_id = GFStrDup(capsule_id);
@@ -239,8 +247,10 @@ auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
   auto capsule_id =
       GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
 
+  // rPGP-backed results have no raw gpgme handle (GetRaw() is null); only the
+  // analyse-by-capsule path can read them. Native results expose a raw handle.
   auto* raw_result = result.GetRaw();
-  gpgme_result_ref(raw_result);
+  if (raw_result != nullptr) gpgme_result_ref(raw_result);
 
   if (out_buffer.Empty()) {
     s->decrypted_data = GFStrDup("");
@@ -286,8 +296,10 @@ auto GF_SDK_EXPORT GFGpgVerifyData(int channel, char* data, char* signature,
   auto capsule_id =
       GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
 
+  // rPGP-backed results have no raw gpgme handle (GetRaw() is null); only the
+  // analyse-by-capsule path can read them. Native results expose a raw handle.
   auto* raw_result = result.GetRaw();
-  gpgme_result_ref(raw_result);
+  if (raw_result != nullptr) gpgme_result_ref(raw_result);
 
   s->capsule_id = GFStrDup(capsule_id);
   s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
@@ -390,4 +402,71 @@ auto GFAnalyseVerifyResult(int channel, gpgme_error_t err,
   *analyse = GFStrDup(ra.GetResultReport());
   EmitResultCards(ra.GetOpInfo(), cards);
   return ra.GetStatus();
+}
+
+namespace {
+
+// Engine-neutral analysis. The raw gpgme_*_result handles only exist for the
+// native (GnuPG) engine; the rPGP engine stores its result in the Gpg*Result
+// model object instead, which the SDK stashed in a UI capsule. Recover that
+// model from the capsule and run the same analyser used by the native path, so
+// both engines produce identical reports and status codes. Returns -1 when the
+// capsule is missing or holds an unexpected type.
+template <typename ResultT, typename AnalyseT>
+auto AnalyseResultByCapsule(int channel, gpgme_error_t err, char* capsule_id,
+                            const char** analyse, const char** cards) -> int {
+  if (analyse == nullptr) return -1;
+
+  auto capsule = GpgFrontend::UI::UIModuleManager::GetInstance().GetCapsule(
+      GFUnStrDup(capsule_id));
+
+  auto* result = std::any_cast<ResultT>(&capsule);
+  if (result == nullptr) return -1;
+
+  AnalyseT ra(channel, err, *result);
+  ra.Analyse();
+  *analyse = GFStrDup(ra.GetResultReport());
+  EmitResultCards(ra.GetOpInfo(), cards);
+  return ra.GetStatus();
+}
+
+}  // namespace
+
+auto GF_SDK_EXPORT GFAnalyseEncryptResultByCapsule(int channel,
+                                                   gpgme_error_t err,
+                                                   char* capsule_id,
+                                                   const char** analyse,
+                                                   const char** cards) -> int {
+  return AnalyseResultByCapsule<GpgFrontend::GpgEncryptResult,
+                                GpgFrontend::GpgEncryptResultAnalyse>(
+      channel, err, capsule_id, analyse, cards);
+}
+
+auto GF_SDK_EXPORT GFAnalyseSignResultByCapsule(int channel, gpgme_error_t err,
+                                                char* capsule_id,
+                                                const char** analyse,
+                                                const char** cards) -> int {
+  return AnalyseResultByCapsule<GpgFrontend::GpgSignResult,
+                                GpgFrontend::GpgSignResultAnalyse>(
+      channel, err, capsule_id, analyse, cards);
+}
+
+auto GF_SDK_EXPORT GFAnalyseDecryptResultByCapsule(int channel,
+                                                   gpgme_error_t err,
+                                                   char* capsule_id,
+                                                   const char** analyse,
+                                                   const char** cards) -> int {
+  return AnalyseResultByCapsule<GpgFrontend::GpgDecryptResult,
+                                GpgFrontend::GpgDecryptResultAnalyse>(
+      channel, err, capsule_id, analyse, cards);
+}
+
+auto GF_SDK_EXPORT GFAnalyseVerifyResultByCapsule(int channel,
+                                                  gpgme_error_t err,
+                                                  char* capsule_id,
+                                                  const char** analyse,
+                                                  const char** cards) -> int {
+  return AnalyseResultByCapsule<GpgFrontend::GpgVerifyResult,
+                                GpgFrontend::GpgVerifyResultAnalyse>(
+      channel, err, capsule_id, analyse, cards);
 }

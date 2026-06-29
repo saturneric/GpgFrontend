@@ -305,4 +305,67 @@ auto GF_SDK_EXPORT GFAnalyseVerifyResult(int channel, gpgme_error_t err,
                                          const char** analyse,
                                          const char** cards) -> int;
 
+/**
+ * @brief Analyses an encryption result referenced by capsule ID.
+ *
+ * Engine-neutral counterpart of GFAnalyseEncryptResult: works for both the
+ * native (GnuPG) and rPGP engines, because it recovers the full result model
+ * from the capsule produced by GFGpgEncryptData rather than relying on a raw
+ * gpgme handle (which the rPGP engine never produces).
+ *
+ * @param channel       GPG context channel index.
+ * @param err           GPGME error code from the encrypt operation.
+ * @param capsule_id    Capsule ID from GFGpgEncryptionResult::capsule_id. The
+ *                      capsule is consumed (invalidated) by this call.
+ * @param[out] analyse  Set to a caller-owned analysis report; free with
+ *                      GFFreeMemory.
+ * @param[out] cards    Optional; see GFAnalyseEncryptResult. Pass nullptr to
+ *                      skip.
+ * @return Status code: positive on success, negative on detected errors, -1 if
+ *         the capsule is missing or of an unexpected type.
+ */
+auto GF_SDK_EXPORT GFAnalyseEncryptResultByCapsule(int channel,
+                                                   gpgme_error_t err,
+                                                   char* capsule_id,
+                                                   const char** analyse,
+                                                   const char** cards) -> int;
+
+/**
+ * @brief Analyses a signing result referenced by capsule ID.
+ *
+ * Engine-neutral counterpart of GFAnalyseSignResult. See
+ * GFAnalyseEncryptResultByCapsule for the rationale and ownership rules; the
+ * capsule comes from GFGpgSignResult::capsule_id.
+ */
+auto GF_SDK_EXPORT GFAnalyseSignResultByCapsule(int channel, gpgme_error_t err,
+                                                char* capsule_id,
+                                                const char** analyse,
+                                                const char** cards) -> int;
+
+/**
+ * @brief Analyses a decryption result referenced by capsule ID.
+ *
+ * Engine-neutral counterpart of GFAnalyseDecryptResult. See
+ * GFAnalyseEncryptResultByCapsule for the rationale and ownership rules; the
+ * capsule comes from GFGpgDecryptResult::capsule_id.
+ */
+auto GF_SDK_EXPORT GFAnalyseDecryptResultByCapsule(int channel,
+                                                   gpgme_error_t err,
+                                                   char* capsule_id,
+                                                   const char** analyse,
+                                                   const char** cards) -> int;
+
+/**
+ * @brief Analyses a verification result referenced by capsule ID.
+ *
+ * Engine-neutral counterpart of GFAnalyseVerifyResult. See
+ * GFAnalyseEncryptResultByCapsule for the rationale and ownership rules; the
+ * capsule comes from GFGpgVerifyResult::capsule_id.
+ */
+auto GF_SDK_EXPORT GFAnalyseVerifyResultByCapsule(int channel,
+                                                  gpgme_error_t err,
+                                                  char* capsule_id,
+                                                  const char** analyse,
+                                                  const char** cards) -> int;
+
 }  // extern "C"
