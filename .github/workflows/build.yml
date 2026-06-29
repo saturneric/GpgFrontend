@@ -90,6 +90,7 @@ jobs:
         run: |
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
+          echo "GPGME_SHA=$(git -C third_party/gpgme rev-parse HEAD)" >> $GITHUB_ENV
 
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
             BUILD_MODE="${{ github.event.inputs.build_mode }}"
@@ -223,25 +224,45 @@ jobs:
           cache-on-failure: true
         if: runner.os == 'Linux' || runner.os == 'macOS'
 
+      - name: Cache GpgME (macOS)
+        uses: actions/cache@v4
+        with:
+          path: ${{github.workspace}}/third_party/gpgme/build
+          key: gpgme-${{ matrix.os }}-${{ env.GPGME_SHA }}
+        if: runner.os == 'macOS'
+
       - name: Build GpgME (macOS)
         run: |
           cd ${{github.workspace}}/third_party/gpgme
           export CC="ccache gcc"
           export CXX="ccache g++"
-          ./autogen.sh
-          mkdir build && cd build
-          ../configure --enable-static \
-          --disable-shared \
-          --enable-silent-rules \
-          --disable-dependency-tracking \
-          --enable-languages=cl \
-          --disable-gpgconf-test \
-          --disable-gpg-test \
-          --disable-gpgsm-test \
-          --disable-g13-test
-          make -j$(sysctl -n hw.logicalcpu)
+          if [ ! -f build/Makefile ]; then
+            ./autogen.sh
+            mkdir -p build && cd build
+            ../configure --enable-static \
+            --disable-shared \
+            --enable-silent-rules \
+            --disable-dependency-tracking \
+            --enable-languages=cl \
+            --disable-gpgconf-test \
+            --disable-gpg-test \
+            --disable-gpgsm-test \
+            --disable-g13-test
+            make -j$(sysctl -n hw.logicalcpu)
+          else
+            echo "Reusing cached GpgME build for ${GPGME_SHA}"
+            cd build
+          fi
           sudo make install
+          ccache -s
         if: runner.os == 'macOS'
+
+      - name: Cache GpgME (Windows)
+        uses: actions/cache@v4
+        with:
+          path: ${{github.workspace}}/third_party/gpgme/build
+          key: gpgme-${{ matrix.os }}-${{ env.GPGME_SHA }}
+        if: runner.os == 'Windows'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
@@ -251,33 +272,52 @@ jobs:
           export CC="ccache gcc"
           export CXX="ccache g++"
           export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
-          ./autogen.sh
-          mkdir build && cd build
-          ../configure --enable-maintainer-mode \
-          --enable-static \
-          --disable-shared \
-          --enable-silent-rules \
-          --disable-dependency-tracking \
-          --enable-languages=cl \
-          --disable-gpgconf-test \
-          --disable-gpg-test \
-          --disable-gpgsm-test \
-          --disable-g13-test \
-          --enable-w32-glib
-          make -j$(nproc)
+          if [ ! -f build/Makefile ]; then
+            ./autogen.sh
+            mkdir -p build && cd build
+            ../configure --enable-maintainer-mode \
+            --enable-static \
+            --disable-shared \
+            --enable-silent-rules \
+            --disable-dependency-tracking \
+            --enable-languages=cl \
+            --disable-gpgconf-test \
+            --disable-gpg-test \
+            --disable-gpgsm-test \
+            --disable-g13-test \
+            --enable-w32-glib
+            make -j$(nproc)
+          else
+            echo "Reusing cached GpgME build for ${GPGME_SHA}"
+            cd build
+          fi
           make install
+          ccache -s
         if: runner.os == 'Windows'
+
+      - name: Cache googletest (Linux)
+        uses: actions/cache@v4
+        with:
+          path: ${{github.workspace}}/third_party/googletest
+          key: gtest-${{ matrix.os }}-v1.15.2
+        if: runner.os == 'Linux'
 
       - name: Build googletest (Linux)
         run: |
-          git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
-          cd ${{github.workspace}}/third_party/googletest
-          mkdir build && cd build
-          cmake -G Ninja -DBUILD_SHARED_LIBS=ON \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            ..
-          ninja
+          if [ ! -f "${{github.workspace}}/third_party/googletest/build/build.ninja" ]; then
+            rm -rf ${{github.workspace}}/third_party/googletest
+            git clone --depth 1 --branch v1.15.2 https://github.com/google/googletest.git ${{github.workspace}}/third_party/googletest
+            cd ${{github.workspace}}/third_party/googletest
+            mkdir build && cd build
+            cmake -G Ninja -DBUILD_SHARED_LIBS=ON \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              ..
+            ninja
+          else
+            echo "Reusing cached googletest build"
+          fi
+          cd ${{github.workspace}}/third_party/googletest/build
           sudo ninja install
         if: runner.os == 'Linux'
 
@@ -300,14 +340,29 @@ jobs:
 
           echo "Set MacOS Deployment Target: $DEPLOY_TARGET"
 
+          # The Xcode generator ignores CMAKE_<LANG>_COMPILER_LAUNCHER, so ccache
+          # is wired in via compiler-launcher attributes pointing at thin wrappers.
+          # Sloppiness is relaxed so ccache can cache precompiled headers; it is
+          # written to the ccache config so it also applies to the xcodebuild step.
+          ccache --set-config=sloppiness=pch_defines,time_macros,include_file_mtime,include_file_ctime
+          ccache -z
+          CC_WRAPPER="${{github.workspace}}/ccache-clang"
+          CXX_WRAPPER="${{github.workspace}}/ccache-clang++"
+          printf '#!/bin/sh\nexec ccache clang "$@"\n' > "$CC_WRAPPER"
+          printf '#!/bin/sh\nexec ccache clang++ "$@"\n' > "$CXX_WRAPPER"
+          chmod +x "$CC_WRAPPER" "$CXX_WRAPPER"
+
           cmake -B ${{github.workspace}}/build -G Xcode \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=${DEPLOY_TARGET} \
+            -DCMAKE_XCODE_ATTRIBUTE_CC="$CC_WRAPPER" \
+            -DCMAKE_XCODE_ATTRIBUTE_CXX="$CXX_WRAPPER" \
+            -DCMAKE_XCODE_ATTRIBUTE_CLANG_ENABLE_MODULES=NO \
             -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}" \
             -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
             -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{env.PROVISIONING_PROFILE_UUID}}" \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
-            
+
           xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
 
           echo "CODE_SIGNING_IDENTITY=${{env.CODE_SIGNING_IDENTITY}}"
@@ -330,6 +385,8 @@ jobs:
           xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
             -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
             -exportPath ${{github.workspace}}/build/package/
+
+          ccache -s
         if: runner.os == 'macOS'
 
       - name: Deploy Qt & Code Sign (macOS)
@@ -384,6 +441,7 @@ jobs:
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
             --verbose
+          ccache -s
         if: runner.os == 'Linux'
 
       - name: Package App Image (Linux)
@@ -440,6 +498,7 @@ jobs:
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
             --verbose
+          ccache -s
         if: runner.os == 'Windows'
 
       - name: Download GnuPG Binary Release (Windows)
