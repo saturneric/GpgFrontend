@@ -81,14 +81,14 @@ auto EnsureEngine(const EngineTestParam& p) -> bool {
   db_path.mkpath(".");
   Q_ASSERT(db_path.exists());
 
-  auto succ = BuildOpenPGPContext(
-      p.channel, OpenPGPContextInitArgs{
-                     .engine = p.engine,
-                     .db_name = "test-engine-db",
-                     .db_path = db_path.canonicalPath(),
-                     .offline_mode = true,
-                     .auto_import_missing_key = false,
-                 });
+  auto succ =
+      BuildOpenPGPContext(p.channel, OpenPGPContextInitArgs{
+                                         .engine = p.engine,
+                                         .db_name = "test-engine-db",
+                                         .db_path = db_path.canonicalPath(),
+                                         .offline_mode = true,
+                                         .auto_import_missing_key = false,
+                                     });
   if (!succ) {
     LOG_E() << "configure engine context for unit test failed, channel:"
             << p.channel;
@@ -100,9 +100,18 @@ auto EnsureEngine(const EngineTestParam& p) -> bool {
     ctx.SetPassphraseCb(ctx.DefaultContext(), TestPassphraseCb);
     ctx.SetPassphraseCb(ctx.BinaryContext(), TestPassphraseCb);
   } else if (p.engine == OpenPGPEngine::kRPGP) {
-    SetChannelPasswordFetcher(
-        p.channel,
-        [](const PassphraseState&) -> GFBuffer { return GFBuffer("123456"); });
+    const auto fetcher = [](const PassphraseState&) -> GFBuffer {
+      return GFBuffer("123456");
+    };
+    // Normal crypto ops invoke the callback with the real channel. Key
+    // generation, however, goes through gfr_crypto_generate_key(), which has no
+    // channel parameter, so the Rust side passes the *key index* as the channel
+    // to the password callback (0 = primary, 1 = first subkey, ...). Register
+    // the fetcher for those pseudo-channels too so a passphrase-protected key
+    // can be generated head-less. The fetcher ignores the channel anyway.
+    SetChannelPasswordFetcher(p.channel, fetcher);
+    SetChannelPasswordFetcher(0, fetcher);
+    SetChannelPasswordFetcher(1, fetcher);
   }
 
   ready.insert(p.channel);
@@ -148,24 +157,25 @@ auto GpgCoreEngineTest::PickEncryptionSubAlgo() const -> KeyAlgo {
   return SelectAlgo(algos, {"cv25519", "nistp256", "rsa2048"});
 }
 
-auto GpgCoreEngineTest::GenerateFullKey(const QString& uid_suffix)
-    -> GpgKeyPtr {
+auto GpgCoreEngineTest::GenerateFullKey(const QString& uid_suffix,
+                                        bool with_passphrase) -> GpgKeyPtr {
+  const bool non_passphrase = !with_passphrase;
   auto p_info = QSharedPointer<KeyGenerateInfo>::create();
   p_info->SetName("engine_test_" + uid_suffix);
   p_info->SetEmail("engine_test@gpgfrontend.bktus.com");
   p_info->SetComment("engine independent test");
   p_info->SetAlgo(PickPrimaryAlgo());
   p_info->SetNonExpired(true);
-  p_info->SetNonPassPhrase(true);
+  p_info->SetNonPassPhrase(non_passphrase);
 
   auto s_info = QSharedPointer<KeyGenerateInfo>::create(true);
   s_info->SetAlgo(PickEncryptionSubAlgo());
   s_info->SetNonExpired(true);
-  s_info->SetNonPassPhrase(true);
+  s_info->SetNonPassPhrase(non_passphrase);
 
   auto [err, data_object] =
-      KeyGenerationOperation::GetInstance(Channel())
-          .GenerateKeyWithSubkeySync(p_info, s_info);
+      KeyGenerationOperation::GetInstance(Channel()).GenerateKeyWithSubkeySync(
+          p_info, s_info);
 
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return nullptr;
   if (!data_object->Check<GpgGenerateKeyResult, GpgGenerateKeyResult>()) {
@@ -178,8 +188,8 @@ auto GpgCoreEngineTest::GenerateFullKey(const QString& uid_suffix)
   GpgKeyRepository::GetInstance(Channel()).FlushKeyCache();
   // Engines disagree on fingerprint casing (GnuPG upper, rPGP lower) while the
   // repository keys by upper-case; normalise so lookup is engine-independent.
-  return GpgKeyRepository::GetInstance(Channel())
-      .GetKeyPtr(result.GetFingerprint().toUpper());
+  return GpgKeyRepository::GetInstance(Channel()).GetKeyPtr(
+      result.GetFingerprint().toUpper());
 }
 
 void GpgCoreEngineTest::DeleteKey(const GpgKeyPtr& key) const {
@@ -195,10 +205,10 @@ auto GpgCoreEngineTest::StressIterations() -> int {
 
 INSTANTIATE_TEST_SUITE_P(
     Engines, GpgCoreEngineTest,
-    ::testing::Values(
-        EngineTestParam{"GnuPG", OpenPGPEngine::kGNUPG,
-                        kEngineTestGnupgChannel},
-        EngineTestParam{"RPGP", OpenPGPEngine::kRPGP, kEngineTestRpgpChannel}),
+    ::testing::Values(EngineTestParam{"GnuPG", OpenPGPEngine::kGNUPG,
+                                      kEngineTestGnupgChannel},
+                      EngineTestParam{"RPGP", OpenPGPEngine::kRPGP,
+                                      kEngineTestRpgpChannel}),
     [](const ::testing::TestParamInfo<EngineTestParam>& info) {
       return info.param.name.toStdString();
     });
@@ -219,7 +229,8 @@ TEST(GpgCorePlaceholderContextTest, PlaceholderChannelIsNotGnuPG) {
   auto& ctx = OpenPGPContext::GetInstance(kUnusedChannel);
   EXPECT_EQ(ctx.Engine(), OpenPGPEngine::kRPGP);
 
-  // Must not throw, and must report that GnuPG is not supported on this channel.
+  // Must not throw, and must report that GnuPG is not supported on this
+  // channel.
   bool supported = true;
   EXPECT_NO_THROW(supported = GpgContextSupportIf(
                       kUnusedChannel,

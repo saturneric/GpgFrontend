@@ -82,7 +82,8 @@ class GpgCoreEngineTest : public ::testing::TestWithParam<EngineTestParam> {
    *
    * @return The imported key, or nullptr on failure (the caller should assert).
    */
-  [[nodiscard]] auto GenerateFullKey(const QString& uid_suffix) -> GpgKeyPtr;
+  [[nodiscard]] auto GenerateFullKey(const QString& uid_suffix,
+                                     bool with_passphrase = false) -> GpgKeyPtr;
 
   /// @brief Remove a key generated during a test from the engine's database.
   void DeleteKey(const GpgKeyPtr& key) const;

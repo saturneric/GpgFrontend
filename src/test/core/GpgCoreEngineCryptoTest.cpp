@@ -603,6 +603,93 @@ TEST_P(GpgCoreEngineTest, KeyModelTraversalStress) {
 // capped well below the other stress counts.
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Stress: repeat the COMBINED encrypt+sign -> decrypt+verify cycle.
+//
+// This mirrors the exact user-reported crash path (`realloc(): invalid next
+// size` during encrypt+sign / decrypt+verify). Unlike the plain Stress test,
+// it drives EncryptSignSync/DecryptVerifySync, and varies the payload size so
+// the output buffers cross the kSecBufferSize (4KB) boundary in Read2GFBuffer's
+// realloc/append loop -- the most likely spot for a heap-buffer-overflow.
+// Run under ASan for signal: scripts/run_tests_asan.sh -f
+// '*EncryptSignDecryptVerifyStress*'
+// ---------------------------------------------------------------------------
+
+TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerifyStress) {
+  auto key = GenerateFullKey("encsign_stress");
+  ASSERT_TRUE(key != nullptr);
+
+  const int iterations = StressIterations();
+  for (int i = 0; i < iterations; ++i) {
+    // Vary the size across the 4KB secure-buffer boundary that Read2GFBuffer
+    // chunks on, including sizes straddling multiples of it.
+    const int size = 1 + (i * 257) % (32 * 1024);
+    auto plain = GFBuffer(GenerateRandomString(size));
+
+    auto [enc_err, enc_obj] =
+        MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
+            {key}, {key}, plain, true);
+    ASSERT_EQ(CheckGpgError(enc_err), GPG_ERR_NO_ERROR)
+        << "encrypt+sign failed at iteration " << i << " size " << size;
+    ASSERT_TRUE((enc_obj->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
+    auto cipher = ExtractParams<GFBuffer>(enc_obj, 2);
+
+    auto [dec_err, dec_obj] =
+        MessageCryptoOperation::GetInstance(Channel()).DecryptVerifySync(
+            cipher);
+    ASSERT_EQ(CheckGpgError(dec_err), GPG_ERR_NO_ERROR)
+        << "decrypt+verify failed at iteration " << i << " size " << size;
+    ASSERT_TRUE(
+        (dec_obj->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
+    auto out = ExtractParams<GFBuffer>(dec_obj, 2);
+    ASSERT_EQ(out, plain) << "roundtrip mismatch at iteration " << i;
+  }
+
+  DeleteKey(key);
+}
+
+// ---------------------------------------------------------------------------
+// Regression: encrypt+sign / decrypt+verify with a PASSPHRASE-protected key.
+//
+// With a protected secret key the engine invokes the host passphrase-fetch
+// callback. For rPGP, FetchPasswordCallback returns a length-delimited byte
+// buffer that Rust then frees via gfc_secure_free_cstr() -> strlen(). The
+// buffer used to be allocated without a NUL terminator, so strlen ran past it
+// (heap-buffer-overflow), intermittently corrupting the heap and crashing with
+// "realloc(): invalid next size". The other stress tests use NonPassPhrase keys
+// and so never exercised this path. Run under ASan to catch a regression.
+// ---------------------------------------------------------------------------
+
+TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerifyWithPassphrase) {
+  auto key = GenerateFullKey("encsign_pass", /*with_passphrase=*/true);
+  ASSERT_TRUE(key != nullptr);
+
+  // A few rounds so the passphrase fetch + free path runs repeatedly.
+  for (int i = 0; i < 5; ++i) {
+    auto plain = GFBuffer(QString("passphrase path round %1").arg(i));
+
+    auto [enc_err, enc_obj] =
+        MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
+            {key}, {key}, plain, true);
+    ASSERT_EQ(CheckGpgError(enc_err), GPG_ERR_NO_ERROR)
+        << "encrypt+sign failed at round " << i;
+    ASSERT_TRUE((enc_obj->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
+    auto cipher = ExtractParams<GFBuffer>(enc_obj, 2);
+
+    auto [dec_err, dec_obj] =
+        MessageCryptoOperation::GetInstance(Channel()).DecryptVerifySync(
+            cipher);
+    ASSERT_EQ(CheckGpgError(dec_err), GPG_ERR_NO_ERROR)
+        << "decrypt+verify failed at round " << i;
+    ASSERT_TRUE(
+        (dec_obj->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
+    auto out = ExtractParams<GFBuffer>(dec_obj, 2);
+    ASSERT_EQ(out, plain) << "roundtrip mismatch at round " << i;
+  }
+
+  DeleteKey(key);
+}
+
 TEST_P(GpgCoreEngineTest, GenerateDeleteChurnStress) {
   const int iterations = std::min(StressIterations(), 30);
   for (int i = 0; i < iterations; ++i) {
