@@ -244,7 +244,7 @@ jobs:
           export CC="ccache gcc"
           export CXX="ccache g++"
           ./autogen.sh
-          mkdir build && cd build
+          mkdir -p build && cd build
           ../configure --enable-static \
           --disable-shared \
           --enable-silent-rules \
@@ -268,7 +268,7 @@ jobs:
           export CXX="ccache g++"
           export CFLAGS="${CFLAGS} -Wno-int-conversion -Wno-incompatible-pointer-types"
           ./autogen.sh
-          mkdir build && cd build
+          mkdir -p build && cd build
           ../configure --enable-maintainer-mode \
           --enable-static \
           --disable-shared \
@@ -463,11 +463,10 @@ jobs:
         shell: msys2 {0}
         run: |
           cd $(cygpath -u "${{github.workspace}}")
-          mkdir build && cd build
-          cmake -G "Ninja" -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
-            ..
-          cmake --build . \
+          cmake -G "Ninja" -S . -B build \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
+          cmake --build build \
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
             --verbose
