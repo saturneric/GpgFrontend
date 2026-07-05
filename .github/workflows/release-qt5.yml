@@ -44,7 +44,7 @@ on:
 
 env:
   BUILD_TYPE: Release
-  GNUPG_VERSION: "2.5.18"
+  GNUPG_VERSION: "2.5.20"
 
 jobs:
   build:
