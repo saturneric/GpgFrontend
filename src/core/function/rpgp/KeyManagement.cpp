@@ -93,11 +93,6 @@ auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   }
 
   auto key_block_utf8 = key_block_data->secret_key;
-  if (key_block_utf8 == nullptr) {
-    LOG_E() << "key block data is null for key with fpr: " << meta->fpr;
-    return GPG_ERR_GENERAL;
-  }
-
   auto key_fpr_utf8 = key->Fingerprint().toUtf8();
   char* out_secret_block = nullptr;
 

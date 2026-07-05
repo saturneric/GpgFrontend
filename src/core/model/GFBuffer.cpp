@@ -218,13 +218,13 @@ auto GFBuffer::ConvertToQString() const -> QString {
 }
 
 auto GFBuffer::operator==(const char* str) const -> bool {
+  if (str == nullptr) return Size() == 0;
   return Size() == strnlen(str, kStrlenMaxLength) &&
          (Size() == 0 || std::memcmp(Data(), str, Size()) == 0);
 }
 
 auto GFBuffer::operator!=(const char* str) const -> bool {
-  return Size() == strnlen(str, kStrlenMaxLength) &&
-         (Size() == 0 || std::memcmp(Data(), str, Size()) != 0);
+  return !(*this == str);
 }
 
 auto GFBuffer::operator<(const GFBuffer& other) const -> bool {
