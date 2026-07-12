@@ -29,11 +29,9 @@
 #include "GpgKeyTableProxyModel.h"
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
-#include "core/model/CacheObject.h"
+#include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyTableModel.h"
-#include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
-#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::UI {
 
@@ -81,8 +79,7 @@ auto GpgKeyTableProxyModel::filterAcceptsRow(
 
   if (!custom_filter_(key)) return false;
 
-  if (display_mode_ & GpgKeyTableDisplayMode::kFAVORITES &&
-      !favorite_key_ids_.contains(key->ID())) {
+  if (!category_id_.isEmpty() && !category_key_ids_.contains(key->ID())) {
     return false;
   }
 
@@ -165,7 +162,7 @@ void GpgKeyTableProxyModel::SetSearchKeywords(const QString &keywords) {
 }
 
 void GpgKeyTableProxyModel::slot_update_favorites() {
-  slot_update_favorites_cache();
+  refresh_category_cache();
   invalidateFilter();
 }
 
@@ -183,19 +180,24 @@ void GpgKeyTableProxyModel::slot_update_column_type(
 void GpgKeyTableProxyModel::ResetGpgKeyTableModel(
     QSharedPointer<GpgKeyTableModel> model) {
   model_ = std::move(model);
-  slot_update_favorites_cache();
+  refresh_category_cache();
   setSourceModel(model_.get());
 }
 
-void GpgKeyTableProxyModel::slot_update_favorites_cache() {
-  auto json_data = CacheObject("all_favorite_key_pairs");
-  auto cache_obj = AllFavoriteKeyPairsCO(json_data.object());
+void GpgKeyTableProxyModel::refresh_category_cache() {
+  category_key_ids_.clear();
+  if (category_id_.isEmpty()) return;
 
-  auto key_db_name = GetGpgKeyDatabaseName(model_->GetGpgContextChannel());
+  auto key_ids =
+      KeyCategoryRepository::GetInstance(model_->GetGpgContextChannel())
+          .KeyIdsOf(category_id_);
+  category_key_ids_ = QSet<QString>(key_ids.begin(), key_ids.end());
+}
 
-  if (cache_obj.key_dbs.contains(key_db_name)) {
-    favorite_key_ids_ = cache_obj.key_dbs[key_db_name].key_ids;
-  }
+void GpgKeyTableProxyModel::SetCategoryFilter(const QString &category_id) {
+  category_id_ = category_id;
+  refresh_category_cache();
+  invalidateFilter();
 }
 
 void GpgKeyTableProxyModel::SetFilter(const KeyFilter &filter) {

@@ -28,6 +28,7 @@
 
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
@@ -611,7 +612,9 @@ void MainWindow::create_dock_windows() {
   key_list_dock_->setObjectName(QStringLiteral("keyListDock"));
   key_list_dock_->setAllowedAreas(Qt::LeftDockWidgetArea |
                                   Qt::RightDockWidgetArea);
-  key_list_dock_->setMinimumWidth(260);
+  // Wider default so the vertical category tab column leaves the key table
+  // usable.
+  key_list_dock_->setMinimumWidth(320);
   key_list_dock_->setMaximumWidth(QWIDGETSIZE_MAX);
 
   addDockWidget(Qt::RightDockWidgetArea, key_list_dock_);
@@ -627,9 +630,9 @@ void MainWindow::create_dock_windows() {
   m_key_list_->AddListGroupTab(
       tr("Favourite"), "favourite",
       GpgKeyTableDisplayMode::kPUBLIC_KEY |
-          GpgKeyTableDisplayMode::kPRIVATE_KEY |
-          GpgKeyTableDisplayMode::kFAVORITES,
-      [](const GpgAbstractKey*) -> bool { return true; });
+          GpgKeyTableDisplayMode::kPRIVATE_KEY,
+      [](const GpgAbstractKey*) -> bool { return true; },
+      GpgKeyTableColumn::kALL, KeyCategoryRepository::kFavoriteCategoryId);
 
   m_key_list_->AddListGroupTab(
       tr("Key Group"), "key_group", GpgKeyTableDisplayMode::kPUBLIC_KEY,
@@ -654,7 +657,10 @@ void MainWindow::create_dock_windows() {
                !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
       });
 
-  m_key_list_->setMinimumWidth(260);
+  m_key_list_->SetTabOrderSettingsKey("keys/toolbox_tab_order");
+  m_key_list_->RebuildCategoryTabs();
+
+  m_key_list_->setMinimumWidth(320);
   m_key_list_->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
   m_key_list_->SlotRefresh();
 

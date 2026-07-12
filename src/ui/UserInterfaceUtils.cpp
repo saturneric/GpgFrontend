@@ -31,11 +31,11 @@
 #include "core/GFConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GpgImportInformation.h"
 #include "core/model/GpgPassphraseContext.h"
 #include "core/module/ModuleManager.h"
-#include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
@@ -364,56 +364,25 @@ auto CommonUtils::IsApplicationNeedRestart() -> bool {
   return application_need_to_restart_at_once_;
 }
 
-auto CommonUtils::KeyExistsInFavoriteList(const QString &key_db_name,
-                                          const GpgKey &key) -> bool {
-  // load cache
-  auto json_data = CacheObject("all_favorite_key_pairs");
-  auto cache_obj = AllFavoriteKeyPairsCO(json_data.object());
-
-  if (!cache_obj.key_dbs.contains(key_db_name)) return false;
-
-  auto &key_ids = cache_obj.key_dbs[key_db_name].key_ids;
-
-  return key_ids.contains(key.ID());
+auto CommonUtils::KeyExistsInFavoriteList(int channel, const GpgKey &key)
+    -> bool {
+  return KeyCategoryRepository::GetInstance(channel).IsFavorite(key.ID());
 }
 
-void CommonUtils::AddKey2Favorite(const QString &key_db_name,
-                                  const GpgAbstractKeyPtr &key) {
-  {
-    auto json_data = CacheObject("all_favorite_key_pairs");
-    auto cache_obj = AllFavoriteKeyPairsCO(json_data.object());
-
-    if (!cache_obj.key_dbs.contains(key_db_name)) {
-      cache_obj.key_dbs[key_db_name] = FavoriteKeyPairsByKeyDatabaseCO();
-    }
-
-    auto &key_ids = cache_obj.key_dbs[key_db_name].key_ids;
-    if (!key_ids.contains(key->ID())) key_ids.append(key->ID());
-
-    json_data.setObject(cache_obj.ToJson());
-    LOG_D() << "current favorite key pairs: " << json_data;
-  }
-
-  emit SignalFavoritesChanged();
+void CommonUtils::AddKey2Favorite(int channel, const GpgAbstractKeyPtr &key) {
+  KeyCategoryRepository::GetInstance(channel).SetFavorite(key->ID(), true);
+  NotifyCategoriesChanged();
 }
 
-void CommonUtils::RemoveKeyFromFavorite(const QString &key_db_name,
+void CommonUtils::RemoveKeyFromFavorite(int channel,
                                         const GpgAbstractKeyPtr &key) {
-  {
-    auto json_data = CacheObject("all_favorite_key_pairs");
-    auto cache_obj = AllFavoriteKeyPairsCO(json_data.object());
+  KeyCategoryRepository::GetInstance(channel).SetFavorite(key->ID(), false);
+  NotifyCategoriesChanged();
+}
 
-    if (!cache_obj.key_dbs.contains(key_db_name)) return;
-
-    QMutableListIterator<QString> i(cache_obj.key_dbs[key_db_name].key_ids);
-    while (i.hasNext()) {
-      if (i.next() == key->ID()) i.remove();
-    }
-    json_data.setObject(cache_obj.ToJson());
-    LOG_D() << "current favorite key pairs: " << json_data;
-  }
-
+void CommonUtils::NotifyCategoriesChanged() {
   emit SignalFavoritesChanged();
+  emit SignalCategoriesChanged();
 }
 
 void CommonUtils::OpenDetailsDialogByKey(QWidget *parent, int channel,

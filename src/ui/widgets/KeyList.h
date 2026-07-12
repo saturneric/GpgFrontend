@@ -111,6 +111,16 @@ class KeyList : public QWidget {
       GpgKeyTableColumn fixed_columns_filter = GpgKeyTableColumn::kALL);
 
   /**
+   * @brief Scope under which this key list persists its tab order.
+   *
+   * Distinct key lists (e.g. the Key ToolBox dock and the Key Management
+   * window) should use distinct keys so their tab orders do not interfere.
+   *
+   * @param settings_key QSettings key used to store the tab order
+   */
+  void SetTabOrderSettingsKey(const QString& settings_key);
+
+  /**
    * @brief
    *
    * @param name
@@ -124,8 +134,18 @@ class KeyList : public QWidget {
           GpgKeyTableDisplayMode::kPRIVATE_KEY,
       GpgKeyTableProxyModel::KeyFilter search_filter =
           [](const GpgAbstractKey*) -> bool { return true; },
-      GpgKeyTableColumn custom_columns_filter = GpgKeyTableColumn::kALL)
-      -> KeyTable*;
+      GpgKeyTableColumn custom_columns_filter = GpgKeyTableColumn::kALL,
+      const QString& category_id = {}) -> KeyTable*;
+
+  /**
+   * @brief Synchronise the user-defined category tabs with the repository.
+   *
+   * Appends a tab for every custom category that has no tab yet and removes
+   * tabs whose category no longer exists, leaving all other tabs untouched so
+   * membership-only changes never disturb the current tab, selection, or
+   * scroll position.
+   */
+  void RebuildCategoryTabs();
 
   /**
    * @brief Set the Column Width object
@@ -318,6 +338,22 @@ class KeyList : public QWidget {
    */
   void slot_new_key_group();
 
+  /**
+   * @brief React to a change of the selected category row: show the matching
+   * key table page and refresh action state.
+   *
+   * @param row newly selected row in the category source list
+   */
+  void slot_current_category_changed(int row);
+
+  /**
+   * @brief Show a context menu for the category source list. User-defined
+   * category rows (id prefixed "cat:") offer a "Delete Category" action.
+   *
+   * @param pos position within the source list viewport
+   */
+  void slot_category_context_menu(const QPoint& pos);
+
  private:
   QSharedPointer<Ui_KeyList> ui_;                                    ///<
   std::function<void(const GpgKey&, QWidget*)> m_action_ = nullptr;  ///<
@@ -327,6 +363,9 @@ class KeyList : public QWidget {
   GpgKeyTableColumn fixed_columns_filter_;
   GpgKeyTableColumn global_column_filter_;
 
+  ///< Maps a category id (the KeyTable object name) to its page in keyStack.
+  QHash<QString, KeyTable*> pages_;
+
   QAction* key_id_column_action_;
   QAction* algo_column_action_;
   QAction* create_date_column_action_;
@@ -335,12 +374,50 @@ class KeyList : public QWidget {
   QAction* comment_column_action_;
 
   QTimer* search_timer_ = nullptr;
+  bool applying_tab_order_ = false;
+  QString tab_order_settings_key_ = "keys/key_tab_order";
 
   /**
    * @brief
    *
    */
   void init();
+
+  /**
+   * @brief Persist the current tab order (by object name) to settings.
+   */
+  void save_tab_order();
+
+  /**
+   * @brief Reorder the tabs to match the persisted order, appending any tab
+   * not present in the saved order at the end.
+   */
+  void apply_saved_tab_order();
+
+  /**
+   * @brief Delete a user-defined category after confirmation.
+   *
+   * Removes the grouping only; the keys themselves are untouched.
+   *
+   * @param id category id (must be prefixed "cat:")
+   * @param name display name shown in the confirmation prompt
+   */
+  void delete_category(const QString& id, const QString& name);
+
+  /**
+   * @brief The key table currently shown in the stacked pages, or nullptr.
+   */
+  [[nodiscard]] auto current_page() const -> KeyTable*;
+
+  /**
+   * @brief The key table page registered under a category id, or nullptr.
+   */
+  [[nodiscard]] auto page_for_id(const QString& id) const -> KeyTable*;
+
+  /**
+   * @brief Set the context button label to the given key database name.
+   */
+  void set_context_button_text(const QString& db_name);
 
   /**
    * @brief

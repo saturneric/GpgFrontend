@@ -36,6 +36,9 @@
         </property>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="spacing">
+           <number>4</number>
+          </property>
           <item>
            <widget class="QToolButton" name="switchContextButton">
             <property name="toolTip">
@@ -51,23 +54,23 @@
             <property name="popupMode">
              <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
             </property>
+            <property name="toolButtonStyle">
+             <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
+            </property>
            </widget>
           </item>
           <item>
-           <widget class="QLCDNumber" name="channelLcdNumber">
-            <property name="smallDecimalPoint">
-             <bool>true</bool>
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
             </property>
-            <property name="digitCount">
-             <number>1</number>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
             </property>
-            <property name="mode">
-             <enum>QLCDNumber::Mode::Dec</enum>
-            </property>
-            <property name="segmentStyle">
-             <enum>QLCDNumber::SegmentStyle::Filled</enum>
-            </property>
-           </widget>
+           </spacer>
           </item>
           <item>
            <widget class="QToolButton" name="refreshKeyListButton">
@@ -94,6 +97,16 @@
             <property name="icon">
              <iconset resource="../gpgfrontend.qrc">
               <normaloff>:/icons/cloud_sync.png</normaloff>:/icons/cloud_sync.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="toolSeparator1">
+            <property name="frameShape">
+             <enum>QFrame::Shape::VLine</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Sunken</enum>
             </property>
            </widget>
           </item>
@@ -126,6 +139,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QFrame" name="toolSeparator2">
+            <property name="frameShape">
+             <enum>QFrame::Shape::VLine</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Shadow::Sunken</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QToolButton" name="columnTypeButton">
             <property name="acceptDrops">
              <bool>false</bool>
@@ -153,54 +176,47 @@
             </property>
            </widget>
           </item>
-          <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="searchBarEdit">
-            <property name="maxLength">
-             <number>32</number>
-            </property>
-           </widget>
-          </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="searchBarEdit">
+          <property name="maxLength">
+           <number>32</number>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
      </item>
      <item>
-      <widget class="QTabWidget" name="keyGroupTab">
-       <property name="tabShape">
-        <enum>QTabWidget::TabShape::Rounded</enum>
+      <widget class="QSplitter" name="keyListSplitter">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
        </property>
-       <property name="currentIndex">
-        <number>0</number>
+       <property name="childrenCollapsible">
+        <bool>false</bool>
        </property>
-       <property name="documentMode">
-        <bool>true</bool>
-       </property>
-       <property name="movable">
-        <bool>true</bool>
-       </property>
-       <widget class="QWidget" name="tab">
-        <attribute name="title">
-         <string>Tab 1</string>
-        </attribute>
+       <widget class="QListWidget" name="categoryList">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>120</width>
+          <height>0</height>
+         </size>
+        </property>
        </widget>
-       <widget class="QWidget" name="tab_2">
-        <attribute name="title">
-         <string>Tab 2</string>
-        </attribute>
+       <widget class="QStackedWidget" name="keyStack">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
        </widget>
       </widget>
      </item>

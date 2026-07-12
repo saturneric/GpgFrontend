@@ -117,6 +117,9 @@ KeyMgmt::KeyMgmt(QWidget* parent)
           GpgKeyTableDisplayMode::kPRIVATE_KEY,
       [](const GpgAbstractKey* key) -> bool { return key->IsDisabled(); });
 
+  key_list_->SetTabOrderSettingsKey("keys/keymgmt_tab_order");
+  key_list_->RebuildCategoryTabs();
+
   setCentralWidget(key_list_);
 
   key_list_->SlotRefresh();

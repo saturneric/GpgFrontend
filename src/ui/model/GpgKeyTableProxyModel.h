@@ -49,14 +49,26 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
 
   void SetFilter(const KeyFilter &filter);
 
+  /**
+   * @brief Restrict the view to members of the given key category.
+   *
+   * An empty id disables category filtering. The built-in favourite category
+   * is selected by passing KeyCategoryRepository::kFavoriteCategoryId.
+   *
+   * @param category_id category identifier, or empty to show all
+   */
+  void SetCategoryFilter(const QString &category_id);
+
   void ResetGpgKeyTableModel(QSharedPointer<GpgKeyTableModel> model);
 
  protected:
-  [[nodiscard]] auto filterAcceptsRow(
-      int sourceRow, const QModelIndex &sourceParent) const -> bool override;
+  [[nodiscard]] auto filterAcceptsRow(int sourceRow,
+                                      const QModelIndex &sourceParent) const
+      -> bool override;
 
-  [[nodiscard]] auto filterAcceptsColumn(
-      int sourceColumn, const QModelIndex &sourceParent) const -> bool override;
+  [[nodiscard]] auto filterAcceptsColumn(int sourceColumn,
+                                         const QModelIndex &sourceParent) const
+      -> bool override;
 
  signals:
 
@@ -87,17 +99,18 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
   void slot_update_column_type(GpgKeyTableColumn);
 
   /**
-   * @brief
+   * @brief Reload the active category's member ids from the repository.
    *
    */
-  void slot_update_favorites_cache();
+  void refresh_category_cache();
 
  private:
   QSharedPointer<GpgKeyTableModel> model_;
   GpgKeyTableDisplayMode display_mode_;
   GpgKeyTableColumn filter_columns_;
   QString filter_keywords_;
-  QStringList favorite_key_ids_;
+  QString category_id_;
+  QSet<QString> category_key_ids_;
   KeyFilter custom_filter_;
 
   QFont default_font_;

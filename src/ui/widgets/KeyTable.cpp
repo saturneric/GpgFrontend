@@ -50,15 +50,17 @@ auto KeyTable::GetCheckedKeys() const -> GpgAbstractKeyPtrList {
 KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
                    GpgKeyTableDisplayMode select_type,
                    GpgKeyTableColumn column_filter,
-                   GpgKeyTableProxyModel::KeyFilter filter)
+                   GpgKeyTableProxyModel::KeyFilter filter,
+                   const QString& category_id)
     : QTableView(parent),
       model_(std::move(model)),
       proxy_model_(model_, select_type, column_filter, std::move(filter), this),
       column_filter_(column_filter) {
   setModel(&proxy_model_);
+  proxy_model_.SetCategoryFilter(category_id);
   init_table_style();
 
-  connect(CommonUtils::GetInstance(), &CommonUtils::SignalFavoritesChanged,
+  connect(CommonUtils::GetInstance(), &CommonUtils::SignalCategoriesChanged,
           &proxy_model_, &GpgKeyTableProxyModel::SignalFavoritesChanged);
 
   connect(this, &KeyTable::SignalColumnTypeChange, this,

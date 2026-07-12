@@ -150,12 +150,10 @@ void MainWindow::slot_add_key_2_favorite() {
   auto key = m_key_list_->GetSelectedKey();
   if (key == nullptr) return;
 
-  auto key_db_name =
-      GetGpgKeyDatabaseName(m_key_list_->GetCurrentGpgContextChannel());
+  auto channel = m_key_list_->GetCurrentGpgContextChannel();
+  LOG_D() << "add key" << key->ID() << "to favorite at channel" << channel;
 
-  LOG_D() << "add key" << key->ID() << "to favorite at key db" << key_db_name;
-
-  CommonUtils::GetInstance()->AddKey2Favorite(key_db_name, key);
+  CommonUtils::GetInstance()->AddKey2Favorite(channel, key);
   emit SignalUIRefresh();
 }
 
@@ -163,10 +161,8 @@ void MainWindow::slot_remove_key_from_favorite() {
   auto keys = m_key_list_->GetSelectedKeys();
   if (keys.empty()) return;
 
-  auto key_db_name =
-      GetGpgKeyDatabaseName(m_key_list_->GetCurrentGpgContextChannel());
-
-  CommonUtils::GetInstance()->RemoveKeyFromFavorite(key_db_name, keys.front());
+  CommonUtils::GetInstance()->RemoveKeyFromFavorite(
+      m_key_list_->GetCurrentGpgContextChannel(), keys.front());
 
   emit SignalUIRefresh();
 }

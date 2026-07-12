@@ -128,22 +128,28 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  auto KeyExistsInFavoriteList(const QString& key_db_name, const GpgKey& key)
-      -> bool;
+  auto KeyExistsInFavoriteList(int channel, const GpgKey& key) -> bool;
 
   /**
-   * @brief
+   * @brief Add a key to the built-in favourite category on the given channel.
    *
    */
-  void AddKey2Favorite(const QString& key_db_name,
-                       const GpgAbstractKeyPtr& key);
+  void AddKey2Favorite(int channel, const GpgAbstractKeyPtr& key);
 
   /**
-   * @brief
+   * @brief Remove a key from the built-in favourite category on the given
+   * channel.
    *
    */
-  void RemoveKeyFromFavorite(const QString& key_db_name,
-                             const GpgAbstractKeyPtr& key);
+  void RemoveKeyFromFavorite(int channel, const GpgAbstractKeyPtr& key);
+
+  /**
+   * @brief Notify listeners that key categories (including favourites) changed.
+   *
+   * Call after mutating a category through KeyCategoryRepository so the key
+   * tables refresh their filtered views and category tabs.
+   */
+  void NotifyCategoriesChanged();
 
   /**
    * @brief
@@ -193,6 +199,12 @@ class CommonUtils : public QWidget {
    *
    */
   void SignalFavoritesChanged();
+
+  /**
+   * @brief Emitted when any key category (including favourites) changes.
+   *
+   */
+  void SignalCategoriesChanged();
 
  public slots:
 

@@ -28,11 +28,9 @@
 
 #include "GpgKeyTreeProxyModel.h"
 
-#include "core/model/CacheObject.h"
+#include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyTreeModel.h"
-#include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
-#include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend::UI {
 
@@ -115,14 +113,9 @@ void GpgKeyTreeProxyModel::ResetGpgKeyTableModel(
 }
 
 void GpgKeyTreeProxyModel::slot_update_favorites_cache() {
-  auto json_data = CacheObject("all_favorite_key_pairs");
-  auto cache_obj = AllFavoriteKeyPairsCO(json_data.object());
-
-  auto key_db_name = GetGpgKeyDatabaseName(model_->GetGpgContextChannel());
-
-  if (cache_obj.key_dbs.contains(key_db_name)) {
-    favorite_key_ids_ = cache_obj.key_dbs[key_db_name].key_ids;
-  }
+  favorite_key_ids_ =
+      KeyCategoryRepository::GetInstance(model_->GetGpgContextChannel())
+          .KeyIdsOf(KeyCategoryRepository::kFavoriteCategoryId);
 }
 
 void GpgKeyTreeProxyModel::SetKeyFilter(const KeyFilter &filter) {

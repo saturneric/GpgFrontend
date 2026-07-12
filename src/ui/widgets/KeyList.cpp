@@ -32,6 +32,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/helper/OpSupport.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/GpgImportInformation.h"
@@ -39,6 +40,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/KeyGroupCreationDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
 
@@ -109,7 +111,8 @@ void KeyList::init_ui_visibility() {
   ui_->syncButton->setHidden(!has_ability(KeyMenuAbility::kSYNC_PUBLIC_KEY));
   ui_->checkALLButton->setHidden(!has_ability(KeyMenuAbility::kCHECK_ALL));
   ui_->uncheckButton->setHidden(!has_ability(KeyMenuAbility::kUNCHECK_ALL));
-  ui_->columnTypeButton->setHidden(!has_ability(KeyMenuAbility::kCOLUMN_FILTER));
+  ui_->columnTypeButton->setHidden(
+      !has_ability(KeyMenuAbility::kCOLUMN_FILTER));
   ui_->searchBarEdit->setHidden(!has_ability(KeyMenuAbility::kSEARCH_BAR));
   ui_->switchContextButton->setHidden(
       !has_ability(KeyMenuAbility::kKEY_DATABASE));
@@ -120,7 +123,7 @@ void KeyList::init_ui_style() {
   setObjectName(QStringLiteral("KeyList"));
 
   ui_->menuWidget->setObjectName(QStringLiteral("KeyListMenu"));
-  ui_->keyGroupTab->setObjectName(QStringLiteral("KeyGroupTab"));
+  ui_->categoryList->setObjectName(QStringLiteral("KeyCategoryList"));
 
   ui_->searchBarEdit->setClearButtonEnabled(true);
   ui_->searchBarEdit->setMinimumHeight(30);
@@ -131,7 +134,8 @@ void KeyList::init_ui_style() {
     button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     button->setToolButtonStyle(Qt::ToolButtonIconOnly);
     button->setIconSize(QSize(16, 16));
-    button->setAutoRaise(false);
+    // Flat buttons with a native hover highlight keep the toolbar light.
+    button->setAutoRaise(true);
   };
 
   setup_tool_button(ui_->refreshKeyListButton);
@@ -140,16 +144,64 @@ void KeyList::init_ui_style() {
   setup_tool_button(ui_->checkALLButton);
   setup_tool_button(ui_->columnTypeButton);
   setup_tool_button(ui_->keyGroupButton);
-  setup_tool_button(ui_->switchContextButton);
+
+  // The context button keeps its label (the current key database name) beside
+  // the icon, replacing the old LCD channel indicator.
+  ui_->switchContextButton->setMinimumHeight(28);
+  ui_->switchContextButton->setFocusPolicy(Qt::NoFocus);
+  ui_->switchContextButton->setSizePolicy(QSizePolicy::Maximum,
+                                          QSizePolicy::Fixed);
+  ui_->switchContextButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+  ui_->switchContextButton->setIconSize(QSize(16, 16));
+  ui_->switchContextButton->setAutoRaise(true);
 
   ui_->columnTypeButton->setPopupMode(QToolButton::InstantPopup);
   ui_->switchContextButton->setPopupMode(QToolButton::InstantPopup);
 
-  ui_->keyGroupTab->setDocumentMode(true);
-  ui_->keyGroupTab->setUsesScrollButtons(true);
-  ui_->keyGroupTab->setElideMode(Qt::ElideRight);
-  ui_->keyGroupTab->tabBar()->setExpanding(false);
-  ui_->keyGroupTab->tabBar()->setDrawBase(false);
+  // Category source list: a clean, frameless sidebar that drives the stacked
+  // key tables. Reordering is by drag; the order is persisted across restarts.
+  ui_->categoryList->setFrameShape(QFrame::NoFrame);
+  ui_->categoryList->setUniformItemSizes(true);
+  ui_->categoryList->setAlternatingRowColors(false);
+  ui_->categoryList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  ui_->categoryList->setTextElideMode(Qt::ElideRight);
+  ui_->categoryList->setSelectionMode(QAbstractItemView::SingleSelection);
+  ui_->categoryList->setDragDropMode(QAbstractItemView::InternalMove);
+  ui_->categoryList->setContextMenuPolicy(Qt::CustomContextMenu);
+  ui_->categoryList->setStyleSheet(R"(
+QListWidget#KeyCategoryList {
+  outline: 0;
+  background: transparent;
+}
+
+QListWidget#KeyCategoryList::item {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+}
+
+QListWidget#KeyCategoryList::item:selected {
+  background: palette(highlight);
+  color: palette(highlighted-text);
+}
+
+QListWidget#KeyCategoryList::item:hover:!selected {
+  background: palette(alternate-base);
+}
+)");
+
+  // Give the key table the lion's share of the panel width; the category list
+  // only needs to fit its labels.
+  ui_->keyListSplitter->setStretchFactor(0, 0);
+  ui_->keyListSplitter->setStretchFactor(1, 1);
+  ui_->keyListSplitter->setSizes({150, 470});
+
+  // Keep the toolbar/search block at its natural height and let the splitter
+  // absorb all the remaining vertical space; otherwise the layout spreads the
+  // extra height evenly and leaves large gaps between the rows.
+  ui_->menuWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+  ui_->keyListSplitter->setSizePolicy(QSizePolicy::Expanding,
+                                      QSizePolicy::Expanding);
 }
 
 void KeyList::init_texts() {
@@ -177,7 +229,8 @@ void KeyList::init_texts() {
   ui_->keyGroupButton->setToolTip(
       tr("Create a key group from checked encryption-capable keys."));
 
-  ui_->switchContextButton->setText(tr("Key Databases"));
+  // The visible text is the active key database name (set by
+  // init_context_menu / set_context_button_text); only the tooltip is fixed.
   ui_->switchContextButton->setToolTip(tr("Switch between key databases."));
 }
 
@@ -185,6 +238,9 @@ void KeyList::init_context_menu() {
   auto* gpg_context_menu = new QMenu(this);
   auto* gpg_context_groups = new QActionGroup(this);
   gpg_context_groups->setExclusive(true);
+
+  // Baseline label; overridden below with the current database name if any.
+  set_context_button_text(QString());
 
   const auto key_db_infos = GetGpgKeyDatabaseInfos();
 
@@ -204,17 +260,22 @@ void KeyList::init_context_menu() {
     action->setCheckable(true);
     action->setChecked(channel == current_gpg_context_channel_);
 
-    connect(action, &QAction::toggled, this, [this, channel](bool checked) {
-      if (!checked) return;
+    if (channel == current_gpg_context_channel_) {
+      set_context_button_text(key_db_name);
+    }
 
-      current_gpg_context_channel_ = channel;
-      ui_->channelLcdNumber->display(channel);
+    connect(action, &QAction::toggled, this,
+            [this, channel, key_db_name](bool checked) {
+              if (!checked) return;
 
-      init_column_menu();
-      UpdateKeyTableColumnType(global_column_filter_);
+              current_gpg_context_channel_ = channel;
+              set_context_button_text(key_db_name);
 
-      emit SignalRefreshDatabase();
-    });
+              init_column_menu();
+              UpdateKeyTableColumnType(global_column_filter_);
+
+              emit SignalRefreshDatabase();
+            });
 
     gpg_context_groups->addAction(action);
     gpg_context_menu->addAction(action);
@@ -227,6 +288,11 @@ void KeyList::init_context_menu() {
   }
 
   ui_->switchContextButton->setMenu(gpg_context_menu);
+}
+
+void KeyList::set_context_button_text(const QString& db_name) {
+  ui_->switchContextButton->setText(db_name.isEmpty() ? tr("Key Database")
+                                                      : db_name);
 }
 
 void KeyList::init_column_menu() {
@@ -283,6 +349,23 @@ void KeyList::init_signals() {
   connect(UISignalStation::GetInstance(), &UISignalStation::SignalUIRefresh,
           this, &KeyList::SlotRefreshUI);
 
+  connect(CommonUtils::GetInstance(), &CommonUtils::SignalCategoriesChanged,
+          this, &KeyList::RebuildCategoryTabs);
+
+  // Switch the shown key table when the selected category row changes.
+  connect(ui_->categoryList, &QListWidget::currentRowChanged, this,
+          &KeyList::slot_current_category_changed);
+
+  // Right-click a user category row to delete it.
+  connect(ui_->categoryList, &QListWidget::customContextMenuRequested, this,
+          &KeyList::slot_category_context_menu);
+
+  // Persist the order after a drag-reorder of the category rows.
+  connect(ui_->categoryList->model(), &QAbstractItemModel::rowsMoved, this,
+          [this](const QModelIndex&, int, int, const QModelIndex&, int) {
+            if (!applying_tab_order_) save_tab_order();
+          });
+
   connect(ui_->refreshKeyListButton, &QPushButton::clicked, this,
           &KeyList::SignalRefreshDatabase);
 
@@ -319,9 +402,7 @@ void KeyList::init_signals() {
 }
 
 void KeyList::update_action_state() {
-  const bool has_key_table =
-      ui_ != nullptr && ui_->keyGroupTab != nullptr &&
-      qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget()) != nullptr;
+  const bool has_key_table = current_page() != nullptr;
 
   if (!has_key_table) {
     ui_->keyGroupButton->setEnabled(false);
@@ -361,12 +442,16 @@ void KeyList::init() {
   init_context_menu();
   init_column_menu();
 
-  ui_->keyGroupTab->clear();
+  pages_.clear();
+  while (ui_->keyStack->count() > 0) {
+    auto* w = ui_->keyStack->widget(0);
+    ui_->keyStack->removeWidget(w);
+    w->deleteLater();
+  }
+  ui_->categoryList->clear();
 
   ui_->syncButton->setHidden(
       !Module::IsEventListening("REQUEST_GET_PUBLIC_KEY_BY_KEY_ID"));
-
-  ui_->channelLcdNumber->display(current_gpg_context_channel_);
 
   init_signals();
   init_texts();
@@ -378,24 +463,177 @@ void KeyList::init() {
 auto KeyList::AddListGroupTab(const QString& name, const QString& id,
                               GpgKeyTableDisplayMode display_mode,
                               GpgKeyTableProxyModel::KeyFilter search_filter,
-                              GpgKeyTableColumn custom_columns_filter)
-    -> KeyTable* {
+                              GpgKeyTableColumn custom_columns_filter,
+                              const QString& category_id) -> KeyTable* {
   auto* key_table =
       new KeyTable(this, model_, display_mode, custom_columns_filter,
-                   std::move(search_filter));
+                   std::move(search_filter), category_id);
 
   key_table->setObjectName(id);
-  ui_->keyGroupTab->addTab(key_table, name);
+
+  ui_->keyStack->addWidget(key_table);
+  pages_.insert(id, key_table);
+
+  auto* item = new QListWidgetItem(name, ui_->categoryList);
+  item->setData(Qt::UserRole, id);
+
+  if (ui_->categoryList->currentRow() < 0) {
+    ui_->categoryList->setCurrentRow(0);
+  }
 
   connect(this, &KeyList::SignalColumnTypeChange, key_table,
           &KeyTable::SignalColumnTypeChange);
   connect(key_table, &KeyTable::SignalKeyChecked, this, [=]() {
-    if (sender() != ui_->keyGroupTab->currentWidget()) return;
+    if (sender() != current_page()) return;
     emit SignalKeyChecked();
   });
 
   UpdateKeyTableColumnType(global_column_filter_);
   return key_table;
+}
+
+void KeyList::RebuildCategoryTabs() {
+  auto categories =
+      KeyCategoryRepository::GetInstance(current_gpg_context_channel_).Fetch();
+
+  QSet<QString> desired_ids;
+  for (const auto& c : categories) {
+    if (c.builtin) continue;  // built-ins (favourite) own dedicated rows
+    desired_ids.insert(c.id);
+  }
+
+  // Drop rows whose category no longer exists.
+  for (int i = ui_->categoryList->count() - 1; i >= 0; --i) {
+    const auto id = ui_->categoryList->item(i)->data(Qt::UserRole).toString();
+    if (!id.startsWith("cat:") || desired_ids.contains(id)) continue;
+
+    delete ui_->categoryList->takeItem(i);
+    if (auto* page = pages_.take(id); page != nullptr) {
+      ui_->keyStack->removeWidget(page);
+      page->deleteLater();
+    }
+  }
+
+  // Add a row for every category that does not have one yet.
+  for (const auto& c : categories) {
+    if (c.builtin) continue;
+    if (pages_.contains(c.id)) continue;
+
+    AddListGroupTab(
+        c.name, c.id,
+        GpgKeyTableDisplayMode::kPUBLIC_KEY |
+            GpgKeyTableDisplayMode::kPRIVATE_KEY,
+        [](const GpgAbstractKey*) -> bool { return true; },
+        GpgKeyTableColumn::kALL, c.id);
+  }
+
+  apply_saved_tab_order();
+}
+
+void KeyList::SetTabOrderSettingsKey(const QString& settings_key) {
+  if (!settings_key.isEmpty()) tab_order_settings_key_ = settings_key;
+}
+
+void KeyList::save_tab_order() {
+  QStringList order;
+  for (int i = 0; i < ui_->categoryList->count(); ++i) {
+    order << ui_->categoryList->item(i)->data(Qt::UserRole).toString();
+  }
+  GetSettings().setValue(tab_order_settings_key_, order);
+}
+
+void KeyList::apply_saved_tab_order() {
+  const auto saved =
+      GetSettings().value(tab_order_settings_key_).toStringList();
+  if (saved.isEmpty()) return;
+
+  applying_tab_order_ = true;
+
+  const auto current_id =
+      ui_->categoryList->currentItem() != nullptr
+          ? ui_->categoryList->currentItem()->data(Qt::UserRole).toString()
+          : QString{};
+
+  int target = 0;
+  for (const auto& id : saved) {
+    for (int i = target; i < ui_->categoryList->count(); ++i) {
+      if (ui_->categoryList->item(i)->data(Qt::UserRole).toString() != id) {
+        continue;
+      }
+
+      if (i != target) {
+        ui_->categoryList->insertItem(target, ui_->categoryList->takeItem(i));
+      }
+      ++target;
+      break;
+    }
+  }
+
+  // Restore the selection, which item moves may have disturbed.
+  for (int i = 0; i < ui_->categoryList->count(); ++i) {
+    if (ui_->categoryList->item(i)->data(Qt::UserRole).toString() ==
+        current_id) {
+      ui_->categoryList->setCurrentRow(i);
+      break;
+    }
+  }
+
+  applying_tab_order_ = false;
+}
+
+void KeyList::delete_category(const QString& id, const QString& name) {
+  if (!id.startsWith("cat:")) return;  // safety: only categories are deletable
+
+  auto ret = QMessageBox::question(
+      this, tr("Delete Category"),
+      tr("Delete category \"%1\"? This removes the grouping only; the keys "
+         "themselves are not affected.")
+          .arg(name),
+      QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+  if (ret != QMessageBox::Yes) return;
+
+  KeyCategoryRepository::GetInstance(current_gpg_context_channel_).Remove(id);
+  CommonUtils::GetInstance()->NotifyCategoriesChanged();
+}
+
+auto KeyList::current_page() const -> KeyTable* {
+  if (ui_ == nullptr || ui_->categoryList == nullptr) return nullptr;
+
+  auto* item = ui_->categoryList->currentItem();
+  if (item == nullptr) return nullptr;
+
+  return page_for_id(item->data(Qt::UserRole).toString());
+}
+
+auto KeyList::page_for_id(const QString& id) const -> KeyTable* {
+  return pages_.value(id, nullptr);
+}
+
+void KeyList::slot_current_category_changed(int row) {
+  auto* item = row >= 0 ? ui_->categoryList->item(row) : nullptr;
+  auto* page =
+      item != nullptr ? page_for_id(item->data(Qt::UserRole).toString())
+                      : nullptr;
+
+  if (page != nullptr) ui_->keyStack->setCurrentWidget(page);
+
+  update_action_state();
+  emit SignalKeyChecked();
+}
+
+void KeyList::slot_category_context_menu(const QPoint& pos) {
+  auto* item = ui_->categoryList->itemAt(pos);
+  if (item == nullptr) return;
+
+  const auto id = item->data(Qt::UserRole).toString();
+  if (!id.startsWith("cat:")) return;  // only category rows are deletable
+
+  const auto name = item->text();
+  QMenu menu(this);
+  auto* delete_action = menu.addAction(tr("Delete Category..."));
+  connect(delete_action, &QAction::triggered, this,
+          [this, id, name]() { delete_category(id, name); });
+  menu.exec(ui_->categoryList->viewport()->mapToGlobal(pos));
 }
 
 void KeyList::SlotRefresh() {
@@ -407,8 +645,8 @@ void KeyList::SlotRefresh() {
   model_ = AbstractKeyRepository::GetInstance(current_gpg_context_channel_)
                .GetGpgKeyTableModel();
 
-  for (int i = 0; i < ui_->keyGroupTab->count(); i++) {
-    auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->widget(i));
+  for (int i = 0; i < ui_->keyStack->count(); i++) {
+    auto* key_table = qobject_cast<KeyTable*>(ui_->keyStack->widget(i));
     if (key_table == nullptr) continue;
 
     key_table->RefreshModel(model_);
@@ -426,9 +664,7 @@ void KeyList::SlotRefreshUI() {
 }
 
 auto KeyList::GetCheckedKeys() -> GpgAbstractKeyPtrList {
-  if (ui_ == nullptr || ui_->keyGroupTab == nullptr) return {};
-
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  auto* key_table = current_page();
   if (key_table == nullptr) return {};
 
   return key_table->GetCheckedKeys();
@@ -471,12 +707,11 @@ void KeyList::SetChecked(const KeyIdArgsList& key_ids,
 }
 
 [[maybe_unused]] auto KeyList::ContainsPrivateKeys() -> bool {
-  if (ui_->keyGroupTab->size().isEmpty()) return false;
-  auto* key_table =
-      qobject_cast<QTableWidget*>(ui_->keyGroupTab->currentWidget());
+  auto* key_table = current_page();
+  if (key_table == nullptr) return false;
 
-  for (int i = 0; i < key_table->rowCount(); i++) {
-    if (key_table->item(i, 1) != nullptr) {
+  for (int i = 0; i < key_table->GetRowCount(); i++) {
+    if (key_table->GetKeyByIndex(key_table->model()->index(i, 0)) != nullptr) {
       return true;
     }
   }
@@ -484,21 +719,18 @@ void KeyList::SetChecked(const KeyIdArgsList& key_ids,
 }
 
 void KeyList::SetColumnWidth(int row, int size) {
-  if (ui_->keyGroupTab->count() == 0) return;
-
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  auto* key_table = current_page();
   if (key_table == nullptr) return;
 
   key_table->setColumnWidth(row, size);
 }
 
 void KeyList::contextMenuEvent(QContextMenuEvent* event) {
-  if (ui_->keyGroupTab->count() == 0) return;
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  auto* key_table = current_page();
 
   if (key_table == nullptr) {
-    FLOG_D("m_key_list_ is nullptr, key group tab number: %d",
-           ui_->keyGroupTab->count());
+    FLOG_D("m_key_list_ is nullptr, key stack page count: %d",
+           ui_->keyStack->count());
     return;
   }
 
@@ -734,8 +966,8 @@ void KeyList::slot_sync_with_key_server() {
 void KeyList::filter_by_keyword() {
   auto keyword = ui_->searchBarEdit->text().trimmed().toLower();
 
-  for (int i = 0; i < ui_->keyGroupTab->count(); i++) {
-    auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->widget(i));
+  for (int i = 0; i < ui_->keyStack->count(); i++) {
+    auto* key_table = qobject_cast<KeyTable*>(ui_->keyStack->widget(i));
     if (key_table == nullptr) continue;
 
     key_table->SetFilterKeyword(keyword);
@@ -745,13 +977,13 @@ void KeyList::filter_by_keyword() {
 }
 
 void KeyList::uncheck_all() {
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  auto* key_table = current_page();
   if (key_table == nullptr) return;
   key_table->UncheckAll();
 }
 
 void KeyList::check_all() {
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  auto* key_table = current_page();
   if (key_table == nullptr) return;
   key_table->CheckAll();
 }
@@ -770,9 +1002,7 @@ auto KeyList::GetCurrentGpgContextChannel() const -> int {
 }
 
 auto KeyList::GetSelectedKeys() -> GpgAbstractKeyPtrList {
-  if (ui_ == nullptr || ui_->keyGroupTab == nullptr) return {};
-
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->currentWidget());
+  auto* key_table = current_page();
   if (key_table == nullptr) return {};
 
   return key_table->GetSelectedKeys();
@@ -796,22 +1026,16 @@ void KeyList::slot_new_key_group() {
 
 void KeyList::UpdateKeyTableFilter(
     int index, const GpgKeyTableProxyModel::KeyFilter& filter) {
-  if (ui_->keyGroupTab->size().isEmpty() ||
-      ui_->keyGroupTab->widget(index) == nullptr) {
-    return;
-  }
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyStack->widget(index));
+  if (key_table == nullptr) return;
 
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->widget(index));
   key_table->SetFilter(filter);
 }
 
 void KeyList::RefreshKeyTable(int index) {
-  if (ui_->keyGroupTab->size().isEmpty() ||
-      ui_->keyGroupTab->widget(index) == nullptr) {
-    return;
-  }
+  auto* key_table = qobject_cast<KeyTable*>(ui_->keyStack->widget(index));
+  if (key_table == nullptr) return;
 
-  auto* key_table = qobject_cast<KeyTable*>(ui_->keyGroupTab->widget(index));
   key_table->RefreshProxyModel();
 }
 

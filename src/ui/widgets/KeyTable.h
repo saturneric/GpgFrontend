@@ -55,7 +55,8 @@ struct KeyTable : public QTableView {
       QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
       GpgKeyTableDisplayMode _select_type, GpgKeyTableColumn _info_type,
       GpgKeyTableProxyModel::KeyFilter _filter =
-          [](const GpgAbstractKey*) -> bool { return true; });
+          [](const GpgAbstractKey*) -> bool { return true; },
+      const QString& category_id = {});
 
   /**
    * @brief

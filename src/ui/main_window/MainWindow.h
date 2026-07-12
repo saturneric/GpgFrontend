@@ -534,6 +534,14 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_popup_menu_by_key_list(QContextMenuEvent* event, KeyTable*);
 
   /**
+   * @brief Rebuild the "Add To Category" submenu for the current selection.
+   *
+   * @param channel active key database channel
+   * @param current_tab_id object name of the key table the menu opened over
+   */
+  void populate_key_category_menu(int channel, const QString& current_tab_id);
+
+  /**
    * @brief
    *
    */
@@ -614,6 +622,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
 
   QAction* add_key_2_favourite_act_{};        ///<
   QAction* remove_key_from_favourtie_act_{};  ///<
+  QMenu* add_key_2_category_menu_{};          ///< Submenu: add key to category
   QAction* set_owner_trust_of_key_act_{};     ///<
 
   QAction* open_key_management_act_{};   ///< Action to open key management

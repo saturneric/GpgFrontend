@@ -31,12 +31,14 @@
 #include <algorithm>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/KeyList.h"
@@ -158,6 +160,8 @@ void MainWindow::Init() noexcept {
     popup_menu_->addAction(set_owner_trust_of_key_act_);
     popup_menu_->addAction(add_key_2_favourite_act_);
     popup_menu_->addAction(remove_key_from_favourtie_act_);
+
+    add_key_2_category_menu_ = popup_menu_->addMenu(tr("Add To Category"));
 
     popup_menu_->addSeparator();
     popup_menu_->addAction(show_key_details_act_);
@@ -325,7 +329,72 @@ void MainWindow::slot_popup_menu_by_key_list(QContextMenuEvent* event,
       m_key_list_->GetCurrentGpgContextChannel());
   set_owner_trust_of_key_act_->setVisible(if_owner_trust_level_supported);
 
+  populate_key_category_menu(m_key_list_->GetCurrentGpgContextChannel(),
+                             key_table_name);
+
   popup_menu_->popup(event->globalPos());
+}
+
+void MainWindow::populate_key_category_menu(int channel,
+                                            const QString& current_tab_id) {
+  if (add_key_2_category_menu_ == nullptr) return;
+  add_key_2_category_menu_->clear();
+
+  auto key = m_key_list_->GetSelectedKey();
+  add_key_2_category_menu_->setDisabled(key == nullptr);
+  if (key == nullptr) return;
+
+  const auto key_id = key->ID();
+  auto& repo = KeyCategoryRepository::GetInstance(channel);
+
+  // When viewing a custom category tab, offer to remove the key from it.
+  if (current_tab_id.startsWith("cat:") &&
+      repo.Contains(current_tab_id, key_id)) {
+    auto* remove_act =
+        add_key_2_category_menu_->addAction(tr("Remove From This Category"));
+    connect(remove_act, &QAction::triggered, this, [=]() {
+      KeyCategoryRepository::GetInstance(channel).RemoveKeyFromCategory(
+          current_tab_id, key_id);
+      CommonUtils::GetInstance()->NotifyCategoriesChanged();
+      emit SignalUIRefresh();
+    });
+    add_key_2_category_menu_->addSeparator();
+  }
+
+  for (const auto& c : repo.Fetch()) {
+    if (c.builtin) continue;  // favourite has its own dedicated actions
+
+    auto* act = add_key_2_category_menu_->addAction(c.name);
+    act->setCheckable(true);
+    act->setChecked(repo.Contains(c.id, key_id));
+    const auto category_id = c.id;
+    connect(act, &QAction::triggered, this, [=](bool checked) {
+      auto& r = KeyCategoryRepository::GetInstance(channel);
+      if (checked) {
+        r.AddKey2Category(category_id, key_id);
+      } else {
+        r.RemoveKeyFromCategory(category_id, key_id);
+      }
+      CommonUtils::GetInstance()->NotifyCategoriesChanged();
+      emit SignalUIRefresh();
+    });
+  }
+
+  add_key_2_category_menu_->addSeparator();
+  auto* new_act = add_key_2_category_menu_->addAction(tr("New Category..."));
+  connect(new_act, &QAction::triggered, this, [=]() {
+    bool ok = false;
+    auto name =
+        QInputDialog::getText(this, tr("New Category"), tr("Category name:"),
+                              QLineEdit::Normal, QString{}, &ok);
+    if (!ok || name.trimmed().isEmpty()) return;
+
+    auto& r = KeyCategoryRepository::GetInstance(channel);
+    auto id = r.AddCategory(name.trimmed());
+    r.AddKey2Category(id, key_id);
+    CommonUtils::GetInstance()->NotifyCategoriesChanged();
+    emit SignalUIRefresh();
+  });
 }
 
 auto MainWindow::GetCurrentGpgContextChannel() const -> int {
