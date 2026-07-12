@@ -33,9 +33,7 @@
 
 namespace {
 
-// A blob shaped like an encrypted OpenPGP message: first byte is an old-format
-// PKESK (public-key encrypted session key, tag 1) packet header, as produced by
-// GnuPG (this is exactly why real armored messages begin "hF4D...").
+// A blob shaped like an encrypted OpenPGP message (old-format PKESK, tag 1).
 auto PgpLikeBlob(uint8_t first = 0x84) -> QByteArray {
   QByteArray b;
   b.append(static_cast<char>(first));
@@ -45,120 +43,75 @@ auto PgpLikeBlob(uint8_t first = 0x84) -> QByteArray {
   return b;
 }
 
+// NORMAL encode/decode need no OpenPGP engine when no bundle is attached, so a
+// dummy channel is fine for these container-level tests.
+constexpr int kCh = 0;
+
 }  // namespace
 
 namespace GpgFrontend::Test {
 
-TEST(InstantMessageOperatorTest, EncodeDetectRoundTrip) {
+using DecodeStatus = InstantMessageOperator::DecodeStatus;
+
+// A NORMAL token (no bundle) wraps and recovers the OpenPGP message verbatim.
+TEST(InstantMessageOperatorTest, NormalRoundTrip) {
   const QByteArray blob = PgpLikeBlob();
 
-  const auto token = InstantMessageOperator::Encode(GFBuffer(blob));
-  // No marker/prefix, single-line, and Base58 (alphanumeric minus 0 O I l): no
-  // '-', '_', '+', '/', '=' that a messenger could format, link, or wrap on.
+  const auto token =
+      InstantMessageOperator::EncodeNormal(kCh, {}, GFBuffer(blob), false);
+  // Single Base58 word (alphanumeric minus 0 O I l), no markdown/link chars.
   EXPECT_TRUE(QRegularExpression(QRegularExpression::anchoredPattern(
                                      QStringLiteral("[1-9A-HJ-NP-Za-km-z]+")))
                   .match(token)
                   .hasMatch());
 
-  GFBuffer out;
-  ASSERT_TRUE(InstantMessageOperator::Detect(token, out));
-  EXPECT_EQ(out.ConvertToQByteArray(), blob);
+  const auto r = InstantMessageOperator::Decode(kCh, token);
+  EXPECT_EQ(r.status, DecodeStatus::kNORMAL_OK);
+  EXPECT_EQ(r.pgp_message.ConvertToQByteArray(), blob);
+  EXPECT_FALSE(r.imported_bundle);
 }
 
 TEST(InstantMessageOperatorTest, EncodeEmptyIsEmpty) {
-  EXPECT_TRUE(InstantMessageOperator::Encode(GFBuffer()).isEmpty());
+  EXPECT_TRUE(
+      InstantMessageOperator::EncodeNormal(kCh, {}, GFBuffer(), false).isEmpty());
 }
 
-// The random layer: the same input encodes differently each time (per-message
-// salt), yet both tokens recover the identical raw message.
-TEST(InstantMessageOperatorTest, RandomLayerVariesButRoundTrips) {
-  const QByteArray blob = PgpLikeBlob();
-
-  const auto a = InstantMessageOperator::Encode(GFBuffer(blob));
-  const auto b = InstantMessageOperator::Encode(GFBuffer(blob));
-  EXPECT_NE(a, b);
-
-  GFBuffer out_a;
-  GFBuffer out_b;
-  ASSERT_TRUE(InstantMessageOperator::Detect(a, out_a));
-  ASSERT_TRUE(InstantMessageOperator::Detect(b, out_b));
-  EXPECT_EQ(out_a.ConvertToQByteArray(), blob);
-  EXPECT_EQ(out_b.ConvertToQByteArray(), blob);
+TEST(InstantMessageOperatorTest, ContainsAndDispatch) {
+  const auto token =
+      InstantMessageOperator::EncodeNormal(kCh, {}, GFBuffer(PgpLikeBlob()),
+                                           false);
+  EXPECT_TRUE(InstantMessageOperator::Contains(token));
+  EXPECT_FALSE(InstantMessageOperator::Contains("just a normal chat line"));
 }
 
-// The versioned envelope and password-book hash reference are stable, so a
-// message encoded on one machine decodes on another.
-TEST(InstantMessageOperatorTest, VersionAndBookIdAreStable) {
-  EXPECT_EQ(InstantMessageOperator::FormatVersion(), 1);
-
-  const auto id = InstantMessageOperator::ActiveBookId();
-  EXPECT_EQ(id.size(), 4);
-  EXPECT_EQ(id, InstantMessageOperator::ActiveBookId());
+TEST(InstantMessageOperatorTest, DecodeNotToken) {
+  const auto r = InstantMessageOperator::Decode(kCh, "hello there, friend!");
+  EXPECT_EQ(r.status, DecodeStatus::kNOT_TOKEN);
 }
 
-TEST(InstantMessageOperatorTest, DetectNone) {
-  GFBuffer out;
-  EXPECT_FALSE(InstantMessageOperator::Detect("just a normal chat line", out));
-  EXPECT_FALSE(InstantMessageOperator::Contains("nothing to see here"));
-}
-
-TEST(InstantMessageOperatorTest, DetectToleratesWhitespace) {
-  auto token = InstantMessageOperator::Encode(GFBuffer(PgpLikeBlob()));
-  // Simulate a messenger wrapping the token across lines / adding spaces.
-  token.insert(token.size() / 2, QStringLiteral("\n  "));
-
-  GFBuffer out;
-  ASSERT_TRUE(InstantMessageOperator::Detect(token, out));
-  EXPECT_EQ(out.ConvertToQByteArray(), PgpLikeBlob());
-}
-
-// A token whose book matches (default) but whose payload is not an OpenPGP
-// message is reported as malformed, not as a generic non-token.
-TEST(InstantMessageOperatorTest, InspectMalformedWhenPayloadNotPgp) {
-  QByteArray not_pgp;
-  not_pgp.append('\x00');  // no packet-header high bit
-  for (int i = 1; i < 200; ++i) not_pgp.append(static_cast<char>(i));
-
-  const auto token = InstantMessageOperator::Encode(GFBuffer(not_pgp));
-  GFBuffer out;
-  EXPECT_FALSE(InstantMessageOperator::Detect(token, out));
-  EXPECT_EQ(InstantMessageOperator::Inspect(token, out),
-            InstantMessageOperator::DetectStatus::kMALFORMED);
-}
-
-// Ordinary text and a valid token classify as kNotToken / kOk respectively.
-TEST(InstantMessageOperatorTest, InspectStatuses) {
-  GFBuffer out;
-  EXPECT_EQ(InstantMessageOperator::Inspect("hello there, friend!", out),
-            InstantMessageOperator::DetectStatus::kNOT_TOKEN);
-
-  const auto token = InstantMessageOperator::Encode(GFBuffer(PgpLikeBlob()));
-  EXPECT_EQ(InstantMessageOperator::Inspect(token, out),
-            InstantMessageOperator::DetectStatus::kOK);
-}
-
-TEST(InstantMessageOperatorTest, DetectRejectsArmoredMessage) {
+TEST(InstantMessageOperatorTest, DecodeRejectsArmoredMessage) {
   const QString armored =
       "-----BEGIN PGP MESSAGE-----\n\nhF4Dabc=\n=abcd\n"
       "-----END PGP MESSAGE-----";
-  GFBuffer out;
-  EXPECT_FALSE(InstantMessageOperator::Detect(armored, out));
+  EXPECT_EQ(InstantMessageOperator::Decode(kCh, armored).status,
+            DecodeStatus::kNOT_TOKEN);
+  EXPECT_FALSE(InstantMessageOperator::Contains(armored));
 }
 
-TEST(InstantMessageOperatorTest, DetectRejectsShortLookAlike) {
-  const auto token =
-      InstantMessageOperator::Encode(GFBuffer(PgpLikeBlob(0x84)));
-  // Truncate to a handful of chars: too short to be a real message.
-  GFBuffer out;
-  EXPECT_FALSE(InstantMessageOperator::Detect(token.left(8), out));
+// A messenger may wrap the token across lines / inject spaces; still decodes.
+TEST(InstantMessageOperatorTest, DecodeToleratesWhitespace) {
+  auto token =
+      InstantMessageOperator::EncodeNormal(kCh, {}, GFBuffer(PgpLikeBlob()),
+                                           false);
+  token.insert(token.size() / 2, QStringLiteral("\n  "));
+
+  const auto r = InstantMessageOperator::Decode(kCh, token);
+  EXPECT_EQ(r.status, DecodeStatus::kNORMAL_OK);
+  EXPECT_EQ(r.pgp_message.ConvertToQByteArray(), PgpLikeBlob());
 }
 
-// The symmetric (SKESK, tag 3) leading byte is also accepted.
-TEST(InstantMessageOperatorTest, DetectAcceptsSymmetricLeadingByte) {
-  const auto token =
-      InstantMessageOperator::Encode(GFBuffer(PgpLikeBlob(0xC3)));
-  GFBuffer out;
-  EXPECT_TRUE(InstantMessageOperator::Detect(token, out));
+TEST(InstantMessageOperatorTest, FormatVersionIsStable) {
+  EXPECT_EQ(InstantMessageOperator::FormatVersion(), 1);
 }
 
 }  // namespace GpgFrontend::Test

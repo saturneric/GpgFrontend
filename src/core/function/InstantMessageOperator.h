@@ -29,109 +29,138 @@
 #pragma once
 
 #include "core/model/GFBuffer.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
 
 /**
- * @brief Compact, instant-messaging-friendly wrapper for a binary OpenPGP
- * message.
+ * @brief Compact, instant-messaging-friendly container for a secure message,
+ * emitted as a single Base58 word so it survives pasting into any chat app.
  *
- * A normal ASCII-armored PGP message is verbose and multi-line: the
- * "-----BEGIN PGP MESSAGE-----" boilerplate, a version header, blank lines, a
- * CRC24 footer and a newline every 64 characters all get mangled or truncated
- * when pasted into a chat app. This codec instead takes the raw binary OpenPGP
- * message and emits it as a single line of Base58 (the canonical Bitcoin/IPFS
- * alphabet). It is deliberately purely alphanumeric and omits the ambiguous
- * 0 O I l: unlike Base64 there is no '-', '_', '+', '/' or '=', so no character
- * can be interpreted by a messenger as markdown (e.g. '_' italic, '-'/'~'
- * strikethrough), as a link, or as a soft-wrap / word break. The token stays
- * one unbreakable, copy-paste-safe word.
+ * A normal ASCII-armored PGP message is verbose and multi-line; pasted into a
+ * messenger its boilerplate, line-wraps and CRC footer get mangled. This codec
+ * emits one unbreakable Base58 word (the Bitcoin/IPFS alphabet, no ambiguous
+ * 0 O I l and nothing a messenger turns into markdown, a link or a soft-wrap).
+ * There is deliberately no marker or prefix.
  *
- * Deliberately there is **no marker or prefix** — the output must not be
- * recognisable as coming from GpgFrontend. Before Base58 the bytes form a small
- * versioned envelope:
+ * The container carries two message types, distinguished by a @c type byte so
+ * decoding is fully automatic — the user never chooses:
  *
- *     version(1) | book_id(4) | seed(16) | raw_message XOR keystream
+ * - @b NORMAL: a stateless wrapper around an ordinary OpenPGP message (encrypted
+ *   to the recipient's long-term key). Used for the very first contact and as a
+ *   no-forward-secrecy fallback. It can piggyback the sender's signed prekey
+ *   bundle so the peer silently gains the ability to reply with forward secrecy.
+ * - @b PFS: a Signal-style Double Ratchet message (PFS_INIT establishes the
+ *   session via an X3DH handshake authenticated by the sender's OpenPGP key;
+ *   PFS_MSG is the compact steady-state message). Confidentiality here comes
+ *   from the ratchet's AEAD — there is no OpenPGP layer inside.
  *
- * A "password book" (a shared 256-byte table) is used as key material, never
- * applied directly. On every encryption a fresh random 16-byte seed is drawn
- * and a keystream is derived as SHA-256(book ‖ seed ‖ counter); the raw OpenPGP
- * message is XORed with it. Because the book only ever enters through the hash
- * with a fresh seed, its structure never appears in the output and never
- * repeats across messages. The book is identified by the SHA-256 prefix
- * @c book_id so decrypt can select the right book, and the @c version byte lets
- * the format evolve. This is an obfuscation/format layer, NOT cryptographic
- * protection — real confidentiality is the OpenPGP encryption underneath.
- *
- * Detection re-derives the keystream from the referenced book and seed,
- * reverses the XOR, and confirms the recovered bytes begin with a public-key
- * (PKESK, tag 1) or symmetric (SKESK, tag 3) session-key packet — how every
- * encrypted OpenPGP message starts. The wrapped OpenPGP message authenticates
- * itself (MDC / AEAD), so a corrupted token simply fails to decrypt.
+ * The shared "password book" (a phrase-derived or default 256-byte table) is
+ * mixed into the X3DH secret as an extra shared input; it is no longer used to
+ * obfuscate NORMAL messages.
  */
 class GF_CORE_EXPORT InstantMessageOperator {
  public:
-  /// Metadata recovered from a token, for display in the status panel.
-  struct ImMessageInfo {
-    int version{};         ///< envelope version byte
-    QByteArray book_id;    ///< password-book hash the token references
-    int encoded_length{};  ///< number of Base58 characters in the token
-    int payload_size{};    ///< decoded OpenPGP message size in bytes
+  /// Which container type an outgoing message should use.
+  enum class SendMode : uint8_t {
+    kNORMAL,  ///< stateless PGP-in-token (no session / bundle yet)
+    kPFS,     ///< forward-secret ratchet message (session or bundle available)
   };
 
-  /// Outcome of inspecting text for an instant-messaging token.
-  enum class DetectStatus : uint8_t {
-    kNOT_TOKEN,  ///< not an IM token; the caller should handle input normally
-    kBOOK_MISMATCH,  ///< an IM token, but no matching book (wrong phrase/seed)
-    kMALFORMED,  ///< an IM token with a known book, but the payload is invalid
-    kOK,         ///< a valid IM token; @c out / @c info are populated
+  /// Outcome of decoding an incoming token.
+  enum class DecodeStatus : uint8_t {
+    kNOT_TOKEN,             ///< not one of our tokens; handle input normally
+    kNORMAL_OK,             ///< a NORMAL token; @c pgp_message must be decrypted
+    kPFS_OK,                ///< a PFS token; @c plaintext holds the message
+    kNO_SESSION,            ///< PFS token for a session we don't have / lost
+    kHANDSHAKE_AUTH_FAILED, ///< PFS_INIT whose PGP signature did not verify
+    kUNDECRYPTABLE,         ///< PFS token whose message key is gone / bad
+    kMALFORMED,             ///< structurally one of ours but corrupt
+  };
+
+  /// The result of decoding a token.
+  struct DecodeResult {
+    DecodeStatus status{DecodeStatus::kNOT_TOKEN};
+    QString peer_fpr;      ///< the peer's OpenPGP fingerprint, when known
+    GFBuffer pgp_message;  ///< NORMAL: the wrapped OpenPGP message to decrypt
+    GFBuffer plaintext;    ///< PFS: the recovered chat plaintext
+    bool imported_bundle{};  ///< a peer bundle was auto-imported from this token
   };
 
   /**
-   * @brief Wrap a binary OpenPGP message into a compact single-line token.
+   * @brief Decide whether to send to @p peer_fpr as NORMAL or PFS right now.
+   */
+  static auto ChooseSendMode(const QString& peer_fpr) -> SendMode;
+
+  /**
+   * @brief Whether a NORMAL send to @p peer_fpr should attach our bundle
+   * (true until the peer has proven, via a PFS token, that it holds it).
+   */
+  static auto ShouldAttachBundle(const QString& peer_fpr) -> bool;
+
+  /**
+   * @brief Wrap an already-OpenPGP-encrypted message as a NORMAL token,
+   * optionally attaching our signed prekey bundle for auto-bootstrap.
    *
-   * @param binary_message the raw (non-armored) OpenPGP message bytes
-   * @return the Base58 token, or an empty string if @p binary_message is empty
+   * @param channel OpenPGP engine channel
+   * @param signer our OpenPGP key (signs the attached bundle); may be null if
+   * @p attach_bundle is false
+   * @param pgp_message the binary OpenPGP message to wrap
+   * @param attach_bundle attach our signed bundle for the peer to auto-import
+   * @return the Base58 token, or empty on failure
    */
-  static auto Encode(const GFBuffer& binary_message) -> QString;
+  static auto EncodeNormal(int channel, const GpgKeyPtr& signer,
+                           const GFBuffer& pgp_message, bool attach_bundle)
+      -> QString;
 
   /**
-   * @brief Inspect @p text and classify it as (not) an instant-messaging token,
-   * distinguishing a wrong-book/wrong-phrase token and a malformed one so the
-   * caller can report a precise error instead of a generic decrypt failure.
+   * @brief Ratchet-encrypt @p plaintext to @p peer_fpr, emitting PFS_INIT on
+   * the first message of a session or PFS_MSG thereafter.
    *
-   * @param text buffer that may be a compact token (possibly with stray
-   * whitespace/line breaks introduced by a messenger)
-   * @param[out] out the decoded binary OpenPGP message on kOk
-   * @param[out] info optional metadata about the token (populated on any status
-   * except kNOT_TOKEN)
+   * @param channel OpenPGP engine channel
+   * @param signer our OpenPGP identity key (signs a PFS_INIT transcript)
+   * @param peer_fpr the recipient's OpenPGP fingerprint
+   * @param plaintext the chat message
+   * @return the Base58 token, or empty on failure (e.g. no session and no
+   * bundle — the caller should fall back to EncodeNormal)
    */
-  static auto Inspect(const QString& text, GFBuffer& out,
-                      ImMessageInfo* info = nullptr) -> DetectStatus;
+  static auto EncodePfs(int channel, const GpgKeyPtr& signer,
+                        const QString& peer_fpr, const GFBuffer& plaintext)
+      -> QString;
 
   /**
-   * @brief Convenience wrapper over Inspect(): true iff a valid token was
-   * decoded (status kOk).
+   * @brief Decode any token, automatically dispatching on its type, running the
+   * X3DH handshake / ratchet and auto-importing a piggybacked bundle as needed.
    */
-  static auto Detect(const QString& text, GFBuffer& out,
-                     ImMessageInfo* info = nullptr) -> bool;
+  static auto Decode(int channel, const QString& text) -> DecodeResult;
 
   /**
-   * @brief Cheap probe: is @p text a decodable token?
+   * @brief Cheap probe: is @p text one of our tokens at all?
    */
   static auto Contains(const QString& text) -> bool;
 
   /**
-   * @brief The current envelope format version embedded in every token.
+   * @brief Build our signed prekey bundle for manual export (Settings).
+   *
+   * @param channel OpenPGP engine channel
+   * @param signer our OpenPGP identity key
+   * @return the Base58-encoded signed bundle, or empty on failure
    */
-  static auto FormatVersion() -> int;
+  static auto ExportBundle(int channel, const GpgKeyPtr& signer) -> QString;
 
   /**
-   * @brief Identifier (SHA-256 prefix) of the active password book — the
-   * phrase-derived book if one is configured, otherwise the shared default.
-   * This is the hash a freshly encoded token references.
+   * @brief Import a bundle produced by ExportBundle(), verifying its signature.
+   *
+   * @param channel OpenPGP engine channel
+   * @param text the Base58-encoded bundle
+   * @return the imported peer's fingerprint, or empty on failure
    */
-  static auto ActiveBookId() -> QByteArray;
+  static auto ImportBundle(int channel, const QString& text) -> QString;
+
+  /**
+   * @brief The current container format version.
+   */
+  static auto FormatVersion() -> int;
 };
 
 }  // namespace GpgFrontend

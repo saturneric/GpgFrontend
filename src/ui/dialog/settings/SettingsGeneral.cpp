@@ -148,25 +148,6 @@ GeneralTab::GeneralTab(QWidget* parent)
         GlobalSettingStation::GetInstance().GetAppDataPath()));
   });
 
-  // Instant-messaging password-book phrase. A free-text phrase
-  // deterministically derives this install's private password book; leaving it
-  // empty keeps the shared default so stock installs interoperate.
-  auto* im_box = new QGroupBox(tr("Instant Messaging"), this);
-  auto* im_form = new QFormLayout(im_box);
-  im_book_phrase_edit_ = new QLineEdit(im_box);
-  im_book_phrase_edit_->setPlaceholderText(
-      tr("Leave empty to use the shared default book"));
-  im_form->addRow(tr("Message Book Phrase:"), im_book_phrase_edit_);
-  auto* im_note = new QLabel(
-      tr("Derives a private book used to obfuscate instant messages. Both "
-         "sides must set the same phrase; empty means the shared default."),
-      im_box);
-  im_note->setWordWrap(true);
-  im_form->addRow(im_note);
-
-  // Insert above the trailing vertical spacer.
-  ui_->verticalLayout->insertWidget(ui_->verticalLayout->count() - 1, im_box);
-
   SetSettings();
 }
 
@@ -244,9 +225,6 @@ void GeneralTab::SetSettings() {
   } else {
     ui_->langSelectBox->setCurrentIndex(0);
   }
-
-  im_book_phrase_edit_->setText(
-      settings.value("im/password_book_phrase").toString());
 }
 
 void GeneralTab::ApplySettings() {
@@ -272,9 +250,6 @@ void GeneralTab::ApplySettings() {
   settings.setValue(
       "basic/default_engine",
       ui_->defaultEngineComboBox->currentData().toString().toUpper());
-
-  settings.setValue("im/password_book_phrase",
-                    im_book_phrase_edit_->text().trimmed());
 }
 
 }  // namespace GpgFrontend::UI

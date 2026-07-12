@@ -753,24 +753,36 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
 
   /**
-   * @brief Run a decrypt/decrypt-verify for a detected instant-messaging token,
-   * showing a dedicated status-panel card (format version, password book,
-   * sizes) alongside the standard decrypt result.
+   * @brief Run a decrypt/decrypt-verify for a NORMAL instant-messaging token,
+   * showing a dedicated status-panel card alongside the standard decrypt result.
    *
+   * @param imported_bundle whether the token auto-imported the sender's bundle,
+   * enabling forward-secret replies.
    * @return true if every operation succeeded.
    */
-  auto exec_im_decrypt_helper(
+  auto exec_im_normal_decrypt_helper(
       const QString& task,
       const QSharedPointer<GpgOperaContextBasement>& contexts,
-      const InstantMessageOperator::ImMessageInfo& info) -> bool;
+      bool imported_bundle) -> bool;
 
   /**
-   * @brief Show a status-panel card explaining why a detected instant-messaging
-   * token could not be decrypted (wrong password book / malformed), instead of
-   * feeding it to GnuPG and surfacing an opaque "No data" error.
+   * @brief Show the recovered plaintext of a forward-secret (PFS) instant
+   * message, with a "Forward Secrecy" status-panel card.
    */
-  void show_im_decrypt_error(InstantMessageOperator::DetectStatus status,
-                             const InstantMessageOperator::ImMessageInfo& info);
+  void show_im_pfs_message(const GFBuffer& plaintext, const QString& peer_fpr);
+
+  /**
+   * @brief Show a status-panel card explaining why an instant-messaging token
+   * could not be decoded (no session, failed authentication, undecryptable),
+   * instead of feeding it to GnuPG and surfacing an opaque error.
+   */
+  void show_im_decode_error(InstantMessageOperator::DecodeStatus status);
+
+  /**
+   * @brief The local OpenPGP identity key used to sign IM handshakes: the first
+   * private, sign-capable key on the current channel. Null if none is available.
+   */
+  auto im_identity_signer() -> GpgKeyPtr;
 
   /**
    * @brief

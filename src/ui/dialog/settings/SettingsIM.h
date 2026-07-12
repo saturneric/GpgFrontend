@@ -28,61 +28,38 @@
 
 #pragma once
 
-#include "core/typedef/CoreTypedef.h"
-
-class Ui_GeneralSettings;
 class QLineEdit;
+class QComboBox;
+class QCheckBox;
 
 namespace GpgFrontend::UI {
-class KeyList;
 
 /**
- * @brief
+ * @brief Settings tab for the instant-messaging (forward-secret) feature.
  *
+ * Holds the shared "Message Book Phrase" — an optional extra secret mixed into
+ * every forward-secret session. Forward secrecy itself needs no configuration;
+ * it is established automatically on first exchange.
  */
-class GeneralTab : public QWidget {
+class InstantMessagingTab : public QWidget {
   Q_OBJECT
 
  public:
-  /**
-   * @brief Construct a new General Tab object
-   *
-   * @param parent
-   */
-  explicit GeneralTab(QWidget* parent = nullptr);
+  explicit InstantMessagingTab(QWidget* parent = nullptr);
 
-  /**
-   * @brief Set the Settings object
-   *
-   */
+  /// Load current values from the global settings into the controls.
   void SetSettings();
 
-  /**
-   * @brief
-   *
-   */
+  /// Persist the controls' values back to the global settings.
   void ApplySettings();
 
- signals:
-
-  /**
-   * @brief
-   *
-   * @param needed
-   */
-  void SignalRestartNeeded();
-
-  /**
-   * @brief
-   *
-   * @param needed
-   */
-  void SignalDeepRestartNeeded();
-
  private:
-  QSharedPointer<Ui_GeneralSettings> ui_;  ///<
-  QHash<QString, QString> lang_;           ///<
-  QStringList key_ids_list_;               ///<
-  KeyList* m_key_list_{};                  ///<
+  QCheckBox* forward_secrecy_check_{};  ///< enable the Double Ratchet (PFS)
+  QComboBox* identity_key_combo_{};     ///< OpenPGP key that signs IM handshakes
+  QLineEdit* book_phrase_edit_{};       ///< shared Message Book Phrase
+
+  /// Populate the identity-key combo with the user's private, signing keys.
+  void populate_identity_keys();
 };
+
 }  // namespace GpgFrontend::UI

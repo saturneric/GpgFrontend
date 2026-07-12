@@ -34,6 +34,7 @@
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
 #include "ui/dialog/settings/SettingsGnuPG.h"
+#include "ui/dialog/settings/SettingsIM.h"
 #include "ui/dialog/settings/SettingsKeyDatabases.h"
 #include "ui/dialog/settings/SettingsNetwork.h"
 #include "ui/dialog/settings/SettingsRpgp.h"
@@ -50,6 +51,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   key_dbs_tab_ = new KeyDatabasesTab();
   gnupg_tab_ = new GnuPGTab();
   rpgp_tab_ = new RpgpTab();
+  im_tab_ = new InstantMessagingTab();
 
   auto* main_layout = new QVBoxLayout();
   main_layout->addWidget(tab_widget_);
@@ -73,6 +75,8 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
     tab_widget_->addTab(rpgp_tab_, tr("rPGP"));
   }
+
+  tab_widget_->addTab(im_tab_, tr("Instant Messaging"));
 
 #ifdef Q_OS_MACOS
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
@@ -149,6 +153,8 @@ void SettingsDialog::SlotAccept() {
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
     rpgp_tab_->ApplySettings();
   }
+
+  im_tab_->ApplySettings();
 
   emit SignalAppearanceChanged();
 
