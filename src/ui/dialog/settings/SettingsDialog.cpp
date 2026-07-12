@@ -45,6 +45,12 @@ namespace GpgFrontend::UI {
 SettingsDialog::SettingsDialog(QWidget* parent)
     : GeneralDialog(typeid(SettingsDialog).name(), parent) {
   tab_widget_ = new QTabWidget();
+  // Keep the tab bar from forcing the dialog wide, while always showing each
+  // tab's full name: never elide the labels, and when they don't all fit show
+  // scroll buttons instead — so the width stays freely adjustable.
+  tab_widget_->setUsesScrollButtons(true);
+  tab_widget_->setElideMode(Qt::ElideNone);
+
   general_tab_ = new GeneralTab();
   appearance_tab_ = new AppearanceTab();
   network_tab_ = new NetworkTab();
@@ -57,26 +63,36 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   main_layout->addWidget(tab_widget_);
   main_layout->stretch(0);
 
-  tab_widget_->addTab(general_tab_, tr("General"));
-  tab_widget_->addTab(appearance_tab_, tr("Appearance"));
+  // Wrap each page in a scroll area so a tab's content never dictates a minimum
+  // dialog width; the user can shrink the window and the page scrolls instead.
+  const auto add_tab = [this](QWidget* page, const QString& title) {
+    auto* area = new QScrollArea(tab_widget_);
+    area->setWidgetResizable(true);
+    area->setFrameShape(QFrame::NoFrame);
+    area->setWidget(page);
+    tab_widget_->addTab(area, title);
+  };
+
+  add_tab(general_tab_, tr("General"));
+  add_tab(appearance_tab_, tr("Appearance"));
 
   // network settings is not available in sandbox environment, so only add the
   // tab when not running in sandbox
   if (!IsRunningInSandBox()) {
-    tab_widget_->addTab(network_tab_, tr("Network"));
+    add_tab(network_tab_, tr("Network"));
   }
 
-  tab_widget_->addTab(key_dbs_tab_, tr("Key Databases"));
+  add_tab(key_dbs_tab_, tr("Key Databases"));
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    tab_widget_->addTab(gnupg_tab_, tr("GnuPG"));
+    add_tab(gnupg_tab_, tr("GnuPG"));
   }
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
-    tab_widget_->addTab(rpgp_tab_, tr("rPGP"));
+    add_tab(rpgp_tab_, tr("rPGP"));
   }
 
-  tab_widget_->addTab(im_tab_, tr("Instant Messaging"));
+  add_tab(im_tab_, tr("Instant Messaging"));
 
 #ifdef Q_OS_MACOS
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
