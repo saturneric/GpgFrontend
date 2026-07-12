@@ -38,6 +38,7 @@ class KeyserverTab;
 class NetworkTab;
 class KeyDatabasesTab;
 class GnuPGTab;
+class RpgpTab;
 
 /**
  * @brief
@@ -60,6 +61,7 @@ class SettingsDialog : public GeneralDialog {
   NetworkTab* network_tab_;        ///<
   KeyDatabasesTab* key_dbs_tab_;   ///<
   GnuPGTab* gnupg_tab_;            ///<
+  RpgpTab* rpgp_tab_;              ///<
 
   /**
    * @brief

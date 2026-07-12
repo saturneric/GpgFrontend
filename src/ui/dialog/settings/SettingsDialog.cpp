@@ -36,6 +36,7 @@
 #include "ui/dialog/settings/SettingsGnuPG.h"
 #include "ui/dialog/settings/SettingsKeyDatabases.h"
 #include "ui/dialog/settings/SettingsNetwork.h"
+#include "ui/dialog/settings/SettingsRpgp.h"
 #include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {
@@ -48,6 +49,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   network_tab_ = new NetworkTab();
   key_dbs_tab_ = new KeyDatabasesTab();
   gnupg_tab_ = new GnuPGTab();
+  rpgp_tab_ = new RpgpTab();
 
   auto* main_layout = new QVBoxLayout();
   main_layout->addWidget(tab_widget_);
@@ -66,6 +68,10 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     tab_widget_->addTab(gnupg_tab_, tr("GnuPG"));
+  }
+
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
+    tab_widget_->addTab(rpgp_tab_, tr("rPGP"));
   }
 
 #ifdef Q_OS_MACOS
@@ -139,6 +145,10 @@ void SettingsDialog::SlotAccept() {
   appearance_tab_->ApplySettings();
   network_tab_->ApplySettings();
   key_dbs_tab_->ApplySettings();
+
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
+    rpgp_tab_->ApplySettings();
+  }
 
   emit SignalAppearanceChanged();
 
