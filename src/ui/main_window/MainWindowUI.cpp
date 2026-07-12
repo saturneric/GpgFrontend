@@ -604,6 +604,15 @@ void MainWindow::create_dock_windows() {
   // category strip (the Key Management window keeps the full text list).
   m_key_list_->SetCategoryRailCompact(true);
 
+  // The dock is an operation panel (check a key or two, then run a PGP op), so
+  // default to a compact, identity-focused column set and persist the choice
+  // independently of the Key Management window. The optional columns (Key ID,
+  // Trust, ...) remain available through the Columns chooser.
+  m_key_list_->SetColumnFilterSettingsKey(
+      "keys/toolbox_columns_filter",
+      GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
+          GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kUSAGE);
+
   m_key_list_->AddListGroupTab(
       tr("Default"), "default",
       GpgKeyTableDisplayMode::kPUBLIC_KEY |

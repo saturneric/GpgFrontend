@@ -121,6 +121,22 @@ class KeyList : public QWidget {
   void SetTabOrderSettingsKey(const QString& settings_key);
 
   /**
+   * @brief Scope under which this key list persists its visible-column choice,
+   * and the default column set to show when nothing is persisted yet.
+   *
+   * Distinct key lists (e.g. the Key ToolBox dock and the Key Management
+   * window) should use distinct keys so their column choices stay independent.
+   * The ToolBox uses this to default to a compact, operation-focused set while
+   * the Key Management window keeps the full set.
+   *
+   * @param settings_key QSettings key used to store the column filter
+   * @param default_columns columns shown when the key has no stored value
+   */
+  void SetColumnFilterSettingsKey(
+      const QString& settings_key,
+      GpgKeyTableColumn default_columns = GpgKeyTableColumn::kALL);
+
+  /**
    * @brief Render the category strip as a compact colour rail (a swatch of the
    * category colour with the name in a tooltip) instead of the default
    * full-width text list.
@@ -414,6 +430,7 @@ class KeyList : public QWidget {
   QTimer* search_timer_ = nullptr;
   bool applying_tab_order_ = false;
   QString tab_order_settings_key_ = "keys/key_tab_order";
+  QString column_filter_settings_key_ = "keys/global_columns_filter";
 
   /**
    * @brief

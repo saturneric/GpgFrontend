@@ -156,6 +156,20 @@ auto GpgKeyTableProxyModel::filterAcceptsColumn(
   }
 }
 
+auto GpgKeyTableProxyModel::SourceColumnForVisibleColumn(
+    int visible_column) const -> int {
+  if (visible_column < 0 || model_ == nullptr) return -1;
+
+  int seen = 0;
+  const int source_columns = model_->columnCount({});
+  for (int source_col = 0; source_col < source_columns; ++source_col) {
+    if (!filterAcceptsColumn(source_col, {})) continue;
+    if (seen == visible_column) return source_col;
+    ++seen;
+  }
+  return -1;
+}
+
 void GpgKeyTableProxyModel::SetSearchKeywords(const QString &keywords) {
   this->filter_keywords_ = keywords;
   invalidateFilter();

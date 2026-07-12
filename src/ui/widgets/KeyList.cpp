@@ -586,7 +586,7 @@ void KeyList::init_signals() {
           &UISignalStation::SignalRefreshStatusBar);
 
   connect(this, &KeyList::SignalColumnTypeChange, this, [this]() {
-    GetSettings().setValue("keys/global_columns_filter",
+    GetSettings().setValue(column_filter_settings_key_,
                            static_cast<unsigned int>(global_column_filter_));
   });
 
@@ -751,6 +751,22 @@ void KeyList::RebuildCategoryTabs() {
 
 void KeyList::SetTabOrderSettingsKey(const QString& settings_key) {
   if (!settings_key.isEmpty()) tab_order_settings_key_ = settings_key;
+}
+
+void KeyList::SetColumnFilterSettingsKey(const QString& settings_key,
+                                         GpgKeyTableColumn default_columns) {
+  if (!settings_key.isEmpty()) column_filter_settings_key_ = settings_key;
+
+  global_column_filter_ = static_cast<GpgKeyTableColumn>(
+      GetSettings()
+          .value(column_filter_settings_key_,
+                 static_cast<unsigned int>(default_columns))
+          .toUInt());
+
+  // Rebuild the chooser so its checkmarks reflect the (possibly new) state, then
+  // apply the filter to every existing tab.
+  init_column_menu();
+  UpdateKeyTableColumnType(global_column_filter_);
 }
 
 void KeyList::save_tab_order() {

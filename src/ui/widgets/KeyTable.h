@@ -180,6 +180,17 @@ struct KeyTable : public QTableView {
    *
    */
   void init_table_style();
+
+  /**
+   * @brief Apply per-column sizing so long identity columns elide and share the
+   * available width instead of expanding to fit and pushing the short,
+   * decision-relevant columns (Type, Usage) off-screen.
+   *
+   * Name / Email / Comment stretch (and elide with an ellipsis); every other
+   * visible column sizes to its content. Re-applied whenever the visible column
+   * set or the model changes.
+   */
+  void apply_column_sizing();
 };
 
 }  // namespace GpgFrontend::UI

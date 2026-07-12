@@ -67,6 +67,7 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
           [this](GpgKeyTableColumn global_column_filter) {
             emit proxy_model_.SignalColumnTypeChange(column_filter_ &
                                                      global_column_filter);
+            apply_column_sizing();
           });
 
   connect(this, &QTableView::doubleClicked, this,
@@ -96,7 +97,6 @@ void KeyTable::init_table_style() {
 
   horizontalHeader()->setStretchLastSection(false);
   horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-  horizontalHeader()->setStretchLastSection(true);
   horizontalHeader()->setHighlightSections(false);
   horizontalHeader()->setSectionsClickable(true);
   horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -148,6 +148,27 @@ QTableView[gfKeyTable="true"] QTableCornerButton::section {
 
   style()->unpolish(this);
   style()->polish(this);
+
+  apply_column_sizing();
+}
+
+void KeyTable::apply_column_sizing() {
+  auto* header = horizontalHeader();
+  if (header == nullptr) return;
+
+  header->setStretchLastSection(false);
+
+  // Source columns whose text can be long: Name (2), Email (3), Comment (10).
+  // These stretch and elide; every other visible column sizes to its content.
+  static const QSet<int> kStretchSourceColumns = {2, 3, 10};
+
+  for (int col = 0; col < proxy_model_.columnCount({}); ++col) {
+    const auto source_col = proxy_model_.SourceColumnForVisibleColumn(col);
+    header->setSectionResizeMode(
+        col, kStretchSourceColumns.contains(source_col)
+                 ? QHeaderView::Stretch
+                 : QHeaderView::ResizeToContents);
+  }
 }
 
 void KeyTable::SetFilterKeyword(const QString& keyword) {
@@ -163,7 +184,7 @@ void KeyTable::RefreshModel(QSharedPointer<GpgKeyTableModel> model) {
   proxy_model_.ResetGpgKeyTableModel(model_);
 
   sortByColumn(2, Qt::AscendingOrder);
-  resizeColumnsToContents();
+  apply_column_sizing();
 
   emit SignalKeyChecked();
 }

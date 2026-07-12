@@ -60,6 +60,17 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
 
   void ResetGpgKeyTableModel(QSharedPointer<GpgKeyTableModel> model);
 
+  /**
+   * @brief Map a visible (proxy) column to its underlying source column.
+   *
+   * Row-independent, so it is valid even when the model is empty.
+   *
+   * @param visible_column proxy column index
+   * @return the source column index, or -1 if out of range
+   */
+  [[nodiscard]] auto SourceColumnForVisibleColumn(int visible_column) const
+      -> int;
+
  protected:
   [[nodiscard]] auto filterAcceptsRow(int sourceRow,
                                       const QModelIndex &sourceParent) const
