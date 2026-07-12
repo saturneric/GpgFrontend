@@ -40,7 +40,7 @@ GpgKeyTableModel::GpgKeyTableModel(int channel,
                                    const GpgAbstractKeyPtrList &keys,
                                    QObject *parent)
     : QAbstractTableModel(parent),
-      column_headers_({tr("Select"), tr("Type"), tr("Name"),
+      column_headers_({/*Select*/ QString(), tr("Type"), tr("Name"),
                        tr("Email Address"), tr("Usage"), tr("Trust"),
                        tr("Key ID"), tr("Create Date"), tr("Algorithm"),
                        tr("Subkey(s)"), tr("Comment")}),

@@ -127,7 +127,7 @@ QTableView[gfKeyTable="true"] {
 
 QTableView[gfKeyTable="true"]::item {
   min-height: 24px;
-  padding: 2px 5px;
+  padding: 2px 3px;
   border: none;
 }
 
