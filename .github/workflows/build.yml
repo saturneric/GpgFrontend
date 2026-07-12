@@ -28,15 +28,15 @@ name: Build
 on:
   push:
     branches:
-      - develop
       - main
+    tags:
+      - "v*"
     paths-ignore:
       - "resource/lfs/locale/**"
       - "**.md"
 
   pull_request:
     branches:
-      - develop
       - main
     paths-ignore:
       - "resource/lfs/locale/**"
@@ -91,6 +91,11 @@ jobs:
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
 
+          # Single-branch (trunk + tags) model:
+          #   - a version tag (v*)  -> stable release build
+          #   - a push to main      -> nightly build
+          #   - a pull request      -> PR validation build
+          #   - workflow_dispatch   -> honour the chosen input
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
             BUILD_MODE="${{ github.event.inputs.build_mode }}"
             if [[ "${BUILD_MODE}" == "release" ]]; then
@@ -103,21 +108,25 @@ jobs:
             BUILD_MODE="pr"
             BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
 
-          elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
             BUILD_MODE="release"
             BUILD_TYPE_EFFECTIVE="Release"
-
-          elif [[ "${GITHUB_REF_NAME}" == "develop" ]]; then
-            BUILD_MODE="nightly"
-            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
 
           else
             BUILD_MODE="nightly"
             BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
           fi
 
+          # Stable release builds drop the "Testing" suffix from the app name.
+          if [[ "${BUILD_MODE}" == "release" ]]; then
+            GPGFRONTEND_BUILD_STABLE="ON"
+          else
+            GPGFRONTEND_BUILD_STABLE="OFF"
+          fi
+
           echo "BUILD_MODE=${BUILD_MODE}" >> $GITHUB_ENV
           echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}" >> $GITHUB_ENV
+          echo "GPGFRONTEND_BUILD_STABLE=${GPGFRONTEND_BUILD_STABLE}" >> $GITHUB_ENV
           echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE_EFFECTIVE} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
           echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
@@ -336,6 +345,7 @@ jobs:
             -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}" \
             -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
             -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{env.PROVISIONING_PROFILE_UUID}}" \
+            -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
 
           xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
@@ -409,6 +419,7 @@ jobs:
           cmake -B ${{github.workspace}}/build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
+            -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build ${{ github.workspace }}/build \
             --config ${{ env.BUILD_TYPE }} \
@@ -465,6 +476,7 @@ jobs:
           cd $(cygpath -u "${{github.workspace}}")
           cmake -G "Ninja" -S . -B build \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build build \
             --config ${{ env.BUILD_TYPE }} \
@@ -565,9 +577,9 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    # Only publish nightly release from develop branch.
-    # Stable releases are packaged manually/offline.
-    if: github.event_name != 'pull_request' && github.ref_name == 'develop'
+    # Only publish the rolling nightly release from pushes to the main branch.
+    # Stable releases (version tags) are packaged manually/offline.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: nightly-release-approval
     steps:
       - uses: actions/checkout@v6

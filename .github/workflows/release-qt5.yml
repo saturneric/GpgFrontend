@@ -27,11 +27,8 @@ name: Build Legacy Qt5
 
 on:
   push:
-    branches:
-      - main
-    paths-ignore:
-      - "resource/lfs/locale/**"
-      - "**.md"
+    tags:
+      - "v*"
 
   pull_request:
     branches:

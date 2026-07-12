@@ -28,7 +28,6 @@ name: Build MAS Sandbox Package
 on:
   push:
     branches:
-      - develop
       - main
   workflow_dispatch:
 
