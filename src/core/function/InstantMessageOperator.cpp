@@ -28,6 +28,8 @@
 
 #include "core/function/InstantMessageOperator.h"
 
+#include <sodium.h>
+
 #include <QCryptographicHash>
 #include <QRandomGenerator>
 #include <QRegularExpression>
@@ -35,6 +37,7 @@
 #include <utility>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend {
 
@@ -151,20 +154,44 @@ constexpr uint64_t kDefaultWeyl = 0x7F49BA797C9E3175ULL;
 constexpr uint64_t kDefaultMul = 0xBF18475B4C6DEE59ULL;
 constexpr auto kBookPhraseKey = "im/password_book_phrase";
 
-// Turn a free-text phrase into the two 64-bit book constants (kept odd, as a
-// good Weyl increment / bijective multiplier want to be).
-void DeriveBookConstants(const QString& phrase, uint64_t& weyl, uint64_t& mul) {
-  const QByteArray h =
-      QCryptographicHash::hash(phrase.toUtf8(), QCryptographicHash::Sha256);
-  const auto read8 = [&h](int off) {
+// Fixed, non-secret salt: the derivation must be deterministic so the same
+// phrase yields the same book on every machine. The salt only domain-separates
+// this KDF from other libsodium uses in GpgFrontend.
+constexpr std::array<unsigned char, crypto_pwhash_SALTBYTES> kBookKdfSalt = {
+    'G', 'F', '-', 'I', 'M', '-', 'b', 'o',
+    'o', 'k', '-', 's', 'a', 'l', 't', '1'};
+
+// Argon2id work factors (mirroring AESCryptoHelper): memory-hard so the phrase
+// cannot be cheaply brute-forced from a captured message's public book id.
+constexpr unsigned long long kBookKdfOps = 3;
+constexpr size_t kBookKdfMem = 65536ULL * 1024ULL;  // 64 MiB
+
+// Derive the two 64-bit book constants from a free-text phrase using Argon2id
+// (kept odd, as a good Weyl increment / bijective multiplier want to be).
+auto DeriveBookConstants(const QString& phrase, uint64_t& weyl, uint64_t& mul)
+    -> bool {
+  if (!EnsureSodiumInit()) return false;
+
+  const QByteArray pw = phrase.toUtf8();
+  std::array<unsigned char, 16> out{};
+  const int rc =
+      crypto_pwhash(out.data(), out.size(), pw.constData(),
+                    static_cast<unsigned long long>(pw.size()),
+                    kBookKdfSalt.data(), kBookKdfOps, kBookKdfMem,
+                    crypto_pwhash_ALG_ARGON2ID13);
+  if (rc != 0) {
+    LOG_E() << "argon2id derivation for instant-messaging book failed";
+    return false;
+  }
+
+  const auto read8 = [&out](int off) {
     uint64_t v = 0;
-    for (int i = 0; i < 8; ++i) {
-      v = (v << 8) | static_cast<uint8_t>(h[off + i]);
-    }
+    for (int i = 0; i < 8; ++i) v = (v << 8) | out[off + i];
     return v;
   };
   weyl = read8(0) | 1ULL;
   mul = read8(8) | 1ULL;
+  return true;
 }
 
 // Build a book from its two constants: a permutation of 0..255 produced by a
@@ -209,7 +236,11 @@ auto ConfiguredBook() -> const PasswordBook& {
   if (!cached || cached_phrase != phrase) {
     uint64_t weyl = 0;
     uint64_t mul = 0;
-    DeriveBookConstants(phrase, weyl, mul);
+    if (!DeriveBookConstants(phrase, weyl, mul)) {
+      // Derivation failed (e.g. libsodium unavailable); fall back to the shared
+      // default book rather than silently producing an inconsistent one.
+      return DefaultBook();
+    }
     cached_book = BuildBook(weyl, mul);
     cached_phrase = phrase;
     cached = true;

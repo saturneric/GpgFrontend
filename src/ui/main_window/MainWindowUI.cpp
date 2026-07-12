@@ -369,7 +369,8 @@ void MainWindow::create_actions() {
       "im_encrypt", tr("Encrypt for Instant Messaging"), ":/icons/email.png",
       tr("Encrypt the current text into a compact, single-line format that is "
          "safe to paste into instant messengers. Recipients decrypt it with "
-         "the normal Decrypt action."));
+         "the normal Decrypt action."),
+      {QKeySequence(Qt::CTRL | Qt::Key_M)});
   connect(im_encrypt_act_, &QAction::triggered, this,
           &MainWindow::slot_im_encrypt_message);
 }

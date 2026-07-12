@@ -583,18 +583,23 @@ auto MainWindow::exec_im_decrypt_helper(
   GpgOperaHelper::WaitForMultipleOperas(
       this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
 
-  bool all_success = !contexts->opera_results.empty();
+  // Overall status like the standard path: the minimum across results. A
+  // status of 0 is a warning (e.g. Decrypt & Verify on an encrypt-only IM
+  // message, which has no signature) — not an error.
+  int overall = contexts->opera_results.empty() ? -1 : 1;
   for (const auto& result : contexts->opera_results) {
-    if (result.op_info.status <= 0) {
-      all_success = false;
-      break;
-    }
+    overall = std::min(overall, result.op_info.status);
   }
 
   // Write the recovered plaintext to the editor (skips failed results).
   slot_gpg_opera_buffer_show_helper(contexts->opera_results);
 
-  const auto status = all_success ? kINFO_ERROR_OK : kINFO_ERROR_CRITICAL;
+  InfoBoardStatus status = kINFO_ERROR_OK;
+  if (overall < 0) {
+    status = kINFO_ERROR_CRITICAL;
+  } else if (overall == 0) {
+    status = kINFO_ERROR_WARN;
+  }
 
   // Instant-messaging section — kept separate from the OpenPGP section and
   // rendered first.
@@ -617,13 +622,20 @@ auto MainWindow::exec_im_decrypt_helper(
     cards.append(convert_op_info_to_cards(op_info));
   }
 
+  QString summary;
+  if (overall < 0) {
+    summary = tr("Failed to decrypt instant message.");
+  } else if (overall == 0) {
+    summary = tr("Instant message decrypted (not signed).");
+  } else {
+    summary = tr("Instant message decrypted.");
+  }
+
   info_board_->SetInfoBoardCards(
-      all_success ? tr("Instant message decrypted.")
-                  : tr("Failed to decrypt instant message."),
-      status, cards, op_name,
+      summary, status, cards, op_name,
       tr("An Instant Messaging section followed by the OpenPGP result."));
 
-  return all_success;
+  return overall >= 0;
 }
 
 void MainWindow::show_im_decrypt_error(
@@ -648,7 +660,7 @@ void MainWindow::show_im_decrypt_error(
         tr("The message was encoded with a different Message Book Phrase than "
            "yours. Ask the sender for their phrase and set the same value in "
            "Settings → General → Instant Messaging.");
-  } else {  // kMalformed
+  } else {  // kMALFORMED
     card.fields.append({tr("Book"), QString::fromLatin1(info.book_id.toHex())});
     card.fields.append(
         {tr("Message Size"), tr("%1 bytes").arg(info.payload_size)});

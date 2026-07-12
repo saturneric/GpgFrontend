@@ -104,7 +104,7 @@ class GF_CORE_EXPORT InstantMessageOperator {
    * whitespace/line breaks introduced by a messenger)
    * @param[out] out the decoded binary OpenPGP message on kOk
    * @param[out] info optional metadata about the token (populated on any status
-   * except kNotToken)
+   * except kNOT_TOKEN)
    */
   static auto Inspect(const QString& text, GFBuffer& out,
                       ImMessageInfo* info = nullptr) -> DetectStatus;
