@@ -135,8 +135,7 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   quote_act_->setDisabled(disable);
   import_key_from_edit_act_->setDisabled(disable);
 
-  cut_pgp_header_act_->setDisabled(disable);
-  add_pgp_header_act_->setDisabled(disable);
+  im_encrypt_act_->setDisabled(disable);
 
   if (edit_->CurFilePage() != nullptr) {
     auto* file_page = edit_->CurFilePage();
@@ -171,43 +170,6 @@ void MainWindow::slot_clean_double_line_breaks() {
   auto content = edit_->CurPlainText();
   content.replace("\n\n", "\n");
   edit_->SlotFillTextEditWithText(content);
-}
-
-void MainWindow::slot_add_pgp_header() {
-  if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) {
-    return;
-  }
-
-  auto content = edit_->CurPlainText().trimmed();
-
-  content.prepend("\n\n").prepend(kPgpCryptBegin);
-  content.append("\n").append(kPgpCryptEnd);
-
-  edit_->SlotFillTextEditWithText(content);
-}
-
-void MainWindow::slot_cut_pgp_header() {
-  if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) {
-    return;
-  }
-
-  QString content = edit_->CurPlainText();
-  auto start = content.indexOf(kPgpCryptBegin);
-  auto end = content.indexOf(kPgpCryptEnd);
-
-  if (start < 0 || end < 0) {
-    return;
-  }
-
-  // remove head
-  auto head_end = content.indexOf("\n\n", start) + 2;
-  content.remove(start, head_end - start);
-
-  // remove tail
-  end = content.indexOf(kPgpCryptEnd);
-  content.remove(end, QString(kPgpCryptEnd).size());
-
-  edit_->SlotFillTextEditWithText(content.trimmed());
 }
 
 void MainWindow::SlotSetRestartNeeded(int mode) { this->restart_mode_ = mode; }

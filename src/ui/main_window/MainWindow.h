@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/InstantMessageOperator.h"
 #include "core/module/Event.h"
 #include "core/typedef/CoreTypedef.h"
 #include "core/typedef/GpgTypedef.h"
@@ -409,14 +410,11 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_clean_double_line_breaks();
 
   /**
-   * @details Cut the existing PGP header and footer from current tab.
+   * @details Encrypt the current tab's text to the checked key(s) and output a
+   * compact, single-line, instant-messaging-friendly token (gf1_...). Regular
+   * Decrypt auto-detects and decrypts such tokens.
    */
-  void slot_cut_pgp_header();
-
-  /**
-   * @details Add PGP header and footer to current tab.
-   */
-  void slot_add_pgp_header();
+  void slot_im_encrypt_message();
 
   /**
    * @details Disable tab related actions, if number of tabs is 0.
@@ -628,8 +626,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* open_settings_act_{};         ///< Action to open settings dialog
   QAction* show_key_details_act_{};      ///< Action to open key-details dialog
   QAction* start_wizard_act_{};          ///< Action to open the wizard
-  QAction* cut_pgp_header_act_{};        ///< Action for cutting the PGP header
-  QAction* add_pgp_header_act_{};        ///< Action for adding the PGP header
+  QAction* im_encrypt_act_{};  ///< Action for instant-messaging-friendly encrypt
   QAction* import_key_from_file_act_{};  ///<
   QAction* import_key_from_clipboard_act_{};  ///<
   QAction* show_log_view_act_{};              ///<
@@ -754,6 +751,18 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   auto exec_operas_helper(
       const QString& task,
       const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
+
+  /**
+   * @brief Run a decrypt/decrypt-verify for a detected instant-messaging token,
+   * showing a dedicated status-panel card (format version, password book,
+   * sizes) alongside the standard decrypt result.
+   *
+   * @return true if every operation succeeded.
+   */
+  auto exec_im_decrypt_helper(
+      const QString& task,
+      const QSharedPointer<GpgOperaContextBasement>& contexts,
+      const InstantMessageOperator::ImMessageInfo& info) -> bool;
 
   /**
    * @brief

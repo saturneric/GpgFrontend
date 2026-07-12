@@ -27,12 +27,15 @@
  */
 
 #include "MainWindow.h"
+#include "core/function/InstantMessageOperator.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SigningKeysPicker.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/function/InfoBoardCardConverter.h"
 #include "ui/struct/GpgOperaResultContext.h"
+#include "ui/widgets/InfoBoardWidget.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -390,12 +393,22 @@ void MainWindow::SlotDecrypt() {
   auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
-  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  GFBuffer input;
+  InstantMessageOperator::ImMessageInfo im_info;
+  const bool is_im =
+      InstantMessageOperator::Detect(edit_->CurPlainText(), input, &im_info);
+  if (!is_im) input = GFBuffer(edit_->CurPlainText());
+
+  contexts->GetContextBuffer(0).append(input);
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasDecrypt);
 
-  exec_operas_helper(tr("Decrypting"), contexts);
+  if (is_im) {
+    exec_im_decrypt_helper(tr("Decrypting"), contexts, im_info);
+  } else {
+    exec_operas_helper(tr("Decrypting"), contexts);
+  }
 }
 
 void MainWindow::SlotVerify() {
@@ -455,16 +468,148 @@ void MainWindow::SlotDecryptVerify() {
   auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = true;
 
-  contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
+  GFBuffer input;
+  InstantMessageOperator::ImMessageInfo im_info;
+  const bool is_im =
+      InstantMessageOperator::Detect(edit_->CurPlainText(), input, &im_info);
+  if (!is_im) input = GFBuffer(edit_->CurPlainText());
+
+  contexts->GetContextBuffer(0).append(input);
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasDecryptVerify);
 
-  exec_operas_helper(tr("Decrypting and Verifying"), contexts);
+  if (is_im) {
+    exec_im_decrypt_helper(tr("Decrypting and Verifying"), contexts, im_info);
+  } else {
+    exec_operas_helper(tr("Decrypting and Verifying"), contexts);
+  }
 
   if (!contexts->unknown_fprs.isEmpty()) {
     slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
   }
+}
+
+void MainWindow::slot_im_encrypt_message() {
+  auto* text_edit = edit_->CurPageTextEdit();
+  if (text_edit == nullptr) return;
+
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  // Binary output: skip the verbose ASCII armor so the message can be encoded
+  // into a compact single-line token below.
+  contexts->ascii = false;
+
+  if (!encrypt_operation_key_validate(contexts)) return;
+
+  auto plain_text = edit_->CurPlainText();
+  if (plain_text.isEmpty()) return;
+
+  GFBuffer secure_plain_text(plain_text);
+  plain_text.fill(QLatin1Char('X'));
+  plain_text.clear();
+
+  contexts->GetContextBuffer(0).append(secure_plain_text);
+
+  GpgOperaHelper::BuildOperas(contexts, 0,
+                              m_key_list_->GetCurrentGpgContextChannel(),
+                              GpgOperaHelper::BuildOperasEncrypt);
+
+  // Run the encryption modally, then post-process the ciphertext ourselves
+  // (unlike exec_operas_helper, which would write the raw bytes to the editor).
+  GpgOperaHelper::WaitForMultipleOperas(
+      this, tr("Encrypting"), contexts->operas,
+      m_key_list_->GetCurrentGpgContextChannel());
+
+  if (contexts->opera_results.empty()) return;
+  for (const auto& result : contexts->opera_results) {
+    if (result.op_info.status <= 0) {
+      // Encryption failed; surface the standard error UI and stop.
+      slot_result_analyse_show_helper(contexts->opera_results);
+      return;
+    }
+  }
+
+  const auto& result = contexts->opera_results.first();
+  const auto& binary = result.o_buffer;
+  const auto token = InstantMessageOperator::Encode(binary);
+  edit_->SlotFillTextEditWithText(token);
+
+  // Instant-messaging section — kept separate from the OpenPGP section and
+  // rendered first. Recipient details are left to the OpenPGP section below.
+  InfoBoardCard im_card;
+  im_card.title = tr("Instant Messaging");
+  im_card.status = kINFO_ERROR_OK;
+  im_card.fields.append({tr("Encoding"), QStringLiteral("Base58")});
+  im_card.fields.append(
+      {tr("Version"),
+       QString::number(InstantMessageOperator::FormatVersion())});
+  im_card.fields.append(
+      {tr("Password Book"),
+       QString::fromLatin1(InstantMessageOperator::DefaultBookId().toHex())});
+
+  QContainer<InfoBoardCard> cards;
+  cards.append(im_card);  // IM section first
+
+  // OpenPGP section — the standard encrypt result cards (including the
+  // "Encryption Recipient" section), appended after.
+  QString op_name = tr("Encrypt");
+  if (!result.op_info.operation.isEmpty()) op_name = result.op_info.operation;
+  cards.append(convert_op_info_to_cards(result.op_info));
+
+  info_board_->SetInfoBoardCards(
+      tr("Message encrypted for instant messaging."), kINFO_ERROR_OK, cards,
+      op_name,
+      tr("An Instant Messaging section followed by the OpenPGP result."));
+}
+
+auto MainWindow::exec_im_decrypt_helper(
+    const QString& task,
+    const QSharedPointer<GpgOperaContextBasement>& contexts,
+    const InstantMessageOperator::ImMessageInfo& info) -> bool {
+  GpgOperaHelper::WaitForMultipleOperas(
+      this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
+
+  bool all_success = !contexts->opera_results.empty();
+  for (const auto& result : contexts->opera_results) {
+    if (result.op_info.status <= 0) {
+      all_success = false;
+      break;
+    }
+  }
+
+  // Write the recovered plaintext to the editor (skips failed results).
+  slot_gpg_opera_buffer_show_helper(contexts->opera_results);
+
+  const auto status = all_success ? kINFO_ERROR_OK : kINFO_ERROR_CRITICAL;
+
+  // Instant-messaging section — kept separate from the OpenPGP section and
+  // rendered first.
+  InfoBoardCard im_card;
+  im_card.title = tr("Instant Messaging");
+  im_card.status = status;
+  im_card.fields.append({tr("Encoding"), QStringLiteral("Base58")});
+  im_card.fields.append({tr("Version"), QString::number(info.version)});
+  im_card.fields.append(
+      {tr("Password Book"), QString::fromLatin1(info.book_id.toHex())});
+
+  QContainer<InfoBoardCard> cards;
+  cards.append(im_card);  // IM section first
+
+  // OpenPGP section — the standard decrypt result cards, appended after.
+  QString op_name = tr("Decrypt");
+  if (!contexts->opera_results.empty()) {
+    const auto& op_info = contexts->opera_results.first().op_info;
+    if (!op_info.operation.isEmpty()) op_name = op_info.operation;
+    cards.append(convert_op_info_to_cards(op_info));
+  }
+
+  info_board_->SetInfoBoardCards(
+      all_success ? tr("Instant message decrypted.")
+                  : tr("Failed to decrypt instant message."),
+      status, cards, op_name,
+      tr("An Instant Messaging section followed by the OpenPGP result."));
+
+  return all_success;
 }
 
 void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {

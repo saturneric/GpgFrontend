@@ -132,9 +132,10 @@ void InfoBoardWidget::add_card_field(QVBoxLayout* card_layout, QWidget* parent,
   kl->setFont(kf);
   kl->setStyleSheet(QStringLiteral("color: palette(text);"));
   // Grow the key column with the label text (up to a max) instead of clipping.
-  const int key_w = std::min(std::max(StyleConstants::kCardKeyWidth,
-                                      QFontMetrics(kf).horizontalAdvance(key)),
-                             StyleConstants::kCardKeyMaxWidth);
+  const int key_w =
+      std::min(std::max(StyleConstants::kCardKeyWidth,
+                        QFontMetrics(kf).horizontalAdvance(key) + 8),
+               StyleConstants::kCardKeyMaxWidth);
   kl->setFixedWidth(key_w);
   kl->setWordWrap(true);
   kl->setAlignment(Qt::AlignRight | Qt::AlignTop);
@@ -449,7 +450,9 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
       if (field.second.isEmpty()) continue;
       key_w = std::max(key_w, kfm.horizontalAdvance(field.first));
     }
-    key_w = std::min(key_w, StyleConstants::kCardKeyMaxWidth);
+    // A few px of slack so a key sized exactly to its text advance does not
+    // spill onto a second line.
+    key_w = std::min(key_w + 8, StyleConstants::kCardKeyMaxWidth);
 
     for (const auto& field : card_data.fields) {
       // Skip fields with no value so the card stays compact.

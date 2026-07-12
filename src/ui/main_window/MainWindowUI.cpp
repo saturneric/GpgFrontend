@@ -365,16 +365,13 @@ void MainWindow::create_actions() {
           &TextEdit::SlotSwitchTabDown);
   this->addAction(switch_tab_down_act_);
 
-  cut_pgp_header_act_ =
-      create_action("cut_pgp_header", tr("Remove PGP Header"),
-                    ":/icons/minus.png", tr("Remove PGP Header"));
-  connect(cut_pgp_header_act_, &QAction::triggered, this,
-          &MainWindow::slot_cut_pgp_header);
-
-  add_pgp_header_act_ = create_action("add_pgp_header", tr("Add PGP Header"),
-                                      ":/icons/add.png", tr("Add PGP Header"));
-  connect(add_pgp_header_act_, &QAction::triggered, this,
-          &MainWindow::slot_add_pgp_header);
+  im_encrypt_act_ = create_action(
+      "im_encrypt", tr("Encrypt for Instant Messaging"), ":/icons/email.png",
+      tr("Encrypt the current text into a compact, single-line format that is "
+         "safe to paste into instant messengers. Recipients decrypt it with "
+         "the normal Decrypt action."));
+  connect(im_encrypt_act_, &QAction::triggered, this,
+          &MainWindow::slot_im_encrypt_message);
 }
 
 void MainWindow::create_menus() {
@@ -415,14 +412,13 @@ void MainWindow::create_menus() {
   edit_menu_->addSeparator();
   edit_menu_->addAction(quote_act_);
   edit_menu_->addAction(clean_double_line_breaks_act_);
-  edit_menu_->addAction(add_pgp_header_act_);
-  edit_menu_->addAction(cut_pgp_header_act_);
   edit_menu_->addSeparator();
   edit_menu_->addAction(open_settings_act_);
 
   crypt_menu_ = menuBar()->addMenu(tr("Operations"));
   crypt_menu_->addAction(sym_encrypt_act_);
   crypt_menu_->addAction(encrypt_act_);
+  crypt_menu_->addAction(im_encrypt_act_);
   crypt_menu_->addAction(encrypt_sign_act_);
   crypt_menu_->addAction(decrypt_act_);
   crypt_menu_->addAction(decrypt_verify_act_);
@@ -571,8 +567,7 @@ void MainWindow::create_tool_bars() {
   SetupToolBar(special_edit_tool_bar_, icon_style_, icon_size_);
   special_edit_tool_bar_->addAction(quote_act_);
   special_edit_tool_bar_->addAction(clean_double_line_breaks_act_);
-  special_edit_tool_bar_->addAction(add_pgp_header_act_);
-  special_edit_tool_bar_->addAction(cut_pgp_header_act_);
+  special_edit_tool_bar_->addAction(im_encrypt_act_);
   special_edit_tool_bar_->hide();
   view_menu_->addAction(special_edit_tool_bar_->toggleViewAction());
 }
