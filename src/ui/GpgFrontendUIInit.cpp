@@ -53,6 +53,37 @@ QContainer<QByteArray> loaded_qm_datum;
   std::_Exit(0);
 }
 
+// QDialog that paints a faint GF logo watermark behind its children, matching
+// the status/report panel (see DocFrame in InfoBoardDocFrame.h).
+class StartupWaitingDialog : public QDialog {
+ public:
+  using QDialog::QDialog;
+
+ protected:
+  void paintEvent(QPaintEvent* ev) override {
+    QDialog::paintEvent(ev);
+
+    if (logo_.isNull()) {
+      logo_ = QPixmap(QStringLiteral(":/icons/gpgfrontend_logo.png"));
+    }
+    if (logo_.isNull()) return;
+
+    const int box = qMin(width(), height()) - 32;
+    if (box <= 0) return;
+
+    const QPixmap scaled =
+        logo_.scaled(box, box, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QPainter p(this);
+    p.setRenderHint(QPainter::SmoothPixmapTransform);
+    p.setOpacity(0.06);
+    p.drawPixmap((width() - scaled.width()) / 2,
+                 (height() - scaled.height()) / 2, scaled);
+  }
+
+ private:
+  QPixmap logo_;
+};
+
 void WaitEnvCheckingProcess() {
   FLOG_D() << "we need to wait for env checking process";
 
@@ -65,7 +96,7 @@ void WaitEnvCheckingProcess() {
     return;
   }
 
-  auto* dialog = new QDialog(nullptr);
+  auto* dialog = new StartupWaitingDialog(nullptr);
   dialog->setAttribute(Qt::WA_DeleteOnClose);
   dialog->setWindowTitle(QCoreApplication::tr("Starting GpgFrontend"));
   dialog->setModal(true);
