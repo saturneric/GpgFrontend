@@ -60,6 +60,7 @@ option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN for memory testing" OFF)
 option(GPGFRONTEND_BUILD_APP_IMAGE "Build AppImage" OFF)
 option(GPGFRONTEND_BUILD_MODULES "Build Modules" ON)
 option(GPGFRONTEND_BUILD_STRIP_RPATH "Strip RPATH from binaries for packaging" OFF)
+option(GPGFRONTEND_BUILD_STABLE "Build as a stable release (drops the \"Testing\" display-name suffix)" OFF)
 
 # xcode build options
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
@@ -373,7 +374,13 @@ endif()
 
 set(GPGFRONTEND_APP_DISPLAY_NAME "${GPGFRONTEND_APP_BASE_DISPLAY_NAME}")
 
-if(GIT_BRANCH_NAME MATCHES "develop")
+# Non-stable builds (nightly / local development / any untagged trunk build) are
+# marked "Testing" so users can tell them apart from official releases. Stable
+# release builds set -DGPGFRONTEND_BUILD_STABLE=ON. This is decoupled from the
+# git branch name on purpose: with a single-branch (trunk + release tags) model,
+# `main` produces both nightlies and, via tags, releases, so the branch name can
+# no longer distinguish the two.
+if(NOT GPGFRONTEND_BUILD_STABLE)
   set(GPGFRONTEND_APP_DISPLAY_NAME
     "${GPGFRONTEND_APP_BASE_DISPLAY_NAME} Testing")
 endif()
