@@ -98,6 +98,12 @@ void GeneralDialog::showEvent(QShowEvent *event) {
     first_show_handled_ = true;
     prepare_first_show();
   }
+
+  // Frame margins (title bar height) are unknown until the window manager maps
+  // and decorates the window, so this must run after we return to the event
+  // loop. Guarantees the title bar stays reachable even when the pre-map
+  // geometry placed the client rect flush against the top of the screen.
+  QTimer::singleShot(0, this, &GeneralDialog::slot_ensure_frame_on_screen);
 }
 
 GeneralDialog::~GeneralDialog() = default;
@@ -138,20 +144,53 @@ void GeneralDialog::slot_save_settings() noexcept {
 
     update_rect_cache();
 
-    QRect current_geometry = this->frameGeometry();
+    // Restore applies the saved position via setGeometry(), which addresses the
+    // client area (frame-excluded). Save must read from the same coordinate
+    // space, otherwise the title-bar height leaks into the position and the
+    // dialog creeps upward by one title bar on every open/close cycle.
+    QRect current_geometry = this->geometry();
 
     WindowStateSO window_state;
     window_state.x = current_geometry.x();
     window_state.y = current_geometry.y();
 
-    window_state.width = this->geometry().width();
-    window_state.height = this->geometry().height();
+    window_state.width = current_geometry.width();
+    window_state.height = current_geometry.height();
     window_state.window_save = true;
 
     general_windows_state.Store(window_state.Json());
 
   } catch (...) {
     LOG_W() << "general dialog: " << name_ << ", caught exception";
+  }
+}
+
+void GeneralDialog::slot_ensure_frame_on_screen() {
+  if (!isVisible()) return;
+
+  // Refresh screen_rect_ for the screen the window actually landed on.
+  update_rect_cache();
+
+  const QRect frame = frameGeometry();
+  QPoint pos = frame.topLeft();
+
+  // Pull the far edges in first, then the near edges, so that for a window
+  // larger than the screen the top/left wins — keeping the title bar and its
+  // close button on screen rather than the bottom.
+  if (frame.right() > screen_rect_.right()) {
+    pos.setX(screen_rect_.right() - frame.width() + 1);
+  }
+  if (frame.bottom() > screen_rect_.bottom()) {
+    pos.setY(screen_rect_.bottom() - frame.height() + 1);
+  }
+  if (pos.x() < screen_rect_.left()) pos.setX(screen_rect_.left());
+  if (pos.y() < screen_rect_.top()) pos.setY(screen_rect_.top());
+
+  if (pos != frame.topLeft()) {
+    // move() addresses the frame top-left for top-level windows, matching the
+    // frameGeometry() measured above (setGeometry() would target the client
+    // rect and reintroduce the title-bar offset).
+    move(pos);
   }
 }
 

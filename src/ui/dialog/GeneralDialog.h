@@ -99,6 +99,17 @@ class GeneralDialog : public QDialog {
    */
   void slot_save_settings() noexcept;
 
+  /**
+   * @brief Pull the window frame back onto the available screen area.
+   *
+   * Runs deferred after the native window is mapped, once the window manager
+   * has added the title bar and the frame margins become known. The pre-map
+   * clamping only constrains the client rect, so without this correction a
+   * dialog centered against a full-screen parent can end up with its title bar
+   * (and close button) above the top of the screen.
+   */
+  void slot_ensure_frame_on_screen();
+
  private:
   /**
    *
