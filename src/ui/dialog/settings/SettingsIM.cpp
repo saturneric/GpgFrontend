@@ -55,21 +55,21 @@ InstantMessagingTab::InstantMessagingTab(QWidget* parent) : QWidget(parent) {
 
   // Identity: the OpenPGP key that signs (authenticates) our forward-secret
   // handshakes. This is who the recipient sees and trusts as the sender.
-  auto* id_box = new QGroupBox(tr("Identity"), this);
-  auto* id_form = new QFormLayout(id_box);
-  identity_key_combo_ = new QComboBox(id_box);
+  identity_box_ = new QGroupBox(tr("Identity"), this);
+  auto* id_form = new QFormLayout(identity_box_);
+  identity_key_combo_ = new QComboBox(identity_box_);
   id_form->addRow(tr("Signing Key:"), identity_key_combo_);
   auto* id_note = new QLabel(
       tr("The private OpenPGP key used to sign your instant-messaging "
          "sessions, binding them to your identity. You must choose one before "
          "sending instant messages."),
-      id_box);
+      identity_box_);
   id_note->setWordWrap(true);
   id_form->addRow(id_note);
 
-  auto* book_box = new QGroupBox(tr("Message Book"), this);
-  auto* book_form = new QFormLayout(book_box);
-  book_phrase_edit_ = new QLineEdit(book_box);
+  book_box_ = new QGroupBox(tr("Message Book"), this);
+  auto* book_form = new QFormLayout(book_box_);
+  book_phrase_edit_ = new QLineEdit(book_box_);
   book_phrase_edit_->setPlaceholderText(
       tr("Leave empty to use the shared default book"));
   book_form->addRow(tr("Message Book Phrase:"), book_phrase_edit_);
@@ -78,18 +78,29 @@ InstantMessagingTab::InstantMessagingTab(QWidget* parent) : QWidget(parent) {
          "Both sides must set the same phrase; empty means the shared default. "
          "Forward secrecy is established automatically — just pick a key and "
          "encrypt; no setup needed."),
-      book_box);
+      book_box_);
   note->setWordWrap(true);
   book_form->addRow(note);
 
+  // Identity and Message Book only matter for forward secrecy; grey them out in
+  // plain Normal mode.
+  connect(forward_secrecy_check_, &QCheckBox::toggled, this,
+          [this](bool) { update_fs_dependent_state(); });
+
   auto* layout = new QVBoxLayout(this);
   layout->addWidget(mode_box);
-  layout->addWidget(id_box);
-  layout->addWidget(book_box);
+  layout->addWidget(identity_box_);
+  layout->addWidget(book_box_);
   layout->addStretch(1);
   setLayout(layout);
 
   SetSettings();
+}
+
+void InstantMessagingTab::update_fs_dependent_state() {
+  const bool on = forward_secrecy_check_->isChecked();
+  identity_box_->setEnabled(on);
+  book_box_->setEnabled(on);
 }
 
 void InstantMessagingTab::populate_identity_keys() {
@@ -126,6 +137,8 @@ void InstantMessagingTab::SetSettings() {
 
   book_phrase_edit_->setText(
       settings.value("im/password_book_phrase").toString());
+
+  update_fs_dependent_state();
 }
 
 void InstantMessagingTab::ApplySettings() {

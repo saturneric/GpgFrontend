@@ -31,6 +31,7 @@
 class QLineEdit;
 class QComboBox;
 class QCheckBox;
+class QGroupBox;
 
 namespace GpgFrontend::UI {
 
@@ -55,11 +56,17 @@ class InstantMessagingTab : public QWidget {
 
  private:
   QCheckBox* forward_secrecy_check_{};  ///< enable the Double Ratchet (PFS)
+  QGroupBox* identity_box_{};           ///< Identity group (forward-secrecy only)
   QComboBox* identity_key_combo_{};     ///< OpenPGP key that signs IM handshakes
+  QGroupBox* book_box_{};               ///< Message Book group (forward-secrecy only)
   QLineEdit* book_phrase_edit_{};       ///< shared Message Book Phrase
 
   /// Populate the identity-key combo with the user's private, signing keys.
   void populate_identity_keys();
+
+  /// Enable the Identity and Message Book groups only when forward secrecy is
+  /// on — they play no role in plain Normal mode.
+  void update_fs_dependent_state();
 };
 
 }  // namespace GpgFrontend::UI
