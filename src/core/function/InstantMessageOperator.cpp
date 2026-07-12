@@ -34,6 +34,8 @@
 #include <array>
 #include <utility>
 
+#include "core/function/GlobalSettingStation.h"
+
 namespace GpgFrontend {
 
 namespace {
@@ -140,17 +142,42 @@ struct PasswordBook {
   QByteArray id;  // first kBookIdLen bytes of SHA-256(sub)
 };
 
-// Build the deterministic default book: a fixed permutation of 0..255 produced
-// by a seeded splitmix64 Fisher-Yates shuffle, so every build/machine agrees.
-auto BuildDefaultBook() -> PasswordBook {
+// The two mixer constants of the splitmix64 shuffle that builds a book: a Weyl
+// increment and a multiplier. These are the shared DEFAULT, so every stock
+// GpgFrontend produces the same default book and interoperates out of the box.
+// A user-provided phrase derives its own pair (see DeriveBookConstants), giving
+// that user a private book while default installs still talk to each other.
+constexpr uint64_t kDefaultWeyl = 0x7F49BA797C9E3175ULL;
+constexpr uint64_t kDefaultMul = 0xBF18475B4C6DEE59ULL;
+constexpr auto kBookPhraseKey = "im/password_book_phrase";
+
+// Turn a free-text phrase into the two 64-bit book constants (kept odd, as a
+// good Weyl increment / bijective multiplier want to be).
+void DeriveBookConstants(const QString& phrase, uint64_t& weyl, uint64_t& mul) {
+  const QByteArray h =
+      QCryptographicHash::hash(phrase.toUtf8(), QCryptographicHash::Sha256);
+  const auto read8 = [&h](int off) {
+    uint64_t v = 0;
+    for (int i = 0; i < 8; ++i) {
+      v = (v << 8) | static_cast<uint8_t>(h[off + i]);
+    }
+    return v;
+  };
+  weyl = read8(0) | 1ULL;
+  mul = read8(8) | 1ULL;
+}
+
+// Build a book from its two constants: a permutation of 0..255 produced by a
+// seeded splitmix64 Fisher-Yates shuffle, plus the SHA-256 id of that table.
+auto BuildBook(uint64_t weyl, uint64_t mul) -> PasswordBook {
   PasswordBook book;
   for (int i = 0; i < 256; ++i) book.sub[i] = static_cast<uint8_t>(i);
 
-  uint64_t s = 0x9E3779B97F4A7C15ULL;  // fixed seed
+  uint64_t s = weyl;
   for (int i = 255; i > 0; --i) {
-    s += 0x9E3779B97F4A7C15ULL;
+    s += weyl;
     uint64_t z = s;
-    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
+    z = (z ^ (z >> 30)) * mul;
     z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
     z = z ^ (z >> 31);
     const int j = static_cast<int>(z % static_cast<uint64_t>(i + 1));
@@ -164,16 +191,40 @@ auto BuildDefaultBook() -> PasswordBook {
   return book;
 }
 
-auto DefaultPasswordBook() -> const PasswordBook& {
-  static const PasswordBook kBook = BuildDefaultBook();
+// The shared default book — always available so stock installs interoperate.
+auto DefaultBook() -> const PasswordBook& {
+  static const PasswordBook kBook = BuildBook(kDefaultWeyl, kDefaultMul);
   return kBook;
 }
 
-// Resolve a book by its embedded id. Today only the default book exists; custom
-// books would register here under their own hash id.
+// The book used for encoding: the phrase-derived one if configured, else the
+// default. Cached by phrase so we rebuild only when the setting changes.
+auto ConfiguredBook() -> const PasswordBook& {
+  const auto phrase = GetSettings().value(kBookPhraseKey).toString().trimmed();
+  if (phrase.isEmpty()) return DefaultBook();
+
+  static QString cached_phrase;
+  static PasswordBook cached_book;
+  static bool cached = false;
+  if (!cached || cached_phrase != phrase) {
+    uint64_t weyl = 0;
+    uint64_t mul = 0;
+    DeriveBookConstants(phrase, weyl, mul);
+    cached_book = BuildBook(weyl, mul);
+    cached_phrase = phrase;
+    cached = true;
+  }
+  return cached_book;
+}
+
+// Resolve a book by its embedded id: the active (configured) book, or the
+// default, so a customised install can still read stock default messages.
 auto FindBook(const QByteArray& id) -> const PasswordBook* {
-  const auto& def = DefaultPasswordBook();
-  return id == def.id ? &def : nullptr;
+  const auto& cfg = ConfiguredBook();
+  if (id == cfg.id) return &cfg;
+  const auto& def = DefaultBook();
+  if (id == def.id) return &def;
+  return nullptr;
 }
 
 // Derive a per-message keystream from the book (used as key material) and the
@@ -220,7 +271,7 @@ auto InstantMessageOperator::Encode(const GFBuffer& binary_message) -> QString {
   const auto raw = binary_message.ConvertToQByteArray();
   if (raw.isEmpty()) return {};
 
-  const PasswordBook& book = DefaultPasswordBook();
+  const PasswordBook& book = ConfiguredBook();
 
   // Fresh random seed per message: it randomises the keystream so the book is
   // never applied the same way twice and its structure stays hidden.
@@ -244,27 +295,45 @@ auto InstantMessageOperator::Encode(const GFBuffer& binary_message) -> QString {
   return Base58Encode(frame);
 }
 
-auto InstantMessageOperator::Detect(const QString& text, GFBuffer& out,
-                                    InstantMessageOperator::ImMessageInfo* info)
-    -> bool {
+auto InstantMessageOperator::Inspect(
+    const QString& text, GFBuffer& out,
+    InstantMessageOperator::ImMessageInfo* info) -> DetectStatus {
   // A standard ASCII-armored block is handled by the normal decrypt path.
-  if (text.contains(QLatin1String("-----BEGIN PGP"))) return false;
+  if (text.contains(QLatin1String("-----BEGIN PGP"))) {
+    return DetectStatus::kNOT_TOKEN;
+  }
 
   // The token is the whole message; tolerate stray whitespace/line breaks a
   // messenger may have introduced. Base58Decode itself rejects any character
   // outside the alphabet, so no separate charset check is needed.
   QString compact = text;
   compact.remove(QRegularExpression(QStringLiteral("\\s")));
-  if (compact.isEmpty()) return false;
+  if (compact.isEmpty()) return DetectStatus::kNOT_TOKEN;
 
   bool ok = false;
   const auto frame = Base58Decode(compact, ok);
-  if (!ok || frame.size() < kHeaderLen + kImMinBytes) return false;
+  if (!ok || frame.size() < kHeaderLen + kImMinBytes) {
+    return DetectStatus::kNOT_TOKEN;
+  }
 
-  // version + book id together act as an internal ~40-bit signature.
-  if (static_cast<uint8_t>(frame[0]) != kImVersion) return false;
-  const PasswordBook* book = FindBook(frame.mid(1, kBookIdLen));
-  if (book == nullptr) return false;
+  // The version byte is the primary signature that this is meant to be one of
+  // our tokens; without it, treat the input as ordinary text.
+  if (static_cast<uint8_t>(frame[0]) != kImVersion) {
+    return DetectStatus::kNOT_TOKEN;
+  }
+
+  const QByteArray book_id = frame.mid(1, kBookIdLen);
+  if (info != nullptr) {
+    info->version = static_cast<uint8_t>(frame[0]);
+    info->book_id = book_id;
+    info->encoded_length = static_cast<int>(compact.size());
+    info->payload_size = static_cast<int>(frame.size() - kHeaderLen);
+  }
+
+  // Looks like our token, but we don't have the book it was encoded with — the
+  // sender used a different Message Book Phrase.
+  const PasswordBook* book = FindBook(book_id);
+  if (book == nullptr) return DetectStatus::kBOOK_MISMATCH;
 
   const QByteArray seed = frame.mid(1 + kBookIdLen, kSeedLen);
   const QByteArray scrambled = frame.mid(kHeaderLen);
@@ -277,17 +346,22 @@ auto InstantMessageOperator::Detect(const QString& text, GFBuffer& out,
     raw[i] = static_cast<char>(scrambled[i] ^ ks[i]);
   }
 
-  if (!LooksLikeOpenPGPMessage(raw)) return false;
+  // Book matched, but the recovered bytes are not an OpenPGP message: the token
+  // was truncated or altered in transit.
+  if (!LooksLikeOpenPGPMessage(raw)) return DetectStatus::kMALFORMED;
 
   if (info != nullptr) {
-    info->version = static_cast<uint8_t>(frame[0]);
     info->book_id = book->id;
-    info->encoded_length = static_cast<int>(compact.size());
     info->payload_size = static_cast<int>(raw.size());
   }
-
   out = GFBuffer(raw);
-  return true;
+  return DetectStatus::kOK;
+}
+
+auto InstantMessageOperator::Detect(const QString& text, GFBuffer& out,
+                                    InstantMessageOperator::ImMessageInfo* info)
+    -> bool {
+  return Inspect(text, out, info) == DetectStatus::kOK;
 }
 
 auto InstantMessageOperator::Contains(const QString& text) -> bool {
@@ -297,8 +371,8 @@ auto InstantMessageOperator::Contains(const QString& text) -> bool {
 
 auto InstantMessageOperator::FormatVersion() -> int { return kImVersion; }
 
-auto InstantMessageOperator::DefaultBookId() -> QByteArray {
-  return DefaultPasswordBook().id;
+auto InstantMessageOperator::ActiveBookId() -> QByteArray {
+  return ConfiguredBook().id;
 }
 
 }  // namespace GpgFrontend

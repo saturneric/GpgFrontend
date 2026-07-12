@@ -91,9 +91,9 @@ TEST(InstantMessageOperatorTest, RandomLayerVariesButRoundTrips) {
 TEST(InstantMessageOperatorTest, VersionAndBookIdAreStable) {
   EXPECT_EQ(InstantMessageOperator::FormatVersion(), 1);
 
-  const auto id = InstantMessageOperator::DefaultBookId();
+  const auto id = InstantMessageOperator::ActiveBookId();
   EXPECT_EQ(id.size(), 4);
-  EXPECT_EQ(id, InstantMessageOperator::DefaultBookId());
+  EXPECT_EQ(id, InstantMessageOperator::ActiveBookId());
 }
 
 TEST(InstantMessageOperatorTest, DetectNone) {
@@ -112,8 +112,9 @@ TEST(InstantMessageOperatorTest, DetectToleratesWhitespace) {
   EXPECT_EQ(out.ConvertToQByteArray(), PgpLikeBlob());
 }
 
-TEST(InstantMessageOperatorTest, DetectRejectsNonPgp) {
-  // Valid Base58, but the decoded bytes are not an encrypted OpenPGP message.
+// A token whose book matches (default) but whose payload is not an OpenPGP
+// message is reported as malformed, not as a generic non-token.
+TEST(InstantMessageOperatorTest, InspectMalformedWhenPayloadNotPgp) {
   QByteArray not_pgp;
   not_pgp.append('\x00');  // no packet-header high bit
   for (int i = 1; i < 200; ++i) not_pgp.append(static_cast<char>(i));
@@ -121,6 +122,19 @@ TEST(InstantMessageOperatorTest, DetectRejectsNonPgp) {
   const auto token = InstantMessageOperator::Encode(GFBuffer(not_pgp));
   GFBuffer out;
   EXPECT_FALSE(InstantMessageOperator::Detect(token, out));
+  EXPECT_EQ(InstantMessageOperator::Inspect(token, out),
+            InstantMessageOperator::DetectStatus::kMALFORMED);
+}
+
+// Ordinary text and a valid token classify as kNotToken / kOk respectively.
+TEST(InstantMessageOperatorTest, InspectStatuses) {
+  GFBuffer out;
+  EXPECT_EQ(InstantMessageOperator::Inspect("hello there, friend!", out),
+            InstantMessageOperator::DetectStatus::kNOT_TOKEN);
+
+  const auto token = InstantMessageOperator::Encode(GFBuffer(PgpLikeBlob()));
+  EXPECT_EQ(InstantMessageOperator::Inspect(token, out),
+            InstantMessageOperator::DetectStatus::kOK);
 }
 
 TEST(InstantMessageOperatorTest, DetectRejectsArmoredMessage) {

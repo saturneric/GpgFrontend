@@ -395,16 +395,23 @@ void MainWindow::SlotDecrypt() {
 
   GFBuffer input;
   InstantMessageOperator::ImMessageInfo im_info;
-  const bool is_im =
-      InstantMessageOperator::Detect(edit_->CurPlainText(), input, &im_info);
-  if (!is_im) input = GFBuffer(edit_->CurPlainText());
+  const auto im_status =
+      InstantMessageOperator::Inspect(edit_->CurPlainText(), input, &im_info);
+  if (im_status == InstantMessageOperator::DetectStatus::kBOOK_MISMATCH ||
+      im_status == InstantMessageOperator::DetectStatus::kMALFORMED) {
+    show_im_decrypt_error(im_status, im_info);
+    return;
+  }
+  if (im_status != InstantMessageOperator::DetectStatus::kOK) {
+    input = GFBuffer(edit_->CurPlainText());
+  }
 
   contexts->GetContextBuffer(0).append(input);
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasDecrypt);
 
-  if (is_im) {
+  if (im_status == InstantMessageOperator::DetectStatus::kOK) {
     exec_im_decrypt_helper(tr("Decrypting"), contexts, im_info);
   } else {
     exec_operas_helper(tr("Decrypting"), contexts);
@@ -470,16 +477,23 @@ void MainWindow::SlotDecryptVerify() {
 
   GFBuffer input;
   InstantMessageOperator::ImMessageInfo im_info;
-  const bool is_im =
-      InstantMessageOperator::Detect(edit_->CurPlainText(), input, &im_info);
-  if (!is_im) input = GFBuffer(edit_->CurPlainText());
+  const auto im_status =
+      InstantMessageOperator::Inspect(edit_->CurPlainText(), input, &im_info);
+  if (im_status == InstantMessageOperator::DetectStatus::kBOOK_MISMATCH ||
+      im_status == InstantMessageOperator::DetectStatus::kMALFORMED) {
+    show_im_decrypt_error(im_status, im_info);
+    return;
+  }
+  if (im_status != InstantMessageOperator::DetectStatus::kOK) {
+    input = GFBuffer(edit_->CurPlainText());
+  }
 
   contexts->GetContextBuffer(0).append(input);
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasDecryptVerify);
 
-  if (is_im) {
+  if (im_status == InstantMessageOperator::DetectStatus::kOK) {
     exec_im_decrypt_helper(tr("Decrypting and Verifying"), contexts, im_info);
   } else {
     exec_operas_helper(tr("Decrypting and Verifying"), contexts);
@@ -545,7 +559,7 @@ void MainWindow::slot_im_encrypt_message() {
        QString::number(InstantMessageOperator::FormatVersion())});
   im_card.fields.append(
       {tr("Password Book"),
-       QString::fromLatin1(InstantMessageOperator::DefaultBookId().toHex())});
+       QString::fromLatin1(InstantMessageOperator::ActiveBookId().toHex())});
 
   QContainer<InfoBoardCard> cards;
   cards.append(im_card);  // IM section first
@@ -610,6 +624,45 @@ auto MainWindow::exec_im_decrypt_helper(
       tr("An Instant Messaging section followed by the OpenPGP result."));
 
   return all_success;
+}
+
+void MainWindow::show_im_decrypt_error(
+    InstantMessageOperator::DetectStatus status,
+    const InstantMessageOperator::ImMessageInfo& info) {
+  InfoBoardCard card;
+  card.title = tr("Instant Message");
+  card.status = kINFO_ERROR_CRITICAL;
+  card.fields.append({tr("Detected"), tr("Yes")});
+  card.fields.append({tr("Format Version"), QString::number(info.version)});
+
+  QString summary;
+  QString description;
+  if (status == InstantMessageOperator::DetectStatus::kBOOK_MISMATCH) {
+    card.fields.append(
+        {tr("Sender Book"), QString::fromLatin1(info.book_id.toHex())});
+    card.fields.append(
+        {tr("Your Book"),
+         QString::fromLatin1(InstantMessageOperator::ActiveBookId().toHex())});
+    summary = tr("Wrong password book for this instant message.");
+    description =
+        tr("The message was encoded with a different Message Book Phrase than "
+           "yours. Ask the sender for their phrase and set the same value in "
+           "Settings → General → Instant Messaging.");
+  } else {  // kMalformed
+    card.fields.append({tr("Book"), QString::fromLatin1(info.book_id.toHex())});
+    card.fields.append(
+        {tr("Message Size"), tr("%1 bytes").arg(info.payload_size)});
+    summary = tr("Malformed instant message.");
+    description =
+        tr("This looks like an instant message, but it is corrupted or was "
+           "altered in transit and cannot be recovered.");
+  }
+
+  QContainer<InfoBoardCard> cards;
+  cards.append(card);
+  info_board_->SetInfoBoardCards(summary, kINFO_ERROR_CRITICAL, cards,
+                                 tr("Decrypt · Instant Messaging"),
+                                 description);
 }
 
 void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {

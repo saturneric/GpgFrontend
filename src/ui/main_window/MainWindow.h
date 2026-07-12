@@ -765,6 +765,14 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       const InstantMessageOperator::ImMessageInfo& info) -> bool;
 
   /**
+   * @brief Show a status-panel card explaining why a detected instant-messaging
+   * token could not be decrypted (wrong password book / malformed), instead of
+   * feeding it to GnuPG and surfacing an opaque "No data" error.
+   */
+  void show_im_decrypt_error(InstantMessageOperator::DetectStatus status,
+                             const InstantMessageOperator::ImMessageInfo& info);
+
+  /**
    * @brief
    *
    * @param contexts

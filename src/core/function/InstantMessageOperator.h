@@ -79,6 +79,14 @@ class GF_CORE_EXPORT InstantMessageOperator {
     int payload_size{};    ///< decoded OpenPGP message size in bytes
   };
 
+  /// Outcome of inspecting text for an instant-messaging token.
+  enum class DetectStatus : uint8_t {
+    kNOT_TOKEN,  ///< not an IM token; the caller should handle input normally
+    kBOOK_MISMATCH,  ///< an IM token, but no matching book (wrong phrase/seed)
+    kMALFORMED,  ///< an IM token with a known book, but the payload is invalid
+    kOK,         ///< a valid IM token; @c out / @c info are populated
+  };
+
   /**
    * @brief Wrap a binary OpenPGP message into a compact single-line token.
    *
@@ -88,13 +96,22 @@ class GF_CORE_EXPORT InstantMessageOperator {
   static auto Encode(const GFBuffer& binary_message) -> QString;
 
   /**
-   * @brief Detect and decode a token that makes up @p text.
+   * @brief Inspect @p text and classify it as (not) an instant-messaging token,
+   * distinguishing a wrong-book/wrong-phrase token and a malformed one so the
+   * caller can report a precise error instead of a generic decrypt failure.
    *
    * @param text buffer that may be a compact token (possibly with stray
    * whitespace/line breaks introduced by a messenger)
-   * @param[out] out the decoded binary OpenPGP message when a token is found
-   * @param[out] info optional metadata about the token when found
-   * @return true if @p text is a valid token, false otherwise
+   * @param[out] out the decoded binary OpenPGP message on kOk
+   * @param[out] info optional metadata about the token (populated on any status
+   * except kNotToken)
+   */
+  static auto Inspect(const QString& text, GFBuffer& out,
+                      ImMessageInfo* info = nullptr) -> DetectStatus;
+
+  /**
+   * @brief Convenience wrapper over Inspect(): true iff a valid token was
+   * decoded (status kOk).
    */
   static auto Detect(const QString& text, GFBuffer& out,
                      ImMessageInfo* info = nullptr) -> bool;
@@ -110,10 +127,11 @@ class GF_CORE_EXPORT InstantMessageOperator {
   static auto FormatVersion() -> int;
 
   /**
-   * @brief Identifier (SHA-256 prefix) of the default password book — the hash
-   * a token references so decrypt can select the book to reverse with.
+   * @brief Identifier (SHA-256 prefix) of the active password book — the
+   * phrase-derived book if one is configured, otherwise the shared default.
+   * This is the hash a freshly encoded token references.
    */
-  static auto DefaultBookId() -> QByteArray;
+  static auto ActiveBookId() -> QByteArray;
 };
 
 }  // namespace GpgFrontend

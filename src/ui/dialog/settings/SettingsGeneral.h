@@ -31,6 +31,7 @@
 #include "core/typedef/CoreTypedef.h"
 
 class Ui_GeneralSettings;
+class QLineEdit;
 
 namespace GpgFrontend::UI {
 class KeyList;
@@ -83,5 +84,6 @@ class GeneralTab : public QWidget {
   QHash<QString, QString> lang_;           ///<
   QStringList key_ids_list_;               ///<
   KeyList* m_key_list_{};                  ///<
+  QLineEdit* im_book_phrase_edit_{};       ///< instant-messaging book phrase
 };
 }  // namespace GpgFrontend::UI
