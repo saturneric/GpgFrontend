@@ -132,6 +132,14 @@ class UISignalStation : public QObject {
    */
   void SignalRestartApplication(int);
 
+  /**
+   * @brief Emitted when a key list persists a new category order, so that other
+   * key lists sharing the same order settings key re-apply it immediately.
+   *
+   * @param settings_key the QSettings key the order was stored under
+   */
+  void SignalKeyCategoryTabOrderChanged(const QString& settings_key);
+
  private:
   UISignalStation();
 };

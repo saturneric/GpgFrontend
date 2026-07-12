@@ -121,6 +121,18 @@ class KeyList : public QWidget {
   void SetTabOrderSettingsKey(const QString& settings_key);
 
   /**
+   * @brief Render the category strip as a compact colour rail (a swatch of the
+   * category colour with the name in a tooltip) instead of the default
+   * full-width text list.
+   *
+   * Intended for the space-constrained main-window dock; the Key Management
+   * window keeps the text list. Call before category tabs are added.
+   *
+   * @param compact true for the colour rail, false for the text list
+   */
+  void SetCategoryRailCompact(bool compact = true);
+
+  /**
    * @brief
    *
    * @param name
@@ -135,7 +147,8 @@ class KeyList : public QWidget {
       GpgKeyTableProxyModel::KeyFilter search_filter =
           [](const GpgAbstractKey*) -> bool { return true; },
       GpgKeyTableColumn custom_columns_filter = GpgKeyTableColumn::kALL,
-      const QString& category_id = {}) -> KeyTable*;
+      const QString& category_id = {}, const QString& color_hint = {})
+      -> KeyTable*;
 
   /**
    * @brief Synchronise the user-defined category tabs with the repository.
@@ -366,6 +379,14 @@ class KeyList : public QWidget {
   ///< Maps a category id (the KeyTable object name) to its page in keyStack.
   QHash<QString, KeyTable*> pages_;
 
+  ///< When true the category strip is a compact colour rail (main-window dock);
+  ///< otherwise a full-width text list (Key Management window, dialogs).
+  bool compact_rail_ = false;
+
+  ///< Id of the primary category (the first one added) that is always kept at
+  ///< the top of the strip regardless of the persisted order.
+  QString pinned_first_id_;
+
   QAction* key_id_column_action_;
   QAction* algo_column_action_;
   QAction* create_date_column_action_;
@@ -389,8 +410,9 @@ class KeyList : public QWidget {
   void save_tab_order();
 
   /**
-   * @brief Reorder the tabs to match the persisted order, appending any tab
-   * not present in the saved order at the end.
+   * @brief Reorder the tabs to match the persisted orders: the per-window
+   * integrated order and the shared custom-category order, merged as the
+   * integrated block (primary pinned first) followed by the custom block.
    */
   void apply_saved_tab_order();
 
@@ -418,6 +440,41 @@ class KeyList : public QWidget {
    * @brief Set the context button label to the given key database name.
    */
   void set_context_button_text(const QString& db_name);
+
+  /**
+   * @brief Apply the category strip styling for the current strip mode
+   * (compact colour rail vs. full-width text list).
+   */
+  void apply_category_strip_style();
+
+  /**
+   * @brief Resolve the display colour for a category.
+   *
+   * Prefers an explicit stored colour hint, then a semantic colour for known
+   * built-in categories, and finally a stable colour derived from the id.
+   */
+  [[nodiscard]] auto resolve_category_color(const QString& id,
+                                            const QString& hint) const
+      -> QColor;
+
+  /**
+   * @brief Build a colour-swatch icon for a category. Built-in categories are
+   * drawn as rounded squares and custom ones as circles.
+   *
+   * @param color the swatch colour
+   * @param custom true for a user-defined category
+   */
+  [[nodiscard]] auto make_category_icon(const QColor& color, bool custom) const
+      -> QIcon;
+
+  /**
+   * @brief Prompt for a colour and persist it as this category's user-chosen
+   * colour, then refresh the row's swatch.
+   *
+   * @param id category id
+   * @param item the source-list row to refresh
+   */
+  void choose_category_color(const QString& id, QListWidgetItem* item);
 
   /**
    * @brief

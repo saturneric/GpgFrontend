@@ -619,6 +619,10 @@ void MainWindow::create_dock_windows() {
 
   addDockWidget(Qt::RightDockWidgetArea, key_list_dock_);
 
+  // The dock is width-constrained, so use the compact colour rail for the
+  // category strip (the Key Management window keeps the full text list).
+  m_key_list_->SetCategoryRailCompact(true);
+
   m_key_list_->AddListGroupTab(
       tr("Default"), "default",
       GpgKeyTableDisplayMode::kPUBLIC_KEY |
@@ -657,6 +661,8 @@ void MainWindow::create_dock_windows() {
                !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
       });
 
+  // Per-window order for the integrated (built-in) tabs; custom categories use
+  // a separate, shared order (see KeyList).
   m_key_list_->SetTabOrderSettingsKey("keys/toolbox_tab_order");
   m_key_list_->RebuildCategoryTabs();
 

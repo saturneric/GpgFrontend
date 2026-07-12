@@ -52,6 +52,10 @@ void GpgFrontendContext::load_env_conf_set_properties() {
   auto env_config = QDir::currentPath() + "/ENV.ini";
   if (!QFileInfo(env_config).exists()) {
     qInfo() << "No ENV.ini found, skipping loading environment config.";
+    // Without ENV.ini the GFLogLevel property would stay unset, and an unset
+    // property reads back as 0 (== kDEBUG), enabling debug logging even in
+    // release builds. Default it to error level (kCRITICAL) explicitly.
+    property("GFLogLevel", static_cast<int>(GFLogLevel::kCRITICAL));
     return;
   }
 

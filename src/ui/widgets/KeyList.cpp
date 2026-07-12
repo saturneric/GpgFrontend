@@ -51,6 +51,28 @@ namespace GpgFrontend::UI {
 
 namespace {
 
+// Custom (user-defined) categories share one global order across every key
+// list; integrated built-in tabs keep a per-window order instead.
+constexpr auto kCustomCategoryOrderKey = "keys/custom_category_order";
+
+auto IsCustomCategoryId(const QString& id) -> bool {
+  return id.startsWith("cat:");
+}
+
+// Order the ids that are actually present to match `saved`, appending any
+// present id that is not in `saved` at the end (preserving its current order).
+auto OrderIdsBy(const QStringList& present, const QStringList& saved)
+    -> QStringList {
+  QStringList result;
+  for (const auto& id : saved) {
+    if (present.contains(id) && !result.contains(id)) result << id;
+  }
+  for (const auto& id : present) {
+    if (!result.contains(id)) result << id;
+  }
+  return result;
+}
+
 auto IsOwnerTrustSupported(int channel) -> bool {
   return GpgFrontend::IsOpSupported<GpgFrontend::SetOwnerTrustLevelOpTag>(
       channel);
@@ -164,10 +186,81 @@ void KeyList::init_ui_style() {
   ui_->categoryList->setUniformItemSizes(true);
   ui_->categoryList->setAlternatingRowColors(false);
   ui_->categoryList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-  ui_->categoryList->setTextElideMode(Qt::ElideRight);
   ui_->categoryList->setSelectionMode(QAbstractItemView::SingleSelection);
   ui_->categoryList->setDragDropMode(QAbstractItemView::InternalMove);
   ui_->categoryList->setContextMenuPolicy(Qt::CustomContextMenu);
+
+  apply_category_strip_style();
+
+  // Give the key table the lion's share of the panel width.
+  ui_->keyListSplitter->setStretchFactor(0, 0);
+  ui_->keyListSplitter->setStretchFactor(1, 1);
+
+  // Keep the toolbar/search block at its natural height and let the splitter
+  // absorb all the remaining vertical space; otherwise the layout spreads the
+  // extra height evenly and leaves large gaps between the rows.
+  ui_->menuWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+  ui_->keyListSplitter->setSizePolicy(QSizePolicy::Expanding,
+                                      QSizePolicy::Expanding);
+}
+
+void KeyList::SetCategoryRailCompact(bool compact) {
+  if (compact_rail_ == compact) return;
+  compact_rail_ = compact;
+
+  if (ui_ == nullptr || ui_->categoryList == nullptr) return;
+
+  apply_category_strip_style();
+
+  // Re-render any existing rows so their icon/text matches the new mode.
+  for (int i = 0; i < ui_->categoryList->count(); ++i) {
+    auto* item = ui_->categoryList->item(i);
+    const auto id = item->data(Qt::UserRole).toString();
+    const auto name = item->toolTip();
+
+    item->setIcon(make_category_icon(resolve_category_color(id, {}),
+                                     IsCustomCategoryId(id)));
+    item->setText(compact_rail_ ? QString() : name);
+  }
+}
+
+void KeyList::apply_category_strip_style() {
+  if (ui_ == nullptr || ui_->categoryList == nullptr) return;
+
+  if (compact_rail_) {
+    ui_->categoryList->setIconSize(QSize(24, 24));
+    ui_->categoryList->setMinimumWidth(34);
+    ui_->categoryList->setTextElideMode(Qt::ElideNone);
+    ui_->keyListSplitter->setSizes({36, 560});
+    // Neutral, theme-independent selection/hover so it never competes with the
+    // colour swatches.
+    ui_->categoryList->setStyleSheet(R"(
+QListWidget#KeyCategoryList {
+  outline: 0;
+  background: transparent;
+}
+
+QListWidget#KeyCategoryList::item {
+  padding: 5px 3px;
+  border: none;
+  border-radius: 5px;
+}
+
+QListWidget#KeyCategoryList::item:selected {
+  background: rgba(128, 128, 128, 0.30);
+}
+
+QListWidget#KeyCategoryList::item:hover:!selected {
+  background: rgba(128, 128, 128, 0.16);
+}
+)");
+    return;
+  }
+
+  ui_->categoryList->setIconSize(QSize(16, 16));
+  ui_->categoryList->setMinimumWidth(120);
+  ui_->categoryList->setTextElideMode(Qt::ElideRight);
+  ui_->keyListSplitter->setSizes({150, 470});
   ui_->categoryList->setStyleSheet(R"(
 QListWidget#KeyCategoryList {
   outline: 0;
@@ -189,19 +282,79 @@ QListWidget#KeyCategoryList::item:hover:!selected {
   background: palette(alternate-base);
 }
 )");
+}
 
-  // Give the key table the lion's share of the panel width; the category list
-  // only needs to fit its labels.
-  ui_->keyListSplitter->setStretchFactor(0, 0);
-  ui_->keyListSplitter->setStretchFactor(1, 1);
-  ui_->keyListSplitter->setSizes({150, 470});
+auto KeyList::resolve_category_color(const QString& id,
+                                     const QString& hint) const -> QColor {
+  // A colour the user explicitly picked for this category wins over everything.
+  const auto overrides = GetSettings().value("keys/category_colors").toMap();
+  if (const auto v = overrides.value(id); v.isValid()) {
+    QColor c(v.toString());
+    if (c.isValid()) return c;
+  }
 
-  // Keep the toolbar/search block at its natural height and let the splitter
-  // absorb all the remaining vertical space; otherwise the layout spreads the
-  // extra height evenly and leaves large gaps between the rows.
-  ui_->menuWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-  ui_->keyListSplitter->setSizePolicy(QSizePolicy::Expanding,
-                                      QSizePolicy::Expanding);
+  if (!hint.isEmpty()) {
+    QColor c(hint);
+    if (c.isValid()) return c;
+  }
+
+  // Semantic colours for the well-known built-in / static categories.
+  static const QHash<QString, QString> kBuiltinColors = {
+      {"default", "#3B82F6"},          // blue
+      {"favourite", "#F59E0B"},        // amber
+      {"mine", "#10B981"},             // emerald
+      {"key_group", "#8B5CF6"},        // violet
+      {"only_public_key", "#06B6D4"},  // cyan
+      {"has_private_key", "#F43F5E"},  // rose
+      {"all", "#64748B"},              // slate
+      {"no_primary_key", "#9CA3AF"},   // gray
+      {"revoked", "#EF4444"},          // red
+      {"expired", "#F97316"},          // orange
+      {"disabled", "#71717A"},         // zinc
+  };
+
+  if (const auto it = kBuiltinColors.constFind(id);
+      it != kBuiltinColors.constEnd()) {
+    return QColor(*it);
+  }
+
+  // Stable, well-spread colour derived from the id for custom categories with
+  // no explicit colour.
+  const auto hue = static_cast<int>(qHash(id) % 360U);
+  return QColor::fromHsv(hue, 160, 205);
+}
+
+auto KeyList::make_category_icon(const QColor& color, bool custom) const
+    -> QIcon {
+  const qreal dpr = devicePixelRatioF() > 0 ? devicePixelRatioF() : 1.0;
+  // Square canvas so the same icon scales cleanly at both strip icon sizes.
+  constexpr int kSide = 28;
+  constexpr int kSwatch = 16;
+
+  QPixmap pm(QSize(kSide, kSide) * dpr);
+  pm.setDevicePixelRatio(dpr);
+  pm.fill(Qt::transparent);
+
+  QPainter p(&pm);
+  p.setRenderHint(QPainter::Antialiasing, true);
+
+  const QRectF r((kSide - kSwatch) / 2.0, (kSide - kSwatch) / 2.0, kSwatch,
+                 kSwatch);
+  QColor border = color.darker(125);
+  border.setAlpha(190);
+  p.setPen(QPen(border, 1));
+  p.setBrush(color);
+
+  // Shape encodes the category kind: built-in tabs are rounded squares, custom
+  // (user-defined) categories are circles.
+  if (custom) {
+    p.drawEllipse(r);
+  } else {
+    p.drawRoundedRect(r, 5, 5);
+  }
+  p.end();
+
+  return QIcon(pm);
 }
 
 void KeyList::init_texts() {
@@ -360,10 +513,26 @@ void KeyList::init_signals() {
   connect(ui_->categoryList, &QListWidget::customContextMenuRequested, this,
           &KeyList::slot_category_context_menu);
 
-  // Persist the order after a drag-reorder of the category rows.
+  // Persist the order after a drag-reorder of the category rows (keeping the
+  // primary category pinned to the top). Deferred so the model is no longer
+  // mutating inside its own rowsMoved emission.
   connect(ui_->categoryList->model(), &QAbstractItemModel::rowsMoved, this,
           [this](const QModelIndex&, int, int, const QModelIndex&, int) {
-            if (!applying_tab_order_) save_tab_order();
+            if (applying_tab_order_) return;
+            QTimer::singleShot(0, this, [this]() {
+              // Persist the new sub-orders, then re-apply to normalise the
+              // display (integrated block, then custom block, primary pinned).
+              save_tab_order();
+              apply_saved_tab_order();
+            });
+          });
+
+  // Re-apply the (shared) custom order live when another key list reorders its
+  // custom categories.
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyCategoryTabOrderChanged, this,
+          [this](const QString& key) {
+            if (key == kCustomCategoryOrderKey) apply_saved_tab_order();
           });
 
   connect(ui_->refreshKeyListButton, &QPushButton::clicked, this,
@@ -443,6 +612,7 @@ void KeyList::init() {
   init_column_menu();
 
   pages_.clear();
+  pinned_first_id_.clear();
   while (ui_->keyStack->count() > 0) {
     auto* w = ui_->keyStack->widget(0);
     ui_->keyStack->removeWidget(w);
@@ -464,7 +634,8 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
                               GpgKeyTableDisplayMode display_mode,
                               GpgKeyTableProxyModel::KeyFilter search_filter,
                               GpgKeyTableColumn custom_columns_filter,
-                              const QString& category_id) -> KeyTable* {
+                              const QString& category_id,
+                              const QString& color_hint) -> KeyTable* {
   auto* key_table =
       new KeyTable(this, model_, display_mode, custom_columns_filter,
                    std::move(search_filter), category_id);
@@ -474,8 +645,19 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
   ui_->keyStack->addWidget(key_table);
   pages_.insert(id, key_table);
 
-  auto* item = new QListWidgetItem(name, ui_->categoryList);
+  // The first category added is the primary one, pinned to the top.
+  if (pinned_first_id_.isEmpty()) pinned_first_id_ = id;
+
+  auto* item = new QListWidgetItem(ui_->categoryList);
   item->setData(Qt::UserRole, id);
+  // The name lives in the tooltip so it is available in both strip modes (the
+  // compact rail hides the text) and for the delete-category prompt.
+  item->setToolTip(name);
+
+  // Both modes carry the colour swatch; the text list also shows the name.
+  item->setIcon(make_category_icon(resolve_category_color(id, color_hint),
+                                   IsCustomCategoryId(id)));
+  if (!compact_rail_) item->setText(name);
 
   if (ui_->categoryList->currentRow() < 0) {
     ui_->categoryList->setCurrentRow(0);
@@ -524,7 +706,7 @@ void KeyList::RebuildCategoryTabs() {
         GpgKeyTableDisplayMode::kPUBLIC_KEY |
             GpgKeyTableDisplayMode::kPRIVATE_KEY,
         [](const GpgAbstractKey*) -> bool { return true; },
-        GpgKeyTableColumn::kALL, c.id);
+        GpgKeyTableColumn::kALL, c.id, c.color);
   }
 
   apply_saved_tab_order();
@@ -535,18 +717,24 @@ void KeyList::SetTabOrderSettingsKey(const QString& settings_key) {
 }
 
 void KeyList::save_tab_order() {
-  QStringList order;
+  // Persist the integrated (built-in) order per window and the custom-category
+  // order globally, so the two never influence each other.
+  QStringList integrated;
+  QStringList custom;
   for (int i = 0; i < ui_->categoryList->count(); ++i) {
-    order << ui_->categoryList->item(i)->data(Qt::UserRole).toString();
+    const auto id = ui_->categoryList->item(i)->data(Qt::UserRole).toString();
+    (IsCustomCategoryId(id) ? custom : integrated) << id;
   }
-  GetSettings().setValue(tab_order_settings_key_, order);
+
+  GetSettings().setValue(tab_order_settings_key_, integrated);
+  GetSettings().setValue(kCustomCategoryOrderKey, custom);
+
+  // The custom order is shared, so tell other open key lists to re-apply it.
+  emit UISignalStation::GetInstance()->SignalKeyCategoryTabOrderChanged(
+      kCustomCategoryOrderKey);
 }
 
 void KeyList::apply_saved_tab_order() {
-  const auto saved =
-      GetSettings().value(tab_order_settings_key_).toStringList();
-  if (saved.isEmpty()) return;
-
   applying_tab_order_ = true;
 
   const auto current_id =
@@ -554,13 +742,36 @@ void KeyList::apply_saved_tab_order() {
           ? ui_->categoryList->currentItem()->data(Qt::UserRole).toString()
           : QString{};
 
+  // Split the present ids into integrated and custom groups.
+  QStringList cur_integrated;
+  QStringList cur_custom;
+  for (int i = 0; i < ui_->categoryList->count(); ++i) {
+    const auto id = ui_->categoryList->item(i)->data(Qt::UserRole).toString();
+    (IsCustomCategoryId(id) ? cur_custom : cur_integrated) << id;
+  }
+
+  // Order each group by its own saved order.
+  auto ordered_integrated = OrderIdsBy(
+      cur_integrated,
+      GetSettings().value(tab_order_settings_key_).toStringList());
+  const auto ordered_custom = OrderIdsBy(
+      cur_custom, GetSettings().value(kCustomCategoryOrderKey).toStringList());
+
+  // Keep the primary category at the top of the integrated group.
+  if (!pinned_first_id_.isEmpty() && ordered_integrated.removeOne(
+                                         pinned_first_id_)) {
+    ordered_integrated.prepend(pinned_first_id_);
+  }
+
+  // Merge: integrated block first, then the custom block.
+  const QStringList desired = ordered_integrated + ordered_custom;
+
   int target = 0;
-  for (const auto& id : saved) {
+  for (const auto& id : desired) {
     for (int i = target; i < ui_->categoryList->count(); ++i) {
       if (ui_->categoryList->item(i)->data(Qt::UserRole).toString() != id) {
         continue;
       }
-
       if (i != target) {
         ui_->categoryList->insertItem(target, ui_->categoryList->takeItem(i));
       }
@@ -626,14 +837,51 @@ void KeyList::slot_category_context_menu(const QPoint& pos) {
   if (item == nullptr) return;
 
   const auto id = item->data(Qt::UserRole).toString();
-  if (!id.startsWith("cat:")) return;  // only category rows are deletable
+  const auto name = item->toolTip();
 
-  const auto name = item->text();
   QMenu menu(this);
-  auto* delete_action = menu.addAction(tr("Delete Category..."));
-  connect(delete_action, &QAction::triggered, this,
-          [this, id, name]() { delete_category(id, name); });
+
+  // Both strip modes now show a colour swatch, so colour is editable in each.
+  auto* color_action = menu.addAction(tr("Set Colour..."));
+  connect(color_action, &QAction::triggered, this,
+          [this, id, item]() { choose_category_color(id, item); });
+
+  auto overrides = GetSettings().value("keys/category_colors").toMap();
+  if (overrides.contains(id)) {
+    auto* reset_action = menu.addAction(tr("Reset Colour"));
+    connect(reset_action, &QAction::triggered, this, [this, id, item]() {
+      auto map = GetSettings().value("keys/category_colors").toMap();
+      map.remove(id);
+      GetSettings().setValue("keys/category_colors", map);
+      item->setIcon(make_category_icon(resolve_category_color(id, {}),
+                                       IsCustomCategoryId(id)));
+    });
+  }
+
+  if (id.startsWith("cat:")) {  // only user categories can be deleted
+    if (!menu.isEmpty()) menu.addSeparator();
+    auto* delete_action = menu.addAction(tr("Delete Category..."));
+    connect(delete_action, &QAction::triggered, this,
+            [this, id, name]() { delete_category(id, name); });
+  }
+
+  if (menu.isEmpty()) return;
   menu.exec(ui_->categoryList->viewport()->mapToGlobal(pos));
+}
+
+void KeyList::choose_category_color(const QString& id, QListWidgetItem* item) {
+  if (item == nullptr) return;
+
+  const QColor current = resolve_category_color(id, {});
+  const QColor picked =
+      QColorDialog::getColor(current, this, tr("Choose Category Colour"));
+  if (!picked.isValid()) return;
+
+  auto overrides = GetSettings().value("keys/category_colors").toMap();
+  overrides[id] = picked.name();
+  GetSettings().setValue("keys/category_colors", overrides);
+
+  item->setIcon(make_category_icon(picked, IsCustomCategoryId(id)));
 }
 
 void KeyList::SlotRefresh() {
