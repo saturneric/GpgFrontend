@@ -52,8 +52,7 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
   /**
    * @brief Restrict the view to members of the given key category.
    *
-   * An empty id disables category filtering. The built-in favourite category
-   * is selected by passing KeyCategoryRepository::kFavoriteCategoryId.
+   * An empty id disables category filtering.
    *
    * @param category_id category identifier, or empty to show all
    */
@@ -73,10 +72,9 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
  signals:
 
   /**
-   * @brief
-   *
+   * @brief Request a refresh of the cached category membership.
    */
-  void SignalFavoritesChanged();
+  void SignalCategoriesRefresh();
 
   /**
    * @brief
@@ -87,10 +85,9 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
  private slots:
 
   /**
-   * @brief
-   *
+   * @brief Refresh the cached category membership and re-filter.
    */
-  void slot_update_favorites();
+  void slot_refresh_categories();
 
   /**
    * @brief

@@ -40,14 +40,15 @@ namespace GpgFrontend {
  * embedded key_db_name is verified on load and the payload is discarded if it
  * does not match the active database, mirroring KeyGroupsCO.
  *
- * legacy_favorites_migrated records whether the built-in "favourite" category
- * has already absorbed the pre-existing favourite key list, so the one-time
- * migration is not repeated.
+ * tab_colors maps a tab id (built-in or custom) to a user-chosen "#RRGGBB"
+ * colour, and tab_orders maps a scope (e.g. a window) to its ordered tab ids.
+ * These carry the per-tab colour and ordering that used to live in QSettings.
  */
 struct KeyCategoriesCO {
   QContainer<KeyCategoryCO> categories;
   QString key_db_name;
-  bool legacy_favorites_migrated = false;
+  QMap<QString, QString> tab_colors;
+  QMap<QString, QStringList> tab_orders;
 
   KeyCategoriesCO() = default;
 
@@ -55,8 +56,25 @@ struct KeyCategoriesCO {
     if (const auto v = j["key_db_name"]; v.isString()) {
       key_db_name = v.toString();
     }
-    if (const auto v = j["legacy_favorites_migrated"]; v.isBool()) {
-      legacy_favorites_migrated = v.toBool();
+
+    if (const auto v = j["tab_colors"]; v.isObject()) {
+      const auto o = v.toObject();
+      for (auto it = o.constBegin(); it != o.constEnd(); ++it) {
+        if (it.value().isString())
+          tab_colors.insert(it.key(), it.value().toString());
+      }
+    }
+
+    if (const auto v = j["tab_orders"]; v.isObject()) {
+      const auto o = v.toObject();
+      for (auto it = o.constBegin(); it != o.constEnd(); ++it) {
+        if (!it.value().isArray()) continue;
+        QStringList ids;
+        for (const auto& e : it.value().toArray()) {
+          if (e.isString()) ids << e.toString();
+        }
+        tab_orders.insert(it.key(), ids);
+      }
     }
 
     if (!j.contains("categories") || !j["categories"].isArray()) return;
@@ -69,7 +87,20 @@ struct KeyCategoriesCO {
   [[nodiscard]] auto ToJson() const -> QJsonObject {
     QJsonObject j;
     j["key_db_name"] = key_db_name;
-    j["legacy_favorites_migrated"] = legacy_favorites_migrated;
+
+    QJsonObject colors;
+    for (auto it = tab_colors.constBegin(); it != tab_colors.constEnd(); ++it) {
+      colors[it.key()] = it.value();
+    }
+    j["tab_colors"] = colors;
+
+    QJsonObject orders;
+    for (auto it = tab_orders.constBegin(); it != tab_orders.constEnd(); ++it) {
+      QJsonArray ids;
+      for (const auto& id : it.value()) ids.push_back(id);
+      orders[it.key()] = ids;
+    }
+    j["tab_orders"] = orders;
 
     auto a = QJsonArray();
     for (const auto& c : categories) {

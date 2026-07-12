@@ -61,7 +61,7 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
   init_table_style();
 
   connect(CommonUtils::GetInstance(), &CommonUtils::SignalCategoriesChanged,
-          &proxy_model_, &GpgKeyTableProxyModel::SignalFavoritesChanged);
+          &proxy_model_, &GpgKeyTableProxyModel::SignalCategoriesRefresh);
 
   connect(this, &KeyTable::SignalColumnTypeChange, this,
           [this](GpgKeyTableColumn global_column_filter) {

@@ -47,12 +47,12 @@ GpgKeyTableProxyModel::GpgKeyTableProxyModel(
       default_metrics_(default_font_) {
   setSourceModel(model_.get());
 
-  connect(this, &GpgKeyTableProxyModel::SignalFavoritesChanged, this,
-          &GpgKeyTableProxyModel::slot_update_favorites);
+  connect(this, &GpgKeyTableProxyModel::SignalCategoriesRefresh, this,
+          &GpgKeyTableProxyModel::slot_refresh_categories);
   connect(this, &GpgKeyTableProxyModel::SignalColumnTypeChange, this,
           &GpgKeyTableProxyModel::slot_update_column_type);
 
-  emit SignalFavoritesChanged();
+  emit SignalCategoriesRefresh();
 }
 
 auto GpgKeyTableProxyModel::filterAcceptsRow(
@@ -161,7 +161,7 @@ void GpgKeyTableProxyModel::SetSearchKeywords(const QString &keywords) {
   invalidateFilter();
 }
 
-void GpgKeyTableProxyModel::slot_update_favorites() {
+void GpgKeyTableProxyModel::slot_refresh_categories() {
   refresh_category_cache();
   invalidateFilter();
 }

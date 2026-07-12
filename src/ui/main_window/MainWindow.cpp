@@ -158,8 +158,6 @@ void MainWindow::Init() noexcept {
     popup_menu_->addAction(copy_key_default_uid_to_clipboard_act_);
     popup_menu_->addAction(copy_key_id_to_clipboard_act_);
     popup_menu_->addAction(set_owner_trust_of_key_act_);
-    popup_menu_->addAction(add_key_2_favourite_act_);
-    popup_menu_->addAction(remove_key_from_favourtie_act_);
 
     add_key_2_category_menu_ = popup_menu_->addMenu(tr("Add To Category"));
 
@@ -317,14 +315,6 @@ void MainWindow::slot_popup_menu_by_key_list(QContextMenuEvent* event,
 
   LOG_D() << "current key table object name: " << key_table_name;
 
-  if (key_table_name == "favourite") {
-    remove_key_from_favourtie_act_->setVisible(true);
-    add_key_2_favourite_act_->setVisible(false);
-  } else {
-    remove_key_from_favourtie_act_->setVisible(false);
-    add_key_2_favourite_act_->setVisible(true);
-  }
-
   auto if_owner_trust_level_supported = IsOpSupported<SetOwnerTrustLevelOpTag>(
       m_key_list_->GetCurrentGpgContextChannel());
   set_owner_trust_of_key_act_->setVisible(if_owner_trust_level_supported);
@@ -362,7 +352,7 @@ void MainWindow::populate_key_category_menu(int channel,
   }
 
   for (const auto& c : repo.Fetch()) {
-    if (c.builtin) continue;  // favourite has its own dedicated actions
+    if (c.builtin) continue;  // built-in tabs are not repository categories
 
     auto* act = add_key_2_category_menu_->addAction(c.name);
     act->setCheckable(true);

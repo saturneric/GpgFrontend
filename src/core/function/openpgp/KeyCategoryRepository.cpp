@@ -29,12 +29,9 @@
 #include "KeyCategoryRepository.h"
 
 #include "core/function/CacheManager.h"
-#include "core/struct/cache_object/AllFavoriteKeyPairsCO.h"
 #include "core/struct/cache_object/KeyCategoriesCO.h"
 
 namespace GpgFrontend {
-
-const QString KeyCategoryRepository::kFavoriteCategoryId = "favourite";
 
 KeyCategoryRepository::KeyCategoryRepository(int channel)
     : SingletonFunctionObject<KeyCategoryRepository>(channel) {
@@ -54,7 +51,8 @@ auto KeyCategoryRepository::find_category(const QString& id) -> KeyCategoryCO* {
 
 void KeyCategoryRepository::fetch_categories() {
   categories_.clear();
-  legacy_favorites_migrated_ = false;
+  tab_colors_.clear();
+  tab_orders_.clear();
 
   auto key = QString("kcats:%1").arg(ctx_.KeyDBName());
   auto json = cm_.LoadDurableCache(key);
@@ -62,40 +60,9 @@ void KeyCategoryRepository::fetch_categories() {
   auto co = KeyCategoriesCO(json.object());
   if (co.key_db_name == ctx_.KeyDBName()) {
     categories_ = co.categories;
-    legacy_favorites_migrated_ = co.legacy_favorites_migrated;
+    tab_colors_ = co.tab_colors;
+    tab_orders_ = co.tab_orders;
   }
-
-  ensure_builtin_categories();
-  migrate_legacy_favorites();
-}
-
-void KeyCategoryRepository::ensure_builtin_categories() {
-  if (find_category(kFavoriteCategoryId) != nullptr) return;
-
-  KeyCategoryCO fav;
-  fav.id = kFavoriteCategoryId;
-  fav.name = "Favourite";
-  fav.builtin = true;
-  categories_.prepend(fav);
-}
-
-void KeyCategoryRepository::migrate_legacy_favorites() {
-  if (legacy_favorites_migrated_) return;
-
-  // Legacy favourites live in one default-channel durable cache keyed by
-  // database name; pull this database's entries into the favourite category.
-  auto legacy = cm_.LoadDurableCache("all_favorite_key_pairs");
-  auto legacy_co = AllFavoriteKeyPairsCO(legacy.object());
-
-  auto* fav = find_category(kFavoriteCategoryId);
-  if (fav != nullptr && legacy_co.key_dbs.contains(ctx_.KeyDBName())) {
-    for (const auto& key_id : legacy_co.key_dbs[ctx_.KeyDBName()].key_ids) {
-      if (!fav->key_ids.contains(key_id)) fav->key_ids.append(key_id);
-    }
-  }
-
-  legacy_favorites_migrated_ = true;
-  persist_categories();
 }
 
 void KeyCategoryRepository::persist_categories() {
@@ -103,8 +70,9 @@ void KeyCategoryRepository::persist_categories() {
 
   KeyCategoriesCO co;
   co.key_db_name = ctx_.KeyDBName();
-  co.legacy_favorites_migrated = legacy_favorites_migrated_;
   co.categories = categories_;
+  co.tab_colors = tab_colors_;
+  co.tab_orders = tab_orders_;
 
   cm_.SaveDurableCache(key, QJsonDocument{co.ToJson()}, true);
 }
@@ -181,14 +149,33 @@ auto KeyCategoryRepository::KeyIdsOf(const QString& id) -> QStringList {
   return c != nullptr ? c->key_ids : QStringList{};
 }
 
-auto KeyCategoryRepository::IsFavorite(const QString& key_id) -> bool {
-  return Contains(kFavoriteCategoryId, key_id);
+auto KeyCategoryRepository::GetTabColor(const QString& id) -> QString {
+  if (const auto it = tab_colors_.constFind(id); it != tab_colors_.constEnd()) {
+    return it.value();
+  }
+  // Fall back to a custom category's own colour, if any.
+  if (auto* c = find_category(id); c != nullptr) return c->color;
+  return {};
 }
 
-auto KeyCategoryRepository::SetFavorite(const QString& key_id, bool favorite)
-    -> bool {
-  return favorite ? AddKey2Category(kFavoriteCategoryId, key_id)
-                  : RemoveKeyFromCategory(kFavoriteCategoryId, key_id);
+void KeyCategoryRepository::SetTabColor(const QString& id,
+                                        const QString& color) {
+  if (color.isEmpty()) {
+    tab_colors_.remove(id);
+  } else {
+    tab_colors_.insert(id, color);
+  }
+  persist_categories();
+}
+
+auto KeyCategoryRepository::GetTabOrder(const QString& scope) -> QStringList {
+  return tab_orders_.value(scope);
+}
+
+void KeyCategoryRepository::SetTabOrder(const QString& scope,
+                                        const QStringList& order) {
+  tab_orders_.insert(scope, order);
+  persist_categories();
 }
 
 auto KeyCategoryRepository::FlushCache() -> bool {

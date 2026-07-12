@@ -364,26 +364,7 @@ auto CommonUtils::IsApplicationNeedRestart() -> bool {
   return application_need_to_restart_at_once_;
 }
 
-auto CommonUtils::KeyExistsInFavoriteList(int channel, const GpgKey &key)
-    -> bool {
-  return KeyCategoryRepository::GetInstance(channel).IsFavorite(key.ID());
-}
-
-void CommonUtils::AddKey2Favorite(int channel, const GpgAbstractKeyPtr &key) {
-  KeyCategoryRepository::GetInstance(channel).SetFavorite(key->ID(), true);
-  NotifyCategoriesChanged();
-}
-
-void CommonUtils::RemoveKeyFromFavorite(int channel,
-                                        const GpgAbstractKeyPtr &key) {
-  KeyCategoryRepository::GetInstance(channel).SetFavorite(key->ID(), false);
-  NotifyCategoriesChanged();
-}
-
-void CommonUtils::NotifyCategoriesChanged() {
-  emit SignalFavoritesChanged();
-  emit SignalCategoriesChanged();
-}
+void CommonUtils::NotifyCategoriesChanged() { emit SignalCategoriesChanged(); }
 
 void CommonUtils::OpenDetailsDialogByKey(QWidget *parent, int channel,
                                          const GpgAbstractKeyPtr &key) {

@@ -28,7 +28,6 @@
 
 #include "GpgKeyTreeProxyModel.h"
 
-#include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyTreeModel.h"
 
@@ -42,11 +41,6 @@ GpgKeyTreeProxyModel::GpgKeyTreeProxyModel(
       display_mode_(display_mode),
       custom_filter_(std::move(filter)) {
   setSourceModel(model_.get());
-
-  connect(this, &GpgKeyTreeProxyModel::SignalFavoritesChanged, this,
-          &GpgKeyTreeProxyModel::slot_update_favorites);
-
-  emit SignalFavoritesChanged();
 }
 
 auto GpgKeyTreeProxyModel::filterAcceptsRow(
@@ -100,22 +94,10 @@ void GpgKeyTreeProxyModel::SetSearchKeywords(const QString &keywords) {
   invalidateFilter();
 }
 
-void GpgKeyTreeProxyModel::slot_update_favorites() {
-  slot_update_favorites_cache();
-  invalidateFilter();
-}
-
 void GpgKeyTreeProxyModel::ResetGpgKeyTableModel(
     QSharedPointer<GpgKeyTreeModel> model) {
   model_ = std::move(model);
-  slot_update_favorites_cache();
   setSourceModel(model_.get());
-}
-
-void GpgKeyTreeProxyModel::slot_update_favorites_cache() {
-  favorite_key_ids_ =
-      KeyCategoryRepository::GetInstance(model_->GetGpgContextChannel())
-          .KeyIdsOf(KeyCategoryRepository::kFavoriteCategoryId);
 }
 
 void GpgKeyTreeProxyModel::SetKeyFilter(const KeyFilter &filter) {

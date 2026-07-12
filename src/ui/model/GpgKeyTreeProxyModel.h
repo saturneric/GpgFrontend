@@ -77,33 +77,10 @@ class GpgKeyTreeProxyModel : public QSortFilterProxyModel {
   [[nodiscard]] auto filterAcceptsRow(
       int sourceRow, const QModelIndex &sourceParent) const -> bool override;
 
- signals:
-
-  /**
-   * @brief
-   *
-   */
-  void SignalFavoritesChanged();
-
- private slots:
-
-  /**
-   * @brief
-   *
-   */
-  void slot_update_favorites();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_update_favorites_cache();
-
  private:
   QSharedPointer<GpgKeyTreeModel> model_;
   GpgKeyTreeDisplayMode display_mode_;
   QString filter_keywords_;
-  QStringList favorite_key_ids_;
   KeyFilter custom_filter_;
 };
 

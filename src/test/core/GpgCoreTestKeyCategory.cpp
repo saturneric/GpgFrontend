@@ -43,39 +43,6 @@ auto ContainsCategoryId(const QContainer<KeyCategoryCO>& cats,
 
 }  // namespace
 
-TEST_F(GFCoreTest, CoreKeyCategoryBuiltinFavourite) {
-  auto& repo = KeyCategoryRepository::GetInstance();
-
-  auto cats = repo.Fetch();
-  ASSERT_TRUE(
-      ContainsCategoryId(cats, KeyCategoryRepository::kFavoriteCategoryId));
-
-  // The built-in favourite category is pinned first and marked built-in.
-  ASSERT_FALSE(cats.isEmpty());
-  ASSERT_EQ(cats.front().id, KeyCategoryRepository::kFavoriteCategoryId);
-  ASSERT_TRUE(cats.front().builtin);
-
-  // Built-ins cannot be removed or renamed.
-  ASSERT_FALSE(repo.Remove(KeyCategoryRepository::kFavoriteCategoryId));
-  ASSERT_FALSE(repo.Rename(KeyCategoryRepository::kFavoriteCategoryId, "X"));
-}
-
-TEST_F(GFCoreTest, CoreKeyCategoryFavouriteMembership) {
-  auto& repo = KeyCategoryRepository::GetInstance();
-
-  const QString key_id = "TESTKEYID0001";
-
-  ASSERT_TRUE(repo.SetFavorite(key_id, true));
-  ASSERT_TRUE(repo.IsFavorite(key_id));
-
-  // Idempotent add returns false and keeps membership.
-  ASSERT_FALSE(repo.SetFavorite(key_id, true));
-  ASSERT_TRUE(repo.IsFavorite(key_id));
-
-  ASSERT_TRUE(repo.SetFavorite(key_id, false));
-  ASSERT_FALSE(repo.IsFavorite(key_id));
-}
-
 TEST_F(GFCoreTest, CoreKeyCategoryCustomLifecycle) {
   auto& repo = KeyCategoryRepository::GetInstance();
 
@@ -92,9 +59,6 @@ TEST_F(GFCoreTest, CoreKeyCategoryCustomLifecycle) {
 
   ASSERT_TRUE(repo.Contains(id, key_a));
   ASSERT_EQ(repo.KeyIdsOf(id).size(), 2);
-
-  // Membership is independent of the favourite category.
-  ASSERT_FALSE(repo.IsFavorite(key_a));
 
   ASSERT_TRUE(repo.RemoveKeyFromCategory(id, key_a));
   ASSERT_FALSE(repo.Contains(id, key_a));
@@ -117,6 +81,48 @@ TEST_F(GFCoreTest, CoreKeyCategoryPersistAcrossFlush) {
   ASSERT_TRUE(repo.Contains(id, key_id));
 
   ASSERT_TRUE(repo.Remove(id));
+}
+
+TEST_F(GFCoreTest, CoreKeyCategoryTabColor) {
+  auto& repo = KeyCategoryRepository::GetInstance();
+
+  // No override initially for a built-in tab id.
+  ASSERT_TRUE(repo.GetTabColor("default").isEmpty());
+
+  repo.SetTabColor("default", "#112233");
+  ASSERT_EQ(repo.GetTabColor("default"), "#112233");
+
+  // A custom category's own colour is returned when there is no override.
+  auto id = repo.AddCategory("Coloured", "#abcdef");
+  ASSERT_EQ(repo.GetTabColor(id), "#abcdef");
+  repo.SetTabColor(id, "#020202");
+  ASSERT_EQ(repo.GetTabColor(id), "#020202");
+
+  // Overrides survive a cache reload; clearing resets to empty/own colour.
+  repo.FlushCache();
+  ASSERT_EQ(repo.GetTabColor("default"), "#112233");
+  ASSERT_EQ(repo.GetTabColor(id), "#020202");
+
+  repo.SetTabColor("default", QString{});
+  ASSERT_TRUE(repo.GetTabColor("default").isEmpty());
+
+  ASSERT_TRUE(repo.Remove(id));
+}
+
+TEST_F(GFCoreTest, CoreKeyCategoryTabOrder) {
+  auto& repo = KeyCategoryRepository::GetInstance();
+
+  ASSERT_TRUE(repo.GetTabOrder("scope_x").isEmpty());
+
+  const QStringList order = {"a", "b", "c"};
+  repo.SetTabOrder("scope_x", order);
+  ASSERT_EQ(repo.GetTabOrder("scope_x"), order);
+
+  // Distinct scopes are independent and survive a reload.
+  repo.SetTabOrder("scope_y", QStringList{"z"});
+  repo.FlushCache();
+  ASSERT_EQ(repo.GetTabOrder("scope_x"), order);
+  ASSERT_EQ(repo.GetTabOrder("scope_y"), QStringList{"z"});
 }
 
 }  // namespace GpgFrontend::Test

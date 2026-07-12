@@ -126,6 +126,16 @@ class KeyMgmt : public GeneralMainWindow {
   void slot_popup_menu_by_key_list(QContextMenuEvent* event, KeyTable*);
 
  private:
+  /**
+   * @brief Rebuild the category-membership submenu for the given target keys.
+   *
+   * Operates on all target keys at once (bulk), with a checkable entry per
+   * custom category, a remove action when viewing a custom category tab, and a
+   * "New Category" action.
+   */
+  void populate_key_category_menu(int channel, const QString& current_tab_id,
+                                  const GpgAbstractKeyPtrList& keys);
+
   KeyList* key_list_;           ///<
   QMenu* file_menu_{};          ///<
   QMenu* key_menu_{};           ///<
@@ -134,6 +144,7 @@ class KeyMgmt : public GeneralMainWindow {
   QMenu* export_key_menu_{};    /// <
 
   QMenu* popup_menu_;
+  QMenu* add_key_2_category_menu_{};  ///<
 
   QAction* open_key_file_act_{};                 ///<
   QAction* export_key_to_file_act_{};            ///<

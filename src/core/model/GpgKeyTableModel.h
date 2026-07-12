@@ -135,7 +135,6 @@ enum class GpgKeyTableDisplayMode : unsigned int {
   kNONE = 0,
   kPUBLIC_KEY = 1 << 0,
   kPRIVATE_KEY = 1 << 1,
-  kFAVORITES = 1 << 2,
   kALL = ~0U
 };
 

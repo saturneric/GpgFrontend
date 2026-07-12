@@ -146,27 +146,6 @@ void MainWindow::slot_show_key_details() {
       this, m_key_list_->GetCurrentGpgContextChannel(), keys.front());
 }
 
-void MainWindow::slot_add_key_2_favorite() {
-  auto key = m_key_list_->GetSelectedKey();
-  if (key == nullptr) return;
-
-  auto channel = m_key_list_->GetCurrentGpgContextChannel();
-  LOG_D() << "add key" << key->ID() << "to favorite at channel" << channel;
-
-  CommonUtils::GetInstance()->AddKey2Favorite(channel, key);
-  emit SignalUIRefresh();
-}
-
-void MainWindow::slot_remove_key_from_favorite() {
-  auto keys = m_key_list_->GetSelectedKeys();
-  if (keys.empty()) return;
-
-  CommonUtils::GetInstance()->RemoveKeyFromFavorite(
-      m_key_list_->GetCurrentGpgContextChannel(), keys.front());
-
-  emit SignalUIRefresh();
-}
-
 void MainWindow::slot_set_owner_trust_level_of_key() {
   auto keys = m_key_list_->GetSelectedKeys();
   if (keys.empty()) return;

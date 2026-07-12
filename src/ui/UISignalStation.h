@@ -140,6 +140,12 @@ class UISignalStation : public QObject {
    */
   void SignalKeyCategoryTabOrderChanged(const QString& settings_key);
 
+  /**
+   * @brief Emitted when a category colour is changed, so every open key list
+   * re-renders its colour swatches.
+   */
+  void SignalKeyCategoryColorsChanged();
+
  private:
   UISignalStation();
 };

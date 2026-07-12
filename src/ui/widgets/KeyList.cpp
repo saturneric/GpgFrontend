@@ -190,6 +190,12 @@ void KeyList::init_ui_style() {
   ui_->categoryList->setDragDropMode(QAbstractItemView::InternalMove);
   ui_->categoryList->setContextMenuPolicy(Qt::CustomContextMenu);
 
+  // Add-category (+) button; only shown when management is enabled.
+  ui_->addCategoryButton->setAutoRaise(true);
+  ui_->addCategoryButton->setFocusPolicy(Qt::NoFocus);
+  ui_->addCategoryButton->setToolTip(tr("New Category..."));
+  ui_->addCategoryButton->setVisible(category_management_enabled_);
+
   apply_category_strip_style();
 
   // Give the key table the lion's share of the panel width.
@@ -224,14 +230,24 @@ void KeyList::SetCategoryRailCompact(bool compact) {
   }
 }
 
+void KeyList::SetCategoryManagementEnabled(bool enabled) {
+  category_management_enabled_ = enabled;
+  if (ui_ != nullptr && ui_->addCategoryButton != nullptr) {
+    ui_->addCategoryButton->setVisible(enabled);
+  }
+}
+
 void KeyList::apply_category_strip_style() {
   if (ui_ == nullptr || ui_->categoryList == nullptr) return;
 
   if (compact_rail_) {
-    ui_->categoryList->setIconSize(QSize(24, 24));
-    ui_->categoryList->setMinimumWidth(34);
+    ui_->categoryList->setIconSize(QSize(20, 20));
+    ui_->categoryList->setMinimumWidth(0);
+    // Hard-cap the rail so the splitter cannot widen it past a thin strip.
+    ui_->categoryPane->setMinimumWidth(28);
+    ui_->categoryPane->setMaximumWidth(30);
     ui_->categoryList->setTextElideMode(Qt::ElideNone);
-    ui_->keyListSplitter->setSizes({36, 560});
+    ui_->keyListSplitter->setSizes({28, 560});
     // Neutral, theme-independent selection/hover so it never competes with the
     // colour swatches.
     ui_->categoryList->setStyleSheet(R"(
@@ -241,9 +257,9 @@ QListWidget#KeyCategoryList {
 }
 
 QListWidget#KeyCategoryList::item {
-  padding: 5px 3px;
+  padding: 3px 1px;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
 }
 
 QListWidget#KeyCategoryList::item:selected {
@@ -259,6 +275,8 @@ QListWidget#KeyCategoryList::item:hover:!selected {
 
   ui_->categoryList->setIconSize(QSize(16, 16));
   ui_->categoryList->setMinimumWidth(120);
+  ui_->categoryPane->setMinimumWidth(120);
+  ui_->categoryPane->setMaximumWidth(QWIDGETSIZE_MAX);
   ui_->categoryList->setTextElideMode(Qt::ElideRight);
   ui_->keyListSplitter->setSizes({150, 470});
   ui_->categoryList->setStyleSheet(R"(
@@ -286,22 +304,22 @@ QListWidget#KeyCategoryList::item:hover:!selected {
 
 auto KeyList::resolve_category_color(const QString& id,
                                      const QString& hint) const -> QColor {
-  // A colour the user explicitly picked for this category wins over everything.
-  const auto overrides = GetSettings().value("keys/category_colors").toMap();
-  if (const auto v = overrides.value(id); v.isValid()) {
-    QColor c(v.toString());
-    if (c.isValid()) return c;
+  // A user-chosen colour (or a custom category's own colour) from the category
+  // cache wins over the built-in defaults.
+  const auto stored =
+      KeyCategoryRepository::GetInstance(current_gpg_context_channel_)
+          .GetTabColor(id);
+  if (!stored.isEmpty()) {
+    if (QColor c(stored); c.isValid()) return c;
   }
 
   if (!hint.isEmpty()) {
-    QColor c(hint);
-    if (c.isValid()) return c;
+    if (QColor c(hint); c.isValid()) return c;
   }
 
-  // Semantic colours for the well-known built-in / static categories.
+  // Semantic default colours for the well-known built-in tabs.
   static const QHash<QString, QString> kBuiltinColors = {
       {"default", "#3B82F6"},          // blue
-      {"favourite", "#F59E0B"},        // amber
       {"mine", "#10B981"},             // emerald
       {"key_group", "#8B5CF6"},        // violet
       {"only_public_key", "#06B6D4"},  // cyan
@@ -509,9 +527,18 @@ void KeyList::init_signals() {
   connect(ui_->categoryList, &QListWidget::currentRowChanged, this,
           &KeyList::slot_current_category_changed);
 
-  // Right-click a user category row to delete it.
+  // Right-click a category row for the context menu.
   connect(ui_->categoryList, &QListWidget::customContextMenuRequested, this,
           &KeyList::slot_category_context_menu);
+
+  // The add-category (+) button creates a new custom category.
+  connect(ui_->addCategoryButton, &QToolButton::clicked, this,
+          [this]() { new_category(); });
+
+  // Keep colour swatches consistent across open key lists.
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyCategoryColorsChanged, this,
+          &KeyList::refresh_category_icons);
 
   // Persist the order after a drag-reorder of the category rows (keeping the
   // primary category pinned to the top). Deferred so the model is no longer
@@ -680,7 +707,7 @@ void KeyList::RebuildCategoryTabs() {
 
   QSet<QString> desired_ids;
   for (const auto& c : categories) {
-    if (c.builtin) continue;  // built-ins (favourite) own dedicated rows
+    if (c.builtin) continue;  // built-in tabs are added by the host window
     desired_ids.insert(c.id);
   }
 
@@ -696,17 +723,27 @@ void KeyList::RebuildCategoryTabs() {
     }
   }
 
-  // Add a row for every category that does not have one yet.
+  // Add a row for every category that does not have one yet, and update the
+  // name/colour of those that already exist (handles rename and recolour).
   for (const auto& c : categories) {
     if (c.builtin) continue;
-    if (pages_.contains(c.id)) continue;
 
-    AddListGroupTab(
-        c.name, c.id,
-        GpgKeyTableDisplayMode::kPUBLIC_KEY |
-            GpgKeyTableDisplayMode::kPRIVATE_KEY,
-        [](const GpgAbstractKey*) -> bool { return true; },
-        GpgKeyTableColumn::kALL, c.id, c.color);
+    if (!pages_.contains(c.id)) {
+      AddListGroupTab(
+          c.name, c.id,
+          GpgKeyTableDisplayMode::kPUBLIC_KEY |
+              GpgKeyTableDisplayMode::kPRIVATE_KEY,
+          [](const GpgAbstractKey*) -> bool { return true; },
+          GpgKeyTableColumn::kALL, c.id, c.color);
+      continue;
+    }
+
+    if (auto* item = item_for_id(c.id); item != nullptr) {
+      item->setToolTip(c.name);
+      if (!compact_rail_) item->setText(c.name);
+      item->setIcon(
+          make_category_icon(resolve_category_color(c.id, c.color), true));
+    }
   }
 
   apply_saved_tab_order();
@@ -726,12 +763,13 @@ void KeyList::save_tab_order() {
     (IsCustomCategoryId(id) ? custom : integrated) << id;
   }
 
-  GetSettings().setValue(tab_order_settings_key_, integrated);
-  GetSettings().setValue(kCustomCategoryOrderKey, custom);
+  auto& repo = KeyCategoryRepository::GetInstance(current_gpg_context_channel_);
+  repo.SetTabOrder(tab_order_settings_key_, integrated);
+  repo.SetTabOrder(kCustomCategoryOrderKey, custom);
 
   // The custom order is shared, so tell other open key lists to re-apply it.
-  emit UISignalStation::GetInstance()->SignalKeyCategoryTabOrderChanged(
-      kCustomCategoryOrderKey);
+  emit UISignalStation::GetInstance()
+      -> SignalKeyCategoryTabOrderChanged(kCustomCategoryOrderKey);
 }
 
 void KeyList::apply_saved_tab_order() {
@@ -750,16 +788,16 @@ void KeyList::apply_saved_tab_order() {
     (IsCustomCategoryId(id) ? cur_custom : cur_integrated) << id;
   }
 
-  // Order each group by its own saved order.
-  auto ordered_integrated = OrderIdsBy(
-      cur_integrated,
-      GetSettings().value(tab_order_settings_key_).toStringList());
-  const auto ordered_custom = OrderIdsBy(
-      cur_custom, GetSettings().value(kCustomCategoryOrderKey).toStringList());
+  // Order each group by its own saved order (persisted in the category cache).
+  auto& repo = KeyCategoryRepository::GetInstance(current_gpg_context_channel_);
+  auto ordered_integrated =
+      OrderIdsBy(cur_integrated, repo.GetTabOrder(tab_order_settings_key_));
+  const auto ordered_custom =
+      OrderIdsBy(cur_custom, repo.GetTabOrder(kCustomCategoryOrderKey));
 
   // Keep the primary category at the top of the integrated group.
-  if (!pinned_first_id_.isEmpty() && ordered_integrated.removeOne(
-                                         pinned_first_id_)) {
+  if (!pinned_first_id_.isEmpty() &&
+      ordered_integrated.removeOne(pinned_first_id_)) {
     ordered_integrated.prepend(pinned_first_id_);
   }
 
@@ -822,9 +860,9 @@ auto KeyList::page_for_id(const QString& id) const -> KeyTable* {
 
 void KeyList::slot_current_category_changed(int row) {
   auto* item = row >= 0 ? ui_->categoryList->item(row) : nullptr;
-  auto* page =
-      item != nullptr ? page_for_id(item->data(Qt::UserRole).toString())
-                      : nullptr;
+  auto* page = item != nullptr
+                   ? page_for_id(item->data(Qt::UserRole).toString())
+                   : nullptr;
 
   if (page != nullptr) ui_->keyStack->setCurrentWidget(page);
 
@@ -833,55 +871,118 @@ void KeyList::slot_current_category_changed(int row) {
 }
 
 void KeyList::slot_category_context_menu(const QPoint& pos) {
-  auto* item = ui_->categoryList->itemAt(pos);
-  if (item == nullptr) return;
+  // The main-window rail is a simple switcher: no management menu there.
+  if (!category_management_enabled_) return;
 
-  const auto id = item->data(Qt::UserRole).toString();
-  const auto name = item->toolTip();
+  auto* item = ui_->categoryList->itemAt(pos);
+  const auto id =
+      item != nullptr ? item->data(Qt::UserRole).toString() : QString{};
+  const auto name = item != nullptr ? item->toolTip() : QString{};
+  const bool custom = IsCustomCategoryId(id);
 
   QMenu menu(this);
 
-  // Both strip modes now show a colour swatch, so colour is editable in each.
-  auto* color_action = menu.addAction(tr("Set Colour..."));
-  connect(color_action, &QAction::triggered, this,
-          [this, id, item]() { choose_category_color(id, item); });
+  auto* new_action = menu.addAction(tr("New Category..."));
+  connect(new_action, &QAction::triggered, this, [this]() { new_category(); });
 
-  auto overrides = GetSettings().value("keys/category_colors").toMap();
-  if (overrides.contains(id)) {
+  if (item != nullptr) {
+    menu.addSeparator();
+
+    auto* color_action = menu.addAction(tr("Set Colour..."));
+    connect(color_action, &QAction::triggered, this,
+            [this, id]() { choose_category_color(id); });
+
     auto* reset_action = menu.addAction(tr("Reset Colour"));
-    connect(reset_action, &QAction::triggered, this, [this, id, item]() {
-      auto map = GetSettings().value("keys/category_colors").toMap();
-      map.remove(id);
-      GetSettings().setValue("keys/category_colors", map);
-      item->setIcon(make_category_icon(resolve_category_color(id, {}),
-                                       IsCustomCategoryId(id)));
+    connect(reset_action, &QAction::triggered, this, [this, id]() {
+      KeyCategoryRepository::GetInstance(current_gpg_context_channel_)
+          .SetTabColor(id, QString{});
+      emit UISignalStation::GetInstance() -> SignalKeyCategoryColorsChanged();
     });
+
+    // Rename / membership / deletion apply to user categories only.
+    if (custom) {
+      menu.addSeparator();
+
+      auto* rename_action = menu.addAction(tr("Rename Category..."));
+      connect(rename_action, &QAction::triggered, this,
+              [this, id, name]() { rename_category(id, name); });
+
+      auto* delete_action = menu.addAction(tr("Delete Category..."));
+      connect(delete_action, &QAction::triggered, this,
+              [this, id, name]() { delete_category(id, name); });
+    }
   }
 
-  if (id.startsWith("cat:")) {  // only user categories can be deleted
-    if (!menu.isEmpty()) menu.addSeparator();
-    auto* delete_action = menu.addAction(tr("Delete Category..."));
-    connect(delete_action, &QAction::triggered, this,
-            [this, id, name]() { delete_category(id, name); });
-  }
-
-  if (menu.isEmpty()) return;
   menu.exec(ui_->categoryList->viewport()->mapToGlobal(pos));
 }
 
-void KeyList::choose_category_color(const QString& id, QListWidgetItem* item) {
-  if (item == nullptr) return;
+void KeyList::choose_category_color(const QString& id) {
+  if (id.isEmpty()) return;
 
   const QColor current = resolve_category_color(id, {});
   const QColor picked =
       QColorDialog::getColor(current, this, tr("Choose Category Colour"));
   if (!picked.isValid()) return;
 
-  auto overrides = GetSettings().value("keys/category_colors").toMap();
-  overrides[id] = picked.name();
-  GetSettings().setValue("keys/category_colors", overrides);
+  KeyCategoryRepository::GetInstance(current_gpg_context_channel_)
+      .SetTabColor(id, picked.name());
 
-  item->setIcon(make_category_icon(picked, IsCustomCategoryId(id)));
+  emit UISignalStation::GetInstance() -> SignalKeyCategoryColorsChanged();
+}
+
+auto KeyList::item_for_id(const QString& id) const -> QListWidgetItem* {
+  for (int i = 0; i < ui_->categoryList->count(); ++i) {
+    auto* item = ui_->categoryList->item(i);
+    if (item->data(Qt::UserRole).toString() == id) return item;
+  }
+  return nullptr;
+}
+
+void KeyList::select_category(const QString& id) {
+  if (auto* item = item_for_id(id); item != nullptr) {
+    ui_->categoryList->setCurrentItem(item);
+  }
+}
+
+void KeyList::refresh_category_icons() {
+  for (int i = 0; i < ui_->categoryList->count(); ++i) {
+    auto* item = ui_->categoryList->item(i);
+    const auto id = item->data(Qt::UserRole).toString();
+    item->setIcon(make_category_icon(resolve_category_color(id, {}),
+                                     IsCustomCategoryId(id)));
+  }
+}
+
+void KeyList::new_category() {
+  bool ok = false;
+  const auto name =
+      QInputDialog::getText(this, tr("New Category"), tr("Category name:"),
+                            QLineEdit::Normal, QString{}, &ok)
+          .trimmed();
+  if (!ok || name.isEmpty()) return;
+
+  const QColor color = QColorDialog::getColor(
+      resolve_category_color(name, {}), this, tr("Category Colour (optional)"));
+
+  auto& repo = KeyCategoryRepository::GetInstance(current_gpg_context_channel_);
+  const auto id =
+      repo.AddCategory(name, color.isValid() ? color.name() : QString{});
+
+  CommonUtils::GetInstance()->NotifyCategoriesChanged();
+  select_category(id);
+}
+
+void KeyList::rename_category(const QString& id, const QString& current_name) {
+  bool ok = false;
+  const auto name =
+      QInputDialog::getText(this, tr("Rename Category"), tr("Category name:"),
+                            QLineEdit::Normal, current_name, &ok)
+          .trimmed();
+  if (!ok || name.isEmpty() || name == current_name) return;
+
+  KeyCategoryRepository::GetInstance(current_gpg_context_channel_)
+      .Rename(id, name);
+  CommonUtils::GetInstance()->NotifyCategoriesChanged();
 }
 
 void KeyList::SlotRefresh() {

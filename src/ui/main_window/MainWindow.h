@@ -427,16 +427,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   /**
    * @details
    */
-  void slot_add_key_2_favorite();
-
-  /**
-   * @details
-   */
-  void slot_remove_key_from_favorite();
-
-  /**
-   * @details
-   */
   void slot_set_owner_trust_level_of_key();
 
   /**
@@ -620,8 +610,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* copy_key_id_to_clipboard_act_{};        ///<
   QAction* copy_key_default_uid_to_clipboard_act_{};  ///<
 
-  QAction* add_key_2_favourite_act_{};        ///<
-  QAction* remove_key_from_favourtie_act_{};  ///<
   QMenu* add_key_2_category_menu_{};          ///< Submenu: add key to category
   QAction* set_owner_trust_of_key_act_{};     ///<
 

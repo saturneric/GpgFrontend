@@ -42,18 +42,12 @@ namespace GpgFrontend {
  * A key category is a named, user-defined bucket that groups keys within one
  * key database for organisational purposes. Categories are membership-based
  * (a set of key IDs), scoped per key database, and persisted through the
- * durable cache under the key "kcats:<key_db_name>".
- *
- * The built-in "favourite" category is always present and cannot be removed or
- * renamed; it is the mechanism that replaces the former stand-alone favourites
- * store, so a favourite key is simply a member of this category.
+ * durable cache under the key "kcats:<key_db_name>". The same cache also stores
+ * per-tab colours and per-scope tab orders.
  */
 class GF_CORE_EXPORT KeyCategoryRepository
     : public SingletonFunctionObject<KeyCategoryRepository> {
  public:
-  // Reserved identifier of the built-in "favourite" category.
-  static const QString kFavoriteCategoryId;
-
   /**
    * @brief Construct the repository for the given singleton channel.
    *
@@ -143,21 +137,38 @@ class GF_CORE_EXPORT KeyCategoryRepository
   auto KeyIdsOf(const QString& id) -> QStringList;
 
   /**
-   * @brief Convenience: whether the key is in the built-in favourite category.
+   * @brief The user-chosen colour for a tab id, or empty if none.
    *
-   * @param key_id key ID to test
-   * @return true if the key is a favourite
+   * Works for both custom categories and built-in tab ids.
+   *
+   * @param id tab id
+   * @return "#RRGGBB" colour, or an empty string
    */
-  auto IsFavorite(const QString& key_id) -> bool;
+  auto GetTabColor(const QString& id) -> QString;
 
   /**
-   * @brief Convenience: add or remove the key from the favourite category.
+   * @brief Persist a user-chosen colour for a tab id (empty clears it).
    *
-   * @param key_id key ID to toggle
-   * @param favorite true to mark as favourite, false to unmark
-   * @return true if the membership changed
+   * @param id tab id
+   * @param color "#RRGGBB" colour, or empty to reset
    */
-  auto SetFavorite(const QString& key_id, bool favorite) -> bool;
+  void SetTabColor(const QString& id, const QString& color);
+
+  /**
+   * @brief The persisted tab order for a scope (e.g. a window), or empty.
+   *
+   * @param scope order scope identifier
+   * @return ordered tab ids
+   */
+  auto GetTabOrder(const QString& scope) -> QStringList;
+
+  /**
+   * @brief Persist the tab order for a scope.
+   *
+   * @param scope order scope identifier
+   * @param order ordered tab ids
+   */
+  void SetTabOrder(const QString& scope, const QStringList& order);
 
  private:
   // OpenPGP context, used to resolve the active key database name.
@@ -167,22 +178,18 @@ class GF_CORE_EXPORT KeyCategoryRepository
   CacheManager& cm_ =
       CacheManager::GetInstance(SingletonFunctionObject::GetChannel());
 
-  // All categories for the active key database, ordered built-ins first.
+  // All custom categories for the active key database.
   QContainer<KeyCategoryCO> categories_;
-  // Whether the one-time legacy favourites migration has been performed.
-  bool legacy_favorites_migrated_ = false;
+  // Per-tab colour overrides (tab id -> "#RRGGBB").
+  QMap<QString, QString> tab_colors_;
+  // Per-scope tab orders (scope -> ordered tab ids).
+  QMap<QString, QStringList> tab_orders_;
 
   // Load categories from the durable cache into categories_.
   void fetch_categories();
 
   // Write categories_ back to the durable cache.
   void persist_categories();
-
-  // Ensure the built-in favourite category exists at the front of the list.
-  void ensure_builtin_categories();
-
-  // Import the pre-existing favourites list into the favourite category once.
-  void migrate_legacy_favorites();
 
   // Return a pointer to the category with the given id, or nullptr.
   auto find_category(const QString& id) -> KeyCategoryCO*;

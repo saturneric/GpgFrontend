@@ -133,6 +133,18 @@ class KeyList : public QWidget {
   void SetCategoryRailCompact(bool compact = true);
 
   /**
+   * @brief Enable the full category-management affordances on this key list:
+   * an add-category (+) button and a context menu offering New / Rename /
+   * Set Colour / Manage Members / Delete.
+   *
+   * Intended for the Key Management window; the main-window rail stays a simple
+   * switcher. Call before category tabs are added.
+   *
+   * @param enabled true to expose the management tools
+   */
+  void SetCategoryManagementEnabled(bool enabled = true);
+
+  /**
    * @brief
    *
    * @param name
@@ -387,6 +399,11 @@ class KeyList : public QWidget {
   ///< the top of the strip regardless of the persisted order.
   QString pinned_first_id_;
 
+  ///< When true this key list exposes the full category-management tools
+  ///< (add button + New/Rename/Manage/Delete menu); the main-window rail does
+  ///< not.
+  bool category_management_enabled_ = false;
+
   QAction* key_id_column_action_;
   QAction* algo_column_action_;
   QAction* create_date_column_action_;
@@ -469,12 +486,37 @@ class KeyList : public QWidget {
 
   /**
    * @brief Prompt for a colour and persist it as this category's user-chosen
-   * colour, then refresh the row's swatch.
+   * colour; all open key lists refresh their swatches.
    *
    * @param id category id
-   * @param item the source-list row to refresh
    */
-  void choose_category_color(const QString& id, QListWidgetItem* item);
+  void choose_category_color(const QString& id);
+
+  /**
+   * @brief The source-list row carrying the given category id, or nullptr.
+   */
+  [[nodiscard]] auto item_for_id(const QString& id) const -> QListWidgetItem*;
+
+  /**
+   * @brief Select the category row with the given id, if present.
+   */
+  void select_category(const QString& id);
+
+  /**
+   * @brief Re-render every row's colour swatch from the current settings
+   * (used after a colour change so all open key lists stay consistent).
+   */
+  void refresh_category_icons();
+
+  /**
+   * @brief Prompt for a name (and colour) and create a new custom category.
+   */
+  void new_category();
+
+  /**
+   * @brief Prompt for a new name and rename a custom category.
+   */
+  void rename_category(const QString& id, const QString& current_name);
 
   /**
    * @brief

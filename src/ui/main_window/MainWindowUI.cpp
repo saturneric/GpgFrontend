@@ -345,21 +345,6 @@ void MainWindow::create_actions() {
   connect(show_key_details_act_, &QAction::triggered, this,
           &MainWindow::slot_show_key_details);
 
-  add_key_2_favourite_act_ =
-      create_action("add_to_favourite", tr("Add To Favourite"), "",
-                    tr("Add this key to Favourite Table"));
-  add_key_2_favourite_act_->setData(QVariant("add_key_2_favourite_action"));
-  connect(add_key_2_favourite_act_, &QAction::triggered, this,
-          &MainWindow::slot_add_key_2_favorite);
-
-  remove_key_from_favourtie_act_ =
-      create_action("remove_from_favourite", tr("Remove From Favourite"), "",
-                    tr("Remove this key from Favourite Table"));
-  remove_key_from_favourtie_act_->setData(
-      QVariant("remove_key_from_favourtie_action"));
-  connect(remove_key_from_favourtie_act_, &QAction::triggered, this,
-          &MainWindow::slot_remove_key_from_favorite);
-
   set_owner_trust_of_key_act_ =
       create_action("set_owner_trust_level", tr("Set Owner Trust Level"), "",
                     tr("Set Owner Trust Level"));
@@ -630,13 +615,6 @@ void MainWindow::create_dock_windows() {
       [](const GpgAbstractKey* key) -> bool {
         return !(key->IsRevoked() || key->IsDisabled() || key->IsExpired());
       });
-
-  m_key_list_->AddListGroupTab(
-      tr("Favourite"), "favourite",
-      GpgKeyTableDisplayMode::kPUBLIC_KEY |
-          GpgKeyTableDisplayMode::kPRIVATE_KEY,
-      [](const GpgAbstractKey*) -> bool { return true; },
-      GpgKeyTableColumn::kALL, KeyCategoryRepository::kFavoriteCategoryId);
 
   m_key_list_->AddListGroupTab(
       tr("Key Group"), "key_group", GpgKeyTableDisplayMode::kPUBLIC_KEY,
