@@ -427,4 +427,23 @@ auto InstantMessageOperator::BookConfigured() -> bool {
   return !GetSettings().value(kBookPhraseKey).toString().trimmed().isEmpty();
 }
 
+auto InstantMessageOperator::BookFingerprint() -> QString {
+  // A short, domain-separated digest of the active book, so two peers can
+  // eyeball that they are on the same book without revealing the phrase.
+  //
+  // Truncated on purpose: this value identifies a book, and anyone who learns
+  // it can test candidate phrases offline (derive book, hash, compare). Eight
+  // hex digits keep it comparable by eye while leaving enough collisions that a
+  // match is evidence, not proof. The dictionary attack still costs one
+  // Argon2id (64 MiB) per candidate — the same wall the rest of the design
+  // leans on. Never put this on the wire.
+  QCryptographicHash hash(QCryptographicHash::Sha256);
+  hash.addData(QByteArrayLiteral("GpgFrontend-IM-book-fingerprint-v1"));
+  hash.addData(ActiveBookBytes().ConvertToQByteArray());
+
+  const auto hex = hash.result().left(4).toHex().toUpper();
+  return QString("%1-%2").arg(QString::fromLatin1(hex.left(4)),
+                              QString::fromLatin1(hex.mid(4, 4)));
+}
+
 }  // namespace GpgFrontend

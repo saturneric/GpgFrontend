@@ -100,6 +100,16 @@ class GF_CORE_EXPORT InstantMessageOperator {
    * book is used, which only hides the format from naive scanners.
    */
   static auto BookConfigured() -> bool;
+
+  /**
+   * @brief A short, domain-separated digest of the active book (e.g.
+   * "3F9A-1C4E"), for peers to confirm by eye that they share a book without
+   * exchanging the phrase.
+   *
+   * @warning Identifies the book: anyone who learns it can test candidate
+   * phrases offline. Display it locally; never put it on the wire.
+   */
+  static auto BookFingerprint() -> QString;
 };
 
 }  // namespace GpgFrontend

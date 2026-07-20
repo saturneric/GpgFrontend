@@ -161,6 +161,41 @@ TEST(InstantMessageOperatorTest, FormatVersionIsStable) {
   EXPECT_EQ(InstantMessageOperator::FormatVersion(), 2);
 }
 
+// The fingerprint identifies the book: stable for one phrase, different across
+// phrases, and short enough to compare by eye.
+TEST(InstantMessageOperatorTest, BookFingerprintIdentifiesBook) {
+  BookPhraseGuard guard;
+
+  BookPhraseGuard::Set(QStringLiteral("correct horse battery staple"));
+  const auto fpr = InstantMessageOperator::BookFingerprint();
+
+  // "XXXX-XXXX" of uppercase hex.
+  EXPECT_EQ(fpr.size(), 9);
+  EXPECT_EQ(fpr.at(4), QLatin1Char('-'));
+  EXPECT_TRUE(QRegularExpression(QStringLiteral("^[0-9A-F]{4}-[0-9A-F]{4}$"))
+                  .match(fpr)
+                  .hasMatch());
+
+  // Stable for the same phrase.
+  EXPECT_EQ(InstantMessageOperator::BookFingerprint(), fpr);
+
+  // A different phrase is a different book.
+  BookPhraseGuard::Set(QStringLiteral("a completely different phrase"));
+  const auto other = InstantMessageOperator::BookFingerprint();
+  EXPECT_NE(other, fpr);
+
+  // The default book is its own distinct, constant book.
+  BookPhraseGuard::Set(QString());
+  const auto def = InstantMessageOperator::BookFingerprint();
+  EXPECT_NE(def, fpr);
+  EXPECT_NE(def, other);
+
+  // Returning to the first phrase reproduces the first fingerprint — this is
+  // what makes it usable as a shared check value between peers.
+  BookPhraseGuard::Set(QStringLiteral("correct horse battery staple"));
+  EXPECT_EQ(InstantMessageOperator::BookFingerprint(), fpr);
+}
+
 // The result card reports whether a shared phrase backs the book; a blank or
 // whitespace-only phrase means the default book, which is only obfuscation.
 TEST(InstantMessageOperatorTest, BookConfiguredTracksPhrase) {

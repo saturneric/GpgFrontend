@@ -167,6 +167,13 @@ auto BuildInstantMessageCard(InfoBoardStatus status, const QString& token,
                       book_configured
                           ? MainWindow::tr("Shared phrase (Argon2id)")
                           : MainWindow::tr("Default — no shared phrase set")});
+  // Lets both sides confirm they are on the same book. Only meaningful when a
+  // phrase is set — everyone shares the default book, so its digest is a
+  // constant and says nothing.
+  if (book_configured) {
+    card.fields.append({MainWindow::tr("Book Fingerprint"),
+                        InstantMessageOperator::BookFingerprint()});
+  }
 
   if (payload_size > 0) {
     card.fields.append({MainWindow::tr("OpenPGP Payload"),
