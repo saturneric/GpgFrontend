@@ -159,4 +159,22 @@ auto GF_CORE_EXPORT EnsureSodiumInit() -> bool;
  */
 auto GF_CORE_EXPORT SecureLevelFromApp() -> int;
 
+/**
+ * @brief Resolve a startup setting across its three layers.
+ *
+ * Precedence is ENV.ini override, then the user's stored value, then the
+ * built-in default. An invalid QVariant means "this layer has no value", which
+ * is exactly what QSettings::value() returns for a missing key — so a layer
+ * that is merely absent falls through instead of overriding with an empty
+ * value.
+ *
+ * @param env_value value from ENV.ini, or an invalid QVariant if unset
+ * @param user_value value from the user settings, or invalid if unset
+ * @param fallback built-in default, used when neither layer has a value
+ * @return the winning value
+ */
+auto GF_CORE_EXPORT ResolveLayeredValue(const QVariant& env_value,
+                                        const QVariant& user_value,
+                                        const QVariant& fallback) -> QVariant;
+
 }  // namespace GpgFrontend

@@ -154,6 +154,13 @@ auto SecureLevelFromApp() -> int {
   return qApp->property("GFSecureLevel").toInt();
 }
 
+auto ResolveLayeredValue(const QVariant& env_value, const QVariant& user_value,
+                         const QVariant& fallback) -> QVariant {
+  if (env_value.isValid()) return env_value;
+  if (user_value.isValid()) return user_value;
+  return fallback;
+}
+
 #ifdef APPLE_SANDBOX
 
 #include <CoreFoundation/CoreFoundation.h>
