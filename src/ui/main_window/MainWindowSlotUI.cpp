@@ -185,6 +185,7 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   decrypt_act_->setDisabled(true);
   decrypt_verify_act_->setDisabled(true);
   sym_encrypt_act_->setDisabled(true);
+  im_encrypt_act_->setDisabled(true);
 
   // gnupg operations
   if ((opera_type & OperationMenu::kVerify) != 0U) {
@@ -207,6 +208,15 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   }
   if ((opera_type & OperationMenu::kSymmetricEncrypt) != 0U) {
     sym_encrypt_act_->setDisabled(false);
+  }
+
+  // Instant Messaging encrypt wraps a public-key OR symmetric encryption, so it
+  // is available whenever either of those is — but only for a text tab, since
+  // it turns editor text into a chat token (it does nothing on a file tab).
+  if (edit_->CurPageTextEdit() != nullptr &&
+      (opera_type &
+       (OperationMenu::kEncrypt | OperationMenu::kSymmetricEncrypt)) != 0U) {
+    im_encrypt_act_->setDisabled(false);
   }
 }
 

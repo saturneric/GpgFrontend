@@ -505,12 +505,11 @@ void MainWindow::slot_im_encrypt_message() {
 
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 
-  // The single selected recipient identifies the conversation peer.
-  auto recipients = check_keys_helper(
-      m_key_list_->GetCheckedKeys(),
-      [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
-      tr("The selected keypair cannot be used for encryption."));
-  if (recipients.empty()) return;
+  // Encrypt to the checked recipient key(s), or symmetrically (passphrase) when
+  // none are checked — same rule as the standard Encrypt.
+  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  contexts->ascii = false;
+  if (!encrypt_operation_key_validate(contexts)) return;
 
   auto plain_text = edit_->CurPlainText();
   if (plain_text.isEmpty()) return;
@@ -518,11 +517,8 @@ void MainWindow::slot_im_encrypt_message() {
   plain_text.fill(QLatin1Char('X'));
   plain_text.clear();
 
-  // PGP-encrypt to the recipient, then whiten the binary ciphertext into one
-  // Base58 token with the shared password book — no marker survives on the wire.
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
-  contexts->ascii = false;
-  contexts->keys = recipients;
+  // PGP-encrypt, then whiten the binary ciphertext into one Base58 token with
+  // the shared password book — no marker survives on the wire.
   contexts->GetContextBuffer(0).append(secure_plain_text);
   GpgOperaHelper::BuildOperas(contexts, 0, channel,
                               GpgOperaHelper::BuildOperasEncrypt);
