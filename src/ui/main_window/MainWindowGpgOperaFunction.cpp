@@ -395,27 +395,17 @@ void MainWindow::SlotDecrypt() {
 
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 
-  // If this is one of our IM tokens, Decode handles a PFS message end-to-end
-  // and hands a NORMAL token its inner OpenPGP message for the standard
-  // decrypt.
-  if (InstantMessageOperator::Contains(edit_->CurPlainText())) {
-    const auto r =
-        InstantMessageOperator::Decode(channel, edit_->CurPlainText());
-    if (r.status == InstantMessageOperator::DecodeStatus::kPFS_OK) {
-      show_im_pfs_message(r.plaintext, r.peer_fpr);
-      return;
-    }
-    if (r.status == InstantMessageOperator::DecodeStatus::kNORMAL_OK) {
-      auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
-      contexts->ascii = true;
-      contexts->GetContextBuffer(0).append(r.pgp_message);
-      GpgOperaHelper::BuildOperas(contexts, 0, channel,
-                                  GpgOperaHelper::BuildOperasDecrypt);
-      exec_im_normal_decrypt_helper(tr("Decrypting"), contexts,
-                                    r.imported_bundle);
-      return;
-    }
-    show_im_decode_error(r.status);
+  // If this is one of our IM tokens, un-whiten it with the password book and
+  // hand the inner OpenPGP message to the standard decrypt path. If not, the
+  // text is treated as ordinary input below.
+  const auto im = InstantMessageOperator::Decode(edit_->CurPlainText());
+  if (im.ok) {
+    auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+    contexts->ascii = true;
+    contexts->GetContextBuffer(0).append(im.pgp_message);
+    GpgOperaHelper::BuildOperas(contexts, 0, channel,
+                                GpgOperaHelper::BuildOperasDecrypt);
+    exec_im_normal_decrypt_helper(tr("Decrypting"), contexts);
     return;
   }
 
@@ -483,27 +473,17 @@ void MainWindow::SlotDecryptVerify() {
 
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 
-  if (InstantMessageOperator::Contains(edit_->CurPlainText())) {
-    const auto r =
-        InstantMessageOperator::Decode(channel, edit_->CurPlainText());
-    if (r.status == InstantMessageOperator::DecodeStatus::kPFS_OK) {
-      show_im_pfs_message(r.plaintext, r.peer_fpr);
-      return;
+  const auto im = InstantMessageOperator::Decode(edit_->CurPlainText());
+  if (im.ok) {
+    auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+    contexts->ascii = true;
+    contexts->GetContextBuffer(0).append(im.pgp_message);
+    GpgOperaHelper::BuildOperas(contexts, 0, channel,
+                                GpgOperaHelper::BuildOperasDecryptVerify);
+    exec_im_normal_decrypt_helper(tr("Decrypting and Verifying"), contexts);
+    if (!contexts->unknown_fprs.isEmpty()) {
+      slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
     }
-    if (r.status == InstantMessageOperator::DecodeStatus::kNORMAL_OK) {
-      auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
-      contexts->ascii = true;
-      contexts->GetContextBuffer(0).append(r.pgp_message);
-      GpgOperaHelper::BuildOperas(contexts, 0, channel,
-                                  GpgOperaHelper::BuildOperasDecryptVerify);
-      exec_im_normal_decrypt_helper(tr("Decrypting and Verifying"), contexts,
-                                    r.imported_bundle);
-      if (!contexts->unknown_fprs.isEmpty()) {
-        slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
-      }
-      return;
-    }
-    show_im_decode_error(r.status);
     return;
   }
 
@@ -531,26 +511,6 @@ void MainWindow::slot_im_encrypt_message() {
       [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
       tr("The selected keypair cannot be used for encryption."));
   if (recipients.empty()) return;
-  const QString peer_fpr = recipients.first()->Fingerprint();
-
-  // Forward secrecy is on by default; when disabled the feature behaves like
-  // classic stateless PGP-in-a-token (no session, no bundle, no signing key).
-  const bool fs_enabled =
-      GetSettings().value("im/forward_secrecy", false).toBool();
-
-  // Forward secrecy requires an explicit signing identity — the key that
-  // authenticates our handshakes to the recipient. Normal mode needs none.
-  GpgKeyPtr signer = nullptr;
-  if (fs_enabled) {
-    signer = im_identity_signer();
-    if (signer == nullptr) {
-      QMessageBox::warning(
-          this, tr("Instant Messaging"),
-          tr("Please choose your Instant Messaging signing key first, in "
-             "Settings → Instant Messaging → Signing Key."));
-      return;
-    }
-  }
 
   auto plain_text = edit_->CurPlainText();
   if (plain_text.isEmpty()) return;
@@ -558,35 +518,8 @@ void MainWindow::slot_im_encrypt_message() {
   plain_text.fill(QLatin1Char('X'));
   plain_text.clear();
 
-  // Forward-secret path: an established session or a known peer bundle. Emits a
-  // PFS_INIT (first message) or a compact PFS_MSG; no OpenPGP layer inside.
-  if (fs_enabled && InstantMessageOperator::ChooseSendMode(peer_fpr) ==
-                        InstantMessageOperator::SendMode::kPFS) {
-    const auto token = InstantMessageOperator::EncodePfs(
-        channel, signer, peer_fpr, secure_plain_text);
-    if (!token.isEmpty()) {
-      edit_->SlotFillTextEditWithText(token);
-
-      InfoBoardCard card;
-      card.title = tr("Instant Messaging");
-      card.status = kINFO_ERROR_OK;
-      card.fields.append({tr("Mode"), tr("Forward Secrecy")});
-      card.fields.append({tr("Recipient"), BeautifyFingerprint(peer_fpr)});
-      card.fields.append({tr("Encoding"), QStringLiteral("Base58")});
-
-      QContainer<InfoBoardCard> cards;
-      cards.append(card);
-      info_board_->SetInfoBoardCards(
-          tr("Message encrypted with forward secrecy."), kINFO_ERROR_OK, cards,
-          tr("Encrypt · Instant Messaging"),
-          tr("A forward-secret (Double Ratchet) instant message."));
-      return;
-    }
-    // PFS could not proceed (e.g. no signing key); fall through to NORMAL.
-  }
-
-  // NORMAL path: PGP-encrypt to the recipient, then wrap as a token. Attach our
-  // signed prekey bundle so the peer can silently upgrade to forward secrecy.
+  // PGP-encrypt to the recipient, then whiten the binary ciphertext into one
+  // Base58 token with the shared password book — no marker survives on the wire.
   auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = false;
   contexts->keys = recipients;
@@ -605,20 +538,14 @@ void MainWindow::slot_im_encrypt_message() {
   }
 
   const auto& result = contexts->opera_results.first();
-  const bool attach =
-      fs_enabled && InstantMessageOperator::ShouldAttachBundle(peer_fpr);
-  const auto token = InstantMessageOperator::EncodeNormal(
-      channel, signer, result.o_buffer, attach);
+  const auto token = InstantMessageOperator::Encode(result.o_buffer);
+  if (token.isEmpty()) return;
   edit_->SlotFillTextEditWithText(token);
 
   InfoBoardCard im_card;
   im_card.title = tr("Instant Messaging");
   im_card.status = kINFO_ERROR_OK;
-  im_card.fields.append({tr("Mode"), tr("Normal")});
   im_card.fields.append({tr("Encoding"), QStringLiteral("Base58")});
-  if (attach && signer != nullptr) {
-    im_card.fields.append({tr("Forward Secrecy"), tr("Offered")});
-  }
 
   QContainer<InfoBoardCard> cards;
   cards.append(im_card);
@@ -635,8 +562,7 @@ void MainWindow::slot_im_encrypt_message() {
 
 auto MainWindow::exec_im_normal_decrypt_helper(
     const QString& task,
-    const QSharedPointer<GpgOperaContextBasement>& contexts,
-    bool imported_bundle) -> bool {
+    const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool {
   GpgOperaHelper::WaitForMultipleOperas(
       this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
 
@@ -661,11 +587,7 @@ auto MainWindow::exec_im_normal_decrypt_helper(
   InfoBoardCard im_card;
   im_card.title = tr("Instant Messaging");
   im_card.status = status;
-  im_card.fields.append({tr("Mode"), tr("Normal")});
   im_card.fields.append({tr("Encoding"), QStringLiteral("Base58")});
-  if (imported_bundle) {
-    im_card.fields.append({tr("Forward Secrecy"), tr("Available on reply")});
-  }
 
   QContainer<InfoBoardCard> cards;
   cards.append(im_card);  // IM section first
@@ -691,92 +613,6 @@ auto MainWindow::exec_im_normal_decrypt_helper(
       tr("An Instant Messaging section followed by the OpenPGP result."));
 
   return overall >= 0;
-}
-
-void MainWindow::show_im_pfs_message(const GFBuffer& plaintext,
-                                     const QString& peer_fpr) {
-  edit_->SlotFillTextEditWithText(plaintext.ConvertToQString());
-
-  InfoBoardCard card;
-  card.title = tr("Instant Messaging");
-  card.status = kINFO_ERROR_OK;
-  card.fields.append({tr("Mode"), tr("Forward Secrecy")});
-  if (!peer_fpr.isEmpty()) {
-    card.fields.append({tr("Sender"), BeautifyFingerprint(peer_fpr)});
-  }
-
-  QContainer<InfoBoardCard> cards;
-  cards.append(card);
-  info_board_->SetInfoBoardCards(
-      tr("Forward-secret instant message decrypted."), kINFO_ERROR_OK, cards,
-      tr("Decrypt · Instant Messaging"),
-      tr("A forward-secret (Double Ratchet) instant message."));
-}
-
-void MainWindow::show_im_decode_error(
-    InstantMessageOperator::DecodeStatus status) {
-  using DecodeStatus = InstantMessageOperator::DecodeStatus;
-
-  InfoBoardCard card;
-  card.title = tr("Instant Message");
-  card.status = kINFO_ERROR_CRITICAL;
-
-  QString summary;
-  QString description;
-  switch (status) {
-    case DecodeStatus::kHANDSHAKE_AUTH_FAILED:
-      card.fields.append({tr("Authentication"), tr("Failed")});
-      summary = tr("Sender identity could not be verified.");
-      description = tr(
-          "The signature binding this secure session to the sender's OpenPGP "
-          "identity did not verify. Do not trust this message.");
-      break;
-    case DecodeStatus::kNO_SESSION:
-      summary = tr("No secure session for this message.");
-      description = tr(
-          "This forward-secret message references a session this device does "
-          "not have (it may have been reset, or the message reordered). Ask "
-          "the sender to send a new message to re-establish it.");
-      break;
-    case DecodeStatus::kUNDECRYPTABLE:
-      summary = tr("This secure message cannot be opened.");
-      description = tr(
-          "Its one-time message key has already been used and deleted — this "
-          "is forward secrecy at work. Ask the sender to resend.");
-      break;
-    default:  // kMALFORMED
-      summary = tr("Malformed instant message.");
-      description =
-          tr("This looks like an instant message, but it is corrupted or was "
-             "altered in transit and cannot be recovered.");
-      break;
-  }
-
-  QContainer<InfoBoardCard> cards;
-  cards.append(card);
-  info_board_->SetInfoBoardCards(summary, kINFO_ERROR_CRITICAL, cards,
-                                 tr("Decrypt · Instant Messaging"),
-                                 description);
-}
-
-auto MainWindow::im_identity_signer() -> GpgKeyPtr {
-  const int channel = m_key_list_->GetCurrentGpgContextChannel();
-  auto& repo = GpgKeyRepository::GetInstance(channel);
-
-  // The IM signing identity is an explicit user choice (Settings → Instant
-  // Messaging → Signing Key); there is no silent fallback. Returns null if the
-  // configured key is unset or not a usable signing key on this channel.
-  const auto configured =
-      GetSettings().value("im/identity_key_fpr").toString().trimmed();
-  if (configured.isEmpty()) return nullptr;
-
-  for (const auto& key : repo.Fetch()) {
-    if (key != nullptr && key->IsGood() && key->IsPrivateKey() &&
-        key->IsHasSignCap() && key->Fingerprint() == configured) {
-      return key;
-    }
-  }
-  return nullptr;
 }
 
 void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {

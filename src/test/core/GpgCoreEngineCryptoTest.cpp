@@ -32,8 +32,6 @@
 #include <algorithm>
 
 #include "GpgCoreEngineTest.h"
-#include "core/function/InstantMessageOperator.h"
-#include "core/function/ImSessionStore.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
@@ -52,69 +50,6 @@ namespace GpgFrontend::Test {
 // ---------------------------------------------------------------------------
 // Key generation
 // ---------------------------------------------------------------------------
-
-// A self-test (messaging yourself in one app) must keep working after forward
-// secrecy engages: the sender and receiver ratchet ends are kept in separate
-// session slots so subsequent PFS messages still decrypt. Regression test for
-// "works at first, then decrypt fails once PFS takes effect".
-TEST_P(GpgCoreEngineTest, InstantMessagingSelfPfsRoundTrip) {
-  using Op = InstantMessageOperator;
-  auto key = GenerateFullKey("im-self");
-  ASSERT_TRUE(key != nullptr);
-  const int ch = Channel();
-  const QString self = key->Fingerprint();
-
-  auto& store = ImSessionStore::GetInstance();
-  store.DeleteSession(self);  // clean slate (persistent store)
-
-  // 1. NORMAL bootstrap: the token carries our signed bundle; decoding it
-  //    verifies the signature and imports the bundle for the (self) peer.
-  const auto t0 = Op::EncodeNormal(ch, key, GFBuffer(QByteArray(64, 'x')), true);
-  ASSERT_FALSE(t0.isEmpty());
-  auto r0 = Op::Decode(ch, t0);
-  ASSERT_EQ(r0.status, Op::DecodeStatus::kNORMAL_OK);
-  ASSERT_TRUE(r0.imported_bundle) << "bundle self-import (detached verify) failed";
-
-  // 2. First forward-secret message -> PFS_INIT.
-  const auto t1 = Op::EncodePfs(ch, key, self, GFBuffer(QByteArray("hello-1")));
-  ASSERT_FALSE(t1.isEmpty());
-  auto r1 = Op::Decode(ch, t1);
-  ASSERT_EQ(r1.status, Op::DecodeStatus::kPFS_OK);
-  EXPECT_EQ(r1.plaintext.ConvertToQByteArray(), QByteArray("hello-1"));
-
-  // The fix in action: the sender session persists AND a separate loopback
-  // (receiver) session now exists, so the two ends no longer collide. Without
-  // these, the round-trip below would silently re-handshake instead of
-  // exercising the steady-state PFS_MSG path.
-  ASSERT_TRUE(store.LoadSession(self).has_value());
-  ASSERT_TRUE(store.LoadLoopbackSession(self).has_value())
-      << "self-loopback session was not created";
-
-  // 3. Subsequent PFS_MSG messages — the case that previously broke on self.
-  for (int i = 2; i <= 4; ++i) {
-    const QByteArray msg = "hello-" + QByteArray::number(i);
-    const auto t = Op::EncodePfs(ch, key, self, GFBuffer(msg));
-    ASSERT_FALSE(t.isEmpty()) << "encrypt #" << i;
-    auto rr = Op::Decode(ch, t);
-    ASSERT_EQ(rr.status, Op::DecodeStatus::kPFS_OK) << "decrypt #" << i;
-    EXPECT_EQ(rr.plaintext.ConvertToQByteArray(), msg);
-  }
-
-  // 4. Recovery: lose the session but keep the peer bundle (the common case —
-  //    reinstall/GC drops sessions, bundles are sticky). The next message must
-  //    transparently re-establish a fresh forward-secret session with no manual
-  //    step, and decrypt again.
-  store.DeleteSession(self);
-  ASSERT_FALSE(store.LoadSession(self).has_value());
-  const auto tr = Op::EncodePfs(ch, key, self, GFBuffer(QByteArray("recovered")));
-  ASSERT_FALSE(tr.isEmpty()) << "re-handshake after session loss failed";
-  auto rr = Op::Decode(ch, tr);
-  ASSERT_EQ(rr.status, Op::DecodeStatus::kPFS_OK);
-  EXPECT_EQ(rr.plaintext.ConvertToQByteArray(), QByteArray("recovered"));
-
-  store.DeleteSession(self);
-  DeleteKey(key);
-}
 
 TEST_P(GpgCoreEngineTest, GenerateKeyWithSubkey) {
   auto key = GenerateFullKey("genkey");

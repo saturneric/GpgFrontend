@@ -29,18 +29,16 @@
 #pragma once
 
 class QLineEdit;
-class QComboBox;
-class QCheckBox;
-class QGroupBox;
 
 namespace GpgFrontend::UI {
 
 /**
- * @brief Settings tab for the instant-messaging (forward-secret) feature.
+ * @brief Settings tab for the instant-messaging feature.
  *
- * Holds the shared "Message Book Phrase" — an optional extra secret mixed into
- * every forward-secret session. Forward secrecy itself needs no configuration;
- * it is established automatically on first exchange.
+ * Holds the shared "Message Book Phrase" — the secret that whitens every
+ * instant-messaging token so it cannot be detected as a GpgFrontend/PGP message.
+ * Both sides must set the same phrase; an empty phrase uses a shared default
+ * that only hides the format from naive scanners.
  */
 class InstantMessagingTab : public QWidget {
   Q_OBJECT
@@ -55,18 +53,7 @@ class InstantMessagingTab : public QWidget {
   void ApplySettings();
 
  private:
-  QCheckBox* forward_secrecy_check_{};  ///< enable the Double Ratchet (PFS)
-  QGroupBox* identity_box_{};           ///< Identity group (forward-secrecy only)
-  QComboBox* identity_key_combo_{};     ///< OpenPGP key that signs IM handshakes
-  QGroupBox* book_box_{};               ///< Message Book group (forward-secrecy only)
-  QLineEdit* book_phrase_edit_{};       ///< shared Message Book Phrase
-
-  /// Populate the identity-key combo with the user's private, signing keys.
-  void populate_identity_keys();
-
-  /// Enable the Identity and Message Book groups only when forward secrecy is
-  /// on — they play no role in plain Normal mode.
-  void update_fs_dependent_state();
+  QLineEdit* book_phrase_edit_{};  ///< shared Message Book Phrase
 };
 
 }  // namespace GpgFrontend::UI

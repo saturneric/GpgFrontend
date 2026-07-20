@@ -30,18 +30,12 @@
 
 #include <sodium.h>
 
-#include <QCryptographicHash>
+#include <QMutex>
 #include <QRegularExpression>
 #include <array>
 
-#include "core/function/DoubleRatchet.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/ImContactBundle.h"
-#include "core/function/ImHandshake.h"
-#include "core/function/ImSessionStore.h"
 #include "core/function/SecureRandomGenerator.h"
-#include "core/function/X25519.h"
-#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend {
@@ -122,7 +116,8 @@ auto Base58Decode(const QString& in, bool& ok) -> QByteArray {
 
 // ---------------------------------------------------------------------------
 // Password book: a shared 256-byte table, phrase-derived (Argon2id) or default.
-// Now used only as an extra shared secret mixed into the X3DH handshake.
+// It is the whitening key: everything below is derived from it plus a fresh
+// per-message seed.
 // ---------------------------------------------------------------------------
 
 constexpr uint64_t kDefaultWeyl = 0x7F49BA797C9E3175ULL;
@@ -134,6 +129,18 @@ constexpr std::array<unsigned char, crypto_pwhash_SALTBYTES> kBookKdfSalt = {
     'o', 'k', '-', 's', 'a', 'l', 't', '1'};
 constexpr unsigned long long kBookKdfOps = 3;
 constexpr size_t kBookKdfMem = 65536ULL * 1024ULL;  // 64 MiB
+
+// Per-message whitening KDF: intentionally heavier than the (memoized) phrase
+// KDF above, because it runs on EVERY encode/decode and is the anti-detection
+// cost. A large-scale scanner that holds the default book still has to pay one
+// full Argon2id per candidate Base58 message — there is no cheap pre-filter and
+// no precomputation (the per-message seed is the salt, so no rainbow table and
+// no cross-message amortization). Sized so a single detect/decode is ~0.1-0.2s
+// and memory-bound (hard to parallelize on GPU/ASIC at platform scale). This is
+// paid symmetrically by legitimate peers; the protection is scale — the scanner
+// tests billions of messages, a user tests one.
+constexpr unsigned long long kMasterKdfOps = 3;
+constexpr size_t kMasterKdfMem = 128ULL * 1024ULL * 1024ULL;  // 128 MiB
 
 auto DeriveBookConstants(const QString& phrase, uint64_t& weyl, uint64_t& mul)
     -> bool {
@@ -178,10 +185,19 @@ auto BuildBook(uint64_t weyl, uint64_t mul) -> std::array<uint8_t, 256> {
   return sub;
 }
 
-// The active book's raw bytes, mixed into the X3DH secret so both parties must
-// share the same phrase (or both use the default).
+// The active book's raw bytes. Deriving it from a phrase runs Argon2id, so the
+// result is memoized by phrase — Decode()/Contains() call this on every token.
 auto ActiveBookBytes() -> GFBuffer {
+  static QMutex mutex;
+  static bool has_cache = false;
+  static QString cached_phrase;
+  static GFBuffer cached_book;
+
   const auto phrase = GetSettings().value(kBookPhraseKey).toString().trimmed();
+
+  QMutexLocker locker(&mutex);
+  if (has_cache && phrase == cached_phrase) return cached_book;
+
   uint64_t weyl = kDefaultWeyl;
   uint64_t mul = kDefaultMul;
   if (!phrase.isEmpty()) {
@@ -193,27 +209,39 @@ auto ActiveBookBytes() -> GFBuffer {
     }
   }
   const auto sub = BuildBook(weyl, mul);
-  return GFBuffer(QByteArray(reinterpret_cast<const char*>(sub.data()),
-                             static_cast<qsizetype>(sub.size())));
+  cached_book = GFBuffer(QByteArray(reinterpret_cast<const char*>(sub.data()),
+                                    static_cast<qsizetype>(sub.size())));
+  cached_phrase = phrase;
+  has_cache = true;
+  return cached_book;
 }
 
 // ---------------------------------------------------------------------------
-// Wire container.
+// Whitened wire container. There is NO cleartext marker: the whole inner frame
+// (a book-derived recognition tag, the header and the OpenPGP payload, plus
+// secret-controlled random padding) is XORed with a keystream and shuffled by a
+// permutation, both derived — via a memory-hard KDF — from the book and a fresh
+// per-message seed. Only the seed travels in the clear, and it is uniform
+// random.
+//
+//   wire = Base58( seed(16) || permute( inner XOR keystream ) )
+//   inner = tag(16) | version(1) | type(1) | payload_len(u32) | payload | pad
 // ---------------------------------------------------------------------------
 
-constexpr uint8_t kVersion = 0x01;
+constexpr uint8_t kVersion = 0x02;
 constexpr uint8_t kTypeNormal = 0x00;
-constexpr uint8_t kTypePfsMsg = 0x01;
-constexpr uint8_t kTypePfsInit = 0x02;
 
-constexpr uint8_t kNormalFlagHasBundle = 0x01;
+constexpr int kSeedLen = 16;  // == Argon2 salt length; ChaCha20 nonce is the
+                              // first 8 bytes of it.
+constexpr int kTagLen = 16;   // secret book-derived recognition value
+constexpr int kHeaderLen = kTagLen + 1 + 1 + 4;  // tag|version|type|payload_len
+constexpr int kBucket = 64;   // length is rounded up to this before jitter
+constexpr int kMinFrame = kHeaderLen;
+constexpr int kPrefixLen = kTagLen + 4;  // PRG bytes read before the length (m)
+                                         // is known: tag + jitter u32
 
-constexpr int kSessionIdLen = 8;
-constexpr int kKeyLen = X25519::kPubKeyLen;
-constexpr int kHeaderLen = DoubleRatchet::kHeaderLen;  // 40
-// version|type|sid|ik_pub|ek_pub|spk_id|opk_id
-constexpr int kInitFieldsLen = 2 + kSessionIdLen + kKeyLen + kKeyLen + 4 + 4;
-constexpr int kPfsMsgAdLen = 2 + kSessionIdLen;  // version|type|sid
+static_assert(kSeedLen == crypto_pwhash_SALTBYTES);
+static_assert(kSeedLen >= crypto_stream_chacha20_NONCEBYTES);
 
 void AppendU32BE(QByteArray& out, quint32 v) {
   out.append(static_cast<char>((v >> 24) & 0xFF));
@@ -228,28 +256,48 @@ auto ReadU32BE(const QByteArray& in, int off) -> quint32 {
          static_cast<quint32>(static_cast<uint8_t>(in[off + 3]));
 }
 
-// Assemble our signed prekey bundle (key material from the store + PGP sig).
-auto BuildSignedBundle(int channel, const GpgKeyPtr& signer)
-    -> std::optional<ImContactBundle> {
-  if (signer == nullptr) return {};
-  auto bundle = ImSessionStore::GetInstance().PublicBundleKeys();
-  bundle.pgp_fpr = signer->Fingerprint();
-  auto sig = ImHandshake::SignDetached(channel, signer, bundle.SignedPortion());
-  if (!sig) return {};
-  bundle.pgp_sig = *sig;
-  return bundle;
+auto RoundUp(int v, int mult) -> int { return ((v + mult - 1) / mult) * mult; }
+
+// Memory-hard master key from the book (as password) and the seed (as salt).
+// This is what makes even *detecting* a token cost an Argon2id per candidate
+// book — there is no cheap pre-filter.
+auto DeriveMaster(const GFBuffer& book, const QByteArray& seed,
+                  std::array<unsigned char, 32>& master) -> bool {
+  if (!EnsureSodiumInit()) return false;
+  const auto book_bytes = book.ConvertToQByteArray();
+  const int rc = crypto_pwhash(
+      master.data(), master.size(), book_bytes.constData(),
+      static_cast<unsigned long long>(book_bytes.size()),
+      reinterpret_cast<const unsigned char*>(seed.constData()), kMasterKdfOps,
+      kMasterKdfMem, crypto_pwhash_ALG_ARGON2ID13);
+  return rc == 0;
 }
 
-auto RandomSessionId() -> QByteArray {
-  auto r = SecureRandomGenerator::Generate(kSessionIdLen);
-  return r ? r->ConvertToQByteArray() : QByteArray(kSessionIdLen, '\0');
+// Deterministic keystream: ChaCha20(master) with the seed's first 8 bytes as
+// nonce. The tag, jitter, permutation material and XOR keystream are disjoint
+// slices of this one stream.
+auto Keystream(const std::array<unsigned char, 32>& master,
+               const QByteArray& seed, int len) -> QByteArray {
+  QByteArray out(len, Qt::Uninitialized);
+  crypto_stream_chacha20(
+      reinterpret_cast<unsigned char*>(out.data()),
+      static_cast<unsigned long long>(len),
+      reinterpret_cast<const unsigned char*>(seed.constData()), master.data());
+  return out;
 }
 
-// Whether a fingerprint is one of our own keys — i.e. we are messaging
-// ourselves, so the two ratchet ends must be kept in separate session slots.
-auto IsSelfIdentity(int channel, const QString& fpr) -> bool {
-  auto key = GpgKeyRepository::GetInstance(channel).GetKey(fpr);
-  return key.IsGood() && key.IsPrivateKey();
+// Keyed Fisher-Yates permutation P of [0, m) driven by 4 bytes per step.
+auto BuildPermutation(const QByteArray& material, int m) -> QVector<int> {
+  QVector<int> p(m);
+  for (int i = 0; i < m; ++i) p[i] = i;
+  int off = 0;
+  for (int i = m - 1; i > 0; --i) {
+    const quint32 r = ReadU32BE(material, off);
+    off += 4;
+    const int j = static_cast<int>(r % static_cast<quint32>(i + 1));
+    std::swap(p[i], p[j]);
+  }
+  return p;
 }
 
 // Strip whitespace a messenger may have injected; reject armored PGP text.
@@ -262,363 +310,114 @@ auto Normalize(const QString& text, QString& compact) -> bool {
 
 }  // namespace
 
-auto InstantMessageOperator::ChooseSendMode(const QString& peer_fpr)
-    -> SendMode {
-  if (peer_fpr.isEmpty()) return SendMode::kNORMAL;
-  auto& store = ImSessionStore::GetInstance();
-  if (store.LoadSession(peer_fpr) || store.LoadPeerBundle(peer_fpr)) {
-    return SendMode::kPFS;
-  }
-  return SendMode::kNORMAL;
-}
-
-auto InstantMessageOperator::ShouldAttachBundle(const QString& peer_fpr)
-    -> bool {
-  if (peer_fpr.isEmpty()) return true;
-  return !ImSessionStore::GetInstance().IsPfsConfirmed(peer_fpr);
-}
-
-auto InstantMessageOperator::EncodeNormal(int channel, const GpgKeyPtr& signer,
-                                          const GFBuffer& pgp_message,
-                                          bool attach_bundle) -> QString {
+auto InstantMessageOperator::Encode(const GFBuffer& pgp_message) -> QString {
   const auto pgp = pgp_message.ConvertToQByteArray();
   if (pgp.isEmpty()) return {};
 
-  QByteArray bundle_bytes;
-  uint8_t flags = 0;
-  if (attach_bundle) {
-    if (auto b = BuildSignedBundle(channel, signer)) {
-      bundle_bytes = b->Serialize().ConvertToQByteArray();
-      flags |= kNormalFlagHasBundle;
-    }
-  }
-
-  QByteArray frame;
-  frame.append(static_cast<char>(kVersion));
-  frame.append(static_cast<char>(kTypeNormal));
-  frame.append(static_cast<char>(flags));
-  AppendU32BE(frame, static_cast<quint32>(bundle_bytes.size()));
-  frame.append(bundle_bytes);
-  frame.append(pgp);
-  return Base58Encode(frame);
-}
-
-auto InstantMessageOperator::EncodePfs(int channel, const GpgKeyPtr& signer,
-                                       const QString& peer_fpr,
-                                       const GFBuffer& plaintext) -> QString {
-  auto& store = ImSessionStore::GetInstance();
-
-  // Steady state: an established session -> compact PFS_MSG.
-  if (auto session = store.LoadSession(peer_fpr)) {
-    auto sid = store.GetPeerSessionId(peer_fpr);
-    if (!sid) return {};
-
-    QByteArray ad;
-    ad.append(static_cast<char>(kVersion));
-    ad.append(static_cast<char>(kTypePfsMsg));
-    ad.append(*sid);
-
-    RatchetHeader header;
-    auto ct = DoubleRatchet::Encrypt(*session, plaintext, GFBuffer(ad), header);
-    if (!ct) return {};
-    store.SaveSession(peer_fpr, *session);
-
-    QByteArray frame = ad;
-    frame.append(DoubleRatchet::SerializeHeader(header).ConvertToQByteArray());
-    frame.append(ct->ConvertToQByteArray());
-    return Base58Encode(frame);
-  }
-
-  // First message: need the peer's bundle to run X3DH -> PFS_INIT.
-  auto bundle = store.LoadPeerBundle(peer_fpr);
-  if (!bundle) return {};  // caller falls back to NORMAL
-
-  const auto identity = store.LoadOrCreateIdentity();
   const auto book = ActiveBookBytes();
 
-  ImHandshake::InitPayload payload;
-  auto state = ImHandshake::Initiate(identity, *bundle, book, payload);
-  if (!state) return {};
+  auto seed_buf = SecureRandomGenerator::Generate(kSeedLen);
+  if (!seed_buf) return {};
+  const QByteArray seed = seed_buf->ConvertToQByteArray();
 
-  const QByteArray sid = RandomSessionId();
+  std::array<unsigned char, 32> master{};
+  if (!DeriveMaster(book, seed, master)) return {};
 
-  QByteArray fields;  // version|type|sid|ik_pub|ek_pub|spk_id|opk_id
-  fields.append(static_cast<char>(kVersion));
-  fields.append(static_cast<char>(kTypePfsInit));
-  fields.append(sid);
-  fields.append(payload.ik_pub.ConvertToQByteArray());
-  fields.append(payload.ek_pub.ConvertToQByteArray());
-  AppendU32BE(fields, payload.spk_id);
-  AppendU32BE(fields, payload.opk_id);
+  // Read the tag and jitter first; they fix the padded frame length m.
+  const QByteArray prefix = Keystream(master, seed, kPrefixLen);
+  const QByteArray tag = prefix.left(kTagLen);
+  const quint32 jitter = ReadU32BE(prefix, kTagLen);
 
-  RatchetHeader header;
-  auto ct = DoubleRatchet::Encrypt(*state, plaintext, GFBuffer(fields), header);
-  if (!ct) return {};
+  const int content = kHeaderLen + static_cast<int>(pgp.size());
+  const int m = RoundUp(content, kBucket) +
+                static_cast<int>(jitter % static_cast<quint32>(2 * kBucket));
+  const int pad_len = m - content;
 
-  const QByteArray header_bytes =
-      DoubleRatchet::SerializeHeader(header).ConvertToQByteArray();
+  QByteArray inner;
+  inner.reserve(m);
+  inner.append(tag);
+  inner.append(static_cast<char>(kVersion));
+  inner.append(static_cast<char>(kTypeNormal));
+  AppendU32BE(inner, static_cast<quint32>(pgp.size()));
+  inner.append(pgp);
+  if (pad_len > 0) {
+    auto pad = SecureRandomGenerator::Generate(pad_len);
+    if (!pad) {
+      sodium_memzero(master.data(), master.size());
+      return {};
+    }
+    inner.append(pad->ConvertToQByteArray());
+  }
 
-  QByteArray transcript = fields;
-  transcript.append(header_bytes);
-  auto sig = ImHandshake::SignDetached(channel, signer, GFBuffer(transcript));
-  if (!sig) return {};
+  const QByteArray stream = Keystream(master, seed, kPrefixLen + 4 * m + m);
+  const QByteArray perm_material = stream.mid(kPrefixLen, 4 * m);
+  const QByteArray xor_ks = stream.mid(kPrefixLen + 4 * m, m);
+  sodium_memzero(master.data(), master.size());
 
-  QByteArray frame = fields;
-  frame.append(header_bytes);
-  AppendU32BE(frame, static_cast<quint32>(sig->size()));
-  frame.append(*sig);
-  frame.append(ct->ConvertToQByteArray());
+  QByteArray t(m, Qt::Uninitialized);
+  for (int i = 0; i < m; ++i) {
+    t[i] = static_cast<char>(inner[i] ^ xor_ks[i]);
+  }
 
-  store.SaveSession(peer_fpr, *state);
-  store.SavePeerSessionId(peer_fpr, sid);
-  store.SetSessionPeer(sid, peer_fpr);
-  return Base58Encode(frame);
+  const QVector<int> p = BuildPermutation(perm_material, m);
+  QByteArray cipher(m, Qt::Uninitialized);
+  for (int i = 0; i < m; ++i) cipher[i] = t[p[i]];
+
+  QByteArray wire = seed;
+  wire.append(cipher);
+  return Base58Encode(wire);
 }
 
-auto InstantMessageOperator::Decode(int channel, const QString& text)
-    -> DecodeResult {
+auto InstantMessageOperator::Decode(const QString& text) -> DecodeResult {
   DecodeResult r;
 
   QString compact;
-  if (!Normalize(text, compact)) return r;  // kNOT_TOKEN
+  if (!Normalize(text, compact)) return r;
 
   bool ok = false;
-  const QByteArray frame = Base58Decode(compact, ok);
-  if (!ok || frame.size() < 2 || static_cast<uint8_t>(frame[0]) != kVersion) {
-    return r;  // kNOT_TOKEN
+  const QByteArray wire = Base58Decode(compact, ok);
+  if (!ok || wire.size() < kSeedLen + kMinFrame) return r;
+
+  const QByteArray seed = wire.left(kSeedLen);
+  const QByteArray cipher = wire.mid(kSeedLen);
+  const int m = static_cast<int>(cipher.size());
+
+  const auto book = ActiveBookBytes();
+  std::array<unsigned char, 32> master{};
+  if (!DeriveMaster(book, seed, master)) return r;
+
+  const QByteArray stream = Keystream(master, seed, kPrefixLen + 4 * m + m);
+  sodium_memzero(master.data(), master.size());
+  const QByteArray tag_expected = stream.left(kTagLen);
+  const QByteArray perm_material = stream.mid(kPrefixLen, 4 * m);
+  const QByteArray xor_ks = stream.mid(kPrefixLen + 4 * m, m);
+
+  const QVector<int> p = BuildPermutation(perm_material, m);
+  QByteArray t(m, Qt::Uninitialized);
+  for (int i = 0; i < m; ++i) t[p[i]] = cipher[i];
+
+  QByteArray inner(m, Qt::Uninitialized);
+  for (int i = 0; i < m; ++i) {
+    inner[i] = static_cast<char>(t[i] ^ xor_ks[i]);
   }
 
-  auto& store = ImSessionStore::GetInstance();
-  const auto type = static_cast<uint8_t>(frame[1]);
-
-  if (type == kTypeNormal) {
-    if (frame.size() < 3 + 4) {
-      r.status = DecodeStatus::kMALFORMED;
-      return r;
-    }
-    const uint8_t flags = static_cast<uint8_t>(frame[2]);
-    const quint32 bundle_len = ReadU32BE(frame, 3);
-    int off = 3 + 4;
-    if (frame.size() < off + static_cast<int>(bundle_len)) {
-      r.status = DecodeStatus::kMALFORMED;
-      return r;
-    }
-    if ((flags & kNormalFlagHasBundle) != 0 && bundle_len > 0) {
-      const auto bundle =
-          ImContactBundle::Parse(GFBuffer(frame.mid(off, bundle_len)));
-      if (bundle) {
-        auto signer_fpr = ImHandshake::VerifyDetached(
-            channel, bundle->SignedPortion(), bundle->pgp_sig);
-        if (signer_fpr && *signer_fpr == bundle->pgp_fpr) {
-          // Recovery: a peer that lost its state and re-keyed (new identity key)
-          // re-sends a bundle. A different identity key means any session we
-          // still hold is dead, so drop it — our next message then transparently
-          // re-establishes forward secrecy with the new identity. (A reordered
-          // copy of the same bundle keeps the same key, so it is a no-op.)
-          auto existing = store.LoadPeerBundle(bundle->pgp_fpr);
-          if (existing && existing->ik_pub != bundle->ik_pub) {
-            store.DeleteSession(bundle->pgp_fpr);
-            store.ClearPfsConfirmed(bundle->pgp_fpr);
-          }
-          store.SavePeerBundle(*bundle);
-          r.peer_fpr = bundle->pgp_fpr;
-          r.imported_bundle = true;
-        }
-      }
-    }
-    off += static_cast<int>(bundle_len);
-    r.pgp_message = GFBuffer(frame.mid(off));
-    r.status = DecodeStatus::kNORMAL_OK;
-    return r;
+  // Recognition: the leading bytes must equal the secret, book-derived tag.
+  if (sodium_memcmp(inner.constData(), tag_expected.constData(), kTagLen) != 0) {
+    return r;  // not one of ours (or a different book)
   }
+  if (static_cast<uint8_t>(inner[kTagLen]) != kVersion) return r;
+  if (static_cast<uint8_t>(inner[kTagLen + 1]) != kTypeNormal) return r;
 
-  if (type == kTypePfsMsg) {
-    if (frame.size() < kPfsMsgAdLen + kHeaderLen) {
-      r.status = DecodeStatus::kMALFORMED;
-      return r;
-    }
-    const QByteArray sid = frame.mid(2, kSessionIdLen);
-    auto peer = store.SessionIdToPeer(sid);
-    if (!peer) {
-      r.status = DecodeStatus::kNO_SESSION;
-      return r;
-    }
-    auto header =
-        DoubleRatchet::ParseHeader(GFBuffer(frame.mid(kPfsMsgAdLen, kHeaderLen)));
-    if (!header) {
-      r.status = DecodeStatus::kMALFORMED;
-      return r;
-    }
-    auto session = store.LoadSession(*peer);
-    if (!session) {
-      r.status = DecodeStatus::kNO_SESSION;
-      return r;
-    }
+  const quint32 payload_len = ReadU32BE(inner, kTagLen + 2);
+  if (kHeaderLen + static_cast<qint64>(payload_len) > m) return r;
 
-    // Self-messaging: a token whose ratchet key is our primary's own sending key
-    // was authored by us, so it must be decrypted with the loopback (other-end)
-    // session rather than the one that produced it.
-    const bool use_loopback = header->dh_pub == session->dhs.pub;
-    if (use_loopback) {
-      session = store.LoadLoopbackSession(*peer);
-      if (!session) {
-        r.status = DecodeStatus::kNO_SESSION;
-        return r;
-      }
-    }
-
-    const GFBuffer ad(frame.left(kPfsMsgAdLen));
-    const GFBuffer ct(frame.mid(kPfsMsgAdLen + kHeaderLen));
-    auto pt = DoubleRatchet::Decrypt(*session, *header, ct, ad);
-    if (!pt) {
-      r.status = DecodeStatus::kUNDECRYPTABLE;
-      return r;
-    }
-    if (use_loopback) {
-      store.SaveLoopbackSession(*peer, *session);
-    } else {
-      store.SaveSession(*peer, *session);
-    }
-    store.MarkPfsConfirmed(*peer);
-    r.status = DecodeStatus::kPFS_OK;
-    r.plaintext = *pt;
-    r.peer_fpr = *peer;
-    return r;
-  }
-
-  if (type == kTypePfsInit) {
-    if (frame.size() < kInitFieldsLen + kHeaderLen + 4) {
-      r.status = DecodeStatus::kMALFORMED;
-      return r;
-    }
-    int off = 2;
-    const QByteArray sid = frame.mid(off, kSessionIdLen);
-    off += kSessionIdLen;
-    ImHandshake::InitPayload payload;
-    payload.ik_pub = GFBuffer(frame.mid(off, kKeyLen));
-    off += kKeyLen;
-    payload.ek_pub = GFBuffer(frame.mid(off, kKeyLen));
-    off += kKeyLen;
-    payload.spk_id = ReadU32BE(frame, off);
-    off += 4;
-    payload.opk_id = ReadU32BE(frame, off);
-    off += 4;  // == kInitFieldsLen
-
-    const QByteArray header_bytes = frame.mid(off, kHeaderLen);
-    off += kHeaderLen;
-    const quint32 sig_len = ReadU32BE(frame, off);
-    off += 4;
-    if (frame.size() < off + static_cast<int>(sig_len)) {
-      r.status = DecodeStatus::kMALFORMED;
-      return r;
-    }
-    const QByteArray sig = frame.mid(off, static_cast<int>(sig_len));
-    off += static_cast<int>(sig_len);
-    const QByteArray ct = frame.mid(off);
-
-    QByteArray transcript = frame.left(kInitFieldsLen);
-    transcript.append(header_bytes);
-    auto signer_fpr =
-        ImHandshake::VerifyDetached(channel, GFBuffer(transcript), sig);
-    if (!signer_fpr) {
-      r.status = DecodeStatus::kHANDSHAKE_AUTH_FAILED;
-      return r;
-    }
-    const QString peer_fpr = *signer_fpr;
-
-    const auto identity = store.LoadOrCreateIdentity();
-    auto own_spk = store.GetSignedPrekeyById(payload.spk_id);
-    if (!own_spk) {
-      r.status = DecodeStatus::kNO_SESSION;  // our prekey rotated away
-      return r;
-    }
-    std::optional<X25519KeyPair> own_opk;
-    if (payload.opk_id != 0) {
-      own_opk = store.ConsumeOneTimePrekey(payload.opk_id);
-      if (!own_opk) {
-        r.status = DecodeStatus::kNO_SESSION;  // one-time prekey already used
-        return r;
-      }
-    }
-
-    const auto book = ActiveBookBytes();
-    auto state =
-        ImHandshake::Accept(identity, *own_spk, own_opk, payload, book);
-    if (!state) {
-      r.status = DecodeStatus::kNO_SESSION;
-      return r;
-    }
-
-    auto header = DoubleRatchet::ParseHeader(GFBuffer(header_bytes));
-    if (!header) {
-      r.status = DecodeStatus::kMALFORMED;
-      return r;
-    }
-    const GFBuffer ad(frame.left(kInitFieldsLen));
-    auto pt = DoubleRatchet::Decrypt(*state, *header, GFBuffer(ct), ad);
-    if (!pt) {
-      r.status = DecodeStatus::kUNDECRYPTABLE;
-      return r;
-    }
-
-    // If we already hold a session for this fingerprint and it is our own key,
-    // we are messaging ourselves: keep this (responder) end in the loopback slot
-    // so it does not clobber the sender session we just created.
-    const bool loopback =
-        IsSelfIdentity(channel, peer_fpr) && store.LoadSession(peer_fpr);
-    if (loopback) {
-      store.SaveLoopbackSession(peer_fpr, *state);
-    } else {
-      store.SaveSession(peer_fpr, *state);
-      store.SavePeerSessionId(peer_fpr, sid);
-    }
-    store.SetSessionPeer(sid, peer_fpr);
-    store.MarkPfsConfirmed(peer_fpr);
-    r.status = DecodeStatus::kPFS_OK;
-    r.plaintext = *pt;
-    r.peer_fpr = peer_fpr;
-    return r;
-  }
-
-  return r;  // unknown type -> kNOT_TOKEN
+  r.pgp_message = GFBuffer(inner.mid(kHeaderLen, static_cast<int>(payload_len)));
+  r.ok = true;
+  return r;
 }
 
 auto InstantMessageOperator::Contains(const QString& text) -> bool {
-  QString compact;
-  if (!Normalize(text, compact)) return false;
-  bool ok = false;
-  const QByteArray frame = Base58Decode(compact, ok);
-  if (!ok || frame.size() < 2 || static_cast<uint8_t>(frame[0]) != kVersion) {
-    return false;
-  }
-  const auto type = static_cast<uint8_t>(frame[1]);
-  return type == kTypeNormal || type == kTypePfsMsg || type == kTypePfsInit;
-}
-
-auto InstantMessageOperator::ExportBundle(int channel, const GpgKeyPtr& signer)
-    -> QString {
-  auto bundle = BuildSignedBundle(channel, signer);
-  if (!bundle) return {};
-  return Base58Encode(bundle->Serialize().ConvertToQByteArray());
-}
-
-auto InstantMessageOperator::ImportBundle(int channel, const QString& text)
-    -> QString {
-  QString compact;
-  if (!Normalize(text, compact)) return {};
-  bool ok = false;
-  const QByteArray raw = Base58Decode(compact, ok);
-  if (!ok) return {};
-
-  auto bundle = ImContactBundle::Parse(GFBuffer(raw));
-  if (!bundle) return {};
-
-  auto signer_fpr = ImHandshake::VerifyDetached(channel, bundle->SignedPortion(),
-                                                bundle->pgp_sig);
-  if (!signer_fpr || *signer_fpr != bundle->pgp_fpr) return {};
-
-  if (!ImSessionStore::GetInstance().SavePeerBundle(*bundle)) return {};
-  return bundle->pgp_fpr;
+  return Decode(text).ok;
 }
 
 auto InstantMessageOperator::FormatVersion() -> int { return kVersion; }

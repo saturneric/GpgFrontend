@@ -28,124 +28,47 @@
 
 #include "SettingsIM.h"
 
-#include "core/GFConstants.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/openpgp/GpgKeyRepository.h"
-#include "core/model/GpgKey.h"
 
 namespace GpgFrontend::UI {
 
 InstantMessagingTab::InstantMessagingTab(QWidget* parent) : QWidget(parent) {
-  // Mode: forward secrecy (Double Ratchet) on by default. Turning it off falls
-  // back to plain, stateless PGP-in-a-token messages (the classic behaviour).
-  auto* mode_box = new QGroupBox(tr("Mode"), this);
-  auto* mode_form = new QFormLayout(mode_box);
-  forward_secrecy_check_ =
-      new QCheckBox(tr("Enable forward secrecy (Double Ratchet)"), mode_box);
-  mode_form->addRow(forward_secrecy_check_);
-  auto* mode_note = new QLabel(
-      tr("When enabled, instant messages use a forward-secret session so past "
-         "messages stay safe even if a key is later compromised. When "
-         "disabled, "
-         "messages are plain OpenPGP wrapped in a compact token, with no "
-         "forward secrecy and no signing key required."),
-      mode_box);
-  mode_note->setWordWrap(true);
-  mode_form->addRow(mode_note);
-
-  // Identity: the OpenPGP key that signs (authenticates) our forward-secret
-  // handshakes. This is who the recipient sees and trusts as the sender.
-  identity_box_ = new QGroupBox(tr("Identity"), this);
-  auto* id_form = new QFormLayout(identity_box_);
-  identity_key_combo_ = new QComboBox(identity_box_);
-  id_form->addRow(tr("Signing Key:"), identity_key_combo_);
-  auto* id_note = new QLabel(
-      tr("The private OpenPGP key used to sign your instant-messaging "
-         "sessions, binding them to your identity. You must choose one before "
-         "sending instant messages."),
-      identity_box_);
-  id_note->setWordWrap(true);
-  id_form->addRow(id_note);
-
-  book_box_ = new QGroupBox(tr("Message Book"), this);
-  auto* book_form = new QFormLayout(book_box_);
-  book_phrase_edit_ = new QLineEdit(book_box_);
+  // The Message Book phrase whitens every instant-messaging token: its bytes
+  // derive the shuffle + XOR that hide the message, so without the same phrase a
+  // token is indistinguishable from random text.
+  auto* book_box = new QGroupBox(tr("Message Book"), this);
+  auto* book_form = new QFormLayout(book_box);
+  book_phrase_edit_ = new QLineEdit(book_box);
   book_phrase_edit_->setPlaceholderText(
       tr("Leave empty to use the shared default book"));
   book_form->addRow(tr("Message Book Phrase:"), book_phrase_edit_);
   auto* note = new QLabel(
-      tr("Adds a shared secret to forward-secret instant-messaging sessions. "
-         "Both sides must set the same phrase; empty means the shared default. "
-         "Forward secrecy is established automatically — just pick a key and "
-         "encrypt; no setup needed."),
-      book_box_);
+      tr("Both sides must set the same phrase. A shared secret phrase makes your "
+         "instant messages indistinguishable from random text — an observer "
+         "cannot even tell they are GpgFrontend or PGP messages. An empty phrase "
+         "uses the built-in default book, which only hides the format from "
+         "simple scanners and offers no protection against an observer who knows "
+         "GpgFrontend."),
+      book_box);
   note->setWordWrap(true);
   book_form->addRow(note);
 
-  // Identity and Message Book only matter for forward secrecy; grey them out in
-  // plain Normal mode.
-  connect(forward_secrecy_check_, &QCheckBox::toggled, this,
-          [this](bool) { update_fs_dependent_state(); });
-
   auto* layout = new QVBoxLayout(this);
-  layout->addWidget(mode_box);
-  layout->addWidget(identity_box_);
-  layout->addWidget(book_box_);
+  layout->addWidget(book_box);
   layout->addStretch(1);
   setLayout(layout);
 
   SetSettings();
 }
 
-void InstantMessagingTab::update_fs_dependent_state() {
-  const bool on = forward_secrecy_check_->isChecked();
-  identity_box_->setEnabled(on);
-  book_box_->setEnabled(on);
-}
-
-void InstantMessagingTab::populate_identity_keys() {
-  identity_key_combo_->clear();
-  // Placeholder: a signing key must be chosen explicitly before instant
-  // messaging can be used; there is no automatic fallback.
-  identity_key_combo_->addItem(tr("— Select a signing key —"), QString{});
-
-  const auto keys =
-      GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel).Fetch();
-  for (const auto& key : keys) {
-    if (key == nullptr || !key->IsGood() || !key->IsPrivateKey() ||
-        !key->IsHasSignCap()) {
-      continue;
-    }
-    const auto label =
-        QStringLiteral("%1 <%2> (%3)")
-            .arg(key->Name(), key->Email(), key->Fingerprint().right(16));
-    identity_key_combo_->addItem(label, key->Fingerprint());
-  }
-}
-
 void InstantMessagingTab::SetSettings() {
-  populate_identity_keys();
-
   auto settings = GetSettings();
-
-  forward_secrecy_check_->setChecked(
-      settings.value("im/forward_secrecy", false).toBool());
-
-  const auto fpr = settings.value("im/identity_key_fpr").toString();
-  const int idx = identity_key_combo_->findData(fpr);
-  identity_key_combo_->setCurrentIndex(idx >= 0 ? idx : 0);
-
   book_phrase_edit_->setText(
       settings.value("im/password_book_phrase").toString());
-
-  update_fs_dependent_state();
 }
 
 void InstantMessagingTab::ApplySettings() {
   auto settings = GetSettings();
-  settings.setValue("im/forward_secrecy", forward_secrecy_check_->isChecked());
-  settings.setValue("im/identity_key_fpr",
-                    identity_key_combo_->currentData().toString());
   settings.setValue("im/password_book_phrase",
                     book_phrase_edit_->text().trimmed());
 }
