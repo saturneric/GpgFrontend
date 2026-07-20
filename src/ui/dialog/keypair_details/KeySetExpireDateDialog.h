@@ -33,8 +33,6 @@
 #include "core/typedef/GpgTypedef.h"
 #include "ui/dialog/GeneralDialog.h"
 
-class Ui_ModifiedExpirationDateTime;
-
 namespace GpgFrontend::UI {
 
 class KeySetExpireDateDialog : public GeneralDialog {
@@ -69,15 +67,71 @@ class KeySetExpireDateDialog : public GeneralDialog {
 
  private:
   /**
-   * @brief
+   * @brief A selectable validity period. "custom" and "never" carry no offset.
+   *
+   */
+  struct ValidityPeriod {
+    QString key;                           ///< stable, untranslated id
+    QString display;                       ///< translated combo box entry
+    std::function<QDateTime()> calc_time;  ///< null for "custom" and "never"
+  };
+
+  /**
+   * @brief Build the widgets and wire them up.
    *
    */
   void init();
 
-  QSharedPointer<Ui_ModifiedExpirationDateTime> ui_;  ///<
-  int current_gpg_context_channel_;                   ///<
-  const GpgKeyPtr m_key_;                             ///<
-  const SubkeyId m_subkey_;                           ///<
+  /**
+   * @brief Push chosen_date_time_ / non_expired_ into the widgets.
+   *
+   * The widgets are a view of these two members, never the storage. That is
+   * what keeps toggling "Never Expires" from disturbing the picked date.
+   */
+  void refresh_widgets_state();
+
+  /**
+   * @brief The expiration currently stored in the key or subkey being edited.
+   *
+   */
+  [[nodiscard]] auto current_expiration_time() const -> QDateTime;
+
+  /**
+   * @brief Human readable "1 year, 2 months" until a future point in time.
+   *
+   */
+  [[nodiscard]] static auto humanize_remaining(const QDateTime& target)
+      -> QString;
+
+  QComboBox* validity_period_combo_box_{};  ///<
+  QDateTimeEdit* expire_date_time_edit_{};  ///<
+  QLabel* current_label_{};                 ///<
+  QLabel* summary_label_{};                 ///<
+  QDialogButtonBox* button_box_{};          ///<
+
+  QDateTime chosen_date_time_;  ///< single source of truth for the date shown
+  bool non_expired_{false};     ///< single source of truth for "never expires"
+
+  int current_gpg_context_channel_;  ///<
+  const GpgKeyPtr m_key_;            ///<
+  const SubkeyId m_subkey_;          ///<
+
+  const QContainer<ValidityPeriod> k_validity_periods_ = {
+      {"custom", tr("Custom Date"), nullptr},
+      {"3m", tr("3 Months"),
+       [] { return QDateTime::currentDateTime().addMonths(3); }},
+      {"6m", tr("6 Months"),
+       [] { return QDateTime::currentDateTime().addMonths(6); }},
+      {"1y", tr("1 Year"),
+       [] { return QDateTime::currentDateTime().addYears(1); }},
+      {"2y", tr("2 Years"),
+       [] { return QDateTime::currentDateTime().addYears(2); }},
+      {"5y", tr("5 Years"),
+       [] { return QDateTime::currentDateTime().addYears(5); }},
+      {"10y", tr("10 Years"),
+       [] { return QDateTime::currentDateTime().addYears(10); }},
+      {"never", tr("Never Expires"), nullptr},
+  };
 
  private slots:
   /**
@@ -89,9 +143,16 @@ class KeySetExpireDateDialog : public GeneralDialog {
   /**
    * @brief
    *
-   * @param state
+   * @param index
    */
-  void slot_non_expired_checked(int state);
+  void slot_validity_period_changed(int index);
+
+  /**
+   * @brief
+   *
+   * @param date_time
+   */
+  void slot_expire_date_time_edited(const QDateTime& date_time);
 };
 
 }  // namespace GpgFrontend::UI
