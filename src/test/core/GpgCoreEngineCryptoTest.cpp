@@ -32,6 +32,7 @@
 #include <algorithm>
 
 #include "GpgCoreEngineTest.h"
+#include "core/function/InstantMessageOperator.h"
 #include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
@@ -353,6 +354,56 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerify) {
 
   auto [err_0, data_object_0] =
       MessageCryptoOperation::GetInstance(Channel()).DecryptVerifySync(cipher);
+  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(
+      (data_object_0->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
+  auto verify_result = ExtractParams<GpgVerifyResult>(data_object_0, 1);
+  auto out = ExtractParams<GFBuffer>(data_object_0, 2);
+  ASSERT_EQ(out, plain);
+  ASSERT_FALSE(verify_result.GetSignature().empty());
+  EXPECT_EQ(verify_result.GetSignature().at(0).GetFingerprint().toUpper(),
+            key->Fingerprint().toUpper());
+
+  DeleteKey(key);
+}
+
+// ---------------------------------------------------------------------------
+// Encrypt & Sign for Instant Messaging: the binary encrypt-and-sign ciphertext
+// is whitened into one Base58 token, which must un-whiten back to a message
+// that still decrypts AND verifies. Covers the path behind the IM Encrypt &
+// Sign action, whose token is consumed by the regular Decrypt & Verify.
+// ---------------------------------------------------------------------------
+
+TEST_P(GpgCoreEngineTest, InstantMessageEncryptSignDecryptVerify) {
+  auto key = GenerateFullKey("im-encsign");
+  ASSERT_TRUE(key != nullptr);
+
+  auto plain = GFBuffer(QString("Hello instant messaging, signed!"));
+
+  // ascii = false: the IM container wraps the binary message, as the UI does.
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(Channel()).EncryptSignSync(
+          {key}, {key}, plain, false);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE(
+      (data_object->Check<GpgEncryptResult, GpgSignResult, GFBuffer>()));
+  auto cipher = ExtractParams<GFBuffer>(data_object, 2);
+
+  const auto token = InstantMessageOperator::Encode(cipher);
+  ASSERT_FALSE(token.isEmpty());
+
+  // One pasteable word: no armor, no line breaks, nothing a messenger mangles.
+  EXPECT_FALSE(token.contains(QLatin1Char('\n')));
+  EXPECT_FALSE(token.contains(QLatin1Char(' ')));
+  EXPECT_FALSE(token.contains(QStringLiteral("BEGIN PGP")));
+
+  const auto decoded = InstantMessageOperator::Decode(token);
+  ASSERT_TRUE(decoded.ok);
+  ASSERT_EQ(decoded.pgp_message, cipher);
+
+  auto [err_0, data_object_0] =
+      MessageCryptoOperation::GetInstance(Channel()).DecryptVerifySync(
+          decoded.pgp_message);
   ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
   ASSERT_TRUE(
       (data_object_0->Check<GpgDecryptResult, GpgVerifyResult, GFBuffer>()));
@@ -697,9 +748,9 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerifyWithPassphrase) {
 // host passphrase-fetch callback for both encrypt and decrypt. For rPGP that
 // drives the same FetchPasswordCallback alloc/free path as the protected-key
 // tests, but repeatedly and without any key material in play. Varying the
-// payload size also crosses the kSecBufferSize (4KB) boundary in Read2GFBuffer's
-// realloc/append loop. No key is generated, so this runs the full stress count.
-// Run under ASan for signal: scripts/run_tests_asan.sh -f
+// payload size also crosses the kSecBufferSize (4KB) boundary in
+// Read2GFBuffer's realloc/append loop. No key is generated, so this runs the
+// full stress count. Run under ASan for signal: scripts/run_tests_asan.sh -f
 // '*EncryptSymmetricDecryptStress*'
 // ---------------------------------------------------------------------------
 

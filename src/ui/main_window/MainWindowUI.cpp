@@ -373,6 +373,16 @@ void MainWindow::create_actions() {
       {QKeySequence(Qt::CTRL | Qt::Key_M)});
   connect(im_encrypt_act_, &QAction::triggered, this,
           &MainWindow::slot_im_encrypt_message);
+
+  im_encrypt_sign_act_ = create_action(
+      "im_encrypt_sign", tr("Encrypt && Sign for Instant Messaging"),
+      ":/icons/email-check.png",
+      tr("Encrypt and sign the current text into a compact, single-line format "
+         "that is safe to paste into instant messengers. Recipients decrypt "
+         "and verify it with the normal Decrypt & Verify action."),
+      {QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_M)});
+  connect(im_encrypt_sign_act_, &QAction::triggered, this,
+          &MainWindow::slot_im_encrypt_sign_message);
 }
 
 void MainWindow::create_menus() {
@@ -421,6 +431,7 @@ void MainWindow::create_menus() {
   crypt_menu_->addAction(encrypt_act_);
   crypt_menu_->addAction(im_encrypt_act_);
   crypt_menu_->addAction(encrypt_sign_act_);
+  crypt_menu_->addAction(im_encrypt_sign_act_);
   crypt_menu_->addAction(decrypt_act_);
   crypt_menu_->addAction(decrypt_verify_act_);
   crypt_menu_->addSeparator();
@@ -569,6 +580,7 @@ void MainWindow::create_tool_bars() {
   special_edit_tool_bar_->addAction(quote_act_);
   special_edit_tool_bar_->addAction(clean_double_line_breaks_act_);
   special_edit_tool_bar_->addAction(im_encrypt_act_);
+  special_edit_tool_bar_->addAction(im_encrypt_sign_act_);
   special_edit_tool_bar_->hide();
   view_menu_->addAction(special_edit_tool_bar_->toggleViewAction());
 }

@@ -136,6 +136,7 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   import_key_from_edit_act_->setDisabled(disable);
 
   im_encrypt_act_->setDisabled(disable);
+  im_encrypt_sign_act_->setDisabled(disable);
 
   if (edit_->CurFilePage() != nullptr) {
     auto* file_page = edit_->CurFilePage();
@@ -186,6 +187,7 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   decrypt_verify_act_->setDisabled(true);
   sym_encrypt_act_->setDisabled(true);
   im_encrypt_act_->setDisabled(true);
+  im_encrypt_sign_act_->setDisabled(true);
 
   // gnupg operations
   if ((opera_type & OperationMenu::kVerify) != 0U) {
@@ -217,6 +219,13 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
       (opera_type &
        (OperationMenu::kEncrypt | OperationMenu::kSymmetricEncrypt)) != 0U) {
     im_encrypt_act_->setDisabled(false);
+  }
+
+  // Instant Messaging encrypt & sign wraps a public-key encrypt-and-sign, so it
+  // tracks that operation exactly — again only on a text tab.
+  if (edit_->CurPageTextEdit() != nullptr &&
+      (opera_type & OperationMenu::kEncryptAndSign) != 0U) {
+    im_encrypt_sign_act_->setDisabled(false);
   }
 }
 

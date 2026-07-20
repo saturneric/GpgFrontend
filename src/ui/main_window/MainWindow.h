@@ -411,10 +411,16 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
 
   /**
    * @details Encrypt the current tab's text to the checked key(s) and output a
-   * compact, single-line, instant-messaging-friendly token (gf1_...). Regular
+   * compact, single-line, instant-messaging-friendly Base58 token. Regular
    * Decrypt auto-detects and decrypts such tokens.
    */
   void slot_im_encrypt_message();
+
+  /**
+   * @details As slot_im_encrypt_message(), but also signs. Regular Decrypt &
+   * Verify auto-detects such tokens and verifies the signature.
+   */
+  void slot_im_encrypt_sign_message();
 
   /**
    * @details Disable tab related actions, if number of tabs is 0.
@@ -608,26 +614,28 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* copy_key_id_to_clipboard_act_{};        ///<
   QAction* copy_key_default_uid_to_clipboard_act_{};  ///<
 
-  QMenu* add_key_2_category_menu_{};          ///< Submenu: add key to category
-  QAction* set_owner_trust_of_key_act_{};     ///<
+  QMenu* add_key_2_category_menu_{};       ///< Submenu: add key to category
+  QAction* set_owner_trust_of_key_act_{};  ///<
 
-  QAction* open_key_management_act_{};   ///< Action to open key management
-  QAction* copy_act_{};                  ///< Action to copy text
-  QAction* quote_act_{};                 ///< Action to quote text
-  QAction* cut_act_{};                   ///< Action to cut text
-  QAction* paste_act_{};                 ///< Action to paste text
-  QAction* select_all_act_{};            ///< Action to select whole text
-  QAction* find_act_{};                  ///< Action to find text
-  QAction* undo_act_{};                  ///< Action to undo last action
-  QAction* redo_act_{};                  ///< Action to redo last action
-  QAction* zoom_in_act_{};               ///< Action to zoom in
-  QAction* zoom_out_act_{};              ///< Action to zoom out
-  QAction* about_act_{};                 ///< Action to open about dialog
-  QAction* open_settings_act_{};         ///< Action to open settings dialog
-  QAction* show_key_details_act_{};      ///< Action to open key-details dialog
-  QAction* start_wizard_act_{};          ///< Action to open the wizard
-  QAction* im_encrypt_act_{};  ///< Action for instant-messaging-friendly encrypt
-  QAction* import_key_from_file_act_{};  ///<
+  QAction* open_key_management_act_{};  ///< Action to open key management
+  QAction* copy_act_{};                 ///< Action to copy text
+  QAction* quote_act_{};                ///< Action to quote text
+  QAction* cut_act_{};                  ///< Action to cut text
+  QAction* paste_act_{};                ///< Action to paste text
+  QAction* select_all_act_{};           ///< Action to select whole text
+  QAction* find_act_{};                 ///< Action to find text
+  QAction* undo_act_{};                 ///< Action to undo last action
+  QAction* redo_act_{};                 ///< Action to redo last action
+  QAction* zoom_in_act_{};              ///< Action to zoom in
+  QAction* zoom_out_act_{};             ///< Action to zoom out
+  QAction* about_act_{};                ///< Action to open about dialog
+  QAction* open_settings_act_{};        ///< Action to open settings dialog
+  QAction* show_key_details_act_{};     ///< Action to open key-details dialog
+  QAction* start_wizard_act_{};         ///< Action to open the wizard
+  QAction*
+      im_encrypt_act_{};  ///< Action for instant-messaging-friendly encrypt
+  QAction* im_encrypt_sign_act_{};  ///< Action for IM-friendly encrypt & sign
+  QAction* import_key_from_file_act_{};       ///<
   QAction* import_key_from_clipboard_act_{};  ///<
   QAction* show_log_view_act_{};              ///<
 
@@ -761,6 +769,16 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   auto exec_im_normal_decrypt_helper(
       const QString& task,
       const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
+
+  /**
+   * @brief Encrypt (and optionally sign) the current tab's text, then whiten
+   * the ciphertext into a single instant-messaging Base58 token, replacing the
+   * tab's content with it.
+   *
+   * @param sign also sign the message; requires a recipient key, so there is no
+   * symmetric fallback in that mode.
+   */
+  void exec_im_encrypt_helper(bool sign);
 
   /**
    * @brief

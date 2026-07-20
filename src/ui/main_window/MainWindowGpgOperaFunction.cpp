@@ -551,17 +551,37 @@ void MainWindow::SlotDecryptVerify() {
   }
 }
 
-void MainWindow::slot_im_encrypt_message() {
+void MainWindow::slot_im_encrypt_message() { exec_im_encrypt_helper(false); }
+
+void MainWindow::slot_im_encrypt_sign_message() {
+  exec_im_encrypt_helper(true);
+}
+
+void MainWindow::exec_im_encrypt_helper(bool sign) {
   auto* text_edit = edit_->CurPageTextEdit();
   if (text_edit == nullptr) return;
 
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 
-  // Encrypt to the checked recipient key(s), or symmetrically (passphrase) when
-  // none are checked — same rule as the standard Encrypt.
   auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
   contexts->ascii = false;
-  if (!encrypt_operation_key_validate(contexts)) return;
+
+  if (sign) {
+    // Signing needs a named recipient, so — unlike the encrypt-only path —
+    // there is no symmetric fallback here. Same rule as the standard
+    // Encrypt & Sign.
+    auto keys = m_key_list_->GetCheckedKeys();
+    contexts->keys = check_keys_helper(
+        keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
+        tr("The selected keypair cannot be used for encryption."));
+    if (contexts->keys.empty()) return;
+
+    if (!sign_operation_key_validate(contexts)) return;
+  } else {
+    // Encrypt to the checked recipient key(s), or symmetrically (passphrase)
+    // when none are checked — same rule as the standard Encrypt.
+    if (!encrypt_operation_key_validate(contexts)) return;
+  }
 
   auto plain_text = edit_->CurPlainText();
   if (plain_text.isEmpty()) return;
@@ -573,9 +593,11 @@ void MainWindow::slot_im_encrypt_message() {
   // the shared password book — no marker survives on the wire.
   contexts->GetContextBuffer(0).append(secure_plain_text);
   GpgOperaHelper::BuildOperas(contexts, 0, channel,
-                              GpgOperaHelper::BuildOperasEncrypt);
-  GpgOperaHelper::WaitForMultipleOperas(this, tr("Encrypting"),
-                                        contexts->operas, channel);
+                              sign ? GpgOperaHelper::BuildOperasEncryptSign
+                                   : GpgOperaHelper::BuildOperasEncrypt);
+  GpgOperaHelper::WaitForMultipleOperas(
+      this, sign ? tr("Encrypting and Signing") : tr("Encrypting"),
+      contexts->operas, channel);
 
   if (contexts->opera_results.empty()) return;
   for (const auto& result : contexts->opera_results) {
@@ -594,13 +616,14 @@ void MainWindow::slot_im_encrypt_message() {
   cards.append(BuildInstantMessageCard(
       kINFO_ERROR_OK, token, static_cast<qsizetype>(result.o_buffer.Size())));
 
-  QString op_name = tr("Encrypt");
+  QString op_name = sign ? tr("Encrypt Sign") : tr("Encrypt");
   if (!result.op_info.operation.isEmpty()) op_name = result.op_info.operation;
   cards.append(convert_op_info_to_cards(result.op_info));
 
   info_board_->SetInfoBoardCards(
-      tr("Message encrypted for instant messaging."), kINFO_ERROR_OK, cards,
-      op_name,
+      sign ? tr("Message encrypted and signed for instant messaging.")
+           : tr("Message encrypted for instant messaging."),
+      kINFO_ERROR_OK, cards, op_name,
       tr("An Instant Messaging section followed by the OpenPGP result."));
 }
 
