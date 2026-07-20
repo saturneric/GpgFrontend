@@ -40,6 +40,7 @@ class KeyDatabasesTab;
 class GnuPGTab;
 class RpgpTab;
 class InstantMessagingTab;
+class AdvancedTab;
 
 /**
  * @brief
@@ -64,6 +65,7 @@ class SettingsDialog : public GeneralDialog {
   GnuPGTab* gnupg_tab_;            ///<
   RpgpTab* rpgp_tab_;              ///<
   InstantMessagingTab* im_tab_;    ///<
+  AdvancedTab* advanced_tab_;      ///<
 
   /**
    * @brief

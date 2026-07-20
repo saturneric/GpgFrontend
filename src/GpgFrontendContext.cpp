@@ -34,6 +34,8 @@
 #include <qthread.h>
 
 #include "core/GFCoreLog.h"
+#include "core/function/GlobalSettingStation.h"
+#include "core/utils/CommonUtils.h"
 #include "ui/GpgFrontendApplication.h"
 
 namespace {
@@ -49,29 +51,53 @@ auto DisplayPath(const QString& path) -> QString {
 namespace GpgFrontend {
 
 void GpgFrontendContext::load_env_conf_set_properties() {
-  auto env_config = QDir::currentPath() + "/ENV.ini";
-  if (!QFileInfo(env_config).exists()) {
-    qInfo() << "No ENV.ini found, skipping loading environment config.";
-    // Without ENV.ini the GFLogLevel property would stay unset, and an unset
-    // property reads back as 0 (== kDEBUG), enabling debug logging even in
-    // release builds. Default it to error level (kCRITICAL) explicitly.
-    property("GFLogLevel", static_cast<int>(GFLogLevel::kCRITICAL));
-    return;
+  const auto env_config = QDir::currentPath() + "/ENV.ini";
+  const auto has_env = QFileInfo(env_config).exists();
+  if (!has_env) {
+    qInfo() << "No ENV.ini found, falling back to user settings and defaults.";
   }
 
   QSettings s(env_config, QSettings::IniFormat);
 
-  property("GFSelfCheck", s.value("SelfCheck", false).toBool());
-  property("GFSecureLevel", s.value("SecureLevel", 0).toInt());
-  property(
-      "GFLogLevel",
-      s.value("LogLevel", static_cast<int>(GFLogLevel::kCRITICAL)).toInt());
-  property("GFPortableMode", s.value("PortableMode", false).toBool());
-  property("GFGnuPGOfflineMode", s.value("GnuPGOfflineMode", false).toBool());
+  // Deployment-only knobs: ENV.ini is the single source for these. Portable
+  // mode has to land first — it decides where the user settings below live.
+  property("GFPortableMode",
+           has_env && s.value("PortableMode", false).toBool());
+  property("GFGnuPGOfflineMode",
+           has_env && s.value("GnuPGOfflineMode", false).toBool());
   property("GFPinentryProgramPath",
-           s.value("PinentryProgramPath", "").toString());
+           has_env ? s.value("PinentryProgramPath", "").toString() : QString());
+
+  // The knobs below are also editable in Settings -> Advanced, so they resolve
+  // in three layers: an ENV.ini key wins (deployment override), else the user's
+  // stored setting, else the built-in default. Keys present in ENV.ini are
+  // recorded in GFEnvLockedKeys so the Advanced tab can show them read-only
+  // rather than accepting an edit that would silently revert on restart.
+  auto user = GetEarlySettings();
+  QStringList locked_keys;
+
+  const auto resolve = [&](const QString& env_key, const QString& user_key,
+                           const QVariant& fallback) {
+    const auto env_value = has_env ? s.value(env_key) : QVariant();
+    if (env_value.isValid()) locked_keys << user_key;
+    return ResolveLayeredValue(env_value, user.value(user_key), fallback);
+  };
+
+  property("GFSelfCheck",
+           resolve("SelfCheck", "advanced/self_check", false).toBool());
+  property("GFSecureLevel",
+           resolve("SecureLevel", "advanced/secure_level", 0).toInt());
+  // An unset log level reads back as 0 (== kDEBUG), which would enable debug
+  // logging even in release builds. Default to error level explicitly.
+  property("GFLogLevel", resolve("LogLevel", "advanced/log_level",
+                                 static_cast<int>(GFLogLevel::kCRITICAL))
+                             .toInt());
   property("GFLogRingBufferCapacity",
-           s.value("LogRingBufferCapacity", 1024).toInt());
+           resolve("LogRingBufferCapacity", "advanced/log_ring_buffer_capacity",
+                   1024)
+               .toInt());
+
+  property("GFEnvLockedKeys", locked_keys);
 
   const auto self_check = property("GFSelfCheck").toInt();
   const auto secure_level = property("GFSecureLevel").toInt();
@@ -82,17 +108,28 @@ void GpgFrontendContext::load_env_conf_set_properties() {
       property("GFPinentryProgramPath").toString();
   const auto ring_buffer_capacity = property("GFLogRingBufferCapacity").toInt();
 
+  // Mark the values ENV.ini pinned, so a support log makes it obvious why the
+  // Advanced tab is not in charge of a given knob.
+  const auto source = [&locked_keys](const QString& user_key) -> QString {
+    return locked_keys.contains(user_key) ? QStringLiteral("  (ENV.ini)")
+                                          : QString();
+  };
+
   qInfo().noquote().nospace()
       << "\n"
       << "================ GpgFrontend Startup Environment ================\n"
-      << "Self Check              : " << self_check << "\n"
-      << "Secure Level            : " << secure_level << "\n"
-      << "Log Level               : " << log_level << "\n"
+      << "Self Check              : " << self_check
+      << source("advanced/self_check") << "\n"
+      << "Secure Level            : " << secure_level
+      << source("advanced/secure_level") << "\n"
+      << "Log Level               : " << log_level
+      << source("advanced/log_level") << "\n"
       << "Portable Mode           : " << BoolText(portable_mode) << "\n"
       << "GnuPG Offline Mode      : " << BoolText(gpg_offline_mode) << "\n"
       << "Pinentry Program Path   : " << DisplayPath(pinentry_program_path)
       << "\n"
-      << "Log Ring Buffer Capacity: " << ring_buffer_capacity << "\n"
+      << "Log Ring Buffer Capacity: " << ring_buffer_capacity
+      << source("advanced/log_ring_buffer_capacity") << "\n"
       << "==================================================================";
 }
 

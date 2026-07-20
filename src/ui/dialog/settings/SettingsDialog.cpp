@@ -31,6 +31,7 @@
 #include "core/GFConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/utils/CommonUtils.h"
+#include "ui/dialog/settings/SettingsAdvanced.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
 #include "ui/dialog/settings/SettingsGnuPG.h"
@@ -58,6 +59,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   gnupg_tab_ = new GnuPGTab();
   rpgp_tab_ = new RpgpTab();
   im_tab_ = new InstantMessagingTab();
+  advanced_tab_ = new AdvancedTab();
 
   auto* main_layout = new QVBoxLayout();
   main_layout->addWidget(tab_widget_);
@@ -93,6 +95,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   }
 
   add_tab(im_tab_, tr("Instant Messaging"));
+  add_tab(advanced_tab_, tr("Advanced"));
 
 #ifdef Q_OS_MACOS
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
@@ -127,6 +130,11 @@ SettingsDialog::SettingsDialog(QWidget* parent)
           &SettingsDialog::slot_declare_a_deep_restart);
 
   connect(gnupg_tab_, &GnuPGTab::SignalDeepRestartNeeded, this,
+          &SettingsDialog::slot_declare_a_deep_restart);
+
+  // the advanced knobs are only read while the process starts, so applying
+  // them means relaunching — a deep restart, which does exactly that
+  connect(advanced_tab_, &AdvancedTab::SignalDeepRestartNeeded, this,
           &SettingsDialog::slot_declare_a_deep_restart);
 
   // announce main window
@@ -171,6 +179,7 @@ void SettingsDialog::SlotAccept() {
   }
 
   im_tab_->ApplySettings();
+  advanced_tab_->ApplySettings();
 
   emit SignalAppearanceChanged();
 
