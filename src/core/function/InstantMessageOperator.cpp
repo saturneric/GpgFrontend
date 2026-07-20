@@ -33,7 +33,9 @@
 #include <QMutex>
 #include <QRegularExpression>
 #include <array>
+#include <cstring>
 
+#include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SecureRandomGenerator.h"
 #include "core/utils/CommonUtils.h"
@@ -120,9 +122,45 @@ auto Base58Decode(const QString& in, bool& ok) -> QByteArray {
 // per-message seed.
 // ---------------------------------------------------------------------------
 
-constexpr uint64_t kDefaultWeyl = 0x7F49BA797C9E3175ULL;
-constexpr uint64_t kDefaultMul = 0xBF18475B4C6DEE59ULL;
-constexpr auto kBookPhraseKey = "im/password_book_phrase";
+// A book is a 256-byte permutation, so the space is log2(256!) ≈ 1684 bits.
+// Both the phrase-derived and the default book are seeded with a full 256-bit
+// key and shuffled from a ChaCha20 keystream, so neither is the weak one: the
+// default is exactly as strong a permutation as anything a phrase produces.
+// (What the default cannot give is *secrecy*: it ships in every copy of
+// GpgFrontend, so only a shared phrase hides messages from someone who knows
+// this program.)
+constexpr size_t kBookSeedLen = 32;
+using BookSeed = std::array<unsigned char, kBookSeedLen>;
+
+// Fixed, from the platform CSPRNG at authoring time.
+constexpr BookSeed kDefaultBookSeed = {
+    0x97, 0x47, 0x00, 0x3E, 0xDB, 0x08, 0xA8, 0x4F, 0x72, 0xE6, 0xAE,
+    0xAA, 0xA3, 0x15, 0x54, 0xF5, 0x4C, 0x65, 0x03, 0x7B, 0x0E, 0x75,
+    0x2A, 0xE1, 0x52, 0x59, 0x8B, 0x46, 0xB5, 0x20, 0x64, 0xF0};
+
+// The phrase is a secret: it lives in the encrypted durable cache, not in the
+// plaintext settings file. kLegacyBookPhraseSettingsKey is the settings key
+// older versions wrote it to, kept only to migrate it out (and erase it).
+constexpr auto kBookPhraseCacheKey = "im/password_book_phrase";
+constexpr auto kLegacyBookPhraseSettingsKey = "im/password_book_phrase";
+
+// The cache flushes only non-empty values to disk, so "no phrase" cannot be
+// stored as an empty blob, or clearing the phrase would not survive a restart.
+// The blob is therefore a one-byte version prefix plus the UTF-8 phrase, and a
+// cleared phrase is the prefix alone.
+constexpr char kBookPhraseBlobVersion = '\x01';
+
+auto EncodeBookPhraseBlob(const QString& phrase) -> GFBuffer {
+  QByteArray blob(1, kBookPhraseBlobVersion);
+  blob.append(phrase.toUtf8());
+  return GFBuffer(blob);
+}
+
+auto DecodeBookPhraseBlob(const GFBuffer& blob) -> QString {
+  const auto raw = blob.ConvertToQByteArray();
+  if (raw.isEmpty() || raw.at(0) != kBookPhraseBlobVersion) return {};
+  return QString::fromUtf8(raw.mid(1)).trimmed();
+}
 
 constexpr std::array<unsigned char, crypto_pwhash_SALTBYTES> kBookKdfSalt = {
     'G', 'F', '-', 'I', 'M', '-', 'b', 'o',
@@ -142,13 +180,11 @@ constexpr size_t kBookKdfMem = 65536ULL * 1024ULL;  // 64 MiB
 constexpr unsigned long long kMasterKdfOps = 3;
 constexpr size_t kMasterKdfMem = 128ULL * 1024ULL * 1024ULL;  // 128 MiB
 
-auto DeriveBookConstants(const QString& phrase, uint64_t& weyl, uint64_t& mul)
-    -> bool {
+auto DeriveBookSeed(const QString& phrase, BookSeed& seed) -> bool {
   if (!EnsureSodiumInit()) return false;
 
   const QByteArray pw = phrase.toUtf8();
-  std::array<unsigned char, 16> out{};
-  const int rc = crypto_pwhash(out.data(), out.size(), pw.constData(),
+  const int rc = crypto_pwhash(seed.data(), seed.size(), pw.constData(),
                                static_cast<unsigned long long>(pw.size()),
                                kBookKdfSalt.data(), kBookKdfOps, kBookKdfMem,
                                crypto_pwhash_ALG_ARGON2ID13);
@@ -156,63 +192,97 @@ auto DeriveBookConstants(const QString& phrase, uint64_t& weyl, uint64_t& mul)
     LOG_E() << "argon2id derivation for instant-messaging book failed";
     return false;
   }
-
-  const auto read8 = [&out](int off) {
-    uint64_t v = 0;
-    for (int i = 0; i < 8; ++i) v = (v << 8) | out[off + i];
-    return v;
-  };
-  weyl = read8(0) | 1ULL;
-  mul = read8(8) | 1ULL;
   return true;
 }
 
-auto BuildBook(uint64_t weyl, uint64_t mul) -> std::array<uint8_t, 256> {
+// Fisher-Yates over a ChaCha20 keystream: every one of the 256! permutations is
+// reachable, and the seed is the only thing bounding the entropy. Draws are 64
+// bits wide, so the modulo bias is below 2^-56, far under anything that could
+// bias the resulting table.
+auto BuildBook(const BookSeed& seed) -> std::array<uint8_t, 256> {
   std::array<uint8_t, 256> sub{};
   for (int i = 0; i < 256; ++i) sub[i] = static_cast<uint8_t>(i);
 
-  uint64_t s = weyl;
+  constexpr std::array<unsigned char, crypto_stream_chacha20_NONCEBYTES>
+      kBookStreamNonce = {'G', 'F', '-', 'I', 'M', '-', 'b', 'k'};
+
+  std::array<unsigned char, 255 * sizeof(uint64_t)> keystream{};
+  crypto_stream_chacha20(keystream.data(), keystream.size(),
+                         kBookStreamNonce.data(), seed.data());
+
   for (int i = 255; i > 0; --i) {
-    s += weyl;
-    uint64_t z = s;
-    z = (z ^ (z >> 30)) * mul;
-    z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
-    z = z ^ (z >> 31);
+    uint64_t z = 0;
+    std::memcpy(&z, keystream.data() + (255 - i) * sizeof(uint64_t), sizeof(z));
     const int j = static_cast<int>(z % static_cast<uint64_t>(i + 1));
     std::swap(sub[i], sub[j]);
   }
+
+  sodium_memzero(keystream.data(), keystream.size());
   return sub;
 }
 
-// The active book's raw bytes. Deriving it from a phrase runs Argon2id, so the
-// result is memoized by phrase — Decode()/Contains() call this on every token.
-auto ActiveBookBytes() -> GFBuffer {
-  static QMutex mutex;
-  static bool has_cache = false;
-  static QString cached_phrase;
-  static GFBuffer cached_book;
-
-  const auto phrase = GetSettings().value(kBookPhraseKey).toString().trimmed();
-
-  QMutexLocker locker(&mutex);
-  if (has_cache && phrase == cached_phrase) return cached_book;
-
-  uint64_t weyl = kDefaultWeyl;
-  uint64_t mul = kDefaultMul;
-  if (!phrase.isEmpty()) {
-    uint64_t w = 0;
-    uint64_t m = 0;
-    if (DeriveBookConstants(phrase, w, m)) {
-      weyl = w;
-      mul = m;
+// The configured phrase, read from the encrypted durable cache. A phrase left
+// in the plaintext settings file by an older version is moved into the cache
+// and erased from settings the first time we look.
+auto ReadBookPhrase() -> QString {
+  auto settings = GetSettings();
+  if (settings.contains(kLegacyBookPhraseSettingsKey)) {
+    const auto legacy =
+        settings.value(kLegacyBookPhraseSettingsKey).toString().trimmed();
+    settings.remove(kLegacyBookPhraseSettingsKey);
+    settings.sync();
+    if (!legacy.isEmpty()) {
+      CacheManager::GetInstance().SaveSecDurableCache(
+          kBookPhraseCacheKey, EncodeBookPhraseBlob(legacy), true);
+      return legacy;
     }
   }
-  const auto sub = BuildBook(weyl, mul);
-  cached_book = GFBuffer(QByteArray(reinterpret_cast<const char*>(sub.data()),
-                                    static_cast<qsizetype>(sub.size())));
-  cached_phrase = phrase;
-  has_cache = true;
-  return cached_book;
+
+  return DecodeBookPhraseBlob(
+      CacheManager::GetInstance().LoadSecDurableCache(kBookPhraseCacheKey));
+}
+
+// The raw book bytes for a phrase. Deriving one runs Argon2id, so results are
+// memoized by phrase: Decode()/Contains() call this on every token, and the
+// settings UI previews the fingerprint of phrases the user types.
+auto BookBytesFor(const QString& phrase) -> GFBuffer {
+  static QMutex mutex;
+  static QHash<QString, GFBuffer> cache;
+
+  QMutexLocker locker(&mutex);
+  if (const auto it = cache.constFind(phrase); it != cache.constEnd()) {
+    return *it;
+  }
+
+  BookSeed seed = kDefaultBookSeed;
+  if (!phrase.isEmpty()) {
+    BookSeed derived{};
+    if (DeriveBookSeed(phrase, derived)) seed = derived;
+  }
+  const auto sub = BuildBook(seed);
+  auto book = GFBuffer(QByteArray(reinterpret_cast<const char*>(sub.data()),
+                                  static_cast<qsizetype>(sub.size())));
+
+  // Bounded: a user tries a handful of phrases per session, and every entry
+  // holds a derived secret we would rather not keep around indefinitely.
+  if (cache.size() >= 8) cache.clear();
+  cache.insert(phrase, book);
+  return book;
+}
+
+// The active book's raw bytes.
+auto ActiveBookBytes() -> GFBuffer { return BookBytesFor(ReadBookPhrase()); }
+
+// Short, domain-separated digest of a book. See BookFingerprint()'s docs for
+// why it is truncated and must never travel on the wire.
+auto FingerprintOfBook(const GFBuffer& book) -> QString {
+  QCryptographicHash hash(QCryptographicHash::Sha256);
+  hash.addData(QByteArrayLiteral("GpgFrontend-IM-book-fingerprint-v1"));
+  hash.addData(book.ConvertToQByteArray());
+
+  const auto hex = hash.result().left(4).toHex().toUpper();
+  return QString("%1-%2").arg(QString::fromLatin1(hex.left(4)),
+                              QString::fromLatin1(hex.mid(4, 4)));
 }
 
 // ---------------------------------------------------------------------------
@@ -227,7 +297,9 @@ auto ActiveBookBytes() -> GFBuffer {
 //   inner = tag(16) | version(1) | type(1) | payload_len(u32) | payload | pad
 // ---------------------------------------------------------------------------
 
-constexpr uint8_t kVersion = 0x02;
+// 0x03: books are now full 256-bit-seeded permutations, so every book,
+// the default included, differs from the 0x02 ones. Old tokens do not decode.
+constexpr uint8_t kVersion = 0x03;
 constexpr uint8_t kTypeNormal = 0x00;
 
 constexpr int kSeedLen = 16;  // == Argon2 salt length; ChaCha20 nonce is the
@@ -424,26 +496,70 @@ auto InstantMessageOperator::Contains(const QString& text) -> bool {
 auto InstantMessageOperator::FormatVersion() -> int { return kVersion; }
 
 auto InstantMessageOperator::BookConfigured() -> bool {
-  return !GetSettings().value(kBookPhraseKey).toString().trimmed().isEmpty();
+  return !ReadBookPhrase().isEmpty();
+}
+
+auto InstantMessageOperator::BookPhrase() -> QString {
+  return ReadBookPhrase();
+}
+
+void InstantMessageOperator::SetBookPhrase(const QString& phrase) {
+  const auto trimmed = phrase.trimmed();
+
+  // Drop the legacy plaintext copy if it is still there, so clearing the
+  // phrase here cannot be undone by a later migration read.
+  auto settings = GetSettings();
+  if (settings.contains(kLegacyBookPhraseSettingsKey)) {
+    settings.remove(kLegacyBookPhraseSettingsKey);
+    settings.sync();
+  }
+
+  CacheManager::GetInstance().SaveSecDurableCache(
+      kBookPhraseCacheKey, EncodeBookPhraseBlob(trimmed), true);
+}
+
+// A short, domain-separated digest of the active book, so two peers can
+// eyeball that they are on the same book without revealing the phrase.
+//
+// Truncated on purpose: this value identifies a book, and anyone who learns
+// it can test candidate phrases offline (derive book, hash, compare). Eight
+// hex digits keep it comparable by eye while leaving enough collisions that a
+// match is evidence, not proof. The dictionary attack still costs one
+// Argon2id (64 MiB) per candidate: the same wall the rest of the design
+// leans on. Never put this on the wire.
+auto InstantMessageOperator::GeneratePhrase() -> QString {
+  constexpr int kPhraseLen = 256;
+  // Largest multiple of 58 that fits in a byte: values at or above it are
+  // rejected rather than folded, so every character is uniform.
+  constexpr int kRejectAbove = 232;
+
+  QString out;
+  out.reserve(kPhraseLen);
+  while (out.size() < kPhraseLen) {
+    const auto buffer =
+        SecureRandomGenerator::Generate(kPhraseLen - out.size());
+    if (!buffer) {
+      LOG_E() << "csprng unavailable, cannot generate a book phrase";
+      return {};
+    }
+
+    const auto bytes = buffer->ConvertToQByteArray();
+    for (const char byte : bytes) {
+      const auto value = static_cast<uint8_t>(byte);
+      if (value >= kRejectAbove) continue;
+      out.append(QLatin1Char(kB58Alphabet[value % 58]));
+    }
+  }
+  return out;
 }
 
 auto InstantMessageOperator::BookFingerprint() -> QString {
-  // A short, domain-separated digest of the active book, so two peers can
-  // eyeball that they are on the same book without revealing the phrase.
-  //
-  // Truncated on purpose: this value identifies a book, and anyone who learns
-  // it can test candidate phrases offline (derive book, hash, compare). Eight
-  // hex digits keep it comparable by eye while leaving enough collisions that a
-  // match is evidence, not proof. The dictionary attack still costs one
-  // Argon2id (64 MiB) per candidate — the same wall the rest of the design
-  // leans on. Never put this on the wire.
-  QCryptographicHash hash(QCryptographicHash::Sha256);
-  hash.addData(QByteArrayLiteral("GpgFrontend-IM-book-fingerprint-v1"));
-  hash.addData(ActiveBookBytes().ConvertToQByteArray());
+  return FingerprintOfBook(ActiveBookBytes());
+}
 
-  const auto hex = hash.result().left(4).toHex().toUpper();
-  return QString("%1-%2").arg(QString::fromLatin1(hex.left(4)),
-                              QString::fromLatin1(hex.mid(4, 4)));
+auto InstantMessageOperator::BookFingerprintOf(const QString& phrase)
+    -> QString {
+  return FingerprintOfBook(BookBytesFor(phrase.trimmed()));
 }
 
 }  // namespace GpgFrontend

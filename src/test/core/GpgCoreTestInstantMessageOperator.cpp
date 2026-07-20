@@ -50,12 +50,10 @@ constexpr auto kPhraseKey = "im/password_book_phrase";
 class BookPhraseGuard {
  public:
   BookPhraseGuard()
-      : saved_(GpgFrontend::GetSettings().value(kPhraseKey).toString()) {}
-  ~BookPhraseGuard() {
-    GpgFrontend::GetSettings().setValue(kPhraseKey, saved_);
-  }
+      : saved_(GpgFrontend::InstantMessageOperator::BookPhrase()) {}
+  ~BookPhraseGuard() { Set(saved_); }
   static void Set(const QString& v) {
-    GpgFrontend::GetSettings().setValue(kPhraseKey, v);
+    GpgFrontend::InstantMessageOperator::SetBookPhrase(v);
   }
 
  private:
@@ -158,7 +156,7 @@ TEST(InstantMessageOperatorTest, WrongBookDoesNotDecode) {
 }
 
 TEST(InstantMessageOperatorTest, FormatVersionIsStable) {
-  EXPECT_EQ(InstantMessageOperator::FormatVersion(), 2);
+  EXPECT_EQ(InstantMessageOperator::FormatVersion(), 3);
 }
 
 // The fingerprint identifies the book: stable for one phrase, different across
@@ -209,6 +207,103 @@ TEST(InstantMessageOperatorTest, BookConfiguredTracksPhrase) {
 
   BookPhraseGuard::Set(QStringLiteral("correct horse battery staple"));
   EXPECT_TRUE(InstantMessageOperator::BookConfigured());
+}
+
+// The phrase is a secret: it round-trips through the encrypted durable cache
+// and must never be left sitting in the plaintext settings file.
+TEST(InstantMessageOperatorTest, BookPhraseStoredOutsideSettings) {
+  BookPhraseGuard guard;
+
+  BookPhraseGuard::Set(QStringLiteral("correct horse battery staple"));
+  EXPECT_EQ(InstantMessageOperator::BookPhrase(),
+            QStringLiteral("correct horse battery staple"));
+  EXPECT_FALSE(GetSettings().contains(kPhraseKey));
+
+  // Whitespace is trimmed on the way in, and a blank phrase clears the secret.
+  BookPhraseGuard::Set(QStringLiteral("  spaced out  "));
+  EXPECT_EQ(InstantMessageOperator::BookPhrase(), QStringLiteral("spaced out"));
+
+  BookPhraseGuard::Set(QStringLiteral("   "));
+  EXPECT_TRUE(InstantMessageOperator::BookPhrase().isEmpty());
+  EXPECT_FALSE(InstantMessageOperator::BookConfigured());
+}
+
+// The default book ships in every copy of GpgFrontend, so every copy must
+// build byte-identically the same one, or two users with no phrase set
+// could not read each other. Pinned so it cannot drift unnoticed.
+TEST(InstantMessageOperatorTest, DefaultBookIsPinned) {
+  BookPhraseGuard guard;
+  BookPhraseGuard::Set(QString());
+  EXPECT_EQ(InstantMessageOperator::BookFingerprint(),
+            QStringLiteral("9138-57AC"));
+}
+
+// The generated phrase is long, alphanumeric enough to survive any chat app,
+// and never repeats.
+TEST(InstantMessageOperatorTest, GeneratePhraseIsLongAndUnique) {
+  const auto a = InstantMessageOperator::GeneratePhrase();
+  const auto b = InstantMessageOperator::GeneratePhrase();
+
+  EXPECT_EQ(a.size(), 256);
+  EXPECT_EQ(b.size(), 256);
+  EXPECT_NE(a, b);
+
+  // Base58: alphanumeric minus the look-alikes 0 O I l.
+  EXPECT_TRUE(QRegularExpression(QRegularExpression::anchoredPattern(
+                                     QStringLiteral("[1-9A-HJ-NP-Za-km-z]+")))
+                  .match(a)
+                  .hasMatch());
+
+  // It is usable as a phrase: applying it produces its own distinct book.
+  BookPhraseGuard guard;
+  BookPhraseGuard::Set(a);
+  EXPECT_EQ(InstantMessageOperator::BookPhrase(), a);
+  EXPECT_EQ(InstantMessageOperator::BookFingerprint(),
+            InstantMessageOperator::BookFingerprintOf(a));
+}
+
+// A phrase written to the settings file by an older version is moved into the
+// secure store on first read, and erased from settings.
+TEST(InstantMessageOperatorTest, LegacyPlaintextPhraseIsMigrated) {
+  BookPhraseGuard guard;
+  BookPhraseGuard::Set(QString());
+
+  GetSettings().setValue(kPhraseKey, QStringLiteral("legacy phrase"));
+  ASSERT_TRUE(GetSettings().contains(kPhraseKey));
+
+  EXPECT_EQ(InstantMessageOperator::BookPhrase(),
+            QStringLiteral("legacy phrase"));
+  EXPECT_FALSE(GetSettings().contains(kPhraseKey));
+  // And it survives once the settings copy is gone.
+  EXPECT_EQ(InstantMessageOperator::BookPhrase(),
+            QStringLiteral("legacy phrase"));
+}
+
+// The settings UI previews the fingerprint of a phrase before applying it, so
+// BookFingerprintOf() must agree with BookFingerprint() without touching the
+// configured phrase.
+TEST(InstantMessageOperatorTest, BookFingerprintOfPreviewsWithoutApplying) {
+  BookPhraseGuard guard;
+
+  BookPhraseGuard::Set(QStringLiteral("correct horse battery staple"));
+  const auto active = InstantMessageOperator::BookFingerprint();
+
+  EXPECT_EQ(InstantMessageOperator::BookFingerprintOf(
+                QStringLiteral("correct horse battery staple")),
+            active);
+  // Whitespace is trimmed the same way the setter trims it.
+  EXPECT_EQ(InstantMessageOperator::BookFingerprintOf(
+                QStringLiteral("  correct horse battery staple ")),
+            active);
+
+  const auto other =
+      InstantMessageOperator::BookFingerprintOf(QStringLiteral("some other"));
+  EXPECT_NE(other, active);
+
+  // Previewing did not change what is configured.
+  EXPECT_EQ(InstantMessageOperator::BookPhrase(),
+            QStringLiteral("correct horse battery staple"));
+  EXPECT_EQ(InstantMessageOperator::BookFingerprint(), active);
 }
 
 }  // namespace GpgFrontend::Test

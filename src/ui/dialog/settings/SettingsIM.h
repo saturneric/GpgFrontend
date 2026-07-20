@@ -28,17 +28,23 @@
 
 #pragma once
 
-class QLineEdit;
+class QLabel;
+class QTimer;
+class QPlainTextEdit;
+class QPushButton;
 
 namespace GpgFrontend::UI {
 
 /**
  * @brief Settings tab for the instant-messaging feature.
  *
- * Holds the shared "Message Book Phrase" — the secret that whitens every
- * instant-messaging token so it cannot be detected as a GpgFrontend/PGP message.
- * Both sides must set the same phrase; an empty phrase uses a shared default
- * that only hides the format from naive scanners.
+ * Holds the shared "Message Book Phrase", the secret that whitens every
+ * instant-messaging token so it cannot be detected as a GpgFrontend/PGP
+ * message. Both sides must set the same phrase; an empty phrase uses a shared
+ * default that only hides the format from naive scanners.
+ *
+ * The phrase itself is stored in the encrypted durable cache, never in the
+ * settings file; the tab reads and writes it through InstantMessageOperator.
  */
 class InstantMessagingTab : public QWidget {
   Q_OBJECT
@@ -46,14 +52,38 @@ class InstantMessagingTab : public QWidget {
  public:
   explicit InstantMessagingTab(QWidget* parent = nullptr);
 
-  /// Load current values from the global settings into the controls.
+  /// Load current values from the secure store into the controls.
   void SetSettings();
 
-  /// Persist the controls' values back to the global settings.
+  /// Persist the controls' values back to the secure store.
   void ApplySettings();
 
  private:
-  QLineEdit* book_phrase_edit_{};  ///< shared Message Book Phrase
+  /// Show the phrase itself, or a mask standing in for it.
+  void set_revealed(bool revealed);
+
+  /// Adopt @p phrase as the edited value and refresh everything that shows it.
+  void set_phrase(const QString& phrase);
+
+  /// Restart the debounce that recomputes the fingerprint of the phrase.
+  void schedule_fingerprint_update();
+
+  /// Derive the fingerprint of the current phrase off the UI thread.
+  void start_fingerprint_update();
+
+  /// Show @p fingerprint, or a placeholder while none is known.
+  void set_fingerprint(const QString& fingerprint);
+
+  QPlainTextEdit* phrase_edit_{};   ///< shows the phrase, or its mask
+  QPushButton* reveal_button_{};    ///< toggles between the phrase and the mask
+  QLabel* fingerprint_label_{};     ///< our fingerprint, e.g. "3F9A-1C4E"
+  QLabel* phrase_state_label_{};    ///< "no phrase set" / phrase length
+  QTimer* fingerprint_timer_{};     ///< debounce for typing
+  QString phrase_;                  ///< the edited phrase, source of truth
+  QString fingerprint_;             ///< last computed fingerprint, may be empty
+  bool revealed_{false};            ///< whether the phrase is on screen
+  bool syncing_{false};             ///< guards programmatic edits of the view
+  quint64 fingerprint_request_{0};  ///< discards results of stale derivations
 };
 
 }  // namespace GpgFrontend::UI

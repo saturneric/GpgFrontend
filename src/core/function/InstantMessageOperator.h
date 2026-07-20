@@ -102,6 +102,34 @@ class GF_CORE_EXPORT InstantMessageOperator {
   static auto BookConfigured() -> bool;
 
   /**
+   * @brief The configured shared book phrase, or empty for the default book.
+   *
+   * The phrase is a secret, so it lives in the encrypted durable cache
+   * (CacheManager), never in the plaintext settings file. A phrase left in the
+   * settings file by an older version is migrated on first read.
+   */
+  static auto BookPhrase() -> QString;
+
+  /**
+   * @brief Replace the shared book phrase. An empty (or whitespace-only)
+   * phrase clears it and falls back to the default book.
+   *
+   * Written through to the encrypted durable cache immediately.
+   */
+  static void SetBookPhrase(const QString& phrase);
+
+  /**
+   * @brief Generate a fresh book phrase from the platform CSPRNG.
+   *
+   * 256 characters over the Base58 alphabet (~1460 bits). The phrase is
+   * copied and pasted, never typed, so there is no reason to be frugal, and
+   * the length keeps it far out of reach of any offline phrase search.
+   *
+   * @return the generated phrase, or empty if the CSPRNG was unavailable
+   */
+  static auto GeneratePhrase() -> QString;
+
+  /**
    * @brief A short, domain-separated digest of the active book (e.g.
    * "3F9A-1C4E"), for peers to confirm by eye that they share a book without
    * exchanging the phrase.
@@ -110,6 +138,16 @@ class GF_CORE_EXPORT InstantMessageOperator {
    * phrases offline. Display it locally; never put it on the wire.
    */
   static auto BookFingerprint() -> QString;
+
+  /**
+   * @brief The fingerprint of the book @p phrase would produce, without
+   * changing the configured phrase, so the settings UI can show what the user
+   * is typing before it is applied.
+   *
+   * @warning Costs one Argon2id (64 MiB) per distinct phrase; call it off the
+   * UI thread. Carries the same disclosure caveat as BookFingerprint().
+   */
+  static auto BookFingerprintOf(const QString& phrase) -> QString;
 };
 
 }  // namespace GpgFrontend
