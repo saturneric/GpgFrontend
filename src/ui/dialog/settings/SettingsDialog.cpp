@@ -75,8 +75,16 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     tab_widget_->addTab(area, title);
   };
 
-  add_tab(general_tab_, tr("General"));
-  add_tab(appearance_tab_, tr("Appearance"));
+  // Named so the restart confirmation can tell the user which pages hold a
+  // change that needs one.
+  const auto general_title = tr("General");
+  const auto appearance_title = tr("Appearance");
+  const auto key_dbs_title = tr("Key Databases");
+  const auto gnupg_title = tr("GnuPG");
+  const auto advanced_title = tr("Advanced");
+
+  add_tab(general_tab_, general_title);
+  add_tab(appearance_tab_, appearance_title);
 
   // network settings is not available in sandbox environment, so only add the
   // tab when not running in sandbox
@@ -84,10 +92,10 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     add_tab(network_tab_, tr("Network"));
   }
 
-  add_tab(key_dbs_tab_, tr("Key Databases"));
+  add_tab(key_dbs_tab_, key_dbs_title);
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    add_tab(gnupg_tab_, tr("GnuPG"));
+    add_tab(gnupg_tab_, gnupg_title);
   }
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
@@ -95,7 +103,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   }
 
   add_tab(im_tab_, tr("Instant Messaging"));
-  add_tab(advanced_tab_, tr("Advanced"));
+  add_tab(advanced_tab_, advanced_title);
 
 #ifdef Q_OS_MACOS
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
@@ -114,28 +122,35 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 
   setLayout(main_layout);
 
+  // Each tab announces a needed restart as the user edits, not when settings
+  // are applied — so by the time OK is pressed we already know whether to ask
+  // for confirmation, and which pages to name when we do.
+  const auto declare = [this](int mode, const QString& page) {
+    return [this, mode, page]() { declare_restart(mode, page); };
+  };
+
   // restart ui
   connect(general_tab_, &GeneralTab::SignalRestartNeeded, this,
-          &SettingsDialog::slot_declare_a_restart);
+          declare(kRestartCode, general_title));
 
   // restart core and ui
   connect(general_tab_, &GeneralTab::SignalDeepRestartNeeded, this,
-          &SettingsDialog::slot_declare_a_deep_restart);
+          declare(kDeepRestartCode, general_title));
 
   // restart core and ui
   connect(appearance_tab_, &AppearanceTab::SignalRestartNeeded, this,
-          &SettingsDialog::slot_declare_a_restart);
+          declare(kRestartCode, appearance_title));
 
   connect(key_dbs_tab_, &KeyDatabasesTab::SignalDeepRestartNeeded, this,
-          &SettingsDialog::slot_declare_a_deep_restart);
+          declare(kDeepRestartCode, key_dbs_title));
 
   connect(gnupg_tab_, &GnuPGTab::SignalDeepRestartNeeded, this,
-          &SettingsDialog::slot_declare_a_deep_restart);
+          declare(kDeepRestartCode, gnupg_title));
 
   // the advanced knobs are only read while the process starts, so applying
   // them means relaunching — a deep restart, which does exactly that
   connect(advanced_tab_, &AdvancedTab::SignalDeepRestartNeeded, this,
-          &SettingsDialog::slot_declare_a_deep_restart);
+          declare(kDeepRestartCode, advanced_title));
 
   // announce main window
   connect(this, &SettingsDialog::SignalRestartNeeded,
@@ -156,23 +171,90 @@ void SettingsDialog::showEvent(QShowEvent* event) {
   }
 }
 
-void SettingsDialog::slot_declare_a_restart() {
-  if (restart_mode_ < kRestartCode) {
-    this->restart_mode_ = kRestartCode;
-  }
+void SettingsDialog::declare_restart(int mode, const QString& page) {
+  // Reverting reloads every tab, which fires the very change signals that got
+  // us here. Without this guard a cancelled restart would immediately re-arm
+  // itself and the user would be asked again on the next OK.
+  if (suppress_restart_declaration_) return;
+
+  // Keep the deepest request: a shallow UI reload must not mask a pending core
+  // restart declared by another page.
+  restart_mode_ = std::max(restart_mode_, mode);
+  if (!restart_pages_.contains(page)) restart_pages_ << page;
 }
 
-void SettingsDialog::slot_declare_a_deep_restart() {
-  if (restart_mode_ < kDeepRestartCode) {
-    this->restart_mode_ = kDeepRestartCode;
-  }
+auto SettingsDialog::confirm_restart() -> bool {
+  const auto deep = restart_mode_ >= kDeepRestartCode;
+
+  QMessageBox box(this);
+  box.setIcon(QMessageBox::Question);
+  box.setWindowTitle(tr("Restart Required"));
+  box.setText(deep ? tr("Some of your changes only take effect after "
+                        "GpgFrontend restarts.")
+                   : tr("Some of your changes only take effect after the "
+                        "interface reloads."));
+  box.setInformativeText(
+      tr("Changes needing this were made on: %1.\n\nChoose Cancel to discard "
+         "everything you changed in this dialog and keep the current settings.")
+          .arg(restart_pages_.join(QStringLiteral(", "))));
+
+  auto* save_button =
+      box.addButton(deep ? tr("Save and Restart") : tr("Save and Reload"),
+                    QMessageBox::AcceptRole);
+  box.addButton(QMessageBox::Cancel);
+  box.setDefaultButton(save_button);
+  box.exec();
+
+  return box.clickedButton() == save_button;
+}
+
+void SettingsDialog::revert_all_tabs() {
+  suppress_restart_declaration_ = true;
+
+  // Every tab reloads its controls straight from the settings store, so
+  // whatever the user typed is dropped and nothing was ever written.
+  general_tab_->SetSettings();
+  appearance_tab_->SetSettings();
+  network_tab_->SetSettings();
+  key_dbs_tab_->SetSettings();
+  gnupg_tab_->SetSettings();
+  rpgp_tab_->SetSettings();
+  im_tab_->SetSettings();
+  advanced_tab_->SetSettings();
+
+  restart_mode_ = kNonRestartCode;
+  restart_pages_.clear();
+
+  suppress_restart_declaration_ = false;
 }
 
 void SettingsDialog::SlotAccept() {
+  // Ask before anything is written. Tabs declare their restart while the user
+  // edits, so the answer is already known here — which is what makes a clean
+  // "cancel discards everything" possible.
+  if (restart_mode_ != kNonRestartCode && !confirm_restart()) {
+    revert_all_tabs();
+#ifndef Q_OS_MACOS
+    // Stay open on the reverted values so the user can adjust. On macOS this
+    // runs from QDialog::finished, where the dialog is already going away and
+    // there is nothing left to hold open — falling through simply rewrites the
+    // unchanged originals and skips the restart.
+    return;
+#endif
+  }
+
   general_tab_->ApplySettings();
   appearance_tab_->ApplySettings();
   network_tab_->ApplySettings();
   key_dbs_tab_->ApplySettings();
+
+  // The GnuPG page declares a deep restart when edited but its ApplySettings()
+  // was never wired up, so those changes were dropped on OK and the restart
+  // applied nothing. Guarded like the tab itself, which is only shown when the
+  // engine is supported.
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+    gnupg_tab_->ApplySettings();
+  }
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
     rpgp_tab_->ApplySettings();

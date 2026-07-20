@@ -105,23 +105,34 @@ class SettingsDialog : public GeneralDialog {
   void showEvent(QShowEvent* event) override;
 
  private:
-  QTabWidget* tab_widget_;             ///<
-  QDialogButtonBox* button_box_;       ///<
-  int restart_mode_{kNonRestartCode};  ///<
-
- private slots:
+  /**
+   * @brief Record that an edit on a page only takes effect after a restart.
+   *
+   * Keeps the deepest restart requested — a later shallow change must never
+   * downgrade a pending deep restart.
+   *
+   * @param mode restart depth this change needs
+   * @param page tab title, listed back to the user on confirmation
+   */
+  void declare_restart(int mode, const QString& page);
 
   /**
-   * @brief
+   * @brief Ask the user whether to save the changes that need a restart.
    *
+   * @return true to go ahead and save, false to discard the pending changes
    */
-  void slot_declare_a_restart();
+  auto confirm_restart() -> bool;
 
   /**
-   * @brief
-   *
+   * @brief Reload every tab from the settings store, dropping pending edits.
    */
-  void slot_declare_a_deep_restart();
+  void revert_all_tabs();
+
+  QTabWidget* tab_widget_;                    ///<
+  QDialogButtonBox* button_box_;              ///<
+  int restart_mode_{kNonRestartCode};         ///<
+  QStringList restart_pages_;                 ///< pages with such a change
+  bool suppress_restart_declaration_{false};  ///< set while reverting
 };
 
 }  // namespace GpgFrontend::UI
