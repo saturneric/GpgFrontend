@@ -32,6 +32,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/function/GpgOperaHelper.h"
 
 namespace GpgFrontend::UI {
@@ -90,28 +91,35 @@ void KeyNewUIDDialog::slot_create_new_uid() {
   QString buffer;
   QTextStream error_stream(&buffer);
 
-  if ((name_->text()).size() < 5) {
-    error_stream << "  " << tr("Name must contain at least five characters.")
-                 << Qt::endl;
+  const auto name = name_->text().trimmed();
+  const auto email = email_->text().trimmed();
+  const auto comment = comment_->text().trimmed();
+
+  // A user id needs a name; its length is only advisory and handled below.
+  if (name.isEmpty()) {
+    error_stream << "  " << tr("Name must not be empty.") << Qt::endl;
   }
   // The name and comment become part of an RFC 2822 mail name-addr
   // ("Name (Comment) <email>"); reject the structural delimiters '(', ')',
   // '<', '>' and control characters or the resulting UID would be malformed.
-  if (!IsValidUserIdComponent(name_->text()) ||
-      !IsValidUserIdComponent(comment_->text())) {
+  if (!IsValidUserIdComponent(name) || !IsValidUserIdComponent(comment)) {
     error_stream << "  "
                  << tr("Name and comment must not contain the characters '(', "
                        "')', '<', '>' or control characters.")
                  << Qt::endl;
   }
-  if (email_->text().isEmpty() || !IsEmailAddress(email_->text())) {
-    error_stream << "  " << tr("Please give a email address.") << Qt::endl;
+  // The email address is optional, but if one is given it must be usable.
+  if (!email.isEmpty() && !IsEmailAddress(email)) {
+    error_stream << "  " << tr("Please give a valid email address.")
+                 << Qt::endl;
   }
   auto error_string = error_stream.readAll();
   if (error_string.isEmpty()) {
-    auto f = [this](const OperaWaitingHd& hd) {
+    if (!ConfirmShortUserIdName(this, name)) return;
+
+    auto f = [this, name, comment, email](const OperaWaitingHd& hd) {
       UserIdOperation::GetInstance(current_gpg_context_channel_)
-          .AddUID(m_key_, name_->text(), comment_->text(), email_->text(),
+          .AddUID(m_key_, name, comment, email,
                   [this, hd](GpgError err, const DataObjectPtr&) {
                     // stop showing the waiting dialog
                     hd();

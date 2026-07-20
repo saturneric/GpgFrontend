@@ -50,8 +50,10 @@ auto UserIdOperation::SetPrimaryUID(const GpgKeyPtr& key, const QString& uid)
 auto UserIdOperation::AddUID(const GpgKeyPtr& key, const QString& name,
                              const QString& comment, const QString& email)
     -> bool {
-  if (!IsValidUserIdComponent(name) || !IsValidUserIdComponent(comment)) {
-    LOG_E() << "refusing to add UID with malformed name or comment component";
+  if (name.trimmed().isEmpty() || !IsValidUserIdComponent(name) ||
+      !IsValidUserIdComponent(comment)) {
+    LOG_E() << "refusing to add UID with empty or malformed name, or malformed "
+               "comment component";
     return false;
   }
   return AddUID(key, AssembleUserId(name, comment, email));
@@ -72,8 +74,10 @@ auto UserIdOperation::RevokeUID(const GpgKeyPtr& key, const QString& uid,
 void UserIdOperation::AddUID(const GpgKeyPtr& key, const QString& name,
                              const QString& comment, const QString& email,
                              const GpgOperationCallback& cb) {
-  if (!IsValidUserIdComponent(name) || !IsValidUserIdComponent(comment)) {
-    LOG_E() << "refusing to add UID with malformed name or comment component";
+  if (name.trimmed().isEmpty() || !IsValidUserIdComponent(name) ||
+      !IsValidUserIdComponent(comment)) {
+    LOG_E() << "refusing to add UID with empty or malformed name, or malformed "
+               "comment component";
     cb(GPG_ERR_INV_VALUE, nullptr);
     return;
   }
@@ -104,8 +108,8 @@ void UserIdOperation::RevokeUID(const GpgKeyPtr& key, const QString& uid,
                                 const GpgOperationCallback& cb) {
   RunGpgOperaAsync(
       ctx_.GetChannel(),
-      [this, key, uid, reason_code, reason_text](
-          const DataObjectPtr&) -> GpgError {
+      [this, key, uid, reason_code,
+       reason_text](const DataObjectPtr&) -> GpgError {
         return RevokeUID(key, uid, reason_code, reason_text) ? GPG_ERR_NO_ERROR
                                                              : GPG_ERR_GENERAL;
       },

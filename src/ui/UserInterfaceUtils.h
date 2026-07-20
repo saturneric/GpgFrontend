@@ -77,6 +77,19 @@ void process_operation(QWidget* parent, const QString& waiting_title,
 auto ClampRectToAvailableGeometry(QRect rect, const QRect& available) -> QRect;
 
 /**
+ * @brief Ask the user to confirm an unusually short user id name.
+ *
+ * A short name is perfectly legal in an OpenPGP user id, but it is often a
+ * typo, so warn instead of refusing. Names of five characters or more are
+ * accepted silently.
+ *
+ * @param parent
+ * @param name the already trimmed name
+ * @return true if generation should continue
+ */
+auto ConfirmShortUserIdName(QWidget* parent, const QString& name) -> bool;
+
+/**
  * @brief
  *
  */

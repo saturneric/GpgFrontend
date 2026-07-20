@@ -423,4 +423,20 @@ auto ClampRectToAvailableGeometry(QRect rect, const QRect &available) -> QRect {
 
   return rect;
 }
+
+auto ConfirmShortUserIdName(QWidget *parent, const QString &name) -> bool {
+  if (name.size() >= 5) return true;
+
+  return QMessageBox::warning(
+             parent,
+             QCoreApplication::translate("GpgFrontend::UI", "Short Name"),
+             QCoreApplication::translate(
+                 "GpgFrontend::UI",
+                 "The name \"%1\" is shorter than five characters. Short names "
+                 "are allowed, but they are often a typo and make the key "
+                 "harder for others to recognise.\n\nDo you want to continue?")
+                 .arg(name),
+             QMessageBox::Yes | QMessageBox::No,
+             QMessageBox::No) == QMessageBox::Yes;
+}
 }  // namespace GpgFrontend::UI

@@ -711,21 +711,24 @@ void KeyGenerateDialog::slot_key_gen_accept() {
   QString buffer;
   QTextStream err_stream(&buffer);
 
-  if (ui_->nameEdit->text().trimmed().size() < 5) {
-    err_stream << " -> " << tr("Name must contain at least five characters.")
-               << Qt::endl;
+  const auto name = ui_->nameEdit->text().trimmed();
+  const auto email = ui_->emailEdit->text().trimmed();
+  const auto comment = ui_->commentEdit->text().trimmed();
+
+  // A user id needs a name; its length is only advisory and handled below.
+  if (name.isEmpty()) {
+    err_stream << " -> " << tr("Name must not be empty.") << Qt::endl;
   }
   // The name and comment become part of an RFC 2822 mail name-addr; reject the
   // structural delimiters '(', ')', '<', '>' and control characters.
-  if (!IsValidUserIdComponent(ui_->nameEdit->text()) ||
-      !IsValidUserIdComponent(ui_->commentEdit->text())) {
+  if (!IsValidUserIdComponent(name) || !IsValidUserIdComponent(comment)) {
     err_stream << " -> "
                << tr("Name and comment must not contain the characters '(', "
                      "')', '<', '>' or control characters.")
                << Qt::endl;
   }
-  if (ui_->emailEdit->text().isEmpty() ||
-      !IsEmailAddress(ui_->emailEdit->text())) {
+  // The email address is optional, but if one is given it must be usable.
+  if (!email.isEmpty() && !IsEmailAddress(email)) {
     err_stream << " -> " << tr("Please give a valid email address.")
                << Qt::endl;
   }
@@ -767,9 +770,11 @@ void KeyGenerateDialog::slot_key_gen_accept() {
     return;
   }
 
-  gen_key_info_->SetName(ui_->nameEdit->text());
-  gen_key_info_->SetEmail(ui_->emailEdit->text());
-  gen_key_info_->SetComment(ui_->commentEdit->text());
+  if (!ConfirmShortUserIdName(this, name)) return;
+
+  gen_key_info_->SetName(name);
+  gen_key_info_->SetEmail(email);
+  gen_key_info_->SetComment(comment);
 
   LOG_D() << "try to generate key at gpg context channel: " << channel_;
 

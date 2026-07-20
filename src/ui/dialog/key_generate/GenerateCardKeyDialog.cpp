@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgSmartCardManager.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/function/GpgOperaHelper.h"
@@ -85,14 +86,26 @@ void GenerateCardKeyDialog::slot_generate_card_key() {
   QString buffer;
   QTextStream error_stream(&buffer);
 
-  if ((ui_->nameEdit->text()).size() < 5) {
-    error_stream << "  " << tr("Name must contain at least five characters.")
+  const auto name = ui_->nameEdit->text().trimmed();
+  const auto email = ui_->emailEdit->text().trimmed();
+  const auto comment = ui_->commentEdit->text().trimmed();
+
+  // A user id needs a name; its length is only advisory and handled below.
+  if (name.isEmpty()) {
+    error_stream << "  " << tr("Name must not be empty.") << Qt::endl;
+  }
+  // The name and comment become part of an RFC 2822 mail name-addr; reject the
+  // structural delimiters '(', ')', '<', '>' and control characters.
+  if (!IsValidUserIdComponent(name) || !IsValidUserIdComponent(comment)) {
+    error_stream << "  "
+                 << tr("Name and comment must not contain the characters '(', "
+                       "')', '<', '>' or control characters.")
                  << Qt::endl;
   }
-
-  if (ui_->nameEdit->text().isEmpty() ||
-      !IsEmailAddress(ui_->emailEdit->text())) {
-    error_stream << "  " << tr("Please give a email address.") << Qt::endl;
+  // The email address is optional, but if one is given it must be usable.
+  if (!email.isEmpty() && !IsEmailAddress(email)) {
+    error_stream << "  " << tr("Please give a valid email address.")
+                 << Qt::endl;
   }
 
   auto error_string = error_stream.readAll();
@@ -109,10 +122,11 @@ void GenerateCardKeyDialog::slot_generate_card_key() {
     return;
   }
 
+  if (!ConfirmShortUserIdName(this, name)) return;
+
   auto f = [=](const OperaWaitingHd& hd) {
     auto [err, detail] = GpgSmartCardManager::GetInstance(channel_).GenerateKey(
-        serial_number_, ui_->nameEdit->text(), ui_->emailEdit->text(),
-        ui_->commentEdit->text(), ui_->dateEdit->dateTime(),
+        serial_number_, name, email, comment, ui_->dateEdit->dateTime(),
         ui_->nonExpireCheckBox->isChecked());
 
     hd();
