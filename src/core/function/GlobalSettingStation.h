@@ -299,4 +299,17 @@ auto GF_CORE_EXPORT GetGSS() -> GlobalSettingStation&;
  */
 auto GF_CORE_EXPORT GetSettings() -> QSettings;
 
+/**
+ * @brief Open the application QSettings without constructing the singleton.
+ *
+ * Resolves the same settings file as GetSettings(), but is safe to call during
+ * very early startup — before InitAppSecureKey() and the module manager exist,
+ * where touching GlobalSettingStation would drag the secure allocator up too
+ * soon. Requires GFPortableMode to already be set on qApp. Read-only use only;
+ * everything after early startup should use GetSettings().
+ *
+ * @return QSettings configured for the current platform and mode
+ */
+auto GF_CORE_EXPORT GetEarlySettings() -> QSettings;
+
 }  // namespace GpgFrontend

@@ -41,6 +41,30 @@
 
 namespace GpgFrontend {
 
+namespace {
+
+#ifdef Q_OS_LINUX
+/// Directory holding the AppImage itself. applicationDirPath() points inside
+/// the read-only mount, so portable mode has to follow $APPIMAGE instead.
+auto ResolveAppImageDir() -> QString {
+  QFileInfo info(QString::fromUtf8(qEnvironmentVariable("APPIMAGE").toUtf8()));
+  return info.canonicalPath();
+}
+#endif
+
+/// Data root used by portable mode: the directory above the application.
+/// Shared by the singleton and by GetEarlySettings(), which has to resolve the
+/// same location before the singleton may be constructed.
+auto ResolvePortableDataPath() -> QString {
+  auto app_path = QCoreApplication::applicationDirPath();
+#ifdef Q_OS_LINUX
+  if (IsAppImageENV()) app_path = ResolveAppImageDir();
+#endif
+  return QDir(app_path + "/../").canonicalPath();
+}
+
+}  // namespace
+
 class GlobalSettingStation::Impl {
  public:
   /**
@@ -59,9 +83,7 @@ class GlobalSettingStation::Impl {
 #ifdef Q_OS_LINUX
       if (IsAppImageENV()) {
         LOG_I() << "app image path: " << qEnvironmentVariable("APPIMAGE");
-        QFileInfo info(
-            QString::fromUtf8(qEnvironmentVariable("APPIMAGE").toUtf8()));
-        app_path_ = info.canonicalPath();
+        app_path_ = ResolveAppImageDir();
       }
 #endif
 
@@ -422,5 +444,27 @@ auto GetGSS() -> GlobalSettingStation& {
 }
 
 auto GetSettings() -> QSettings { return GetGSS().GetSettings(); }
+
+auto GetEarlySettings() -> QSettings {
+  // Deliberately singleton-free: this runs during InitApplication(), long
+  // before InitAppSecureKey(), and GlobalSettingStation allocates its Impl
+  // through the secure allocator. Constructing the singleton here would pull
+  // the secure allocator and the module manager up before the secure key
+  // exists. Resolve the very same file by hand instead.
+  const auto portable =
+      qApp != nullptr && qApp->property("GFPortableMode").toBool();
+
+#ifndef Q_OS_WINDOWS
+  // Non-portable POSIX builds use Qt's native store, keyed by the organization
+  // and application name set in GpgFrontendApplication's constructor.
+  if (!portable) return QSettings();
+#endif
+
+  const auto config_path =
+      portable
+          ? ResolvePortableDataPath() + "/config"
+          : QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+  return {config_path + "/config.ini", QSettings::IniFormat};
+}
 
 }  // namespace GpgFrontend
