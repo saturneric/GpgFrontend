@@ -47,13 +47,14 @@ namespace GpgFrontend {
  * part of them re-shuffles the byte order, the rest XORs the payload, and a
  * secret-controlled amount of random padding is interleaved to hide the true
  * length. The GpgFrontend recognition tag is a secret check value derived from
- * the book (not a fixed constant), so there is no known-plaintext to search for;
- * it lives inside this whitened blob, invisible on the wire and revealed only
- * after a receiver un-whitens with the same book.
+ * the book (not a fixed constant), so there is no known-plaintext to search
+ * for; it lives inside this whitened blob, invisible on the wire and revealed
+ * only after a receiver un-whitens with the same book.
  *
  * The consequence: without the book, a token is indistinguishable from random
  * Base58. Even *detecting* whether a token is one of ours costs the adversary a
- * memory-hard derivation per candidate book, since there is no cheap pre-filter.
+ * memory-hard derivation per candidate book, since there is no cheap
+ * pre-filter.
  *
  * The shared "password book" is a 256-byte table derived from an optional
  * phrase (Argon2id) or a fixed default. The empty-phrase default only hides the
@@ -64,8 +65,8 @@ class GF_CORE_EXPORT InstantMessageOperator {
  public:
   /// The result of decoding a token.
   struct DecodeResult {
-    bool ok{false};       ///< the token was one of ours and un-whitened cleanly
-    GFBuffer pgp_message; ///< the wrapped OpenPGP message to decrypt
+    bool ok{false};  ///< the token was one of ours and un-whitened cleanly
+    GFBuffer pgp_message;  ///< the wrapped OpenPGP message to decrypt
   };
 
   /**
@@ -93,6 +94,12 @@ class GF_CORE_EXPORT InstantMessageOperator {
    * @brief The current container format version (the inner tag's version).
    */
   static auto FormatVersion() -> int;
+
+  /**
+   * @brief Whether a shared book phrase is configured. Without one the default
+   * book is used, which only hides the format from naive scanners.
+   */
+  static auto BookConfigured() -> bool;
 };
 
 }  // namespace GpgFrontend

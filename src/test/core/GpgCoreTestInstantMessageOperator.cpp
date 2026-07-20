@@ -161,4 +161,19 @@ TEST(InstantMessageOperatorTest, FormatVersionIsStable) {
   EXPECT_EQ(InstantMessageOperator::FormatVersion(), 2);
 }
 
+// The result card reports whether a shared phrase backs the book; a blank or
+// whitespace-only phrase means the default book, which is only obfuscation.
+TEST(InstantMessageOperatorTest, BookConfiguredTracksPhrase) {
+  BookPhraseGuard guard;
+
+  BookPhraseGuard::Set(QString());
+  EXPECT_FALSE(InstantMessageOperator::BookConfigured());
+
+  BookPhraseGuard::Set(QStringLiteral("   \t "));
+  EXPECT_FALSE(InstantMessageOperator::BookConfigured());
+
+  BookPhraseGuard::Set(QStringLiteral("correct horse battery staple"));
+  EXPECT_TRUE(InstantMessageOperator::BookConfigured());
+}
+
 }  // namespace GpgFrontend::Test

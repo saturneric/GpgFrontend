@@ -148,11 +148,10 @@ auto DeriveBookConstants(const QString& phrase, uint64_t& weyl, uint64_t& mul)
 
   const QByteArray pw = phrase.toUtf8();
   std::array<unsigned char, 16> out{};
-  const int rc =
-      crypto_pwhash(out.data(), out.size(), pw.constData(),
-                    static_cast<unsigned long long>(pw.size()),
-                    kBookKdfSalt.data(), kBookKdfOps, kBookKdfMem,
-                    crypto_pwhash_ALG_ARGON2ID13);
+  const int rc = crypto_pwhash(out.data(), out.size(), pw.constData(),
+                               static_cast<unsigned long long>(pw.size()),
+                               kBookKdfSalt.data(), kBookKdfOps, kBookKdfMem,
+                               crypto_pwhash_ALG_ARGON2ID13);
   if (rc != 0) {
     LOG_E() << "argon2id derivation for instant-messaging book failed";
     return false;
@@ -235,7 +234,7 @@ constexpr int kSeedLen = 16;  // == Argon2 salt length; ChaCha20 nonce is the
                               // first 8 bytes of it.
 constexpr int kTagLen = 16;   // secret book-derived recognition value
 constexpr int kHeaderLen = kTagLen + 1 + 1 + 4;  // tag|version|type|payload_len
-constexpr int kBucket = 64;   // length is rounded up to this before jitter
+constexpr int kBucket = 64;  // length is rounded up to this before jitter
 constexpr int kMinFrame = kHeaderLen;
 constexpr int kPrefixLen = kTagLen + 4;  // PRG bytes read before the length (m)
                                          // is known: tag + jitter u32
@@ -265,11 +264,11 @@ auto DeriveMaster(const GFBuffer& book, const QByteArray& seed,
                   std::array<unsigned char, 32>& master) -> bool {
   if (!EnsureSodiumInit()) return false;
   const auto book_bytes = book.ConvertToQByteArray();
-  const int rc = crypto_pwhash(
-      master.data(), master.size(), book_bytes.constData(),
-      static_cast<unsigned long long>(book_bytes.size()),
-      reinterpret_cast<const unsigned char*>(seed.constData()), kMasterKdfOps,
-      kMasterKdfMem, crypto_pwhash_ALG_ARGON2ID13);
+  const int rc =
+      crypto_pwhash(master.data(), master.size(), book_bytes.constData(),
+                    static_cast<unsigned long long>(book_bytes.size()),
+                    reinterpret_cast<const unsigned char*>(seed.constData()),
+                    kMasterKdfOps, kMasterKdfMem, crypto_pwhash_ALG_ARGON2ID13);
   return rc == 0;
 }
 
@@ -402,7 +401,8 @@ auto InstantMessageOperator::Decode(const QString& text) -> DecodeResult {
   }
 
   // Recognition: the leading bytes must equal the secret, book-derived tag.
-  if (sodium_memcmp(inner.constData(), tag_expected.constData(), kTagLen) != 0) {
+  if (sodium_memcmp(inner.constData(), tag_expected.constData(), kTagLen) !=
+      0) {
     return r;  // not one of ours (or a different book)
   }
   if (static_cast<uint8_t>(inner[kTagLen]) != kVersion) return r;
@@ -411,7 +411,8 @@ auto InstantMessageOperator::Decode(const QString& text) -> DecodeResult {
   const quint32 payload_len = ReadU32BE(inner, kTagLen + 2);
   if (kHeaderLen + static_cast<qint64>(payload_len) > m) return r;
 
-  r.pgp_message = GFBuffer(inner.mid(kHeaderLen, static_cast<int>(payload_len)));
+  r.pgp_message =
+      GFBuffer(inner.mid(kHeaderLen, static_cast<int>(payload_len)));
   r.ok = true;
   return r;
 }
@@ -421,5 +422,9 @@ auto InstantMessageOperator::Contains(const QString& text) -> bool {
 }
 
 auto InstantMessageOperator::FormatVersion() -> int { return kVersion; }
+
+auto InstantMessageOperator::BookConfigured() -> bool {
+  return !GetSettings().value(kBookPhraseKey).toString().trimmed().isEmpty();
+}
 
 }  // namespace GpgFrontend

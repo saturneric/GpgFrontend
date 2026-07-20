@@ -136,6 +136,58 @@ auto PrepareSafeOutputPath(const QString& final_path,
 
   return temp_path;
 }
+
+/**
+ * @brief The "Instant Messaging" card describing the wire container itself:
+ * how the token is framed and, above all, whether a shared book phrase is in
+ * use — the default book only hides the format from naive scanners, so it is
+ * reported as a warning.
+ *
+ * @param status the status of the surrounding OpenPGP operation
+ * @param token the Base58 token on the wire
+ * @param payload_size size in bytes of the OpenPGP message inside the token
+ */
+auto BuildInstantMessageCard(InfoBoardStatus status, const QString& token,
+                             qsizetype payload_size) -> InfoBoardCard {
+  const auto book_configured = InstantMessageOperator::BookConfigured();
+
+  InfoBoardCard card;
+  card.title = MainWindow::tr("Instant Messaging");
+  card.status = status;
+  if (status == kINFO_ERROR_OK && !book_configured) {
+    card.status = kINFO_ERROR_WARN;
+  }
+
+  card.fields.append(
+      {MainWindow::tr("Encoding"), QStringLiteral("Base58 (Bitcoin/IPFS)")});
+  card.fields.append(
+      {MainWindow::tr("Container Format"),
+       QString("v%1").arg(InstantMessageOperator::FormatVersion())});
+  card.fields.append({MainWindow::tr("Message Book"),
+                      book_configured
+                          ? MainWindow::tr("Shared phrase (Argon2id)")
+                          : MainWindow::tr("Default — no shared phrase set")});
+
+  if (payload_size > 0) {
+    card.fields.append({MainWindow::tr("OpenPGP Payload"),
+                        MainWindow::tr("%1 bytes").arg(payload_size)});
+  }
+  if (!token.isEmpty()) {
+    card.fields.append({MainWindow::tr("Token Length"),
+                        MainWindow::tr("%1 characters").arg(token.size())});
+  }
+  if (payload_size > 0 && !token.isEmpty()) {
+    // Random padding plus Base58 expansion. The padding part is deliberately
+    // random, so this ratio does not pin down the true payload length.
+    const auto ratio =
+        static_cast<double>(token.size()) / static_cast<double>(payload_size);
+    card.fields.append(
+        {MainWindow::tr("Wire Overhead"),
+         QString("+%1%").arg((ratio * 100.0) - 100.0, 0, 'f', 0)});
+  }
+
+  return card;
+}
 }  // namespace
 
 auto MainWindow::commit_safe_output_files(
@@ -538,13 +590,9 @@ void MainWindow::slot_im_encrypt_message() {
   if (token.isEmpty()) return;
   edit_->SlotFillTextEditWithText(token);
 
-  InfoBoardCard im_card;
-  im_card.title = tr("Instant Messaging");
-  im_card.status = kINFO_ERROR_OK;
-  im_card.fields.append({tr("Encoding"), QStringLiteral("Base58")});
-
   QContainer<InfoBoardCard> cards;
-  cards.append(im_card);
+  cards.append(BuildInstantMessageCard(
+      kINFO_ERROR_OK, token, static_cast<qsizetype>(result.o_buffer.Size())));
 
   QString op_name = tr("Encrypt");
   if (!result.op_info.operation.isEmpty()) op_name = result.op_info.operation;
@@ -580,13 +628,10 @@ auto MainWindow::exec_im_normal_decrypt_helper(
     status = kINFO_ERROR_WARN;
   }
 
-  InfoBoardCard im_card;
-  im_card.title = tr("Instant Messaging");
-  im_card.status = status;
-  im_card.fields.append({tr("Encoding"), QStringLiteral("Base58")});
-
   QContainer<InfoBoardCard> cards;
-  cards.append(im_card);  // IM section first
+  // IM section first. The token and its payload are not carried this far, so
+  // only the container-level facts are reported here.
+  cards.append(BuildInstantMessageCard(status, {}, 0));
 
   QString op_name = tr("Decrypt");
   if (!contexts->opera_results.empty()) {
