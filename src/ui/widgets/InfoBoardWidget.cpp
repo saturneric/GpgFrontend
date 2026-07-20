@@ -267,6 +267,51 @@ auto InfoBoardWidget::StatusTitle(InfoBoardStatus status) const -> QString {
   }
 }
 
+auto InfoBoardWidget::StatusIndicatorToolTip(InfoBoardStatus status) const
+    -> QString {
+  const auto meaning = [&]() -> QString {
+    switch (status) {
+      case kINFO_ERROR_OK:
+        return tr("The operation finished and everything checked out.");
+      case kINFO_ERROR_WARN:
+        return tr(
+            "The operation finished, but something needs your attention. "
+            "Read the details below.");
+      case kINFO_ERROR_CRITICAL:
+        return tr(
+            "The operation failed, or the result cannot be trusted. "
+            "Read the details below.");
+      case kINFO_ERROR_NEUTRAL:
+      default:
+        return tr(
+            "Nothing has been checked yet. The light turns green, orange or "
+            "red once an operation finishes.");
+    }
+  }();
+
+  // Plain text on purpose: a rich-text tooltip would have to paint the legend
+  // in each status color, and those colors are chosen to sit on the info
+  // board, not on the (often dark) tooltip background.
+  const auto legend_row = [&](InfoBoardStatus s, const QString& color,
+                              const QString& label) {
+    return QString("%1 %2 - %3")
+        .arg(QString::fromUtf8(s == status ? "●" : "○"), color, label);
+  };
+
+  return QStringList{
+      meaning,
+      "",
+      legend_row(kINFO_ERROR_OK, tr("Green"), tr("Everything went well")),
+      legend_row(kINFO_ERROR_WARN, tr("Orange"),
+                 tr("Done, but check the details")),
+      legend_row(kINFO_ERROR_CRITICAL, tr("Red"),
+                 tr("Failed, or the result cannot be trusted")),
+      legend_row(kINFO_ERROR_NEUTRAL, tr("Grey"),
+                 tr("Idle, nothing checked yet")),
+  }
+      .join('\n');
+}
+
 auto InfoBoardWidget::build_status_symbol(InfoBoardStatus status) const
     -> QString {
   switch (status) {
@@ -321,10 +366,20 @@ void InfoBoardWidget::ApplyStatusStyle(InfoBoardStatus status) {
   pal.setColor(QPalette::Text, text_color);
   ui_->infoBoard->setPalette(pal);
 
+  // The idle dot uses a real grey rather than the palette text color: as body
+  // text neutral should stay high-contrast, but as a traffic light it has to
+  // read as "off", and the tooltip legend calls it grey.
+  const QColor indicator_color =
+      status == kINFO_ERROR_NEUTRAL ? QColor(117, 117, 117) : text_color;
+
+  // Scope the rule to the label itself: an unscoped rule would also repaint
+  // this widget's tooltip in the status color, and the tooltip should keep
+  // the platform's own look.
   ui_->statusIndicatorLabel->setStyleSheet(
-      QStringLiteral("background-color: %1; border-radius: 7px;")
-          .arg(text_color.name()));
-  ui_->statusIndicatorLabel->setToolTip(StatusTitle(status));
+      QStringLiteral("QLabel#statusIndicatorLabel { background-color: %1; "
+                     "border-radius: 7px; }")
+          .arg(indicator_color.name()));
+  ui_->statusIndicatorLabel->setToolTip(StatusIndicatorToolTip(status));
 }
 
 void InfoBoardWidget::SetInfoBoard(const QString& text, InfoBoardStatus status,

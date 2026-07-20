@@ -84,6 +84,8 @@ class InfoBoardWidget : public QWidget {
   [[nodiscard]] auto StatusTitle(InfoBoardStatus status) const -> QString;
   [[nodiscard]] auto StatusColor(InfoBoardStatus status) const -> QColor;
   [[nodiscard]] auto StatusIconPath(InfoBoardStatus status) const -> QString;
+  [[nodiscard]] auto StatusIndicatorToolTip(InfoBoardStatus status) const
+      -> QString;
   [[nodiscard]] auto StatusDescription(InfoBoardStatus status,
                                        const QString& operation) const
       -> QString;
