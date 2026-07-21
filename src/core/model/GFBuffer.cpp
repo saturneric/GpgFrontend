@@ -81,25 +81,25 @@ struct GFBuffer::Impl {
   }
 };
 
-GFBuffer::GFBuffer() : impl_(SecureCreateSharedObject<Impl>()) {}
+GFBuffer::GFBuffer() : impl_(SecureCreateUniqueObject<Impl>()) {}
 
-GFBuffer::GFBuffer(size_t size) : impl_(SecureCreateSharedObject<Impl>(size)) {}
+GFBuffer::GFBuffer(size_t size) : impl_(SecureCreateUniqueObject<Impl>(size)) {}
 
 GFBuffer::~GFBuffer() = default;
 
 GFBuffer::GFBuffer(const QByteArray& buffer)
-    : impl_(SecureCreateSharedObject<Impl>(buffer.size())) {
+    : impl_(SecureCreateUniqueObject<Impl>(buffer.size())) {
   std::memcpy(impl_->sec_ptr_, buffer.constData(), impl_->sec_size_);
 }
 
 GFBuffer::GFBuffer(const QString& str) {
   auto b = str.toUtf8();
-  impl_ = SecureCreateSharedObject<Impl>(b.size());
+  impl_ = SecureCreateUniqueObject<Impl>(b.size());
   std::memcpy(impl_->sec_ptr_, b.constData(), impl_->sec_size_);
 }
 
 GFBuffer::GFBuffer(const char* str)
-    : impl_(SecureCreateSharedObject<Impl>(
+    : impl_(SecureCreateUniqueObject<Impl>(
           (str != nullptr) ? strnlen(str, kStrlenMaxLength) : 0)) {
   if ((str != nullptr) && impl_->sec_size_ > 0) {
     std::memcpy(impl_->sec_ptr_, str, impl_->sec_size_);
@@ -107,7 +107,7 @@ GFBuffer::GFBuffer(const char* str)
 }
 
 GFBuffer::GFBuffer(const char* buf, size_t size)
-    : impl_(SecureCreateSharedObject<Impl>((buf != nullptr) ? size : 0)) {
+    : impl_(SecureCreateUniqueObject<Impl>((buf != nullptr) ? size : 0)) {
   if ((buf != nullptr) && impl_->sec_size_ > 0) {
     std::memcpy(impl_->sec_ptr_, buf, impl_->sec_size_);
   }
@@ -118,13 +118,34 @@ auto GFBuffer::operator==(const GFBuffer& o) const -> bool {
          (Size() == 0 || std::memcmp(Data(), o.Data(), Size()) == 0);
 }
 
-auto GFBuffer::Data() -> char* { return static_cast<char*>(impl_->sec_ptr_); }
+auto GFBuffer::cloned_impl() const -> std::shared_ptr<Impl> {
+  if (!impl_ || impl_->sec_ptr_ == nullptr || impl_->sec_size_ == 0) {
+    return SecureCreateUniqueObject<Impl>();
+  }
+
+  auto fresh = SecureCreateUniqueObject<Impl>(impl_->sec_size_);
+  std::memcpy(fresh->sec_ptr_, impl_->sec_ptr_, impl_->sec_size_);
+  return fresh;
+}
+
+void GFBuffer::detach() {
+  if (!impl_ || impl_.use_count() <= 1) return;
+  impl_ = cloned_impl();
+}
+
+auto GFBuffer::Data() -> char* {
+  // hands out a writable pointer, so the storage must be ours alone first.
+  detach();
+  return static_cast<char*>(impl_->sec_ptr_);
+}
 
 auto GFBuffer::Data() const -> const char* {
   return static_cast<const char*>(impl_->sec_ptr_);
 }
 
 void GFBuffer::Resize(ssize_t size) {
+  detach();
+
   if (size == 0) {
     SMASecFree(impl_->sec_ptr_);
 
@@ -149,25 +170,24 @@ auto GFBuffer::Empty() const -> bool { return Size() == 0; }
 
 void GFBuffer::Append(const GFBuffer& o) {
   if (o.Empty()) return;
-
-  if (&o == this) {
-    GFBuffer copy(*this);
-    Append(copy);
-    return;
-  }
-
-  const auto old_size = impl_->sec_size_;
-  Resize(static_cast<ssize_t>(impl_->sec_size_ + o.impl_->sec_size_));
-  memcpy(static_cast<char*>(impl_->sec_ptr_) + old_size, o.impl_->sec_ptr_,
-         o.impl_->sec_size_);
+  Combine({o});
 }
 
 void GFBuffer::Append(const char* buffer, ssize_t size) {
-  if (size == 0) return;
+  if (buffer == nullptr || size <= 0) return;
 
-  const auto old_size = impl_->sec_size_;
-  Resize(static_cast<ssize_t>(impl_->sec_size_ + size));
-  memcpy(static_cast<char*>(impl_->sec_ptr_) + old_size, buffer, size);
+  // build into fresh storage rather than resizing in place: `buffer` may point
+  // into our own allocation, which a realloc would invalidate mid-copy.
+  const auto old_size = Size();
+  auto merged = SecureCreateUniqueObject<Impl>(old_size +
+                                               static_cast<size_t>(size));
+
+  if (old_size > 0) {
+    memcpy(merged->sec_ptr_, impl_->sec_ptr_, old_size);
+  }
+  memcpy(static_cast<char*>(merged->sec_ptr_) + old_size, buffer, size);
+
+  impl_ = std::move(merged);
 }
 
 auto GFBuffer::Left(ssize_t len) const -> GFBuffer {
@@ -258,16 +278,26 @@ void GFBuffer::Combine(const std::initializer_list<GFBuffer>& buffers) {
   }
   if (total_new_data == 0) return;
 
-  const auto old_size = impl_->sec_size_;
-  Resize(static_cast<ssize_t>(old_size + total_new_data));
+  // build into fresh storage rather than resizing in place. any element of
+  // `buffers` may be *this or share our storage (a.Append(a), a.Combine({a})),
+  // and reallocating first would leave those sources dangling or resized
+  // out from under the copy.
+  const auto old_size = Size();
+  auto merged = SecureCreateUniqueObject<Impl>(old_size + total_new_data);
+
+  if (old_size > 0) {
+    memcpy(merged->sec_ptr_, impl_->sec_ptr_, old_size);
+  }
 
   auto offset = old_size;
   for (const auto& b : buffers) {
     if (!b.Empty()) {
-      memcpy(static_cast<char*>(impl_->sec_ptr_) + offset, b.impl_->sec_ptr_,
+      memcpy(static_cast<char*>(merged->sec_ptr_) + offset, b.impl_->sec_ptr_,
              b.impl_->sec_size_);
       offset += b.impl_->sec_size_;
     }
   }
+
+  impl_ = std::move(merged);
 }
 }  // namespace GpgFrontend

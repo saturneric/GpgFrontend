@@ -117,6 +117,108 @@ TEST(GFBufferTest, AppendSelf) {
   EXPECT_EQ(a, "abcabc");
 }
 
+// --- copy independence -------------------------------------------------
+//
+// Copies share storage for cheapness, but a write through one handle must
+// never be observable through another. Before copy-on-write, `GFBuffer b = a`
+// aliased outright, so every one of these mutated the source -- and the
+// self-append path additionally overran its allocation by writing the
+// post-resize length at the pre-resize offset.
+
+TEST(GFBufferTest, SelfAppendDoesNotOverflow) {
+  GFBuffer a("abc");
+  a.Append(a);
+
+  ASSERT_EQ(a.Size(), 6);
+  // compare the full contents, not a prefix: the old bug produced the right
+  // six bytes and then wrote three more past the end of the allocation.
+  EXPECT_EQ(a.ConvertToQByteArray(), QByteArray("abcabc", 6));
+}
+
+TEST(GFBufferTest, SelfAppendRepeatedStaysConsistent) {
+  GFBuffer a("ab");
+  a.Append(a);  // abab
+  a.Append(a);  // abababab
+
+  ASSERT_EQ(a.Size(), 8);
+  EXPECT_EQ(a.ConvertToQByteArray(), QByteArray("abababab", 8));
+}
+
+TEST(GFBufferTest, SelfCombineDoesNotOverflow) {
+  GFBuffer a("xy");
+  a.Combine({a, a});
+
+  ASSERT_EQ(a.Size(), 6);
+  EXPECT_EQ(a.ConvertToQByteArray(), QByteArray("xyxyxy", 6));
+}
+
+TEST(GFBufferTest, CopyThenResizeDoesNotMutateSource) {
+  GFBuffer a("original");
+  GFBuffer b = a;
+
+  b.Resize(64);
+
+  EXPECT_EQ(a.Size(), 8);
+  EXPECT_EQ(a, "original");
+  EXPECT_EQ(b.Size(), 64);
+}
+
+TEST(GFBufferTest, CopyThenAppendDoesNotMutateSource) {
+  GFBuffer a("base");
+  GFBuffer b = a;
+
+  b.Append(GFBuffer("-extra"));
+
+  EXPECT_EQ(a, "base");
+  EXPECT_EQ(b, "base-extra");
+}
+
+TEST(GFBufferTest, CopyAssignThenAppendDoesNotMutateSource) {
+  GFBuffer a("base");
+  GFBuffer b("discarded");
+  b = a;
+
+  b.Append("!", 1);
+
+  EXPECT_EQ(a, "base");
+  EXPECT_EQ(b, "base!");
+}
+
+TEST(GFBufferTest, CopyIsIndependentAfterDataWrite) {
+  GFBuffer a("aaaa");
+  GFBuffer b = a;
+
+  auto* data = b.Data();
+  ASSERT_NE(data, nullptr);
+  data[0] = 'z';
+
+  EXPECT_EQ(a, "aaaa");
+  EXPECT_EQ(b, "zaaa");
+}
+
+TEST(GFBufferTest, SourceMutationDoesNotAffectEarlierCopy) {
+  GFBuffer a("first");
+  GFBuffer b = a;
+
+  a.Append("-changed", 8);
+
+  EXPECT_EQ(b, "first");
+  EXPECT_EQ(a, "first-changed");
+}
+
+TEST(GFBufferTest, ZeroizeWipesThroughShares) {
+  // deliberate asymmetry: Zeroize is a security primitive meaning "erase this
+  // secret now", so unlike the mutators it does NOT detach. Detaching would
+  // wipe a private copy and leave the original secret in memory.
+  GFBuffer a("secret");
+  GFBuffer b = a;
+
+  b.Zeroize();
+
+  EXPECT_EQ(a.ConvertToQByteArray(), QByteArray(6, '\0'));
+  EXPECT_EQ(b.ConvertToQByteArray(), QByteArray(6, '\0'));
+}
+
 TEST(GFBufferTest, AppendCharPointer) {
   GFBuffer a("abc");
   a.Append("def", 3);
