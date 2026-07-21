@@ -439,4 +439,34 @@ auto ConfirmShortUserIdName(QWidget *parent, const QString &name) -> bool {
              QMessageBox::Yes | QMessageBox::No,
              QMessageBox::No) == QMessageBox::Yes;
 }
+
+auto SecureLevelDisplayName(int level) -> QString {
+  // Brief, plainly escalating names for the status readout. What each level
+  // actually does is spelled out on the Advanced settings page, where the
+  // level is chosen; here a one-word tier reads at a glance.
+  switch (level) {
+    case 0:
+      return QObject::tr("Standard");
+    case 1:
+      return QObject::tr("Enhanced");
+    case 2:
+      return QObject::tr("Strong");
+    case 3:
+      return QObject::tr("Maximum");
+    default:
+      return QObject::tr("Unknown");
+  }
+}
+
+auto AppKeyProtectionDisplayName(AppKeyProtection protection) -> QString {
+  switch (protection) {
+    case AppKeyProtection::kKEYCHAIN:
+      return QObject::tr("System keychain");
+    case AppKeyProtection::kPIN:
+      return QObject::tr("PIN at startup");
+    case AppKeyProtection::kNONE:
+      break;
+  }
+  return QObject::tr("No extra protection");
+}
 }  // namespace GpgFrontend::UI

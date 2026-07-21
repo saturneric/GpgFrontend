@@ -33,11 +33,13 @@
 #include <QDesktopServices>
 #include <functional>
 
+#include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/RustUtils.h"
 #include "ui/UIModuleManager.h"
+#include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
 namespace {
@@ -498,20 +500,9 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   main_layout->setContentsMargins(18, 18, 18, 18);
   main_layout->setSpacing(14);
 
-  const QString secure_level_str = [secure_level]() {
-    switch (secure_level) {
-      case 0:
-        return tr("Default");
-      case 1:
-        return tr("Standard");
-      case 2:
-        return tr("Enhanced");
-      case 3:
-        return tr("High");
-      default:
-        return tr("Unknown");
-    }
-  }();
+  const QString secure_level_str = SecureLevelDisplayName(secure_level);
+  const QString app_key_protection_str =
+      AppKeyProtectionDisplayName(AppKeyProtectionFromApp());
 
   const QString portable_mode_str =
       portable_mode ? tr("Portable Mode") : tr("Installed Mode");
@@ -530,8 +521,10 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   auto* status_form = CreateInfoForm(status_widget);
   status_widget->setLayout(status_form);
 
-  status_form->addRow(tr("Security Level:"),
+  status_form->addRow(tr("Secure Level:"),
                       CreateValueLabel(secure_level_str, status_widget));
+  status_form->addRow(tr("Application Key Protection:"),
+                      CreateValueLabel(app_key_protection_str, status_widget));
   status_form->addRow(tr("Running Mode:"),
                       CreateValueLabel(portable_mode_str, status_widget));
   status_form->addRow(tr("Self-Check Status:"),

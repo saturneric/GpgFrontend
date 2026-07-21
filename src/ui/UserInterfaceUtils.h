@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/AppSecureKeyManager.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GFBuffer.h"
 #include "core/model/GpgKey.h"
@@ -88,6 +89,26 @@ auto ClampRectToAvailableGeometry(QRect rect, const QRect& available) -> QRect;
  * @return true if generation should continue
  */
 auto ConfirmShortUserIdName(QWidget* parent, const QString& name) -> bool;
+
+/**
+ * @brief Human name of a memory-hardening secure level.
+ *
+ * Shared by the Advanced tab and the About dialog so the two cannot drift
+ * apart, which is how their labels came to disagree in the first place.
+ *
+ * @param level the GFSecureLevel value, 0..3
+ * @return a translated, user-facing name
+ */
+auto GF_UI_EXPORT SecureLevelDisplayName(int level) -> QString;
+
+/**
+ * @brief Human name of an application key protection mode.
+ *
+ * @param protection resolved protection, as stored in GFAppKeyProtection
+ * @return a translated, user-facing name
+ */
+auto GF_UI_EXPORT AppKeyProtectionDisplayName(AppKeyProtection protection)
+    -> QString;
 
 /**
  * @brief
