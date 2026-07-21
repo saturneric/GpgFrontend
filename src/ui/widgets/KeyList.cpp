@@ -270,6 +270,7 @@ QListWidget#KeyCategoryList::item:hover:!selected {
   background: rgba(128, 128, 128, 0.16);
 }
 )");
+    apply_category_item_metrics();
     return;
   }
 
@@ -300,6 +301,7 @@ QListWidget#KeyCategoryList::item:hover:!selected {
   background: palette(alternate-base);
 }
 )");
+  apply_category_item_metrics();
 }
 
 auto KeyList::resolve_category_color(const QString& id,
@@ -373,6 +375,26 @@ auto KeyList::make_category_icon(const QColor& color, bool custom) const
   p.end();
 
   return QIcon(pm);
+}
+
+auto KeyList::category_item_size_hint() const -> QSize {
+  const auto icon = ui_->categoryList->iconSize();
+
+  // Compact rail: swatch only, so the row is purely the icon plus the padding
+  // from the stylesheet. Keeping it off the font/style metrics is what makes
+  // the swatch spacing identical on every platform.
+  if (compact_rail_) return {icon.width() + 2, icon.height() + 6};
+
+  // Text list: the row must still grow with the UI font, but nothing else.
+  const auto text_height = ui_->categoryList->fontMetrics().height();
+  return {icon.width() + 20, qMax(icon.height(), text_height) + 12};
+}
+
+void KeyList::apply_category_item_metrics() {
+  const auto hint = category_item_size_hint();
+  for (int i = 0; i < ui_->categoryList->count(); ++i) {
+    ui_->categoryList->item(i)->setSizeHint(hint);
+  }
 }
 
 void KeyList::init_texts() {
@@ -685,6 +707,7 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
   item->setIcon(make_category_icon(resolve_category_color(id, color_hint),
                                    IsCustomCategoryId(id)));
   if (!compact_rail_) item->setText(name);
+  item->setSizeHint(category_item_size_hint());
 
   if (ui_->categoryList->currentRow() < 0) {
     ui_->categoryList->setCurrentRow(0);
@@ -763,8 +786,8 @@ void KeyList::SetColumnFilterSettingsKey(const QString& settings_key,
                  static_cast<unsigned int>(default_columns))
           .toUInt());
 
-  // Rebuild the chooser so its checkmarks reflect the (possibly new) state, then
-  // apply the filter to every existing tab.
+  // Rebuild the chooser so its checkmarks reflect the (possibly new) state,
+  // then apply the filter to every existing tab.
   init_column_menu();
   UpdateKeyTableColumnType(global_column_filter_);
 }

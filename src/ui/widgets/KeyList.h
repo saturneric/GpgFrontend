@@ -502,6 +502,20 @@ class KeyList : public QWidget {
       -> QIcon;
 
   /**
+   * @brief Row size for a category strip item.
+   *
+   * Set explicitly on every row: left to the delegate, the height comes out of
+   * the platform style's item metrics, which are noticeably taller on Windows
+   * than on Linux and stretch the compact rail's swatch spacing.
+   */
+  [[nodiscard]] auto category_item_size_hint() const -> QSize;
+
+  /**
+   * @brief (Re-)apply category_item_size_hint() to every row in the strip.
+   */
+  void apply_category_item_metrics();
+
+  /**
    * @brief Prompt for a colour and persist it as this category's user-chosen
    * colour; all open key lists refresh their swatches.
    *
