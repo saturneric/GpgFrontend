@@ -169,9 +169,27 @@ class CacheManager::Impl : public QObject {
   }
 
   auto ResetDurableCache(const QString& key) -> bool {
-    auto data_object_key = get_data_object_key(key);
+    auto removed = durable_cache_storage_.remove(key);
+
+    // dropping the in-memory entry is not enough. load_all_cache_storage()
+    // rebuilds the map from key_storage_ on the next start, so the key must
+    // leave the registry and the encrypted object must leave the disk --
+    // otherwise the reset silently reverts. slot_flush_cache_storage() cannot
+    // do it for us either: it skips empty values, so an emptied entry can
+    // never overwrite its own on-disk copy.
+    for (auto it = key_storage_.begin(); it != key_storage_.end(); ++it) {
+      if (it->toString() == key) {
+        key_storage_.erase(it);
+        break;
+      }
+    }
+
+    opera_.RemoveDataObj(get_data_object_key(key));
+
     durable_cache_modified_ = true;
-    return durable_cache_storage_.remove(key);
+    slot_flush_cache_storage();
+
+    return removed;
   }
 
   void FlushCacheStorage() { this->slot_flush_cache_storage(); }
