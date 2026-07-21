@@ -620,14 +620,10 @@ void MainWindow::create_dock_windows() {
   // default to a compact, identity-focused column set and persist the choice
   // independently of the Key Management window. The optional columns (Key ID,
   // Trust, ...) remain available through the Columns chooser.
-  m_key_list_->SetColumnFilterSettingsKey(
-      "keys/toolbox_columns_filter",
-      GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
-          GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kUSAGE);
-
-  // Column widths are per window: the dock is narrow, the Key Management window
-  // is wide, so they want very different layouts.
-  m_key_list_->SetColumnWidthsScope("toolbox");
+  m_key_list_->SetPersistenceScope(
+      "toolbox", GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
+                     GpgKeyTableColumn::kEMAIL_ADDRESS |
+                     GpgKeyTableColumn::kUSAGE);
 
   m_key_list_->AddListGroupTab(
       tr("Default"), "default",
