@@ -83,7 +83,7 @@ auto HasRustSupport() -> bool {
 #ifdef HAS_RUST_SUPPORT
   return true;
 #else
-  return false
+  return false;
 #endif
 }
 
