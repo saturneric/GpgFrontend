@@ -29,6 +29,7 @@
 #include "GFCoreTest.h"
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/GFBufferFactory.h"
+#include "core/function/PassphraseGenerator.h"
 #include "core/function/SecureRandomGenerator.h"
 
 namespace GpgFrontend::Test {
@@ -267,4 +268,126 @@ TEST(GFBufferFactoryTest, ToFileAndFromFile) {
   // Cleanup
   QFile::remove(path);
 }
+
+namespace {
+
+auto IsAlphanum(char c) -> bool {
+  return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') ||
+         (c >= 'a' && c <= 'z');
+}
+
+}  // namespace
+
+TEST(PassphraseAlphabetTest, MappingCoversAllByteValues) {
+  // every one of the 256 possible input bytes must either be rejected or map
+  // to a character inside the alphabet. a signed-char cast breaks this for
+  // everything from 0x80 up.
+  std::array<char, 256> src{};
+  for (size_t i = 0; i < src.size(); ++i) {
+    src[i] = static_cast<char>(i);
+  }
+
+  std::array<char, 256> dst{};
+  auto written =
+      MapRandomBytesToAlphanum(src.data(), src.size(), dst.data(), dst.size());
+
+  ASSERT_GT(written, 0U);
+  for (size_t i = 0; i < written; ++i) {
+    EXPECT_TRUE(IsAlphanum(dst[i]))
+        << "index " << i << " produced non-alphanumeric byte "
+        << static_cast<int>(static_cast<unsigned char>(dst[i]));
+  }
+}
+
+TEST(PassphraseAlphabetTest, MappingRejectsBiasInducingBytes) {
+  // 248..255 are the eight bytes that would fold onto '0'..'7' a fifth time.
+  // they must be discarded, not mapped.
+  std::array<char, 8> src{};
+  for (size_t i = 0; i < src.size(); ++i) {
+    src[i] = static_cast<char>(248 + i);
+  }
+
+  std::array<char, 8> dst{};
+  EXPECT_EQ(
+      MapRandomBytesToAlphanum(src.data(), src.size(), dst.data(), dst.size()),
+      0U);
+}
+
+TEST(PassphraseAlphabetTest, MappingIsUnbiased) {
+  // deterministic input: every accepted byte value exactly once. each of the
+  // 62 characters must therefore appear exactly 248/62 == 4 times. no RNG is
+  // involved, so this cannot flake.
+  std::array<char, 248> src{};
+  for (size_t i = 0; i < src.size(); ++i) {
+    src[i] = static_cast<char>(i);
+  }
+
+  std::array<char, 248> dst{};
+  auto written =
+      MapRandomBytesToAlphanum(src.data(), src.size(), dst.data(), dst.size());
+  ASSERT_EQ(written, 248U);
+
+  QMap<char, int> histogram;
+  for (size_t i = 0; i < written; ++i) {
+    histogram[dst[i]]++;
+  }
+
+  EXPECT_EQ(histogram.size(), 62);
+  for (auto it = histogram.begin(); it != histogram.end(); ++it) {
+    EXPECT_EQ(it.value(), 4) << "character '" << it.key() << "' appeared "
+                             << it.value() << " times, expected 4";
+  }
+}
+
+TEST(PassphraseAlphabetTest, MappingRespectsDestinationCapacity) {
+  std::array<char, 64> src{};
+  for (size_t i = 0; i < src.size(); ++i) {
+    src[i] = static_cast<char>(i);
+  }
+
+  std::array<char, 8> dst{};
+  dst.fill('\0');
+
+  EXPECT_EQ(MapRandomBytesToAlphanum(src.data(), src.size(), dst.data(), 4),
+            4U);
+  // must not have written past the requested capacity.
+  EXPECT_EQ(dst[4], '\0');
+}
+
+TEST(PassphraseAlphabetTest, MappingHandlesEmptyAndNullInput) {
+  std::array<char, 4> dst{};
+
+  EXPECT_EQ(MapRandomBytesToAlphanum(nullptr, 16, dst.data(), dst.size()), 0U);
+  EXPECT_EQ(MapRandomBytesToAlphanum(dst.data(), 0, dst.data(), dst.size()),
+            0U);
+}
+
+TEST(PassphraseAlphabetTest, GenerateReturnsRequestedLength) {
+  for (int len : {1, 8, 32, 256}) {
+    auto passphrase = PassphraseGenerator::GetInstance().Generate(len);
+    ASSERT_TRUE(passphrase.has_value()) << "failed at len " << len;
+    EXPECT_EQ(passphrase->Size(), static_cast<size_t>(len));
+  }
+}
+
+TEST(PassphraseAlphabetTest, GenerateProducesOnlyAlphanum) {
+  constexpr int kLen = 512;
+
+  auto passphrase = PassphraseGenerator::GetInstance().Generate(kLen);
+  ASSERT_TRUE(passphrase.has_value());
+
+  const auto bytes = passphrase->ConvertToQByteArray();
+  ASSERT_EQ(bytes.size(), kLen);
+  for (int i = 0; i < bytes.size(); ++i) {
+    EXPECT_TRUE(IsAlphanum(bytes[i]))
+        << "index " << i << " produced non-alphanumeric byte "
+        << static_cast<int>(static_cast<unsigned char>(bytes[i]));
+  }
+}
+
+TEST(PassphraseAlphabetTest, GenerateRejectsNonPositiveLength) {
+  EXPECT_FALSE(PassphraseGenerator::GetInstance().Generate(0).has_value());
+  EXPECT_FALSE(PassphraseGenerator::GetInstance().Generate(-1).has_value());
+}
+
 }  // namespace GpgFrontend::Test

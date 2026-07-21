@@ -30,40 +30,95 @@
 
 namespace GpgFrontend {
 
-auto PassphraseGenerator::Generate(int len) -> GFBufferOrNone {
-  static const std::array<char, 63> kAlphanum = {
-      "0123456789"
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-      "abcdefghijklmnopqrstuvwxyz"};
+namespace {
 
-  GFBufferOrNone buffer;
-  buffer = SecureRandomGenerator::Generate(len);
-  if (!buffer || buffer->Empty() || buffer->Size() < static_cast<size_t>(len)) {
-    LOG_E() << "generate random bytes failed, len: " << len;
-  }
+constexpr std::array<char, 63> kAlphanum = {
+    "0123456789"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"};
 
-  // fallback to qt random generator, which is not cryptographically secure, but
-  // better than nothing
-  if (!buffer) {
+// the array carries the literal's trailing NUL; the alphabet itself is 62.
+constexpr size_t kAlphanumSize = kAlphanum.size() - 1;
+
+// 62 * 4 == 248. Bytes from 248..255 would map onto '0'..'7' a fifth time and
+// skew the alphabet, so they are rejected instead of folded.
+constexpr unsigned char kRejectThreshold = 248;
+
+static_assert(kAlphanumSize == 62, "alphabet size drives the reject threshold");
+static_assert(kRejectThreshold % kAlphanumSize == 0,
+              "reject threshold must be a whole multiple of the alphabet");
+
+/**
+ * @brief Draw @p len random bytes, falling back to Qt on any shortfall.
+ */
+auto DrawRandomBytes(int len) -> GFBufferOrNone {
+  auto buffer = SecureRandomGenerator::Generate(len);
+
+  // a short buffer is as unusable as a missing one: consuming it would read
+  // past its end. both cases take the fallback.
+  if (!buffer || buffer->Size() < static_cast<size_t>(len)) {
     LOG_W() << "generate random bytes using gnupg and openssl failed, fallback "
                "to qt random generator, len: "
             << len;
+
     QByteArray random_bytes(len, 0);
     for (int i = 0; i < len; ++i) {
-      auto byte = QRandomGenerator::global()->bounded(-65535, 65535);
-      random_bytes[i] = static_cast<char>(byte & 0xFF);
+      random_bytes[i] =
+          static_cast<char>(QRandomGenerator::global()->bounded(256));
     }
-    buffer = GFBuffer(random_bytes);
+    return GFBuffer(random_bytes);
   }
 
-  GFBuffer result(len);
+  return buffer;
+}
 
-  const size_t charset_size = sizeof(kAlphanum) - 1;
-  const auto *data = buffer->Data();
+}  // namespace
+
+auto MapRandomBytesToAlphanum(const char *src, size_t src_size, char *dst,
+                              size_t dst_size) -> size_t {
+  if (src == nullptr || dst == nullptr) return 0;
+
+  size_t written = 0;
+  for (size_t i = 0; i < src_size && written < dst_size; ++i) {
+    const auto byte = static_cast<unsigned char>(src[i]);
+    if (byte >= kRejectThreshold) continue;
+
+    dst[written++] = kAlphanum[byte % kAlphanumSize];
+  }
+
+  return written;
+}
+
+auto PassphraseGenerator::Generate(int len) -> GFBufferOrNone {
+  if (len <= 0) return {};
+
+  const auto target = static_cast<size_t>(len);
+  GFBuffer result(target);
   auto *result_data = result.Data();
-  for (int i = 0; i < len; ++i) {
-    size_t idx = static_cast<size_t>(data[i]) % charset_size;
-    result_data[i] = kAlphanum[idx];
+
+  // rejection sampling discards ~3% of input bytes, so a single draw of `len`
+  // bytes usually falls a little short. top up until full, with a hard round
+  // cap so a persistently failing random source cannot spin here.
+  constexpr int kMaxRounds = 16;
+  size_t filled = 0;
+
+  for (int round = 0; round < kMaxRounds && filled < target; ++round) {
+    const auto needed = static_cast<int>(target - filled);
+
+    auto buffer = DrawRandomBytes(needed);
+    if (!buffer || buffer->Empty()) {
+      LOG_E() << "generate random bytes failed, len: " << needed;
+      return {};
+    }
+
+    filled += MapRandomBytesToAlphanum(buffer->Data(), buffer->Size(),
+                                       result_data + filled, target - filled);
+  }
+
+  if (filled < target) {
+    LOG_E() << "failed to fill passphrase of length" << len << ", got"
+            << filled;
+    return {};
   }
 
   return result;
