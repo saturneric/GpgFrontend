@@ -149,6 +149,29 @@ struct KeyTable : public QTableView {
    */
   void RefreshProxyModel();
 
+  /**
+   * @brief Set the settings key under which this table's column widths are
+   * persisted, then reload and apply them.
+   *
+   * Widths are stored per host window (Key Management, main-window dock, ...)
+   * and shared by every category tab of that window.
+   *
+   * @param settings_key group key, e.g. "keys/keymgmt_column_widths"
+   */
+  void SetColumnWidthsSettingsKey(const QString& settings_key);
+
+  /**
+   * @brief Re-read the persisted column widths and apply them. Used to keep
+   * sibling tabs of the same key list in sync after a resize.
+   */
+  void ReloadColumnWidths();
+
+  /**
+   * @brief Discard the persisted column widths and fall back to the automatic
+   * layout.
+   */
+  void ResetColumnWidths();
+
  signals:
 
   /**
@@ -169,11 +192,32 @@ struct KeyTable : public QTableView {
    */
   void SignalKeyChecked();
 
+  /**
+   * @brief Emitted after the user drags a section divider and the new width is
+   * persisted.
+   */
+  void SignalColumnWidthChanged();
+
+ protected:
+  void showEvent(QShowEvent* event) override;
+  void resizeEvent(QResizeEvent* event) override;
+
  private:
   QSharedPointer<GpgKeyTableModel> model_;
   GpgKeyTableProxyModel proxy_model_;
   GpgKeyTableColumn column_filter_;
   bool bulk_checking_ = false;
+
+  ///< Settings group holding this table's column widths.
+  QString column_widths_settings_key_ = "keys/global_column_widths";
+
+  ///< Persisted widths, keyed by *source* column index. The proxy hides columns
+  ///< dynamically, so visible indices are not stable across column toggles.
+  QHash<int, int> saved_widths_;
+
+  ///< True while apply_column_sizing() drives the header, so its own
+  ///< resizeSection() calls are not mistaken for user drags.
+  bool applying_sizing_ = false;
 
   /**
    * @brief Construct a new Init Table Style object
@@ -186,11 +230,31 @@ struct KeyTable : public QTableView {
    * available width instead of expanding to fit and pushing the short,
    * decision-relevant columns (Type, Usage) off-screen.
    *
-   * Name / Email / Comment stretch (and elide with an ellipsis); every other
-   * visible column sizes to its content. Re-applied whenever the visible column
-   * set or the model changes.
+   * Every column is Interactive so the user can drag any divider. Widths the
+   * user has chosen (saved_widths_) win; the rest fall back to the automatic
+   * layout: Name / Email / Comment share the leftover width (and elide with an
+   * ellipsis), every other visible column sizes to its content. Re-applied
+   * whenever the visible column set or the model changes.
    */
   void apply_column_sizing();
+
+  /**
+   * @brief Cheap counterpart of apply_column_sizing() used on the resize path:
+   * shares the leftover width out among the stretch columns while leaving the
+   * content-fit columns at their current width, avoiding a full row scan on
+   * every frame of a window drag-resize.
+   */
+  void redistribute_stretch_columns();
+
+  /**
+   * @brief Load saved_widths_ from the settings group.
+   */
+  void load_column_widths();
+
+  /**
+   * @brief Persist one column's width, keyed by its source column index.
+   */
+  void save_column_width(int source_column, int width);
 };
 
 }  // namespace GpgFrontend::UI

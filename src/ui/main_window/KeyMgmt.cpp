@@ -65,6 +65,10 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   // The Key Management window is the home for category management.
   key_list_->SetCategoryManagementEnabled(true);
 
+  // Column widths are per window: this one is wide, the ToolBox dock is narrow,
+  // so they want very different layouts.
+  key_list_->SetColumnWidthsSettingsKey("keys/keymgmt_column_widths");
+
   key_list_->AddListGroupTab(tr("All"), "all",
                              GpgKeyTableDisplayMode::kPUBLIC_KEY |
                                  GpgKeyTableDisplayMode::kPRIVATE_KEY);

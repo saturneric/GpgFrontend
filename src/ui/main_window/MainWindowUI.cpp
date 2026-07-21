@@ -625,6 +625,10 @@ void MainWindow::create_dock_windows() {
       GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
           GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kUSAGE);
 
+  // Column widths are per window: the dock is narrow, the Key Management window
+  // is wide, so they want very different layouts.
+  m_key_list_->SetColumnWidthsSettingsKey("keys/toolbox_column_widths");
+
   m_key_list_->AddListGroupTab(
       tr("Default"), "default",
       GpgKeyTableDisplayMode::kPUBLIC_KEY |

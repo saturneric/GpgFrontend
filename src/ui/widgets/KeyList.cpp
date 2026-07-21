@@ -530,6 +530,12 @@ void KeyList::init_column_menu() {
     empty_action->setEnabled(false);
   }
 
+  column_type_menu->addSeparator();
+  connect(column_type_menu->addAction(tr("Reset Column Widths")),
+          &QAction::triggered, this, [this]() {
+            for (auto* page : pages_) page->ResetColumnWidths();
+          });
+
   ui_->columnTypeButton->setMenu(column_type_menu);
 }
 
@@ -690,6 +696,7 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
                    std::move(search_filter), category_id);
 
   key_table->setObjectName(id);
+  key_table->SetColumnWidthsSettingsKey(column_widths_settings_key_);
 
   ui_->keyStack->addWidget(key_table);
   pages_.insert(id, key_table);
@@ -718,6 +725,16 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
   connect(key_table, &KeyTable::SignalKeyChecked, this, [=]() {
     if (sender() != current_page()) return;
     emit SignalKeyChecked();
+  });
+
+  // Column widths are shared by every tab of this key list, so a resize in one
+  // tab has to be picked up by all the others.
+  connect(key_table, &KeyTable::SignalColumnWidthChanged, this, [this]() {
+    auto* source = qobject_cast<KeyTable*>(sender());
+    for (auto* page : pages_) {
+      if (page == source) continue;
+      page->ReloadColumnWidths();
+    }
   });
 
   UpdateKeyTableColumnType(global_column_filter_);
@@ -790,6 +807,15 @@ void KeyList::SetColumnFilterSettingsKey(const QString& settings_key,
   // then apply the filter to every existing tab.
   init_column_menu();
   UpdateKeyTableColumnType(global_column_filter_);
+}
+
+void KeyList::SetColumnWidthsSettingsKey(const QString& settings_key) {
+  if (settings_key.isEmpty()) return;
+
+  column_widths_settings_key_ = settings_key;
+  for (auto* page : pages_) {
+    page->SetColumnWidthsSettingsKey(column_widths_settings_key_);
+  }
 }
 
 void KeyList::save_tab_order() {
@@ -1104,13 +1130,6 @@ void KeyList::SetChecked(const KeyIdArgsList& key_ids,
     }
   }
   return false;
-}
-
-void KeyList::SetColumnWidth(int row, int size) {
-  auto* key_table = current_page();
-  if (key_table == nullptr) return;
-
-  key_table->setColumnWidth(row, size);
 }
 
 void KeyList::contextMenuEvent(QContextMenuEvent* event) {

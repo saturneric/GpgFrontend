@@ -28,6 +28,7 @@
 
 #include "ui/widgets/KeyTable.h"
 
+#include "core/function/GlobalSettingStation.h"
 #include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
@@ -58,7 +59,21 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
       column_filter_(column_filter) {
   setModel(&proxy_model_);
   proxy_model_.SetCategoryFilter(category_id);
+  load_column_widths();
   init_table_style();
+
+  connect(horizontalHeader(), &QHeaderView::sectionResized, this,
+          [this](int visible_col, int /*old_size*/, int new_size) {
+            if (applying_sizing_) return;
+
+            const auto source_col =
+                proxy_model_.SourceColumnForVisibleColumn(visible_col);
+            if (source_col < 0) return;
+
+            saved_widths_[source_col] = new_size;
+            save_column_width(source_col, new_size);
+            emit SignalColumnWidthChanged();
+          });
 
   connect(CommonUtils::GetInstance(), &CommonUtils::SignalCategoriesChanged,
           &proxy_model_, &GpgKeyTableProxyModel::SignalCategoriesRefresh);
@@ -96,7 +111,9 @@ void KeyTable::init_table_style() {
   verticalHeader()->hide();
 
   horizontalHeader()->setStretchLastSection(false);
-  horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+  // Per-section modes are assigned in apply_column_sizing(); Interactive is the
+  // baseline so every divider is draggable.
+  horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
   horizontalHeader()->setHighlightSections(false);
   horizontalHeader()->setSectionsClickable(true);
   horizontalHeader()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -156,19 +173,159 @@ void KeyTable::apply_column_sizing() {
   auto* header = horizontalHeader();
   if (header == nullptr) return;
 
+  // Source columns whose text can be long: Name (2), Email (3), Comment (10).
+  // These share the leftover width and elide; every other visible column sizes
+  // to its content.
+  static const QSet<int> kStretchSourceColumns = {2, 3, 10};
+  static const int kStretchMinWidth = 80;
+
+  const auto columns = proxy_model_.columnCount({});
+  if (columns <= 0) return;
+
+  const QScopedValueRollback<bool> guard(applying_sizing_, true);
+
   header->setStretchLastSection(false);
 
-  // Source columns whose text can be long: Name (2), Email (3), Comment (10).
-  // These stretch and elide; every other visible column sizes to its content.
-  static const QSet<int> kStretchSourceColumns = {2, 3, 10};
+  // Content-fit widths first; the stretch columns get their share of whatever
+  // room is left over afterwards.
+  QVector<int> widths(columns, 0);
+  QVector<int> stretch_cols;
+  int fixed_total = 0;
 
-  for (int col = 0; col < proxy_model_.columnCount({}); ++col) {
+  for (int col = 0; col < columns; ++col) {
     const auto source_col = proxy_model_.SourceColumnForVisibleColumn(col);
+
+    // The checkbox column is not a meaningful thing to drag.
     header->setSectionResizeMode(
-        col, kStretchSourceColumns.contains(source_col)
-                 ? QHeaderView::Stretch
-                 : QHeaderView::ResizeToContents);
+        col, source_col == 0 ? QHeaderView::Fixed : QHeaderView::Interactive);
+
+    if (const auto saved = saved_widths_.constFind(source_col);
+        saved != saved_widths_.constEnd() && *saved > 0) {
+      widths[col] = *saved;
+      fixed_total += widths[col];
+      continue;
+    }
+
+    if (source_col > 0 && kStretchSourceColumns.contains(source_col)) {
+      stretch_cols.push_back(col);
+      continue;
+    }
+
+    widths[col] =
+        qMax(sizeHintForColumn(col), header->sectionSizeHint(col)) + 1;
+    fixed_total += widths[col];
   }
+
+  if (!stretch_cols.isEmpty()) {
+    const auto available = viewport()->width() - fixed_total;
+    const auto share = static_cast<int>(available / stretch_cols.size());
+    for (const auto col : stretch_cols) {
+      widths[col] = qMax(share, kStretchMinWidth);
+    }
+  }
+
+  for (int col = 0; col < columns; ++col) {
+    if (widths[col] > 0) header->resizeSection(col, widths[col]);
+  }
+}
+
+void KeyTable::redistribute_stretch_columns() {
+  auto* header = horizontalHeader();
+  if (header == nullptr) return;
+
+  static const QSet<int> kStretchSourceColumns = {2, 3, 10};
+  static const int kStretchMinWidth = 80;
+
+  const auto columns = proxy_model_.columnCount({});
+  if (columns <= 0) return;
+
+  // Cheap counterpart of apply_column_sizing() for the resize path: the
+  // content-fit columns keep the width they already have, so no row scan is
+  // needed; only the leftover space is shared out again.
+  QVector<int> stretch_cols;
+  int fixed_total = 0;
+
+  for (int col = 0; col < columns; ++col) {
+    const auto source_col = proxy_model_.SourceColumnForVisibleColumn(col);
+    if (source_col > 0 && kStretchSourceColumns.contains(source_col)) {
+      stretch_cols.push_back(col);
+      continue;
+    }
+    fixed_total += header->sectionSize(col);
+  }
+
+  if (stretch_cols.isEmpty()) return;
+
+  const QScopedValueRollback<bool> guard(applying_sizing_, true);
+
+  const auto available = viewport()->width() - fixed_total;
+  const auto share = static_cast<int>(available / stretch_cols.size());
+  for (const auto col : stretch_cols) {
+    header->resizeSection(col, qMax(share, kStretchMinWidth));
+  }
+}
+
+void KeyTable::load_column_widths() {
+  saved_widths_.clear();
+
+  auto settings = GetSettings();
+  settings.beginGroup(column_widths_settings_key_);
+  for (const auto& key : settings.childKeys()) {
+    bool ok = false;
+    const auto source_col = key.toInt(&ok);
+    if (!ok) continue;
+
+    const auto width = settings.value(key).toInt(&ok);
+    if (!ok || width <= 0) continue;
+
+    saved_widths_.insert(source_col, width);
+  }
+  settings.endGroup();
+}
+
+void KeyTable::save_column_width(int source_column, int width) {
+  auto settings = GetSettings();
+  settings.beginGroup(column_widths_settings_key_);
+  settings.setValue(QString::number(source_column), width);
+  settings.endGroup();
+}
+
+void KeyTable::SetColumnWidthsSettingsKey(const QString& settings_key) {
+  if (settings_key.isEmpty() || settings_key == column_widths_settings_key_) {
+    return;
+  }
+
+  column_widths_settings_key_ = settings_key;
+  ReloadColumnWidths();
+}
+
+void KeyTable::ReloadColumnWidths() {
+  load_column_widths();
+  apply_column_sizing();
+}
+
+void KeyTable::ResetColumnWidths() {
+  auto settings = GetSettings();
+  settings.remove(column_widths_settings_key_);
+
+  saved_widths_.clear();
+  apply_column_sizing();
+}
+
+void KeyTable::showEvent(QShowEvent* event) {
+  QTableView::showEvent(event);
+
+  // The viewport width is not usable before the first show, so the automatic
+  // layout can only be computed here.
+  if (saved_widths_.isEmpty()) apply_column_sizing();
+}
+
+void KeyTable::resizeEvent(QResizeEvent* event) {
+  QTableView::resizeEvent(event);
+
+  // Keep redistributing the leftover width until the user takes control; once
+  // they have dragged a divider the layout is theirs.
+  if (saved_widths_.isEmpty()) redistribute_stretch_columns();
 }
 
 void KeyTable::SetFilterKeyword(const QString& keyword) {
