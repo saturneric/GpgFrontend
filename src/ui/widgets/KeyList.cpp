@@ -696,7 +696,7 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
                    std::move(search_filter), category_id);
 
   key_table->setObjectName(id);
-  key_table->SetColumnWidthsSettingsKey(column_widths_settings_key_);
+  key_table->SetColumnWidthsScope(column_widths_scope_);
 
   ui_->keyStack->addWidget(key_table);
   pages_.insert(id, key_table);
@@ -809,13 +809,11 @@ void KeyList::SetColumnFilterSettingsKey(const QString& settings_key,
   UpdateKeyTableColumnType(global_column_filter_);
 }
 
-void KeyList::SetColumnWidthsSettingsKey(const QString& settings_key) {
-  if (settings_key.isEmpty()) return;
+void KeyList::SetColumnWidthsScope(const QString& scope) {
+  if (scope.isEmpty()) return;
 
-  column_widths_settings_key_ = settings_key;
-  for (auto* page : pages_) {
-    page->SetColumnWidthsSettingsKey(column_widths_settings_key_);
-  }
+  column_widths_scope_ = scope;
+  for (auto* page : pages_) page->SetColumnWidthsScope(column_widths_scope_);
 }
 
 void KeyList::save_tab_order() {

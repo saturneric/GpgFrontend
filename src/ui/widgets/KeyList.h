@@ -137,16 +137,17 @@ class KeyList : public QWidget {
       GpgKeyTableColumn default_columns = GpgKeyTableColumn::kALL);
 
   /**
-   * @brief Scope under which this key list persists its column widths.
+   * @brief Scope under which this key list persists its column widths in the
+   * durable cache.
    *
    * Distinct key lists (e.g. the Key ToolBox dock and the Key Management
-   * window) should use distinct keys: the narrow dock and the wide window want
-   * very different widths. Within one key list every category tab shares the
-   * same widths.
+   * window) should use distinct scopes: the narrow dock and the wide window
+   * want very different widths. Within one key list every category tab shares
+   * the same widths.
    *
-   * @param settings_key QSettings group key used to store the column widths
+   * @param scope scope name, e.g. "keymgmt"
    */
-  void SetColumnWidthsSettingsKey(const QString& settings_key);
+  void SetColumnWidthsScope(const QString& scope);
 
   /**
    * @brief Render the category strip as a compact colour rail (a swatch of the
@@ -435,7 +436,7 @@ class KeyList : public QWidget {
   bool applying_tab_order_ = false;
   QString tab_order_settings_key_ = "keys/key_tab_order";
   QString column_filter_settings_key_ = "keys/global_columns_filter";
-  QString column_widths_settings_key_ = "keys/global_column_widths";
+  QString column_widths_scope_ = "global";
 
   /**
    * @brief

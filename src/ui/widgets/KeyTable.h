@@ -150,15 +150,15 @@ struct KeyTable : public QTableView {
   void RefreshProxyModel();
 
   /**
-   * @brief Set the settings key under which this table's column widths are
-   * persisted, then reload and apply them.
+   * @brief Set the scope under which this table's column widths are persisted
+   * in the durable cache, then reload and apply them.
    *
    * Widths are stored per host window (Key Management, main-window dock, ...)
    * and shared by every category tab of that window.
    *
-   * @param settings_key group key, e.g. "keys/keymgmt_column_widths"
+   * @param scope scope name, e.g. "keymgmt"
    */
-  void SetColumnWidthsSettingsKey(const QString& settings_key);
+  void SetColumnWidthsScope(const QString& scope);
 
   /**
    * @brief Re-read the persisted column widths and apply them. Used to keep
@@ -208,8 +208,8 @@ struct KeyTable : public QTableView {
   GpgKeyTableColumn column_filter_;
   bool bulk_checking_ = false;
 
-  ///< Settings group holding this table's column widths.
-  QString column_widths_settings_key_ = "keys/global_column_widths";
+  ///< Durable-cache scope holding this table's column widths.
+  QString column_widths_scope_ = "global";
 
   ///< Persisted widths, keyed by *source* column index. The proxy hides columns
   ///< dynamically, so visible indices are not stable across column toggles.
@@ -247,14 +247,19 @@ struct KeyTable : public QTableView {
   void redistribute_stretch_columns();
 
   /**
-   * @brief Load saved_widths_ from the settings group.
+   * @brief Load saved_widths_ from the durable cache.
    */
   void load_column_widths();
 
   /**
-   * @brief Persist one column's width, keyed by its source column index.
+   * @brief Persist saved_widths_ (keyed by source column index) to the durable
+   * cache.
+   *
+   * @param flush true to write through to disk immediately; false to leave the
+   * entry dirty for the cache manager's periodic flush. A drag emits a resize
+   * per pixel, so the drag path must not flush.
    */
-  void save_column_width(int source_column, int width);
+  void save_column_widths(bool flush = false);
 };
 
 }  // namespace GpgFrontend::UI

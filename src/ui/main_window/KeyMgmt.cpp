@@ -67,7 +67,7 @@ KeyMgmt::KeyMgmt(QWidget* parent)
 
   // Column widths are per window: this one is wide, the ToolBox dock is narrow,
   // so they want very different layouts.
-  key_list_->SetColumnWidthsSettingsKey("keys/keymgmt_column_widths");
+  key_list_->SetColumnWidthsScope("keymgmt");
 
   key_list_->AddListGroupTab(tr("All"), "all",
                              GpgKeyTableDisplayMode::kPUBLIC_KEY |

@@ -627,7 +627,7 @@ void MainWindow::create_dock_windows() {
 
   // Column widths are per window: the dock is narrow, the Key Management window
   // is wide, so they want very different layouts.
-  m_key_list_->SetColumnWidthsSettingsKey("keys/toolbox_column_widths");
+  m_key_list_->SetColumnWidthsScope("toolbox");
 
   m_key_list_->AddListGroupTab(
       tr("Default"), "default",

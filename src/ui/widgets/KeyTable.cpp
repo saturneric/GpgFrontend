@@ -28,10 +28,21 @@
 
 #include "ui/widgets/KeyTable.h"
 
-#include "core/function/GlobalSettingStation.h"
+#include "core/function/CacheManager.h"
 #include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
+
+namespace {
+
+/**
+ * @brief Durable-cache key holding the column widths of one host window.
+ */
+auto ColumnWidthsCacheKey(const QString& scope) -> QString {
+  return QString("key_table_column_widths:%1").arg(scope);
+}
+
+}  // namespace
 
 auto KeyTable::GetCheckedKeys() const -> GpgAbstractKeyPtrList {
   GpgAbstractKeyPtrList ret;
@@ -71,7 +82,9 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
             if (source_col < 0) return;
 
             saved_widths_[source_col] = new_size;
-            save_column_width(source_col, new_size);
+            // A drag emits a resize per pixel, so leave the entry dirty and let
+            // the cache manager's periodic flush write it out.
+            save_column_widths();
             emit SignalColumnWidthChanged();
           });
 
@@ -268,34 +281,38 @@ void KeyTable::redistribute_stretch_columns() {
 void KeyTable::load_column_widths() {
   saved_widths_.clear();
 
-  auto settings = GetSettings();
-  settings.beginGroup(column_widths_settings_key_);
-  for (const auto& key : settings.childKeys()) {
+  const auto object =
+      CacheManager::GetInstance()
+          .LoadDurableCache(ColumnWidthsCacheKey(column_widths_scope_))
+          .object();
+
+  for (auto it = object.constBegin(); it != object.constEnd(); ++it) {
     bool ok = false;
-    const auto source_col = key.toInt(&ok);
+    const auto source_col = it.key().toInt(&ok);
     if (!ok) continue;
 
-    const auto width = settings.value(key).toInt(&ok);
-    if (!ok || width <= 0) continue;
+    const auto width = it.value().toInt();
+    if (width <= 0) continue;
 
     saved_widths_.insert(source_col, width);
   }
-  settings.endGroup();
 }
 
-void KeyTable::save_column_width(int source_column, int width) {
-  auto settings = GetSettings();
-  settings.beginGroup(column_widths_settings_key_);
-  settings.setValue(QString::number(source_column), width);
-  settings.endGroup();
-}
-
-void KeyTable::SetColumnWidthsSettingsKey(const QString& settings_key) {
-  if (settings_key.isEmpty() || settings_key == column_widths_settings_key_) {
-    return;
+void KeyTable::save_column_widths(bool flush) {
+  QJsonObject object;
+  for (auto it = saved_widths_.constBegin(); it != saved_widths_.constEnd();
+       ++it) {
+    object.insert(QString::number(it.key()), it.value());
   }
 
-  column_widths_settings_key_ = settings_key;
+  CacheManager::GetInstance().SaveDurableCache(
+      ColumnWidthsCacheKey(column_widths_scope_), QJsonDocument(object), flush);
+}
+
+void KeyTable::SetColumnWidthsScope(const QString& scope) {
+  if (scope.isEmpty() || scope == column_widths_scope_) return;
+
+  column_widths_scope_ = scope;
   ReloadColumnWidths();
 }
 
@@ -305,10 +322,8 @@ void KeyTable::ReloadColumnWidths() {
 }
 
 void KeyTable::ResetColumnWidths() {
-  auto settings = GetSettings();
-  settings.remove(column_widths_settings_key_);
-
   saved_widths_.clear();
+  save_column_widths(true);
   apply_column_sizing();
 }
 
