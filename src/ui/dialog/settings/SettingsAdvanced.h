@@ -32,6 +32,7 @@ class QCheckBox;
 class QComboBox;
 class QSpinBox;
 class QLabel;
+class QPushButton;
 
 namespace GpgFrontend::UI {
 
@@ -78,13 +79,38 @@ class AdvancedTab : public QWidget {
    */
   auto lock_if_pinned(QWidget* widget, const QString& user_key) -> bool;
 
-  QCheckBox* self_check_box_{};       ///< verify signed libraries at start
-  QCheckBox* os_secret_store_box_{};  ///< wrap the app key with an OS secret
-  QComboBox* secure_level_combo_{};   ///< app secure key protection level
-  QComboBox* log_level_combo_{};      ///< minimum severity that gets logged
-  QSpinBox* ring_capacity_spin_{};    ///< in-memory log ring buffer entries
-  QLabel* env_notice_label_{};        ///< shown only when ENV.ini pins a key
-  QStringList env_locked_keys_;       ///< keys ENV.ini currently overrides
+  /**
+   * @brief Re-seal the key file for the newly chosen protection.
+   *
+   * Runs before the setting is stored, so a failed transition never leaves the
+   * recorded protection disagreeing with the file on disk — which would be a
+   * refusal to launch on the next start. The PIN is asked for here rather than
+   * at that next start, where a wrong answer would be indistinguishable from a
+   * corrupted key file.
+   *
+   * @return true when the file now matches the combo, or nothing had to change
+   */
+  auto apply_app_key_protection() -> bool;
+
+  /// @brief Enable the keychain and PIN items per installation mode and the
+  /// availability of a credential store.
+  void configure_protection_items();
+
+  /// @brief Show the level-3-without-protection advice when it applies.
+  void refresh_protection_advice();
+
+  /// @brief Prompt for a new PIN and re-seal the key under it.
+  void change_pin();
+
+  QCheckBox* self_check_box_{};        ///< verify signed libraries at start
+  QComboBox* secure_level_combo_{};    ///< memory-hardening level
+  QComboBox* protection_combo_{};      ///< at-rest protection of the app key
+  QPushButton* change_pin_button_{};   ///< rotate the PIN, when one is set
+  QLabel* protection_advice_label_{};  ///< level-3-without-protection hint
+  QComboBox* log_level_combo_{};       ///< minimum severity that gets logged
+  QSpinBox* ring_capacity_spin_{};     ///< in-memory log ring buffer entries
+  QLabel* env_notice_label_{};         ///< shown only when ENV.ini pins a key
+  QStringList env_locked_keys_;        ///< keys ENV.ini currently overrides
 };
 
 }  // namespace GpgFrontend::UI
