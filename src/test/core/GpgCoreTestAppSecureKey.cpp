@@ -26,11 +26,15 @@
  *
  */
 
+#include <QTemporaryDir>
+
 #include "GFCoreTest.h"
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/AppSecureKeyManager.h"
 #include "core/function/DataObjectOperator.h"
 #include "core/function/GFBufferFactory.h"
+#include "core/function/SecureRandomGenerator.h"
+#include "core/function/SystemSecretStore.h"
 
 namespace GpgFrontend::Test {
 
@@ -39,6 +43,72 @@ namespace {
 /// A stand-in for key material. Fixed rather than random so a failure is
 /// reproducible.
 auto SampleKey() -> GFBuffer { return GFBuffer(QByteArray(256, '\x5A')); }
+
+/**
+ * @brief In-memory credential store, with hooks for the failure modes that
+ * matter: a store that refuses writes, and one that accepts a write but hands
+ * back something else.
+ */
+class FakeSecretStore final : public SystemSecretStore {
+ public:
+  [[nodiscard]] auto Name() const -> QString override {
+    return QStringLiteral("fake");
+  }
+
+  [[nodiscard]] auto IsAvailable() -> bool override { return available; }
+
+  auto Read(const QString& account) -> GFBufferOrNone override {
+    if (!entries.contains(account)) return {};
+    return entries.value(account);
+  }
+
+  auto Write(const QString& account, const GFBuffer& secret) -> bool override {
+    if (!writable) return false;
+
+    // Simulates a store that reports success but cannot return the value, as a
+    // locked keyring or a missing entitlement does.
+    entries.insert(
+        account, corrupt_on_write ? GFBuffer(QByteArray(32, '\x00')) : secret);
+    return true;
+  }
+
+  auto Remove(const QString& account) -> bool override {
+    entries.remove(account);
+    return true;
+  }
+
+  QMap<QString, GFBuffer> entries;
+  bool available = true;
+  bool writable = true;
+  bool corrupt_on_write = false;
+};
+
+/// A temporary key file holding the given contents.
+class ScopedKeyFile {
+ public:
+  explicit ScopedKeyFile(const GFBuffer& contents) {
+    EXPECT_TRUE(dir_.isValid());
+    path_ = dir_.path() + "/app.key";
+    if (!contents.Empty()) {
+      EXPECT_TRUE(GFBufferFactory::ToFile(path_, contents));
+    }
+  }
+
+  [[nodiscard]] auto Path() const -> QString { return path_; }
+
+  [[nodiscard]] auto Read() const -> GFBuffer {
+    auto bytes = GFBufferFactory::FromFile(path_);
+    return bytes ? *bytes : GFBuffer{};
+  }
+
+  [[nodiscard]] auto Exists() const -> bool {
+    return QFileInfo(path_).exists();
+  }
+
+ private:
+  QTemporaryDir dir_;
+  QString path_;
+};
 
 }  // namespace
 
@@ -228,6 +298,301 @@ TEST(AppSecureKeyManagerTest, DeriveKeyArgon2RejectsBadParameters) {
   // silently padded.
   EXPECT_FALSE(AESCryptoHelper::DeriveKeyArgon2(passphrase, GFBuffer("short"),
                                                 32, 1, 8192, 1));
+}
+
+// --- wrap state machine -----------------------------------------------------
+
+TEST(AppSecureKeyWrapTest, DisabledLeavesPlaintextUntouched) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kNotWrapped);
+  EXPECT_TRUE(result.secret.Empty());
+  EXPECT_EQ(file.Read(), key);
+  EXPECT_TRUE(store.entries.isEmpty());
+}
+
+TEST(AppSecureKeyWrapTest, EnableEncryptsFileAndStoresSecret) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  ASSERT_EQ(result.status, AppKeyWrapStatus::kJustEnabled);
+  EXPECT_EQ(result.secret.Size(), 32U);
+
+  const auto on_disk = file.Read();
+  EXPECT_TRUE(AESCryptoHelper::IsEncryptedBuffer(on_disk));
+  EXPECT_NE(on_disk, key);
+
+  // The stored secret must be the one that actually opens the file.
+  ASSERT_TRUE(store.entries.contains(kAppKeyWrapAccount));
+  auto plain = GFBufferFactory::DecryptLite(
+      store.entries.value(kAppKeyWrapAccount), on_disk);
+  ASSERT_TRUE(plain.has_value());
+  EXPECT_EQ(*plain, key);
+}
+
+TEST(AppSecureKeyWrapTest, EnabledResolvesStoredSecret) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  const auto enabled =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+  ASSERT_EQ(enabled.status, AppKeyWrapStatus::kJustEnabled);
+
+  // A later start finds the file already wrapped and just resolves the secret.
+  const auto steady =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(steady.status, AppKeyWrapStatus::kWrapped);
+  EXPECT_EQ(steady.secret, enabled.secret);
+  EXPECT_TRUE(AESCryptoHelper::IsEncryptedBuffer(file.Read()));
+}
+
+TEST(AppSecureKeyWrapTest, DisableRestoresPlaintextAndClearsStore) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  ASSERT_EQ(
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
+      AppKeyWrapStatus::kJustEnabled);
+
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kJustDisabled);
+  EXPECT_TRUE(result.secret.Empty());
+  EXPECT_EQ(file.Read(), key);
+  EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(file.Read()));
+  EXPECT_FALSE(store.entries.contains(kAppKeyWrapAccount));
+}
+
+/**
+ * Enabling and disabling must be perfectly reversible, because the key ID
+ * derived from the key material is what every stored data object is filed
+ * under. This is the guard against orphaning them.
+ */
+TEST(AppSecureKeyWrapTest, RoundTripPreservesKeyAndItsId) {
+  const auto key = SampleKey();
+  const auto id_before = AppSecureKeyManager::CalculateKeyId({}, key);
+
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  ASSERT_EQ(
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
+      AppKeyWrapStatus::kJustEnabled);
+
+  // Even while wrapped, the key that comes back out is byte-identical.
+  const auto wrapped =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+  auto unwrapped = GFBufferFactory::DecryptLite(wrapped.secret, file.Read());
+  ASSERT_TRUE(unwrapped.has_value());
+  EXPECT_EQ(AppSecureKeyManager::CalculateKeyId({}, *unwrapped), id_before);
+
+  ASSERT_EQ(
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false).status,
+      AppKeyWrapStatus::kJustDisabled);
+
+  EXPECT_EQ(file.Read(), key);
+  EXPECT_EQ(AppSecureKeyManager::CalculateKeyId({}, file.Read()), id_before);
+}
+
+TEST(AppSecureKeyWrapTest, EnableWithNoKeyFileYetJustProvisionsSecret) {
+  ScopedKeyFile file{GFBuffer{}};
+  ASSERT_FALSE(file.Exists());
+  FakeSecretStore store;
+
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  // Nothing to convert; the caller creates the key already encrypted.
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kJustEnabled);
+  EXPECT_EQ(result.secret.Size(), 32U);
+  EXPECT_FALSE(file.Exists());
+}
+
+// --- failure paths ----------------------------------------------------------
+
+TEST(AppSecureKeyWrapTest, UnavailableStoreLeavesFilePlaintext) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+  store.available = false;
+
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kStoreUnavailable);
+  EXPECT_EQ(file.Read(), key);
+  EXPECT_TRUE(store.entries.isEmpty());
+}
+
+TEST(AppSecureKeyWrapTest, MissingStoreLeavesFilePlaintext) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), nullptr, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kStoreUnavailable);
+  EXPECT_EQ(file.Read(), key);
+}
+
+TEST(AppSecureKeyWrapTest, FailedStoreWriteLeavesFilePlaintext) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+  store.writable = false;
+
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kStoreUnavailable);
+  EXPECT_EQ(file.Read(), key);
+  EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(file.Read()));
+}
+
+/**
+ * The read-back check is what stands between a store that quietly loses the
+ * secret and a key file nobody can open again.
+ */
+TEST(AppSecureKeyWrapTest, SecretThatDoesNotReadBackAbortsTheTransition) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+  store.corrupt_on_write = true;
+
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kStoreUnavailable);
+  EXPECT_EQ(file.Read(), key);
+  EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(file.Read()));
+  // The unusable entry must not be left behind.
+  EXPECT_FALSE(store.entries.contains(kAppKeyWrapAccount));
+}
+
+TEST(AppSecureKeyWrapTest, LostSecretReportsLockedOutWithoutTouchingFile) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  ASSERT_EQ(
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
+      AppKeyWrapStatus::kJustEnabled);
+  const auto wrapped_bytes = file.Read();
+
+  // The keyring was reset, or the profile moved to another machine.
+  store.entries.clear();
+
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLockedOut);
+  // Destroying the only copy of the key here would be unrecoverable.
+  EXPECT_EQ(file.Read(), wrapped_bytes);
+}
+
+TEST(AppSecureKeyWrapTest, DisableWithLostSecretIsLockedOutNotDataLoss) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  ASSERT_EQ(
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
+      AppKeyWrapStatus::kJustEnabled);
+  const auto wrapped_bytes = file.Read();
+  store.entries.clear();
+
+  // Turning the setting off cannot rescue a file we can no longer decrypt.
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLockedOut);
+  EXPECT_EQ(file.Read(), wrapped_bytes);
+}
+
+TEST(AppSecureKeyWrapTest, WrongSecretReportsLockedOut) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  ASSERT_EQ(
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
+      AppKeyWrapStatus::kJustEnabled);
+
+  store.entries.insert(kAppKeyWrapAccount, GFBuffer(QByteArray(32, '\x01')));
+
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLockedOut);
+}
+
+TEST(AppSecureKeyWrapTest, DisabledAndUnwrappedNeverConsultsTheStore) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+  // A broken store must not matter when the feature is off.
+  store.available = false;
+  store.writable = false;
+
+  const auto result =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kNotWrapped);
+  EXPECT_EQ(file.Read(), key);
+}
+
+/**
+ * The feature is opt-in. With nothing enabling it, the running process must
+ * report it off and the real key file must be left in its default form, so a
+ * changed default or an accidental auto-enable is caught here.
+ */
+TEST(AppSecureKeyWrapTest, FeatureIsOffUnlessExplicitlyEnabled) {
+  EXPECT_FALSE(qApp->property("GFOSSecretStore").toBool());
+
+  auto& mgr = AppSecureKeyManager::GetInstance();
+  auto on_disk = GFBufferFactory::FromFile(mgr.GetLegacyKeyPath());
+  ASSERT_TRUE(on_disk.has_value());
+  EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(*on_disk));
+}
+
+// --- live backend -----------------------------------------------------------
+
+/**
+ * Exercises whichever backend this platform installed. Skips where none is
+ * available, which includes headless CI: the platform sources are part of the
+ * application target, not the test library.
+ */
+TEST(AppSecureKeyWrapTest, InstalledBackendRoundTrip) {
+  auto* store = GetSystemSecretStore();
+  if (store == nullptr || !store->IsAvailable()) {
+    GTEST_SKIP() << "no system credential store on this host";
+  }
+
+  const QString account = "gftest-roundtrip";
+  auto secret = SecureRandomGenerator::Generate(32);
+  ASSERT_TRUE(secret.has_value());
+
+  ASSERT_TRUE(store->Write(account, *secret));
+
+  auto read_back = store->Read(account);
+  ASSERT_TRUE(read_back.has_value());
+  EXPECT_EQ(*read_back, *secret);
+
+  EXPECT_TRUE(store->Remove(account));
+  EXPECT_FALSE(store->Read(account).has_value());
 }
 
 }  // namespace GpgFrontend::Test

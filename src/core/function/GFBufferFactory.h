@@ -74,6 +74,20 @@ class GF_CORE_EXPORT GFBufferFactory
   static auto ToFile(const QString& path, const GFBuffer& buffer) -> bool;
 
   /**
+   * @brief Write a GFBuffer to a file, replacing it atomically.
+   *
+   * Writes to a temporary file alongside the destination and renames it into
+   * place, so an interrupted write leaves the previous content intact rather
+   * than a truncated file. Use this whenever the destination is the only copy
+   * of something that cannot be regenerated, such as a key file.
+   *
+   * @param path absolute or relative path to the destination file
+   * @param buffer data to write
+   * @return true on success, false on write failure
+   */
+  static auto ToFileAtomic(const QString& path, const GFBuffer& buffer) -> bool;
+
+  /**
    * @brief Encode a GFBuffer to standard Base64.
    *
    * @param buffer binary data to encode
@@ -113,8 +127,8 @@ class GF_CORE_EXPORT GFBufferFactory
    * @param feeder callable that drives data feeding via the chunk callback
    * @return 32-byte SHA-256 digest, or empty on initialisation failure
    */
-  static auto ToSha256(
-      const std::function<void(const Sha256Chunk&)>& feeder) -> GFBufferOrNone;
+  static auto ToSha256(const std::function<void(const Sha256Chunk&)>& feeder)
+      -> GFBufferOrNone;
 
   /**
    * @brief Compute HMAC-SHA256 of @p data authenticated with @p key.

@@ -36,6 +36,9 @@
 #include "GpgFrontendContext.h"
 #include "Initialize.h"
 #include "core/function/AppSecureKeyManager.h"
+#include "core/function/GlobalSettingStation.h"
+#include "core/function/SystemSecretStore.h"
+#include "platform/PlatformSecretStore.h"
 
 namespace {
 
@@ -97,6 +100,122 @@ auto ReportAppSecureKeyFailure(
               QObject::tr("Please check your system's cryptography support."),
           QMessageBox::Ok);
       return false;
+  }
+
+  return false;
+}
+
+/**
+ * @brief Whether OS-backed protection of the key file is in effect.
+ *
+ * GFOSSecretStore already accounts for portable mode, and for the setting
+ * being opt-in, where it is resolved in GpgFrontendContext. The portable check
+ * is repeated here only because a qApp property is untyped and writable by
+ * anything in the process, and wrapping the key on a portable installation
+ * would strand it. One redundant comparison is cheap insurance on the one file
+ * every stored secret depends on.
+ *
+ * @return true when the key file should be protected by the credential store
+ */
+auto IsKeyWrapRequested() -> bool {
+  if (GpgFrontend::GetGSS().IsProtableMode()) return false;
+  return qApp->property("GFOSSecretStore").toBool();
+}
+
+/**
+ * @brief Report the outcome of reconciling the key file's at-rest protection.
+ *
+ * @param result outcome of AppSecureKeyManager::ResolveWrapSecret()
+ * @return true when startup may continue
+ */
+auto ReportAppKeyWrapOutcome(const GpgFrontend::AppKeyWrapResult& result)
+    -> bool {
+  switch (result.status) {
+    case GpgFrontend::AppKeyWrapStatus::kNotWrapped:
+    case GpgFrontend::AppKeyWrapStatus::kWrapped:
+    case GpgFrontend::AppKeyWrapStatus::kJustEnabled:
+    case GpgFrontend::AppKeyWrapStatus::kJustDisabled:
+      return true;
+
+    case GpgFrontend::AppKeyWrapStatus::kStoreUnavailable:
+      // Turn the preference back off rather than retrying, and failing, at
+      // every launch. The key stays exactly as it was, just unprotected.
+      GpgFrontend::GetSettings().setValue("advanced/os_secret_store", false);
+      QMessageBox::warning(
+          nullptr, QObject::tr("System Keychain Unavailable"),
+          QObject::tr("The application key could not be protected using the "
+                      "system keychain, so it remains stored unprotected.") +
+              "\n" +
+              QObject::tr("This setting has been turned off. You can turn it "
+                          "on again once a keychain is available."),
+          QMessageBox::Ok);
+      return true;
+
+    case GpgFrontend::AppKeyWrapStatus::kIoFailed:
+      QMessageBox::critical(
+          nullptr, QObject::tr("App Secure Key Error"),
+          QObject::tr("The application secure key at %1 could not be read or "
+                      "rewritten.")
+                  .arg(result.detail) +
+              "\n" + QObject::tr("Please check your storage and permissions."),
+          QMessageBox::Ok);
+      return false;
+
+    case GpgFrontend::AppKeyWrapStatus::kLockedOut: {
+      // Never reset on the user's behalf: resetting is unrecoverable, whereas
+      // quitting costs nothing and lets them unlock the keychain and retry.
+      QMessageBox box(QMessageBox::Critical,
+                      QObject::tr("Secure Key Unavailable"),
+                      QObject::tr("The application key is protected by a "
+                                  "secret kept in the system keychain, and "
+                                  "that secret could not be read."));
+      box.setInformativeText(
+          QObject::tr("This usually means the keychain is locked, was reset, "
+                      "or this profile was copied from another computer or "
+                      "user account.") +
+          "\n\n" +
+          QObject::tr("You can unlock the keychain and start the application "
+                      "again. Resetting the key instead lets the application "
+                      "start, but everything it previously encrypted becomes "
+                      "permanently unreadable."));
+      box.setDetailedText(
+          QObject::tr("Keychain backend: %1").arg(result.detail));
+
+      auto* quit = box.addButton(QObject::tr("Quit"), QMessageBox::RejectRole);
+      auto* reset = box.addButton(QObject::tr("Reset Secure Key"),
+                                  QMessageBox::DestructiveRole);
+      box.setDefaultButton(quit);
+      box.exec();
+
+      if (box.clickedButton() != reset) return false;
+
+      const auto confirm = QMessageBox::warning(
+          nullptr, QObject::tr("Reset Secure Key"),
+          QObject::tr("Everything the application has encrypted with the old "
+                      "key will be permanently unreadable.") +
+              "\n\n" + QObject::tr("Reset the secure key?"),
+          QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+
+      if (confirm != QMessageBox::Yes) return false;
+
+      auto& key_mgr = GpgFrontend::AppSecureKeyManager::GetInstance();
+      if (!QFile::remove(key_mgr.GetLegacyKeyPath())) {
+        QMessageBox::critical(
+            nullptr, QObject::tr("Reset Secure Key"),
+            QObject::tr("The key file at %1 could not be removed.")
+                .arg(key_mgr.GetLegacyKeyPath()),
+            QMessageBox::Ok);
+        return false;
+      }
+
+      if (auto* store = GpgFrontend::GetSystemSecretStore(); store != nullptr) {
+        store->Remove(GpgFrontend::kAppKeyWrapAccount);
+      }
+      GpgFrontend::GetSettings().setValue("advanced/os_secret_store", false);
+
+      qWarning() << "app secure key was reset at the user's request";
+      return true;
+    }
   }
 
   return false;
@@ -194,11 +313,28 @@ auto main(int argc, char* argv[]) -> int {
     pin.clear();
   }
 
+  GpgFrontend::InstallPlatformSecretStore();
+
   // In high security mode the typed PIN both identifies the key and protects
-  // it at rest; below that the key is stored unprotected.
+  // it at rest, so the credential store stays out of it. Below that, the key
+  // is either unprotected or wrapped with a secret held by the OS.
+  GpgFrontend::GFBuffer wrap;
+
+  if (secure_level > 2) {
+    wrap = buf;
+  } else {
+    auto& key_mgr = GpgFrontend::AppSecureKeyManager::GetInstance();
+    const auto wrap_result =
+        GpgFrontend::AppSecureKeyManager::ResolveWrapSecret(
+            key_mgr.GetLegacyKeyPath(), GpgFrontend::GetSystemSecretStore(),
+            IsKeyWrapRequested());
+
+    if (!ReportAppKeyWrapOutcome(wrap_result)) return 1;
+    wrap = wrap_result.secret;
+  }
+
   const auto key_result =
-      GpgFrontend::AppSecureKeyManager::GetInstance().Initialize(
-          buf, secure_level > 2 ? buf : GpgFrontend::GFBuffer{});
+      GpgFrontend::AppSecureKeyManager::GetInstance().Initialize(buf, wrap);
 
   if (!ReportAppSecureKeyFailure(key_result)) return 1;
 

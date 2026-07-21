@@ -316,20 +316,38 @@ target_link_libraries(${APP_NAME} gf_core gf_ui gf_test)
 # link OpenSSL for secure mechanism
 target_link_libraries(${APP_NAME} sodium)
 
-if(MINGW)
-  message(STATUS "Link Application Library For MINGW")
-  target_link_libraries(${APP_NAME} Wintrust Crypt32)
+# Compiles to nothing on platforms that ship a real backend below.
+target_sources(${APP_NAME} PRIVATE platform/StubSecretStore.cpp)
+
+if(MINGW OR WIN32)
+  message(STATUS "Link Application Library For Windows")
+  target_sources(${APP_NAME} PRIVATE platform/WinSecretStore.cpp)
+  # Advapi32 provides the Credential Manager API (CredReadW and friends).
+  target_link_libraries(${APP_NAME} Wintrust Crypt32 Advapi32)
 elseif(APPLE)
   message(STATUS "Link Application Library For macOS")
-  target_sources(${APP_NAME} PRIVATE platform/MacRelaunch.mm)
+  target_sources(${APP_NAME} PRIVATE
+    platform/MacRelaunch.mm
+    platform/MacSecretStore.cpp
+  )
+  # Only the Objective-C++ source needs the PCH skipped; MacSecretStore.cpp is
+  # plain C++ against the Security framework's C API.
   set_source_files_properties(
     platform/MacRelaunch.mm
     PROPERTIES SKIP_PRECOMPILE_HEADERS ON
   )
   find_library(APPKIT_FRAMEWORK AppKit REQUIRED)
-  target_link_libraries(${APP_NAME} ${APPKIT_FRAMEWORK})
+  find_library(SECURITY_FRAMEWORK Security REQUIRED)
+  find_library(COREFOUNDATION_FRAMEWORK CoreFoundation REQUIRED)
+  target_link_libraries(${APP_NAME}
+    ${APPKIT_FRAMEWORK}
+    ${SECURITY_FRAMEWORK}
+    ${COREFOUNDATION_FRAMEWORK}
+  )
 else()
   message(STATUS "Link Application Library For Linux")
+  # libsecret is resolved at runtime through QLibrary, so nothing to link.
+  target_sources(${APP_NAME} PRIVATE platform/LinuxSecretStore.cpp)
   target_link_libraries(${APP_NAME} pthread)
 endif()
 

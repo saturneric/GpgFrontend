@@ -61,6 +61,40 @@ struct AppSecureKeyInitResult {
   }
 };
 
+class SystemSecretStore;
+
+/**
+ * @brief Outcome of reconciling the at-rest protection of the key file.
+ */
+enum class AppKeyWrapStatus {
+  kNotWrapped,        ///< key file is plaintext and should stay that way
+  kWrapped,           ///< key file is encrypted and the secret was resolved
+  kJustEnabled,       ///< key file was just encrypted for the first time
+  kJustDisabled,      ///< key file was just decrypted back to plaintext
+  kStoreUnavailable,  ///< protection was requested but no store could be used
+  kLockedOut,         ///< key file is encrypted but the secret is unrecoverable
+  kIoFailed,          ///< the key file could not be read or rewritten
+};
+
+/**
+ * @brief Result of AppSecureKeyManager::ResolveWrapSecret().
+ */
+struct AppKeyWrapResult {
+  AppKeyWrapStatus status = AppKeyWrapStatus::kNotWrapped;
+
+  /// Secret protecting the key file; empty unless it is currently wrapped.
+  GFBuffer secret;
+
+  /// Backend name or cause, for the log and any dialog.
+  QString detail;
+
+  /// True when startup can proceed, whether or not protection was applied.
+  [[nodiscard]] auto Usable() const -> bool {
+    return status != AppKeyWrapStatus::kLockedOut &&
+           status != AppKeyWrapStatus::kIoFailed;
+  }
+};
+
 /**
  * @brief Singleton owning every aspect of the application secure key.
  *
@@ -162,6 +196,29 @@ class GF_CORE_EXPORT AppSecureKeyManager
    */
   static auto CalculateKeyId(const GFBuffer& pin, const GFBuffer& key)
       -> GFBuffer;
+
+  /**
+   * @brief Reconcile the requested at-rest protection with the key file.
+   *
+   * Whether the file is currently protected is read from the file itself,
+   * which carries the encrypted-container magic; there is deliberately no
+   * sidecar marker that could drift out of sync with it. Any transition is
+   * performed here, ordered so that an interruption at any point leaves a
+   * consistent state: the store entry is written and verified before the file
+   * is touched, and removed only after the file no longer needs it.
+   *
+   * Takes its dependencies explicitly rather than reading the singleton so
+   * that tests can drive every path with a temporary directory and a fake
+   * store.
+   *
+   * @param key_path path of the key file
+   * @param store credential store to use, or nullptr when none is installed
+   * @param intent_enabled whether the user asked for OS-backed protection
+   * @return the resolved secret and what, if anything, was changed
+   */
+  static auto ResolveWrapSecret(const QString& key_path,
+                                SystemSecretStore* store, bool intent_enabled)
+      -> AppKeyWrapResult;
 
  private:
   /**

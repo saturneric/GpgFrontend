@@ -30,6 +30,7 @@
 
 #include "core/GFCoreLog.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SystemSecretStore.h"
 
 namespace GpgFrontend::UI {
 
@@ -41,6 +42,21 @@ constexpr int kMaxGuiSecureLevel = 2;
 /// the buffer from dominating memory, since every entry is held in RAM.
 constexpr int kMinRingCapacity = 128;
 constexpr int kMaxRingCapacity = 65536;
+
+/**
+ * @brief Make a tooltip word-wrap instead of rendering as one long line.
+ *
+ * Qt only wraps a tooltip it recognises as rich text, so the text is placed in
+ * a paragraph. The markup is added here rather than inside tr() so translators
+ * never have to carry it, and the text is escaped in case a translation
+ * contains characters that would otherwise be read as markup.
+ *
+ * @param text plain tooltip text
+ * @return rich-text tooltip that wraps
+ */
+auto WrappingToolTip(const QString& text) -> QString {
+  return QStringLiteral("<p>%1</p>").arg(text.toHtmlEscaped());
+}
 
 }  // namespace
 
@@ -57,18 +73,27 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
   secure_level_combo_->addItem(tr("Standard"), 0);
   secure_level_combo_->addItem(tr("Wipe freed memory"), 1);
   secure_level_combo_->addItem(tr("Wipe and lock memory pages"), 2);
-  secure_level_combo_->setToolTip(
+  secure_level_combo_->setToolTip(WrappingToolTip(
       tr("How aggressively the application protects secrets held in memory. "
-         "Higher levels cost some performance."));
+         "Higher levels cost some performance.")));
   security_form->addRow(tr("Secure Level:"), secure_level_combo_);
 
   self_check_box_ = new QCheckBox(
       tr("Verify signed libraries and binaries at startup"), security_box);
-  self_check_box_->setToolTip(
+  self_check_box_->setToolTip(WrappingToolTip(
       tr("Check that the shipped libraries and executables still match the "
          "signatures made at build time. The application refuses to start if "
-         "the check fails."));
+         "the check fails.")));
   security_form->addRow(self_check_box_);
+
+  os_secret_store_box_ = new QCheckBox(
+      tr("Protect the application key with the system keychain"), security_box);
+  os_secret_store_box_->setToolTip(WrappingToolTip(
+      tr("Keep a random secret in your system's credential store and use it to "
+         "encrypt the application key file, so the key is not left readable on "
+         "disk. You are never asked for a password. The key can then only be "
+         "opened on this computer, by this user account.")));
+  security_form->addRow(os_secret_store_box_);
 
   auto* diagnostics_box = new QGroupBox(tr("Diagnostics"), this);
   auto* diagnostics_form = new QFormLayout(diagnostics_box);
@@ -81,17 +106,17 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
   log_level_combo_->addItem(tr("Error"),
                             static_cast<int>(GFLogLevel::kCRITICAL));
   log_level_combo_->addItem(tr("Fatal"), static_cast<int>(GFLogLevel::kFATAL));
-  log_level_combo_->setToolTip(
+  log_level_combo_->setToolTip(WrappingToolTip(
       tr("The least severe message that still gets written to the log. Debug "
-         "is the most detailed and writes the most to disk."));
+         "is the most detailed and writes the most to disk.")));
   diagnostics_form->addRow(tr("Log Level:"), log_level_combo_);
 
   ring_capacity_spin_ = new QSpinBox(diagnostics_box);
   ring_capacity_spin_->setRange(kMinRingCapacity, kMaxRingCapacity);
   ring_capacity_spin_->setSuffix(tr(" entries"));
-  ring_capacity_spin_->setToolTip(
+  ring_capacity_spin_->setToolTip(WrappingToolTip(
       tr("How many recent log messages are kept in memory for crash reports "
-         "and the log viewer. Larger values use more memory."));
+         "and the log viewer. Larger values use more memory.")));
   diagnostics_form->addRow(tr("Log Ring Buffer:"), ring_capacity_spin_);
 
   auto* restart_note = new QLabel(
@@ -124,6 +149,28 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
   connect(secure_level_combo_, &QComboBox::currentIndexChanged, this,
           declare_restart);
   connect(self_check_box_, &QCheckBox::toggled, this, declare_restart);
+  connect(os_secret_store_box_, &QCheckBox::toggled, this, declare_restart);
+
+  // Verify the store the moment the user opts in, rather than letting them
+  // restart only to find out it never worked. This is the first point at which
+  // a probe, and any unlock prompt it triggers, is something they asked for.
+  connect(os_secret_store_box_, &QCheckBox::toggled, this,
+          [this](bool checked) -> void {
+            if (!checked) return;
+
+            auto* store = GetSystemSecretStore();
+            if (store != nullptr && store->IsAvailable()) return;
+
+            QMessageBox::warning(
+                this, tr("System Keychain Unavailable"),
+                tr("The system credential store could not be used, so the "
+                   "application key cannot be protected with it.") +
+                    "\n" +
+                    tr("On Linux this needs a running secret service, such as "
+                       "GNOME Keyring or KWallet, and it must be unlocked."));
+
+            os_secret_store_box_->setChecked(false);
+          });
   connect(log_level_combo_, &QComboBox::currentIndexChanged, this,
           declare_restart);
   connect(ring_capacity_spin_, &QSpinBox::valueChanged, this, declare_restart);
@@ -134,7 +181,8 @@ auto AdvancedTab::lock_if_pinned(QWidget* widget, const QString& user_key)
   if (!env_locked_keys_.contains(user_key)) return false;
 
   widget->setEnabled(false);
-  widget->setToolTip(tr("Fixed by ENV.ini and cannot be changed here."));
+  widget->setToolTip(
+      WrappingToolTip(tr("Fixed by ENV.ini and cannot be changed here.")));
   env_notice_label_->setVisible(true);
   return true;
 }
@@ -169,6 +217,35 @@ void AdvancedTab::SetSettings() {
                                        ring_capacity > 0 ? ring_capacity : 1024,
                                        kMaxRingCapacity));
 
+  os_secret_store_box_->setChecked(qApp->property("GFOSSecretStore").toBool());
+
+  // Give the single most specific reason the control is unavailable, rather
+  // than a generic one that leaves the user guessing which condition applies.
+  auto* store = GetSystemSecretStore();
+  if (secure_level > kMaxGuiSecureLevel) {
+    os_secret_store_box_->setEnabled(false);
+    os_secret_store_box_->setToolTip(WrappingToolTip(
+        tr("Not needed at this secure level: the application key is already "
+           "encrypted with the PIN you enter at startup.")));
+  } else if (GetGSS().IsProtableMode()) {
+    os_secret_store_box_->setEnabled(false);
+    os_secret_store_box_->setToolTip(WrappingToolTip(
+        tr("Not available in portable mode: a portable installation must not "
+           "depend on secrets stored on one particular computer.")));
+  } else if (store == nullptr) {
+    // Deliberately only a null check, never IsAvailable(): probing writes to
+    // the credential store, which can raise an unlock prompt. Merely opening
+    // this dialog must not do that, so a store that exists but is locked or
+    // broken is caught when the user actually opts in, below.
+    os_secret_store_box_->setEnabled(false);
+    os_secret_store_box_->setToolTip(WrappingToolTip(
+        tr("No system credential store is available on this computer. On "
+           "Linux this needs a running secret service, such as GNOME Keyring "
+           "or KWallet.")));
+  } else {
+    lock_if_pinned(os_secret_store_box_, "advanced/os_secret_store");
+  }
+
   lock_if_pinned(secure_level_combo_, "advanced/secure_level");
   lock_if_pinned(self_check_box_, "advanced/self_check");
   lock_if_pinned(log_level_combo_, "advanced/log_level");
@@ -189,6 +266,7 @@ void AdvancedTab::ApplySettings() {
 
   store("advanced/secure_level", secure_level_combo_->currentData().toInt());
   store("advanced/self_check", self_check_box_->isChecked());
+  store("advanced/os_secret_store", os_secret_store_box_->isChecked());
   store("advanced/log_level", log_level_combo_->currentData().toInt());
   store("advanced/log_ring_buffer_capacity", ring_capacity_spin_->value());
 }

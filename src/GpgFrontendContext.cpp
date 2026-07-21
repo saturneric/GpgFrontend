@@ -87,6 +87,15 @@ void GpgFrontendContext::load_env_conf_set_properties() {
            resolve("SelfCheck", "advanced/self_check", false).toBool());
   property("GFSecureLevel",
            resolve("SecureLevel", "advanced/secure_level", 0).toInt());
+  // Strictly opt-in, and never in portable mode: a portable directory is meant
+  // to be carried to another computer, and a key wrapped with one machine's
+  // credential store cannot be opened anywhere else. Resolving that here rather
+  // than at each reader keeps the startup banner, the Advanced tab, and the key
+  // loader from disagreeing about whether the feature is actually in effect.
+  property(
+      "GFOSSecretStore",
+      !property("GFPortableMode").toBool() &&
+          resolve("OSSecretStore", "advanced/os_secret_store", false).toBool());
   // An unset log level reads back as 0 (== kDEBUG), which would enable debug
   // logging even in release builds. Default to error level explicitly.
   property("GFLogLevel", resolve("LogLevel", "advanced/log_level",
@@ -101,6 +110,7 @@ void GpgFrontendContext::load_env_conf_set_properties() {
 
   const auto self_check = property("GFSelfCheck").toInt();
   const auto secure_level = property("GFSecureLevel").toInt();
+  const auto os_secret_store = property("GFOSSecretStore").toBool();
   const auto log_level = property("GFLogLevel").toInt();
   const auto portable_mode = property("GFPortableMode").toBool();
   const auto gpg_offline_mode = property("GFGnuPGOfflineMode").toBool();
@@ -122,6 +132,8 @@ void GpgFrontendContext::load_env_conf_set_properties() {
       << source("advanced/self_check") << "\n"
       << "Secure Level            : " << secure_level
       << source("advanced/secure_level") << "\n"
+      << "OS Secret Store         : " << BoolText(os_secret_store)
+      << source("advanced/os_secret_store") << "\n"
       << "Log Level               : " << log_level
       << source("advanced/log_level") << "\n"
       << "Portable Mode           : " << BoolText(portable_mode) << "\n"

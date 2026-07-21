@@ -78,12 +78,13 @@ class AdvancedTab : public QWidget {
    */
   auto lock_if_pinned(QWidget* widget, const QString& user_key) -> bool;
 
-  QCheckBox* self_check_box_{};      ///< verify signed libraries at start
-  QComboBox* secure_level_combo_{};  ///< app secure key protection level
-  QComboBox* log_level_combo_{};     ///< minimum severity that gets logged
-  QSpinBox* ring_capacity_spin_{};   ///< in-memory log ring buffer entries
-  QLabel* env_notice_label_{};       ///< shown only when ENV.ini pins a key
-  QStringList env_locked_keys_;      ///< keys ENV.ini currently overrides
+  QCheckBox* self_check_box_{};       ///< verify signed libraries at start
+  QCheckBox* os_secret_store_box_{};  ///< wrap the app key with an OS secret
+  QComboBox* secure_level_combo_{};   ///< app secure key protection level
+  QComboBox* log_level_combo_{};      ///< minimum severity that gets logged
+  QSpinBox* ring_capacity_spin_{};    ///< in-memory log ring buffer entries
+  QLabel* env_notice_label_{};        ///< shown only when ENV.ini pins a key
+  QStringList env_locked_keys_;       ///< keys ENV.ini currently overrides
 };
 
 }  // namespace GpgFrontend::UI
