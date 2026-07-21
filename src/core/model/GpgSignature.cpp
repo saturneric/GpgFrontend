@@ -52,6 +52,7 @@ auto GpgSignature::GetValidity() const -> gpgme_validity_t {
   if (gf_signature_ref_ != nullptr) {
     return GPGME_VALIDITY_FULL;
   }
+  if (signature_ref_ == nullptr) return GPGME_VALIDITY_UNKNOWN;
   return signature_ref_->validity;
 }
 
@@ -73,6 +74,7 @@ auto GpgSignature::GetStatus() const -> gpgme_error_t {
         return GPG_ERR_GENERAL;
     }
   }
+  if (signature_ref_ == nullptr) return GPG_ERR_GENERAL;
   return signature_ref_->status;
 }
 
@@ -94,6 +96,7 @@ auto GpgSignature::GetSummary() const -> gpgme_error_t {
     }
     return summary;
   }
+  if (signature_ref_ == nullptr) return GPGME_SIGSUM_RED;
   return signature_ref_->summary;
 }
 
@@ -106,6 +109,7 @@ auto GpgSignature::GetPubkeyAlgo() const -> QString {
   if (gf_signature_ref_ != nullptr) {
     return gf_signature_ref_->pub_algo;
   }
+  if (signature_ref_ == nullptr) return {};
   return gpgme_pubkey_algo_name(signature_ref_->pubkey_algo);
 }
 
@@ -118,6 +122,7 @@ auto GpgSignature::GetHashAlgo() const -> QString {
   if (gf_signature_ref_ != nullptr) {
     return gf_signature_ref_->hash_algo;
   }
+  if (signature_ref_ == nullptr) return {};
   return gpgme_hash_algo_name(signature_ref_->hash_algo);
 }
 
@@ -130,6 +135,7 @@ auto GpgSignature::GetCreateTime() const -> QDateTime {
   if (gf_signature_ref_ != nullptr) {
     return QDateTime::fromSecsSinceEpoch(gf_signature_ref_->created_at);
   }
+  if (signature_ref_ == nullptr) return QDateTime::fromSecsSinceEpoch(0);
   return QDateTime::fromSecsSinceEpoch(signature_ref_->timestamp);
 }
 
@@ -142,6 +148,7 @@ auto GpgSignature::GetExpireTime() const -> QDateTime {
   if (gf_signature_ref_ != nullptr) {
     return QDateTime::fromSecsSinceEpoch(0);
   }
+  if (signature_ref_ == nullptr) return QDateTime::fromSecsSinceEpoch(0);
   return QDateTime::fromSecsSinceEpoch(signature_ref_->exp_timestamp);
 }
 
@@ -154,6 +161,7 @@ auto GpgSignature::GetFingerprint() const -> QString {
   if (gf_signature_ref_ != nullptr) {
     return gf_signature_ref_->issuer_fpr;
   }
+  if (signature_ref_ == nullptr) return {};
   return signature_ref_->fpr != nullptr ? signature_ref_->fpr : "";
 }
 
