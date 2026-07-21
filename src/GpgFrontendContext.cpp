@@ -34,6 +34,7 @@
 #include <qthread.h>
 
 #include "core/GFCoreLog.h"
+#include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/GpgFrontendApplication.h"
@@ -87,15 +88,40 @@ void GpgFrontendContext::load_env_conf_set_properties() {
            resolve("SelfCheck", "advanced/self_check", false).toBool());
   property("GFSecureLevel",
            resolve("SecureLevel", "advanced/secure_level", 0).toInt());
-  // Strictly opt-in, and never in portable mode: a portable directory is meant
-  // to be carried to another computer, and a key wrapped with one machine's
-  // credential store cannot be opened anywhere else. Resolving that here rather
+
+  // How the key file is protected at rest used to live in two settings keys:
+  // os_secret_store for the credential store, and secure_level >= 3 for a PIN.
+  // Both now feed one key, so the resolution draws on three ENV.ini keys rather
+  // than one and cannot go through resolve(). The migration stays derived — it
+  // is recomputed every start and nothing is written back, because this runs
+  // before the secure allocator exists.
+  const auto env_value = [&](const char* key) {
+    return has_env ? s.value(QLatin1String(key)) : QVariant();
+  };
+
+  auto protection = ResolveAppKeyProtection(
+      env_value("AppKeyProtection"), env_value("SecureLevel"),
+      env_value("OSSecretStore"), user.value("advanced/app_key_protection"),
+      user.value("advanced/secure_level"),
+      user.value("advanced/os_secret_store"));
+
+  // Any ENV.ini key that could have decided the protection pins it, so the
+  // Advanced tab shows it read-only rather than accepting an edit that would
+  // silently revert on the next start.
+  if (env_value("AppKeyProtection").isValid() ||
+      env_value("OSSecretStore").isValid() ||
+      (env_value("SecureLevel").isValid() &&
+       env_value("SecureLevel").toInt() >= 3)) {
+    locked_keys << "advanced/app_key_protection";
+  }
+
+  // Portable installs allow only "none" and "pin". Resolving that here rather
   // than at each reader keeps the startup banner, the Advanced tab, and the key
-  // loader from disagreeing about whether the feature is actually in effect.
-  property(
-      "GFOSSecretStore",
-      !property("GFPortableMode").toBool() &&
-          resolve("OSSecretStore", "advanced/os_secret_store", false).toBool());
+  // loader from disagreeing about what is actually in effect.
+  protection =
+      ApplyPortableModeRule(protection, property("GFPortableMode").toBool());
+
+  property("GFAppKeyProtection", AppKeyProtectionToString(protection));
   // An unset log level reads back as 0 (== kDEBUG), which would enable debug
   // logging even in release builds. Default to error level explicitly.
   property("GFLogLevel", resolve("LogLevel", "advanced/log_level",
@@ -110,7 +136,7 @@ void GpgFrontendContext::load_env_conf_set_properties() {
 
   const auto self_check = property("GFSelfCheck").toInt();
   const auto secure_level = property("GFSecureLevel").toInt();
-  const auto os_secret_store = property("GFOSSecretStore").toBool();
+  const auto app_key_protection = property("GFAppKeyProtection").toString();
   const auto log_level = property("GFLogLevel").toInt();
   const auto portable_mode = property("GFPortableMode").toBool();
   const auto gpg_offline_mode = property("GFGnuPGOfflineMode").toBool();
@@ -132,8 +158,8 @@ void GpgFrontendContext::load_env_conf_set_properties() {
       << source("advanced/self_check") << "\n"
       << "Secure Level            : " << secure_level
       << source("advanced/secure_level") << "\n"
-      << "OS Secret Store         : " << BoolText(os_secret_store)
-      << source("advanced/os_secret_store") << "\n"
+      << "App Key Protection      : " << app_key_protection
+      << source("advanced/app_key_protection") << "\n"
       << "Log Level               : " << log_level
       << source("advanced/log_level") << "\n"
       << "Portable Mode           : " << BoolText(portable_mode) << "\n"

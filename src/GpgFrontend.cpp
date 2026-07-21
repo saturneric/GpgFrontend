@@ -35,10 +35,13 @@
 #include "Command.h"
 #include "GpgFrontendContext.h"
 #include "Initialize.h"
+#include "core/function/AESCryptoHelper.h"
 #include "core/function/AppSecureKeyManager.h"
+#include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SystemSecretStore.h"
 #include "platform/PlatformSecretStore.h"
+#include "ui/dialog/AppKeyPinDialog.h"
 
 namespace {
 
@@ -73,10 +76,12 @@ auto ReportAppSecureKeyFailure(
       return false;
 
     case GpgFrontend::AppSecureKeyStatus::kDECRYPT_FAILED:
+      // A wrong PIN is caught and retried before the key loader ever runs, so
+      // reaching here means the key file itself will not decrypt.
       QMessageBox::critical(
           nullptr, QObject::tr("App Secure Key Error"),
-          QObject::tr("Failed to decrypt the application secure key. Your PIN "
-                      "may be incorrect, or the key file may be corrupted.") +
+          QObject::tr("Failed to decrypt the application secure key. The key "
+                      "file may be corrupted.") +
               "\n" + QObject::tr("Please clear the secure key and try again."),
           QMessageBox::Ok);
       return false;
@@ -106,20 +111,20 @@ auto ReportAppSecureKeyFailure(
 }
 
 /**
- * @brief Whether OS-backed protection of the key file is in effect.
+ * @brief The at-rest protection in effect, with the portable rule re-applied.
  *
- * GFOSSecretStore already accounts for portable mode, and for the setting
- * being opt-in, where it is resolved in GpgFrontendContext. The portable check
- * is repeated here only because a qApp property is untyped and writable by
- * anything in the process, and wrapping the key on a portable installation
- * would strand it. One redundant comparison is cheap insurance on the one file
- * every stored secret depends on.
+ * GpgFrontendContext already resolved this, portable mode included. The rule is
+ * applied a second time here only because a qApp property is untyped and
+ * writable by anything in the process, and wrapping the key with a credential
+ * store on a portable installation would strand it. One redundant comparison is
+ * cheap insurance on the one file every stored secret depends on.
  *
- * @return true when the key file should be protected by the credential store
+ * @return the protection the key loader should act on
  */
-auto IsKeyWrapRequested() -> bool {
-  if (GpgFrontend::GetGSS().IsProtableMode()) return false;
-  return qApp->property("GFOSSecretStore").toBool();
+auto RequestedAppKeyProtection() -> GpgFrontend::AppKeyProtection {
+  return GpgFrontend::ApplyPortableModeRule(
+      GpgFrontend::AppKeyProtectionFromApp(),
+      GpgFrontend::GetGSS().IsProtableMode());
 }
 
 /**
@@ -140,7 +145,9 @@ auto ReportAppKeyWrapOutcome(const GpgFrontend::AppKeyWrapResult& result)
     case GpgFrontend::AppKeyWrapStatus::kSTORE_UNAVAILABLE:
       // Turn the preference back off rather than retrying, and failing, at
       // every launch. The key stays exactly as it was, just unprotected.
-      GpgFrontend::GetSettings().setValue("advanced/os_secret_store", false);
+      GpgFrontend::GetSettings().setValue(
+          "advanced/app_key_protection",
+          AppKeyProtectionToString(GpgFrontend::AppKeyProtection::kNONE));
       QMessageBox::warning(
           nullptr, QObject::tr("System Keychain Unavailable"),
           QObject::tr("The application key could not be protected using the "
@@ -211,7 +218,9 @@ auto ReportAppKeyWrapOutcome(const GpgFrontend::AppKeyWrapResult& result)
       if (auto* store = GpgFrontend::GetSystemSecretStore(); store != nullptr) {
         store->Remove(GpgFrontend::kAppKeyWrapAccount);
       }
-      GpgFrontend::GetSettings().setValue("advanced/os_secret_store", false);
+      GpgFrontend::GetSettings().setValue(
+          "advanced/app_key_protection",
+          AppKeyProtectionToString(GpgFrontend::AppKeyProtection::kNONE));
 
       qWarning() << "app secure key was reset at the user's request";
       return true;
@@ -219,6 +228,110 @@ auto ReportAppKeyWrapOutcome(const GpgFrontend::AppKeyWrapResult& result)
   }
 
   return false;
+}
+
+/**
+ * @brief Outcome of asking the user for the application key PIN.
+ *
+ * The empty-PIN case is deliberately not overloaded to mean "quit": a reset
+ * key file legitimately continues with no PIN, and a cancel must not.
+ */
+struct AppKeyPinPrompt {
+  bool proceed = false;       ///< false means quit
+  GpgFrontend::GFBuffer pin;  ///< the PIN, empty when proceeding unprotected
+};
+
+/**
+ * @brief Prompt for the application key PIN until it opens the key file.
+ *
+ * The PIN is trial-unsealed here rather than left to Initialize(), because once
+ * inside the loader a mistyped PIN and a corrupted key file are
+ * indistinguishable: the old code turned the first into a refusal to launch.
+ * Here it costs only a retry.
+ *
+ * Shapes of key file that are handled:
+ *  - none yet: a fresh profile that opted into a PIN before a key existed, so
+ *    the PIN is collected once and used to seal the key about to be generated;
+ *  - present but not encrypted: the setting and the file disagree, which means
+ *    a crashed transition or a hand-edited ini. The key is intact, so the
+ *    setting is reset to "none" and startup proceeds unprotected rather than
+ *    refusing to launch;
+ *  - present but unreadable: an I/O error, distinct from a wrong PIN — a retry
+ *    loop would only ever repeat, so it is reported and startup stops;
+ *  - present and encrypted: the real case, retried until the PIN opens it.
+ *
+ * @param key_path path of the key file
+ * @return whether to proceed, and the PIN to proceed with
+ */
+auto PromptForAppKeyPin(const QString& key_path) -> AppKeyPinPrompt {
+  if (!QFileInfo(key_path).exists()) {
+    GpgFrontend::UI::AppKeyPinDialog dialog(
+        GpgFrontend::UI::AppKeyPinDialog::Mode::kSET);
+    if (dialog.exec() != QDialog::Accepted) return {};
+    return {true, dialog.Pin()};
+  }
+
+  auto on_disk = GpgFrontend::GFBufferFactory::FromFile(key_path);
+  if (!on_disk) {
+    // The file exists but will not read: an unlock loop can only repeat, so say
+    // what is actually wrong and let ReportAppSecureKeyFailure handle the halt.
+    QMessageBox::critical(
+        nullptr, QObject::tr("App Secure Key Error"),
+        QObject::tr("The application secure key at %1 could not be read.")
+                .arg(key_path) +
+            "\n" + QObject::tr("Please check your storage and permissions."),
+        QMessageBox::Ok);
+    return {};
+  }
+
+  if (!GpgFrontend::AESCryptoHelper::IsEncryptedBuffer(*on_disk)) {
+    QMessageBox::warning(
+        nullptr, QObject::tr("Application Key Not Protected"),
+        QObject::tr("A PIN is configured, but the application key on disk is "
+                    "not encrypted.") +
+            "\n" +
+            QObject::tr("This can happen if a previous change was interrupted. "
+                        "The PIN setting has been turned off and the key is "
+                        "left as it is."),
+        QMessageBox::Ok);
+    GpgFrontend::GetSettings().setValue(
+        "advanced/app_key_protection",
+        AppKeyProtectionToString(GpgFrontend::AppKeyProtection::kNONE));
+    // The file really is plaintext, so proceeding with an empty PIN loads it
+    // exactly as an unprotected profile would.
+    return {true, {}};
+  }
+
+  // A locked keyring has a lockout; a PIN does not, so there is nothing to be
+  // gained by capping attempts — only the user's own patience limits them.
+  GpgFrontend::UI::AppKeyPinDialog dialog(
+      GpgFrontend::UI::AppKeyPinDialog::Mode::kUNLOCK);
+  int failures = 0;
+  while (dialog.exec() == QDialog::Accepted) {
+    auto pin = dialog.Pin();
+    if (GpgFrontend::AppSecureKeyManager::UnsealKey(pin, {}, *on_disk)) {
+      return {true, pin};
+    }
+
+    // Clear the field first and set the message last: clearing emits a change
+    // that hides the error, so the message has to be the final mutation or it
+    // would vanish before the dialog is shown again.
+    ++failures;
+    dialog.Clear();
+    auto message = QObject::tr(
+        "That PIN did not unlock the application key. Please try again.");
+    // After a few misses, say the thing that actually matters — that a
+    // forgotten PIN is not recoverable — so a stuck user is not left guessing.
+    if (failures >= 3) {
+      message += "\n" + QObject::tr(
+                            "If you have forgotten your PIN, the application "
+                            "key and everything encrypted with it cannot be "
+                            "recovered.");
+    }
+    dialog.SetErrorText(message);
+  }
+
+  return {};
 }
 
 }  // namespace
@@ -295,46 +408,36 @@ auto main(int argc, char* argv[]) -> int {
     return GpgFrontend::PrintEnvInfo();
   }
 
-  const auto secure_level = qApp->property("GFSecureLevel").toInt();
-  GpgFrontend::GFBuffer buf;
-
-  if (secure_level > 2) {
-    bool ok = false;
-    auto pin = QInputDialog::getText(
-        nullptr, QObject::tr("PIN Required"),
-        QObject::tr("High security mode is enabled.") + "\n\n" +
-            QObject::tr("To unlock the application please enter your PIN."),
-        QLineEdit::Password, {}, &ok);
-
-    if (!ok || pin.isEmpty()) return 1;
-
-    buf = GpgFrontend::GFBuffer(pin);
-    pin.fill('X');
-    pin.clear();
-  }
-
   GpgFrontend::InstallPlatformSecretStore();
 
-  // The two protections are mutually exclusive and must stay distinct: a PIN
-  // is low entropy and is stretched with Argon2id, while the credential
-  // store's secret is 32 random bytes and uses a fast derivation. In high
-  // security mode the typed PIN protects the key, so the credential store
-  // stays out of it entirely and `wrap` is left empty.
+  auto& key_mgr = GpgFrontend::AppSecureKeyManager::GetInstance();
+  const auto protection = RequestedAppKeyProtection();
+
+  // The three backends are mutually exclusive and stay distinct because their
+  // secrets are not alike: a PIN is low entropy and is stretched with Argon2id,
+  // while the credential store's secret is 32 random bytes and uses a fast
+  // derivation. Whichever is in use fills exactly one of the two slots below.
+  GpgFrontend::GFBuffer pin;
   GpgFrontend::GFBuffer wrap;
 
-  if (secure_level <= 2) {
-    auto& key_mgr = GpgFrontend::AppSecureKeyManager::GetInstance();
+  if (protection == GpgFrontend::AppKeyProtection::kPIN) {
+    const auto prompt = PromptForAppKeyPin(key_mgr.GetLegacyKeyPath());
+    // Cancelling quits: it costs the user nothing and leaves the key intact,
+    // whereas resetting on their behalf would not. A reset key file proceeds
+    // with an empty PIN, loaded exactly as an unprotected profile.
+    if (!prompt.proceed) return 1;
+    pin = prompt.pin;
+  } else {
     const auto wrap_result =
         GpgFrontend::AppSecureKeyManager::ResolveWrapSecret(
             key_mgr.GetLegacyKeyPath(), GpgFrontend::GetSystemSecretStore(),
-            IsKeyWrapRequested());
+            protection == GpgFrontend::AppKeyProtection::kKEYCHAIN);
 
     if (!ReportAppKeyWrapOutcome(wrap_result)) return 1;
     wrap = wrap_result.secret;
   }
 
-  const auto key_result =
-      GpgFrontend::AppSecureKeyManager::GetInstance().Initialize(buf, wrap);
+  const auto key_result = key_mgr.Initialize(pin, wrap);
 
   if (!ReportAppSecureKeyFailure(key_result)) return 1;
 
