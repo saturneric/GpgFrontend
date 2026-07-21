@@ -421,6 +421,64 @@ TEST(AppSecureKeyWrapTest, EnableWithNoKeyFileYetJustProvisionsSecret) {
   EXPECT_FALSE(file.Exists());
 }
 
+/**
+ * The bug this guards against shipped: ResolveWrapSecret sealed the key file
+ * with one key derivation while the loader unsealed it with another, so
+ * enabling the feature produced a file that the next start refused to open.
+ *
+ * Asserting through UnsealKey rather than calling DecryptLite directly is the
+ * whole point — a test that picks the derivation itself agrees with whichever
+ * one the sealer used and never crosses the seam.
+ */
+TEST(AppSecureKeyWrapTest, WrappedFileOpensThroughTheLoadersOwnPath) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  const auto enabled =
+      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+  ASSERT_EQ(enabled.status, AppKeyWrapStatus::kJustEnabled);
+
+  // Exactly what init_legacy_key() does on the following start.
+  auto recovered =
+      AppSecureKeyManager::UnsealKey({}, enabled.secret, file.Read());
+  ASSERT_TRUE(recovered.has_value());
+  EXPECT_EQ(*recovered, key);
+}
+
+/**
+ * Sealing and unsealing must agree for both kinds of secret, and a file sealed
+ * for one kind must not open as the other.
+ */
+TEST(AppSecureKeyWrapTest, SealAndUnsealAgreeForBothSecretKinds) {
+  const auto key = SampleKey();
+  const GFBuffer pin("a-user-pin");
+  const GFBuffer wrap(QByteArray(32, '\x11'));
+
+  auto sealed_pin = AppSecureKeyManager::SealKey(pin, {}, key);
+  ASSERT_TRUE(sealed_pin.has_value());
+  auto opened_pin = AppSecureKeyManager::UnsealKey(pin, {}, *sealed_pin);
+  ASSERT_TRUE(opened_pin.has_value());
+  EXPECT_EQ(*opened_pin, key);
+
+  auto sealed_wrap = AppSecureKeyManager::SealKey({}, wrap, key);
+  ASSERT_TRUE(sealed_wrap.has_value());
+  auto opened_wrap = AppSecureKeyManager::UnsealKey({}, wrap, *sealed_wrap);
+  ASSERT_TRUE(opened_wrap.has_value());
+  EXPECT_EQ(*opened_wrap, key);
+
+  // Feeding a secret through the wrong slot selects the wrong derivation, which
+  // is exactly how the two halves came to disagree.
+  EXPECT_FALSE(AppSecureKeyManager::UnsealKey(wrap, {}, *sealed_wrap));
+  EXPECT_FALSE(AppSecureKeyManager::UnsealKey({}, pin, *sealed_pin));
+
+  // With no secret at all the key is stored verbatim.
+  auto unprotected = AppSecureKeyManager::SealKey({}, {}, key);
+  ASSERT_TRUE(unprotected.has_value());
+  EXPECT_EQ(*unprotected, key);
+  EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(*unprotected));
+}
+
 // --- failure paths ----------------------------------------------------------
 
 TEST(AppSecureKeyWrapTest, UnavailableStoreLeavesFilePlaintext) {

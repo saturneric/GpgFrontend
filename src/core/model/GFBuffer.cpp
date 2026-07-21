@@ -179,8 +179,8 @@ void GFBuffer::Append(const char* buffer, ssize_t size) {
   // build into fresh storage rather than resizing in place: `buffer` may point
   // into our own allocation, which a realloc would invalidate mid-copy.
   const auto old_size = Size();
-  auto merged = SecureCreateUniqueObject<Impl>(old_size +
-                                               static_cast<size_t>(size));
+  auto merged =
+      SecureCreateUniqueObject<Impl>(old_size + static_cast<size_t>(size));
 
   if (old_size > 0) {
     memcpy(merged->sec_ptr_, impl_->sec_ptr_, old_size);
