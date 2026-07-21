@@ -30,6 +30,7 @@
 
 #include <cstddef>
 
+#include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
@@ -87,6 +88,46 @@ auto ApplyEngineColumnFilter(int channel, GpgKeyTableColumn columns)
   return columns;
 }
 
+/**
+ * @brief Durable-cache key holding the visible-column choice of one host
+ * window.
+ */
+auto ColumnFilterCacheKey(const QString& scope) -> QString {
+  return QString("key_list_column_filter:%1").arg(scope);
+}
+
+auto LoadColumnFilter(const QString& scope, GpgKeyTableColumn default_columns)
+    -> GpgKeyTableColumn {
+  const auto object = CacheManager::GetInstance()
+                          .LoadDurableCache(ColumnFilterCacheKey(scope))
+                          .object();
+
+  if (const auto value = object.value("columns"); value.isDouble()) {
+    return static_cast<GpgKeyTableColumn>(
+        static_cast<unsigned int>(value.toInteger()));
+  }
+
+  // Migration: the choice used to live in QSettings, where every window but the
+  // ToolBox shared one key. Honour that once so upgrading does not silently
+  // reset the visible columns; can be dropped once no one upgrades from 2.1.
+  const auto legacy_key = scope == "toolbox" ? "keys/toolbox_columns_filter"
+                                             : "keys/global_columns_filter";
+  return static_cast<GpgKeyTableColumn>(
+      GetSettings()
+          .value(legacy_key, static_cast<unsigned int>(default_columns))
+          .toUInt());
+}
+
+void SaveColumnFilter(const QString& scope, GpgKeyTableColumn columns) {
+  QJsonObject object;
+  object.insert("columns",
+                static_cast<qint64>(static_cast<unsigned int>(columns)));
+
+  // Toggling a column is a deliberate, infrequent action, so write through.
+  CacheManager::GetInstance().SaveDurableCache(ColumnFilterCacheKey(scope),
+                                               QJsonDocument(object), true);
+}
+
 }  // namespace
 
 KeyList::KeyList(QWidget* parent)
@@ -94,11 +135,8 @@ KeyList::KeyList(QWidget* parent)
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_KeyList>()),
       model_(AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetGpgKeyTableModel()),
-      global_column_filter_(static_cast<GpgKeyTableColumn>(
-          GetSettings()
-              .value("keys/global_columns_filter",
-                     static_cast<unsigned int>(GpgKeyTableColumn::kALL))
-              .toUInt())) {
+      global_column_filter_(
+          LoadColumnFilter("global", GpgKeyTableColumn::kALL)) {
   ui_->setupUi(this);
 }
 
@@ -110,11 +148,8 @@ KeyList::KeyList(int channel, KeyMenuAbility menu_ability,
       menu_ability_(menu_ability),
       model_(AbstractKeyRepository::GetInstance(channel).GetGpgKeyTableModel()),
       fixed_columns_filter_(fixed_columns_filter),
-      global_column_filter_(static_cast<GpgKeyTableColumn>(
-          GetSettings()
-              .value("keys/global_columns_filter",
-                     static_cast<unsigned int>(GpgKeyTableColumn::kALL))
-              .toUInt())) {
+      global_column_filter_(
+          LoadColumnFilter("global", GpgKeyTableColumn::kALL)) {
   ui_->setupUi(this);
   init();
 }
@@ -614,8 +649,7 @@ void KeyList::init_signals() {
           &UISignalStation::SignalRefreshStatusBar);
 
   connect(this, &KeyList::SignalColumnTypeChange, this, [this]() {
-    GetSettings().setValue(column_filter_settings_key_,
-                           static_cast<unsigned int>(global_column_filter_));
+    SaveColumnFilter(persistence_scope_, global_column_filter_);
   });
 
   connect(ui_->keyGroupButton, &QPushButton::clicked, this,
@@ -696,7 +730,7 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
                    std::move(search_filter), category_id);
 
   key_table->setObjectName(id);
-  key_table->SetColumnWidthsScope(column_widths_scope_);
+  key_table->SetColumnWidthsScope(persistence_scope_);
 
   ui_->keyStack->addWidget(key_table);
   pages_.insert(id, key_table);
@@ -793,27 +827,20 @@ void KeyList::SetTabOrderSettingsKey(const QString& settings_key) {
   if (!settings_key.isEmpty()) tab_order_settings_key_ = settings_key;
 }
 
-void KeyList::SetColumnFilterSettingsKey(const QString& settings_key,
-                                         GpgKeyTableColumn default_columns) {
-  if (!settings_key.isEmpty()) column_filter_settings_key_ = settings_key;
+void KeyList::SetPersistenceScope(const QString& scope,
+                                  GpgKeyTableColumn default_columns) {
+  if (scope.isEmpty()) return;
 
-  global_column_filter_ = static_cast<GpgKeyTableColumn>(
-      GetSettings()
-          .value(column_filter_settings_key_,
-                 static_cast<unsigned int>(default_columns))
-          .toUInt());
+  persistence_scope_ = scope;
+
+  for (auto* page : pages_) page->SetColumnWidthsScope(persistence_scope_);
+
+  global_column_filter_ = LoadColumnFilter(persistence_scope_, default_columns);
 
   // Rebuild the chooser so its checkmarks reflect the (possibly new) state,
   // then apply the filter to every existing tab.
   init_column_menu();
   UpdateKeyTableColumnType(global_column_filter_);
-}
-
-void KeyList::SetColumnWidthsScope(const QString& scope) {
-  if (scope.isEmpty()) return;
-
-  column_widths_scope_ = scope;
-  for (auto* page : pages_) page->SetColumnWidthsScope(column_widths_scope_);
 }
 
 void KeyList::save_tab_order() {
