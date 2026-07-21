@@ -32,8 +32,10 @@
 
 #include <QMutex>
 #include <QRegularExpression>
+#include <algorithm>
 #include <array>
 #include <cstring>
+#include <string_view>
 
 #include "core/function/CacheManager.h"
 #include "core/function/GlobalSettingStation.h"
@@ -49,14 +51,12 @@ namespace {
 // a messenger turns into markdown/link/soft-wrap, so a token stays one word.
 // ---------------------------------------------------------------------------
 
-constexpr char kB58Alphabet[] =
+constexpr std::string_view kB58Alphabet =
     "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 auto Base58DigitValue(char c) -> int {
-  for (int i = 0; i < 58; ++i) {
-    if (kB58Alphabet[i] == c) return i;
-  }
-  return -1;
+  const auto pos = kB58Alphabet.find(c);
+  return pos == std::string_view::npos ? -1 : static_cast<int>(pos);
 }
 
 auto Base58Encode(const QByteArray& in) -> QString {
@@ -295,6 +295,10 @@ auto FingerprintOfBook(const GFBuffer& book) -> QString {
 //
 //   wire = Base58( seed(16) || permute( inner XOR keystream ) )
 //   inner = tag(16) | version(1) | type(1) | payload_len(u32) | payload | pad
+//
+// The padding is at least 30% of the content and the total is then quantized
+// onto a ladder of Base58 lengths (see SnapFrameBytes), so the token's length
+// is a coarse, keyed function of the payload's rather than a reflection of it.
 // ---------------------------------------------------------------------------
 
 // 0x03: books are now full 256-bit-seeded permutations, so every book,
@@ -306,10 +310,17 @@ constexpr int kSeedLen = 16;  // == Argon2 salt length; ChaCha20 nonce is the
                               // first 8 bytes of it.
 constexpr int kTagLen = 16;   // secret book-derived recognition value
 constexpr int kHeaderLen = kTagLen + 1 + 1 + 4;  // tag|version|type|payload_len
-constexpr int kBucket = 64;  // length is rounded up to this before jitter
 constexpr int kMinFrame = kHeaderLen;
 constexpr int kPrefixLen = kTagLen + 4;  // PRG bytes read before the length (m)
                                          // is known: tag + jitter u32
+
+// Random padding, as a fraction of the real content, in 1024ths: 30.0% to
+// 50.0%. Drawn from the keystream, so the amount is itself a secret of the
+// book — an observer cannot subtract a known overhead to recover the true
+// payload size, and repeated sends of the same message land on different
+// lengths.
+constexpr quint32 kPadFracMin = 307;   // 307/1024 ≈ 30.0%
+constexpr quint32 kPadFracSpan = 206;  // up to 512/1024 = 50.0%
 
 static_assert(kSeedLen == crypto_pwhash_SALTBYTES);
 static_assert(kSeedLen >= crypto_stream_chacha20_NONCEBYTES);
@@ -327,7 +338,33 @@ auto ReadU32BE(const QByteArray& in, int off) -> quint32 {
          static_cast<quint32>(static_cast<uint8_t>(in[off + 3]));
 }
 
-auto RoundUp(int v, int mult) -> int { return ((v + mult - 1) / mult) * mult; }
+// Wire lengths (in bytes) whose Base58 encodings are lengths that already
+// occur in the wild, so a token that fits one is not merely "some Base58
+// blob" but the same size as things people paste into chats every day:
+//
+//   25 -> 34 chars  P2PKH / P2SH address        32 -> 44 chars  Solana pubkey
+//   37 -> 51 chars  WIF (uncompressed)          38 -> 52 chars  WIF
+//   39 -> 53 chars  BIP38 encrypted key         64 -> 88 chars  Ed25519 sig
+//   82 -> 111 chars xpub / xprv
+//
+// An OpenPGP message is much larger than any of these, so in practice only a
+// contrived payload lands on one; they are the bottom of the ladder so that it
+// happens whenever it can, and cost nothing when it cannot.
+constexpr std::array<int, 7> kClassicFrameBytes = {25, 32, 37, 38, 39, 64, 82};
+
+// Past the classical rungs the ladder grows by an eighth per step. That caps
+// what snapping costs (≤12.5% on top of the random padding) while keeping the
+// set of reachable token lengths small: many different messages quantize onto
+// the same rung, so the length of a token says little about the length of what
+// is inside it.
+auto SnapFrameBytes(int n) -> int {
+  for (const int c : kClassicFrameBytes) {
+    if (n <= c) return c;
+  }
+  int v = kClassicFrameBytes.back();
+  while (v < n) v += (v + 7) / 8;
+  return v;
+}
 
 // Memory-hard master key from the book (as password) and the seed (as salt).
 // This is what makes even *detecting* a token cost an Argon2id per candidate
@@ -399,9 +436,15 @@ auto InstantMessageOperator::Encode(const GFBuffer& pgp_message) -> QString {
   const QByteArray tag = prefix.left(kTagLen);
   const quint32 jitter = ReadU32BE(prefix, kTagLen);
 
+  // Length: pad by a keystream-chosen 30-50% of the content, then snap the
+  // whole wire (seed included, since that is what gets Base58'd) up onto the
+  // length ladder.
   const int content = kHeaderLen + static_cast<int>(pgp.size());
-  const int m = RoundUp(content, kBucket) +
-                static_cast<int>(jitter % static_cast<quint32>(2 * kBucket));
+  const int padded =
+      content + static_cast<int>((static_cast<qint64>(content) *
+                                  (kPadFracMin + (jitter % kPadFracSpan))) /
+                                 1024);
+  const int m = std::max(padded, SnapFrameBytes(kSeedLen + padded) - kSeedLen);
   const int pad_len = m - content;
 
   QByteArray inner;

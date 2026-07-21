@@ -139,6 +139,40 @@ TEST(InstantMessageOperatorTest, LengthIsPadded) {
   EXPECT_GT(token.size(), 60);
 }
 
+// Padding is at least 30% of the frame, so the token is never a thin wrapper
+// around the payload whose size can be read off its length.
+TEST(InstantMessageOperatorTest, PaddingIsAtLeastThirtyPercent) {
+  for (const int payload : {200, 512, 1000}) {
+    const auto token =
+        InstantMessageOperator::Encode(GFBuffer(PgpLikeBlob(payload)));
+    ASSERT_FALSE(token.isEmpty());
+
+    // Base58 carries log2(58) ≈ 5.858 bits per character, so the wire is at
+    // most size*5.858/8 bytes; even that upper bound must exceed the payload
+    // by 30%.
+    const auto wire_bytes = static_cast<double>(token.size()) * 5.858 / 8.0;
+    EXPECT_GT(wire_bytes, payload * 1.3)
+        << "payload " << payload << " token " << token.size();
+  }
+}
+
+// Token lengths are quantized: many distinct payload sizes must collapse onto
+// the same handful of lengths, or the length itself fingerprints the message.
+TEST(InstantMessageOperatorTest, LengthsQuantizeOntoALadder) {
+  QSet<qsizetype> lengths;
+  for (int payload = 200; payload < 260; ++payload) {
+    const auto token =
+        InstantMessageOperator::Encode(GFBuffer(PgpLikeBlob(payload)));
+    ASSERT_FALSE(token.isEmpty());
+    lengths.insert(token.size());
+  }
+
+  // 60 consecutive payload sizes; unpadded these would be ~60 distinct token
+  // lengths. The ladder (plus the ±1 char Base58 wobble) must fold them into
+  // far fewer rungs.
+  EXPECT_LT(lengths.size(), 20) << "distinct lengths: " << lengths.size();
+}
+
 // A token whitened under one Message Book phrase is indistinguishable from
 // random under a different phrase — it neither decodes nor is recognised.
 TEST(InstantMessageOperatorTest, WrongBookDoesNotDecode) {
