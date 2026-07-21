@@ -83,7 +83,7 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
     auto bytes = GFBufferFactory::FromFile(key_path);
     if (!bytes) {
       LOG_E() << "read app secure key failed:" << key_path;
-      return {AppKeyWrapStatus::kIoFailed, {}, key_path};
+      return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
     }
     on_disk = *bytes;
   }
@@ -91,56 +91,56 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
   const bool wrapped =
       key_exists && AESCryptoHelper::IsEncryptedBuffer(on_disk);
 
-  if (!wrapped && !intent_enabled) return {AppKeyWrapStatus::kNotWrapped};
+  if (!wrapped && !intent_enabled) return {AppKeyWrapStatus::kNOT_WRAPPED};
 
   if (wrapped) {
     if (store == nullptr) {
-      return {AppKeyWrapStatus::kLockedOut, {}, backend};
+      return {AppKeyWrapStatus::kLOCKED_OUT, {}, backend};
     }
 
     auto secret = store->Read(kAppKeyWrapAccount);
     if (!secret) {
       LOG_W() << "app secure key is protected but its secret is unavailable";
-      return {AppKeyWrapStatus::kLockedOut, {}, backend};
+      return {AppKeyWrapStatus::kLOCKED_OUT, {}, backend};
     }
 
     auto plain = UnsealKey({}, *secret, on_disk);
     if (!plain) {
       LOG_W() << "app secure key did not decrypt with the stored secret";
-      return {AppKeyWrapStatus::kLockedOut, {}, backend};
+      return {AppKeyWrapStatus::kLOCKED_OUT, {}, backend};
     }
 
-    if (intent_enabled) return {AppKeyWrapStatus::kWrapped, *secret, backend};
+    if (intent_enabled) return {AppKeyWrapStatus::kWRAPPED, *secret, backend};
 
     // Turning protection off: put the plaintext back first, and only drop the
     // store entry once the file no longer depends on it. A crash in between
     // leaves an unused entry, which is harmless; the reverse order would lose
     // the key.
     if (!GFBufferFactory::ToFileAtomic(key_path, *plain)) {
-      return {AppKeyWrapStatus::kIoFailed, {}, key_path};
+      return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
     }
 
     store->Remove(kAppKeyWrapAccount);
     LOG_I() << "app secure key protection disabled, backend:" << backend;
-    return {AppKeyWrapStatus::kJustDisabled, {}, backend};
+    return {AppKeyWrapStatus::kJUST_DISABLED, {}, backend};
   }
 
   // Not wrapped, but protection was requested.
   if (store == nullptr || !store->IsAvailable()) {
     LOG_W() << "app secure key protection requested but unavailable, backend:"
             << backend;
-    return {AppKeyWrapStatus::kStoreUnavailable, {}, backend};
+    return {AppKeyWrapStatus::kSTORE_UNAVAILABLE, {}, backend};
   }
 
   auto secret = SecureRandomGenerator::Generate(kWrapSecretLen);
   if (!secret) {
     LOG_E() << "cannot generate a wrap secret: no random source";
-    return {AppKeyWrapStatus::kStoreUnavailable, {}, backend};
+    return {AppKeyWrapStatus::kSTORE_UNAVAILABLE, {}, backend};
   }
 
   if (!store->Write(kAppKeyWrapAccount, *secret)) {
     LOG_W() << "writing the wrap secret failed, backend:" << backend;
-    return {AppKeyWrapStatus::kStoreUnavailable, {}, backend};
+    return {AppKeyWrapStatus::kSTORE_UNAVAILABLE, {}, backend};
   }
 
   // Read it back before anything depends on it. A locked keyring or a missing
@@ -150,20 +150,20 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
   if (!verify || *verify != *secret) {
     LOG_W() << "wrap secret did not read back intact, backend:" << backend;
     store->Remove(kAppKeyWrapAccount);
-    return {AppKeyWrapStatus::kStoreUnavailable, {}, backend};
+    return {AppKeyWrapStatus::kSTORE_UNAVAILABLE, {}, backend};
   }
 
   // No key file yet: nothing to convert, the caller will create it encrypted.
   if (!key_exists) {
     LOG_I() << "app secure key protection enabled, backend:" << backend;
-    return {AppKeyWrapStatus::kJustEnabled, *secret, backend};
+    return {AppKeyWrapStatus::kJUST_ENABLED, *secret, backend};
   }
 
   auto encrypted = SealKey({}, *secret, on_disk);
   if (!encrypted) {
     LOG_E() << "encrypting the app secure key failed";
     store->Remove(kAppKeyWrapAccount);
-    return {AppKeyWrapStatus::kIoFailed, {}, key_path};
+    return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
   }
 
   // Prove the ciphertext round-trips before it replaces the only copy of the
@@ -173,16 +173,16 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
   if (!round_trip || *round_trip != on_disk) {
     LOG_E() << "app secure key did not survive a wrap round trip";
     store->Remove(kAppKeyWrapAccount);
-    return {AppKeyWrapStatus::kIoFailed, {}, key_path};
+    return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
   }
 
   if (!GFBufferFactory::ToFileAtomic(key_path, *encrypted)) {
     store->Remove(kAppKeyWrapAccount);
-    return {AppKeyWrapStatus::kIoFailed, {}, key_path};
+    return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
   }
 
   LOG_I() << "app secure key protection enabled, backend:" << backend;
-  return {AppKeyWrapStatus::kJustEnabled, *secret, backend};
+  return {AppKeyWrapStatus::kJUST_ENABLED, *secret, backend};
 }
 
 auto AppSecureKeyManager::GetKeyDir() const -> QString {
@@ -242,7 +242,7 @@ auto AppSecureKeyManager::new_legacy_key(const GFBuffer& pin,
   auto sealed = SealKey(pin, wrap, plain_key);
   if (!sealed) {
     LOG_E() << "encrypt app secure key failed, won't write it to disk";
-    status = {AppSecureKeyStatus::kWriteFailed,
+    status = {AppSecureKeyStatus::kWRITE_FAILED,
               QObject::tr("The secure key could not be encrypted, so it was "
                           "not saved to disk.")};
     return plain_key;
@@ -251,7 +251,7 @@ auto AppSecureKeyManager::new_legacy_key(const GFBuffer& pin,
   const auto path = GetLegacyKeyPath();
   if (!GFBufferFactory::ToFile(path, *sealed)) {
     LOG_E() << "write app secure key failed:" << path;
-    status = {AppSecureKeyStatus::kWriteFailed, path};
+    status = {AppSecureKeyStatus::kWRITE_FAILED, path};
   }
 
   return plain_key;
@@ -269,19 +269,19 @@ auto AppSecureKeyManager::init_legacy_key(const GFBuffer& pin,
   if (!QFileInfo(path).exists()) {
     legacy_key = new_legacy_key(pin, wrap, result);
     if (legacy_key.Empty()) {
-      return {AppSecureKeyStatus::kGenerateFailed, path};
+      return {AppSecureKeyStatus::kGENERATE_FAILED, path};
     }
   } else {
     auto key = GFBufferFactory::FromFile(path);
     if (!key) {
       LOG_E() << "read app secure key failed:" << path;
-      return {AppSecureKeyStatus::kReadFailed, path};
+      return {AppSecureKeyStatus::kREAD_FAILED, path};
     }
 
     auto r_key = UnsealKey(pin, wrap, *key);
     if (!r_key) {
       LOG_W() << "decrypt legacy app secure key failed";
-      return {AppSecureKeyStatus::kDecryptFailed, path};
+      return {AppSecureKeyStatus::kDECRYPT_FAILED, path};
     }
     legacy_key = *r_key;
   }
@@ -357,7 +357,7 @@ auto AppSecureKeyManager::Initialize(const GFBuffer& pin, const GFBuffer& wrap)
 
   auto t_key = fetch_time_related_key(pin);
   if (t_key.Empty()) {
-    return {AppSecureKeyStatus::kGenerateFailed, GetKeyDir()};
+    return {AppSecureKeyStatus::kGENERATE_FAILED, GetKeyDir()};
   }
   keys.insert(CalculateKeyId(pin, t_key), t_key);
 
@@ -367,7 +367,7 @@ auto AppSecureKeyManager::Initialize(const GFBuffer& pin, const GFBuffer& wrap)
     auto key = GFBufferFactory::FromFile(key_path);
     if (!key) {
       LOG_E() << "read app secure key failed:" << key_path;
-      return {AppSecureKeyStatus::kReadFailed, key_path};
+      return {AppSecureKeyStatus::kREAD_FAILED, key_path};
     }
     keys.insert(CalculateKeyId(pin, *key), *key);
   }

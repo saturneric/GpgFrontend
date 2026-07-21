@@ -54,10 +54,10 @@ namespace {
 auto ReportAppSecureKeyFailure(
     const GpgFrontend::AppSecureKeyInitResult& result) -> bool {
   switch (result.status) {
-    case GpgFrontend::AppSecureKeyStatus::kOk:
+    case GpgFrontend::AppSecureKeyStatus::kOK:
       return true;
 
-    case GpgFrontend::AppSecureKeyStatus::kWriteFailed:
+    case GpgFrontend::AppSecureKeyStatus::kWRITE_FAILED:
       // Continuing would be silent data loss: everything encrypted during this
       // session gets a key ID that no longer exists on the next start, so it
       // would come back as unreadable rather than merely unsaved.
@@ -72,7 +72,7 @@ auto ReportAppSecureKeyFailure(
           QMessageBox::Ok);
       return false;
 
-    case GpgFrontend::AppSecureKeyStatus::kDecryptFailed:
+    case GpgFrontend::AppSecureKeyStatus::kDECRYPT_FAILED:
       QMessageBox::critical(
           nullptr, QObject::tr("App Secure Key Error"),
           QObject::tr("Failed to decrypt the application secure key. Your PIN "
@@ -81,7 +81,7 @@ auto ReportAppSecureKeyFailure(
           QMessageBox::Ok);
       return false;
 
-    case GpgFrontend::AppSecureKeyStatus::kReadFailed:
+    case GpgFrontend::AppSecureKeyStatus::kREAD_FAILED:
       QMessageBox::critical(
           nullptr, QObject::tr("App Secure Key Error"),
           QObject::tr(
@@ -93,7 +93,7 @@ auto ReportAppSecureKeyFailure(
           QMessageBox::Ok);
       return false;
 
-    case GpgFrontend::AppSecureKeyStatus::kGenerateFailed:
+    case GpgFrontend::AppSecureKeyStatus::kGENERATE_FAILED:
       QMessageBox::critical(
           nullptr, QObject::tr("Secure Key Generation Failed"),
           QObject::tr("Failed to generate an application secure key.") + "\n" +
@@ -131,13 +131,13 @@ auto IsKeyWrapRequested() -> bool {
 auto ReportAppKeyWrapOutcome(const GpgFrontend::AppKeyWrapResult& result)
     -> bool {
   switch (result.status) {
-    case GpgFrontend::AppKeyWrapStatus::kNotWrapped:
-    case GpgFrontend::AppKeyWrapStatus::kWrapped:
-    case GpgFrontend::AppKeyWrapStatus::kJustEnabled:
-    case GpgFrontend::AppKeyWrapStatus::kJustDisabled:
+    case GpgFrontend::AppKeyWrapStatus::kNOT_WRAPPED:
+    case GpgFrontend::AppKeyWrapStatus::kWRAPPED:
+    case GpgFrontend::AppKeyWrapStatus::kJUST_ENABLED:
+    case GpgFrontend::AppKeyWrapStatus::kJUST_DISABLED:
       return true;
 
-    case GpgFrontend::AppKeyWrapStatus::kStoreUnavailable:
+    case GpgFrontend::AppKeyWrapStatus::kSTORE_UNAVAILABLE:
       // Turn the preference back off rather than retrying, and failing, at
       // every launch. The key stays exactly as it was, just unprotected.
       GpgFrontend::GetSettings().setValue("advanced/os_secret_store", false);
@@ -151,7 +151,7 @@ auto ReportAppKeyWrapOutcome(const GpgFrontend::AppKeyWrapResult& result)
           QMessageBox::Ok);
       return true;
 
-    case GpgFrontend::AppKeyWrapStatus::kIoFailed:
+    case GpgFrontend::AppKeyWrapStatus::kIO_FAILED:
       QMessageBox::critical(
           nullptr, QObject::tr("App Secure Key Error"),
           QObject::tr("The application secure key at %1 could not be read or "
@@ -161,7 +161,7 @@ auto ReportAppKeyWrapOutcome(const GpgFrontend::AppKeyWrapResult& result)
           QMessageBox::Ok);
       return false;
 
-    case GpgFrontend::AppKeyWrapStatus::kLockedOut: {
+    case GpgFrontend::AppKeyWrapStatus::kLOCKED_OUT: {
       // Never reset on the user's behalf: resetting is unrecoverable, whereas
       // quitting costs nothing and lets them unlock the keychain and retry.
       QMessageBox box(QMessageBox::Critical,

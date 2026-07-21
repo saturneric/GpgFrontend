@@ -40,24 +40,24 @@ namespace GpgFrontend {
  * every failure is reported here and rendered by the application layer.
  */
 enum class AppSecureKeyStatus {
-  kOk,              ///< key set loaded or created successfully
-  kReadFailed,      ///< a key file exists but could not be read
-  kDecryptFailed,   ///< a key file was read but would not decrypt
-  kWriteFailed,     ///< a newly generated key could not be persisted
-  kGenerateFailed,  ///< no usable random source produced a key
+  kOK,               ///< key set loaded or created successfully
+  kREAD_FAILED,      ///< a key file exists but could not be read
+  kDECRYPT_FAILED,   ///< a key file was read but would not decrypt
+  kWRITE_FAILED,     ///< a newly generated key could not be persisted
+  kGENERATE_FAILED,  ///< no usable random source produced a key
 };
 
 /**
  * @brief Result of loading the application secure key set.
  */
 struct AppSecureKeyInitResult {
-  AppSecureKeyStatus status = AppSecureKeyStatus::kOk;
+  AppSecureKeyStatus status = AppSecureKeyStatus::kOK;
 
   /// Path, cause, or other context worth showing the user and logging.
   QString detail;
 
   [[nodiscard]] auto Ok() const -> bool {
-    return status == AppSecureKeyStatus::kOk;
+    return status == AppSecureKeyStatus::kOK;
   }
 };
 
@@ -67,20 +67,20 @@ class SystemSecretStore;
  * @brief Outcome of reconciling the at-rest protection of the key file.
  */
 enum class AppKeyWrapStatus {
-  kNotWrapped,        ///< key file is plaintext and should stay that way
-  kWrapped,           ///< key file is encrypted and the secret was resolved
-  kJustEnabled,       ///< key file was just encrypted for the first time
-  kJustDisabled,      ///< key file was just decrypted back to plaintext
-  kStoreUnavailable,  ///< protection was requested but no store could be used
-  kLockedOut,         ///< key file is encrypted but the secret is unrecoverable
-  kIoFailed,          ///< the key file could not be read or rewritten
+  kNOT_WRAPPED,        ///< key file is plaintext and should stay that way
+  kWRAPPED,            ///< key file is encrypted and the secret was resolved
+  kJUST_ENABLED,       ///< key file was just encrypted for the first time
+  kJUST_DISABLED,      ///< key file was just decrypted back to plaintext
+  kSTORE_UNAVAILABLE,  ///< protection was requested but no store could be used
+  kLOCKED_OUT,  ///< key file is encrypted but the secret is unrecoverable
+  kIO_FAILED,   ///< the key file could not be read or rewritten
 };
 
 /**
  * @brief Result of AppSecureKeyManager::ResolveWrapSecret().
  */
 struct AppKeyWrapResult {
-  AppKeyWrapStatus status = AppKeyWrapStatus::kNotWrapped;
+  AppKeyWrapStatus status = AppKeyWrapStatus::kNOT_WRAPPED;
 
   /// Secret protecting the key file; empty unless it is currently wrapped.
   GFBuffer secret;
@@ -90,8 +90,8 @@ struct AppKeyWrapResult {
 
   /// True when startup can proceed, whether or not protection was applied.
   [[nodiscard]] auto Usable() const -> bool {
-    return status != AppKeyWrapStatus::kLockedOut &&
-           status != AppKeyWrapStatus::kIoFailed;
+    return status != AppKeyWrapStatus::kLOCKED_OUT &&
+           status != AppKeyWrapStatus::kIO_FAILED;
   }
 };
 

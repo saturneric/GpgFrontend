@@ -310,7 +310,7 @@ TEST(AppSecureKeyWrapTest, DisabledLeavesPlaintextUntouched) {
   const auto result =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
 
-  EXPECT_EQ(result.status, AppKeyWrapStatus::kNotWrapped);
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kNOT_WRAPPED);
   EXPECT_TRUE(result.secret.Empty());
   EXPECT_EQ(file.Read(), key);
   EXPECT_TRUE(store.entries.isEmpty());
@@ -324,7 +324,7 @@ TEST(AppSecureKeyWrapTest, EnableEncryptsFileAndStoresSecret) {
   const auto result =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
-  ASSERT_EQ(result.status, AppKeyWrapStatus::kJustEnabled);
+  ASSERT_EQ(result.status, AppKeyWrapStatus::kJUST_ENABLED);
   EXPECT_EQ(result.secret.Size(), 32U);
 
   const auto on_disk = file.Read();
@@ -346,13 +346,13 @@ TEST(AppSecureKeyWrapTest, EnabledResolvesStoredSecret) {
 
   const auto enabled =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
-  ASSERT_EQ(enabled.status, AppKeyWrapStatus::kJustEnabled);
+  ASSERT_EQ(enabled.status, AppKeyWrapStatus::kJUST_ENABLED);
 
   // A later start finds the file already wrapped and just resolves the secret.
   const auto steady =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
-  EXPECT_EQ(steady.status, AppKeyWrapStatus::kWrapped);
+  EXPECT_EQ(steady.status, AppKeyWrapStatus::kWRAPPED);
   EXPECT_EQ(steady.secret, enabled.secret);
   EXPECT_TRUE(AESCryptoHelper::IsEncryptedBuffer(file.Read()));
 }
@@ -364,12 +364,12 @@ TEST(AppSecureKeyWrapTest, DisableRestoresPlaintextAndClearsStore) {
 
   ASSERT_EQ(
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
-      AppKeyWrapStatus::kJustEnabled);
+      AppKeyWrapStatus::kJUST_ENABLED);
 
   const auto result =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
 
-  EXPECT_EQ(result.status, AppKeyWrapStatus::kJustDisabled);
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kJUST_DISABLED);
   EXPECT_TRUE(result.secret.Empty());
   EXPECT_EQ(file.Read(), key);
   EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(file.Read()));
@@ -390,7 +390,7 @@ TEST(AppSecureKeyWrapTest, RoundTripPreservesKeyAndItsId) {
 
   ASSERT_EQ(
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
-      AppKeyWrapStatus::kJustEnabled);
+      AppKeyWrapStatus::kJUST_ENABLED);
 
   // Even while wrapped, the key that comes back out is byte-identical.
   const auto wrapped =
@@ -401,7 +401,7 @@ TEST(AppSecureKeyWrapTest, RoundTripPreservesKeyAndItsId) {
 
   ASSERT_EQ(
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false).status,
-      AppKeyWrapStatus::kJustDisabled);
+      AppKeyWrapStatus::kJUST_DISABLED);
 
   EXPECT_EQ(file.Read(), key);
   EXPECT_EQ(AppSecureKeyManager::CalculateKeyId({}, file.Read()), id_before);
@@ -416,7 +416,7 @@ TEST(AppSecureKeyWrapTest, EnableWithNoKeyFileYetJustProvisionsSecret) {
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
   // Nothing to convert; the caller creates the key already encrypted.
-  EXPECT_EQ(result.status, AppKeyWrapStatus::kJustEnabled);
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kJUST_ENABLED);
   EXPECT_EQ(result.secret.Size(), 32U);
   EXPECT_FALSE(file.Exists());
 }
@@ -437,7 +437,7 @@ TEST(AppSecureKeyWrapTest, WrappedFileOpensThroughTheLoadersOwnPath) {
 
   const auto enabled =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
-  ASSERT_EQ(enabled.status, AppKeyWrapStatus::kJustEnabled);
+  ASSERT_EQ(enabled.status, AppKeyWrapStatus::kJUST_ENABLED);
 
   // Exactly what init_legacy_key() does on the following start.
   auto recovered =
@@ -490,7 +490,7 @@ TEST(AppSecureKeyWrapTest, UnavailableStoreLeavesFilePlaintext) {
   const auto result =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
-  EXPECT_EQ(result.status, AppKeyWrapStatus::kStoreUnavailable);
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_UNAVAILABLE);
   EXPECT_EQ(file.Read(), key);
   EXPECT_TRUE(store.entries.isEmpty());
 }
@@ -502,7 +502,7 @@ TEST(AppSecureKeyWrapTest, MissingStoreLeavesFilePlaintext) {
   const auto result =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), nullptr, true);
 
-  EXPECT_EQ(result.status, AppKeyWrapStatus::kStoreUnavailable);
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_UNAVAILABLE);
   EXPECT_EQ(file.Read(), key);
 }
 
@@ -515,7 +515,7 @@ TEST(AppSecureKeyWrapTest, FailedStoreWriteLeavesFilePlaintext) {
   const auto result =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
-  EXPECT_EQ(result.status, AppKeyWrapStatus::kStoreUnavailable);
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_UNAVAILABLE);
   EXPECT_EQ(file.Read(), key);
   EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(file.Read()));
 }
@@ -533,7 +533,7 @@ TEST(AppSecureKeyWrapTest, SecretThatDoesNotReadBackAbortsTheTransition) {
   const auto result =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
-  EXPECT_EQ(result.status, AppKeyWrapStatus::kStoreUnavailable);
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_UNAVAILABLE);
   EXPECT_EQ(file.Read(), key);
   EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(file.Read()));
   // The unusable entry must not be left behind.
@@ -547,7 +547,7 @@ TEST(AppSecureKeyWrapTest, LostSecretReportsLockedOutWithoutTouchingFile) {
 
   ASSERT_EQ(
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
-      AppKeyWrapStatus::kJustEnabled);
+      AppKeyWrapStatus::kJUST_ENABLED);
   const auto wrapped_bytes = file.Read();
 
   // The keyring was reset, or the profile moved to another machine.
@@ -556,7 +556,7 @@ TEST(AppSecureKeyWrapTest, LostSecretReportsLockedOutWithoutTouchingFile) {
   const auto result =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
-  EXPECT_EQ(result.status, AppKeyWrapStatus::kLockedOut);
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
   // Destroying the only copy of the key here would be unrecoverable.
   EXPECT_EQ(file.Read(), wrapped_bytes);
 }
@@ -568,7 +568,7 @@ TEST(AppSecureKeyWrapTest, DisableWithLostSecretIsLockedOutNotDataLoss) {
 
   ASSERT_EQ(
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
-      AppKeyWrapStatus::kJustEnabled);
+      AppKeyWrapStatus::kJUST_ENABLED);
   const auto wrapped_bytes = file.Read();
   store.entries.clear();
 
@@ -576,7 +576,7 @@ TEST(AppSecureKeyWrapTest, DisableWithLostSecretIsLockedOutNotDataLoss) {
   const auto result =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
 
-  EXPECT_EQ(result.status, AppKeyWrapStatus::kLockedOut);
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
   EXPECT_EQ(file.Read(), wrapped_bytes);
 }
 
@@ -587,14 +587,14 @@ TEST(AppSecureKeyWrapTest, WrongSecretReportsLockedOut) {
 
   ASSERT_EQ(
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
-      AppKeyWrapStatus::kJustEnabled);
+      AppKeyWrapStatus::kJUST_ENABLED);
 
   store.entries.insert(kAppKeyWrapAccount, GFBuffer(QByteArray(32, '\x01')));
 
   const auto result =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
-  EXPECT_EQ(result.status, AppKeyWrapStatus::kLockedOut);
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
 }
 
 TEST(AppSecureKeyWrapTest, DisabledAndUnwrappedNeverConsultsTheStore) {
@@ -608,7 +608,7 @@ TEST(AppSecureKeyWrapTest, DisabledAndUnwrappedNeverConsultsTheStore) {
   const auto result =
       AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
 
-  EXPECT_EQ(result.status, AppKeyWrapStatus::kNotWrapped);
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kNOT_WRAPPED);
   EXPECT_EQ(file.Read(), key);
 }
 
