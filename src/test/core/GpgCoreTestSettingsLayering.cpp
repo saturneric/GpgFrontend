@@ -30,6 +30,7 @@
 #include <QTemporaryDir>
 
 #include "core/GFCoreLog.h"
+#include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/utils/CommonUtils.h"
 
@@ -100,6 +101,169 @@ TEST(SettingsLayeringTest, IniStringBooleansConvertCorrectly) {
                                 static_cast<int>(GFLogLevel::kCRITICAL))
                 .toInt(),
             static_cast<int>(GFLogLevel::kCRITICAL));
+}
+
+// How the application key file is protected at rest used to be spread across
+// two settings keys: advanced/os_secret_store for the system keychain, and
+// advanced/secure_level >= 3 for a PIN. Both now resolve into a single
+// advanced/app_key_protection, and a profile written before the split has to go
+// on resolving the same way or its key file would stop opening.
+
+namespace {
+
+/// Absent layer, spelled out so the ladder tests read as a table.
+const auto kUnset = QVariant();
+
+/// Resolve with only the ENV.ini layer populated.
+auto EnvOnly(const QVariant& protection, const QVariant& secure_level,
+             const QVariant& os_secret_store) -> AppKeyProtection {
+  return ResolveAppKeyProtection(protection, secure_level, os_secret_store,
+                                 kUnset, kUnset, kUnset);
+}
+
+/// Resolve with only the user-settings layer populated.
+auto UserOnly(const QVariant& protection, const QVariant& secure_level,
+              const QVariant& os_secret_store) -> AppKeyProtection {
+  return ResolveAppKeyProtection(kUnset, kUnset, kUnset, protection,
+                                 secure_level, os_secret_store);
+}
+
+}  // namespace
+
+TEST(AppKeyProtectionSettingsTest, NothingSetMeansNoProtection) {
+  EXPECT_EQ(
+      ResolveAppKeyProtection(kUnset, kUnset, kUnset, kUnset, kUnset, kUnset),
+      AppKeyProtection::kNONE);
+}
+
+TEST(AppKeyProtectionSettingsTest, EnvProtectionWinsOverEverything) {
+  // ENV.ini is a deployment override: whatever it says about the protection
+  // beats every legacy key and every user choice.
+  EXPECT_EQ(ResolveAppKeyProtection(QVariant("keychain"), QVariant(3),
+                                    QVariant(false), QVariant("pin"),
+                                    QVariant(3), QVariant(true)),
+            AppKeyProtection::kKEYCHAIN);
+}
+
+TEST(AppKeyProtectionSettingsTest, SecureLevelThreeMapsToPin) {
+  // The compatibility rung that keeps a pre-split level-3 profile starting: its
+  // key file is sealed with a PIN, so it must keep resolving to kPIN.
+  EXPECT_EQ(EnvOnly(kUnset, QVariant(3), kUnset), AppKeyProtection::kPIN);
+  EXPECT_EQ(UserOnly(kUnset, QVariant(3), kUnset), AppKeyProtection::kPIN);
+}
+
+TEST(AppKeyProtectionSettingsTest, SecureLevelBelowThreeSaysNothing) {
+  // Levels 0..2 only ever meant memory hardening, so they must fall through
+  // rather than assert that the key file is unprotected.
+  EXPECT_EQ(EnvOnly(kUnset, QVariant(2), QVariant(true)),
+            AppKeyProtection::kKEYCHAIN);
+  EXPECT_EQ(UserOnly(kUnset, QVariant(0), QVariant(true)),
+            AppKeyProtection::kKEYCHAIN);
+}
+
+TEST(AppKeyProtectionSettingsTest, OsSecretStoreMapsToKeychain) {
+  EXPECT_EQ(EnvOnly(kUnset, kUnset, QVariant(true)),
+            AppKeyProtection::kKEYCHAIN);
+  EXPECT_EQ(UserOnly(kUnset, kUnset, QVariant(true)),
+            AppKeyProtection::kKEYCHAIN);
+}
+
+TEST(AppKeyProtectionSettingsTest, ExplicitlyDisabledStoreDoesNotFallThrough) {
+  // An explicit false is an answer, not an absence. If it fell through, an
+  // ENV.ini that switched the keychain off would be overridden by a stale user
+  // setting that had switched it on.
+  EXPECT_EQ(ResolveAppKeyProtection(kUnset, kUnset, QVariant(false), kUnset,
+                                    kUnset, QVariant(true)),
+            AppKeyProtection::kNONE);
+}
+
+TEST(AppKeyProtectionSettingsTest, UserProtectionWinsOverItsOwnLegacyKeys) {
+  // Once the user has made an explicit choice it is final, even when the keys
+  // it replaced still hold their old values.
+  EXPECT_EQ(UserOnly(QVariant("none"), QVariant(3), QVariant(true)),
+            AppKeyProtection::kNONE);
+}
+
+TEST(AppKeyProtectionSettingsTest, EnvLayerIsTriedWholeBeforeTheUserLayer) {
+  // An ENV.ini that only sets the legacy OSSecretStore key still beats a user
+  // setting on the new key — otherwise a deployment override would be silently
+  // demoted the moment the user touched the combo.
+  EXPECT_EQ(ResolveAppKeyProtection(kUnset, kUnset, QVariant(true),
+                                    QVariant("pin"), kUnset, kUnset),
+            AppKeyProtection::kKEYCHAIN);
+}
+
+TEST(AppKeyProtectionSettingsTest, SpellingsAreCaseInsensitive) {
+  EXPECT_EQ(AppKeyProtectionFromString("pin"), AppKeyProtection::kPIN);
+  EXPECT_EQ(AppKeyProtectionFromString("PIN"), AppKeyProtection::kPIN);
+  EXPECT_EQ(AppKeyProtectionFromString("  Keychain "),
+            AppKeyProtection::kKEYCHAIN);
+}
+
+TEST(AppKeyProtectionSettingsTest, UnknownSpellingDegradesToNoProtection) {
+  // A typo in ENV.ini must leave the key unprotected rather than demand a PIN
+  // that nobody ever set, which would be an unopenable profile.
+  EXPECT_EQ(AppKeyProtectionFromString("banana"), AppKeyProtection::kNONE);
+  EXPECT_EQ(AppKeyProtectionFromString(""), AppKeyProtection::kNONE);
+}
+
+TEST(AppKeyProtectionSettingsTest, SpellingRoundTrips) {
+  for (const auto p : {AppKeyProtection::kNONE, AppKeyProtection::kKEYCHAIN,
+                       AppKeyProtection::kPIN}) {
+    EXPECT_EQ(AppKeyProtectionFromString(AppKeyProtectionToString(p)), p);
+  }
+}
+
+// A portable installation is meant to be carried to another computer. A
+// keychain secret cannot follow it there, so that mode is refused outright; a
+// PIN travels with the directory and is the only real protection available.
+
+TEST(AppKeyProtectionSettingsTest, PortableRefusesTheKeychain) {
+  EXPECT_EQ(ApplyPortableModeRule(AppKeyProtection::kKEYCHAIN, true),
+            AppKeyProtection::kNONE);
+}
+
+TEST(AppKeyProtectionSettingsTest, PortableAllowsPinAndNoProtection) {
+  EXPECT_EQ(ApplyPortableModeRule(AppKeyProtection::kPIN, true),
+            AppKeyProtection::kPIN);
+  EXPECT_EQ(ApplyPortableModeRule(AppKeyProtection::kNONE, true),
+            AppKeyProtection::kNONE);
+}
+
+TEST(AppKeyProtectionSettingsTest, InstalledAllowsEveryMode) {
+  for (const auto p : {AppKeyProtection::kNONE, AppKeyProtection::kKEYCHAIN,
+                       AppKeyProtection::kPIN}) {
+    EXPECT_EQ(ApplyPortableModeRule(p, false), p);
+  }
+}
+
+TEST(AppKeyProtectionSettingsTest, PortableRuleOverridesEnvIni) {
+  // ENV.ini cannot know where the directory will be plugged in, so even an
+  // explicit deployment request for the keychain is downgraded.
+  const auto resolved = EnvOnly(QVariant("keychain"), kUnset, kUnset);
+  EXPECT_EQ(ApplyPortableModeRule(resolved, true), AppKeyProtection::kNONE);
+}
+
+TEST(AppKeyProtectionSettingsTest, IniStringFormsResolveCorrectly) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto path = dir.filePath("ENV.ini");
+  {
+    QSettings w(path, QSettings::IniFormat);
+    w.setValue("AppKeyProtection", "pin");
+    w.setValue("SecureLevel", "2");
+    w.sync();
+  }
+
+  QSettings s(path, QSettings::IniFormat);
+  EXPECT_EQ(EnvOnly(s.value("AppKeyProtection"), s.value("SecureLevel"),
+                    s.value("OSSecretStore")),
+            AppKeyProtection::kPIN);
+
+  // The level is read unclamped and keeps its own meaning: memory hardening,
+  // and at 3 the weekly key rotation. It no longer implies a PIN.
+  EXPECT_EQ(s.value("SecureLevel").toInt(), 2);
 }
 
 // GetEarlySettings() hand-resolves the settings file so it can run before the
