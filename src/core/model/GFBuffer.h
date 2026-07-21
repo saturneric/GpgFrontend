@@ -94,11 +94,37 @@ class GF_CORE_EXPORT GFBuffer {
 
   [[nodiscard]] auto Right(ssize_t len) const -> GFBuffer;
 
+  /**
+   * @brief Wipe the buffer contents in place.
+   *
+   * Deliberately does NOT detach: this is a security primitive meaning "erase
+   * this secret from memory now", so it wipes through every share of the same
+   * storage. Detaching would wipe a fresh private copy and leave the original
+   * secret sitting in memory.
+   */
   void Zeroize();
 
  private:
   struct Impl;
-  QSharedPointer<Impl> impl_;
+
+  // std::shared_ptr rather than QSharedPointer: copy-on-write needs to know
+  // whether the storage is shared, and QSharedPointer exposes no refcount
+  // accessor. Private to GFBuffer, so the choice is not observable outside.
+  std::shared_ptr<Impl> impl_;
+
+  /**
+   * @brief Give this buffer private storage before mutating it.
+   *
+   * Copies are cheap and shared (see the copy constructor); mutators call this
+   * first so a write through one handle can never be seen through another.
+   * No-op when the storage is already unshared.
+   */
+  void detach();
+
+  /**
+   * @brief Allocate fresh secure storage holding a copy of this buffer.
+   */
+  [[nodiscard]] auto cloned_impl() const -> std::shared_ptr<Impl>;
 };
 
 using GFBufferOrNone = std::optional<GFBuffer>;
