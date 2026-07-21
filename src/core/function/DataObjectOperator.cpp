@@ -803,6 +803,22 @@ auto DataObjectOperator::GetSecDataObjectByRef(const QString& ref)
   return read_decr_object(GFBuffer(QByteArray::fromHex(ref.toLatin1())));
 }
 
+auto DataObjectOperator::RemoveDataObj(const QString& key) -> bool {
+  if (key_.Empty() || key.isEmpty()) return false;
+
+  const auto ref_hex = get_object_ref(key).ConvertToQByteArray().toHex();
+  const auto ref_path = gss_.GetDataObjectsDir() + "/" + ref_hex;
+
+  if (!QFileInfo::exists(ref_path)) return true;
+
+  if (!QFile::remove(ref_path)) {
+    LOG_E() << "failed to remove data object from disk: " << ref_hex;
+    return false;
+  }
+
+  return true;
+}
+
 auto DataObjectOperator::get_object_ref(const QString& obj_name) -> GFBuffer {
   if (obj_name.isEmpty()) {
     auto random =

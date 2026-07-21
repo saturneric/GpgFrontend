@@ -77,4 +77,64 @@ TEST(DataObjectOperatorSingletonTest, InvalidRefReturnsEmpty) {
   EXPECT_FALSE(result.has_value());
 }
 
+TEST(DataObjectOperatorSingletonTest, GetDataObjectByRefRejectsNonHexRef) {
+  auto& op = DataObjectOperator::GetInstance();
+
+  // exactly 64 characters, but not hex. QByteArray::fromHex() silently skips
+  // invalid characters rather than failing, so a length-only check would let
+  // this through and resolve it to a different, shorter filename.
+  const QString ref(64, 'z');
+  ASSERT_EQ(ref.size(), 64);
+
+  EXPECT_FALSE(op.GetDataObjectByRef(ref).has_value());
+}
+
+TEST(DataObjectOperatorSingletonTest, GetSecDataObjectByRefRejectsNonHexRef) {
+  auto& op = DataObjectOperator::GetInstance();
+
+  const QString ref(64, 'z');
+  ASSERT_EQ(ref.size(), 64);
+
+  EXPECT_FALSE(op.GetSecDataObjectByRef(ref).has_value());
+}
+
+TEST(DataObjectOperatorSingletonTest, RefWithEmbeddedNonHexIsRejected) {
+  auto& op = DataObjectOperator::GetInstance();
+
+  QJsonObject obj{{"bar", 42}};
+  QJsonDocument doc(obj);
+
+  auto ref = op.StoreDataObj("singleton-key3", doc);
+  ASSERT_EQ(ref.size(), 64);
+
+  // corrupt a single character into a non-hex one, keeping the length at 64.
+  // fromHex() would drop it and shift the remaining nibbles, silently pointing
+  // at an unrelated object instead of reporting failure.
+  auto corrupted = ref;
+  corrupted[10] = QChar('!');
+  ASSERT_EQ(corrupted.size(), 64);
+
+  EXPECT_FALSE(op.GetDataObjectByRef(corrupted).has_value());
+}
+
+TEST(DataObjectOperatorSingletonTest, GetDataObjectByRefRejectsWrongLengthRef) {
+  auto& op = DataObjectOperator::GetInstance();
+
+  EXPECT_FALSE(op.GetDataObjectByRef(QString(63, 'a')).has_value());
+  EXPECT_FALSE(op.GetDataObjectByRef(QString(65, 'a')).has_value());
+  EXPECT_FALSE(op.GetDataObjectByRef(QString{}).has_value());
+}
+
+TEST(DataObjectOperatorSingletonTest, GetSecDataObjectByRefRoundTripsValidRef) {
+  auto& op = DataObjectOperator::GetInstance();
+
+  GFBuffer plain("singleton-sec-by-ref");
+  auto ref = op.StoreSecDataObj("singleton-sec-key2", plain);
+  ASSERT_EQ(ref.size(), 64);
+
+  auto got = op.GetSecDataObjectByRef(ref);
+  ASSERT_TRUE(got.has_value());
+  EXPECT_EQ(*got, plain);
+}
+
 }  // namespace GpgFrontend::Test

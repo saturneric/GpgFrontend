@@ -111,6 +111,18 @@ class GF_CORE_EXPORT DataObjectOperator
    */
   auto GetSecDataObjectByRef(const QString &ref) -> GFBufferOrNone;
 
+  /**
+   * @brief Delete the stored data object backing the given logical key name.
+   *
+   * Removing the in-memory value alone is not enough: callers that clear a
+   * cached secret must also drop it from disk, otherwise it is reloaded on the
+   * next start.
+   *
+   * @param key logical name identifying the stored object
+   * @return true if the object was deleted or did not exist, false on I/O error
+   */
+  auto RemoveDataObj(const QString &key) -> bool;
+
  private:
   GlobalSettingStation &gss_ =
       GlobalSettingStation::GetInstance();  ///< Storage paths
