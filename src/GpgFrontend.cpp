@@ -35,7 +35,74 @@
 #include "Command.h"
 #include "GpgFrontendContext.h"
 #include "Initialize.h"
-#include "Security.h"
+#include "core/function/AppSecureKeyManager.h"
+
+namespace {
+
+/**
+ * @brief Report a secure key failure to the user.
+ *
+ * AppSecureKeyManager lives in gf_core, which does not link QtWidgets, so it
+ * reports failures as a status and the presentation happens here.
+ *
+ * @param result outcome of AppSecureKeyManager::Initialize()
+ * @return true when startup may continue
+ */
+auto ReportAppSecureKeyFailure(
+    const GpgFrontend::AppSecureKeyInitResult& result) -> bool {
+  switch (result.status) {
+    case GpgFrontend::AppSecureKeyStatus::kOk:
+      return true;
+
+    case GpgFrontend::AppSecureKeyStatus::kWriteFailed:
+      // Continuing would be silent data loss: everything encrypted during this
+      // session gets a key ID that no longer exists on the next start, so it
+      // would come back as unreadable rather than merely unsaved.
+      QMessageBox::critical(
+          nullptr, QObject::tr("Save Key Failed"),
+          QObject::tr("The application secure key could not be saved: %1")
+                  .arg(result.detail) +
+              "\n" +
+              QObject::tr("Anything saved now would be unreadable after a "
+                          "restart, so the application will not continue. "
+                          "Please check your storage and permissions."),
+          QMessageBox::Ok);
+      return false;
+
+    case GpgFrontend::AppSecureKeyStatus::kDecryptFailed:
+      QMessageBox::critical(
+          nullptr, QObject::tr("App Secure Key Error"),
+          QObject::tr("Failed to decrypt the application secure key. Your PIN "
+                      "may be incorrect, or the key file may be corrupted.") +
+              "\n" + QObject::tr("Please clear the secure key and try again."),
+          QMessageBox::Ok);
+      return false;
+
+    case GpgFrontend::AppSecureKeyStatus::kReadFailed:
+      QMessageBox::critical(
+          nullptr, QObject::tr("App Secure Key Error"),
+          QObject::tr(
+              "Failed to read the application secure key from disk at: %1")
+                  .arg(result.detail) +
+              "\n" +
+              QObject::tr("Please ensure the key file exists and is "
+                          "accessible, or try re-initializing the secure key."),
+          QMessageBox::Ok);
+      return false;
+
+    case GpgFrontend::AppSecureKeyStatus::kGenerateFailed:
+      QMessageBox::critical(
+          nullptr, QObject::tr("Secure Key Generation Failed"),
+          QObject::tr("Failed to generate an application secure key.") + "\n" +
+              QObject::tr("Please check your system's cryptography support."),
+          QMessageBox::Ok);
+      return false;
+  }
+
+  return false;
+}
+
+}  // namespace
 
 /**
  *
@@ -127,7 +194,13 @@ auto main(int argc, char* argv[]) -> int {
     pin.clear();
   }
 
-  if (!GpgFrontend::InitAppSecureKey(buf)) return 1;
+  // In high security mode the typed PIN both identifies the key and protects
+  // it at rest; below that the key is stored unprotected.
+  const auto key_result =
+      GpgFrontend::AppSecureKeyManager::GetInstance().Initialize(
+          buf, secure_level > 2 ? buf : GpgFrontend::GFBuffer{});
+
+  if (!ReportAppSecureKeyFailure(key_result)) return 1;
 
   if (parser.isSet("t")) {
     ctx->gather_external_gnupg_info = false;

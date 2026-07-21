@@ -258,4 +258,60 @@ auto AESCryptoHelper::DecryptLite(const GpgFrontend::GFBuffer& raw_key,
   return SodiumDecryptImpl(raw_key, encrypted, true);
 }
 
+auto AESCryptoHelper::IsEncryptedBuffer(const GpgFrontend::GFBuffer& buffer)
+    -> bool {
+  constexpr size_t kMinLen = kMagicLen + kSaltLen + kNonceLen + kTagLen;
+  return buffer.Size() >= kMinLen && HasMagic(buffer);
+}
+
+auto AESCryptoHelper::DeriveKeyArgon2(const GpgFrontend::GFBuffer& passphrase,
+                                      const GpgFrontend::GFBuffer& salt,
+                                      int key_len, int t_cost, int m_cost,
+                                      int parallelism) -> GFBufferOrNone {
+  if (key_len <= 0) {
+    LOG_E() << "invalid key_len";
+    return {};
+  }
+
+  if (t_cost <= 0) {
+    LOG_E() << "invalid Argon2 t_cost";
+    return {};
+  }
+
+  if (m_cost <= 0) {
+    LOG_E() << "invalid Argon2 m_cost";
+    return {};
+  }
+
+  if (parallelism != 1) {
+    LOG_W() << "libsodium crypto_pwhash does not expose Argon2 parallelism;"
+            << "requested parallelism:" << parallelism << "will be ignored";
+  }
+
+  if (!GpgFrontend::EnsureSodiumInit()) return {};
+
+  if (salt.Size() != kSaltLen) {
+    LOG_E() << "invalid Argon2 salt size for libsodium:" << salt.Size()
+            << "expected:" << kSaltLen;
+    return {};
+  }
+
+  GpgFrontend::GFBuffer key(key_len);
+
+  const int rc = crypto_pwhash(
+      reinterpret_cast<unsigned char*>(key.Data()),
+      static_cast<unsigned long long>(key.Size()), passphrase.Data(),
+      static_cast<unsigned long long>(passphrase.Size()),
+      reinterpret_cast<const unsigned char*>(salt.Data()),
+      static_cast<unsigned long long>(t_cost),
+      static_cast<size_t>(m_cost) * 1024U, crypto_pwhash_ALG_ARGON2ID13);
+
+  if (rc != 0) {
+    LOG_E() << "crypto_pwhash failed";
+    return {};
+  }
+
+  return key;
+}
+
 }  // namespace GpgFrontend

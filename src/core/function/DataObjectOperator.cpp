@@ -186,7 +186,7 @@ auto CheckDataObjectByRef(const QString& ref_hex, bool expect_json)
   auto key_id = data.Left(32);
   r.key_id_hex = key_id.ConvertToQByteArray().toHex();
 
-  auto key = GpgFrontend::GetGSS().GetAppSecureKey(key_id);
+  auto key = GpgFrontend::AppSecureKeyManager::GetInstance().GetKey(key_id);
   if (key.Empty()) {
     r.health = DataObjectHealth::kMISSING_KEY;
     return r;
@@ -718,13 +718,13 @@ auto HighSecurityPolicy() -> DataObjectGCPolicy {
 namespace GpgFrontend {
 DataObjectOperator::DataObjectOperator(int channel)
     : SingletonFunctionObject<DataObjectOperator>(channel) {
-  key_ = gss_.GetActiveAppSecureKey();
+  key_ = key_mgr_.GetActiveKey();
   Q_ASSERT(!key_.Empty());
 
-  key_id_ = gss_.GetActiveKeyId();
+  key_id_ = key_mgr_.GetActiveKeyId();
   Q_ASSERT(!key_id_.Empty());
 
-  l_key_ = gss_.GetLegacyAppSecureKey();
+  l_key_ = key_mgr_.GetLegacyKey();
   Q_ASSERT(!l_key_.Empty());
 
   auto secure_level = SecureLevelFromApp();
@@ -832,7 +832,7 @@ auto DataObjectOperator::read_decr_object(const GFBuffer& ref)
   }
 
   auto key_id = data.Left(32);
-  auto key = gss_.GetAppSecureKey(key_id);
+  auto key = key_mgr_.GetKey(key_id);
 
   if (key.Empty()) {
     LOG_W() << "fail to find key of data object, key"

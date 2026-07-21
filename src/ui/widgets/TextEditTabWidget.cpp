@@ -28,6 +28,7 @@
 
 #include "TextEditTabWidget.h"
 
+#include "core/function/AppSecureKeyManager.h"
 #include "core/function/CacheManager.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
@@ -618,6 +619,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
   }
 
   auto& gss = GlobalSettingStation::GetInstance();
+  auto& key_mgr = AppSecureKeyManager::GetInstance();
   QJsonArray unsaved_page_array;
 
   for (const auto& page : unsaved_pages) {
@@ -630,15 +632,15 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     page_json["icon_name"] = page.icon_name;
 
     auto encrypted_content =
-        GFBufferFactory::Encrypt(gss.GetActiveAppSecureKey(), page.content);
+        GFBufferFactory::Encrypt(key_mgr.GetActiveKey(), page.content);
     if (!encrypted_content) continue;
 
     auto base64_content = GFBufferFactory::ToBase64(*encrypted_content);
     if (!base64_content) continue;
 
     page_json["content"] = base64_content->ConvertToQString();
-    page_json["key_id"] =
-        QString::fromLatin1(gss.GetActiveKeyId().ConvertToQByteArray().toHex());
+    page_json["key_id"] = QString::fromLatin1(
+        key_mgr.GetActiveKeyId().ConvertToQByteArray().toHex());
 
     unsaved_page_array.push_back(page_json);
   }
@@ -705,6 +707,7 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
   });
 
   auto& gss = GlobalSettingStation::GetInstance();
+  auto& key_mgr = AppSecureKeyManager::GetInstance();
   QJsonArray next_recovery_pages;
   QPointer<PlainTextEditorPage> last_restored_page;
   int restored_count = 0;
@@ -776,7 +779,7 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     }
 
     auto key_id = QByteArray::fromHex(json["key_id"].toString().toLatin1());
-    auto key = gss.GetAppSecureKey(GFBuffer(key_id));
+    auto key = key_mgr.GetKey(GFBuffer(key_id));
     key_id.fill('X');
     key_id.clear();
 

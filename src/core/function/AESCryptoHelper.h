@@ -103,5 +103,42 @@ class GF_CORE_EXPORT AESCryptoHelper
   static auto DecryptLite(const GpgFrontend::GFBuffer& raw_key,
                           const GpgFrontend::GFBuffer& encrypted)
       -> GFBufferOrNone;
+
+  /**
+   * @brief Test whether a buffer looks like output of Encrypt()/EncryptLite().
+   *
+   * Checks the magic prefix and the minimum container length. This makes an
+   * encrypted file self-describing: callers can tell an encrypted key file from
+   * a plaintext one without keeping a separate marker that could fall out of
+   * sync with the file it describes.
+   *
+   * Note this cannot distinguish Encrypt() from EncryptLite() output; both use
+   * the same container.
+   *
+   * @param buffer candidate buffer
+   * @return true if @p buffer carries the container magic and is long enough
+   */
+  static auto IsEncryptedBuffer(const GpgFrontend::GFBuffer& buffer) -> bool;
+
+  /**
+   * @brief Derive a key from a passphrase using Argon2id.
+   *
+   * Exposed separately from Encrypt() for callers that need the derived key
+   * itself rather than a ciphertext.
+   *
+   * @param passphrase input key material
+   * @param salt salt, which must be exactly crypto_pwhash_SALTBYTES long
+   * @param key_len desired output length in bytes
+   * @param t_cost time cost (Argon2 opslimit)
+   * @param m_cost memory cost in KiB
+   * @param parallelism ignored; libsodium's crypto_pwhash does not expose it,
+   * and a value other than 1 only produces a warning
+   * @return derived key, or empty on invalid parameters or derivation failure
+   */
+  static auto DeriveKeyArgon2(const GpgFrontend::GFBuffer& passphrase,
+                              const GpgFrontend::GFBuffer& salt,
+                              int key_len = 32, int t_cost = 3,
+                              int m_cost = 65536, int parallelism = 4)
+      -> GFBufferOrNone;
 };
 }  // namespace GpgFrontend

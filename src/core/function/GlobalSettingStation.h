@@ -37,14 +37,15 @@
 namespace GpgFrontend {
 
 /**
- * @brief Singleton managing application configuration, directory paths, and
- * cryptographic key material.
+ * @brief Singleton managing application configuration and directory paths.
  *
- * Provides access to the platform-appropriate QSettings store, resolves all
+ * Provides access to the platform-appropriate QSettings store and resolves all
  * application directory paths (data, logs, config, modules, secure storage),
- * and maintains the in-memory store of app secure keys indexed by their IDs.
- * In portable mode, data is placed alongside the executable instead of the
- * OS user-data directory.
+ * creating them when absent. In portable mode, data is placed alongside the
+ * executable instead of the OS user-data directory.
+ *
+ * The application secure key itself belongs to AppSecureKeyManager; this class
+ * only provisions the directory it lives in.
  */
 class GF_CORE_EXPORT GlobalSettingStation
     : public SingletonFunctionObject<GlobalSettingStation> {
@@ -167,80 +168,6 @@ class GF_CORE_EXPORT GlobalSettingStation
    * @return true if portable mode is active, false otherwise
    */
   [[nodiscard]] auto IsProtableMode() const -> bool;
-
-  /**
-   * @brief Return the path to the legacy app secure key file.
-   *
-   * @return absolute path to the legacy key file (secure/app.key)
-   */
-  auto GetLegacyAppSecureKeyPath() -> QString;
-
-  /**
-   * @brief Return the path to the secure key storage directory.
-   *
-   * @return absolute path to the secure directory
-   */
-  auto GetAppSecureKeyDir() -> QString;
-
-  /**
-   * @brief Set the active encryption key ID used by the application.
-   *
-   * @param id binary key ID to register as active
-   */
-  void SetActiveKeyId(const GFBuffer& id);
-
-  /**
-   * @brief Set the legacy encryption key ID.
-   *
-   * @param id binary key ID to register as the legacy key
-   */
-  void SetLegacyKeyId(const GFBuffer& id);
-
-  /**
-   * @brief Return the currently registered active encryption key ID.
-   *
-   * @return binary key ID of the active key
-   */
-  auto GetActiveKeyId() -> GFBuffer;
-
-  /**
-   * @brief Return the active app encryption key, looked up by the active key
-   * ID.
-   *
-   * @return binary key material for the active key
-   */
-  auto GetActiveAppSecureKey() -> GFBuffer;
-
-  /**
-   * @brief Return the legacy app encryption key, looked up by the legacy key
-   * ID.
-   *
-   * @return binary key material for the legacy key
-   */
-  auto GetLegacyAppSecureKey() -> GFBuffer;
-
-  /**
-   * @brief Look up an app secure key by its ID.
-   *
-   * @param id binary key ID to look up
-   * @return corresponding key material, or an empty GFBuffer if not found
-   */
-  auto GetAppSecureKey(const GFBuffer& id) -> GFBuffer;
-
-  /**
-   * @brief Add key-ID pairs to the in-memory app secure key store.
-   *
-   * @param keys map of key IDs to their corresponding key material
-   */
-  void AppendAppSecureKeys(const QMap<GFBuffer, GFBuffer>& keys);
-
-  /**
-   * @brief Return the legacy app encryption key (equivalent to
-   * GetLegacyAppSecureKey).
-   *
-   * @return binary key material for the legacy key
-   */
-  auto GetLegacySecureKey() -> GFBuffer;
 
   /**
    * @brief Return whether the given OpenPGP engine is registered as supported.

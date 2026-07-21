@@ -30,6 +30,7 @@
 
 #include <optional>
 
+#include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/GFBuffer.h"
@@ -112,12 +113,12 @@ class GF_CORE_EXPORT DataObjectOperator
 
  private:
   GlobalSettingStation &gss_ =
-      GlobalSettingStation::GetInstance();  ///< Reference to the global setting
-                                            ///< station for key material and
-                                            ///< storage paths
-  GFBuffer l_key_;                          ///< Legacy key
-  GFBuffer key_;                            ///< Active key
-  GFBuffer key_id_;                         ///< Active key Id
+      GlobalSettingStation::GetInstance();  ///< Storage paths
+  AppSecureKeyManager &key_mgr_ =
+      AppSecureKeyManager::GetInstance();  ///< Owner of all key material
+  GFBuffer l_key_;                         ///< Legacy key
+  GFBuffer key_;                           ///< Active key
+  GFBuffer key_id_;                        ///< Active key Id
 
   /**
    * @brief Derive the binary storage reference for the given object name.

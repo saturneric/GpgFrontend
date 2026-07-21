@@ -221,10 +221,6 @@ class GlobalSettingStation::Impl {
 
   [[nodiscard]] auto IsProtableMode() const -> bool { return portable_mode_; }
 
-  auto GetAppSecureKey(const GFBuffer& id) -> GFBuffer {
-    return app_secure_keys_.value(id, GFBuffer{});
-  }
-
   [[nodiscard]] auto GetDataObjectsPath() const -> QString {
     return app_data_objs_path();
   }
@@ -232,32 +228,6 @@ class GlobalSettingStation::Impl {
   [[nodiscard]] auto GetConfigDirPath() const -> QString {
     return app_config_path_;
   }
-
-  void AppendAppSecureKeys(const QMap<GFBuffer, GFBuffer>& keys) {
-    app_secure_keys_.insert(keys);
-  }
-
-  auto GetAppSecureKeyPath() -> QString { return app_secure_key_path(); }
-
-  void SetActiveKeyId(const GFBuffer& id) { active_key_id_ = id; }
-
-  auto GetActiveKeyId() -> GFBuffer { return active_key_id_; }
-
-  auto GetActiveKey() -> GFBuffer {
-    auto active_key = GetAppSecureKey(active_key_id_);
-    Q_ASSERT(!active_key.Empty());
-    return active_key;
-  }
-
-  auto GetLegacyKey() -> GFBuffer {
-    auto active_key = GetAppSecureKey(legacy_key_id_);
-    Q_ASSERT(!active_key.Empty());
-    return active_key;
-  }
-
-  void SetLegacyKeyId(const GFBuffer& id) { legacy_key_id_ = id; }
-
-  auto GetAppSecureKeyDir() -> QString { return app_secure_path(); }
 
   auto IsEngineSupported(OpenPGPEngine engine) -> bool {
     return supported_engines_.count(engine) > 0;
@@ -313,10 +283,6 @@ class GlobalSettingStation::Impl {
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)};
   QString app_config_path_ = QString{
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation)};
-
-  QMap<GFBuffer, GFBuffer> app_secure_keys_;
-  GFBuffer active_key_id_;
-  GFBuffer legacy_key_id_;
 
   // we do not use QSet because it has different behavior on qt5 and qt6, which
   // causes compile error on qt5. using std::set for better compatibility.
@@ -375,21 +341,12 @@ auto GlobalSettingStation::IsProtableMode() const -> bool {
   return p_->IsProtableMode();
 }
 
-auto GlobalSettingStation::GetAppSecureKey(const GFBuffer& id) -> GFBuffer {
-  return p_->GetAppSecureKey(id);
-}
-
 auto GlobalSettingStation::GetDataObjectsDir() const -> QString {
   return p_->GetDataObjectsPath();
 }
 
 auto GlobalSettingStation::GetConfigDirPath() const -> QString {
   return p_->GetConfigDirPath();
-}
-
-void GlobalSettingStation::AppendAppSecureKeys(
-    const QMap<GFBuffer, GFBuffer>& keys) {
-  p_->AppendAppSecureKeys(keys);
 }
 
 auto GlobalSettingStation::IsEngineSupported(OpenPGPEngine engine) -> bool {
@@ -402,34 +359,6 @@ auto GlobalSettingStation::AddSupportedEngine(OpenPGPEngine engine) -> void {
 
 auto GlobalSettingStation::RemoveSupportedEngine(OpenPGPEngine engine) -> void {
   p_->RemoveSupportedOpenPPGEngine(engine);
-}
-
-auto GlobalSettingStation::GetLegacyAppSecureKeyPath() -> QString {
-  return p_->GetAppSecureKeyPath();
-}
-
-void GlobalSettingStation::SetActiveKeyId(const GFBuffer& id) {
-  p_->SetActiveKeyId(id);
-}
-
-auto GlobalSettingStation::GetActiveAppSecureKey() -> GFBuffer {
-  return p_->GetActiveKey();
-}
-
-auto GlobalSettingStation::GetAppSecureKeyDir() -> QString {
-  return p_->GetAppSecureKeyDir();
-}
-
-auto GlobalSettingStation::GetActiveKeyId() -> GFBuffer {
-  return p_->GetActiveKeyId();
-}
-
-void GlobalSettingStation::SetLegacyKeyId(const GFBuffer& id) {
-  p_->SetLegacyKeyId(id);
-}
-
-auto GlobalSettingStation::GetLegacyAppSecureKey() -> GFBuffer {
-  return p_->GetLegacyKey();
 }
 
 auto GlobalSettingStation::HasSupportedEngine() -> bool {
