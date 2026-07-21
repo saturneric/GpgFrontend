@@ -163,10 +163,10 @@ class GF_CORE_EXPORT KeyCategoryRepository
   auto GetTabOrder(const QString& scope) -> QStringList;
 
   /**
-   * @brief Persist the tab order for a scope.
+   * @brief Persist the tab order for a scope (empty clears it).
    *
    * @param scope order scope identifier
-   * @param order ordered tab ids
+   * @param order ordered tab ids, or empty to reset
    */
   void SetTabOrder(const QString& scope, const QStringList& order);
 

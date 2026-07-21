@@ -174,7 +174,11 @@ auto KeyCategoryRepository::GetTabOrder(const QString& scope) -> QStringList {
 
 void KeyCategoryRepository::SetTabOrder(const QString& scope,
                                         const QStringList& order) {
-  tab_orders_.insert(scope, order);
+  if (order.isEmpty()) {
+    tab_orders_.remove(scope);
+  } else {
+    tab_orders_.insert(scope, order);
+  }
   persist_categories();
 }
 

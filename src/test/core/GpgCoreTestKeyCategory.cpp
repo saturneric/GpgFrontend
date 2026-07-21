@@ -112,6 +112,9 @@ TEST_F(GFCoreTest, CoreKeyCategoryTabColor) {
 TEST_F(GFCoreTest, CoreKeyCategoryTabOrder) {
   auto& repo = KeyCategoryRepository::GetInstance();
 
+  // Orders are durable, so drop any residue left by an earlier run first.
+  repo.SetTabOrder("scope_x", QStringList{});
+  repo.SetTabOrder("scope_y", QStringList{});
   ASSERT_TRUE(repo.GetTabOrder("scope_x").isEmpty());
 
   const QStringList order = {"a", "b", "c"};
@@ -123,6 +126,13 @@ TEST_F(GFCoreTest, CoreKeyCategoryTabOrder) {
   repo.FlushCache();
   ASSERT_EQ(repo.GetTabOrder("scope_x"), order);
   ASSERT_EQ(repo.GetTabOrder("scope_y"), QStringList{"z"});
+
+  // An empty order clears the scope, and the reset also survives a reload.
+  repo.SetTabOrder("scope_x", QStringList{});
+  repo.SetTabOrder("scope_y", QStringList{});
+  repo.FlushCache();
+  ASSERT_TRUE(repo.GetTabOrder("scope_x").isEmpty());
+  ASSERT_TRUE(repo.GetTabOrder("scope_y").isEmpty());
 }
 
 }  // namespace GpgFrontend::Test
