@@ -137,7 +137,7 @@ struct LibSecret {
 };
 
 auto ResolveLibSecret() -> const LibSecret& {
-  static const LibSecret lib = []() -> LibSecret {
+  static const LibSecret kLib = []() -> LibSecret {
     LibSecret out;
 
     // Version 0 gives libsecret-1.so.0. The unversioned name only exists in
@@ -167,7 +167,7 @@ auto ResolveLibSecret() -> const LibSecret& {
     return out;
   }();
 
-  return lib;
+  return kLib;
 }
 
 /**
@@ -182,9 +182,9 @@ class LinuxSecretStore final : public SystemSecretStore {
   [[nodiscard]] auto IsAvailable() -> bool override {
     // A missing daemon and a missing entry both come back as NULL, so the only
     // honest check is a full round trip. Cached: it can prompt to unlock.
-    static const bool available =
+    static const bool kAvailable =
         ResolveLibSecret().Loaded() && ProbeSystemSecretStore(*this);
-    return available;
+    return kAvailable;
   }
 
   auto Read(const QString& account) -> GFBufferOrNone override {
