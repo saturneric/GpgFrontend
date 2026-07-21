@@ -38,53 +38,149 @@ namespace {
 /// a floor keeps a two-character PIN from being offered as real protection.
 constexpr int kMinPinLength = 8;
 
+/// Comfortable touch-sized height for the PIN fields; the platform default is
+/// cramped for something the eye has to land on precisely.
+constexpr int kFieldHeight = 34;
+
+/// Semantic "irreversible danger" colour for the warning and error text. Kept
+/// legible against both light and dark backgrounds, and applied through the
+/// palette rather than a stylesheet so nothing depends on non-native QSS
+/// rendering across platforms.
+auto DangerColour() -> QColor { return {0xE5, 0x39, 0x35}; }
+
+/// Recolour a label's text through its palette. Cross-platform and theme-safe,
+/// with none of the boxed-panel artefacts a stylesheet would introduce.
+void ColourLabel(QLabel* label, const QColor& colour) {
+  auto palette = label->palette();
+  palette.setColor(QPalette::WindowText, colour);
+  label->setPalette(palette);
+}
+
+/// The window/heading title, phrased around what the mode does for the user.
+auto TitleForMode(AppKeyPinDialog::Mode mode) -> QString {
+  switch (mode) {
+    case AppKeyPinDialog::Mode::kUNLOCK:
+      return AppKeyPinDialog::tr("Unlock Application Key");
+    case AppKeyPinDialog::Mode::kCHANGE:
+      return AppKeyPinDialog::tr("Change Application PIN");
+    case AppKeyPinDialog::Mode::kSET:
+      return AppKeyPinDialog::tr("Set an Application PIN");
+  }
+  return {};
+}
+
+/// Dim a label to secondary emphasis without hard-coding a colour, so the
+/// result stays legible in both light and dark themes. Derives from the
+/// widget's own text colour and only lowers its alpha.
+void DimLabel(QLabel* label, int alpha = 160) {
+  auto palette = label->palette();
+  auto colour = palette.color(QPalette::WindowText);
+  colour.setAlpha(alpha);
+  palette.setColor(QPalette::WindowText, colour);
+  label->setPalette(palette);
+}
+
 }  // namespace
 
 AppKeyPinDialog::AppKeyPinDialog(Mode mode, QWidget* parent)
     : QDialog(parent), mode_(mode) {
   const bool asks_for_new = mode_ != Mode::kUNLOCK;
 
-  setWindowTitle(asks_for_new ? tr("Set Application PIN")
-                              : tr("Application PIN Required"));
-  setModal(true);
-  setMinimumWidth(460);
-
-  auto* main_layout = new QVBoxLayout(this);
-
-  auto* info_label = new QLabel(
+  const auto title = TitleForMode(mode_);
+  const auto subtitle =
       asks_for_new
           ? tr("This PIN encrypts the application key on disk. You will be "
                "asked for it every time the application starts.")
-          : tr("The application key is protected by a PIN. Enter it to "
-               "continue."),
-      this);
-  info_label->setWordWrap(true);
-  main_layout->addWidget(info_label);
+          : tr("This application's key is protected by a PIN. Enter it to "
+               "continue.");
+
+  setWindowTitle(title);
+  setModal(true);
+  setMinimumWidth(470);
+
+  auto* main_layout = new QVBoxLayout(this);
+  main_layout->setContentsMargins(24, 22, 24, 18);
+  main_layout->setSpacing(16);
+
+  // Header: a lock badge next to the heading and its one-line explanation.
+  // Gives the dialog a face so it reads as "a secure prompt", not "a form".
+  auto* icon_label = new QLabel(this);
+  auto pixmap =
+      QPixmap(QStringLiteral(":/icons/lock.png"))
+          .scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  icon_label->setPixmap(pixmap);
+  icon_label->setFixedSize(40, 40);
+
+  auto* title_label = new QLabel(title, this);
+  auto title_font = title_label->font();
+  title_font.setBold(true);
+  title_font.setPointSizeF(title_font.pointSizeF() * 1.25);
+  title_label->setFont(title_font);
+
+  auto* subtitle_label = new QLabel(subtitle, this);
+  subtitle_label->setWordWrap(true);
+  DimLabel(subtitle_label);
+
+  // Icon and title share one line; the wrapped description spans the full
+  // width beneath them. Keeping the subtitle out of the icon's column lets the
+  // vertical layout honour its height-for-width, so no line ever clips — a
+  // wrapped QLabel nested inside a horizontal layout does not get that.
+  auto* title_row = new QHBoxLayout();
+  title_row->setSpacing(14);
+  title_row->addWidget(icon_label, 0, Qt::AlignVCenter);
+  title_row->addWidget(title_label, 1);
+
+  auto* header_layout = new QVBoxLayout();
+  header_layout->setSpacing(6);
+  header_layout->addLayout(title_row);
+  header_layout->addWidget(subtitle_label);
+  main_layout->addLayout(header_layout);
+
+  // A native rule sets the identity apart from the input area without the
+  // weight of a boxed group; the platform style draws it to match its own
+  // separators on every OS and theme.
+  auto* separator = new QFrame(this);
+  separator->setFrameShape(QFrame::HLine);
+  separator->setFrameShadow(QFrame::Sunken);
+  main_layout->addWidget(separator);
 
   auto* form_layout = new QFormLayout();
   form_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  form_layout->setHorizontalSpacing(12);
+  form_layout->setVerticalSpacing(10);
+
+  const auto make_field = [this]() -> QLineEdit* {
+    auto* edit = new QLineEdit(this);
+    edit->setEchoMode(QLineEdit::Password);
+    edit->setMinimumHeight(kFieldHeight);
+    edit->setClearButtonEnabled(true);
+    return edit;
+  };
 
   if (mode_ == Mode::kUNLOCK || mode_ == Mode::kCHANGE) {
-    current_edit_ = new QLineEdit(this);
-    current_edit_->setEchoMode(QLineEdit::Password);
-    form_layout->addRow(
-        mode_ == Mode::kCHANGE ? tr("Current PIN:") : tr("PIN:"),
-        current_edit_);
+    current_edit_ = make_field();
+    form_layout->addRow(mode_ == Mode::kCHANGE ? tr("Current PIN") : tr("PIN"),
+                        current_edit_);
   }
 
   if (asks_for_new) {
-    new_edit_ = new QLineEdit(this);
-    new_edit_->setEchoMode(QLineEdit::Password);
-    form_layout->addRow(mode_ == Mode::kCHANGE ? tr("New PIN:") : tr("PIN:"),
+    new_edit_ = make_field();
+    form_layout->addRow(mode_ == Mode::kCHANGE ? tr("New PIN") : tr("PIN"),
                         new_edit_);
 
-    confirm_edit_ = new QLineEdit(this);
-    confirm_edit_->setEchoMode(QLineEdit::Password);
-    form_layout->addRow(tr("Confirm:"), confirm_edit_);
+    confirm_edit_ = make_field();
+    form_layout->addRow(tr("Confirm"), confirm_edit_);
   }
 
-  auto* show_box = new QCheckBox(tr("Show"), this);
-  form_layout->addRow(QString(), show_box);
+  main_layout->addLayout(form_layout);
+
+  // Reveal toggle, aligned under the fields and set apart as a quiet control
+  // rather than another form row competing with the PIN labels.
+  auto* show_box = new QCheckBox(tr("Show PIN"), this);
+  auto* show_row = new QHBoxLayout();
+  show_row->addStretch(1);
+  show_row->addWidget(show_box);
+  main_layout->addLayout(show_row);
   connect(show_box, &QCheckBox::toggled, this, [this](bool shown) {
     const auto echo = shown ? QLineEdit::Normal : QLineEdit::Password;
     for (auto* edit : {current_edit_, new_edit_, confirm_edit_}) {
@@ -92,39 +188,76 @@ AppKeyPinDialog::AppKeyPinDialog(Mode mode, QWidget* parent)
     }
   });
 
-  main_layout->addLayout(form_layout);
-
   if (asks_for_new) {
-    auto* strength_layout = new QHBoxLayout();
+    auto* strength_caption = new QLabel(tr("Strength"), this);
+    DimLabel(strength_caption);
     strength_bar_ = new QProgressBar(this);
     strength_bar_->setRange(0, 100);
     strength_bar_->setTextVisible(false);
+    strength_bar_->setFixedHeight(8);
     strength_label_ = new QLabel(this);
-    strength_layout->addWidget(new QLabel(tr("Strength:"), this));
+
+    auto* strength_layout = new QHBoxLayout();
+    strength_layout->setSpacing(10);
+    strength_layout->addWidget(strength_caption);
     strength_layout->addWidget(strength_bar_, 1);
     strength_layout->addWidget(strength_label_);
     main_layout->addLayout(strength_layout);
 
     // The one thing a user must understand before choosing a PIN: there is no
-    // recovery path, because the key is encrypted with it and nothing else.
+    // recovery path, because the key is encrypted with it and nothing else. A
+    // native warning glyph carries the alarm so the text needn't shout.
+    auto* warning_icon = new QLabel(this);
+    warning_icon->setPixmap(
+        style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(18, 18));
+    warning_icon->setFixedWidth(18);
+    warning_icon->setAlignment(Qt::AlignTop);
+
     auto* warning_label = new QLabel(
         tr("If you forget this PIN, everything the application has encrypted "
            "becomes permanently unreadable. There is no recovery."),
         this);
     warning_label->setWordWrap(true);
-    warning_label->setStyleSheet(QStringLiteral("color: #e53935;"));
-    main_layout->addWidget(warning_label);
+    ColourLabel(warning_label, DangerColour());
+
+    auto* warning_row = new QHBoxLayout();
+    warning_row->setSpacing(8);
+    warning_row->addWidget(warning_icon, 0, Qt::AlignTop);
+    warning_row->addWidget(warning_label, 1);
+    main_layout->addLayout(warning_row);
   }
 
   error_label_ = new QLabel(this);
   error_label_->setWordWrap(true);
-  error_label_->setStyleSheet(QStringLiteral("color: #e53935;"));
+  error_label_->setAlignment(Qt::AlignTop);
+  ColourLabel(error_label_, DangerColour());
   error_label_->setVisible(false);
+  // Reserve the message row's height once and keep it whether shown or hidden,
+  // so revealing a failure never nudges the fields or buttons — only the text
+  // fades in. Two lines covers both the built-in hints and the retry messages
+  // callers pass to SetErrorText().
+  auto error_policy = error_label_->sizePolicy();
+  error_policy.setRetainSizeWhenHidden(true);
+  error_label_->setSizePolicy(error_policy);
+  error_label_->setMinimumHeight(error_label_->fontMetrics().lineSpacing() * 2);
   main_layout->addWidget(error_label_);
 
   auto* buttons = new QDialogButtonBox(
       QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
   accept_button_ = buttons->button(QDialogButtonBox::Ok);
+  accept_button_->setDefault(true);
+  accept_button_->setText(mode_ == Mode::kUNLOCK ? tr("Unlock") : tr("OK"));
+
+  // Unlocking only ever happens at startup, where cancelling closes the
+  // application rather than merely dismissing a dialog. Name the button after
+  // what it does so the consequence is not a surprise.
+  if (mode_ == Mode::kUNLOCK) {
+    if (auto* cancel = buttons->button(QDialogButtonBox::Cancel);
+        cancel != nullptr) {
+      cancel->setText(tr("Quit"));
+    }
+  }
+
   main_layout->addWidget(buttons);
 
   connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -165,7 +298,8 @@ auto AppKeyPinDialog::CurrentPin() const -> GFBuffer {
 void AppKeyPinDialog::SetErrorText(const QString& text) {
   error_label_->setText(text);
   error_label_->setVisible(!text.isEmpty());
-  adjustSize();
+  // No adjustSize(): the message row's height is reserved up front, so showing
+  // an error must leave the rest of the dialog exactly where it was.
 }
 
 void AppKeyPinDialog::Clear() {
