@@ -220,6 +220,35 @@ class GF_CORE_EXPORT AppSecureKeyManager
                                 SystemSecretStore* store, bool intent_enabled)
       -> AppKeyWrapResult;
 
+  /**
+   * @brief Encrypt the key for storage on disk.
+   *
+   * Sealing and unsealing must pick the same key derivation, so both live here
+   * rather than at each call site. A PIN is low entropy and gets Argon2id; the
+   * credential store's secret is 32 random bytes and gets the much cheaper
+   * BLAKE2b derivation, which would otherwise cost ~100ms on every start for
+   * no gain. At most one of @p pin and @p wrap is ever set.
+   *
+   * @param pin identity PIN, set only in high security mode
+   * @param wrap credential store secret, set only when OS protection is on
+   * @param plain key material to protect
+   * @return the bytes to write, which are @p plain itself when neither secret
+   * is set, or empty on failure
+   */
+  static auto SealKey(const GFBuffer& pin, const GFBuffer& wrap,
+                      const GFBuffer& plain) -> GFBufferOrNone;
+
+  /**
+   * @brief Recover the key from its on-disk form. Inverse of SealKey().
+   *
+   * @param pin identity PIN, set only in high security mode
+   * @param wrap credential store secret, set only when OS protection is on
+   * @param stored bytes read from the key file
+   * @return the key material, or empty when it does not decrypt
+   */
+  static auto UnsealKey(const GFBuffer& pin, const GFBuffer& wrap,
+                        const GFBuffer& stored) -> GFBufferOrNone;
+
  private:
   /**
    * @brief Generate a fresh legacy key and persist it.
@@ -228,8 +257,8 @@ class GF_CORE_EXPORT AppSecureKeyManager
    * @param[out] status failure detail when the returned buffer is empty
    * @return the plaintext key material, or an empty buffer on failure
    */
-  auto new_legacy_key(const GFBuffer& wrap, AppSecureKeyInitResult& status)
-      -> GFBuffer;
+  auto new_legacy_key(const GFBuffer& pin, const GFBuffer& wrap,
+                      AppSecureKeyInitResult& status) -> GFBuffer;
 
   /**
    * @brief Load or create the legacy key and register it as active.

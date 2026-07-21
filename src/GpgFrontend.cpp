@@ -315,14 +315,14 @@ auto main(int argc, char* argv[]) -> int {
 
   GpgFrontend::InstallPlatformSecretStore();
 
-  // In high security mode the typed PIN both identifies the key and protects
-  // it at rest, so the credential store stays out of it. Below that, the key
-  // is either unprotected or wrapped with a secret held by the OS.
+  // The two protections are mutually exclusive and must stay distinct: a PIN
+  // is low entropy and is stretched with Argon2id, while the credential
+  // store's secret is 32 random bytes and uses a fast derivation. In high
+  // security mode the typed PIN protects the key, so the credential store
+  // stays out of it entirely and `wrap` is left empty.
   GpgFrontend::GFBuffer wrap;
 
-  if (secure_level > 2) {
-    wrap = buf;
-  } else {
+  if (secure_level <= 2) {
     auto& key_mgr = GpgFrontend::AppSecureKeyManager::GetInstance();
     const auto wrap_result =
         GpgFrontend::AppSecureKeyManager::ResolveWrapSecret(

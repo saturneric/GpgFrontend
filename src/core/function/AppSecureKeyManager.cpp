@@ -104,7 +104,7 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
       return {AppKeyWrapStatus::kLockedOut, {}, backend};
     }
 
-    auto plain = GFBufferFactory::DecryptLite(*secret, on_disk);
+    auto plain = UnsealKey({}, *secret, on_disk);
     if (!plain) {
       LOG_W() << "app secure key did not decrypt with the stored secret";
       return {AppKeyWrapStatus::kLockedOut, {}, backend};
@@ -159,7 +159,7 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
     return {AppKeyWrapStatus::kJustEnabled, *secret, backend};
   }
 
-  auto encrypted = GFBufferFactory::EncryptLite(*secret, on_disk);
+  auto encrypted = SealKey({}, *secret, on_disk);
   if (!encrypted) {
     LOG_E() << "encrypting the app secure key failed";
     store->Remove(kAppKeyWrapAccount);
@@ -169,7 +169,7 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
   // Prove the ciphertext round-trips before it replaces the only copy of the
   // key. Checking in memory is equivalent to re-reading the file and keeps the
   // replacement itself a single atomic step.
-  auto round_trip = GFBufferFactory::DecryptLite(*secret, *encrypted);
+  auto round_trip = UnsealKey({}, *secret, *encrypted);
   if (!round_trip || *round_trip != on_disk) {
     LOG_E() << "app secure key did not survive a wrap round trip";
     store->Remove(kAppKeyWrapAccount);
@@ -213,7 +213,22 @@ auto AppSecureKeyManager::GetLegacyKey() const -> GFBuffer {
   return key;
 }
 
-auto AppSecureKeyManager::new_legacy_key(const GFBuffer& wrap,
+auto AppSecureKeyManager::SealKey(const GFBuffer& pin, const GFBuffer& wrap,
+                                  const GFBuffer& plain) -> GFBufferOrNone {
+  if (!wrap.Empty()) return GFBufferFactory::EncryptLite(wrap, plain);
+  if (!pin.Empty()) return GFBufferFactory::Encrypt(pin, plain);
+  return plain;
+}
+
+auto AppSecureKeyManager::UnsealKey(const GFBuffer& pin, const GFBuffer& wrap,
+                                    const GFBuffer& stored) -> GFBufferOrNone {
+  if (!wrap.Empty()) return GFBufferFactory::DecryptLite(wrap, stored);
+  if (!pin.Empty()) return GFBufferFactory::Decrypt(pin, stored);
+  return stored;
+}
+
+auto AppSecureKeyManager::new_legacy_key(const GFBuffer& pin,
+                                         const GFBuffer& wrap,
                                          AppSecureKeyInitResult& status)
     -> GFBuffer {
   auto key = PassphraseGenerator::GenerateBytesByOpenSSL(kLegacyKeyLen);
@@ -224,20 +239,17 @@ auto AppSecureKeyManager::new_legacy_key(const GFBuffer& wrap,
 
   auto plain_key = *key;
 
-  if (!wrap.Empty()) {
-    auto e_key = GFBufferFactory::Encrypt(wrap, plain_key);
-    if (!e_key) {
-      LOG_E() << "encrypt app secure key failed, won't write it to disk";
-      status = {AppSecureKeyStatus::kWriteFailed,
-                QObject::tr("The secure key could not be encrypted, so it was "
-                            "not saved to disk.")};
-      return plain_key;
-    }
-    key = e_key;
+  auto sealed = SealKey(pin, wrap, plain_key);
+  if (!sealed) {
+    LOG_E() << "encrypt app secure key failed, won't write it to disk";
+    status = {AppSecureKeyStatus::kWriteFailed,
+              QObject::tr("The secure key could not be encrypted, so it was "
+                          "not saved to disk.")};
+    return plain_key;
   }
 
   const auto path = GetLegacyKeyPath();
-  if (!GFBufferFactory::ToFile(path, *key)) {
+  if (!GFBufferFactory::ToFile(path, *sealed)) {
     LOG_E() << "write app secure key failed:" << path;
     status = {AppSecureKeyStatus::kWriteFailed, path};
   }
@@ -255,7 +267,7 @@ auto AppSecureKeyManager::init_legacy_key(const GFBuffer& pin,
   LOG_D() << "legacy app secure key path:" << path;
 
   if (!QFileInfo(path).exists()) {
-    legacy_key = new_legacy_key(wrap, result);
+    legacy_key = new_legacy_key(pin, wrap, result);
     if (legacy_key.Empty()) {
       return {AppSecureKeyStatus::kGenerateFailed, path};
     }
@@ -265,16 +277,13 @@ auto AppSecureKeyManager::init_legacy_key(const GFBuffer& pin,
       LOG_E() << "read app secure key failed:" << path;
       return {AppSecureKeyStatus::kReadFailed, path};
     }
-    legacy_key = *key;
 
-    if (!wrap.Empty()) {
-      auto r_key = GFBufferFactory::Decrypt(wrap, legacy_key);
-      if (!r_key) {
-        LOG_W() << "decrypt legacy app secure key failed";
-        return {AppSecureKeyStatus::kDecryptFailed, path};
-      }
-      legacy_key = *r_key;
+    auto r_key = UnsealKey(pin, wrap, *key);
+    if (!r_key) {
+      LOG_W() << "decrypt legacy app secure key failed";
+      return {AppSecureKeyStatus::kDecryptFailed, path};
     }
+    legacy_key = *r_key;
   }
 
   // The identity always comes from the PIN, never from the wrap secret: the ID
