@@ -46,6 +46,7 @@ namespace GpgFrontend::UI {
 class KeyList;
 class TextEdit;
 class InfoBoardWidget;
+class SettingsDialog;
 struct GpgOperaContext;
 struct GpgOperaContextBasement;
 struct KeyTable;
@@ -402,6 +403,12 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    * @details Open settings-dialog.
    */
   void slot_open_settings_dialog();
+
+  /**
+   * @brief Open the settings dialog and return it, so a caller can preselect a
+   * page. The dialog is not modal and shows itself; it owns its own lifetime.
+   */
+  auto open_settings_dialog() -> SettingsDialog*;
 
   /**
    * @details Replace double linebreaks by single linebreaks in currently active
@@ -769,6 +776,36 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   auto exec_im_normal_decrypt_helper(
       const QString& task,
       const QSharedPointer<GpgOperaContextBasement>& contexts) -> bool;
+
+  /**
+   * @brief Un-whiten @p text with the active Message Book, off the GUI thread.
+   *
+   * Decode() costs one Argon2id at 128 MiB (~0.1-0.2s) and runs speculatively
+   * on whatever the user pressed Decrypt on, so it cannot run inline here.
+   * Driven through the standard waiting-dialog helper, which defers showing the
+   * dialog — so in the common case nothing is presented at all.
+   *
+   * @return the decode result, valid once this call returns.
+   */
+  auto exec_im_decode_helper(const QString& text)
+      -> QSharedPointer<InstantMessageOperator::DecodeResult>;
+
+  /**
+   * @brief Whiten @p pgp_message into a single Base58 token, off the GUI
+   * thread. Same cost and the same reasoning as exec_im_decode_helper().
+   *
+   * @return the token, or empty on failure.
+   */
+  auto exec_im_encode_helper(const GFBuffer& pgp_message) -> QString;
+
+  /**
+   * @brief Warn, once, that no Message Book phrase is set before the first
+   * instant-messaging encrypt — the default book ships in every copy of
+   * GpgFrontend, so it conceals the format only from a naive scanner.
+   *
+   * @return true to go ahead with the encryption.
+   */
+  auto confirm_default_im_book() -> bool;
 
   /**
    * @brief Encrypt (and optionally sign) the current tab's text, then whiten

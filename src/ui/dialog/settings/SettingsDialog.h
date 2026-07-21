@@ -74,6 +74,14 @@ class SettingsDialog : public GeneralDialog {
    */
   static QHash<QString, QString> ListLanguages();
 
+  /**
+   * @brief Preselect the tab hosting @p page (e.g. im_tab_).
+   *
+   * A no-op when that page has no tab: several are conditional on the sandbox
+   * and on engine support, so tab indices are not fixed and cannot be assumed.
+   */
+  void SelectTabFor(QWidget* page);
+
  public slots:
 
   /**
@@ -129,6 +137,7 @@ class SettingsDialog : public GeneralDialog {
   void revert_all_tabs();
 
   QTabWidget* tab_widget_;                    ///<
+  QHash<QWidget*, int> tab_index_of_page_;    ///< page widget -> tab index
   QDialogButtonBox* button_box_;              ///<
   int restart_mode_{kNonRestartCode};         ///<
   QStringList restart_pages_;                 ///< pages with such a change

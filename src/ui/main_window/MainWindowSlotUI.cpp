@@ -147,7 +147,7 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   }
 }
 
-void MainWindow::slot_open_settings_dialog() {
+auto MainWindow::open_settings_dialog() -> SettingsDialog* {
   auto* dialog = new SettingsDialog(this);
 
   connect(dialog, &SettingsDialog::SignalAppearanceChanged, this,
@@ -161,7 +161,11 @@ void MainWindow::slot_open_settings_dialog() {
       if (ok) emit SignalRestartApplication(restart_mode_);
     }
   });
+
+  return dialog;
 }
+
+void MainWindow::slot_open_settings_dialog() { open_settings_dialog(); }
 
 void MainWindow::slot_clean_double_line_breaks() {
   if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) {

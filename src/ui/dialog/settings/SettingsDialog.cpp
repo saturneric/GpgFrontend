@@ -72,7 +72,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
     area->setWidgetResizable(true);
     area->setFrameShape(QFrame::NoFrame);
     area->setWidget(page);
-    tab_widget_->addTab(area, title);
+    tab_index_of_page_.insert(page, tab_widget_->addTab(area, title));
   };
 
   // Named so the restart confirmation can tell the user which pages hold a
@@ -300,6 +300,12 @@ auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
     languages.insert(q_locale.name(), language);
   }
   return languages;
+}
+
+void SettingsDialog::SelectTabFor(QWidget* page) {
+  const auto it = tab_index_of_page_.constFind(page);
+  if (it == tab_index_of_page_.constEnd()) return;
+  tab_widget_->setCurrentIndex(*it);
 }
 
 }  // namespace GpgFrontend::UI

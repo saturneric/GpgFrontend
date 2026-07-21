@@ -56,6 +56,12 @@ namespace GpgFrontend {
  * memory-hard derivation per candidate book, since there is no cheap
  * pre-filter.
  *
+ * Decode() does apply a shape test before that derivation — length bounds and
+ * Base58 alphabet membership — but only over information an observer already
+ * has for free, so it does not lower the adversary's per-candidate cost. It
+ * exists so that ordinary text a user hits Decrypt on stops at its first space
+ * or punctuation mark rather than paying the KDF.
+ *
  * The shared "password book" is a 256-byte table derived from an optional
  * phrase (Argon2id) or a fixed default. The empty-phrase default only hides the
  * format from naive scanners; real indistinguishability against a GpgFrontend-
@@ -86,14 +92,19 @@ class GF_CORE_EXPORT InstantMessageOperator {
   static auto Decode(const QString& text) -> DecodeResult;
 
   /**
-   * @brief Cheap probe: does @p text un-whiten to one of our tokens at all?
-   */
-  static auto Contains(const QString& text) -> bool;
-
-  /**
    * @brief The current container format version (the inner tag's version).
    */
   static auto FormatVersion() -> int;
+
+  /**
+   * @brief The largest OpenPGP message Encode() will wrap, in bytes.
+   *
+   * Derived from the token-length bound Decode() enforces, so any token this
+   * codec produces is one this codec accepts. Encode() returns empty above it;
+   * check this first if you want to tell the user something more useful than
+   * "failed".
+   */
+  static auto MaxPayloadBytes() -> int;
 
   /**
    * @brief Whether a shared book phrase is configured. Without one the default

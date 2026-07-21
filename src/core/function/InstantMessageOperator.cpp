@@ -54,9 +54,25 @@ namespace {
 constexpr std::string_view kB58Alphabet =
     "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-auto Base58DigitValue(char c) -> int {
-  const auto pos = kB58Alphabet.find(c);
-  return pos == std::string_view::npos ? -1 : static_cast<int>(pos);
+// Reverse of kB58Alphabet: byte value -> digit, or -1 when not in the alphabet.
+// Built at compile time so decoding — and the shape pre-filter in Normalize() —
+// costs one table lookup per character instead of a scan of the alphabet.
+constexpr uint8_t kB58Invalid = 0xFF;
+
+constexpr auto MakeB58Reverse() -> std::array<uint8_t, 256> {
+  std::array<uint8_t, 256> t{};
+  for (auto& v : t) v = kB58Invalid;
+  for (size_t i = 0; i < kB58Alphabet.size(); ++i) {
+    t[static_cast<uint8_t>(kB58Alphabet[i])] = static_cast<uint8_t>(i);
+  }
+  return t;
+}
+constexpr std::array<uint8_t, 256> kB58Reverse = MakeB58Reverse();
+
+// Whether @p qc is a Base58 character. ASCII-only by construction: every
+// character outside 0x00-0x7F is rejected before the table is consulted.
+constexpr auto IsBase58Char(QChar qc) -> bool {
+  return qc.unicode() <= 0x7F && kB58Reverse[qc.unicode()] != kB58Invalid;
 }
 
 auto Base58Encode(const QByteArray& in) -> QString {
@@ -89,10 +105,8 @@ auto Base58Decode(const QString& in, bool& ok) -> QByteArray {
   ok = false;
   QVector<quint16> bytes;
   for (const QChar qc : in) {
-    const int val = Base58DigitValue(qc.toLatin1());
-    if (val < 0) return {};
-
-    int carry = val;
+    if (!IsBase58Char(qc)) return {};
+    int carry = kB58Reverse[qc.unicode()];
     for (auto& b : bytes) {
       carry += b * 58;
       b = static_cast<quint16>(carry & 0xFF);
@@ -243,8 +257,8 @@ auto ReadBookPhrase() -> QString {
 }
 
 // The raw book bytes for a phrase. Deriving one runs Argon2id, so results are
-// memoized by phrase: Decode()/Contains() call this on every token, and the
-// settings UI previews the fingerprint of phrases the user types.
+// memoized by phrase: Decode() calls this on every token, and the settings UI
+// previews the fingerprint of phrases the user types.
 auto BookBytesFor(const QString& phrase) -> GFBuffer {
   static QMutex mutex;
   static QHash<QString, GFBuffer> cache;
@@ -366,6 +380,60 @@ auto SnapFrameBytes(int n) -> int {
   return v;
 }
 
+// ---------------------------------------------------------------------------
+// Input bounds.
+//
+// Base58Decode is O(n^2) in the length of its input, and Decode() is handed
+// whatever happens to be in the editor, so an unbounded input is a self-
+// inflicted denial of service. The cap is deliberately generous: it sits far
+// above any message a chat app will carry, and its only job is to stop a
+// pathological paste.
+//
+// The two directions have to agree. If Encode() could emit a token longer than
+// Decode() accepts, two copies of GpgFrontend would silently fail to talk to
+// each other — so the encode-side limit is *derived* from the decode-side one
+// and the agreement is a static_assert, not a comment.
+// ---------------------------------------------------------------------------
+
+constexpr int kMaxTokenChars = 16384;
+
+// 732/1000 under-estimates log(58)/log(256) = 0.7322476, so this never
+// over-states how many bytes kMaxTokenChars characters can carry.
+constexpr int kMaxWireBytes = kMaxTokenChars * 732 / 1000;
+
+// Base58 never shrinks its input (58 < 256), so n characters decode to at most
+// n bytes: a token shorter than the smallest wire Decode() could accept can be
+// rejected on length alone, without decoding anything.
+constexpr int kMinTokenChars = kSeedLen + kMinFrame;
+
+// The largest wire Encode() can produce for a payload of @p payload bytes.
+// Mirrors the length arithmetic in Encode():
+//   content = kHeaderLen + payload
+//   padded  = content + (content * frac)/1024,  frac <=
+//   kPadFracMin+kPadFracSpan
+//           <= content + content/2                        (the fraction caps at
+//           1/2)
+//   wire    = SnapFrameBytes(kSeedLen + padded)
+// and SnapFrameBytes stops at the first rung >= n, each rung being the previous
+// one plus an eighth, so it returns at most (n-1) + (n+6)/8.
+constexpr auto WorstCaseWireBytes(int payload) -> int {
+  const int content = kHeaderLen + payload;
+  const int padded = content + (content / 2);
+  const int n = kSeedLen + padded;
+  return (n - 1) + ((n + 6) / 8);
+}
+
+// Round, with margin: WorstCaseWireBytes(7000) = 11867 against a 11992 budget.
+constexpr int kMaxPayloadBytes = 7000;
+
+static_assert(WorstCaseWireBytes(kMaxPayloadBytes) <= kMaxWireBytes,
+              "Encode() may emit a wire longer than Decode() accepts");
+
+// And the other direction: 1366/1000 over-estimates log(256)/log(58) =
+// 1.3656552, so a wire of kMaxWireBytes never Base58s past kMaxTokenChars.
+static_assert((kMaxWireBytes * 1366 / 1000) + 1 <= kMaxTokenChars,
+              "Encode() may emit a token longer than Decode() accepts");
+
 // Memory-hard master key from the book (as password) and the seed (as salt).
 // This is what makes even *detecting* a token cost an Argon2id per candidate
 // book — there is no cheap pre-filter.
@@ -408,12 +476,31 @@ auto BuildPermutation(const QByteArray& material, int m) -> QVector<int> {
   return p;
 }
 
-// Strip whitespace a messenger may have injected; reject armored PGP text.
+// Strip whitespace a messenger may have injected, reject armored PGP text, and
+// test the token's public shape.
+//
+// This is the ONLY pre-filter, and it deliberately tests nothing an observer
+// does not already compute for free: the compacted length and whether every
+// character is in the Base58 alphabet. It must never consult the book, the tag
+// or any derived value — a book-dependent pre-filter would hand a large-scale
+// scanner exactly the cheap discriminator this design spends one memory-hard
+// derivation per candidate to deny it. Everything that survives this test still
+// pays a full Argon2id, so the adversary's cost per candidate is unchanged.
+//
+// What it does buy us is local: ordinary text now stops at its first space or
+// punctuation mark instead of reaching the O(n^2) decoder and the 128 MiB KDF.
 auto Normalize(const QString& text, QString& compact) -> bool {
   if (text.contains(QLatin1String("-----BEGIN PGP"))) return false;
-  compact = text;
-  compact.remove(QRegularExpression(QStringLiteral("\\s")));
-  return !compact.isEmpty();
+
+  compact.clear();
+  compact.reserve(std::min<qsizetype>(text.size(), kMaxTokenChars));
+  for (const QChar qc : text) {
+    if (qc.isSpace()) continue;
+    if (!IsBase58Char(qc)) return false;
+    if (compact.size() == kMaxTokenChars) return false;
+    compact.append(qc);
+  }
+  return compact.size() >= kMinTokenChars;
 }
 
 }  // namespace
@@ -421,6 +508,15 @@ auto Normalize(const QString& text, QString& compact) -> bool {
 auto InstantMessageOperator::Encode(const GFBuffer& pgp_message) -> QString {
   const auto pgp = pgp_message.ConvertToQByteArray();
   if (pgp.isEmpty()) return {};
+
+  // Refuse anything Decode() would then refuse to read back. Callers should
+  // check MaxPayloadBytes() first so they can say something useful about it;
+  // this is the invariant guard for everyone else.
+  if (pgp.size() > kMaxPayloadBytes) {
+    LOG_W() << "instant-messaging payload too long:" << pgp.size()
+            << "limit:" << kMaxPayloadBytes;
+    return {};
+  }
 
   const auto book = ActiveBookBytes();
 
@@ -446,6 +542,15 @@ auto InstantMessageOperator::Encode(const GFBuffer& pgp_message) -> QString {
                                  1024);
   const int m = std::max(padded, SnapFrameBytes(kSeedLen + padded) - kSeedLen);
   const int pad_len = m - content;
+
+  // Unreachable given the payload check above; see the WorstCaseWireBytes
+  // static_assert. Kept so a future change to the padding or the ladder cannot
+  // quietly start emitting tokens Decode() refuses.
+  if (kSeedLen + m > kMaxWireBytes) {
+    LOG_E() << "instant-messaging frame exceeds the wire budget:" << m;
+    sodium_memzero(master.data(), master.size());
+    return {};
+  }
 
   QByteArray inner;
   inner.reserve(m);
@@ -490,7 +595,10 @@ auto InstantMessageOperator::Decode(const QString& text) -> DecodeResult {
 
   bool ok = false;
   const QByteArray wire = Base58Decode(compact, ok);
-  if (!ok || wire.size() < kSeedLen + kMinFrame) return r;
+  if (!ok || wire.size() < kSeedLen + kMinFrame ||
+      wire.size() > kMaxWireBytes) {
+    return r;
+  }
 
   const QByteArray seed = wire.left(kSeedLen);
   const QByteArray cipher = wire.mid(kSeedLen);
@@ -532,11 +640,11 @@ auto InstantMessageOperator::Decode(const QString& text) -> DecodeResult {
   return r;
 }
 
-auto InstantMessageOperator::Contains(const QString& text) -> bool {
-  return Decode(text).ok;
-}
-
 auto InstantMessageOperator::FormatVersion() -> int { return kVersion; }
+
+auto InstantMessageOperator::MaxPayloadBytes() -> int {
+  return kMaxPayloadBytes;
+}
 
 auto InstantMessageOperator::BookConfigured() -> bool {
   return !ReadBookPhrase().isEmpty();

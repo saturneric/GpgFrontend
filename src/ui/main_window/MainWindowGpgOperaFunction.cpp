@@ -30,11 +30,14 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/InstantMessageOperator.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/utils/AsyncUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SigningKeysPicker.h"
+#include "ui/dialog/settings/SettingsDialog.h"
+#include "ui/dialog/settings/SettingsIM.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/InfoBoardCardConverter.h"
 #include "ui/struct/GpgOperaResultContext.h"
@@ -45,6 +48,11 @@
 namespace GpgFrontend::UI {
 
 namespace {
+
+// Positive sense with a default of true, mirroring "wizard/show_wizard": an
+// absent key means the user has not been told about the default book yet.
+constexpr auto kWarnDefaultBookKey = "im/warn_default_book";
+
 auto MakeSafeTempOutputPath(const QString& final_path) -> QString {
   const QFileInfo info(final_path);
   const auto dir = info.absolutePath();
@@ -173,6 +181,11 @@ auto BuildInstantMessageCard(InfoBoardStatus status, const QString& token,
   if (book_configured) {
     card.fields.append({MainWindow::tr("Book Fingerprint"),
                         InstantMessageOperator::BookFingerprint()});
+  } else {
+    // The card is the only place a user sees that the default book is in play,
+    // so say where to change it rather than leaving them to find the tab.
+    card.fields.append({MainWindow::tr("Set a Phrase"),
+                        MainWindow::tr("Settings → Instant Messaging")});
   }
 
   if (payload_size > 0) {
@@ -457,11 +470,11 @@ void MainWindow::SlotDecrypt() {
   // If this is one of our IM tokens, un-whiten it with the password book and
   // hand the inner OpenPGP message to the standard decrypt path. If not, the
   // text is treated as ordinary input below.
-  const auto im = InstantMessageOperator::Decode(edit_->CurPlainText());
-  if (im.ok) {
+  const auto im = exec_im_decode_helper(edit_->CurPlainText());
+  if (im->ok) {
     auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
     contexts->ascii = true;
-    contexts->GetContextBuffer(0).append(im.pgp_message);
+    contexts->GetContextBuffer(0).append(im->pgp_message);
     GpgOperaHelper::BuildOperas(contexts, 0, channel,
                                 GpgOperaHelper::BuildOperasDecrypt);
     exec_im_normal_decrypt_helper(tr("Decrypting"), contexts);
@@ -532,11 +545,11 @@ void MainWindow::SlotDecryptVerify() {
 
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 
-  const auto im = InstantMessageOperator::Decode(edit_->CurPlainText());
-  if (im.ok) {
+  const auto im = exec_im_decode_helper(edit_->CurPlainText());
+  if (im->ok) {
     auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
     contexts->ascii = true;
-    contexts->GetContextBuffer(0).append(im.pgp_message);
+    contexts->GetContextBuffer(0).append(im->pgp_message);
     GpgOperaHelper::BuildOperas(contexts, 0, channel,
                                 GpgOperaHelper::BuildOperasDecryptVerify);
     exec_im_normal_decrypt_helper(tr("Decrypting and Verifying"), contexts);
@@ -564,9 +577,62 @@ void MainWindow::slot_im_encrypt_sign_message() {
   exec_im_encrypt_helper(true);
 }
 
+auto MainWindow::confirm_default_im_book() -> bool {
+  if (InstantMessageOperator::BookConfigured()) return true;
+  if (!GetSettings().value(kWarnDefaultBookKey, true).toBool()) return true;
+
+  QMessageBox box(this);
+  box.setIcon(QMessageBox::Information);
+  box.setWindowTitle(tr("No Message Book Phrase Set"));
+  box.setText(tr("You have not set a Message Book phrase."));
+  box.setInformativeText(tr(
+      "Instant messages are hidden using a shared \"Message Book\". "
+      "Without a phrase, GpgFrontend falls back to the built-in default "
+      "book and that book ships in every copy of the program. It hides "
+      "the format from a simple scanner, but anyone who knows GpgFrontend "
+      "can still recognise your message for what it is.\n\n"
+      "Your message is OpenPGP-encrypted either way; what is at stake here "
+      "is only whether it is recognisable as an encrypted message at all.\n\n"
+      "To get that, set a phrase and share it privately with the person you "
+      "are writing to. You must both use exactly the same one."));
+
+  auto* settings_button =
+      box.addButton(tr("Open Settings…"), QMessageBox::ActionRole);
+  auto* continue_button =
+      box.addButton(tr("Continue with Default"), QMessageBox::AcceptRole);
+  auto* never_button =
+      box.addButton(tr("Continue, Don't Ask Again"), QMessageBox::AcceptRole);
+  box.addButton(QMessageBox::Cancel);
+  box.setDefaultButton(settings_button);
+  box.exec();
+
+  auto* clicked = box.clickedButton();
+
+  if (clicked == settings_button) {
+    // The settings dialog is not modal, so it cannot be waited on from here.
+    // Open it on the right page and let the user run the operation again.
+    auto* dialog = open_settings_dialog();
+    dialog->SelectTabFor(dialog->im_tab_);
+    return false;
+  }
+
+  if (clicked == never_button) {
+    // GetSettings() hands back a QSettings by value: writing through the
+    // temporary would drop the value on the floor.
+    auto settings = GetSettings();
+    settings.setValue(kWarnDefaultBookKey, false);
+    settings.sync();
+  }
+
+  return clicked == continue_button || clicked == never_button;
+}
+
 void MainWindow::exec_im_encrypt_helper(bool sign) {
   auto* text_edit = edit_->CurPageTextEdit();
   if (text_edit == nullptr) return;
+
+  // Ask before making the user pick recipients, not after.
+  if (!confirm_default_im_book()) return;
 
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 
@@ -615,8 +681,32 @@ void MainWindow::exec_im_encrypt_helper(bool sign) {
   }
 
   const auto& result = contexts->opera_results.first();
-  const auto token = InstantMessageOperator::Encode(result.o_buffer);
-  if (token.isEmpty()) return;
+
+  // The codec's payload limit exists so a token we emit is one we can read
+  // back. Check it here rather than letting Encode() fail silently, so the user
+  // is told what actually went wrong and what to do about it.
+  const auto payload = static_cast<qsizetype>(result.o_buffer.Size());
+  const auto limit = InstantMessageOperator::MaxPayloadBytes();
+  if (payload > limit) {
+    QMessageBox::warning(
+        this, tr("Message Too Long"),
+        tr("This message is too long to send as an instant message.\n\n"
+           "The encrypted message is %1 bytes, and the instant-messaging "
+           "format carries at most %2. Shorten the text, or send it as a "
+           "normal OpenPGP message instead.")
+            .arg(payload)
+            .arg(limit));
+    return;
+  }
+
+  const auto token = exec_im_encode_helper(result.o_buffer);
+  if (token.isEmpty()) {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Failed to prepare the instant message: the encrypted message "
+           "could not be converted into a token."));
+    return;
+  }
   edit_->SlotFillTextEditWithText(token);
 
   QContainer<InfoBoardCard> cards;
@@ -632,6 +722,45 @@ void MainWindow::exec_im_encrypt_helper(bool sign) {
            : tr("Message encrypted for instant messaging."),
       kINFO_ERROR_OK, cards, op_name,
       tr("An Instant Messaging section followed by the OpenPGP result."));
+}
+
+auto MainWindow::exec_im_decode_helper(const QString& text)
+    -> QSharedPointer<InstantMessageOperator::DecodeResult> {
+  auto state = SecureCreateSharedObject<InstantMessageOperator::DecodeResult>();
+
+  QContainer<OperaWaitingCb> operas;
+  operas.append([text, state](const OperaWaitingHd& hd) {
+    RunOperaAsync(
+        [text, state](const DataObjectPtr&) -> GFError {
+          *state = InstantMessageOperator::Decode(text);
+          return 0;
+        },
+        [hd](GFError, const DataObjectPtr&) { hd(); }, "im_decode");
+  });
+
+  // No cancel channel: the KDF is not interruptible, and there is no GPG
+  // operation to abort. At ~0.1-0.2s the deferred-show timer usually means no
+  // dialog is presented at all.
+  GpgOperaHelper::WaitForMultipleOperas(this, tr("Checking Message"), operas);
+  return state;
+}
+
+auto MainWindow::exec_im_encode_helper(const GFBuffer& pgp_message) -> QString {
+  auto token = SecureCreateSharedObject<QString>();
+
+  QContainer<OperaWaitingCb> operas;
+  operas.append([pgp_message, token](const OperaWaitingHd& hd) {
+    RunOperaAsync(
+        [pgp_message, token](const DataObjectPtr&) -> GFError {
+          *token = InstantMessageOperator::Encode(pgp_message);
+          return 0;
+        },
+        [hd](GFError, const DataObjectPtr&) { hd(); }, "im_encode");
+  });
+
+  GpgOperaHelper::WaitForMultipleOperas(this, tr("Preparing Instant Message"),
+                                        operas);
+  return *token;
 }
 
 auto MainWindow::exec_im_normal_decrypt_helper(

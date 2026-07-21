@@ -85,12 +85,6 @@ TEST(InstantMessageOperatorTest, EncodeEmptyIsEmpty) {
   EXPECT_TRUE(InstantMessageOperator::Encode(GFBuffer()).isEmpty());
 }
 
-TEST(InstantMessageOperatorTest, ContainsAndDispatch) {
-  const auto token = InstantMessageOperator::Encode(GFBuffer(PgpLikeBlob()));
-  EXPECT_TRUE(InstantMessageOperator::Contains(token));
-  EXPECT_FALSE(InstantMessageOperator::Contains("just a normal chat line"));
-}
-
 TEST(InstantMessageOperatorTest, DecodeNotToken) {
   EXPECT_FALSE(InstantMessageOperator::Decode("hello there, friend!").ok);
 }
@@ -100,7 +94,6 @@ TEST(InstantMessageOperatorTest, DecodeRejectsArmoredMessage) {
       "-----BEGIN PGP MESSAGE-----\n\nhF4Dabc=\n=abcd\n"
       "-----END PGP MESSAGE-----";
   EXPECT_FALSE(InstantMessageOperator::Decode(armored).ok);
-  EXPECT_FALSE(InstantMessageOperator::Contains(armored));
 }
 
 // A messenger may wrap the token across lines / inject spaces; still decodes.
@@ -186,11 +179,87 @@ TEST(InstantMessageOperatorTest, WrongBookDoesNotDecode) {
 
   BookPhraseGuard::Set(QStringLiteral("a completely different phrase"));
   EXPECT_FALSE(InstantMessageOperator::Decode(token).ok);
-  EXPECT_FALSE(InstantMessageOperator::Contains(token));
 }
 
 TEST(InstantMessageOperatorTest, FormatVersionIsStable) {
   EXPECT_EQ(InstantMessageOperator::FormatVersion(), 3);
+}
+
+// ---------------------------------------------------------------------------
+// Shape pre-filter. Decode() is called speculatively on whatever the user has
+// in the editor, so anything that is not plausibly a token must be rejected on
+// its public shape alone — before the O(n^2) decoder and the 128 MiB KDF.
+// ---------------------------------------------------------------------------
+
+// Too short to hold a seed and a frame, so it cannot be a token whatever the
+// book is.
+TEST(InstantMessageOperatorTest, ShortInputIsRejected) {
+  EXPECT_FALSE(InstantMessageOperator::Decode(QStringLiteral("hi")).ok);
+  EXPECT_FALSE(InstantMessageOperator::Decode(QString(37, 'z')).ok);
+}
+
+// One character outside the alphabet disqualifies the whole input. Pins that
+// the look-alikes Base58 excludes really are excluded, and that the characters
+// a messenger might inject are not silently tolerated.
+TEST(InstantMessageOperatorTest, NonBase58InputIsRejected) {
+  for (const QChar bad : {QChar('0'), QChar('O'), QChar('I'), QChar('l'),
+                          QChar('+'), QChar('/'), QChar('='), QChar('.')}) {
+    QString s(200, 'z');
+    s[100] = bad;
+    EXPECT_FALSE(InstantMessageOperator::Decode(s).ok)
+        << "accepted a token containing '" << bad.toLatin1() << "'";
+  }
+}
+
+// The regression guard for the whole point of the pre-filter: a big paste of
+// ordinary text must not reach the decoder or the KDF. A single Argon2id at
+// 128 MiB is ~100-200ms, and the old uncapped O(n^2) Base58 decode was far
+// worse, so the bound is loose enough not to be flaky but far below either.
+TEST(InstantMessageOperatorTest, PreFilterIsFastOnLargeInput) {
+  const QString prose = QStringLiteral("the quick brown fox. ").repeated(50000);
+  const QString base58_only = QString(qsizetype{1024} * 1024, 'z');
+
+  QElapsedTimer timer;
+  timer.start();
+  EXPECT_FALSE(InstantMessageOperator::Decode(prose).ok);
+  EXPECT_FALSE(InstantMessageOperator::Decode(base58_only).ok);
+  EXPECT_LT(timer.elapsed(), 500) << "elapsed: " << timer.elapsed() << "ms";
+}
+
+// ---------------------------------------------------------------------------
+// Encode/Decode length agreement. If Encode() could emit a token longer than
+// Decode() accepts, two copies of GpgFrontend would silently fail to talk to
+// each other — the worst possible failure for this feature.
+// ---------------------------------------------------------------------------
+
+TEST(InstantMessageOperatorTest, EncodeRejectsOversizedPayload) {
+  const auto over = InstantMessageOperator::MaxPayloadBytes() + 1;
+  EXPECT_TRUE(
+      InstantMessageOperator::Encode(GFBuffer(PgpLikeBlob(over))).isEmpty());
+}
+
+// The padding fraction and the ladder rung are both drawn from the keystream,
+// so the worst case only shows up across many messages. Every one of them must
+// stay inside what Decode() accepts and round-trip exactly.
+TEST(InstantMessageOperatorTest, MaximumPayloadAlwaysRoundTrips) {
+  const QByteArray blob =
+      PgpLikeBlob(InstantMessageOperator::MaxPayloadBytes());
+
+  for (int i = 0; i < 10; ++i) {
+    const auto token = InstantMessageOperator::Encode(GFBuffer(blob));
+    ASSERT_FALSE(token.isEmpty()) << "iteration " << i;
+
+    const auto r = InstantMessageOperator::Decode(token);
+    EXPECT_TRUE(r.ok) << "iteration " << i << " token " << token.size();
+    EXPECT_EQ(r.pgp_message.ConvertToQByteArray(), blob) << "iteration " << i;
+  }
+}
+
+// The payload limit is part of the wire contract between versions: a token one
+// build emits must decode on another. Pinned so a change is a deliberate,
+// reviewed act rather than a silent interop break.
+TEST(InstantMessageOperatorTest, MaxPayloadBytesIsPinned) {
+  EXPECT_EQ(InstantMessageOperator::MaxPayloadBytes(), 7000);
 }
 
 // The fingerprint identifies the book: stable for one phrase, different across
