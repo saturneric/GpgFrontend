@@ -366,7 +366,7 @@ void MainWindow::create_actions() {
   this->addAction(switch_tab_down_act_);
 
   im_encrypt_act_ = create_action(
-      "im_encrypt", tr("Encrypt for Instant Messaging"), ":/icons/email.png",
+      "im_encrypt", tr("IM Encrypt"), ":/icons/email.png",
       tr("Encrypt the current text into a compact, single-line format that is "
          "safe to paste into instant messengers. Recipients decrypt it with "
          "the normal Decrypt action."),
@@ -375,8 +375,7 @@ void MainWindow::create_actions() {
           &MainWindow::slot_im_encrypt_message);
 
   im_encrypt_sign_act_ = create_action(
-      "im_encrypt_sign", tr("Encrypt && Sign for Instant Messaging"),
-      ":/icons/email-check.png",
+      "im_encrypt_sign", tr("IM Encrypt && Sign"), ":/icons/email-check.png",
       tr("Encrypt and sign the current text into a compact, single-line format "
          "that is safe to paste into instant messengers. Recipients decrypt "
          "and verify it with the normal Decrypt & Verify action."),
@@ -579,8 +578,6 @@ void MainWindow::create_tool_bars() {
   SetupToolBar(special_edit_tool_bar_, icon_style_, icon_size_);
   special_edit_tool_bar_->addAction(quote_act_);
   special_edit_tool_bar_->addAction(clean_double_line_breaks_act_);
-  special_edit_tool_bar_->addAction(im_encrypt_act_);
-  special_edit_tool_bar_->addAction(im_encrypt_sign_act_);
   special_edit_tool_bar_->hide();
   view_menu_->addAction(special_edit_tool_bar_->toggleViewAction());
 }

@@ -70,7 +70,9 @@ enum GpgOperation : uint16_t {
   kDECRYPT_VERIFY = 1 << 5,
   kAUTH = 1 << 6,
   kCERT = 1 << 7,
-  kSYMMETRIC_ENCRYPT = 1 << 8
+  kSYMMETRIC_ENCRYPT = 1 << 8,
+  kIM_ENCRYPT = 1 << 9,
+  kIM_ENCRYPT_SIGN = 1 << 10
 };
 
 enum class GpgComponentType : std::uint8_t {

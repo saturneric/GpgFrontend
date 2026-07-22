@@ -36,30 +36,62 @@
 
 namespace GpgFrontend::UI {
 
+namespace {
+
+/// The one place the toolbar's crypto actions are enumerated on this page: it
+/// pairs each operation bit with the check box that offers it, so a new
+/// operation is a single row here instead of an edit in three parallel lists.
+/// The order matches the grid in the .ui file.
+struct ToolBarOperaEntry {
+  GpgOperation opera;
+  QCheckBox* Ui_AppearanceSettings::* box;
+};
+
+constexpr std::array<ToolBarOperaEntry, 9> kToolBarOperas{{
+    {kENCRYPT, &Ui_AppearanceSettings::encrCheckBox},
+    {kDECRYPT, &Ui_AppearanceSettings::decrCheckBox},
+    {kSIGN, &Ui_AppearanceSettings::signCheckBox},
+    {kVERIFY, &Ui_AppearanceSettings::verifyCheckBox},
+    {kENCRYPT_SIGN, &Ui_AppearanceSettings::encrSignCheckBox},
+    {kDECRYPT_VERIFY, &Ui_AppearanceSettings::decrVerifyCheckBox},
+    {kSYMMETRIC_ENCRYPT, &Ui_AppearanceSettings::symmetricEncrCheckBox},
+    {kIM_ENCRYPT, &Ui_AppearanceSettings::imEncrCheckBox},
+    {kIM_ENCRYPT_SIGN, &Ui_AppearanceSettings::imEncrSignCheckBox},
+}};
+
+}  // namespace
+
 AppearanceTab::AppearanceTab(QWidget* parent)
     : QWidget(parent), ui_(SecureCreateSharedObject<Ui_AppearanceSettings>()) {
   ui_->setupUi(this);
 
-  ui_->generalBox->setTitle(tr("General"));
-
+  ui_->themeBox->setTitle(tr("Theme"));
   ui_->themaLabel->setText(tr("Theme"));
 
-  ui_->toolbarIconBox->setTitle(tr("Toolbar Icon"));
+  ui_->toolbarBox->setTitle(tr("Toolbar"));
 
-  ui_->toolbarIconSizeLabel->setText(tr("Size"));
+  ui_->toolbarIconSizeLabel->setText(tr("Icon Size"));
   ui_->smallRadioButton->setText(tr("small"));
   ui_->mediumRadioButton->setText(tr("medium"));
   ui_->largeRadioButton->setText(tr("large"));
 
-  ui_->toolbarIconStyleLabel->setText(tr("Style"));
+  ui_->toolbarIconStyleLabel->setText(tr("Icon Style"));
   ui_->justTextRadioButton->setText(tr("just text"));
   ui_->justIconRadioButton->setText(tr("just icons"));
   ui_->textAndIconsRadioButton->setText(tr("text and icons"));
 
-  ui_->fontSizeBox->setTitle(tr("Font Size"));
+  ui_->toolbarOperasLabel->setText(tr("Actions"));
+  ui_->toolbarImTipLabel->setText(
+      tr("IM actions turn the text into one compact line that is safe to paste "
+         "into an instant messenger."));
 
-  ui_->fontSizeTextEditorLabel->setText(tr("Text Editor"));
-  ui_->fontSizeInformationBoardLabel->setText(tr("Status Panel"));
+  ui_->textEditorBox->setTitle(tr("Text Editor"));
+  ui_->textEditorFontLabel->setText(tr("Font Family"));
+  ui_->fontSizeTextEditorLabel->setText(tr("Font Size"));
+  ui_->textEditorTabSizeLabel->setText(tr("Tab Size"));
+
+  ui_->fontSizeBox->setTitle(tr("Status Panel"));
+  ui_->fontSizeInformationBoardLabel->setText(tr("Font Size"));
 
   icon_size_group_ = new QButtonGroup(this);
   icon_size_group_->addButton(ui_->smallRadioButton, 1);
@@ -179,21 +211,11 @@ void AppearanceTab::SetSettings() {
     ui_->themeComboBox->setCurrentIndex(target_theme_index);
   }
 
-  ui_->encrCheckBox->setChecked(
-      (appearance.tool_bar_crypto_operas_type & GpgOperation::kENCRYPT) != 0);
-  ui_->decrCheckBox->setChecked(
-      (appearance.tool_bar_crypto_operas_type & GpgOperation::kDECRYPT) != 0);
-  ui_->signCheckBox->setChecked(
-      (appearance.tool_bar_crypto_operas_type & GpgOperation::kSIGN) != 0);
-  ui_->verifyCheckBox->setChecked(
-      (appearance.tool_bar_crypto_operas_type & GpgOperation::kVERIFY) != 0);
-  ui_->encrSignCheckBox->setChecked((appearance.tool_bar_crypto_operas_type &
-                                     GpgOperation::kENCRYPT_SIGN) != 0);
-  ui_->decrVerifyCheckBox->setChecked((appearance.tool_bar_crypto_operas_type &
-                                       GpgOperation::kDECRYPT_VERIFY) != 0);
-  ui_->symmetricEncrCheckBox->setChecked(
-      (appearance.tool_bar_crypto_operas_type &
-       GpgOperation::kSYMMETRIC_ENCRYPT) != 0);
+  for (const auto& entry : kToolBarOperas) {
+    (ui_.get()->*entry.box)
+        ->setChecked((appearance.tool_bar_crypto_operas_type & entry.opera) !=
+                     0);
+  }
 }
 
 void AppearanceTab::ApplySettings() {
@@ -244,21 +266,11 @@ void AppearanceTab::ApplySettings() {
   appearance.text_editor_font_size = ui_->textEditorFontSizeSpinBox->value();
   appearance.text_editor_tab_size = ui_->textEditorTabSizeSpinBox->value();
 
-  appearance.tool_bar_crypto_operas_type = 0;
-  appearance.tool_bar_crypto_operas_type |=
-      ui_->encrCheckBox->isChecked() ? kENCRYPT : kNONE;
-  appearance.tool_bar_crypto_operas_type |=
-      ui_->decrCheckBox->isChecked() ? kDECRYPT : kNONE;
-  appearance.tool_bar_crypto_operas_type |=
-      ui_->signCheckBox->isChecked() ? kSIGN : kNONE;
-  appearance.tool_bar_crypto_operas_type |=
-      ui_->verifyCheckBox->isChecked() ? kVERIFY : kNONE;
-  appearance.tool_bar_crypto_operas_type |=
-      ui_->encrSignCheckBox->isChecked() ? kENCRYPT_SIGN : kNONE;
-  appearance.tool_bar_crypto_operas_type |=
-      ui_->decrVerifyCheckBox->isChecked() ? kDECRYPT_VERIFY : kNONE;
-  appearance.tool_bar_crypto_operas_type |=
-      ui_->symmetricEncrCheckBox->isChecked() ? kSYMMETRIC_ENCRYPT : kNONE;
+  appearance.tool_bar_crypto_operas_type = kNONE;
+  for (const auto& entry : kToolBarOperas) {
+    appearance.tool_bar_crypto_operas_type |=
+        (ui_.get()->*entry.box)->isChecked() ? entry.opera : kNONE;
+  }
 
   general_settings_state.Store(appearance.ToJson());
 

@@ -240,29 +240,24 @@ void MainWindow::restore_settings() {
 
   crypt_tool_bar_->clear();
 
-  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kENCRYPT) != 0) {
-    crypt_tool_bar_->addAction(encrypt_act_);
-  }
-  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kDECRYPT) != 0) {
-    crypt_tool_bar_->addAction(decrypt_act_);
-  }
-  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kSIGN) != 0) {
-    crypt_tool_bar_->addAction(sign_act_);
-  }
-  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kVERIFY) != 0) {
-    crypt_tool_bar_->addAction(verify_act_);
-  }
-  if ((appearance.tool_bar_crypto_operas_type & GpgOperation::kENCRYPT_SIGN) !=
-      0) {
-    crypt_tool_bar_->addAction(encrypt_sign_act_);
-  }
-  if ((appearance.tool_bar_crypto_operas_type &
-       GpgOperation::kDECRYPT_VERIFY) != 0) {
-    crypt_tool_bar_->addAction(decrypt_verify_act_);
-  }
-  if ((appearance.tool_bar_crypto_operas_type &
-       GpgOperation::kSYMMETRIC_ENCRYPT) != 0) {
-    crypt_tool_bar_->addAction(sym_encrypt_act_);
+  // Which actions the user offered themselves, in the order they are listed on
+  // the Appearance page; the toolbar shows exactly the ones whose bit is set.
+  const std::array<std::pair<GpgOperation, QAction*>, 9> operas{{
+      {kENCRYPT, encrypt_act_},
+      {kDECRYPT, decrypt_act_},
+      {kSIGN, sign_act_},
+      {kVERIFY, verify_act_},
+      {kENCRYPT_SIGN, encrypt_sign_act_},
+      {kDECRYPT_VERIFY, decrypt_verify_act_},
+      {kSYMMETRIC_ENCRYPT, sym_encrypt_act_},
+      {kIM_ENCRYPT, im_encrypt_act_},
+      {kIM_ENCRYPT_SIGN, im_encrypt_sign_act_},
+  }};
+
+  for (const auto& [opera, act] : operas) {
+    if ((appearance.tool_bar_crypto_operas_type & opera) != 0) {
+      crypt_tool_bar_->addAction(act);
+    }
   }
 
   apply_tool_bar_appearance();

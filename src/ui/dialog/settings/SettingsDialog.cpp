@@ -95,9 +95,10 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   add_page(general_tab_, general_title, application_section,
            {tr("startup"), tr("confirm import"), tr("language"), tr("locale"),
             tr("translation"), tr("data"), tr("cache")});
-  add_page(appearance_tab_, appearance_title, application_section,
-           {tr("theme"), tr("icon"), tr("font size"), tr("toolbar"),
-            tr("text editor"), tr("status panel")});
+  add_page(
+      appearance_tab_, appearance_title, application_section,
+      {tr("theme"), tr("icon"), tr("font size"), tr("toolbar"), tr("actions"),
+       tr("instant messaging"), tr("text editor"), tr("status panel")});
 
   // network settings is not available in sandbox environment, so only add the
   // page when not running in sandbox
