@@ -5,8 +5,13 @@
   Payload root = the folder the AIP calls "GpgFrontend\" (its RootPath="." sits next to the .aip,
   i.e. D:\GpgFrontend Release). Build from this folder with:
 
-      wix extension add -g WixToolset.UI.wixext
-      wix build -arch x64 -ext WixToolset.UI.wixext -o ..\dist\GpgFrontend.msi Package.wxs
+      wix extension add -g WixToolset.UI.wixext/5.0.2
+      wix extension add -g WixToolset.Util.wixext/5.0.2
+      wix build -arch x64 -ext WixToolset.UI.wixext/5.0.2 -ext WixToolset.Util.wixext/5.0.2 `
+        -o ..\dist\GpgFrontend.msi Package.wxs
+
+  Extension versions must match the toolset major: an unpinned `wix extension add` grabs
+  the latest (7.x), which a WiX 5 host cannot load.
 
   -arch x64 is required: the AIP's BuildComponent is MsiPackageType="x64".
 
@@ -33,8 +38,14 @@
 <?define IconSource = "gpgfrontend.ico" ?>
 <?endif?>
 
+<!-- Folder holding banner.bmp / dialog.bmp — this folder, for a local build run from it. -->
+<?ifndef BrandingDir ?>
+<?define BrandingDir = "." ?>
+<?endif?>
+
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
-     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
 
   <!-- MsiPropsComponent: ProductName / Manufacturer / ProductVersion / UpgradeCode /
        ProductLanguage 1033. ProductCode is intentionally not pinned: like Advanced
@@ -67,6 +78,27 @@
       Schedule="afterInstallValidate" />
 
     <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <!-- Close anything still holding a file in the install tree, otherwise MSI aborts with
+         1310 ("Error writing to file ... verify that you have access to that directory")
+         on reinstall/upgrade. Two families of holders:
+           - GpgFrontend.exe itself (holds bin\*.dll, e.g. the Qt closure windeployqt drops
+             there: libexpat-1.dll, libpng, libzstd, ...);
+           - the GnuPG daemons under gnupg\, which deliberately outlive the GUI and keep
+             running with the old binaries mapped.
+         TerminateProcess=0 asks politely first (WM_CLOSE / RM restart); the daemons get 1
+         because they have no message loop to close. Everything runs as the installing user,
+         so no elevation is involved. -->
+    <util:CloseApplication Id="CloseGpgFrontend" Target="GpgFrontend.exe"
+                           CloseMessage="yes" TerminateProcess="0" RebootPrompt="no" />
+    <util:CloseApplication Id="CloseGpgAgent" Target="gpg-agent.exe"
+                           TerminateProcess="1" RebootPrompt="no" />
+    <util:CloseApplication Id="CloseKeyboxd" Target="keyboxd.exe"
+                           TerminateProcess="1" RebootPrompt="no" />
+    <util:CloseApplication Id="CloseDirmngr" Target="dirmngr.exe"
+                           TerminateProcess="1" RebootPrompt="no" />
+    <util:CloseApplication Id="CloseScdaemon" Target="scdaemon.exe"
+                           TerminateProcess="1" RebootPrompt="no" />
 
     <!-- MsiLaunchConditionsComponent, 6 rows: requires NT (blocks 9x), requires x64 on NT,
          blocks NT4 (400), 2000 (500), XP/2003 (501/502) and Vista/2008 (600).
@@ -173,6 +205,15 @@
          WixUI_InstallDir is the equivalent stock dialog set; the two Publish overrides
          skip its LicenseAgreementDlg to match the AIP's Welcome -> Folder flow. -->
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
+    <!-- Branding art, replacing the stock WixUIExtension bitmaps (red sidebar, generic
+         disc glyph). Both are 24-bit BMPs generated from the app icon by
+         make_ui_bitmaps.py in this folder; re-run it if the icon changes.
+           WixUIDialogBmp 493x312 -> WelcomeDlg / ExitDlg background
+           WixUIBannerBmp 493x58  -> top banner of the remaining dialogs -->
+    <WixVariable Id="WixUIDialogBmp" Value="$(BrandingDir)\dialog.bmp" />
+    <WixVariable Id="WixUIBannerBmp" Value="$(BrandingDir)\banner.bmp" />
+
     <UI>
       <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Order="2" Condition="NOT Installed" />
       <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" Condition="NOT Installed" />

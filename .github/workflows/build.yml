@@ -568,15 +568,20 @@ jobs:
           $wixVersion = '5.0.2'
           dotnet tool install --global wix --version $wixVersion
           wix extension add -g WixToolset.UI.wixext/$wixVersion
+          wix extension add -g WixToolset.Util.wixext/$wixVersion
 
           New-Item -ItemType Directory -Force -Path "${{github.workspace}}/build/upload-artifact" | Out-Null
 
           # -arch x64 is mandatory: the package is MsiPackageType=x64.
-          # PayloadDir / ProductVersion / IconSource override the wxs defaults for this runner.
-          wix build -arch x64 -ext WixToolset.UI.wixext/$wixVersion `
+          # PayloadDir / ProductVersion / IconSource / BrandingDir override the wxs
+          # defaults for this runner (its defaults assume a build run from resource/wix).
+          wix build -arch x64 `
+            -ext WixToolset.UI.wixext/$wixVersion `
+            -ext WixToolset.Util.wixext/$wixVersion `
             -d PayloadDir="${{github.workspace}}/build/artifacts" `
             -d ProductVersion="$version" `
             -d IconSource="${{github.workspace}}/gpgfrontend.ico" `
+            -d BrandingDir="${{github.workspace}}/resource/wix" `
             -o "${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.msi" `
             resource/wix/Package.wxs
         if: runner.os == 'Windows'
