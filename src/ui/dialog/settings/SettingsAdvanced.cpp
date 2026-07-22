@@ -35,6 +35,7 @@
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SystemSecretStore.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/AppKeyPinDialog.h"
 
 namespace GpgFrontend::UI {
@@ -64,6 +65,24 @@ auto WrappingToolTip(const QString& text) -> QString {
   return QStringLiteral("<p>%1</p>").arg(text.toHtmlEscaped());
 }
 
+/**
+ * @brief Whether dropping to @p chosen_level warrants a data-loss warning.
+ *
+ * Only a move out of the rotation tier is destructive: objects written while
+ * weekly key rotation was on are stamped with a rotated key that the lower
+ * levels never load, so they orphan and are eventually garbage-collected.
+ * Moving between two non-rotation levels, staying put, or raising the level is
+ * always safe.
+ *
+ * @param applied_level secure level the running process actually loaded
+ * @param chosen_level level the user just picked
+ * @return true when the pick leaves the rotation tier and should be confirmed
+ */
+auto ShouldWarnRotationDowngrade(int applied_level, int chosen_level) -> bool {
+  return applied_level >= kRotationSecureLevel &&
+         chosen_level < kRotationSecureLevel;
+}
+
 }  // namespace
 
 AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
@@ -77,11 +96,28 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
   // is memory and key hygiene only — how the key file is protected at rest is
   // the separate control below.
   secure_level_combo_ = new QComboBox(security_box);
-  secure_level_combo_->addItem(tr("Standard"), 0);
-  secure_level_combo_->addItem(tr("Wipe freed memory"), 1);
-  secure_level_combo_->addItem(tr("Wipe and lock memory pages"), 2);
-  secure_level_combo_->addItem(
-      tr("Wipe, lock memory pages and rotate keys weekly"), 3);
+  // Tier names are shared with the status readout via SecureLevelDisplayName;
+  // pair each with a brief note on what it adds, since the tier word alone does
+  // not say what the level actually does. The notes are cumulative — each level
+  // keeps everything the ones below it do.
+  const auto level_hint = [](int level) -> QString {
+    switch (level) {
+      case 1:
+        return tr("wipe freed memory");
+      case 2:
+        return tr("also lock memory pages");
+      case 3:
+        return tr("also rotate keys weekly");
+      default:
+        return tr("no extra hardening");
+    }
+  };
+  for (int level = 0; level <= 3; ++level) {
+    secure_level_combo_->addItem(
+        QStringLiteral("%1 (%2)").arg(SecureLevelDisplayName(level),
+                                      level_hint(level)),
+        level);
+  }
   secure_level_combo_->setToolTip(WrappingToolTip(
       tr("How aggressively the application protects secrets held in memory. "
          "Higher levels cost some performance.")));
@@ -217,6 +253,36 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
     const auto none = protection_combo_->findData(
         AppKeyProtectionToString(AppKeyProtection::kNONE));
     if (none != -1) protection_combo_->setCurrentIndex(none);
+  });
+
+  // Confirm before leaving the rotation tier: below it the weekly rotated keys
+  // are never loaded, so everything saved while rotation was on orphans and is
+  // eventually garbage-collected. This mirrors the keychain probe above — it
+  // reacts to an explicit user pick (activated), never to SetSettings()
+  // populating the combo, and reverts on decline.
+  connect(secure_level_combo_, &QComboBox::activated, this, [this](int index) {
+    const auto chosen = secure_level_combo_->itemData(index).toInt();
+    const auto applied = qApp->property("GFSecureLevel").toInt();
+    if (!ShouldWarnRotationDowngrade(applied, chosen)) return;
+
+    const auto answer = QMessageBox::warning(
+        this, tr("Turn Off Weekly Key Rotation?"),
+        tr("At the %1 level the application saves your data with a key that "
+           "changes every week. Choosing a lower level stops loading those "
+           "keys, so anything saved while this level was on can no longer be "
+           "read and is deleted after a short grace period.")
+                .arg(SecureLevelDisplayName(kRotationSecureLevel)) +
+            +"\n\n" + tr("Lower the level anyway?"),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+
+    if (answer == QMessageBox::Yes) return;
+
+    const auto revert = secure_level_combo_->findData(applied);
+    if (revert != -1) {
+      QSignalBlocker block(secure_level_combo_);
+      secure_level_combo_->setCurrentIndex(revert);
+    }
+    refresh_protection_advice();
   });
 
   connect(change_pin_button_, &QPushButton::clicked, this,
