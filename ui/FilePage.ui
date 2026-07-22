@@ -53,19 +53,16 @@
       <number>5</number>
      </property>
      <item>
-      <widget class="QToolButton" name="upPathButton">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
+      <widget class="QToolButton" name="hardDiskButton">
        <property name="text">
-        <string/>
+        <string>...</string>
        </property>
        <property name="icon">
         <iconset resource="../gpgfrontend.qrc">
-         <normaloff>:/icons/up.png</normaloff>:/icons/up.png</iconset>
+         <normaloff>:/icons/harddisk.png</normaloff>:/icons/harddisk.png</iconset>
+       </property>
+       <property name="popupMode">
+        <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
        </property>
       </widget>
      </item>
@@ -87,16 +84,19 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="hardDiskButton">
+      <widget class="QToolButton" name="upPathButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="text">
-        <string>...</string>
+        <string/>
        </property>
        <property name="icon">
         <iconset resource="../gpgfrontend.qrc">
-         <normaloff>:/icons/harddisk.png</normaloff>:/icons/harddisk.png</iconset>
-       </property>
-       <property name="popupMode">
-        <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+         <normaloff>:/icons/up.png</normaloff>:/icons/up.png</iconset>
        </property>
       </widget>
      </item>
@@ -108,7 +108,7 @@
       </widget>
      </item>
      <item>
-      <widget class="GpgFrontend::UI::FilePathBar" name="pathBar">
+      <widget class="GpgFrontend::UI::FilePathBar" name="pathBar" native="true">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>1</horstretch>
