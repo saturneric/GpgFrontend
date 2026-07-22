@@ -79,6 +79,14 @@ class InfoBoardWidget : public QWidget {
   void InitUI();
   void UpdateActionButtons();
 
+  /**
+   * @brief Re-read the appearance settings and restyle the board's text.
+   *
+   * Shared with construction, so a font changed in the settings dialog takes
+   * effect on the open board without a restart.
+   */
+  void ApplyAppearanceSettings();
+
   void ApplyStatusStyle(InfoBoardStatus status);
 
   [[nodiscard]] auto StatusTitle(InfoBoardStatus status) const -> QString;

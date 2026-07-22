@@ -59,6 +59,15 @@ constexpr std::array<ToolBarOperaEntry, 9> kToolBarOperas{{
     {kIM_ENCRYPT_SIGN, &Ui_AppearanceSettings::imEncrSignCheckBox},
 }};
 
+/// The stored family as a font the combo boxes can select, falling back to the
+/// system's fixed-pitch font when nothing was ever chosen.
+auto FamilyOrSystemDefault(const QString& family) -> QFont {
+  if (family.isEmpty()) {
+    return QFontDatabase::systemFont(QFontDatabase::FixedFont);
+  }
+  return {family};
+}
+
 }  // namespace
 
 AppearanceTab::AppearanceTab(QWidget* parent)
@@ -90,8 +99,29 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   ui_->fontSizeTextEditorLabel->setText(tr("Font Size"));
   ui_->textEditorTabSizeLabel->setText(tr("Tab Size"));
 
+  ui_->showAllFontsCheckBox->setText(tr("Show all fonts"));
+  ui_->showAllFontsCheckBox->setToolTip(
+      tr("Also offer proportional fonts. The editor lines up best with a "
+         "monospaced one."));
+
   ui_->fontSizeBox->setTitle(tr("Status Panel"));
+  ui_->infoBoardFontLabel->setText(tr("Font Family"));
   ui_->fontSizeInformationBoardLabel->setText(tr("Font Size"));
+
+  // Only the editor may leave the monospaced set; the status panel prints
+  // aligned operation output, which a proportional font breaks up.
+  ui_->infoBoardFontComboBox->setFontFilters(QFontComboBox::MonospacedFonts);
+  connect(
+      ui_->showAllFontsCheckBox, &QCheckBox::toggled, this,
+      [this](bool checked) {
+        // Reapplying the family afterwards: narrowing the filter drops the
+        // current entry from the list, and the combo would otherwise
+        // silently settle on whatever is left.
+        const auto current = ui_->textEditorFontComboBox->currentFont();
+        ui_->textEditorFontComboBox->setFontFilters(
+            checked ? QFontComboBox::AllFonts : QFontComboBox::MonospacedFonts);
+        ui_->textEditorFontComboBox->setCurrentFont(current);
+      });
 
   icon_size_group_ = new QButtonGroup(this);
   icon_size_group_->addButton(ui_->smallRadioButton, 1);
@@ -149,34 +179,21 @@ void AppearanceTab::SetSettings() {
     info_board_info_font_size = 10;
   }
   ui_->fontSizeInformationBoardSpinBox->setValue(info_board_info_font_size);
+  ui_->infoBoardFontComboBox->setCurrentFont(
+      FamilyOrSystemDefault(appearance.info_board_font_family));
 
-  ui_->textEditorFontComboBox->clear();
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-  for (const auto& family : QFontDatabase::families()) {
-    if (QFontDatabase::isFixedPitch(family)) {
-      ui_->textEditorFontComboBox->addItem(family);
-    }
-  }
-#else
-  {
-    QFontDatabase db;
-    for (const auto& family : db.families()) {
-      if (db.isFixedPitch(family)) {
-        ui_->textEditorFontComboBox->addItem(family);
-      }
-    }
-  }
-#endif
-
-  auto text_editor_font_family = appearance.text_editor_font_family;
-  if (text_editor_font_family.isEmpty()) {
-    text_editor_font_family =
-        QFontDatabase::systemFont(QFontDatabase::FixedFont).family();
-  }
-  auto font_index =
-      ui_->textEditorFontComboBox->findText(text_editor_font_family);
-  ui_->textEditorFontComboBox->setCurrentIndex(font_index != -1 ? font_index
-                                                                : 0);
+  // A family the user picked while "show all fonts" was on is not in the
+  // monospaced list, so the filter has to be widened before it can be
+  // selected — otherwise the combo lands on something else and the next OK
+  // would quietly overwrite their choice.
+  const auto text_editor_font =
+      FamilyOrSystemDefault(appearance.text_editor_font_family);
+  ui_->showAllFontsCheckBox->setChecked(
+      !QFontDatabase::isFixedPitch(text_editor_font.family()));
+  ui_->textEditorFontComboBox->setFontFilters(
+      ui_->showAllFontsCheckBox->isChecked() ? QFontComboBox::AllFonts
+                                             : QFontComboBox::MonospacedFonts);
+  ui_->textEditorFontComboBox->setCurrentFont(text_editor_font);
 
   auto text_editor_info_font_size = appearance.text_editor_font_size;
   if (text_editor_info_font_size < 9 || text_editor_info_font_size > 18) {
@@ -261,8 +278,10 @@ void AppearanceTab::ApplySettings() {
   appearance.save_window_state = true;
   appearance.info_board_font_size =
       ui_->fontSizeInformationBoardSpinBox->value();
+  appearance.info_board_font_family =
+      ui_->infoBoardFontComboBox->currentFont().family();
   appearance.text_editor_font_family =
-      ui_->textEditorFontComboBox->currentText();
+      ui_->textEditorFontComboBox->currentFont().family();
   appearance.text_editor_font_size = ui_->textEditorFontSizeSpinBox->value();
   appearance.text_editor_tab_size = ui_->textEditorTabSizeSpinBox->value();
 

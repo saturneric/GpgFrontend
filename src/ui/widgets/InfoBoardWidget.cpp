@@ -30,6 +30,7 @@
 
 #include "core/model/SettingsObject.h"
 #include "ui/UISignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/InfoBoardDocFrame.h"
 #include "ui_InfoBoard.h"
@@ -90,13 +91,7 @@ void InfoBoardWidget::setup_info_board() {
   ui_->infoBoard->setLineWrapMode(QTextEdit::WidgetWidth);
   ui_->infoBoard->setPlaceholderText(tr("Operation status will appear here."));
 
-  AppearanceSO appearance(SettingsObject("general_settings_state"));
-
-  QFont info_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-  info_font.setPointSize(appearance.info_board_font_size);
-  info_font.setStyleHint(QFont::Monospace);
-  info_font.setFixedPitch(true);
-  ui_->infoBoard->setFont(info_font);
+  ApplyAppearanceSettings();
 
   setStyleSheet(R"(
 QWidget#InfoBoardWidget QTextEdit {
@@ -114,6 +109,13 @@ QWidget#InfoBoardWidget QTextEdit[status="neutral"] {
   border: 1px solid palette(mid);
 }
 )");
+}
+
+void InfoBoardWidget::ApplyAppearanceSettings() {
+  AppearanceSO const appearance(SettingsObject("general_settings_state"));
+
+  ui_->infoBoard->setFont(ResolveAppearanceFont(
+      appearance.info_board_font_family, appearance.info_board_font_size));
 }
 
 void InfoBoardWidget::InitUI() {

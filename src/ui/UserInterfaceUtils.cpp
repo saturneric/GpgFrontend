@@ -469,4 +469,49 @@ auto AppKeyProtectionDisplayName(AppKeyProtection protection) -> QString {
   }
   return QObject::tr("No extra protection");
 }
+
+auto LowerSuffix(const QFileInfo &info) -> QString {
+  return info.suffix().toLower();
+}
+
+auto IsOpenPGPMessageFile(const QFileInfo &info) -> bool {
+  const auto suffix = LowerSuffix(info);
+  return suffix == "gpg" || suffix == "pgp" || suffix == "asc";
+}
+
+auto IsOpenPGPRelatedFile(const QFileInfo &info) -> bool {
+  return IsOpenPGPMessageFile(info) || IsOpenPGPSignatureFile(info);
+}
+
+auto IsOpenPGPSignatureFile(const QFileInfo &info) -> bool {
+  return LowerSuffix(info) == "sig";
+}
+
+auto ResolveAppearanceFont(const QString &family, int point_size) -> QFont {
+  // Cached: this is asked again for every text surface each time appearance
+  // settings are applied, and enumerating the installed families is not cheap.
+  static const auto kFamilies = []() -> QStringList {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    return QFontDatabase::families();
+#else
+    QFontDatabase font_database;
+    return font_database.families();
+#endif
+  }();
+
+  QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+  font.setStyleHint(QFont::Monospace);
+  font.setFixedPitch(true);
+
+  const auto installed =
+      !family.isEmpty() &&
+      std::any_of(kFamilies.cbegin(), kFamilies.cend(),
+                  [&family](const QString &item) {
+                    return item.compare(family, Qt::CaseInsensitive) == 0;
+                  });
+  if (installed) font.setFamily(family);
+
+  font.setPointSize(point_size);
+  return font;
+}
 }  // namespace GpgFrontend::UI

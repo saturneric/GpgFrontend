@@ -449,16 +449,7 @@ void MainWindow::ApplyAppearanceSettingsToOpenedWidgets() {
     }
   }
 
-  if (info_board_ != nullptr) {
-    AppearanceSO const appearance(SettingsObject("general_settings_state"));
-
-    const auto text_edits = info_board_->findChildren<QTextEdit*>();
-    for (auto* text_edit : text_edits) {
-      QFont font = text_edit->font();
-      font.setPointSize(appearance.info_board_font_size);
-      text_edit->setFont(font);
-    }
-  }
+  if (info_board_ != nullptr) info_board_->ApplyAppearanceSettings();
 }
 
 }  // namespace GpgFrontend::UI

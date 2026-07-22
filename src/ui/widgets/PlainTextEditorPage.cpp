@@ -32,39 +32,11 @@
 #include "core/model/SettingsObject.h"
 #include "core/thread/FileReadTask.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_PlainTextEditor.h"
 
 namespace GpgFrontend::UI {
-
-namespace {
-
-auto FontFamilies() -> QStringList {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-  return QFontDatabase::families();
-#else
-  QFontDatabase font_database;
-  return font_database.families();
-#endif
-}
-
-auto ContainsFontFamily(const QString &family) -> bool {
-  static const auto kFamilies = FontFamilies();
-
-  return std::any_of(kFamilies.cbegin(), kFamilies.cend(),
-                     [&family](const QString &item) {
-                       return item.compare(family, Qt::CaseInsensitive) == 0;
-                     });
-}
-
-auto DefaultMonospaceFont() -> QFont {
-  QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-  font.setStyleHint(QFont::Monospace);
-  font.setFixedPitch(true);
-  return font;
-}
-
-}  // namespace
 
 PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
     : QWidget(parent),
@@ -116,13 +88,8 @@ void PlainTextEditorPage::init_editor_style() {
 
   AppearanceSO appearance(SettingsObject("general_settings_state"));
 
-  QFont editor_font = DefaultMonospaceFont();
-  if (!appearance.text_editor_font_family.isEmpty() &&
-      ContainsFontFamily(appearance.text_editor_font_family)) {
-    editor_font.setFamily(appearance.text_editor_font_family);
-  }
-  editor_font.setPointSize(appearance.text_editor_font_size);
-  editor_font.setFixedPitch(true);
+  QFont const editor_font = ResolveAppearanceFont(
+      appearance.text_editor_font_family, appearance.text_editor_font_size);
 
   ui_->textPage->setFont(editor_font);
   ui_->textPage->setTabStopDistance(
@@ -326,9 +293,9 @@ void PlainTextEditorPage::slot_format_gpg_header() {
 void PlainTextEditorPage::slot_update_sha256() {
   if (!read_done_) return;
 
-  const auto* doc = ui_->textPage->document();
-  const auto result =
-      GFBufferFactory::ToSha256([doc](const GFBufferFactory::Sha256Chunk& update) -> void {
+  const auto *doc = ui_->textPage->document();
+  const auto result = GFBufferFactory::ToSha256(
+      [doc](const GFBufferFactory::Sha256Chunk &update) -> void {
         auto block = doc->begin();
         while (block != doc->end()) {
           const auto utf8 = block.text().toUtf8();
@@ -346,8 +313,7 @@ void PlainTextEditorPage::slot_update_sha256() {
   const auto hex = result->ConvertToQByteArray().toHex();
   ui_->sha256Label->setText(
       QStringLiteral("SHA256: %1…").arg(QString(hex.left(16))));
-  ui_->sha256Label->setToolTip(
-      QStringLiteral("SHA256: %1").arg(QString(hex)));
+  ui_->sha256Label->setToolTip(QStringLiteral("SHA256: %1").arg(QString(hex)));
 }
 
 void PlainTextEditorPage::ReadFile() {
@@ -461,13 +427,8 @@ void PlainTextEditorPage::Clear() {
 void PlainTextEditorPage::ApplyAppearanceSettings() {
   AppearanceSO appearance(SettingsObject("general_settings_state"));
 
-  QFont editor_font = DefaultMonospaceFont();
-  if (!appearance.text_editor_font_family.isEmpty() &&
-      ContainsFontFamily(appearance.text_editor_font_family)) {
-    editor_font.setFamily(appearance.text_editor_font_family);
-  }
-  editor_font.setPointSize(appearance.text_editor_font_size);
-  editor_font.setFixedPitch(true);
+  QFont const editor_font = ResolveAppearanceFont(
+      appearance.text_editor_font_family, appearance.text_editor_font_size);
 
   ui_->textPage->setFont(editor_font);
   ui_->textPage->setTabStopDistance(
