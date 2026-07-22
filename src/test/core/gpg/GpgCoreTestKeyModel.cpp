@@ -29,6 +29,7 @@
 #include <gtest/gtest.h>
 
 #include "GpgCoreTest.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgData.h"
@@ -187,6 +188,41 @@ TEST_F(GpgCoreTest, GpgKeyGetterTest) {
 
   EXPECT_GT(keys.size(), 0);
   ASSERT_TRUE(std::find(keys.begin(), keys.end(), key) != keys.end());
+}
+
+TEST_F(GpgCoreTest, GpgKeyTableModelCheckedKeyIdsRoundTrip) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+
+  const auto rows = model->rowCount({});
+  ASSERT_GT(rows, 0);
+  ASSERT_TRUE(model->GetCheckedKeyIds().isEmpty());
+
+  const auto id = model->GetAllKeys().front()->ID();
+  model->SetCheckedKeyIds({id});
+
+  ASSERT_EQ(model->GetCheckedKeyIds(), QStringList{id});
+  ASSERT_EQ(model->data(model->index(0, 0, {}), Qt::CheckStateRole).toInt(),
+            Qt::Checked);
+}
+
+TEST_F(GpgCoreTest, GpgKeyTableModelCheckedKeyIdsReplacesAndIgnoresUnknown) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+  ASSERT_GT(model->rowCount({}), 0);
+
+  const auto id = model->GetAllKeys().front()->ID();
+  model->SetCheckedKeyIds({id});
+  ASSERT_EQ(model->GetCheckedKeyIds().size(), 1);
+
+  // A later call defines the whole checked set, and ids that are not in the
+  // model (a key deleted between sessions) are ignored rather than reported.
+  model->SetCheckedKeyIds({"NOTAREALKEYID000"});
+  ASSERT_TRUE(model->GetCheckedKeyIds().isEmpty());
+  ASSERT_EQ(model->data(model->index(0, 0, {}), Qt::CheckStateRole).toInt(),
+            Qt::Unchecked);
 }
 
 }  // namespace GpgFrontend::Test

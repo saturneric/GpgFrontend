@@ -141,6 +141,21 @@ class KeyList : public QWidget {
       GpgKeyTableColumn default_columns = GpgKeyTableColumn::kALL);
 
   /**
+   * @brief Let this key list remember which keys are checked across restarts,
+   * stored per persistence scope and gpg context channel.
+   *
+   * Opt-in per key list: only the main-window key dock, whose checked keys are
+   * the everyday working set, uses it. The Key Management window and the
+   * transient dialogs always start clean. The user-facing setting
+   * (basic/remember_checked_keys, off by default) still has the final say.
+   *
+   * Call after SetPersistenceScope().
+   *
+   * @param enabled true to restore and persist the checked keys
+   */
+  void SetRememberCheckedKeys(bool enabled = true);
+
+  /**
    * @brief Render the category strip as a compact colour rail (a swatch of the
    * category colour with the name in a tooltip) instead of the default
    * full-width text list.
@@ -429,6 +444,22 @@ class KeyList : public QWidget {
   ///< Durable-cache scope holding this key list's table layout.
   QString persistence_scope_ = "global";
 
+  ///< When true this key list restores and persists its checked keys (subject
+  ///< to the user setting). See SetRememberCheckedKeys().
+  bool remember_checked_keys_ = false;
+
+  ///< True while restore_checked_keys() drives the model, so the check signals
+  ///< it causes are not mistaken for user edits and written back.
+  bool restoring_checked_keys_ = false;
+
+  ///< The Uncheck All button's plain resource icon, kept so the checked-keys
+  ///< badge can be painted on and taken off again.
+  QIcon uncheck_base_icon_;
+
+  ///< Category ids currently carrying a checked-keys dot on their swatch; used
+  ///< to repaint the rail only when the marked set actually changes.
+  QSet<QString> marked_categories_;
+
   /**
    * @brief
    *
@@ -446,6 +477,47 @@ class KeyList : public QWidget {
    * integrated block (primary pinned first) followed by the custom block.
    */
   void apply_saved_tab_order();
+
+  /**
+   * @brief Refresh the graphical checked-keys indicators: the badge on the
+   * Uncheck All button (plus its tooltip counts) and the dots on the category
+   * swatches whose tab holds checked keys.
+   */
+  void update_checked_indicators();
+
+  /**
+   * @brief Copy of base with a small accent dot painted in its top-right
+   * corner, used to badge the Uncheck All button while keys are checked.
+   */
+  [[nodiscard]] auto make_badged_icon(const QIcon& base) const -> QIcon;
+
+  /**
+   * @brief Paint the accent dot that marks a checked-keys selection, ringed in
+   * the window colour so it reads on any background.
+   *
+   * @param p painter of the icon being built
+   * @param center dot centre, in the icon's logical coordinates
+   * @param radius dot radius
+   */
+  void paint_checked_dot(QPainter& p, const QPointF& center,
+                         qreal radius) const;
+
+  /**
+   * @brief Restore the persisted checked keys into the current model.
+   *
+   * No-op unless this key list opted in (SetRememberCheckedKeys) and the user
+   * setting is on. Called after every model swap, so a refresh or a key
+   * database switch keeps the working set.
+   */
+  void restore_checked_keys();
+
+  /**
+   * @brief Persist the checked keys of the current model.
+   *
+   * No-op while restoring. When the user setting is off the stored entry is
+   * dropped instead, so a set from an earlier session never resurfaces.
+   */
+  void save_checked_keys();
 
   /**
    * @brief Delete a user-defined category after confirmation.
@@ -494,9 +566,11 @@ class KeyList : public QWidget {
    *
    * @param color the swatch colour
    * @param custom true for a user-defined category
+   * @param marked true to add a small accent dot marking that this category
+   * holds checked keys
    */
-  [[nodiscard]] auto make_category_icon(const QColor& color, bool custom) const
-      -> QIcon;
+  [[nodiscard]] auto make_category_icon(const QColor& color, bool custom,
+                                        bool marked = false) const -> QIcon;
 
   /**
    * @brief Row size for a category strip item.

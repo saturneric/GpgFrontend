@@ -59,6 +59,14 @@ auto KeyTable::GetCheckedKeys() const -> GpgAbstractKeyPtrList {
   return ret;
 }
 
+auto KeyTable::HasCheckedKeys() const -> bool {
+  for (int row = 0; row < GetRowCount(); ++row) {
+    if (IsRowChecked(row)) return true;
+  }
+
+  return false;
+}
+
 KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
                    GpgKeyTableDisplayMode select_type,
                    GpgKeyTableColumn column_filter,

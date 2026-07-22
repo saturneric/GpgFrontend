@@ -247,6 +247,24 @@ class GF_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
   [[nodiscard]] auto GetAllKeys() const -> GpgAbstractKeyPtrList;
 
   /**
+   * @brief Ids of every checked item, in model order.
+   *
+   * Works on the whole model, so keys hidden by a view's proxy filter are
+   * included as well.
+   *
+   * @return QStringList
+   */
+  [[nodiscard]] auto GetCheckedKeyIds() const -> QStringList;
+
+  /**
+   * @brief Check exactly the items whose key id appears in ids, unchecking
+   * every other item. Ids that no longer exist are ignored.
+   *
+   * @param ids key ids to check
+   */
+  void SetCheckedKeyIds(const QStringList &ids);
+
+  /**
    * @brief
    *
    * @return int

@@ -322,6 +322,39 @@ auto GpgKeyTableModel::GetAllKeys() const -> GpgAbstractKeyPtrList {
   return keys;
 }
 
+auto GpgKeyTableModel::GetCheckedKeyIds() const -> QStringList {
+  QStringList ids;
+  for (const auto &i : cached_items_) {
+    if (!i.Checked()) continue;
+
+    auto *key = i.Key();
+    if (key == nullptr) continue;
+
+    ids.append(key->ID());
+  }
+  return ids;
+}
+
+void GpgKeyTableModel::SetCheckedKeyIds(const QStringList &ids) {
+  const auto wanted = QSet<QString>(ids.begin(), ids.end());
+
+  bool changed = false;
+  for (auto &i : cached_items_) {
+    auto *key = i.Key();
+    const bool state = key != nullptr && wanted.contains(key->ID());
+    if (i.Checked() == state) continue;
+
+    i.SetChecked(state);
+    changed = true;
+  }
+
+  if (!changed || cached_items_.empty()) return;
+
+  emit dataChanged(index(0, 0, {}),
+                   index(static_cast<int>(cached_items_.size()) - 1, 0, {}),
+                   {Qt::CheckStateRole});
+}
+
 auto GpgKeyTableModel::GetGpgContextChannel() const -> int {
   return gpg_context_channel_;
 }

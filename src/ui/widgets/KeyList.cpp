@@ -128,6 +128,41 @@ void SaveColumnFilter(const QString& scope, GpgKeyTableColumn columns) {
                                                QJsonDocument(object), true);
 }
 
+/**
+ * @brief Durable-cache key holding the checked keys of one host window on one
+ * gpg context channel.
+ */
+auto CheckedKeysCacheKey(const QString& scope, int channel) -> QString {
+  return QString("key_list_checked_keys:%1:%2").arg(scope).arg(channel);
+}
+
+auto LoadCheckedKeys(const QString& scope, int channel) -> QStringList {
+  const auto array = CacheManager::GetInstance()
+                         .LoadDurableCache(CheckedKeysCacheKey(scope, channel))
+                         .array();
+
+  QStringList ids;
+  for (const auto& value : array) {
+    const auto id = value.toString();
+    if (!id.isEmpty()) ids.append(id);
+  }
+  return ids;
+}
+
+void SaveCheckedKeys(const QString& scope, int channel,
+                     const QStringList& ids) {
+  QJsonArray array;
+  for (const auto& id : ids) array.append(id);
+
+  // Checking a key is a deliberate, infrequent action, so write through.
+  CacheManager::GetInstance().SaveDurableCache(
+      CheckedKeysCacheKey(scope, channel), QJsonDocument(array), true);
+}
+
+auto RememberCheckedKeysEnabled() -> bool {
+  return GetSettings().value("basic/remember_checked_keys", false).toBool();
+}
+
 }  // namespace
 
 KeyList::KeyList(QWidget* parent)
@@ -215,6 +250,10 @@ void KeyList::init_ui_style() {
   ui_->columnTypeButton->setPopupMode(QToolButton::InstantPopup);
   ui_->switchContextButton->setPopupMode(QToolButton::InstantPopup);
 
+  // Kept unbadged so the checked-keys badge can be painted on top of it and
+  // taken off again without reloading the resource.
+  uncheck_base_icon_ = ui_->uncheckButton->icon();
+
   // Category source list: a clean, frameless sidebar that drives the stacked
   // key tables. Reordering is by drag; the order is persisted across restarts.
   ui_->categoryList->setFrameShape(QFrame::NoFrame);
@@ -260,7 +299,8 @@ void KeyList::SetCategoryRailCompact(bool compact) {
     const auto name = item->toolTip();
 
     item->setIcon(make_category_icon(resolve_category_color(id, {}),
-                                     IsCustomCategoryId(id)));
+                                     IsCustomCategoryId(id),
+                                     marked_categories_.contains(id)));
     item->setText(compact_rail_ ? QString() : name);
   }
 }
@@ -379,8 +419,8 @@ auto KeyList::resolve_category_color(const QString& id,
   return QColor::fromHsv(hue, 160, 205);
 }
 
-auto KeyList::make_category_icon(const QColor& color, bool custom) const
-    -> QIcon {
+auto KeyList::make_category_icon(const QColor& color, bool custom,
+                                 bool marked) const -> QIcon {
   const qreal dpr = devicePixelRatioF() > 0 ? devicePixelRatioF() : 1.0;
   // Square canvas so the same icon scales cleanly at both strip icon sizes.
   constexpr int kSide = 28;
@@ -407,6 +447,41 @@ auto KeyList::make_category_icon(const QColor& color, bool custom) const
   } else {
     p.drawRoundedRect(r, 5, 5);
   }
+
+  // A category holding checked keys carries an accent dot, so a selection left
+  // behind in another tab stays visible from anywhere in the strip.
+  if (marked) paint_checked_dot(p, QPointF(r.right(), r.top()), 3.0);
+
+  p.end();
+
+  return QIcon(pm);
+}
+
+void KeyList::paint_checked_dot(QPainter& p, const QPointF& center,
+                                qreal radius) const {
+  // The ring in the surrounding window colour keeps the dot legible over both
+  // the swatch colours and the toolbar icons, in either theme.
+  p.setPen(QPen(palette().color(QPalette::Window), 1.5));
+  p.setBrush(palette().color(QPalette::Highlight));
+  p.drawEllipse(center, radius, radius);
+}
+
+auto KeyList::make_badged_icon(const QIcon& base) const -> QIcon {
+  const qreal dpr = devicePixelRatioF() > 0 ? devicePixelRatioF() : 1.0;
+  const auto side = ui_->uncheckButton->iconSize().width() > 0
+                        ? ui_->uncheckButton->iconSize().width()
+                        : 16;
+
+  QPixmap pm(QSize(side, side) * dpr);
+  pm.setDevicePixelRatio(dpr);
+  pm.fill(Qt::transparent);
+
+  QPainter p(&pm);
+  p.setRenderHint(QPainter::Antialiasing, true);
+
+  base.paint(&p, QRect(0, 0, side, side));
+  paint_checked_dot(p, QPointF(side - 3.5, 3.5), 3.5);
+
   p.end();
 
   return QIcon(pm);
@@ -655,12 +730,16 @@ void KeyList::init_signals() {
   connect(ui_->keyGroupButton, &QPushButton::clicked, this,
           &KeyList::slot_new_key_group);
 
-  connect(this, &KeyList::SignalKeyChecked, this,
-          [this]() { update_action_state(); });
+  connect(this, &KeyList::SignalKeyChecked, this, [this]() {
+    update_action_state();
+    save_checked_keys();
+  });
 }
 
 void KeyList::update_action_state() {
   const bool has_key_table = current_page() != nullptr;
+
+  update_checked_indicators();
 
   if (!has_key_table) {
     ui_->keyGroupButton->setEnabled(false);
@@ -692,6 +771,52 @@ void KeyList::update_action_state() {
   if (!ui_->syncButton->isHidden()) {
     ui_->syncButton->setEnabled(true);
   }
+}
+
+void KeyList::update_checked_indicators() {
+  if (menu_ability_ == KeyMenuAbility::kNONE || model_ == nullptr) return;
+
+  // Count over the whole model, not the current page: a key checked in another
+  // category tab (or hidden by the search filter) is still checked.
+  const auto total = static_cast<int>(model_->GetCheckedKeyIds().size());
+
+  // The badge rides on the button that clears the selection, so the signal and
+  // its remedy sit in the same place; the numbers stay in the tooltip.
+  ui_->uncheckButton->setIcon(total > 0 ? make_badged_icon(uncheck_base_icon_)
+                                        : uncheck_base_icon_);
+
+  QStringList tooltip{tr("Uncheck all keys in the current tab.")};
+  if (total > 0) {
+    tooltip << tr("%n key(s) checked", "", total);
+
+    const auto* key_table = current_page();
+    const auto visible =
+        key_table == nullptr
+            ? 0
+            : static_cast<int>(key_table->GetCheckedKeys().size());
+    if (visible < total) {
+      tooltip << tr(
+          "%n of them are not shown by the current category or "
+          "search filter.",
+          "", total - visible);
+    }
+  }
+  ui_->uncheckButton->setToolTip(tooltip.join("\n"));
+
+  // Mark the category swatches holding checked keys, so a selection that is out
+  // of sight in another tab stays discoverable. Repaint only on a real change:
+  // every checkbox click lands here.
+  QSet<QString> marked;
+  for (auto it = pages_.constBegin(); it != pages_.constEnd(); ++it) {
+    if (it.value() != nullptr && it.value()->HasCheckedKeys()) {
+      marked.insert(it.key());
+    }
+  }
+
+  if (marked == marked_categories_) return;
+
+  marked_categories_ = marked;
+  refresh_category_icons();
 }
 
 void KeyList::init() {
@@ -746,7 +871,8 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
 
   // Both modes carry the colour swatch; the text list also shows the name.
   item->setIcon(make_category_icon(resolve_category_color(id, color_hint),
-                                   IsCustomCategoryId(id)));
+                                   IsCustomCategoryId(id),
+                                   marked_categories_.contains(id)));
   if (!compact_rail_) item->setText(name);
   item->setSizeHint(category_item_size_hint());
 
@@ -815,8 +941,9 @@ void KeyList::RebuildCategoryTabs() {
     if (auto* item = item_for_id(c.id); item != nullptr) {
       item->setToolTip(c.name);
       if (!compact_rail_) item->setText(c.name);
-      item->setIcon(
-          make_category_icon(resolve_category_color(c.id, c.color), true));
+      item->setIcon(make_category_icon(resolve_category_color(c.id, c.color),
+                                       true,
+                                       marked_categories_.contains(c.id)));
     }
   }
 
@@ -841,6 +968,43 @@ void KeyList::SetPersistenceScope(const QString& scope,
   // then apply the filter to every existing tab.
   init_column_menu();
   UpdateKeyTableColumnType(global_column_filter_);
+}
+
+void KeyList::SetRememberCheckedKeys(bool enabled) {
+  remember_checked_keys_ = enabled;
+  restore_checked_keys();
+}
+
+void KeyList::restore_checked_keys() {
+  if (!remember_checked_keys_ || model_ == nullptr) return;
+  if (!RememberCheckedKeysEnabled()) return;
+
+  const QScopedValueRollback<bool> guard(restoring_checked_keys_, true);
+
+  const auto ids =
+      LoadCheckedKeys(persistence_scope_, current_gpg_context_channel_);
+  model_->SetCheckedKeyIds(ids);
+
+  LOG_D() << "restored checked keys, scope:" << persistence_scope_
+          << "channel:" << current_gpg_context_channel_
+          << "stored:" << ids.size()
+          << "matched:" << model_->GetCheckedKeyIds().size();
+
+  update_action_state();
+}
+
+void KeyList::save_checked_keys() {
+  if (!remember_checked_keys_ || restoring_checked_keys_) return;
+  if (model_ == nullptr) return;
+
+  if (!RememberCheckedKeysEnabled()) {
+    CacheManager::GetInstance().ResetDurableCache(
+        CheckedKeysCacheKey(persistence_scope_, current_gpg_context_channel_));
+    return;
+  }
+
+  SaveCheckedKeys(persistence_scope_, current_gpg_context_channel_,
+                  model_->GetCheckedKeyIds());
 }
 
 void KeyList::save_tab_order() {
@@ -1039,7 +1203,8 @@ void KeyList::refresh_category_icons() {
     auto* item = ui_->categoryList->item(i);
     const auto id = item->data(Qt::UserRole).toString();
     item->setIcon(make_category_icon(resolve_category_color(id, {}),
-                                     IsCustomCategoryId(id)));
+                                     IsCustomCategoryId(id),
+                                     marked_categories_.contains(id)));
   }
 }
 
@@ -1079,6 +1244,13 @@ void KeyList::SlotRefresh() {
   ui_->refreshKeyListButton->setDisabled(true);
   ui_->syncButton->setDisabled(true);
 
+  // Swapping in a fresh model makes every table report "nothing checked"
+  // (KeyTable::RefreshModel emits SignalKeyChecked). That is not the user
+  // clearing the selection, so hold off persisting until the working set has
+  // been restored below; otherwise the refresh erases what it is about to
+  // restore.
+  const QScopedValueRollback<bool> guard(restoring_checked_keys_, true);
+
   LOG_D() << "request new key table module, current gpg context channel: "
           << current_gpg_context_channel_;
   model_ = AbstractKeyRepository::GetInstance(current_gpg_context_channel_)
@@ -1090,6 +1262,10 @@ void KeyList::SlotRefresh() {
 
     key_table->RefreshModel(model_);
   }
+
+  // The model is new, so the check state went with the old one; bring back the
+  // persisted working set (also covers a key database switch).
+  restore_checked_keys();
 
   emit SignalRefreshStatusBar(tr("Refreshing Key List..."), 3000);
   this->SlotRefreshUI();

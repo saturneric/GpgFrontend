@@ -73,6 +73,14 @@ struct KeyTable : public QTableView {
   [[nodiscard]] auto GetCheckedKeys() const -> GpgAbstractKeyPtrList;
 
   /**
+   * @brief Whether any row shown by this table is checked.
+   *
+   * Cheap counterpart of GetCheckedKeys() for the checked-keys indicators: it
+   * stops at the first checked row instead of collecting every key.
+   */
+  [[nodiscard]] auto HasCheckedKeys() const -> bool;
+
+  /**
    * @brief
    *
    */

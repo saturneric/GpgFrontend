@@ -87,6 +87,9 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->importConfirmationCheckBox->setText(
       tr("Import files dropped on the Key List without confirmation."));
 
+  ui_->rememberCheckedKeysCheckBox->setText(
+      tr("Remember which keys are checked in the key list between restarts."));
+
   ui_->asciiModeCheckBox->setText(tr("Use Binary Mode for File Operations"));
 
   ui_->langBox->setTitle(tr("Language"));
@@ -186,6 +189,11 @@ void GeneralTab::SetSettings() {
   ui_->importConfirmationCheckBox->setCheckState(
       confirm_import_keys ? Qt::Checked : Qt::Unchecked);
 
+  auto remember_checked_keys =
+      settings.value("basic/remember_checked_keys", false).toBool();
+  ui_->rememberCheckedKeysCheckBox->setCheckState(
+      remember_checked_keys ? Qt::Checked : Qt::Unchecked);
+
   auto module_loading_policy =
       settings.value("basic/module_loading_policy", "only_integrated")
           .toString();
@@ -242,6 +250,8 @@ void GeneralTab::ApplySettings() {
                     ui_->restoreTextEditorPageCheckBox->isChecked());
   settings.setValue("basic/confirm_import_keys",
                     ui_->importConfirmationCheckBox->isChecked());
+  settings.setValue("basic/remember_checked_keys",
+                    ui_->rememberCheckedKeysCheckBox->isChecked());
   settings.setValue("basic/lang", lang_.key(ui_->langSelectBox->currentText()));
   settings.setValue("basic/module_loading_policy",
                     ui_->modulePolicyComboBox->currentData().toString());

@@ -659,6 +659,12 @@ void MainWindow::create_dock_windows() {
   // Per-window order for the integrated (built-in) tabs; custom categories use
   // a separate, shared order (see KeyList).
   m_key_list_->SetTabOrderSettingsKey("keys/toolbox_tab_order");
+
+  // The dock's checked keys are the everyday working set (the recipients of the
+  // next operation), so this is the one key list that may carry them across
+  // restarts; the user setting decides whether it actually does.
+  m_key_list_->SetRememberCheckedKeys(true);
+
   m_key_list_->RebuildCategoryTabs();
 
   m_key_list_->setMinimumWidth(320);
