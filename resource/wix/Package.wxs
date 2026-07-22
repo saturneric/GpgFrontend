@@ -68,16 +68,24 @@
            row 1: 0.0.1 <= v < ProductVersion, Attributes 257 (min-inclusive + MigrateFeatures) -> OLDPRODUCTS
            row 2: v > ProductVersion, Attributes 2 (detect-only) -> AI_NEWERPRODUCTFOUND
          MsiCustActComponent AI_DOWNGRADE: Type 19 (error) when a newer product is found.
-         NOTE: like the AIP, an *equal-version* install does not remove the existing one.
-         The first WiX-built release must therefore carry a higher ProductVersion than the
-         last Advanced Installer release (or add AllowSameVersionUpgrades="yes"). -->
+         AllowSameVersionUpgrades departs from the AIP deliberately: every nightly carries the
+         same ProductVersion (2.2.1) but a fresh ProductCode, so without it each nightly is a
+         *separate* product that installs over the previous one's files instead of replacing
+         it, stacking entries in Add/Remove Programs and leaving two products owning the
+         same paths under AppData. With it, RemoveExistingProducts clears the old install
+         first and every write lands in a clean tree. -->
     <MajorUpgrade
       AllowDowngrades="no"
+      AllowSameVersionUpgrades="yes"
       DowngradeErrorMessage="A newer version of [ProductName] is already installed."
       MigrateFeatures="yes"
       Schedule="afterInstallValidate" />
 
-    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+    <!-- MaximumUncompressedMediaSize overrides the 200 MB default: the payload (Qt closure +
+         GnuPG + modules) is larger than that, so the default silently splits it across
+         cab1/cab2/..., and a file landing on a media boundary is a known source of extraction
+         failures mid-install. One cab for the whole package removes that variable. -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" MaximumUncompressedMediaSize="4096" />
 
     <!-- Close anything still holding a file in the install tree, otherwise MSI aborts with
          1310 ("Error writing to file ... verify that you have access to that directory")

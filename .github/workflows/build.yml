@@ -584,6 +584,10 @@ jobs:
             -d BrandingDir="${{github.workspace}}/resource/wix" `
             -o "${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.msi" `
             resource/wix/Package.wxs
+
+          # wix drops a .wixpdb next to the .msi; it is build metadata, not a deliverable.
+          Remove-Item -Force -ErrorAction SilentlyContinue `
+            "${{github.workspace}}/build/upload-artifact/*.wixpdb"
         if: runner.os == 'Windows'
 
       - name: Upload Artifact (Linux)
