@@ -30,6 +30,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "ui/UISignalStation.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui_FilePage.h"
 
@@ -40,49 +41,6 @@ auto VolumeKey(const QStorageInfo& s) -> QString {
              (s.device() + "|" + s.rootPath() + "|" + s.displayName()).toUtf8(),
              QCryptographicHash::Sha1)
       .toHex();
-}
-
-auto NormalizeUserPath(QString path, const QString& current_path) -> QString {
-  path = path.trimmed();
-
-  if (path.isEmpty()) {
-    return current_path;
-  }
-
-  if (path == "~") {
-    return QDir::homePath();
-  }
-
-  if (path.startsWith("~/") || path.startsWith("~\\")) {
-    return QDir::homePath() + path.mid(1);
-  }
-
-  QFileInfo info(path);
-  if (info.isRelative()) {
-    return QDir(current_path).absoluteFilePath(path);
-  }
-
-  return path;
-}
-
-auto ToDisplayUserPath(const QString& path) -> QString {
-  auto clean_path = QDir::cleanPath(path);
-
-#ifdef Q_OS_WIN
-  clean_path.replace("\\", "/");
-#endif
-
-  const auto home_path = QDir::cleanPath(QDir::homePath());
-
-  if (clean_path == home_path) {
-    return QStringLiteral("~");
-  }
-
-  if (clean_path.startsWith(home_path + "/")) {
-    return QStringLiteral("~") + clean_path.mid(home_path.size());
-  }
-
-  return clean_path;
 }
 
 auto FormatStorageActionText(const QStorageInfo& storage) -> QString {
@@ -112,21 +70,6 @@ auto FormatStorageActionText(const QStorageInfo& storage) -> QString {
   return QObject::tr("%1  ·  %2").arg(name, storage.rootPath());
 }
 
-auto LowerSuffix(const QFileInfo& info) -> QString {
-  return info.suffix().toLower();
-}
-
-auto IsOpenPGPMessageFile(const QFileInfo& info) -> bool {
-  const auto suffix = LowerSuffix(info);
-  return suffix == "gpg" || suffix == "pgp" || suffix == "asc";
-}
-
-auto IsOpenPGPRelatedFile(const QFileInfo& info) -> bool {
-  const auto suffix = LowerSuffix(info);
-  return suffix == "gpg" || suffix == "pgp" || suffix == "sig" ||
-         suffix == "asc";
-}
-
 }  // namespace
 
 namespace GpgFrontend::UI {
@@ -141,56 +84,87 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
           &FileTreeView::SlotUpLevel);
   connect(ui_->refreshButton, &QToolButton::clicked, this,
           &FilePage::SlotRefreshState);
-  connect(this->ui_->newDirButton, &QToolButton::clicked, ui_->treeView,
-          &FileTreeView::SlotMkdir);
 
   ui_->treeView->SetPath(target_path);
-  ui_->pathEdit->setText(ui_->treeView->GetCurrentPath());
+  ui_->pathBar->SetPath(ui_->treeView->GetCurrentPath());
 
-  path_complete_model_ = new QStringListModel(this);
-
-  path_edit_completer_ = new QCompleter(path_complete_model_, this);
-  path_edit_completer_->setCaseSensitivity(Qt::CaseInsensitive);
-  path_edit_completer_->setCompletionMode(QCompleter::PopupCompletion);
-  path_edit_completer_->setFilterMode(Qt::MatchStartsWith);
-  path_edit_completer_->setMaxVisibleItems(12);
-
-  ui_->pathEdit->setCompleter(path_edit_completer_);
-
-  connect(ui_->pathEdit, &QLineEdit::returnPressed, this,
+  connect(ui_->pathBar, &FilePathBar::SignalPathRequested, this,
           &FilePage::SlotGoPath);
 
-  connect(ui_->pathEdit, &QLineEdit::textEdited, this,
-          [this](const QString& text) { update_path_completion(text); });
+  connect(ui_->filterEdit, &QLineEdit::textChanged, ui_->treeView,
+          &FileTreeView::SlotSetNameFilter);
+  connect(ui_->treeView, &FileTreeView::SignalItemCountChanged, this,
+          &FilePage::update_status_strip);
 
-  connect(ui_->pathEdit, &QLineEdit::returnPressed, this,
-          &FilePage::SlotGoPath);
-
-  connect(path_edit_completer_,
-          QOverload<const QString&>::of(&QCompleter::activated), this,
-          [this](const QString& path) {
-            ui_->pathEdit->setText(ToDisplayUserPath(path));
-            ui_->pathEdit->setCursorPosition(ui_->pathEdit->text().size());
-          });
-
-  ui_->pathEdit->setCompleter(path_edit_completer_);
-
+  // The toolbar keeps only what is used while browsing; everything that is
+  // occasional lives one click deeper, in this menu.
   option_popup_menu_ = new QMenu(this);
-  auto* show_hidden_act = new QAction(tr("Show Hidden Files"), this);
+  // Qt drops action tooltips in menus unless this is asked for explicitly, so
+  // every explanation written below would otherwise never be shown.
+  option_popup_menu_->setToolTipsVisible(true);
+
+  auto* new_dir_act = new QAction(
+      QIcon::fromTheme(QStringLiteral("folder-new")), tr("New Folder"), this);
+  new_dir_act->setToolTip(tr("Create a new folder in the current folder."));
+  connect(new_dir_act, &QAction::triggered, ui_->treeView,
+          &FileTreeView::SlotMkdir);
+  option_popup_menu_->addAction(new_dir_act);
+
+  auto* new_file_act =
+      new QAction(QIcon::fromTheme(QStringLiteral("document-new")),
+                  tr("New Empty File"), this);
+  new_file_act->setToolTip(tr("Create an empty file in the current folder."));
+  connect(new_file_act, &QAction::triggered, ui_->treeView,
+          &FileTreeView::SlotTouch);
+  option_popup_menu_->addAction(new_file_act);
+
+  option_popup_menu_->addSeparator();
+
+  harddisk_popup_menu_ = new QMenu(this);
+  harddisk_popup_menu_->setToolTipsVisible(true);
+  ui_->hardDiskButton->setMenu(harddisk_popup_menu_);
+
+  // The three toggles all answer the same question — what the list shows — so
+  // they belong together instead of spread down the menu.
+  show_popup_menu_ = new QMenu(tr("Show"), this);
+  show_popup_menu_->setToolTipsVisible(true);
+  show_popup_menu_->setToolTip(tr("Choose what the file list shows."));
+  option_popup_menu_->addMenu(show_popup_menu_);
+
+  auto* show_hidden_act = new QAction(tr("Hidden Files"), this);
   show_hidden_act->setCheckable(true);
+  show_hidden_act->setToolTip(
+      tr("List files and folders whose name starts with a dot."));
   connect(show_hidden_act, &QAction::triggered, ui_->treeView,
           &FileTreeView::SlotShowHiddenFile);
-  option_popup_menu_->addAction(show_hidden_act);
+  show_popup_menu_->addAction(show_hidden_act);
 
-  auto* show_system_act = new QAction(tr("Show System Files"), this);
+  auto* show_system_act = new QAction(tr("System Files"), this);
   show_system_act->setCheckable(true);
+  show_system_act->setToolTip(
+      tr("List system files such as devices and sockets."));
   connect(show_system_act, &QAction::triggered, ui_->treeView,
           &FileTreeView::SlotShowSystemFile);
-  option_popup_menu_->addAction(show_system_act);
+  show_popup_menu_->addAction(show_system_act);
+
+  auto* show_type_column_act = new QAction(tr("Type Column"), this);
+  show_type_column_act->setCheckable(true);
+  show_type_column_act->setToolTip(tr("Show the file type as its own column."));
+  show_type_column_act->setChecked(
+      GetSettings().value("file_panel/show_type_column", false).toBool());
+  connect(show_type_column_act, &QAction::triggered, this, [this](bool on) {
+    ui_->treeView->SetTypeColumnVisible(on);
+    GetSettings().setValue("file_panel/show_type_column", on);
+  });
+  show_popup_menu_->addAction(show_type_column_act);
+  ui_->treeView->SetTypeColumnVisible(show_type_column_act->isChecked());
+
+  option_popup_menu_->addSeparator();
 
   auto* switch_asc_mode_act = new QAction(tr("Use ASCII Armor"), this);
   switch_asc_mode_act->setToolTip(
-      tr("Use ASCII armored output for file operations."));
+      tr("Write the result of encrypting or signing as printable text (.asc) "
+         "instead of binary."));
   switch_asc_mode_act->setCheckable(true);
   connect(switch_asc_mode_act, &QAction::triggered, this,
           [=](bool on) { ascii_mode_ = on; });
@@ -207,8 +181,13 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
           &UISignalStation::SignalRefreshInfoBoard);
   connect(ui_->treeView, &FileTreeView::SignalPathChanged, this,
           [this](const QString& path) {
-            this->ui_->pathEdit->setText(ToDisplayUserPath(path));
-            this->ui_->pathEdit->setToolTip(path);
+            ui_->pathBar->SetPath(path);
+
+            // A filter belongs to the folder it was typed in; carrying it into
+            // the next folder would silently hide files there.
+            ui_->filterEdit->clear();
+
+            update_status_strip();
           });
   connect(ui_->treeView, &FileTreeView::SignalPathChanged, this,
           &FilePage::SignalPathChanged);
@@ -218,6 +197,9 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
   connect(ui_->treeView, &FileTreeView::SignalSelectedChanged, this,
           [this](const QStringList& selected_paths) {
             update_main_basic_opera_menu(selected_paths);
+
+            selected_count_ = static_cast<int>(selected_paths.size());
+            update_status_strip();
 
             if (selected_paths.isEmpty()) {
               ui_->batchModeButton->setToolTip(
@@ -251,70 +233,97 @@ FilePage::FilePage(QWidget* parent, const QString& target_path)
 void FilePage::init_ui_style() {
   setObjectName(QStringLiteral("FilePage"));
 
-  ui_->pathEdit->setClearButtonEnabled(true);
-  ui_->pathEdit->setPlaceholderText(tr("Type a folder path, e.g. ~/Documents"));
-  ui_->pathEdit->setMinimumHeight(30);
+  ui_->filterEdit->setPlaceholderText(tr("Filter"));
+  ui_->filterEdit->setToolTip(
+      tr("List only the files and folders whose name contains this text. The "
+         "filter applies to the current folder and is cleared when you open "
+         "another one."));
+  ui_->filterEdit->setMinimumHeight(30);
+  ui_->filterEdit->addAction(QIcon::fromTheme(QStringLiteral("edit-find"),
+                                              QIcon(":/icons/search.png")),
+                             QLineEdit::LeadingPosition);
 
+  // Auto-raised buttons read as one toolbar; the separators between them carry
+  // the grouping, so nothing has to be drawn with a stylesheet.
   const auto setup_tool_button = [](QToolButton* button,
                                     const QString& tooltip) {
     button->setToolTip(tooltip);
-    button->setAutoRaise(false);
+    button->setAutoRaise(true);
     button->setMinimumSize(30, 30);
     button->setIconSize(QSize(18, 18));
     button->setToolButtonStyle(Qt::ToolButtonIconOnly);
     button->setFocusPolicy(Qt::NoFocus);
   };
 
-  setup_tool_button(ui_->upPathButton, tr("Go to Parent Directory"));
-  setup_tool_button(ui_->refreshButton, tr("Refresh"));
-  setup_tool_button(ui_->newDirButton, tr("Create New Directory"));
-  setup_tool_button(ui_->hardDiskButton, tr("Mounted Volumes"));
-  setup_tool_button(ui_->optionsButton, tr("File View Options"));
-  setup_tool_button(ui_->batchModeButton, tr("Enable Batch Mode"));
+  setup_tool_button(ui_->upPathButton,
+                    tr("Go to the parent folder (Backspace)"));
+  setup_tool_button(ui_->refreshButton, tr("Read this folder from disk again"));
+  setup_tool_button(ui_->hardDiskButton,
+                    tr("Go to a mounted volume or removable drive"));
+  setup_tool_button(ui_->optionsButton,
+                    tr("Create items and choose what the list shows"));
+  setup_tool_button(ui_->batchModeButton,
+                    tr("Enable batch mode to select multiple files."));
 
   ui_->hardDiskButton->setPopupMode(QToolButton::InstantPopup);
   ui_->optionsButton->setPopupMode(QToolButton::InstantPopup);
-
   ui_->batchModeButton->setCheckable(true);
-  ui_->batchModeButton->setAutoRaise(false);
 
-  ui_->treeView->setAlternatingRowColors(true);
-  ui_->treeView->setUniformRowHeights(true);
-  ui_->treeView->setAnimated(false);
-  ui_->treeView->setSortingEnabled(true);
+  for (auto* separator : {ui_->navSeparator, ui_->viewSeparator}) {
+    separator->setFrameShape(QFrame::VLine);
+    separator->setFrameShadow(QFrame::Plain);
+    separator->setLineWidth(1);
+    // Mid is invisible against the window on several platform palettes; Dark
+    // is the first role that reliably reads in both themes.
+    separator->setForegroundRole(QPalette::Dark);
+    separator->setFixedWidth(1);
+    separator->setFixedHeight(18);
+  }
+
+  // The strip is secondary information, but it still has to be readable in a
+  // dark theme, so it keeps the normal text colour and only steps down in
+  // size.
+  for (auto* label : {ui_->statusLabel, ui_->capacityLabel}) {
+    auto status_font = label->font();
+    status_font.setPointSizeF(status_font.pointSizeF() * 0.9);
+    label->setFont(status_font);
+    label->setForegroundRole(QPalette::WindowText);
+  }
+
+  ui_->statusLabel->setToolTip(
+      tr("Entries listed in this folder, and how many of them are selected. "
+         "Entries hidden by the filter are not counted."));
+  ui_->capacityLabel->setToolTip(
+      tr("Space still available on the volume holding this folder."));
+
+  ui_->statusSeparator->setFrameShape(QFrame::HLine);
+  ui_->statusSeparator->setFrameShadow(QFrame::Plain);
+  ui_->statusSeparator->setLineWidth(1);
+  ui_->statusSeparator->setForegroundRole(QPalette::Dark);
+  ui_->statusSeparator->setFixedHeight(1);
 }
 
 auto FilePage::GetSelected() const -> QStringList {
   return ui_->treeView->GetSelectedPaths();
 }
 
-void FilePage::SlotGoPath() {
-  const auto path =
-      NormalizeUserPath(ui_->pathEdit->text(), ui_->treeView->GetCurrentPath());
+void FilePage::SlotGoPath(const QString& path) {
   const auto clean_path = QDir::cleanPath(path);
 
   QFileInfo info(clean_path);
   if (!info.exists() || !info.isDir() || !info.isReadable()) {
-    const auto message = tr("The folder does not exist or cannot be opened.");
-
-    ui_->pathEdit->setToolTip(message);
-    ui_->pathEdit->selectAll();
-
-    QToolTip::showText(
-        ui_->pathEdit->mapToGlobal(QPoint(0, ui_->pathEdit->height())), message,
-        ui_->pathEdit);
-
+    ui_->pathBar->ShowPathError(
+        tr("The folder does not exist or cannot be opened."));
     return;
   }
 
-  ui_->pathEdit->setToolTip(clean_path);
-  ui_->pathEdit->setText(ToDisplayUserPath(clean_path));
+  ui_->pathBar->SetPath(clean_path);
   ui_->treeView->SlotGoPath(clean_path);
 }
 
 void FilePage::SlotRefreshState() {
   update_harddisk_menu();
-  SlotGoPath();
+  SlotGoPath(ui_->treeView->GetCurrentPath());
 }
 
 void FilePage::update_main_basic_opera_menu(const QStringList& selected_paths) {
@@ -365,9 +374,7 @@ void FilePage::update_main_basic_opera_menu(const QStringList& selected_paths) {
 
   bool c_verify =
       std::all_of(infos.cbegin(), infos.cend(), [](const QFileInfo& info) {
-        const auto suffix = LowerSuffix(info);
-        return info.isFile() && (suffix == "sig" || suffix == "gpg" ||
-                                 suffix == "pgp" || suffix == "asc");
+        return info.isFile() && IsOpenPGPRelatedFile(info);
       });
 
   if (c_verify) operation_type |= MainWindow::OperationMenu::kVerify;
@@ -380,72 +387,6 @@ auto FilePage::IsBatchMode() const -> bool {
 }
 
 auto FilePage::IsASCIIMode() const -> bool { return ascii_mode_; }
-
-void FilePage::update_path_completion(const QString& input) {
-  if (input.trimmed().isEmpty()) {
-    path_complete_model_->setStringList({});
-    return;
-  }
-
-  QString typed_prefix;
-
-  const auto current_path = ui_->treeView->GetCurrentPath();
-  const auto normalized_input = NormalizeUserPath(input, current_path);
-
-  QFileInfo normalized_info(normalized_input);
-
-  QDir base_dir;
-  if (normalized_info.exists() && normalized_info.isDir()) {
-    base_dir = QDir(normalized_info.absoluteFilePath());
-    typed_prefix.clear();
-  } else {
-    base_dir = normalized_info.dir();
-    typed_prefix = normalized_info.fileName();
-  }
-
-  if (!base_dir.exists() || !base_dir.isReadable()) {
-    path_complete_model_->setStringList({});
-    return;
-  }
-
-  const auto entries =
-      base_dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Readable,
-                             QDir::Name | QDir::IgnoreCase | QDir::DirsFirst);
-
-  QStringList candidates;
-  candidates.reserve(entries.size());
-
-  for (const auto& entry : entries) {
-    const auto file_name = entry.fileName();
-
-    if (!typed_prefix.isEmpty() &&
-        !file_name.startsWith(typed_prefix, Qt::CaseInsensitive)) {
-      continue;
-    }
-
-    auto candidate_path = QDir::cleanPath(entry.absoluteFilePath());
-
-#ifdef Q_OS_WIN
-    candidate_path.replace("\\", "/");
-#endif
-
-    if (input.trimmed().startsWith("~")) {
-      candidates.append(ToDisplayUserPath(candidate_path));
-    } else if (QFileInfo(input).isRelative() && !input.startsWith("/") &&
-               !input.startsWith("\\")) {
-      candidates.append(QDir(current_path).relativeFilePath(candidate_path));
-    } else {
-      candidates.append(candidate_path);
-    }
-  }
-
-  path_complete_model_->setStringList(candidates);
-
-  if (!candidates.isEmpty()) {
-    path_edit_completer_->setCompletionPrefix(input);
-    path_edit_completer_->complete();
-  }
-}
 
 [[nodiscard]] auto FilePage::GetCurrentPath() const -> QString {
   return ui_->treeView->GetCurrentPath();
@@ -478,12 +419,9 @@ auto FilePage::update_harddisk_menu() -> void {
 
   LOG_D() << "updating harddisk menu...";
 
-  if (harddisk_popup_menu_ != nullptr) {
-    harddisk_popup_menu_->deleteLater();
-    harddisk_popup_menu_ = nullptr;
-  }
+  if (harddisk_popup_menu_ == nullptr) return;
 
-  harddisk_popup_menu_ = new QMenu(this);
+  harddisk_popup_menu_->clear();
 
   for (const auto& storage_device : vols) {
     if (!storage_device.isValid() || !storage_device.isReady()) continue;
@@ -498,9 +436,7 @@ auto FilePage::update_harddisk_menu() -> void {
     device_act->setData(storage_device.rootPath());
 
     connect(device_act, &QAction::triggered, this, [this, device_act]() {
-      const auto path = device_act->data().toString();
-      ui_->pathEdit->setText(ToDisplayUserPath(path));
-      SlotGoPath();
+      SlotGoPath(device_act->data().toString());
     });
 
     harddisk_popup_menu_->addAction(device_act);
@@ -511,13 +447,41 @@ auto FilePage::update_harddisk_menu() -> void {
         harddisk_popup_menu_->addAction(tr("No Available Volumes"));
     empty_act->setEnabled(false);
   }
-
-  ui_->hardDiskButton->setMenu(harddisk_popup_menu_);
 }
 
 auto FilePage::update_harddisk_menu_periodic() -> void {
   update_harddisk_menu();
+  update_status_strip();
   QTimer::singleShot(3000, this, &FilePage::update_harddisk_menu_periodic);
+}
+
+void FilePage::update_status_strip() {
+  QStringList segments;
+
+  const auto item_count = ui_->treeView->GetVisibleItemCount();
+  segments.append(tr("%n item(s)", "", item_count));
+
+  if (selected_count_ > 0) {
+    segments.append(tr("%1 selected").arg(selected_count_));
+  }
+
+  ui_->statusLabel->setText(segments.join(QStringLiteral("  ·  ")));
+
+  // Capacity belongs to the volume rather than to the folder, so it sits at
+  // the far end of the strip instead of in the same run of counters.
+  QString capacity;
+
+  const auto current_path = ui_->treeView->GetCurrentPath();
+  if (!current_path.isEmpty()) {
+    const QStorageInfo storage(current_path);
+    if (storage.isValid() && storage.isReady() &&
+        storage.bytesAvailable() >= 0) {
+      capacity = tr("%1 free").arg(
+          QLocale().formattedDataSize(storage.bytesAvailable()));
+    }
+  }
+
+  ui_->capacityLabel->setText(capacity);
 }
 
 }  // namespace GpgFrontend::UI

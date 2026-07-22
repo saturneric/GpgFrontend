@@ -33,6 +33,7 @@
 #include "ui/UISignalStation.h"
 #include "ui/dialog/CreateFileSystemItemDialog.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/widgets/FileTreeItemDelegate.h"
 
 namespace GpgFrontend::UI {
 
@@ -92,16 +93,30 @@ FileTreeView::FileTreeView(QWidget* parent)
           &FileTreeView::slot_adjust_column_widths);
   connect(dir_model_, &QFileSystemModel::dataChanged, this,
           &FileTreeView::slot_adjust_column_widths);
+
+  // The model fills a directory in asynchronously, so both the filter and the
+  // placeholder have to be re-evaluated as rows arrive.
+  const auto refresh_rows = [this]() {
+    apply_name_filter();
+    emit SignalItemCountChanged();
+  };
+  connect(dir_model_, &QFileSystemModel::directoryLoaded, this, refresh_rows);
+  connect(dir_model_, &QFileSystemModel::rowsInserted, this, refresh_rows);
+  connect(dir_model_, &QFileSystemModel::rowsRemoved, this, refresh_rows);
 }
 
 void FileTreeView::InitViewStyle() {
   setProperty("gfFileTreeView", true);
 
+  setItemDelegate(new FileTreeItemDelegate(this));
+
   setRootIsDecorated(true);
   setItemsExpandable(true);
   setExpandsOnDoubleClick(false);
 
-  setAlternatingRowColors(true);
+  // Rows are separated by their own height and by hover and selection drawn by
+  // the platform style; banding on top of that only adds noise.
+  setAlternatingRowColors(false);
   setUniformRowHeights(true);
   setAnimated(false);
   setSortingEnabled(true);
@@ -123,6 +138,7 @@ void FileTreeView::InitViewStyle() {
 
   setAllColumnsShowFocus(true);
   setMouseTracking(true);
+  setIconSize(QSize(20, 20));
   setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
   setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
@@ -130,6 +146,11 @@ void FileTreeView::InitViewStyle() {
   header()->setHighlightSections(false);
   header()->setSectionsClickable(true);
   header()->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+
+  // The header labels the columns, it does not compete with them.
+  auto header_font = header()->font();
+  header_font.setBold(false);
+  header()->setFont(header_font);
 
   setColumnWidth(0, 360);
   setColumnWidth(1, 90);
@@ -141,25 +162,118 @@ void FileTreeView::InitViewStyle() {
   header()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
   header()->setSectionResizeMode(3, QHeaderView::Stretch);
 
+  // The icon and its OpenPGP badge already say what kind of file this is.
+  setColumnHidden(2, true);
+
   setStyleSheet(R"(
 QTreeView[gfFileTreeView="true"] {
   outline: 0;
-}
-
-QTreeView[gfFileTreeView="true"]::item {
-  min-height: 24px;
-  padding: 2px 4px;
-  border: none;
-}
-
-QTreeView[gfFileTreeView="true"]::item:selected {
-  background: palette(highlight);
-  color: palette(highlighted-text);
 }
 )");
 
   style()->unpolish(this);
   style()->polish(this);
+}
+
+void FileTreeView::SetTypeColumnVisible(bool on) { setColumnHidden(2, !on); }
+
+auto FileTreeView::GetVisibleItemCount() const -> int {
+  if (dir_model_ == nullptr) return 0;
+
+  const auto root = rootIndex();
+  const auto rows = dir_model_->rowCount(root);
+
+  auto visible = 0;
+  for (int row = 0; row < rows; ++row) {
+    if (!isRowHidden(row, root)) ++visible;
+  }
+
+  return visible;
+}
+
+void FileTreeView::SlotSetNameFilter(const QString& text) {
+  name_filter_ = text.trimmed();
+  apply_name_filter();
+  emit SignalItemCountChanged();
+}
+
+void FileTreeView::apply_name_filter() {
+  if (dir_model_ == nullptr) return;
+
+  // Hiding rows in the view rather than filtering the model keeps every index
+  // the view hands out an index of dir_model_, which the whole class relies
+  // on. QFileSystemModel's own name filters also only take effect once the
+  // directory is repopulated, which is not the case while typing.
+  const auto root = rootIndex();
+  const auto rows = dir_model_->rowCount(root);
+
+  for (int row = 0; row < rows; ++row) {
+    const auto index = dir_model_->index(row, 0, root);
+    if (!index.isValid()) continue;
+
+    // Folders are filtered like files: a filter that visibly leaves every
+    // folder in place reads as a filter that does not work. Leaving the
+    // folder is still possible through the up button and the path bar.
+    const bool visible =
+        name_filter_.isEmpty() ||
+        dir_model_->fileName(index).contains(name_filter_, Qt::CaseInsensitive);
+
+    setRowHidden(row, root, !visible);
+  }
+
+  viewport()->update();
+}
+
+void FileTreeView::paintEvent(QPaintEvent* event) {
+  QTreeView::paintEvent(event);
+
+  if (dir_model_ == nullptr) return;
+  if (GetVisibleItemCount() > 0) return;
+
+  // The model fetches directory contents in the background, so an empty root
+  // means "nothing yet" just as often as it means "nothing at all".
+  if (dir_model_->canFetchMore(rootIndex())) return;
+
+  const QFileInfo info(current_path_);
+  const bool readable =
+      current_path_.isEmpty() || (info.exists() && info.isDir() &&
+                                  info.isReadable() && info.isExecutable());
+
+  const bool filtered = readable && !name_filter_.isEmpty() &&
+                        dir_model_->rowCount(rootIndex()) > 0;
+
+  const auto message = !readable ? tr("This folder cannot be opened")
+                       : filtered
+                           ? tr("No file matches \"%1\"").arg(name_filter_)
+                           : tr("This folder is empty");
+
+  QPainter painter(viewport());
+  painter.setRenderHint(QPainter::Antialiasing, true);
+
+  const auto icon =
+      QIcon::fromTheme(!readable  ? QStringLiteral("dialog-warning")
+                       : filtered ? QStringLiteral("edit-find")
+                                  : QStringLiteral("folder"),
+                       QIcon(":/icons/folder.png"));
+
+  constexpr int kIconSide = 48;
+  constexpr int kIconTextGap = 12;
+
+  const auto text_height = fontMetrics().height();
+  const auto block_height = kIconSide + kIconTextGap + text_height;
+  const auto top = viewport()->rect().center().y() - (block_height / 2);
+
+  const auto pixmap = icon.pixmap(kIconSide, kIconSide, QIcon::Disabled);
+  painter.setOpacity(0.45);
+  painter.drawPixmap(viewport()->rect().center().x() - (kIconSide / 2), top,
+                     pixmap);
+  painter.setOpacity(1.0);
+
+  painter.setPen(palette().color(QPalette::Disabled, QPalette::Text));
+  painter.drawText(
+      QRect(viewport()->rect().left(), top + kIconSide + kIconTextGap,
+            viewport()->rect().width(), text_height),
+      Qt::AlignHCenter | Qt::AlignTop, message);
 }
 
 void FileTreeView::selectionChanged(const QItemSelection& selected,
@@ -475,9 +589,13 @@ auto FileTreeView::GetMousePointGlobal(const QPoint& point) -> QPoint {
 
 void FileTreeView::slot_create_popup_menu() {
   popup_menu_ = new QMenu(this);
+  // Without this, Qt silently discards every action tooltip set below.
+  popup_menu_->setToolTipsVisible(true);
 
   action_open_file_ = new QAction(
       QIcon::fromTheme(QStringLiteral("document-open")), tr("Open"), this);
+  action_open_file_->setToolTip(
+      tr("Open the file in a GpgFrontend editor tab (Enter)."));
   connect(action_open_file_, &QAction::triggered, this, [this](bool) {
     for (const auto& path : GetSelectedPaths()) emit SignalOpenFile(path);
   });
@@ -485,33 +603,46 @@ void FileTreeView::slot_create_popup_menu() {
   action_open_with_system_default_application_ =
       new QAction(QIcon::fromTheme(QStringLiteral("system-run")),
                   tr("Open with Default Application"), this);
+  action_open_with_system_default_application_->setToolTip(
+      tr("Hand the item to the application your system uses for it."));
   connect(action_open_with_system_default_application_, &QAction::triggered,
           this, &FileTreeView::SlotOpenSelectedItemBySystemApplication);
 
   action_rename_file_ = new QAction(
       QIcon::fromTheme(QStringLiteral("edit-rename")), tr("Rename"), this);
+  action_rename_file_->setToolTip(tr("Give the item a new name (F2)."));
   connect(action_rename_file_, &QAction::triggered, this,
           &FileTreeView::SlotRenameSelectedItem);
 
   action_delete_file_ =
       new QAction(QIcon::fromTheme(QStringLiteral("user-trash")),
                   tr("Move to Trash"), this);
+  action_delete_file_->setToolTip(
+      tr("Move the selected items to the system Trash, where they can still "
+         "be recovered (Delete)."));
   connect(action_delete_file_, &QAction::triggered, this,
           &FileTreeView::SlotDeleteSelectedItem);
 
   action_calculate_hash_ =
       new QAction(QIcon::fromTheme(QStringLiteral("document-properties")),
                   tr("Calculate Hash"), this);
+  action_calculate_hash_->setToolTip(
+      tr("Compute checksums of the file and show them on the information "
+         "board, to compare it against a published value."));
   connect(action_calculate_hash_, &QAction::triggered, this,
           &FileTreeView::slot_calculate_hash);
 
   action_make_directory_ = new QAction(
       QIcon::fromTheme(QStringLiteral("folder-new")), tr("Folder"), this);
+  action_make_directory_->setToolTip(
+      tr("Create a new folder inside the selected folder."));
   connect(action_make_directory_, &QAction::triggered, this,
           &FileTreeView::SlotMkdirBelowAtSelectedItem);
 
   action_create_empty_file_ = new QAction(
       QIcon::fromTheme(QStringLiteral("document-new")), tr("Empty File"), this);
+  action_create_empty_file_->setToolTip(
+      tr("Create an empty file inside the selected folder."));
   connect(action_create_empty_file_, &QAction::triggered, this,
           &FileTreeView::SlotTouchBelowAtSelectedItem);
 
@@ -522,15 +653,21 @@ void FileTreeView::slot_create_popup_menu() {
 
   action_copy_path_ = new QAction(QIcon::fromTheme(QStringLiteral("edit-copy")),
                                   tr("Copy Path"), this);
+  action_copy_path_->setToolTip(
+      tr("Copy the full path of the selected items to the clipboard."));
   connect(action_copy_path_, &QAction::triggered, this,
           &FileTreeView::SlotCopyPath);
 
   action_refresh_ = new QAction(
       QIcon::fromTheme(QStringLiteral("view-refresh")), tr("Refresh"), this);
+  action_refresh_->setToolTip(tr("Read this folder from disk again."));
   connect(action_refresh_, &QAction::triggered, this,
           &FileTreeView::SlotRefresh);
 
   new_item_action_menu_ = new QMenu(tr("New"), this);
+  new_item_action_menu_->setToolTipsVisible(true);
+  new_item_action_menu_->setToolTip(
+      tr("Create a new item in the current folder."));
   new_item_action_menu_->setIcon(QIcon::fromTheme(QStringLiteral("list-add")));
   new_item_action_menu_->addAction(action_create_empty_file_);
   new_item_action_menu_->addAction(action_make_directory_);
@@ -690,6 +827,7 @@ void FileTreeView::slot_adjust_column_widths() {
   if (dir_model_ == nullptr) return;
 
   for (int i = 1; i < dir_model_->columnCount(); ++i) {
+    if (isColumnHidden(i)) continue;
     resizeColumnToContents(i);
   }
 

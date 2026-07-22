@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "ui/widgets/FilePathBar.h"
 #include "ui/widgets/InfoBoardWidget.h"
 
 class Ui_FilePage;
@@ -106,17 +107,14 @@ class FilePage : public QWidget {
 
  public slots:
   /**
-   * @brief Opens the path currently entered in the path editor.
-   *
-   * The input path is normalized before use. The method supports home-directory
-   * shortcuts such as "~" and "~/...", and resolves relative paths against the
-   * current directory.
+   * @brief Opens a directory.
    *
    * If the target path does not exist, is not a directory, or cannot be read,
-   * the path editor shows an error tooltip and the current directory is kept
-   * unchanged.
+   * the path bar shows an error and the current directory is kept unchanged.
+   *
+   * @param path Absolute directory path to open.
    */
-  void SlotGoPath();
+  void SlotGoPath(const QString& path);
 
   /**
    * @brief Refreshes the file page state.
@@ -163,15 +161,14 @@ class FilePage : public QWidget {
  private:
   QSharedPointer<Ui_FilePage> ui_;  ///< Generated UI object.
 
-  QCompleter* path_edit_completer_ = nullptr;  ///< Completer for path input.
-  QStringListModel* path_complete_model_ =
-      nullptr;  ///< Model used by the path completer.
-
   QMenu* popup_menu_{};           ///< Reserved popup menu pointer.
   QMenu* option_popup_menu_{};    ///< File-view option popup menu.
+  QMenu* show_popup_menu_{};      ///< Submenu of the list visibility toggles.
   QMenu* harddisk_popup_menu_{};  ///< Mounted-volume popup menu.
 
   bool ascii_mode_;  ///< Whether ASCII armored output is enabled.
+
+  int selected_count_ = 0;  ///< Size of the last reported selection.
 
   QSet<QString> last_volume_keys_;  ///< Cached mounted-volume keys.
 
@@ -216,16 +213,13 @@ class FilePage : public QWidget {
   void init_ui_style();
 
   /**
-   * @brief Updates path-completion candidates for the path editor.
+   * @brief Rebuilds the summary line shown under the file list.
    *
-   * The input is normalized against the current directory. Completion
-   * candidates are generated from readable subdirectories of the resolved base
-   * directory. Displayed candidates preserve the user's input style where
-   * possible, such as "~" paths or relative paths.
-   *
-   * @param input Current text entered by the user.
+   * The line reports how many entries the current folder shows, how many of
+   * them are selected, and how much space is left on the volume the folder
+   * lives on. Segments that carry no information are left out.
    */
-  void update_path_completion(const QString& input);
+  void update_status_strip();
 };
 
 }  // namespace GpgFrontend::UI

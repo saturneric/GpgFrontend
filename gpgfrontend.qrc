@@ -124,6 +124,7 @@
         <file alias="stamp_failed.png">resource/lfs/icons/stamp_failed.png</file>
         <file alias="stamp_info.png">resource/lfs/icons/stamp_info.png</file>
         <file alias="magnifier.png">resource/lfs/icons/magnifier.png</file>
+        <file alias="pencil.png">resource/lfs/icons/pencil.png</file>
     </qresource>
     <qresource prefix="/test/gpg_keys">
         <file alias="pv1.key">resource/lfs/test/gpg/data/pv1.key</file>

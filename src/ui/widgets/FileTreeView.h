@@ -121,7 +121,35 @@ class FileTreeView : public QTreeView {
    */
   auto GetMousePointGlobal(const QPoint& point) -> QPoint;
 
+  /**
+   * @brief Returns how many entries the current directory shows.
+   *
+   * Entries hidden by the name filter or by the hidden/system filters are not
+   * counted, so the value matches what the user sees.
+   *
+   * @return Number of visible rows below the current root.
+   */
+  [[nodiscard]] auto GetVisibleItemCount() const -> int;
+
+  /**
+   * @brief Shows or hides the type column.
+   *
+   * @param on true to show the column.
+   */
+  void SetTypeColumnVisible(bool on);
+
  protected:
+  /**
+   * @brief Paints the view and, when it has nothing to show, a placeholder.
+   *
+   * An empty grid gives no hint whether the folder is empty, still loading or
+   * simply unreadable, so a centered message is drawn instead once the model
+   * has finished loading the directory.
+   *
+   * @param event Paint event.
+   */
+  void paintEvent(QPaintEvent* event) override;
+
   /**
    * @brief Handles selection changes and updates the cached selected paths.
    *
@@ -218,6 +246,14 @@ class FileTreeView : public QTreeView {
    * @param path File path to open.
    */
   void SignalOpenFile(const QString& path);
+
+  /**
+   * @brief Emitted when the number of visible entries may have changed.
+   *
+   * The file-system model loads a directory asynchronously and the name filter
+   * hides rows on top of that, so the count is not known at navigation time.
+   */
+  void SignalItemCountChanged();
 
  public slots:
   /**
@@ -337,6 +373,18 @@ class FileTreeView : public QTreeView {
    */
   void SlotRefresh();
 
+  /**
+   * @brief Limits the file list to entries matching a text.
+   *
+   * Non-matching rows are hidden in the view instead of filtered out of the
+   * model, so every index the view hands out stays an index of the file-system
+   * model. Files and folders are filtered alike; the up button and the path
+   * bar remain available for leaving a folder while a filter is active.
+   *
+   * @param text Substring to match, or an empty string to show everything.
+   */
+  void SlotSetNameFilter(const QString& text);
+
  private slots:
   /**
    * @brief Handles activation of an item by double click or Enter.
@@ -383,6 +431,15 @@ class FileTreeView : public QTreeView {
   QFileSystemModel* dir_model_;  ///< File-system model backing the tree view.
   QString current_path_;         ///< Current root directory path.
   QStringList selected_paths_;   ///< Cached selected absolute paths.
+  QString name_filter_;          ///< Substring files must contain to show.
+
+  /**
+   * @brief Applies the current name filter to the rows of the current folder.
+   *
+   * Called again whenever rows arrive, because the file-system model populates
+   * a directory after the navigation that requested it has already returned.
+   */
+  void apply_name_filter();
 
   QMenu* popup_menu_;            ///< Main context menu.
   QMenu* new_item_action_menu_;  ///< Submenu for creating new items.

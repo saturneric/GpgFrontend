@@ -533,7 +533,9 @@ void TextEditTabWidget::SlotOpenPath(const QString& target_path) {
             update_file_page_tab_title(page, path);
           });
 
-  page->SlotGoPath();
+  // Re-enter the path now that the tab title is listening, so the tab is named
+  // after the folder the page actually settled on.
+  page->SlotGoPath(page->GetCurrentPath());
 }
 
 void TextEditTabWidget::update_file_page_tab_title(QWidget* page,
