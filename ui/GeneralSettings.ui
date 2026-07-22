@@ -124,6 +124,13 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="rememberCheckedKeysCheckBox">
+            <property name="text">
+             <string>Remember which keys are checked in the key list.</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="restoreTextEditorPageCheckBox">
             <property name="text">
              <string>Cache text editor contents.</string>
