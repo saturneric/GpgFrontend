@@ -563,14 +563,17 @@ jobs:
           $version = $match.Matches[0].Groups[1].Value
           Write-Host "Project version: $version"
 
-          dotnet tool install --global wix --version 5.*
-          wix extension add -g WixToolset.UI.wixext
+          # Toolset and extension versions must match: an unpinned extension resolves
+          # to the latest major (7.x), which a WiX 5 host cannot load (wixext5 vs wixext7).
+          $wixVersion = '5.0.2'
+          dotnet tool install --global wix --version $wixVersion
+          wix extension add -g WixToolset.UI.wixext/$wixVersion
 
           New-Item -ItemType Directory -Force -Path "${{github.workspace}}/build/upload-artifact" | Out-Null
 
           # -arch x64 is mandatory: the package is MsiPackageType=x64.
           # PayloadDir / ProductVersion / IconSource override the wxs defaults for this runner.
-          wix build -arch x64 -ext WixToolset.UI.wixext `
+          wix build -arch x64 -ext WixToolset.UI.wixext/$wixVersion `
             -d PayloadDir="${{github.workspace}}/build/artifacts" `
             -d ProductVersion="$version" `
             -d IconSource="${{github.workspace}}/gpgfrontend.ico" `
