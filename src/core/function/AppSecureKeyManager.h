@@ -297,6 +297,28 @@ class GF_CORE_EXPORT AppSecureKeyManager
   [[nodiscard]] auto GetLegacyKeyPath() const -> QString;
 
   /**
+   * @brief Delete every on-disk key file, for a destructive reset to default.
+   *
+   * Removes app.key along with any rotated <keyId>.key files derived from it,
+   * since those are keyed to the key being discarded and would only be orphaned
+   * by the reset. A fresh key is regenerated on the next Initialize().
+   *
+   * This is the only reversal of a forgotten PIN or an unrecoverable keychain
+   * secret: everything the old key encrypted becomes permanently unreadable, so
+   * the callers gate it behind an explicit, confirmed user choice. The store
+   * entry and the protection preference are cleared by the caller, which owns
+   * both; this handles only the files under @p key_dir.
+   *
+   * Static and taking the secure directory explicitly rather than reading the
+   * singleton, so a test can drive it against a temporary directory without
+   * disturbing the running process's own key.
+   *
+   * @param key_dir directory holding the key files, i.e. GetKeyDir()
+   * @return false if app.key existed but could not be removed; true otherwise
+   */
+  [[nodiscard]] static auto ResetKeyStorage(const QString& key_dir) -> bool;
+
+  /**
    * @brief Derive the identity of a key.
    *
    * HMAC-SHA256 over @p key using @p pin as the HMAC key, falling back to a

@@ -1121,6 +1121,68 @@ TEST(AppSecureKeyWrapTest, FeatureIsOffUnlessExplicitlyEnabled) {
   EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(*on_disk));
 }
 
+// --- reset to default -------------------------------------------------------
+
+// The forgotten-PIN / locked-out escape hatch. It owns only the files under the
+// secure directory; the store entry and the protection preference are the
+// caller's to clear. Everything the discarded key encrypted becomes unreadable,
+// which is exactly why a fresh key with a new identity is the point.
+
+TEST(AppKeyResetTest, RemovesAppKeyAndRotatedFiles) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  const auto dir = QFileInfo(file.Path()).path();
+
+  // A rotated key file of the kind secure level 3 leaves beside app.key.
+  const auto rotated_path = dir + "/deadbeefdeadbeef.key";
+  ASSERT_TRUE(GFBufferFactory::ToFile(rotated_path, key));
+  ASSERT_TRUE(file.Exists());
+  ASSERT_TRUE(QFileInfo::exists(rotated_path));
+
+  EXPECT_TRUE(AppSecureKeyManager::ResetKeyStorage(dir));
+
+  EXPECT_FALSE(file.Exists());
+  EXPECT_FALSE(QFileInfo::exists(rotated_path));
+}
+
+TEST(AppKeyResetTest, IsIdempotentWhenNothingToRemove) {
+  ScopedKeyFile file{GFBuffer{}};  // no app.key written
+  const auto dir = QFileInfo(file.Path()).path();
+  ASSERT_FALSE(file.Exists());
+
+  // Nothing to remove counts as success, so a half-finished prior reset
+  // retries.
+  EXPECT_TRUE(AppSecureKeyManager::ResetKeyStorage(dir));
+}
+
+TEST(AppKeyResetTest, LeavesNonKeyFilesAlone) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  const auto dir = QFileInfo(file.Path()).path();
+
+  // Only *.key files belong to the manager; anything else in the directory
+  // stays untouched.
+  const auto other = dir + "/notes.txt";
+  ASSERT_TRUE(GFBufferFactory::ToFile(other, GFBuffer("keep me")));
+
+  EXPECT_TRUE(AppSecureKeyManager::ResetKeyStorage(dir));
+
+  EXPECT_FALSE(file.Exists());
+  EXPECT_TRUE(QFileInfo::exists(other));
+}
+
+TEST(AppKeyResetTest, ReportsFailureWhenAppKeyCannotBeRemoved) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  // A directory named app.key cannot be removed by QFile::remove, standing in
+  // for any app.key whose deletion is refused. The reset must report that
+  // rather than let the caller believe the key is gone.
+  ASSERT_TRUE(QDir(dir.path()).mkdir("app.key"));
+
+  EXPECT_FALSE(AppSecureKeyManager::ResetKeyStorage(dir.path()));
+}
+
 // --- live backend -----------------------------------------------------------
 
 /**

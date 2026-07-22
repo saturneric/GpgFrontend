@@ -128,6 +128,40 @@ auto RequestedAppKeyProtection() -> GpgFrontend::AppKeyProtection {
 }
 
 /**
+ * @brief Discard the secure key and drop protection back to the default.
+ *
+ * The single, deliberately destructive escape hatch for a key that can no
+ * longer be opened — a forgotten PIN or an unrecoverable keychain secret. It
+ * deletes the on-disk key material, clears the keychain wrap secret, and resets
+ * the protection preference to "none", so the next Initialize() generates a
+ * fresh, unprotected key. Everything the old key encrypted becomes permanently
+ * unreadable, so every caller confirms the choice with the user first.
+ *
+ * @return true when the key was reset and startup may proceed
+ */
+auto ResetAppSecureKeyToDefault() -> bool {
+  auto& key_mgr = GpgFrontend::AppSecureKeyManager::GetInstance();
+  if (!GpgFrontend::AppSecureKeyManager::ResetKeyStorage(key_mgr.GetKeyDir())) {
+    QMessageBox::critical(
+        nullptr, QObject::tr("Reset Secure Key"),
+        QObject::tr("The key file at %1 could not be removed.")
+            .arg(key_mgr.GetLegacyKeyPath()),
+        QMessageBox::Ok);
+    return false;
+  }
+
+  if (auto* store = GpgFrontend::GetSystemSecretStore(); store != nullptr) {
+    store->Remove(GpgFrontend::kAppKeyWrapAccount);
+  }
+  GpgFrontend::GetSettings().setValue(
+      "advanced/app_key_protection",
+      AppKeyProtectionToString(GpgFrontend::AppKeyProtection::kNONE));
+
+  qWarning() << "app secure key was reset at the user's request";
+  return true;
+}
+
+/**
  * @brief Report the outcome of reconciling the key file's at-rest protection.
  *
  * @param result outcome of AppSecureKeyManager::ResolveWrapSecret()
@@ -205,25 +239,7 @@ auto ReportAppKeyWrapOutcome(const GpgFrontend::AppKeyWrapResult& result)
 
       if (confirm != QMessageBox::Yes) return false;
 
-      auto& key_mgr = GpgFrontend::AppSecureKeyManager::GetInstance();
-      if (!QFile::remove(key_mgr.GetLegacyKeyPath())) {
-        QMessageBox::critical(
-            nullptr, QObject::tr("Reset Secure Key"),
-            QObject::tr("The key file at %1 could not be removed.")
-                .arg(key_mgr.GetLegacyKeyPath()),
-            QMessageBox::Ok);
-        return false;
-      }
-
-      if (auto* store = GpgFrontend::GetSystemSecretStore(); store != nullptr) {
-        store->Remove(GpgFrontend::kAppKeyWrapAccount);
-      }
-      GpgFrontend::GetSettings().setValue(
-          "advanced/app_key_protection",
-          AppKeyProtectionToString(GpgFrontend::AppKeyProtection::kNONE));
-
-      qWarning() << "app secure key was reset at the user's request";
-      return true;
+      return ResetAppSecureKeyToDefault();
     }
   }
 
@@ -240,6 +256,43 @@ struct AppKeyPinPrompt {
   bool proceed = false;       ///< false means quit
   GpgFrontend::GFBuffer pin;  ///< the PIN, empty when proceeding unprotected
 };
+
+/**
+ * @brief Confirm and carry out a reset to default after a forgotten PIN.
+ *
+ * A two-step confirmation, matching the keychain lock-out reset: that
+ * everything encrypted becomes permanently unreadable is stated twice, because
+ * it cannot be undone. Any back-out returns false and leaves the key untouched.
+ *
+ * @return true only when the key was actually reset and startup may proceed
+ */
+auto ConfirmForgottenPinReset() -> bool {
+  QMessageBox box(QMessageBox::Warning, QObject::tr("Reset to Default"),
+                  QObject::tr("Resetting removes the PIN and lets the "
+                              "application start, but everything it previously "
+                              "encrypted becomes permanently unreadable."));
+  box.setInformativeText(QObject::tr(
+      "Only do this if you cannot recall the PIN. There is no other "
+      "way to recover the key."));
+  auto* back = box.addButton(QObject::tr("Go Back"), QMessageBox::RejectRole);
+  auto* reset = box.addButton(QObject::tr("Reset to Default"),
+                              QMessageBox::DestructiveRole);
+  box.setDefaultButton(back);
+  box.exec();
+
+  if (box.clickedButton() != reset) return false;
+
+  const auto confirm = QMessageBox::warning(
+      nullptr, QObject::tr("Reset to Default"),
+      QObject::tr("Everything the application has encrypted with the current "
+                  "key will be permanently unreadable.") +
+          "\n\n" + QObject::tr("Reset the secure key?"),
+      QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+
+  if (confirm != QMessageBox::Yes) return false;
+
+  return ResetAppSecureKeyToDefault();
+}
 
 /**
  * @brief Prompt for the application key PIN until it opens the key file.
@@ -259,6 +312,10 @@ struct AppKeyPinPrompt {
  *  - present but unreadable: an I/O error, distinct from a wrong PIN — a retry
  *    loop would only ever repeat, so it is reported and startup stops;
  *  - present and encrypted: the real case, retried until the PIN opens it.
+ *
+ * After a few misses the dialog reveals a reset option: a user who has truly
+ * forgotten the PIN can discard the key for a fresh, unprotected one rather
+ * than being trapped between an unopenable key and quitting.
  *
  * @param key_path path of the key file
  * @return whether to proceed, and the PIN to proceed with
@@ -307,7 +364,21 @@ auto PromptForAppKeyPin(const QString& key_path) -> AppKeyPinPrompt {
   GpgFrontend::UI::AppKeyPinDialog dialog(
       GpgFrontend::UI::AppKeyPinDialog::Mode::kUNLOCK);
   int failures = 0;
-  while (dialog.exec() == QDialog::Accepted) {
+  while (true) {
+    const int code = dialog.exec();
+
+    // The reset escape hatch, offered only after RevealResetOption() below. A
+    // confirmed reset proceeds with an empty PIN onto a freshly generated key;
+    // backing out drops straight back into the unlock loop.
+    if (code == GpgFrontend::UI::AppKeyPinDialog::kResetRequested) {
+      if (ConfirmForgottenPinReset()) return {true, {}};
+      continue;
+    }
+
+    // Anything other than accept is a Quit: it costs nothing and leaves the key
+    // intact, so it is never overloaded to mean reset.
+    if (code != QDialog::Accepted) return {};
+
     auto pin = dialog.Pin();
     if (GpgFrontend::AppSecureKeyManager::UnsealKey(pin, {}, *on_disk)) {
       return {true, pin};
@@ -321,17 +392,17 @@ auto PromptForAppKeyPin(const QString& key_path) -> AppKeyPinPrompt {
     auto message = QObject::tr(
         "That PIN did not unlock the application key. Please try again.");
     // After a few misses, say the thing that actually matters — that a
-    // forgotten PIN is not recoverable — so a stuck user is not left guessing.
+    // forgotten PIN is not recoverable — and reveal the reset option so a stuck
+    // user has a way out other than quitting.
     if (failures >= 3) {
       message += "\n" + QObject::tr(
                             "If you have forgotten your PIN, the application "
                             "key and everything encrypted with it cannot be "
                             "recovered.");
+      dialog.RevealResetOption();
     }
     dialog.SetErrorText(message);
   }
-
-  return {};
 }
 
 }  // namespace

@@ -230,17 +230,20 @@ AppKeyPinDialog::AppKeyPinDialog(Mode mode, QWidget* parent)
   error_label_ = new QLabel(this);
   error_label_->setWordWrap(true);
   error_label_->setAlignment(Qt::AlignTop);
-  ColourLabel(error_label_, DangerColour());
-  error_label_->setVisible(false);
-  // Reserve the message row's height once and keep it whether shown or hidden,
-  // so revealing a failure never nudges the fields or buttons — only the text
-  // fades in. Two lines covers both the built-in hints and the retry messages
-  // callers pass to SetErrorText().
-  auto error_policy = error_label_->sizePolicy();
-  error_policy.setRetainSizeWhenHidden(true);
-  error_label_->setSizePolicy(error_policy);
+  // The message row does double duty: a dimmed hint when all is well, the retry
+  // message in danger red on a failure. Keeping it always visible means the
+  // reserved space carries guidance instead of reading as empty padding, and
+  // the two-line floor keeps the fields and buttons from moving when a longer
+  // message replaces a shorter one.
   error_label_->setMinimumHeight(error_label_->fontMetrics().lineSpacing() * 2);
   main_layout->addWidget(error_label_);
+
+  // A short piece of guidance to sit in the message row while there is nothing
+  // to correct, chosen per mode so the reserved space is never merely blank.
+  hint_text_ = mode_ == Mode::kUNLOCK
+                   ? tr("This PIN cannot be recovered if it is lost.")
+                   : tr("Use at least %1 characters.").arg(kMinPinLength);
+  show_default_hint();
 
   auto* buttons = new QDialogButtonBox(
       QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -256,6 +259,23 @@ AppKeyPinDialog::AppKeyPinDialog(Mode mode, QWidget* parent)
         cancel != nullptr) {
       cancel->setText(tr("Quit"));
     }
+
+    // The escape hatch for a forgotten PIN. Kept hidden until the caller
+    // decides the user is genuinely stuck (RevealResetOption), so it never
+    // tempts anyone who merely mistyped once. ResetRole lets the platform style
+    // seat it apart from Unlock/Quit — on the left of the row on most styles.
+    // It only signals intent by closing with kResetRequested; the caller
+    // confirms and resets.
+    reset_button_ = buttons->addButton(tr("Forgot PIN? Reset…"),
+                                       QDialogButtonBox::ResetRole);
+    reset_button_->setVisible(false);
+    // Colour the text as destructive through the palette, matching the warning
+    // label and keeping clear of non-native QSS.
+    auto reset_palette = reset_button_->palette();
+    reset_palette.setColor(QPalette::ButtonText, DangerColour());
+    reset_button_->setPalette(reset_palette);
+    connect(reset_button_, &QPushButton::clicked, this,
+            [this]() { done(kResetRequested); });
   }
 
   main_layout->addWidget(buttons);
@@ -266,8 +286,10 @@ AppKeyPinDialog::AppKeyPinDialog(Mode mode, QWidget* parent)
   for (auto* edit : {current_edit_, new_edit_, confirm_edit_}) {
     if (edit == nullptr) continue;
     connect(edit, &QLineEdit::textChanged, this, [this]() {
-      // Any edit means the previous failure no longer describes what is typed.
-      error_label_->setVisible(false);
+      // Any edit means the previous failure no longer describes what is typed,
+      // so fall back to the hint; refresh_validity() re-raises an error if the
+      // new input still has one.
+      show_default_hint();
       refresh_strength();
       refresh_validity();
     });
@@ -296,16 +318,53 @@ auto AppKeyPinDialog::CurrentPin() const -> GFBuffer {
 }
 
 void AppKeyPinDialog::SetErrorText(const QString& text) {
+  // An empty message is not "no message" but "back to guidance": the row is
+  // always visible, so it falls back to the dimmed hint rather than a blank
+  // gap.
+  if (text.isEmpty()) {
+    show_default_hint();
+    return;
+  }
+  ColourLabel(error_label_, DangerColour());
   error_label_->setText(text);
-  error_label_->setVisible(!text.isEmpty());
   // No adjustSize(): the message row's height is reserved up front, so showing
   // an error must leave the rest of the dialog exactly where it was.
+}
+
+void AppKeyPinDialog::show_default_hint() {
+  // Reset the colour from the dialog's own text, not the label's — the label
+  // may still be carrying error red — then dim it so the hint reads as
+  // secondary and stays legible in both light and dark themes.
+  auto colour = palette().color(QPalette::WindowText);
+  colour.setAlpha(160);
+  ColourLabel(error_label_, colour);
+  error_label_->setText(hint_text_);
 }
 
 void AppKeyPinDialog::Clear() {
   for (auto* edit : {current_edit_, new_edit_, confirm_edit_}) {
     if (edit != nullptr) edit->clear();
   }
+}
+
+void AppKeyPinDialog::RevealResetOption() {
+  if (reset_button_ != nullptr) reset_button_->setVisible(true);
+}
+
+void AppKeyPinDialog::showEvent(QShowEvent* event) {
+  QDialog::showEvent(event);
+
+  // Prefer the screen the cursor is on, so on a multi-monitor setup the prompt
+  // appears where the user is looking; fall back to this widget's screen and
+  // then the primary one.
+  const auto* screen = QGuiApplication::screenAt(QCursor::pos());
+  if (screen == nullptr) screen = this->screen();
+  if (screen == nullptr) screen = QGuiApplication::primaryScreen();
+  if (screen == nullptr) return;
+
+  auto geometry = frameGeometry();
+  geometry.moveCenter(screen->availableGeometry().center());
+  move(geometry.topLeft());
 }
 
 void AppKeyPinDialog::refresh_validity() {
@@ -325,14 +384,15 @@ void AppKeyPinDialog::refresh_validity() {
   accept_button_->setEnabled(long_enough && confirmed && has_current);
 
   // Say which of the two conditions is unmet, but only once something has been
-  // typed — an empty form is not yet a mistake.
+  // typed — an empty form is not yet a mistake. When nothing is wrong the row
+  // returns to its dimmed hint rather than going blank.
   if (!pin.isEmpty() && !long_enough) {
-    error_label_->setText(
+    SetErrorText(
         tr("The PIN must be at least %1 characters.").arg(kMinPinLength));
-    error_label_->setVisible(true);
   } else if (long_enough && !confirm_edit_->text().isEmpty() && !confirmed) {
-    error_label_->setText(tr("The two PINs do not match."));
-    error_label_->setVisible(true);
+    SetErrorText(tr("The two PINs do not match."));
+  } else {
+    show_default_hint();
   }
 }
 

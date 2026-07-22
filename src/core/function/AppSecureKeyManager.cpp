@@ -402,6 +402,33 @@ auto AppSecureKeyManager::GetLegacyKeyPath() const -> QString {
   return GetKeyDir() + "/app.key";
 }
 
+auto AppSecureKeyManager::ResetKeyStorage(const QString& key_dir) -> bool {
+  const auto path = key_dir + "/app.key";
+
+  // The app key file is the one that must go: without it Initialize() generates
+  // a fresh key. Treat "already absent" as success, so a reset stays idempotent
+  // if a previous attempt got half way.
+  if (QFileInfo::exists(path) && !QFile::remove(path)) {
+    LOG_E() << "remove app secure key failed:" << path;
+    return false;
+  }
+
+  // Sweep the rotated <keyId>.key files derived from the discarded key. They
+  // are re-derivable and keyed to the old key, so leaving them behind only
+  // litters the secure directory with material the new key will never
+  // reference.
+  QDir dir(key_dir);
+  for (const auto& name : dir.entryList({"*.key"}, QDir::Files)) {
+    if (name == "app.key") continue;  // already handled above
+    if (!dir.remove(name)) {
+      LOG_W() << "remove rotated key failed:" << dir.filePath(name);
+    }
+  }
+
+  LOG_I() << "app secure key storage reset";
+  return true;
+}
+
 auto AppSecureKeyManager::GetKey(const GFBuffer& id) const -> GFBuffer {
   return keys_.value(id, GFBuffer{});
 }
