@@ -51,7 +51,8 @@ TEST(SecureMemoryAllocatorTest, MallocZero) {
 TEST(SecureMemoryAllocatorTest, ReallocAndDataIntegrity) {
   const char* data = "test";
   size_t len = strlen(data);
-  char* ptr = static_cast<char*>(SMAMalloc(len));
+  // +1 for the terminating NUL; a strlen-sized buffer would overflow by a byte.
+  char* ptr = static_cast<char*>(SMAMalloc(len + 1));
   strcpy(ptr, data);
 
   ptr = static_cast<char*>(SMARealloc(ptr, 2 * len));
@@ -97,7 +98,9 @@ TEST(SecureMemoryAllocatorTest, SecMallocAndFree) {
 TEST(SecureMemoryAllocatorTest, SecReallocAndDataIntegrity) {
   const char* data = "secure_data";
   size_t len = strlen(data);
-  char* ptr = static_cast<char*>(SMASecMalloc(len));
+  // +1 for the terminating NUL. sodium_malloc places the region flush against
+  // a guard page, so a strlen-sized buffer segfaults on the NUL write.
+  char* ptr = static_cast<char*>(SMASecMalloc(len + 1));
   strcpy(ptr, data);
 
   ptr = static_cast<char*>(SMASecRealloc(ptr, len + 10));

@@ -139,6 +139,11 @@ auto SecureMemoryAllocator::take_info(void* ptr)
     FLOG_W() << "this memory address was not allocated by "
                 "SecureMemoryAllocator:"
              << ptr;
+#ifdef DEBUG
+    // a double free or a foreign pointer. release builds only warn and leak,
+    // debug builds fail fast so the offending call site is caught.
+    qFatal("SecureMemoryAllocator: invalid free of %p", ptr);
+#endif
     return {};
   }
 
