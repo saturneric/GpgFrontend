@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Package.wxs — WiX v5+ translation of GpgFrontend.aip (Advanced Installer 23.7, "DefaultBuild").
+
+  Payload root = the folder the AIP calls "GpgFrontend\" (its RootPath="." sits next to the .aip,
+  i.e. D:\GpgFrontend Release). Build from this folder with:
+
+      wix extension add -g WixToolset.UI.wixext
+      wix build -arch x64 -ext WixToolset.UI.wixext -o ..\dist\GpgFrontend.msi Package.wxs
+
+  -arch x64 is required: the AIP's BuildComponent is MsiPackageType="x64".
+
+  Deliberately NOT translated (Advanced Installer runtime plumbing with no MSI-visible effect):
+  aicustact.dll and the AI_* custom actions (DpiContentScale, EnableDebugLog, ResolveKnownFolders,
+  InstallModeCheck, PreserveInstallType, PrepareUpgrade, ShowLog), SET_TARGETDIR_TO_APPDIR, and
+  SET_SHORTCUTDIR (the AIP defines SHORTCUTDIR but contains no Start-menu shortcut that uses it).
+  AI_RESTORE_LOCATION / AI_STORE_LOCATION are reproduced below with native MSI idioms.
+-->
+<!--
+  Overridable via `wix build -d name=value`. The <?ifndef?> guards keep the local
+  defaults (a bare `wix build Package.wxs` from this folder) working, while CI passes
+  the runner-specific version / payload root / icon path on the command line.
+-->
+<?ifndef ProductVersion ?>
+<?define ProductVersion = "2.2.1" ?>
+<?endif?>
+
+<?ifndef PayloadDir ?>
+<?define PayloadDir = "GpgFrontend" ?>
+<?endif?>
+
+<?ifndef IconSource ?>
+<?define IconSource = "gpgfrontend.ico" ?>
+<?endif?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <!-- MsiPropsComponent: ProductName / Manufacturer / ProductVersion / UpgradeCode /
+       ProductLanguage 1033. ProductCode is intentionally not pinned: like Advanced
+       Installer, a fresh one is generated per build ("*" default) so MajorUpgrade works.
+       ALLUSERS: the AIP's DefaultBuild overrides ALLUSERS to empty -> per-user package
+       (SET_APPDIR: [AppDataFolder]\[ProductName]). Scope="perUser" reproduces that.
+       InstallerVersion 450 = the AIP's SummInfoMetadata "Page Count:450". -->
+  <Package
+    Name="GpgFrontend"
+    Manufacturer="Saturneric"
+    Version="$(ProductVersion)"
+    UpgradeCode="3c642b54-3921-43ce-b744-a2bf0b4fc309"
+    Language="1033"
+    Codepage="1252"
+    InstallerVersion="450"
+    Compressed="yes"
+    Scope="perUser">
+
+    <!-- MsiUpgradeComponent:
+           row 1: 0.0.1 <= v < ProductVersion, Attributes 257 (min-inclusive + MigrateFeatures) -> OLDPRODUCTS
+           row 2: v > ProductVersion, Attributes 2 (detect-only) -> AI_NEWERPRODUCTFOUND
+         MsiCustActComponent AI_DOWNGRADE: Type 19 (error) when a newer product is found.
+         NOTE: like the AIP, an *equal-version* install does not remove the existing one.
+         The first WiX-built release must therefore carry a higher ProductVersion than the
+         last Advanced Installer release (or add AllowSameVersionUpgrades="yes"). -->
+    <MajorUpgrade
+      AllowDowngrades="no"
+      DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+      MigrateFeatures="yes"
+      Schedule="afterInstallValidate" />
+
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <!-- MsiLaunchConditionsComponent, 6 rows: requires NT (blocks 9x), requires x64 on NT,
+         blocks NT4 (400), 2000 (500), XP/2003 (501/502) and Vista/2008 (600).
+         Net requirement: 64-bit Windows 7 or later. -->
+    <Launch
+      Condition="Installed OR (VersionNT64 AND VersionNT &gt;= 601)"
+      Message="[ProductName] can only be installed on 64-bit Windows 7 or later." />
+
+    <!-- MsiPropsComponent: ARP* rows -->
+    <Property Id="ARPCOMMENTS" Value="A modern, cross-platform OpenPGP tool with a dual-engine core: switch freely between battle-tested GnuPG and a memory-safe Rust rPGP backend. Makes encryption, signing, and key management simple and trustworthy." />
+    <Property Id="ARPCONTACT" Value="eric@bktus.com" />
+    <Property Id="ARPHELPLINK" Value="https://www.gpgfrontend.bktus.com/overview/glance" />
+    <Property Id="ARPURLINFOABOUT" Value="https://www.gpgfrontend.bktus.com/overview/contact" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://gpgfrontend.bktus.com/overview/downloads" />
+    <!-- ARPNOMODIFY=1 is contributed by WixUI_InstallDir below, matching the AIP. -->
+    <Property Id="ARPPRODUCTICON" Value="gpgfrontend.exe" />
+
+    <!-- MsiIconsComponent: icon key "gpgfrontend.exe", SourcePath "gpgfrontend.ico"
+         relative to the AIP root (NOT the copy inside the payload's bin\). -->
+    <Icon Id="gpgfrontend.exe" SourceFile="$(IconSource)" />
+
+    <!-- AI_RESTORE_LOCATION (UI seq 749, condition APPDIR=""): re-read the install dir a
+         previous version stored in the registry, unless one was passed on the command line. -->
+    <Property Id="PREVIOUSINSTALLFOLDER">
+      <RegistrySearch Id="PreviousInstallFolder" Root="HKCU"
+                      Key="Software\Saturneric\GpgFrontend" Name="Path" Type="raw" />
+    </Property>
+    <SetDirectory Id="INSTALLFOLDER" Value="[PREVIOUSINSTALLFOLDER]"
+                  Condition="PREVIOUSINSTALLFOLDER AND NOT INSTALLFOLDER" />
+
+    <!-- AI_STORE_LOCATION: ARPINSTALLLOCATION = [APPDIR] -->
+    <SetProperty Id="ARPINSTALLLOCATION" Value="[INSTALLFOLDER]" After="CostFinalize" Sequence="execute" />
+
+    <!-- MsiDirsComponent: APPDIR -> [AppDataFolder]\GpgFrontend (SET_APPDIR, DefaultBuild).
+         The bin\ / modules\ / gnupg\... subtree (~50 Directory rows) is regenerated by
+         the <Files> harvest below. -->
+    <StandardDirectory Id="AppDataFolder">
+      <Directory Id="INSTALLFOLDER" Name="GpgFrontend" />
+    </StandardDirectory>
+
+    <!-- MsiFilesComponent + MsiCompsComponent + MsiFeatCompsComponent + SideBySideGuidComponent:
+         189 files, one component per file, all in MainFeature. <Files> reproduces exactly that
+         (one component with a stable generated GUID per file, tree preserved).
+         The AIP's fake file versions (65535.65535.65535.65535, AI's overwrite-always trick) are
+         unnecessary here: RemoveExistingProducts runs early (afterInstallValidate), so upgrades
+         always lay down fresh files.
+         bin\ENV.ini exists on disk but is NOT in the AIP's file table — excluded to stay equal.
+         Delete the Exclude line if it should ship. -->
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(PayloadDir)\**">
+        <Exclude Files="$(PayloadDir)\bin\ENV.ini" />
+      </Files>
+    </ComponentGroup>
+
+    <!-- MsiCompsComponent "ProductInformation" {B5718CF9-...}, Attributes 260
+         (registry keypath + x64), KeyPath="Version" + MsiRegsComponent rows.
+         Root -1 = HKMU (per-user build -> HKCU). -->
+    <ComponentGroup Id="ProductInformation" Directory="INSTALLFOLDER">
+      <Component Id="ProductInformation" Guid="{B5718CF9-F3A3-43B0-BE3A-DEF48CA19E0A}">
+        <RegistryKey Root="HKMU" Key="Software\[Manufacturer]\[ProductName]">
+          <RegistryValue Name="Path" Type="string" Value="[INSTALLFOLDER]" />
+          <RegistryValue Name="Version" Type="string" Value="[ProductVersion]" KeyPath="yes" />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+
+    <!-- MsiCompsComponent "APPDIR" {6F8D11AA-...}: one component that (a) creates the install
+         folder even if empty and removes it on uninstall (MsiCreateFolderComponent,
+         ManualDelete="true"), and (b) owns the desktop shortcut (MsiShortsComponent
+         "GpgFrontend_1": non-advertised, WkDir=PersonalFolder, Icon gpgfrontend.exe, ShowCmd 1).
+         Keypath is the directory itself, exactly as in the AIP (expect benign ICE38/ICE57
+         validation warnings — the Advanced Installer build carries the same table content). -->
+    <ComponentGroup Id="AppDirComponent">
+      <Component Id="APPDIR" Guid="{6F8D11AA-3B0C-4695-8C6A-622C60768DA7}" Directory="INSTALLFOLDER">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveINSTALLFOLDER" On="uninstall" />
+        <Shortcut Id="GpgFrontend_1"
+                  Directory="DesktopFolder"
+                  Name="GpgFrontend"
+                  Description="A modern &quot;Enigma&quot; built on GnuPG. It brings easy and trustworthy to your privacy life."
+                  Target="[INSTALLFOLDER]bin\GpgFrontend.exe"
+                  WorkingDirectory="PersonalFolder"
+                  Icon="gpgfrontend.exe"
+                  IconIndex="0"
+                  Show="normal" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- MsiFeatsComponent: single feature, literal Title/Description from the AIP,
+         Display 1 (expanded), Level 1, configurable directory APPDIR. -->
+    <Feature Id="MainFeature"
+             Title="MainFeature"
+             Description="Description"
+             Display="expand"
+             Level="1"
+             ConfigurableDirectory="INSTALLFOLDER">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentGroupRef Id="ProductInformation" />
+      <ComponentGroupRef Id="AppDirComponent" />
+    </Feature>
+
+    <!-- MsiThemeComponent "classic" + FragmentComponent (WelcomeDlg, FolderDlg,
+         MaintenanceWelcome/TypeDlg, VerifyRemove/RepairDlg — note: NO license dialog).
+         WixUI_InstallDir is the equivalent stock dialog set; the two Publish overrides
+         skip its LicenseAgreementDlg to match the AIP's Welcome -> Folder flow. -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <UI>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Order="2" Condition="NOT Installed" />
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" Condition="NOT Installed" />
+    </UI>
+
+  </Package>
+</Wix>

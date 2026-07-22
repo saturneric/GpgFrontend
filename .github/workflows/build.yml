@@ -553,6 +553,31 @@ jobs:
           zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.zip *
         if: runner.os == 'Windows'
 
+      - name: Build MSI Installer (Windows)
+        shell: pwsh
+        run: |
+          # Version always tracks the CMake project() version, no wxs edit needed.
+          $match = Select-String -Path CMakeLists.txt `
+            -Pattern '^\s*VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)' | Select-Object -First 1
+          if (-not $match) { throw "Could not extract project version from CMakeLists.txt" }
+          $version = $match.Matches[0].Groups[1].Value
+          Write-Host "Project version: $version"
+
+          dotnet tool install --global wix --version 5.*
+          wix extension add -g WixToolset.UI.wixext
+
+          New-Item -ItemType Directory -Force -Path "${{github.workspace}}/build/upload-artifact" | Out-Null
+
+          # -arch x64 is mandatory: the package is MsiPackageType=x64.
+          # PayloadDir / ProductVersion / IconSource override the wxs defaults for this runner.
+          wix build -arch x64 -ext WixToolset.UI.wixext `
+            -d PayloadDir="${{github.workspace}}/build/artifacts" `
+            -d ProductVersion="$version" `
+            -d IconSource="${{github.workspace}}/gpgfrontend.ico" `
+            -o "${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.msi" `
+            resource/wix/Package.wxs
+        if: runner.os == 'Windows'
+
       - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@v7
         with:
