@@ -77,11 +77,44 @@ void InfoBoardWidget::setup_tool_buttons() {
   ui_->magnifierToolButton->setToolTip(tr("Magnify the generated document"));
   ui_->clearToolButton->setToolTip(tr("Clear status panel"));
 
+  // Same treatment as the file page's tool strip: auto-raised icon-only
+  // buttons read as one toolbar, and the separators between them carry the
+  // grouping, so nothing has to be drawn with a stylesheet.
   for (auto* button : {ui_->copyToolButton, ui_->saveToolButton,
                        ui_->magnifierToolButton, ui_->clearToolButton}) {
-    button->setAutoRaise(false);
+    button->setAutoRaise(true);
+    button->setMinimumSize(StyleConstants::kToolButtonSide,
+                           StyleConstants::kToolButtonSide);
+    button->setIconSize(
+        QSize(StyleConstants::kToolIconSize, StyleConstants::kToolIconSize));
+    button->setToolButtonStyle(Qt::ToolButtonIconOnly);
     button->setFocusPolicy(Qt::NoFocus);
   }
+
+  for (auto* separator : {ui_->line_3, ui_->segLine, ui_->line}) {
+    setup_separator(separator);
+  }
+
+  // The trailing separator only makes sense once a module has put a button
+  // after it; on its own it is a stray line at the end of the strip.
+  ui_->line->setVisible(false);
+
+  ui_->line_2->setFrameShape(QFrame::HLine);
+  ui_->line_2->setFrameShadow(QFrame::Plain);
+  ui_->line_2->setLineWidth(1);
+  ui_->line_2->setForegroundRole(QPalette::Dark);
+  ui_->line_2->setFixedHeight(1);
+}
+
+void InfoBoardWidget::setup_separator(QFrame* separator) {
+  separator->setFrameShape(QFrame::VLine);
+  separator->setFrameShadow(QFrame::Plain);
+  // Mid is invisible against the window on several platform palettes; Dark is
+  // the first role that reliably reads in both themes.
+  separator->setForegroundRole(QPalette::Dark);
+  separator->setLineWidth(1);
+  separator->setFixedWidth(1);
+  separator->setFixedHeight(StyleConstants::kToolIconSize);
 }
 
 void InfoBoardWidget::setup_info_board() {
@@ -148,6 +181,17 @@ void InfoBoardWidget::setup_view_switcher() {
   for (auto* button : {ui_->segStatusButton, ui_->segDetailsButton}) {
     button->setToolButtonStyle(Qt::ToolButtonTextOnly);
     button->setFocusPolicy(Qt::NoFocus);
+    // Auto-raised like the action buttons beside them, so the whole strip is
+    // one flat toolbar; the checked segment still gets the platform's own
+    // pressed look, which is what marks the active view.
+    button->setAutoRaise(true);
+    button->setCursor(Qt::PointingHandCursor);
+    // A QToolButton hugs its text, which leaves the two captions cramped
+    // against each other and shorter than the icon buttons next to them.
+    button->setMinimumHeight(StyleConstants::kToolButtonSide);
+    button->setMinimumWidth(
+        button->fontMetrics().horizontalAdvance(button->text()) +
+        StyleConstants::kSegButtonPadding);
   }
 
   view_group_ = new QButtonGroup(this);

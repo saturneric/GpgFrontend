@@ -121,6 +121,9 @@ class InfoBoardWidget : public QWidget {
     static constexpr int kCardKeyWidth = 76;
     static constexpr int kCardKeyMaxWidth = 160;
     static constexpr int kMaxResultCards = 6;
+    static constexpr int kToolButtonSide = 24;
+    static constexpr int kToolIconSize = 16;
+    static constexpr int kSegButtonPadding = 16;
   };
 
   QSharedPointer<Ui_InfoBoard> ui_;
@@ -183,6 +186,7 @@ class InfoBoardWidget : public QWidget {
   static void delete_widgets_in_layout(QLayout* layout, int start_index = 0);
 
   void setup_tool_buttons();
+  static void setup_separator(QFrame* separator);
   void setup_info_board();
   void setup_status_page_layout(QVBoxLayout* page_layout);
   void create_field_rows(QWidget* parent, QVBoxLayout* fields_layout);
