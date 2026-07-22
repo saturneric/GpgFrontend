@@ -612,7 +612,7 @@ auto MainWindow::confirm_default_im_book() -> bool {
     // The settings dialog is not modal, so it cannot be waited on from here.
     // Open it on the right page and let the user run the operation again.
     auto* dialog = open_settings_dialog();
-    dialog->SelectTabFor(dialog->im_tab_);
+    dialog->SelectPageFor(dialog->im_tab_);
     return false;
   }
 

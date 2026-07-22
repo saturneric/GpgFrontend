@@ -75,12 +75,14 @@ class SettingsDialog : public GeneralDialog {
   static QHash<QString, QString> ListLanguages();
 
   /**
-   * @brief Preselect the tab hosting @p page (e.g. im_tab_).
+   * @brief Preselect the navigation entry hosting @p page (e.g. im_tab_).
    *
-   * A no-op when that page has no tab: several are conditional on the sandbox
-   * and on engine support, so tab indices are not fixed and cannot be assumed.
+   * Clears any active search first, so a page filtered out of the list is
+   * still reachable. A no-op when that page has no entry: several are
+   * conditional on the sandbox and on engine support, so rows are not fixed
+   * and cannot be assumed.
    */
-  void SelectTabFor(QWidget* page);
+  void SelectPageFor(QWidget* page);
 
  public slots:
 
@@ -112,6 +114,20 @@ class SettingsDialog : public GeneralDialog {
    */
   void showEvent(QShowEvent* event) override;
 
+  /**
+   * @brief Keep the search field's keys from reaching the dialog.
+   *
+   * QLineEdit ignores Return, so without this Enter would fall through to the
+   * default button and close the dialog on someone who was only searching. The
+   * arrow keys are forwarded to the list, so a search can be finished with the
+   * keyboard alone.
+   *
+   * @param watched the search field
+   * @param event the event being delivered
+   * @return true when the event was consumed here
+   */
+  auto eventFilter(QObject* watched, QEvent* event) -> bool override;
+
  private:
   /**
    * @brief Record that an edit on a page only takes effect after a restart.
@@ -136,8 +152,55 @@ class SettingsDialog : public GeneralDialog {
    */
   void revert_all_tabs();
 
-  QTabWidget* tab_widget_;                    ///<
-  QHash<QWidget*, int> tab_index_of_page_;    ///< page widget -> tab index
+  /**
+   * @brief One navigable page of the dialog.
+   *
+   * Pages are registered in display order; the section a page belongs to is
+   * carried here rather than in a separate structure so a section header can
+   * be emitted lazily, when its first available page shows up. Which pages are
+   * available depends on the sandbox and on engine support.
+   */
+  struct SettingsPage {
+    QWidget* page;         ///< the page widget itself
+    QString title;         ///< sidebar row, heading, restart confirmation
+    QString section;       ///< group header this page lives under
+    QStringList keywords;  ///< extra search terms, beyond the title
+  };
+
+  /**
+   * @brief Register @p page and give it a row in the navigation list.
+   *
+   * Inserts the section header first if this is the section's first page.
+   *
+   * @param page the page widget, wrapped in a scroll area for the stack
+   * @param title display name
+   * @param section group header text
+   * @param keywords additional terms the search should match on
+   */
+  void add_page(QWidget* page, const QString& title, const QString& section,
+                const QStringList& keywords);
+
+  /**
+   * @brief Show only the rows matching @p text, hiding emptied sections.
+   *
+   * Only the list is filtered: every page stays alive in the stack, so edits
+   * made on a page that later gets filtered out are still applied on OK.
+   *
+   * @param text what the user typed, empty to show everything
+   */
+  void filter_pages(const QString& text);
+
+  /**
+   * @brief Select the first page row that is currently visible.
+   */
+  void select_first_visible_page();
+
+  QListWidget* nav_list_;                     ///< sections + page rows
+  QStackedWidget* page_stack_;                ///< scroll-wrapped pages
+  QLineEdit* search_edit_;                    ///< filters nav_list_
+  QLabel* page_title_label_;                  ///< heading above the page
+  QVector<SettingsPage> pages_;               ///< registered pages, in order
+  QHash<QWidget*, int> nav_row_of_page_;      ///< page widget -> nav row
   QDialogButtonBox* button_box_;              ///<
   int restart_mode_{kNonRestartCode};         ///<
   QStringList restart_pages_;                 ///< pages with such a change

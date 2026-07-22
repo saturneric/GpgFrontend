@@ -119,7 +119,7 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
         level);
   }
   secure_level_combo_->setToolTip(WrappingToolTip(
-      tr("How aggressively the application protects secrets held in memory. "
+      tr("How aggressively the application protects your secrets. "
          "Higher levels cost some performance.")));
   security_form->addRow(tr("Secure Level:"), secure_level_combo_);
 

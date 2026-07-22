@@ -43,14 +43,29 @@
 
 namespace GpgFrontend::UI {
 
+namespace {
+
+/// Marks a row as a section header rather than a page.
+constexpr int kSectionHeaderRole = Qt::UserRole + 1;
+
+/// Widest the sidebar may get before rows start eliding, in pixels. Long
+/// translated titles must not be able to push the whole dialog wide.
+constexpr int kNavListMaxWidth = 220;
+
+}  // namespace
+
 SettingsDialog::SettingsDialog(QWidget* parent)
     : GeneralDialog(typeid(SettingsDialog).name(), parent) {
-  tab_widget_ = new QTabWidget();
-  // Keep the tab bar from forcing the dialog wide, while always showing each
-  // tab's full name: never elide the labels, and when they don't all fit show
-  // scroll buttons instead — so the width stays freely adjustable.
-  tab_widget_->setUsesScrollButtons(true);
-  tab_widget_->setElideMode(Qt::ElideNone);
+  // A flat tab bar stopped scaling once the dialog passed a handful of pages:
+  // the ones that did not fit were only reachable through the bar's scroll
+  // buttons. A sidebar shows every destination at once, groups related pages,
+  // and leaves room to grow.
+  nav_list_ = new QListWidget(this);
+  nav_list_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+  nav_list_->setTextElideMode(Qt::ElideRight);
+  nav_list_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+
+  page_stack_ = new QStackedWidget(this);
 
   general_tab_ = new GeneralTab();
   appearance_tab_ = new AppearanceTab();
@@ -61,19 +76,13 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   im_tab_ = new InstantMessagingTab();
   advanced_tab_ = new AdvancedTab();
 
-  auto* main_layout = new QVBoxLayout();
-  main_layout->addWidget(tab_widget_);
-  main_layout->stretch(0);
-
-  // Wrap each page in a scroll area so a tab's content never dictates a minimum
-  // dialog width; the user can shrink the window and the page scrolls instead.
-  const auto add_tab = [this](QWidget* page, const QString& title) {
-    auto* area = new QScrollArea(tab_widget_);
-    area->setWidgetResizable(true);
-    area->setFrameShape(QFrame::NoFrame);
-    area->setWidget(page);
-    tab_index_of_page_.insert(page, tab_widget_->addTab(area, title));
-  };
+  // Searching by page name alone only helps someone who already knows how the
+  // pages are cut up. The keywords name the settings themselves, so typing what
+  // you are looking for ("proxy", "pin") lands on the page that holds it.
+  const auto application_section = tr("Application");
+  const auto engines_section = tr("Keys & Engines");
+  const auto features_section = tr("Features");
+  const auto system_section = tr("System");
 
   // Named so the restart confirmation can tell the user which pages hold a
   // change that needs one.
@@ -83,27 +92,91 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   const auto gnupg_title = tr("GnuPG");
   const auto advanced_title = tr("Advanced");
 
-  add_tab(general_tab_, general_title);
-  add_tab(appearance_tab_, appearance_title);
+  add_page(general_tab_, general_title, application_section,
+           {tr("startup"), tr("confirm import"), tr("language"), tr("locale"),
+            tr("translation"), tr("data"), tr("cache")});
+  add_page(appearance_tab_, appearance_title, application_section,
+           {tr("theme"), tr("icon"), tr("font size"), tr("toolbar"),
+            tr("text editor"), tr("status panel")});
 
   // network settings is not available in sandbox environment, so only add the
-  // tab when not running in sandbox
+  // page when not running in sandbox
   if (!IsRunningInSandBox()) {
-    add_tab(network_tab_, tr("Network"));
+    add_page(network_tab_, tr("Network"), application_section,
+             {tr("proxy"), tr("socks"), tr("http"), tr("timeout"),
+              tr("connection")});
   }
 
-  add_tab(key_dbs_tab_, key_dbs_title);
+  add_page(key_dbs_tab_, key_dbs_title, engines_section,
+           {tr("keyring"), tr("gpg home"), tr("database path")});
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    add_tab(gnupg_tab_, gnupg_title);
+    add_page(
+        gnupg_tab_, gnupg_title, engines_section,
+        {tr("gpgme"), tr("gpgconf"), tr("binary path"), tr("custom install")});
   }
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
-    add_tab(rpgp_tab_, tr("rPGP"));
+    add_page(rpgp_tab_, tr("rPGP"), engines_section,
+             {tr("rust"), tr("engine")});
   }
 
-  add_tab(im_tab_, tr("Instant Messaging"));
-  add_tab(advanced_tab_, advanced_title);
+  add_page(im_tab_, tr("Instant Messaging"), features_section,
+           {tr("message book"), tr("phrase"), tr("fingerprint"), tr("token")});
+  add_page(advanced_tab_, advanced_title, system_section,
+           {tr("security level"), tr("PIN"), tr("keychain"), tr("log level"),
+            tr("ring buffer"), tr("integrity check"), tr("ENV.ini")});
+
+  // Sized once every row exists, so the sidebar is exactly as wide as its
+  // widest title — up to a cap, past which titles elide rather than widen the
+  // dialog.
+  nav_list_->setFixedWidth(
+      std::min(nav_list_->sizeHintForColumn(0) + (2 * nav_list_->frameWidth()) +
+                   nav_list_->verticalScrollBar()->sizeHint().width(),
+               kNavListMaxWidth));
+
+  search_edit_ = new QLineEdit(this);
+  search_edit_->setClearButtonEnabled(true);
+  search_edit_->setPlaceholderText(tr("Search settings…"));
+
+  // The selected tab used to say which page you were on; without a tab bar the
+  // heading carries that.
+  page_title_label_ = new QLabel(this);
+  auto title_font = page_title_label_->font();
+  title_font.setBold(true);
+  page_title_label_->setFont(title_font);
+
+  auto* title_separator = new QFrame(this);
+  title_separator->setFrameShape(QFrame::HLine);
+  title_separator->setFrameShadow(QFrame::Sunken);
+
+  auto* page_layout = new QVBoxLayout();
+  page_layout->setContentsMargins(0, 0, 0, 0);
+  page_layout->addWidget(page_title_label_);
+  page_layout->addWidget(title_separator);
+  page_layout->addWidget(page_stack_);
+
+  auto* content_layout = new QHBoxLayout();
+  content_layout->setContentsMargins(0, 0, 0, 0);
+  content_layout->addWidget(nav_list_);
+  content_layout->addLayout(page_layout, 1);
+
+  auto* main_layout = new QVBoxLayout();
+  main_layout->addWidget(search_edit_);
+  main_layout->addLayout(content_layout, 1);
+
+  connect(nav_list_, &QListWidget::currentRowChanged, this, [this](int row) {
+    if (row < 0) return;
+    const auto index = nav_list_->item(row)->data(Qt::UserRole).toInt();
+    page_stack_->setCurrentIndex(index);
+    page_title_label_->setText(pages_.at(index).title);
+  });
+
+  connect(search_edit_, &QLineEdit::textChanged, this,
+          &SettingsDialog::filter_pages);
+  search_edit_->installEventFilter(this);
+
+  select_first_visible_page();
 
 #ifdef Q_OS_MACOS
   connect(this, &QDialog::finished, this, &SettingsDialog::SlotAccept);
@@ -159,6 +232,109 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   this->show();
   this->raise();
   this->activateWindow();
+}
+
+auto SettingsDialog::eventFilter(QObject* watched, QEvent* event) -> bool {
+  if (watched == search_edit_ && event->type() == QEvent::KeyPress) {
+    auto* key_event = static_cast<QKeyEvent*>(event);
+    switch (key_event->key()) {
+      case Qt::Key_Return:
+      case Qt::Key_Enter:
+        // Swallowed: QLineEdit would ignore it and the dialog's default button
+        // would fire, saving and closing on someone who was only searching.
+        // Moving into the list is what pressing Enter on a search means here.
+        nav_list_->setFocus();
+        return true;
+      case Qt::Key_Up:
+      case Qt::Key_Down:
+        // Let the list do the stepping, so it skips the section headers, while
+        // the text stays where the user left it.
+        QCoreApplication::sendEvent(nav_list_, event);
+        return true;
+      default:
+        break;
+    }
+  }
+  return GeneralDialog::eventFilter(watched, event);
+}
+
+void SettingsDialog::add_page(QWidget* page, const QString& title,
+                              const QString& section,
+                              const QStringList& keywords) {
+  // Emit the section header only when its first available page arrives: with
+  // pages conditional on the sandbox and on engine support, a section can end
+  // up with nothing under it, and an empty header would be noise.
+  const auto section_present = std::any_of(
+      pages_.cbegin(), pages_.cend(),
+      [&section](const SettingsPage& p) { return p.section == section; });
+  if (!section_present) {
+    auto* header = new QListWidgetItem(section, nav_list_);
+    header->setData(kSectionHeaderRole, true);
+    // No flags at all: the row is neither selectable nor focusable, so both the
+    // mouse and the arrow keys step straight over it.
+    header->setFlags(Qt::NoItemFlags);
+    auto header_font = header->font();
+    header_font.setBold(true);
+    header->setFont(header_font);
+  }
+
+  // Wrap each page in a scroll area so its content never dictates a minimum
+  // dialog width; the user can shrink the window and the page scrolls instead.
+  auto* area = new QScrollArea(page_stack_);
+  area->setWidgetResizable(true);
+  area->setFrameShape(QFrame::NoFrame);
+  area->setWidget(page);
+
+  const auto index = page_stack_->addWidget(area);
+  pages_.append(SettingsPage{page, title, section, keywords});
+
+  auto* item = new QListWidgetItem(title, nav_list_);
+  item->setData(Qt::UserRole, index);
+  item->setToolTip(title);
+  nav_row_of_page_.insert(page, nav_list_->row(item));
+}
+
+void SettingsDialog::filter_pages(const QString& text) {
+  const auto needle = text.trimmed();
+
+  // Walking backwards lets a header be hidden as soon as we know none of the
+  // rows below it survived — the rows of a section always follow its header.
+  auto section_has_match = false;
+  for (auto row = nav_list_->count() - 1; row >= 0; --row) {
+    auto* item = nav_list_->item(row);
+
+    if (item->data(kSectionHeaderRole).toBool()) {
+      item->setHidden(!needle.isEmpty() && !section_has_match);
+      section_has_match = false;
+      continue;
+    }
+
+    const auto& page = pages_.at(item->data(Qt::UserRole).toInt());
+    const auto matches =
+        needle.isEmpty() || page.title.contains(needle, Qt::CaseInsensitive) ||
+        std::any_of(page.keywords.cbegin(), page.keywords.cend(),
+                    [&needle](const QString& keyword) {
+                      return keyword.contains(needle, Qt::CaseInsensitive);
+                    });
+
+    item->setHidden(!matches);
+    if (matches) section_has_match = true;
+  }
+
+  // Only the list is filtered — every page stays alive in the stack, so edits
+  // made on a page that is now hidden are still applied on OK. But the stack
+  // must not keep showing a page the user can no longer see a row for.
+  auto* current = nav_list_->currentItem();
+  if (current == nullptr || current->isHidden()) select_first_visible_page();
+}
+
+void SettingsDialog::select_first_visible_page() {
+  for (auto row = 0; row < nav_list_->count(); ++row) {
+    auto* item = nav_list_->item(row);
+    if (item->isHidden() || item->data(kSectionHeaderRole).toBool()) continue;
+    nav_list_->setCurrentRow(row);
+    return;
+  }
 }
 
 void SettingsDialog::showEvent(QShowEvent* event) {
@@ -302,10 +478,14 @@ auto SettingsDialog::ListLanguages() -> QHash<QString, QString> {
   return languages;
 }
 
-void SettingsDialog::SelectTabFor(QWidget* page) {
-  const auto it = tab_index_of_page_.constFind(page);
-  if (it == tab_index_of_page_.constEnd()) return;
-  tab_widget_->setCurrentIndex(*it);
+void SettingsDialog::SelectPageFor(QWidget* page) {
+  const auto it = nav_row_of_page_.constFind(page);
+  if (it == nav_row_of_page_.constEnd()) return;
+
+  // A leftover filter could be hiding exactly the row we are about to select,
+  // so drop it first. Clearing runs filter_pages(), which unhides everything.
+  search_edit_->clear();
+  nav_list_->setCurrentRow(*it);
 }
 
 }  // namespace GpgFrontend::UI
