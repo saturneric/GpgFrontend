@@ -47,16 +47,25 @@ SettingsObject::SettingsObject(QString settings_name)
   } catch (std::exception& e) {
     LOG_W() << "load setting object error: {}" << e.what();
   }
+
+  // Remember what we loaded so the destructor can skip the disk write when
+  // nothing actually changed -- many call sites construct a SettingsObject
+  // only to read a value, and rewriting the encrypted file on every such
+  // destruction is a needless encrypt + full-file rewrite.
+  original_ = *this;
 }
 
 SettingsObject::SettingsObject(QJsonObject sub_json)
     : QJsonObject(std::move(sub_json)) {}
 
 SettingsObject::~SettingsObject() {
-  if (!settings_name_.isEmpty()) {
-    DataObjectOperator::GetInstance().StoreDataObj(settings_name_,
-                                                   QJsonDocument(*this));
-  }
+  if (settings_name_.isEmpty()) return;
+
+  // Don't touch disk when nothing changed since load.
+  if (static_cast<const QJsonObject&>(*this) == original_) return;
+
+  DataObjectOperator::GetInstance().StoreDataObj(settings_name_,
+                                                 QJsonDocument(*this));
 }
 
 void SettingsObject::Store(const QJsonObject& json) {

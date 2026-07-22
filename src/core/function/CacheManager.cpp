@@ -29,6 +29,8 @@
 #include "CacheManager.h"
 
 #include <algorithm>
+#include <mutex>
+#include <set>
 #include <shared_mutex>
 
 #include "core/function/DataObjectOperator.h"
@@ -109,14 +111,24 @@ class CacheManager::Impl : public QObject {
 
   void SaveSecDurableCache(const QString& key, const GFBuffer& value,
                            bool flush) {
-    auto data_object_key = get_data_object_key(key);
-    durable_cache_storage_.insert(key, value);
+    const bool new_key = !key_storage_.contains(key);
 
-    if (!key_storage_.contains(key)) {
-      key_storage_.push_back(key);
+    // Don't touch disk when nothing actually changed. A save that repeats the
+    // value we already hold (e.g. re-applying the same column filter to every
+    // key-list tab at startup) is a no-op: the on-disk copy is already correct.
+    if (!new_key) {
+      auto existing = durable_cache_storage_.get(key);
+      if (existing && *existing == value) return;
     }
 
-    durable_cache_modified_ = true;
+    durable_cache_storage_.insert(key, value);
+    if (new_key) key_storage_.push_back(key);
+
+    {
+      std::lock_guard<std::mutex> lock(dirty_mutex_);
+      dirty_keys_.insert(key);
+      if (new_key) registry_dirty_ = true;
+    }
     if (flush) slot_flush_cache_storage();
   }
 
@@ -186,7 +198,11 @@ class CacheManager::Impl : public QObject {
 
     opera_.RemoveDataObj(get_data_object_key(key));
 
-    durable_cache_modified_ = true;
+    {
+      std::lock_guard<std::mutex> lock(dirty_mutex_);
+      dirty_keys_.erase(key);  // nothing left to write for this key
+      registry_dirty_ = true;  // registry shrank
+    }
     slot_flush_cache_storage();
 
     return removed;
@@ -243,17 +259,28 @@ class CacheManager::Impl : public QObject {
    *
    */
   void slot_flush_cache_storage() {
-    if (!durable_cache_modified_.exchange(false)) return;
-    LOG_D() << "flushing durable cache to disk...";
-
-    for (const auto& cache : durable_cache_storage_.mirror()) {
-      if (cache.second.Empty()) continue;
-
-      auto key = get_data_object_key(cache.first);
-      opera_.StoreSecDataObj(key, cache.second);
+    std::set<QString> keys_to_flush;
+    bool flush_registry = false;
+    {
+      std::lock_guard<std::mutex> lock(dirty_mutex_);
+      if (dirty_keys_.empty() && !registry_dirty_) return;
+      keys_to_flush.swap(dirty_keys_);
+      flush_registry = registry_dirty_;
+      registry_dirty_ = false;
     }
 
-    opera_.StoreDataObj(drk_key_, QJsonDocument(key_storage_));
+    LOG_D() << "flushing durable cache to disk..." << keys_to_flush.size()
+            << "entries";
+
+    for (const auto& key : keys_to_flush) {
+      auto value = durable_cache_storage_.get(key);
+      if (!value || value->Empty()) continue;
+      opera_.StoreSecDataObj(get_data_object_key(key), *value);
+    }
+
+    if (flush_registry) {
+      opera_.StoreDataObj(drk_key_, QJsonDocument(key_storage_));
+    }
   }
 
  private:
@@ -330,7 +357,10 @@ class CacheManager::Impl : public QObject {
   QJsonArray key_storage_;
   QTimer* flush_timer_;
   const QString drk_key_ = "__cache_manage_data_register_key_list";
-  std::atomic<bool> durable_cache_modified_{};
+  std::set<QString>
+      dirty_keys_;              // entries whose value changed since last flush
+  bool registry_dirty_{false};  // key_storage_ (drk_key_) needs rewriting
+  std::mutex dirty_mutex_;
 };
 
 CacheManager::CacheManager(int channel)

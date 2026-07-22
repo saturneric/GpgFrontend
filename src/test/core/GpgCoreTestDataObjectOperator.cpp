@@ -27,6 +27,7 @@
  */
 
 #include "core/function/DataObjectOperator.h"
+#include "core/model/SettingsObject.h"
 
 namespace GpgFrontend::Test {
 
@@ -135,6 +136,71 @@ TEST(DataObjectOperatorSingletonTest, GetSecDataObjectByRefRoundTripsValidRef) {
   auto got = op.GetSecDataObjectByRef(ref);
   ASSERT_TRUE(got.has_value());
   EXPECT_EQ(*got, plain);
+}
+
+TEST(SettingsObjectTest, ModifiedSettingsReachDisk) {
+  auto& op = DataObjectOperator::GetInstance();
+  const QString name = "so-write-test";
+
+  {
+    SettingsObject so(name);
+    so.insert("k", 7);
+  }  // destructor writes the changed object through
+
+  auto stored = op.GetDataObject(name);
+  ASSERT_TRUE(stored.has_value());
+  ASSERT_TRUE(stored->isObject());
+  EXPECT_EQ(stored->object().value("k").toInt(), 7);
+}
+
+TEST(SettingsObjectTest, UnchangedSettingsSkipDiskWrite) {
+  auto& op = DataObjectOperator::GetInstance();
+  const QString name = "so-unchanged-test";
+
+  {
+    SettingsObject so(name);
+    so.insert("k", 1);
+  }
+  ASSERT_TRUE(op.GetDataObject(name).has_value());
+
+  // Drop the on-disk object behind the object's back, then construct a
+  // read-only SettingsObject that mutates nothing. Because its contents match
+  // what was loaded, the destructor must be a no-op -- the disk copy stays
+  // gone.
+  op.RemoveDataObj(name);
+  ASSERT_FALSE(op.GetDataObject(name).has_value());
+
+  {
+    SettingsObject so(name);
+    (void)so;
+  }
+  EXPECT_FALSE(op.GetDataObject(name).has_value());
+}
+
+TEST(SettingsObjectTest, ChangedSettingsWriteThrough) {
+  auto& op = DataObjectOperator::GetInstance();
+  const QString name = "so-changed-test";
+
+  {
+    SettingsObject so(name);
+    so.insert("v", 1);
+  }
+  ASSERT_TRUE(op.GetDataObject(name).has_value());
+
+  // Remove behind its back, then load-and-mutate: a genuine change must still
+  // be written through even though the on-disk copy is absent at load time.
+  op.RemoveDataObj(name);
+  ASSERT_FALSE(op.GetDataObject(name).has_value());
+
+  {
+    SettingsObject so(name);
+    so.insert("v", 2);
+  }
+
+  auto stored = op.GetDataObject(name);
+  ASSERT_TRUE(stored.has_value());
+  ASSERT_TRUE(stored->isObject());
+  EXPECT_EQ(stored->object().value("v").toInt(), 2);
 }
 
 }  // namespace GpgFrontend::Test

@@ -90,6 +90,46 @@ TEST_F(GFCoreTest, DurableCacheSaveReachesDisk) {
   EXPECT_TRUE(RegistryContains(key));
 }
 
+TEST_F(GFCoreTest, DurableCacheOverwriteUpdatesDiskAndKeepsRegistry) {
+  auto& cm = CacheManager::GetInstance();
+  const QString key = "durable-overwrite";
+
+  cm.SaveSecDurableCache(key, GFBuffer("v1"), true);
+  ASSERT_TRUE(RegistryContains(key));
+
+  cm.SaveSecDurableCache(key, GFBuffer("v2"), true);
+
+  auto stored = DataObjectForCacheKey(key);
+  ASSERT_TRUE(stored.has_value());
+  EXPECT_EQ(*stored,
+            GFBuffer("v2"));  // per-key flush rewrote the changed value
+  EXPECT_TRUE(
+      RegistryContains(key));  // registry still intact after value-only update
+}
+
+TEST_F(GFCoreTest, DurableCacheSkipsWriteWhenValueUnchanged) {
+  auto& cm = CacheManager::GetInstance();
+  const QString key = "durable-unchanged";
+
+  cm.SaveSecDurableCache(key, GFBuffer("same"), true);
+  ASSERT_TRUE(DataObjectForCacheKey(key).has_value());
+
+  // Drop the on-disk object behind the cache's back, then save the identical
+  // value again. Because the value is unchanged, the save must be a no-op and
+  // must NOT rewrite the object -- so the disk copy stays absent.
+  DataObjectOperator::GetInstance().RemoveDataObj(kCacheDataPrefix + key);
+  ASSERT_FALSE(DataObjectForCacheKey(key).has_value());
+
+  cm.SaveSecDurableCache(key, GFBuffer("same"), true);
+  EXPECT_FALSE(DataObjectForCacheKey(key).has_value());
+
+  // A genuinely different value must still be written through.
+  cm.SaveSecDurableCache(key, GFBuffer("different"), true);
+  auto stored = DataObjectForCacheKey(key);
+  ASSERT_TRUE(stored.has_value());
+  EXPECT_EQ(*stored, GFBuffer("different"));
+}
+
 TEST_F(GFCoreTest, ResetDurableCacheRemovesBackingDataObject) {
   auto& cm = CacheManager::GetInstance();
   const QString key = "durable-reset-disk";

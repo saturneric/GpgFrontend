@@ -65,5 +65,7 @@ class GF_CORE_EXPORT SettingsObject : public QJsonObject {
 
  private:
   QString settings_name_;  ///<
+  QJsonObject
+      original_;  ///< snapshot at load time; write only if *this differs
 };
 }  // namespace GpgFrontend
