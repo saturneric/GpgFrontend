@@ -138,6 +138,18 @@ class GlobalRegisterTable::Impl {
 
   auto RootRTNode() -> RTNodePtr { return root_node_; }
 
+  /**
+   * @brief Run @p f over the node tree while holding the read lock.
+   *
+   * The tree is mutated from module threads, so any traversal outside this
+   * class must go through here.
+   */
+  template <typename F>
+  void ReadLocked(F&& f) {
+    std::shared_lock const lock(lock_);
+    f(root_node_);
+  }
+
  private:
   std::shared_mutex lock_;
   GlobalRegisterTable* parent_;
@@ -149,42 +161,123 @@ class GlobalRegisterTableTreeModel::Impl {
  public:
   using RTNode = GlobalRegisterTable::Impl::RTNode;
 
+  /**
+   * @brief Immutable copy of one register table node, safe to read from the
+   * GUI thread while modules keep publishing.
+   */
+  struct DisplayNode {
+    QString name;
+    QString path;  ///< full dotted path
+    bool leaf = false;
+    int version = 0;
+    QString value_type;
+    QVariant value;
+    QVector<QSharedPointer<DisplayNode>> children;
+    DisplayNode* parent = nullptr;
+    int row = 0;
+  };
+
+  using DisplayNodePtr = QSharedPointer<DisplayNode>;
+
   Impl(GlobalRegisterTableTreeModel* parent, GlobalRegisterTable::Impl* grt)
-      : parent_(parent), root_node_(grt->RootRTNode()) {}
+      : parent_(parent), grt_(grt) {
+    Rebuild();
+
+    // modules publish in bursts, coalesce them into one model reset
+    refresh_timer_.setSingleShot(true);
+    refresh_timer_.setInterval(kRefreshCoalesceMs);
+    QObject::connect(&refresh_timer_, &QTimer::timeout, parent_,
+                     [this]() { parent_->Refresh(); });
+  }
+
+  /**
+   * @brief Request a refresh, coalescing bursts of publishes.
+   */
+  void ScheduleRefresh() {
+    if (!refresh_timer_.isActive()) refresh_timer_.start();
+  }
+
+  /**
+   * @brief Take a fresh snapshot of the register table under its read lock.
+   */
+  void Rebuild() {
+    auto root = SecureCreateSharedObject<DisplayNode>();
+
+    grt_->ReadLocked([&](const GlobalRegisterTable::Impl::RTNodePtr& rt_root) {
+      CopyChildren(rt_root, root.get(), {});
+    });
+
+    root_ = root;
+  }
 
   [[nodiscard]] auto RowCount(const QModelIndex& parent) const -> int {
-    auto* parent_node = !parent.isValid()
-                            ? root_node_.get()
-                            : static_cast<RTNode*>(parent.internalPointer());
-    return parent_node->children.size();
+    const auto* parent_node = NodeOf(parent);
+    return parent_node == nullptr
+               ? 0
+               : static_cast<int>(parent_node->children.size());
   }
 
   [[nodiscard]] static auto ColumnCount(const QModelIndex& /*parent*/) -> int {
-    return 4;
+    return 5;
   }
 
-  [[nodiscard]] static auto Data(const QModelIndex& index, int role)
+  [[nodiscard]] auto Data(const QModelIndex& index, int role) const
       -> QVariant {
     if (!index.isValid()) return {};
 
+    const auto* node = static_cast<DisplayNode*>(index.internalPointer());
+    if (node == nullptr) return {};
+
     if (role == Qt::DisplayRole) {
-      auto* node = static_cast<RTNode*>(index.internalPointer());
       switch (index.column()) {
         case 0:
           return node->name;
         case 1:
-          return node->type;
+          return node->leaf ? tr("Leaf") : tr("Namespace");
         case 2:
-          return QString(node->value && node->value.has_value()
-                             ? node->value->type().name()
-                             : "");
+          return node->leaf ? node->value_type : QString();
         case 3:
-          return Any2QVariant(node->value);
+          return node->leaf ? node->value : QVariant();
+        case 4:
+          return node->leaf ? QVariant(node->version) : QVariant();
         default:
           return {};
       }
     }
+
+    if (role == kGRTPathRole) return node->path;
+    if (role == kGRTValueRole) return node->value;
+
+    if (role == Qt::ToolTipRole) {
+      if (!node->leaf) return node->path;
+      return QString("%1\n%2: %3")
+          .arg(node->path, node->value_type, node->value.toString());
+    }
+
     return {};
+  }
+
+  /**
+   * @brief Human readable name of the type currently held by a value.
+   */
+  static auto Any2TypeName(const std::optional<std::any>& op) -> QString {
+    if (!op || !op->has_value()) return tr("Empty");
+
+    const auto& o = op.value();
+    if (o.type() == typeid(QString) || o.type() == typeid(std::string)) {
+      return tr("String");
+    }
+    if (o.type() == typeid(bool)) return tr("Boolean");
+    if (o.type() == typeid(int) || o.type() == typeid(long) ||
+        o.type() == typeid(long long) || o.type() == typeid(unsigned) ||
+        o.type() == typeid(unsigned long) ||
+        o.type() == typeid(unsigned long long)) {
+      return tr("Integer");
+    }
+    if (o.type() == typeid(float) || o.type() == typeid(double)) {
+      return tr("Number");
+    }
+    return tr("Unsupported");
   }
 
   static auto Any2QVariant(std::optional<std::any> op) -> QVariant {
@@ -234,25 +327,25 @@ class GlobalRegisterTableTreeModel::Impl {
       -> QModelIndex {
     if (!parent_->hasIndex(row, column, parent)) return {};
 
-    auto* parent_node = !parent.isValid()
-                            ? root_node_.get()
-                            : static_cast<RTNode*>(parent.internalPointer());
-    auto key = parent_node->children.keys().at(row);
-    auto child_node = parent_node->children.value(key);
-    return parent_->createIndex(row, column, child_node.get());
+    const auto* parent_node = NodeOf(parent);
+    if (parent_node == nullptr || row >= parent_node->children.size()) {
+      return {};
+    }
+
+    return parent_->createIndex(row, column,
+                                parent_node->children.at(row).get());
   }
 
   [[nodiscard]] auto Parent(const QModelIndex& index) const -> QModelIndex {
     if (!index.isValid()) return {};
 
-    auto* child_node = static_cast<RTNode*>(index.internalPointer());
-    auto parent_node = child_node->parent.lock();
+    auto* child_node = static_cast<DisplayNode*>(index.internalPointer());
+    if (child_node == nullptr) return {};
 
-    if (!parent_node || parent_node == root_node_) return {};
+    auto* parent_node = child_node->parent;
+    if (parent_node == nullptr || parent_node == root_.get()) return {};
 
-    int const row = static_cast<int>(
-        parent_node->parent.lock()->children.keys().indexOf(parent_node->name));
-    return parent_->createIndex(row, 0, parent_node.data());
+    return parent_->createIndex(parent_node->row, 0, parent_node);
   }
 
   [[nodiscard]] static auto HeaderData(int section, Qt::Orientation orientation,
@@ -269,6 +362,8 @@ class GlobalRegisterTableTreeModel::Impl {
           return tr("Value Type");
         case 3:
           return tr("Value");
+        case 4:
+          return tr("Version");
         default:
           return {};
       }
@@ -277,8 +372,51 @@ class GlobalRegisterTableTreeModel::Impl {
   }
 
  private:
+  static constexpr int kRefreshCoalesceMs = 200;
+
   GlobalRegisterTableTreeModel* parent_;
-  GlobalRegisterTable::Impl::RTNodePtr root_node_;
+  GlobalRegisterTable::Impl* grt_;
+  DisplayNodePtr root_;
+  QTimer refresh_timer_;
+
+  /**
+   * @brief Snapshot node behind an index, or the root for an invalid index.
+   */
+  [[nodiscard]] auto NodeOf(const QModelIndex& index) const
+      -> const DisplayNode* {
+    if (!index.isValid()) return root_.get();
+    return static_cast<const DisplayNode*>(index.internalPointer());
+  }
+
+  /**
+   * @brief Deep-copy the children of @p source into @p target.
+   *
+   * Must be called with the register table's read lock held.
+   */
+  static void CopyChildren(const GlobalRegisterTable::Impl::RTNodePtr& source,
+                           DisplayNode* target, const QString& parent_path) {
+    if (source == nullptr || target == nullptr) return;
+
+    auto row = 0;
+    for (const auto& key : source->children.keys()) {
+      const auto& child = source->children.value(key);
+      if (child == nullptr) continue;
+
+      auto node = SecureCreateSharedObject<DisplayNode>();
+      node->name = child->name;
+      node->path =
+          parent_path.isEmpty() ? child->name : parent_path + "." + child->name;
+      node->leaf = child->type == "LEAF";
+      node->version = child->version;
+      node->value_type = Any2TypeName(child->value);
+      node->value = node->leaf ? Any2QVariant(child->value) : QVariant();
+      node->parent = target;
+      node->row = row++;
+
+      CopyChildren(child, node.get(), node->path);
+      target->children.push_back(node);
+    }
+  }
 };
 
 GlobalRegisterTable::GlobalRegisterTable()
@@ -307,7 +445,23 @@ auto GlobalRegisterTable::ListChildKeys(Namespace n, Key k) -> QContainer<Key> {
 GlobalRegisterTableTreeModel::GlobalRegisterTableTreeModel(
     GlobalRegisterTable* grt, QObject* parent)
     : QAbstractItemModel(parent),
-      p_(SecureCreateUniqueObject<Impl>(this, grt->p_.get())) {}
+      p_(SecureCreateUniqueObject<Impl>(this, grt->p_.get())) {
+  // modules publish from their own threads, hop back to this model's thread
+  connect(
+      grt, &GlobalRegisterTable::SignalPublish, this,
+      [this](const Namespace&, const Key&, int, const std::any&) {
+        p_->ScheduleRefresh();
+      },
+      Qt::QueuedConnection);
+}
+
+GlobalRegisterTableTreeModel::~GlobalRegisterTableTreeModel() = default;
+
+void GlobalRegisterTableTreeModel::Refresh() {
+  beginResetModel();
+  p_->Rebuild();
+  endResetModel();
+}
 
 auto GlobalRegisterTableTreeModel::rowCount(const QModelIndex& parent) const
     -> int {

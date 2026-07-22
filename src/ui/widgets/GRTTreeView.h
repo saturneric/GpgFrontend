@@ -28,6 +28,10 @@
 
 #pragma once
 
+namespace GpgFrontend::Module {
+class GlobalRegisterTableTreeModel;
+}
+
 namespace GpgFrontend::UI {
 
 class GRTTreeView : public QTreeView {
@@ -46,6 +50,28 @@ class GRTTreeView : public QTreeView {
    */
   virtual ~GRTTreeView() override;
 
+  /**
+   * @brief Apply a case-insensitive filter over all columns.
+   *
+   * Parent rows are kept when any descendant matches.
+   */
+  void SetFilter(const QString& text);
+
+  /**
+   * @brief Expand every node of the tree.
+   */
+  void ExpandAll();
+
+  /**
+   * @brief Collapse every node of the tree.
+   */
+  void CollapseAll();
+
+  /**
+   * @brief Rebuild the model snapshot, keeping expansion and selection.
+   */
+  void Refresh();
+
  protected:
   /**
    * @brief
@@ -62,8 +88,26 @@ class GRTTreeView : public QTreeView {
    */
   void slot_adjust_column_widths();
 
+  /**
+   * @brief Show the copy / expand context menu at the given position.
+   */
+  void slot_show_context_menu(const QPoint& pos);
+
  private:
   bool initial_resize_done_ = false;
+  Module::GlobalRegisterTableTreeModel* model_;
+  QSortFilterProxyModel* proxy_model_;
+  QSet<QString> expanded_paths_cache_;
+
+  /**
+   * @brief Collect the key paths of all currently expanded rows.
+   */
+  [[nodiscard]] auto save_expanded_paths() const -> QSet<QString>;
+
+  /**
+   * @brief Re-expand the rows whose key path is in @p paths.
+   */
+  void restore_expanded_paths(const QSet<QString>& paths);
 };
 
 }  // namespace GpgFrontend::UI

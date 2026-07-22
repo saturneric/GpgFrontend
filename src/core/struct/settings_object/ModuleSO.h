@@ -34,8 +34,8 @@ struct ModuleSO {
   QString module_id;
   QString module_version;
   QString module_hash;
-  bool auto_activate;
-  bool set_by_user;
+  bool auto_activate = false;
+  bool set_by_user = false;
 
   ModuleSO() = default;
 

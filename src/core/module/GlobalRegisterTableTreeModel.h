@@ -33,6 +33,14 @@
 namespace GpgFrontend::Module {
 
 /**
+ * @brief Extra roles exposed by GlobalRegisterTableTreeModel.
+ */
+enum GRTItemRole {
+  kGRTPathRole = Qt::UserRole + 1,  ///< full dotted key path of the node
+  kGRTValueRole,                    ///< rendered value, empty for namespaces
+};
+
+/**
  * @brief QAbstractItemModel adaptor that exposes a GlobalRegisterTable as a
  * tree.
  *
@@ -51,6 +59,15 @@ class GF_CORE_EXPORT GlobalRegisterTableTreeModel : public QAbstractItemModel {
    */
   explicit GlobalRegisterTableTreeModel(GlobalRegisterTable* grt,
                                         QObject* parent);
+
+  ~GlobalRegisterTableTreeModel() override;
+
+  /**
+   * @brief Rebuild the displayed snapshot from the live register table.
+   *
+   * Called automatically (coalesced) whenever a module publishes a value.
+   */
+  void Refresh();
 
   /**
    * @brief Return the number of child rows under @p parent.

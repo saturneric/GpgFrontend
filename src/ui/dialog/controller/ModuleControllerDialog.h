@@ -49,14 +49,40 @@ class ModuleControllerDialog : public GeneralDialog {
 
  private slots:
   /**
-   * @brief
+   * @brief Fill the detail panel with the given module's information.
    *
+   * An empty identifier switches the panel back to its placeholder page.
    */
   void slot_load_module_details(Module::ModuleIdentifier);
 
  private:
   QSharedPointer<Ui_ModuleControllerDialog> ui_;  ///<
   Module::ModuleManager* module_manager_;
+
+  /**
+   * @brief Translate all static texts of the dialog.
+   */
+  void init_texts();
+
+  /**
+   * @brief Connect all widget signals.
+   */
+  void init_connections();
+
+  /**
+   * @brief Show a notice when the module loading policy limits what is loaded.
+   */
+  void update_policy_notice();
+
+  /**
+   * @brief Reload the list and the currently displayed module's details.
+   */
+  void refresh_all();
+
+  /**
+   * @brief Render a colored chip into the given label.
+   */
+  void set_chip(QLabel* label, const QString& text, const QColor& color);
 };
 
 }  // namespace GpgFrontend::UI
