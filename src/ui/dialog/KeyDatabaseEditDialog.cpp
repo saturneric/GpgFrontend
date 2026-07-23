@@ -73,14 +73,12 @@ KeyDatabaseEditDialog::KeyDatabaseEditDialog(
 }
 
 void KeyDatabaseEditDialog::init_ui() {
-  ui_->keyDBPathShowLabel->setHidden(true);
   ui_->convert2RelativePathCheckBox->setChecked(
       GlobalSettingStation::GetInstance().IsProtableMode());
   ui_->keyDBNameLineEdit->setText(default_name_);
   if (!default_path_.isEmpty()) {
     path_ = QFileInfo(default_path_).absoluteFilePath();
     ui_->keyDBPathShowLabel->setText(path_);
-    ui_->keyDBPathShowLabel->setHidden(false);
   }
 
   ui_->keyDBBackendTypeComboBox->clear();
@@ -111,31 +109,24 @@ void KeyDatabaseEditDialog::init_ui() {
     ui_->keyDBBackendTypeComboBox->setEnabled(false);
   }
 
-  ui_->keyDBNameLabel->setText(tr("Key Database Name"));
-  ui_->keyDBPathLabel->setText(tr("Key Database Path"));
-  ui_->keyDBBackendTypeLabel->setText(tr("Key Database Engine"));
-  ui_->selectKeyDBButton->setText(tr("Select A Key Database Path"));
+  ui_->keyDBNameLabel->setText(tr("Name"));
+  ui_->keyDBPathLabel->setText(tr("Path"));
+  ui_->keyDBBackendTypeLabel->setText(tr("Engine"));
+  ui_->setupModeLabel->setText(tr("Mode"));
+  ui_->selectKeyDBButton->setText(tr("Choose Folder…"));
   ui_->convert2RelativePathCheckBox->setText(tr("Convert to Relative Path"));
+  ui_->autoModeRadioButton->setText(tr("Automatic"));
+  ui_->manualModeRadioButton->setText(tr("Manual"));
+  ui_->keyDBNameLineEdit->setPlaceholderText(tr("e.g. Personal Keys"));
+  ui_->modeHintLabel->setStyleSheet("color: gray; font-style: italic;");
 
   this->setWindowTitle(tr("Key Database Info"));
-
-  // In sandbox, we should automatically generate the key database path in the
-  // sandbox directory, and hide the select button and convert to relative path
-  // option, since the user cannot access files outside the sandbox, which means
-  // the key database must be inside the sandbox.
-  if (is_sandbox_) {
-    ui_->selectKeyDBButton->setHidden(true);
-    ui_->convert2RelativePathCheckBox->setHidden(true);
-    ui_->convert2RelativePathCheckBox->setChecked(false);
-    ui_->keyDBPathLabel->setText(
-        tr("Key Database Path (Automatically Generated)"));
-    ui_->keyDBPathShowLabel->setHidden(false);
-  }
 
   QRegularExpression safe_string_re(R"([a-zA-Z0-9\s\-_]+)");
   auto* safe_validator = new QRegularExpressionValidator(safe_string_re, this);
   ui_->keyDBNameLineEdit->setValidator(safe_validator);
 
+  // Manual mode: let the user pick any existing folder themselves.
   connect(ui_->selectKeyDBButton, &QPushButton::clicked, this, [this](bool) {
     auto path = QFileDialog::getExistingDirectory(
         this, tr("Open Directory"),
@@ -153,24 +144,26 @@ void KeyDatabaseEditDialog::init_ui() {
 
     if (path != path_) {
       path_ = QFileInfo(path).absoluteFilePath();
-
       ui_->keyDBPathShowLabel->setText(path_);
-      ui_->keyDBPathShowLabel->setHidden(false);
-      ui_->keyDBPathLabel->setText(tr("Key Database Path"));
     }
   });
 
-  if (default_path_.isEmpty()) {
-    connect(ui_->keyDBNameLineEdit, &QLineEdit::textChanged, this,
-            [this](const QString& text) -> void {
-              name_ = text;
-              path_ = GetGSS().GetAppDataPath() + "/dbs/" + name_;
-              ui_->keyDBPathShowLabel->setText(path_);
-              ui_->keyDBPathLabel->setText(
-                  tr("Key Database Path (Automatically Generated)"));
-              ui_->keyDBPathShowLabel->setHidden(false);
-            });
-  }
+  // Automatic mode: derive the path from the name as the user types.
+  connect(ui_->keyDBNameLineEdit, &QLineEdit::textChanged, this,
+          [this](const QString&) -> void {
+            if (ui_->autoModeRadioButton->isChecked()) update_generated_path();
+          });
+
+  // React to a mode switch. Both radios are mutually exclusive, so listening to
+  // the "Automatic" toggle covers every transition.
+  connect(ui_->autoModeRadioButton, &QRadioButton::toggled, this,
+          [this](bool) { apply_setup_mode(); });
+
+  // New databases default to the safe Automatic mode; when editing an existing
+  // database we start in Manual mode so its current path is preserved.
+  const bool default_auto = default_path_.isEmpty();
+  ui_->autoModeRadioButton->setChecked(default_auto);
+  ui_->manualModeRadioButton->setChecked(!default_auto);
 
   // suggest a key db name if it's a new key db
   if (default_name_.isEmpty()) {
@@ -178,12 +171,50 @@ void KeyDatabaseEditDialog::init_ui() {
         QString("Key DB %1").arg(key_database_infos_.size() + 1));
   }
 
+  // In sandbox, we can only store the key database inside the sandbox
+  // directory, so the manual option is not available: force Automatic mode and
+  // hide the mode selector entirely.
+  if (is_sandbox_) {
+    ui_->autoModeRadioButton->setChecked(true);
+    ui_->convert2RelativePathCheckBox->setChecked(false);
+    ui_->setupModeLabel->setHidden(true);
+    ui_->autoModeRadioButton->setHidden(true);
+    ui_->manualModeRadioButton->setHidden(true);
+  }
+
+  apply_setup_mode();
+
   connect(ui_->globalButtonBox, &QDialogButtonBox::accepted, this,
           &KeyDatabaseEditDialog::slot_button_box_accepted);
   connect(ui_->globalButtonBox, &QDialogButtonBox::rejected, this,
           &QDialog::reject);
   setAttribute(Qt::WA_DeleteOnClose);
   setModal(true);
+}
+
+void KeyDatabaseEditDialog::apply_setup_mode() {
+  const bool auto_mode = ui_->autoModeRadioButton->isChecked();
+
+  // The folder picker and relative-path option only make sense in Manual mode
+  // (and never in the sandbox, where the path is fixed inside the sandbox).
+  ui_->selectKeyDBButton->setVisible(!auto_mode && !is_sandbox_);
+  ui_->convert2RelativePathCheckBox->setVisible(!auto_mode && !is_sandbox_);
+
+  if (auto_mode) {
+    ui_->modeHintLabel->setText(
+        tr("GpgFrontend picks a safe location for you. Just choose a name."));
+    update_generated_path();
+  } else {
+    ui_->modeHintLabel->setText(
+        tr("Pick an existing folder yourself. For advanced setups."));
+    if (!path_.isEmpty()) ui_->keyDBPathShowLabel->setText(path_);
+  }
+}
+
+void KeyDatabaseEditDialog::update_generated_path() {
+  name_ = ui_->keyDBNameLineEdit->text().trimmed();
+  path_ = GetGSS().GetAppDataPath() + "/dbs/" + name_;
+  ui_->keyDBPathShowLabel->setText(path_);
 }
 
 void KeyDatabaseEditDialog::slot_button_box_accepted() {

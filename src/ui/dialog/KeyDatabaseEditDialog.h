@@ -62,6 +62,10 @@ class KeyDatabaseEditDialog : public GeneralDialog {
 
   void init_ui();
 
+  void apply_setup_mode();
+
+  void update_generated_path();
+
   void slot_button_box_accepted();
 
   void slot_show_err_msg(const QString& error_msg);

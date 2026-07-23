@@ -6,24 +6,51 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>472</width>
-    <height>330</height>
+    <width>468</width>
+    <height>248</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Key Database Info</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>10</number>
+   </property>
+   <property name="leftMargin">
+    <number>16</number>
+   </property>
+   <property name="topMargin">
+    <number>14</number>
+   </property>
+   <property name="rightMargin">
+    <number>16</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
    <item>
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <item>
+    <layout class="QFormLayout" name="formLayout">
+     <property name="fieldGrowthPolicy">
+      <enum>QFormLayout::FieldGrowthPolicy::ExpandingFieldsGrow</enum>
+     </property>
+     <property name="horizontalSpacing">
+      <number>12</number>
+     </property>
+     <property name="verticalSpacing">
+      <number>8</number>
+     </property>
+     <property name="labelAlignment">
+      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignVCenter</set>
+     </property>
+     <item row="0" column="0">
       <widget class="QLabel" name="keyDBNameLabel">
        <property name="text">
-        <string>Key Database Name</string>
+        <string>Name</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="1">
       <widget class="QLineEdit" name="keyDBNameLineEdit">
        <property name="maxLength">
         <number>18</number>
@@ -33,14 +60,14 @@
        </property>
       </widget>
      </item>
-     <item>
+     <item row="1" column="0">
       <widget class="QLabel" name="keyDBBackendTypeLabel">
        <property name="text">
-        <string>Key Database Engine</string>
+        <string>Engine</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="1" column="1">
       <widget class="QComboBox" name="keyDBBackendTypeComboBox">
        <item>
         <property name="text">
@@ -54,15 +81,52 @@
        </item>
       </widget>
      </item>
-     <item>
-      <widget class="QLabel" name="keyDBPathLabel">
+     <item row="2" column="0">
+      <widget class="QLabel" name="setupModeLabel">
        <property name="text">
-        <string>Key Database Path</string>
+        <string>Mode</string>
        </property>
       </widget>
      </item>
-     <item>
-      <widget class="QLabel" name="keyDBPathShowLabel">
+     <item row="2" column="1">
+      <layout class="QHBoxLayout" name="setupModeLayout">
+       <property name="spacing">
+        <number>18</number>
+       </property>
+       <item>
+        <widget class="QRadioButton" name="autoModeRadioButton">
+         <property name="text">
+          <string>Automatic</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="manualModeRadioButton">
+         <property name="text">
+          <string>Manual</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="setupModeSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLabel" name="modeHintLabel">
        <property name="text">
         <string/>
        </property>
@@ -71,49 +135,66 @@
        </property>
       </widget>
      </item>
-     <item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="keyDBPathLabel">
+       <property name="text">
+        <string>Path</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QLineEdit" name="keyDBPathShowLabel">
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
       <widget class="QPushButton" name="selectKeyDBButton">
        <property name="text">
         <string>Select A Key Database Path</string>
        </property>
       </widget>
      </item>
-     <item>
+     <item row="6" column="1">
       <widget class="QCheckBox" name="convert2RelativePathCheckBox">
        <property name="text">
         <string>Convert to Relative Path</string>
        </property>
       </widget>
      </item>
-     <item>
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QLabel" name="errorLabel">
-       <property name="text">
-        <string/>
-       </property>
-       <property name="wordWrap">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="errorLabel">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::Policy::Fixed</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>4</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <widget class="QDialogButtonBox" name="globalButtonBox">
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
      </property>
     </widget>
    </item>
