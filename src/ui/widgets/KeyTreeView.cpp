@@ -169,6 +169,11 @@ void KeyTreeView::init() {
           [this](GpgAbstractKey*, bool) {
             emit SignalKeysChecked(GetAllCheckedKeys());
           });
+
+  // Fully expand on first construction so subkeys are visible by default —
+  // reset_model() does the same after a refresh, but that path isn't taken
+  // when the view is first shown.
+  expandAll();
 }
 
 void KeyTreeView::reset_model() {
