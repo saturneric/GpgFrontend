@@ -282,6 +282,16 @@ class KeyList : public QWidget {
   [[maybe_unused]] auto ContainsPrivateKeys() -> bool;
 
   /**
+   * @brief Fetch fresh copies of the given keys from the default keyserver.
+   *
+   * Drives the same batch flow as the toolbar "Sync Public Key" button, but on
+   * an explicit key set rather than the checked/all selection.
+   *
+   * @param keys keys to refresh
+   */
+  void SyncKeysFromKeyServer(const GpgAbstractKeyPtrList& keys);
+
+  /**
    * @brief
    *
    */
@@ -434,6 +444,7 @@ class KeyList : public QWidget {
   QAction* key_id_column_action_;
   QAction* algo_column_action_;
   QAction* create_date_column_action_;
+  QAction* expire_date_column_action_;
   QAction* owner_trust_column_action_;
   QAction* subkeys_number_column_action_;
   QAction* comment_column_action_;

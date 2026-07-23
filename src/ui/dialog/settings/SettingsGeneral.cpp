@@ -36,6 +36,7 @@
 #include "SettingsDialog.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "ui_GeneralSettings.h"
 
 namespace GpgFrontend::UI {
@@ -194,6 +195,8 @@ void GeneralTab::SetSettings() {
   ui_->rememberCheckedKeysCheckBox->setCheckState(
       remember_checked_keys ? Qt::Checked : Qt::Unchecked);
 
+  ui_->expiringSoonDaysSpinBox->setValue(GetKeyExpiringSoonDays());
+
   auto module_loading_policy =
       settings.value("basic/module_loading_policy", "only_integrated")
           .toString();
@@ -252,6 +255,8 @@ void GeneralTab::ApplySettings() {
                     ui_->importConfirmationCheckBox->isChecked());
   settings.setValue("basic/remember_checked_keys",
                     ui_->rememberCheckedKeysCheckBox->isChecked());
+  settings.setValue("keys/expiring_soon_days",
+                    ui_->expiringSoonDaysSpinBox->value());
   settings.setValue("basic/lang", lang_.key(ui_->langSelectBox->currentText()));
   settings.setValue("basic/module_loading_policy",
                     ui_->modulePolicyComboBox->currentData().toString());

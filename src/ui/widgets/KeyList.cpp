@@ -96,6 +96,14 @@ auto ColumnFilterCacheKey(const QString& scope) -> QString {
   return QString("key_list_column_filter:%1").arg(scope);
 }
 
+/**
+ * @brief Current layout version of the stored column choice.
+ *
+ * Bump whenever a column is added, so that users who customised their columns
+ * still get the new one turned on instead of silently missing it.
+ */
+constexpr int kColumnFilterVersion = 2;
+
 auto LoadColumnFilter(const QString& scope, GpgKeyTableColumn default_columns)
     -> GpgKeyTableColumn {
   const auto object = CacheManager::GetInstance()
@@ -103,8 +111,13 @@ auto LoadColumnFilter(const QString& scope, GpgKeyTableColumn default_columns)
                           .object();
 
   if (const auto value = object.value("columns"); value.isDouble()) {
-    return static_cast<GpgKeyTableColumn>(
+    auto columns = static_cast<GpgKeyTableColumn>(
         static_cast<unsigned int>(value.toInteger()));
+
+    if (object.value("version").toInt(1) < kColumnFilterVersion) {
+      columns |= GpgKeyTableColumn::kEXPIRE_DATE;
+    }
+    return columns;
   }
 
   // Migration: the choice used to live in QSettings, where every window but the
@@ -122,6 +135,7 @@ void SaveColumnFilter(const QString& scope, GpgKeyTableColumn columns) {
   QJsonObject object;
   object.insert("columns",
                 static_cast<qint64>(static_cast<unsigned int>(columns)));
+  object.insert("version", kColumnFilterVersion);
 
   // Toggling a column is a deliberate, infrequent action, so write through.
   CacheManager::GetInstance().SaveDurableCache(ColumnFilterCacheKey(scope),
@@ -628,6 +642,8 @@ void KeyList::init_column_menu() {
                     GpgKeyTableColumn::kALGO);
   add_column_action(create_date_column_action_, tr("Create Date"),
                     GpgKeyTableColumn::kCREATE_DATE);
+  add_column_action(expire_date_column_action_, tr("Expire Date"),
+                    GpgKeyTableColumn::kEXPIRE_DATE);
   add_column_action(owner_trust_column_action_, tr("Owner Trust"),
                     GpgKeyTableColumn::kOWNER_TRUST);
   add_column_action(subkeys_number_column_action_, tr("Subkeys"),
@@ -1544,6 +1560,34 @@ void KeyList::slot_sync_with_key_server() {
     keys = model_->GetAllKeys();
   }
 
+  auto key_ids = ConvertKey2GpgKeyIdList(current_gpg_context_channel_, keys);
+  if (key_ids.empty()) return;
+
+  ui_->refreshKeyListButton->setDisabled(true);
+  ui_->syncButton->setDisabled(true);
+
+  emit SignalRefreshStatusBar(tr("Syncing Key List..."), 3000);
+
+  sync_keys_from_key_server(
+      key_ids, [=](const QString& key_id, const QString& status,
+                   size_t current_index, size_t all_index) {
+        auto status_str = tr("Sync [%1/%2] %3 %4")
+                              .arg(current_index)
+                              .arg(all_index)
+                              .arg(key_id)
+                              .arg(status);
+        emit SignalRefreshStatusBar(status_str, 1500);
+
+        if (current_index == all_index) {
+          ui_->syncButton->setDisabled(false);
+          ui_->refreshKeyListButton->setDisabled(false);
+          emit SignalRefreshStatusBar(tr("Key List Sync Done."), 3000);
+          emit this->SignalRefreshDatabase();
+        }
+      });
+}
+
+void KeyList::SyncKeysFromKeyServer(const GpgAbstractKeyPtrList& keys) {
   auto key_ids = ConvertKey2GpgKeyIdList(current_gpg_context_channel_, keys);
   if (key_ids.empty()) return;
 

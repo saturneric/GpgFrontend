@@ -97,6 +97,7 @@ enum class GpgKeyTableColumn : unsigned int {
   kALGO = 1 << 7,
   kSUBKEYS_NUMBER = 1 << 8,
   kCOMMENT = 1 << 9,
+  kEXPIRE_DATE = 1 << 10,
   kALL = ~0U
 };
 

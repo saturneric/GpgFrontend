@@ -247,4 +247,55 @@ TEST_F(GpgCoreTest, GpgKeyTableModelCheckedKeyIdsReplacesAndIgnoresUnknown) {
             Qt::Unchecked);
 }
 
+// The Expire Date column was inserted between Create Date and Algorithm. This
+// guards both the header order and the renumbering of every column after it.
+TEST_F(GpgCoreTest, GpgKeyTableModelExpireColumnLayout) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+
+  ASSERT_EQ(model->columnCount({}), 12);
+
+  auto header = [&](int col) {
+    return model->headerData(col, Qt::Horizontal, Qt::DisplayRole).toString();
+  };
+  EXPECT_EQ(header(7), QObject::tr("Create Date"));
+  EXPECT_EQ(header(8), QObject::tr("Expire Date"));
+  EXPECT_EQ(header(9), QObject::tr("Algorithm"));
+  EXPECT_EQ(header(10), QObject::tr("Subkey(s)"));
+  EXPECT_EQ(header(11), QObject::tr("Comment"));
+}
+
+// A key that carries an actual expiry renders the formatted date, and the
+// columns after the insertion point still return the right values.
+TEST_F(GpgCoreTest, GpgKeyTableModelExpireColumnData) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+
+  const auto rows = model->rowCount({});
+  int target_row = -1;
+  for (int r = 0; r < rows; ++r) {
+    if (model->data(model->index(r, 6, {}), Qt::DisplayRole).toString() ==
+        "81704859182661FB") {
+      target_row = r;
+      break;
+    }
+  }
+  ASSERT_GE(target_row, 0);
+
+  auto cell = [&](int col) {
+    return model->data(model->index(target_row, col, {}), Qt::DisplayRole)
+        .toString();
+  };
+
+  const auto expected = QLocale().toString(
+      QDateTime::fromString("2023-09-05T04:00:00Z", Qt::ISODate), "yyyy-MM-dd");
+  EXPECT_EQ(cell(8), expected);
+  EXPECT_NE(cell(8), QObject::tr("Never"));
+  // Renumbering guard: Algorithm and Comment must still land where expected.
+  EXPECT_EQ(cell(9), "RSA3072");
+  EXPECT_TRUE(cell(11).isEmpty());
+}
+
 }  // namespace GpgFrontend::Test

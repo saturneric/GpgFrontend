@@ -29,6 +29,7 @@
 #include <gtest/gtest.h>
 
 #include "RpgpCoreTest.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgKey.h"
@@ -196,6 +197,35 @@ TEST_F(RpgpCoreTest, GpgKey3Test) {
 
   ASSERT_EQ(key.SubKeys().size(), 2);
   ASSERT_EQ(key.UIDs().size(), 1);
+}
+
+// rPGP keys carry no expiry in the FFI metadata, so ExpirationTime() is the
+// epoch. The Expire Date column must render that as "Never", never as a bogus
+// 1970 date.
+TEST_F(RpgpCoreTest, GpgKeyTableModelExpireColumnRendersNever) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(key != nullptr);
+  ASSERT_TRUE(IsKeyNeverExpires(key.get()));
+
+  auto model = AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+
+  const auto rows = model->rowCount({});
+  int target_row = -1;
+  for (int r = 0; r < rows; ++r) {
+    if (model->data(model->index(r, 6, {}), Qt::DisplayRole).toString() ==
+        "BDB8BB6BDDFA8497") {
+      target_row = r;
+      break;
+    }
+  }
+  ASSERT_GE(target_row, 0);
+
+  EXPECT_EQ(
+      model->data(model->index(target_row, 8, {}), Qt::DisplayRole).toString(),
+      QObject::tr("Never"));
 }
 
 }  // namespace GpgFrontend::Test

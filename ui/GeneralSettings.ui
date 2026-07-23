@@ -144,6 +144,46 @@
             </property>
            </widget>
           </item>
+          <item>
+           <layout class="QHBoxLayout" name="expiringSoonLayout">
+            <item>
+             <widget class="QLabel" name="expiringSoonLabel">
+              <property name="text">
+               <string>Warn about keys expiring within:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="expiringSoonDaysSpinBox">
+              <property name="minimum">
+               <number>1</number>
+              </property>
+              <property name="maximum">
+               <number>365</number>
+              </property>
+              <property name="value">
+               <number>30</number>
+              </property>
+              <property name="suffix">
+               <string> days</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="expiringSoonSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
          </layout>
         </item>
        </layout>

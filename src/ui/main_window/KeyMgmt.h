@@ -125,6 +125,19 @@ class KeyMgmt : public GeneralMainWindow {
 
   void slot_popup_menu_by_key_list(QContextMenuEvent* event, KeyTable*);
 
+ protected:
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
+
+ private:
+  /**
+   * @brief Recount the keyring and refresh the permanent status-bar summary.
+   *
+   * This is what makes the window worth opening: it answers "is anything about
+   * to expire" without the user having to look for it.
+   */
+  void refresh_status_summary();
+
  private:
   /**
    * @brief Rebuild the category-membership submenu for the given target keys.
@@ -136,15 +149,21 @@ class KeyMgmt : public GeneralMainWindow {
   void populate_key_category_menu(int channel, const QString& current_tab_id,
                                   const GpgAbstractKeyPtrList& keys);
 
-  KeyList* key_list_;           ///<
-  QMenu* file_menu_{};          ///<
-  QMenu* key_menu_{};           ///<
-  QMenu* generate_key_menu_{};  ///<
-  QMenu* import_key_menu_{};    ///<
-  QMenu* export_key_menu_{};    /// <
+  KeyList* key_list_;               ///<
+  QLabel* status_summary_label_{};  ///<
+  QMenu* file_menu_{};              ///<
+  QMenu* key_menu_{};               ///<
+  QMenu* generate_key_menu_{};      ///<
+  QMenu* import_key_menu_{};        ///<
+  QMenu* export_key_menu_{};        /// <
 
   QMenu* popup_menu_;
   QMenu* add_key_2_category_menu_{};  ///<
+  QMenu* keyserver_menu_{};           ///<
+  QMenu* bulk_menu_{};                ///<
+  QMenu* copy_menu_{};                ///<
+  QMenu* popup_key_ops_menu_{};       ///<
+  QMenu* popup_keyserver_menu_{};     ///<
 
   QAction* open_key_file_act_{};                 ///<
   QAction* export_key_to_file_act_{};            ///<
@@ -163,6 +182,24 @@ class KeyMgmt : public GeneralMainWindow {
   QAction* show_key_details_act_{};              ///<
   QAction* set_owner_trust_of_key_act_{};        ///<
 
+  // Quick actions (Part 2)
+  QAction* copy_fingerprint_act_{};      ///<
+  QAction* copy_key_id_act_{};           ///<
+  QAction* copy_email_act_{};            ///<
+  QAction* copy_public_key_act_{};       ///<
+  QAction* certify_key_act_{};           ///<
+  QAction* set_expiry_act_{};            ///<
+  QAction* generate_revoke_cert_act_{};  ///<
+
+  // Keyserver actions (Part 3)
+  QAction* publish_key_to_key_server_act_{};         ///<
+  QAction* refresh_selected_from_key_server_act_{};  ///<
+
+  // Bulk actions (Part 4)
+  QAction* bulk_set_owner_trust_act_{};     ///<
+  QAction* bulk_extend_expiry_act_{};       ///<
+  QAction* backup_all_private_keys_act_{};  ///<
+
   /**
    * @brief Create a menus object
    *
@@ -176,6 +213,21 @@ class KeyMgmt : public GeneralMainWindow {
   void create_actions();
 
   /**
+   * @brief Create the per-key quick actions (copy, certify, expiry, revoke).
+   */
+  void create_quick_actions();
+
+  /**
+   * @brief Create the keyserver actions (search, publish, refresh).
+   */
+  void create_keyserver_actions();
+
+  /**
+   * @brief Create the bulk actions operating on all checked keys.
+   */
+  void create_bulk_actions();
+
+  /**
    * @brief Create a tool bars object
    *
    */
@@ -187,6 +239,39 @@ class KeyMgmt : public GeneralMainWindow {
    * @param uidList
    */
   void delete_keys_with_warning(const GpgAbstractKeyPtrList& keys);
+
+  /**
+   * @brief Export the given keys, armored, to the system clipboard.
+   *
+   * Shared by the "export checked keys" toolbar action and the per-key
+   * "Copy Public Key" context-menu entry.
+   */
+  void export_keys_to_clipboard(const GpgAbstractKeyPtrList& keys);
+
+  /**
+   * @brief Copy a plain string to the clipboard and flash a status message.
+   */
+  void copy_text_to_clipboard(const QString& text, const QString& what);
+
+  /**
+   * @brief Publish the checked public key(s) to the default keyserver.
+   */
+  void publish_keys_to_key_server(const GpgAbstractKeyPtrList& keys);
+
+  /**
+   * @brief Set the owner-trust level of every checked key at once.
+   */
+  void bulk_set_owner_trust();
+
+  /**
+   * @brief Extend (or clear) the expiry of every checked private key at once.
+   */
+  void bulk_extend_expiry();
+
+  /**
+   * @brief Export every private key in the keyring as one key package backup.
+   */
+  void backup_all_private_keys();
 
   /**
    * @brief

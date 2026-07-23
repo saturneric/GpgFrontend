@@ -45,7 +45,7 @@
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
-#include "ui/dialog/RevocationOptionsDialog.h"
+#include "ui/function/GenerateRevocationCert.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 
 namespace GpgFrontend::UI {
@@ -293,42 +293,8 @@ void KeyPairOperaTab::slot_modify_edit_datetime() {
 }
 
 void KeyPairOperaTab::slot_gen_revoke_cert() {
-  QStringList codes;
-  codes << tr("0 -> No Reason.") << tr("1 -> This key is no more safe.")
-        << tr("2 -> Key is outdated.") << tr("3 -> Key is no longer used");
-  auto* revocation_options_dialog = new RevocationOptionsDialog(codes, this);
-
-  connect(revocation_options_dialog,
-          &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,
-          [this](int code, const QString& text) {
-            auto literal =
-                QString("%1 (*.rev)").arg(tr("Revocation Certificates"));
-            QString m_output_file_name;
-
-#ifdef Q_OS_WINDOWS
-            auto file_string = m_key_->Name() + "[" + m_key_->Email() + "](" +
-                               m_key_->ID() + ").rev";
-#else
-            auto file_string = m_key_->Name() + "<" + m_key_->Email() +
-                               ">(" + m_key_->ID() + ").rev";
-#endif
-
-            QFileDialog dialog(this, tr("Generate revocation certificate"),
-                               file_string, literal);
-            dialog.setDefaultSuffix(".rev");
-            dialog.setAcceptMode(QFileDialog::AcceptSave);
-
-            if (dialog.exec() != QFileDialog::Reject) {
-              m_output_file_name = dialog.selectedFiles().front();
-            }
-
-            if (!m_output_file_name.isEmpty()) {
-              KeyManagementOperation::GetInstance(current_gpg_context_channel_)
-                  .GenerateRevokeCert(m_key_, m_output_file_name, code, text);
-            }
-          });
-
-  revocation_options_dialog->show();
+  auto* function = new GenerateRevocationCert(this);
+  function->Exec(current_gpg_context_channel_, m_key_);
 }
 
 void KeyPairOperaTab::slot_modify_password() {
@@ -391,7 +357,7 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
     return;
   }
 
-  emit UISignalStation::GetInstance()->SignalKeyRevoked(m_key_->ID());
+  emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_->ID());
 
   // import revocation certificate
   CommonUtils::GetInstance()->SlotImportKeys(

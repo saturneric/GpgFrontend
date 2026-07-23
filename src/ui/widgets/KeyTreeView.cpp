@@ -187,7 +187,9 @@ void KeyTreeView::reset_model() {
             emit SignalKeysChecked(GetAllCheckedKeys());
           });
 
-  expandToDepth(0);
+  // Fully expand so recipients'/signers' subkeys are visible by default — the
+  // whole point of these pickers is choosing a specific subkey.
+  expandAll();
   slot_adjust_column_widths();
 }
 

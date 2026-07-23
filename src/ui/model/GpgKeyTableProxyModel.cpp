@@ -140,14 +140,18 @@ auto GpgKeyTableProxyModel::filterAcceptsColumn(
              GpgKeyTableColumn::kNONE;
     }
     case 8: {
-      return (filter_columns_ & GpgKeyTableColumn::kALGO) !=
+      return (filter_columns_ & GpgKeyTableColumn::kEXPIRE_DATE) !=
              GpgKeyTableColumn::kNONE;
     }
     case 9: {
-      return (filter_columns_ & GpgKeyTableColumn::kSUBKEYS_NUMBER) !=
+      return (filter_columns_ & GpgKeyTableColumn::kALGO) !=
              GpgKeyTableColumn::kNONE;
     }
     case 10: {
+      return (filter_columns_ & GpgKeyTableColumn::kSUBKEYS_NUMBER) !=
+             GpgKeyTableColumn::kNONE;
+    }
+    case 11: {
       return (filter_columns_ & GpgKeyTableColumn::kCOMMENT) !=
              GpgKeyTableColumn::kNONE;
     }

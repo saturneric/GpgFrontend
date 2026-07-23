@@ -42,8 +42,8 @@ GpgKeyTableModel::GpgKeyTableModel(int channel,
     : QAbstractTableModel(parent),
       column_headers_({/*Select*/ QString(), tr("Type"), tr("Name"),
                        tr("Email Address"), tr("Usage"), tr("Trust"),
-                       tr("Key ID"), tr("Create Date"), tr("Algorithm"),
-                       tr("Subkey(s)"), tr("Comment")}),
+                       tr("Key ID"), tr("Create Date"), tr("Expire Date"),
+                       tr("Algorithm"), tr("Subkey(s)"), tr("Comment")}),
       gpg_context_channel_(channel) {
   for (const auto &key : keys) {
     cached_items_.push_back(GpgKeyTableItem(key));
@@ -69,7 +69,7 @@ auto GpgKeyTableModel::rowCount(const QModelIndex & /*parent*/) const -> int {
 
 auto GpgKeyTableModel::columnCount(const QModelIndex & /*parent*/) const
     -> int {
-  return 11;
+  return 12;
 }
 
 auto GpgKeyTableModel::table_data_by_gpg_key(const QModelIndex &index,
@@ -109,12 +109,17 @@ auto GpgKeyTableModel::table_data_by_gpg_key(const QModelIndex &index,
       return QLocale().toString(key->CreationTime(), "yyyy-MM-dd");
     }
     case 8: {
-      return key->Algo();
+      return IsKeyNeverExpires(key.get())
+                 ? tr("Never")
+                 : QLocale().toString(key->ExpirationTime(), "yyyy-MM-dd");
     }
     case 9: {
-      return static_cast<int>(gpg_key->SubKeys().size());
+      return key->Algo();
     }
     case 10: {
+      return static_cast<int>(gpg_key->SubKeys().size());
+    }
+    case 11: {
       return key->Comment();
     }
     default:
@@ -161,15 +166,20 @@ auto GpgKeyTableModel::table_data_by_gpg_key_group(
       return QLocale().toString(key->CreationTime(), "yyyy-MM-dd");
     }
     case 8: {
-      return key->Algo();
+      return IsKeyNeverExpires(key.get())
+                 ? tr("Never")
+                 : QLocale().toString(key->ExpirationTime(), "yyyy-MM-dd");
     }
     case 9: {
+      return key->Algo();
+    }
+    case 10: {
       auto *key_group = dynamic_cast<GpgKeyGroup *>(key.get());
       if (key_group == nullptr) return {};
 
       return static_cast<int>(key_group->KeyIds().size());
     }
-    case 10: {
+    case 11: {
       return key->Comment();
     }
     default:
@@ -246,7 +256,8 @@ auto GpgKeyTableModel::data(const QModelIndex &index, int role) const
       case 5:
       case 6:
       case 7:
-      case 9:
+      case 8:
+      case 10:
         return Qt::AlignCenter;
       default:
         return {};
@@ -271,6 +282,9 @@ auto GpgKeyTableModel::data(const QModelIndex &index, int role) const
     if (key->IsExpired() || key->IsRevoked()) {
       return QColorConstants::DarkYellow;
     }
+    // A key that is merely about to lapse is still fully usable, so it gets a
+    // quieter tint than the already-broken ones above.
+    if (IsKeyExpiringSoon(key)) return QColor(0x8A, 0x6D, 0x1F);
     return {};
   }
 

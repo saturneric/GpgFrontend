@@ -324,4 +324,36 @@ auto GF_CORE_EXPORT ConvertOpenPGPEngine2String(OpenPGPEngine type) -> QString;
 auto GF_CORE_EXPORT ConvertComponentType2String(GpgComponentType type)
     -> QString;
 
+/**
+ * @brief Check whether a key carries no expiry at all.
+ *
+ * Both GnuPG and the rPGP key model report "no expiry" as the epoch, so an
+ * expiration time of 0 must never be read as "expired in 1970".
+ *
+ * @param key key to inspect
+ * @return true if the key never expires
+ */
+auto GF_CORE_EXPORT IsKeyNeverExpires(const GpgAbstractKey* key) -> bool;
+
+/**
+ * @brief Number of days ahead within which a key counts as expiring soon.
+ *
+ * Read from the "keys/expiring_soon_days" setting, clamped to a sane range.
+ *
+ * @return lookahead window in days
+ */
+auto GF_CORE_EXPORT GetKeyExpiringSoonDays() -> int;
+
+/**
+ * @brief Check whether a key is still usable but expires within the configured
+ * lookahead window.
+ *
+ * Already expired, revoked and disabled keys are excluded: they need a
+ * different remedy than a key that is merely about to lapse.
+ *
+ * @param key key to inspect
+ * @return true if the key expires within the lookahead window
+ */
+auto GF_CORE_EXPORT IsKeyExpiringSoon(const GpgAbstractKey* key) -> bool;
+
 }  // namespace GpgFrontend

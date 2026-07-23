@@ -37,9 +37,13 @@ namespace {
 
 /**
  * @brief Durable-cache key holding the column widths of one host window.
+ *
+ * Widths are stored per source-column index, so the key is versioned: inserting
+ * a column shifts every index after it and stale widths would land on the wrong
+ * columns. Bump the suffix whenever the source column order changes.
  */
 auto ColumnWidthsCacheKey(const QString& scope) -> QString {
-  return QString("key_table_column_widths:%1").arg(scope);
+  return QString("key_table_column_widths_v2:%1").arg(scope);
 }
 
 }  // namespace
@@ -194,10 +198,10 @@ void KeyTable::apply_column_sizing() {
   auto* header = horizontalHeader();
   if (header == nullptr) return;
 
-  // Source columns whose text can be long: Name (2), Email (3), Comment (10).
+  // Source columns whose text can be long: Name (2), Email (3), Comment (11).
   // These share the leftover width and elide; every other visible column sizes
   // to its content.
-  static const QSet<int> kStretchSourceColumns = {2, 3, 10};
+  static const QSet<int> kStretchSourceColumns = {2, 3, 11};
   static const int kStretchMinWidth = 80;
 
   const auto columns = proxy_model_.columnCount({});

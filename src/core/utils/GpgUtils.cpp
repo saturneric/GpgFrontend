@@ -293,7 +293,8 @@ namespace {
 // both gnupg and rpgp.
 auto SupportedKeyDatabaseBackends() -> QSet<QString> {
   QSet<QString> backends;
-  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) backends.insert("gnupg");
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG))
+    backends.insert("gnupg");
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) backends.insert("rpgp");
   return backends;
 }
@@ -374,7 +375,8 @@ auto ScanSandboxKeyDatabaseDir() -> QContainer<KeyDatabaseItemSO> {
       GlobalSettingStation::GetInstance().GetAppDataPath() + "/dbs";
   QDir dbs_dir(dbs_root);
   if (!dbs_dir.exists()) {
-    LOG_D() << "sandbox key database dir does not exist, skip scan:" << dbs_root;
+    LOG_D() << "sandbox key database dir does not exist, skip scan:"
+            << dbs_root;
     return discovered;
   }
 
@@ -399,8 +401,8 @@ auto ScanSandboxKeyDatabaseDir() -> QContainer<KeyDatabaseItemSO> {
 // channel/order) matched by name. The channel-0 `default_db` is always kept and
 // never sourced from the scan. Any backend type not present in
 // `supported_backends` is dropped in favour of a supported default (gnupg when
-// available, else rpgp) - this is what keeps the rpgp-only macOS lite build from
-// honouring a stale "gnupg" type carried over in settings.
+// available, else rpgp) - this is what keeps the rpgp-only macOS lite build
+// from honouring a stale "gnupg" type carried over in settings.
 auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
     KeyDatabaseItemSO default_db, QContainer<KeyDatabaseItemSO> discovered,
     const QContainer<KeyDatabaseItemSO>& stored,
@@ -613,11 +615,11 @@ auto GetKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
   auto key_db_infos = GetAllKeyDatabaseInfoBySettings();
 
   // filter out invalid key databases
-  key_db_infos.erase(
-      std::remove_if(
-          key_db_infos.begin(), key_db_infos.end(),
-          [](const auto& key_db_info) -> auto{ return !key_db_info.valid; }),
-      key_db_infos.end());
+  key_db_infos.erase(std::remove_if(key_db_infos.begin(), key_db_infos.end(),
+                                    [](const auto& key_db_info) -> auto {
+                                      return !key_db_info.valid;
+                                    }),
+                     key_db_infos.end());
 
   LOG_I() << "valid key database count: " << key_db_infos.size();
   return key_db_infos;
@@ -833,5 +835,25 @@ auto ConvertComponentType2String(GpgComponentType type) -> QString {
     default:
       return "";
   }
+}
+
+auto IsKeyNeverExpires(const GpgAbstractKey* key) -> bool {
+  if (key == nullptr) return true;
+  return key->ExpirationTime().toSecsSinceEpoch() == 0;
+}
+
+auto GetKeyExpiringSoonDays() -> int {
+  auto days = GetSettings().value("keys/expiring_soon_days", 30).toInt();
+  return std::clamp(days, 1, 365);
+}
+
+auto IsKeyExpiringSoon(const GpgAbstractKey* key) -> bool {
+  if (key == nullptr) return false;
+  if (key->IsRevoked() || key->IsDisabled() || key->IsExpired()) return false;
+  if (IsKeyNeverExpires(key)) return false;
+
+  const auto now = QDateTime::currentDateTime();
+  const auto expires = key->ExpirationTime();
+  return expires > now && now.daysTo(expires) <= GetKeyExpiringSoonDays();
 }
 }  // namespace GpgFrontend

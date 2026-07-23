@@ -30,7 +30,9 @@
 
 #include "RpgpCoreTest.h"
 #include "core/GFCoreRust.h"
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/function/result_analyse/GpgDecryptResultAnalyse.h"
 #include "core/function/result_analyse/GpgEncryptResultAnalyse.h"
@@ -116,6 +118,156 @@ TEST_F(RpgpCoreTest, CoreEncryptReportsActualRecipientSubKeyTest) {
   auto decr_result = ExtractParams<GpgDecryptResult>(data_object_0, 0);
   ASSERT_FALSE(decr_result.Recipients().empty());
   EXPECT_EQ(recipients.front().keyid, decr_result.Recipients().front().keyid);
+}
+
+namespace {
+
+// Locate the fixture key's first usable (non-cert, non-revoked) encryption
+// subkey; returns its fingerprint + key id, or empty strings if none.
+auto FindEncryptionSubkey(const GpgAbstractKeyPtr& key)
+    -> std::pair<QString, QString> {
+  auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
+  if (gpg_key == nullptr) return {};
+  for (const auto& s : gpg_key->SubKeys()) {
+    if (!s.IsHasCertCap() && s.IsHasEncrCap() && !s.IsRevoked()) {
+      return {s.Fingerprint(), s.ID()};
+    }
+  }
+  return {};
+}
+
+}  // namespace
+
+TEST_F(RpgpCoreTest, CoreEncryptHonorsPinnedSubkeyTest) {
+  // Pin a specific encryption subkey via the "<fpr>!" marker and confirm the
+  // engine encrypts to exactly that subkey.
+  auto base = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                  .GetPubkeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(base != nullptr);
+
+  auto [sub_fpr, sub_keyid] = FindEncryptionSubkey(base);
+  ASSERT_FALSE(sub_fpr.isEmpty());
+
+  auto pinned = AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                    .GetKey(sub_fpr + "!");
+  ASSERT_TRUE(pinned != nullptr);
+
+  auto buffer = GFBuffer(QString("Hello RPGP!"));
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSync({pinned}, buffer, true);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
+
+  auto result = ExtractParams<GpgEncryptResult>(data_object, 0);
+  ASSERT_EQ(result.Recipients().size(), 1);
+  EXPECT_EQ(result.Recipients().front().keyid, sub_keyid);
+
+  // The ciphertext must round-trip.
+  auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
+  auto [err_0, data_object_0] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .DecryptSync(encr_out_buffer);
+  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  auto decr_out_buffer = ExtractParams<GFBuffer>(data_object_0, 1);
+  EXPECT_EQ(decr_out_buffer, buffer);
+}
+
+TEST_F(RpgpCoreTest, CoreEncryptSkipsRevokedSubkeyTest) {
+  auto& repo = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest);
+  auto key = repo.GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(key != nullptr);
+
+  auto [sub_fpr, sub_keyid] = FindEncryptionSubkey(key);
+  ASSERT_FALSE(sub_keyid.isEmpty());
+
+  // Baseline: with the subkey valid, encryption selects it.
+  {
+    auto [err, dobj] =
+        MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+            .EncryptSync({repo.GetPubkeyPtr(
+                             "3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497")},
+                         GFBuffer(QString("hi")), true);
+    ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+    auto r = ExtractParams<GpgEncryptResult>(dobj, 0);
+    ASSERT_EQ(r.Recipients().size(), 1);
+    EXPECT_EQ(r.Recipients().front().keyid, sub_keyid);
+  }
+
+  // Revoke that encryption subkey.
+  int idx = -1;
+  auto s_keys = key->SubKeys();
+  for (int i = 0; i < s_keys.size(); ++i) {
+    if (s_keys[i].ID() == sub_keyid) {
+      idx = i;
+      break;
+    }
+  }
+  ASSERT_GE(idx, 0);
+  ASSERT_TRUE(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                  .RevokeSubkey(key, idx, 0, QString("Test revocation")));
+  repo.FlushKeyCache();
+
+  // The revoked subkey must never be used as a recipient. With no other
+  // encryption subkey and a certify-only primary, the recipient is invalid.
+  auto pub = repo.GetPubkeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(pub != nullptr);
+  auto [err2, dobj2] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSync({pub}, GFBuffer(QString("hi")), true);
+
+  if (CheckGpgError(err2) == GPG_ERR_NO_ERROR &&
+      dobj2->Check<GpgEncryptResult, GFBuffer>()) {
+    auto r2 = ExtractParams<GpgEncryptResult>(dobj2, 0);
+    for (const auto& rec : r2.Recipients()) {
+      EXPECT_NE(rec.keyid, sub_keyid);
+    }
+  } else {
+    // No usable encryption key remained: the operation must have failed.
+    EXPECT_NE(CheckGpgError(err2), GPG_ERR_NO_ERROR);
+  }
+}
+
+TEST_F(RpgpCoreTest, CoreEncryptRejectsPinnedRevokedSubkeyTest) {
+  auto& repo = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest);
+  auto key = repo.GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(key != nullptr);
+
+  auto [sub_fpr, sub_keyid] = FindEncryptionSubkey(key);
+  ASSERT_FALSE(sub_fpr.isEmpty());
+
+  int idx = -1;
+  auto s_keys = key->SubKeys();
+  for (int i = 0; i < s_keys.size(); ++i) {
+    if (s_keys[i].ID() == sub_keyid) {
+      idx = i;
+      break;
+    }
+  }
+  ASSERT_GE(idx, 0);
+  ASSERT_TRUE(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                  .RevokeSubkey(key, idx, 0, QString("Test revocation")));
+  repo.FlushKeyCache();
+
+  // Pinning the now-revoked subkey must be rejected, not honored.
+  auto pinned = AbstractKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                    .GetKey(sub_fpr + "!");
+  ASSERT_TRUE(pinned != nullptr);
+
+  auto [err, dobj] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSync({pinned}, GFBuffer(QString("hi")), true);
+
+  if (CheckGpgError(err) == GPG_ERR_NO_ERROR &&
+      dobj->Check<GpgEncryptResult, GFBuffer>()) {
+    auto r = ExtractParams<GpgEncryptResult>(dobj, 0);
+    for (const auto& rec : r.Recipients()) {
+      EXPECT_NE(rec.keyid, sub_keyid);
+    }
+    EXPECT_FALSE(r.InvalidRecipients().empty());
+  } else {
+    EXPECT_NE(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  }
 }
 
 TEST_F(RpgpCoreTest, CoreDecryptInvalidDataReportsDetailTest) {
