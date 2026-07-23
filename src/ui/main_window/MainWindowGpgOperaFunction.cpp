@@ -30,11 +30,13 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/InstantMessageOperator.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/EncryptionKeysPicker.h"
 #include "ui/dialog/SigningKeysPicker.h"
 #include "ui/dialog/settings/SettingsDialog.h"
 #include "ui/dialog/settings/SettingsIM.h"
@@ -273,9 +275,17 @@ auto MainWindow::encrypt_operation_key_validate(
     return true;
   }
 
-  contexts->keys = check_keys_helper(
+  auto checked = check_keys_helper(
       keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
       tr("The selected keypair cannot be used for encryption."));
+  if (checked.empty()) {
+    contexts->keys = {};
+    return false;
+  }
+
+  bool canceled = false;
+  contexts->keys = resolve_encrypt_recipients_helper(checked, canceled);
+  if (canceled) return false;
 
   return !contexts->keys.empty();
 }
@@ -384,6 +394,52 @@ auto MainWindow::check_keys_helper(
   }
 
   return keys;
+}
+
+auto MainWindow::resolve_encrypt_recipients_helper(
+    const GpgAbstractKeyPtrList& keys, bool& canceled) -> GpgAbstractKeyPtrList {
+  canceled = false;
+  if (keys.isEmpty()) return keys;
+
+  const int channel = m_key_list_->GetCurrentGpgContextChannel();
+
+  // Per-recipient encryption subkey selection is an rPGP-engine feature; the
+  // GnuPG engine picks a valid, non-revoked encryption subkey internally.
+  if (OpenPGPContext::GetInstance(channel).Engine() != OpenPGPEngine::kRPGP) {
+    return keys;
+  }
+
+  // Only prompt when a recipient exposes more than one usable (non-revoked)
+  // encryption subkey — otherwise the auto-selection is unambiguous.
+  bool ambiguous = false;
+  for (const auto& key : keys) {
+    if (key == nullptr || key->KeyType() != GpgAbstractKeyType::kGPG_KEY) {
+      continue;
+    }
+    auto gpg_key = qSharedPointerDynamicCast<GpgKey>(key);
+    if (gpg_key == nullptr) continue;
+
+    int encr_subkey_count = 0;
+    for (const auto& s_key : gpg_key->SubKeys()) {
+      if (s_key.IsHasEncrCap() && !s_key.IsRevoked()) encr_subkey_count++;
+    }
+    if (encr_subkey_count > 1) {
+      ambiguous = true;
+      break;
+    }
+  }
+
+  if (!ambiguous) return keys;
+
+  auto picker = QSharedPointer<EncryptionKeysPicker>(
+      new EncryptionKeysPicker(channel, keys, this),
+      [](EncryptionKeysPicker* p) { p->deleteLater(); });
+  picker->exec();
+  if (picker->result() == QDialog::Rejected) {
+    canceled = true;
+    return {};
+  }
+  return picker->GetEncryptionKeys();
 }
 
 void MainWindow::SlotEncrypt() {
@@ -516,10 +572,14 @@ void MainWindow::SlotEncryptSign() {
 
   auto keys = m_key_list_->GetCheckedKeys();
 
-  contexts->keys = check_keys_helper(
+  auto enc_keys = check_keys_helper(
       keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
       tr("The selected keypair cannot be used for encryption."));
-  if (contexts->keys.empty()) return;
+  if (enc_keys.empty()) return;
+
+  bool canceled = false;
+  contexts->keys = resolve_encrypt_recipients_helper(enc_keys, canceled);
+  if (canceled || contexts->keys.empty()) return;
 
   if (!sign_operation_key_validate(contexts)) return;
 
@@ -644,10 +704,14 @@ void MainWindow::exec_im_encrypt_helper(bool sign) {
     // there is no symmetric fallback here. Same rule as the standard
     // Encrypt & Sign.
     auto keys = m_key_list_->GetCheckedKeys();
-    contexts->keys = check_keys_helper(
+    auto enc_keys = check_keys_helper(
         keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
         tr("The selected keypair cannot be used for encryption."));
-    if (contexts->keys.empty()) return;
+    if (enc_keys.empty()) return;
+
+    bool canceled = false;
+    contexts->keys = resolve_encrypt_recipients_helper(enc_keys, canceled);
+    if (canceled || contexts->keys.empty()) return;
 
     if (!sign_operation_key_validate(contexts)) return;
   } else {
@@ -996,10 +1060,14 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
   contexts->ascii = ascii;
 
   auto keys = m_key_list_->GetCheckedKeys();
-  contexts->keys = check_keys_helper(
+  auto enc_keys = check_keys_helper(
       keys, [](const GpgAbstractKeyPtr& key) { return key->IsHasEncrCap(); },
       tr("The selected keypair cannot be used for encryption."));
-  if (contexts->keys.empty()) return;
+  if (enc_keys.empty()) return;
+
+  bool canceled = false;
+  contexts->keys = resolve_encrypt_recipients_helper(enc_keys, canceled);
+  if (canceled || contexts->keys.empty()) return;
 
   if (!sign_operation_key_validate(contexts)) return;
   if (!check_read_file_paths_helper(paths)) return;

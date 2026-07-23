@@ -164,12 +164,12 @@ where
     (can_sign, can_encrypt, can_auth, can_certify)
 }
 
-fn is_self_subkey_revocation(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
+pub(crate) fn is_self_subkey_revocation(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
     is_self_signature_from_primary(sig, primary_fpr_bytes)
         && matches!(sig.typ(), Some(SignatureType::SubkeyRevocation))
 }
 
-fn is_subkey_revoked(signatures: &[Signature], primary_fpr_bytes: &[u8]) -> bool {
+pub(crate) fn is_subkey_revoked(signatures: &[Signature], primary_fpr_bytes: &[u8]) -> bool {
     signatures
         .iter()
         .any(|sig| is_self_subkey_revocation(sig, primary_fpr_bytes))

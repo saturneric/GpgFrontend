@@ -91,6 +91,98 @@ pub fn encrypt_directory_internal(
     )
 }
 
+/// Which key of a recipient certificate the session key is encrypted to.
+///
+/// Indices refer into `cert.public_subkeys`; `Primary` targets `cert.primary_key`.
+/// An index keeps the borrow checker happy — the caller re-borrows the chosen
+/// subkey when it actually calls `encrypt_to_key`.
+enum EncryptionTarget {
+    Sub(usize),
+    Primary,
+}
+
+/// Select which encryption key of `cert` the session key should go to.
+///
+/// Mirrors [`with_signing_key`]'s two modes for the encryption side:
+/// * **Exact-match** (`target = Some(fpr)`): the caller pinned a specific subkey
+///   via the `fpr!` armor-block prefix. The pinned key is honored only if it is
+///   encrypt-capable and **not revoked**; otherwise the recipient is rejected.
+/// * **Auto** (`target = None`): the first **non-revoked** encrypt-capable subkey
+///   wins, falling back to the primary key if no subkey qualifies.
+///
+/// A revoked subkey is never selected in either mode.
+fn choose_encryption_target(
+    cert: &SignedPublicKey,
+    target: Option<&str>,
+) -> Result<EncryptionTarget, GfrStatus> {
+    let primary_fpr_bytes = cert.primary_key.fingerprint().as_bytes().to_vec();
+
+    // ==========================================
+    // EXACT MATCH MODE (!)
+    // ==========================================
+    if let Some(target) = target {
+        for (i, subkey) in cert.public_subkeys.iter().enumerate() {
+            let fpr = subkey.key.fingerprint().to_string();
+            let kid = subkey.key.legacy_key_id().to_string();
+            if super::key_identifier_matches(&fpr, &kid, target) {
+                if crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes) {
+                    log::error!("Requested encryption subkey is revoked: fpr={}", fpr);
+                    return Err(GfrStatus::ErrorNoKey);
+                }
+                if !subkey.key.algorithm().can_encrypt() {
+                    log::error!(
+                        "Requested encryption subkey is not encrypt-capable: fpr={}, algo={:?}",
+                        fpr,
+                        subkey.key.algorithm(),
+                    );
+                    return Err(GfrStatus::ErrorNoKey);
+                }
+                log::info!("Selected marked encryption subkey: fpr={}, keyid={}", fpr, kid);
+                return Ok(EncryptionTarget::Sub(i));
+            }
+        }
+
+        let p_fpr = cert.primary_key.fingerprint().to_string();
+        let p_kid = cert.primary_key.legacy_key_id().to_string();
+        if super::key_identifier_matches(&p_fpr, &p_kid, target) {
+            if !cert.primary_key.algorithm().can_encrypt() {
+                log::error!(
+                    "Requested primary key is not encrypt-capable: fpr={}",
+                    p_fpr,
+                );
+                return Err(GfrStatus::ErrorNoKey);
+            }
+            log::info!("Selected marked primary encryption key: fpr={}", p_fpr);
+            return Ok(EncryptionTarget::Primary);
+        }
+
+        log::error!("Requested encryption target not found: {}", target);
+        return Err(GfrStatus::ErrorNoKey);
+    }
+
+    // ==========================================
+    // NORMAL MODE (Auto Fallback) — skip revoked
+    // ==========================================
+    for (i, subkey) in cert.public_subkeys.iter().enumerate() {
+        if crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes) {
+            log::info!(
+                "Skipping revoked encryption subkey: fpr={}",
+                subkey.key.fingerprint(),
+            );
+            continue;
+        }
+        if subkey.key.algorithm().can_encrypt() {
+            return Ok(EncryptionTarget::Sub(i));
+        }
+    }
+
+    if cert.primary_key.algorithm().can_encrypt() {
+        return Ok(EncryptionTarget::Primary);
+    }
+
+    Err(GfrStatus::ErrorNoKey)
+}
+
 /// Encrypt a stream with public keys and optionally sign it.
 ///
 /// Pass an empty `secret_key_blocks` slice to encrypt without signing; the
@@ -193,13 +285,18 @@ where
     let mut recipients = Vec::new();
 
     for block in public_key_blocks {
-        match SignedPublicKey::from_string(block) {
+        // A caller may pin a specific encryption subkey by prefixing the armored
+        // block with `<fpr>!` (the same mechanism the signing path uses). Strip
+        // it off before parsing the certificate.
+        let (target, armored) = parse_signer_block(block);
+
+        match SignedPublicKey::from_string(armored) {
             Ok((cert, _)) => {
-                let mut added_for_this_cert = false;
                 let fpr = cert.primary_key.fingerprint().to_string();
 
-                for subkey in &cert.public_subkeys {
-                    if subkey.key.algorithm().can_encrypt() {
+                match choose_encryption_target(&cert, target.as_deref()) {
+                    Ok(EncryptionTarget::Sub(i)) => {
+                        let subkey = &cert.public_subkeys[i];
                         if enc_builder.encrypt_to_key(&mut rng, subkey).is_ok() {
                             // Record the subkey actually used so callers can show
                             // the real recipient key ID and algorithm.
@@ -208,33 +305,35 @@ where
                                 pub_algo: algo_to_string_simple(subkey.key.algorithm()),
                                 status: GfrRecipientStatus::Success,
                             });
-                            added_for_this_cert = true;
                             has_recipient = true;
-                            break;
+                        } else {
+                            invalid_recipients.push(InvalidRecipientInternal {
+                                fpr,
+                                reason: GfrStatus::ErrorNoKey,
+                            });
                         }
                     }
-                }
-
-                if !added_for_this_cert && cert.primary_key.algorithm().can_encrypt() {
-                    if enc_builder
-                        .encrypt_to_key(&mut rng, &cert.primary_key)
-                        .is_ok()
-                    {
-                        recipients.push(RecipientResultInternal {
-                            key_id: cert.primary_key.legacy_key_id().to_string(),
-                            pub_algo: algo_to_string_simple(cert.primary_key.algorithm()),
-                            status: GfrRecipientStatus::Success,
-                        });
-                        added_for_this_cert = true;
-                        has_recipient = true;
+                    Ok(EncryptionTarget::Primary) => {
+                        if enc_builder
+                            .encrypt_to_key(&mut rng, &cert.primary_key)
+                            .is_ok()
+                        {
+                            recipients.push(RecipientResultInternal {
+                                key_id: cert.primary_key.legacy_key_id().to_string(),
+                                pub_algo: algo_to_string_simple(cert.primary_key.algorithm()),
+                                status: GfrRecipientStatus::Success,
+                            });
+                            has_recipient = true;
+                        } else {
+                            invalid_recipients.push(InvalidRecipientInternal {
+                                fpr,
+                                reason: GfrStatus::ErrorNoKey,
+                            });
+                        }
                     }
-                }
-
-                if !added_for_this_cert {
-                    invalid_recipients.push(InvalidRecipientInternal {
-                        fpr,
-                        reason: GfrStatus::ErrorNoKey,
-                    });
+                    Err(reason) => {
+                        invalid_recipients.push(InvalidRecipientInternal { fpr, reason });
+                    }
                 }
             }
             Err(_) => {

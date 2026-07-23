@@ -258,8 +258,26 @@ auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
       continue;
     }
 
+    auto pkey_data = key_block->public_key;
+    auto data = pkey_data;
+
+    // Honor a user-pinned encryption subkey: prefix the armored block with
+    // "<fpr>!" so the rPGP engine encrypts to that specific subkey instead of
+    // auto-selecting. Mirrors ExportKeyBlockForSigning on the signing side.
+    for (const auto& sub : key.SubKeys()) {
+      if (sub.IsMarked()) {
+        LOG_D() << "Using marked subkey with fpr: " << sub.Fingerprint()
+                << " for encryption instead of auto-selecting for key with fpr: "
+                << key.Fingerprint();
+        auto prefix = sub.Fingerprint().toUtf8() + "!\n";
+        data = GFBuffer();
+        data.Combine({GFBuffer(prefix), pkey_data});
+        break;
+      }
+    }
+
     // Keep the QByteArray alive by pushing it to the vector
-    result.push_back(key_block->public_key);
+    result.push_back(data);
   }
 
   return result;

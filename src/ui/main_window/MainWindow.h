@@ -758,6 +758,23 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
       const QString& capability_err_string) -> GpgAbstractKeyPtrList;
 
   /**
+   * @brief For the rPGP engine, let the user pin a specific encryption subkey
+   * per recipient when a recipient exposes more than one usable (non-revoked)
+   * encryption subkey. Mirrors the signing-key picker ambiguity gate.
+   *
+   * When no choice is needed (single usable encryption subkey, or a non-rPGP
+   * engine), @p keys is returned unchanged and the engine auto-selects a valid
+   * subkey.
+   *
+   * @param keys the validated recipient keys.
+   * @param canceled set to true when the user dismissed the picker.
+   * @return the (possibly subkey-pinned) recipient keys.
+   */
+  auto resolve_encrypt_recipients_helper(const GpgAbstractKeyPtrList& keys,
+                                         bool& canceled)
+      -> GpgAbstractKeyPtrList;
+
+  /**
    * @brief
    *
    * @param context

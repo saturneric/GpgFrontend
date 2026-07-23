@@ -303,6 +303,8 @@ where
     // ==========================================
     // EXACT MATCH MODE (!)
     // ==========================================
+    let primary_fpr_bytes = skey.primary_key.fingerprint().as_bytes().to_vec();
+
     if let Some(target) = target_fpr {
         let target = normalize_key_identifier(target);
 
@@ -325,6 +327,10 @@ where
             );
 
             if key_identifier_matches(&fpr, &kid, &target) {
+                if crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes) {
+                    log::error!("Requested signing subkey is revoked: fpr={}", fpr);
+                    return Err(crate::types::GfrStatus::ErrorInvalidInput);
+                }
                 if !subkey.key.algorithm().can_sign() {
                     log::error!(
                         "Requested subkey is not signing-capable: fpr={}, keyid={}, algo={:?}",
@@ -369,9 +375,16 @@ where
     }
 
     // ==========================================
-    // NORMAL MODE (Auto Fallback)
+    // NORMAL MODE (Auto Fallback) — skip revoked
     // ==========================================
     for subkey in &skey.secret_subkeys {
+        if crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes) {
+            log::info!(
+                "Skipping revoked signing subkey: fpr={}",
+                subkey.key.fingerprint(),
+            );
+            continue;
+        }
         if subkey.key.algorithm().can_sign() {
             log::info!(
                 "No target specified. Selected first signing-capable subkey: fpr={}",
