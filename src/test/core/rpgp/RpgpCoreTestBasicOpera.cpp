@@ -185,9 +185,9 @@ TEST_F(RpgpCoreTest, CoreEncryptSkipsRevokedSubkeyTest) {
   {
     auto [err, dobj] =
         MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
-            .EncryptSync({repo.GetPubkeyPtr(
-                             "3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497")},
-                         GFBuffer(QString("hi")), true);
+            .EncryptSync(
+                {repo.GetPubkeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497")},
+                GFBuffer(QString("hi")), true);
     ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
     auto r = ExtractParams<GpgEncryptResult>(dobj, 0);
     ASSERT_EQ(r.Recipients().size(), 1);
@@ -587,9 +587,9 @@ TEST_F(RpgpCoreTest, CoreEncryptCancelOtherChannelTest) {
 // data lives in the Gpg*Result model instead. The result analysers must read
 // that engine-agnostic model so a successful operation is reported as success.
 // Previously the EML flow analysed a null gpgme handle and surfaced a perfectly
-// good sign/verify as "failed" (status -1). These analysers are exactly what the
-// SDK's analyse-by-capsule path drives, so a non-negative status here is the
-// guarantee that path relies on.
+// good sign/verify as "failed" (status -1). These analysers are exactly what
+// the SDK's analyse-by-capsule path drives, so a non-negative status here is
+// the guarantee that path relies on.
 TEST_F(RpgpCoreTest, CoreSignVerifyResultAnalyseEngineAgnosticTest) {
   auto sign_key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
                       .GetPubkeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");

@@ -137,7 +137,11 @@ fn choose_encryption_target(
                     );
                     return Err(GfrStatus::ErrorNoKey);
                 }
-                log::info!("Selected marked encryption subkey: fpr={}, keyid={}", fpr, kid);
+                log::info!(
+                    "Selected marked encryption subkey: fpr={}, keyid={}",
+                    fpr,
+                    kid
+                );
                 return Ok(EncryptionTarget::Sub(i));
             }
         }

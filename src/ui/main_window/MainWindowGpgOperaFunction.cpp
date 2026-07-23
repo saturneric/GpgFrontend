@@ -397,7 +397,8 @@ auto MainWindow::check_keys_helper(
 }
 
 auto MainWindow::resolve_encrypt_recipients_helper(
-    const GpgAbstractKeyPtrList& keys, bool& canceled) -> GpgAbstractKeyPtrList {
+    const GpgAbstractKeyPtrList& keys, bool& canceled)
+    -> GpgAbstractKeyPtrList {
   canceled = false;
   if (keys.isEmpty()) return keys;
 

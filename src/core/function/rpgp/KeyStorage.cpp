@@ -266,9 +266,10 @@ auto GetPublicKeysByKeyIdsForEncryption(GFKeyDatabase& key_db,
     // auto-selecting. Mirrors ExportKeyBlockForSigning on the signing side.
     for (const auto& sub : key.SubKeys()) {
       if (sub.IsMarked()) {
-        LOG_D() << "Using marked subkey with fpr: " << sub.Fingerprint()
-                << " for encryption instead of auto-selecting for key with fpr: "
-                << key.Fingerprint();
+        LOG_D()
+            << "Using marked subkey with fpr: " << sub.Fingerprint()
+            << " for encryption instead of auto-selecting for key with fpr: "
+            << key.Fingerprint();
         auto prefix = sub.Fingerprint().toUtf8() + "!\n";
         data = GFBuffer();
         data.Combine({GFBuffer(prefix), pkey_data});
