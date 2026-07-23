@@ -197,10 +197,13 @@ auto GpgContext::set_ctx_key_list_mode(const gpgme_ctx_t& ctx) -> bool {
   }
 
   // set keylist mode
+  // WITH_KEYGRIP is needed to address a single subkey in gpg-agent, which is
+  // the only way GnuPG can change one subkey's passphrase on its own.
   return CheckGpgError(gpgme_set_keylist_mode(
              ctx, GPGME_KEYLIST_MODE_LOCAL | GPGME_KEYLIST_MODE_WITH_SECRET |
                       GPGME_KEYLIST_MODE_SIGS |
-                      GPGME_KEYLIST_MODE_SIG_NOTATIONS)) == GPG_ERR_NO_ERROR;
+                      GPGME_KEYLIST_MODE_SIG_NOTATIONS |
+                      GPGME_KEYLIST_MODE_WITH_KEYGRIP)) == GPG_ERR_NO_ERROR;
 }
 
 auto GpgContext::set_ctx_openpgp_engine_info(gpgme_ctx_t ctx) -> bool {

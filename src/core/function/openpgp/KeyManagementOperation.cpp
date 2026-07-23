@@ -62,6 +62,23 @@ void KeyManagementOperation::ModifyPassword(const GpgKeyPtr& key,
   RunRegisteredAsync<ModifyKeyPassphraseOpTag>(ctx_, cb, key);
 }
 
+void KeyManagementOperation::ModifySubkeyPassword(
+    const GpgKeyPtr& key, const SubkeyId& skey_fpr,
+    const GpgOperationCallback& cb) {
+  RunRegisteredAsync<ModifySubkeyPassphraseOpTag>(ctx_, cb, key, skey_fpr);
+}
+
+auto KeyManagementOperation::ModifyPasswordSync(const GpgKeyPtr& key)
+    -> std::tuple<GpgError, DataObjectPtr> {
+  return RunRegisteredSync<ModifyKeyPassphraseOpTag>(ctx_, key);
+}
+
+auto KeyManagementOperation::ModifySubkeyPasswordSync(const GpgKeyPtr& key,
+                                                      const SubkeyId& skey_fpr)
+    -> std::tuple<GpgError, DataObjectPtr> {
+  return RunRegisteredSync<ModifySubkeyPassphraseOpTag>(ctx_, key, skey_fpr);
+}
+
 void KeyManagementOperation::DeleteKey(const GpgAbstractKeyPtr& key) {
   DeleteKeys({key});
 }

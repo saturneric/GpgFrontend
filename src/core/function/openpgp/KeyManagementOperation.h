@@ -90,12 +90,45 @@ class GF_CORE_EXPORT KeyManagementOperation
                           int reason_code, const QString& reason_text);
 
   /**
-   * @brief Change the passphrase protecting the given key (async).
+   * @brief Change the passphrase protecting the whole key -- primary and every
+   * subkey -- (async).
    *
    * @param key key whose passphrase should be changed
    * @param cb callback invoked on completion
    */
   void ModifyPassword(const GpgKeyPtr& key, const GpgOperationCallback& cb);
+
+  /**
+   * @brief Change the passphrase protecting a single subkey (async), leaving
+   * the primary and every other subkey under their current passphrase.
+   *
+   * @param key primary key owning the subkey
+   * @param skey_fpr fingerprint of the subkey whose passphrase should be
+   * changed
+   * @param cb callback invoked on completion
+   */
+  void ModifySubkeyPassword(const GpgKeyPtr& key, const SubkeyId& skey_fpr,
+                            const GpgOperationCallback& cb);
+
+  /**
+   * @brief Synchronous variant of ModifyPassword().
+   *
+   * @param key key whose passphrase should be changed
+   * @return tuple of (GpgError, DataObjectPtr)
+   */
+  auto ModifyPasswordSync(const GpgKeyPtr& key)
+      -> std::tuple<GpgError, DataObjectPtr>;
+
+  /**
+   * @brief Synchronous variant of ModifySubkeyPassword().
+   *
+   * @param key primary key owning the subkey
+   * @param skey_fpr fingerprint of the subkey whose passphrase should be
+   * changed
+   * @return tuple of (GpgError, DataObjectPtr)
+   */
+  auto ModifySubkeyPasswordSync(const GpgKeyPtr& key, const SubkeyId& skey_fpr)
+      -> std::tuple<GpgError, DataObjectPtr>;
 
   /**
    * @brief Add an Additional Decryption Subkey (ADSK) to the given key (async).

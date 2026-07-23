@@ -339,14 +339,20 @@ pub unsafe extern "C" fn gfr_export_merged_keys(
     }
 }
 
-/// Change the passphrase protecting the subkey at `target_fpr` within `secret_key_block`.
+/// Change the passphrase protecting `secret_key_block`.
+///
+/// `target_fpr` selects the scope. A null or empty `target_fpr` re-protects the
+/// whole key — primary and every subkey — under one new passphrase, matching what
+/// `gpg --passwd` does. Otherwise only the key at `target_fpr` is re-protected,
+/// which may be the primary or any subkey.
 ///
 /// The current passphrase and the new passphrase are both fetched via
 /// `fetch_pwd_cb`. On success `*out_secret_block` is set to a
 /// heap-allocated updated armored secret key block. Free with `gfr_crypto_free_string`.
 ///
 /// # Safety
-/// `secret_key_block`, `target_fpr`, and `out_secret_block` must be non-null.
+/// `secret_key_block` and `out_secret_block` must be non-null. `target_fpr` may be
+/// null to request a whole-key change.
 #[unsafe(no_mangle)]
 pub extern "C" fn gfr_crypto_modify_key_password(
     channel: i32,
@@ -364,15 +370,20 @@ pub extern "C" fn gfr_crypto_modify_key_password(
     }
 
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
-        if target_fpr.is_null() || out_secret_block.is_null() {
+        if out_secret_block.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
         let block_str = unsafe { secret_key_block.as_str() }?;
 
-        let fpr_str = unsafe { CStr::from_ptr(target_fpr) }
-            .to_str()
-            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+        let fpr_str = if target_fpr.is_null() {
+            None
+        } else {
+            let s = unsafe { CStr::from_ptr(target_fpr) }
+                .to_str()
+                .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+            if s.is_empty() { None } else { Some(s) }
+        };
 
         let generated =
             modify_key_password_internal(channel, block_str, fpr_str, Some(fetch_pwd_cb))?;

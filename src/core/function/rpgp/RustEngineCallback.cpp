@@ -52,6 +52,8 @@ void SetChannelPasswordFetcher(int channel, PasswordFetcher fetcher) {
   }
 }
 
+void ClearRpgpPasswordCache() { Rust::gfr_clear_password_cache(); }
+
 auto FetchPublicKeyCallback(const char* fpr, void* user_data) -> char* {
   if ((fpr == nullptr) || (user_data == nullptr)) return nullptr;
 

@@ -680,31 +680,181 @@ fn fetch_old_and_new_passwords(
     Ok((old_pw, new_pw))
 }
 
-/// Change the passphrase protecting the key at `target_fpr` within a secret key block.
+/// Prompt for a key's current passphrase again, targeted at `fpr`.
 ///
-/// `target_fpr` may refer to the primary key or any subkey. The entire key block
-/// is re-exported after the change, so the returned block contains all keys.
-pub fn modify_key_password_internal(
+/// Used when a passphrase already collected for the key block is rejected by an
+/// individual subkey, which may legitimately carry a different one.
+fn fetch_retry_password(
     channel: i32,
-    secret_key_block: &str,
-    target_fpr: &str,
+    fpr: &str,
+    purpose: &str,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-) -> Result<GeneratedKeys, GfrStatus> {
-    let (mut secret_key, _) = SignedSecretKey::from_string(secret_key_block).map_err(|e| {
-        log::error!("Failed to parse secret key block: {}", e);
-        GfrStatus::ErrorInvalidData
-    })?;
+) -> Result<Password, GfrStatus> {
+    let bytes = fetch_password_with_cache(
+        Some(&PASSWORD_CACHE),
+        PasswordCachePolicy::Bypass,
+        channel,
+        PassphraseStateInternal {
+            fpr: fpr.to_string(),
+            info: purpose.to_string(),
+            retry: true,
+            ask_for_new: false,
+            should_confirm: false,
+        },
+        fetch_pwd_cb,
+    )?;
 
-    let whole_fpr = secret_key.fingerprint().to_string();
+    if bytes.is_empty() {
+        return Err(GfrStatus::ErrorFetchPasswordFailed);
+    }
+
+    Ok(password_from_zeroizing_bytes(bytes))
+}
+
+/// How many times a rejected unlock passphrase may be re-entered before the
+/// operation gives up, mirroring gpg-agent's default pinentry allowance.
+const PASSPHRASE_RETRY_LIMIT: usize = 3;
+
+/// Strip the passphrase from one key, re-prompting when the one supplied is
+/// rejected.
+///
+/// `initial` is tried first when present — the passphrase already collected for
+/// this key block, which is usually right and costs no extra prompt. Each
+/// rejection spends one retry prompt targeted at `fpr`, so a typo (or a subkey
+/// carrying a different passphrase) is recoverable instead of aborting the whole
+/// operation. Exhausting the retries reports `ErrorBadPassphrase`, which the C++
+/// side turns into `GPG_ERR_BAD_PASSPHRASE` — a bare `ErrorInvalidInput` from
+/// the underlying unlock would surface to the user as "General error".
+fn remove_password_with_retry<F>(
+    channel: i32,
+    fpr: &str,
+    purpose: &str,
+    initial: Option<&Password>,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+    mut remove: F,
+) -> Result<(), GfrStatus>
+where
+    F: FnMut(&Password) -> bool,
+{
+    if let Some(pw) = initial {
+        if remove(pw) {
+            return Ok(());
+        }
+        // Whatever is cached for this key was just proven wrong; leaving it in
+        // place would feed the same rejected passphrase to the next operation.
+        PASSWORD_CACHE.remove_by_fpr(fpr);
+        log::warn!("passphrase rejected for key {}, re-prompting", fpr);
+    }
+
+    for _ in 0..PASSPHRASE_RETRY_LIMIT {
+        let pw = fetch_retry_password(channel, fpr, purpose, fetch_pwd_cb)?;
+        if remove(&pw) {
+            return Ok(());
+        }
+        log::warn!("passphrase rejected for key {}, re-prompting", fpr);
+    }
+
+    log::error!("passphrase for key {} rejected after retries", fpr);
+    Err(GfrStatus::ErrorBadPassphrase)
+}
+
+/// Re-protect every secret key in the block — primary and all subkeys — under a
+/// single new passphrase.
+///
+/// This mirrors `gpg --passwd` (what `gpgme_op_passwd` runs), which re-protects
+/// the primary and every subkey together. One unlock prompt and one new-password
+/// prompt are issued against the primary fingerprint; a subkey that rejects the
+/// shared unlock passphrase gets its own targeted retry prompt.
+fn change_whole_key_password(
+    channel: i32,
+    secret_key: &mut SignedSecretKey,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+) -> Result<(), GfrStatus> {
     let primary_fpr = secret_key
         .primary_key
         .fingerprint()
         .to_string()
         .to_uppercase();
 
-    if primary_fpr == target_fpr {
-        let mut rng = rand::thread_rng();
+    let any_encrypted = secret_key.primary_key.secret_params().is_encrypted()
+        || secret_key
+            .secret_subkeys
+            .iter()
+            .any(|s| s.key.secret_params().is_encrypted());
 
+    let (old_pw, new_pw) = fetch_old_and_new_passwords(
+        channel,
+        &primary_fpr,
+        any_encrypted,
+        "Unlock Key to change password",
+        "Set new password for Key",
+        fetch_pwd_cb,
+    )?;
+
+    let mut rng = rand::thread_rng();
+
+    if secret_key.primary_key.secret_params().is_encrypted() {
+        let primary = &mut secret_key.primary_key;
+        remove_password_with_retry(
+            channel,
+            &primary_fpr,
+            "Unlock Primary Key to change password",
+            old_pw.as_ref(),
+            fetch_pwd_cb,
+            |pw| primary.remove_password(pw).is_ok(),
+        )?;
+    }
+
+    secret_key
+        .primary_key
+        .set_password(&mut rng, &new_pw)
+        .into_gfr()?;
+
+    // Invalidate cache entries for this key
+    PASSWORD_CACHE.remove_by_fpr(&primary_fpr);
+
+    for subkey in secret_key.secret_subkeys.iter_mut() {
+        let sub_fpr = subkey.key.fingerprint().to_string().to_uppercase();
+
+        if subkey.key.secret_params().is_encrypted() {
+            let key = &mut subkey.key;
+            remove_password_with_retry(
+                channel,
+                &sub_fpr,
+                "Unlock Subkey to change password",
+                old_pw.as_ref(),
+                fetch_pwd_cb,
+                |pw| key.remove_password(pw).is_ok(),
+            )?;
+        }
+
+        subkey.key.set_password(&mut rng, &new_pw).into_gfr()?;
+
+        // Decrypt and sign cache under the subkey fingerprint, so a stale entry
+        // here would keep serving the passphrase that was just replaced.
+        PASSWORD_CACHE.remove_by_fpr(&sub_fpr);
+    }
+
+    Ok(())
+}
+
+/// Re-protect exactly one key — the primary or a single subkey — identified by
+/// `target_fpr`, leaving every other key in the block untouched.
+fn change_single_key_password(
+    channel: i32,
+    secret_key: &mut SignedSecretKey,
+    target_fpr: &str,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+) -> Result<(), GfrStatus> {
+    let primary_fpr = secret_key
+        .primary_key
+        .fingerprint()
+        .to_string()
+        .to_uppercase();
+
+    let mut rng = rand::thread_rng();
+
+    if primary_fpr == target_fpr {
         let (old_pw, new_pw) = fetch_old_and_new_passwords(
             channel,
             target_fpr,
@@ -714,32 +864,27 @@ pub fn modify_key_password_internal(
             fetch_pwd_cb,
         )?;
 
-        if let Some(old_pw) = old_pw {
-            secret_key.primary_key.remove_password(&old_pw).into_gfr()?;
+        if secret_key.primary_key.secret_params().is_encrypted() {
+            let primary = &mut secret_key.primary_key;
+            remove_password_with_retry(
+                channel,
+                &primary_fpr,
+                "Unlock Primary Key to change password",
+                old_pw.as_ref(),
+                fetch_pwd_cb,
+                |pw| primary.remove_password(pw).is_ok(),
+            )?;
         }
-
-        // Invalidate cache entries for this key
-        PASSWORD_CACHE.remove_by_fpr(&primary_fpr);
 
         secret_key
             .primary_key
             .set_password(&mut rng, &new_pw)
             .into_gfr()?;
 
-        let armored_s_key = secret_key
-            .to_armored_string(ArmorOptions::default())
-            .into_gfr()?;
+        // Invalidate cache entries for this key
+        PASSWORD_CACHE.remove_by_fpr(&primary_fpr);
 
-        let public_key = SignedPublicKey::from(secret_key);
-        let armored_p_key = public_key
-            .to_armored_string(ArmorOptions::default())
-            .into_gfr()?;
-
-        return Ok(GeneratedKeys {
-            secret: Zeroizing::new(armored_s_key),
-            public: armored_p_key,
-            fingerprint: whole_fpr,
-        });
+        return Ok(());
     }
 
     for subkey in secret_key.secret_subkeys.iter_mut() {
@@ -748,8 +893,6 @@ pub fn modify_key_password_internal(
         if sub_fpr != target_fpr {
             continue;
         }
-
-        let mut rng = rand::thread_rng();
 
         let (old_pw, new_pw) = fetch_old_and_new_passwords(
             channel,
@@ -760,29 +903,55 @@ pub fn modify_key_password_internal(
             fetch_pwd_cb,
         )?;
 
-        if let Some(old_pw) = old_pw {
-            subkey.key.remove_password(&old_pw).into_gfr()?;
+        if subkey.key.secret_params().is_encrypted() {
+            let key = &mut subkey.key;
+            remove_password_with_retry(
+                channel,
+                &sub_fpr,
+                "Unlock Subkey to change password",
+                old_pw.as_ref(),
+                fetch_pwd_cb,
+                |pw| key.remove_password(pw).is_ok(),
+            )?;
         }
 
         subkey.key.set_password(&mut rng, &new_pw).into_gfr()?;
 
-        let armored_s_key = secret_key
-            .to_armored_string(ArmorOptions::default())
-            .into_gfr()?;
+        // Decrypt and sign cache under the subkey fingerprint, so a stale entry
+        // here would keep serving the passphrase that was just replaced.
+        PASSWORD_CACHE.remove_by_fpr(&sub_fpr);
 
-        let public_key = SignedPublicKey::from(secret_key);
-        let armored_p_key = public_key
-            .to_armored_string(ArmorOptions::default())
-            .into_gfr()?;
-
-        return Ok(GeneratedKeys {
-            secret: Zeroizing::new(armored_s_key),
-            public: armored_p_key,
-            fingerprint: whole_fpr,
-        });
+        return Ok(());
     }
 
     Err(GfrStatus::ErrorInvalidInput)
+}
+
+/// Change the passphrase protecting a secret key block.
+///
+/// `target_fpr` selects the scope: `None` re-protects the whole key — primary and
+/// every subkey — under one new passphrase, matching `gpg --passwd`. `Some(fpr)`
+/// re-protects only that key, which may be the primary or any subkey. The entire
+/// key block is re-exported either way, so the returned block contains all keys.
+pub fn modify_key_password_internal(
+    channel: i32,
+    secret_key_block: &str,
+    target_fpr: Option<&str>,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+) -> Result<GeneratedKeys, GfrStatus> {
+    let (mut secret_key, _) = SignedSecretKey::from_string(secret_key_block).map_err(|e| {
+        log::error!("Failed to parse secret key block: {}", e);
+        GfrStatus::ErrorInvalidData
+    })?;
+
+    match target_fpr {
+        Some(fpr) => {
+            change_single_key_password(channel, &mut secret_key, &fpr.to_uppercase(), fetch_pwd_cb)?
+        }
+        None => change_whole_key_password(channel, &mut secret_key, fetch_pwd_cb)?,
+    }
+
+    export_secret_key(secret_key)
 }
 
 /// Remove a subkey from a secret key block.

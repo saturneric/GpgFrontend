@@ -59,6 +59,12 @@ auto GpgSubKey::Fingerprint() const -> QString {
   return s_key_ref_->fpr;
 }
 
+auto GpgSubKey::Keygrip() const -> QString {
+  if (skm_ref_ != nullptr) return {};
+  if (s_key_ref_->keygrip == nullptr) return {};
+  return s_key_ref_->keygrip;
+}
+
 auto GpgSubKey::PublicKeyAlgo() const -> QString {
   if (skm_ref_ != nullptr) {
     return GfrKeyAlgo2KeyAlgoName(

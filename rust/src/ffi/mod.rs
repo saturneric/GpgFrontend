@@ -74,7 +74,9 @@ pub extern "C" fn gfr_rust_engine_build_info() -> *mut c_char {
         ("engine".to_string(), env!("CARGO_PKG_VERSION").to_string()),
         (
             "rustc".to_string(),
-            option_env!("GFR_RUSTC_VERSION").unwrap_or_default().to_string(),
+            option_env!("GFR_RUSTC_VERSION")
+                .unwrap_or_default()
+                .to_string(),
         ),
         (
             "target".to_string(),
@@ -153,6 +155,16 @@ pub extern "C" fn gfr_set_password_cache_ttl(ttl_secs: u64, max_ttl_secs: u64) {
         std::time::Duration::from_secs(ttl_secs),
         std::time::Duration::from_secs(max_secs),
     );
+}
+
+/// Drop every cached passphrase, for every channel and key.
+///
+/// Used when the keyring underneath the cache is replaced wholesale — otherwise
+/// an entry cached for a fingerprint keeps serving a passphrase that no longer
+/// unlocks the key now carrying that fingerprint.
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_clear_password_cache() {
+    crate::cache::PASSWORD_CACHE.clear();
 }
 
 /// Initialise the `env_logger` backend writing to stdout.

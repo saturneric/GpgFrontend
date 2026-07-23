@@ -32,7 +32,8 @@
  * @file KeyManagementTraits.h
  * @brief OpTraits specializations for key management operations.
  *
- * Wires DeleteKeys, ModifyKeyPassphrase, SetExpire, GenerateRevCert,
+ * Wires DeleteKeys, ModifyKeyPassphrase, ModifySubkeyPassphrase, SetExpire,
+ * GenerateRevCert,
  * RevokeSubKey, DeleteSubKey, AddADSK, SignKey, RevKeySignature,
  * SetOwnerTrustLevel op tags to their engine implementations.
  */
@@ -53,6 +54,11 @@ GF_DEF_OP_IMPL_TRAITS(DeleteKeysOpTag, &DeleteKeysGnuPGImpl,
 GF_DEF_OP_IMPL_TRAITS(ModifyKeyPassphraseOpTag, &ModifyKeyPassphraseGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &ModifyKeyPassphraseGnuPGImpl},
                       {OpenPGPEngine::kRPGP, &ModifyKeyPassphraseRpgpImpl});
+
+GF_DEF_OP_IMPL_TRAITS(ModifySubkeyPassphraseOpTag,
+                      &ModifySubkeyPassphraseGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &ModifySubkeyPassphraseGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &ModifySubkeyPassphraseRpgpImpl});
 
 GF_DEF_OP_IMPL_TRAITS(SetExpireOpTag, &SetExpireGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &SetExpireGnuPGImpl});

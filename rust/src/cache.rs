@@ -283,6 +283,12 @@ impl PasswordCache {
         let mut guard = self.inner.lock().expect("password cache poisoned");
         guard.retain(|k, _| k.fpr != fpr);
     }
+
+    /// Drop every cached entry, for every channel and fingerprint.
+    pub fn clear(&self) {
+        let mut guard = self.inner.lock().expect("password cache poisoned");
+        guard.clear();
+    }
 }
 
 /// Global passphrase cache: 10-minute sliding window, 2-hour absolute cap,
@@ -363,5 +369,17 @@ mod tests {
         cache.put(other_info, b"b".to_vec());
         cache.remove_by_fpr("deadbeef");
         assert_eq!(cache.get(&key()), None);
+    }
+
+    #[test]
+    fn clear_evicts_every_entry() {
+        let cache = PasswordCache::new(Duration::from_secs(600), Duration::from_secs(7200));
+        let mut other_key = key();
+        other_key.fpr = "CAFEBABE".to_string();
+        cache.put(key(), b"a".to_vec());
+        cache.put(other_key.clone(), b"b".to_vec());
+        cache.clear();
+        assert_eq!(cache.get(&key()), None);
+        assert_eq!(cache.get(&other_key), None);
     }
 }

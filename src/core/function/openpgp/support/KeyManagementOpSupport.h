@@ -32,7 +32,8 @@
  * @file KeyManagementOpSupport.h
  * @brief Engine/version support tags for key management operations.
  *
- * Defines op tags for: DeleteKeys, ModifyKeyPassphrase, SetExpire (GnuPG only),
+ * Defines op tags for: DeleteKeys, ModifyKeyPassphrase, ModifySubkeyPassphrase,
+ * SetExpire (GnuPG only),
  * GenerateRevCert, RevokeSubKey, DeleteSubKey, AddADSK (GnuPG >= 2.4.1),
  * SignKey (GnuPG only), RevKeySignature (GnuPG only), SetOwnerTrustLevel (GnuPG
  * only).
@@ -49,6 +50,11 @@ GF_DEF_OP_SUPPORT_TRAITS(DeleteKeysOpTag, "op_delete_keys",
 GF_DEF_OP_SUPPORT_TRAITS(ModifyKeyPassphraseOpTag, "op_modify_key_passphrase",
                          {OpenPGPEngine::kGNUPG, "2.2.0"},
                          {OpenPGPEngine::kRPGP, "0.1.0"});
+
+GF_DEF_OP_SUPPORT_TRAITS(ModifySubkeyPassphraseOpTag,
+                         "op_modify_subkey_passphrase",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.8"});
 
 GF_DEF_OP_SUPPORT_TRAITS(SetExpireOpTag, "op_set_expire",
                          {OpenPGPEngine::kGNUPG, "2.2.0"});

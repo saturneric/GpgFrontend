@@ -106,6 +106,12 @@ class KeyPairSubkeyTab : public QWidget {
    * @brief
    *
    */
+  void slot_modify_subkey_passphrase();
+
+  /**
+   * @brief
+   *
+   */
   void slot_add_adsk();
 
  signals:
@@ -147,6 +153,7 @@ class KeyPairSubkeyTab : public QWidget {
   QAction* edit_subkey_act_;
   QAction* delete_subkey_act_;
   QAction* revoke_subkey_act_;
+  QAction* modify_subkey_passphrase_act_;
 
   bool add_subkey_supported_ = false;
   bool add_adsk_supported_ = false;
@@ -154,6 +161,7 @@ class KeyPairSubkeyTab : public QWidget {
   bool export_subkey_supported_ = false;
   bool delete_subkey_supported_ = false;
   bool revoke_subkey_supported_ = false;
+  bool modify_subkey_passphrase_supported_ = false;
 
   QLabel* expire_title_label_ = nullptr;
 

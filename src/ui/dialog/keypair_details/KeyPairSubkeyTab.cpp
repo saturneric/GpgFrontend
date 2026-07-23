@@ -62,6 +62,8 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   export_subkey_supported_ = IsOpSupported<ExportSubkeyOpTag>(channel);
   delete_subkey_supported_ = IsOpSupported<DeleteSubKeyOpTag>(channel);
   revoke_subkey_supported_ = IsOpSupported<RevokeSubKeyOpTag>(channel);
+  modify_subkey_passphrase_supported_ =
+      IsOpSupported<ModifySubkeyPassphraseOpTag>(channel);
 
   create_subkey_list();
   create_subkey_opera_menu();
@@ -485,12 +487,20 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
   connect(revoke_subkey_act_, &QAction::triggered, this,
           &KeyPairSubkeyTab::slot_revoke_subkey);
 
+  modify_subkey_passphrase_act_ = new QAction(tr("Change Passphrase"));
+  connect(modify_subkey_passphrase_act_, &QAction::triggered, this,
+          &KeyPairSubkeyTab::slot_modify_subkey_passphrase);
+
   if (export_subkey_supported_) {
     subkey_opera_menu_->addAction(export_subkey_act_);
   }
 
   if (set_expire_supported_) {
     subkey_opera_menu_->addAction(edit_subkey_act_);
+  }
+
+  if (modify_subkey_passphrase_supported_) {
+    subkey_opera_menu_->addAction(modify_subkey_passphrase_act_);
   }
 
   if (revoke_subkey_supported_) {
@@ -534,10 +544,16 @@ void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
                           (s_key.IsSecretKey() || s_key.IsADSK()) &&
                           !s_key.IsRevoked();
 
+  // an ADSK has no secret material of ours to re-protect
+  const bool can_modify_passphrase = modify_subkey_passphrase_supported_ &&
+                                     s_key.IsSecretKey() && !s_key.IsADSK() &&
+                                     !s_key.IsRevoked();
+
   export_subkey_act_->setEnabled(can_export);
   edit_subkey_act_->setEnabled(can_edit_expire);
   delete_subkey_act_->setEnabled(can_delete);
   revoke_subkey_act_->setEnabled(can_revoke);
+  modify_subkey_passphrase_act_->setEnabled(can_modify_passphrase);
 
   if (subkey_opera_menu_->isEmpty()) return;
 
@@ -669,6 +685,22 @@ void KeyPairSubkeyTab::slot_delete_subkey() {
           .arg(s_key.ID()));
 
   emit SignalKeyDatabaseRefresh();
+}
+
+void KeyPairSubkeyTab::slot_modify_subkey_passphrase() {
+  if (!modify_subkey_passphrase_supported_) return;
+
+  const auto& s_key = get_selected_subkey();
+  if (!s_key.IsSecretKey() || s_key.IsADSK()) return;
+
+  KeyManagementOperation::GetInstance(current_gpg_context_channel_)
+      .ModifySubkeyPassword(key_, s_key.Fingerprint(),
+                            [this](GpgError err, const DataObjectPtr&) {
+                              CommonUtils::RaiseMessageBox(this, err);
+                              if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                                emit SignalKeyDatabaseRefresh();
+                              }
+                            });
 }
 
 void KeyPairSubkeyTab::slot_revoke_subkey() {

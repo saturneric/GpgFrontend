@@ -50,4 +50,14 @@ using PasswordFetcher = std::function<GFBuffer(const PassphraseState&)>;
 GF_CORE_EXPORT void SetChannelPasswordFetcher(int channel,
                                               PasswordFetcher fetcher);
 
+/**
+ * @brief Drop every passphrase cached by the RPGP engine, for every channel and
+ * key.
+ *
+ * Needed when the keyring underneath the cache is replaced wholesale: an entry
+ * cached for a fingerprint would otherwise keep serving a passphrase that no
+ * longer unlocks the key now carrying that fingerprint.
+ */
+GF_CORE_EXPORT void ClearRpgpPasswordCache();
+
 }  // namespace GpgFrontend

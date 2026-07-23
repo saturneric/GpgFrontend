@@ -43,14 +43,31 @@ auto DeleteKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
     -> bool;
 
 /**
- * @brief
+ * @brief Re-protect the whole key -- primary and every subkey -- under one new
+ * passphrase, matching what `gpg --passwd` does.
  *
  * @param ctx
- * @param keys
+ * @param key
+ * @param data_object
  * @return GpgError
  */
 auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                  const DataObjectPtr& data_object) -> GpgError;
+
+/**
+ * @brief Re-protect a single subkey, leaving the primary and every other subkey
+ * under their current passphrase.
+ *
+ * @param ctx
+ * @param key
+ * @param skey_fpr fingerprint of the subkey to re-protect
+ * @param data_object
+ * @return GpgError
+ */
+auto ModifySubkeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                                    const SubkeyId& skey_fpr,
+                                    const DataObjectPtr& data_object)
+    -> GpgError;
 
 /**
  * @brief

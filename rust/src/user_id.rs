@@ -55,7 +55,10 @@ use crate::{
 ///
 /// Works on both secret and public keys (tries secret first). Returns
 /// `ErrorInvalidInput` when the UID is not found.
-pub fn delete_user_id_internal(key_block: &str, target_uid: &str) -> Result<Zeroizing<String>, GfrStatus> {
+pub fn delete_user_id_internal(
+    key_block: &str,
+    target_uid: &str,
+) -> Result<Zeroizing<String>, GfrStatus> {
     if let Ok((mut skey, _)) = SignedSecretKey::from_string(key_block) {
         let initial_len = skey.details.users.len();
         skey.details

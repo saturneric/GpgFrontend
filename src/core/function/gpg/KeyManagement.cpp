@@ -28,6 +28,7 @@
 
 #include "KeyManagement.h"
 
+#include "core/function/gpg/GpgAssuanHelper.h"
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgContext.h"
@@ -155,6 +156,42 @@ auto ModifyKeyPassphraseGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   auto& g_ctx = GpgCtx(ctx);
   return gpgme_op_passwd(g_ctx.DefaultContext(), static_cast<gpgme_key_t>(*key),
                          0);
+}
+
+auto ModifySubkeyPassphraseGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                                     const SubkeyId& skey_fpr,
+                                     const DataObjectPtr& data_object)
+    -> GpgError {
+  if (skey_fpr.isEmpty()) {
+    LOG_E() << "no subkey fingerprint given for key: " << key->Fingerprint();
+    return GPG_ERR_INV_ARG;
+  }
+
+  QString keygrip;
+  for (const auto& s_key : key->SubKeys()) {
+    if (s_key.Fingerprint().compare(skey_fpr, Qt::CaseInsensitive) == 0) {
+      keygrip = s_key.Keygrip();
+      break;
+    }
+  }
+
+  if (keygrip.isEmpty()) {
+    LOG_E() << "no keygrip found for subkey with fpr: " << skey_fpr;
+    return GPG_ERR_NOT_FOUND;
+  }
+
+  // gpg-agent prompts for the current and the new passphrase itself via
+  // pinentry, so there is nothing to feed in here.
+  auto [err, status] =
+      GpgAssuanHelper::GetInstance(ctx.GetChannel())
+          .SendStatusCommand(GpgComponentType::kGPG_AGENT,
+                             QString("PASSWD %1").arg(keygrip));
+  if (err != GPG_ERR_NO_ERROR) {
+    LOG_E() << "command PASSWD failed for keygrip: " << keygrip
+            << "status:" << status.join(' ');
+  }
+
+  return err;
 }
 
 auto AddADSKGnuPGIImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,

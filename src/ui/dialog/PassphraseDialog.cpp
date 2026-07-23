@@ -55,6 +55,27 @@ PassphraseDialog::PassphraseDialog(
       this);
   info_label->setWordWrap(true);
 
+  // A retry means the previous attempt was rejected. Say so plainly: otherwise
+  // the dialog simply reappears unchanged and reads as if it had been ignored,
+  // leaving the user to retype the same wrong passphrase.
+  QLabel* retry_label = nullptr;
+  if (ctx_->IsPreWasBad()) {
+    setWindowTitle(tr("Incorrect Passphrase"));
+
+    retry_label = new QLabel(
+        tr("The passphrase you entered was incorrect. Please try again."),
+        this);
+    retry_label->setWordWrap(true);
+
+    auto retry_palette = retry_label->palette();
+    retry_palette.setColor(retry_label->foregroundRole(), Qt::red);
+    retry_label->setPalette(retry_palette);
+
+    QFont retry_font = retry_label->font();
+    retry_font.setBold(true);
+    retry_label->setFont(retry_font);
+  }
+
   auto* details_frame = new QFrame(this);
   details_frame->setObjectName("detailsFrame");
   details_frame->setFrameShape(QFrame::StyledPanel);
@@ -186,6 +207,7 @@ PassphraseDialog::PassphraseDialog(
 
   main_layout->addWidget(title_label);
   main_layout->addWidget(info_label);
+  if (retry_label != nullptr) main_layout->addWidget(retry_label);
   main_layout->addWidget(details_frame);
   main_layout->addLayout(form_layout);
   main_layout->addLayout(button_layout);

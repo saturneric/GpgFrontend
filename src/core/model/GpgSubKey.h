@@ -99,6 +99,17 @@ class GF_CORE_EXPORT GpgSubKey : public GpgAbstractKey {
   [[nodiscard]] auto Fingerprint() const -> QString override;
 
   /**
+   * @brief The keygrip of this subkey, used to address it individually in
+   * gpg-agent (e.g. the Assuan PASSWD command).
+   *
+   * Only meaningful for the GnuPG engine; empty for rPGP keys, which have no
+   * agent-side key store.
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto Keygrip() const -> QString;
+
+  /**
    * @brief
    *
    * @return true

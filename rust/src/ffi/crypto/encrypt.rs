@@ -240,8 +240,7 @@ pub extern "C" fn gfr_crypto_encrypt_file(
         let recs_count = boxed_recs.len();
         std::mem::forget(boxed_recs); // Leak array to C
 
-        let (recipients_ptr, recipients_count) =
-            leak_recipients_c_array(stream_result.recipients);
+        let (recipients_ptr, recipients_count) = leak_recipients_c_array(stream_result.recipients);
 
         // 8. Populate the output metadata struct safely
         // Note: For files, we only need to pass back the metadata.
@@ -333,8 +332,7 @@ pub extern "C" fn gfr_crypto_encrypt_directory(
         let recs_count = boxed_recs.len();
         std::mem::forget(boxed_recs); // Leak array to C
 
-        let (recipients_ptr, recipients_count) =
-            leak_recipients_c_array(stream_result.recipients);
+        let (recipients_ptr, recipients_count) = leak_recipients_c_array(stream_result.recipients);
 
         // 8. Populate the output metadata struct safely
         // Note: For files, we only need to pass back the metadata.
@@ -607,8 +605,7 @@ pub extern "C" fn gfr_crypto_encrypt_and_sign_file(
         let recs_count = boxed_recs.len();
         std::mem::forget(boxed_recs);
 
-        let (recipients_ptr, recipients_count) =
-            leak_recipients_c_array(stream_result.recipients);
+        let (recipients_ptr, recipients_count) = leak_recipients_c_array(stream_result.recipients);
 
         // 10. Populate the output struct safely
         unsafe {

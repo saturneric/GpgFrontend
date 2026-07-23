@@ -68,7 +68,8 @@ auto GenerateRevCertGnuPGImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
                               const QString& reason_text) -> bool;
 
 /**
- * @brief
+ * @brief Change the passphrase of the whole key -- gpgme_op_passwd re-protects
+ * the primary and every subkey together.
  *
  * @param ctx
  * @param key
@@ -76,6 +77,25 @@ auto GenerateRevCertGnuPGImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
  */
 auto ModifyKeyPassphraseGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                                   const DataObjectPtr& data_object) -> GpgError;
+
+/**
+ * @brief Change the passphrase of a single subkey.
+ *
+ * gpgme has no per-subkey passwd operation -- neither gpgme_op_passwd nor
+ * `--edit-key`'s `passwd` honours a subkey selection, both always re-protect
+ * the whole key. The only route that addresses one key on its own is the
+ * gpg-agent Assuan `PASSWD <keygrip>` command, which is what this uses.
+ *
+ * @param ctx
+ * @param key
+ * @param skey_fpr fingerprint of the subkey to re-protect
+ * @param data_object
+ * @return GpgError
+ */
+auto ModifySubkeyPassphraseGnuPGImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                                     const SubkeyId& skey_fpr,
+                                     const DataObjectPtr& data_object)
+    -> GpgError;
 
 /**
  * @brief

@@ -65,8 +65,15 @@ auto DeleteKeysRpgpImpl(OpenPGPContext& ctx, const GpgAbstractKeyPtrList& keys)
   return true;
 }
 
-auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
-                                 const DataObjectPtr& data_object) -> GpgError {
+namespace {
+/**
+ * @brief Change the passphrase of a secret key block and write the result back.
+ *
+ * An empty target_fpr re-protects the whole key -- primary and every subkey --
+ * under one new passphrase; otherwise only the key at target_fpr is touched.
+ */
+auto modify_key_passphrase(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                           const QString& target_fpr) -> GpgError {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {
     LOG_E() << "key database is not initialized";
@@ -93,21 +100,33 @@ auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   }
 
   auto key_block_utf8 = key_block_data->secret_key;
-  auto key_fpr_utf8 = key->Fingerprint().toUtf8();
+  auto target_fpr_utf8 = target_fpr.toUtf8();
   char* out_secret_block = nullptr;
 
   Rust::GfrBuffer key_block_buffer = {
       reinterpret_cast<const uint8_t*>(key_block_utf8.Data()),
       key_block_utf8.Size()};
 
+  // a null target selects the whole key
   auto err = Rust::gfr_crypto_modify_key_password(
-      ctx.GetChannel(), key_block_buffer, key_fpr_utf8.constData(),
+      ctx.GetChannel(), key_block_buffer,
+      target_fpr.isEmpty() ? nullptr : target_fpr_utf8.constData(),
       FetchPasswordCallback, &out_secret_block);
 
   if (err != Rust::GfrStatus::Success) {
     LOG_E() << "gfr_crypto_modify_key_password error, code: "
             << static_cast<int>(err);
-    return GPG_ERR_GENERAL;
+
+    // Report a rejected passphrase as such; collapsing it into a general error
+    // shows the user "General error" when the cause is simply a wrong password.
+    switch (err) {
+      case Rust::GfrStatus::ErrorBadPassphrase:
+        return GPG_ERR_BAD_PASSPHRASE;
+      case Rust::GfrStatus::ErrorFetchPasswordFailed:
+        return GPG_ERR_CANCELED;
+      default:
+        return GPG_ERR_GENERAL;
+    }
   }
 
   if (out_secret_block == nullptr) {
@@ -127,6 +146,24 @@ auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
   }
 
   return GPG_ERR_NO_ERROR;
+}
+}  // namespace
+
+auto ModifyKeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                                 const DataObjectPtr& data_object) -> GpgError {
+  return modify_key_passphrase(ctx, key, {});
+}
+
+auto ModifySubkeyPassphraseRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                                    const SubkeyId& skey_fpr,
+                                    const DataObjectPtr& data_object)
+    -> GpgError {
+  if (skey_fpr.isEmpty()) {
+    LOG_E() << "no subkey fingerprint given for key: " << key->Fingerprint();
+    return GPG_ERR_INV_ARG;
+  }
+
+  return modify_key_passphrase(ctx, key, skey_fpr);
 }
 
 auto DeleteSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
