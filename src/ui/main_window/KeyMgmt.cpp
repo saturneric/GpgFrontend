@@ -411,9 +411,15 @@ void KeyMgmt::create_keyserver_actions() {
   import_key_from_key_server_act_->setToolTip(
       tr("Search a keyserver and import keys"));
   connect(import_key_from_key_server_act_, &QAction::triggered, this, [this]() {
+    // Seed the search with the selected key so the context-menu entry searches
+    // the key the user clicked; stays blank when nothing is selected.
+    QString fpr;
+    auto selected = key_list_->GetSelectedKey();
+    if (selected != nullptr) fpr = selected->Fingerprint();
+
     Module::TriggerEvent("REQUEST_SEARCH_PUBLIC_KEY_BY_FINGERPRINT",
                          {
-                             {"fingerprint", GFBuffer(QString{})},
+                             {"fingerprint", GFBuffer(fpr)},
                              {"parent", GFBuffer(RegisterQObject(this))},
                          });
   });
