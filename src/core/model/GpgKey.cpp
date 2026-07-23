@@ -167,7 +167,9 @@ auto GpgKey::LastUpdateTime() const -> QDateTime {
 }
 
 auto GpgKey::ExpirationTime() const -> QDateTime {
-  if (km_ref_ != nullptr) return QDateTime::fromSecsSinceEpoch(0);
+  if (km_ref_ != nullptr) {
+    return QDateTime::fromSecsSinceEpoch(km_ref_->expires_at);
+  }
   return QDateTime::fromSecsSinceEpoch(key_ref_->subkeys->expires);
 };
 
@@ -204,7 +206,11 @@ auto GpgKey::IsPrivateKey() const -> bool {
 }
 
 auto GpgKey::IsExpired() const -> bool {
-  if (km_ref_ != nullptr) return false;
+  if (km_ref_ != nullptr) {
+    return km_ref_->expires_at != 0 &&
+           QDateTime::fromSecsSinceEpoch(km_ref_->expires_at) <
+               QDateTime::currentDateTime();
+  }
   return key_ref_->expired;
 }
 

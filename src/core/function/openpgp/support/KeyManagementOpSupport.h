@@ -57,7 +57,8 @@ GF_DEF_OP_SUPPORT_TRAITS(ModifySubkeyPassphraseOpTag,
                          {OpenPGPEngine::kRPGP, "0.1.8"});
 
 GF_DEF_OP_SUPPORT_TRAITS(SetExpireOpTag, "op_set_expire",
-                         {OpenPGPEngine::kGNUPG, "2.2.0"});
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.1.9"});
 
 GF_DEF_OP_SUPPORT_TRAITS(GenerateRevCertOpTag, "op_generate_rev_cert",
                          {OpenPGPEngine::kGNUPG, "2.2.0"},

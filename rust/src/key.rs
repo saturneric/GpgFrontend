@@ -40,14 +40,14 @@ use crate::types::{
     GfrKeyAlgo, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus,
 };
 use crate::utils::{
-    PassphraseStateInternal, build_revocation_reason_subpacket, determine_algo, extract_key_length,
-    fetch_password_with_cache, password_from_zeroizing_bytes,
+    PassphraseStateInternal, build_revocation_reason_subpacket, choose_template_self_sig,
+    determine_algo, extract_key_length, fetch_password_with_cache, password_from_zeroizing_bytes,
 };
 use pgp::armor::{self, BlockType};
 use pgp::composed::{SignedPublicSubKey, SignedSecretSubKey};
 use pgp::crypto::hash::HashAlgorithm;
 use pgp::packet::{Packet, PacketHeader, SignatureConfig, SignatureType, Subpacket, SubpacketData};
-use pgp::types::{KeyDetails, KeyVersion, Password, SecretParams, SignedUser};
+use pgp::types::{Duration, KeyDetails, KeyVersion, Password, SecretParams, SignedUser, Tag};
 use pgp::{
     composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
     packet::Signature,
@@ -72,6 +72,8 @@ pub struct ExtractedSubkey {
     pub algo: GfrKeyAlgo,
     pub key_length: u32,
     pub created_at: u32,
+    /// Absolute expiration time (Unix epoch, seconds); `0` means never expires.
+    pub expires_at: u32,
     pub has_secret: bool,
     pub is_revoked: bool,
     pub can_sign: bool,
@@ -92,6 +94,8 @@ pub struct ExtractedMetadata {
     pub algo: GfrKeyAlgo,
     pub key_length: u32,
     pub created_at: u32,
+    /// Absolute expiration time (Unix epoch, seconds); `0` means never expires.
+    pub expires_at: u32,
     pub has_secret: bool,
     pub is_revoked: bool,
     pub can_sign: bool,
@@ -164,6 +168,41 @@ where
     (can_sign, can_encrypt, can_auth, can_certify)
 }
 
+/// Resolve the absolute expiration time (Unix epoch, seconds) implied by a set
+/// of self-signatures, given the target component's creation time.
+///
+/// The OpenPGP `KeyExpirationTime` subpacket encodes a duration measured from
+/// the key's creation time (RFC 9580 §5.2.3.13), so the absolute value is
+/// `created_at + duration`. Among the supplied signatures, the most-recently
+/// created one that carries a non-zero `KeyExpirationTime` wins; a zero
+/// duration or the absence of the subpacket both mean "never expires",
+/// reported here as `0`.
+fn expiration_from_self_sigs<'a, I>(sigs: I, created_at: u32) -> u32
+where
+    I: IntoIterator<Item = &'a Signature>,
+{
+    let mut best_sig_time: Option<u32> = None;
+    let mut expires_at: u32 = 0;
+
+    for sig in sigs {
+        let Some(dur) = sig.key_expiration_time() else {
+            continue;
+        };
+        let secs = dur.as_secs();
+        if secs == 0 {
+            continue;
+        }
+
+        let sig_time = sig.created().map(|t| t.as_secs()).unwrap_or(0);
+        if best_sig_time.is_none_or(|prev| sig_time >= prev) {
+            best_sig_time = Some(sig_time);
+            expires_at = created_at.saturating_add(secs);
+        }
+    }
+
+    expires_at
+}
+
 pub(crate) fn is_self_subkey_revocation(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
     is_self_signature_from_primary(sig, primary_fpr_bytes)
         && matches!(sig.typ(), Some(SignatureType::SubkeyRevocation))
@@ -197,12 +236,15 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
             extract_capabilities(sub.signatures.iter());
         let key_length = extract_key_length(sub.key.public_params());
         let is_revoked = is_subkey_revoked(&sub.signatures, &primary_fpr_bytes);
+        let created_at = sub.key.created_at().as_secs();
+        let expires_at = expiration_from_self_sigs(sub.signatures.iter(), created_at);
         subs.push(ExtractedSubkey {
             ver: sub.version().into(),
             fpr: sub.key.fingerprint().to_string(),
             key_id: sub.key.legacy_key_id().to_string(),
             algo: determine_algo(sub.key.public_params()),
-            created_at: sub.key.created_at().as_secs(),
+            created_at,
+            expires_at,
             has_secret: true,
             can_sign,
             can_encrypt,
@@ -263,13 +305,22 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     let key_length = extract_key_length(pk.primary_key.public_params());
     let is_revoked = is_primary_key_revoked(&pk.details.revocation_signatures, &primary_fpr_bytes)
         || is_primary_key_revoked(&pk.details.direct_signatures, &primary_fpr_bytes);
+    let created_at = pk.primary_key.created_at().as_secs();
+    let expires_at = expiration_from_self_sigs(
+        pk.details
+            .direct_signatures
+            .iter()
+            .chain(primary_user_sigs.iter()),
+        created_at,
+    );
 
     ExtractedMetadata {
         ver: pk.version().into(),
         fpr: pk.primary_key.fingerprint().to_string(),
         key_id: pk.primary_key.legacy_key_id().to_string(),
         algo: determine_algo(pk.primary_key.public_params()),
-        created_at: pk.primary_key.created_at().as_secs(),
+        created_at,
+        expires_at,
         has_secret: true,
         is_revoked,
         can_sign,
@@ -300,12 +351,15 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
             extract_capabilities(sub.signatures.iter());
         let key_length = extract_key_length(sub.key.public_params()).unwrap_or(0);
         let is_revoked = is_subkey_revoked(&sub.signatures, &primary_fpr_bytes);
+        let created_at = sub.key.created_at().as_secs();
+        let expires_at = expiration_from_self_sigs(sub.signatures.iter(), created_at);
         subs.push(ExtractedSubkey {
             ver: sub.version().into(),
             fpr: sub.key.fingerprint().to_string(),
             key_id: sub.key.legacy_key_id().to_string(),
             algo: determine_algo(sub.key.public_params()),
-            created_at: sub.key.created_at().as_secs(),
+            created_at,
+            expires_at,
             has_secret: false,
             can_sign,
             can_encrypt,
@@ -368,6 +422,14 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     let key_length = extract_key_length(pk.primary_key.public_params());
     let is_revoked = is_primary_key_revoked(&pk.details.revocation_signatures, &primary_fpr_bytes)
         || is_primary_key_revoked(&pk.details.direct_signatures, &primary_fpr_bytes);
+    let created_at = pk.primary_key.created_at().as_secs();
+    let expires_at = expiration_from_self_sigs(
+        pk.details
+            .direct_signatures
+            .iter()
+            .chain(primary_user_sigs.iter()),
+        created_at,
+    );
     ExtractedMetadata {
         ver: pk.version().into(),
         fpr: pk.primary_key.fingerprint().to_string(),
@@ -375,7 +437,8 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
         user_ids,
         algo: determine_algo(pk.primary_key.public_params()),
         key_length: key_length.unwrap_or(0),
-        created_at: pk.primary_key.created_at().as_secs(),
+        created_at,
+        expires_at,
         has_secret: false,
         is_revoked,
         subkeys: subs,
@@ -983,6 +1046,322 @@ pub fn modify_key_password_internal(
     }
 
     export_secret_key(secret_key)
+}
+
+/// Convert an absolute expiration time into the OpenPGP duration-from-creation
+/// form used by the `KeyExpirationTime` subpacket.
+///
+/// `expiration_epoch_secs == 0` means "never expires" and yields `None`. An
+/// expiration at or before the component's creation time is rejected as
+/// `ErrorInvalidInput`, as is one so far in the future it overflows the 4-octet
+/// duration field.
+fn expiration_duration(
+    created_at: u32,
+    expiration_epoch_secs: u64,
+) -> Result<Option<Duration>, GfrStatus> {
+    if expiration_epoch_secs == 0 {
+        return Ok(None);
+    }
+
+    let created = u64::from(created_at);
+    if expiration_epoch_secs <= created {
+        return Err(GfrStatus::ErrorInvalidInput);
+    }
+
+    let secs =
+        u32::try_from(expiration_epoch_secs - created).map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+    Ok(Some(Duration::from_secs(secs)))
+}
+
+/// Clone a template self-signature's config and rewrite it to carry `duration`
+/// as the key expiration, preserving every other subpacket.
+///
+/// Key flags, algorithm preferences, features, the primary-UID flag, and any
+/// embedded primary-key-binding back-signature (on signing subkeys) all survive
+/// because the whole config — including its signature type and version — is
+/// cloned from the existing signature. Only the issuer fingerprint, signature
+/// creation time, and key expiration are refreshed. A `None` duration drops the
+/// expiration entirely ("never expires").
+fn build_expiration_sig_config(
+    template: &Signature,
+    primary_fpr: pgp::types::Fingerprint,
+    duration: Option<Duration>,
+) -> Result<SignatureConfig, GfrStatus> {
+    let mut cfg = template.config().cloned().ok_or(GfrStatus::ErrorInternal)?;
+
+    let strip = |subpackets: &mut Vec<Subpacket>| {
+        subpackets.retain(|sp| {
+            !matches!(
+                sp.data,
+                SubpacketData::SignatureCreationTime(_)
+                    | SubpacketData::IssuerFingerprint(_)
+                    | SubpacketData::IssuerKeyId(_)
+                    | SubpacketData::KeyExpirationTime(_)
+            )
+        });
+    };
+    strip(&mut cfg.hashed_subpackets);
+    strip(&mut cfg.unhashed_subpackets);
+
+    cfg.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
+            .map_err(|_| GfrStatus::ErrorInternal)?,
+    );
+    cfg.hashed_subpackets.push(
+        Subpacket::regular(SubpacketData::SignatureCreationTime(
+            pgp::types::Timestamp::now(),
+        ))
+        .map_err(|_| GfrStatus::ErrorInternal)?,
+    );
+    if let Some(dur) = duration {
+        cfg.hashed_subpackets.push(
+            Subpacket::regular(SubpacketData::KeyExpirationTime(dur))
+                .map_err(|_| GfrStatus::ErrorInternal)?,
+        );
+    }
+
+    Ok(cfg)
+}
+
+/// Re-issue the primary key's self-signature(s) with a new expiration.
+///
+/// V6 keys carry key expiration in the direct-key signature (0x1F); V4 keys
+/// carry it in each User ID's self-certification. The corresponding signatures
+/// are rebuilt from the current ones and replaced in place, so a key with no
+/// usable self-signature is rejected as `ErrorInvalidData`.
+fn update_primary_expiration(
+    secret_key: &mut SignedSecretKey,
+    duration: Option<Duration>,
+    pwd: &Password,
+) -> Result<(), GfrStatus> {
+    let primary_fpr = secret_key.primary_key.fingerprint();
+    let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
+    let pk = secret_key.primary_key.public_key();
+
+    if secret_key.primary_key.version() == KeyVersion::V6 {
+        let template = {
+            let self_sigs: Vec<&Signature> = secret_key
+                .details
+                .direct_signatures
+                .iter()
+                .filter(|sig| is_self_signature_from_primary(sig, &primary_fpr_bytes))
+                .collect();
+            choose_template_self_sig(&self_sigs)
+                .cloned()
+                .ok_or(GfrStatus::ErrorInvalidData)?
+        };
+
+        let cfg = build_expiration_sig_config(&template, primary_fpr, duration)?;
+        let new_sig = cfg.sign_key(&secret_key.primary_key, pwd, &pk).into_gfr()?;
+
+        secret_key
+            .details
+            .direct_signatures
+            .retain(|sig| !is_self_signature_from_primary(sig, &primary_fpr_bytes));
+        secret_key.details.direct_signatures.push(new_sig);
+
+        return Ok(());
+    }
+
+    // V4: re-sign the self-certification on every User ID that carries one.
+    let mut updated_any = false;
+    for user in secret_key.details.users.iter_mut() {
+        let template = {
+            let self_sigs: Vec<&Signature> = user
+                .signatures
+                .iter()
+                .filter(|sig| is_self_signature_from_primary(sig, &primary_fpr_bytes))
+                .collect();
+            match choose_template_self_sig(&self_sigs) {
+                Some(sig) => sig.clone(),
+                None => continue,
+            }
+        };
+
+        let cfg = build_expiration_sig_config(&template, primary_fpr.clone(), duration)?;
+        let new_sig = cfg
+            .sign_certification(&secret_key.primary_key, &pk, pwd, Tag::UserId, &user.id)
+            .into_gfr()?;
+
+        user.signatures
+            .retain(|sig| !is_self_signature_from_primary(sig, &primary_fpr_bytes));
+        user.signatures.push(new_sig);
+        updated_any = true;
+    }
+
+    if updated_any {
+        Ok(())
+    } else {
+        Err(GfrStatus::ErrorInvalidData)
+    }
+}
+
+/// Re-issue a single subkey's binding signature with a new expiration.
+///
+/// The subkey binding signature (0x18) is rebuilt from the current one and
+/// replaced in place; any revocation signatures on the subkey are preserved.
+fn update_subkey_expiration(
+    secret_key: &mut SignedSecretKey,
+    target_fpr: &str,
+    duration: Option<Duration>,
+    pwd: &Password,
+) -> Result<(), GfrStatus> {
+    let target_idx = secret_key
+        .secret_subkeys
+        .iter()
+        .position(|sub| sub.key.fingerprint().to_string().to_uppercase() == target_fpr)
+        .ok_or(GfrStatus::ErrorInvalidInput)?;
+
+    let primary_fpr = secret_key.primary_key.fingerprint();
+    let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
+    let pk = secret_key.primary_key.public_key();
+
+    let subkey = secret_key
+        .secret_subkeys
+        .get_mut(target_idx)
+        .ok_or(GfrStatus::ErrorInternal)?;
+
+    let template = {
+        let binding_sigs: Vec<&Signature> = subkey
+            .signatures
+            .iter()
+            .filter(|sig| {
+                is_self_signature_from_primary(sig, &primary_fpr_bytes)
+                    && matches!(sig.typ(), Some(SignatureType::SubkeyBinding))
+            })
+            .collect();
+        choose_template_self_sig(&binding_sigs)
+            .cloned()
+            .ok_or(GfrStatus::ErrorInvalidData)?
+    };
+
+    let cfg = build_expiration_sig_config(&template, primary_fpr, duration)?;
+    let new_sig = cfg
+        .sign_subkey_binding(&secret_key.primary_key, &pk, pwd, subkey.key.public_key())
+        .into_gfr()?;
+
+    subkey.signatures.retain(|sig| {
+        !(is_self_signature_from_primary(sig, &primary_fpr_bytes)
+            && matches!(sig.typ(), Some(SignatureType::SubkeyBinding)))
+    });
+    subkey.signatures.push(new_sig);
+
+    Ok(())
+}
+
+/// Change the expiration of a primary key or a single subkey.
+///
+/// `target_fpr` selects the scope: `None`, an empty string, or the primary key
+/// fingerprint targets the primary key; any other fingerprint targets that
+/// subkey. `expiration_epoch_secs` is an absolute Unix time, or `0` for "never
+/// expires". The primary key is unlocked once (its passphrase drives the
+/// re-signing in every case) and the whole key block is re-exported.
+pub fn update_key_expiration_internal(
+    channel: i32,
+    secret_key_block: &str,
+    target_fpr: Option<&str>,
+    expiration_epoch_secs: u64,
+    fetch_cb: Option<GfrPasswordFetchCb>,
+) -> Result<GeneratedKeys, GfrStatus> {
+    let (mut secret_key, _) = SignedSecretKey::from_string(secret_key_block).map_err(|e| {
+        log::error!("Failed to parse secret key block: {}", e);
+        GfrStatus::ErrorInvalidData
+    })?;
+
+    let primary_fpr = secret_key
+        .primary_key
+        .fingerprint()
+        .to_string()
+        .to_uppercase();
+
+    let normalized_target = target_fpr.map(|s| s.to_uppercase());
+    let is_primary_target = match normalized_target.as_deref() {
+        None | Some("") => true,
+        Some(fpr) => fpr == primary_fpr,
+    };
+
+    let is_enc = matches!(
+        secret_key.primary_key.secret_params(),
+        SecretParams::Encrypted(_)
+    );
+    let pwd_bytes = if is_enc {
+        fetch_password_with_cache(
+            Some(&PASSWORD_CACHE),
+            PasswordCachePolicy::Default,
+            channel,
+            PassphraseStateInternal {
+                fpr: primary_fpr.clone(),
+                info: "Unlock Primary Key to change expiration".to_string(),
+                retry: false,
+                ask_for_new: false,
+                should_confirm: false,
+            },
+            fetch_cb,
+        )?
+    } else {
+        Zeroizing::new(Vec::new())
+    };
+    let pwd = password_from_zeroizing_bytes(pwd_bytes);
+
+    if is_primary_target {
+        let created_at = secret_key.primary_key.created_at().as_secs();
+        let duration = expiration_duration(created_at, expiration_epoch_secs)?;
+        update_primary_expiration(&mut secret_key, duration, &pwd)?;
+    } else {
+        let target = normalized_target.as_deref().unwrap_or_default();
+        let created_at = secret_key
+            .secret_subkeys
+            .iter()
+            .find(|sub| sub.key.fingerprint().to_string().to_uppercase() == target)
+            .map(|sub| sub.key.created_at().as_secs())
+            .ok_or(GfrStatus::ErrorInvalidInput)?;
+        let duration = expiration_duration(created_at, expiration_epoch_secs)?;
+        update_subkey_expiration(&mut secret_key, target, duration, &pwd)?;
+    }
+
+    export_secret_key(secret_key)
+}
+
+/// Stamp an absolute expiration onto the primary key of an in-memory secret key.
+///
+/// A thin wrapper over [`update_primary_expiration`] that resolves the
+/// duration-from-creation form from the primary key's own creation time, so the
+/// generation path can express expirations as absolute Unix times just like the
+/// FFI. `expiration_epoch_secs == 0` clears the expiration. The primary key must
+/// already be unlocked by `pwd` (an empty password for a freshly generated,
+/// not-yet-protected key).
+pub(crate) fn apply_primary_key_expiration(
+    secret_key: &mut SignedSecretKey,
+    expiration_epoch_secs: u64,
+    pwd: &Password,
+) -> Result<(), GfrStatus> {
+    let created_at = secret_key.primary_key.created_at().as_secs();
+    let duration = expiration_duration(created_at, expiration_epoch_secs)?;
+    update_primary_expiration(secret_key, duration, pwd)
+}
+
+/// Stamp an absolute expiration onto a single subkey of an in-memory secret key.
+///
+/// The companion of [`apply_primary_key_expiration`] for subkeys. Re-issuing the
+/// binding signature only needs the primary key unlocked by `pwd`; the subkey's
+/// own protection is irrelevant. `expiration_epoch_secs == 0` clears the
+/// expiration.
+pub(crate) fn apply_subkey_expiration(
+    secret_key: &mut SignedSecretKey,
+    target_fpr: &str,
+    expiration_epoch_secs: u64,
+    pwd: &Password,
+) -> Result<(), GfrStatus> {
+    let normalized = target_fpr.to_uppercase();
+    let created_at = secret_key
+        .secret_subkeys
+        .iter()
+        .find(|sub| sub.key.fingerprint().to_string().to_uppercase() == normalized)
+        .map(|sub| sub.key.created_at().as_secs())
+        .ok_or(GfrStatus::ErrorInvalidInput)?;
+    let duration = expiration_duration(created_at, expiration_epoch_secs)?;
+    update_subkey_expiration(secret_key, &normalized, duration, pwd)
 }
 
 /// Remove a subkey from a secret key block.

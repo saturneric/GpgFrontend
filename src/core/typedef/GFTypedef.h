@@ -67,6 +67,7 @@ struct GFSubKeyMetadata {
   unsigned key_length = 0;
 
   qint64 created_at = 0;
+  qint64 expires_at = 0;  ///< Unix epoch seconds; 0 means never expires.
   bool has_secret = false;
   bool is_revoked = false;
 
@@ -88,6 +89,7 @@ struct GFKeyMetadata {
   int algo = 0;
   unsigned key_length = 0;
   qint64 created_at = 0;
+  qint64 expires_at = 0;  ///< Unix epoch seconds; 0 means never expires.
   qint64 update_time = 0;
   bool has_secret = false;
   bool is_revoked = false;

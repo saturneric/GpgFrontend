@@ -35,6 +35,7 @@
 use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
     err::IntoGfrResult,
+    key::{apply_primary_key_expiration, apply_subkey_expiration},
     types::{GfrKeyAlgo, GfrKeyConfig, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrStatus},
     utils::{
         PassphraseStateInternal, check_if_should_use_key_ver_v6, fetch_password_with_cache,
@@ -164,6 +165,38 @@ pub fn create_key_internal(
             error!("Key generation failed: {}", e);
             GfrStatus::ErrorKeygenFailed
         })?;
+
+    // Stamp the requested expirations while every component is still unlocked.
+    // Re-issuing the self-signatures that carry the KeyExpirationTime subpacket
+    // needs the primary key unlocked to sign, so this must run before the
+    // passphrase-protection step below (empty password == not yet protected).
+    // The rPGP key builder has no expiration setter, so this is the only place
+    // a generated key acquires an expiry.
+    if key_config.expiration_epoch_secs != 0 {
+        apply_primary_key_expiration(
+            &mut secret_key,
+            key_config.expiration_epoch_secs,
+            &Password::empty(),
+        )?;
+    }
+    for (index, sub_config) in s_key_configs.iter().enumerate() {
+        if sub_config.expiration_epoch_secs == 0 {
+            continue;
+        }
+        let sub_fpr = secret_key
+            .secret_subkeys
+            .get(index)
+            .ok_or(GfrStatus::ErrorInternal)?
+            .key
+            .fingerprint()
+            .to_string();
+        apply_subkey_expiration(
+            &mut secret_key,
+            &sub_fpr,
+            sub_config.expiration_epoch_secs,
+            &Password::empty(),
+        )?;
+    }
 
     let primary_pwd_bytes = if key_config.has_passphrase {
         fetch_password_with_cache(
@@ -410,6 +443,26 @@ pub fn add_subkey_internal(
     };
 
     secret_key.secret_subkeys.push(signed_subkey);
+
+    // 8b. Stamp the requested expiration onto the freshly bound subkey by
+    // re-issuing its binding signature. Re-signing only needs the primary key
+    // unlocked (already covered by `primary_pw`); the subkey's own protection,
+    // set just above, is irrelevant to the binding signature.
+    if config.expiration_epoch_secs != 0 {
+        let new_fpr = secret_key
+            .secret_subkeys
+            .last()
+            .ok_or(GfrStatus::ErrorInternal)?
+            .key
+            .fingerprint()
+            .to_string();
+        apply_subkey_expiration(
+            &mut secret_key,
+            &new_fpr,
+            config.expiration_epoch_secs,
+            &primary_pw,
+        )?;
+    }
 
     // 9. Armor the updated keys for export
     let armored_s_key = secret_key

@@ -108,4 +108,21 @@ auto RevokeSubKeyRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& secret_key,
                              const QString& output_path, int reason_code,
                              const QString& reason_text) -> bool;
+
+/**
+ * @brief Change the expiration of a primary key or a single subkey.
+ *
+ * An empty @p skey_fpr (or one equal to the primary key fingerprint) targets
+ * the primary key; any other fingerprint targets that subkey. A `std::nullopt`
+ * @p expires clears the expiration ("never expires").
+ *
+ * @param ctx
+ * @param key
+ * @param skey_fpr fingerprint of the subkey to change, or empty for the primary
+ * @param expires absolute expiration time, or nullopt for "never expires"
+ * @return GpgError
+ */
+auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                       const SubkeyId& skey_fpr,
+                       const std::optional<QDateTime>& expires) -> GpgError;
 }  // namespace GpgFrontend

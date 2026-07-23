@@ -439,4 +439,96 @@ auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
   Rust::gfr_crypto_free_string(out_secret_block);
   return WriteFileGFBuffer(output_path, GFBuffer(out_block_str));
 }
+
+auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                       const SubkeyId& skey_fpr,
+                       const std::optional<QDateTime>& expires) -> GpgError {
+  auto key_db = ctx.KeyDatabase();
+  if (key_db == nullptr) {
+    LOG_E() << "key database is not initialized";
+    return GPG_ERR_GENERAL;
+  }
+
+  auto meta = key_db->GetKeyMetadata(key->Fingerprint());
+  if (!meta) {
+    LOG_E() << "key metadata not found in database for key: "
+            << key->Fingerprint();
+    return GPG_ERR_GENERAL;
+  }
+
+  auto key_block_data = key_db->GetKeyBlocks(meta->fpr);
+  if (!key_block_data) {
+    LOG_E() << "key block data not found in database for key with fpr: "
+            << meta->fpr;
+    return GPG_ERR_GENERAL;
+  }
+
+  if (key_block_data->secret_key.Empty()) {
+    LOG_E() << "secret key block is empty for key with fpr: " << meta->fpr;
+    return GPG_ERR_GENERAL;
+  }
+
+  // A null target selects the primary key. The GnuPG impl treats an empty
+  // fingerprint or one matching the primary the same way, so mirror that here.
+  auto target_is_primary = skey_fpr.isEmpty() || skey_fpr == key->Fingerprint();
+  auto target_fpr_utf8 = skey_fpr.toUtf8();
+
+  // 0 means "never expires"; otherwise pass the absolute Unix time. Unlike the
+  // GnuPG impl (which uses seconds-from-now), the rPGP engine takes an absolute
+  // epoch and derives the duration from the key's creation time internally.
+  auto expires_epoch = expires.has_value()
+                           ? static_cast<uint64_t>(expires->toSecsSinceEpoch())
+                           : 0;
+
+  auto key_block_utf8 = key_block_data->secret_key;
+  char* out_secret_block = nullptr;
+
+  Rust::GfrBuffer key_block_buffer = {
+      reinterpret_cast<const uint8_t*>(key_block_utf8.Data()),
+      key_block_utf8.Size()};
+
+  auto err = Rust::gfr_crypto_update_key_expiration(
+      ctx.GetChannel(), key_block_buffer,
+      target_is_primary ? nullptr : target_fpr_utf8.constData(), expires_epoch,
+      FetchPasswordCallback, &out_secret_block);
+
+  if (err != Rust::GfrStatus::Success) {
+    LOG_E() << "gfr_crypto_update_key_expiration error, code: "
+            << static_cast<int>(err);
+
+    switch (err) {
+      case Rust::GfrStatus::ErrorBadPassphrase:
+        return GPG_ERR_BAD_PASSPHRASE;
+      case Rust::GfrStatus::ErrorFetchPasswordFailed:
+        return GPG_ERR_CANCELED;
+      default:
+        return GPG_ERR_GENERAL;
+    }
+  }
+
+  if (out_secret_block == nullptr) {
+    LOG_E() << "gfr_crypto_update_key_expiration returned null secret block";
+    return GPG_ERR_GENERAL;
+  }
+
+  auto out_block_str = QString::fromUtf8(out_secret_block);
+  Rust::gfr_crypto_free_string(out_secret_block);
+
+  if (!key_db->DeleteKey(meta->fpr)) {
+    LOG_E() << "Failed to delete old key from database before re-import for "
+               "key with fpr: "
+            << key->Fingerprint();
+    return GPG_ERR_GENERAL;
+  }
+
+  auto info = ImportKeyRpgpImpl(ctx, GFBuffer(out_block_str));
+  if (info == nullptr || info->imported_keys.empty()) {
+    LOG_E() << "Failed to import updated key block after changing expiration "
+               "for key with fpr: "
+            << key->Fingerprint();
+    return GPG_ERR_GENERAL;
+  }
+
+  return GPG_ERR_NO_ERROR;
+}
 }  // namespace GpgFrontend

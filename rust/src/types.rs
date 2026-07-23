@@ -262,6 +262,10 @@ pub struct GfrKeyConfig {
     /// always force v6 regardless of this field. Ignored on subkey configs,
     /// which inherit the primary key's version.
     pub ver: GfrOpenPGPKeyVersion,
+    /// Absolute expiration time for this key component (Unix epoch, seconds).
+    /// `0` means "never expires". Applied per-component: the primary config
+    /// governs the primary key, each subkey config governs its own subkey.
+    pub expiration_epoch_secs: u64,
 }
 
 /// Output of a successful key generation operation.
@@ -299,6 +303,8 @@ pub struct GfrSubkeyMetadataC {
     pub key_length: u32,
     /// Creation timestamp (Unix epoch, seconds).
     pub created_at: u32,
+    /// Expiration timestamp (Unix epoch, seconds); `0` means never expires.
+    pub expires_at: u32,
     /// True if the secret component is available.
     pub has_secret: bool,
     /// True if the subkey has been revoked.
@@ -350,6 +356,8 @@ pub struct GfrKeyMetadataC {
     pub key_length: u32,
     /// Creation timestamp (Unix epoch, seconds).
     pub created_at: u32,
+    /// Expiration timestamp (Unix epoch, seconds); `0` means never expires.
+    pub expires_at: u32,
     /// True if the secret component is available.
     pub has_secret: bool,
     /// True if the key has been revoked.

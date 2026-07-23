@@ -42,6 +42,7 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
   meta.fpr = QString::fromUtf8(gfr_meta.fpr);
   meta.key_id = QString::fromUtf8(gfr_meta.key_id);
   meta.created_at = static_cast<qint64>(gfr_meta.created_at);
+  meta.expires_at = static_cast<qint64>(gfr_meta.expires_at);
   meta.has_secret = gfr_meta.has_secret;
   meta.is_revoked = gfr_meta.is_revoked;
   // GpgFrontend itself will be responsible for handling disabled keys
@@ -70,6 +71,7 @@ auto ParseGfrMetadata(const Rust::GfrKeyMetadataC& gfr_meta) -> GFKey {
     sub_meta.fpr = QString::fromUtf8(subkey_meta.fpr);
     sub_meta.key_id = QString::fromUtf8(subkey_meta.key_id);
     sub_meta.created_at = static_cast<qint64>(subkey_meta.created_at);
+    sub_meta.expires_at = static_cast<qint64>(subkey_meta.expires_at);
     sub_meta.has_secret = subkey_meta.has_secret;
     sub_meta.algo = static_cast<int>(subkey_meta.algo);
     sub_meta.key_length = static_cast<unsigned int>(subkey_meta.key_length);

@@ -61,7 +61,8 @@ GF_DEF_OP_IMPL_TRAITS(ModifySubkeyPassphraseOpTag,
                       {OpenPGPEngine::kRPGP, &ModifySubkeyPassphraseRpgpImpl});
 
 GF_DEF_OP_IMPL_TRAITS(SetExpireOpTag, &SetExpireGnuPGImpl,
-                      {OpenPGPEngine::kGNUPG, &SetExpireGnuPGImpl});
+                      {OpenPGPEngine::kGNUPG, &SetExpireGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &SetExpireRpgpImpl});
 
 GF_DEF_OP_IMPL_TRAITS(GenerateRevCertOpTag, &GenerateRevCertGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &GenerateRevCertGnuPGImpl},

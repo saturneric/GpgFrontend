@@ -259,6 +259,16 @@ class GF_CORE_EXPORT GFKeyDatabase {
   auto migrate_v1_to_v2() -> bool;
 
   /**
+   * @brief Migrate the schema from version 2 to version 3.
+   *
+   * Adds the expires_at column to key_metadata and subkey_metadata if not
+   * present.
+   *
+   * @return true on success, false if any ALTER TABLE statement fails
+   */
+  auto migrate_v2_to_v3() -> bool;
+
+  /**
    * @brief Restrict the database directory and files to the current user via OS
    * permissions.
    *

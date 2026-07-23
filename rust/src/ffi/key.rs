@@ -37,7 +37,7 @@ use crate::err::clear_last_error;
 use crate::key::{
     delete_subkey_internal, extract_rev_cert_target_fpr_internal, generate_key_rev_cert_internal,
     import_rev_cert_internal, merge_key_block_internal, modify_key_password_internal,
-    revoke_subkey_internal,
+    revoke_subkey_internal, update_key_expiration_internal,
 };
 use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
@@ -110,6 +110,7 @@ pub extern "C" fn gfr_crypto_extract_metadata(
                     key_id: CString::new(sub.key_id).unwrap_or_default().into_raw(),
                     algo: sub.algo,
                     created_at: sub.created_at,
+                    expires_at: sub.expires_at,
                     has_secret: sub.has_secret,
                     is_revoked: sub.is_revoked,
                     can_sign: sub.can_sign,
@@ -150,6 +151,7 @@ pub extern "C" fn gfr_crypto_extract_metadata(
                 algo: meta.algo,
                 key_length: meta.key_length,
                 created_at: meta.created_at,
+                expires_at: meta.expires_at,
                 has_secret: meta.has_secret,
                 is_revoked: meta.is_revoked,
                 can_sign: meta.can_sign,
@@ -510,6 +512,76 @@ pub extern "C" fn gfr_crypto_revoke_subkey(
             subkey_fpr_str,
             reason_code,
             reason_text,
+            Some(fetch_pwd_cb),
+        )?;
+
+        let secret_cstr =
+            CString::new(result.secret.as_bytes()).map_err(|_| GfrStatus::ErrorInternal)?;
+
+        unsafe {
+            *out_secret_block = secret_cstr.into_raw();
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(())) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+/// Change the expiration of a primary key or a single subkey in `secret_key_block`.
+///
+/// `target_fpr` selects the scope: null, empty, or the primary key fingerprint
+/// targets the primary key; any other fingerprint targets that subkey.
+/// `expiration_epoch_secs` is an absolute Unix time in seconds, or `0` for
+/// "never expires". The passphrase is fetched via `fetch_pwd_cb`. On success
+/// `*out_secret_block` is set to a heap-allocated updated armored secret key
+/// block. Free with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// `secret_key_block` and `out_secret_block` must be non-null. `target_fpr` may
+/// be null to target the primary key.
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_update_key_expiration(
+    channel: i32,
+    secret_key_block: GfrBuffer,
+    target_fpr: *const c_char,
+    expiration_epoch_secs: u64,
+    fetch_pwd_cb: GfrPasswordFetchCb,
+    out_secret_block: *mut *mut c_char,
+) -> GfrStatus {
+    clear_last_error();
+
+    if !out_secret_block.is_null() {
+        unsafe {
+            *out_secret_block = std::ptr::null_mut();
+        }
+    }
+
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        if out_secret_block.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        let block_str = unsafe { secret_key_block.as_str() }?;
+
+        let fpr_str = if target_fpr.is_null() {
+            None
+        } else {
+            let s = unsafe { CStr::from_ptr(target_fpr) }
+                .to_str()
+                .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+            if s.is_empty() { None } else { Some(s) }
+        };
+
+        let result = update_key_expiration_internal(
+            channel,
+            block_str,
+            fpr_str,
+            expiration_epoch_secs,
             Some(fetch_pwd_cb),
         )?;
 

@@ -427,4 +427,242 @@ TEST_F(RpgpCoreTest, GenerateV6KeyTest) {
   KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
 }
 
+namespace {
+// Re-fetch a key from the repository after an operation that rewrote it. The
+// fingerprint is stable across a re-signing, so it round-trips by fpr.
+auto ReloadKey(const QString& fpr) -> GpgKeyPtr {
+  GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
+  return GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).GetKeyPtr(fpr);
+}
+}  // namespace
+
+// Setting an expiration on a V4 primary key must be reflected back through the
+// metadata pipeline, and clearing it must return the key to "never expires".
+TEST_F(RpgpCoreTest, CoreSetPrimaryKeyExpirationV4Test) {
+  auto key = GenerateRpgpKeyWithVersion(4, "v4-expire@gpgfrontend.bktus.com");
+  ASSERT_TRUE(key != nullptr);
+  const auto fpr = key->Fingerprint();
+  EXPECT_FALSE(key->IsExpired());
+  EXPECT_EQ(key->ExpirationTime().toSecsSinceEpoch(), 0);
+
+  const auto expires = QDateTime::currentDateTimeUtc().addYears(1);
+  ASSERT_EQ(
+      CheckGpgError(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                        .SetExpire(key, {}, expires)),
+      GPG_ERR_NO_ERROR);
+
+  key = ReloadKey(fpr);
+  ASSERT_TRUE(key != nullptr);
+  EXPECT_EQ(key->ExpirationTime().toSecsSinceEpoch(),
+            expires.toSecsSinceEpoch());
+  EXPECT_FALSE(key->IsExpired());
+
+  // Clearing (a null expiry) returns it to never-expires.
+  ASSERT_EQ(
+      CheckGpgError(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                        .SetExpire(key, {}, std::nullopt)),
+      GPG_ERR_NO_ERROR);
+
+  key = ReloadKey(fpr);
+  ASSERT_TRUE(key != nullptr);
+  EXPECT_EQ(key->ExpirationTime().toSecsSinceEpoch(), 0);
+  EXPECT_FALSE(key->IsExpired());
+
+  KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
+}
+
+// A V6 primary key carries expiration in its direct-key signature; the pipeline
+// must read it back the same way as for V4.
+TEST_F(RpgpCoreTest, CoreSetPrimaryKeyExpirationV6Test) {
+  auto key = GenerateRpgpKeyWithVersion(6, "v6-expire@gpgfrontend.bktus.com");
+  ASSERT_TRUE(key != nullptr);
+  const auto fpr = key->Fingerprint();
+
+  const auto expires = QDateTime::currentDateTimeUtc().addYears(2);
+  ASSERT_EQ(
+      CheckGpgError(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                        .SetExpire(key, {}, expires)),
+      GPG_ERR_NO_ERROR);
+
+  key = ReloadKey(fpr);
+  ASSERT_TRUE(key != nullptr);
+  EXPECT_EQ(key->ExpirationTime().toSecsSinceEpoch(),
+            expires.toSecsSinceEpoch());
+  EXPECT_FALSE(key->IsExpired());
+
+  KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
+}
+
+// Setting an expiration on a subkey rebuilds its binding signature. The binding
+// must stay valid afterwards -- encrypt/decrypt through the encryption subkey
+// is the proof -- and the new expiry must be visible on that subkey.
+TEST_F(RpgpCoreTest, CoreSetSubkeyExpirationPreservesBindingTest) {
+  auto info =
+      KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
+          .ImportKey(GFBuffer(QString::fromLatin1(test_private_key_data)));
+  ASSERT_TRUE(info != nullptr);
+
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr(kFixtureKeyFpr);
+  ASSERT_TRUE(key != nullptr);
+
+  QString encr_subkey_fpr;
+  for (const auto& s_key : key->SubKeys()) {
+    if (!s_key.IsHasCertCap() && s_key.IsHasEncrCap()) {
+      encr_subkey_fpr = s_key.Fingerprint();
+      break;
+    }
+  }
+  ASSERT_FALSE(encr_subkey_fpr.isEmpty());
+
+  const auto expires = QDateTime::currentDateTimeUtc().addYears(1);
+  ASSERT_EQ(
+      CheckGpgError(KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                        .SetExpire(key, encr_subkey_fpr, expires)),
+      GPG_ERR_NO_ERROR);
+
+  key = ReloadKey(kFixtureKeyFpr);
+  ASSERT_TRUE(key != nullptr);
+
+  bool found = false;
+  for (const auto& s_key : key->SubKeys()) {
+    if (s_key.Fingerprint() == encr_subkey_fpr) {
+      found = true;
+      EXPECT_EQ(s_key.ExpirationTime().toSecsSinceEpoch(),
+                expires.toSecsSinceEpoch());
+      EXPECT_FALSE(s_key.IsExpired());
+      break;
+    }
+  }
+  EXPECT_TRUE(found) << "the encryption subkey vanished after re-signing";
+
+  // The rebuilt binding must still validate: encrypting to the key and
+  // decrypting through the encryption subkey has to keep working.
+  EXPECT_EQ(CheckGpgError(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
+}
+
+namespace {
+// Build an Ed25519 primary key generation request for `email` on `version`
+// that expires at `expires`.
+auto MakeExpiringKeyInfo(int version, const QString& email,
+                         const QDateTime& expires)
+    -> QSharedPointer<KeyGenerateInfo> {
+  auto info = QSharedPointer<KeyGenerateInfo>::create();
+  info->SetName("expire_probe");
+  info->SetEmail(email);
+
+  auto [found, algo] = KeyGenerateInfo::SearchPrimaryKeyAlgo("ed25519");
+  if (!found) return nullptr;
+  info->SetAlgo(algo);
+
+  // Order matters: SetNonExpired(false) resets the stored expiry, so the
+  // expiration time must be set afterwards.
+  info->SetNonExpired(false);
+  info->SetExpireTime(expires);
+  info->SetNonPassPhrase(true);
+  info->SetKeyVersion(version);
+  return info;
+}
+}  // namespace
+
+// A generated key must honor the requested expiration -- the rPGP builder has
+// no expiration setter, so the engine stamps it after generation. V4 carries it
+// in the User ID self-certification.
+TEST_F(RpgpCoreTest, GenerateV4KeyWithExpirationTest) {
+  const auto expires = QDateTime::currentDateTimeUtc().addYears(1);
+  auto info =
+      MakeExpiringKeyInfo(4, "v4-gen-expire@gpgfrontend.bktus.com", expires);
+  ASSERT_TRUE(info != nullptr);
+
+  auto [err, data_object] =
+      KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
+          .GenerateKeySync(info);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+  ASSERT_TRUE(result.IsGood());
+  auto key = ReloadKey(result.GetFingerprint());
+  ASSERT_TRUE(key != nullptr);
+  EXPECT_EQ(key->KeyVersion(), 4);
+  EXPECT_FALSE(key->IsExpired());
+  EXPECT_EQ(key->ExpirationTime().toSecsSinceEpoch(),
+            expires.toSecsSinceEpoch());
+
+  KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
+}
+
+// The V6 counterpart: expiration lives in the direct-key signature but must
+// round-trip identically.
+TEST_F(RpgpCoreTest, GenerateV6KeyWithExpirationTest) {
+  const auto expires = QDateTime::currentDateTimeUtc().addYears(2);
+  auto info =
+      MakeExpiringKeyInfo(6, "v6-gen-expire@gpgfrontend.bktus.com", expires);
+  ASSERT_TRUE(info != nullptr);
+
+  auto [err, data_object] =
+      KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
+          .GenerateKeySync(info);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+  ASSERT_TRUE(result.IsGood());
+  auto key = ReloadKey(result.GetFingerprint());
+  ASSERT_TRUE(key != nullptr);
+  EXPECT_EQ(key->KeyVersion(), 6);
+  EXPECT_FALSE(key->IsExpired());
+  EXPECT_EQ(key->ExpirationTime().toSecsSinceEpoch(),
+            expires.toSecsSinceEpoch());
+
+  KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
+}
+
+// A primary+subkey generation must stamp the expiration onto both components,
+// each from its own config, and the subkey binding must stay valid.
+TEST_F(RpgpCoreTest, GenerateKeyWithSubkeyExpirationTest) {
+  const auto p_expires = QDateTime::currentDateTimeUtc().addYears(1);
+  const auto s_expires = QDateTime::currentDateTimeUtc().addYears(2);
+
+  auto p_params =
+      MakeExpiringKeyInfo(4, "gen-sub-expire@gpgfrontend.bktus.com", p_expires);
+  ASSERT_TRUE(p_params != nullptr);
+
+  auto s_params = QSharedPointer<KeyGenerateInfo>::create();
+  s_params->SetIsSubKey(true);
+  auto [found, s_algo] = KeyGenerateInfo::SearchSubKeyAlgo("cv25519");
+  ASSERT_TRUE(found);
+  s_params->SetAlgo(s_algo);
+  s_params->SetNonExpired(false);
+  s_params->SetExpireTime(s_expires);
+  s_params->SetNonPassPhrase(true);
+
+  auto [err, data_object] =
+      KeyGenerationOperation::GetInstance(kRpgpChannelForUnitTest)
+          .GenerateKeyWithSubkeySync(p_params, s_params);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  auto result = ExtractParams<GpgGenerateKeyResult>(data_object, 0);
+  ASSERT_TRUE(result.IsGood());
+  auto key = ReloadKey(result.GetFingerprint());
+  ASSERT_TRUE(key != nullptr);
+  EXPECT_FALSE(key->IsExpired());
+  EXPECT_EQ(key->ExpirationTime().toSecsSinceEpoch(),
+            p_expires.toSecsSinceEpoch());
+
+  // The primary key is also surfaced as a subkey entry, so pick the real
+  // encryption subkey (no certify capability) rather than the front element.
+  bool found_encr_sub = false;
+  for (const auto& sub : key->SubKeys()) {
+    if (sub.IsHasCertCap() || !sub.IsHasEncrCap()) continue;
+    found_encr_sub = true;
+    EXPECT_FALSE(sub.IsExpired());
+    EXPECT_EQ(sub.ExpirationTime().toSecsSinceEpoch(),
+              s_expires.toSecsSinceEpoch());
+    break;
+  }
+  EXPECT_TRUE(found_encr_sub)
+      << "the generated encryption subkey was not found";
+
+  KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
+}
+
 }  // namespace GpgFrontend::Test
