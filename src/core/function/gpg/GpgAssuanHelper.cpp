@@ -104,7 +104,54 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> GpgError {
   }
 
   ctx_map_[type] = p_ctx;
+
+  // Now that the connection is live and cached, teach the agent where to put
+  // pinentry. Must run after the ctx_map_ insert so the OPTION commands reuse
+  // this same connection instead of recursing into ConnectToSocket.
+  if (type == GpgComponentType::kGPG_AGENT) {
+    update_pinentry_environment(type);
+  }
+
   return err;
+}
+
+void GpgAssuanHelper::update_pinentry_environment(GpgComponentType type) {
+  struct EnvOption {
+    const char* assuan_key;
+    const char* env_name;
+  };
+
+  // Mirrors gpg's send_pinentry_environment: whatever is set gets forwarded.
+  // `display` makes the agent pick a graphical pinentry; `ttyname` is the
+  // curses fallback for a headless session.
+  static constexpr std::array<EnvOption, 6> kEnvOptions = {{
+      {"ttyname", "GPG_TTY"},
+      {"ttytype", "TERM"},
+      {"display", "DISPLAY"},
+      {"xauthority", "XAUTHORITY"},
+      {"lc-ctype", "LC_CTYPE"},
+      {"lc-messages", "LC_MESSAGES"},
+  }};
+
+  for (const auto& option : kEnvOptions) {
+    auto value = qEnvironmentVariable(option.env_name);
+    if (value.isEmpty()) continue;
+
+    auto [err, _] = SendStatusCommand(
+        type, QString("OPTION %1=%2").arg(option.assuan_key, value));
+    if (err != GPG_ERR_NO_ERROR) {
+      LOG_D() << "agent rejected pinentry OPTION" << option.assuan_key
+              << "err:" << CheckGpgError(err);
+    }
+  }
+
+  // A Wayland pinentry needs its socket path, which has no dedicated OPTION and
+  // must be pushed into the agent's environment explicitly.
+  auto wayland_display = qEnvironmentVariable("WAYLAND_DISPLAY");
+  if (!wayland_display.isEmpty()) {
+    SendStatusCommand(
+        type, QString("OPTION putenv=WAYLAND_DISPLAY=%1").arg(wayland_display));
+  }
 }
 
 auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,

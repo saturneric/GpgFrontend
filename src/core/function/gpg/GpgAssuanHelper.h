@@ -138,6 +138,18 @@ class GF_CORE_EXPORT GpgAssuanHelper
   void launch_component(GpgComponentType type);
 
   /**
+   * @brief Forward the pinentry environment (tty, display, ...) to gpg-agent.
+   *
+   * gpg-agent launches pinentry using the tty/display of the connection that
+   * asks for a passphrase. `gpg` sends these options before any passphrase-
+   * driven command; a private Assuan connection must do the same, or pinentry
+   * has nowhere to appear and fails with "Inappropriate ioctl for device".
+   *
+   * @param type target component (only kGPG_AGENT drives pinentry)
+   */
+  void update_pinentry_environment(GpgComponentType type);
+
+  /**
    * @brief
    *
    * @param type

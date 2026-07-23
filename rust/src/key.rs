@@ -625,45 +625,51 @@ pub fn export_merged_secret_keys(key_blocks: &[&str]) -> Result<String, GfrStatu
     String::from_utf8(armored_output).map_err(|_| GfrStatus::ErrorArmorFailed)
 }
 
-fn fetch_old_and_new_passwords(
+/// Prompt for the key's current passphrase, to unlock it before re-protection.
+fn fetch_old_password(
     channel: i32,
     target_fpr: &str,
-    is_encrypted: bool,
-    unlock_purpose: &str,
-    new_purpose: &str,
+    purpose: &str,
     fetch_pwd_cb: Option<GfrPasswordFetchCb>,
-) -> Result<(Option<Password>, Password), GfrStatus> {
-    let old_pw = if is_encrypted {
-        let old_pwd_bytes = fetch_password_with_cache(
-            Some(&PASSWORD_CACHE),
-            PasswordCachePolicy::Default,
-            channel,
-            PassphraseStateInternal {
-                fpr: target_fpr.to_string(),
-                info: unlock_purpose.to_string(),
-                retry: false,
-                ask_for_new: false,
-                should_confirm: false,
-            },
-            fetch_pwd_cb,
-        )?;
+) -> Result<Password, GfrStatus> {
+    let bytes = fetch_password_with_cache(
+        Some(&PASSWORD_CACHE),
+        PasswordCachePolicy::Default,
+        channel,
+        PassphraseStateInternal {
+            fpr: target_fpr.to_string(),
+            info: purpose.to_string(),
+            retry: false,
+            ask_for_new: false,
+            should_confirm: false,
+        },
+        fetch_pwd_cb,
+    )?;
 
-        if old_pwd_bytes.is_empty() {
-            return Err(GfrStatus::ErrorFetchPasswordFailed);
-        }
+    if bytes.is_empty() {
+        return Err(GfrStatus::ErrorFetchPasswordFailed);
+    }
 
-        Some(password_from_zeroizing_bytes(old_pwd_bytes))
-    } else {
-        None
-    };
+    Ok(password_from_zeroizing_bytes(bytes))
+}
 
-    let new_pwd_bytes = fetch_password_with_cache(
+/// Prompt for the new passphrase to re-protect the key with.
+///
+/// Only ever called once the key has actually been unlocked, so the user is not
+/// asked to choose a new passphrase for a key they could not open.
+fn fetch_new_password(
+    channel: i32,
+    target_fpr: &str,
+    purpose: &str,
+    fetch_pwd_cb: Option<GfrPasswordFetchCb>,
+) -> Result<Password, GfrStatus> {
+    let bytes = fetch_password_with_cache(
         Some(&PASSWORD_CACHE),
         PasswordCachePolicy::Bypass,
         channel,
         PassphraseStateInternal {
             fpr: target_fpr.to_string(),
-            info: new_purpose.to_string(),
+            info: purpose.to_string(),
             retry: false,
             ask_for_new: true,
             should_confirm: true,
@@ -671,13 +677,11 @@ fn fetch_old_and_new_passwords(
         fetch_pwd_cb,
     )?;
 
-    if new_pwd_bytes.is_empty() {
+    if bytes.is_empty() {
         return Err(GfrStatus::ErrorFetchPasswordFailed);
     }
 
-    let new_pw = password_from_zeroizing_bytes(new_pwd_bytes);
-
-    Ok((old_pw, new_pw))
+    Ok(password_from_zeroizing_bytes(bytes))
 }
 
 /// Prompt for a key's current passphrase again, targeted at `fpr`.
@@ -782,16 +786,20 @@ fn change_whole_key_password(
             .iter()
             .any(|s| s.key.secret_params().is_encrypted());
 
-    let (old_pw, new_pw) = fetch_old_and_new_passwords(
-        channel,
-        &primary_fpr,
-        any_encrypted,
-        "Unlock Key to change password",
-        "Set new password for Key",
-        fetch_pwd_cb,
-    )?;
-
-    let mut rng = rand::thread_rng();
+    // Unlock everything first, so the new passphrase is only asked for once the
+    // key is proven to open — never prompt for a new password before the old one
+    // is verified. The old passphrase is fetched once and reused across keys; a
+    // key that rejects it is re-prompted on its own.
+    let old_pw = if any_encrypted {
+        Some(fetch_old_password(
+            channel,
+            &primary_fpr,
+            "Unlock Key to change password",
+            fetch_pwd_cb,
+        )?)
+    } else {
+        None
+    };
 
     if secret_key.primary_key.secret_params().is_encrypted() {
         let primary = &mut secret_key.primary_key;
@@ -805,18 +813,9 @@ fn change_whole_key_password(
         )?;
     }
 
-    secret_key
-        .primary_key
-        .set_password(&mut rng, &new_pw)
-        .into_gfr()?;
-
-    // Invalidate cache entries for this key
-    PASSWORD_CACHE.remove_by_fpr(&primary_fpr);
-
     for subkey in secret_key.secret_subkeys.iter_mut() {
-        let sub_fpr = subkey.key.fingerprint().to_string().to_uppercase();
-
         if subkey.key.secret_params().is_encrypted() {
+            let sub_fpr = subkey.key.fingerprint().to_string().to_uppercase();
             let key = &mut subkey.key;
             remove_password_with_retry(
                 channel,
@@ -827,7 +826,28 @@ fn change_whole_key_password(
                 |pw| key.remove_password(pw).is_ok(),
             )?;
         }
+    }
 
+    // Everything is open; now collect the single new passphrase and apply it.
+    let new_pw = fetch_new_password(
+        channel,
+        &primary_fpr,
+        "Set new password for Key",
+        fetch_pwd_cb,
+    )?;
+
+    let mut rng = rand::thread_rng();
+
+    secret_key
+        .primary_key
+        .set_password(&mut rng, &new_pw)
+        .into_gfr()?;
+
+    // Invalidate cache entries for this key
+    PASSWORD_CACHE.remove_by_fpr(&primary_fpr);
+
+    for subkey in secret_key.secret_subkeys.iter_mut() {
+        let sub_fpr = subkey.key.fingerprint().to_string().to_uppercase();
         subkey.key.set_password(&mut rng, &new_pw).into_gfr()?;
 
         // Decrypt and sign cache under the subkey fingerprint, so a stale entry
@@ -855,26 +875,31 @@ fn change_single_key_password(
     let mut rng = rand::thread_rng();
 
     if primary_fpr == target_fpr {
-        let (old_pw, new_pw) = fetch_old_and_new_passwords(
-            channel,
-            target_fpr,
-            secret_key.primary_key.secret_params().is_encrypted(),
-            "Unlock Primary Key to change password",
-            "Set new password for Primary Key",
-            fetch_pwd_cb,
-        )?;
-
+        // Unlock the key first; only prompt for the new passphrase once it opens.
         if secret_key.primary_key.secret_params().is_encrypted() {
+            let old_pw = fetch_old_password(
+                channel,
+                target_fpr,
+                "Unlock Primary Key to change password",
+                fetch_pwd_cb,
+            )?;
             let primary = &mut secret_key.primary_key;
             remove_password_with_retry(
                 channel,
                 &primary_fpr,
                 "Unlock Primary Key to change password",
-                old_pw.as_ref(),
+                Some(&old_pw),
                 fetch_pwd_cb,
                 |pw| primary.remove_password(pw).is_ok(),
             )?;
         }
+
+        let new_pw = fetch_new_password(
+            channel,
+            target_fpr,
+            "Set new password for Primary Key",
+            fetch_pwd_cb,
+        )?;
 
         secret_key
             .primary_key
@@ -894,26 +919,32 @@ fn change_single_key_password(
             continue;
         }
 
-        let (old_pw, new_pw) = fetch_old_and_new_passwords(
-            channel,
-            target_fpr,
-            subkey.key.secret_params().is_encrypted(),
-            "Unlock Subkey to change password",
-            "Set new password for Subkey",
-            fetch_pwd_cb,
-        )?;
-
+        // Unlock the subkey first; only prompt for the new passphrase once it
+        // opens, so a mistyped current passphrase never costs a new one.
         if subkey.key.secret_params().is_encrypted() {
+            let old_pw = fetch_old_password(
+                channel,
+                target_fpr,
+                "Unlock Subkey to change password",
+                fetch_pwd_cb,
+            )?;
             let key = &mut subkey.key;
             remove_password_with_retry(
                 channel,
                 &sub_fpr,
                 "Unlock Subkey to change password",
-                old_pw.as_ref(),
+                Some(&old_pw),
                 fetch_pwd_cb,
                 |pw| key.remove_password(pw).is_ok(),
             )?;
         }
+
+        let new_pw = fetch_new_password(
+            channel,
+            target_fpr,
+            "Set new password for Subkey",
+            fetch_pwd_cb,
+        )?;
 
         subkey.key.set_password(&mut rng, &new_pw).into_gfr()?;
 
