@@ -31,6 +31,8 @@
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
+#include "core/function/openpgp/MessageCryptoOperation.h"
+#include "core/function/rpgp/PasswordFetcher.h"
 #include "core/model/GpgGenerateKeyResult.h"
 #include "core/model/GpgKeyGenerateInfo.h"
 #include "core/utils/GpgUtils.h"
@@ -150,6 +152,230 @@ TEST_F(RpgpCoreTest, CoreRevokeSubkeyTest) {
   s_keys = key->SubKeys();
   ASSERT_GE(s_keys.size(), 2);
   ASSERT_TRUE(s_keys[1].IsRevoked());
+}
+
+namespace {
+
+// Fingerprint of a fixture key whose passphrase is kDefaultPassphrase.
+const char* const kFixtureKeyFpr = "3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497";
+const char* const kDefaultPassphrase = "123456";
+const char* const kNewPassphrase = "654321";
+
+// Answers unlock prompts from `unlock` (by fingerprint, falling back to
+// `unlock_default`) and new-passphrase prompts with `fresh`. Lets a test assert
+// which key is actually protected by which passphrase.
+struct ScriptedPassphrases {
+  QMap<QString, QString> unlock;
+  QString unlock_default;
+  QString fresh;
+};
+
+void InstallPassphraseScript(const ScriptedPassphrases& script) {
+  SetChannelPasswordFetcher(
+      kRpgpChannelForUnitTest, [script](const PassphraseState& s) -> GFBuffer {
+        if (s.ask_for_new) return GFBuffer(script.fresh);
+        auto it = script.unlock.find(s.fpr.toUpper());
+        return GFBuffer(it != script.unlock.end() ? it.value()
+                                                  : script.unlock_default);
+      });
+}
+
+// Restore what RpgpCoreTest::SetUpTestSuite installs, so a test that reshuffles
+// passphrases doesn't leak its script into the rest of the suite.
+void RestoreDefaultPassphraseFetcher() {
+  SetChannelPasswordFetcher(kRpgpChannelForUnitTest,
+                            [](const PassphraseState&) -> GFBuffer {
+                              return GFBuffer(QString(kDefaultPassphrase));
+                            });
+}
+
+// Encrypt to the fixture key, then decrypt again. Decryption unlocks the
+// *encryption subkey*, so this is what proves a passphrase change reached the
+// subkeys and not just the primary key packet.
+auto EncryptThenDecryptRoundTrip() -> GpgError {
+  auto encrypt_key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                         .GetPubkeyPtr(kFixtureKeyFpr);
+  if (encrypt_key == nullptr) return GPG_ERR_NO_PUBKEY;
+
+  auto buffer = GFBuffer(QString("Hello RPGP!"));
+
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSync({encrypt_key}, buffer, true);
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR) return err;
+
+  auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
+
+  auto [err_0, data_object_0] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .DecryptSync(encr_out_buffer);
+  if (CheckGpgError(err_0) != GPG_ERR_NO_ERROR) return err_0;
+
+  auto decr_out_buffer = ExtractParams<GFBuffer>(data_object_0, 1);
+  return decr_out_buffer == buffer ? GPG_ERR_NO_ERROR : GPG_ERR_GENERAL;
+}
+
+}  // namespace
+
+// A whole-key change must re-protect the subkeys too, matching what
+// `gpg --passwd` does. Decrypting afterwards with only the new passphrase
+// available is the assertion: it unlocks the encryption subkey.
+TEST_F(RpgpCoreTest, CoreModifyKeyPassphraseCoversSubkeysTest) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr(kFixtureKeyFpr);
+  ASSERT_TRUE(key != nullptr);
+  ASSERT_GE(key->SubKeys().size(), 2);
+
+  InstallPassphraseScript(
+      {.unlock_default = kDefaultPassphrase, .fresh = kNewPassphrase});
+
+  auto [err, _] = KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                      .ModifyPasswordSync(key);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  // Only the new passphrase is on offer from here on.
+  InstallPassphraseScript({.unlock_default = kNewPassphrase});
+  GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
+
+  EXPECT_EQ(CheckGpgError(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
+
+  RestoreDefaultPassphraseFetcher();
+}
+
+// A per-subkey change must touch only the named subkey. The encryption subkey
+// moves to the new passphrase while the primary stays on the old one.
+TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseTest) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr(kFixtureKeyFpr);
+  ASSERT_TRUE(key != nullptr);
+
+  // The primary key is certify-only here; encryption runs on a subkey.
+  QString encr_subkey_fpr;
+  for (const auto& s_key : key->SubKeys()) {
+    if (!s_key.IsHasCertCap() && s_key.IsHasEncrCap()) {
+      encr_subkey_fpr = s_key.Fingerprint();
+      break;
+    }
+  }
+  ASSERT_FALSE(encr_subkey_fpr.isEmpty());
+
+  InstallPassphraseScript(
+      {.unlock_default = kDefaultPassphrase, .fresh = kNewPassphrase});
+
+  auto [err, _] = KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                      .ModifySubkeyPasswordSync(key, encr_subkey_fpr);
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+
+  GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
+
+  // The encryption subkey now needs the new passphrase; offering only the old
+  // one must fail.
+  InstallPassphraseScript({.unlock_default = kDefaultPassphrase});
+  EXPECT_NE(CheckGpgError(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
+
+  InstallPassphraseScript({.unlock_default = kNewPassphrase});
+  EXPECT_EQ(CheckGpgError(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
+
+  // ...while the primary key was left alone: it still unlocks with the old
+  // passphrase. A wrong one here would fail the unlock.
+  InstallPassphraseScript(
+      {.unlock_default = kDefaultPassphrase, .fresh = kDefaultPassphrase});
+  auto [err_p, _p] =
+      KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+          .ModifySubkeyPasswordSync(key, key->Fingerprint());
+  EXPECT_EQ(CheckGpgError(err_p), GPG_ERR_NO_ERROR);
+
+  RestoreDefaultPassphraseFetcher();
+}
+
+// A mistyped current passphrase must cost a re-prompt, not the whole operation.
+TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseRetriesBadUnlockTest) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr(kFixtureKeyFpr);
+  ASSERT_TRUE(key != nullptr);
+
+  QString encr_subkey_fpr;
+  for (const auto& s_key : key->SubKeys()) {
+    if (!s_key.IsHasCertCap() && s_key.IsHasEncrCap()) {
+      encr_subkey_fpr = s_key.Fingerprint();
+      break;
+    }
+  }
+  ASSERT_FALSE(encr_subkey_fpr.isEmpty());
+
+  // Get the unlock wrong once, then right -- as a user fixing a typo would.
+  int unlock_attempts = 0;
+  bool first_prompt_flagged_retry = true;
+  bool second_prompt_flagged_retry = false;
+  SetChannelPasswordFetcher(kRpgpChannelForUnitTest,
+                            [&](const PassphraseState& s) -> GFBuffer {
+                              if (s.ask_for_new)
+                                return GFBuffer(QString(kNewPassphrase));
+
+                              // PassphraseDialog renders this flag as "the
+                              // passphrase you entered was incorrect", so the
+                              // re-prompt must carry it and the first must not.
+                              if (++unlock_attempts == 1) {
+                                first_prompt_flagged_retry = s.retry;
+                                return GFBuffer(QString("wrong-passphrase"));
+                              }
+                              if (unlock_attempts == 2)
+                                second_prompt_flagged_retry = s.retry;
+                              return GFBuffer(QString(kDefaultPassphrase));
+                            });
+
+  auto [err, _] = KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                      .ModifySubkeyPasswordSync(key, encr_subkey_fpr);
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  EXPECT_FALSE(first_prompt_flagged_retry)
+      << "the initial prompt must not claim a previous attempt was wrong";
+  EXPECT_TRUE(second_prompt_flagged_retry)
+      << "the re-prompt must be flagged as a retry so the dialog can say so";
+  EXPECT_GE(unlock_attempts, 2)
+      << "the rejected passphrase was not re-prompted";
+
+  GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest).FlushKeyCache();
+  InstallPassphraseScript({.unlock_default = kNewPassphrase});
+  EXPECT_EQ(CheckGpgError(EncryptThenDecryptRoundTrip()), GPG_ERR_NO_ERROR);
+
+  RestoreDefaultPassphraseFetcher();
+}
+
+// Once the retries are spent, the user must be told the passphrase was wrong --
+// not handed a bare "General error".
+TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseReportsBadPassphraseTest) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr(kFixtureKeyFpr);
+  ASSERT_TRUE(key != nullptr);
+
+  QString encr_subkey_fpr;
+  for (const auto& s_key : key->SubKeys()) {
+    if (!s_key.IsHasCertCap() && s_key.IsHasEncrCap()) {
+      encr_subkey_fpr = s_key.Fingerprint();
+      break;
+    }
+  }
+  ASSERT_FALSE(encr_subkey_fpr.isEmpty());
+
+  InstallPassphraseScript(
+      {.unlock_default = "always-wrong", .fresh = kNewPassphrase});
+
+  auto [err, _] = KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                      .ModifySubkeyPasswordSync(key, encr_subkey_fpr);
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_BAD_PASSPHRASE);
+
+  RestoreDefaultPassphraseFetcher();
+}
+
+// An empty subkey fingerprint is a caller error, not a silent whole-key change.
+TEST_F(RpgpCoreTest, CoreModifySubkeyPassphraseRejectsEmptyFprTest) {
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr(kFixtureKeyFpr);
+  ASSERT_TRUE(key != nullptr);
+
+  auto [err, _] = KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest)
+                      .ModifySubkeyPasswordSync(key, {});
+  EXPECT_EQ(CheckGpgError(err), GPG_ERR_INV_ARG);
 }
 
 namespace {

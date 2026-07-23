@@ -141,6 +141,28 @@ TEST_F(GpgCoreTest, GpgSubKeyTest) {
             s_key.ExpirationTime() < QDateTime::currentDateTime());
 }
 
+// The keygrip is how a single subkey is addressed in gpg-agent, which is the
+// only way GnuPG can change one subkey's passphrase on its own. It only arrives
+// if the context sets GPGME_KEYLIST_MODE_WITH_KEYGRIP.
+TEST_F(GpgCoreTest, GpgSubKeyKeygripTest) {
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                 .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");
+  auto s_keys = key.SubKeys();
+  ASSERT_EQ(s_keys.size(), 2);
+
+  QSet<QString> keygrips;
+  for (const auto& s_key : s_keys) {
+    auto keygrip = s_key.Keygrip();
+    EXPECT_FALSE(keygrip.isEmpty())
+        << "no keygrip for subkey " << s_key.Fingerprint().toStdString();
+    keygrips.insert(keygrip);
+  }
+
+  // Each key has its own agent-side secret, so the keygrips must differ --
+  // otherwise a per-subkey PASSWD would hit the wrong key.
+  EXPECT_EQ(keygrips.size(), s_keys.size());
+}
+
 TEST_F(GpgCoreTest, GpgUIDTest) {
   auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKey("9490795B78F8AFE9F93BD09281704859182661FB");

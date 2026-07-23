@@ -88,6 +88,12 @@ void ResetKeyringState() {
   }
   repo.FlushCache();
 
+  // The keys behind these fingerprints are about to be replaced, so any
+  // passphrase cached for them would outlive the key it belongs to. This
+  // matters for tests that change a passphrase: without it, the next test's
+  // decryption gets served the passphrase set by the previous one.
+  ClearRpgpPasswordCache();
+
   ImportPrivateKeys();
 }
 
@@ -133,11 +139,10 @@ void RpgpCoreTest::SetUpTestSuite() {
     return;
   }
 
-  SetChannelPasswordFetcher(
-      kRpgpChannelForUnitTest,
-      [](const PassphraseState&) -> GFBuffer {
-        return GFBuffer(QString("123456"));
-      });
+  SetChannelPasswordFetcher(kRpgpChannelForUnitTest,
+                            [](const PassphraseState&) -> GFBuffer {
+                              return GFBuffer(QString("123456"));
+                            });
 
   ImportPrivateKeys();
 }
