@@ -35,6 +35,7 @@
 
 //
 #include "core/module/ModuleManager.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/widgets/GRTTreeView.h"
 #include "ui/widgets/ModuleListView.h"
 
@@ -48,16 +49,6 @@ constexpr int kActivationSettleMs = 300;
 
 /// number of hash characters shown before the ellipsis
 constexpr int kHashDisplayLength = 24;
-
-auto AccentColor(const QPalette& palette, bool positive) -> QColor {
-  const auto dark = palette.color(QPalette::Base).lightness() < 128;
-  if (!positive) {
-    auto color = palette.color(QPalette::Text);
-    color.setAlpha(150);
-    return color;
-  }
-  return dark ? QColor(102, 187, 106) : QColor(46, 125, 50);
-}
 
 }  // namespace
 
@@ -259,12 +250,6 @@ void ModuleControllerDialog::refresh_all() {
   slot_load_module_details(ui_->moduleListView->GetCurrentModuleID());
 }
 
-void ModuleControllerDialog::set_chip(QLabel* label, const QString& text,
-                                      const QColor& color) {
-  label->setText(QString("<span style=\"color:%1;\">%2</span>")
-                     .arg(color.name(QColor::HexRgb), text.toHtmlEscaped()));
-}
-
 void ModuleControllerDialog::slot_load_module_details(
     Module::ModuleIdentifier module_id) {
   auto module = module_manager_->SearchModule(module_id);
@@ -303,15 +288,14 @@ void ModuleControllerDialog::slot_load_module_details(
 
   ui_->detailVersionLabel->setText(module->GetModuleVersion());
 
-  set_chip(ui_->statusChipLabel,
-           if_activated ? tr("● Active") : tr("○ Inactive"),
-           AccentColor(palette(), if_activated));
-  set_chip(ui_->typeChipLabel, integrated ? tr("Integrated") : tr("External"),
-           palette().color(QPalette::Link));
+  SetChip(ui_->statusChipLabel,
+          if_activated ? tr("● Active") : tr("○ Inactive"),
+          AccentColor(palette(), if_activated));
+  SetChip(ui_->typeChipLabel, integrated ? tr("Integrated") : tr("External"),
+          palette().color(QPalette::Link));
   ui_->autoChipLabel->setVisible(module_so.auto_activate);
   if (module_so.auto_activate) {
-    set_chip(ui_->autoChipLabel, tr("Auto Start"),
-             AccentColor(palette(), true));
+    SetChip(ui_->autoChipLabel, tr("Auto Start"), AccentColor(palette(), true));
   }
 
   const auto author = meta_data.value("Author");

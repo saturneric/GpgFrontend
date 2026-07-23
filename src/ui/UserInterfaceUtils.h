@@ -119,6 +119,32 @@ auto GF_UI_EXPORT AppKeyProtectionDisplayName(AppKeyProtection protection)
 auto GF_UI_EXPORT LowerSuffix(const QFileInfo& info) -> QString;
 
 /**
+ * @brief Palette-derived accent colour for status chips.
+ *
+ * Derived from the palette instead of hard coded so chips stay legible under
+ * both light and dark themes without a stylesheet. A negative state is not
+ * painted red, it is simply de-emphasised text.
+ *
+ * @param palette the palette of the widget the chip belongs to
+ * @param positive whether the chip reports a good state
+ * @return the colour to paint the chip text with
+ */
+auto GF_UI_EXPORT AccentColor(const QPalette& palette, bool positive) -> QColor;
+
+/**
+ * @brief Render a small coloured status chip into a label.
+ *
+ * Uses an inline coloured span rather than a stylesheet, so the label keeps
+ * the platform font and the colour can follow the palette.
+ *
+ * @param label the label to fill
+ * @param text plain text, escaped by this function
+ * @param color the text colour, usually from AccentColor()
+ */
+void GF_UI_EXPORT SetChip(QLabel* label, const QString& text,
+                          const QColor& color);
+
+/**
  * @brief Whether the entry looks like an OpenPGP message container.
  *
  * These are the files that can be decrypted or verified inline.

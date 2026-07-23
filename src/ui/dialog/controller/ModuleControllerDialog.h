@@ -78,11 +78,6 @@ class ModuleControllerDialog : public GeneralDialog {
    * @brief Reload the list and the currently displayed module's details.
    */
   void refresh_all();
-
-  /**
-   * @brief Render a colored chip into the given label.
-   */
-  void set_chip(QLabel* label, const QString& text, const QColor& color);
 };
 
 }  // namespace GpgFrontend::UI

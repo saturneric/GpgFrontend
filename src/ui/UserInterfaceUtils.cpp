@@ -487,6 +487,21 @@ auto IsOpenPGPSignatureFile(const QFileInfo &info) -> bool {
   return LowerSuffix(info) == "sig";
 }
 
+auto AccentColor(const QPalette &palette, bool positive) -> QColor {
+  const auto dark = palette.color(QPalette::Base).lightness() < 128;
+  if (!positive) {
+    auto color = palette.color(QPalette::Text);
+    color.setAlpha(150);
+    return color;
+  }
+  return dark ? QColor(102, 187, 106) : QColor(46, 125, 50);
+}
+
+void SetChip(QLabel *label, const QString &text, const QColor &color) {
+  label->setText(QString("<span style=\"color:%1;\">%2</span>")
+                     .arg(color.name(QColor::HexRgb), text.toHtmlEscaped()));
+}
+
 auto ResolveAppearanceFont(const QString &family, int point_size) -> QFont {
   // Cached: this is asked again for every text surface each time appearance
   // settings are applied, and enumerating the installed families is not cheap.

@@ -74,11 +74,28 @@ class SmartCardControllerDialog : public GeneralDialog {
  private:
   QSharedPointer<Ui_SmartCardControllerDialog> ui_;  ///<
   int channel_;
-  bool has_card_;
+  bool has_card_ = false;
   GpgOpenPGPCard card_info_;
   QString cached_status_hash_;
-  QTimer* timer_;
-  bool scd_version_supported_;
+  QTimer* timer_ = nullptr;
+  bool scd_version_supported_ = false;
+
+  /**
+   * @brief Apply every translatable string.
+   *
+   * The strings in the .ui file are Designer-time placeholders only.
+   */
+  void init_texts();
+
+  /**
+   * @brief Build the drop-down menus of the action bar.
+   */
+  void init_actions();
+
+  /**
+   * @brief Wire up every signal of the dialog.
+   */
+  void init_connections();
 
   /**
    * @brief Get the smart card serial number object
@@ -93,10 +110,29 @@ class SmartCardControllerDialog : public GeneralDialog {
   void fetch_smart_card_info(const QString& serial_number);
 
   /**
-   * @brief
-   *
+   * @brief Fill the detail pane from card_info_.
    */
-  void print_smart_card_info();
+  void render_card_info();
+
+  /**
+   * @brief Fill the identity form and the header chips.
+   */
+  void render_identity();
+
+  /**
+   * @brief Fill the retry counters, UIF and status form.
+   */
+  void render_status();
+
+  /**
+   * @brief Fill the on-card key table.
+   */
+  void render_card_keys();
+
+  /**
+   * @brief Fill the extended capability and additional info forms.
+   */
+  void render_capabilities();
 
   /**
    * @brief

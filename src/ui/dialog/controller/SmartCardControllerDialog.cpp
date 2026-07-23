@@ -40,6 +40,32 @@
 #include "ui_SmartCardControllerDialog.h"
 
 namespace GpgFrontend::UI {
+
+namespace {
+
+/// how often the inserted-card list is polled, in milliseconds
+constexpr int kCardPollIntervalMs = 3000;
+
+/// settle time before asking gpg for the refreshed card status, in
+/// milliseconds; SCD FETCH does not update the key stubs synchronously
+constexpr int kFetchSettleMs = 1000;
+
+/// columns of the on-card key table
+enum CardKeyColumn {
+  kColumnSlot = 0,
+  kColumnUsage,
+  kColumnType,
+  kColumnAlgorithm,
+  kColumnCreated,
+  kColumnFingerprint,
+  kColumnGrip,
+  kCardKeyColumnCount,
+};
+
+const char* const kCardHowToUrl = "https://gnupg.org/howtos/card-howto/en/";
+
+}  // namespace
+
 SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
     : GeneralDialog("SmartCardControllerDialog", parent),
       ui_(QSharedPointer<Ui_SmartCardControllerDialog>::create()),
@@ -48,74 +74,115 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
           GpgSmartCardManager::GetInstance(channel_).IsSCDVersionSupported()) {
   ui_->setupUi(this);
 
-  ui_->smartCardLabel->setText(tr("Smart Card(s):"));
-  ui_->keyStubLabel->setText(tr("Key Stub(s) in Key Database(s):"));
+  init_texts();
+  init_actions();
+  init_connections();
 
-  ui_->cNameButton->setText(tr("Change Name"));
-  ui_->cLangButton->setText(tr("Change Language"));
-  ui_->cGenderButton->setText(tr("Change Gender"));
-  ui_->cLoginDataButton->setText(tr("Change Login Data"));
-  ui_->cPubKeyURLButton->setText(tr("Change Public Key URL"));
-  ui_->cPINButton->setText(tr("Change PIN"));
-  ui_->cAdminPINButton->setText(tr("Change Admin PIN"));
-  ui_->cResetCodeButton->setText(tr("Change Reset Code"));
-  ui_->fetchButton->setText(tr("Fetch"));
-  ui_->restartGpgAgentButton->setText(tr("Restart All Gpg-Agents"));
-  ui_->generateKeysButton->setText(tr("Generate Card Keys"));
-  ui_->refreshButton->setText(tr("Refresh"));
-
-  ui_->operationGroupBox->setTitle(tr("Operations"));
+  ui_->cardSplitter->setStretchFactor(0, 2);
+  ui_->cardSplitter->setStretchFactor(1, 1);
 
   for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
     ui_->keyDBIndexComboBox->insertItem(
         key_db.channel, QString("%1: %2").arg(key_db.channel).arg(key_db.name));
   }
 
-  connect(ui_->keyDBIndexComboBox,
-          qOverload<int>(&QComboBox::currentIndexChanged), this,
-          [=](int index) { refresh_key_tree_view(index); });
+  // instant refresh
+  slot_listen_smart_card_changes();
 
-  connect(ui_->keyDBIndexComboBox, &QComboBox::currentTextChanged, this,
-          [=](const QString& serial_number) {
-            select_smart_card_by_serial_number(serial_number);
-          });
+  timer_ = new QTimer(this);
+  connect(timer_, &QTimer::timeout, this,
+          &SmartCardControllerDialog::slot_listen_smart_card_changes);
 
-  connect(ui_->currentCardComboBox, &QComboBox::currentTextChanged, this,
-          [=](const QString& serial_number) {
-            select_smart_card_by_serial_number(serial_number);
-          });
+  if (scd_version_supported_) {
+    timer_->start(kCardPollIntervalMs);
+  }
+}
 
-  connect(ui_->refreshButton, &QPushButton::clicked, this,
-          [=](bool) { slot_refresh(); });
+void SmartCardControllerDialog::init_texts() {
+  setWindowTitle(tr("Smart Card Controller"));
 
-  connect(ui_->fetchButton, &QPushButton::clicked, this,
-          [=](bool) { slot_fetch_smart_card_keys(); });
+  ui_->smartCardLabel->setText(tr("Card"));
+  ui_->keyStubLabel->setText(tr("Key Stubs in"));
 
-  connect(ui_->cNameButton, &QPushButton::clicked, this,
-          [=](bool) { modify_key_attribute("DISP-NAME"); });
+  ui_->identityGroup->setTitle(tr("Identity"));
+  ui_->readerKeyLabel->setText(tr("Reader"));
+  ui_->serialKeyLabel->setText(tr("Serial Number"));
+  ui_->manufacturerKeyLabel->setText(tr("Manufacturer"));
+  ui_->cardKeyLabel->setText(tr("Card"));
+  ui_->appKeyLabel->setText(tr("Application"));
+  ui_->languageKeyLabel->setText(tr("Language"));
+  ui_->sexKeyLabel->setText(tr("Sex"));
 
-  connect(ui_->cLangButton, &QPushButton::clicked, this,
-          [=](bool) { modify_key_attribute("DISP-LANG"); });
+  ui_->accessGroup->setTitle(tr("Access & Status"));
+  ui_->sigCounterKeyLabel->setText(tr("Signature Counter"));
+  ui_->chv1KeyLabel->setText(tr("CHV1 Cached"));
+  ui_->kdfKeyLabel->setText(tr("KDF Status"));
 
-  connect(ui_->cGenderButton, &QPushButton::clicked, this,
-          [=](bool) { modify_key_attribute("DISP-SEX"); });
+  ui_->cardKeysGroup->setTitle(tr("Keys on Card"));
+  ui_->cardKeysTable->setColumnCount(kCardKeyColumnCount);
+  ui_->cardKeysTable->setHorizontalHeaderLabels(
+      {tr("Slot"), tr("Usage"), tr("Type"), tr("Algorithm"), tr("Created"),
+       tr("Fingerprint"), tr("Grip")});
+  ui_->cardKeysTable->verticalHeader()->hide();
+  ui_->cardKeysTable->horizontalHeader()->setSectionResizeMode(
+      QHeaderView::ResizeToContents);
+  ui_->cardKeysTable->horizontalHeader()->setSectionResizeMode(
+      kColumnFingerprint, QHeaderView::Stretch);
 
-  connect(ui_->cPubKeyURLButton, &QPushButton::clicked, this,
-          [=](bool) { modify_key_attribute("PUBKEY-URL"); });
+  ui_->capabilitiesGroup->setTitle(tr("Extended Capabilities"));
+  ui_->kiKeyLabel->setText(tr("Key Info (ki)"));
+  ui_->aacKeyLabel->setText(tr("Additional Auth (aac)"));
+  ui_->btKeyLabel->setText(tr("Biometric Terminal (bt)"));
+  ui_->kdfSupportedKeyLabel->setText(tr("KDF Supported"));
+  ui_->statusIndicatorKeyLabel->setText(tr("Status Indicator"));
 
-  connect(ui_->cLoginDataButton, &QPushButton::clicked, this,
-          [=](bool) { modify_key_attribute("LOGIN-DATA"); });
+  ui_->additionalInfoGroup->setTitle(tr("Additional Info"));
 
-  connect(ui_->cPINButton, &QPushButton::clicked, this,
-          [=](bool) { modify_key_pin("OPENPGP.1"); });
+  ui_->currentCardComboBox->setPlaceholderText(tr("No card detected"));
 
-  connect(ui_->cAdminPINButton, &QPushButton::clicked, this,
-          [=](bool) { modify_key_pin("OPENPGP.3"); });
+  ui_->cardholderButton->setText(tr("Cardholder"));
+  ui_->accessCodesButton->setText(tr("Access Codes"));
+  ui_->generateKeysButton->setText(tr("Generate Card Keys"));
+  ui_->fetchButton->setText(tr("Fetch"));
+  ui_->refreshButton->setText(tr("Refresh"));
+  ui_->overflowButton->setToolTip(tr("More Actions"));
 
-  connect(ui_->cResetCodeButton, &QPushButton::clicked, this,
-          [=](bool) { modify_key_pin("OPENPGP.2"); });
+  auto title_font = ui_->cardHolderLabel->font();
+  title_font.setBold(true);
+  title_font.setPointSizeF(font().pointSizeF() + 2);
+  ui_->cardHolderLabel->setFont(title_font);
 
-  connect(ui_->restartGpgAgentButton, &QPushButton::clicked, this, [=](bool) {
+  auto notice_font = ui_->noCardTitleLabel->font();
+  notice_font.setBold(true);
+  notice_font.setPointSizeF(font().pointSizeF() + 2);
+  ui_->noCardTitleLabel->setFont(notice_font);
+}
+
+void SmartCardControllerDialog::init_actions() {
+  auto* cardholder_menu = new QMenu(ui_->cardholderButton);
+  cardholder_menu->addAction(tr("Change Name"), this,
+                             [=]() { modify_key_attribute("DISP-NAME"); });
+  cardholder_menu->addAction(tr("Change Language"), this,
+                             [=]() { modify_key_attribute("DISP-LANG"); });
+  cardholder_menu->addAction(tr("Change Sex"), this,
+                             [=]() { modify_key_attribute("DISP-SEX"); });
+  cardholder_menu->addAction(tr("Change Login Data"), this,
+                             [=]() { modify_key_attribute("LOGIN-DATA"); });
+  cardholder_menu->addAction(tr("Change Public Key URL"), this,
+                             [=]() { modify_key_attribute("PUBKEY-URL"); });
+  ui_->cardholderButton->setMenu(cardholder_menu);
+
+  auto* access_menu = new QMenu(ui_->accessCodesButton);
+  access_menu->addAction(tr("Change PIN"), this,
+                         [=]() { modify_key_pin("OPENPGP.1"); });
+  access_menu->addAction(tr("Change Admin PIN"), this,
+                         [=]() { modify_key_pin("OPENPGP.3"); });
+  access_menu->addAction(tr("Change Reset Code"), this,
+                         [=]() { modify_key_pin("OPENPGP.2"); });
+  ui_->accessCodesButton->setMenu(access_menu);
+
+  auto* overflow_menu = new QMenu(ui_->overflowButton);
+  overflow_menu->addAction(tr("Restart All Gpg-Agents"), this, [=]() {
     bool ret = true;
     for (const auto& channel : OpenPGPContext::GetAllChannelId()) {
       ret = GpgAdvancedOperator::GetInstance(channel).RestartGpgComponents();
@@ -132,6 +199,28 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
           tr("Failed to restart all or one of the GnuPG's component(s)"));
     }
   });
+  overflow_menu->addSeparator();
+  overflow_menu->addAction(tr("Open GnuPG Smart Card HOWTO"), this, [=]() {
+    QDesktopServices::openUrl(QUrl(QLatin1String(kCardHowToUrl)));
+  });
+  ui_->overflowButton->setMenu(overflow_menu);
+}
+
+void SmartCardControllerDialog::init_connections() {
+  connect(ui_->keyDBIndexComboBox,
+          qOverload<int>(&QComboBox::currentIndexChanged), this,
+          [=](int index) { refresh_key_tree_view(index); });
+
+  connect(ui_->currentCardComboBox, &QComboBox::currentTextChanged, this,
+          [=](const QString& serial_number) {
+            select_smart_card_by_serial_number(serial_number);
+          });
+
+  connect(ui_->refreshButton, &QPushButton::clicked, this,
+          [=](bool) { slot_refresh(); });
+
+  connect(ui_->fetchButton, &QPushButton::clicked, this,
+          [=](bool) { slot_fetch_smart_card_keys(); });
 
   connect(ui_->generateKeysButton, &QPushButton::clicked, this, [=](bool) {
     auto serial_number = ui_->currentCardComboBox->currentText();
@@ -150,19 +239,6 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
           &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=]() {
             refresh_key_tree_view(ui_->keyDBIndexComboBox->currentIndex());
           });
-
-  // instant refresh
-  slot_listen_smart_card_changes();
-
-  timer_ = new QTimer(this);
-  connect(timer_, &QTimer::timeout, this,
-          &SmartCardControllerDialog::slot_listen_smart_card_changes);
-
-  if (scd_version_supported_) {
-    timer_->start(3000);
-  }
-
-  setWindowTitle(tr("Smart Card Controller"));
 }
 
 void SmartCardControllerDialog::select_smart_card_by_serial_number(
@@ -207,163 +283,181 @@ void SmartCardControllerDialog::fetch_smart_card_info(
   card_info_ = *card_info;
   has_card_ = true;
 
-  print_smart_card_info();
+  render_card_info();
   slot_disable_controllers(!has_card_);
   refresh_key_tree_view(ui_->keyDBIndexComboBox->currentIndex());
 }
 
-void SmartCardControllerDialog::print_smart_card_info() {
+void SmartCardControllerDialog::render_card_info() {
   if (!has_card_) return;
 
-  QString html;
-  QTextStream out(&html);
+  ui_->detailStackedWidget->setCurrentWidget(ui_->detailPage);
+  ui_->keyStubContainer->show();
+
+  render_identity();
+  render_status();
+  render_card_keys();
+  render_capabilities();
+}
+
+void SmartCardControllerDialog::render_identity() {
   const auto& card = card_info_;
 
-  out << "<h2>" << tr("OpenPGP Card Information") << "</h2>";
+  ui_->cardHolderLabel->setText(card.card_holder.isEmpty() ? tr("Unnamed Card")
+                                                           : card.card_holder);
 
-  out << "<h3>" << tr("Basic Information") << "</h3><ul>";
-  out << "<li><b>" << tr("Reader") << ":"
-      << "</b> " << card.reader << "</li>";
-  out << "<li><b>" << tr("Serial Number") << ":"
-      << "</b> " << card.serial_number << "</li>";
-  out << "<li><b>" << tr("Card Type") << ":"
-      << "</b> " << card.card_type << "</li>";
-  out << "<li><b>" << tr("Card Version") << ":"
-      << "</b> " << card.card_version << "</li>";
-  out << "<li><b>" << tr("App Type") << ":"
-      << "</b> " << card.app_type << "</li>";
-  out << "<li><b>" << tr("App Version") << ":"
-      << "</b> " << card.app_version << "</li>";
-  out << "<li><b>" << tr("Manufacturer ID") << ":"
-      << "</b> " << card.manufacturer_id << "</li>";
-  out << "<li><b>" << tr("Manufacturer") << ":"
-      << "</b> " << card.manufacturer << "</li>";
-  out << "<li><b>" << tr("Card Holder") << ":"
-      << "</b> " << card.card_holder << "</li>";
-  out << "<li><b>" << tr("Language") << ":"
-      << "</b> " << card.display_language << "</li>";
-  out << "<li><b>" << tr("Sex") << ":"
-      << "</b> " << card.display_sex << "</li>";
-  out << "</ul>";
+  ui_->readerValueLabel->setText(card.reader);
+  ui_->serialValueLabel->setText(card.serial_number);
 
-  out << "<h3>" << tr("Status") << "</h3><ul>";
-  out << "<li><b>" << tr("Signature Counter") << ":"
-      << "</b> " << card.sig_counter << "</li>";
-  out << "<li><b>" << tr("CHV1 Cached") << ":"
-      << "</b> " << card.chv1_cached << "</li>";
-  out << "<li><b>" << tr("CHV Max Length") << ":"
-      << "</b> "
-      << QString("%1, %2, %3")
-             .arg(card.chv_max_len[0])
-             .arg(card.chv_max_len[1])
-             .arg(card.chv_max_len[2])
-      << "</li>";
-  out << "<li><b>" << tr("CHV Retry Left") << ":"
-      << "</b> "
-      << QString("%1, %2, %3")
-             .arg(card.chv_retry[0])
-             .arg(card.chv_retry[1])
-             .arg(card.chv_retry[2])
-      << "</li>";
-  out << "<li><b>" << tr("KDF Status") << ":"
-      << "</b> ";
+  auto manufacturer =
+      card.manufacturer.isEmpty() ? tr("Unknown") : card.manufacturer;
+  ui_->manufacturerValueLabel->setText(
+      QString("%1 (0x%2)")
+          .arg(manufacturer,
+               QString("%1").arg(card.manufacturer_id, 4, 16, QChar('0'))));
+
+  ui_->cardValueLabel->setText(
+      tr("%1, version %2").arg(card.card_type).arg(card.card_version));
+  ui_->appValueLabel->setText(
+      tr("%1, version %2").arg(card.app_type).arg(card.app_version));
+
+  ui_->languageValueLabel->setText(
+      card.display_language.isEmpty() ? tr("Not set") : card.display_language);
+  ui_->sexValueLabel->setText(card.display_sex.isEmpty() ? tr("Not set")
+                                                         : card.display_sex);
+
+  SetChip(ui_->statusChipLabel, tr("● Ready"), AccentColor(palette(), true));
+  SetChip(ui_->manufacturerChipLabel, manufacturer,
+          palette().color(QPalette::Link));
+}
+
+void SmartCardControllerDialog::render_status() {
+  const auto& card = card_info_;
+
+  // the retry counters are the numbers a user actually needs at a glance, an
+  // exhausted counter means the card is one step from being bricked
+  const std::array<QLabel*, 3> chips = {
+      ui_->pinChipLabel, ui_->resetCodeChipLabel, ui_->adminPinChipLabel};
+  const std::array<QString, 3> names = {tr("PIN"), tr("Reset Code"),
+                                        tr("Admin PIN")};
+
+  for (auto i = 0U; i < chips.size(); ++i) {
+    const auto retry = card.chv_retry.at(i);
+    const auto max_len = card.chv_max_len.at(i);
+    if (retry < 0) {
+      SetChip(chips.at(i), tr("%1 n/a").arg(names.at(i)),
+              AccentColor(palette(), false));
+      continue;
+    }
+    SetChip(chips.at(i), tr("%1 %2 left").arg(names.at(i)).arg(retry),
+            AccentColor(palette(), retry > 0));
+    chips.at(i)->setToolTip(
+        tr("%1 retries left, maximum length %2").arg(retry).arg(max_len));
+  }
+
+  const auto enabled = tr("Enabled");
+  const auto disabled = tr("Disabled");
+  ui_->uifChipLabel->setText(
+      tr("User Interaction Flag — Sign: %1 · Encrypt: %2 · Authenticate: %3")
+          .arg(card.uif.sign ? enabled : disabled,
+               card.uif.encrypt ? enabled : disabled,
+               card.uif.auth ? enabled : disabled));
+
+  ui_->sigCounterValueLabel->setText(QString::number(card.sig_counter));
+  ui_->chv1ValueLabel->setText(card.chv1_cached > 0 ? tr("Yes") : tr("No"));
+
+  QString kdf;
   switch (card.kdf_do_enabled) {
     case 0:
-      out << tr("Not enabled");
+      kdf = tr("Not enabled");
       break;
     case 1:
-      out << tr("Enabled (no protection)");
+      kdf = tr("Enabled (no protection)");
       break;
     case 2:
-      out << tr("Enabled with salt protection");
+      kdf = tr("Enabled with salt protection");
       break;
     default:
-      out << tr("Unknown");
+      kdf = tr("Unknown");
       break;
   }
-  out << "</li>";
-  out << "<li><b>" << tr("UIF") << ":"
-      << "</b><ul>";
-  out << "<li>" << tr("Sign") << ":"
-      << (card.uif.sign ? tr("Enabled") : tr("Disabled")) << "</li>";
-  out << "<li>" << tr("Encrypt") << ":"
-      << (card.uif.encrypt ? tr("Enabled") : tr("Disabled")) << "</li>";
-  out << "<li>" << tr("Authenticate") << ":"
-      << (card.uif.auth ? tr("Enabled") : tr("Disabled")) << "</li>";
-  out << "</ul></li>";
-  out << "</ul>";
+  ui_->kdfValueLabel->setText(kdf);
+}
 
-  out << "<h3>" << tr("Key Information") << "</h3>";
-  out << "<br />";
+void SmartCardControllerDialog::render_card_keys() {
+  const auto& keys = card_info_.card_keys_info;
 
-  if (card.card_keys_info.isEmpty()) {
-    out << "<i>" << tr("No key information available.") << "</i>";
-  } else {
-    out << "<table border='1' cellspacing='0' cellpadding='4'>";
-    out << "<tr><th>" << tr("No.") << "</th><th>" << tr("Fingerprint")
-        << "</th><th>" << tr("Created") << "</th><th>" << tr("Grip")
-        << "</th><th>" << tr("Type") << "</th><th>" << tr("Algorithm")
-        << "</th><th>" << tr("Usage") << "</th><th>" << tr("Curve")
-        << "</th></tr>";
+  ui_->cardKeysTable->setVisible(!keys.isEmpty());
+  ui_->noCardKeysLabel->setVisible(keys.isEmpty());
+  ui_->noCardKeysLabel->setText(tr("No key information available."));
 
-    for (auto it = card.card_keys_info.begin(); it != card.card_keys_info.end();
-         ++it) {
-      const auto& info = it.value();
-      out << "<tr><td>" << it.key() << "</td><td>" << info.fingerprint
-          << "</td><td>" << info.created.toString(Qt::ISODate) << "</td><td>"
-          << info.grip << "</td><td>" << info.key_type << "</td><td>"
-          << info.algo << "</td><td>" << info.usage << "</td><td>" << info.algo
-          << "</td></tr>";
+  ui_->cardKeysTable->clearContents();
+  ui_->cardKeysTable->setRowCount(static_cast<int>(keys.size()));
+
+  auto row = 0;
+  for (auto it = keys.begin(); it != keys.end(); ++it, ++row) {
+    const auto& info = it.value();
+
+    const std::array<QString, kCardKeyColumnCount> values = {
+        QString::number(it.key()),
+        info.usage,
+        info.key_type,
+        info.algo,
+        info.created.isValid() ? info.created.toString(Qt::ISODate) : tr("N/A"),
+        info.fingerprint,
+        info.grip};
+
+    for (auto column = 0; column < kCardKeyColumnCount; ++column) {
+      auto* item = new QTableWidgetItem(values.at(column));
+      item->setToolTip(values.at(column));
+      ui_->cardKeysTable->setItem(row, column, item);
     }
-
-    out << "</table>";
   }
+}
 
-  out << "<br />";
+void SmartCardControllerDialog::render_capabilities() {
+  const auto& card = card_info_;
 
-  out << "<h3>" << tr("Extended Capabilities") << "</h3><ul>";
-  out << "<li>"
-      << tr("Key Info (ki): %1").arg(card.ext_cap.ki ? tr("Yes") : tr("No"))
-      << "</li>";
-  out << "<li>"
-      << tr("Additional Auth (aac): %1")
-             .arg(card.ext_cap.aac ? tr("Yes") : tr("No"))
-      << "</li>";
-  out << "<li>"
-      << tr("Biometric Terminal (bt): %1")
-             .arg(card.ext_cap.bt ? tr("Yes") : tr("No"))
-      << "</li>";
-  out << "<li>"
-      << tr("KDF Supported: %1").arg(card.ext_cap.kdf ? tr("Yes") : tr("No"))
-      << "</li>";
-  out << "<li>" << tr("Status Indicator")
-      << QString(": %1").arg(card.ext_cap.status_indicator) << "</li>";
-  out << "</ul>";
+  const auto yes = tr("Yes");
+  const auto no = tr("No");
+  ui_->kiValueLabel->setText(card.ext_cap.ki ? yes : no);
+  ui_->aacValueLabel->setText(card.ext_cap.aac ? yes : no);
+  ui_->btValueLabel->setText(card.ext_cap.bt ? yes : no);
+  ui_->kdfSupportedValueLabel->setText(card.ext_cap.kdf ? yes : no);
+  ui_->statusIndicatorValueLabel->setText(
+      QString::number(card.ext_cap.status_indicator));
 
-  if (!card.additional_card_infos.isEmpty()) {
-    out << "<h3>" << tr("Additional Info") << "</h3><ul>";
-    for (auto it = card.additional_card_infos.begin();
-         it != card.additional_card_infos.end(); ++it) {
-      out << "<li><b>" << QString("%1:").arg(it.key()) << "</b> " << it.value()
-          << "</li>";
-    }
-    out << "</ul>";
+  // the additional infos are card specific, so the rows are rebuilt every time
+  auto* form = ui_->additionalInfoFormLayout;
+  while (form->rowCount() > 0) form->removeRow(0);
+
+  const auto& infos = card.additional_card_infos;
+  ui_->additionalInfoGroup->setVisible(!infos.isEmpty());
+
+  for (auto it = infos.begin(); it != infos.end(); ++it) {
+    auto* value = new QLabel(it.value(), ui_->additionalInfoGroup);
+    value->setWordWrap(true);
+    value->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    form->addRow(new QLabel(it.key(), ui_->additionalInfoGroup), value);
   }
-
-  ui_->cardInfoEdit->setText(html);
 }
 
 void SmartCardControllerDialog::slot_refresh() {
   scd_version_supported_ =
       GpgSmartCardManager::GetInstance(channel_).IsSCDVersionSupported();
   if (scd_version_supported_ && !timer_->isActive()) {
-    timer_->start(3000);
+    timer_->start(kCardPollIntervalMs);
   }
   fetch_smart_card_info(ui_->currentCardComboBox->currentText());
 }
 
 void SmartCardControllerDialog::refresh_key_tree_view(int channel) {
-  if (!has_card_) return;
+  // without a card there is nothing to match against, and leaving the filter
+  // alone would list the whole key database as if it were on the card
+  if (!has_card_) {
+    ui_->cardKeysTreeView->SetKeyFilter([](auto) { return false; });
+    return;
+  }
 
   ui_->cardKeysTreeView->SetChannel(channel);
 
@@ -386,41 +480,47 @@ void SmartCardControllerDialog::refresh_key_tree_view(int channel) {
 
 void SmartCardControllerDialog::reset_status() {
   has_card_ = false;
-  ui_->cardInfoEdit->clear();
-  slot_disable_controllers(true);
   card_info_ = GpgOpenPGPCard();
 
-  QString html;
-  QTextStream out(&html);
+  slot_disable_controllers(true);
+  ui_->detailStackedWidget->setCurrentWidget(ui_->noCardPage);
 
-  out << "<h2>" << tr("No OpenPGP Smart Card Found") << "</h2>";
-  out << "<p>" << tr("No OpenPGP-compatible smart card has been detected.")
-      << "</p>";
+  // the stub pane has nothing to say without a card, hiding it lets the notice
+  // use the full width instead of sitting next to an empty disabled tree
+  ui_->keyStubContainer->hide();
 
-  out << "<p>"
-      << tr("An OpenPGP Smart Card is a physical device that securely "
-            "stores your private cryptographic keys and can be used for "
-            "digital signing, encryption, and authentication. Popular "
-            "examples include YubiKey, Nitrokey, and other "
-            "GnuPG-compatible tokens.")
-      << "</p>";
+  ui_->statusChipLabel->clear();
+  ui_->manufacturerChipLabel->clear();
 
-  out << "<p>"
-      << tr("Make sure your card is inserted and properly recognized by "
-            "the system. You can also try reconnecting the card or "
-            "restarting the application.")
-      << "</p>";
+  ui_->noCardTitleLabel->setText(tr("No OpenPGP Smart Card Found"));
 
-  out << "<p><b>"
-      << tr("Note: Smart card support of GpgFrontend requires GnuPG version "
-            "2.3.0 or later.")
-      << "</b></p>";
+  // the label holds a link, so Qt renders the whole text as rich text and the
+  // paragraphs have to be markup rather than newlines
+  const QStringList paragraphs = {
+      tr("No OpenPGP-compatible smart card has been detected.").toHtmlEscaped(),
+      tr("An OpenPGP Smart Card is a physical device that securely "
+         "stores your private cryptographic keys and can be used for "
+         "digital signing, encryption, and authentication. Popular "
+         "examples include YubiKey, Nitrokey, and other "
+         "GnuPG-compatible tokens.")
+          .toHtmlEscaped(),
+      tr("Make sure your card is inserted and properly recognized by "
+         "the system. You can also try reconnecting the card or "
+         "restarting the application.")
+          .toHtmlEscaped(),
+      QString(R"(<a href="%1">%2</a>)")
+          .arg(QLatin1String(kCardHowToUrl),
+               tr("Read the GnuPG Smart Card HOWTO").toHtmlEscaped()),
+  };
 
-  out << "<p>" << tr("Read the GnuPG Smart Card HOWTO: ")
-      << "https://gnupg.org/howtos/card-howto/en/"
-      << "</p>";
+  ui_->noCardBodyLabel->setText("<p>" + paragraphs.join("</p><p>") + "</p>");
 
-  ui_->cardInfoEdit->setText(html);
+  // only relevant when the installed scdaemon is actually too old, showing it
+  // unconditionally sends users chasing a version they already have
+  ui_->noCardNoticeLabel->setVisible(!scd_version_supported_);
+  ui_->noCardNoticeLabel->setText(
+      tr("Note: Smart card support of GpgFrontend requires GnuPG version "
+         "2.3.0 or later."));
 }
 
 void SmartCardControllerDialog::slot_listen_smart_card_changes() {
@@ -456,9 +556,15 @@ void SmartCardControllerDialog::slot_listen_smart_card_changes() {
 }
 
 void SmartCardControllerDialog::slot_disable_controllers(bool disable) {
-  ui_->operationGroupBox->setDisabled(disable);
+  ui_->cardholderButton->setDisabled(disable);
+  ui_->accessCodesButton->setDisabled(disable);
+  ui_->generateKeysButton->setDisabled(disable);
+  ui_->fetchButton->setDisabled(disable);
   ui_->keyDBIndexComboBox->setDisabled(disable);
   ui_->cardKeysTreeView->setDisabled(disable);
+
+  // refresh and the overflow menu stay reachable, the user has to be able to
+  // rescan and restart the agents precisely when no card is detected
 }
 
 void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
@@ -468,11 +574,14 @@ void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
       ui_->currentCardComboBox->currentText());
 
   if (err != GPG_ERR_NO_ERROR) {
+    // re-enable before bailing out, otherwise one failed fetch kills the
+    // button for the rest of the dialog's life
+    ui_->fetchButton->setDisabled(false);
     CommonUtils::RaiseFailureMessageBox(this, err);
     return;
   }
 
-  QTimer::singleShot(1000, [=]() {
+  QTimer::singleShot(kFetchSettleMs, this, [=]() {
     GpgCommandExecutor::GetInstance(channel_).GpgExecuteSync(
         {{},
          {"--card-status"},
@@ -480,7 +589,7 @@ void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
            ui_->fetchButton->setDisabled(false);
            LOG_D() << "gpg --card--status exit code: " << exit_code;
            if (exit_code != 0) return;
-           emit UISignalStation::GetInstance()->SignalKeyDatabaseRefresh();
+           emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
          }});
   });
 }
