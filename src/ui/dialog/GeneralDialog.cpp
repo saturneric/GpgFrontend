@@ -78,15 +78,44 @@ void GeneralDialog::setVisible(bool visible) {
 void GeneralDialog::prepare_first_show() {
   ensurePolished();
 
-  if (auto *l = layout(); l != nullptr) l->activate();
+  auto *l = layout();
+  if (l != nullptr) l->activate();
 
   // Resolve the size hint up front, but never override a size the dialog set
   // for itself (resize()/setFixedSize()/...), which Qt marks with WA_Resized.
-  if (!testAttribute(Qt::WA_Resized)) adjustSize();
+  if (!testAttribute(Qt::WA_Resized)) {
+    adjustSize();
+
+    // Word-wrapped labels (and anything else with heightForWidth) only report
+    // their true height once a concrete width is committed. The first
+    // adjustSize() does that; a second layout pass then picks up the corrected
+    // heights. Without it the window is mapped too small and Qt grows it right
+    // after the first frame, which reads as a small white flash.
+    if (l != nullptr) {
+      l->invalidate();
+      l->activate();
+      adjustSize();
+    }
+  }
 
   // Apply any saved geometry before the window is mapped so there is no
   // post-map resize/move jump.
   slot_restore_settings();
+
+  // With no saved geometry and no explicit placement by the caller, QDialog
+  // would center itself only after the window is mapped, which shows up as a
+  // jump. Doing it here also sets WA_Moved, so that late correction is skipped.
+  if (!rect_restored_ && !testAttribute(Qt::WA_Moved)) {
+    movePosition2CenterOfParent();
+  }
+
+  // Render the dialog once off-screen. The style, font metrics, icon pixmaps
+  // and every child's first paint path are resolved here, while the window is
+  // still unmapped, instead of in the gap between the compositor mapping the
+  // window and Qt's first expose. Without it that gap shows an empty window at
+  // the final size, which the window manager's open animation then scales up -
+  // the white flash.
+  grab();
 }
 
 void GeneralDialog::showEvent(QShowEvent *event) {

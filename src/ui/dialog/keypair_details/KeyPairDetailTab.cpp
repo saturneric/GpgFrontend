@@ -36,6 +36,10 @@
 #include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
 
+namespace {
+constexpr int kNoticeIconSize = 24;
+}  // namespace
+
 namespace GpgFrontend::UI {
 KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
     : QWidget(parent),
@@ -192,7 +196,10 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   mvbox->addWidget(key_box_);
 
   fingerprint_var_label_ = new QLabel();
-  fingerprint_var_label_->setWordWrap(false);
+  // wrapping is needed for the long fingerprints of x448/ed448. It must be set
+  // before the first layout pass: flipping it later changes the size hint and
+  // makes the dialog grow after it is already on screen.
+  fingerprint_var_label_->setWordWrap(true);
   fingerprint_var_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
   fingerprint_var_label_->setStyleSheet("margin-left: 0; margin-right: 5;");
   fingerprint_var_label_->setAlignment(Qt::AlignCenter);
@@ -216,12 +223,16 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   mvbox->addStretch();
 
   auto* exp_box = new QHBoxLayout();
-  QPixmap pixmap(":/icons/warning.png");
 
   exp_label_ = new QLabel();
   icon_label_ = new QLabel();
 
-  icon_label_->setPixmap(pixmap.scaled(24, 24, Qt::KeepAspectRatio));
+  // the notice is filled in later, partly from an asynchronous lookup. Keep the
+  // row's footprint constant so that showing a notice never resizes the dialog
+  // once it is on screen.
+  icon_label_->setFixedSize(kNoticeIconSize, kNoticeIconSize);
+  exp_label_->setMinimumHeight(kNoticeIconSize);
+  exp_label_->setWordWrap(true);
   exp_label_->setAlignment(Qt::AlignCenter);
   exp_box->addStretch();
   exp_box->addWidget(icon_label_);
@@ -331,10 +342,8 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   algorithm_var_label_->setText(key_algo_val);
   algorithm_detail_var_label_->setText(key_algo_detail_val);
   fingerprint_var_label_->setText(BeautifyFingerprint(key_->Fingerprint()));
-  fingerprint_var_label_->setWordWrap(true);  // for x448 and ed448
 
-  icon_label_->hide();
-  exp_label_->hide();
+  slot_refresh_notice({}, {});
 
   if (key_->IsExpired()) {
     slot_refresh_notice(":/icons/warning.png",
@@ -407,18 +416,16 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
 
 void KeyPairDetailTab::slot_refresh_notice(const QString& icon,
                                            const QString& info) {
-  icon_label_->hide();
-  exp_label_->hide();
-
-  if (!icon.isEmpty()) {
+  // both labels keep their space at all times, only their content changes, so
+  // that a notice arriving after the dialog is on screen cannot resize it.
+  if (icon.isEmpty()) {
+    icon_label_->clear();
+  } else {
     QPixmap pixmap(icon);
-    icon_label_->setPixmap(pixmap.scaled(24, 24, Qt::KeepAspectRatio));
-    icon_label_->show();
+    icon_label_->setPixmap(
+        pixmap.scaled(kNoticeIconSize, kNoticeIconSize, Qt::KeepAspectRatio));
   }
 
-  if (!info.isEmpty()) {
-    exp_label_->setText(info);
-    exp_label_->show();
-  }
+  exp_label_->setText(info);
 }
 }  // namespace GpgFrontend::UI
