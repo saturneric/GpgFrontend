@@ -54,7 +54,7 @@ pub(crate) use log::debug;
 pub(crate) use pgp::{
     armor::Dearmor,
     composed::{
-        ArmorOptions, CleartextSignedMessage, Deserializable, DetachedSignature, Esk, Message,
+        CleartextSignedMessage, Deserializable, DetachedSignature, Esk, Message,
         MessageBuilder, SignedPublicKey, SignedSecretKey,
     },
     crypto::{hash::HashAlgorithm, sym::SymmetricKeyAlgorithm},
@@ -430,6 +430,52 @@ pub fn cert_contains_issuer(cert: &SignedPublicKey, issuer_hex: &str) -> bool {
 pub fn algo_to_string_simple(algo: pgp::crypto::public_key::PublicKeyAlgorithm) -> String {
     // Uses the derived Debug trait to get the variant name as a String
     format!("{:?}", algo)
+}
+
+/// RFC 9580 §9.5: an implementation MUST NOT validate a signature that depends on
+/// MD5, SHA-1, or RIPEMD-160. `hash_algo` is the display string recorded on a
+/// [`SignatureResultInternal`] (rPGP renders these exactly as "MD5", "SHA1",
+/// "RIPEMD160").
+pub fn sig_hash_algo_is_weak(hash_algo: &str) -> bool {
+    matches!(hash_algo, "MD5" | "SHA1" | "RIPEMD160")
+}
+
+#[cfg(test)]
+mod rfc9580_policy_tests {
+    use super::*;
+
+    /// RFC 9580 §9.5: MD5/SHA-1/RIPEMD-160 signatures must be treated as weak and
+    /// never reported as valid; SHA-2/SHA-3 hashes are acceptable.
+    #[test]
+    fn weak_hash_policy() {
+        assert!(sig_hash_algo_is_weak("MD5"));
+        assert!(sig_hash_algo_is_weak("SHA1"));
+        assert!(sig_hash_algo_is_weak("RIPEMD160"));
+        assert!(!sig_hash_algo_is_weak("SHA256"));
+        assert!(!sig_hash_algo_is_weak("SHA512"));
+        assert!(!sig_hash_algo_is_weak("SHA3-512"));
+    }
+}
+
+/// True if the certificate's primary key carries a valid self-revocation
+/// (RFC 9580 §5.2.1.11). A signature that only verifies under a revoked primary
+/// key MUST NOT be reported as valid.
+pub fn cert_primary_revoked(cert: &SignedPublicKey) -> bool {
+    let primary_fpr_bytes = cert.primary_key.fingerprint().as_bytes().to_vec();
+    crate::key::is_primary_key_revoked(&cert.details.revocation_signatures, &primary_fpr_bytes)
+        || crate::key::is_primary_key_revoked(&cert.details.direct_signatures, &primary_fpr_bytes)
+}
+
+/// True if `subkey` may be used to verify a signature: it must be signing-capable
+/// and not revoked (RFC 9580 §5.2.1.12 / Key Flags §5.2.3.29). Verifying under a
+/// revoked or encryption-only subkey MUST NOT be reported as a valid signature.
+pub fn subkey_usable_for_verify(
+    cert: &SignedPublicKey,
+    subkey: &pgp::composed::SignedPublicSubKey,
+) -> bool {
+    let primary_fpr_bytes = cert.primary_key.fingerprint().as_bytes().to_vec();
+    subkey.key.algorithm().can_sign()
+        && !crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes)
 }
 
 /// Extract issuer fingerprints and algorithm metadata from signature packets

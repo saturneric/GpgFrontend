@@ -27,6 +27,7 @@
  */
 
 use super::*;
+use crate::utils::armor_opts;
 
 /// Verify a detached signature against a data stream.
 ///
@@ -94,7 +95,9 @@ where
         for sig in signatures.iter_mut() {
             if cert_contains_issuer(cert, &sig.fpr) {
                 found = true;
-                if is_cert_valid {
+                // RFC 9580 §9.5: never report success for a signature made with a
+                // weak hash (MD5/SHA-1/RIPEMD-160), even if it verifies cryptographically.
+                if is_cert_valid && !sig_hash_algo_is_weak(&sig.hash_algo) {
                     sig.status = GfrSignatureStatus::Valid;
                     *is_verified = true;
                 } else if sig.status == GfrSignatureStatus::NoKey {
@@ -123,17 +126,25 @@ where
             .seek(SeekFrom::Start(0))
             .record_err(GfrStatus::ErrorInternal)?;
 
-        // Try verifying with the primary key first
-        let mut is_cert_valid = {
+        // Try verifying with the primary key first — but only if it is not revoked
+        // (RFC 9580 §5.2.1.11); a signature under a revoked key is not valid.
+        let mut is_cert_valid = if cert_primary_revoked(cert) {
+            false
+        } else {
             let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut data_stream);
             sig_msg.signature.verify(cert, &mut cancellable).is_ok()
         };
 
-        // Fallback: If primary key fails, test subkeys (to bypass rpgp's strict identity matching)
+        // Fallback: if the primary key fails, test subkeys (to bypass rpgp's strict
+        // identity matching). Only usable signing subkeys are attempted: a revoked
+        // or encryption-only subkey MUST NOT yield a valid result (RFC 9580 §5.2.1.12).
         if !is_cert_valid {
             for subkey in &cert.public_subkeys {
                 if crate::cancel::is_cancelled(channel) {
                     return Err(GfrStatus::ErrorCanceled);
+                }
+                if !subkey_usable_for_verify(cert, subkey) {
+                    continue;
                 }
 
                 // We MUST rewind the stream before each subsequent verification attempt!
@@ -185,7 +196,9 @@ pub fn verify_internal(
         for sig in signatures.iter_mut() {
             if cert_contains_issuer(cert, &sig.fpr) {
                 found = true;
-                if is_cert_valid {
+                // RFC 9580 §9.5: never report success for a signature made with a
+                // weak hash (MD5/SHA-1/RIPEMD-160), even if it verifies cryptographically.
+                if is_cert_valid && !sig_hash_algo_is_weak(&sig.hash_algo) {
                     sig.status = GfrSignatureStatus::Valid;
                     *is_verified = true;
                 } else if sig.status == GfrSignatureStatus::NoKey {
@@ -218,12 +231,13 @@ pub fn verify_internal(
             };
 
             for cert in &certs {
+                let primary_usable = !cert_primary_revoked(cert);
                 let is_cert_valid = (0..num_sigs).any(|i| {
-                    msg.verify_nested_explicit(i, cert).is_ok()
-                        || cert
-                            .public_subkeys
-                            .iter()
-                            .any(|sk| msg.verify_nested_explicit(i, sk).is_ok())
+                    (primary_usable && msg.verify_nested_explicit(i, cert).is_ok())
+                        || cert.public_subkeys.iter().any(|sk| {
+                            subkey_usable_for_verify(cert, sk)
+                                && msg.verify_nested_explicit(i, sk).is_ok()
+                        })
                 });
 
                 let found =
@@ -288,14 +302,17 @@ pub fn verify_internal(
             let mut is_verified = false;
 
             for cert in &certs {
-                let is_cert_valid = msg.verify(cert).is_ok()
-                    || cert.public_subkeys.iter().any(|sk| msg.verify(sk).is_ok());
+                let is_cert_valid = (!cert_primary_revoked(cert) && msg.verify(cert).is_ok())
+                    || cert
+                        .public_subkeys
+                        .iter()
+                        .any(|sk| subkey_usable_for_verify(cert, sk) && msg.verify(sk).is_ok());
 
                 update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
             }
 
             let clear_data = msg
-                .to_armored_bytes(ArmorOptions::default())
+                .to_armored_bytes(armor_opts())
                 .unwrap_or_default();
             Ok(VerifyResultInternal {
                 data: clear_data,
@@ -322,11 +339,11 @@ pub fn verify_internal(
             let mut is_verified = false;
 
             for cert in &certs {
-                let is_cert_valid = sig_msg.verify(cert, data).is_ok()
-                    || cert
-                        .public_subkeys
-                        .iter()
-                        .any(|sk| sig_msg.verify(sk, data).is_ok());
+                let is_cert_valid = (!cert_primary_revoked(cert)
+                    && sig_msg.verify(cert, data).is_ok())
+                    || cert.public_subkeys.iter().any(|sk| {
+                        subkey_usable_for_verify(cert, sk) && sig_msg.verify(sk, data).is_ok()
+                    });
 
                 update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
             }

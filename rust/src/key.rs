@@ -40,16 +40,15 @@ use crate::types::{
     GfrKeyAlgo, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus,
 };
 use crate::utils::{
-    PassphraseStateInternal, build_revocation_reason_subpacket, choose_template_self_sig,
+    PassphraseStateInternal, armor_opts, build_revocation_reason_subpacket, choose_template_self_sig,
     determine_algo, extract_key_length, fetch_password_with_cache, password_from_zeroizing_bytes,
 };
 use pgp::armor::{self, BlockType};
 use pgp::composed::{SignedPublicSubKey, SignedSecretSubKey};
-use pgp::crypto::hash::HashAlgorithm;
 use pgp::packet::{Packet, PacketHeader, SignatureConfig, SignatureType, Subpacket, SubpacketData};
 use pgp::types::{Duration, KeyDetails, KeyVersion, Password, SecretParams, SignedUser, Tag};
 use pgp::{
-    composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
+    composed::{Deserializable, SignedPublicKey, SignedSecretKey},
     packet::Signature,
     ser::Serialize,
 };
@@ -130,7 +129,7 @@ fn is_self_key_revocation(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
         && matches!(sig.typ(), Some(SignatureType::KeyRevocation))
 }
 
-fn is_primary_key_revoked(signatures: &[Signature], primary_fpr_bytes: &[u8]) -> bool {
+pub(crate) fn is_primary_key_revoked(signatures: &[Signature], primary_fpr_bytes: &[u8]) -> bool {
     signatures
         .iter()
         .any(|sig| is_self_key_revocation(sig, primary_fpr_bytes))
@@ -330,10 +329,10 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         user_ids, // Assign the collected vector here
         subkeys: subs,
         public_key_block: pk
-            .to_armored_string(ArmorOptions::default())
+            .to_armored_string(armor_opts())
             .unwrap_or_default(),
         secret_key_block: sk
-            .to_armored_string(ArmorOptions::default())
+            .to_armored_string(armor_opts())
             .ok()
             .map(Zeroizing::new),
         key_length: key_length.unwrap_or(0),
@@ -447,7 +446,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
         can_auth,
         can_certify,
         public_key_block: pk
-            .to_armored_string(ArmorOptions::default())
+            .to_armored_string(armor_opts())
             .unwrap_or_default(),
         secret_key_block: None,
     }
@@ -502,13 +501,13 @@ pub fn extract_metadata_many_internal(
                     let mut metadata = build_secret_metadata(&sk);
 
                     metadata.secret_key_block = sk
-                        .to_armored_string(ArmorOptions::default())
+                        .to_armored_string(armor_opts())
                         .ok()
                         .map(Zeroizing::new);
 
                     let public_key = SignedPublicKey::from(sk.clone());
                     metadata.public_key_block = public_key
-                        .to_armored_string(ArmorOptions::default())
+                        .to_armored_string(armor_opts())
                         .unwrap_or_default();
 
                     results_map.insert(fpr, metadata);
@@ -529,7 +528,7 @@ pub fn extract_metadata_many_internal(
                     results_map.entry(fpr).or_insert_with(|| {
                         let mut metadata = build_public_metadata(&pk);
                         metadata.public_key_block = pk
-                            .to_armored_string(ArmorOptions::default())
+                            .to_armored_string(armor_opts())
                             .unwrap_or_default();
                         metadata.secret_key_block = None;
                         metadata
@@ -571,7 +570,7 @@ pub fn extract_public_key_internal(secret_block: &str) -> Result<String, GfrStat
 
     // 3. Export back to ASCII Armor format
     let armored_p_key = public_key
-        .to_armored_string(ArmorOptions::default())
+        .to_armored_string(armor_opts())
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     Ok(armored_p_key)
@@ -633,8 +632,8 @@ pub fn export_merged_public_keys(key_blocks: &[&str]) -> Result<String, GfrStatu
         &merged_source,
         BlockType::PublicKey,
         &mut armored_output,
-        None, // Or Some(&headers) if you need custom headers like "Version"
-        true, // Standard PGP includes the CRC checksum
+        None,
+        false, // RFC 9580 §6.1: do not emit a CRC24 footer (forbidden for v6)
     )
     .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
@@ -680,7 +679,7 @@ pub fn export_merged_secret_keys(key_blocks: &[&str]) -> Result<String, GfrStatu
         BlockType::PrivateKey, // Crucial change: PRIVATE KEY BLOCK
         &mut armored_output,
         None,
-        true,
+        false, // RFC 9580 §6.1: do not emit a CRC24 footer (forbidden for v6)
     )
     .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
@@ -1398,12 +1397,12 @@ pub fn delete_subkey_internal(
     }
 
     let armored_s_key = secret_key
-        .to_armored_string(ArmorOptions::default())
+        .to_armored_string(armor_opts())
         .into_gfr()?;
 
     let public_key = SignedPublicKey::from(secret_key);
     let armored_p_key = public_key
-        .to_armored_string(ArmorOptions::default())
+        .to_armored_string(armor_opts())
         .into_gfr()?;
 
     Ok(GeneratedKeys {
@@ -1490,11 +1489,17 @@ pub fn revoke_subkey_internal(
         return Err(GfrStatus::ErrorInvalidInput);
     }
 
-    let mut cfg = SignatureConfig::v4(
+    // The signature version MUST match the primary key version: a v6 key MUST
+    // produce a v6 signature (RFC 9580 §10.3.2.2), and a non-v6 signature made by
+    // a v6 key MUST be ignored by conforming verifiers (§5.2.5). `from_key`
+    // selects v4 for a v4 key and v6 (with the required salt) for a v6 key.
+    let mut rng = rand::thread_rng();
+    let mut cfg = SignatureConfig::from_key(
+        &mut rng,
+        &secret_key.primary_key,
         SignatureType::SubkeyRevocation,
-        secret_key.primary_key.algorithm(),
-        HashAlgorithm::Sha512,
-    );
+    )
+    .map_err(|_| GfrStatus::ErrorInternal)?;
 
     cfg.hashed_subpackets.push(
         Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
@@ -1518,12 +1523,12 @@ pub fn revoke_subkey_internal(
     subkey.signatures.push(revoke_sig);
 
     let armored_s_key = secret_key
-        .to_armored_string(ArmorOptions::default())
+        .to_armored_string(armor_opts())
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     let public_key = SignedPublicKey::from(secret_key);
     let armored_p_key = public_key
-        .to_armored_string(ArmorOptions::default())
+        .to_armored_string(armor_opts())
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     Ok(GeneratedKeys {
@@ -1535,11 +1540,11 @@ pub fn revoke_subkey_internal(
 
 /// Generate a standalone revocation certificate for the primary key.
 ///
-/// The certificate is a single v4 `KeyRevocation` signature packet wrapped in
-/// a "PUBLIC KEY BLOCK" armor. It can be imported into any key block with the
-/// matching fingerprint via `import_rev_cert_internal`. A v4 signature is used
-/// even for v6 keys because revocation certificate interoperability matters more
-/// than version consistency.
+/// The certificate is a single `KeyRevocation` signature packet wrapped in a
+/// "PUBLIC KEY BLOCK" armor. It can be imported into any key block with the
+/// matching fingerprint via `import_rev_cert_internal`. The signature version
+/// matches the key version (v4 for v4 keys, v6 for v6 keys); a v6 key MUST NOT
+/// emit a v4 signature, as conforming verifiers ignore it (RFC 9580 §5.2.5).
 pub fn generate_key_rev_cert_internal(
     channel: i32,
     secret_key_block: &str,
@@ -1584,11 +1589,15 @@ pub fn generate_key_rev_cert_internal(
     let primary_fpr = skey.primary_key.fingerprint();
     let pk = skey.primary_key.public_key();
 
-    let mut cfg = SignatureConfig::v4(
+    // Version-aware: v4 key -> v4 signature, v6 key -> v6 signature (RFC 9580
+    // §10.3.2.2 / §5.2.5). See `from_key` at pgp::packet::SignatureConfig.
+    let mut rng = rand::thread_rng();
+    let mut cfg = SignatureConfig::from_key(
+        &mut rng,
+        &skey.primary_key,
         SignatureType::KeyRevocation,
-        skey.primary_key.algorithm(),
-        HashAlgorithm::Sha512,
-    );
+    )
+    .map_err(|_| GfrStatus::ErrorInternal)?;
 
     cfg.hashed_subpackets.push(
         Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
@@ -1627,7 +1636,7 @@ pub fn generate_key_rev_cert_internal(
         BlockType::PublicKey,
         &mut armored_output,
         Some(&headers),
-        true,
+        false, // RFC 9580 §6.1: do not emit a CRC24 footer (forbidden for v6)
     )
     .into_gfr()?;
 
@@ -1715,9 +1724,9 @@ fn dedup_signatures_in_place(sigs: &mut Vec<Signature>) -> Result<(), GfrStatus>
 
 fn export_secret_key(sk: SignedSecretKey) -> Result<GeneratedKeys, GfrStatus> {
     let fingerprint = sk.fingerprint().to_string();
-    let secret = Zeroizing::new(sk.to_armored_string(ArmorOptions::default()).into_gfr()?);
+    let secret = Zeroizing::new(sk.to_armored_string(armor_opts()).into_gfr()?);
     let public = SignedPublicKey::from(sk)
-        .to_armored_string(ArmorOptions::default())
+        .to_armored_string(armor_opts())
         .into_gfr()?;
 
     Ok(GeneratedKeys {
@@ -1729,7 +1738,7 @@ fn export_secret_key(sk: SignedSecretKey) -> Result<GeneratedKeys, GfrStatus> {
 
 fn export_public_key(pk: SignedPublicKey) -> Result<GeneratedKeys, GfrStatus> {
     let fingerprint = pk.fingerprint().to_string();
-    let public = pk.to_armored_string(ArmorOptions::default()).into_gfr()?;
+    let public = pk.to_armored_string(armor_opts()).into_gfr()?;
 
     Ok(GeneratedKeys {
         secret: Zeroizing::new(String::new()),
@@ -1983,4 +1992,142 @@ pub fn extract_rev_cert_target_fpr_internal(rev_cert_block: &str) -> Result<Stri
     let issuer_fp = binding.first().ok_or(GfrStatus::ErrorInvalidInput)?;
 
     Ok(issuer_fp.to_string())
+}
+
+#[cfg(test)]
+mod rfc9580_tests {
+    //! RFC 9580 conformance tests for revocation signatures and Appendix A
+    //! known-answer vectors.
+    use super::*;
+    use crate::keygen::keygen_dynamic;
+    use crate::types::{GfrKeyAlgo, GfrKeyConfig, GfrOpenPGPKeyVersion};
+
+    fn cfg(algo: GfrKeyAlgo, sign: bool, enc: bool, ver: GfrOpenPGPKeyVersion) -> GfrKeyConfig {
+        GfrKeyConfig {
+            algo,
+            can_sign: sign,
+            can_encrypt: enc,
+            can_auth: false,
+            has_passphrase: false,
+            ver,
+            expiration_epoch_secs: 0,
+        }
+    }
+
+    /// RFC 9580 §10.3.2.2 / §5.2.5: a v6 key MUST produce v6 signatures. A subkey
+    /// revocation on a v6 key must be a v6 signature (a v4 one would be ignored by
+    /// conforming verifiers, silently failing the revocation).
+    #[test]
+    fn v6_subkey_revocation_is_v6_signature() {
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V6);
+        let sub = cfg(GfrKeyAlgo::ED25519, false, true, GfrOpenPGPKeyVersion::V6);
+        let key = keygen_dynamic("rev <rev@example.com>", &primary, &[sub]).expect("keygen");
+        assert_eq!(key.primary_key.version(), KeyVersion::V6);
+
+        let sub_fpr = key.secret_subkeys[0].key.fingerprint().to_string();
+        let armored = key.to_armored_string(armor_opts()).expect("armor");
+
+        let result = revoke_subkey_internal(
+            0,
+            &armored,
+            &sub_fpr,
+            GfrRevocationCode::Compromised,
+            None,
+            None,
+        )
+        .expect("revoke");
+
+        let (revoked, _) = SignedSecretKey::from_string(&result.secret).expect("parse");
+        let rev_sig = revoked.secret_subkeys[0]
+            .signatures
+            .iter()
+            .find(|s| matches!(s.typ(), Some(SignatureType::SubkeyRevocation)))
+            .expect("subkey revocation signature present");
+        assert_eq!(
+            rev_sig.version(),
+            pgp::packet::SignatureVersion::V6,
+            "revocation signature on a v6 key must be a v6 signature"
+        );
+    }
+
+    /// Sanity check: a v4 key still produces v4 revocation signatures (no regression).
+    #[test]
+    fn v4_subkey_revocation_is_v4_signature() {
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V4);
+        let sub = cfg(GfrKeyAlgo::ED25519, false, true, GfrOpenPGPKeyVersion::V4);
+        let key = keygen_dynamic("rev <rev@example.com>", &primary, &[sub]).expect("keygen");
+        let sub_fpr = key.secret_subkeys[0].key.fingerprint().to_string();
+        let armored = key.to_armored_string(armor_opts()).expect("armor");
+
+        let result =
+            revoke_subkey_internal(0, &armored, &sub_fpr, GfrRevocationCode::Retired, None, None)
+                .expect("revoke");
+        let (revoked, _) = SignedSecretKey::from_string(&result.secret).expect("parse");
+        let rev_sig = revoked.secret_subkeys[0]
+            .signatures
+            .iter()
+            .find(|s| matches!(s.typ(), Some(SignatureType::SubkeyRevocation)))
+            .expect("subkey revocation signature present");
+        assert_eq!(rev_sig.version(), pgp::packet::SignatureVersion::V4);
+    }
+
+    // ---- RFC 9580 Appendix A known-answer vectors ----
+
+    /// RFC 9580 Appendix A.3 — sample v6 certificate (transferable public key).
+    const A3_V6_CERT: &str = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\
+\n\
+xioGY4d/4xsAAAAg+U2nu0jWCmHlZ3BqZYfQMxmZu52JGggkLq2EVD34laPCsQYf\n\
+GwoAAABCBYJjh3/jAwsJBwUVCg4IDAIWAAKbAwIeCSIhBssYbE8GCaaX5NUt+mxy\n\
+KwwfHifBilZwj2Ul7Ce62azJBScJAgcCAAAAAK0oIBA+LX0ifsDm185Ecds2v8lw\n\
+gyU2kCcUmKfvBXbAf6rhRYWzuQOwEn7E/aLwIwRaLsdry0+VcallHhSu4RN6HWaE\n\
+QsiPlR4zxP/TP7mhfVEe7XWPxtnMUMtf15OyA51YBM4qBmOHf+MZAAAAIIaTJINn\n\
++eUBXbki+PSAld2nhJh/LVmFsS+60WyvXkQ1wpsGGBsKAAAALAWCY4d/4wKbDCIh\n\
+BssYbE8GCaaX5NUt+mxyKwwfHifBilZwj2Ul7Ce62azJAAAAAAQBIKbpGG2dWTX8\n\
+j+VjFM21J0hqWlEg+bdiojWnKfA5AQpWUWtnNwDEM0g12vYxoWM8Y81W+bHBw805\n\
+I8kWVkXU6vFOi+HWvv/ira7ofJu16NnoUkhclkUrk0mXubZvyl4GBg==\n\
+-----END PGP PUBLIC KEY BLOCK-----\n";
+
+    /// RFC 9580 Appendix A.6 — cleartext signed message, verifiable with A.3.
+    const A6_CLEARTEXT: &str = "-----BEGIN PGP SIGNED MESSAGE-----\n\
+\n\
+What we need from the grocery store:\n\
+\n\
+- - tofu\n\
+- - vegetables\n\
+- - noodles\n\
+\n\
+-----BEGIN PGP SIGNATURE-----\n\
+\n\
+wpgGARsKAAAAKQWCY5ijYyIhBssYbE8GCaaX5NUt+mxyKwwfHifBilZwj2Ul7Ce6\n\
+2azJAAAAAGk2IHZJX1AhiJD39eLuPBgiUU9wUA9VHYblySHkBONKU/usJ9BvuAqo\n\
+/FvLFuGWMbKAdA+epq7V4HOtAPlBWmU8QOd6aud+aSunHQaaEJ+iTFjP2OMW0KBr\n\
+NK2ay45cX1IVAQ==\n\
+-----END PGP SIGNATURE-----\n";
+
+    /// The v6 certificate parses and yields the fingerprint stated in the RFC.
+    #[test]
+    fn appendix_a3_v6_cert_fingerprint() {
+        let (cert, _) = SignedPublicKey::from_string(A3_V6_CERT).expect("parse A.3 cert");
+        assert_eq!(cert.primary_key.version(), KeyVersion::V6);
+        assert_eq!(
+            cert.primary_key.fingerprint().to_string().to_uppercase(),
+            "CB186C4F0609A697E4D52DFA6C722B0C1F1E27C18A56708F6525EC27BAD9ACC9"
+        );
+    }
+
+    /// The Appendix A.6 cleartext message verifies against the A.3 certificate,
+    /// and its signature is a v6 signature — exercising the whole v6 verify path.
+    #[test]
+    fn appendix_a6_cleartext_verifies() {
+        use pgp::composed::{CleartextSignedMessage, Deserializable};
+        let (cert, _) = SignedPublicKey::from_string(A3_V6_CERT).expect("parse A.3 cert");
+        let (msg, _) = CleartextSignedMessage::from_string(A6_CLEARTEXT).expect("parse A.6");
+        msg.verify(&cert).expect("A.6 cleartext signature must verify against A.3 cert");
+        assert!(
+            msg.signatures()
+                .iter()
+                .all(|s| s.version() == pgp::packet::SignatureVersion::V6),
+            "Appendix A.6 signature must be a v6 signature"
+        );
+    }
 }

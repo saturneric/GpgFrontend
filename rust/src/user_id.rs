@@ -33,10 +33,12 @@
 //! Operations that require signing (add, update, revoke) only work on secret keys.
 
 use pgp::{
-    composed::{ArmorOptions, Deserializable, SignedPublicKey, SignedSecretKey},
+    composed::{Deserializable, SignedPublicKey, SignedSecretKey},
     crypto::{hash::HashAlgorithm, public_key},
     packet::{Signature, SignatureConfig, SignatureType, Subpacket, SubpacketData},
-    types::{KeyDetails, PacketHeaderVersion, SecretParams, Tag, Timestamp},
+    types::{
+        KeyDetails, KeyVersion, PacketHeaderVersion, SecretParams, SignedUser, Tag, Timestamp,
+    },
 };
 use zeroize::Zeroizing;
 
@@ -45,7 +47,7 @@ use crate::{
     err::IntoGfrResult,
     types::{GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
     utils::{
-        PassphraseStateInternal, build_revocation_reason_subpacket, choose_template_self_sig,
+        PassphraseStateInternal, armor_opts, build_revocation_reason_subpacket, choose_template_self_sig,
         fetch_password_with_cache, has_is_primary_true, is_self_signature_from_primary,
         password_from_zeroizing_bytes,
     },
@@ -69,7 +71,7 @@ pub fn delete_user_id_internal(
             return Err(GfrStatus::ErrorInvalidInput);
         }
         return skey
-            .to_armored_string(ArmorOptions::default())
+            .to_armored_string(armor_opts())
             .into_gfr()
             .map(Zeroizing::new);
     }
@@ -84,7 +86,7 @@ pub fn delete_user_id_internal(
             return Err(GfrStatus::ErrorInvalidInput);
         }
         return pkey
-            .to_armored_string(ArmorOptions::default())
+            .to_armored_string(armor_opts())
             .into_gfr()
             .map(Zeroizing::new);
     }
@@ -95,8 +97,10 @@ pub fn delete_user_id_internal(
 /// Add a new user ID to a secret key block and sign it with the primary key.
 ///
 /// The primary key must be unlocked; its passphrase is fetched via the callback.
-/// The new self-signature is a v4 `PositiveCertification` with key flags copied
-/// from the most-recent existing self-signature.
+/// The new self-signature's version matches the primary key (v4 or v6), and its
+/// key flags / algorithm preferences are copied from the most-recent existing
+/// self-signature so the new UID advertises the same capabilities (RFC 9580
+/// §5.2.3.10) instead of silently dropping them.
 pub fn add_user_id_internal(
     channel: i32,
     secret_key_block: &str,
@@ -129,16 +133,40 @@ pub fn add_user_id_internal(
     let new_uid = pgp::packet::UserId::from_str(PacketHeaderVersion::New, new_uid_str)
         .map_err(|_| GfrStatus::ErrorInternal)?;
 
-    let mut rng = rand::thread_rng();
+    let primary_fpr = skey.primary_key.fingerprint();
+    let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
+    let primary_algo = skey.primary_key.algorithm();
+    let primary_version = skey.primary_key.version();
+
+    // Use an existing self-signature as a template so the new UID inherits the
+    // key's key-flags and algorithm-preference subpackets (rather than rPGP's
+    // bare `UserId::sign`, which emits none). `build_updated_self_sig_config`
+    // clones the template's subpackets and refreshes the issuer/creation-time.
+    let template_sig: Option<Signature> = skey.details.users.iter().find_map(|u| {
+        let self_sigs: Vec<&Signature> = u
+            .signatures
+            .iter()
+            .filter(|s| is_self_signature_from_primary(s, &primary_fpr_bytes))
+            .collect();
+        choose_template_self_sig(&self_sigs).cloned()
+    });
+
+    let cfg = build_updated_self_sig_config(
+        template_sig.as_ref(),
+        primary_algo,
+        primary_version,
+        primary_fpr.clone(),
+        false,
+    )?;
 
     let pk = skey.primary_key.public_key();
-    let signed_user = new_uid
-        .sign(&mut rng, &skey.primary_key, &pk, &pwd)
+    let new_sig = cfg
+        .sign_certification(&skey.primary_key, &pk, &pwd, Tag::UserId, &new_uid)
         .into_gfr()?;
 
-    skey.details.users.push(signed_user);
+    skey.details.users.push(SignedUser::new(new_uid, vec![new_sig]));
 
-    skey.to_armored_string(ArmorOptions::default())
+    skey.to_armored_string(armor_opts())
         .into_gfr()
         .map(Zeroizing::new)
 }
@@ -162,23 +190,37 @@ pub fn update_user_id_internal(
 fn build_updated_self_sig_config(
     template_sig: Option<&Signature>,
     primary_key_algo: public_key::PublicKeyAlgorithm,
+    primary_key_version: KeyVersion,
     primary_fpr: pgp::types::Fingerprint,
     make_primary: bool,
 ) -> Result<SignatureConfig, GfrStatus> {
-    let mut cfg = if let Some(sig) = template_sig {
-        sig.config().cloned().unwrap_or_else(|| {
-            SignatureConfig::v4(
+    // Cloning an existing self-signature's config preserves its version (and key
+    // flags / preference subpackets). When no template exists, build a config
+    // whose version matches the primary key: a v6 key MUST produce v6 signatures
+    // (RFC 9580 §10.3.2.2). `build_fallback` is only reached in that case.
+    let build_fallback = || -> Result<SignatureConfig, GfrStatus> {
+        match primary_key_version {
+            KeyVersion::V6 => {
+                let mut rng = rand::thread_rng();
+                SignatureConfig::v6(
+                    &mut rng,
+                    SignatureType::CertPositive,
+                    primary_key_algo,
+                    HashAlgorithm::Sha512,
+                )
+                .map_err(|_| GfrStatus::ErrorInternal)
+            }
+            _ => Ok(SignatureConfig::v4(
                 SignatureType::CertPositive,
                 primary_key_algo,
                 HashAlgorithm::Sha512,
-            )
-        })
-    } else {
-        SignatureConfig::v4(
-            SignatureType::CertPositive,
-            primary_key_algo,
-            HashAlgorithm::Sha512,
-        )
+            )),
+        }
+    };
+
+    let mut cfg = match template_sig.and_then(|sig| sig.config().cloned()) {
+        Some(cfg) => cfg,
+        None => build_fallback()?,
     };
 
     let filter_subpackets = |subpackets: &mut Vec<Subpacket>| {
@@ -262,6 +304,7 @@ pub fn set_primary_user_id_internal(
     let primary_fpr = skey.primary_key.fingerprint();
     let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
     let primary_algo = skey.primary_key.algorithm();
+    let primary_version = skey.primary_key.version();
 
     let old_primary_idx = 0;
 
@@ -302,6 +345,7 @@ pub fn set_primary_user_id_internal(
         let cfg = build_updated_self_sig_config(
             template_sig,
             primary_algo,
+            primary_version,
             primary_fpr.clone(),
             is_target,
         )?;
@@ -321,7 +365,7 @@ pub fn set_primary_user_id_internal(
         skey.details.users.insert(0, primary_user);
     }
 
-    skey.to_armored_string(ArmorOptions::default())
+    skey.to_armored_string(armor_opts())
         .into_gfr()
         .map(Zeroizing::new)
 }
@@ -372,17 +416,21 @@ pub fn revoke_user_id_internal(
     let pk = skey.primary_key.public_key();
     let primary_fpr = skey.primary_key.fingerprint();
 
+    // Version-aware: a v6 key MUST emit a v6 revocation signature, else conforming
+    // verifiers ignore it and the revocation silently fails (RFC 9580 §5.2.5).
+    let mut rng = rand::thread_rng();
+    let mut cfg = SignatureConfig::from_key(
+        &mut rng,
+        &skey.primary_key,
+        SignatureType::CertRevocation,
+    )
+    .map_err(|_| GfrStatus::ErrorInternal)?;
+
     let user = skey
         .details
         .users
         .get_mut(target_idx)
         .ok_or(GfrStatus::ErrorInternal)?;
-
-    let mut cfg = SignatureConfig::v4(
-        SignatureType::CertRevocation,
-        skey.primary_key.algorithm(),
-        HashAlgorithm::Sha512,
-    );
 
     cfg.hashed_subpackets.push(
         Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
@@ -405,7 +453,7 @@ pub fn revoke_user_id_internal(
 
     user.signatures.push(revoke_sig);
 
-    skey.to_armored_string(ArmorOptions::default())
+    skey.to_armored_string(armor_opts())
         .into_gfr()
         .map(Zeroizing::new)
 }

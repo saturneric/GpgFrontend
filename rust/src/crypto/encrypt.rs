@@ -28,7 +28,7 @@
 
 use zeroize::Zeroizing;
 
-use crate::utils::password_from_zeroizing_bytes;
+use crate::utils::{armor_opts, password_from_zeroizing_bytes};
 
 use super::*;
 
@@ -354,7 +354,7 @@ where
     }
 
     let result = if ascii_armor {
-        enc_builder.to_armored_writer(&mut rng, ArmorOptions::default(), &mut output_stream)
+        enc_builder.to_armored_writer(&mut rng, armor_opts(), &mut output_stream)
     } else {
         enc_builder.to_writer(&mut rng, &mut output_stream)
     };
@@ -454,7 +454,7 @@ where
     enc_builder.encrypt_with_password(s2k, &msg_pw).into_gfr()?;
 
     let result = if ascii_armor {
-        enc_builder.to_armored_writer(&mut rng, ArmorOptions::default(), &mut output_stream)
+        enc_builder.to_armored_writer(&mut rng, armor_opts(), &mut output_stream)
     } else {
         enc_builder.to_writer(&mut rng, &mut output_stream)
     };

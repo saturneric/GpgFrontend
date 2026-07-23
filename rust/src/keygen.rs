@@ -34,22 +34,25 @@
 
 use crate::{
     cache::{PASSWORD_CACHE, PasswordCachePolicy},
-    err::IntoGfrResult,
+    err::{IntoGfrResult, set_last_error},
     key::{apply_primary_key_expiration, apply_subkey_expiration},
     types::{GfrKeyAlgo, GfrKeyConfig, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrStatus},
     utils::{
-        PassphraseStateInternal, check_if_should_use_key_ver_v6, fetch_password_with_cache,
+        PassphraseStateInternal, armor_opts, check_if_should_use_key_ver_v6, fetch_password_with_cache,
         password_from_zeroizing_bytes, resolve_key_type,
     },
 };
 use log::error;
 use pgp::{
     composed::{
-        ArmorOptions, Deserializable, EncryptionCaps, KeyType, SecretKeyParamsBuilder,
-        SignedPublicKey, SignedSecretKey, SignedSecretSubKey, SubkeyParamsBuilder,
+        Deserializable, EncryptionCaps, KeyType, SecretKeyParamsBuilder, SignedPublicKey,
+        SignedSecretKey, SignedSecretSubKey, SubkeyParamsBuilder,
+    },
+    crypto::{
+        aead::AeadAlgorithm, hash::HashAlgorithm, sym::SymmetricKeyAlgorithm,
     },
     packet::{KeyFlags, PubKeyInner, PublicSubkey, SecretSubkey},
-    types::{KeyDetails, KeyVersion, Password, Timestamp},
+    types::{CompressionAlgorithm, KeyDetails, KeyVersion, Password, Timestamp},
 };
 use rand::thread_rng;
 use zeroize::Zeroizing;
@@ -65,19 +68,36 @@ pub struct GeneratedKeys {
     pub fingerprint: String,
 }
 
+/// True if `algo` maps to a deprecated OID that RFC 9580 §9.2 forbids in v6 keys
+/// ("Implementations MUST NOT accept or generate version 6 key material using the
+/// deprecated OIDs").
+fn is_v6_forbidden_legacy(algo: &GfrKeyAlgo) -> bool {
+    matches!(algo, GfrKeyAlgo::ED25519LEGACY)
+}
+
+/// For v6 keys, `ED25519`/`CV25519` used for encryption resolve to the deprecated
+/// Curve25519Legacy ECDH curve (RFC 9580 §9.2). Return the native `X25519`
+/// replacement when that is the case, otherwise `None` (no remap needed).
+fn v6_remap_encryption_curve(algo: &GfrKeyAlgo, can_encrypt: bool) -> Option<KeyType> {
+    if can_encrypt && matches!(algo, GfrKeyAlgo::CV25519 | GfrKeyAlgo::ED25519) {
+        Some(KeyType::X25519)
+    } else {
+        None
+    }
+}
+
 /// Build a `SignedSecretKey` from a primary key config and a list of subkey configs.
 ///
 /// Honors the caller's requested key format (`key_config.ver`), but always
 /// forces OpenPGP v6 when any key uses a post-quantum hybrid algorithm, which is
-/// only defined for v6. For v6 keys, `CV25519` is mapped to `X25519` and
-/// `ED25519` to `Ed25519` per the v6 key type naming convention in the rPGP
-/// crate.
+/// only defined for v6. For v6 keys, `CV25519`/`ED25519` encryption keys are
+/// mapped to native `X25519` and deprecated legacy OIDs are rejected (§9.2).
 pub fn keygen_dynamic(
     uid: &str,
     key_config: &GfrKeyConfig,
     s_key_configs: &[GfrKeyConfig],
 ) -> anyhow::Result<SignedSecretKey> {
-    let primary_type = resolve_key_type(&key_config.algo, false)?;
+    let mut primary_type = resolve_key_type(&key_config.algo, false)?;
     let mut subkeys = Vec::new();
 
     // Post-quantum hybrids mandate v6; otherwise respect the caller's explicit
@@ -92,21 +112,50 @@ pub fn keygen_dynamic(
         log::info!("Using V6 key version for generation as requested by caller.");
     }
 
+    // RFC 9580 §9.2: v6 key material MUST NOT use the deprecated Curve25519Legacy
+    // / Ed25519Legacy OIDs. Reject ED25519LEGACY and remap legacy-curve
+    // encryption keys to native X25519 before building.
+    if use_v6 {
+        if is_v6_forbidden_legacy(&key_config.algo) {
+            anyhow::bail!(
+                "ED25519LEGACY uses a deprecated OID and cannot be used in a v6 key (RFC 9580 §9.2)"
+            );
+        }
+        if let Some(remapped) = v6_remap_encryption_curve(&key_config.algo, false) {
+            primary_type = remapped;
+        }
+    }
+
+    // RFC 9580 §10.1.5: the primary key MUST be capable of making signatures (it
+    // must self-certify). Reject encryption-only primary algorithms up front with
+    // a clear error instead of letting the self-signature step fail opaquely.
+    if !primary_type.can_sign() {
+        anyhow::bail!(
+            "primary key algorithm is encryption-only; RFC 9580 §10.1.5 requires a signing-capable primary"
+        );
+    }
+
     for config in s_key_configs {
-        let k_type = resolve_key_type(&config.algo, config.can_encrypt)?;
+        let mut k_type = resolve_key_type(&config.algo, config.can_encrypt)?;
         let mut builder = SubkeyParamsBuilder::default();
-        builder.key_type(k_type);
 
         if use_v6 {
-            // For v6 keys, we need to set the version explicitly to V6 in the builder
+            // For v6 keys, set the version explicitly to V6 in the builder.
             builder.version(KeyVersion::V6);
 
-            // For certain algorithms like CV25519, we also need to set the key
-            // type to X25519 for encryption capabilities in v6 keys
-            if config.algo == GfrKeyAlgo::CV25519 {
-                builder.key_type(KeyType::X25519);
+            // RFC 9580 §9.2: reject deprecated OIDs and remap ED25519/CV25519
+            // encryption subkeys (which resolve to Curve25519Legacy) to X25519.
+            if is_v6_forbidden_legacy(&config.algo) {
+                anyhow::bail!(
+                    "ED25519LEGACY uses a deprecated OID and cannot be used in a v6 key (RFC 9580 §9.2)"
+                );
+            }
+            if let Some(remapped) = v6_remap_encryption_curve(&config.algo, config.can_encrypt) {
+                k_type = remapped;
             }
         }
+
+        builder.key_type(k_type);
 
         builder
             .can_sign(config.can_sign)
@@ -128,7 +177,47 @@ pub fn keygen_dynamic(
 
     if use_v6 {
         builder.version(KeyVersion::V6);
+        // Advertise SEIPD v2 (AEAD) support so peers encrypt to this v6 key using
+        // the stronger AEAD container (RFC 9580 §5.2.3.32 / §13.7). SEIPD v1 stays
+        // enabled by the builder default for backward compatibility.
+        builder.feature_seipd_v2(true);
     }
+
+    // Advertise algorithm preferences on the self-signature (RFC 9580 §5.2.3.14-17).
+    // rPGP leaves these empty by default, which forces peers to fall back to the
+    // mandatory-to-implement algorithms (e.g. AES-128); populating them lets peers
+    // pick our stronger preferred algorithms, matching GnuPG-class output.
+    builder
+        .preferred_symmetric_algorithms(
+            [
+                SymmetricKeyAlgorithm::AES256,
+                SymmetricKeyAlgorithm::AES128,
+            ]
+            .into_iter()
+            .collect(),
+        )
+        .preferred_hash_algorithms(
+            [HashAlgorithm::Sha512, HashAlgorithm::Sha256]
+                .into_iter()
+                .collect(),
+        )
+        .preferred_compression_algorithms(
+            [
+                CompressionAlgorithm::ZLIB,
+                CompressionAlgorithm::ZIP,
+                CompressionAlgorithm::Uncompressed,
+            ]
+            .into_iter()
+            .collect(),
+        )
+        .preferred_aead_algorithms(
+            [
+                (SymmetricKeyAlgorithm::AES256, AeadAlgorithm::Ocb),
+                (SymmetricKeyAlgorithm::AES128, AeadAlgorithm::Ocb),
+            ]
+            .into_iter()
+            .collect(),
+        );
 
     let signed = builder
         .key_type(primary_type)
@@ -263,12 +352,12 @@ pub fn create_key_internal(
     let fingerprint = secret_key.fingerprint().to_string();
 
     let armored_s_key = secret_key
-        .to_armored_string(ArmorOptions::default())
+        .to_armored_string(armor_opts())
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     let public_key = SignedPublicKey::from(secret_key);
     let armored_p_key = public_key
-        .to_armored_string(ArmorOptions::default())
+        .to_armored_string(armor_opts())
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     Ok(GeneratedKeys {
@@ -334,10 +423,17 @@ pub fn add_subkey_internal(
     // 3. Generate the raw secret subkey materials (using the generate pattern from tests)
     let mut sub_k_type = resolve_key_type(&config.algo, config.can_encrypt)?;
     if secret_key.version() == KeyVersion::V6 {
-        // For v6 keys, we need to set the version explicitly to V6 in the public key inner
-        // and also ensure the key type is set correctly for certain algorithms like CV25519
-        if config.algo == GfrKeyAlgo::CV25519 {
-            sub_k_type = KeyType::X25519;
+        // RFC 9580 §9.2: v6 key material MUST NOT use deprecated OIDs. Reject
+        // ED25519LEGACY and remap ED25519/CV25519 encryption subkeys (which
+        // resolve to Curve25519Legacy) to native X25519.
+        if is_v6_forbidden_legacy(&config.algo) {
+            set_last_error(
+                "ED25519LEGACY uses a deprecated OID and cannot be added to a v6 key (RFC 9580 §9.2)",
+            );
+            return Err(GfrStatus::ErrorUnsupportedAlgorithm);
+        }
+        if let Some(remapped) = v6_remap_encryption_curve(&config.algo, config.can_encrypt) {
+            sub_k_type = remapped;
         }
     }
 
@@ -466,12 +562,12 @@ pub fn add_subkey_internal(
 
     // 9. Armor the updated keys for export
     let armored_s_key = secret_key
-        .to_armored_string(ArmorOptions::default())
+        .to_armored_string(armor_opts())
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     let public_key = SignedPublicKey::from(secret_key);
     let armored_p_key = public_key
-        .to_armored_string(ArmorOptions::default())
+        .to_armored_string(armor_opts())
         .map_err(|_| GfrStatus::ErrorArmorFailed)?;
 
     Ok(GeneratedKeys {
@@ -479,4 +575,118 @@ pub fn add_subkey_internal(
         public: armored_p_key,
         fingerprint: fingerprint_str,
     })
+}
+
+#[cfg(test)]
+mod rfc9580_tests {
+    //! RFC 9580 conformance tests for key generation. Each test targets a
+    //! specific requirement that the engine previously violated.
+    use super::*;
+    use crate::types::{GfrKeyAlgo, GfrKeyConfig, GfrOpenPGPKeyVersion};
+    use pgp::crypto::public_key::PublicKeyAlgorithm;
+
+    fn cfg(
+        algo: GfrKeyAlgo,
+        can_sign: bool,
+        can_encrypt: bool,
+        ver: GfrOpenPGPKeyVersion,
+    ) -> GfrKeyConfig {
+        GfrKeyConfig {
+            algo,
+            can_sign,
+            can_encrypt,
+            can_auth: false,
+            has_passphrase: false,
+            ver,
+            expiration_epoch_secs: 0,
+        }
+    }
+
+    /// RFC 9580 §12.4/§12.5: RSA < 2048 and DSA MUST NOT be generated.
+    #[test]
+    fn resolve_key_type_rejects_weak_generation() {
+        assert!(resolve_key_type(&GfrKeyAlgo::RSA1024, false).is_err());
+        assert!(resolve_key_type(&GfrKeyAlgo::DSA1024, false).is_err());
+        assert!(resolve_key_type(&GfrKeyAlgo::DSA2048, false).is_err());
+        assert!(resolve_key_type(&GfrKeyAlgo::DSA3072, false).is_err());
+        // Still-permitted generation targets must continue to resolve.
+        assert!(resolve_key_type(&GfrKeyAlgo::RSA2048, false).is_ok());
+        assert!(resolve_key_type(&GfrKeyAlgo::ED25519, false).is_ok());
+    }
+
+    /// RFC 9580 §9.2: a v6 key MUST NOT use the deprecated Curve25519Legacy OID.
+    /// An ED25519 encryption subkey (which resolves to Curve25519Legacy ECDH on v4)
+    /// must be remapped to native X25519 inside a v6 key.
+    #[test]
+    fn v6_encryption_subkey_uses_native_x25519() {
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V6);
+        let sub = cfg(GfrKeyAlgo::ED25519, false, true, GfrOpenPGPKeyVersion::V6);
+        let key = keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[sub]).expect("keygen");
+        assert_eq!(key.primary_key.version(), KeyVersion::V6);
+        assert_eq!(
+            key.secret_subkeys[0].key.algorithm(),
+            PublicKeyAlgorithm::X25519,
+            "v6 encryption subkey must be native X25519, not deprecated Curve25519Legacy ECDH"
+        );
+    }
+
+    /// RFC 9580 §9.2: ED25519LEGACY (deprecated OID) MUST NOT appear in a v6 key.
+    #[test]
+    fn v6_rejects_ed25519legacy() {
+        let primary = cfg(GfrKeyAlgo::ED25519LEGACY, true, false, GfrOpenPGPKeyVersion::V6);
+        assert!(keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).is_err());
+    }
+
+    /// RFC 9580 §10.1.5: an encryption-only primary algorithm MUST be rejected.
+    #[test]
+    fn encryption_only_primary_rejected() {
+        // ML-KEM is a KEM (encryption-only) and cannot self-certify as a primary.
+        let primary = cfg(GfrKeyAlgo::KYBER768X25519, false, true, GfrOpenPGPKeyVersion::V6);
+        assert!(keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).is_err());
+    }
+
+    /// RFC 9580 §5.2.3.14: generated keys SHOULD advertise algorithm preferences.
+    #[test]
+    fn generated_key_advertises_symmetric_preferences() {
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V4);
+        let key = keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).expect("keygen");
+        let advertises_aes256 = key.details.users.iter().any(|u| {
+            u.signatures
+                .iter()
+                .any(|s| s.preferred_symmetric_algs().contains(&SymmetricKeyAlgorithm::AES256))
+        });
+        assert!(
+            advertises_aes256,
+            "v4 UID self-signature should advertise preferred symmetric algorithms"
+        );
+    }
+
+    /// RFC 9580 §5.2.3.32 / §13.7: v6 keys SHOULD advertise SEIPD v2 (AEAD) support.
+    #[test]
+    fn v6_key_advertises_seipd_v2() {
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V6);
+        let key = keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).expect("keygen");
+        let advertises_v2 = key
+            .details
+            .direct_signatures
+            .iter()
+            .any(|s| s.features().map(|f| f.seipd_v2()).unwrap_or(false));
+        assert!(
+            advertises_v2,
+            "v6 Direct Key signature should advertise SEIPD v2 support"
+        );
+    }
+
+    /// RFC 9580 §6.1: v6 key armor MUST NOT contain a CRC24 footer.
+    #[test]
+    fn armored_v6_key_has_no_crc24_footer() {
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V6);
+        let key = keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).expect("keygen");
+        let armored = key.to_armored_string(armor_opts()).expect("armor");
+        // A CRC24 footer is a line consisting of '=' followed by 4 base64 chars.
+        for line in armored.lines() {
+            let is_crc = line.starts_with('=') && line.len() == 5;
+            assert!(!is_crc, "v6 key armor must not contain a CRC24 footer: {line}");
+        }
+    }
 }

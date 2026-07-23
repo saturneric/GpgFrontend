@@ -33,7 +33,7 @@
 
 use pgp::{
     bytes::Bytes,
-    composed::{DsaKeySize, KeyType},
+    composed::{ArmorOptions, KeyType},
     crypto::ecc_curve::ECCCurve,
     packet::{RevocationCode, Signature, Subpacket, SubpacketData},
     types::{Password, PublicParams, Timestamp},
@@ -43,6 +43,7 @@ use zeroize::Zeroizing;
 
 use crate::{
     cache::{PasswordCache, PasswordCacheKey, PasswordCachePolicy},
+    err::set_last_error,
     host::gfc_secure_free_buffer,
     types::{
         GfrKeyAlgo, GfrKeyConfig, GfrPassphraseState, GfrPasswordFetchCb, GfrPasswordFetchStatus,
@@ -53,6 +54,20 @@ use std::{
     ffi::{CString, c_char},
     ptr::null_mut,
 };
+
+/// Armor options for all engine output: no headers and **no CRC24 footer**.
+///
+/// RFC 9580 §6.1 discourages generating the CRC24 footer in general and forbids
+/// it outright for v6 keys, v6 signatures, and messages ending in a v2 SEIPD
+/// packet ("MUST NOT contain a CRC24 footer"). rPGP's `armor_opts()`
+/// enables the checksum with no version awareness, so every armored output goes
+/// through this helper instead to stay compliant across key/signature versions.
+pub fn armor_opts() -> ArmorOptions<'static> {
+    ArmorOptions {
+        headers: None,
+        include_checksum: false,
+    }
+}
 
 /// Describes the passphrase request context passed to the UI callback.
 pub struct PassphraseStateInternal {
@@ -284,14 +299,23 @@ pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType,
             }
         }
 
-        GfrKeyAlgo::RSA1024 => Ok(KeyType::Rsa(1024)),
+        // RFC 9580 §12.4: implementations MUST NOT generate RSA keys smaller than
+        // 2048 bits. RSA-1024 is rejected here (existing RSA-1024 keys can still be
+        // imported/displayed via `determine_algo`, which is unaffected).
+        GfrKeyAlgo::RSA1024 => {
+            set_last_error("RSA-1024 is too weak to generate; RFC 9580 §12.4 requires >= 2048 bits");
+            Err(GfrStatus::ErrorUnsupportedAlgorithm)
+        }
         GfrKeyAlgo::RSA2048 => Ok(KeyType::Rsa(2048)),
         GfrKeyAlgo::RSA3072 => Ok(KeyType::Rsa(3072)),
         GfrKeyAlgo::RSA4096 => Ok(KeyType::Rsa(4096)),
 
-        GfrKeyAlgo::DSA1024 => Ok(KeyType::Dsa(DsaKeySize::B1024)),
-        GfrKeyAlgo::DSA2048 => Ok(KeyType::Dsa(DsaKeySize::B2048)),
-        GfrKeyAlgo::DSA3072 => Ok(KeyType::Dsa(DsaKeySize::B3072)),
+        // RFC 9580 §12.5: implementations MUST NOT generate DSA keys. Reading and
+        // verifying existing DSA keys remains supported (see `determine_algo`).
+        GfrKeyAlgo::DSA1024 | GfrKeyAlgo::DSA2048 | GfrKeyAlgo::DSA3072 => {
+            set_last_error("DSA key generation is forbidden by RFC 9580 §12.5");
+            Err(GfrStatus::ErrorUnsupportedAlgorithm)
+        }
 
         GfrKeyAlgo::ED25519LEGACY => Ok(KeyType::Ed25519Legacy),
 

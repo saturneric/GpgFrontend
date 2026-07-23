@@ -26,7 +26,7 @@
  *
  */
 
-use crate::utils::password_from_zeroizing_bytes;
+use crate::utils::{armor_opts, password_from_zeroizing_bytes};
 
 use pgp::{
     packet::{SignatureConfig, SignatureType, Subpacket, SubpacketData},
@@ -153,7 +153,7 @@ where
 
             // Execute the pipeline: read from input, sign chunks, write to output
             let result = if ascii_armor {
-                builder.to_armored_writer(&mut rng, ArmorOptions::default(), &mut output_stream)
+                builder.to_armored_writer(&mut rng, armor_opts(), &mut output_stream)
             } else {
                 builder.to_writer(&mut rng, &mut output_stream)
             };
@@ -284,7 +284,7 @@ where
             .map_err(|_| GfrStatus::ErrorInternal)?;
 
             let out = msg
-                .to_armored_string(ArmorOptions::default())
+                .to_armored_string(armor_opts())
                 .map_err(|_| GfrStatus::ErrorArmorFailed)?
                 .into_bytes();
 
@@ -344,7 +344,7 @@ where
                         Ok(sig) => {
                             record_sig(fpr, algo_str);
                             let out = if ascii_armor {
-                                sig.to_armored_bytes(None.into())
+                                sig.to_armored_bytes(armor_opts())
                                     .record_err(GfrStatus::ErrorArmorFailed)?
                             } else {
                                 sig.to_bytes().record_err(GfrStatus::ErrorInternal)?

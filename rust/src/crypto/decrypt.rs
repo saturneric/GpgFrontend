@@ -34,6 +34,45 @@ use crate::{host::gfc_secure_free_cstr, utils::password_from_zeroizing_bytes};
 
 use super::*;
 
+/// Upper bound on the number of plaintext octets a *decompressed* message may
+/// produce before decryption is aborted. This guards against decompression bombs
+/// (RFC 9580 §13.14); it is deliberately generous so it never trips on real data,
+/// while still bounding a malicious high-ratio payload to a finite size.
+const MAX_DECOMPRESSED_OUTPUT_BYTES: u64 = 4 * 1024 * 1024 * 1024; // 4 GiB
+
+/// A `Read` adapter that errors once cumulative reads exceed `limit` bytes,
+/// instead of silently truncating like `Read::take`. Used to cap decompressed
+/// output so a compression bomb cannot exhaust memory or disk.
+struct LimitedReader<R> {
+    inner: R,
+    limit: u64,
+    read_so_far: u64,
+}
+
+impl<R: Read> LimitedReader<R> {
+    fn new(inner: R, limit: u64) -> Self {
+        Self {
+            inner,
+            limit,
+            read_so_far: 0,
+        }
+    }
+}
+
+impl<R: Read> Read for LimitedReader<R> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let n = self.inner.read(buf)?;
+        self.read_so_far = self.read_so_far.saturating_add(n as u64);
+        if self.read_so_far > self.limit {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "decompressed output exceeds the maximum allowed size (possible compression bomb)",
+            ));
+        }
+        Ok(n)
+    }
+}
+
 /// Inspect the ESK (Encrypted Session Key) packets of a parsed message.
 ///
 /// Returns `(has_pkesk, has_skesk, recipients)` where `has_pkesk` indicates
@@ -262,7 +301,13 @@ where
     }
 
     // 6. Mount decompression pipeline
-    if decrypted.is_compressed() {
+    //
+    // Only one layer is peeled (a compression quine cannot drive infinite regress
+    // here). The decompressed output, however, is unbounded, so a single-layer
+    // high-ratio "compression bomb" could expand to a system-exhausting size; the
+    // copy in step 8 caps it when the message was compressed (RFC 9580 §13.14).
+    let was_compressed = decrypted.is_compressed();
+    if was_compressed {
         decrypted = decrypted.decompress().into_gfr()?;
     }
 
@@ -280,7 +325,22 @@ where
     // requested for this channel. `into_gfr` cannot see the channel, so check
     // the flag first and surface `ErrorCanceled`; otherwise fall through to the
     // normal error mapping (which also records a detailed message).
-    let copy_result = std::io::copy(&mut decrypted, &mut output_stream);
+    //
+    // A message that was decompressed is streamed through a size limiter so a
+    // decompression bomb cannot exhaust memory/disk (RFC 9580 §13.14). Non-
+    // compressed payloads are copied unbounded (their size equals the ciphertext,
+    // which rPGP already bounds), so legitimate large files are unaffected.
+    //
+    // NOTE: the withhold-plaintext-until-integrity guarantee relies on rPGP's
+    // default `Seipdv1ReadMode::CheckFirst` (v4/MDC) and per-chunk AEAD auth (v2);
+    // do not switch `decrypt`/`decrypt_with_password` to a streaming read mode
+    // without re-checking that plaintext is never released before authentication.
+    let copy_result = if was_compressed {
+        let mut limited = LimitedReader::new(&mut decrypted, MAX_DECOMPRESSED_OUTPUT_BYTES);
+        std::io::copy(&mut limited, &mut output_stream)
+    } else {
+        std::io::copy(&mut decrypted, &mut output_stream)
+    };
     if copy_result.is_err() && crate::cancel::is_cancelled(channel) {
         return Err(GfrStatus::ErrorCanceled);
     }
