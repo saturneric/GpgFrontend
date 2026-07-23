@@ -66,13 +66,17 @@ auto FindPrimaryAlgo(const QString &id, const QString &type) -> KeyAlgo {
 auto RsaFamily(int opera) -> QContainer<KeyAlgo> {
   QContainer<KeyAlgo> algos;
   for (int bits : {1024, 2048, 3072, 4096}) {
+    EngineSupportList support{{OpenPGPEngine::kGNUPG, "2.2.0"}};
+    // RFC 9580 §12.4: implementations MUST NOT generate RSA keys < 2048 bits.
+    // The rPGP engine enforces this, so it only advertises RSA >= 2048 for
+    // generation (existing RSA-1024 keys are still imported/displayed).
+    if (bits >= 2048) support.append({OpenPGPEngine::kRPGP, "0.1.0"});
     algos.append(KeyAlgoSpec{.id = QString("rsa%1").arg(bits),
                              .name = "RSA",
                              .type = "RSA",
                              .length = bits,
                              .opera = opera,
-                             .support = {{OpenPGPEngine::kGNUPG, "2.2.0"},
-                                         {OpenPGPEngine::kRPGP, "0.1.0"}}});
+                             .support = support});
   }
   return algos;
 }
@@ -80,13 +84,14 @@ auto RsaFamily(int opera) -> QContainer<KeyAlgo> {
 auto DsaFamily(int opera) -> QContainer<KeyAlgo> {
   QContainer<KeyAlgo> algos;
   for (int bits : {1024, 2048, 3072}) {
+    // RFC 9580 §12.5: implementations MUST NOT generate DSA keys. The rPGP
+    // engine does not offer DSA generation (GnuPG keeps it for legacy use).
     algos.append(KeyAlgoSpec{.id = QString("dsa%1").arg(bits),
                              .name = "DSA",
                              .type = "DSA",
                              .length = bits,
                              .opera = opera,
-                             .support = {{OpenPGPEngine::kGNUPG, "2.2.0"},
-                                         {OpenPGPEngine::kRPGP, "0.1.0"}}});
+                             .support = {{OpenPGPEngine::kGNUPG, "2.2.0"}}});
   }
   return algos;
 }
