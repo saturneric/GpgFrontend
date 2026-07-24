@@ -49,97 +49,43 @@ where
         return Err(GfrStatus::ErrorInvalidInput);
     }
 
-    // 1. Parse the detached signature file (Attempt armored first, fallback to raw bytes)
-    let sig_msg = DetachedSignature::from_armor_single(Cursor::new(sig_data))
-        .map(|(s, _)| s)
-        .or_else(|_| DetachedSignature::from_bytes(sig_data))
-        .record_err(GfrStatus::ErrorInvalidInput)?;
-
-    // 2. Sniff signature metadata to know WHO signed it before fetching keys
-    let mut signatures = sniff_signatures(sig_data, GfrSignMode::Detached);
-    let mut is_verified = false;
-
-    // 3. Dynamically Fetch Public Keys via C Callback based on sniffed fingerprints
-    let mut certs = Vec::new();
-    if let Some(cb) = fetch_pubkey_cb {
-        for sig in &signatures {
-            let c_fpr = std::ffi::CString::new(sig.fpr.clone()).unwrap_or_default();
-            let c_key_block = cb(c_fpr.as_ptr(), user_data);
-
-            if !c_key_block.is_null() {
-                if let Ok(key_str) = unsafe { std::ffi::CStr::from_ptr(c_key_block) }.to_str() {
-                    if let Ok((cert, _)) = SignedPublicKey::from_string(key_str) {
-                        certs.push(cert);
-                    }
-                }
-
-                unsafe {
-                    gfc_secure_free_cstr(c_key_block);
-                }
-            }
-        }
+    // 1. Parse every detached signature packet. A detached blob may legitimately
+    //    carry several signature packets (multiple signers over the same data);
+    //    attribution is per packet, exactly as on the in-memory detached path.
+    let sig_packets = parse_all_signature_packets(sig_data);
+    if sig_packets.is_empty() {
+        return Err(GfrStatus::ErrorInvalidInput);
     }
 
+    // 2. Build one result entry per packet (issuer fpr/key-id + metadata) so the
+    //    signer certs can be fetched before any hashing.
+    let mut signatures: Vec<SignatureResultInternal> = sig_packets
+        .iter()
+        .map(|sig| sig_entry_from_packet(sig, GfrSignMode::Detached))
+        .collect();
+
+    // 3. Dynamically fetch the signer certs via the C callback.
+    let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
     log::debug!(
         "Fetched and parsed {} public keys for detached stream verification",
         certs.len()
     );
 
-    // 4. Stream Verification
-    //
-    // Hashing the data stream is the long-running part, so each pass reads
-    // through a `CancellableReader` that aborts mid-hash once the user cancels.
-    // `verify` only reports success/failure, so after the passes we consult the
-    // cancel flag directly and surface `ErrorCanceled` rather than a spurious
-    // "not verified" result.
-    for cert in &certs {
-        if crate::cancel::is_cancelled(channel) {
-            return Err(GfrStatus::ErrorCanceled);
-        }
-
-        // Rewind the stream to the beginning before starting verification
-        data_stream
-            .seek(SeekFrom::Start(0))
-            .record_err(GfrStatus::ErrorInternal)?;
-
-        // Try verifying with the primary key first — but only if it is currently
-        // usable: not revoked (RFC 9580 §5.2.1.11) and not expired (§5.2.3.13).
-        // A signature under a revoked or expired key is not valid.
-        let mut is_cert_valid = if !cert_primary_usable(cert) {
-            false
-        } else {
-            let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut data_stream);
-            sig_msg.signature.verify(cert, &mut cancellable).is_ok()
-        };
-
-        // Fallback: if the primary key fails, test subkeys (to bypass rpgp's strict
-        // identity matching). Only usable signing subkeys are attempted: a revoked
-        // or encryption-only subkey MUST NOT yield a valid result (RFC 9580 §5.2.1.12).
-        if !is_cert_valid {
-            for subkey in &cert.public_subkeys {
-                if crate::cancel::is_cancelled(channel) {
-                    return Err(GfrStatus::ErrorCanceled);
-                }
-                if !subkey_usable_for_verify(cert, subkey) {
-                    continue;
-                }
-
-                // We MUST rewind the stream before each subsequent verification attempt!
-                data_stream
-                    .seek(SeekFrom::Start(0))
-                    .record_err(GfrStatus::ErrorInternal)?;
-
-                let mut cancellable =
-                    crate::cancel::CancellableReader::new(channel, &mut data_stream);
-                if sig_msg.signature.verify(subkey, &mut cancellable).is_ok() {
-                    is_cert_valid = true;
-                    break;
-                }
-            }
-        }
-
-        finalize_signature_statuses(cert, is_cert_valid, &mut signatures, &mut is_verified);
+    if crate::cancel::is_cancelled(channel) {
+        return Err(GfrStatus::ErrorCanceled);
     }
+
+    // 4. Attribute each packet per index through the shared driver. Hashing the
+    //    seekable stream is the long-running part;
+    //    `signature_verifies_under_usable_key_stream` rewinds before every attempt
+    //    and hashes through a `CancellableReader` that aborts mid-hash once the
+    //    user cancels. `verify` only reports success/failure, so afterwards we
+    //    consult the cancel flag directly and surface `ErrorCanceled` rather than
+    //    a spurious "not verified" result.
+    let mut is_verified = false;
+    attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert| {
+        signature_verifies_under_usable_key_stream(cert, &sig_packets[i], &mut data_stream, channel)
+    });
 
     if crate::cancel::is_cancelled(channel) {
         return Err(GfrStatus::ErrorCanceled);
@@ -189,41 +135,21 @@ pub fn verify_internal(
                 msg.as_data_vec().into_gfr()?
             };
 
-            let num_sigs = if let Message::Signed { ref reader, .. } = msg {
-                reader.num_signatures()
-            } else {
-                0
-            };
-
             // Build one entry per actual signature packet from the (possibly
             // decompressed) message. Deriving these from the parsed message rather
             // than sniffing the raw outer bytes is essential for a
             // compression-wrapped inline signature, whose signature packets are
             // invisible until the body is decompressed; it also lets
             // sig_entry_from_packet apply the issuer Key ID fallback (B1).
-            let mut signatures = Vec::new();
-            if let Message::Signed { ref reader, .. } = msg {
-                for i in 0..num_sigs {
-                    if let Some(sig) = reader.signature(i) {
-                        signatures.push(sig_entry_from_packet(sig, mode));
-                    }
-                }
-            }
-
+            let mut signatures = signature_entries_from_message(&msg);
             let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
             // verify() only checks signature at index 0; attribute each index to
             // the exact issuer that made it (per-index attribution).
-            for cert in &certs {
-                finalize_signature_statuses_by_index(
-                    &msg,
-                    num_sigs,
-                    cert,
-                    &mut signatures,
-                    &mut is_verified,
-                );
-            }
+            attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert| {
+                verify_index_under_usable_key(&msg, i, cert)
+            });
 
             Ok(VerifyResultInternal {
                 data: clear_data,
@@ -255,15 +181,9 @@ pub fn verify_internal(
             let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
-            for (idx, sig) in sig_packets.iter().enumerate() {
-                attribute_signature_per_index(
-                    sig,
-                    signed_text.as_bytes(),
-                    &certs,
-                    &mut signatures[idx],
-                    &mut is_verified,
-                );
-            }
+            attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert| {
+                signature_verifies_under_usable_key(cert, &sig_packets[i], signed_text.as_bytes())
+            });
 
             let clear_data = msg.to_armored_bytes(armor_opts()).unwrap_or_default();
             Ok(VerifyResultInternal {
@@ -297,15 +217,9 @@ pub fn verify_internal(
             let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
-            for (idx, sig) in sig_packets.iter().enumerate() {
-                attribute_signature_per_index(
-                    sig,
-                    data,
-                    &certs,
-                    &mut signatures[idx],
-                    &mut is_verified,
-                );
-            }
+            attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert| {
+                signature_verifies_under_usable_key(cert, &sig_packets[i], data)
+            });
 
             Ok(VerifyResultInternal {
                 data: Vec::new(),
@@ -314,33 +228,4 @@ pub fn verify_internal(
             })
         }
     }
-}
-
-/// Attribute a single signature packet to its result entry.
-///
-/// Only certificates that actually carry this signature's issuer are considered,
-/// so an unknown signer (no fetched cert) keeps its `NoKey` status rather than
-/// being downgraded to `BadSignature`. When a matching cert exists, the packet is
-/// verified against a usable key of that cert and the shared §9.5/§5.2.3.10 gates
-/// are applied. Shared by the cleartext and detached in-memory verify paths.
-fn attribute_signature_per_index(
-    sig: &pgp::packet::Signature,
-    data: &[u8],
-    certs: &[SignedPublicKey],
-    entry: &mut SignatureResultInternal,
-    is_verified: &mut bool,
-) {
-    let matching: Vec<&SignedPublicKey> = certs
-        .iter()
-        .filter(|cert| cert_contains_issuer(cert, &entry.fpr))
-        .collect();
-    if matching.is_empty() {
-        // No key for this issuer: leave the entry as NoKey (unknown signer).
-        return;
-    }
-
-    let verified = matching
-        .iter()
-        .any(|cert| signature_verifies_under_usable_key(cert, sig, data));
-    apply_signature_gate(entry, verified, is_verified);
 }

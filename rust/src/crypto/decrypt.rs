@@ -372,81 +372,20 @@ where
 
     // We only process signatures if the message is actually signed AND the caller requested verification
     if decrypted.is_signed() && fetch_pubkey_cb.is_some() {
-        if let pgp::composed::Message::Signed { ref reader, .. } = decrypted {
-            for i in 0..reader.num_signatures() {
-                if let Some(sig) = reader.signature(i) {
-                    for issuer in sig.issuer_fingerprint() {
-                        let fpr = issuer.to_string();
-                        let (hash_algo, pub_algo) = sig
-                            .config()
-                            .map(|c| (c.hash_alg.to_string(), algo_to_string_simple(c.pub_alg)))
-                            .unwrap_or_default();
-
-                        if !signatures
-                            .iter()
-                            .any(|r: &SignatureResultInternal| r.fpr == fpr)
-                        {
-                            signatures.push(SignatureResultInternal {
-                                fpr,
-                                status: GfrSignatureStatus::NoKey,
-                                created_at: sig.created().map(|d| d.as_secs()).unwrap_or(0),
-                                expires_at: signature_absolute_expiry(sig),
-                                pub_algo,
-                                hash_algo,
-                                sig_type: GfrSignMode::Inline,
-                            });
-                        }
-                    }
-                }
-            }
-        }
-
-        // Fetch Public Keys
-        let mut certs = Vec::new();
-        if let Some(cb) = fetch_pubkey_cb {
-            for sig in &signatures {
-                let c_fpr = CString::new(sig.fpr.clone()).unwrap_or_default();
-                let c_key_block = cb(c_fpr.as_ptr(), user_data);
-
-                if !c_key_block.is_null() {
-                    if let Ok(key_str) = unsafe { CStr::from_ptr(c_key_block) }.to_str() {
-                        if let Ok((cert, _)) = SignedPublicKey::from_string(key_str) {
-                            certs.push(cert);
-                        }
-                    }
-                    unsafe { gfc_secure_free_cstr(c_key_block as *mut c_char) };
-                }
-            }
-        }
-
-        // Verify signatures.
-        //
-        // This path MUST apply the same RFC 9580 gating as the standalone
-        // verifier in `verify.rs`: a signature is only considered cert-valid
-        // when it verifies under a *usable* key — the primary must not be
-        // revoked (§5.2.1.11) and any subkey used must be signing-capable and
-        // not revoked (§5.2.1.12). The remaining signature-level gates
-        // (weak-hash §9.5, signature expiration §5.2.3.18) are applied by the
-        // shared `finalize_signature_statuses`. Previously this path stamped
-        // `Valid` on any cryptographic pass, accepting weak-hash and
-        // revoked-key signatures that the standalone verifier rejects.
-
-        // verify() only checks signature at index 0; iterate all indices for multi-signer messages.
-        let num_sigs = if let pgp::composed::Message::Signed { ref reader, .. } = decrypted {
-            reader.num_signatures()
-        } else {
-            0
-        };
-
-        for cert in &certs {
-            finalize_signature_statuses_by_index(
-                &decrypted,
-                num_sigs,
-                cert,
-                &mut signatures,
-                &mut is_verified,
-            );
-        }
+        // Attribute exactly like the standalone inline verifier in `verify.rs`,
+        // through the shared path — no divergent copy. `signature_entries_from_message`
+        // builds one entry per signature packet (issuer fingerprint→key-id
+        // fallback, no fingerprint-only de-dup), and `attribute_entries` ties each
+        // `Valid` to the specific index that verifies under a *usable* key (primary
+        // not revoked §5.2.1.11 / subkey signing-capable and not revoked §5.2.1.12),
+        // then applies the §9.5 weak-hash and §5.2.3.18 expiry gates. Previously this
+        // path carried its own builder (fingerprint-only de-dup, no key-id fallback),
+        // dropping distinct or legacy-key-id signatures the standalone verifier keeps.
+        signatures = signature_entries_from_message(&decrypted);
+        let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
+        attribute_entries(&mut signatures, &certs, &mut is_verified, |i, cert| {
+            verify_index_under_usable_key(&decrypted, i, cert)
+        });
     }
 
     Ok(DecryptAndVerifyStreamResultInternal {

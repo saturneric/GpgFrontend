@@ -1546,19 +1546,16 @@ pub fn revoke_subkey_internal(
 
     let pk = secret_key.primary_key.public_key();
     let primary_fpr = secret_key.primary_key.fingerprint();
-    let primary_fpr_bytes = primary_fpr.as_bytes().to_vec();
 
     let subkey = secret_key
         .secret_subkeys
         .get_mut(target_idx)
         .ok_or(GfrStatus::ErrorInternal)?;
 
-    let already_revoked = subkey.signatures.iter().any(|sig| {
-        sig.issuer_fingerprint()
-            .iter()
-            .any(|fp| fp.as_bytes() == primary_fpr_bytes)
-            && matches!(sig.typ(), Some(SignatureType::SubkeyRevocation))
-    });
+    // Detect an existing revocation cryptographically, not merely by matching the
+    // issuer subpacket: only a subkey-revocation whose signature actually verifies
+    // under the primary counts as already-revoked (RFC 9580 §5.2.1.12).
+    let already_revoked = is_subkey_revoked(pk, subkey.key.public_key(), &subkey.signatures);
 
     if already_revoked {
         return Err(GfrStatus::ErrorInvalidInput);
@@ -2019,16 +2016,23 @@ pub fn import_rev_cert_internal(
     let rev_sigs = extract_key_revocation_signatures(rev_cert_block)?;
 
     if let Ok((mut base_sk, _)) = SignedSecretKey::from_string(base_key_block) {
-        let base_fpr_bytes = base_sk.primary_key.fingerprint().as_bytes().to_vec();
-
-        if !rev_sigs
+        // Store only revocations that cryptographically verify under the base
+        // primary key (RFC 9580 §5.2.3.31), not ones merely naming it in an Issuer
+        // subpacket: a fabricated revocation cert must never be imported.
+        let primary_pub = base_sk.primary_key.public_key();
+        let verified: Vec<Signature> = rev_sigs
             .iter()
-            .any(|sig| is_self_signature_from_primary(sig, &base_fpr_bytes))
-        {
+            .filter(|sig| {
+                matches!(sig.typ(), Some(SignatureType::KeyRevocation))
+                    && sig.verify_key(primary_pub).is_ok()
+            })
+            .cloned()
+            .collect();
+        if verified.is_empty() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        base_sk.details.revocation_signatures.extend(rev_sigs);
+        base_sk.details.revocation_signatures.extend(verified);
         dedup_signatures_in_place(&mut base_sk.details.revocation_signatures)?;
         dedup_signatures_in_place(&mut base_sk.details.direct_signatures)?;
 
@@ -2036,16 +2040,20 @@ pub fn import_rev_cert_internal(
     }
 
     if let Ok((mut base_pk, _)) = SignedPublicKey::from_string(base_key_block) {
-        let base_fpr_bytes = base_pk.primary_key.fingerprint().as_bytes().to_vec();
-
-        if !rev_sigs
+        // Same cryptographic gate as the secret-key branch above.
+        let verified: Vec<Signature> = rev_sigs
             .iter()
-            .any(|sig| is_self_signature_from_primary(sig, &base_fpr_bytes))
-        {
+            .filter(|sig| {
+                matches!(sig.typ(), Some(SignatureType::KeyRevocation))
+                    && sig.verify_key(&base_pk.primary_key).is_ok()
+            })
+            .cloned()
+            .collect();
+        if verified.is_empty() {
             return Err(GfrStatus::ErrorInvalidInput);
         }
 
-        base_pk.details.revocation_signatures.extend(rev_sigs);
+        base_pk.details.revocation_signatures.extend(verified);
         dedup_signatures_in_place(&mut base_pk.details.revocation_signatures)?;
         dedup_signatures_in_place(&mut base_pk.details.direct_signatures)?;
 
@@ -2147,6 +2155,47 @@ mod rfc9580_tests {
             .find(|s| matches!(s.typ(), Some(SignatureType::SubkeyRevocation)))
             .expect("subkey revocation signature present");
         assert_eq!(rev_sig.version(), pgp::packet::SignatureVersion::V4);
+    }
+
+    /// C: `import_rev_cert_internal` stores a revocation only if it
+    /// cryptographically verifies under the base key's primary (RFC 9580
+    /// §5.2.3.31), not merely because it names the primary in an Issuer subpacket.
+    /// A genuine self-revocation is honored; a revocation whose signature does not
+    /// verify under the base primary (here, one produced by a different key) is
+    /// rejected rather than silently stored.
+    #[test]
+    fn import_rev_cert_requires_a_verifying_signature() {
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V4);
+
+        let key_a = keygen_dynamic("a <a@example.com>", &primary, &[]).expect("keygen a");
+        let a_block = key_a.to_armored_string(armor_opts()).expect("armor a");
+
+        let key_b = keygen_dynamic("b <b@example.com>", &primary, &[]).expect("keygen b");
+        let b_block = key_b.to_armored_string(armor_opts()).expect("armor b");
+
+        // A's own self-revocation, imported onto A: accepted and honored.
+        let a_rev =
+            generate_key_rev_cert_internal(0, &a_block, GfrRevocationCode::Compromised, None, None)
+                .expect("gen a rev");
+        let imported = import_rev_cert_internal(&a_block, &a_rev).expect("import genuine");
+        let (revoked, _) = SignedSecretKey::from_string(&imported.secret).expect("parse imported");
+        assert!(
+            is_primary_key_revoked(
+                revoked.primary_key.public_key(),
+                &revoked.details.revocation_signatures
+            ),
+            "a genuine self-revocation must be stored and honored"
+        );
+
+        // B's genuine revocation does NOT verify under A's primary: importing it
+        // onto A must be rejected (its signature is not from A).
+        let b_rev =
+            generate_key_rev_cert_internal(0, &b_block, GfrRevocationCode::Compromised, None, None)
+                .expect("gen b rev");
+        assert!(
+            import_rev_cert_internal(&a_block, &b_rev).is_err(),
+            "a revocation that does not verify under the base primary must be rejected"
+        );
     }
 
     // ---- RFC 9580 Appendix A known-answer vectors ----

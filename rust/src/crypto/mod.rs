@@ -621,9 +621,20 @@ mod rfc9580_policy_tests {
     // aux_good's signing-subkey issuer fingerprint (see MANIFEST.txt).
     const AUX_GOOD_SIGN_FPR: &str = "08046811f5ed9f4215ee2bb9f29a1d9930f596bf";
 
+    // Build the per-packet result entries for a detached signature blob exactly as
+    // the production detached paths do: parse every Signature packet and map it
+    // through `sig_entry_from_packet` (issuer fingerprint→key-id fallback, no
+    // de-duplication). Replaces the former `sniff_signatures` helper.
+    fn detached_entries(data: &[u8]) -> Vec<SignatureResultInternal> {
+        parse_all_signature_packets(data)
+            .iter()
+            .map(|sig| sig_entry_from_packet(sig, GfrSignMode::Detached))
+            .collect()
+    }
+
     #[test]
     fn sniff_good_detached_reports_strong_hash_and_issuer() {
-        let sigs = sniff_signatures(SIG_GOOD, GfrSignMode::Detached);
+        let sigs = detached_entries(SIG_GOOD);
         assert_eq!(sigs.len(), 1);
         assert!(sigs[0].hash_algo.eq_ignore_ascii_case("SHA512"));
         assert!(sigs[0].fpr.eq_ignore_ascii_case(AUX_GOOD_SIGN_FPR));
@@ -633,14 +644,14 @@ mod rfc9580_policy_tests {
 
     #[test]
     fn sniff_sha1_detached_reports_weak_hash() {
-        let sigs = sniff_signatures(SIG_SHA1, GfrSignMode::Detached);
+        let sigs = detached_entries(SIG_SHA1);
         assert_eq!(sigs.len(), 1);
         assert!(sig_hash_algo_is_weak(&sigs[0].hash_algo));
     }
 
     #[test]
     fn sniff_v6_detached_yields_one_signature() {
-        let sigs = sniff_signatures(SIG_V6, GfrSignMode::Detached);
+        let sigs = detached_entries(SIG_V6);
         assert_eq!(sigs.len(), 1);
         assert!(!sigs[0].fpr.is_empty());
     }
@@ -689,9 +700,9 @@ mod rfc9580_policy_tests {
     }
 
     /// B1: a certificate must also be resolvable by a bare 16-hex key ID -- the
-    /// fallback identifier `sniff_signatures`/`sig_entry_from_packet` emit when a
-    /// signature carries only an Issuer Key ID subpacket (no Issuer Fingerprint),
-    /// as legacy GnuPG-style signatures do.
+    /// fallback identifier `sig_entry_from_packet` emits when a signature carries
+    /// only an Issuer Key ID subpacket (no Issuer Fingerprint), as legacy
+    /// GnuPG-style signatures do.
     #[test]
     fn cert_contains_issuer_matches_bare_key_id() {
         use pgp::composed::Deserializable;
@@ -702,11 +713,12 @@ mod rfc9580_policy_tests {
     }
 
     /// B2: two signatures from one issuer that differ in hash algorithm must both
-    /// be surfaced by `sniff_signatures`; issuer-only de-duplication would drop
-    /// the weak one and hide it from the §9.5 gate.
+    /// be surfaced by the packet parser; issuer-only de-duplication would drop the
+    /// weak one and hide it from the §9.5 gate. `parse_all_signature_packets` does
+    /// no de-duplication, so both packets survive to be gated individually.
     #[test]
-    fn sniff_keeps_distinct_signatures_from_one_issuer() {
-        let sigs = sniff_signatures(SIG_STRONG_WEAK, GfrSignMode::Detached);
+    fn packet_parser_keeps_distinct_signatures_from_one_issuer() {
+        let sigs = detached_entries(SIG_STRONG_WEAK);
         assert_eq!(sigs.len(), 2);
         let mut hashes: Vec<String> = sigs.iter().map(|s| s.hash_algo.to_uppercase()).collect();
         hashes.sort();
@@ -802,100 +814,84 @@ pub fn subkey_usable_for_verify(
         && cert_primary_usable(cert)
 }
 
-/// Apply the final signature status decision for one certificate uniformly
-/// across every verification path (inline / cleartext / detached / decrypt-and-
-/// verify).
+/// The single per-index signature-attribution driver, shared by every
+/// verification path (inline / cleartext / detached in-memory / detached stream
+/// / decrypt-and-verify).
 ///
-/// `is_cert_valid` must already encode the key-usability gates that depend on
-/// the rPGP objects in scope at the call site: the primary key must not be
-/// revoked ([`cert_primary_revoked`]) and any subkey used must pass
-/// [`subkey_usable_for_verify`]. This routine then layers the remaining
-/// signature-level gates that only need the recorded metadata:
+/// For each signature entry, only certificates that actually carry the entry's
+/// issuer ([`cert_contains_issuer`], fingerprint *or* key id) are considered; an
+/// entry with no matching cert keeps its `NoKey` status (an unknown signer must
+/// never be downgraded to `BadSignature`). When a matching cert exists, the
+/// caller-supplied `verifies` closure decides whether the signature *at that
+/// entry's index* cryptographically verifies under a *usable* key of the cert —
+/// the substrate differs per path (a parsed one-pass [`Message`] index via
+/// [`verify_index_under_usable_key`], or a standalone packet over a data buffer
+/// / seekable stream via [`signature_verifies_under_usable_key`] /
+/// [`signature_verifies_under_usable_key_stream`]). The result is then run
+/// through [`apply_signature_gate`], which layers the shared signature-level RFC
+/// 9580 gates (§9.5 weak hash, §5.2.3.18 signature expiration).
 ///
-/// * RFC 9580 §9.5 — a signature made with a weak hash (MD5/SHA-1/RIPEMD-160)
-///   is never reported `Valid`, even if it verifies cryptographically.
-/// * RFC 9580 §5.2.3.10 — a signature whose own Signature Expiration Time has
-///   passed is never reported `Valid`.
-///
-/// Returns `true` if any signature entry was attributed to this certificate's
-/// issuer. Keeping this in one place is deliberate: the decrypt-and-verify path
-/// previously carried a divergent copy that omitted every gate, which allowed
-/// weak-hash / revoked-key signatures to be reported valid.
-pub fn finalize_signature_statuses(
-    cert: &SignedPublicKey,
-    is_cert_valid: bool,
-    signatures: &mut [SignatureResultInternal],
+/// Per-*index* attribution is deliberate: several packets can name the same
+/// certificate (e.g. a genuine primary signature plus a forged packet naming one
+/// of its subkeys), and only the entry whose own index verifies may be stamped
+/// `Valid`. Keeping this in one place replaced four divergent copies (a per-cert
+/// finalizer, two per-index forms, and an ungated decrypt-path variant).
+pub(crate) fn attribute_entries<F>(
+    entries: &mut [SignatureResultInternal],
+    certs: &[SignedPublicKey],
     is_verified: &mut bool,
-) -> bool {
-    let mut found = false;
-    for sig in signatures.iter_mut() {
-        if cert_contains_issuer(cert, &sig.fpr) {
-            found = true;
-            apply_signature_gate(sig, is_cert_valid, is_verified);
+    mut verifies: F,
+) where
+    F: FnMut(usize, &SignedPublicKey) -> bool,
+{
+    for (i, entry) in entries.iter_mut().enumerate() {
+        let matching: Vec<&SignedPublicKey> = certs
+            .iter()
+            .filter(|cert| cert_contains_issuer(cert, &entry.fpr))
+            .collect();
+        if matching.is_empty() {
+            // No key for this issuer: leave the entry as NoKey (unknown signer).
+            continue;
         }
+        let verified = matching.iter().any(|cert| verifies(i, cert));
+        apply_signature_gate(entry, verified, is_verified);
     }
-    found
 }
 
-/// Multi-signature variant of [`finalize_signature_statuses`] that ties each
-/// `Valid` decision to the *specific* signature index that verified, rather than
-/// to the certificate as a whole.
-///
-/// A message can carry several signature packets whose issuer subpackets all
-/// name the same certificate (e.g. a genuine primary-key signature plus a
-/// forged packet naming one of its subkeys). The per-cert form would stamp
-/// every issuer-matching entry `Valid` as soon as *any* index verified,
-/// mis-attributing a never-verified signature to a real key. This form only
-/// marks an entry `Valid` when a signature index whose issuer matches that
-/// entry actually verifies under a usable key.
-pub fn finalize_signature_statuses_by_index(
+/// The *message* verification substrate: true if signature `index` of a parsed
+/// one-pass [`Message`] verifies under a usable key of `cert` — the primary if
+/// it is usable ([`cert_primary_usable`], §5.2.1.11 / §5.2.3.13) or any subkey
+/// that passes [`subkey_usable_for_verify`] (§5.2.1.12). Used by the inline and
+/// decrypt-and-verify paths via [`attribute_entries`].
+pub(crate) fn verify_index_under_usable_key(
     msg: &Message,
-    num_sigs: usize,
+    index: usize,
     cert: &SignedPublicKey,
-    signatures: &mut [SignatureResultInternal],
-    is_verified: &mut bool,
 ) -> bool {
-    let verified_fprs = verified_issuer_fprs_for_cert(msg, num_sigs, cert);
-    let mut found = false;
-    for sig in signatures.iter_mut() {
-        if cert_contains_issuer(cert, &sig.fpr) {
-            found = true;
-            // Both `verified_fprs` and `sig.fpr` are issuer fingerprints rendered
-            // via `issuer_fingerprint().to_string()`, so an exact match is correct.
-            let this_verified = verified_fprs.iter().any(|f| f == &sig.fpr);
-            apply_signature_gate(sig, this_verified, is_verified);
-        }
-    }
-    found
+    (cert_primary_usable(cert) && msg.verify_nested_explicit(index, cert).is_ok())
+        || cert.public_subkeys.iter().any(|sk| {
+            subkey_usable_for_verify(cert, sk) && msg.verify_nested_explicit(index, sk).is_ok()
+        })
 }
 
-/// Collect the issuer fingerprints of every signature *index* in `msg` that
-/// verifies under a usable key of `cert` (usable = primary not revoked
-/// §5.2.1.11, or a signing-capable non-revoked subkey §5.2.1.12).
-fn verified_issuer_fprs_for_cert(
-    msg: &Message,
-    num_sigs: usize,
-    cert: &SignedPublicKey,
-) -> Vec<String> {
-    let mut out = Vec::new();
-    let Message::Signed { reader, .. } = msg else {
-        return out;
-    };
-    let primary_usable = cert_primary_usable(cert);
-    for i in 0..num_sigs {
-        let verified = (primary_usable && msg.verify_nested_explicit(i, cert).is_ok())
-            || cert.public_subkeys.iter().any(|sk| {
-                subkey_usable_for_verify(cert, sk) && msg.verify_nested_explicit(i, sk).is_ok()
-            });
-        if verified {
+/// Build one `NoKey` result entry per signature packet carried by a parsed
+/// one-pass [`Message`], in packet order, via [`sig_entry_from_packet`] (which
+/// applies the Issuer Fingerprint→Key ID fallback and records per-packet hash /
+/// algorithm / expiry metadata). Every real packet is surfaced — there is no
+/// de-duplication, so a weak-hash companion signature from the same issuer stays
+/// visible to the §9.5 gate. Shared by the inline and decrypt-and-verify paths,
+/// replacing two divergent inline builders (one of which deduped on fingerprint
+/// alone and omitted the key-id fallback).
+pub(crate) fn signature_entries_from_message(msg: &Message) -> Vec<SignatureResultInternal> {
+    let mut entries = Vec::new();
+    if let Message::Signed { reader, .. } = msg {
+        for i in 0..reader.num_signatures() {
             if let Some(sig) = reader.signature(i) {
-                for issuer in sig.issuer_fingerprint() {
-                    out.push(issuer.to_string());
-                }
+                entries.push(sig_entry_from_packet(sig, GfrSignMode::Inline));
             }
         }
     }
-    out
+    entries
 }
 
 /// Apply the signature-level RFC 9580 gates (§9.5 weak hash, §5.2.3.18
@@ -1009,9 +1005,9 @@ pub(crate) fn parse_all_signature_packets(data: &[u8]) -> Vec<pgp::packet::Signa
 /// [`pgp::packet::Signature::verify`] already enforces issuer matching, weak-hash
 /// rejection (§9.5), and text-mode line normalization; this layers on the
 /// key-usability gates so a signature under a revoked or expired key is never
-/// counted as verified. Used for per-index attribution on the cleartext and
-/// detached paths, the analogue of [`verified_issuer_fprs_for_cert`] for the
-/// inline path.
+/// counted as verified. Used by [`attribute_entries`] for per-index attribution
+/// on the cleartext and detached in-memory paths, the packet-over-buffer
+/// analogue of [`verify_index_under_usable_key`] for the message paths.
 pub(crate) fn signature_verifies_under_usable_key(
     cert: &SignedPublicKey,
     sig: &pgp::packet::Signature,
@@ -1023,6 +1019,37 @@ pub(crate) fn signature_verifies_under_usable_key(
     cert.public_subkeys
         .iter()
         .any(|sk| subkey_usable_for_verify(cert, sk) && sig.verify(&sk.key, data).is_ok())
+}
+
+/// Seekable-stream analogue of [`signature_verifies_under_usable_key`] for the
+/// detached-*stream* path (large files verified without buffering the whole
+/// payload). Rewinds `stream` before each attempt and hashes it through a
+/// [`crate::cancel::CancellableReader`] so a mid-hash cancel aborts promptly.
+/// Returns `true` if `sig` verifies over the stream under a usable primary
+/// ([`cert_primary_usable`]) or subkey ([`subkey_usable_for_verify`]); the same
+/// key-usability gates as the in-memory form, so a signature under a revoked or
+/// expired key is never counted as verified.
+pub(crate) fn signature_verifies_under_usable_key_stream<R: Read + Seek>(
+    cert: &SignedPublicKey,
+    sig: &pgp::packet::Signature,
+    stream: &mut R,
+    channel: i32,
+) -> bool {
+    if cert_primary_usable(cert) && stream.seek(SeekFrom::Start(0)).is_ok() {
+        let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut *stream);
+        if sig.verify(&cert.primary_key, &mut cancellable).is_ok() {
+            return true;
+        }
+    }
+    for sk in &cert.public_subkeys {
+        if subkey_usable_for_verify(cert, sk) && stream.seek(SeekFrom::Start(0)).is_ok() {
+            let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut *stream);
+            if sig.verify(&sk.key, &mut cancellable).is_ok() {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 /// Upper bound on the number of plaintext octets a *decompressed* message may
@@ -1077,49 +1104,6 @@ pub(crate) fn read_to_end_capped<R: Read>(reader: R) -> Result<Vec<u8>, GfrStatu
         GfrStatus::ErrorInvalidData
     })?;
     Ok(buf)
-}
-
-/// Extract issuer fingerprints and algorithm metadata from signature packets
-/// without verifying them. All returned entries have status `NoKey`; the caller
-/// updates statuses after fetching and checking the actual public keys.
-pub fn sniff_signatures(data: &[u8], mode: GfrSignMode) -> Vec<SignatureResultInternal> {
-    let mut results = Vec::new();
-    let mut dearmored = Vec::new();
-    let _ = Dearmor::new(Cursor::new(data)).read_to_end(&mut dearmored);
-    let payload = if dearmored.is_empty() {
-        data
-    } else {
-        &dearmored
-    };
-
-    let parser = PacketParser::new(Cursor::new(payload));
-    for packet_result in parser {
-        if let Ok(Packet::Signature(sig)) = packet_result {
-            let entry = sig_entry_from_packet(&sig, mode);
-
-            // A signature that names neither an Issuer Fingerprint nor an Issuer
-            // Key ID cannot be attributed to any certificate; skip it.
-            if entry.fpr.is_empty() {
-                continue;
-            }
-
-            // Dedup only *exact* duplicates. Keying on the issuer alone would drop
-            // a second, distinct signature from the same key (e.g. a weak-hash
-            // companion, or two hashes over the same data), hiding it from the
-            // §9.5 weak-hash / §5.2.3.10 expiry gates; each distinct signature
-            // must survive to be gated on its own merits.
-            let dup = results.iter().any(|r: &SignatureResultInternal| {
-                r.fpr == entry.fpr
-                    && r.hash_algo == entry.hash_algo
-                    && r.pub_algo == entry.pub_algo
-                    && r.created_at == entry.created_at
-            });
-            if !dup {
-                results.push(entry);
-            }
-        }
-    }
-    results
 }
 
 // Shared helper to dynamically fetch certs for sniffing results

@@ -41,9 +41,11 @@
 #include <algorithm>
 
 #include "RpgpCoreTestRfc9580.h"
+#include "core/function/openpgp/FileCryptoOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
 #include "core/model/GpgVerifyResult.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/IOUtils.h"
 
 namespace GpgFrontend::Test {
 
@@ -136,6 +138,26 @@ TEST_F(RpgpCoreTest, Rfc9580InteropSameIssuerDetachedOnlyGenuineValid) {
                        LoadRfc9580Vector("sig_two_same_issuer_one_valid.sig"));
   EXPECT_EQ(out.sigs.size(), 2);
   EXPECT_EQ(CountValid(out.sigs), 1);
+}
+
+// The detached-STREAM verifier (large-file path, `verify_detached_stream_internal`)
+// formerly used per-cert attribution: once the genuine signature verified it
+// stamped EVERY issuer-matching entry Valid. Consolidated onto the same shared
+// per-index driver as the in-memory path, only the packet that actually verifies
+// is Valid. Same vector as the case above, driven through the FILE API so the
+// seekable-stream substrate (not the in-memory buffer) is exercised.
+TEST_F(RpgpCoreTest, Rfc9580InteropSameIssuerDetachedStreamOnlyGenuineValid) {
+  ImportAuxKeys({"aux_good.asc"});
+  auto data_file = CreateTempFileAndWriteData(LoadRfc9580Vector("payload.txt"));
+  auto sig_file = CreateTempFileAndWriteData(
+      LoadRfc9580Vector("sig_two_same_issuer_one_valid.sig"));
+
+  auto [err, dobj] = FileCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+                         .VerifyFileSync(data_file, sig_file);
+  ASSERT_TRUE((dobj->Check<GpgVerifyResult>()));
+  auto r = ExtractParams<GpgVerifyResult>(dobj, 0);
+  EXPECT_EQ(r.GetSignature().size(), 2);
+  EXPECT_EQ(CountValid(r.GetSignature()), 1);
 }
 
 // --- B5: compressed inline signature must decompress before counting ---------
