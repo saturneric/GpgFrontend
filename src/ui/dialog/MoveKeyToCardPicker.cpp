@@ -30,6 +30,7 @@
 
 #include "core/function/gpg/GpgSmartCardManager.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgSubKey.h"
 #include "core/utils/GpgUtils.h"
@@ -70,8 +71,12 @@ auto PickInitialChannel(const QContainer<KeyDatabaseInfo>& dbs) -> int {
 auto MoveKeyToCardPicker::SupportedDatabases() -> QContainer<KeyDatabaseInfo> {
   QContainer<KeyDatabaseInfo> ret;
   for (const auto& db : GetGpgKeyDatabaseInfos()) {
-    // smart card operations are GnuPG-only; rpgp databases cannot host them
-    if (db.backend_type.toLower().trimmed() == "rpgp") continue;
+    // smart card operations are GnuPG-only; the database info does not carry a
+    // reliable backend tag, so ask the context for its actual engine
+    if (OpenPGPContext::GetInstance(db.channel).Engine() !=
+        OpenPGPEngine::kGNUPG) {
+      continue;
+    }
     ret.append(db);
   }
   return ret;
