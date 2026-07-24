@@ -138,6 +138,36 @@
         <file alias="key2.asc">resource/lfs/test/rpgp/key2.asc</file>
         <file alias="key3.asc">resource/lfs/test/rpgp/key3.asc</file>
     </qresource>
+    <qresource prefix="/test/rpgp_aux_keys">
+        <file alias="aux_v6.asc">resource/lfs/test/rpgp_aux_keys/aux_v6.asc</file>
+        <file alias="aux_good.asc">resource/lfs/test/rpgp_aux_keys/aux_good.asc</file>
+        <file alias="aux_expired.asc">resource/lfs/test/rpgp_aux_keys/aux_expired.asc</file>
+        <file alias="aux_revoked.asc">resource/lfs/test/rpgp_aux_keys/aux_revoked.asc</file>
+        <file alias="aux_sha1.asc">resource/lfs/test/rpgp_aux_keys/aux_sha1.asc</file>
+    </qresource>
+    <qresource prefix="/test/rpgp_vectors">
+        <file alias="payload.txt">resource/lfs/test/rpgp_vectors/payload.txt</file>
+        <file alias="enc_v1seipd_mdc.pgp">resource/lfs/test/rpgp_vectors/enc_v1seipd_mdc.pgp</file>
+        <file alias="enc_v2seipd_ocb.pgp">resource/lfs/test/rpgp_vectors/enc_v2seipd_ocb.pgp</file>
+        <file alias="enc_multi_recipient.pgp">resource/lfs/test/rpgp_vectors/enc_multi_recipient.pgp</file>
+        <file alias="enc_symmetric_v1.pgp">resource/lfs/test/rpgp_vectors/enc_symmetric_v1.pgp</file>
+        <file alias="enc_symmetric_v2.pgp">resource/lfs/test/rpgp_vectors/enc_symmetric_v2.pgp</file>
+        <file alias="enc_sed_tag9.pgp">resource/lfs/test/rpgp_vectors/enc_sed_tag9.pgp</file>
+        <file alias="sig_good_detached.sig">resource/lfs/test/rpgp_vectors/sig_good_detached.sig</file>
+        <file alias="sig_good_cleartext.asc">resource/lfs/test/rpgp_vectors/sig_good_cleartext.asc</file>
+        <file alias="sig_good_inline_v6.pgp">resource/lfs/test/rpgp_vectors/sig_good_inline_v6.pgp</file>
+        <file alias="sig_v6_detached.sig">resource/lfs/test/rpgp_vectors/sig_v6_detached.sig</file>
+        <file alias="sig_sha1_detached.sig">resource/lfs/test/rpgp_vectors/sig_sha1_detached.sig</file>
+        <file alias="sig_expired.sig">resource/lfs/test/rpgp_vectors/sig_expired.sig</file>
+        <file alias="sig_revokedkey.sig">resource/lfs/test/rpgp_vectors/sig_revokedkey.sig</file>
+        <file alias="two_signer.pgp">resource/lfs/test/rpgp_vectors/two_signer.pgp</file>
+        <file alias="sig_bad_mutated.sig">resource/lfs/test/rpgp_vectors/sig_bad_mutated.sig</file>
+        <file alias="garbage.bin">resource/lfs/test/rpgp_vectors/garbage.bin</file>
+        <file alias="empty.bin">resource/lfs/test/rpgp_vectors/empty.bin</file>
+        <file alias="truncated_armor.asc">resource/lfs/test/rpgp_vectors/truncated_armor.asc</file>
+        <file alias="corrupt_crc.asc">resource/lfs/test/rpgp_vectors/corrupt_crc.asc</file>
+        <file alias="pkesk_no_seipd.pgp">resource/lfs/test/rpgp_vectors/pkesk_no_seipd.pgp</file>
+    </qresource>
     <qresource prefix="/">
         <file alias="TRANSLATORS">TRANSLATORS</file>
     </qresource>
