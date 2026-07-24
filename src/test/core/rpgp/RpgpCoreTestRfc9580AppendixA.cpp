@@ -51,7 +51,7 @@ namespace GpgFrontend::Test {
 namespace {
 
 // --- RFC 9580 Appendix A.3: sample version 6 certificate -------------------
-constexpr char kA3V6Cert[] =
+const char* const kA3V6Cert =
     "-----BEGIN PGP PUBLIC KEY BLOCK-----\n"
     "\n"
     "xioGY4d/4xsAAAAg+U2nu0jWCmHlZ3BqZYfQMxmZu52JGggkLq2EVD34laPCsQYf\n"
@@ -66,11 +66,11 @@ constexpr char kA3V6Cert[] =
     "-----END PGP PUBLIC KEY BLOCK-----\n";
 
 // The fingerprint the RFC states for the A.3 primary key (sec 5.5.4.3).
-constexpr char kA3PrimaryFpr[] =
+const char* const kA3PrimaryFpr =
     "CB186C4F0609A697E4D52DFA6C722B0C1F1E27C18A56708F6525EC27BAD9ACC9";
 
 // --- A.4: the same key, unlocked secret ------------------------------------
-constexpr char kA4V6SecretUnlocked[] =
+const char* const kA4V6SecretUnlocked =
     "-----BEGIN PGP PRIVATE KEY BLOCK-----\n"
     "\n"
     "xUsGY4d/4xsAAAAg+U2nu0jWCmHlZ3BqZYfQMxmZu52JGggkLq2EVD34laMAGXKB\n"
@@ -87,7 +87,7 @@ constexpr char kA4V6SecretUnlocked[] =
     "-----END PGP PRIVATE KEY BLOCK-----\n";
 
 // --- A.6: cleartext signed message, verifiable with A.3 --------------------
-constexpr char kA6Cleartext[] =
+const char* const kA6Cleartext =
     "-----BEGIN PGP SIGNED MESSAGE-----\n"
     "\n"
     "What we need from the grocery store:\n"
@@ -105,7 +105,7 @@ constexpr char kA6Cleartext[] =
     "-----END PGP SIGNATURE-----\n";
 
 // --- A.7: the same message and signature, inline ---------------------------
-constexpr char kA7InlineSigned[] =
+const char* const kA7InlineSigned =
     "-----BEGIN PGP MESSAGE-----\n"
     "\n"
     "xEYGAQobIHZJX1AhiJD39eLuPBgiUU9wUA9VHYblySHkBONKU/usyxhsTwYJppfk\n"
@@ -118,7 +118,7 @@ constexpr char kA7InlineSigned[] =
     "-----END PGP MESSAGE-----\n";
 
 // --- A.8: X25519 + AEAD-OCB encrypted to the A.3/A.4 key -------------------
-constexpr char kA8X25519AeadOcb[] =
+const char* const kA8X25519AeadOcb =
     "-----BEGIN PGP MESSAGE-----\n"
     "\n"
     "wV0GIQYSyD8ecG9jCP4VGkF3Q6HwM3kOk+mXhIjR2zeNqZMIhRmHzxjV8bU/gXzO\n"
@@ -129,7 +129,7 @@ constexpr char kA8X25519AeadOcb[] =
     "-----END PGP MESSAGE-----\n";
 
 // The plaintext every Appendix A encryption sample hides.
-constexpr char kAPlaintextHello[] = "Hello, world!";
+const char* const kAPlaintextHello = "Hello, world!";
 
 auto Buf(const char* s) -> GFBuffer { return GFBuffer(QByteArray(s)); }
 
