@@ -227,6 +227,11 @@ TEST_F(GpgCoreTest, CoreRevokeSubkeyTestA) {
   ASSERT_EQ(info->not_imported, 0);
   ASSERT_EQ(info->imported, 1);
 
+  // Core ops don't refresh the repository cache (the app does that via UI
+  // signals), so an earlier test that deleted this key can leave a stale entry
+  // behind. Flush after import to read the freshly imported keyring state
+  // regardless of test ordering.
+  GpgKeyRepository::GetInstance().FlushKeyCache();
   auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                  .GetKeyPtr("822D7E13F5B85D7D");
   ASSERT_TRUE(key != nullptr);
