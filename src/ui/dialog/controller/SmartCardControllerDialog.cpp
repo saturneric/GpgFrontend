@@ -31,6 +31,9 @@
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgSmartCardManager.h"
+#include "core/function/openpgp/GpgKeyRepository.h"
+#include "core/model/GpgKey.h"
+#include "core/model/GpgSubKey.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -143,6 +146,7 @@ void SmartCardControllerDialog::init_texts() {
   ui_->cardholderButton->setText(tr("Cardholder"));
   ui_->accessCodesButton->setText(tr("Access Codes"));
   ui_->generateKeysButton->setText(tr("Generate Card Keys"));
+  ui_->moveKeyToCardButton->setText(tr("Move Key to Card"));
   ui_->fetchButton->setText(tr("Fetch"));
   ui_->refreshButton->setText(tr("Refresh"));
   ui_->overflowButton->setToolTip(tr("More Actions"));
@@ -234,6 +238,9 @@ void SmartCardControllerDialog::init_connections() {
       }
     });
   });
+
+  connect(ui_->moveKeyToCardButton, &QPushButton::clicked, this,
+          [=](bool) { slot_move_key_to_card(); });
 
   connect(UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=]() {
@@ -559,6 +566,7 @@ void SmartCardControllerDialog::slot_disable_controllers(bool disable) {
   ui_->cardholderButton->setDisabled(disable);
   ui_->accessCodesButton->setDisabled(disable);
   ui_->generateKeysButton->setDisabled(disable);
+  ui_->moveKeyToCardButton->setDisabled(disable);
   ui_->fetchButton->setDisabled(disable);
   ui_->keyDBIndexComboBox->setDisabled(disable);
   ui_->cardKeysTreeView->setDisabled(disable);
@@ -592,6 +600,83 @@ void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
            emit UISignalStation::GetInstance() -> SignalKeyDatabaseRefresh();
          }});
   });
+}
+
+void SmartCardControllerDialog::slot_move_key_to_card() {
+  const auto serial = ui_->currentCardComboBox->currentText();
+  if (serial.isEmpty()) {
+    QMessageBox::information(this, tr("No Card"),
+                             tr("No smart card is currently selected."));
+    return;
+  }
+
+  // the key must be moved through the gpg-agent of the ring it lives in
+  const int ring_channel = ui_->keyDBIndexComboBox->currentIndex();
+
+  auto all_keys = GpgKeyRepository::GetInstance(ring_channel).Fetch();
+  QList<GpgKeyPtr> secret_keys;
+  QStringList key_labels;
+  for (const auto& k : all_keys) {
+    if (k == nullptr || !k->IsPrivateKey()) continue;
+    secret_keys << k;
+    key_labels << QString("%1 <%2> (%3)").arg(k->Name(), k->Email(), k->ID());
+  }
+  if (secret_keys.isEmpty()) {
+    QMessageBox::information(
+        this, tr("No Secret Keys"),
+        tr("The selected key ring has no secret keys to move to a card."));
+    return;
+  }
+
+  bool ok = false;
+  const auto chosen_key = QInputDialog::getItem(
+      this, tr("Select Key"), tr("Which key do you want to move to the card?"),
+      key_labels, 0, false, &ok);
+  if (!ok) return;
+  const auto key_index = key_labels.indexOf(chosen_key);
+  if (key_index < 0) return;
+  const auto& key = secret_keys.at(key_index);
+
+  // collect the (sub)keys that can actually be moved onto a card
+  const auto subkeys = key->SubKeys();
+  QList<int> movable_indexes;
+  QStringList sub_labels;
+  for (int i = 0; i < static_cast<int>(subkeys.size()); i++) {
+    const auto& sk = subkeys[i];
+    if (!sk.IsSecretKey() || sk.IsADSK() || sk.IsCardKey() || sk.IsRevoked() ||
+        sk.IsExpired()) {
+      continue;
+    }
+    if (GpgSmartCardManager::CandidateSlots(sk).isEmpty()) continue;
+    movable_indexes << i;
+    sub_labels << QString("%1 — %2 (%3)")
+                      .arg(i == 0 ? tr("Primary Key") : tr("Subkey"))
+                      .arg(sk.Algo())
+                      .arg(sk.ID());
+  }
+  if (movable_indexes.isEmpty()) {
+    QMessageBox::information(
+        this, tr("No Movable Keys"),
+        tr("This key has no part that can be moved to a smart card."));
+    return;
+  }
+
+  int subkey_index = movable_indexes.front();
+  if (movable_indexes.size() > 1) {
+    bool sub_ok = false;
+    const auto chosen_sub =
+        QInputDialog::getItem(this, tr("Select Subkey"),
+                              tr("Which part of the key do you want to move?"),
+                              sub_labels, 0, false, &sub_ok);
+    if (!sub_ok) return;
+    const auto sub_index = sub_labels.indexOf(chosen_sub);
+    if (sub_index < 0) return;
+    subkey_index = movable_indexes.at(sub_index);
+  }
+
+  if (MoveKeyToCardInteractive(this, ring_channel, key, subkey_index, serial)) {
+    fetch_smart_card_info(serial);
+  }
 }
 
 auto AskIsoDisplayName(QWidget* parent, bool* ok) -> QString {

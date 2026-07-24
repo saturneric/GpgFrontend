@@ -32,9 +32,12 @@
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/function/openpgp/MessageCryptoOperation.h"
+#include "core/function/rpgp/KeyManagement.h"
 #include "core/function/rpgp/PasswordFetcher.h"
 #include "core/model/GpgGenerateKeyResult.h"
+#include "core/model/GpgKey.h"
 #include "core/model/GpgKeyGenerateInfo.h"
+#include "core/model/GpgSubKey.h"
 #include "core/utils/GpgUtils.h"
 
 static const char* test_private_key_data = R"(
@@ -661,6 +664,60 @@ TEST_F(RpgpCoreTest, GenerateKeyWithSubkeyExpirationTest) {
   }
   EXPECT_TRUE(found_encr_sub)
       << "the generated encryption subkey was not found";
+
+  KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
+}
+
+// The ECDH KDF-parameter extractor (used to build gpg-agent's KEYTOCARD <ecdh>
+// argument) returns a well-formed `0301<hash><cipher>` octet-string for an ECDH
+// encryption subkey, and refuses non-ECDH keys.
+TEST_F(RpgpCoreTest, CoreGetEcdhKdfParamsTest) {
+  auto info =
+      KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
+          .ImportKey(GFBuffer(QString::fromLatin1(test_private_key_data)));
+  ASSERT_TRUE(info != nullptr);
+
+  auto key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
+                 .GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(key != nullptr);
+
+  auto [export_err, pub] =
+      KeyImportExportOperation::GetInstance(kRpgpChannelForUnitTest)
+          .ExportKey(key, false, true, false);
+  ASSERT_EQ(CheckGpgError(export_err), GPG_ERR_NO_ERROR);
+  ASSERT_FALSE(pub.Empty());
+
+  QString ecdh_fpr;
+  QString non_ecdh_fpr;
+  for (const auto& sk : key->SubKeys()) {
+    const auto algo = sk.PublicKeyAlgo().toUpper();
+    const bool ecc_encr =
+        sk.IsHasEncrCap() && !algo.startsWith("RSA") && !algo.startsWith("ELG");
+    if (ecc_encr) {
+      ecdh_fpr = sk.Fingerprint();
+    } else if (sk.IsHasSignCap() || sk.IsHasCertCap()) {
+      non_ecdh_fpr = sk.Fingerprint();
+    }
+  }
+  ASSERT_FALSE(ecdh_fpr.isEmpty())
+      << "fixture key is expected to carry an ECDH encryption subkey";
+
+  auto [err, hex] = GetEcdhKdfParamsRpgpImpl(pub, ecdh_fpr);
+  ASSERT_EQ(err, GPG_ERR_NO_ERROR);
+  EXPECT_EQ(hex.size(), 8) << "four hex-encoded octets";
+  EXPECT_TRUE(hex.startsWith("0301"))
+      << "native KDF prefix, got " << hex.toStdString();
+
+  if (!non_ecdh_fpr.isEmpty()) {
+    auto [serr, shex] = GetEcdhKdfParamsRpgpImpl(pub, non_ecdh_fpr);
+    EXPECT_NE(serr, GPG_ERR_NO_ERROR);
+    EXPECT_TRUE(shex.isEmpty());
+  }
+
+  // an unknown fingerprint is rejected, not silently coerced
+  auto [uerr, uhex] = GetEcdhKdfParamsRpgpImpl(pub, "DEADBEEF");
+  EXPECT_NE(uerr, GPG_ERR_NO_ERROR);
+  EXPECT_TRUE(uhex.isEmpty());
 
   KeyManagementOperation::GetInstance(kRpgpChannelForUnitTest).DeleteKey(key);
 }

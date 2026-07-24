@@ -28,6 +28,7 @@
 
 #include "KeyPairSubkeyTab.h"
 
+#include "core/function/gpg/GpgSmartCardManager.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
@@ -64,6 +65,11 @@ KeyPairSubkeyTab::KeyPairSubkeyTab(int channel, GpgKeyPtr key, QWidget* parent)
   revoke_subkey_supported_ = IsOpSupported<RevokeSubKeyOpTag>(channel);
   modify_subkey_passphrase_supported_ =
       IsOpSupported<ModifySubkeyPassphraseOpTag>(channel);
+  // KEYTOCARD only moves keys held by gpg-agent, so this is a GnuPG-only op and
+  // additionally needs a scdaemon new enough to talk to the card.
+  move_to_card_supported_ =
+      engine_ == OpenPGPEngine::kGNUPG &&
+      GpgSmartCardManager::GetInstance(channel).IsSCDVersionSupported();
 
   create_subkey_list();
   create_subkey_opera_menu();
@@ -491,6 +497,10 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
   connect(modify_subkey_passphrase_act_, &QAction::triggered, this,
           &KeyPairSubkeyTab::slot_modify_subkey_passphrase);
 
+  move_to_card_act_ = new QAction(tr("Move to Card"));
+  connect(move_to_card_act_, &QAction::triggered, this,
+          &KeyPairSubkeyTab::slot_move_subkey_to_card);
+
   if (export_subkey_supported_) {
     subkey_opera_menu_->addAction(export_subkey_act_);
   }
@@ -501,6 +511,10 @@ void KeyPairSubkeyTab::create_subkey_opera_menu() {
 
   if (modify_subkey_passphrase_supported_) {
     subkey_opera_menu_->addAction(modify_subkey_passphrase_act_);
+  }
+
+  if (move_to_card_supported_) {
+    subkey_opera_menu_->addAction(move_to_card_act_);
   }
 
   if (revoke_subkey_supported_) {
@@ -530,30 +544,41 @@ void KeyPairSubkeyTab::contextMenuEvent(QContextMenuEvent* event) {
   }
 
   const auto& s_key = get_selected_subkey();
-  if (s_key.IsHasCertCap()) return;
 
-  const bool can_export =
-      export_subkey_supported_ && s_key.IsSecretKey() && !s_key.IsADSK();
+  // The primary key (certify capability) supports none of the subkey-only
+  // operations, but it can still be moved onto a card, so gate per-action here
+  // instead of hiding the whole menu for it.
+  const bool is_primary = s_key.IsHasCertCap();
 
-  const bool can_edit_expire = set_expire_supported_ && s_key.IsSecretKey();
+  const bool can_export = !is_primary && export_subkey_supported_ &&
+                          s_key.IsSecretKey() && !s_key.IsADSK();
 
-  const bool can_delete =
-      delete_subkey_supported_ && (s_key.IsSecretKey() || s_key.IsADSK());
+  const bool can_edit_expire =
+      !is_primary && set_expire_supported_ && s_key.IsSecretKey();
 
-  const bool can_revoke = revoke_subkey_supported_ &&
+  const bool can_delete = !is_primary && delete_subkey_supported_ &&
+                          (s_key.IsSecretKey() || s_key.IsADSK());
+
+  const bool can_revoke = !is_primary && revoke_subkey_supported_ &&
                           (s_key.IsSecretKey() || s_key.IsADSK()) &&
                           !s_key.IsRevoked();
 
   // an ADSK has no secret material of ours to re-protect
-  const bool can_modify_passphrase = modify_subkey_passphrase_supported_ &&
-                                     s_key.IsSecretKey() && !s_key.IsADSK() &&
-                                     !s_key.IsRevoked();
+  const bool can_modify_passphrase =
+      !is_primary && modify_subkey_passphrase_supported_ &&
+      s_key.IsSecretKey() && !s_key.IsADSK() && !s_key.IsRevoked();
+
+  // only a usable private key that isn't already a card stub can be moved
+  const bool can_move_to_card =
+      move_to_card_supported_ && s_key.IsSecretKey() && !s_key.IsADSK() &&
+      !s_key.IsCardKey() && !s_key.IsRevoked() && !s_key.IsExpired();
 
   export_subkey_act_->setEnabled(can_export);
   edit_subkey_act_->setEnabled(can_edit_expire);
   delete_subkey_act_->setEnabled(can_delete);
   revoke_subkey_act_->setEnabled(can_revoke);
   modify_subkey_passphrase_act_->setEnabled(can_modify_passphrase);
+  move_to_card_act_->setEnabled(can_move_to_card);
 
   if (subkey_opera_menu_->isEmpty()) return;
 
@@ -701,6 +726,25 @@ void KeyPairSubkeyTab::slot_modify_subkey_passphrase() {
                                 emit SignalKeyDatabaseRefresh();
                               }
                             });
+}
+
+void KeyPairSubkeyTab::slot_move_subkey_to_card() {
+  if (!move_to_card_supported_) return;
+
+  const auto& s_key = get_selected_subkey();
+
+  // the interactive helper indexes key_->SubKeys(), where the primary is 0
+  int index = 0;
+  for (const auto& sk : key_->SubKeys()) {
+    if (sk.Fingerprint() == s_key.Fingerprint()) break;
+    index++;
+  }
+
+  // no card is pre-selected here, so the helper asks the user which card
+  if (MoveKeyToCardInteractive(this, current_gpg_context_channel_, key_, index,
+                               QString())) {
+    emit SignalKeyDatabaseRefresh();
+  }
 }
 
 void KeyPairSubkeyTab::slot_revoke_subkey() {

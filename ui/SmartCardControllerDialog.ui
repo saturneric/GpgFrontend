@@ -700,6 +700,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="moveKeyToCardButton">
+       <property name="text">
+        <string>Move Key to Card</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="fetchButton">
        <property name="text">
         <string>Fetch</string>

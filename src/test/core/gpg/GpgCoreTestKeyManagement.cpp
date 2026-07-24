@@ -32,10 +32,12 @@
 #include "GpgCoreTest.h"
 #include "core/GFConstants.h"
 #include "core/function/gpg/GpgAutomatonHandler.h"
+#include "core/function/gpg/GpgSmartCardManager.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/model/GpgImportInformation.h"
+#include "core/model/GpgSubKey.h"
 #include "core/utils/GpgUtils.h"
 
 static const char* test_private_key_data = R"(
@@ -400,6 +402,92 @@ TEST_F(GpgCoreTest, CoreAutomatonWatchdogTimeoutA) {
   key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
             .GetKeyPtr("822D7E13F5B85D7D");
   if (key != nullptr) KeyManagementOperation::GetInstance().DeleteKey(key);
+}
+
+// Pure command-builder: the KEYTOCARD line is assembled correctly without any
+// card. Locks the wire format (--force, OPENPGP.<n>, timestamp, optional ecdh).
+TEST_F(GpgCoreTest, CoreBuildKeyToCardCommand) {
+  EXPECT_EQ(GpgSmartCardManager::BuildKeyToCardCommand(
+                "ABCDEF", "000612340001", 1, "20230115T091530", ""),
+            "KEYTOCARD --force ABCDEF 000612340001 OPENPGP.1 20230115T091530");
+
+  // the ecdh parameter is appended only when present
+  EXPECT_EQ(GpgSmartCardManager::BuildKeyToCardCommand(
+                "ABCDEF", "000612340001", 2, "20230115T091530", "03010807"),
+            "KEYTOCARD --force ABCDEF 000612340001 OPENPGP.2 20230115T091530 "
+            "03010807");
+
+  // an empty serial becomes the "-" no-check placeholder
+  EXPECT_EQ(GpgSmartCardManager::BuildKeyToCardCommand("ABCDEF", "", 3,
+                                                       "20230115T091530", ""),
+            "KEYTOCARD --force ABCDEF - OPENPGP.3 20230115T091530");
+}
+
+// MoveKeyToCard validates its arguments before ever touching the agent, so the
+// destructive path cannot run on bad input. This is exercisable in CI (no card
+// needed): every case here returns before the KEYTOCARD command is sent. The
+// live move itself needs real hardware + admin PIN via pinentry.
+TEST_F(GpgCoreTest, CoreMoveKeyToCardValidationA) {
+  auto info =
+      KeyImportExportOperation::GetInstance(kGpgFrontendDefaultChannel)
+          .ImportKey(GFBuffer(QString::fromLatin1(test_private_key_data)));
+  ASSERT_TRUE(info != nullptr);
+
+  auto key = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                 .GetKeyPtr("822D7E13F5B85D7D");
+  ASSERT_TRUE(key != nullptr);
+
+  auto& mgr = GpgSmartCardManager::GetInstance(kGpgFrontendDefaultChannel);
+
+  // an out-of-range subkey index is rejected (and tells us whether the engine
+  // even supports the op in this environment)
+  {
+    auto [err, status] = mgr.MoveKeyToCard(key, 99999, "", 1);
+    if (err == GPG_ERR_NOT_SUPPORTED) {
+      GTEST_SKIP() << "gpg engine lacks minimal support in this environment";
+    }
+    EXPECT_EQ(err, GPG_ERR_INV_ARG);
+  }
+  {
+    auto [err, status] = mgr.MoveKeyToCard(key, -1, "", 1);
+    EXPECT_EQ(err, GPG_ERR_INV_ARG);
+  }
+
+  // slot must be 1..3 (index 0 is the primary, which is a secret key)
+  {
+    auto [err, status] = mgr.MoveKeyToCard(key, 0, "", 0);
+    EXPECT_EQ(err, GPG_ERR_INV_ARG);
+  }
+  {
+    auto [err, status] = mgr.MoveKeyToCard(key, 0, "", 4);
+    EXPECT_EQ(err, GPG_ERR_INV_ARG);
+  }
+
+  // a slot that does not match the key's capabilities is rejected
+  const auto subkeys = key->SubKeys();
+  bool checked_mismatch = false;
+  for (int i = 0; i < static_cast<int>(subkeys.size()) && !checked_mismatch;
+       i++) {
+    const auto& sk = subkeys[i];
+    if (!sk.IsSecretKey()) continue;
+    const auto candidates = GpgSmartCardManager::CandidateSlots(sk);
+    for (int slot : {1, 2, 3}) {
+      if (candidates.contains(slot)) continue;
+      auto [err, status] = mgr.MoveKeyToCard(key, i, "", slot);
+      EXPECT_EQ(err, GPG_ERR_INV_ARG)
+          << "subkey " << i << " should reject slot " << slot;
+      checked_mismatch = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(checked_mismatch)
+      << "expected at least one (sub)key with a non-universal capability set";
+
+  // CandidateSlots: the primary carries certify capability -> signature slot
+  EXPECT_TRUE(GpgSmartCardManager::CandidateSlots(subkeys[0]).contains(1));
+
+  KeyManagementOperation::GetInstance(kGpgFrontendDefaultChannel)
+      .DeleteKey(key);
 }
 
 }  // namespace GpgFrontend::Test

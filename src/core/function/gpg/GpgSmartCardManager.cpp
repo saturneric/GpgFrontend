@@ -29,7 +29,11 @@
 #include "GpgSmartCardManager.h"
 
 #include "core/function/gpg/GpgAutomatonHandler.h"
+#include "core/function/gpg/KeyImportExport.h"
+#include "core/function/rpgp/KeyManagement.h"
 #include "core/model/GFEngineSupportIf.h"
+#include "core/model/GpgKey.h"
+#include "core/model/GpgSubKey.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 
@@ -405,5 +409,110 @@ auto GpgSmartCardManager::GenerateKey(const QString& serial_number,
           .DoCardInteract(serial_number, next_state_handler, action_handler);
   if (err == GPG_ERR_NO_ERROR && !succ) return {GPG_ERR_USER_1, {}};
   return {err, {}};
+}
+
+auto GpgSmartCardManager::CandidateSlots(const GpgSubKey& skey) -> QList<int> {
+  QList<int> candidates;
+  // the signature slot also holds a certify-only primary, so cert maps to slot
+  // 1
+  if (skey.IsHasSignCap() || skey.IsHasCertCap()) candidates.append(1);
+  if (skey.IsHasEncrCap()) candidates.append(2);
+  if (skey.IsHasAuthCap()) candidates.append(3);
+  return candidates;
+}
+
+auto GpgSmartCardManager::BuildKeyToCardCommand(const QString& hexgrip,
+                                                const QString& serial, int slot,
+                                                const QString& timestamp,
+                                                const QString& ecdh)
+    -> QString {
+  // --force overwrites a slot that already holds a key (the interactive
+  // "Replace existing key?" confirmation is done by the UI instead).
+  auto command =
+      QString("KEYTOCARD --force %1 %2 OPENPGP.%3 %4")
+          .arg(hexgrip, serial.isEmpty() ? QStringLiteral("-") : serial)
+          .arg(slot)
+          .arg(timestamp);
+  if (!ecdh.isEmpty()) command += " " + ecdh;
+  return command;
+}
+
+auto GpgSmartCardManager::MoveKeyToCard(const GpgKeyPtr& key, int subkey_index,
+                                        const QString& serial_number,
+                                        int card_slot)
+    -> std::tuple<GpgError, QString> {
+  if (!GPG_CTX_MIN_SUPPORT()) {
+    return {GPG_ERR_NOT_SUPPORTED,
+            "Current context does not support this operation."};
+  }
+
+  if (key == nullptr) return {GPG_ERR_INV_ARG, "Key is null."};
+
+  const auto subkeys = key->SubKeys();
+  if (subkey_index < 0 || subkey_index >= static_cast<int>(subkeys.size())) {
+    return {GPG_ERR_INV_ARG, "Invalid subkey index."};
+  }
+  // SubKeys() returns by value and exposes the primary at index 0; bind into
+  // the local container (which outlives skey), so a reference is safe here.
+  const auto& skey = subkeys[subkey_index];
+
+  if (!skey.IsSecretKey()) {
+    return {GPG_ERR_INV_ARG, "No private key material to move."};
+  }
+  if (skey.IsCardKey()) {
+    return {GPG_ERR_INV_ARG, "Key is already stored on a smart card."};
+  }
+  if (skey.Keygrip().isEmpty()) {
+    return {GPG_ERR_INV_ARG, "Key has no keygrip."};
+  }
+
+  const auto candidates = CandidateSlots(skey);
+  if (card_slot < 1 || card_slot > 3 || !candidates.contains(card_slot)) {
+    return {GPG_ERR_INV_ARG,
+            "Target slot does not match the key's capabilities."};
+  }
+
+  // point scdaemon at the requested card so KEYTOCARD acts on it
+  if (!serial_number.isEmpty()) {
+    auto [serr, sstatus] = SelectCardBySerialNumber(serial_number);
+    if (serr != GPG_ERR_NO_ERROR) return {serr, sstatus};
+  }
+
+  // OpenPGP fingerprints incorporate the creation time, so the card must be
+  // told the original timestamp or the on-card key's fingerprint would differ.
+  // gpg-agent's KEYTOCARD requires ISO-basic UTC (YYYYMMDDTHHMMSS); epoch
+  // seconds are rejected with "Invalid time". HH (not hh) forces 24-hour.
+  const auto timestamp =
+      skey.CreationTime().toUTC().toString("yyyyMMddTHHmmss");
+
+  // ECDH encryption keys additionally need their KDF parameters; gpgme does not
+  // expose them, so derive them from the public key via the rPGP parser. RSA
+  // and ElGamal encryption keys need no such parameter.
+  QString ecdh;
+  if (card_slot == 2 && skey.IsHasEncrCap()) {
+    const auto algo = skey.PublicKeyAlgo().toUpper();
+    const bool is_ecc_encr = !algo.startsWith("RSA") && !algo.startsWith("ELG");
+    if (is_ecc_encr) {
+      auto [eerr, pub] =
+          ExportKeysGnuPGImpl(ctx_, {key}, false, true, false, false);
+      if (eerr != GPG_ERR_NO_ERROR || pub.Empty()) {
+        return {GPG_ERR_GENERAL,
+                "Failed to export the public key for ECDH parameters."};
+      }
+      auto [kerr, hex] = GetEcdhKdfParamsRpgpImpl(pub, skey.Fingerprint());
+      if (kerr != GPG_ERR_NO_ERROR || hex.isEmpty()) {
+        return {kerr == GPG_ERR_NO_ERROR ? GPG_ERR_GENERAL : kerr,
+                "Failed to derive the ECDH KDF parameters."};
+      }
+      ecdh = hex;
+    }
+  }
+
+  const auto command = BuildKeyToCardCommand(skey.Keygrip(), serial_number,
+                                             card_slot, timestamp, ecdh);
+
+  auto [err, status] =
+      assuan_.SendStatusCommand(GpgComponentType::kGPG_AGENT, command);
+  return {err, status.join(' ')};
 }
 }  // namespace GpgFrontend

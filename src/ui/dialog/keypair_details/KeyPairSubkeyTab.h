@@ -114,6 +114,12 @@ class KeyPairSubkeyTab : public QWidget {
    */
   void slot_add_adsk();
 
+  /**
+   * @brief Move the selected (sub)key onto an OpenPGP smart card.
+   *
+   */
+  void slot_move_subkey_to_card();
+
  signals:
 
   /**
@@ -154,6 +160,7 @@ class KeyPairSubkeyTab : public QWidget {
   QAction* delete_subkey_act_;
   QAction* revoke_subkey_act_;
   QAction* modify_subkey_passphrase_act_;
+  QAction* move_to_card_act_{};
 
   bool add_subkey_supported_ = false;
   bool add_adsk_supported_ = false;
@@ -162,6 +169,7 @@ class KeyPairSubkeyTab : public QWidget {
   bool delete_subkey_supported_ = false;
   bool revoke_subkey_supported_ = false;
   bool modify_subkey_passphrase_supported_ = false;
+  bool move_to_card_supported_ = false;
 
   QLabel* expire_title_label_ = nullptr;
 

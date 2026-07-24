@@ -91,6 +91,29 @@ auto ClampRectToAvailableGeometry(QRect rect, const QRect& available) -> QRect;
 auto ConfirmShortUserIdName(QWidget* parent, const QString& name) -> bool;
 
 /**
+ * @brief Drive the full "move a (sub)key onto a smart card" user flow.
+ *
+ * Shared by the key-details subkey tab and the Smart Card controller so both
+ * behave identically: it warns about the destructive nature of `keytocard`,
+ * offers to export a secret-key backup first, resolves the target card slot
+ * (auto when the key has a single capability, otherwise asks), resolves the
+ * target card serial (uses @p preselected_serial when non-empty, otherwise asks
+ * from the inserted cards), performs the move via
+ * GpgSmartCardManager::MoveKeyToCard, and refreshes the key database on
+ * success.
+ *
+ * @param parent dialog parent for the prompts
+ * @param channel key database / engine channel the key lives in
+ * @param key the key whose (sub)key is being moved
+ * @param subkey_index index into key->SubKeys() (0 is the primary)
+ * @param preselected_serial target card serial, or empty to ask the user
+ * @return true if the key was moved successfully
+ */
+auto MoveKeyToCardInteractive(QWidget* parent, int channel,
+                              const GpgKeyPtr& key, int subkey_index,
+                              const QString& preselected_serial) -> bool;
+
+/**
  * @brief Human name of a memory-hardening secure level.
  *
  * Shared by the Advanced tab and the About dialog so the two cannot drift

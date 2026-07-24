@@ -33,8 +33,11 @@
 #include "core/function/gpg/GpgComponentManager.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgOpenPGPCard.h"
+#include "core/typedef/GpgTypedef.h"
 
 namespace GpgFrontend {
+
+class GpgSubKey;
 
 /**
  * @brief
@@ -109,6 +112,40 @@ class GF_CORE_EXPORT GpgSmartCardManager
                    const QString& email, const QString& comment,
                    const QDateTime& expire, bool non_expire)
       -> std::tuple<GpgError, QString>;
+
+  /**
+   * @brief Move an existing on-disk (sub)key onto the OpenPGP smart card
+   * @p serial_number, via the gpg-agent `KEYTOCARD` Assuan command.
+   *
+   * This is destructive: gpg-agent replaces the on-disk private key with a card
+   * stub, so callers must warn/back up first. @p subkey_index indexes
+   * `key->SubKeys()` (index 0 is the primary). @p card_slot selects the target
+   * slot (1 = signature, 2 = encryption, 3 = authentication) and must match one
+   * of the key's capabilities (see CandidateSlots). For ECDH encryption keys
+   * the required KDF parameters are derived from the public key automatically.
+   *
+   * @return {GPG_ERR_NO_ERROR, status} on success; {error, message} otherwise
+   */
+  auto MoveKeyToCard(const GpgKeyPtr& key, int subkey_index,
+                     const QString& serial_number, int card_slot)
+      -> std::tuple<GpgError, QString>;
+
+  /**
+   * @brief The card slots a (sub)key may be stored in, derived from its
+   * capabilities: signature/certify -> 1, encryption -> 2, authentication -> 3.
+   */
+  static auto CandidateSlots(const GpgSubKey& skey) -> QList<int>;
+
+  /**
+   * @brief Build the gpg-agent `KEYTOCARD` command line. Pure/side-effect free
+   * so it can be unit-tested without a card. An empty @p ecdh is omitted; an
+   * empty
+   * @p serial becomes the "-" (no-check) placeholder.
+   */
+  static auto BuildKeyToCardCommand(const QString& hexgrip,
+                                    const QString& serial, int slot,
+                                    const QString& timestamp,
+                                    const QString& ecdh) -> QString;
 
   /**
    * @brief

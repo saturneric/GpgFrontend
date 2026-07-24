@@ -125,4 +125,22 @@ auto GenerateRevCertRpgpImpl(OpenPGPContext& ctx_, const GpgKeyPtr& secret_key,
 auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
                        const SubkeyId& skey_fpr,
                        const std::optional<QDateTime>& expires) -> GpgError;
+
+/**
+ * @brief Extract the OpenPGP ECDH KDF parameters of the (sub)key @p subkey_fpr
+ * from an armored public key block, as the hexified octet-string
+ * `03 01 <hash> <cipher>` (the value gpg-agent's `KEYTOCARD <ecdh>` argument
+ * expects when moving an ECDH encryption subkey onto a smart card).
+ *
+ * This only inspects public key material and is engine-independent -- the block
+ * may originate from either engine. gpgme does not expose these bytes, so the
+ * rPGP parser is used regardless of the key's home engine.
+ *
+ * @param public_key_block armored public key block containing the (sub)key
+ * @param subkey_fpr fingerprint of the ECDH (sub)key
+ * @return {GPG_ERR_NO_ERROR, hex} on success; a non-zero GpgError otherwise
+ */
+auto GF_CORE_EXPORT GetEcdhKdfParamsRpgpImpl(const GFBuffer& public_key_block,
+                                             const QString& subkey_fpr)
+    -> std::tuple<GpgError, QString>;
 }  // namespace GpgFrontend

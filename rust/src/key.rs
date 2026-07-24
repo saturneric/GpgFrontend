@@ -50,7 +50,10 @@ use pgp::packet::{
     Packet, PacketHeader, PublicKey, PublicSubkey, SignatureConfig, SignatureType, Subpacket,
     SubpacketData,
 };
-use pgp::types::{Duration, KeyDetails, KeyVersion, Password, SecretParams, SignedUser, Tag};
+use pgp::types::{
+    Duration, EcdhPublicParams, KeyDetails, KeyVersion, Password, PublicParams, SecretParams,
+    SignedUser, Tag,
+};
 use pgp::{
     composed::{Deserializable, SignedPublicKey, SignedSecretKey},
     packet::Signature,
@@ -1487,6 +1490,72 @@ pub fn delete_subkey_internal(
     })
 }
 
+/// Extract the OpenPGP ECDH KDF parameters of the (sub)key `target_fpr` from a
+/// public key block, returned as the hexified 4-byte octet-string
+/// `03 01 <kdf-hash> <kek-cipher>` (upper-case, no separators).
+///
+/// This is exactly what GnuPG's `ecdh_param_str_from_pk` produces and what the
+/// gpg-agent `KEYTOCARD` Assuan command expects as its optional `<ecdh>`
+/// argument when moving an ECDH encryption subkey onto a smart card. gpgme does
+/// not expose these bytes, so we parse them out of the public key here.
+///
+/// Returns `ErrorInvalidInput` when no (sub)key matches `target_fpr`, and
+/// `ErrorInvalidData` when the matched key is not an ECDH key.
+pub fn get_ecdh_kdf_params_internal(
+    public_key_block: &str,
+    target_fpr: &str,
+) -> Result<String, GfrStatus> {
+    let (public_key, _) = SignedPublicKey::from_string(public_key_block).map_err(|e| {
+        log::error!("Failed to parse public key block: {}", e);
+        GfrStatus::ErrorInvalidData
+    })?;
+
+    let want = target_fpr.to_uppercase();
+
+    // The primary key is virtually never ECDH, but match it too so callers can
+    // pass any (sub)key fingerprint uniformly.
+    let params = if public_key
+        .primary_key
+        .fingerprint()
+        .to_string()
+        .to_uppercase()
+        == want
+    {
+        Some(public_key.primary_key.public_params())
+    } else {
+        public_key
+            .public_subkeys
+            .iter()
+            .find(|sub| sub.key.fingerprint().to_string().to_uppercase() == want)
+            .map(|sub| sub.key.public_params())
+    }
+    .ok_or(GfrStatus::ErrorInvalidInput)?;
+
+    let PublicParams::ECDH(ecdh) = params else {
+        return Err(GfrStatus::ErrorInvalidData);
+    };
+
+    // Every ECDH variant carries the KDF hash and the key-wrap (KEK) symmetric
+    // algorithm; that pair is the card-relevant part of the KDF parameters.
+    let (hash, alg_sym) = match ecdh {
+        EcdhPublicParams::Curve25519Legacy { hash, alg_sym, .. }
+        | EcdhPublicParams::P256 { hash, alg_sym, .. }
+        | EcdhPublicParams::P384 { hash, alg_sym, .. }
+        | EcdhPublicParams::P521 { hash, alg_sym, .. }
+        | EcdhPublicParams::Brainpool256 { hash, alg_sym, .. }
+        | EcdhPublicParams::Brainpool384 { hash, alg_sym, .. }
+        | EcdhPublicParams::Brainpool512 { hash, alg_sym, .. }
+        | EcdhPublicParams::Unsupported { hash, alg_sym, .. } => (*hash, *alg_sym),
+    };
+
+    // `03` = length of the parameter block, `01` = native fingerprint KDF type.
+    Ok(format!(
+        "0301{:02X}{:02X}",
+        u8::from(hash),
+        u8::from(alg_sym)
+    ))
+}
+
 /// Add a revocation self-signature to the subkey at `target_subkey_fpr`.
 ///
 /// Requires unlocking the primary key to sign the revocation; targeting the
@@ -2256,6 +2325,64 @@ NK2ay45cX1IVAQ==\n\
                 .iter()
                 .all(|s| s.version() == pgp::packet::SignatureVersion::V6),
             "Appendix A.6 signature must be a v6 signature"
+        );
+    }
+
+    /// The ECDH KDF extractor returns the `03 01 <hash> <cipher>` octet-string of
+    /// a Curve25519 encryption subkey, hex-encoded — the value gpg-agent's
+    /// KEYTOCARD needs. It must agree, byte for byte, with the trailing KDF bytes
+    /// the crate itself serializes for that subkey (the authoritative encoding).
+    #[test]
+    fn ecdh_kdf_params_match_serialized_bytes() {
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V4);
+        let sub = cfg(GfrKeyAlgo::CV25519, false, true, GfrOpenPGPKeyVersion::V4);
+        let key = keygen_dynamic("ecdh <ecdh@example.com>", &primary, &[sub]).expect("keygen");
+
+        let sub_fpr = key.secret_subkeys[0].key.fingerprint().to_string();
+        let public = SignedPublicKey::from(key);
+        let pub_block = public.to_armored_string(armor_opts()).expect("armor pub");
+
+        let hex = get_ecdh_kdf_params_internal(&pub_block, &sub_fpr).expect("ecdh params");
+
+        // Independently recompute the expected tail from the crate's own serializer.
+        let params = public.public_subkeys[0].key.public_params();
+        let PublicParams::ECDH(ecdh) = params else {
+            panic!("expected an ECDH subkey");
+        };
+        let mut buf = Vec::new();
+        ecdh.to_writer(&mut buf).expect("serialize ecdh params");
+        let expected = buf[buf.len() - 4..]
+            .iter()
+            .map(|b| format!("{:02X}", b))
+            .collect::<String>();
+
+        assert_eq!(hex, expected);
+        assert!(hex.starts_with("0301"), "native KDF prefix, got {hex}");
+        assert_eq!(hex.len(), 8, "four hex-encoded octets");
+    }
+
+    /// Asking for a non-ECDH (sub)key is a data error, and an unknown fingerprint
+    /// is an input error — callers must not silently get a bogus blob.
+    #[test]
+    fn ecdh_kdf_params_reject_non_ecdh_and_unknown() {
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V4);
+        let sub = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V4);
+        let key = keygen_dynamic("sig <sig@example.com>", &primary, &[sub]).expect("keygen");
+
+        let sub_fpr = key.secret_subkeys[0].key.fingerprint().to_string();
+        let pub_block = SignedPublicKey::from(key)
+            .to_armored_string(armor_opts())
+            .expect("armor pub");
+
+        assert_eq!(
+            get_ecdh_kdf_params_internal(&pub_block, &sub_fpr),
+            Err(GfrStatus::ErrorInvalidData),
+            "a signing subkey has no ECDH KDF parameters"
+        );
+        assert_eq!(
+            get_ecdh_kdf_params_internal(&pub_block, "DEADBEEF"),
+            Err(GfrStatus::ErrorInvalidInput),
+            "an unknown fingerprint must be rejected"
         );
     }
 }

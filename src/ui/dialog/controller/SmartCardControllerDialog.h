@@ -71,6 +71,12 @@ class SmartCardControllerDialog : public GeneralDialog {
    */
   void slot_fetch_smart_card_keys();
 
+  /**
+   * @brief Move a secret (sub)key from the selected key ring onto the current
+   * card.
+   */
+  void slot_move_key_to_card();
+
  private:
   QSharedPointer<Ui_SmartCardControllerDialog> ui_;  ///<
   int channel_;

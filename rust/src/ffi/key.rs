@@ -36,8 +36,8 @@ use crate::crypto::sniff_recipients;
 use crate::err::clear_last_error;
 use crate::key::{
     delete_subkey_internal, extract_rev_cert_target_fpr_internal, generate_key_rev_cert_internal,
-    import_rev_cert_internal, merge_key_block_internal, modify_key_password_internal,
-    revoke_subkey_internal, update_key_expiration_internal,
+    get_ecdh_kdf_params_internal, import_rev_cert_internal, merge_key_block_internal,
+    modify_key_password_internal, revoke_subkey_internal, update_key_expiration_internal,
 };
 use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
@@ -451,6 +451,58 @@ pub extern "C" fn gfr_crypto_delete_subkey(
 
         unsafe {
             *out_secret_block = secret_cstr.into_raw();
+        }
+
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(())) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+/// Extract the ECDH KDF parameters of the (sub)key `target_fpr` from
+/// `public_key_block`, as the hexified octet-string `03 01 <hash> <cipher>`.
+///
+/// Needed to build the gpg-agent `KEYTOCARD ... <ecdh>` command when moving an
+/// ECDH encryption subkey onto a smart card. On success `*out_hex` is set to a
+/// heap-allocated C string. Free with `gfr_crypto_free_string`.
+///
+/// # Safety
+/// `target_fpr` and `out_hex` must be non-null.
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_get_ecdh_kdf_params(
+    public_key_block: GfrBuffer,
+    target_fpr: *const c_char,
+    out_hex: *mut *mut c_char,
+) -> GfrStatus {
+    clear_last_error();
+
+    if !out_hex.is_null() {
+        unsafe {
+            *out_hex = std::ptr::null_mut();
+        }
+    }
+
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        if target_fpr.is_null() || out_hex.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
+        }
+
+        let block_str = unsafe { public_key_block.as_str() }?;
+
+        let fpr_str = unsafe { CStr::from_ptr(target_fpr) }
+            .to_str()
+            .map_err(|_| GfrStatus::ErrorInvalidInput)?;
+
+        let hex = get_ecdh_kdf_params_internal(block_str, fpr_str)?;
+
+        let hex_cstr = CString::new(hex.as_bytes()).map_err(|_| GfrStatus::ErrorInternal)?;
+
+        unsafe {
+            *out_hex = hex_cstr.into_raw();
         }
 
         Ok(())

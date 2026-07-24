@@ -531,4 +531,38 @@ auto SetExpireRpgpImpl(OpenPGPContext& ctx, const GpgKeyPtr& key,
 
   return GPG_ERR_NO_ERROR;
 }
+
+auto GetEcdhKdfParamsRpgpImpl(const GFBuffer& public_key_block,
+                              const QString& subkey_fpr)
+    -> std::tuple<GpgError, QString> {
+  if (public_key_block.Empty() || subkey_fpr.isEmpty()) {
+    return {GPG_ERR_INV_ARG, {}};
+  }
+
+  Rust::GfrBuffer block_buffer = {
+      reinterpret_cast<const uint8_t*>(public_key_block.Data()),
+      public_key_block.Size()};
+
+  char* out_hex = nullptr;
+  auto err = Rust::gfr_crypto_get_ecdh_kdf_params(
+      block_buffer, subkey_fpr.toUtf8().constData(), &out_hex);
+
+  if (err != Rust::GfrStatus::Success) {
+    LOG_E() << "gfr_crypto_get_ecdh_kdf_params error, code: "
+            << static_cast<int>(err);
+    // the caller only distinguishes "not an ECDH key we can handle" from
+    // "malformed request"; collapse the Rust status into that.
+    if (err == Rust::GfrStatus::ErrorInvalidInput) return {GPG_ERR_INV_ARG, {}};
+    return {GPG_ERR_WRONG_KEY_USAGE, {}};
+  }
+
+  if (out_hex == nullptr) {
+    LOG_E() << "gfr_crypto_get_ecdh_kdf_params returned null";
+    return {GPG_ERR_GENERAL, {}};
+  }
+
+  auto hex = QString::fromUtf8(out_hex);
+  Rust::gfr_crypto_free_string(out_hex);
+  return {GPG_ERR_NO_ERROR, hex};
+}
 }  // namespace GpgFrontend
