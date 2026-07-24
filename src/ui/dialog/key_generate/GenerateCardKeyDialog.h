@@ -54,7 +54,7 @@ class GenerateCardKeyDialog : public GeneralDialog {
 
  private:
   int channel_;
-  const QString& serial_number_;
+  QString serial_number_;
   QSharedPointer<Ui_GenerateCardKeyDialog> ui_;  ///<
 };
 };  // namespace GpgFrontend::UI
