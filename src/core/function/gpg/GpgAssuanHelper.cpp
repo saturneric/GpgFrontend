@@ -190,7 +190,12 @@ auto GpgAssuanHelper::SendCommand(GpgComponentType type, const QString& command,
       return SendCommand(type, command, data_cb, inquery_cb, status_cb);
     }
 
-    return err;
+    // `err` only reports whether the command round-tripped; the agent/scdaemon
+    // reports the actual command failure (e.g. a card rejecting an unsupported
+    // algorithm) in `op_err`, with `err` left clean. Returning `err` here would
+    // swallow that and make a failed operation look successful, so surface
+    // whichever error is set, preferring the transport error.
+    return err != GPG_ERR_NO_ERROR ? err : op_err;
   }
 
   return err;
