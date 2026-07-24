@@ -196,7 +196,9 @@ mod ffi_mod_tests {
 
     fn take_string(ptr: *mut c_char) -> String {
         assert!(!ptr.is_null(), "the entry point must return a string");
-        let s = unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned();
+        let s = unsafe { CStr::from_ptr(ptr) }
+            .to_string_lossy()
+            .into_owned();
         crate::ffi::mem::gfr_crypto_free_string(ptr);
         s
     }
@@ -210,7 +212,10 @@ mod ffi_mod_tests {
 
     #[test]
     fn the_engine_version_matches_the_package_version() {
-        assert_eq!(take_string(gfr_rust_engine_version()), env!("CARGO_PKG_VERSION"));
+        assert_eq!(
+            take_string(gfr_rust_engine_version()),
+            env!("CARGO_PKG_VERSION")
+        );
     }
 
     #[test]

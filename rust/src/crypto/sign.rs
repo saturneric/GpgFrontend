@@ -447,7 +447,12 @@ mod sign_tests {
     fn a_detached_signature_does_not_contain_the_payload() {
         // §10.4: "detached signatures are simply one or more Signature packets
         // stored separately from the data."
-        let out = sign(b"the payload", &keys::V4_SIGN.secret_armored, GfrSignMode::Detached, true);
+        let out = sign(
+            b"the payload",
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            true,
+        );
         let text = String::from_utf8_lossy(&out.data);
         assert!(text.contains("BEGIN PGP SIGNATURE"));
         assert!(!text.contains("the payload"));
@@ -470,14 +475,24 @@ mod sign_tests {
 
     #[test]
     fn an_inline_signature_is_a_pgp_message() {
-        let out = sign(b"payload", &keys::V4_SIGN.secret_armored, GfrSignMode::Inline, true);
+        let out = sign(
+            b"payload",
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Inline,
+            true,
+        );
         let text = String::from_utf8_lossy(&out.data);
         assert!(text.contains("BEGIN PGP MESSAGE"));
     }
 
     #[test]
     fn unarmored_output_is_binary() {
-        let out = sign(b"payload", &keys::V4_SIGN.secret_armored, GfrSignMode::Detached, false);
+        let out = sign(
+            b"payload",
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            false,
+        );
         let text = String::from_utf8_lossy(&out.data);
         assert!(!text.contains("BEGIN PGP"), "armor must be off");
         assert!(!out.data.is_empty());
@@ -486,7 +501,11 @@ mod sign_tests {
     #[test]
     fn armored_output_carries_no_crc24_footer() {
         // §6.1: generating the footer is discouraged and forbidden for v6.
-        for mode in [GfrSignMode::Detached, GfrSignMode::Inline, GfrSignMode::ClearText] {
+        for mode in [
+            GfrSignMode::Detached,
+            GfrSignMode::Inline,
+            GfrSignMode::ClearText,
+        ] {
             let out = sign(b"payload", &keys::V4_SIGN.secret_armored, mode, true);
             crate::testutil::assert::armor_has_no_crc24(&String::from_utf8_lossy(&out.data));
         }
@@ -495,7 +514,12 @@ mod sign_tests {
     #[test]
     fn a_v6_signature_carries_no_crc24_footer() {
         // The case §6.1 states as a MUST NOT.
-        let out = sign(b"payload", &keys::V6_SIGN.secret_armored, GfrSignMode::Detached, true);
+        let out = sign(
+            b"payload",
+            &keys::V6_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            true,
+        );
         crate::testutil::assert::armor_has_no_crc24(&String::from_utf8_lossy(&out.data));
     }
 
@@ -503,7 +527,12 @@ mod sign_tests {
 
     #[test]
     fn signing_reports_one_signature_per_key() {
-        let out = sign(b"payload", &keys::V4_SIGN.secret_armored, GfrSignMode::Detached, true);
+        let out = sign(
+            b"payload",
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            true,
+        );
         assert_eq!(out.signatures.len(), 1);
     }
 
@@ -511,7 +540,12 @@ mod sign_tests {
     fn the_reported_issuer_is_the_signing_subkey() {
         // §10.1.5: good practice is a dedicated signing subkey, and that is
         // what the engine selects, so that is what must be reported.
-        let out = sign(b"payload", &keys::V4_SIGN.secret_armored, GfrSignMode::Detached, true);
+        let out = sign(
+            b"payload",
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            true,
+        );
         assert!(
             out.signatures[0]
                 .fpr
@@ -521,7 +555,11 @@ mod sign_tests {
 
     #[test]
     fn the_reported_mode_matches_the_request() {
-        for mode in [GfrSignMode::Detached, GfrSignMode::Inline, GfrSignMode::ClearText] {
+        for mode in [
+            GfrSignMode::Detached,
+            GfrSignMode::Inline,
+            GfrSignMode::ClearText,
+        ] {
             let out = sign(b"payload", &keys::V4_SIGN.secret_armored, mode, true);
             assert_eq!(out.signatures[0].sig_type, mode);
         }
@@ -530,7 +568,11 @@ mod sign_tests {
     #[test]
     fn a_produced_signature_uses_a_strong_hash() {
         // §9.5: MD5, SHA-1 and RIPEMD-160 MUST NOT be used for new signatures.
-        for mode in [GfrSignMode::Detached, GfrSignMode::Inline, GfrSignMode::ClearText] {
+        for mode in [
+            GfrSignMode::Detached,
+            GfrSignMode::Inline,
+            GfrSignMode::ClearText,
+        ] {
             let out = sign(b"payload", &keys::V4_SIGN.secret_armored, mode, true);
             assert!(
                 !sig_hash_algo_is_weak(&out.signatures[0].hash_algo),
@@ -543,20 +585,35 @@ mod sign_tests {
     #[test]
     fn a_produced_signature_records_a_creation_time() {
         // §5.2.3.11: "This subpacket MUST be present in the hashed area."
-        let out = sign(b"payload", &keys::V4_SIGN.secret_armored, GfrSignMode::Detached, true);
+        let out = sign(
+            b"payload",
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            true,
+        );
         assert!(out.signatures[0].created_at > 1_600_000_000);
     }
 
     #[test]
     fn a_produced_signature_does_not_expire_by_default() {
         // §5.2.3.18: absent subpacket means it never expires.
-        let out = sign(b"payload", &keys::V4_SIGN.secret_armored, GfrSignMode::Detached, true);
+        let out = sign(
+            b"payload",
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            true,
+        );
         assert_eq!(out.signatures[0].expires_at, 0);
     }
 
     #[test]
     fn a_produced_signature_names_its_public_key_algorithm() {
-        let out = sign(b"payload", &keys::V4_SIGN.secret_armored, GfrSignMode::Detached, true);
+        let out = sign(
+            b"payload",
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            true,
+        );
         assert!(!out.signatures[0].pub_algo.is_empty());
     }
 
@@ -564,7 +621,12 @@ mod sign_tests {
 
     #[test]
     fn a_v4_key_produces_a_v4_signature_packet() {
-        let out = sign(b"payload", &keys::V4_SIGN.secret_armored, GfrSignMode::Detached, false);
+        let out = sign(
+            b"payload",
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            false,
+        );
         let sigs = crate::crypto::parse_all_signature_packets(&out.data);
         assert_eq!(sigs.len(), 1);
         assert_eq!(sigs[0].version(), pgp::packet::SignatureVersion::V4);
@@ -574,7 +636,12 @@ mod sign_tests {
     fn a_v6_key_produces_a_v6_signature_packet() {
         // "When a version 6 key produces a Signature packet, it MUST produce a
         // version 6 Signature packet."
-        let out = sign(b"payload", &keys::V6_SIGN.secret_armored, GfrSignMode::Detached, false);
+        let out = sign(
+            b"payload",
+            &keys::V6_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            false,
+        );
         let sigs = crate::crypto::parse_all_signature_packets(&out.data);
         assert_eq!(sigs.len(), 1);
         assert_eq!(sigs[0].version(), pgp::packet::SignatureVersion::V6);
@@ -584,7 +651,12 @@ mod sign_tests {
     fn a_v6_signature_carries_an_issuer_fingerprint_not_a_key_id() {
         // §5.2.3.12: "If the version of that key is greater than 4, this
         // subpacket MUST NOT be included" -- use Issuer Fingerprint instead.
-        let out = sign(b"payload", &keys::V6_SIGN.secret_armored, GfrSignMode::Detached, false);
+        let out = sign(
+            b"payload",
+            &keys::V6_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            false,
+        );
         let sigs = crate::crypto::parse_all_signature_packets(&out.data);
         assert!(
             !sigs[0].issuer_fingerprint().is_empty(),
@@ -595,7 +667,12 @@ mod sign_tests {
     #[test]
     fn a_signature_carries_an_issuer_fingerprint_on_v4_too() {
         // §5.2.3.35: "This subpacket SHOULD be included in all signatures."
-        let out = sign(b"payload", &keys::V4_SIGN.secret_armored, GfrSignMode::Detached, false);
+        let out = sign(
+            b"payload",
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            false,
+        );
         let sigs = crate::crypto::parse_all_signature_packets(&out.data);
         assert!(!sigs[0].issuer_fingerprint().is_empty());
     }
@@ -627,8 +704,16 @@ mod sign_tests {
         // defeat the purpose of pinning.
         let pinned = format!("0000000000000000!\n{}", keys::V4_SIGN.secret_armored);
         assert!(
-            sign_internal(0, "", b"payload", &[&pinned], None, GfrSignMode::Detached, true)
-                .is_err()
+            sign_internal(
+                0,
+                "",
+                b"payload",
+                &[&pinned],
+                None,
+                GfrSignMode::Detached,
+                true
+            )
+            .is_err()
         );
     }
 
@@ -677,14 +762,24 @@ mod sign_tests {
     #[test]
     fn a_binary_payload_with_nul_bytes_signs() {
         let payload: Vec<u8> = (0..=255u8).cycle().take(4096).collect();
-        let out = sign(&payload, &keys::V4_SIGN.secret_armored, GfrSignMode::Detached, true);
+        let out = sign(
+            &payload,
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            true,
+        );
         assert_eq!(out.signatures.len(), 1);
     }
 
     #[test]
     fn a_large_payload_signs() {
         let payload = vec![0x33u8; 512 * 1024];
-        let out = sign(&payload, &keys::V4_SIGN.secret_armored, GfrSignMode::Detached, true);
+        let out = sign(
+            &payload,
+            &keys::V4_SIGN.secret_armored,
+            GfrSignMode::Detached,
+            true,
+        );
         assert_eq!(out.signatures.len(), 1);
     }
 
@@ -721,7 +816,14 @@ mod sign_tests {
 
     #[test]
     fn signing_with_a_public_key_block_fails() {
-        assert!(try_sign(b"payload", &keys::V4_SIGN.public_armored, GfrSignMode::Detached).is_err());
+        assert!(
+            try_sign(
+                b"payload",
+                &keys::V4_SIGN.public_armored,
+                GfrSignMode::Detached
+            )
+            .is_err()
+        );
     }
 
     #[test]
@@ -731,9 +833,7 @@ mod sign_tests {
 
     #[test]
     fn signing_with_no_keys_fails() {
-        assert!(
-            sign_internal(0, "", b"payload", &[], None, GfrSignMode::Detached, true).is_err()
-        );
+        assert!(sign_internal(0, "", b"payload", &[], None, GfrSignMode::Detached, true).is_err());
     }
 
     #[test]
@@ -826,7 +926,11 @@ mod sign_tests {
             corpus::CORRUPT_CRC,
             &String::from_utf8_lossy(corpus::GARBAGE),
         ] {
-            for mode in [GfrSignMode::Detached, GfrSignMode::Inline, GfrSignMode::ClearText] {
+            for mode in [
+                GfrSignMode::Detached,
+                GfrSignMode::Inline,
+                GfrSignMode::ClearText,
+            ] {
                 let outcome =
                     std::panic::catch_unwind(|| try_sign(b"payload", block, mode).is_ok());
                 assert!(outcome.is_ok(), "panicked on {mode:?}");

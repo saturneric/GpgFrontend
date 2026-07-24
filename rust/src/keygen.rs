@@ -852,12 +852,8 @@ mod keygen_more_tests {
 
     #[test]
     fn the_user_id_is_stored_verbatim() {
-        let key = keygen_dynamic(
-            "Ünïcødé Náme <u@example.test>",
-            &v4_primary(),
-            &[],
-        )
-        .expect("keygen");
+        let key =
+            keygen_dynamic("Ünïcødé Náme <u@example.test>", &v4_primary(), &[]).expect("keygen");
         assert_eq!(
             String::from_utf8_lossy(key.details.users[0].id.id()),
             "Ünïcødé Náme <u@example.test>"
@@ -880,7 +876,10 @@ mod keygen_more_tests {
         let key = keygen_dynamic(
             "Gen <gen@example.test>",
             &v4_primary(),
-            &[enc_sub(GfrOpenPGPKeyVersion::V4), sign_sub(GfrOpenPGPKeyVersion::V4)],
+            &[
+                enc_sub(GfrOpenPGPKeyVersion::V4),
+                sign_sub(GfrOpenPGPKeyVersion::V4),
+            ],
         )
         .expect("keygen");
         assert_eq!(key.secret_subkeys.len(), 2);
@@ -896,7 +895,9 @@ mod keygen_more_tests {
         for sub in &key.secret_subkeys {
             let binding = sub.signatures.first().expect("a binding signature");
             assert!(
-                binding.verify_subkey_binding(primary, sub.key.public_key()).is_ok(),
+                binding
+                    .verify_subkey_binding(primary, sub.key.public_key())
+                    .is_ok(),
                 "the binding signature must actually verify"
             );
         }
@@ -952,13 +953,19 @@ mod keygen_more_tests {
     #[test]
     fn a_v4_key_signs_its_user_id_with_a_v4_signature() {
         let key = gen_v4();
-        assert_eq!(key.details.users[0].signatures[0].version(), SignatureVersion::V4);
+        assert_eq!(
+            key.details.users[0].signatures[0].version(),
+            SignatureVersion::V4
+        );
     }
 
     #[test]
     fn a_v6_key_signs_its_user_id_with_a_v6_signature() {
         let key = gen_v6();
-        assert_eq!(key.details.users[0].signatures[0].version(), SignatureVersion::V6);
+        assert_eq!(
+            key.details.users[0].signatures[0].version(),
+            SignatureVersion::V6
+        );
     }
 
     #[test]
@@ -988,7 +995,10 @@ mod keygen_more_tests {
         let key = keygen_dynamic(
             "V6 <v6@example.test>",
             &v6_primary(),
-            &[enc_sub(GfrOpenPGPKeyVersion::V6), sign_sub(GfrOpenPGPKeyVersion::V6)],
+            &[
+                enc_sub(GfrOpenPGPKeyVersion::V6),
+                sign_sub(GfrOpenPGPKeyVersion::V6),
+            ],
         )
         .expect("keygen");
         for sub in &key.secret_subkeys {
@@ -1116,8 +1126,11 @@ mod keygen_more_tests {
 
         let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
         assert!(
-            key.unlock(&Password::from(crate::testutil::cb::CORRECT_PASSPHRASE), |_, _| Ok(()))
-                .is_ok()
+            key.unlock(
+                &Password::from(crate::testutil::cb::CORRECT_PASSPHRASE),
+                |_, _| Ok(())
+            )
+            .is_ok()
         );
     }
 
@@ -1157,9 +1170,7 @@ mod keygen_more_tests {
     fn requesting_a_passphrase_without_a_callback_fails() {
         let mut primary = v4_primary();
         primary.has_passphrase = true;
-        assert!(
-            create_key_internal("Locked <locked@example.test>", primary, &[], None).is_err()
-        );
+        assert!(create_key_internal("Locked <locked@example.test>", primary, &[], None).is_err());
     }
 
     #[test]
@@ -1207,8 +1218,8 @@ mod keygen_more_tests {
             GfrOpenPGPKeyVersion::V4,
             now + 86_400,
         );
-        let out = create_key_internal("Exp <exp@example.test>", primary, &[], None)
-            .expect("create");
+        let out =
+            create_key_internal("Exp <exp@example.test>", primary, &[], None).expect("create");
 
         let meta = crate::key::extract_metadata_many_internal(&out.secret)
             .expect("metadata")
@@ -1267,15 +1278,10 @@ mod keygen_more_tests {
 
     #[test]
     fn adding_a_subkey_appends_it() {
-        let base = create_key_internal("Add <add@example.test>", v4_primary(), &[], None)
-            .expect("create");
-        let out = add_subkey_internal(
-            0,
-            &base.secret,
-            &enc_sub(GfrOpenPGPKeyVersion::V4),
-            None,
-        )
-        .expect("add subkey");
+        let base =
+            create_key_internal("Add <add@example.test>", v4_primary(), &[], None).expect("create");
+        let out = add_subkey_internal(0, &base.secret, &enc_sub(GfrOpenPGPKeyVersion::V4), None)
+            .expect("add subkey");
 
         let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
         assert_eq!(key.secret_subkeys.len(), 1);
@@ -1283,15 +1289,10 @@ mod keygen_more_tests {
 
     #[test]
     fn an_added_subkey_binding_verifies() {
-        let base = create_key_internal("Add <add@example.test>", v4_primary(), &[], None)
-            .expect("create");
-        let out = add_subkey_internal(
-            0,
-            &base.secret,
-            &enc_sub(GfrOpenPGPKeyVersion::V4),
-            None,
-        )
-        .expect("add subkey");
+        let base =
+            create_key_internal("Add <add@example.test>", v4_primary(), &[], None).expect("create");
+        let out = add_subkey_internal(0, &base.secret, &enc_sub(GfrOpenPGPKeyVersion::V4), None)
+            .expect("add subkey");
 
         let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
         let primary = key.primary_key.public_key();
@@ -1305,15 +1306,10 @@ mod keygen_more_tests {
 
     #[test]
     fn a_subkey_added_to_a_v6_key_is_v6() {
-        let base = create_key_internal("V6 <v6@example.test>", v6_primary(), &[], None)
-            .expect("create");
-        let out = add_subkey_internal(
-            0,
-            &base.secret,
-            &enc_sub(GfrOpenPGPKeyVersion::V6),
-            None,
-        )
-        .expect("add subkey");
+        let base =
+            create_key_internal("V6 <v6@example.test>", v6_primary(), &[], None).expect("create");
+        let out = add_subkey_internal(0, &base.secret, &enc_sub(GfrOpenPGPKeyVersion::V6), None)
+            .expect("add subkey");
 
         let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
         assert_eq!(key.secret_subkeys[0].key.version(), KeyVersion::V6);
@@ -1327,15 +1323,10 @@ mod keygen_more_tests {
     fn a_v6_encryption_subkey_added_later_is_native_x25519() {
         // §9.2 forbids the Curve25519Legacy OID in v6 material, so the remap
         // must apply on the add-subkey path too, not just at generation.
-        let base = create_key_internal("V6 <v6@example.test>", v6_primary(), &[], None)
-            .expect("create");
-        let out = add_subkey_internal(
-            0,
-            &base.secret,
-            &enc_sub(GfrOpenPGPKeyVersion::V6),
-            None,
-        )
-        .expect("add subkey");
+        let base =
+            create_key_internal("V6 <v6@example.test>", v6_primary(), &[], None).expect("create");
+        let out = add_subkey_internal(0, &base.secret, &enc_sub(GfrOpenPGPKeyVersion::V6), None)
+            .expect("add subkey");
 
         let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
         assert_eq!(
@@ -1346,48 +1337,35 @@ mod keygen_more_tests {
 
     #[test]
     fn adding_a_subkey_to_a_public_block_fails() {
-        let base = create_key_internal("Pub <pub@example.test>", v4_primary(), &[], None)
-            .expect("create");
+        let base =
+            create_key_internal("Pub <pub@example.test>", v4_primary(), &[], None).expect("create");
         assert!(
-            add_subkey_internal(0, &base.public, &enc_sub(GfrOpenPGPKeyVersion::V4), None)
-                .is_err()
+            add_subkey_internal(0, &base.public, &enc_sub(GfrOpenPGPKeyVersion::V4), None).is_err()
         );
     }
 
     #[test]
     fn adding_a_subkey_to_garbage_fails() {
-        assert!(
-            add_subkey_internal(0, "junk", &enc_sub(GfrOpenPGPKeyVersion::V4), None).is_err()
-        );
+        assert!(add_subkey_internal(0, "junk", &enc_sub(GfrOpenPGPKeyVersion::V4), None).is_err());
     }
 
     #[test]
     fn adding_a_forbidden_algorithm_as_a_subkey_fails() {
         // The generation policy applies to subkeys as well as primaries.
-        let base = create_key_internal("Pol <pol@example.test>", v4_primary(), &[], None)
-            .expect("create");
+        let base =
+            create_key_internal("Pol <pol@example.test>", v4_primary(), &[], None).expect("create");
         let bad = cfg(GfrKeyAlgo::DSA2048, true, false, GfrOpenPGPKeyVersion::V4);
         assert!(add_subkey_internal(0, &base.secret, &bad, None).is_err());
     }
 
     #[test]
     fn adding_two_subkeys_in_sequence_keeps_both() {
-        let base = create_key_internal("Two <two@example.test>", v4_primary(), &[], None)
-            .expect("create");
-        let once = add_subkey_internal(
-            0,
-            &base.secret,
-            &enc_sub(GfrOpenPGPKeyVersion::V4),
-            None,
-        )
-        .expect("add 1");
-        let twice = add_subkey_internal(
-            0,
-            &once.secret,
-            &sign_sub(GfrOpenPGPKeyVersion::V4),
-            None,
-        )
-        .expect("add 2");
+        let base =
+            create_key_internal("Two <two@example.test>", v4_primary(), &[], None).expect("create");
+        let once = add_subkey_internal(0, &base.secret, &enc_sub(GfrOpenPGPKeyVersion::V4), None)
+            .expect("add 1");
+        let twice = add_subkey_internal(0, &once.secret, &sign_sub(GfrOpenPGPKeyVersion::V4), None)
+            .expect("add 2");
 
         let (key, _) = SignedSecretKey::from_string(&twice.secret).expect("parses");
         assert_eq!(key.secret_subkeys.len(), 2);

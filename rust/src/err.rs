@@ -318,15 +318,13 @@ mod err_tests {
 
     #[test]
     fn record_err_maps_to_the_requested_status() {
-        let r: Result<(), std::io::Error> =
-            Err(std::io::Error::other("disk on fire"));
+        let r: Result<(), std::io::Error> = Err(std::io::Error::other("disk on fire"));
         assert_eq!(r.record_err(GfrStatus::ErrorIo), Err(GfrStatus::ErrorIo));
     }
 
     #[test]
     fn record_err_stores_the_display_text() {
-        let r: Result<(), std::io::Error> =
-            Err(std::io::Error::other("disk on fire"));
+        let r: Result<(), std::io::Error> = Err(std::io::Error::other("disk on fire"));
         let _ = r.record_err(GfrStatus::ErrorIo);
         assert_eq!(take_last_error().as_deref(), Some("disk on fire"));
     }
@@ -389,8 +387,10 @@ mod err_tests {
 
     #[test]
     fn io_error_records_its_message() {
-        let r: Result<(), std::io::Error> =
-            Err(std::io::Error::new(std::io::ErrorKind::NotFound, "no such vector"));
+        let r: Result<(), std::io::Error> = Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "no such vector",
+        ));
         let _ = r.into_gfr();
         assert_eq!(take_last_error().as_deref(), Some("no such vector"));
     }
@@ -483,7 +483,9 @@ mod err_tests {
         use pgp::types::Password;
         let key = &*corpus::AUX_V6_KEY;
         let err = key
-            .unlock(&Password::from("definitely not the passphrase"), |_, _| Ok(()))
+            .unlock(&Password::from("definitely not the passphrase"), |_, _| {
+                Ok(())
+            })
             .into_gfr()
             .unwrap_err();
         assert!(

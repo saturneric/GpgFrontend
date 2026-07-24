@@ -585,8 +585,8 @@ mod user_id_tests {
     #[test]
     fn adding_a_user_id_appends_it() {
         let block = base_key();
-        let out = add_user_id_internal(0, &block, "Second <second@example.test>", None)
-            .expect("add");
+        let out =
+            add_user_id_internal(0, &block, "Second <second@example.test>", None).expect("add");
         let uids = uids_of(&out);
         assert!(uids.iter().any(|u| u == "Second <second@example.test>"));
         assert_eq!(uids.len(), 2);
@@ -596,8 +596,8 @@ mod user_id_tests {
     fn adding_preserves_the_existing_user_id() {
         let block = base_key();
         let original = base_uid();
-        let out = add_user_id_internal(0, &block, "Second <second@example.test>", None)
-            .expect("add");
+        let out =
+            add_user_id_internal(0, &block, "Second <second@example.test>", None).expect("add");
         assert!(uids_of(&out).contains(&original));
     }
 
@@ -606,8 +606,7 @@ mod user_id_tests {
         // §5.2.3.10: subpackets on a certification self-signature describe the
         // key. Dropping the flags would make the new UID advertise nothing.
         let block = base_key();
-        let out = add_user_id_internal(0, &block, "Flags <flags@example.test>", None)
-            .expect("add");
+        let out = add_user_id_internal(0, &block, "Flags <flags@example.test>", None).expect("add");
         let key = parse(&out);
         let added = key
             .details
@@ -625,8 +624,8 @@ mod user_id_tests {
     #[test]
     fn a_new_self_signature_is_issued_by_the_primary_key() {
         let block = base_key();
-        let out = add_user_id_internal(0, &block, "Issuer <issuer@example.test>", None)
-            .expect("add");
+        let out =
+            add_user_id_internal(0, &block, "Issuer <issuer@example.test>", None).expect("add");
         let key = parse(&out);
         let added = key
             .details
@@ -646,8 +645,8 @@ mod user_id_tests {
         // The strongest check: the signature is cryptographically sound under
         // the primary key, not merely present.
         let block = base_key();
-        let out = add_user_id_internal(0, &block, "Verify <verify@example.test>", None)
-            .expect("add");
+        let out =
+            add_user_id_internal(0, &block, "Verify <verify@example.test>", None).expect("add");
         let key = parse(&out);
         let primary = key.primary_key.public_key();
         let added = key
@@ -658,7 +657,8 @@ mod user_id_tests {
             .expect("the new uid");
         let sig = added.signatures.first().expect("a self-signature");
         assert!(
-            sig.verify_certification(primary, Tag::UserId, &added.id).is_ok(),
+            sig.verify_certification(primary, Tag::UserId, &added.id)
+                .is_ok(),
             "the generated self-signature must verify under the primary key"
         );
     }
@@ -735,8 +735,7 @@ mod user_id_tests {
     fn adding_twice_yields_three_user_ids() {
         let block = base_key();
         let once = add_user_id_internal(0, &block, "A <a@example.test>", None).expect("add a");
-        let twice =
-            add_user_id_internal(0, &once, "B <b@example.test>", None).expect("add b");
+        let twice = add_user_id_internal(0, &once, "B <b@example.test>", None).expect("add b");
         assert_eq!(uids_of(&twice).len(), 3);
     }
 
@@ -776,8 +775,14 @@ mod user_id_tests {
         // delete step as invalid input.
         let block = base_key();
         assert_eq!(
-            update_user_id_internal(0, &block, "ghost <ghost@example.test>", "N <n@example.test>", None)
-                .err(),
+            update_user_id_internal(
+                0,
+                &block,
+                "ghost <ghost@example.test>",
+                "N <n@example.test>",
+                None
+            )
+            .err(),
             Some(GfrStatus::ErrorInvalidInput)
         );
     }
@@ -792,7 +797,10 @@ mod user_id_tests {
         let primary = key.primary_key.public_key();
         let user = key.details.users.first().expect("a user id");
         let sig = user.signatures.first().expect("a self-signature");
-        assert!(sig.verify_certification(primary, Tag::UserId, &user.id).is_ok());
+        assert!(
+            sig.verify_certification(primary, Tag::UserId, &user.id)
+                .is_ok()
+        );
     }
 
     // -- set_primary_user_id_internal ---------------------------------------
@@ -803,13 +811,9 @@ mod user_id_tests {
         let block = base_key();
         let with_second =
             add_user_id_internal(0, &block, "Second <second@example.test>", None).expect("add");
-        let out = set_primary_user_id_internal(
-            0,
-            &with_second,
-            "Second <second@example.test>",
-            None,
-        )
-        .expect("set primary");
+        let out =
+            set_primary_user_id_internal(0, &with_second, "Second <second@example.test>", None)
+                .expect("set primary");
 
         let key = parse(&out);
         let target = key
@@ -831,13 +835,9 @@ mod user_id_tests {
         let block = base_key();
         let with_second =
             add_user_id_internal(0, &block, "Second <second@example.test>", None).expect("add");
-        let out = set_primary_user_id_internal(
-            0,
-            &with_second,
-            "Second <second@example.test>",
-            None,
-        )
-        .expect("set primary");
+        let out =
+            set_primary_user_id_internal(0, &with_second, "Second <second@example.test>", None)
+                .expect("set primary");
 
         let key = parse(&out);
         let flagged = key
@@ -878,7 +878,10 @@ mod user_id_tests {
         let primary = key.primary_key.public_key();
         let user = key.details.users.first().expect("a user id");
         let sig = user.signatures.first().expect("a self-signature");
-        assert!(sig.verify_certification(primary, Tag::UserId, &user.id).is_ok());
+        assert!(
+            sig.verify_certification(primary, Tag::UserId, &user.id)
+                .is_ok()
+        );
     }
 
     #[test]
@@ -953,7 +956,8 @@ mod user_id_tests {
             .find(|s| matches!(s.typ(), Some(SignatureType::CertRevocation)))
             .expect("a revocation signature");
         assert!(
-            rev.verify_certification(primary, Tag::UserId, &user.id).is_ok(),
+            rev.verify_certification(primary, Tag::UserId, &user.id)
+                .is_ok(),
             "a forged revocation would be worthless; this one must verify"
         );
     }
@@ -1014,15 +1018,8 @@ mod user_id_tests {
         let block = base_key();
         let uid = base_uid();
         assert!(
-            revoke_user_id_internal(
-                0,
-                &block,
-                &uid,
-                GfrRevocationCode::NoReason,
-                None,
-                None
-            )
-            .is_ok()
+            revoke_user_id_internal(0, &block, &uid, GfrRevocationCode::NoReason, None, None)
+                .is_ok()
         );
     }
 
@@ -1087,23 +1084,16 @@ mod user_id_tests {
 
     #[test]
     fn every_user_id_operation_rejects_garbage_without_panicking() {
-        for op in [
-            "delete", "add", "update", "primary", "revoke",
-        ] {
+        for op in ["delete", "add", "update", "primary", "revoke"] {
             let outcome = std::panic::catch_unwind(|| match op {
                 "delete" => delete_user_id_internal("junk", "x").is_err(),
                 "add" => add_user_id_internal(0, "junk", "x", None).is_err(),
                 "update" => update_user_id_internal(0, "junk", "x", "y", None).is_err(),
                 "primary" => set_primary_user_id_internal(0, "junk", "x", None).is_err(),
-                _ => revoke_user_id_internal(
-                    0,
-                    "junk",
-                    "x",
-                    GfrRevocationCode::NoReason,
-                    None,
-                    None,
-                )
-                .is_err(),
+                _ => {
+                    revoke_user_id_internal(0, "junk", "x", GfrRevocationCode::NoReason, None, None)
+                        .is_err()
+                }
             });
             assert_eq!(outcome.ok(), Some(true), "{op} must fail cleanly");
         }

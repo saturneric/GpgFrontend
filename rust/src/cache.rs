@@ -403,10 +403,7 @@ mod cache_more_tests {
     }
 
     fn cache(ttl_secs: u64, max_secs: u64) -> PasswordCache {
-        PasswordCache::new(
-            Duration::from_secs(ttl_secs),
-            Duration::from_secs(max_secs),
-        )
+        PasswordCache::new(Duration::from_secs(ttl_secs), Duration::from_secs(max_secs))
     }
 
     // -- keying ------------------------------------------------------------
@@ -423,7 +420,10 @@ mod cache_more_tests {
         // passphrase policies; they must not share a cache entry.
         let c = cache(60, 600);
         c.put(key_for(1, "AABB", "Decryption"), b"one".to_vec());
-        assert_eq!(c.get(&key_for(1, "AABB", "Decryption")).as_deref(), Some(&b"one"[..]));
+        assert_eq!(
+            c.get(&key_for(1, "AABB", "Decryption")).as_deref(),
+            Some(&b"one"[..])
+        );
         assert!(c.get(&key_for(2, "AABB", "Decryption")).is_none());
     }
 
@@ -440,14 +440,20 @@ mod cache_more_tests {
         // uppercase, some not; normalising on both sides keeps them one entry.
         let c = cache(60, 600);
         c.put(key_for(0, "abcdef", "Decryption"), b"v".to_vec());
-        assert_eq!(c.get(&key_for(0, "ABCDEF", "Decryption")).as_deref(), Some(&b"v"[..]));
+        assert_eq!(
+            c.get(&key_for(0, "ABCDEF", "Decryption")).as_deref(),
+            Some(&b"v"[..])
+        );
     }
 
     #[test]
     fn the_fingerprint_is_matched_case_insensitively_on_lookup() {
         let c = cache(60, 600);
         c.put(key_for(0, "ABCDEF", "Decryption"), b"v".to_vec());
-        assert_eq!(c.get(&key_for(0, "abcdef", "Decryption")).as_deref(), Some(&b"v"[..]));
+        assert_eq!(
+            c.get(&key_for(0, "abcdef", "Decryption")).as_deref(),
+            Some(&b"v"[..])
+        );
     }
 
     #[test]
@@ -465,7 +471,10 @@ mod cache_more_tests {
         // fingerprints, but the cache itself must not choke on one.
         let c = cache(60, 600);
         c.put(key_for(0, "", "Symmetric"), b"v".to_vec());
-        assert_eq!(c.get(&key_for(0, "", "Symmetric")).as_deref(), Some(&b"v"[..]));
+        assert_eq!(
+            c.get(&key_for(0, "", "Symmetric")).as_deref(),
+            Some(&b"v"[..])
+        );
     }
 
     // -- values ------------------------------------------------------------
@@ -490,7 +499,10 @@ mod cache_more_tests {
         let c = cache(60, 600);
         c.put(key_for(0, "AABB", "Decryption"), b"old".to_vec());
         c.put(key_for(0, "AABB", "Decryption"), b"new".to_vec());
-        assert_eq!(c.get(&key_for(0, "AABB", "Decryption")).as_deref(), Some(&b"new"[..]));
+        assert_eq!(
+            c.get(&key_for(0, "AABB", "Decryption")).as_deref(),
+            Some(&b"new"[..])
+        );
     }
 
     #[test]
@@ -676,7 +688,10 @@ mod cache_more_tests {
         }
         c.clear();
         for i in 0..8 {
-            assert!(c.get(&key_for(i, &format!("KEY{i}"), "Decryption")).is_none());
+            assert!(
+                c.get(&key_for(i, &format!("KEY{i}"), "Decryption"))
+                    .is_none()
+            );
         }
     }
 
@@ -719,7 +734,10 @@ mod cache_more_tests {
         let c = cache(60, 600);
         let c2 = c.clone();
         c.put(key_for(0, "AABB", "Decryption"), b"v".to_vec());
-        assert_eq!(c2.get(&key_for(0, "AABB", "Decryption")).as_deref(), Some(&b"v"[..]));
+        assert_eq!(
+            c2.get(&key_for(0, "AABB", "Decryption")).as_deref(),
+            Some(&b"v"[..])
+        );
     }
 
     #[test]

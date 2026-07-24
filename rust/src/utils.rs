@@ -1091,20 +1091,29 @@ mod utils_tests {
     fn determine_algo_round_trips_the_p256_ecdh_subkey() {
         let key = &keys::V4_NISTP256.secret;
         let enc = key.secret_subkeys.first().expect("a subkey");
-        assert_eq!(determine_algo(enc.key.public_params()), GfrKeyAlgo::NISTP256);
+        assert_eq!(
+            determine_algo(enc.key.public_params()),
+            GfrKeyAlgo::NISTP256
+        );
     }
 
     #[test]
     fn extract_key_length_reports_255_for_ed25519() {
         // 255, not 256: the scalar field is 2^255 - 19.
         let key = &keys::V4_SIGN.secret;
-        assert_eq!(extract_key_length(key.primary_key.public_params()), Some(255));
+        assert_eq!(
+            extract_key_length(key.primary_key.public_params()),
+            Some(255)
+        );
     }
 
     #[test]
     fn extract_key_length_reports_256_for_nist_p256() {
         let key = &keys::V4_NISTP256.secret;
-        assert_eq!(extract_key_length(key.primary_key.public_params()), Some(256));
+        assert_eq!(
+            extract_key_length(key.primary_key.public_params()),
+            Some(256)
+        );
     }
 
     #[test]
@@ -1306,7 +1315,11 @@ mod utils_tests {
         let sigs: Vec<&Signature> = key.details.users[0].signatures.iter().collect();
         let a = choose_template_self_sig(&sigs).expect("a");
         let b = choose_template_self_sig(&sigs).expect("b");
-        assert_eq!(std::ptr::eq(a, b), true, "same input must pick the same sig");
+        assert_eq!(
+            std::ptr::eq(a, b),
+            true,
+            "same input must pick the same sig"
+        );
     }
 
     // -- revocation reason subpackets (RFC 9580 §5.2.3.31) ------------------
@@ -1618,8 +1631,7 @@ mod utils_tests {
             }
             -1
         }
-        let err =
-            fetch_password_internal(0, state_for("NEG00001"), Some(cb_negative)).unwrap_err();
+        let err = fetch_password_internal(0, state_for("NEG00001"), Some(cb_negative)).unwrap_err();
         assert_eq!(err, GfrStatus::ErrorFetchPasswordFailed);
     }
 

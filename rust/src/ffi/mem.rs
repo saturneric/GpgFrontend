@@ -496,7 +496,9 @@ mod mem_tests {
         // The realistic shape: the engine allocates, C++ reads, C++ frees.
         let ptr = crate::ffi::gfr_rust_engine_version();
         assert!(!ptr.is_null());
-        let text = unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned();
+        let text = unsafe { CStr::from_ptr(ptr) }
+            .to_string_lossy()
+            .into_owned();
         assert!(!text.is_empty());
         gfr_crypto_free_string(ptr);
     }

@@ -606,10 +606,10 @@ mod rfc9580_policy_tests {
     // rot the moment the corpus is regenerated.
 
     use crate::testutil::corpus::{
-        AUX_FORGED_REVOCATION_CERT, AUX_GOOD_CERT, AUX_REVOKED_CERT, ENC_MULTI_RECIPIENT as ENC_MULTI,
-        SIG_GOOD_DETACHED as SIG_GOOD, SIG_SHA1_DETACHED as SIG_SHA1,
-        SIG_STRONG_WEAK_SAME_KEY as SIG_STRONG_WEAK, SIG_V6_DETACHED as SIG_V6, aux_good_sign_fpr,
-        long_key_id,
+        AUX_FORGED_REVOCATION_CERT, AUX_GOOD_CERT, AUX_REVOKED_CERT,
+        ENC_MULTI_RECIPIENT as ENC_MULTI, SIG_GOOD_DETACHED as SIG_GOOD,
+        SIG_SHA1_DETACHED as SIG_SHA1, SIG_STRONG_WEAK_SAME_KEY as SIG_STRONG_WEAK,
+        SIG_V6_DETACHED as SIG_V6, aux_good_sign_fpr, long_key_id,
     };
 
     // Build the per-packet result entries for a detached signature blob exactly as
@@ -759,10 +759,7 @@ pub fn cert_primary_expired(cert: &SignedPublicKey) -> bool {
 
 /// True if `subkey` has passed its own binding-signature expiration time
 /// (RFC 9580 §5.2.3.13).
-pub fn subkey_expired(
-    cert: &SignedPublicKey,
-    subkey: &pgp::composed::SignedPublicSubKey,
-) -> bool {
+pub fn subkey_expired(cert: &SignedPublicKey, subkey: &pgp::composed::SignedPublicSubKey) -> bool {
     let expires = crate::key::subkey_expires_at(&cert.primary_key, &subkey.key, &subkey.signatures);
     expires != 0 && u64::from(expires) < now_unix_secs()
 }
@@ -964,7 +961,11 @@ pub(crate) fn sig_entry_from_packet(
 pub(crate) fn parse_all_signature_packets(data: &[u8]) -> Vec<pgp::packet::Signature> {
     let mut dearmored = Vec::new();
     let _ = Dearmor::new(Cursor::new(data)).read_to_end(&mut dearmored);
-    let payload = if dearmored.is_empty() { data } else { &dearmored };
+    let payload = if dearmored.is_empty() {
+        data
+    } else {
+        &dearmored
+    };
 
     PacketParser::new(Cursor::new(payload))
         .flatten()
@@ -1287,7 +1288,9 @@ mod packet_syntax_tests {
 
     /// Run `f`, returning true when it neither panicked nor succeeded — the
     /// property every adversarial input must satisfy.
-    fn errors_without_panicking<T>(f: impl FnOnce() -> Result<T, GfrStatus> + std::panic::UnwindSafe) -> bool {
+    fn errors_without_panicking<T>(
+        f: impl FnOnce() -> Result<T, GfrStatus> + std::panic::UnwindSafe,
+    ) -> bool {
         let prev = std::panic::take_hook();
         std::panic::set_hook(Box::new(|_| {}));
         let outcome = std::panic::catch_unwind(f);
@@ -1323,7 +1326,10 @@ mod packet_syntax_tests {
 
     #[test]
     fn the_one_octet_boundary_at_191_decodes() {
-        assert_eq!(decode(&packets::new_hdr_forced(11, 191, 1)).1, PacketLength::Fixed(191));
+        assert_eq!(
+            decode(&packets::new_hdr_forced(11, 191, 1)).1,
+            PacketLength::Fixed(191)
+        );
     }
 
     #[test]
@@ -1337,17 +1343,26 @@ mod packet_syntax_tests {
     #[test]
     fn the_two_octet_boundary_at_8383_decodes() {
         // §4.2.1.2: the 2-octet form tops out at 8383.
-        assert_eq!(decode(&packets::new_hdr_forced(11, 8383, 2)).1, PacketLength::Fixed(8383));
+        assert_eq!(
+            decode(&packets::new_hdr_forced(11, 8383, 2)).1,
+            PacketLength::Fixed(8383)
+        );
     }
 
     #[test]
     fn the_five_octet_boundary_at_8384_decodes() {
-        assert_eq!(decode(&packets::new_hdr_forced(11, 8384, 5)).1, PacketLength::Fixed(8384));
+        assert_eq!(
+            decode(&packets::new_hdr_forced(11, 8384, 5)).1,
+            PacketLength::Fixed(8384)
+        );
     }
 
     #[test]
     fn a_zero_length_body_decodes() {
-        assert_eq!(decode(&packets::new_hdr_forced(11, 0, 1)).1, PacketLength::Fixed(0));
+        assert_eq!(
+            decode(&packets::new_hdr_forced(11, 0, 1)).1,
+            PacketLength::Fixed(0)
+        );
     }
 
     #[test]
@@ -1364,7 +1379,10 @@ mod packet_syntax_tests {
         // The RFC does not require the *shortest* encoding for packet body
         // lengths (unlike MPIs), so a 5-octet encoding of a small value is
         // legal and must be accepted.
-        assert_eq!(decode(&packets::new_hdr_forced(11, 3, 5)).1, PacketLength::Fixed(3));
+        assert_eq!(
+            decode(&packets::new_hdr_forced(11, 3, 5)).1,
+            PacketLength::Fixed(3)
+        );
     }
 
     #[test]
@@ -1468,7 +1486,10 @@ mod packet_syntax_tests {
 
     #[test]
     fn a_legacy_two_octet_length_decodes() {
-        assert_eq!(decode(&packets::old_hdr(11, 1, 5000)).1, PacketLength::Fixed(5000));
+        assert_eq!(
+            decode(&packets::old_hdr(11, 1, 5000)).1,
+            PacketLength::Fixed(5000)
+        );
     }
 
     #[test]
@@ -1482,7 +1503,10 @@ mod packet_syntax_tests {
     #[test]
     fn a_legacy_indeterminate_length_decodes() {
         // §4.2.2 length-type 3: "the packet extends until the end of the file".
-        assert_eq!(decode(&packets::old_hdr(11, 3, 0)).1, PacketLength::Indeterminate);
+        assert_eq!(
+            decode(&packets::old_hdr(11, 3, 0)).1,
+            PacketLength::Indeterminate
+        );
     }
 
     #[test]
@@ -1526,7 +1550,10 @@ mod packet_syntax_tests {
         let mut data = packets::marker_packet();
         data.extend_from_slice(&packets::literal(b'b', b"", 0, b"payload"));
         let parsed = Message::from_bytes(std::io::Cursor::new(data));
-        assert!(parsed.is_ok(), "a leading marker packet must not break parsing");
+        assert!(
+            parsed.is_ok(),
+            "a leading marker packet must not break parsing"
+        );
     }
 
     #[test]
@@ -1546,7 +1573,10 @@ mod packet_syntax_tests {
         let outcome = std::panic::catch_unwind(|| {
             Message::from_bytes(std::io::Cursor::new(data)).map(|_| ())
         });
-        assert!(outcome.is_ok(), "an unknown packet must never panic the parser");
+        assert!(
+            outcome.is_ok(),
+            "an unknown packet must never panic the parser"
+        );
     }
 
     #[test]
@@ -1741,7 +1771,8 @@ mod packet_syntax_tests {
     fn the_limited_reader_allows_exactly_its_limit() {
         let mut r = LimitedReader::new(std::io::Cursor::new(vec![0u8; 1024]), 1024);
         let mut out = Vec::new();
-        r.read_to_end(&mut out).expect("exactly at the limit is fine");
+        r.read_to_end(&mut out)
+            .expect("exactly at the limit is fine");
         assert_eq!(out.len(), 1024);
     }
 
@@ -1802,8 +1833,10 @@ mod packet_syntax_tests {
     fn a_literal_packet_carries_its_filename() {
         let data = packets::literal(b'b', b"report.pdf", 0, b"x");
         let msg = Message::from_bytes(std::io::Cursor::new(data)).expect("parse");
-        assert_eq!(msg.literal_data_header().map(|h| h.file_name().to_vec()),
-                   Some(b"report.pdf".to_vec()));
+        assert_eq!(
+            msg.literal_data_header().map(|h| h.file_name().to_vec()),
+            Some(b"report.pdf".to_vec())
+        );
     }
 
     #[test]
@@ -1867,8 +1900,16 @@ mod attribution_tests {
     #[test]
     fn matching_is_case_insensitive() {
         let fpr = corpus::aux_good_sign_fpr();
-        assert!(key_identifier_matches(&fpr.to_lowercase(), "", &fpr.to_uppercase()));
-        assert!(key_identifier_matches(&fpr.to_uppercase(), "", &fpr.to_lowercase()));
+        assert!(key_identifier_matches(
+            &fpr.to_lowercase(),
+            "",
+            &fpr.to_uppercase()
+        ));
+        assert!(key_identifier_matches(
+            &fpr.to_uppercase(),
+            "",
+            &fpr.to_lowercase()
+        ));
     }
 
     #[test]
@@ -1956,8 +1997,7 @@ mod attribution_tests {
 
     #[test]
     fn a_pin_is_normalised_to_uppercase_without_whitespace() {
-        let (target, _rest) =
-            parse_signer_block("ab cd ef 01!\n-----BEGIN PGP MESSAGE-----\nbody");
+        let (target, _rest) = parse_signer_block("ab cd ef 01!\n-----BEGIN PGP MESSAGE-----\nbody");
         assert_eq!(target.as_deref(), Some("ABCDEF01"));
     }
 
@@ -1990,7 +2030,8 @@ mod attribution_tests {
         // §10.1.5: "It is good practice to use separate subkeys for every
         // operation", so the subkey is chosen over the certification primary.
         let key = &keys::V4_SIGN.secret;
-        let chosen = with_signing_key(key, None, |k| Ok(k.fpr().to_uppercase())).expect("a signing key");
+        let chosen =
+            with_signing_key(key, None, |k| Ok(k.fpr().to_uppercase())).expect("a signing key");
         assert_eq!(chosen, keys::V4_SIGN.sign_subkey_fpr());
     }
 
@@ -1999,7 +2040,8 @@ mod attribution_tests {
         // A key with no signing subkey must still be able to sign: §5.2.3.10
         // notes a primary is always allowed to make signatures.
         let key = &keys::V4_PRIMARY_ONLY.secret;
-        let chosen = with_signing_key(key, None, |k| Ok(k.fpr().to_uppercase())).expect("a signing key");
+        let chosen =
+            with_signing_key(key, None, |k| Ok(k.fpr().to_uppercase())).expect("a signing key");
         assert_eq!(chosen, keys::V4_PRIMARY_ONLY.primary_fpr);
     }
 
@@ -2007,7 +2049,8 @@ mod attribution_tests {
     fn a_pinned_signing_subkey_is_honoured() {
         let key = &keys::V4_SIGN.secret;
         let want = keys::V4_SIGN.sign_subkey_fpr();
-        let chosen = with_signing_key(key, Some(want), |k| Ok(k.fpr().to_uppercase())).expect("pinned");
+        let chosen =
+            with_signing_key(key, Some(want), |k| Ok(k.fpr().to_uppercase())).expect("pinned");
         assert_eq!(chosen, want);
     }
 
@@ -2015,7 +2058,8 @@ mod attribution_tests {
     fn a_pinned_primary_key_is_honoured() {
         let key = &keys::V4_SIGN.secret;
         let want = &keys::V4_SIGN.primary_fpr;
-        let chosen = with_signing_key(key, Some(want), |k| Ok(k.fpr().to_uppercase())).expect("pinned");
+        let chosen =
+            with_signing_key(key, Some(want), |k| Ok(k.fpr().to_uppercase())).expect("pinned");
         assert_eq!(&chosen, want);
     }
 
@@ -2035,7 +2079,10 @@ mod attribution_tests {
         let key = &keys::V4_SIGN.secret;
         let enc = keys::V4_SIGN.enc_subkey_fpr();
         let res = with_signing_key(key, Some(enc), |k| Ok(k.fpr()));
-        assert!(res.is_err(), "an encryption subkey must not be usable for signing");
+        assert!(
+            res.is_err(),
+            "an encryption subkey must not be usable for signing"
+        );
     }
 
     #[test]
@@ -2043,14 +2090,16 @@ mod attribution_tests {
         let key = &keys::V4_SIGN.secret;
         let full = keys::V4_SIGN.sign_subkey_fpr();
         let short = &full[full.len() - 16..];
-        let chosen = with_signing_key(key, Some(short), |k| Ok(k.fpr().to_uppercase())).expect("pinned");
+        let chosen =
+            with_signing_key(key, Some(short), |k| Ok(k.fpr().to_uppercase())).expect("pinned");
         assert_eq!(chosen, full);
     }
 
     #[test]
     fn signing_key_selection_works_on_a_v6_key() {
         let key = &keys::V6_SIGN.secret;
-        let chosen = with_signing_key(key, None, |k| Ok(k.fpr().to_uppercase())).expect("a signing key");
+        let chosen =
+            with_signing_key(key, None, |k| Ok(k.fpr().to_uppercase())).expect("a signing key");
         assert_eq!(chosen, keys::V6_SIGN.sign_subkey_fpr());
     }
 
@@ -2129,7 +2178,10 @@ mod attribution_tests {
             corpus::ENC_SED_TAG9,
         ] {
             let outcome = std::panic::catch_unwind(|| parse_all_signature_packets(vector).len());
-            assert!(outcome.is_ok(), "panicked while parsing an adversarial vector");
+            assert!(
+                outcome.is_ok(),
+                "panicked while parsing an adversarial vector"
+            );
         }
     }
 

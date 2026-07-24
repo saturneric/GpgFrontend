@@ -654,9 +654,19 @@ mod decrypt_tests {
     use crate::testutil::{cb, corpus, keys, packets, rfc9580};
 
     /// Decrypt with a secret key supplied through the fetch callback.
-    fn decrypt_with_key(data: &[u8], secret_block: &str, passphrase_cb: Option<GfrPasswordFetchCb>) -> Result<DecryptResultInternal, GfrStatus> {
+    fn decrypt_with_key(
+        data: &[u8],
+        secret_block: &str,
+        passphrase_cb: Option<GfrPasswordFetchCb>,
+    ) -> Result<DecryptResultInternal, GfrStatus> {
         cb::set_seckey_answer(secret_block);
-        decrypt_internal(0, data, Some(cb::seckey_fetch), passphrase_cb, std::ptr::null_mut())
+        decrypt_internal(
+            0,
+            data,
+            Some(cb::seckey_fetch),
+            passphrase_cb,
+            std::ptr::null_mut(),
+        )
     }
 
     /// Decrypt a password-protected message.
@@ -802,9 +812,8 @@ mod decrypt_tests {
         let (unlocked, _) =
             pgp::composed::SignedSecretKey::from_string(rfc9580::A4_V6_SECRET_UNLOCKED)
                 .expect("A.4 parses");
-        let (locked, _) =
-            pgp::composed::SignedSecretKey::from_string(rfc9580::A5_V6_SECRET_LOCKED)
-                .expect("A.5 parses");
+        let (locked, _) = pgp::composed::SignedSecretKey::from_string(rfc9580::A5_V6_SECRET_LOCKED)
+            .expect("A.5 parses");
         assert_eq!(
             unlocked.primary_key.fingerprint().to_string(),
             locked.primary_key.fingerprint().to_string()
@@ -835,8 +844,12 @@ mod decrypt_tests {
     #[test]
     fn a_v1_seipd_mdc_message_decrypts() {
         // §5.13.1: CFB plus a trailing SHA-1 modification detection code.
-        let res = decrypt_with_key(corpus::ENC_V1SEIPD_MDC, corpus::KEY1_SECRET, Some(pw_corpus))
-            .expect("decrypt");
+        let res = decrypt_with_key(
+            corpus::ENC_V1SEIPD_MDC,
+            corpus::KEY1_SECRET,
+            Some(pw_corpus),
+        )
+        .expect("decrypt");
         assert_eq!(res.data, corpus::PAYLOAD);
     }
 
@@ -866,8 +879,12 @@ mod decrypt_tests {
 
     #[test]
     fn a_decrypted_message_reports_its_recipients() {
-        let res = decrypt_with_key(corpus::ENC_V1SEIPD_MDC, corpus::KEY1_SECRET, Some(pw_corpus))
-            .expect("decrypt");
+        let res = decrypt_with_key(
+            corpus::ENC_V1SEIPD_MDC,
+            corpus::KEY1_SECRET,
+            Some(pw_corpus),
+        )
+        .expect("decrypt");
         assert!(!res.recipients.is_empty());
     }
 
@@ -887,8 +904,7 @@ mod decrypt_tests {
     #[test]
     fn a_pkesk_without_a_payload_fails() {
         assert!(
-            decrypt_with_key(corpus::PKESK_NO_SEIPD, corpus::KEY1_SECRET, Some(pw_corpus))
-                .is_err()
+            decrypt_with_key(corpus::PKESK_NO_SEIPD, corpus::KEY1_SECRET, Some(pw_corpus)).is_err()
         );
     }
 
@@ -913,9 +929,7 @@ mod decrypt_tests {
         // Flip a byte inside the base64 body rather than the armor header.
         let pos = tampered.len() / 2;
         tampered[pos] = if tampered[pos] == b'A' { b'B' } else { b'A' };
-        assert!(
-            decrypt_with_key(&tampered, rfc9580::A4_V6_SECRET_UNLOCKED, None).is_err()
-        );
+        assert!(decrypt_with_key(&tampered, rfc9580::A4_V6_SECRET_UNLOCKED, None).is_err());
     }
 
     #[test]
@@ -925,7 +939,11 @@ mod decrypt_tests {
             let outcome = std::panic::catch_unwind(|| {
                 decrypt_with_key(&prefix, corpus::KEY1_SECRET, Some(pw_corpus)).is_ok()
             });
-            assert_eq!(outcome.ok(), Some(false), "a {n}-byte prefix must not decrypt");
+            assert_eq!(
+                outcome.ok(),
+                Some(false),
+                "a {n}-byte prefix must not decrypt"
+            );
         }
     }
 
@@ -1001,14 +1019,9 @@ mod decrypt_tests {
         // 32 layers is twice the cap.
         let key = &keys::V4_SIGN;
         let nested = packets::nested_compressed(32, &packets::literal(b'b', b"", 0, b"deep"));
-        let encrypted = crate::crypto::encrypt_internal(
-            0,
-            "",
-            &nested,
-            &[&key.public_armored],
-            false,
-        )
-        .expect("encrypt");
+        let encrypted =
+            crate::crypto::encrypt_internal(0, "", &nested, &[&key.public_armored], false)
+                .expect("encrypt");
 
         let outcome = std::panic::catch_unwind(|| {
             decrypt_with_key(&encrypted.data, &key.secret_armored, None).is_ok()
@@ -1105,8 +1118,7 @@ mod decrypt_tests {
         let data = packets::literal(b'b', b"from-elsewhere.txt", 0, b"x");
         let msg = Message::from_bytes(std::io::Cursor::new(data)).expect("parse");
         assert_eq!(
-            msg.literal_data_header()
-                .map(|h| h.file_name().to_vec()),
+            msg.literal_data_header().map(|h| h.file_name().to_vec()),
             Some(b"from-elsewhere.txt".to_vec())
         );
     }

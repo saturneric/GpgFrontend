@@ -691,8 +691,7 @@ mod ffi_decrypt_tests {
             GfrStatus::Success
         );
         let mut result = unsafe { out.assume_init() };
-        let bytes =
-            unsafe { std::slice::from_raw_parts(result.data, result.data_len) }.to_vec();
+        let bytes = unsafe { std::slice::from_raw_parts(result.data, result.data_len) }.to_vec();
         crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut result);
         bytes
     }
@@ -864,8 +863,7 @@ mod ffi_decrypt_tests {
             GfrStatus::Success
         );
         let mut sealed = unsafe { enc_out.assume_init() };
-        let bytes =
-            unsafe { std::slice::from_raw_parts(sealed.data, sealed.data_len) }.to_vec();
+        let bytes = unsafe { std::slice::from_raw_parts(sealed.data, sealed.data_len) }.to_vec();
         crate::ffi::mem::gfr_crypto_free_encrypt_and_sign_result(&mut sealed);
 
         cb::set_seckey_answer(&key.secret_armored);

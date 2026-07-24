@@ -901,7 +901,9 @@ mod ffi_sign_tests {
             GfrStatus::Success
         );
         assert!(!out.is_null());
-        let issuers = unsafe { CStr::from_ptr(out) }.to_string_lossy().into_owned();
+        let issuers = unsafe { CStr::from_ptr(out) }
+            .to_string_lossy()
+            .into_owned();
         assert!(!issuers.is_empty());
         crate::ffi::mem::gfr_crypto_free_string(out);
     }

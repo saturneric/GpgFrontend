@@ -926,7 +926,9 @@ mod ffi_key_tests {
     /// Consume an out-param C string and free it.
     fn take(ptr: *mut c_char) -> String {
         assert!(!ptr.is_null());
-        let s = unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned();
+        let s = unsafe { CStr::from_ptr(ptr) }
+            .to_string_lossy()
+            .into_owned();
         crate::ffi::mem::gfr_crypto_free_string(ptr);
         s
     }
@@ -985,7 +987,9 @@ mod ffi_key_tests {
         );
         assert_eq!(count, 1);
         let meta = unsafe { &*list };
-        let fpr = unsafe { CStr::from_ptr(meta.fpr) }.to_string_lossy().into_owned();
+        let fpr = unsafe { CStr::from_ptr(meta.fpr) }
+            .to_string_lossy()
+            .into_owned();
         assert_eq!(fpr.to_uppercase(), key.primary_fpr);
         assert_eq!(meta.subkey_count, 2);
         unsafe { crate::ffi::mem::gfr_free_metadata_array(list, count) };
@@ -1005,10 +1009,7 @@ mod ffi_key_tests {
     #[test]
     fn extract_public_key_rejects_a_null_out_param() {
         assert_eq!(
-            gfr_crypto_extract_public_key(
-                buf(&keys::V4_SIGN.secret_armored),
-                std::ptr::null_mut()
-            ),
+            gfr_crypto_extract_public_key(buf(&keys::V4_SIGN.secret_armored), std::ptr::null_mut()),
             GfrStatus::ErrorInvalidInput
         );
     }

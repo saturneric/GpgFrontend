@@ -123,11 +123,8 @@ fn choose_encryption_target(
             let fpr = subkey.key.fingerprint().to_string();
             let kid = subkey.key.legacy_key_id().to_string();
             if super::key_identifier_matches(&fpr, &kid, target) {
-                if crate::key::is_subkey_revoked(
-                    &cert.primary_key,
-                    &subkey.key,
-                    &subkey.signatures,
-                ) {
+                if crate::key::is_subkey_revoked(&cert.primary_key, &subkey.key, &subkey.signatures)
+                {
                     log::error!("Requested encryption subkey is revoked: fpr={}", fpr);
                     return Err(GfrStatus::ErrorNoKey);
                 }
@@ -854,7 +851,10 @@ mod encrypt_tests {
             &[&keys::V4_REVOKED_PRIMARY.public_armored],
             false,
         );
-        assert!(res.is_ok(), "current behaviour: revoked primaries are accepted");
+        assert!(
+            res.is_ok(),
+            "current behaviour: revoked primaries are accepted"
+        );
     }
 
     #[test]
@@ -884,8 +884,8 @@ mod encrypt_tests {
 
     #[test]
     fn an_empty_payload_round_trips_to_nothing() {
-        let out = encrypt_internal(0, "", b"", &[&keys::V4_SIGN.public_armored], false)
-            .expect("encrypt");
+        let out =
+            encrypt_internal(0, "", b"", &[&keys::V4_SIGN.public_armored], false).expect("encrypt");
         cb::set_seckey_answer(&keys::V4_SIGN.secret_armored);
         let res = crate::crypto::decrypt_internal(
             0,
@@ -1064,7 +1064,9 @@ mod encrypt_tests {
             true,
         )
         .expect("encrypt+sign");
-        assert!(!crate::crypto::sig_hash_algo_is_weak(&out.signatures[0].hash_algo));
+        assert!(!crate::crypto::sig_hash_algo_is_weak(
+            &out.signatures[0].hash_algo
+        ));
     }
 
     #[test]
@@ -1143,8 +1145,7 @@ mod encrypt_tests {
             &*corpus::AUX_FORGED_REVOCATION_CERT,
             &*corpus::KEY2_CERT,
         ] {
-            let outcome =
-                std::panic::catch_unwind(|| choose_encryption_target(cert, None).is_ok());
+            let outcome = std::panic::catch_unwind(|| choose_encryption_target(cert, None).is_ok());
             assert!(outcome.is_ok());
         }
     }

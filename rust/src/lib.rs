@@ -132,7 +132,9 @@ mod crate_smoke_tests {
         use std::ffi::CStr;
         let ptr = crate::ffi::gfr_rust_engine_version();
         assert!(!ptr.is_null());
-        let version = unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned();
+        let version = unsafe { CStr::from_ptr(ptr) }
+            .to_string_lossy()
+            .into_owned();
         crate::ffi::mem::gfr_crypto_free_string(ptr);
         assert_eq!(version, env!("CARGO_PKG_VERSION"));
     }

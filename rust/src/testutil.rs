@@ -156,7 +156,10 @@ pub mod corpus {
     vector!(SIG_INLINE_COMPRESSED, "sig_inline_compressed.pgp");
     vector!(TWO_SIGNER, "two_signer.pgp");
     vector!(SIG_STRONG_WEAK_SAME_KEY, "sig_strong_weak_same_key.sig");
-    vector!(SIG_TWO_SAME_ISSUER_ONE_VALID, "sig_two_same_issuer_one_valid.sig");
+    vector!(
+        SIG_TWO_SAME_ISSUER_ONE_VALID,
+        "sig_two_same_issuer_one_valid.sig"
+    );
     vector_str!(SIG_GOOD_CLEARTEXT, "sig_good_cleartext.asc");
     vector_str!(SIG_TWO_SIGNER_CLEARTEXT, "sig_two_signer_cleartext.asc");
 
@@ -236,7 +239,11 @@ pub mod corpus {
 
     /// Primary-key fingerprint of `aux_good.asc`, uppercase hex.
     pub fn aux_good_primary_fpr() -> String {
-        AUX_GOOD_CERT.primary_key.fingerprint().to_string().to_uppercase()
+        AUX_GOOD_CERT
+            .primary_key
+            .fingerprint()
+            .to_string()
+            .to_uppercase()
     }
 
     /// Fingerprint of the signing subkey that issued `sig_good_detached.sig`.
@@ -246,7 +253,11 @@ pub mod corpus {
 
     /// Primary-key fingerprint of the v6 aux key.
     pub fn aux_v6_primary_fpr() -> String {
-        AUX_V6_KEY.primary_key.fingerprint().to_string().to_uppercase()
+        AUX_V6_KEY
+            .primary_key
+            .fingerprint()
+            .to_string()
+            .to_uppercase()
     }
 
     /// Fingerprint of the v6 aux key's signing subkey, falling back to the
@@ -719,9 +730,8 @@ pub mod keys {
     pub static V4_SHORT_EXPIRY: Lazy<Fixture> = Lazy::new(|| {
         let base = &*V4_SIGN;
         let created = u64::from(base.secret.primary_key.created_at().as_secs());
-        let out =
-            update_key_expiration_internal(0, &base.secret_armored, None, created + 1, None)
-                .expect("short-expiry key fixture");
+        let out = update_key_expiration_internal(0, &base.secret_armored, None, created + 1, None)
+            .expect("short-expiry key fixture");
         fixture_from(reparse(&out.secret))
     });
 }
@@ -1326,8 +1336,14 @@ mod selftest {
     fn derived_fixtures_retain_the_base_primary_key() {
         // Revoking or expiring must not mint a new key: downstream tests
         // compare these against `V4_SIGN`.
-        assert_eq!(keys::V4_REVOKED_SUBKEY.primary_fpr, keys::V4_SIGN.primary_fpr);
-        assert_eq!(keys::V4_REVOKED_PRIMARY.primary_fpr, keys::V4_SIGN.primary_fpr);
+        assert_eq!(
+            keys::V4_REVOKED_SUBKEY.primary_fpr,
+            keys::V4_SIGN.primary_fpr
+        );
+        assert_eq!(
+            keys::V4_REVOKED_PRIMARY.primary_fpr,
+            keys::V4_SIGN.primary_fpr
+        );
         assert_eq!(keys::V4_SHORT_EXPIRY.primary_fpr, keys::V4_SIGN.primary_fpr);
     }
 

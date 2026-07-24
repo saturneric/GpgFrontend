@@ -1245,15 +1245,24 @@ mod abi_tests {
     fn result_structs_are_pointer_aligned() {
         // Every *C struct is handed to C++ by pointer; misalignment would be a
         // portability bug on stricter targets.
-        assert_eq!(align_of::<GfrKeyGenerateResult>(), align_of::<*mut c_char>());
+        assert_eq!(
+            align_of::<GfrKeyGenerateResult>(),
+            align_of::<*mut c_char>()
+        );
         assert_eq!(align_of::<GfrRecipientResultC>(), align_of::<*mut c_char>());
         assert_eq!(align_of::<GfrSignatureResultC>(), align_of::<*mut c_char>());
-        assert_eq!(align_of::<GfrInvalidRecipientC>(), align_of::<*mut c_char>());
+        assert_eq!(
+            align_of::<GfrInvalidRecipientC>(),
+            align_of::<*mut c_char>()
+        );
     }
 
     #[test]
     fn key_generate_result_is_three_pointers() {
-        assert_eq!(size_of::<GfrKeyGenerateResult>(), 3 * size_of::<*mut c_char>());
+        assert_eq!(
+            size_of::<GfrKeyGenerateResult>(),
+            3 * size_of::<*mut c_char>()
+        );
     }
 
     #[test]

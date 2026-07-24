@@ -309,7 +309,9 @@ mod ffi_user_id_tests {
 
     fn take(ptr: *mut c_char) -> String {
         assert!(!ptr.is_null());
-        let s = unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned();
+        let s = unsafe { CStr::from_ptr(ptr) }
+            .to_string_lossy()
+            .into_owned();
         crate::ffi::mem::gfr_crypto_free_string(ptr);
         s
     }
@@ -371,11 +373,7 @@ mod ffi_user_id_tests {
         let uid = CString::new("nobody <nobody@example.test>").expect("no NUL");
         let mut out = std::ptr::null_mut();
         assert_ne!(
-            gfr_crypto_delete_user_id(
-                buf(&keys::V4_SIGN.secret_armored),
-                uid.as_ptr(),
-                &mut out
-            ),
+            gfr_crypto_delete_user_id(buf(&keys::V4_SIGN.secret_armored), uid.as_ptr(), &mut out),
             GfrStatus::Success
         );
     }
@@ -563,7 +561,13 @@ mod ffi_user_id_tests {
         let mut out = std::ptr::null_mut();
         let statuses = [
             gfr_crypto_delete_user_id(GfrBuffer::empty(), uid.as_ptr(), &mut out),
-            gfr_crypto_add_user_id(0, GfrBuffer::empty(), uid.as_ptr(), cb::pwd_correct, &mut out),
+            gfr_crypto_add_user_id(
+                0,
+                GfrBuffer::empty(),
+                uid.as_ptr(),
+                cb::pwd_correct,
+                &mut out,
+            ),
             gfr_crypto_update_user_id(
                 0,
                 GfrBuffer::empty(),

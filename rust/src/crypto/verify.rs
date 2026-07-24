@@ -282,14 +282,24 @@ mod verify_tests {
             // The message is self-contained; it belongs in `data`.
             _ => (sig, &[][..]),
         };
-        verify_internal(data, sig, mode, Some(cb::pubkey_fetch), std::ptr::null_mut())
+        verify_internal(
+            data,
+            sig,
+            mode,
+            Some(cb::pubkey_fetch),
+            std::ptr::null_mut(),
+        )
     }
 
     // -- the happy paths ----------------------------------------------------
 
     #[test]
     fn a_good_detached_signature_is_valid() {
-        let res = verify_detached(corpus::PAYLOAD, corpus::SIG_GOOD_DETACHED, Some(corpus::AUX_GOOD));
+        let res = verify_detached(
+            corpus::PAYLOAD,
+            corpus::SIG_GOOD_DETACHED,
+            Some(corpus::AUX_GOOD),
+        );
         assert!(res.is_verified);
         ta::exactly_one_valid(&res.signatures);
     }
@@ -368,7 +378,11 @@ mod verify_tests {
         // §5.2.3.13: the signing key's validity period has passed. The
         // signature itself is cryptographically sound -- it was made while the
         // key was live -- which is exactly why the key-expiry gate is needed.
-        let res = verify_detached(corpus::PAYLOAD, corpus::SIG_EXPIRED, Some(corpus::AUX_EXPIRED));
+        let res = verify_detached(
+            corpus::PAYLOAD,
+            corpus::SIG_EXPIRED,
+            Some(corpus::AUX_EXPIRED),
+        );
         assert!(!res.is_verified);
         ta::none_valid(&res.signatures);
     }
@@ -376,8 +390,11 @@ mod verify_tests {
     #[test]
     fn gap4_a_signature_from_a_revoked_key_is_not_valid() {
         // §5.2.1.11: "A revoked key is not to be used."
-        let res =
-            verify_detached(corpus::PAYLOAD, corpus::SIG_REVOKEDKEY, Some(corpus::AUX_REVOKED));
+        let res = verify_detached(
+            corpus::PAYLOAD,
+            corpus::SIG_REVOKEDKEY,
+            Some(corpus::AUX_REVOKED),
+        );
         assert!(!res.is_verified);
         ta::none_valid(&res.signatures);
     }
@@ -386,7 +403,11 @@ mod verify_tests {
     fn a_sha1_signature_is_never_valid() {
         // §9.5: "Implementations MUST NOT validate any recent signature that
         // depends on MD5, SHA-1, or RIPEMD-160."
-        let res = verify_detached(corpus::PAYLOAD, corpus::SIG_SHA1_DETACHED, Some(corpus::AUX_SHA1));
+        let res = verify_detached(
+            corpus::PAYLOAD,
+            corpus::SIG_SHA1_DETACHED,
+            Some(corpus::AUX_SHA1),
+        );
         assert!(!res.is_verified);
         ta::none_valid(&res.signatures);
     }
@@ -395,7 +416,11 @@ mod verify_tests {
     fn a_sha1_signature_is_still_attributed_to_its_issuer() {
         // Rejecting it must not mean losing track of who made it; the UI still
         // wants to say "signed by X, using a weak hash".
-        let res = verify_detached(corpus::PAYLOAD, corpus::SIG_SHA1_DETACHED, Some(corpus::AUX_SHA1));
+        let res = verify_detached(
+            corpus::PAYLOAD,
+            corpus::SIG_SHA1_DETACHED,
+            Some(corpus::AUX_SHA1),
+        );
         assert!(!res.signatures.is_empty());
         assert!(!res.signatures[0].fpr.is_empty());
     }
@@ -404,15 +429,22 @@ mod verify_tests {
 
     #[test]
     fn a_mutated_signature_is_not_valid() {
-        let res =
-            verify_detached(corpus::PAYLOAD, corpus::SIG_BAD_MUTATED, Some(corpus::AUX_GOOD));
+        let res = verify_detached(
+            corpus::PAYLOAD,
+            corpus::SIG_BAD_MUTATED,
+            Some(corpus::AUX_GOOD),
+        );
         assert!(!res.is_verified);
         ta::none_valid(&res.signatures);
     }
 
     #[test]
     fn a_good_signature_over_the_wrong_data_is_not_valid() {
-        let res = verify_detached(b"different payload entirely", corpus::SIG_GOOD_DETACHED, Some(corpus::AUX_GOOD));
+        let res = verify_detached(
+            b"different payload entirely",
+            corpus::SIG_GOOD_DETACHED,
+            Some(corpus::AUX_GOOD),
+        );
         assert!(!res.is_verified);
         ta::none_valid(&res.signatures);
     }
@@ -428,7 +460,11 @@ mod verify_tests {
 
     #[test]
     fn the_wrong_certificate_leaves_the_signature_unattributed() {
-        let res = verify_detached(corpus::PAYLOAD, corpus::SIG_GOOD_DETACHED, Some(corpus::KEY2_PUBLIC));
+        let res = verify_detached(
+            corpus::PAYLOAD,
+            corpus::SIG_GOOD_DETACHED,
+            Some(corpus::KEY2_PUBLIC),
+        );
         assert!(!res.is_verified);
         assert_eq!(res.signatures[0].status, GfrSignatureStatus::NoKey);
     }
@@ -469,7 +505,12 @@ mod verify_tests {
 
     #[test]
     fn garbage_as_a_signature_is_an_error_or_yields_nothing() {
-        match verify_mode(corpus::PAYLOAD, corpus::GARBAGE, GfrSignMode::Detached, None) {
+        match verify_mode(
+            corpus::PAYLOAD,
+            corpus::GARBAGE,
+            GfrSignMode::Detached,
+            None,
+        ) {
             Ok(res) => assert!(res.signatures.is_empty() && !res.is_verified),
             Err(status) => assert!((status as i32) < 0),
         }
@@ -484,7 +525,11 @@ mod verify_tests {
             corpus::PKESK_NO_SEIPD,
             corpus::TRUNCATED_ARMOR.as_bytes(),
         ] {
-            for mode in [GfrSignMode::Detached, GfrSignMode::Inline, GfrSignMode::ClearText] {
+            for mode in [
+                GfrSignMode::Detached,
+                GfrSignMode::Inline,
+                GfrSignMode::ClearText,
+            ] {
                 let outcome = std::panic::catch_unwind(|| {
                     verify_internal(corpus::PAYLOAD, vector, mode, None, std::ptr::null_mut())
                         .is_ok()
@@ -526,7 +571,9 @@ mod verify_tests {
         );
         assert_eq!(res.signatures.len(), 2, "both packets must be surfaced");
         assert!(
-            res.signatures.iter().any(|s| sig_hash_algo_is_weak(&s.hash_algo)),
+            res.signatures
+                .iter()
+                .any(|s| sig_hash_algo_is_weak(&s.hash_algo)),
             "the weak one must not be silently discarded"
         );
     }
@@ -641,7 +688,10 @@ mod verify_tests {
             Some(rfc9580::A3_V6_CERT),
         )
         .expect("verify");
-        assert!(res.is_verified, "the RFC's own cleartext sample must verify");
+        assert!(
+            res.is_verified,
+            "the RFC's own cleartext sample must verify"
+        );
         ta::exactly_one_valid(&res.signatures);
     }
 
@@ -678,8 +728,9 @@ mod verify_tests {
         let sigs = crate::crypto::parse_all_signature_packets(rfc9580::A6_CLEARTEXT.as_bytes());
         let sigs = if sigs.is_empty() {
             // The cleartext framework wraps the signature in armor.
-            let (msg, _) = pgp::composed::CleartextSignedMessage::from_string(rfc9580::A6_CLEARTEXT)
-                .expect("parse A.6");
+            let (msg, _) =
+                pgp::composed::CleartextSignedMessage::from_string(rfc9580::A6_CLEARTEXT)
+                    .expect("parse A.6");
             msg.signatures().iter().cloned().collect()
         } else {
             sigs
@@ -725,8 +776,13 @@ mod verify_tests {
         )
         .expect("sign");
 
-        let res = verify_mode(&[], &signed.data, GfrSignMode::ClearText, Some(&key.public_armored))
-            .expect("verify");
+        let res = verify_mode(
+            &[],
+            &signed.data,
+            GfrSignMode::ClearText,
+            Some(&key.public_armored),
+        )
+        .expect("verify");
         assert!(res.is_verified);
     }
 
@@ -744,8 +800,13 @@ mod verify_tests {
         )
         .expect("sign");
 
-        let res = verify_mode(&[], &signed.data, GfrSignMode::Inline, Some(&key.public_armored))
-            .expect("verify");
+        let res = verify_mode(
+            &[],
+            &signed.data,
+            GfrSignMode::Inline,
+            Some(&key.public_armored),
+        )
+        .expect("verify");
         assert!(res.is_verified);
         assert_eq!(res.data, corpus::PAYLOAD);
     }

@@ -129,7 +129,9 @@ fn is_self_signature_from_primary(sig: &Signature, primary_fpr_bytes: &[u8]) -> 
 fn is_user_id_revoked(primary: &PublicKey, user: &SignedUser) -> bool {
     user.signatures.iter().any(|sig| {
         matches!(sig.typ(), Some(SignatureType::CertRevocation))
-            && sig.verify_certification(primary, Tag::UserId, &user.id).is_ok()
+            && sig
+                .verify_certification(primary, Tag::UserId, &user.id)
+                .is_ok()
     })
 }
 
@@ -278,14 +280,18 @@ pub(crate) fn primary_key_expires_at(cert: &SignedPublicKey) -> u32 {
     let primary_idx = users.iter().position(|u| u.is_primary()).unwrap_or(0);
     let created_at = cert.primary_key.created_at().as_secs();
 
-    let verified_direct = verified_primary_self_sigs(&cert.primary_key, &cert.details.direct_signatures);
+    let verified_direct =
+        verified_primary_self_sigs(&cert.primary_key, &cert.details.direct_signatures);
     let verified_uid = users
         .get(primary_idx)
         .map(|u| verified_uid_self_sigs(&cert.primary_key, u))
         .unwrap_or_default();
 
     expiration_from_self_sigs(
-        verified_direct.iter().copied().chain(verified_uid.iter().copied()),
+        verified_direct
+            .iter()
+            .copied()
+            .chain(verified_uid.iter().copied()),
         created_at,
     )
 }
@@ -2265,8 +2271,7 @@ mod rfc9580_tests {
     /// The v6 certificate parses and yields the fingerprint stated in the RFC.
     #[test]
     fn appendix_a3_v6_cert_fingerprint() {
-        let (cert, _) =
-            SignedPublicKey::from_string(rfc9580::A3_V6_CERT).expect("parse A.3 cert");
+        let (cert, _) = SignedPublicKey::from_string(rfc9580::A3_V6_CERT).expect("parse A.3 cert");
         assert_eq!(cert.primary_key.version(), KeyVersion::V6);
         assert_eq!(
             cert.primary_key.fingerprint().to_string().to_uppercase(),
@@ -2279,8 +2284,7 @@ mod rfc9580_tests {
     #[test]
     fn appendix_a6_cleartext_verifies() {
         use pgp::composed::{CleartextSignedMessage, Deserializable};
-        let (cert, _) =
-            SignedPublicKey::from_string(rfc9580::A3_V6_CERT).expect("parse A.3 cert");
+        let (cert, _) = SignedPublicKey::from_string(rfc9580::A3_V6_CERT).expect("parse A.3 cert");
         let (msg, _) =
             CleartextSignedMessage::from_string(rfc9580::A6_CLEARTEXT).expect("parse A.6");
         msg.verify(&cert)
@@ -2392,7 +2396,8 @@ mod key_tests {
         // concatenated to allow transferring multiple public keys".
         let joined = format!(
             "{}{}",
-            keys::V4_SIGN.public_armored, keys::V6_SIGN.public_armored
+            keys::V4_SIGN.public_armored,
+            keys::V6_SIGN.public_armored
         );
         assert_eq!(split_pgp_blocks(&joined).len(), 2);
     }
@@ -2401,7 +2406,8 @@ mod key_tests {
     fn text_between_blocks_is_discarded() {
         let joined = format!(
             "some notes\n{}\nmore notes\n{}\ntrailer",
-            keys::V4_SIGN.public_armored, keys::V6_SIGN.public_armored
+            keys::V4_SIGN.public_armored,
+            keys::V6_SIGN.public_armored
         );
         let blocks = split_pgp_blocks(&joined);
         assert_eq!(blocks.len(), 2);
@@ -2494,7 +2500,8 @@ mod key_tests {
         // public-only depending on ordering.
         let joined = format!(
             "{}{}",
-            keys::V4_SIGN.public_armored, keys::V4_SIGN.secret_armored
+            keys::V4_SIGN.public_armored,
+            keys::V4_SIGN.secret_armored
         );
         let metas = extract_metadata_many_internal(&joined).expect("metadata");
         assert_eq!(metas.len(), 1, "one fingerprint, one entry");
@@ -2503,9 +2510,13 @@ mod key_tests {
 
     #[test]
     fn metadata_lists_every_user_id() {
-        let with_second =
-            crate::user_id::add_user_id_internal(0, &keys::V4_SIGN.secret_armored, "Two <two@example.test>", None)
-                .expect("add");
+        let with_second = crate::user_id::add_user_id_internal(
+            0,
+            &keys::V4_SIGN.secret_armored,
+            "Two <two@example.test>",
+            None,
+        )
+        .expect("add");
         let meta = meta_of(&with_second);
         assert_eq!(meta.user_ids.len(), 2);
     }
@@ -2708,7 +2719,11 @@ mod key_tests {
         let key = parse_secret(&keys::V4_SIGN.secret_armored);
         let primary = key.primary_key.public_key();
         for sub in &key.secret_subkeys {
-            assert!(!is_subkey_revoked(primary, sub.key.public_key(), &sub.signatures));
+            assert!(!is_subkey_revoked(
+                primary,
+                sub.key.public_key(),
+                &sub.signatures
+            ));
         }
     }
 
@@ -2822,8 +2837,8 @@ mod key_tests {
     #[test]
     fn clearing_an_expiry_sets_it_back_to_never() {
         let key = &keys::V4_SHORT_EXPIRY;
-        let out = update_key_expiration_internal(0, &key.secret_armored, None, 0, None)
-            .expect("clear");
+        let out =
+            update_key_expiration_internal(0, &key.secret_armored, None, 0, None).expect("clear");
         assert_eq!(meta_of(&out.secret).expires_at, 0);
     }
 
@@ -2902,8 +2917,8 @@ mod key_tests {
     #[test]
     fn deleting_a_subkey_removes_it() {
         let key = &keys::V4_SIGN;
-        let out = delete_subkey_internal(&key.secret_armored, key.enc_subkey_fpr())
-            .expect("delete");
+        let out =
+            delete_subkey_internal(&key.secret_armored, key.enc_subkey_fpr()).expect("delete");
         let meta = meta_of(&out.secret);
         assert_eq!(meta.subkeys.len(), 1);
         assert!(
@@ -2936,7 +2951,10 @@ mod key_tests {
             .iter()
             .find(|s| matches!(s.typ(), Some(SignatureType::SubkeyRevocation)))
             .expect("a revocation signature");
-        assert!(rev.verify_subkey_binding(primary, revoked.key.public_key()).is_ok());
+        assert!(
+            rev.verify_subkey_binding(primary, revoked.key.public_key())
+                .is_ok()
+        );
     }
 
     #[test]
@@ -2958,25 +2976,39 @@ mod key_tests {
     #[test]
     fn revoking_a_subkey_does_not_delete_it() {
         let meta = meta_of(&keys::V4_REVOKED_SUBKEY.secret_armored);
-        assert_eq!(meta.subkeys.len(), 2, "revocation is a statement, not removal");
+        assert_eq!(
+            meta.subkeys.len(),
+            2,
+            "revocation is a statement, not removal"
+        );
     }
 
     // -- revocation certificates --------------------------------------------
 
     #[test]
     fn a_revocation_certificate_is_an_armored_signature_block() {
-        let cert =
-            generate_key_rev_cert_internal(0, &keys::V4_SIGN.secret_armored, GfrRevocationCode::Superseded, None, None)
-                .expect("rev cert");
+        let cert = generate_key_rev_cert_internal(
+            0,
+            &keys::V4_SIGN.secret_armored,
+            GfrRevocationCode::Superseded,
+            None,
+            None,
+        )
+        .expect("rev cert");
         assert!(cert.contains("BEGIN PGP"));
         crate::testutil::assert::armor_has_no_crc24(&cert);
     }
 
     #[test]
     fn a_revocation_certificate_names_its_target() {
-        let cert =
-            generate_key_rev_cert_internal(0, &keys::V4_SIGN.secret_armored, GfrRevocationCode::Retired, None, None)
-                .expect("rev cert");
+        let cert = generate_key_rev_cert_internal(
+            0,
+            &keys::V4_SIGN.secret_armored,
+            GfrRevocationCode::Retired,
+            None,
+            None,
+        )
+        .expect("rev cert");
         let target = extract_rev_cert_target_fpr_internal(&cert).expect("target");
         assert_eq!(target.to_uppercase(), keys::V4_SIGN.primary_fpr);
     }
@@ -3016,8 +3048,7 @@ mod key_tests {
             None,
         )
         .expect("rev cert");
-        let out =
-            import_rev_cert_internal(&keys::V4_SIGN.secret_armored, &cert).expect("import");
+        let out = import_rev_cert_internal(&keys::V4_SIGN.secret_armored, &cert).expect("import");
         assert!(meta_of(&out.secret).is_revoked);
     }
 
@@ -3105,18 +3136,19 @@ mod key_tests {
             &keys::V4_SIGN.public_armored,
         ])
         .expect("merge");
-        assert_eq!(extract_metadata_many_internal(&merged).expect("meta").len(), 1);
+        assert_eq!(
+            extract_metadata_many_internal(&merged).expect("meta").len(),
+            1
+        );
     }
 
     #[test]
     fn merge_key_blocks_combines_a_public_update_into_a_secret_key() {
         // The refresh case: a newer public copy (say with a fresh signature)
         // merged onto the locally held secret key must keep the secret.
-        let merged = merge_key_block_internal(
-            &keys::V4_SIGN.secret_armored,
-            &keys::V4_SIGN.public_armored,
-        )
-        .expect("merge");
+        let merged =
+            merge_key_block_internal(&keys::V4_SIGN.secret_armored, &keys::V4_SIGN.public_armored)
+                .expect("merge");
         assert!(SignedSecretKey::from_string(&merged.secret).is_ok());
     }
 

@@ -272,7 +272,11 @@ mod tar_tests {
     fn a_large_directory_packs_without_error() {
         let dir = tempfile::tempdir().expect("tempdir");
         for i in 0..64 {
-            write(dir.path(), &format!("dir{}/file{}.bin", i % 8, i), &[0xABu8; 1024]);
+            write(
+                dir.path(),
+                &format!("dir{}/file{}.bin", i % 8, i),
+                &[0xABu8; 1024],
+            );
         }
         let (mut archive, _hint) =
             build_tar_tempfile_from_directory(&dir.path().to_string_lossy()).expect("pack");
