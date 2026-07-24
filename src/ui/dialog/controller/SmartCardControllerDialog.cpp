@@ -81,14 +81,6 @@ SmartCardControllerDialog::SmartCardControllerDialog(QWidget* parent)
   init_actions();
   init_connections();
 
-  ui_->cardSplitter->setStretchFactor(0, 2);
-  ui_->cardSplitter->setStretchFactor(1, 1);
-
-  for (const auto& key_db : GetGpgKeyDatabaseInfos()) {
-    ui_->keyDBIndexComboBox->insertItem(
-        key_db.channel, QString("%1: %2").arg(key_db.channel).arg(key_db.name));
-  }
-
   // instant refresh
   slot_listen_smart_card_changes();
 
@@ -105,7 +97,6 @@ void SmartCardControllerDialog::init_texts() {
   setWindowTitle(tr("Smart Card Controller"));
 
   ui_->smartCardLabel->setText(tr("Card"));
-  ui_->keyStubLabel->setText(tr("Key Stubs in"));
 
   ui_->identityGroup->setTitle(tr("Identity"));
   ui_->readerKeyLabel->setText(tr("Reader"));
@@ -211,10 +202,6 @@ void SmartCardControllerDialog::init_actions() {
 }
 
 void SmartCardControllerDialog::init_connections() {
-  connect(ui_->keyDBIndexComboBox,
-          qOverload<int>(&QComboBox::currentIndexChanged), this,
-          [=](int index) { refresh_key_tree_view(index); });
-
   connect(ui_->currentCardComboBox, &QComboBox::currentTextChanged, this,
           [=](const QString& serial_number) {
             select_smart_card_by_serial_number(serial_number);
@@ -241,11 +228,6 @@ void SmartCardControllerDialog::init_connections() {
 
   connect(ui_->moveKeyToCardButton, &QPushButton::clicked, this,
           [=](bool) { slot_move_key_to_card(); });
-
-  connect(UISignalStation::GetInstance(),
-          &UISignalStation::SignalKeyDatabaseRefreshDone, this, [=]() {
-            refresh_key_tree_view(ui_->keyDBIndexComboBox->currentIndex());
-          });
 }
 
 void SmartCardControllerDialog::select_smart_card_by_serial_number(
@@ -292,14 +274,12 @@ void SmartCardControllerDialog::fetch_smart_card_info(
 
   render_card_info();
   slot_disable_controllers(!has_card_);
-  refresh_key_tree_view(ui_->keyDBIndexComboBox->currentIndex());
 }
 
 void SmartCardControllerDialog::render_card_info() {
   if (!has_card_) return;
 
   ui_->detailStackedWidget->setCurrentWidget(ui_->detailPage);
-  ui_->keyStubContainer->show();
 
   render_identity();
   render_status();
@@ -458,43 +438,12 @@ void SmartCardControllerDialog::slot_refresh() {
   fetch_smart_card_info(ui_->currentCardComboBox->currentText());
 }
 
-void SmartCardControllerDialog::refresh_key_tree_view(int channel) {
-  // without a card there is nothing to match against, and leaving the filter
-  // alone would list the whole key database as if it were on the card
-  if (!has_card_) {
-    ui_->cardKeysTreeView->SetKeyFilter([](auto) { return false; });
-    return;
-  }
-
-  ui_->cardKeysTreeView->SetChannel(channel);
-
-  QStringList card_fprs;
-  for (const auto& key_info : card_info_.card_keys_info.values()) {
-    card_fprs.append(key_info.fingerprint);
-  }
-
-  LOG_D() << "card key fingerprints:" << card_fprs;
-  if (card_fprs.isEmpty()) {
-    ui_->cardKeysTreeView->SetKeyFilter([](auto) { return false; });
-    return;
-  }
-
-  ui_->cardKeysTreeView->SetKeyFilter([=](const GpgAbstractKey* k) {
-    return card_fprs.contains(k->Fingerprint());
-  });
-  ui_->cardKeysTreeView->expandAll();
-}
-
 void SmartCardControllerDialog::reset_status() {
   has_card_ = false;
   card_info_ = GpgOpenPGPCard();
 
   slot_disable_controllers(true);
   ui_->detailStackedWidget->setCurrentWidget(ui_->noCardPage);
-
-  // the stub pane has nothing to say without a card, hiding it lets the notice
-  // use the full width instead of sitting next to an empty disabled tree
-  ui_->keyStubContainer->hide();
 
   ui_->statusChipLabel->clear();
   ui_->manufacturerChipLabel->clear();
@@ -568,8 +517,6 @@ void SmartCardControllerDialog::slot_disable_controllers(bool disable) {
   ui_->generateKeysButton->setDisabled(disable);
   ui_->moveKeyToCardButton->setDisabled(disable);
   ui_->fetchButton->setDisabled(disable);
-  ui_->keyDBIndexComboBox->setDisabled(disable);
-  ui_->cardKeysTreeView->setDisabled(disable);
 
   // refresh and the overflow menu stay reachable, the user has to be able to
   // rescan and restart the agents precisely when no card is detected
@@ -602,6 +549,34 @@ void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
   });
 }
 
+auto SmartCardControllerDialog::select_ring_channel(bool* ok) -> int {
+  // with the key-ring selector gone, default to the only ring and ask the user
+  // when several exist
+  const auto key_dbs = GetGpgKeyDatabaseInfos();
+  if (key_dbs.size() <= 1) {
+    *ok = true;
+    return key_dbs.isEmpty() ? channel_ : key_dbs.front().channel;
+  }
+
+  QStringList db_labels;
+  for (const auto& db : key_dbs) {
+    db_labels << QString("%1: %2").arg(db.channel).arg(db.name);
+  }
+
+  const auto chosen_db = QInputDialog::getItem(
+      this, tr("Select Key Ring"),
+      tr("Which key ring do you want to move a key from?"), db_labels, 0, false,
+      ok);
+  if (!*ok) return channel_;
+
+  const auto db_index = db_labels.indexOf(chosen_db);
+  if (db_index < 0) {
+    *ok = false;
+    return channel_;
+  }
+  return key_dbs.at(db_index).channel;
+}
+
 void SmartCardControllerDialog::slot_move_key_to_card() {
   const auto serial = ui_->currentCardComboBox->currentText();
   if (serial.isEmpty()) {
@@ -611,7 +586,9 @@ void SmartCardControllerDialog::slot_move_key_to_card() {
   }
 
   // the key must be moved through the gpg-agent of the ring it lives in
-  const int ring_channel = ui_->keyDBIndexComboBox->currentIndex();
+  bool ring_ok = false;
+  const int ring_channel = select_ring_channel(&ring_ok);
+  if (!ring_ok) return;
 
   auto all_keys = GpgKeyRepository::GetInstance(ring_channel).Fetch();
   QList<GpgKeyPtr> secret_keys;

@@ -69,20 +69,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QSplitter" name="cardSplitter">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>1</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-     <property name="childrenCollapsible">
-      <bool>false</bool>
-     </property>
-     <widget class="QStackedWidget" name="detailStackedWidget">
+    <widget class="QStackedWidget" name="detailStackedWidget">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>2</horstretch>
@@ -615,66 +602,6 @@
        </layout>
       </widget>
      </widget>
-     <widget class="QWidget" name="keyStubContainer" native="true">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-        <horstretch>1</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>260</width>
-        <height>0</height>
-       </size>
-      </property>
-      <layout class="QVBoxLayout" name="keyStubLayout" stretch="0,1">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <layout class="QHBoxLayout" name="keyStubHeaderLayout">
-         <item>
-          <widget class="QLabel" name="keyStubLabel">
-           <property name="text">
-            <string>Key Stubs in</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="keyDBIndexComboBox">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <widget class="GpgFrontend::UI::KeyTreeView" name="cardKeysTreeView">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="actionsLayout">
@@ -744,13 +671,6 @@
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>GpgFrontend::UI::KeyTreeView</class>
-   <extends>QTreeView</extends>
-   <header>ui/widgets/KeyTreeView.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
