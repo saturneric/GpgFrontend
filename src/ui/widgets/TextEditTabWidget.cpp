@@ -620,7 +620,6 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     return;
   }
 
-  auto& gss = GlobalSettingStation::GetInstance();
   auto& key_mgr = AppSecureKeyManager::GetInstance();
   QJsonArray unsaved_page_array;
 
@@ -708,7 +707,6 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     }
   });
 
-  auto& gss = GlobalSettingStation::GetInstance();
   auto& key_mgr = AppSecureKeyManager::GetInstance();
   QJsonArray next_recovery_pages;
   QPointer<PlainTextEditorPage> last_restored_page;
