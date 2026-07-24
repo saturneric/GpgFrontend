@@ -40,7 +40,9 @@
 // qInitResources_* symbols only need internal (hidden) visibility. Referencing
 // them here also keeps the linker from garbage-collecting the resource data.
 static void GfInitEmbeddedResources() {
-  Q_INIT_RESOURCE(gpgfrontend);     // /icons, /test/*, TRANSLATORS
+  Q_INIT_RESOURCE(icons);           // /icons (icons.qrc)
+  Q_INIT_RESOURCE(test);            // /test/* (test.qrc)
+  Q_INIT_RESOURCE(app);             // / -> TRANSLATORS (app.qrc)
   Q_INIT_RESOURCE(gftranslations);  // /i18n
   Q_INIT_RESOURCE(qttranslations);  // /i18n_qt
 }

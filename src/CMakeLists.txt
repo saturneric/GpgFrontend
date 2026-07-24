@@ -53,8 +53,9 @@ aux_source_directory(. APP_SOURCE)
 # Make app build with resources
 set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
 set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
-# gpgfrontend.qrc now lives in the gf_res shared library (see src/res/); only
-# the platform icon artifacts remain attached to the executable.
+# The static Qt resources (resource/qrc/*.qrc) now live in the gf_res shared
+# library (see src/res/); only the platform icon artifacts remain attached to
+# the executable.
 set(RESOURCE_FILES ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
 
 # Set Resource Output Path

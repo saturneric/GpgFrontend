@@ -38,13 +38,21 @@ target_include_directories(${LIBRARY_TARGET} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # gf_res only needs QtCore (Q_INIT_RESOURCE + resource machinery)
 target_link_libraries(${LIBRARY_TARGET} PRIVATE Qt::Core)
 
-# --- primary static resources: /icons, /test/*, TRANSLATORS ---
-# CMAKE_AUTORCC is globally ON, so listing the .qrc as a source RCC-compiles it
-# with base name "gpgfrontend" -> qInitResources_gpgfrontend, matching
-# Q_INIT_RESOURCE(gpgfrontend). rcc resolves each <file> body relative to the
-# .qrc's own directory (repo root), so the "resource/lfs/..." paths stay valid
+# --- primary static resources ---
+# Split into focused manifests for easier management (see resource/qrc/):
+#   resource/qrc/icons.qrc -> /icons           (UI icons + app .ico)
+#   resource/qrc/test.qrc  -> /test/*          (gpg/rpgp test keys and RFC 9580 vectors)
+#   resource/qrc/app.qrc   -> / (TRANSLATORS)  (shipped app metadata)
+# CMAKE_AUTORCC is globally ON, so listing each .qrc as a source RCC-compiles it
+# with base name = file stem -> qInitResources_icons / _test / _app, matching
+# the Q_INIT_RESOURCE calls in GpgFrontendResource.cpp. rcc resolves each <file>
+# body relative to the .qrc's own directory (resource/qrc/), so the "../lfs/..."
+# paths (and the "../../" paths to the root-level .ico / TRANSLATORS) stay valid
 # even though the qrc is referenced from src/res.
-target_sources(${LIBRARY_TARGET} PRIVATE ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc)
+target_sources(${LIBRARY_TARGET} PRIVATE
+  ${CMAKE_SOURCE_DIR}/resource/qrc/icons.qrc
+  ${CMAKE_SOURCE_DIR}/resource/qrc/test.qrc
+  ${CMAKE_SOURCE_DIR}/resource/qrc/app.qrc)
 
 # --- translations (moved out of the executable) ---
 set(LOCALE_TS_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/ts)

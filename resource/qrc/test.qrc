@@ -1,0 +1,45 @@
+<!DOCTYPE RCC>
+<RCC>
+    <qresource prefix="/test/gpg_keys">
+        <file alias="pv1.key">../lfs/test/gpg/data/pv1.key</file>
+        <file alias="pv2.key">../lfs/test/gpg/data/pv2.key</file>
+        <file alias="pv3.key">../lfs/test/gpg/data/pv3.key</file>
+        <file alias="pv4.key">../lfs/test/gpg/data/pv4.key</file>
+        <file alias="tester.key">../lfs/test/gpg/data/tester.key</file>
+    </qresource>
+    <qresource prefix="/test/rpgp_keys">
+        <file alias="key1.asc">../lfs/test/rpgp/key1.asc</file>
+        <file alias="key2.asc">../lfs/test/rpgp/key2.asc</file>
+        <file alias="key3.asc">../lfs/test/rpgp/key3.asc</file>
+    </qresource>
+    <qresource prefix="/test/rpgp_aux_keys">
+        <file alias="aux_v6.asc">../lfs/test/rpgp_aux_keys/aux_v6.asc</file>
+        <file alias="aux_good.asc">../lfs/test/rpgp_aux_keys/aux_good.asc</file>
+        <file alias="aux_expired.asc">../lfs/test/rpgp_aux_keys/aux_expired.asc</file>
+        <file alias="aux_revoked.asc">../lfs/test/rpgp_aux_keys/aux_revoked.asc</file>
+        <file alias="aux_sha1.asc">../lfs/test/rpgp_aux_keys/aux_sha1.asc</file>
+    </qresource>
+    <qresource prefix="/test/rpgp_vectors">
+        <file alias="payload.txt">../lfs/test/rpgp_vectors/payload.txt</file>
+        <file alias="enc_v1seipd_mdc.pgp">../lfs/test/rpgp_vectors/enc_v1seipd_mdc.pgp</file>
+        <file alias="enc_v2seipd_ocb.pgp">../lfs/test/rpgp_vectors/enc_v2seipd_ocb.pgp</file>
+        <file alias="enc_multi_recipient.pgp">../lfs/test/rpgp_vectors/enc_multi_recipient.pgp</file>
+        <file alias="enc_symmetric_v1.pgp">../lfs/test/rpgp_vectors/enc_symmetric_v1.pgp</file>
+        <file alias="enc_symmetric_v2.pgp">../lfs/test/rpgp_vectors/enc_symmetric_v2.pgp</file>
+        <file alias="enc_sed_tag9.pgp">../lfs/test/rpgp_vectors/enc_sed_tag9.pgp</file>
+        <file alias="sig_good_detached.sig">../lfs/test/rpgp_vectors/sig_good_detached.sig</file>
+        <file alias="sig_good_cleartext.asc">../lfs/test/rpgp_vectors/sig_good_cleartext.asc</file>
+        <file alias="sig_good_inline_v6.pgp">../lfs/test/rpgp_vectors/sig_good_inline_v6.pgp</file>
+        <file alias="sig_v6_detached.sig">../lfs/test/rpgp_vectors/sig_v6_detached.sig</file>
+        <file alias="sig_sha1_detached.sig">../lfs/test/rpgp_vectors/sig_sha1_detached.sig</file>
+        <file alias="sig_expired.sig">../lfs/test/rpgp_vectors/sig_expired.sig</file>
+        <file alias="sig_revokedkey.sig">../lfs/test/rpgp_vectors/sig_revokedkey.sig</file>
+        <file alias="two_signer.pgp">../lfs/test/rpgp_vectors/two_signer.pgp</file>
+        <file alias="sig_bad_mutated.sig">../lfs/test/rpgp_vectors/sig_bad_mutated.sig</file>
+        <file alias="garbage.bin">../lfs/test/rpgp_vectors/garbage.bin</file>
+        <file alias="empty.bin">../lfs/test/rpgp_vectors/empty.bin</file>
+        <file alias="truncated_armor.asc">../lfs/test/rpgp_vectors/truncated_armor.asc</file>
+        <file alias="corrupt_crc.asc">../lfs/test/rpgp_vectors/corrupt_crc.asc</file>
+        <file alias="pkesk_no_seipd.pgp">../lfs/test/rpgp_vectors/pkesk_no_seipd.pgp</file>
+    </qresource>
+</RCC>

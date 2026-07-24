@@ -40,7 +40,8 @@
 //
 // The vector corpus and the auxiliary "adversarial" signer keys are produced
 // offline by scripts/gen_rpgp_test_vectors.sh and embedded as Qt resources
-// (see gpgfrontend.qrc, prefixes /test/rpgp_vectors and /test/rpgp_aux_keys).
+// (see resource/qrc/test.qrc, prefixes /test/rpgp_vectors and
+// /test/rpgp_aux_keys).
 //
 // New tests reuse the existing RpgpCoreTest fixture: it already configures the
 // rPGP context on kRpgpChannelForUnitTest, imports the fixture keys key1/2/3,

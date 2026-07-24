@@ -58,7 +58,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="../gpgfrontend.qrc">
+        <iconset resource="../resource/qrc/icons.qrc">
          <normaloff>:/icons/harddisk.png</normaloff>:/icons/harddisk.png</iconset>
        </property>
        <property name="popupMode">
@@ -78,7 +78,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../gpgfrontend.qrc">
+        <iconset resource="../resource/qrc/icons.qrc">
          <normaloff>:/icons/refresh.png</normaloff>:/icons/refresh.png</iconset>
        </property>
       </widget>
@@ -95,7 +95,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../gpgfrontend.qrc">
+        <iconset resource="../resource/qrc/icons.qrc">
          <normaloff>:/icons/up.png</normaloff>:/icons/up.png</iconset>
        </property>
       </widget>
@@ -152,7 +152,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="../gpgfrontend.qrc">
+        <iconset resource="../resource/qrc/icons.qrc">
          <normaloff>:/icons/batch.png</normaloff>:/icons/batch.png</iconset>
        </property>
        <property name="checkable">
@@ -172,7 +172,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="../gpgfrontend.qrc">
+        <iconset resource="../resource/qrc/icons.qrc">
          <normaloff>:/icons/configure.png</normaloff>:/icons/configure.png</iconset>
        </property>
        <property name="popupMode">
@@ -254,7 +254,7 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../gpgfrontend.qrc"/>
+  <include location="../resource/qrc/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

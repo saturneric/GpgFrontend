@@ -1,0 +1,6 @@
+<!DOCTYPE RCC>
+<RCC>
+    <qresource prefix="/">
+        <file alias="TRANSLATORS">../../TRANSLATORS</file>
+    </qresource>
+</RCC>

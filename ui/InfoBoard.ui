@@ -191,7 +191,7 @@
              <string>Copy</string>
             </property>
             <property name="icon">
-             <iconset resource="../gpgfrontend.qrc">
+             <iconset resource="../resource/qrc/icons.qrc">
               <normaloff>:/icons/copy.png</normaloff>:/icons/copy.png</iconset>
             </property>
            </widget>
@@ -205,7 +205,7 @@
              <string>Save</string>
             </property>
             <property name="icon">
-             <iconset resource="../gpgfrontend.qrc">
+             <iconset resource="../resource/qrc/icons.qrc">
               <normaloff>:/icons/filesave.png</normaloff>:/icons/filesave.png</iconset>
             </property>
            </widget>
@@ -219,7 +219,7 @@
              <string>Magnify</string>
             </property>
             <property name="icon">
-             <iconset resource="../gpgfrontend.qrc">
+             <iconset resource="../resource/qrc/icons.qrc">
               <normaloff>:/icons/magnifier.png</normaloff>:/icons/magnifier.png</iconset>
             </property>
            </widget>
@@ -233,7 +233,7 @@
              <string>Clear</string>
             </property>
             <property name="icon">
-             <iconset resource="../gpgfrontend.qrc">
+             <iconset resource="../resource/qrc/icons.qrc">
               <normaloff>:/icons/clear.png</normaloff>:/icons/clear.png</iconset>
             </property>
            </widget>
@@ -258,7 +258,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../gpgfrontend.qrc"/>
+  <include location="../resource/qrc/icons.qrc"/>
  </resources>
  <connections/>
 </ui>

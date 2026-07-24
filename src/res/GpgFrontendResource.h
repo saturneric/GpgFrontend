@@ -33,8 +33,9 @@
 namespace GpgFrontend {
 
 /**
- * @brief Register every Qt resource embedded in libgf_res: the /icons and
- *        /test prefixes (gpgfrontend.qrc), plus the GpgFrontend (/i18n) and Qt
+ * @brief Register every Qt resource embedded in libgf_res: the /icons prefix
+ *        (resource/qrc/icons.qrc), the /test prefixes (resource/qrc/test.qrc),
+ *        TRANSLATORS (resource/qrc/app.qrc), plus the GpgFrontend (/i18n) and Qt
  *        (/i18n_qt) translation catalogs.
  *
  * Must be called exactly once, before any ":/..." resource is accessed (i.e. as
