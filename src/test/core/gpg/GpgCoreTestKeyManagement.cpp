@@ -428,6 +428,48 @@ TEST_F(GpgCoreTest, CoreBuildKeyToCardCommand) {
             "KEYTOCARD --force ABCDEF - OPENPGP.3 20230115T091530");
 }
 
+// FirstKeyPacketVersion reads the version byte out of a Public-Key packet's
+// framing. It is the guard that rejects GnuPG v5 ECDH keys (which rPGP cannot
+// parse) before they reach the rPGP KDF derivation. Crafted headers exercise
+// both packet-header formats and the reject cases without needing a real key.
+TEST_F(GpgCoreTest, CoreFirstKeyPacketVersion) {
+  auto buf = [](std::initializer_list<unsigned char> bytes) {
+    QByteArray a;
+    for (auto b : bytes) a.append(static_cast<char>(b));
+    return GFBuffer(a);
+  };
+
+  // old-format Public-Key packet (tag 6, 2-octet length: 0x99), version byte
+  EXPECT_EQ(
+      GpgSmartCardManager::FirstKeyPacketVersion(buf({0x99, 0x00, 0x0A, 4})),
+      4);
+  EXPECT_EQ(
+      GpgSmartCardManager::FirstKeyPacketVersion(buf({0x99, 0x00, 0x0A, 5})),
+      5);
+  EXPECT_EQ(
+      GpgSmartCardManager::FirstKeyPacketVersion(buf({0x99, 0x00, 0x0A, 6})),
+      6);
+
+  // old-format with 1-octet length (0x98)
+  EXPECT_EQ(GpgSmartCardManager::FirstKeyPacketVersion(buf({0x98, 0x0A, 5})),
+            5);
+
+  // new-format Public-Key packet (0xC6) with a short (<192) one-octet length
+  EXPECT_EQ(GpgSmartCardManager::FirstKeyPacketVersion(buf({0xC6, 0x0A, 6})),
+            6);
+
+  // not a key packet (0x88 = old-format signature, tag 2) -> unknown
+  EXPECT_EQ(GpgSmartCardManager::FirstKeyPacketVersion(buf({0x88, 0x0A, 4})),
+            0);
+
+  // first byte without the packet-header bit set -> unknown
+  EXPECT_EQ(GpgSmartCardManager::FirstKeyPacketVersion(buf({0x04, 0x00})), 0);
+
+  // truncated / empty input -> unknown
+  EXPECT_EQ(GpgSmartCardManager::FirstKeyPacketVersion(buf({0x99})), 0);
+  EXPECT_EQ(GpgSmartCardManager::FirstKeyPacketVersion(GFBuffer()), 0);
+}
+
 // MoveKeyToCard validates its arguments before ever touching the agent, so the
 // destructive path cannot run on bad input. This is exercisable in CI (no card
 // needed): every case here returns before the KEYTOCARD command is sent. The

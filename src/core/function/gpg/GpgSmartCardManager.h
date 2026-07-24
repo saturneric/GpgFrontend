@@ -38,6 +38,7 @@
 namespace GpgFrontend {
 
 class GpgSubKey;
+class GFBuffer;
 
 /**
  * @brief
@@ -146,6 +147,20 @@ class GF_CORE_EXPORT GpgSmartCardManager
                                     const QString& serial, int slot,
                                     const QString& timestamp,
                                     const QString& ecdh) -> QString;
+
+  /**
+   * @brief Version byte of the first OpenPGP key packet in a binary key block.
+   *
+   * Parses just the leading Public-Key packet framing (RFC 9580 §4.2, old- and
+   * new-format headers) and returns the packet body's first byte: the key
+   * version (4, 5 or 6). Returns 0 when the block is empty, is not a key
+   * packet, or cannot be parsed. Pure/side-effect free so it is unit-testable.
+   *
+   * Needed because gpgme does not expose a key's packet version and the rPGP
+   * engine cannot parse GnuPG's non-standard v5 packets, so a v5 encryption key
+   * must be rejected before its ECDH KDF parameters are derived via rPGP.
+   */
+  static auto FirstKeyPacketVersion(const GFBuffer& binary) -> int;
 
   /**
    * @brief
