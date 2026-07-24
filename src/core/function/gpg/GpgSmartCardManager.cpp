@@ -39,6 +39,61 @@
 
 namespace GpgFrontend {
 
+namespace {
+
+/**
+ * @brief Resolve the hexified ECDH KDF parameters KEYTOCARD needs for @p skey.
+ *
+ * Returns {GPG_ERR_NO_ERROR, ""} for keys that need no parameter (a non-ECDH
+ * encryption key, or any key not going to the encryption slot), {error, msg}
+ * when the parameter is required but cannot be produced (including GnuPG v5
+ * keys, which rPGP cannot parse), and {GPG_ERR_NO_ERROR, hex} otherwise.
+ */
+auto ResolveEcdhKdfParam(OpenPGPContext& ctx, const GpgKeyPtr& key,
+                         const GpgSubKey& skey, int card_slot)
+    -> std::tuple<GpgError, QString> {
+  if (card_slot != 2 || !skey.IsHasEncrCap()) return {GPG_ERR_NO_ERROR, {}};
+
+  // Only elliptic-curve (ECDH) encryption keys carry KDF parameters; RSA and
+  // ElGamal encryption keys need none.
+  const auto algo = skey.PublicKeyAlgo().toUpper();
+  if (algo.startsWith("RSA") || algo.startsWith("ELG")) {
+    return {GPG_ERR_NO_ERROR, {}};
+  }
+
+  // rPGP derives the KDF parameters, but it cannot parse GnuPG's v5 key
+  // packets. Probe the binary key's version first and refuse a v5 key with a
+  // specific message rather than letting rPGP fail with a generic parse error
+  // (a wrong/missing KDF parameter would silently break decryption).
+  auto [berr, bin] =
+      ExportKeysGnuPGImpl(ctx, {key}, false, false, false, false);
+  if (berr != GPG_ERR_NO_ERROR || bin.Empty()) {
+    return {GPG_ERR_GENERAL,
+            "Failed to export the public key for ECDH parameters."};
+  }
+  if (GpgSmartCardManager::FirstKeyPacketVersion(bin) == 5) {
+    return {
+        GPG_ERR_NOT_SUPPORTED,
+        "This encryption key uses GnuPG's v5 packet format, which the rPGP "
+        "engine cannot parse, so its ECDH KDF parameters cannot be derived. "
+        "Moving a v5 ECDH key to a card is not supported."};
+  }
+
+  auto [eerr, pub] = ExportKeysGnuPGImpl(ctx, {key}, false, true, false, false);
+  if (eerr != GPG_ERR_NO_ERROR || pub.Empty()) {
+    return {GPG_ERR_GENERAL,
+            "Failed to export the public key for ECDH parameters."};
+  }
+  auto [kerr, hex] = GetEcdhKdfParamsRpgpImpl(pub, skey.Fingerprint());
+  if (kerr != GPG_ERR_NO_ERROR || hex.isEmpty()) {
+    return {kerr == GPG_ERR_NO_ERROR ? GPG_ERR_GENERAL : kerr,
+            "Failed to derive the ECDH KDF parameters."};
+  }
+  return {GPG_ERR_NO_ERROR, hex};
+}
+
+}  // namespace
+
 GpgSmartCardManager::GpgSmartCardManager(int channel)
     : SingletonFunctionObject<GpgSmartCardManager>(channel) {}
 
@@ -437,6 +492,50 @@ auto GpgSmartCardManager::BuildKeyToCardCommand(const QString& hexgrip,
   return command;
 }
 
+auto GpgSmartCardManager::FirstKeyPacketVersion(const GFBuffer& binary) -> int {
+  const auto* data = reinterpret_cast<const unsigned char*>(binary.Data());
+  const auto size = binary.Size();
+  if (data == nullptr || size < 2) return 0;
+
+  const unsigned char tag_byte = data[0];
+  if ((tag_byte & 0x80U) == 0) return 0;  // not a packet header
+
+  size_t body_pos = 0;
+  if ((tag_byte & 0x40U) != 0) {
+    // new-format header: tag in low 6 bits, then a variable length
+    if ((tag_byte & 0x3FU) != 6) return 0;  // want a Public-Key packet
+    const unsigned char l0 = data[1];
+    if (l0 < 192) {
+      body_pos = 2;
+    } else if (l0 < 224) {
+      body_pos = 3;
+    } else if (l0 == 255) {
+      body_pos = 6;
+    } else {
+      return 0;  // partial length is invalid for a key packet
+    }
+  } else {
+    // old-format header: tag in bits 5..2, length-type in low 2 bits
+    if (((tag_byte >> 2U) & 0x0FU) != 6) return 0;  // want a Public-Key packet
+    switch (tag_byte & 0x03U) {
+      case 0:
+        body_pos = 2;
+        break;
+      case 1:
+        body_pos = 3;
+        break;
+      case 2:
+        body_pos = 5;
+        break;
+      default:
+        return 0;  // indeterminate length is invalid for a key packet
+    }
+  }
+
+  if (body_pos >= size) return 0;
+  return static_cast<int>(data[body_pos]);
+}
+
 auto GpgSmartCardManager::MoveKeyToCard(const GpgKeyPtr& key, int subkey_index,
                                         const QString& serial_number,
                                         int card_slot)
@@ -485,28 +584,10 @@ auto GpgSmartCardManager::MoveKeyToCard(const GpgKeyPtr& key, int subkey_index,
   const auto timestamp =
       skey.CreationTime().toUTC().toString("yyyyMMddTHHmmss");
 
-  // ECDH encryption keys additionally need their KDF parameters; gpgme does not
-  // expose them, so derive them from the public key via the rPGP parser. RSA
-  // and ElGamal encryption keys need no such parameter.
-  QString ecdh;
-  if (card_slot == 2 && skey.IsHasEncrCap()) {
-    const auto algo = skey.PublicKeyAlgo().toUpper();
-    const bool is_ecc_encr = !algo.startsWith("RSA") && !algo.startsWith("ELG");
-    if (is_ecc_encr) {
-      auto [eerr, pub] =
-          ExportKeysGnuPGImpl(ctx_, {key}, false, true, false, false);
-      if (eerr != GPG_ERR_NO_ERROR || pub.Empty()) {
-        return {GPG_ERR_GENERAL,
-                "Failed to export the public key for ECDH parameters."};
-      }
-      auto [kerr, hex] = GetEcdhKdfParamsRpgpImpl(pub, skey.Fingerprint());
-      if (kerr != GPG_ERR_NO_ERROR || hex.isEmpty()) {
-        return {kerr == GPG_ERR_NO_ERROR ? GPG_ERR_GENERAL : kerr,
-                "Failed to derive the ECDH KDF parameters."};
-      }
-      ecdh = hex;
-    }
-  }
+  // ECDH encryption keys moved to the encryption slot additionally need their
+  // KDF parameters, which gpgme does not expose (see ResolveEcdhKdfParam).
+  auto [ecdh_err, ecdh] = ResolveEcdhKdfParam(ctx_, key, skey, card_slot);
+  if (ecdh_err != GPG_ERR_NO_ERROR) return {ecdh_err, ecdh};
 
   const auto command = BuildKeyToCardCommand(skey.Keygrip(), serial_number,
                                              card_slot, timestamp, ecdh);
