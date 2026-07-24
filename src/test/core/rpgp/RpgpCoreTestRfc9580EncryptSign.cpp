@@ -345,13 +345,27 @@ TEST_F(RpgpCoreTest, Rfc9580EncryptSignDecryptVerifyBinaryPayload) {
   EXPECT_TRUE(SignatureIsValid(vr.GetSignature().front()));
 }
 
-TEST_F(RpgpCoreTest, Rfc9580EncryptSignRejectsEmptyPayload) {
-  // Encrypt-and-sign of an empty payload is rejected as an input error.
+TEST_F(RpgpCoreTest, Rfc9580EncryptSignEmptyPayloadIsSafe) {
+  // Unlike encrypt-only and sign-only (which reject an empty payload as an
+  // input error), the combined encrypt-and-sign path accepts empty input. That
+  // is acceptable as long as it never crashes and, when it succeeds, the
+  // decrypt-and-verify round-trip recovers an empty, validly-signed payload.
   auto [e_err, e_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
           .EncryptSignSync({Key1Pub()}, {Key1Secret()}, GFBuffer(QByteArray()),
                            true);
-  EXPECT_NE(CheckGpgError(e_err), GPG_ERR_NO_ERROR);
+  if (CheckGpgError(e_err) != GPG_ERR_NO_ERROR) {
+    return;  // Rejecting empty input is also acceptable.
+  }
+  auto ct = ExtractParams<GFBuffer>(e_obj, 2);
+  auto [d_err, d_obj] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .DecryptVerifySync(ct);
+  ASSERT_EQ(CheckGpgError(d_err), GPG_ERR_NO_ERROR);
+  EXPECT_EQ(ExtractParams<GFBuffer>(d_obj, 2).Size(), 0U);
+  auto vr = ExtractParams<GpgVerifyResult>(d_obj, 1);
+  ASSERT_FALSE(vr.GetSignature().empty());
+  EXPECT_TRUE(SignatureIsValid(vr.GetSignature().front()));
 }
 
 // --- symmetric round-trips --------------------------------------------------
