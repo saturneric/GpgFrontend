@@ -72,10 +72,13 @@ inline const char* const kKey1SignFpr =
 // Auxiliary signer issuer fingerprints (signing-subkey where applicable).
 // aux_good: v4, alive, SHA-512 signatures.
 inline const char* const kAuxGoodSignFpr =
-    "D3ABB909ADDE4A9D9EA30E0A8C871BB1D239C773";
+    "08046811F5ED9F4215EE2BB9F29A1D9930F596BF";
 // aux_v6: v6 (RFC 9580) key; SECRET committed (passphrase 123456).
 inline const char* const kAuxV6PrimaryFpr =
-    "10099B8E34D0B282DACC44E3CB23081B598F46794A5B5118C6185C3461FC0799";
+    "E9DA68AA3A7DF09223BA9516B63B216CA1DAD2D99810D474164302D1D34E412A";
+// aux_v6 signing subkey — the issuer a v6 data signature reports.
+inline const char* const kAuxV6SignFpr =
+    "A80CAEEA5048ED60F869B3E0D1833E6CBA2037CD8884D0A2A56903C674309DAD";
 
 // A signature counts as "Valid" only when the engine reports no error for it.
 // The rPGP mapping (see ResultHandler.cpp / GpgSignature.cpp) yields

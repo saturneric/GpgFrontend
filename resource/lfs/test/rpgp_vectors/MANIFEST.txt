@@ -8,11 +8,11 @@ Fixture recipients:
   key3 C54DF5E9E6AD3278C77F5438DA6A97C428EC96C8
 
 Auxiliary signers (resource/lfs/test/rpgp_aux_keys/):
-  aux_v6      10099B8E34D0B282DACC44E3CB23081B598F46794A5B5118C6185C3461FC0799   (v6, SECRET committed, pass 123456)
-  aux_good    F3F38D0AC14BC3CB92C4CC28D7854C61E25D6A14 (v4, public cert)
-  aux_expired 409CED46FA9FD7E6BB7BB7E689831F9F15632BCE  (v4, public cert, expired 2020-06-01)
-  aux_revoked 678A421C04A8441B61915BBFEB10DA6389AD8E1C  (v4, public cert, primary revoked)
-  aux_sha1    596B93536488B4268ED4995228DF9B238D874AEF (v4/gpg ed25519, public cert)
+  aux_v6      E9DA68AA3A7DF09223BA9516B63B216CA1DAD2D99810D474164302D1D34E412A   (v6, SECRET committed, pass 123456)
+  aux_good    B455DBFFB8D10C58B811AA9FB07187521D00B577 (v4, public cert)
+  aux_expired 572CB91A6E930364CB488F38CFBD06AA17C8E676  (v4, public cert, expired 2020-06-01)
+  aux_revoked DF22A6F953939EF880399FAC8B5988B7A371F080  (v4, public cert, primary revoked)
+  aux_sha1    01BB973D0D42A8342456C59D99EE1C3EB10DAF4F (v4/gpg ed25519, public cert)
 
 Encryption vectors:
   enc_v1seipd_mdc.pgp    v3 PKESK + v1 SEIPD/MDC -> key1
@@ -35,3 +35,10 @@ Signature vectors (over payload.txt):
 
 Malformed inputs (must fail cleanly, never crash):
   garbage.bin, empty.bin, truncated_armor.asc, corrupt_crc.asc, pkesk_no_seipd.pgp
+
+Interop / consume-side regression vectors (project_rpgp_rfc9580_verify_gaps B1-B7):
+  sig_strong_weak_same_key.sig   B2: SHA-256 + SHA-1 from one key        -> weak not Valid, both surfaced
+  sig_two_signer_cleartext.asc   B4: cleartext, aux_good + aux_v6        -> per-signer attribution
+  sig_two_same_issuer_one_valid.sig B4: two aux_good packets, 2nd mutated -> only 1st Valid
+  sig_inline_compressed.pgp      B5: ZLIB-compressed inline sig          -> Valid (bounded decompress)
+  aux_forged_revocation.asc      B7: aux_good cert + fabricated revocation -> revocation ignored

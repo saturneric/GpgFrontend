@@ -292,6 +292,135 @@ open(dst, 'wb').write(data[: max(1, (len(data) * 2) // 3)])
 PY
 
 # ===========================================================================
+# Interoperability / consume-side regression vectors
+#
+# These reproduce the consume-side interop bugs found auditing rPGP against
+# sq/gpg (see project_rpgp_rfc9580_verify_gaps, findings B1-B7). Each is a
+# known-answer input the engine must now handle correctly.
+# ===========================================================================
+
+echo ">> generating interop regression vectors"
+
+# (B1 -- the issuer-Key-ID-only fallback -- has no sq/gpg vector: both tools
+# always place the Issuer Fingerprint subpacket in the *hashed* area of a v4/v6
+# signature, so a verifying key-id-only signature cannot be produced offline. B1
+# is covered by Rust unit tests on the sniff/issuer-matching helpers instead.)
+
+# B2: two detached signatures from the SAME key over the same data -- one strong
+# (SHA-256) and one weak (SHA-1) -- concatenated as binary so both packets live
+# in one blob. The weak signature must be surfaced AND reported not-Valid; it
+# must not be dropped by issuer de-duplication (which would hide the weak hash).
+gpg --batch --yes --digest-algo SHA256 --detach-sign -u aux-sha1@test.example \
+  --output "$WORK/s_strong.sig" "$PAYLOAD" 2>/dev/null
+gpg --batch --yes --digest-algo SHA1 --detach-sign -u aux-sha1@test.example \
+  --output "$WORK/s_weak.sig" "$PAYLOAD" 2>/dev/null
+cat "$WORK/s_strong.sig" "$WORK/s_weak.sig" > "$VEC_DIR/sig_strong_weak_same_key.sig"
+
+# B4: two-signer CLEARTEXT message (aux_good + aux_v6). Each signature must be
+# attributed to the exact signer that made it (per-index attribution); a single
+# genuine verify must not stamp the other signer Valid.
+SQ sign --cleartext \
+  --signer-file="$WORK/aux_good.key" \
+  --signer-file="$AUX_DIR/aux_v6.asc" --password-file="$PW" \
+  --output "$VEC_DIR/sig_two_signer_cleartext.asc" "$PAYLOAD"
+
+# B4: two DETACHED signature packets that BOTH name the same cert (aux_good) but
+# only the first verifies (the second has a flipped body byte), concatenated as
+# binary. Per-cert attribution would stamp both Valid; per-index must mark only
+# the genuine packet Valid and the mutated one a bad signature.
+SQ sign --binary --signature-file="$WORK/good_bin.sig" \
+  --signer-file="$WORK/aux_good.key" "$PAYLOAD"
+python3 - "$WORK/good_bin.sig" "$WORK/good_bin_mut.sig" <<'PY'
+import sys
+data = bytearray(open(sys.argv[1], 'rb').read())
+data[len(data) // 2] ^= 0x01
+open(sys.argv[2], 'wb').write(data)
+PY
+cat "$WORK/good_bin.sig" "$WORK/good_bin_mut.sig" \
+  > "$VEC_DIR/sig_two_same_issuer_one_valid.sig"
+
+# B5: compressed inline (one-pass) signature. Verifying it must decompress the
+# body (bounded, so a compression bomb cannot exhaust memory) before counting
+# signatures, then report Valid.
+gpg --batch --yes --compress-algo ZLIB --digest-algo SHA256 \
+  -u aux-sha1@test.example --sign \
+  --output "$VEC_DIR/sig_inline_compressed.pgp" "$PAYLOAD" 2>/dev/null
+
+# B7: a certificate carrying a FABRICATED primary-key revocation. aux_good's
+# genuine revocation signature has one byte of its signature MPI flipped so it no
+# longer verifies, then it is spliced into aux_good's public cert *immediately
+# after the primary key packet* (where a key-revocation belongs) at the packet
+# level -- sq/gpg would refuse to merge an invalid revocation, so we dearmor,
+# insert, and re-armor the raw packets directly. The revocation's issuer
+# subpackets still name aux_good, so an engine that trusts unverified
+# self-signatures would treat the key as revoked; a correct engine verifies the
+# revocation, finds it invalid, and still trusts aux_good.
+SQ packet dearmor --output "$WORK/aux_good.pkts" "$AUX_DIR/aux_good.asc"
+SQ packet dearmor --output "$WORK/aux_good_rev.pkts" "$WORK/aux_good.rev"
+python3 - "$WORK/aux_good.pkts" "$WORK/aux_good_rev.pkts" \
+         "$AUX_DIR/aux_forged_revocation.pkts" <<'PY'
+import sys
+
+def pkt_len(buf, off):
+    """Return (tag, header_len, body_len) for the OpenPGP packet at buf[off]."""
+    b = buf[off]
+    assert b & 0x80, "not a packet header"
+    if b & 0x40:  # new format
+        tag = b & 0x3F
+        l0 = buf[off + 1]
+        if l0 < 192:
+            return tag, 2, l0
+        if l0 < 224:
+            return tag, 3, ((l0 - 192) << 8) + buf[off + 2] + 192
+        if l0 == 255:
+            n = int.from_bytes(buf[off + 2:off + 6], "big")
+            return tag, 6, n
+        raise SystemExit("partial-length packet unsupported")
+    tag = (b >> 2) & 0x0F  # old format
+    lt = b & 0x03
+    if lt == 0:
+        return tag, 2, buf[off + 1]
+    if lt == 1:
+        return tag, 3, int.from_bytes(buf[off + 1:off + 3], "big")
+    if lt == 2:
+        return tag, 5, int.from_bytes(buf[off + 1:off + 5], "big")
+    raise SystemExit("indeterminate-length packet unsupported")
+
+cert = bytearray(open(sys.argv[1], "rb").read())
+revfile = bytearray(open(sys.argv[2], "rb").read())
+
+# The revocation certificate bundles a Public-Key packet plus the revocation
+# Signature packet (tag 2). Extract just the first Signature packet.
+off = 0
+rev = None
+while off < len(revfile):
+    tag, hlen, blen = pkt_len(revfile, off)
+    end = off + hlen + blen
+    if tag == 2:  # Signature
+        rev = bytearray(revfile[off:end])
+        break
+    off = end
+assert rev is not None, "no signature packet in revocation certificate"
+
+# Corrupt a byte near the end of the revocation signature (its MPI body) so the
+# signature is cryptographically invalid but the packet still parses cleanly.
+rev[-4] ^= 0x01
+
+# Insert the forged revocation right after the primary key packet (packet 0).
+_, hlen, blen = pkt_len(cert, 0)
+first_end = hlen + blen
+out = cert[:first_end] + rev + cert[first_end:]
+open(sys.argv[3], "wb").write(out)
+PY
+SQ packet armor --label=cert \
+  --output "$AUX_DIR/aux_forged_revocation.asc" \
+  "$AUX_DIR/aux_forged_revocation.pkts"
+rm -f "$AUX_DIR/aux_forged_revocation.pkts"
+
+# (Foreign AEAD-OCB decrypt interop is already covered by enc_v2seipd_ocb.pgp,
+# an sq-produced v6-PKESK + v2-SEIPD/AEAD-OCB container.)
+
+# ===========================================================================
 # Manifest
 # ===========================================================================
 
@@ -333,6 +462,13 @@ Signature vectors (over payload.txt):
 
 Malformed inputs (must fail cleanly, never crash):
   garbage.bin, empty.bin, truncated_armor.asc, corrupt_crc.asc, pkesk_no_seipd.pgp
+
+Interop / consume-side regression vectors (project_rpgp_rfc9580_verify_gaps B1-B7):
+  sig_strong_weak_same_key.sig   B2: SHA-256 + SHA-1 from one key        -> weak not Valid, both surfaced
+  sig_two_signer_cleartext.asc   B4: cleartext, aux_good + aux_v6        -> per-signer attribution
+  sig_two_same_issuer_one_valid.sig B4: two aux_good packets, 2nd mutated -> only 1st Valid
+  sig_inline_compressed.pgp      B5: ZLIB-compressed inline sig          -> Valid (bounded decompress)
+  aux_forged_revocation.asc      B7: aux_good cert + fabricated revocation -> revocation ignored
 EOF
 
 echo ">> done. corpus written to:"

@@ -18,6 +18,7 @@
         <file alias="aux_expired.asc">../lfs/test/rpgp_aux_keys/aux_expired.asc</file>
         <file alias="aux_revoked.asc">../lfs/test/rpgp_aux_keys/aux_revoked.asc</file>
         <file alias="aux_sha1.asc">../lfs/test/rpgp_aux_keys/aux_sha1.asc</file>
+        <file alias="aux_forged_revocation.asc">../lfs/test/rpgp_aux_keys/aux_forged_revocation.asc</file>
     </qresource>
     <qresource prefix="/test/rpgp_vectors">
         <file alias="payload.txt">../lfs/test/rpgp_vectors/payload.txt</file>
@@ -41,5 +42,9 @@
         <file alias="truncated_armor.asc">../lfs/test/rpgp_vectors/truncated_armor.asc</file>
         <file alias="corrupt_crc.asc">../lfs/test/rpgp_vectors/corrupt_crc.asc</file>
         <file alias="pkesk_no_seipd.pgp">../lfs/test/rpgp_vectors/pkesk_no_seipd.pgp</file>
+        <file alias="sig_strong_weak_same_key.sig">../lfs/test/rpgp_vectors/sig_strong_weak_same_key.sig</file>
+        <file alias="sig_two_signer_cleartext.asc">../lfs/test/rpgp_vectors/sig_two_signer_cleartext.asc</file>
+        <file alias="sig_two_same_issuer_one_valid.sig">../lfs/test/rpgp_vectors/sig_two_same_issuer_one_valid.sig</file>
+        <file alias="sig_inline_compressed.pgp">../lfs/test/rpgp_vectors/sig_inline_compressed.pgp</file>
     </qresource>
 </RCC>

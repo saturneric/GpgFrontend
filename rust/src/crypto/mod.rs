@@ -306,8 +306,6 @@ where
     // ==========================================
     // EXACT MATCH MODE (!)
     // ==========================================
-    let primary_fpr_bytes = skey.primary_key.fingerprint().as_bytes().to_vec();
-
     if let Some(target) = target_fpr {
         let target = normalize_key_identifier(target);
 
@@ -330,7 +328,11 @@ where
             );
 
             if key_identifier_matches(&fpr, &kid, &target) {
-                if crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes) {
+                if crate::key::is_subkey_revoked(
+                    skey.primary_key.public_key(),
+                    subkey.key.public_key(),
+                    &subkey.signatures,
+                ) {
                     log::error!("Requested signing subkey is revoked: fpr={}", fpr);
                     return Err(crate::types::GfrStatus::ErrorInvalidInput);
                 }
@@ -381,7 +383,11 @@ where
     // NORMAL MODE (Auto Fallback) — skip revoked
     // ==========================================
     for subkey in &skey.secret_subkeys {
-        if crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes) {
+        if crate::key::is_subkey_revoked(
+            skey.primary_key.public_key(),
+            subkey.key.public_key(),
+            &subkey.signatures,
+        ) {
             log::info!(
                 "Skipping revoked signing subkey: fpr={}",
                 subkey.key.fingerprint(),
@@ -605,9 +611,15 @@ mod rfc9580_policy_tests {
         include_str!("../../../resource/lfs/test/rpgp_aux_keys/aux_good.asc");
     const AUX_REVOKED_CERT: &str =
         include_str!("../../../resource/lfs/test/rpgp_aux_keys/aux_revoked.asc");
+    const SIG_STRONG_WEAK: &[u8] = include_bytes!(
+        "../../../resource/lfs/test/rpgp_vectors/sig_strong_weak_same_key.sig"
+    );
+    const AUX_FORGED_REVOCATION_CERT: &str = include_str!(
+        "../../../resource/lfs/test/rpgp_aux_keys/aux_forged_revocation.asc"
+    );
 
     // aux_good's signing-subkey issuer fingerprint (see MANIFEST.txt).
-    const AUX_GOOD_SIGN_FPR: &str = "d3abb909adde4a9d9ea30e0a8c871bb1d239c773";
+    const AUX_GOOD_SIGN_FPR: &str = "08046811f5ed9f4215ee2bb9f29a1d9930f596bf";
 
     #[test]
     fn sniff_good_detached_reports_strong_hash_and_issuer() {
@@ -676,6 +688,48 @@ mod rfc9580_policy_tests {
         ));
     }
 
+    /// B1: a certificate must also be resolvable by a bare 16-hex key ID -- the
+    /// fallback identifier `sniff_signatures`/`sig_entry_from_packet` emit when a
+    /// signature carries only an Issuer Key ID subpacket (no Issuer Fingerprint),
+    /// as legacy GnuPG-style signatures do.
+    #[test]
+    fn cert_contains_issuer_matches_bare_key_id() {
+        use pgp::composed::Deserializable;
+        let (cert, _) = pgp::composed::SignedPublicKey::from_string(AUX_GOOD_CERT).unwrap();
+        // The v4 long key ID is the low 64 bits (last 16 hex) of the fingerprint.
+        let key_id = &AUX_GOOD_SIGN_FPR[AUX_GOOD_SIGN_FPR.len() - 16..];
+        assert!(cert_contains_issuer(&cert, key_id));
+    }
+
+    /// B2: two signatures from one issuer that differ in hash algorithm must both
+    /// be surfaced by `sniff_signatures`; issuer-only de-duplication would drop
+    /// the weak one and hide it from the §9.5 gate.
+    #[test]
+    fn sniff_keeps_distinct_signatures_from_one_issuer() {
+        let sigs = sniff_signatures(SIG_STRONG_WEAK, GfrSignMode::Detached);
+        assert_eq!(sigs.len(), 2);
+        let mut hashes: Vec<String> = sigs.iter().map(|s| s.hash_algo.to_uppercase()).collect();
+        hashes.sort();
+        assert_eq!(hashes, vec!["SHA1".to_string(), "SHA256".to_string()]);
+    }
+
+    /// B7: a fabricated primary-key revocation whose signature does not verify
+    /// must NOT mark the certificate revoked (self-signature validation on
+    /// import). The genuine cert is not revoked, and the tampered copy carrying an
+    /// invalid revocation must also parse as not-revoked -- unlike the genuine
+    /// `aux_revoked` cert, whose real self-revocation IS honored (see
+    /// `cert_primary_revoked_is_true_for_revoked_key`).
+    #[test]
+    fn forged_revocation_is_not_honored() {
+        use pgp::composed::Deserializable;
+        let (good, _) = pgp::composed::SignedPublicKey::from_string(AUX_GOOD_CERT).unwrap();
+        assert!(!cert_primary_revoked(&good));
+
+        let (forged, _) =
+            pgp::composed::SignedPublicKey::from_string(AUX_FORGED_REVOCATION_CERT).unwrap();
+        assert!(!cert_primary_revoked(&forged));
+    }
+
     #[test]
     fn live_cert_has_a_usable_signing_subkey() {
         use pgp::composed::Deserializable;
@@ -701,9 +755,8 @@ fn now_unix_secs() -> u64 {
 /// (RFC 9580 §5.2.1.11). A signature that only verifies under a revoked primary
 /// key MUST NOT be reported as valid.
 pub fn cert_primary_revoked(cert: &SignedPublicKey) -> bool {
-    let primary_fpr_bytes = cert.primary_key.fingerprint().as_bytes().to_vec();
-    crate::key::is_primary_key_revoked(&cert.details.revocation_signatures, &primary_fpr_bytes)
-        || crate::key::is_primary_key_revoked(&cert.details.direct_signatures, &primary_fpr_bytes)
+    crate::key::is_primary_key_revoked(&cert.primary_key, &cert.details.revocation_signatures)
+        || crate::key::is_primary_key_revoked(&cert.primary_key, &cert.details.direct_signatures)
 }
 
 /// True if the certificate's primary key has passed its own expiration time
@@ -717,8 +770,11 @@ pub fn cert_primary_expired(cert: &SignedPublicKey) -> bool {
 
 /// True if `subkey` has passed its own binding-signature expiration time
 /// (RFC 9580 §5.2.3.13).
-pub fn subkey_expired(subkey: &pgp::composed::SignedPublicSubKey) -> bool {
-    let expires = crate::key::subkey_expires_at(subkey);
+pub fn subkey_expired(
+    cert: &SignedPublicKey,
+    subkey: &pgp::composed::SignedPublicSubKey,
+) -> bool {
+    let expires = crate::key::subkey_expires_at(&cert.primary_key, &subkey.key, &subkey.signatures);
     expires != 0 && u64::from(expires) < now_unix_secs()
 }
 
@@ -740,10 +796,9 @@ pub fn subkey_usable_for_verify(
     cert: &SignedPublicKey,
     subkey: &pgp::composed::SignedPublicSubKey,
 ) -> bool {
-    let primary_fpr_bytes = cert.primary_key.fingerprint().as_bytes().to_vec();
     subkey.key.algorithm().can_sign()
-        && !crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes)
-        && !subkey_expired(subkey)
+        && !crate::key::is_subkey_revoked(&cert.primary_key, &subkey.key, &subkey.signatures)
+        && !subkey_expired(cert, subkey)
         && cert_primary_usable(cert)
 }
 
@@ -847,7 +902,11 @@ fn verified_issuer_fprs_for_cert(
 /// expiration) on top of a caller-computed `verified` decision, and update the
 /// entry's status. Shared by both the per-cert and per-index finalizers so the
 /// gate lives in exactly one place.
-fn apply_signature_gate(sig: &mut SignatureResultInternal, verified: bool, is_verified: &mut bool) {
+pub(crate) fn apply_signature_gate(
+    sig: &mut SignatureResultInternal,
+    verified: bool,
+    is_verified: &mut bool,
+) {
     if verified && !sig_hash_algo_is_weak(&sig.hash_algo) && !signature_result_expired(sig) {
         sig.status = GfrSignatureStatus::Valid;
         *is_verified = true;
@@ -880,6 +939,146 @@ pub fn signature_absolute_expiry(sig: &pgp::packet::Signature) -> u32 {
     }
 }
 
+/// Build a single [`SignatureResultInternal`] (status `NoKey`) from a signature
+/// packet.
+///
+/// The issuer identifier prefers the Issuer Fingerprint subpacket (v4/v6) and
+/// falls back to the Issuer Key ID subpacket, so a signature that carries only a
+/// key id — as GnuPG and other producers legitimately emit — is still surfaced
+/// and its certificate can be fetched (the C++ key lookup resolves by
+/// fingerprint OR key id, and [`cert_contains_issuer`] matches either). An empty
+/// `fpr` means the packet named no issuer at all and cannot be attributed.
+pub(crate) fn sig_entry_from_packet(
+    sig: &pgp::packet::Signature,
+    mode: GfrSignMode,
+) -> SignatureResultInternal {
+    let mut fpr = String::new();
+    for issuer in sig.issuer_fingerprint() {
+        fpr = issuer.to_string();
+        break;
+    }
+    if fpr.is_empty() {
+        for issuer in sig.issuer_key_id() {
+            fpr = issuer.to_string();
+            break;
+        }
+    }
+
+    let (hash_algo, pub_algo) = match sig.config() {
+        Some(config) => (
+            config.hash_alg.to_string(),
+            algo_to_string_simple(config.pub_alg),
+        ),
+        None => (String::new(), String::new()),
+    };
+
+    SignatureResultInternal {
+        fpr,
+        status: GfrSignatureStatus::NoKey,
+        created_at: sig.created().map(|d| d.as_secs()).unwrap_or(0),
+        expires_at: signature_absolute_expiry(sig),
+        pub_algo,
+        hash_algo,
+        sig_type: mode,
+    }
+}
+
+/// Parse every OpenPGP Signature packet from a (possibly armored) buffer.
+///
+/// Used by the detached-verify path, where a single blob may legitimately carry
+/// several signature packets (multiple signers over the same data). Returns them
+/// in packet order so the caller can attribute each independently.
+pub(crate) fn parse_all_signature_packets(data: &[u8]) -> Vec<pgp::packet::Signature> {
+    let mut dearmored = Vec::new();
+    let _ = Dearmor::new(Cursor::new(data)).read_to_end(&mut dearmored);
+    let payload = if dearmored.is_empty() { data } else { &dearmored };
+
+    PacketParser::new(Cursor::new(payload))
+        .flatten()
+        .filter_map(|packet| match packet {
+            Packet::Signature(sig) => Some(sig),
+            _ => None,
+        })
+        .collect()
+}
+
+/// True if signature packet `sig` verifies over `data` under some *usable* key of
+/// `cert` — the primary if it is usable ([`cert_primary_usable`], §5.2.1.11 /
+/// §5.2.3.13) or any subkey that passes [`subkey_usable_for_verify`].
+///
+/// [`pgp::packet::Signature::verify`] already enforces issuer matching, weak-hash
+/// rejection (§9.5), and text-mode line normalization; this layers on the
+/// key-usability gates so a signature under a revoked or expired key is never
+/// counted as verified. Used for per-index attribution on the cleartext and
+/// detached paths, the analogue of [`verified_issuer_fprs_for_cert`] for the
+/// inline path.
+pub(crate) fn signature_verifies_under_usable_key(
+    cert: &SignedPublicKey,
+    sig: &pgp::packet::Signature,
+    data: &[u8],
+) -> bool {
+    if cert_primary_usable(cert) && sig.verify(&cert.primary_key, data).is_ok() {
+        return true;
+    }
+    cert.public_subkeys
+        .iter()
+        .any(|sk| subkey_usable_for_verify(cert, sk) && sig.verify(&sk.key, data).is_ok())
+}
+
+/// Upper bound on the number of plaintext octets a *decompressed* message may
+/// produce before the operation is aborted. Guards against decompression bombs
+/// (RFC 9580 §13.14); deliberately generous so it never trips on real data while
+/// still bounding a malicious high-ratio payload to a finite size. Shared by the
+/// decrypt and inline-verify paths.
+pub(crate) const MAX_DECOMPRESSED_OUTPUT_BYTES: u64 = 4 * 1024 * 1024 * 1024; // 4 GiB
+
+/// A `Read` adapter that errors once cumulative reads exceed `limit` bytes,
+/// instead of silently truncating like `Read::take`. Used to cap decompressed
+/// output so a compression bomb cannot exhaust memory or disk.
+pub(crate) struct LimitedReader<R> {
+    inner: R,
+    limit: u64,
+    read_so_far: u64,
+}
+
+impl<R: Read> LimitedReader<R> {
+    pub(crate) fn new(inner: R, limit: u64) -> Self {
+        Self {
+            inner,
+            limit,
+            read_so_far: 0,
+        }
+    }
+}
+
+impl<R: Read> Read for LimitedReader<R> {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let n = self.inner.read(buf)?;
+        self.read_so_far = self.read_so_far.saturating_add(n as u64);
+        if self.read_so_far > self.limit {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "decompressed output exceeds the maximum allowed size (possible compression bomb)",
+            ));
+        }
+        Ok(n)
+    }
+}
+
+/// Drain `reader` fully into a `Vec`, bounded by [`MAX_DECOMPRESSED_OUTPUT_BYTES`]
+/// so a compression bomb cannot exhaust memory (RFC 9580 §13.14). Reading a
+/// message body to the end is also a precondition for `verify_nested_explicit` /
+/// `num_signatures` on the inline-verify path.
+pub(crate) fn read_to_end_capped<R: Read>(reader: R) -> Result<Vec<u8>, GfrStatus> {
+    let mut limited = LimitedReader::new(reader, MAX_DECOMPRESSED_OUTPUT_BYTES);
+    let mut buf = Vec::new();
+    limited.read_to_end(&mut buf).map_err(|e| {
+        set_last_error(&e.to_string());
+        GfrStatus::ErrorInvalidData
+    })?;
+    Ok(buf)
+}
+
 /// Extract issuer fingerprints and algorithm metadata from signature packets
 /// without verifying them. All returned entries have status `NoKey`; the caller
 /// updates statuses after fetching and checking the actual public keys.
@@ -896,30 +1095,27 @@ pub fn sniff_signatures(data: &[u8], mode: GfrSignMode) -> Vec<SignatureResultIn
     let parser = PacketParser::new(Cursor::new(payload));
     for packet_result in parser {
         if let Ok(Packet::Signature(sig)) = packet_result {
-            for issuer in sig.issuer_fingerprint() {
-                let fpr = issuer.to_string();
-                let (hash_algo_id, pub_algo_id) = if let Some(config) = sig.config() {
-                    (
-                        config.hash_alg.to_string(),
-                        algo_to_string_simple(config.pub_alg),
-                    )
-                } else {
-                    (String::new(), String::new())
-                };
-                if !results
-                    .iter()
-                    .any(|r: &SignatureResultInternal| r.fpr == fpr)
-                {
-                    results.push(SignatureResultInternal {
-                        fpr,
-                        status: GfrSignatureStatus::NoKey,
-                        created_at: sig.created().map(|d| d.as_secs()).unwrap_or(0),
-                        expires_at: signature_absolute_expiry(&sig),
-                        pub_algo: pub_algo_id,
-                        hash_algo: hash_algo_id,
-                        sig_type: mode,
-                    });
-                }
+            let entry = sig_entry_from_packet(&sig, mode);
+
+            // A signature that names neither an Issuer Fingerprint nor an Issuer
+            // Key ID cannot be attributed to any certificate; skip it.
+            if entry.fpr.is_empty() {
+                continue;
+            }
+
+            // Dedup only *exact* duplicates. Keying on the issuer alone would drop
+            // a second, distinct signature from the same key (e.g. a weak-hash
+            // companion, or two hashes over the same data), hiding it from the
+            // §9.5 weak-hash / §5.2.3.10 expiry gates; each distinct signature
+            // must survive to be gated on its own merits.
+            let dup = results.iter().any(|r: &SignatureResultInternal| {
+                r.fpr == entry.fpr
+                    && r.hash_algo == entry.hash_algo
+                    && r.pub_algo == entry.pub_algo
+                    && r.created_at == entry.created_at
+            });
+            if !dup {
+                results.push(entry);
             }
         }
     }

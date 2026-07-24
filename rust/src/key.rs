@@ -46,7 +46,10 @@ use crate::utils::{
 };
 use pgp::armor::{self, BlockType};
 use pgp::composed::{SignedPublicSubKey, SignedSecretSubKey};
-use pgp::packet::{Packet, PacketHeader, SignatureConfig, SignatureType, Subpacket, SubpacketData};
+use pgp::packet::{
+    Packet, PacketHeader, PublicKey, PublicSubkey, SignatureConfig, SignatureType, Subpacket,
+    SubpacketData,
+};
 use pgp::types::{Duration, KeyDetails, KeyVersion, Password, SecretParams, SignedUser, Tag};
 use pgp::{
     composed::{Deserializable, SignedPublicKey, SignedSecretKey},
@@ -114,26 +117,67 @@ fn is_self_signature_from_primary(sig: &Signature, primary_fpr_bytes: &[u8]) -> 
         .any(|f| f.as_bytes() == primary_fpr_bytes)
 }
 
-fn is_self_uid_revocation(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
-    is_self_signature_from_primary(sig, primary_fpr_bytes)
-        && matches!(sig.typ(), Some(SignatureType::CertRevocation))
+/// True if `user` carries a *cryptographically valid* certification-revocation
+/// (0x30) issued by `primary` (RFC 9580 §5.2.3.32).
+///
+/// The revocation is verified, not merely matched by its Issuer subpacket, so a
+/// fabricated revocation smuggled into a foreign certificate is never honored,
+/// and a genuine self-revocation always is. See [[project_rpgp_rfc9580_verify_gaps]].
+fn is_user_id_revoked(primary: &PublicKey, user: &SignedUser) -> bool {
+    user.signatures.iter().any(|sig| {
+        matches!(sig.typ(), Some(SignatureType::CertRevocation))
+            && sig.verify_certification(primary, Tag::UserId, &user.id).is_ok()
+    })
 }
 
-fn is_user_id_revoked(user: &SignedUser, primary_fpr_bytes: &[u8]) -> bool {
-    user.signatures
-        .iter()
-        .any(|sig| is_self_uid_revocation(sig, primary_fpr_bytes))
+/// True if `signatures` contains a cryptographically valid key-revocation (0x20)
+/// issued by `primary` (RFC 9580 §5.2.3.31). Verified rather than issuer-matched,
+/// so fabricated revocation subpackets in a foreign certificate cannot be trusted.
+pub(crate) fn is_primary_key_revoked(primary: &PublicKey, signatures: &[Signature]) -> bool {
+    signatures.iter().any(|sig| {
+        matches!(sig.typ(), Some(SignatureType::KeyRevocation)) && sig.verify_key(primary).is_ok()
+    })
 }
 
-fn is_self_key_revocation(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
-    is_self_signature_from_primary(sig, primary_fpr_bytes)
-        && matches!(sig.typ(), Some(SignatureType::KeyRevocation))
-}
-
-pub(crate) fn is_primary_key_revoked(signatures: &[Signature], primary_fpr_bytes: &[u8]) -> bool {
+/// Collect the cryptographically valid direct-key self-signatures (0x1F) and
+/// key-revocations (0x20) from `signatures`, verified under `primary`.
+///
+/// Only these may be trusted for capability, expiry, and revocation decisions on
+/// the primary key: an unverified self-signature in an imported certificate may
+/// carry fabricated key-flags / expiry / revocation subpackets (RFC 9580 §5.2.3).
+fn verified_primary_self_sigs<'a>(
+    primary: &PublicKey,
+    signatures: &'a [Signature],
+) -> Vec<&'a Signature> {
     signatures
         .iter()
-        .any(|sig| is_self_key_revocation(sig, primary_fpr_bytes))
+        .filter(|sig| sig.verify_key(primary).is_ok())
+        .collect()
+}
+
+/// Collect the cryptographically valid self-certifications (0x10–0x13) and
+/// certification-revocations (0x30) for `user`, verified under `primary`.
+fn verified_uid_self_sigs<'a>(primary: &PublicKey, user: &'a SignedUser) -> Vec<&'a Signature> {
+    user.signatures
+        .iter()
+        .filter(|sig| {
+            sig.verify_certification(primary, Tag::UserId, &user.id)
+                .is_ok()
+        })
+        .collect()
+}
+
+/// Collect the cryptographically valid binding (0x18) and revocation (0x28)
+/// signatures of `subkey`, verified under `primary`.
+fn verified_subkey_self_sigs<'a>(
+    primary: &PublicKey,
+    subkey: &PublicSubkey,
+    signatures: &'a [Signature],
+) -> Vec<&'a Signature> {
+    signatures
+        .iter()
+        .filter(|sig| sig.verify_subkey_binding(primary, subkey).is_ok())
+        .collect()
 }
 
 fn extract_capabilities<'a, I>(signatures: I) -> (bool, bool, bool, bool)
@@ -203,15 +247,18 @@ where
     expires_at
 }
 
-pub(crate) fn is_self_subkey_revocation(sig: &Signature, primary_fpr_bytes: &[u8]) -> bool {
-    is_self_signature_from_primary(sig, primary_fpr_bytes)
-        && matches!(sig.typ(), Some(SignatureType::SubkeyRevocation))
-}
-
-pub(crate) fn is_subkey_revoked(signatures: &[Signature], primary_fpr_bytes: &[u8]) -> bool {
-    signatures
-        .iter()
-        .any(|sig| is_self_subkey_revocation(sig, primary_fpr_bytes))
+/// True if `signatures` contains a cryptographically valid subkey-revocation
+/// (0x28) of `subkey`, issued by `primary` (RFC 9580 §5.2.1.12). Verified rather
+/// than issuer-matched, so a fabricated subkey revocation is never honored.
+pub(crate) fn is_subkey_revoked(
+    primary: &PublicKey,
+    subkey: &PublicSubkey,
+    signatures: &[Signature],
+) -> bool {
+    signatures.iter().any(|sig| {
+        matches!(sig.typ(), Some(SignatureType::SubkeyRevocation))
+            && sig.verify_subkey_binding(primary, subkey).is_ok()
+    })
 }
 
 /// Absolute expiration time (Unix epoch, seconds) of a certificate's primary
@@ -219,30 +266,38 @@ pub(crate) fn is_subkey_revoked(signatures: &[Signature], primary_fpr_bytes: &[u
 ///
 /// Mirrors the primary-key expiry derivation in [`build_public_metadata`]: V4
 /// keys carry the `KeyExpirationTime` in the primary User ID self-certification,
-/// V6 keys in the direct-key signature (RFC 9580 §5.2.3.13). Shared with the
-/// verification gates so a signature under an expired key is not reported valid.
+/// V6 keys in the direct-key signature (RFC 9580 §5.2.3.13). Only cryptographically
+/// valid self-signatures are considered, so a fabricated expiry in a foreign
+/// certificate is ignored. Shared with the verification gates so a signature under
+/// an expired key is not reported valid.
 pub(crate) fn primary_key_expires_at(cert: &SignedPublicKey) -> u32 {
     let users = &cert.details.users;
     let primary_idx = users.iter().position(|u| u.is_primary()).unwrap_or(0);
-    let primary_user_sigs = users
-        .get(primary_idx)
-        .map(|u| u.signatures.as_slice())
-        .unwrap_or(&[]);
     let created_at = cert.primary_key.created_at().as_secs();
+
+    let verified_direct = verified_primary_self_sigs(&cert.primary_key, &cert.details.direct_signatures);
+    let verified_uid = users
+        .get(primary_idx)
+        .map(|u| verified_uid_self_sigs(&cert.primary_key, u))
+        .unwrap_or_default();
+
     expiration_from_self_sigs(
-        cert.details
-            .direct_signatures
-            .iter()
-            .chain(primary_user_sigs.iter()),
+        verified_direct.iter().copied().chain(verified_uid.iter().copied()),
         created_at,
     )
 }
 
 /// Absolute expiration time (Unix epoch, seconds) of a public subkey, from its
-/// binding self-signatures, or `0` if it never expires (RFC 9580 §5.2.3.13).
-pub(crate) fn subkey_expires_at(subkey: &SignedPublicSubKey) -> u32 {
-    let created_at = subkey.key.created_at().as_secs();
-    expiration_from_self_sigs(subkey.signatures.iter(), created_at)
+/// cryptographically valid binding self-signatures, or `0` if it never expires
+/// (RFC 9580 §5.2.3.13). `primary` is required to verify the binding signatures.
+pub(crate) fn subkey_expires_at(
+    primary: &PublicKey,
+    subkey: &PublicSubkey,
+    signatures: &[Signature],
+) -> u32 {
+    let created_at = subkey.created_at().as_secs();
+    let verified = verified_subkey_self_sigs(primary, subkey, signatures);
+    expiration_from_self_sigs(verified.iter().copied(), created_at)
 }
 
 impl From<KeyVersion> for GfrOpenPGPKeyVersion {
@@ -260,15 +315,15 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     let pk = SignedPublicKey::from(sk.clone());
     let mut subs = Vec::new();
 
-    let primary_fpr_bytes = sk.primary_key.fingerprint().as_bytes().to_vec();
-
     for sub in &sk.secret_subkeys {
+        let sub_pub = sub.key.public_key();
+        let verified_sigs = verified_subkey_self_sigs(&pk.primary_key, sub_pub, &sub.signatures);
         let (can_sign, can_encrypt, can_auth, can_certify) =
-            extract_capabilities(sub.signatures.iter());
+            extract_capabilities(verified_sigs.iter().copied());
         let key_length = extract_key_length(sub.key.public_params());
-        let is_revoked = is_subkey_revoked(&sub.signatures, &primary_fpr_bytes);
+        let is_revoked = is_subkey_revoked(&pk.primary_key, sub_pub, &sub.signatures);
         let created_at = sub.key.created_at().as_secs();
-        let expires_at = expiration_from_self_sigs(sub.signatures.iter(), created_at);
+        let expires_at = expiration_from_self_sigs(verified_sigs.iter().copied(), created_at);
         subs.push(ExtractedSubkey {
             ver: sub.version().into(),
             fpr: sub.key.fingerprint().to_string(),
@@ -301,11 +356,10 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
     }
 
     // extract all user IDs into a vector of strings
-    let primary_fpr_bytes = pk.fingerprint().as_bytes().to_vec();
     let mut user_ids: Vec<ExtractUserId> = users
         .iter()
         .map(|u| {
-            let is_revoked = is_user_id_revoked(u, &primary_fpr_bytes);
+            let is_revoked = is_user_id_revoked(&pk.primary_key, u);
 
             ExtractUserId {
                 user_id: String::from_utf8_lossy(u.id.id()).into_owned(),
@@ -323,25 +377,27 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         user_ids.insert(0, primary_uid);
     }
 
-    let primary_user_sigs = users
+    let verified_direct =
+        verified_primary_self_sigs(&pk.primary_key, &pk.details.direct_signatures);
+    let verified_primary_uid = users
         .get(primary_idx)
-        .map(|u| u.signatures.as_slice())
-        .unwrap_or(&[]);
+        .map(|u| verified_uid_self_sigs(&pk.primary_key, u))
+        .unwrap_or_default();
     let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(
-        pk.details
-            .direct_signatures
+        verified_direct
             .iter()
-            .chain(primary_user_sigs.iter()),
+            .copied()
+            .chain(verified_primary_uid.iter().copied()),
     );
     let key_length = extract_key_length(pk.primary_key.public_params());
-    let is_revoked = is_primary_key_revoked(&pk.details.revocation_signatures, &primary_fpr_bytes)
-        || is_primary_key_revoked(&pk.details.direct_signatures, &primary_fpr_bytes);
+    let is_revoked = is_primary_key_revoked(&pk.primary_key, &pk.details.revocation_signatures)
+        || is_primary_key_revoked(&pk.primary_key, &pk.details.direct_signatures);
     let created_at = pk.primary_key.created_at().as_secs();
     let expires_at = expiration_from_self_sigs(
-        pk.details
-            .direct_signatures
+        verified_direct
             .iter()
-            .chain(primary_user_sigs.iter()),
+            .copied()
+            .chain(verified_primary_uid.iter().copied()),
         created_at,
     );
 
@@ -370,15 +426,14 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
 fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     let mut subs = Vec::new();
 
-    let primary_fpr_bytes = pk.primary_key.fingerprint().as_bytes().to_vec();
-
     for sub in &pk.public_subkeys {
+        let verified_sigs = verified_subkey_self_sigs(&pk.primary_key, &sub.key, &sub.signatures);
         let (can_sign, can_encrypt, can_auth, can_certify) =
-            extract_capabilities(sub.signatures.iter());
+            extract_capabilities(verified_sigs.iter().copied());
         let key_length = extract_key_length(sub.key.public_params()).unwrap_or(0);
-        let is_revoked = is_subkey_revoked(&sub.signatures, &primary_fpr_bytes);
+        let is_revoked = is_subkey_revoked(&pk.primary_key, &sub.key, &sub.signatures);
         let created_at = sub.key.created_at().as_secs();
-        let expires_at = expiration_from_self_sigs(sub.signatures.iter(), created_at);
+        let expires_at = expiration_from_self_sigs(verified_sigs.iter().copied(), created_at);
         subs.push(ExtractedSubkey {
             ver: sub.version().into(),
             fpr: sub.key.fingerprint().to_string(),
@@ -411,11 +466,10 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
     }
 
     // extract all user IDs into a vector of strings
-    let primary_fpr_bytes = pk.fingerprint().as_bytes().to_vec();
     let mut user_ids: Vec<ExtractUserId> = users
         .iter()
         .map(|u| {
-            let is_revoked = is_user_id_revoked(u, &primary_fpr_bytes);
+            let is_revoked = is_user_id_revoked(&pk.primary_key, u);
 
             ExtractUserId {
                 user_id: String::from_utf8_lossy(u.id.id()).into_owned(),
@@ -433,27 +487,30 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
         user_ids.insert(0, primary_uid);
     }
 
-    // use the signatures of the actual primary user ID (after reordering) to determine capabilities
-    let primary_user_sigs = users
+    // use only cryptographically valid self-signatures of the primary key and its
+    // primary User ID to determine capabilities / expiry / revocation.
+    let verified_direct =
+        verified_primary_self_sigs(&pk.primary_key, &pk.details.direct_signatures);
+    let verified_primary_uid = users
         .get(primary_idx)
-        .map(|u| u.signatures.as_slice())
-        .unwrap_or(&[]);
+        .map(|u| verified_uid_self_sigs(&pk.primary_key, u))
+        .unwrap_or_default();
 
     let (can_sign, can_encrypt, can_auth, can_certify) = extract_capabilities(
-        pk.details
-            .direct_signatures
+        verified_direct
             .iter()
-            .chain(primary_user_sigs.iter()),
+            .copied()
+            .chain(verified_primary_uid.iter().copied()),
     );
     let key_length = extract_key_length(pk.primary_key.public_params());
-    let is_revoked = is_primary_key_revoked(&pk.details.revocation_signatures, &primary_fpr_bytes)
-        || is_primary_key_revoked(&pk.details.direct_signatures, &primary_fpr_bytes);
+    let is_revoked = is_primary_key_revoked(&pk.primary_key, &pk.details.revocation_signatures)
+        || is_primary_key_revoked(&pk.primary_key, &pk.details.direct_signatures);
     let created_at = pk.primary_key.created_at().as_secs();
     let expires_at = expiration_from_self_sigs(
-        pk.details
-            .direct_signatures
+        verified_direct
             .iter()
-            .chain(primary_user_sigs.iter()),
+            .copied()
+            .chain(verified_primary_uid.iter().copied()),
         created_at,
     );
     ExtractedMetadata {

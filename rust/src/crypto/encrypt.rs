@@ -115,8 +115,6 @@ fn choose_encryption_target(
     cert: &SignedPublicKey,
     target: Option<&str>,
 ) -> Result<EncryptionTarget, GfrStatus> {
-    let primary_fpr_bytes = cert.primary_key.fingerprint().as_bytes().to_vec();
-
     // ==========================================
     // EXACT MATCH MODE (!)
     // ==========================================
@@ -125,7 +123,11 @@ fn choose_encryption_target(
             let fpr = subkey.key.fingerprint().to_string();
             let kid = subkey.key.legacy_key_id().to_string();
             if super::key_identifier_matches(&fpr, &kid, target) {
-                if crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes) {
+                if crate::key::is_subkey_revoked(
+                    &cert.primary_key,
+                    &subkey.key,
+                    &subkey.signatures,
+                ) {
                     log::error!("Requested encryption subkey is revoked: fpr={}", fpr);
                     return Err(GfrStatus::ErrorNoKey);
                 }
@@ -168,7 +170,7 @@ fn choose_encryption_target(
     // NORMAL MODE (Auto Fallback) — skip revoked
     // ==========================================
     for (i, subkey) in cert.public_subkeys.iter().enumerate() {
-        if crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes) {
+        if crate::key::is_subkey_revoked(&cert.primary_key, &subkey.key, &subkey.signatures) {
             log::info!(
                 "Skipping revoked encryption subkey: fpr={}",
                 subkey.key.fingerprint(),
