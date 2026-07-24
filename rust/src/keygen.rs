@@ -702,4 +702,112 @@ mod rfc9580_tests {
             );
         }
     }
+
+    // --- v6 algorithm-rejection matrix (RFC 9580 §9.2) --------------------
+
+    /// The deprecated Curve25519Legacy OID and the unregistered secp256k1 curve
+    /// have no defined v6 wire format and must be rejected for v6 keys.
+    #[test]
+    fn v6_algo_rejection_reason_flags_forbidden_algos() {
+        assert!(v6_algo_rejection_reason(&GfrKeyAlgo::ED25519LEGACY).is_some());
+        assert!(v6_algo_rejection_reason(&GfrKeyAlgo::SECP256K1).is_some());
+    }
+
+    /// Algorithms with a defined v6 form are not rejected outright.
+    #[test]
+    fn v6_algo_rejection_reason_accepts_native_algos() {
+        for algo in [
+            GfrKeyAlgo::ED25519,
+            GfrKeyAlgo::CV25519,
+            GfrKeyAlgo::X448,
+            GfrKeyAlgo::ED448,
+            GfrKeyAlgo::RSA3072,
+            GfrKeyAlgo::NISTP256,
+        ] {
+            assert!(
+                v6_algo_rejection_reason(&algo).is_none(),
+                "{algo:?} should be allowed in a v6 key"
+            );
+        }
+    }
+
+    /// A v6 key generated with secp256k1 must be refused end-to-end.
+    #[test]
+    fn v6_rejects_secp256k1() {
+        let primary = cfg(GfrKeyAlgo::SECP256K1, true, false, GfrOpenPGPKeyVersion::V6);
+        assert!(keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).is_err());
+    }
+
+    // --- v6 encryption-curve remap (RFC 9580 §9.2) ------------------------
+
+    #[test]
+    fn v6_remap_curve25519_encryption_to_x25519() {
+        assert_eq!(
+            v6_remap_encryption_curve(&GfrKeyAlgo::CV25519, true),
+            Some(KeyType::X25519)
+        );
+        assert_eq!(
+            v6_remap_encryption_curve(&GfrKeyAlgo::ED25519, true),
+            Some(KeyType::X25519)
+        );
+    }
+
+    #[test]
+    fn v6_remap_curve_is_noop_for_signing_or_other_algos() {
+        // Not an encryption key -> no remap.
+        assert!(v6_remap_encryption_curve(&GfrKeyAlgo::ED25519, false).is_none());
+        // A non-Curve25519 algorithm -> no remap.
+        assert!(v6_remap_encryption_curve(&GfrKeyAlgo::RSA3072, true).is_none());
+        assert!(v6_remap_encryption_curve(&GfrKeyAlgo::NISTP256, true).is_none());
+    }
+
+    // --- resolve_key_type generation policy (RFC 9580 §12.4/§12.5) --------
+
+    #[test]
+    fn resolve_key_type_rejects_all_dsa_sizes() {
+        assert!(resolve_key_type(&GfrKeyAlgo::DSA1024, false).is_err());
+        assert!(resolve_key_type(&GfrKeyAlgo::DSA2048, false).is_err());
+        assert!(resolve_key_type(&GfrKeyAlgo::DSA3072, false).is_err());
+    }
+
+    #[test]
+    fn resolve_key_type_rejects_rsa_below_2048() {
+        assert!(resolve_key_type(&GfrKeyAlgo::RSA1024, false).is_err());
+    }
+
+    #[test]
+    fn resolve_key_type_accepts_rsa_2048_and_above() {
+        assert!(resolve_key_type(&GfrKeyAlgo::RSA2048, false).is_ok());
+        assert!(resolve_key_type(&GfrKeyAlgo::RSA3072, false).is_ok());
+        assert!(resolve_key_type(&GfrKeyAlgo::RSA4096, false).is_ok());
+    }
+
+    #[test]
+    fn resolve_key_type_rejects_legacy_ed25519() {
+        // ED25519LEGACY uses the deprecated OID and must not be generatable for
+        // any key version at the FFI boundary.
+        assert!(resolve_key_type(&GfrKeyAlgo::ED25519LEGACY, false).is_err());
+    }
+
+    #[test]
+    fn resolve_key_type_accepts_modern_curves() {
+        assert!(resolve_key_type(&GfrKeyAlgo::ED25519, false).is_ok());
+        assert!(resolve_key_type(&GfrKeyAlgo::CV25519, true).is_ok());
+    }
+
+    // --- requested key version is honored ---------------------------------
+
+    #[test]
+    fn v4_request_produces_v4_key() {
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V4);
+        let key = keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).expect("keygen");
+        assert_eq!(key.primary_key.version(), KeyVersion::V4);
+    }
+
+    #[test]
+    fn v6_request_produces_v6_key() {
+        let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V6);
+        let key = keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).expect("keygen");
+        assert_eq!(key.primary_key.version(), KeyVersion::V6);
+    }
 }

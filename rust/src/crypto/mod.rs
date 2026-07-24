@@ -482,6 +482,210 @@ mod rfc9580_policy_tests {
         // Far future (year 2096) -> not expired.
         assert!(!signature_result_expired(&sig_with_expiry(4_000_000_000)));
     }
+
+    // --- RFC 9580 §9.5 weak-hash gate: exhaustive -------------------------
+
+    #[test]
+    fn weak_hash_flags_every_forbidden_digest() {
+        for h in ["MD5", "SHA1", "RIPEMD160"] {
+            assert!(sig_hash_algo_is_weak(h), "{h} must be weak");
+        }
+    }
+
+    #[test]
+    fn weak_hash_accepts_modern_digests() {
+        for h in [
+            "SHA224", "SHA256", "SHA384", "SHA512", "SHA3-256", "SHA3-512",
+        ] {
+            assert!(!sig_hash_algo_is_weak(h), "{h} must be acceptable");
+        }
+    }
+
+    #[test]
+    fn weak_hash_match_is_exact() {
+        // The gate matches rPGP's exact display strings; unknown or differently
+        // cased spellings are not silently treated as weak.
+        assert!(!sig_hash_algo_is_weak("sha1"));
+        assert!(!sig_hash_algo_is_weak(""));
+        assert!(!sig_hash_algo_is_weak("SHA-1"));
+        assert!(!sig_hash_algo_is_weak("MD-5"));
+    }
+
+    // --- signature expiration boundaries ----------------------------------
+
+    #[test]
+    fn signature_expiry_zero_never_expires() {
+        assert!(!signature_result_expired(&sig_with_expiry(0)));
+    }
+
+    #[test]
+    fn signature_expiry_one_second_is_past() {
+        // 1970-01-01T00:00:01Z is unambiguously in the past.
+        assert!(signature_result_expired(&sig_with_expiry(1)));
+    }
+
+    #[test]
+    fn signature_expiry_max_u32_is_future() {
+        // u32::MAX is 2106-02-07, comfortably in the future.
+        assert!(!signature_result_expired(&sig_with_expiry(u32::MAX)));
+    }
+
+    // --- apply_signature_gate truth table ---------------------------------
+
+    fn gated(verified: bool, hash: &str, expires_at: u32) -> (GfrSignatureStatus, bool) {
+        let mut sig = sig_with_expiry(expires_at);
+        sig.hash_algo = hash.to_string();
+        sig.status = GfrSignatureStatus::NoKey;
+        let mut is_verified = false;
+        apply_signature_gate(&mut sig, verified, &mut is_verified);
+        (sig.status, is_verified)
+    }
+
+    #[test]
+    fn gate_marks_valid_when_verified_strong_unexpired() {
+        assert_eq!(gated(true, "SHA512", 0), (GfrSignatureStatus::Valid, true));
+    }
+
+    #[test]
+    fn gate_rejects_weak_hash_even_when_verified() {
+        // A cryptographically valid SHA-1 signature must never be Valid (§9.5).
+        let (status, is_verified) = gated(true, "SHA1", 0);
+        assert_ne!(status, GfrSignatureStatus::Valid);
+        assert!(!is_verified);
+    }
+
+    #[test]
+    fn gate_rejects_expired_even_when_verified() {
+        let (status, is_verified) = gated(true, "SHA512", 1);
+        assert_ne!(status, GfrSignatureStatus::Valid);
+        assert!(!is_verified);
+    }
+
+    #[test]
+    fn gate_rejects_unverified_signature() {
+        let (status, is_verified) = gated(false, "SHA512", 0);
+        assert_eq!(status, GfrSignatureStatus::BadSignature);
+        assert!(!is_verified);
+    }
+
+    // --- signer-block prefix parsing --------------------------------------
+
+    #[test]
+    fn parse_signer_block_without_prefix() {
+        let (target, rest) = parse_signer_block("-----BEGIN PGP MESSAGE-----\nbody");
+        assert!(target.is_none());
+        assert!(rest.starts_with("-----BEGIN PGP MESSAGE-----"));
+    }
+
+    #[test]
+    fn parse_signer_block_with_pinned_prefix() {
+        let (target, rest) = parse_signer_block("DEADBEEF!\n-----BEGIN PGP MESSAGE-----\nbody");
+        assert_eq!(target.as_deref(), Some("DEADBEEF"));
+        assert!(rest.starts_with("-----BEGIN PGP MESSAGE-----"));
+    }
+
+    #[test]
+    fn parse_signer_block_non_pinned_prefix_is_ignored() {
+        // A prefix without a trailing '!' is not a pin request.
+        let (target, _rest) = parse_signer_block("DEADBEEF\n-----BEGIN PGP MESSAGE-----");
+        assert!(target.is_none());
+    }
+
+    // --- corpus-backed sniffing (see scripts/gen_rpgp_test_vectors.sh) -----
+
+    const SIG_GOOD: &[u8] =
+        include_bytes!("../../../resource/lfs/test/rpgp_vectors/sig_good_detached.sig");
+    const SIG_SHA1: &[u8] =
+        include_bytes!("../../../resource/lfs/test/rpgp_vectors/sig_sha1_detached.sig");
+    const SIG_V6: &[u8] =
+        include_bytes!("../../../resource/lfs/test/rpgp_vectors/sig_v6_detached.sig");
+    const ENC_MULTI: &[u8] =
+        include_bytes!("../../../resource/lfs/test/rpgp_vectors/enc_multi_recipient.pgp");
+    const AUX_GOOD_CERT: &str =
+        include_str!("../../../resource/lfs/test/rpgp_aux_keys/aux_good.asc");
+    const AUX_REVOKED_CERT: &str =
+        include_str!("../../../resource/lfs/test/rpgp_aux_keys/aux_revoked.asc");
+
+    // aux_good's signing-subkey issuer fingerprint (see MANIFEST.txt).
+    const AUX_GOOD_SIGN_FPR: &str = "d3abb909adde4a9d9ea30e0a8c871bb1d239c773";
+
+    #[test]
+    fn sniff_good_detached_reports_strong_hash_and_issuer() {
+        let sigs = sniff_signatures(SIG_GOOD, GfrSignMode::Detached);
+        assert_eq!(sigs.len(), 1);
+        assert!(sigs[0].hash_algo.eq_ignore_ascii_case("SHA512"));
+        assert!(sigs[0].fpr.eq_ignore_ascii_case(AUX_GOOD_SIGN_FPR));
+        // Sniffed entries are unverified until the key is checked.
+        assert_eq!(sigs[0].status, GfrSignatureStatus::NoKey);
+    }
+
+    #[test]
+    fn sniff_sha1_detached_reports_weak_hash() {
+        let sigs = sniff_signatures(SIG_SHA1, GfrSignMode::Detached);
+        assert_eq!(sigs.len(), 1);
+        assert!(sig_hash_algo_is_weak(&sigs[0].hash_algo));
+    }
+
+    #[test]
+    fn sniff_v6_detached_yields_one_signature() {
+        let sigs = sniff_signatures(SIG_V6, GfrSignMode::Detached);
+        assert_eq!(sigs.len(), 1);
+        assert!(!sigs[0].fpr.is_empty());
+    }
+
+    #[test]
+    fn sniff_multi_recipient_lists_all_recipients() {
+        // enc_multi_recipient.pgp is encrypted to key1+key2+key3; sq emits one
+        // PKESK per encryption subkey, so there are at least three recipients
+        // (key1 alone carries three ECDH encryption subkeys).
+        let recipients = sniff_recipients(ENC_MULTI);
+        assert!(recipients.len() >= 3, "got {}", recipients.len());
+        assert!(recipients.iter().all(|r| !r.key_id.is_empty()));
+    }
+
+    #[test]
+    fn get_signature_issuers_from_good_detached_signature() {
+        let res = get_signature_issuers_internal(SIG_GOOD);
+        assert!(res.is_ok());
+    }
+
+    // --- certificate revocation / issuer gates ----------------------------
+
+    #[test]
+    fn cert_primary_revoked_is_false_for_live_key() {
+        use pgp::composed::Deserializable;
+        let (cert, _) = pgp::composed::SignedPublicKey::from_string(AUX_GOOD_CERT).unwrap();
+        assert!(!cert_primary_revoked(&cert));
+    }
+
+    #[test]
+    fn cert_primary_revoked_is_true_for_revoked_key() {
+        use pgp::composed::Deserializable;
+        let (cert, _) = pgp::composed::SignedPublicKey::from_string(AUX_REVOKED_CERT).unwrap();
+        assert!(cert_primary_revoked(&cert));
+    }
+
+    #[test]
+    fn cert_contains_issuer_matches_signing_subkey() {
+        use pgp::composed::Deserializable;
+        let (cert, _) = pgp::composed::SignedPublicKey::from_string(AUX_GOOD_CERT).unwrap();
+        assert!(cert_contains_issuer(&cert, AUX_GOOD_SIGN_FPR));
+        assert!(!cert_contains_issuer(
+            &cert,
+            "0000000000000000000000000000000000000000"
+        ));
+    }
+
+    #[test]
+    fn live_cert_has_a_usable_signing_subkey() {
+        use pgp::composed::Deserializable;
+        let (cert, _) = pgp::composed::SignedPublicKey::from_string(AUX_GOOD_CERT).unwrap();
+        assert!(
+            cert.public_subkeys
+                .iter()
+                .any(|sk| subkey_usable_for_verify(&cert, sk))
+        );
+    }
 }
 
 /// True if the certificate's primary key carries a valid self-revocation

@@ -614,3 +614,91 @@ pub fn decrypt_and_verify_internal(
         signatures: stream_result.signatures,
     })
 }
+
+#[cfg(test)]
+mod rfc9580_envelope_tests {
+    //! RFC 9580 envelope-analysis tests for `analyze_encrypted_envelope`, driven
+    //! by the committed known-answer corpus (see
+    //! scripts/gen_rpgp_test_vectors.sh). These unit-test the packet-level
+    //! recipient/SKESK extraction and the legacy-SED rejection (finding H2)
+    //! without going through the FFI decrypt entrypoint.
+    use super::*;
+    use std::io::Cursor;
+
+    const ENC_V1: &[u8] =
+        include_bytes!("../../../resource/lfs/test/rpgp_vectors/enc_v1seipd_mdc.pgp");
+    const ENC_MULTI: &[u8] =
+        include_bytes!("../../../resource/lfs/test/rpgp_vectors/enc_multi_recipient.pgp");
+    const ENC_SYM_V1: &[u8] =
+        include_bytes!("../../../resource/lfs/test/rpgp_vectors/enc_symmetric_v1.pgp");
+    const ENC_SED: &[u8] =
+        include_bytes!("../../../resource/lfs/test/rpgp_vectors/enc_sed_tag9.pgp");
+    const ENC_V2: &[u8] =
+        include_bytes!("../../../resource/lfs/test/rpgp_vectors/enc_v2seipd_ocb.pgp");
+
+    fn parse(data: &[u8]) -> Message {
+        Message::from_reader(Cursor::new(data))
+            .expect("parse encrypted message")
+            .0
+    }
+
+    /// A v1 SEIPD message encrypted to a public key lists public-key
+    /// recipients and no SKESK. (sq emits one PKESK per encryption subkey, and
+    /// fixture key1 has three, so there is at least one recipient.)
+    #[test]
+    fn envelope_v1_seipd_lists_pk_recipients() {
+        let msg = parse(ENC_V1);
+        let (has_pkesk, has_skesk, recipients) = analyze_encrypted_envelope(&msg).unwrap();
+        assert!(has_pkesk);
+        assert!(!has_skesk);
+        assert!(!recipients.is_empty());
+        assert!(recipients.iter().all(|r| !r.key_id.is_empty()));
+    }
+
+    /// A message encrypted to three certificates lists at least three PKESK
+    /// recipients (one per encryption subkey across key1+key2+key3).
+    #[test]
+    fn envelope_multi_recipient_lists_all() {
+        let msg = parse(ENC_MULTI);
+        let (has_pkesk, _has_skesk, recipients) = analyze_encrypted_envelope(&msg).unwrap();
+        assert!(has_pkesk);
+        assert!(recipients.len() >= 3, "got {}", recipients.len());
+    }
+
+    /// A password-based message carries an SKESK and no public-key recipients.
+    #[test]
+    fn envelope_symmetric_reports_skesk() {
+        let msg = parse(ENC_SYM_V1);
+        let (_has_pkesk, has_skesk, recipients) = analyze_encrypted_envelope(&msg).unwrap();
+        assert!(has_skesk);
+        assert!(recipients.is_empty());
+    }
+
+    /// RFC 9580 §13.7 / finding H2: a legacy Symmetrically Encrypted Data packet
+    /// (Tag 9, no integrity protection) must be rejected before any decryption.
+    #[test]
+    fn envelope_rejects_legacy_sed() {
+        let msg = parse(ENC_SED);
+        assert!(
+            analyze_encrypted_envelope(&msg).is_err(),
+            "legacy SED must be refused"
+        );
+    }
+
+    /// KNOWN GAP (ignored): a message addressed to a v6 recipient should list
+    /// that recipient, but pkesk.id() yields no id for a v6 PKESK, so the
+    /// recipient list comes back empty and public-key decryption to a v6 key is
+    /// currently impossible. Enable once v6-PKESK recipient extraction lands.
+    #[test]
+    #[ignore = "v6 PKESK recipient extraction not implemented (pkesk.id() yields no id)"]
+    fn envelope_v6_recipient_is_extracted() {
+        let msg = parse(ENC_V2);
+        let (has_pkesk, _has_skesk, recipients) = analyze_encrypted_envelope(&msg).unwrap();
+        assert!(has_pkesk);
+        assert_eq!(
+            recipients.len(),
+            1,
+            "the v6 PKESK recipient should be listed"
+        );
+    }
+}
