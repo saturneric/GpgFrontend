@@ -134,15 +134,12 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyGoodCleartextIsValid) {
   EXPECT_TRUE(SignatureIsValid(out.sigs.front()));
 }
 
-// KNOWN GAP (disabled): standalone verification of an *inline* (one-pass)
-// signed message does not report the signature as Valid, though the detached
-// and decrypt-then-verify paths do. In verify.rs (Inline branch) the signature
-// count is read via reader.num_signatures() before the message body is
-// consumed, so no signature index is verified and the genuine signature is
-// downgraded to BadSignature. The same message decrypts-and-verifies as Valid,
-// confirming the signature itself is good. Enable once inline verification
-// consumes the body before counting/verifying signatures.
-TEST_F(RpgpCoreTest, DISABLED_Rfc9580VerifyGoodInlineV6IsValid) {
+// Standalone verification of an *inline* (one-pass) signed message. One-pass
+// signatures live in trailing packets, so verify.rs (Inline branch) now drains
+// the message body before reading reader.num_signatures() and verifying each
+// index; a genuine one-pass signature is reported Valid, matching the detached
+// and decrypt-then-verify paths.
+TEST_F(RpgpCoreTest, Rfc9580VerifyGoodInlineV6IsValid) {
   ImportAuxKeys({"aux_v6.asc"});
   auto out = RunVerify(LoadRfc9580Vector("sig_good_inline_v6.pgp"), GFBuffer());
   ASSERT_EQ(CheckGpgError(out.err), GPG_ERR_NO_ERROR);
@@ -181,14 +178,13 @@ TEST_F(RpgpCoreTest, Rfc9580VerifySha1DetachedIsNotValid) {
 
 // --- Negative: expired key --------------------------------------------------
 //
-// KNOWN GAP (disabled): a detached signature made by an *expired* signing key
-// is currently reported Valid. Neither verify.rs Detached-mode branch (the
-// `is_cert_valid` computation) nor the shared gate checks signing-key
-// expiration; only the signature's own Signature Expiration Time (§5.2.3.18) is
-// enforced. RFC 9580 §5.2.3.6/§5.2.1: a signature under an expired key must not
-// be treated as valid. Enable once key-expiration gating lands.
+// A detached signature made by an *expired* signing key must not be reported
+// Valid. cert_primary_usable() (mod.rs) now gates every verification path on
+// primary-key expiration (§5.2.3.13), and subkey_usable_for_verify() rejects an
+// expired signing subkey (or any subkey of an expired primary) as well, on top
+// of the signature's own Signature Expiration Time (§5.2.3.18).
 
-TEST_F(RpgpCoreTest, DISABLED_Rfc9580VerifyExpiredKeyIsNotValid) {
+TEST_F(RpgpCoreTest, Rfc9580VerifyExpiredKeyIsNotValid) {
   ImportAuxKeys({"aux_expired.asc"});
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_expired.sig"));
@@ -197,15 +193,12 @@ TEST_F(RpgpCoreTest, DISABLED_Rfc9580VerifyExpiredKeyIsNotValid) {
 
 // --- Negative: revoked key --------------------------------------------------
 //
-// KNOWN GAP (disabled): a detached signature made by a signing *subkey* whose
-// *primary* key is revoked is currently reported Valid. The Detached/Inline
-// branches gate the primary path on cert_primary_revoked(), but the subkey path
-// (subkey_usable_for_verify) only checks per-subkey revocation, not whether the
-// owning primary is revoked (RFC 9580 §5.2.1.11: revoking the primary
-// invalidates the whole certificate). Enable once the subkey path also rejects
-// a revoked primary.
+// A detached signature made by a signing *subkey* whose *primary* key is
+// revoked must not be reported Valid. subkey_usable_for_verify() now folds in
+// cert_primary_usable(), so a subkey of a revoked primary is unusable — revoking
+// the primary invalidates the whole certificate (RFC 9580 §5.2.1.11).
 
-TEST_F(RpgpCoreTest, DISABLED_Rfc9580VerifyRevokedKeyIsNotValid) {
+TEST_F(RpgpCoreTest, Rfc9580VerifyRevokedKeyIsNotValid) {
   ImportAuxKeys({"aux_revoked.asc"});
   auto out = RunVerify(LoadRfc9580Vector("payload.txt"),
                        LoadRfc9580Vector("sig_revokedkey.sig"));
@@ -250,9 +243,8 @@ TEST_F(RpgpCoreTest, Rfc9580VerifyUnknownSignerReportsNoKeyStatus) {
 
 // --- Two-signer attribution (finding B-Verify) ------------------------------
 
-// DISABLED: depends on inline-signature validity (see the InlineV6 gap above).
-// Both signatures are genuine, but the inline path never marks them Valid.
-TEST_F(RpgpCoreTest, DISABLED_Rfc9580VerifyTwoSignerBothKnownBothValid) {
+// Both signatures are genuine; with inline verification fixed, both are Valid.
+TEST_F(RpgpCoreTest, Rfc9580VerifyTwoSignerBothKnownBothValid) {
   ImportAuxKeys({"aux_good.asc", "aux_v6.asc"});
   auto out = RunVerify(LoadRfc9580Vector("two_signer.pgp"), GFBuffer());
   ASSERT_EQ(CheckGpgError(out.err), GPG_ERR_NO_ERROR);
@@ -260,8 +252,7 @@ TEST_F(RpgpCoreTest, DISABLED_Rfc9580VerifyTwoSignerBothKnownBothValid) {
   EXPECT_EQ(CountValid(out.sigs), 2);
 }
 
-// DISABLED: depends on inline-signature validity (see the InlineV6 gap above).
-TEST_F(RpgpCoreTest, DISABLED_Rfc9580VerifyTwoSignerOneKnownOnlyOneValid) {
+TEST_F(RpgpCoreTest, Rfc9580VerifyTwoSignerOneKnownOnlyOneValid) {
   // Import only aux_good: exactly its signature may be Valid, never the other.
   ImportAuxKeys({"aux_good.asc"});
   auto out = RunVerify(LoadRfc9580Vector("two_signer.pgp"), GFBuffer());

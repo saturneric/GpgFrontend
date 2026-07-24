@@ -102,9 +102,10 @@ where
             .seek(SeekFrom::Start(0))
             .record_err(GfrStatus::ErrorInternal)?;
 
-        // Try verifying with the primary key first — but only if it is not revoked
-        // (RFC 9580 §5.2.1.11); a signature under a revoked key is not valid.
-        let mut is_cert_valid = if cert_primary_revoked(cert) {
+        // Try verifying with the primary key first — but only if it is currently
+        // usable: not revoked (RFC 9580 §5.2.1.11) and not expired (§5.2.3.13).
+        // A signature under a revoked or expired key is not valid.
+        let mut is_cert_valid = if !cert_primary_usable(cert) {
             false
         } else {
             let mut cancellable = crate::cancel::CancellableReader::new(channel, &mut data_stream);
@@ -176,6 +177,18 @@ pub fn verify_internal(
             let certs = fetch_certs_for_signatures(&signatures, fetch_pubkey_cb, user_data);
             let mut is_verified = false;
 
+            // One-pass signatures live in trailing packets, so the signature
+            // count and per-index hashes only become available AFTER the message
+            // body has been read to the end (rPGP: "the message must have been
+            // read to the end before calling verify"). Drain the body first —
+            // decompressing a compressed wrapper if present — then count and
+            // verify. Reading num_signatures() before this yields 0 and silently
+            // downgrades every genuine inline signature to BadSignature.
+            if msg.is_compressed() {
+                msg = msg.decompress().into_gfr()?;
+            }
+            let clear_data = msg.as_data_vec().into_gfr()?;
+
             // verify() only checks signature at index 0; iterate all indices for multi-signer messages.
             let num_sigs = if let Message::Signed { ref reader, .. } = msg {
                 reader.num_signatures()
@@ -195,7 +208,7 @@ pub fn verify_internal(
                 // Special fallback if verification succeeded but issuer wasn't caught
                 // by sniff_signatures. Recompute a cert-level validity for this branch
                 // only (it does not attribute to a specific sniffed entry).
-                let primary_usable = !cert_primary_revoked(cert);
+                let primary_usable = cert_primary_usable(cert);
                 let is_cert_valid = (0..num_sigs).any(|i| {
                     (primary_usable && msg.verify_nested_explicit(i, cert).is_ok())
                         || cert.public_subkeys.iter().any(|sk| {
@@ -217,7 +230,6 @@ pub fn verify_internal(
                 }
             }
 
-            let clear_data = msg.as_data_vec().into_gfr()?;
             Ok(VerifyResultInternal {
                 data: clear_data,
                 is_verified,
@@ -263,7 +275,7 @@ pub fn verify_internal(
             let mut is_verified = false;
 
             for cert in &certs {
-                let is_cert_valid = (!cert_primary_revoked(cert) && msg.verify(cert).is_ok())
+                let is_cert_valid = (cert_primary_usable(cert) && msg.verify(cert).is_ok())
                     || cert
                         .public_subkeys
                         .iter()
@@ -298,7 +310,7 @@ pub fn verify_internal(
             let mut is_verified = false;
 
             for cert in &certs {
-                let is_cert_valid = (!cert_primary_revoked(cert)
+                let is_cert_valid = (cert_primary_usable(cert)
                     && sig_msg.verify(cert, data).is_ok())
                     || cert.public_subkeys.iter().any(|sk| {
                         subkey_usable_for_verify(cert, sk) && sig_msg.verify(sk, data).is_ok()

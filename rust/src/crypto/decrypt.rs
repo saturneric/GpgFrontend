@@ -105,14 +105,25 @@ fn analyze_encrypted_envelope(
                 Esk::PublicKeyEncryptedSessionKey(pkesk) => {
                     has_pkesk = true;
 
-                    if let Ok(id) = pkesk.id() {
+                    // v3 PKESK identifies the recipient by its 8-byte key ID;
+                    // v6 PKESK identifies it by full fingerprint (`pkesk.id()`
+                    // errors for v6, so fall back to `pkesk.fingerprint()`).
+                    // Either form resolves a secret key on the C++ side, which
+                    // looks up by key-id OR fingerprint. A wildcard/anonymous
+                    // recipient carries neither and is simply not listed.
+                    let recipient_id = match pkesk.id() {
+                        Ok(id) => Some(id.to_string()),
+                        Err(_) => pkesk.fingerprint().ok().flatten().map(|fp| fp.to_string()),
+                    };
+
+                    if let Some(key_id) = recipient_id {
                         let algo = pkesk
                             .algorithm()
                             .map(algo_to_string_simple)
                             .unwrap_or_default();
 
                         recipients.push(RecipientResultInternal {
-                            key_id: id.to_string(),
+                            key_id,
                             pub_algo: algo,
                             status: GfrRecipientStatus::NoKey,
                         });
@@ -207,8 +218,12 @@ where
             .0
     };
 
-    let (_, has_skesk, mut recipients) = analyze_encrypted_envelope(&parsed_message)?;
-    if !has_skesk && recipients.is_empty() {
+    let (has_pkesk, has_skesk, mut recipients) = analyze_encrypted_envelope(&parsed_message)?;
+    // Gate on the presence of a session-key packet, not on the recipient list:
+    // a v6 PKESK addressed to a hidden (wildcard) recipient carries no
+    // identifier, so `recipients` can be empty even though the message is a
+    // genuine public-key-encrypted message (`has_pkesk`).
+    if !has_skesk && !has_pkesk {
         set_last_error("input is not an OpenPGP encrypted message");
         return Err(GfrStatus::ErrorInvalidData);
     }
@@ -251,10 +266,16 @@ where
         // 4. Check if unlocking is needed
         let mut needs_password = false;
         let primary_id = skey.primary_key.legacy_key_id().to_string();
+        let primary_fpr = skey.primary_key.fingerprint().to_string();
         let is_anonymous = |id: &str| id == "0000000000000000";
-        let mut target_fpr_for_pwd = skey.primary_key.fingerprint().to_string();
+        // A recipient identifier matches a component by either its 8-byte key ID
+        // (v3 PKESK) or its full fingerprint (v6 PKESK); the wildcard matches all.
+        let id_matches = |rec: &str, key_id: &str, fpr: &str| {
+            is_anonymous(rec) || rec.eq_ignore_ascii_case(key_id) || rec.eq_ignore_ascii_case(fpr)
+        };
+        let mut target_fpr_for_pwd = primary_fpr.clone();
 
-        if (matched_recipient_id == primary_id || is_anonymous(&matched_recipient_id))
+        if id_matches(&matched_recipient_id, &primary_id, &primary_fpr)
             && matches!(skey.primary_key.secret_params(), SecretParams::Encrypted(_))
         {
             needs_password = true;
@@ -263,11 +284,12 @@ where
         if !needs_password {
             for subkey in &skey.secret_subkeys {
                 let subkey_id = subkey.key.legacy_key_id().to_string();
-                if (matched_recipient_id == subkey_id || is_anonymous(&matched_recipient_id))
+                let subkey_fpr = subkey.key.fingerprint().to_string();
+                if id_matches(&matched_recipient_id, &subkey_id, &subkey_fpr)
                     && matches!(subkey.key.secret_params(), SecretParams::Encrypted(_))
                 {
                     needs_password = true;
-                    target_fpr_for_pwd = subkey.key.fingerprint().to_string();
+                    target_fpr_for_pwd = subkey_fpr;
                     break;
                 }
             }
@@ -685,12 +707,11 @@ mod rfc9580_envelope_tests {
         );
     }
 
-    /// KNOWN GAP (ignored): a message addressed to a v6 recipient should list
-    /// that recipient, but pkesk.id() yields no id for a v6 PKESK, so the
-    /// recipient list comes back empty and public-key decryption to a v6 key is
-    /// currently impossible. Enable once v6-PKESK recipient extraction lands.
+    /// RFC 9580 §5.1.2: a message addressed to a v6 recipient lists that
+    /// recipient by fingerprint. `analyze_encrypted_envelope` falls back to
+    /// `pkesk.fingerprint()` when `pkesk.id()` errors (v6), so the recipient is
+    /// extracted and public-key decryption to a v6 key works.
     #[test]
-    #[ignore = "v6 PKESK recipient extraction not implemented (pkesk.id() yields no id)"]
     fn envelope_v6_recipient_is_extracted() {
         let msg = parse(ENC_V2);
         let (has_pkesk, _has_skesk, recipients) = analyze_encrypted_envelope(&msg).unwrap();
@@ -700,5 +721,7 @@ mod rfc9580_envelope_tests {
             1,
             "the v6 PKESK recipient should be listed"
         );
+        // The identifier is a full v6 fingerprint (64 hex chars), not a key ID.
+        assert_eq!(recipients[0].key_id.len(), 64, "{}", recipients[0].key_id);
     }
 }

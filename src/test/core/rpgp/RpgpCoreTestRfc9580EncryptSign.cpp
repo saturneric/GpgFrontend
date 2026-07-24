@@ -163,12 +163,11 @@ TEST_F(RpgpCoreTest, Rfc9580EncryptMultiRecipientRoundTrip) {
 
 // --- sign -> verify ---------------------------------------------------------
 
-// DISABLED: standalone verification of an inline (NORMAL-mode) signed message
-// does not report the signature as Valid — see the inline-verify KNOWN GAP in
-// RpgpCoreTestRfc9580Verify.cpp (verify.rs reads num_signatures() before the
-// body is consumed). The detached and cleartext round-trips below cover the
-// working paths. Enable once inline verification is fixed.
-TEST_F(RpgpCoreTest, DISABLED_Rfc9580SignVerifyNormalRoundTrip) {
+// Standalone verification of an inline (NORMAL-mode) signed message now reports
+// the signature as Valid: verify.rs drains the message body before reading
+// num_signatures() and verifying each index (one-pass signatures live in
+// trailing packets), matching the detached and cleartext round-trips below.
+TEST_F(RpgpCoreTest, Rfc9580SignVerifyNormalRoundTrip) {
   auto data = GFBuffer(QString("sign normal"));
   auto [s_err, s_obj] =
       MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)

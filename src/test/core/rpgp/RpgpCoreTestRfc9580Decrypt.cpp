@@ -93,17 +93,15 @@ TEST_F(RpgpCoreTest, Rfc9580DecryptV1SeipdReportsRecipient) {
 
 // --- v2 SEIPD / AEAD-OCB (encrypted to the aux v6 key) ----------------------
 //
-// KNOWN LIMITATION (disabled): decrypting a message addressed to a v6 recipient
-// currently fails. analyze_encrypted_envelope() (rust/src/crypto/decrypt.rs:81)
-// extracts recipients via pkesk.id(), which does not yield an id for a v6
-// PKESK, so `recipients` is empty; the guard at decrypt.rs:211 then rejects the
-// message as "not an OpenPGP encrypted message" (it tests recipients.is_empty()
-// rather than has_pkesk, and the fetch loop has no key id to look up). These
-// two tests encode the correct RFC 9580 sec 5.13.2 behaviour and should be
-// enabled once v6-PKESK recipient extraction lands. The corpus vector is
-// retained.
+// Decrypting a message addressed to a v6 recipient. analyze_encrypted_envelope()
+// now extracts the recipient of a v6 PKESK via pkesk.fingerprint() (pkesk.id()
+// errors for v6), and the guard gates on has_pkesk rather than a non-empty
+// recipient list. The 64-hex fingerprint resolves the secret key on the C++
+// side (which looks up by key-id OR fingerprint), and the unlock-matching logic
+// compares the recipient id against both the key ID and the fingerprint.
+// RFC 9580 sec 5.13.2.
 
-TEST_F(RpgpCoreTest, DISABLED_Rfc9580DecryptV2SeipdAeadRecoversPlaintext) {
+TEST_F(RpgpCoreTest, Rfc9580DecryptV2SeipdAeadRecoversPlaintext) {
   // The v2/AEAD vector is encrypted to the aux v6 key, whose secret is not in
   // the default fixture keyring; import it first.
   ImportAuxKeys({"aux_v6.asc"});
@@ -113,8 +111,7 @@ TEST_F(RpgpCoreTest, DISABLED_Rfc9580DecryptV2SeipdAeadRecoversPlaintext) {
   EXPECT_EQ(out, LoadRfc9580Vector("payload.txt"));
 }
 
-TEST_F(RpgpCoreTest,
-       DISABLED_Rfc9580DecryptV2SeipdAeadReportsIntegrityProtected) {
+TEST_F(RpgpCoreTest, Rfc9580DecryptV2SeipdAeadReportsIntegrityProtected) {
   ImportAuxKeys({"aux_v6.asc"});
   auto ct = LoadRfc9580Vector("enc_v2seipd_ocb.pgp");
   auto [err, dobj] =

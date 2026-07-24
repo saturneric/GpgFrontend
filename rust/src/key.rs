@@ -214,6 +214,37 @@ pub(crate) fn is_subkey_revoked(signatures: &[Signature], primary_fpr_bytes: &[u
         .any(|sig| is_self_subkey_revocation(sig, primary_fpr_bytes))
 }
 
+/// Absolute expiration time (Unix epoch, seconds) of a certificate's primary
+/// key, or `0` if it never expires.
+///
+/// Mirrors the primary-key expiry derivation in [`build_public_metadata`]: V4
+/// keys carry the `KeyExpirationTime` in the primary User ID self-certification,
+/// V6 keys in the direct-key signature (RFC 9580 §5.2.3.13). Shared with the
+/// verification gates so a signature under an expired key is not reported valid.
+pub(crate) fn primary_key_expires_at(cert: &SignedPublicKey) -> u32 {
+    let users = &cert.details.users;
+    let primary_idx = users.iter().position(|u| u.is_primary()).unwrap_or(0);
+    let primary_user_sigs = users
+        .get(primary_idx)
+        .map(|u| u.signatures.as_slice())
+        .unwrap_or(&[]);
+    let created_at = cert.primary_key.created_at().as_secs();
+    expiration_from_self_sigs(
+        cert.details
+            .direct_signatures
+            .iter()
+            .chain(primary_user_sigs.iter()),
+        created_at,
+    )
+}
+
+/// Absolute expiration time (Unix epoch, seconds) of a public subkey, from its
+/// binding self-signatures, or `0` if it never expires (RFC 9580 §5.2.3.13).
+pub(crate) fn subkey_expires_at(subkey: &SignedPublicSubKey) -> u32 {
+    let created_at = subkey.key.created_at().as_secs();
+    expiration_from_self_sigs(subkey.signatures.iter(), created_at)
+}
+
 impl From<KeyVersion> for GfrOpenPGPKeyVersion {
     fn from(version: KeyVersion) -> Self {
         match version {

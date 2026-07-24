@@ -688,6 +688,15 @@ mod rfc9580_policy_tests {
     }
 }
 
+/// Current wall-clock time as seconds since the Unix epoch (0 if the clock is
+/// before the epoch, which cannot happen in practice).
+fn now_unix_secs() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
+
 /// True if the certificate's primary key carries a valid self-revocation
 /// (RFC 9580 §5.2.1.11). A signature that only verifies under a revoked primary
 /// key MUST NOT be reported as valid.
@@ -697,9 +706,36 @@ pub fn cert_primary_revoked(cert: &SignedPublicKey) -> bool {
         || crate::key::is_primary_key_revoked(&cert.details.direct_signatures, &primary_fpr_bytes)
 }
 
+/// True if the certificate's primary key has passed its own expiration time
+/// (RFC 9580 §5.2.3.13). A signature that only verifies under an expired primary
+/// key MUST NOT be reported as valid — an expired primary invalidates the whole
+/// certificate, including every subkey bound to it.
+pub fn cert_primary_expired(cert: &SignedPublicKey) -> bool {
+    let expires = crate::key::primary_key_expires_at(cert);
+    expires != 0 && u64::from(expires) < now_unix_secs()
+}
+
+/// True if `subkey` has passed its own binding-signature expiration time
+/// (RFC 9580 §5.2.3.13).
+pub fn subkey_expired(subkey: &pgp::composed::SignedPublicSubKey) -> bool {
+    let expires = crate::key::subkey_expires_at(subkey);
+    expires != 0 && u64::from(expires) < now_unix_secs()
+}
+
+/// True if the certificate's primary key may currently be used to verify a
+/// signature: it must be neither revoked ([`cert_primary_revoked`], §5.2.1.11)
+/// nor expired ([`cert_primary_expired`], §5.2.3.13). This is the primary-key
+/// gate every verification path shares.
+pub fn cert_primary_usable(cert: &SignedPublicKey) -> bool {
+    !cert_primary_revoked(cert) && !cert_primary_expired(cert)
+}
+
 /// True if `subkey` may be used to verify a signature: it must be signing-capable
-/// and not revoked (RFC 9580 §5.2.1.12 / Key Flags §5.2.3.29). Verifying under a
-/// revoked or encryption-only subkey MUST NOT be reported as a valid signature.
+/// and not revoked (RFC 9580 §5.2.1.12 / Key Flags §5.2.3.29), its owning primary
+/// must itself be usable ([`cert_primary_usable`] — a revoked or expired primary
+/// invalidates all its subkeys), and the subkey must not have expired. Verifying
+/// under a revoked, expired, or encryption-only subkey — or any subkey of a
+/// revoked/expired primary — MUST NOT be reported as a valid signature.
 pub fn subkey_usable_for_verify(
     cert: &SignedPublicKey,
     subkey: &pgp::composed::SignedPublicSubKey,
@@ -707,6 +743,8 @@ pub fn subkey_usable_for_verify(
     let primary_fpr_bytes = cert.primary_key.fingerprint().as_bytes().to_vec();
     subkey.key.algorithm().can_sign()
         && !crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes)
+        && !subkey_expired(subkey)
+        && cert_primary_usable(cert)
 }
 
 /// Apply the final signature status decision for one certificate uniformly
@@ -788,7 +826,7 @@ fn verified_issuer_fprs_for_cert(
     let Message::Signed { reader, .. } = msg else {
         return out;
     };
-    let primary_usable = !cert_primary_revoked(cert);
+    let primary_usable = cert_primary_usable(cert);
     for i in 0..num_sigs {
         let verified = (primary_usable && msg.verify_nested_explicit(i, cert).is_ok())
             || cert.public_subkeys.iter().any(|sk| {
@@ -1043,14 +1081,20 @@ pub fn sniff_recipients(data: &[u8]) -> Vec<RecipientResultInternal> {
     let parser = PacketParser::new(Cursor::new(payload));
     for packet_result in parser {
         if let Ok(Packet::PublicKeyEncryptedSessionKey(pkesk)) = packet_result {
-            if let Ok(id) = pkesk.id() {
+            // v3 PKESK exposes an 8-byte key ID; v6 PKESK a full fingerprint
+            // (pkesk.id() errors for v6). Fall back so v6 recipients are listed.
+            let recipient_id = match pkesk.id() {
+                Ok(id) => Some(id.to_string()),
+                Err(_) => pkesk.fingerprint().ok().flatten().map(|fp| fp.to_string()),
+            };
+            if let Some(key_id) = recipient_id {
                 let algo = if let Ok(algo_id) = pkesk.algorithm() {
                     algo_to_string_simple(algo_id)
                 } else {
                     String::new()
                 };
                 results.push(RecipientResultInternal {
-                    key_id: id.to_string(),
+                    key_id,
                     pub_algo: algo,
                     status: GfrRecipientStatus::NoKey,
                 });
