@@ -94,9 +94,13 @@ auto InteratorCbFunc(void* handle, const char* status, const char* args, int fd)
 
     if (handel->SerialNumber().isEmpty()) return GPG_ERR_NO_ERROR;
 
-    if (tokens.empty() || tokens[0] != handel->SerialNumber()) {
+    // CARDCTRL format is "<what> [<serialno>]": the first token is a numeric
+    // control code and the serial number, when present, is the second token
+    // (e.g. "3 D276...", code 3 = card with serialno inserted). Only validate
+    // when a serial actually accompanies the code.
+    if (tokens.size() >= 2 && tokens[1] != handel->SerialNumber()) {
       LOG_W() << "handle struct serial number: " << handel->SerialNumber()
-              << "mismatch token: " << tokens[0] << ", exit...";
+              << "mismatch token: " << tokens[1] << ", exit...";
       handel->SetSuccess(false);
       return -1;
     }
