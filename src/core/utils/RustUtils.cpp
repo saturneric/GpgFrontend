@@ -219,12 +219,15 @@ auto SniffRecipients(GFKeyDatabase& key_db, const GFBuffer& in_buffer)
         QString::fromUtf8(rec.pub_algo),
     };
 
-    auto meta = key_db.GetKeyMetadata(recipient.key_id);
     auto gf_key = GetKeyByKeyIdsForDecryption(key_db, {recipient.key_id});
     recipient.status = !gf_key ? GPG_ERR_NO_KEY : GPG_ERR_NO_ERROR;
 
     recipients.push_back(recipient);
   }
+
+  // The recipient array (and its per-entry key_id/pub_algo C strings) is heap
+  // owned by the Rust engine; free it through the dedicated FFI routine.
+  Rust::gfr_crypto_free_recipients(out_recipients, recipient_count);
 
   return recipients;
 }

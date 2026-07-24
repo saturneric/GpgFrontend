@@ -120,10 +120,21 @@ auto FetchPasswordCallback(int channel, Rust::GfrPassphraseState state,
   // passphrase; an empty one falls through to the interactive prompt below.
   GFBuffer result_pwd;
   {
-    std::lock_guard<std::mutex> lock(g_fetcher_mutex);
-    auto it = g_channel_fetchers.find(channel);
-    if (it != g_channel_fetchers.end() && it->second) {
-      result_pwd = it->second(pp_state);
+    // Copy the fetcher out under the lock, then release the lock BEFORE invoking
+    // it. The lock only protects the map; holding it across an arbitrary
+    // user-supplied callback would risk a self-deadlock (if the callback
+    // re-enters SetChannelPasswordFetcher) and needlessly serialize password
+    // fetches across all channels behind one slow callback.
+    PasswordFetcher fetcher;
+    {
+      std::lock_guard<std::mutex> lock(g_fetcher_mutex);
+      auto it = g_channel_fetchers.find(channel);
+      if (it != g_channel_fetchers.end() && it->second) {
+        fetcher = it->second;
+      }
+    }
+    if (fetcher) {
+      result_pwd = fetcher(pp_state);
     }
   }
 
