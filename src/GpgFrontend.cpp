@@ -41,6 +41,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SystemSecretStore.h"
 #include "platform/PlatformSecretStore.h"
+#include "res/GpgFrontendResource.h"
 #include "ui/dialog/AppKeyPinDialog.h"
 
 namespace {
@@ -414,8 +415,8 @@ auto PromptForAppKeyPin(const QString& key_path) -> AppKeyPinPrompt {
  * @return
  */
 auto main(int argc, char* argv[]) -> int {
-  // initialize qt resources
-  Q_INIT_RESOURCE(gpgfrontend);
+  // initialize qt resources (embedded in the gf_res shared library)
+  GpgFrontend::InitResources();
 
   auto const ctx =
       QSharedPointer<GpgFrontend::GpgFrontendContext>::create(argc, argv);

@@ -45,6 +45,7 @@ add_subdirectory(core)
 add_subdirectory(ui)
 add_subdirectory(sdk)
 add_subdirectory(test)
+add_subdirectory(res)
 
 # Collecting sources file of app
 aux_source_directory(. APP_SOURCE)
@@ -52,7 +53,9 @@ aux_source_directory(. APP_SOURCE)
 # Make app build with resources
 set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_SOURCE_DIR}/gpgfrontend.rc")
 set_property(SOURCE gpgfrontend.rc APPEND PROPERTY OBJECT_DEPENDS ${CMAKE_SOURCE_DIR}/gpgfrontend.ico)
-set(RESOURCE_FILES ${CMAKE_SOURCE_DIR}/gpgfrontend.qrc ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
+# gpgfrontend.qrc now lives in the gf_res shared library (see src/res/); only
+# the platform icon artifacts remain attached to the executable.
+set(RESOURCE_FILES ${APP_ICON_RESOURCE_WINDOWS} ${QON_QM_FILES})
 
 # Set Resource Output Path
 if(XCODE_BUILD)
@@ -311,7 +314,7 @@ if(MINGW)
 endif()
 
 # link options for GpgFrontend
-target_link_libraries(${APP_NAME} gf_core gf_ui gf_test)
+target_link_libraries(${APP_NAME} gf_core gf_ui gf_test gf_res)
 
 # link OpenSSL for secure mechanism
 target_link_libraries(${APP_NAME} sodium)
@@ -351,70 +354,8 @@ else()
   target_link_libraries(${APP_NAME} pthread)
 endif()
 
-# add i18n support
-set(LOCALE_TS_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/ts)
-# Derived from the shared locale list (cmake/Translations.cmake) so the app and
-# every module ship the same set of languages.
-gpgfrontend_collect_ts_files(TS_FILES "GpgFrontend" "${LOCALE_TS_PATH}")
-file(GLOB_RECURSE ALL_SOURCE_FILES RELACTIVE ${CMAKE_SOURCE_DIR}/src/*.cpp)
-
-if(GPGFRONTEND_QT5_BUILD)
-  # TODO
-  qt5_add_translation(GF_TRANSLATIONS_QM ${TS_FILES})
-  message(STATUS "GF_TRANSLATIONS_QM ${GF_TRANSLATIONS_QM}")
-
-  set(GF_QM_TRANSLATIONS_RESOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/i18n.qrc")
-  file(WRITE ${GF_QM_TRANSLATIONS_RESOURCE_FILE} "<!DOCTYPE RCC>\n<RCC version=\"1.0\">\n  <qresource prefix=\"i18n\">\n")
-
-  foreach(QM_FILE ${GF_TRANSLATIONS_QM})
-    file(RELATIVE_PATH QM_FILENAME ${CMAKE_CURRENT_BINARY_DIR} ${QM_FILE})
-    file(APPEND ${GF_QM_TRANSLATIONS_RESOURCE_FILE} "    <file alias=\"${QM_FILENAME}\">${QM_FILE}</file>\n")
-  endforeach()
-
-  file(APPEND ${GF_QM_TRANSLATIONS_RESOURCE_FILE} "  </qresource>\n</RCC>\n")
-  qt5_add_resources(GF_I18N_RESOURCES ${GF_QM_TRANSLATIONS_RESOURCE_FILE})
-
-  file(GLOB QT_TRANSLATIONS_TS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third_party/qttranslations/translations/*.ts)
-  list(FILTER QT_TRANSLATIONS_TS INCLUDE REGEX ".*(qt|qtbase)_.*\.ts$")
-  qt5_add_translation(QT_TRANSLATIONS_QM ${QT_TRANSLATIONS_TS})
-
-  set(QT_QM_TRANSLATIONS_RESOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/qt_i18n.qrc")
-  file(WRITE ${QT_QM_TRANSLATIONS_RESOURCE_FILE} "<!DOCTYPE RCC>\n<RCC version=\"1.0\">\n  <qresource prefix=\"qt_i18n\">\n")
-
-  foreach(QM_FILE ${QT_TRANSLATIONS_QM})
-    file(RELATIVE_PATH QM_FILENAME ${CMAKE_CURRENT_BINARY_DIR} ${QM_FILE})
-    file(APPEND ${QT_QM_TRANSLATIONS_RESOURCE_FILE} "    <file alias=\"${QM_FILENAME}\">${QM_FILE}</file>\n")
-  endforeach()
-
-  file(APPEND ${QT_QM_TRANSLATIONS_RESOURCE_FILE} "  </qresource>\n</RCC>\n")
-  qt5_add_resources(GF_I18N_RESOURCES ${QT_QM_TRANSLATIONS_RESOURCE_FILE})
-
-  message(STATUS "GF_I18N_RESOURCES ${GF_I18N_RESOURCES}")
-  target_sources(${APP_NAME} PRIVATE ${GF_I18N_RESOURCES})
-else()
-  add_custom_target(gftranslations ALL)
-
-  qt_add_lrelease(gftranslations
-    TS_FILES ${TS_FILES}
-    QM_FILES_OUTPUT_VARIABLE GF_TRANSLATIONS_QM)
-
-  qt_add_resources(${APP_NAME} "gftranslations"
-    PREFIX "/i18n"
-    BASE ${CMAKE_CURRENT_BINARY_DIR}
-    FILES ${GF_TRANSLATIONS_QM})
-
-  add_custom_target(qttranslations ALL)
-
-  file(GLOB QT_TRANSLATIONS_TS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/third_party/qttranslations/translations/*.ts)
-  list(FILTER QT_TRANSLATIONS_TS INCLUDE REGEX ".*(qt|qtbase)_.*\.ts$")
-  qt_add_lrelease(qttranslations
-    TS_FILES ${QT_TRANSLATIONS_TS}
-    QM_FILES_OUTPUT_VARIABLE QT_TRANSLATIONS_QM)
-  qt_add_resources(${APP_NAME} "qttranslations"
-    PREFIX "/i18n_qt"
-    BASE ${CMAKE_CURRENT_BINARY_DIR}
-    FILES ${QT_TRANSLATIONS_QM})
-endif()
+# i18n support (translation resources) now lives in the gf_res shared library;
+# see src/res/CMakeLists.txt.
 
 include(GNUInstallDirs)
 
