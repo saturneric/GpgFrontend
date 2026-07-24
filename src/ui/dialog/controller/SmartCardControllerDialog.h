@@ -141,16 +141,6 @@ class SmartCardControllerDialog : public GeneralDialog {
   void render_capabilities();
 
   /**
-   * @brief Pick the key-ring channel to move a key from.
-   *
-   * Uses the only ring when a single database exists, otherwise asks the user.
-   *
-   * @param ok set to false when the user cancels the selection
-   * @return the chosen key-ring channel
-   */
-  auto select_ring_channel(bool* ok) -> int;
-
-  /**
    * @brief
    *
    */

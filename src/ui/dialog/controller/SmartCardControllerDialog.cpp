@@ -31,12 +31,10 @@
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgSmartCardManager.h"
-#include "core/function/openpgp/GpgKeyRepository.h"
-#include "core/model/GpgKey.h"
-#include "core/model/GpgSubKey.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/MoveKeyToCardPicker.h"
 #include "ui/dialog/key_generate/GenerateCardKeyDialog.h"
 
 //
@@ -549,34 +547,6 @@ void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
   });
 }
 
-auto SmartCardControllerDialog::select_ring_channel(bool* ok) -> int {
-  // with the key-ring selector gone, default to the only ring and ask the user
-  // when several exist
-  const auto key_dbs = GetGpgKeyDatabaseInfos();
-  if (key_dbs.size() <= 1) {
-    *ok = true;
-    return key_dbs.isEmpty() ? channel_ : key_dbs.front().channel;
-  }
-
-  QStringList db_labels;
-  for (const auto& db : key_dbs) {
-    db_labels << QString("%1: %2").arg(db.channel).arg(db.name);
-  }
-
-  const auto chosen_db = QInputDialog::getItem(
-      this, tr("Select Key Ring"),
-      tr("Which key ring do you want to move a key from?"), db_labels, 0, false,
-      ok);
-  if (!*ok) return channel_;
-
-  const auto db_index = db_labels.indexOf(chosen_db);
-  if (db_index < 0) {
-    *ok = false;
-    return channel_;
-  }
-  return key_dbs.at(db_index).channel;
-}
-
 void SmartCardControllerDialog::slot_move_key_to_card() {
   const auto serial = ui_->currentCardComboBox->currentText();
   if (serial.isEmpty()) {
@@ -585,71 +555,24 @@ void SmartCardControllerDialog::slot_move_key_to_card() {
     return;
   }
 
-  // the key must be moved through the gpg-agent of the ring it lives in
-  bool ring_ok = false;
-  const int ring_channel = select_ring_channel(&ring_ok);
-  if (!ring_ok) return;
-
-  auto all_keys = GpgKeyRepository::GetInstance(ring_channel).Fetch();
-  QList<GpgKeyPtr> secret_keys;
-  QStringList key_labels;
-  for (const auto& k : all_keys) {
-    if (k == nullptr || !k->IsPrivateKey()) continue;
-    secret_keys << k;
-    key_labels << QString("%1 <%2> (%3)").arg(k->Name(), k->Email(), k->ID());
-  }
-  if (secret_keys.isEmpty()) {
+  // moving a key to a card is a GnuPG-only operation; rpgp databases can't
+  if (MoveKeyToCardPicker::SupportedDatabases().isEmpty()) {
     QMessageBox::information(
-        this, tr("No Secret Keys"),
-        tr("The selected key ring has no secret keys to move to a card."));
+        this, tr("Not Supported"),
+        tr("Moving a key to a smart card is only supported for GnuPG key "
+           "databases. The rpgp engine is not supported for this feature."));
     return;
   }
 
-  bool ok = false;
-  const auto chosen_key = QInputDialog::getItem(
-      this, tr("Select Key"), tr("Which key do you want to move to the card?"),
-      key_labels, 0, false, &ok);
-  if (!ok) return;
-  const auto key_index = key_labels.indexOf(chosen_key);
-  if (key_index < 0) return;
-  const auto& key = secret_keys.at(key_index);
+  // let the user pick the database and check the (sub)key to move from the
+  // key-tree picker; only parts that can actually be stored on a card show up
+  MoveKeyToCardPicker picker(this);
+  if (picker.exec() != QDialog::Accepted) return;
 
-  // collect the (sub)keys that can actually be moved onto a card
-  const auto subkeys = key->SubKeys();
-  QList<int> movable_indexes;
-  QStringList sub_labels;
-  for (int i = 0; i < static_cast<int>(subkeys.size()); i++) {
-    const auto& sk = subkeys[i];
-    if (!sk.IsSecretKey() || sk.IsADSK() || sk.IsCardKey() || sk.IsRevoked() ||
-        sk.IsExpired()) {
-      continue;
-    }
-    if (GpgSmartCardManager::CandidateSlots(sk).isEmpty()) continue;
-    movable_indexes << i;
-    sub_labels << QString("%1 — %2 (%3)")
-                      .arg(i == 0 ? tr("Primary Key") : tr("Subkey"))
-                      .arg(sk.Algo())
-                      .arg(sk.ID());
-  }
-  if (movable_indexes.isEmpty()) {
-    QMessageBox::information(
-        this, tr("No Movable Keys"),
-        tr("This key has no part that can be moved to a smart card."));
-    return;
-  }
-
-  int subkey_index = movable_indexes.front();
-  if (movable_indexes.size() > 1) {
-    bool sub_ok = false;
-    const auto chosen_sub =
-        QInputDialog::getItem(this, tr("Select Subkey"),
-                              tr("Which part of the key do you want to move?"),
-                              sub_labels, 0, false, &sub_ok);
-    if (!sub_ok) return;
-    const auto sub_index = sub_labels.indexOf(chosen_sub);
-    if (sub_index < 0) return;
-    subkey_index = movable_indexes.at(sub_index);
-  }
+  const auto key = picker.GetSelectedKey();
+  const auto subkey_index = picker.GetSelectedSubKeyIndex();
+  const auto ring_channel = picker.GetSelectedChannel();
+  if (key == nullptr || subkey_index < 0) return;
 
   if (MoveKeyToCardInteractive(this, ring_channel, key, subkey_index, serial)) {
     fetch_smart_card_info(serial);
