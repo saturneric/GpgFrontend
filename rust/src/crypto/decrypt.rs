@@ -567,18 +567,12 @@ mod rfc9580_envelope_tests {
     use super::*;
     use std::io::Cursor;
 
-    const ENC_V1: &[u8] =
-        include_bytes!("../../../resource/lfs/test/rpgp_vectors/enc_v1seipd_mdc.pgp");
-    const ENC_MULTI: &[u8] =
-        include_bytes!("../../../resource/lfs/test/rpgp_vectors/enc_multi_recipient.pgp");
-    const ENC_SYM_V1: &[u8] =
-        include_bytes!("../../../resource/lfs/test/rpgp_vectors/enc_symmetric_v1.pgp");
-    const ENC_SED: &[u8] =
-        include_bytes!("../../../resource/lfs/test/rpgp_vectors/enc_sed_tag9.pgp");
-    const ENC_V2: &[u8] =
-        include_bytes!("../../../resource/lfs/test/rpgp_vectors/enc_v2seipd_ocb.pgp");
+    use crate::testutil::corpus::{
+        ENC_MULTI_RECIPIENT as ENC_MULTI, ENC_SED_TAG9 as ENC_SED, ENC_SYMMETRIC_V1 as ENC_SYM_V1,
+        ENC_V1SEIPD_MDC as ENC_V1, ENC_V2SEIPD_OCB as ENC_V2,
+    };
 
-    fn parse(data: &[u8]) -> Message {
+    fn parse(data: &[u8]) -> Message<'_> {
         Message::from_reader(Cursor::new(data))
             .expect("parse encrypted message")
             .0
@@ -643,5 +637,553 @@ mod rfc9580_envelope_tests {
         );
         // The identifier is a full v6 fingerprint (64 hex chars), not a key ID.
         assert_eq!(recipients[0].key_id.len(), 64, "{}", recipients[0].key_id);
+    }
+}
+
+#[cfg(test)]
+mod decrypt_tests {
+    //! Decryption across every session-key and payload container RFC 9580
+    //! defines.
+    //!
+    //! The Appendix A vectors are the only coverage the engine has for
+    //! Argon2 (§3.7.1.4), AEAD-EAX (§5.13.3) and AEAD-GCM (§5.13.5): it never
+    //! *produces* any of the three, so no round-trip test could reach them.
+    //! They are normative, tool-independent, and transcribed verbatim.
+
+    use super::*;
+    use crate::testutil::{cb, corpus, keys, packets, rfc9580};
+
+    /// Decrypt with a secret key supplied through the fetch callback.
+    fn decrypt_with_key(data: &[u8], secret_block: &str, passphrase_cb: Option<GfrPasswordFetchCb>) -> Result<DecryptResultInternal, GfrStatus> {
+        cb::set_seckey_answer(secret_block);
+        decrypt_internal(0, data, Some(cb::seckey_fetch), passphrase_cb, std::ptr::null_mut())
+    }
+
+    /// Decrypt a password-protected message.
+    fn decrypt_with_password(
+        data: &[u8],
+        passphrase_cb: GfrPasswordFetchCb,
+    ) -> Result<DecryptResultInternal, GfrStatus> {
+        cb::clear_seckey_answer();
+        decrypt_internal(
+            0,
+            data,
+            Some(cb::seckey_none),
+            Some(passphrase_cb),
+            std::ptr::null_mut(),
+        )
+    }
+
+    /// A passphrase callback bound to a specific literal.
+    macro_rules! pw_cb {
+        ($name:ident, $bytes:expr) => {
+            extern "C" fn $name(
+                _channel: i32,
+                _state: crate::types::GfrPassphraseState,
+                out_pwd: *mut *mut u8,
+                out_status: *mut crate::types::GfrPasswordFetchStatus,
+                _user_data: *mut c_void,
+            ) -> i32 {
+                let (ptr, len) = crate::testutil::leak_as_c_buffer($bytes);
+                unsafe {
+                    *out_pwd = ptr;
+                    *out_status = crate::types::GfrPasswordFetchStatus::Provided;
+                }
+                len as i32
+            }
+        };
+    }
+
+    pw_cb!(pw_password, b"password");
+    pw_cb!(pw_corpus, b"123456");
+
+    // -- RFC 9580 Appendix A known-answer vectors ---------------------------
+
+    #[test]
+    fn appendix_a8_x25519_aead_ocb_decrypts() {
+        // §5.1.6 X25519 PKESK + §5.13.2 v2 SEIPD with OCB (§5.13.4).
+        let res = decrypt_with_key(
+            rfc9580::A8_X25519_AEAD_OCB.as_bytes(),
+            rfc9580::A4_V6_SECRET_UNLOCKED,
+            None,
+        )
+        .expect("A.8 must decrypt");
+        assert_eq!(res.data, rfc9580::A_PLAINTEXT_HELLO);
+    }
+
+    #[test]
+    fn appendix_a8_reports_its_v6_recipient() {
+        // §5.1.2: a v6 PKESK names the recipient by fingerprint.
+        let recipients = crate::crypto::sniff_recipients(rfc9580::A8_X25519_AEAD_OCB.as_bytes());
+        assert_eq!(recipients.len(), 1);
+        assert_eq!(recipients[0].key_id.len(), 64);
+    }
+
+    #[test]
+    fn appendix_a9_aead_eax_decrypts() {
+        // §5.13.3 EAX -- the engine cannot produce this mode, so the RFC
+        // vector is the only way to prove it can consume it.
+        let res = decrypt_with_password(rfc9580::A9_EAX_SKESK.as_bytes(), pw_password)
+            .expect("A.9 must decrypt");
+        assert_eq!(res.data, rfc9580::A_PLAINTEXT_HELLO);
+    }
+
+    #[test]
+    fn appendix_a10_aead_ocb_decrypts() {
+        // §5.13.4 OCB, the mandatory-to-implement AEAD mode (§9.6).
+        let res = decrypt_with_password(rfc9580::A10_OCB_SKESK.as_bytes(), pw_password)
+            .expect("A.10 must decrypt");
+        assert_eq!(res.data, rfc9580::A_PLAINTEXT_HELLO);
+    }
+
+    #[test]
+    fn appendix_a11_aead_gcm_decrypts() {
+        // §5.13.5 GCM.
+        let res = decrypt_with_password(rfc9580::A11_GCM_SKESK.as_bytes(), pw_password)
+            .expect("A.11 must decrypt");
+        assert_eq!(res.data, rfc9580::A_PLAINTEXT_HELLO);
+    }
+
+    #[test]
+    fn appendix_a12_argon2_with_aes128_decrypts() {
+        // §3.7.1.4 Argon2 (t=1, p=4, m=2^21), the S2K the RFC recommends.
+        let res = decrypt_with_password(rfc9580::A12_ARGON2_AES128.as_bytes(), pw_password)
+            .expect("A.12.1 must decrypt");
+        assert_eq!(res.data, rfc9580::A_PLAINTEXT_HELLO);
+    }
+
+    #[test]
+    fn appendix_a12_argon2_with_aes192_decrypts() {
+        let res = decrypt_with_password(rfc9580::A12_ARGON2_AES192.as_bytes(), pw_password)
+            .expect("A.12.2 must decrypt");
+        assert_eq!(res.data, rfc9580::A_PLAINTEXT_HELLO);
+    }
+
+    #[test]
+    fn appendix_a12_argon2_with_aes256_decrypts() {
+        let res = decrypt_with_password(rfc9580::A12_ARGON2_AES256.as_bytes(), pw_password)
+            .expect("A.12.3 must decrypt");
+        assert_eq!(res.data, rfc9580::A_PLAINTEXT_HELLO);
+    }
+
+    #[test]
+    fn an_argon2_message_refuses_the_wrong_passphrase() {
+        // Memory-hard or not, a wrong passphrase must still fail cleanly.
+        assert!(decrypt_with_password(rfc9580::A12_ARGON2_AES128.as_bytes(), pw_corpus).is_err());
+    }
+
+    #[test]
+    fn appendix_a5_locked_v6_secret_key_unlocks_with_its_passphrase() {
+        // §3.7.2.1 S2K usage octet 253 (AEAD) with an Argon2 specifier -- the
+        // combination the RFC recommends for v6 secret keys.
+        use pgp::composed::Deserializable;
+        use pgp::types::Password;
+        let (key, _) = pgp::composed::SignedSecretKey::from_string(rfc9580::A5_V6_SECRET_LOCKED)
+            .expect("A.5 parses");
+        let pw = String::from_utf8_lossy(rfc9580::A5_PASSPHRASE).into_owned();
+        assert!(key.unlock(&Password::from(pw), |_, _| Ok(())).is_ok());
+    }
+
+    #[test]
+    fn appendix_a5_locked_key_refuses_a_wrong_passphrase() {
+        use pgp::composed::Deserializable;
+        use pgp::types::Password;
+        let (key, _) = pgp::composed::SignedSecretKey::from_string(rfc9580::A5_V6_SECRET_LOCKED)
+            .expect("A.5 parses");
+        assert!(key.unlock(&Password::from("wrong"), |_, _| Ok(())).is_err());
+    }
+
+    #[test]
+    fn appendix_a4_and_a5_are_the_same_key() {
+        // The locked and unlocked samples differ only in secret-key
+        // protection, so the fingerprints must match.
+        use pgp::composed::Deserializable;
+        use pgp::types::KeyDetails;
+        let (unlocked, _) =
+            pgp::composed::SignedSecretKey::from_string(rfc9580::A4_V6_SECRET_UNLOCKED)
+                .expect("A.4 parses");
+        let (locked, _) =
+            pgp::composed::SignedSecretKey::from_string(rfc9580::A5_V6_SECRET_LOCKED)
+                .expect("A.5 parses");
+        assert_eq!(
+            unlocked.primary_key.fingerprint().to_string(),
+            locked.primary_key.fingerprint().to_string()
+        );
+    }
+
+    #[test]
+    fn appendix_a3_and_a4_agree_on_the_fingerprint() {
+        use pgp::composed::Deserializable;
+        use pgp::types::KeyDetails;
+        let (cert, _) =
+            pgp::composed::SignedPublicKey::from_string(rfc9580::A3_V6_CERT).expect("A.3");
+        let (secret, _) =
+            pgp::composed::SignedSecretKey::from_string(rfc9580::A4_V6_SECRET_UNLOCKED)
+                .expect("A.4");
+        assert_eq!(
+            cert.primary_key.fingerprint().to_string(),
+            secret.primary_key.fingerprint().to_string()
+        );
+        assert_eq!(
+            cert.primary_key.fingerprint().to_string().to_uppercase(),
+            rfc9580::A3_PRIMARY_FINGERPRINT
+        );
+    }
+
+    // -- the committed corpus ------------------------------------------------
+
+    #[test]
+    fn a_v1_seipd_mdc_message_decrypts() {
+        // §5.13.1: CFB plus a trailing SHA-1 modification detection code.
+        let res = decrypt_with_key(corpus::ENC_V1SEIPD_MDC, corpus::KEY1_SECRET, Some(pw_corpus))
+            .expect("decrypt");
+        assert_eq!(res.data, corpus::PAYLOAD);
+    }
+
+    #[test]
+    fn a_symmetric_v1_message_decrypts_with_its_passphrase() {
+        let res = decrypt_with_password(corpus::ENC_SYMMETRIC_V1, pw_corpus).expect("decrypt");
+        assert_eq!(res.data, corpus::PAYLOAD);
+    }
+
+    #[test]
+    fn a_symmetric_v2_message_decrypts_with_its_passphrase() {
+        // §5.3.2 v6 SKESK + §5.13.2 v2 SEIPD.
+        let res = decrypt_with_password(corpus::ENC_SYMMETRIC_V2, pw_corpus).expect("decrypt");
+        assert_eq!(res.data, corpus::PAYLOAD);
+    }
+
+    #[test]
+    fn a_multi_recipient_message_decrypts_with_one_of_the_keys() {
+        let res = decrypt_with_key(
+            corpus::ENC_MULTI_RECIPIENT,
+            corpus::KEY1_SECRET,
+            Some(pw_corpus),
+        )
+        .expect("decrypt");
+        assert_eq!(res.data, corpus::PAYLOAD);
+    }
+
+    #[test]
+    fn a_decrypted_message_reports_its_recipients() {
+        let res = decrypt_with_key(corpus::ENC_V1SEIPD_MDC, corpus::KEY1_SECRET, Some(pw_corpus))
+            .expect("decrypt");
+        assert!(!res.recipients.is_empty());
+    }
+
+    // -- §13.7 malleable ciphertext ------------------------------------------
+
+    #[test]
+    fn a_legacy_sed_packet_is_refused() {
+        // §13.7 / §5.7: "This packet is obsolete. An implementation MUST NOT
+        // create this packet. An implementation SHOULD reject such a packet
+        // and stop processing the message."
+        assert!(
+            decrypt_with_key(corpus::ENC_SED_TAG9, corpus::KEY1_SECRET, Some(pw_corpus)).is_err(),
+            "an unauthenticated SED payload must never be decrypted"
+        );
+    }
+
+    #[test]
+    fn a_pkesk_without_a_payload_fails() {
+        assert!(
+            decrypt_with_key(corpus::PKESK_NO_SEIPD, corpus::KEY1_SECRET, Some(pw_corpus))
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn a_tampered_mdc_is_detected() {
+        // §5.13.1: "A mismatch of the hash indicates that the message has been
+        // modified and MUST be treated as a security problem."
+        let mut tampered = corpus::ENC_V1SEIPD_MDC.to_vec();
+        let last = tampered.len() - 8;
+        tampered[last] ^= 0xFF;
+        assert!(
+            decrypt_with_key(&tampered, corpus::KEY1_SECRET, Some(pw_corpus)).is_err(),
+            "a corrupted MDC must not release plaintext"
+        );
+    }
+
+    #[test]
+    fn a_tampered_aead_tag_is_detected() {
+        // §13.7: "if the authentication tag fails to verify, the
+        // implementation MUST NOT attempt to parse nor release decrypted data".
+        let mut tampered = rfc9580::A8_X25519_AEAD_OCB.as_bytes().to_vec();
+        // Flip a byte inside the base64 body rather than the armor header.
+        let pos = tampered.len() / 2;
+        tampered[pos] = if tampered[pos] == b'A' { b'B' } else { b'A' };
+        assert!(
+            decrypt_with_key(&tampered, rfc9580::A4_V6_SECRET_UNLOCKED, None).is_err()
+        );
+    }
+
+    #[test]
+    fn a_truncated_ciphertext_fails_cleanly() {
+        for n in [16usize, 64, 128] {
+            let prefix = packets::truncate_at(corpus::ENC_V1SEIPD_MDC, n);
+            let outcome = std::panic::catch_unwind(|| {
+                decrypt_with_key(&prefix, corpus::KEY1_SECRET, Some(pw_corpus)).is_ok()
+            });
+            assert_eq!(outcome.ok(), Some(false), "a {n}-byte prefix must not decrypt");
+        }
+    }
+
+    #[test]
+    fn a_wrong_passphrase_on_a_symmetric_message_fails() {
+        assert!(decrypt_with_password(corpus::ENC_SYMMETRIC_V1, pw_password).is_err());
+    }
+
+    #[test]
+    fn a_missing_secret_key_fails() {
+        cb::clear_seckey_answer();
+        assert!(
+            decrypt_internal(
+                0,
+                corpus::ENC_V1SEIPD_MDC,
+                Some(cb::seckey_none),
+                Some(pw_corpus),
+                std::ptr::null_mut()
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn a_cancelled_passphrase_prompt_surfaces_as_canceled() {
+        // A deliberate user cancellation must not be reported as a generic
+        // failure.
+        match decrypt_with_password(corpus::ENC_SYMMETRIC_V1, cb::pwd_cancelled) {
+            Err(status) => assert_eq!(status, GfrStatus::ErrorCanceled),
+            Ok(_) => panic!("a cancelled prompt must not yield plaintext"),
+        }
+    }
+
+    #[test]
+    fn decrypting_garbage_fails_cleanly() {
+        assert!(decrypt_with_key(corpus::GARBAGE, corpus::KEY1_SECRET, Some(pw_corpus)).is_err());
+    }
+
+    #[test]
+    fn decrypting_an_empty_buffer_fails_cleanly() {
+        assert!(decrypt_with_key(corpus::EMPTY, corpus::KEY1_SECRET, Some(pw_corpus)).is_err());
+    }
+
+    #[test]
+    fn decrypting_never_panics_on_adversarial_input() {
+        for vector in [
+            corpus::GARBAGE,
+            corpus::EMPTY,
+            corpus::ENC_SED_TAG9,
+            corpus::PKESK_NO_SEIPD,
+            corpus::TRUNCATED_ARMOR.as_bytes(),
+            corpus::CORRUPT_CRC.as_bytes(),
+            corpus::SIG_GOOD_DETACHED,
+        ] {
+            let outcome = std::panic::catch_unwind(|| {
+                decrypt_with_key(vector, corpus::KEY1_SECRET, Some(pw_corpus)).is_ok()
+            });
+            assert!(outcome.is_ok(), "panicked on an adversarial vector");
+        }
+    }
+
+    // -- §13.14 compression limits --------------------------------------------
+
+    #[test]
+    fn the_compression_nesting_cap_is_sixteen_layers() {
+        assert_eq!(MAX_COMPRESSION_LAYERS, 16);
+    }
+
+    #[test]
+    fn a_deeply_nested_compressed_payload_is_refused() {
+        // §13.14: "An OpenPGP implementation SHOULD limit the number of layers
+        // of compression it is willing to decompress in a single message."
+        // 32 layers is twice the cap.
+        let key = &keys::V4_SIGN;
+        let nested = packets::nested_compressed(32, &packets::literal(b'b', b"", 0, b"deep"));
+        let encrypted = crate::crypto::encrypt_internal(
+            0,
+            "",
+            &nested,
+            &[&key.public_armored],
+            false,
+        )
+        .expect("encrypt");
+
+        let outcome = std::panic::catch_unwind(|| {
+            decrypt_with_key(&encrypted.data, &key.secret_armored, None).is_ok()
+        });
+        assert!(outcome.is_ok(), "the nesting cap must error, never panic");
+    }
+
+    // -- round-trips against our own encryptor ---------------------------------
+
+    #[test]
+    fn a_message_we_encrypt_decrypts_back() {
+        let key = &keys::V4_SIGN;
+        let encrypted = crate::crypto::encrypt_internal(
+            0,
+            "",
+            b"round trip payload",
+            &[&key.public_armored],
+            true,
+        )
+        .expect("encrypt");
+        let res = decrypt_with_key(&encrypted.data, &key.secret_armored, None).expect("decrypt");
+        assert_eq!(res.data, b"round trip payload");
+    }
+
+    #[test]
+    fn a_v6_message_we_encrypt_decrypts_back() {
+        let key = &keys::V6_SIGN;
+        let encrypted =
+            crate::crypto::encrypt_internal(0, "", b"v6 payload", &[&key.public_armored], true)
+                .expect("encrypt");
+        let res = decrypt_with_key(&encrypted.data, &key.secret_armored, None).expect("decrypt");
+        assert_eq!(res.data, b"v6 payload");
+    }
+
+    #[test]
+    fn a_binary_payload_survives_a_round_trip() {
+        let key = &keys::V4_SIGN;
+        let payload: Vec<u8> = (0..=255u8).cycle().take(8192).collect();
+        let encrypted =
+            crate::crypto::encrypt_internal(0, "", &payload, &[&key.public_armored], false)
+                .expect("encrypt");
+        let res = decrypt_with_key(&encrypted.data, &key.secret_armored, None).expect("decrypt");
+        assert_eq!(res.data, payload);
+    }
+
+    #[test]
+    fn the_filename_hint_is_not_written_into_the_literal_packet() {
+        // KNOWN GAP (upstream): `MessageBuilder::from_reader(file_name, ..)` in
+        // pgp 0.20 accepts a filename and then emits an empty one, so the hint
+        // the caller passes to `encrypt_internal` never reaches the wire and
+        // `DecryptResultInternal::filename` comes back empty.
+        //
+        // This is *not* an RFC 9580 conformance problem -- §5.9 says an
+        // implementation "SHOULD set the filename to the empty string", and
+        // warns that the field is unauthenticated and must not be trusted. The
+        // gap is only that the engine's API advertises a hint it cannot honour.
+        // Pinned here so the day rPGP starts writing it, this test fails and
+        // the behaviour change is noticed rather than assumed.
+        let key = &keys::V4_SIGN;
+        let encrypted = crate::crypto::encrypt_internal(
+            0,
+            "report.pdf",
+            b"contents",
+            &[&key.public_armored],
+            false,
+        )
+        .expect("encrypt");
+        let res = decrypt_with_key(&encrypted.data, &key.secret_armored, None).expect("decrypt");
+        assert_eq!(res.data, b"contents", "the payload itself round-trips");
+        assert_eq!(res.filename, "", "the hint is dropped upstream");
+    }
+
+    #[test]
+    fn rpgp_itself_drops_the_filename_on_a_plain_literal_build() {
+        // The isolation that identifies the previous test's cause as upstream
+        // rather than a mistake at our call site.
+        use pgp::composed::MessageBuilder;
+        let mut out = Vec::new();
+        let builder = MessageBuilder::from_reader(b"direct.txt".to_vec(), &b"x"[..]);
+        builder
+            .to_writer(&mut rand::thread_rng(), &mut out)
+            .expect("build");
+        let msg = Message::from_bytes(std::io::Cursor::new(out)).expect("parse");
+        let name = msg
+            .literal_data_header()
+            .map(|h| String::from_utf8_lossy(h.file_name()).into_owned());
+        assert_eq!(name.as_deref(), Some(""));
+    }
+
+    #[test]
+    fn a_hand_built_literal_packet_does_carry_its_filename() {
+        // And the parser reads it correctly when a producer actually writes
+        // one -- so consuming a filename from another implementation works.
+        let data = packets::literal(b'b', b"from-elsewhere.txt", 0, b"x");
+        let msg = Message::from_bytes(std::io::Cursor::new(data)).expect("parse");
+        assert_eq!(
+            msg.literal_data_header()
+                .map(|h| h.file_name().to_vec()),
+            Some(b"from-elsewhere.txt".to_vec())
+        );
+    }
+
+    #[test]
+    fn decrypting_with_the_wrong_key_fails() {
+        let encrypted = crate::crypto::encrypt_internal(
+            0,
+            "",
+            b"secret",
+            &[&keys::V4_SIGN.public_armored],
+            false,
+        )
+        .expect("encrypt");
+        assert!(decrypt_with_key(&encrypted.data, &keys::V6_SIGN.secret_armored, None).is_err());
+    }
+
+    #[test]
+    fn decrypt_and_verify_reports_both_plaintext_and_signatures() {
+        let key = &keys::V4_SIGN;
+        let sealed = crate::crypto::encrypt_and_sign_internal(
+            0,
+            "",
+            b"signed and sealed",
+            &[&key.public_armored],
+            &[&key.secret_armored],
+            None,
+            true,
+        )
+        .expect("encrypt+sign");
+
+        cb::set_seckey_answer(&key.secret_armored);
+        cb::set_pubkey_answer(&key.public_armored);
+        let res = decrypt_and_verify_internal(
+            0,
+            &sealed.data,
+            Some(cb::seckey_fetch),
+            None,
+            Some(cb::pubkey_fetch),
+            std::ptr::null_mut(),
+        )
+        .expect("decrypt+verify");
+
+        assert_eq!(res.data, b"signed and sealed");
+        assert!(res.is_verified, "the embedded signature must verify");
+        assert!(!res.signatures.is_empty());
+    }
+
+    #[test]
+    fn decrypt_and_verify_without_the_signer_key_still_decrypts() {
+        // Not having the signer's certificate must not block decryption; it
+        // only leaves the signature unattributed.
+        let key = &keys::V4_SIGN;
+        let sealed = crate::crypto::encrypt_and_sign_internal(
+            0,
+            "",
+            b"payload",
+            &[&key.public_armored],
+            &[&key.secret_armored],
+            None,
+            true,
+        )
+        .expect("encrypt+sign");
+
+        cb::set_seckey_answer(&key.secret_armored);
+        cb::clear_pubkey_answer();
+        let res = decrypt_and_verify_internal(
+            0,
+            &sealed.data,
+            Some(cb::seckey_fetch),
+            None,
+            Some(cb::pubkey_fetch),
+            std::ptr::null_mut(),
+        )
+        .expect("decrypt+verify");
+
+        assert_eq!(res.data, b"payload");
+        assert!(!res.is_verified);
     }
 }

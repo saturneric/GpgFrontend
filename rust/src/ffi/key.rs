@@ -897,3 +897,511 @@ pub extern "C" fn gfr_crypto_extract_rev_cert_target_fpr(
         Err(_) => GfrStatus::ErrorPanic,
     }
 }
+
+#[cfg(test)]
+mod ffi_key_tests {
+    //! The 13 key-block FFI entry points.
+    //!
+    //! Rules every test here follows, because the alternative is undefined
+    //! behaviour rather than a failing assertion:
+    //!   * no pointer is ever fabricated -- every non-null one comes from a
+    //!     live Rust allocation;
+    //!   * C strings are bound to a local, never built inline as a temporary
+    //!     whose backing storage dies before the call;
+    //!   * out-params are zeroed `MaybeUninit` and only read on `Success`;
+    //!   * everything allocated is released with its matching
+    //!     `gfr_crypto_free_*`.
+
+    use super::*;
+    use crate::testutil::{corpus, keys};
+    use std::ffi::CString;
+
+    fn buf(s: &str) -> GfrBuffer {
+        GfrBuffer {
+            data: s.as_ptr(),
+            len: s.len(),
+        }
+    }
+
+    /// Consume an out-param C string and free it.
+    fn take(ptr: *mut c_char) -> String {
+        assert!(!ptr.is_null());
+        let s = unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned();
+        crate::ffi::mem::gfr_crypto_free_string(ptr);
+        s
+    }
+
+    // -- extract_metadata -----------------------------------------------------
+
+    #[test]
+    fn extract_metadata_rejects_null_out_params() {
+        let key = &keys::V4_SIGN;
+        let mut count = 0usize;
+        assert_eq!(
+            gfr_crypto_extract_metadata(buf(&key.public_armored), std::ptr::null_mut(), &mut count),
+            GfrStatus::ErrorInvalidInput
+        );
+        let mut list = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_extract_metadata(buf(&key.public_armored), &mut list, std::ptr::null_mut()),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn extract_metadata_rejects_an_empty_buffer() {
+        let mut list = std::ptr::null_mut();
+        let mut count = 0usize;
+        assert_eq!(
+            gfr_crypto_extract_metadata(GfrBuffer::empty(), &mut list, &mut count),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn extract_metadata_rejects_invalid_utf8() {
+        // `GfrBuffer::as_str` is the gate; a key block is text by definition.
+        let bytes = [0xC3u8, 0x28, 0x00, 0xFF];
+        let b = GfrBuffer {
+            data: bytes.as_ptr(),
+            len: bytes.len(),
+        };
+        let mut list = std::ptr::null_mut();
+        let mut count = 0usize;
+        assert_eq!(
+            gfr_crypto_extract_metadata(b, &mut list, &mut count),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn extract_metadata_round_trips_a_real_key() {
+        let key = &keys::V4_SIGN;
+        let mut list = std::ptr::null_mut();
+        let mut count = 0usize;
+        assert_eq!(
+            gfr_crypto_extract_metadata(buf(&key.secret_armored), &mut list, &mut count),
+            GfrStatus::Success
+        );
+        assert_eq!(count, 1);
+        let meta = unsafe { &*list };
+        let fpr = unsafe { CStr::from_ptr(meta.fpr) }.to_string_lossy().into_owned();
+        assert_eq!(fpr.to_uppercase(), key.primary_fpr);
+        assert_eq!(meta.subkey_count, 2);
+        unsafe { crate::ffi::mem::gfr_free_metadata_array(list, count) };
+    }
+
+    #[test]
+    fn extract_metadata_of_garbage_fails_without_leaking_an_array() {
+        let mut list = std::ptr::null_mut();
+        let mut count = 0usize;
+        let status = gfr_crypto_extract_metadata(buf("not a key block"), &mut list, &mut count);
+        assert_ne!(status, GfrStatus::Success);
+        assert!(list.is_null(), "no array may be handed back on failure");
+    }
+
+    // -- extract_public_key ----------------------------------------------------
+
+    #[test]
+    fn extract_public_key_rejects_a_null_out_param() {
+        assert_eq!(
+            gfr_crypto_extract_public_key(
+                buf(&keys::V4_SIGN.secret_armored),
+                std::ptr::null_mut()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn extract_public_key_strips_the_secret_material() {
+        let mut out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_extract_public_key(buf(&keys::V4_SIGN.secret_armored), &mut out),
+            GfrStatus::Success
+        );
+        let block = take(out);
+        assert!(block.contains("BEGIN PGP PUBLIC KEY BLOCK"));
+        assert!(!block.contains("PRIVATE KEY BLOCK"));
+    }
+
+    #[test]
+    fn extract_public_key_rejects_an_empty_buffer() {
+        let mut out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_extract_public_key(GfrBuffer::empty(), &mut out),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    // -- get_recipients ---------------------------------------------------------
+
+    #[test]
+    fn get_recipients_rejects_null_arguments() {
+        let mut list = std::ptr::null_mut();
+        let mut count = 0usize;
+        assert_eq!(
+            gfr_crypto_get_recipients(std::ptr::null(), 0, &mut list, &mut count),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_get_recipients(
+                corpus::ENC_MULTI_RECIPIENT.as_ptr(),
+                corpus::ENC_MULTI_RECIPIENT.len(),
+                std::ptr::null_mut(),
+                &mut count
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn get_recipients_lists_them_and_frees_cleanly() {
+        let data = corpus::ENC_MULTI_RECIPIENT;
+        let mut list = std::ptr::null_mut();
+        let mut count = 0usize;
+        assert_eq!(
+            gfr_crypto_get_recipients(data.as_ptr(), data.len(), &mut list, &mut count),
+            GfrStatus::Success
+        );
+        assert!(count >= 3, "the vector is encrypted to three certificates");
+        crate::ffi::mem::gfr_crypto_free_recipients(list, count);
+    }
+
+    #[test]
+    fn get_recipients_of_garbage_does_not_crash() {
+        let data = corpus::GARBAGE;
+        let mut list = std::ptr::null_mut();
+        let mut count = 0usize;
+        let status = gfr_crypto_get_recipients(data.as_ptr(), data.len(), &mut list, &mut count);
+        if status == GfrStatus::Success {
+            crate::ffi::mem::gfr_crypto_free_recipients(list, count);
+        }
+    }
+
+    // -- export_merged_keys ------------------------------------------------------
+
+    #[test]
+    fn export_merged_keys_rejects_null_arguments() {
+        let mut out = std::ptr::null_mut();
+        assert_eq!(
+            unsafe { gfr_export_merged_keys(std::ptr::null(), 0, false, &mut out) },
+            GfrStatus::ErrorInvalidInput
+        );
+        let blocks = [CString::new("x").expect("no NUL")];
+        let ptrs: Vec<*const c_char> = blocks.iter().map(|c| c.as_ptr()).collect();
+        assert_eq!(
+            unsafe { gfr_export_merged_keys(ptrs.as_ptr(), 1, false, std::ptr::null_mut()) },
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn export_merged_keys_combines_two_certificates() {
+        let a = CString::new(keys::V4_SIGN.public_armored.as_str()).expect("no NUL");
+        let b = CString::new(keys::V6_SIGN.public_armored.as_str()).expect("no NUL");
+        let ptrs: Vec<*const c_char> = vec![a.as_ptr(), b.as_ptr()];
+        let mut out = std::ptr::null_mut();
+        assert_eq!(
+            unsafe { gfr_export_merged_keys(ptrs.as_ptr(), ptrs.len(), false, &mut out) },
+            GfrStatus::Success
+        );
+        let merged = take(out);
+        assert_eq!(
+            crate::key::extract_metadata_many_internal(&merged)
+                .expect("metadata")
+                .len(),
+            2
+        );
+    }
+
+    #[test]
+    fn export_merged_keys_with_a_null_element_is_rejected() {
+        let a = CString::new(keys::V4_SIGN.public_armored.as_str()).expect("no NUL");
+        let ptrs: Vec<*const c_char> = vec![a.as_ptr(), std::ptr::null()];
+        let mut out = std::ptr::null_mut();
+        let status = unsafe { gfr_export_merged_keys(ptrs.as_ptr(), ptrs.len(), false, &mut out) };
+        assert_ne!(status, GfrStatus::Success);
+    }
+
+    // -- delete_subkey / revoke_subkey ---------------------------------------------
+
+    #[test]
+    fn delete_subkey_rejects_null_arguments() {
+        let fpr = CString::new("AABB").expect("no NUL");
+        assert_eq!(
+            gfr_crypto_delete_subkey(
+                buf(&keys::V4_SIGN.secret_armored),
+                std::ptr::null(),
+                &mut std::ptr::null_mut()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_delete_subkey(
+                buf(&keys::V4_SIGN.secret_armored),
+                fpr.as_ptr(),
+                std::ptr::null_mut()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn delete_subkey_removes_the_named_subkey() {
+        let key = &keys::V4_SIGN;
+        let fpr = CString::new(key.enc_subkey_fpr()).expect("no NUL");
+        let mut out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_delete_subkey(buf(&key.secret_armored), fpr.as_ptr(), &mut out),
+            GfrStatus::Success
+        );
+        let block = take(out);
+        let meta = crate::key::extract_metadata_many_internal(&block).expect("meta");
+        assert_eq!(meta[0].subkeys.len(), 1);
+    }
+
+    #[test]
+    fn delete_subkey_with_an_unknown_fingerprint_fails_and_nulls_the_out_param() {
+        let fpr = CString::new("0000000000000000").expect("no NUL");
+        let mut out = std::ptr::null_mut();
+        let status =
+            gfr_crypto_delete_subkey(buf(&keys::V4_SIGN.secret_armored), fpr.as_ptr(), &mut out);
+        assert_ne!(status, GfrStatus::Success);
+        assert!(out.is_null(), "a failure must not hand back a block");
+    }
+
+    // -- ecdh kdf params -------------------------------------------------------------
+
+    #[test]
+    fn get_ecdh_kdf_params_rejects_null_arguments() {
+        let fpr = CString::new("AABB").expect("no NUL");
+        assert_eq!(
+            gfr_crypto_get_ecdh_kdf_params(
+                buf(&keys::V4_SIGN.public_armored),
+                fpr.as_ptr(),
+                std::ptr::null_mut()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn get_ecdh_kdf_params_returns_four_hex_octets() {
+        let key = &keys::V4_SIGN;
+        let fpr = CString::new(key.enc_subkey_fpr()).expect("no NUL");
+        let mut out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_get_ecdh_kdf_params(buf(&key.public_armored), fpr.as_ptr(), &mut out),
+            GfrStatus::Success
+        );
+        let hex = take(out);
+        assert_eq!(hex.len(), 8);
+        assert!(hex.starts_with("0301"));
+    }
+
+    // -- revocation certificates -------------------------------------------------------
+
+    #[test]
+    fn generate_and_extract_a_revocation_certificate_round_trip() {
+        let key = &keys::V4_SIGN;
+        let mut cert_out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_generate_key_rev_cert(
+                0,
+                buf(&key.secret_armored),
+                GfrRevocationCode::Superseded,
+                std::ptr::null(),
+                crate::testutil::cb::pwd_correct,
+                &mut cert_out,
+            ),
+            GfrStatus::Success
+        );
+        let cert = take(cert_out);
+
+        let mut fpr_out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_extract_rev_cert_target_fpr(buf(&cert), &mut fpr_out),
+            GfrStatus::Success
+        );
+        assert_eq!(take(fpr_out).to_uppercase(), key.primary_fpr);
+    }
+
+    #[test]
+    fn extract_rev_cert_target_fpr_rejects_a_non_revocation_block() {
+        let mut out = std::ptr::null_mut();
+        let status =
+            gfr_crypto_extract_rev_cert_target_fpr(buf(&keys::V4_SIGN.public_armored), &mut out);
+        assert_ne!(status, GfrStatus::Success);
+        assert!(out.is_null());
+    }
+
+    #[test]
+    fn extract_rev_cert_target_fpr_rejects_an_empty_buffer() {
+        let mut out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_extract_rev_cert_target_fpr(GfrBuffer::empty(), &mut out),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn import_rev_cert_rejects_a_foreign_certificate() {
+        // A revocation that does not verify under the base primary must never
+        // be stored, however convincingly it names one.
+        let foreign = crate::key::generate_key_rev_cert_internal(
+            0,
+            &keys::V6_SIGN.secret_armored,
+            GfrRevocationCode::Compromised,
+            None,
+            None,
+        )
+        .expect("rev cert");
+
+        let mut sec_out = std::ptr::null_mut();
+        let mut pub_out = std::ptr::null_mut();
+        let status = gfr_crypto_import_rev_cert(
+            buf(&keys::V4_SIGN.secret_armored),
+            buf(&foreign),
+            &mut sec_out,
+            &mut pub_out,
+        );
+        assert_ne!(status, GfrStatus::Success);
+    }
+
+    // -- merge_key_blocks -------------------------------------------------------------
+
+    #[test]
+    fn merge_key_blocks_rejects_null_out_params() {
+        assert_eq!(
+            gfr_crypto_merge_key_blocks(
+                buf(&keys::V4_SIGN.secret_armored),
+                buf(&keys::V4_SIGN.public_armored),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn merge_key_blocks_keeps_the_secret_half() {
+        let key = &keys::V4_SIGN;
+        let mut sec_out = std::ptr::null_mut();
+        let mut pub_out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_merge_key_blocks(
+                buf(&key.secret_armored),
+                buf(&key.public_armored),
+                &mut sec_out,
+                &mut pub_out,
+            ),
+            GfrStatus::Success
+        );
+        let secret = take(sec_out);
+        let public = take(pub_out);
+        assert!(secret.contains("PRIVATE KEY BLOCK"));
+        assert!(public.contains("PUBLIC KEY BLOCK"));
+    }
+
+    // -- modify_key_password -----------------------------------------------------------
+
+    #[test]
+    fn modify_key_password_rejects_a_null_out_param() {
+        assert_eq!(
+            gfr_crypto_modify_key_password(
+                0,
+                buf(&keys::V4_SIGN.secret_armored),
+                std::ptr::null(),
+                crate::testutil::cb::pwd_correct,
+                std::ptr::null_mut(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn modify_key_password_rejects_an_empty_buffer() {
+        let mut out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_modify_key_password(
+                0,
+                GfrBuffer::empty(),
+                std::ptr::null(),
+                crate::testutil::cb::pwd_correct,
+                &mut out,
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    // -- a sweep across every entry point -----------------------------------------------
+
+    #[test]
+    fn every_key_entry_point_rejects_an_empty_buffer_without_panicking() {
+        // The systematic null/empty sweep: none of these may succeed, and
+        // none may unwind across the FFI boundary.
+        let fpr = CString::new("AABB").expect("no NUL");
+        let mut out_c: *mut c_char = std::ptr::null_mut();
+        let mut out_c2: *mut c_char = std::ptr::null_mut();
+
+        let statuses = [
+            gfr_crypto_extract_public_key(GfrBuffer::empty(), &mut out_c),
+            gfr_crypto_delete_subkey(GfrBuffer::empty(), fpr.as_ptr(), &mut out_c),
+            gfr_crypto_get_ecdh_kdf_params(GfrBuffer::empty(), fpr.as_ptr(), &mut out_c),
+            gfr_crypto_extract_rev_cert_target_fpr(GfrBuffer::empty(), &mut out_c),
+            gfr_crypto_merge_key_blocks(
+                GfrBuffer::empty(),
+                GfrBuffer::empty(),
+                &mut out_c,
+                &mut out_c2,
+            ),
+            gfr_crypto_modify_key_password(
+                0,
+                GfrBuffer::empty(),
+                std::ptr::null(),
+                crate::testutil::cb::pwd_correct,
+                &mut out_c,
+            ),
+        ];
+        for status in statuses {
+            assert_ne!(status, GfrStatus::Success);
+        }
+    }
+
+    #[test]
+    fn key_entry_points_never_panic_on_adversarial_blocks() {
+        let fpr = CString::new("AABB").expect("no NUL");
+        for block in [
+            "junk",
+            corpus::TRUNCATED_ARMOR,
+            corpus::CORRUPT_CRC,
+            corpus::SIG_GOOD_CLEARTEXT,
+        ] {
+            let outcome = std::panic::catch_unwind(|| {
+                let mut out: *mut c_char = std::ptr::null_mut();
+                let mut list = std::ptr::null_mut();
+                let mut count = 0usize;
+                let _ = gfr_crypto_extract_metadata(buf(block), &mut list, &mut count);
+                if !list.is_null() {
+                    unsafe { crate::ffi::mem::gfr_free_metadata_array(list, count) };
+                }
+                let _ = gfr_crypto_extract_public_key(buf(block), &mut out);
+                if !out.is_null() {
+                    crate::ffi::mem::gfr_crypto_free_string(out);
+                    out = std::ptr::null_mut();
+                }
+                let _ = gfr_crypto_delete_subkey(buf(block), fpr.as_ptr(), &mut out);
+                if !out.is_null() {
+                    crate::ffi::mem::gfr_crypto_free_string(out);
+                    out = std::ptr::null_mut();
+                }
+                let _ = gfr_crypto_extract_rev_cert_target_fpr(buf(block), &mut out);
+                if !out.is_null() {
+                    crate::ffi::mem::gfr_crypto_free_string(out);
+                }
+            });
+            assert!(outcome.is_ok(), "panicked on an adversarial block");
+        }
+    }
+}

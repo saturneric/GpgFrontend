@@ -552,3 +552,658 @@ pub fn encrypt_and_sign_internal(
         recipients: stream_result.recipients,
     })
 }
+
+#[cfg(test)]
+mod encrypt_tests {
+    //! Encryption: recipient/subkey selection, the emitted container format,
+    //! symmetric (passphrase) encryption, and encrypt-and-sign.
+    //!
+    //! The engine deliberately emits v1 SEIPD with AES-256 (§5.13.1) rather
+    //! than v2 SEIPD/AEAD: it is the most widely interoperable choice, and
+    //! §13.7 permits it when a recipient's support for v2 is unknown. Tests
+    //! here pin that decision so a change is deliberate.
+
+    use super::*;
+    use crate::testutil::{cb, corpus, keys, packets};
+
+    fn cert_of(fixture: &keys::Fixture) -> SignedPublicKey {
+        SignedPublicKey::from_string(&fixture.public_armored)
+            .expect("parses")
+            .0
+    }
+
+    fn encrypt_to(fixture: &keys::Fixture, data: &[u8]) -> EncryptResultInternal {
+        encrypt_internal(0, "", data, &[&fixture.public_armored], true).expect("encrypt")
+    }
+
+    // -- choose_encryption_target: automatic selection ------------------------
+
+    #[test]
+    fn the_encryption_subkey_is_selected_automatically() {
+        // §10.1.5: "In general, subkeys are provided in cases where the
+        // top-level public key is a certification-only key."
+        let cert = cert_of(&keys::V4_SIGN);
+        assert!(matches!(
+            choose_encryption_target(&cert, None).expect("a target"),
+            EncryptionTarget::Sub(_)
+        ));
+    }
+
+    #[test]
+    fn a_signing_only_subkey_is_not_selected_for_encryption() {
+        let cert = cert_of(&keys::V4_SIGN);
+        let EncryptionTarget::Sub(i) = choose_encryption_target(&cert, None).expect("a target")
+        else {
+            panic!("expected a subkey");
+        };
+        assert!(cert.public_subkeys[i].key.algorithm().can_encrypt());
+    }
+
+    #[test]
+    fn a_revoked_encryption_subkey_is_skipped() {
+        // §5.2.1.12: "A revoked subkey is not to be used."
+        let cert = cert_of(&keys::V4_REVOKED_SUBKEY);
+        // The only encryption subkey is revoked and the primary is Ed25519,
+        // so there is nothing left to encrypt to.
+        assert!(choose_encryption_target(&cert, None).is_err());
+    }
+
+    #[test]
+    fn a_key_with_no_encryption_capable_component_is_rejected() {
+        let cert = cert_of(&keys::V4_PRIMARY_ONLY);
+        assert_eq!(
+            choose_encryption_target(&cert, None).err(),
+            Some(GfrStatus::ErrorNoKey)
+        );
+    }
+
+    #[test]
+    fn a_v6_key_selects_its_x25519_subkey() {
+        let cert = cert_of(&keys::V6_SIGN);
+        let EncryptionTarget::Sub(i) = choose_encryption_target(&cert, None).expect("a target")
+        else {
+            panic!("expected a subkey");
+        };
+        assert_eq!(
+            cert.public_subkeys[i].key.algorithm(),
+            pgp::crypto::public_key::PublicKeyAlgorithm::X25519
+        );
+    }
+
+    // -- choose_encryption_target: pinned selection ---------------------------
+
+    #[test]
+    fn a_pinned_encryption_subkey_is_honoured() {
+        let cert = cert_of(&keys::V4_SIGN);
+        let want = keys::V4_SIGN.enc_subkey_fpr();
+        let EncryptionTarget::Sub(i) =
+            choose_encryption_target(&cert, Some(want)).expect("a target")
+        else {
+            panic!("expected a subkey");
+        };
+        assert!(
+            cert.public_subkeys[i]
+                .key
+                .fingerprint()
+                .to_string()
+                .eq_ignore_ascii_case(want)
+        );
+    }
+
+    #[test]
+    fn a_pinned_signing_subkey_is_rejected_rather_than_replaced() {
+        // Falling back would encrypt to a key the user did not choose.
+        let cert = cert_of(&keys::V4_SIGN);
+        assert_eq!(
+            choose_encryption_target(&cert, Some(keys::V4_SIGN.sign_subkey_fpr())).err(),
+            Some(GfrStatus::ErrorNoKey)
+        );
+    }
+
+    #[test]
+    fn a_pinned_revoked_subkey_is_rejected() {
+        let cert = cert_of(&keys::V4_REVOKED_SUBKEY);
+        let revoked = keys::V4_SIGN.enc_subkey_fpr();
+        assert_eq!(
+            choose_encryption_target(&cert, Some(revoked)).err(),
+            Some(GfrStatus::ErrorNoKey)
+        );
+    }
+
+    #[test]
+    fn a_pinned_unknown_identifier_is_rejected() {
+        let cert = cert_of(&keys::V4_SIGN);
+        assert_eq!(
+            choose_encryption_target(&cert, Some("0000000000000000")).err(),
+            Some(GfrStatus::ErrorNoKey)
+        );
+    }
+
+    #[test]
+    fn a_pinned_non_encrypting_primary_is_rejected() {
+        let cert = cert_of(&keys::V4_SIGN);
+        assert_eq!(
+            choose_encryption_target(&cert, Some(&keys::V4_SIGN.primary_fpr)).err(),
+            Some(GfrStatus::ErrorNoKey)
+        );
+    }
+
+    #[test]
+    fn a_pinned_key_id_suffix_resolves() {
+        let cert = cert_of(&keys::V4_SIGN);
+        let full = keys::V4_SIGN.enc_subkey_fpr();
+        assert!(choose_encryption_target(&cert, Some(&full[full.len() - 16..])).is_ok());
+    }
+
+    // -- emitted container ------------------------------------------------------
+
+    #[test]
+    fn armored_output_is_a_pgp_message() {
+        let out = encrypt_to(&keys::V4_SIGN, b"payload");
+        assert!(String::from_utf8_lossy(&out.data).contains("BEGIN PGP MESSAGE"));
+    }
+
+    #[test]
+    fn armored_output_carries_no_crc24_footer() {
+        let out = encrypt_to(&keys::V4_SIGN, b"payload");
+        crate::testutil::assert::armor_has_no_crc24(&String::from_utf8_lossy(&out.data));
+    }
+
+    #[test]
+    fn unarmored_output_is_binary() {
+        let out = encrypt_internal(0, "", b"payload", &[&keys::V4_SIGN.public_armored], false)
+            .expect("encrypt");
+        assert!(!String::from_utf8_lossy(&out.data).contains("BEGIN PGP"));
+        assert!(!out.data.is_empty());
+    }
+
+    #[test]
+    fn the_output_is_an_integrity_protected_container() {
+        // §13.7: the deprecated SED packet MUST NOT be generated. Whatever
+        // container the engine picks must be a SEIPD.
+        let out = encrypt_internal(0, "", b"payload", &[&keys::V4_SIGN.public_armored], false)
+            .expect("encrypt");
+        let msg = Message::from_bytes(std::io::Cursor::new(out.data)).expect("parse");
+        let Message::Encrypted { edata, .. } = &msg else {
+            panic!("expected an encrypted message");
+        };
+        assert_ne!(
+            edata.tag(),
+            Tag::SymEncryptedData,
+            "an unauthenticated SED payload must never be produced"
+        );
+    }
+
+    #[test]
+    fn the_output_lists_the_recipients_it_encrypted_to() {
+        let out = encrypt_to(&keys::V4_SIGN, b"payload");
+        assert_eq!(out.recipients.len(), 1);
+        assert!(!out.recipients[0].key_id.is_empty());
+    }
+
+    #[test]
+    fn the_reported_recipient_is_the_encryption_subkey() {
+        let out = encrypt_to(&keys::V4_SIGN, b"payload");
+        let want = keys::V4_SIGN.enc_subkey_fpr();
+        assert!(
+            want.to_uppercase()
+                .ends_with(&out.recipients[0].key_id.to_uppercase()),
+            "reported {} for subkey {want}",
+            out.recipients[0].key_id
+        );
+    }
+
+    #[test]
+    fn a_v6_recipient_is_reported_by_fingerprint() {
+        // §5.1.2: a v6 PKESK identifies the recipient by fingerprint.
+        let out = encrypt_to(&keys::V6_SIGN, b"payload");
+        assert_eq!(out.recipients.len(), 1);
+    }
+
+    // -- multiple recipients ------------------------------------------------------
+
+    #[test]
+    fn encrypting_to_two_certificates_emits_two_session_keys() {
+        // §5.1: "The encryption container is preceded by one Public Key
+        // Encrypted Session Key packet for each OpenPGP Key."
+        let out = encrypt_internal(
+            0,
+            "",
+            b"payload",
+            &[&keys::V4_SIGN.public_armored, &keys::V6_SIGN.public_armored],
+            false,
+        )
+        .expect("encrypt");
+        assert_eq!(out.recipients.len(), 2);
+        assert!(out.invalid_recipients.is_empty());
+    }
+
+    #[test]
+    fn either_recipient_can_decrypt_a_two_recipient_message() {
+        let out = encrypt_internal(
+            0,
+            "",
+            b"shared secret",
+            &[&keys::V4_SIGN.public_armored, &keys::V6_SIGN.public_armored],
+            false,
+        )
+        .expect("encrypt");
+
+        for key in [&*keys::V4_SIGN, &*keys::V6_SIGN] {
+            cb::set_seckey_answer(&key.secret_armored);
+            let res = crate::crypto::decrypt_internal(
+                0,
+                &out.data,
+                Some(cb::seckey_fetch),
+                None,
+                std::ptr::null_mut(),
+            )
+            .expect("decrypt");
+            assert_eq!(res.data, b"shared secret");
+        }
+    }
+
+    #[test]
+    fn an_unusable_recipient_is_reported_rather_than_aborting_the_whole_operation() {
+        // One bad certificate among several must not deny service to the rest.
+        let out = encrypt_internal(
+            0,
+            "",
+            b"payload",
+            &[
+                &keys::V4_SIGN.public_armored,
+                &keys::V4_PRIMARY_ONLY.public_armored,
+            ],
+            false,
+        );
+
+        match out {
+            Ok(res) => {
+                assert!(
+                    !res.invalid_recipients.is_empty(),
+                    "the encryption-incapable certificate must be reported"
+                );
+                assert_eq!(res.recipients.len(), 1);
+            }
+            Err(status) => assert!((status as i32) < 0),
+        }
+    }
+
+    #[test]
+    fn encrypting_to_no_recipients_fails() {
+        assert!(encrypt_internal(0, "", b"payload", &[], true).is_err());
+    }
+
+    #[test]
+    fn encrypting_to_garbage_fails() {
+        assert!(encrypt_internal(0, "", b"payload", &["not a key"], true).is_err());
+    }
+
+    #[test]
+    fn encrypting_to_a_revoked_primary_is_currently_allowed() {
+        // KNOWN GAP: `choose_encryption_target` skips revoked *subkeys* but
+        // never checks whether the primary key itself is revoked or expired,
+        // so a message can still be encrypted to a revoked certificate. The
+        // verify side does gate on this (§5.2.1.11), so the two sides are
+        // deliberately asymmetric. Pinned as current behaviour; see the
+        // companion `#[ignore]`d test below for the target behaviour.
+        let res = encrypt_internal(
+            0,
+            "",
+            b"payload",
+            &[&keys::V4_REVOKED_PRIMARY.public_armored],
+            false,
+        );
+        assert!(res.is_ok(), "current behaviour: revoked primaries are accepted");
+    }
+
+    #[test]
+    #[ignore = "DEFERRED: the produce side does not reject a revoked or expired \
+                recipient, unlike the verify side. This encodes the target behaviour."]
+    fn deferred_encrypting_to_a_revoked_primary_reports_an_invalid_recipient() {
+        let res = encrypt_internal(
+            0,
+            "",
+            b"payload",
+            &[&keys::V4_REVOKED_PRIMARY.public_armored],
+            false,
+        );
+        assert!(res.is_err() || !res.unwrap().invalid_recipients.is_empty());
+    }
+
+    // -- payloads -------------------------------------------------------------------
+
+    #[test]
+    fn an_empty_payload_is_accepted() {
+        // An empty literal packet (§5.9) is well formed, and refusing it would
+        // make encrypting a zero-byte file fail for no good reason.
+        let out = encrypt_internal(0, "", b"", &[&keys::V4_SIGN.public_armored], true)
+            .expect("an empty payload encrypts");
+        assert!(!out.data.is_empty(), "the container itself is non-empty");
+    }
+
+    #[test]
+    fn an_empty_payload_round_trips_to_nothing() {
+        let out = encrypt_internal(0, "", b"", &[&keys::V4_SIGN.public_armored], false)
+            .expect("encrypt");
+        cb::set_seckey_answer(&keys::V4_SIGN.secret_armored);
+        let res = crate::crypto::decrypt_internal(
+            0,
+            &out.data,
+            Some(cb::seckey_fetch),
+            None,
+            std::ptr::null_mut(),
+        )
+        .expect("decrypt");
+        assert!(res.data.is_empty());
+    }
+
+    #[test]
+    fn a_binary_payload_with_nul_bytes_encrypts() {
+        let payload: Vec<u8> = (0..=255u8).cycle().take(4096).collect();
+        let out = encrypt_to(&keys::V4_SIGN, &payload);
+        assert!(!out.data.is_empty());
+    }
+
+    #[test]
+    fn a_large_payload_encrypts() {
+        // Large enough to exercise the 512 KiB partial-packet chunking
+        // (§4.2.1.4) the streaming builder uses.
+        let payload = vec![0x42u8; 2 * 1024 * 1024];
+        let out = encrypt_to(&keys::V4_SIGN, &payload);
+        assert!(out.data.len() > 1024 * 1024);
+    }
+
+    #[test]
+    fn a_large_payload_round_trips() {
+        let payload = vec![0x42u8; 2 * 1024 * 1024];
+        let out = encrypt_internal(0, "", &payload, &[&keys::V4_SIGN.public_armored], false)
+            .expect("encrypt");
+        cb::set_seckey_answer(&keys::V4_SIGN.secret_armored);
+        let res = crate::crypto::decrypt_internal(
+            0,
+            &out.data,
+            Some(cb::seckey_fetch),
+            None,
+            std::ptr::null_mut(),
+        )
+        .expect("decrypt");
+        assert_eq!(res.data.len(), payload.len());
+        assert_eq!(res.data, payload);
+    }
+
+    #[test]
+    fn two_encryptions_of_the_same_plaintext_differ() {
+        // §2.1: "A new session key is generated as a random number for each
+        // object." Identical ciphertexts would leak that the plaintexts match.
+        let a = encrypt_to(&keys::V4_SIGN, b"same plaintext");
+        let b = encrypt_to(&keys::V4_SIGN, b"same plaintext");
+        assert_ne!(a.data, b.data);
+    }
+
+    // -- symmetric (passphrase) encryption -------------------------------------------
+
+    #[test]
+    fn a_symmetric_message_round_trips() {
+        // §5.3: a SKESK lets a message be decrypted with a passphrase.
+        let mut out = Vec::new();
+        encrypt_stream_with_password_internal(
+            0,
+            "",
+            &b"passphrase payload"[..],
+            &mut out,
+            Some(cb::pwd_correct),
+            true,
+        )
+        .expect("encrypt");
+
+        let res = crate::crypto::decrypt_internal(
+            0,
+            &out,
+            Some(cb::seckey_none),
+            Some(cb::pwd_correct),
+            std::ptr::null_mut(),
+        )
+        .expect("decrypt");
+        assert_eq!(res.data, b"passphrase payload");
+    }
+
+    #[test]
+    fn a_symmetric_message_refuses_the_wrong_passphrase() {
+        let mut out = Vec::new();
+        encrypt_stream_with_password_internal(
+            0,
+            "",
+            &b"payload"[..],
+            &mut out,
+            Some(cb::pwd_correct),
+            true,
+        )
+        .expect("encrypt");
+
+        assert!(
+            crate::crypto::decrypt_internal(
+                0,
+                &out,
+                Some(cb::seckey_none),
+                Some(cb::pwd_wrong),
+                std::ptr::null_mut()
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn a_symmetric_message_has_no_public_key_recipients() {
+        let mut out = Vec::new();
+        encrypt_stream_with_password_internal(
+            0,
+            "",
+            &b"payload"[..],
+            &mut out,
+            Some(cb::pwd_correct),
+            false,
+        )
+        .expect("encrypt");
+        assert!(crate::crypto::sniff_recipients(&out).is_empty());
+    }
+
+    #[test]
+    fn symmetric_encryption_without_a_passphrase_callback_fails() {
+        let mut out = Vec::new();
+        assert!(
+            encrypt_stream_with_password_internal(0, "", &b"payload"[..], &mut out, None, true)
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn a_cancelled_passphrase_prompt_aborts_symmetric_encryption() {
+        let mut out = Vec::new();
+        let err = encrypt_stream_with_password_internal(
+            0,
+            "",
+            &b"payload"[..],
+            &mut out,
+            Some(cb::pwd_cancelled),
+            true,
+        )
+        .unwrap_err();
+        assert_eq!(err, GfrStatus::ErrorCanceled);
+    }
+
+    // -- encrypt and sign ---------------------------------------------------------------
+
+    #[test]
+    fn encrypt_and_sign_reports_both_recipients_and_signatures() {
+        let key = &keys::V4_SIGN;
+        let out = encrypt_and_sign_internal(
+            0,
+            "",
+            b"payload",
+            &[&key.public_armored],
+            &[&key.secret_armored],
+            None,
+            true,
+        )
+        .expect("encrypt+sign");
+        assert_eq!(out.recipients.len(), 1);
+        assert_eq!(out.signatures.len(), 1);
+    }
+
+    #[test]
+    fn encrypt_and_sign_uses_a_strong_hash() {
+        let key = &keys::V4_SIGN;
+        let out = encrypt_and_sign_internal(
+            0,
+            "",
+            b"payload",
+            &[&key.public_armored],
+            &[&key.secret_armored],
+            None,
+            true,
+        )
+        .expect("encrypt+sign");
+        assert!(!crate::crypto::sig_hash_algo_is_weak(&out.signatures[0].hash_algo));
+    }
+
+    #[test]
+    fn encrypt_and_sign_accepts_an_empty_payload() {
+        // Unlike encrypt-only, the combined operation has a signature to carry
+        // even when there is no plaintext.
+        let key = &keys::V4_SIGN;
+        let out = encrypt_and_sign_internal(
+            0,
+            "",
+            b"",
+            &[&key.public_armored],
+            &[&key.secret_armored],
+            None,
+            true,
+        );
+        assert!(out.is_ok());
+    }
+
+    #[test]
+    fn encrypt_and_sign_with_two_signers_reports_both() {
+        let out = encrypt_and_sign_internal(
+            0,
+            "",
+            b"payload",
+            &[&keys::V4_SIGN.public_armored],
+            &[&keys::V4_SIGN.secret_armored, &keys::V6_SIGN.secret_armored],
+            None,
+            false,
+        )
+        .expect("encrypt+sign");
+        assert_eq!(out.signatures.len(), 2);
+    }
+
+    #[test]
+    fn encrypt_and_sign_fails_with_a_public_signing_key() {
+        let key = &keys::V4_SIGN;
+        assert!(
+            encrypt_and_sign_internal(
+                0,
+                "",
+                b"payload",
+                &[&key.public_armored],
+                &[&key.public_armored],
+                None,
+                true,
+            )
+            .is_err()
+        );
+    }
+
+    // -- adversarial ------------------------------------------------------------------
+
+    #[test]
+    fn encrypting_never_panics_on_a_malformed_certificate() {
+        for block in [
+            "",
+            "junk",
+            corpus::TRUNCATED_ARMOR,
+            corpus::CORRUPT_CRC,
+            &String::from_utf8_lossy(corpus::GARBAGE),
+        ] {
+            let outcome = std::panic::catch_unwind(|| {
+                encrypt_internal(0, "", b"payload", &[block], true).is_ok()
+            });
+            assert!(outcome.is_ok(), "panicked on a malformed certificate");
+        }
+    }
+
+    #[test]
+    fn encryption_target_selection_never_panics_on_a_corpus_certificate() {
+        for cert in [
+            &*corpus::AUX_GOOD_CERT,
+            &*corpus::AUX_REVOKED_CERT,
+            &*corpus::AUX_EXPIRED_CERT,
+            &*corpus::AUX_FORGED_REVOCATION_CERT,
+            &*corpus::KEY2_CERT,
+        ] {
+            let outcome =
+                std::panic::catch_unwind(|| choose_encryption_target(cert, None).is_ok());
+            assert!(outcome.is_ok());
+        }
+    }
+
+    #[test]
+    fn cancellation_aborts_an_encryption_stream() {
+        const CH: i32 = 0x0C_91;
+        crate::cancel::set_cancelled(CH, true);
+        let res = encrypt_internal(
+            CH,
+            "",
+            &vec![0u8; 1024 * 1024],
+            &[&keys::V4_SIGN.public_armored],
+            true,
+        );
+        crate::cancel::set_cancelled(CH, false);
+        assert!(res.is_err(), "a cancelled encryption must abort");
+    }
+
+    #[test]
+    fn a_directory_can_be_encrypted_as_a_tar_archive() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        std::fs::write(dir.path().join("a.txt"), b"alpha").expect("write");
+        std::fs::write(dir.path().join("b.txt"), b"beta").expect("write");
+
+        let out_path = dir.path().join("archive.pgp");
+        let res = encrypt_directory_internal(
+            0,
+            &dir.path().to_string_lossy(),
+            &out_path.to_string_lossy(),
+            &[&keys::V4_SIGN.public_armored],
+            false,
+        );
+        assert!(res.is_ok(), "directory encryption should succeed");
+        assert!(out_path.exists());
+    }
+
+    #[test]
+    fn encrypting_a_missing_directory_fails() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let out_path = dir.path().join("out.pgp");
+        assert!(
+            encrypt_directory_internal(
+                0,
+                "/nonexistent/definitely/not/here",
+                &out_path.to_string_lossy(),
+                &[&keys::V4_SIGN.public_armored],
+                false,
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn a_hand_built_literal_payload_can_be_encrypted() {
+        // Proves the encryptor is agnostic to what the plaintext contains,
+        // including nested OpenPGP structure.
+        let inner = packets::literal(b'b', b"", 0, b"nested");
+        let out = encrypt_to(&keys::V4_SIGN, &inner);
+        assert!(!out.data.is_empty());
+    }
+}

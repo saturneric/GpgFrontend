@@ -74,3 +74,66 @@ mod utils;
 
 mod cache;
 mod tar;
+
+/// Shared unit-test scaffolding: the committed RFC 9580 corpus, the Appendix A
+/// known-answer vectors, lazily generated key fixtures, packet builders and the
+/// host-symbol stubs. Compiled only for `cargo test`; see `testutil.rs`.
+#[cfg(test)]
+mod testutil;
+
+#[cfg(test)]
+mod crate_smoke_tests {
+    //! Crate-level wiring: the modules the FFI contract promises are present,
+    //! and the exported symbols the C++ core links against exist with the
+    //! signatures `GFCoreRust.h` declares.
+
+    #[test]
+    fn the_public_modules_are_reachable() {
+        // `host` and `types` are `pub` because cbindgen walks them to generate
+        // the header; `ffi` carries the entry points themselves.
+        let _ = crate::types::GfrStatus::Success;
+        let _ = crate::types::GfrBuffer::empty();
+        let _: extern "C" fn() -> *mut std::os::raw::c_char = crate::ffi::gfr_rust_engine_version;
+    }
+
+    #[test]
+    fn the_runtime_entry_points_have_the_declared_signatures() {
+        // Taking each as a typed function pointer is a compile-time assertion
+        // that the ABI has not drifted from the generated header.
+        let _: extern "C" fn() = crate::ffi::gfr_rust_hello;
+        let _: extern "C" fn() -> *mut std::os::raw::c_char =
+            crate::ffi::gfr_rust_engine_build_info;
+        let _: extern "C" fn(i32, bool) = crate::ffi::gfr_set_operation_cancelled;
+        let _: extern "C" fn(u64, u64) = crate::ffi::gfr_set_password_cache_ttl;
+        let _: extern "C" fn() = crate::ffi::gfr_clear_password_cache;
+        let _: extern "C" fn() = crate::ffi::gfr_init_logger;
+        let _: extern "C" fn() -> *mut std::os::raw::c_char = crate::err::gfr_get_last_error_msg;
+    }
+
+    #[test]
+    fn every_heap_transferring_result_has_a_matching_free() {
+        // The memory contract in this file's module docs: anything handed to
+        // C++ is reclaimed by a `gfr_crypto_free_*` counterpart.
+        use crate::ffi::mem::*;
+        let _: extern "C" fn(*mut std::os::raw::c_char) = gfr_crypto_free_string;
+        let _: extern "C" fn(*mut u8, usize) = gfr_crypto_free_buffer;
+        let _: extern "C" fn(*mut crate::types::GfrKeyGenerateResult) =
+            gfr_crypto_free_key_generate_result;
+        let _: extern "C" fn(*mut crate::types::GfrEncryptResultC) = gfr_crypto_free_encrypt_result;
+        let _: extern "C" fn(*mut crate::types::GfrDecryptResultC) = gfr_crypto_free_decrypt_result;
+        let _: extern "C" fn(*mut crate::types::GfrSignResultC) = gfr_crypto_free_sign_result;
+        let _: extern "C" fn(*mut crate::types::GfrVerifyResultC) = gfr_crypto_free_verify_result;
+    }
+
+    #[test]
+    fn the_engine_version_matches_the_package_version() {
+        // `gfr_rust_engine_version` is what the About dialog shows; it must
+        // track Cargo.toml rather than drifting into a hand-maintained string.
+        use std::ffi::CStr;
+        let ptr = crate::ffi::gfr_rust_engine_version();
+        assert!(!ptr.is_null());
+        let version = unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned();
+        crate::ffi::mem::gfr_crypto_free_string(ptr);
+        assert_eq!(version, env!("CARGO_PKG_VERSION"));
+    }
+}

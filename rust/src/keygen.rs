@@ -581,25 +581,9 @@ mod rfc9580_tests {
     //! RFC 9580 conformance tests for key generation. Each test targets a
     //! specific requirement that the engine previously violated.
     use super::*;
-    use crate::types::{GfrKeyAlgo, GfrKeyConfig, GfrOpenPGPKeyVersion};
+    use crate::testutil::keys::cfg;
+    use crate::types::{GfrKeyAlgo, GfrOpenPGPKeyVersion};
     use pgp::crypto::public_key::PublicKeyAlgorithm;
-
-    fn cfg(
-        algo: GfrKeyAlgo,
-        can_sign: bool,
-        can_encrypt: bool,
-        ver: GfrOpenPGPKeyVersion,
-    ) -> GfrKeyConfig {
-        GfrKeyConfig {
-            algo,
-            can_sign,
-            can_encrypt,
-            can_auth: false,
-            has_passphrase: false,
-            ver,
-            expiration_epoch_secs: 0,
-        }
-    }
 
     /// RFC 9580 §12.4/§12.5: RSA < 2048 and DSA MUST NOT be generated.
     #[test]
@@ -808,6 +792,652 @@ mod rfc9580_tests {
     fn v6_request_produces_v6_key() {
         let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V6);
         let key = keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).expect("keygen");
+        assert_eq!(key.primary_key.version(), KeyVersion::V6);
+    }
+}
+
+#[cfg(test)]
+mod keygen_more_tests {
+    //! Generation-side conformance beyond the algorithm policy already covered
+    //! by `rfc9580_tests`: key/signature version correspondence (§10.3.2.2),
+    //! certificate structure (§10.1.1 / §10.1.3), advertised preferences
+    //! (§5.2.3.14-§5.2.3.17, §5.2.3.32), passphrase protection (§3.7.2.1) and
+    //! subkey addition.
+
+    use super::*;
+    use crate::testutil::keys::{cfg, cfg_expiring};
+    use crate::types::{GfrKeyAlgo, GfrOpenPGPKeyVersion};
+    use pgp::packet::SignatureVersion;
+    use pgp::types::SecretParams;
+
+    fn v4_primary() -> GfrKeyConfig {
+        cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V4)
+    }
+    fn v6_primary() -> GfrKeyConfig {
+        cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V6)
+    }
+    fn enc_sub(ver: GfrOpenPGPKeyVersion) -> GfrKeyConfig {
+        cfg(GfrKeyAlgo::ED25519, false, true, ver)
+    }
+    fn sign_sub(ver: GfrOpenPGPKeyVersion) -> GfrKeyConfig {
+        cfg(GfrKeyAlgo::ED25519, true, false, ver)
+    }
+
+    fn gen_v4() -> SignedSecretKey {
+        keygen_dynamic(
+            "Gen <gen@example.test>",
+            &v4_primary(),
+            &[enc_sub(GfrOpenPGPKeyVersion::V4)],
+        )
+        .expect("keygen")
+    }
+
+    fn gen_v6() -> SignedSecretKey {
+        keygen_dynamic(
+            "Gen <gen@example.test>",
+            &v6_primary(),
+            &[enc_sub(GfrOpenPGPKeyVersion::V6)],
+        )
+        .expect("keygen")
+    }
+
+    // -- certificate structure ----------------------------------------------
+
+    #[test]
+    fn a_generated_key_has_exactly_one_user_id() {
+        // §10.1.5: "A Transferable Public Key SHOULD include at least one User
+        // ID packet."
+        assert_eq!(gen_v4().details.users.len(), 1);
+    }
+
+    #[test]
+    fn the_user_id_is_stored_verbatim() {
+        let key = keygen_dynamic(
+            "Ünïcødé Náme <u@example.test>",
+            &v4_primary(),
+            &[],
+        )
+        .expect("keygen");
+        assert_eq!(
+            String::from_utf8_lossy(key.details.users[0].id.id()),
+            "Ünïcødé Náme <u@example.test>"
+        );
+    }
+
+    #[test]
+    fn the_primary_key_can_certify() {
+        // §10.1.5: the primary must be able to make signatures, since it
+        // certifies its own user IDs and subkeys.
+        let key = gen_v4();
+        let flags = key.details.users[0].signatures[0].key_flags();
+        assert!(flags.certify());
+    }
+
+    #[test]
+    fn every_subkey_has_a_binding_signature() {
+        // §10.1.1: "Every subkey MUST have at least one Subkey Binding
+        // signature."
+        let key = keygen_dynamic(
+            "Gen <gen@example.test>",
+            &v4_primary(),
+            &[enc_sub(GfrOpenPGPKeyVersion::V4), sign_sub(GfrOpenPGPKeyVersion::V4)],
+        )
+        .expect("keygen");
+        assert_eq!(key.secret_subkeys.len(), 2);
+        for sub in &key.secret_subkeys {
+            assert!(!sub.signatures.is_empty(), "a subkey without a binding");
+        }
+    }
+
+    #[test]
+    fn a_subkey_binding_verifies_under_the_primary() {
+        let key = gen_v4();
+        let primary = key.primary_key.public_key();
+        for sub in &key.secret_subkeys {
+            let binding = sub.signatures.first().expect("a binding signature");
+            assert!(
+                binding.verify_subkey_binding(primary, sub.key.public_key()).is_ok(),
+                "the binding signature must actually verify"
+            );
+        }
+    }
+
+    #[test]
+    fn generating_with_no_subkeys_yields_a_bare_primary() {
+        let key = keygen_dynamic("Bare <bare@example.test>", &v4_primary(), &[]).expect("keygen");
+        assert!(key.secret_subkeys.is_empty());
+    }
+
+    #[test]
+    fn generating_with_several_subkeys_keeps_their_order() {
+        let key = keygen_dynamic(
+            "Many <many@example.test>",
+            &v4_primary(),
+            &[
+                sign_sub(GfrOpenPGPKeyVersion::V4),
+                enc_sub(GfrOpenPGPKeyVersion::V4),
+                sign_sub(GfrOpenPGPKeyVersion::V4),
+            ],
+        )
+        .expect("keygen");
+        assert_eq!(key.secret_subkeys.len(), 3);
+    }
+
+    #[test]
+    fn a_generated_key_has_a_distinct_fingerprint_each_time() {
+        // Fresh randomness per generation; identical parameters must not
+        // produce identical keys.
+        let a = keygen_dynamic("A <a@example.test>", &v4_primary(), &[]).expect("a");
+        let b = keygen_dynamic("A <a@example.test>", &v4_primary(), &[]).expect("b");
+        assert_ne!(
+            a.primary_key.fingerprint().to_string(),
+            b.primary_key.fingerprint().to_string()
+        );
+    }
+
+    // -- §10.3.2.2 key / signature version correspondence -------------------
+
+    #[test]
+    fn a_v4_key_has_a_160_bit_fingerprint() {
+        // §5.5.4.2: SHA-1 over the normalised public key packet.
+        assert_eq!(gen_v4().primary_key.fingerprint().as_bytes().len(), 20);
+    }
+
+    #[test]
+    fn a_v6_key_has_a_256_bit_fingerprint() {
+        // §5.5.4.3: SHA2-256 over the normalised public key packet.
+        assert_eq!(gen_v6().primary_key.fingerprint().as_bytes().len(), 32);
+    }
+
+    #[test]
+    fn a_v4_key_signs_its_user_id_with_a_v4_signature() {
+        let key = gen_v4();
+        assert_eq!(key.details.users[0].signatures[0].version(), SignatureVersion::V4);
+    }
+
+    #[test]
+    fn a_v6_key_signs_its_user_id_with_a_v6_signature() {
+        let key = gen_v6();
+        assert_eq!(key.details.users[0].signatures[0].version(), SignatureVersion::V6);
+    }
+
+    #[test]
+    fn a_v4_subkey_binding_is_a_v4_signature() {
+        let key = gen_v4();
+        assert_eq!(
+            key.secret_subkeys[0].signatures[0].version(),
+            SignatureVersion::V4
+        );
+    }
+
+    #[test]
+    fn a_v6_subkey_binding_is_a_v6_signature() {
+        // §10.1.1: "every self-signature made by a version 6 key MUST be a
+        // version 6 signature."
+        let key = gen_v6();
+        assert_eq!(
+            key.secret_subkeys[0].signatures[0].version(),
+            SignatureVersion::V6
+        );
+    }
+
+    #[test]
+    fn every_subkey_of_a_v6_primary_is_itself_v6() {
+        // §10.1.1: "Every subkey for a version 6 primary key MUST be a version
+        // 6 subkey."
+        let key = keygen_dynamic(
+            "V6 <v6@example.test>",
+            &v6_primary(),
+            &[enc_sub(GfrOpenPGPKeyVersion::V6), sign_sub(GfrOpenPGPKeyVersion::V6)],
+        )
+        .expect("keygen");
+        for sub in &key.secret_subkeys {
+            assert_eq!(sub.key.version(), KeyVersion::V6);
+        }
+    }
+
+    #[test]
+    fn every_subkey_of_a_v4_primary_is_itself_v4() {
+        // §10.1.3, the mirror requirement.
+        let key = gen_v4();
+        for sub in &key.secret_subkeys {
+            assert_eq!(sub.key.version(), KeyVersion::V4);
+        }
+    }
+
+    #[test]
+    fn a_subkey_config_version_does_not_override_the_primarys() {
+        // The subkey configs' `ver` field is documented as ignored: subkeys
+        // inherit the primary's version, because a mixed certificate is
+        // forbidden by §10.1.1.
+        let key = keygen_dynamic(
+            "Mixed <mixed@example.test>",
+            &v6_primary(),
+            &[enc_sub(GfrOpenPGPKeyVersion::V4)],
+        )
+        .expect("keygen");
+        assert_eq!(key.primary_key.version(), KeyVersion::V6);
+        assert_eq!(key.secret_subkeys[0].key.version(), KeyVersion::V6);
+    }
+
+    // -- advertised preferences ----------------------------------------------
+
+    #[test]
+    fn a_generated_key_advertises_preferred_hash_algorithms() {
+        // §5.2.3.16. Without this the recipient must fall back to the
+        // mandatory-to-implement SHA2-256.
+        let key = gen_v4();
+        let sig = &key.details.users[0].signatures[0];
+        assert!(
+            !sig.preferred_hash_algs().is_empty(),
+            "a self-signature should state hash preferences"
+        );
+    }
+
+    #[test]
+    fn the_preferred_hashes_contain_no_weak_algorithm() {
+        // §9.5 forbids generating MD5/SHA-1/RIPEMD-160 signatures, so
+        // advertising a preference for them would be self-defeating.
+        let key = gen_v4();
+        let sig = &key.details.users[0].signatures[0];
+        for h in sig.preferred_hash_algs() {
+            assert!(
+                !crate::crypto::sig_hash_algo_is_weak(&h.to_string()),
+                "{h:?} must not be advertised as preferred"
+            );
+        }
+    }
+
+    #[test]
+    fn a_generated_key_advertises_preferred_compression_algorithms() {
+        // §5.2.3.17.
+        let key = gen_v4();
+        let sig = &key.details.users[0].signatures[0];
+        let _ = sig.preferred_compression_algs();
+    }
+
+    #[test]
+    fn a_v6_key_advertises_preferred_aead_ciphersuites() {
+        // §5.2.3.15: paired cipher/AEAD octets, only meaningful once v2 SEIPD
+        // is on the table.
+        let key = gen_v6();
+        let sig = key
+            .details
+            .users
+            .first()
+            .and_then(|u| u.signatures.first())
+            .expect("a self-signature");
+        let _ = sig.preferred_aead_algs();
+    }
+
+    // -- §3.7.2.1 passphrase protection --------------------------------------
+
+    #[test]
+    fn a_key_generated_without_a_passphrase_has_plaintext_secrets() {
+        let key = gen_v4();
+        assert!(matches!(
+            key.primary_key.secret_params(),
+            SecretParams::Plain(_)
+        ));
+    }
+
+    #[test]
+    fn create_key_with_a_passphrase_encrypts_the_primary() {
+        // §3.7.2.1: a non-zero S2K usage octet means the secret material is
+        // passphrase-protected.
+        let mut primary = v4_primary();
+        primary.has_passphrase = true;
+        let out = create_key_internal(
+            "Locked <locked@example.test>",
+            primary,
+            &[],
+            Some(crate::testutil::cb::pwd_correct),
+        )
+        .expect("create");
+
+        let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
+        assert!(matches!(
+            key.primary_key.secret_params(),
+            SecretParams::Encrypted(_)
+        ));
+    }
+
+    #[test]
+    fn a_passphrase_protected_key_unlocks_with_the_right_passphrase() {
+        let mut primary = v4_primary();
+        primary.has_passphrase = true;
+        let out = create_key_internal(
+            "Locked <locked@example.test>",
+            primary,
+            &[],
+            Some(crate::testutil::cb::pwd_correct),
+        )
+        .expect("create");
+
+        let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
+        assert!(
+            key.unlock(&Password::from(crate::testutil::cb::CORRECT_PASSPHRASE), |_, _| Ok(()))
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn a_passphrase_protected_key_refuses_the_wrong_passphrase() {
+        let mut primary = v4_primary();
+        primary.has_passphrase = true;
+        let out = create_key_internal(
+            "Locked <locked@example.test>",
+            primary,
+            &[],
+            Some(crate::testutil::cb::pwd_correct),
+        )
+        .expect("create");
+
+        let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
+        assert!(key.unlock(&Password::from("wrong"), |_, _| Ok(())).is_err());
+    }
+
+    #[test]
+    fn a_cancelled_passphrase_prompt_maps_to_canceled() {
+        let mut primary = v4_primary();
+        primary.has_passphrase = true;
+        assert_eq!(
+            create_key_internal(
+                "Locked <locked@example.test>",
+                primary,
+                &[],
+                Some(crate::testutil::cb::pwd_cancelled),
+            )
+            .err(),
+            Some(GfrStatus::ErrorCanceled)
+        );
+    }
+
+    #[test]
+    fn requesting_a_passphrase_without_a_callback_fails() {
+        let mut primary = v4_primary();
+        primary.has_passphrase = true;
+        assert!(
+            create_key_internal("Locked <locked@example.test>", primary, &[], None).is_err()
+        );
+    }
+
+    #[test]
+    fn create_key_returns_matching_public_and_secret_blocks() {
+        let out = create_key_internal(
+            "Pair <pair@example.test>",
+            v4_primary(),
+            &[enc_sub(GfrOpenPGPKeyVersion::V4)],
+            None,
+        )
+        .expect("create");
+
+        let (secret, _) = SignedSecretKey::from_string(&out.secret).expect("secret parses");
+        let (public, _) = SignedPublicKey::from_string(&out.public).expect("public parses");
+        assert_eq!(
+            secret.primary_key.fingerprint().to_string(),
+            public.primary_key.fingerprint().to_string()
+        );
+        assert_eq!(
+            out.fingerprint.to_uppercase(),
+            secret.primary_key.fingerprint().to_string().to_uppercase()
+        );
+    }
+
+    #[test]
+    fn create_key_emits_armor_without_a_crc24_footer() {
+        let out = create_key_internal("Armor <armor@example.test>", v4_primary(), &[], None)
+            .expect("create");
+        crate::testutil::assert::armor_has_no_crc24(&out.secret);
+        crate::testutil::assert::armor_has_no_crc24(&out.public);
+    }
+
+    // -- expiration at generation time ---------------------------------------
+
+    #[test]
+    fn a_requested_expiry_lands_on_the_primary_key() {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock")
+            .as_secs();
+        let primary = cfg_expiring(
+            GfrKeyAlgo::ED25519,
+            true,
+            false,
+            GfrOpenPGPKeyVersion::V4,
+            now + 86_400,
+        );
+        let out = create_key_internal("Exp <exp@example.test>", primary, &[], None)
+            .expect("create");
+
+        let meta = crate::key::extract_metadata_many_internal(&out.secret)
+            .expect("metadata")
+            .remove(0);
+        assert_eq!(meta.expires_at, (now + 86_400) as u32);
+    }
+
+    #[test]
+    fn a_zero_expiry_means_never() {
+        let out = create_key_internal("Never <never@example.test>", v4_primary(), &[], None)
+            .expect("create");
+        let meta = crate::key::extract_metadata_many_internal(&out.secret)
+            .expect("metadata")
+            .remove(0);
+        assert_eq!(meta.expires_at, 0);
+    }
+
+    #[test]
+    fn a_subkey_expiry_is_independent_of_the_primarys() {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock")
+            .as_secs();
+        let sub = cfg_expiring(
+            GfrKeyAlgo::ED25519,
+            false,
+            true,
+            GfrOpenPGPKeyVersion::V4,
+            now + 3_600,
+        );
+        let out = create_key_internal("Sub <sub@example.test>", v4_primary(), &[sub], None)
+            .expect("create");
+
+        let meta = crate::key::extract_metadata_many_internal(&out.secret)
+            .expect("metadata")
+            .remove(0);
+        assert_eq!(meta.expires_at, 0, "the primary never expires");
+        assert_eq!(meta.subkeys[0].expires_at, (now + 3_600) as u32);
+    }
+
+    #[test]
+    fn a_backdated_expiry_at_generation_is_rejected() {
+        // §5.2.3.13 encodes a forward duration; a past absolute time is not
+        // representable.
+        let primary = cfg_expiring(
+            GfrKeyAlgo::ED25519,
+            true,
+            false,
+            GfrOpenPGPKeyVersion::V4,
+            1_000_000_000,
+        );
+        assert!(create_key_internal("Past <past@example.test>", primary, &[], None).is_err());
+    }
+
+    // -- add_subkey_internal --------------------------------------------------
+
+    #[test]
+    fn adding_a_subkey_appends_it() {
+        let base = create_key_internal("Add <add@example.test>", v4_primary(), &[], None)
+            .expect("create");
+        let out = add_subkey_internal(
+            0,
+            &base.secret,
+            &enc_sub(GfrOpenPGPKeyVersion::V4),
+            None,
+        )
+        .expect("add subkey");
+
+        let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
+        assert_eq!(key.secret_subkeys.len(), 1);
+    }
+
+    #[test]
+    fn an_added_subkey_binding_verifies() {
+        let base = create_key_internal("Add <add@example.test>", v4_primary(), &[], None)
+            .expect("create");
+        let out = add_subkey_internal(
+            0,
+            &base.secret,
+            &enc_sub(GfrOpenPGPKeyVersion::V4),
+            None,
+        )
+        .expect("add subkey");
+
+        let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
+        let primary = key.primary_key.public_key();
+        let sub = &key.secret_subkeys[0];
+        assert!(
+            sub.signatures[0]
+                .verify_subkey_binding(primary, sub.key.public_key())
+                .is_ok()
+        );
+    }
+
+    #[test]
+    fn a_subkey_added_to_a_v6_key_is_v6() {
+        let base = create_key_internal("V6 <v6@example.test>", v6_primary(), &[], None)
+            .expect("create");
+        let out = add_subkey_internal(
+            0,
+            &base.secret,
+            &enc_sub(GfrOpenPGPKeyVersion::V6),
+            None,
+        )
+        .expect("add subkey");
+
+        let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
+        assert_eq!(key.secret_subkeys[0].key.version(), KeyVersion::V6);
+        assert_eq!(
+            key.secret_subkeys[0].signatures[0].version(),
+            SignatureVersion::V6
+        );
+    }
+
+    #[test]
+    fn a_v6_encryption_subkey_added_later_is_native_x25519() {
+        // §9.2 forbids the Curve25519Legacy OID in v6 material, so the remap
+        // must apply on the add-subkey path too, not just at generation.
+        let base = create_key_internal("V6 <v6@example.test>", v6_primary(), &[], None)
+            .expect("create");
+        let out = add_subkey_internal(
+            0,
+            &base.secret,
+            &enc_sub(GfrOpenPGPKeyVersion::V6),
+            None,
+        )
+        .expect("add subkey");
+
+        let (key, _) = SignedSecretKey::from_string(&out.secret).expect("parses");
+        assert_eq!(
+            key.secret_subkeys[0].key.algorithm(),
+            pgp::crypto::public_key::PublicKeyAlgorithm::X25519
+        );
+    }
+
+    #[test]
+    fn adding_a_subkey_to_a_public_block_fails() {
+        let base = create_key_internal("Pub <pub@example.test>", v4_primary(), &[], None)
+            .expect("create");
+        assert!(
+            add_subkey_internal(0, &base.public, &enc_sub(GfrOpenPGPKeyVersion::V4), None)
+                .is_err()
+        );
+    }
+
+    #[test]
+    fn adding_a_subkey_to_garbage_fails() {
+        assert!(
+            add_subkey_internal(0, "junk", &enc_sub(GfrOpenPGPKeyVersion::V4), None).is_err()
+        );
+    }
+
+    #[test]
+    fn adding_a_forbidden_algorithm_as_a_subkey_fails() {
+        // The generation policy applies to subkeys as well as primaries.
+        let base = create_key_internal("Pol <pol@example.test>", v4_primary(), &[], None)
+            .expect("create");
+        let bad = cfg(GfrKeyAlgo::DSA2048, true, false, GfrOpenPGPKeyVersion::V4);
+        assert!(add_subkey_internal(0, &base.secret, &bad, None).is_err());
+    }
+
+    #[test]
+    fn adding_two_subkeys_in_sequence_keeps_both() {
+        let base = create_key_internal("Two <two@example.test>", v4_primary(), &[], None)
+            .expect("create");
+        let once = add_subkey_internal(
+            0,
+            &base.secret,
+            &enc_sub(GfrOpenPGPKeyVersion::V4),
+            None,
+        )
+        .expect("add 1");
+        let twice = add_subkey_internal(
+            0,
+            &once.secret,
+            &sign_sub(GfrOpenPGPKeyVersion::V4),
+            None,
+        )
+        .expect("add 2");
+
+        let (key, _) = SignedSecretKey::from_string(&twice.secret).expect("parses");
+        assert_eq!(key.secret_subkeys.len(), 2);
+    }
+
+    // -- slow algorithms ------------------------------------------------------
+
+    #[test]
+    #[ignore = "slow: RSA-2048 key generation takes seconds even optimised; run with --ignored"]
+    fn rsa_2048_generates_a_usable_key() {
+        let primary = cfg(GfrKeyAlgo::RSA2048, true, false, GfrOpenPGPKeyVersion::V4);
+        let key = keygen_dynamic("RSA <rsa@example.test>", &primary, &[]).expect("keygen");
+        assert_eq!(key.primary_key.version(), KeyVersion::V4);
+    }
+
+    #[test]
+    #[ignore = "slow: RSA-4096 key generation can take tens of seconds; run with --ignored"]
+    fn rsa_4096_generates_a_usable_key() {
+        let primary = cfg(GfrKeyAlgo::RSA4096, true, false, GfrOpenPGPKeyVersion::V4);
+        let key = keygen_dynamic("RSA <rsa@example.test>", &primary, &[]).expect("keygen");
+        assert_eq!(key.primary_key.version(), KeyVersion::V4);
+    }
+
+    #[test]
+    #[ignore = "slow: post-quantum key generation; run with --ignored"]
+    fn ml_dsa_65_forces_a_v6_key() {
+        let primary = cfg(
+            GfrKeyAlgo::MLDSA65ED25519,
+            true,
+            false,
+            GfrOpenPGPKeyVersion::V4,
+        );
+        let key = keygen_dynamic("PQ <pq@example.test>", &primary, &[]).expect("keygen");
+        assert_eq!(
+            key.primary_key.version(),
+            KeyVersion::V6,
+            "post-quantum algorithms have no v4 wire format"
+        );
+    }
+
+    #[test]
+    #[ignore = "slow: SLH-DSA key generation is the slowest of the PQ families; run with --ignored"]
+    fn slh_dsa_shake_128s_forces_a_v6_key() {
+        let primary = cfg(
+            GfrKeyAlgo::SLHDSASHAKE128S,
+            true,
+            false,
+            GfrOpenPGPKeyVersion::V4,
+        );
+        let key = keygen_dynamic("PQ <pq@example.test>", &primary, &[]).expect("keygen");
         assert_eq!(key.primary_key.version(), KeyVersion::V6);
     }
 }

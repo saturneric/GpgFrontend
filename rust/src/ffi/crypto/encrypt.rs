@@ -961,3 +961,455 @@ pub extern "C" fn gfr_crypto_encrypt_directory_symmetric(
         Err(_) => GfrStatus::ErrorPanic,
     }
 }
+
+#[cfg(test)]
+mod ffi_encrypt_tests {
+    //! The nine encrypt / encrypt-and-sign / symmetric FFI entry points.
+
+    use super::*;
+    use crate::testutil::{cb, keys};
+    use std::ffi::CString;
+    use std::mem::MaybeUninit;
+
+    fn kbuf(s: &str) -> GfrBuffer {
+        GfrBuffer {
+            data: s.as_ptr(),
+            len: s.len(),
+        }
+    }
+
+    #[test]
+    fn encrypt_data_rejects_every_null_argument() {
+        let name = CString::new("").expect("no NUL");
+        let certs = [kbuf(&keys::V4_SIGN.public_armored)];
+        let payload = b"x";
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_encrypt_data(
+                0,
+                std::ptr::null(),
+                payload.as_ptr(),
+                payload.len(),
+                certs.as_ptr(),
+                1,
+                true,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_encrypt_data(
+                0,
+                name.as_ptr(),
+                std::ptr::null(),
+                0,
+                certs.as_ptr(),
+                1,
+                true,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_encrypt_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                std::ptr::null(),
+                0,
+                true,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_encrypt_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                certs.as_ptr(),
+                1,
+                true,
+                std::ptr::null_mut()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn encrypt_data_rejects_an_invalid_utf8_name() {
+        let name = [0xC3u8, 0x28, 0x00];
+        let certs = [kbuf(&keys::V4_SIGN.public_armored)];
+        let payload = b"x";
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_encrypt_data(
+                0,
+                name.as_ptr().cast::<c_char>(),
+                payload.as_ptr(),
+                payload.len(),
+                certs.as_ptr(),
+                1,
+                true,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn encrypt_data_round_trips_through_its_free() {
+        let name = CString::new("").expect("no NUL");
+        let certs = [kbuf(&keys::V4_SIGN.public_armored)];
+        let payload = b"ffi encryption payload";
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_encrypt_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                certs.as_ptr(),
+                certs.len(),
+                true,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::Success
+        );
+        let mut result = unsafe { out.assume_init() };
+        assert!(!result.data.is_null());
+        assert!(result.data_len > 0);
+        assert_eq!(result.meta.recipient_count, 1);
+        assert_eq!(result.meta.invalid_recipient_count, 0);
+        crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut result);
+    }
+
+    #[test]
+    fn encrypt_data_to_a_garbage_certificate_fails() {
+        let name = CString::new("").expect("no NUL");
+        let certs = [kbuf("not a certificate")];
+        let payload = b"x";
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+        assert_ne!(
+            gfr_crypto_encrypt_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                certs.as_ptr(),
+                1,
+                true,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::Success
+        );
+    }
+
+    #[test]
+    fn encrypt_data_with_zero_certificates_fails() {
+        let name = CString::new("").expect("no NUL");
+        let certs = [kbuf(&keys::V4_SIGN.public_armored)];
+        let payload = b"x";
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+        assert_ne!(
+            gfr_crypto_encrypt_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                certs.as_ptr(),
+                0,
+                true,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::Success
+        );
+    }
+
+    #[test]
+    fn encrypt_and_sign_data_reports_recipients_and_signatures() {
+        let name = CString::new("").expect("no NUL");
+        let key = &keys::V4_SIGN;
+        let certs = [kbuf(&key.public_armored)];
+        let signers = [kbuf(&key.secret_armored)];
+        let payload = b"sealed";
+        let mut out = MaybeUninit::<GfrEncryptAndSignResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_encrypt_and_sign_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                certs.as_ptr(),
+                certs.len(),
+                signers.as_ptr(),
+                signers.len(),
+                cb::pwd_correct,
+                true,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::Success
+        );
+        let mut result = unsafe { out.assume_init() };
+        assert!(!result.data.is_null());
+        assert_eq!(result.encrypt_meta.recipient_count, 1);
+        assert_eq!(result.sign_meta.signature_count, 1);
+        crate::ffi::mem::gfr_crypto_free_encrypt_and_sign_result(&mut result);
+    }
+
+    #[test]
+    fn encrypt_and_sign_data_rejects_null_arguments() {
+        let name = CString::new("").expect("no NUL");
+        let key = &keys::V4_SIGN;
+        let certs = [kbuf(&key.public_armored)];
+        let signers = [kbuf(&key.secret_armored)];
+        let payload = b"x";
+        let mut out = MaybeUninit::<GfrEncryptAndSignResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_encrypt_and_sign_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                certs.as_ptr(),
+                1,
+                signers.as_ptr(),
+                1,
+                cb::pwd_correct,
+                true,
+                std::ptr::null_mut()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_encrypt_and_sign_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                std::ptr::null(),
+                0,
+                signers.as_ptr(),
+                1,
+                cb::pwd_correct,
+                true,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn encrypt_data_symmetric_round_trips_through_its_free() {
+        let name = CString::new("").expect("no NUL");
+        let payload = b"passphrase sealed";
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_encrypt_data_symmetric(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                true,
+                cb::pwd_correct,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::Success
+        );
+        let mut result = unsafe { out.assume_init() };
+        assert!(!result.data.is_null());
+        assert_eq!(
+            result.meta.recipient_count, 0,
+            "a symmetric message names no public-key recipients"
+        );
+        crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut result);
+    }
+
+    #[test]
+    fn encrypt_data_symmetric_rejects_null_arguments() {
+        let name = CString::new("").expect("no NUL");
+        let payload = b"x";
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_encrypt_data_symmetric(
+                0,
+                name.as_ptr(),
+                std::ptr::null(),
+                0,
+                true,
+                cb::pwd_correct,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_encrypt_data_symmetric(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                true,
+                cb::pwd_correct,
+                std::ptr::null_mut()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn encrypt_file_writes_the_output_and_frees_cleanly() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let in_path = dir.path().join("plain.bin");
+        let out_path = dir.path().join("cipher.pgp");
+        std::fs::write(&in_path, b"file contents").expect("write");
+
+        let in_c = CString::new(in_path.to_string_lossy().as_ref()).expect("no NUL");
+        let out_c = CString::new(out_path.to_string_lossy().as_ref()).expect("no NUL");
+        let certs = [kbuf(&keys::V4_SIGN.public_armored)];
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_encrypt_file(
+                0,
+                in_c.as_ptr(),
+                out_c.as_ptr(),
+                certs.as_ptr(),
+                certs.len(),
+                false,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::Success
+        );
+        assert!(out_path.exists());
+        let mut result = unsafe { out.assume_init() };
+        crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut result);
+    }
+
+    #[test]
+    fn encrypt_file_rejects_null_paths() {
+        let certs = [kbuf(&keys::V4_SIGN.public_armored)];
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_encrypt_file(
+                0,
+                std::ptr::null(),
+                std::ptr::null(),
+                certs.as_ptr(),
+                1,
+                false,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn encrypt_file_with_a_missing_input_fails() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let in_c = CString::new("/nonexistent/definitely/not/here").expect("no NUL");
+        let out_c =
+            CString::new(dir.path().join("out.pgp").to_string_lossy().as_ref()).expect("no NUL");
+        let certs = [kbuf(&keys::V4_SIGN.public_armored)];
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+        assert_ne!(
+            gfr_crypto_encrypt_file(
+                0,
+                in_c.as_ptr(),
+                out_c.as_ptr(),
+                certs.as_ptr(),
+                1,
+                false,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::Success
+        );
+    }
+
+    #[test]
+    fn encrypt_directory_packs_and_encrypts() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let src = dir.path().join("payload-dir");
+        std::fs::create_dir(&src).expect("mkdir");
+        std::fs::write(src.join("a.txt"), b"alpha").expect("write");
+
+        let out_path = dir.path().join("dir.pgp");
+        let in_c = CString::new(src.to_string_lossy().as_ref()).expect("no NUL");
+        let out_c = CString::new(out_path.to_string_lossy().as_ref()).expect("no NUL");
+        let certs = [kbuf(&keys::V4_SIGN.public_armored)];
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_encrypt_directory(
+                0,
+                in_c.as_ptr(),
+                out_c.as_ptr(),
+                certs.as_ptr(),
+                certs.len(),
+                false,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::Success
+        );
+        assert!(out_path.exists());
+        let mut result = unsafe { out.assume_init() };
+        crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut result);
+    }
+
+    #[test]
+    fn encrypt_directory_rejects_a_regular_file() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let file = dir.path().join("not-a-dir.txt");
+        std::fs::write(&file, b"x").expect("write");
+        let in_c = CString::new(file.to_string_lossy().as_ref()).expect("no NUL");
+        let out_c =
+            CString::new(dir.path().join("o.pgp").to_string_lossy().as_ref()).expect("no NUL");
+        let certs = [kbuf(&keys::V4_SIGN.public_armored)];
+        let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+        assert_ne!(
+            gfr_crypto_encrypt_directory(
+                0,
+                in_c.as_ptr(),
+                out_c.as_ptr(),
+                certs.as_ptr(),
+                1,
+                false,
+                out.as_mut_ptr()
+            ),
+            GfrStatus::Success
+        );
+    }
+
+    #[test]
+    fn encrypt_entry_points_never_panic_on_adversarial_certificates() {
+        let name = CString::new("").expect("no NUL");
+        let payload = b"x";
+        for block in ["", "junk", crate::testutil::corpus::TRUNCATED_ARMOR] {
+            let outcome = std::panic::catch_unwind(|| {
+                let certs = [kbuf(block)];
+                let mut out = MaybeUninit::<GfrEncryptResultC>::zeroed();
+                let status = gfr_crypto_encrypt_data(
+                    0,
+                    name.as_ptr(),
+                    payload.as_ptr(),
+                    payload.len(),
+                    certs.as_ptr(),
+                    1,
+                    true,
+                    out.as_mut_ptr(),
+                );
+                if status == GfrStatus::Success {
+                    let mut r = unsafe { out.assume_init() };
+                    crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut r);
+                }
+            });
+            assert!(outcome.is_ok(), "panicked on {block:?}");
+        }
+    }
+}

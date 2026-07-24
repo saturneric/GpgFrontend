@@ -30,3 +30,25 @@ windows-sys = { "version" = "0.61.2", features = ["Win32_System_Memory"] }
 
 [build-dependencies]
 cbindgen = "0.29.2"
+
+# Both are already in Cargo.lock as transitive dependencies of `pgp`, so they
+# cost no additional download and no additional compilation unit.
+#   flate2 -- build genuine deflate/zlib payloads for the RFC 9580 §5.6
+#             compression-bomb and nesting-cap tests.
+#   hex    -- decode the hex-literal known-answer vectors from RFC 9580
+#             Appendix A without hand-rolling a parser.
+[dev-dependencies]
+flate2 = "1.1"
+hex = "0.4"
+
+# Compile dependencies with optimisations even in the unoptimised profiles.
+# The test suite is dominated by cryptography that lives entirely in
+# dependencies (rsa, argon2, sha2, ml-dsa, the pgp crate itself); in debug
+# those run 20-100x slower, which is the difference between a ~1 minute and a
+# >10 minute `cargo test`. Our own crate stays unoptimised so backtraces and
+# debug-assertions remain useful, and the release profile is untouched.
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.test.package."*"]
+opt-level = 3

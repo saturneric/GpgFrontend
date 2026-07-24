@@ -448,3 +448,347 @@ pub unsafe extern "C" fn gfr_free_metadata_array(metadata_ptr: *mut GfrKeyMetada
     // Free the outer array itself
     let _ = unsafe { Vec::from_raw_parts(metadata_ptr, count, count) };
 }
+
+#[cfg(test)]
+mod mem_tests {
+    //! The deallocation half of the FFI memory contract.
+    //!
+    //! Every heap pointer the engine hands to C++ has exactly one matching
+    //! `gfr_crypto_free_*`. What is testable here is that each one tolerates
+    //! null, reclaims a genuine allocation, and — for the structs that null
+    //! their fields — is safe to call twice.
+    //!
+    //! Deliberately absent: double-free tests. Freeing the same pointer twice
+    //! is undefined behaviour and cannot be tested, only avoided.
+
+    use super::*;
+    use crate::types::{GfrSignatureResultC, GfrStatus};
+    use std::ffi::{CStr, CString};
+
+    fn c_str(s: &str) -> *mut c_char {
+        CString::new(s).expect("no interior NUL").into_raw()
+    }
+
+    // -- free_string ---------------------------------------------------------
+
+    #[test]
+    fn freeing_a_null_string_is_a_no_op() {
+        gfr_crypto_free_string(std::ptr::null_mut());
+    }
+
+    #[test]
+    fn freeing_a_string_reclaims_it() {
+        gfr_crypto_free_string(c_str("a heap allocated value"));
+    }
+
+    #[test]
+    fn freeing_an_empty_string_is_fine() {
+        gfr_crypto_free_string(c_str(""));
+    }
+
+    #[test]
+    fn freeing_a_multibyte_string_is_fine() {
+        gfr_crypto_free_string(c_str("clé 鍵 🔑"));
+    }
+
+    #[test]
+    fn a_version_string_round_trips_through_its_free() {
+        // The realistic shape: the engine allocates, C++ reads, C++ frees.
+        let ptr = crate::ffi::gfr_rust_engine_version();
+        assert!(!ptr.is_null());
+        let text = unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned();
+        assert!(!text.is_empty());
+        gfr_crypto_free_string(ptr);
+    }
+
+    // -- free_buffer ---------------------------------------------------------
+
+    #[test]
+    fn freeing_a_null_buffer_is_a_no_op() {
+        gfr_crypto_free_buffer(std::ptr::null_mut(), 0);
+        gfr_crypto_free_buffer(std::ptr::null_mut(), 128);
+    }
+
+    #[test]
+    fn freeing_a_buffer_reclaims_it() {
+        let boxed = vec![7u8; 64].into_boxed_slice();
+        let len = boxed.len();
+        let ptr = Box::into_raw(boxed).cast::<u8>();
+        gfr_crypto_free_buffer(ptr, len);
+    }
+
+    #[test]
+    fn freeing_a_zero_length_buffer_is_a_no_op() {
+        let boxed: Box<[u8]> = Vec::new().into_boxed_slice();
+        let ptr = Box::into_raw(boxed).cast::<u8>();
+        gfr_crypto_free_buffer(ptr, 0);
+    }
+
+    #[test]
+    fn freeing_a_buffer_containing_nul_bytes_is_fine() {
+        // The length-delimited free must not depend on a terminator.
+        let boxed = vec![0u8, 1, 0, 2, 0].into_boxed_slice();
+        let len = boxed.len();
+        let ptr = Box::into_raw(boxed).cast::<u8>();
+        gfr_crypto_free_buffer(ptr, len);
+    }
+
+    // -- free_recipients -----------------------------------------------------
+
+    #[test]
+    fn freeing_null_recipients_is_a_no_op() {
+        gfr_crypto_free_recipients(std::ptr::null_mut(), 0);
+        gfr_crypto_free_recipients(std::ptr::null_mut(), 4);
+    }
+
+    #[test]
+    fn freeing_a_zero_count_recipient_array_is_a_no_op() {
+        let boxed: Box<[GfrRecipientResultC]> = Vec::new().into_boxed_slice();
+        let ptr = Box::into_raw(boxed).cast::<GfrRecipientResultC>();
+        gfr_crypto_free_recipients(ptr, 0);
+    }
+
+    #[test]
+    fn a_recipient_array_round_trips_through_its_free() {
+        let items = vec![
+            GfrRecipientResultC {
+                key_id: c_str("AABBCCDDEEFF0011"),
+                pub_algo: c_str("ED25519"),
+                status: crate::types::GfrRecipientStatus::Success,
+            },
+            GfrRecipientResultC {
+                key_id: c_str("1122334455667788"),
+                pub_algo: c_str("X25519"),
+                status: crate::types::GfrRecipientStatus::NoKey,
+            },
+        ];
+        let boxed = items.into_boxed_slice();
+        let count = boxed.len();
+        let ptr = Box::into_raw(boxed).cast::<GfrRecipientResultC>();
+        gfr_crypto_free_recipients(ptr, count);
+    }
+
+    // -- free_key_generate_result --------------------------------------------
+
+    #[test]
+    fn freeing_a_null_key_generate_result_is_a_no_op() {
+        gfr_crypto_free_key_generate_result(std::ptr::null_mut());
+    }
+
+    #[test]
+    fn freeing_a_key_generate_result_nulls_its_fields() {
+        // Nulling is what makes a second call safe, which C++ relies on in its
+        // RAII wrappers.
+        let mut result = GfrKeyGenerateResult {
+            secret_key: c_str("-----BEGIN PGP PRIVATE KEY BLOCK-----"),
+            public_key: c_str("-----BEGIN PGP PUBLIC KEY BLOCK-----"),
+            fingerprint: c_str("AABBCCDD"),
+        };
+        gfr_crypto_free_key_generate_result(&mut result);
+        assert!(result.secret_key.is_null());
+        assert!(result.public_key.is_null());
+        assert!(result.fingerprint.is_null());
+    }
+
+    #[test]
+    fn freeing_a_key_generate_result_twice_is_safe() {
+        let mut result = GfrKeyGenerateResult {
+            secret_key: c_str("secret"),
+            public_key: c_str("public"),
+            fingerprint: c_str("fpr"),
+        };
+        gfr_crypto_free_key_generate_result(&mut result);
+        gfr_crypto_free_key_generate_result(&mut result);
+        assert!(result.secret_key.is_null());
+    }
+
+    #[test]
+    fn freeing_a_partially_populated_key_generate_result_is_safe() {
+        let mut result = GfrKeyGenerateResult {
+            secret_key: std::ptr::null_mut(),
+            public_key: c_str("public"),
+            fingerprint: std::ptr::null_mut(),
+        };
+        gfr_crypto_free_key_generate_result(&mut result);
+        assert!(result.public_key.is_null());
+    }
+
+    #[test]
+    fn a_generated_key_result_round_trips_through_its_free() {
+        // The end-to-end shape, through the real generation entry point.
+        let uid = CString::new("FFI <ffi@example.test>").expect("no NUL");
+        let cfg = crate::testutil::keys::cfg(
+            crate::types::GfrKeyAlgo::ED25519,
+            true,
+            false,
+            crate::types::GfrOpenPGPKeyVersion::V4,
+        );
+        let mut out = GfrKeyGenerateResult {
+            secret_key: std::ptr::null_mut(),
+            public_key: std::ptr::null_mut(),
+            fingerprint: std::ptr::null_mut(),
+        };
+        let status = crate::ffi::keygen::gfr_crypto_generate_key(
+            uid.as_ptr(),
+            cfg,
+            std::ptr::null(),
+            0,
+            crate::testutil::cb::pwd_correct,
+            &mut out,
+        );
+        assert_eq!(status, GfrStatus::Success);
+        assert!(!out.secret_key.is_null());
+        assert!(!out.public_key.is_null());
+        assert!(!out.fingerprint.is_null());
+        gfr_crypto_free_key_generate_result(&mut out);
+        assert!(out.secret_key.is_null());
+    }
+
+    // -- metadata blocks -----------------------------------------------------
+
+    #[test]
+    fn freeing_null_metadata_blocks_is_a_no_op() {
+        gfr_crypto_free_sign_metadata(std::ptr::null_mut());
+        gfr_crypto_free_encrypt_metadata(std::ptr::null_mut());
+        gfr_crypto_free_decrypt_metadata(std::ptr::null_mut());
+        gfr_crypto_free_verify_metadata(std::ptr::null_mut());
+    }
+
+    #[test]
+    fn freeing_an_empty_sign_metadata_block_is_safe() {
+        let mut meta = GfrSignMetadataC {
+            signatures: std::ptr::null_mut(),
+            signature_count: 0,
+        };
+        gfr_crypto_free_sign_metadata(&mut meta);
+        assert!(meta.signatures.is_null());
+        assert_eq!(meta.signature_count, 0);
+    }
+
+    #[test]
+    fn freeing_a_sign_metadata_block_reclaims_every_string() {
+        let sigs = vec![GfrSignatureResultC {
+            sig_type: crate::types::GfrSignMode::Detached,
+            issuer_fpr: c_str("AABBCCDD"),
+            status: crate::types::GfrSignatureStatus::Valid,
+            created_at: 1_700_000_000,
+            pub_algo: c_str("ED25519"),
+            hash_algo: c_str("SHA512"),
+        }];
+        let boxed = sigs.into_boxed_slice();
+        let count = boxed.len();
+        let mut meta = GfrSignMetadataC {
+            signatures: Box::into_raw(boxed).cast::<GfrSignatureResultC>(),
+            signature_count: count,
+        };
+        gfr_crypto_free_sign_metadata(&mut meta);
+        assert!(meta.signatures.is_null());
+        assert_eq!(meta.signature_count, 0);
+    }
+
+    #[test]
+    fn freeing_a_sign_metadata_block_twice_is_safe() {
+        let mut meta = GfrSignMetadataC {
+            signatures: std::ptr::null_mut(),
+            signature_count: 0,
+        };
+        gfr_crypto_free_sign_metadata(&mut meta);
+        gfr_crypto_free_sign_metadata(&mut meta);
+    }
+
+    // -- result structs ------------------------------------------------------
+
+    #[test]
+    fn freeing_null_results_is_a_no_op() {
+        gfr_crypto_free_encrypt_result(std::ptr::null_mut());
+        gfr_crypto_free_decrypt_result(std::ptr::null_mut());
+        gfr_crypto_free_sign_result(std::ptr::null_mut());
+        gfr_crypto_free_verify_result(std::ptr::null_mut());
+        gfr_crypto_free_encrypt_and_sign_result(std::ptr::null_mut());
+        gfr_crypto_free_decrypt_and_verify_result(std::ptr::null_mut());
+    }
+
+    #[test]
+    fn an_encrypt_result_round_trips_through_its_free() {
+        // The realistic path: encrypt through the FFI, then free with the
+        // matching deallocator.
+        let key = &*crate::testutil::keys::V4_SIGN;
+        let name = CString::new("").expect("no NUL");
+        let block = key.public_armored.as_bytes();
+        let bufs = [crate::types::GfrBuffer {
+            data: block.as_ptr(),
+            len: block.len(),
+        }];
+        let payload = b"ffi payload";
+        let mut out = std::mem::MaybeUninit::<GfrEncryptResultC>::zeroed();
+
+        let status = crate::ffi::crypto::encrypt::gfr_crypto_encrypt_data(
+            0,
+            name.as_ptr(),
+            payload.as_ptr(),
+            payload.len(),
+            bufs.as_ptr(),
+            bufs.len(),
+            true,
+            out.as_mut_ptr(),
+        );
+        assert_eq!(status, GfrStatus::Success);
+
+        let mut result = unsafe { out.assume_init() };
+        assert!(!result.data.is_null());
+        assert!(result.data_len > 0);
+        gfr_crypto_free_encrypt_result(&mut result);
+    }
+
+    #[test]
+    fn a_file_shaped_encrypt_result_with_a_null_data_pointer_frees_cleanly() {
+        // File-mode operations write to disk and leave `data` null; the free
+        // must cope rather than dereferencing it.
+        let mut result = GfrEncryptResultC {
+            data: std::ptr::null_mut(),
+            data_len: 0,
+            meta: GfrEncryptMetadataC {
+                invalid_recipients: std::ptr::null_mut(),
+                invalid_recipient_count: 0,
+                recipients: std::ptr::null_mut(),
+                recipient_count: 0,
+            },
+        };
+        gfr_crypto_free_encrypt_result(&mut result);
+    }
+
+    // -- free_metadata_array --------------------------------------------------
+
+    #[test]
+    fn freeing_a_null_metadata_array_is_a_no_op() {
+        unsafe { gfr_free_metadata_array(std::ptr::null_mut(), 0) };
+        unsafe { gfr_free_metadata_array(std::ptr::null_mut(), 3) };
+    }
+
+    #[test]
+    fn a_metadata_array_round_trips_through_extract_and_free() {
+        // The pairing C++ actually uses when importing a key.
+        let key = &*crate::testutil::keys::V4_SIGN;
+        let block = key.public_armored.as_bytes();
+        let buf = crate::types::GfrBuffer {
+            data: block.as_ptr(),
+            len: block.len(),
+        };
+        let mut list: *mut crate::types::GfrKeyMetadataC = std::ptr::null_mut();
+        let mut count: usize = 0;
+
+        let status = crate::ffi::key::gfr_crypto_extract_metadata(buf, &mut list, &mut count);
+        assert_eq!(status, GfrStatus::Success);
+        assert_eq!(count, 1);
+        assert!(!list.is_null());
+
+        unsafe { gfr_free_metadata_array(list, count) };
+    }
+
+    #[test]
+    fn a_metadata_array_with_a_zero_count_frees_cleanly() {
+        let boxed: Box<[crate::types::GfrKeyMetadataC]> = Vec::new().into_boxed_slice();
+        let ptr = Box::into_raw(boxed).cast::<crate::types::GfrKeyMetadataC>();
+        unsafe { gfr_free_metadata_array(ptr, 0) };
+    }
+}

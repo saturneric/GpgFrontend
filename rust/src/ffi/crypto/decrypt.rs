@@ -654,3 +654,411 @@ pub extern "C" fn gfr_crypto_decrypt_and_verify_archive(
         Err(_) => GfrStatus::ErrorPanic,
     }
 }
+
+#[cfg(test)]
+mod ffi_decrypt_tests {
+    //! The six decrypt / decrypt-and-verify FFI entry points.
+
+    use super::*;
+    use crate::testutil::{cb, corpus, keys};
+    use crate::types::GfrBuffer;
+    use std::ffi::CString;
+    use std::mem::MaybeUninit;
+
+    fn kbuf(s: &str) -> GfrBuffer {
+        GfrBuffer {
+            data: s.as_ptr(),
+            len: s.len(),
+        }
+    }
+
+    /// Encrypt through the FFI so there is something real to decrypt.
+    fn sealed_for(key: &keys::Fixture, payload: &[u8]) -> Vec<u8> {
+        let name = CString::new("").expect("no NUL");
+        let certs = [kbuf(&key.public_armored)];
+        let mut out = MaybeUninit::<crate::types::GfrEncryptResultC>::zeroed();
+        assert_eq!(
+            crate::ffi::crypto::encrypt::gfr_crypto_encrypt_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                certs.as_ptr(),
+                certs.len(),
+                false,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut result = unsafe { out.assume_init() };
+        let bytes =
+            unsafe { std::slice::from_raw_parts(result.data, result.data_len) }.to_vec();
+        crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut result);
+        bytes
+    }
+
+    #[test]
+    fn decrypt_data_rejects_null_arguments() {
+        let mut out = MaybeUninit::<GfrDecryptResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_decrypt_data(
+                0,
+                std::ptr::null(),
+                0,
+                cb::seckey_none,
+                cb::pwd_correct,
+                std::ptr::null_mut(),
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_decrypt_data(
+                0,
+                corpus::ENC_V1SEIPD_MDC.as_ptr(),
+                corpus::ENC_V1SEIPD_MDC.len(),
+                cb::seckey_none,
+                cb::pwd_correct,
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn decrypt_data_round_trips_through_its_free() {
+        let key = &*keys::V4_SIGN;
+        let sealed = sealed_for(key, b"ffi decryption payload");
+        cb::set_seckey_answer(&key.secret_armored);
+
+        let mut out = MaybeUninit::<GfrDecryptResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_decrypt_data(
+                0,
+                sealed.as_ptr(),
+                sealed.len(),
+                cb::seckey_fetch,
+                cb::pwd_correct,
+                std::ptr::null_mut(),
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut result = unsafe { out.assume_init() };
+        let plain = unsafe { std::slice::from_raw_parts(result.data, result.data_len) };
+        assert_eq!(plain, b"ffi decryption payload");
+        crate::ffi::mem::gfr_crypto_free_decrypt_result(&mut result);
+    }
+
+    #[test]
+    fn decrypt_data_without_the_secret_key_fails() {
+        let key = &*keys::V4_SIGN;
+        let sealed = sealed_for(key, b"payload");
+        cb::clear_seckey_answer();
+        let mut out = MaybeUninit::<GfrDecryptResultC>::zeroed();
+        assert_ne!(
+            gfr_crypto_decrypt_data(
+                0,
+                sealed.as_ptr(),
+                sealed.len(),
+                cb::seckey_none,
+                cb::pwd_correct,
+                std::ptr::null_mut(),
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+    }
+
+    #[test]
+    fn decrypt_data_refuses_a_legacy_sed_packet() {
+        // §13.7: unauthenticated plaintext must never be released.
+        cb::set_seckey_answer(corpus::KEY1_SECRET);
+        let mut out = MaybeUninit::<GfrDecryptResultC>::zeroed();
+        assert_ne!(
+            gfr_crypto_decrypt_data(
+                0,
+                corpus::ENC_SED_TAG9.as_ptr(),
+                corpus::ENC_SED_TAG9.len(),
+                cb::seckey_fetch,
+                cb::pwd_corpus,
+                std::ptr::null_mut(),
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+    }
+
+    #[test]
+    fn decrypt_data_never_panics_on_adversarial_input() {
+        for vector in [
+            corpus::GARBAGE,
+            corpus::EMPTY,
+            corpus::PKESK_NO_SEIPD,
+            corpus::SIG_GOOD_DETACHED,
+            corpus::TRUNCATED_ARMOR.as_bytes(),
+        ] {
+            let outcome = std::panic::catch_unwind(|| {
+                cb::set_seckey_answer(corpus::KEY1_SECRET);
+                let mut out = MaybeUninit::<GfrDecryptResultC>::zeroed();
+                let status = gfr_crypto_decrypt_data(
+                    0,
+                    vector.as_ptr(),
+                    vector.len(),
+                    cb::seckey_fetch,
+                    cb::pwd_corpus,
+                    std::ptr::null_mut(),
+                    out.as_mut_ptr(),
+                );
+                if status == GfrStatus::Success {
+                    let mut r = unsafe { out.assume_init() };
+                    crate::ffi::mem::gfr_crypto_free_decrypt_result(&mut r);
+                }
+            });
+            assert!(outcome.is_ok(), "panicked on an adversarial vector");
+        }
+    }
+
+    #[test]
+    fn decrypt_and_verify_data_rejects_null_arguments() {
+        let mut out = MaybeUninit::<GfrDecryptAndVerifyResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_decrypt_and_verify_data(
+                0,
+                std::ptr::null(),
+                0,
+                cb::seckey_none,
+                cb::pwd_correct,
+                cb::pubkey_none,
+                std::ptr::null_mut(),
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn decrypt_and_verify_data_reports_both_halves() {
+        let key = &*keys::V4_SIGN;
+        let name = CString::new("").expect("no NUL");
+        let certs = [kbuf(&key.public_armored)];
+        let signers = [kbuf(&key.secret_armored)];
+        let payload = b"signed and sealed via ffi";
+        let mut enc_out = MaybeUninit::<crate::types::GfrEncryptAndSignResultC>::zeroed();
+
+        assert_eq!(
+            crate::ffi::crypto::encrypt::gfr_crypto_encrypt_and_sign_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                certs.as_ptr(),
+                1,
+                signers.as_ptr(),
+                1,
+                cb::pwd_correct,
+                false,
+                enc_out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut sealed = unsafe { enc_out.assume_init() };
+        let bytes =
+            unsafe { std::slice::from_raw_parts(sealed.data, sealed.data_len) }.to_vec();
+        crate::ffi::mem::gfr_crypto_free_encrypt_and_sign_result(&mut sealed);
+
+        cb::set_seckey_answer(&key.secret_armored);
+        cb::set_pubkey_answer(&key.public_armored);
+        let mut out = MaybeUninit::<GfrDecryptAndVerifyResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_decrypt_and_verify_data(
+                0,
+                bytes.as_ptr(),
+                bytes.len(),
+                cb::seckey_fetch,
+                cb::pwd_correct,
+                cb::pubkey_fetch,
+                std::ptr::null_mut(),
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut result = unsafe { out.assume_init() };
+        let plain = unsafe { std::slice::from_raw_parts(result.data, result.data_len) };
+        assert_eq!(plain, payload);
+        assert_eq!(result.verify_meta.signature_count, 1);
+        let sig = unsafe { &*result.verify_meta.signatures };
+        assert_eq!(sig.status, crate::types::GfrSignatureStatus::Valid);
+        crate::ffi::mem::gfr_crypto_free_decrypt_and_verify_result(&mut result);
+    }
+
+    #[test]
+    fn decrypt_file_rejects_null_paths() {
+        let mut out = MaybeUninit::<GfrDecryptResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_decrypt_file(
+                0,
+                std::ptr::null(),
+                std::ptr::null(),
+                false,
+                cb::seckey_none,
+                cb::pwd_correct,
+                std::ptr::null_mut(),
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn a_file_round_trips_through_encrypt_and_decrypt() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let plain_path = dir.path().join("plain.bin");
+        let cipher_path = dir.path().join("cipher.pgp");
+        let out_path = dir.path().join("recovered.bin");
+        std::fs::write(&plain_path, b"file round trip via ffi").expect("write");
+
+        let in_c = CString::new(plain_path.to_string_lossy().as_ref()).expect("no NUL");
+        let cipher_c = CString::new(cipher_path.to_string_lossy().as_ref()).expect("no NUL");
+        let out_c = CString::new(out_path.to_string_lossy().as_ref()).expect("no NUL");
+        let key = &*keys::V4_SIGN;
+        let certs = [kbuf(&key.public_armored)];
+
+        let mut enc_out = MaybeUninit::<crate::types::GfrEncryptResultC>::zeroed();
+        assert_eq!(
+            crate::ffi::crypto::encrypt::gfr_crypto_encrypt_file(
+                0,
+                in_c.as_ptr(),
+                cipher_c.as_ptr(),
+                certs.as_ptr(),
+                1,
+                false,
+                enc_out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut enc = unsafe { enc_out.assume_init() };
+        crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut enc);
+
+        cb::set_seckey_answer(&key.secret_armored);
+        let mut dec_out = MaybeUninit::<GfrDecryptResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_decrypt_file(
+                0,
+                cipher_c.as_ptr(),
+                out_c.as_ptr(),
+                false,
+                cb::seckey_fetch,
+                cb::pwd_correct,
+                std::ptr::null_mut(),
+                dec_out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut dec = unsafe { dec_out.assume_init() };
+        crate::ffi::mem::gfr_crypto_free_decrypt_result(&mut dec);
+
+        assert_eq!(
+            std::fs::read(&out_path).expect("read"),
+            b"file round trip via ffi"
+        );
+    }
+
+    #[test]
+    fn decrypt_file_with_a_missing_input_fails() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let in_c = CString::new("/nonexistent/definitely/not/here").expect("no NUL");
+        let out_c =
+            CString::new(dir.path().join("o.bin").to_string_lossy().as_ref()).expect("no NUL");
+        let mut out = MaybeUninit::<GfrDecryptResultC>::zeroed();
+        assert_ne!(
+            gfr_crypto_decrypt_file(
+                0,
+                in_c.as_ptr(),
+                out_c.as_ptr(),
+                false,
+                cb::seckey_none,
+                cb::pwd_correct,
+                std::ptr::null_mut(),
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+    }
+
+    #[test]
+    fn decrypt_archive_rejects_null_paths() {
+        let mut out = MaybeUninit::<GfrDecryptResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_decrypt_archive(
+                0,
+                std::ptr::null(),
+                std::ptr::null(),
+                false,
+                cb::seckey_none,
+                cb::pwd_correct,
+                std::ptr::null_mut(),
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn a_directory_round_trips_through_encrypt_and_decrypt_archive() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let src = dir.path().join("src-dir");
+        std::fs::create_dir(&src).expect("mkdir");
+        std::fs::write(src.join("a.txt"), b"alpha").expect("write");
+        let cipher_path = dir.path().join("dir.pgp");
+        let dest = dir.path().join("out-dir");
+        std::fs::create_dir(&dest).expect("mkdir");
+
+        let src_c = CString::new(src.to_string_lossy().as_ref()).expect("no NUL");
+        let cipher_c = CString::new(cipher_path.to_string_lossy().as_ref()).expect("no NUL");
+        let dest_c = CString::new(dest.to_string_lossy().as_ref()).expect("no NUL");
+        let key = &*keys::V4_SIGN;
+        let certs = [kbuf(&key.public_armored)];
+
+        let mut enc_out = MaybeUninit::<crate::types::GfrEncryptResultC>::zeroed();
+        assert_eq!(
+            crate::ffi::crypto::encrypt::gfr_crypto_encrypt_directory(
+                0,
+                src_c.as_ptr(),
+                cipher_c.as_ptr(),
+                certs.as_ptr(),
+                1,
+                false,
+                enc_out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut enc = unsafe { enc_out.assume_init() };
+        crate::ffi::mem::gfr_crypto_free_encrypt_result(&mut enc);
+
+        cb::set_seckey_answer(&key.secret_armored);
+        let mut dec_out = MaybeUninit::<GfrDecryptResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_decrypt_archive(
+                0,
+                cipher_c.as_ptr(),
+                dest_c.as_ptr(),
+                false,
+                cb::seckey_fetch,
+                cb::pwd_correct,
+                std::ptr::null_mut(),
+                dec_out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut dec = unsafe { dec_out.assume_init() };
+        crate::ffi::mem::gfr_crypto_free_decrypt_result(&mut dec);
+
+        assert_eq!(
+            std::fs::read(dest.join("a.txt")).expect("read"),
+            b"alpha",
+            "the archive must be unpacked into the destination"
+        );
+    }
+}

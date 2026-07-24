@@ -24,6 +24,7 @@
 #       --coverage-only    Run only the algorithm-generation coverage sweep
 #                          (*GenerateAllDeclared*; sets GF_RUN_ALGO_COVERAGE=1)
 #       --rust-only        Run only the Rust (cargo test) phase
+#       --rust-slow-only   Run only the ignored/slow Rust tests
 #       --no-rust          Skip the Rust phase
 #   -i, --stress-iter N    Iterations per stress test    (default: 1000)
 #   -f, --filter PATTERN   Run a single GTEST_FILTER and nothing else
@@ -47,6 +48,7 @@
 #   scripts/run_tests.sh --coverage-only
 #   scripts/run_tests.sh --filter '*GpgCoreEngineTest*'
 #   scripts/run_tests.sh --rust-only
+#   scripts/run_tests.sh --rust-slow-only
 
 set -uo pipefail
 
@@ -77,6 +79,7 @@ while [[ $# -gt 0 ]]; do
     --stress-only)    MODE="stress" ;;
     --coverage-only)  MODE="coverage" ;;
     --rust-only)      MODE="rust" ;;
+    --rust-slow-only) MODE="rust-slow" ;;
     --no-rust)        RUN_RUST="no" ;;
     -i|--stress-iter) STRESS_ITER="${2:?missing value for $1}"; shift ;;
     -f|--filter)      MODE="custom"; CUSTOM_FILTER="${2:?missing value for $1}"; shift ;;
@@ -97,9 +100,9 @@ cd "$REPO_ROOT"
 BIN="$BUILD_DIR/artifacts/gpgfrontend"
 RUST_DIR="$REPO_ROOT/rust"
 
-# The Rust phase is driven by cargo and needs neither the C++ binary nor a
-# CMake build, so skip all gpgfrontend build/lookup work in --rust-only mode.
-if [[ "$MODE" != "rust" ]]; then
+# The Rust phases are driven by cargo and need neither the C++ binary nor a
+# CMake build, so skip all gpgfrontend build/lookup work in the rust-only modes.
+if [[ "$MODE" != "rust" && "$MODE" != "rust-slow" ]]; then
   if [[ "$DO_BUILD" == "yes" || ( "$DO_BUILD" == "auto" && ! -x "$BIN" ) ]]; then
     echo "==> Building gpgfrontend ($BUILD_DIR, -j$JOBS)"
     cmake --build "$BUILD_DIR" --target gpgfrontend -j"$JOBS" || {
@@ -176,6 +179,34 @@ run_rust_phase() {
   return "${PIPESTATUS[0]}"
 }
 
+# --- rust-slow phase runner ------------------------------------------------
+# Runs the slow `#[ignore]`d Rust tests: RSA and post-quantum key generation and
+# very large streams. They are excluded from the default `cargo test` because a
+# handful of them dominate the suite's wall clock. A low thread count keeps
+# several multi-second keygens from contending for the same cores.
+#
+# `deferred_*` tests are skipped here on purpose: those are also `#[ignore]`d,
+# but they encode behaviour the engine does not implement yet (see the ignore
+# reason on each), so they are expected to fail and must not gate CI. Run them
+# deliberately with `cd rust && cargo test -- --ignored deferred_`.
+run_rust_slow_phase() {
+  local log="$RESULTS_DIR/rust-slow.log"
+
+  echo
+  echo "============================================================"
+  echo "  Phase: rust-slow"
+  echo "  Runner: cargo test -- --ignored (${RUST_DIR})"
+  echo "============================================================"
+
+  if ! command -v cargo >/dev/null 2>&1; then
+    echo "warning: cargo not found; skipping rust-slow phase" | tee "$log" >&2
+    return 0
+  fi
+
+  ( cd "$RUST_DIR" && cargo test -- --ignored --skip deferred_ --test-threads=2 ) 2>&1 | tee "$log"
+  return "${PIPESTATUS[0]}"
+}
+
 # --- run requested phases --------------------------------------------------
 overall_rc=0
 declare -a phases=()
@@ -207,6 +238,10 @@ case "$MODE" in
     run_rust_phase || overall_rc=1
     phases+=("rust")
     ;;
+  rust-slow)
+    run_rust_slow_phase || overall_rc=1
+    phases+=("rust-slow")
+    ;;
   all)
     if [[ "$RUN_RUST" != "no" ]]; then
       run_rust_phase || overall_rc=1
@@ -218,6 +253,10 @@ case "$MODE" in
     phases+=("stress")
     run_phase "coverage" "$COVERAGE_FILTER" "$STRESS_ITER" "1" || overall_rc=1
     phases+=("coverage")
+    if [[ "$RUN_RUST" != "no" ]]; then
+      run_rust_slow_phase || overall_rc=1
+      phases+=("rust-slow")
+    fi
     ;;
 esac
 
@@ -228,7 +267,7 @@ echo "  Summary"
 echo "============================================================"
 for p in "${phases[@]}"; do
   log="$RESULTS_DIR/${p}.log"
-  if [[ "$p" == "rust" ]]; then
+  if [[ "$p" == "rust" || "$p" == "rust-slow" ]]; then
     # cargo emits one "test result: ok. N passed; M failed; K ignored; ..."
     # line per test binary (lib, integration, doc); sum across all of them.
     passed="$(grep -oE '[0-9]+ passed' "$log" | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}')"

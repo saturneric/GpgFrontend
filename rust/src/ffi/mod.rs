@@ -184,3 +184,153 @@ pub extern "C" fn gfr_init_logger() {
         .parse_default_env()
         .try_init();
 }
+
+#[cfg(test)]
+mod ffi_mod_tests {
+    //! The runtime entry points: version reporting, build info, cancellation
+    //! and password-cache configuration.
+
+    use super::*;
+    use crate::types::GfrStatus;
+    use std::ffi::CStr;
+
+    fn take_string(ptr: *mut c_char) -> String {
+        assert!(!ptr.is_null(), "the entry point must return a string");
+        let s = unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned();
+        crate::ffi::mem::gfr_crypto_free_string(ptr);
+        s
+    }
+
+    #[test]
+    fn hello_does_not_panic() {
+        // It only logs, but it is the first Rust symbol the app calls at
+        // startup, so a panic here would be a hard failure to launch.
+        gfr_rust_hello();
+    }
+
+    #[test]
+    fn the_engine_version_matches_the_package_version() {
+        assert_eq!(take_string(gfr_rust_engine_version()), env!("CARGO_PKG_VERSION"));
+    }
+
+    #[test]
+    fn the_engine_version_is_a_fresh_allocation_each_call() {
+        // Each caller frees what it got, so returning a shared pointer would
+        // be a double free waiting to happen.
+        let a = gfr_rust_engine_version();
+        let b = gfr_rust_engine_version();
+        assert_ne!(a, b);
+        crate::ffi::mem::gfr_crypto_free_string(a);
+        crate::ffi::mem::gfr_crypto_free_string(b);
+    }
+
+    #[test]
+    fn the_build_info_is_tab_delimited_records() {
+        let info = take_string(gfr_rust_engine_build_info());
+        assert!(!info.is_empty());
+        for line in info.lines().filter(|l| !l.is_empty()) {
+            assert!(line.contains('\t'), "not a key\\tvalue record: {line:?}");
+        }
+    }
+
+    #[test]
+    fn the_build_info_reports_the_engine_version() {
+        let info = take_string(gfr_rust_engine_build_info());
+        assert!(
+            info.lines()
+                .any(|l| l.starts_with("engine\t") && l.contains(env!("CARGO_PKG_VERSION")))
+        );
+    }
+
+    #[test]
+    fn the_build_info_reports_the_pgp_dependency() {
+        // The rPGP version is the single most useful thing in a bug report
+        // about this engine.
+        let info = take_string(gfr_rust_engine_build_info());
+        assert!(
+            info.lines().any(|l| l.starts_with("dep:pgp\t")),
+            "build info should record the pgp crate version:\n{info}"
+        );
+    }
+
+    #[test]
+    fn setting_the_cancel_flag_is_visible_to_the_engine() {
+        const CH: i32 = 0x0F_01;
+        gfr_set_operation_cancelled(CH, true);
+        assert!(crate::cancel::is_cancelled(CH));
+        gfr_set_operation_cancelled(CH, false);
+        assert!(!crate::cancel::is_cancelled(CH));
+    }
+
+    #[test]
+    fn the_cancel_flag_is_per_channel() {
+        const A: i32 = 0x0F_02;
+        const B: i32 = 0x0F_03;
+        gfr_set_operation_cancelled(A, true);
+        assert!(!crate::cancel::is_cancelled(B));
+        gfr_set_operation_cancelled(A, false);
+    }
+
+    #[test]
+    fn setting_the_cancel_flag_twice_is_idempotent() {
+        const CH: i32 = 0x0F_04;
+        gfr_set_operation_cancelled(CH, true);
+        gfr_set_operation_cancelled(CH, true);
+        assert!(crate::cancel::is_cancelled(CH));
+        gfr_set_operation_cancelled(CH, false);
+    }
+
+    #[test]
+    fn initialising_the_logger_more_than_once_is_safe() {
+        // The C++ side may call this from more than one place; a second
+        // attempt must not panic on "logger already set".
+        gfr_init_logger();
+        gfr_init_logger();
+    }
+
+    #[test]
+    fn the_password_cache_ttl_can_be_reconfigured() {
+        // Restore gpg-agent-like defaults afterwards so this does not disturb
+        // other tests sharing the global cache.
+        gfr_set_password_cache_ttl(120, 1200);
+        gfr_set_password_cache_ttl(600, 7200);
+    }
+
+    #[test]
+    fn a_cache_ttl_longer_than_its_cap_is_clamped_not_rejected() {
+        gfr_set_password_cache_ttl(900, 30);
+        gfr_set_password_cache_ttl(600, 7200);
+    }
+
+    #[test]
+    fn clearing_the_password_cache_does_not_panic() {
+        gfr_clear_password_cache();
+    }
+
+    #[test]
+    fn the_last_error_slot_is_reachable_through_the_ffi() {
+        crate::err::set_last_error("an ffi-visible failure");
+        let msg = take_string(crate::err::gfr_get_last_error_msg());
+        assert_eq!(msg, "an ffi-visible failure");
+    }
+
+    #[test]
+    fn the_last_error_slot_is_null_when_empty() {
+        crate::err::clear_last_error();
+        assert!(crate::err::gfr_get_last_error_msg().is_null());
+    }
+
+    #[test]
+    fn every_runtime_entry_point_is_callable_without_arguments_it_can_reject() {
+        // A smoke sweep: none of the no-argument entry points may panic, in
+        // any order, however many times they are called.
+        for _ in 0..3 {
+            gfr_rust_hello();
+            gfr_init_logger();
+            gfr_clear_password_cache();
+            let _ = take_string(gfr_rust_engine_version());
+            let _ = take_string(gfr_rust_engine_build_info());
+        }
+        assert_eq!(GfrStatus::Success as i32, 0);
+    }
+}

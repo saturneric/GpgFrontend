@@ -383,3 +383,363 @@ mod tests {
         assert_eq!(cache.get(&other_key), None);
     }
 }
+
+#[cfg(test)]
+mod cache_more_tests {
+    //! The gpg-agent-style passphrase cache: sliding idle window, absolute
+    //! cap, case-insensitive fingerprints, and zeroing on eviction.
+    //!
+    //! Timing is expressed with zero-length windows rather than sleeps, so the
+    //! suite stays fast and deterministic.
+
+    use super::*;
+
+    fn key_for(channel: i32, fpr: &str, info: &str) -> PasswordCacheKey {
+        PasswordCacheKey {
+            channel,
+            fpr: fpr.to_string(),
+            info: info.to_string(),
+        }
+    }
+
+    fn cache(ttl_secs: u64, max_secs: u64) -> PasswordCache {
+        PasswordCache::new(
+            Duration::from_secs(ttl_secs),
+            Duration::from_secs(max_secs),
+        )
+    }
+
+    // -- keying ------------------------------------------------------------
+
+    #[test]
+    fn a_miss_returns_none_rather_than_panicking() {
+        let c = cache(60, 600);
+        assert!(c.get(&key_for(0, "NOSUCHKEY", "Decryption")).is_none());
+    }
+
+    #[test]
+    fn the_channel_is_part_of_the_key() {
+        // Two OpenPGP contexts may hold the same key with different
+        // passphrase policies; they must not share a cache entry.
+        let c = cache(60, 600);
+        c.put(key_for(1, "AABB", "Decryption"), b"one".to_vec());
+        assert_eq!(c.get(&key_for(1, "AABB", "Decryption")).as_deref(), Some(&b"one"[..]));
+        assert!(c.get(&key_for(2, "AABB", "Decryption")).is_none());
+    }
+
+    #[test]
+    fn the_info_string_is_part_of_the_key() {
+        let c = cache(60, 600);
+        c.put(key_for(0, "AABB", "Decryption"), b"dec".to_vec());
+        assert!(c.get(&key_for(0, "AABB", "Signing")).is_none());
+    }
+
+    #[test]
+    fn the_fingerprint_is_matched_case_insensitively_on_insert() {
+        // Fingerprints reach the cache from several code paths, some
+        // uppercase, some not; normalising on both sides keeps them one entry.
+        let c = cache(60, 600);
+        c.put(key_for(0, "abcdef", "Decryption"), b"v".to_vec());
+        assert_eq!(c.get(&key_for(0, "ABCDEF", "Decryption")).as_deref(), Some(&b"v"[..]));
+    }
+
+    #[test]
+    fn the_fingerprint_is_matched_case_insensitively_on_lookup() {
+        let c = cache(60, 600);
+        c.put(key_for(0, "ABCDEF", "Decryption"), b"v".to_vec());
+        assert_eq!(c.get(&key_for(0, "abcdef", "Decryption")).as_deref(), Some(&b"v"[..]));
+    }
+
+    #[test]
+    fn the_info_string_is_matched_exactly() {
+        // Only the fingerprint is normalised; the info string is supplied by
+        // the engine itself and is already canonical.
+        let c = cache(60, 600);
+        c.put(key_for(0, "AABB", "DECRYPTION"), b"v".to_vec());
+        assert!(c.get(&key_for(0, "AABB", "decryption")).is_none());
+    }
+
+    #[test]
+    fn an_empty_fingerprint_is_a_usable_key() {
+        // `fetch_password_with_cache` bypasses the cache for empty
+        // fingerprints, but the cache itself must not choke on one.
+        let c = cache(60, 600);
+        c.put(key_for(0, "", "Symmetric"), b"v".to_vec());
+        assert_eq!(c.get(&key_for(0, "", "Symmetric")).as_deref(), Some(&b"v"[..]));
+    }
+
+    // -- values ------------------------------------------------------------
+
+    #[test]
+    fn a_stored_value_is_returned_byte_for_byte() {
+        let c = cache(60, 600);
+        let secret = vec![0x00, 0xFF, 0x41, 0x00, 0x7F];
+        c.put(key_for(0, "AABB", "Decryption"), secret.clone());
+        assert_eq!(c.get(&key_for(0, "AABB", "Decryption")), Some(secret));
+    }
+
+    #[test]
+    fn an_empty_value_round_trips() {
+        let c = cache(60, 600);
+        c.put(key_for(0, "AABB", "Decryption"), Vec::new());
+        assert_eq!(c.get(&key_for(0, "AABB", "Decryption")), Some(Vec::new()));
+    }
+
+    #[test]
+    fn a_second_put_replaces_the_first() {
+        let c = cache(60, 600);
+        c.put(key_for(0, "AABB", "Decryption"), b"old".to_vec());
+        c.put(key_for(0, "AABB", "Decryption"), b"new".to_vec());
+        assert_eq!(c.get(&key_for(0, "AABB", "Decryption")).as_deref(), Some(&b"new"[..]));
+    }
+
+    #[test]
+    fn a_large_value_round_trips() {
+        let c = cache(60, 600);
+        let big = vec![0x5Au8; 64 * 1024];
+        c.put(key_for(0, "AABB", "Decryption"), big.clone());
+        assert_eq!(c.get(&key_for(0, "AABB", "Decryption")), Some(big));
+    }
+
+    #[test]
+    fn a_get_returns_a_copy_not_a_view() {
+        // The caller owns what it gets back; mutating it must not corrupt the
+        // cached secret.
+        let c = cache(60, 600);
+        c.put(key_for(0, "AABB", "Decryption"), b"original".to_vec());
+        let mut first = c.get(&key_for(0, "AABB", "Decryption")).expect("hit");
+        first[0] = b'X';
+        assert_eq!(
+            c.get(&key_for(0, "AABB", "Decryption")).as_deref(),
+            Some(&b"original"[..])
+        );
+    }
+
+    // -- expiry ------------------------------------------------------------
+
+    #[test]
+    fn a_zero_sliding_window_expires_immediately() {
+        let c = cache(0, 600);
+        c.put(key_for(0, "AABB", "Decryption"), b"v".to_vec());
+        assert!(c.get(&key_for(0, "AABB", "Decryption")).is_none());
+    }
+
+    #[test]
+    fn a_zero_absolute_cap_is_clamped_up_and_does_not_expire_entries() {
+        // The cap can never be shorter than the sliding window, so asking for
+        // a zero cap alongside a 600s window yields a 600s cap -- the entry
+        // stays. (Asking for both to be zero *does* expire immediately; see
+        // `a_zero_sliding_window_expires_immediately`.)
+        let c = cache(600, 0);
+        assert_eq!(c.max_ttl(), Duration::from_secs(600));
+        c.put(key_for(0, "AABB", "Decryption"), b"v".to_vec());
+        assert!(c.get(&key_for(0, "AABB", "Decryption")).is_some());
+    }
+
+    #[test]
+    fn an_expired_entry_is_evicted_not_merely_hidden() {
+        // Leaving the entry in place would keep the secret in memory past its
+        // TTL, which is the whole thing the cap exists to prevent.
+        let c = cache(0, 600);
+        c.put(key_for(0, "AABB", "Decryption"), b"v".to_vec());
+        assert!(c.get(&key_for(0, "AABB", "Decryption")).is_none());
+        let guard = c.inner.lock().expect("lock");
+        assert!(guard.is_empty(), "the expired entry must be removed");
+    }
+
+    #[test]
+    fn a_hit_slides_the_idle_window_forward() {
+        let c = cache(600, 3600);
+        let k = key_for(0, "AABB", "Decryption");
+        c.put(k.clone(), b"v".to_vec());
+
+        let first_deadline = {
+            let guard = c.inner.lock().expect("lock");
+            guard.get(&k).expect("entry").expires_at
+        };
+        assert!(c.get(&k).is_some());
+        let second_deadline = {
+            let guard = c.inner.lock().expect("lock");
+            guard.get(&k).expect("entry").expires_at
+        };
+        assert!(
+            second_deadline >= first_deadline,
+            "using an entry should renew its idle window"
+        );
+    }
+
+    #[test]
+    fn the_sliding_window_never_passes_the_absolute_cap() {
+        // The cap is what bounds how long a passphrase can live in memory no
+        // matter how often it is used.
+        let c = cache(600, 600);
+        let k = key_for(0, "AABB", "Decryption");
+        c.put(k.clone(), b"v".to_vec());
+        assert!(c.get(&k).is_some());
+        let guard = c.inner.lock().expect("lock");
+        let entry = guard.get(&k).expect("entry");
+        assert!(entry.expires_at <= entry.hard_expires_at);
+    }
+
+    #[test]
+    fn new_clamps_the_cap_up_to_the_sliding_window() {
+        // A cap shorter than the idle window is nonsense; it is raised rather
+        // than silently making every entry expire at once.
+        let c = cache(600, 60);
+        assert_eq!(c.max_ttl(), Duration::from_secs(600));
+    }
+
+    #[test]
+    fn set_ttl_reconfigures_both_windows() {
+        let c = cache(60, 600);
+        c.set_ttl(Duration::from_secs(120), Duration::from_secs(1200));
+        assert_eq!(c.ttl(), Duration::from_secs(120));
+        assert_eq!(c.max_ttl(), Duration::from_secs(1200));
+    }
+
+    #[test]
+    fn set_ttl_clamps_the_cap_up_to_the_window() {
+        let c = cache(60, 600);
+        c.set_ttl(Duration::from_secs(900), Duration::from_secs(30));
+        assert_eq!(c.max_ttl(), Duration::from_secs(900));
+    }
+
+    #[test]
+    fn set_ttl_does_not_disturb_existing_entries() {
+        // Documented behaviour: only entries inserted or refreshed after the
+        // call use the new windows.
+        let c = cache(600, 3600);
+        let k = key_for(0, "AABB", "Decryption");
+        c.put(k.clone(), b"v".to_vec());
+        c.set_ttl(Duration::from_secs(0), Duration::from_secs(0));
+        assert!(
+            c.get(&k).is_some(),
+            "an entry already in the cache keeps its own deadlines"
+        );
+    }
+
+    // -- eviction ----------------------------------------------------------
+
+    #[test]
+    fn remove_drops_exactly_one_entry() {
+        let c = cache(60, 600);
+        c.put(key_for(0, "AABB", "Decryption"), b"a".to_vec());
+        c.put(key_for(0, "CCDD", "Decryption"), b"b".to_vec());
+        c.remove(&key_for(0, "AABB", "Decryption"));
+        assert!(c.get(&key_for(0, "AABB", "Decryption")).is_none());
+        assert!(c.get(&key_for(0, "CCDD", "Decryption")).is_some());
+    }
+
+    #[test]
+    fn remove_is_case_insensitive_in_the_fingerprint() {
+        let c = cache(60, 600);
+        c.put(key_for(0, "AABB", "Decryption"), b"a".to_vec());
+        c.remove(&key_for(0, "aabb", "Decryption"));
+        assert!(c.get(&key_for(0, "AABB", "Decryption")).is_none());
+    }
+
+    #[test]
+    fn removing_a_missing_entry_is_harmless() {
+        let c = cache(60, 600);
+        c.remove(&key_for(0, "NOTTHERE", "Decryption"));
+    }
+
+    #[test]
+    fn remove_by_fpr_drops_every_channel_and_context_for_that_key() {
+        // Used when a key is deleted or its passphrase changed: every cached
+        // secret for it must go, whichever context cached it.
+        let c = cache(60, 600);
+        c.put(key_for(0, "AABB", "Decryption"), b"a".to_vec());
+        c.put(key_for(1, "AABB", "Signing"), b"b".to_vec());
+        c.put(key_for(0, "CCDD", "Decryption"), b"c".to_vec());
+
+        c.remove_by_fpr("AABB");
+
+        assert!(c.get(&key_for(0, "AABB", "Decryption")).is_none());
+        assert!(c.get(&key_for(1, "AABB", "Signing")).is_none());
+        assert!(c.get(&key_for(0, "CCDD", "Decryption")).is_some());
+    }
+
+    #[test]
+    fn remove_by_fpr_is_case_insensitive() {
+        let c = cache(60, 600);
+        c.put(key_for(0, "AABB", "Decryption"), b"a".to_vec());
+        c.remove_by_fpr("aabb");
+        assert!(c.get(&key_for(0, "AABB", "Decryption")).is_none());
+    }
+
+    #[test]
+    fn clear_empties_everything() {
+        let c = cache(60, 600);
+        for i in 0..8 {
+            c.put(key_for(i, &format!("KEY{i}"), "Decryption"), vec![i as u8]);
+        }
+        c.clear();
+        for i in 0..8 {
+            assert!(c.get(&key_for(i, &format!("KEY{i}"), "Decryption")).is_none());
+        }
+    }
+
+    #[test]
+    fn clear_on_an_empty_cache_is_harmless() {
+        cache(60, 600).clear();
+    }
+
+    // -- CachedSecret ------------------------------------------------------
+
+    #[test]
+    fn a_cached_secret_exposes_its_bytes() {
+        let s = CachedSecret::new(b"passphrase".to_vec());
+        assert_eq!(s.as_slice(), b"passphrase");
+    }
+
+    #[test]
+    fn an_empty_cached_secret_is_constructible() {
+        // `lock_memory` on a zero-length buffer must not be treated as a
+        // failure that panics.
+        let s = CachedSecret::new(Vec::new());
+        assert!(s.as_slice().is_empty());
+    }
+
+    #[test]
+    fn dropping_a_cached_secret_does_not_panic_whether_or_not_mlock_succeeded() {
+        // mlock is best-effort (it needs RLIMIT_MEMLOCK headroom); the Drop
+        // impl only unlocks when the lock actually succeeded.
+        for size in [0usize, 1, 4096, 1 << 16] {
+            drop(CachedSecret::new(vec![0xAA; size]));
+        }
+    }
+
+    // -- concurrency -------------------------------------------------------
+
+    #[test]
+    fn the_cache_is_shared_across_clones() {
+        // `PasswordCache` is `Clone` over an `Arc`, so a clone must see the
+        // same entries rather than starting empty.
+        let c = cache(60, 600);
+        let c2 = c.clone();
+        c.put(key_for(0, "AABB", "Decryption"), b"v".to_vec());
+        assert_eq!(c2.get(&key_for(0, "AABB", "Decryption")).as_deref(), Some(&b"v"[..]));
+    }
+
+    #[test]
+    fn concurrent_access_does_not_deadlock_or_corrupt() {
+        let c = cache(600, 3600);
+        let handles: Vec<_> = (0..4)
+            .map(|t| {
+                let c = c.clone();
+                std::thread::spawn(move || {
+                    for i in 0..100 {
+                        let k = key_for(t, &format!("K{i}"), "Decryption");
+                        c.put(k.clone(), vec![t as u8, i as u8]);
+                        assert_eq!(c.get(&k), Some(vec![t as u8, i as u8]));
+                        c.remove(&k);
+                    }
+                })
+            })
+            .collect();
+        for h in handles {
+            h.join().expect("no thread panicked or deadlocked");
+        }
+    }
+}

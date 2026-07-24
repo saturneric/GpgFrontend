@@ -540,3 +540,525 @@ pub extern "C" fn gfr_crypto_get_signature_issuers(
         Err(_) => GfrStatus::ErrorPanic,
     }
 }
+
+#[cfg(test)]
+mod ffi_sign_tests {
+    //! The five sign/verify/issuer FFI entry points.
+
+    use super::*;
+    use crate::testutil::{cb, corpus, keys};
+    use std::ffi::CString;
+    use std::mem::MaybeUninit;
+
+    fn kbuf(s: &str) -> GfrBuffer {
+        GfrBuffer {
+            data: s.as_ptr(),
+            len: s.len(),
+        }
+    }
+
+    // -- sign_data ------------------------------------------------------------
+
+    #[test]
+    fn sign_data_rejects_null_arguments() {
+        let name = CString::new("").expect("no NUL");
+        let key = &keys::V4_SIGN;
+        let keys_arr = [kbuf(&key.secret_armored)];
+        let payload = b"x";
+        let mut out = MaybeUninit::<GfrSignResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_sign_data(
+                0,
+                std::ptr::null(),
+                payload.as_ptr(),
+                payload.len(),
+                keys_arr.as_ptr(),
+                1,
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                true,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_sign_data(
+                0,
+                name.as_ptr(),
+                std::ptr::null(),
+                0,
+                keys_arr.as_ptr(),
+                1,
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                true,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_sign_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                std::ptr::null(),
+                0,
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                true,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_sign_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                keys_arr.as_ptr(),
+                1,
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                true,
+                std::ptr::null_mut(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn sign_data_round_trips_through_its_free() {
+        let name = CString::new("").expect("no NUL");
+        let key = &keys::V4_SIGN;
+        let keys_arr = [kbuf(&key.secret_armored)];
+        let payload = b"ffi signing payload";
+        let mut out = MaybeUninit::<GfrSignResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_sign_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                keys_arr.as_ptr(),
+                keys_arr.len(),
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                true,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut result = unsafe { out.assume_init() };
+        assert!(!result.data.is_null());
+        assert!(result.data_len > 0);
+        assert_eq!(result.meta.signature_count, 1);
+        crate::ffi::mem::gfr_crypto_free_sign_result(&mut result);
+    }
+
+    #[test]
+    fn sign_data_reports_the_issuer_and_a_strong_hash() {
+        let name = CString::new("").expect("no NUL");
+        let key = &keys::V4_SIGN;
+        let keys_arr = [kbuf(&key.secret_armored)];
+        let payload = b"x";
+        let mut out = MaybeUninit::<GfrSignResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_sign_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                keys_arr.as_ptr(),
+                1,
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                false,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut result = unsafe { out.assume_init() };
+        let sig = unsafe { &*result.meta.signatures };
+        let hash = unsafe { CStr::from_ptr(sig.hash_algo) }
+            .to_string_lossy()
+            .into_owned();
+        assert!(!crate::crypto::sig_hash_algo_is_weak(&hash), "{hash}");
+        assert!(!sig.issuer_fpr.is_null());
+        crate::ffi::mem::gfr_crypto_free_sign_result(&mut result);
+    }
+
+    #[test]
+    fn sign_data_with_a_public_key_block_fails() {
+        let name = CString::new("").expect("no NUL");
+        let keys_arr = [kbuf(&keys::V4_SIGN.public_armored)];
+        let payload = b"x";
+        let mut out = MaybeUninit::<GfrSignResultC>::zeroed();
+        assert_ne!(
+            gfr_crypto_sign_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                keys_arr.as_ptr(),
+                1,
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                true,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+    }
+
+    // -- verify_data -----------------------------------------------------------
+
+    #[test]
+    fn verify_data_rejects_null_arguments() {
+        let mut out = MaybeUninit::<GfrVerifyResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_verify_data(
+                std::ptr::null(),
+                0,
+                corpus::SIG_GOOD_DETACHED.as_ptr(),
+                corpus::SIG_GOOD_DETACHED.len(),
+                cb::pubkey_none,
+                std::ptr::null_mut(),
+                GfrSignMode::Detached,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_verify_data(
+                corpus::PAYLOAD.as_ptr(),
+                corpus::PAYLOAD.len(),
+                corpus::SIG_GOOD_DETACHED.as_ptr(),
+                corpus::SIG_GOOD_DETACHED.len(),
+                cb::pubkey_none,
+                std::ptr::null_mut(),
+                GfrSignMode::Detached,
+                std::ptr::null_mut(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn verify_data_reports_a_valid_signature() {
+        cb::set_pubkey_answer(corpus::AUX_GOOD);
+        let mut out = MaybeUninit::<GfrVerifyResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_verify_data(
+                corpus::PAYLOAD.as_ptr(),
+                corpus::PAYLOAD.len(),
+                corpus::SIG_GOOD_DETACHED.as_ptr(),
+                corpus::SIG_GOOD_DETACHED.len(),
+                cb::pubkey_fetch,
+                std::ptr::null_mut(),
+                GfrSignMode::Detached,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut result = unsafe { out.assume_init() };
+        assert_eq!(result.meta.signature_count, 1);
+        let sig = unsafe { &*result.meta.signatures };
+        assert_eq!(sig.status, crate::types::GfrSignatureStatus::Valid);
+        crate::ffi::mem::gfr_crypto_free_verify_result(&mut result);
+    }
+
+    #[test]
+    fn verify_data_reports_an_unknown_issuer_as_no_key() {
+        // Never `BadSignature`: the user has no key, not a forgery.
+        cb::clear_pubkey_answer();
+        let mut out = MaybeUninit::<GfrVerifyResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_verify_data(
+                corpus::PAYLOAD.as_ptr(),
+                corpus::PAYLOAD.len(),
+                corpus::SIG_GOOD_DETACHED.as_ptr(),
+                corpus::SIG_GOOD_DETACHED.len(),
+                cb::pubkey_none,
+                std::ptr::null_mut(),
+                GfrSignMode::Detached,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut result = unsafe { out.assume_init() };
+        let sig = unsafe { &*result.meta.signatures };
+        assert_eq!(sig.status, crate::types::GfrSignatureStatus::NoKey);
+        crate::ffi::mem::gfr_crypto_free_verify_result(&mut result);
+    }
+
+    #[test]
+    fn verify_data_never_panics_on_adversarial_input() {
+        for vector in [corpus::GARBAGE, corpus::EMPTY, corpus::ENC_SED_TAG9] {
+            let outcome = std::panic::catch_unwind(|| {
+                let mut out = MaybeUninit::<GfrVerifyResultC>::zeroed();
+                let status = gfr_crypto_verify_data(
+                    corpus::PAYLOAD.as_ptr(),
+                    corpus::PAYLOAD.len(),
+                    vector.as_ptr(),
+                    vector.len(),
+                    cb::pubkey_none,
+                    std::ptr::null_mut(),
+                    GfrSignMode::Detached,
+                    out.as_mut_ptr(),
+                );
+                if status == GfrStatus::Success {
+                    let mut r = unsafe { out.assume_init() };
+                    crate::ffi::mem::gfr_crypto_free_verify_result(&mut r);
+                }
+            });
+            assert!(outcome.is_ok());
+        }
+    }
+
+    #[test]
+    fn a_signature_we_produce_verifies_back_through_the_ffi() {
+        // The full boundary round trip: sign through the FFI, verify through
+        // the FFI, free both results.
+        let name = CString::new("").expect("no NUL");
+        let key = &keys::V4_SIGN;
+        let keys_arr = [kbuf(&key.secret_armored)];
+        let payload = b"boundary round trip";
+        let mut sign_out = MaybeUninit::<GfrSignResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_sign_data(
+                0,
+                name.as_ptr(),
+                payload.as_ptr(),
+                payload.len(),
+                keys_arr.as_ptr(),
+                1,
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                false,
+                sign_out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut signed = unsafe { sign_out.assume_init() };
+
+        cb::set_pubkey_answer(&key.public_armored);
+        let mut verify_out = MaybeUninit::<GfrVerifyResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_verify_data(
+                payload.as_ptr(),
+                payload.len(),
+                signed.data,
+                signed.data_len,
+                cb::pubkey_fetch,
+                std::ptr::null_mut(),
+                GfrSignMode::Detached,
+                verify_out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut verified = unsafe { verify_out.assume_init() };
+        let sig = unsafe { &*verified.meta.signatures };
+        assert_eq!(sig.status, crate::types::GfrSignatureStatus::Valid);
+
+        crate::ffi::mem::gfr_crypto_free_verify_result(&mut verified);
+        crate::ffi::mem::gfr_crypto_free_sign_result(&mut signed);
+    }
+
+    // -- get_signature_issuers ----------------------------------------------------
+
+    #[test]
+    fn get_signature_issuers_rejects_null_arguments() {
+        let mut out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_get_signature_issuers(std::ptr::null(), 0, &mut out),
+            GfrStatus::ErrorInvalidInput
+        );
+        assert_eq!(
+            gfr_crypto_get_signature_issuers(
+                corpus::SIG_GOOD_DETACHED.as_ptr(),
+                corpus::SIG_GOOD_DETACHED.len(),
+                std::ptr::null_mut()
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn get_signature_issuers_returns_a_csv_and_frees_cleanly() {
+        let mut out = std::ptr::null_mut();
+        assert_eq!(
+            gfr_crypto_get_signature_issuers(
+                corpus::SIG_GOOD_DETACHED.as_ptr(),
+                corpus::SIG_GOOD_DETACHED.len(),
+                &mut out
+            ),
+            GfrStatus::Success
+        );
+        assert!(!out.is_null());
+        let issuers = unsafe { CStr::from_ptr(out) }.to_string_lossy().into_owned();
+        assert!(!issuers.is_empty());
+        crate::ffi::mem::gfr_crypto_free_string(out);
+    }
+
+    #[test]
+    fn get_signature_issuers_of_garbage_does_not_crash() {
+        let mut out = std::ptr::null_mut();
+        let status = gfr_crypto_get_signature_issuers(
+            corpus::GARBAGE.as_ptr(),
+            corpus::GARBAGE.len(),
+            &mut out,
+        );
+        if status == GfrStatus::Success && !out.is_null() {
+            crate::ffi::mem::gfr_crypto_free_string(out);
+        }
+    }
+
+    // -- file variants ----------------------------------------------------------------
+
+    #[test]
+    fn sign_file_rejects_null_paths() {
+        let keys_arr = [kbuf(&keys::V4_SIGN.secret_armored)];
+        let mut out = MaybeUninit::<GfrSignResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_sign_file(
+                0,
+                std::ptr::null(),
+                std::ptr::null(),
+                keys_arr.as_ptr(),
+                1,
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                true,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn sign_file_writes_a_signature_next_to_the_input() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let in_path = dir.path().join("payload.bin");
+        let out_path = dir.path().join("payload.sig");
+        std::fs::write(&in_path, b"file payload").expect("write");
+
+        let in_c = CString::new(in_path.to_string_lossy().as_ref()).expect("no NUL");
+        let out_c = CString::new(out_path.to_string_lossy().as_ref()).expect("no NUL");
+        let keys_arr = [kbuf(&keys::V4_SIGN.secret_armored)];
+        let mut out = MaybeUninit::<GfrSignResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_sign_file(
+                0,
+                in_c.as_ptr(),
+                out_c.as_ptr(),
+                keys_arr.as_ptr(),
+                1,
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                true,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        assert!(out_path.exists());
+        let mut result = unsafe { out.assume_init() };
+        crate::ffi::mem::gfr_crypto_free_sign_result(&mut result);
+    }
+
+    #[test]
+    fn sign_file_with_a_missing_input_fails() {
+        let in_c = CString::new("/nonexistent/definitely/not/here").expect("no NUL");
+        let out_c = CString::new("/tmp/should-not-be-written.sig").expect("no NUL");
+        let keys_arr = [kbuf(&keys::V4_SIGN.secret_armored)];
+        let mut out = MaybeUninit::<GfrSignResultC>::zeroed();
+        assert_ne!(
+            gfr_crypto_sign_file(
+                0,
+                in_c.as_ptr(),
+                out_c.as_ptr(),
+                keys_arr.as_ptr(),
+                1,
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                true,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+    }
+
+    #[test]
+    fn verify_file_rejects_null_paths() {
+        let mut out = MaybeUninit::<GfrVerifyResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_verify_file(
+                0,
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null(),
+                cb::pubkey_none,
+                std::ptr::null_mut(),
+                GfrSignMode::Detached,
+                out.as_mut_ptr(),
+            ),
+            GfrStatus::ErrorInvalidInput
+        );
+    }
+
+    #[test]
+    fn a_file_signature_verifies_back_through_the_ffi() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let in_path = dir.path().join("payload.bin");
+        let sig_path = dir.path().join("payload.sig");
+        std::fs::write(&in_path, b"file round trip").expect("write");
+
+        let in_c = CString::new(in_path.to_string_lossy().as_ref()).expect("no NUL");
+        let sig_c = CString::new(sig_path.to_string_lossy().as_ref()).expect("no NUL");
+        let keys_arr = [kbuf(&keys::V4_SIGN.secret_armored)];
+        let mut sign_out = MaybeUninit::<GfrSignResultC>::zeroed();
+
+        assert_eq!(
+            gfr_crypto_sign_file(
+                0,
+                in_c.as_ptr(),
+                sig_c.as_ptr(),
+                keys_arr.as_ptr(),
+                1,
+                cb::pwd_correct,
+                GfrSignMode::Detached,
+                true,
+                sign_out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut signed = unsafe { sign_out.assume_init() };
+        crate::ffi::mem::gfr_crypto_free_sign_result(&mut signed);
+
+        cb::set_pubkey_answer(&keys::V4_SIGN.public_armored);
+        let mut verify_out = MaybeUninit::<GfrVerifyResultC>::zeroed();
+        assert_eq!(
+            gfr_crypto_verify_file(
+                0,
+                in_c.as_ptr(),
+                sig_c.as_ptr(),
+                std::ptr::null(),
+                cb::pubkey_fetch,
+                std::ptr::null_mut(),
+                GfrSignMode::Detached,
+                verify_out.as_mut_ptr(),
+            ),
+            GfrStatus::Success
+        );
+        let mut verified = unsafe { verify_out.assume_init() };
+        let sig = unsafe { &*verified.meta.signatures };
+        assert_eq!(sig.status, crate::types::GfrSignatureStatus::Valid);
+        crate::ffi::mem::gfr_crypto_free_verify_result(&mut verified);
+    }
+}

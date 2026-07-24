@@ -2149,19 +2149,9 @@ mod rfc9580_tests {
     //! known-answer vectors.
     use super::*;
     use crate::keygen::keygen_dynamic;
-    use crate::types::{GfrKeyAlgo, GfrKeyConfig, GfrOpenPGPKeyVersion};
-
-    fn cfg(algo: GfrKeyAlgo, sign: bool, enc: bool, ver: GfrOpenPGPKeyVersion) -> GfrKeyConfig {
-        GfrKeyConfig {
-            algo,
-            can_sign: sign,
-            can_encrypt: enc,
-            can_auth: false,
-            has_passphrase: false,
-            ver,
-            expiration_epoch_secs: 0,
-        }
-    }
+    use crate::testutil::keys::cfg;
+    use crate::testutil::rfc9580;
+    use crate::types::{GfrKeyAlgo, GfrOpenPGPKeyVersion};
 
     /// RFC 9580 §10.3.2.2 / §5.2.5: a v6 key MUST produce v6 signatures. A subkey
     /// revocation on a v6 key must be a v6 signature (a v4 one would be ignored by
@@ -2268,46 +2258,19 @@ mod rfc9580_tests {
     }
 
     // ---- RFC 9580 Appendix A known-answer vectors ----
-
-    /// RFC 9580 Appendix A.3 — sample v6 certificate (transferable public key).
-    const A3_V6_CERT: &str = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\
-\n\
-xioGY4d/4xsAAAAg+U2nu0jWCmHlZ3BqZYfQMxmZu52JGggkLq2EVD34laPCsQYf\n\
-GwoAAABCBYJjh3/jAwsJBwUVCg4IDAIWAAKbAwIeCSIhBssYbE8GCaaX5NUt+mxy\n\
-KwwfHifBilZwj2Ul7Ce62azJBScJAgcCAAAAAK0oIBA+LX0ifsDm185Ecds2v8lw\n\
-gyU2kCcUmKfvBXbAf6rhRYWzuQOwEn7E/aLwIwRaLsdry0+VcallHhSu4RN6HWaE\n\
-QsiPlR4zxP/TP7mhfVEe7XWPxtnMUMtf15OyA51YBM4qBmOHf+MZAAAAIIaTJINn\n\
-+eUBXbki+PSAld2nhJh/LVmFsS+60WyvXkQ1wpsGGBsKAAAALAWCY4d/4wKbDCIh\n\
-BssYbE8GCaaX5NUt+mxyKwwfHifBilZwj2Ul7Ce62azJAAAAAAQBIKbpGG2dWTX8\n\
-j+VjFM21J0hqWlEg+bdiojWnKfA5AQpWUWtnNwDEM0g12vYxoWM8Y81W+bHBw805\n\
-I8kWVkXU6vFOi+HWvv/ira7ofJu16NnoUkhclkUrk0mXubZvyl4GBg==\n\
------END PGP PUBLIC KEY BLOCK-----\n";
-
-    /// RFC 9580 Appendix A.6 — cleartext signed message, verifiable with A.3.
-    const A6_CLEARTEXT: &str = "-----BEGIN PGP SIGNED MESSAGE-----\n\
-\n\
-What we need from the grocery store:\n\
-\n\
-- - tofu\n\
-- - vegetables\n\
-- - noodles\n\
-\n\
------BEGIN PGP SIGNATURE-----\n\
-\n\
-wpgGARsKAAAAKQWCY5ijYyIhBssYbE8GCaaX5NUt+mxyKwwfHifBilZwj2Ul7Ce6\n\
-2azJAAAAAGk2IHZJX1AhiJD39eLuPBgiUU9wUA9VHYblySHkBONKU/usJ9BvuAqo\n\
-/FvLFuGWMbKAdA+epq7V4HOtAPlBWmU8QOd6aud+aSunHQaaEJ+iTFjP2OMW0KBr\n\
-NK2ay45cX1IVAQ==\n\
------END PGP SIGNATURE-----\n";
+    //
+    // The blobs themselves live in `crate::testutil::rfc9580`, transcribed
+    // verbatim from the RFC so every module can reuse them.
 
     /// The v6 certificate parses and yields the fingerprint stated in the RFC.
     #[test]
     fn appendix_a3_v6_cert_fingerprint() {
-        let (cert, _) = SignedPublicKey::from_string(A3_V6_CERT).expect("parse A.3 cert");
+        let (cert, _) =
+            SignedPublicKey::from_string(rfc9580::A3_V6_CERT).expect("parse A.3 cert");
         assert_eq!(cert.primary_key.version(), KeyVersion::V6);
         assert_eq!(
             cert.primary_key.fingerprint().to_string().to_uppercase(),
-            "CB186C4F0609A697E4D52DFA6C722B0C1F1E27C18A56708F6525EC27BAD9ACC9"
+            rfc9580::A3_PRIMARY_FINGERPRINT
         );
     }
 
@@ -2316,8 +2279,10 @@ NK2ay45cX1IVAQ==\n\
     #[test]
     fn appendix_a6_cleartext_verifies() {
         use pgp::composed::{CleartextSignedMessage, Deserializable};
-        let (cert, _) = SignedPublicKey::from_string(A3_V6_CERT).expect("parse A.3 cert");
-        let (msg, _) = CleartextSignedMessage::from_string(A6_CLEARTEXT).expect("parse A.6");
+        let (cert, _) =
+            SignedPublicKey::from_string(rfc9580::A3_V6_CERT).expect("parse A.3 cert");
+        let (msg, _) =
+            CleartextSignedMessage::from_string(rfc9580::A6_CLEARTEXT).expect("parse A.6");
         msg.verify(&cert)
             .expect("A.6 cleartext signature must verify against A.3 cert");
         assert!(
@@ -2383,6 +2348,816 @@ NK2ay45cX1IVAQ==\n\
             get_ecdh_kdf_params_internal(&pub_block, "DEADBEEF"),
             Err(GfrStatus::ErrorInvalidInput),
             "an unknown fingerprint must be rejected"
+        );
+    }
+}
+
+#[cfg(test)]
+mod key_tests {
+    //! Key-block parsing, metadata extraction, expiry arithmetic, verified
+    //! self-signature gating, merging and export.
+    //!
+    //! The verified-self-signature tests are the B7 regression lock: before
+    //! the fix, key flags, expiry and revocation were read straight out of
+    //! subpackets without checking that the signature carrying them actually
+    //! verified, so anyone could rewrite a certificate's capabilities.
+
+    use super::*;
+    use crate::testutil::{corpus, keys};
+
+    fn parse_secret(block: &str) -> SignedSecretKey {
+        SignedSecretKey::from_string(block).expect("parses").0
+    }
+
+    fn meta_of(block: &str) -> ExtractedMetadata {
+        extract_metadata_many_internal(block)
+            .expect("metadata")
+            .into_iter()
+            .next()
+            .expect("one key")
+    }
+
+    // -- split_pgp_blocks ---------------------------------------------------
+
+    #[test]
+    fn a_single_block_is_split_out() {
+        let blocks = split_pgp_blocks(&keys::V4_SIGN.public_armored);
+        assert_eq!(blocks.len(), 1);
+        assert!(blocks[0].contains("BEGIN PGP PUBLIC KEY BLOCK"));
+    }
+
+    #[test]
+    fn two_concatenated_blocks_are_split() {
+        // RFC 9580 §10.1.5: "Transferable Public Key packet sequences may be
+        // concatenated to allow transferring multiple public keys".
+        let joined = format!(
+            "{}{}",
+            keys::V4_SIGN.public_armored, keys::V6_SIGN.public_armored
+        );
+        assert_eq!(split_pgp_blocks(&joined).len(), 2);
+    }
+
+    #[test]
+    fn text_between_blocks_is_discarded() {
+        let joined = format!(
+            "some notes\n{}\nmore notes\n{}\ntrailer",
+            keys::V4_SIGN.public_armored, keys::V6_SIGN.public_armored
+        );
+        let blocks = split_pgp_blocks(&joined);
+        assert_eq!(blocks.len(), 2);
+        assert!(!blocks[0].contains("some notes"));
+        assert!(!blocks[1].contains("trailer"));
+    }
+
+    #[test]
+    fn an_unterminated_block_is_dropped() {
+        // Without an END line there is no complete block to hand on.
+        let truncated = keys::V4_SIGN
+            .public_armored
+            .lines()
+            .take(3)
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(split_pgp_blocks(&truncated).is_empty());
+    }
+
+    #[test]
+    fn an_empty_input_yields_no_blocks() {
+        assert!(split_pgp_blocks("").is_empty());
+    }
+
+    #[test]
+    fn input_without_any_armor_yields_no_blocks() {
+        assert!(split_pgp_blocks("just some prose\nwith two lines").is_empty());
+    }
+
+    #[test]
+    fn a_second_begin_line_restarts_the_current_block() {
+        // Defensive: a malformed stream with a stray BEGIN must not glue two
+        // half-blocks into one nonsense block.
+        let input = format!(
+            "-----BEGIN PGP PUBLIC KEY BLOCK-----\ngarbage\n{}",
+            keys::V4_SIGN.public_armored
+        );
+        let blocks = split_pgp_blocks(&input);
+        assert_eq!(blocks.len(), 1);
+        assert!(!blocks[0].contains("garbage"));
+    }
+
+    #[test]
+    fn signature_blocks_are_split_too() {
+        // The same splitter serves revocation-certificate parsing.
+        assert_eq!(split_pgp_blocks(corpus::SIG_GOOD_CLEARTEXT).len(), 1);
+    }
+
+    // -- extract_metadata_many_internal -------------------------------------
+
+    #[test]
+    fn metadata_reports_the_primary_fingerprint() {
+        let meta = meta_of(&keys::V4_SIGN.secret_armored);
+        assert_eq!(meta.fpr.to_uppercase(), keys::V4_SIGN.primary_fpr);
+    }
+
+    #[test]
+    fn metadata_reports_a_v4_key_as_v4() {
+        assert_eq!(
+            meta_of(&keys::V4_SIGN.secret_armored).ver,
+            GfrOpenPGPKeyVersion::V4
+        );
+    }
+
+    #[test]
+    fn metadata_reports_a_v6_key_as_v6() {
+        assert_eq!(
+            meta_of(&keys::V6_SIGN.secret_armored).ver,
+            GfrOpenPGPKeyVersion::V6
+        );
+    }
+
+    #[test]
+    fn metadata_flags_a_secret_block_as_having_a_secret() {
+        let meta = meta_of(&keys::V4_SIGN.secret_armored);
+        assert!(meta.has_secret);
+        assert!(meta.secret_key_block.is_some());
+    }
+
+    #[test]
+    fn metadata_flags_a_public_block_as_public_only() {
+        let meta = meta_of(&keys::V4_SIGN.public_armored);
+        assert!(!meta.has_secret);
+        assert!(meta.secret_key_block.is_none());
+    }
+
+    #[test]
+    fn a_secret_block_wins_over_a_public_one_for_the_same_key() {
+        // Importing a keyring that holds both must not downgrade the entry to
+        // public-only depending on ordering.
+        let joined = format!(
+            "{}{}",
+            keys::V4_SIGN.public_armored, keys::V4_SIGN.secret_armored
+        );
+        let metas = extract_metadata_many_internal(&joined).expect("metadata");
+        assert_eq!(metas.len(), 1, "one fingerprint, one entry");
+        assert!(metas[0].has_secret);
+    }
+
+    #[test]
+    fn metadata_lists_every_user_id() {
+        let with_second =
+            crate::user_id::add_user_id_internal(0, &keys::V4_SIGN.secret_armored, "Two <two@example.test>", None)
+                .expect("add");
+        let meta = meta_of(&with_second);
+        assert_eq!(meta.user_ids.len(), 2);
+    }
+
+    #[test]
+    fn metadata_lists_every_subkey() {
+        let meta = meta_of(&keys::V4_SIGN.secret_armored);
+        assert_eq!(meta.subkeys.len(), 2);
+    }
+
+    #[test]
+    fn subkey_capabilities_come_from_the_binding_signatures() {
+        let meta = meta_of(&keys::V4_SIGN.secret_armored);
+        assert!(
+            meta.subkeys.iter().any(|s| s.can_sign),
+            "the signing subkey must be reported as signing-capable"
+        );
+        assert!(
+            meta.subkeys.iter().any(|s| s.can_encrypt),
+            "the encryption subkey must be reported as encryption-capable"
+        );
+    }
+
+    #[test]
+    fn the_primary_key_is_reported_as_certification_capable() {
+        // §10.1.5: "The primary key MUST be an algorithm capable of making
+        // signatures", because it has to certify its own components.
+        assert!(meta_of(&keys::V4_SIGN.secret_armored).can_certify);
+    }
+
+    #[test]
+    fn metadata_reports_the_algorithm_and_key_length() {
+        let meta = meta_of(&keys::V4_SIGN.secret_armored);
+        assert_eq!(meta.algo, GfrKeyAlgo::ED25519);
+        assert_eq!(meta.key_length, 255);
+    }
+
+    #[test]
+    fn metadata_reports_a_creation_time() {
+        let meta = meta_of(&keys::V4_SIGN.secret_armored);
+        assert!(meta.created_at > 1_600_000_000, "a plausible timestamp");
+    }
+
+    #[test]
+    fn a_key_without_an_expiry_reports_zero() {
+        // §5.2.3.13: "If this is not present or has a value of zero, the key
+        // never expires."
+        assert_eq!(meta_of(&keys::V4_SIGN.secret_armored).expires_at, 0);
+    }
+
+    #[test]
+    fn an_expiring_key_reports_creation_plus_duration() {
+        // §5.2.3.13 stores a duration from the key creation time, so the
+        // absolute value is created_at + duration.
+        let meta = meta_of(&keys::V4_SHORT_EXPIRY.secret_armored);
+        assert_eq!(
+            meta.expires_at,
+            meta.created_at + 1,
+            "the fixture expires one second after creation"
+        );
+    }
+
+    #[test]
+    fn a_live_key_is_not_reported_revoked() {
+        assert!(!meta_of(&keys::V4_SIGN.secret_armored).is_revoked);
+    }
+
+    #[test]
+    fn a_revoked_primary_is_reported_revoked() {
+        assert!(meta_of(&keys::V4_REVOKED_PRIMARY.secret_armored).is_revoked);
+    }
+
+    #[test]
+    fn a_revoked_subkey_is_flagged() {
+        // §5.2.1.12: a Subkey Revocation signature marks that subkey unusable.
+        let meta = meta_of(&keys::V4_REVOKED_SUBKEY.secret_armored);
+        assert!(
+            meta.subkeys.iter().any(|s| s.is_revoked),
+            "the revoked encryption subkey must be flagged"
+        );
+    }
+
+    #[test]
+    fn a_revoked_user_id_is_flagged() {
+        let revoked = crate::user_id::revoke_user_id_internal(
+            0,
+            &keys::V4_SIGN.secret_armored,
+            &meta_of(&keys::V4_SIGN.secret_armored).user_ids[0].user_id,
+            GfrRevocationCode::UserIdInvalid,
+            None,
+            None,
+        )
+        .expect("revoke uid");
+        let meta = meta_of(&revoked);
+        assert!(meta.user_ids.iter().any(|u| u.is_revoked));
+    }
+
+    #[test]
+    fn metadata_of_garbage_is_an_error() {
+        assert!(extract_metadata_many_internal("not a key block").is_err());
+    }
+
+    #[test]
+    fn metadata_of_an_empty_string_is_an_error() {
+        assert!(extract_metadata_many_internal("").is_err());
+    }
+
+    #[test]
+    fn metadata_of_the_corpus_key_parses() {
+        let meta = meta_of(corpus::KEY1_SECRET);
+        assert_eq!(meta.fpr.to_uppercase(), corpus::key1_primary_fpr());
+        assert!(meta.has_secret);
+    }
+
+    #[test]
+    fn metadata_of_the_v6_corpus_key_reports_v6() {
+        assert_eq!(meta_of(corpus::AUX_V6_SECRET).ver, GfrOpenPGPKeyVersion::V6);
+    }
+
+    #[test]
+    fn the_re_exported_public_block_reparses() {
+        // The blocks in the metadata are re-serialised from the parsed key, so
+        // they must be canonical and round-trippable.
+        let meta = meta_of(&keys::V4_SIGN.secret_armored);
+        assert!(SignedPublicKey::from_string(&meta.public_key_block).is_ok());
+    }
+
+    #[test]
+    fn metadata_never_panics_on_adversarial_input() {
+        for vector in [
+            corpus::TRUNCATED_ARMOR,
+            corpus::CORRUPT_CRC,
+            &String::from_utf8_lossy(corpus::GARBAGE),
+        ] {
+            let outcome =
+                std::panic::catch_unwind(|| extract_metadata_many_internal(vector).is_ok());
+            assert!(outcome.is_ok());
+        }
+    }
+
+    // -- verified self-signature gates (B7) ---------------------------------
+
+    #[test]
+    fn a_genuine_primary_revocation_is_honoured() {
+        let key = parse_secret(&keys::V4_REVOKED_PRIMARY.secret_armored);
+        assert!(is_primary_key_revoked(
+            key.primary_key.public_key(),
+            &key.details.revocation_signatures
+        ));
+    }
+
+    #[test]
+    fn a_live_key_is_not_revoked() {
+        let key = parse_secret(&keys::V4_SIGN.secret_armored);
+        assert!(!is_primary_key_revoked(
+            key.primary_key.public_key(),
+            &key.details.revocation_signatures
+        ));
+    }
+
+    #[test]
+    fn a_forged_revocation_signature_is_ignored() {
+        // B7: `aux_forged_revocation.asc` carries a fabricated primary-key
+        // revocation spliced in at the packet level. Trusting the subpacket
+        // without verifying it would let anyone revoke anyone's key.
+        assert!(!is_primary_key_revoked(
+            &corpus::AUX_FORGED_REVOCATION_CERT.primary_key,
+            &corpus::AUX_FORGED_REVOCATION_CERT
+                .details
+                .revocation_signatures
+        ));
+    }
+
+    #[test]
+    fn a_forged_revocation_does_not_flip_the_metadata_flag() {
+        // The same guarantee at the level the C++ side actually consumes.
+        assert!(!meta_of(corpus::AUX_FORGED_REVOCATION).is_revoked);
+    }
+
+    #[test]
+    fn the_genuine_revoked_corpus_cert_is_reported_revoked() {
+        // The control for the forged case: a real self-revocation IS honoured.
+        assert!(meta_of(corpus::AUX_REVOKED).is_revoked);
+    }
+
+    #[test]
+    fn subkey_revocation_requires_a_verifying_binding() {
+        let key = parse_secret(&keys::V4_REVOKED_SUBKEY.secret_armored);
+        let primary = key.primary_key.public_key();
+        let revoked_count = key
+            .secret_subkeys
+            .iter()
+            .filter(|s| is_subkey_revoked(primary, s.key.public_key(), &s.signatures))
+            .count();
+        assert_eq!(revoked_count, 1, "exactly the revoked subkey");
+    }
+
+    #[test]
+    fn a_subkey_of_a_live_key_is_not_revoked() {
+        let key = parse_secret(&keys::V4_SIGN.secret_armored);
+        let primary = key.primary_key.public_key();
+        for sub in &key.secret_subkeys {
+            assert!(!is_subkey_revoked(primary, sub.key.public_key(), &sub.signatures));
+        }
+    }
+
+    // -- expiry arithmetic ---------------------------------------------------
+
+    #[test]
+    fn primary_key_expires_at_is_zero_for_a_never_expiring_key() {
+        let cert = SignedPublicKey::from_string(&keys::V4_SIGN.public_armored)
+            .expect("parses")
+            .0;
+        assert_eq!(primary_key_expires_at(&cert), 0);
+    }
+
+    #[test]
+    fn primary_key_expires_at_reports_the_absolute_time() {
+        let cert = SignedPublicKey::from_string(&keys::V4_SHORT_EXPIRY.public_armored)
+            .expect("parses")
+            .0;
+        let created = cert.primary_key.created_at().as_secs();
+        assert_eq!(primary_key_expires_at(&cert), created + 1);
+    }
+
+    #[test]
+    fn the_expired_corpus_certificate_reports_a_past_expiry() {
+        // `aux_expired.asc` was minted with a 2020 validity window.
+        let expires = primary_key_expires_at(&corpus::AUX_EXPIRED_CERT);
+        assert!(expires > 0, "the fixture carries an expiry");
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock")
+            .as_secs() as u32;
+        assert!(expires < now, "and it is in the past");
+    }
+
+    #[test]
+    fn subkey_expires_at_is_zero_by_default() {
+        let cert = SignedPublicKey::from_string(&keys::V4_SIGN.public_armored)
+            .expect("parses")
+            .0;
+        for sub in &cert.public_subkeys {
+            assert_eq!(
+                subkey_expires_at(&cert.primary_key, &sub.key, &sub.signatures),
+                0
+            );
+        }
+    }
+
+    #[test]
+    fn an_expiry_duration_of_zero_means_never() {
+        // §5.2.3.13 again, at the arithmetic level.
+        assert_eq!(expiration_duration(1_700_000_000, 0), Ok(None));
+    }
+
+    #[test]
+    fn an_expiry_before_the_creation_time_is_rejected() {
+        // The subpacket can only express a forward duration, so a backdated
+        // expiry is not representable and must be refused rather than
+        // wrapping around.
+        assert_eq!(
+            expiration_duration(1_700_000_000, 1_600_000_000),
+            Err(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn an_expiry_equal_to_the_creation_time_is_rejected() {
+        assert_eq!(
+            expiration_duration(1_700_000_000, 1_700_000_000),
+            Err(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn an_expiry_one_second_after_creation_is_accepted() {
+        assert!(matches!(
+            expiration_duration(1_700_000_000, 1_700_000_001),
+            Ok(Some(_))
+        ));
+    }
+
+    #[test]
+    fn an_expiry_beyond_the_u32_duration_range_is_rejected() {
+        // The subpacket holds a 4-octet duration; anything longer cannot be
+        // encoded and must be refused rather than silently truncated.
+        assert_eq!(
+            expiration_duration(0, u64::from(u32::MAX) + 2),
+            Err(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    // -- update_key_expiration_internal --------------------------------------
+
+    #[test]
+    fn setting_an_expiry_lands_in_the_self_signature() {
+        let key = &keys::V4_SIGN;
+        let created = parse_secret(&key.secret_armored)
+            .primary_key
+            .created_at()
+            .as_secs();
+        let out = update_key_expiration_internal(
+            0,
+            &key.secret_armored,
+            None,
+            u64::from(created) + 86_400,
+            None,
+        )
+        .expect("update");
+        assert_eq!(meta_of(&out.secret).expires_at, created + 86_400);
+    }
+
+    #[test]
+    fn clearing_an_expiry_sets_it_back_to_never() {
+        let key = &keys::V4_SHORT_EXPIRY;
+        let out = update_key_expiration_internal(0, &key.secret_armored, None, 0, None)
+            .expect("clear");
+        assert_eq!(meta_of(&out.secret).expires_at, 0);
+    }
+
+    #[test]
+    fn a_backdated_expiry_is_rejected() {
+        assert_eq!(
+            update_key_expiration_internal(0, &keys::V4_SIGN.secret_armored, None, 1, None).err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn a_subkey_expiry_is_set_independently_of_the_primary() {
+        let key = &keys::V4_SIGN;
+        let sub_fpr = key.enc_subkey_fpr();
+        let created = parse_secret(&key.secret_armored)
+            .primary_key
+            .created_at()
+            .as_secs();
+        let out = update_key_expiration_internal(
+            0,
+            &key.secret_armored,
+            Some(sub_fpr),
+            u64::from(created) + 86_400,
+            None,
+        )
+        .expect("update subkey");
+
+        let meta = meta_of(&out.secret);
+        assert_eq!(meta.expires_at, 0, "the primary is untouched");
+        let sub = meta
+            .subkeys
+            .iter()
+            .find(|s| s.fpr.eq_ignore_ascii_case(sub_fpr))
+            .expect("the target subkey");
+        assert_eq!(sub.expires_at, created + 86_400);
+    }
+
+    #[test]
+    fn updating_the_expiry_of_an_unknown_component_fails() {
+        assert!(
+            update_key_expiration_internal(
+                0,
+                &keys::V4_SIGN.secret_armored,
+                Some("0000000000000000000000000000000000000000"),
+                0,
+                None
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn an_expiry_update_preserves_the_key_flags() {
+        // Re-issuing the self-signature must not drop the capabilities.
+        let key = &keys::V4_SIGN;
+        let created = parse_secret(&key.secret_armored)
+            .primary_key
+            .created_at()
+            .as_secs();
+        let out = update_key_expiration_internal(
+            0,
+            &key.secret_armored,
+            None,
+            u64::from(created) + 86_400,
+            None,
+        )
+        .expect("update");
+        let meta = meta_of(&out.secret);
+        assert!(meta.can_certify);
+        assert!(meta.subkeys.iter().any(|s| s.can_encrypt));
+    }
+
+    // -- delete_subkey / revoke_subkey ---------------------------------------
+
+    #[test]
+    fn deleting_a_subkey_removes_it() {
+        let key = &keys::V4_SIGN;
+        let out = delete_subkey_internal(&key.secret_armored, key.enc_subkey_fpr())
+            .expect("delete");
+        let meta = meta_of(&out.secret);
+        assert_eq!(meta.subkeys.len(), 1);
+        assert!(
+            !meta
+                .subkeys
+                .iter()
+                .any(|s| s.fpr.eq_ignore_ascii_case(key.enc_subkey_fpr()))
+        );
+    }
+
+    #[test]
+    fn deleting_an_unknown_subkey_is_invalid_input() {
+        assert_eq!(
+            delete_subkey_internal(&keys::V4_SIGN.secret_armored, "DEADBEEF").err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn a_subkey_revocation_signature_verifies() {
+        let key = parse_secret(&keys::V4_REVOKED_SUBKEY.secret_armored);
+        let primary = key.primary_key.public_key();
+        let revoked = key
+            .secret_subkeys
+            .iter()
+            .find(|s| is_subkey_revoked(primary, s.key.public_key(), &s.signatures))
+            .expect("a revoked subkey");
+        let rev = revoked
+            .signatures
+            .iter()
+            .find(|s| matches!(s.typ(), Some(SignatureType::SubkeyRevocation)))
+            .expect("a revocation signature");
+        assert!(rev.verify_subkey_binding(primary, revoked.key.public_key()).is_ok());
+    }
+
+    #[test]
+    fn revoking_an_unknown_subkey_is_invalid_input() {
+        assert_eq!(
+            revoke_subkey_internal(
+                0,
+                &keys::V4_SIGN.secret_armored,
+                "0000000000000000000000000000000000000000",
+                GfrRevocationCode::Retired,
+                None,
+                None
+            )
+            .err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn revoking_a_subkey_does_not_delete_it() {
+        let meta = meta_of(&keys::V4_REVOKED_SUBKEY.secret_armored);
+        assert_eq!(meta.subkeys.len(), 2, "revocation is a statement, not removal");
+    }
+
+    // -- revocation certificates --------------------------------------------
+
+    #[test]
+    fn a_revocation_certificate_is_an_armored_signature_block() {
+        let cert =
+            generate_key_rev_cert_internal(0, &keys::V4_SIGN.secret_armored, GfrRevocationCode::Superseded, None, None)
+                .expect("rev cert");
+        assert!(cert.contains("BEGIN PGP"));
+        crate::testutil::assert::armor_has_no_crc24(&cert);
+    }
+
+    #[test]
+    fn a_revocation_certificate_names_its_target() {
+        let cert =
+            generate_key_rev_cert_internal(0, &keys::V4_SIGN.secret_armored, GfrRevocationCode::Retired, None, None)
+                .expect("rev cert");
+        let target = extract_rev_cert_target_fpr_internal(&cert).expect("target");
+        assert_eq!(target.to_uppercase(), keys::V4_SIGN.primary_fpr);
+    }
+
+    #[test]
+    fn extracting_a_target_from_a_non_revocation_block_fails() {
+        assert!(extract_rev_cert_target_fpr_internal(&keys::V4_SIGN.public_armored).is_err());
+    }
+
+    #[test]
+    fn extracting_a_target_from_garbage_fails() {
+        assert!(extract_rev_cert_target_fpr_internal("junk").is_err());
+    }
+
+    #[test]
+    fn importing_a_foreign_revocation_certificate_is_rejected() {
+        // A revocation that does not verify under the base primary must never
+        // be stored, however convincingly it names it.
+        let foreign = generate_key_rev_cert_internal(
+            0,
+            &keys::V6_SIGN.secret_armored,
+            GfrRevocationCode::Compromised,
+            None,
+            None,
+        )
+        .expect("rev cert");
+        assert!(import_rev_cert_internal(&keys::V4_SIGN.secret_armored, &foreign).is_err());
+    }
+
+    #[test]
+    fn importing_a_genuine_revocation_certificate_revokes_the_key() {
+        let cert = generate_key_rev_cert_internal(
+            0,
+            &keys::V4_SIGN.secret_armored,
+            GfrRevocationCode::Compromised,
+            None,
+            None,
+        )
+        .expect("rev cert");
+        let out =
+            import_rev_cert_internal(&keys::V4_SIGN.secret_armored, &cert).expect("import");
+        assert!(meta_of(&out.secret).is_revoked);
+    }
+
+    #[test]
+    fn importing_garbage_as_a_revocation_certificate_fails() {
+        assert!(import_rev_cert_internal(&keys::V4_SIGN.secret_armored, "junk").is_err());
+    }
+
+    // -- extract_public_key / merge -----------------------------------------
+
+    #[test]
+    fn extracting_the_public_key_strips_the_secret_material() {
+        let public = extract_public_key_internal(&keys::V4_SIGN.secret_armored).expect("extract");
+        assert!(public.contains("BEGIN PGP PUBLIC KEY BLOCK"));
+        assert!(!public.contains("PRIVATE KEY BLOCK"));
+        assert!(SignedSecretKey::from_string(&public).is_err());
+    }
+
+    #[test]
+    fn the_extracted_public_key_keeps_the_fingerprint() {
+        let public = extract_public_key_internal(&keys::V4_SIGN.secret_armored).expect("extract");
+        let cert = SignedPublicKey::from_string(&public).expect("parses").0;
+        assert_eq!(
+            cert.primary_key.fingerprint().to_string().to_uppercase(),
+            keys::V4_SIGN.primary_fpr
+        );
+    }
+
+    #[test]
+    fn extracting_a_public_key_from_a_public_block_fails() {
+        assert_eq!(
+            extract_public_key_internal(&keys::V4_SIGN.public_armored).err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn merging_two_public_keys_keeps_both() {
+        let merged = export_merged_public_keys(&[
+            &keys::V4_SIGN.public_armored,
+            &keys::V6_SIGN.public_armored,
+        ])
+        .expect("merge");
+        let metas = extract_metadata_many_internal(&merged).expect("metadata");
+        assert_eq!(metas.len(), 2);
+    }
+
+    #[test]
+    fn merging_accepts_a_secret_block_and_publishes_its_public_half() {
+        let merged = export_merged_public_keys(&[&keys::V4_SIGN.secret_armored]).expect("merge");
+        assert!(!merged.contains("PRIVATE KEY BLOCK"));
+    }
+
+    #[test]
+    fn merging_emits_armor_without_a_crc24_footer() {
+        let merged = export_merged_public_keys(&[&keys::V4_SIGN.public_armored]).expect("merge");
+        crate::testutil::assert::armor_has_no_crc24(&merged);
+    }
+
+    #[test]
+    fn merging_an_empty_list_yields_an_empty_or_failed_result() {
+        match export_merged_public_keys(&[]) {
+            Ok(out) => assert!(extract_metadata_many_internal(&out).is_err()),
+            Err(status) => assert!((status as i32) < 0),
+        }
+    }
+
+    #[test]
+    fn merging_garbage_fails_cleanly() {
+        let outcome =
+            std::panic::catch_unwind(|| export_merged_public_keys(&["junk", "more junk"]).is_ok());
+        assert!(outcome.is_ok());
+    }
+
+    #[test]
+    fn merging_secret_keys_keeps_the_secret_material() {
+        let merged = export_merged_secret_keys(&[&keys::V4_SIGN.secret_armored]).expect("merge");
+        assert!(SignedSecretKey::from_string(&merged).is_ok());
+    }
+
+    #[test]
+    fn merging_a_key_with_itself_is_idempotent() {
+        let merged = export_merged_public_keys(&[
+            &keys::V4_SIGN.public_armored,
+            &keys::V4_SIGN.public_armored,
+        ])
+        .expect("merge");
+        assert_eq!(extract_metadata_many_internal(&merged).expect("meta").len(), 1);
+    }
+
+    #[test]
+    fn merge_key_blocks_combines_a_public_update_into_a_secret_key() {
+        // The refresh case: a newer public copy (say with a fresh signature)
+        // merged onto the locally held secret key must keep the secret.
+        let merged = merge_key_block_internal(
+            &keys::V4_SIGN.secret_armored,
+            &keys::V4_SIGN.public_armored,
+        )
+        .expect("merge");
+        assert!(SignedSecretKey::from_string(&merged.secret).is_ok());
+    }
+
+    // -- ECDH KDF parameters -------------------------------------------------
+
+    #[test]
+    fn ecdh_kdf_params_are_four_hex_octets() {
+        // §11.5.1: the KDF parameter field is `03 01 <hash> <cipher>`.
+        let key = &keys::V4_SIGN;
+        let hex = get_ecdh_kdf_params_internal(&key.public_armored, key.enc_subkey_fpr())
+            .expect("kdf params");
+        assert_eq!(hex.len(), 8);
+        assert!(hex.starts_with("0301"));
+    }
+
+    #[test]
+    fn ecdh_kdf_params_for_p256_use_sha256_and_aes128() {
+        // §11.5.1 Table 30 fixes the pairing per curve.
+        let key = &keys::V4_NISTP256;
+        let hex = get_ecdh_kdf_params_internal(&key.public_armored, key.enc_subkey_fpr())
+            .expect("kdf params");
+        assert_eq!(hex, "03010807", "SHA2-256 (8) with AES-128 (7)");
+    }
+
+    #[test]
+    fn ecdh_kdf_params_reject_an_unknown_fingerprint() {
+        assert_eq!(
+            get_ecdh_kdf_params_internal(&keys::V4_SIGN.public_armored, "DEADBEEF").err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn ecdh_kdf_params_reject_a_signing_subkey() {
+        assert_eq!(
+            get_ecdh_kdf_params_internal(
+                &keys::V4_SIGN.public_armored,
+                keys::V4_SIGN.sign_subkey_fpr()
+            )
+            .err(),
+            Some(GfrStatus::ErrorInvalidData)
         );
     }
 }

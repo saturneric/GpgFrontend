@@ -456,3 +456,656 @@ pub fn revoke_user_id_internal(
         .into_gfr()
         .map(Zeroizing::new)
 }
+
+#[cfg(test)]
+mod user_id_tests {
+    //! User ID lifecycle: add, delete, update, set-primary and revoke.
+    //!
+    //! The load-bearing RFC 9580 requirements here are §5.2.3.10 (a new
+    //! self-signature must carry the key's flags and preferences rather than
+    //! silently dropping them), §10.3.2.2 (the self-signature version must
+    //! match the key version) and §5.2.3.27 (the Primary User ID flag).
+
+    use super::*;
+    use crate::testutil::keys;
+
+    /// Parse an armored secret key block and list its user IDs.
+    fn uids_of(block: &str) -> Vec<String> {
+        let (key, _) = SignedSecretKey::from_string(block).expect("parses");
+        key.details
+            .users
+            .iter()
+            .map(|u| String::from_utf8_lossy(u.id.id()).into_owned())
+            .collect()
+    }
+
+    fn parse(block: &str) -> SignedSecretKey {
+        SignedSecretKey::from_string(block).expect("parses").0
+    }
+
+    /// A fresh unprotected key with a single user ID, safe to mutate.
+    fn base_key() -> String {
+        keys::V4_SIGN.secret_armored.clone()
+    }
+
+    fn base_uid() -> String {
+        uids_of(&base_key()).remove(0)
+    }
+
+    // -- delete_user_id_internal -------------------------------------------
+
+    #[test]
+    fn deleting_a_user_id_removes_it() {
+        let block = base_key();
+        let uid = base_uid();
+        let out = delete_user_id_internal(&block, &uid).expect("delete");
+        assert!(!uids_of(&out).contains(&uid));
+    }
+
+    #[test]
+    fn deleting_an_unknown_user_id_is_invalid_input() {
+        let block = base_key();
+        assert_eq!(
+            delete_user_id_internal(&block, "nobody <nobody@example.test>").err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn deleting_matches_the_whole_user_id_not_a_substring() {
+        // A partial match would delete the wrong identity.
+        let block = base_key();
+        let uid = base_uid();
+        let prefix = &uid[..uid.len() / 2];
+        assert_eq!(
+            delete_user_id_internal(&block, prefix).err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn deleting_works_on_a_public_key_block() {
+        // No signing is involved, so a public block is enough.
+        let block = keys::V4_SIGN.public_armored.clone();
+        let uid = base_uid();
+        let out = delete_user_id_internal(&block, &uid).expect("delete");
+        assert!(out.contains("BEGIN PGP PUBLIC KEY BLOCK"));
+    }
+
+    #[test]
+    fn deleting_from_garbage_is_a_data_error() {
+        assert_eq!(
+            delete_user_id_internal("not a key block", "x").err(),
+            Some(GfrStatus::ErrorInvalidData)
+        );
+    }
+
+    #[test]
+    fn deleting_from_an_empty_string_is_a_data_error() {
+        assert_eq!(
+            delete_user_id_internal("", "x").err(),
+            Some(GfrStatus::ErrorInvalidData)
+        );
+    }
+
+    #[test]
+    fn deleting_the_last_user_id_still_produces_a_parseable_key() {
+        // §10.1.5 only *recommends* at least one user ID; a key without one
+        // must still serialise and re-parse.
+        let block = base_key();
+        let uid = base_uid();
+        let out = delete_user_id_internal(&block, &uid).expect("delete");
+        let key = parse(&out);
+        assert!(key.details.users.is_empty());
+    }
+
+    #[test]
+    fn a_delete_preserves_the_primary_key_and_subkeys() {
+        let block = base_key();
+        let uid = base_uid();
+        let out = delete_user_id_internal(&block, &uid).expect("delete");
+        let key = parse(&out);
+        assert_eq!(
+            key.primary_key.fingerprint().to_string().to_uppercase(),
+            keys::V4_SIGN.primary_fpr
+        );
+        assert_eq!(key.secret_subkeys.len(), 2);
+    }
+
+    #[test]
+    fn a_delete_emits_armor_without_a_crc24_footer() {
+        let block = base_key();
+        let uid = base_uid();
+        let out = delete_user_id_internal(&block, &uid).expect("delete");
+        crate::testutil::assert::armor_has_no_crc24(&out);
+    }
+
+    // -- add_user_id_internal -----------------------------------------------
+
+    #[test]
+    fn adding_a_user_id_appends_it() {
+        let block = base_key();
+        let out = add_user_id_internal(0, &block, "Second <second@example.test>", None)
+            .expect("add");
+        let uids = uids_of(&out);
+        assert!(uids.iter().any(|u| u == "Second <second@example.test>"));
+        assert_eq!(uids.len(), 2);
+    }
+
+    #[test]
+    fn adding_preserves_the_existing_user_id() {
+        let block = base_key();
+        let original = base_uid();
+        let out = add_user_id_internal(0, &block, "Second <second@example.test>", None)
+            .expect("add");
+        assert!(uids_of(&out).contains(&original));
+    }
+
+    #[test]
+    fn a_new_self_signature_carries_the_key_flags() {
+        // §5.2.3.10: subpackets on a certification self-signature describe the
+        // key. Dropping the flags would make the new UID advertise nothing.
+        let block = base_key();
+        let out = add_user_id_internal(0, &block, "Flags <flags@example.test>", None)
+            .expect("add");
+        let key = parse(&out);
+        let added = key
+            .details
+            .users
+            .iter()
+            .find(|u| String::from_utf8_lossy(u.id.id()) == "Flags <flags@example.test>")
+            .expect("the new uid");
+        let sig = added.signatures.first().expect("a self-signature");
+        assert!(
+            sig.key_flags().certify() || sig.key_flags().sign(),
+            "the new self-signature must inherit the key flags"
+        );
+    }
+
+    #[test]
+    fn a_new_self_signature_is_issued_by_the_primary_key() {
+        let block = base_key();
+        let out = add_user_id_internal(0, &block, "Issuer <issuer@example.test>", None)
+            .expect("add");
+        let key = parse(&out);
+        let added = key
+            .details
+            .users
+            .iter()
+            .find(|u| String::from_utf8_lossy(u.id.id()) == "Issuer <issuer@example.test>")
+            .expect("the new uid");
+        let sig = added.signatures.first().expect("a self-signature");
+        assert!(is_self_signature_from_primary(
+            sig,
+            key.primary_key.fingerprint().as_bytes()
+        ));
+    }
+
+    #[test]
+    fn a_new_self_signature_actually_verifies() {
+        // The strongest check: the signature is cryptographically sound under
+        // the primary key, not merely present.
+        let block = base_key();
+        let out = add_user_id_internal(0, &block, "Verify <verify@example.test>", None)
+            .expect("add");
+        let key = parse(&out);
+        let primary = key.primary_key.public_key();
+        let added = key
+            .details
+            .users
+            .iter()
+            .find(|u| String::from_utf8_lossy(u.id.id()) == "Verify <verify@example.test>")
+            .expect("the new uid");
+        let sig = added.signatures.first().expect("a self-signature");
+        assert!(
+            sig.verify_certification(primary, Tag::UserId, &added.id).is_ok(),
+            "the generated self-signature must verify under the primary key"
+        );
+    }
+
+    #[test]
+    fn a_v4_key_gets_a_v4_self_signature() {
+        // §10.3.2.2 Table 27: a v4 key produces v4 signatures.
+        let block = base_key();
+        let out = add_user_id_internal(0, &block, "V4 <v4@example.test>", None).expect("add");
+        let key = parse(&out);
+        let added = key
+            .details
+            .users
+            .iter()
+            .find(|u| String::from_utf8_lossy(u.id.id()) == "V4 <v4@example.test>")
+            .expect("the new uid");
+        assert_eq!(
+            added.signatures[0].version(),
+            pgp::packet::SignatureVersion::V4
+        );
+    }
+
+    #[test]
+    fn a_v6_key_gets_a_v6_self_signature() {
+        // §10.3.2.2: "When a version 6 key produces a Signature packet, it
+        // MUST produce a version 6 Signature packet."
+        let block = keys::V6_SIGN.secret_armored.clone();
+        let out = add_user_id_internal(0, &block, "V6 <v6@example.test>", None).expect("add");
+        let key = parse(&out);
+        let added = key
+            .details
+            .users
+            .iter()
+            .find(|u| String::from_utf8_lossy(u.id.id()) == "V6 <v6@example.test>")
+            .expect("the new uid");
+        assert_eq!(
+            added.signatures[0].version(),
+            pgp::packet::SignatureVersion::V6,
+            "a v6 key must not emit a v4 self-signature"
+        );
+    }
+
+    #[test]
+    fn a_unicode_user_id_round_trips() {
+        // §3.4 / §5.11: user IDs are UTF-8 text.
+        let block = base_key();
+        let uid = "Renée Übel 日本 <renee@example.test>";
+        let out = add_user_id_internal(0, &block, uid, None).expect("add");
+        assert!(uids_of(&out).iter().any(|u| u == uid));
+    }
+
+    #[test]
+    fn an_empty_user_id_is_accepted_as_written() {
+        // §5.11 places "no restrictions on its content", so an empty user ID
+        // is unusual but not malformed.
+        let block = base_key();
+        let out = add_user_id_internal(0, &block, "", None).expect("add");
+        assert!(uids_of(&out).iter().any(|u| u.is_empty()));
+    }
+
+    #[test]
+    fn adding_to_a_public_only_block_fails() {
+        // Signing the new self-signature needs the secret primary key.
+        let block = keys::V4_SIGN.public_armored.clone();
+        assert!(add_user_id_internal(0, &block, "X <x@example.test>", None).is_err());
+    }
+
+    #[test]
+    fn adding_to_garbage_fails() {
+        assert!(add_user_id_internal(0, "not a key", "X <x@example.test>", None).is_err());
+    }
+
+    #[test]
+    fn adding_twice_yields_three_user_ids() {
+        let block = base_key();
+        let once = add_user_id_internal(0, &block, "A <a@example.test>", None).expect("add a");
+        let twice =
+            add_user_id_internal(0, &once, "B <b@example.test>", None).expect("add b");
+        assert_eq!(uids_of(&twice).len(), 3);
+    }
+
+    #[test]
+    fn adding_emits_armor_without_a_crc24_footer() {
+        let block = base_key();
+        let out = add_user_id_internal(0, &block, "C <c@example.test>", None).expect("add");
+        crate::testutil::assert::armor_has_no_crc24(&out);
+    }
+
+    // -- update_user_id_internal --------------------------------------------
+
+    #[test]
+    fn updating_replaces_the_old_user_id_with_the_new_one() {
+        let block = base_key();
+        let old = base_uid();
+        let out = update_user_id_internal(0, &block, &old, "New <new@example.test>", None)
+            .expect("update");
+        let uids = uids_of(&out);
+        assert!(uids.iter().any(|u| u == "New <new@example.test>"));
+        assert!(!uids.contains(&old));
+    }
+
+    #[test]
+    fn updating_keeps_the_user_id_count_stable() {
+        let block = base_key();
+        let old = base_uid();
+        let before = uids_of(&block).len();
+        let out = update_user_id_internal(0, &block, &old, "New <new@example.test>", None)
+            .expect("update");
+        assert_eq!(uids_of(&out).len(), before);
+    }
+
+    #[test]
+    fn updating_an_unknown_user_id_fails_after_adding_the_new_one() {
+        // The operation is add-then-delete, so a bad `old` surfaces from the
+        // delete step as invalid input.
+        let block = base_key();
+        assert_eq!(
+            update_user_id_internal(0, &block, "ghost <ghost@example.test>", "N <n@example.test>", None)
+                .err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn the_updated_user_id_carries_a_verifying_self_signature() {
+        let block = base_key();
+        let old = base_uid();
+        let out = update_user_id_internal(0, &block, &old, "Fresh <fresh@example.test>", None)
+            .expect("update");
+        let key = parse(&out);
+        let primary = key.primary_key.public_key();
+        let user = key.details.users.first().expect("a user id");
+        let sig = user.signatures.first().expect("a self-signature");
+        assert!(sig.verify_certification(primary, Tag::UserId, &user.id).is_ok());
+    }
+
+    // -- set_primary_user_id_internal ---------------------------------------
+
+    #[test]
+    fn setting_the_primary_user_id_marks_the_target() {
+        // §5.2.3.27: the flag nominates the main user ID for a key.
+        let block = base_key();
+        let with_second =
+            add_user_id_internal(0, &block, "Second <second@example.test>", None).expect("add");
+        let out = set_primary_user_id_internal(
+            0,
+            &with_second,
+            "Second <second@example.test>",
+            None,
+        )
+        .expect("set primary");
+
+        let key = parse(&out);
+        let target = key
+            .details
+            .users
+            .iter()
+            .find(|u| String::from_utf8_lossy(u.id.id()) == "Second <second@example.test>")
+            .expect("the target uid");
+        assert!(
+            target.signatures.iter().any(has_is_primary_true),
+            "the nominated user ID must carry the Primary User ID flag"
+        );
+    }
+
+    #[test]
+    fn setting_the_primary_user_id_clears_it_on_the_others() {
+        // §5.2.3.27 allows more than one to be flagged but leaves the tie-break
+        // undefined, so the engine keeps exactly one flagged.
+        let block = base_key();
+        let with_second =
+            add_user_id_internal(0, &block, "Second <second@example.test>", None).expect("add");
+        let out = set_primary_user_id_internal(
+            0,
+            &with_second,
+            "Second <second@example.test>",
+            None,
+        )
+        .expect("set primary");
+
+        let key = parse(&out);
+        let flagged = key
+            .details
+            .users
+            .iter()
+            .filter(|u| u.signatures.iter().any(has_is_primary_true))
+            .count();
+        assert_eq!(flagged, 1, "exactly one user ID may be primary");
+    }
+
+    #[test]
+    fn setting_an_unknown_primary_user_id_is_invalid_input() {
+        let block = base_key();
+        assert_eq!(
+            set_primary_user_id_internal(0, &block, "ghost <ghost@example.test>", None).err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn setting_primary_preserves_the_key_flags() {
+        let block = base_key();
+        let uid = base_uid();
+        let out = set_primary_user_id_internal(0, &block, &uid, None).expect("set primary");
+        let key = parse(&out);
+        let user = key.details.users.first().expect("a user id");
+        let sig = user.signatures.first().expect("a self-signature");
+        assert!(sig.key_flags().certify() || sig.key_flags().sign());
+    }
+
+    #[test]
+    fn setting_primary_leaves_a_verifying_self_signature() {
+        let block = base_key();
+        let uid = base_uid();
+        let out = set_primary_user_id_internal(0, &block, &uid, None).expect("set primary");
+        let key = parse(&out);
+        let primary = key.primary_key.public_key();
+        let user = key.details.users.first().expect("a user id");
+        let sig = user.signatures.first().expect("a self-signature");
+        assert!(sig.verify_certification(primary, Tag::UserId, &user.id).is_ok());
+    }
+
+    #[test]
+    fn setting_primary_on_a_public_block_fails() {
+        let block = keys::V4_SIGN.public_armored.clone();
+        let uid = base_uid();
+        assert!(set_primary_user_id_internal(0, &block, &uid, None).is_err());
+    }
+
+    #[test]
+    fn setting_primary_on_a_v6_key_emits_a_v6_signature() {
+        let block = keys::V6_SIGN.secret_armored.clone();
+        let uid = uids_of(&block).remove(0);
+        let out = set_primary_user_id_internal(0, &block, &uid, None).expect("set primary");
+        let key = parse(&out);
+        let user = key.details.users.first().expect("a user id");
+        assert!(
+            user.signatures
+                .iter()
+                .all(|s| s.version() == pgp::packet::SignatureVersion::V6)
+        );
+    }
+
+    // -- revoke_user_id_internal --------------------------------------------
+
+    #[test]
+    fn revoking_a_user_id_adds_a_certification_revocation() {
+        // §5.2.1.13: a Certification Revocation signature (type 0x30) revokes
+        // an earlier user ID certification.
+        let block = base_key();
+        let uid = base_uid();
+        let out = revoke_user_id_internal(
+            0,
+            &block,
+            &uid,
+            GfrRevocationCode::UserIdInvalid,
+            Some("no longer used"),
+            None,
+        )
+        .expect("revoke");
+
+        let key = parse(&out);
+        let user = key.details.users.first().expect("a user id");
+        assert!(
+            user.signatures
+                .iter()
+                .any(|s| matches!(s.typ(), Some(SignatureType::CertRevocation))),
+            "a certification revocation signature must be present"
+        );
+    }
+
+    #[test]
+    fn a_user_id_revocation_verifies_under_the_primary_key() {
+        let block = base_key();
+        let uid = base_uid();
+        let out = revoke_user_id_internal(
+            0,
+            &block,
+            &uid,
+            GfrRevocationCode::UserIdInvalid,
+            None,
+            None,
+        )
+        .expect("revoke");
+
+        let key = parse(&out);
+        let primary = key.primary_key.public_key();
+        let user = key.details.users.first().expect("a user id");
+        let rev = user
+            .signatures
+            .iter()
+            .find(|s| matches!(s.typ(), Some(SignatureType::CertRevocation)))
+            .expect("a revocation signature");
+        assert!(
+            rev.verify_certification(primary, Tag::UserId, &user.id).is_ok(),
+            "a forged revocation would be worthless; this one must verify"
+        );
+    }
+
+    #[test]
+    fn revoking_an_unknown_user_id_is_invalid_input() {
+        let block = base_key();
+        assert_eq!(
+            revoke_user_id_internal(
+                0,
+                &block,
+                "ghost <ghost@example.test>",
+                GfrRevocationCode::UserIdInvalid,
+                None,
+                None
+            )
+            .err(),
+            Some(GfrStatus::ErrorInvalidInput)
+        );
+    }
+
+    #[test]
+    fn a_user_id_revocation_records_its_reason() {
+        // §5.2.3.31: "Such a signature revocation SHOULD include a Reason for
+        // Revocation subpacket containing code 32."
+        let block = base_key();
+        let uid = base_uid();
+        let out = revoke_user_id_internal(
+            0,
+            &block,
+            &uid,
+            GfrRevocationCode::UserIdInvalid,
+            Some("address retired"),
+            None,
+        )
+        .expect("revoke");
+
+        let key = parse(&out);
+        let user = key.details.users.first().expect("a user id");
+        let rev = user
+            .signatures
+            .iter()
+            .find(|s| matches!(s.typ(), Some(SignatureType::CertRevocation)))
+            .expect("a revocation signature");
+        let has_reason = rev
+            .config()
+            .map(|c| {
+                c.hashed_subpackets
+                    .iter()
+                    .any(|sp| matches!(sp.data, SubpacketData::RevocationReason(..)))
+            })
+            .unwrap_or(false);
+        assert!(has_reason);
+    }
+
+    #[test]
+    fn revoking_without_a_reason_string_works() {
+        let block = base_key();
+        let uid = base_uid();
+        assert!(
+            revoke_user_id_internal(
+                0,
+                &block,
+                &uid,
+                GfrRevocationCode::NoReason,
+                None,
+                None
+            )
+            .is_ok()
+        );
+    }
+
+    #[test]
+    fn revoking_on_a_v6_key_emits_a_v6_revocation() {
+        let block = keys::V6_SIGN.secret_armored.clone();
+        let uid = uids_of(&block).remove(0);
+        let out = revoke_user_id_internal(
+            0,
+            &block,
+            &uid,
+            GfrRevocationCode::UserIdInvalid,
+            None,
+            None,
+        )
+        .expect("revoke");
+
+        let key = parse(&out);
+        let user = key.details.users.first().expect("a user id");
+        let rev = user
+            .signatures
+            .iter()
+            .find(|s| matches!(s.typ(), Some(SignatureType::CertRevocation)))
+            .expect("a revocation signature");
+        assert_eq!(rev.version(), pgp::packet::SignatureVersion::V6);
+    }
+
+    #[test]
+    fn revoking_a_user_id_does_not_delete_it() {
+        // Revocation is a statement, not a removal: third parties need the
+        // user ID present to see that it was revoked.
+        let block = base_key();
+        let uid = base_uid();
+        let out = revoke_user_id_internal(
+            0,
+            &block,
+            &uid,
+            GfrRevocationCode::UserIdInvalid,
+            None,
+            None,
+        )
+        .expect("revoke");
+        assert!(uids_of(&out).contains(&uid));
+    }
+
+    #[test]
+    fn revoking_on_a_public_block_fails() {
+        let block = keys::V4_SIGN.public_armored.clone();
+        let uid = base_uid();
+        assert!(
+            revoke_user_id_internal(
+                0,
+                &block,
+                &uid,
+                GfrRevocationCode::UserIdInvalid,
+                None,
+                None
+            )
+            .is_err()
+        );
+    }
+
+    #[test]
+    fn every_user_id_operation_rejects_garbage_without_panicking() {
+        for op in [
+            "delete", "add", "update", "primary", "revoke",
+        ] {
+            let outcome = std::panic::catch_unwind(|| match op {
+                "delete" => delete_user_id_internal("junk", "x").is_err(),
+                "add" => add_user_id_internal(0, "junk", "x", None).is_err(),
+                "update" => update_user_id_internal(0, "junk", "x", "y", None).is_err(),
+                "primary" => set_primary_user_id_internal(0, "junk", "x", None).is_err(),
+                _ => revoke_user_id_internal(
+                    0,
+                    "junk",
+                    "x",
+                    GfrRevocationCode::NoReason,
+                    None,
+                    None,
+                )
+                .is_err(),
+            });
+            assert_eq!(outcome.ok(), Some(true), "{op} must fail cleanly");
+        }
+    }
+}
