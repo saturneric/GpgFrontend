@@ -42,40 +42,77 @@ KeyNewUIDDialog::KeyNewUIDDialog(int channel, GpgKeyPtr key, QWidget* parent)
       m_key_(std::move(key)) {
   assert(m_key_ != nullptr);
 
+  auto* title_label = new QLabel(tr("Add a new User ID"));
+  QFont title_font = title_label->font();
+  title_font.setBold(true);
+  title_font.setPointSize(title_font.pointSize() + 1);
+  title_label->setFont(title_font);
+
+  auto* hint_label = new QLabel(
+      tr("A User ID pairs a name with an optional email and comment. The name "
+         "is required."));
+  hint_label->setWordWrap(true);
+
   name_ = new QLineEdit();
-  name_->setMinimumWidth(240);
+  name_->setClearButtonEnabled(true);
+  name_->setPlaceholderText(tr("Full name"));
   email_ = new QLineEdit();
-  email_->setMinimumWidth(240);
+  email_->setClearButtonEnabled(true);
+  email_->setPlaceholderText(tr("name@example.com"));
   comment_ = new QLineEdit();
-  comment_->setMinimumWidth(240);
-  create_button_ = new QPushButton("Create");
-  error_label_ = new QLabel();
+  comment_->setClearButtonEnabled(true);
+  comment_->setPlaceholderText(tr("Optional comment"));
 
-  auto* grid_layout = new QGridLayout();
-  grid_layout->addWidget(new QLabel(tr("Name")), 0, 0);
-  grid_layout->addWidget(new QLabel(tr("Email")), 1, 0);
-  grid_layout->addWidget(new QLabel(tr("Comment")), 2, 0);
+  auto* form_layout = new QFormLayout();
+  form_layout->setContentsMargins(0, 0, 0, 0);
+  form_layout->setLabelAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  form_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+  form_layout->addRow(tr("Name"), name_);
+  form_layout->addRow(tr("Email"), email_);
+  form_layout->addRow(tr("Comment"), comment_);
 
-  grid_layout->addWidget(name_, 0, 1);
-  grid_layout->addWidget(email_, 1, 1);
-  grid_layout->addWidget(comment_, 2, 1);
+  summary_label_ = new QLabel();
+  summary_label_->setWordWrap(true);
 
-  grid_layout->addWidget(create_button_, 3, 0, 1, 2);
+  button_box_ =
+      new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  button_box_->button(QDialogButtonBox::Ok)->setText(tr("Create"));
+
+  auto* header_layout = new QVBoxLayout();
+  header_layout->setSpacing(4);
+  header_layout->addWidget(title_label);
+  header_layout->addWidget(hint_label);
 
   auto engine =
       OpenPGPContext::GetInstance(current_gpg_context_channel_).Engine();
   if (engine == OpenPGPEngine::kGNUPG) {
-    grid_layout->addWidget(
-        new QLabel(tr("Notice: The New UID Created will be set as Primary.")),
-        4, 0, 1, 2);
+    auto* primary_notice =
+        new QLabel(tr("The new User ID will be set as the primary User ID."));
+    primary_notice->setWordWrap(true);
+    header_layout->addWidget(primary_notice);
   }
 
-  grid_layout->addWidget(error_label_, 5, 0, 1, 2);
+  auto* layout = new QVBoxLayout();
+  layout->setContentsMargins(18, 18, 18, 18);
+  layout->setSpacing(12);
+  layout->addLayout(header_layout);
+  layout->addLayout(form_layout);
+  layout->addWidget(summary_label_);
+  layout->addWidget(button_box_);
 
-  connect(create_button_, &QPushButton::clicked, this,
+  connect(name_, &QLineEdit::textChanged, this,
+          &KeyNewUIDDialog::refresh_widgets_state);
+  connect(email_, &QLineEdit::textChanged, this,
+          &KeyNewUIDDialog::refresh_widgets_state);
+  connect(comment_, &QLineEdit::textChanged, this,
+          &KeyNewUIDDialog::refresh_widgets_state);
+  connect(button_box_, &QDialogButtonBox::accepted, this,
           &KeyNewUIDDialog::slot_create_new_uid);
+  connect(button_box_, &QDialogButtonBox::rejected, this,
+          &KeyNewUIDDialog::reject);
 
-  this->setLayout(grid_layout);
+  this->setLayout(layout);
+  this->setMinimumWidth(460);
   this->setWindowTitle(tr("Create New UID"));
   this->setAttribute(Qt::WA_DeleteOnClose, true);
   this->setModal(true);
@@ -83,70 +120,94 @@ KeyNewUIDDialog::KeyNewUIDDialog(int channel, GpgKeyPtr key, QWidget* parent)
   connect(this, &KeyNewUIDDialog::SignalUIDCreated,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
-  connect(this, &KeyNewUIDDialog::SignalUIDCreated, this,
-          &KeyNewUIDDialog::close);
+
+  refresh_widgets_state();
+  name_->setFocus();
 }
 
-void KeyNewUIDDialog::slot_create_new_uid() {
-  QString buffer;
-  QTextStream error_stream(&buffer);
-
+void KeyNewUIDDialog::refresh_widgets_state() {
   const auto name = name_->text().trimmed();
   const auto email = email_->text().trimmed();
   const auto comment = comment_->text().trimmed();
 
-  // A user id needs a name; its length is only advisory and handled below.
+  QString message;
+  bool valid = true;
+
+  // A user id needs a name; its length is only advisory (handled at submit).
   if (name.isEmpty()) {
-    error_stream << "  " << tr("Name must not be empty.") << Qt::endl;
-  }
-  // The name and comment become part of an RFC 2822 mail name-addr
-  // ("Name (Comment) <email>"); reject the structural delimiters '(', ')',
-  // '<', '>' and control characters or the resulting UID would be malformed.
-  if (!IsValidUserIdComponent(name) || !IsValidUserIdComponent(comment)) {
-    error_stream << "  "
-                 << tr("Name and comment must not contain the characters '(', "
-                       "')', '<', '>' or control characters.")
-                 << Qt::endl;
-  }
-  // The email address is optional, but if one is given it must be usable.
-  if (!email.isEmpty() && !IsEmailAddress(email)) {
-    error_stream << "  " << tr("Please give a valid email address.")
-                 << Qt::endl;
-  }
-  auto error_string = error_stream.readAll();
-  if (error_string.isEmpty()) {
-    if (!ConfirmShortUserIdName(this, name)) return;
-
-    auto f = [this, name, comment, email](const OperaWaitingHd& hd) {
-      UserIdOperation::GetInstance(current_gpg_context_channel_)
-          .AddUID(m_key_, name, comment, email,
-                  [this, hd](GpgError err, const DataObjectPtr&) {
-                    // stop showing the waiting dialog
-                    hd();
-
-                    if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
-                      emit finished(1);
-                      emit SignalUIDCreated();
-                    } else {
-                      emit finished(-1);
-                    }
-                  });
-    };
-    GpgOperaHelper::WaitForOpera(this, tr("Creating UID"), f);
+    valid = false;
+    message = tr("Enter a name for the User ID.");
+    // The name and comment become part of an RFC 2822 mail name-addr
+    // ("Name (Comment) <email>"); reject the structural delimiters '(', ')',
+    // '<', '>' and control characters or the resulting UID would be malformed.
+  } else if (!IsValidUserIdComponent(name) ||
+             !IsValidUserIdComponent(comment)) {
+    valid = false;
+    message = tr(
+        "Name and comment must not contain the characters '(', ')', '<', '>' "
+        "or control characters.");
+    // The email address is optional, but if one is given it must be usable.
+  } else if (!email.isEmpty() && !IsEmailAddress(email)) {
+    valid = false;
+    message = tr("Please give a valid email address.");
   } else {
-    /**
-     * create error message
-     */
-    error_label_->setAutoFillBackground(true);
-    QPalette error = error_label_->palette();
-    error.setColor(QPalette::Window, "#ff8080");
-    error_label_->setPalette(error);
-    error_label_->setText(error_string);
-
-    this->show();
-    this->raise();
-    this->activateWindow();
+    message = tr("Ready to create the User ID.");
   }
+
+  auto palette = summary_label_->palette();
+  palette.setColor(summary_label_->foregroundRole(),
+                   valid ? Qt::darkGreen : Qt::red);
+  summary_label_->setPalette(palette);
+  summary_label_->setText(message);
+
+  button_box_->button(QDialogButtonBox::Ok)->setEnabled(valid);
+}
+
+void KeyNewUIDDialog::slot_create_new_uid() {
+  const auto name = name_->text().trimmed();
+  const auto email = email_->text().trimmed();
+  const auto comment = comment_->text().trimmed();
+
+  // Guard again: the Create button is only enabled when input is valid, but a
+  // programmatic accept() could still land here on invalid input.
+  refresh_widgets_state();
+  if (!button_box_->button(QDialogButtonBox::Ok)->isEnabled()) return;
+
+  if (!ConfirmShortUserIdName(this, name)) return;
+
+  auto f = [this, name, comment, email](const OperaWaitingHd& hd) {
+    UserIdOperation::GetInstance(current_gpg_context_channel_)
+        .AddUID(m_key_, name, comment, email,
+                [this, hd](GpgError err, const DataObjectPtr&) {
+                  // stop showing the waiting dialog
+                  hd();
+
+                  if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
+                    emit SignalUIDCreated();
+
+                    // Present the notice over the parent window and close the
+                    // form first, so it never stacks above a dialog that is
+                    // about to vanish.
+                    auto* msg_box =
+                        new QMessageBox(qobject_cast<QWidget*>(this->parent()));
+                    msg_box->setAttribute(Qt::WA_DeleteOnClose);
+                    msg_box->setStandardButtons(QMessageBox::Ok);
+                    msg_box->setIcon(QMessageBox::Information);
+                    msg_box->setWindowTitle(tr("Successful Operation"));
+                    msg_box->setText(tr("Successfully added a new UID."));
+                    msg_box->setModal(true);
+                    msg_box->open();
+
+                    this->close();
+                  } else {
+                    // Keep the dialog open so the user can retry.
+                    QMessageBox::critical(
+                        this, tr("Operation Failed"),
+                        tr("An error occurred during the operation."));
+                  }
+                });
+  };
+  GpgOperaHelper::WaitForOpera(this, tr("Creating UID"), f);
 }
 
 }  // namespace GpgFrontend::UI

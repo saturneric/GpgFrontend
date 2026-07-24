@@ -34,10 +34,10 @@
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/function/GpgOperaHelper.h"
 #include "ui/dialog/RevocationOptionsDialog.h"
 #include "ui/dialog/keypair_details/KeyNewUIDDialog.h"
 #include "ui/dialog/keypair_details/KeyUIDSignDialog.h"
+#include "ui/function/GpgOperaHelper.h"
 
 namespace GpgFrontend::UI {
 
@@ -279,21 +279,11 @@ void KeyPairUIDTab::slot_add_sign() {
 }
 
 void KeyPairUIDTab::slot_add_uid() {
+  // The dialog reports its own success/failure over the key-details window; no
+  // result wiring is needed here.
   auto* key_new_uid_dialog =
       new KeyNewUIDDialog(current_gpg_context_channel_, m_key_, this);
-  connect(key_new_uid_dialog, &KeyNewUIDDialog::finished, this,
-          &KeyPairUIDTab::slot_add_uid_result);
   key_new_uid_dialog->show();
-}
-
-void KeyPairUIDTab::slot_add_uid_result(int result) {
-  if (result == 1) {
-    QMessageBox::information(nullptr, tr("Successful Operation"),
-                             tr("Successfully added a new UID."));
-  } else if (result == -1) {
-    QMessageBox::critical(nullptr, tr("Operation Failed"),
-                          tr("An error occurred during the operation."));
-  }
 }
 
 void KeyPairUIDTab::slot_del_uid() {
@@ -305,7 +295,7 @@ void KeyPairUIDTab::slot_del_uid() {
   keynames.append("<br/>");
 
   if (target_uid.GetUID() == buffered_uids_.front().GetUID()) {
-    QMessageBox::information(nullptr, tr("Invalid Operation"),
+    QMessageBox::information(this, tr("Invalid Operation"),
                              tr("Cannot delete the Primary UID."));
     return;
   }
@@ -323,22 +313,21 @@ void KeyPairUIDTab::slot_del_uid() {
     const auto uid = target_uid.GetUID();
     auto f = [this, uid](const OperaWaitingHd& hd) {
       UserIdOperation::GetInstance(current_gpg_context_channel_)
-          .DeleteUID(m_key_, uid,
-                     [this, hd, uid](GpgError err, const DataObjectPtr&) {
-                       hd();
-                       if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                         QMessageBox::critical(
-                             nullptr, tr("Operation Failed"),
-                             tr("An error occurred during the delete %1 "
-                                "operation.")
-                                 .arg(uid.toHtmlEscaped()));
-                         return;
-                       }
-                       QMessageBox::information(
-                           nullptr, tr("Successful Operation"),
-                           tr("Successfully deleted the UID."));
-                       emit SignalUpdateUIDInfo();
-                     });
+          .DeleteUID(
+              m_key_, uid, [this, hd, uid](GpgError err, const DataObjectPtr&) {
+                hd();
+                if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
+                  QMessageBox::critical(
+                      this, tr("Operation Failed"),
+                      tr("An error occurred during the delete %1 "
+                         "operation.")
+                          .arg(uid.toHtmlEscaped()));
+                  return;
+                }
+                QMessageBox::information(this, tr("Successful Operation"),
+                                         tr("Successfully deleted the UID."));
+                emit SignalUpdateUIDInfo();
+              });
     };
     GpgOperaHelper::WaitForOpera(this, tr("Deleting UID"), f);
   }
@@ -373,7 +362,7 @@ void KeyPairUIDTab::slot_set_primary_uid() {
                          hd();
                          if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
                            QMessageBox::critical(
-                               nullptr, tr("Operation Failed"),
+                               this, tr("Operation Failed"),
                                tr("An error occurred during the operation."));
                            return;
                          }
@@ -416,10 +405,17 @@ void KeyPairUIDTab::create_uid_popup_menu() {
     uid_popup_menu_->addAction(del_uid_act_);
   }
 
-  uid_popup_menu_->addAction(sign_uid_act_);
+  // Only offer "Sign UID" when the active engine actually implements key
+  // signing; otherwise the operation would abort deeper down. The signature
+  // list is hidden for the same reason (see the constructor).
+  if (IsOpSupported<SignKeyOpTag>(current_gpg_context_channel_)) {
+    uid_popup_menu_->addAction(sign_uid_act_);
+  }
 }
 
 void KeyPairUIDTab::contextMenuEvent(QContextMenuEvent* event) {
+  if (uid_popup_menu_->isEmpty()) return;
+
   if (uid_list_->selectedItems().length() > 0 &&
       sig_list_->selectedItems().isEmpty()) {
     const auto is_primary_uid =
@@ -454,7 +450,7 @@ void KeyPairUIDTab::slot_del_sign() {
   auto selected_signs = get_sign_selected();
   if (selected_signs.empty()) {
     QMessageBox::information(
-        nullptr, tr("Invalid Operation"),
+        this, tr("Invalid Operation"),
         tr("Please select one Key Signature before doing this operation."));
     return;
   }
@@ -463,7 +459,7 @@ void KeyPairUIDTab::slot_del_sign() {
            .GetKey(selected_signs.front().first)
            .IsGood()) {
     QMessageBox::critical(
-        nullptr, tr("Invalid Operation"),
+        this, tr("Invalid Operation"),
         tr("To delete the signature, you need to have its corresponding public "
            "key in the local database."));
     return;
@@ -485,7 +481,7 @@ void KeyPairUIDTab::slot_del_sign() {
   if (ret == QMessageBox::Yes) {
     if (!KeyManagementOperation::GetInstance(current_gpg_context_channel_)
              .RevKeySignature(m_key_, selected_signs)) {
-      QMessageBox::critical(nullptr, tr("Operation Failed"),
+      QMessageBox::critical(this, tr("Operation Failed"),
                             tr("An error occurred during the operation."));
     }
   }
@@ -509,7 +505,7 @@ void KeyPairUIDTab::slot_rev_uid() {
 
   if (target_uid.GetUID() == buffered_uids_.front().GetUID()) {
     QMessageBox::information(
-        nullptr, tr("Invalid Operation"),
+        this, tr("Invalid Operation"),
         tr("Please select one UID before doing this operation."));
     return;
   }
@@ -530,7 +526,7 @@ void KeyPairUIDTab::slot_rev_uid() {
   if (ret != QMessageBox::Yes) return;
 
   if (target_uid.GetUID() == buffered_uids_.front().GetUID()) {
-    QMessageBox::information(nullptr, tr("Invalid Operation"),
+    QMessageBox::information(this, tr("Invalid Operation"),
                              tr("Cannot delete the Primary UID."));
     return;
   }
@@ -543,20 +539,20 @@ void KeyPairUIDTab::slot_rev_uid() {
           &RevocationOptionsDialog::SignalRevokeOptionAccepted, this,
           [key = m_key_, channel = current_gpg_context_channel_, this,
            uid = target_uid.GetUID()](int code, const QString& text) {
-            auto f = [this, key, channel, uid, code, text](
-                         const OperaWaitingHd& hd) {
+            auto f = [this, key, channel, uid, code,
+                      text](const OperaWaitingHd& hd) {
               UserIdOperation::GetInstance(channel).RevokeUID(
                   key, uid, code == 1 ? 4 : 0, text,
                   [this, hd](GpgError err, const DataObjectPtr&) {
                     hd();
                     if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
                       QMessageBox::critical(
-                          nullptr, tr("Revocation Failed"),
+                          this, tr("Revocation Failed"),
                           tr("Failed to revoke the UID. Please try again."));
                       return;
                     }
                     QMessageBox::information(
-                        nullptr, tr("Revocation Successful"),
+                        this, tr("Revocation Successful"),
                         tr("The UID has been successfully revoked."));
                     emit SignalUpdateUIDInfo();
                   });

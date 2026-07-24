@@ -122,13 +122,6 @@ class KeyPairUIDTab : public QWidget {
    */
   void slot_refresh_key();
 
-  /**
-   * @brief
-   *
-   * @param result
-   */
-  static void slot_add_uid_result(int result);
-
  private:
   int current_gpg_context_channel_;
   GpgKeyPtr m_key_;

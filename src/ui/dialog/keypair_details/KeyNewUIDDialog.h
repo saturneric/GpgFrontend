@@ -62,6 +62,12 @@ class KeyNewUIDDialog : public GeneralDialog {
   void slot_create_new_uid();
 
  private:
+  /**
+   * @brief Recompute input validity and reflect it inline: update the summary
+   * line's text/colour and enable or disable the Create button.
+   */
+  void refresh_widgets_state();
+
   int current_gpg_context_channel_;
   GpgKeyPtr m_key_;  ///<
 
@@ -69,9 +75,7 @@ class KeyNewUIDDialog : public GeneralDialog {
   QLineEdit* email_{};    ///<
   QLineEdit* comment_{};  ///<
 
-  QPushButton* create_button_{};  ///<
-
-  QStringList error_messages_;  ///<
-  QLabel* error_label_{};       ///<
+  QDialogButtonBox* button_box_{};  ///<
+  QLabel* summary_label_{};         ///< inline live-validation feedback
 };
 }  // namespace GpgFrontend::UI
