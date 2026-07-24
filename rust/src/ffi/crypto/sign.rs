@@ -27,6 +27,7 @@
  */
 
 use crate::crypto::get_signature_issuers_internal;
+use crate::err::clear_last_error;
 use crate::types::{
     GfrBuffer, GfrPasswordFetchCb, GfrPublicKeyFetchCb, GfrSignMode, GfrSignResultC,
     GfrSignatureResultC, GfrStatus, GfrVerifyResultC,
@@ -61,6 +62,7 @@ pub extern "C" fn gfr_crypto_sign_data(
     ascii: bool,
     out_result: *mut GfrSignResultC,
 ) -> GfrStatus {
+    clear_last_error();
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         if name.is_null() || in_data.is_null() || secret_keys.is_null() || out_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
@@ -152,6 +154,7 @@ pub extern "C" fn gfr_crypto_sign_file(
     ascii: bool,
     out_result: *mut GfrSignResultC,
 ) -> GfrStatus {
+    clear_last_error();
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         // 1. Check null pointers
         if in_file_path.is_null()
@@ -267,6 +270,7 @@ pub extern "C" fn gfr_crypto_verify_data(
     mode: GfrSignMode,
     out_result: *mut GfrVerifyResultC,
 ) -> GfrStatus {
+    clear_last_error();
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         // Check for null pointers
         if in_data.is_null() || out_result.is_null() {
@@ -366,6 +370,7 @@ pub extern "C" fn gfr_crypto_verify_file(
     mode: GfrSignMode,
     out_result: *mut GfrVerifyResultC,
 ) -> GfrStatus {
+    clear_last_error();
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         if in_file_path.is_null() || out_result.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);
@@ -513,6 +518,7 @@ pub extern "C" fn gfr_crypto_get_signature_issuers(
     in_len: usize,
     out_issuers: *mut *mut c_char,
 ) -> GfrStatus {
+    clear_last_error();
     let result = catch_unwind(|| -> Result<(), GfrStatus> {
         if in_data.is_null() || out_issuers.is_null() {
             return Err(GfrStatus::ErrorInvalidInput);

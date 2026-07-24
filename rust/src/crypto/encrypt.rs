@@ -268,6 +268,7 @@ where
                     fpr,
                     status: GfrSignatureStatus::Valid,
                     created_at: current_time,
+                    expires_at: 0,
                     pub_algo: algo_str,
                     hash_algo: "SHA512".to_string(),
                     sig_type: GfrSignMode::Inline,

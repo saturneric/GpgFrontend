@@ -306,38 +306,43 @@ pub unsafe extern "C" fn gfr_export_merged_keys(
     secret: bool,
     out_armored_ptr: *mut *mut c_char,
 ) -> GfrStatus {
-    if keys_ptr.is_null() || out_armored_ptr.is_null() {
-        return GfrStatus::ErrorInvalidInput;
-    }
-
-    let c_str_ptrs = unsafe { slice::from_raw_parts(keys_ptr, keys_len) };
-    let mut rust_strs = Vec::with_capacity(keys_len);
-
-    for &ptr in c_str_ptrs {
-        if ptr.is_null() {
-            return GfrStatus::ErrorInvalidInput;
+    // Parsing caller-supplied armored key blocks runs through rPGP, which can
+    // panic on malformed packets. Guard the whole body in `catch_unwind` (as the
+    // sibling parsing entry points do) so a panic never unwinds across the
+    // `extern "C"` boundary, which is undefined behavior.
+    let result = catch_unwind(|| -> Result<(), GfrStatus> {
+        if keys_ptr.is_null() || out_armored_ptr.is_null() {
+            return Err(GfrStatus::ErrorInvalidInput);
         }
-        match unsafe { CStr::from_ptr(ptr).to_str() } {
-            Ok(s) => rust_strs.push(s),
-            Err(_) => return GfrStatus::ErrorInvalidInput,
-        }
-    }
 
-    let export_result = if secret {
-        export_merged_secret_keys(&rust_strs)
-    } else {
-        export_merged_public_keys(&rust_strs)
-    };
+        let c_str_ptrs = unsafe { slice::from_raw_parts(keys_ptr, keys_len) };
+        let mut rust_strs = Vec::with_capacity(keys_len);
 
-    match export_result {
-        Ok(armored_string) => match CString::new(armored_string) {
-            Ok(c_str) => {
-                unsafe { *out_armored_ptr = c_str.into_raw() };
-                GfrStatus::Success
+        for &ptr in c_str_ptrs {
+            if ptr.is_null() {
+                return Err(GfrStatus::ErrorInvalidInput);
             }
-            Err(_) => GfrStatus::ErrorArmorFailed,
-        },
-        Err(status) => status,
+            match unsafe { CStr::from_ptr(ptr).to_str() } {
+                Ok(s) => rust_strs.push(s),
+                Err(_) => return Err(GfrStatus::ErrorInvalidInput),
+            }
+        }
+
+        let armored_string = if secret {
+            export_merged_secret_keys(&rust_strs)?
+        } else {
+            export_merged_public_keys(&rust_strs)?
+        };
+
+        let c_str = CString::new(armored_string).map_err(|_| GfrStatus::ErrorArmorFailed)?;
+        unsafe { *out_armored_ptr = c_str.into_raw() };
+        Ok(())
+    });
+
+    match result {
+        Ok(Ok(_)) => GfrStatus::Success,
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
     }
 }
 

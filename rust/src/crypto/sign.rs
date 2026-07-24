@@ -89,6 +89,7 @@ where
             fpr,
             status: GfrSignatureStatus::Valid,
             created_at: current_time,
+            expires_at: 0,
             pub_algo,
             hash_algo: "SHA512".to_string(), // rpgp uses SHA512 by default in our builder
             sig_type: mode,
@@ -228,6 +229,9 @@ where
                                 )
                                 .map_err(|_| GfrStatus::ErrorInternal)?;
                                 config.hashed_subpackets = hashed_subpackets;
+                                // Pin the cleartext signing hash to SHA-512 so the reported metadata is
+                                // truthful and never a weak digest (RFC 9580 §9.5).
+                                config.hash_alg = HashAlgorithm::Sha512;
                                 if k.version() <= KeyVersion::V4 {
                                     config.unhashed_subpackets = vec![Subpacket::regular(
                                         SubpacketData::IssuerKeyId(k.legacy_key_id()),
@@ -257,6 +261,9 @@ where
                                 )
                                 .map_err(|_| GfrStatus::ErrorInternal)?;
                                 config.hashed_subpackets = hashed_subpackets;
+                                // Pin the cleartext signing hash to SHA-512 so the reported metadata is
+                                // truthful and never a weak digest (RFC 9580 §9.5).
+                                config.hash_alg = HashAlgorithm::Sha512;
                                 if k.version() <= KeyVersion::V4 {
                                     config.unhashed_subpackets = vec![Subpacket::regular(
                                         SubpacketData::IssuerKeyId(k.legacy_key_id()),

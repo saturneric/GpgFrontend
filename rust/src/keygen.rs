@@ -38,8 +38,8 @@ use crate::{
     key::{apply_primary_key_expiration, apply_subkey_expiration},
     types::{GfrKeyAlgo, GfrKeyConfig, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrStatus},
     utils::{
-        PassphraseStateInternal, armor_opts, check_if_should_use_key_ver_v6, fetch_password_with_cache,
-        password_from_zeroizing_bytes, resolve_key_type,
+        PassphraseStateInternal, armor_opts, check_if_should_use_key_ver_v6,
+        fetch_password_with_cache, password_from_zeroizing_bytes, resolve_key_type,
     },
 };
 use log::error;
@@ -48,9 +48,7 @@ use pgp::{
         Deserializable, EncryptionCaps, KeyType, SecretKeyParamsBuilder, SignedPublicKey,
         SignedSecretKey, SignedSecretSubKey, SubkeyParamsBuilder,
     },
-    crypto::{
-        aead::AeadAlgorithm, hash::HashAlgorithm, sym::SymmetricKeyAlgorithm,
-    },
+    crypto::{aead::AeadAlgorithm, hash::HashAlgorithm, sym::SymmetricKeyAlgorithm},
     packet::{KeyFlags, PubKeyInner, PublicSubkey, SecretSubkey},
     types::{CompressionAlgorithm, KeyDetails, KeyVersion, Password, Timestamp},
 };
@@ -68,11 +66,21 @@ pub struct GeneratedKeys {
     pub fingerprint: String,
 }
 
-/// True if `algo` maps to a deprecated OID that RFC 9580 §9.2 forbids in v6 keys
-/// ("Implementations MUST NOT accept or generate version 6 key material using the
-/// deprecated OIDs").
-fn is_v6_forbidden_legacy(algo: &GfrKeyAlgo) -> bool {
-    matches!(algo, GfrKeyAlgo::ED25519LEGACY)
+/// If `algo` cannot appear in a v6 key, return the reason. Covers both the
+/// deprecated OIDs RFC 9580 §9.2 forbids ("Implementations MUST NOT accept or
+/// generate version 6 key material using the deprecated OIDs") and curves that
+/// are not registered for OpenPGP at all (secp256k1), which have no defined v6
+/// wire format.
+fn v6_algo_rejection_reason(algo: &GfrKeyAlgo) -> Option<&'static str> {
+    match algo {
+        GfrKeyAlgo::ED25519LEGACY => Some(
+            "ED25519LEGACY uses a deprecated OID and cannot be used in a v6 key (RFC 9580 §9.2)",
+        ),
+        GfrKeyAlgo::SECP256K1 => Some(
+            "secp256k1 is not a registered OpenPGP curve (RFC 9580 §9.2) and cannot be used in a v6 key",
+        ),
+        _ => None,
+    }
 }
 
 /// For v6 keys, `ED25519`/`CV25519` used for encryption resolve to the deprecated
@@ -116,10 +124,8 @@ pub fn keygen_dynamic(
     // / Ed25519Legacy OIDs. Reject ED25519LEGACY and remap legacy-curve
     // encryption keys to native X25519 before building.
     if use_v6 {
-        if is_v6_forbidden_legacy(&key_config.algo) {
-            anyhow::bail!(
-                "ED25519LEGACY uses a deprecated OID and cannot be used in a v6 key (RFC 9580 §9.2)"
-            );
+        if let Some(reason) = v6_algo_rejection_reason(&key_config.algo) {
+            anyhow::bail!(reason);
         }
         if let Some(remapped) = v6_remap_encryption_curve(&key_config.algo, false) {
             primary_type = remapped;
@@ -145,10 +151,8 @@ pub fn keygen_dynamic(
 
             // RFC 9580 §9.2: reject deprecated OIDs and remap ED25519/CV25519
             // encryption subkeys (which resolve to Curve25519Legacy) to X25519.
-            if is_v6_forbidden_legacy(&config.algo) {
-                anyhow::bail!(
-                    "ED25519LEGACY uses a deprecated OID and cannot be used in a v6 key (RFC 9580 §9.2)"
-                );
+            if let Some(reason) = v6_algo_rejection_reason(&config.algo) {
+                anyhow::bail!(reason);
             }
             if let Some(remapped) = v6_remap_encryption_curve(&config.algo, config.can_encrypt) {
                 k_type = remapped;
@@ -189,12 +193,9 @@ pub fn keygen_dynamic(
     // pick our stronger preferred algorithms, matching GnuPG-class output.
     builder
         .preferred_symmetric_algorithms(
-            [
-                SymmetricKeyAlgorithm::AES256,
-                SymmetricKeyAlgorithm::AES128,
-            ]
-            .into_iter()
-            .collect(),
+            [SymmetricKeyAlgorithm::AES256, SymmetricKeyAlgorithm::AES128]
+                .into_iter()
+                .collect(),
         )
         .preferred_hash_algorithms(
             [HashAlgorithm::Sha512, HashAlgorithm::Sha256]
@@ -426,10 +427,8 @@ pub fn add_subkey_internal(
         // RFC 9580 §9.2: v6 key material MUST NOT use deprecated OIDs. Reject
         // ED25519LEGACY and remap ED25519/CV25519 encryption subkeys (which
         // resolve to Curve25519Legacy) to native X25519.
-        if is_v6_forbidden_legacy(&config.algo) {
-            set_last_error(
-                "ED25519LEGACY uses a deprecated OID and cannot be added to a v6 key (RFC 9580 §9.2)",
-            );
+        if let Some(reason) = v6_algo_rejection_reason(&config.algo) {
+            set_last_error(reason);
             return Err(GfrStatus::ErrorUnsupportedAlgorithm);
         }
         if let Some(remapped) = v6_remap_encryption_curve(&config.algo, config.can_encrypt) {
@@ -633,7 +632,12 @@ mod rfc9580_tests {
     /// RFC 9580 §9.2: ED25519LEGACY (deprecated OID) MUST NOT appear in a v6 key.
     #[test]
     fn v6_rejects_ed25519legacy() {
-        let primary = cfg(GfrKeyAlgo::ED25519LEGACY, true, false, GfrOpenPGPKeyVersion::V6);
+        let primary = cfg(
+            GfrKeyAlgo::ED25519LEGACY,
+            true,
+            false,
+            GfrOpenPGPKeyVersion::V6,
+        );
         assert!(keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).is_err());
     }
 
@@ -641,7 +645,12 @@ mod rfc9580_tests {
     #[test]
     fn encryption_only_primary_rejected() {
         // ML-KEM is a KEM (encryption-only) and cannot self-certify as a primary.
-        let primary = cfg(GfrKeyAlgo::KYBER768X25519, false, true, GfrOpenPGPKeyVersion::V6);
+        let primary = cfg(
+            GfrKeyAlgo::KYBER768X25519,
+            false,
+            true,
+            GfrOpenPGPKeyVersion::V6,
+        );
         assert!(keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).is_err());
     }
 
@@ -651,9 +660,10 @@ mod rfc9580_tests {
         let primary = cfg(GfrKeyAlgo::ED25519, true, false, GfrOpenPGPKeyVersion::V4);
         let key = keygen_dynamic("rfc9580 <rfc@example.com>", &primary, &[]).expect("keygen");
         let advertises_aes256 = key.details.users.iter().any(|u| {
-            u.signatures
-                .iter()
-                .any(|s| s.preferred_symmetric_algs().contains(&SymmetricKeyAlgorithm::AES256))
+            u.signatures.iter().any(|s| {
+                s.preferred_symmetric_algs()
+                    .contains(&SymmetricKeyAlgorithm::AES256)
+            })
         });
         assert!(
             advertises_aes256,
@@ -686,7 +696,10 @@ mod rfc9580_tests {
         // A CRC24 footer is a line consisting of '=' followed by 4 base64 chars.
         for line in armored.lines() {
             let is_crc = line.starts_with('=') && line.len() == 5;
-            assert!(!is_crc, "v6 key armor must not contain a CRC24 footer: {line}");
+            assert!(
+                !is_crc,
+                "v6 key armor must not contain a CRC24 footer: {line}"
+            );
         }
     }
 }

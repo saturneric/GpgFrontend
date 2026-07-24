@@ -85,30 +85,6 @@ where
         certs.len()
     );
 
-    // Helper closure to update signature statuses uniformly
-    let update_signatures = |cert: &SignedPublicKey,
-                             is_cert_valid: bool,
-                             signatures: &mut Vec<SignatureResultInternal>,
-                             is_verified: &mut bool|
-     -> bool {
-        let mut found = false;
-        for sig in signatures.iter_mut() {
-            if cert_contains_issuer(cert, &sig.fpr) {
-                found = true;
-                // RFC 9580 §9.5: never report success for a signature made with a
-                // weak hash (MD5/SHA-1/RIPEMD-160), even if it verifies cryptographically.
-                if is_cert_valid && !sig_hash_algo_is_weak(&sig.hash_algo) {
-                    sig.status = GfrSignatureStatus::Valid;
-                    *is_verified = true;
-                } else if sig.status == GfrSignatureStatus::NoKey {
-                    // Only mark as bad if we haven't already validated it via another key
-                    sig.status = GfrSignatureStatus::BadSignature;
-                }
-            }
-        }
-        found
-    };
-
     // 4. Stream Verification
     //
     // Hashing the data stream is the long-running part, so each pass reads
@@ -161,7 +137,7 @@ where
             }
         }
 
-        update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
+        finalize_signature_statuses(cert, is_cert_valid, &mut signatures, &mut is_verified);
     }
 
     if crate::cancel::is_cancelled(channel) {
@@ -186,29 +162,6 @@ pub fn verify_internal(
     fetch_pubkey_cb: Option<GfrPublicKeyFetchCb>,
     user_data: *mut std::ffi::c_void,
 ) -> Result<VerifyResultInternal, GfrStatus> {
-    // Helper closure to update signature statuses uniformly across all modes.
-    let update_signatures = |cert: &SignedPublicKey,
-                             is_cert_valid: bool,
-                             signatures: &mut Vec<SignatureResultInternal>,
-                             is_verified: &mut bool|
-     -> bool {
-        let mut found = false;
-        for sig in signatures.iter_mut() {
-            if cert_contains_issuer(cert, &sig.fpr) {
-                found = true;
-                // RFC 9580 §9.5: never report success for a signature made with a
-                // weak hash (MD5/SHA-1/RIPEMD-160), even if it verifies cryptographically.
-                if is_cert_valid && !sig_hash_algo_is_weak(&sig.hash_algo) {
-                    sig.status = GfrSignatureStatus::Valid;
-                    *is_verified = true;
-                } else if sig.status == GfrSignatureStatus::NoKey {
-                    sig.status = GfrSignatureStatus::BadSignature;
-                }
-            }
-        }
-        found
-    };
-
     match mode {
         // ---------------------------------------------------------
         // MODE 0: INLINE SIGNATURE
@@ -231,6 +184,17 @@ pub fn verify_internal(
             };
 
             for cert in &certs {
+                let found = finalize_signature_statuses_by_index(
+                    &msg,
+                    num_sigs,
+                    cert,
+                    &mut signatures,
+                    &mut is_verified,
+                );
+
+                // Special fallback if verification succeeded but issuer wasn't caught
+                // by sniff_signatures. Recompute a cert-level validity for this branch
+                // only (it does not attribute to a specific sniffed entry).
                 let primary_usable = !cert_primary_revoked(cert);
                 let is_cert_valid = (0..num_sigs).any(|i| {
                     (primary_usable && msg.verify_nested_explicit(i, cert).is_ok())
@@ -239,16 +203,12 @@ pub fn verify_internal(
                                 && msg.verify_nested_explicit(i, sk).is_ok()
                         })
                 });
-
-                let found =
-                    update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
-
-                // Special fallback if verification succeeded but issuer wasn't caught by sniff_signatures
                 if is_cert_valid && !found {
                     signatures.push(SignatureResultInternal {
                         fpr: cert.primary_key.fingerprint().to_string(),
                         status: GfrSignatureStatus::Valid,
                         created_at: 0,
+                        expires_at: 0,
                         pub_algo: "None".to_string(),
                         hash_algo: "None".to_string(),
                         sig_type: mode,
@@ -290,6 +250,7 @@ pub fn verify_internal(
                             fpr,
                             status: GfrSignatureStatus::NoKey,
                             created_at: sig.created().map(|d| d.as_secs()).unwrap_or(0),
+                            expires_at: signature_absolute_expiry(sig),
                             pub_algo,
                             hash_algo,
                             sig_type: mode,
@@ -308,12 +269,10 @@ pub fn verify_internal(
                         .iter()
                         .any(|sk| subkey_usable_for_verify(cert, sk) && msg.verify(sk).is_ok());
 
-                update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
+                finalize_signature_statuses(cert, is_cert_valid, &mut signatures, &mut is_verified);
             }
 
-            let clear_data = msg
-                .to_armored_bytes(armor_opts())
-                .unwrap_or_default();
+            let clear_data = msg.to_armored_bytes(armor_opts()).unwrap_or_default();
             Ok(VerifyResultInternal {
                 data: clear_data,
                 is_verified,
@@ -345,7 +304,7 @@ pub fn verify_internal(
                         subkey_usable_for_verify(cert, sk) && sig_msg.verify(sk, data).is_ok()
                     });
 
-                update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
+                finalize_signature_statuses(cert, is_cert_valid, &mut signatures, &mut is_verified);
             }
 
             Ok(VerifyResultInternal {

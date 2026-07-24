@@ -47,9 +47,9 @@ use crate::{
     err::IntoGfrResult,
     types::{GfrPasswordFetchCb, GfrRevocationCode, GfrStatus},
     utils::{
-        PassphraseStateInternal, armor_opts, build_revocation_reason_subpacket, choose_template_self_sig,
-        fetch_password_with_cache, has_is_primary_true, is_self_signature_from_primary,
-        password_from_zeroizing_bytes,
+        PassphraseStateInternal, armor_opts, build_revocation_reason_subpacket,
+        choose_template_self_sig, fetch_password_with_cache, has_is_primary_true,
+        is_self_signature_from_primary, password_from_zeroizing_bytes,
     },
 };
 
@@ -164,7 +164,9 @@ pub fn add_user_id_internal(
         .sign_certification(&skey.primary_key, &pk, &pwd, Tag::UserId, &new_uid)
         .into_gfr()?;
 
-    skey.details.users.push(SignedUser::new(new_uid, vec![new_sig]));
+    skey.details
+        .users
+        .push(SignedUser::new(new_uid, vec![new_sig]));
 
     skey.to_armored_string(armor_opts())
         .into_gfr()
@@ -419,12 +421,9 @@ pub fn revoke_user_id_internal(
     // Version-aware: a v6 key MUST emit a v6 revocation signature, else conforming
     // verifiers ignore it and the revocation silently fails (RFC 9580 §5.2.5).
     let mut rng = rand::thread_rng();
-    let mut cfg = SignatureConfig::from_key(
-        &mut rng,
-        &skey.primary_key,
-        SignatureType::CertRevocation,
-    )
-    .map_err(|_| GfrStatus::ErrorInternal)?;
+    let mut cfg =
+        SignatureConfig::from_key(&mut rng, &skey.primary_key, SignatureType::CertRevocation)
+            .map_err(|_| GfrStatus::ErrorInternal)?;
 
     let user = skey
         .details

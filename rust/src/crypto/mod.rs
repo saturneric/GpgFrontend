@@ -54,13 +54,13 @@ pub(crate) use log::debug;
 pub(crate) use pgp::{
     armor::Dearmor,
     composed::{
-        CleartextSignedMessage, Deserializable, DetachedSignature, Esk, Message,
-        MessageBuilder, SignedPublicKey, SignedSecretKey,
+        CleartextSignedMessage, Deserializable, DetachedSignature, Esk, Message, MessageBuilder,
+        SignedPublicKey, SignedSecretKey,
     },
     crypto::{hash::HashAlgorithm, sym::SymmetricKeyAlgorithm},
     packet::{Packet, PacketParser, SecretKey, SecretSubkey},
     ser::Serialize,
-    types::{KeyDetails, Password, SecretParams, StringToKey},
+    types::{KeyDetails, Password, SecretParams, StringToKey, Tag},
 };
 pub(crate) use rand::thread_rng;
 pub(crate) use std::{
@@ -132,6 +132,9 @@ pub struct SignatureResultInternal {
     pub status: GfrSignatureStatus,
     /// Unix timestamp from the Signature Creation Time subpacket (0 if absent).
     pub created_at: u32,
+    /// Absolute Unix expiry from the Signature Expiration Time subpacket
+    /// (0 = never expires). Consulted by [`signature_result_expired`].
+    pub expires_at: u32,
     pub pub_algo: String,
     pub hash_algo: String,
     pub sig_type: GfrSignMode,
@@ -455,6 +458,30 @@ mod rfc9580_policy_tests {
         assert!(!sig_hash_algo_is_weak("SHA512"));
         assert!(!sig_hash_algo_is_weak("SHA3-512"));
     }
+
+    fn sig_with_expiry(expires_at: u32) -> SignatureResultInternal {
+        SignatureResultInternal {
+            fpr: "AA".to_string(),
+            status: GfrSignatureStatus::NoKey,
+            created_at: 1_000,
+            expires_at,
+            pub_algo: "ED25519".to_string(),
+            hash_algo: "SHA512".to_string(),
+            sig_type: GfrSignMode::Inline,
+        }
+    }
+
+    /// RFC 9580 §5.2.3.18: a signature whose own expiration time has passed must
+    /// not be reported valid; `expires_at == 0` means it never expires.
+    #[test]
+    fn signature_expiry_policy() {
+        // Never-expires sentinel.
+        assert!(!signature_result_expired(&sig_with_expiry(0)));
+        // Far past (year 2001) -> expired.
+        assert!(signature_result_expired(&sig_with_expiry(1_000_000_000)));
+        // Far future (year 2096) -> not expired.
+        assert!(!signature_result_expired(&sig_with_expiry(4_000_000_000)));
+    }
 }
 
 /// True if the certificate's primary key carries a valid self-revocation
@@ -476,6 +503,139 @@ pub fn subkey_usable_for_verify(
     let primary_fpr_bytes = cert.primary_key.fingerprint().as_bytes().to_vec();
     subkey.key.algorithm().can_sign()
         && !crate::key::is_subkey_revoked(&subkey.signatures, &primary_fpr_bytes)
+}
+
+/// Apply the final signature status decision for one certificate uniformly
+/// across every verification path (inline / cleartext / detached / decrypt-and-
+/// verify).
+///
+/// `is_cert_valid` must already encode the key-usability gates that depend on
+/// the rPGP objects in scope at the call site: the primary key must not be
+/// revoked ([`cert_primary_revoked`]) and any subkey used must pass
+/// [`subkey_usable_for_verify`]. This routine then layers the remaining
+/// signature-level gates that only need the recorded metadata:
+///
+/// * RFC 9580 §9.5 — a signature made with a weak hash (MD5/SHA-1/RIPEMD-160)
+///   is never reported `Valid`, even if it verifies cryptographically.
+/// * RFC 9580 §5.2.3.10 — a signature whose own Signature Expiration Time has
+///   passed is never reported `Valid`.
+///
+/// Returns `true` if any signature entry was attributed to this certificate's
+/// issuer. Keeping this in one place is deliberate: the decrypt-and-verify path
+/// previously carried a divergent copy that omitted every gate, which allowed
+/// weak-hash / revoked-key signatures to be reported valid.
+pub fn finalize_signature_statuses(
+    cert: &SignedPublicKey,
+    is_cert_valid: bool,
+    signatures: &mut [SignatureResultInternal],
+    is_verified: &mut bool,
+) -> bool {
+    let mut found = false;
+    for sig in signatures.iter_mut() {
+        if cert_contains_issuer(cert, &sig.fpr) {
+            found = true;
+            apply_signature_gate(sig, is_cert_valid, is_verified);
+        }
+    }
+    found
+}
+
+/// Multi-signature variant of [`finalize_signature_statuses`] that ties each
+/// `Valid` decision to the *specific* signature index that verified, rather than
+/// to the certificate as a whole.
+///
+/// A message can carry several signature packets whose issuer subpackets all
+/// name the same certificate (e.g. a genuine primary-key signature plus a
+/// forged packet naming one of its subkeys). The per-cert form would stamp
+/// every issuer-matching entry `Valid` as soon as *any* index verified,
+/// mis-attributing a never-verified signature to a real key. This form only
+/// marks an entry `Valid` when a signature index whose issuer matches that
+/// entry actually verifies under a usable key.
+pub fn finalize_signature_statuses_by_index(
+    msg: &Message,
+    num_sigs: usize,
+    cert: &SignedPublicKey,
+    signatures: &mut [SignatureResultInternal],
+    is_verified: &mut bool,
+) -> bool {
+    let verified_fprs = verified_issuer_fprs_for_cert(msg, num_sigs, cert);
+    let mut found = false;
+    for sig in signatures.iter_mut() {
+        if cert_contains_issuer(cert, &sig.fpr) {
+            found = true;
+            // Both `verified_fprs` and `sig.fpr` are issuer fingerprints rendered
+            // via `issuer_fingerprint().to_string()`, so an exact match is correct.
+            let this_verified = verified_fprs.iter().any(|f| f == &sig.fpr);
+            apply_signature_gate(sig, this_verified, is_verified);
+        }
+    }
+    found
+}
+
+/// Collect the issuer fingerprints of every signature *index* in `msg` that
+/// verifies under a usable key of `cert` (usable = primary not revoked
+/// §5.2.1.11, or a signing-capable non-revoked subkey §5.2.1.12).
+fn verified_issuer_fprs_for_cert(
+    msg: &Message,
+    num_sigs: usize,
+    cert: &SignedPublicKey,
+) -> Vec<String> {
+    let mut out = Vec::new();
+    let Message::Signed { reader, .. } = msg else {
+        return out;
+    };
+    let primary_usable = !cert_primary_revoked(cert);
+    for i in 0..num_sigs {
+        let verified = (primary_usable && msg.verify_nested_explicit(i, cert).is_ok())
+            || cert.public_subkeys.iter().any(|sk| {
+                subkey_usable_for_verify(cert, sk) && msg.verify_nested_explicit(i, sk).is_ok()
+            });
+        if verified {
+            if let Some(sig) = reader.signature(i) {
+                for issuer in sig.issuer_fingerprint() {
+                    out.push(issuer.to_string());
+                }
+            }
+        }
+    }
+    out
+}
+
+/// Apply the signature-level RFC 9580 gates (§9.5 weak hash, §5.2.3.18
+/// expiration) on top of a caller-computed `verified` decision, and update the
+/// entry's status. Shared by both the per-cert and per-index finalizers so the
+/// gate lives in exactly one place.
+fn apply_signature_gate(sig: &mut SignatureResultInternal, verified: bool, is_verified: &mut bool) {
+    if verified && !sig_hash_algo_is_weak(&sig.hash_algo) && !signature_result_expired(sig) {
+        sig.status = GfrSignatureStatus::Valid;
+        *is_verified = true;
+    } else if sig.status == GfrSignatureStatus::NoKey {
+        sig.status = GfrSignatureStatus::BadSignature;
+    }
+}
+
+/// True if the signature's own Signature Expiration Time (RFC 9580 §5.2.3.18)
+/// has passed. `expires_at` is the absolute Unix expiry recorded at sniff time
+/// (0 means the signature never expires).
+pub fn signature_result_expired(sig: &SignatureResultInternal) -> bool {
+    if sig.expires_at == 0 {
+        return false;
+    }
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    (sig.expires_at as u64) < now
+}
+
+/// Absolute Unix expiry (seconds) for a signature, or 0 when it carries no
+/// Signature Expiration Time subpacket. Used to populate
+/// [`SignatureResultInternal::expires_at`] at sniff time.
+pub fn signature_absolute_expiry(sig: &pgp::packet::Signature) -> u32 {
+    match (sig.created(), sig.signature_expiration_time()) {
+        (Some(created), Some(dur)) => created.as_secs().saturating_add(dur.as_secs() as u32),
+        _ => 0,
+    }
 }
 
 /// Extract issuer fingerprints and algorithm metadata from signature packets
@@ -512,6 +672,7 @@ pub fn sniff_signatures(data: &[u8], mode: GfrSignMode) -> Vec<SignatureResultIn
                         fpr,
                         status: GfrSignatureStatus::NoKey,
                         created_at: sig.created().map(|d| d.as_secs()).unwrap_or(0),
+                        expires_at: signature_absolute_expiry(&sig),
                         pub_algo: pub_algo_id,
                         hash_algo: hash_algo_id,
                         sig_type: mode,

@@ -85,7 +85,21 @@ fn analyze_encrypted_envelope(
     let mut has_skesk = false;
     let mut recipients = Vec::new();
 
-    if let Message::Encrypted { esk, .. } = parsed_message {
+    if let Message::Encrypted { esk, edata, .. } = parsed_message {
+        // RFC 9580 §5.7 / §13.7: the legacy Symmetrically Encrypted Data packet
+        // (SED, Tag 9) has no integrity protection and is malleable. rPGP's
+        // high-level `Message::decrypt` opts into legacy SED handling
+        // (`DecryptionOptions::enable_legacy`), so we must reject it here —
+        // before any decrypt call — to guarantee that unauthenticated plaintext
+        // is never released to the caller.
+        if edata.tag() == Tag::SymEncryptedData {
+            set_last_error(
+                "refusing to decrypt a legacy Symmetrically Encrypted Data packet: it is not \
+                 integrity-protected and is malleable (RFC 9580 §13.7)",
+            );
+            return Err(GfrStatus::ErrorInvalidData);
+        }
+
         for e in esk {
             match e {
                 Esk::PublicKeyEncryptedSessionKey(pkesk) => {
@@ -373,6 +387,7 @@ where
                                 fpr,
                                 status: GfrSignatureStatus::NoKey,
                                 created_at: sig.created().map(|d| d.as_secs()).unwrap_or(0),
+                                expires_at: signature_absolute_expiry(sig),
                                 pub_algo,
                                 hash_algo,
                                 sig_type: GfrSignMode::Inline,
@@ -401,26 +416,17 @@ where
             }
         }
 
-        // Verify signatures
-        let update_signatures = |cert: &SignedPublicKey,
-                                 is_cert_valid: bool,
-                                 signatures: &mut Vec<SignatureResultInternal>,
-                                 is_verified: &mut bool|
-         -> bool {
-            let mut found = false;
-            for sig in signatures.iter_mut() {
-                if cert_contains_issuer(cert, &sig.fpr) {
-                    found = true;
-                    if is_cert_valid {
-                        sig.status = GfrSignatureStatus::Valid;
-                        *is_verified = true;
-                    } else if sig.status == GfrSignatureStatus::NoKey {
-                        sig.status = GfrSignatureStatus::BadSignature;
-                    }
-                }
-            }
-            found
-        };
+        // Verify signatures.
+        //
+        // This path MUST apply the same RFC 9580 gating as the standalone
+        // verifier in `verify.rs`: a signature is only considered cert-valid
+        // when it verifies under a *usable* key — the primary must not be
+        // revoked (§5.2.1.11) and any subkey used must be signing-capable and
+        // not revoked (§5.2.1.12). The remaining signature-level gates
+        // (weak-hash §9.5, signature expiration §5.2.3.18) are applied by the
+        // shared `finalize_signature_statuses`. Previously this path stamped
+        // `Valid` on any cryptographic pass, accepting weak-hash and
+        // revoked-key signatures that the standalone verifier rejects.
 
         // verify() only checks signature at index 0; iterate all indices for multi-signer messages.
         let num_sigs = if let pgp::composed::Message::Signed { ref reader, .. } = decrypted {
@@ -430,15 +436,13 @@ where
         };
 
         for cert in &certs {
-            let is_cert_valid = (0..num_sigs).any(|i| {
-                decrypted.verify_nested_explicit(i, cert).is_ok()
-                    || cert
-                        .public_subkeys
-                        .iter()
-                        .any(|sk| decrypted.verify_nested_explicit(i, sk).is_ok())
-            });
-
-            update_signatures(cert, is_cert_valid, &mut signatures, &mut is_verified);
+            finalize_signature_statuses_by_index(
+                &decrypted,
+                num_sigs,
+                cert,
+                &mut signatures,
+                &mut is_verified,
+            );
         }
     }
 

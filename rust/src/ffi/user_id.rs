@@ -70,7 +70,7 @@ pub extern "C" fn gfr_crypto_delete_user_id(
 
         unsafe {
             *out_block = CString::new(new_block.as_bytes())
-                .unwrap_or_default()
+                .map_err(|_| GfrStatus::ErrorInternal)?
                 .into_raw();
         }
 
@@ -113,7 +113,7 @@ pub extern "C" fn gfr_crypto_add_user_id(
 
         unsafe {
             *out_block = CString::new(new_block.as_bytes())
-                .unwrap_or_default()
+                .map_err(|_| GfrStatus::ErrorInternal)?
                 .into_raw();
         }
 
@@ -159,7 +159,7 @@ pub extern "C" fn gfr_crypto_update_user_id(
 
         unsafe {
             *out_block = CString::new(new_block.as_bytes())
-                .unwrap_or_default()
+                .map_err(|_| GfrStatus::ErrorInternal)?
                 .into_raw();
         }
 
@@ -203,7 +203,7 @@ pub extern "C" fn gfr_crypto_set_primary_user_id(
 
         unsafe {
             *out_block = std::ffi::CString::new(new_block.as_bytes())
-                .unwrap_or_default()
+                .map_err(|_| GfrStatus::ErrorInternal)?
                 .into_raw();
         }
 

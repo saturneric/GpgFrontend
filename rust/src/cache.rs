@@ -238,7 +238,7 @@ impl PasswordCache {
         key.fpr = key.fpr.to_uppercase(); // Ensure FPR is case-insensitive
         let now = Instant::now();
         let ttl = self.ttl();
-        let mut guard = self.inner.lock().expect("password cache poisoned");
+        let mut guard = self.inner.lock().unwrap_or_else(|e| e.into_inner());
 
         let entry = guard.get_mut(&key)?;
 
@@ -260,7 +260,7 @@ impl PasswordCache {
         let max_ttl = self.max_ttl();
         // The initial sliding deadline must also respect the hard cap.
         let ttl = self.ttl().min(max_ttl);
-        let mut guard = self.inner.lock().expect("password cache poisoned");
+        let mut guard = self.inner.lock().unwrap_or_else(|e| e.into_inner());
         guard.insert(
             key,
             PasswordCacheEntry {
@@ -274,19 +274,19 @@ impl PasswordCache {
     pub fn remove(&self, key: &PasswordCacheKey) {
         let mut key = key.clone();
         key.fpr = key.fpr.to_uppercase(); // Ensure FPR is case-insensitive
-        let mut guard = self.inner.lock().expect("password cache poisoned");
+        let mut guard = self.inner.lock().unwrap_or_else(|e| e.into_inner());
         guard.remove(&key);
     }
 
     pub fn remove_by_fpr(&self, fpr: &str) {
         let fpr = fpr.to_uppercase(); // Ensure FPR is case-insensitive
-        let mut guard = self.inner.lock().expect("password cache poisoned");
+        let mut guard = self.inner.lock().unwrap_or_else(|e| e.into_inner());
         guard.retain(|k, _| k.fpr != fpr);
     }
 
     /// Drop every cached entry, for every channel and fingerprint.
     pub fn clear(&self) {
-        let mut guard = self.inner.lock().expect("password cache poisoned");
+        let mut guard = self.inner.lock().unwrap_or_else(|e| e.into_inner());
         guard.clear();
     }
 }

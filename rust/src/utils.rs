@@ -303,7 +303,9 @@ pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType,
         // 2048 bits. RSA-1024 is rejected here (existing RSA-1024 keys can still be
         // imported/displayed via `determine_algo`, which is unaffected).
         GfrKeyAlgo::RSA1024 => {
-            set_last_error("RSA-1024 is too weak to generate; RFC 9580 §12.4 requires >= 2048 bits");
+            set_last_error(
+                "RSA-1024 is too weak to generate; RFC 9580 §12.4 requires >= 2048 bits",
+            );
             Err(GfrStatus::ErrorUnsupportedAlgorithm)
         }
         GfrKeyAlgo::RSA2048 => Ok(KeyType::Rsa(2048)),
@@ -317,7 +319,16 @@ pub fn resolve_key_type(algo: &GfrKeyAlgo, can_encrypt: bool) -> Result<KeyType,
             Err(GfrStatus::ErrorUnsupportedAlgorithm)
         }
 
-        GfrKeyAlgo::ED25519LEGACY => Ok(KeyType::Ed25519Legacy),
+        // RFC 9580 §9.1: EdDSALegacy (algorithm 22, Ed25519Legacy OID) is
+        // deprecated and SHOULD NOT be generated (for v6 keys it is forbidden).
+        // Reject it at the generation boundary regardless of key version; existing
+        // Ed25519Legacy keys are still read/verified via `determine_algo`.
+        GfrKeyAlgo::ED25519LEGACY => {
+            set_last_error(
+                "Ed25519Legacy key generation is deprecated by RFC 9580 §9.1; use Ed25519 instead",
+            );
+            Err(GfrStatus::ErrorUnsupportedAlgorithm)
+        }
 
         GfrKeyAlgo::KYBER768X25519 => Ok(KeyType::MlKem768X25519),
         GfrKeyAlgo::KYBER1024X448 => Ok(KeyType::MlKem1024X448),

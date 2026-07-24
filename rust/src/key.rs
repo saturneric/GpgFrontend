@@ -40,8 +40,9 @@ use crate::types::{
     GfrKeyAlgo, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrRevocationCode, GfrStatus,
 };
 use crate::utils::{
-    PassphraseStateInternal, armor_opts, build_revocation_reason_subpacket, choose_template_self_sig,
-    determine_algo, extract_key_length, fetch_password_with_cache, password_from_zeroizing_bytes,
+    PassphraseStateInternal, armor_opts, build_revocation_reason_subpacket,
+    choose_template_self_sig, determine_algo, extract_key_length, fetch_password_with_cache,
+    password_from_zeroizing_bytes,
 };
 use pgp::armor::{self, BlockType};
 use pgp::composed::{SignedPublicSubKey, SignedSecretSubKey};
@@ -328,13 +329,8 @@ fn build_secret_metadata(sk: &SignedSecretKey) -> ExtractedMetadata {
         can_certify,
         user_ids, // Assign the collected vector here
         subkeys: subs,
-        public_key_block: pk
-            .to_armored_string(armor_opts())
-            .unwrap_or_default(),
-        secret_key_block: sk
-            .to_armored_string(armor_opts())
-            .ok()
-            .map(Zeroizing::new),
+        public_key_block: pk.to_armored_string(armor_opts()).unwrap_or_default(),
+        secret_key_block: sk.to_armored_string(armor_opts()).ok().map(Zeroizing::new),
         key_length: key_length.unwrap_or(0),
     }
 }
@@ -445,9 +441,7 @@ fn build_public_metadata(pk: &SignedPublicKey) -> ExtractedMetadata {
         can_encrypt,
         can_auth,
         can_certify,
-        public_key_block: pk
-            .to_armored_string(armor_opts())
-            .unwrap_or_default(),
+        public_key_block: pk.to_armored_string(armor_opts()).unwrap_or_default(),
         secret_key_block: None,
     }
 }
@@ -500,10 +494,8 @@ pub fn extract_metadata_many_internal(
                     let fpr = sk.fingerprint().to_string();
                     let mut metadata = build_secret_metadata(&sk);
 
-                    metadata.secret_key_block = sk
-                        .to_armored_string(armor_opts())
-                        .ok()
-                        .map(Zeroizing::new);
+                    metadata.secret_key_block =
+                        sk.to_armored_string(armor_opts()).ok().map(Zeroizing::new);
 
                     let public_key = SignedPublicKey::from(sk.clone());
                     metadata.public_key_block = public_key
@@ -527,9 +519,8 @@ pub fn extract_metadata_many_internal(
 
                     results_map.entry(fpr).or_insert_with(|| {
                         let mut metadata = build_public_metadata(&pk);
-                        metadata.public_key_block = pk
-                            .to_armored_string(armor_opts())
-                            .unwrap_or_default();
+                        metadata.public_key_block =
+                            pk.to_armored_string(armor_opts()).unwrap_or_default();
                         metadata.secret_key_block = None;
                         metadata
                     });
@@ -1396,14 +1387,10 @@ pub fn delete_subkey_internal(
         return Err(GfrStatus::ErrorInvalidInput);
     }
 
-    let armored_s_key = secret_key
-        .to_armored_string(armor_opts())
-        .into_gfr()?;
+    let armored_s_key = secret_key.to_armored_string(armor_opts()).into_gfr()?;
 
     let public_key = SignedPublicKey::from(secret_key);
-    let armored_p_key = public_key
-        .to_armored_string(armor_opts())
-        .into_gfr()?;
+    let armored_p_key = public_key.to_armored_string(armor_opts()).into_gfr()?;
 
     Ok(GeneratedKeys {
         secret: Zeroizing::new(armored_s_key),
@@ -1592,12 +1579,9 @@ pub fn generate_key_rev_cert_internal(
     // Version-aware: v4 key -> v4 signature, v6 key -> v6 signature (RFC 9580
     // §10.3.2.2 / §5.2.5). See `from_key` at pgp::packet::SignatureConfig.
     let mut rng = rand::thread_rng();
-    let mut cfg = SignatureConfig::from_key(
-        &mut rng,
-        &skey.primary_key,
-        SignatureType::KeyRevocation,
-    )
-    .map_err(|_| GfrStatus::ErrorInternal)?;
+    let mut cfg =
+        SignatureConfig::from_key(&mut rng, &skey.primary_key, SignatureType::KeyRevocation)
+            .map_err(|_| GfrStatus::ErrorInternal)?;
 
     cfg.hashed_subpackets.push(
         Subpacket::regular(SubpacketData::IssuerFingerprint(primary_fpr))
@@ -2059,9 +2043,15 @@ mod rfc9580_tests {
         let sub_fpr = key.secret_subkeys[0].key.fingerprint().to_string();
         let armored = key.to_armored_string(armor_opts()).expect("armor");
 
-        let result =
-            revoke_subkey_internal(0, &armored, &sub_fpr, GfrRevocationCode::Retired, None, None)
-                .expect("revoke");
+        let result = revoke_subkey_internal(
+            0,
+            &armored,
+            &sub_fpr,
+            GfrRevocationCode::Retired,
+            None,
+            None,
+        )
+        .expect("revoke");
         let (revoked, _) = SignedSecretKey::from_string(&result.secret).expect("parse");
         let rev_sig = revoked.secret_subkeys[0]
             .signatures
@@ -2122,7 +2112,8 @@ NK2ay45cX1IVAQ==\n\
         use pgp::composed::{CleartextSignedMessage, Deserializable};
         let (cert, _) = SignedPublicKey::from_string(A3_V6_CERT).expect("parse A.3 cert");
         let (msg, _) = CleartextSignedMessage::from_string(A6_CLEARTEXT).expect("parse A.6");
-        msg.verify(&cert).expect("A.6 cleartext signature must verify against A.3 cert");
+        msg.verify(&cert)
+            .expect("A.6 cleartext signature must verify against A.3 cert");
         assert!(
             msg.signatures()
                 .iter()
