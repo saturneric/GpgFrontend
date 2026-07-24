@@ -350,6 +350,11 @@ void MainWindow::SlotGeneralDecryptVerify(bool) {
 void MainWindow::slot_clean_gpg_password_cache(bool) {
   bool ret = true;
   for (const auto& channel : OpenPGPContext::GetAllChannelId()) {
+    // these operations are GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
+    if (OpenPGPContext::GetInstance(channel).Engine() !=
+        OpenPGPEngine::kGNUPG) {
+      continue;
+    }
     ret = GpgAdvancedOperator::GetInstance(channel).ClearGpgPasswordCache();
     if (!ret) break;
   }
@@ -366,6 +371,11 @@ void MainWindow::slot_clean_gpg_password_cache(bool) {
 void MainWindow::slot_reload_gpg_components(bool) {
   bool ret = true;
   for (const auto& channel : OpenPGPContext::GetAllChannelId()) {
+    // these operations are GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
+    if (OpenPGPContext::GetInstance(channel).Engine() !=
+        OpenPGPEngine::kGNUPG) {
+      continue;
+    }
     ret = GpgAdvancedOperator::GetInstance(channel).ReloadAllGpgComponents();
     if (!ret) break;
   }
@@ -384,6 +394,11 @@ void MainWindow::slot_reload_gpg_components(bool) {
 void MainWindow::slot_restart_gpg_components(bool) {
   bool ret = true;
   for (const auto& channel : OpenPGPContext::GetAllChannelId()) {
+    // these operations are GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
+    if (OpenPGPContext::GetInstance(channel).Engine() !=
+        OpenPGPEngine::kGNUPG) {
+      continue;
+    }
     ret = GpgAdvancedOperator::GetInstance(channel).RestartGpgComponents();
     if (!ret) break;
   }

@@ -178,6 +178,11 @@ void SmartCardControllerDialog::init_actions() {
   overflow_menu->addAction(tr("Restart All Gpg-Agents"), this, [=]() {
     bool ret = true;
     for (const auto& channel : OpenPGPContext::GetAllChannelId()) {
+      // these operations are GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
+      if (OpenPGPContext::GetInstance(channel).Engine() !=
+          OpenPGPEngine::kGNUPG) {
+        continue;
+      }
       ret = GpgAdvancedOperator::GetInstance(channel).RestartGpgComponents();
       if (!ret) break;
     }
