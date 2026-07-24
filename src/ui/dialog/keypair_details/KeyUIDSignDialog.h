@@ -63,7 +63,7 @@ class KeyUIDSignDialog : public GeneralDialog {
   QCheckBox* non_expire_check_;   ///<
   QString m_uid_;                 ///<
 
-  const GpgKeyPtr& m_key_;  ///<
+  GpgKeyPtr m_key_;  ///<
 
  private slots:
   /**
