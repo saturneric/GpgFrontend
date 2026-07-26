@@ -32,6 +32,7 @@
 #include "core/GFCoreLog.h"
 #include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend::Test {
@@ -289,6 +290,105 @@ TEST(SettingsLayeringTest, EarlySettingsSeesValueWrittenViaSingleton) {
     settings.remove(kKey);
   }
   settings.sync();
+}
+
+namespace {
+
+auto MakeMarker(int schema, int min_reader) -> ProfileMarker {
+  ProfileMarker marker;
+  marker.schema_version = schema;
+  marker.min_reader_version = min_reader;
+  marker.profile = "GpgFrontend";
+  marker.last_writer_version = "2.2.2";
+  return marker;
+}
+
+}  // namespace
+
+// A first run has no marker and must not be mistaken for an incompatible one.
+TEST(ProfileMarkerTest, MissingIsNotAnError) {
+  EXPECT_EQ(CheckProfileCompatibility(ProfileMarker{}, false, 2),
+            ProfileCompatibility::kMISSING);
+}
+
+TEST(ProfileMarkerTest, SameVersionIsCompatible) {
+  EXPECT_EQ(CheckProfileCompatibility(MakeMarker(2, 2), true, 2),
+            ProfileCompatibility::kOK);
+}
+
+// Upgrading in place stays allowed.
+TEST(ProfileMarkerTest, OlderSchemaIsCompatible) {
+  EXPECT_EQ(CheckProfileCompatibility(MakeMarker(1, 1), true, 2),
+            ProfileCompatibility::kOK);
+}
+
+// The downgrade regression test: a profile that demands a newer reader must
+// stop this build before it touches anything.
+TEST(ProfileMarkerTest, NewerMinReaderIsRefused) {
+  EXPECT_EQ(CheckProfileCompatibility(MakeMarker(3, 3), true, 2),
+            ProfileCompatibility::kTOO_NEW);
+}
+
+// The two fields are independent: a newer layout that stayed backwards
+// compatible keeps older builds working.
+TEST(ProfileMarkerTest, NewerSchemaWithCompatibleReaderIsAccepted) {
+  EXPECT_EQ(CheckProfileCompatibility(MakeMarker(3, 2), true, 2),
+            ProfileCompatibility::kOK);
+}
+
+TEST(ProfileMarkerTest, RoundTripsThroughDisk) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto path = dir.filePath("profile.json");
+  const auto written = MakeMarker(2, 2);
+  ASSERT_TRUE(WriteProfileMarker(path, written));
+
+  const auto read = ReadProfileMarker(path);
+  ASSERT_TRUE(read.has_value());
+  EXPECT_EQ(read->schema_version, written.schema_version);
+  EXPECT_EQ(read->min_reader_version, written.min_reader_version);
+  EXPECT_EQ(read->profile, written.profile);
+  EXPECT_EQ(read->last_writer_version, written.last_writer_version);
+}
+
+TEST(ProfileMarkerTest, AbsentFileReadsAsNothing) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  EXPECT_FALSE(ReadProfileMarker(dir.filePath("nope.json")).has_value());
+}
+
+// A truncated marker after a power cut must not brick the application: it reads
+// as nothing, which the caller treats as a first run.
+TEST(ProfileMarkerTest, MalformedFileIsNotFatal) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto path = dir.filePath("profile.json");
+  QFile file(path);
+  ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+  file.write("{ this is not json");
+  file.close();
+
+  EXPECT_FALSE(ReadProfileMarker(path).has_value());
+  EXPECT_EQ(CheckProfileCompatibility(ProfileMarker{}, false, 2),
+            ProfileCompatibility::kMISSING);
+}
+
+// The whole point of the split: a non-stable build must not land on the same
+// on-disk identity as a release.
+TEST(ProfileMarkerTest, ProfileNameMatchesBuildFlavour) {
+  const auto profile = GetAppProfileName();
+
+  EXPECT_FALSE(profile.isEmpty());
+  EXPECT_FALSE(profile.contains(' '));
+
+  if (IsStableBuild()) {
+    EXPECT_EQ(profile, GetProjectName());
+  } else {
+    EXPECT_NE(profile, GetProjectName());
+  }
 }
 
 }  // namespace GpgFrontend::Test
