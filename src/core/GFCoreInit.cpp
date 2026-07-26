@@ -265,11 +265,22 @@ auto InitBasicPathWithGpgConf() -> bool {
 
   auto target_gpgconf_path = DecideGpgConfPath(default_gpgconf_path);
 
-  if (!GetComponentPathsByGpgConf(default_gpgconf_path)) {
-    LOG_E() << "Cannot get components paths by gpgconf!"
-            << "GpgFrontend cannot start under this situation!";
-    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
-        QCoreApplication::tr("Cannot get Infos from GpgConf"));
+  // None of the failures below are fatal: rPGP is already registered as a
+  // supported engine by the time this runs, so a broken or half-removed GnuPG
+  // means "fall back", not "give up". Signalling a bad environment here used to
+  // abort startup on machines that would have worked fine on rPGP.
+  if (target_gpgconf_path.isEmpty()) {
+    LOG_W() << "Cannot find gpgconf, falling back to the rPGP engine.";
+    return false;
+  }
+
+  // Query the gpgconf we actually settled on. Using the gpgme-reported default
+  // here meant a user-configured custom GnuPG install path was honoured for
+  // everything except component discovery, which then failed against a stale
+  // or removed installation.
+  if (!GetComponentPathsByGpgConf(target_gpgconf_path)) {
+    LOG_W() << "Cannot get components paths by gpgconf, falling back to the "
+               "rPGP engine.";
     return false;
   }
 
@@ -282,19 +293,8 @@ auto InitBasicPathWithGpgConf() -> bool {
   LOG_I() << "gpgconf path used: " << target_gpgconf_path;
   LOG_I() << "gnupg path used: " << target_gnupg_path;
 
-  if (target_gpgconf_path.isEmpty()) {
-    LOG_E() << "Cannot find gpgconf!"
-            << "GpgFrontend cannot start under this situation!";
-    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
-        QCoreApplication::tr("Cannot Find GpgConf"));
-    return false;
-  }
-
   if (target_gnupg_path.isEmpty()) {
-    LOG_E() << "Cannot find GnuPG by gpgconf!"
-            << "GpgFrontend cannot start under this situation!";
-    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
-        QCoreApplication::tr("Cannot Find GnuPG"));
+    LOG_W() << "Cannot find GnuPG by gpgconf, falling back to the rPGP engine.";
     return false;
   }
 
@@ -522,6 +522,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
+        BadOpenPGPEnvReason::kBASIC_PATH_INIT_FAILED,
         QCoreApplication::tr("Basic Path Initiation Failed"));
     return -1;
   }
@@ -549,6 +550,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
         << "No supported OpenPGP engine detected, GpgFrontend cannot start!";
     Module::UpsertRTValue("core", "env.state.openpgp_engine", -1);
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
+        BadOpenPGPEnvReason::kNO_SUPPORTED_ENGINE,
         QCoreApplication::tr("No Supported OpenPGP Engine Detected"));
     return -1;
   }
@@ -590,9 +592,29 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
+        BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE,
         QCoreApplication::tr("No valid Key Database"));
     return -1;
   }
+
+  const auto gnupg_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
+  const auto rpgp_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP);
+
+  const auto default_choice =
+      ChooseOpenPGPEngine(default_engine, gnupg_supported, rpgp_supported);
+
+  if (!default_choice.ok) {
+    LOG_E() << "no usable OpenPGP engine for the default key database!"
+            << "GpgFrontend cannot start under this situation!";
+    Module::UpsertRTValue("core", "env.state.ctx", -1);
+    CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
+        BadOpenPGPEnvReason::kNO_SUPPORTED_ENGINE,
+        QCoreApplication::tr("No Supported OpenPGP Engine Detected"));
+    return -1;
+  }
+
+  LOG_I() << "default openpgp engine:"
+          << ConvertOpenPGPEngine2String(default_choice.engine);
 
   // build default openpgp context
   auto succ = [=]() -> auto {
@@ -601,16 +623,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     const auto& default_key_db_info = key_dbs.front();
     ctx_args.db_name = default_key_db_info.name;
     ctx_args.db_path = default_key_db_info.path;
-
-    // default to gnupg backend if possible, or fallback to rpgp backend
-    if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG) &&
-        default_engine.toUpper().trimmed() == "GNUPG") {
-      ctx_args.engine = OpenPGPEngine::kGNUPG;
-      LOG_I() << "gnupg backend is supported, use gnupg backend as default";
-    } else {
-      ctx_args.engine = OpenPGPEngine::kRPGP;
-      LOG_W() << "gnupg backend is not supported, fallback to rpgp backend";
-    }
+    ctx_args.engine = default_choice.engine;
 
     ctx_args.offline_mode = forbid_all_gnupg_connection;
     ctx_args.auto_import_missing_key = auto_import_missing_key;
@@ -627,6 +640,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
+        BadOpenPGPEnvReason::kDEFAULT_CONTEXT_INIT_FAILED,
         QCoreApplication::tr("GpgME Default Context Initiation Failed"));
     return -1;
   }
@@ -639,6 +653,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
             << "GpgFrontend cannot start under this situation!";
     Module::UpsertRTValue("core", "env.state.ctx", -1);
     CoreSignalStation::GetInstance()->SignalBadOpenPGPEnv(
+        BadOpenPGPEnvReason::kKEY_CACHE_INIT_FAILED,
         QCoreApplication::tr("Gpg Default Key Database Initiation Failed"));
     return -1;
   };
@@ -653,16 +668,19 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
         for (int i = 1; i < key_dbs.size(); i++) {
           const auto& key_db = key_dbs[i];
 
-          auto key_db_engine = key_db.backend_type.toLower().trimmed() == "rpgp"
-                                   ? OpenPGPEngine::kRPGP
-                                   : OpenPGPEngine::kGNUPG;
-
-          if (key_db_engine == OpenPGPEngine::kGNUPG &&
-              !GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-            LOG_W() << "gnupg backend is not supported, skip key db:"
-                    << key_db.name;
+          // Same check for both engines: guarding only GnuPG here meant a
+          // database stored as "rpgp" was handed to an engine that might not
+          // exist in this build.
+          const auto choice = ChooseOpenPGPEngine(key_db.backend_type,
+                                                  gnupg_supported,
+                                                  rpgp_supported);
+          if (!choice.ok) {
+            LOG_W() << "no usable engine for key db, skip:" << key_db.name
+                    << "requested backend:" << key_db.backend_type;
             continue;
           }
+
+          auto key_db_engine = choice.engine;
 
           if (key_db.path.isEmpty() || key_db.name.isEmpty()) {
             LOG_W() << "invalid key db info, skip, name:" << key_db.name

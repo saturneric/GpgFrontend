@@ -34,6 +34,13 @@ std::unique_ptr<GpgFrontend::CoreSignalStation>
 auto GpgFrontend::CoreSignalStation::GetInstance()
     -> GpgFrontend::CoreSignalStation* {
   if (instance == nullptr) {
+    // Registered here rather than at UI startup because the first connection to
+    // SignalBadOpenPGPEnv can be made before that point. The name must match
+    // the parameter spelling moc writes into the signal signature exactly,
+    // which is why the signal declares the fully qualified type.
+    qRegisterMetaType<GpgFrontend::BadOpenPGPEnvReason>(
+        "GpgFrontend::BadOpenPGPEnvReason");
+
     instance = std::make_unique<CoreSignalStation>();
   }
   return instance.get();

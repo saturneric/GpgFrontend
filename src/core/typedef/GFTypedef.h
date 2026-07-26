@@ -39,6 +39,29 @@ enum class OpenPGPEngine : std::uint8_t {
   kRPGP,
 };
 
+/**
+ * @brief Why the OpenPGP environment could not be brought up.
+ *
+ * Carried by CoreSignalStation::SignalBadOpenPGPEnv so the UI can title the
+ * failure after what actually went wrong. A single shared signal used to be
+ * presented as "No Supported OpenPGP Engine Found" for every cause, which was
+ * accurate for exactly one of them and actively misleading for the rest --
+ * a missing key database is not a missing engine.
+ *
+ * Lives here rather than beside the signal because a typed enum declared ahead
+ * of a Q_OBJECT class drops the namespace from that class's tr() context under
+ * lupdate, breaking its translations at runtime. This header has no Q_OBJECT
+ * class in it.
+ */
+enum class BadOpenPGPEnvReason : std::uint8_t {
+  kUNKNOWN,
+  kBASIC_PATH_INIT_FAILED,       ///< app data paths could not be established
+  kNO_SUPPORTED_ENGINE,          ///< genuinely no usable engine
+  kNO_VALID_KEY_DATABASE,        ///< no key database resolved to a directory
+  kDEFAULT_CONTEXT_INIT_FAILED,  ///< the channel-0 context would not build
+  kKEY_CACHE_INIT_FAILED,        ///< the context built but the keys would not
+};
+
 struct GFUserId {
   QString name;
   QString email;
@@ -186,3 +209,11 @@ struct GFDecryptAndVerifyResult {
 };
 
 }  // namespace GpgFrontend
+
+// SignalBadOpenPGPEnv is emitted from a task runner and received on the main
+// thread, so every delivery is queued. Without this (and the matching
+// qRegisterMetaType in CoreSignalStation) Qt5 drops the emission outright --
+// and since that signal is what releases the startup event loop, the app would
+// sit on the loading dialog forever in precisely the broken-environment case
+// this reporting exists to explain.
+Q_DECLARE_METATYPE(GpgFrontend::BadOpenPGPEnvReason)

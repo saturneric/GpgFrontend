@@ -58,6 +58,51 @@ namespace GpgFrontend::UI {
 QScopedPointer<CommonUtils> CommonUtils::instance =
     QScopedPointer<CommonUtils>(nullptr);
 
+auto CommonUtils::DescribeBadOpenPGPEnv(GpgFrontend::BadOpenPGPEnvReason reason,
+                                        const QString &detail)
+    -> CommonUtils::BadOpenPGPEnvText {
+  // No default label on purpose: -Wswitch then turns a new enumerator into a
+  // compile error rather than a message that silently says the wrong thing.
+  switch (reason) {
+    case GpgFrontend::BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE:
+      return {tr("No Usable Key Database"),
+              tr("None of the configured key databases could be opened. This "
+                 "usually means the folder was moved or deleted, or is on a "
+                 "drive that is not currently available.") +
+                  "\n\n" +
+                  tr("You can change where your key databases live in "
+                     "Settings, under Key Databases. Details: %1")
+                      .arg(detail),
+              // A restart re-reads the same unusable configuration.
+              false};
+
+    case GpgFrontend::BadOpenPGPEnvReason::kBASIC_PATH_INIT_FAILED:
+      return {tr("Cannot Prepare Application Data"),
+              tr("GpgFrontend could not set up the folders it needs to store "
+                 "its data. Please check that the application data folder is "
+                 "writable. Details: %1")
+                  .arg(detail)};
+
+    case GpgFrontend::BadOpenPGPEnvReason::kDEFAULT_CONTEXT_INIT_FAILED:
+    case GpgFrontend::BadOpenPGPEnvReason::kKEY_CACHE_INIT_FAILED:
+      return {tr("Key Database Could Not Be Opened"),
+              tr("The key database was found but could not be loaded. It may "
+                 "be in use by another program, or its permissions may have "
+                 "changed. Details: %1")
+                  .arg(detail)};
+
+    case GpgFrontend::BadOpenPGPEnvReason::kNO_SUPPORTED_ENGINE:
+    case GpgFrontend::BadOpenPGPEnvReason::kUNKNOWN:
+      break;
+  }
+
+  return {tr("No Supported OpenPGP Engine Found"),
+          tr("It seems that no supported OpenPGP engine is available. "
+             "Please check your if GpgFrontend is properly installed and try "
+             "again. Reason: %1")
+              .arg(detail)};
+}
+
 auto CommonUtils::GetInstance() -> CommonUtils * {
   if (!instance) {
     instance.reset(new CommonUtils());
@@ -93,16 +138,21 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
 
   connect(
       this, &CommonUtils::SignalBadOpenPGPEnv, this,
-      [=](const QString &reason) -> void {
+      [=](GpgFrontend::BadOpenPGPEnvReason reason,
+          const QString &detail) -> void {
+        const auto text = DescribeBadOpenPGPEnv(reason, detail);
+
         QMessageBox msg_box;
-        msg_box.setText(tr("No Supported OpenPGP Engine Found"));
-        msg_box.setInformativeText(
-            tr("It seems that no supported OpenPGP engine is available. "
-               "Please check your if GpgFrontend is properly installed and try "
-               "again. Reason: %1")
-                .arg(reason));
-        msg_box.setStandardButtons(QMessageBox::Retry | QMessageBox::Cancel);
-        msg_box.setDefaultButton(QMessageBox::Retry);
+        msg_box.setText(text.title);
+        msg_box.setInformativeText(text.body);
+
+        // Offering "Retry" for a failure that a restart cannot change just
+        // invites the user to loop.
+        msg_box.setStandardButtons(text.offer_retry ? QMessageBox::Retry |
+                                                          QMessageBox::Cancel
+                                                    : QMessageBox::Close);
+        msg_box.setDefaultButton(text.offer_retry ? QMessageBox::Retry
+                                                  : QMessageBox::Close);
         int ret = msg_box.exec();
 
         switch (ret) {

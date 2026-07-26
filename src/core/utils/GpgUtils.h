@@ -162,6 +162,64 @@ auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
     const QSet<QString>& supported_backends) -> QContainer<KeyDatabaseItemSO>;
 
 /**
+ * @brief How (or whether) to materialise a key database directory.
+ */
+enum class KeyDatabasePathAction : std::uint8_t {
+  kUSE_AS_IS,    ///< the directory already exists
+  kCREATE_LEAF,  ///< the parent exists; create the final component only
+  kCREATE_FULL,  ///< under our own app data; create the whole chain
+  kREJECT,       ///< a file is in the way, or the parent is gone off app data
+};
+
+/**
+ * @brief Decide how to handle a key database directory that is not there.
+ *
+ * Recreating a leaf whose parent still exists recovers a database someone
+ * deleted. Recreating a whole missing chain is a different matter: off our own
+ * app data it almost always means an unmounted volume or a detached share, and
+ * writing there would hand GnuPG a fresh empty keyring at the wrong location --
+ * which the user reads as "the app lost all my keys" rather than "the database
+ * is unavailable". So a full chain is only ever built inside app data.
+ *
+ * Exposed primarily for unit testing.
+ *
+ * @param exists_as_dir the target already exists and is a directory
+ * @param exists_as_file the target exists but is not a directory
+ * @param parent_exists the target's parent directory exists
+ * @param inside_app_data the target lives under the application data path
+ */
+auto GF_CORE_EXPORT DecideKeyDatabasePathAction(bool exists_as_dir,
+                                                bool exists_as_file,
+                                                bool parent_exists,
+                                                bool inside_app_data)
+    -> KeyDatabasePathAction;
+
+/**
+ * @brief Keep only the databases that resolved to a real directory, re-seeding
+ * the DEFAULT database when that leaves nothing behind.
+ *
+ * A stored list whose every entry has become invalid -- a removed directory, a
+ * volume that is not mounted, a profile written by another installation -- used
+ * to filter down to an empty list and abort startup outright. Falling back to a
+ * freshly derived DEFAULT lets the application come up with an empty keyring
+ * instead, which the user can actually do something about.
+ *
+ * The fallback is runtime-only and deliberately not persisted: an entry can be
+ * invalid simply because a removable volume is absent right now, and rewriting
+ * the stored list would turn a temporary condition into permanent
+ * configuration loss.
+ *
+ * Exposed primarily for unit testing.
+ *
+ * @param all every configured database, valid or not, in order
+ * @param fallback freshly derived DEFAULT entry; ignored when itself invalid
+ * @return the valid subset in order, or just @p fallback, or empty
+ */
+auto GF_CORE_EXPORT SelectUsableKeyDatabases(
+    const QContainer<KeyDatabaseInfo>& all, const KeyDatabaseInfo& fallback)
+    -> QContainer<KeyDatabaseInfo>;
+
+/**
  * @brief Return key database infos for custom (non-GPG) databases from
  * settings.
  *
@@ -314,6 +372,35 @@ auto GF_CORE_EXPORT IsValidUserIdComponent(const QString& component) -> bool;
  * @return engine name string (e.g. "GPG")
  */
 auto GF_CORE_EXPORT ConvertOpenPGPEngine2String(OpenPGPEngine type) -> QString;
+
+/**
+ * @brief Outcome of picking an engine for one key database.
+ */
+struct EngineChoice {
+  bool ok = false;  ///< false when no engine is usable at all
+  OpenPGPEngine engine = OpenPGPEngine::kRPGP;
+};
+
+/**
+ * @brief Pick the engine for a key database, honouring the stated preference
+ * only when that engine is actually available.
+ *
+ * The preference is a plain string carried in settings and in each stored
+ * database entry, so it can name an engine this build does not have -- most
+ * easily by being written by a build that did. Falling through to rPGP without
+ * checking produced a context that could never work and a startup failure that
+ * blamed the environment.
+ *
+ * Exposed primarily for unit testing.
+ *
+ * @param preferred "gnupg" or "rpgp", case- and whitespace-insensitive; empty
+ * means no preference
+ * @param gnupg_supported GnuPG is usable in this build
+ * @param rpgp_supported rPGP is usable in this build
+ */
+auto GF_CORE_EXPORT ChooseOpenPGPEngine(const QString& preferred,
+                                        bool gnupg_supported,
+                                        bool rpgp_supported) -> EngineChoice;
 
 /**
  * @brief Convert a GpgComponentType enum value to its string name.

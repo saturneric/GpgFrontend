@@ -35,7 +35,8 @@ namespace GpgFrontend {
 struct KeyDatabaseItemSO {
   QString name;
   QString path;
-  int channel;
+  int channel = 0;  ///< a JSON object without "channel" must not leave this
+                    ///< indeterminate -- it feeds channel normalization
   QString backend_type;
 
   KeyDatabaseItemSO() = default;

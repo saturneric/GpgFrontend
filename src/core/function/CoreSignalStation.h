@@ -28,6 +28,11 @@
 
 #pragma once
 
+// Safe to include ahead of the Q_OBJECT class below only because this class has
+// no translatable strings: lupdate drops the enclosing namespace from the tr()
+// context of a Q_OBJECT class preceded by a typed enum.
+#include "core/typedef/GFTypedef.h"
+
 namespace GpgFrontend {
 
 class GpgPassphraseContext;
@@ -66,7 +71,14 @@ class GF_CORE_EXPORT CoreSignalStation : public QObject {
    * @brief
    *
    */
-  void SignalBadOpenPGPEnv(QString);
+  /**
+   * @brief The OpenPGP environment could not be brought up.
+   *
+   * @param reason what failed, so the UI can title it accurately
+   * @param detail human-readable specifics for the message body
+   */
+  void SignalBadOpenPGPEnv(GpgFrontend::BadOpenPGPEnvReason reason,
+                           QString detail);
 
   /**
    * @brief

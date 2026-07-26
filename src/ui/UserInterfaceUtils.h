@@ -232,6 +232,29 @@ class CommonUtils : public QWidget {
   static auto GF_UI_EXPORT GetInstance() -> CommonUtils*;
 
   /**
+   * @brief What to show the user for a failed OpenPGP environment.
+   */
+  struct BadOpenPGPEnvText {
+    QString title;
+    QString body;
+    bool offer_retry = true;  ///< false when retrying cannot change anything
+  };
+
+  /**
+   * @brief Turn a startup failure into a title and message that describe it.
+   *
+   * Every cause used to be titled "No Supported OpenPGP Engine Found", which
+   * was true for one of them and misleading for the rest -- a key database that
+   * cannot be found is not a missing engine, and telling the user otherwise
+   * sends them looking in the wrong place.
+   *
+   * @param reason what failed
+   * @param detail specifics to append to the body
+   */
+  static auto DescribeBadOpenPGPEnv(GpgFrontend::BadOpenPGPEnvReason reason,
+                                    const QString& detail) -> BadOpenPGPEnvText;
+
+  /**
    * @brief
    *
    * @param err
@@ -296,7 +319,8 @@ class CommonUtils : public QWidget {
    * @brief
    *
    */
-  void SignalBadOpenPGPEnv(QString);
+  void SignalBadOpenPGPEnv(GpgFrontend::BadOpenPGPEnvReason reason,
+                           QString detail);
 
   /**
    * @brief emit when the key database is refreshed

@@ -37,6 +37,7 @@
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend {
@@ -320,8 +321,14 @@ auto MakeDefaultKeyDatabaseItem() -> KeyDatabaseItemSO {
         GlobalSettingStation::GetInstance().GetAppDataPath() + "/rpgp_db";
 
     // since we cannot get default key database path from gpgme context, it's
-    // likely that gpgme is not working properly, we should fallback to rpgp
-    GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
+    // likely that gpgme is not working properly, we should fallback to rpgp --
+    // but only if this build actually has it. Claiming support unconditionally
+    // would hand out an engine that does not exist.
+    if (HasRustSupport()) {
+      GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
+    } else {
+      LOG_E() << "gpgme is not usable and this build has no rPGP support";
+    }
   }
 
   key_db.channel = 0;
@@ -550,6 +557,20 @@ auto SearchKeyDatabasePath(const QStringList& candidate_paths) -> QString {
   return {};
 }
 
+auto DecideKeyDatabasePathAction(bool exists_as_dir, bool exists_as_file,
+                                 bool parent_exists, bool inside_app_data)
+    -> KeyDatabasePathAction {
+  if (exists_as_dir) return KeyDatabasePathAction::kUSE_AS_IS;
+
+  // Something is there and it is not a directory. Never touch it.
+  if (exists_as_file) return KeyDatabasePathAction::kREJECT;
+
+  if (parent_exists) return KeyDatabasePathAction::kCREATE_LEAF;
+
+  return inside_app_data ? KeyDatabasePathAction::kCREATE_FULL
+                         : KeyDatabasePathAction::kREJECT;
+}
+
 auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)
     -> QString {
   auto target_path = path;
@@ -560,13 +581,35 @@ auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)
   }
 
   QFileInfo info(target_path);
-  auto dir_path = info.absolutePath();
-  QDir dir;
-  if (!dir.exists(dir_path)) {
-    LOG_W() << "key database not exists:" << dir_path << ", creating...";
-    if (!dir.mkpath(dir_path)) {
-      LOG_E() << "failed to recreate key database:" << dir_path;
-    }
+
+  const auto app_data_path = GlobalSettingStation::GetInstance().GetAppDataPath();
+  const auto action = DecideKeyDatabasePathAction(
+      info.exists() && info.isDir(), info.exists() && !info.isDir(),
+      QFileInfo(info.absolutePath()).isDir(),
+      info.absoluteFilePath().startsWith(app_data_path));
+
+  switch (action) {
+    case KeyDatabasePathAction::kUSE_AS_IS:
+      break;
+
+    case KeyDatabasePathAction::kCREATE_LEAF:
+    case KeyDatabasePathAction::kCREATE_FULL:
+      LOG_W() << "key database dir does not exist:" << info.absoluteFilePath()
+              << ", creating...";
+      if (!QDir().mkpath(info.absoluteFilePath())) {
+        LOG_E() << "failed to create key database dir:"
+                << info.absoluteFilePath();
+      }
+      // QFileInfo caches its stat on first use, so the checks below would
+      // still see the directory as missing without this.
+      info.refresh();
+      break;
+
+    case KeyDatabasePathAction::kREJECT:
+      LOG_W() << "refusing to create key database dir:"
+              << info.absoluteFilePath()
+              << "- its parent is missing or a file is in the way";
+      break;
   }
 
   if (VerifyKeyDatabasePath(info)) {
@@ -579,6 +622,28 @@ auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)
   LOG_W() << "gpg key database path is invalid: " << path;
   return {};
 }
+
+namespace {
+
+// The channel-0 DEFAULT database, resolved the same way a configured one is.
+// Derived fresh rather than read from settings, because it is needed precisely
+// when what is in settings turned out to be unusable.
+auto MakeDefaultKeyDatabaseInfo() -> KeyDatabaseInfo {
+  const auto item = MakeDefaultKeyDatabaseItem();
+  const auto app_path = QDir(GlobalSettingStation::GetInstance().GetAppDir());
+  const auto fs_path = GetCanonicalKeyDatabasePath(app_path, item.path);
+
+  KeyDatabaseInfo info;
+  info.name = item.name;
+  info.backend_type = item.backend_type;
+  info.path = fs_path;
+  info.origin_path = item.path;
+  info.channel = 0;
+  info.valid = !fs_path.isEmpty();
+  return info;
+}
+
+}  // namespace
 
 auto GetAllKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
   auto key_dbs = GetKeyDatabasesBySettings();
@@ -611,15 +676,37 @@ auto GetAllKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
   return key_db_infos;
 }
 
-auto GetKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
-  auto key_db_infos = GetAllKeyDatabaseInfoBySettings();
+auto SelectUsableKeyDatabases(const QContainer<KeyDatabaseInfo>& all,
+                              const KeyDatabaseInfo& fallback)
+    -> QContainer<KeyDatabaseInfo> {
+  QContainer<KeyDatabaseInfo> usable;
 
-  // filter out invalid key databases
-  key_db_infos.erase(std::remove_if(key_db_infos.begin(), key_db_infos.end(),
-                                    [](const auto& key_db_info) -> auto {
-                                      return !key_db_info.valid;
-                                    }),
-                     key_db_infos.end());
+  for (const auto& key_db_info : all) {
+    if (key_db_info.valid) usable.append(key_db_info);
+  }
+
+  if (!usable.isEmpty()) return usable;
+
+  // Nothing configured resolved to a real directory. Coming up on a freshly
+  // derived DEFAULT beats refusing to start: an empty keyring is visible and
+  // recoverable, a dead application is neither.
+  if (fallback.valid) {
+    LOG_W() << "no configured key database is usable, falling back to the "
+               "default database at:"
+            << fallback.path;
+    usable.append(fallback);
+    return usable;
+  }
+
+  LOG_E() << "no configured key database is usable and the default database "
+             "could not be derived either";
+  return usable;
+}
+
+auto GetKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
+  auto fallback = MakeDefaultKeyDatabaseInfo();
+  auto key_db_infos =
+      SelectUsableKeyDatabases(GetAllKeyDatabaseInfoBySettings(), fallback);
 
   LOG_I() << "valid key database count: " << key_db_infos.size();
   return key_db_infos;
@@ -820,6 +907,25 @@ auto ConvertOpenPGPEngine2String(OpenPGPEngine type) -> QString {
     default:
       return "Unknown";
   }
+}
+
+auto ChooseOpenPGPEngine(const QString& preferred, bool gnupg_supported,
+                         bool rpgp_supported) -> EngineChoice {
+  const auto token = preferred.trimmed().toLower();
+
+  if (token == "gnupg" && gnupg_supported) {
+    return {true, OpenPGPEngine::kGNUPG};
+  }
+  if (token == "rpgp" && rpgp_supported) {
+    return {true, OpenPGPEngine::kRPGP};
+  }
+
+  // Preference unusable or unstated: take whatever this build actually has,
+  // GnuPG first to preserve the historical default.
+  if (gnupg_supported) return {true, OpenPGPEngine::kGNUPG};
+  if (rpgp_supported) return {true, OpenPGPEngine::kRPGP};
+
+  return {};
 }
 
 auto ConvertComponentType2String(GpgComponentType type) -> QString {
