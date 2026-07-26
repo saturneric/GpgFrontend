@@ -58,14 +58,41 @@ class GF_CORE_EXPORT SettingsObject : public QJsonObject {
   ~SettingsObject();
 
   /**
-   * @brief
+   * @brief Replace the held content.
    *
+   * Does nothing when the object failed to load -- see LoadFailed().
+   *
+   * @return false when the store was refused
    */
-  void Store(const QJsonObject&);
+  auto Store(const QJsonObject&) -> bool;
+
+  /**
+   * @brief Replace the held content even though the load failed.
+   *
+   * The refusal above protects data that may still be recoverable, but it also
+   * blocks the one screen a user would use to repair a broken profile. This is
+   * the deliberate way out: only for an explicit, user-confirmed reset of this
+   * one object, never as a fallback when Store() returns false.
+   */
+  void StoreOverridingUnreadable(const QJsonObject&);
+
+  /**
+   * @brief Whether a stored object exists but could not be read at load time.
+   *
+   * True means the settings are on disk, encrypted under a key this session
+   * does not have. The in-memory object is empty, but that emptiness is an
+   * artefact of the failure, not the user's data -- so it must never be
+   * written back.
+   */
+  [[nodiscard]] auto LoadFailed() const -> bool { return load_failed_; }
 
  private:
   QString settings_name_;  ///<
   QJsonObject
       original_;  ///< snapshot at load time; write only if *this differs
+  bool load_failed_ =
+      false;  ///< stored object exists but was unreadable; never overwrite
+  bool override_load_failure_ =
+      false;  ///< user explicitly chose to reset the unreadable object
 };
 }  // namespace GpgFrontend

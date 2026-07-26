@@ -585,6 +585,80 @@ auto SaveOrRemoveGcState(const QString& path, const QJsonObject& state)
   return SaveGcState(path, state);
 }
 
+// Check every stored object and tally the outcome, without touching any of
+// them. Healthy objects are consumed here (they only ever clear stale GC state);
+// everything else is returned for the caller to act on once the tally is known.
+auto ClassifyDataObjects(const QDir& dir, DataObjectGCContext* ctx)
+    -> GpgFrontend::QContainer<DataObjectCheckResult> {
+  GpgFrontend::QContainer<DataObjectCheckResult> pending;
+
+  if (!dir.exists()) return pending;
+
+  const auto entries =
+      dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+
+  for (const auto& info : entries) {
+    ctx->report.total++;
+
+    const auto name = info.fileName();
+
+    DataObjectCheckResult result;
+
+    if (IsValidRefHex(name)) {
+      result = CheckDataObjectByRef(name, false);
+    } else {
+      result.ref_hex = name;
+      result.path = info.absoluteFilePath();
+      result.health = DataObjectHealth::kINVALID_FILE_NAME;
+      result.size = info.size();
+      result.last_modified = info.lastModified();
+    }
+
+    switch (result.health) {
+      case DataObjectHealth::kOK:
+        ctx->report.ok++;
+
+        // If the object is healthy but has an existing GC state entry, it
+        // means the object was previously unhealthy but has since recovered
+        // (e.g. the key was restored). In this case we can clean up the GC
+        // state entry.
+        if (ctx->state.contains(name)) {
+          ctx->state.remove(name);
+          ctx->state_dirty = true;
+        }
+        continue;
+
+      case DataObjectHealth::kINVALID_FILE_NAME:
+        ctx->report.invalid_name++;
+        break;
+
+      case DataObjectHealth::kFILE_TOO_SMALL:
+        ctx->report.file_too_small++;
+        break;
+
+      case DataObjectHealth::kREAD_FAILED:
+        ctx->report.read_failed++;
+        break;
+
+      case DataObjectHealth::kMISSING_KEY:
+        ctx->report.missing_key++;
+        break;
+
+      case DataObjectHealth::kDECRYPT_FAILED:
+        ctx->report.decrypt_failed++;
+        break;
+
+      case DataObjectHealth::kINVALID_JSON:
+        ctx->report.invalid_json++;
+        break;
+    }
+
+    pending.append(result);
+  }
+
+  return pending;
+}
+
 auto RunDataObjectGC(const DataObjectGCPolicy& policy) -> DataObjectGCReport {
   auto& gss = GpgFrontend::GetGSS();
 
@@ -593,76 +667,44 @@ auto RunDataObjectGC(const DataObjectGCPolicy& policy) -> DataObjectGCReport {
   ctx.state_path = DataObjectGcStatePath(gss);
   ctx.state = LoadGcState(ctx.state_path);
 
-  const QDir dir(gss.GetDataObjectsDir());
+  // Classification is deliberately separated from action: nothing is moved or
+  // deleted until every object has been checked. The quarantine sweep below
+  // still runs afterwards, so objects quarantined by this run are picked up in
+  // the same pass exactly as before.
+  const auto pending =
+      ClassifyDataObjects(QDir(gss.GetDataObjectsDir()), &ctx);
 
-  if (dir.exists()) {
-    const auto entries =
-        dir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
+  // Only now is there enough information to tell an orphaned leftover from a
+  // profile whose active key is simply wrong. Both look identical one object
+  // at a time, and they want opposite handling, so the decision has to wait
+  // for the whole tally.
+  const bool key_set_suspect = GpgFrontend::IsWholesaleKeyFailure(
+      ctx.report.ok, ctx.report.missing_key);
 
-    for (const auto& info : entries) {
-      ctx.report.total++;
+  if (key_set_suspect) {
+    ctx.policy.delete_missing_key = false;
+    LOG_E() << "every data object failed to find its key (ok=" << ctx.report.ok
+            << ", missing_key=" << ctx.report.missing_key
+            << "); treating this as a broken application key rather than stale "
+               "objects, collection is suppressed for this run";
+  }
 
-      const auto name = info.fileName();
-
-      DataObjectCheckResult result;
-
-      if (IsValidRefHex(name)) {
-        result = CheckDataObjectByRef(name, false);
-      } else {
-        result.ref_hex = name;
-        result.path = info.absoluteFilePath();
-        result.health = DataObjectHealth::kINVALID_FILE_NAME;
-        result.size = info.size();
-        result.last_modified = info.lastModified();
-      }
-
-      switch (result.health) {
-        case DataObjectHealth::kOK:
-          ctx.report.ok++;
-
-          // If the object is healthy but has an existing GC state entry, it
-          // means the object was previously unhealthy but has since recovered
-          // (e.g. the key was restored). In this case we can clean up the GC
-          // state entry.
-          if (ctx.state.contains(name)) {
-            ctx.state.remove(name);
-            ctx.state_dirty = true;
-          }
-          continue;
-
-        case DataObjectHealth::kINVALID_FILE_NAME:
-          ctx.report.invalid_name++;
-          break;
-
-        case DataObjectHealth::kFILE_TOO_SMALL:
-          ctx.report.file_too_small++;
-          break;
-
-        case DataObjectHealth::kREAD_FAILED:
-          ctx.report.read_failed++;
-          break;
-
-        case DataObjectHealth::kMISSING_KEY:
-          ctx.report.missing_key++;
-          break;
-
-        case DataObjectHealth::kDECRYPT_FAILED:
-          ctx.report.decrypt_failed++;
-          break;
-
-        case DataObjectHealth::kINVALID_JSON:
-          ctx.report.invalid_json++;
-          break;
-      }
-
-      MaybeQuarantineOrDelete(result, &ctx);
-    }
+  for (const auto& result : pending) {
+    MaybeQuarantineOrDelete(result, &ctx);
   }
 
   const auto quarantine_dir = DataObjectQuarantineDir(gss);
   const QDir qdir(quarantine_dir);
 
-  if (qdir.exists()) {
+  // Suppressing the policy above is not enough to protect what a previous
+  // broken run already quarantined: the already-quarantined branch deletes on
+  // its own grace timer, deliberately bypassing IsDeleteAllowed. Left running,
+  // the very run that detects the broken key would finish off the objects an
+  // earlier one set aside. Skip the sweep until the key situation is resolved.
+  if (qdir.exists() && key_set_suspect) {
+    LOG_W() << "skipping quarantine sweep while the application key looks "
+               "broken; quarantined objects are left untouched";
+  } else if (qdir.exists()) {
     const auto quarantine_entries =
         qdir.entryInfoList(QDir::Files | QDir::NoDotAndDotDot, QDir::Name);
 
@@ -817,6 +859,17 @@ auto DataObjectOperator::RemoveDataObj(const QString& key) -> bool {
   }
 
   return true;
+}
+
+auto IsWholesaleKeyFailure(int ok, int missing_key) -> bool {
+  return missing_key > 0 && ok == 0;
+}
+
+auto DataObjectOperator::HasDataObj(const QString& key) -> bool {
+  if (key_.Empty() || key.isEmpty()) return false;
+
+  const auto ref_hex = get_object_ref(key).ConvertToQByteArray().toHex();
+  return QFileInfo::exists(gss_.GetDataObjectsDir() + "/" + ref_hex);
 }
 
 auto DataObjectOperator::get_object_ref(const QString& obj_name) -> GFBuffer {

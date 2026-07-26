@@ -35,17 +35,29 @@ namespace GpgFrontend {
 SettingsObject::SettingsObject(QString settings_name)
     : settings_name_(std::move(settings_name)) {
   try {
-    auto json_optional =
-        DataObjectOperator::GetInstance().GetDataObject(settings_name_);
+    auto& op = DataObjectOperator::GetInstance();
+    auto json_optional = op.GetDataObject(settings_name_);
 
     if (json_optional.has_value() && json_optional->isObject()) {
       QJsonObject::operator=(json_optional.value().object());
     } else {
+      // An empty result is ambiguous: either there are no settings yet (first
+      // start) or they are on disk and this session's key cannot open them.
+      // Only the file's existence separates the two, and getting it wrong in
+      // the second case means overwriting the user's only copy with defaults.
+      load_failed_ = op.HasDataObj(settings_name_);
+      if (load_failed_) {
+        LOG_E() << "settings object exists but could not be read, it will be "
+                   "treated as read-only for this session:"
+                << settings_name_;
+      }
       QJsonObject::operator=({});
     }
 
   } catch (std::exception& e) {
     LOG_W() << "load setting object error: {}" << e.what();
+    // State unknown -- assume the worst and protect what is on disk.
+    load_failed_ = true;
   }
 
   // Remember what we loaded so the destructor can skip the disk write when
@@ -61,6 +73,15 @@ SettingsObject::SettingsObject(QJsonObject sub_json)
 SettingsObject::~SettingsObject() {
   if (settings_name_.isEmpty()) return;
 
+  // Never write back over an object that could not be read. It is still on
+  // disk under a key this session does not have, and replacing it with the
+  // empty object we fell back to would discard the only copy for good.
+  if (load_failed_ && !override_load_failure_) {
+    LOG_W() << "settings object was unreadable at load, skip storing:"
+            << settings_name_;
+    return;
+  }
+
   // Don't touch disk when nothing changed since load.
   if (static_cast<const QJsonObject&>(*this) == original_) return;
 
@@ -68,7 +89,28 @@ SettingsObject::~SettingsObject() {
                                                  QJsonDocument(*this));
 }
 
-void SettingsObject::Store(const QJsonObject& json) {
+auto SettingsObject::Store(const QJsonObject& json) -> bool {
+  // Callers reconstruct defaults and store them unconditionally, so this is
+  // the other half of the destructor's guard: without it the reconstructed
+  // content would differ from original_ and be written out anyway.
+  if (load_failed_ && !override_load_failure_) {
+    LOG_E() << "refusing to overwrite unreadable settings object:"
+            << settings_name_;
+    return false;
+  }
+
+  auto* parent = (static_cast<QJsonObject*>(this));
+  *parent = json;
+  return true;
+}
+
+void SettingsObject::StoreOverridingUnreadable(const QJsonObject& json) {
+  if (load_failed_) {
+    LOG_W() << "resetting unreadable settings object on explicit request:"
+            << settings_name_;
+  }
+
+  override_load_failure_ = true;
   auto* parent = (static_cast<QJsonObject*>(this));
   *parent = json;
 }

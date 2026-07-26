@@ -123,7 +123,23 @@ class GF_CORE_EXPORT DataObjectOperator
    */
   auto RemoveDataObj(const QString &key) -> bool;
 
+  /**
+   * @brief Report whether a stored object backs the given logical key name.
+   *
+   * Existence is deliberately separate from readability. A failed load answers
+   * two very different questions with the same empty result: "there are no
+   * settings yet" (first start) and "the settings are there but this session's
+   * key cannot open them". Callers that are about to overwrite need to tell
+   * those apart, because only the second case would destroy user data.
+   *
+   * @param key logical name identifying the stored object
+   * @return true if an object file exists for @p key, regardless of whether it
+   * can be decrypted
+   */
+  auto HasDataObj(const QString &key) -> bool;
+
  private:
+
   GlobalSettingStation &gss_ =
       GlobalSettingStation::GetInstance();  ///< Storage paths
   AppSecureKeyManager &key_mgr_ =
@@ -172,5 +188,24 @@ class GF_CORE_EXPORT DataObjectOperator
   auto read_decr_json_object(const GFBuffer &ref)
       -> std::optional<QJsonDocument>;
 };
+
+/**
+ * @brief Whether missing-key objects look like a broken application key rather
+ * than a set of orphans.
+ *
+ * A single healthy object proves the active key works, so anything else that
+ * cannot find its key really is an orphan and may be collected. Zero healthy
+ * objects alongside missing-key ones means the key set changed underneath us --
+ * the objects are fine and it is the key that is wrong. Collecting then deletes
+ * a working profile.
+ *
+ * The asymmetry decides the tie: refusing to collect leaks a few kilobytes,
+ * collecting wrongly destroys every setting the user has. A lone orphan on an
+ * otherwise empty profile is therefore kept, deliberately.
+ *
+ * @param ok objects that decrypted successfully
+ * @param missing_key objects referencing a key id we do not hold
+ */
+auto GF_CORE_EXPORT IsWholesaleKeyFailure(int ok, int missing_key) -> bool;
 
 }  // namespace GpgFrontend
