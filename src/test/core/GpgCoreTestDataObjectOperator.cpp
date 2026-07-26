@@ -31,6 +31,35 @@
 
 namespace GpgFrontend::Test {
 
+namespace {
+
+auto StoredObjectPath(const QString& ref_hex) -> QString {
+  return GetGSS().GetDataObjectsDir() + "/" + ref_hex;
+}
+
+auto ReadStoredObject(const QString& ref_hex) -> QByteArray {
+  QFile file(StoredObjectPath(ref_hex));
+  if (!file.open(QIODevice::ReadOnly)) return {};
+  return file.readAll();
+}
+
+// Damage the ciphertext of a stored object while leaving its 32-byte key-id
+// prefix intact, so the object still resolves to a key we hold and fails at
+// decryption rather than at lookup. That is the shape a profile takes when the
+// bytes are fine but the key that wrote them is gone.
+auto CorruptStoredObjectBody(const QString& ref_hex) -> bool {
+  auto bytes = ReadStoredObject(ref_hex);
+  if (bytes.size() <= 40) return false;
+
+  bytes[40] = static_cast<char>(bytes[40] ^ 0xFF);
+
+  QFile file(StoredObjectPath(ref_hex));
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) return false;
+  return file.write(bytes) == bytes.size();
+}
+
+}  // namespace
+
 TEST(DataObjectOperatorSingletonTest, StoreAndLoadJson) {
   auto& op = DataObjectOperator::GetInstance();
 
@@ -201,6 +230,119 @@ TEST(SettingsObjectTest, ChangedSettingsWriteThrough) {
   ASSERT_TRUE(stored.has_value());
   ASSERT_TRUE(stored->isObject());
   EXPECT_EQ(stored->object().value("v").toInt(), 2);
+}
+
+// A name nothing was ever stored under must stay writable. "Absent" and
+// "unreadable" both surface as an empty load, and conflating them here would
+// mean no profile could ever write its first settings object.
+TEST(SettingsObjectTest, StoresNormallyWhenObjectAbsent) {
+  auto& op = DataObjectOperator::GetInstance();
+  const QString name = "so-absent-test";
+
+  op.RemoveDataObj(name);
+  ASSERT_FALSE(op.HasDataObj(name));
+
+  {
+    SettingsObject so(name);
+    EXPECT_FALSE(so.LoadFailed());
+    so.insert("fresh", 1);
+  }
+
+  auto stored = op.GetDataObject(name);
+  ASSERT_TRUE(stored.has_value());
+  ASSERT_TRUE(stored->isObject());
+  EXPECT_EQ(stored->object().value("fresh").toInt(), 1);
+}
+
+// The Leg B regression test: a stored object that cannot be decrypted must
+// survive a load-and-mutate cycle untouched. Overwriting it would replace the
+// user's only copy with the empty object we fell back to.
+TEST(SettingsObjectTest, RefusesToOverwriteUnreadableObject) {
+  auto& op = DataObjectOperator::GetInstance();
+  const QString name = "so-unreadable-test";
+
+  const QJsonObject original{{"v", 1}, {"pad", "some padding to grow the body"}};
+  const auto ref = op.StoreDataObj(name, QJsonDocument(original));
+  ASSERT_FALSE(ref.isEmpty());
+  ASSERT_TRUE(CorruptStoredObjectBody(ref));
+
+  const auto before = ReadStoredObject(ref);
+  ASSERT_FALSE(before.isEmpty());
+
+  ASSERT_TRUE(op.HasDataObj(name));
+  ASSERT_FALSE(op.GetDataObject(name).has_value());
+
+  {
+    SettingsObject so(name);
+    EXPECT_TRUE(so.LoadFailed());
+    so.insert("v", 2);
+  }  // destructor must decline to write
+
+  EXPECT_EQ(ReadStoredObject(ref), before);
+}
+
+TEST(SettingsObjectTest, StoreReturnsFalseAfterFailedLoad) {
+  auto& op = DataObjectOperator::GetInstance();
+  const QString name = "so-store-refused-test";
+
+  const QJsonObject original{{"v", 1}, {"pad", "some padding to grow the body"}};
+  const auto ref = op.StoreDataObj(name, QJsonDocument(original));
+  ASSERT_FALSE(ref.isEmpty());
+  ASSERT_TRUE(CorruptStoredObjectBody(ref));
+
+  const auto before = ReadStoredObject(ref);
+
+  {
+    SettingsObject so(name);
+    ASSERT_TRUE(so.LoadFailed());
+    EXPECT_FALSE(so.Store(QJsonObject{{"replaced", true}}));
+    EXPECT_FALSE(so.contains("replaced"));
+  }
+
+  EXPECT_EQ(ReadStoredObject(ref), before);
+}
+
+// The escape hatch: without it the guard above would lock a user out of the
+// one screen that can repair a broken profile.
+TEST(SettingsObjectTest, StoreOverridingUnreadableWritesThrough) {
+  auto& op = DataObjectOperator::GetInstance();
+  const QString name = "so-override-test";
+
+  const QJsonObject original{{"v", 1}, {"pad", "some padding to grow the body"}};
+  const auto ref = op.StoreDataObj(name, QJsonDocument(original));
+  ASSERT_FALSE(ref.isEmpty());
+  ASSERT_TRUE(CorruptStoredObjectBody(ref));
+
+  {
+    SettingsObject so(name);
+    ASSERT_TRUE(so.LoadFailed());
+    so.StoreOverridingUnreadable(QJsonObject{{"repaired", 42}});
+  }
+
+  auto stored = op.GetDataObject(name);
+  ASSERT_TRUE(stored.has_value());
+  ASSERT_TRUE(stored->isObject());
+  EXPECT_EQ(stored->object().value("repaired").toInt(), 42);
+}
+
+// Nothing decrypted, but objects are asking for a key we do not hold: the key
+// is wrong, not the objects. Collecting here is what destroyed profiles.
+TEST(DataObjectGCTest, KeySetSuspectWhenNothingDecrypts) {
+  EXPECT_TRUE(IsWholesaleKeyFailure(/*ok=*/0, /*missing_key=*/10));
+}
+
+// One healthy object proves the active key works, so the stragglers really are
+// orphans and may be collected.
+TEST(DataObjectGCTest, KeySetNotSuspectWithAnyHealthyObject) {
+  EXPECT_FALSE(IsWholesaleKeyFailure(/*ok=*/9, /*missing_key=*/1));
+}
+
+TEST(DataObjectGCTest, KeySetNotSuspectWhenNothingIsMissing) {
+  EXPECT_FALSE(IsWholesaleKeyFailure(/*ok=*/10, /*missing_key=*/0));
+}
+
+TEST(DataObjectGCTest, KeySetNotSuspectOnEmptyProfile) {
+  EXPECT_FALSE(IsWholesaleKeyFailure(/*ok=*/0, /*missing_key=*/0));
 }
 
 }  // namespace GpgFrontend::Test
