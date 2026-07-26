@@ -27,6 +27,7 @@
  */
 
 #include "GFCoreTest.h"
+#include "core/function/CoreSignalStation.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/utils/GpgUtils.h"
 
@@ -58,6 +59,21 @@ const KeyDatabaseItemSO kDefaultDb =
 
 const QSet<QString> kLiteBackends = {"rpgp"};         // macOS lite build
 const QSet<QString> kFullBackends = {"gnupg", "rpgp"};  // Flathub build
+
+auto MakeInfo(const QString& name, const QString& path, bool valid,
+              int channel = 0) -> KeyDatabaseInfo {
+  KeyDatabaseInfo info;
+  info.name = name;
+  info.path = path;
+  info.origin_path = path;
+  info.channel = channel;
+  info.backend_type = "gnupg";
+  info.valid = valid;
+  return info;
+}
+
+const KeyDatabaseInfo kValidFallback =
+    MakeInfo("DEFAULT", "/app-data/rpgp_db", true);
 
 }  // namespace
 
@@ -205,6 +221,198 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileChannelCollision) {
   EXPECT_NE(result[0].channel, result[1].channel);
   EXPECT_EQ(FindByName(result, "DEFAULT")->channel, 0);
   EXPECT_GT(FindByName(result, "dup")->channel, 0);
+}
+
+// Valid entries are kept as-is and no fallback is injected alongside them.
+TEST_F(GFCoreTest, KeyDatabaseSelectUsableKeepsValidOnly) {
+  const QContainer<KeyDatabaseInfo> all{
+      MakeInfo("gone", "/mnt/detached/db", false),
+      MakeInfo("alive", "/home/u/.gnupg", true),
+      MakeInfo("also-gone", "/mnt/other/db", false),
+  };
+
+  auto result = SelectUsableKeyDatabases(all, kValidFallback);
+
+  ASSERT_EQ(result.size(), 1);
+  EXPECT_EQ(result[0].name, QString("alive"));
+}
+
+// The Leg C regression test. A non-empty list whose every entry is invalid used
+// to filter down to nothing and abort startup with "No valid Key Database".
+TEST_F(GFCoreTest, KeyDatabaseSelectUsableReseedsWhenAllInvalid) {
+  const QContainer<KeyDatabaseInfo> all{
+      MakeInfo("gone", "/mnt/detached/db", false, 0),
+      MakeInfo("also-gone", "/mnt/other/db", false, 1),
+  };
+
+  auto result = SelectUsableKeyDatabases(all, kValidFallback);
+
+  ASSERT_EQ(result.size(), 1);
+  EXPECT_EQ(result[0].name, QString("DEFAULT"));
+  EXPECT_EQ(result[0].channel, 0);
+  EXPECT_TRUE(result[0].valid);
+}
+
+TEST_F(GFCoreTest, KeyDatabaseSelectUsableEmptyInputUsesFallback) {
+  auto result = SelectUsableKeyDatabases({}, kValidFallback);
+
+  ASSERT_EQ(result.size(), 1);
+  EXPECT_EQ(result[0].name, QString("DEFAULT"));
+}
+
+// A genuinely dead environment must still be reported as such, so startup can
+// fail with an accurate message rather than pretending a database exists.
+TEST_F(GFCoreTest, KeyDatabaseSelectUsableGivesUpWhenFallbackInvalid) {
+  const QContainer<KeyDatabaseInfo> all{
+      MakeInfo("gone", "/mnt/detached/db", false),
+  };
+  const auto bad_fallback = MakeInfo("DEFAULT", "", false);
+
+  EXPECT_TRUE(SelectUsableKeyDatabases(all, bad_fallback).isEmpty());
+}
+
+// The front entry becomes channel 0, so ordering is load-bearing.
+TEST_F(GFCoreTest, KeyDatabaseSelectUsablePreservesOrder) {
+  const QContainer<KeyDatabaseInfo> all{
+      MakeInfo("first", "/a", true, 0),
+      MakeInfo("broken", "/mnt/detached/db", false, 1),
+      MakeInfo("second", "/b", true, 2),
+  };
+
+  auto result = SelectUsableKeyDatabases(all, kValidFallback);
+
+  ASSERT_EQ(result.size(), 2);
+  EXPECT_EQ(result[0].name, QString("first"));
+  EXPECT_EQ(result[1].name, QString("second"));
+}
+
+TEST_F(GFCoreTest, KeyDatabasePathActionUsesExistingDir) {
+  EXPECT_EQ(DecideKeyDatabasePathAction(true, false, true, false),
+            KeyDatabasePathAction::kUSE_AS_IS);
+}
+
+// A deleted database whose parent survives is recoverable -- this is the case
+// the old code got wrong by creating the parent instead of the leaf.
+TEST_F(GFCoreTest, KeyDatabasePathActionCreatesLeafWhenParentExists) {
+  EXPECT_EQ(DecideKeyDatabasePathAction(false, false, true, false),
+            KeyDatabasePathAction::kCREATE_LEAF);
+}
+
+// A whole missing chain outside app data usually means an unmounted volume.
+// Materialising it there would hand GnuPG an empty keyring in the wrong place.
+TEST_F(GFCoreTest, KeyDatabasePathActionRefusesFullChainOutsideAppData) {
+  EXPECT_EQ(DecideKeyDatabasePathAction(false, false, false, false),
+            KeyDatabasePathAction::kREJECT);
+}
+
+TEST_F(GFCoreTest, KeyDatabasePathActionCreatesFullChainInsideAppData) {
+  EXPECT_EQ(DecideKeyDatabasePathAction(false, false, false, true),
+            KeyDatabasePathAction::kCREATE_FULL);
+}
+
+TEST_F(GFCoreTest, KeyDatabasePathActionRejectsExistingFile) {
+  EXPECT_EQ(DecideKeyDatabasePathAction(false, true, true, true),
+            KeyDatabasePathAction::kREJECT);
+}
+
+// A stored entry without a "channel" field must not surface an indeterminate
+// value into channel normalization.
+TEST_F(GFCoreTest, KeyDatabaseItemChannelDefaultsToZero) {
+  const KeyDatabaseItemSO item(QJsonObject{{"name", "x"}, {"path", "/x"}});
+
+  EXPECT_EQ(item.channel, 0);
+}
+
+TEST_F(GFCoreTest, ChooseEngineHonoursGnupgPreferenceWhenSupported) {
+  const auto choice = ChooseOpenPGPEngine("GNUPG", true, true);
+
+  EXPECT_TRUE(choice.ok);
+  EXPECT_EQ(choice.engine, OpenPGPEngine::kGNUPG);
+}
+
+TEST_F(GFCoreTest, ChooseEngineHonoursRpgpPreferenceWhenSupported) {
+  const auto choice = ChooseOpenPGPEngine("rpgp", true, true);
+
+  EXPECT_TRUE(choice.ok);
+  EXPECT_EQ(choice.engine, OpenPGPEngine::kRPGP);
+}
+
+TEST_F(GFCoreTest, ChooseEngineFallsBackToRpgpWhenGnupgUnsupported) {
+  const auto choice = ChooseOpenPGPEngine("GNUPG", false, true);
+
+  EXPECT_TRUE(choice.ok);
+  EXPECT_EQ(choice.engine, OpenPGPEngine::kRPGP);
+}
+
+// The asymmetry this check exists to fix: a database stored as "rpgp" by a
+// build that had it, opened by a build that does not.
+TEST_F(GFCoreTest, ChooseEngineFallsBackToGnupgWhenRpgpUnsupported) {
+  const auto choice = ChooseOpenPGPEngine("rpgp", true, false);
+
+  EXPECT_TRUE(choice.ok);
+  EXPECT_EQ(choice.engine, OpenPGPEngine::kGNUPG);
+}
+
+TEST_F(GFCoreTest, ChooseEngineFailsWhenNeitherSupported) {
+  EXPECT_FALSE(ChooseOpenPGPEngine("rpgp", false, false).ok);
+  EXPECT_FALSE(ChooseOpenPGPEngine("", false, false).ok);
+}
+
+TEST_F(GFCoreTest, ChooseEngineIsCaseAndWhitespaceInsensitive) {
+  EXPECT_EQ(ChooseOpenPGPEngine(" GnuPG ", true, true).engine,
+            OpenPGPEngine::kGNUPG);
+  EXPECT_EQ(ChooseOpenPGPEngine("RPGP", true, true).engine,
+            OpenPGPEngine::kRPGP);
+}
+
+TEST_F(GFCoreTest, ChooseEngineDefaultsToGnupgOnEmptyPreference) {
+  const auto choice = ChooseOpenPGPEngine("", true, true);
+
+  EXPECT_TRUE(choice.ok);
+  EXPECT_EQ(choice.engine, OpenPGPEngine::kGNUPG);
+}
+
+// SignalBadOpenPGPEnv is emitted from a worker thread and received on the main
+// thread, so its custom enum argument has to survive a queued connection. If
+// the metatype registration and the spelling moc records ever drift apart, Qt
+// drops the emission silently -- and because this signal is what releases the
+// startup event loop, the app would hang on the loading dialog forever. That
+// failure is invisible without a test like this one.
+TEST_F(GFCoreTest, BadOpenPGPEnvReasonSurvivesQueuedConnection) {
+  auto* station = CoreSignalStation::GetInstance();
+
+  std::atomic<bool> received = false;
+  auto got_reason = BadOpenPGPEnvReason::kUNKNOWN;
+  QString got_detail;
+
+  QEventLoop loop;
+  QObject context;
+
+  QObject::connect(
+      station, &CoreSignalStation::SignalBadOpenPGPEnv, &context,
+      [&](BadOpenPGPEnvReason reason, const QString& detail) {
+        got_reason = reason;
+        got_detail = detail;
+        received = true;
+        loop.quit();
+      },
+      Qt::QueuedConnection);
+
+  QThread* worker = QThread::create([station]() {
+    emit station->SignalBadOpenPGPEnv(
+        BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE, "detail-payload");
+  });
+
+  QTimer::singleShot(5000, &loop, &QEventLoop::quit);
+  worker->start();
+  loop.exec();
+
+  worker->wait();
+  worker->deleteLater();
+
+  ASSERT_TRUE(received.load());
+  EXPECT_EQ(got_reason, BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE);
+  EXPECT_EQ(got_detail, QString("detail-payload"));
 }
 
 }  // namespace GpgFrontend::Test
