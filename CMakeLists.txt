@@ -387,6 +387,23 @@ endif()
 
 message(STATUS "App Display Name: ${GPGFRONTEND_APP_DISPLAY_NAME}")
 
+# The profile name is the on-disk and registry identifier: it decides
+# QCoreApplication::applicationName(), and through it the QSettings scope and
+# the AppLocalData directory that holds secure/app.key and data_objs/. A
+# non-stable build must not share those with an installed release -- running a
+# nightly against a stable profile has silently rewritten and garbage-collected
+# it. Deliberately spelled without a space, since it becomes a directory
+# component and a Windows registry key.
+if(GPGFRONTEND_BUILD_STABLE)
+  set(GPGFRONTEND_APP_PROFILE_NAME "${CMAKE_PROJECT_NAME}")
+  set(GPGFRONTEND_BUILD_STABLE_INT 1)
+else()
+  set(GPGFRONTEND_APP_PROFILE_NAME "${CMAKE_PROJECT_NAME}Testing")
+  set(GPGFRONTEND_BUILD_STABLE_INT 0)
+endif()
+
+message(STATUS "App Profile Name: ${GPGFRONTEND_APP_PROFILE_NAME}")
+
 # Set build information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)

@@ -44,7 +44,12 @@ GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
   // set the extra information of the build
   GpgFrontendApplication::setApplicationVersion(GetProjectVersion());
   // prevent the "Unknown Organization" in conf path issue on some platforms
-  GpgFrontendApplication::setApplicationName(GetProjectName());
+  //
+  // This is the on-disk identity, not the friendly name: it decides the
+  // QSettings scope and the AppLocalData directory, so a non-stable build must
+  // get its own or it will share -- and silently damage -- an installed
+  // release's profile. The friendly name is set separately just below.
+  GpgFrontendApplication::setApplicationName(GetAppProfileName());
   GpgFrontendApplication::setApplicationDisplayName(GetAppDisplayName());
   GpgFrontendApplication::setOrganizationName(GetProjectOrganization());
   GpgFrontendApplication::setQuitOnLastWindowClosed(true);

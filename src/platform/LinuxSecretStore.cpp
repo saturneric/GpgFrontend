@@ -192,9 +192,9 @@ class LinuxSecretStore final : public SystemSecretStore {
     if (!lib.Loaded()) return {};
 
     const auto account_utf8 = account.toUtf8();
-    char* raw =
-        lib.lookup(&g_schema, nullptr, nullptr, "service", kSystemSecretService,
-                   "account", account_utf8.constData(), nullptr);
+    char* raw = lib.lookup(&g_schema, nullptr, nullptr, "service",
+                           SystemSecretService(), "account",
+                           account_utf8.constData(), nullptr);
     if (raw == nullptr) return {};
 
     auto decoded = GFBufferFactory::FromBase64(GFBuffer(QByteArray(raw)));
@@ -222,7 +222,7 @@ class LinuxSecretStore final : public SystemSecretStore {
 
     const int ok = lib.store(&g_schema, nullptr, label.constData(),
                              encoded_bytes.constData(), nullptr, nullptr,
-                             "service", kSystemSecretService, "account",
+                             "service", SystemSecretService(), "account",
                              account_utf8.constData(), nullptr);
 
     encoded_bytes.fill('\0');
@@ -234,7 +234,7 @@ class LinuxSecretStore final : public SystemSecretStore {
     if (!lib.Loaded()) return false;
 
     const auto account_utf8 = account.toUtf8();
-    lib.clear(&g_schema, nullptr, nullptr, "service", kSystemSecretService,
+    lib.clear(&g_schema, nullptr, nullptr, "service", SystemSecretService(),
               "account", account_utf8.constData(), nullptr);
 
     // clear_sync reports false when there was nothing to remove, which is the

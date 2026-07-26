@@ -43,7 +43,7 @@ namespace {
 
 /// Credential Manager keys entries by a single target name.
 auto TargetName(const QString& account) -> QString {
-  return QStringLiteral("%1/%2").arg(QString::fromUtf8(kSystemSecretService),
+  return QStringLiteral("%1/%2").arg(QString::fromUtf8(SystemSecretService()),
                                      account);
 }
 

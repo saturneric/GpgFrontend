@@ -29,6 +29,7 @@
 #include "core/function/SystemSecretStore.h"
 
 #include "core/function/SecureRandomGenerator.h"
+#include "core/utils/BuildInfoUtils.h"
 
 namespace {
 
@@ -40,6 +41,13 @@ std::unique_ptr<GpgFrontend::SystemSecretStore> g_store;
 }  // namespace
 
 namespace GpgFrontend {
+
+auto SystemSecretService() -> const char* {
+  // Held in a function-local static so callers can pass the pointer straight
+  // into C varargs APIs without worrying about its lifetime.
+  static const QByteArray kService = GetAppProfileName().toUtf8();
+  return kService.constData();
+}
 
 void RegisterSystemSecretStore(std::unique_ptr<SystemSecretStore> store) {
   if (store != nullptr) {

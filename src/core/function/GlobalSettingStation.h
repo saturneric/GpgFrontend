@@ -216,7 +216,7 @@ class GF_CORE_EXPORT GlobalSettingStation
  *
  * @return reference to the singleton
  */
-auto GF_CORE_EXPORT GetGSS() -> GlobalSettingStation&;
+auto GF_CORE_EXPORT GetGSS() -> GlobalSettingStation &;
 
 /**
  * @brief Convenience wrapper that returns the application QSettings via the
@@ -238,5 +238,69 @@ auto GF_CORE_EXPORT GetSettings() -> QSettings;
  * @return QSettings configured for the current platform and mode
  */
 auto GF_CORE_EXPORT GetEarlySettings() -> QSettings;
+
+/**
+ * @brief Whether this build may safely use the profile it found.
+ */
+enum class ProfileCompatibility : std::uint8_t {
+  kOK,         ///< safe to read and write
+  kMISSING,    ///< first run, or a profile written before markers existed
+  kTOO_NEW,    ///< written by a newer build; must not be touched
+  kMALFORMED,  ///< present but unparsable
+};
+
+/**
+ * @brief Identity and layout version of an on-disk profile.
+ */
+struct ProfileMarker {
+  int schema_version = 0;           ///< layout version that was written
+  int min_reader_version = 0;       ///< oldest build allowed to touch it
+  QString profile;                  ///< profile name that owns the directory
+  QString last_writer_version;      ///< app version that last wrote it
+  bool last_writer_stable = false;  ///< whether that build was a release
+};
+
+/**
+ * @brief Decide whether a build may use a profile, from the marker alone.
+ *
+ * Two version numbers because they answer different questions: @c
+ * schema_version records what was written, @c min_reader_version records the
+ * oldest build that may safely touch it. A newer layout that stayed
+ * backwards-compatible can therefore keep older builds working, while a
+ * breaking one locks them out.
+ *
+ * Pure, and exposed primarily for unit testing.
+ *
+ * @param marker the parsed marker
+ * @param marker_present whether a marker was found at all
+ * @param this_schema_version the schema version of the running build
+ */
+auto GF_CORE_EXPORT CheckProfileCompatibility(const ProfileMarker &marker,
+                                              bool marker_present,
+                                              int this_schema_version)
+    -> ProfileCompatibility;
+
+/**
+ * @brief Read the profile marker from disk.
+ *
+ * Deliberately plain, unencrypted JSON: the application secure key is exactly
+ * what fails in the situation this guard exists to catch, so anything that
+ * needed the key to be readable would be unreadable when it mattered.
+ *
+ * @param path marker file path
+ * @return the marker, or nothing when absent or unparsable
+ */
+auto GF_CORE_EXPORT ReadProfileMarker(const QString &path)
+    -> std::optional<ProfileMarker>;
+
+/**
+ * @brief Write the profile marker to disk.
+ *
+ * @param path marker file path
+ * @param marker marker to persist
+ * @return true on success
+ */
+auto GF_CORE_EXPORT WriteProfileMarker(const QString &path,
+                                       const ProfileMarker &marker) -> bool;
 
 }  // namespace GpgFrontend

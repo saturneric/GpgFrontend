@@ -76,7 +76,7 @@ auto MakeQuery(const QString& account) -> CFMutableDictionaryRef {
   if (query == nullptr) return nullptr;
 
   ScopedCFRef<CFStringRef> service(
-      ToCFString(QString::fromUtf8(kSystemSecretService)));
+      ToCFString(QString::fromUtf8(SystemSecretService())));
   ScopedCFRef<CFStringRef> account_ref(ToCFString(account));
 
   CFDictionarySetValue(query, kSecClass, kSecClassGenericPassword);

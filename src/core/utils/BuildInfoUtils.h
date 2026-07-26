@@ -139,6 +139,30 @@ auto GF_CORE_EXPORT HasRustSupport() -> bool;
 auto GF_CORE_EXPORT GetAppDisplayName() -> QString;
 
 /**
+ * @brief Return the on-disk profile identity of this build.
+ *
+ * This is what QCoreApplication::applicationName() is set to, and therefore
+ * what decides the QSettings scope and the AppLocalData directory. Non-stable
+ * builds get their own, so a nightly can never read or rewrite the profile of
+ * an installed release.
+ *
+ * @return profile name, without spaces
+ */
+auto GF_CORE_EXPORT GetAppProfileName() -> QString;
+
+/**
+ * @brief Return whether this is an official stable release build.
+ * @return true when built with -DGPGFRONTEND_BUILD_STABLE=ON
+ */
+auto GF_CORE_EXPORT IsStableBuild() -> bool;
+
+/**
+ * @brief Return the profile layout version this build understands.
+ * @return schema version number
+ */
+auto GF_CORE_EXPORT GetAppProfileSchemaVersion() -> int;
+
+/**
  * @brief Return the libsodium version linked at build time.
  * @return libsodium version string
  */

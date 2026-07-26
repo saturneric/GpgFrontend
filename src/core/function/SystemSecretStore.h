@@ -34,8 +34,19 @@
 
 namespace GpgFrontend {
 
-/// Service name every backend files its entries under.
-constexpr auto kSystemSecretService = "GpgFrontend";
+/**
+ * @brief Service name every backend files its entries under.
+ *
+ * Scoped to the build's profile rather than fixed, because the entry is shared
+ * state the same way the data directory is: turning protection off calls
+ * Remove() on it, so a nightly and an installed release filing under one name
+ * means either can delete the secret the other's wrapped app.key depends on --
+ * locking that installation out of its own key permanently. Isolating the
+ * directories without isolating this would only move the failure.
+ *
+ * @return service name, stable for the lifetime of the process
+ */
+auto GF_CORE_EXPORT SystemSecretService() -> const char*;
 
 /// Account name of the secret that wraps the application secure key.
 constexpr auto kAppKeyWrapAccount = "app-key-wrap";

@@ -396,4 +396,63 @@ auto GetEarlySettings() -> QSettings {
   return {config_path + "/config.ini", QSettings::IniFormat};
 }
 
+auto CheckProfileCompatibility(const ProfileMarker& marker, bool marker_present,
+                               int this_schema_version)
+    -> ProfileCompatibility {
+  if (!marker_present) return ProfileCompatibility::kMISSING;
+
+  if (marker.min_reader_version > this_schema_version) {
+    return ProfileCompatibility::kTOO_NEW;
+  }
+
+  return ProfileCompatibility::kOK;
+}
+
+auto ReadProfileMarker(const QString& path) -> std::optional<ProfileMarker> {
+  QFile file(path);
+  if (!file.exists()) return {};
+
+  if (!file.open(QIODevice::ReadOnly)) {
+    LOG_W() << "cannot open profile marker:" << path;
+    return {};
+  }
+
+  QJsonParseError error{};
+  const auto doc = QJsonDocument::fromJson(file.readAll(), &error);
+  if (error.error != QJsonParseError::NoError || !doc.isObject()) {
+    LOG_W() << "profile marker is not valid json:" << path
+            << error.errorString();
+    return {};
+  }
+
+  const auto obj = doc.object();
+
+  ProfileMarker marker;
+  marker.schema_version = obj.value("schema_version").toInt();
+  marker.min_reader_version = obj.value("min_reader_version").toInt();
+  marker.profile = obj.value("profile").toString();
+  marker.last_writer_version = obj.value("last_writer_version").toString();
+  marker.last_writer_stable = obj.value("last_writer_stable").toBool();
+  return marker;
+}
+
+auto WriteProfileMarker(const QString& path, const ProfileMarker& marker)
+    -> bool {
+  QJsonObject obj;
+  obj["schema_version"] = marker.schema_version;
+  obj["min_reader_version"] = marker.min_reader_version;
+  obj["profile"] = marker.profile;
+  obj["last_writer_version"] = marker.last_writer_version;
+  obj["last_writer_stable"] = marker.last_writer_stable;
+
+  QFile file(path);
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+    LOG_W() << "cannot write profile marker:" << path;
+    return false;
+  }
+
+  const auto payload = QJsonDocument(obj).toJson(QJsonDocument::Indented);
+  return file.write(payload) == payload.size();
+}
+
 }  // namespace GpgFrontend

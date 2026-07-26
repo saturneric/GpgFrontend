@@ -40,6 +40,7 @@
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SystemSecretStore.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "platform/PlatformSecretStore.h"
 #include "res/GpgFrontendResource.h"
 #include "ui/dialog/AppKeyPinDialog.h"
@@ -321,6 +322,71 @@ auto ConfirmForgottenPinReset() -> bool {
  * @param key_path path of the key file
  * @return whether to proceed, and the PIN to proceed with
  */
+/// Where the profile marker lives. Alongside the data it describes, and
+/// deliberately outside data_objs/ so the GC never sees it.
+auto ProfileMarkerPath() -> QString {
+  return GpgFrontend::GetGSS().GetAppDataPath() + "/profile.json";
+}
+
+/**
+ * @brief Refuse to start on a profile written by a newer, incompatible build.
+ *
+ * Proceeding would not fail cleanly: the newer profile's key material and data
+ * objects would be partially rewritten and garbage-collected by rules this
+ * build predates, which is how a downgrade turns into permanent data loss
+ * rather than an error message.
+ *
+ * @return false when the application must stop
+ */
+auto CheckProfileOrHalt() -> bool {
+  const auto path = ProfileMarkerPath();
+  const auto marker = GpgFrontend::ReadProfileMarker(path);
+
+  // A marker that exists but will not parse is treated as absent. A truncated
+  // file after a power cut must not brick the application.
+  const auto state = GpgFrontend::CheckProfileCompatibility(
+      marker.value_or(GpgFrontend::ProfileMarker{}), marker.has_value(),
+      GpgFrontend::GetAppProfileSchemaVersion());
+
+  if (state == GpgFrontend::ProfileCompatibility::kTOO_NEW) {
+    const auto writer = marker->last_writer_version.isEmpty()
+                            ? QObject::tr("a newer version")
+                            : marker->last_writer_version;
+
+    QMessageBox::critical(
+        nullptr, QObject::tr("Profile Is Too New"),
+        QObject::tr("This application data was last used by %1, which stores "
+                    "it in a format this version does not understand.")
+                .arg(writer) +
+            "\n\n" +
+            QObject::tr("Continuing would damage it. Please use %1 or later, "
+                        "or start this version with a different data folder.")
+                .arg(writer) +
+            "\n\n" + QObject::tr("Data folder: %1").arg(path),
+        QMessageBox::Ok);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Stamp the profile as belonging to this build.
+ *
+ * Called only after the secure key opened successfully, so a profile this build
+ * could not actually use is never claimed as its own.
+ */
+void StampProfileMarker() {
+  GpgFrontend::ProfileMarker marker;
+  marker.schema_version = GpgFrontend::GetAppProfileSchemaVersion();
+  marker.min_reader_version = GpgFrontend::GetAppProfileSchemaVersion();
+  marker.profile = GpgFrontend::GetAppProfileName();
+  marker.last_writer_version = GpgFrontend::GetProjectVersion();
+  marker.last_writer_stable = GpgFrontend::IsStableBuild();
+
+  GpgFrontend::WriteProfileMarker(ProfileMarkerPath(), marker);
+}
+
 auto PromptForAppKeyPin(const QString& key_path) -> AppKeyPinPrompt {
   if (!QFileInfo(key_path).exists()) {
     GpgFrontend::UI::AppKeyPinDialog dialog(
@@ -482,6 +548,10 @@ auto main(int argc, char* argv[]) -> int {
 
   GpgFrontend::InstallPlatformSecretStore();
 
+  // Checked before anything reads or writes the secure key or a data object:
+  // once those start, an incompatible profile is already being damaged.
+  if (!CheckProfileOrHalt()) return 1;
+
   auto& key_mgr = GpgFrontend::AppSecureKeyManager::GetInstance();
   const auto protection = RequestedAppKeyProtection();
 
@@ -512,6 +582,10 @@ auto main(int argc, char* argv[]) -> int {
   const auto key_result = key_mgr.Initialize(pin, wrap);
 
   if (!ReportAppSecureKeyFailure(key_result)) return 1;
+
+  // Only now: claiming a profile this build could not open would stamp our
+  // version onto data we never successfully read.
+  StampProfileMarker();
 
   if (parser.isSet("t")) {
     ctx->gather_external_gnupg_info = false;

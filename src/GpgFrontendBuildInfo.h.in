@@ -65,3 +65,18 @@
  *
  */
 #define APP_DISPLAY_NAME "@GPGFRONTEND_APP_DISPLAY_NAME@"
+
+/**
+ * @brief On-disk profile identity
+ *
+ * APP_PROFILE_NAME becomes QCoreApplication::applicationName(), which decides
+ * the QSettings scope and the AppLocalData directory. It differs from
+ * APP_DISPLAY_NAME on purpose: the display name is cosmetic and may contain
+ * spaces, this one is a path and registry component.
+ *
+ * APP_PROFILE_SCHEMA_VERSION is the layout version of that directory. Bump it
+ * whenever a change would make the profile unreadable to older builds.
+ */
+#define APP_PROFILE_NAME "@GPGFRONTEND_APP_PROFILE_NAME@"
+#define APP_BUILD_STABLE @GPGFRONTEND_BUILD_STABLE_INT@
+#define APP_PROFILE_SCHEMA_VERSION 2
