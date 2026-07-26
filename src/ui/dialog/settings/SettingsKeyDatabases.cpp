@@ -171,6 +171,30 @@ void KeyDatabasesTab::ApplySettings() {
     key_db_info.channel = index++;
     key_database_list.key_databases.append(KeyDatabaseItemSO(key_db_info));
   }
+
+  // The stored list is protected from being overwritten when it could not be
+  // read, which would otherwise make this -- the one screen that can repair a
+  // broken profile -- silently do nothing. Ask before replacing it.
+  if (so.LoadFailed()) {
+    const auto ret = QMessageBox::warning(
+        this, tr("Unreadable Key Database Settings"),
+        tr("Your saved key database list exists but could not be read. This "
+           "usually means it was written by another installation, or with a "
+           "different application key.") +
+            "\n\n" +
+            tr("Saving now replaces it with the list shown here. The previous "
+               "list cannot be recovered afterwards."),
+        QMessageBox::Save | QMessageBox::Cancel, QMessageBox::Cancel);
+
+    if (ret != QMessageBox::Save) {
+      LOG_I() << "user declined to replace the unreadable key database list";
+      return;
+    }
+
+    so.StoreOverridingUnreadable(key_database_list.ToJson());
+    return;
+  }
+
   so.Store(key_database_list.ToJson());
 }
 
