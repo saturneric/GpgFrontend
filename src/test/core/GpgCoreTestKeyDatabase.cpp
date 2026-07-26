@@ -57,7 +57,7 @@ auto FindByName(const QContainer<KeyDatabaseItemSO>& list, const QString& name)
 const KeyDatabaseItemSO kDefaultDb =
     MakeItem("DEFAULT", "/app-data/rpgp_db", "rpgp", 0);
 
-const QSet<QString> kLiteBackends = {"rpgp"};         // macOS lite build
+const QSet<QString> kLiteBackends = {"rpgp"};           // macOS lite build
 const QSet<QString> kFullBackends = {"gnupg", "rpgp"};  // Flathub build
 
 auto MakeInfo(const QString& name, const QString& path, bool valid,
@@ -80,7 +80,8 @@ const KeyDatabaseInfo kValidFallback =
 // With nothing on disk and no stored settings, only the channel-0 DEFAULT
 // database survives.
 TEST_F(GFCoreTest, KeyDatabaseReconcileEmpty) {
-  auto result = ReconcileSandboxKeyDatabaseList(kDefaultDb, {}, {}, kLiteBackends);
+  auto result =
+      ReconcileSandboxKeyDatabaseList(kDefaultDb, {}, {}, kLiteBackends);
 
   ASSERT_EQ(result.size(), 1);
   EXPECT_EQ(result[0].name, QString("DEFAULT"));
@@ -97,8 +98,8 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileDiscoverNew) {
       MakeItem("beta", "/app-data/dbs/beta"),
   };
 
-  auto result =
-      ReconcileSandboxKeyDatabaseList(kDefaultDb, discovered, {}, kLiteBackends);
+  auto result = ReconcileSandboxKeyDatabaseList(kDefaultDb, discovered, {},
+                                                kLiteBackends);
 
   ASSERT_EQ(result.size(), 3);
 
@@ -196,8 +197,8 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileNoDefaultShadow) {
       MakeItem("DEFAULT", "/app-data/dbs/DEFAULT"),
   };
 
-  auto result =
-      ReconcileSandboxKeyDatabaseList(kDefaultDb, discovered, {}, kLiteBackends);
+  auto result = ReconcileSandboxKeyDatabaseList(kDefaultDb, discovered, {},
+                                                kLiteBackends);
 
   ASSERT_EQ(result.size(), 1);
   EXPECT_EQ(result[0].path, QString("/app-data/rpgp_db"));
@@ -214,8 +215,8 @@ TEST_F(GFCoreTest, KeyDatabaseReconcileChannelCollision) {
       MakeItem("dup", "/app-data/dbs/dup", "rpgp", 0),
   };
 
-  auto result =
-      ReconcileSandboxKeyDatabaseList(kDefaultDb, discovered, stored, kLiteBackends);
+  auto result = ReconcileSandboxKeyDatabaseList(kDefaultDb, discovered, stored,
+                                                kLiteBackends);
 
   ASSERT_EQ(result.size(), 2);
   EXPECT_NE(result[0].channel, result[1].channel);
