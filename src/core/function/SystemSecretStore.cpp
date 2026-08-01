@@ -55,8 +55,12 @@ auto SystemSecretService() -> const char* {
 void RegisterSystemSecretStore(std::unique_ptr<SystemSecretStore> store) {
   if (store != nullptr) {
     LOG_I() << "system secret store backend registered:" << store->Name();
-    g_unavailable_reason.clear();
   }
+
+  // Cleared whichever way this goes: registering carries no explanation, so
+  // holding on to an earlier one would leave a stale reason describing a state
+  // that no longer applies. Only RegisterSystemSecretStoreUnavailable sets it.
+  g_unavailable_reason.clear();
   g_store = std::move(store);
 }
 
@@ -82,7 +86,8 @@ auto ProbeSystemSecretStore(SystemSecretStore& store) -> bool {
   }
 
   if (!store.Write(kProbeAccount, *probe)) {
-    LOG_W() << "secret store probe write failed, backend:" << store.Name();
+    LOG_W() << "secret store probe write failed, backend:" << store.Name()
+            << "reason:" << store.LastError();
     return false;
   }
 

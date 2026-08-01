@@ -196,7 +196,11 @@ auto ReportAppKeyWrapOutcome(const GpgFrontend::AppKeyWrapResult& result)
       // The user asked for keychain protection and is being silently dropped
       // back to none, so this is exactly the moment they need to be able to
       // find out what broke rather than guess.
-      const auto detail = GpgFrontend::SystemSecretStoreUnavailableReason();
+      auto detail = GpgFrontend::SystemSecretStoreUnavailableReason();
+      if (auto* store = GpgFrontend::GetSystemSecretStore();
+          detail.isEmpty() && store != nullptr) {
+        detail = store->LastError();
+      }
       if (!detail.isEmpty()) box.setDetailedText(detail);
 
       box.exec();

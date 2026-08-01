@@ -88,6 +88,21 @@ class GF_CORE_EXPORT SystemSecretStore {
   [[nodiscard]] virtual auto IsAvailable() -> bool = 0;
 
   /**
+   * @brief Explain the most recent failure, when the backend can.
+   *
+   * The interface reports failure as a bare false or an empty result, which
+   * cannot tell a locked keyring from an absent service from a rejected write.
+   * Backends that get a message from the platform surface it here so a user
+   * facing a store that loaded but does not work is not left guessing.
+   *
+   * Untranslated: it is the platform's own wording, and it is meant to be read
+   * back verbatim. Not pure, because a backend with nothing to add is normal.
+   *
+   * @return the message, or empty when the last call succeeded or said nothing
+   */
+  [[nodiscard]] virtual auto LastError() const -> QString { return {}; }
+
+  /**
    * @brief Read a secret.
    *
    * @param account account name within the service

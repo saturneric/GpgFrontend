@@ -100,20 +100,39 @@ GFSecretSchema g_schema = {"com.bktus.gpgfrontend.Secret",
                            nullptr,
                            nullptr};
 
+/**
+ * @brief Binary-compatible copy of glib's GError.
+ *
+ * Restated here for the same reason the schema above is: only the message is
+ * wanted, and taking it must not turn glib into a build dependency. The layout
+ * has been fixed since GLib 2.0 and is identical on 32- and 64-bit, since the
+ * two leading 32-bit fields always pack ahead of a pointer.
+ */
+struct GFGError {
+  quint32 domain;
+  int code;
+  char* message;
+};
+
+static_assert(offsetof(GFGError, message) == 8,
+              "GError layout must match glib's");
+
 // These must be declared variadic rather than with the trailing attribute
 // arguments spelled out. On the x86-64 SysV ABI a variadic callee reads AL for
 // the number of vector registers in use; calling one through a fixed-arity
 // pointer leaves AL unset, which is undefined behaviour.
 using StoreSyncFn = int (*)(const GFSecretSchema*, const char* collection,
                             const char* label, const char* password,
-                            void* cancellable, void** error, ...);
+                            void* cancellable, GFGError** error, ...);
 using LookupSyncFn = char* (*)(const GFSecretSchema*, void* cancellable,
-                               void** error, ...);
+                               GFGError** error, ...);
 using ClearSyncFn = int (*)(const GFSecretSchema*, void* cancellable,
-                            void** error, ...);
+                            GFGError** error, ...);
 using PasswordFreeFn = void (*)(char*);
+using ErrorFreeFn = void (*)(GFGError*);
 
-/// SONAME reported to the user. QLibrary builds the same name from ("libsecret-1", 0).
+/// SONAME reported to the user. QLibrary builds the same name from
+/// ("libsecret-1", 0).
 constexpr auto kLibSecretSoname = "libsecret-1.so.0";
 
 struct LibSecret {
@@ -122,6 +141,7 @@ struct LibSecret {
   ClearSyncFn clear = nullptr;
   PasswordFreeFn free_password = nullptr;
   PasswordFreeFn wipe_password = nullptr;
+  ErrorFreeFn free_error = nullptr;
 
   /// Why the library is unusable. Empty once it loaded.
   QString error;
@@ -129,6 +149,30 @@ struct LibSecret {
   [[nodiscard]] auto Loaded() const -> bool {
     return store != nullptr && lookup != nullptr && clear != nullptr &&
            free_password != nullptr;
+  }
+
+  /**
+   * @brief Consume a GError, returning its message.
+   *
+   * Every libsecret call here reports failure as a bare false or NULL, which
+   * cannot distinguish a locked keyring from an absent daemon from a rejected
+   * write. The message is the only thing that can, so it is always collected
+   * rather than passed as NULL and discarded.
+   *
+   * @param error error to consume; may be null, in which case nothing is done
+   * @return the message, or empty when there was no error or no message
+   */
+  [[nodiscard]] auto TakeError(GFGError* error) const -> QString {
+    if (error == nullptr) return {};
+
+    QString message = QString::fromUtf8(error->message);
+
+    // g_error_free lives in glib, which libsecret pulls in: dlsym searches a
+    // handle's dependencies, so it resolves without loading glib separately.
+    // Should that ever fail, leaking one struct beats freeing it wrongly.
+    if (free_error != nullptr) free_error(error);
+
+    return message;
   }
 
   /// Release a string libsecret allocated, wiping it when possible.
@@ -172,12 +216,15 @@ auto ResolveLibSecret() -> const LibSecret& {
         library.resolve("secret_password_free"));
     out.wipe_password = reinterpret_cast<PasswordFreeFn>(
         library.resolve("secret_password_wipe"));
+    out.free_error =
+        reinterpret_cast<ErrorFreeFn>(library.resolve("g_error_free"));
 
     if (!out.Loaded()) {
       LibSecret failed;
       failed.error =
-          QStringLiteral("%1 loaded from %2 but its symbols could not be "
-                         "resolved")
+          QStringLiteral(
+              "%1 loaded from %2 but its symbols could not be "
+              "resolved")
               .arg(QLatin1String(kLibSecretSoname), library.fileName());
       qWarning().noquote() << failed.error;
       return failed;
@@ -215,9 +262,14 @@ class LinuxSecretStore final : public SystemSecretStore {
     if (!lib.Loaded()) return {};
 
     const auto account_utf8 = account.toUtf8();
-    char* raw = lib.lookup(&g_schema, nullptr, nullptr, "service",
-                           SystemSecretService(), "account",
-                           account_utf8.constData(), nullptr);
+    GFGError* error = nullptr;
+    char* raw =
+        lib.lookup(&g_schema, nullptr, &error, "service", SystemSecretService(),
+                   "account", account_utf8.constData(), nullptr);
+    last_error_ = lib.TakeError(error);
+
+    // A missing entry is not a failure and leaves the error unset, so only a
+    // populated message means something actually went wrong.
     if (raw == nullptr) return {};
 
     auto decoded = GFBufferFactory::FromBase64(GFBuffer(QByteArray(raw)));
@@ -243,10 +295,12 @@ class LinuxSecretStore final : public SystemSecretStore {
     const auto account_utf8 = account.toUtf8();
     const auto label = QStringLiteral("GpgFrontend: %1").arg(account).toUtf8();
 
+    GFGError* error = nullptr;
     const int ok = lib.store(&g_schema, nullptr, label.constData(),
-                             encoded_bytes.constData(), nullptr, nullptr,
+                             encoded_bytes.constData(), nullptr, &error,
                              "service", SystemSecretService(), "account",
                              account_utf8.constData(), nullptr);
+    last_error_ = lib.TakeError(error);
 
     encoded_bytes.fill('\0');
     return ok != 0;
@@ -257,13 +311,23 @@ class LinuxSecretStore final : public SystemSecretStore {
     if (!lib.Loaded()) return false;
 
     const auto account_utf8 = account.toUtf8();
-    lib.clear(&g_schema, nullptr, nullptr, "service", SystemSecretService(),
+    GFGError* error = nullptr;
+    lib.clear(&g_schema, nullptr, &error, "service", SystemSecretService(),
               "account", account_utf8.constData(), nullptr);
+    last_error_ = lib.TakeError(error);
 
     // clear_sync reports false when there was nothing to remove, which is the
     // state the caller wanted either way.
     return true;
   }
+
+  [[nodiscard]] auto LastError() const -> QString override {
+    return last_error_;
+  }
+
+ private:
+  /// Message from the most recent call, empty when it did not fail.
+  QString last_error_;
 };
 
 }  // namespace

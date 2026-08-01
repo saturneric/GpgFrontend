@@ -1210,4 +1210,52 @@ TEST(AppSecureKeyWrapTest, InstalledBackendRoundTrip) {
   EXPECT_FALSE(store->Read(account).has_value());
 }
 
+/**
+ * @brief Covers why no store is installed, not what an installed one does.
+ *
+ * These replace the process-global backend, so they are declared after
+ * InstalledBackendRoundTrip above, which needs the real one. TearDown leaves a
+ * defined empty state rather than the original: the platform backends are
+ * compiled into the application target, so a test linked against gf_core has no
+ * way to reinstall one.
+ */
+class SystemSecretStoreReasonTest : public ::testing::Test {
+ protected:
+  void TearDown() override { RegisterSystemSecretStoreUnavailable({}); }
+};
+
+TEST_F(SystemSecretStoreReasonTest, ReasonIsRetrievableWhenNoStoreInstalled) {
+  const QString reason =
+      "libsecret-1.so.0 could not be loaded: cannot open shared object file";
+  RegisterSystemSecretStoreUnavailable(reason);
+
+  EXPECT_EQ(GetSystemSecretStore(), nullptr);
+  EXPECT_EQ(SystemSecretStoreUnavailableReason(), reason);
+}
+
+TEST_F(SystemSecretStoreReasonTest, InstallingAStoreClearsTheReason) {
+  RegisterSystemSecretStoreUnavailable("libsecret-1.so.0 could not be loaded");
+  RegisterSystemSecretStore(std::make_unique<FakeSecretStore>());
+
+  // A stale explanation shown next to a working store is worse than none.
+  ASSERT_NE(GetSystemSecretStore(), nullptr);
+  EXPECT_TRUE(SystemSecretStoreUnavailableReason().isEmpty());
+}
+
+TEST_F(SystemSecretStoreReasonTest, PlainNullRegistrationReportsNoReason) {
+  RegisterSystemSecretStoreUnavailable("libsecret-1.so.0 could not be loaded");
+  RegisterSystemSecretStore(nullptr);
+
+  EXPECT_EQ(GetSystemSecretStore(), nullptr);
+  EXPECT_TRUE(SystemSecretStoreUnavailableReason().isEmpty());
+}
+
+TEST_F(SystemSecretStoreReasonTest, BackendWithNothingToAddReportsNoLastError) {
+  FakeSecretStore store;
+
+  // The default keeps backends that get no message from the platform, and the
+  // test doubles, from having to implement LastError at all.
+  EXPECT_TRUE(store.LastError().isEmpty());
+}
+
 }  // namespace GpgFrontend::Test

@@ -540,11 +540,13 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
 
   // Untranslated, and selectable through CreateValueLabel, so it can be pasted
   // into a bug report exactly as the loader produced it.
-  const auto secret_store_detail = SystemSecretStoreUnavailableReason();
+  auto secret_store_detail = SystemSecretStoreUnavailableReason();
+  if (secret_store_detail.isEmpty() && secret_store != nullptr) {
+    secret_store_detail = secret_store->LastError();
+  }
   if (!secret_store_detail.isEmpty()) {
-    status_form->addRow(
-        tr("Credential Store Detail:"),
-        CreateValueLabel(secret_store_detail, status_widget));
+    status_form->addRow(tr("Credential Store Detail:"),
+                        CreateValueLabel(secret_store_detail, status_widget));
   }
 
   status_form->addRow(tr("Running Mode:"),

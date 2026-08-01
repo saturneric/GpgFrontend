@@ -266,9 +266,14 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
                        "GNOME Keyring or KWallet, and it must be unlocked."),
                 QMessageBox::Ok, this);
 
-            // Only set when no backend loaded at all. A backend that loaded but
-            // failed to probe has nothing to add here beyond the prose above.
-            const auto detail = SystemSecretStoreUnavailableReason();
+            // Two different failures reach this point: no backend loaded at
+            // all, or one that loaded and then refused the probe. The second is
+            // the more confusing of the two -- the menu item was enabled -- so
+            // it is the one that most needs the platform's own message.
+            auto detail = SystemSecretStoreUnavailableReason();
+            if (detail.isEmpty() && store != nullptr) {
+              detail = store->LastError();
+            }
             if (!detail.isEmpty()) box.setDetailedText(detail);
 
             box.exec();
