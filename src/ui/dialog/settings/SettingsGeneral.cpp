@@ -37,6 +37,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui_GeneralSettings.h"
 
 namespace GpgFrontend::UI {
@@ -94,9 +95,16 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->asciiModeCheckBox->setText(tr("Use Binary Mode for File Operations"));
 
   ui_->langBox->setTitle(tr("Language"));
+
+  // Without wrapping, this note is laid out on a single line and drags the
+  // whole settings page wider than the dialog, which stretches every control
+  // on it -- the language box above most of all.
+  ui_->langNoteLabel->setWordWrap(true);
   ui_->langNoteLabel->setText(
       "<b>" + tr("NOTE") + tr(": ") + "</b>" +
-      tr("GpgFrontend will restart automatically if you change the language!"));
+      tr("System Default follows your operating system. Choose a language "
+         "here to override it. GpgFrontend restarts automatically when you "
+         "change it."));
 
   ui_->dataBox->setTitle(tr("Data"));
   ui_->clearAllDataObjectsButton->setText(
@@ -118,10 +126,6 @@ GeneralTab::GeneralTab(QWidget* parent)
 
   ui_->revealInFileExplorerButton->setText(tr("Reveal in File Explorer"));
 
-  lang_ = SettingsDialog::ListLanguages();
-  for (const auto& l : lang_) {
-    ui_->langSelectBox->addItem(l);
-  }
   connect(ui_->langSelectBox, qOverload<int>(&QComboBox::currentIndexChanged),
           this, &GeneralTab::SignalRestartNeeded);
 
@@ -228,14 +232,13 @@ void GeneralTab::SetSettings() {
     ui_->asciiModeCheckBox->setCheckState(Qt::Checked);
   }
 
-  auto lang_key = settings.value("basic/lang").toString();
-  auto lang_value = lang_.value(lang_key);
-  if (!lang_.empty()) {
-    ui_->langSelectBox->setCurrentIndex(
-        ui_->langSelectBox->findText(lang_value));
-  } else {
-    ui_->langSelectBox->setCurrentIndex(0);
-  }
+  // Refilled rather than only reselected, so a revert cannot leave the box on a
+  // language the settings no longer hold. Safe on both paths: the first call
+  // comes from this tab's own constructor, before SettingsDialog connects
+  // SignalRestartNeeded, and a revert runs with restart declarations
+  // suppressed.
+  PopulateLanguageComboBox(ui_->langSelectBox,
+                           settings.value("basic/lang").toString());
 }
 
 void GeneralTab::ApplySettings() {
@@ -257,7 +260,7 @@ void GeneralTab::ApplySettings() {
                     ui_->rememberCheckedKeysCheckBox->isChecked());
   settings.setValue("keys/expiring_soon_days",
                     ui_->expiringSoonDaysSpinBox->value());
-  settings.setValue("basic/lang", lang_.key(ui_->langSelectBox->currentText()));
+  settings.setValue("basic/lang", ui_->langSelectBox->currentData().toString());
   settings.setValue("basic/module_loading_policy",
                     ui_->modulePolicyComboBox->currentData().toString());
   settings.setValue("gnupg/non_ascii_at_file_operation",

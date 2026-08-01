@@ -81,7 +81,6 @@ class GeneralTab : public QWidget {
 
  private:
   QSharedPointer<Ui_GeneralSettings> ui_;  ///<
-  QHash<QString, QString> lang_;           ///<
   QStringList key_ids_list_;               ///<
   KeyList* m_key_list_{};                  ///<
 };

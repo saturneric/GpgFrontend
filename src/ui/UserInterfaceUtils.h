@@ -212,6 +212,21 @@ auto GF_UI_EXPORT ResolveAppearanceFont(const QString& family, int point_size)
     -> QFont;
 
 /**
+ * @brief Fill @p box with the interface languages the build ships.
+ *
+ * "System Default" is pinned at index 0 and carries an empty key, the rest
+ * follow sorted by their native name. Every entry keeps its locale key as item
+ * data, so callers read the choice back with currentData() instead of matching
+ * on the display text.
+ *
+ * @param box combo box to fill, cleared first
+ * @param current_lang locale key to preselect, empty or unknown selects the
+ *                     system default
+ */
+void GF_UI_EXPORT PopulateLanguageComboBox(QComboBox* box,
+                                           const QString& current_lang);
+
+/**
  * @brief
  *
  */

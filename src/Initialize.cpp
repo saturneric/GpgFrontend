@@ -219,9 +219,18 @@ void InitLocale() {
       lang.trimmed().isEmpty() ? QLocale::system() : QLocale(lang);
   qInfo() << "application's target locale: " << target_locale.name();
 
-  // initialize locale environment
-  qDebug("locale info: %s",
-         setlocale(LC_CTYPE, target_locale.amText().toUtf8()));
+  // Initialize the locale environment. Only LC_CTYPE is touched: the C library
+  // needs a UTF-8 character classification for the paths that still go through
+  // it, while everything the user sees is formatted by Qt from the default
+  // QLocale set below. Asking for the target locale first and falling back to
+  // plain UTF-8 keeps this working on systems where that locale was never
+  // generated -- which is most of them.
+  const auto c_locale = target_locale.name().replace('-', '_') + ".UTF-8";
+  const auto *applied = setlocale(LC_CTYPE, c_locale.toUtf8().constData());
+  if (applied == nullptr) applied = setlocale(LC_CTYPE, "C.UTF-8");
+  if (applied == nullptr) applied = setlocale(LC_CTYPE, "");
+  qDebug("locale info: %s", applied != nullptr ? applied : "<unset>");
+
   QLocale::setDefault(target_locale);
 }
 

@@ -56,6 +56,13 @@ class AppearanceTab : public QWidget {
   void ApplySettings();
 
  private:
+  /**
+   * @brief Narrow both font combos to monospaced families, or open them up.
+   *
+   * @param show_all_fonts true to also offer proportional families
+   */
+  void apply_font_filters(bool show_all_fonts);
+
   QSharedPointer<Ui_AppearanceSettings> ui_;  ///<
 
   QButtonGroup* icon_style_group_;  ///<

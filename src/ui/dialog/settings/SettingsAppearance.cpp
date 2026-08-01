@@ -101,27 +101,20 @@ AppearanceTab::AppearanceTab(QWidget* parent)
 
   ui_->showAllFontsCheckBox->setText(tr("Show all fonts"));
   ui_->showAllFontsCheckBox->setToolTip(
-      tr("Also offer proportional fonts. The editor lines up best with a "
-         "monospaced one."));
+      tr("Also offer proportional fonts for both surfaces below. They line up "
+         "best with a monospaced one, but scripts such as Arabic are only "
+         "shaped correctly by a font that covers them."));
 
   ui_->fontSizeBox->setTitle(tr("Status Panel"));
   ui_->infoBoardFontLabel->setText(tr("Font Family"));
   ui_->fontSizeInformationBoardLabel->setText(tr("Font Size"));
 
-  // Only the editor may leave the monospaced set; the status panel prints
-  // aligned operation output, which a proportional font breaks up.
-  ui_->infoBoardFontComboBox->setFontFilters(QFontComboBox::MonospacedFonts);
-  connect(
-      ui_->showAllFontsCheckBox, &QCheckBox::toggled, this,
-      [this](bool checked) {
-        // Reapplying the family afterwards: narrowing the filter drops the
-        // current entry from the list, and the combo would otherwise
-        // silently settle on whatever is left.
-        const auto current = ui_->textEditorFontComboBox->currentFont();
-        ui_->textEditorFontComboBox->setFontFilters(
-            checked ? QFontComboBox::AllFonts : QFontComboBox::MonospacedFonts);
-        ui_->textEditorFontComboBox->setCurrentFont(current);
-      });
+  // Both surfaces default to the monospaced set, which keeps the aligned
+  // operation output of the status panel intact. It is only a default: a
+  // monospaced family that covers the user's script may not exist at all, so
+  // the checkbox widens both combos rather than the editor's alone.
+  connect(ui_->showAllFontsCheckBox, &QCheckBox::toggled, this,
+          [this](bool checked) { apply_font_filters(checked); });
 
   icon_size_group_ = new QButtonGroup(this);
   icon_size_group_->addButton(ui_->smallRadioButton, 1);
@@ -137,6 +130,20 @@ AppearanceTab::AppearanceTab(QWidget* parent)
 
   connect(ui_->themeComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
           this, &AppearanceTab::SignalRestartNeeded);
+}
+
+void AppearanceTab::apply_font_filters(bool show_all_fonts) {
+  const auto filters =
+      show_all_fonts ? QFontComboBox::AllFonts : QFontComboBox::MonospacedFonts;
+
+  // Reapplying each family afterwards: narrowing the filter drops the current
+  // entry from the list, and the combo would otherwise silently settle on
+  // whatever is left.
+  for (auto* box : {ui_->textEditorFontComboBox, ui_->infoBoardFontComboBox}) {
+    const auto current = box->currentFont();
+    box->setFontFilters(filters);
+    box->setCurrentFont(current);
+  }
 }
 
 void AppearanceTab::SetSettings() {
@@ -179,20 +186,25 @@ void AppearanceTab::SetSettings() {
     info_board_info_font_size = 10;
   }
   ui_->fontSizeInformationBoardSpinBox->setValue(info_board_info_font_size);
-  ui_->infoBoardFontComboBox->setCurrentFont(
-      FamilyOrSystemDefault(appearance.info_board_font_family));
 
   // A family the user picked while "show all fonts" was on is not in the
   // monospaced list, so the filter has to be widened before it can be
   // selected — otherwise the combo lands on something else and the next OK
-  // would quietly overwrite their choice.
+  // would quietly overwrite their choice. Either surface having a proportional
+  // family is enough, since one checkbox governs both.
+  const auto info_board_font =
+      FamilyOrSystemDefault(appearance.info_board_font_family);
   const auto text_editor_font =
       FamilyOrSystemDefault(appearance.text_editor_font_family);
-  ui_->showAllFontsCheckBox->setChecked(
-      !QFontDatabase::isFixedPitch(text_editor_font.family()));
-  ui_->textEditorFontComboBox->setFontFilters(
-      ui_->showAllFontsCheckBox->isChecked() ? QFontComboBox::AllFonts
-                                             : QFontComboBox::MonospacedFonts);
+
+  const auto show_all_fonts =
+      !QFontDatabase::isFixedPitch(text_editor_font.family()) ||
+      !QFontDatabase::isFixedPitch(info_board_font.family());
+
+  ui_->showAllFontsCheckBox->setChecked(show_all_fonts);
+  apply_font_filters(show_all_fonts);
+
+  ui_->infoBoardFontComboBox->setCurrentFont(info_board_font);
   ui_->textEditorFontComboBox->setCurrentFont(text_editor_font);
 
   auto text_editor_info_font_size = appearance.text_editor_font_size;

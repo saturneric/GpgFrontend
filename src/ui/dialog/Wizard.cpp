@@ -35,13 +35,12 @@
 #include <QMetaEnum>
 #include <QPixmap>
 #include <QVBoxLayout>
-#include <algorithm>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/GpgFrontendUIInit.h"
-#include "ui/dialog/settings/SettingsDialog.h"
+#include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
 namespace {
@@ -357,35 +356,9 @@ IntroPage::IntroPage(QWidget* parent) : WizardPage(parent) {
 }
 
 void IntroPage::populate_languages() {
-  const auto languages = SettingsDialog::ListLanguages();
-
-  // ListLanguages() hands back a QHash, whose iteration order is not stable.
-  // Sort by the native language name and pin the system default to the top, so
-  // the box reads the same way every time it is opened.
-  QContainer<QPair<QString, QString>> entries;
-  for (auto it = languages.constBegin(); it != languages.constEnd(); ++it) {
-    if (it.key().isEmpty()) continue;
-    entries.append({it.key(), it.value()});
-  }
-
-  std::sort(
-      entries.begin(), entries.end(),
-      [](const QPair<QString, QString>& a, const QPair<QString, QString>& b) {
-        return a.second.localeAwareCompare(b.second) < 0;
-      });
-
-  lang_select_box_->addItem(tr("System Default"), QString());
-  for (const auto& entry : entries) {
-    lang_select_box_->addItem(entry.second, entry.first);
-  }
-
-  // Matched on the stored locale key rather than on the display text, so a
-  // stale or unknown basic/lang falls back to the system default instead of
-  // leaving the box with nothing selected at all.
-  const auto lang =
-      GetSettings().value(QStringLiteral("basic/lang")).toString();
-  const auto index = lang_select_box_->findData(lang);
-  lang_select_box_->setCurrentIndex(index >= 0 ? index : 0);
+  PopulateLanguageComboBox(
+      lang_select_box_,
+      GetSettings().value(QStringLiteral("basic/lang")).toString());
 
   applied_lang_ = lang_select_box_->currentData().toString();
 }

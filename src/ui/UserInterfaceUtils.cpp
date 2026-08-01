@@ -52,6 +52,7 @@
 #include "ui/dialog/WaitingDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
+#include "ui/dialog/settings/SettingsDialog.h"
 
 namespace GpgFrontend::UI {
 
@@ -809,9 +810,51 @@ auto ResolveAppearanceFont(const QString &family, int point_size) -> QFont {
                   [&family](const QString &item) {
                     return item.compare(family, Qt::CaseInsensitive) == 0;
                   });
-  if (installed) font.setFamily(family);
+  if (installed) {
+    // The family the user picked wins over the fallback, and so do its own
+    // metrics: asking for a proportional family while still requesting fixed
+    // pitch lets Qt substitute something else entirely, which is how a chosen
+    // script-specific font ends up rendered in the wrong one.
+    const auto fixed_pitch = QFontDatabase::isFixedPitch(family);
+    font.setFamily(family);
+    font.setStyleHint(fixed_pitch ? QFont::Monospace : QFont::AnyStyle);
+    font.setFixedPitch(fixed_pitch);
+  }
 
   font.setPointSize(point_size);
   return font;
+}
+
+void PopulateLanguageComboBox(QComboBox *box, const QString &current_lang) {
+  const auto languages = SettingsDialog::ListLanguages();
+
+  // ListLanguages() hands back a QHash, whose iteration order is not stable.
+  // Sort by the native language name and pin the system default to the top, so
+  // the box reads the same way every time it is opened.
+  QContainer<QPair<QString, QString>> entries;
+  for (auto it = languages.constBegin(); it != languages.constEnd(); ++it) {
+    if (it.key().isEmpty()) continue;
+    entries.append({it.key(), it.value()});
+  }
+
+  std::sort(
+      entries.begin(), entries.end(),
+      [](const QPair<QString, QString> &a, const QPair<QString, QString> &b) {
+        return a.second.localeAwareCompare(b.second) < 0;
+      });
+
+  // ListLanguages() already carries the translated label for the empty key, so
+  // the system default entry needs no string of its own here.
+  box->clear();
+  box->addItem(languages.value(QString()), QString());
+  for (const auto &entry : entries) {
+    box->addItem(entry.second, entry.first);
+  }
+
+  // Matched on the stored locale key rather than on the display text, so a
+  // stale or unknown setting falls back to the system default instead of
+  // leaving the box with nothing selected at all.
+  const auto index = box->findData(current_lang);
+  box->setCurrentIndex(index >= 0 ? index : 0);
 }
 }  // namespace GpgFrontend::UI
