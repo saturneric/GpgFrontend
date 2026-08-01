@@ -88,6 +88,12 @@ auto MakeQuery(const QString& account) -> CFMutableDictionaryRef {
 
 /**
  * @brief Keychain backend built on the Security framework.
+ *
+ * These calls target the legacy file-based keychain, not the data-protection
+ * one: the Developer ID build carries no application-identifier entitlement, so
+ * kSecUseDataProtectionKeychain would fail there with errSecMissingEntitlement.
+ * The item therefore lives in the login keychain, guarded by an ACL bound to
+ * this app's signature rather than by an access group.
  */
 class MacSecretStore final : public SystemSecretStore {
  public:
@@ -96,8 +102,8 @@ class MacSecretStore final : public SystemSecretStore {
   }
 
   [[nodiscard]] auto IsAvailable() -> bool override {
-    // Sandboxed builds need a keychain-access-groups entitlement; without it
-    // every call fails, and the round trip is what surfaces that.
+    // A locked or missing login keychain fails every call, and the round trip
+    // is what surfaces that.
     static const bool available = ProbeSystemSecretStore(*this);
     return available;
   }
@@ -128,9 +134,8 @@ class MacSecretStore final : public SystemSecretStore {
         static_cast<CFIndex>(secret.Size())));
     if (!data) return false;
 
-    // Stays on this device and survives a reboot before the user logs in.
-    CFDictionarySetValue(query.Get(), kSecAttrAccessible,
-                         kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly);
+    // No kSecAttrAccessible here: the legacy keychain ignores it, so the item
+    // simply follows the login keychain's lock state.
     CFDictionarySetValue(query.Get(), kSecValueData, data.Get());
 
     auto status = SecItemAdd(query.Get(), nullptr);
