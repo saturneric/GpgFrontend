@@ -46,7 +46,9 @@ auto Registration(const QString& id) -> UI::SettingsPageRegistration {
   registration.id = id;
   registration.section_id = "keys_engines";
   registration.title = "Key Servers";
-  registration.keywords = {"keyserver", "hkp"};
+  // Spelled out: on Qt 5 QStringList derives from QList<QString>, so a bare
+  // braced list makes the two inherited operator= overloads ambiguous.
+  registration.keywords = QStringList{"keyserver", "hkp"};
   registration.factory = NullFactory;
   return registration;
 }
