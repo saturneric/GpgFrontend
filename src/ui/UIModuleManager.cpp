@@ -156,9 +156,15 @@ auto UIModuleManager::RegisterSettingsPage(const SettingsPageRegistration& reg)
 
 auto UIModuleManager::UnregisterSettingsPage(const QString& id) -> bool {
   if (id.isEmpty()) return false;
-  return settings_pages_.removeIf([&id](const SettingsPageRegistration& p) {
-    return p.id == id;
-  }) > 0;
+  // Not QList::removeIf(): that arrived in Qt 6.1 and this has to build against
+  // Qt 5 as well.
+  const auto before = settings_pages_.size();
+  settings_pages_.erase(
+      std::remove_if(
+          settings_pages_.begin(), settings_pages_.end(),
+          [&id](const SettingsPageRegistration& p) { return p.id == id; }),
+      settings_pages_.end());
+  return settings_pages_.size() != before;
 }
 
 auto UIModuleManager::ListSettingsPages() const

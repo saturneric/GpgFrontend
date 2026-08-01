@@ -35,6 +35,7 @@
 
 #include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SystemSecretStore.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/RustUtils.h"
@@ -525,6 +526,27 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
                       CreateValueLabel(secure_level_str, status_widget));
   status_form->addRow(tr("Application Key Protection:"),
                       CreateValueLabel(app_key_protection_str, status_widget));
+
+  // Reported whether or not it is in use: when "System keychain" is greyed out
+  // in the settings, this is the only place that says why. Read from the
+  // registry rather than probed -- opening About must never raise a keyring
+  // unlock prompt.
+  auto* secret_store = GetSystemSecretStore();
+  status_form->addRow(
+      tr("System Credential Store:"),
+      CreateValueLabel(
+          secret_store != nullptr ? secret_store->Name() : tr("Unavailable"),
+          status_widget));
+
+  // Untranslated, and selectable through CreateValueLabel, so it can be pasted
+  // into a bug report exactly as the loader produced it.
+  const auto secret_store_detail = SystemSecretStoreUnavailableReason();
+  if (!secret_store_detail.isEmpty()) {
+    status_form->addRow(
+        tr("Credential Store Detail:"),
+        CreateValueLabel(secret_store_detail, status_widget));
+  }
+
   status_form->addRow(tr("Running Mode:"),
                       CreateValueLabel(portable_mode_str, status_widget));
   // A build without build-time signatures can never run the check, so reporting

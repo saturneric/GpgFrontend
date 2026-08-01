@@ -59,11 +59,17 @@ constexpr int kMaxRingCapacity = 65536;
  * never have to carry it, and the text is escaped in case a translation
  * contains characters that would otherwise be read as markup.
  *
+ * Line breaks are translated to markup as well, since rich text would collapse
+ * them into single spaces and run separate paragraphs together. Escaping has to
+ * happen first, or the breaks inserted here would themselves be escaped.
+ *
  * @param text plain tooltip text
  * @return rich-text tooltip that wraps
  */
 auto WrappingToolTip(const QString& text) -> QString {
-  return QStringLiteral("<p>%1</p>").arg(text.toHtmlEscaped());
+  return QStringLiteral("<p>%1</p>")
+      .arg(text.toHtmlEscaped().replace(QLatin1Char('\n'),
+                                        QLatin1String("<br/>")));
 }
 
 /**
@@ -251,13 +257,21 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
             auto* store = GetSystemSecretStore();
             if (store != nullptr && store->IsAvailable()) return;
 
-            QMessageBox::warning(
-                this, tr("System Keychain Unavailable"),
+            QMessageBox box(
+                QMessageBox::Warning, tr("System Keychain Unavailable"),
                 tr("The system credential store could not be used, so the "
                    "application key cannot be protected with it.") +
                     "\n" +
                     tr("On Linux this needs a running secret service, such as "
-                       "GNOME Keyring or KWallet, and it must be unlocked."));
+                       "GNOME Keyring or KWallet, and it must be unlocked."),
+                QMessageBox::Ok, this);
+
+            // Only set when no backend loaded at all. A backend that loaded but
+            // failed to probe has nothing to add here beyond the prose above.
+            const auto detail = SystemSecretStoreUnavailableReason();
+            if (!detail.isEmpty()) box.setDetailedText(detail);
+
+            box.exec();
 
             const auto none = protection_combo_->findData(
                 AppKeyProtectionToString(AppKeyProtection::kNONE));
@@ -386,10 +400,19 @@ void AdvancedTab::configure_protection_items() {
     // A null check only, never IsAvailable(): probing writes to the store and
     // can raise an unlock prompt, which merely opening this dialog must not do.
     // A store that exists but is locked is caught when the user selects it.
-    set_item(AppKeyProtection::kKEYCHAIN, false,
-             tr("No system credential store is available on this computer. On "
-                "Linux this needs a running secret service, such as GNOME "
-                "Keyring or KWallet."));
+    auto reason =
+        tr("No system credential store is available on this computer. On "
+           "Linux this needs a running secret service, such as GNOME "
+           "Keyring or KWallet, and the libsecret client library "
+           "(libsecret-1-0 on Debian and Ubuntu, libsecret on Fedora).");
+
+    // The technical detail says which of those is actually missing. It is not
+    // translated: it is a library name and the loader's own message, and it is
+    // meant to be read back verbatim in a bug report.
+    const auto detail = SystemSecretStoreUnavailableReason();
+    if (!detail.isEmpty()) reason += "\n\n" + detail;
+
+    set_item(AppKeyProtection::kKEYCHAIN, false, reason);
   } else {
     set_item(AppKeyProtection::kKEYCHAIN, true, {});
   }

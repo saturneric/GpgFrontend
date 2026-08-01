@@ -31,6 +31,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/utils/MemoryUtils.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_AppearanceSettings.h"
 
@@ -198,8 +199,8 @@ void AppearanceTab::SetSettings() {
       FamilyOrSystemDefault(appearance.text_editor_font_family);
 
   const auto show_all_fonts =
-      !QFontDatabase::isFixedPitch(text_editor_font.family()) ||
-      !QFontDatabase::isFixedPitch(info_board_font.family());
+      !IsFixedPitchFontFamily(text_editor_font.family()) ||
+      !IsFixedPitchFontFamily(info_board_font.family());
 
   ui_->showAllFontsCheckBox->setChecked(show_all_fonts);
   apply_font_filters(show_all_fonts);

@@ -212,6 +212,17 @@ auto GF_UI_EXPORT ResolveAppearanceFont(const QString& family, int point_size)
     -> QFont;
 
 /**
+ * @brief Whether @p family is a monospaced family.
+ *
+ * Wraps the version split in QFontDatabase: Qt 6 made its query functions
+ * static, while on Qt 5 they are members that need an instance.
+ *
+ * @param family family name to query
+ * @return true when the family is fixed pitch
+ */
+auto GF_UI_EXPORT IsFixedPitchFontFamily(const QString& family) -> bool;
+
+/**
  * @brief Fill @p box with the interface languages the build ships.
  *
  * "System Default" is pinned at index 0 and carries an empty key, the rest
