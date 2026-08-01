@@ -93,6 +93,8 @@ auto GetAppProfileName() -> QString { return {APP_PROFILE_NAME}; }
 
 auto IsStableBuild() -> bool { return APP_BUILD_STABLE != 0; }
 
+auto IsSelfCheckAvailable() -> bool { return IsStableBuild(); }
+
 auto GetAppProfileSchemaVersion() -> int { return APP_PROFILE_SCHEMA_VERSION; }
 
 auto GetSodiumVersion() -> QString {

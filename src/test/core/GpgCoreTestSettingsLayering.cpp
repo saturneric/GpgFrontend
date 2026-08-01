@@ -104,6 +104,37 @@ TEST(SettingsLayeringTest, IniStringBooleansConvertCorrectly) {
             static_cast<int>(GFLogLevel::kCRITICAL));
 }
 
+// The startup self-check compares the shipped files against signatures that are
+// only made when an official stable release is built. A nightly has none, so
+// the build flavour overrules every settings layer: whatever ENV.ini or the
+// user's stored value asks for, the check stays off there.
+
+TEST(SettingsLayeringTest, SelfCheckAvailabilityFollowsBuildFlavour) {
+  EXPECT_EQ(IsSelfCheckAvailable(), IsStableBuild());
+}
+
+TEST(SettingsLayeringTest, SelfCheckIsForcedOffOnNonStableBuilds) {
+  // Exactly the composition GpgFrontendContext applies: resolve across the
+  // layers first, then let the build flavour have the last word.
+  const auto effective = [](const QVariant& env, const QVariant& user) {
+    return IsSelfCheckAvailable() &&
+           ResolveLayeredValue(env, user, false).toBool();
+  };
+
+  if (IsStableBuild()) {
+    EXPECT_TRUE(effective(QVariant(), QVariant(true)));
+    EXPECT_TRUE(effective(QVariant(true), QVariant(false)));
+  } else {
+    EXPECT_FALSE(effective(QVariant(), QVariant(true)));
+    EXPECT_FALSE(effective(QVariant(true), QVariant(false)));
+  }
+
+  // An explicit "off" is off on every build, whichever layer says so.
+  EXPECT_FALSE(effective(QVariant(false), QVariant(true)));
+  EXPECT_FALSE(effective(QVariant(), QVariant(false)));
+  EXPECT_FALSE(effective(QVariant(), QVariant()));
+}
+
 // How the application key file is protected at rest used to be spread across
 // two settings keys: advanced/os_secret_store for the system keychain, and
 // advanced/secure_level >= 3 for a PIN. Both now resolve into a single

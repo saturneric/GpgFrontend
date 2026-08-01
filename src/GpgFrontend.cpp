@@ -519,8 +519,13 @@ auto main(int argc, char* argv[]) -> int {
   }
   parser.process(parser_args);
 
+  // The --self-check flag is gated on the build flavour just like the setting
+  // is: without build-time signatures to compare against there is nothing the
+  // check could confirm, so honouring the flag on a nightly would only refuse
+  // to start a perfectly good build.
   const auto self_check = app->property("GFSelfCheck").toBool();
-  if ((self_check || parser.isSet("self-check")) && !ValidateLibraries()) {
+  if (GpgFrontend::IsSelfCheckAvailable() &&
+      (self_check || parser.isSet("self-check")) && !ValidateLibraries()) {
     QMessageBox::critical(
         nullptr, QObject::tr("Program Self-Test Failed"),
         QObject::tr(

@@ -36,6 +36,7 @@
 #include "core/GFCoreLog.h"
 #include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/GpgFrontendApplication.h"
 
@@ -84,8 +85,13 @@ void GpgFrontendContext::load_env_conf_set_properties() {
     return ResolveLayeredValue(env_value, user.value(user_key), fallback);
   };
 
-  property("GFSelfCheck",
-           resolve("SelfCheck", "advanced/self_check", false).toBool());
+  // Resolve first, so an ENV.ini SelfCheck key still registers as pinned and
+  // the Advanced tab stays consistent, then let the build flavour have the last
+  // word: a nightly ships no build-time signatures, so a check asked for there
+  // could only ever fail and is forced off.
+  const auto self_check_requested =
+      resolve("SelfCheck", "advanced/self_check", false).toBool();
+  property("GFSelfCheck", IsSelfCheckAvailable() && self_check_requested);
   property("GFSecureLevel",
            resolve("SecureLevel", "advanced/secure_level", 0).toInt());
 

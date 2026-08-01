@@ -157,6 +157,19 @@ auto GF_CORE_EXPORT GetAppProfileName() -> QString;
 auto GF_CORE_EXPORT IsStableBuild() -> bool;
 
 /**
+ * @brief Return whether this build can verify its own libraries and binaries.
+ *
+ * The signatures the check compares against are only made when an official
+ * stable release is built, so on a nightly or a local build there is nothing to
+ * verify and the check could only ever fail. Callers use this to force the
+ * self-check off and to leave its control out of the interface entirely, rather
+ * than offering a switch that must stay off.
+ *
+ * @return true when the self-check is meaningful for this build
+ */
+auto GF_CORE_EXPORT IsSelfCheckAvailable() -> bool;
+
+/**
  * @brief Return the profile layout version this build understands.
  * @return schema version number
  */

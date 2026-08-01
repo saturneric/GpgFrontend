@@ -527,8 +527,13 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
                       CreateValueLabel(app_key_protection_str, status_widget));
   status_form->addRow(tr("Running Mode:"),
                       CreateValueLabel(portable_mode_str, status_widget));
-  status_form->addRow(tr("Self-Check Status:"),
-                      CreateValueLabel(self_check_str, status_widget));
+  // A build without build-time signatures can never run the check, so reporting
+  // it as "disabled" would only invite the user to look for a switch that this
+  // build does not have.
+  if (IsSelfCheckAvailable()) {
+    status_form->addRow(tr("Self-Check Status:"),
+                        CreateValueLabel(self_check_str, status_widget));
+  }
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     status_form->addRow(
         tr("GnuPG Offline Mode:"),
