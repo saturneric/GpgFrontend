@@ -106,6 +106,20 @@ class GF_CORE_EXPORT GpgKeyRepository
   auto GetKeyORSubkeyPtr(const QString& key_id) -> GpgAbstractKeyPtr;
 
   /**
+   * @brief Report the OpenPGP packet version of a key's primary key.
+   *
+   * Engines that parse key packets themselves (rPGP) answer from key
+   * metadata; GPGME exposes no version field, so under GnuPG the answer is
+   * derived from the fingerprint length and, when that is ambiguous, by
+   * exporting the key and parsing it with rPGP. The result is memoised until
+   * the next FlushKeyCache().
+   *
+   * @param fpr full fingerprint of the primary key
+   * @return 4, 5 (LibrePGP) or 6; 0 if the version cannot be determined
+   */
+  auto GetKeyVersion(const QString& fpr) -> int;
+
+  /**
    * @brief Return all GPG keys known to this channel.
    *
    * @return list of shared pointers to all GpgKey objects

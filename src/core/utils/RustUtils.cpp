@@ -133,11 +133,38 @@ auto KeyVersion2GfrKeyVersion(int version) -> Rust::GfrOpenPGPKeyVersion {
   switch (version) {
     case 4:
       return Rust::GfrOpenPGPKeyVersion::V4;
+    case 5:
+      return Rust::GfrOpenPGPKeyVersion::V5;
     case 6:
       return Rust::GfrOpenPGPKeyVersion::V6;
     default:
       return Rust::GfrOpenPGPKeyVersion::Unknown;
   }
+}
+
+auto DetectKeyVersionByRpgp(const GFBuffer& key_block) -> int {
+#ifndef HAS_RUST_SUPPORT
+  (void)key_block;
+  return 0;
+#else
+  if (key_block.Empty()) return 0;
+
+  auto ver = Rust::GfrOpenPGPKeyVersion::Unknown;
+  Rust::GfrBuffer buffer = {
+      reinterpret_cast<const uint8_t*>(key_block.Data()),
+      static_cast<uintptr_t>(key_block.Size()),
+  };
+
+  auto err = Rust::gfr_crypto_detect_key_version(buffer, &ver);
+  if (err != Rust::GfrStatus::Success) {
+    LOG_W() << "rust ffi detect_key_version failed: " << static_cast<int>(err);
+    return 0;
+  }
+
+  // the enum discriminants are the wire version octets, so this is the
+  // identity mapping; Unknown is 0, which is what callers read as "no answer".
+  return static_cast<int>(ver);
+#endif
 }
 
 auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoName(Rust::GfrKeyAlgo algo) -> QString {

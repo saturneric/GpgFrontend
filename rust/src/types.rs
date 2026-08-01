@@ -176,7 +176,12 @@ pub enum GfrOpenPGPKeyVersion {
     Unknown = 0,
     /// OpenPGP v4 key (RFC 4880).
     V4 = 4,
-    /// OpenPGP v6 key (draft-ietf-openpgp-crypto-refresh).
+    /// LibrePGP v5 key (LibrePGP §5.5.2), as produced by GnuPG 2.4's
+    /// `--gen-key --expert`. Recognised when parsing so such keys can be
+    /// reported accurately; the engine never generates one — `keygen` treats
+    /// anything that is not [`GfrOpenPGPKeyVersion::V6`] as v4.
+    V5 = 5,
+    /// OpenPGP v6 key (RFC 9580).
     V6 = 6,
 }
 
@@ -1010,22 +1015,26 @@ mod abi_tests {
 
     #[test]
     fn key_version_discriminants_match_the_wire_versions() {
-        // RFC 9580 §5.5.2: the version octet in a key packet is literally 4 or
-        // 6, and this enum stores that octet.
+        // RFC 9580 §5.5.2: the version octet in a key packet is literally 4, 5
+        // or 6, and this enum stores that octet.
         assert_eq!(GfrOpenPGPKeyVersion::Unknown as i32, 0);
         assert_eq!(GfrOpenPGPKeyVersion::V4 as i32, 4);
+        assert_eq!(GfrOpenPGPKeyVersion::V5 as i32, 5);
         assert_eq!(GfrOpenPGPKeyVersion::V6 as i32, 6);
     }
 
     #[test]
-    fn key_version_has_no_v3_or_v5_variant() {
-        // DEFERRED: RFC 9580 §5.5.2 also describes v3 keys (deprecated) and
-        // notes v5 is unspecified. The engine maps both to `Unknown` rather
-        // than rejecting them outright; see `key.rs::build_public_metadata`.
-        // This test documents that choice so a future change is deliberate.
+    fn key_version_has_no_v3_variant() {
+        // DEFERRED: RFC 9580 §5.5.2 also describes v2/v3 keys (deprecated).
+        // The engine maps them to `Unknown` rather than rejecting them
+        // outright; see `key.rs::build_public_metadata`. This test documents
+        // that choice so a future change is deliberate.
+        //
+        // v5 (LibrePGP) *is* modelled -- it is recognised on parse so GnuPG
+        // 2.4-generated v5 keys report accurately -- but it is never generated;
+        // `keygen` treats anything that is not V6 as v4.
         assert_eq!(GfrOpenPGPKeyVersion::Unknown as i32, 0);
         assert_ne!(GfrOpenPGPKeyVersion::V4 as i32, 3);
-        assert_ne!(GfrOpenPGPKeyVersion::V4 as i32, 5);
     }
 
     #[test]

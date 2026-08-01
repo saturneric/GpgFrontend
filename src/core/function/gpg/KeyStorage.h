@@ -45,6 +45,19 @@ auto GetKeyPtrGnuPGImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
     -> GpgKeyPtr;
 
 /**
+ * @brief Report the OpenPGP packet version of a key's primary key.
+ *
+ * GPGME exposes no version field, so this derives it: a v4 fingerprint is
+ * SHA-1 and a v5/v6 one is SHA-256, which settles v4 from the fingerprint
+ * alone; the remaining cases are exported and handed to the rPGP parser.
+ *
+ * @param ctx
+ * @param fpr full fingerprint of the primary key
+ * @return 4, 5 or 6; 0 if the version cannot be determined
+ */
+auto GetKeyVersionGnuPGImpl(OpenPGPContext& ctx, const QString& fpr) -> int;
+
+/**
  * @brief
  *
  * @param ctx

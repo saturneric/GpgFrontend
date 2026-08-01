@@ -35,16 +35,17 @@
 use crate::crypto::sniff_recipients;
 use crate::err::clear_last_error;
 use crate::key::{
-    delete_subkey_internal, extract_rev_cert_target_fpr_internal, generate_key_rev_cert_internal,
-    get_ecdh_kdf_params_internal, import_rev_cert_internal, merge_key_block_internal,
-    modify_key_password_internal, revoke_subkey_internal, update_key_expiration_internal,
+    delete_subkey_internal, detect_key_version_internal, extract_rev_cert_target_fpr_internal,
+    generate_key_rev_cert_internal, get_ecdh_kdf_params_internal, import_rev_cert_internal,
+    merge_key_block_internal, modify_key_password_internal, revoke_subkey_internal,
+    update_key_expiration_internal,
 };
 use crate::key::{
     export_merged_public_keys, export_merged_secret_keys, extract_public_key_internal,
 };
 use crate::types::{
-    GfrBuffer, GfrKeyMetadataC, GfrPasswordFetchCb, GfrRecipientResultC, GfrRevocationCode,
-    GfrStatus, GfrSubkeyMetadataC, GfrUserIdC,
+    GfrBuffer, GfrKeyMetadataC, GfrOpenPGPKeyVersion, GfrPasswordFetchCb, GfrRecipientResultC,
+    GfrRevocationCode, GfrStatus, GfrSubkeyMetadataC, GfrUserIdC,
 };
 use std::slice;
 use std::{
@@ -179,6 +180,41 @@ pub extern "C" fn gfr_crypto_extract_metadata(
 
     match result {
         Ok(Ok(_)) => GfrStatus::Success, // Replace with your actual success enum variant
+        Ok(Err(e)) => e,
+        Err(_) => GfrStatus::ErrorPanic,
+    }
+}
+
+/// Report the packet version (v4 / v6) of the primary key in an armored block.
+///
+/// Only the first armor block is inspected. Nothing is allocated across the
+/// boundary, so there is no matching `gfr_crypto_free_*` call.
+///
+/// `*out_version` is set to `Unknown` for a version rPGP does not model.
+///
+/// # Safety
+/// `out_version` must be non-null.
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_crypto_detect_key_version(
+    key_block: GfrBuffer,
+    out_version: *mut GfrOpenPGPKeyVersion,
+) -> GfrStatus {
+    if out_version.is_null() {
+        return GfrStatus::ErrorInvalidInput;
+    }
+
+    let result = catch_unwind(|| -> Result<GfrOpenPGPKeyVersion, GfrStatus> {
+        let block_str = unsafe { key_block.as_str() }?;
+        detect_key_version_internal(block_str)
+    });
+
+    match result {
+        Ok(Ok(ver)) => {
+            unsafe {
+                *out_version = ver;
+            }
+            GfrStatus::Success
+        }
         Ok(Err(e)) => e,
         Err(_) => GfrStatus::ErrorPanic,
     }

@@ -32,8 +32,8 @@
  * @file KeyStorageTraits.h
  * @brief OpTraits specializations for key storage operations.
  *
- * Wires FlushKeyDatabase, FlushKeyCache, GetKeyPtr op tags to GnuPG and rPGP
- * implementations.
+ * Wires FlushKeyDatabase, FlushKeyCache, GetKeyPtr, GetKeyVersion op tags to
+ * GnuPG and rPGP implementations.
  */
 
 #include "core/function/openpgp/helper/Op.h"
@@ -56,5 +56,9 @@ GF_DEF_OP_IMPL_TRAITS(FlushKeyCacheOpTag, &FlushKeyCacheGnuPGImpl,
 GF_DEF_OP_IMPL_TRAITS(GetKeyPtrOpTag, &GetKeyPtrGnuPGImpl,
                       {OpenPGPEngine::kGNUPG, &GetKeyPtrGnuPGImpl},
                       {OpenPGPEngine::kRPGP, &GetKeyPtrRpgpImpl});
+
+GF_DEF_OP_IMPL_TRAITS(GetKeyVersionOpTag, &GetKeyVersionGnuPGImpl,
+                      {OpenPGPEngine::kGNUPG, &GetKeyVersionGnuPGImpl},
+                      {OpenPGPEngine::kRPGP, &GetKeyVersionRpgpImpl});
 
 }  // namespace GpgFrontend

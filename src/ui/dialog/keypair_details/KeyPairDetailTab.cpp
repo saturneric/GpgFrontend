@@ -53,9 +53,12 @@ KeyPairDetailTab::KeyPairDetailTab(int channel, GpgKeyPtr key, QWidget* parent)
   expire_supported_ =
       IsOpSupported<SetExpireOpTag>(current_gpg_context_channel_);
 
-  // the key format version is only reported by engines that parse the key
-  // packet (rPGP); GnuPG/GPGME does not expose it, so KeyVersion() returns 0.
-  key_version_supported_ = key_->KeyVersion() > 0;
+  // GPGME has no key version field, so GpgKey::KeyVersion() only answers for
+  // rPGP-backed keys; the repository derives it for the others. It still
+  // reports 0 for a version we cannot name, in which case the row stays out.
+  key_version_ = GpgKeyRepository::GetInstance(current_gpg_context_channel_)
+                     .GetKeyVersion(key_->Fingerprint());
+  key_version_supported_ = key_version_ > 0;
 
   owner_box_ = new QGroupBox(tr("Owner"));
   key_box_ = new QGroupBox(tr("Primary Key"));
@@ -298,7 +301,7 @@ void KeyPairDetailTab::slot_refresh_key_info() {
   }
 
   if (key_version_supported_) {
-    key_version_var_label_->setText(QString("v%1").arg(key_->KeyVersion()));
+    key_version_var_label_->setText(QString("v%1").arg(key_version_));
   } else {
     key_version_var_label_->clear();
   }

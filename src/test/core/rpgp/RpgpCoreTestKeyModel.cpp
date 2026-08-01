@@ -29,11 +29,13 @@
 #include <gtest/gtest.h>
 
 #include "RpgpCoreTest.h"
+#include "RpgpCoreTestRfc9580.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgKey.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/RustUtils.h"
 
 namespace GpgFrontend::Test {
 
@@ -197,6 +199,65 @@ TEST_F(RpgpCoreTest, GpgKey3Test) {
 
   ASSERT_EQ(key.SubKeys().size(), 2);
   ASSERT_EQ(key.UIDs().size(), 1);
+}
+
+// The engine parses the key packet on import, so the version comes straight
+// out of the key metadata -- nothing is exported or re-parsed.
+TEST_F(RpgpCoreTest, GpgKeyVersionComesFromTheKeyMetadata) {
+  auto& repo = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest);
+
+  auto key = repo.GetKeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
+  ASSERT_TRUE(key != nullptr);
+
+  EXPECT_EQ(key->KeyVersion(), 4);
+  EXPECT_EQ(repo.GetKeyVersion(key->Fingerprint()), key->KeyVersion());
+  // second call comes from the memo and must agree
+  EXPECT_EQ(repo.GetKeyVersion(key->Fingerprint()), 4);
+}
+
+// A v6 primary key has a 64-hex (SHA-256) fingerprint, which alone cannot be
+// told apart from LibrePGP's v5 -- so this exercises the path that has to
+// parse the key rather than measure its fingerprint.
+TEST_F(RpgpCoreTest, GpgKeyVersionOfAV6KeyIsSix) {
+  ImportAuxKeys({"aux_v6.asc"});
+
+  auto& repo = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest);
+  ASSERT_EQ(QString(kAuxV6PrimaryFpr).size(), 64);
+
+  EXPECT_EQ(repo.GetKeyVersion(kAuxV6PrimaryFpr), 6);
+}
+
+TEST_F(RpgpCoreTest, GpgKeyVersionOfAnUnknownKeyIsUnknown) {
+  auto& repo = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest);
+
+  EXPECT_EQ(repo.GetKeyVersion(""), 0);
+  EXPECT_EQ(repo.GetKeyVersion(QString(40, 'A')), 0);
+  EXPECT_EQ(repo.GetKeyVersion(QString(64, 'A')), 0);
+}
+
+// DetectKeyVersionByRpgp() is what the GnuPG engine falls back to once the
+// fingerprint length leaves v5 and v6 ambiguous. GnuPG 2.4 cannot produce a v6
+// key, so the parser is exercised directly on a committed v6 certificate.
+TEST_F(RpgpCoreTest, DetectKeyVersionByRpgpReadsThePacketVersion) {
+  auto [v6_ok, v6_block] =
+      ReadFileGFBuffer(QString(":/test/rpgp_aux_keys/aux_v6.asc"));
+  ASSERT_TRUE(v6_ok);
+  EXPECT_EQ(DetectKeyVersionByRpgp(v6_block), 6);
+
+  auto [v4_ok, v4_block] =
+      ReadFileGFBuffer(QString(":/test/rpgp_aux_keys/aux_good.asc"));
+  ASSERT_TRUE(v4_ok);
+  EXPECT_EQ(DetectKeyVersionByRpgp(v4_block), 4);
+}
+
+TEST_F(RpgpCoreTest, DetectKeyVersionByRpgpRejectsNonKeyInput) {
+  EXPECT_EQ(DetectKeyVersionByRpgp(GFBuffer()), 0);
+  EXPECT_EQ(DetectKeyVersionByRpgp(GFBuffer(QString("not a key at all"))), 0);
+
+  // a truncated armor header is not a parsable key block
+  EXPECT_EQ(DetectKeyVersionByRpgp(
+                GFBuffer(QString("-----BEGIN PGP PUBLIC KEY BLOCK-----\n"))),
+            0);
 }
 
 // rPGP keys carry no expiry in the FFI metadata, so ExpirationTime() is the

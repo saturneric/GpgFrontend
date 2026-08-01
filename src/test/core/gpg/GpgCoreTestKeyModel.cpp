@@ -212,6 +212,46 @@ TEST_F(GpgCoreTest, GpgKeyGetterTest) {
   ASSERT_TRUE(std::find(keys.begin(), keys.end(), key) != keys.end());
 }
 
+// GPGME exposes no key version, so it is derived: a 40-hex (SHA-1)
+// fingerprint can only belong to a v4 key, which settles it without exporting
+// or parsing anything. Every fixture key is v4.
+TEST_F(GpgCoreTest, GpgKeyVersionIsDerivedFromTheFingerprint) {
+  auto& repo = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel);
+
+  auto key = repo.GetKeyPtr("9490795B78F8AFE9F93BD09281704859182661FB");
+  ASSERT_TRUE(key != nullptr);
+  ASSERT_EQ(key->Fingerprint().size(), 40);
+
+  // the model itself still cannot answer -- this is the gap being filled
+  EXPECT_EQ(key->KeyVersion(), 0);
+  EXPECT_EQ(repo.GetKeyVersion(key->Fingerprint()), 4);
+
+  // second call comes from the memo and must agree
+  EXPECT_EQ(repo.GetKeyVersion(key->Fingerprint()), 4);
+}
+
+TEST_F(GpgCoreTest, GpgKeyVersionOfEveryKeyInTheKeyringIsKnown) {
+  auto& repo = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel);
+
+  auto keys = repo.Fetch();
+  ASSERT_GT(keys.size(), 0);
+
+  for (const auto& key : keys) {
+    EXPECT_EQ(repo.GetKeyVersion(key->Fingerprint()), 4)
+        << "key " << key->ID().toStdString() << " reported no version";
+  }
+}
+
+// A fingerprint that belongs to no key must not be guessed at from its length
+// alone -- but a 40-hex one still can be, because only v4 uses SHA-1.
+TEST_F(GpgCoreTest, GpgKeyVersionOfAMalformedFingerprintIsUnknown) {
+  auto& repo = GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel);
+
+  EXPECT_EQ(repo.GetKeyVersion(""), 0);
+  EXPECT_EQ(repo.GetKeyVersion("81704859182661FB"), 0);  // key id, not a fpr
+  EXPECT_EQ(repo.GetKeyVersion(QString(64, 'A')), 0);    // v5/v6 length, no key
+}
+
 TEST_F(GpgCoreTest, GpgKeyTableModelCheckedKeyIdsRoundTrip) {
   auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
                    .GetGpgKeyTableModel();

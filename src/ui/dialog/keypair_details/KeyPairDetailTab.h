@@ -100,9 +100,10 @@ class KeyPairDetailTab : public QWidget {
 
   bool expire_supported_ = true;
   bool owner_trust_supported_ = true;
-  bool key_version_supported_ = true;  ///< Whether the engine reports the key
-                                       ///< format version (rPGP does, GnuPG
-                                       ///< does not)
+  int key_version_ = 0;  ///< OpenPGP key format version of the primary key;
+                         ///< 0 when it could not be determined
+  bool key_version_supported_ = true;  ///< Whether the key format version could
+                                       ///< be determined for this key
 
   QLabel* owner_trust_title_label_ = nullptr;
   QLabel* expire_title_label_ = nullptr;

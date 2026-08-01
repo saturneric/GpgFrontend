@@ -128,6 +128,18 @@ auto GetKeyPtrRpgpImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
     -> GpgKeyPtr;
 
 /**
+ * @brief Report the OpenPGP packet version of a key's primary key.
+ *
+ * The engine parses the key packet when importing, so the version is already
+ * in the key metadata; nothing is exported or re-parsed here.
+ *
+ * @param ctx
+ * @param fpr full fingerprint of the primary key
+ * @return 4, 5 or 6; 0 if the key is unknown or its version was not recorded
+ */
+auto GetKeyVersionRpgpImpl(OpenPGPContext& ctx, const QString& fpr) -> int;
+
+/**
  * @brief
  *
  * @param ctx

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/model/GFBuffer.h"
+
 namespace GpgFrontend {
 
 /**
@@ -68,6 +70,26 @@ struct RpgpEngineInfo {
  * (empty) value when the Rust engine is not built in.
  */
 auto GF_CORE_EXPORT RustEngineBuildInfo() -> RpgpEngineInfo;
+
+/**
+ * @brief Report the OpenPGP packet version of the primary key in an armored
+ * key block, using the Rust engine's parser.
+ *
+ * The inverse direction of KeyVersion2GfrKeyVersion(): it exists so engines
+ * that cannot report a key version themselves (GPGME) can borrow rPGP's
+ * parser.
+ *
+ * Declared unconditionally so it is callable from targets that are not
+ * compiled with HAS_RUST_SUPPORT; it returns 0 when the Rust engine is not
+ * built in.
+ *
+ * @param key_block armored key block; only the first armor block is inspected.
+ * Must be armored ASCII, not a binary export — the Rust side requires valid
+ * UTF-8.
+ * @return 4, 5 (LibrePGP) or 6; 0 if the block cannot be parsed or carries a
+ * version the engine does not model (v2/v3)
+ */
+auto GF_CORE_EXPORT DetectKeyVersionByRpgp(const GFBuffer& key_block) -> int;
 
 }  // namespace GpgFrontend
 

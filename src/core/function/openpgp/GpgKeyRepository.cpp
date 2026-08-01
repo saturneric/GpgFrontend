@@ -129,6 +129,11 @@ class GpgKeyRepository::Impl
     keys_cache_->clear();
     keys_search_cache_->clear();
 
+    {
+      std::lock_guard<std::mutex> lock(key_version_cache_mutex_);
+      key_version_cache_.clear();
+    }
+
     if (first_flush_) {
       LOG_D() << "flush key cache for the first time, channel: "
               << GetChannel();
@@ -163,6 +168,22 @@ class GpgKeyRepository::Impl
     return RunRegisteredForward<GetKeyPtrOpTag>(ctx_, key_id, true);
   }
 
+  auto GetKeyVersion(const QString& fpr) -> int {
+    {
+      std::lock_guard<std::mutex> lock(key_version_cache_mutex_);
+      auto it = key_version_cache_.constFind(fpr);
+      if (it != key_version_cache_.constEnd()) return it.value();
+    }
+
+    // run the op outside the lock: it re-enters this repository to look the
+    // key up, and under GnuPG it may export the key first.
+    auto version = RunRegisteredForward<GetKeyVersionOpTag>(ctx_, fpr);
+
+    std::lock_guard<std::mutex> lock(key_version_cache_mutex_);
+    key_version_cache_.insert(fpr, version);
+    return version;
+  }
+
  private:
   OpenPGPContext& ctx_ =
       OpenPGPContext::GetInstance(SingletonFunctionObject::GetChannel());
@@ -171,6 +192,13 @@ class GpgKeyRepository::Impl
   QSharedPointer<QMap<QString, GpgAbstractKeyPtr>> keys_search_cache_;
   QSharedPointer<GpgKeyPtrList> keys_cache_;
   mutable std::mutex keys_cache_mutex_;
+
+  /// fingerprint -> OpenPGP key packet version, memoised because the GnuPG
+  /// engine has to export and parse the key to answer. Its own mutex: the
+  /// dispatched op re-enters this repository and would deadlock on
+  /// keys_cache_mutex_.
+  QMap<QString, int> key_version_cache_;
+  mutable std::mutex key_version_cache_mutex_;
 
   /**
    * @brief Get the Key object
@@ -228,5 +256,9 @@ auto GpgKeyRepository::Fetch() -> GpgKeyPtrList { return p_->Fetch(); }
 auto GpgKeyRepository::GetKeyORSubkeyPtr(const QString& key_id)
     -> GpgAbstractKeyPtr {
   return p_->GetKeyORSubkeyPtr(key_id);
+}
+
+auto GpgKeyRepository::GetKeyVersion(const QString& fpr) -> int {
+  return p_->GetKeyVersion(fpr);
 }
 }  // namespace GpgFrontend

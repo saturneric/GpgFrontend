@@ -446,6 +446,13 @@ auto GetKeyPtrRpgpImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
   return SecureCreateSharedObject<GpgKey>(meta_list.value());
 }
 
+auto GetKeyVersionRpgpImpl(OpenPGPContext& ctx, const QString& fpr) -> int {
+  auto key = GetKeyPtrRpgpImpl(ctx, fpr, false);
+  if (key == nullptr) return 0;
+
+  return key->KeyVersion();
+}
+
 auto FlushKeyDatabaseRpgpImpl(OpenPGPContext& ctx) -> bool {
   auto key_db = ctx.KeyDatabase();
   if (key_db == nullptr) {

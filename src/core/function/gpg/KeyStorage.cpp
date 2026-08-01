@@ -29,8 +29,10 @@
 #include "KeyStorage.h"
 
 #include "core/function/gpg/GpgContext.h"
+#include "core/function/gpg/KeyImportExport.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/RustUtils.h"
 
 namespace GpgFrontend {
 
@@ -48,6 +50,34 @@ auto GetKeyPtrGnuPGImpl(OpenPGPContext& ctx, const QString& key_id, bool secret)
     return nullptr;
   }
   return SecureCreateSharedObject<GpgKey>(p_key);
+}
+
+auto GetKeyVersionGnuPGImpl(OpenPGPContext& ctx, const QString& fpr) -> int {
+  // RFC 4880 12.2 / RFC 9580 5.5.4: a v4 fingerprint is SHA-1 (20 bytes, 40 hex
+  // chars) and only v4 uses one; v5 (LibrePGP) and v6 both use SHA-256 (32
+  // bytes, 64 hex chars). So v4 -- everything GnuPG produces by default -- is
+  // settled here without exporting or parsing anything.
+  constexpr auto kSha1FprLength = 40;
+  constexpr auto kSha256FprLength = 64;
+
+  if (fpr.size() == kSha1FprLength) return 4;
+  if (fpr.size() != kSha256FprLength) return 0;
+
+  // v5 vs v6 cannot be told apart from the fingerprint; ask the rPGP parser.
+  auto key = GetKeyPtrGnuPGImpl(ctx, fpr, false);
+  if (key == nullptr) return 0;
+
+  // minimal export: strips third-party signatures, so the blob stays small.
+  // armored, because the Rust side requires valid UTF-8.
+  auto [err, buffer] = ExportKeysGnuPGImpl(ctx, {key}, /*secret=*/false,
+                                           /*ascii=*/true, /*shortest=*/true,
+                                           /*ssh_mode=*/false);
+  if (CheckGpgError(err) != GPG_ERR_NO_ERROR || buffer.Empty()) {
+    LOG_W() << "failed to export key for version detection, fpr:" << fpr;
+    return 0;
+  }
+
+  return DetectKeyVersionByRpgp(buffer);
 }
 
 auto FlushKeyDatabaseGnuPGImpl(OpenPGPContext& ctx) -> bool {

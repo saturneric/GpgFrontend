@@ -30,6 +30,7 @@
 
 #include <cassert>
 
+#include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/KeyGenerationOperation.h"
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/utils/GpgUtils.h"
@@ -152,10 +153,10 @@ SubkeyGenerateDialog::SubkeyGenerateDialog(int channel, GpgKeyPtr key,
 
   // Post-quantum (PQC) subkey algorithms require a v6 primary key; for a v4
   // primary key they are filtered out of the algorithm list above. Tell the
-  // user why instead of leaving them silently absent. KeyVersion() reports 0
-  // when the engine does not expose the key format (e.g. GnuPG), so only show
-  // this when the key is known to be v4.
-  if (key_->KeyVersion() == 4) {
+  // user why instead of leaving them silently absent. The version is 0 when it
+  // could not be determined, so only show this when the key is known to be v4.
+  if (GpgKeyRepository::GetInstance(current_gpg_context_channel_)
+          .GetKeyVersion(key_->Fingerprint()) == 4) {
     ui_->statusPlainTextEdit->appendPlainText(
         tr("Note: post-quantum (PQC) subkey algorithms are unavailable here "
            "because the primary key uses the v4 key format. Generate a v6 key "

@@ -313,6 +313,7 @@ impl From<KeyVersion> for GfrOpenPGPKeyVersion {
     fn from(version: KeyVersion) -> Self {
         match version {
             KeyVersion::V4 => GfrOpenPGPKeyVersion::V4,
+            KeyVersion::V5 => GfrOpenPGPKeyVersion::V5,
             KeyVersion::V6 => GfrOpenPGPKeyVersion::V6,
             _ => GfrOpenPGPKeyVersion::Unknown,
         }
@@ -643,6 +644,38 @@ pub fn extract_metadata_many_internal(
     }
 
     Ok(results)
+}
+
+/// Report the packet version (v4 / v6) of the primary key in an armored block.
+///
+/// Only the first armor block is inspected: the caller asks about one key. This
+/// is deliberately cheaper than [`extract_metadata_many_internal`], which
+/// re-armors both the public and secret blocks and builds the whole subkey and
+/// user ID tree just to reach the same single field.
+///
+/// Public keys are tried first because the GnuPG detection path feeds a minimal
+/// public export; secret blocks are still accepted so the function is usable on
+/// whatever the caller has at hand. A version rPGP does not model (v2/v3) comes
+/// back as [`GfrOpenPGPKeyVersion::Unknown`].
+pub fn detect_key_version_internal(key_block: &str) -> Result<GfrOpenPGPKeyVersion, GfrStatus> {
+    let block = split_pgp_blocks(key_block)
+        .into_iter()
+        .next()
+        .ok_or(GfrStatus::ErrorInvalidInput)?;
+
+    if let Ok((pk_iter, _)) = SignedPublicKey::from_string_many(&block) {
+        for pk in pk_iter.flatten() {
+            return Ok(pk.primary_key.version().into());
+        }
+    }
+
+    if let Ok((sk_iter, _)) = SignedSecretKey::from_string_many(&block) {
+        for sk in sk_iter.flatten() {
+            return Ok(sk.primary_key.version().into());
+        }
+    }
+
+    Err(GfrStatus::ErrorInvalidInput)
 }
 
 /// Derive the public key from an armored secret key block.
@@ -2654,6 +2687,103 @@ mod key_tests {
             let outcome =
                 std::panic::catch_unwind(|| extract_metadata_many_internal(vector).is_ok());
             assert!(outcome.is_ok());
+        }
+    }
+
+    // -- KeyVersion -> GfrOpenPGPKeyVersion ---------------------------------
+
+    #[test]
+    fn every_modelled_key_version_maps_to_its_own_variant() {
+        // There is no v5 key fixture -- rPGP cannot generate one -- so the
+        // mapping is exercised directly. Without this, a v5 key would be
+        // reported as v4 or Unknown.
+        for (from, to) in [
+            (KeyVersion::V4, GfrOpenPGPKeyVersion::V4),
+            (KeyVersion::V5, GfrOpenPGPKeyVersion::V5),
+            (KeyVersion::V6, GfrOpenPGPKeyVersion::V6),
+        ] {
+            assert_eq!(GfrOpenPGPKeyVersion::from(from), to);
+        }
+    }
+
+    #[test]
+    fn a_deprecated_or_unheard_of_key_version_maps_to_unknown() {
+        for from in [KeyVersion::V2, KeyVersion::V3, KeyVersion::Other(7)] {
+            assert_eq!(
+                GfrOpenPGPKeyVersion::from(from),
+                GfrOpenPGPKeyVersion::Unknown
+            );
+        }
+    }
+
+    // -- detect_key_version_internal ----------------------------------------
+
+    #[test]
+    fn a_v4_public_block_reports_v4() {
+        assert_eq!(
+            detect_key_version_internal(&keys::V4_SIGN.public_armored),
+            Ok(GfrOpenPGPKeyVersion::V4)
+        );
+    }
+
+    #[test]
+    fn a_v6_public_block_reports_v6() {
+        assert_eq!(
+            detect_key_version_internal(&keys::V6_SIGN.public_armored),
+            Ok(GfrOpenPGPKeyVersion::V6)
+        );
+    }
+
+    #[test]
+    fn a_secret_block_reports_the_same_version_as_its_public_half() {
+        // The GnuPG path feeds a public export, but the function must not
+        // depend on that.
+        for fixture in [&*keys::V4_SIGN, &*keys::V6_SIGN] {
+            assert_eq!(
+                detect_key_version_internal(&fixture.secret_armored),
+                detect_key_version_internal(&fixture.public_armored)
+            );
+        }
+    }
+
+    #[test]
+    fn only_the_first_block_of_a_concatenation_is_inspected() {
+        let joined = format!(
+            "{}{}",
+            keys::V6_SIGN.public_armored,
+            keys::V4_SIGN.public_armored
+        );
+        assert_eq!(
+            detect_key_version_internal(&joined),
+            Ok(GfrOpenPGPKeyVersion::V6)
+        );
+    }
+
+    #[test]
+    fn detecting_a_version_agrees_with_full_metadata_extraction() {
+        for fixture in [&*keys::V4_SIGN, &*keys::V6_SIGN] {
+            assert_eq!(
+                detect_key_version_internal(&fixture.public_armored).expect("version"),
+                meta_of(&fixture.public_armored).ver
+            );
+        }
+    }
+
+    #[test]
+    fn detecting_a_version_rejects_adversarial_input() {
+        for vector in [
+            "",
+            "just some prose",
+            corpus::TRUNCATED_ARMOR,
+            corpus::CORRUPT_CRC,
+            &String::from_utf8_lossy(corpus::GARBAGE),
+        ] {
+            let outcome = std::panic::catch_unwind(|| detect_key_version_internal(vector));
+            assert_eq!(
+                outcome.expect("no panic"),
+                Err(GfrStatus::ErrorInvalidInput),
+                "unparsable input must not yield a version"
+            );
         }
     }
 

@@ -32,7 +32,8 @@
  * @file KeyStorageOpSupport.h
  * @brief Engine/version support tags for key storage operations.
  *
- * Defines op tags for: FlushKeyDatabase, FlushKeyCache, GetKeyPtr.
+ * Defines op tags for: FlushKeyDatabase, FlushKeyCache, GetKeyPtr,
+ * GetKeyVersion.
  */
 
 #include "core/function/openpgp/helper/OpSupport.h"
@@ -50,5 +51,9 @@ GF_DEF_OP_SUPPORT_TRAITS(FlushKeyCacheOpTag, "op_flush_key_cache",
 GF_DEF_OP_SUPPORT_TRAITS(GetKeyPtrOpTag, "op_get_key_ptr",
                          {OpenPGPEngine::kGNUPG, "2.2.0"},
                          {OpenPGPEngine::kRPGP, "0.1.0"});
+
+GF_DEF_OP_SUPPORT_TRAITS(GetKeyVersionOpTag, "op_get_key_version",
+                         {OpenPGPEngine::kGNUPG, "2.2.0"},
+                         {OpenPGPEngine::kRPGP, "0.2.1"});
 
 }  // namespace GpgFrontend
