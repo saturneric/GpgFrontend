@@ -64,6 +64,45 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="passphrasePromptGroupBox">
+     <property name="title">
+      <string>Passphrase Prompt</string>
+     </property>
+     <layout class="QVBoxLayout" name="promptVerticalLayout">
+      <item>
+       <layout class="QFormLayout" name="promptFormLayout">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::FieldGrowthPolicy::AllNonFixedFieldsGrow</enum>
+        </property>
+        <property name="labelAlignment">
+         <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+        </property>
+        <item row="0" column="0">
+         <widget class="QLabel" name="promptTimeoutLabel">
+          <property name="text">
+           <string>Passphrase Prompt Timeout</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QSpinBox" name="promptTimeoutSpinBox"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="passphrasePromptTipsLabel">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Orientation::Vertical</enum>
