@@ -111,8 +111,10 @@ auto LoadColumnFilter(const QString& scope, GpgKeyTableColumn default_columns)
                           .object();
 
   if (const auto value = object.value("columns"); value.isDouble()) {
+    // Not QJsonValue::toInteger(): that is Qt 6 only. Not toInt() either — the
+    // mask is unsigned and kALL does not fit an int.
     auto columns = static_cast<GpgKeyTableColumn>(
-        static_cast<unsigned int>(value.toInteger()));
+        static_cast<unsigned int>(value.toVariant().toLongLong()));
 
     if (object.value("version").toInt(1) < kColumnFilterVersion) {
       columns |= GpgKeyTableColumn::kEXPIRE_DATE;
