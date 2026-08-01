@@ -28,7 +28,11 @@
 
 #pragma once
 
-#include "core/function/openpgp/OpenPGPContext.h"
+// Deliberately not OpenPGPContext.h: asking the user for a passphrase says
+// nothing about which engine will use it, and holding a reference to the
+// channel's context here forced one into existence just to open a prompt.
+#include "core/function/basic/GpgFunctionObject.h"
+#include "core/typedef/GFTypedef.h"
 
 namespace GpgFrontend {
 
@@ -108,9 +112,5 @@ class GF_CORE_EXPORT PassphraseService
   auto RequestPassphrase(const PassphraseState& state,
                          PassphraseRequestStatus* out_status = nullptr)
       -> GFBuffer;
-
- private:
-  // OpenPGP context for this channel, used to route the passphrase callback.
-  OpenPGPContext& ctx_ = OpenPGPContext::GetInstance(GetChannel());
 };
 }  // namespace GpgFrontend

@@ -136,38 +136,47 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
           &UISignalStation::SignalRestartApplication, this,
           &CommonUtils::SlotRestartApplication);
 
-  connect(
-      this, &CommonUtils::SignalBadOpenPGPEnv, this,
-      [=](GpgFrontend::BadOpenPGPEnvReason reason,
-          const QString &detail) -> void {
-        const auto text = DescribeBadOpenPGPEnv(reason, detail);
+  connect(this, &CommonUtils::SignalBadOpenPGPEnv, this,
+          [=](GpgFrontend::BadOpenPGPEnvReason reason,
+              const QString &detail) -> void {
+            // The unit test runner shares this process, so a modal dialog
+            // ending in std::exit(0) would take the whole test run down with
+            // it.
+            if (Module::RetrieveRTValueTypedOrDefault<>(
+                    "core", "env.state.unit_test_mode", 0) == 1) {
+              LOG_W() << "bad openpgp env in unit test mode, reason:"
+                      << static_cast<int>(reason) << "detail:" << detail;
+              return;
+            }
 
-        QMessageBox msg_box;
-        msg_box.setText(text.title);
-        msg_box.setInformativeText(text.body);
+            const auto text = DescribeBadOpenPGPEnv(reason, detail);
 
-        // Offering "Retry" for a failure that a restart cannot change just
-        // invites the user to loop.
-        msg_box.setStandardButtons(text.offer_retry ? QMessageBox::Retry |
-                                                          QMessageBox::Cancel
-                                                    : QMessageBox::Close);
-        msg_box.setDefaultButton(text.offer_retry ? QMessageBox::Retry
-                                                  : QMessageBox::Close);
-        int ret = msg_box.exec();
+            QMessageBox msg_box;
+            msg_box.setText(text.title);
+            msg_box.setInformativeText(text.body);
 
-        switch (ret) {
-          case QMessageBox::Retry:
-            // Mark application for immediate restart
-            application_need_to_restart_at_once_ = true;
-            // Trigger application restart with deep restart code
-            emit SignalRestartApplication(kDeepRestartCode);
-            break;
-          default:
-            // Default action: close application
-            emit SignalRestartApplication(0);
-            break;
-        }
-      });
+            // Offering "Retry" for a failure that a restart cannot change just
+            // invites the user to loop.
+            msg_box.setStandardButtons(
+                text.offer_retry ? QMessageBox::Retry | QMessageBox::Cancel
+                                 : QMessageBox::Close);
+            msg_box.setDefaultButton(text.offer_retry ? QMessageBox::Retry
+                                                      : QMessageBox::Close);
+            int ret = msg_box.exec();
+
+            switch (ret) {
+              case QMessageBox::Retry:
+                // Mark application for immediate restart
+                application_need_to_restart_at_once_ = true;
+                // Trigger application restart with deep restart code
+                emit SignalRestartApplication(kDeepRestartCode);
+                break;
+              default:
+                // Default action: close application
+                emit SignalRestartApplication(0);
+                break;
+            }
+          });
 
   connect(
       CoreSignalStation::GetInstance(),
@@ -176,7 +185,25 @@ CommonUtils::CommonUtils() : QWidget(nullptr) {
       [](const QSharedPointer<GpgPassphraseContext> &c) {
         if (!c) return;
 
-        QWidget *parent_widget = QApplication::activeWindow();
+        // The unit test runner shares this process and goes through
+        // PreInitGpgFrontendUI(), so this handler is live there too. A test has
+        // nobody to type into a modal prompt; leave the request unanswered
+        // instead, and let a test that cares about passphrases answer it by
+        // handling the same signal itself.
+        if (Module::RetrieveRTValueTypedOrDefault<>(
+                "core", "env.state.unit_test_mode", 0) == 1) {
+          LOG_W() << "passphrase requested in unit test mode; no prompt shown";
+          return;
+        }
+
+        // Parent to the modal dialog on top when there is one — typically the
+        // (also modal) waiting dialog of a running operation. A sibling of it
+        // can end up below it in Qt's modal stack and then refuses input, which
+        // reads as a frozen prompt; a modal child always stays above.
+        QWidget *parent_widget = QApplication::activeModalWidget();
+        if (parent_widget == nullptr)
+          parent_widget = QApplication::activeWindow();
+
         PassphraseDialog dialog(c, parent_widget);
 
         if (dialog.exec() == QDialog::Accepted) {

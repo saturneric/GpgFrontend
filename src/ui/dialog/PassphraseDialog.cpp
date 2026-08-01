@@ -28,6 +28,7 @@
 
 #include "PassphraseDialog.h"
 
+#include "core/function/CoreSignalStation.h"
 #include "ui/dialog/PassphraseStrength.h"
 
 namespace GpgFrontend::UI {
@@ -217,19 +218,35 @@ PassphraseDialog::PassphraseDialog(
 
   // Abort the operation if the user does not respond within the timeout window.
   // A rejected dialog yields an empty passphrase, which the caller treats as
-  // cancellation.
-  update_timeout_label();
-  timeout_timer_ = new QTimer(this);
-  timeout_timer_->setInterval(1000);
-  connect(timeout_timer_, &QTimer::timeout, this, [this]() {
-    if (--remaining_seconds_ <= 0) {
-      timeout_timer_->stop();
-      reject();
-      return;
-    }
+  // cancellation. A timeout of 0 means the user is never rushed: no countdown
+  // is shown and the prompt waits for as long as it takes.
+  remaining_seconds_ = ctx_->GetTimeoutSeconds();
+  if (remaining_seconds_ > 0) {
     update_timeout_label();
-  });
-  timeout_timer_->start();
+    timeout_timer_ = new QTimer(this);
+    timeout_timer_->setInterval(1000);
+    connect(timeout_timer_, &QTimer::timeout, this, [this]() {
+      if (--remaining_seconds_ <= 0) {
+        timeout_timer_->stop();
+        reject();
+        return;
+      }
+      update_timeout_label();
+    });
+    timeout_timer_->start();
+  } else {
+    timeout_label_->hide();
+  }
+
+  // The requester gave up on this prompt (its own deadline elapsed). Close, so
+  // the prompt cannot outlive the operation it belongs to and sit on screen
+  // holding the modal stack with nobody listening for its answer.
+  connect(CoreSignalStation::GetInstance(),
+          &CoreSignalStation::SignalCloseUserInputPassphrase, this,
+          [this](const QSharedPointer<GpgPassphraseContext>& ctx) {
+            if (ctx != ctx_) return;
+            reject();
+          });
 
   adjustSize();
   resize(std::max(width(), 520), height());

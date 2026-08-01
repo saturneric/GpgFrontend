@@ -68,6 +68,18 @@ class GF_CORE_EXPORT CoreSignalStation : public QObject {
   void SignalUserInputPassphraseReady(QSharedPointer<GpgPassphraseContext>);
 
   /**
+   * @brief The requester has given up on this passphrase request (its deadline
+   * elapsed), so the prompt opened for it must be dismissed.
+   *
+   * Without this a prompt outlives the request that opened it: nothing is
+   * listening for its answer any more, yet it stays on screen and holds the
+   * modal stack.
+   *
+   * @param ctx the request whose prompt should close; other prompts ignore it
+   */
+  void SignalCloseUserInputPassphrase(QSharedPointer<GpgPassphraseContext> ctx);
+
+  /**
    * @brief
    *
    */

@@ -94,4 +94,12 @@ void GpgPassphraseContext::SetCancelled(bool cancelled) {
   cancelled_ = cancelled;
 }
 
+auto GpgPassphraseContext::GetTimeoutSeconds() const -> int {
+  return timeout_seconds_;
+}
+
+void GpgPassphraseContext::SetTimeoutSeconds(int seconds) {
+  timeout_seconds_ = seconds > 0 ? seconds : 0;
+}
+
 }  // namespace GpgFrontend

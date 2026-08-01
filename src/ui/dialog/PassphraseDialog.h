@@ -56,9 +56,6 @@ class PassphraseDialog : public QDialog {
   void Clear();
 
  private:
-  /// Abort the operation if the user does not respond within this window.
-  static constexpr int kDefaultTimeoutSeconds = 120;
-
   QSharedPointer<GpgPassphraseContext> ctx_;
   QLineEdit* password_edit_ = nullptr;
   QLineEdit* confirm_password_edit_ = nullptr;
@@ -67,7 +64,11 @@ class PassphraseDialog : public QDialog {
   QLabel* passphrase_strength_label_ = nullptr;
   QLabel* timeout_label_ = nullptr;
   QTimer* timeout_timer_ = nullptr;
-  int remaining_seconds_ = kDefaultTimeoutSeconds;
+
+  /// Seconds left before the prompt gives up; 0 means it waits indefinitely.
+  /// Stamped onto the context by PassphraseService so the prompt and the
+  /// operation waiting on it never disagree about the deadline.
+  int remaining_seconds_ = 0;
 
   [[nodiscard]] auto validate_passphrase_input() -> bool;
   void update_passphrase_strength(const QString& text);

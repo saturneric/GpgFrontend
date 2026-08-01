@@ -60,6 +60,24 @@ RpgpTab::RpgpTab(QWidget* parent)
       tr("These options only apply to the rPGP engine's in-memory passphrase "
          "cache."));
 
+  ui_->passphrasePromptGroupBox->setTitle(tr("Passphrase Prompt"));
+
+  // How long the prompt waits for an answer before it gives up. 0 disables the
+  // countdown; the spin box shows "Never" for it.
+  ui_->promptTimeoutLabel->setText(tr("Passphrase Prompt Timeout (seconds):"));
+  ui_->promptTimeoutSpinBox->setRange(0, 3600);  // never .. 1 hour
+  ui_->promptTimeoutSpinBox->setSuffix(tr(" s"));
+  ui_->promptTimeoutSpinBox->setSpecialValueText(tr("Never"));
+  ui_->promptTimeoutSpinBox->setToolTip(
+      tr("Time the passphrase prompt waits for an answer before it closes "
+         "itself and cancels the operation. Set to 0 to let it wait "
+         "indefinitely."));
+
+  ui_->passphrasePromptTipsLabel->setText(
+      tr("Applies to the passphrase prompt GpgFrontend shows for the rPGP "
+         "engine. GnuPG keys are unlocked through pinentry, which has its own "
+         "timeout."));
+
   SetSettings();
 }
 
@@ -76,6 +94,9 @@ void RpgpTab::SetSettings() {
       static_cast<int>(qMax<qint64>(1, (cache_ttl_secs + 59) / 60)));
   ui_->rpgpCacheMaxTtlSpinBox->setValue(
       static_cast<int>(qMax<qint64>(1, (cache_max_ttl_secs + 59) / 60)));
+
+  ui_->promptTimeoutSpinBox->setValue(
+      settings.value("engine/passphrase_prompt_timeout", 60).toInt());
 }
 
 void RpgpTab::ApplySettings() {
@@ -97,6 +118,11 @@ void RpgpTab::ApplySettings() {
   // Apply immediately so the new timeouts take effect without a restart.
   SetRpgpPasswordCacheTtl(static_cast<uint64_t>(cache_ttl_secs),
                           static_cast<uint64_t>(cache_max_ttl_secs));
+
+  // Read fresh by PassphraseService on every request, so the next prompt
+  // already uses this value.
+  settings.setValue("engine/passphrase_prompt_timeout",
+                    ui_->promptTimeoutSpinBox->value());
 }
 
 }  // namespace GpgFrontend::UI

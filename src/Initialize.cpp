@@ -182,6 +182,13 @@ void InitGlobalBasicEnv(const GFCxtWPtr &p_ctx, bool gui_mode) {
   Module::ModuleInitArgs module_init_args;
   Module::LoadGpgFrontendModules(module_init_args);
 
+  // Published before anything can listen: fatal environment signals turn into a
+  // modal dialog that ends in std::exit(0), which under the test runner would
+  // kill the process in the middle of a test run. Written on both paths so the
+  // value is never merely absent.
+  Module::UpsertRTValue("core", "env.state.unit_test_mode",
+                        ctx->unit_test_mode ? 1 : 0);
+
   // then preload ui
   UI::PreInitGpgFrontendUI();
 

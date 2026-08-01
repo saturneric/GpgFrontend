@@ -33,7 +33,6 @@
 #include "core/GFConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/model/GpgPassphraseContext.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UIModuleManager.h"
@@ -310,10 +309,6 @@ void InitGpgFrontendUI(QApplication* app) {
     QApplication::setStyle(QStyleFactory::create(effective_style));
   }
 #endif
-
-  // register meta types
-  qRegisterMetaType<QSharedPointer<GpgPassphraseContext> >(
-      "QSharedPointer<GpgPassphraseContext>");
 
   // init signal station
   UISignalStation::GetInstance();

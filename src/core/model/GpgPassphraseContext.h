@@ -79,6 +79,19 @@ class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
 
   void SetCancelled(bool cancelled);
 
+  /**
+   * @brief How long the prompt may stay on screen before it aborts itself, in
+   * seconds; 0 means it waits indefinitely.
+   *
+   * PassphraseService stamps this from the user's setting so the dialog's
+   * countdown and the requester's deadline are the same number. Two independent
+   * timeouts used to disagree, which left a prompt on screen that no longer had
+   * anyone waiting on it.
+   */
+  [[nodiscard]] auto GetTimeoutSeconds() const -> int;
+
+  void SetTimeoutSeconds(int seconds);
+
  private:
   int channel_;
   QString passphrase_info_;
@@ -88,6 +101,7 @@ class GF_CORE_EXPORT GpgPassphraseContext : public QObject {
   bool ask_for_new_;
   bool should_confirm_;
   bool cancelled_ = false;
+  int timeout_seconds_ = 0;
 };
 
 }  // namespace GpgFrontend

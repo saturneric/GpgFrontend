@@ -28,6 +28,8 @@
 
 #include "core/function/CoreSignalStation.h"
 
+#include "core/model/GpgPassphraseContext.h"
+
 std::unique_ptr<GpgFrontend::CoreSignalStation>
     GpgFrontend::CoreSignalStation::instance = nullptr;
 
@@ -40,6 +42,15 @@ auto GpgFrontend::CoreSignalStation::GetInstance()
     // which is why the signal declares the fully qualified type.
     qRegisterMetaType<GpgFrontend::BadOpenPGPEnvReason>(
         "GpgFrontend::BadOpenPGPEnvReason");
+
+    // The passphrase signals always cross a thread boundary: they are emitted
+    // from whichever task runner needs the passphrase and handled on the GUI
+    // thread. Registered here, next to the signals themselves, because core
+    // owns them — leaving it to UI startup means a core-only build (the test
+    // binary, for one) has its passphrase requests dropped by Qt with only a
+    // console warning to show for it.
+    qRegisterMetaType<QSharedPointer<GpgPassphraseContext> >(
+        "QSharedPointer<GpgPassphraseContext>");
 
     instance = std::make_unique<CoreSignalStation>();
   }
