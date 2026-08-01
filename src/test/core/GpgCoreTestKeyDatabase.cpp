@@ -28,6 +28,7 @@
 
 #include "GFCoreTest.h"
 #include "core/function/CoreSignalStation.h"
+#include "core/module/ModuleManager.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/utils/GpgUtils.h"
 
@@ -379,8 +380,27 @@ TEST_F(GFCoreTest, ChooseEngineDefaultsToGnupgOnEmptyPreference) {
 // drops the emission silently -- and because this signal is what releases the
 // startup event loop, the app would hang on the loading dialog forever. That
 // failure is invisible without a test like this one.
+//
+// The station here is deliberately a local instance, not the singleton: the
+// production UI connects the singleton's signal to a modal message box that
+// ends in std::exit(0), so emitting on it would kill the test process. A local
+// instance is the same class, hence the same moc signature and metatype.
 TEST_F(GFCoreTest, BadOpenPGPEnvReasonSurvivesQueuedConnection) {
-  auto* station = CoreSignalStation::GetInstance();
+  // the metatype is registered here, exactly as in production
+  ASSERT_NE(CoreSignalStation::GetInstance(), nullptr);
+
+  // catch a spelling drift directly instead of waiting for the timeout: moc
+  // records the parameter type as written in the header, and parameterType()
+  // resolves that spelling against the runtime registry, yielding
+  // QMetaType::UnknownType when it no longer matches the registration.
+  const auto& mo = CoreSignalStation::staticMetaObject;
+  const auto idx = mo.indexOfSignal(
+      "SignalBadOpenPGPEnv(GpgFrontend::BadOpenPGPEnvReason,QString)");
+  ASSERT_NE(idx, -1);
+  EXPECT_EQ(mo.method(idx).parameterType(0),
+            qMetaTypeId<BadOpenPGPEnvReason>());
+
+  CoreSignalStation station;
 
   std::atomic<bool> received = false;
   auto got_reason = BadOpenPGPEnvReason::kUNKNOWN;
@@ -390,7 +410,7 @@ TEST_F(GFCoreTest, BadOpenPGPEnvReasonSurvivesQueuedConnection) {
   QObject context;
 
   QObject::connect(
-      station, &CoreSignalStation::SignalBadOpenPGPEnv, &context,
+      &station, &CoreSignalStation::SignalBadOpenPGPEnv, &context,
       [&](BadOpenPGPEnvReason reason, const QString& detail) {
         got_reason = reason;
         got_detail = detail;
@@ -399,8 +419,8 @@ TEST_F(GFCoreTest, BadOpenPGPEnvReasonSurvivesQueuedConnection) {
       },
       Qt::QueuedConnection);
 
-  QThread* worker = QThread::create([station]() {
-    emit station->SignalBadOpenPGPEnv(
+  QThread* worker = QThread::create([&station]() {
+    emit station.SignalBadOpenPGPEnv(
         BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE, "detail-payload");
   });
 
@@ -414,6 +434,15 @@ TEST_F(GFCoreTest, BadOpenPGPEnvReasonSurvivesQueuedConnection) {
   ASSERT_TRUE(received.load());
   EXPECT_EQ(got_reason, BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE);
   EXPECT_EQ(got_detail, QString("detail-payload"));
+}
+
+// The UI turns a fatal environment signal into a modal dialog that ends in
+// std::exit(0). This flag is what suppresses it here, so if it stops being
+// published the suppression rots silently.
+TEST_F(GFCoreTest, UnitTestModeFlagIsPublishedToRuntime) {
+  EXPECT_EQ(Module::RetrieveRTValueTypedOrDefault<>(
+                "core", "env.state.unit_test_mode", 0),
+            1);
 }
 
 }  // namespace GpgFrontend::Test
