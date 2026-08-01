@@ -907,15 +907,120 @@
 <context>
     <name>GpgFrontend::UI</name>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="432"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="487"/>
         <source>Short Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="433"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="488"/>
         <source>The name &quot;%1&quot; is shorter than five characters. Short names are allowed, but they are often a typo and make the key harder for others to recognise.
 
 Do you want to continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="503"/>
+        <source>Signature (OPENPGP.1)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="506"/>
+        <source>Encryption (OPENPGP.2)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="509"/>
+        <source>Authentication (OPENPGP.3)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="528"/>
+        <source>Select Card Slot</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="529"/>
+        <source>This key can be stored in more than one slot. Where should it be stored?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="550"/>
+        <source>No Smart Card</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="551"/>
+        <source>No OpenPGP smart card was detected. Insert a card and try again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="561"/>
+        <source>Select Smart Card</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="562"/>
+        <source>Move the key to which card?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="577"/>
+        <source>Back Up Secret Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="578"/>
+        <source>Do you want to export a backup of the secret key before moving it to the card? After the move the key can only be used through the card.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="583"/>
+        <source>Back Up First</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="586"/>
+        <source>Continue Without Backup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="608"/>
+        <source>Export Secret Key Backup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="611"/>
+        <source>Key Files</source>
+        <translation type="unfinished">密钥文件</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="617"/>
+        <source>Export Error</source>
+        <translation type="unfinished">导出错误</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="618"/>
+        <source>Couldn&apos;t open %1 for writing</source>
+        <translation type="unfinished">无法打开 %1 进行写入</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="640"/>
+        <source>Move Key to Smart Card</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="644"/>
+        <source>&lt;h3&gt;You are about to move a private key onto a smart card.&lt;/h3&gt;&lt;b&gt;KeyID:&lt;/b&gt; %1&lt;br/&gt;&lt;br/&gt;This &lt;b&gt;moves&lt;/b&gt; the key: its private part is removed from this computer and only a card reference (stub) remains. Afterwards the key can only be used through the card. This action is &lt;b&gt;irreversible&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;Do you want to continue?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="667"/>
+        <source>This key has no capability that can be stored on a smart card.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="695"/>
+        <source>The key was moved to the smart card successfully.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1544,57 +1649,57 @@ Do you want to continue?</source>
 <context>
     <name>GpgFrontend::UI::ChoosePage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="236"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="438"/>
         <source>Choose a guide</source>
         <translation>选择一个指南</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="237"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="439"/>
         <source>Pick a topic if you want to learn the basics first.</source>
         <translation>如果您想先学习基础知识，请选择一个主题。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="244"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="441"/>
         <source>Generate a new Key Pair</source>
         <translation>生成新的密钥对</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="245"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="442"/>
         <source>Learn how to create your own key pairs.</source>
         <translation>学习如何创建自己的密钥对。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="249"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="445"/>
         <source>Text operations</source>
         <translation>文本操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="250"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="446"/>
         <source>Learn how to encrypt, decrypt, sign, and verify text messages.</source>
         <translation>学习如何加密、解密、签名和验证文本消息。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="254"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="449"/>
         <source>File operations</source>
         <translation>文件操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="255"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="450"/>
         <source>Learn how to encrypt, decrypt, sign, and verify files securely.</source>
         <translation>学习如何安全地加密、解密、签名和验证文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="259"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="453"/>
         <source>View key pair information</source>
         <translation>查看密钥对信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="260"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="454"/>
         <source>Learn how to inspect key details, user IDs, fingerprints, and key capabilities.</source>
         <translation>学习如何检查密钥详情、用户 ID、指纹和密钥功能。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="266"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="458"/>
         <source>You can also skip these guides and start using GpgFrontend directly.</source>
         <translation>您也可以跳过这些指南，直接开始使用 GpgFrontend。</translation>
     </message>
@@ -1602,132 +1707,167 @@ Do you want to continue?</source>
 <context>
     <name>GpgFrontend::UI::CommonUtils</name>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="147"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="292"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="202"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="347"/>
         <source>Success</source>
         <translation>成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="166"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="284"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="221"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="339"/>
         <source>Failure</source>
         <translation>失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="203"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="210"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="338"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="372"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="258"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="265"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="393"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="427"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="195"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="250"/>
         <source>Open Key</source>
         <translation>打开密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="93"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="68"/>
+        <source>No Usable Key Database</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="69"/>
+        <source>None of the configured key databases could be opened. This usually means the folder was moved or deleted, or is on a drive that is not currently available.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="73"/>
+        <source>You can change where your key databases live in Settings, under Key Databases. Details: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="80"/>
+        <source>Cannot Prepare Application Data</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="81"/>
+        <source>GpgFrontend could not set up the folders it needs to store its data. Please check that the application data folder is writable. Details: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="88"/>
+        <source>Key Database Could Not Be Opened</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="89"/>
+        <source>The key database was found but could not be loaded. It may be in use by another program, or its permissions may have changed. Details: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="99"/>
         <source>No Supported OpenPGP Engine Found</source>
         <translation>未找到受支持的 OpenPGP 引擎</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="95"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="100"/>
         <source>It seems that no supported OpenPGP engine is available. Please check your if GpgFrontend is properly installed and try again. Reason: %1</source>
         <translation>似乎没有可用的受支持的 OpenPGP 引擎。请检查 GpgFrontend 是否正确安装，然后重试。原因: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="148"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="203"/>
         <source>Operation completed successfully.</source>
         <translation>操作成功完成。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="156"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="211"/>
         <source>Operation Not Supported</source>
         <translation>操作不受支持</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="157"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="212"/>
         <source>The current OpenPGP engine does not support this operation. Please use a supported engine or upgrade the engine version.</source>
         <translation>当前 OpenPGP 引擎不支持此操作。请使用受支持的引擎或升级引擎版本。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="167"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="222"/>
         <source>Gpg Operation failed.</source>
         <translation>Gpg 操作失败。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="168"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="223"/>
         <source>Error code: %1</source>
         <translation>错误代码：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="169"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="224"/>
         <source>Source:  %1</source>
         <translation>来源：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="170"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="225"/>
         <source>Description: %1</source>
         <translation>描述：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="171"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="226"/>
         <source>Error Message: %1</source>
         <translation>错误信息：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="196"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="251"/>
         <source>Keyring files</source>
         <translation>密钥环文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="204"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="259"/>
         <source>Cannot open this file. Please make sure that this is a regular file and it&apos;s readable.</source>
         <translation>无法打开此文件。请确保这是一个普通文件，并且有读取权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="211"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="266"/>
         <source>The target file is too large for a keyring.</source>
         <translation>目标文件对于密钥环来说太大。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="217"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="272"/>
         <source>File Open Failed</source>
         <translation>文件打开失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="218"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="273"/>
         <source>Failed to open file: </source>
         <translation>打开文件失败： </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="265"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="320"/>
         <source>Processing</source>
         <translation>处理中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="285"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="340"/>
         <source>Failed to execute command.</source>
         <translation>执行命令失败。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="293"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="348"/>
         <source>Succeed in executing command.</source>
         <translation>成功执行命令。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="295"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="350"/>
         <source>Warning</source>
         <translation>警告</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="296"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="351"/>
         <source>Finished executing command.</source>
         <translation>命令执行完毕。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="372"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="427"/>
         <source>Key Not Found.</source>
         <translation>未找到密钥。</translation>
     </message>
@@ -1735,42 +1875,42 @@ Do you want to continue?</source>
 <context>
     <name>GpgFrontend::UI::ConclusionPage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="303"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="524"/>
         <source>Ready to use</source>
         <translation>准备使用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="305"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="526"/>
         <source>GpgFrontend is ready. You can adjust these options before finishing.</source>
         <translation>GpgFrontend 已准备就绪。您可以在完成前调整这些选项。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="313"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="530"/>
         <source>Contact and feedback</source>
         <translation>联系与反馈</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="314"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="531"/>
         <source>Report issues, ask questions, or send feedback to help improve GpgFrontend.</source>
         <translation>报告问题、提问或发送反馈以帮助改进 GpgFrontend。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="319"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="535"/>
         <source>Submit an issue on GitHub</source>
         <translation>在 GitHub 上提交问题</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="320"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="536"/>
         <source>Use GitHub issues if you want to report a bug or track a technical problem.</source>
         <translation>如果您想报告错误或跟踪技术问题，请使用 GitHub 问题。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="333"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="541"/>
         <source>Don&apos;t show this setup wizard again</source>
         <translation>不再显示本设置向导</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="324"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="539"/>
         <source>Check for updates on startup</source>
         <translation>启动时检查更新</translation>
     </message>
@@ -3134,22 +3274,22 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::GpgFrontendApplication</name>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="63"/>
+        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="68"/>
         <source>Standard Exception Thrown</source>
         <translation>标准异常已抛出</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="64"/>
+        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="69"/>
         <source>Oops, an standard exception was thrown during the running of the program. This is not a serious problem, it may be the negligence of the programmer, please report this problem if you can.</source>
         <translation>糟糕，程序运行期间抛出了一个标准异常。这不是一个严重的问题，可能是程序员的疏忽，如果可以的话，请报告这个问题。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="72"/>
+        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="77"/>
         <source>Unhandled Exception Thrown</source>
         <translation>未处理的异常</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="73"/>
+        <location filename="../../../../src/ui/GpgFrontendApplication.cpp" line="78"/>
         <source>Oops, an unhandled exception was thrown during the running of the program. This is not a serious problem, it may be the negligence of the programmer, please report this problem if you can.</source>
         <translation>糟糕，在程序运行期间引发了未处理的异常。这不是一个严重的问题，可能是程序员的疏忽，如果可以的话，请报告这个问题。</translation>
     </message>
@@ -3784,52 +3924,72 @@ Results will appear here as a summary document.</source>
 <context>
     <name>GpgFrontend::UI::IntroPage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="188"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="319"/>
         <source>Welcome to GpgFrontend</source>
         <translation>欢迎使用 GpgFrontend</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="320"/>
         <source>Let&apos;s get you started in just a moment.</source>
         <translation>稍等片刻，即将为您开启。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="192"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="323"/>
+        <source>A simple, privacy-focused OpenPGP tool for text, files, and keys.</source>
+        <translation>一款简洁、注重隐私的 OpenPGP 工具，用于文本、文件和密钥。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="326"/>
+        <source>Language:</source>
+        <translation>语言：</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="327"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="377"/>
+        <source>System Default</source>
+        <translation>系统默认</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="330"/>
         <source>&lt;b&gt;GpgFrontend&lt;/b&gt; helps you encrypt, decrypt, sign, and verify messages and files with OpenPGP. This short wizard will point you to the most useful places to start.</source>
         <translation>&lt;b&gt;GpgFrontend&lt;/b&gt; 帮助你使用 OpenPGP 加密、解密、签名和验证消息和文件。这个简短的向导将引导你到最实用的地方开始使用。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="197"/>
-        <source>You can change language, update checking, key database, and appearance settings later from the application settings.</source>
-        <translation>你可以在应用程序设置中稍后更改语言、更新检查、密钥数据库和外观设置。</translation>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="349"/>
+        <source>You can change update checking, key database, and appearance settings later from the application settings.</source>
+        <translation>你可以在应用程序设置中稍后更改更新检查、密钥数据库和外观设置。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="201"/>
+        <source>You can change language, update checking, key database, and appearance settings later from the application settings.</source>
+        <translation type="vanished">你可以在应用程序设置中稍后更改语言、更新检查、密钥数据库和外观设置。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="335"/>
         <source>Star GpgFrontend on GitHub</source>
         <translation>在 GitHub 上为 GpgFrontend 加星</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="202"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="336"/>
         <source>GpgFrontend is free and open source. A star helps more people discover it and keeps the project moving forward.</source>
         <translation>GpgFrontend 是免费开源软件。您的加星能帮助更多人发现它，并推动项目持续发展。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="207"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="340"/>
         <source>Open the overview page</source>
         <translation>打开概览页面</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="208"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="341"/>
         <source>Get a quick tour of the main features and common workflows.</source>
         <translation>快速浏览主要功能和常见工作流程。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="212"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="344"/>
         <source>Fundamental concepts</source>
         <translation>基本概念</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="213"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="345"/>
         <source>Understand public keys, private keys, encryption, signing, and trust.</source>
         <translation>理解公钥、私钥、加密、签名和信任。</translation>
     </message>
@@ -3980,85 +4140,100 @@ Results will appear here as a summary document.</source>
         <translation>添加新密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="223"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="180"/>
+        <source>Unreadable Key Database Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="181"/>
+        <source>Your saved key database list exists but could not be read. This usually means it was written by another installation, or with a different application key.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="185"/>
+        <source>Saving now replaces it with the list shown here. The previous list cannot be recovered afterwards.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="247"/>
         <source>N/A</source>
         <translation>不适用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="319"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="343"/>
         <source>No Key Database Selected</source>
         <translation>未选择任何密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="320"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="344"/>
         <source>Please select a key database to edit.</source>
         <translation>请选择要编辑的密钥数据库。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="339"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="392"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="363"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="416"/>
         <source>Duplicate Key Database Paths</source>
         <translation>重复的密钥数据库路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="340"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="364"/>
         <source>The edited key database path duplicates a previously existing one.</source>
         <translation>编辑后的密钥数据库路径与先前存在的路径重复。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="350"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="425"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="374"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="449"/>
         <source>Invalid Key Database Paths</source>
         <translation>无效的密钥数据库路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="351"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="426"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="375"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="450"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
         <translation>编辑的密钥数据库路径不是 GpgFrontend 可以使用的有效路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="376"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="400"/>
         <source>Maximum Key Database Limit Reached</source>
         <translation>已达到密钥数据库上限</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="377"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="401"/>
         <source>Currently, GpgFrontend supports a maximum of 8 key databases. Please remove an existing database to add a new one.</source>
         <translation>目前，GpgFrontend 最多支持 8 个密钥数据库。要添加新数据库，请移除现有数据库。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="393"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="417"/>
         <source>The newly added key database path duplicates a previously existing one.</source>
         <translation>新添加的密钥数据库路径与先前存在的路径重复。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="402"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="426"/>
         <source>Invalid Key Database Path</source>
         <translation>无效的密钥数据库路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="403"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="427"/>
         <source>The specified key database path points to an existing file. Please specify a path that does not exist or points to a directory.</source>
         <translation>指定的密钥数据库路径指向一个已存在的文件。请指定一个不存在或指向目录的路径。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="414"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="438"/>
         <source>Failed to Create Key Database Directory</source>
         <translation>创建密钥数据库目录失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="415"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="439"/>
         <source>GpgFrontend failed to create a directory at the specified key database path. Please check the path and your permissions.</source>
         <translation>GpgFrontend 在指定的密钥数据库路径创建目录失败。请检查路径和您的权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="460"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="484"/>
         <source>Confirm Deletion</source>
         <translation>确认删除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="461"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="485"/>
         <source>Are you sure you want to remove the selected key database from the list?</source>
         <translation>你确定要从列表中移除选中的密钥数据库吗？</translation>
     </message>
@@ -6225,323 +6400,328 @@ Fingerprint: %1</source>
 <context>
     <name>GpgFrontend::UI::KeyPairSubkeyTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="141"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="259"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="147"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="265"/>
         <source>Key ID</source>
         <translation>密钥 ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="151"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="259"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="157"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="265"/>
         <source>Algorithm</source>
         <translation>算法</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="156"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="260"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="162"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="266"/>
         <source>Algorithm Detail</source>
         <translation>算法详情</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="162"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="259"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="168"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="265"/>
         <source>Key Size</source>
         <translation>密钥大小</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="167"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="173"/>
         <source>Usage</source>
         <translation>用法</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="172"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="178"/>
         <source>Expires On (Local Time)</source>
         <translation>到期时间（本地时间）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="179"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="185"/>
         <source>Create Date (Local Time)</source>
         <translation>创建时间（本地时间）</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="183"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="189"/>
         <source>Existence</source>
         <translation>存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="194"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="200"/>
         <source>Key in Smart Card</source>
         <translation>密钥在智能卡中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="199"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="205"/>
         <source>Fingerprint</source>
         <translation>指纹</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="71"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="77"/>
         <source>List of the primary key and subkey(s)</source>
         <translation>主密钥和子密钥列表</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="72"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="78"/>
         <source>Detail of Selected Primary Key/Subkey</source>
         <translation>选中的主密钥/子密钥详情</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="76"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="82"/>
         <source>New Subkey</source>
         <translation>新子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="77"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="83"/>
         <source>Add ADSK(s)</source>
         <translation>添加ADSK</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="146"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="259"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="152"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="265"/>
         <source>Key Type</source>
         <translation>密钥类型</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="195"/>
         <source>Revoked</source>
         <translation>已吊销</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="94"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="456"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="100"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="462"/>
         <source>Export Subkey</source>
         <translation>导出子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="260"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="266"/>
         <source>Create Date</source>
         <translation>创建时间</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="263"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="269"/>
         <source>Expire Date</source>
         <translation>到期日期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="286"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="461"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="292"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="467"/>
         <source>Primary Key</source>
         <translation>主密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="286"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="462"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="292"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="468"/>
         <source>Subkey</source>
         <translation>子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="287"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="293"/>
         <source>ADSK</source>
         <translation>ADSK</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="313"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="319"/>
         <source>Never Expire</source>
         <translation>永不过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="435"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="441"/>
         <source>Never Expires</source>
         <translation>永不过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="397"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="403"/>
         <source>Exists</source>
         <translation>存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="99"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="105"/>
         <source>Exporting subkeys is not supported by the current OpenPGP backend.</source>
         <translation>当前的 OpenPGP 后端不支持导出子密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="398"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="404"/>
         <source>Not Exists</source>
         <translation>不存在</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="401"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="464"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="407"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="470"/>
         <source>Yes</source>
         <translation>是</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="401"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="464"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="407"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="470"/>
         <source>No</source>
         <translation>否</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="455"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="461"/>
         <source>Export Primary Key</source>
         <translation>导出主密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="474"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="480"/>
         <source>Edit Expire Date</source>
         <translation>编辑到期日期</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="478"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="484"/>
         <source>Export</source>
         <translation>导出</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="482"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="488"/>
         <source>Delete</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="486"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="492"/>
         <source>Revoke</source>
         <translation>吊销</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="490"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="496"/>
         <source>Change Passphrase</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="597"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="500"/>
+        <source>Move to Card</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="622"/>
         <source>Exporting Subkey</source>
         <translation>正在导出子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="598"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="623"/>
         <source>You are about to export a private subkey.</source>
         <translation>您即将导出一个子密钥的私有部分。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="599"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="624"/>
         <source>While subkeys are less critical than the primary key, they should still be handled with care.</source>
         <translation>虽然子密钥没有主密钥那么重要，但仍应小心处理。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="602"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="627"/>
         <source>Do you want to proceed with exporting this subkey?</source>
         <translation>是否要继续导出该子密钥？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="629"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="654"/>
         <source>Export Key To File</source>
         <translation>将密钥导出到文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="630"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="655"/>
         <source>Key Files</source>
         <translation>密钥文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="635"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="660"/>
         <source>Export Error</source>
         <translation>导出错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="636"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="661"/>
         <source>Couldn&apos;t open %1 for writing</source>
         <translation>无法打开 %1 进行写入</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="646"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="671"/>
         <source>&lt;h3&gt;You are about to delete the subkey:&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;KeyID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;This action is irreversible. Please confirm.</source>
         <translation>&lt;h3&gt;您即将删除子密钥：&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;KeyID：&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;此操作不可逆。请确认。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="652"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="677"/>
         <source>Delete Subkey Confirmation</source>
         <translation>确认删除子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="667"/>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="733"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="692"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="777"/>
         <source>Illegal Operation</source>
         <translation>非法的操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="668"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="693"/>
         <source>Cannot delete the primary key or an invalid subkey.</source>
         <translation>无法删除主密钥或者无效的子密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="676"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="701"/>
         <source>Operation Failed</source>
         <translation>操作失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="677"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="702"/>
         <source>The selected subkey could not be deleted. Please check your permissions or try again.</source>
         <translation>所选子密钥无法删除。请检查权限或重试。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="683"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="708"/>
         <source>Operation Successful</source>
         <translation>操作成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="684"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="709"/>
         <source>The subkey with KeyID %1 has been successfully deleted.</source>
         <translation>密钥ID为 %1 的子密钥已成功删除。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="710"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="754"/>
         <source>&lt;h3&gt;Revoke Subkey Confirmation&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;KeyID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;Revoking a subkey will make it permanently unusable. This action is &lt;b&gt;irreversible&lt;/b&gt;.&lt;br /&gt;Are you sure you want to revoke this subkey?</source>
         <translation>&lt;h3&gt;子密钥吊销确认&lt;/h3&gt;&lt;br /&gt;&lt;b&gt;KeyID:&lt;/b&gt; %1&lt;br /&gt;&lt;br /&gt;吊销子密钥将使其永久不可用。此操作是 &lt;b&gt;不可逆的&lt;/b&gt;。&lt;br /&gt;您确定要吊销此子密钥吗？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="717"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="761"/>
         <source>Revoke Subkey</source>
         <translation>吊销子密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="734"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="778"/>
         <source>Cannot revoke the primary key or an invalid subkey.</source>
         <translation>无法吊销主密钥或者无效的子密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="739"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="783"/>
         <source>0 -&gt; No Reason.</source>
         <translation>0 -&gt; 无理由。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="739"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="783"/>
         <source>1 -&gt; This key is no more safe.</source>
         <translation>1 -&gt; 密钥不再安全。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="740"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="784"/>
         <source>2 -&gt; Key is outdated.</source>
         <translation>2 -&gt; 密钥已经过时。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="740"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="784"/>
         <source>3 -&gt; Key is no longer used</source>
         <translation>3 -&gt; 密钥不再被使用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="752"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="796"/>
         <source>Revocation Failed</source>
         <translation>吊销失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="753"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="797"/>
         <source>Failed to revoke the subkey. Please try again.</source>
         <translation>吊销子密钥失败。请重试。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="756"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="800"/>
         <source>Revocation Successful</source>
         <translation>吊销成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="757"/>
+        <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="801"/>
         <source>The subkey has been successfully revoked.</source>
         <translation>子密钥成功吊销</translation>
     </message>
@@ -8073,36 +8253,36 @@ Would you like to fetch these keys from the key server?</source>
         <translation>状态面板</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="358"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="375"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="393"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="380"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="402"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="425"/>
         <source>Successful Operation</source>
         <translation>操作成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="359"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="381"/>
         <source>Clear password cache successfully</source>
         <translation>清除密码缓存成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="361"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="379"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="397"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="383"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="406"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="429"/>
         <source>Failed Operation</source>
         <translation>操作失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="362"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="384"/>
         <source>Failed to clear password cache of GnuPG</source>
         <translation>无法清除 GnuPG 的密码缓存</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="439"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="471"/>
         <source>Engine: %1</source>
         <translation>引擎: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="442"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="474"/>
         <source>Engine: %1 %2</source>
         <translation>引擎: %1 %2</translation>
     </message>
@@ -8117,12 +8297,12 @@ Would you like to fetch these keys from the key server?</source>
         <translation>重新加载所有 GnuPG 的组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="376"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="403"/>
         <source>Reload all the GnuPG&apos;s components successfully</source>
         <translation>成功重新加载所有 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="380"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="407"/>
         <source>Failed to reload all or one of the GnuPG&apos;s component(s)</source>
         <translation>未能重新加载所有或其中一个 GnuPG 组件</translation>
     </message>
@@ -8137,12 +8317,12 @@ Would you like to fetch these keys from the key server?</source>
         <translation>重新启动所有 GnuPG 的组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="394"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="426"/>
         <source>Restart all the GnuPG&apos;s components successfully</source>
         <translation>成功重启所有 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="398"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="430"/>
         <source>Failed to restart all or one of the GnuPG&apos;s component(s)</source>
         <translation>无法重新启动所有或其中一个 GnuPG 组件</translation>
     </message>
@@ -8702,6 +8882,49 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="202"/>
         <source>Auto</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>GpgFrontend::UI::MoveKeyToCardPicker</name>
+    <message>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="120"/>
+        <source>Select Key to Move to Card</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="125"/>
+        <source>Choose a Key or Subkey to Move</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="131"/>
+        <source>Select the single private key or subkey to move onto the smart card. Expand a key to choose a particular subkey. Only parts that can be stored on a card are selectable.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="145"/>
+        <source>Database</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="175"/>
+        <source>Confirm</source>
+        <translation type="unfinished">确认</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="178"/>
+        <source>Cancel</source>
+        <translation type="unfinished">取消</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="183"/>
+        <source>Select One Key</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="184"/>
+        <source>Please select exactly one key or subkey to move to the card.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -9545,12 +9768,12 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">在密钥数据库中的密钥存根:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="163"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="156"/>
         <source>Change Name</source>
         <translation>修改名称</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="165"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="158"/>
         <source>Change Language</source>
         <translation>修改语言</translation>
     </message>
@@ -9559,72 +9782,72 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">修改性别</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="169"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="162"/>
         <source>Change Login Data</source>
         <translation>修改登录信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="171"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="164"/>
         <source>Change Public Key URL</source>
         <translation>修改公钥链接</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="176"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="169"/>
         <source>Change PIN</source>
         <translation>修改PIN</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="178"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="171"/>
         <source>Change Admin PIN</source>
         <translation>修改管理员PIN</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="180"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="173"/>
         <source>Change Reset Code</source>
         <translation>修改重置代码</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="146"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="139"/>
         <source>Fetch</source>
         <translation>获取</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="116"/>
         <source>Slot</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="133"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="125"/>
         <source>Key Info (ki)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="134"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="126"/>
         <source>Additional Auth (aac)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="135"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="127"/>
         <source>Biometric Terminal (bt)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="136"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="128"/>
         <source>KDF Supported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="185"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="178"/>
         <source>Restart All Gpg-Agents</source>
         <translation>重启所有Gpg-Agents</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="145"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="137"/>
         <source>Generate Card Keys</source>
         <translation>生成智能卡密钥</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="147"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="140"/>
         <source>Refresh</source>
         <translation>刷新</translation>
     </message>
@@ -9633,32 +9856,32 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">操作</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="194"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="192"/>
         <source>Successful Operation</source>
         <translation>操作成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="195"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="193"/>
         <source>Restart all the GnuPG&apos;s components successfully</source>
         <translation>成功重启所有 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="198"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="196"/>
         <source>Failed Operation</source>
         <translation>操作失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="199"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="197"/>
         <source>Failed to restart all or one of the GnuPG&apos;s component(s)</source>
         <translation>无法重新启动所有或其中一个 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="233"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="227"/>
         <source>Generate card key failed.</source>
         <translation>生成智能卡密钥失败。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="102"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="95"/>
         <source>Smart Card Controller</source>
         <translation>智能卡控制器</translation>
     </message>
@@ -9671,12 +9894,12 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">基本信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="108"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="100"/>
         <source>Reader</source>
         <translation>读卡器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="109"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="101"/>
         <source>Serial Number</source>
         <translation>序列号</translation>
     </message>
@@ -9701,7 +9924,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">制造商ID</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="110"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="102"/>
         <source>Manufacturer</source>
         <translation>制造商</translation>
     </message>
@@ -9710,22 +9933,22 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">持卡人</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="113"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="105"/>
         <source>Language</source>
         <translation>语言</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="114"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="106"/>
         <source>Sex</source>
         <translation>性别</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="117"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="109"/>
         <source>Signature Counter</source>
         <translation>签名计数器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="118"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="110"/>
         <source>CHV1 Cached</source>
         <translation>已缓存普通PIN</translation>
     </message>
@@ -9738,7 +9961,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">PIN剩余重试次数</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="119"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="111"/>
         <source>KDF Status</source>
         <translation>密钥派生函数状态</translation>
     </message>
@@ -9751,12 +9974,12 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">签名</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="358"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="348"/>
         <source>Enabled</source>
         <translation>已启用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="359"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="349"/>
         <source>Disabled</source>
         <translation>已禁用</translation>
     </message>
@@ -9769,154 +9992,179 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">认证</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="137"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="129"/>
         <source>Status Indicator</source>
         <translation>状态指示器</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="141"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="133"/>
         <source>No card detected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="143"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="135"/>
         <source>Cardholder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="144"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="136"/>
         <source>Access Codes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="148"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="138"/>
+        <source>Move Key to Card</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="141"/>
         <source>More Actions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="167"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="160"/>
         <source>Change Sex</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="203"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="201"/>
         <source>Open GnuPG Smart Card HOWTO</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="306"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="296"/>
         <source>Unnamed Card</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="320"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="322"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="310"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="312"/>
         <source>%1, version %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="325"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="326"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="315"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="316"/>
         <source>Not set</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="329"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="319"/>
         <source>● Ready</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="341"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="331"/>
         <source>PIN</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="341"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="331"/>
         <source>Reset Code</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="342"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="332"/>
         <source>Admin PIN</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="338"/>
         <source>%1 n/a</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="352"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="342"/>
         <source>%1 %2 left</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="355"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="345"/>
         <source>%1 retries left, maximum length %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="361"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="351"/>
         <source>User Interaction Flag — Sign: %1 · Encrypt: %2 · Authenticate: %3</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="406"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="396"/>
         <source>N/A</source>
         <translation type="unfinished">不适用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="513"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="472"/>
         <source>Read the GnuPG Smart Card HOWTO</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="599"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="558"/>
+        <source>No Card</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="559"/>
+        <source>No smart card is currently selected.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="566"/>
+        <source>Not Supported</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="567"/>
+        <source>Moving a key to a smart card is only supported for GnuPG key databases. The rpgp engine is not supported for this feature.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="589"/>
         <source>Cardholder&apos;s Surname</source>
         <translation>持卡人姓氏</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="600"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="590"/>
         <source>Please enter your surname (e.g., Lee):</source>
         <translation>请输入您的姓氏 (如: 李): </translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="605"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="595"/>
         <source>Cardholder&apos;s Given Name</source>
         <translation>持卡人名字</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="606"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="596"/>
         <source>Please enter your given name (e.g., Chris):</source>
         <translation>请输入您的名字 (如: 小明):</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="615"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="605"/>
         <source>Too Long</source>
         <translation>太长</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="616"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="606"/>
         <source>Combined name too long (max 39 characters).</source>
         <translation>姓名合并后太长 (最长39个字符)。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="631"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="621"/>
         <source>Male</source>
         <translation>男</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="631"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="621"/>
         <source>Female</source>
         <translation>女</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="635"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="625"/>
         <source>Select sex to store in &apos;%1&apos;</source>
         <translation>选择要存储在 &apos;%1&apos; 中的性别</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="650"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="640"/>
         <source>Enter new value for attribute &apos;%1&apos;</source>
         <translation>请输入属性 &apos;%1&apos; 的新值</translation>
     </message>
@@ -9925,23 +10173,23 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">状态</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="372"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="362"/>
         <source>Not enabled</source>
         <translation>未启用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="375"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="365"/>
         <source>Enabled (no protection)</source>
         <translation>启用 (无保护)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="378"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="368"/>
         <source>Enabled with salt protection</source>
         <translation>已启用 (加盐保护)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="313"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="381"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="303"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="371"/>
         <source>Unknown</source>
         <translation>未知</translation>
     </message>
@@ -9950,7 +10198,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">密钥信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="392"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="382"/>
         <source>No key information available.</source>
         <translation>未发现可用密钥信息</translation>
     </message>
@@ -9959,63 +10207,58 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">序号</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="125"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="117"/>
         <source>Fingerprint</source>
         <translation>指纹</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="116"/>
         <source>Created</source>
         <translation>创建时间</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="125"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="117"/>
         <source>Grip</source>
         <translation>内部密钥标识符</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="116"/>
         <source>Type</source>
         <translation>类型</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="104"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="111"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="97"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="103"/>
         <source>Card</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="105"/>
-        <source>Key Stubs in</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="99"/>
         <source>Identity</source>
         <translation type="unfinished">身份</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="112"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="104"/>
         <source>Application</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="116"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="108"/>
         <source>Access &amp; Status</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="121"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="113"/>
         <source>Keys on Card</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="116"/>
         <source>Algorithm</source>
         <translation>算法</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="124"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="116"/>
         <source>Usage</source>
         <translation>用法</translation>
     </message>
@@ -10024,7 +10267,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">密钥曲线</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="132"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="124"/>
         <source>Extended Capabilities</source>
         <translation>扩展能力</translation>
     </message>
@@ -10033,14 +10276,14 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">密钥信息 (ki): %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="367"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="421"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="357"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="411"/>
         <source>Yes</source>
         <translation>是</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="367"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="422"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="357"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="412"/>
         <source>No</source>
         <translation>否</translation>
     </message>
@@ -10057,32 +10300,32 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">密钥派生函数支持: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="139"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="131"/>
         <source>Additional Info</source>
         <translation>额外信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="495"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="454"/>
         <source>No OpenPGP Smart Card Found</source>
         <translation>未发现OpenPGP智能卡</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="500"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="459"/>
         <source>No OpenPGP-compatible smart card has been detected.</source>
         <translation>未检测到兼容 OpenPGP 的智能卡。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="501"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="460"/>
         <source>An OpenPGP Smart Card is a physical device that securely stores your private cryptographic keys and can be used for digital signing, encryption, and authentication. Popular examples include YubiKey, Nitrokey, and other GnuPG-compatible tokens.</source>
         <translation>OpenPGP 智能卡是一种物理设备，可以安全地存储你的私有加密密钥，并可用于数字签名、加密和认证。流行的例子包括 YubiKey、Nitrokey 和其他 GnuPG 兼容令牌。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="507"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="466"/>
         <source>Make sure your card is inserted and properly recognized by the system. You can also try reconnecting the card or restarting the application.</source>
         <translation>确保您的卡已插入并被系统正确识别。您也可以尝试重新连接卡或重启应用程序。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="522"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="481"/>
         <source>Note: Smart card support of GpgFrontend requires GnuPG version 2.3.0 or later.</source>
         <translation>注意：GpgFrontend 的智能卡支持需要 GnuPG 2.3.0 或更高版本。</translation>
     </message>
@@ -10091,29 +10334,29 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">阅读 GnuPG 智能卡 HOWTO：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="634"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="649"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="624"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="639"/>
         <source>Modify Card Attribute</source>
         <translation>修改智能卡属性</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="668"/>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="682"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="658"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="672"/>
         <source>Success</source>
         <translation>成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="669"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="659"/>
         <source>Attribute operation completed successfully.</source>
         <translation>属性操作成功完成。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="232"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="226"/>
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="683"/>
+        <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="673"/>
         <source>PIN operation completed successfully.</source>
         <translation>PIN操作成功完成。</translation>
     </message>
@@ -10504,22 +10747,22 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="547"/>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="979"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="977"/>
         <source>Workspace</source>
         <translation>工作空间</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="951"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="949"/>
         <source>Directory Permission Denied</source>
         <translation>目录权限不足</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="952"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="950"/>
         <source>You do not have permission to access the directory &quot;%1&quot;.</source>
         <translation>您没有权限访问目录 &quot;%1&quot;。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="974"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="972"/>
         <source>Root</source>
         <translation>根目录</translation>
     </message>
@@ -10558,7 +10801,8 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
 <context>
     <name>GpgFrontend::UI::Wizard</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="151"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="226"/>
+        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="233"/>
         <source>Welcome to GpgFrontend</source>
         <translation>欢迎使用 GpgFrontend</translation>
     </message>
@@ -10658,42 +10902,40 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation>您没有选中任何要同步的公钥，是否要从密钥服务器同步所有本地公钥？</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="289"/>
         <source>Cannot Find GpgConf</source>
-        <translation>无法找到 GpgConf</translation>
+        <translation type="vanished">无法找到 GpgConf</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="297"/>
         <source>Cannot Find GnuPG</source>
-        <translation>无法找到 GnuPG</translation>
+        <translation type="vanished">无法找到 GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="272"/>
         <source>Cannot get Infos from GpgConf</source>
-        <translation>无法从GpgConf获取信息</translation>
+        <translation type="vanished">无法从GpgConf获取信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="525"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="526"/>
         <source>Basic Path Initiation Failed</source>
         <translation>基本路径初始化失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="552"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="554"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="612"/>
         <source>No Supported OpenPGP Engine Detected</source>
         <translation>未检测到受支持的 OpenPGP 引擎</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="593"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="596"/>
         <source>No valid Key Database</source>
         <translation>没有有效的密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="630"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="644"/>
         <source>GpgME Default Context Initiation Failed</source>
         <translation>GpgME 默认上下文初始化失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/GFCoreInit.cpp" line="642"/>
+        <location filename="../../../../src/core/GFCoreInit.cpp" line="657"/>
         <source>Gpg Default Key Database Initiation Failed</source>
         <translation>Gpg 默认密钥数据库初始化失败</translation>
     </message>
@@ -10726,12 +10968,12 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="459"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="525"/>
         <source>Program Self-Test Failed</source>
         <translation>程序自检失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="460"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="526"/>
         <source>The application has detected an issue while verifying essential libraries and binaries that were digitally signed during the build. This means one or more files may have been altered or are being loaded from the wrong location. For security reasons, the program must now exit.</source>
         <translation>应用程序在校验构建时已数字签名的核心库和二进制文件时检测到问题。这可能意味着有一个或多个文件被篡改，或从错误的位置加载。出于安全原因，程序将立即退出。</translation>
     </message>
@@ -10748,7 +10990,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">请输入您的 PIN 以解锁应用程序。</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="69"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="70"/>
         <source>Save Key Failed</source>
         <translation>保存密钥失败</translation>
     </message>
@@ -10785,7 +11027,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">使用 OpenSSL 生成安全应用密钥失败，将回退使用较低安全性的密钥。请检查系统的加密支持。</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="104"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="105"/>
         <source>Secure Key Generation Failed</source>
         <translation>安全密钥生成失败</translation>
     </message>
@@ -10794,186 +11036,211 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">计算密钥 ID 失败。</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="70"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="71"/>
         <source>The application secure key could not be saved: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="73"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="74"/>
         <source>Anything saved now would be unreadable after a restart, so the application will not continue. Please check your storage and permissions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="83"/>
-        <location filename="../../../../src/GpgFrontend.cpp" line="92"/>
-        <location filename="../../../../src/GpgFrontend.cpp" line="198"/>
-        <location filename="../../../../src/GpgFrontend.cpp" line="337"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="84"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="93"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="199"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="403"/>
         <source>App Secure Key Error</source>
         <translation>应用安全密钥错误</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="84"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="85"/>
         <source>Failed to decrypt the application secure key. The key file may be corrupted.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="86"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="87"/>
         <source>Please clear the secure key and try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="93"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="94"/>
         <source>Failed to read the application secure key from disk at: %1</source>
         <translation>无法从磁盘读取应用安全密钥：%1</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="97"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="98"/>
         <source>Please ensure the key file exists and is accessible, or try re-initializing the secure key.</source>
         <translation>请确保密钥文件存在且可访问，或尝试重新初始化安全密钥。</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="105"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="106"/>
         <source>Failed to generate an application secure key.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="106"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="107"/>
         <source>Please check your system&apos;s cryptography support.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="147"/>
-        <location filename="../../../../src/GpgFrontend.cpp" line="227"/>
-        <location filename="../../../../src/GpgFrontend.cpp" line="235"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="148"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="228"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="236"/>
         <source>Reset Secure Key</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="148"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="149"/>
         <source>The key file at %1 could not be removed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="187"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="188"/>
         <source>System Keychain Unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="188"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="189"/>
         <source>The application key could not be protected using the system keychain, so it remains stored unprotected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="191"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="192"/>
         <source>This setting has been turned off. You can turn it on again once a keychain is available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="199"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="200"/>
         <source>The application secure key at %1 could not be read or rewritten.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="202"/>
-        <location filename="../../../../src/GpgFrontend.cpp" line="340"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="203"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="406"/>
         <source>Please check your storage and permissions.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="210"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="211"/>
         <source>Secure Key Unavailable</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="211"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="212"/>
         <source>The application key is protected by a secret kept in the system keychain, and that secret could not be read.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="215"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="216"/>
         <source>This usually means the keychain is locked, was reset, or this profile was copied from another computer or user account.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="219"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="220"/>
         <source>You can unlock the keychain and start the application again. Resetting the key instead lets the application start, but everything it previously encrypted becomes permanently unreadable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="224"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="225"/>
         <source>Keychain backend: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="226"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="227"/>
         <source>Quit</source>
         <translation type="unfinished">退出</translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="236"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="237"/>
         <source>Everything the application has encrypted with the old key will be permanently unreadable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="238"/>
-        <location filename="../../../../src/GpgFrontend.cpp" line="290"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="239"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="291"/>
         <source>Reset the secure key?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="271"/>
-        <location filename="../../../../src/GpgFrontend.cpp" line="279"/>
-        <location filename="../../../../src/GpgFrontend.cpp" line="287"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="272"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="280"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="288"/>
         <source>Reset to Default</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="272"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="273"/>
         <source>Resetting removes the PIN and lets the application start, but everything it previously encrypted becomes permanently unreadable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="275"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="276"/>
         <source>Only do this if you cannot recall the PIN. There is no other way to recover the key.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="278"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="279"/>
         <source>Go Back</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="288"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="289"/>
         <source>Everything the application has encrypted with the current key will be permanently unreadable.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="338"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="353"/>
+        <source>a newer version</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/GpgFrontend.cpp" line="357"/>
+        <source>Profile Is Too New</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/GpgFrontend.cpp" line="358"/>
+        <source>This application data was last used by %1, which stores it in a format this version does not understand.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/GpgFrontend.cpp" line="362"/>
+        <source>Continuing would damage it. Please use %1 or later, or start this version with a different data folder.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/GpgFrontend.cpp" line="365"/>
+        <source>Data folder: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/GpgFrontend.cpp" line="404"/>
         <source>The application secure key at %1 could not be read.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="347"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="413"/>
         <source>Application Key Not Protected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="348"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="414"/>
         <source>A PIN is configured, but the application key on disk is not encrypted.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="351"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="417"/>
         <source>This can happen if a previous change was interrupted. The PIN setting has been turned off and the key is left as it is.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="393"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="459"/>
         <source>That PIN did not unlock the application key. Please try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/GpgFrontend.cpp" line="399"/>
+        <location filename="../../../../src/GpgFrontend.cpp" line="465"/>
         <source>If you have forgotten your PIN, the application key and everything encrypted with it cannot be recovered.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -11054,7 +11321,7 @@ The link has been copied to your clipboard:
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseStrength.cpp" line="87"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="453"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="711"/>
         <source>Strong</source>
         <translation>强</translation>
     </message>
@@ -11105,7 +11372,7 @@ The link has been copied to your clipboard:
     </message>
     <message>
         <location filename="../../../../src/ui/function/InfoBoardCardConverter.cpp" line="117"/>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="457"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="715"/>
         <source>Unknown</source>
         <translation>未知</translation>
     </message>
@@ -11260,32 +11527,32 @@ The link has been copied to your clipboard:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="449"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="707"/>
         <source>Standard</source>
         <translation type="unfinished">标准</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="451"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="709"/>
         <source>Enhanced</source>
         <translation type="unfinished">增强</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="455"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="713"/>
         <source>Maximum</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="464"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="722"/>
         <source>System keychain</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="466"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="724"/>
         <source>PIN at startup</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="470"/>
+        <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="728"/>
         <source>No extra protection</source>
         <translation type="unfinished"></translation>
     </message>
@@ -11298,9 +11565,8 @@ The link has been copied to your clipboard:
 <context>
     <name>QWizardPage</name>
     <message>
-        <location filename="../../../../src/ui/dialog/Wizard.cpp" line="76"/>
         <source>A simple, privacy-focused OpenPGP tool for text, files, and keys.</source>
-        <translation>一款简洁、注重隐私的 OpenPGP 工具，用于文本、文件和密钥。</translation>
+        <translation type="vanished">一款简洁、注重隐私的 OpenPGP 工具，用于文本、文件和密钥。</translation>
     </message>
 </context>
 </TS>
