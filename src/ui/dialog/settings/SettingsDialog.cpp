@@ -31,6 +31,7 @@
 #include "core/GFConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/utils/CommonUtils.h"
+#include "ui/UIModuleManager.h"
 #include "ui/dialog/settings/SettingsAdvanced.h"
 #include "ui/dialog/settings/SettingsAppearance.h"
 #include "ui/dialog/settings/SettingsGeneral.h"
@@ -38,6 +39,7 @@
 #include "ui/dialog/settings/SettingsIM.h"
 #include "ui/dialog/settings/SettingsKeyDatabases.h"
 #include "ui/dialog/settings/SettingsNetwork.h"
+#include "ui/dialog/settings/SettingsPageOrder.h"
 #include "ui/dialog/settings/SettingsRpgp.h"
 #include "ui/main_window/MainWindow.h"
 
@@ -79,10 +81,11 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   // Searching by page name alone only helps someone who already knows how the
   // pages are cut up. The keywords name the settings themselves, so typing what
   // you are looking for ("proxy", "pin") lands on the page that holds it.
-  const auto application_section = tr("Application");
-  const auto engines_section = tr("Keys & Engines");
-  const auto features_section = tr("Features");
-  const auto system_section = tr("System");
+  const QHash<QString, QString> section_titles{
+      {"application", tr("Application")},
+      {"keys_engines", tr("Keys & Engines")},
+      {"features", tr("Features")},
+      {"system", tr("System")}};
 
   // Named so the restart confirmation can tell the user which pages hold a
   // change that needs one.
@@ -92,41 +95,76 @@ SettingsDialog::SettingsDialog(QWidget* parent)
   const auto gnupg_title = tr("GnuPG");
   const auto advanced_title = tr("Advanced");
 
-  add_page(general_tab_, general_title, application_section,
-           {tr("startup"), tr("confirm import"), tr("language"), tr("locale"),
-            tr("translation"), tr("data"), tr("cache")});
-  add_page(appearance_tab_, appearance_title, application_section,
-           {tr("theme"), tr("icon"), tr("font size"), tr("font family"),
-            tr("toolbar"), tr("actions"), tr("instant messaging"),
-            tr("text editor"), tr("status panel")});
+  // Every page is described first and only then handed to add_page. Module
+  // pages register while their module activates, so they can only be collected
+  // after the built-in ones — and add_page emits a section header the first
+  // time it sees a section, so an unsorted late arrival would show up under
+  // whichever header came last. Ordering the whole set keeps each section
+  // contiguous, which is the assumption add_page rests on.
+  QVector<SettingsPageDescriptor> descriptors{
+      {general_tab_,
+       general_title,
+       "application",
+       {tr("startup"), tr("confirm import"), tr("language"), tr("locale"),
+        tr("translation"), tr("data"), tr("cache")}},
+      {appearance_tab_,
+       appearance_title,
+       "application",
+       {tr("theme"), tr("icon"), tr("font size"), tr("font family"),
+        tr("toolbar"), tr("actions"), tr("instant messaging"),
+        tr("text editor"), tr("status panel")}},
+  };
 
   // network settings is not available in sandbox environment, so only add the
   // page when not running in sandbox
   if (!IsRunningInSandBox()) {
-    add_page(network_tab_, tr("Network"), application_section,
-             {tr("proxy"), tr("socks"), tr("http"), tr("timeout"),
-              tr("connection")});
+    descriptors.append({network_tab_,
+                        tr("Network"),
+                        "application",
+                        {tr("proxy"), tr("socks"), tr("http"), tr("timeout"),
+                         tr("connection")}});
   }
 
-  add_page(key_dbs_tab_, key_dbs_title, engines_section,
-           {tr("keyring"), tr("gpg home"), tr("database path")});
+  descriptors.append({key_dbs_tab_,
+                      key_dbs_title,
+                      "keys_engines",
+                      {tr("keyring"), tr("gpg home"), tr("database path")}});
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    add_page(
-        gnupg_tab_, gnupg_title, engines_section,
-        {tr("gpgme"), tr("gpgconf"), tr("binary path"), tr("custom install")});
+    descriptors.append({gnupg_tab_,
+                        gnupg_title,
+                        "keys_engines",
+                        {tr("gpgme"), tr("gpgconf"), tr("binary path"),
+                         tr("custom install")}});
   }
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {
-    add_page(rpgp_tab_, tr("rPGP"), engines_section,
-             {tr("rust"), tr("engine")});
+    descriptors.append(
+        {rpgp_tab_, tr("rPGP"), "keys_engines", {tr("rust"), tr("engine")}});
   }
 
-  add_page(im_tab_, tr("Instant Messaging"), features_section,
-           {tr("message book"), tr("phrase"), tr("fingerprint"), tr("token")});
-  add_page(advanced_tab_, advanced_title, system_section,
-           {tr("security level"), tr("PIN"), tr("keychain"), tr("log level"),
-            tr("ring buffer"), tr("integrity check"), tr("ENV.ini")});
+  descriptors.append(
+      {im_tab_,
+       tr("Instant Messaging"),
+       "features",
+       {tr("message book"), tr("phrase"), tr("fingerprint"), tr("token")}});
+  descriptors.append(
+      {advanced_tab_,
+       advanced_title,
+       "system",
+       {tr("security level"), tr("PIN"), tr("keychain"), tr("log level"),
+        tr("ring buffer"), tr("integrity check"), tr("ENV.ini")}});
+
+  descriptors.append(collect_module_pages());
+
+  for (const auto& descriptor :
+       OrderSettingsPageDescriptors(descriptors, SettingsSectionOrder())) {
+    // A module naming a section we do not know still gets a header, using its
+    // own key, rather than being folded into somebody else's group.
+    add_page(descriptor.page, descriptor.title,
+             section_titles.value(descriptor.section_id, descriptor.section_id),
+             descriptor.keywords);
+  }
 
   // Sized once every row exists, so the sidebar is exactly as wide as its
   // widest title — up to a cap, past which titles elide rather than widen the
@@ -257,6 +295,67 @@ auto SettingsDialog::eventFilter(QObject* watched, QEvent* event) -> bool {
     }
   }
   return GeneralDialog::eventFilter(watched, event);
+}
+
+auto SettingsDialog::collect_module_pages() -> QVector<SettingsPageDescriptor> {
+  QVector<SettingsPageDescriptor> descriptors;
+
+  // Titles and keywords arrive as untranslated source strings: a module is
+  // activated before the module translators are installed, so anything it
+  // translated at registration time would be frozen at the source text and
+  // would not follow a later language change.
+  const auto translate = [](const QString& source) {
+    return QCoreApplication::translate("GTrC", source.toUtf8().constData());
+  };
+
+  for (const auto& registration :
+       UIModuleManager::GetInstance().ListSettingsPages()) {
+    auto* object =
+        static_cast<QObject*>(registration.factory(registration.data));
+    auto* page = qobject_cast<QWidget*>(object);
+    if (page == nullptr) {
+      // One misbehaving module must not cost the user every other page.
+      LOG_W() << "module settings page factory produced no widget, id:"
+              << registration.id;
+      delete object;
+      continue;
+    }
+
+    QStringList keywords;
+    keywords.reserve(registration.keywords.size());
+    for (const auto& keyword : registration.keywords) {
+      keywords << translate(keyword);
+    }
+
+    const auto title = translate(registration.title);
+    module_pages_.append(page);
+    module_page_titles_.insert(page, title);
+
+    // Taking part in the restart confirmation is optional, and the page type is
+    // unknown here, so it is discovered rather than required.
+    if (page->metaObject()->indexOfSignal("SignalRestartNeeded(int)") >= 0) {
+      connect(page, SIGNAL(SignalRestartNeeded(int)), this,
+              SLOT(slot_module_restart_needed(int)));
+    }
+
+    descriptors.append({page, title, registration.section_id, keywords});
+  }
+
+  return descriptors;
+}
+
+void SettingsDialog::invoke_on_module_page(QWidget* page, const char* method) {
+  if (page == nullptr) return;
+
+  if (!QMetaObject::invokeMethod(page, method, Qt::DirectConnection)) {
+    LOG_W() << "module settings page" << page->metaObject()->className()
+            << "has no" << method << "slot; its changes were not applied";
+  }
+}
+
+void SettingsDialog::slot_module_restart_needed(int mode) {
+  declare_restart(mode,
+                  module_page_titles_.value(qobject_cast<QWidget*>(sender())));
 }
 
 void SettingsDialog::add_page(QWidget* page, const QString& title,
@@ -399,6 +498,10 @@ void SettingsDialog::revert_all_tabs() {
   im_tab_->SetSettings();
   advanced_tab_->SetSettings();
 
+  for (const auto& page : module_pages_) {
+    invoke_on_module_page(page, "SetSettings");
+  }
+
   restart_mode_ = kNonRestartCode;
   restart_pages_.clear();
 
@@ -439,6 +542,13 @@ void SettingsDialog::SlotAccept() {
 
   im_tab_->ApplySettings();
   advanced_tab_->ApplySettings();
+
+  // Applied synchronously, before the flush below: these pages are destroyed
+  // with the dialog a few lines further down, so anything queued would run
+  // against a page that no longer exists.
+  for (const auto& page : module_pages_) {
+    invoke_on_module_page(page, "ApplySettings");
+  }
 
   emit SignalAppearanceChanged();
 

@@ -29,12 +29,12 @@
 #pragma once
 
 #include "ui/dialog/GeneralDialog.h"
+#include "ui/dialog/settings/SettingsPageOrder.h"
 
 namespace GpgFrontend::UI {
 
 class GeneralTab;
 class AppearanceTab;
-class KeyserverTab;
 class NetworkTab;
 class KeyDatabasesTab;
 class GnuPGTab;
@@ -59,7 +59,6 @@ class SettingsDialog : public GeneralDialog {
 
   GeneralTab* general_tab_;        ///<
   AppearanceTab* appearance_tab_;  ///<
-  KeyserverTab* key_server_tab_;   ///<
   NetworkTab* network_tab_;        ///<
   KeyDatabasesTab* key_dbs_tab_;   ///<
   GnuPGTab* gnupg_tab_;            ///<
@@ -91,6 +90,19 @@ class SettingsDialog : public GeneralDialog {
    *
    */
   void SlotAccept();
+
+ private slots:
+
+  /**
+   * @brief Record a restart declared by a module-owned page.
+   *
+   * Module pages are not known at compile time, so this is connected by
+   * introspection to whichever of them declares SignalRestartNeeded(int); the
+   * page is identified through sender().
+   *
+   * @param mode restart depth the page is asking for
+   */
+  void slot_module_restart_needed(int mode);
 
  signals:
 
@@ -153,6 +165,30 @@ class SettingsDialog : public GeneralDialog {
   void revert_all_tabs();
 
   /**
+   * @brief Collect the module-owned pages registered through the SDK.
+   *
+   * Each registered factory is run once, here, producing a page that belongs to
+   * this dialog instance. Registrations that do not yield a QWidget are logged
+   * and skipped rather than allowed to abort the whole dialog.
+   *
+   * @return QVector<SettingsPageDescriptor> the pages, in registration order
+   */
+  auto collect_module_pages() -> QVector<SettingsPageDescriptor>;
+
+  /**
+   * @brief Call @p method on a module page by name.
+   *
+   * Module pages cannot be a known type here, so the SetSettings/ApplySettings
+   * contract that the built-in tabs express through their class is resolved at
+   * runtime instead. A page missing the method is reported rather than silently
+   * skipped: its changes would otherwise be dropped without a trace.
+   *
+   * @param page the module page, may be null if it was already destroyed
+   * @param method slot name, no signature
+   */
+  static void invoke_on_module_page(QWidget* page, const char* method);
+
+  /**
    * @brief One navigable page of the dialog.
    *
    * Pages are registered in display order; the section a page belongs to is
@@ -195,16 +231,20 @@ class SettingsDialog : public GeneralDialog {
    */
   void select_first_visible_page();
 
-  QListWidget* nav_list_;                     ///< sections + page rows
-  QStackedWidget* page_stack_;                ///< scroll-wrapped pages
-  QLineEdit* search_edit_;                    ///< filters nav_list_
-  QLabel* page_title_label_;                  ///< heading above the page
-  QVector<SettingsPage> pages_;               ///< registered pages, in order
-  QHash<QWidget*, int> nav_row_of_page_;      ///< page widget -> nav row
-  QDialogButtonBox* button_box_;              ///<
-  int restart_mode_{kNonRestartCode};         ///<
-  QStringList restart_pages_;                 ///< pages with such a change
-  bool suppress_restart_declaration_{false};  ///< set while reverting
+  QListWidget* nav_list_;                 ///< sections + page rows
+  QStackedWidget* page_stack_;            ///< scroll-wrapped pages
+  QLineEdit* search_edit_;                ///< filters nav_list_
+  QLabel* page_title_label_;              ///< heading above the page
+  QVector<SettingsPage> pages_;           ///< registered pages, in order
+  QHash<QWidget*, int> nav_row_of_page_;  ///< page widget -> nav row
+  QDialogButtonBox* button_box_;          ///<
+  /// Module-owned pages, guarded: a page is destroyed with the stack it sits
+  /// in, and apply runs while the dialog is on its way out.
+  QVector<QPointer<QWidget>> module_pages_;
+  QHash<QWidget*, QString> module_page_titles_;  ///< for restart confirmation
+  int restart_mode_{kNonRestartCode};            ///<
+  QStringList restart_pages_;                    ///< pages with such a change
+  bool suppress_restart_declaration_{false};     ///< set while reverting
 };
 
 }  // namespace GpgFrontend::UI

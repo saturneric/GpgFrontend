@@ -31,6 +31,7 @@ find_package(GTest REQUIRED)
 aux_source_directory(./core TEST_SOURCE)
 aux_source_directory(./core/gpg TEST_SOURCE)
 aux_source_directory(./core/rpgp TEST_SOURCE)
+aux_source_directory(./ui TEST_SOURCE)
 aux_source_directory(. TEST_SOURCE)
 
 # define test library
@@ -42,5 +43,9 @@ target_precompile_headers(${LIBRARY_TARGET} PUBLIC GpgFrontendTest.h)
 # link options
 target_link_libraries(${LIBRARY_TARGET} PRIVATE GTest::gtest)
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_core)
+
+# the ui tests cover the settings page registry and its ordering rules; gf_ui
+# already links gf_core, so this is purely additive
+target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_ui)
 
 add_test(AllTestsInGpgFrontend ${LIBRARY_TARGET})

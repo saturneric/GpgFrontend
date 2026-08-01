@@ -90,4 +90,53 @@ auto GF_SDK_EXPORT GFUIGlobalSettings() -> void*;
  */
 auto GF_SDK_EXPORT GFUIRegisterFileExtensionHandleEvent(
     const char* extension, const char* event_prefix) -> int;
+
+/**
+ * @brief Registers a settings page owned by a module.
+ *
+ * The page appears in the application's Settings dialog, grouped under
+ * @p section_id. The dialog is built and destroyed every time the user opens
+ * it, so @p factory is invoked once per dialog instance, on the main (UI)
+ * thread, and must return a *fresh*, unparented QWidget each time. Ownership
+ * of the returned widget passes to the dialog. Registering while a dialog is
+ * already open is harmless: that dialog snapshots the registry at
+ * construction, so the page shows up the next time it is opened.
+ *
+ * The widget should expose `void SetSettings()` and `void ApplySettings()` as
+ * slots (or Q_INVOKABLE); the dialog calls them by name to load, revert and
+ * apply. A widget may also declare a `void SignalRestartNeeded(int)` signal to
+ * take part in the dialog's restart confirmation.
+ *
+ * @p title and @p keywords must be untranslated source strings, marked with
+ * GC_TR(). The host translates them in the "GTrC" context while the dialog is
+ * built, so a language change is picked up without re-registering.
+ *
+ * @param page_id    Unique, module-namespaced identifier.
+ * @param section_id Canonical section key: "application", "keys_engines",
+ *                   "features" or "system". An unknown key creates its own
+ *                   section, placed after the built-in ones.
+ * @param title      Sidebar row and page heading.
+ * @param keywords   Extra search terms, '\n'-separated. May be nullptr.
+ * @param factory    Widget factory, invoked on the main thread.
+ * @param data       Opaque pointer handed unchanged to @p factory on *every*
+ *                   invocation. Unlike GFUICreateGUIObject this is not a
+ *                   one-shot capsule: it must stay valid while the module is
+ *                   loaded.
+ * @return 0 on success, -1 on a missing argument or a duplicate @p page_id.
+ */
+auto GF_SDK_EXPORT GFUIRegisterSettingsPage(
+    const char* page_id, const char* section_id, const char* title,
+    const char* keywords, QObjectFactory factory, void* data) -> int;
+
+/**
+ * @brief Removes a settings page registration.
+ *
+ * Call this from GFDeactivateModule(): a factory pointing into an unloaded
+ * shared object would crash the next time the Settings dialog is opened.
+ * Dialogs already on screen keep the widget they built.
+ *
+ * @param page_id Identifier passed to GFUIRegisterSettingsPage.
+ * @return 0 on success, -1 if @p page_id is nullptr or was never registered.
+ */
+auto GF_SDK_EXPORT GFUIUnregisterSettingsPage(const char* page_id) -> int;
 }

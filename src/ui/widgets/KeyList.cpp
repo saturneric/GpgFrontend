@@ -528,7 +528,7 @@ void KeyList::init_texts() {
 
   ui_->syncButton->setText(tr("Sync Public Key"));
   ui_->syncButton->setToolTip(
-      tr("Sync public keys with the default keyserver."));
+      tr("Sync public keys with the key server configured as the default."));
 
   ui_->uncheckButton->setText(tr("Uncheck All"));
   ui_->uncheckButton->setToolTip(tr("Uncheck all keys in the current tab."));

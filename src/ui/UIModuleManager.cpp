@@ -124,7 +124,46 @@ auto UIModuleManager::MakeCapsule(std::any v) -> QString {
 }
 
 auto UIModuleManager::GetSettings() const -> const QSettings* {
+  // settings_ is a long-lived copy, while the host writes through short-lived
+  // QSettings objects returned by GetSettings(). QSettings only reconciles with
+  // the backing store inside sync(), so without this a module would never see
+  // a value the host wrote after startup.
+  settings_.sync();
   return &settings_;
+}
+
+auto UIModuleManager::RegisterSettingsPage(const SettingsPageRegistration& reg)
+    -> bool {
+  if (reg.id.isEmpty() || reg.title.isEmpty() || reg.factory == nullptr) {
+    LOG_W() << "incomplete settings page registration, id:" << reg.id;
+    return false;
+  }
+
+  // Rejected rather than replaced: a Settings dialog that is already open holds
+  // a widget built by the current factory, and swapping the registration under
+  // it would leave that dialog pointing at a page nobody owns any more.
+  const auto exists = std::any_of(
+      settings_pages_.cbegin(), settings_pages_.cend(),
+      [&reg](const SettingsPageRegistration& p) { return p.id == reg.id; });
+  if (exists) {
+    LOG_W() << "settings page already registered:" << reg.id;
+    return false;
+  }
+
+  settings_pages_.append(reg);
+  return true;
+}
+
+auto UIModuleManager::UnregisterSettingsPage(const QString& id) -> bool {
+  if (id.isEmpty()) return false;
+  return settings_pages_.removeIf([&id](const SettingsPageRegistration& p) {
+    return p.id == id;
+  }) > 0;
+}
+
+auto UIModuleManager::ListSettingsPages() const
+    -> const QList<SettingsPageRegistration>& {
+  return settings_pages_;
 }
 
 auto RegisterQObject(QObject* p) -> QString {

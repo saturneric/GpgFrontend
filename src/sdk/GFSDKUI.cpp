@@ -136,3 +136,36 @@ auto GFUIRegisterFileExtensionHandleEvent(const char* extension,
                                         GFUnStrDup(event_prefix));
   return 0;
 }
+
+auto GFUIRegisterSettingsPage(const char* page_id, const char* section_id,
+                              const char* title, const char* keywords,
+                              QObjectFactory factory, void* data) -> int {
+  // Every string is consumed first: GFUnStrDup frees what it is given, so
+  // returning early on one null argument would leak the others.
+  GpgFrontend::UI::SettingsPageRegistration reg;
+  reg.id = page_id == nullptr ? QString() : GFUnStrDup(page_id);
+  reg.section_id = section_id == nullptr ? QString() : GFUnStrDup(section_id);
+  reg.title = title == nullptr ? QString() : GFUnStrDup(title);
+  reg.keywords = keywords == nullptr
+                     ? QStringList{}
+                     : GFUnStrDup(keywords).split('\n', Qt::SkipEmptyParts);
+  reg.factory = factory;
+  reg.data = data;
+
+  return GpgFrontend::UI::UIModuleManager::GetInstance().RegisterSettingsPage(
+             reg)
+             ? 0
+             : -1;
+}
+
+auto GFUIUnregisterSettingsPage(const char* page_id) -> int {
+  if (page_id == nullptr) {
+    LOG_W() << "settings page id is nullptr";
+    return -1;
+  }
+
+  return GpgFrontend::UI::UIModuleManager::GetInstance().UnregisterSettingsPage(
+             GFUnStrDup(page_id))
+             ? 0
+             : -1;
+}

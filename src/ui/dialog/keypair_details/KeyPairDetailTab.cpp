@@ -408,10 +408,16 @@ void KeyPairDetailTab::slot_query_key_publish_state() {
           const auto key_data = p["key_data"];
 
           if (!key_data.Empty()) {
+            // Which key server answered is the user's choice now, so name the
+            // one that actually did rather than assuming.
+            const auto key_server = p["key_server"].ConvertToQString();
             self->slot_refresh_notice(
                 ":/icons/publish.png",
-                tr("Notice: The public key has been published on "
-                   "keys.openpgp.org."));
+                key_server.isEmpty()
+                    ? tr("Notice: The public key has been published on the key "
+                         "server.")
+                    : tr("Notice: The public key has been published on %1.")
+                          .arg(QUrl(key_server).host()));
           }
         }
       });

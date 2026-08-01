@@ -31,12 +31,28 @@
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Module.h"
 #include "sdk/GFSDKBasicModel.h"
+#include "sdk/GFSDKUIModel.h"
 #include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {
 
 struct ModuleTranslatorInfo {
   GFTranslatorDataReader reader_;
+};
+
+/**
+ * @brief A settings page contributed by a module.
+ *
+ * Holds a factory rather than a widget: the Settings dialog is built and
+ * destroyed on every open, so each dialog instance needs its own page.
+ */
+struct GF_UI_EXPORT SettingsPageRegistration {
+  QString id;            ///< unique, module-namespaced
+  QString section_id;    ///< canonical section key, see SettingsSectionOrder()
+  QString title;         ///< untranslated source string, "GTrC" context
+  QStringList keywords;  ///< untranslated source strings, "GTrC" context
+  QObjectFactory factory{nullptr};  ///< runs on the main thread
+  void* data{nullptr};              ///< passed to factory on every invocation
 };
 
 class GF_UI_EXPORT UIModuleManager
@@ -111,6 +127,39 @@ class GF_UI_EXPORT UIModuleManager
   void RegisterAllModuleTranslators();
 
   /**
+   * @brief Register a module-owned page for the Settings dialog.
+   *
+   * A duplicate id is rejected rather than overwritten: a dialog that is
+   * already open may hold a widget built by the previous factory.
+   *
+   * @param reg the registration; id, title and factory are required
+   * @return true when the page was registered
+   */
+  auto RegisterSettingsPage(const SettingsPageRegistration& reg) -> bool;
+
+  /**
+   * @brief Drop a module-owned settings page registration.
+   *
+   * Modules must do this before unloading — a factory pointing into an
+   * unloaded shared object would crash the next dialog build.
+   *
+   * @param id the identifier used to register
+   * @return true when a registration was removed
+   */
+  auto UnregisterSettingsPage(const QString& id) -> bool;
+
+  /**
+   * @brief Every registered module settings page, in registration order.
+   *
+   * Order is preserved so it can act as the tiebreak between pages sharing a
+   * section.
+   *
+   * @return const QList<SettingsPageRegistration>&
+   */
+  [[nodiscard]] auto ListSettingsPages() const
+      -> const QList<SettingsPageRegistration>&;
+
+  /**
    * @brief
    *
    * @return const QSettings*
@@ -143,7 +192,10 @@ class GF_UI_EXPORT UIModuleManager
   QMap<QString, QPointer<QObject>> registered_qobjects_;
   QMap<QString, std::any> capsule_;
   QMap<QString, QString> file_ext_event_prefix_map_;
-  QSettings settings_;
+  QList<SettingsPageRegistration> settings_pages_;
+  /// Mutable so the const accessor can sync() it; syncing only reconciles with
+  /// the backing store, it does not change what this object represents.
+  mutable QSettings settings_;
 };
 
 auto GF_UI_EXPORT RegisterQObject(QObject* p) -> QString;

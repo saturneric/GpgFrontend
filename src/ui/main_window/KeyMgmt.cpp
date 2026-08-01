@@ -427,7 +427,8 @@ void KeyMgmt::create_keyserver_actions() {
   publish_key_to_key_server_act_ =
       new QAction(tr("Publish Key to Keyserver..."), this);
   publish_key_to_key_server_act_->setToolTip(
-      tr("Upload the checked public key(s) to the default keyserver"));
+      tr("Upload the checked public key(s) to the key server configured as the "
+         "default"));
   connect(publish_key_to_key_server_act_, &QAction::triggered, this, [this]() {
     auto keys = key_list_->GetCheckedKeys();
     if (keys.empty()) {
@@ -719,11 +720,20 @@ void KeyMgmt::publish_keys_to_key_server(const GpgAbstractKeyPtrList& keys) {
                           return;
                         }
 
+                        // The target is configurable, so say where it went.
+                        const auto key_server =
+                            p["key_server"].ConvertToQString();
                         QMessageBox::information(
                             this, tr("Upload Complete"),
-                            tr("The public key was uploaded to the "
-                               "keyserver.\n\nFingerprint: %1")
-                                .arg(p["fingerprint"].ConvertToQString()));
+                            key_server.isEmpty()
+                                ? tr("The public key was uploaded to the key "
+                                     "server.\n\nFingerprint: %1")
+                                      .arg(p["fingerprint"].ConvertToQString())
+                                : tr("The public key was uploaded to "
+                                     "%1.\n\nFingerprint: %2")
+                                      .arg(
+                                          QUrl(key_server).host(),
+                                          p["fingerprint"].ConvertToQString()));
                       });
                 });
       });
