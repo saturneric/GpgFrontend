@@ -254,7 +254,7 @@
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="45"/>
         <source>Expire Date</source>
-        <translation type="unfinished">Дата окончания</translation>
+        <translation>Дата окончания</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="46"/>
@@ -276,7 +276,7 @@
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="113"/>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="170"/>
         <source>Never</source>
-        <translation type="unfinished">Никогда</translation>
+        <translation>Никогда</translation>
     </message>
     <message>
         <location filename="../../../../src/core/model/GpgKeyTableModel.cpp" line="195"/>
@@ -840,42 +840,42 @@
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="236"/>
         <source>Leaf</source>
-        <translation type="unfinished"></translation>
+        <translation>Лист</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="236"/>
         <source>Namespace</source>
-        <translation type="unfinished"></translation>
+        <translation>Пространство имён</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="264"/>
         <source>Empty</source>
-        <translation type="unfinished"></translation>
+        <translation>Пусто</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="268"/>
         <source>String</source>
-        <translation type="unfinished"></translation>
+        <translation>Строка</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="270"/>
         <source>Boolean</source>
-        <translation type="unfinished"></translation>
+        <translation>Логический</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="275"/>
         <source>Integer</source>
-        <translation type="unfinished"></translation>
+        <translation>Целое число</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="278"/>
         <source>Number</source>
-        <translation type="unfinished"></translation>
+        <translation>Число</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="280"/>
         <source>Unsupported</source>
-        <translation type="unfinished"></translation>
+        <translation>Не поддерживается</translation>
     </message>
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="323"/>
@@ -905,7 +905,7 @@
     <message>
         <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="366"/>
         <source>Version</source>
-        <translation type="unfinished">Версия</translation>
+        <translation>Версия</translation>
     </message>
 </context>
 <context>
@@ -913,119 +913,121 @@
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="515"/>
         <source>Short Name</source>
-        <translation type="unfinished"></translation>
+        <translation>Короткое имя</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="516"/>
         <source>The name &quot;%1&quot; is shorter than five characters. Short names are allowed, but they are often a typo and make the key harder for others to recognise.
 
 Do you want to continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя &quot;%1&quot; короче пяти символов. Короткие имена допускаются, но часто являются опечаткой и затрудняют распознавание ключа другим пользователям.
+
+Вы хотите продолжить?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="531"/>
         <source>Signature (OPENPGP.1)</source>
-        <translation type="unfinished"></translation>
+        <translation>Подпись (OPENPGP.1)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="534"/>
         <source>Encryption (OPENPGP.2)</source>
-        <translation type="unfinished"></translation>
+        <translation>Шифрование (OPENPGP.2)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="537"/>
         <source>Authentication (OPENPGP.3)</source>
-        <translation type="unfinished"></translation>
+        <translation>Аутентификация (OPENPGP.3)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="556"/>
         <source>Select Card Slot</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите слот карты</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="557"/>
         <source>This key can be stored in more than one slot. Where should it be stored?</source>
-        <translation type="unfinished"></translation>
+        <translation>Этот ключ можно сохранить более чем в одном слоте. Где его следует сохранить?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="578"/>
         <source>No Smart Card</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет смарт-карты</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="579"/>
         <source>No OpenPGP smart card was detected. Insert a card and try again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Смарт-карта OpenPGP не обнаружена. Вставьте карту и повторите попытку.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="589"/>
         <source>Select Smart Card</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите смарт-карту</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="590"/>
         <source>Move the key to which card?</source>
-        <translation type="unfinished"></translation>
+        <translation>На какую карту переместить ключ?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="605"/>
         <source>Back Up Secret Key</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать резервную копию секретного ключа</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="606"/>
         <source>Do you want to export a backup of the secret key before moving it to the card? After the move the key can only be used through the card.</source>
-        <translation type="unfinished"></translation>
+        <translation>Вы хотите экспортировать резервную копию секретного ключа перед перемещением на карту? После перемещения ключ можно будет использовать только через карту.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="611"/>
         <source>Back Up First</source>
-        <translation type="unfinished"></translation>
+        <translation>Сначала создать резервную копию</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="614"/>
         <source>Continue Without Backup</source>
-        <translation type="unfinished"></translation>
+        <translation>Продолжить без резервной копии</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="636"/>
         <source>Export Secret Key Backup</source>
-        <translation type="unfinished"></translation>
+        <translation>Экспорт резервной копии секретного ключа</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="639"/>
         <source>Key Files</source>
-        <translation type="unfinished">Файлы ключей</translation>
+        <translation>Файлы ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="645"/>
         <source>Export Error</source>
-        <translation type="unfinished">Ошибка экспорта</translation>
+        <translation>Ошибка экспорта</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="646"/>
         <source>Couldn&apos;t open %1 for writing</source>
-        <translation type="unfinished">Не удалось открыть %1 для записи</translation>
+        <translation>Не удалось открыть %1 для записи</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="668"/>
         <source>Move Key to Smart Card</source>
-        <translation type="unfinished"></translation>
+        <translation>Переместить ключ на смарт-карту</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="672"/>
         <source>&lt;h3&gt;You are about to move a private key onto a smart card.&lt;/h3&gt;&lt;b&gt;KeyID:&lt;/b&gt; %1&lt;br/&gt;&lt;br/&gt;This &lt;b&gt;moves&lt;/b&gt; the key: its private part is removed from this computer and only a card reference (stub) remains. Afterwards the key can only be used through the card. This action is &lt;b&gt;irreversible&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;Do you want to continue?</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;h3&gt;Вы собираетесь переместить закрытый ключ на смарт-карту.&lt;/h3&gt;&lt;b&gt;KeyID:&lt;/b&gt; %1&lt;br/&gt;&lt;br/&gt;Это &lt;b&gt;перемещает&lt;/b&gt; ключ: его закрытая часть удаляется с этого компьютера, и остаётся только ссылка на карту (заглушка). После этого ключ можно будет использовать только через карту. Это действие &lt;b&gt;необратимо&lt;/b&gt;.&lt;br/&gt;&lt;br/&gt;Вы хотите продолжить?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="695"/>
         <source>This key has no capability that can be stored on a smart card.</source>
-        <translation type="unfinished"></translation>
+        <translation>У этого ключа нет возможностей, которые можно сохранить на смарт-карте.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="723"/>
         <source>The key was moved to the smart card successfully.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ключ был успешно перемещён на смарт-карту.</translation>
     </message>
 </context>
 <context>
@@ -1135,235 +1137,235 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="92"/>
         <source>Security</source>
-        <translation type="unfinished"></translation>
+        <translation>Безопасность</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="107"/>
         <source>wipe freed memory</source>
-        <translation type="unfinished"></translation>
+        <translation>очищать освобождённую память</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="109"/>
         <source>also lock memory pages</source>
-        <translation type="unfinished"></translation>
+        <translation>также блокировать страницы памяти</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="111"/>
         <source>also rotate keys weekly</source>
-        <translation type="unfinished"></translation>
+        <translation>также еженедельно ротировать ключи</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="113"/>
         <source>no extra hardening</source>
-        <translation type="unfinished"></translation>
+        <translation>без дополнительного усиления</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="123"/>
         <source>How aggressively the application protects your secrets. Higher levels cost some performance.</source>
-        <translation type="unfinished"></translation>
+        <translation>Насколько агрессивно приложение защищает ваши секреты. Более высокие уровни снижают производительность.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="125"/>
         <source>Secure Level:</source>
-        <translation type="unfinished"></translation>
+        <translation>Уровень защиты:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="131"/>
         <source>No extra protection (default)</source>
-        <translation type="unfinished"></translation>
+        <translation>Без дополнительной защиты (по умолчанию)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="134"/>
         <source>System keychain</source>
-        <translation type="unfinished"></translation>
+        <translation>Системная связка ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="136"/>
         <source>PIN at startup</source>
-        <translation type="unfinished"></translation>
+        <translation>PIN при запуске</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="139"/>
         <source>How the application key file is protected on disk. The system keychain keeps a secret on this computer and never asks you for a password; a PIN is asked for each time the application starts.</source>
-        <translation type="unfinished"></translation>
+        <translation>Как файл ключа приложения защищается на диске. Системная связка ключей хранит секрет на этом компьютере и никогда не запрашивает пароль; PIN запрашивается при каждом запуске приложения.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="143"/>
         <source>Change PIN…</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменить PIN…</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="148"/>
         <source>Application Key Protection:</source>
-        <translation type="unfinished"></translation>
+        <translation>Защита ключа приложения:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="151"/>
         <source>Weekly key rotation offers little protection while the application key itself is stored unprotected on disk. Consider using the system keychain or a PIN.</source>
-        <translation type="unfinished"></translation>
+        <translation>Еженедельная ротация ключей обеспечивает слабую защиту, если сам ключ приложения хранится на диске без защиты. Рекомендуется использовать системную связку ключей или PIN-код.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="164"/>
         <source>Verify signed libraries and binaries at startup</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверять подписанные библиотеки и исполняемые файлы при запуске</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="166"/>
         <source>Check that the shipped libraries and executables still match the signatures made at build time. The application refuses to start if the check fails.</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверяет, что поставляемые библиотеки и исполняемые файлы по-прежнему соответствуют подписям, созданным во время сборки. Приложение откажется запускаться, если проверка не пройдена.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="172"/>
         <source>Diagnostics</source>
-        <translation type="unfinished"></translation>
+        <translation>Диагностика</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="176"/>
         <source>Debug</source>
-        <translation type="unfinished"></translation>
+        <translation>Отладка</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="177"/>
         <source>Info</source>
-        <translation type="unfinished"></translation>
+        <translation>Информация</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="178"/>
         <source>Warning</source>
-        <translation type="unfinished">Предупреждение</translation>
+        <translation>Предупреждение</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="180"/>
         <source>Error</source>
-        <translation type="unfinished">Ошибка</translation>
+        <translation>Ошибка</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="182"/>
         <source>Fatal</source>
-        <translation type="unfinished"></translation>
+        <translation>Критическая</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="184"/>
         <source>The least severe message that still gets written to the log. Debug is the most detailed and writes the most to disk.</source>
-        <translation type="unfinished"></translation>
+        <translation>Наименее критичное сообщение, которое всё ещё записывается в журнал. Отладка — самый подробный уровень, записывающий больше всего данных на диск.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="186"/>
         <source>Log Level:</source>
-        <translation type="unfinished"></translation>
+        <translation>Уровень журнала:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="190"/>
         <source> entries</source>
-        <translation type="unfinished"></translation>
+        <translation>записи</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="192"/>
         <source>How many recent log messages are kept in memory for crash reports and the log viewer. Larger values use more memory.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сколько последних сообщений журнала хранится в памяти для отчетов о сбоях и просмотра журнала. Большие значения потребляют больше памяти.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="194"/>
         <source>Log Ring Buffer:</source>
-        <translation type="unfinished"></translation>
+        <translation>Кольцевой буфер журнала:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="197"/>
         <source>These settings are read once while the application starts, so a change only takes effect after a restart.</source>
-        <translation type="unfinished"></translation>
+        <translation>Эти параметры считываются один раз при запуске приложения, поэтому изменения вступают в силу только после перезапуска.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="203"/>
         <source>Some settings on this page are fixed by the ENV.ini file next to the application and cannot be changed here. Edit that file to change them.</source>
-        <translation type="unfinished"></translation>
+        <translation>Некоторые параметры на этой странице задаются файлом ENV.ini рядом с приложением и не могут быть изменены здесь. Отредактируйте этот файл, чтобы изменить их.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="254"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="467"/>
         <source>System Keychain Unavailable</source>
-        <translation type="unfinished"></translation>
+        <translation>Системная связка ключей недоступна</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="255"/>
         <source>The system credential store could not be used, so the application key cannot be protected with it.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось использовать системное хранилище учетных данных, поэтому ключ приложения не может быть с его помощью защищен.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="258"/>
         <source>On Linux this needs a running secret service, such as GNOME Keyring or KWallet, and it must be unlocked.</source>
-        <translation type="unfinished"></translation>
+        <translation>В Linux для этого требуется работающий сервис секретов, например, GNOME Keyring или KWallet, и он должен быть разблокирован.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="277"/>
         <source>Turn Off Weekly Key Rotation?</source>
-        <translation type="unfinished"></translation>
+        <translation>Отключить еженедельную смену ключа?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="278"/>
         <source>At the %1 level the application saves your data with a key that changes every week. Choosing a lower level stops loading those keys, so anything saved while this level was on can no longer be read and is deleted after a short grace period.</source>
-        <translation type="unfinished"></translation>
+        <translation>На уровне %1 приложение сохраняет ваши данные с помощью ключа, который меняется каждую неделю. Выбор более низкого уровня останавливает загрузку этих ключей, поэтому все, что было сохранено, пока этот уровень был включен, больше не может быть прочитано и будет удалено после короткого льготного периода.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="283"/>
         <source>Lower the level anyway?</source>
-        <translation type="unfinished"></translation>
+        <translation>Все равно понизить уровень?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="309"/>
         <source>Fixed by ENV.ini and cannot be changed here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Задано файлом ENV.ini и не может быть изменено здесь.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="379"/>
         <source>Not available in portable mode: a portable installation must not depend on secrets stored on one particular computer.</source>
-        <translation type="unfinished"></translation>
+        <translation>Недоступно в портативном режиме: портативная установка не должна зависеть от секретов, хранящихся на одном конкретном компьютере.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="386"/>
         <source>No system credential store is available on this computer. On Linux this needs a running secret service, such as GNOME Keyring or KWallet.</source>
-        <translation type="unfinished"></translation>
+        <translation>На этом компьютере нет системного хранилища учётных данных. В Linux для этого требуется работающая служба секретов, например GNOME Keyring или KWallet.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="468"/>
         <source>The application key could not be protected with the system keychain, so it has been left exactly as it was.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось защитить ключ приложения с помощью системной связки ключей, поэтому он остался в исходном состоянии.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="472"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="516"/>
         <source>Application Key Error</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка ключа приложения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="473"/>
         <source>The application key could not be re-protected: %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось повторно защитить ключ приложения: %1.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="476"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="518"/>
         <source>It has been left exactly as it was, so nothing has been lost.</source>
-        <translation type="unfinished"></translation>
+        <translation>Он остался в исходном состоянии, поэтому ничего не потеряно.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="500"/>
         <source>The current PIN is not correct.</source>
-        <translation type="unfinished"></translation>
+        <translation>Текущий PIN-код неверен.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="510"/>
         <source>PIN Changed</source>
-        <translation type="unfinished"></translation>
+        <translation>PIN-код изменён</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="511"/>
         <source>The application PIN has been changed.</source>
-        <translation type="unfinished"></translation>
+        <translation>PIN-код приложения был изменён.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAdvanced.cpp" line="517"/>
         <source>The PIN could not be changed: %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось изменить PIN-код: %1.</translation>
     </message>
 </context>
 <context>
@@ -1371,103 +1373,103 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="63"/>
         <source>Unlock Application Key</source>
-        <translation type="unfinished"></translation>
+        <translation>Разблокировать ключ приложения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="65"/>
         <source>Change Application PIN</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменить PIN приложения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="67"/>
         <source>Set an Application PIN</source>
-        <translation type="unfinished"></translation>
+        <translation>Установить PIN приложения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="92"/>
         <source>This PIN encrypts the application key on disk. You will be asked for it every time the application starts.</source>
-        <translation type="unfinished"></translation>
+        <translation>Этот PIN шифрует ключ приложения на диске. Он будет запрашиваться при каждом запуске приложения.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="94"/>
         <source>This application&apos;s key is protected by a PIN. Enter it to continue.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ключ этого приложения защищён PIN. Введите его для продолжения.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="162"/>
         <source>Current PIN</source>
-        <translation type="unfinished"></translation>
+        <translation>Текущий PIN</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="162"/>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="168"/>
         <source>PIN</source>
-        <translation type="unfinished"></translation>
+        <translation>PIN</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="168"/>
         <source>New PIN</source>
-        <translation type="unfinished"></translation>
+        <translation>Новый PIN</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="172"/>
         <source>Confirm</source>
-        <translation type="unfinished">Подтвердить</translation>
+        <translation>Подтвердить</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="179"/>
         <source>Show PIN</source>
-        <translation type="unfinished"></translation>
+        <translation>Показать PIN</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="192"/>
         <source>Strength</source>
-        <translation type="unfinished"></translation>
+        <translation>Сложность</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="217"/>
         <source>If you forget this PIN, everything the application has encrypted becomes permanently unreadable. There is no recovery.</source>
-        <translation type="unfinished"></translation>
+        <translation>Если вы забудете этот PIN, всё, что зашифровало приложение, станет навсегда недоступным для чтения. Восстановление невозможно.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="244"/>
         <source>This PIN cannot be recovered if it is lost.</source>
-        <translation type="unfinished"></translation>
+        <translation>Этот PIN невозможно восстановить в случае утери.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="245"/>
         <source>Use at least %1 characters.</source>
-        <translation type="unfinished"></translation>
+        <translation>Используйте не менее %1 символов.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="252"/>
         <source>Unlock</source>
-        <translation type="unfinished"></translation>
+        <translation>Разблокировать</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="252"/>
         <source>OK</source>
-        <translation type="unfinished">ОК</translation>
+        <translation>OK</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="260"/>
         <source>Quit</source>
-        <translation type="unfinished">Выход</translation>
+        <translation>Выйти</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="269"/>
         <source>Forgot PIN? Reset…</source>
-        <translation type="unfinished"></translation>
+        <translation>Забыли PIN? Сбросить…</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="391"/>
         <source>The PIN must be at least %1 characters.</source>
-        <translation type="unfinished"></translation>
+        <translation>PIN должен содержать не менее %1 символов.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/AppKeyPinDialog.cpp" line="393"/>
         <source>The two PINs do not match.</source>
-        <translation type="unfinished"></translation>
+        <translation>Введённые PIN-коды не совпадают.</translation>
     </message>
 </context>
 <context>
@@ -1493,12 +1495,12 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="80"/>
         <source>Toolbar</source>
-        <translation type="unfinished"></translation>
+        <translation>Панель инструментов</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="82"/>
         <source>Icon Size</source>
-        <translation type="unfinished"></translation>
+        <translation>Размер значков</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="83"/>
@@ -1518,7 +1520,7 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="87"/>
         <source>Icon Style</source>
-        <translation type="unfinished"></translation>
+        <translation>Стиль значков</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="88"/>
@@ -1538,28 +1540,28 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="92"/>
         <source>Actions</source>
-        <translation type="unfinished">Действия</translation>
+        <translation>Действия</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="94"/>
         <source>IM actions turn the text into one compact line that is safe to paste into an instant messenger.</source>
-        <translation type="unfinished"></translation>
+        <translation>Действия IM преобразуют текст в одну компактную строку, которую можно безопасно вставить в мессенджер.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="98"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="109"/>
         <source>Font Family</source>
-        <translation type="unfinished"></translation>
+        <translation>Семейство шрифтов</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="100"/>
         <source>Tab Size</source>
-        <translation type="unfinished"></translation>
+        <translation>Размер табуляции</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="102"/>
         <source>Show all fonts</source>
-        <translation type="unfinished"></translation>
+        <translation>Показать все шрифты</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsAppearance.cpp" line="104"/>
@@ -1813,37 +1815,37 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="69"/>
         <source>No Usable Key Database</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет доступной базы данных ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="70"/>
         <source>None of the configured key databases could be opened. This usually means the folder was moved or deleted, or is on a drive that is not currently available.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ни одну из настроенных баз данных ключей не удалось открыть. Обычно это означает, что папка была перемещена, удалена или находится на диске, который в данный момент недоступен.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="74"/>
         <source>You can change where your key databases live in Settings, under Key Databases. Details: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Вы можете изменить расположение баз данных ключей в настройках, в разделе «Базы данных ключей». Подробности: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="81"/>
         <source>Cannot Prepare Application Data</source>
-        <translation type="unfinished"></translation>
+        <translation>Невозможно подготовить данные приложения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="82"/>
         <source>GpgFrontend could not set up the folders it needs to store its data. Please check that the application data folder is writable. Details: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>GpgFrontend не удалось настроить папки, необходимые для хранения данных. Проверьте, что папка данных приложения доступна для записи. Подробности: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="89"/>
         <source>Key Database Could Not Be Opened</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось открыть базу данных ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="90"/>
         <source>The key database was found but could not be loaded. It may be in use by another program, or its permissions may have changed. Details: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>База данных ключей найдена, но не может быть загружена. Возможно, она используется другой программой или были изменены её права доступа. Подробности: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="231"/>
@@ -2045,37 +2047,37 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/dialog/EncryptionKeysPicker.cpp" line="80"/>
         <source>Select Encryption Key(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите ключ(и) шифрования</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/EncryptionKeysPicker.cpp" line="85"/>
         <source>Choose Encryption Key(s) or Subkey(s)</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите ключ(и) или подключ(и) шифрования</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/EncryptionKeysPicker.cpp" line="91"/>
         <source>Select the recipient key(s) or specific encryption subkey(s) to use for this operation. Expand a key to choose a particular subkey.</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите ключ(и) получателя или конкретный(е) подключ(и) шифрования для использования в этой операции. Разверните ключ, чтобы выбрать конкретный подключ.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/EncryptionKeysPicker.cpp" line="105"/>
         <source>Confirm</source>
-        <translation type="unfinished">Подтвердить</translation>
+        <translation>Подтвердить</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/EncryptionKeysPicker.cpp" line="108"/>
         <source>Cancel</source>
-        <translation type="unfinished">Отмена</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/EncryptionKeysPicker.cpp" line="113"/>
         <source>No Key Selected</source>
-        <translation type="unfinished">Ключ не выбран</translation>
+        <translation>Ключ не выбран</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/EncryptionKeysPicker.cpp" line="114"/>
         <source>Please select at least one encryption key or subkey.</source>
-        <translation type="unfinished"></translation>
+        <translation>Пожалуйста, выберите хотя бы один ключ или подключ шифрования.</translation>
     </message>
 </context>
 <context>
@@ -2230,67 +2232,67 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="107"/>
         <source>New Folder</source>
-        <translation type="unfinished">Новая папка</translation>
+        <translation>Новая папка</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="108"/>
         <source>Create a new folder in the current folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать новую папку в текущей папке.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="115"/>
         <source>New Empty File</source>
-        <translation type="unfinished"></translation>
+        <translation>Новый пустой файл</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="116"/>
         <source>Create an empty file in the current folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать пустой файл в текущей папке.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="129"/>
         <source>Show</source>
-        <translation type="unfinished">Показать</translation>
+        <translation>Показывать</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="131"/>
         <source>Choose what the file list shows.</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите, что отображать в списке файлов.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="134"/>
         <source>Hidden Files</source>
-        <translation type="unfinished"></translation>
+        <translation>Скрытые файлы</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="137"/>
         <source>List files and folders whose name starts with a dot.</source>
-        <translation type="unfinished"></translation>
+        <translation>Показывать файлы и папки, имена которых начинаются с точки.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="142"/>
         <source>System Files</source>
-        <translation type="unfinished"></translation>
+        <translation>Системные файлы</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="145"/>
         <source>List system files such as devices and sockets.</source>
-        <translation type="unfinished"></translation>
+        <translation>Показывать системные файлы, такие как устройства и сокеты.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="150"/>
         <source>Type Column</source>
-        <translation type="unfinished"></translation>
+        <translation>Столбец типа</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="152"/>
         <source>Show the file type as its own column.</source>
-        <translation type="unfinished"></translation>
+        <translation>Показывать тип файла в отдельном столбце.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="166"/>
         <source>Write the result of encrypting or signing as printable text (.asc) instead of binary.</source>
-        <translation type="unfinished"></translation>
+        <translation>Записывать результат зашифрования или подписания в виде печатного текста (.asc) вместо двоичного.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="207"/>
@@ -2317,48 +2319,51 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="236"/>
         <source>Filter</source>
-        <translation type="unfinished"></translation>
+        <translation>Фильтр</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="238"/>
         <source>List only the files and folders whose name contains this text. The filter applies to the current folder and is cleared when you open another one.</source>
-        <translation type="unfinished"></translation>
+        <translation>Показывать только файлы и папки, в имени которых содержится этот текст. Фильтр применяется к текущей папке и сбрасывается при открытии другой.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="259"/>
         <source>Go to the parent folder (Backspace)</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти в родительскую папку (Backspace)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="260"/>
         <source>Read this folder from disk again</source>
-        <translation type="unfinished"></translation>
+        <translation>Обновить содержимое этой папки</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="262"/>
         <source>Go to a mounted volume or removable drive</source>
-        <translation type="unfinished"></translation>
+        <translation>Перейти к смонтированному тому или сменному диску</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="264"/>
         <source>Create items and choose what the list shows</source>
-        <translation type="unfinished"></translation>
+        <translation>Создавайте элементы и выбирайте, что отображается в списке.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="294"/>
         <source>Entries listed in this folder, and how many of them are selected. Entries hidden by the filter are not counted.</source>
-        <translation type="unfinished"></translation>
+        <translation>Записи в этой папке и количество выбранных. Записи, скрытые фильтром, не учитываются.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="297"/>
         <source>Space still available on the volume holding this folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Свободное место на томе, содержащем эту папку.</translation>
     </message>
     <message numerus="yes">
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="462"/>
         <source>%n item(s)</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n элемент
+%n элемента
+%n элементов
+%n элементов</numerusform>
             <numerusform></numerusform>
             <numerusform></numerusform>
         </translation>
@@ -2366,12 +2371,12 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="465"/>
         <source>%1 selected</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 выбрано</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePage.cpp" line="479"/>
         <source>%1 free</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 свободно</translation>
     </message>
     <message>
         <source>Type a folder path, e.g. ~/Documents</source>
@@ -2417,27 +2422,27 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="138"/>
         <source>Type a folder path, e.g. ~/Documents</source>
-        <translation type="unfinished">Введите путь к папке, например ~/Documents</translation>
+        <translation>Введите путь к папке, например ~/Документы</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="140"/>
         <source>Type a folder path and press Enter. &quot;~&quot; stands for your home folder, and a relative path is resolved against the current one. Press Escape to go back to the path buttons.</source>
-        <translation type="unfinished"></translation>
+        <translation>Введите путь к папке и нажмите Enter. &quot;~&quot; обозначает вашу домашнюю папку, а относительный путь разрешается относительно текущей. Нажмите Escape, чтобы вернуться к кнопкам пути.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="166"/>
         <source>Click a folder in the path to go there, or click the edit button to type a path (Ctrl+L).</source>
-        <translation type="unfinished"></translation>
+        <translation>Нажмите на папку в пути, чтобы перейти туда, или нажмите кнопку редактирования, чтобы ввести путь (Ctrl+L).</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="398"/>
         <source>Type a path instead (Ctrl+L)</source>
-        <translation type="unfinished"></translation>
+        <translation>Ввести путь вместо этого (Ctrl+L)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="418"/>
         <source>Show parent folders</source>
-        <translation type="unfinished"></translation>
+        <translation>Показать родительские папки</translation>
     </message>
 </context>
 <context>
@@ -2446,22 +2451,22 @@ Do you want to continue?</source>
         <location filename="../../../../src/ui/widgets/FileTreeItemDelegate.cpp" line="110"/>
         <source>SIG</source>
         <extracomment>Badge on a detached OpenPGP signature file. Keep it to about three characters.</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>ПОД</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeItemDelegate.cpp" line="113"/>
         <source>ENC</source>
-        <translation type="unfinished"></translation>
+        <translation>ШИФ</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeItemDelegate.cpp" line="186"/>
         <source>Detached OpenPGP signature</source>
-        <translation type="unfinished"></translation>
+        <translation>Открепленная подпись OpenPGP</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeItemDelegate.cpp" line="190"/>
         <source>Encrypted or armored OpenPGP file</source>
-        <translation type="unfinished"></translation>
+        <translation>Зашифрованный или ASCII-бронированный файл OpenPGP</translation>
     </message>
 </context>
 <context>
@@ -2495,17 +2500,17 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="245"/>
         <source>This folder cannot be opened</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось открыть эту папку.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="247"/>
         <source>No file matches &quot;%1&quot;</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет файла, соответствующего &quot;%1&quot;</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="248"/>
         <source>This folder is empty</source>
-        <translation type="unfinished"></translation>
+        <translation>Эта папка пуста.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="322"/>
@@ -2637,7 +2642,7 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="598"/>
         <source>Open the file in a GpgFrontend editor tab (Enter).</source>
-        <translation type="unfinished"></translation>
+        <translation>Открыть файл на вкладке редактора GpgFrontend (Enter).</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="605"/>
@@ -2647,22 +2652,22 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="607"/>
         <source>Hand the item to the application your system uses for it.</source>
-        <translation type="unfinished"></translation>
+        <translation>Передать элемент приложению, которое ваша система использует для него.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="613"/>
         <source>Give the item a new name (F2).</source>
-        <translation type="unfinished"></translation>
+        <translation>Переименовать элемент (F2).</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="621"/>
         <source>Move the selected items to the system Trash, where they can still be recovered (Delete).</source>
-        <translation type="unfinished"></translation>
+        <translation>Переместить выбранные элементы в системную корзину, откуда их можно восстановить (Delete).</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="630"/>
         <source>Compute checksums of the file and show them on the information board, to compare it against a published value.</source>
-        <translation type="unfinished"></translation>
+        <translation>Вычислить контрольные суммы файла и показать их на информационной панели для сравнения с опубликованным значением.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="636"/>
@@ -2672,7 +2677,7 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="638"/>
         <source>Create a new folder inside the selected folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать новую папку в выбранной папке.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="643"/>
@@ -2682,7 +2687,7 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="645"/>
         <source>Create an empty file inside the selected folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать пустой файл в выбранной папке.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="655"/>
@@ -2692,7 +2697,7 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="657"/>
         <source>Copy the full path of the selected items to the clipboard.</source>
-        <translation type="unfinished"></translation>
+        <translation>Скопировать полный путь выбранных элементов в буфер обмена.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="662"/>
@@ -2702,7 +2707,7 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="663"/>
         <source>Read this folder from disk again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Перечитать эту папку с диска.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="667"/>
@@ -2712,7 +2717,7 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="670"/>
         <source>Create a new item in the current folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать новый элемент в текущей папке.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FileTreeView.cpp" line="775"/>
@@ -2920,27 +2925,27 @@ The target may be on another volume, or you may not have sufficient permissions.
     <message>
         <location filename="../../../../src/ui/widgets/GRTTreeView.cpp" line="103"/>
         <source>No runtime values published yet.</source>
-        <translation type="unfinished"></translation>
+        <translation>Значения времени выполнения еще не опубликованы.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/GRTTreeView.cpp" line="119"/>
         <source>Copy Key Path</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать путь ключа</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/GRTTreeView.cpp" line="125"/>
         <source>Copy Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать значение</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/GRTTreeView.cpp" line="131"/>
         <source>Expand All</source>
-        <translation type="unfinished"></translation>
+        <translation>Развернуть все</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/GRTTreeView.cpp" line="132"/>
         <source>Collapse All</source>
-        <translation type="unfinished"></translation>
+        <translation>Свернуть все</translation>
     </message>
 </context>
 <context>
@@ -3043,7 +3048,7 @@ The target may be on another volume, or you may not have sufficient permissions.
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="93"/>
         <source>Remember which keys are checked in the key list between restarts.</source>
-        <translation type="unfinished"></translation>
+        <translation>Запоминать, какие ключи отмечены в списке ключей между перезапусками.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsGeneral.cpp" line="95"/>
@@ -3143,17 +3148,17 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="95"/>
         <source>Name must not be empty.</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя не должно быть пустым.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="101"/>
         <source>Name and comment must not contain the characters &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; or control characters.</source>
-        <translation type="unfinished">Имя и комментарий не должны содержать символы &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; или управляющие символы.</translation>
+        <translation>Имя и комментарий не должны содержать символы &apos;(&apos;, &apos;)&apos;, &apos;&lt;&apos;, &apos;&gt;&apos; или управляющие символы.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/GenerateCardKeyDialog.cpp" line="107"/>
         <source>Please give a valid email address.</source>
-        <translation type="unfinished">Укажите корректный адрес электронной почты.</translation>
+        <translation>Укажите действительный адрес электронной почты.</translation>
     </message>
     <message>
         <source>Name must contain at least five characters.</source>
@@ -3184,32 +3189,32 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/function/GenerateRevocationCert.cpp" line="44"/>
         <source>0 -&gt; No Reason.</source>
-        <translation type="unfinished">0 -&gt; Без причины.</translation>
+        <translation>0 -&gt; Без причины.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GenerateRevocationCert.cpp" line="44"/>
         <source>1 -&gt; This key is no more safe.</source>
-        <translation type="unfinished">1 -&gt; Этот ключ больше не безопасен.</translation>
+        <translation>1 -&gt; Этот ключ больше не безопасен.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GenerateRevocationCert.cpp" line="45"/>
         <source>2 -&gt; Key is outdated.</source>
-        <translation type="unfinished">2 -&gt; Ключ устарел.</translation>
+        <translation>2 -&gt; Ключ устарел.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GenerateRevocationCert.cpp" line="45"/>
         <source>3 -&gt; Key is no longer used</source>
-        <translation type="unfinished">3 -&gt; Ключ больше не используется</translation>
+        <translation>3 -&gt; Ключ больше не используется</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GenerateRevocationCert.cpp" line="53"/>
         <source>Revocation Certificates</source>
-        <translation type="unfinished">Сертификаты отзыва</translation>
+        <translation>Сертификаты отзыва</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/GenerateRevocationCert.cpp" line="65"/>
         <source>Generate revocation certificate</source>
-        <translation type="unfinished">Сгенерировать сертификат отзыва</translation>
+        <translation>Создать сертификат отзыва</translation>
     </message>
 </context>
 <context>
@@ -3455,62 +3460,62 @@ This will result in loss of all cached form positions, statuses, key servers, et
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="321"/>
         <source>The operation finished and everything checked out.</source>
-        <translation type="unfinished"></translation>
+        <translation>Операция завершена, всё проверено.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="323"/>
         <source>The operation finished, but something needs your attention. Read the details below.</source>
-        <translation type="unfinished"></translation>
+        <translation>Операция завершена, но требуется ваше внимание. Подробности см. ниже.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="327"/>
         <source>The operation failed, or the result cannot be trusted. Read the details below.</source>
-        <translation type="unfinished"></translation>
+        <translation>Операция не выполнена, или результат не заслуживает доверия. Подробности см. ниже.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="332"/>
         <source>Nothing has been checked yet. The light turns green, orange or red once an operation finishes.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ещё ничего не проверено. Индикатор станет зелёным, оранжевым или красным после завершения операции.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="350"/>
         <source>Green</source>
-        <translation type="unfinished"></translation>
+        <translation>Зелёный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="350"/>
         <source>Everything went well</source>
-        <translation type="unfinished"></translation>
+        <translation>Всё прошло хорошо</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="351"/>
         <source>Orange</source>
-        <translation type="unfinished"></translation>
+        <translation>Оранжевый</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="352"/>
         <source>Done, but check the details</source>
-        <translation type="unfinished"></translation>
+        <translation>Выполнено, но проверьте детали</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="353"/>
         <source>Red</source>
-        <translation type="unfinished"></translation>
+        <translation>Красный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="354"/>
         <source>Failed, or the result cannot be trusted</source>
-        <translation type="unfinished"></translation>
+        <translation>Не выполнено, или результат не заслуживает доверия</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="355"/>
         <source>Grey</source>
-        <translation type="unfinished"></translation>
+        <translation>Серый</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="356"/>
         <source>Idle, nothing checked yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Ожидание, ничего не проверено</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/InfoBoardWidget.cpp" line="384"/>
@@ -3827,109 +3832,109 @@ Results will appear here as a summary document.</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="69"/>
         <source>Message Book Phrase</source>
-        <translation type="unfinished"></translation>
+        <translation>Фраза из книги сообщений</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="73"/>
         <source>A long secret you share with one friend. It makes your messages look like random text, so nobody can tell they are PGP at all. You and your friend must use exactly the same phrase.</source>
-        <translation type="unfinished"></translation>
+        <translation>Длинный секрет, которым вы делитесь с одним другом. Он делает ваши сообщения похожими на случайный текст, так что никто не сможет понять, что это PGP. Вы и ваш друг должны использовать одну и ту же фразу.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="86"/>
         <source>No phrase set. Messages use the built-in default book.</source>
-        <translation type="unfinished"></translation>
+        <translation>Фраза не задана. Сообщения используют встроенную книгу по умолчанию.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="102"/>
         <source>Generate</source>
-        <translation type="unfinished">Сгенерировать</translation>
+        <translation>Сгенерировать</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="104"/>
         <source>Create a new random phrase. Share it with your friend so you both use the same one.</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать новую случайную фразу. Поделитесь ею с другом, чтобы вы оба использовали одну и ту же.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="114"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="219"/>
         <source>Show</source>
-        <translation type="unfinished">Показать</translation>
+        <translation>Показать</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="115"/>
         <source>Show or hide the phrase.</source>
-        <translation type="unfinished"></translation>
+        <translation>Показать или скрыть фразу.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="119"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="170"/>
         <source>Copy</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="120"/>
         <source>Copy the phrase to the clipboard.</source>
-        <translation type="unfinished"></translation>
+        <translation>Скопировать фразу в буфер обмена.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="124"/>
         <source>Paste</source>
-        <translation type="unfinished">Вставить</translation>
+        <translation>Вставить</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="126"/>
         <source>Replace the phrase with the one on the clipboard.</source>
-        <translation type="unfinished"></translation>
+        <translation>Заменить фразу на ту, что в буфере обмена.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="132"/>
         <source>Clear</source>
-        <translation type="unfinished">Очистить</translation>
+        <translation>Очистить</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="134"/>
         <source>Remove the phrase and fall back to the default book.</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить фразу и вернуться к книге по умолчанию.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="152"/>
         <source>Book Fingerprint</source>
-        <translation type="unfinished"></translation>
+        <translation>Отпечаток книги</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="156"/>
         <source>A short code made from your phrase. Read it out with your friend to be sure you both have the same one. Unlike the phrase, this code is safe to say out loud.</source>
-        <translation type="unfinished"></translation>
+        <translation>Короткий код, созданный из вашей фразы. Прочитайте его вслух вместе с другом, чтобы убедиться, что у вас обоих одна и та же фраза. В отличие от фразы, этот код можно произносить вслух.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="171"/>
         <source>Copy the fingerprint to the clipboard.</source>
-        <translation type="unfinished"></translation>
+        <translation>Скопировать отпечаток в буфер обмена.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="183"/>
         <source>The phrase is stored in the encrypted cache, never in the settings file. Send it to your friend over a private channel.</source>
-        <translation type="unfinished"></translation>
+        <translation>Фраза хранится в зашифрованном кеше, а не в файле настроек. Отправьте её другу по приватному каналу.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="219"/>
         <source>Hide</source>
-        <translation type="unfinished"></translation>
+        <translation>Скрыть</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="239"/>
         <source>No phrase set. Using the built-in default.</source>
-        <translation type="unfinished"></translation>
+        <translation>Фраза не задана. Используется встроенная по умолчанию.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="240"/>
         <source>Phrase set. %1 characters.</source>
-        <translation type="unfinished"></translation>
+        <translation>Фраза задана. %1 символов.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsIM.cpp" line="250"/>
         <source>Calculating…</source>
-        <translation type="unfinished"></translation>
+        <translation>Вычисление…</translation>
     </message>
 </context>
 <context>
@@ -4039,42 +4044,42 @@ Results will appear here as a summary document.</source>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="112"/>
         <source>Name</source>
-        <translation type="unfinished">Имя</translation>
+        <translation>Имя</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="113"/>
         <source>Path</source>
-        <translation type="unfinished">Путь</translation>
+        <translation>Путь</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="114"/>
         <source>Engine</source>
-        <translation type="unfinished"></translation>
+        <translation>Движок</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="115"/>
         <source>Mode</source>
-        <translation type="unfinished">Режим</translation>
+        <translation>Режим</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="116"/>
         <source>Choose Folder…</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите папку…</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="118"/>
         <source>Automatic</source>
-        <translation type="unfinished"></translation>
+        <translation>Автоматический</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="119"/>
         <source>Manual</source>
-        <translation type="unfinished"></translation>
+        <translation>Ручной</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="120"/>
         <source>e.g. Personal Keys</source>
-        <translation type="unfinished"></translation>
+        <translation>например, Личные ключи</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="132"/>
@@ -4094,12 +4099,12 @@ Results will appear here as a summary document.</source>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="205"/>
         <source>GpgFrontend picks a safe location for you. Just choose a name.</source>
-        <translation type="unfinished"></translation>
+        <translation>GpgFrontend выберет безопасное расположение за вас. Просто укажите имя.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="209"/>
         <source>Pick an existing folder yourself. For advanced setups.</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите существующую папку самостоятельно. Для расширенных настроек.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/KeyDatabaseEditDialog.cpp" line="224"/>
@@ -4152,17 +4157,17 @@ Results will appear here as a summary document.</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="180"/>
         <source>Unreadable Key Database Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>Нечитаемые настройки базы данных ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="181"/>
         <source>Your saved key database list exists but could not be read. This usually means it was written by another installation, or with a different application key.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ваш сохранённый список баз данных ключей существует, но не может быть прочитан. Обычно это означает, что он был записан другой установкой или с другим ключом приложения.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="185"/>
         <source>Saving now replaces it with the list shown here. The previous list cannot be recovered afterwards.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранение сейчас заменит его на список, показанный здесь. Предыдущий список не может быть восстановлен впоследствии.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="247"/>
@@ -4430,7 +4435,7 @@ Results will appear here as a summary document.</source>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="720"/>
         <source>Name must not be empty.</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя не должно быть пустым.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/key_generate/KeyGenerateDialog.cpp" line="1843"/>
@@ -4991,12 +4996,12 @@ These keys are no longer available. Do you want to remove them from the group?</
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="284"/>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1155"/>
         <source>New Category...</source>
-        <translation type="unfinished"></translation>
+        <translation>Новая категория...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="531"/>
         <source>Sync public keys with the key server configured as the default.</source>
-        <translation type="unfinished"></translation>
+        <translation>Синхронизировать открытые ключи с сервером ключей, заданным по умолчанию.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="533"/>
@@ -5057,12 +5062,12 @@ These keys are no longer available. Do you want to remove them from the group?</
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="611"/>
         <source>Key Database</source>
-        <translation type="unfinished">База данных ключей</translation>
+        <translation>База данных ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="645"/>
         <source>Expire Date</source>
-        <translation type="unfinished">Дата окончания</translation>
+        <translation>Дата окончания</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="647"/>
@@ -5072,13 +5077,13 @@ These keys are no longer available. Do you want to remove them from the group?</
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="660"/>
         <source>Reset Column Widths</source>
-        <translation type="unfinished"></translation>
+        <translation>Сбросить ширины столбцов</translation>
     </message>
     <message numerus="yes">
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="806"/>
         <source>%n key(s) checked</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n ключ(ей) выбрано</numerusform>
             <numerusform></numerusform>
             <numerusform></numerusform>
         </translation>
@@ -5086,8 +5091,8 @@ These keys are no longer available. Do you want to remove them from the group?</
     <message numerus="yes">
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="814"/>
         <source>%n of them are not shown by the current category or search filter.</source>
-        <translation type="unfinished">
-            <numerusform></numerusform>
+        <translation>
+            <numerusform>%n из них не отображаются из-за текущей категории или фильтра поиска.</numerusform>
             <numerusform></numerusform>
             <numerusform></numerusform>
         </translation>
@@ -5095,58 +5100,58 @@ These keys are no longer available. Do you want to remove them from the group?</
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1107"/>
         <source>Delete Category</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить категорию</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1108"/>
         <source>Delete category &quot;%1&quot;? This removes the grouping only; the keys themselves are not affected.</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить категорию &quot;%1&quot;? Это удаляет только группировку; сами ключи не затрагиваются.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1161"/>
         <source>Set Colour...</source>
-        <translation type="unfinished"></translation>
+        <translation>Установить цвет...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1165"/>
         <source>Reset Colour</source>
-        <translation type="unfinished"></translation>
+        <translation>Сбросить цвет</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1176"/>
         <source>Rename Category...</source>
-        <translation type="unfinished"></translation>
+        <translation>Переименовать категорию...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1180"/>
         <source>Delete Category...</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить категорию...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1194"/>
         <source>Choose Category Colour</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать цвет категории</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1230"/>
         <source>New Category</source>
-        <translation type="unfinished"></translation>
+        <translation>Новая категория</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1230"/>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1249"/>
         <source>Category name:</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя категории:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1236"/>
         <source>Category Colour (optional)</source>
-        <translation type="unfinished"></translation>
+        <translation>Цвет категории (необязательно)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1249"/>
         <source>Rename Category</source>
-        <translation type="unfinished"></translation>
+        <translation>Переименовать категорию</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/KeyList.cpp" line="1375"/>
@@ -5233,7 +5238,7 @@ GpgFrontend попытается импортировать ключ(и).</trans
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="103"/>
         <source>Expiring Soon</source>
-        <translation type="unfinished"></translation>
+        <translation>Скоро истекает</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="109"/>
@@ -5263,24 +5268,24 @@ GpgFrontend попытается импортировать ключ(и).</trans
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="173"/>
         <source>Copy</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="182"/>
         <source>Key Operations</source>
-        <translation type="unfinished"></translation>
+        <translation>Операции с ключами</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="193"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="492"/>
         <source>Keyserver</source>
-        <translation type="unfinished"></translation>
+        <translation>Сервер ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="199"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1179"/>
         <source>Category</source>
-        <translation type="unfinished"></translation>
+        <translation>Категория</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="226"/>
@@ -5419,92 +5424,92 @@ GpgFrontend попытается импортировать ключ(и).</trans
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="351"/>
         <source>Copy Fingerprint</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать отпечаток</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="355"/>
         <source>Fingerprint</source>
-        <translation type="unfinished">Отпечаток</translation>
+        <translation>Отпечаток</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="358"/>
         <source>Copy Key ID</source>
-        <translation type="unfinished">Копировать идентификатор ключа</translation>
+        <translation>Копировать идентификатор ключа</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="362"/>
         <source>Key ID</source>
-        <translation type="unfinished">Идентификатор ключа</translation>
+        <translation>Идентификатор ключа</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="365"/>
         <source>Copy Email</source>
-        <translation type="unfinished">Копировать email</translation>
+        <translation>Копировать электронную почту</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="369"/>
         <source>Email</source>
-        <translation type="unfinished">Электронная почта</translation>
+        <translation>Электронная почта</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="372"/>
         <source>Copy Public Key Block</source>
-        <translation type="unfinished"></translation>
+        <translation>Копировать блок открытого ключа</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="379"/>
         <source>Certify Key...</source>
-        <translation type="unfinished"></translation>
+        <translation>Подписать ключ...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="380"/>
         <source>Sign this key&apos;s identity with your key</source>
-        <translation type="unfinished"></translation>
+        <translation>Подписать личность этого ключа вашим ключом</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="388"/>
         <source>Set Expiry...</source>
-        <translation type="unfinished"></translation>
+        <translation>Установить срок действия...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="398"/>
         <source>Generate Revocation Certificate...</source>
-        <translation type="unfinished"></translation>
+        <translation>Создать сертификат отзыва...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="409"/>
         <source>Search Keyserver...</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск на сервере ключей...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="412"/>
         <source>Search a keyserver and import keys</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск на сервере ключей и импорт ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="428"/>
         <source>Publish Key to Keyserver...</source>
-        <translation type="unfinished"></translation>
+        <translation>Опубликовать ключ на сервере ключей...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="442"/>
         <source>Refresh Selected from Keyserver</source>
-        <translation type="unfinished"></translation>
+        <translation>Обновить выбранные с сервера ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="457"/>
         <source>Set Owner Trust for Checked Keys...</source>
-        <translation type="unfinished"></translation>
+        <translation>Установить доверие владельца для отмеченных ключей...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="462"/>
         <source>Extend Expiry of Checked Keys...</source>
-        <translation type="unfinished"></translation>
+        <translation>Продлить срок действия отмеченных ключей...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="467"/>
         <source>Back Up All Private Keys...</source>
-        <translation type="unfinished"></translation>
+        <translation>Резервное копирование всех закрытых ключей...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="477"/>
@@ -5533,7 +5538,7 @@ GpgFrontend попытается импортировать ключ(и).</trans
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="499"/>
         <source>Bulk</source>
-        <translation type="unfinished"></translation>
+        <translation>Массовые операции</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="522"/>
@@ -5573,142 +5578,142 @@ GpgFrontend попытается импортировать ключ(и).</trans
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="652"/>
         <source>%1 is empty</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 пуст</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="656"/>
         <source>%1 copied to clipboard</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 скопирован в буфер обмена</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="663"/>
         <source>Please check or select a key before doing this operation.</source>
-        <translation type="unfinished"></translation>
+        <translation>Пожалуйста, отметьте или выберите ключ перед выполнением этой операции.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="675"/>
         <source>Publish Key to Keyserver</source>
-        <translation type="unfinished"></translation>
+        <translation>Опубликовать ключ на сервере ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="677"/>
         <source>You are about to upload the following public key(s) to the default keyserver:</source>
-        <translation type="unfinished"></translation>
+        <translation>Вы собираетесь загрузить следующие открытые ключи на сервер ключей по умолчанию:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="680"/>
         <source>Publication is &lt;b&gt;permanent and public&lt;/b&gt;: the key(s) cannot be removed from most keyservers once uploaded. Only the public part is uploaded, never your private key.</source>
-        <translation type="unfinished"></translation>
+        <translation>Публикация является &lt;b&gt;постоянной и общедоступной&lt;/b&gt;: после загрузки ключи невозможно удалить с большинства серверов ключей. Загружается только открытая часть, ваш закрытый ключ никогда не передаётся.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="683"/>
         <source>Do you want to proceed?</source>
-        <translation type="unfinished"></translation>
+        <translation>Продолжить?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="718"/>
         <source>Upload Failed</source>
-        <translation type="unfinished"></translation>
+        <translation>Ошибка загрузки</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="727"/>
         <source>Upload Complete</source>
-        <translation type="unfinished"></translation>
+        <translation>Загрузка завершена</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="752"/>
         <source>Undefined</source>
-        <translation type="unfinished">Не определено</translation>
+        <translation>Не определено</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="752"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="769"/>
         <source>Never</source>
-        <translation type="unfinished">Никогда</translation>
+        <translation>Никогда</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="752"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="767"/>
         <source>Marginal</source>
-        <translation type="unfinished">Частичное</translation>
+        <translation>Предел.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="752"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="765"/>
         <source>Full</source>
-        <translation type="unfinished">Полное</translation>
+        <translation>Полный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="753"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="763"/>
         <source>Ultimate</source>
-        <translation type="unfinished">Абсолютное</translation>
+        <translation>Абсолютный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="757"/>
         <source>Modify Owner Trust Level</source>
-        <translation type="unfinished">Изменить уровень доверия владельца</translation>
+        <translation>Изменить уровень доверия владельца</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="758"/>
         <source>Trust level to apply to %1 checked key(s):</source>
-        <translation type="unfinished"></translation>
+        <translation>Уровень доверия для %1 выбранного ключа(ей):</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="785"/>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="853"/>
         <source>Partially Failed</source>
-        <translation type="unfinished">Частично не удалось</translation>
+        <translation>Частично не удалось</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="786"/>
         <source>Failed to set owner trust on %1 key(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось установить доверие владельца для %1 ключа(ей).</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="803"/>
         <source>Please check some private keys before doing this operation.</source>
-        <translation type="unfinished"></translation>
+        <translation>Пожалуйста, выберите несколько закрытых ключей перед выполнением этой операции.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="808"/>
         <source>Extend Expiry of Checked Keys</source>
-        <translation type="unfinished"></translation>
+        <translation>Продлить срок действия выбранных ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="811"/>
         <source>New expiry date to apply to %1 private key(s):</source>
-        <translation type="unfinished"></translation>
+        <translation>Новая дата окончания срока действия для %1 закрытого ключа(ей):</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="819"/>
         <source>Never expires</source>
-        <translation type="unfinished"></translation>
+        <translation>Бессрочный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="838"/>
         <source>Extending Expiry</source>
-        <translation type="unfinished"></translation>
+        <translation>Продление срока действия</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="854"/>
         <source>Failed to update expiry on %1 key(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось обновить срок действия для %1 ключа(ей).</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="872"/>
         <source>No Private Keys</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет закрытых ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="873"/>
         <source>There are no private keys in this keyring to back up.</source>
-        <translation type="unfinished"></translation>
+        <translation>В этой связке ключей нет закрытых ключей для резервного копирования.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="880"/>
         <source>private key(s) backed up</source>
-        <translation type="unfinished"></translation>
+        <translation>Закрытые ключи сохранены в резервной копии</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1024"/>
@@ -5723,42 +5728,42 @@ GpgFrontend попытается импортировать ключ(и).</trans
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1178"/>
         <source>Category (%1 keys)</source>
-        <translation type="unfinished"></translation>
+        <translation>Категория (%1 ключ(ей))</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1190"/>
         <source>Remove From This Category</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить из этой категории</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1226"/>
         <source>New Category...</source>
-        <translation type="unfinished"></translation>
+        <translation>Новая категория...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1230"/>
         <source>New Category</source>
-        <translation type="unfinished"></translation>
+        <translation>Новая категория</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1230"/>
         <source>Category name:</source>
-        <translation type="unfinished"></translation>
+        <translation>Название категории:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1265"/>
         <source>%1 keys · %2 private · %3 expiring soon · %4 expired or revoked</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 ключей · %2 закрытых · %3 скоро истекающих · %4 истекших или отозванных</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1272"/>
         <source>%1 key(s) expire within %2 days. See the &quot;Expiring Soon&quot; tab.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 ключ(ей) истекает в течение %2 дней. Смотрите вкладку «Скоро истекают».</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="1276"/>
         <source>No key expires within the next %1 days.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ни один ключ не истекает в ближайшие %1 дня(ей).</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="586"/>
@@ -5774,7 +5779,7 @@ GpgFrontend попытается импортировать ключ(и).</trans
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="430"/>
         <source>Upload the checked public key(s) to the key server configured as the default</source>
-        <translation type="unfinished"></translation>
+        <translation>Загрузить выбранные открытые ключи на сервер ключей, настроенный по умолчанию</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="587"/>
@@ -5810,14 +5815,18 @@ GpgFrontend попытается импортировать ключ(и).</trans
         <source>The public key was uploaded to the key server.
 
 Fingerprint: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Открытый ключ был загружен на сервер ключей.
+
+Отпечаток: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="732"/>
         <source>The public key was uploaded to %1.
 
 Fingerprint: %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Открытый ключ был загружен на %1.
+
+Отпечаток: %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/KeyMgmt.cpp" line="892"/>
@@ -5896,27 +5905,27 @@ Fingerprint: %2</source>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="45"/>
         <source>Add a new User ID</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить новый идентификатор пользователя</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="52"/>
         <source>A User ID pairs a name with an optional email and comment. The name is required.</source>
-        <translation type="unfinished"></translation>
+        <translation>Идентификатор пользователя связывает имя с необязательными электронной почтой и комментарием. Имя обязательно.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="58"/>
         <source>Full name</source>
-        <translation type="unfinished"></translation>
+        <translation>Полное имя</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="61"/>
         <source>name@example.com</source>
-        <translation type="unfinished"></translation>
+        <translation>name@example.com</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="64"/>
         <source>Optional comment</source>
-        <translation type="unfinished"></translation>
+        <translation>Необязательный комментарий</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="70"/>
@@ -5936,47 +5945,47 @@ Fingerprint: %2</source>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="79"/>
         <source>Create</source>
-        <translation type="unfinished">Создать</translation>
+        <translation>Создать</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="90"/>
         <source>The new User ID will be set as the primary User ID.</source>
-        <translation type="unfinished"></translation>
+        <translation>Новый идентификатор пользователя будет установлен как основной.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="139"/>
         <source>Enter a name for the User ID.</source>
-        <translation type="unfinished"></translation>
+        <translation>Введите имя для идентификатора пользователя.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="152"/>
         <source>Please give a valid email address.</source>
-        <translation type="unfinished">Укажите корректный адрес электронной почты.</translation>
+        <translation>Укажите действительный адрес электронной почты.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="154"/>
         <source>Ready to create the User ID.</source>
-        <translation type="unfinished"></translation>
+        <translation>Готов к созданию идентификатора пользователя.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="196"/>
         <source>Successful Operation</source>
-        <translation type="unfinished">Успешная операция</translation>
+        <translation>Операция выполнена успешно</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="197"/>
         <source>Successfully added a new UID.</source>
-        <translation type="unfinished">Новый UID успешно добавлен.</translation>
+        <translation>Новый UID успешно добавлен.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="205"/>
         <source>Operation Failed</source>
-        <translation type="unfinished">Операция не удалась</translation>
+        <translation>Операция не удалась</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyNewUIDDialog.cpp" line="206"/>
         <source>An error occurred during the operation.</source>
-        <translation type="unfinished">Произошла ошибка при выполнении операции.</translation>
+        <translation>Во время операции произошла ошибка.</translation>
     </message>
     <message>
         <source>Notice: The New UID Created will be set as Primary.</source>
@@ -6101,12 +6110,12 @@ Fingerprint: %2</source>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="417"/>
         <source>Notice: The public key has been published on the key server.</source>
-        <translation type="unfinished"></translation>
+        <translation>Уведомление: открытый ключ был опубликован на сервере ключей.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="419"/>
         <source>Notice: The public key has been published on %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Уведомление: открытый ключ был опубликован на %1.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairDetailTab.cpp" line="118"/>
@@ -6616,12 +6625,12 @@ Fingerprint: %2</source>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="496"/>
         <source>Change Passphrase</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменить парольную фразу</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="500"/>
         <source>Move to Card</source>
-        <translation type="unfinished"></translation>
+        <translation>Переместить на карту</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeyPairSubkeyTab.cpp" line="622"/>
@@ -7004,107 +7013,107 @@ Fingerprint: %2</source>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="108"/>
         <source>1 year</source>
-        <translation type="unfinished"></translation>
+        <translation>1 год</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="108"/>
         <source>%1 years</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 лет</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="111"/>
         <source>1 month</source>
-        <translation type="unfinished"></translation>
+        <translation>1 месяц</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="111"/>
         <source>%1 months</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 месяцев</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="115"/>
         <source>1 day</source>
-        <translation type="unfinished"></translation>
+        <translation>1 день</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="115"/>
         <source>%1 days</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 дней</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="118"/>
         <source>, </source>
-        <translation type="unfinished">,</translation>
+        <translation>,</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="135"/>
         <source>Subkey Expiration Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Дата истечения подключа</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="136"/>
         <source>Key Expiration Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Дата истечения ключа</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="143"/>
         <source>The subkey can no longer sign or encrypt after this moment. You can extend it again later.</source>
-        <translation type="unfinished"></translation>
+        <translation>После этого момента подключ больше не сможет подписывать или зашифровывать. Вы сможете продлить его позже.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="145"/>
         <source>The key can no longer sign or encrypt after this moment. You can extend it again later.</source>
-        <translation type="unfinished"></translation>
+        <translation>После этого момента ключ больше не сможет подписывать или зашифровывать. Вы сможете продлить его позже.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="184"/>
         <source>Validity Period</source>
-        <translation type="unfinished">Срок действия</translation>
+        <translation>Срок действия</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="185"/>
         <source>Expires On</source>
-        <translation type="unfinished"></translation>
+        <translation>Истекает</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="221"/>
         <source>Currently set to never expire.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сейчас установлено без срока действия.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="226"/>
         <source>Currently expired since %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Срок истёк с %1.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="228"/>
         <source>Currently expires %1 · %2 left</source>
-        <translation type="unfinished"></translation>
+        <translation>Истекает %1 · осталось %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="242"/>
         <source>Modify Subkey Expiration Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменить дату истечения подключя</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="243"/>
         <source>Modify Key Expiration Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменить дату истечения ключа</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="266"/>
         <source>Will never expire.</source>
-        <translation type="unfinished"></translation>
+        <translation>Никогда не истечёт.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="268"/>
         <source>The expiration date must be in the future.</source>
-        <translation type="unfinished"></translation>
+        <translation>Дата истечения должна быть в будущем.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="270"/>
         <source>Valid for %1 — until %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Действителен %1 — до %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.cpp" line="317"/>
@@ -7141,42 +7150,42 @@ Fingerprint: %2</source>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.h" line="120"/>
         <source>Custom Date</source>
-        <translation type="unfinished"></translation>
+        <translation>Пользовательская дата</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.h" line="121"/>
         <source>3 Months</source>
-        <translation type="unfinished">3 месяца</translation>
+        <translation>3 месяца</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.h" line="123"/>
         <source>6 Months</source>
-        <translation type="unfinished">6 месяцев</translation>
+        <translation>6 месяцев</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.h" line="125"/>
         <source>1 Year</source>
-        <translation type="unfinished">1 год</translation>
+        <translation>1 год</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.h" line="127"/>
         <source>2 Years</source>
-        <translation type="unfinished">2 года</translation>
+        <translation>2 года</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.h" line="129"/>
         <source>5 Years</source>
-        <translation type="unfinished">5 лет</translation>
+        <translation>5 лет</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.h" line="131"/>
         <source>10 Years</source>
-        <translation type="unfinished">10 лет</translation>
+        <translation>10 лет</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/keypair_details/KeySetExpireDateDialog.h" line="133"/>
         <source>Never Expires</source>
-        <translation type="unfinished">Бессрочный</translation>
+        <translation>Бессрочный</translation>
     </message>
 </context>
 <context>
@@ -7334,7 +7343,7 @@ After installing it, please restart GpgFrontend. The configuration file will be 
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="162"/>
         <source>Add To Category</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить в категорию</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="216"/>
@@ -7350,22 +7359,22 @@ After installing it, please restart GpgFrontend. The configuration file will be 
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="339"/>
         <source>Remove From This Category</source>
-        <translation type="unfinished"></translation>
+        <translation>Удалить из этой категории</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="369"/>
         <source>New Category...</source>
-        <translation type="unfinished"></translation>
+        <translation>Новая категория...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="373"/>
         <source>New Category</source>
-        <translation type="unfinished"></translation>
+        <translation>Новая категория</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="373"/>
         <source>Category name:</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя категории:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindow.cpp" line="405"/>
@@ -7421,72 +7430,72 @@ After installing it, please restart GpgFrontend. The configuration file will be 
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="165"/>
         <source>Instant Messaging</source>
-        <translation type="unfinished"></translation>
+        <translation>Мгновенные сообщения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="172"/>
         <source>Encoding</source>
-        <translation type="unfinished"></translation>
+        <translation>Кодировка</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="174"/>
         <source>Container Format</source>
-        <translation type="unfinished"></translation>
+        <translation>Формат контейнера</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="176"/>
         <source>Message Book</source>
-        <translation type="unfinished"></translation>
+        <translation>Книга сообщений</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="178"/>
         <source>Shared phrase (Argon2id)</source>
-        <translation type="unfinished"></translation>
+        <translation>Общая фраза (Argon2id)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="179"/>
         <source>Default — no shared phrase set</source>
-        <translation type="unfinished"></translation>
+        <translation>По умолчанию — общая фраза не задана</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="184"/>
         <source>Book Fingerprint</source>
-        <translation type="unfinished"></translation>
+        <translation>Отпечаток книги</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="189"/>
         <source>Set a Phrase</source>
-        <translation type="unfinished"></translation>
+        <translation>Задать фразу</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="190"/>
         <source>Settings → Instant Messaging</source>
-        <translation type="unfinished"></translation>
+        <translation>Настройки → Мгновенные сообщения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="194"/>
         <source>OpenPGP Payload</source>
-        <translation type="unfinished"></translation>
+        <translation>Полезная нагрузка OpenPGP</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="195"/>
         <source>%1 bytes</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 байт</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="198"/>
         <source>Token Length</source>
-        <translation type="unfinished"></translation>
+        <translation>Длина токена</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="199"/>
         <source>%1 characters</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 символов</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="207"/>
         <source>Wire Overhead</source>
-        <translation type="unfinished"></translation>
+        <translation>Накладные расходы канала</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="221"/>
@@ -7568,12 +7577,12 @@ Do you want to continue?</source>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="647"/>
         <source>No Message Book Phrase Set</source>
-        <translation type="unfinished"></translation>
+        <translation>Фраза книги сообщений не задана</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="648"/>
         <source>You have not set a Message Book phrase.</source>
-        <translation type="unfinished"></translation>
+        <translation>Вы не задали фразу для книги сообщений.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="649"/>
@@ -7582,85 +7591,91 @@ Do you want to continue?</source>
 Your message is OpenPGP-encrypted either way; what is at stake here is only whether it is recognisable as an encrypted message at all.
 
 To get that, set a phrase and share it privately with the person you are writing to. You must both use exactly the same one.</source>
-        <translation type="unfinished"></translation>
+        <translation>Мгновенные сообщения скрываются с помощью общей «Книги сообщений». Без фразы GpgFrontend использует встроенную книгу по умолчанию, которая поставляется в каждой копии программы. Она скрывает формат от простого сканера, но любой, кто знает GpgFrontend, всё равно сможет распознать ваше сообщение.
+
+Ваше сообщение в любом случае зашифровано OpenPGP; под вопросом только то, будет ли оно вообще распознано как зашифрованное.
+
+Чтобы этого избежать, задайте фразу и поделитесь ею лично с получателем. Вы оба должны использовать одну и ту же фразу.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="661"/>
         <source>Open Settings…</source>
-        <translation type="unfinished"></translation>
+        <translation>Открыть настройки…</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="663"/>
         <source>Continue with Default</source>
-        <translation type="unfinished"></translation>
+        <translation>Продолжить с настройками по умолчанию</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="665"/>
         <source>Continue, Don&apos;t Ask Again</source>
-        <translation type="unfinished"></translation>
+        <translation>Продолжить, больше не спрашивать</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="757"/>
         <source>Message Too Long</source>
-        <translation type="unfinished"></translation>
+        <translation>Сообщение слишком длинное</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="758"/>
         <source>This message is too long to send as an instant message.
 
 The encrypted message is %1 bytes, and the instant-messaging format carries at most %2. Shorten the text, or send it as a normal OpenPGP message instead.</source>
-        <translation type="unfinished"></translation>
+        <translation>Это сообщение слишком длинное для отправки как мгновенное сообщение.
+
+Зашифрованное сообщение имеет размер %1 байт, а формат мгновенных сообщений поддерживает не более %2. Сократите текст или отправьте его как обычное сообщение OpenPGP.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="771"/>
         <source>Failed to prepare the instant message: the encrypted message could not be converted into a token.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось подготовить мгновенное сообщение: зашифрованное сообщение не удалось преобразовать в токен.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="781"/>
         <source>Encrypt Sign</source>
-        <translation type="unfinished"></translation>
+        <translation>Зашифровать и подписать</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="786"/>
         <source>Message encrypted and signed for instant messaging.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сообщение зашифровано и подписано для мгновенной отправки.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="787"/>
         <source>Message encrypted for instant messaging.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сообщение зашифровано для мгновенной отправки.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="789"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="878"/>
         <source>An Instant Messaging section followed by the OpenPGP result.</source>
-        <translation type="unfinished"></translation>
+        <translation>Раздел мгновенных сообщений, за которым следует результат OpenPGP.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="809"/>
         <source>Checking Message</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверка сообщения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="826"/>
         <source>Preparing Instant Message</source>
-        <translation type="unfinished"></translation>
+        <translation>Подготовка мгновенного сообщения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="869"/>
         <source>Failed to decrypt instant message.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось расшифровать мгновенное сообщение.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="871"/>
         <source>Instant message decrypted (not signed).</source>
-        <translation type="unfinished"></translation>
+        <translation>Мгновенное сообщение расшифровано (не подписано).</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="873"/>
         <source>Instant message decrypted.</source>
-        <translation type="unfinished"></translation>
+        <translation>Мгновенное сообщение расшифровано.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="981"/>
@@ -8207,22 +8222,22 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="369"/>
         <source>IM Encrypt</source>
-        <translation type="unfinished"></translation>
+        <translation>IM-шифрование</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="370"/>
         <source>Encrypt the current text into a compact, single-line format that is safe to paste into instant messengers. Recipients decrypt it with the normal Decrypt action.</source>
-        <translation type="unfinished"></translation>
+        <translation>Зашифровать текущий текст в компактный однострочный формат, безопасный для вставки в мессенджеры. Получатели расшифровывают его обычным действием «Расшифровать».</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="378"/>
         <source>IM Encrypt &amp;&amp; Sign</source>
-        <translation type="unfinished"></translation>
+        <translation>IM-шифрование &amp;&amp; подписание</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="379"/>
         <source>Encrypt and sign the current text into a compact, single-line format that is safe to paste into instant messengers. Recipients decrypt and verify it with the normal Decrypt &amp; Verify action.</source>
-        <translation type="unfinished"></translation>
+        <translation>Зашифровать и подписать текущий текст в компактный однострочный формат, безопасный для вставки в мессенджеры. Получатели расшифровывают и проверяют его обычным действием «Расшифровать и проверить».</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="390"/>
@@ -8687,34 +8702,34 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="91"/>
         <source>Search modules...</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск модулей...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="92"/>
         <source>All</source>
-        <translation type="unfinished">Все</translation>
+        <translation>Все</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="96"/>
         <source>Inactive</source>
-        <translation type="unfinished">Неактивен</translation>
+        <translation>Неактивные</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="98"/>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="294"/>
         <source>Integrated</source>
-        <translation type="unfinished"></translation>
+        <translation>Встроенные</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="100"/>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="294"/>
         <source>External</source>
-        <translation type="unfinished"></translation>
+        <translation>Внешние</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="104"/>
         <source>Select a module to see its details.</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите модуль для просмотра его сведений.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="107"/>
@@ -8739,44 +8754,44 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="112"/>
         <source>Listening Events</source>
-        <translation type="unfinished"></translation>
+        <translation>Прослушиваемые события</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="114"/>
         <source>Activate on Start</source>
-        <translation type="unfinished"></translation>
+        <translation>Активировать при запуске</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="116"/>
         <source>Activate this module automatically when GpgFrontend starts.</source>
-        <translation type="unfinished"></translation>
+        <translation>Автоматически активировать этот модуль при запуске GpgFrontend.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="117"/>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="123"/>
         <source>Refresh</source>
-        <translation type="unfinished">Обновить</translation>
+        <translation>Обновить</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="120"/>
         <source>Search keys and values...</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск ключей и значений...</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="121"/>
         <source>Expand All</source>
-        <translation type="unfinished"></translation>
+        <translation>Развернуть всё</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="122"/>
         <source>Collapse All</source>
-        <translation type="unfinished"></translation>
+        <translation>Свернуть все</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="125"/>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="202"/>
         <source>Trigger Event</source>
-        <translation type="unfinished"></translation>
+        <translation>Активировать событие</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="126"/>
@@ -8784,82 +8799,82 @@ Would you like to fetch these keys from the key server?</source>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="215"/>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="219"/>
         <source>Upsert GRT Value</source>
-        <translation type="unfinished"></translation>
+        <translation>Обновить значение GRT</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="136"/>
         <source>%1 modules · %2 active</source>
-        <translation type="unfinished"></translation>
+        <translation>Модули: %1 · Активно: %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="203"/>
         <source>Please provide an Event ID</source>
-        <translation type="unfinished"></translation>
+        <translation>Укажите идентификатор события</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="211"/>
         <source>Namespace</source>
-        <translation type="unfinished"></translation>
+        <translation>Пространство имён</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="215"/>
         <source>Key</source>
-        <translation type="unfinished">Ключ</translation>
+        <translation>Ключ</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="220"/>
         <source>Value</source>
-        <translation type="unfinished">Значение</translation>
+        <translation>Значение</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="236"/>
         <source>Module loading is disabled. Enable it in Settings &gt; General to use modules.</source>
-        <translation type="unfinished"></translation>
+        <translation>Загрузка модулей отключена. Включите её в настройках &gt; Общие, чтобы использовать модули.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="240"/>
         <source>Only integrated modules are loaded. To load external modules from the mods directory, change the module loading policy in Settings &gt; General.</source>
-        <translation type="unfinished"></translation>
+        <translation>Загружены только встроенные модули. Чтобы загрузить внешние модули из каталога mods, измените политику загрузки модулей в настройках &gt; Общие.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="292"/>
         <source>● Active</source>
-        <translation type="unfinished"></translation>
+        <translation>● Активный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="292"/>
         <source>○ Inactive</source>
-        <translation type="unfinished"></translation>
+        <translation>○ Неактивный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="298"/>
         <source>Auto Start</source>
-        <translation type="unfinished"></translation>
+        <translation>Автозапуск</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="303"/>
         <source>by %1</source>
-        <translation type="unfinished"></translation>
+        <translation>от %1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="316"/>
         <source>N/A</source>
-        <translation type="unfinished">Н/Д</translation>
+        <translation>Н/Д</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="327"/>
         <source>N/A (integrated)</source>
-        <translation type="unfinished"></translation>
+        <translation>Н/Д (встроенный)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="331"/>
         <source>Click to open the containing folder</source>
-        <translation type="unfinished"></translation>
+        <translation>Нажмите, чтобы открыть папку</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/ModuleControllerDialog.cpp" line="341"/>
         <source>Listening Events (%1)</source>
-        <translation type="unfinished"></translation>
+        <translation>Прослушиваемые события (%1)</translation>
     </message>
     <message>
         <source>Auto Activate</source>
@@ -8906,17 +8921,17 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="196"/>
         <source>Integrated</source>
-        <translation type="unfinished"></translation>
+        <translation>Встроенный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="196"/>
         <source>External</source>
-        <translation type="unfinished"></translation>
+        <translation>Внешний</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/ModuleListView.cpp" line="202"/>
         <source>Auto</source>
-        <translation type="unfinished"></translation>
+        <translation>Авто</translation>
     </message>
 </context>
 <context>
@@ -8924,42 +8939,42 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="120"/>
         <source>Select Key to Move to Card</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите ключ для перемещения на смарт-карту</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="125"/>
         <source>Choose a Key or Subkey to Move</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите ключ или подключ для перемещения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="131"/>
         <source>Select the single private key or subkey to move onto the smart card. Expand a key to choose a particular subkey. Only parts that can be stored on a card are selectable.</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите один закрытый ключ или подключ для перемещения на смарт-карту. Разверните ключ, чтобы выбрать конкретный подключ. Выбирать можно только те части, которые можно сохранить на смарт-карте.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="145"/>
         <source>Database</source>
-        <translation type="unfinished"></translation>
+        <translation>База данных</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="175"/>
         <source>Confirm</source>
-        <translation type="unfinished">Подтвердить</translation>
+        <translation>Подтвердить</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="178"/>
         <source>Cancel</source>
-        <translation type="unfinished">Отмена</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="183"/>
         <source>Select One Key</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите один ключ</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/MoveKeyToCardPicker.cpp" line="184"/>
         <source>Please select exactly one key or subkey to move to the card.</source>
-        <translation type="unfinished"></translation>
+        <translation>Пожалуйста, выберите ровно один ключ или подключ для перемещения на смарт-карту.</translation>
     </message>
 </context>
 <context>
@@ -9081,12 +9096,12 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="64"/>
         <source>Incorrect Passphrase</source>
-        <translation type="unfinished"></translation>
+        <translation>Неверная парольная фраза</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="67"/>
         <source>The passphrase you entered was incorrect. Please try again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Введенная вами парольная фраза неверна. Пожалуйста, попробуйте снова.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/PassphraseDialog.cpp" line="90"/>
@@ -9346,68 +9361,68 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="42"/>
         <source>Password Cache</source>
-        <translation type="unfinished"></translation>
+        <translation>Кэш паролей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="45"/>
         <source>Password Cache TTL (minutes):</source>
-        <translation type="unfinished"></translation>
+        <translation>TTL кэша паролей (мин):</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="47"/>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="54"/>
         <source> min</source>
-        <translation type="unfinished">мин</translation>
+        <translation>мин</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="49"/>
         <source>Idle time the rPGP engine keeps an entered passphrase cached. The window is renewed each time the passphrase is used.</source>
-        <translation type="unfinished">Время бездействия, в течение которого движок rPGP хранит введённую парольную фразу в кэше. Период обновляется каждый раз при использовании парольной фразы.</translation>
+        <translation>Время бездействия, в течение которого движок rPGP хранит введённую парольную фразу в кэше. Окно обновляется каждый раз при использовании парольной фразы.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="52"/>
         <source>Password Cache Max TTL (minutes):</source>
-        <translation type="unfinished"></translation>
+        <translation>Макс. TTL кэша паролей (мин):</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="56"/>
         <source>Absolute lifetime of a cached passphrase, measured from when it was first entered, regardless of use. Never shorter than the TTL.</source>
-        <translation type="unfinished">Абсолютное время жизни кэшированной парольной фразы, отсчитываемое с момента первого ввода, независимо от использования. Никогда не короче TTL.</translation>
+        <translation>Абсолютное время жизни кэшированной парольной фразы, измеряемое с момента её первого ввода, независимо от использования. Не может быть короче TTL.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="60"/>
         <source>These options only apply to the rPGP engine&apos;s in-memory passphrase cache.</source>
-        <translation type="unfinished"></translation>
+        <translation>Эти параметры применяются только к кэшу парольных фраз в памяти движка rPGP.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="63"/>
         <source>Passphrase Prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>Запрос парольной фразы</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="67"/>
         <source>Passphrase Prompt Timeout (seconds):</source>
-        <translation type="unfinished"></translation>
+        <translation>Тайм-аут запроса парольной фразы (сек):</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="69"/>
         <source> s</source>
-        <translation type="unfinished"></translation>
+        <translation>с</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="70"/>
         <source>Never</source>
-        <translation type="unfinished">Никогда</translation>
+        <translation>Никогда</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="72"/>
         <source>Time the passphrase prompt waits for an answer before it closes itself and cancels the operation. Set to 0 to let it wait indefinitely.</source>
-        <translation type="unfinished"></translation>
+        <translation>Время ожидания ответа на запрос парольной фразы, после которого он закрывается и отменяет операцию. Установите 0, чтобы ждать бесконечно.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsRpgp.cpp" line="77"/>
         <source>Applies to the passphrase prompt GpgFrontend shows for the rPGP engine. GnuPG keys are unlocked through pinentry, which has its own timeout.</source>
-        <translation type="unfinished"></translation>
+        <translation>Применяется к запросу парольной фразы, который GpgFrontend показывает для движка rPGP. Ключи GnuPG разблокируются через pinentry, у которого свой тайм-аут.</translation>
     </message>
 </context>
 <context>
@@ -9488,22 +9503,22 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="85"/>
         <source>Application</source>
-        <translation type="unfinished"></translation>
+        <translation>Приложение</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="86"/>
         <source>Keys &amp; Engines</source>
-        <translation type="unfinished"></translation>
+        <translation>Ключи и движки</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="87"/>
         <source>Features</source>
-        <translation type="unfinished"></translation>
+        <translation>Функции</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="88"/>
         <source>System</source>
-        <translation type="unfinished"></translation>
+        <translation>Система</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="95"/>
@@ -9513,227 +9528,227 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="96"/>
         <source>Advanced</source>
-        <translation type="unfinished">Расширенные</translation>
+        <translation>Расширенные</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="108"/>
         <source>startup</source>
-        <translation type="unfinished"></translation>
+        <translation>Запуск</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="108"/>
         <source>confirm import</source>
-        <translation type="unfinished"></translation>
+        <translation>Подтверждать импорт</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="108"/>
         <source>language</source>
-        <translation type="unfinished"></translation>
+        <translation>Язык</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="108"/>
         <source>locale</source>
-        <translation type="unfinished"></translation>
+        <translation>Локаль</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="109"/>
         <source>translation</source>
-        <translation type="unfinished"></translation>
+        <translation>Перевод</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="109"/>
         <source>data</source>
-        <translation type="unfinished"></translation>
+        <translation>Данные</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="109"/>
         <source>cache</source>
-        <translation type="unfinished"></translation>
+        <translation>Кэш</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="113"/>
         <source>theme</source>
-        <translation type="unfinished"></translation>
+        <translation>Тема</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="113"/>
         <source>icon</source>
-        <translation type="unfinished"></translation>
+        <translation>Значок</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="113"/>
         <source>font size</source>
-        <translation type="unfinished"></translation>
+        <translation>Размер шрифта</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="113"/>
         <source>font family</source>
-        <translation type="unfinished"></translation>
+        <translation>Гарнитура шрифта</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="114"/>
         <source>toolbar</source>
-        <translation type="unfinished"></translation>
+        <translation>Панель инструментов</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="114"/>
         <source>actions</source>
-        <translation type="unfinished"></translation>
+        <translation>Действия</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="114"/>
         <source>instant messaging</source>
-        <translation type="unfinished"></translation>
+        <translation>Мгновенные сообщения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="115"/>
         <source>text editor</source>
-        <translation type="unfinished"></translation>
+        <translation>Текстовый редактор</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="115"/>
         <source>status panel</source>
-        <translation type="unfinished"></translation>
+        <translation>Панель состояния</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="124"/>
         <source>proxy</source>
-        <translation type="unfinished"></translation>
+        <translation>Прокси</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="124"/>
         <source>socks</source>
-        <translation type="unfinished"></translation>
+        <translation>SOCKS</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="124"/>
         <source>http</source>
-        <translation type="unfinished"></translation>
+        <translation>HTTP</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="124"/>
         <source>timeout</source>
-        <translation type="unfinished"></translation>
+        <translation>тайм-аут</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="125"/>
         <source>connection</source>
-        <translation type="unfinished"></translation>
+        <translation>соединение</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="131"/>
         <source>keyring</source>
-        <translation type="unfinished"></translation>
+        <translation>связка ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="131"/>
         <source>gpg home</source>
-        <translation type="unfinished"></translation>
+        <translation>домашний каталог GnuPG</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="131"/>
         <source>database path</source>
-        <translation type="unfinished"></translation>
+        <translation>путь к базе данных</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="137"/>
         <source>gpgme</source>
-        <translation type="unfinished"></translation>
+        <translation>gpgme</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="137"/>
         <source>gpgconf</source>
-        <translation type="unfinished"></translation>
+        <translation>gpgconf</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="137"/>
         <source>binary path</source>
-        <translation type="unfinished"></translation>
+        <translation>путь к исполняемому файлу</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="138"/>
         <source>custom install</source>
-        <translation type="unfinished"></translation>
+        <translation>пользовательская установка</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="143"/>
         <source>rPGP</source>
-        <translation type="unfinished"></translation>
+        <translation>rPGP</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="143"/>
         <source>rust</source>
-        <translation type="unfinished"></translation>
+        <translation>rust</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="143"/>
         <source>engine</source>
-        <translation type="unfinished"></translation>
+        <translation>движок</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="148"/>
         <source>Instant Messaging</source>
-        <translation type="unfinished"></translation>
+        <translation>Мгновенные сообщения</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="150"/>
         <source>message book</source>
-        <translation type="unfinished"></translation>
+        <translation>Книга сообщений</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="150"/>
         <source>phrase</source>
-        <translation type="unfinished"></translation>
+        <translation>Фраза</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="150"/>
         <source>fingerprint</source>
-        <translation type="unfinished"></translation>
+        <translation>Отпечаток</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="150"/>
         <source>token</source>
-        <translation type="unfinished"></translation>
+        <translation>Токен</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="155"/>
         <source>security level</source>
-        <translation type="unfinished"></translation>
+        <translation>Уровень безопасности</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="155"/>
         <source>PIN</source>
-        <translation type="unfinished"></translation>
+        <translation>PIN</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="155"/>
         <source>keychain</source>
-        <translation type="unfinished"></translation>
+        <translation>Связка ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="155"/>
         <source>log level</source>
-        <translation type="unfinished"></translation>
+        <translation>Уровень логирования</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="156"/>
         <source>ring buffer</source>
-        <translation type="unfinished"></translation>
+        <translation>Кольцевой буфер</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="156"/>
         <source>integrity check</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверка целостности</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="156"/>
         <source>ENV.ini</source>
-        <translation type="unfinished"></translation>
+        <translation>ENV.ini</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="179"/>
         <source>Search settings…</source>
-        <translation type="unfinished"></translation>
+        <translation>Поиск настроек…</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="232"/>
@@ -9743,34 +9758,36 @@ Would you like to fetch these keys from the key server?</source>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="467"/>
         <source>Restart Required</source>
-        <translation type="unfinished"></translation>
+        <translation>Требуется перезапуск</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="468"/>
         <source>Some of your changes only take effect after GpgFrontend restarts.</source>
-        <translation type="unfinished"></translation>
+        <translation>Некоторые изменения вступают в силу только после перезапуска GpgFrontend.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="470"/>
         <source>Some of your changes only take effect after the interface reloads.</source>
-        <translation type="unfinished"></translation>
+        <translation>Некоторые изменения вступают в силу только после перезагрузки интерфейса.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="473"/>
         <source>Changes needing this were made on: %1.
 
 Choose Cancel to discard everything you changed in this dialog and keep the current settings.</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменения, требующие этого, были сделаны: %1.
+
+Нажмите «Отмена», чтобы отменить все изменения в этом диалоге и сохранить текущие настройки.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="478"/>
         <source>Save and Restart</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранить и перезапустить</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="478"/>
         <source>Save and Reload</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранить и перезагрузить</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/settings/SettingsDialog.cpp" line="569"/>
@@ -9878,27 +9895,27 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="116"/>
         <source>Slot</source>
-        <translation type="unfinished"></translation>
+        <translation>Слот</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="125"/>
         <source>Key Info (ki)</source>
-        <translation type="unfinished"></translation>
+        <translation>Информация о ключе (ki)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="126"/>
         <source>Additional Auth (aac)</source>
-        <translation type="unfinished"></translation>
+        <translation>Дополнительная аутентификация (aac)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="127"/>
         <source>Biometric Terminal (bt)</source>
-        <translation type="unfinished"></translation>
+        <translation>Биометрический терминал (bt)</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="128"/>
         <source>KDF Supported</source>
-        <translation type="unfinished"></translation>
+        <translation>Поддержка KDF</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="178"/>
@@ -10063,124 +10080,124 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="133"/>
         <source>No card detected</source>
-        <translation type="unfinished"></translation>
+        <translation>Карта не обнаружена</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="135"/>
         <source>Cardholder</source>
-        <translation type="unfinished"></translation>
+        <translation>Держатель карты</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="136"/>
         <source>Access Codes</source>
-        <translation type="unfinished"></translation>
+        <translation>Коды доступа</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="138"/>
         <source>Move Key to Card</source>
-        <translation type="unfinished"></translation>
+        <translation>Переместить ключ на карту</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="141"/>
         <source>More Actions</source>
-        <translation type="unfinished"></translation>
+        <translation>Ещё действия</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="160"/>
         <source>Change Sex</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменить пол</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="201"/>
         <source>Open GnuPG Smart Card HOWTO</source>
-        <translation type="unfinished"></translation>
+        <translation>Открыть руководство GnuPG по смарт-картам</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="296"/>
         <source>Unnamed Card</source>
-        <translation type="unfinished"></translation>
+        <translation>Безымянная карта</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="310"/>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="312"/>
         <source>%1, version %2</source>
-        <translation type="unfinished"></translation>
+        <translation>%1, версия %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="315"/>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="316"/>
         <source>Not set</source>
-        <translation type="unfinished"></translation>
+        <translation>Не задано</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="319"/>
         <source>● Ready</source>
-        <translation type="unfinished"></translation>
+        <translation>● Готов</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="331"/>
         <source>PIN</source>
-        <translation type="unfinished"></translation>
+        <translation>PIN</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="331"/>
         <source>Reset Code</source>
-        <translation type="unfinished"></translation>
+        <translation>Код сброса</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="332"/>
         <source>Admin PIN</source>
-        <translation type="unfinished"></translation>
+        <translation>PIN администратора</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="338"/>
         <source>%1 n/a</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 н/д</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="342"/>
         <source>%1 %2 left</source>
-        <translation type="unfinished"></translation>
+        <translation>Осталось %1 %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="345"/>
         <source>%1 retries left, maximum length %2</source>
-        <translation type="unfinished"></translation>
+        <translation>Осталось %1 попыток, макс. длина %2</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="351"/>
         <source>User Interaction Flag — Sign: %1 · Encrypt: %2 · Authenticate: %3</source>
-        <translation type="unfinished"></translation>
+        <translation>Флаг взаимодействия с пользователем — Подпись: %1 · Шифрование: %2 · Аутентификация: %3</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="396"/>
         <source>N/A</source>
-        <translation type="unfinished">Н/Д</translation>
+        <translation>Н/Д</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="472"/>
         <source>Read the GnuPG Smart Card HOWTO</source>
-        <translation type="unfinished"></translation>
+        <translation>Прочитать руководство GnuPG по смарт-картам</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="558"/>
         <source>No Card</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет карты</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="559"/>
         <source>No smart card is currently selected.</source>
-        <translation type="unfinished"></translation>
+        <translation>В настоящее время смарт-карта не выбрана.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="566"/>
         <source>Not Supported</source>
-        <translation type="unfinished"></translation>
+        <translation>Не поддерживается</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="567"/>
         <source>Moving a key to a smart card is only supported for GnuPG key databases. The rpgp engine is not supported for this feature.</source>
-        <translation type="unfinished"></translation>
+        <translation>Перемещение ключа на смарт-карту поддерживается только для баз данных ключей GnuPG. Движок rpgp не поддерживается для этой функции.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="589"/>
@@ -10294,27 +10311,27 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="97"/>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="103"/>
         <source>Card</source>
-        <translation type="unfinished"></translation>
+        <translation>Карта</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="99"/>
         <source>Identity</source>
-        <translation type="unfinished">Идентичность</translation>
+        <translation>Личность</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="104"/>
         <source>Application</source>
-        <translation type="unfinished"></translation>
+        <translation>Приложение</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="108"/>
         <source>Access &amp; Status</source>
-        <translation type="unfinished"></translation>
+        <translation>Доступ и статус</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="113"/>
         <source>Keys on Card</source>
-        <translation type="unfinished"></translation>
+        <translation>Ключи на карте</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/controller/SmartCardControllerDialog.cpp" line="116"/>
@@ -10490,12 +10507,12 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="524"/>
         <source>Secure Level:</source>
-        <translation type="unfinished"></translation>
+        <translation>Уровень защиты:</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="526"/>
         <source>Application Key Protection:</source>
-        <translation type="unfinished"></translation>
+        <translation>Защита ключей приложения:</translation>
     </message>
     <message>
         <source>Security Level:</source>
@@ -11102,12 +11119,12 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="71"/>
         <source>The application secure key could not be saved: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось сохранить безопасный ключ приложения: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="74"/>
         <source>Anything saved now would be unreadable after a restart, so the application will not continue. Please check your storage and permissions.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранённое сейчас будет нечитаемо после перезапуска, поэтому приложение не будет продолжено. Проверьте хранилище и разрешения.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="84"/>
@@ -11120,12 +11137,12 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="85"/>
         <source>Failed to decrypt the application secure key. The key file may be corrupted.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось расшифровать безопасный ключ приложения. Возможно, файл ключа повреждён.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="87"/>
         <source>Please clear the secure key and try again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Пожалуйста, очистите безопасный ключ и повторите попытку.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="94"/>
@@ -11140,173 +11157,173 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="106"/>
         <source>Failed to generate an application secure key.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось сгенерировать безопасный ключ приложения.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="107"/>
         <source>Please check your system&apos;s cryptography support.</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверьте поддержку криптографии в вашей системе.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="148"/>
         <location filename="../../../../src/GpgFrontend.cpp" line="228"/>
         <location filename="../../../../src/GpgFrontend.cpp" line="236"/>
         <source>Reset Secure Key</source>
-        <translation type="unfinished"></translation>
+        <translation>Сбросить безопасный ключ</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="149"/>
         <source>The key file at %1 could not be removed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось удалить файл ключа: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="188"/>
         <source>System Keychain Unavailable</source>
-        <translation type="unfinished"></translation>
+        <translation>Связка ключей системы недоступна</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="189"/>
         <source>The application key could not be protected using the system keychain, so it remains stored unprotected.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось защитить ключ приложения с помощью системной связки ключей, поэтому он остаётся незащищённым.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="192"/>
         <source>This setting has been turned off. You can turn it on again once a keychain is available.</source>
-        <translation type="unfinished"></translation>
+        <translation>Этот параметр отключён. Вы можете включить его снова, когда связка ключей станет доступна.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="200"/>
         <source>The application secure key at %1 could not be read or rewritten.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось прочитать или перезаписать безопасный ключ приложения: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="203"/>
         <location filename="../../../../src/GpgFrontend.cpp" line="406"/>
         <source>Please check your storage and permissions.</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверьте хранилище и права доступа.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="211"/>
         <source>Secure Key Unavailable</source>
-        <translation type="unfinished"></translation>
+        <translation>Безопасный ключ недоступен</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="212"/>
         <source>The application key is protected by a secret kept in the system keychain, and that secret could not be read.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ключ приложения защищён секретом, хранящимся в системной связке ключей, и этот секрет не удалось прочитать.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="216"/>
         <source>This usually means the keychain is locked, was reset, or this profile was copied from another computer or user account.</source>
-        <translation type="unfinished"></translation>
+        <translation>Обычно это означает, что связка ключей заблокирована, была сброшена или этот профиль был скопирован с другого компьютера или учётной записи.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="220"/>
         <source>You can unlock the keychain and start the application again. Resetting the key instead lets the application start, but everything it previously encrypted becomes permanently unreadable.</source>
-        <translation type="unfinished"></translation>
+        <translation>Вы можете разблокировать связку ключей и запустить приложение снова. Сброс ключа вместо этого позволит приложению запуститься, но всё, что оно ранее зашифровало, станет навсегда нечитаемым.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="225"/>
         <source>Keychain backend: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Бэкенд связки ключей: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="227"/>
         <source>Quit</source>
-        <translation type="unfinished">Выход</translation>
+        <translation>Выйти</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="237"/>
         <source>Everything the application has encrypted with the old key will be permanently unreadable.</source>
-        <translation type="unfinished"></translation>
+        <translation>Всё, что приложение зашифровало старым ключом, станет навсегда нечитаемым.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="239"/>
         <location filename="../../../../src/GpgFrontend.cpp" line="291"/>
         <source>Reset the secure key?</source>
-        <translation type="unfinished"></translation>
+        <translation>Сбросить безопасный ключ?</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="272"/>
         <location filename="../../../../src/GpgFrontend.cpp" line="280"/>
         <location filename="../../../../src/GpgFrontend.cpp" line="288"/>
         <source>Reset to Default</source>
-        <translation type="unfinished"></translation>
+        <translation>Сбросить к значениям по умолчанию</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="273"/>
         <source>Resetting removes the PIN and lets the application start, but everything it previously encrypted becomes permanently unreadable.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сброс удаляет PIN и позволяет приложению запуститься, но всё, что оно ранее зашифровало, станет навсегда нечитаемым.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="276"/>
         <source>Only do this if you cannot recall the PIN. There is no other way to recover the key.</source>
-        <translation type="unfinished"></translation>
+        <translation>Делайте это только в том случае, если вы не можете вспомнить PIN. Другого способа восстановить ключ нет.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="279"/>
         <source>Go Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Назад</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="289"/>
         <source>Everything the application has encrypted with the current key will be permanently unreadable.</source>
-        <translation type="unfinished"></translation>
+        <translation>Всё, что приложение зашифровало текущим ключом, станет навсегда недоступно для чтения.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="353"/>
         <source>a newer version</source>
-        <translation type="unfinished"></translation>
+        <translation>более новая версия</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="357"/>
         <source>Profile Is Too New</source>
-        <translation type="unfinished"></translation>
+        <translation>Профиль слишком новый</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="358"/>
         <source>This application data was last used by %1, which stores it in a format this version does not understand.</source>
-        <translation type="unfinished"></translation>
+        <translation>Эти данные приложения последний раз использовались %1, который сохраняет их в формате, который эта версия не понимает.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="362"/>
         <source>Continuing would damage it. Please use %1 or later, or start this version with a different data folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Продолжение может повредить данные. Используйте %1 или новее, или запустите эту версию с другой папкой данных.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="365"/>
         <source>Data folder: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Папка данных: %1</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="404"/>
         <source>The application secure key at %1 could not be read.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось прочитать ключ безопасности приложения по пути %1.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="413"/>
         <source>Application Key Not Protected</source>
-        <translation type="unfinished"></translation>
+        <translation>Ключ приложения не защищён</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="414"/>
         <source>A PIN is configured, but the application key on disk is not encrypted.</source>
-        <translation type="unfinished"></translation>
+        <translation>Установлен PIN, но ключ приложения на диске не зашифрован.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="417"/>
         <source>This can happen if a previous change was interrupted. The PIN setting has been turned off and the key is left as it is.</source>
-        <translation type="unfinished"></translation>
+        <translation>Это может произойти, если предыдущее изменение было прервано. Настройка PIN отключена, и ключ оставлен как есть.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="459"/>
         <source>That PIN did not unlock the application key. Please try again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Этот PIN-код не разблокировал ключ приложения. Пожалуйста, попробуйте снова.</translation>
     </message>
     <message>
         <location filename="../../../../src/GpgFrontend.cpp" line="465"/>
         <source>If you have forgotten your PIN, the application key and everything encrypted with it cannot be recovered.</source>
-        <translation type="unfinished"></translation>
+        <translation>Если вы забыли PIN-код, ключ приложения и всё, что с его помощью зашифровано, восстановить невозможно.</translation>
     </message>
     <message>
         <source>Failed to decrypt the application secure key. Your PIN may be incorrect, or the key file may be corrupted.Please clear the secure key and try again.</source>
@@ -11588,42 +11605,42 @@ The link has been copied to your clipboard:
     <message>
         <location filename="../../../../src/core/function/AppSecureKeyManager.cpp" line="482"/>
         <source>The secure key could not be encrypted, so it was not saved to disk.</source>
-        <translation type="unfinished"></translation>
+        <translation>Защищённый ключ не удалось зашифровать, поэтому он не был сохранён на диск.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="735"/>
         <source>Standard</source>
-        <translation type="unfinished">Стандартный</translation>
+        <translation>Стандартный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="737"/>
         <source>Enhanced</source>
-        <translation type="unfinished">Улучшенный</translation>
+        <translation>Расширенный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="741"/>
         <source>Maximum</source>
-        <translation type="unfinished"></translation>
+        <translation>Максимальный</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="750"/>
         <source>System keychain</source>
-        <translation type="unfinished"></translation>
+        <translation>Системная связка ключей</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="752"/>
         <source>PIN at startup</source>
-        <translation type="unfinished"></translation>
+        <translation>PIN при запуске</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/UserInterfaceUtils.cpp" line="756"/>
         <source>No extra protection</source>
-        <translation type="unfinished"></translation>
+        <translation>Без дополнительной защиты</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="98"/>
         <source>Home</source>
-        <translation type="unfinished"></translation>
+        <translation>Главная</translation>
     </message>
 </context>
 <context>
