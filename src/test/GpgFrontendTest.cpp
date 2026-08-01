@@ -111,6 +111,19 @@ auto RunWithTimeout(std::function<bool()> op, int timeout_ms) -> bool {
   return RunWithin(std::move(op), timeout_ms).value_or(false);
 }
 
+void RunOnMainThread(const std::function<void()>& op) {
+  auto* app = QCoreApplication::instance();
+
+  // A blocking queued call onto our own thread would deadlock, and a test may
+  // well already be there (e.g. when driven from a signal handler).
+  if (app == nullptr || QThread::currentThread() == app->thread()) {
+    op();
+    return;
+  }
+
+  QMetaObject::invokeMethod(app, op, Qt::BlockingQueuedConnection);
+}
+
 auto GenerateRandomString(size_t length) -> QString {
   const QString characters =
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

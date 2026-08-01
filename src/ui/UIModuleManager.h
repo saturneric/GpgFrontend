@@ -41,6 +41,19 @@ struct ModuleTranslatorInfo {
 };
 
 /**
+ * @brief A module translator together with the QM bytes it reads from.
+ *
+ * QTranslator::load(const uchar*, int) does not copy its input: the buffer has
+ * to outlive the translator, and the translator has to be uninstalled before
+ * the buffer goes away. Keeping the two in one entry makes that impossible to
+ * get wrong -- they are released together, in that order.
+ */
+struct InstalledModuleTranslator {
+  QTranslator* translator{nullptr};
+  QByteArray data;
+};
+
+/**
  * @brief A settings page contributed by a module.
  *
  * Holds a factory rather than a widget: the Settings dialog is built and
@@ -78,6 +91,18 @@ class GF_UI_EXPORT UIModuleManager
    */
   auto RegisterTranslatorDataReader(Module::ModuleIdentifier id,
                                     GFTranslatorDataReader reader) -> bool;
+
+  /**
+   * @brief Drop a module's translator data reader.
+   *
+   * Modules must do this before unloading -- a reader pointing into an
+   * unloaded shared object would crash the next language switch.
+   *
+   * @param id the identifier used to register
+   * @return true when a reader was removed
+   */
+  auto UnregisterTranslatorDataReader(const Module::ModuleIdentifier& id)
+      -> bool;
 
   /**
    * @brief
@@ -125,6 +150,18 @@ class GF_UI_EXPORT UIModuleManager
    *
    */
   void RegisterAllModuleTranslators();
+
+  /**
+   * @brief The translators installed by the last
+   * RegisterAllModuleTranslators() call, in registration order.
+   *
+   * Handed out as guarded pointers so a caller can tell that a previous round
+   * really was destroyed rather than merely forgotten.
+   *
+   * @return QContainer<QPointer<QTranslator>>
+   */
+  [[nodiscard]] auto InstalledTranslators() const
+      -> QContainer<QPointer<QTranslator>>;
 
   /**
    * @brief Register a module-owned page for the Settings dialog.
@@ -186,9 +223,14 @@ class GF_UI_EXPORT UIModuleManager
                                const QString& operation) -> QString;
 
  private:
+  /**
+   * @brief Uninstall and destroy every installed module translator, then
+   * release the QM bytes they were reading from.
+   */
+  void clear_installed_translators();
+
   QMap<QString, ModuleTranslatorInfo> translator_data_readers_;
-  QContainer<QTranslator*> registered_translators_;
-  QContainer<QByteArray> read_translator_data_list_;
+  QContainer<InstalledModuleTranslator> installed_translators_;
   QMap<QString, QPointer<QObject>> registered_qobjects_;
   QMap<QString, std::any> capsule_;
   QMap<QString, QString> file_ext_event_prefix_map_;

@@ -38,7 +38,7 @@ UIModuleManager::UIModuleManager(int channel)
     : SingletonFunctionObject<UIModuleManager>(channel),
       settings_(GpgFrontend::GetSettings()) {}
 
-UIModuleManager::~UIModuleManager() = default;
+UIModuleManager::~UIModuleManager() { clear_installed_translators(); }
 
 auto UIModuleManager::RegisterTranslatorDataReader(
     Module::ModuleIdentifier id, GFTranslatorDataReader reader) -> bool {
@@ -50,9 +50,26 @@ auto UIModuleManager::RegisterTranslatorDataReader(
   return false;
 }
 
+auto UIModuleManager::UnregisterTranslatorDataReader(
+    const Module::ModuleIdentifier& id) -> bool {
+  return translator_data_readers_.remove(id) > 0;
+}
+
+void UIModuleManager::clear_installed_translators() {
+  // Order matters: a translator still installed on QCoreApplication keeps
+  // reading entry.data, so it has to be uninstalled and destroyed before the
+  // entry (and with it the QM bytes) is dropped. deleteLater() would not do --
+  // it lets the translator outlive the buffer.
+  for (const auto& entry : installed_translators_) {
+    if (entry.translator == nullptr) continue;
+    QCoreApplication::removeTranslator(entry.translator);
+    delete entry.translator;
+  }
+  installed_translators_.clear();
+}
+
 void UIModuleManager::RegisterAllModuleTranslators() {
-  registered_translators_.clear();
-  read_translator_data_list_.clear();
+  clear_installed_translators();
 
   const auto locale_name = QLocale().name();
 
@@ -71,19 +88,32 @@ void UIModuleManager::RegisterAllModuleTranslators() {
       continue;
     }
 
-    QByteArray b(data, data_size);
+    InstalledModuleTranslator entry;
+    entry.data = QByteArray(data, data_size);
     SMAFree(data);
 
-    auto* translator = new QTranslator(QCoreApplication::instance());
-    auto load = translator->load(
-        reinterpret_cast<uchar*>(const_cast<char*>(b.data())), b.size());
-    if (load && QCoreApplication::installTranslator(translator)) {
-      registered_translators_.append(translator);
-      read_translator_data_list_.append(b);
+    // Load from the entry's own copy of the bytes, not from a local that goes
+    // out of scope: QTranslator reads this buffer for as long as it lives.
+    entry.translator = new QTranslator(QCoreApplication::instance());
+    auto load = entry.translator->load(
+        reinterpret_cast<uchar*>(const_cast<char*>(entry.data.data())),
+        static_cast<int>(entry.data.size()));
+    if (load && QCoreApplication::installTranslator(entry.translator)) {
+      installed_translators_.append(entry);
     } else {
-      translator->deleteLater();
+      delete entry.translator;
     }
   }
+}
+
+auto UIModuleManager::InstalledTranslators() const
+    -> QContainer<QPointer<QTranslator>> {
+  QContainer<QPointer<QTranslator>> translators;
+  translators.reserve(installed_translators_.size());
+  for (const auto& entry : installed_translators_) {
+    translators.append(QPointer<QTranslator>(entry.translator));
+  }
+  return translators;
 }
 
 auto UIModuleManager::RegisterQObject(const QString& id, QObject* p)
@@ -95,7 +125,10 @@ auto UIModuleManager::RegisterQObject(const QString& id, QObject* p)
   }
 
   registered_qobjects_[id] = ptr;
-  QObject::connect(p, &QObject::destroyed,
+  // qApp as the context object: the lambda captures this manager, so it must
+  // not outlive the application, and the map must only be touched from the
+  // main thread even when p is destroyed on another one.
+  QObject::connect(p, &QObject::destroyed, QCoreApplication::instance(),
                    [this, id]() { registered_qobjects_.remove(id); });
   return id;
 }
@@ -104,7 +137,7 @@ auto UIModuleManager::RegisterQObject(QObject* p) -> QString {
   const QString id = QString::number(reinterpret_cast<quintptr>(p), 16);
   QPointer<QObject> ptr = p;
   registered_qobjects_[id] = ptr;
-  QObject::connect(p, &QObject::destroyed,
+  QObject::connect(p, &QObject::destroyed, QCoreApplication::instance(),
                    [this, id]() { registered_qobjects_.remove(id); });
   return id;
 }

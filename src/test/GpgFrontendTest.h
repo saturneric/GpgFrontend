@@ -83,7 +83,7 @@ namespace GpgFrontend::Test {
 
 struct GpgFrontendContext {
   int argc;
-  char **argv;
+  char** argv;
 };
 
 auto GF_TEST_EXPORT ExecuteAllTestCase(GpgFrontendContext args) -> int;
@@ -114,6 +114,16 @@ auto RunWithTimeout(std::function<bool()> op, int timeout_ms) -> bool;
  * value, so a hang would masquerade as the expected false and pass silently.
  */
 auto RunWithin(std::function<bool()> op, int timeout_ms) -> std::optional<bool>;
+
+/**
+ * @brief Run an operation on the main (GUI) thread and wait for it to finish.
+ *
+ * The suite itself runs on a worker task while the main thread pumps events
+ * (see RunTest() in Command.cpp), so anything that is main-thread-only --
+ * installing a QTranslator, parenting a QObject to qApp, touching a widget --
+ * has to be handed over. Blocks until the operation returns.
+ */
+void RunOnMainThread(const std::function<void()>& op);
 
 #define ASSERT_OP_WITHIN(op, ms) \
   ASSERT_TRUE(RunWithTimeout([&]() { return (op); }, ms))

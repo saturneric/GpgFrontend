@@ -45,7 +45,6 @@ namespace GpgFrontend::UI {
 namespace {
 
 QContainer<QTranslator*> registered_translators;
-QContainer<QByteArray> loaded_qm_datum;
 
 [[noreturn]] void TerminateSelfImmediately() {
   qWarning() << "Application startup was canceled. Terminating process.";
@@ -407,11 +406,14 @@ void GF_UI_EXPORT DestroyGpgFrontendUI() {}
  *
  */
 void InitUITranslations() {
-  for (const auto& translator : registered_translators) {
+  // Uninstall *and* destroy: this runs again on every language switch and on
+  // every restart loop pass, so merely forgetting the pointers would pile up
+  // translators that qApp still consults.
+  for (auto* translator : registered_translators) {
     QCoreApplication::removeTranslator(translator);
+    delete translator;
   }
   registered_translators.clear();
-  loaded_qm_datum.clear();
 
   auto* translator = new QTranslator(QCoreApplication::instance());
   if (translator->load(QLocale(), QLatin1String("qt"), QLatin1String("_"),
