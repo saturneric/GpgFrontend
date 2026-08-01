@@ -118,4 +118,123 @@ TEST(IOUtilsHashTest, CalculateHashOnUnreadablePathReportsError) {
       text.contains(QCoreApplication::tr("Error: cannot read target file")));
 }
 
+TEST(IOUtilsSafeOutputTest, TempPathIsStagedOutsideTheOutputDirectory) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString final_path = temp_dir.path() + "/report.txt.gpg";
+  const QString staged = MakeSafeOutputTempPath(final_path);
+
+  ASSERT_FALSE(staged.isEmpty());
+
+  // The staged file must not sit next to the final one: that directory is the
+  // one being watched by the file browser.
+  const QFileInfo staged_info(staged);
+  EXPECT_NE(staged_info.absolutePath(), QDir(temp_dir.path()).absolutePath());
+  EXPECT_EQ(QFileInfo(staged_info.absolutePath()).absolutePath(),
+            QDir(temp_dir.path()).absolutePath());
+  EXPECT_TRUE(QFileInfo(staged_info.absolutePath()).isDir());
+  EXPECT_FALSE(QFileInfo::exists(staged));
+}
+
+TEST(IOUtilsSafeOutputTest, TempPathsForTheSameOutputDoNotCollide) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString final_path = temp_dir.path() + "/report.txt.gpg";
+
+  const QString first = MakeSafeOutputTempPath(final_path);
+  ASSERT_TRUE(WriteFile(first, QByteArray("first")));
+
+  const QString second = MakeSafeOutputTempPath(final_path);
+  EXPECT_NE(first, second);
+}
+
+TEST(IOUtilsSafeOutputTest, CommitMovesStagedOutputIntoPlace) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString final_path = temp_dir.path() + "/report.txt.gpg";
+  const QString staged = MakeSafeOutputTempPath(final_path);
+  ASSERT_TRUE(WriteFile(staged, QByteArray("ciphertext")));
+
+  EXPECT_TRUE(CommitSafeOutputFile(staged, final_path));
+
+  EXPECT_FALSE(QFileInfo::exists(staged));
+  QByteArray content;
+  ASSERT_TRUE(ReadFile(final_path, content));
+  EXPECT_EQ(content, QByteArray("ciphertext"));
+}
+
+TEST(IOUtilsSafeOutputTest, CommitReplacesAnExistingOutput) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString final_path = temp_dir.path() + "/report.txt.gpg";
+  ASSERT_TRUE(WriteFile(final_path, QByteArray("older")));
+
+  const QString staged = MakeSafeOutputTempPath(final_path);
+  ASSERT_TRUE(WriteFile(staged, QByteArray("newer")));
+
+  EXPECT_TRUE(CommitSafeOutputFile(staged, final_path));
+
+  QByteArray content;
+  ASSERT_TRUE(ReadFile(final_path, content));
+  EXPECT_EQ(content, QByteArray("newer"));
+
+  // The backup taken while replacing must not survive the commit.
+  const auto leftovers =
+      QDir(temp_dir.path())
+          .entryList({"*gpgfrontend.backup*"}, QDir::Files | QDir::Hidden);
+  EXPECT_TRUE(leftovers.isEmpty());
+}
+
+TEST(IOUtilsSafeOutputTest, CommitOfAMissingStagedFileKeepsTheOriginal) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString final_path = temp_dir.path() + "/report.txt.gpg";
+  ASSERT_TRUE(WriteFile(final_path, QByteArray("original")));
+
+  const QString staged = MakeSafeOutputTempPath(final_path);
+  EXPECT_FALSE(CommitSafeOutputFile(staged, final_path));
+
+  QByteArray content;
+  ASSERT_TRUE(ReadFile(final_path, content));
+  EXPECT_EQ(content, QByteArray("original"));
+}
+
+TEST(IOUtilsSafeOutputTest, WorkDirIsRemovedOnlyOnceItIsEmpty) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString final_path = temp_dir.path() + "/report.txt.gpg";
+  const QString staged = MakeSafeOutputTempPath(final_path);
+  const QString work_dir = QFileInfo(staged).absolutePath();
+  ASSERT_TRUE(WriteFile(staged, QByteArray("ciphertext")));
+
+  // A staged file still in the directory means the operation left something
+  // behind — keep it rather than deleting the evidence.
+  RemoveSafeOutputWorkDir(staged);
+  EXPECT_TRUE(QFileInfo::exists(work_dir));
+
+  ASSERT_TRUE(QFile::remove(staged));
+  RemoveSafeOutputWorkDir(staged);
+  EXPECT_FALSE(QFileInfo::exists(work_dir));
+}
+
+TEST(IOUtilsSafeOutputTest, RemoveWorkDirIgnoresPathsItDidNotStage) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+
+  const QString foreign = temp_dir.path() + "/plain.txt";
+  ASSERT_TRUE(WriteFile(foreign, QByteArray("data")));
+
+  RemoveSafeOutputWorkDir(foreign);
+  RemoveSafeOutputWorkDir({});
+
+  EXPECT_TRUE(QFileInfo::exists(temp_dir.path()));
+  EXPECT_TRUE(QFileInfo::exists(foreign));
+}
+
 }  // namespace GpgFrontend::Test
