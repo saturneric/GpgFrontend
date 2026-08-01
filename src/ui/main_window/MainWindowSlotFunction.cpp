@@ -863,18 +863,26 @@ auto MainWindow::exec_operas_helper(
   GpgOperaHelper::WaitForMultipleOperas(
       this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
 
-  bool all_success = !contexts->opera_results.empty();
+  // Releases the reference cycle the operas hold on this basement.
+  contexts->operas.clear();
 
-  for (const auto& result : contexts->opera_results) {
+  // A snapshot: an operation that was still in flight when the wait ended can
+  // append one more result, and that must not happen while the list below is
+  // being iterated.
+  const auto opera_results = contexts->opera_results;
+
+  bool all_success = !opera_results.empty();
+
+  for (const auto& result : opera_results) {
     if (result.op_info.status <= 0) {
       all_success = false;
       break;
     }
   }
 
-  slot_gpg_opera_buffer_show_helper(contexts->opera_results);
+  slot_gpg_opera_buffer_show_helper(opera_results);
 
-  slot_result_analyse_show_helper(contexts->opera_results);
+  slot_result_analyse_show_helper(opera_results);
   return all_success;
 }
 

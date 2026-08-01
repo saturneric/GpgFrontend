@@ -42,6 +42,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/UISignalStation.h"
 #include "ui/dialog/WaitingDialog.h"
 
 namespace {
@@ -103,6 +104,39 @@ auto StartDeferredShowTimer(GpgFrontend::UI::WaitingDialog* dialog) -> QTimer* {
   timer->start(kWaitingDialogShowDelayMs);
   return timer;
 }
+
+// Progress state of a running batch. Heap-owned and shared with every
+// completion handler on purpose: the waiting dialog is cancelable, so
+// WaitForMultipleOperas can return while operations are still queued, and those
+// handlers must not write into a stack frame that is already gone.
+struct BatchProgress {
+  explicit BatchProgress(qsizetype total_count)
+      : total(total_count), remaining(total_count) {}
+
+  const qsizetype total;
+  qsizetype remaining;
+
+  // Set once the batch has stopped being waited on — after a cancellation
+  // there can still be queued operations that were never started, and starting
+  // them would write into output paths the caller has already cleaned up.
+  bool abandoned = false;
+};
+
+// Nested batches are not supported: the outer one is still driving a nested
+// event loop, and the two sets of per-file callbacks would interleave. The
+// waiting dialog is modal, but it is only presented after a delay, so the main
+// window stays clickable in the meantime.
+bool batch_in_progress = false;
+
+class BatchInProgressMarker {
+ public:
+  BatchInProgressMarker() { batch_in_progress = true; }
+  ~BatchInProgressMarker() { batch_in_progress = false; }
+
+  BatchInProgressMarker(const BatchInProgressMarker&) = delete;
+  auto operator=(const BatchInProgressMarker&)
+      -> BatchInProgressMarker& = delete;
+};
 
 void StartFileHashComputation(const QString& path, HashCallback callback) {
   auto hash_holder = GpgFrontend::SecureCreateSharedObject<QString>();
@@ -691,6 +725,18 @@ void GpgOperaHelper::WaitForMultipleOperas(
     const QContainer<OperaWaitingCb>& operas, int cancel_channel) {
   if (operas.isEmpty()) return;
 
+  if (batch_in_progress) {
+    LOG_W() << "a batch operation is already running, ignoring request:"
+            << title;
+
+    // Refusing without saying so would look like the action did nothing.
+    emit UISignalStation::GetInstance() -> SignalRefreshStatusBar(
+        tr("Another operation is still running. Please wait for it to finish."),
+        3000);
+    return;
+  }
+  const BatchInProgressMarker marker;
+
   // Clear any leftover cancellation request for this channel before starting
   // the batch. Only cancelable operations carry a channel to reset.
   if (cancel_channel >= 0) ResetGpgOperationCancelState(cancel_channel);
@@ -707,22 +753,33 @@ void GpgOperaHelper::WaitForMultipleOperas(
   // Only present the dialog if the batch runs longer than the threshold.
   QPointer<QTimer> const show_timer = StartDeferredShowTimer(dialog);
 
-  std::atomic<int> remaining_tasks(static_cast<int>(operas.size()));
-  const auto tasks_count = operas.size();
+  auto progress = QSharedPointer<BatchProgress>::create(operas.size());
 
   for (const auto& opera : operas) {
     QMetaObject::invokeMethod(
         parent,
-        [=, &remaining_tasks]() {
-          opera([dialog, show_timer, &remaining_tasks, tasks_count]() {
-            if (dialog == nullptr) return;
-            const auto pg_value =
-                static_cast<double>(tasks_count - remaining_tasks + 1) * 100.0 /
-                static_cast<double>(tasks_count);
-            emit dialog->SignalUpdateValue(static_cast<int>(pg_value));
-            QCoreApplication::processEvents();
-            if (--remaining_tasks == 0) {
-              if (show_timer) show_timer->stop();
+        [=]() {
+          if (progress->abandoned) return;
+
+          opera([dialog, show_timer, progress]() {
+            if (progress->remaining <= 0) return;
+
+            const auto done = progress->total - --progress->remaining;
+            if (dialog != nullptr) {
+              emit dialog->SignalUpdateValue(
+                  static_cast<int>(done * 100 / progress->total));
+            }
+
+            // Deliberately no processEvents() here. Spinning the event loop
+            // from inside a completion handler nests every other handler
+            // underneath this one and delivers unrelated UI work — file-system
+            // model updates above all — re-entrantly, in the middle of a
+            // running operation. The handlers are queued to this thread
+            // anyway, so the loop below dispatches them on a clean stack.
+            if (progress->remaining > 0) return;
+
+            if (show_timer) show_timer->stop();
+            if (dialog != nullptr) {
               dialog->close();
               dialog->accept();
             }
@@ -732,6 +789,8 @@ void GpgOperaHelper::WaitForMultipleOperas(
   }
 
   looper.exec();
+
+  progress->abandoned = true;
 }
 
 auto GpgOperaHelper::BuildOperasEncrypt(

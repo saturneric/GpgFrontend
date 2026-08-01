@@ -55,62 +55,12 @@ namespace {
 // absent key means the user has not been told about the default book yet.
 constexpr auto kWarnDefaultBookKey = "im/warn_default_book";
 
-auto MakeSafeTempOutputPath(const QString& final_path) -> QString {
-  const QFileInfo info(final_path);
-  const auto dir = info.absolutePath();
-  const auto base_name = info.fileName();
-
-  QString temp_path;
-  int counter = 0;
-
-  do {
-    temp_path =
-        QDir(dir).absoluteFilePath(QString(".%1.gpgfrontend.tmp.%2.%3")
-                                       .arg(base_name)
-                                       .arg(QCoreApplication::applicationPid())
-                                       .arg(counter++));
-  } while (QFileInfo::exists(temp_path));
-
-  return temp_path;
-}
-
-auto CommitSafeOutputFile(const QString& temp_path, const QString& final_path)
-    -> bool {
-  if (!QFileInfo::exists(temp_path)) {
-    return false;
+// Drop the staging directories once their outputs have been committed or
+// cleaned up.
+void RemoveSafeOutputWorkDirs(const QContainer<SafeOutputPath>& outputs) {
+  for (const auto& output : outputs) {
+    RemoveSafeOutputWorkDir(output.temp_path);
   }
-
-  const QFileInfo final_info(final_path);
-  const auto final_dir = final_info.absolutePath();
-  const auto backup_path = QDir(final_dir).absoluteFilePath(
-      QString(".%1.gpgfrontend.backup.%2")
-          .arg(final_info.fileName())
-          .arg(QCoreApplication::applicationPid()));
-
-  bool has_backup = false;
-
-  if (QFileInfo::exists(final_path)) {
-    QFile::remove(backup_path);
-
-    if (!QFile::rename(final_path, backup_path)) {
-      return false;
-    }
-
-    has_backup = true;
-  }
-
-  if (!QFile::rename(temp_path, final_path)) {
-    if (has_backup) {
-      QFile::rename(backup_path, final_path);
-    }
-    return false;
-  }
-
-  if (has_backup) {
-    QFile::remove(backup_path);
-  }
-
-  return true;
 }
 
 void CleanupSafeOutputFiles(const QContainer<SafeOutputPath>& outputs) {
@@ -136,7 +86,7 @@ auto PrepareSafeOutputPath(const QString& final_path,
     -> QString {
   if (final_output_paths == nullptr || safe_outputs == nullptr) return {};
 
-  const auto temp_path = MakeSafeTempOutputPath(final_path);
+  const auto temp_path = MakeSafeOutputTempPath(final_path);
 
   final_output_paths->append(final_path);
   safe_outputs->push_back({
@@ -235,13 +185,22 @@ void MainWindow::exec_file_operas_helper(
   GpgOperaHelper::WaitForMultipleOperas(
       this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
 
-  const bool success = IsFileOperaSuccessful(contexts->opera_results);
+  // Releases the reference cycle the operas hold on this basement.
+  contexts->operas.clear();
+
+  // A snapshot: an operation that was still in flight when the wait ended can
+  // append one more result, and that must not happen while the list below is
+  // being iterated.
+  const auto opera_results = contexts->opera_results;
+
+  const bool success = IsFileOperaSuccessful(opera_results);
 
   if (!success) {
     LOG_E()
         << "One or more file operations failed. Cleaning up temporary files.";
     CleanupSafeOutputFiles(safe_outputs);
-    slot_result_analyse_show_helper(contexts->opera_results);
+    RemoveSafeOutputWorkDirs(safe_outputs);
+    slot_result_analyse_show_helper(opera_results);
     return;
   }
 
@@ -249,6 +208,7 @@ void MainWindow::exec_file_operas_helper(
     LOG_E() << "Failed to commit output files. Temporary files have been "
                "cleaned up.";
     CleanupSafeOutputFiles(safe_outputs);
+    RemoveSafeOutputWorkDirs(safe_outputs);
 
     slot_refresh_info_board(
         -1,
@@ -259,10 +219,12 @@ void MainWindow::exec_file_operas_helper(
     return;
   }
 
+  RemoveSafeOutputWorkDirs(safe_outputs);
+
   LOG_D() << "All file operations completed successfully. Output files have "
              "been finalized.";
 
-  slot_result_analyse_show_helper(contexts->opera_results);
+  slot_result_analyse_show_helper(opera_results);
 }
 
 auto MainWindow::encrypt_operation_key_validate(
@@ -737,6 +699,9 @@ void MainWindow::exec_im_encrypt_helper(bool sign) {
       this, sign ? tr("Encrypting and Signing") : tr("Encrypting"),
       contexts->operas, channel);
 
+  // Releases the reference cycle the operas hold on this basement.
+  contexts->operas.clear();
+
   if (contexts->opera_results.empty()) return;
   for (const auto& result : contexts->opera_results) {
     if (result.op_info.status <= 0) {
@@ -912,7 +877,10 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
     }
   }
 
-  if (!check_write_file_paths_helper(final_output_paths)) return;
+  if (!check_write_file_paths_helper(final_output_paths)) {
+    RemoveSafeOutputWorkDirs(safe_outputs);
+    return;
+  }
 
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
@@ -957,7 +925,10 @@ void MainWindow::SlotFileDecrypt(const QStringList& paths) {
     }
   }
 
-  if (!check_write_file_paths_helper(final_output_paths)) return;
+  if (!check_write_file_paths_helper(final_output_paths)) {
+    RemoveSafeOutputWorkDirs(safe_outputs);
+    return;
+  }
 
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
@@ -997,7 +968,10 @@ void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
     contexts->GetContextOutPath(0).append(temp_path);
   }
 
-  if (!check_write_file_paths_helper(final_output_paths)) return;
+  if (!check_write_file_paths_helper(final_output_paths)) {
+    RemoveSafeOutputWorkDirs(safe_outputs);
+    return;
+  }
 
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
@@ -1098,7 +1072,10 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
     }
   }
 
-  if (!check_write_file_paths_helper(final_output_paths)) return;
+  if (!check_write_file_paths_helper(final_output_paths)) {
+    RemoveSafeOutputWorkDirs(safe_outputs);
+    return;
+  }
 
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
@@ -1143,7 +1120,10 @@ void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
     }
   }
 
-  if (!check_write_file_paths_helper(final_output_paths)) return;
+  if (!check_write_file_paths_helper(final_output_paths)) {
+    RemoveSafeOutputWorkDirs(safe_outputs);
+    return;
+  }
 
   GpgOperaHelper::BuildOperas(contexts, 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
