@@ -464,6 +464,12 @@ if(BUILD_APP_FOR_PACKAGE)
   set(CPACK_RPM_PACKAGE_GROUP "Applications/System")
   set(CPACK_RPM_PACKAGE_REQUIRES
     "gpgme >= 1.24.2, qt6-qtbase >= 6.4.2, qt6-qtbase-gui >= 6.4.2, libarchive >= 3.6.2, gtk-update-icon-cache")
+
+  # Weak, never required: the application works fully without a credential
+  # store, it just cannot offer to protect its key with one. Spelled out by
+  # hand because libsecret is dlopen'd rather than linked, so there is no
+  # DT_NEEDED entry for the automatic dependency generator to find.
+  set(CPACK_RPM_PACKAGE_SUGGESTS "libsecret")
   set(CPACK_RPM_PACKAGE_URL "${CPACK_PACKAGE_HOMEPAGE_URL}")
   set(CPACK_RPM_PACKAGE_LICENSE_FILE "${CMAKE_SOURCE_DIR}/COPYING")
   set(CPACK_RPM_PACKAGE_DOCUMENTATION "${CMAKE_SOURCE_DIR}/README.md")
@@ -485,6 +491,9 @@ if(BUILD_APP_FOR_PACKAGE)
   set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
   set(CPACK_DEBIAN_PACKAGE_DEPENDS
     "libgpgme11t64 (>= 1.24.2), libqt6core6t64 (>= 6.4.2), libqt6gui6t64 (>= 6.4.2), libqt6widgets6t64 (>= 6.4.2), libarchive13 (>= 3.6.2), gtk-update-icon-cache")
+  # See the RPM note above: weak on purpose, and invisible to dpkg-shlibdeps
+  # because the library is dlopen'd.
+  set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "libsecret-1-0")
   set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_PACKAGE_HOMEPAGE_URL}")
   set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")
   set(CPACK_DEBIAN_PACKAGE_LICENSE "GPLv3")
