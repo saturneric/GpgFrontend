@@ -351,8 +351,8 @@ IntroPage::IntroPage(QWidget* parent) : WizardPage(parent) {
 
   // Connected last: filling the box above already moved the current index, and
   // that must not count as the user picking a language.
-  connect(lang_select_box_, &QComboBox::currentIndexChanged, this,
-          &IntroPage::slot_language_changed);
+  connect(lang_select_box_, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, &IntroPage::slot_language_changed);
 }
 
 void IntroPage::populate_languages() {

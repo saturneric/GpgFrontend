@@ -220,84 +220,88 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
   // Only announce a restart when a value actually moved, so opening and closing
   // the dialog untouched never nags the user.
   const auto declare_restart = [this]() { emit SignalDeepRestartNeeded(); };
-  connect(secure_level_combo_, &QComboBox::currentIndexChanged, this,
-          declare_restart);
-  connect(secure_level_combo_, &QComboBox::currentIndexChanged, this,
-          [this]() { refresh_protection_advice(); });
+  connect(secure_level_combo_, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, declare_restart);
+  connect(secure_level_combo_, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, [this]() { refresh_protection_advice(); });
   if (self_check_box_ != nullptr) {
     connect(self_check_box_, &QCheckBox::toggled, this, declare_restart);
   }
-  connect(protection_combo_, &QComboBox::currentIndexChanged, this,
-          declare_restart);
+  connect(protection_combo_, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, declare_restart);
   // The advice tracks the pending selection, but the Change PIN button does
   // not: it re-keys the key file as it is on disk right now, so it stays tied
   // to the applied protection (set in SetSettings and after a successful
   // transition). Enabling it just because "PIN" is selected but not yet applied
   // would offer to change a PIN that does not exist, and the current-PIN check
   // could never pass.
-  connect(protection_combo_, &QComboBox::currentIndexChanged, this,
-          [this]() { refresh_protection_advice(); });
+  connect(protection_combo_, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, [this]() { refresh_protection_advice(); });
 
   // Probe the store the moment the user picks the keychain, rather than letting
   // them restart only to find out it never worked. This is the first point at
   // which a probe, and any unlock prompt it triggers, is something they asked
   // for — opening the dialog must never do it on its own.
-  connect(protection_combo_, &QComboBox::activated, this, [this](int index) {
-    const auto chosen = AppKeyProtectionFromString(
-        protection_combo_->itemData(index).toString());
-    if (chosen != AppKeyProtection::kKEYCHAIN) return;
+  connect(protection_combo_, qOverload<int>(&QComboBox::activated), this,
+          [this](int index) {
+            const auto chosen = AppKeyProtectionFromString(
+                protection_combo_->itemData(index).toString());
+            if (chosen != AppKeyProtection::kKEYCHAIN) return;
 
-    auto* store = GetSystemSecretStore();
-    if (store != nullptr && store->IsAvailable()) return;
+            auto* store = GetSystemSecretStore();
+            if (store != nullptr && store->IsAvailable()) return;
 
-    QMessageBox::warning(
-        this, tr("System Keychain Unavailable"),
-        tr("The system credential store could not be used, so the "
-           "application key cannot be protected with it.") +
-            "\n" +
-            tr("On Linux this needs a running secret service, such as "
-               "GNOME Keyring or KWallet, and it must be unlocked."));
+            QMessageBox::warning(
+                this, tr("System Keychain Unavailable"),
+                tr("The system credential store could not be used, so the "
+                   "application key cannot be protected with it.") +
+                    "\n" +
+                    tr("On Linux this needs a running secret service, such as "
+                       "GNOME Keyring or KWallet, and it must be unlocked."));
 
-    const auto none = protection_combo_->findData(
-        AppKeyProtectionToString(AppKeyProtection::kNONE));
-    if (none != -1) protection_combo_->setCurrentIndex(none);
-  });
+            const auto none = protection_combo_->findData(
+                AppKeyProtectionToString(AppKeyProtection::kNONE));
+            if (none != -1) protection_combo_->setCurrentIndex(none);
+          });
 
   // Confirm before leaving the rotation tier: below it the weekly rotated keys
   // are never loaded, so everything saved while rotation was on orphans and is
   // eventually garbage-collected. This mirrors the keychain probe above — it
   // reacts to an explicit user pick (activated), never to SetSettings()
   // populating the combo, and reverts on decline.
-  connect(secure_level_combo_, &QComboBox::activated, this, [this](int index) {
-    const auto chosen = secure_level_combo_->itemData(index).toInt();
-    const auto applied = qApp->property("GFSecureLevel").toInt();
-    if (!ShouldWarnRotationDowngrade(applied, chosen)) return;
+  connect(secure_level_combo_, qOverload<int>(&QComboBox::activated), this,
+          [this](int index) {
+            const auto chosen = secure_level_combo_->itemData(index).toInt();
+            const auto applied = qApp->property("GFSecureLevel").toInt();
+            if (!ShouldWarnRotationDowngrade(applied, chosen)) return;
 
-    const auto answer = QMessageBox::warning(
-        this, tr("Turn Off Weekly Key Rotation?"),
-        tr("At the %1 level the application saves your data with a key that "
-           "changes every week. Choosing a lower level stops loading those "
-           "keys, so anything saved while this level was on can no longer be "
-           "read and is deleted after a short grace period.")
-                .arg(SecureLevelDisplayName(kRotationSecureLevel)) +
-            +"\n\n" + tr("Lower the level anyway?"),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+            const auto answer = QMessageBox::warning(
+                this, tr("Turn Off Weekly Key Rotation?"),
+                tr("At the %1 level the application saves your data with a "
+                   "key that changes every week. Choosing a lower level "
+                   "stops loading those keys, so anything saved while this "
+                   "level was on can no longer be read and is deleted after "
+                   "a short grace period.")
+                        .arg(SecureLevelDisplayName(kRotationSecureLevel)) +
+                    +"\n\n" + tr("Lower the level anyway?"),
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
 
-    if (answer == QMessageBox::Yes) return;
+            if (answer == QMessageBox::Yes) return;
 
-    const auto revert = secure_level_combo_->findData(applied);
-    if (revert != -1) {
-      QSignalBlocker block(secure_level_combo_);
-      secure_level_combo_->setCurrentIndex(revert);
-    }
-    refresh_protection_advice();
-  });
+            const auto revert = secure_level_combo_->findData(applied);
+            if (revert != -1) {
+              QSignalBlocker block(secure_level_combo_);
+              secure_level_combo_->setCurrentIndex(revert);
+            }
+            refresh_protection_advice();
+          });
 
   connect(change_pin_button_, &QPushButton::clicked, this,
           [this]() { change_pin(); });
-  connect(log_level_combo_, &QComboBox::currentIndexChanged, this,
+  connect(log_level_combo_, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, declare_restart);
+  connect(ring_capacity_spin_, qOverload<int>(&QSpinBox::valueChanged), this,
           declare_restart);
-  connect(ring_capacity_spin_, &QSpinBox::valueChanged, this, declare_restart);
 }
 
 auto AdvancedTab::lock_if_pinned(QWidget* widget, const QString& user_key)

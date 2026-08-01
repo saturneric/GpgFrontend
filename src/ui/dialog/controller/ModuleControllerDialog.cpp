@@ -140,8 +140,8 @@ void ModuleControllerDialog::init_connections() {
       ui_->searchLineEdit, &QLineEdit::textChanged, this,
       [=](const QString& text) { ui_->moduleListView->SetSearchFilter(text); });
 
-  connect(ui_->filterComboBox, &QComboBox::currentIndexChanged, this,
-          [=](int index) {
+  connect(ui_->filterComboBox, qOverload<int>(&QComboBox::currentIndexChanged),
+          this, [=](int index) {
             ui_->moduleListView->SetCategoryFilter(static_cast<ModuleCategory>(
                 ui_->filterComboBox->itemData(index).toInt()));
           });

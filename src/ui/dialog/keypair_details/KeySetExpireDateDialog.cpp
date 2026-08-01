@@ -205,7 +205,8 @@ void KeySetExpireDateDialog::init() {
   // old fixed-geometry form had. Deliberately no QLayout::SetMinimumSize here —
   // it would overwrite the minimum width below and squash the text into wraps.
 
-  connect(validity_period_combo_box_, &QComboBox::currentIndexChanged, this,
+  connect(validity_period_combo_box_,
+          qOverload<int>(&QComboBox::currentIndexChanged), this,
           &KeySetExpireDateDialog::slot_validity_period_changed);
   connect(expire_date_time_edit_, &QDateTimeEdit::dateTimeChanged, this,
           &KeySetExpireDateDialog::slot_expire_date_time_edited);
