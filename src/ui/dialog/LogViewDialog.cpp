@@ -195,8 +195,13 @@ void LogViewDialog::ReloadLogs() {
   const auto logs = lm_.Snapshot();
   const QString filter = filter_edit_->text().trimmed();
 
-  const bool at_bottom = log_text_edit_->verticalScrollBar()->value() ==
-                         log_text_edit_->verticalScrollBar()->maximum();
+  auto* v_bar = log_text_edit_->verticalScrollBar();
+  auto* h_bar = log_text_edit_->horizontalScrollBar();
+
+  const bool at_bottom = v_bar->value() == v_bar->maximum();
+  const int v_value = v_bar->value();
+  const int h_value = h_bar->value();
+  const bool has_selection = log_text_edit_->textCursor().hasSelection();
 
   if (filter.isEmpty()) {
     if (logs.size() == last_log_count_) {
@@ -223,10 +228,19 @@ void LogViewDialog::ReloadLogs() {
     }
   }
 
-  if (at_bottom) {
-    log_text_edit_->verticalScrollBar()->setValue(
-        log_text_edit_->verticalScrollBar()->maximum());
+  // appending parks the cursor at the end of the last line; on the initial
+  // show QPlainTextEdit calls ensureCursorVisible(), which then drags the
+  // unwrapped viewport rightwards. Park it at column 0 instead, unless the
+  // user is holding a selection (auto refresh must not clear it).
+  if (!has_selection) {
+    auto cursor = log_text_edit_->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    cursor.movePosition(QTextCursor::StartOfBlock);
+    log_text_edit_->setTextCursor(cursor);
   }
+
+  v_bar->setValue(at_bottom ? v_bar->maximum() : v_value);
+  h_bar->setValue(h_value);
 
   update_status_label(logs.size());
 }
