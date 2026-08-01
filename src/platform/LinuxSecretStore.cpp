@@ -113,12 +113,18 @@ using ClearSyncFn = int (*)(const GFSecretSchema*, void* cancellable,
                             void** error, ...);
 using PasswordFreeFn = void (*)(char*);
 
+/// SONAME reported to the user. QLibrary builds the same name from ("libsecret-1", 0).
+constexpr auto kLibSecretSoname = "libsecret-1.so.0";
+
 struct LibSecret {
   StoreSyncFn store = nullptr;
   LookupSyncFn lookup = nullptr;
   ClearSyncFn clear = nullptr;
   PasswordFreeFn free_password = nullptr;
   PasswordFreeFn wipe_password = nullptr;
+
+  /// Why the library is unusable. Empty once it loaded.
+  QString error;
 
   [[nodiscard]] auto Loaded() const -> bool {
     return store != nullptr && lookup != nullptr && clear != nullptr &&
@@ -144,7 +150,15 @@ auto ResolveLibSecret() -> const LibSecret& {
     // the -dev package and must not be relied on.
     QLibrary library(QStringLiteral("libsecret-1"), 0);
     if (!library.load()) {
-      qDebug() << "libsecret not present, system secret store unavailable";
+      // errorString() is the whole point of this branch. A missing package and
+      // a package that is present but cannot resolve its own dependencies --
+      // the usual way a bundled build shadows the host's glib -- are the same
+      // greyed-out menu item to the user, and only the loader can tell them
+      // apart.
+      out.error = QStringLiteral("%1 could not be loaded: %2")
+                      .arg(QLatin1String(kLibSecretSoname),
+                           library.errorString().trimmed());
+      qWarning().noquote() << out.error;
       return out;
     }
 
@@ -160,9 +174,18 @@ auto ResolveLibSecret() -> const LibSecret& {
         library.resolve("secret_password_wipe"));
 
     if (!out.Loaded()) {
-      qWarning() << "libsecret loaded but its symbols could not be resolved";
-      return {};
+      LibSecret failed;
+      failed.error =
+          QStringLiteral("%1 loaded from %2 but its symbols could not be "
+                         "resolved")
+              .arg(QLatin1String(kLibSecretSoname), library.fileName());
+      qWarning().noquote() << failed.error;
+      return failed;
     }
+
+    // Which copy answered matters when several are reachable, and it is the
+    // first thing to ask for when the store misbehaves rather than vanishes.
+    qDebug().noquote() << "libsecret loaded from" << library.fileName();
 
     return out;
   }();
@@ -246,8 +269,9 @@ class LinuxSecretStore final : public SystemSecretStore {
 }  // namespace
 
 void InstallPlatformSecretStore() {
-  if (!ResolveLibSecret().Loaded()) {
-    RegisterSystemSecretStore(nullptr);
+  const auto& lib = ResolveLibSecret();
+  if (!lib.Loaded()) {
+    RegisterSystemSecretStoreUnavailable(lib.error);
     return;
   }
 

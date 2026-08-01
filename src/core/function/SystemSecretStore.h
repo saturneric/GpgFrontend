@@ -123,11 +123,36 @@ void GF_CORE_EXPORT
 RegisterSystemSecretStore(std::unique_ptr<SystemSecretStore> store);
 
 /**
+ * @brief Record that this platform has no usable backend, and why.
+ *
+ * The reason exists because "System keychain" then greys out in the settings,
+ * and a user who has already installed the credential library has no way left
+ * to tell an unsupported platform from a library that failed to load. Logs do
+ * not close that gap: the default log level filters warnings out entirely, so
+ * the reason has to reach the interface.
+ *
+ * @param reason technical, untranslated, safe to show and to paste into a bug
+ *               report; must never contain secrets or a user's file paths
+ */
+void GF_CORE_EXPORT RegisterSystemSecretStoreUnavailable(QString reason);
+
+/**
  * @brief Return the installed backend.
  *
  * @return the backend, or nullptr when this platform has none
  */
 auto GF_CORE_EXPORT GetSystemSecretStore() -> SystemSecretStore*;
+
+/**
+ * @brief Explain why no backend is installed.
+ *
+ * Untranslated on purpose: it carries a library name and the loader's own
+ * message, which are what a maintainer needs to read back verbatim. Callers
+ * pair it with translated prose rather than showing it alone.
+ *
+ * @return the reason, or empty when a backend is installed or none was given
+ */
+auto GF_CORE_EXPORT SystemSecretStoreUnavailableReason() -> QString;
 
 /**
  * @brief Round-trip a throwaway entry to prove the store really works.

@@ -38,6 +38,9 @@ constexpr auto kProbeAccount = "probe";
 
 std::unique_ptr<GpgFrontend::SystemSecretStore> g_store;
 
+/// Why g_store is null. Only meaningful while it is.
+QString g_unavailable_reason;
+
 }  // namespace
 
 namespace GpgFrontend {
@@ -52,11 +55,24 @@ auto SystemSecretService() -> const char* {
 void RegisterSystemSecretStore(std::unique_ptr<SystemSecretStore> store) {
   if (store != nullptr) {
     LOG_I() << "system secret store backend registered:" << store->Name();
+    g_unavailable_reason.clear();
   }
   g_store = std::move(store);
 }
 
+void RegisterSystemSecretStoreUnavailable(QString reason) {
+  LOG_W() << "no system secret store backend available:" << reason;
+  g_store = nullptr;
+  g_unavailable_reason = std::move(reason);
+}
+
 auto GetSystemSecretStore() -> SystemSecretStore* { return g_store.get(); }
+
+auto SystemSecretStoreUnavailableReason() -> QString {
+  // A backend that later registers makes any earlier reason stale, and a stale
+  // explanation on screen is worse than none.
+  return g_store != nullptr ? QString{} : g_unavailable_reason;
+}
 
 auto ProbeSystemSecretStore(SystemSecretStore& store) -> bool {
   auto probe = SecureRandomGenerator::Generate(32);
