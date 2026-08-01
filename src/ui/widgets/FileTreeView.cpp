@@ -39,6 +39,11 @@ namespace GpgFrontend::UI {
 
 namespace {
 
+// How long row changes are collected before the view reacts to them. Long
+// enough to swallow the burst a batch file operation produces, short enough
+// that a directory populating in the background still feels live.
+constexpr int kRowsRefreshCoalesceMs = 50;
+
 auto SelectedItemsText(const QStringList& paths) -> QString {
   if (paths.size() == 1) {
     return QFileInfo(paths.front()).fileName();
@@ -95,14 +100,29 @@ FileTreeView::FileTreeView(QWidget* parent)
           &FileTreeView::slot_adjust_column_widths);
 
   // The model fills a directory in asynchronously, so both the filter and the
-  // placeholder have to be re-evaluated as rows arrive.
-  const auto refresh_rows = [this]() {
-    apply_name_filter();
-    emit SignalItemCountChanged();
-  };
+  // placeholder have to be re-evaluated as rows arrive. The re-evaluation is
+  // deferred rather than run inline — see schedule_rows_refresh().
+  const auto refresh_rows = [this]() { schedule_rows_refresh(); };
   connect(dir_model_, &QFileSystemModel::directoryLoaded, this, refresh_rows);
   connect(dir_model_, &QFileSystemModel::rowsInserted, this, refresh_rows);
   connect(dir_model_, &QFileSystemModel::rowsRemoved, this, refresh_rows);
+}
+
+void FileTreeView::schedule_rows_refresh() {
+  if (rows_refresh_timer_ == nullptr) {
+    rows_refresh_timer_ = new QTimer(this);
+    rows_refresh_timer_->setSingleShot(true);
+    rows_refresh_timer_->setInterval(kRowsRefreshCoalesceMs);
+
+    connect(rows_refresh_timer_, &QTimer::timeout, this, [this]() {
+      apply_name_filter();
+      emit SignalItemCountChanged();
+    });
+  }
+
+  // Restarting on every row event would starve the refresh for as long as the
+  // burst lasts, so a running timer is left to fire on its own schedule.
+  if (!rows_refresh_timer_->isActive()) rows_refresh_timer_->start();
 }
 
 void FileTreeView::InitViewStyle() {
@@ -1392,7 +1412,7 @@ void FileTreeView::sync_selected_paths_from_selection() {
   selected_paths_.clear();
 
   if (selectionModel() == nullptr || dir_model_ == nullptr) {
-    emit SignalSelectedChanged(selected_paths_);
+    emit_selected_changed();
     return;
   }
 
@@ -1408,7 +1428,16 @@ void FileTreeView::sync_selected_paths_from_selection() {
     selected_paths_.append(path);
   }
 
-  emit SignalSelectedChanged(selected_paths_);
+  emit_selected_changed();
+}
+
+void FileTreeView::emit_selected_changed() {
+  // A copy, not the member: the connection is direct, so receivers would
+  // otherwise hold a reference to selected_paths_ — the very list this function
+  // clears and refills. A re-entrant sync (the model is repopulated while a
+  // receiver iterates) would then pull the container out from under them.
+  const auto paths = selected_paths_;
+  emit SignalSelectedChanged(paths);
 }
 
 void FileTreeView::refresh_current_path_and_select_paths(

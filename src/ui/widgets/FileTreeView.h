@@ -441,6 +441,19 @@ class FileTreeView : public QTreeView {
    */
   void apply_name_filter();
 
+  QTimer* rows_refresh_timer_ = nullptr;  ///< Coalesces row-change reactions.
+
+  /**
+   * @brief Requests a deferred re-filter and item-count update.
+   *
+   * The reaction to a row change must not run inside the model signal that
+   * announced it: apply_name_filter() calls setRowHidden(), which re-enters the
+   * view while QFileSystemModel is still publishing the change. Deferring also
+   * coalesces bursts — a batch file operation can produce dozens of row events
+   * within a few milliseconds.
+   */
+  void schedule_rows_refresh();
+
   QMenu* popup_menu_;            ///< Main context menu.
   QMenu* new_item_action_menu_;  ///< Submenu for creating new items.
 
@@ -558,6 +571,11 @@ class FileTreeView : public QTreeView {
    * emits SignalSelectedChanged().
    */
   void sync_selected_paths_from_selection();
+
+  /**
+   * @brief Emits SignalSelectedChanged() with a copy of the cached selection.
+   */
+  void emit_selected_changed();
 
   /**
    * @brief Refreshes the current directory and selects paths after the
