@@ -37,6 +37,7 @@
 #include "core/GFCoreInit.h"
 #include "core/GFCoreLog.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/SystemSecretStore.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/BuildInfoUtils.h"
@@ -90,6 +91,25 @@ auto PrintEnvInfo() -> int {
   stream << Tr("App Log Path: ") << setting_station.GetAppLogPath() << '\n';
   stream << Tr("Modules Path: ") << setting_station.GetModulesDir() << '\n';
   stream << Tr("App Binary Directory: ") << setting_station.GetAppDir() << '\n';
+
+  stream << '\n';
+
+  // Printed here rather than only logged because the log level defaults to
+  // critical, which silences every diagnostic this path emits. stdout is the
+  // one channel that always reaches a user asking why the system keychain is
+  // greyed out in the settings.
+  if (auto* store = GetSystemSecretStore(); store != nullptr) {
+    stream << Tr("System Credential Store: ") << store->Name() << '\n';
+  } else {
+    stream << Tr("System Credential Store: ") << Tr("Unavailable") << '\n';
+
+    // Deliberately untranslated: it carries a library name and the dynamic
+    // loader's own message, which are meant to be read back verbatim.
+    const auto reason = SystemSecretStoreUnavailableReason();
+    if (!reason.isEmpty()) {
+      stream << Tr("Credential Store Detail: ") << reason << '\n';
+    }
+  }
 
   stream << '\n';
 

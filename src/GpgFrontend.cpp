@@ -178,21 +178,30 @@ auto ReportAppKeyWrapOutcome(const GpgFrontend::AppKeyWrapResult& result)
     case GpgFrontend::AppKeyWrapStatus::kJUST_DISABLED:
       return true;
 
-    case GpgFrontend::AppKeyWrapStatus::kSTORE_UNAVAILABLE:
+    case GpgFrontend::AppKeyWrapStatus::kSTORE_UNAVAILABLE: {
       // Turn the preference back off rather than retrying, and failing, at
       // every launch. The key stays exactly as it was, just unprotected.
       GpgFrontend::GetSettings().setValue(
           "advanced/app_key_protection",
           AppKeyProtectionToString(GpgFrontend::AppKeyProtection::kNONE));
-      QMessageBox::warning(
-          nullptr, QObject::tr("System Keychain Unavailable"),
+      QMessageBox box(
+          QMessageBox::Warning, QObject::tr("System Keychain Unavailable"),
           QObject::tr("The application key could not be protected using the "
                       "system keychain, so it remains stored unprotected.") +
               "\n" +
               QObject::tr("This setting has been turned off. You can turn it "
-                          "on again once a keychain is available."),
-          QMessageBox::Ok);
+                          "on again once a keychain is available."));
+      box.addButton(QMessageBox::Ok);
+
+      // The user asked for keychain protection and is being silently dropped
+      // back to none, so this is exactly the moment they need to be able to
+      // find out what broke rather than guess.
+      const auto detail = GpgFrontend::SystemSecretStoreUnavailableReason();
+      if (!detail.isEmpty()) box.setDetailedText(detail);
+
+      box.exec();
       return true;
+    }
 
     case GpgFrontend::AppKeyWrapStatus::kIO_FAILED:
       QMessageBox::critical(
@@ -547,11 +556,15 @@ auto main(int argc, char* argv[]) -> int {
     GpgFrontend::ParseLogLevel(parser.value("l"));
   }
 
+  // Installed before the -e early return so that environment information can
+  // report the credential store. Safe this early: on every platform this only
+  // loads a library and registers, never probing the store, so it cannot raise
+  // a keyring unlock prompt from a command that just prints to stdout.
+  GpgFrontend::InstallPlatformSecretStore();
+
   if (parser.isSet("e")) {
     return GpgFrontend::PrintEnvInfo();
   }
-
-  GpgFrontend::InstallPlatformSecretStore();
 
   // Checked before anything reads or writes the secure key or a data object:
   // once those start, an incompatible profile is already being damaged.
