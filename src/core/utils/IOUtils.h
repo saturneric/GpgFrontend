@@ -169,4 +169,48 @@ auto GF_CORE_EXPORT TargetFilePreCheck(const QString& path, bool read)
  */
 auto GF_CORE_EXPORT GetFullExtension(QString path) -> QString;
 
+/**
+ * @brief Return a staging path for an output that will end up at @p final_path.
+ *
+ * The staged file is placed in a per-process work directory next to the final
+ * file, not beside it. The directory an operation writes into is often the one
+ * the user is browsing, and that directory is watched: writing every temporary
+ * output there makes the file browser react to each one while the operation is
+ * still running. Staying on the same volume keeps the later commit a plain
+ * rename.
+ *
+ * The work directory is created as a side effect. If it cannot be created, a
+ * path beside @p final_path is returned instead, so an unwritable work
+ * directory degrades rather than fails.
+ *
+ * @param final_path path the output is destined for
+ * @return absolute path to write the output to (not yet created)
+ */
+auto GF_CORE_EXPORT MakeSafeOutputTempPath(const QString& final_path)
+    -> QString;
+
+/**
+ * @brief Move a staged output file to its final path.
+ *
+ * An existing final file is renamed aside first and only removed once the new
+ * one is in place, so a failed rename leaves the original untouched.
+ *
+ * @param temp_path staged output produced by MakeSafeOutputTempPath()
+ * @param final_path path the output belongs at
+ * @return true if the output is in place, false if nothing was changed
+ */
+auto GF_CORE_EXPORT CommitSafeOutputFile(const QString& temp_path,
+                                         const QString& final_path) -> bool;
+
+/**
+ * @brief Remove the staging directory holding @p temp_path.
+ *
+ * Does nothing unless @p temp_path lives in a work directory created by
+ * MakeSafeOutputTempPath() for this process, and the directory is empty — a
+ * leftover file keeps the directory, and the evidence, around.
+ *
+ * @param temp_path staged output path whose work directory should be dropped
+ */
+void GF_CORE_EXPORT RemoveSafeOutputWorkDir(const QString& temp_path);
+
 }  // namespace GpgFrontend

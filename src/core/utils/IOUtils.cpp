@@ -53,6 +53,13 @@ auto GetFileHashQt(const QString& file_path,
   return hash.result();
 }
 
+// Name of the directory staged outputs are written into, one per output
+// directory per process. Carries the pid so two GpgFrontend instances working
+// in the same directory never share, or clean up, each other's staging area.
+auto SafeOutputWorkDirName() -> QString {
+  return QString(".gpgfrontend.tmp.%1").arg(QCoreApplication::applicationPid());
+}
+
 }  // namespace
 
 namespace GpgFrontend {
@@ -217,6 +224,72 @@ auto GetFullExtension(const QString& path) -> QString {
   if (dot_index == -1) return {};
 
   return filename.mid(dot_index);
+}
+
+auto MakeSafeOutputTempPath(const QString& final_path) -> QString {
+  const QFileInfo info(final_path);
+  const auto base_name = info.fileName();
+  const auto final_dir = info.absolutePath();
+
+  auto dir = QDir(final_dir).absoluteFilePath(SafeOutputWorkDirName());
+  if (!QDir().mkpath(dir)) {
+    LOG_W() << "cannot create output work directory:" << dir
+            << ", staging next to the final file instead";
+    dir = final_dir;
+  }
+
+  QString temp_path;
+  int counter = 0;
+
+  do {
+    temp_path =
+        QDir(dir).absoluteFilePath(QString(".%1.gpgfrontend.tmp.%2.%3")
+                                       .arg(base_name)
+                                       .arg(QCoreApplication::applicationPid())
+                                       .arg(counter++));
+  } while (QFileInfo::exists(temp_path));
+
+  return temp_path;
+}
+
+auto CommitSafeOutputFile(const QString& temp_path, const QString& final_path)
+    -> bool {
+  if (!QFileInfo::exists(temp_path)) return false;
+
+  const QFileInfo final_info(final_path);
+  const auto backup_path =
+      QDir(final_info.absolutePath())
+          .absoluteFilePath(QString(".%1.gpgfrontend.backup.%2")
+                                .arg(final_info.fileName())
+                                .arg(QCoreApplication::applicationPid()));
+
+  bool has_backup = false;
+
+  if (QFileInfo::exists(final_path)) {
+    QFile::remove(backup_path);
+
+    if (!QFile::rename(final_path, backup_path)) return false;
+
+    has_backup = true;
+  }
+
+  if (!QFile::rename(temp_path, final_path)) {
+    if (has_backup) QFile::rename(backup_path, final_path);
+    return false;
+  }
+
+  if (has_backup) QFile::remove(backup_path);
+
+  return true;
+}
+
+void RemoveSafeOutputWorkDir(const QString& temp_path) {
+  if (temp_path.isEmpty()) return;
+
+  const auto dir = QFileInfo(temp_path).absolutePath();
+  if (QFileInfo(dir).fileName() != SafeOutputWorkDirName()) return;
+
+  QDir().rmdir(dir);
 }
 
 auto CalculateBinaryChacksum(const QString& path) -> QString {
