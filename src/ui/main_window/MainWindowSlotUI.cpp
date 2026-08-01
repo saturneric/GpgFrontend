@@ -53,6 +53,23 @@ void MainWindow::slot_start_wizard() {
   wizard->setWindowFlag(Qt::Dialog, true);
 #endif
 
+  // Picking a language in the wizard only reaches the rest of the interface
+  // after a reload, handled the same way as the settings dialog so unsaved
+  // tabs still get their prompt first.
+  connect(wizard, &Wizard::SignalRestartNeeded, this,
+          &MainWindow::SlotSetRestartNeeded);
+
+  connect(wizard, &QDialog::finished, this, [this]() {
+    if (restart_mode_ == kNonRestartCode) return;
+
+    auto ok = edit_->MaybeSaveAnyTab();
+    if (ok) emit SignalRestartApplication(restart_mode_);
+
+    // The wizard is reachable from the menu at any time, so a declined save
+    // must not leave a restart armed for whatever closes next.
+    restart_mode_ = kNonRestartCode;
+  });
+
   wizard->open();
 
   QTimer::singleShot(0, wizard, [wizard]() {

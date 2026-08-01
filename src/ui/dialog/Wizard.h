@@ -28,9 +28,60 @@
 
 #pragma once
 
+#include <functional>
+
 #include "core/GFConstants.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend::UI {
+
+/**
+ * @brief a wizard page whose text can be re-applied after a language change
+ *
+ * The wizard lets the user pick the interface language on its very first page
+ * and switches the translators right away, so every page has to be able to
+ * re-apply its own text while it is alive.
+ */
+class WizardPage : public QWizardPage {
+  Q_OBJECT
+
+ public:
+  /**
+   * @brief Construct a new Wizard Page object
+   *
+   * @param parent
+   */
+  explicit WizardPage(QWidget* parent = nullptr);
+
+ protected:
+  /**
+   * @brief register a closure applying one piece of translated text
+   *
+   * The closure runs immediately, so the page is built and translated in one
+   * step, and again on every QEvent::LanguageChange.
+   *
+   * @param retranslator
+   */
+  void add_retranslator(std::function<void()> retranslator);
+
+  /**
+   * @brief re-run every registered retranslator
+   *
+   */
+  void retranslate_ui();
+
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void changeEvent(QEvent* event) override;
+
+ private:
+  QContainer<std::function<void()>> retranslators_;  ///<
+};
+
+class IntroPage;
 
 /**
  * @brief
@@ -55,12 +106,26 @@ class Wizard : public QWizard {
    */
   explicit Wizard(QWidget* parent = nullptr);
 
+ protected:
+  /**
+   * @brief
+   *
+   * @param event
+   */
+  void changeEvent(QEvent* event) override;
+
  private slots:
   /**
    * @brief
    *
    */
   void slot_wizard_accepted();
+
+  /**
+   * @brief restore the language the wizard started with
+   *
+   */
+  void slot_wizard_rejected();
 
  signals:
   /**
@@ -69,13 +134,30 @@ class Wizard : public QWizard {
    * @param page
    */
   void SignalOpenHelp(QString page);
+
+  /**
+   * @brief emitted when the choices made here only take effect after a restart
+   *
+   * @param mode kRestartCode or deeper
+   */
+  void SignalRestartNeeded(int mode);
+
+ private:
+  /**
+   * @brief
+   *
+   */
+  void retranslate_ui();
+
+  IntroPage* intro_page_;  ///<
+  QString initial_lang_;   ///< value of basic/lang when the wizard opened
 };
 
 /**
  * @brief
  *
  */
-class IntroPage : public QWizardPage {
+class IntroPage : public WizardPage {
   Q_OBJECT
 
  public:
@@ -86,6 +168,13 @@ class IntroPage : public QWizardPage {
    */
   explicit IntroPage(QWidget* parent = nullptr);
 
+  /**
+   * @brief the locale key currently picked, empty for the system default
+   *
+   * @return QString
+   */
+  [[nodiscard]] auto SelectedLanguage() const -> QString;
+
  protected:
   /**
    * @brief
@@ -93,9 +182,28 @@ class IntroPage : public QWizardPage {
    * @return int
    */
   [[nodiscard]] int nextId() const override;
+
+ private slots:
+  /**
+   * @brief apply the picked language to the running interface at once
+   *
+   * @param index
+   */
+  void slot_language_changed(int index);
+
+ private:
+  /**
+   * @brief fill the language box, system default first, the rest sorted
+   *
+   */
+  void populate_languages();
+
+  QLabel* lang_label_;          ///<
+  QComboBox* lang_select_box_;  ///<
+  QString applied_lang_;        ///< locale key the translators are loaded from
 };
 
-class ChoosePage : public QWizardPage {
+class ChoosePage : public WizardPage {
   Q_OBJECT
 
  public:
@@ -130,7 +238,7 @@ class ChoosePage : public QWizardPage {
  * @brief
  *
  */
-class ConclusionPage : public QWizardPage {
+class ConclusionPage : public WizardPage {
   Q_OBJECT
 
  public:

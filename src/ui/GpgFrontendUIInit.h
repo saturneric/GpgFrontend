@@ -60,6 +60,15 @@ void GF_UI_EXPORT DestroyGpgFrontendUI();
 auto GF_UI_EXPORT RunGpgFrontendUI(QApplication *) -> int;
 
 /**
+ * @brief reload every QTranslator from the current QLocale()
+ *
+ * Set QLocale::setDefault() first. Installing the translators makes Qt post a
+ * QEvent::LanguageChange to all top level widgets, so any widget that
+ * retranslates itself follows along without a restart.
+ */
+void GF_UI_EXPORT InitUITranslations();
+
+/**
  * @brief
  *
  */

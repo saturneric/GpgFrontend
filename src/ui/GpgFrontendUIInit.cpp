@@ -226,8 +226,6 @@ void WaitEnvCheckingProcess() {
 
 }  // namespace
 
-extern void InitUITranslations();
-
 void PreInitGpgFrontendUI() { CommonUtils::GetInstance(); }
 
 void SetFusionAsDefaultStyle() {
