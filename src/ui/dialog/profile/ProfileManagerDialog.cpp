@@ -59,19 +59,6 @@ constexpr int kColumnKind = 2;
 constexpr int kColumnLastOpened = 3;
 constexpr int kColumnStatus = 4;
 
-auto KindLabel(ProfileRootKind kind) -> QString {
-  switch (kind) {
-    case ProfileRootKind::kCLASSIC:
-      return QObject::tr("Default");
-    case ProfileRootKind::kPORTABLE:
-      return QObject::tr("Portable");
-    case ProfileRootKind::kPACKAGE_LINKED:
-      return QObject::tr("From a package");
-    default:
-      return QObject::tr("Local");
-  }
-}
-
 }  // namespace
 
 ProfileManagerDialog::ProfileManagerDialog(QWidget* parent)
@@ -186,7 +173,8 @@ void ProfileManagerDialog::reload() {
 
     table_->setItem(row, kColumnName, name);
     table_->setItem(row, kColumnId, new QTableWidgetItem(e.id));
-    table_->setItem(row, kColumnKind, new QTableWidgetItem(KindLabel(e.kind)));
+    table_->setItem(row, kColumnKind,
+                    new QTableWidgetItem(ProfileKindDisplayName(e.kind)));
     table_->setItem(row, kColumnLastOpened,
                     new QTableWidgetItem(e.last_opened));
 

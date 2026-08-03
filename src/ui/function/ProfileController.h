@@ -112,6 +112,18 @@ auto GF_UI_EXPORT LoadProfiles() -> ProfileRegistryData;
 auto GF_UI_EXPORT CurrentProfileDisplayName() -> QString;
 
 /**
+ * @brief What to call a kind of profile in front of a user.
+ *
+ * Shared rather than spelled out at each call site: the profile list and the
+ * about dialog naming the same thing differently is how a user concludes they
+ * are two different things.
+ *
+ * @param kind the kind
+ * @return a word for it
+ */
+auto GF_UI_EXPORT ProfileKindDisplayName(ProfileRootKind kind) -> QString;
+
+/**
  * @brief Why a profile could not be opened in a new window.
  */
 enum class ProfileLaunchStatus {

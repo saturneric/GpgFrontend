@@ -140,8 +140,37 @@ auto CurrentProfileRoots() -> ProfileRoots {
 
 auto LoadProfiles() -> ProfileRegistryData {
   const auto roots = CurrentProfileRoots();
-  return LoadProfileRegistry(roots.profiles_root, roots.classic_root,
-                             roots.portable_root);
+  auto data = LoadProfileRegistry(roots.profiles_root, roots.classic_root,
+                                  roots.portable_root);
+
+  // The profile this window is using is always in the list, even when it is an
+  // ad-hoc root named on the command line that the registry has never heard
+  // of. A list of profiles that leaves out the one in front of the user
+  // invites them to read some other row as the one they are in.
+  const auto& profile = ProfileRuntime::Instance();
+  if (!data.Find(profile.id).has_value()) {
+    ProfileRegistryEntry entry;
+    entry.id = profile.id;
+    entry.root = profile.root;
+    entry.name = CurrentProfileDisplayName();
+    entry.kind = profile.kind;
+    entry.implicit = true;  // nothing to persist, and nothing to delete
+    data.profiles.prepend(entry);
+  }
+  return data;
+}
+
+auto ProfileKindDisplayName(ProfileRootKind kind) -> QString {
+  switch (kind) {
+    case ProfileRootKind::kCLASSIC:
+      return QObject::tr("Default");
+    case ProfileRootKind::kPORTABLE:
+      return QObject::tr("Portable");
+    case ProfileRootKind::kPACKAGE_LINKED:
+      return QObject::tr("From a package");
+    default:
+      return QObject::tr("Local");
+  }
 }
 
 auto CurrentProfileDisplayName() -> QString {
