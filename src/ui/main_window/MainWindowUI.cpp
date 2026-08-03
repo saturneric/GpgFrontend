@@ -749,28 +749,6 @@ void MainWindow::apply_default_layout() {
   move(target_rect.topLeft());
 }
 
-void MainWindow::init_main_window_style() {
-  setStyleSheet(R"(
-QToolBar {
-  spacing: 3px;
-  padding: 2px;
-  border: none;
-  background: palette(window);
-}
-
-QToolBar::separator {
-  width: 1px;
-  margin: 4px 5px;
-  background: palette(mid);
-}
-
-QStatusBar {
-  border-top: 1px solid palette(mid);
-  background: palette(window);
-}
-)");
-}
-
 void MainWindow::apply_tool_bar_appearance() {
   const auto tool_button_style = icon_style_;
   const auto icon_size = icon_size_;

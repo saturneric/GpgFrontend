@@ -146,6 +146,16 @@ class UISignalStation : public QObject {
    */
   void SignalKeyCategoryColorsChanged();
 
+  /**
+   * @brief Emitted when the appearance preferences change, so every open main
+   * window re-reads its icon size and button style.
+   *
+   * Broadcast rather than walked down from the main window: the key management
+   * window is normally parented to it, but nothing enforces that, and a window
+   * that missed the change keeps serving stale metrics until it is reopened.
+   */
+  void SignalAppearanceSettingsChanged();
+
  private:
   UISignalStation();
 };

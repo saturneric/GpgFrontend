@@ -130,6 +130,10 @@ class KeyMgmt : public GeneralMainWindow {
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
 
+  ///< A style change moves the tool bar's handle and item margins, so the inset
+  ///< the key list was told to match is no longer the right one.
+  void changeEvent(QEvent* event) override;
+
  private:
   /**
    * @brief Recount the keyring and refresh the permanent status-bar summary.
@@ -153,14 +157,24 @@ class KeyMgmt : public GeneralMainWindow {
   KeyList* key_list_;               ///<
   QLabel* status_summary_label_{};  ///<
   QToolBar* key_tool_bar_{};        ///<
-  QMenu* file_menu_{};              ///<
-  QMenu* edit_menu_{};              ///<
-  QMenu* key_menu_{};               ///<
-  QMenu* opera_menu_{};             ///<
-  QMenu* view_menu_{};              ///<
-  QMenu* generate_key_menu_{};      ///<
-  QMenu* import_key_menu_{};        ///<
-  QMenu* export_key_menu_{};        /// <
+
+  ///< The bar's menu-backed buttons. Held as members rather than locals so the
+  ///< appearance pass can reach them: a QToolButton added with addWidget() does
+  ///< not follow the tool bar's icon size or button style on its own.
+  QToolButton* import_tool_button_{};
+  QToolButton* export_tool_button_{};
+  QToolButton* key_ops_tool_button_{};
+  QToolButton* delete_tool_button_{};
+
+  QMenu* file_menu_{};          ///<
+  QMenu* edit_menu_{};          ///<
+  QMenu* key_menu_{};           ///<
+  QMenu* opera_menu_{};         ///<
+  QMenu* view_menu_{};          ///<
+  QMenu* generate_key_menu_{};  ///<
+  QMenu* import_key_menu_{};    ///<
+  QMenu* export_key_menu_{};    /// <
+  QMenu* delete_menu_{};        ///<
 
   QMenu* popup_menu_;
   QMenu* empty_area_menu_{};          ///<
@@ -275,6 +289,34 @@ class KeyMgmt : public GeneralMainWindow {
    *
    */
   void create_tool_bars();
+
+  /**
+   * @brief Wear the shared chrome, plus the rule that welds the key list's own
+   * tool row to the tool bar above it.
+   *
+   * The KeyList-scoped rule has to live here rather than in the base class: a
+   * style sheet cascades down the parent chain, so putting it there would also
+   * restyle the KeyList docked inside the main window.
+   */
+  void init_window_style();
+
+  /**
+   * @brief Line the key list's tool row up with the tool bar above it.
+   *
+   * The two strips are one block of window chrome, so their left edges have to
+   * agree. The tool bar's own inset is a style question — handle width plus
+   * item margin — so it is asked for rather than hard-coded.
+   */
+  void align_chrome_insets();
+
+  /**
+   * @brief Push the current icon size and button style onto the tool bar and
+   * every menu-backed button on it.
+   *
+   * Mirrors MainWindow's pass. Without it a change made on the Appearance page
+   * only reaches this window the next time it is opened.
+   */
+  void apply_tool_bar_appearance();
 
   /**
    * @brief

@@ -881,12 +881,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void apply_default_layout();
 
   /**
-   * @brief Construct a new init main window style object
-   *
-   */
-  void init_main_window_style();
-
-  /**
    * @brief
    *
    */

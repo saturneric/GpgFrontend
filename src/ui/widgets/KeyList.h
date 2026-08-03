@@ -121,6 +121,21 @@ class KeyList : public QWidget {
   void SetTabOrderSettingsKey(const QString& settings_key);
 
   /**
+   * @brief Let the host window own the insets of this widget and of its tool
+   * row.
+   *
+   * A host that draws the tool row as part of its own chrome (the Key
+   * Management window, whose tool bar sits directly above it) has to line the
+   * two left edges up, and only the host knows where its tool bar's first item
+   * starts. Never calling this leaves the designer defaults, which is what the
+   * key list docked in the main window wants.
+   *
+   * @param outer margins around the whole key list
+   * @param tool_row margins around the tool row and search bar
+   */
+  void SetChromeInset(const QMargins& outer, const QMargins& tool_row);
+
+  /**
    * @brief Scope under which this key list persists its table layout (visible
    * columns and column widths) in the durable cache, and the default column set
    * to show when nothing is persisted yet.

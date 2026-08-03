@@ -234,6 +234,10 @@ void KeyList::init_ui_style() {
   setObjectName(QStringLiteral("KeyList"));
 
   ui_->menuWidget->setObjectName(QStringLiteral("KeyListMenu"));
+
+  // A bare QWidget paints no background of its own, so a host styling
+  // #KeyListMenu as part of its window chrome would be silently ignored.
+  ui_->menuWidget->setAttribute(Qt::WA_StyledBackground, true);
   ui_->categoryList->setObjectName(QStringLiteral("KeyCategoryList"));
 
   ui_->searchBarEdit->setClearButtonEnabled(true);
@@ -312,6 +316,13 @@ QLineEdit[gfNoMatch="true"] {
   ui_->menuWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
   ui_->keyListSplitter->setSizePolicy(QSizePolicy::Expanding,
                                       QSizePolicy::Expanding);
+}
+
+void KeyList::SetChromeInset(const QMargins& outer, const QMargins& tool_row) {
+  if (ui_ == nullptr) return;
+
+  ui_->gridLayout->setContentsMargins(outer);
+  ui_->verticalLayout_3->setContentsMargins(tool_row);
 }
 
 void KeyList::SetCategoryRailCompact(bool compact) {

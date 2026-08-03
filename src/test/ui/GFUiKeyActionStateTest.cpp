@@ -29,6 +29,7 @@
 #include <gtest/gtest.h>
 
 #include "GpgFrontendTest.h"
+#include "ui/main_window/GeneralMainWindow.h"
 #include "ui/main_window/KeyActionState.h"
 
 namespace GpgFrontend::Test {
@@ -331,6 +332,32 @@ TEST(KeyActionStateTest, EnabledActionsCarryNoReason) {
           << "action " << static_cast<int>(action) << " is enabled but excused";
     }
   }
+}
+
+// The chrome style sheet is shared by every main window and is the reason the
+// key management window stopped depending on being parented to the main window
+// to look styled at all. It is a plain string factory precisely so it can be
+// checked here: these cases run off the GUI thread and cannot build a widget.
+
+TEST(MainWindowChromeStyleTest, StylesTheChromeItClaimsTo) {
+  const auto qss = UI::MainWindowChromeStyleSheet();
+
+  EXPECT_TRUE(qss.contains("QToolBar {"));
+  EXPECT_TRUE(qss.contains("QToolBar::separator"));
+  EXPECT_TRUE(qss.contains("QStatusBar"));
+}
+
+TEST(MainWindowChromeStyleTest, NamesOnlyPaletteRolesSoDarkModeSurvives) {
+  const auto qss = UI::MainWindowChromeStyleSheet();
+
+  EXPECT_TRUE(qss.contains("palette(window)"));
+  EXPECT_TRUE(qss.contains("palette(mid)"));
+
+  // There is no theme engine here, only the palette swap in
+  // GpgFrontendUIInit.cpp, so a literal colour would survive the swap and
+  // stand out against every other surface once the user goes dark.
+  EXPECT_FALSE(qss.contains(QChar('#')))
+      << "literal colour in the shared chrome sheet: " << qss.toStdString();
 }
 
 }  // namespace GpgFrontend::Test

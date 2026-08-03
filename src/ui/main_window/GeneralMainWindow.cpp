@@ -35,9 +35,38 @@
 
 namespace GpgFrontend::UI {
 
+auto MainWindowChromeStyleSheet() -> QString {
+  return QStringLiteral(R"(
+QToolBar {
+  spacing: 3px;
+  padding: 2px;
+  border: none;
+  background: palette(window);
+}
+
+QToolBar::separator {
+  width: 1px;
+  margin: 4px 5px;
+  background: palette(mid);
+}
+
+QStatusBar {
+  border-top: 1px solid palette(mid);
+  background: palette(window);
+}
+)");
+}
+
 GeneralMainWindow::GeneralMainWindow(QString id, QWidget *parent)
     : QMainWindow(parent), id_(std::move(id)) {
   // restore appearance settings
+  reloadAppearanceSettings();
+
+  // should delete itself at closing by default
+  setAttribute(Qt::WA_DeleteOnClose);
+}
+
+void GeneralMainWindow::reloadAppearanceSettings() {
   AppearanceSO appearance(SettingsObject("general_settings_state"));
 
   icon_size_ = {appearance.tool_bar_icon_width,
@@ -47,9 +76,10 @@ GeneralMainWindow::GeneralMainWindow(QString id, QWidget *parent)
 
   this->setIconSize(icon_size_);
   this->setToolButtonStyle(icon_style_);
+}
 
-  // should delete itself at closing by default
-  setAttribute(Qt::WA_DeleteOnClose);
+void GeneralMainWindow::initWindowStyle() {
+  setStyleSheet(MainWindowChromeStyleSheet());
 }
 
 GeneralMainWindow::~GeneralMainWindow() = default;

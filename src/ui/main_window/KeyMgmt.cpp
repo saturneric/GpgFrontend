@@ -154,6 +154,23 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   create_menus();
   create_tool_bars();
 
+  // Both need the bar to exist: one styles it, the other measures it.
+  init_window_style();
+  align_chrome_insets();
+
+  // QMainWindow has no "bar moved" signal; the bar turning vertical is what
+  // actually tells us it left the top edge.
+  connect(key_tool_bar_, &QToolBar::orientationChanged, this,
+          [this](Qt::Orientation) { align_chrome_insets(); });
+  connect(key_tool_bar_, &QToolBar::visibilityChanged, this,
+          [this](bool) { align_chrome_insets(); });
+
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalAppearanceSettingsChanged, this, [this]() {
+            reloadAppearanceSettings();
+            apply_tool_bar_appearance();
+          });
+
   // KeyMgmt is normally parented to the MainWindow, but nothing enforces it —
   // connecting to a null receiver would only warn at runtime.
   if (auto* main_window = qobject_cast<MainWindow*>(this->parent());
@@ -392,7 +409,7 @@ void KeyMgmt::create_actions() {
   // the shortcut works wherever focus is, it shows up beside the menu entry,
   // and one gating pass can disable both at once.
   delete_selected_keys_act_ =
-      make_action(tr("Delete Selected Key(s)"), ":/icons/button_delete.png",
+      make_action(tr("Delete Selected Keys"), ":/icons/trash.png",
                   tr("Delete the Selected keys"), {QKeySequence::Delete});
   delete_selected_keys_act_->setShortcutContext(Qt::WindowShortcut);
   addAction(delete_selected_keys_act_);
@@ -415,7 +432,7 @@ void KeyMgmt::create_actions() {
           &KeyList::FocusSearchBar);
 
   delete_checked_keys_act_ =
-      make_action(tr("Delete Checked Key(s)"), ":/icons/button_delete.png",
+      make_action(tr("Delete Checked Keys"), ":/icons/trash.png",
                   tr("Delete the Checked keys"));
   connect(delete_checked_keys_act_, &QAction::triggered, this,
           &KeyMgmt::SlotDeleteCheckedKeys);
@@ -663,9 +680,13 @@ void KeyMgmt::create_menus() {
   // update_key_action_state() rather than only on right-click.
   key_menu_->addMenu(add_key_2_category_menu_);
 
+  // Built as a submenu so the tool bar's Delete button and this entry are the
+  // same QMenu object, the way Import and Export already work.
   key_menu_->addSeparator();
-  key_menu_->addAction(delete_selected_keys_act_);
-  key_menu_->addAction(delete_checked_keys_act_);
+  delete_menu_ = key_menu_->addMenu(tr("Delete"));
+  delete_menu_->setIcon(QIcon(":/icons/trash.png"));
+  delete_menu_->addAction(delete_selected_keys_act_);
+  delete_menu_->addAction(delete_checked_keys_act_);
 
   opera_menu_ = menuBar()->addMenu(tr("Operations"));
   opera_menu_->addAction(show_key_details_act_);
@@ -704,17 +725,17 @@ void KeyMgmt::create_tool_bars() {
   key_tool_bar_->addSeparator();
 
   // add button with popup menu for import
-  auto* import_tool_button = new QToolButton(this);
-  SetupMenuToolButton(import_tool_button, import_key_menu_,
+  import_tool_button_ = new QToolButton(this);
+  SetupMenuToolButton(import_tool_button_, import_key_menu_,
                       QIcon(":/icons/key_import.png"), tr("Import Key"),
                       tr("Import key"), icon_style_, icon_size_);
-  key_tool_bar_->addWidget(import_tool_button);
+  key_tool_bar_->addWidget(import_tool_button_);
 
-  auto* export_tool_button = new QToolButton(this);
-  SetupMenuToolButton(export_tool_button, export_key_menu_,
+  export_tool_button_ = new QToolButton(this);
+  SetupMenuToolButton(export_tool_button_, export_key_menu_,
                       QIcon(":/icons/key_export.png"), tr("Export Key"),
                       tr("Export Key"), icon_style_, icon_size_);
-  key_tool_bar_->addWidget(export_tool_button);
+  key_tool_bar_->addWidget(export_tool_button_);
 
   key_tool_bar_->addSeparator();
 
@@ -723,17 +744,26 @@ void KeyMgmt::create_tool_bars() {
   // buttons — so the button and the context menu can never disagree.
   key_tool_bar_->addAction(show_key_details_act_);
 
-  auto* key_ops_tool_button = new QToolButton(this);
+  key_ops_tool_button_ = new QToolButton(this);
   SetupMenuToolButton(
-      key_ops_tool_button, popup_key_ops_menu_, QIcon(":/icons/key.png"),
+      key_ops_tool_button_, popup_key_ops_menu_, QIcon(":/icons/key.png"),
       tr("Key Operations"),
       tr("Certify, set expiry, add a subkey, set trust, revoke"), icon_style_,
       icon_size_);
-  key_tool_bar_->addWidget(key_ops_tool_button);
+  key_tool_bar_->addWidget(key_ops_tool_button_);
 
+  // One button rather than the two near-identical delete actions it replaces:
+  // side by side they were the widest pair on the bar and carried its only
+  // alarming colour, which put the visual weight of the window on the one thing
+  // a user is least often here to do. Both actions stay a keystroke away on
+  // Del, in the Key menu, and in the context menu.
   key_tool_bar_->addSeparator();
-  key_tool_bar_->addAction(delete_selected_keys_act_);
-  key_tool_bar_->addAction(delete_checked_keys_act_);
+  delete_tool_button_ = new QToolButton(this);
+  SetupMenuToolButton(delete_tool_button_, delete_menu_,
+                      QIcon(":/icons/trash.png"), tr("Delete"),
+                      tr("Delete the selected or the checked keys"),
+                      icon_style_, icon_size_);
+  key_tool_bar_->addWidget(delete_tool_button_);
 
   // Built here rather than in create_menus() because it hands out the tool
   // bar's own toggle action, which does not exist until the bar does.
@@ -741,6 +771,88 @@ void KeyMgmt::create_tool_bars() {
   view_menu_->addAction(refresh_keys_act_);
   view_menu_->addSeparator();
   view_menu_->addAction(key_tool_bar_->toggleViewAction());
+}
+
+void KeyMgmt::init_window_style() {
+  // Owned, not inherited. This window only ever looked styled because it
+  // happens to be parented to the MainWindow and a style sheet cascades down
+  // the parent chain — and, as the note beside the status-bar hookup says,
+  // nothing enforces that parenting.
+  setStyleSheet(MainWindowChromeStyleSheet() + QStringLiteral(R"(
+/* The key list's tool row is the lower half of this window's chrome, not
+   content: same surface as the tool bar above it, with a single hairline under
+   the pair, so the two strips read as one block instead of two competing bars.
+   Scoped to the object name KeyList sets on that row, so the key list docked
+   inside the main window is untouched. */
+QWidget#KeyListMenu {
+  background: palette(window);
+  border-bottom: 1px solid palette(mid);
+}
+)"));
+}
+
+void KeyMgmt::align_chrome_insets() {
+  if (key_tool_bar_ == nullptr || key_list_ == nullptr) return;
+
+  // Hidden via the View menu, or docked to a side, the bar leaves no bottom
+  // edge for the tool row to continue, so the row goes back to standing on its
+  // own. isHidden() rather than isVisible(): during construction nothing is
+  // visible yet, and the common case has to be the aligned one.
+  if (key_tool_bar_->isHidden() ||
+      toolBarArea(key_tool_bar_) != Qt::TopToolBarArea) {
+    key_list_->SetChromeInset({3, 3, 3, 3}, {0, 0, 0, 0});
+    return;
+  }
+
+  const int handle = key_tool_bar_->isMovable()
+                         ? style()->pixelMetric(QStyle::PM_ToolBarHandleExtent,
+                                                nullptr, key_tool_bar_)
+                         : 0;
+
+  // 2px of that is the tool bar padding from the chrome style sheet; the rest
+  // is whatever the active style puts around a tool bar item.
+  const int inset = handle + 2 +
+                    style()->pixelMetric(QStyle::PM_ToolBarItemMargin, nullptr,
+                                         key_tool_bar_);
+
+  key_list_->SetChromeInset({0, 0, 0, 0}, {inset, 4, inset, 4});
+}
+
+void KeyMgmt::apply_tool_bar_appearance() {
+  if (key_tool_bar_ != nullptr) {
+    key_tool_bar_->setToolButtonStyle(icon_style_);
+    key_tool_bar_->setIconSize(icon_size_);
+  }
+
+  const QList<QToolButton*> menu_buttons = {
+      import_tool_button_,
+      export_tool_button_,
+      key_ops_tool_button_,
+      delete_tool_button_,
+  };
+
+  for (auto* button : menu_buttons) {
+    if (button == nullptr) continue;
+
+    button->setToolButtonStyle(icon_style_);
+    button->setIconSize(icon_size_);
+
+    // A button added with addWidget() keeps its old size hint otherwise, so an
+    // icon-only/text-under-icon switch would leave it the wrong height.
+    button->updateGeometry();
+    button->update();
+  }
+
+  // The bar's metrics just moved, so the row below it has a new edge to match.
+  align_chrome_insets();
+}
+
+void KeyMgmt::changeEvent(QEvent* event) {
+  GeneralMainWindow::changeEvent(event);
+
+  if (event != nullptr && event->type() == QEvent::StyleChange) {
+    align_chrome_insets();
+  }
 }
 
 auto KeyMgmt::target_keys() const -> GpgAbstractKeyPtrList {
@@ -1393,6 +1505,16 @@ void KeyMgmt::update_key_action_state() {
                              key_list_->GetCurrentCategoryId(), targets);
 
   sync_submenu_visibility();
+
+  // A tool button is not a menu entry: nothing propagates the state of the menu
+  // behind it, so the Delete button would stay lit with nothing to delete.
+  // Runs after sync_submenu_visibility(), which is what decides whether the
+  // menu has any usable entry left at all.
+  if (delete_tool_button_ != nullptr && delete_menu_ != nullptr) {
+    delete_tool_button_->setVisible(delete_menu_->menuAction()->isVisible());
+    delete_tool_button_->setEnabled(delete_selected_keys_act_->isEnabled() ||
+                                    delete_checked_keys_act_->isEnabled());
+  }
 }
 
 void KeyMgmt::sync_submenu_visibility() {
@@ -1401,7 +1523,8 @@ void KeyMgmt::sync_submenu_visibility() {
   const QVector<QMenu*> menus = {
       popup_key_ops_menu_, popup_export_menu_, popup_keyserver_menu_,
       keyserver_menu_,     export_key_menu_,   generate_key_menu_,
-      import_key_menu_,    copy_menu_,         bulk_menu_};
+      import_key_menu_,    copy_menu_,         bulk_menu_,
+      delete_menu_};
 
   for (auto* menu : menus) {
     if (menu == nullptr) continue;

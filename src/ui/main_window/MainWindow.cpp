@@ -91,7 +91,7 @@ void MainWindow::Init() noexcept {
     create_tool_bars();
     create_status_bar();
     create_dock_windows();
-    init_main_window_style();
+    initWindowStyle();
 
     // show menu bar
     this->menuBar()->show();
@@ -234,9 +234,9 @@ void MainWindow::restore_settings() {
 
   AppearanceSO const appearance(SettingsObject("general_settings_state"));
 
-  icon_style_ = appearance.tool_bar_button_style;
-  icon_size_ =
-      QSize(appearance.tool_bar_icon_width, appearance.tool_bar_icon_height);
+  // icon_size_ / icon_style_ come from the same settings object; the base class
+  // owns that read so every main window agrees on the metrics.
+  reloadAppearanceSettings();
 
   crypt_tool_bar_->clear();
 
@@ -450,6 +450,10 @@ void MainWindow::ApplyAppearanceSettingsToOpenedWidgets() {
   }
 
   if (info_board_ != nullptr) info_board_->ApplyAppearanceSettings();
+
+  // Reaches the main windows this one does not own, first among them the key
+  // management window.
+  emit UISignalStation::GetInstance() -> SignalAppearanceSettingsChanged();
 }
 
 }  // namespace GpgFrontend::UI

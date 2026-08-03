@@ -31,6 +31,20 @@
 namespace GpgFrontend::UI {
 
 /**
+ * @brief The chrome style sheet every GpgFrontend main window wears.
+ *
+ * Names only palette() roles, so the one string is correct on the light and on
+ * the hand-rolled dark palette alike — this codebase has no theme engine, only
+ * the palette swap in GpgFrontendUIInit.cpp, so a literal colour here would
+ * silently break dark mode.
+ *
+ * Handed out as a string rather than applied directly so it stays verifiable
+ * without a widget: the unit tests run off the GUI thread and cannot construct
+ * one.
+ */
+[[nodiscard]] auto GF_UI_EXPORT MainWindowChromeStyleSheet() -> QString;
+
+/**
  *
  */
 class GeneralMainWindow : public QMainWindow {
@@ -90,6 +104,25 @@ class GeneralMainWindow : public QMainWindow {
    *
    */
   void restoreSettings() noexcept;
+
+  /**
+   * @brief Wear the shared chrome.
+   *
+   * Subclasses that need extra rules should append to
+   * MainWindowChromeStyleSheet() themselves rather than growing the shared
+   * string: a style sheet cascades down the parent chain, so a rule added here
+   * for one window reaches every widget the others own too.
+   */
+  void initWindowStyle();
+
+  /**
+   * @brief Re-read the appearance preferences into icon_size_ / icon_style_ /
+   * font_size_ and apply them to the window.
+   *
+   * Called once at construction and again whenever the settings change, so a
+   * window that is already open does not keep serving stale metrics.
+   */
+  void reloadAppearanceSettings();
 
   /**
    * @brief
