@@ -71,6 +71,19 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
   [[nodiscard]] auto SourceColumnForVisibleColumn(int visible_column) const
       -> int;
 
+  /**
+   * @brief Map a source column to the visible (proxy) column showing it.
+   *
+   * The inverse of SourceColumnForVisibleColumn(), for callers that know which
+   * column they mean but have to address the view — sorting, above all, since
+   * hiding a column shifts every visible index after it.
+   *
+   * @param source_column source column index
+   * @return the proxy column index, or -1 if the column is currently hidden
+   */
+  [[nodiscard]] auto VisibleColumnForSourceColumn(int source_column) const
+      -> int;
+
  protected:
   [[nodiscard]] auto filterAcceptsRow(int sourceRow,
                                       const QModelIndex &sourceParent) const
@@ -78,6 +91,10 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
 
   [[nodiscard]] auto filterAcceptsColumn(int sourceColumn,
                                          const QModelIndex &sourceParent) const
+      -> bool override;
+
+  [[nodiscard]] auto lessThan(const QModelIndex &source_left,
+                              const QModelIndex &source_right) const
       -> bool override;
 
  signals:

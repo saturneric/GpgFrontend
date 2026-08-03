@@ -32,6 +32,8 @@
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/model/GpgKey.h"
 #include "core/model/GpgKeyTableModel.h"
+#include "ui/model/KeySearchMatcher.h"
+#include "ui/model/SortKeyCompare.h"
 
 namespace GpgFrontend::UI {
 
@@ -46,6 +48,11 @@ GpgKeyTableProxyModel::GpgKeyTableProxyModel(
       default_font_("Arial", 14),
       default_metrics_(default_font_) {
   setSourceModel(model_.get());
+
+  // Sort on the comparable value the model exposes rather than on the text in
+  // the cell; lessThan() falls back to the text for the columns that leave it
+  // unset.
+  setSortRole(GpgKeyTableModel::kSortKeyRole);
 
   connect(this, &GpgKeyTableProxyModel::SignalCategoriesRefresh, this,
           &GpgKeyTableProxyModel::slot_refresh_categories);
@@ -85,24 +92,29 @@ auto GpgKeyTableProxyModel::filterAcceptsRow(
 
   if (filter_keywords_.isEmpty()) return true;
 
+  const auto column_count = sourceModel()->columnCount();
+
   QStringList infos;
-  for (int column = 0; column < sourceModel()->columnCount(); ++column) {
+  infos.reserve(column_count + 4);
+
+  // From column 1: column 0 holds the row number, and matching that makes a
+  // keyword like "3" hit an arbitrary row.
+  for (int column = 1; column < column_count; ++column) {
     auto index = sourceModel()->index(sourceRow, column, sourceParent);
     infos << sourceModel()->data(index).toString();
+  }
 
-    if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
-      auto *k = dynamic_cast<GpgKey *>(key);
+  // Once per row. This used to sit inside the column loop, appending every UID
+  // twelve times over.
+  if (key->KeyType() == GpgAbstractKeyType::kGPG_KEY) {
+    if (auto *k = dynamic_cast<GpgKey *>(key); k != nullptr) {
       for (const auto &uid : k->UIDs()) {
         infos << uid.GetUID();
       }
     }
   }
 
-  return std::any_of(infos.cbegin(), infos.cend(), [&](const QString &info) {
-    return info.contains(filter_keywords_, Qt::CaseInsensitive);
-  });
-
-  return false;
+  return KeySearchMatches(infos, key->Fingerprint(), filter_keywords_);
 }
 
 auto GpgKeyTableProxyModel::filterAcceptsColumn(
@@ -155,9 +167,42 @@ auto GpgKeyTableProxyModel::filterAcceptsColumn(
       return (filter_columns_ & GpgKeyTableColumn::kCOMMENT) !=
              GpgKeyTableColumn::kNONE;
     }
+    case 12: {
+      return (filter_columns_ & GpgKeyTableColumn::kSTATUS) !=
+             GpgKeyTableColumn::kNONE;
+    }
     default:
       return false;
   }
+}
+
+auto GpgKeyTableProxyModel::lessThan(const QModelIndex &source_left,
+                                     const QModelIndex &source_right) const
+    -> bool {
+  const auto left = sourceModel()->data(source_left, sortRole());
+  const auto right = sourceModel()->data(source_right, sortRole());
+
+  // Columns that need no special ordering leave the sort role unset, so fall
+  // back to what the reader actually sees in the cell.
+  const auto compared =
+      !left.isValid() && !right.isValid()
+          ? CompareSortKeys(sourceModel()->data(source_left, Qt::DisplayRole),
+                            sourceModel()->data(source_right, Qt::DisplayRole))
+          : CompareSortKeys(left, right);
+  if (compared != 0) return compared < 0;
+
+  // Ties broken on the name, so a refresh cannot silently reshuffle rows that
+  // compare equal in the sorted column.
+  constexpr int kNameColumn = 2;
+  return QString::localeAwareCompare(
+             sourceModel()
+                 ->index(source_left.row(), kNameColumn, source_left.parent())
+                 .data(Qt::DisplayRole)
+                 .toString(),
+             sourceModel()
+                 ->index(source_right.row(), kNameColumn, source_right.parent())
+                 .data(Qt::DisplayRole)
+                 .toString()) < 0;
 }
 
 auto GpgKeyTableProxyModel::SourceColumnForVisibleColumn(
@@ -169,6 +214,20 @@ auto GpgKeyTableProxyModel::SourceColumnForVisibleColumn(
   for (int source_col = 0; source_col < source_columns; ++source_col) {
     if (!filterAcceptsColumn(source_col, {})) continue;
     if (seen == visible_column) return source_col;
+    ++seen;
+  }
+  return -1;
+}
+
+auto GpgKeyTableProxyModel::VisibleColumnForSourceColumn(
+    int source_column) const -> int {
+  if (source_column < 0 || model_ == nullptr) return -1;
+
+  int seen = 0;
+  const int source_columns = model_->columnCount({});
+  for (int source_col = 0; source_col < source_columns; ++source_col) {
+    if (!filterAcceptsColumn(source_col, {})) continue;
+    if (source_col == source_column) return seen;
     ++seen;
   }
   return -1;
