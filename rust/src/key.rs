@@ -60,7 +60,7 @@ use pgp::{
     ser::Serialize,
 };
 use std::collections::{BTreeMap, HashMap, HashSet};
-use std::io::{self, BufReader, Cursor};
+use std::io::{self, BufReader, Cursor, Read};
 use zeroize::Zeroizing;
 
 /// A single user ID extracted from a key block.
@@ -657,6 +657,9 @@ pub fn extract_metadata_many_internal(
 /// public export; secret blocks are still accepted so the function is usable on
 /// whatever the caller has at hand. A version rPGP does not model (v2/v3) comes
 /// back as [`GfrOpenPGPKeyVersion::Unknown`].
+///
+/// v5 (LibrePGP) never survives either parse -- see [`peek_primary_key_version`],
+/// which answers for it.
 pub fn detect_key_version_internal(key_block: &str) -> Result<GfrOpenPGPKeyVersion, GfrStatus> {
     let block = split_pgp_blocks(key_block)
         .into_iter()
@@ -675,7 +678,36 @@ pub fn detect_key_version_internal(key_block: &str) -> Result<GfrOpenPGPKeyVersi
         }
     }
 
-    Err(GfrStatus::ErrorInvalidInput)
+    peek_primary_key_version(&block).ok_or(GfrStatus::ErrorInvalidInput)
+}
+
+/// Read the version octet of the first key packet in an armored block.
+///
+/// rPGP refuses to parse a v5 (LibrePGP) key packet: its packet parser raises
+/// `Unsupported`, and unsupported packets are then dropped *silently*, so a v5
+/// block reaches [`detect_key_version_internal`] as an empty key iterator rather
+/// than as an error. The version is only the first octet of the packet body
+/// though, so it can be read without any of the parsing rPGP declines to do.
+///
+/// Only the first packet is inspected, and only when it is a key packet -- that
+/// is what keeps armored *messages* (whose first packet is a PKESK) out. A
+/// version we cannot name comes back as `None`, so the caller keeps reporting an
+/// error instead of a bogus answer.
+fn peek_primary_key_version(block: &str) -> Option<GfrOpenPGPKeyVersion> {
+    let mut reader = BufReader::new(armor::Dearmor::new(Cursor::new(block.as_bytes())));
+
+    let header = PacketHeader::try_from_reader(&mut reader).ok()?;
+    if !matches!(header.tag(), Tag::PublicKey | Tag::SecretKey) {
+        return None;
+    }
+
+    let mut version = [0_u8; 1];
+    reader.read_exact(&mut version).ok()?;
+
+    match GfrOpenPGPKeyVersion::from(KeyVersion::from(version[0])) {
+        GfrOpenPGPKeyVersion::Unknown => None,
+        version => Some(version),
+    }
 }
 
 /// Derive the public key from an armored secret key block.
@@ -2767,6 +2799,56 @@ mod key_tests {
                 meta_of(&fixture.public_armored).ver
             );
         }
+    }
+
+    /// Wrap a hand-written key packet -- `C6 01 <version>`: new-format header,
+    /// tag 6 (public key), body length 1 -- in public key armor. Nothing past
+    /// the version octet is ever read, and neither our keygen nor rPGP itself
+    /// can mint a v5 key, so writing the packet out by hand is the only way to
+    /// reach the v5 path. The armor carries no CRC-24 footer, which RFC 9580
+    /// §6.2.3 makes optional.
+    fn armored_key_packet(base64_packet: &str) -> String {
+        format!(
+            "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n{base64_packet}\n\
+             -----END PGP PUBLIC KEY BLOCK-----\n"
+        )
+    }
+
+    /// `C6 01 05` -- a v5 (LibrePGP) public key packet.
+    const V5_KEY_PACKET_B64: &str = "xgEF";
+    /// `C6 01 03` -- a v3 public key packet, a version we do not name.
+    const V3_KEY_PACKET_B64: &str = "xgED";
+
+    #[test]
+    fn a_v5_public_block_reports_v5() {
+        // rPGP cannot parse a v5 key packet, so the version octet is read
+        // directly; without that this returns ErrorInvalidInput and every
+        // LibrePGP key in a GnuPG keyring shows no version at all.
+        assert_eq!(
+            detect_key_version_internal(&armored_key_packet(V5_KEY_PACKET_B64)),
+            Ok(GfrOpenPGPKeyVersion::V5)
+        );
+    }
+
+    #[test]
+    fn a_v5_block_is_invisible_to_the_rpgp_key_parser() {
+        // Pins *why* the octet peek exists: the parse below does not fail, it
+        // yields no key at all, because unsupported packets are dropped
+        // silently. Should a future rPGP gain v5 support, this test is the one
+        // that says the peek can go.
+        let block = armored_key_packet(V5_KEY_PACKET_B64);
+        let (pk_iter, _) = SignedPublicKey::from_string_many(&block).expect("armor parses");
+        assert_eq!(pk_iter.flatten().count(), 0);
+    }
+
+    #[test]
+    fn a_deprecated_key_version_still_reports_no_version() {
+        // The peek must not hand back a version it cannot name -- an unknown
+        // answer stays an error, exactly as before.
+        assert_eq!(
+            detect_key_version_internal(&armored_key_packet(V3_KEY_PACKET_B64)),
+            Err(GfrStatus::ErrorInvalidInput)
+        );
     }
 
     #[test]
