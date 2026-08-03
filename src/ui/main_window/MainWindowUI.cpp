@@ -38,6 +38,7 @@
 #include "ui/dialog/controller/SmartCardControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/dialog/key_generate/KeyGenerateDialog.h"
+#include "ui/main_window/ToolBarHelper.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -493,32 +494,6 @@ void MainWindow::create_menus() {
           {"import_key_menu", GFBuffer(RegisterQObject(import_key_menu_))},
       });
 }
-
-namespace {
-
-auto SetupMenuToolButton(QToolButton* button, QMenu* menu, const QIcon& icon,
-                         const QString& text, const QString& tooltip,
-                         Qt::ToolButtonStyle style, QSize size) -> void {
-  button->setMenu(menu);
-  button->setPopupMode(QToolButton::InstantPopup);
-  button->setIcon(icon);
-  button->setText(text);
-  button->setToolTip(tooltip);
-  button->setFocusPolicy(Qt::NoFocus);
-  button->setAutoRaise(false);
-  button->setToolButtonStyle(style);
-  button->setIconSize(size);
-}
-
-auto SetupToolBar(QToolBar* toolbar, Qt::ToolButtonStyle style, QSize size)
-    -> void {
-  toolbar->setMovable(true);
-  toolbar->setFloatable(false);
-  toolbar->setToolButtonStyle(style);
-  toolbar->setIconSize(size);
-}
-
-}  // namespace
 
 void MainWindow::create_tool_bars() {
   file_tool_bar_ = addToolBar(tr("File"));
