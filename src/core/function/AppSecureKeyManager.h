@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/function/ProfileBootstrap.h"
+#include "core/function/SystemSecretStore.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/GFBuffer.h"
 
@@ -61,7 +63,38 @@ struct AppSecureKeyInitResult {
   }
 };
 
-class SystemSecretStore;
+/**
+ * @brief Which credential-store entry protects one profile's key file.
+ *
+ * There used to be exactly one account name for the whole application, which
+ * works only while there is exactly one profile. With several, they all reach
+ * for the same entry and whichever opens last overwrites the secret the others
+ * depend on.
+ *
+ * A profile id alone is not enough of a namespace either. Ids are user-chosen
+ * and short, so the same `work` can exist on a USB stick, in the desktop
+ * profiles root, and in a profile extracted from a package — three different
+ * key files with one entry between them. Deleting a profile and recreating it
+ * under the same name collides in the same way. So the name binds the id to the
+ * root it lives in *and* to a uuid minted once at creation, which is what makes
+ * a recreated profile a genuinely different identity.
+ *
+ * Classic keeps the original account verbatim. Its entry already exists on
+ * every current installation, and renaming it would lock every one of those
+ * users out of their own data objects.
+ *
+ * @param kind which shape of profile this is
+ * @param profile_id the profile slug
+ * @param canonical_root absolute, canonicalised profile root
+ * @param profile_uuid the uuid from profile.json; may be empty on a first run,
+ * in which case only the root distinguishes the entry
+ * @return the account name to use with SystemSecretStore
+ */
+auto GF_CORE_EXPORT DeriveAppKeyWrapAccount(ProfileRootKind kind,
+                                            const QString& profile_id,
+                                            const QString& canonical_root,
+                                            const QString& profile_uuid)
+    -> QString;
 
 /**
  * @brief How the application key file is protected at rest.
@@ -146,6 +179,39 @@ auto GF_CORE_EXPORT AppKeyProtectionFromApp() -> AppKeyProtection;
  */
 auto GF_CORE_EXPORT ApplyPortableModeRule(AppKeyProtection resolved,
                                           bool portable) -> AppKeyProtection;
+
+/**
+ * @brief Refuse the credential store for any profile that leaves this machine.
+ *
+ * The generalisation of the portable rule. A profile inside a `.gfprofile`
+ * package is written expressly to be carried somewhere else — very possibly to
+ * a different operating system, where "the system credential store" is not the
+ * same thing and often is not anything at all. A key sealed with one machine's
+ * store simply cannot be opened there, so the request is downgraded rather than
+ * honoured and the profile is left openable.
+ *
+ * That leaves exactly two protections for a profile that travels: a PIN, which
+ * travels with it, or none at all. Inside a package both are additionally
+ * covered by the package's own passphrase.
+ *
+ * @param resolved mode chosen by the settings layers
+ * @param travels whether this profile can leave the machine
+ * @return the mode that may actually be used
+ */
+auto GF_CORE_EXPORT ApplyProfilePortabilityRule(AppKeyProtection resolved,
+                                                bool travels)
+    -> AppKeyProtection;
+
+/**
+ * @brief Whether a profile of this shape can leave the machine.
+ *
+ * @param kind the profile kind
+ * @param policy the profile policy
+ * @return true when the credential store must not be used
+ */
+auto GF_CORE_EXPORT ProfileTravelsBetweenMachines(ProfileRootKind kind,
+                                                  const ProfilePolicy& policy)
+    -> bool;
 
 /**
  * @brief Resolve the protection across its layers and the two settings keys it
@@ -319,6 +385,17 @@ class GF_CORE_EXPORT AppSecureKeyManager
   [[nodiscard]] static auto ResetKeyStorage(const QString& key_dir) -> bool;
 
   /**
+   * @brief The credential-store account for the profile now running.
+   *
+   * Resolves DeriveAppKeyWrapAccount() against the established profile runtime
+   * and the uuid in that profile's marker, so every caller names the same
+   * entry without each having to reassemble the rule.
+   *
+   * @return the account name, or empty when it cannot be derived
+   */
+  [[nodiscard]] static auto CurrentWrapAccount() -> QString;
+
+  /**
    * @brief Derive the identity of a key.
    *
    * HMAC-SHA256 over @p key using @p pin as the HMAC key, falling back to a
@@ -377,8 +454,9 @@ class GF_CORE_EXPORT AppSecureKeyManager
    * @param intent_enabled whether the user asked for OS-backed protection
    * @return the resolved secret and what, if anything, was changed
    */
-  static auto ResolveWrapSecret(const QString& key_path,
-                                SystemSecretStore* store, bool intent_enabled)
+  static auto ResolveWrapSecret(
+      const QString& key_path, SystemSecretStore* store, bool intent_enabled,
+      const QString& account = QString::fromLatin1(kAppKeyWrapAccount))
       -> AppKeyWrapResult;
 
   /**
@@ -410,10 +488,11 @@ class GF_CORE_EXPORT AppSecureKeyManager
    * @param new_pin PIN to seal with when @p to is kPIN; ignored otherwise
    * @return what happened, with a detail string on failure
    */
-  static auto ChangeProtection(const QString& key_path,
-                               SystemSecretStore* store,
-                               const GFBuffer& plain_key, AppKeyProtection from,
-                               AppKeyProtection to, const GFBuffer& new_pin)
+  static auto ChangeProtection(
+      const QString& key_path, SystemSecretStore* store,
+      const GFBuffer& plain_key, AppKeyProtection from, AppKeyProtection to,
+      const GFBuffer& new_pin,
+      const QString& account = QString::fromLatin1(kAppKeyWrapAccount))
       -> AppKeyProtectionResult;
 
   /**

@@ -28,6 +28,8 @@
 
 #include "core/function/AppSecureKeyManager.h"
 
+#include <sodium.h>
+
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
@@ -67,6 +69,53 @@ constexpr int kLegacyPinSecureLevel = 3;
 
 namespace GpgFrontend {
 
+auto DeriveAppKeyWrapAccount(ProfileRootKind kind, const QString& profile_id,
+                             const QString& canonical_root,
+                             const QString& profile_uuid) -> QString {
+  // The one account that must never move: every existing installation already
+  // has this entry, and renaming it locks those users out of their own data.
+  if (kind == ProfileRootKind::kCLASSIC) {
+    return QString::fromLatin1(kAppKeyWrapAccount);
+  }
+
+  const auto material = (canonical_root + '\0' + profile_uuid).toUtf8();
+
+  std::array<unsigned char, 8> digest{};
+  if (crypto_generichash(
+          digest.data(), digest.size(),
+          reinterpret_cast<const unsigned char*>(material.constData()),
+          material.size(), nullptr, 0) != 0) {
+    // Falling back to the shared account would silently reintroduce exactly the
+    // collision this function exists to prevent, so refuse instead: the caller
+    // treats an empty account as "the credential store is unusable here".
+    LOG_E() << "cannot derive the credential account for profile" << profile_id;
+    return {};
+  }
+
+  return QString("%1.%2.%3")
+      .arg(QString::fromLatin1(kAppKeyWrapAccount), profile_id,
+           QString::fromLatin1(
+               QByteArray(reinterpret_cast<const char*>(digest.data()),
+                          digest.size())
+                   .toHex()));
+}
+
+auto AppSecureKeyManager::CurrentWrapAccount() -> QString {
+  const auto& profile = ProfileRuntime::Instance();
+  const auto root = RequireProfileRoot(profile);
+
+  // canonicalPath() is empty for a directory that does not exist yet, which on
+  // a first run would fold every fresh profile onto the same derived name
+  const auto canonical = QDir(root).canonicalPath();
+
+  const auto marker = ReadProfileMarker(ProfileMarkerPathFor(root));
+
+  return DeriveAppKeyWrapAccount(
+      profile.kind, profile.id,
+      canonical.isEmpty() ? QDir::cleanPath(root) : canonical,
+      marker.has_value() ? marker->profile_uuid : QString{});
+}
+
 auto AppKeyProtectionFromString(const QString& s) -> AppKeyProtection {
   const auto token = s.trimmed().toLower();
   if (token == QLatin1String(kProtectionKeychain)) {
@@ -96,10 +145,35 @@ auto AppKeyProtectionFromApp() -> AppKeyProtection {
 
 auto ApplyPortableModeRule(AppKeyProtection resolved, bool portable)
     -> AppKeyProtection {
-  if (portable && resolved == AppKeyProtection::kKEYCHAIN) {
+  return ApplyProfilePortabilityRule(resolved, portable);
+}
+
+auto ApplyProfilePortabilityRule(AppKeyProtection resolved, bool travels)
+    -> AppKeyProtection {
+  if (travels && resolved == AppKeyProtection::kKEYCHAIN) {
     return AppKeyProtection::kNONE;
   }
   return resolved;
+}
+
+auto ProfileTravelsBetweenMachines(ProfileRootKind kind,
+                                   const ProfilePolicy& policy) -> bool {
+  switch (kind) {
+    case ProfileRootKind::kPORTABLE:
+      // the whole point of the directory is to be carried to another computer
+      return true;
+    case ProfileRootKind::kPACKAGE_LINKED:
+      // it came out of a package and will be written back to one, which is a
+      // file the user hands to another machine, quite possibly another
+      // operating system
+      return true;
+    default:
+      // a named profile that keeps its own keyring is still local unless the
+      // user packages it; being self-contained is about where keys live, not
+      // about travelling
+      return policy.self_contained && kind != ProfileRootKind::kCLASSIC &&
+             kind != ProfileRootKind::kNAMED;
+  }
 }
 
 auto ResolveAppKeyProtection(const QVariant& env_protection,
@@ -176,7 +250,8 @@ auto AppSecureKeyManager::RegisterLegacyKeyIds(QMap<GFBuffer, GFBuffer>& keys,
 
 auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
                                             SystemSecretStore* store,
-                                            bool intent_enabled)
+                                            bool intent_enabled,
+                                            const QString& account)
     -> AppKeyWrapResult {
   const auto backend = store != nullptr ? store->Name() : QString("none");
 
@@ -203,7 +278,7 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
       return {AppKeyWrapStatus::kLOCKED_OUT, {}, backend};
     }
 
-    auto secret = store->Read(kAppKeyWrapAccount);
+    auto secret = store->Read(account);
     if (!secret) {
       LOG_W() << "app secure key is protected but its secret is unavailable";
       return {AppKeyWrapStatus::kLOCKED_OUT, {}, backend};
@@ -225,7 +300,7 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
       return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
     }
 
-    store->Remove(kAppKeyWrapAccount);
+    store->Remove(account);
     LOG_I() << "app secure key protection disabled, backend:" << backend;
     return {AppKeyWrapStatus::kJUST_DISABLED, {}, backend};
   }
@@ -243,7 +318,7 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
     return {AppKeyWrapStatus::kSTORE_UNAVAILABLE, {}, backend};
   }
 
-  if (!store->Write(kAppKeyWrapAccount, *secret)) {
+  if (!store->Write(account, *secret)) {
     LOG_W() << "writing the wrap secret failed, backend:" << backend;
     return {AppKeyWrapStatus::kSTORE_UNAVAILABLE, {}, backend};
   }
@@ -251,10 +326,10 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
   // Read it back before anything depends on it. A locked keyring or a missing
   // entitlement can accept a write and still not return it, and finding that
   // out now is the difference between a no-op and an unopenable key file.
-  auto verify = store->Read(kAppKeyWrapAccount);
+  auto verify = store->Read(account);
   if (!verify || *verify != *secret) {
     LOG_W() << "wrap secret did not read back intact, backend:" << backend;
-    store->Remove(kAppKeyWrapAccount);
+    store->Remove(account);
     return {AppKeyWrapStatus::kSTORE_UNAVAILABLE, {}, backend};
   }
 
@@ -267,7 +342,7 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
   auto encrypted = SealKey({}, *secret, on_disk);
   if (!encrypted) {
     LOG_E() << "encrypting the app secure key failed";
-    store->Remove(kAppKeyWrapAccount);
+    store->Remove(account);
     return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
   }
 
@@ -277,12 +352,12 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
   auto round_trip = UnsealKey({}, *secret, *encrypted);
   if (!round_trip || *round_trip != on_disk) {
     LOG_E() << "app secure key did not survive a wrap round trip";
-    store->Remove(kAppKeyWrapAccount);
+    store->Remove(account);
     return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
   }
 
   if (!GFBufferFactory::ToFileAtomic(key_path, *encrypted)) {
-    store->Remove(kAppKeyWrapAccount);
+    store->Remove(account);
     return {AppKeyWrapStatus::kIO_FAILED, {}, key_path};
   }
 
@@ -293,7 +368,7 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
 auto AppSecureKeyManager::ChangeProtection(
     const QString& key_path, SystemSecretStore* store,
     const GFBuffer& plain_key, AppKeyProtection from, AppKeyProtection to,
-    const GFBuffer& new_pin) -> AppKeyProtectionResult {
+    const GFBuffer& new_pin, const QString& account) -> AppKeyProtectionResult {
   const auto backend = store != nullptr ? store->Name() : QString("none");
 
   // Re-sealing under a new PIN is how a PIN is changed, so it is the one
@@ -322,7 +397,7 @@ auto AppSecureKeyManager::ChangeProtection(
   // there is never anything else to unwind.
   const auto rollback = [&]() {
     if (to == AppKeyProtection::kKEYCHAIN && store != nullptr) {
-      store->Remove(kAppKeyWrapAccount);
+      store->Remove(account);
     }
   };
 
@@ -334,7 +409,7 @@ auto AppSecureKeyManager::ChangeProtection(
       return {AppKeyProtectionStatus::kSTORE_UNAVAILABLE, backend};
     }
 
-    if (!store->Write(kAppKeyWrapAccount, *generated)) {
+    if (!store->Write(account, *generated)) {
       LOG_W() << "writing the wrap secret failed, backend:" << backend;
       return {AppKeyProtectionStatus::kSTORE_UNAVAILABLE, backend};
     }
@@ -342,10 +417,10 @@ auto AppSecureKeyManager::ChangeProtection(
     // Read it back before anything depends on it. A locked keyring or a missing
     // entitlement can accept a write and still not return it, and finding that
     // out now is the difference between a no-op and an unopenable key file.
-    auto verify = store->Read(kAppKeyWrapAccount);
+    auto verify = store->Read(account);
     if (!verify || *verify != *generated) {
       LOG_W() << "wrap secret did not read back intact, backend:" << backend;
-      store->Remove(kAppKeyWrapAccount);
+      store->Remove(account);
       return {AppKeyProtectionStatus::kSTORE_UNAVAILABLE, backend};
     }
 
@@ -384,7 +459,7 @@ auto AppSecureKeyManager::ChangeProtection(
   // the only thing that could open it.
   if (from == AppKeyProtection::kKEYCHAIN &&
       to != AppKeyProtection::kKEYCHAIN && store != nullptr) {
-    store->Remove(kAppKeyWrapAccount);
+    store->Remove(account);
   }
 
   LOG_I() << "app secure key protection changed to"

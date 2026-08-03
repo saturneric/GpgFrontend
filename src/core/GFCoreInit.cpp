@@ -73,11 +73,15 @@ auto GetDefaultKeyDatabasePath() -> QString {
   auto target_gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{});
 
-  // portable mode
-  if (GlobalSettingStation::GetInstance().IsProtableMode()) {
+  // A self-contained profile keeps its keys inside itself and never asks
+  // gpgconf where the system keyring is. Portable installations reach this
+  // through the same flag rather than through a mode of their own: the
+  // location and the policy were always two separate things.
+  if (GlobalSettingStation::GetInstance().IsSelfContainedProfile()) {
     default_db_path =
         GlobalSettingStation::GetInstance().GetAppDataPath() + "/db";
-    LOG_D() << "default key db in protable mode:" << default_db_path;
+    LOG_D() << "default key db for a self-contained profile:"
+            << default_db_path;
     goto out;
   }
 

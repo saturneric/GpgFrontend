@@ -346,10 +346,13 @@ auto MakeDefaultKeyDatabaseItem() -> KeyDatabaseItemSO {
     LOG_W() << "gnupg backend is not supported, fallback to rpgp backend";
   }
 
-  // in portable mode, convert home path to relative path to app dir
-  if (GlobalSettingStation::GetInstance().IsProtableMode()) {
-    home_path = QDir(GlobalSettingStation::GetInstance().GetAppDir())
-                    .relativeFilePath(home_path);
+  // A self-contained profile records its keyring as profile-relative, so the
+  // whole profile can be moved, copied or packaged without the path going
+  // stale. This replaces a relative-to-the-executable path that only portable
+  // mode ever produced and that no other profile shape could have used.
+  if (GlobalSettingStation::GetInstance().IsSelfContainedProfile()) {
+    home_path = ToProfileRelativeKeyDatabasePath(
+        home_path, GlobalSettingStation::GetInstance().GetAppDataPath());
   }
 
   key_db.path = home_path;
@@ -571,9 +574,57 @@ auto DecideKeyDatabasePathAction(bool exists_as_dir, bool exists_as_file,
                          : KeyDatabasePathAction::kREJECT;
 }
 
+auto ToProfileRelativeKeyDatabasePath(const QString& absolute_path,
+                                      const QString& profile_root) -> QString {
+  const auto root = QDir::cleanPath(profile_root);
+  const auto target = QDir::cleanPath(absolute_path);
+
+  if (target == root) return QString::fromLatin1(kProfilePathToken);
+  if (!target.startsWith(root + "/")) return absolute_path;
+
+  return QString::fromLatin1(kProfilePathToken) + "/" +
+         target.mid(root.size() + 1);
+}
+
+auto FromProfileRelativeKeyDatabasePath(const QString& stored_path,
+                                        const QString& profile_root)
+    -> QString {
+  if (stored_path == QLatin1String(kProfilePathToken)) {
+    return QDir::cleanPath(profile_root);
+  }
+  if (!stored_path.startsWith(QLatin1String(kProfilePathToken) + "/")) {
+    return stored_path;
+  }
+
+  const auto root = QDir::cleanPath(profile_root);
+  const auto suffix = stored_path.mid(qstrlen(kProfilePathToken) + 1);
+  const auto resolved = QDir::cleanPath(root + "/" + suffix);
+
+  // A stored value is not necessarily one we wrote: a package can carry
+  // "@profile/../../elsewhere", and resolving it would put a key database
+  // outside the profile that is supposed to contain it.
+  if (resolved != root && !resolved.startsWith(root + "/")) {
+    LOG_W() << "refusing profile-relative path that escapes the profile:"
+            << stored_path;
+    return {};
+  }
+  return resolved;
+}
+
 auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)
     -> QString {
   auto target_path = path;
+
+  // Resolved before anything else looks at the string: the token is the only
+  // spelling that survives a profile being moved or packaged, and it must not
+  // fall through to the relative-to-the-executable branch below, whose anchor
+  // is exactly the thing a relocatable profile cannot rely on.
+  if (target_path.startsWith(QLatin1String(kProfilePathToken))) {
+    target_path = FromProfileRelativeKeyDatabasePath(
+        target_path, GlobalSettingStation::GetInstance().GetAppDataPath());
+    if (target_path.isEmpty()) return {};
+  }
+
   if (!QDir::isAbsolutePath(target_path)) {
     target_path = app_path.absoluteFilePath(target_path);
     LOG_D() << "convert relative path: " << path

@@ -35,7 +35,7 @@
 
 namespace GpgFrontend {
 
-class GFDataExchanger {
+class GF_CORE_EXPORT GFDataExchanger {
  public:
   using SecureByteDeque = std::deque<std::byte, SMASecAllocator<std::byte>>;
   using SecureByteQueue = std::queue<std::byte, SecureByteDeque>;

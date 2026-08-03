@@ -119,6 +119,40 @@ auto GF_CORE_EXPORT SetExtensionOfOutputFileForArchive(const QString& path,
  * @param path raw path from configuration
  * @return canonical absolute path to the key database directory
  */
+/// Marks a key database path as relative to the profile that owns it. An
+/// explicit token rather than a plain relative path because the existing
+/// relative form is anchored to the executable directory, which is exactly what
+/// a relocatable profile cannot depend on — and redefining it would silently
+/// move every existing portable installation's keyring.
+constexpr auto kProfilePathToken = "@profile";
+
+/**
+ * @brief Record an absolute key database path relative to its profile.
+ *
+ * A path outside the profile is returned unchanged: it genuinely is somewhere
+ * else, and pretending otherwise would fabricate a location.
+ *
+ * @param absolute_path the path as it exists on this machine
+ * @param profile_root the profile that may contain it
+ * @return the profile-relative form, or @p absolute_path unchanged
+ */
+auto GF_CORE_EXPORT ToProfileRelativeKeyDatabasePath(
+    const QString& absolute_path, const QString& profile_root) -> QString;
+
+/**
+ * @brief Resolve a stored key database path against a profile root.
+ *
+ * Refuses anything that normalises outside the profile: a stored value can come
+ * from a package written elsewhere, and "@profile/../.." would put a key
+ * database outside the profile that is supposed to contain it.
+ *
+ * @param stored_path the value from settings or a manifest
+ * @param profile_root the profile to resolve against
+ * @return the absolute path, or empty when it escapes the profile
+ */
+auto GF_CORE_EXPORT FromProfileRelativeKeyDatabasePath(
+    const QString& stored_path, const QString& profile_root) -> QString;
+
 auto GF_CORE_EXPORT GetCanonicalKeyDatabasePath(const QDir& app_path,
                                                 const QString& path) -> QString;
 

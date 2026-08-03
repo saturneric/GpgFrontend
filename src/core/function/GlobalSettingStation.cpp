@@ -41,29 +41,20 @@
 
 namespace GpgFrontend {
 
-namespace {
+auto ResolveSettingsFilePath(ProfileRootKind kind, const QString& root)
+    -> QString {
+  if (kind != ProfileRootKind::kCLASSIC) return root + "/config/config.ini";
 
-#ifdef Q_OS_LINUX
-/// Directory holding the AppImage itself. applicationDirPath() points inside
-/// the read-only mount, so portable mode has to follow $APPIMAGE instead.
-auto ResolveAppImageDir() -> QString {
-  QFileInfo info(QString::fromUtf8(qEnvironmentVariable("APPIMAGE").toUtf8()));
-  return info.canonicalPath();
-}
+#ifdef Q_OS_WINDOWS
+  return QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) +
+         "/config.ini";
+#else
+  // Classic on POSIX keeps Qt's native store, keyed by the organization and
+  // application name set in GpgFrontendApplication's constructor. Migrating it
+  // would silently orphan every existing installation's settings.
+  return {};
 #endif
-
-/// Data root used by portable mode: the directory above the application.
-/// Shared by the singleton and by GetEarlySettings(), which has to resolve the
-/// same location before the singleton may be constructed.
-auto ResolvePortableDataPath() -> QString {
-  auto app_path = QCoreApplication::applicationDirPath();
-#ifdef Q_OS_LINUX
-  if (IsAppImageENV()) app_path = ResolveAppImageDir();
-#endif
-  return QDir(app_path + "/../").canonicalPath();
 }
-
-}  // namespace
 
 class GlobalSettingStation::Impl {
  public:
@@ -72,25 +63,32 @@ class GlobalSettingStation::Impl {
    *
    */
   explicit Impl() noexcept {
+    // Reading the runtime rather than a qApp property is what enforces the
+    // ordering rule: anything that reaches for the settings station before the
+    // profile is resolved dies here, loudly, in every build configuration,
+    // rather than quietly resolving against the wrong directory.
+    const auto& profile = ProfileRuntime::Instance();
+    kind_ = profile.kind;
+
+    // The application directory is AppImage-aware, because a portable install
+    // anchors relative key database paths to it and applicationDirPath() points
+    // inside the read-only mount.
+    app_path_ = ResolveApplicationDirPath();
+
     LOG_I() << "app path: " << app_path_;
     LOG_I() << "app working path: " << working_path_;
+    LOG_I() << "profile: " << profile.id << " ("
+            << ProfileRootKindToString(profile.kind) << ")";
 
-    const auto protable_mode = qApp->property("GFPortableMode").toBool();
-    if (protable_mode) {
+    portable_mode_ = profile.kind == ProfileRootKind::kPORTABLE;
+    if (portable_mode_) {
       Module::UpsertRTValue("core", "env.state.portable", 1);
       LOG_I() << "GpgFrontend runs in the portable mode now";
+    }
 
-#ifdef Q_OS_LINUX
-      if (IsAppImageENV()) {
-        LOG_I() << "app image path: " << qEnvironmentVariable("APPIMAGE");
-        app_path_ = ResolveAppImageDir();
-      }
-#endif
-
-      app_data_path_ = QDir(app_path_ + "/../").canonicalPath();
+    if (profile.kind != ProfileRootKind::kCLASSIC) {
+      app_data_path_ = RequireProfileRoot(profile);
       app_config_path_ = app_data_path_ + "/config";
-
-      portable_mode_ = true;
     }
 
     LOG_I() << "app data path: " << app_data_path_;
@@ -98,15 +96,13 @@ class GlobalSettingStation::Impl {
     LOG_I() << "app log path: " << app_log_path();
     LOG_I() << "app modules path: " << app_mods_path();
 
-#ifdef Q_OS_WINDOWS
-    LOG_I() << "app config path: " << app_config_path_;
-    if (!QDir(app_config_path_).exists()) QDir(app_config_path_).mkpath(".");
-#else
-    if (IsProtableMode()) {
+    // The config directory only needs creating where an INI file actually
+    // lands in it; a classic POSIX profile writes through the native store and
+    // has no directory of its own to make.
+    if (!ResolveSettingsFilePath(kind_, app_data_path_).isEmpty()) {
       LOG_I() << "app config path: " << app_config_path_;
       if (!QDir(app_config_path_).exists()) QDir(app_config_path_).mkpath(".");
     }
-#endif
 
     if (!QDir(app_data_path_).exists()) QDir(app_data_path_).mkpath(".");
     if (!QDir(app_log_path()).exists()) QDir(app_log_path()).mkpath(".");
@@ -118,12 +114,9 @@ class GlobalSettingStation::Impl {
   }
 
   [[nodiscard]] auto GetSettings() -> QSettings {
-#ifdef Q_OS_WINDOWS
-    return QSettings(app_config_file_path(), QSettings::IniFormat);
-#else
-    if (IsProtableMode()) return {app_config_file_path(), QSettings::IniFormat};
-    return QSettings();
-#endif
+    const auto path = ResolveSettingsFilePath(kind_, app_data_path_);
+    if (path.isEmpty()) return QSettings();
+    return {path, QSettings::IniFormat};
   }
 
   [[nodiscard]] auto GetLogFilesSize() const -> QString {
@@ -277,6 +270,7 @@ class GlobalSettingStation::Impl {
   }
 
   bool portable_mode_ = false;
+  ProfileRootKind kind_ = ProfileRootKind::kCLASSIC;
   QString app_path_ = QCoreApplication::applicationDirPath();
   QString working_path_ = QDir::currentPath();
   QString app_data_path_ = QString{
@@ -357,6 +351,11 @@ auto GlobalSettingStation::AddSupportedEngine(OpenPGPEngine engine) -> void {
   p_->AddSupportedOpenPPGEngine(engine);
 }
 
+auto GlobalSettingStation::IsSelfContainedProfile() const -> bool {
+  return ProfileRuntime::Established() &&
+         ProfileRuntime::Instance().policy.self_contained;
+}
+
 auto GlobalSettingStation::RemoveSupportedEngine(OpenPGPEngine engine) -> void {
   p_->RemoveSupportedOpenPPGEngine(engine);
 }
@@ -379,21 +378,26 @@ auto GetEarlySettings() -> QSettings {
   // before InitAppSecureKey(), and GlobalSettingStation allocates its Impl
   // through the secure allocator. Constructing the singleton here would pull
   // the secure allocator and the module manager up before the secure key
-  // exists. Resolve the very same file by hand instead.
-  const auto portable =
-      qApp != nullptr && qApp->property("GFPortableMode").toBool();
+  // exists. Resolve the very same file by hand instead — through the same
+  // ResolveSettingsFilePath() the singleton uses, so the two cannot disagree.
+  if (!ProfileRuntime::Established()) {
+    // Only reachable from a harness that never bootstrapped a profile. The
+    // classic store is the one location that is correct by default.
+    return QSettings();
+  }
 
-#ifndef Q_OS_WINDOWS
-  // Non-portable POSIX builds use Qt's native store, keyed by the organization
-  // and application name set in GpgFrontendApplication's constructor.
-  if (!portable) return QSettings();
-#endif
+  const auto& profile = ProfileRuntime::Instance();
+  const auto path = ResolveSettingsFilePath(profile.kind, profile.root);
+  if (path.isEmpty()) return QSettings();
+  return {path, QSettings::IniFormat};
+}
 
-  const auto config_path =
-      portable
-          ? ResolvePortableDataPath() + "/config"
-          : QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
-  return {config_path + "/config.ini", QSettings::IniFormat};
+auto ProfileMarkerPathFor(const QString& profile_root) -> QString {
+  return profile_root + "/profile.json";
+}
+
+auto CurrentProfileMarkerPath() -> QString {
+  return ProfileMarkerPathFor(GetGSS().GetAppDataPath());
 }
 
 auto CheckProfileCompatibility(const ProfileMarker& marker, bool marker_present,
@@ -433,26 +437,135 @@ auto ReadProfileMarker(const QString& path) -> std::optional<ProfileMarker> {
   marker.profile = obj.value("profile").toString();
   marker.last_writer_version = obj.value("last_writer_version").toString();
   marker.last_writer_stable = obj.value("last_writer_stable").toBool();
+
+  marker.profile_uuid = obj.value("profile_uuid").toString();
+  marker.profile_id = obj.value("profile_id").toString();
+  marker.display_name = obj.value("display_name").toString();
+  marker.created = obj.value("created").toString();
+  marker.created_by_version = obj.value("created_by_version").toString();
+  marker.kind = obj.value("kind").toString();
+  marker.package_id = obj.value("package_id").toString();
+  marker.credential_account = obj.value("credential_account").toString();
+
+  const auto components = obj.value("components").toObject();
+  for (auto it = components.constBegin(); it != components.constEnd(); ++it) {
+    marker.components.insert(it.key(), it.value().toInt());
+  }
+
+  marker.self_contained =
+      obj.value("policy").toObject().value("self_contained").toBool();
+
+  for (const auto& entry : obj.value("migrations").toArray()) {
+    const auto e = entry.toObject();
+    ProfileMigrationRecord record;
+    record.from = e.value("from").toInt();
+    record.to = e.value("to").toInt();
+    record.name = e.value("name").toString();
+    record.at = e.value("at").toString();
+    record.by = e.value("by").toString();
+    record.skipped = e.value("skipped").toBool();
+    record.reason = e.value("reason").toString();
+    marker.migrations.append(record);
+  }
+
+  // Anything this build does not know is carried through untouched, so opening
+  // a profile with an older version never silently discards what a newer one
+  // depends on.
+  static const QSet<QString> kKnown = {"schema_version",
+                                       "min_reader_version",
+                                       "profile",
+                                       "last_writer_version",
+                                       "last_writer_stable",
+                                       "profile_uuid",
+                                       "profile_id",
+                                       "display_name",
+                                       "created",
+                                       "created_by_version",
+                                       "kind",
+                                       "package_id",
+                                       "credential_account",
+                                       "components",
+                                       "policy",
+                                       "migrations"};
+  for (auto it = obj.constBegin(); it != obj.constEnd(); ++it) {
+    if (!kKnown.contains(it.key()))
+      marker.unknown_fields[it.key()] = it.value();
+  }
+
   return marker;
 }
 
 auto WriteProfileMarker(const QString& path, const ProfileMarker& marker)
     -> bool {
-  QJsonObject obj;
+  // unknown keys first, so a known field always wins a collision rather than
+  // being shadowed by a stale copy of itself
+  QJsonObject obj = marker.unknown_fields;
+
   obj["schema_version"] = marker.schema_version;
   obj["min_reader_version"] = marker.min_reader_version;
   obj["profile"] = marker.profile;
   obj["last_writer_version"] = marker.last_writer_version;
   obj["last_writer_stable"] = marker.last_writer_stable;
 
-  QFile file(path);
-  if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-    LOG_W() << "cannot write profile marker:" << path;
-    return false;
+  const auto put = [&obj](const char* key, const QString& value) {
+    if (!value.isEmpty()) obj[QLatin1String(key)] = value;
+  };
+  put("profile_uuid", marker.profile_uuid);
+  put("profile_id", marker.profile_id);
+  put("display_name", marker.display_name);
+  put("created", marker.created);
+  put("created_by_version", marker.created_by_version);
+  put("kind", marker.kind);
+  put("package_id", marker.package_id);
+  put("credential_account", marker.credential_account);
+
+  if (!marker.components.isEmpty()) {
+    QJsonObject components;
+    for (auto it = marker.components.constBegin();
+         it != marker.components.constEnd(); ++it) {
+      components[it.key()] = it.value();
+    }
+    obj["components"] = components;
+  }
+
+  QJsonObject policy;
+  policy["self_contained"] = marker.self_contained;
+  obj["policy"] = policy;
+
+  if (!marker.migrations.isEmpty()) {
+    QJsonArray migrations;
+    for (const auto& record : marker.migrations) {
+      QJsonObject e;
+      e["from"] = record.from;
+      e["to"] = record.to;
+      e["name"] = record.name;
+      e["at"] = record.at;
+      e["by"] = record.by;
+      if (record.skipped) {
+        e["skipped"] = true;
+        e["reason"] = record.reason;
+      }
+      migrations.append(e);
+    }
+    obj["migrations"] = migrations;
   }
 
   const auto payload = QJsonDocument(obj).toJson(QJsonDocument::Indented);
-  return file.write(payload) == payload.size();
+
+  // QSaveFile rather than a truncating write: this file is the only record of
+  // how far a migration got, and a half-written one after a power cut would
+  // make the ladder restart against already-migrated data.
+  QSaveFile file(path);
+  if (!file.open(QIODevice::WriteOnly)) {
+    LOG_W() << "cannot write profile marker:" << path;
+    return false;
+  }
+  if (file.write(payload) != payload.size()) {
+    file.cancelWriting();
+    LOG_W() << "short write on profile marker:" << path;
+    return false;
+  }
+  return file.commit();
 }
 
 }  // namespace GpgFrontend
