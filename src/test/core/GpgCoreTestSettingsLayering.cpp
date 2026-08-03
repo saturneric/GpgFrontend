@@ -422,4 +422,322 @@ TEST(ProfileMarkerTest, ProfileNameMatchesBuildFlavour) {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Profile bootstrap: which profile a process runs against.
+//
+// Pure, so the whole precedence ladder is assertable without starting a
+// process — the same shape ResolveAppKeyProtection() uses above.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+constexpr auto kClassicRoot = "/data/classic";
+constexpr auto kPortableRoot = "/media/usb/GpgFrontend";
+
+auto MakeInput(const QStringList& args = {}) -> ProfileBootstrapInput {
+  ProfileBootstrapInput in;
+  in.args = QStringList{"gpgfrontend"} + args;
+  in.classic_root = kClassicRoot;
+  in.portable_root = kPortableRoot;
+  return in;
+}
+
+}  // namespace
+
+TEST(ProfileBootstrapTest, NoArgumentsLandsOnClassic) {
+  const auto r = ResolveProfileBootstrap(MakeInput());
+
+  EXPECT_TRUE(r.error.isEmpty());
+  EXPECT_EQ(r.state.kind, ProfileRootKind::kCLASSIC);
+  EXPECT_EQ(r.state.id, QString("classic"));
+  EXPECT_EQ(r.state.root, QString(kClassicRoot));
+  EXPECT_FALSE(r.state.policy.self_contained);
+}
+
+TEST(ProfileBootstrapTest, NamedProfileResolvesUnderProfilesRoot) {
+  for (const auto& args :
+       {QStringList{"--profile", "work"}, QStringList{"--profile=work"}}) {
+    const auto r = ResolveProfileBootstrap(MakeInput(args));
+
+    EXPECT_TRUE(r.error.isEmpty());
+    EXPECT_EQ(r.state.kind, ProfileRootKind::kNAMED);
+    EXPECT_EQ(r.state.id, QString("work"));
+    EXPECT_EQ(r.state.root, QString(kClassicRoot) + "/profiles/work");
+  }
+}
+
+TEST(ProfileBootstrapTest, ExplicitRootOutranksEverything) {
+  auto in = MakeInput({"--profile-root", "/srv/gf", "--profile", "work"});
+  in.env_profile = "other";
+  const auto r = ResolveProfileBootstrap(in);
+
+  EXPECT_TRUE(r.error.isEmpty());
+  EXPECT_EQ(r.state.kind, ProfileRootKind::kEXPLICIT_ROOT);
+  EXPECT_EQ(r.state.root, QString("/srv/gf"));
+}
+
+TEST(ProfileBootstrapTest, RelativeExplicitRootIsRefused) {
+  const auto r = ResolveProfileBootstrap(MakeInput({"--profile-root", "gf"}));
+
+  EXPECT_FALSE(r.error.isEmpty());
+  // the fallback has to be usable: nothing downstream should ever have to cope
+  // with a half-resolved process
+  EXPECT_EQ(r.state.kind, ProfileRootKind::kCLASSIC);
+  EXPECT_EQ(r.state.root, QString(kClassicRoot));
+}
+
+TEST(ProfileBootstrapTest, PositionalPackageBecomesPending) {
+  const auto r = ResolveProfileBootstrap(MakeInput({"/home/x/work.gfprofile"}));
+
+  EXPECT_TRUE(r.error.isEmpty());
+  EXPECT_EQ(r.state.kind, ProfileRootKind::kPACKAGE_PENDING);
+  EXPECT_EQ(r.state.pending_package, QString("/home/x/work.gfprofile"));
+}
+
+TEST(ProfileBootstrapTest, AnOptionValueIsNotMistakenForAPackage) {
+  // "--log-level" takes a value; a scan that did not know that could read the
+  // next argument as a positional and open the wrong thing
+  const auto r =
+      ResolveProfileBootstrap(MakeInput({"--log-level", "x.gfprofile"}));
+
+  EXPECT_NE(r.state.kind, ProfileRootKind::kPACKAGE_PENDING);
+}
+
+TEST(ProfileBootstrapTest, EnvironmentVariablesAreConsulted) {
+  {
+    auto in = MakeInput();
+    in.env_profile_root = "/srv/env";
+    const auto r = ResolveProfileBootstrap(in);
+    EXPECT_EQ(r.state.kind, ProfileRootKind::kEXPLICIT_ROOT);
+    EXPECT_EQ(r.state.root, QString("/srv/env"));
+  }
+  {
+    auto in = MakeInput();
+    in.env_profile = "ci";
+    const auto r = ResolveProfileBootstrap(in);
+    EXPECT_EQ(r.state.kind, ProfileRootKind::kNAMED);
+    EXPECT_EQ(r.state.id, QString("ci"));
+  }
+}
+
+TEST(ProfileBootstrapTest, CommandLineOutranksEnvironment) {
+  auto in = MakeInput({"--profile", "cli"});
+  in.env_profile = "env";
+  EXPECT_EQ(ResolveProfileBootstrap(in).state.id, QString("cli"));
+}
+
+TEST(ProfileBootstrapTest, StartupPolicyIsHonouredWhenNothingIsNamed) {
+  {
+    auto in = MakeInput();
+    in.startup_policy = ProfileStartupPolicy::kLAST_USED;
+    in.registry_last_used = "work";
+    EXPECT_EQ(ResolveProfileBootstrap(in).state.id, QString("work"));
+  }
+  {
+    auto in = MakeInput();
+    in.startup_policy = ProfileStartupPolicy::kFIXED;
+    in.registry_startup_profile = "pinned";
+    in.registry_last_used = "work";
+    EXPECT_EQ(ResolveProfileBootstrap(in).state.id, QString("pinned"));
+  }
+  {
+    // pinning the legacy location has to stay reachable forever
+    auto in = MakeInput();
+    in.startup_policy = ProfileStartupPolicy::kCLASSIC;
+    in.registry_last_used = "work";
+    EXPECT_EQ(ResolveProfileBootstrap(in).state.kind,
+              ProfileRootKind::kCLASSIC);
+  }
+}
+
+TEST(ProfileBootstrapTest, UnknownIdIsAnErrorNotASilentFallback) {
+  auto in = MakeInput({"--profile", "ghost"});
+  in.registry_available = true;
+  in.known_ids = QStringList{"work", "home"};
+
+  const auto r = ResolveProfileBootstrap(in);
+
+  // opening the wrong keyring silently is the worst outcome available here
+  EXPECT_FALSE(r.error.isEmpty());
+  EXPECT_EQ(r.state.kind, ProfileRootKind::kCLASSIC);
+}
+
+TEST(ProfileBootstrapTest, UnknownIdIsAcceptedBeforeTheRegistryExists) {
+  // an id missing from a list nobody has written yet is not an unknown profile
+  auto in = MakeInput({"--profile", "fresh"});
+  in.registry_available = false;
+
+  const auto r = ResolveProfileBootstrap(in);
+  EXPECT_TRUE(r.error.isEmpty());
+  EXPECT_EQ(r.state.kind, ProfileRootKind::kNAMED);
+}
+
+TEST(ProfileBootstrapTest, InvalidIdsAreRefused) {
+  for (const auto* id : {"..", ".", "a/b", "", "CON", "Work", "-lead",
+                         "0123456789012345678901234567890123456789012345678901"
+                         "23456789012345"}) {
+    auto in = MakeInput({"--profile", QString::fromUtf8(id)});
+    const auto r = ResolveProfileBootstrap(in);
+    if (QString::fromUtf8(id).isEmpty()) continue;  // empty means "not given"
+    EXPECT_FALSE(r.error.isEmpty()) << "id should have been refused: " << id;
+  }
+}
+
+// ----------------------------------------------------- portable composition
+
+TEST(ProfileBootstrapTest, PortableAloneIsItsOwnRootNotANamedProfile) {
+  auto in = MakeInput();
+  in.env_ini_portable = true;
+
+  const auto r = ResolveProfileBootstrap(in);
+
+  EXPECT_TRUE(r.error.isEmpty());
+  EXPECT_EQ(r.state.kind, ProfileRootKind::kPORTABLE);
+  // every existing portable tree already has its data directly here; putting
+  // it under profiles/<id> would strand all of them
+  EXPECT_EQ(r.state.root, QString(kPortableRoot));
+  EXPECT_TRUE(r.state.policy.self_contained);
+}
+
+// The precedence rule most likely to be implemented wrong.
+TEST(ProfileBootstrapTest, ExplicitProfileOutranksPortableEnvIni) {
+  auto in = MakeInput({"--profile", "work"});
+  in.env_ini_portable = true;
+
+  const auto r = ResolveProfileBootstrap(in);
+
+  EXPECT_EQ(r.state.kind, ProfileRootKind::kNAMED);
+  // ENV.ini still decides where the profiles root sits...
+  EXPECT_EQ(r.state.root, QString(kPortableRoot) + "/profiles/work");
+  // ...but not whether this profile is self-contained. That comes from the
+  // profile's own profile.json, which the bootstrap has not read.
+  EXPECT_FALSE(r.state.policy.self_contained);
+}
+
+TEST(ProfileBootstrapTest, ProfilesRootFollowsThePortableBase) {
+  auto in = MakeInput();
+  in.env_ini_portable = true;
+  EXPECT_EQ(ResolveProfileBootstrap(in).state.profiles_root,
+            QString(kPortableRoot) + "/profiles");
+
+  in.env_ini_portable = false;
+  EXPECT_EQ(ResolveProfileBootstrap(in).state.profiles_root,
+            QString(kClassicRoot) + "/profiles");
+}
+
+// -------------------------------------------------------------- id handling
+
+TEST(ProfileIdTest, ValidityRules) {
+  EXPECT_TRUE(IsValidProfileId("work"));
+  EXPECT_TRUE(IsValidProfileId("work_2"));
+  EXPECT_TRUE(IsValidProfileId("a-b"));
+
+  EXPECT_FALSE(IsValidProfileId(""));
+  EXPECT_FALSE(IsValidProfileId("."));
+  EXPECT_FALSE(IsValidProfileId(".."));
+  EXPECT_FALSE(IsValidProfileId("a/b"));
+  EXPECT_FALSE(IsValidProfileId("a\\b"));
+  EXPECT_FALSE(IsValidProfileId("Work"));
+  EXPECT_FALSE(IsValidProfileId("-work"));
+  EXPECT_FALSE(IsValidProfileId(QString(65, 'a')));
+
+  // reserved on Windows regardless of extension: a directory that can exist on
+  // one platform and not the other is exactly what a portable profile must not
+  // contain
+  for (const auto* n : {"con", "CON", "nul", "com1", "lpt9"}) {
+    EXPECT_FALSE(IsValidProfileId(QString::fromUtf8(n))) << n;
+  }
+}
+
+TEST(ProfileIdTest, DisplayNamesBecomeUsableIds) {
+  EXPECT_EQ(MakeProfileId("Work"), QString("work"));
+  EXPECT_EQ(MakeProfileId("My Work Profile"), QString("my_work_profile"));
+  EXPECT_EQ(MakeProfileId("  trailing  "), QString("trailing"));
+  EXPECT_EQ(MakeProfileId("a-b"), QString("a-b"));
+
+  // nothing usable survives, and inventing an id would be worse than saying so
+  EXPECT_TRUE(MakeProfileId("///").isEmpty());
+  EXPECT_TRUE(MakeProfileId("").isEmpty());
+}
+
+// --------------------------------------------------------- settings routing
+
+TEST(ProfileSettingsPathTest, RootedProfilesAreIniBackedOnEveryPlatform) {
+  // Assertable unconditionally, unlike the platform branch it replaced: a
+  // native store is keyed only by organization and application name, so every
+  // profile would share one registry key or plist.
+  for (const auto kind :
+       {ProfileRootKind::kPORTABLE, ProfileRootKind::kNAMED,
+        ProfileRootKind::kEXPLICIT_ROOT, ProfileRootKind::kPACKAGE_LINKED}) {
+    EXPECT_EQ(ResolveSettingsFilePath(kind, "/srv/p"),
+              QString("/srv/p/config/config.ini"))
+        << ProfileRootKindToString(kind).toStdString();
+  }
+}
+
+TEST(ProfileSettingsPathTest, ClassicKeepsItsPlatformStore) {
+  const auto path =
+      ResolveSettingsFilePath(ProfileRootKind::kCLASSIC, "/srv/p");
+#ifdef Q_OS_WINDOWS
+  EXPECT_TRUE(path.endsWith("/config.ini"));
+#else
+  // empty means "use the native QSettings store", which is what every existing
+  // POSIX installation already writes to
+  EXPECT_TRUE(path.isEmpty());
+#endif
+}
+
+TEST(ProfileRootKindTest, SpellingRoundTrips) {
+  for (const auto kind :
+       {ProfileRootKind::kCLASSIC, ProfileRootKind::kPORTABLE,
+        ProfileRootKind::kNAMED, ProfileRootKind::kEXPLICIT_ROOT,
+        ProfileRootKind::kPACKAGE_LINKED, ProfileRootKind::kPACKAGE_PENDING}) {
+    EXPECT_EQ(ProfileRootKindFromString(ProfileRootKindToString(kind)), kind);
+  }
+  EXPECT_EQ(ProfileRootKindFromString("nonsense"), ProfileRootKind::kCLASSIC);
+}
+
+TEST(ProfileStartupPolicyTest, SpellingRoundTrips) {
+  for (const auto p :
+       {ProfileStartupPolicy::kLAST_USED, ProfileStartupPolicy::kASK,
+        ProfileStartupPolicy::kFIXED, ProfileStartupPolicy::kCLASSIC}) {
+    EXPECT_EQ(ProfileStartupPolicyFromString(ProfileStartupPolicyToString(p)),
+              p);
+  }
+}
+
+// A pending package has no root. Reading one anyway would resolve to an empty
+// path and put the whole application on the wrong directory.
+TEST(ProfileRuntimeDeathTest, PendingPackageHasNoRoot) {
+  ProfileRuntimeState state;
+  state.kind = ProfileRootKind::kPACKAGE_PENDING;
+  state.pending_package = "/tmp/x.gfprofile";
+
+  EXPECT_DEATH(RequireProfileRoot(state), "pending");
+}
+
+TEST(ProfileRuntimeDeathTest, EstablishingTwiceIsFatal) {
+  // main() already established it for this process; a second call must not be
+  // allowed to silently move every path
+  ProfileRuntimeState state;
+  state.kind = ProfileRootKind::kNAMED;
+  state.id = "intruder";
+
+  EXPECT_DEATH(ProfileRuntime::Establish(state), "established twice");
+}
+
+TEST(ProfileRuntimeTest, TheProcessRanAgainstAResolvedProfile) {
+  ASSERT_TRUE(ProfileRuntime::Established());
+
+  const auto& p = ProfileRuntime::Instance();
+  EXPECT_FALSE(p.id.isEmpty());
+  EXPECT_NE(p.kind, ProfileRootKind::kPACKAGE_PENDING);
+  EXPECT_FALSE(RequireProfileRoot(p).isEmpty());
+
+  // the station must agree with the runtime about where the profile lives
+  if (p.kind != ProfileRootKind::kCLASSIC) {
+    EXPECT_EQ(GetGSS().GetAppDataPath(), p.root);
+  }
+}
+
 }  // namespace GpgFrontend::Test
