@@ -587,6 +587,8 @@ void MainWindow::create_status_bar() {
       "\n" + QDir::toNativeSeparators(ProfileRuntime::Instance().root));
   statusBar()->addPermanentWidget(profile_status_label_);
 
+  statusBar()->addPermanentWidget(new QLabel(tr(" | "), this));
+
   // Show the current OpenPGP engine and version in the status bar
   engine_status_label_ = new QLabel(this);
   engine_status_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
