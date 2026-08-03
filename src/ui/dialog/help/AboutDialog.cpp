@@ -35,12 +35,15 @@
 
 #include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/ProfileBootstrap.h"
+#include "core/function/ProfileWorkspace.h"
 #include "core/function/SystemSecretStore.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/RustUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/function/ProfileController.h"
 
 namespace GpgFrontend::UI {
 namespace {
@@ -61,6 +64,15 @@ auto CreateValueLabel(const QString& text, QWidget* parent = nullptr)
   auto* label = new QLabel(text, parent);
   label->setWordWrap(true);
   label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+
+  // A word-wrapped label reports the height of a single line unless it is asked
+  // to declare heightForWidth, so a row whose value wraps gets one line's worth
+  // of space and the rest is cut off. Every value here exists to be read.
+  auto policy = label->sizePolicy();
+  policy.setHeightForWidth(true);
+  policy.setVerticalPolicy(QSizePolicy::Preferred);
+  label->setSizePolicy(policy);
+
   return label;
 }
 
@@ -569,6 +581,67 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
 
   main_layout->addWidget(
       CreateCard(tr("Application Status"), status_widget, content));
+
+  // Which profile this window is using, and where it keeps things. With two
+  // windows open on two profiles, "which keys am I looking at" is the first
+  // question of any bug report, and the paths below answer it exactly.
+  const auto& profile = ProfileRuntime::Instance();
+
+  auto* profile_widget = new QWidget(content);
+  auto* profile_form = CreateInfoForm(profile_widget);
+  profile_widget->setLayout(profile_form);
+
+  profile_form->addRow(
+      tr("Profile:"),
+      CreateValueLabel(CurrentProfileDisplayName(), profile_widget));
+  profile_form->addRow(
+      tr("Profile Type:"),
+      CreateValueLabel(ProfileKindDisplayName(profile.kind), profile_widget));
+  profile_form->addRow(
+      tr("Profile Folder:"),
+      CreateValueLabel(QDir::toNativeSeparators(profile.root), profile_widget));
+
+  // Where the keyring comes from is the difference a user actually feels
+  // between two profiles, so it is stated rather than left to be inferred from
+  // the type above.
+  profile_form->addRow(
+      tr("Keys:"),
+      CreateValueLabel(profile.policy.self_contained ? tr("Inside this profile")
+                                                     : tr("System keyring"),
+                       profile_widget));
+
+  const auto workspace = CurrentWorkspacePath();
+  profile_form->addRow(
+      tr("Workspace:"),
+      CreateValueLabel(workspace.isEmpty()
+                           ? tr("None")
+                           : QDir::toNativeSeparators(workspace),
+                       profile_widget));
+
+  if (const auto marker =
+          ReadProfileMarker(ProfileMarkerPathFor(profile.root))) {
+    profile_form->addRow(
+        tr("Profile Layout Version:"),
+        CreateValueLabel(QString::number(marker->schema_version),
+                         profile_widget));
+
+    // Present only on a profile that came from a package, and worth showing
+    // there: it is the identity that says which document this copy came from.
+    if (!marker->package_id.isEmpty()) {
+      profile_form->addRow(
+          tr("Imported From Package:"),
+          CreateValueLabel(marker->package_id, profile_widget));
+    }
+  }
+
+  if (!profile.profiles_root.isEmpty()) {
+    profile_form->addRow(
+        tr("Profiles Folder:"),
+        CreateValueLabel(QDir::toNativeSeparators(profile.profiles_root),
+                         profile_widget));
+  }
+
+  main_layout->addWidget(CreateCard(tr("Profile"), profile_widget, content));
 
   const auto active_engines = GetGSS().AllSupportedEngines();
 
