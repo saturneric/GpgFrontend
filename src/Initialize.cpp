@@ -40,6 +40,7 @@
 #include "core/GFCoreLog.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/ProfileLock.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleInit.h"
 #include "core/module/ModuleManager.h"
@@ -335,6 +336,8 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
     QStringList args = qApp->arguments();
     if (!args.isEmpty()) {
       g_relaunch_program = args.takeFirst();
+      // The successor inherits this process's argv, profile selection
+      // included, so a deep restart always comes back on the same profile.
       g_relaunch_args = args;
       g_relaunch_pending.store(true);
     }
@@ -384,6 +387,14 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
   GpgFrontend::DestroyGpgFrontendCore();
 
   qInfo() << "GpgFrontend exited normally.";
+
+  // The successor cannot open the profile while we still hold it, and letting
+  // it in before we are genuinely finished writing would make the lock stop
+  // meaning anything at exactly the moment two processes overlap -- the one
+  // case it exists for. By here the task runners have stopped, the caches have
+  // flushed, the databases are closed and IsCoreShuttingDown() is refusing
+  // further writes, so the handover is safe.
+  if (g_relaunch_pending.load()) GpgFrontend::ProfileLock::Release();
 
   // deep restart mode: relaunch via the same helper the watchdog uses, so a
   // normal teardown and a wedged one share one code path and never both spawn.

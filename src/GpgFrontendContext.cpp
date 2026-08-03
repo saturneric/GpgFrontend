@@ -36,6 +36,7 @@
 #include "core/GFCoreLog.h"
 #include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/ProfileBootstrap.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/GpgFrontendApplication.h"
@@ -61,10 +62,13 @@ void GpgFrontendContext::load_env_conf_set_properties() {
 
   QSettings s(env_config, QSettings::IniFormat);
 
-  // Deployment-only knobs: ENV.ini is the single source for these. Portable
-  // mode has to land first — it decides where the user settings below live.
-  property("GFPortableMode",
-           has_env && s.value("PortableMode", false).toBool());
+  // Deployment-only knobs: ENV.ini is the single source for these.
+  //
+  // GFPortableMode is deliberately absent: it is now a mirror of the resolved
+  // profile kind, published by establish_profile_runtime() before this runs.
+  // Re-deriving it from ENV.ini here would say "portable" for a session that
+  // was explicitly started on a named profile with `--profile`, which is a
+  // location ENV.ini has no say over.
   property("GFGnuPGOfflineMode",
            has_env && s.value("GnuPGOfflineMode", false).toBool());
   property("GFPinentryProgramPath",
@@ -177,8 +181,93 @@ void GpgFrontendContext::load_env_conf_set_properties() {
       << "==================================================================";
 }
 
+void GpgFrontendContext::establish_profile_runtime() {
+  // PortableMode has to be read here rather than taken from
+  // load_env_conf_set_properties(), which has not run yet and cannot: it reads
+  // user settings, and where those live is exactly what is being decided.
+  const auto env_config = QDir::currentPath() + "/ENV.ini";
+  const auto has_env = QFileInfo(env_config).exists();
+  QSettings env(env_config, QSettings::IniFormat);
+
+  ProfileBootstrapInput in;
+  in.args = QCoreApplication::arguments();
+  in.env_profile = qEnvironmentVariable("GF_PROFILE");
+  in.env_profile_root = qEnvironmentVariable("GF_PROFILE_ROOT");
+  in.env_ini_portable = has_env && env.value("PortableMode", false).toBool();
+  in.portable_root = ResolvePortableDataPath();
+  in.classic_root =
+      QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+
+  // The registry does not exist yet at this point in the feature's life, so
+  // known_ids stays empty and registry_available stays false: an id that is not
+  // in a list nobody has written is not an unknown profile.
+
+  auto result = ResolveProfileBootstrap(in);
+  profile_error = result.error;
+
+  // Packages resolve to kPACKAGE_PENDING, a state whose root is by definition
+  // not usable until the package has been extracted — and nothing extracts one
+  // yet. Left as it is, the first setting read would abort the process; turned
+  // into an ordinary bootstrap error it is reported in a dialog, and the
+  // runtime still gets a real root to be established on so that reporting can
+  // happen at all. Replaced by the extraction step when packages land.
+  if (result.error.isEmpty() &&
+      result.state.kind == ProfileRootKind::kPACKAGE_PENDING) {
+    const auto package = result.state.pending_package;
+    qWarning() << "cannot open profile package yet:" << package;
+
+    auto fallback = in;
+    fallback.args.removeAll(package);
+    result = ResolveProfileBootstrap(fallback);
+
+    profile_error = QCoreApplication::translate(
+                        "GpgFrontendContext",
+                        "Profile packages cannot be opened by this version "
+                        "yet:") +
+                    "\n" + QDir::toNativeSeparators(package);
+  }
+
+  // The resolver is pure and never reads a file, but a profile's policy is
+  // recorded in its own marker — so it is loaded here, before the runtime is
+  // fixed. Portable keeps the policy the resolver gave it: for that shape the
+  // location *is* the decision, and there may be no marker yet at all.
+  if (result.error.isEmpty() &&
+      result.state.kind != ProfileRootKind::kPORTABLE &&
+      result.state.kind != ProfileRootKind::kPACKAGE_PENDING) {
+    if (const auto marker =
+            ReadProfileMarker(ProfileMarkerPathFor(result.state.root))) {
+      result.state.policy.self_contained = marker->self_contained;
+    }
+  }
+
+  ProfileRuntime::Establish(result.state);
+  mirror_profile_properties();
+}
+
+void GpgFrontendContext::mirror_profile_properties() {
+  const auto& p = ProfileRuntime::Instance();
+
+  property("GFPortableMode", p.kind == ProfileRootKind::kPORTABLE);
+  property("GFProfileId", p.id);
+  property("GFProfileKind", ProfileRootKindToString(p.kind));
+  property("GFProfilesRoot", p.profiles_root);
+  property("GFProfileSelfContained", p.policy.self_contained);
+  property("GFProfilePendingPackage", p.pending_package);
+  property("GFProfileRoot",
+           p.kind == ProfileRootKind::kPACKAGE_PENDING ? QString{} : p.root);
+}
+
+void GpgFrontendContext::ReloadEnvProperties() {
+  mirror_profile_properties();
+  load_env_conf_set_properties();
+}
+
 void GpgFrontendContext::InitApplication() {
   app_ = new UI::GpgFrontendApplication(argc, argv);
+
+  // Before anything reads a setting: every path below is keyed by the profile
+  // root, and GetEarlySettings() is called from load_env_conf_set_properties().
+  establish_profile_runtime();
 
   load_env_conf_set_properties();
 }

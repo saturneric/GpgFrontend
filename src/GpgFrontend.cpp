@@ -39,6 +39,9 @@
 #include "core/function/AppSecureKeyManager.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/ProfileBootstrap.h"
+#include "core/function/ProfileLock.h"
+#include "core/function/ProfileMigration.h"
 #include "core/function/SystemSecretStore.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "platform/PlatformSecretStore.h"
@@ -124,9 +127,10 @@ auto ReportAppSecureKeyFailure(
  * @return the protection the key loader should act on
  */
 auto RequestedAppKeyProtection() -> GpgFrontend::AppKeyProtection {
-  return GpgFrontend::ApplyPortableModeRule(
+  const auto& profile = GpgFrontend::ProfileRuntime::Instance();
+  return GpgFrontend::ApplyProfilePortabilityRule(
       GpgFrontend::AppKeyProtectionFromApp(),
-      GpgFrontend::GetGSS().IsProtableMode());
+      GpgFrontend::ProfileTravelsBetweenMachines(profile.kind, profile.policy));
 }
 
 /**
@@ -153,7 +157,9 @@ auto ResetAppSecureKeyToDefault() -> bool {
   }
 
   if (auto* store = GpgFrontend::GetSystemSecretStore(); store != nullptr) {
-    store->Remove(GpgFrontend::kAppKeyWrapAccount);
+    // this profile's own entry, not the shared one: resetting one profile's
+    // key must not strip the protection from every other profile
+    store->Remove(GpgFrontend::AppSecureKeyManager::CurrentWrapAccount());
   }
   GpgFrontend::GetSettings().setValue(
       "advanced/app_key_protection",
@@ -351,31 +357,135 @@ auto ProfileMarkerPath() -> QString {
  *
  * @return false when the application must stop
  */
+/// Timestamp recorded on a migration rung. Passed into the ladder rather than
+/// read inside it, so a run is reproducible in a test.
+auto MigrationTimestamp() -> QString {
+  return QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+}
+
+/**
+ * @brief Report a profile this build must not touch, and stop.
+ *
+ * @param plan the refusal
+ * @param path the profile marker path, so the user can find the folder
+ */
+void ReportIncompatibleProfile(const GpgFrontend::ProfileMigrationPlan& plan,
+                               const QString& path) {
+  const auto writer = plan.writer_version.isEmpty()
+                          ? QObject::tr("a newer version")
+                          : plan.writer_version;
+
+  QMessageBox::critical(
+      nullptr,
+      plan.verdict == GpgFrontend::ProfileMigrationVerdict::kTOO_NEW
+          ? QObject::tr("Profile Is Too New")
+          : QObject::tr("Profile Cannot Be Opened"),
+      QObject::tr("This application data was last used by %1, which stores it "
+                  "in a format this version does not understand.")
+              .arg(writer) +
+          "\n\n" + plan.reason + "\n\n" +
+          QObject::tr("Continuing would damage it. Please use %1 or later, or "
+                      "start this version with a different data folder.")
+              .arg(writer) +
+          "\n\n" + QObject::tr("Data folder: %1").arg(path),
+      QMessageBox::Ok);
+}
+
+/**
+ * @brief Decide what to do with the profile, then run the early migrations.
+ *
+ * The compatibility decision comes first and is pure: an incompatible profile
+ * is not written to at all — not the marker, not a timestamp, not a directory.
+ * A profile written by a newer build has to survive being opened by an older
+ * one exactly as it was, or looking at it is what corrupts it.
+ *
+ * @return false when the application must stop
+ */
 auto CheckProfileOrHalt() -> bool {
   const auto path = ProfileMarkerPath();
   const auto marker = GpgFrontend::ReadProfileMarker(path);
 
   // A marker that exists but will not parse is treated as absent. A truncated
   // file after a power cut must not brick the application.
-  const auto state = GpgFrontend::CheckProfileCompatibility(
+  const auto plan = GpgFrontend::PlanProfileMigration(
       marker.value_or(GpgFrontend::ProfileMarker{}), marker.has_value(),
-      GpgFrontend::GetAppProfileSchemaVersion());
+      GpgFrontend::GetAppProfileSchemaVersion(),
+      GpgFrontend::AllProfileMigrationNames());
 
-  if (state == GpgFrontend::ProfileCompatibility::kTOO_NEW) {
-    const auto writer = marker->last_writer_version.isEmpty()
-                            ? QObject::tr("a newer version")
-                            : marker->last_writer_version;
+  if (plan.verdict == GpgFrontend::ProfileMigrationVerdict::kTOO_NEW ||
+      plan.verdict == GpgFrontend::ProfileMigrationVerdict::kREFUSE) {
+    ReportIncompatibleProfile(plan, path);
+    return false;
+  }
 
+  if (plan.verdict != GpgFrontend::ProfileMigrationVerdict::kUPGRADE) {
+    return true;
+  }
+
+  const auto& profile = GpgFrontend::ProfileRuntime::Instance();
+  const auto result = GpgFrontend::RunProfileMigration(
+      GpgFrontend::RequireProfileRoot(profile), path, plan,
+      GpgFrontend::ProfileMigrationStage::kPRE_KEY,
+      profile.kind == GpgFrontend::ProfileRootKind::kCLASSIC,
+      MigrationTimestamp(), GpgFrontend::AllProfileMigrations());
+
+  if (!result.ok) {
     QMessageBox::critical(
-        nullptr, QObject::tr("Profile Is Too New"),
-        QObject::tr("This application data was last used by %1, which stores "
-                    "it in a format this version does not understand.")
-                .arg(writer) +
-            "\n\n" +
-            QObject::tr("Continuing would damage it. Please use %1 or later, "
-                        "or start this version with a different data folder.")
-                .arg(writer) +
-            "\n\n" + QObject::tr("Data folder: %1").arg(path),
+        nullptr, QObject::tr("Profile Upgrade Failed"),
+        QObject::tr("Upgrading this profile stopped at step '%1'.")
+                .arg(result.failed_rung) +
+            "\n\n" + result.detail + "\n\n" +
+            QObject::tr("The profile is intact at layout version %1. Please "
+                        "report this.")
+                .arg(result.reached),
+        QMessageBox::Ok);
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Run the migrations that need the application secure key.
+ *
+ * Split from the early stage because everything under data_objs/ is sealed and
+ * does not decrypt until the key is loaded — a data-object rung run too early
+ * sees nothing and concludes there is nothing to do.
+ *
+ * @return false when the application must stop
+ */
+auto RunPostKeyMigrationOrHalt() -> bool {
+  const auto path = ProfileMarkerPath();
+  const auto marker = GpgFrontend::ReadProfileMarker(path);
+
+  const auto plan = GpgFrontend::PlanProfileMigration(
+      marker.value_or(GpgFrontend::ProfileMarker{}), marker.has_value(),
+      GpgFrontend::GetAppProfileSchemaVersion(),
+      GpgFrontend::AllProfileMigrationNames());
+
+  if (plan.verdict == GpgFrontend::ProfileMigrationVerdict::kTOO_NEW ||
+      plan.verdict == GpgFrontend::ProfileMigrationVerdict::kREFUSE) {
+    ReportIncompatibleProfile(plan, path);
+    return false;
+  }
+
+  if (plan.verdict != GpgFrontend::ProfileMigrationVerdict::kUPGRADE) {
+    return true;
+  }
+
+  const auto& profile = GpgFrontend::ProfileRuntime::Instance();
+  const auto result = GpgFrontend::RunProfileMigration(
+      GpgFrontend::RequireProfileRoot(profile), path, plan,
+      GpgFrontend::ProfileMigrationStage::kPOST_KEY,
+      profile.kind == GpgFrontend::ProfileRootKind::kCLASSIC,
+      MigrationTimestamp(), GpgFrontend::AllProfileMigrations());
+
+  if (!result.ok) {
+    QMessageBox::critical(
+        nullptr, QObject::tr("Profile Upgrade Failed"),
+        QObject::tr("Upgrading this profile stopped at step '%1'.")
+                .arg(result.failed_rung) +
+            "\n\n" + result.detail,
         QMessageBox::Ok);
     return false;
   }
@@ -389,15 +499,154 @@ auto CheckProfileOrHalt() -> bool {
  * Called only after the secure key opened successfully, so a profile this build
  * could not actually use is never claimed as its own.
  */
+/**
+ * @brief Take the profile lock, or explain who has it.
+ *
+ * Two processes on one root corrupt data_objs/ — every write there is a
+ * whole-file read-modify-write with no locking of its own — let the garbage
+ * collector quarantine objects the other process is writing, and leave the
+ * GnuPG home directory unprotected, since SQLite protects only itself.
+ *
+ * The wait exists for the deep restart, which by construction has the outgoing
+ * process still alive when the incoming one starts.
+ *
+ * @return false when the application must stop
+ */
+auto AcquireProfileLockOrHalt() -> bool {
+  const auto& profile = GpgFrontend::ProfileRuntime::Instance();
+  const auto root = GpgFrontend::RequireProfileRoot(profile);
+
+  auto result = GpgFrontend::ProfileLock::Acquire(root, 5000);
+  if (result.Ok()) return true;
+
+  if (result.status == GpgFrontend::ProfileLockStatus::kIO_FAILED) {
+    QMessageBox::critical(
+        nullptr, QObject::tr("Cannot Lock Profile"),
+        QObject::tr("The lock file at %1 could not be created.")
+                .arg(result.path) +
+            "\n" + QObject::tr("Please check your storage and permissions."),
+        QMessageBox::Ok);
+    return false;
+  }
+
+  const auto held_by =
+      result.pid != 0
+          ? QObject::tr("It is open in process %1 on %2.")
+                .arg(result.pid)
+                .arg(result.host.isEmpty() ? QObject::tr("this computer")
+                                           : result.host)
+          : QObject::tr("Another process has it open.");
+
+  QMessageBox box(QMessageBox::Warning, QObject::tr("Profile Is Already Open"),
+                  QObject::tr("This profile is already open in another "
+                              "window.") +
+                      "\n\n" + held_by + "\n\n" +
+                      QObject::tr("Opening it twice would corrupt its stored "
+                                  "data.") +
+                      "\n\n" + QObject::tr("Profile: %1").arg(root));
+  auto* quit = box.addButton(QObject::tr("Quit"), QMessageBox::AcceptRole);
+  auto* force =
+      box.addButton(QObject::tr("Force Unlock"), QMessageBox::DestructiveRole);
+  box.setDefaultButton(quit);
+  box.exec();
+
+  if (box.clickedButton() != force) return false;
+
+  // Deliberately a second, separate confirmation: if the holder is in fact
+  // alive, this reintroduces exactly the concurrent-write window the lock
+  // exists to prevent.
+  if (QMessageBox::warning(
+          nullptr, QObject::tr("Force Unlock"),
+          QObject::tr("Only do this if you are certain no other GpgFrontend "
+                      "window has this profile open.") +
+              "\n\n" +
+              QObject::tr("If one does, both copies will corrupt the "
+                          "profile's stored data."),
+          QMessageBox::Cancel | QMessageBox::Yes,
+          QMessageBox::Cancel) != QMessageBox::Yes) {
+    return false;
+  }
+
+  GpgFrontend::ProfileLock::ForceUnlock(root);
+  if (GpgFrontend::ProfileLock::Acquire(root, 1000).Ok()) return true;
+
+  QMessageBox::critical(nullptr, QObject::tr("Force Unlock Failed"),
+                        QObject::tr("The profile is still locked."),
+                        QMessageBox::Ok);
+  return false;
+}
+
+/**
+ * @brief Give the profile a stable identity before anything depends on it.
+ *
+ * The credential-store account is derived from the profile uuid, and it is
+ * needed before the key file is opened — so the uuid cannot wait for
+ * StampProfileMarker(), which only runs once the key has already been read.
+ *
+ * Runs after the compatibility gate, never before it: a profile this build must
+ * not touch must not be given an identity by this build either.
+ */
+void EnsureProfileIdentity() {
+  const auto path = ProfileMarkerPath();
+  auto marker = GpgFrontend::ReadProfileMarker(path).value_or(
+      GpgFrontend::ProfileMarker{});
+
+  if (!marker.profile_uuid.isEmpty()) return;
+
+  // Minted once and never regenerated: it is what makes deleting a profile and
+  // recreating it under the same name a genuinely different identity rather
+  // than one that collides with the credential entry the old one left behind.
+  marker.profile_uuid =
+      QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
+  marker.created = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+  marker.created_by_version = GpgFrontend::GetProjectVersion();
+
+  if (marker.schema_version == 0) {
+    marker.schema_version = GpgFrontend::GetAppProfileSchemaVersion();
+    marker.min_reader_version = GpgFrontend::GetAppProfileSchemaVersion();
+    marker.profile = GpgFrontend::GetAppProfileName();
+  }
+
+  GpgFrontend::WriteProfileMarker(path, marker);
+}
+
 void StampProfileMarker() {
-  GpgFrontend::ProfileMarker marker;
+  const auto path = ProfileMarkerPath();
+
+  // Read-modify-write, not a fresh marker: this file now carries the migration
+  // history, the profile identity and any field a newer build added. Rebuilding
+  // it from scratch would erase all of that on every single start, which is the
+  // one way a version story can be lost after it has been established.
+  auto marker = GpgFrontend::ReadProfileMarker(path).value_or(
+      GpgFrontend::ProfileMarker{});
+
+  const auto& profile = GpgFrontend::ProfileRuntime::Instance();
+
   marker.schema_version = GpgFrontend::GetAppProfileSchemaVersion();
-  marker.min_reader_version = GpgFrontend::GetAppProfileSchemaVersion();
   marker.profile = GpgFrontend::GetAppProfileName();
   marker.last_writer_version = GpgFrontend::GetProjectVersion();
   marker.last_writer_stable = GpgFrontend::IsStableBuild();
 
-  GpgFrontend::WriteProfileMarker(ProfileMarkerPath(), marker);
+  // Only ever raised by a migration that genuinely makes the profile
+  // unreadable to older builds; stamping must not quietly raise it.
+  if (marker.min_reader_version == 0) {
+    marker.min_reader_version = GpgFrontend::GetAppProfileSchemaVersion();
+  }
+
+  // Minted once, and never regenerated: it is what makes deleting and
+  // recreating a profile a different identity rather than a colliding one.
+  if (marker.profile_uuid.isEmpty()) {
+    marker.profile_uuid =
+        QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
+    marker.created = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
+    marker.created_by_version = GpgFrontend::GetProjectVersion();
+  }
+
+  marker.profile_id = profile.id;
+  marker.kind = GpgFrontend::ProfileRootKindToString(profile.kind);
+  marker.self_contained = profile.policy.self_contained;
+
+  GpgFrontend::WriteProfileMarker(path, marker);
 }
 
 auto PromptForAppKeyPin(const QString& key_path) -> AppKeyPinPrompt {
@@ -519,7 +768,17 @@ auto main(int argc, char* argv[]) -> int {
       {{"e", "environment"}, "show environment information"},
       {{"l", "log-level"}, "set log level (debug, info, warn, error)", "none"},
       {{{}, "self-check"}, "check libraries and executables validity"},
+      // Declaration only: these were already resolved during InitApplication(),
+      // long before this parser existed, because where the settings live is
+      // exactly what they decide. Registering them here just stops
+      // parser.process() rejecting them as unknown.
+      {{{}, "profile"}, "open the named local profile", "id"},
+      {{{}, "profile-root"},
+       "open the profile stored at this directory",
+       "path"},
   });
+  parser.addPositionalArgument("file", "a .gfprofile package to open",
+                               "[file]");
 
   // Hold back GoogleTest flags (`--gtest_*`) from the app's parser, which would
   // otherwise reject them as unknown options. They are consumed later by
@@ -570,9 +829,28 @@ auto main(int argc, char* argv[]) -> int {
     return GpgFrontend::PrintEnvInfo();
   }
 
+  // The profile was resolved during InitApplication(), before any setting was
+  // read. A failure there is reported here, where there is a message handler
+  // and a usable dialog, and still before anything opens key material.
+  if (!ctx->profile_error.isEmpty()) {
+    qCritical() << "profile bootstrap failed:" << ctx->profile_error;
+    QMessageBox::critical(nullptr, QObject::tr("Cannot Open Profile"),
+                          ctx->profile_error, QMessageBox::Ok);
+    return 1;
+  }
+
   // Checked before anything reads or writes the secure key or a data object:
   // once those start, an incompatible profile is already being damaged.
+  // Before the compatibility gate and before anything opens key material: a
+  // second process reading this profile while another writes it is exactly what
+  // the gate below cannot protect against.
+  if (!AcquireProfileLockOrHalt()) return 1;
+
   if (!CheckProfileOrHalt()) return 1;
+
+  // After the gate, before the key: the credential account is derived from the
+  // profile uuid, so the uuid has to exist by the time the key file is opened.
+  EnsureProfileIdentity();
 
   auto& key_mgr = GpgFrontend::AppSecureKeyManager::GetInstance();
   const auto protection = RequestedAppKeyProtection();
@@ -595,7 +873,8 @@ auto main(int argc, char* argv[]) -> int {
     const auto wrap_result =
         GpgFrontend::AppSecureKeyManager::ResolveWrapSecret(
             key_mgr.GetLegacyKeyPath(), GpgFrontend::GetSystemSecretStore(),
-            protection == GpgFrontend::AppKeyProtection::kKEYCHAIN);
+            protection == GpgFrontend::AppKeyProtection::kKEYCHAIN,
+            GpgFrontend::AppSecureKeyManager::CurrentWrapAccount());
 
     if (!ReportAppKeyWrapOutcome(wrap_result)) return 1;
     wrap = wrap_result.secret;
@@ -604,6 +883,11 @@ auto main(int argc, char* argv[]) -> int {
   const auto key_result = key_mgr.Initialize(pin, wrap);
 
   if (!ReportAppSecureKeyFailure(key_result)) return 1;
+
+  // The rungs that could not run earlier: everything under data_objs/ is sealed
+  // and only decrypts now. Before StampProfileMarker(), so the stamp records a
+  // profile that is actually at the version it claims.
+  if (!RunPostKeyMigrationOrHalt()) return 1;
 
   // Only now: claiming a profile this build could not open would stamp our
   // version onto data we never successfully read.

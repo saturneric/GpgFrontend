@@ -49,6 +49,17 @@ struct GpgFrontendContext {
   int rtn = GpgFrontend::kCrashCode;
 
   /**
+   * @brief Why the profile could not be resolved, empty when it could.
+   *
+   * The bootstrap runs before there is any sensible way to show a dialog or
+   * write a log, so a failure is recorded rather than reported. The runtime is
+   * still established, on the classic location, so nothing downstream has to
+   * cope with a half-resolved process; main() halts on this before anything
+   * touches key material.
+   */
+  QString profile_error;
+
+  /**
    * @brief Construct a new Gpg Frontend Context object
    *
    * @param argc
@@ -69,6 +80,17 @@ struct GpgFrontendContext {
   void InitApplication();
 
   /**
+   * @brief Re-resolve the ENV.ini-backed properties against the current root.
+   *
+   * A profile opened from a package is only known after the passphrase prompt,
+   * by which point the layered properties — key protection, secure level, log
+   * level — have already been resolved against the *previous* root. Re-running
+   * the resolution is what stops such a profile running under another
+   * profile's key protection.
+   */
+  void ReloadEnvProperties();
+
+  /**
    * @brief Get the App object
    *
    * @return QCoreApplication*
@@ -83,6 +105,22 @@ struct GpgFrontendContext {
    *
    */
   void load_env_conf_set_properties();
+
+  /**
+   * @brief Resolve the profile and fix it for the lifetime of the process.
+   *
+   * Runs between constructing the QApplication and reading any settings,
+   * because everything the latter touches is keyed by the profile root.
+   */
+  void establish_profile_runtime();
+
+  /**
+   * @brief Publish the resolved profile as qApp properties.
+   *
+   * A one-way mirror for the module and RT layers, which read properties and
+   * cannot link against the core. ProfileRuntime remains the authority.
+   */
+  void mirror_profile_properties();
 
   /**
    * @brief
