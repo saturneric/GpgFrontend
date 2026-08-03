@@ -582,7 +582,8 @@ auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)
 
   QFileInfo info(target_path);
 
-  const auto app_data_path = GlobalSettingStation::GetInstance().GetAppDataPath();
+  const auto app_data_path =
+      GlobalSettingStation::GetInstance().GetAppDataPath();
   const auto action = DecideKeyDatabasePathAction(
       info.exists() && info.isDir(), info.exists() && !info.isDir(),
       QFileInfo(info.absolutePath()).isDir(),
@@ -961,5 +962,65 @@ auto IsKeyExpiringSoon(const GpgAbstractKey* key) -> bool {
   const auto now = QDateTime::currentDateTime();
   const auto expires = key->ExpirationTime();
   return expires > now && now.daysTo(expires) <= GetKeyExpiringSoonDays();
+}
+
+auto ClassifyKeyStatus(bool revoked, bool disabled, bool expired,
+                       bool expiring_soon) -> GpgKeyStatus {
+  // Order matters and is the whole point of this function: a key can be
+  // several of these at once, and the row tint has always shown disabled
+  // first, then expired-or-revoked, then expiring-soon.
+  if (disabled) return GpgKeyStatus::kDisabled;
+  if (revoked) return GpgKeyStatus::kRevoked;
+  if (expired) return GpgKeyStatus::kExpired;
+  if (expiring_soon) return GpgKeyStatus::kExpiringSoon;
+  return GpgKeyStatus::kOk;
+}
+
+auto KeyStatusSortRank(GpgKeyStatus status) -> int {
+  switch (status) {
+    case GpgKeyStatus::kOk:
+      return 0;
+    case GpgKeyStatus::kExpiringSoon:
+      return 1;
+    case GpgKeyStatus::kExpired:
+      return 2;
+    case GpgKeyStatus::kRevoked:
+      return 3;
+    case GpgKeyStatus::kDisabled:
+      return 4;
+  }
+  return 0;
+}
+
+auto DescribeKeyStatus(GpgKeyStatus status) -> QString {
+  switch (status) {
+    case GpgKeyStatus::kOk:
+      return QCoreApplication::translate("GpgFrontend", "OK");
+    case GpgKeyStatus::kExpiringSoon:
+      return QCoreApplication::translate("GpgFrontend", "Expiring Soon");
+    case GpgKeyStatus::kExpired:
+      return QCoreApplication::translate("GpgFrontend", "Expired");
+    case GpgKeyStatus::kRevoked:
+      return QCoreApplication::translate("GpgFrontend", "Revoked");
+    case GpgKeyStatus::kDisabled:
+      return QCoreApplication::translate("GpgFrontend", "Disabled");
+  }
+  return {};
+}
+
+auto AggregateOwnerTrustRank(const QContainer<int>& levels) -> int {
+  if (levels.isEmpty()) return -1;
+
+  const auto first = levels.front();
+  for (const auto level : levels) {
+    if (level != first) return -1;
+  }
+  return first;
+}
+
+auto GetKeyStatus(const GpgAbstractKey* key) -> GpgKeyStatus {
+  if (key == nullptr) return GpgKeyStatus::kOk;
+  return ClassifyKeyStatus(key->IsRevoked(), key->IsDisabled(),
+                           key->IsExpired(), IsKeyExpiringSoon(key));
 }
 }  // namespace GpgFrontend

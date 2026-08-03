@@ -443,4 +443,73 @@ auto GF_CORE_EXPORT GetKeyExpiringSoonDays() -> int;
  */
 auto GF_CORE_EXPORT IsKeyExpiringSoon(const GpgAbstractKey* key) -> bool;
 
+/**
+ * @brief The one condition worth reporting about a key, in severity order.
+ */
+enum class GpgKeyStatus {
+  kOk,            ///< usable, and not about to lapse
+  kExpiringSoon,  ///< still usable, expires within the lookahead window
+  kExpired,       ///< past its expiry date
+  kRevoked,       ///< revoked by its owner
+  kDisabled,      ///< disabled locally
+};
+
+/**
+ * @brief Reduce the four key conditions to the single one worth showing.
+ *
+ * A key can be several of these at once, so the precedence is the actual rule
+ * and it is kept here, away from any key object, so it can be pinned down by a
+ * test. It reproduces what the row tint has always done: disabled outranks
+ * everything, then revoked or expired, then merely expiring soon.
+ *
+ * @param revoked key is revoked
+ * @param disabled key is disabled
+ * @param expired key is past its expiry
+ * @param expiring_soon key lapses within the lookahead window
+ * @return the single status to report
+ */
+auto GF_CORE_EXPORT ClassifyKeyStatus(bool revoked, bool disabled, bool expired,
+                                      bool expiring_soon) -> GpgKeyStatus;
+
+/**
+ * @brief Sort rank for a status, healthy first.
+ *
+ * @param status status to rank
+ * @return rank, ascending by severity
+ */
+auto GF_CORE_EXPORT KeyStatusSortRank(GpgKeyStatus status) -> int;
+
+/**
+ * @brief Translated one-word label for a status.
+ *
+ * @param status status to describe
+ * @return label for the Status column
+ */
+auto GF_CORE_EXPORT DescribeKeyStatus(GpgKeyStatus status) -> QString;
+
+/**
+ * @brief Reduce several owner-trust levels to the one that ranks the group.
+ *
+ * The table shows a key group's trust as a single value, "*" when its members
+ * disagree. Sorting needs the same reduction as a number. Members that
+ * disagree, and a group with no members at all, rank below every real level —
+ * neither tells you the group can be trusted.
+ *
+ * Kept as a free function over plain ints rather than over keys so the rule is
+ * testable without a gpg context.
+ *
+ * @param levels owner-trust level of each member, as GpgKey::OwnerTrustLevel()
+ * @return rank, ascending by trust; -1 when mixed or empty
+ */
+auto GF_CORE_EXPORT AggregateOwnerTrustRank(const QContainer<int>& levels)
+    -> int;
+
+/**
+ * @brief Classify a key, reading the four conditions off the key itself.
+ *
+ * @param key key to inspect
+ * @return the single status to report
+ */
+auto GF_CORE_EXPORT GetKeyStatus(const GpgAbstractKey* key) -> GpgKeyStatus;
+
 }  // namespace GpgFrontend

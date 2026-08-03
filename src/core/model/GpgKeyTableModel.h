@@ -98,6 +98,7 @@ enum class GpgKeyTableColumn : unsigned int {
   kSUBKEYS_NUMBER = 1 << 8,
   kCOMMENT = 1 << 9,
   kEXPIRE_DATE = 1 << 10,
+  kSTATUS = 1 << 11,
   kALL = ~0U
 };
 
@@ -161,6 +162,17 @@ inline auto operator&(GpgKeyTableDisplayMode lhs, GpgKeyTableDisplayMode rhs)
 class GF_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
   Q_OBJECT
  public:
+  /**
+   * @brief Role carrying a comparable value for the column, when its display
+   * text does not sort the way a reader expects.
+   *
+   * Trust reads as a word but ranks as a level, "Never" is an expiry date that
+   * belongs after every real one, and a subkey count is a number that would
+   * otherwise sort "10" before "2". The proxy sorts on this role and falls
+   * back to the display text wherever it is unset.
+   */
+  static constexpr int kSortKeyRole = Qt::UserRole + 1;
+
   /**
    * @brief Construct a new Gpg Key Table Model object
    *
@@ -285,6 +297,14 @@ class GF_CORE_EXPORT GpgKeyTableModel : public QAbstractTableModel {
 
   [[nodiscard]] auto table_data_by_gpg_key_group(
       const QModelIndex &index, const GpgAbstractKeyPtr &key) const -> QVariant;
+
+  /**
+   * @brief Comparable value for the column, or an invalid QVariant when the
+   * display text already sorts correctly.
+   */
+  [[nodiscard]] auto sort_key_by_key(const QModelIndex &index,
+                                     const GpgAbstractKeyPtr &key) const
+      -> QVariant;
 
   QContainer<GpgKeyTableItem> cached_items_;
 };

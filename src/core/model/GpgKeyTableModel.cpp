@@ -43,7 +43,8 @@ GpgKeyTableModel::GpgKeyTableModel(int channel,
       column_headers_({/*Select*/ QString(), tr("Type"), tr("Name"),
                        tr("Email Address"), tr("Usage"), tr("Trust"),
                        tr("Key ID"), tr("Create Date"), tr("Expire Date"),
-                       tr("Algorithm"), tr("Subkey(s)"), tr("Comment")}),
+                       tr("Algorithm"), tr("Subkey(s)"), tr("Comment"),
+                       tr("Status")}),
       gpg_context_channel_(channel) {
   for (const auto &key : keys) {
     cached_items_.push_back(GpgKeyTableItem(key));
@@ -69,7 +70,7 @@ auto GpgKeyTableModel::rowCount(const QModelIndex & /*parent*/) const -> int {
 
 auto GpgKeyTableModel::columnCount(const QModelIndex & /*parent*/) const
     -> int {
-  return 12;
+  return 13;
 }
 
 auto GpgKeyTableModel::table_data_by_gpg_key(const QModelIndex &index,
@@ -121,6 +122,9 @@ auto GpgKeyTableModel::table_data_by_gpg_key(const QModelIndex &index,
     }
     case 11: {
       return key->Comment();
+    }
+    case 12: {
+      return DescribeKeyStatus(GetKeyStatus(key.get()));
     }
     default:
       return {};
@@ -181,6 +185,58 @@ auto GpgKeyTableModel::table_data_by_gpg_key_group(
     }
     case 11: {
       return key->Comment();
+    }
+    case 12: {
+      return DescribeKeyStatus(GetKeyStatus(key.get()));
+    }
+    default:
+      return {};
+  }
+}
+
+auto GpgKeyTableModel::sort_key_by_key(const QModelIndex &index,
+                                       const GpgAbstractKeyPtr &key) const
+    -> QVariant {
+  auto *gpg_key = key->KeyType() == GpgAbstractKeyType::kGPG_KEY
+                      ? dynamic_cast<GpgKey *>(key.get())
+                      : nullptr;
+
+  switch (index.column()) {
+    case 5: {
+      // The column shows a translated word, so sorting its text would order
+      // keys differently in every language.
+      if (gpg_key != nullptr) return gpg_key->OwnerTrustLevel();
+
+      QContainer<int> levels;
+      for (const auto &member :
+           ConvertKey2GpgKeyList(gpg_context_channel_, {key})) {
+        levels.push_back(member->OwnerTrustLevel());
+      }
+      return AggregateOwnerTrustRank(levels);
+    }
+    case 7: {
+      return key->CreationTime();
+    }
+    case 8: {
+      // "Never" is not a date, and as text it lands wherever the alphabet puts
+      // it. A sentinel far past any real expiry keeps those keys together at
+      // the end of an ascending sort, which is where a reader looks for them.
+      return IsKeyNeverExpires(key.get())
+                 ? QDateTime(QDate(9999, 1, 1), QTime(0, 0))
+                 : key->ExpirationTime();
+    }
+    case 10: {
+      // Already an int in the display role, but going through the text would
+      // put "10" before "2".
+      if (gpg_key != nullptr) {
+        return static_cast<int>(gpg_key->SubKeys().size());
+      }
+      auto *key_group = dynamic_cast<GpgKeyGroup *>(key.get());
+      return key_group != nullptr ? static_cast<int>(key_group->KeyIds().size())
+                                  : 0;
+    }
+    case 12: {
+      return KeyStatusSortRank(GetKeyStatus(key.get()));
     }
     default:
       return {};
@@ -248,6 +304,12 @@ auto GpgKeyTableModel::data(const QModelIndex &index, int role) const
     }
   }
 
+  if (role == kSortKeyRole) {
+    auto *key = i->Key();
+    auto p_key = GpgAbstractKeyPtr(key, [](GpgAbstractKey *) {});
+    return sort_key_by_key(index, p_key);
+  }
+
   if (role == Qt::TextAlignmentRole) {
     switch (index.column()) {
       case 0:
@@ -258,6 +320,7 @@ auto GpgKeyTableModel::data(const QModelIndex &index, int role) const
       case 7:
       case 8:
       case 10:
+      case 12:
         return Qt::AlignCenter;
       default:
         return {};
@@ -277,14 +340,21 @@ auto GpgKeyTableModel::data(const QModelIndex &index, int role) const
   }
 
   if (role == Qt::BackgroundRole) {
-    auto *const key = i->Key();
-    if (key->IsDisabled()) return QColorConstants::DarkRed;
-    if (key->IsExpired() || key->IsRevoked()) {
-      return QColorConstants::DarkYellow;
+    // Driven by the same classification as the Status column, so the tint and
+    // the column can never disagree about a key.
+    switch (GetKeyStatus(i->Key())) {
+      case GpgKeyStatus::kDisabled:
+        return QColorConstants::DarkRed;
+      case GpgKeyStatus::kRevoked:
+      case GpgKeyStatus::kExpired:
+        return QColorConstants::DarkYellow;
+      case GpgKeyStatus::kExpiringSoon:
+        // A key that is merely about to lapse is still fully usable, so it
+        // gets a quieter tint than the already-broken ones above.
+        return QColor(0x8A, 0x6D, 0x1F);
+      case GpgKeyStatus::kOk:
+        return {};
     }
-    // A key that is merely about to lapse is still fully usable, so it gets a
-    // quieter tint than the already-broken ones above.
-    if (IsKeyExpiringSoon(key)) return QColor(0x8A, 0x6D, 0x1F);
     return {};
   }
 

@@ -294,7 +294,7 @@ TEST_F(GpgCoreTest, GpgKeyTableModelExpireColumnLayout) {
                    .GetGpgKeyTableModel();
   ASSERT_TRUE(model != nullptr);
 
-  ASSERT_EQ(model->columnCount({}), 12);
+  ASSERT_EQ(model->columnCount({}), 13);
 
   auto header = [&](int col) {
     return model->headerData(col, Qt::Horizontal, Qt::DisplayRole).toString();
@@ -304,6 +304,10 @@ TEST_F(GpgCoreTest, GpgKeyTableModelExpireColumnLayout) {
   EXPECT_EQ(header(9), QObject::tr("Algorithm"));
   EXPECT_EQ(header(10), QObject::tr("Subkey(s)"));
   EXPECT_EQ(header(11), QObject::tr("Comment"));
+  // Status was *appended*, deliberately: inserting it would have shifted every
+  // column after it and invalidated the persisted column widths, which are
+  // keyed by source column index.
+  EXPECT_EQ(header(12), QObject::tr("Status"));
 }
 
 // A key that carries an actual expiry renders the formatted date, and the
@@ -336,6 +340,83 @@ TEST_F(GpgCoreTest, GpgKeyTableModelExpireColumnData) {
   // Renumbering guard: Algorithm and Comment must still land where expected.
   EXPECT_EQ(cell(9), "RSA3072");
   EXPECT_TRUE(cell(11).isEmpty());
+}
+
+// Key status used to be conveyed by the row background tint alone: not
+// readable by a screen reader, not sortable, and expired and revoked shared one
+// colour. The Status column says it in words.
+TEST_F(GpgCoreTest, GpgKeyTableModelStatusColumnIsNeverBlank) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+
+  const auto rows = model->rowCount({});
+  ASSERT_GT(rows, 0);
+
+  for (int r = 0; r < rows; ++r) {
+    const auto status =
+        model->data(model->index(r, 12, {}), Qt::DisplayRole).toString();
+    EXPECT_FALSE(status.isEmpty()) << "row " << r << " has no status";
+  }
+}
+
+// The columns whose display text does not sort the way a reader expects expose
+// a comparable value instead; the proxy sorts on that.
+TEST_F(GpgCoreTest, GpgKeyTableModelExposesSortKeysForTheAwkwardColumns) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+  ASSERT_GT(model->rowCount({}), 0);
+
+  auto sort_key = [&](int col) {
+    return model->data(model->index(0, col, {}),
+                       GpgKeyTableModel::kSortKeyRole);
+  };
+
+  // Trust: a level, not the translated word shown in the cell.
+  EXPECT_TRUE(sort_key(5).isValid());
+  // Create and expire dates: real QDateTimes, so they order chronologically.
+  EXPECT_EQ(sort_key(7).typeId(), QMetaType::QDateTime);
+  EXPECT_EQ(sort_key(8).typeId(), QMetaType::QDateTime);
+  // Subkey count: a number, so "10" does not sort before "2".
+  EXPECT_TRUE(sort_key(10).isValid());
+  // Status: ranked by severity rather than alphabetically.
+  EXPECT_TRUE(sort_key(12).isValid());
+
+  // Columns that already sort correctly as text leave the role unset, and
+  // lessThan() falls back to the display value for them.
+  EXPECT_FALSE(sort_key(2).isValid());
+  EXPECT_FALSE(sort_key(3).isValid());
+}
+
+// "Never" is not a date and as text lands wherever the alphabet puts it; the
+// model reports a sentinel far past any real expiry so those keys gather at the
+// end of an ascending sort.
+TEST_F(GpgCoreTest, GpgKeyTableModelNeverExpiresSortsAfterRealExpiries) {
+  auto model = AbstractKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
+                   .GetGpgKeyTableModel();
+  ASSERT_TRUE(model != nullptr);
+
+  const auto rows = model->rowCount({});
+  QDateTime never_key;
+  QDateTime dated_key;
+
+  for (int r = 0; r < rows; ++r) {
+    const auto index = model->index(r, 8, {});
+    const auto shown = model->data(index, Qt::DisplayRole).toString();
+    const auto key =
+        model->data(index, GpgKeyTableModel::kSortKeyRole).toDateTime();
+
+    if (shown == QObject::tr("Never")) {
+      never_key = key;
+    } else if (!dated_key.isValid()) {
+      dated_key = key;
+    }
+  }
+
+  if (never_key.isValid() && dated_key.isValid()) {
+    EXPECT_GT(never_key, dated_key);
+  }
 }
 
 }  // namespace GpgFrontend::Test
