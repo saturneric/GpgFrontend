@@ -28,6 +28,7 @@
 
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/ProfileBootstrap.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 #include "core/module/ModuleManager.h"
@@ -38,6 +39,8 @@
 #include "ui/dialog/controller/SmartCardControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/dialog/key_generate/KeyGenerateDialog.h"
+#include "ui/dialog/profile/ProfileManagerDialog.h"
+#include "ui/function/ProfileController.h"
 #include "ui/main_window/ToolBarHelper.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
@@ -86,6 +89,14 @@ void MainWindow::create_actions() {
       create_action("close_tab", tr("Close Tab"), ":/icons/close.png",
                     tr("Close the current tab"), {QKeySequence::Close});
   connect(close_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotCloseTab);
+
+  open_profile_act_ =
+      create_action("open_profile", tr("Open Profile..."), {},
+                    tr("Open another profile in a new window, or create one"));
+  connect(open_profile_act_, &QAction::triggered, this, [this]() {
+    ProfileManagerDialog dialog(this);
+    dialog.exec();
+  });
 
   quit_act_ = create_action("quit", tr("Quit"), ":/icons/exit.png",
                             tr("Quit Program"), {QKeySequence::Quit});
@@ -398,6 +409,12 @@ void MainWindow::create_menus() {
   workspace_menu_->addAction(browser_act_);
   workspace_menu_->addAction(new_tab_act_);
 
+  // Before the text-tab actions and behind its own separator: "Open Profile"
+  // and "Open" mean entirely different things, and putting them next to each
+  // other unlabelled is how a user opens the wrong one.
+  file_menu_->addSeparator();
+  file_menu_->addAction(open_profile_act_);
+
   file_menu_->addSeparator();
 
   file_menu_->addAction(save_act_);
@@ -558,6 +575,18 @@ void MainWindow::create_tool_bars() {
 }
 
 void MainWindow::create_status_bar() {
+  // Which profile this window is using. Fixed for the window's whole life —
+  // opening another one opens another window — so it is set once here. Worth
+  // the space: with two windows open on two profiles, nothing else on screen
+  // says which keys are in front of you.
+  profile_status_label_ = new QLabel(this);
+  profile_status_label_->setText(
+      tr("Profile: %1").arg(CurrentProfileDisplayName()));
+  profile_status_label_->setToolTip(
+      tr("This window's profile — its own settings, keys and saved state") +
+      "\n" + QDir::toNativeSeparators(ProfileRuntime::Instance().root));
+  statusBar()->addPermanentWidget(profile_status_label_);
+
   // Show the current OpenPGP engine and version in the status bar
   engine_status_label_ = new QLabel(this);
   engine_status_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);

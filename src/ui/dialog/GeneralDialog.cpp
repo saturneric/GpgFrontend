@@ -156,6 +156,15 @@ void GeneralDialog::slot_restore_settings() noexcept {
     QPoint target_pos{window_state.x, window_state.y};
     QRect target_rect{target_pos, QSize(width, height)};
 
+    // Never restore a size the current contents cannot live in. A saved size
+    // belongs to whatever this dialog looked like when it was last closed,
+    // which may be an older release with fewer buttons or shorter text; below
+    // the minimum a layout stops honouring spacing and the widgets end up
+    // drawn on top of each other. The position is the user's choice, the size
+    // is only a preference.
+    target_rect.setSize(target_rect.size().expandedTo(
+        minimumSizeHint().expandedTo(minimumSize())));
+
     update_rect_cache();
     target_rect = ClampRectToAvailableGeometry(target_rect, screen_rect_);
 

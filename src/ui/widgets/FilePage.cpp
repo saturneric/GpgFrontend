@@ -29,6 +29,7 @@
 #include "ui/widgets/FilePage.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/ProfileWorkspace.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/main_window/MainWindow.h"
@@ -422,6 +423,23 @@ auto FilePage::update_harddisk_menu() -> void {
   if (harddisk_popup_menu_ == nullptr) return;
 
   harddisk_popup_menu_->clear();
+
+  // Pinned above the volumes: this menu is already the application's de facto
+  // "places" list, so the profile's own folder belongs at the top of it rather
+  // than in a sidebar that does not exist.
+  if (const auto workspace = CurrentWorkspacePath(); !workspace.isEmpty()) {
+    auto* workspace_act =
+        new QAction(tr("Profile Workspace"), harddisk_popup_menu_);
+    workspace_act->setToolTip(workspace);
+    workspace_act->setData(workspace);
+    connect(workspace_act, &QAction::triggered, this, [this, workspace]() {
+      // created on demand: the entry is offered before the folder is first used
+      EnsureWorkspaceExists();
+      SlotGoPath(workspace);
+    });
+    harddisk_popup_menu_->addAction(workspace_act);
+    harddisk_popup_menu_->addSeparator();
+  }
 
   for (const auto& storage_device : vols) {
     if (!storage_device.isValid() || !storage_device.isReady()) continue;

@@ -110,11 +110,31 @@
            </layout>
           </item>
           <item>
-           <widget class="QCheckBox" name="homePathAsDefaultPathcheckBox">
-            <property name="text">
-             <string>Use home path as the default path for FilePanel</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="filePanelDefaultPathLayout">
+            <item>
+             <widget class="QLabel" name="filePanelDefaultPathLabel">
+              <property name="text">
+               <string>File Panel opens at</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="filePanelDefaultPathComboBox"/>
+            </item>
+            <item>
+             <spacer name="filePanelDefaultPathSpacer">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QCheckBox" name="importConfirmationCheckBox">

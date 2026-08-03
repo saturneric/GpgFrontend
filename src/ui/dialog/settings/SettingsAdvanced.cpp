@@ -397,10 +397,19 @@ void AdvancedTab::configure_protection_items() {
     item->setToolTip(enabled ? QString() : WrappingToolTip(reason));
   };
 
-  if (GetGSS().IsProtableMode()) {
-    set_item(AppKeyProtection::kKEYCHAIN, false,
-             tr("Not available in portable mode: a portable installation must "
-                "not depend on secrets stored on one particular computer."));
+  const auto& profile = ProfileRuntime::Instance();
+  if (ProfileTravelsBetweenMachines(profile.kind, profile.policy)) {
+    set_item(
+        AppKeyProtection::kKEYCHAIN, false,
+        profile.kind == ProfileRootKind::kPACKAGE_LINKED
+            ? tr("Not available for a profile package: the package is meant "
+                 "to be opened on another computer, possibly running another "
+                 "operating system, where a secret stored in this computer's "
+                 "credential store cannot be read. Use a PIN, or no "
+                 "protection.")
+            : tr("Not available in portable mode: a portable installation "
+                 "must not depend on secrets stored on one particular "
+                 "computer."));
   } else if (GetSystemSecretStore() == nullptr) {
     // A null check only, never IsAvailable(): probing writes to the store and
     // can raise an unlock prompt, which merely opening this dialog must not do.
@@ -491,7 +500,7 @@ auto AdvancedTab::apply_app_key_protection() -> bool {
 
   const auto result = AppSecureKeyManager::ChangeProtection(
       mgr.GetLegacyKeyPath(), GetSystemSecretStore(), mgr.GetLegacyKey(), from,
-      to, pin);
+      to, pin, AppSecureKeyManager::CurrentWrapAccount());
 
   if (!result.Ok()) {
     if (result.status == AppKeyProtectionStatus::kSTORE_UNAVAILABLE) {
@@ -536,7 +545,8 @@ void AdvancedTab::change_pin() {
 
     const auto result = AppSecureKeyManager::ChangeProtection(
         mgr.GetLegacyKeyPath(), GetSystemSecretStore(), mgr.GetLegacyKey(),
-        AppKeyProtection::kPIN, AppKeyProtection::kPIN, dialog.Pin());
+        AppKeyProtection::kPIN, AppKeyProtection::kPIN, dialog.Pin(),
+        AppSecureKeyManager::CurrentWrapAccount());
 
     if (result.Ok()) {
       QMessageBox::information(this, tr("PIN Changed"),

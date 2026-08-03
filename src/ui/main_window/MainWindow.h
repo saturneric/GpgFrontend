@@ -567,6 +567,10 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QMenu* workspace_menu_{};   ///<
   QMenu* open_menu_{};
 
+  /// Opens the profile chooser. Distinct from workspace_menu_ above, which
+  /// chooses which *view* opens at startup and has nothing to do with profiles.
+  QAction* open_profile_act_{};
+
   QToolBar* crypt_tool_bar_{};  ///<  Toolbar holding crypt actions
   QToolBar* file_tool_bar_{};   ///<  Toolbar holding file actions
   QToolBar* edit_tool_bar_{};   ///<  Toolbar holding edit actions
@@ -647,6 +651,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* show_log_view_act_{};              ///<
 
   QLabel* status_bar_icon_{};  ///<
+  QLabel* profile_status_label_ = nullptr;
   QLabel* engine_status_label_ = nullptr;
 
   KeyList* m_key_list_{};          ///<

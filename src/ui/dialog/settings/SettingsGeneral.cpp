@@ -35,6 +35,7 @@
 
 #include "SettingsDialog.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/ProfileWorkspace.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UserInterfaceUtils.h"
@@ -80,8 +81,7 @@ GeneralTab::GeneralTab(QWidget* parent)
   workspace_button_group->addButton(ui_->filePanelRadioButton);
   workspace_button_group->addButton(ui_->textEditorRadioButton);
 
-  ui_->homePathAsDefaultPathcheckBox->setText(
-      tr("Use home path as the default path for FilePanel"));
+  ui_->filePanelDefaultPathLabel->setText(tr("File Panel opens at"));
 
   ui_->restoreTextEditorPageCheckBox->setText(
       tr("Cache text editor contents."));
@@ -120,7 +120,8 @@ GeneralTab::GeneralTab(QWidget* parent)
     ui_->defaultWorkspaceAsLabel->setHidden(true);
     ui_->filePanelRadioButton->setHidden(true);
     ui_->textEditorRadioButton->setHidden(true);
-    ui_->homePathAsDefaultPathcheckBox->setHidden(true);
+    ui_->filePanelDefaultPathLabel->setHidden(true);
+    ui_->filePanelDefaultPathComboBox->setHidden(true);
     ui_->clearGpgPasswordCacheCheckBox->setHidden(true);
   }
 
@@ -173,11 +174,30 @@ void GeneralTab::SetSettings() {
   } else {
     ui_->textEditorRadioButton->setChecked(true);
   }
-  auto home_path_as_file_panel_default_path =
-      settings.value("basic/home_path_as_file_panel_default_path", true)
-          .toBool();
-  ui_->homePathAsDefaultPathcheckBox->setCheckState(
-      home_path_as_file_panel_default_path ? Qt::Checked : Qt::Unchecked);
+  // Populated here rather than in the .ui so the workspace entry can carry the
+  // profile's actual folder in its tooltip, and so it can be hidden for a
+  // classic profile, which has no workspace of its own.
+  ui_->filePanelDefaultPathComboBox->clear();
+  if (const auto workspace = CurrentWorkspacePath(); !workspace.isEmpty()) {
+    ui_->filePanelDefaultPathComboBox->addItem(
+        tr("Profile Workspace"),
+        FilePanelDefaultPathModeToString(FilePanelDefaultPathMode::kWORKSPACE));
+    ui_->filePanelDefaultPathComboBox->setItemData(0, workspace,
+                                                   Qt::ToolTipRole);
+  }
+  ui_->filePanelDefaultPathComboBox->addItem(
+      tr("Home Folder"),
+      FilePanelDefaultPathModeToString(FilePanelDefaultPathMode::kHOME));
+  ui_->filePanelDefaultPathComboBox->addItem(
+      tr("Working Directory"),
+      FilePanelDefaultPathModeToString(FilePanelDefaultPathMode::kCWD));
+
+  const auto stored_mode =
+      settings.value("basic/file_panel_default_path_mode").toString();
+  const auto mode = FilePanelDefaultPathModeToString(
+      FilePanelDefaultPathModeFromString(stored_mode));
+  const auto index = ui_->filePanelDefaultPathComboBox->findData(mode);
+  ui_->filePanelDefaultPathComboBox->setCurrentIndex(index < 0 ? 0 : index);
 
   auto clear_gpg_password_cache =
       settings.value("basic/clear_gpg_password_cache", true).toBool();
@@ -248,8 +268,9 @@ void GeneralTab::ApplySettings() {
       "basic/default_workspace_as",
       ui_->filePanelRadioButton->isChecked() ? "file_panel" : "text_editor");
 
-  settings.setValue("basic/home_path_as_file_panel_default_path",
-                    ui_->homePathAsDefaultPathcheckBox->isChecked());
+  settings.setValue(
+      "basic/file_panel_default_path_mode",
+      ui_->filePanelDefaultPathComboBox->currentData().toString());
   settings.setValue("basic/clear_gpg_password_cache",
                     ui_->clearGpgPasswordCacheCheckBox->isChecked());
   settings.setValue("basic/restore_text_editor_page",

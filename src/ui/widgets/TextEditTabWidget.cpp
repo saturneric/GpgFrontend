@@ -32,6 +32,7 @@
 #include "core/function/CacheManager.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/ProfileWorkspace.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GFBuffer.h"
 #include "core/module/ModuleManager.h"
@@ -468,16 +469,22 @@ void TextEditTabWidget::SlotNewTabWithContent(QString title,
 }
 
 void TextEditTabWidget::SlotOpenDefaultPath() {
-  auto home_path_as_file_panel_default_path =
-      GetSettings()
-          .value("basic/home_path_as_file_panel_default_path", true)
-          .toBool();
+  const auto mode = FilePanelDefaultPathModeFromString(
+      GetSettings().value("basic/file_panel_default_path_mode").toString());
 
-  auto default_path = home_path_as_file_panel_default_path
-                          ? QDir::homePath()
-                          : QDir::currentPath();
+  // Created rather than merely resolved, so the panel never falls back to the
+  // working directory just because the folder has not been used yet.
+  const auto workspace = mode == FilePanelDefaultPathMode::kWORKSPACE
+                             ? EnsureWorkspaceExists()
+                             : QString{};
 
-  if (IsRunningInSandBox()) {
+  auto default_path = ResolveFilePanelDefaultPath(
+      mode, workspace, QDir::homePath(), QDir::currentPath());
+
+  // A workspace lives inside the application container, so the sandbox already
+  // grants access to it and the yearly "pick a folder" prompt at every single
+  // startup can simply go away.
+  if (IsRunningInSandBox() && workspace.isEmpty()) {
     default_path = QFileDialog::getExistingDirectory(
         this, tr("Select Default Path"), default_path);
     if (default_path.isEmpty()) {
