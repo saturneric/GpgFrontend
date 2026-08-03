@@ -103,6 +103,14 @@ struct KeyTable : public QTableView {
   void SetRowChecked(int row) const;
 
   /**
+   * @brief Flip the check state of every selected row.
+   *
+   * One decision for the whole selection: if any selected row is unchecked,
+   * all of them become checked. What Space does.
+   */
+  void ToggleSelectedRowsChecked();
+
+  /**
    * @brief Set the Row Checked object
    *
    * @param row
@@ -206,9 +214,33 @@ struct KeyTable : public QTableView {
    */
   void SignalColumnWidthChanged();
 
+  /**
+   * @brief Emitted whenever the set of selected rows changes.
+   *
+   * What the host window hangs its per-key actions off: without it the menu bar
+   * has no way to know a different key is now in front of the user.
+   */
+  void SignalSelectionChanged();
+
+  /**
+   * @brief The user pressed Enter on a row.
+   */
+  void SignalRequestShowDetails();
+
+  /**
+   * @brief The user right-clicked the table.
+   *
+   * Emitted even when nothing is selected: right-clicking empty space is
+   * exactly when an empty keyring needs to offer Generate and Import.
+   */
+  void SignalRequestContextMenu(QContextMenuEvent* event);
+
  protected:
   void showEvent(QShowEvent* event) override;
   void resizeEvent(QResizeEvent* event) override;
+  void keyPressEvent(QKeyEvent* event) override;
+  void contextMenuEvent(QContextMenuEvent* event) override;
+  void paintEvent(QPaintEvent* event) override;
 
  private:
   QSharedPointer<GpgKeyTableModel> model_;
@@ -226,6 +258,37 @@ struct KeyTable : public QTableView {
   ///< True while apply_column_sizing() drives the header, so its own
   ///< resizeSection() calls are not mistaken for user drags.
   bool applying_sizing_ = false;
+
+  ///< Last keyword handed to SetFilterKeyword(). Kept so an empty table can say
+  ///< whether it is empty because of the search or because there is nothing to
+  ///< show.
+  QString current_keyword_;
+
+  ///< False until the first model arrives. Only then is the default sort
+  ///< applied; every later refresh restores whatever the user had chosen.
+  bool sort_initialised_ = false;
+
+  ///< Whether this tab restricts to a category, which changes what an empty
+  ///< table means.
+  bool has_category_filter_ = false;
+
+  /**
+   * @brief Sort by Name, mapping through the proxy so hiding a column cannot
+   * change which column the default sort lands on.
+   */
+  void apply_default_sort();
+
+  /**
+   * @brief Ids of the currently selected keys, for restoring a selection across
+   * a model reset.
+   */
+  [[nodiscard]] auto selected_key_ids() const -> QStringList;
+
+  /**
+   * @brief Re-select the rows holding these key ids, ignoring ids that are
+   * gone.
+   */
+  void restore_selection_by_ids(const QStringList& ids);
 
   /**
    * @brief Construct a new Init Table Style object

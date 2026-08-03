@@ -102,7 +102,7 @@ auto ColumnFilterCacheKey(const QString& scope) -> QString {
  * Bump whenever a column is added, so that users who customised their columns
  * still get the new one turned on instead of silently missing it.
  */
-constexpr int kColumnFilterVersion = 2;
+constexpr int kColumnFilterVersion = 3;
 
 auto LoadColumnFilter(const QString& scope, GpgKeyTableColumn default_columns)
     -> GpgKeyTableColumn {
@@ -116,9 +116,12 @@ auto LoadColumnFilter(const QString& scope, GpgKeyTableColumn default_columns)
     auto columns = static_cast<GpgKeyTableColumn>(
         static_cast<unsigned int>(value.toVariant().toLongLong()));
 
-    if (object.value("version").toInt(1) < kColumnFilterVersion) {
-      columns |= GpgKeyTableColumn::kEXPIRE_DATE;
-    }
+    // Cumulative on purpose: a user upgrading straight from v1 has to pick up
+    // every column added since, so each step gets its own test rather than one
+    // comparison against the current version.
+    const auto stored_version = object.value("version").toInt(1);
+    if (stored_version < 2) columns |= GpgKeyTableColumn::kEXPIRE_DATE;
+    if (stored_version < 3) columns |= GpgKeyTableColumn::kSTATUS;
     return columns;
   }
 
@@ -235,6 +238,17 @@ void KeyList::init_ui_style() {
 
   ui_->searchBarEdit->setClearButtonEnabled(true);
   ui_->searchBarEdit->setMinimumHeight(30);
+
+  // The box outlines itself when the search matched nothing, so the answer is
+  // where the user is already looking rather than only in the status bar. The
+  // property is toggled in report_search_result(); this red sits on both the
+  // light and the dark palette.
+  ui_->searchBarEdit->setStyleSheet(R"(
+QLineEdit[gfNoMatch="true"] {
+  border: 1px solid #C0392B;
+  border-radius: 3px;
+}
+)");
 
   const auto setup_tool_button = [](QToolButton* button) {
     button->setMinimumHeight(28);
@@ -652,6 +666,8 @@ void KeyList::init_column_menu() {
                     GpgKeyTableColumn::kSUBKEYS_NUMBER);
   add_column_action(comment_column_action_, tr("Comment"),
                     GpgKeyTableColumn::kCOMMENT);
+  add_column_action(status_column_action_, tr("Status"),
+                    GpgKeyTableColumn::kSTATUS);
 
   if (column_type_menu->isEmpty()) {
     auto* empty_action = column_type_menu->addAction(tr("No optional columns"));
@@ -734,6 +750,20 @@ void KeyList::init_signals() {
 
   connect(ui_->searchBarEdit, &QLineEdit::textChanged, this,
           [this]() { search_timer_->start(); });
+
+  // Escape is the way out of a search everywhere else, and without it the only
+  // way back to the full list is to select the text and delete it.
+  auto* clear_search =
+      new QShortcut(QKeySequence(Qt::Key_Escape), ui_->searchBarEdit);
+  clear_search->setContext(Qt::WidgetShortcut);
+  connect(clear_search, &QShortcut::activated, this, [this]() {
+    if (ui_->searchBarEdit->text().isEmpty()) return;
+    ui_->searchBarEdit->clear();
+    // Straight to the filter: waiting out the debounce here just looks laggy.
+    search_timer_->stop();
+    filter_by_keyword();
+    if (auto* page = current_page(); page != nullptr) page->setFocus();
+  });
 
   connect(search_timer_, &QTimer::timeout, this, &KeyList::filter_by_keyword);
 
@@ -904,6 +934,27 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
     if (sender() != current_page()) return;
     emit SignalKeyChecked();
   });
+
+  // Same guard as above: every tab stays alive in the stack, so a background
+  // tab must not speak for the list.
+  connect(key_table, &KeyTable::SignalSelectionChanged, this, [=]() {
+    if (sender() != current_page()) return;
+    emit SignalSelectionChanged();
+  });
+
+  connect(key_table, &KeyTable::SignalRequestShowDetails, this, [=]() {
+    if (sender() != current_page()) return;
+    emit SignalRequestShowDetails();
+  });
+
+  // Re-emitted with the table attached, so the host window's slot signature
+  // and its connection are unchanged by the move of ownership to KeyTable.
+  connect(key_table, &KeyTable::SignalRequestContextMenu, this,
+          [=](QContextMenuEvent* event) {
+            auto* page = qobject_cast<KeyTable*>(sender());
+            if (page == nullptr || page != current_page()) return;
+            emit SignalRequestContextMenu(event, page);
+          });
 
   // Column widths are shared by every tab of this key list, so a resize in one
   // tab has to be picked up by all the others.
@@ -1140,6 +1191,19 @@ void KeyList::slot_current_category_changed(int row) {
 
   update_action_state();
   emit SignalKeyChecked();
+  // Each tab carries its own selection, so switching tabs changes which key the
+  // per-key actions apply to just as much as clicking a different row does.
+  emit SignalSelectionChanged();
+}
+
+auto KeyList::GetCurrentCategoryId() const -> QString {
+  auto* page = current_page();
+  return page != nullptr ? page->objectName() : QString{};
+}
+
+void KeyList::FocusSearchBar() {
+  ui_->searchBarEdit->setFocus(Qt::ShortcutFocusReason);
+  ui_->searchBarEdit->selectAll();
 }
 
 void KeyList::slot_category_context_menu(const QPoint& pos) {
@@ -1351,19 +1415,12 @@ void KeyList::SetChecked(const KeyIdArgsList& key_ids,
   return false;
 }
 
-void KeyList::contextMenuEvent(QContextMenuEvent* event) {
-  auto* key_table = current_page();
-
-  if (key_table == nullptr) {
-    FLOG_D("m_key_list_ is nullptr, key stack page count: %d",
-           ui_->keyStack->count());
-    return;
-  }
-
-  if (key_table->GetRowSelected() >= 0) {
-    emit SignalRequestContextMenu(event, key_table);
-  }
-}
+// Deliberately no contextMenuEvent() override here any more. It used to live
+// on KeyList, which meant the event position was in KeyList coordinates and
+// there was no telling a right-click on empty space from one on an unselected
+// row; and it swallowed the event outright whenever nothing was selected, so
+// an empty keyring offered no menu at all. KeyTable owns it now and re-emits
+// through here.
 
 void KeyList::dropEvent(QDropEvent* event) {
   if (!event->mimeData()->hasUrls() && !event->mimeData()->hasText()) {
@@ -1627,7 +1684,31 @@ void KeyList::filter_by_keyword() {
     key_table->SetFilterKeyword(keyword);
   }
 
+  report_search_result(keyword);
   SlotRefreshUI();
+}
+
+void KeyList::report_search_result(const QString& keyword) {
+  auto* page = current_page();
+  const int rows = page != nullptr ? page->GetRowCount() : 0;
+  const bool no_match = !keyword.isEmpty() && rows == 0;
+
+  if (!keyword.isEmpty()) {
+    // Without this a search that matches nothing looks exactly like a keyring
+    // that holds nothing, and the user has no way to tell which they are
+    // looking at. The filter applies to every tab, so a hit sitting in another
+    // category is invisible from here too.
+    emit SignalRefreshStatusBar(
+        no_match ? tr("No key matches \"%1\"").arg(keyword)
+                 : tr("%n key(s) match \"%1\"", "", rows).arg(keyword),
+        3000);
+  }
+
+  if (ui_->searchBarEdit->property("gfNoMatch").toBool() != no_match) {
+    ui_->searchBarEdit->setProperty("gfNoMatch", no_match);
+    ui_->searchBarEdit->style()->unpolish(ui_->searchBarEdit);
+    ui_->searchBarEdit->style()->polish(ui_->searchBarEdit);
+  }
 }
 
 void KeyList::uncheck_all() {

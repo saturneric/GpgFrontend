@@ -292,6 +292,24 @@ class KeyList : public QWidget {
   void SyncKeysFromKeyServer(const GpgAbstractKeyPtrList& keys);
 
   /**
+   * @brief Move keyboard focus into the search box and select what is there.
+   *
+   * So the host window can offer the Ctrl+F everyone expects; the search box is
+   * not otherwise reachable without the mouse.
+   */
+  void FocusSearchBar();
+
+  /**
+   * @brief Id of the category tab currently on screen.
+   *
+   * Category membership is per tab — "remove from this category" only means
+   * something relative to the one being looked at.
+   *
+   * @return the tab id, or an empty string when there is no current tab
+   */
+  [[nodiscard]] auto GetCurrentCategoryId() const -> QString;
+
+  /**
    * @brief
    *
    */
@@ -364,14 +382,20 @@ class KeyList : public QWidget {
    */
   void SignalRequestContextMenu(QContextMenuEvent* event, KeyTable*);
 
- protected:
   /**
-   * @brief
+   * @brief Emitted whenever the selection of the current tab changes, including
+   * when switching to a tab with a different selection.
    *
-   * @param event
+   * The host window drives its per-key actions off this.
    */
-  void contextMenuEvent(QContextMenuEvent* event) override;
+  void SignalSelectionChanged();
 
+  /**
+   * @brief The user pressed Enter on a row of the current tab.
+   */
+  void SignalRequestShowDetails();
+
+ protected:
   /**
    * @brief
    *
@@ -448,6 +472,7 @@ class KeyList : public QWidget {
   QAction* owner_trust_column_action_;
   QAction* subkeys_number_column_action_;
   QAction* comment_column_action_;
+  QAction* status_column_action_;
 
   QTimer* search_timer_ = nullptr;
   bool applying_tab_order_ = false;
@@ -655,6 +680,17 @@ class KeyList : public QWidget {
    *
    */
   void filter_by_keyword();
+
+  /**
+   * @brief Tell the user how many keys the current search matched.
+   *
+   * A search that matches nothing looks exactly like an empty keyring, so the
+   * count goes to the status bar and the box itself turns red when nothing
+   * matched.
+   *
+   * @param keyword the keyword just applied, already trimmed and lower-cased
+   */
+  void report_search_result(const QString& keyword);
 
   /**
    * @brief
