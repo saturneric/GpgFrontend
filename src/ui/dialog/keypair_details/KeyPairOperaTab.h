@@ -108,17 +108,6 @@ class KeyPairOperaTab : public QWidget {
    */
   void slot_import_revoke_cert();
 
-  /**
-   * @brief
-   *
-   * @param secret
-   * @param ascii
-   * @param shortest
-   * @param type
-   */
-  void slot_export_key(bool secret, bool ascii, bool shortest,
-                       const QString& type);
-
  private:
   int current_gpg_context_channel_;
   GpgKeyPtr m_key_;  ///<

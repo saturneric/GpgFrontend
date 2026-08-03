@@ -45,6 +45,7 @@
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/function/ExportKey.h"
 #include "ui/function/GenerateRevocationCert.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 
@@ -174,116 +175,21 @@ void KeyPairOperaTab::CreateOperaMenu() {
   rev_cert_opera_menu_->addAction(rev_cert_gen_action);
 }
 
-void KeyPairOperaTab::slot_export_key(bool secret, bool ascii, bool shortest,
-                                      const QString& type) {
-  auto* task = new Thread::Task(
-      [=](const DataObjectPtr& data_object) -> int {
-        auto [err, gf_buffer] =
-            KeyImportExportOperation::GetInstance(current_gpg_context_channel_)
-                .ExportKey(m_key_, secret, ascii, shortest);
-        data_object->Swap({err, gf_buffer});
-        return 0;
-      },
-      "key_export", TransferParams(),
-      [=](int ret, const DataObjectPtr& data_object) {
-        if (ret < 0) {
-          QMessageBox::critical(
-              this, tr("Unknown Error"),
-              tr("Caught unknown error while exporting the key."));
-          return;
-        }
-
-    // generate a file name
-#ifdef Q_OS_WINDOWS
-        auto file_name = QString("%1[%2](%3)_%4.asc");
-#else
-        auto file_name = QString("%1<%2>(%3)_%4.asc");
-#endif
-
-        file_name =
-            file_name.arg(m_key_->Name(), m_key_->Email(), m_key_->ID(), type);
-
-        if (!data_object->Check<GpgError, GFBuffer>()) return;
-
-        auto err = ExtractParams<GpgError>(data_object, 0);
-        auto gf_buffer = ExtractParams<GFBuffer>(data_object, 1);
-
-        if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          CommonUtils::RaiseMessageBox(this, err);
-          return;
-        }
-
-        file_name.replace(' ', '_');
-
-        auto filepath = QFileDialog::getSaveFileName(
-            this, tr("Export Key To File"), file_name,
-            tr("Key Files") + " (*.asc *.txt);;All Files (*)");
-
-        if (filepath.isEmpty()) return;
-
-        if (!WriteFileGFBuffer(filepath, gf_buffer)) {
-          QMessageBox::critical(
-              this, tr("Export Error"),
-              tr("Couldn't open %1 for writing").arg(file_name));
-          return;
-        }
-
-        QMessageBox::information(
-            this, tr("Export Successful"),
-            tr("The key has been successfully exported to %1.").arg(filepath));
-      });
-
-  Thread::TaskRunnerGetter::GetInstance()
-      .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_GPG)
-      ->PostTask(task);
-}
+// The three export entries here and the ones in the key list are the same
+// operation, so they go through the same function object rather than through
+// two copies of the confirmation text and the save dialog. It deletes itself
+// once its task is done — see the warning on the class.
 
 void KeyPairOperaTab::slot_export_public_key() {
-  slot_export_key(false, true, false, "pub");
+  (new ExportKey(this))->ExecPublic(current_gpg_context_channel_, m_key_);
 }
 
 void KeyPairOperaTab::slot_export_short_private_key() {
-  QString warning_message =
-      "<h3><b>" + tr("WARNING: You are about to export your") + " " +
-      "<font color=\"red\">" + tr("PRIVATE KEY") + "</font>!</b></h3>" + "<p>" +
-      tr("This is NOT your Public Key, so <b>DO NOT</b> share it with "
-         "anyone.") +
-      "</p>" + "<p>" +
-      tr("You are exporting a <b>minimum size</b> private key, which "
-         "removes all signatures except for the latest self-signatures.") +
-      "</p>" + "<p>" + tr("Do you <b>REALLY</b> want to proceed?") + "</p>";
-
-  int ret = QMessageBox::warning(this, tr("Exporting Short Private Key"),
-                                 warning_message,
-                                 QMessageBox::Cancel | QMessageBox::Ok);
-
-  // export key, if ok was clicked
-  if (ret != QMessageBox::Ok) return;
-
-  slot_export_key(true, true, false, "short_secret");
+  (new ExportKey(this))->ExecShortPrivate(current_gpg_context_channel_, m_key_);
 }
 
 void KeyPairOperaTab::slot_export_private_key() {
-  // Show a information box with explanation about private key
-  QString warning_message =
-      "<h3><b>" + tr("WARNING: You are about to export your") + " " +
-      "<font color=\"red\">" + tr("PRIVATE KEY") + "</font>!</b></h3>" + "<p>" +
-      tr("This operation will export your <b>private key</b>, including both "
-         "the main key and all subkeys, "
-         "into an external file. This key is extremely sensitive, and anyone "
-         "with access to it can impersonate you. "
-         "DO NOT share this file with anyone!") +
-      "</p>" + "<p>" +
-      tr("Are you <b>ABSOLUTELY SURE</b> you want to proceed?") + "</p>";
-
-  int ret =
-      QMessageBox::warning(this, tr("Exporting Private Key"), warning_message,
-                           QMessageBox::Cancel | QMessageBox::Ok);
-
-  // export key, if ok was clicked
-  if (ret != QMessageBox::Ok) return;
-
-  slot_export_key(true, true, false, "full_secret");
+  (new ExportKey(this))->ExecPrivate(current_gpg_context_channel_, m_key_);
 }
 
 void KeyPairOperaTab::slot_modify_edit_datetime() {
