@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/ProfilePackage.h"
 #include "core/function/ProfileRegistry.h"
 #include "ui/dialog/GeneralDialog.h"
 
@@ -62,8 +63,9 @@ class ProfileManagerDialog : public GeneralDialog {
 
  private slots:
   void slot_open();
-  void slot_open_package();
   void slot_create();
+  void slot_export();
+  void slot_import();
   void slot_delete();
   void slot_reveal();
   void slot_selection_changed();
@@ -71,8 +73,9 @@ class ProfileManagerDialog : public GeneralDialog {
  private:
   QTableWidget* table_{};
   QPushButton* open_button_{};
-  QPushButton* open_package_button_{};
   QPushButton* create_button_{};
+  QPushButton* export_button_{};
+  QPushButton* import_button_{};
   QPushButton* delete_button_{};
   QPushButton* reveal_button_{};
   QLabel* hint_{};
@@ -81,6 +84,32 @@ class ProfileManagerDialog : public GeneralDialog {
 
   void init_ui();
   void reload();
+
+  /**
+   * @brief Ask for a name for an imported profile, until it is usable.
+   *
+   * @param suggestion the name the package carried
+   * @param taken ids already in use here
+   * @param id receives the sanitised folder name
+   * @return the display name, empty if the user gave up
+   */
+  auto ask_import_name(const QString& suggestion, const QStringList& taken,
+                       QString& id) -> QString;
+
+  /**
+   * @brief Turn a package that has been read into a profile, or explain why
+   * not.
+   *
+   * Separate from the reading because naming the profile is a question for the
+   * user, and the reading happens on a worker thread where there is nobody to
+   * ask.
+   *
+   * @param package_path the file it came from, for the messages
+   * @param staging_dir the extracted tree; removed before this returns
+   * @param result what the reader made of it
+   */
+  void finish_import(const QString& package_path, const QString& staging_dir,
+                     const ProfilePackageReadResult& result);
 
   /**
    * @brief The entry the user has selected, if any.

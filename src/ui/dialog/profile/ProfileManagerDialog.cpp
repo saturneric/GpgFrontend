@@ -30,15 +30,23 @@
 
 #include <QDesktopServices>
 #include <QFileDialog>
+#include <QInputDialog>
 
 #include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/ProfileBootstrap.h"
 #include "core/function/ProfileLock.h"
+#include "core/function/ProfilePackage.h"
 #include "core/function/ProfileWorkspace.h"
 #include "core/function/SystemSecretStore.h"
+#include "core/model/SettingsObject.h"
+#include "core/struct/settings_object/KeyDatabaseListSO.h"
+#include "core/utils/AsyncUtils.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/FilesystemUtils.h"
 #include "ui/dialog/profile/ProfileCreateDialog.h"
+#include "ui/dialog/profile/ProfileExportDialog.h"
+#include "ui/function/GpgOperaHelper.h"
 #include "ui/function/ProfileController.h"
 
 namespace GpgFrontend::UI {
@@ -113,20 +121,24 @@ void ProfileManagerDialog::init_ui() {
   auto* buttons = new QHBoxLayout();
   open_button_ = new QPushButton(tr("Open"), this);
   open_button_->setDefault(true);
-  open_package_button_ = new QPushButton(tr("Open Package..."), this);
   create_button_ = new QPushButton(tr("New..."), this);
+  import_button_ = new QPushButton(tr("Import..."), this);
+  export_button_ = new QPushButton(tr("Export..."), this);
   delete_button_ = new QPushButton(tr("Delete"), this);
   reveal_button_ = new QPushButton(tr("Open Folder"), this);
 
-  // The reader half of the package format is not built yet, so the button
-  // states what it will do rather than pretending it already does it.
-  open_package_button_->setEnabled(false);
-  open_package_button_->setToolTip(
-      tr("Profile packages cannot be opened by this version yet."));
+  import_button_->setToolTip(
+      tr("Read a profile file into a new profile on this computer"));
+  // Only the profile this window has open can be exported: its key is in
+  // memory here, and a profile that is not open may have its key sealed by
+  // this computer's keychain, which a file carried elsewhere could not undo.
+  export_button_->setToolTip(
+      tr("Write the profile this window is using into a single file"));
 
   buttons->addWidget(open_button_);
-  buttons->addWidget(open_package_button_);
   buttons->addWidget(create_button_);
+  buttons->addWidget(import_button_);
+  buttons->addWidget(export_button_);
   buttons->addWidget(delete_button_);
   buttons->addWidget(reveal_button_);
   buttons->addStretch();
@@ -137,8 +149,10 @@ void ProfileManagerDialog::init_ui() {
 
   connect(open_button_, &QPushButton::clicked, this,
           &ProfileManagerDialog::slot_open);
-  connect(open_package_button_, &QPushButton::clicked, this,
-          &ProfileManagerDialog::slot_open_package);
+  connect(import_button_, &QPushButton::clicked, this,
+          &ProfileManagerDialog::slot_import);
+  connect(export_button_, &QPushButton::clicked, this,
+          &ProfileManagerDialog::slot_export);
   connect(create_button_, &QPushButton::clicked, this,
           &ProfileManagerDialog::slot_create);
   connect(delete_button_, &QPushButton::clicked, this,
@@ -233,19 +247,283 @@ void ProfileManagerDialog::slot_open() {
   accept();
 }
 
-void ProfileManagerDialog::slot_open_package() {
-  const auto path = QFileDialog::getOpenFileName(
-      this, tr("Open Profile Package"), GetDefaultUserFilePath(),
-      tr("GpgFrontend Profile") + " (*.gfprofile)");
-  if (path.isEmpty()) return;
+void ProfileManagerDialog::slot_export() {
+  const auto& profile = ProfileRuntime::Instance();
 
-  const auto result = OpenPackageInNewWindow(path);
-  if (!result.Ok()) {
-    QMessageBox::warning(this, tr("Cannot Open Package"), result.detail,
-                         QMessageBox::Ok);
+  ProfileExportDialog dialog(CurrentProfileDisplayName(), profile.root, this);
+  if (dialog.exec() != QDialog::Accepted) return;
+
+  // Stored key database paths are normalised to the `@profile/` form first.
+  // They resolve to exactly the directories they did before, so the live
+  // profile is unchanged in everything but wording — and the copy that
+  // travels now finds its keys at whatever root it is opened under.
+  auto stored = SettingsObject("key_database_list");
+  auto list = KeyDatabaseListSO(stored);
+  const auto packed =
+      RewriteKeyDatabaseListForPacking(list.key_databases, profile.root);
+  if (packed.size() == list.key_databases.size()) {
+    for (int i = 0; i < packed.size(); ++i) {
+      if (packed.at(i).path != list.key_databases.at(i).path) {
+        list.key_databases = packed;
+        stored.Store(list.ToJson());
+        break;
+      }
+    }
+  }
+
+  const auto marker = ReadProfileMarker(ProfileMarkerPathFor(profile.root))
+                          .value_or(ProfileMarker{});
+
+  ProfileExportRequest request;
+  request.profile_root = profile.root;
+  request.profiles_root = profile.profiles_root;
+  request.dest_path = dialog.DestinationPath();
+  request.include_workspace = dialog.IncludeWorkspace();
+  request.protection = dialog.Protection();
+  request.passphrase = dialog.Passphrase();
+
+  // Read here rather than inside the packing: the key manager and QSettings
+  // both belong to this thread, and the packing does not run on it.
+  request.app_key = AppSecureKeyManager::GetInstance().GetLegacyKey();
+  auto settings = GetSettings();
+  request.settings = SnapshotSettings(settings);
+
+  request.manifest.schema_version = marker.schema_version > 0
+                                        ? marker.schema_version
+                                        : GetAppProfileSchemaVersion();
+  request.manifest.min_reader_version = marker.min_reader_version > 0
+                                            ? marker.min_reader_version
+                                            : GetAppProfileSchemaVersion();
+  request.manifest.app_profile = GetAppProfileName();
+  request.manifest.display_name = CurrentProfileDisplayName();
+  request.manifest.profile_id = profile.id;
+  request.manifest.self_contained = profile.policy.self_contained;
+  request.manifest.key_databases = DescribeKeyDatabasesForManifest(packed);
+
+  if (request.app_key.Empty()) {
+    QMessageBox::critical(
+        this, tr("Cannot Export Profile"),
+        tr("The application key is not available, so the profile could not be "
+           "packed."),
+        QMessageBox::Ok);
     return;
   }
 
+  auto result = std::make_shared<ProfilePackageWriteResult>();
+  GpgOperaHelper::WaitForOpera(
+      this, tr("Exporting Profile"), [=](const OperaWaitingHd& op_hd) {
+        RunOperaAsync(
+            [=](const DataObjectPtr&) -> GFError {
+              *result = ExportProfilePackage(request);
+              return result->ok ? 0 : -1;
+            },
+            [=](GFError, const DataObjectPtr&) {
+              op_hd();
+
+              if (!result->ok) {
+                QMessageBox::critical(this, tr("Cannot Export Profile"),
+                                      result->error, QMessageBox::Ok);
+                return;
+              }
+
+              QMessageBox::information(
+                  this, tr("Profile Exported"),
+                  tr("\"%1\" was written to:")
+                          .arg(request.manifest.display_name) +
+                      "\n" + QDir::toNativeSeparators(request.dest_path) +
+                      "\n\n" +
+                      (request.protection == ProfilePackageProtection::kPIN
+                           ? tr("It can only be opened with the passphrase you "
+                                "chose. There is no way to recover it.")
+                           : tr("It is not protected: anyone who gets this "
+                                "file can read the keys inside it.")),
+                  QMessageBox::Ok);
+            },
+            "export_profile_package");
+      });
+}
+
+auto ProfileManagerDialog::ask_import_name(const QString& suggestion,
+                                           const QStringList& taken,
+                                           QString& id) -> QString {
+  auto proposed = suggestion;
+
+  while (true) {
+    bool accepted = false;
+    const auto name = QInputDialog::getText(
+        this, tr("Name This Profile"),
+        tr("What should this profile be called on this computer?"),
+        QLineEdit::Normal, proposed, &accepted);
+    if (!accepted) return {};
+
+    id = MakeProfileId(name);
+    if (id.isEmpty()) {
+      QMessageBox::warning(this, tr("Name This Profile"),
+                           tr("That name cannot be used for a folder. Try "
+                              "letters and numbers."),
+                           QMessageBox::Ok);
+      proposed = name;
+      continue;
+    }
+    if (taken.contains(id)) {
+      QMessageBox::warning(
+          this, tr("Name This Profile"),
+          tr("There is already a profile in the folder \"%1\".").arg(id),
+          QMessageBox::Ok);
+      proposed = name;
+      continue;
+    }
+    return name;
+  }
+}
+
+void ProfileManagerDialog::slot_import() {
+  const auto path = QFileDialog::getOpenFileName(
+      this, tr("Import Profile"), GetDefaultUserFilePath(),
+      tr("GpgFrontend Profile") + " (*.gfprofile)");
+  if (path.isEmpty()) return;
+
+  // The header is read first because it is cheap and says whether a passphrase
+  // is needed at all — asking for one before knowing that would be a question
+  // with no right answer.
+  const auto inspection = InspectProfilePackage(path);
+  if (!inspection.Ok()) {
+    QMessageBox::critical(this, tr("Cannot Import Profile"), inspection.detail,
+                          QMessageBox::Ok);
+    return;
+  }
+
+  GFBuffer passphrase;
+  if (inspection.header.protection == ProfilePackageProtection::kPIN) {
+    bool accepted = false;
+    auto entered = QInputDialog::getText(
+        this, tr("Import Profile"),
+        tr("Enter the passphrase that protects this file:"),
+        QLineEdit::Password, {}, &accepted);
+    if (!accepted || entered.isEmpty()) return;
+
+    passphrase = GFBuffer(entered);
+    entered.fill('X');
+    entered.clear();
+  }
+
+  const auto roots = CurrentProfileRoots();
+  const auto staging =
+      MakeProfilePackageScratchDir(roots.profiles_root, "extract");
+  if (staging.isEmpty()) {
+    QMessageBox::critical(this, tr("Cannot Import Profile"),
+                          tr("A temporary folder could not be made."),
+                          QMessageBox::Ok);
+    return;
+  }
+
+  auto result = std::make_shared<ProfilePackageReadResult>();
+  GpgOperaHelper::WaitForOpera(
+      this, tr("Reading Profile"), [=](const OperaWaitingHd& op_hd) {
+        RunOperaAsync(
+            [=](const DataObjectPtr&) -> GFError {
+              *result = ReadProfilePackage(path, staging, passphrase);
+              return result->Ok() ? 0 : -1;
+            },
+            [=](GFError, const DataObjectPtr&) {
+              op_hd();
+              finish_import(path, staging, *result);
+            },
+            "read_profile_package");
+      });
+}
+
+void ProfileManagerDialog::finish_import(
+    const QString& package_path, const QString& staging_dir,
+    const ProfilePackageReadResult& result) {
+  // Whatever happens below, the extracted tree does not outlive this call: it
+  // holds an unprotected copy of the package's application key.
+  struct ScratchGuard {
+    QString path;
+    ~ScratchGuard() {
+      if (!path.isEmpty()) QDir(path).removeRecursively();
+    }
+  } const guard{staging_dir};
+
+  if (!result.Ok()) {
+    const auto title = result.status == ProfilePackageReadStatus::kTAMPERED
+                           ? tr("This File Has Been Altered")
+                           : tr("Cannot Import Profile");
+    QMessageBox::critical(
+        this, title,
+        result.detail + "\n\n" + QDir::toNativeSeparators(package_path),
+        QMessageBox::Ok);
+    return;
+  }
+
+  // A package written by a newer build may describe a layout this one cannot
+  // read; checked before anything is adopted rather than after.
+  ProfileMarker as_marker;
+  as_marker.schema_version = result.manifest.schema_version;
+  as_marker.min_reader_version = result.manifest.min_reader_version;
+  as_marker.profile = result.manifest.app_profile;
+  as_marker.last_writer_version = result.manifest.writer_version;
+
+  if (CheckProfileCompatibility(as_marker, true,
+                                GetAppProfileSchemaVersion()) ==
+      ProfileCompatibility::kTOO_NEW) {
+    QMessageBox::critical(
+        this, tr("Cannot Import Profile"),
+        tr("This profile was made by a newer version of GpgFrontend (%1).")
+            .arg(result.manifest.writer_version),
+        QMessageBox::Ok);
+    return;
+  }
+
+  QStringList taken;
+  for (const auto& entry : data_.profiles) taken << entry.id;
+
+  QString id;
+  const auto name = ask_import_name(result.manifest.display_name.isEmpty()
+                                        ? result.manifest.profile_id
+                                        : result.manifest.display_name,
+                                    taken, id);
+  if (name.isEmpty()) return;
+
+  const auto roots = CurrentProfileRoots();
+  const auto error = AdoptExtractedProfile(
+      staging_dir, roots.profiles_root + "/" + id, id, name, result.manifest);
+  if (!error.isEmpty()) {
+    QMessageBox::critical(this, tr("Cannot Import Profile"), error,
+                          QMessageBox::Ok);
+    return;
+  }
+
+  reload();
+
+  auto message = tr("\"%1\" is ready.").arg(name);
+  if (!result.manifest.workspace_included) {
+    message += "\n\n" + tr("The file did not carry any workspace files.");
+  }
+  for (const auto& database : result.manifest.key_databases) {
+    if (!database.external) continue;
+    message += "\n\n" +
+               tr("\"%1\" pointed at keys kept outside the profile, which do "
+                  "not travel. It will show as unavailable until you point it "
+                  "somewhere on this computer.")
+                   .arg(database.name);
+    break;
+  }
+
+  if (QMessageBox::question(
+          this, tr("Profile Imported"),
+          message + "\n\n" + tr("Open it now? It opens in a new window."),
+          QMessageBox::Yes | QMessageBox::No,
+          QMessageBox::Yes) != QMessageBox::Yes) {
+    return;
+  }
+
+  const auto opened = OpenProfileInNewWindow(id);
+  if (!opened.Ok()) {
+    QMessageBox::warning(this, tr("Cannot Open Profile"), opened.detail,
+                         QMessageBox::Ok);
+    return;
+  }
   accept();
 }
 
