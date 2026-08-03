@@ -191,166 +191,390 @@ auto ArchiveCloseWriteCallback(struct archive *, void *client_data) -> int {
   return 0;
 }
 
+auto ArchiveFileOperator::NewArchive2DataExchangerSync(
+    const QString &target_directory,
+    const QSharedPointer<GFDataExchanger> &exchanger,
+    ArchiveCompression compression, const ArchiveEntryFilter &filter)
+    -> GFError {
+  {
+    {
+      auto ret = 0;
+      const auto base_path = QDir(QDir(target_directory).absolutePath());
+
+      auto *archive = archive_write_new();
+      if (compression == ArchiveCompression::kGZIP) {
+        archive_write_add_filter_gzip(archive);
+      } else {
+        archive_write_add_filter_none(archive);
+      }
+      archive_write_set_format_pax_restricted(archive);
+      archive_write_set_format_option(archive, "pax", "hdrcharset", "BINARY");
+
+      archive_write_open(archive, exchanger.get(), nullptr,
+                         ArchiveWriteCallback, ArchiveCloseWriteCallback);
+
+      auto *disk = archive_read_disk_new();
+      archive_read_disk_set_standard_lookup(disk);
+
+#ifdef Q_OS_WINDOWS
+      auto target_directory_utf16_wstr = std::wstring(
+          reinterpret_cast<const wchar_t *>((target_directory).utf16()));
+      auto r =
+          archive_read_disk_open_w(disk, target_directory_utf16_wstr.c_str());
+#else
+      auto r = archive_read_disk_open(disk, target_directory.toUtf8());
+#endif
+
+      if (r != ARCHIVE_OK) {
+        FLOG_W("archive_read_disk_open() failed: %s, abort...",
+               archive_error_string(disk));
+        archive_read_free(disk);
+        archive_write_free(archive);
+        return -1;
+      }
+
+      for (;;) {
+        auto *entry = archive_entry_new();
+        r = archive_read_next_header2(disk, entry);
+        if (r == ARCHIVE_EOF) {
+          archive_entry_free(entry);
+          break;
+        }
+        if (r != ARCHIVE_OK) {
+          FLOG_W("archive_read_next_header2() failed, ret: %d, explain: %s", r,
+                 archive_error_string(disk));
+          archive_entry_free(entry);
+          ret = -1;
+          break;
+        }
+
+#ifdef Q_OS_WINDOWS
+        auto source_path =
+            QString::fromUtf16(reinterpret_cast<const char16_t *>(
+                archive_entry_pathname_w(entry)));
+#else
+        auto source_path = QString::fromUtf8(archive_entry_pathname(entry));
+#endif
+
+        const auto relative_path_name = base_path.relativeFilePath(source_path);
+        const auto filetype = archive_entry_filetype(entry);
+        const auto is_dir = filetype == AE_IFDIR;
+
+        // the traversal starts at the root itself, which is the archive's
+        // frame of reference rather than a member of it
+        if (relative_path_name.isEmpty() || relative_path_name == ".") {
+          archive_read_disk_descend(disk);
+          archive_entry_free(entry);
+          continue;
+        }
+
+        // deciding before descending is what makes excluding a directory
+        // cost nothing: the whole subtree is never walked
+        if (filter && !filter(relative_path_name)) {
+          archive_entry_free(entry);
+          continue;
+        }
+
+        archive_read_disk_descend(disk);
+
+        archive_entry_set_pathname(entry, relative_path_name.toUtf8());
+
+        if (is_dir) {
+          // a directory carries no data, and saying so keeps libarchive from
+          // reserving space for a body that never arrives
+          archive_entry_set_size(entry, 0);
+          r = archive_write_header(archive, entry);
+          if (r < ARCHIVE_OK) {
+            FLOG_W("archive_write_header() failed for dir %s, explain: %s",
+                   qPrintable(relative_path_name),
+                   archive_error_string(archive));
+          }
+          if (r == ARCHIVE_FATAL) {
+            ret = -1;
+            archive_entry_free(entry);
+            break;
+          }
+          archive_write_finish_entry(archive);
+          archive_entry_free(entry);
+          continue;
+        }
+
+        QFile file(source_path);
+        if (file.open(QIODevice::ReadOnly)) {
+#ifdef Q_OS_WINDOWS
+          auto source_path_utf16_wstr = std::wstring(
+              reinterpret_cast<const wchar_t *>(source_path.utf16()));
+          archive_entry_copy_sourcepath_w(entry,
+                                          source_path_utf16_wstr.c_str());
+#else
+          archive_entry_copy_sourcepath(entry, source_path.toUtf8());
+#endif
+
+          r = archive_write_header(archive, entry);
+          if (r == ARCHIVE_FATAL) {
+            FLOG_W(
+                "archive_write_header() failed, ret: %d, explain: %s, "
+                "abort ...",
+                r, archive_error_string(archive));
+            ret = -1;
+            archive_entry_free(entry);
+            break;
+          }
+
+          if (r < ARCHIVE_OK) {
+            FLOG_W("archive_write_header() failed, ret: %d, explain: %s", r,
+                   archive_error_string(archive));
+            archive_entry_free(entry);
+            continue;
+          }
+
+          if (r > ARCHIVE_FAILED) {
+            auto buffer = file.read(1024);
+            while (!buffer.isEmpty()) {
+              archive_write_data(archive, buffer.data(), buffer.size());
+              buffer = file.read(1024);
+            }
+          }
+        }
+        archive_write_finish_entry(archive);
+        archive_entry_free(entry);
+      }
+
+      archive_read_free(disk);
+      archive_write_free(archive);
+
+      return ret;
+    }
+  }
+}
+
 void ArchiveFileOperator::NewArchive2DataExchanger(
     const QString &target_directory,
     const QSharedPointer<GFDataExchanger> &exchanger,
     const OperationCallback &cb, ArchiveCompression compression,
     const ArchiveEntryFilter &filter) {
-  auto *task = new Thread::Task{
-      [=](const DataObjectPtr &) -> int {
-        auto ret = 0;
-        const auto base_path = QDir(QDir(target_directory).absolutePath());
-
-        auto *archive = archive_write_new();
-        if (compression == ArchiveCompression::kGZIP) {
-          archive_write_add_filter_gzip(archive);
-        } else {
-          archive_write_add_filter_none(archive);
-        }
-        archive_write_set_format_pax_restricted(archive);
-        archive_write_set_format_option(archive, "pax", "hdrcharset", "BINARY");
-
-        archive_write_open(archive, exchanger.get(), nullptr,
-                           ArchiveWriteCallback, ArchiveCloseWriteCallback);
-
-        auto *disk = archive_read_disk_new();
-        archive_read_disk_set_standard_lookup(disk);
-
-#ifdef Q_OS_WINDOWS
-        auto target_directory_utf16_wstr = std::wstring(
-            reinterpret_cast<const wchar_t *>((target_directory).utf16()));
-        auto r =
-            archive_read_disk_open_w(disk, target_directory_utf16_wstr.c_str());
-#else
-        auto r = archive_read_disk_open(disk, target_directory.toUtf8());
-#endif
-
-        if (r != ARCHIVE_OK) {
-          FLOG_W("archive_read_disk_open() failed: %s, abort...",
-                 archive_error_string(disk));
-          archive_read_free(disk);
-          archive_write_free(archive);
-          return -1;
-        }
-
-        for (;;) {
-          auto *entry = archive_entry_new();
-          r = archive_read_next_header2(disk, entry);
-          if (r == ARCHIVE_EOF) {
-            archive_entry_free(entry);
-            break;
-          }
-          if (r != ARCHIVE_OK) {
-            FLOG_W("archive_read_next_header2() failed, ret: %d, explain: %s",
-                   r, archive_error_string(disk));
-            archive_entry_free(entry);
-            ret = -1;
-            break;
-          }
-
-#ifdef Q_OS_WINDOWS
-          auto source_path =
-              QString::fromUtf16(reinterpret_cast<const char16_t *>(
-                  archive_entry_pathname_w(entry)));
-#else
-          auto source_path = QString::fromUtf8(archive_entry_pathname(entry));
-#endif
-
-          const auto relative_path_name =
-              base_path.relativeFilePath(source_path);
-          const auto filetype = archive_entry_filetype(entry);
-          const auto is_dir = filetype == AE_IFDIR;
-
-          // the traversal starts at the root itself, which is the archive's
-          // frame of reference rather than a member of it
-          if (relative_path_name.isEmpty() || relative_path_name == ".") {
-            archive_read_disk_descend(disk);
-            archive_entry_free(entry);
-            continue;
-          }
-
-          // deciding before descending is what makes excluding a directory
-          // cost nothing: the whole subtree is never walked
-          if (filter && !filter(relative_path_name)) {
-            archive_entry_free(entry);
-            continue;
-          }
-
-          archive_read_disk_descend(disk);
-
-          archive_entry_set_pathname(entry, relative_path_name.toUtf8());
-
-          if (is_dir) {
-            // a directory carries no data, and saying so keeps libarchive from
-            // reserving space for a body that never arrives
-            archive_entry_set_size(entry, 0);
-            r = archive_write_header(archive, entry);
-            if (r < ARCHIVE_OK) {
-              FLOG_W("archive_write_header() failed for dir %s, explain: %s",
-                     qPrintable(relative_path_name),
-                     archive_error_string(archive));
-            }
-            if (r == ARCHIVE_FATAL) {
-              ret = -1;
-              archive_entry_free(entry);
-              break;
-            }
-            archive_write_finish_entry(archive);
-            archive_entry_free(entry);
-            continue;
-          }
-
-          QFile file(source_path);
-          if (file.open(QIODevice::ReadOnly)) {
-#ifdef Q_OS_WINDOWS
-            auto source_path_utf16_wstr = std::wstring(
-                reinterpret_cast<const wchar_t *>(source_path.utf16()));
-            archive_entry_copy_sourcepath_w(entry,
-                                            source_path_utf16_wstr.c_str());
-#else
-            archive_entry_copy_sourcepath(entry, source_path.toUtf8());
-#endif
-
-            r = archive_write_header(archive, entry);
-            if (r == ARCHIVE_FATAL) {
-              FLOG_W(
-                  "archive_write_header() failed, ret: %d, explain: %s, "
-                  "abort ...",
-                  r, archive_error_string(archive));
-              ret = -1;
-              archive_entry_free(entry);
-              break;
-            }
-
-            if (r < ARCHIVE_OK) {
-              FLOG_W("archive_write_header() failed, ret: %d, explain: %s", r,
-                     archive_error_string(archive));
-              archive_entry_free(entry);
-              continue;
-            }
-
-            if (r > ARCHIVE_FAILED) {
-              auto buffer = file.read(1024);
-              while (!buffer.isEmpty()) {
-                archive_write_data(archive, buffer.data(), buffer.size());
-                buffer = file.read(1024);
-              }
-            }
-          }
-          archive_write_finish_entry(archive);
-          archive_entry_free(entry);
-        }
-
-        archive_read_free(disk);
-        archive_write_free(archive);
-
-        return ret;
-      },
-      "new_archive_2_data_exchanger", TransferParams(), cb};
+  auto *task =
+      new Thread::Task{[=](const DataObjectPtr &) -> GFError {
+                         return NewArchive2DataExchangerSync(
+                             target_directory, exchanger, compression, filter);
+                       },
+                       "new_archive_2_data_exchanger", TransferParams(), cb};
 
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
       ->PostTask(task);
+}
+
+auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
+    const QSharedPointer<GFDataExchanger> &ex, const QString &target_path,
+    const ArchiveExtractPolicy &policy) -> GFError {
+  {
+    {
+      // only ever true for a destination this call is responsible for, which
+      // is what makes removing it on failure safe rather than destructive
+      auto may_remove_destination = false;
+
+      if (policy.require_empty_destination) {
+        QDir dir(target_path);
+        if (!dir.exists()) {
+          if (!QDir().mkpath(target_path)) {
+            FLOG_W("cannot create extraction destination: %s",
+                   qPrintable(target_path));
+            return -1;
+          }
+        } else if (!dir.isEmpty(QDir::AllEntries | QDir::NoDotAndDotDot |
+                                QDir::Hidden | QDir::System)) {
+          FLOG_W("refusing to extract into a non-empty destination: %s",
+                 qPrintable(target_path));
+          return -1;
+        }
+        may_remove_destination = true;
+      }
+
+      int ret = 0;
+      auto *archive = archive_read_new();
+      auto *ext = archive_write_disk_new();
+
+      auto fail = [&](int code) -> GFError {
+        archive_read_free(archive);
+        archive_write_free(ext);
+        if (may_remove_destination) QDir(target_path).removeRecursively();
+        return code;
+      };
+
+      auto r = archive_read_support_filter_all(archive);
+      if (r != ARCHIVE_OK) {
+        FLOG_W("archive_read_support_filter_all(), ret: %d, reason: %s", r,
+               archive_error_string(archive));
+        return fail(r);
+      }
+
+      r = archive_read_support_format_all(archive);
+      if (r != ARCHIVE_OK) {
+        FLOG_W("archive_read_support_format_all(), ret: %d, reason: %s", r,
+               archive_error_string(archive));
+        return fail(r);
+      }
+
+      auto rdata = ArchiveReadClientData{};
+      rdata.ex = ex.get();
+
+      r = archive_read_open(archive, &rdata, nullptr, ArchiveReadCallback,
+                            nullptr);
+
+      if (r != ARCHIVE_OK) {
+        FLOG_W("archive_read_open(), ret: %d, reason: %s", r,
+               archive_error_string(archive));
+        return fail(r);
+      }
+
+      // SECURE_SYMLINKS covers what this loop cannot see: a symlink
+      // appearing in the destination path between the check and the write.
+      //
+      // SECURE_NODOTDOT and SECURE_NOABSOLUTEPATHS are deliberately absent.
+      // They are applied to the pathname handed to archive_write_header(),
+      // which is the destination-prefixed one and therefore always absolute
+      // — turning them on rejects every entry. The entry names the archive
+      // actually carries are checked by ValidateArchiveEntryPath() above,
+      // which is strictly stronger: it also rejects Windows drive letters
+      // and treats a backslash as a separator on every platform.
+      r = archive_write_disk_set_options(ext, ARCHIVE_EXTRACT_SECURE_SYMLINKS);
+      if (r != ARCHIVE_OK) {
+        FLOG_W("archive_write_disk_set_options(), ret: %d, reason: %s", r,
+               archive_error_string(archive));
+        return fail(r);
+      }
+
+      qint64 total_written = 0;
+      int entry_count = 0;
+
+      for (;;) {
+        struct archive_entry *entry;
+        r = archive_read_next_header(archive, &entry);
+        if (r == ARCHIVE_EOF) break;
+        if (r != ARCHIVE_OK) {
+          FLOG_W("archive_read_next_header(), ret: %d, reason: %s", r,
+                 archive_error_string(archive));
+          ret = r;
+          break;
+        }
+
+        if (policy.max_entries >= 0 && ++entry_count > policy.max_entries) {
+          FLOG_W("archive exceeds the entry limit (%d), aborting",
+                 policy.max_entries);
+          ret = -1;
+          break;
+        }
+
+        const auto path_name = QString::fromUtf8(archive_entry_pathname(entry));
+
+        QString relative_path;
+        const auto verdict =
+            ValidateArchiveEntryPath(path_name, policy, relative_path);
+        if (verdict != ArchiveEntryVerdict::kACCEPT) {
+          FLOG_W("refusing archive entry '%s': %s", qPrintable(path_name),
+                 ArchiveEntryVerdictToString(verdict));
+          ret = -1;
+          break;
+        }
+
+        const auto filetype = archive_entry_filetype(entry);
+        const auto is_hardlink = archive_entry_hardlink(entry) != nullptr;
+
+        if (IsRefusedEntryType(filetype)) {
+          FLOG_W("refusing archive entry '%s': unsupported entry type",
+                 qPrintable(path_name));
+          ret = -1;
+          break;
+        }
+        if (filetype == AE_IFLNK && !policy.allow_symlinks) {
+          FLOG_W("refusing archive entry '%s': symbolic links not allowed",
+                 qPrintable(path_name));
+          ret = -1;
+          break;
+        }
+        if (is_hardlink && !policy.allow_hardlinks) {
+          FLOG_W("refusing archive entry '%s': hard links not allowed",
+                 qPrintable(path_name));
+          ret = -1;
+          break;
+        }
+
+        // a set-user-id bit inside an archive is never something the
+        // recipient asked for
+        archive_entry_set_perm(
+            entry, archive_entry_perm(entry) & ~(S_ISUID | S_ISGID));
+
+        // reject before writing, on the declared size, so an obviously
+        // oversized entry never starts landing on disk at all
+        if (archive_entry_size_is_set(entry)) {
+          const auto declared = static_cast<qint64>(archive_entry_size(entry));
+          if (policy.max_entry_bytes >= 0 &&
+              declared > policy.max_entry_bytes) {
+            FLOG_W(
+                "refusing archive entry '%s': declared size %lld exceeds "
+                "the per-entry limit",
+                qPrintable(path_name), static_cast<long long>(declared));
+            ret = -1;
+            break;
+          }
+          if (policy.max_total_bytes >= 0 &&
+              total_written + declared > policy.max_total_bytes) {
+            FLOG_W(
+                "refusing archive entry '%s': would exceed the total "
+                "extraction limit",
+                qPrintable(path_name));
+            ret = -1;
+            break;
+          }
+        }
+
+        const auto target_path_name = target_path + "/" + relative_path;
+
+#ifdef Q_OS_WINDOWS
+        auto target_path_utf16_wstr = std::wstring(
+            reinterpret_cast<const wchar_t *>((target_path_name).utf16()));
+        archive_entry_copy_pathname_w(entry, target_path_utf16_wstr.c_str());
+#else
+        archive_entry_set_pathname(entry, target_path_name.toUtf8());
+#endif
+
+        r = archive_write_header(ext, entry);
+        if (r != ARCHIVE_OK) {
+          FLOG_W("archive_write_header(), ret: %d, reason: %s", r,
+                 archive_error_string(ext));
+          continue;
+        }
+
+        const auto remaining = policy.max_total_bytes < 0
+                                   ? qint64{-1}
+                                   : policy.max_total_bytes - total_written;
+
+        qint64 written = 0;
+        r = CopyData(archive, ext, policy.max_entry_bytes, remaining, written);
+        total_written += written;
+        if (r != ARCHIVE_OK) {
+          ret = -1;
+          break;
+        }
+      }
+
+      if (ret != 0) return fail(ret);
+
+      r = archive_read_free(archive);
+      if (r != ARCHIVE_OK) {
+        FLOG_W("archive_read_free(), ret: %d, reason: %s", r,
+               archive_error_string(archive));
+      }
+      r = archive_write_free(ext);
+      if (r != ARCHIVE_OK) {
+        FLOG_W("archive_write_free(), ret: %d, reason: %s", r,
+               archive_error_string(ext));
+      }
+
+      return ret;
+    }
+  }
 }
 
 void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
@@ -358,213 +582,7 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
     const OperationCallback &cb, const ArchiveExtractPolicy &policy) {
   auto *task = new Thread::Task{
       [=](const DataObjectPtr &) -> GFError {
-        // only ever true for a destination this call is responsible for, which
-        // is what makes removing it on failure safe rather than destructive
-        auto may_remove_destination = false;
-
-        if (policy.require_empty_destination) {
-          QDir dir(target_path);
-          if (!dir.exists()) {
-            if (!QDir().mkpath(target_path)) {
-              FLOG_W("cannot create extraction destination: %s",
-                     qPrintable(target_path));
-              return -1;
-            }
-          } else if (!dir.isEmpty(QDir::AllEntries | QDir::NoDotAndDotDot |
-                                  QDir::Hidden | QDir::System)) {
-            FLOG_W("refusing to extract into a non-empty destination: %s",
-                   qPrintable(target_path));
-            return -1;
-          }
-          may_remove_destination = true;
-        }
-
-        int ret = 0;
-        auto *archive = archive_read_new();
-        auto *ext = archive_write_disk_new();
-
-        auto fail = [&](int code) -> GFError {
-          archive_read_free(archive);
-          archive_write_free(ext);
-          if (may_remove_destination) QDir(target_path).removeRecursively();
-          return code;
-        };
-
-        auto r = archive_read_support_filter_all(archive);
-        if (r != ARCHIVE_OK) {
-          FLOG_W("archive_read_support_filter_all(), ret: %d, reason: %s", r,
-                 archive_error_string(archive));
-          return fail(r);
-        }
-
-        r = archive_read_support_format_all(archive);
-        if (r != ARCHIVE_OK) {
-          FLOG_W("archive_read_support_format_all(), ret: %d, reason: %s", r,
-                 archive_error_string(archive));
-          return fail(r);
-        }
-
-        auto rdata = ArchiveReadClientData{};
-        rdata.ex = ex.get();
-
-        r = archive_read_open(archive, &rdata, nullptr, ArchiveReadCallback,
-                              nullptr);
-
-        if (r != ARCHIVE_OK) {
-          FLOG_W("archive_read_open(), ret: %d, reason: %s", r,
-                 archive_error_string(archive));
-          return fail(r);
-        }
-
-        // SECURE_SYMLINKS covers what this loop cannot see: a symlink
-        // appearing in the destination path between the check and the write.
-        //
-        // SECURE_NODOTDOT and SECURE_NOABSOLUTEPATHS are deliberately absent.
-        // They are applied to the pathname handed to archive_write_header(),
-        // which is the destination-prefixed one and therefore always absolute
-        // — turning them on rejects every entry. The entry names the archive
-        // actually carries are checked by ValidateArchiveEntryPath() above,
-        // which is strictly stronger: it also rejects Windows drive letters
-        // and treats a backslash as a separator on every platform.
-        r = archive_write_disk_set_options(ext,
-                                           ARCHIVE_EXTRACT_SECURE_SYMLINKS);
-        if (r != ARCHIVE_OK) {
-          FLOG_W("archive_write_disk_set_options(), ret: %d, reason: %s", r,
-                 archive_error_string(archive));
-          return fail(r);
-        }
-
-        qint64 total_written = 0;
-        int entry_count = 0;
-
-        for (;;) {
-          struct archive_entry *entry;
-          r = archive_read_next_header(archive, &entry);
-          if (r == ARCHIVE_EOF) break;
-          if (r != ARCHIVE_OK) {
-            FLOG_W("archive_read_next_header(), ret: %d, reason: %s", r,
-                   archive_error_string(archive));
-            ret = r;
-            break;
-          }
-
-          if (policy.max_entries >= 0 && ++entry_count > policy.max_entries) {
-            FLOG_W("archive exceeds the entry limit (%d), aborting",
-                   policy.max_entries);
-            ret = -1;
-            break;
-          }
-
-          const auto path_name =
-              QString::fromUtf8(archive_entry_pathname(entry));
-
-          QString relative_path;
-          const auto verdict =
-              ValidateArchiveEntryPath(path_name, policy, relative_path);
-          if (verdict != ArchiveEntryVerdict::kACCEPT) {
-            FLOG_W("refusing archive entry '%s': %s", qPrintable(path_name),
-                   ArchiveEntryVerdictToString(verdict));
-            ret = -1;
-            break;
-          }
-
-          const auto filetype = archive_entry_filetype(entry);
-          const auto is_hardlink = archive_entry_hardlink(entry) != nullptr;
-
-          if (IsRefusedEntryType(filetype)) {
-            FLOG_W("refusing archive entry '%s': unsupported entry type",
-                   qPrintable(path_name));
-            ret = -1;
-            break;
-          }
-          if (filetype == AE_IFLNK && !policy.allow_symlinks) {
-            FLOG_W("refusing archive entry '%s': symbolic links not allowed",
-                   qPrintable(path_name));
-            ret = -1;
-            break;
-          }
-          if (is_hardlink && !policy.allow_hardlinks) {
-            FLOG_W("refusing archive entry '%s': hard links not allowed",
-                   qPrintable(path_name));
-            ret = -1;
-            break;
-          }
-
-          // a set-user-id bit inside an archive is never something the
-          // recipient asked for
-          archive_entry_set_perm(
-              entry, archive_entry_perm(entry) & ~(S_ISUID | S_ISGID));
-
-          // reject before writing, on the declared size, so an obviously
-          // oversized entry never starts landing on disk at all
-          if (archive_entry_size_is_set(entry)) {
-            const auto declared =
-                static_cast<qint64>(archive_entry_size(entry));
-            if (policy.max_entry_bytes >= 0 &&
-                declared > policy.max_entry_bytes) {
-              FLOG_W(
-                  "refusing archive entry '%s': declared size %lld exceeds "
-                  "the per-entry limit",
-                  qPrintable(path_name), static_cast<long long>(declared));
-              ret = -1;
-              break;
-            }
-            if (policy.max_total_bytes >= 0 &&
-                total_written + declared > policy.max_total_bytes) {
-              FLOG_W(
-                  "refusing archive entry '%s': would exceed the total "
-                  "extraction limit",
-                  qPrintable(path_name));
-              ret = -1;
-              break;
-            }
-          }
-
-          const auto target_path_name = target_path + "/" + relative_path;
-
-#ifdef Q_OS_WINDOWS
-          auto target_path_utf16_wstr = std::wstring(
-              reinterpret_cast<const wchar_t *>((target_path_name).utf16()));
-          archive_entry_copy_pathname_w(entry, target_path_utf16_wstr.c_str());
-#else
-          archive_entry_set_pathname(entry, target_path_name.toUtf8());
-#endif
-
-          r = archive_write_header(ext, entry);
-          if (r != ARCHIVE_OK) {
-            FLOG_W("archive_write_header(), ret: %d, reason: %s", r,
-                   archive_error_string(ext));
-            continue;
-          }
-
-          const auto remaining = policy.max_total_bytes < 0
-                                     ? qint64{-1}
-                                     : policy.max_total_bytes - total_written;
-
-          qint64 written = 0;
-          r = CopyData(archive, ext, policy.max_entry_bytes, remaining,
-                       written);
-          total_written += written;
-          if (r != ARCHIVE_OK) {
-            ret = -1;
-            break;
-          }
-        }
-
-        if (ret != 0) return fail(ret);
-
-        r = archive_read_free(archive);
-        if (r != ARCHIVE_OK) {
-          FLOG_W("archive_read_free(), ret: %d, reason: %s", r,
-                 archive_error_string(archive));
-        }
-        r = archive_write_free(ext);
-        if (r != ARCHIVE_OK) {
-          FLOG_W("archive_write_free(), ret: %d, reason: %s", r,
-                 archive_error_string(ext));
-        }
-
-        return ret;
+        return ExtractArchiveFromDataExchangerSync(ex, target_path, policy);
       },
       "extract_archive_from_data_exchanger", TransferParams(), cb};
 

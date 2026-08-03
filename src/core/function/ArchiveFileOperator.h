@@ -195,6 +195,29 @@ class GF_CORE_EXPORT ArchiveFileOperator {
       const ArchiveEntryFilter &filter = {});
 
   /**
+   * @brief Pack a directory tree into a stream, on the calling thread.
+   *
+   * What NewArchive2DataExchanger() runs on the I/O runner. Exposed because a
+   * caller that both packs and consumes the result cannot use the asynchronous
+   * form: its completion callback is delivered to the thread that created the
+   * task, so a caller that is itself busy draining the stream would be waiting
+   * for a message it is not in a position to receive.
+   *
+   * Someone else must be reading the stream concurrently — the exchanger holds
+   * a few megabytes and then blocks the writer.
+   *
+   * @param target_directory directory to pack; becomes the archive root
+   * @param exchanger stream to write the archive into
+   * @param compression compression filter to apply
+   * @param filter optional predicate deciding what is included
+   * @return 0 on success, negative on failure
+   */
+  static auto NewArchive2DataExchangerSync(
+      const QString &target_directory, const QSharedPointer<GFDataExchanger> &,
+      ArchiveCompression compression = ArchiveCompression::kNONE,
+      const ArchiveEntryFilter &filter = {}) -> GFError;
+
+  /**
    * @brief Unpack a stream into a directory.
    *
    * Every entry is validated against @p policy before anything is written, and
@@ -211,5 +234,22 @@ class GF_CORE_EXPORT ArchiveFileOperator {
       const QSharedPointer<GFDataExchanger> &fd, const QString &target_path,
       const OperationCallback &cb,
       const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive());
+
+  /**
+   * @brief Unpack a stream into a directory, on the calling thread.
+   *
+   * The synchronous half of ExtractArchiveFromDataExchanger(); see
+   * NewArchive2DataExchangerSync() for why a self-contained caller needs it.
+   * Someone else must be filling the stream concurrently.
+   *
+   * @param fd stream to read the archive from
+   * @param target_path directory to extract into
+   * @param policy limits and permissions to enforce
+   * @return 0 on success, negative on failure
+   */
+  static auto ExtractArchiveFromDataExchangerSync(
+      const QSharedPointer<GFDataExchanger> &fd, const QString &target_path,
+      const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive())
+      -> GFError;
 };
 }  // namespace GpgFrontend
