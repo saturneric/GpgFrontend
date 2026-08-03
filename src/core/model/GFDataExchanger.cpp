@@ -69,7 +69,12 @@ auto GFDataExchanger::Read(std::byte* buffer, size_t size) -> ssize_t {
     if (queue_.empty()) not_full_.notify_all();
     not_empty_.wait(lock, [=] { return !queue_.empty() || close_; });
 
-    if (close_ && queue_.empty()) return 0;
+    // End of stream part-way through filling the caller's buffer. What has
+    // already been copied is real data and must be reported: returning 0 here
+    // discarded the tail of every stream whose length was not a whole multiple
+    // of the reader's buffer, which is almost all of them.
+    if (close_ && queue_.empty()) return read_bytes;
+
     buffer[i] = queue_.front();
     queue_.pop();
     read_bytes++;
