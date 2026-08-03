@@ -723,17 +723,24 @@ void KeyMgmt::publish_keys_to_key_server(const GpgAbstractKeyPtrList& keys) {
                         // The target is configurable, so say where it went.
                         const auto key_server =
                             p["key_server"].ConvertToQString();
-                        QMessageBox::information(
-                            this, tr("Upload Complete"),
+                        auto message =
                             key_server.isEmpty()
                                 ? tr("The public key was uploaded to the key "
-                                     "server.\n\nFingerprint: %1")
-                                      .arg(p["fingerprint"].ConvertToQString())
-                                : tr("The public key was uploaded to "
-                                     "%1.\n\nFingerprint: %2")
-                                      .arg(
-                                          QUrl(key_server).host(),
-                                          p["fingerprint"].ConvertToQString()));
+                                     "server.")
+                                : tr("The public key was uploaded to %1.")
+                                      .arg(QUrl(key_server).host());
+
+                        // An HKP upload reports no fingerprint back, so only
+                        // claim one when the server actually gave us one.
+                        const auto fingerprint =
+                            p["fingerprint"].ConvertToQString();
+                        if (!fingerprint.isEmpty()) {
+                          message +=
+                              "\n\n" + tr("Fingerprint: %1").arg(fingerprint);
+                        }
+
+                        QMessageBox::information(this, tr("Upload Complete"),
+                                                 message);
                       });
                 });
       });
