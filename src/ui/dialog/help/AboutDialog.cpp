@@ -76,6 +76,25 @@ auto CreateValueLabel(const QString& text, QWidget* parent = nullptr)
   return label;
 }
 
+// A path is the one value here that has no natural length limit, and a
+// word-wrapped label cannot be trusted with it: heightForWidth does not survive
+// the trip through a form layout inside a scroll area, so the label is given
+// one or two lines' worth of space and quietly draws the rest off the edge —
+// leaving a path that looks complete and is not. A read-only field is always
+// exactly one line tall, scrolls to show the rest, and copies whole.
+auto CreatePathValue(const QString& text, QWidget* parent = nullptr)
+    -> QLineEdit* {
+  auto* edit = new QLineEdit(text, parent);
+  edit->setReadOnly(true);
+  edit->setFrame(false);
+  edit->setToolTip(text);
+  edit->setCursorPosition(0);
+  edit->setStyleSheet(
+      QStringLiteral("QLineEdit { background: transparent; border: none; "
+                     "padding: 0; }"));
+  return edit;
+}
+
 auto CreateCard(const QString& title, QWidget* content,
                 QWidget* parent = nullptr) -> QFrame* {
   auto* frame = new QFrame(parent);
@@ -599,7 +618,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
       CreateValueLabel(ProfileKindDisplayName(profile.kind), profile_widget));
   profile_form->addRow(
       tr("Profile Folder:"),
-      CreateValueLabel(QDir::toNativeSeparators(profile.root), profile_widget));
+      CreatePathValue(QDir::toNativeSeparators(profile.root), profile_widget));
 
   // Where the keyring comes from is the difference a user actually feels
   // between two profiles, so it is stated rather than left to be inferred from
@@ -611,12 +630,14 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
                        profile_widget));
 
   const auto workspace = CurrentWorkspacePath();
-  profile_form->addRow(
-      tr("Workspace:"),
-      CreateValueLabel(workspace.isEmpty()
-                           ? tr("None")
-                           : QDir::toNativeSeparators(workspace),
-                       profile_widget));
+  if (workspace.isEmpty()) {
+    profile_form->addRow(tr("Workspace:"),
+                         CreateValueLabel(tr("None"), profile_widget));
+  } else {
+    profile_form->addRow(
+        tr("Workspace:"),
+        CreatePathValue(QDir::toNativeSeparators(workspace), profile_widget));
+  }
 
   if (const auto marker =
           ReadProfileMarker(ProfileMarkerPathFor(profile.root))) {
@@ -628,17 +649,16 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
     // Present only on a profile that came from a package, and worth showing
     // there: it is the identity that says which document this copy came from.
     if (!marker->package_id.isEmpty()) {
-      profile_form->addRow(
-          tr("Imported From Package:"),
-          CreateValueLabel(marker->package_id, profile_widget));
+      profile_form->addRow(tr("Imported From Package:"),
+                           CreatePathValue(marker->package_id, profile_widget));
     }
   }
 
   if (!profile.profiles_root.isEmpty()) {
     profile_form->addRow(
         tr("Profiles Folder:"),
-        CreateValueLabel(QDir::toNativeSeparators(profile.profiles_root),
-                         profile_widget));
+        CreatePathValue(QDir::toNativeSeparators(profile.profiles_root),
+                        profile_widget));
   }
 
   main_layout->addWidget(CreateCard(tr("Profile"), profile_widget, content));
