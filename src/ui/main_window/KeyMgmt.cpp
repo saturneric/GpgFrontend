@@ -184,9 +184,14 @@ KeyMgmt::KeyMgmt(QWidget* parent)
   connect(key_list_, &KeyList::SignalKeyChecked, this,
           &KeyMgmt::update_key_action_state);
   connect(UISignalStation::GetInstance(),
-          &UISignalStation::SignalKeyDatabaseRefreshDone, this,
-          &KeyMgmt::update_key_action_state);
+          &UISignalStation::SignalKeyDatabaseRefreshDone, this, [this]() {
+            // The keyring-wide facts have to be current before the pass that
+            // reads them.
+            refresh_keyring_summary_flags();
+            update_key_action_state();
+          });
 
+  refresh_keyring_summary_flags();
   update_key_action_state();
 
   status_summary_label_ = new QLabel(this);
@@ -1341,12 +1346,22 @@ auto KeyMgmt::build_key_action_context() const -> KeyActionContext {
                key->KeyType() == GpgAbstractKeyType::kGPG_KEY;
       });
 
-  const auto all_keys = GpgKeyRepository::GetInstance(channel).Fetch();
-  ctx.any_private_key_in_keyring = std::any_of(
-      all_keys.cbegin(), all_keys.cend(),
-      [](const auto& key) { return key != nullptr && key->IsPrivateKey(); });
+  // Read from the cached flag rather than the keyring: this runs on every
+  // selection change, including every arrow-key press, and Fetch() copies the
+  // whole key list under a lock to answer one yes-or-no question.
+  ctx.any_private_key_in_keyring = keyring_has_private_key_;
 
   return ctx;
+}
+
+void KeyMgmt::refresh_keyring_summary_flags() {
+  const auto keys =
+      GpgKeyRepository::GetInstance(key_list_->GetCurrentGpgContextChannel())
+          .Fetch();
+
+  keyring_has_private_key_ = std::any_of(
+      keys.cbegin(), keys.cend(),
+      [](const auto& key) { return key != nullptr && key->IsPrivateKey(); });
 }
 
 void KeyMgmt::update_key_action_state() {

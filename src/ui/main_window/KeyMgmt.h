@@ -214,6 +214,10 @@ class KeyMgmt : public GeneralMainWindow {
   ///< selection change.
   QHash<KeyAction, QAction*> action_map_;
 
+  ///< Whether the keyring holds any private key. Refreshed when the keyring
+  ///< changes, not on every selection change.
+  bool keyring_has_private_key_ = false;
+
   ///< Flat list of the actions reachable from the context menu, submenu
   ///< children included. Flat on purpose: the actions shared with the menu bar
   ///< are exactly the nested ones, and a per-menu walk would skip them.
@@ -311,6 +315,15 @@ class KeyMgmt : public GeneralMainWindow {
    * about the struct, which is what makes the rules testable.
    */
   [[nodiscard]] auto build_key_action_context() const -> KeyActionContext;
+
+  /**
+   * @brief Recompute the keyring-wide facts the gating rules need.
+   *
+   * Kept apart from build_key_action_context() because answering them means
+   * walking the whole keyring, and they only change when the keyring does — not
+   * every time the user moves the selection.
+   */
+  void refresh_keyring_summary_flags();
 
   /**
    * @brief Bring every key action in line with what is currently selected.
