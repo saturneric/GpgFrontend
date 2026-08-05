@@ -71,6 +71,25 @@ jobs:
             "macos-26",
             "windows-2022",
           ]
+        # Portable vs installed is a compile-time decision
+        # (GPGFRONTEND_BUILD_PORTABLE decides where the profile, and with it the
+        # user's keys, lives), so each flavour needs its own configure + build.
+        # They run as separate matrix jobs on purpose: the generated build
+        # headers land in the source tree, so two flavours cannot share one
+        # checkout.
+        flavor: ["installed", "portable"]
+        exclude:
+          # macOS ships as a signed, notarized .app bundle installed to
+          # /Applications; a portable bundle has no meaning there (and the App
+          # Store / sandbox variants forbid it outright).
+          - os: "macos-15-intel"
+            flavor: "portable"
+          - os: "macos-15"
+            flavor: "portable"
+          - os: "macos-26-intel"
+            flavor: "portable"
+          - os: "macos-26"
+            flavor: "portable"
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -90,6 +109,14 @@ jobs:
         run: |
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
+
+          # Build flavour: "portable" keeps the profile beside the application,
+          # "installed" uses the OS user-data location. Compile-time only.
+          if [[ "${{ matrix.flavor }}" == "portable" ]]; then
+            echo "GPGFRONTEND_BUILD_PORTABLE=ON" >> $GITHUB_ENV
+          else
+            echo "GPGFRONTEND_BUILD_PORTABLE=OFF" >> $GITHUB_ENV
+          fi
 
           # Single-branch (trunk + tags) model:
           #   - a version tag (v*)  -> stable release build
@@ -135,11 +162,12 @@ jobs:
 
           echo "Build mode: ${BUILD_MODE}"
           echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
+          echo "Build flavor: ${{ matrix.flavor }}"
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          key: ${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
+          key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.flavor }}-${{ env.BUILD_TYPE }}
 
       - name: Install Dependence (Linux)
         run: |
@@ -223,6 +251,8 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         if: runner.os == 'Linux' || runner.os == 'macOS'
 
+      # The Rust crate does not see the portable flag, so both flavours produce
+      # the same cargo output and deliberately share one cache entry.
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
         with:
@@ -346,6 +376,7 @@ jobs:
             -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
             -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{env.PROVISIONING_PROFILE_UUID}}" \
             -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
+            -DGPGFRONTEND_BUILD_PORTABLE=OFF \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
 
           xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
@@ -420,6 +451,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
             -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
+            -DGPGFRONTEND_BUILD_PORTABLE=${{env.GPGFRONTEND_BUILD_PORTABLE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build ${{ github.workspace }}/build \
             --config ${{ env.BUILD_TYPE }} \
@@ -468,6 +500,17 @@ jobs:
             -extra-plugins=iconengines,platforms,sqldrivers/libqsqlite.so \
             -appimage \
             -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
+
+          # linuxdeployqt names the image after the .desktop entry, so both
+          # flavours would come out as Gpg_Frontend-<arch>.AppImage and collide
+          # once the release job merges every runner's artifacts into one
+          # directory. Rename to the same scheme the other platforms use.
+          rm -f linuxdeployqt-continuous.AppImage
+          for image in Gpg_Frontend*.AppImage; do
+            mv "$image" \
+              "GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-${ARCH}-${{matrix.flavor}}.AppImage"
+          done
+          ls -l
         if: runner.os == 'Linux'
 
       - name: Build GpgFrontend (Windows)
@@ -477,6 +520,7 @@ jobs:
           cmake -G "Ninja" -S . -B build \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
+            -DGPGFRONTEND_BUILD_PORTABLE=${{env.GPGFRONTEND_BUILD_PORTABLE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build build \
             --config ${{ env.BUILD_TYPE }} \
@@ -525,7 +569,9 @@ jobs:
           ls -l build/artifacts/gnupg/
         if: runner.os == 'Windows'
 
-      - name: Package (Windows)
+      # Payload staging is flavour-independent: the portable ZIP and the MSI are
+      # both built from this same tree, only from a differently configured build.
+      - name: Stage Payload (Windows)
         shell: msys2 {0}
         run: |
           cd $(cygpath -u "${{github.workspace}}")
@@ -538,20 +584,25 @@ jobs:
           rm -rf build/artifacts/bin/*.a
           rm -rf build/artifacts/bin/modules/*.a
           mv build/artifacts/bin/modules build/artifacts/modules
-          touch build/artifacts/bin/ENV.ini
-          echo "PortableMode=true" >> build/artifacts/bin/ENV.ini
           cd build
-          windeployqt6 --no-translations --force ./artifacts/bin/libgf_core.dll
-          windeployqt6 --no-translations --force ./artifacts/bin/libgf_ui.dll
-          windeployqt6 --no-translations --force ./artifacts/bin/libgf_test.dll
+          # Deploy every gf_* library rather than a hand-kept list, so a newly
+          # registered library (gf_res was the last one) cannot be forgotten.
+          for lib in ./artifacts/bin/libgf_*.dll; do
+            windeployqt6 --no-translations --force "$lib"
+          done
           windeployqt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
           for module in ./artifacts/modules/*.dll; do
             windeployqt6 --no-translations --force "$module"
           done
-          mkdir upload-artifact
-          cd artifacts
-          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.zip *
+          mkdir -p upload-artifact
         if: runner.os == 'Windows'
+
+      - name: Package Portable Archive (Windows)
+        shell: msys2 {0}
+        run: |
+          cd $(cygpath -u "${{github.workspace}}")/build/artifacts
+          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64-portable.zip *
+        if: runner.os == 'Windows' && matrix.flavor == 'portable'
 
       - name: Build MSI Installer (Windows)
         shell: pwsh
@@ -582,32 +633,34 @@ jobs:
             -d ProductVersion="$version" `
             -d IconSource="${{github.workspace}}/gpgfrontend.ico" `
             -d BrandingDir="${{github.workspace}}/resource/wix" `
-            -o "${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.msi" `
+            -o "${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64-installed.msi" `
             resource/wix/Package.wxs
 
           # wix drops a .wixpdb next to the .msi; it is build metadata, not a deliverable.
           Remove-Item -Force -ErrorAction SilentlyContinue `
             "${{github.workspace}}/build/upload-artifact/*.wixpdb"
-        if: runner.os == 'Windows'
+        # An MSI installs into Program Files and keeps its data in the user
+        # profile, so it is only ever built from the installed flavour.
+        if: runner.os == 'Windows' && matrix.flavor == 'installed'
 
       - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: ${{github.workspace}}/build/upload-artifact/Gpg_Frontend*.AppImage*
+          name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          path: ${{github.workspace}}/build/upload-artifact/GpgFrontend-*.AppImage*
         if: runner.os == 'Linux'
 
       - name: Upload Artifact (macOS)
         uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-${{env.OS_IDENTIFIER}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          name: gpgfrontend-${{env.OS_IDENTIFIER}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*
         if: runner.os == 'macOS'
 
       - name: Upload Artifact (Windows)
         uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*
         if: runner.os == 'Windows'
 

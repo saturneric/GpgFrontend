@@ -176,6 +176,7 @@ jobs:
           mkdir build && cd build
           cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_QT5_BUILD=ON \
+            -DGPGFRONTEND_BUILD_PORTABLE=ON \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
             ..
           cmake --build . \
@@ -264,12 +265,12 @@ jobs:
           cp COPYING build/artifacts/
           cp gpgfrontend.ico build/artifacts/bin/
           rm -rf build/artifacts/bin/*.a
-          touch build/artifacts/bin/ENV.ini
-          echo "PortableMode=true" >> build/artifacts/bin/ENV.ini
           cd build
-          windeployqt-qt5 --no-translations --force ./artifacts/bin/libgf_core.dll
-          windeployqt-qt5 --no-translations --force ./artifacts/bin/libgf_ui.dll
-          windeployqt-qt5 --no-translations --force ./artifacts/bin/libgf_test.dll
+          # Portable mode is no longer a runtime ENV.ini key; the build above
+          # sets GPGFRONTEND_BUILD_PORTABLE=ON for this archive.
+          for lib in ./artifacts/bin/libgf_*.dll; do
+            windeployqt-qt5 --no-translations --force "$lib"
+          done
           windeployqt-qt5 --no-translations --force ./artifacts/bin/GpgFrontend.exe
           mkdir upload-artifact
           cd artifacts

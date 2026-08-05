@@ -153,12 +153,12 @@
          The AIP's fake file versions (65535.65535.65535.65535, AI's overwrite-always trick) are
          unnecessary here: RemoveExistingProducts runs early (afterInstallValidate), so upgrades
          always lay down fresh files.
-         bin\ENV.ini exists on disk but is NOT in the AIP's file table — excluded to stay equal.
-         Delete the Exclude line if it should ship. -->
+         bin\ENV.ini used to be excluded here (it was on disk but not in the AIP's file
+         table). The payload no longer contains one: portable vs installed is decided at
+         compile time by GPGFRONTEND_BUILD_PORTABLE, and this package is always built
+         from the installed flavour. -->
     <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
-      <Files Include="$(PayloadDir)\**">
-        <Exclude Files="$(PayloadDir)\bin\ENV.ini" />
-      </Files>
+      <Files Include="$(PayloadDir)\**" />
     </ComponentGroup>
 
     <!-- MsiCompsComponent "ProductInformation" {B5718CF9-...}, Attributes 260
