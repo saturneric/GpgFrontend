@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+  <mime-type type="application/x-gpgfrontend-profile">
+    <comment>GpgFrontend profile</comment>
+
+    <!-- The outer magic from src/core/profile/ProfilePackage.h. It exists
+         precisely so this rule can be written: a package renamed away from its
+         extension is still recognised for what it is. Seven bytes rather than
+         the full eight, so the rule needs no escape for the trailing newline.
+
+         Deliberately no <sub-class-of>application/gzip</sub-class-of>: the
+         gzip stream begins after the magic, the length prefix and the JSON
+         header, so a package is not a gzip file at offset 0. Claiming
+         otherwise would have Archive Manager offer to open a file it cannot.
+         See docs/profile-package-format.md. -->
+    <magic priority="80">
+      <match type="string" value="GFPROF1" offset="0"/>
+    </magic>
+
+    <glob pattern="*.gfp"/>
+
+    <!-- No new artwork: icon names are looked up across the whole theme rather
+         than per context, so the application's own hicolor entry serves as the
+         document icon until a dedicated one is drawn. -->
+    <icon name="com.bktus.gpgfrontend"/>
+    <generic-icon name="package-x-generic"/>
+  </mime-type>
+</mime-info>

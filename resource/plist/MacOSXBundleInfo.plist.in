@@ -36,5 +36,68 @@
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
+	<!-- What Launch Services needs to put this application on a .gfp file's
+	     "Open with" menu and to hand a double-clicked one over. Declaring the
+	     type (below) and declaring that we handle it (here) are two separate
+	     statements, and both are required. -->
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>${MACOSX_BUNDLE_BUNDLE_NAME} Profile</string>
+			<!-- Editor, not Viewer: closing a package session offers to write the
+			     changes back into the same file, so this application does modify
+			     what it is given. It is also what makes Launch Services hand over
+			     a read-write sandbox extension with the document. -->
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<!-- Owner, because the type is exported by this bundle. Anything else
+			     would ask the system to prefer a handler that does not define the
+			     format. -->
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.bktus.gpgfrontend.profile</string>
+			</array>
+			<key>CFBundleTypeIconFile</key>
+			<string>gpgfrontend.icns</string>
+		</dict>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<!-- Deliberately literal rather than templated: this string identifies
+			     the *format*, which a nightly and a release write identically, and
+			     they share one bundle identifier anyway. Two bundles exporting the
+			     same identifier is only harmful when their declarations disagree,
+			     so these must stay byte-identical across flavours. -->
+			<key>UTTypeIdentifier</key>
+			<string>com.bktus.gpgfrontend.profile</string>
+			<key>UTTypeDescription</key>
+			<string>GpgFrontend Profile</string>
+			<!-- public.data only. Not public.archive: the file is not an archive at
+			     offset 0 — the gzip stream starts after the magic, the length and
+			     the header — and conforming would have Archive Utility and Quick
+			     Look offer to expand something they cannot read. -->
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeIconFile</key>
+			<string>gpgfrontend.icns</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>gfp</string>
+				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/x-gpgfrontend-profile</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

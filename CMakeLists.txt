@@ -459,6 +459,13 @@ elseif(BUILD_APP_IMAGE)
   file(COPY "${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop"
     DESTINATION "${APPDIR}/usr/share/applications" FOLLOW_SYMLINK_CHAIN)
 
+  # An AppImage registers nothing by itself; an integrator (appimaged,
+  # AppImageLauncher) reads the embedded desktop entry and installs it along
+  # with any MIME package it finds beside it.
+  file(MAKE_DIRECTORY "${APPDIR}/usr/share/mime/packages")
+  file(COPY "${CMAKE_SOURCE_DIR}/resource/mime/com.bktus.gpgfrontend.xml"
+    DESTINATION "${APPDIR}/usr/share/mime/packages" FOLLOW_SYMLINK_CHAIN)
+
   file(COPY "${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/com.bktus.gpgfrontend.png"
     DESTINATION "${APPDIR}" FOLLOW_SYMLINK_CHAIN)
 

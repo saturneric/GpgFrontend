@@ -1,9 +1,10 @@
 [Desktop Entry]
 Type=Application
 Name=Gpg Frontend
-Exec=gpgfrontend
+Exec=gpgfrontend %f
 Icon=com.bktus.gpgfrontend
 Comment=Encrypt and sign data
 Terminal=false
 Categories=Utility;
+MimeType=application/x-gpgfrontend-profile;
 StartupWMClass=GpgFrontend

@@ -173,6 +173,84 @@
       </Component>
     </ComponentGroup>
 
+    <!-- The .gfp association, so a double-clicked profile package reaches the
+         application. Written as raw registry rows rather than via <ProgId>/<Extension>,
+         because those have to hang off a named <File>, and every file in this package
+         comes from the <Files> harvest above, which produces no ids to hang anything on.
+
+         HKMU is HKCU here (Scope="perUser"): a per-user package must not write
+         HKEY_CLASSES_ROOT, which is machine state it has neither the right nor the
+         elevation to take. Windows merges HKCU\Software\Classes over the machine hive
+         for the installing user, which is exactly the scope this package installs at.
+
+         Note that on Windows 8 and later an installer cannot make itself the default
+         handler outright; these rows are what make GpgFrontend appear as a candidate
+         and be offered when nothing else claims the type. -->
+    <ComponentGroup Id="ProfileFileAssociation" Directory="INSTALLFOLDER">
+      <Component Id="ProfileFileAssociation" Guid="{BC43A243-D92E-4994-BE8A-83E2E8E255C2}">
+
+        <RegistryKey Root="HKMU" Key="Software\Classes\.gfp">
+          <RegistryValue Type="string" Value="GpgFrontend.Profile.1" KeyPath="yes" />
+          <RegistryValue Name="Content Type" Type="string" Value="application/x-gpgfrontend-profile" />
+          <RegistryValue Name="PerceivedType" Type="string" Value="document" />
+        </RegistryKey>
+        <!-- Lists us under "Open with" even when something else has taken the
+             default, and is what "Choose another app" offers. -->
+        <RegistryKey Root="HKMU" Key="Software\Classes\.gfp\OpenWithProgids">
+          <RegistryValue Name="GpgFrontend.Profile.1" Type="string" Value="" />
+        </RegistryKey>
+
+        <!-- If this MSI ever gains a per-flavor ProductName/UpgradeCode so that a
+             testing and a stable build can coexist, this ProgID must be suffixed at
+             the same time: otherwise uninstalling either one deletes
+             Software\Classes\.gfp and strips the other's association. -->
+        <RegistryKey Root="HKMU" Key="Software\Classes\GpgFrontend.Profile.1">
+          <RegistryValue Type="string" Value="GpgFrontend Profile" />
+          <RegistryValue Name="FriendlyTypeName" Type="string" Value="GpgFrontend Profile" />
+        </RegistryKey>
+        <RegistryKey Root="HKMU" Key="Software\Classes\GpgFrontend.Profile.1\DefaultIcon">
+          <RegistryValue Type="string" Value="&quot;[INSTALLFOLDER]bin\GpgFrontend.exe&quot;,0" />
+        </RegistryKey>
+        <!-- The quotes around %1 are not decoration: without them a package under
+             "C:\Users\Some Name\..." arrives as several arguments and the positional
+             scan in ResolveProfileSelection sees none of them. -->
+        <RegistryKey Root="HKMU" Key="Software\Classes\GpgFrontend.Profile.1\shell\open\command">
+          <RegistryValue Type="string" Value="&quot;[INSTALLFOLDER]bin\GpgFrontend.exe&quot; &quot;%1&quot;" />
+        </RegistryKey>
+
+        <!-- Applications\ entry: what the "Open with" list and a drag onto the
+             executable consult. SupportedTypes is what stops Windows offering
+             GpgFrontend for every file on the disk. -->
+        <RegistryKey Root="HKMU" Key="Software\Classes\Applications\GpgFrontend.exe">
+          <RegistryValue Name="FriendlyAppName" Type="string" Value="GpgFrontend" />
+        </RegistryKey>
+        <RegistryKey Root="HKMU" Key="Software\Classes\Applications\GpgFrontend.exe\shell\open\command">
+          <RegistryValue Type="string" Value="&quot;[INSTALLFOLDER]bin\GpgFrontend.exe&quot; &quot;%1&quot;" />
+        </RegistryKey>
+        <RegistryKey Root="HKMU" Key="Software\Classes\Applications\GpgFrontend.exe\SupportedTypes">
+          <RegistryValue Name=".gfp" Type="string" Value="" />
+        </RegistryKey>
+
+        <!-- Default Programs: what puts GpgFrontend in Settings > Apps > Default apps
+             with a file-type list, rather than leaving the association invisible and
+             unchangeable from the interface. Nests under the key ProductInformation
+             already owns; different value names and subkeys, so the two components
+             share the tree without conflicting and each removes only its own rows. -->
+        <RegistryKey Root="HKMU" Key="Software\[Manufacturer]\[ProductName]\Capabilities">
+          <RegistryValue Name="ApplicationName" Type="string" Value="GpgFrontend" />
+          <RegistryValue Name="ApplicationDescription" Type="string"
+                         Value="A modern &quot;Enigma&quot; built on GnuPG. It brings easy and trustworthy to your privacy life." />
+        </RegistryKey>
+        <RegistryKey Root="HKMU" Key="Software\[Manufacturer]\[ProductName]\Capabilities\FileAssociations">
+          <RegistryValue Name=".gfp" Type="string" Value="GpgFrontend.Profile.1" />
+        </RegistryKey>
+        <RegistryValue Root="HKMU" Key="Software\RegisteredApplications"
+                       Name="GpgFrontend" Type="string"
+                       Value="Software\[Manufacturer]\[ProductName]\Capabilities" />
+
+      </Component>
+    </ComponentGroup>
+
     <!-- MsiCompsComponent "APPDIR" {6F8D11AA-...}: one component that (a) creates the install
          folder even if empty and removes it on uninstall (MsiCreateFolderComponent,
          ManualDelete="true"), and (b) owns the desktop shortcut (MsiShortsComponent
@@ -205,6 +283,7 @@
              ConfigurableDirectory="INSTALLFOLDER">
       <ComponentGroupRef Id="AppFiles" />
       <ComponentGroupRef Id="ProductInformation" />
+      <ComponentGroupRef Id="ProfileFileAssociation" />
       <ComponentGroupRef Id="AppDirComponent" />
     </Feature>
 

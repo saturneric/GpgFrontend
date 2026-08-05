@@ -409,6 +409,14 @@ install(FILES "${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.meta
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/metainfo"
   COMPONENT runtime)
 
+# The profile package format, so a double-clicked .gfp reaches the application
+# instead of a "no application can open this" dialog. Both halves are needed:
+# this file teaches the system what the type is, the .desktop entry's MimeType=
+# says who handles it.
+install(FILES "${CMAKE_SOURCE_DIR}/resource/mime/com.bktus.gpgfrontend.xml"
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/mime/packages"
+  COMPONENT runtime)
+
 install(FILES "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/256x256/apps/com.bktus.gpgfrontend.png"
   DESTINATION "."
   COMPONENT runtime)
@@ -455,8 +463,13 @@ if(BUILD_APP_FOR_PACKAGE)
   #
   set(CPACK_RPM_PACKAGE_LICENSE "GPLv3")
   set(CPACK_RPM_PACKAGE_GROUP "Applications/System")
+  # shared-mime-info and desktop-file-utils are what actually register the .gfp
+  # association. The rpm post-install script guards every refresh command with
+  # a [ -x ] test, so without these the package installs cleanly and the file
+  # type silently never appears; on Debian they also carry the dpkg triggers
+  # that make a postinst unnecessary.
   set(CPACK_RPM_PACKAGE_REQUIRES
-    "gpgme >= 1.24.2, qt6-qtbase >= 6.4.2, qt6-qtbase-gui >= 6.4.2, libarchive >= 3.6.2, gtk-update-icon-cache")
+    "gpgme >= 1.24.2, qt6-qtbase >= 6.4.2, qt6-qtbase-gui >= 6.4.2, libarchive >= 3.6.2, gtk-update-icon-cache, shared-mime-info, desktop-file-utils")
 
   # Weak, never required: the application works fully without a credential
   # store, it just cannot offer to protect its key with one. Spelled out by
@@ -473,6 +486,8 @@ if(BUILD_APP_FOR_PACKAGE)
     "/usr/share/licenses"
     "/usr/share/applications"
     "/usr/share/metainfo"
+    "/usr/share/mime"
+    "/usr/share/mime/packages"
     "/usr/share/icons"
     "/usr/share/icons/hicolor"
     "/usr/share/icons/hicolor/*")
@@ -483,7 +498,7 @@ if(BUILD_APP_FOR_PACKAGE)
   set(CPACK_DEBIAN_PACKAGE_MAINTAINER "eric@bktus.com")
   set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
   set(CPACK_DEBIAN_PACKAGE_DEPENDS
-    "libgpgme11t64 (>= 1.24.2), libqt6core6t64 (>= 6.4.2), libqt6gui6t64 (>= 6.4.2), libqt6widgets6t64 (>= 6.4.2), libarchive13 (>= 3.6.2), gtk-update-icon-cache")
+    "libgpgme11t64 (>= 1.24.2), libqt6core6t64 (>= 6.4.2), libqt6gui6t64 (>= 6.4.2), libqt6widgets6t64 (>= 6.4.2), libarchive13 (>= 3.6.2), gtk-update-icon-cache, shared-mime-info, desktop-file-utils")
   # See the RPM note above: weak on purpose, and invisible to dpkg-shlibdeps
   # because the library is dlopen'd.
   set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "libsecret-1-0")

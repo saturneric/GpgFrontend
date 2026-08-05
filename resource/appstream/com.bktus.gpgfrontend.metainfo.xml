@@ -30,6 +30,12 @@
 
   <launchable type="desktop-id">com.bktus.gpgfrontend.desktop</launchable>
 
+  <!-- The profile package format, so software centres offer this application
+       for a .gfp file the user has been sent. -->
+  <provides>
+    <mediatype>application/x-gpgfrontend-profile</mediatype>
+  </provides>
+
   <branding>
     <color type="primary" scheme_preference="light">#ff00ff</color>
     <color type="primary" scheme_preference="dark">#993d3d</color>
