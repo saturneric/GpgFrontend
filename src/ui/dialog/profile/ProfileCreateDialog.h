@@ -31,7 +31,6 @@
 #include "ui/dialog/GeneralDialog.h"
 
 class QLineEdit;
-class QLabel;
 class QRadioButton;
 class QDialogButtonBox;
 
@@ -53,14 +52,13 @@ class ProfileCreateDialog : public GeneralDialog {
   /**
    * @brief Construct the dialog.
    *
-   * @param taken_ids ids already in use, so a collision is caught while typing
-   * rather than on accept
+   * A name is all that is asked for. The directory a profile lives in is named
+   * by a generated id that nobody types and nobody has to keep unique, so there
+   * is no folder question here and no collision to catch.
+   *
    * @param parent parent widget
    */
-  explicit ProfileCreateDialog(QStringList taken_ids, QWidget* parent);
-
-  /// Sanitised id, valid only after the dialog was accepted.
-  [[nodiscard]] auto Id() const -> QString { return id_; }
+  explicit ProfileCreateDialog(QWidget* parent);
 
   /// Free-form display name.
   [[nodiscard]] auto DisplayName() const -> QString;
@@ -73,11 +71,7 @@ class ProfileCreateDialog : public GeneralDialog {
   void slot_accept();
 
  private:
-  QStringList taken_ids_;
-  QString id_;
-
   QLineEdit* name_edit_{};
-  QLabel* id_label_{};
   QRadioButton* own_keyring_{};
   QRadioButton* system_keyring_{};
   QDialogButtonBox* buttons_{};

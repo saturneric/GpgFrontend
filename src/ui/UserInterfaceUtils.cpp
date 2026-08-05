@@ -30,6 +30,7 @@
 
 #include "core/GFConstants.h"
 #include "core/function/CoreSignalStation.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/function/gpg/GpgSmartCardManager.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"
@@ -41,6 +42,7 @@
 #include "core/model/GpgPassphraseContext.h"
 #include "core/model/GpgSubKey.h"
 #include "core/module/ModuleManager.h"
+#include "core/profile/ProfileSession.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/typedef/GpgTypedef.h"
@@ -53,6 +55,7 @@
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
 #include "ui/dialog/keypair_details/KeyDetailsDialog.h"
 #include "ui/dialog/settings/SettingsDialog.h"
+#include "ui/function/ProfileController.h"
 
 namespace GpgFrontend::UI {
 
@@ -436,6 +439,17 @@ void CommonUtils::slot_update_key_from_server_finished(
 }
 
 void CommonUtils::SlotRestartApplication(int code) {
+  // A restart leaves through the event loop, not through a window, so the close
+  // handler never runs. For a profile opened from a file that would silently
+  // throw the session away: the extracted tree is deleted on the way out, and
+  // the successor re-opens the package as it was on disk. So the same question
+  // is asked here, and the exit waits for the answer.
+  if (!MaybeWriteBackPackageSession(qApp->activeWindow(), [code]() {
+        CommonUtils::GetInstance()->SlotRestartApplication(code);
+      })) {
+    return;
+  }
+
   if (code == 0) {
     std::exit(0);
   } else {
@@ -754,6 +768,59 @@ auto AppKeyProtectionDisplayName(AppKeyProtection protection) -> QString {
       break;
   }
   return QObject::tr("No extra protection");
+}
+
+auto FilePanelDefaultPathModeToString(FilePanelDefaultPathMode mode)
+    -> QString {
+  switch (mode) {
+    case FilePanelDefaultPathMode::kWORKSPACE:
+      return "workspace";
+    case FilePanelDefaultPathMode::kHOME:
+      return "home";
+    case FilePanelDefaultPathMode::kCWD:
+      return "cwd";
+  }
+  return "home";
+}
+
+auto FilePanelDefaultPathModeFromString(const QString &s)
+    -> FilePanelDefaultPathMode {
+  const auto v = s.trimmed().toLower();
+  if (v == "workspace") return FilePanelDefaultPathMode::kWORKSPACE;
+  if (v == "cwd") return FilePanelDefaultPathMode::kCWD;
+  return FilePanelDefaultPathMode::kHOME;
+}
+
+auto FilePanelDefaultPathModeFromLegacyBool(bool home_path_as_default)
+    -> FilePanelDefaultPathMode {
+  return home_path_as_default ? FilePanelDefaultPathMode::kHOME
+                              : FilePanelDefaultPathMode::kCWD;
+}
+
+auto ResolveFilePanelDefaultPath(FilePanelDefaultPathMode mode,
+                                 const QString &workspace_path,
+                                 const QString &home_path,
+                                 const QString &cwd_path) -> QString {
+  switch (mode) {
+    case FilePanelDefaultPathMode::kWORKSPACE:
+      // an unresolvable workspace falls back rather than opening nothing: the
+      // file panel with no root at all is worse than the old default
+      return workspace_path.isEmpty() ? home_path : workspace_path;
+    case FilePanelDefaultPathMode::kCWD:
+      return cwd_path;
+    case FilePanelDefaultPathMode::kHOME:
+      break;
+  }
+  return home_path;
+}
+
+auto GetDefaultUserFilePath() -> QString {
+  const auto mode = FilePanelDefaultPathModeFromString(
+      GetSettings().value("basic/file_panel_default_path_mode").toString());
+
+  return ResolveFilePanelDefaultPath(mode,
+                                     ProfileSession::Instance().WorkspacePath(),
+                                     QDir::homePath(), QDir::currentPath());
 }
 
 auto LowerSuffix(const QFileInfo &info) -> QString {

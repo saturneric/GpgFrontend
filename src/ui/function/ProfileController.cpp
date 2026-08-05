@@ -28,11 +28,22 @@
 
 #include "ui/function/ProfileController.h"
 
+#include <QInputDialog>
 #include <QProcess>
 
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/ProfileBootstrap.h"
-#include "core/function/ProfileLock.h"
+#include "core/model/SettingsObject.h"
+#include "core/profile/ProfileLoader.h"
+#include "core/profile/ProfileLock.h"
+#include "core/profile/ProfileMarker.h"
+#include "core/profile/ProfilePackage.h"
+#include "core/profile/ProfileSecureKeyManager.h"
+#include "core/profile/ProfileSession.h"
+#include "core/struct/settings_object/KeyDatabaseListSO.h"
+#include "core/utils/AsyncUtils.h"
+#include "core/utils/BuildInfoUtils.h"
+#include "core/utils/CommonUtils.h"
+#include "ui/function/GpgOperaHelper.h"
 
 namespace GpgFrontend::UI {
 
@@ -40,7 +51,13 @@ namespace {
 
 /// Options whose value is a separate argument, so stripping the option also
 /// strips what belongs to it.
-const QStringList kProfileValueOptions = {"--profile", "--profile-root"};
+const QStringList kProfileValueOptions = {"--profile"};
+
+/// Whether "write this session back into its package" has been answered for
+/// good. Kept beside the question rather than at each call site: a close and a
+/// restart both ask it, a save re-enters through its own completion, and every
+/// one of those would otherwise need its own copy of "already asked".
+bool g_session_write_back_settled = false;  // NOLINT(*-non-const-global-*)
 
 /**
  * @brief Start a second instance of this application, detached.
@@ -86,7 +103,7 @@ auto StripProfileArgs(const QStringList& args) -> QStringList {
       ++i;  // and its value
       continue;
     }
-    if (arg.startsWith("--profile=") || arg.startsWith("--profile-root=")) {
+    if (arg.startsWith("--profile=")) {
       continue;
     }
     // a package named on the command line selected the *previous* profile; a
@@ -100,39 +117,41 @@ auto StripProfileArgs(const QStringList& args) -> QStringList {
   return out;
 }
 
-auto BuildProfileLaunchArgs(const QStringList& args, const QString& profile_id)
+auto BuildLaunchArgs(const QStringList& args, const ProfileTarget& target)
     -> QStringList {
   auto stripped = StripProfileArgs(args);
   if (!stripped.isEmpty()) stripped.removeFirst();  // argv[0]
 
-  if (!profile_id.isEmpty() && profile_id != "classic" &&
-      profile_id != "portable") {
-    stripped << "--profile" << profile_id;
+  if (target.IsPackage()) {
+    stripped << target.package_path;
+  } else if (!target.profile_id.isEmpty() && target.profile_id != "classic" &&
+             target.profile_id != "portable") {
+    // The two implicit profiles are what the resolver picks when nothing is
+    // named, so naming them would only pin a decision that is already made.
+    stripped << "--profile" << target.profile_id;
   }
   return stripped;
 }
 
-auto BuildPackageLaunchArgs(const QStringList& args,
-                            const QString& package_path) -> QStringList {
-  auto stripped = StripProfileArgs(args);
-  if (!stripped.isEmpty()) stripped.removeFirst();  // argv[0]
-
-  if (!package_path.isEmpty()) stripped << package_path;
-  return stripped;
+auto CurrentProfilesRoot() -> QString {
+  // Mirrored onto the application by the context: which root holds this
+  // machine's persisted profiles is a property of the installation, and a
+  // packaged profile has no opinion about it at all.
+  return qApp->property("GFProfilesRoot").toString();
 }
 
 auto CurrentProfileRoots() -> ProfileRoots {
-  const auto& profile = ProfileRuntime::Instance();
+  const auto& profile = ProfileSession::Instance().Profile();
 
   ProfileRoots roots;
-  roots.profiles_root = profile.profiles_root;
+  roots.profiles_root = CurrentProfilesRoot();
   roots.classic_root =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
 
   // Only offer the portable entry where one actually exists. Listing it on an
   // installed copy would show a profile the user can never open.
-  if (profile.kind == ProfileRootKind::kPORTABLE ||
-      profile.profiles_root.startsWith(ResolvePortableDataPath())) {
+  if (profile.Kind() == ProfileKind::kPORTABLE_ROOT ||
+      roots.profiles_root.startsWith(ResolvePortableDataPath())) {
     roots.portable_root = ResolvePortableDataPath();
   }
   return roots;
@@ -147,26 +166,26 @@ auto LoadProfiles() -> ProfileRegistryData {
   // ad-hoc root named on the command line that the registry has never heard
   // of. A list of profiles that leaves out the one in front of the user
   // invites them to read some other row as the one they are in.
-  const auto& profile = ProfileRuntime::Instance();
-  if (!data.Find(profile.id).has_value()) {
+  const auto& profile = ProfileSession::Instance().Profile();
+  if (!data.Find(profile.Id()).has_value()) {
     ProfileRegistryEntry entry;
-    entry.id = profile.id;
-    entry.root = profile.root;
+    entry.id = profile.Id();
+    entry.root = profile.Root();
     entry.name = CurrentProfileDisplayName();
-    entry.kind = profile.kind;
+    entry.kind = profile.Kind();
     entry.implicit = true;  // nothing to persist, and nothing to delete
     data.profiles.prepend(entry);
   }
   return data;
 }
 
-auto ProfileKindDisplayName(ProfileRootKind kind) -> QString {
+auto ProfileKindDisplayName(ProfileKind kind) -> QString {
   switch (kind) {
-    case ProfileRootKind::kCLASSIC:
+    case ProfileKind::kINSTALLED_ROOT:
       return QObject::tr("Default");
-    case ProfileRootKind::kPORTABLE:
+    case ProfileKind::kPORTABLE_ROOT:
       return QObject::tr("Portable");
-    case ProfileRootKind::kPACKAGE_LINKED:
+    case ProfileKind::kPACKAGED:
       return QObject::tr("From a package");
     default:
       return QObject::tr("Local");
@@ -174,83 +193,227 @@ auto ProfileKindDisplayName(ProfileRootKind kind) -> QString {
 }
 
 auto CurrentProfileDisplayName() -> QString {
-  const auto& profile = ProfileRuntime::Instance();
+  const auto& session = ProfileSession::Instance();
 
-  switch (profile.kind) {
-    case ProfileRootKind::kCLASSIC:
+  switch (session.Profile().Kind()) {
+    case ProfileKind::kINSTALLED_ROOT:
       return QObject::tr("Default");
-    case ProfileRootKind::kPORTABLE:
+    case ProfileKind::kPORTABLE_ROOT:
       return QObject::tr("Portable");
     default:
       break;
   }
 
   // Read from the profile's own marker rather than the registry: the marker
-  // travels with the profile and is already on the way in, while the registry
-  // is a machine-local index that a read here would also make us reconcile.
-  const auto marker = ReadProfileMarker(ProfileMarkerPathFor(profile.root));
-  if (marker.has_value() && !marker->display_name.isEmpty()) {
-    return marker->display_name;
+  // travels with the profile and the session already holds it, while the
+  // registry is a machine-local index that a read here would also reconcile.
+  if (const auto& name = session.Marker().display_name; !name.isEmpty()) {
+    return name;
   }
-  return profile.id;
+  return session.Profile().DisplayName();
 }
 
-auto OpenProfileInNewWindow(const QString& profile_id) -> ProfileLaunchResult {
-  ProfileLaunchResult result;
-
-  if (profile_id == ProfileRuntime::Instance().id) {
-    result.status = ProfileLaunchStatus::kALREADY_OPEN;
-    result.detail = QObject::tr("This window is already using that profile.");
-    return result;
+auto ProfileTargetRoot(const ProfileTarget& target) -> QString {
+  if (target.IsPackage()) {
+    return ProfileSessionRoot(CurrentProfilesRoot(), target.package_path);
   }
 
   const auto roots = CurrentProfileRoots();
   const auto data = LoadProfileRegistry(roots.profiles_root, roots.classic_root,
                                         roots.portable_root);
-  const auto entry = data.Find(profile_id);
-  if (!entry.has_value()) {
-    result.status = ProfileLaunchStatus::kNOT_FOUND;
-    result.detail =
-        QObject::tr("There is no profile called \"%1\".").arg(profile_id);
-    return result;
+  const auto entry = data.Find(target.profile_id);
+  return entry.has_value() ? entry->root : QString{};
+}
+
+auto OpenProfileInNewWindow(const ProfileTarget& target)
+    -> ProfileLaunchResult {
+  ProfileLaunchResult result;
+
+  auto resolved = target;
+  QString name;
+
+  if (target.IsPackage()) {
+    if (!QFileInfo::exists(target.package_path)) {
+      result.status = ProfileLaunchStatus::kNOT_FOUND;
+      result.detail = QObject::tr("This file is no longer there:") + "\n" +
+                      QDir::toNativeSeparators(target.package_path);
+      return result;
+    }
+    resolved.package_path = QFileInfo(target.package_path).absoluteFilePath();
+    name = QFileInfo(resolved.package_path).fileName();
+  } else {
+    if (target.profile_id == ProfileSession::Instance().Profile().Id()) {
+      result.status = ProfileLaunchStatus::kALREADY_OPEN;
+      result.detail = QObject::tr("This window is already using that profile.");
+      return result;
+    }
+
+    const auto roots = CurrentProfileRoots();
+    const auto data = LoadProfileRegistry(
+        roots.profiles_root, roots.classic_root, roots.portable_root);
+    const auto entry = data.Find(target.profile_id);
+    if (!entry.has_value()) {
+      result.status = ProfileLaunchStatus::kNOT_FOUND;
+      result.detail = QObject::tr("There is no profile called \"%1\".")
+                          .arg(target.profile_id);
+      return result;
+    }
+    name = entry->name;
+    // Nothing is recorded here: the process about to start stamps its own
+    // marker once it has actually opened the profile, which is the only moment
+    // at which "was opened" is true.
   }
 
-  // Asked before the process is launched, so a busy profile is a message here
-  // rather than a window that appears and immediately refuses.
-  const auto lock = ProfileLock::Probe(entry->root);
+  // Asked before the process is launched, so a root somebody already has is a
+  // message here rather than a window that appears and immediately refuses. A
+  // package is asked about in exactly the same way: its session root is derived
+  // from its path, so both windows work out the same directory.
+  const auto lock = ProfileLock::Probe(ProfileTargetRoot(resolved));
   if (lock.status == ProfileLockStatus::kHELD_ELSEWHERE) {
     result.status = ProfileLaunchStatus::kALREADY_OPEN;
     result.detail =
         lock.pid > 0
             ? QObject::tr(
                   "\"%1\" is open in another window (process %2 on %3).")
-                  .arg(entry->name)
+                  .arg(name)
                   .arg(lock.pid)
                   .arg(lock.host)
-            : QObject::tr("\"%1\" is open in another window.").arg(entry->name);
+            : QObject::tr("\"%1\" is open in another window.").arg(name);
     return result;
   }
 
-  TouchProfile(roots.profiles_root, roots.classic_root, roots.portable_root,
-               profile_id,
-               QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
-
-  return Launch(BuildProfileLaunchArgs(qApp->arguments(), profile_id));
+  return Launch(BuildLaunchArgs(qApp->arguments(), resolved));
 }
 
-auto OpenPackageInNewWindow(const QString& package_path)
-    -> ProfileLaunchResult {
-  ProfileLaunchResult result;
+auto MaybeWriteBackPackageSession(QWidget* parent,
+                                  const std::function<void()>& on_done)
+    -> bool {
+  const auto& session = ProfileSession::Instance();
+  const auto* packaged =
+      dynamic_cast<const PackagedProfile*>(&session.Profile());
+  if (packaged == nullptr || g_session_write_back_settled) return true;
 
-  if (!QFileInfo::exists(package_path)) {
-    result.status = ProfileLaunchStatus::kNOT_FOUND;
-    result.detail = QObject::tr("This file is no longer there:") + "\n" +
-                    QDir::toNativeSeparators(package_path);
-    return result;
+  const auto file = QDir::toNativeSeparators(packaged->PackagePath());
+
+  QMessageBox box(
+      QMessageBox::Question, QObject::tr("Save Changes?"),
+      QObject::tr("This profile was opened from a file. It is not kept on this "
+                  "computer, and the copy it is running from is about to be "
+                  "deleted.") +
+          "\n\n" + file + "\n\n" +
+          QObject::tr("Anything you changed is lost unless it is written back "
+                      "into that file."),
+      QMessageBox::NoButton, parent);
+  auto* save =
+      box.addButton(QObject::tr("Save Changes"), QMessageBox::AcceptRole);
+  auto* discard =
+      box.addButton(QObject::tr("Discard"), QMessageBox::DestructiveRole);
+  box.addButton(QObject::tr("Cancel"), QMessageBox::RejectRole);
+  box.setDefaultButton(save);
+  box.exec();
+
+  if (box.clickedButton() == discard) {
+    g_session_write_back_settled = true;
+    return true;
+  }
+  // Cancel is not an answer: the next attempt to close asks again.
+  if (box.clickedButton() != save) return false;
+
+  auto request = packaged->WriteBackRequest();
+
+  auto passphrase = request.passphrase;
+  if (request.protection == ProfilePackageProtection::kPIN &&
+      passphrase.Empty()) {
+    // Only reachable when this process did not open the package itself — a deep
+    // restart comes back on the same file with nothing carried over in memory.
+    bool accepted = false;
+    auto entered = QInputDialog::getText(
+        parent, QObject::tr("Save Changes"),
+        QObject::tr("Enter the passphrase to protect this file with:") + "\n" +
+            file,
+        QLineEdit::Password, {}, &accepted);
+    if (!accepted || entered.isEmpty()) return false;
+
+    passphrase = GFBuffer(entered);
+    entered.fill('X');
+    entered.clear();
+  }
+  request.passphrase = passphrase;
+
+  const auto& profile = session.Profile();
+
+  // The stored key database paths are normalised to the `@profile/` form
+  // first, exactly as an export does: they resolve to the same directories
+  // either way, and the copy that travels then finds its keys wherever it is
+  // opened next.
+  auto stored = SettingsObject("key_database_list");
+  auto list = KeyDatabaseListSO(stored);
+  const auto packed =
+      RewriteKeyDatabaseListForPacking(list.key_databases, profile.Root());
+  if (packed.size() == list.key_databases.size()) {
+    for (int i = 0; i < packed.size(); ++i) {
+      if (packed.at(i).path != list.key_databases.at(i).path) {
+        list.key_databases = packed;
+        stored.Store(list.ToJson());
+        break;
+      }
+    }
   }
 
-  return Launch(BuildPackageLaunchArgs(
-      qApp->arguments(), QFileInfo(package_path).absoluteFilePath()));
+  const auto& marker = session.Marker();
+
+  // Read here rather than inside the packing: the key manager and QSettings
+  // both belong to this thread, and the packing does not run on it.
+  request.app_key = session.Keys().RootKey();
+  auto settings = GetSettings();
+  request.settings = SnapshotSettings(settings);
+
+  request.manifest.schema_version = marker.schema_version > 0
+                                        ? marker.schema_version
+                                        : GetAppProfileSchemaVersion();
+  request.manifest.min_reader_version = marker.min_reader_version > 0
+                                            ? marker.min_reader_version
+                                            : GetAppProfileSchemaVersion();
+  request.manifest.app_profile = GetAppProfileName();
+  request.manifest.display_name = CurrentProfileDisplayName();
+  request.manifest.key_databases = DescribeKeyDatabasesForManifest(packed);
+
+  if (request.app_key.Empty()) {
+    QMessageBox::critical(
+        parent, QObject::tr("Cannot Save Changes"),
+        QObject::tr("The application key is not available, so the profile "
+                    "could not be packed."),
+        QMessageBox::Ok);
+    return false;
+  }
+
+  auto result = std::make_shared<ProfilePackageWriteResult>();
+  GpgOperaHelper::WaitForOpera(
+      parent, QObject::tr("Saving Profile"), [=](const OperaWaitingHd& op_hd) {
+        RunOperaAsync(
+            [=](const DataObjectPtr&) -> GFError {
+              *result = ExportProfilePackage(request);
+              return result->ok ? 0 : -1;
+            },
+            [=](GFError, const DataObjectPtr&) {
+              op_hd();
+
+              if (!result->ok) {
+                // The window stays open: the session is still there, so the
+                // changes are still there, and a retry is still possible.
+                QMessageBox::critical(
+                    parent, QObject::tr("Cannot Save Changes"),
+                    result->error + "\n\n" + file, QMessageBox::Ok);
+                return;
+              }
+
+              g_session_write_back_settled = true;
+              on_done();
+            },
+            "write_back_profile_session");
+      });
+
+  return false;
 }
 
 }  // namespace GpgFrontend::UI

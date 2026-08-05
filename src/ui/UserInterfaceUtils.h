@@ -28,10 +28,10 @@
 
 #pragma once
 
-#include "core/function/AppSecureKeyManager.h"
 #include "core/function/result_analyse/GpgVerifyResultAnalyse.h"
 #include "core/model/GFBuffer.h"
 #include "core/model/GpgKey.h"
+#include "core/profile/ProfileSecureKeyManager.h"
 #include "core/thread/Task.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -132,6 +132,76 @@ auto GF_UI_EXPORT SecureLevelDisplayName(int level) -> QString;
  */
 auto GF_UI_EXPORT AppKeyProtectionDisplayName(AppKeyProtection protection)
     -> QString;
+
+/**
+ * @brief Where the file panel starts, and where user-file dialogs default to.
+ *
+ * Note the deliberate distance from `basic/default_workspace_as`, which decides
+ * which *view* opens at startup and has nothing to do with any of this. The
+ * user-facing name for the directory below is "Profile Workspace".
+ *
+ * Deliberately left without an explicit base type. lupdate drops the enclosing
+ * namespace from the tr() context of the first Q_OBJECT class that follows a
+ * *typed* enum in the same header, which would silently break every string in
+ * CommonUtils below at run time while still compiling cleanly.
+ */
+enum class FilePanelDefaultPathMode {
+  kWORKSPACE,  ///< the profile's workspace directory
+  kHOME,       ///< the user's home directory
+  kCWD,        ///< the process working directory
+};
+
+auto GF_UI_EXPORT
+FilePanelDefaultPathModeToString(FilePanelDefaultPathMode mode) -> QString;
+
+auto GF_UI_EXPORT FilePanelDefaultPathModeFromString(const QString& s)
+    -> FilePanelDefaultPathMode;
+
+/**
+ * @brief Translate the boolean this setting replaced.
+ *
+ * `basic/home_path_as_file_panel_default_path` was true for home and false for
+ * the working directory. Existing installations keep exactly the behaviour they
+ * had; only newly created profiles default to the workspace.
+ *
+ * @param home_path_as_default the old boolean
+ * @return the equivalent mode
+ */
+auto GF_UI_EXPORT FilePanelDefaultPathModeFromLegacyBool(
+    bool home_path_as_default) -> FilePanelDefaultPathMode;
+
+/**
+ * @brief Resolve the mode to an actual directory.
+ *
+ * Pure, so all three modes are assertable without a profile or a home
+ * directory.
+ *
+ * @param mode which directory to use
+ * @param workspace_path the profile workspace
+ * @param home_path the user's home directory
+ * @param cwd_path the process working directory
+ * @return the directory to open
+ */
+auto GF_UI_EXPORT ResolveFilePanelDefaultPath(FilePanelDefaultPathMode mode,
+                                              const QString& workspace_path,
+                                              const QString& home_path,
+                                              const QString& cwd_path)
+    -> QString;
+
+/**
+ * @brief The directory a file dialog for *user* files should start in.
+ *
+ * There is no other shared helper for this: every QFileDialog call site used to
+ * hardcode a home directory, a bare filename, or nothing at all, so none of
+ * them agreed with the file panel or with each other.
+ *
+ * Only for user files. Dialogs that pick a system location — a GnuPG
+ * installation directory, a key database — are asking a different question and
+ * should not be redirected into the workspace.
+ *
+ * @return absolute path
+ */
+auto GF_UI_EXPORT GetDefaultUserFilePath() -> QString;
 
 /**
  * @brief Lower-cased suffix of a file system entry.

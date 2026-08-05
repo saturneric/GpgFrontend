@@ -28,12 +28,13 @@
 
 #include "MainWindow.h"
 #include "core/GFConstants.h"
+#include "ui/UserInterfaceUtils.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/utils/GpgUtils.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/LogViewDialog.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/dialog/settings/SettingsDialog.h"
+#include "ui/function/ProfileController.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
@@ -119,6 +120,19 @@ void MainWindow::slot_open_file_tab() { edit_->SlotNewFileBrowserTab(); }
 
 void MainWindow::slot_open_file_tab_with_directory() {
   edit_->SlotNewFileBrowserTabWithDirectory();
+}
+
+void MainWindow::slot_open_profile_package() {
+  const auto path = QFileDialog::getOpenFileName(
+      this, tr("Open Profile"), GetDefaultUserFilePath(),
+      tr("GpgFrontend Profile") + " (*.gfprofile)");
+  if (path.isEmpty()) return;
+
+  const auto result = OpenProfileInNewWindow({.package_path = path});
+  if (!result.Ok()) {
+    QMessageBox::warning(this, tr("Cannot Open Profile"), result.detail,
+                         QMessageBox::Ok);
+  }
 }
 
 void MainWindow::slot_switch_menu_control_mode(int index) {

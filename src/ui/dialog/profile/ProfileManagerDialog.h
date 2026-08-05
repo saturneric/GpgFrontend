@@ -28,8 +28,8 @@
 
 #pragma once
 
-#include "core/function/ProfilePackage.h"
-#include "core/function/ProfileRegistry.h"
+#include "core/profile/ProfilePackage.h"
+#include "core/profile/ProfileRegistry.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class QTableWidget;
@@ -86,15 +86,15 @@ class ProfileManagerDialog : public GeneralDialog {
   void reload();
 
   /**
-   * @brief Ask for a name for an imported profile, until it is usable.
+   * @brief Ask what an imported profile should be called here.
+   *
+   * Only a display name is asked for: the folder it lands in is named by a
+   * generated id, so there is nothing to sanitise and nothing to collide with.
    *
    * @param suggestion the name the package carried
-   * @param taken ids already in use here
-   * @param id receives the sanitised folder name
    * @return the display name, empty if the user gave up
    */
-  auto ask_import_name(const QString& suggestion, const QStringList& taken,
-                       QString& id) -> QString;
+  auto ask_import_name(const QString& suggestion) -> QString;
 
   /**
    * @brief Turn a package that has been read into a profile, or explain why

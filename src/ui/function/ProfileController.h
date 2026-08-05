@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/ProfileRegistry.h"
+#include "core/profile/ProfileRegistry.h"
 
 namespace GpgFrontend::UI {
 
@@ -44,35 +44,53 @@ namespace GpgFrontend::UI {
  * Pure, so the accumulation case is assertable without launching anything.
  *
  * @param args argument list, argv[0] included
- * @return the list with `--profile`, `--profile-root` and any positional
+ * @return the list with `--profile` and any positional
  * package removed
  */
 auto GF_UI_EXPORT StripProfileArgs(const QStringList &args) -> QStringList;
 
 /**
- * @brief The command line for a new instance opening a local profile.
+ * @brief What to open in a new window.
  *
- * @param args this process's arguments, argv[0] included
- * @param profile_id profile to open, or empty for the implicit default
- * @return arguments excluding argv[0]
+ * Exactly one field is set: a profile this machine keeps, or a package to run
+ * temporarily. One type rather than two entry points, because everything that
+ * happens afterwards — stripping the old selection, refusing a root somebody
+ * already has, starting the process — is the same for both, and the two ways of
+ * saying it drifted apart the moment they were written separately.
  */
-auto GF_UI_EXPORT BuildProfileLaunchArgs(const QStringList &args,
-                                         const QString &profile_id)
-    -> QStringList;
+struct GF_UI_EXPORT ProfileTarget {
+  QString profile_id;
+  QString package_path;
+
+  [[nodiscard]] auto IsPackage() const -> bool {
+    return !package_path.isEmpty();
+  }
+};
 
 /**
- * @brief The command line for a new instance opening a package.
+ * @brief The root the target will run at.
  *
- * The package is passed positionally, exactly as a file manager would hand it
- * over, so the two ways of opening one converge on a single code path.
+ * For a package that is the session root it will be extracted into, which is
+ * derived from the package's path — so this window can ask whether another
+ * window already has that package open without either of them recording it.
+ *
+ * @param target what is to be opened
+ * @return an absolute path, or empty when the target names nothing
+ */
+auto GF_UI_EXPORT ProfileTargetRoot(const ProfileTarget &target) -> QString;
+
+/**
+ * @brief The command line for a new instance opening a target.
+ *
+ * A package is passed positionally, exactly as a file manager would hand it
+ * over, so opening one from the menu and double-clicking it converge.
  *
  * @param args this process's arguments, argv[0] included
- * @param package_path absolute path to a `.gfprofile`
+ * @param target what the new instance should open
  * @return arguments excluding argv[0]
  */
-auto GF_UI_EXPORT BuildPackageLaunchArgs(const QStringList &args,
-                                         const QString &package_path)
-    -> QStringList;
+auto GF_UI_EXPORT BuildLaunchArgs(const QStringList &args,
+                                  const ProfileTarget &target) -> QStringList;
 
 /**
  * @brief Where this machine keeps its profiles, and the two implicit roots.
@@ -121,7 +139,7 @@ auto GF_UI_EXPORT CurrentProfileDisplayName() -> QString;
  * @param kind the kind
  * @return a word for it
  */
-auto GF_UI_EXPORT ProfileKindDisplayName(ProfileRootKind kind) -> QString;
+auto GF_UI_EXPORT ProfileKindDisplayName(ProfileKind kind) -> QString;
 
 /**
  * @brief Why a profile could not be opened in a new window.
@@ -154,19 +172,35 @@ struct GF_UI_EXPORT ProfileLaunchResult {
  * makes leaving the current window open the safe option: neither instance
  * touches the other's root, and each takes its own lock.
  *
- * @param profile_id profile to open
+ * A package opened this way runs temporarily, and closing it asks whether the
+ * changes go back into the file. That is the only difference between the two
+ * kinds of target from here on.
+ *
+ * @param target profile or package to open
  * @return kSTARTED once the process is launched
  */
-auto GF_UI_EXPORT OpenProfileInNewWindow(const QString &profile_id)
+auto GF_UI_EXPORT OpenProfileInNewWindow(const ProfileTarget &target)
     -> ProfileLaunchResult;
 
 /**
- * @brief Open a profile package in a new window.
+ * @brief Offer to write a temporary session back into the package it came from.
  *
- * @param package_path absolute path to a `.gfprofile`
- * @return kSTARTED once the process is launched
+ * A session is disposable by construction: the extracted tree is deleted on the
+ * way out, so anything done in it is lost unless it is packed again. That makes
+ * this the last moment the question can be asked, and the reason it is asked
+ * rather than assumed — a package opened to look at something should not be
+ * rewritten just because it was opened.
+ *
+ * Packing is not instant, so a save does not happen inside this call: it
+ * starts, and @p on_done runs when it finishes. The caller is expected to hold
+ * the close and try again from there.
+ *
+ * @param parent parent for the dialogs
+ * @param on_done invoked once a started write-back has finished successfully
+ * @return true to let the close proceed; false to hold it — either the user
+ * cancelled, or a write-back is running
  */
-auto GF_UI_EXPORT OpenPackageInNewWindow(const QString &package_path)
-    -> ProfileLaunchResult;
+auto GF_UI_EXPORT MaybeWriteBackPackageSession(
+    QWidget *parent, const std::function<void()> &on_done) -> bool;
 
 }  // namespace GpgFrontend::UI

@@ -32,18 +32,19 @@
 #include <QFileDialog>
 #include <QInputDialog>
 
-#include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/ProfileBootstrap.h"
-#include "core/function/ProfileLock.h"
-#include "core/function/ProfilePackage.h"
-#include "core/function/ProfileWorkspace.h"
 #include "core/function/SystemSecretStore.h"
 #include "core/model/SettingsObject.h"
+#include "core/profile/ProfileLock.h"
+#include "core/profile/ProfileMarker.h"
+#include "core/profile/ProfilePackage.h"
+#include "core/profile/ProfileSecureKeyManager.h"
+#include "core/profile/ProfileSession.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/FilesystemUtils.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/profile/ProfileCreateDialog.h"
 #include "ui/dialog/profile/ProfileExportDialog.h"
 #include "ui/function/GpgOperaHelper.h"
@@ -155,7 +156,7 @@ void ProfileManagerDialog::init_ui() {
 
 void ProfileManagerDialog::reload() {
   data_ = LoadProfiles();
-  const auto current = ProfileRuntime::Instance().id;
+  const auto current = ProfileSession::Instance().Profile().Id();
 
   table_->setRowCount(static_cast<int>(data_.profiles.size()));
   for (int row = 0; row < data_.profiles.size(); ++row) {
@@ -205,7 +206,7 @@ auto ProfileManagerDialog::selected() const
 
 void ProfileManagerDialog::slot_selection_changed() {
   const auto entry = selected();
-  const auto current = ProfileRuntime::Instance().id;
+  const auto current = ProfileSession::Instance().Profile().Id();
 
   const auto has = entry.has_value();
   open_button_->setEnabled(has && entry->id != current);
@@ -220,11 +221,11 @@ void ProfileManagerDialog::slot_selection_changed() {
 void ProfileManagerDialog::slot_open() {
   const auto entry = selected();
   if (!entry.has_value()) return;
-  if (entry->id == ProfileRuntime::Instance().id) return;
+  if (entry->id == ProfileSession::Instance().Profile().Id()) return;
 
   // No confirmation: nothing is closed, nothing is changed, and a window the
   // user did not want is closed again in one click.
-  const auto result = OpenProfileInNewWindow(entry->id);
+  const auto result = OpenProfileInNewWindow({.profile_id = entry->id});
   if (!result.Ok()) {
     QMessageBox::warning(this, tr("Cannot Open Profile"), result.detail,
                          QMessageBox::Ok);
@@ -236,9 +237,10 @@ void ProfileManagerDialog::slot_open() {
 }
 
 void ProfileManagerDialog::slot_export() {
-  const auto& profile = ProfileRuntime::Instance();
+  const auto& session = ProfileSession::Instance();
+  const auto& profile = session.Profile();
 
-  ProfileExportDialog dialog(CurrentProfileDisplayName(), profile.root, this);
+  ProfileExportDialog dialog(CurrentProfileDisplayName(), profile.Root(), this);
   if (dialog.exec() != QDialog::Accepted) return;
 
   // Stored key database paths are normalised to the `@profile/` form first.
@@ -248,7 +250,7 @@ void ProfileManagerDialog::slot_export() {
   auto stored = SettingsObject("key_database_list");
   auto list = KeyDatabaseListSO(stored);
   const auto packed =
-      RewriteKeyDatabaseListForPacking(list.key_databases, profile.root);
+      RewriteKeyDatabaseListForPacking(list.key_databases, profile.Root());
   if (packed.size() == list.key_databases.size()) {
     for (int i = 0; i < packed.size(); ++i) {
       if (packed.at(i).path != list.key_databases.at(i).path) {
@@ -259,12 +261,11 @@ void ProfileManagerDialog::slot_export() {
     }
   }
 
-  const auto marker = ReadProfileMarker(ProfileMarkerPathFor(profile.root))
-                          .value_or(ProfileMarker{});
+  const auto& marker = session.Marker();
 
   ProfileExportRequest request;
-  request.profile_root = profile.root;
-  request.profiles_root = profile.profiles_root;
+  request.profile_root = profile.Root();
+  request.profiles_root = qApp->property("GFProfilesRoot").toString();
   request.dest_path = dialog.DestinationPath();
   request.include_workspace = dialog.IncludeWorkspace();
   request.protection = dialog.Protection();
@@ -272,7 +273,7 @@ void ProfileManagerDialog::slot_export() {
 
   // Read here rather than inside the packing: the key manager and QSettings
   // both belong to this thread, and the packing does not run on it.
-  request.app_key = AppSecureKeyManager::GetInstance().GetLegacyKey();
+  request.app_key = session.Keys().RootKey();
   auto settings = GetSettings();
   request.settings = SnapshotSettings(settings);
 
@@ -284,8 +285,8 @@ void ProfileManagerDialog::slot_export() {
                                             : GetAppProfileSchemaVersion();
   request.manifest.app_profile = GetAppProfileName();
   request.manifest.display_name = CurrentProfileDisplayName();
-  request.manifest.profile_id = profile.id;
-  request.manifest.self_contained = profile.policy.self_contained;
+  request.manifest.profile_id = profile.Id();
+  request.manifest.self_contained = profile.Policy().self_contained;
   request.manifest.key_databases = DescribeKeyDatabasesForManifest(packed);
 
   if (request.app_key.Empty()) {
@@ -331,38 +332,16 @@ void ProfileManagerDialog::slot_export() {
       });
 }
 
-auto ProfileManagerDialog::ask_import_name(const QString& suggestion,
-                                           const QStringList& taken,
-                                           QString& id) -> QString {
-  auto proposed = suggestion;
+auto ProfileManagerDialog::ask_import_name(const QString& suggestion)
+    -> QString {
+  bool accepted = false;
+  const auto name = QInputDialog::getText(
+      this, tr("Name This Profile"),
+      tr("What should this profile be called on this computer?"),
+      QLineEdit::Normal, suggestion, &accepted);
+  if (!accepted) return {};
 
-  while (true) {
-    bool accepted = false;
-    const auto name = QInputDialog::getText(
-        this, tr("Name This Profile"),
-        tr("What should this profile be called on this computer?"),
-        QLineEdit::Normal, proposed, &accepted);
-    if (!accepted) return {};
-
-    id = MakeProfileId(name);
-    if (id.isEmpty()) {
-      QMessageBox::warning(this, tr("Name This Profile"),
-                           tr("That name cannot be used for a folder. Try "
-                              "letters and numbers."),
-                           QMessageBox::Ok);
-      proposed = name;
-      continue;
-    }
-    if (taken.contains(id)) {
-      QMessageBox::warning(
-          this, tr("Name This Profile"),
-          tr("There is already a profile in the folder \"%1\".").arg(id),
-          QMessageBox::Ok);
-      proposed = name;
-      continue;
-    }
-    return name;
-  }
+  return name.trimmed().isEmpty() ? suggestion : name.trimmed();
 }
 
 void ProfileManagerDialog::slot_import() {
@@ -463,15 +442,15 @@ void ProfileManagerDialog::finish_import(
     return;
   }
 
-  QStringList taken;
-  for (const auto& entry : data_.profiles) taken << entry.id;
-
-  QString id;
   const auto name = ask_import_name(result.manifest.display_name.isEmpty()
                                         ? result.manifest.profile_id
-                                        : result.manifest.display_name,
-                                    taken, id);
+                                        : result.manifest.display_name);
   if (name.isEmpty()) return;
+
+  // The folder is named by a fresh id, not by the name: the id is a directory
+  // name and an identity, and neither should have to survive being typed.
+  const auto id =
+      QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
 
   const auto roots = CurrentProfileRoots();
   const auto error = AdoptExtractedProfile(
@@ -506,7 +485,7 @@ void ProfileManagerDialog::finish_import(
     return;
   }
 
-  const auto opened = OpenProfileInNewWindow(id);
+  const auto opened = OpenProfileInNewWindow({.profile_id = id});
   if (!opened.Ok()) {
     QMessageBox::warning(this, tr("Cannot Open Profile"), opened.detail,
                          QMessageBox::Ok);
@@ -516,16 +495,15 @@ void ProfileManagerDialog::finish_import(
 }
 
 void ProfileManagerDialog::slot_create() {
-  QStringList taken;
-  for (const auto& e : data_.profiles) taken << e.id;
-
-  ProfileCreateDialog dialog(taken, this);
+  ProfileCreateDialog dialog(this);
   if (dialog.exec() != QDialog::Accepted) return;
 
-  const auto roots = CurrentProfileRoots();
-  const auto result = CreateProfile(
-      roots.profiles_root, roots.classic_root, roots.portable_root, dialog.Id(),
-      dialog.DisplayName(), dialog.SelfContained());
+  const auto id =
+      QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
+
+  const auto result =
+      CreateProfile(CurrentProfileRoots().profiles_root, id,
+                    dialog.DisplayName(), dialog.SelfContained());
 
   if (!result.Ok()) {
     QMessageBox::critical(
@@ -546,7 +524,7 @@ void ProfileManagerDialog::slot_create() {
     return;
   }
 
-  const auto opened = OpenProfileInNewWindow(dialog.Id());
+  const auto opened = OpenProfileInNewWindow({.profile_id = id});
   if (!opened.Ok()) {
     QMessageBox::warning(this, tr("Cannot Open Profile"), opened.detail,
                          QMessageBox::Ok);
@@ -599,9 +577,7 @@ void ProfileManagerDialog::slot_delete() {
     if (!account.isEmpty()) store->Remove(account);
   }
 
-  const auto roots = CurrentProfileRoots();
-  if (!DeleteProfile(roots.profiles_root, roots.classic_root,
-                     roots.portable_root, entry->id)) {
+  if (!DeleteProfile(CurrentProfileRoots().profiles_root, entry->id)) {
     QMessageBox::critical(
         this, tr("Cannot Delete Profile"),
         tr("The profile folder could not be removed:") + "\n" + entry->root,

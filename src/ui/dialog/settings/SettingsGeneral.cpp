@@ -35,10 +35,10 @@
 
 #include "SettingsDialog.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/ProfileWorkspace.h"
+#include "core/profile/ProfileSession.h"
+#include "ui/UserInterfaceUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui_GeneralSettings.h"
 
 namespace GpgFrontend::UI {
@@ -178,7 +178,7 @@ void GeneralTab::SetSettings() {
   // profile's actual folder in its tooltip, and so it can be hidden for a
   // classic profile, which has no workspace of its own.
   ui_->filePanelDefaultPathComboBox->clear();
-  if (const auto workspace = CurrentWorkspacePath(); !workspace.isEmpty()) {
+  if (const auto workspace = ProfileSession::Instance().WorkspacePath(); !workspace.isEmpty()) {
     ui_->filePanelDefaultPathComboBox->addItem(
         tr("Profile Workspace"),
         FilePanelDefaultPathModeToString(FilePanelDefaultPathMode::kWORKSPACE));

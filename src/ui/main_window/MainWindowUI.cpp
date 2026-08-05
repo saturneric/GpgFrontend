@@ -28,10 +28,11 @@
 
 #include "MainWindow.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/ProfileBootstrap.h"
 #include "core/function/openpgp/KeyCategoryRepository.h"
 #include "core/function/openpgp/support/KeyGenerationOpSupport.h"
 #include "core/module/ModuleManager.h"
+#include "core/profile/Profile.h"
+#include "core/profile/ProfileSession.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
@@ -91,12 +92,18 @@ void MainWindow::create_actions() {
   connect(close_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotCloseTab);
 
   open_profile_act_ =
-      create_action("open_profile", tr("Open Profile..."), {},
+      create_action("profile_manager", tr("Profile Manager..."), {},
                     tr("Open another profile in a new window, or create one"));
   connect(open_profile_act_, &QAction::triggered, this, [this]() {
     ProfileManagerDialog dialog(this);
     dialog.exec();
   });
+
+  open_package_act_ = create_action(
+      "open_profile_package", tr("Profile..."), {},
+      tr("Open a profile file in a new window, without keeping it here"));
+  connect(open_package_act_, &QAction::triggered, this,
+          &MainWindow::slot_open_profile_package);
 
   quit_act_ = create_action("quit", tr("Quit"), ":/icons/exit.png",
                             tr("Quit Program"), {QKeySequence::Quit});
@@ -403,15 +410,17 @@ void MainWindow::create_menus() {
   open_menu_->setToolTipsVisible(true);
   open_menu_->addAction(browser_file_act_);
   open_menu_->addAction(browser_dir_act_);
+  open_menu_->addSeparator();
+  open_menu_->addAction(open_package_act_);
 
   workspace_menu_ = file_menu_->addMenu(tr("Workspace"));
   workspace_menu_->setToolTipsVisible(true);
   workspace_menu_->addAction(browser_act_);
   workspace_menu_->addAction(new_tab_act_);
 
-  // Before the text-tab actions and behind its own separator: "Open Profile"
-  // and "Open" mean entirely different things, and putting them next to each
-  // other unlabelled is how a user opens the wrong one.
+  // Behind its own separator, and not inside "Open": managing the profiles this
+  // computer keeps is a different act from opening one, and putting the two
+  // next to each other unlabelled is how a user picks the wrong one.
   file_menu_->addSeparator();
   file_menu_->addAction(open_profile_act_);
 
@@ -579,12 +588,27 @@ void MainWindow::create_status_bar() {
   // opening another one opens another window — so it is set once here. Worth
   // the space: with two windows open on two profiles, nothing else on screen
   // says which keys are in front of you.
+  const auto& profile = ProfileSession::Instance().Profile();
+  const auto* packaged = dynamic_cast<const PackagedProfile*>(&profile);
+
   profile_status_label_ = new QLabel(this);
+
+  // A profile opened from a file is said to be temporary right here. It looks
+  // exactly like any other profile from inside the window, and a user who does
+  // not know it is a copy has no reason to expect the question on closing.
   profile_status_label_->setText(
-      tr("Profile: %1").arg(CurrentProfileDisplayName()));
+      packaged != nullptr
+          ? tr("Profile: %1  (temporary)").arg(CurrentProfileDisplayName())
+          : tr("Profile: %1").arg(CurrentProfileDisplayName()));
+
   profile_status_label_->setToolTip(
-      tr("This window's profile — its own settings, keys and saved state") +
-      "\n" + QDir::toNativeSeparators(ProfileRuntime::Instance().root));
+      packaged != nullptr
+          ? tr("Opened from a file, and not kept on this computer. Closing "
+               "asks whether to save the changes back into it.") +
+                "\n" + QDir::toNativeSeparators(packaged->PackagePath())
+          : tr("This window's profile — its own settings, keys and saved "
+               "state") +
+                "\n" + QDir::toNativeSeparators(profile.Root()));
   statusBar()->addPermanentWidget(profile_status_label_);
 
   statusBar()->addPermanentWidget(new QLabel(tr(" | "), this));

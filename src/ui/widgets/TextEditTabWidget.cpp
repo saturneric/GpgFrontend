@@ -28,14 +28,14 @@
 
 #include "TextEditTabWidget.h"
 
-#include "core/function/AppSecureKeyManager.h"
 #include "core/function/CacheManager.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/ProfileWorkspace.h"
 #include "core/model/CacheObject.h"
 #include "core/model/GFBuffer.h"
 #include "core/module/ModuleManager.h"
+#include "core/profile/ProfileSession.h"
+#include "ui/UserInterfaceUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
@@ -475,7 +475,7 @@ void TextEditTabWidget::SlotOpenDefaultPath() {
   // Created rather than merely resolved, so the panel never falls back to the
   // working directory just because the folder has not been used yet.
   const auto workspace = mode == FilePanelDefaultPathMode::kWORKSPACE
-                             ? EnsureWorkspaceExists()
+                             ? ProfileSession::Instance().EnsureWorkspace()
                              : QString{};
 
   auto default_path = ResolveFilePanelDefaultPath(
@@ -627,7 +627,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     return;
   }
 
-  auto& key_mgr = AppSecureKeyManager::GetInstance();
+  auto& key_mgr = ProfileSession::Instance().Keys();
   QJsonArray unsaved_page_array;
 
   for (const auto& page : unsaved_pages) {
@@ -640,7 +640,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     page_json["icon_name"] = page.icon_name;
 
     auto encrypted_content =
-        GFBufferFactory::Encrypt(key_mgr.GetActiveKey(), page.content);
+        GFBufferFactory::Encrypt(key_mgr.ActiveKey(), page.content);
     if (!encrypted_content) continue;
 
     auto base64_content = GFBufferFactory::ToBase64(*encrypted_content);
@@ -648,7 +648,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
 
     page_json["content"] = base64_content->ConvertToQString();
     page_json["key_id"] = QString::fromLatin1(
-        key_mgr.GetActiveKeyId().ConvertToQByteArray().toHex());
+        key_mgr.ActiveKeyId().ConvertToQByteArray().toHex());
 
     unsaved_page_array.push_back(page_json);
   }
@@ -714,7 +714,7 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     }
   });
 
-  auto& key_mgr = AppSecureKeyManager::GetInstance();
+  auto& key_mgr = ProfileSession::Instance().Keys();
   QJsonArray next_recovery_pages;
   QPointer<PlainTextEditorPage> last_restored_page;
   int restored_count = 0;
@@ -786,7 +786,7 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     }
 
     auto key_id = QByteArray::fromHex(json["key_id"].toString().toLatin1());
-    auto key = key_mgr.GetKey(GFBuffer(key_id));
+    auto key = key_mgr.KeyById(GFBuffer(key_id));
     key_id.fill('X');
     key_id.clear();
 

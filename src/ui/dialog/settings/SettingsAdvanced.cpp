@@ -31,10 +31,11 @@
 #include <QStandardItemModel>
 
 #include "core/GFCoreLog.h"
-#include "core/function/AppSecureKeyManager.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SystemSecretStore.h"
+#include "core/profile/ProfileLoader.h"
+#include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/AppKeyPinDialog.h"
@@ -397,11 +398,31 @@ void AdvancedTab::configure_protection_items() {
     item->setToolTip(enabled ? QString() : WrappingToolTip(reason));
   };
 
-  const auto& profile = ProfileRuntime::Instance();
-  if (ProfileTravelsBetweenMachines(profile.kind, profile.policy)) {
+  const auto& profile = ProfileSession::Instance().Profile();
+
+  // A packaged profile has exactly one secret, and it is not this tab's to
+  // change: the passphrase that opens the file also protects the key inside
+  // it, and the copy running here is deleted when the window closes. A PIN set
+  // here would be forgotten at that point, and turning protection off would
+  // leave the key plaintext in a folder that exists only because the file was
+  // opened. Change it by exporting the profile again with a new passphrase.
+  if (profile.Kind() == ProfileKind::kPACKAGED) {
+    const auto reason =
+        tr("This profile was opened from a file, and the passphrase that "
+           "opens that file also protects its key. To change it, export the "
+           "profile again with a new passphrase.");
+
+    protection_combo_->setEnabled(false);
+    protection_combo_->setToolTip(WrappingToolTip(reason));
+    change_pin_button_->setEnabled(false);
+    change_pin_button_->setToolTip(WrappingToolTip(reason));
+    return;
+  }
+
+  if (!profile.AllowsSystemKeychain()) {
     set_item(
         AppKeyProtection::kKEYCHAIN, false,
-        profile.kind == ProfileRootKind::kPACKAGE_LINKED
+        profile.Kind() == ProfileKind::kPACKAGED
             ? tr("Not available for a profile package: the package is meant "
                  "to be opened on another computer, possibly running another "
                  "operating system, where a secret stored in this computer's "
@@ -472,10 +493,10 @@ void AdvancedTab::ApplySettings() {
 auto AdvancedTab::apply_app_key_protection() -> bool {
   const auto to =
       AppKeyProtectionFromString(protection_combo_->currentData().toString());
-  const auto from = AppKeyProtectionFromApp();
+  const auto from = ProfileLoader::AppKeyProtectionFromApp();
   if (to == from) return true;
 
-  auto& mgr = AppSecureKeyManager::GetInstance();
+  auto& mgr = ProfileSession::Instance().Keys();
 
   const auto revert = [this, from]() {
     const auto index =
@@ -498,9 +519,9 @@ auto AdvancedTab::apply_app_key_protection() -> bool {
     pin = dialog.Pin();
   }
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
-      mgr.GetLegacyKeyPath(), GetSystemSecretStore(), mgr.GetLegacyKey(), from,
-      to, pin, AppSecureKeyManager::CurrentWrapAccount());
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
+      mgr.KeyPath(), GetSystemSecretStore(), mgr.RootKey(), from, to, pin,
+      ProfileLoader::CurrentWrapAccount());
 
   if (!result.Ok()) {
     if (result.status == AppKeyProtectionStatus::kSTORE_UNAVAILABLE) {
@@ -529,24 +550,24 @@ auto AdvancedTab::apply_app_key_protection() -> bool {
 }
 
 void AdvancedTab::change_pin() {
-  auto& mgr = AppSecureKeyManager::GetInstance();
+  auto& mgr = ProfileSession::Instance().Keys();
 
   AppKeyPinDialog dialog(AppKeyPinDialog::Mode::kCHANGE, this);
   while (dialog.exec() == QDialog::Accepted) {
     // Verify the current PIN before re-keying, so someone at an unlocked
     // machine cannot silently change it.
-    auto on_disk = GFBufferFactory::FromFile(mgr.GetLegacyKeyPath());
-    if (!on_disk ||
-        !AppSecureKeyManager::UnsealKey(dialog.CurrentPin(), {}, *on_disk)) {
+    auto on_disk = GFBufferFactory::FromFile(mgr.KeyPath());
+    if (!on_disk || !ProfileSecureKeyManager::UnsealKey(dialog.CurrentPin(), {},
+                                                        *on_disk)) {
       dialog.SetErrorText(tr("The current PIN is not correct."));
       dialog.Clear();
       continue;
     }
 
-    const auto result = AppSecureKeyManager::ChangeProtection(
-        mgr.GetLegacyKeyPath(), GetSystemSecretStore(), mgr.GetLegacyKey(),
+    const auto result = ProfileSecureKeyManager::ChangeProtection(
+        mgr.KeyPath(), GetSystemSecretStore(), mgr.RootKey(),
         AppKeyProtection::kPIN, AppKeyProtection::kPIN, dialog.Pin(),
-        AppSecureKeyManager::CurrentWrapAccount());
+        ProfileLoader::CurrentWrapAccount());
 
     if (result.Ok()) {
       QMessageBox::information(this, tr("PIN Changed"),

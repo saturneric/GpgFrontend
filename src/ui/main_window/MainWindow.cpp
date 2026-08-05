@@ -39,6 +39,7 @@
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/function/ProfileController.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/KeyList.h"
@@ -277,6 +278,17 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     event->ignore();
     return;
   }
+
+  // After the tabs, and before anything is torn down: a profile opened from a
+  // file is running out of a copy that this process deletes on the way out, so
+  // this is the last moment the changes can be kept. Packing takes long enough
+  // to need a progress dialog, so the close is held and repeated from the
+  // callback rather than run inside this handler.
+  if (!MaybeWriteBackPackageSession(this, [this]() { close(); })) {
+    event->ignore();
+    return;
+  }
+
   GeneralMainWindow::closeEvent(event);
 }
 

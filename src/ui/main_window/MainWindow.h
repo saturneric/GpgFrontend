@@ -549,6 +549,15 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_open_file_tab_with_directory();
 
   /**
+   * @brief Open a `.gfprofile` in a new window, as a temporary profile.
+   *
+   * Temporary in the sense that nothing is added to this computer: it is
+   * unpacked, used, and on closing the user says whether the changes go back
+   * into the file. Profiles this computer keeps are the profile manager's job.
+   */
+  void slot_open_profile_package();
+
+  /**
    * @brief
    *
    */
@@ -570,6 +579,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   /// Opens the profile chooser. Distinct from workspace_menu_ above, which
   /// chooses which *view* opens at startup and has nothing to do with profiles.
   QAction* open_profile_act_{};
+  QAction* open_package_act_{};
 
   QToolBar* crypt_tool_bar_{};  ///<  Toolbar holding crypt actions
   QToolBar* file_tool_bar_{};   ///<  Toolbar holding file actions

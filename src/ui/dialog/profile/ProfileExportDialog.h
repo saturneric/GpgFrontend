@@ -28,7 +28,7 @@
 
 #pragma once
 
-#include "core/function/ProfilePackage.h"
+#include "core/profile/ProfilePackage.h"
 #include "ui/dialog/GeneralDialog.h"
 
 class QLineEdit;

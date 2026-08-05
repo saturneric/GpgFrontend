@@ -28,7 +28,7 @@
 
 #include "ui/dialog/profile/ProfileCreateDialog.h"
 
-#include "core/function/ProfileBootstrap.h"
+#include "core/profile/Profile.h"
 
 namespace GpgFrontend::UI {
 
@@ -59,9 +59,8 @@ auto MakeHintLabel(const QString& text, QWidget* parent) -> QLabel* {
 
 }  // namespace
 
-ProfileCreateDialog::ProfileCreateDialog(QStringList taken_ids, QWidget* parent)
-    : GeneralDialog("profile_create_dialog", parent),
-      taken_ids_(std::move(taken_ids)) {
+ProfileCreateDialog::ProfileCreateDialog(QWidget* parent)
+    : GeneralDialog("profile_create_dialog", parent) {
   init_ui();
   setWindowTitle(tr("New Profile"));
   setModal(true);
@@ -87,10 +86,6 @@ void ProfileCreateDialog::init_ui() {
   name_edit_ = new QLineEdit(this);
   name_edit_->setPlaceholderText(tr("for example: Work"));
   form->addRow(tr("Name"), name_edit_);
-
-  id_label_ = new QLabel(this);
-  id_label_->setStyleSheet("color: gray;");
-  form->addRow(tr("Folder"), id_label_);
   layout->addLayout(form);
 
   auto* keyring = new QGroupBox(tr("Keys"), this);
@@ -134,31 +129,19 @@ void ProfileCreateDialog::init_ui() {
 }
 
 void ProfileCreateDialog::slot_name_changed() {
-  id_ = MakeProfileId(name_edit_->text());
-
-  // Say what will actually be created before it is created: the id becomes a
-  // directory name, and a name that produces nothing usable is better caught
-  // while typing than on accept.
-  if (id_.isEmpty()) {
-    id_label_->setText(tr("— enter a name —"));
-  } else if (taken_ids_.contains(id_)) {
-    id_label_->setText(tr("%1  (already in use)").arg(id_));
-  } else {
-    id_label_->setText(id_);
-  }
-
+  // A name is the only thing that can be wrong here, and only by being absent:
+  // it is shown in the profile list and nothing else is derived from it.
   buttons_->button(QDialogButtonBox::Ok)
-      ->setEnabled(!id_.isEmpty() && !taken_ids_.contains(id_));
+      ->setEnabled(!name_edit_->text().trimmed().isEmpty());
 }
 
 void ProfileCreateDialog::slot_accept() {
-  if (id_.isEmpty() || taken_ids_.contains(id_)) return;
+  if (name_edit_->text().trimmed().isEmpty()) return;
   accept();
 }
 
 auto ProfileCreateDialog::DisplayName() const -> QString {
-  const auto name = name_edit_->text().trimmed();
-  return name.isEmpty() ? id_ : name;
+  return name_edit_->text().trimmed();
 }
 
 auto ProfileCreateDialog::SelfContained() const -> bool {

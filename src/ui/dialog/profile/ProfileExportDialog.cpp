@@ -30,7 +30,7 @@
 
 #include <QFileDialog>
 
-#include "core/function/ProfileWorkspace.h"
+#include "ui/UserInterfaceUtils.h"
 
 namespace GpgFrontend::UI {
 

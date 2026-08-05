@@ -33,16 +33,17 @@
 #include <QDesktopServices>
 #include <functional>
 
-#include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/ProfileBootstrap.h"
-#include "core/function/ProfileWorkspace.h"
 #include "core/function/SystemSecretStore.h"
 #include "core/module/ModuleManager.h"
+#include "core/profile/ProfileLoader.h"
+#include "core/profile/ProfileMarker.h"
+#include "core/profile/ProfileSecureKeyManager.h"
+#include "core/profile/ProfileSession.h"
+#include "ui/UserInterfaceUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/RustUtils.h"
 #include "ui/UIModuleManager.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/function/ProfileController.h"
 
 namespace GpgFrontend::UI {
@@ -534,7 +535,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
 
   const QString secure_level_str = SecureLevelDisplayName(secure_level);
   const QString app_key_protection_str =
-      AppKeyProtectionDisplayName(AppKeyProtectionFromApp());
+      AppKeyProtectionDisplayName(ProfileLoader::AppKeyProtectionFromApp());
 
   const QString portable_mode_str =
       portable_mode ? tr("Portable Mode") : tr("Installed Mode");
@@ -604,7 +605,8 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   // Which profile this window is using, and where it keeps things. With two
   // windows open on two profiles, "which keys am I looking at" is the first
   // question of any bug report, and the paths below answer it exactly.
-  const auto& profile = ProfileRuntime::Instance();
+  const auto& session = ProfileSession::Instance();
+  const auto& profile = session.Profile();
 
   auto* profile_widget = new QWidget(content);
   auto* profile_form = CreateInfoForm(profile_widget);
@@ -615,21 +617,21 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
       CreateValueLabel(CurrentProfileDisplayName(), profile_widget));
   profile_form->addRow(
       tr("Profile Type:"),
-      CreateValueLabel(ProfileKindDisplayName(profile.kind), profile_widget));
-  profile_form->addRow(
-      tr("Profile Folder:"),
-      CreatePathValue(QDir::toNativeSeparators(profile.root), profile_widget));
+      CreateValueLabel(ProfileKindDisplayName(profile.Kind()), profile_widget));
+  profile_form->addRow(tr("Profile Folder:"),
+                       CreatePathValue(QDir::toNativeSeparators(profile.Root()),
+                                       profile_widget));
 
   // Where the keyring comes from is the difference a user actually feels
   // between two profiles, so it is stated rather than left to be inferred from
   // the type above.
-  profile_form->addRow(
-      tr("Keys:"),
-      CreateValueLabel(profile.policy.self_contained ? tr("Inside this profile")
-                                                     : tr("System keyring"),
-                       profile_widget));
+  profile_form->addRow(tr("Keys:"),
+                       CreateValueLabel(profile.Policy().self_contained
+                                            ? tr("Inside this profile")
+                                            : tr("System keyring"),
+                                        profile_widget));
 
-  const auto workspace = CurrentWorkspacePath();
+  const auto workspace = ProfileSession::Instance().WorkspacePath();
   if (workspace.isEmpty()) {
     profile_form->addRow(tr("Workspace:"),
                          CreateValueLabel(tr("None"), profile_widget));
@@ -639,25 +641,29 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
         CreatePathValue(QDir::toNativeSeparators(workspace), profile_widget));
   }
 
-  if (const auto marker =
-          ReadProfileMarker(ProfileMarkerPathFor(profile.root))) {
+  const auto& marker = session.Marker();
+  if (marker.schema_version > 0) {
     profile_form->addRow(
         tr("Profile Layout Version:"),
-        CreateValueLabel(QString::number(marker->schema_version),
+        CreateValueLabel(QString::number(marker.schema_version),
                          profile_widget));
-
-    // Present only on a profile that came from a package, and worth showing
-    // there: it is the identity that says which document this copy came from.
-    if (!marker->package_id.isEmpty()) {
-      profile_form->addRow(tr("Imported From Package:"),
-                           CreatePathValue(marker->package_id, profile_widget));
-    }
   }
 
-  if (!profile.profiles_root.isEmpty()) {
+  // Present only on a profile that came from a package, and worth showing
+  // there: it is the identity that says which document this copy came from.
+  if (!marker.package_id.isEmpty()) {
+    profile_form->addRow(tr("Imported From Package:"),
+                         CreatePathValue(marker.package_id, profile_widget));
+  }
+
+  // Mirrored onto the application rather than asked of the profile: where this
+  // machine keeps its persisted profiles is a property of the installation, not
+  // of the one profile in front of us.
+  if (const auto profiles_root = qApp->property("GFProfilesRoot").toString();
+      !profiles_root.isEmpty()) {
     profile_form->addRow(
         tr("Profiles Folder:"),
-        CreatePathValue(QDir::toNativeSeparators(profile.profiles_root),
+        CreatePathValue(QDir::toNativeSeparators(profiles_root),
                         profile_widget));
   }
 
