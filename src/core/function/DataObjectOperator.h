@@ -30,10 +30,10 @@
 
 #include <optional>
 
-#include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/GFBuffer.h"
+#include "core/profile/ProfileSession.h"
 
 namespace GpgFrontend {
 
@@ -139,14 +139,13 @@ class GF_CORE_EXPORT DataObjectOperator
   auto HasDataObj(const QString &key) -> bool;
 
  private:
-
-  GlobalSettingStation &gss_ =
-      GlobalSettingStation::GetInstance();  ///< Storage paths
-  AppSecureKeyManager &key_mgr_ =
-      AppSecureKeyManager::GetInstance();  ///< Owner of all key material
-  GFBuffer l_key_;                         ///< Legacy key
-  GFBuffer key_;                           ///< Active key
-  GFBuffer key_id_;                        ///< Active key Id
+  ProfileAccessor &store_ =
+      ProfileSession::Instance().Accessor();  ///< Where objects are kept
+  ProfileSecureKeyManager &key_mgr_ =
+      ProfileSession::Instance().Keys();  ///< Owner of all key material
+  GFBuffer l_key_;                        ///< The profile's own key
+  GFBuffer key_;                          ///< Active key
+  GFBuffer key_id_;                       ///< Active key Id
 
   /**
    * @brief Derive the binary storage reference for the given object name.

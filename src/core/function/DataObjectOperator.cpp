@@ -186,7 +186,7 @@ auto CheckDataObjectByRef(const QString& ref_hex, bool expect_json)
   auto key_id = data.Left(32);
   r.key_id_hex = key_id.ConvertToQByteArray().toHex();
 
-  auto key = GpgFrontend::AppSecureKeyManager::GetInstance().GetKey(key_id);
+  auto key = GpgFrontend::ProfileSession::Instance().Keys().KeyById(key_id);
   if (key.Empty()) {
     r.health = DataObjectHealth::kMISSING_KEY;
     return r;
@@ -586,8 +586,9 @@ auto SaveOrRemoveGcState(const QString& path, const QJsonObject& state)
 }
 
 // Check every stored object and tally the outcome, without touching any of
-// them. Healthy objects are consumed here (they only ever clear stale GC state);
-// everything else is returned for the caller to act on once the tally is known.
+// them. Healthy objects are consumed here (they only ever clear stale GC
+// state); everything else is returned for the caller to act on once the tally
+// is known.
 auto ClassifyDataObjects(const QDir& dir, DataObjectGCContext* ctx)
     -> GpgFrontend::QContainer<DataObjectCheckResult> {
   GpgFrontend::QContainer<DataObjectCheckResult> pending;
@@ -671,15 +672,14 @@ auto RunDataObjectGC(const DataObjectGCPolicy& policy) -> DataObjectGCReport {
   // deleted until every object has been checked. The quarantine sweep below
   // still runs afterwards, so objects quarantined by this run are picked up in
   // the same pass exactly as before.
-  const auto pending =
-      ClassifyDataObjects(QDir(gss.GetDataObjectsDir()), &ctx);
+  const auto pending = ClassifyDataObjects(QDir(gss.GetDataObjectsDir()), &ctx);
 
   // Only now is there enough information to tell an orphaned leftover from a
   // profile whose active key is simply wrong. Both look identical one object
   // at a time, and they want opposite handling, so the decision has to wait
   // for the whole tally.
-  const bool key_set_suspect = GpgFrontend::IsWholesaleKeyFailure(
-      ctx.report.ok, ctx.report.missing_key);
+  const bool key_set_suspect =
+      GpgFrontend::IsWholesaleKeyFailure(ctx.report.ok, ctx.report.missing_key);
 
   if (key_set_suspect) {
     ctx.policy.delete_missing_key = false;
@@ -760,13 +760,13 @@ auto HighSecurityPolicy() -> DataObjectGCPolicy {
 namespace GpgFrontend {
 DataObjectOperator::DataObjectOperator(int channel)
     : SingletonFunctionObject<DataObjectOperator>(channel) {
-  key_ = key_mgr_.GetActiveKey();
+  key_ = key_mgr_.ActiveKey();
   Q_ASSERT(!key_.Empty());
 
-  key_id_ = key_mgr_.GetActiveKeyId();
+  key_id_ = key_mgr_.ActiveKeyId();
   Q_ASSERT(!key_id_.Empty());
 
-  l_key_ = key_mgr_.GetLegacyKey();
+  l_key_ = key_mgr_.RootKey();
   Q_ASSERT(!l_key_.Empty());
 
   auto secure_level = SecureLevelFromApp();
@@ -825,9 +825,7 @@ auto DataObjectOperator::StoreSecDataObj(const QString& key,
   if (key_.Empty()) return {};
 
   // recreate if not exists
-  if (!QDir(gss_.GetDataObjectsDir()).exists()) {
-    QDir(gss_.GetDataObjectsDir()).mkpath(".");
-  }
+  store_.Ensure(ProfileArea::kDataObjects);
 
   auto ref = get_object_ref(key);
   return write_encr_object(ref, value);
@@ -849,7 +847,8 @@ auto DataObjectOperator::RemoveDataObj(const QString& key) -> bool {
   if (key_.Empty() || key.isEmpty()) return false;
 
   const auto ref_hex = get_object_ref(key).ConvertToQByteArray().toHex();
-  const auto ref_path = gss_.GetDataObjectsDir() + "/" + ref_hex;
+  const auto ref_path =
+      store_.PathOf(ProfileArea::kDataObjects) + "/" + ref_hex;
 
   if (!QFileInfo::exists(ref_path)) return true;
 
@@ -869,7 +868,8 @@ auto DataObjectOperator::HasDataObj(const QString& key) -> bool {
   if (key_.Empty() || key.isEmpty()) return false;
 
   const auto ref_hex = get_object_ref(key).ConvertToQByteArray().toHex();
-  return QFileInfo::exists(gss_.GetDataObjectsDir() + "/" + ref_hex);
+  return QFileInfo::exists(store_.PathOf(ProfileArea::kDataObjects) + "/" +
+                           ref_hex);
 }
 
 auto DataObjectOperator::get_object_ref(const QString& obj_name) -> GFBuffer {
@@ -888,7 +888,8 @@ auto DataObjectOperator::get_object_ref(const QString& obj_name) -> GFBuffer {
 auto DataObjectOperator::read_decr_object(const GFBuffer& ref)
     -> GFBufferOrNone {
   const auto ref_hex = ref.ConvertToQByteArray().toHex();
-  const auto ref_path = gss_.GetDataObjectsDir() + "/" + ref_hex;
+  const auto ref_path =
+      store_.PathOf(ProfileArea::kDataObjects) + "/" + ref_hex;
   if (!QFileInfo(ref_path).exists()) {
     LOG_W() << "data object not found from disk, ref: " << ref_hex;
     return {};
@@ -901,7 +902,7 @@ auto DataObjectOperator::read_decr_object(const GFBuffer& ref)
   }
 
   auto key_id = data.Left(32);
-  auto key = key_mgr_.GetKey(key_id);
+  auto key = key_mgr_.KeyById(key_id);
 
   if (key.Empty()) {
     LOG_W() << "fail to find key of data object, key"
@@ -947,7 +948,8 @@ auto DataObjectOperator::read_decr_json_object(const GFBuffer& ref)
 auto DataObjectOperator::write_encr_object(const GFBuffer& ref,
                                            const GFBuffer& value) -> QString {
   const auto ref_hex = ref.ConvertToQByteArray().toHex();
-  const auto ref_path = gss_.GetDataObjectsDir() + "/" + ref_hex;
+  const auto ref_path =
+      store_.PathOf(ProfileArea::kDataObjects) + "/" + ref_hex;
 
   auto drv_key = DeriveObjectKey(key_, ref);
   if (!drv_key) {
