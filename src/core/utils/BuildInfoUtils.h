@@ -188,6 +188,20 @@ auto GF_CORE_EXPORT IsSelfCheckAvailable() -> bool;
 auto GF_CORE_EXPORT GetAppProfileSchemaVersion() -> int;
 
 /**
+ * @brief Return the oldest layout version that can still read what this build
+ * writes.
+ *
+ * Stamped into a profile as its @c min_reader_version, and into a package as
+ * its @c min_reader, where it is the only thing a reader is allowed to refuse
+ * on. Deliberately not the schema version: a layout that gained a field an
+ * older build simply ignores is still readable by that build, and saying
+ * otherwise would strand a user who downgrades.
+ *
+ * @return the oldest schema version allowed to open this build's output
+ */
+auto GF_CORE_EXPORT GetAppProfileMinReaderSchema() -> int;
+
+/**
  * @brief Return the libsodium version linked at build time.
  * @return libsodium version string
  */

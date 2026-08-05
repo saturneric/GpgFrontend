@@ -498,8 +498,14 @@ auto ParseProfilePackageHeader(const QByteArray &bytes)
   // The one decision the plaintext header is allowed to make on its own, and
   // it is a refusal: it saves a hundred milliseconds of key derivation on a
   // file we could not use anyway. Nothing positive is ever concluded here.
-  if (view.header.format_version > kProfilePackageFormatVersion ||
-      view.header.min_reader > kProfilePackageFormatVersion) {
+  //
+  // Only min_reader is grounds for it. format_version says what was written,
+  // min_reader says what it takes to read it, and refusing on the first would
+  // make the second dead weight: a writer that adds a field it does not need
+  // us to understand raises format_version and leaves min_reader alone, and
+  // that package has to open here. That is the entire reason there are two
+  // numbers rather than one.
+  if (view.header.min_reader > kProfilePackageFormatVersion) {
     view.status = ProfilePackageHeaderStatus::kTOO_NEW;
     view.detail =
         QString("this package was written by a newer version of GpgFrontend%1")
@@ -525,7 +531,10 @@ auto ProfilePackageHeaderDigest(const QByteArray &header_bytes) -> QString {
 
 auto EncodeProfilePackageManifest(const ProfilePackageManifest &manifest)
     -> QByteArray {
-  QJsonObject json;
+  // Seeded with what this build did not understand, so that everything below
+  // overwrites rather than competes: a field this build knows is always
+  // written from the struct, and one it does not is carried through untouched.
+  QJsonObject json = manifest.unknown_fields;
   json["manifest_version"] = manifest.manifest_version;
   json["format_version"] = manifest.format_version;
   json["min_reader"] = manifest.min_reader;
@@ -599,6 +608,21 @@ auto ParseProfilePackageManifest(const QByteArray &bytes)
     entry.backend_type = object["backend_type"].toString();
     entry.external = object["external"].toBool();
     manifest.key_databases.append(entry);
+  }
+
+  // Anything this build does not know is carried through untouched, so that a
+  // package written by a newer one can be imported and exported again here
+  // without silently losing what that build depends on.
+  static const QSet<QString> kKnown = {
+      "manifest_version",   "format_version",     "min_reader",
+      "protection",         "header_digest",      "schema_version",
+      "min_reader_version", "app_profile",        "display_name",
+      "profile_id",         "writer_version",     "created",
+      "package_id",         "app_key_protection", "workspace_included",
+      "self_contained",     "key_databases"};
+  for (auto it = json.constBegin(); it != json.constEnd(); ++it) {
+    if (!kKnown.contains(it.key()))
+      manifest.unknown_fields[it.key()] = it.value();
   }
 
   return manifest;
@@ -687,7 +711,7 @@ auto MakeProfilePackageScratchDir(const QString &profiles_root,
                                   const QString &purpose) -> QString {
   for (int attempt = 0; attempt < 64; ++attempt) {
     const auto candidate =
-        QString("%1/.gfprofile-%2-%3")
+        QString("%1/.gfp-%2-%3")
             .arg(profiles_root, purpose,
                  QUuid::createUuid().toString(QUuid::WithoutBraces).left(8));
     if (!QFileInfo::exists(candidate)) return candidate;

@@ -99,6 +99,10 @@ auto IsSelfCheckAvailable() -> bool { return IsStableBuild(); }
 
 auto GetAppProfileSchemaVersion() -> int { return APP_PROFILE_SCHEMA_VERSION; }
 
+auto GetAppProfileMinReaderSchema() -> int {
+  return APP_PROFILE_MIN_READER_SCHEMA;
+}
+
 auto GetSodiumVersion() -> QString {
   if (sodium_init() < 0) {
     return {};

@@ -376,7 +376,7 @@ void ProfileLoader::ensure_identity() {
 
     if (marker.schema_version == 0) {
       marker.schema_version = GetAppProfileSchemaVersion();
-      marker.min_reader_version = GetAppProfileSchemaVersion();
+      marker.min_reader_version = GetAppProfileMinReaderSchema();
       marker.profile = GetAppProfileName();
     }
   });
@@ -396,7 +396,7 @@ void ProfileLoader::stamp_marker() {
     // Only ever raised by a migration that genuinely makes the profile
     // unreadable to older builds; stamping must not quietly raise it.
     if (marker.min_reader_version == 0) {
-      marker.min_reader_version = GetAppProfileSchemaVersion();
+      marker.min_reader_version = GetAppProfileMinReaderSchema();
     }
 
     marker.profile_id = id;

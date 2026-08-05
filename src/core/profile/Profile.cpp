@@ -30,6 +30,7 @@
 
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/GFBufferFactory.h"
+#include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileSecureKeyManager.h"
 #include "core/utils/CommonUtils.h"
 
@@ -417,7 +418,7 @@ auto PositionalPackage(const QStringList &args) -> QString {
       continue;
     }
     if (arg.startsWith('-')) continue;
-    if (arg.endsWith(".gfprofile", Qt::CaseInsensitive)) return arg;
+    if (arg.endsWith(kProfilePackageExtension, Qt::CaseInsensitive)) return arg;
   }
   return {};
 }

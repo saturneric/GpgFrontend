@@ -156,7 +156,11 @@ auto CreateProfile(const QString& profiles_root, const QString& id,
   // one code path is ever responsible for key material.
   ProfileMarker marker;
   marker.schema_version = GetAppProfileSchemaVersion();
-  marker.min_reader_version = GetAppProfileSchemaVersion();
+  // The floor, not this build's schema. A brand new profile is not inherently
+  // unreadable to an older build just because a newer one made it, and saying
+  // so here would lock a user out of a profile they just created the moment
+  // they went back a version.
+  marker.min_reader_version = GetAppProfileMinReaderSchema();
   marker.profile = GetAppProfileName();
   marker.last_writer_version = GetProjectVersion();
   marker.last_writer_stable = IsStableBuild();

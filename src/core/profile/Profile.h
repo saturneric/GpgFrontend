@@ -48,7 +48,7 @@ enum class ProfileKind : std::uint8_t {
   kINSTALLED_ROOT,  ///< the OS user-data location; the original layout
   kPORTABLE_ROOT,  ///< the directory above the application, on a portable build
   kPERSIST,        ///< <root-profile>/profiles/<uuid>
-  kPACKAGED,       ///< extracted from a .gfprofile, and temporary
+  kPACKAGED,       ///< extracted from a .gfp, and temporary
 };
 
 /**
@@ -393,7 +393,7 @@ class GF_CORE_EXPORT PersistProfile final : public UnpackagedProfile {
 };
 
 /**
- * @brief A `.gfprofile` opened for the length of one session.
+ * @brief A `.gfp` opened for the length of one session.
  *
  * Everything that makes this different from the rest follows from one decision:
  * the storage is a single encrypted file that is not this machine's. So it is
@@ -409,7 +409,7 @@ class GF_CORE_EXPORT PackagedProfile final : public Profile {
   /**
    * @brief Name a package, without touching it.
    *
-   * @param package_path the `.gfprofile`
+   * @param package_path the `.gfp`
    * @param profiles_root where transient roots may be made
    */
   PackagedProfile(QString package_path, QString profiles_root);
@@ -542,7 +542,7 @@ struct GF_CORE_EXPORT ProfileSelection {
   /// Where this machine's persisted profiles live.
   QString profiles_root;
 
-  /// The `.gfprofile` named on the command line, for kPACKAGED.
+  /// The `.gfp` named on the command line, for kPACKAGED.
   QString package_path;
 };
 
@@ -560,7 +560,7 @@ struct GF_CORE_EXPORT ProfileSelectionResult {
 /**
  * @brief Decide which profile this process runs against.
  *
- * Pure. Precedence, highest first: `--profile`, a positional `.gfprofile`,
+ * Pure. Precedence, highest first: `--profile`, a positional `.gfp`,
  * `GF_PROFILE`, and finally the implicit default — the portable root on a
  * portable build, otherwise the installed one.
  *

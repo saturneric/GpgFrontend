@@ -48,7 +48,7 @@ enum class ProfileLoadFailure : std::uint8_t {
   kALREADY_OPEN,         ///< another process holds this profile
   kLOCK_UNAVAILABLE,     ///< the lock file could not be created
   kMOUNT_FAILED,         ///< the storage could not be made usable
-  kNOT_A_PACKAGE,        ///< the file named is not a .gfprofile
+  kNOT_A_PACKAGE,        ///< the file named is not a .gfp
   kPACKAGE_TAMPERED,     ///< header and sealed manifest disagree
   kPACKAGE_MALFORMED,    ///< the payload is not a profile tree
   kTOO_NEW,              ///< written by a newer build; must not be touched
@@ -300,7 +300,7 @@ class GF_CORE_EXPORT ProfileLoader {
    * @brief Refuse the credential store for any profile that leaves this
    * machine.
    *
-   * A profile inside a `.gfprofile` package, or on removable media, is written
+   * A profile inside a `.gfp` package, or on removable media, is written
    * expressly to be carried somewhere else — very possibly to a different
    * operating system, where "the system credential store" is not the same thing
    * and often is not anything at all. A key sealed with one machine's store

@@ -42,11 +42,37 @@ namespace GpgFrontend {
 inline constexpr auto kProfilePackageMagic = "GFPROF1\n";
 inline constexpr int kProfilePackageMagicLength = 8;
 
+/// What was written, and what it takes to read it. Only the second is ever
+/// grounds for a refusal: a writer that adds a field an older build can ignore
+/// raises the first and leaves the second alone, and its packages keep opening
+/// here. See docs/profile-package-format.md.
 inline constexpr int kProfilePackageFormatVersion = 1;
 inline constexpr int kProfilePackageMinReader = 1;
 
 /// Where the tree sits inside the archive; `manifest.json` sits beside it.
 inline constexpr auto kProfilePackageTreePrefix = "profile";
+
+/// The extension every desktop shell registers the format under, dot included.
+/// Short enough to survive an 8.3 filesystem, and spelled once: the argv scan,
+/// three file dialogs, a freedesktop glob, a Windows ProgID and a macOS UTI tag
+/// all have to agree, and a disagreement shows up as a file that opens from the
+/// menu and not by double-click.
+///
+/// Deliberately not the same string as the `format` field inside the header,
+/// which stays "gfprofile": the extension is a shorthand for users, the format
+/// name is the format's identity.
+inline constexpr auto kProfilePackageExtension = ".gfp";
+
+/// The media type the format is registered under. Named three times outside
+/// this repository -- a shared-mime-info entry, a Windows "Content Type" value
+/// and a `public.mime-type` tag -- so it is spelled once here.
+inline constexpr auto kProfilePackageMimeType =
+    "application/x-gpgfrontend-profile";
+
+/// The reverse-DNS identifier macOS Launch Services knows the format by. Not
+/// flavour-suffixed: it names the *format*, which a testing build and a release
+/// build produce identically.
+inline constexpr auto kProfilePackageUti = "com.bktus.gpgfrontend.profile";
 
 /**
  * @brief What protects a package's payload.
@@ -182,6 +208,15 @@ struct GF_CORE_EXPORT ProfilePackageManifest {
   bool self_contained = false;
 
   QList<ProfilePackageKeyDatabaseEntry> key_databases;
+
+  /**
+   * @brief Keys this build did not recognise, preserved verbatim.
+   *
+   * The same promise ProfileMarker makes, for the same reason: a package
+   * written by a newer build can be opened here, and importing it and
+   * exporting it again must not quietly destroy what that build put in.
+   */
+  QJsonObject unknown_fields;
 };
 
 auto GF_CORE_EXPORT EncodeProfilePackageManifest(
@@ -388,7 +423,7 @@ auto GF_CORE_EXPORT ReadProfilePackage(const QString &package_path,
 struct GF_CORE_EXPORT ProfileExportRequest {
   QString profile_root;
   QString profiles_root;  ///< where the scratch directory may be made
-  QString dest_path;      ///< the `.gfprofile` to write
+  QString dest_path;      ///< the `.gfp` to write
 
   bool include_workspace = false;
   ProfilePackageProtection protection = ProfilePackageProtection::kPIN;
@@ -401,7 +436,7 @@ struct GF_CORE_EXPORT ProfileExportRequest {
 };
 
 /**
- * @brief Pack a profile into a `.gfprofile`, start to finish.
+ * @brief Pack a profile into a `.gfp`, start to finish.
  *
  * Stages the profile into a scratch directory, seals it, and removes the
  * scratch directory afterwards whatever happens — it holds an unprotected copy
@@ -464,7 +499,7 @@ auto GF_CORE_EXPORT MakeProfilePackageScratchDir(const QString &profiles_root,
  * profile scan must never adopt one as a profile this machine owns.
  *
  * @param profiles_root where profiles live
- * @param package_path the `.gfprofile`; need not exist yet
+ * @param package_path the `.gfp`; need not exist yet
  * @return an absolute path, or an empty string when the package has no path
  */
 auto GF_CORE_EXPORT ProfileSessionRoot(const QString &profiles_root,
