@@ -123,7 +123,9 @@ auto FsProfileAccessor::TotalSize(ProfileArea area,
 }
 
 auto FsProfileAccessor::Settings() const -> QSettings {
-  if (settings_file_.isEmpty()) return {};
+  // QSettings' default constructor is explicit, so `return {}` is ill-formed
+  // under copy-list-initialization; name the type instead.
+  if (settings_file_.isEmpty()) return QSettings();
   return {settings_file_, QSettings::IniFormat};
 }
 
