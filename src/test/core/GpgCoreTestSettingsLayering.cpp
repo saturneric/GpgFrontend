@@ -29,17 +29,22 @@
 #include <QSettings>
 #include <QTemporaryDir>
 
+#include "Command.h"
 #include "core/GFCoreLog.h"
-#include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/profile/Profile.h"
+#include "core/profile/ProfileLoader.h"
+#include "core/profile/ProfileMarker.h"
+#include "core/profile/ProfileSecureKeyManager.h"
+#include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend::Test {
 
-// The three-layer resolution behind the Advanced settings tab: an ENV.ini key
-// is a deployment override that beats the user's stored value, which in turn
-// beats the built-in default.
+// The three-layer resolution behind the Advanced settings tab: a key pinned in
+// the profile's own marker is a deployment override that beats the user's
+// stored value, which in turn beats the built-in default.
 
 TEST(SettingsLayeringTest, EnvValueWinsOverUserAndFallback) {
   EXPECT_EQ(ResolveLayeredValue(QVariant(2), QVariant(1), QVariant(0)).toInt(),
@@ -65,24 +70,26 @@ TEST(SettingsLayeringTest, FalseAndZeroAreValuesNotAbsence) {
             0);
 }
 
-TEST(SettingsLayeringTest, EmptyStringFromEnvStillOverrides) {
-  // QSettings returns an invalid QVariant for a missing key but a valid empty
-  // string for `Key=`, so an intentionally blanked ENV.ini key must win.
+TEST(SettingsLayeringTest, EmptyStringFromTheTopLayerStillOverrides) {
+  // A missing key reads back as an invalid QVariant but an intentionally
+  // blanked one reads back as a valid empty string, and blanking a key is an
+  // answer that must stop the ladder rather than fall through it.
   const auto r =
       ResolveLayeredValue(QVariant(QString()), QVariant("user"), QVariant("d"));
   EXPECT_TRUE(r.isValid());
   EXPECT_TRUE(r.toString().isEmpty());
 }
 
-// The INI layer stores everything as text. These are the exact conversions the
-// startup resolution performs, and the one that historically bites is "false"
-// reading back as boolean true.
+// The user settings layer is INI-backed for every profile with a root of its
+// own, and an INI stores everything as text. These are the exact conversions
+// the startup resolution performs, and the one that historically bites is
+// "false" reading back as boolean true.
 
 TEST(SettingsLayeringTest, IniStringBooleansConvertCorrectly) {
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());
 
-  const auto path = dir.filePath("ENV.ini");
+  const auto path = dir.filePath("config.ini");
   {
     QSettings w(path, QSettings::IniFormat);
     w.setValue("SelfCheck", "false");
@@ -106,8 +113,8 @@ TEST(SettingsLayeringTest, IniStringBooleansConvertCorrectly) {
 
 // The startup self-check compares the shipped files against signatures that are
 // only made when an official stable release is built. A nightly has none, so
-// the build flavour overrules every settings layer: whatever ENV.ini or the
-// user's stored value asks for, the check stays off there.
+// the build flavour overrules every settings layer: whatever the profile pins
+// or the user's stored value asks for, the check stays off there.
 
 TEST(SettingsLayeringTest, SelfCheckAvailabilityFollowsBuildFlavour) {
   EXPECT_EQ(IsSelfCheckAvailable(), IsStableBuild());
@@ -146,34 +153,34 @@ namespace {
 /// Absent layer, spelled out so the ladder tests read as a table.
 const auto kUnset = QVariant();
 
-/// Resolve with only the ENV.ini layer populated.
+/// Resolve with only the pinned deployment layer populated.
 auto EnvOnly(const QVariant& protection, const QVariant& secure_level,
              const QVariant& os_secret_store) -> AppKeyProtection {
-  return ResolveAppKeyProtection(protection, secure_level, os_secret_store,
-                                 kUnset, kUnset, kUnset);
+  return ProfileLoader::ResolveAppKeyProtection(
+      protection, secure_level, os_secret_store, kUnset, kUnset, kUnset);
 }
 
 /// Resolve with only the user-settings layer populated.
 auto UserOnly(const QVariant& protection, const QVariant& secure_level,
               const QVariant& os_secret_store) -> AppKeyProtection {
-  return ResolveAppKeyProtection(kUnset, kUnset, kUnset, protection,
-                                 secure_level, os_secret_store);
+  return ProfileLoader::ResolveAppKeyProtection(
+      kUnset, kUnset, kUnset, protection, secure_level, os_secret_store);
 }
 
 }  // namespace
 
 TEST(AppKeyProtectionSettingsTest, NothingSetMeansNoProtection) {
-  EXPECT_EQ(
-      ResolveAppKeyProtection(kUnset, kUnset, kUnset, kUnset, kUnset, kUnset),
-      AppKeyProtection::kNONE);
+  EXPECT_EQ(ProfileLoader::ResolveAppKeyProtection(kUnset, kUnset, kUnset,
+                                                   kUnset, kUnset, kUnset),
+            AppKeyProtection::kNONE);
 }
 
 TEST(AppKeyProtectionSettingsTest, EnvProtectionWinsOverEverything) {
-  // ENV.ini is a deployment override: whatever it says about the protection
-  // beats every legacy key and every user choice.
-  EXPECT_EQ(ResolveAppKeyProtection(QVariant("keychain"), QVariant(3),
-                                    QVariant(false), QVariant("pin"),
-                                    QVariant(3), QVariant(true)),
+  // A pinned key is a deployment override: whatever it says about the
+  // protection beats every legacy key and every user choice.
+  EXPECT_EQ(ProfileLoader::ResolveAppKeyProtection(
+                QVariant("keychain"), QVariant(3), QVariant(false),
+                QVariant("pin"), QVariant(3), QVariant(true)),
             AppKeyProtection::kKEYCHAIN);
 }
 
@@ -202,11 +209,12 @@ TEST(AppKeyProtectionSettingsTest, OsSecretStoreMapsToKeychain) {
 
 TEST(AppKeyProtectionSettingsTest, ExplicitlyDisabledStoreDoesNotFallThrough) {
   // An explicit false is an answer, not an absence. If it fell through, an
-  // ENV.ini that switched the keychain off would be overridden by a stale user
-  // setting that had switched it on.
-  EXPECT_EQ(ResolveAppKeyProtection(kUnset, kUnset, QVariant(false), kUnset,
-                                    kUnset, QVariant(true)),
-            AppKeyProtection::kNONE);
+  // a pinned key that switched the keychain off would be overridden by a stale
+  // user setting that had switched it on.
+  EXPECT_EQ(
+      ProfileLoader::ResolveAppKeyProtection(kUnset, kUnset, QVariant(false),
+                                             kUnset, kUnset, QVariant(true)),
+      AppKeyProtection::kNONE);
 }
 
 TEST(AppKeyProtectionSettingsTest, UserProtectionWinsOverItsOwnLegacyKeys) {
@@ -217,12 +225,13 @@ TEST(AppKeyProtectionSettingsTest, UserProtectionWinsOverItsOwnLegacyKeys) {
 }
 
 TEST(AppKeyProtectionSettingsTest, EnvLayerIsTriedWholeBeforeTheUserLayer) {
-  // An ENV.ini that only sets the legacy OSSecretStore key still beats a user
+  // A marker that only pins the legacy OSSecretStore key still beats a user
   // setting on the new key — otherwise a deployment override would be silently
   // demoted the moment the user touched the combo.
-  EXPECT_EQ(ResolveAppKeyProtection(kUnset, kUnset, QVariant(true),
-                                    QVariant("pin"), kUnset, kUnset),
-            AppKeyProtection::kKEYCHAIN);
+  EXPECT_EQ(
+      ProfileLoader::ResolveAppKeyProtection(kUnset, kUnset, QVariant(true),
+                                             QVariant("pin"), kUnset, kUnset),
+      AppKeyProtection::kKEYCHAIN);
 }
 
 TEST(AppKeyProtectionSettingsTest, SpellingsAreCaseInsensitive) {
@@ -233,8 +242,8 @@ TEST(AppKeyProtectionSettingsTest, SpellingsAreCaseInsensitive) {
 }
 
 TEST(AppKeyProtectionSettingsTest, UnknownSpellingDegradesToNoProtection) {
-  // A typo in ENV.ini must leave the key unprotected rather than demand a PIN
-  // that nobody ever set, which would be an unopenable profile.
+  // A typo in a pinned key must leave the key unprotected rather than demand a
+  // PIN that nobody ever set, which would be an unopenable profile.
   EXPECT_EQ(AppKeyProtectionFromString("banana"), AppKeyProtection::kNONE);
   EXPECT_EQ(AppKeyProtectionFromString(""), AppKeyProtection::kNONE);
 }
@@ -251,36 +260,40 @@ TEST(AppKeyProtectionSettingsTest, SpellingRoundTrips) {
 // PIN travels with the directory and is the only real protection available.
 
 TEST(AppKeyProtectionSettingsTest, PortableRefusesTheKeychain) {
-  EXPECT_EQ(ApplyPortableModeRule(AppKeyProtection::kKEYCHAIN, true),
+  EXPECT_EQ(ProfileLoader::ApplyProfilePortabilityRule(
+                AppKeyProtection::kKEYCHAIN, false),
             AppKeyProtection::kNONE);
 }
 
 TEST(AppKeyProtectionSettingsTest, PortableAllowsPinAndNoProtection) {
-  EXPECT_EQ(ApplyPortableModeRule(AppKeyProtection::kPIN, true),
-            AppKeyProtection::kPIN);
-  EXPECT_EQ(ApplyPortableModeRule(AppKeyProtection::kNONE, true),
+  EXPECT_EQ(
+      ProfileLoader::ApplyProfilePortabilityRule(AppKeyProtection::kPIN, false),
+      AppKeyProtection::kPIN);
+  EXPECT_EQ(ProfileLoader::ApplyProfilePortabilityRule(AppKeyProtection::kNONE,
+                                                       false),
             AppKeyProtection::kNONE);
 }
 
 TEST(AppKeyProtectionSettingsTest, InstalledAllowsEveryMode) {
   for (const auto p : {AppKeyProtection::kNONE, AppKeyProtection::kKEYCHAIN,
                        AppKeyProtection::kPIN}) {
-    EXPECT_EQ(ApplyPortableModeRule(p, false), p);
+    EXPECT_EQ(ProfileLoader::ApplyProfilePortabilityRule(p, true), p);
   }
 }
 
-TEST(AppKeyProtectionSettingsTest, PortableRuleOverridesEnvIni) {
-  // ENV.ini cannot know where the directory will be plugged in, so even an
-  // explicit deployment request for the keychain is downgraded.
+TEST(AppKeyProtectionSettingsTest, PortableRuleOverridesAPinnedKey) {
+  // A profile that travels cannot know which machine it will be plugged into,
+  // so even an explicit deployment request for the keychain is downgraded.
   const auto resolved = EnvOnly(QVariant("keychain"), kUnset, kUnset);
-  EXPECT_EQ(ApplyPortableModeRule(resolved, true), AppKeyProtection::kNONE);
+  EXPECT_EQ(ProfileLoader::ApplyProfilePortabilityRule(resolved, false),
+            AppKeyProtection::kNONE);
 }
 
 TEST(AppKeyProtectionSettingsTest, IniStringFormsResolveCorrectly) {
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());
 
-  const auto path = dir.filePath("ENV.ini");
+  const auto path = dir.filePath("config.ini");
   {
     QSettings w(path, QSettings::IniFormat);
     w.setValue("AppKeyProtection", "pin");
@@ -298,11 +311,16 @@ TEST(AppKeyProtectionSettingsTest, IniStringFormsResolveCorrectly) {
   EXPECT_EQ(s.value("SecureLevel").toInt(), 2);
 }
 
-// GetEarlySettings() hand-resolves the settings file so it can run before the
+// The session's settings and the singleton's settings are the same file. They
+// used to be resolved twice — once by hand, early, before the singleton could
+// safely exist — and two resolutions of one path can disagree. Now the session
+// owns it and the singleton asks. These assert that they cannot come apart
+// again, since a
 // secure allocator exists. If it ever drifts from the singleton's own path, the
 // Advanced tab would write to one file while startup reads another.
 TEST(SettingsLayeringTest, EarlySettingsTargetsSameStoreAsSingleton) {
-  EXPECT_EQ(GetEarlySettings().fileName(), GetSettings().fileName());
+  EXPECT_EQ(ProfileSession::Instance().Settings().fileName(),
+            GetSettings().fileName());
 }
 
 TEST(SettingsLayeringTest, EarlySettingsSeesValueWrittenViaSingleton) {
@@ -313,7 +331,7 @@ TEST(SettingsLayeringTest, EarlySettingsSeesValueWrittenViaSingleton) {
   settings.setValue(kKey, 4242);
   settings.sync();
 
-  EXPECT_EQ(GetEarlySettings().value(kKey).toInt(), 4242);
+  EXPECT_EQ(ProfileSession::Instance().Settings().value(kKey).toInt(), 4242);
 
   if (previous.isValid()) {
     settings.setValue(kKey, previous);
@@ -423,7 +441,7 @@ TEST(ProfileMarkerTest, ProfileNameMatchesBuildFlavour) {
 }
 
 // ---------------------------------------------------------------------------
-// Profile bootstrap: which profile a process runs against.
+// Profile selection: which profile a process runs against.
 //
 // Pure, so the whole precedence ladder is assertable without starting a
 // process — the same shape ResolveAppKeyProtection() uses above.
@@ -431,153 +449,114 @@ TEST(ProfileMarkerTest, ProfileNameMatchesBuildFlavour) {
 
 namespace {
 
-constexpr auto kClassicRoot = "/data/classic";
+constexpr auto kInstalledRoot = "/data/classic";
 constexpr auto kPortableRoot = "/media/usb/GpgFrontend";
 
-auto MakeInput(const QStringList& args = {}) -> ProfileBootstrapInput {
-  ProfileBootstrapInput in;
+auto MakeInput(const QStringList& args = {}) -> ProfileSelectionInput {
+  ProfileSelectionInput in;
   in.args = QStringList{"gpgfrontend"} + args;
-  in.classic_root = kClassicRoot;
+  in.installed_root = kInstalledRoot;
   in.portable_root = kPortableRoot;
+  // What a scan of the profiles root would have found. Naming anything outside
+  // this is an error, so a test that names a profile has to say it exists.
+  in.known_ids = QStringList{"work", "home", "ci", "cli", "env", "pinned"};
   return in;
 }
 
 }  // namespace
 
-TEST(ProfileBootstrapTest, NoArgumentsLandsOnClassic) {
-  const auto r = ResolveProfileBootstrap(MakeInput());
+TEST(ProfileSelectionTest, NoArgumentsLandsOnTheInstalledRoot) {
+  const auto r = ResolveProfileSelection(MakeInput());
 
   EXPECT_TRUE(r.error.isEmpty());
-  EXPECT_EQ(r.state.kind, ProfileRootKind::kCLASSIC);
-  EXPECT_EQ(r.state.id, QString("classic"));
-  EXPECT_EQ(r.state.root, QString(kClassicRoot));
-  EXPECT_FALSE(r.state.policy.self_contained);
+  EXPECT_EQ(r.selection.kind, ProfileKind::kINSTALLED_ROOT);
+  EXPECT_EQ(r.selection.id, QString("classic"));
+  EXPECT_EQ(r.selection.root, QString(kInstalledRoot));
 }
 
-TEST(ProfileBootstrapTest, NamedProfileResolvesUnderProfilesRoot) {
+TEST(ProfileSelectionTest, NamedProfileResolvesUnderProfilesRoot) {
   for (const auto& args :
        {QStringList{"--profile", "work"}, QStringList{"--profile=work"}}) {
-    const auto r = ResolveProfileBootstrap(MakeInput(args));
+    const auto r = ResolveProfileSelection(MakeInput(args));
 
     EXPECT_TRUE(r.error.isEmpty());
-    EXPECT_EQ(r.state.kind, ProfileRootKind::kNAMED);
-    EXPECT_EQ(r.state.id, QString("work"));
-    EXPECT_EQ(r.state.root, QString(kClassicRoot) + "/profiles/work");
+    EXPECT_EQ(r.selection.kind, ProfileKind::kPERSIST);
+    EXPECT_EQ(r.selection.id, QString("work"));
+    EXPECT_EQ(r.selection.root, QString(kInstalledRoot) + "/profiles/work");
   }
 }
 
-TEST(ProfileBootstrapTest, ExplicitRootOutranksEverything) {
-  auto in = MakeInput({"--profile-root", "/srv/gf", "--profile", "work"});
-  in.env_profile = "other";
-  const auto r = ResolveProfileBootstrap(in);
+TEST(ProfileSelectionTest, PositionalPackageIsSelectedAsAPackage) {
+  const auto r = ResolveProfileSelection(MakeInput({"/home/x/work.gfprofile"}));
 
   EXPECT_TRUE(r.error.isEmpty());
-  EXPECT_EQ(r.state.kind, ProfileRootKind::kEXPLICIT_ROOT);
-  EXPECT_EQ(r.state.root, QString("/srv/gf"));
+  EXPECT_EQ(r.selection.kind, ProfileKind::kPACKAGED);
+  EXPECT_EQ(r.selection.package_path, QString("/home/x/work.gfprofile"));
+  // deliberately no root: a package has none until it is extracted, and the
+  // profile derives one from the package's own path
+  EXPECT_TRUE(r.selection.root.isEmpty());
 }
 
-TEST(ProfileBootstrapTest, RelativeExplicitRootIsRefused) {
-  const auto r = ResolveProfileBootstrap(MakeInput({"--profile-root", "gf"}));
-
-  EXPECT_FALSE(r.error.isEmpty());
-  // the fallback has to be usable: nothing downstream should ever have to cope
-  // with a half-resolved process
-  EXPECT_EQ(r.state.kind, ProfileRootKind::kCLASSIC);
-  EXPECT_EQ(r.state.root, QString(kClassicRoot));
-}
-
-TEST(ProfileBootstrapTest, PositionalPackageBecomesPending) {
-  const auto r = ResolveProfileBootstrap(MakeInput({"/home/x/work.gfprofile"}));
-
-  EXPECT_TRUE(r.error.isEmpty());
-  EXPECT_EQ(r.state.kind, ProfileRootKind::kPACKAGE_PENDING);
-  EXPECT_EQ(r.state.pending_package, QString("/home/x/work.gfprofile"));
-}
-
-TEST(ProfileBootstrapTest, AnOptionValueIsNotMistakenForAPackage) {
+TEST(ProfileSelectionTest, AnOptionValueIsNotMistakenForAPackage) {
   // "--log-level" takes a value; a scan that did not know that could read the
   // next argument as a positional and open the wrong thing
   const auto r =
-      ResolveProfileBootstrap(MakeInput({"--log-level", "x.gfprofile"}));
+      ResolveProfileSelection(MakeInput({"--log-level", "x.gfprofile"}));
 
-  EXPECT_NE(r.state.kind, ProfileRootKind::kPACKAGE_PENDING);
+  EXPECT_NE(r.selection.kind, ProfileKind::kPACKAGED);
 }
 
-TEST(ProfileBootstrapTest, EnvironmentVariablesAreConsulted) {
-  {
-    auto in = MakeInput();
-    in.env_profile_root = "/srv/env";
-    const auto r = ResolveProfileBootstrap(in);
-    EXPECT_EQ(r.state.kind, ProfileRootKind::kEXPLICIT_ROOT);
-    EXPECT_EQ(r.state.root, QString("/srv/env"));
-  }
-  {
-    auto in = MakeInput();
-    in.env_profile = "ci";
-    const auto r = ResolveProfileBootstrap(in);
-    EXPECT_EQ(r.state.kind, ProfileRootKind::kNAMED);
-    EXPECT_EQ(r.state.id, QString("ci"));
-  }
+TEST(ProfileSelectionTest, TheEnvironmentIsConsulted) {
+  auto in = MakeInput();
+  in.env_profile = "ci";
+  const auto r = ResolveProfileSelection(in);
+  EXPECT_EQ(r.selection.kind, ProfileKind::kPERSIST);
+  EXPECT_EQ(r.selection.id, QString("ci"));
 }
 
-TEST(ProfileBootstrapTest, CommandLineOutranksEnvironment) {
+TEST(ProfileSelectionTest, CommandLineOutranksEnvironment) {
   auto in = MakeInput({"--profile", "cli"});
   in.env_profile = "env";
-  EXPECT_EQ(ResolveProfileBootstrap(in).state.id, QString("cli"));
+  EXPECT_EQ(ResolveProfileSelection(in).selection.id, QString("cli"));
 }
 
-TEST(ProfileBootstrapTest, StartupPolicyIsHonouredWhenNothingIsNamed) {
-  {
-    auto in = MakeInput();
-    in.startup_policy = ProfileStartupPolicy::kLAST_USED;
-    in.registry_last_used = "work";
-    EXPECT_EQ(ResolveProfileBootstrap(in).state.id, QString("work"));
-  }
-  {
-    auto in = MakeInput();
-    in.startup_policy = ProfileStartupPolicy::kFIXED;
-    in.registry_startup_profile = "pinned";
-    in.registry_last_used = "work";
-    EXPECT_EQ(ResolveProfileBootstrap(in).state.id, QString("pinned"));
-  }
-  {
-    // pinning the legacy location has to stay reachable forever
-    auto in = MakeInput();
-    in.startup_policy = ProfileStartupPolicy::kCLASSIC;
-    in.registry_last_used = "work";
-    EXPECT_EQ(ResolveProfileBootstrap(in).state.kind,
-              ProfileRootKind::kCLASSIC);
-  }
+TEST(ProfileSelectionTest, APackageOutranksTheEnvironment) {
+  auto in = MakeInput({"/home/x/work.gfprofile"});
+  in.env_profile = "env";
+  EXPECT_EQ(ResolveProfileSelection(in).selection.kind, ProfileKind::kPACKAGED);
 }
 
-TEST(ProfileBootstrapTest, UnknownIdIsAnErrorNotASilentFallback) {
-  auto in = MakeInput({"--profile", "ghost"});
-  in.registry_available = true;
-  in.known_ids = QStringList{"work", "home"};
+TEST(ProfileSelectionTest, NothingIsRememberedBetweenRuns) {
+  // An instance always starts on its root profile. There is deliberately no
+  // "reopen what was open last" rung: another profile is opened from the root
+  // into a new window, which is the only way two can be used at once anyway.
+  auto in = MakeInput();
 
-  const auto r = ResolveProfileBootstrap(in);
+  const auto r = ResolveProfileSelection(in);
 
-  // opening the wrong keyring silently is the worst outcome available here
-  EXPECT_FALSE(r.error.isEmpty());
-  EXPECT_EQ(r.state.kind, ProfileRootKind::kCLASSIC);
-}
-
-TEST(ProfileBootstrapTest, UnknownIdIsAcceptedBeforeTheRegistryExists) {
-  // an id missing from a list nobody has written yet is not an unknown profile
-  auto in = MakeInput({"--profile", "fresh"});
-  in.registry_available = false;
-
-  const auto r = ResolveProfileBootstrap(in);
   EXPECT_TRUE(r.error.isEmpty());
-  EXPECT_EQ(r.state.kind, ProfileRootKind::kNAMED);
+  EXPECT_EQ(r.selection.kind, ProfileKind::kINSTALLED_ROOT);
+  EXPECT_EQ(r.selection.id, QString("classic"));
 }
 
-TEST(ProfileBootstrapTest, InvalidIdsAreRefused) {
+TEST(ProfileSelectionTest, UnknownIdIsAnErrorNotASilentFallback) {
+  auto in = MakeInput({"--profile", "ghost"});
+
+  const auto r = ResolveProfileSelection(in);
+
+  // Opening the wrong keyring silently is the worst outcome available here,
+  // and provisioning a fresh empty profile over a typo is the second worst:
+  // both look to the user exactly like their keys having disappeared.
+  EXPECT_FALSE(r.error.isEmpty());
+  EXPECT_EQ(r.selection.kind, ProfileKind::kINSTALLED_ROOT);
+}
+
+TEST(ProfileSelectionTest, InvalidIdsAreRefused) {
   for (const auto* id : {"..", ".", "a/b", "", "CON", "Work", "-lead",
                          "0123456789012345678901234567890123456789012345678901"
                          "23456789012345"}) {
     auto in = MakeInput({"--profile", QString::fromUtf8(id)});
-    const auto r = ResolveProfileBootstrap(in);
+    const auto r = ResolveProfileSelection(in);
     if (QString::fromUtf8(id).isEmpty()) continue;  // empty means "not given"
     EXPECT_FALSE(r.error.isEmpty()) << "id should have been refused: " << id;
   }
@@ -585,44 +564,43 @@ TEST(ProfileBootstrapTest, InvalidIdsAreRefused) {
 
 // ----------------------------------------------------- portable composition
 
-TEST(ProfileBootstrapTest, PortableAloneIsItsOwnRootNotANamedProfile) {
+TEST(ProfileSelectionTest, PortableAloneIsItsOwnRootNotANamedProfile) {
   auto in = MakeInput();
-  in.env_ini_portable = true;
+  in.portable_build = true;
 
-  const auto r = ResolveProfileBootstrap(in);
+  const auto r = ResolveProfileSelection(in);
 
   EXPECT_TRUE(r.error.isEmpty());
-  EXPECT_EQ(r.state.kind, ProfileRootKind::kPORTABLE);
+  EXPECT_EQ(r.selection.kind, ProfileKind::kPORTABLE_ROOT);
   // every existing portable tree already has its data directly here; putting
   // it under profiles/<id> would strand all of them
-  EXPECT_EQ(r.state.root, QString(kPortableRoot));
-  EXPECT_TRUE(r.state.policy.self_contained);
+  EXPECT_EQ(r.selection.root, QString(kPortableRoot));
 }
 
 // The precedence rule most likely to be implemented wrong.
-TEST(ProfileBootstrapTest, ExplicitProfileOutranksPortableEnvIni) {
+TEST(ProfileSelectionTest, ExplicitProfileOutranksPortableEnvIni) {
   auto in = MakeInput({"--profile", "work"});
-  in.env_ini_portable = true;
+  in.portable_build = true;
 
-  const auto r = ResolveProfileBootstrap(in);
+  const auto r = ResolveProfileSelection(in);
 
-  EXPECT_EQ(r.state.kind, ProfileRootKind::kNAMED);
-  // ENV.ini still decides where the profiles root sits...
-  EXPECT_EQ(r.state.root, QString(kPortableRoot) + "/profiles/work");
+  EXPECT_EQ(r.selection.kind, ProfileKind::kPERSIST);
+  // the build flavour still decides where the profiles root sits...
+  EXPECT_EQ(r.selection.root, QString(kPortableRoot) + "/profiles/work");
   // ...but not whether this profile is self-contained. That comes from the
-  // profile's own profile.json, which the bootstrap has not read.
-  EXPECT_FALSE(r.state.policy.self_contained);
+  // profile's own profile.json, which selection has not read.
+  EXPECT_FALSE(MakeProfile(r.selection)->Policy().self_contained);
 }
 
-TEST(ProfileBootstrapTest, ProfilesRootFollowsThePortableBase) {
+TEST(ProfileSelectionTest, ProfilesRootFollowsThePortableBase) {
   auto in = MakeInput();
-  in.env_ini_portable = true;
-  EXPECT_EQ(ResolveProfileBootstrap(in).state.profiles_root,
+  in.portable_build = true;
+  EXPECT_EQ(ResolveProfileSelection(in).selection.profiles_root,
             QString(kPortableRoot) + "/profiles");
 
-  in.env_ini_portable = false;
-  EXPECT_EQ(ResolveProfileBootstrap(in).state.profiles_root,
-            QString(kClassicRoot) + "/profiles");
+  in.portable_build = false;
+  EXPECT_EQ(ResolveProfileSelection(in).selection.profiles_root,
+            QString(kInstalledRoot) + "/profiles");
 }
 
 // -------------------------------------------------------------- id handling
@@ -649,95 +627,180 @@ TEST(ProfileIdTest, ValidityRules) {
   }
 }
 
-TEST(ProfileIdTest, DisplayNamesBecomeUsableIds) {
-  EXPECT_EQ(MakeProfileId("Work"), QString("work"));
-  EXPECT_EQ(MakeProfileId("My Work Profile"), QString("my_work_profile"));
-  EXPECT_EQ(MakeProfileId("  trailing  "), QString("trailing"));
-  EXPECT_EQ(MakeProfileId("a-b"), QString("a-b"));
-
-  // nothing usable survives, and inventing an id would be worse than saying so
-  EXPECT_TRUE(MakeProfileId("///").isEmpty());
-  EXPECT_TRUE(MakeProfileId("").isEmpty());
+TEST(ProfileIdTest, GeneratedIdsAreUsableIds) {
+  // Ids are no longer derived from what the user typed: they are generated, and
+  // a directory name that cannot be rejected is one fewer thing to explain.
+  for (int i = 0; i < 16; ++i) {
+    const auto id =
+        QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
+    EXPECT_EQ(id.size(), 32);
+    EXPECT_TRUE(IsValidProfileId(id)) << id.toStdString();
+  }
 }
 
-// --------------------------------------------------------- settings routing
-
-TEST(ProfileSettingsPathTest, RootedProfilesAreIniBackedOnEveryPlatform) {
-  // Assertable unconditionally, unlike the platform branch it replaced: a
-  // native store is keyed only by organization and application name, so every
-  // profile would share one registry key or plist.
+TEST(ProfileKindTest, SpellingRoundTrips) {
   for (const auto kind :
-       {ProfileRootKind::kPORTABLE, ProfileRootKind::kNAMED,
-        ProfileRootKind::kEXPLICIT_ROOT, ProfileRootKind::kPACKAGE_LINKED}) {
-    EXPECT_EQ(ResolveSettingsFilePath(kind, "/srv/p"),
-              QString("/srv/p/config/config.ini"))
-        << ProfileRootKindToString(kind).toStdString();
+       {ProfileKind::kINSTALLED_ROOT, ProfileKind::kPORTABLE_ROOT,
+        ProfileKind::kPERSIST, ProfileKind::kPACKAGED}) {
+    EXPECT_EQ(ProfileKindFromString(ProfileKindToString(kind)), kind);
   }
+  EXPECT_EQ(ProfileKindFromString("nonsense"), ProfileKind::kINSTALLED_ROOT);
 }
 
-TEST(ProfileSettingsPathTest, ClassicKeepsItsPlatformStore) {
-  const auto path =
-      ResolveSettingsFilePath(ProfileRootKind::kCLASSIC, "/srv/p");
-#ifdef Q_OS_WINDOWS
-  EXPECT_TRUE(path.endsWith("/config.ini"));
-#else
-  // empty means "use the native QSettings store", which is what every existing
-  // POSIX installation already writes to
-  EXPECT_TRUE(path.isEmpty());
-#endif
+// The stored spellings are a wire format. Renaming one would make this build
+// unable to recognise a profile it wrote itself.
+TEST(ProfileKindTest, StoredSpellingsAreTheOnesAlreadyOnDisk) {
+  EXPECT_EQ(ProfileKindToString(ProfileKind::kINSTALLED_ROOT), "classic");
+  EXPECT_EQ(ProfileKindToString(ProfileKind::kPORTABLE_ROOT), "portable");
+  EXPECT_EQ(ProfileKindToString(ProfileKind::kPERSIST), "named");
+  EXPECT_EQ(ProfileKindToString(ProfileKind::kPACKAGED), "package_linked");
 }
 
-TEST(ProfileRootKindTest, SpellingRoundTrips) {
-  for (const auto kind :
-       {ProfileRootKind::kCLASSIC, ProfileRootKind::kPORTABLE,
-        ProfileRootKind::kNAMED, ProfileRootKind::kEXPLICIT_ROOT,
-        ProfileRootKind::kPACKAGE_LINKED, ProfileRootKind::kPACKAGE_PENDING}) {
-    EXPECT_EQ(ProfileRootKindFromString(ProfileRootKindToString(kind)), kind);
-  }
-  EXPECT_EQ(ProfileRootKindFromString("nonsense"), ProfileRootKind::kCLASSIC);
+// ------------------------------------------------- marker-backed overrides
+
+// The deployment overrides used to live in an ENV.ini read from the process
+// working directory, so the same installation resolved differently depending on
+// where it was started from, and one file governed every profile at once even
+// though settings have always been per-profile.
+
+TEST(MarkerDeploymentTest, PinnedKeysSurviveARoundTripThroughTheMarker) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto path = ProfileMarkerPathFor(dir.path());
+
+  ProfileMarker marker;
+  marker.schema_version = GetAppProfileSchemaVersion();
+  marker.deployment["SecureLevel"] = 3;
+  marker.deployment["GnuPGOfflineMode"] = true;
+  marker.deployment["PinentryProgramPath"] = "/usr/bin/pinentry";
+  ASSERT_TRUE(WriteProfileMarker(path, marker));
+
+  const auto read = ReadProfileMarker(path);
+  ASSERT_TRUE(read.has_value());
+  EXPECT_EQ(read->deployment.value("SecureLevel").toInt(), 3);
+  EXPECT_TRUE(read->deployment.value("GnuPGOfflineMode").toBool());
+  EXPECT_EQ(read->deployment.value("PinentryProgramPath").toString(),
+            QString("/usr/bin/pinentry"));
 }
 
-TEST(ProfileStartupPolicyTest, SpellingRoundTrips) {
-  for (const auto p :
-       {ProfileStartupPolicy::kLAST_USED, ProfileStartupPolicy::kASK,
-        ProfileStartupPolicy::kFIXED, ProfileStartupPolicy::kCLASSIC}) {
-    EXPECT_EQ(ProfileStartupPolicyFromString(ProfileStartupPolicyToString(p)),
-              p);
-  }
+TEST(MarkerDeploymentTest, AnAbsentKeyStaysAbsentRatherThanBecomingFalsy) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto path = ProfileMarkerPathFor(dir.path());
+
+  ProfileMarker marker;
+  marker.deployment["SecureLevel"] = 0;
+  ASSERT_TRUE(WriteProfileMarker(path, marker));
+
+  const auto read = ReadProfileMarker(path);
+  ASSERT_TRUE(read.has_value());
+
+  // The distinction the whole ladder rests on: an explicit 0 is an answer that
+  // stops the ladder, while a missing key has to fall through to the next
+  // layer. Collapsing the two would let a profile that pins nothing override
+  // every user setting with a default-constructed value.
+  EXPECT_TRUE(read->deployment.value("SecureLevel").isValid());
+  EXPECT_FALSE(read->deployment.value("LogLevel").isValid());
+  EXPECT_EQ(ResolveLayeredValue(read->deployment.value("LogLevel"), QVariant(2),
+                                QVariant(0))
+                .toInt(),
+            2);
 }
 
-// A pending package has no root. Reading one anyway would resolve to an empty
-// path and put the whole application on the wrong directory.
-TEST(ProfileRuntimeDeathTest, PendingPackageHasNoRoot) {
-  ProfileRuntimeState state;
-  state.kind = ProfileRootKind::kPACKAGE_PENDING;
-  state.pending_package = "/tmp/x.gfprofile";
+TEST(MarkerDeploymentTest, NoPinnedKeysWritesNoScaffolding) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto path = ProfileMarkerPathFor(dir.path());
 
-  EXPECT_DEATH(RequireProfileRoot(state), "pending");
+  ProfileMarker marker;
+  ASSERT_TRUE(WriteProfileMarker(path, marker));
+
+  const auto read = ReadProfileMarker(path);
+  ASSERT_TRUE(read.has_value());
+  EXPECT_TRUE(read->deployment.isEmpty());
 }
 
-TEST(ProfileRuntimeDeathTest, EstablishingTwiceIsFatal) {
-  // main() already established it for this process; a second call must not be
-  // allowed to silently move every path
-  ProfileRuntimeState state;
-  state.kind = ProfileRootKind::kNAMED;
-  state.id = "intruder";
+TEST(MarkerDeploymentTest, LastOpenedRoundTrips) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto path = ProfileMarkerPathFor(dir.path());
 
-  EXPECT_DEATH(ProfileRuntime::Establish(state), "established twice");
+  ProfileMarker marker;
+  marker.last_opened = "2026-08-05T10:00:00Z";
+  ASSERT_TRUE(WriteProfileMarker(path, marker));
+
+  const auto read = ReadProfileMarker(path);
+  ASSERT_TRUE(read.has_value());
+  EXPECT_EQ(read->last_opened, QString("2026-08-05T10:00:00Z"));
 }
 
-TEST(ProfileRuntimeTest, TheProcessRanAgainstAResolvedProfile) {
-  ASSERT_TRUE(ProfileRuntime::Established());
+// A newer build's extra fields must survive an older build touching the file,
+// and the two new keys must not have broken that.
+TEST(MarkerDeploymentTest, UnknownFieldsStillSurviveAlongsideTheNewKeys) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto path = ProfileMarkerPathFor(dir.path());
 
-  const auto& p = ProfileRuntime::Instance();
-  EXPECT_FALSE(p.id.isEmpty());
-  EXPECT_NE(p.kind, ProfileRootKind::kPACKAGE_PENDING);
-  EXPECT_FALSE(RequireProfileRoot(p).isEmpty());
+  ProfileMarker marker;
+  marker.last_opened = "2026-08-05T10:00:00Z";
+  marker.deployment["SecureLevel"] = 1;
+  marker.unknown_fields["from_a_newer_build"] = "keep me";
+  ASSERT_TRUE(WriteProfileMarker(path, marker));
 
-  // the station must agree with the runtime about where the profile lives
-  if (p.kind != ProfileRootKind::kCLASSIC) {
-    EXPECT_EQ(GetGSS().GetAppDataPath(), p.root);
-  }
+  const auto read = ReadProfileMarker(path);
+  ASSERT_TRUE(read.has_value());
+  EXPECT_EQ(read->unknown_fields.value("from_a_newer_build").toString(),
+            QString("keep me"));
+  EXPECT_EQ(read->deployment.value("SecureLevel").toInt(), 1);
+}
+
+// -------------------------------------------------------- log level parsing
+
+TEST(LogLevelTest, NamesParseAndNonsenseDoesNot) {
+  EXPECT_EQ(ParseLogLevelName("debug").value_or(-1),
+            static_cast<int>(GFLogLevel::kDEBUG));
+  EXPECT_EQ(ParseLogLevelName("INFO").value_or(-1),
+            static_cast<int>(GFLogLevel::kINFO));
+  EXPECT_EQ(ParseLogLevelName(" warn ").value_or(-1),
+            static_cast<int>(GFLogLevel::kWARNING));
+  EXPECT_EQ(ParseLogLevelName("error").value_or(-1),
+            static_cast<int>(GFLogLevel::kCRITICAL));
+
+  // "none" is the option's declared placeholder, not a level anybody asks for
+  EXPECT_FALSE(ParseLogLevelName("none").has_value());
+  EXPECT_FALSE(ParseLogLevelName("").has_value());
+  EXPECT_FALSE(ParseLogLevelName("verbose").has_value());
+}
+
+TEST(LogLevelTest, TheFlagOutranksEveryStoredLayer) {
+  // The bug this pins: the flag was applied in main() and then silently undone
+  // by PreInit(), which re-applied the property resolved from the settings. The
+  // flag has to *be* a layer, not a side effect.
+  const auto stored = ResolveLayeredValue(QVariant(), QVariant(2), QVariant(0));
+
+  const auto cli = QVariant(static_cast<int>(GFLogLevel::kDEBUG));
+  EXPECT_EQ(ResolveLayeredValue(cli, stored, stored).toInt(),
+            static_cast<int>(GFLogLevel::kDEBUG));
+
+  // and with no flag given, the stored layer is still what wins
+  EXPECT_EQ(ResolveLayeredValue(QVariant(), stored, stored).toInt(), 2);
+}
+
+TEST(ProfileSessionTest, TheProcessRanAgainstALoadedProfile) {
+  ASSERT_TRUE(ProfileSession::Loaded());
+
+  const auto& session = ProfileSession::Instance();
+  EXPECT_FALSE(session.Profile().Id().isEmpty());
+  EXPECT_FALSE(session.Root().isEmpty());
+
+  // the keys are attached by Open(), which has run by the time tests do
+  EXPECT_TRUE(session.KeysLoaded());
+
+  // the station must agree with the session about where the profile lives
+  EXPECT_EQ(GetGSS().GetAppDataPath(), session.Root());
+
+  // and so must the accessor, which is where the station now gets it from
+  EXPECT_EQ(session.Accessor().PathOf(ProfileArea::kRoot), session.Root());
 }
 
 }  // namespace GpgFrontend::Test

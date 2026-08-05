@@ -30,8 +30,13 @@
 #include <QFile>
 #include <QTemporaryDir>
 
+#include "core/function/AESCryptoHelper.h"
+#include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/ProfilePackage.h"
+#include "core/profile/Profile.h"
+#include "core/profile/ProfileMarker.h"
+#include "core/profile/ProfilePackage.h"
+#include "core/profile/ProfileSecureKeyManager.h"
 
 namespace GpgFrontend::Test {
 
@@ -519,9 +524,10 @@ TEST(ProfileAdoptionTest, AnImportedProfileGetsAFreshIdentity) {
   ASSERT_TRUE(marker.has_value());
 
   // Two roots sharing an identity would fight over one credential-store entry,
-  // and deleting one would take the other's data with it.
+  // and deleting one would take the other's data with it. The identity is the
+  // directory name, so there is only ever one of them to keep in step.
   EXPECT_NE(marker->profile_uuid, "source-uuid");
-  EXPECT_FALSE(marker->profile_uuid.isEmpty());
+  EXPECT_EQ(marker->profile_uuid, "copy");
   EXPECT_TRUE(marker->credential_account.isEmpty());
   EXPECT_EQ(marker->profile_id, "copy");
   EXPECT_EQ(marker->display_name, "Copy");
@@ -557,6 +563,233 @@ TEST(ProfileAdoptionTest, AnOccupiedRootIsNeverOverwritten) {
   QFile key(occupied + "/secure/app.key");
   ASSERT_TRUE(key.open(QIODevice::ReadOnly));
   EXPECT_EQ(key.readAll(), QByteArray("somebody's key"));
+}
+
+// -------------------------------------------------------- temporary sessions
+
+TEST(ProfileSessionRootTest, IsDerivedFromThePackageAndIsTransient) {
+  const auto a = ProfileSessionRoot("/srv/profiles", "/tmp/work.gfprofile");
+  const auto b = ProfileSessionRoot("/srv/profiles", "/tmp/other.gfprofile");
+
+  // Derived rather than minted, so two windows work out the same directory for
+  // the same file and the second one can be told it is already open.
+  EXPECT_EQ(a, ProfileSessionRoot("/srv/profiles", "/tmp/work.gfprofile"));
+  EXPECT_NE(a, b);
+
+  // Dot-prefixed: transient, and never adopted by the profile scan.
+  EXPECT_TRUE(a.startsWith("/srv/profiles/."));
+  EXPECT_EQ(QFileInfo(a).fileName().size(), 33);  // the dot and 32 hex
+
+  EXPECT_TRUE(ProfileSessionRoot({}, "/tmp/work.gfprofile").isEmpty());
+  EXPECT_TRUE(ProfileSessionRoot("/srv/profiles", {}).isEmpty());
+}
+
+TEST(PackagedProfileTest, OpensAPackageAndWritesItBackToTheSameFile) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  const auto package = dir.path() + "/work.gfprofile";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.passphrase = GFBuffer(QString("pass"));
+  ASSERT_TRUE(ExportProfilePackage(request).ok);
+
+  PackagedProfile packaged(package, dir.path());
+  EXPECT_EQ(packaged.Inspect().status, ProfileMountStatus::kNEEDS_PASSPHRASE);
+
+  const auto mounted = packaged.Mount({request.passphrase, 3});
+  ASSERT_TRUE(mounted.Ok()) << mounted.detail.toStdString();
+  EXPECT_EQ(packaged.Root(), ProfileSessionRoot(dir.path(), package));
+  EXPECT_EQ(packaged.Manifest().display_name, "Work");
+
+  // The session is a profile root like any other: the tree is at the top, not
+  // under `profile/`, and the extraction scratch did not outlive the call.
+  EXPECT_TRUE(QFileInfo::exists(packaged.Root() + "/data_objs/abcd"));
+  EXPECT_TRUE(QDir(dir.path())
+                  .entryList({".gfprofile-*"}, QDir::Dirs | QDir::Hidden)
+                  .isEmpty());
+
+  // One secret, and it protects the key here too: a package carries its key
+  // unprotected, and leaving that copy plaintext on this disk for as long as
+  // the window is open would be strictly worse than the file it came from.
+  const auto extracted =
+      GFBufferFactory::FromFile(packaged.Root() + "/secure/app.key");
+  ASSERT_TRUE(extracted.has_value());
+  EXPECT_TRUE(AESCryptoHelper::IsEncryptedBuffer(*extracted));
+
+  const auto opened_key =
+      ProfileSecureKeyManager::UnsealKey(request.passphrase, {}, *extracted);
+  ASSERT_TRUE(opened_key.has_value());
+  EXPECT_EQ(*opened_key, request.app_key);
+
+  // And the stored protection says what the file actually is, or the next
+  // thing to read it resolves a protection the key does not have.
+  QSettings session_settings(packaged.Root() + "/config/config.ini",
+                             QSettings::IniFormat);
+  EXPECT_EQ(session_settings.value("advanced/app_key_protection").toString(),
+            QString("pin"));
+
+  WriteFile(packaged.Root() + "/data_objs/abcd", "changed-in-the-session");
+
+  // Everything a write-back needs that is not in the running process comes
+  // from the profile itself, aimed back at the file it was opened from.
+  auto back = packaged.WriteBackRequest();
+  back.app_key = request.app_key;
+  back.settings = request.settings;
+  back.manifest.schema_version = request.manifest.schema_version;
+  back.manifest.min_reader_version = request.manifest.min_reader_version;
+  back.manifest.app_profile = request.manifest.app_profile;
+  ASSERT_TRUE(ExportProfilePackage(back).ok);
+
+  const auto reread = dir.path() + "/reread";
+  const auto read = ReadProfilePackage(package, reread, request.passphrase);
+  ASSERT_TRUE(read.Ok()) << read.detail.toStdString();
+
+  // Same file, same identity, new contents.
+  EXPECT_EQ(read.manifest.package_id, packaged.Manifest().package_id);
+  QFile object(reread + "/profile/data_objs/abcd");
+  ASSERT_TRUE(object.open(QIODevice::ReadOnly));
+  EXPECT_EQ(object.readAll(), QByteArray("changed-in-the-session"));
+
+  // And the tree does not outlive the session that unpacked it: what is in it
+  // is a copy of the profile's key material.
+  const auto session_root = packaged.Root();
+  packaged.Unmount(ProfileUnmountMode::kNORMAL);
+  EXPECT_FALSE(QFileInfo::exists(session_root));
+}
+
+TEST(PackagedProfileTest, TheWrongPassphraseLeavesNothingBehind) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  const auto package = dir.path() + "/work.gfprofile";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.passphrase = GFBuffer(QString("pass"));
+  ASSERT_TRUE(ExportProfilePackage(request).ok);
+
+  PackagedProfile packaged(package, dir.path());
+  const auto mounted = packaged.Mount({GFBuffer(QString("wrong")), 3});
+  EXPECT_EQ(mounted.status, ProfileMountStatus::kBAD_PASSPHRASE);
+
+  // Nothing was extracted, so there is nothing holding an unprotected key.
+  EXPECT_FALSE(QFileInfo::exists(ProfileSessionRoot(dir.path(), package)));
+  EXPECT_TRUE(QDir(dir.path())
+                  .entryList({".gfprofile-*"}, QDir::Dirs | QDir::Hidden)
+                  .isEmpty());
+}
+
+TEST(PackagedProfileTest, ALayoutFromTheFutureIsRefusedBeforeAdoption) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  const auto package = dir.path() + "/work.gfprofile";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.protection = ProfilePackageProtection::kNONE;
+  request.manifest.min_reader_version = 99;
+  ASSERT_TRUE(ExportProfilePackage(request).ok);
+
+  PackagedProfile packaged(package, dir.path());
+  const auto mounted = packaged.Mount({{}, 3});
+  EXPECT_EQ(mounted.status, ProfileMountStatus::kTOO_NEW);
+
+  // Refused before anything was adopted: a package this build must not touch
+  // leaves no trace of having been opened.
+  EXPECT_FALSE(QFileInfo::exists(ProfileSessionRoot(dir.path(), package)));
+}
+
+TEST(PackagedProfileTest, AStaleSessionFromACrashedProcessIsReplaced) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  const auto package = dir.path() + "/work.gfprofile";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.protection = ProfilePackageProtection::kNONE;
+  ASSERT_TRUE(ExportProfilePackage(request).ok);
+
+  // What a process that died mid-session leaves: the directory is there and
+  // nobody holds it. Opening the same package again must not be refused.
+  const auto session = ProfileSessionRoot(dir.path(), package);
+  WriteFile(session + "/data_objs/abcd", "from a process that is gone");
+
+  PackagedProfile packaged(package, dir.path());
+  // An unprotected package needs no secret, and says so.
+  EXPECT_EQ(packaged.Inspect().status, ProfileMountStatus::kOK);
+
+  const auto mounted = packaged.Mount({{}, 3});
+  ASSERT_TRUE(mounted.Ok()) << mounted.detail.toStdString();
+
+  // Nothing protected the package, so there is no secret to protect the key
+  // with either. Inventing one would be a second thing to forget.
+  const auto extracted =
+      GFBufferFactory::FromFile(packaged.Root() + "/secure/app.key");
+  ASSERT_TRUE(extracted.has_value());
+  EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(*extracted));
+
+  QSettings session_settings(packaged.Root() + "/config/config.ini",
+                             QSettings::IniFormat);
+  EXPECT_EQ(session_settings.value("advanced/app_key_protection").toString(),
+            QString("none"));
+
+  QFile object(session + "/data_objs/abcd");
+  ASSERT_TRUE(object.open(QIODevice::ReadOnly));
+  EXPECT_EQ(object.readAll(), QByteArray("encrypted-object"));
+}
+
+TEST(ProfileSweepTest, OnlyTransientRootsNobodyIsUsingAreRemoved) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto stale = dir.path() + "/.aaaa";
+  const auto keep = dir.path() + "/.bbbb";
+  const auto scratch = dir.path() + "/.gfprofile-staging-cccc";
+  const auto real = dir.path() + "/dddd";
+
+  WriteFile(stale + "/profile.json", R"({"schema_version":3})");
+  WriteFile(keep + "/profile.json", R"({"schema_version":3})");
+  WriteFile(scratch + "/profile/profile.json", R"({"schema_version":3})");
+  WriteFile(real + "/profile.json", R"({"schema_version":3})");
+
+  EXPECT_EQ(SweepTransientProfileRoots(dir.path(), keep), 1);
+
+  EXPECT_FALSE(QFileInfo::exists(stale));
+  EXPECT_TRUE(QFileInfo::exists(keep));
+
+  // Scratch carries no marker of its own, and an export running in another
+  // window is producing one right now.
+  EXPECT_TRUE(QFileInfo::exists(scratch));
+
+  // A profile this machine keeps is not transient, whatever else is true.
+  EXPECT_TRUE(QFileInfo::exists(real));
+}
+
+TEST(PackagedProfileTest, CarriesItsOwnSecretAndWritesBackWhereItCameFrom) {
+  // The session state used to be a process-global struct beside the packing
+  // code. It is now the profile object itself, which is what makes "one
+  // session per process" a consequence of the design rather than a convention.
+  PackagedProfile packaged("/tmp/work.gfprofile", "/srv/profiles");
+
+  EXPECT_EQ(packaged.PackagePath(), "/tmp/work.gfprofile");
+  EXPECT_EQ(packaged.ProfilesRoot(), "/srv/profiles");
+  EXPECT_EQ(packaged.Root(),
+            ProfileSessionRoot("/srv/profiles", "/tmp/work.gfprofile"));
+  EXPECT_TRUE(packaged.IsTransient());
+
+  // A write-back aims at the file this session came from, never at a new one.
+  const auto request = packaged.WriteBackRequest();
+  EXPECT_EQ(request.dest_path, "/tmp/work.gfprofile");
+  EXPECT_EQ(request.profile_root, packaged.Root());
+  EXPECT_EQ(request.profiles_root, "/srv/profiles");
 }
 
 TEST(ProfilePackageCapTest, TheOneShotCapIsAReadableNumber) {

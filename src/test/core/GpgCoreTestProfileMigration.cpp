@@ -32,7 +32,7 @@
 #include <QFile>
 #include <QTemporaryDir>
 
-#include "core/function/ProfileMigration.h"
+#include "core/profile/ProfileMigration.h"
 #include "core/utils/BuildInfoUtils.h"
 
 namespace GpgFrontend::Test {
@@ -505,7 +505,6 @@ TEST_F(ProfileMigrationRunTest, TheFullMarkerRoundTrips) {
   marker.kind = "named";
   marker.package_id = "9f3c";
   marker.credential_account = "acct";
-  marker.components.insert("data_objs", 2);
   marker.self_contained = true;
 
   ProfileMigrationRecord record;
@@ -525,7 +524,6 @@ TEST_F(ProfileMigrationRunTest, TheFullMarkerRoundTrips) {
   EXPECT_EQ(back->display_name, marker.display_name);
   EXPECT_EQ(back->package_id, marker.package_id);
   EXPECT_EQ(back->credential_account, marker.credential_account);
-  EXPECT_EQ(back->components.value("data_objs"), 2);
   EXPECT_TRUE(back->self_contained);
   ASSERT_EQ(back->migrations.size(), 1);
   EXPECT_EQ(back->migrations[0].name, QString("a_rung"));

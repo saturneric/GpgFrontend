@@ -30,11 +30,13 @@
 
 #include "GFCoreTest.h"
 #include "core/function/AESCryptoHelper.h"
-#include "core/function/AppSecureKeyManager.h"
 #include "core/function/DataObjectOperator.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/SecureRandomGenerator.h"
 #include "core/function/SystemSecretStore.h"
+#include "core/profile/ProfileLoader.h"
+#include "core/profile/ProfileSecureKeyManager.h"
+#include "core/profile/ProfileSession.h"
 
 namespace GpgFrontend::Test {
 
@@ -121,13 +123,13 @@ class ScopedKeyFile {
  * ever changes, every object written by an older build stops resolving and is
  * reported as kMISSING_KEY.
  */
-TEST(AppSecureKeyManagerTest, LegacyKeyIdMatchesHistoricFormula) {
+TEST(ProfileSecureKeyManagerTest, LegacyKeyIdMatchesHistoricFormula) {
   const auto key = SampleKey();
 
   auto expected = GFBufferFactory::ToHMACSha256(GFBuffer("GpgFrontend"), key);
   ASSERT_TRUE(expected.has_value());
 
-  EXPECT_EQ(AppSecureKeyManager::CalculateKeyId({}, key), *expected);
+  EXPECT_EQ(ProfileSecureKeyManager::CalculateKeyId({}, key), *expected);
 }
 
 /**
@@ -135,9 +137,9 @@ TEST(AppSecureKeyManagerTest, LegacyKeyIdMatchesHistoricFormula) {
  * the key file happens to be protected at rest. This is what allows at-rest
  * protection to be switched on and off without orphaning stored objects.
  */
-TEST(AppSecureKeyManagerTest, KeyIdIndependentOfAtRestProtection) {
+TEST(ProfileSecureKeyManagerTest, KeyIdIndependentOfAtRestProtection) {
   const auto key = SampleKey();
-  const auto id_before = AppSecureKeyManager::CalculateKeyId({}, key);
+  const auto id_before = ProfileSecureKeyManager::CalculateKeyId({}, key);
 
   // Encrypting the key file with a wrap secret must not disturb the identity:
   // the identity is derived from the plaintext key, which is unchanged.
@@ -149,7 +151,7 @@ TEST(AppSecureKeyManagerTest, KeyIdIndependentOfAtRestProtection) {
   ASSERT_TRUE(unwrapped.has_value());
   ASSERT_EQ(*unwrapped, key);
 
-  EXPECT_EQ(AppSecureKeyManager::CalculateKeyId({}, *unwrapped), id_before);
+  EXPECT_EQ(ProfileSecureKeyManager::CalculateKeyId({}, *unwrapped), id_before);
 }
 
 /**
@@ -158,13 +160,13 @@ TEST(AppSecureKeyManagerTest, KeyIdIndependentOfAtRestProtection) {
  * before the PIN became a pure wrap secret filed its objects under it, and
  * RegisterLegacyKeyIds() has to reproduce it exactly to keep them readable.
  */
-TEST(AppSecureKeyManagerTest, LegacyPinDerivedIdFormulaIsStable) {
+TEST(ProfileSecureKeyManagerTest, LegacyPinDerivedIdFormulaIsStable) {
   const auto key = SampleKey();
 
-  EXPECT_NE(AppSecureKeyManager::CalculateKeyId(GFBuffer("pin-a"), key),
-            AppSecureKeyManager::CalculateKeyId(GFBuffer("pin-b"), key));
-  EXPECT_NE(AppSecureKeyManager::CalculateKeyId(GFBuffer("pin-a"), key),
-            AppSecureKeyManager::CalculateKeyId({}, key));
+  EXPECT_NE(ProfileSecureKeyManager::CalculateKeyId(GFBuffer("pin-a"), key),
+            ProfileSecureKeyManager::CalculateKeyId(GFBuffer("pin-b"), key));
+  EXPECT_NE(ProfileSecureKeyManager::CalculateKeyId(GFBuffer("pin-a"), key),
+            ProfileSecureKeyManager::CalculateKeyId({}, key));
 }
 
 // Identity is derived from the key material alone, so that switching the
@@ -177,20 +179,19 @@ TEST(AppSecureKeyIdCompatTest, PinProfileRegistersBothIds) {
 
   QMap<GFBuffer, GFBuffer> keys;
   const auto stable_id =
-      AppSecureKeyManager::RegisterLegacyKeyIds(keys, pin, key);
+      ProfileSecureKeyManager::RegisterKeyIds(keys, pin, key);
 
-  EXPECT_EQ(stable_id, AppSecureKeyManager::CalculateKeyId({}, key));
+  EXPECT_EQ(stable_id, ProfileSecureKeyManager::CalculateKeyId({}, key));
   EXPECT_EQ(keys.size(), 2);
   EXPECT_EQ(keys.value(stable_id), key);
-  EXPECT_EQ(keys.value(AppSecureKeyManager::CalculateKeyId(pin, key)), key);
+  EXPECT_EQ(keys.value(ProfileSecureKeyManager::CalculateKeyId(pin, key)), key);
 }
 
 TEST(AppSecureKeyIdCompatTest, NoPinRegistersOnlyTheStableId) {
   const auto key = SampleKey();
 
   QMap<GFBuffer, GFBuffer> keys;
-  const auto stable_id =
-      AppSecureKeyManager::RegisterLegacyKeyIds(keys, {}, key);
+  const auto stable_id = ProfileSecureKeyManager::RegisterKeyIds(keys, {}, key);
 
   EXPECT_EQ(keys.size(), 1);
   EXPECT_EQ(keys.value(stable_id), key);
@@ -206,10 +207,10 @@ TEST(AppSecureKeyIdCompatTest, BothIdsResolveToTheSameMaterial) {
   const GFBuffer pin("a-legacy-pin");
 
   QMap<GFBuffer, GFBuffer> keys;
-  AppSecureKeyManager::RegisterLegacyKeyIds(keys, pin, key);
+  ProfileSecureKeyManager::RegisterKeyIds(keys, pin, key);
 
-  const auto legacy_id = AppSecureKeyManager::CalculateKeyId(pin, key);
-  const auto stable_id = AppSecureKeyManager::CalculateKeyId({}, key);
+  const auto legacy_id = ProfileSecureKeyManager::CalculateKeyId(pin, key);
+  const auto stable_id = ProfileSecureKeyManager::CalculateKeyId({}, key);
 
   ASSERT_NE(legacy_id, stable_id);
   EXPECT_EQ(keys.value(legacy_id), keys.value(stable_id));
@@ -225,9 +226,9 @@ TEST(AppSecureKeyIdCompatTest, StableIdIsIndependentOfThePin) {
   QMap<GFBuffer, GFBuffer> with_pin_a;
   QMap<GFBuffer, GFBuffer> with_pin_b;
 
-  const auto id_a = AppSecureKeyManager::RegisterLegacyKeyIds(
+  const auto id_a = ProfileSecureKeyManager::RegisterKeyIds(
       with_pin_a, GFBuffer("pin-a"), key);
-  const auto id_b = AppSecureKeyManager::RegisterLegacyKeyIds(
+  const auto id_b = ProfileSecureKeyManager::RegisterKeyIds(
       with_pin_b, GFBuffer("pin-b"), key);
 
   EXPECT_EQ(id_a, id_b);
@@ -237,18 +238,19 @@ TEST(AppSecureKeyIdCompatTest, StableIdIsIndependentOfThePin) {
  * The key loaded at startup must be registered under its own derived ID, and
  * the legacy key must also be the active one below high security mode.
  */
-TEST(AppSecureKeyManagerTest, LoadedLegacyKeyResolvesByItsOwnId) {
-  auto& mgr = AppSecureKeyManager::GetInstance();
+TEST(ProfileSecureKeyManagerTest, LoadedLegacyKeyResolvesByItsOwnId) {
+  auto& mgr = ProfileSession::Instance().Keys();
 
-  const auto legacy_key = mgr.GetLegacyKey();
-  ASSERT_FALSE(legacy_key.Empty());
+  const auto root_key = mgr.RootKey();
+  ASSERT_FALSE(root_key.Empty());
 
-  const auto expected_id = AppSecureKeyManager::CalculateKeyId({}, legacy_key);
-  EXPECT_EQ(mgr.GetKey(expected_id), legacy_key);
+  const auto expected_id =
+      ProfileSecureKeyManager::CalculateKeyId({}, root_key);
+  EXPECT_EQ(mgr.KeyById(expected_id), root_key);
 
   if (qApp->property("GFSecureLevel").toInt() < 3) {
-    EXPECT_EQ(mgr.GetActiveKeyId(), expected_id);
-    EXPECT_EQ(mgr.GetActiveKey(), legacy_key);
+    EXPECT_EQ(mgr.ActiveKeyId(), expected_id);
+    EXPECT_EQ(mgr.ActiveKey(), root_key);
   }
 }
 
@@ -258,33 +260,33 @@ TEST(AppSecureKeyManagerTest, LoadedLegacyKeyResolvesByItsOwnId) {
  * written by an older build still loads. Whether the file is encrypted now
  * follows the protection mode, not the secure level.
  */
-TEST(AppSecureKeyManagerTest, LegacyKeyFileMatchesLoadedKey) {
-  if (AppKeyProtectionFromApp() != AppKeyProtection::kNONE) {
+TEST(ProfileSecureKeyManagerTest, LegacyKeyFileMatchesLoadedKey) {
+  if (ProfileLoader::AppKeyProtectionFromApp() != AppKeyProtection::kNONE) {
     GTEST_SKIP() << "key file is encrypted when a protection is in effect";
   }
 
-  auto& mgr = AppSecureKeyManager::GetInstance();
+  auto& mgr = ProfileSession::Instance().Keys();
 
-  auto on_disk = GFBufferFactory::FromFile(mgr.GetLegacyKeyPath());
+  auto on_disk = GFBufferFactory::FromFile(mgr.KeyPath());
   ASSERT_TRUE(on_disk.has_value());
 
   EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(*on_disk));
-  EXPECT_EQ(*on_disk, mgr.GetLegacyKey());
+  EXPECT_EQ(*on_disk, mgr.RootKey());
 }
 
 /**
  * An unknown ID must resolve to nothing rather than to some default key.
  */
-TEST(AppSecureKeyManagerTest, UnknownKeyIdResolvesEmpty) {
-  auto& mgr = AppSecureKeyManager::GetInstance();
-  EXPECT_TRUE(mgr.GetKey(GFBuffer(QByteArray(32, '\x00'))).Empty());
+TEST(ProfileSecureKeyManagerTest, UnknownKeyIdResolvesEmpty) {
+  auto& mgr = ProfileSession::Instance().Keys();
+  EXPECT_TRUE(mgr.KeyById(GFBuffer(QByteArray(32, '\x00'))).Empty());
 }
 
 /**
  * Objects already on disk must still decrypt through the migrated key lookup.
  * This is the end-to-end guard that the legacy key still works.
  */
-TEST(AppSecureKeyManagerTest, DataObjectRoundTripUsesLegacyKey) {
+TEST(ProfileSecureKeyManagerTest, DataObjectRoundTripUsesLegacyKey) {
   auto& dao = DataObjectOperator::GetInstance();
 
   const GFBuffer payload("legacy-key-round-trip");
@@ -300,7 +302,7 @@ TEST(AppSecureKeyManagerTest, DataObjectRoundTripUsesLegacyKey) {
  * IsEncryptedBuffer is what makes a key file self-describing, so it must not
  * report a plaintext or truncated buffer as encrypted.
  */
-TEST(AppSecureKeyManagerTest, IsEncryptedBufferDetectsContainer) {
+TEST(ProfileSecureKeyManagerTest, IsEncryptedBufferDetectsContainer) {
   const auto key = SampleKey();
 
   auto encrypted = GFBufferFactory::EncryptLite(GFBuffer("k"), key);
@@ -328,7 +330,7 @@ TEST(AppSecureKeyManagerTest, IsEncryptedBufferDetectsContainer) {
  * The Argon2id helper backs the weekly rotating key, so it must be
  * deterministic and validate its inputs rather than producing a weak key.
  */
-TEST(AppSecureKeyManagerTest, DeriveKeyArgon2IsDeterministic) {
+TEST(ProfileSecureKeyManagerTest, DeriveKeyArgon2IsDeterministic) {
   const GFBuffer passphrase("a-passphrase");
 
   auto salt = GFBufferFactory::ToSha256(GFBuffer("salt-source"));
@@ -350,7 +352,7 @@ TEST(AppSecureKeyManagerTest, DeriveKeyArgon2IsDeterministic) {
   EXPECT_NE(*a, *other);
 }
 
-TEST(AppSecureKeyManagerTest, DeriveKeyArgon2RejectsBadParameters) {
+TEST(ProfileSecureKeyManagerTest, DeriveKeyArgon2RejectsBadParameters) {
   auto salt = GFBufferFactory::ToSha256(GFBuffer("salt-source"));
   ASSERT_TRUE(salt.has_value());
   const auto salt16 = salt->Left(16);
@@ -377,7 +379,7 @@ TEST(AppSecureKeyWrapTest, DisabledLeavesPlaintextUntouched) {
   FakeSecretStore store;
 
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
 
   EXPECT_EQ(result.status, AppKeyWrapStatus::kNOT_WRAPPED);
   EXPECT_TRUE(result.secret.Empty());
@@ -391,7 +393,7 @@ TEST(AppSecureKeyWrapTest, EnableEncryptsFileAndStoresSecret) {
   FakeSecretStore store;
 
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
   ASSERT_EQ(result.status, AppKeyWrapStatus::kJUST_ENABLED);
   EXPECT_EQ(result.secret.Size(), 32U);
@@ -414,12 +416,12 @@ TEST(AppSecureKeyWrapTest, EnabledResolvesStoredSecret) {
   FakeSecretStore store;
 
   const auto enabled =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
   ASSERT_EQ(enabled.status, AppKeyWrapStatus::kJUST_ENABLED);
 
   // A later start finds the file already wrapped and just resolves the secret.
   const auto steady =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
   EXPECT_EQ(steady.status, AppKeyWrapStatus::kWRAPPED);
   EXPECT_EQ(steady.secret, enabled.secret);
@@ -432,11 +434,12 @@ TEST(AppSecureKeyWrapTest, DisableRestoresPlaintextAndClearsStore) {
   FakeSecretStore store;
 
   ASSERT_EQ(
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
       AppKeyWrapStatus::kJUST_ENABLED);
 
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
 
   EXPECT_EQ(result.status, AppKeyWrapStatus::kJUST_DISABLED);
   EXPECT_TRUE(result.secret.Empty());
@@ -452,28 +455,31 @@ TEST(AppSecureKeyWrapTest, DisableRestoresPlaintextAndClearsStore) {
  */
 TEST(AppSecureKeyWrapTest, RoundTripPreservesKeyAndItsId) {
   const auto key = SampleKey();
-  const auto id_before = AppSecureKeyManager::CalculateKeyId({}, key);
+  const auto id_before = ProfileSecureKeyManager::CalculateKeyId({}, key);
 
   ScopedKeyFile file(key);
   FakeSecretStore store;
 
   ASSERT_EQ(
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
       AppKeyWrapStatus::kJUST_ENABLED);
 
   // Even while wrapped, the key that comes back out is byte-identical.
   const auto wrapped =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
   auto unwrapped = GFBufferFactory::DecryptLite(wrapped.secret, file.Read());
   ASSERT_TRUE(unwrapped.has_value());
-  EXPECT_EQ(AppSecureKeyManager::CalculateKeyId({}, *unwrapped), id_before);
+  EXPECT_EQ(ProfileSecureKeyManager::CalculateKeyId({}, *unwrapped), id_before);
 
   ASSERT_EQ(
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false).status,
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false)
+          .status,
       AppKeyWrapStatus::kJUST_DISABLED);
 
   EXPECT_EQ(file.Read(), key);
-  EXPECT_EQ(AppSecureKeyManager::CalculateKeyId({}, file.Read()), id_before);
+  EXPECT_EQ(ProfileSecureKeyManager::CalculateKeyId({}, file.Read()),
+            id_before);
 }
 
 TEST(AppSecureKeyWrapTest, EnableWithNoKeyFileYetJustProvisionsSecret) {
@@ -482,7 +488,7 @@ TEST(AppSecureKeyWrapTest, EnableWithNoKeyFileYetJustProvisionsSecret) {
   FakeSecretStore store;
 
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
   // Nothing to convert; the caller creates the key already encrypted.
   EXPECT_EQ(result.status, AppKeyWrapStatus::kJUST_ENABLED);
@@ -505,12 +511,12 @@ TEST(AppSecureKeyWrapTest, WrappedFileOpensThroughTheLoadersOwnPath) {
   FakeSecretStore store;
 
   const auto enabled =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
   ASSERT_EQ(enabled.status, AppKeyWrapStatus::kJUST_ENABLED);
 
   // Exactly what init_legacy_key() does on the following start.
   auto recovered =
-      AppSecureKeyManager::UnsealKey({}, enabled.secret, file.Read());
+      ProfileSecureKeyManager::UnsealKey({}, enabled.secret, file.Read());
   ASSERT_TRUE(recovered.has_value());
   EXPECT_EQ(*recovered, key);
 }
@@ -524,25 +530,25 @@ TEST(AppSecureKeyWrapTest, SealAndUnsealAgreeForBothSecretKinds) {
   const GFBuffer pin("a-user-pin");
   const GFBuffer wrap(QByteArray(32, '\x11'));
 
-  auto sealed_pin = AppSecureKeyManager::SealKey(pin, {}, key);
+  auto sealed_pin = ProfileSecureKeyManager::SealKey(pin, {}, key);
   ASSERT_TRUE(sealed_pin.has_value());
-  auto opened_pin = AppSecureKeyManager::UnsealKey(pin, {}, *sealed_pin);
+  auto opened_pin = ProfileSecureKeyManager::UnsealKey(pin, {}, *sealed_pin);
   ASSERT_TRUE(opened_pin.has_value());
   EXPECT_EQ(*opened_pin, key);
 
-  auto sealed_wrap = AppSecureKeyManager::SealKey({}, wrap, key);
+  auto sealed_wrap = ProfileSecureKeyManager::SealKey({}, wrap, key);
   ASSERT_TRUE(sealed_wrap.has_value());
-  auto opened_wrap = AppSecureKeyManager::UnsealKey({}, wrap, *sealed_wrap);
+  auto opened_wrap = ProfileSecureKeyManager::UnsealKey({}, wrap, *sealed_wrap);
   ASSERT_TRUE(opened_wrap.has_value());
   EXPECT_EQ(*opened_wrap, key);
 
   // Feeding a secret through the wrong slot selects the wrong derivation, which
   // is exactly how the two halves came to disagree.
-  EXPECT_FALSE(AppSecureKeyManager::UnsealKey(wrap, {}, *sealed_wrap));
-  EXPECT_FALSE(AppSecureKeyManager::UnsealKey({}, pin, *sealed_pin));
+  EXPECT_FALSE(ProfileSecureKeyManager::UnsealKey(wrap, {}, *sealed_wrap));
+  EXPECT_FALSE(ProfileSecureKeyManager::UnsealKey({}, pin, *sealed_pin));
 
   // With no secret at all the key is stored verbatim.
-  auto unprotected = AppSecureKeyManager::SealKey({}, {}, key);
+  auto unprotected = ProfileSecureKeyManager::SealKey({}, {}, key);
   ASSERT_TRUE(unprotected.has_value());
   EXPECT_EQ(*unprotected, key);
   EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(*unprotected));
@@ -559,9 +565,9 @@ auto OpenAs(const GFBuffer& stored, AppKeyProtection protection,
             const GFBuffer& pin, const GFBuffer& secret) -> GFBufferOrNone {
   switch (protection) {
     case AppKeyProtection::kPIN:
-      return AppSecureKeyManager::UnsealKey(pin, {}, stored);
+      return ProfileSecureKeyManager::UnsealKey(pin, {}, stored);
     case AppKeyProtection::kKEYCHAIN:
-      return AppSecureKeyManager::UnsealKey({}, secret, stored);
+      return ProfileSecureKeyManager::UnsealKey({}, secret, stored);
     case AppKeyProtection::kNONE:
       break;
   }
@@ -573,7 +579,7 @@ auto OpenAs(const GFBuffer& stored, AppKeyProtection protection,
 auto SealAs(const ScopedKeyFile& file, FakeSecretStore& store,
             const GFBuffer& key, AppKeyProtection protection,
             const GFBuffer& pin) -> GFBuffer {
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kNONE, protection, pin);
   EXPECT_TRUE(result.Ok()) << "setting up " << static_cast<int>(protection);
   return store.entries.value(kAppKeyWrapAccount, GFBuffer{});
@@ -586,7 +592,7 @@ TEST(AppKeyProtectionTest, NoneToKeychainSealsFileAndStoresSecret) {
   ScopedKeyFile file(key);
   FakeSecretStore store;
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kNONE,
       AppKeyProtection::kKEYCHAIN, {});
 
@@ -594,7 +600,7 @@ TEST(AppKeyProtectionTest, NoneToKeychainSealsFileAndStoresSecret) {
   EXPECT_TRUE(AESCryptoHelper::IsEncryptedBuffer(file.Read()));
   ASSERT_TRUE(store.entries.contains(kAppKeyWrapAccount));
 
-  auto opened = AppSecureKeyManager::UnsealKey(
+  auto opened = ProfileSecureKeyManager::UnsealKey(
       {}, store.entries.value(kAppKeyWrapAccount), file.Read());
   ASSERT_TRUE(opened.has_value());
   EXPECT_EQ(*opened, key);
@@ -606,7 +612,7 @@ TEST(AppKeyProtectionTest, NoneToPinSealsWithoutTouchingTheStore) {
   ScopedKeyFile file(key);
   FakeSecretStore store;
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kNONE, AppKeyProtection::kPIN,
       pin);
 
@@ -614,13 +620,13 @@ TEST(AppKeyProtectionTest, NoneToPinSealsWithoutTouchingTheStore) {
   EXPECT_TRUE(AESCryptoHelper::IsEncryptedBuffer(file.Read()));
   EXPECT_TRUE(store.entries.isEmpty());
 
-  auto opened = AppSecureKeyManager::UnsealKey(pin, {}, file.Read());
+  auto opened = ProfileSecureKeyManager::UnsealKey(pin, {}, file.Read());
   ASSERT_TRUE(opened.has_value());
   EXPECT_EQ(*opened, key);
 
   // The PIN belongs in the PIN slot: fed through the wrap slot it selects the
   // cheap derivation instead of Argon2id and must not open the file.
-  EXPECT_FALSE(AppSecureKeyManager::UnsealKey({}, pin, file.Read()));
+  EXPECT_FALSE(ProfileSecureKeyManager::UnsealKey({}, pin, file.Read()));
 }
 
 TEST(AppKeyProtectionTest, KeychainToNoneRestoresPlaintextAndClearsStore) {
@@ -629,7 +635,7 @@ TEST(AppKeyProtectionTest, KeychainToNoneRestoresPlaintextAndClearsStore) {
   FakeSecretStore store;
   SealAs(file, store, key, AppKeyProtection::kKEYCHAIN, {});
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kKEYCHAIN,
       AppKeyProtection::kNONE, {});
 
@@ -646,7 +652,7 @@ TEST(AppKeyProtectionTest, PinToNoneRestoresPlaintext) {
   FakeSecretStore store;
   SealAs(file, store, key, AppKeyProtection::kPIN, pin);
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kPIN, AppKeyProtection::kNONE,
       {});
 
@@ -662,14 +668,14 @@ TEST(AppKeyProtectionTest, KeychainToPinReleasesTheStoreEntry) {
   FakeSecretStore store;
   SealAs(file, store, key, AppKeyProtection::kKEYCHAIN, {});
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kKEYCHAIN,
       AppKeyProtection::kPIN, pin);
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kOK);
   EXPECT_FALSE(store.entries.contains(kAppKeyWrapAccount));
 
-  auto opened = AppSecureKeyManager::UnsealKey(pin, {}, file.Read());
+  auto opened = ProfileSecureKeyManager::UnsealKey(pin, {}, file.Read());
   ASSERT_TRUE(opened.has_value());
   EXPECT_EQ(*opened, key);
 }
@@ -681,7 +687,7 @@ TEST(AppKeyProtectionTest, PinToKeychainProvisionsANewSecret) {
   FakeSecretStore store;
   SealAs(file, store, key, AppKeyProtection::kPIN, pin);
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kPIN,
       AppKeyProtection::kKEYCHAIN, {});
 
@@ -689,11 +695,11 @@ TEST(AppKeyProtectionTest, PinToKeychainProvisionsANewSecret) {
   ASSERT_TRUE(store.entries.contains(kAppKeyWrapAccount));
 
   // The old PIN is not consulted and is no longer able to open the file.
-  auto opened = AppSecureKeyManager::UnsealKey(
+  auto opened = ProfileSecureKeyManager::UnsealKey(
       {}, store.entries.value(kAppKeyWrapAccount), file.Read());
   ASSERT_TRUE(opened.has_value());
   EXPECT_EQ(*opened, key);
-  EXPECT_FALSE(AppSecureKeyManager::UnsealKey(pin, {}, file.Read()));
+  EXPECT_FALSE(ProfileSecureKeyManager::UnsealKey(pin, {}, file.Read()));
 }
 
 /**
@@ -705,7 +711,7 @@ TEST(AppKeyProtectionTest, EveryTransitionPreservesTheKeyId) {
   const auto key = SampleKey();
   const GFBuffer from_pin("pin-before");
   const GFBuffer to_pin("pin-after");
-  const auto expected_id = AppSecureKeyManager::CalculateKeyId({}, key);
+  const auto expected_id = ProfileSecureKeyManager::CalculateKeyId({}, key);
 
   for (const auto from : {AppKeyProtection::kNONE, AppKeyProtection::kKEYCHAIN,
                           AppKeyProtection::kPIN}) {
@@ -715,7 +721,7 @@ TEST(AppKeyProtectionTest, EveryTransitionPreservesTheKeyId) {
       FakeSecretStore store;
       SealAs(file, store, key, from, from_pin);
 
-      const auto result = AppSecureKeyManager::ChangeProtection(
+      const auto result = ProfileSecureKeyManager::ChangeProtection(
           file.Path(), &store, key, from, to, to_pin);
       ASSERT_TRUE(result.Ok())
           << static_cast<int>(from) << " -> " << static_cast<int>(to);
@@ -733,7 +739,8 @@ TEST(AppKeyProtectionTest, EveryTransitionPreservesTheKeyId) {
       ASSERT_TRUE(opened.has_value())
           << static_cast<int>(from) << " -> " << static_cast<int>(to);
       EXPECT_EQ(*opened, key);
-      EXPECT_EQ(AppSecureKeyManager::CalculateKeyId({}, *opened), expected_id);
+      EXPECT_EQ(ProfileSecureKeyManager::CalculateKeyId({}, *opened),
+                expected_id);
     }
   }
 }
@@ -744,7 +751,7 @@ TEST(AppKeyProtectionTest, SameProtectionIsANoOp) {
   FakeSecretStore store;
   const auto before = file.Read();
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kNONE,
       AppKeyProtection::kNONE, {});
 
@@ -765,16 +772,16 @@ TEST(AppKeyProtectionTest, PinRekeyIsNotANoOp) {
   FakeSecretStore store;
   SealAs(file, store, key, AppKeyProtection::kPIN, old_pin);
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kPIN, AppKeyProtection::kPIN,
       new_pin);
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kOK);
 
-  auto opened = AppSecureKeyManager::UnsealKey(new_pin, {}, file.Read());
+  auto opened = ProfileSecureKeyManager::UnsealKey(new_pin, {}, file.Read());
   ASSERT_TRUE(opened.has_value());
   EXPECT_EQ(*opened, key);
-  EXPECT_FALSE(AppSecureKeyManager::UnsealKey(old_pin, {}, file.Read()));
+  EXPECT_FALSE(ProfileSecureKeyManager::UnsealKey(old_pin, {}, file.Read()));
 }
 
 // The weekly rotating key set of secure level 3 hangs off the application
@@ -785,17 +792,17 @@ TEST(AppKeyProtectionTest, PinRekeyIsNotANoOp) {
 TEST(AppSecureKeyRotationTest, DerivationIsDeterministicPerPeriod) {
   const auto app_key = SampleKey();
 
-  EXPECT_EQ(AppSecureKeyManager::DeriveRotatedKey(app_key, 42),
-            AppSecureKeyManager::DeriveRotatedKey(app_key, 42));
-  EXPECT_NE(AppSecureKeyManager::DeriveRotatedKey(app_key, 42),
-            AppSecureKeyManager::DeriveRotatedKey(app_key, 43));
+  EXPECT_EQ(ProfileSecureKeyManager::DeriveRotatedKey(app_key, 42),
+            ProfileSecureKeyManager::DeriveRotatedKey(app_key, 42));
+  EXPECT_NE(ProfileSecureKeyManager::DeriveRotatedKey(app_key, 42),
+            ProfileSecureKeyManager::DeriveRotatedKey(app_key, 43));
 }
 
 TEST(AppSecureKeyRotationTest, DerivationFollowsTheAppKey) {
   const auto other = GFBuffer(QByteArray(256, '\x3C'));
 
-  EXPECT_NE(AppSecureKeyManager::DeriveRotatedKey(SampleKey(), 42),
-            AppSecureKeyManager::DeriveRotatedKey(other, 42));
+  EXPECT_NE(ProfileSecureKeyManager::DeriveRotatedKey(SampleKey(), 42),
+            ProfileSecureKeyManager::DeriveRotatedKey(other, 42));
 }
 
 /**
@@ -809,9 +816,9 @@ TEST(AppSecureKeyRotationTest, RotatedKeySurvivesEveryProtectionChange) {
   const GFBuffer first_pin("pin-before");
   const GFBuffer second_pin("pin-after");
 
-  const auto before = AppSecureKeyManager::DeriveRotatedKey(app_key, 42);
+  const auto before = ProfileSecureKeyManager::DeriveRotatedKey(app_key, 42);
   ASSERT_FALSE(before.Empty());
-  const auto before_id = AppSecureKeyManager::CalculateKeyId({}, before);
+  const auto before_id = ProfileSecureKeyManager::CalculateKeyId({}, before);
 
   ScopedKeyFile file(app_key);
   FakeSecretStore store;
@@ -823,16 +830,16 @@ TEST(AppSecureKeyRotationTest, RotatedKeySurvivesEveryProtectionChange) {
 
   auto current = AppKeyProtection::kNONE;
   for (int i = 0; i < 4; ++i) {
-    const auto result = AppSecureKeyManager::ChangeProtection(
+    const auto result = ProfileSecureKeyManager::ChangeProtection(
         file.Path(), &store, app_key, current, route[i], pins[i]);
     ASSERT_TRUE(result.Ok()) << "step " << i;
     current = route[i];
 
     // The app key is untouched by a protection change, so the rotated key it
     // derives must be bit-identical at every step.
-    const auto after = AppSecureKeyManager::DeriveRotatedKey(app_key, 42);
+    const auto after = ProfileSecureKeyManager::DeriveRotatedKey(app_key, 42);
     EXPECT_EQ(after, before) << "step " << i;
-    EXPECT_EQ(AppSecureKeyManager::CalculateKeyId({}, after), before_id)
+    EXPECT_EQ(ProfileSecureKeyManager::CalculateKeyId({}, after), before_id)
         << "step " << i;
   }
 }
@@ -846,7 +853,7 @@ TEST(AppSecureKeyRotationTest, RotatedKeySurvivesEveryProtectionChange) {
 TEST(AppSecureKeyRotationTest, BothOnDiskFormsOfARotatedKeyOpen) {
   const auto app_key = SampleKey();
   const GFBuffer pin("a-legacy-pin");
-  const auto rotated = AppSecureKeyManager::DeriveRotatedKey(app_key, 42);
+  const auto rotated = ProfileSecureKeyManager::DeriveRotatedKey(app_key, 42);
   ASSERT_FALSE(rotated.Empty());
 
   auto current_form = GFBufferFactory::EncryptLite(app_key, rotated);
@@ -874,12 +881,12 @@ TEST(AppSecureKeyRotationTest, BothOnDiskFormsOfARotatedKeyOpen) {
  */
 TEST(AppSecureKeyRotationTest, RotatedKeyIdIsPinIndependent) {
   const auto app_key = SampleKey();
-  const auto rotated = AppSecureKeyManager::DeriveRotatedKey(app_key, 42);
+  const auto rotated = ProfileSecureKeyManager::DeriveRotatedKey(app_key, 42);
 
   QMap<GFBuffer, GFBuffer> keys;
-  const auto id = AppSecureKeyManager::RegisterLegacyKeyIds(keys, {}, rotated);
+  const auto id = ProfileSecureKeyManager::RegisterKeyIds(keys, {}, rotated);
 
-  EXPECT_EQ(id, AppSecureKeyManager::CalculateKeyId({}, rotated));
+  EXPECT_EQ(id, ProfileSecureKeyManager::CalculateKeyId({}, rotated));
   EXPECT_EQ(keys.value(id), rotated);
 }
 
@@ -891,7 +898,7 @@ TEST(AppKeyProtectionTest, PinTargetRejectsAnEmptyPin) {
   FakeSecretStore store;
   const auto before = file.Read();
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kNONE, AppKeyProtection::kPIN,
       {});
 
@@ -906,7 +913,7 @@ TEST(AppKeyProtectionTest, KeychainTargetWithUnavailableStoreLeavesFileAlone) {
   store.available = false;
   const auto before = file.Read();
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kNONE,
       AppKeyProtection::kKEYCHAIN, {});
 
@@ -920,7 +927,7 @@ TEST(AppKeyProtectionTest, KeychainTargetWithMissingStoreLeavesFileAlone) {
   ScopedKeyFile file(key);
   const auto before = file.Read();
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), nullptr, key, AppKeyProtection::kNONE,
       AppKeyProtection::kKEYCHAIN, {});
 
@@ -935,7 +942,7 @@ TEST(AppKeyProtectionTest, SecretThatDoesNotReadBackAbortsTheTransition) {
   store.corrupt_on_write = true;
   const auto before = file.Read();
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       file.Path(), &store, key, AppKeyProtection::kNONE,
       AppKeyProtection::kKEYCHAIN, {});
 
@@ -962,7 +969,7 @@ TEST(AppKeyProtectionTest, FailedFileWriteKeepsTheOldSecretRecoverable) {
   QTemporaryDir blocked;
   ASSERT_TRUE(blocked.isValid());
 
-  const auto result = AppSecureKeyManager::ChangeProtection(
+  const auto result = ProfileSecureKeyManager::ChangeProtection(
       blocked.path(), &store, key, AppKeyProtection::kKEYCHAIN,
       AppKeyProtection::kNONE, {});
 
@@ -971,7 +978,8 @@ TEST(AppKeyProtectionTest, FailedFileWriteKeepsTheOldSecretRecoverable) {
   ASSERT_TRUE(store.entries.contains(kAppKeyWrapAccount));
   EXPECT_EQ(store.entries.value(kAppKeyWrapAccount), secret);
 
-  auto still_openable = AppSecureKeyManager::UnsealKey({}, secret, file.Read());
+  auto still_openable =
+      ProfileSecureKeyManager::UnsealKey({}, secret, file.Read());
   ASSERT_TRUE(still_openable.has_value());
   EXPECT_EQ(*still_openable, key);
 }
@@ -983,7 +991,7 @@ TEST(AppSecureKeyWrapTest, UnavailableStoreLeavesFilePlaintext) {
   store.available = false;
 
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
   EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_UNAVAILABLE);
   EXPECT_EQ(file.Read(), key);
@@ -995,7 +1003,7 @@ TEST(AppSecureKeyWrapTest, MissingStoreLeavesFilePlaintext) {
   ScopedKeyFile file(key);
 
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), nullptr, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), nullptr, true);
 
   EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_UNAVAILABLE);
   EXPECT_EQ(file.Read(), key);
@@ -1008,7 +1016,7 @@ TEST(AppSecureKeyWrapTest, FailedStoreWriteLeavesFilePlaintext) {
   store.writable = false;
 
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
   EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_UNAVAILABLE);
   EXPECT_EQ(file.Read(), key);
@@ -1026,7 +1034,7 @@ TEST(AppSecureKeyWrapTest, SecretThatDoesNotReadBackAbortsTheTransition) {
   store.corrupt_on_write = true;
 
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
   EXPECT_EQ(result.status, AppKeyWrapStatus::kSTORE_UNAVAILABLE);
   EXPECT_EQ(file.Read(), key);
@@ -1041,7 +1049,8 @@ TEST(AppSecureKeyWrapTest, LostSecretReportsLockedOutWithoutTouchingFile) {
   FakeSecretStore store;
 
   ASSERT_EQ(
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
       AppKeyWrapStatus::kJUST_ENABLED);
   const auto wrapped_bytes = file.Read();
 
@@ -1049,7 +1058,7 @@ TEST(AppSecureKeyWrapTest, LostSecretReportsLockedOutWithoutTouchingFile) {
   store.entries.clear();
 
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
   EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
   // Destroying the only copy of the key here would be unrecoverable.
@@ -1062,14 +1071,15 @@ TEST(AppSecureKeyWrapTest, DisableWithLostSecretIsLockedOutNotDataLoss) {
   FakeSecretStore store;
 
   ASSERT_EQ(
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
       AppKeyWrapStatus::kJUST_ENABLED);
   const auto wrapped_bytes = file.Read();
   store.entries.clear();
 
   // Turning the setting off cannot rescue a file we can no longer decrypt.
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
 
   EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
   EXPECT_EQ(file.Read(), wrapped_bytes);
@@ -1081,13 +1091,14 @@ TEST(AppSecureKeyWrapTest, WrongSecretReportsLockedOut) {
   FakeSecretStore store;
 
   ASSERT_EQ(
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true).status,
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
       AppKeyWrapStatus::kJUST_ENABLED);
 
   store.entries.insert(kAppKeyWrapAccount, GFBuffer(QByteArray(32, '\x01')));
 
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
 
   EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
 }
@@ -1101,7 +1112,7 @@ TEST(AppSecureKeyWrapTest, DisabledAndUnwrappedNeverConsultsTheStore) {
   store.writable = false;
 
   const auto result =
-      AppSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
 
   EXPECT_EQ(result.status, AppKeyWrapStatus::kNOT_WRAPPED);
   EXPECT_EQ(file.Read(), key);
@@ -1113,10 +1124,10 @@ TEST(AppSecureKeyWrapTest, DisabledAndUnwrappedNeverConsultsTheStore) {
  * changed default or an accidental auto-enable is caught here.
  */
 TEST(AppSecureKeyWrapTest, FeatureIsOffUnlessExplicitlyEnabled) {
-  EXPECT_EQ(AppKeyProtectionFromApp(), AppKeyProtection::kNONE);
+  EXPECT_EQ(ProfileLoader::AppKeyProtectionFromApp(), AppKeyProtection::kNONE);
 
-  auto& mgr = AppSecureKeyManager::GetInstance();
-  auto on_disk = GFBufferFactory::FromFile(mgr.GetLegacyKeyPath());
+  auto& mgr = ProfileSession::Instance().Keys();
+  auto on_disk = GFBufferFactory::FromFile(mgr.KeyPath());
   ASSERT_TRUE(on_disk.has_value());
   EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(*on_disk));
 }
@@ -1139,7 +1150,7 @@ TEST(AppKeyResetTest, RemovesAppKeyAndRotatedFiles) {
   ASSERT_TRUE(file.Exists());
   ASSERT_TRUE(QFileInfo::exists(rotated_path));
 
-  EXPECT_TRUE(AppSecureKeyManager::ResetKeyStorage(dir));
+  EXPECT_TRUE(ProfileSecureKeyManager::ResetKeyStorage(dir));
 
   EXPECT_FALSE(file.Exists());
   EXPECT_FALSE(QFileInfo::exists(rotated_path));
@@ -1152,7 +1163,7 @@ TEST(AppKeyResetTest, IsIdempotentWhenNothingToRemove) {
 
   // Nothing to remove counts as success, so a half-finished prior reset
   // retries.
-  EXPECT_TRUE(AppSecureKeyManager::ResetKeyStorage(dir));
+  EXPECT_TRUE(ProfileSecureKeyManager::ResetKeyStorage(dir));
 }
 
 TEST(AppKeyResetTest, LeavesNonKeyFilesAlone) {
@@ -1165,7 +1176,7 @@ TEST(AppKeyResetTest, LeavesNonKeyFilesAlone) {
   const auto other = dir + "/notes.txt";
   ASSERT_TRUE(GFBufferFactory::ToFile(other, GFBuffer("keep me")));
 
-  EXPECT_TRUE(AppSecureKeyManager::ResetKeyStorage(dir));
+  EXPECT_TRUE(ProfileSecureKeyManager::ResetKeyStorage(dir));
 
   EXPECT_FALSE(file.Exists());
   EXPECT_TRUE(QFileInfo::exists(other));
@@ -1180,7 +1191,7 @@ TEST(AppKeyResetTest, ReportsFailureWhenAppKeyCannotBeRemoved) {
   // rather than let the caller believe the key is gone.
   ASSERT_TRUE(QDir(dir.path()).mkdir("app.key"));
 
-  EXPECT_FALSE(AppSecureKeyManager::ResetKeyStorage(dir.path()));
+  EXPECT_FALSE(ProfileSecureKeyManager::ResetKeyStorage(dir.path()));
 }
 
 // --- live backend -----------------------------------------------------------

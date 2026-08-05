@@ -37,8 +37,7 @@ TEST(ProfileLaunchArgsTest, ProfileOptionsAreStrippedWithTheirValues) {
 }
 
 TEST(ProfileLaunchArgsTest, TheEqualsFormIsStrippedToo) {
-  const QStringList args = {"gpgfrontend", "--profile=work",
-                            "--profile-root=/srv/p", "-l", "info"};
+  const QStringList args = {"gpgfrontend", "--profile=work", "-l", "info"};
 
   EXPECT_EQ(StripProfileArgs(args), QStringList({"gpgfrontend", "-l", "info"}));
 }
@@ -62,7 +61,8 @@ TEST(ProfileLaunchArgsTest, OpeningRepeatedlyDoesNotAccumulateFlags) {
   QStringList args = {"gpgfrontend", "-l", "info"};
 
   for (const auto* target : {"one", "two", "three"}) {
-    auto launch = BuildProfileLaunchArgs(args, QString::fromUtf8(target));
+    auto launch =
+        BuildLaunchArgs(args, {.profile_id = QString::fromUtf8(target)});
     args = QStringList{"gpgfrontend"} + launch;
   }
 
@@ -75,15 +75,15 @@ TEST(ProfileLaunchArgsTest, TheImplicitProfilesCarryNoFlag) {
   // classic and portable are what the resolver falls back to on its own, so
   // naming them on the command line would be a profile id that does not exist
   for (const auto* id : {"classic", "portable", ""}) {
-    const auto out = BuildProfileLaunchArgs(
-        {"gpgfrontend", "--profile", "work"}, QString::fromUtf8(id));
+    const auto out = BuildLaunchArgs({"gpgfrontend", "--profile", "work"},
+                                     {.profile_id = QString::fromUtf8(id)});
     EXPECT_FALSE(out.contains("--profile")) << id;
   }
 }
 
 TEST(ProfileLaunchArgsTest, Argv0IsNotPartOfThePackageArguments) {
-  const auto out = BuildPackageLaunchArgs(
-      {"/usr/bin/gpgfrontend", "-l", "info"}, "/home/x/work.gfprofile");
+  const auto out = BuildLaunchArgs({"/usr/bin/gpgfrontend", "-l", "info"},
+                                   {.package_path = "/home/x/work.gfprofile"});
   EXPECT_EQ(out, QStringList({"-l", "info", "/home/x/work.gfprofile"}));
 }
 
@@ -92,8 +92,8 @@ TEST(ProfileLaunchArgsTest, Argv0IsNotPartOfThePackageArguments) {
 // the package the user actually picked.
 TEST(ProfileLaunchArgsTest, APackageReplacesAnInheritedProfileFlag) {
   const auto out =
-      BuildPackageLaunchArgs({"gpgfrontend", "--profile", "work", "-l", "info"},
-                             "/home/x/a.gfprofile");
+      BuildLaunchArgs({"gpgfrontend", "--profile", "work", "-l", "info"},
+                      {.package_path = "/home/x/a.gfprofile"});
 
   EXPECT_FALSE(out.contains("--profile"));
   EXPECT_EQ(out, QStringList({"-l", "info", "/home/x/a.gfprofile"}));
@@ -102,15 +102,25 @@ TEST(ProfileLaunchArgsTest, APackageReplacesAnInheritedProfileFlag) {
 TEST(ProfileLaunchArgsTest, OneWindowPerPackageNotOnePerOpen) {
   // opening package B from a window already showing package A leaves exactly
   // one positional argument, not both
-  const auto out = BuildPackageLaunchArgs(
-      {"gpgfrontend", "/home/x/a.gfprofile"}, "/home/x/b.gfprofile");
+  const auto out = BuildLaunchArgs({"gpgfrontend", "/home/x/a.gfprofile"},
+                                   {.package_path = "/home/x/b.gfprofile"});
 
   EXPECT_EQ(out, QStringList({"/home/x/b.gfprofile"}));
 }
 
-TEST(ProfileLaunchArgsTest, Argv0IsNotPartOfTheRelaunchArguments) {
+// The other direction of the same rule: one builder, so a profile target and a
+// package target cannot disagree about what the previous selection was.
+TEST(ProfileLaunchArgsTest, AProfileReplacesAnInheritedPackage) {
   const auto out =
-      BuildProfileLaunchArgs({"/usr/bin/gpgfrontend", "-l", "info"}, "work");
+      BuildLaunchArgs({"gpgfrontend", "/home/x/a.gfprofile", "-l", "info"},
+                      {.profile_id = "work"});
+
+  EXPECT_EQ(out, QStringList({"-l", "info", "--profile", "work"}));
+}
+
+TEST(ProfileLaunchArgsTest, Argv0IsNotPartOfTheRelaunchArguments) {
+  const auto out = BuildLaunchArgs({"/usr/bin/gpgfrontend", "-l", "info"},
+                                   {.profile_id = "work"});
   EXPECT_FALSE(out.contains("/usr/bin/gpgfrontend"));
   EXPECT_EQ(out, QStringList({"-l", "info", "--profile", "work"}));
 }

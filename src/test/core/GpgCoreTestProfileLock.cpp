@@ -31,7 +31,7 @@
 #include <QLockFile>
 #include <QTemporaryDir>
 
-#include "core/function/ProfileLock.h"
+#include "core/profile/ProfileLock.h"
 
 namespace GpgFrontend::Test {
 
