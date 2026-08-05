@@ -34,6 +34,7 @@
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileMarker.h"
+#include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileSecureKeyManager.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
@@ -499,8 +500,7 @@ TEST(ProfileSelectionTest, PositionalPackageIsSelectedAsAPackage) {
 TEST(ProfileSelectionTest, AnOptionValueIsNotMistakenForAPackage) {
   // "--log-level" takes a value; a scan that did not know that could read the
   // next argument as a positional and open the wrong thing
-  const auto r =
-      ResolveProfileSelection(MakeInput({"--log-level", "x.gfp"}));
+  const auto r = ResolveProfileSelection(MakeInput({"--log-level", "x.gfp"}));
 
   EXPECT_NE(r.selection.kind, ProfileKind::kPACKAGED);
 }
@@ -523,6 +523,54 @@ TEST(ProfileSelectionTest, APackageOutranksTheEnvironment) {
   auto in = MakeInput({"/home/x/work.gfp"});
   in.env_profile = "env";
   EXPECT_EQ(ResolveProfileSelection(in).selection.kind, ProfileKind::kPACKAGED);
+}
+
+// ------------------------------------------- documents handed over by the OS
+
+// macOS does not put a double-clicked file on the command line; it arrives as
+// an event and is appended to the arguments once it does. Standing must not
+// depend on where in the list it lands, and it must survive an option that
+// takes a value sitting in front of it.
+TEST(ProfileSelectionTest, AHandedOverPackageIsFoundBehindEveryOtherArgument) {
+  const auto r = ResolveProfileSelection(
+      MakeInput({"--log-level", "debug", "/Users/x/Work.GFP"}));
+
+  EXPECT_TRUE(r.error.isEmpty());
+  EXPECT_EQ(r.selection.kind, ProfileKind::kPACKAGED);
+  EXPECT_EQ(r.selection.package_path, QString("/Users/x/Work.GFP"));
+  EXPECT_EQ(r.selection.id, QString("Work"));
+}
+
+TEST(ProfileSelectionTest, AHandedOverPackageDoesNotOutrankANamedProfile) {
+  // Appending gives the document the standing a typed package has, which is
+  // below an explicit --profile. Anything else and asking for a profile by name
+  // would be silently overruled by whatever the Finder passed along.
+  const auto r = ResolveProfileSelection(
+      MakeInput({"--profile", "work", "/Users/x/other.gfp"}));
+
+  EXPECT_TRUE(r.error.isEmpty());
+  EXPECT_EQ(r.selection.kind, ProfileKind::kPERSIST);
+  EXPECT_EQ(r.selection.id, QString("work"));
+}
+
+TEST(ProfileSelectionTest, TheFirstPackageOnTheLineWins) {
+  // The other half of appending: a document added at the end must not override
+  // a package that was actually typed.
+  const auto r = ResolveProfileSelection(MakeInput({"/a.gfp", "/b.gfp"}));
+
+  EXPECT_EQ(r.selection.package_path, QString("/a.gfp"));
+}
+
+// The anti-drift test. This spelling is duplicated outside the compiler's
+// reach -- a freedesktop glob, a Windows registry value, a macOS plist tag --
+// so the scan and the registration are pinned to one constant.
+TEST(ProfileSelectionTest, TheScannedExtensionIsTheRegisteredOne) {
+  EXPECT_EQ(QString(kProfilePackageExtension), QString(".gfp"));
+
+  const auto r = ResolveProfileSelection(
+      MakeInput({QString("/home/x/work") + kProfilePackageExtension}));
+
+  EXPECT_EQ(r.selection.kind, ProfileKind::kPACKAGED);
 }
 
 TEST(ProfileSelectionTest, NothingIsRememberedBetweenRuns) {

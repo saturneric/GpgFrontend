@@ -26,6 +26,7 @@
  *
  */
 
+#include "core/profile/ProfilePackage.h"
 #include "ui/function/ProfileController.h"
 
 namespace GpgFrontend::UI::Test {
@@ -52,6 +53,29 @@ TEST(ProfileLaunchArgsTest, APositionalPackageIsStripped) {
 TEST(ProfileLaunchArgsTest, UnrelatedArgumentsAreLeftAlone) {
   const QStringList args = {"gpgfrontend", "--self-check", "-l", "debug"};
   EXPECT_EQ(StripProfileArgs(args), args);
+}
+
+// The three file dialogs and the argv scan have to offer and accept the same
+// thing; this is the only place in code where both spellings meet.
+TEST(ProfileLaunchArgsTest, TheDialogFilterNamesTheScannedExtension) {
+  const auto filter = ProfilePackageNameFilter();
+
+  EXPECT_TRUE(filter.contains(QString("*") + kProfilePackageExtension))
+      << filter.toStdString();
+
+  // Whatever that filter offers must survive the scan that opens it.
+  EXPECT_EQ(StripProfileArgs({"gpgfrontend",
+                              QString("/home/x/w") + kProfilePackageExtension}),
+            QStringList({"gpgfrontend"}));
+}
+
+// A package that came from a file manager is not the profile this window is
+// running unless it is literally the same file. Nothing is mounted in a unit
+// test, so there is no package session and the answer is always no -- which is
+// exactly the case that must not crash or match by accident.
+TEST(ProfileLaunchArgsTest, AnUnrelatedPathIsNotTheCurrentPackageSession) {
+  EXPECT_FALSE(IsCurrentPackageSession("/home/x/work.gfp"));
+  EXPECT_FALSE(IsCurrentPackageSession({}));
 }
 
 // The bug this exists to prevent: a window opened from a window opened from a
@@ -111,9 +135,8 @@ TEST(ProfileLaunchArgsTest, OneWindowPerPackageNotOnePerOpen) {
 // The other direction of the same rule: one builder, so a profile target and a
 // package target cannot disagree about what the previous selection was.
 TEST(ProfileLaunchArgsTest, AProfileReplacesAnInheritedPackage) {
-  const auto out =
-      BuildLaunchArgs({"gpgfrontend", "/home/x/a.gfp", "-l", "info"},
-                      {.profile_id = "work"});
+  const auto out = BuildLaunchArgs(
+      {"gpgfrontend", "/home/x/a.gfp", "-l", "info"}, {.profile_id = "work"});
 
   EXPECT_EQ(out, QStringList({"-l", "info", "--profile", "work"}));
 }
