@@ -423,7 +423,7 @@ void AdvancedTab::configure_protection_items() {
     set_item(
         AppKeyProtection::kKEYCHAIN, false,
         profile.Kind() == ProfileKind::kPACKAGED
-            ? tr("Not available for a profile package: the package is meant "
+            ? tr("Not available for a profile file: the file is meant "
                  "to be opened on another computer, possibly running another "
                  "operating system, where a secret stored in this computer's "
                  "credential store cannot be read. Use a PIN, or no "

@@ -28,18 +28,36 @@
 
 #include "MainWindow.h"
 #include "core/GFConstants.h"
-#include "ui/UserInterfaceUtils.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
+#include "core/model/SettingsObject.h"
+#include "core/profile/ProfileLock.h"
+#include "core/profile/ProfilePackage.h"
+#include "core/profile/ProfileSession.h"
+#include "core/struct/settings_object/KeyDatabaseListSO.h"
+#include "core/utils/AsyncUtils.h"
+#include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/LogViewDialog.h"
 #include "ui/dialog/Wizard.h"
+#include "ui/dialog/profile/ProfileExportDialog.h"
 #include "ui/dialog/settings/SettingsDialog.h"
+#include "ui/function/GpgOperaHelper.h"
 #include "ui/function/ProfileController.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
+
+namespace {
+
+/// How many profiles the recent list offers. Long enough to be useful, short
+/// enough that the menu stays a shortcut rather than a second profile manager.
+constexpr int kRecentProfileLimit = 8;
+
+}  // namespace
 
 void MainWindow::SlotSetStatusBarText(const QString& text) {
   statusBar()->showMessage(text, 20000);
@@ -124,8 +142,8 @@ void MainWindow::slot_open_file_tab_with_directory() {
 
 void MainWindow::slot_open_profile_package() {
   const auto path = QFileDialog::getOpenFileName(
-      this, tr("Open Profile"), GetDefaultUserFilePath(),
-      tr("GpgFrontend Profile") + " (*.gfprofile)");
+      this, tr("Open Profile File"), GetDefaultUserFilePath(),
+      tr("GpgFrontend Profile File") + " (*.gfprofile)");
   if (path.isEmpty()) return;
 
   const auto result = OpenProfileInNewWindow({.package_path = path});
@@ -133,6 +151,138 @@ void MainWindow::slot_open_profile_package() {
     QMessageBox::warning(this, tr("Cannot Open Profile"), result.detail,
                          QMessageBox::Ok);
   }
+}
+
+void MainWindow::slot_refresh_recent_profiles() {
+  recent_profile_menu_->clear();
+
+  const auto recent = RecentProfiles(kRecentProfileLimit);
+  if (recent.isEmpty()) {
+    // A disabled row rather than an empty menu: an empty menu reads as broken,
+    // and on a fresh installation there genuinely is nothing to list yet.
+    auto* empty = recent_profile_menu_->addAction(tr("Nothing opened yet"));
+    empty->setEnabled(false);
+    return;
+  }
+
+  for (const auto& entry : recent) {
+    auto* act = recent_profile_menu_->addAction(entry.name);
+    act->setToolTip(entry.root);
+
+    // Said here rather than discovered on click: the launch would refuse, and
+    // a menu entry that only ever fails is worse than one that explains itself.
+    if (ProfileLock::Probe(entry.root).status ==
+        ProfileLockStatus::kHELD_ELSEWHERE) {
+      act->setText(tr("%1  (open in another window)").arg(entry.name));
+      act->setEnabled(false);
+      continue;
+    }
+
+    const auto id = entry.id;
+    connect(act, &QAction::triggered, this, [this, id]() {
+      const auto result = OpenProfileInNewWindow({.profile_id = id});
+      if (!result.Ok()) {
+        QMessageBox::warning(this, tr("Cannot Open Profile"), result.detail,
+                             QMessageBox::Ok);
+      }
+    });
+  }
+}
+
+void MainWindow::slot_export_profile() {
+  const auto& session = ProfileSession::Instance();
+  const auto& profile = session.Profile();
+
+  ProfileExportDialog dialog(CurrentProfileDisplayName(), profile.Root(), this);
+  if (dialog.exec() != QDialog::Accepted) return;
+
+  // Stored key database paths are normalised to the `@profile/` form first.
+  // They resolve to exactly the directories they did before, so the live
+  // profile is unchanged in everything but wording — and the copy that
+  // travels now finds its keys at whatever root it is opened under.
+  auto stored = SettingsObject("key_database_list");
+  auto list = KeyDatabaseListSO(stored);
+  const auto packed =
+      RewriteKeyDatabaseListForPacking(list.key_databases, profile.Root());
+  if (packed.size() == list.key_databases.size()) {
+    for (int i = 0; i < packed.size(); ++i) {
+      if (packed.at(i).path != list.key_databases.at(i).path) {
+        list.key_databases = packed;
+        stored.Store(list.ToJson());
+        break;
+      }
+    }
+  }
+
+  const auto& marker = session.Marker();
+
+  ProfileExportRequest request;
+  request.profile_root = profile.Root();
+  request.profiles_root = qApp->property("GFProfilesRoot").toString();
+  request.dest_path = dialog.DestinationPath();
+  request.include_workspace = dialog.IncludeWorkspace();
+  request.protection = dialog.Protection();
+  request.passphrase = dialog.Passphrase();
+
+  // Read here rather than inside the packing: the key manager and QSettings
+  // both belong to this thread, and the packing does not run on it.
+  request.app_key = session.Keys().RootKey();
+  auto settings = GetSettings();
+  request.settings = SnapshotSettings(settings);
+
+  request.manifest.schema_version = marker.schema_version > 0
+                                        ? marker.schema_version
+                                        : GetAppProfileSchemaVersion();
+  request.manifest.min_reader_version = marker.min_reader_version > 0
+                                            ? marker.min_reader_version
+                                            : GetAppProfileSchemaVersion();
+  request.manifest.app_profile = GetAppProfileName();
+  request.manifest.display_name = CurrentProfileDisplayName();
+  request.manifest.profile_id = profile.Id();
+  request.manifest.self_contained = profile.Policy().self_contained;
+  request.manifest.key_databases = DescribeKeyDatabasesForManifest(packed);
+
+  if (request.app_key.Empty()) {
+    QMessageBox::critical(
+        this, tr("Cannot Export Profile"),
+        tr("The application key is not available, so the profile could not be "
+           "packed."),
+        QMessageBox::Ok);
+    return;
+  }
+
+  auto result = std::make_shared<ProfilePackageWriteResult>();
+  GpgOperaHelper::WaitForOpera(
+      this, tr("Exporting Profile"), [=](const OperaWaitingHd& op_hd) {
+        RunOperaAsync(
+            [=](const DataObjectPtr&) -> GFError {
+              *result = ExportProfilePackage(request);
+              return result->ok ? 0 : -1;
+            },
+            [=](GFError, const DataObjectPtr&) {
+              op_hd();
+
+              if (!result->ok) {
+                QMessageBox::critical(this, tr("Cannot Export Profile"),
+                                      result->error, QMessageBox::Ok);
+                return;
+              }
+
+              QMessageBox::information(
+                  this, tr("Profile Exported"),
+                  tr("\"%1\" was written to:")
+                          .arg(request.manifest.display_name) +
+                      "\n" + QDir::toNativeSeparators(request.dest_path) +
+                      "\n\n" +
+                      (request.protection == ProfilePackageProtection::kPIN
+                           ? tr("It can only be opened with the passphrase you "
+                                "chose. There is no way to recover it.")
+                           : tr("It is not protected: anyone who gets this "
+                                "file can read the keys inside it.")),
+                  QMessageBox::Ok);
+            },
+            "export_profile_package");
+      });
 }
 
 void MainWindow::slot_switch_menu_control_mode(int index) {

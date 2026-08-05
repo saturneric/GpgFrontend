@@ -91,19 +91,52 @@ void MainWindow::create_actions() {
                     tr("Close the current tab"), {QKeySequence::Close});
   connect(close_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotCloseTab);
 
-  open_profile_act_ =
-      create_action("profile_manager", tr("Profile Manager..."), {},
-                    tr("Open another profile in a new window, or create one"));
+  /* Profile Menu — profiles this computer keeps */
+  open_profile_act_ = create_action(
+      "profile_manager", tr("Manage Profiles..."), {},
+      tr("See every profile on this computer, and open, rename or remove one"));
   connect(open_profile_act_, &QAction::triggered, this, [this]() {
     ProfileManagerDialog dialog(this);
     dialog.exec();
   });
 
+  new_profile_act_ = create_action(
+      "new_profile", tr("New Profile..."), {},
+      tr("Start an empty profile on this computer, with its own settings and "
+         "keys"));
+  connect(new_profile_act_, &QAction::triggered, this,
+          [this]() { CreateProfileInteractive(this); });
+
+  /* Profile Menu — a profile file, worked in directly */
+  //
+  // The counterpart of opening a document: the file *is* the profile for as
+  // long as the window is up, nothing is added to this computer, and closing
+  // offers to write the changes back into the same file.
   open_package_act_ = create_action(
-      "open_profile_package", tr("Profile..."), {},
-      tr("Open a profile file in a new window, without keeping it here"));
+      "open_profile_package", tr("Open Profile File..."), {},
+      tr("Work inside a profile file, leaving it a file. Nothing is added to "
+         "this computer, and your changes go back into the same file."));
   connect(open_package_act_, &QAction::triggered, this,
           &MainWindow::slot_open_profile_package);
+
+  /* Profile Menu — moving between a file and this computer */
+  //
+  // Import and export are conversions, and each other's inverse. Import ends
+  // with a profile this computer keeps and the file no longer involved;
+  // export ends with a file the computer does not track at all.
+  import_profile_act_ = create_action(
+      "import_profile", tr("Import Profile File..."), {},
+      tr("Copy a profile file into a new profile kept on this computer. The "
+         "file is not used again afterwards."));
+  connect(import_profile_act_, &QAction::triggered, this,
+          [this]() { ImportProfileInteractive(this); });
+
+  export_profile_act_ = create_action(
+      "export_profile", tr("Export This Profile..."), {},
+      tr("Write the profile this window is using out to a new profile file, "
+         "to carry elsewhere or keep as a backup"));
+  connect(export_profile_act_, &QAction::triggered, this,
+          &MainWindow::slot_export_profile);
 
   quit_act_ = create_action("quit", tr("Quit"), ":/icons/exit.png",
                             tr("Quit Program"), {QKeySequence::Quit});
@@ -410,19 +443,11 @@ void MainWindow::create_menus() {
   open_menu_->setToolTipsVisible(true);
   open_menu_->addAction(browser_file_act_);
   open_menu_->addAction(browser_dir_act_);
-  open_menu_->addSeparator();
-  open_menu_->addAction(open_package_act_);
 
   workspace_menu_ = file_menu_->addMenu(tr("Workspace"));
   workspace_menu_->setToolTipsVisible(true);
   workspace_menu_->addAction(browser_act_);
   workspace_menu_->addAction(new_tab_act_);
-
-  // Behind its own separator, and not inside "Open": managing the profiles this
-  // computer keeps is a different act from opening one, and putting the two
-  // next to each other unlabelled is how a user picks the wrong one.
-  file_menu_->addSeparator();
-  file_menu_->addAction(open_profile_act_);
 
   file_menu_->addSeparator();
 
@@ -433,6 +458,44 @@ void MainWindow::create_menus() {
   file_menu_->addSeparator();
   file_menu_->addAction(close_tab_act_);
   file_menu_->addAction(quit_act_);
+
+  // A menu of its own rather than a corner of File. A profile is the whole of
+  // what this window is looking at — its settings, its keys, its saved state —
+  // so every action that changes or produces one belongs together, and none of
+  // them has anything to do with the document in front of the user.
+  //
+  // Three groups, because there are exactly three things a user can mean here,
+  // and the two that get confused are the last two:
+  //
+  //   1. the profiles this computer keeps — pick one, or make one
+  //   2. a profile *file*, worked in directly and left a file, exactly as a
+  //      document is opened and saved back
+  //   3. converting between the two — a file becomes a profile kept here, or
+  //      this profile becomes a file
+  //
+  // "Open" and "Import" both start at a `.gfprofile` and are routinely read as
+  // the same act. Separating them here is the only place the interface can say
+  // that one leaves nothing behind and the other adds a profile permanently.
+  profile_menu_ = menuBar()->addMenu(tr("Profile"));
+  profile_menu_->setToolTipsVisible(true);
+
+  profile_menu_->addAction(open_profile_act_);
+
+  recent_profile_menu_ = profile_menu_->addMenu(tr("Open Recent"));
+  recent_profile_menu_->setToolTipsVisible(true);
+  // Filled on the way open, never cached: another window may have opened a
+  // profile since this menu was built, and each process stamps its own marker.
+  connect(recent_profile_menu_, &QMenu::aboutToShow, this,
+          &MainWindow::slot_refresh_recent_profiles);
+
+  profile_menu_->addAction(new_profile_act_);
+
+  profile_menu_->addSeparator();
+  profile_menu_->addAction(open_package_act_);
+
+  profile_menu_->addSeparator();
+  profile_menu_->addAction(import_profile_act_);
+  profile_menu_->addAction(export_profile_act_);
 
   edit_menu_ = menuBar()->addMenu(tr("Edit"));
   edit_menu_->addAction(undo_act_);

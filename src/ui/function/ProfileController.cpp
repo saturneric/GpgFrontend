@@ -28,8 +28,11 @@
 
 #include "ui/function/ProfileController.h"
 
+#include <QFileDialog>
 #include <QInputDialog>
 #include <QProcess>
+#include <QUuid>
+#include <algorithm>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
@@ -43,6 +46,8 @@
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
+#include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/profile/ProfileCreateDialog.h"
 #include "ui/function/GpgOperaHelper.h"
 
 namespace GpgFrontend::UI {
@@ -87,6 +92,117 @@ auto Launch(const QStringList& args) -> ProfileLaunchResult {
   }
 #endif
   return result;
+}
+
+auto AskImportName(QWidget* parent, const QString& suggestion) -> QString {
+  bool accepted = false;
+  const auto name = QInputDialog::getText(
+      parent, QObject::tr("Name This Profile"),
+      QObject::tr("What should this profile be called on this computer?"),
+      QLineEdit::Normal, suggestion, &accepted);
+  if (!accepted) return {};
+
+  return name.trimmed().isEmpty() ? suggestion : name.trimmed();
+}
+
+void FinishImport(QWidget* parent, const QString& package_path,
+                  const QString& staging_dir,
+                  const ProfilePackageReadResult& result,
+                  const std::function<void()>& on_changed,
+                  const std::function<void()>& on_opened) {
+  // Whatever happens below, the extracted tree does not outlive this call: it
+  // holds an unprotected copy of the package's application key.
+  struct ScratchGuard {
+    QString path;
+    ~ScratchGuard() {
+      if (!path.isEmpty()) QDir(path).removeRecursively();
+    }
+  } const guard{staging_dir};
+
+  if (!result.Ok()) {
+    const auto title = result.status == ProfilePackageReadStatus::kTAMPERED
+                           ? QObject::tr("This File Has Been Altered")
+                           : QObject::tr("Cannot Import Profile");
+    QMessageBox::critical(
+        parent, title,
+        result.detail + "\n\n" + QDir::toNativeSeparators(package_path),
+        QMessageBox::Ok);
+    return;
+  }
+
+  // A package written by a newer build may describe a layout this one cannot
+  // read; checked before anything is adopted rather than after.
+  ProfileMarker as_marker;
+  as_marker.schema_version = result.manifest.schema_version;
+  as_marker.min_reader_version = result.manifest.min_reader_version;
+  as_marker.profile = result.manifest.app_profile;
+  as_marker.last_writer_version = result.manifest.writer_version;
+
+  if (CheckProfileCompatibility(as_marker, true,
+                                GetAppProfileSchemaVersion()) ==
+      ProfileCompatibility::kTOO_NEW) {
+    QMessageBox::critical(
+        parent, QObject::tr("Cannot Import Profile"),
+        QObject::tr(
+            "This profile was made by a newer version of GpgFrontend (%1).")
+            .arg(result.manifest.writer_version),
+        QMessageBox::Ok);
+    return;
+  }
+
+  const auto name = AskImportName(parent, result.manifest.display_name.isEmpty()
+                                              ? result.manifest.profile_id
+                                              : result.manifest.display_name);
+  if (name.isEmpty()) return;
+
+  // The folder is named by a fresh id, not by the name: the id is a directory
+  // name and an identity, and neither should have to survive being typed.
+  const auto id =
+      QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
+
+  const auto roots = CurrentProfileRoots();
+  const auto error = AdoptExtractedProfile(
+      staging_dir, roots.profiles_root + "/" + id, id, name, result.manifest);
+  if (!error.isEmpty()) {
+    QMessageBox::critical(parent, QObject::tr("Cannot Import Profile"), error,
+                          QMessageBox::Ok);
+    return;
+  }
+
+  if (on_changed) on_changed();
+
+  auto message = QObject::tr("\"%1\" is ready.").arg(name);
+  if (!result.manifest.workspace_included) {
+    message +=
+        "\n\n" + QObject::tr("The file did not carry any workspace files.");
+  }
+  for (const auto& database : result.manifest.key_databases) {
+    if (!database.external) continue;
+    message += "\n\n" +
+               QObject::tr(
+                   "\"%1\" pointed at keys kept outside the profile, which do "
+                   "not travel. It will show as unavailable until you point it "
+                   "somewhere on this computer.")
+                   .arg(database.name);
+    break;
+  }
+
+  if (QMessageBox::question(
+          parent, QObject::tr("Profile Imported"),
+          message + "\n\n" +
+              QObject::tr("Open it now? It opens in a new window."),
+          QMessageBox::Yes | QMessageBox::No,
+          QMessageBox::Yes) != QMessageBox::Yes) {
+    return;
+  }
+
+  const auto opened = OpenProfileInNewWindow({.profile_id = id});
+  if (!opened.Ok()) {
+    QMessageBox::warning(parent, QObject::tr("Cannot Open Profile"),
+                         opened.detail, QMessageBox::Ok);
+    return;
+  }
+  if (on_opened) on_opened();
 }
 
 }  // namespace
@@ -414,6 +530,128 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
       });
 
   return false;
+}
+
+void ImportProfileInteractive(QWidget* parent,
+                              const std::function<void()>& on_changed,
+                              const std::function<void()>& on_opened) {
+  const auto path = QFileDialog::getOpenFileName(
+      parent, QObject::tr("Import Profile File"), GetDefaultUserFilePath(),
+      QObject::tr("GpgFrontend Profile File") + " (*.gfprofile)");
+  if (path.isEmpty()) return;
+
+  // The header is read first because it is cheap and says whether a passphrase
+  // is needed at all — asking for one before knowing that would be a question
+  // with no right answer.
+  const auto inspection = InspectProfilePackage(path);
+  if (!inspection.Ok()) {
+    QMessageBox::critical(parent, QObject::tr("Cannot Import Profile"),
+                          inspection.detail, QMessageBox::Ok);
+    return;
+  }
+
+  GFBuffer passphrase;
+  if (inspection.header.protection == ProfilePackageProtection::kPIN) {
+    bool accepted = false;
+    auto entered = QInputDialog::getText(
+        parent, QObject::tr("Import Profile File"),
+        QObject::tr("Enter the passphrase that protects this file:"),
+        QLineEdit::Password, {}, &accepted);
+    if (!accepted || entered.isEmpty()) return;
+
+    passphrase = GFBuffer(entered);
+    entered.fill('X');
+    entered.clear();
+  }
+
+  const auto roots = CurrentProfileRoots();
+  const auto staging =
+      MakeProfilePackageScratchDir(roots.profiles_root, "extract");
+  if (staging.isEmpty()) {
+    QMessageBox::critical(parent, QObject::tr("Cannot Import Profile"),
+                          QObject::tr("A temporary folder could not be made."),
+                          QMessageBox::Ok);
+    return;
+  }
+
+  auto result = std::make_shared<ProfilePackageReadResult>();
+  GpgOperaHelper::WaitForOpera(
+      parent, QObject::tr("Reading Profile"), [=](const OperaWaitingHd& op_hd) {
+        RunOperaAsync(
+            [=](const DataObjectPtr&) -> GFError {
+              *result = ReadProfilePackage(path, staging, passphrase);
+              return result->Ok() ? 0 : -1;
+            },
+            [=](GFError, const DataObjectPtr&) {
+              op_hd();
+              FinishImport(parent, path, staging, *result, on_changed,
+                           on_opened);
+            },
+            "read_profile_package");
+      });
+}
+
+void CreateProfileInteractive(QWidget* parent,
+                              const std::function<void()>& on_changed,
+                              const std::function<void()>& on_opened) {
+  ProfileCreateDialog dialog(parent);
+  if (dialog.exec() != QDialog::Accepted) return;
+
+  const auto id =
+      QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
+
+  const auto result =
+      CreateProfile(CurrentProfileRoots().profiles_root, id,
+                    dialog.DisplayName(), dialog.SelfContained());
+
+  if (!result.Ok()) {
+    QMessageBox::critical(parent, QObject::tr("Cannot Create Profile"),
+                          QObject::tr("The profile could not be created.") +
+                              "\n\n" + result.detail,
+                          QMessageBox::Ok);
+    return;
+  }
+
+  if (on_changed) on_changed();
+
+  if (QMessageBox::question(
+          parent, QObject::tr("Profile Created"),
+          QObject::tr("\"%1\" is ready.").arg(dialog.DisplayName()) + "\n\n" +
+              QObject::tr("Open it now? It opens in a new window."),
+          QMessageBox::Yes | QMessageBox::No,
+          QMessageBox::Yes) != QMessageBox::Yes) {
+    return;
+  }
+
+  const auto opened = OpenProfileInNewWindow({.profile_id = id});
+  if (!opened.Ok()) {
+    QMessageBox::warning(parent, QObject::tr("Cannot Open Profile"),
+                         opened.detail, QMessageBox::Ok);
+    return;
+  }
+
+  if (on_opened) on_opened();
+}
+
+auto RecentProfiles(int limit) -> QList<ProfileRegistryEntry> {
+  auto entries = LoadProfiles().profiles;
+
+  const auto current = ProfileSession::Instance().Profile().Id();
+  entries.removeIf([&current](const ProfileRegistryEntry& e) {
+    // Never offered: the one this window is already running, and any profile
+    // that has never been opened, which has no place in a "recent" list.
+    return e.id == current || e.last_opened.isEmpty();
+  });
+
+  // ISO-8601 in UTC, so lexicographic order is chronological order.
+  std::sort(entries.begin(), entries.end(),
+            [](const ProfileRegistryEntry& a, const ProfileRegistryEntry& b) {
+              return a.last_opened > b.last_opened;
+            });
+
+  if (limit > 0 && entries.size() > limit)
+    entries.erase(entries.begin() + limit, entries.end());
+  return entries;
 }
 
 }  // namespace GpgFrontend::UI

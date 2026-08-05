@@ -558,6 +558,25 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_open_profile_package();
 
   /**
+   * @brief Write the profile this window is using into a single file.
+   *
+   * Only ever this window's profile: its key is already resident here, while
+   * another profile's is on disk behind whatever protects it, and a key sealed
+   * by this computer's keychain could not be opened by a file carried
+   * elsewhere. Exporting a different profile means opening it first.
+   */
+  void slot_export_profile();
+
+  /**
+   * @brief Rebuild the recently-opened submenu from what is on disk.
+   *
+   * Rebuilt on the way open rather than kept up to date: each process stamps
+   * its own profile's marker, so another window opening a profile is a change
+   * this one is never told about.
+   */
+  void slot_refresh_recent_profiles();
+
+  /**
    * @brief
    *
    */
@@ -576,10 +595,19 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QMenu* workspace_menu_{};   ///<
   QMenu* open_menu_{};
 
+  /// Everything that opens, makes or produces a profile. Its own menu because
+  /// a profile is the whole of what a window is looking at, not a file it has
+  /// open.
+  QMenu* profile_menu_{};
+  QMenu* recent_profile_menu_{};
+
   /// Opens the profile chooser. Distinct from workspace_menu_ above, which
   /// chooses which *view* opens at startup and has nothing to do with profiles.
   QAction* open_profile_act_{};
   QAction* open_package_act_{};
+  QAction* new_profile_act_{};
+  QAction* import_profile_act_{};
+  QAction* export_profile_act_{};
 
   QToolBar* crypt_tool_bar_{};  ///<  Toolbar holding crypt actions
   QToolBar* file_tool_bar_{};   ///<  Toolbar holding file actions

@@ -55,9 +55,9 @@ enum class ProfileKind : std::uint8_t {
  * @brief Canonical stored spelling of a kind.
  *
  * These are a wire format: `classic`, `portable`, `named` and `package-linked`
- * are what every existing profile.json and profiles.json already contains, and
- * renaming them would make this build unable to recognise its own profiles.
- * The C++ names moved; the tokens did not.
+ * are what every existing profile.json already contains, and renaming them
+ * would make this build unable to recognise its own profiles. The C++ names
+ * moved; the tokens did not.
  *
  * @param kind kind to spell
  * @return the canonical lowercase token

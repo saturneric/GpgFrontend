@@ -178,7 +178,7 @@ void ProfileExportDialog::slot_choose_destination() {
 
   const auto chosen = QFileDialog::getSaveFileName(
       this, tr("Export Profile"), suggestion,
-      tr("GpgFrontend Profile") + " (*.gfprofile)");
+      tr("GpgFrontend Profile File") + " (*.gfprofile)");
   if (chosen.isEmpty()) return;
 
   destination_ = chosen.endsWith(".gfprofile", Qt::CaseInsensitive)

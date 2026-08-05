@@ -203,4 +203,50 @@ auto GF_UI_EXPORT OpenProfileInNewWindow(const ProfileTarget &target)
 auto GF_UI_EXPORT MaybeWriteBackPackageSession(
     QWidget *parent, const std::function<void()> &on_done) -> bool;
 
+/**
+ * @brief Create a profile, asking the user what to call it.
+ *
+ * Here rather than on the profile manager because the manager is only one of
+ * the places it is offered from — the Profile menu reaches it without any list
+ * being on screen. The two callbacks are what the manager needs and the menu
+ * does not, so both are optional.
+ *
+ * @param parent parent for the dialogs
+ * @param on_changed invoked once the profile list has changed
+ * @param on_opened invoked when a new window was launched, so a list showing
+ * the old state may close itself
+ */
+void GF_UI_EXPORT CreateProfileInteractive(
+    QWidget *parent, const std::function<void()> &on_changed = {},
+    const std::function<void()> &on_opened = {});
+
+/**
+ * @brief Read a `.gfprofile` into a new profile on this computer.
+ *
+ * Asynchronous: reading and decrypting the package runs on a worker, so the
+ * callbacks fire well after this returns.
+ *
+ * @param parent parent for the dialogs
+ * @param on_changed invoked once the profile list has changed
+ * @param on_opened invoked when a new window was launched
+ */
+void GF_UI_EXPORT ImportProfileInteractive(
+    QWidget *parent, const std::function<void()> &on_changed = {},
+    const std::function<void()> &on_opened = {});
+
+/**
+ * @brief The profiles most recently opened, newest first.
+ *
+ * Sorted on the `last_opened` each profile's own marker carries, which every
+ * process stamps for itself — so a profile opened from a shell or by another
+ * window appears here just the same.
+ *
+ * Excludes the profile this window is running, which cannot be opened again,
+ * and any that has never been opened at all.
+ *
+ * @param limit how many to return at most; 0 for all
+ * @return the entries, most recent first
+ */
+auto GF_UI_EXPORT RecentProfiles(int limit = 0) -> QList<ProfileRegistryEntry>;
+
 }  // namespace GpgFrontend::UI
