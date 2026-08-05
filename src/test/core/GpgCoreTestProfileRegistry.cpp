@@ -81,7 +81,7 @@ TEST_F(ProfileRegistryDiskTest, ScanIgnoresDotPrefixedStagingDirectories) {
 
   // extraction scratch: adopting a half-extracted tree as a real profile would
   // be worse than having no profile at all
-  const auto staging = profiles_root_ + "/.gfprofile-extract-1";
+  const auto staging = profiles_root_ + "/.gfp-extract-1";
   QDir().mkpath(staging);
   ProfileMarker marker;
   marker.schema_version = 2;
@@ -307,7 +307,7 @@ TEST(ProfileCredentialAccountTest, DerivationIsStable) {
 TEST(ProfilePortabilityTest, APackagedProfileMayNeverUseTheCredentialStore) {
   // the package is opened on another computer, quite possibly running another
   // operating system, where this machine's credential store cannot be read
-  PackagedProfile packaged("/tmp/work.gfprofile", "/tmp/profiles");
+  PackagedProfile packaged("/tmp/work.gfp", "/tmp/profiles");
   EXPECT_FALSE(packaged.AllowsSystemKeychain());
 
   EXPECT_EQ(ProfileLoader::ApplyProfilePortabilityRule(

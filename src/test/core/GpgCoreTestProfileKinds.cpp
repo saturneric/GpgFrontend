@@ -59,7 +59,7 @@ TEST(ProfileKindsTest, OnlyProfilesThatStayHereMayUseTheKeychain) {
                   .AllowsSystemKeychain());
 
   EXPECT_FALSE(PortableRootProfile(kPortableRoot).AllowsSystemKeychain());
-  EXPECT_FALSE(PackagedProfile("/tmp/work.gfprofile", "/srv/profiles")
+  EXPECT_FALSE(PackagedProfile("/tmp/work.gfp", "/srv/profiles")
                    .AllowsSystemKeychain());
 }
 
@@ -68,7 +68,7 @@ TEST(ProfileKindsTest, OnlyProfilesThatStayHereMayUseTheKeychain) {
 TEST(ProfileKindsTest, APackagedProfileNeverRotatesItsKey) {
   // A rotated key would be written into storage this process deletes on the
   // way out, taking everything it had encrypted with it.
-  EXPECT_FALSE(PackagedProfile("/tmp/work.gfprofile", "/srv/profiles")
+  EXPECT_FALSE(PackagedProfile("/tmp/work.gfp", "/srv/profiles")
                    .AllowsKeyRotation());
 
   EXPECT_TRUE(InstalledRootProfile(kInstalledRoot).AllowsKeyRotation());
@@ -86,7 +86,7 @@ TEST(ProfileKindsTest, RootedProfilesAreIniBackedOnEveryPlatform) {
   // outside the profile root where no package could carry it.
   PortableRootProfile portable("/srv/p");
   PersistProfile persist("work", "/srv/p");
-  PackagedProfile packaged("/tmp/work.gfprofile", "/srv/profiles");
+  PackagedProfile packaged("/tmp/work.gfp", "/srv/profiles");
 
   EXPECT_EQ(portable.SettingsFilePath(), QString("/srv/p/config/config.ini"));
   EXPECT_EQ(persist.SettingsFilePath(), QString("/srv/p/config/config.ini"));
@@ -117,14 +117,14 @@ TEST(ProfileKindsTest, OnlyAPersistedProfileBelongsInTheRegistry) {
   EXPECT_FALSE(InstalledRootProfile(kInstalledRoot).IsRegistrable());
   EXPECT_FALSE(PortableRootProfile(kPortableRoot).IsRegistrable());
   EXPECT_FALSE(
-      PackagedProfile("/tmp/work.gfprofile", "/srv/profiles").IsRegistrable());
+      PackagedProfile("/tmp/work.gfp", "/srv/profiles").IsRegistrable());
 }
 
 // ---------------------------------------------------------- disposable trees
 
 TEST(ProfileKindsTest, OnlyAPackagedProfileIsTransient) {
   EXPECT_TRUE(
-      PackagedProfile("/tmp/work.gfprofile", "/srv/profiles").IsTransient());
+      PackagedProfile("/tmp/work.gfp", "/srv/profiles").IsTransient());
 
   EXPECT_FALSE(InstalledRootProfile(kInstalledRoot).IsTransient());
   EXPECT_FALSE(PortableRootProfile(kPortableRoot).IsTransient());
@@ -142,8 +142,8 @@ TEST(ProfileKindsTest, EachShapeKnowsWhatReopensItInANewProcess) {
             QStringList({"--profile", "work"}));
 
   EXPECT_EQ(
-      PackagedProfile("/tmp/work.gfprofile", "/srv/profiles").LaunchArguments(),
-      QStringList({"/tmp/work.gfprofile"}));
+      PackagedProfile("/tmp/work.gfp", "/srv/profiles").LaunchArguments(),
+      QStringList({"/tmp/work.gfp"}));
 
   // The two implicit profiles are what the resolver picks when nothing is
   // named, so naming them would only pin a decision that is already made.
@@ -207,7 +207,7 @@ TEST(ProfileKindsTest, EverySelectionProducesTheMatchingProfile) {
   EXPECT_EQ(MakeProfile(selection)->Id(), QString("work"));
 
   selection.kind = ProfileKind::kPACKAGED;
-  selection.package_path = "/tmp/work.gfprofile";
+  selection.package_path = "/tmp/work.gfp";
   const auto packaged = MakeProfile(selection);
   EXPECT_EQ(packaged->Kind(), ProfileKind::kPACKAGED);
   // A package's root is derived from its own path, so it is known before

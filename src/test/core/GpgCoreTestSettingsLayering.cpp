@@ -486,11 +486,11 @@ TEST(ProfileSelectionTest, NamedProfileResolvesUnderProfilesRoot) {
 }
 
 TEST(ProfileSelectionTest, PositionalPackageIsSelectedAsAPackage) {
-  const auto r = ResolveProfileSelection(MakeInput({"/home/x/work.gfprofile"}));
+  const auto r = ResolveProfileSelection(MakeInput({"/home/x/work.gfp"}));
 
   EXPECT_TRUE(r.error.isEmpty());
   EXPECT_EQ(r.selection.kind, ProfileKind::kPACKAGED);
-  EXPECT_EQ(r.selection.package_path, QString("/home/x/work.gfprofile"));
+  EXPECT_EQ(r.selection.package_path, QString("/home/x/work.gfp"));
   // deliberately no root: a package has none until it is extracted, and the
   // profile derives one from the package's own path
   EXPECT_TRUE(r.selection.root.isEmpty());
@@ -500,7 +500,7 @@ TEST(ProfileSelectionTest, AnOptionValueIsNotMistakenForAPackage) {
   // "--log-level" takes a value; a scan that did not know that could read the
   // next argument as a positional and open the wrong thing
   const auto r =
-      ResolveProfileSelection(MakeInput({"--log-level", "x.gfprofile"}));
+      ResolveProfileSelection(MakeInput({"--log-level", "x.gfp"}));
 
   EXPECT_NE(r.selection.kind, ProfileKind::kPACKAGED);
 }
@@ -520,7 +520,7 @@ TEST(ProfileSelectionTest, CommandLineOutranksEnvironment) {
 }
 
 TEST(ProfileSelectionTest, APackageOutranksTheEnvironment) {
-  auto in = MakeInput({"/home/x/work.gfprofile"});
+  auto in = MakeInput({"/home/x/work.gfp"});
   in.env_profile = "env";
   EXPECT_EQ(ResolveProfileSelection(in).selection.kind, ProfileKind::kPACKAGED);
 }

@@ -35,6 +35,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileMarker.h"
+#include "core/profile/ProfileMigration.h"
 #include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileSecureKeyManager.h"
 
@@ -129,27 +130,63 @@ TEST(ProfilePackageHeaderTest, AnAbsurdLengthIsRefusedRatherThanAllocated) {
             ProfilePackageHeaderStatus::kMALFORMED);
 }
 
-// The one judgement the plaintext header is allowed to make on its own, and it
-// is a refusal: it saves the key derivation on a file we could not use anyway.
-TEST(ProfilePackageHeaderTest, AFormatFromTheFutureIsRefusedBeforeAnyKdf) {
+// The whole reason the format carries two numbers instead of one. A writer that
+// adds a field we do not need to understand raises format_version and leaves
+// min_reader alone, and its packages have to keep opening here -- otherwise
+// min_reader is dead weight and every future addition is a hard break.
+TEST(ProfilePackageHeaderTest, AFormatFromTheFutureIsReadWhenItSaysWeCan) {
   ProfilePackageHeader header;
   header.format_version = kProfilePackageFormatVersion + 1;
+  header.min_reader = kProfilePackageMinReader;
+  header.writer = "9.9.9";
+
+  const auto view =
+      ParseProfilePackageHeader(EncodeProfilePackageHeader(header));
+
+  ASSERT_TRUE(view.Ok());
+  EXPECT_EQ(view.header.format_version, kProfilePackageFormatVersion + 1);
+  EXPECT_EQ(view.header.min_reader, kProfilePackageMinReader);
+}
+
+// The one judgement the plaintext header is allowed to make on its own, and it
+// is a refusal: it saves the key derivation on a file we could not use anyway.
+TEST(ProfilePackageHeaderTest, AMinReaderFromTheFutureIsRefusedBeforeAnyKdf) {
+  ProfilePackageHeader header;
+  header.format_version = kProfilePackageFormatVersion + 1;
+  header.min_reader = kProfilePackageFormatVersion + 1;
   header.writer = "9.9.9";
 
   const auto view =
       ParseProfilePackageHeader(EncodeProfilePackageHeader(header));
 
   EXPECT_EQ(view.status, ProfilePackageHeaderStatus::kTOO_NEW);
+  // The version that wrote it is the only actionable thing in the message.
   EXPECT_TRUE(view.detail.contains("9.9.9"));
 }
 
-TEST(ProfilePackageHeaderTest, AMinReaderFromTheFutureIsRefusedToo) {
+// The magic is what the freedesktop <magic> rule, and any future file(1) entry,
+// match on. A format bump that moved it would break every file manager
+// silently, so it breaks here first.
+TEST(ProfilePackageHeaderTest, TheMagicIsWhatTheDesktopMatchesOn) {
   ProfilePackageHeader header;
-  header.min_reader = kProfilePackageFormatVersion + 1;
+  header.writer = "2.2.2";
 
-  EXPECT_EQ(
-      ParseProfilePackageHeader(EncodeProfilePackageHeader(header)).status,
-      ProfilePackageHeaderStatus::kTOO_NEW);
+  const auto bytes = EncodeProfilePackageHeader(header);
+
+  ASSERT_GE(bytes.size(), kProfilePackageMagicLength);
+  EXPECT_EQ(bytes.left(kProfilePackageMagicLength),
+            QByteArray(kProfilePackageMagic, kProfilePackageMagicLength));
+}
+
+// These three spellings are duplicated outside the compiler's reach -- a
+// freedesktop glob, a Windows registry value, a macOS plist tag -- so changing
+// one has to fail here until the others follow.
+TEST(ProfilePackageHeaderTest, TheRegisteredNamesAreWhatTheDesktopWasTold) {
+  EXPECT_EQ(QString(kProfilePackageExtension), QString(".gfp"));
+  EXPECT_EQ(QString(kProfilePackageMimeType),
+            QString("application/x-gpgfrontend-profile"));
+  EXPECT_EQ(QString(kProfilePackageUti),
+            QString("com.bktus.gpgfrontend.profile"));
 }
 
 // ----------------------------------------------------------------- manifest
@@ -184,6 +221,38 @@ TEST(ProfilePackageManifestTest, RoundTrips) {
 TEST(ProfilePackageManifestTest, RubbishIsNotAManifest) {
   EXPECT_FALSE(ParseProfilePackageManifest("not json").has_value());
   EXPECT_FALSE(ParseProfilePackageManifest("[1,2,3]").has_value());
+}
+
+// Now that a package from a newer build can be opened here, importing one and
+// exporting it again must not quietly destroy what that build depends on.
+TEST(ProfilePackageManifestTest, FieldsFromANewerBuildSurviveARoundTrip) {
+  const auto original = QByteArray(
+      R"({"manifest_version":1,"schema_version":3,"display_name":"Work",)"
+      R"("something_from_the_future":{"a":1},"another":"kept"})");
+
+  const auto parsed = ParseProfilePackageManifest(original);
+  ASSERT_TRUE(parsed.has_value());
+
+  // Recognised fields land in the struct, not in the passthrough.
+  EXPECT_EQ(parsed->schema_version, 3);
+  EXPECT_EQ(parsed->display_name, "Work");
+  EXPECT_FALSE(parsed->unknown_fields.contains("schema_version"));
+
+  ASSERT_EQ(parsed->unknown_fields.size(), 2);
+  EXPECT_EQ(parsed->unknown_fields.value("another").toString(), "kept");
+
+  const auto again =
+      ParseProfilePackageManifest(EncodeProfilePackageManifest(*parsed));
+  ASSERT_TRUE(again.has_value());
+  EXPECT_EQ(again->unknown_fields.value("another").toString(), "kept");
+  EXPECT_EQ(again->unknown_fields.value("something_from_the_future")
+                .toObject()
+                .value("a")
+                .toInt(),
+            1);
+  // ...and the fields this build does understand are still written from the
+  // struct, not left to whatever the passthrough happened to carry.
+  EXPECT_EQ(again->schema_version, 3);
 }
 
 // Anyone can edit the plaintext header of a file they hold; nobody can edit the
@@ -333,7 +402,7 @@ TEST(ProfileStagingTest, ARootProfileLeavesTheProfilesItContainsBehind) {
   WriteFile(root + "/profiles/other/profile.json", R"({"schema_version":3})");
   WriteFile(root + "/profiles/.abcd/profile.json", R"({"schema_version":3})");
 
-  const auto staging = root + "/profiles/.gfprofile-staging-eeee";
+  const auto staging = root + "/profiles/.gfp-staging-eeee";
   const auto result = StageProfileTree(root, staging, false);
   ASSERT_TRUE(result.ok) << result.error.toStdString();
 
@@ -362,7 +431,7 @@ TEST(ProfilePackageRoundTripTest, AProtectedPackageComesBackByteForByte) {
   const auto root = dir.path() + "/work";
   MakeProfile(root);
 
-  const auto package = dir.path() + "/work.gfprofile";
+  const auto package = dir.path() + "/work.gfp";
   auto request = ExportRequestFor(root, dir.path(), package);
   request.protection = ProfilePackageProtection::kPIN;
   request.passphrase = GFBuffer(QString("correct horse battery staple"));
@@ -375,7 +444,7 @@ TEST(ProfilePackageRoundTripTest, AProtectedPackageComesBackByteForByte) {
   // the staging tree held an unprotected copy of the application key; it must
   // not have outlived the export
   const auto leftovers =
-      QDir(dir.path()).entryList({".gfprofile-*"}, QDir::Dirs | QDir::Hidden);
+      QDir(dir.path()).entryList({".gfp-*"}, QDir::Dirs | QDir::Hidden);
   EXPECT_TRUE(leftovers.isEmpty());
 
   const auto extracted = dir.path() + "/extracted";
@@ -419,7 +488,7 @@ TEST(ProfilePackageRoundTripTest,
   WriteFile(root + "/profiles/other/data_objs/ffff", "another profile");
 
   const auto profiles_root = root + "/profiles";
-  const auto package = dir.path() + "/root.gfprofile";
+  const auto package = dir.path() + "/root.gfp";
   auto request = ExportRequestFor(root, profiles_root, package);
   request.protection = ProfilePackageProtection::kNONE;
 
@@ -427,8 +496,7 @@ TEST(ProfilePackageRoundTripTest,
   ASSERT_TRUE(written.ok) << written.error.toStdString();
 
   const auto leftovers =
-      QDir(profiles_root)
-          .entryList({".gfprofile-*"}, QDir::Dirs | QDir::Hidden);
+      QDir(profiles_root).entryList({".gfp-*"}, QDir::Dirs | QDir::Hidden);
   EXPECT_TRUE(leftovers.isEmpty());
 
   const auto extracted = dir.path() + "/extracted";
@@ -449,7 +517,7 @@ TEST(ProfilePackageRoundTripTest, AnUnprotectedPackageNeedsNoPassphrase) {
   const auto root = dir.path() + "/work";
   MakeProfile(root);
 
-  const auto package = dir.path() + "/open.gfprofile";
+  const auto package = dir.path() + "/open.gfp";
   auto request = ExportRequestFor(root, dir.path(), package);
   request.protection = ProfilePackageProtection::kNONE;
 
@@ -471,7 +539,7 @@ TEST(ProfilePackageRoundTripTest, TheWrongPassphraseFailsCleanly) {
   const auto root = dir.path() + "/work";
   MakeProfile(root);
 
-  const auto package = dir.path() + "/work.gfprofile";
+  const auto package = dir.path() + "/work.gfp";
   auto request = ExportRequestFor(root, dir.path(), package);
   request.passphrase = GFBuffer(QString("right"));
   ASSERT_TRUE(ExportProfilePackage(request).ok);
@@ -492,7 +560,7 @@ TEST(ProfilePackageRoundTripTest, EditingTheHeaderIsReportedAsTampering) {
   const auto root = dir.path() + "/work";
   MakeProfile(root);
 
-  const auto package = dir.path() + "/open.gfprofile";
+  const auto package = dir.path() + "/open.gfp";
   auto request = ExportRequestFor(root, dir.path(), package);
   request.protection = ProfilePackageProtection::kNONE;
   ASSERT_TRUE(ExportProfilePackage(request).ok);
@@ -534,7 +602,7 @@ TEST(ProfilePackageRoundTripTest, TheOriginalSurvivesAFailedExport) {
   const auto root = dir.path() + "/work";
   MakeProfile(root);
 
-  const auto package = dir.path() + "/work.gfprofile";
+  const auto package = dir.path() + "/work.gfp";
   auto request = ExportRequestFor(root, dir.path(), package);
   ASSERT_TRUE(ExportProfilePackage(request).ok);
 
@@ -568,7 +636,7 @@ TEST(ProfileAdoptionTest, AnImportedProfileGetsAFreshIdentity) {
             R"("profile":"GpgFrontend","profile_uuid":"source-uuid",)"
             R"("credential_account":"app-key-wrap.work.deadbeef"})");
 
-  const auto package = dir.path() + "/work.gfprofile";
+  const auto package = dir.path() + "/work.gfp";
   auto request = ExportRequestFor(root, dir.path(), package);
   request.passphrase = GFBuffer(QString("pass"));
   ASSERT_TRUE(ExportProfilePackage(request).ok);
@@ -607,7 +675,7 @@ TEST(ProfileAdoptionTest, AnOccupiedRootIsNeverOverwritten) {
   const auto root = dir.path() + "/work";
   MakeProfile(root);
 
-  const auto package = dir.path() + "/work.gfprofile";
+  const auto package = dir.path() + "/work.gfp";
   auto request = ExportRequestFor(root, dir.path(), package);
   request.protection = ProfilePackageProtection::kNONE;
   ASSERT_TRUE(ExportProfilePackage(request).ok);
@@ -630,19 +698,19 @@ TEST(ProfileAdoptionTest, AnOccupiedRootIsNeverOverwritten) {
 // -------------------------------------------------------- temporary sessions
 
 TEST(ProfileSessionRootTest, IsDerivedFromThePackageAndIsTransient) {
-  const auto a = ProfileSessionRoot("/srv/profiles", "/tmp/work.gfprofile");
-  const auto b = ProfileSessionRoot("/srv/profiles", "/tmp/other.gfprofile");
+  const auto a = ProfileSessionRoot("/srv/profiles", "/tmp/work.gfp");
+  const auto b = ProfileSessionRoot("/srv/profiles", "/tmp/other.gfp");
 
   // Derived rather than minted, so two windows work out the same directory for
   // the same file and the second one can be told it is already open.
-  EXPECT_EQ(a, ProfileSessionRoot("/srv/profiles", "/tmp/work.gfprofile"));
+  EXPECT_EQ(a, ProfileSessionRoot("/srv/profiles", "/tmp/work.gfp"));
   EXPECT_NE(a, b);
 
   // Dot-prefixed: transient, and never adopted by the profile scan.
   EXPECT_TRUE(a.startsWith("/srv/profiles/."));
   EXPECT_EQ(QFileInfo(a).fileName().size(), 33);  // the dot and 32 hex
 
-  EXPECT_TRUE(ProfileSessionRoot({}, "/tmp/work.gfprofile").isEmpty());
+  EXPECT_TRUE(ProfileSessionRoot({}, "/tmp/work.gfp").isEmpty());
   EXPECT_TRUE(ProfileSessionRoot("/srv/profiles", {}).isEmpty());
 }
 
@@ -653,7 +721,7 @@ TEST(PackagedProfileTest, OpensAPackageAndWritesItBackToTheSameFile) {
   const auto root = dir.path() + "/work";
   MakeProfile(root);
 
-  const auto package = dir.path() + "/work.gfprofile";
+  const auto package = dir.path() + "/work.gfp";
   auto request = ExportRequestFor(root, dir.path(), package);
   request.passphrase = GFBuffer(QString("pass"));
   ASSERT_TRUE(ExportProfilePackage(request).ok);
@@ -670,7 +738,7 @@ TEST(PackagedProfileTest, OpensAPackageAndWritesItBackToTheSameFile) {
   // under `profile/`, and the extraction scratch did not outlive the call.
   EXPECT_TRUE(QFileInfo::exists(packaged.Root() + "/data_objs/abcd"));
   EXPECT_TRUE(QDir(dir.path())
-                  .entryList({".gfprofile-*"}, QDir::Dirs | QDir::Hidden)
+                  .entryList({".gfp-*"}, QDir::Dirs | QDir::Hidden)
                   .isEmpty());
 
   // One secret, and it protects the key here too: a package carries its key
@@ -729,7 +797,7 @@ TEST(PackagedProfileTest, TheWrongPassphraseLeavesNothingBehind) {
   const auto root = dir.path() + "/work";
   MakeProfile(root);
 
-  const auto package = dir.path() + "/work.gfprofile";
+  const auto package = dir.path() + "/work.gfp";
   auto request = ExportRequestFor(root, dir.path(), package);
   request.passphrase = GFBuffer(QString("pass"));
   ASSERT_TRUE(ExportProfilePackage(request).ok);
@@ -741,7 +809,7 @@ TEST(PackagedProfileTest, TheWrongPassphraseLeavesNothingBehind) {
   // Nothing was extracted, so there is nothing holding an unprotected key.
   EXPECT_FALSE(QFileInfo::exists(ProfileSessionRoot(dir.path(), package)));
   EXPECT_TRUE(QDir(dir.path())
-                  .entryList({".gfprofile-*"}, QDir::Dirs | QDir::Hidden)
+                  .entryList({".gfp-*"}, QDir::Dirs | QDir::Hidden)
                   .isEmpty());
 }
 
@@ -752,7 +820,7 @@ TEST(PackagedProfileTest, ALayoutFromTheFutureIsRefusedBeforeAdoption) {
   const auto root = dir.path() + "/work";
   MakeProfile(root);
 
-  const auto package = dir.path() + "/work.gfprofile";
+  const auto package = dir.path() + "/work.gfp";
   auto request = ExportRequestFor(root, dir.path(), package);
   request.protection = ProfilePackageProtection::kNONE;
   request.manifest.min_reader_version = 99;
@@ -767,6 +835,46 @@ TEST(PackagedProfileTest, ALayoutFromTheFutureIsRefusedBeforeAdoption) {
   EXPECT_FALSE(QFileInfo::exists(ProfileSessionRoot(dir.path(), package)));
 }
 
+// The mirror of the test above, and the case the format actually exists for: a
+// package from an older build opens here. Refusing this one would make every
+// exported profile a hostage to the version that wrote it.
+TEST(PackagedProfileTest, ALayoutFromThePastIsMountedNotRefused) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  const auto package = dir.path() + "/old.gfp";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.protection = ProfilePackageProtection::kNONE;
+  request.manifest.schema_version = kOldestSupportedProfileSchema;
+  request.manifest.min_reader_version = kOldestSupportedProfileSchema;
+  ASSERT_TRUE(ExportProfilePackage(request).ok);
+
+  const auto before = [&package] {
+    QFile file(package);
+    return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray{};
+  }();
+  ASSERT_FALSE(before.isEmpty());
+
+  PackagedProfile packaged(package, dir.path());
+  EXPECT_EQ(packaged.Inspect().status, ProfileMountStatus::kOK);
+
+  const auto mounted = packaged.Mount({{}, 3});
+  ASSERT_TRUE(mounted.Ok()) << mounted.detail.toStdString();
+
+  // Opening a package never rewrites it. It is extracted into a session root
+  // and the migration ladder runs on *that*; the file on disk is frequently
+  // the user's only backup. Re-exporting is what upgrades a package -- "open
+  // it and it upgrades" is the natural assumption and it is wrong.
+  const auto after = [&package] {
+    QFile file(package);
+    return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray{};
+  }();
+  EXPECT_EQ(after, before);
+}
+
 TEST(PackagedProfileTest, AStaleSessionFromACrashedProcessIsReplaced) {
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());
@@ -774,7 +882,7 @@ TEST(PackagedProfileTest, AStaleSessionFromACrashedProcessIsReplaced) {
   const auto root = dir.path() + "/work";
   MakeProfile(root);
 
-  const auto package = dir.path() + "/work.gfprofile";
+  const auto package = dir.path() + "/work.gfp";
   auto request = ExportRequestFor(root, dir.path(), package);
   request.protection = ProfilePackageProtection::kNONE;
   ASSERT_TRUE(ExportProfilePackage(request).ok);
@@ -814,7 +922,7 @@ TEST(ProfileSweepTest, OnlyTransientRootsNobodyIsUsingAreRemoved) {
 
   const auto stale = dir.path() + "/.aaaa";
   const auto keep = dir.path() + "/.bbbb";
-  const auto scratch = dir.path() + "/.gfprofile-staging-cccc";
+  const auto scratch = dir.path() + "/.gfp-staging-cccc";
   const auto real = dir.path() + "/dddd";
 
   WriteFile(stale + "/profile.json", R"({"schema_version":3})");
@@ -839,17 +947,17 @@ TEST(PackagedProfileTest, CarriesItsOwnSecretAndWritesBackWhereItCameFrom) {
   // The session state used to be a process-global struct beside the packing
   // code. It is now the profile object itself, which is what makes "one
   // session per process" a consequence of the design rather than a convention.
-  PackagedProfile packaged("/tmp/work.gfprofile", "/srv/profiles");
+  PackagedProfile packaged("/tmp/work.gfp", "/srv/profiles");
 
-  EXPECT_EQ(packaged.PackagePath(), "/tmp/work.gfprofile");
+  EXPECT_EQ(packaged.PackagePath(), "/tmp/work.gfp");
   EXPECT_EQ(packaged.ProfilesRoot(), "/srv/profiles");
   EXPECT_EQ(packaged.Root(),
-            ProfileSessionRoot("/srv/profiles", "/tmp/work.gfprofile"));
+            ProfileSessionRoot("/srv/profiles", "/tmp/work.gfp"));
   EXPECT_TRUE(packaged.IsTransient());
 
   // A write-back aims at the file this session came from, never at a new one.
   const auto request = packaged.WriteBackRequest();
-  EXPECT_EQ(request.dest_path, "/tmp/work.gfprofile");
+  EXPECT_EQ(request.dest_path, "/tmp/work.gfp");
   EXPECT_EQ(request.profile_root, packaged.Root());
   EXPECT_EQ(request.profiles_root, "/srv/profiles");
 }

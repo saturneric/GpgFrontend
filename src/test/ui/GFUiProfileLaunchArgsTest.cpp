@@ -45,7 +45,7 @@ TEST(ProfileLaunchArgsTest, TheEqualsFormIsStrippedToo) {
 TEST(ProfileLaunchArgsTest, APositionalPackageIsStripped) {
   // the package selected *this* window's profile; a new window opening a
   // different one must not inherit it
-  const QStringList args = {"gpgfrontend", "/home/x/work.gfprofile"};
+  const QStringList args = {"gpgfrontend", "/home/x/work.gfp"};
   EXPECT_EQ(StripProfileArgs(args), QStringList({"gpgfrontend"}));
 }
 
@@ -83,8 +83,8 @@ TEST(ProfileLaunchArgsTest, TheImplicitProfilesCarryNoFlag) {
 
 TEST(ProfileLaunchArgsTest, Argv0IsNotPartOfThePackageArguments) {
   const auto out = BuildLaunchArgs({"/usr/bin/gpgfrontend", "-l", "info"},
-                                   {.package_path = "/home/x/work.gfprofile"});
-  EXPECT_EQ(out, QStringList({"-l", "info", "/home/x/work.gfprofile"}));
+                                   {.package_path = "/home/x/work.gfp"});
+  EXPECT_EQ(out, QStringList({"-l", "info", "/home/x/work.gfp"}));
 }
 
 // A package names a profile just as `--profile` does, so the two must not both
@@ -93,26 +93,26 @@ TEST(ProfileLaunchArgsTest, Argv0IsNotPartOfThePackageArguments) {
 TEST(ProfileLaunchArgsTest, APackageReplacesAnInheritedProfileFlag) {
   const auto out =
       BuildLaunchArgs({"gpgfrontend", "--profile", "work", "-l", "info"},
-                      {.package_path = "/home/x/a.gfprofile"});
+                      {.package_path = "/home/x/a.gfp"});
 
   EXPECT_FALSE(out.contains("--profile"));
-  EXPECT_EQ(out, QStringList({"-l", "info", "/home/x/a.gfprofile"}));
+  EXPECT_EQ(out, QStringList({"-l", "info", "/home/x/a.gfp"}));
 }
 
 TEST(ProfileLaunchArgsTest, OneWindowPerPackageNotOnePerOpen) {
   // opening package B from a window already showing package A leaves exactly
   // one positional argument, not both
-  const auto out = BuildLaunchArgs({"gpgfrontend", "/home/x/a.gfprofile"},
-                                   {.package_path = "/home/x/b.gfprofile"});
+  const auto out = BuildLaunchArgs({"gpgfrontend", "/home/x/a.gfp"},
+                                   {.package_path = "/home/x/b.gfp"});
 
-  EXPECT_EQ(out, QStringList({"/home/x/b.gfprofile"}));
+  EXPECT_EQ(out, QStringList({"/home/x/b.gfp"}));
 }
 
 // The other direction of the same rule: one builder, so a profile target and a
 // package target cannot disagree about what the previous selection was.
 TEST(ProfileLaunchArgsTest, AProfileReplacesAnInheritedPackage) {
   const auto out =
-      BuildLaunchArgs({"gpgfrontend", "/home/x/a.gfprofile", "-l", "info"},
+      BuildLaunchArgs({"gpgfrontend", "/home/x/a.gfp", "-l", "info"},
                       {.profile_id = "work"});
 
   EXPECT_EQ(out, QStringList({"-l", "info", "--profile", "work"}));
