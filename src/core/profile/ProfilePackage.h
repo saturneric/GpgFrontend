@@ -45,7 +45,7 @@ inline constexpr int kProfilePackageMagicLength = 8;
 /// What was written, and what it takes to read it. Only the second is ever
 /// grounds for a refusal: a writer that adds a field an older build can ignore
 /// raises the first and leaves the second alone, and its packages keep opening
-/// here. See docs/profile-package-format.md.
+/// here. 
 inline constexpr int kProfilePackageFormatVersion = 1;
 inline constexpr int kProfilePackageMinReader = 1;
 

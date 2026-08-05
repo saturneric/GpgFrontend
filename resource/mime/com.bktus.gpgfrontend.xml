@@ -12,7 +12,7 @@
          gzip stream begins after the magic, the length prefix and the JSON
          header, so a package is not a gzip file at offset 0. Claiming
          otherwise would have Archive Manager offer to open a file it cannot.
-         See docs/profile-package-format.md. -->
+    -->
     <magic priority="80">
       <match type="string" value="GFPROF1" offset="0"/>
     </magic>
