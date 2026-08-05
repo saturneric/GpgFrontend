@@ -459,44 +459,6 @@ void MainWindow::create_menus() {
   file_menu_->addAction(close_tab_act_);
   file_menu_->addAction(quit_act_);
 
-  // A menu of its own rather than a corner of File. A profile is the whole of
-  // what this window is looking at — its settings, its keys, its saved state —
-  // so every action that changes or produces one belongs together, and none of
-  // them has anything to do with the document in front of the user.
-  //
-  // Three groups, because there are exactly three things a user can mean here,
-  // and the two that get confused are the last two:
-  //
-  //   1. the profiles this computer keeps — pick one, or make one
-  //   2. a profile *file*, worked in directly and left a file, exactly as a
-  //      document is opened and saved back
-  //   3. converting between the two — a file becomes a profile kept here, or
-  //      this profile becomes a file
-  //
-  // "Open" and "Import" both start at a `.gfprofile` and are routinely read as
-  // the same act. Separating them here is the only place the interface can say
-  // that one leaves nothing behind and the other adds a profile permanently.
-  profile_menu_ = menuBar()->addMenu(tr("Profile"));
-  profile_menu_->setToolTipsVisible(true);
-
-  profile_menu_->addAction(open_profile_act_);
-
-  recent_profile_menu_ = profile_menu_->addMenu(tr("Open Recent"));
-  recent_profile_menu_->setToolTipsVisible(true);
-  // Filled on the way open, never cached: another window may have opened a
-  // profile since this menu was built, and each process stamps its own marker.
-  connect(recent_profile_menu_, &QMenu::aboutToShow, this,
-          &MainWindow::slot_refresh_recent_profiles);
-
-  profile_menu_->addAction(new_profile_act_);
-
-  profile_menu_->addSeparator();
-  profile_menu_->addAction(open_package_act_);
-
-  profile_menu_->addSeparator();
-  profile_menu_->addAction(import_profile_act_);
-  profile_menu_->addAction(export_profile_act_);
-
   edit_menu_ = menuBar()->addMenu(tr("Edit"));
   edit_menu_->addAction(undo_act_);
   edit_menu_->addAction(redo_act_);
@@ -536,6 +498,44 @@ void MainWindow::create_menus() {
   import_key_menu_->addAction(import_key_from_edit_act_);
   import_key_menu_->addAction(import_key_from_clipboard_act_);
   key_menu_->addAction(open_key_management_act_);
+
+  // A menu of its own rather than a corner of File. A profile is the whole of
+  // what this window is looking at — its settings, its keys, its saved state —
+  // so every action that changes or produces one belongs together, and none of
+  // them has anything to do with the document in front of the user.
+  //
+  // Three groups, because there are exactly three things a user can mean here,
+  // and the two that get confused are the last two:
+  //
+  //   1. the profiles this computer keeps — pick one, or make one
+  //   2. a profile *file*, worked in directly and left a file, exactly as a
+  //      document is opened and saved back
+  //   3. converting between the two — a file becomes a profile kept here, or
+  //      this profile becomes a file
+  //
+  // "Open" and "Import" both start at a `.gfprofile` and are routinely read as
+  // the same act. Separating them here is the only place the interface can say
+  // that one leaves nothing behind and the other adds a profile permanently.
+  profile_menu_ = menuBar()->addMenu(tr("Profiles"));
+  profile_menu_->setToolTipsVisible(true);
+
+  profile_menu_->addAction(open_profile_act_);
+
+  recent_profile_menu_ = profile_menu_->addMenu(tr("Open Recent"));
+  recent_profile_menu_->setToolTipsVisible(true);
+  // Filled on the way open, never cached: another window may have opened a
+  // profile since this menu was built, and each process stamps its own marker.
+  connect(recent_profile_menu_, &QMenu::aboutToShow, this,
+          &MainWindow::slot_refresh_recent_profiles);
+
+  profile_menu_->addAction(new_profile_act_);
+
+  profile_menu_->addSeparator();
+  profile_menu_->addAction(open_package_act_);
+
+  profile_menu_->addSeparator();
+  profile_menu_->addAction(import_profile_act_);
+  profile_menu_->addAction(export_profile_act_);
 
   advance_menu_ = menuBar()->addMenu(tr("Advanced"));
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
