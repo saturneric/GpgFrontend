@@ -194,6 +194,19 @@ auto GF_UI_EXPORT OpenProfileInNewWindow(const ProfileTarget &target)
     -> ProfileLaunchResult;
 
 /**
+ * @brief Whether this window is already running the package at @p path.
+ *
+ * The lock probe inside OpenProfileInNewWindow() would also refuse such a
+ * request, but it would name this very process as the other window holding it.
+ * Asked separately so that double-clicking the file already on screen can be
+ * answered by raising that window instead of with a puzzling message.
+ *
+ * @param path a package path, absolute or not
+ * @return true when this process's profile came from that file
+ */
+auto GF_UI_EXPORT IsCurrentPackageSession(const QString &path) -> bool;
+
+/**
  * @brief Offer to write a temporary session back into the package it came from.
  *
  * A session is disposable by construction: the extracted tree is deleted on the

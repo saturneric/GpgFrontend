@@ -36,6 +36,7 @@
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/GpgFrontendApplication.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
@@ -124,6 +125,22 @@ void MainWindow::Init() noexcept {
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalMainWindowOpenFile, this,
             &MainWindow::SlotOpenFile);
+
+    // Launch Services reuses a running instance rather than starting a second
+    // one, so a double-clicked package reaches this process as an event instead
+    // of some new process's command line. Routed through the same call the
+    // Profiles menu uses, so the two cannot drift apart.
+    if (auto* gf_app = qobject_cast<GpgFrontendApplication*>(qApp);
+        gf_app != nullptr) {
+      connect(gf_app, &GpgFrontendApplication::SignalDocumentPending, this,
+              &MainWindow::slot_drain_pending_documents);
+
+      // Whatever arrived while this window was being built emitted its signal
+      // before the connection above existed. Deferred rather than called here,
+      // because the drain can put a modal box on screen and this window has not
+      // been shown yet.
+      QTimer::singleShot(0, this, &MainWindow::slot_drain_pending_documents);
+    }
 
 #ifndef Q_OS_WINDOWS
     // check if GnuPG is configured to use a GUI pinentry, and if not, show a

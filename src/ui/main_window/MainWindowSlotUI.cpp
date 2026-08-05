@@ -38,6 +38,7 @@
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/GpgFrontendApplication.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/LogViewDialog.h"
 #include "ui/dialog/Wizard.h"
@@ -141,10 +142,33 @@ void MainWindow::slot_open_file_tab_with_directory() {
 }
 
 void MainWindow::slot_open_profile_package() {
-  const auto path = QFileDialog::getOpenFileName(
-      this, tr("Open Profile File"), GetDefaultUserFilePath(),
-      ProfilePackageNameFilter());
+  const auto path = QFileDialog::getOpenFileName(this, tr("Open Profile File"),
+                                                 GetDefaultUserFilePath(),
+                                                 ProfilePackageNameFilter());
   if (path.isEmpty()) return;
+
+  open_profile_package_path(path);
+}
+
+void MainWindow::slot_drain_pending_documents() {
+  auto* app = qobject_cast<GpgFrontendApplication*>(qApp);
+  if (app == nullptr) return;
+
+  for (auto path = app->TakePendingProfilePackage(); !path.isEmpty();
+       path = app->TakePendingProfilePackage()) {
+    open_profile_package_path(path);
+  }
+}
+
+void MainWindow::open_profile_package_path(const QString& path) {
+  // Double-clicking the file this window is already showing should bring that
+  // window forward, not report that it is open in another window and name this
+  // very process as the other one.
+  if (IsCurrentPackageSession(path)) {
+    raise();
+    activateWindow();
+    return;
+  }
 
   const auto result = OpenProfileInNewWindow({.package_path = path});
   if (!result.Ok()) {

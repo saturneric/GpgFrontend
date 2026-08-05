@@ -47,6 +47,54 @@ class GF_UI_EXPORT GpgFrontendApplication : public QApplication {
    */
   ~GpgFrontendApplication() override = default;
 
+  /**
+   * @brief Take the first profile package the system has handed over, if any.
+   *
+   * Destructive on purpose: the queue is the only record that a document is
+   * outstanding, so whoever takes one has taken it and nobody else can act on
+   * it again. Two very different callers race for it — the profile resolver
+   * during startup, and the main window once it exists — and this is what stops
+   * both opening the same file.
+   *
+   * Anything that is not a package is left in the queue rather than dropped, so
+   * registering a second document type later does not silently break.
+   *
+   * @return the path, empty when there is nothing to take
+   */
+  auto TakePendingProfilePackage() -> QString;
+
+  /**
+   * @brief Give a document handed over at launch a moment to arrive.
+   *
+   * macOS does not put a double-clicked file on the command line: it sends an
+   * open-documents Apple Event, which is only dispatched once the Cocoa loop is
+   * pumped. The profile has to be chosen *before* that loop starts — it decides
+   * where the settings live — so the loop is pumped here, briefly, and bounded
+   * twice over: a hard ceiling, and an early exit once it has gone quiet,
+   * because the overwhelmingly common launch carries no document at all and
+   * must not pay for one.
+   *
+   * Missing the window is survivable rather than fatal: the event lands in the
+   * queue a moment later and the main window opens the package in a second
+   * window, so the user gets one window they did not ask for instead of a file
+   * that silently did nothing.
+   *
+   * Does nothing and returns false anywhere but macOS.
+   *
+   * @param timeout_ms the longest this may delay startup
+   * @return whether something arrived
+   */
+  auto WaitForLaunchDocument(int timeout_ms) -> bool;
+
+ signals:
+  /**
+   * @brief Something was handed over and is waiting in the queue.
+   *
+   * Carries no path on purpose: the queue is authoritative, and a handler that
+   * trusted an argument could act on a document the resolver had already taken.
+   */
+  void SignalDocumentPending();
+
  protected:
   /**
    * @brief
@@ -55,6 +103,17 @@ class GF_UI_EXPORT GpgFrontendApplication : public QApplication {
    * @return bool
    */
   bool notify(QObject *receiver, QEvent *event) override;
+
+  /**
+   * @brief Catch the documents Launch Services hands over.
+   *
+   * @param event
+   * @return bool
+   */
+  bool event(QEvent *event) override;
+
+ private:
+  QStringList pending_documents_;  ///< handed over, not yet acted on
 };
 
 }  // namespace GpgFrontend::UI

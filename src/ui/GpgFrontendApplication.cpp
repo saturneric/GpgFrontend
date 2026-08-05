@@ -28,6 +28,10 @@
 
 #include "ui/GpgFrontendApplication.h"
 
+#include <QElapsedTimer>
+#include <QFileOpenEvent>
+
+#include "core/profile/ProfilePackage.h"
 #include "core/utils/BuildInfoUtils.h"
 
 namespace GpgFrontend::UI {
@@ -83,6 +87,66 @@ bool GpgFrontendApplication::notify(QObject *receiver, QEvent *event) {
   return -1;
 #else
   return QApplication::notify(receiver, event);
+#endif
+}
+
+bool GpgFrontendApplication::event(QEvent *event) {
+#ifdef Q_OS_MACOS
+  if (event->type() == QEvent::FileOpen) {
+    auto *open = static_cast<QFileOpenEvent *>(event);
+
+    auto path = open->file();
+    if (path.isEmpty() && open->url().isLocalFile()) {
+      path = open->url().toLocalFile();
+    }
+
+    if (!path.isEmpty()) {
+      // Queued rather than acted on. At launch there is no window to act with
+      // and the profile this document selects has not been resolved yet; a
+      // moment later there is a window and the profile is fixed. Queuing is the
+      // only thing that works in both.
+      pending_documents_ << path;
+      LOG_I() << "a document was handed over by the system:" << path;
+      Q_EMIT SignalDocumentPending();
+    }
+    return true;
+  }
+#endif
+  return QApplication::event(event);
+}
+
+auto GpgFrontendApplication::TakePendingProfilePackage() -> QString {
+  for (int i = 0; i < pending_documents_.size(); ++i) {
+    if (pending_documents_.at(i).endsWith(kProfilePackageExtension,
+                                          Qt::CaseInsensitive)) {
+      return pending_documents_.takeAt(i);
+    }
+  }
+  return {};
+}
+
+auto GpgFrontendApplication::WaitForLaunchDocument(int timeout_ms) -> bool {
+#ifdef Q_OS_MACOS
+  /// Below this the loop has not been given a fair chance to deliver anything;
+  /// above it, waiting on a launch that carries no document is pure latency.
+  constexpr int kFloorMs = 40;
+  constexpr int kIdlePasses = 3;
+  constexpr int kSliceMs = 5;
+
+  QElapsedTimer timer;
+  timer.start();
+
+  int idle = 0;
+  while (pending_documents_.isEmpty() && timer.elapsed() < timeout_ms) {
+    const auto busy = QCoreApplication::processEvents(
+        QEventLoop::ExcludeUserInputEvents, kSliceMs);
+    idle = busy ? 0 : idle + 1;
+    if (timer.elapsed() >= kFloorMs && idle >= kIdlePasses) break;
+  }
+  return !pending_documents_.isEmpty();
+#else
+  Q_UNUSED(timeout_ms)
+  return false;
 #endif
 }
 

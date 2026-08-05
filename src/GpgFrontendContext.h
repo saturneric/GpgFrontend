@@ -32,6 +32,7 @@
 
 #include "core/GFConstants.h"
 #include "core/profile/Profile.h"
+#include "ui/GpgFrontendApplication.h"
 
 namespace GpgFrontend {
 
@@ -110,7 +111,10 @@ struct GpgFrontendContext {
   auto GetApp() -> QApplication*;
 
  private:
-  QApplication* app_ = nullptr;
+  /// The concrete type, not QApplication: the profile resolver asks it for a
+  /// document macOS handed over instead of putting on the command line, and
+  /// that question only exists on this subclass.
+  UI::GpgFrontendApplication* app_ = nullptr;
 
   /**
    * @brief

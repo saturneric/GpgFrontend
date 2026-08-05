@@ -406,6 +406,20 @@ auto OpenProfileInNewWindow(const ProfileTarget& target)
   return Launch(BuildLaunchArgs(qApp->arguments(), resolved));
 }
 
+auto IsCurrentPackageSession(const QString& path) -> bool {
+  if (path.isEmpty()) return false;
+
+  const auto* packaged = dynamic_cast<const PackagedProfile*>(
+      &ProfileSession::Instance().Profile());
+  if (packaged == nullptr) return false;
+
+  // Both sides through QFileInfo, because one of these came from a file manager
+  // and the other from this process's own command line, and the two spell the
+  // same file differently often enough to matter.
+  return QFileInfo(packaged->PackagePath()).absoluteFilePath() ==
+         QFileInfo(path).absoluteFilePath();
+}
+
 auto MaybeWriteBackPackageSession(QWidget* parent,
                                   const std::function<void()>& on_done)
     -> bool {

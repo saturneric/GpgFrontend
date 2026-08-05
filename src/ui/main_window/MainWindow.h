@@ -558,6 +558,17 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_open_profile_package();
 
   /**
+   * @brief Open every package the system has handed over since last asked.
+   *
+   * macOS reuses a running instance rather than starting a second one, so a
+   * double-clicked package reaches this process as an event instead of some new
+   * process's command line. Draining rather than taking one, because several
+   * can be selected at once and because the connection is made after the window
+   * exists, by which time some may already be waiting.
+   */
+  void slot_drain_pending_documents();
+
+  /**
    * @brief Write the profile this window is using into a single file.
    *
    * Only ever this window's profile: its key is already resident here, while
@@ -583,6 +594,16 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_import_keys_from_key_server(const QStringList& fprs);
 
  private:
+  /**
+   * @brief Open one package in a new window, wherever the request came from.
+   *
+   * Shared by the Profiles menu and by the documents the system hands over, so
+   * that opening one from the menu and double-clicking it cannot drift apart.
+   *
+   * @param path the package
+   */
+  void open_profile_package_path(const QString& path);
+
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
   QMenu* edit_menu_{};        ///<  Submenu for text-operations

@@ -46,6 +46,12 @@
 #include "ui/GpgFrontendApplication.h"
 
 namespace {
+
+/// How long startup may wait for macOS to hand over a double-clicked document.
+/// A ceiling, not a delay: the wait leaves as soon as something arrives, and
+/// leaves early when the loop has gone quiet.
+constexpr int kLaunchDocumentWaitMs = 250;
+
 auto BoolText(bool value) -> QString {
   return value ? QStringLiteral("true") : QStringLiteral("false");
 }
@@ -202,6 +208,17 @@ void GpgFrontendContext::load_env_conf_set_properties() {
 void GpgFrontendContext::resolve_profile_selection() {
   ProfileSelectionInput in;
   in.args = QCoreApplication::arguments();
+
+  // Appended rather than given a rung of its own: the resolver already ranks a
+  // positional package below --profile and takes the first one it finds, so
+  // putting a handed-over document at the end gives it exactly the standing a
+  // typed one has — below an explicit profile, above the environment — with no
+  // second copy of the precedence rules to keep in step.
+  if (const auto handed = app_->TakePendingProfilePackage();
+      !handed.isEmpty()) {
+    in.args << handed;
+  }
+
   in.env_profile = qEnvironmentVariable("GF_PROFILE");
   in.portable_build = IsPortableBuild();
   in.portable_root = ResolvePortableDataPath();
@@ -240,6 +257,13 @@ void GpgFrontendContext::LoadEnvProperties() {
 
 void GpgFrontendContext::InitApplication() {
   app_ = new UI::GpgFrontendApplication(argc, argv);
+
+  // A double-clicked document does not reach argv on macOS; it arrives as an
+  // Apple Event that nothing has spun the loop to collect yet. It has to be in
+  // hand before the profile is chosen, because it *is* the choice — so the loop
+  // is pumped for a moment here rather than the document being dropped and the
+  // default profile opened over the top of it. A no-op everywhere else.
+  app_->WaitForLaunchDocument(kLaunchDocumentWaitMs);
 
   // Only decides *which* profile. Opening it needs a passphrase prompt and a
   // lock, so it belongs to the loader — and nothing here may read a setting
