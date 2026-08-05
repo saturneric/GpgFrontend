@@ -92,6 +92,18 @@ enum class KeyAction {
   kCategory,
 };
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+/**
+ * @brief Hash a KeyAction, so it can key a QHash.
+ *
+ * Qt 6 hashes any enum through a generic overload; Qt 5 has none, and a scoped
+ * enum does not convert to int on its own to reach the integral ones.
+ */
+inline auto qHash(KeyAction action, uint seed = 0) -> uint {
+  return ::qHash(static_cast<int>(action), seed);
+}
+#endif
+
 /**
  * @brief Every KeyAction enumerator, for callers that need to walk them all.
  */
