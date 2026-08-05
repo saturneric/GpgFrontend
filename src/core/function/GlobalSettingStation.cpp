@@ -34,12 +34,9 @@
 #include "core/module/ModuleManager.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileSession.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/FilesystemUtils.h"
 #include "core/utils/GpgUtils.h"
-
-#ifdef Q_OS_LINUX
-#include "core/utils/CommonUtils.h"
-#endif
 
 namespace GpgFrontend {
 
