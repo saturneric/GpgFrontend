@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/function/AppSecureKeyManager.h"
+#include "core/profile/ProfileSecureKeyManager.h"
 
 #include <sodium.h>
 
@@ -36,6 +36,7 @@
 #include "core/function/PassphraseGenerator.h"
 #include "core/function/SecureRandomGenerator.h"
 #include "core/function/SystemSecretStore.h"
+#include "core/profile/ProfileMarker.h"
 
 namespace {
 
@@ -43,8 +44,11 @@ namespace {
 /// would change every key ID, orphaning all stored data objects.
 constexpr auto kEmptyPinLabel = "GpgFrontend";
 
-/// Length of the legacy key, in bytes.
-constexpr int kLegacyKeyLen = 256;
+/// Length of the profile's own key, in bytes.
+constexpr int kRootKeyLen = 256;
+
+/// The file the profile's own key is stored in.
+constexpr auto kRootKeyName = "app.key";
 
 /// Length of the secret that protects the key file at rest, in bytes.
 constexpr size_t kWrapSecretLen = 32;
@@ -55,8 +59,9 @@ constexpr auto kRotatingKeySaltPrefix = "GF_ROT_KEY";
 /// Seconds in the rotation period of the time-related key.
 constexpr qint64 kRotationPeriodSecs = 60LL * 60 * 24 * 7;
 
-/// Canonical spellings of the protection modes, as they appear in ENV.ini and
-/// the settings store. Kept beside the parser so the two cannot drift apart.
+/// Canonical spellings of the protection modes, as they appear in the marker
+/// and the settings store. Kept beside the parser so the two cannot drift
+/// apart.
 constexpr auto kProtectionNone = "none";
 constexpr auto kProtectionKeychain = "keychain";
 constexpr auto kProtectionPin = "pin";
@@ -69,12 +74,12 @@ constexpr int kLegacyPinSecureLevel = 3;
 
 namespace GpgFrontend {
 
-auto DeriveAppKeyWrapAccount(ProfileRootKind kind, const QString& profile_id,
+auto DeriveAppKeyWrapAccount(ProfileKind kind, const QString& profile_id,
                              const QString& canonical_root,
                              const QString& profile_uuid) -> QString {
   // The one account that must never move: every existing installation already
   // has this entry, and renaming it locks those users out of their own data.
-  if (kind == ProfileRootKind::kCLASSIC) {
+  if (kind == ProfileKind::kINSTALLED_ROOT) {
     return QString::fromLatin1(kAppKeyWrapAccount);
   }
 
@@ -100,22 +105,6 @@ auto DeriveAppKeyWrapAccount(ProfileRootKind kind, const QString& profile_id,
                    .toHex()));
 }
 
-auto AppSecureKeyManager::CurrentWrapAccount() -> QString {
-  const auto& profile = ProfileRuntime::Instance();
-  const auto root = RequireProfileRoot(profile);
-
-  // canonicalPath() is empty for a directory that does not exist yet, which on
-  // a first run would fold every fresh profile onto the same derived name
-  const auto canonical = QDir(root).canonicalPath();
-
-  const auto marker = ReadProfileMarker(ProfileMarkerPathFor(root));
-
-  return DeriveAppKeyWrapAccount(
-      profile.kind, profile.id,
-      canonical.isEmpty() ? QDir::cleanPath(root) : canonical,
-      marker.has_value() ? marker->profile_uuid : QString{});
-}
-
 auto AppKeyProtectionFromString(const QString& s) -> AppKeyProtection {
   const auto token = s.trimmed().toLower();
   if (token == QLatin1String(kProtectionKeychain)) {
@@ -137,95 +126,12 @@ auto AppKeyProtectionToString(AppKeyProtection p) -> QString {
   return QLatin1String(kProtectionNone);
 }
 
-auto AppKeyProtectionFromApp() -> AppKeyProtection {
-  if (qApp == nullptr) return AppKeyProtection::kNONE;
-  return AppKeyProtectionFromString(
-      qApp->property("GFAppKeyProtection").toString());
-}
+ProfileSecureKeyManager::ProfileSecureKeyManager(
+    QSharedPointer<ProfileAccessor> accessor)
+    : accessor_(std::move(accessor)) {}
 
-auto ApplyPortableModeRule(AppKeyProtection resolved, bool portable)
-    -> AppKeyProtection {
-  return ApplyProfilePortabilityRule(resolved, portable);
-}
-
-auto ApplyProfilePortabilityRule(AppKeyProtection resolved, bool travels)
-    -> AppKeyProtection {
-  if (travels && resolved == AppKeyProtection::kKEYCHAIN) {
-    return AppKeyProtection::kNONE;
-  }
-  return resolved;
-}
-
-auto ProfileTravelsBetweenMachines(ProfileRootKind kind,
-                                   const ProfilePolicy& policy) -> bool {
-  switch (kind) {
-    case ProfileRootKind::kPORTABLE:
-      // the whole point of the directory is to be carried to another computer
-      return true;
-    case ProfileRootKind::kPACKAGE_LINKED:
-      // it came out of a package and will be written back to one, which is a
-      // file the user hands to another machine, quite possibly another
-      // operating system
-      return true;
-    default:
-      // a named profile that keeps its own keyring is still local unless the
-      // user packages it; being self-contained is about where keys live, not
-      // about travelling
-      return policy.self_contained && kind != ProfileRootKind::kCLASSIC &&
-             kind != ProfileRootKind::kNAMED;
-  }
-}
-
-auto ResolveAppKeyProtection(const QVariant& env_protection,
-                             const QVariant& env_secure_level,
-                             const QVariant& env_os_secret_store,
-                             const QVariant& user_protection,
-                             const QVariant& user_secure_level,
-                             const QVariant& user_os_secret_store)
-    -> AppKeyProtection {
-  // Each layer is tried in full — its own key, then the two keys it replaced —
-  // before falling through, so an ENV.ini that says anything at all about the
-  // protection always beats a user setting that says something else.
-  const auto layer =
-      [](const QVariant& protection, const QVariant& secure_level,
-         const QVariant& os_secret_store, AppKeyProtection& out) -> bool {
-    if (protection.isValid()) {
-      out = AppKeyProtectionFromString(protection.toString());
-      return true;
-    }
-    // A pre-split profile at this level has a PIN-sealed key file, so it has to
-    // keep resolving to kPIN or it would fail to open on the next start. Lower
-    // levels said nothing about protection and must fall through.
-    if (secure_level.isValid() &&
-        secure_level.toInt() >= kLegacyPinSecureLevel) {
-      out = AppKeyProtection::kPIN;
-      return true;
-    }
-    // An explicit false is an answer, not an absence: it must stop the ladder
-    // rather than let a lower layer turn protection back on.
-    if (os_secret_store.isValid()) {
-      out = os_secret_store.toBool() ? AppKeyProtection::kKEYCHAIN
-                                     : AppKeyProtection::kNONE;
-      return true;
-    }
-    return false;
-  };
-
-  auto result = AppKeyProtection::kNONE;
-  if (layer(env_protection, env_secure_level, env_os_secret_store, result)) {
-    return result;
-  }
-  if (layer(user_protection, user_secure_level, user_os_secret_store, result)) {
-    return result;
-  }
-  return AppKeyProtection::kNONE;
-}
-
-AppSecureKeyManager::AppSecureKeyManager(int channel)
-    : SingletonFunctionObject<AppSecureKeyManager>(channel) {}
-
-auto AppSecureKeyManager::CalculateKeyId(const GFBuffer& pin,
-                                         const GFBuffer& key) -> GFBuffer {
+auto ProfileSecureKeyManager::CalculateKeyId(const GFBuffer& pin,
+                                             const GFBuffer& key) -> GFBuffer {
   auto id = GFBufferFactory::ToHMACSha256(
       pin.Empty() ? GFBuffer(kEmptyPinLabel) : pin, key);
   Q_ASSERT(id.has_value());
@@ -233,10 +139,9 @@ auto AppSecureKeyManager::CalculateKeyId(const GFBuffer& pin,
   return id.value_or(GFBuffer{});
 }
 
-auto AppSecureKeyManager::RegisterLegacyKeyIds(QMap<GFBuffer, GFBuffer>& keys,
-                                               const GFBuffer& pin,
-                                               const GFBuffer& key)
-    -> GFBuffer {
+auto ProfileSecureKeyManager::RegisterKeyIds(QMap<GFBuffer, GFBuffer>& keys,
+                                             const GFBuffer& pin,
+                                             const GFBuffer& key) -> GFBuffer {
   const auto stable_id = CalculateKeyId({}, key);
   keys.insert(stable_id, key);
 
@@ -248,10 +153,10 @@ auto AppSecureKeyManager::RegisterLegacyKeyIds(QMap<GFBuffer, GFBuffer>& keys,
   return stable_id;
 }
 
-auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
-                                            SystemSecretStore* store,
-                                            bool intent_enabled,
-                                            const QString& account)
+auto ProfileSecureKeyManager::ResolveWrapSecret(const QString& key_path,
+                                                SystemSecretStore* store,
+                                                bool intent_enabled,
+                                                const QString& account)
     -> AppKeyWrapResult {
   const auto backend = store != nullptr ? store->Name() : QString("none");
 
@@ -365,7 +270,7 @@ auto AppSecureKeyManager::ResolveWrapSecret(const QString& key_path,
   return {AppKeyWrapStatus::kJUST_ENABLED, *secret, backend};
 }
 
-auto AppSecureKeyManager::ChangeProtection(
+auto ProfileSecureKeyManager::ChangeProtection(
     const QString& key_path, SystemSecretStore* store,
     const GFBuffer& plain_key, AppKeyProtection from, AppKeyProtection to,
     const GFBuffer& new_pin, const QString& account) -> AppKeyProtectionResult {
@@ -469,15 +374,11 @@ auto AppSecureKeyManager::ChangeProtection(
                                            : AppKeyProtectionToString(to)};
 }
 
-auto AppSecureKeyManager::GetKeyDir() const -> QString {
-  return GetGSS().GetAppDataPath() + "/secure";
+auto ProfileSecureKeyManager::KeyPath() const -> QString {
+  return accessor_->PathOf(ProfileArea::kSecure, "app.key");
 }
 
-auto AppSecureKeyManager::GetLegacyKeyPath() const -> QString {
-  return GetKeyDir() + "/app.key";
-}
-
-auto AppSecureKeyManager::ResetKeyStorage(const QString& key_dir) -> bool {
+auto ProfileSecureKeyManager::ResetKeyStorage(const QString& key_dir) -> bool {
   const auto path = key_dir + "/app.key";
 
   // The app key file is the one that must go: without it Initialize() generates
@@ -504,45 +405,47 @@ auto AppSecureKeyManager::ResetKeyStorage(const QString& key_dir) -> bool {
   return true;
 }
 
-auto AppSecureKeyManager::GetKey(const GFBuffer& id) const -> GFBuffer {
+auto ProfileSecureKeyManager::KeyById(const GFBuffer& id) const -> GFBuffer {
   return keys_.value(id, GFBuffer{});
 }
 
-auto AppSecureKeyManager::GetActiveKeyId() const -> GFBuffer {
+auto ProfileSecureKeyManager::ActiveKeyId() const -> GFBuffer {
   return active_key_id_;
 }
 
-auto AppSecureKeyManager::GetActiveKey() const -> GFBuffer {
-  auto key = GetKey(active_key_id_);
+auto ProfileSecureKeyManager::ActiveKey() const -> GFBuffer {
+  auto key = KeyById(active_key_id_);
   Q_ASSERT(!key.Empty());
   return key;
 }
 
-auto AppSecureKeyManager::GetLegacyKey() const -> GFBuffer {
-  auto key = GetKey(legacy_key_id_);
+auto ProfileSecureKeyManager::RootKey() const -> GFBuffer {
+  auto key = KeyById(root_key_id_);
   Q_ASSERT(!key.Empty());
   return key;
 }
 
-auto AppSecureKeyManager::SealKey(const GFBuffer& pin, const GFBuffer& wrap,
-                                  const GFBuffer& plain) -> GFBufferOrNone {
+auto ProfileSecureKeyManager::SealKey(const GFBuffer& pin, const GFBuffer& wrap,
+                                      const GFBuffer& plain) -> GFBufferOrNone {
   if (!wrap.Empty()) return GFBufferFactory::EncryptLite(wrap, plain);
   if (!pin.Empty()) return GFBufferFactory::Encrypt(pin, plain);
   return plain;
 }
 
-auto AppSecureKeyManager::UnsealKey(const GFBuffer& pin, const GFBuffer& wrap,
-                                    const GFBuffer& stored) -> GFBufferOrNone {
+auto ProfileSecureKeyManager::UnsealKey(const GFBuffer& pin,
+                                        const GFBuffer& wrap,
+                                        const GFBuffer& stored)
+    -> GFBufferOrNone {
   if (!wrap.Empty()) return GFBufferFactory::DecryptLite(wrap, stored);
   if (!pin.Empty()) return GFBufferFactory::Decrypt(pin, stored);
   return stored;
 }
 
-auto AppSecureKeyManager::new_legacy_key(const GFBuffer& pin,
-                                         const GFBuffer& wrap,
-                                         AppSecureKeyInitResult& status)
+auto ProfileSecureKeyManager::new_root_key(const GFBuffer& pin,
+                                           const GFBuffer& wrap,
+                                           ProfileKeyLoadResult& status)
     -> GFBuffer {
-  auto key = PassphraseGenerator::GenerateBytesByOpenSSL(kLegacyKeyLen);
+  auto key = PassphraseGenerator::GenerateBytesByOpenSSL(kRootKeyLen);
   if (!key) {
     LOG_E() << "generate app secure key failed, using qt random generator...";
     key = GFBuffer(QRandomGenerator64::securelySeeded().generate());
@@ -553,48 +456,48 @@ auto AppSecureKeyManager::new_legacy_key(const GFBuffer& pin,
   auto sealed = SealKey(pin, wrap, plain_key);
   if (!sealed) {
     LOG_E() << "encrypt app secure key failed, won't write it to disk";
-    status = {AppSecureKeyStatus::kWRITE_FAILED,
+    status = {ProfileKeyLoadStatus::kWRITE_FAILED,
               QObject::tr("The secure key could not be encrypted, so it was "
                           "not saved to disk.")};
     return plain_key;
   }
 
-  const auto path = GetLegacyKeyPath();
-  if (!GFBufferFactory::ToFile(path, *sealed)) {
+  if (!accessor_->Write(ProfileArea::kSecure, kRootKeyName, *sealed)) {
+    const auto path = KeyPath();
     LOG_E() << "write app secure key failed:" << path;
-    status = {AppSecureKeyStatus::kWRITE_FAILED, path};
+    status = {ProfileKeyLoadStatus::kWRITE_FAILED, path};
   }
 
   return plain_key;
 }
 
-auto AppSecureKeyManager::init_legacy_key(const GFBuffer& pin,
-                                          const GFBuffer& wrap)
-    -> AppSecureKeyInitResult {
-  AppSecureKeyInitResult result;
+auto ProfileSecureKeyManager::init_root_key(const GFBuffer& pin,
+                                            const GFBuffer& wrap)
+    -> ProfileKeyLoadResult {
+  ProfileKeyLoadResult result;
 
-  GFBuffer legacy_key;
-  const auto path = GetLegacyKeyPath();
-  LOG_D() << "legacy app secure key path:" << path;
+  GFBuffer root_key;
+  const auto path = KeyPath();
+  LOG_D() << "profile secure key path:" << path;
 
-  if (!QFileInfo(path).exists()) {
-    legacy_key = new_legacy_key(pin, wrap, result);
-    if (legacy_key.Empty()) {
-      return {AppSecureKeyStatus::kGENERATE_FAILED, path};
+  if (!accessor_->Exists(ProfileArea::kSecure, kRootKeyName)) {
+    root_key = new_root_key(pin, wrap, result);
+    if (root_key.Empty()) {
+      return {ProfileKeyLoadStatus::kGENERATE_FAILED, path};
     }
   } else {
-    auto key = GFBufferFactory::FromFile(path);
+    auto key = accessor_->Read(ProfileArea::kSecure, kRootKeyName);
     if (!key) {
       LOG_E() << "read app secure key failed:" << path;
-      return {AppSecureKeyStatus::kREAD_FAILED, path};
+      return {ProfileKeyLoadStatus::kREAD_FAILED, path};
     }
 
     auto r_key = UnsealKey(pin, wrap, *key);
     if (!r_key) {
-      LOG_W() << "decrypt legacy app secure key failed";
-      return {AppSecureKeyStatus::kDECRYPT_FAILED, path};
+      LOG_W() << "decrypt profile secure key failed";
+      return {ProfileKeyLoadStatus::kDECRYPT_FAILED, path};
     }
-    legacy_key = *r_key;
+    root_key = *r_key;
   }
 
   // The identity comes from the key material alone, never from whatever
@@ -602,17 +505,17 @@ auto AppSecureKeyManager::init_legacy_key(const GFBuffer& pin,
   // deriving it from the protection would orphan every object each time that
   // protection changed. A profile written while the PIN still fed the identity
   // keeps its old ID registered too, so its objects stay readable.
-  const auto legacy_key_id = RegisterLegacyKeyIds(keys_, pin, legacy_key);
-  Q_ASSERT(!legacy_key_id.Empty());
+  const auto root_key_id = RegisterKeyIds(keys_, pin, root_key);
+  Q_ASSERT(!root_key_id.Empty());
 
-  active_key_id_ = legacy_key_id;
-  legacy_key_id_ = legacy_key_id;
+  active_key_id_ = root_key_id;
+  root_key_id_ = root_key_id;
 
   return result;
 }
 
-auto AppSecureKeyManager::DeriveRotatedKey(const GFBuffer& app_key,
-                                           qint64 period) -> GFBuffer {
+auto ProfileSecureKeyManager::DeriveRotatedKey(const GFBuffer& app_key,
+                                               qint64 period) -> GFBuffer {
   auto salt = GFBufferFactory::ToSha256(
       GFBuffer(kRotatingKeySaltPrefix + QString::number(period)));
   if (!salt) {
@@ -635,7 +538,7 @@ auto AppSecureKeyManager::DeriveRotatedKey(const GFBuffer& app_key,
   return *key;
 }
 
-auto AppSecureKeyManager::fetch_time_related_key(const GFBuffer& app_key)
+auto ProfileSecureKeyManager::fetch_time_related_key(const GFBuffer& app_key)
     -> GFBuffer {
   const qint64 period =
       QDateTime::currentSecsSinceEpoch() / kRotationPeriodSecs;
@@ -651,10 +554,9 @@ auto AppSecureKeyManager::fetch_time_related_key(const GFBuffer& app_key)
 
   active_key_id_ = key_id;
 
-  const auto key_path = GetKeyDir() + "/" +
-                        key_id.ConvertToQByteArray().toHex().left(16) + ".key";
+  const auto key_name = key_id.ConvertToQByteArray().toHex().left(16) + ".key";
 
-  if (QFileInfo(key_path).exists()) return key;
+  if (accessor_->Exists(ProfileArea::kSecure, key_name)) return key;
 
   auto e_key = GFBufferFactory::EncryptLite(app_key, key);
   if (!e_key) {
@@ -662,60 +564,64 @@ auto AppSecureKeyManager::fetch_time_related_key(const GFBuffer& app_key)
     return key;
   }
 
-  if (!GFBufferFactory::ToFile(key_path, *e_key)) {
-    LOG_E() << "write time-rotated key failed:" << key_path;
+  if (!accessor_->Write(ProfileArea::kSecure, key_name, *e_key)) {
+    LOG_E() << "write time-rotated key failed:" << key_name;
   }
 
   return key;
 }
 
-auto AppSecureKeyManager::Initialize(const GFBuffer& pin, const GFBuffer& wrap)
-    -> AppSecureKeyInitResult {
-  const auto secure_level = qApp->property("GFSecureLevel").toInt();
-
-  auto result = init_legacy_key(pin, wrap);
+auto ProfileSecureKeyManager::Load(const GFBuffer& pin, const GFBuffer& wrap,
+                                   bool rotating) -> ProfileKeyLoadResult {
+  auto result = init_root_key(pin, wrap);
   if (!result.Ok()) return result;
 
-  // Below high security mode there is only ever the legacy key.
-  if (secure_level < 3) return result;
+  // The classical case: one key encrypts everything and opens everything.
+  if (!rotating) {
+    mode_ = ProfileKeyMode::kSINGLE;
+    return result;
+  }
 
-  // Rotation hangs off the app secure key, so it is available only once the
-  // legacy key above has been loaded.
-  const auto app_key = GetLegacyKey();
+  // Rotation hangs off the profile's own key, so it is available only once the
+  // root key above has been loaded.
+  const auto app_key = RootKey();
 
   auto t_key = fetch_time_related_key(app_key);
   if (t_key.Empty()) {
-    return {AppSecureKeyStatus::kGENERATE_FAILED, GetKeyDir()};
+    return {ProfileKeyLoadStatus::kGENERATE_FAILED,
+            accessor_->PathOf(ProfileArea::kSecure)};
   }
-  RegisterLegacyKeyIds(keys_, pin, t_key);
+  RegisterKeyIds(keys_, pin, t_key);
 
-  const auto legacy_key_file = QFileInfo(GetLegacyKeyPath()).fileName();
+  // Everything earlier periods wrote is still ours to read, so every rotated
+  // key that opens is listed beside the active one. A key belonging to neither
+  // form simply fails to decrypt and is skipped, which is how rotated keys from
+  // earlier weeks have always survived.
+  const auto root_key_file = QFileInfo(KeyPath()).fileName();
 
-  QDir dir(GetKeyDir());
-  for (const auto& key_file : dir.entryList({"*.key"}, QDir::Files)) {
-    // The legacy key is not a rotated key and was already registered above; it
-    // is also the one file here that may be sealed by the credential store.
-    if (key_file == legacy_key_file) continue;
+  for (const auto& key_file : accessor_->List(ProfileArea::kSecure, "*.key")) {
+    // The root key is not a rotated key and was already registered above; it is
+    // also the one file here that may be sealed by the credential store.
+    if (key_file == root_key_file) continue;
 
-    const auto key_path = dir.absoluteFilePath(key_file);
-    auto stored = GFBufferFactory::FromFile(key_path);
+    auto stored = accessor_->Read(ProfileArea::kSecure, key_file);
     if (!stored) {
+      const auto key_path = accessor_->PathOf(ProfileArea::kSecure, key_file);
       LOG_E() << "read app secure key failed:" << key_path;
-      return {AppSecureKeyStatus::kREAD_FAILED, key_path};
+      return {ProfileKeyLoadStatus::kREAD_FAILED, key_path};
     }
 
     // Trial-decrypt: first the way rotated keys are written now, then the way a
     // profile written before rotation was re-based on the app key wrote them.
-    // Keys belonging to neither simply fail and are skipped, which is how
-    // rotated keys from earlier weeks have always survived.
     auto r_key = GFBufferFactory::DecryptLite(app_key, *stored);
     if (!r_key && !pin.Empty()) r_key = GFBufferFactory::Decrypt(pin, *stored);
     if (!r_key) continue;
 
-    RegisterLegacyKeyIds(keys_, pin, *r_key);
+    RegisterKeyIds(keys_, pin, *r_key);
   }
 
   Q_ASSERT(!active_key_id_.Empty());
+  mode_ = ProfileKeyMode::kROTATING;
   return result;
 }
 

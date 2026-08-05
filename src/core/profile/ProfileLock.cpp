@@ -101,12 +101,6 @@ auto ProfileLock::Acquire(const QString& profile_root, int timeout_ms)
   return result;
 }
 
-auto ProfileLock::IsHeld() -> bool {
-  auto& holder = Holder();
-  std::unique_lock<std::mutex> const guard(holder.mutex);
-  return holder.lock != nullptr;
-}
-
 auto ProfileLock::Probe(const QString& profile_root) -> ProfileLockResult {
   ProfileLockResult result;
   result.path = PathFor(profile_root);

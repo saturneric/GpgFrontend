@@ -30,7 +30,7 @@
 
 #include <functional>
 
-#include "core/function/GlobalSettingStation.h"
+#include "core/profile/ProfileMarker.h"
 
 namespace GpgFrontend {
 
@@ -43,9 +43,9 @@ constexpr int kOldestSupportedProfileSchema = 1;
  *
  * The split is not cosmetic. Everything under `data_objs/` is
  * XChaCha20-Poly1305 sealed and simply does not decrypt until
- * AppSecureKeyManager::Initialize() has run, so a data-object rung placed in
- * the early stage fails *silently* — it sees no objects and concludes there is
- * nothing to do.
+ * ProfileSecureKeyManager::Initialize() has run, so a data-object rung placed
+ * in the early stage fails *silently* — it sees no objects and concludes there
+ * is nothing to do.
  */
 enum class ProfileMigrationStage {
   kPRE_KEY,   ///< directory moves, renames, settings-key rewrites

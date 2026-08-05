@@ -290,20 +290,6 @@ auto GF_CORE_EXPORT StageProfileTree(const QString &profile_root,
     -> ProfileStagingResult;
 
 /**
- * @brief Write the application key into a staging tree, unprotected.
- *
- * The package's passphrase is what protects it. Wrapping it a second time with
- * a machine-local secret would strand the package, and a second passphrase
- * would be a second thing to forget.
- *
- * @param staging_dir staging tree
- * @param app_key the resident plaintext key
- * @return true when written
- */
-auto GF_CORE_EXPORT WriteStagedAppKey(const QString &staging_dir,
-                                      const GFBuffer &app_key) -> bool;
-
-/**
  * @brief Copy every setting out of a live store.
  *
  * Taken as a snapshot rather than read where it is needed, because the packing
@@ -317,33 +303,6 @@ auto GF_CORE_EXPORT SnapshotSettings(QSettings &settings)
     -> QMap<QString, QVariant>;
 
 /**
- * @brief Write a settings snapshot into a staging tree as an INI file.
- *
- * Read through QSettings rather than copied as a file: on the default profile
- * the settings live in the platform's native store and there is no file to
- * copy, and everywhere else this cannot drift from what the application
- * actually has in hand.
- *
- * @param staging_dir staging tree
- * @param settings snapshot from SnapshotSettings()
- * @return true when written
- */
-auto GF_CORE_EXPORT WriteStagedSettings(const QString &staging_dir,
-                                        const QMap<QString, QVariant> &settings)
-    -> bool;
-
-/**
- * @brief Write the manifest into a staging tree.
- *
- * @param staging_dir staging tree
- * @param manifest manifest to write
- * @return true when written
- */
-auto GF_CORE_EXPORT WriteStagedManifest(const QString &staging_dir,
-                                        const ProfilePackageManifest &manifest)
-    -> bool;
-
-/**
  * @brief Outcome of writing a package.
  */
 struct GF_CORE_EXPORT ProfilePackageWriteResult {
@@ -351,30 +310,6 @@ struct GF_CORE_EXPORT ProfilePackageWriteResult {
   QString error;
   qint64 bytes = 0;
 };
-
-/**
- * @brief Pack a staging tree into a `.gfprofile` file.
- *
- * The destination is never opened for writing. A save that truncates the only
- * copy and then fails — full disk, cancelled prompt, power loss — would destroy
- * keys, settings and workspace at once, and the package *is* the backup. So it
- * writes a temporary file beside the destination, reads it back and decrypts it
- * to prove it can be opened, and only then renames it into place.
- *
- * Synchronous, and must not be called on the I/O task runner: it drains an
- * archive that is being written on that runner, and would wait on itself.
- *
- * @param staging_dir tree to pack
- * @param dest_path destination `.gfprofile`
- * @param header header to write; its `created` and `protection` are used as-is
- * @param passphrase passphrase, ignored when protection is kNONE
- * @return the outcome, with the written size
- */
-auto GF_CORE_EXPORT WriteProfilePackage(const QString &staging_dir,
-                                        const QString &dest_path,
-                                        const ProfilePackageHeader &header,
-                                        const GFBuffer &passphrase)
-    -> ProfilePackageWriteResult;
 
 /**
  * @brief Why a package could not be read.
@@ -510,5 +445,82 @@ AdoptExtractedProfile(const QString &staging_dir, const QString &profile_root,
 auto GF_CORE_EXPORT MakeProfilePackageScratchDir(const QString &profiles_root,
                                                  const QString &purpose)
     -> QString;
+
+/**
+ * @brief The root a package runs at when it is opened temporarily.
+ *
+ * Derived from the package's own path rather than minted at random, so that
+ * "is this package already open in another window" is one lock probe on a path
+ * both processes can work out for themselves — no sidecar file, no scan, and
+ * no way for the answer to drift.
+ *
+ * Dot-prefixed like every transient root: a session is disposable, and the
+ * profile scan must never adopt one as a profile this machine owns.
+ *
+ * @param profiles_root where profiles live
+ * @param package_path the `.gfprofile`; need not exist yet
+ * @return an absolute path, or an empty string when the package has no path
+ */
+auto GF_CORE_EXPORT ProfileSessionRoot(const QString &profiles_root,
+                                       const QString &package_path) -> QString;
+
+/**
+ * @brief Remove session roots left behind by processes that are gone.
+ *
+ * A session holds an ordinary profile lock on its own root, so the lock is the
+ * liveness test and a crashed session is collected on the next start with no
+ * bookkeeping of its own.
+ *
+ * Only roots that carry a `profile.json` are considered, which is exactly the
+ * set of adopted sessions. Staging and extraction scratch is dot-prefixed too
+ * but never holds a lock, and deleting one would break an export that is
+ * running in another window right now.
+ *
+ * @param profiles_root where profiles live
+ * @param keep_root a root to leave alone, typically this process's own
+ * @return how many were removed
+ */
+auto GF_CORE_EXPORT SweepTransientProfileRoots(const QString &profiles_root,
+                                               const QString &keep_root) -> int;
+
+/**
+ * @brief Outcome of opening a package as a temporary session.
+ */
+struct GF_CORE_EXPORT ProfileSessionOpenResult {
+  ProfilePackageReadStatus status = ProfilePackageReadStatus::kOK;
+  QString detail;
+
+  QString session_root;
+  ProfilePackageManifest manifest;
+
+  [[nodiscard]] auto Ok() const -> bool {
+    return status == ProfilePackageReadStatus::kOK;
+  }
+};
+
+/**
+ * @brief Extract a package into a session root and make it usable as a profile.
+ *
+ * The compatibility gate runs before anything is adopted, never after: a
+ * package describing a layout this build cannot read must leave no trace.
+ *
+ * The caller must already hold the profile lock on the session root — two
+ * windows writing one package back is how this loses data. Anything found at
+ * the session root therefore belonged to a process that is gone, and is
+ * replaced.
+ *
+ * Synchronous, and must not be called on the I/O task runner.
+ *
+ * @param package_path package to open
+ * @param profiles_root where profiles live
+ * @param passphrase passphrase, ignored for an unprotected package
+ * @param this_schema_version the layout version this build speaks
+ * @return the outcome, with the session root and manifest on success
+ */
+auto GF_CORE_EXPORT OpenPackageSession(const QString &package_path,
+                                       const QString &profiles_root,
+                                       const GFBuffer &passphrase,
+                                       int this_schema_version)
+    -> ProfileSessionOpenResult;
 
 }  // namespace GpgFrontend

@@ -28,7 +28,7 @@
 
 #include "ProfileMigration.h"
 
-#include "core/function/ProfileWorkspace.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/utils/BuildInfoUtils.h"
 
 namespace GpgFrontend {
@@ -57,10 +57,15 @@ auto MigrateFilePanelDefaultPathMode(const QString&)
 
   // The old default was true, and an absent key has to keep meaning exactly
   // that: an existing installation must open where it always did.
+  //
+  // The spellings are literals rather than a call through
+  // FilePanelDefaultPathModeToString(): that enum lives in the UI layer, which
+  // core cannot call into, and a rung must in any case be frozen against the
+  // values as they were when it was written rather than following an enum that
+  // may later be renamed underneath it.
   const auto legacy = settings.value(kOldKey, true).toBool();
   settings.setValue(kNewKey,
-                    FilePanelDefaultPathModeToString(
-                        FilePanelDefaultPathModeFromLegacyBool(legacy)));
+                    legacy ? QStringLiteral("home") : QStringLiteral("cwd"));
   settings.sync();
 
   if (settings.status() != QSettings::NoError) {

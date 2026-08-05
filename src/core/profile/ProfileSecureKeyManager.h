@@ -28,20 +28,19 @@
 
 #pragma once
 
-#include "core/function/ProfileBootstrap.h"
 #include "core/function/SystemSecretStore.h"
-#include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/GFBuffer.h"
+#include "core/profile/Profile.h"
 
 namespace GpgFrontend {
 
 /**
- * @brief Outcome of AppSecureKeyManager::Initialize().
+ * @brief Outcome of ProfileSecureKeyManager::Load().
  *
  * The manager never shows UI of its own — gf_core does not link QtWidgets — so
  * every failure is reported here and rendered by the application layer.
  */
-enum class AppSecureKeyStatus {
+enum class ProfileKeyLoadStatus : std::uint8_t {
   kOK,               ///< key set loaded or created successfully
   kREAD_FAILED,      ///< a key file exists but could not be read
   kDECRYPT_FAILED,   ///< a key file was read but would not decrypt
@@ -50,17 +49,42 @@ enum class AppSecureKeyStatus {
 };
 
 /**
- * @brief Result of loading the application secure key set.
+ * @brief Result of loading a profile's key set.
  */
-struct AppSecureKeyInitResult {
-  AppSecureKeyStatus status = AppSecureKeyStatus::kOK;
+struct GF_CORE_EXPORT ProfileKeyLoadResult {
+  ProfileKeyLoadStatus status = ProfileKeyLoadStatus::kOK;
 
   /// Path, cause, or other context worth showing the user and logging.
   QString detail;
 
   [[nodiscard]] auto Ok() const -> bool {
-    return status == AppSecureKeyStatus::kOK;
+    return status == ProfileKeyLoadStatus::kOK;
   }
+};
+
+/**
+ * @brief How many keys are in play, and why.
+ */
+enum class ProfileKeyMode : std::uint8_t {
+  /**
+   * @brief One active key. The classical case.
+   *
+   * A profile written before the PIN became a pure wrap secret also has its
+   * old, PIN-derived id registered, so objects filed under it stay readable —
+   * that is an alias for the same material, not a second key.
+   */
+  kSINGLE,
+
+  /**
+   * @brief An active key that changes on a schedule, plus the keys that open
+   * what earlier periods wrote.
+   *
+   * New objects are encrypted with the current period's key; every key still
+   * needed to read older material is listed alongside it. Rotation is derived
+   * from the profile's own key rather than from whatever protects it at rest,
+   * so setting, changing or clearing a PIN never orphans a rotated key.
+   */
+  kROTATING,
 };
 
 /**
@@ -71,26 +95,23 @@ struct AppSecureKeyInitResult {
  * for the same entry and whichever opens last overwrites the secret the others
  * depend on.
  *
- * A profile id alone is not enough of a namespace either. Ids are user-chosen
- * and short, so the same `work` can exist on a USB stick, in the desktop
- * profiles root, and in a profile extracted from a package — three different
- * key files with one entry between them. Deleting a profile and recreating it
- * under the same name collides in the same way. So the name binds the id to the
- * root it lives in *and* to a uuid minted once at creation, which is what makes
- * a recreated profile a genuinely different identity.
+ * A profile id alone is not enough of a namespace either. Ids are short and a
+ * profile can be deleted and recreated under the same one, so the name binds
+ * the id to the root it lives in *and* to a uuid minted once at creation, which
+ * is what makes a recreated profile a genuinely different identity.
  *
- * Classic keeps the original account verbatim. Its entry already exists on
- * every current installation, and renaming it would lock every one of those
- * users out of their own data objects.
+ * The installed root keeps the original account verbatim. Its entry already
+ * exists on every current installation, and renaming it would lock every one of
+ * those users out of their own data objects.
  *
  * @param kind which shape of profile this is
- * @param profile_id the profile slug
+ * @param profile_id the profile id
  * @param canonical_root absolute, canonicalised profile root
  * @param profile_uuid the uuid from profile.json; may be empty on a first run,
  * in which case only the root distinguishes the entry
  * @return the account name to use with SystemSecretStore
  */
-auto GF_CORE_EXPORT DeriveAppKeyWrapAccount(ProfileRootKind kind,
+auto GF_CORE_EXPORT DeriveAppKeyWrapAccount(ProfileKind kind,
                                             const QString& profile_id,
                                             const QString& canonical_root,
                                             const QString& profile_uuid)
@@ -103,16 +124,16 @@ auto GF_CORE_EXPORT DeriveAppKeyWrapAccount(ProfileRootKind kind,
  * key identity, so switching between them never changes a key ID and never
  * orphans a stored data object.
  */
-enum class AppKeyProtection {
+enum class AppKeyProtection : std::uint8_t {
   kNONE,      ///< key file is stored as plaintext
   kKEYCHAIN,  ///< encrypted with a random secret in the system credential store
   kPIN,       ///< encrypted with a PIN the user types at startup
 };
 
 /**
- * @brief Outcome of AppSecureKeyManager::ChangeProtection().
+ * @brief Outcome of ProfileSecureKeyManager::ChangeProtection().
  */
-enum class AppKeyProtectionStatus {
+enum class AppKeyProtectionStatus : std::uint8_t {
   kOK,                 ///< the file now carries the requested protection
   kUNCHANGED,          ///< the requested protection was already in effect
   kBAD_PIN,            ///< kPIN was requested without a usable PIN
@@ -122,9 +143,9 @@ enum class AppKeyProtectionStatus {
 };
 
 /**
- * @brief Result of AppSecureKeyManager::ChangeProtection().
+ * @brief Result of ProfileSecureKeyManager::ChangeProtection().
  */
-struct AppKeyProtectionResult {
+struct GF_CORE_EXPORT AppKeyProtectionResult {
   AppKeyProtectionStatus status = AppKeyProtectionStatus::kOK;
 
   /// Backend name, path, or cause, for the log and any dialog.
@@ -140,9 +161,9 @@ struct AppKeyProtectionResult {
  * @brief Parse the stored spelling of a protection mode.
  *
  * Case-insensitive, and anything unrecognised reads as kNONE: a typo in
- * ENV.ini should leave the key unprotected, not demand a PIN nobody ever set.
+ * a marker should leave the key unprotected, not demand a PIN nobody ever set.
  *
- * @param s spelling from ENV.ini or the settings store
+ * @param s spelling from the profile marker or the settings store
  * @return the parsed mode
  */
 auto GF_CORE_EXPORT AppKeyProtectionFromString(const QString& s)
@@ -157,93 +178,9 @@ auto GF_CORE_EXPORT AppKeyProtectionFromString(const QString& s)
 auto GF_CORE_EXPORT AppKeyProtectionToString(AppKeyProtection p) -> QString;
 
 /**
- * @brief Read the resolved protection from the "GFAppKeyProtection" property.
- *
- * @return the mode in effect for this process, or kNONE when unset
- */
-auto GF_CORE_EXPORT AppKeyProtectionFromApp() -> AppKeyProtection;
-
-/**
- * @brief Apply the installation-mode rule to an already-resolved protection.
- *
- * A portable installation allows only kNONE and kPIN. A portable directory
- * exists to be carried to another computer, and a key wrapped with one
- * machine's credential store cannot be opened anywhere else, so a keychain
- * request is downgraded rather than honoured — even when ENV.ini asked for it,
- * since ENV.ini cannot know where the directory will be plugged in. A PIN
- * travels with the directory and is left alone.
- *
- * @param resolved mode chosen by the settings layers
- * @param portable whether this is a portable installation
- * @return the mode that may actually be used
- */
-auto GF_CORE_EXPORT ApplyPortableModeRule(AppKeyProtection resolved,
-                                          bool portable) -> AppKeyProtection;
-
-/**
- * @brief Refuse the credential store for any profile that leaves this machine.
- *
- * The generalisation of the portable rule. A profile inside a `.gfprofile`
- * package is written expressly to be carried somewhere else — very possibly to
- * a different operating system, where "the system credential store" is not the
- * same thing and often is not anything at all. A key sealed with one machine's
- * store simply cannot be opened there, so the request is downgraded rather than
- * honoured and the profile is left openable.
- *
- * That leaves exactly two protections for a profile that travels: a PIN, which
- * travels with it, or none at all. Inside a package both are additionally
- * covered by the package's own passphrase.
- *
- * @param resolved mode chosen by the settings layers
- * @param travels whether this profile can leave the machine
- * @return the mode that may actually be used
- */
-auto GF_CORE_EXPORT ApplyProfilePortabilityRule(AppKeyProtection resolved,
-                                                bool travels)
-    -> AppKeyProtection;
-
-/**
- * @brief Whether a profile of this shape can leave the machine.
- *
- * @param kind the profile kind
- * @param policy the profile policy
- * @return true when the credential store must not be used
- */
-auto GF_CORE_EXPORT ProfileTravelsBetweenMachines(ProfileRootKind kind,
-                                                  const ProfilePolicy& policy)
-    -> bool;
-
-/**
- * @brief Resolve the protection across its layers and the two settings keys it
- * replaced.
- *
- * Pure, taking every layer as a QVariant rather than reading QSettings, so the
- * whole compatibility ladder can be tested without restarting the process. An
- * invalid QVariant means "this layer has no value", matching
- * ResolveLayeredValue() and QSettings::value() for a missing key.
- *
- * The secure_level rungs are what keep a profile written before the split
- * starting: at level 3 its key file is sealed with a PIN, so it has to keep
- * resolving to kPIN until the user chooses otherwise.
- *
- * @param env_protection ENV.ini AppKeyProtection
- * @param env_secure_level ENV.ini SecureLevel
- * @param env_os_secret_store ENV.ini OSSecretStore
- * @param user_protection user advanced/app_key_protection
- * @param user_secure_level user advanced/secure_level
- * @param user_os_secret_store user advanced/os_secret_store
- * @return the winning mode, before the installation-mode rule is applied
- */
-auto GF_CORE_EXPORT ResolveAppKeyProtection(
-    const QVariant& env_protection, const QVariant& env_secure_level,
-    const QVariant& env_os_secret_store, const QVariant& user_protection,
-    const QVariant& user_secure_level, const QVariant& user_os_secret_store)
-    -> AppKeyProtection;
-
-/**
  * @brief Outcome of reconciling the at-rest protection of the key file.
  */
-enum class AppKeyWrapStatus {
+enum class AppKeyWrapStatus : std::uint8_t {
   kNOT_WRAPPED,        ///< key file is plaintext and should stay that way
   kWRAPPED,            ///< key file is encrypted and the secret was resolved
   kJUST_ENABLED,       ///< key file was just encrypted for the first time
@@ -254,9 +191,9 @@ enum class AppKeyWrapStatus {
 };
 
 /**
- * @brief Result of AppSecureKeyManager::ResolveWrapSecret().
+ * @brief Result of ProfileSecureKeyManager::ResolveWrapSecret().
  */
-struct AppKeyWrapResult {
+struct GF_CORE_EXPORT AppKeyWrapResult {
   AppKeyWrapStatus status = AppKeyWrapStatus::kNOT_WRAPPED;
 
   /// Secret protecting the key file; empty unless it is currently wrapped.
@@ -273,101 +210,115 @@ struct AppKeyWrapResult {
 };
 
 /**
- * @brief Singleton owning every aspect of the application secure key.
+ * @brief The key set of one profile session.
  *
  * This is the single owner of the key material that protects everything
- * DataObjectOperator persists. It resolves the secure directory paths,
- * generates and loads the key files, derives key identities, and keeps the
- * in-memory registry mapping key ID to key material.
+ * DataObjectOperator persists, and it belongs to the session rather than to the
+ * process: a profile's keys have no meaning outside the profile they came from,
+ * and one process only ever runs one profile.
  *
- * There is exactly one secret in play: the **wrap secret**, which encrypts the
- * key file at rest and nothing else. It comes from one of the three backends in
- * AppKeyProtection — nothing, the system credential store, or a PIN the user
- * types at startup — and which one is in use is invisible to everything above.
+ * There is exactly one secret in play at rest: the **wrap secret**, which
+ * encrypts the key file and nothing else. It comes from one of the three
+ * backends in AppKeyProtection — nothing, the system credential store, or a PIN
+ * the user types at startup — and which one is in use is invisible to
+ * everything above. Deciding *which* is the loader's job; this stores and opens
+ * the files.
  *
  * Identity is derived from the plaintext key alone. Keeping it independent of
  * the wrap secret is what makes the protection switchable at all: the key ID is
  * stored as a prefix on every object DataObjectOperator persists, so deriving
  * it from the at-rest protection would orphan every stored object each time
  * that protection changed. The PIN used to feed both, which is exactly why it
- * could not be turned on from the UI; RegisterLegacyKeyIds() keeps the objects
- * such a profile already wrote readable.
+ * could not be turned on from the UI; RegisterKeyIds() keeps the objects such a
+ * profile already wrote readable.
  */
-class GF_CORE_EXPORT AppSecureKeyManager
-    : public SingletonFunctionObject<AppSecureKeyManager> {
+class GF_CORE_EXPORT ProfileSecureKeyManager {
  public:
   /**
-   * @brief Construct the manager.
+   * @brief Construct the key set against one profile's storage.
    *
-   * @param channel singleton channel identifier
+   * @param accessor the session's storage driver
    */
-  explicit AppSecureKeyManager(
-      int channel = SingletonFunctionObject::GetDefaultChannel());
+  explicit ProfileSecureKeyManager(QSharedPointer<ProfileAccessor> accessor);
+
+  ~ProfileSecureKeyManager() = default;
+
+  ProfileSecureKeyManager(const ProfileSecureKeyManager&) = delete;
+  auto operator=(const ProfileSecureKeyManager&)
+      -> ProfileSecureKeyManager& = delete;
+  ProfileSecureKeyManager(ProfileSecureKeyManager&&) = delete;
+  auto operator=(ProfileSecureKeyManager&&)
+      -> ProfileSecureKeyManager& = delete;
 
   /**
-   * @brief Load the key set from disk, creating it when absent, and register
-   * every key in the in-memory registry.
+   * @brief Load the key set from storage, creating it when absent.
    *
    * Must run before DataObjectOperator is constructed, since that caches the
-   * active and legacy keys at construction time.
+   * active and root keys at construction time.
    *
-   * @param pin identity PIN; empty below high security mode
+   * @param pin identity PIN; empty for everything written since the split
    * @param wrap secret used only to encrypt the key file at rest; empty when
    * the key is stored unprotected
+   * @param rotating whether this session rotates its active key, which the
+   * profile has to allow and the security level has to ask for
    * @return outcome, with a detail string on failure
    */
-  auto Initialize(const GFBuffer& pin, const GFBuffer& wrap = {})
-      -> AppSecureKeyInitResult;
+  auto Load(const GFBuffer& pin, const GFBuffer& wrap, bool rotating)
+      -> ProfileKeyLoadResult;
 
   /**
-   * @brief Return the active key, used to encrypt newly written objects.
+   * @brief Whether one key is in play or a rotating set.
+   *
+   * @return the mode this session loaded in
+   */
+  [[nodiscard]] auto Mode() const -> ProfileKeyMode { return mode_; }
+
+  /**
+   * @brief The key new objects are encrypted with.
    *
    * @return key material for the active key
    */
-  [[nodiscard]] auto GetActiveKey() const -> GFBuffer;
+  [[nodiscard]] auto ActiveKey() const -> GFBuffer;
 
   /**
-   * @brief Return the ID of the active key.
+   * @brief The ID of the active key.
    *
    * @return binary key ID
    */
-  [[nodiscard]] auto GetActiveKeyId() const -> GFBuffer;
+  [[nodiscard]] auto ActiveKeyId() const -> GFBuffer;
 
   /**
-   * @brief Return the legacy key.
+   * @brief The profile's own key, from which everything else is derived.
    *
-   * @return key material for the legacy key
+   * @return key material
    */
-  [[nodiscard]] auto GetLegacyKey() const -> GFBuffer;
+  [[nodiscard]] auto RootKey() const -> GFBuffer;
 
   /**
    * @brief Look up a key by its ID.
    *
+   * In kROTATING mode this is how an object written in an earlier period is
+   * still opened: the keys that decrypt old material are listed here alongside
+   * the one that encrypts new material.
+   *
    * @param id binary key ID
    * @return key material, or an empty buffer when the ID is unknown
    */
-  [[nodiscard]] auto GetKey(const GFBuffer& id) const -> GFBuffer;
+  [[nodiscard]] auto KeyById(const GFBuffer& id) const -> GFBuffer;
 
   /**
-   * @brief Return the directory holding the key files.
-   *
-   * @return absolute path to the secure directory
-   */
-  [[nodiscard]] auto GetKeyDir() const -> QString;
-
-  /**
-   * @brief Return the path of the legacy key file.
+   * @brief The path of the profile's key file.
    *
    * @return absolute path to secure/app.key
    */
-  [[nodiscard]] auto GetLegacyKeyPath() const -> QString;
+  [[nodiscard]] auto KeyPath() const -> QString;
 
   /**
    * @brief Delete every on-disk key file, for a destructive reset to default.
    *
    * Removes app.key along with any rotated <keyId>.key files derived from it,
    * since those are keyed to the key being discarded and would only be orphaned
-   * by the reset. A fresh key is regenerated on the next Initialize().
+   * by the reset. A fresh key is regenerated on the next Load().
    *
    * This is the only reversal of a forgotten PIN or an unrecoverable keychain
    * secret: everything the old key encrypted becomes permanently unreadable, so
@@ -375,25 +326,14 @@ class GF_CORE_EXPORT AppSecureKeyManager
    * entry and the protection preference are cleared by the caller, which owns
    * both; this handles only the files under @p key_dir.
    *
-   * Static and taking the secure directory explicitly rather than reading the
-   * singleton, so a test can drive it against a temporary directory without
+   * Static and taking the secure directory explicitly rather than reading a
+   * session, so a test can drive it against a temporary directory without
    * disturbing the running process's own key.
    *
-   * @param key_dir directory holding the key files, i.e. GetKeyDir()
+   * @param key_dir directory holding the key files, i.e. KeyDir()
    * @return false if app.key existed but could not be removed; true otherwise
    */
   [[nodiscard]] static auto ResetKeyStorage(const QString& key_dir) -> bool;
-
-  /**
-   * @brief The credential-store account for the profile now running.
-   *
-   * Resolves DeriveAppKeyWrapAccount() against the established profile runtime
-   * and the uuid in that profile's marker, so every caller names the same
-   * entry without each having to reassemble the rule.
-   *
-   * @return the account name, or empty when it cannot be derived
-   */
-  [[nodiscard]] static auto CurrentWrapAccount() -> QString;
 
   /**
    * @brief Derive the identity of a key.
@@ -404,7 +344,7 @@ class GF_CORE_EXPORT AppSecureKeyManager
    *
    * Everything written from now on passes an empty @p pin. A non-empty one
    * reproduces the ID a pre-split profile filed its objects under, back when
-   * the PIN was part of the identity; see RegisterLegacyKeyIds().
+   * the PIN was part of the identity; see RegisterKeyIds().
    *
    * @param pin legacy identity PIN, empty for every current caller
    * @param key key material
@@ -424,15 +364,15 @@ class GF_CORE_EXPORT AppSecureKeyManager
    * the at-rest protection changes.
    *
    * Static and taking the registry by reference so the rule can be asserted
-   * directly, without a key file or a live singleton.
+   * directly, without a key file or a live session.
    *
    * @param[in,out] keys registry to populate
    * @param pin PIN a pre-split profile derived its IDs from; may be empty
    * @param key key material
    * @return the stable ID, which is the one new objects are written under
    */
-  static auto RegisterLegacyKeyIds(QMap<GFBuffer, GFBuffer>& keys,
-                                   const GFBuffer& pin, const GFBuffer& key)
+  static auto RegisterKeyIds(QMap<GFBuffer, GFBuffer>& keys,
+                             const GFBuffer& pin, const GFBuffer& key)
       -> GFBuffer;
 
   /**
@@ -445,13 +385,13 @@ class GF_CORE_EXPORT AppSecureKeyManager
    * consistent state: the store entry is written and verified before the file
    * is touched, and removed only after the file no longer needs it.
    *
-   * Takes its dependencies explicitly rather than reading the singleton so
-   * that tests can drive every path with a temporary directory and a fake
-   * store.
+   * Takes its dependencies explicitly rather than reading a session so that
+   * tests can drive every path with a temporary directory and a fake store.
    *
    * @param key_path path of the key file
    * @param store credential store to use, or nullptr when none is installed
    * @param intent_enabled whether the user asked for OS-backed protection
+   * @param account credential-store account to use
    * @return the resolved secret and what, if anything, was changed
    */
   static auto ResolveWrapSecret(
@@ -463,7 +403,7 @@ class GF_CORE_EXPORT AppSecureKeyManager
    * @brief Re-seal the key file under a different at-rest protection.
    *
    * The plaintext key is supplied by the caller because it is already resident
-   * (GetLegacyKey()), so a change never has to open the old container and never
+   * (RootKey()), so a change never has to open the old container and never
    * depends on the old secret still being readable.
    *
    * Ordering follows ResolveWrapSecret(): the new secret is provisioned and
@@ -476,16 +416,13 @@ class GF_CORE_EXPORT AppSecureKeyManager
    * Re-sealing with a fresh PIN is a real transition rather than a no-op, which
    * is how a PIN is changed without passing through a plaintext file on disk.
    *
-   * Takes its dependencies explicitly rather than reading the singleton so that
-   * tests can drive every transition with a temporary directory and a fake
-   * store.
-   *
    * @param key_path path of the key file
    * @param store credential store to use, or nullptr when none is installed
    * @param plain_key plaintext key material
    * @param from protection currently in effect
    * @param to protection requested
    * @param new_pin PIN to seal with when @p to is kPIN; ignored otherwise
+   * @param account credential-store account to use
    * @return what happened, with a detail string on failure
    */
   static auto ChangeProtection(
@@ -498,14 +435,14 @@ class GF_CORE_EXPORT AppSecureKeyManager
   /**
    * @brief Derive the rotating key for one rotation period.
    *
-   * HMAC-SHA256 over the period's salt, keyed by the application secure key.
-   * Nothing about the at-rest protection takes part, which is what lets a PIN
-   * be set, changed or cleared without orphaning a rotated key.
+   * HMAC-SHA256 over the period's salt, keyed by the profile's key. Nothing
+   * about the at-rest protection takes part, which is what lets a PIN be set,
+   * changed or cleared without orphaning a rotated key.
    *
    * The period is a parameter rather than read from the clock so the schedule
    * can be asserted without waiting a week, and so the derivation is pure.
    *
-   * @param app_key application secure key
+   * @param app_key the profile's key
    * @param period rotation period index, seconds-since-epoch / period length
    * @return key material, or an empty buffer on failure
    */
@@ -513,7 +450,7 @@ class GF_CORE_EXPORT AppSecureKeyManager
       -> GFBuffer;
 
   /**
-   * @brief Encrypt the key for storage on disk.
+   * @brief Encrypt the key for storage.
    *
    * Sealing and unsealing must pick the same key derivation, so both live here
    * rather than at each call site. A PIN is low entropy and gets Argon2id; the
@@ -521,7 +458,7 @@ class GF_CORE_EXPORT AppSecureKeyManager
    * BLAKE2b derivation, which would otherwise cost ~100ms on every start for
    * no gain. At most one of @p pin and @p wrap is ever set.
    *
-   * @param pin identity PIN, set only in high security mode
+   * @param pin identity PIN, set only when a PIN protects the file
    * @param wrap credential store secret, set only when OS protection is on
    * @param plain key material to protect
    * @return the bytes to write, which are @p plain itself when neither secret
@@ -531,9 +468,9 @@ class GF_CORE_EXPORT AppSecureKeyManager
                       const GFBuffer& plain) -> GFBufferOrNone;
 
   /**
-   * @brief Recover the key from its on-disk form. Inverse of SealKey().
+   * @brief Recover the key from its stored form. Inverse of SealKey().
    *
-   * @param pin identity PIN, set only in high security mode
+   * @param pin identity PIN, set only when a PIN protects the file
    * @param wrap credential store secret, set only when OS protection is on
    * @param stored bytes read from the key file
    * @return the key material, or empty when it does not decrypt
@@ -543,43 +480,46 @@ class GF_CORE_EXPORT AppSecureKeyManager
 
  private:
   /**
-   * @brief Generate a fresh legacy key and persist it.
+   * @brief Generate a fresh key and persist it.
    *
+   * @param pin identity PIN
    * @param wrap wrap secret; when non-empty the file is written encrypted
    * @param[out] status failure detail when the returned buffer is empty
    * @return the plaintext key material, or an empty buffer on failure
    */
-  auto new_legacy_key(const GFBuffer& pin, const GFBuffer& wrap,
-                      AppSecureKeyInitResult& status) -> GFBuffer;
+  auto new_root_key(const GFBuffer& pin, const GFBuffer& wrap,
+                    ProfileKeyLoadResult& status) -> GFBuffer;
 
   /**
-   * @brief Load or create the legacy key and register it as active.
+   * @brief Load or create the profile's key and register it as active.
    *
    * @param pin identity PIN
    * @param wrap wrap secret
    * @return outcome
    */
-  auto init_legacy_key(const GFBuffer& pin, const GFBuffer& wrap)
-      -> AppSecureKeyInitResult;
+  auto init_root_key(const GFBuffer& pin, const GFBuffer& wrap)
+      -> ProfileKeyLoadResult;
 
   /**
-   * @brief Derive and persist the weekly rotating key. Secure level 3 only.
+   * @brief Derive and persist this period's rotating key.
    *
-   * Derived from the application secure key rather than from a PIN, so that
-   * rotation is independent of how — or whether — the key file is protected at
-   * rest. Setting, changing or clearing a PIN must never orphan a rotated key.
+   * Derived from the profile's key rather than from a PIN, so that rotation is
+   * independent of how — or whether — the key file is protected at rest.
+   * Setting, changing or clearing a PIN must never orphan a rotated key.
    *
-   * Also sets the active key ID, since at this level new objects are written
-   * under the rotated key rather than the legacy one.
+   * Also sets the active key ID, since in this mode new objects are written
+   * under the rotated key rather than the root one.
    *
-   * @param app_key application secure key to derive from
+   * @param app_key the profile's key to derive from
    * @return key material, or an empty buffer on failure
    */
   auto fetch_time_related_key(const GFBuffer& app_key) -> GFBuffer;
 
-  QMap<GFBuffer, GFBuffer> keys_;  ///< key ID to key material
-  GFBuffer active_key_id_;         ///< ID of the key used for new objects
-  GFBuffer legacy_key_id_;         ///< ID of the legacy key
+  QSharedPointer<ProfileAccessor> accessor_;  ///< where the key files live
+  QMap<GFBuffer, GFBuffer> keys_;             ///< key ID to key material
+  GFBuffer active_key_id_;                    ///< ID used for new objects
+  GFBuffer root_key_id_;                      ///< ID of the profile's own key
+  ProfileKeyMode mode_ = ProfileKeyMode::kSINGLE;
 };
 
 }  // namespace GpgFrontend

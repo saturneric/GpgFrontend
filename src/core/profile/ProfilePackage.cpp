@@ -26,7 +26,7 @@
  *
  */
 
-#include "core/function/ProfilePackage.h"
+#include "core/profile/ProfilePackage.h"
 
 #include <sodium.h>
 
@@ -40,8 +40,10 @@
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/ProfileBootstrap.h"
 #include "core/model/GFDataExchanger.h"
+#include "core/profile/Profile.h"
+#include "core/profile/ProfileLock.h"
+#include "core/profile/ProfileMarker.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 
@@ -173,6 +175,31 @@ auto RemoveDirectoryQuietly(const QString &path) -> void {
   QDir(path).removeRecursively();
 }
 
+/// Empty a session root of everything a dead process left, except the lock the
+/// live one is holding: removing that would hand the root to a second window
+/// while this one is still extracting into it.
+auto ClearSessionRootContents(const QString &path) -> void {
+  QDir dir(path);
+  if (!dir.exists()) return;
+
+  for (const auto &entry : dir.entryInfoList(
+           QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden)) {
+    if (entry.fileName() == "profile.lock") continue;
+    if (entry.isDir()) {
+      QDir(entry.absoluteFilePath()).removeRecursively();
+      continue;
+    }
+    QFile::remove(entry.absoluteFilePath());
+  }
+}
+
+/// A scratch tree that does not outlive the call that made it: until it is
+/// gone, an unprotected copy of an application key is sitting on this disk.
+struct ScratchGuard {
+  QString path;
+  ~ScratchGuard() { RemoveDirectoryQuietly(path); }
+};
+
 auto ReadWholeFile(const QString &path, qint64 max_bytes, QByteArray &out)
     -> bool {
   QFile file(path);
@@ -180,6 +207,176 @@ auto ReadWholeFile(const QString &path, qint64 max_bytes, QByteArray &out)
   if (max_bytes > 0 && file.size() > max_bytes) return false;
   out = file.readAll();
   return true;
+}
+
+auto WriteStagedAppKey(const QString &staging_dir, const GFBuffer &app_key)
+    -> bool {
+  if (app_key.Empty()) return false;
+
+  const auto directory =
+      staging_dir + "/" + kProfilePackageTreePrefix + "/secure";
+  if (!QDir().mkpath(directory)) return false;
+
+  QSaveFile file(directory + "/app.key");
+  if (!file.open(QIODevice::WriteOnly)) return false;
+
+  file.write(app_key.ConvertToQByteArray());
+  return file.commit();
+}
+
+auto WriteStagedSettings(const QString &staging_dir,
+                         const QMap<QString, QVariant> &settings) -> bool {
+  const auto directory =
+      staging_dir + "/" + kProfilePackageTreePrefix + "/config";
+  if (!QDir().mkpath(directory)) return false;
+
+  QSettings staged(directory + "/config.ini", QSettings::IniFormat);
+  staged.clear();
+  for (auto it = settings.constBegin(); it != settings.constEnd(); ++it) {
+    staged.setValue(it.key(), it.value());
+  }
+  staged.sync();
+
+  return staged.status() == QSettings::NoError;
+}
+
+auto WriteStagedManifest(const QString &staging_dir,
+                         const ProfilePackageManifest &manifest) -> bool {
+  QSaveFile file(staging_dir + "/manifest.json");
+  if (!file.open(QIODevice::WriteOnly)) return false;
+
+  file.write(EncodeProfilePackageManifest(manifest));
+  return file.commit();
+}
+
+auto WriteProfilePackage(const QString &staging_dir, const QString &dest_path,
+                         const ProfilePackageHeader &header,
+                         const GFBuffer &passphrase)
+    -> ProfilePackageWriteResult {
+  ProfilePackageWriteResult result;
+
+  const auto cap = ProfilePackagePayloadCap();
+
+  auto exchanger = CreateStandardGFDataExchanger();
+  GFError archive_error = 0;
+
+  // The archive is produced on another thread because the exchanger is a pipe:
+  // it holds a few megabytes and then blocks its writer until someone reads.
+  std::thread producer([&]() {
+    archive_error = ArchiveFileOperator::NewArchive2DataExchangerSync(
+        staging_dir, exchanger, ArchiveCompression::kGZIP);
+  });
+
+  QByteArray payload;
+  const auto within_cap = DrainExchanger(exchanger, cap, payload);
+  producer.join();
+
+  if (!within_cap) {
+    result.error =
+        QString(
+            "this profile is too large to export in one piece on this machine "
+            "(the limit is %1 MB)")
+            .arg(cap / (1024 * 1024));
+    return result;
+  }
+  if (archive_error < 0 || payload.isEmpty()) {
+    result.error = "the profile could not be packed";
+    return result;
+  }
+
+  QByteArray body;
+  if (header.protection == ProfilePackageProtection::kPIN) {
+    const auto encrypted =
+        AESCryptoHelper::Encrypt(passphrase, GFBuffer(payload));
+    if (!encrypted) {
+      result.error = "the package could not be encrypted";
+      return result;
+    }
+    body = encrypted->ConvertToQByteArray();
+  } else {
+    body = payload;
+  }
+
+  const auto header_bytes = EncodeProfilePackageHeader(header);
+
+  // Written beside the destination, so the final step is a rename inside one
+  // filesystem rather than a copy that could fail halfway. The destination is
+  // never opened for writing: a failed save that had truncated it would
+  // destroy keys, settings and workspace at once, and this file is the backup.
+  const auto temporary_path =
+      QString("%1/.%2.tmp-%3")
+          .arg(QFileInfo(dest_path).absolutePath(),
+               QFileInfo(dest_path).fileName(),
+               QUuid::createUuid().toString(QUuid::WithoutBraces).left(8));
+
+  {
+    QFile temporary(temporary_path);
+    if (!temporary.open(QIODevice::WriteOnly)) {
+      result.error = "the package file could not be created";
+      return result;
+    }
+    if (temporary.write(header_bytes) != header_bytes.size() ||
+        temporary.write(body) != body.size()) {
+      temporary.close();
+      QFile::remove(temporary_path);
+      result.error = "the package could not be written";
+      return result;
+    }
+    temporary.flush();
+
+    // Durable before it is believed: reading back what only the page cache
+    // knows would verify nothing about the file that survives a power cut.
+#ifdef Q_OS_UNIX
+    ::fsync(static_cast<int>(temporary.handle()));
+#endif
+    temporary.close();
+  }
+
+  // A package that cannot be read back is not a package. One extra decryption
+  // is worth knowing that before the only copy of something is trusted to it.
+  QByteArray written;
+  if (!ReadWholeFile(temporary_path, 0, written)) {
+    QFile::remove(temporary_path);
+    result.error = "the package could not be read back";
+    return result;
+  }
+
+  const auto view = ParseProfilePackageHeader(written);
+  if (!view.Ok() || view.header_bytes != header_bytes) {
+    QFile::remove(temporary_path);
+    result.error = "the package was written but does not read back correctly";
+    return result;
+  }
+
+  const auto written_body = written.mid(view.body_offset);
+  if (header.protection == ProfilePackageProtection::kPIN) {
+    const auto decrypted =
+        AESCryptoHelper::Decrypt(passphrase, GFBuffer(written_body));
+    if (!decrypted || decrypted->ConvertToQByteArray() != payload) {
+      QFile::remove(temporary_path);
+      result.error = "the package was written but cannot be decrypted";
+      return result;
+    }
+  } else if (written_body != payload) {
+    QFile::remove(temporary_path);
+    result.error = "the package was written but does not read back correctly";
+    return result;
+  }
+
+  if (QFileInfo::exists(dest_path) && !QFile::remove(dest_path)) {
+    QFile::remove(temporary_path);
+    result.error = "the existing package could not be replaced";
+    return result;
+  }
+  if (!QFile::rename(temporary_path, dest_path)) {
+    QFile::remove(temporary_path);
+    result.error = "the package could not be moved into place";
+    return result;
+  }
+
+  result.ok = true;
+  result.bytes = header_bytes.size() + body.size();
+  return result;
 }
 
 }  // namespace
@@ -526,21 +723,6 @@ auto StageProfileTree(const QString &profile_root, const QString &staging_dir,
   return result;
 }
 
-auto WriteStagedAppKey(const QString &staging_dir, const GFBuffer &app_key)
-    -> bool {
-  if (app_key.Empty()) return false;
-
-  const auto directory =
-      staging_dir + "/" + kProfilePackageTreePrefix + "/secure";
-  if (!QDir().mkpath(directory)) return false;
-
-  QSaveFile file(directory + "/app.key");
-  if (!file.open(QIODevice::WriteOnly)) return false;
-
-  file.write(app_key.ConvertToQByteArray());
-  return file.commit();
-}
-
 auto SnapshotSettings(QSettings &settings) -> QMap<QString, QVariant> {
   settings.sync();
 
@@ -549,161 +731,6 @@ auto SnapshotSettings(QSettings &settings) -> QMap<QString, QVariant> {
     snapshot.insert(key, settings.value(key));
   }
   return snapshot;
-}
-
-auto WriteStagedSettings(const QString &staging_dir,
-                         const QMap<QString, QVariant> &settings) -> bool {
-  const auto directory =
-      staging_dir + "/" + kProfilePackageTreePrefix + "/config";
-  if (!QDir().mkpath(directory)) return false;
-
-  QSettings staged(directory + "/config.ini", QSettings::IniFormat);
-  staged.clear();
-  for (auto it = settings.constBegin(); it != settings.constEnd(); ++it) {
-    staged.setValue(it.key(), it.value());
-  }
-  staged.sync();
-
-  return staged.status() == QSettings::NoError;
-}
-
-auto WriteStagedManifest(const QString &staging_dir,
-                         const ProfilePackageManifest &manifest) -> bool {
-  QSaveFile file(staging_dir + "/manifest.json");
-  if (!file.open(QIODevice::WriteOnly)) return false;
-
-  file.write(EncodeProfilePackageManifest(manifest));
-  return file.commit();
-}
-
-auto WriteProfilePackage(const QString &staging_dir, const QString &dest_path,
-                         const ProfilePackageHeader &header,
-                         const GFBuffer &passphrase)
-    -> ProfilePackageWriteResult {
-  ProfilePackageWriteResult result;
-
-  const auto cap = ProfilePackagePayloadCap();
-
-  auto exchanger = CreateStandardGFDataExchanger();
-  GFError archive_error = 0;
-
-  // The archive is produced on another thread because the exchanger is a pipe:
-  // it holds a few megabytes and then blocks its writer until someone reads.
-  std::thread producer([&]() {
-    archive_error = ArchiveFileOperator::NewArchive2DataExchangerSync(
-        staging_dir, exchanger, ArchiveCompression::kGZIP);
-  });
-
-  QByteArray payload;
-  const auto within_cap = DrainExchanger(exchanger, cap, payload);
-  producer.join();
-
-  if (!within_cap) {
-    result.error =
-        QString(
-            "this profile is too large to export in one piece on this machine "
-            "(the limit is %1 MB)")
-            .arg(cap / (1024 * 1024));
-    return result;
-  }
-  if (archive_error < 0 || payload.isEmpty()) {
-    result.error = "the profile could not be packed";
-    return result;
-  }
-
-  QByteArray body;
-  if (header.protection == ProfilePackageProtection::kPIN) {
-    const auto encrypted =
-        AESCryptoHelper::Encrypt(passphrase, GFBuffer(payload));
-    if (!encrypted) {
-      result.error = "the package could not be encrypted";
-      return result;
-    }
-    body = encrypted->ConvertToQByteArray();
-  } else {
-    body = payload;
-  }
-
-  const auto header_bytes = EncodeProfilePackageHeader(header);
-
-  // Written beside the destination, so the final step is a rename inside one
-  // filesystem rather than a copy that could fail halfway. The destination is
-  // never opened for writing: a failed save that had truncated it would
-  // destroy keys, settings and workspace at once, and this file is the backup.
-  const auto temporary_path =
-      QString("%1/.%2.tmp-%3")
-          .arg(QFileInfo(dest_path).absolutePath(),
-               QFileInfo(dest_path).fileName(),
-               QUuid::createUuid().toString(QUuid::WithoutBraces).left(8));
-
-  {
-    QFile temporary(temporary_path);
-    if (!temporary.open(QIODevice::WriteOnly)) {
-      result.error = "the package file could not be created";
-      return result;
-    }
-    if (temporary.write(header_bytes) != header_bytes.size() ||
-        temporary.write(body) != body.size()) {
-      temporary.close();
-      QFile::remove(temporary_path);
-      result.error = "the package could not be written";
-      return result;
-    }
-    temporary.flush();
-
-    // Durable before it is believed: reading back what only the page cache
-    // knows would verify nothing about the file that survives a power cut.
-#ifdef Q_OS_UNIX
-    ::fsync(static_cast<int>(temporary.handle()));
-#endif
-    temporary.close();
-  }
-
-  // A package that cannot be read back is not a package. One extra decryption
-  // is worth knowing that before the only copy of something is trusted to it.
-  QByteArray written;
-  if (!ReadWholeFile(temporary_path, 0, written)) {
-    QFile::remove(temporary_path);
-    result.error = "the package could not be read back";
-    return result;
-  }
-
-  const auto view = ParseProfilePackageHeader(written);
-  if (!view.Ok() || view.header_bytes != header_bytes) {
-    QFile::remove(temporary_path);
-    result.error = "the package was written but does not read back correctly";
-    return result;
-  }
-
-  const auto written_body = written.mid(view.body_offset);
-  if (header.protection == ProfilePackageProtection::kPIN) {
-    const auto decrypted =
-        AESCryptoHelper::Decrypt(passphrase, GFBuffer(written_body));
-    if (!decrypted || decrypted->ConvertToQByteArray() != payload) {
-      QFile::remove(temporary_path);
-      result.error = "the package was written but cannot be decrypted";
-      return result;
-    }
-  } else if (written_body != payload) {
-    QFile::remove(temporary_path);
-    result.error = "the package was written but does not read back correctly";
-    return result;
-  }
-
-  if (QFileInfo::exists(dest_path) && !QFile::remove(dest_path)) {
-    QFile::remove(temporary_path);
-    result.error = "the existing package could not be replaced";
-    return result;
-  }
-  if (!QFile::rename(temporary_path, dest_path)) {
-    QFile::remove(temporary_path);
-    result.error = "the package could not be moved into place";
-    return result;
-  }
-
-  result.ok = true;
-  result.bytes = header_bytes.size() + body.size();
-  return result;
 }
 
 auto InspectProfilePackage(const QString &package_path)
@@ -852,12 +879,7 @@ auto ExportProfilePackage(const ProfileExportRequest &request)
     return result;
   }
 
-  // Removed whatever happens: until it is gone, an unprotected copy of the
-  // application key is sitting on this disk.
-  struct ScratchGuard {
-    QString path;
-    ~ScratchGuard() { RemoveDirectoryQuietly(path); }
-  } const guard{staging};
+  const ScratchGuard guard{staging};
 
   const auto staged = StageProfileTree(request.profile_root, staging,
                                        request.include_workspace);
@@ -912,13 +934,25 @@ auto AdoptExtractedProfile(const QString &staging_dir,
                            const ProfilePackageManifest &manifest) -> QString {
   const auto tree = staging_dir + "/" + kProfilePackageTreePrefix;
   if (!QFileInfo::exists(tree)) return "the package carries no profile";
-  if (QFileInfo::exists(profile_root)) return "that profile already exists";
 
-  if (!QDir().mkpath(QFileInfo(profile_root).absolutePath())) {
+  if (!QDir().mkpath(profile_root)) {
     return "the profile folder could not be created";
   }
-  if (!QDir().rename(tree, profile_root)) {
-    return "the profile folder could not be created";
+
+  // Moved entry by entry rather than renamed wholesale, because the
+  // destination may already exist and be locked: a session root is created and
+  // locked before anything is extracted into it, and the lock file living
+  // there is exactly what must survive.
+  QDir source(tree);
+  for (const auto &entry : source.entryInfoList(
+           QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden)) {
+    const auto destination = profile_root + "/" + entry.fileName();
+    if (QFileInfo::exists(destination)) {
+      return QString("%1 is already there").arg(entry.fileName());
+    }
+    if (!QDir().rename(entry.absoluteFilePath(), destination)) {
+      return QString("%1 could not be unpacked").arg(entry.fileName());
+    }
   }
 
   auto marker = ReadProfileMarker(ProfileMarkerPathFor(profile_root))
@@ -930,15 +964,14 @@ auto AdoptExtractedProfile(const QString &staging_dir,
     marker.profile = manifest.app_profile;
   }
 
-  // A fresh identity, deliberately. The imported profile is a copy, and an
-  // identity shared with the profile it came from would mean two roots
-  // fighting over one credential-store entry.
-  marker.profile_uuid =
-      QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
+  // A new identity, deliberately, and the same one the directory is named by:
+  // the copy must not share an identity with the profile it came from, or the
+  // two roots would fight over one credential-store entry.
+  marker.profile_uuid = id;
   marker.credential_account.clear();
   marker.profile_id = id;
   marker.display_name = display_name;
-  marker.kind = ProfileRootKindToString(ProfileRootKind::kNAMED);
+  marker.kind = ProfileKindToString(ProfileKind::kPERSIST);
   marker.package_id = manifest.package_id;
   marker.self_contained = manifest.self_contained;
   marker.created = QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
@@ -951,13 +984,130 @@ auto AdoptExtractedProfile(const QString &staging_dir,
   // The application key inside a package is unprotected — the package's own
   // passphrase is what protected it — and the machine that wrote it may well
   // have recorded "keychain", which here would only strand the profile.
-  const auto settings_path =
-      ResolveSettingsFilePath(ProfileRootKind::kNAMED, profile_root);
+  const auto settings_path = profile_root + "/config/config.ini";
   QSettings settings(settings_path, QSettings::IniFormat);
   settings.setValue("advanced/app_key_protection", "none");
   settings.sync();
 
   return {};
+}
+
+auto ProfileSessionRoot(const QString &profiles_root,
+                        const QString &package_path) -> QString {
+  if (profiles_root.isEmpty() || package_path.isEmpty()) return {};
+
+  // Canonical where possible so that a package reached through a symlink or a
+  // relative path is recognised as the same package, and absolute otherwise so
+  // that a destination which does not exist yet still resolves.
+  const QFileInfo info(package_path);
+  const auto canonical = info.canonicalFilePath();
+  const auto path = canonical.isEmpty() ? info.absoluteFilePath() : canonical;
+
+  return QString("%1/.%2").arg(
+      profiles_root, ProfilePackageHeaderDigest(path.toUtf8()).left(32));
+}
+
+auto SweepTransientProfileRoots(const QString &profiles_root,
+                                const QString &keep_root) -> int {
+  QDir root(profiles_root);
+  if (!root.exists()) return 0;
+
+  const auto keep =
+      keep_root.isEmpty() ? QString{} : QFileInfo(keep_root).absoluteFilePath();
+
+  int removed = 0;
+  const auto entries =
+      root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden);
+
+  for (const auto &entry : entries) {
+    if (!entry.fileName().startsWith('.')) continue;
+
+    const auto path = entry.absoluteFilePath();
+    if (!keep.isEmpty() && path == keep) continue;
+
+    // Only an adopted session, never scratch: staging and extraction trees are
+    // dot-prefixed too and never hold a lock, so sweeping one would delete an
+    // export that another window is running right now.
+    if (!QFileInfo::exists(ProfileMarkerPathFor(path))) continue;
+
+    if (!ProfileLock::Probe(path).Ok()) continue;
+
+    if (QDir(path).removeRecursively()) {
+      LOG_I() << "removed a session left behind by a process that is gone:"
+              << path;
+      ++removed;
+    }
+  }
+
+  return removed;
+}
+
+auto OpenPackageSession(const QString &package_path,
+                        const QString &profiles_root,
+                        const GFBuffer &passphrase, int this_schema_version)
+    -> ProfileSessionOpenResult {
+  ProfileSessionOpenResult result;
+
+  const auto session_root = ProfileSessionRoot(profiles_root, package_path);
+  if (session_root.isEmpty()) {
+    result.status = ProfilePackageReadStatus::kIO_FAILED;
+    result.detail = "there is nowhere to open this package";
+    return result;
+  }
+
+  // Anything already there belonged to a process that is gone: whoever calls
+  // this holds the lock on the session root, so a live session could not have
+  // got this far. The lock file itself stays — it is the caller's, and it is
+  // what tells the next process this root is in use.
+  ClearSessionRootContents(session_root);
+
+  const auto staging = MakeProfilePackageScratchDir(profiles_root, "extract");
+  if (staging.isEmpty()) {
+    result.status = ProfilePackageReadStatus::kIO_FAILED;
+    result.detail = "a temporary folder could not be made";
+    return result;
+  }
+  const ScratchGuard guard{staging};
+
+  const auto read = ReadProfilePackage(package_path, staging, passphrase);
+  if (!read.Ok()) {
+    result.status = read.status;
+    result.detail = read.detail;
+    return result;
+  }
+
+  // Before anything is adopted, never after: a package this build must not
+  // touch has to leave no trace of having been opened.
+  ProfileMarker as_marker;
+  as_marker.schema_version = read.manifest.schema_version;
+  as_marker.min_reader_version = read.manifest.min_reader_version;
+  as_marker.profile = read.manifest.app_profile;
+  as_marker.last_writer_version = read.manifest.writer_version;
+
+  if (CheckProfileCompatibility(as_marker, true, this_schema_version) ==
+      ProfileCompatibility::kTOO_NEW) {
+    result.status = ProfilePackageReadStatus::kTOO_NEW;
+    result.detail = read.manifest.writer_version;
+    return result;
+  }
+
+  const auto display_name = read.manifest.display_name.isEmpty()
+                                ? read.manifest.profile_id
+                                : read.manifest.display_name;
+
+  const auto error = AdoptExtractedProfile(staging, session_root,
+                                           QFileInfo(session_root).fileName(),
+                                           display_name, read.manifest);
+  if (!error.isEmpty()) {
+    RemoveDirectoryQuietly(session_root);
+    result.status = ProfilePackageReadStatus::kIO_FAILED;
+    result.detail = error;
+    return result;
+  }
+
+  result.session_root = session_root;
+  result.manifest = read.manifest;
+  return result;
 }
 
 }  // namespace GpgFrontend

@@ -81,13 +81,6 @@ class GF_CORE_EXPORT ProfileLock {
       -> ProfileLockResult;
 
   /**
-   * @brief Whether this process holds a profile lock.
-   *
-   * @return true when held
-   */
-  static auto IsHeld() -> bool;
-
-  /**
    * @brief Ask whether a root is free, without keeping it.
    *
    * Opening a profile in a new window would otherwise mean launching a process
