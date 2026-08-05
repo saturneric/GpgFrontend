@@ -33,12 +33,20 @@
 #include <QStringList>
 #include <QDebug>
 
+// gf_ui's precompiled header is C++, which an Objective-C++ translation unit
+// cannot consume, so this file is built with the PCH skipped -- and the PCH is
+// what force-includes the generated export header everywhere else. Without it
+// GF_UI_EXPORT would not be defined here and the definition below would keep
+// the target's hidden default visibility, leaving the application unable to
+// link against it.
+#include "GFUiExport.h"
+
 #import <AppKit/AppKit.h>
 
 namespace GpgFrontend::UI {
 
 // NOLINTNEXTLINE
-bool RelaunchApplication(const QStringList& arguments) {
+GF_UI_EXPORT bool RelaunchApplication(const QStringList& arguments) {
   @autoreleasepool {
     NSURL* bundle_url = [[NSBundle mainBundle] bundleURL];
     if (bundle_url == nil) {
