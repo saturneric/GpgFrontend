@@ -37,6 +37,11 @@
 
 namespace {
 
+/// POSIX set-user-id bit, as stored in an archive entry's permissions.
+constexpr unsigned kPermSetUid = 04000;
+/// POSIX set-group-id bit, as stored in an archive entry's permissions.
+constexpr unsigned kPermSetGid = 02000;
+
 /**
  * @brief Copy one entry's data, counting what actually lands on disk.
  *
@@ -501,9 +506,13 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
         }
 
         // a set-user-id bit inside an archive is never something the
-        // recipient asked for
-        archive_entry_set_perm(
-            entry, archive_entry_perm(entry) & ~(S_ISUID | S_ISGID));
+        // recipient asked for. the bits live in the archive's stored
+        // permissions, not in the host's file mode, so they are masked by
+        // their fixed POSIX values rather than via <sys/stat.h> — mingw
+        // declares neither S_ISUID nor S_ISGID.
+        const auto perm = archive_entry_perm(entry);
+        archive_entry_set_perm(entry, static_cast<decltype(perm)>(
+                                          perm & ~(kPermSetUid | kPermSetGid)));
 
         // reject before writing, on the declared size, so an obviously
         // oversized entry never starts landing on disk at all
