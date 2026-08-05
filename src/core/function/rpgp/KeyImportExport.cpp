@@ -28,6 +28,8 @@
 
 #include "KeyImportExport.h"
 
+#include <optional>
+
 #include "core/GFCoreRust.h"
 #include "core/function/rpgp/KeyStorage.h"
 #include "core/utils/RustUtils.h"
