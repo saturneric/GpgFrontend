@@ -121,6 +121,26 @@ auto IsAppImageENV() -> bool {
   return !QString::fromLocal8Bit(qgetenv("APPIMAGE")).isEmpty();
 }
 
+auto ResolveApplicationDirPath() -> QString {
+  auto app_path = QCoreApplication::applicationDirPath();
+#ifdef Q_OS_LINUX
+  if (IsAppImageENV()) {
+    QFileInfo info(qEnvironmentVariable("APPIMAGE"));
+    const auto dir = info.canonicalPath();
+    if (!dir.isEmpty()) app_path = dir;
+  }
+#endif
+  return app_path;
+}
+
+auto ResolvePortableDataPath() -> QString {
+  const auto app_path = ResolveApplicationDirPath();
+  const auto canonical = QDir(app_path + "/../").canonicalPath();
+  // canonicalPath() is empty when the parent does not resolve, which would
+  // silently turn every derived path into a relative one
+  return canonical.isEmpty() ? QDir::cleanPath(app_path + "/..") : canonical;
+}
+
 auto ParseHexEncodedVersionTuple(const QString& s) -> int {
   // s is a hex-encoded, unsigned int-packed version tuple,
   // i.e. each byte represents one part of the version tuple

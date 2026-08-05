@@ -157,6 +157,18 @@ auto GF_CORE_EXPORT GetAppProfileName() -> QString;
 auto GF_CORE_EXPORT IsStableBuild() -> bool;
 
 /**
+ * @brief Return whether this is a portable build.
+ *
+ * A portable build keeps its data in the directory above the application rather
+ * than in the OS user-data location. This is decided when the artifact is built
+ * and never at run time: it chooses which directory holds the user's keys, so
+ * it must not be switchable by dropping a file beside the binary.
+ *
+ * @return true when built with -DGPGFRONTEND_BUILD_PORTABLE=ON
+ */
+auto GF_CORE_EXPORT IsPortableBuild() -> bool;
+
+/**
  * @brief Return whether this build can verify its own libraries and binaries.
  *
  * The signatures the check compares against are only made when an official

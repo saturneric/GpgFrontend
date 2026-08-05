@@ -162,13 +162,13 @@ auto GF_CORE_EXPORT SecureLevelFromApp() -> int;
 /**
  * @brief Resolve a startup setting across its three layers.
  *
- * Precedence is ENV.ini override, then the user's stored value, then the
+ * Precedence is the pinned deployment override, then the user's stored value,
  * built-in default. An invalid QVariant means "this layer has no value", which
  * is exactly what QSettings::value() returns for a missing key — so a layer
  * that is merely absent falls through instead of overriding with an empty
  * value.
  *
- * @param env_value value from ENV.ini, or an invalid QVariant if unset
+ * @param env_value pinned deployment value, or an invalid QVariant if unset
  * @param user_value value from the user settings, or invalid if unset
  * @param fallback built-in default, used when neither layer has a value
  * @return the winning value
@@ -176,5 +176,23 @@ auto GF_CORE_EXPORT SecureLevelFromApp() -> int;
 auto GF_CORE_EXPORT ResolveLayeredValue(const QVariant& env_value,
                                         const QVariant& user_value,
                                         const QVariant& fallback) -> QVariant;
+
+/**
+ * @brief The directory holding the application binary, AppImage-aware.
+ *
+ * @return absolute path
+ */
+auto GF_CORE_EXPORT ResolveApplicationDirPath() -> QString;
+
+/**
+ * @brief The data root a portable build uses: the directory above the
+ * application.
+ *
+ * On Linux the application directory points inside a read-only AppImage mount,
+ * so $APPIMAGE is followed instead.
+ *
+ * @return absolute path
+ */
+auto GF_CORE_EXPORT ResolvePortableDataPath() -> QString;
 
 }  // namespace GpgFrontend

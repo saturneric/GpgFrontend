@@ -61,6 +61,7 @@ option(GPGFRONTEND_BUILD_APP_IMAGE "Build AppImage" OFF)
 option(GPGFRONTEND_BUILD_MODULES "Build Modules" ON)
 option(GPGFRONTEND_BUILD_STRIP_RPATH "Strip RPATH from binaries for packaging" OFF)
 option(GPGFRONTEND_BUILD_STABLE "Build as a stable release (drops the \"Testing\" display-name suffix)" OFF)
+option(GPGFRONTEND_BUILD_PORTABLE "Build as a portable release (data lives beside the application, not in the OS user-data location)" OFF)
 
 # xcode build options
 option(GPGFRONTEND_XCODE_TEAM_ID "GpgFrontend Apple Team ID" "NONE")
@@ -403,6 +404,19 @@ else()
 endif()
 
 message(STATUS "App Profile Name: ${GPGFRONTEND_APP_PROFILE_NAME}")
+
+# Whether this artifact keeps its data beside itself rather than in the OS
+# user-data location. A build option rather than anything discovered at run
+# time: it decides which directory holds the user's keys, so it must not be
+# switchable by dropping a file next to the binary, and a portable release is a
+# separately packaged artifact anyway.
+if(GPGFRONTEND_BUILD_PORTABLE)
+  set(GPGFRONTEND_BUILD_PORTABLE_INT 1)
+else()
+  set(GPGFRONTEND_BUILD_PORTABLE_INT 0)
+endif()
+
+message(STATUS "Portable Build: ${GPGFRONTEND_BUILD_PORTABLE}")
 
 # Set build information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
