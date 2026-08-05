@@ -27,7 +27,23 @@
  */
 #include "GFCoreLog.h"
 
+#include <optional>
+
 namespace GpgFrontend {
+
+auto ParseLogLevelName(const QString& log_level) -> std::optional<int> {
+  const auto level = log_level.trimmed().toLower();
+
+  // "none" is what the option declares as its default placeholder rather than
+  // a level anybody asks for, so it means "say nothing" — not "be quiet".
+  if (level.isEmpty() || level == "none") return {};
+
+  if (level == "debug") return static_cast<int>(GFLogLevel::kDEBUG);
+  if (level == "info") return static_cast<int>(GFLogLevel::kINFO);
+  if (level == "warn") return static_cast<int>(GFLogLevel::kWARNING);
+  if (level == "error") return static_cast<int>(GFLogLevel::kCRITICAL);
+  return {};
+}
 
 auto BuildQtLoggingFilterRules(int level) -> QString {
   switch (static_cast<GFLogLevel>(level)) {

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 namespace GpgFrontend {
 
 /**
@@ -46,6 +48,19 @@ enum class GFLogLevel : uint8_t {
   kCRITICAL = 3,
   kFATAL = 4
 };
+
+/**
+ * @brief Read a log level name.
+ *
+ * Pure, so that the command line can take part in the same layered resolution
+ * as every other knob instead of being applied once and then overwritten by
+ * whatever the settings happened to say.
+ *
+ * @param level name: debug, info, warn, error, or none
+ * @return the GFLogLevel as an int, or nothing when the name is unusable
+ */
+auto GF_CORE_EXPORT ParseLogLevelName(const QString& level)
+    -> std::optional<int>;
 
 /**
  * @brief Represents a single log entry with metadata such as timestamp,

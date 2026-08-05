@@ -29,7 +29,6 @@
 #include <QSettings>
 #include <QTemporaryDir>
 
-#include "Command.h"
 #include "core/GFCoreLog.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/profile/Profile.h"

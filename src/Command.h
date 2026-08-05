@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include <optional>
-
 #include "GpgFrontendContext.h"
 
 namespace GpgFrontend {
@@ -37,18 +35,6 @@ namespace GpgFrontend {
 // functions
 
 auto PrintVersion() -> int;
-
-/**
- * @brief Read a log level name.
- *
- * Pure, so that the command line can take part in the same layered resolution
- * as every other knob instead of being applied once and then overwritten by
- * whatever the settings happened to say.
- *
- * @param level name: debug, info, warn, error, or none
- * @return the GFLogLevel as an int, or nothing when the name is unusable
- */
-auto ParseLogLevelName(const QString& level) -> std::optional<int>;
 
 /**
  * @brief Put a log level into effect, for both loggers.

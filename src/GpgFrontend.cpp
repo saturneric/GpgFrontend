@@ -35,6 +35,7 @@
 #include "Command.h"
 #include "GpgFrontendContext.h"
 #include "Initialize.h"
+#include "core/GFCoreLog.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSession.h"
