@@ -30,6 +30,7 @@
 
 #include <QSqlError>
 #include <QSqlQuery>
+#include <optional>
 
 namespace GpgFrontend {
 

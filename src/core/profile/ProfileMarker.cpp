@@ -28,6 +28,8 @@
 
 #include "core/profile/ProfileMarker.h"
 
+#include <optional>
+
 namespace GpgFrontend {
 
 auto ProfileMarkerPathFor(const QString& profile_root) -> QString {

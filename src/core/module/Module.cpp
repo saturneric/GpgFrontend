@@ -28,6 +28,8 @@
 
 #include "Module.h"
 
+#include <optional>
+
 #include "core/module/GlobalModuleContext.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"

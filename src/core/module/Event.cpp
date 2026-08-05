@@ -28,6 +28,8 @@
 
 #include "Event.h"
 
+#include <optional>
+
 #include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKModuleModel.h"
 

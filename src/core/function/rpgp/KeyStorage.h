@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"

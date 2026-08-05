@@ -29,6 +29,7 @@
 #pragma once
 
 #include <QSqlDatabase>
+#include <optional>
 
 #include "core/typedef/GFTypedef.h"
 

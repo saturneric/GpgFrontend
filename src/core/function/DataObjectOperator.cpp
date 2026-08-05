@@ -31,6 +31,7 @@
 #include <sodium.h>
 
 #include <cstring>
+#include <optional>
 
 #include "core/GFCoreInit.h"
 #include "core/function/GFBufferFactory.h"

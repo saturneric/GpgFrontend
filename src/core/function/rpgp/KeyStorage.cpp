@@ -28,6 +28,8 @@
 
 #include "KeyStorage.h"
 
+#include <optional>
+
 #include "core/GFCoreRust.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"

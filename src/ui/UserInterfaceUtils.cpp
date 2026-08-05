@@ -28,6 +28,8 @@
 
 #include "UserInterfaceUtils.h"
 
+#include <optional>
+
 #include "core/GFConstants.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"

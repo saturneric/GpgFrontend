@@ -31,6 +31,8 @@
 #include <qinputdialog.h>
 #include <qlineedit.h>
 
+#include <optional>
+
 #include "core/function/SystemSecretStore.h"
 #include "ui/dialog/AppKeyPinDialog.h"
 

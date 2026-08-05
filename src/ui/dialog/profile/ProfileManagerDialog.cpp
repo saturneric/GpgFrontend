@@ -31,6 +31,7 @@
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <optional>
 
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/DataObjectOperator.h"

@@ -29,6 +29,7 @@
 #include "KeyMgmt.h"
 
 #include <cassert>
+#include <optional>
 
 #include "core/function/KeyPackageOperator.h"
 #include "core/function/openpgp/GpgKeyRepository.h"

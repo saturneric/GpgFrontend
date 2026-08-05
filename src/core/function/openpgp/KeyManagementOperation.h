@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/typedef/GpgTypedef.h"
 

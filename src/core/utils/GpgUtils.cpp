@@ -28,6 +28,8 @@
 
 #include "GpgUtils.h"
 
+#include <optional>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgComponentManager.h"
 #include "core/function/openpgp/AbstractKeyRepository.h"

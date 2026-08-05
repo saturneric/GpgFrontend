@@ -30,6 +30,7 @@
 
 #include <algorithm>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <shared_mutex>
 

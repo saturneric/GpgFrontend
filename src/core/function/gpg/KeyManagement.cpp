@@ -28,6 +28,8 @@
 
 #include "KeyManagement.h"
 
+#include <optional>
+
 #include "core/function/gpg/GpgAssuanHelper.h"
 #include "core/function/gpg/GpgAutomatonHandler.h"
 #include "core/function/gpg/GpgCommandExecutor.h"

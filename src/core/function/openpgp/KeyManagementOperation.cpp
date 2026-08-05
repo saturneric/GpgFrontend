@@ -28,6 +28,8 @@
 
 #include "KeyManagementOperation.h"
 
+#include <optional>
+
 #include "core/function/openpgp/helper/Async.h"
 #include "core/function/openpgp/traits/KeyManagementTraits.h"
 #include "core/model/DataObject.h"

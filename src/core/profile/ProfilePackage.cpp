@@ -35,6 +35,7 @@
 #include <QJsonDocument>
 #include <QSaveFile>
 #include <QUuid>
+#include <optional>
 #include <thread>
 
 #include "core/function/AESCryptoHelper.h"

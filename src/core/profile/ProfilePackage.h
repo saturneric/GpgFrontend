@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/model/GFBuffer.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/typedef/CoreTypedef.h"

@@ -28,6 +28,8 @@
 
 #include "KeySetExpireDateDialog.h"
 
+#include <optional>
+
 #include "core/function/openpgp/KeyManagementOperation.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"

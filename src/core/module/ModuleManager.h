@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Event.h"
 #include "core/utils/MemoryUtils.h"

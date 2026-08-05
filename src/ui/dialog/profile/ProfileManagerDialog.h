@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileRegistry.h"
 #include "ui/dialog/GeneralDialog.h"

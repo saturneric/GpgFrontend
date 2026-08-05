@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/profile/ProfileLoader.h"
 
 namespace GpgFrontend::UI {

@@ -28,6 +28,8 @@
 
 #include "ModuleManager.h"
 
+#include <optional>
+
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/GlobalModuleContext.h"

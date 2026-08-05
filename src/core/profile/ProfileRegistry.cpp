@@ -28,6 +28,8 @@
 
 #include "ProfileRegistry.h"
 
+#include <optional>
+
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileMarker.h"
 #include "core/utils/BuildInfoUtils.h"

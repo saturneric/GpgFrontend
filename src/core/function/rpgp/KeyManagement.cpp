@@ -28,6 +28,8 @@
 
 #include "KeyManagement.h"
 
+#include <optional>
+
 #include "core/GFCoreRust.h"
 #include "core/function/GFKeyDatabase.h"
 #include "core/function/openpgp/KeyGroupRepository.h"

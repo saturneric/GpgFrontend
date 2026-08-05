@@ -29,6 +29,7 @@
 #include "core/profile/ProfileLoader.h"
 
 #include <QUuid>
+#include <optional>
 
 #include "core/function/AESCryptoHelper.h"
 #include "core/profile/ProfileMigration.h"

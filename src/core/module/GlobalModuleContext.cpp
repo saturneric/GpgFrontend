@@ -28,6 +28,7 @@
 
 #include "GlobalModuleContext.h"
 
+#include <optional>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
