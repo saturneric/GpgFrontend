@@ -39,6 +39,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SystemSecretStore.h"
 #include "core/module/ModuleManager.h"
+#include "core/profile/ProfileSession.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
@@ -177,6 +178,16 @@ auto PrintEnvInfo() -> int {
   stream << "Key Database(s): " << '\n';
   stream << '\n';
 
+  // The list is a data object, so it is sealed with the profile's key. Reading
+  // it without one used to abort the whole command; saying so instead is what
+  // makes this usable on a profile that will not open, which is exactly when
+  // somebody runs it.
+  if (!ProfileSession::Instance().KeysLoaded()) {
+    stream << Tr("Unavailable: the profile's key set is not loaded.") << '\n';
+    stream << Qt::endl;
+    return 0;
+  }
+
   int index = 0;
   auto key_dbs = GetKeyDatabaseInfoBySettings();
   for (const auto& key_database : key_dbs) {
@@ -188,39 +199,46 @@ auto PrintEnvInfo() -> int {
   return 0;
 }
 
-auto ParseLogLevel(const QString& log_level) -> int {
-  // default value
-  auto level = log_level.toLower();
-  if (level == "none") level = "error";
+auto ParseLogLevelName(const QString& log_level) -> std::optional<int> {
+  const auto level = log_level.trimmed().toLower();
 
-  GFLogLevel gf_level;
-  // env_logger level name for the Rust (rPGP) crate; keeps the Rust logger
-  // aligned with the C++ logger so both honour a single --log-level flag.
+  // "none" is what the option declares as its default placeholder rather than
+  // a level anybody asks for, so it means "say nothing" — not "be quiet".
+  if (level.isEmpty() || level == "none") return {};
+
+  if (level == "debug") return static_cast<int>(GFLogLevel::kDEBUG);
+  if (level == "info") return static_cast<int>(GFLogLevel::kINFO);
+  if (level == "warn") return static_cast<int>(GFLogLevel::kWARNING);
+  if (level == "error") return static_cast<int>(GFLogLevel::kCRITICAL);
+  return {};
+}
+
+void ApplyLogLevel(int level) {
+  SetGFLogLevel(level);
+  QLoggingCategory::setFilterRules(BuildQtLoggingFilterRules(level));
+
+  // env_logger level name for the Rust (rPGP) crate, propagated via RUST_LOG
+  // and read by gfr_init_logger() at core init. A RUST_LOG already set by the
+  // user wins.
   const char* rust_level;
-  if (level == "debug") {
-    gf_level = GFLogLevel::kDEBUG;
-    rust_level = "debug";
-  } else if (level == "info") {
-    gf_level = GFLogLevel::kINFO;
-    rust_level = "info";
-  } else if (level == "warn") {
-    gf_level = GFLogLevel::kWARNING;
-    rust_level = "warn";
-  } else {
-    gf_level = GFLogLevel::kCRITICAL;
-    rust_level = "error";
+  switch (static_cast<GFLogLevel>(level)) {
+    case GFLogLevel::kDEBUG:
+      rust_level = "debug";
+      break;
+    case GFLogLevel::kINFO:
+      rust_level = "info";
+      break;
+    case GFLogLevel::kWARNING:
+      rust_level = "warn";
+      break;
+    default:
+      rust_level = "error";
+      break;
   }
 
-  SetGFLogLevel(static_cast<int>(gf_level));
-  QLoggingCategory::setFilterRules(
-      BuildQtLoggingFilterRules(static_cast<int>(gf_level)));
-
-  // Propagate to the Rust logger via RUST_LOG, read by gfr_init_logger() at
-  // core init (which runs after this). A RUST_LOG already set by the user wins.
   if (!qEnvironmentVariableIsSet("RUST_LOG")) {
     qputenv("RUST_LOG", rust_level);
   }
-  return 0;
 }
 
 auto RunTest(const GFCxtWPtr& p_ctx) -> int {

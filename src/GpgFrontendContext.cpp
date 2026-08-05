@@ -34,9 +34,13 @@
 #include <qthread.h>
 
 #include "core/GFCoreLog.h"
-#include "core/function/AppSecureKeyManager.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/ProfileBootstrap.h"
+#include "core/profile/Profile.h"
+#include "core/profile/ProfileLoader.h"
+#include "core/profile/ProfileMarker.h"
+#include "core/profile/ProfileRegistry.h"
+#include "core/profile/ProfileSecureKeyManager.h"
+#include "core/profile/ProfileSession.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/GpgFrontendApplication.h"
@@ -54,42 +58,45 @@ auto DisplayPath(const QString& path) -> QString {
 namespace GpgFrontend {
 
 void GpgFrontendContext::load_env_conf_set_properties() {
-  const auto env_config = QDir::currentPath() + "/ENV.ini";
-  const auto has_env = QFileInfo(env_config).exists();
-  if (!has_env) {
-    qInfo() << "No ENV.ini found, falling back to user settings and defaults.";
-  }
+  // The deployment overrides this profile pins, from its own profile.json. They
+  // used to live in an ENV.ini read from the process working directory, which
+  // meant the same installation resolved differently depending on where it was
+  // started from, and that one file governed every profile at once even though
+  // settings have always been per-profile.
+  const auto& session = ProfileSession::Instance();
+  const auto& deployment = session.Marker().deployment;
 
-  QSettings s(env_config, QSettings::IniFormat);
-
-  // Deployment-only knobs: ENV.ini is the single source for these.
-  //
-  // GFPortableMode is deliberately absent: it is now a mirror of the resolved
-  // profile kind, published by establish_profile_runtime() before this runs.
-  // Re-deriving it from ENV.ini here would say "portable" for a session that
-  // was explicitly started on a named profile with `--profile`, which is a
-  // location ENV.ini has no say over.
-  property("GFGnuPGOfflineMode",
-           has_env && s.value("GnuPGOfflineMode", false).toBool());
-  property("GFPinentryProgramPath",
-           has_env ? s.value("PinentryProgramPath", "").toString() : QString());
-
-  // The knobs below are also editable in Settings -> Advanced, so they resolve
-  // in three layers: an ENV.ini key wins (deployment override), else the user's
-  // stored setting, else the built-in default. Keys present in ENV.ini are
-  // recorded in GFEnvLockedKeys so the Advanced tab can show them read-only
-  // rather than accepting an edit that would silently revert on restart.
-  auto user = GetEarlySettings();
-  QStringList locked_keys;
-
-  const auto resolve = [&](const QString& env_key, const QString& user_key,
-                           const QVariant& fallback) {
-    const auto env_value = has_env ? s.value(env_key) : QVariant();
-    if (env_value.isValid()) locked_keys << user_key;
-    return ResolveLayeredValue(env_value, user.value(user_key), fallback);
+  const auto env_value = [&deployment](const char* key) {
+    return deployment.value(QLatin1String(key));
   };
 
-  // Resolve first, so an ENV.ini SelfCheck key still registers as pinned and
+  // Deployment-only knobs: the marker is the single source for these.
+  //
+  // GFPortableMode is deliberately absent: it is a mirror of the resolved
+  // profile kind, published by mirror_profile_properties() before this runs.
+  // Re-deriving it here would say "portable" for a session that was explicitly
+  // started on a named profile with `--profile`, which is a location the
+  // build flavour has no say over.
+  property("GFGnuPGOfflineMode", env_value("GnuPGOfflineMode").toBool());
+  property("GFPinentryProgramPath",
+           env_value("PinentryProgramPath").toString());
+
+  // The knobs below are also editable in Settings -> Advanced, so they resolve
+  // in three layers: a pinned key wins (deployment override), else the user's
+  // stored setting, else the built-in default. Pinned keys are recorded in
+  // GFEnvLockedKeys so the Advanced tab can show them read-only rather than
+  // accepting an edit that would silently revert on restart.
+  auto user = session.Settings();
+  QStringList locked_keys;
+
+  const auto resolve = [&](const char* env_key, const QString& user_key,
+                           const QVariant& fallback) {
+    const auto pinned = env_value(env_key);
+    if (pinned.isValid()) locked_keys << user_key;
+    return ResolveLayeredValue(pinned, user.value(user_key), fallback);
+  };
+
+  // Resolve first, so a pinned SelfCheck key still registers as pinned and
   // the Advanced tab stays consistent, then let the build flavour have the last
   // word: a nightly ships no build-time signatures, so a check asked for there
   // could only ever fail and is forced off.
@@ -101,21 +108,17 @@ void GpgFrontendContext::load_env_conf_set_properties() {
 
   // How the key file is protected at rest used to live in two settings keys:
   // os_secret_store for the credential store, and secure_level >= 3 for a PIN.
-  // Both now feed one key, so the resolution draws on three ENV.ini keys rather
+  // Both now feed one key, so the resolution draws on three pinned keys rather
   // than one and cannot go through resolve(). The migration stays derived — it
   // is recomputed every start and nothing is written back, because this runs
   // before the secure allocator exists.
-  const auto env_value = [&](const char* key) {
-    return has_env ? s.value(QLatin1String(key)) : QVariant();
-  };
-
-  auto protection = ResolveAppKeyProtection(
+  auto protection = ProfileLoader::ResolveAppKeyProtection(
       env_value("AppKeyProtection"), env_value("SecureLevel"),
       env_value("OSSecretStore"), user.value("advanced/app_key_protection"),
       user.value("advanced/secure_level"),
       user.value("advanced/os_secret_store"));
 
-  // Any ENV.ini key that could have decided the protection pins it, so the
+  // Any pinned key that could have decided the protection pins it, so the
   // Advanced tab shows it read-only rather than accepting an edit that would
   // silently revert on the next start.
   if (env_value("AppKeyProtection").isValid() ||
@@ -128,14 +131,23 @@ void GpgFrontendContext::load_env_conf_set_properties() {
   // Portable installs allow only "none" and "pin". Resolving that here rather
   // than at each reader keeps the startup banner, the Advanced tab, and the key
   // loader from disagreeing about what is actually in effect.
-  protection =
-      ApplyPortableModeRule(protection, property("GFPortableMode").toBool());
+  protection = ProfileLoader::ApplyProfilePortabilityRule(
+      protection, ProfileSession::Instance().Profile().AllowsSystemKeychain());
 
   property("GFAppKeyProtection", AppKeyProtectionToString(protection));
+
+  // `--log-level` sits above every stored layer. It has to be resolved here
+  // rather than merely applied in main(), because PreInit() puts the property
+  // below into effect -- so a flag that did not reach the property would be
+  // silently undone by whatever advanced/log_level happened to say.
+  //
   // An unset log level reads back as 0 (== kDEBUG), which would enable debug
   // logging even in release builds. Default to error level explicitly.
-  property("GFLogLevel", resolve("LogLevel", "advanced/log_level",
-                                 static_cast<int>(GFLogLevel::kCRITICAL))
+  const auto stored_log_level =
+      resolve("LogLevel", "advanced/log_level",
+              static_cast<int>(GFLogLevel::kCRITICAL));
+  property("GFLogLevel", ResolveLayeredValue(cli_log_level, stored_log_level,
+                                             stored_log_level)
                              .toInt());
   property("GFLogRingBufferCapacity",
            resolve("LogRingBufferCapacity", "advanced/log_ring_buffer_capacity",
@@ -154,12 +166,19 @@ void GpgFrontendContext::load_env_conf_set_properties() {
       property("GFPinentryProgramPath").toString();
   const auto ring_buffer_capacity = property("GFLogRingBufferCapacity").toInt();
 
-  // Mark the values ENV.ini pinned, so a support log makes it obvious why the
-  // Advanced tab is not in charge of a given knob.
+  // Mark the values the profile pinned, so a support log makes it obvious why
+  // the Advanced tab is not in charge of a given knob.
   const auto source = [&locked_keys](const QString& user_key) -> QString {
-    return locked_keys.contains(user_key) ? QStringLiteral("  (ENV.ini)")
+    return locked_keys.contains(user_key) ? QStringLiteral("  (profile.json)")
                                           : QString();
   };
+
+  // The command line is deliberately not in locked_keys: it applies to this run
+  // only, so showing the Advanced row as permanently read-only would be a lie.
+  // The banner still has to say where the value came from.
+  const auto log_level_source = cli_log_level.isValid()
+                                    ? QStringLiteral("  (command line)")
+                                    : source("advanced/log_level");
 
   qInfo().noquote().nospace()
       << "\n"
@@ -170,8 +189,7 @@ void GpgFrontendContext::load_env_conf_set_properties() {
       << source("advanced/secure_level") << "\n"
       << "App Key Protection      : " << app_key_protection
       << source("advanced/app_key_protection") << "\n"
-      << "Log Level               : " << log_level
-      << source("advanced/log_level") << "\n"
+      << "Log Level               : " << log_level << log_level_source << "\n"
       << "Portable Mode           : " << BoolText(portable_mode) << "\n"
       << "GnuPG Offline Mode      : " << BoolText(gpg_offline_mode) << "\n"
       << "Pinentry Program Path   : " << DisplayPath(pinentry_program_path)
@@ -181,83 +199,41 @@ void GpgFrontendContext::load_env_conf_set_properties() {
       << "==================================================================";
 }
 
-void GpgFrontendContext::establish_profile_runtime() {
-  // PortableMode has to be read here rather than taken from
-  // load_env_conf_set_properties(), which has not run yet and cannot: it reads
-  // user settings, and where those live is exactly what is being decided.
-  const auto env_config = QDir::currentPath() + "/ENV.ini";
-  const auto has_env = QFileInfo(env_config).exists();
-  QSettings env(env_config, QSettings::IniFormat);
-
-  ProfileBootstrapInput in;
+void GpgFrontendContext::resolve_profile_selection() {
+  ProfileSelectionInput in;
   in.args = QCoreApplication::arguments();
   in.env_profile = qEnvironmentVariable("GF_PROFILE");
-  in.env_profile_root = qEnvironmentVariable("GF_PROFILE_ROOT");
-  in.env_ini_portable = has_env && env.value("PortableMode", false).toBool();
+  in.portable_build = IsPortableBuild();
   in.portable_root = ResolvePortableDataPath();
-  in.classic_root =
+  in.installed_root =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
 
-  // The registry does not exist yet at this point in the feature's life, so
-  // known_ids stays empty and registry_available stays false: an id that is not
-  // in a list nobody has written is not an unknown profile.
+  // A scan rather than an index, so there is nothing here that can disagree
+  // with the filesystem. Cheap, and it is the only thing that makes naming a
+  // profile that does not exist an error rather than a request to create one.
+  const auto base = in.portable_build ? in.portable_root : in.installed_root;
+  for (const auto& entry : ScanProfilesRoot(base + "/profiles")) {
+    in.known_ids << entry.id;
+  }
 
-  auto result = ResolveProfileBootstrap(in);
+  auto result = ResolveProfileSelection(in);
   profile_error = result.error;
-
-  // Packages resolve to kPACKAGE_PENDING, a state whose root is by definition
-  // not usable until the package has been extracted — and nothing extracts one
-  // yet. Left as it is, the first setting read would abort the process; turned
-  // into an ordinary bootstrap error it is reported in a dialog, and the
-  // runtime still gets a real root to be established on so that reporting can
-  // happen at all. Replaced by the extraction step when packages land.
-  if (result.error.isEmpty() &&
-      result.state.kind == ProfileRootKind::kPACKAGE_PENDING) {
-    const auto package = result.state.pending_package;
-    qWarning() << "cannot open profile package yet:" << package;
-
-    auto fallback = in;
-    fallback.args.removeAll(package);
-    result = ResolveProfileBootstrap(fallback);
-
-    profile_error = QCoreApplication::translate(
-                        "GpgFrontendContext",
-                        "Profile packages cannot be opened by this version "
-                        "yet:") +
-                    "\n" + QDir::toNativeSeparators(package);
-  }
-
-  // The resolver is pure and never reads a file, but a profile's policy is
-  // recorded in its own marker — so it is loaded here, before the runtime is
-  // fixed. Portable keeps the policy the resolver gave it: for that shape the
-  // location *is* the decision, and there may be no marker yet at all.
-  if (result.error.isEmpty() &&
-      result.state.kind != ProfileRootKind::kPORTABLE &&
-      result.state.kind != ProfileRootKind::kPACKAGE_PENDING) {
-    if (const auto marker =
-            ReadProfileMarker(ProfileMarkerPathFor(result.state.root))) {
-      result.state.policy.self_contained = marker->self_contained;
-    }
-  }
-
-  ProfileRuntime::Establish(result.state);
-  mirror_profile_properties();
+  profile_selection = result.selection;
 }
 
 void GpgFrontendContext::mirror_profile_properties() {
-  const auto& p = ProfileRuntime::Instance();
+  const auto& session = ProfileSession::Instance();
+  const auto& profile = session.Profile();
 
-  property("GFPortableMode", p.kind == ProfileRootKind::kPORTABLE);
-  property("GFProfileId", p.id);
-  property("GFProfileKind", ProfileRootKindToString(p.kind));
-  property("GFProfilesRoot", p.profiles_root);
-  property("GFProfileSelfContained", p.policy.self_contained);
-  property("GFProfilePendingPackage", p.pending_package);
-  property("GFProfileRoot",
-           p.kind == ProfileRootKind::kPACKAGE_PENDING ? QString{} : p.root);
+  property("GFPortableMode", profile.Kind() == ProfileKind::kPORTABLE_ROOT);
+  property("GFProfileId", profile.Id());
+  property("GFProfileKind", ProfileKindToString(profile.Kind()));
+  property("GFProfilesRoot", profile_selection.profiles_root);
+  property("GFProfileSelfContained", profile.Policy().self_contained);
+  property("GFProfileRoot", profile.Root());
 }
 
-void GpgFrontendContext::ReloadEnvProperties() {
+void GpgFrontendContext::LoadEnvProperties() {
   mirror_profile_properties();
   load_env_conf_set_properties();
 }
@@ -265,11 +241,11 @@ void GpgFrontendContext::ReloadEnvProperties() {
 void GpgFrontendContext::InitApplication() {
   app_ = new UI::GpgFrontendApplication(argc, argv);
 
-  // Before anything reads a setting: every path below is keyed by the profile
-  // root, and GetEarlySettings() is called from load_env_conf_set_properties().
-  establish_profile_runtime();
-
-  load_env_conf_set_properties();
+  // Only decides *which* profile. Opening it needs a passphrase prompt and a
+  // lock, so it belongs to the loader — and nothing here may read a setting
+  // until that has happened, because where the settings live is exactly what
+  // is being decided.
+  resolve_profile_selection();
 }
 
 auto GpgFrontendContext::GetApp() -> QApplication* { return app_; }

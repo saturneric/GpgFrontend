@@ -31,6 +31,7 @@
 #include <QApplication>
 
 #include "core/GFConstants.h"
+#include "core/profile/Profile.h"
 
 namespace GpgFrontend {
 
@@ -49,15 +50,27 @@ struct GpgFrontendContext {
   int rtn = GpgFrontend::kCrashCode;
 
   /**
-   * @brief Why the profile could not be resolved, empty when it could.
+   * @brief Why the profile could not be selected, empty when it could.
    *
-   * The bootstrap runs before there is any sensible way to show a dialog or
-   * write a log, so a failure is recorded rather than reported. The runtime is
-   * still established, on the classic location, so nothing downstream has to
-   * cope with a half-resolved process; main() halts on this before anything
-   * touches key material.
+   * Selection runs before there is any sensible way to show a dialog or write
+   * a log, so a failure is recorded rather than reported. The fallback
+   * selection is still usable, so nothing downstream has to cope with a
+   * half-resolved process; main() halts on this before anything touches key
+   * material.
    */
   QString profile_error;
+
+  /// What the command line, the environment and the registry asked for.
+  ProfileSelection profile_selection;
+
+  /**
+   * @brief The log level `--log-level` asked for, invalid when it was not set.
+   *
+   * Carried rather than applied and forgotten: it is the top layer of the same
+   * ladder every other knob resolves through, so a stored `advanced/log_level`
+   * cannot quietly win over a flag the user typed on this very run.
+   */
+  QVariant cli_log_level;
 
   /**
    * @brief Construct a new Gpg Frontend Context object
@@ -80,15 +93,14 @@ struct GpgFrontendContext {
   void InitApplication();
 
   /**
-   * @brief Re-resolve the ENV.ini-backed properties against the current root.
+   * @brief Read the marker-backed properties against the mounted profile.
    *
-   * A profile opened from a package is only known after the passphrase prompt,
-   * by which point the layered properties — key protection, secure level, log
-   * level — have already been resolved against the *previous* root. Re-running
-   * the resolution is what stops such a profile running under another
-   * profile's key protection.
+   * Runs once the loader has published a session, never before: every layered
+   * property — key protection, secure level, log level — is resolved partly
+   * from that profile's own settings, and resolving them against the wrong
+   * root is how a profile ends up running under another one's key protection.
    */
-  void ReloadEnvProperties();
+  void LoadEnvProperties();
 
   /**
    * @brief Get the App object
@@ -107,18 +119,18 @@ struct GpgFrontendContext {
   void load_env_conf_set_properties();
 
   /**
-   * @brief Resolve the profile and fix it for the lifetime of the process.
+   * @brief Work out which profile was asked for, without opening anything.
    *
-   * Runs between constructing the QApplication and reading any settings,
-   * because everything the latter touches is keyed by the profile root.
+   * Pure with respect to the profile system: it reads argv, the environment and
+   * a scan of the profiles root, and leaves opening to the loader.
    */
-  void establish_profile_runtime();
+  void resolve_profile_selection();
 
   /**
    * @brief Publish the resolved profile as qApp properties.
    *
    * A one-way mirror for the module and RT layers, which read properties and
-   * cannot link against the core. ProfileRuntime remains the authority.
+   * cannot link against the core. ProfileSession remains the authority.
    */
   void mirror_profile_properties();
 

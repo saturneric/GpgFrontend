@@ -40,15 +40,16 @@
 #include "core/GFCoreLog.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/ProfileLock.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/module/ModuleInit.h"
 #include "core/module/ModuleManager.h"
+#include "core/profile/ProfileSession.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/GpgFrontendUIInit.h"
 
 // main
 #include "Application.h"
+#include "Command.h"
 #include "GpgFrontendContext.h"
 
 namespace GpgFrontend {
@@ -93,9 +94,10 @@ void PreInit(const GFCxtWPtr &p_ctx) {
     std::_Exit(1);
   }
 
-  const int log_level = app->property("GFLogLevel").toInt();
-  QLoggingCategory::setFilterRules(BuildQtLoggingFilterRules(log_level));
-  SetGFLogLevel(log_level);
+  // The resolved level, `--log-level` included. Through the same applier the
+  // flag used, so the Qt filter rules, the C++ level and RUST_LOG cannot drift
+  // apart depending on which layer the level happened to come from.
+  ApplyLogLevel(app->property("GFLogLevel").toInt());
 
 #ifdef RELEASE
   qSetMessagePattern(
@@ -270,6 +272,8 @@ std::atomic<bool> g_relaunch_done = false;
 QString g_relaunch_program;   // NOLINT(*-avoid-non-const-global-variables)
 QStringList g_relaunch_args;  // NOLINT(*-avoid-non-const-global-variables)
 
+/// Same reason as the relaunch guard above: the session tree is deleted from
+/// whichever of the two shutdown paths gets there first, and only once.
 /**
  * @brief Relaunch the application for a pending deep restart, exactly once.
  *
@@ -294,6 +298,32 @@ void PerformDeepRestartRelaunch() {
 }
 
 /**
+ * @brief Delete the extracted tree of a temporary profile session, exactly
+ * once.
+ *
+ * A session holds the package's application key unprotected on disk, so it must
+ * not be left behind — including when teardown wedges and the watchdog is what
+ * ends the process. Whether the changes were written back into the package was
+ * decided while the window was still up; by here there is nothing left to save.
+ *
+ * Uses no Qt logging: it is also called from the watchdog thread, where the
+ * message handler may already be gone.
+ */
+/**
+ * @brief Give the profile back: its transient storage, then its lock.
+ *
+ * Idempotent, and deliberately in that order — releasing the lock is what tells
+ * the next process the root is free, and it must not say so while a transient
+ * tree is still being deleted underneath it. A deep restart makes that ordering
+ * load-bearing rather than theoretical: the successor is started immediately
+ * afterwards and re-opens the very same package.
+ */
+void ReleaseProfileSession(GpgFrontend::ProfileUnmountMode mode) {
+  if (!GpgFrontend::ProfileSession::Loaded()) return;
+  GpgFrontend::ProfileSession::Instance().Unload(mode);
+}
+
+/**
  * @brief Arm a detached watchdog that force-exits the process if shutdown
  * hangs.
  *
@@ -315,6 +345,7 @@ void ArmShutdownWatchdog(int timeout_ms) {
     std::fflush(stderr);
     // Honour a pending deep restart even though teardown wedged, otherwise the
     // process would just disappear instead of coming back.
+    ReleaseProfileSession(GpgFrontend::ProfileUnmountMode::kFORCED);
     PerformDeepRestartRelaunch();
     std::_Exit(0);
   }).detach();
@@ -388,21 +419,25 @@ void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx) {
 
   qInfo() << "GpgFrontend exited normally.";
 
-  // The successor cannot open the profile while we still hold it, and letting
-  // it in before we are genuinely finished writing would make the lock stop
-  // meaning anything at exactly the moment two processes overlap -- the one
-  // case it exists for. By here the task runners have stopped, the caches have
-  // flushed, the databases are closed and IsCoreShuttingDown() is refusing
-  // further writes, so the handover is safe.
-  if (g_relaunch_pending.load()) GpgFrontend::ProfileLock::Release();
-
-  // deep restart mode: relaunch via the same helper the watchdog uses, so a
-  // normal teardown and a wedged one share one code path and never both spawn.
+  // Only here is the handover safe: the successor cannot open the profile while
+  // we still hold it, and letting it in before we are genuinely finished
+  // writing would make the lock stop meaning anything at exactly the moment two
+  // processes overlap -- the one case it exists for. By now the task runners
+  // have stopped, the caches have flushed, the databases are closed and
+  // IsCoreShuttingDown() is refusing further writes.
+  //
+  // Deep restart relaunches via the same helper the watchdog uses, so a normal
+  // teardown and a wedged one share one code path and never both spawn.
   if (g_relaunch_pending.load()) {
+    ReleaseProfileSession(GpgFrontend::ProfileUnmountMode::kNORMAL);
+
     qInfo() << "relaunching application with deep restart mode, code: "
             << ctx->rtn;
     PerformDeepRestartRelaunch();
+    return;
   }
+
+  ReleaseProfileSession(GpgFrontend::ProfileUnmountMode::kNORMAL);
 }
 
 }  // namespace GpgFrontend

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "GpgFrontendContext.h"
 
 namespace GpgFrontend {
@@ -36,7 +38,29 @@ namespace GpgFrontend {
 
 auto PrintVersion() -> int;
 
-auto ParseLogLevel(const QString& level) -> int;
+/**
+ * @brief Read a log level name.
+ *
+ * Pure, so that the command line can take part in the same layered resolution
+ * as every other knob instead of being applied once and then overwritten by
+ * whatever the settings happened to say.
+ *
+ * @param level name: debug, info, warn, error, or none
+ * @return the GFLogLevel as an int, or nothing when the name is unusable
+ */
+auto ParseLogLevelName(const QString& level) -> std::optional<int>;
+
+/**
+ * @brief Put a log level into effect, for both loggers.
+ *
+ * The Qt filter rules, the C++ level and the Rust crate's RUST_LOG all follow
+ * from one number, so they are set in one place: they were previously set at
+ * two call sites that had drifted, which is why a level coming from the
+ * settings never reached the Rust logger at all.
+ *
+ * @param level the GFLogLevel to apply
+ */
+void ApplyLogLevel(int level);
 
 auto RunTest(const GFCxtWPtr&) -> int;
 
