@@ -603,6 +603,73 @@ TEST(ProfileSelectionTest, ProfilesRootFollowsThePortableBase) {
             QString(kInstalledRoot) + "/profiles");
 }
 
+// --------------------------------------------------- where that base comes
+// from
+//
+// The selection tests above take portable_root as given. This is where the
+// value itself is decided, and getting it wrong moves the user's keys.
+
+TEST(PortableDataPathTest, ABinLayoutClimbsOutOfTheBinaryDirectory) {
+  // Windows and a Linux install tree both put the executable in bin/, so the
+  // deployment root -- what the archive unpacks to -- is one level up.
+  const auto app_dir = QCoreApplication::applicationDirPath();
+
+  const auto previous = qgetenv("APPIMAGE");
+  qunsetenv("APPIMAGE");
+
+  EXPECT_EQ(ResolveApplicationDirPath(), app_dir);
+  EXPECT_EQ(ResolvePortableDataPath(), QDir(app_dir + "/../").canonicalPath());
+
+  if (!previous.isEmpty()) qputenv("APPIMAGE", previous);
+}
+
+#ifdef Q_OS_LINUX
+
+TEST(PortableDataPathTest, AnAppImageKeepsItsDataBesideTheImage) {
+  QTemporaryDir stick;
+  ASSERT_TRUE(stick.isValid());
+
+  const auto image = stick.path() + "/GpgFrontend.AppImage";
+  QFile file(image);
+  ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+  file.close();
+
+  const auto previous = qgetenv("APPIMAGE");
+  qputenv("APPIMAGE", image.toLocal8Bit());
+
+  // An AppImage is a single file: the folder holding it *is* the deployment
+  // root. Climbing out of it the way a bin/ layout does would write the
+  // profile next to the folder the user copied onto the stick, not into it.
+  EXPECT_EQ(ResolveApplicationDirPath(), QDir(stick.path()).canonicalPath());
+  EXPECT_EQ(ResolvePortableDataPath(), QDir(stick.path()).canonicalPath());
+
+  if (previous.isEmpty()) {
+    qunsetenv("APPIMAGE");
+  } else {
+    qputenv("APPIMAGE", previous);
+  }
+}
+
+TEST(PortableDataPathTest, AnUnresolvableAppImagePathIsNotFollowed) {
+  // $APPIMAGE names a file that is not there: nothing about that path can be
+  // trusted, so both helpers fall back to the ordinary application directory
+  // instead of composing a location out of it.
+  const auto previous = qgetenv("APPIMAGE");
+  qputenv("APPIMAGE", "/nonexistent/does-not-exist/GpgFrontend.AppImage");
+
+  const auto app_dir = QCoreApplication::applicationDirPath();
+  EXPECT_EQ(ResolveApplicationDirPath(), app_dir);
+  EXPECT_EQ(ResolvePortableDataPath(), QDir(app_dir + "/../").canonicalPath());
+
+  if (previous.isEmpty()) {
+    qunsetenv("APPIMAGE");
+  } else {
+    qputenv("APPIMAGE", previous);
+  }
+}
+
+#endif
+
 // -------------------------------------------------------------- id handling
 
 TEST(ProfileIdTest, ValidityRules) {

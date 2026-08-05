@@ -180,16 +180,21 @@ auto GF_CORE_EXPORT ResolveLayeredValue(const QVariant& env_value,
 /**
  * @brief The directory holding the application binary, AppImage-aware.
  *
+ * For an AppImage this is the directory the .AppImage file sits in, not the
+ * read-only mount the binary actually runs from.
+ *
  * @return absolute path
  */
 auto GF_CORE_EXPORT ResolveApplicationDirPath() -> QString;
 
 /**
- * @brief The data root a portable build uses: the directory above the
- * application.
+ * @brief The data root a portable build uses.
  *
- * On Linux the application directory points inside a read-only AppImage mount,
- * so $APPIMAGE is followed instead.
+ * The deployment root, so that everything the build owns -- profiles/ included
+ * -- lives beside the application rather than in the OS user-data location.
+ * For a bin/ layout (Windows, a Linux install tree) that is the directory
+ * above the binary; for an AppImage, which is a single file with no bin/
+ * level, it is the directory the .AppImage sits in.
  *
  * @return absolute path
  */

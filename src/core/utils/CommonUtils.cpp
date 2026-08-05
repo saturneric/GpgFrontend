@@ -121,19 +121,51 @@ auto IsAppImageENV() -> bool {
   return !QString::fromLocal8Bit(qgetenv("APPIMAGE")).isEmpty();
 }
 
-auto ResolveApplicationDirPath() -> QString {
-  auto app_path = QCoreApplication::applicationDirPath();
+namespace {
+
 #ifdef Q_OS_LINUX
-  if (IsAppImageENV()) {
-    QFileInfo info(qEnvironmentVariable("APPIMAGE"));
-    const auto dir = info.canonicalPath();
-    if (!dir.isEmpty()) app_path = dir;
-  }
+/**
+ * @brief The directory the .AppImage file itself sits in.
+ *
+ * Empty when this is not an AppImage run, and also when $APPIMAGE does not
+ * resolve to an existing file -- the callers then fall back to the ordinary
+ * application directory rather than to a path that only looks right.
+ */
+auto AppImageDirPath() -> QString {
+  if (!IsAppImageENV()) return {};
+
+  const auto dir = QFileInfo(qEnvironmentVariable("APPIMAGE")).canonicalPath();
+
+  // canonicalPath() answers "." -- not an empty string -- when $APPIMAGE names
+  // a file that is not there. Taken at face value that is a relative data
+  // root, so the profile would follow the process's working directory.
+  return QDir::isAbsolutePath(dir) ? dir : QString{};
+}
 #endif
-  return app_path;
+
+}  // namespace
+
+auto ResolveApplicationDirPath() -> QString {
+#ifdef Q_OS_LINUX
+  // The application directory of an AppImage points inside its read-only
+  // mount, which vanishes when the process exits.
+  auto image_dir = AppImageDirPath();
+  if (!image_dir.isEmpty()) return image_dir;
+#endif
+  return QCoreApplication::applicationDirPath();
 }
 
 auto ResolvePortableDataPath() -> QString {
+#ifdef Q_OS_LINUX
+  // An AppImage is a single file, not an executable inside a bin/ of a
+  // deployment tree, so there is no bin/ level to climb out of: the directory
+  // holding it already is the deployment root. Climbing anyway would put the
+  // profile -- the user's keys -- one directory above the AppImage, outside
+  // the folder they copied onto the stick.
+  auto image_dir = AppImageDirPath();
+  if (!image_dir.isEmpty()) return image_dir;
+#endif
+
   const auto app_path = ResolveApplicationDirPath();
   const auto canonical = QDir(app_path + "/../").canonicalPath();
   // canonicalPath() is empty when the parent does not resolve, which would
