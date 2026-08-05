@@ -174,6 +174,11 @@ void StartFileHashComputation(const QString& path, HashCallback callback) {
 
 namespace GpgFrontend::UI {
 
+auto OperaStartContext(QWidget* parent) -> QObject* {
+  return parent != nullptr ? static_cast<QObject*>(parent)
+                           : static_cast<QObject*>(qApp);
+}
+
 void GpgOperaHelper::BuildOperas(QSharedPointer<GpgOperaContextBasement>& base,
                                  int category, int channel,
                                  const GpgOperaFactory& f) {
@@ -745,6 +750,7 @@ void GpgOperaHelper::WaitForMultipleOperas(
   QPointer<WaitingDialog> const dialog =
       new WaitingDialog(title, operas.size() > 1, parent, cancel_channel >= 0);
   connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
+  connect(dialog, &QObject::destroyed, &looper, &QEventLoop::quit);
   if (cancel_channel >= 0) {
     connect(dialog, &WaitingDialog::SignalCancelRequested, dialog,
             [cancel_channel]() { RequestCancelGpgOperation(cancel_channel); });
@@ -757,7 +763,7 @@ void GpgOperaHelper::WaitForMultipleOperas(
 
   for (const auto& opera : operas) {
     QMetaObject::invokeMethod(
-        parent,
+        OperaStartContext(parent),
         [=]() {
           if (progress->abandoned) return;
 
@@ -877,6 +883,11 @@ void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
       new WaitingDialog(title, false, parent, cancel_channel >= 0);
 
   QObject::connect(dialog, &QDialog::finished, &looper, &QEventLoop::quit);
+
+  // A dialog that dies with its parent never reports finished, and the loop
+  // below would have nothing left to wait for.
+  QObject::connect(dialog, &QObject::destroyed, &looper, &QEventLoop::quit);
+
   if (cancel_channel >= 0) {
     QObject::connect(
         dialog, &WaitingDialog::SignalCancelRequested, dialog,
@@ -887,7 +898,7 @@ void GpgOperaHelper::WaitForOpera(QWidget* parent, const QString& title,
   QPointer<QTimer> const show_timer = StartDeferredShowTimer(dialog);
 
   QMetaObject::invokeMethod(
-      parent,
+      OperaStartContext(parent),
       [=]() {
         opera([dialog, show_timer]() {
           if (show_timer) show_timer->stop();

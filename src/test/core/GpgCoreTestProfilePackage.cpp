@@ -316,6 +316,32 @@ TEST(ProfileStagingTest, TheWorkspaceComesWhenItIsAskedFor) {
   EXPECT_TRUE(QFileInfo::exists(staging + "/profile/workspace/notes.txt"));
 }
 
+TEST(ProfileStagingTest, ARootProfileLeavesTheProfilesItContainsBehind) {
+  // The root profiles — installed and portable — have the profiles root inside
+  // them, so the scratch directory of their own export lands in the tree being
+  // copied. Following it copied the staging tree into itself until the path
+  // grew too long to open, which is how this reached the user: an export of
+  // the default profile that could not finish.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  // a sibling profile and a live window's session root, both under the root
+  // profile and neither one part of it
+  WriteFile(root + "/profiles/other/profile.json", R"({"schema_version":3})");
+  WriteFile(root + "/profiles/.abcd/profile.json", R"({"schema_version":3})");
+
+  const auto staging = root + "/profiles/.gfprofile-staging-eeee";
+  const auto result = StageProfileTree(root, staging, false);
+  ASSERT_TRUE(result.ok) << result.error.toStdString();
+
+  const auto tree = staging + "/profile";
+  EXPECT_TRUE(QFileInfo::exists(tree + "/profile.json"));
+  EXPECT_FALSE(QFileInfo::exists(tree + "/profiles"));
+}
+
 TEST(ProfileStagingTest, AnExistingStagingDirectoryIsRefused) {
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());
@@ -378,6 +404,42 @@ TEST(ProfilePackageRoundTripTest, AProtectedPackageComesBackByteForByte) {
 
   QSettings settings(tree + "/config/config.ini", QSettings::IniFormat);
   EXPECT_EQ(settings.value("basic/language").toString(), "en_US");
+}
+
+TEST(ProfilePackageRoundTripTest,
+     ARootProfileExportsWithItsScratchInsideItself) {
+  // The layout of the installed and portable root profiles: the scratch
+  // directory is made under <root>/profiles, which is inside the tree being
+  // packed. Every export of the default profile went through here.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+  WriteFile(root + "/profiles/other/data_objs/ffff", "another profile");
+
+  const auto profiles_root = root + "/profiles";
+  const auto package = dir.path() + "/root.gfprofile";
+  auto request = ExportRequestFor(root, profiles_root, package);
+  request.protection = ProfilePackageProtection::kNONE;
+
+  const auto written = ExportProfilePackage(request);
+  ASSERT_TRUE(written.ok) << written.error.toStdString();
+
+  const auto leftovers =
+      QDir(profiles_root)
+          .entryList({".gfprofile-*"}, QDir::Dirs | QDir::Hidden);
+  EXPECT_TRUE(leftovers.isEmpty());
+
+  const auto extracted = dir.path() + "/extracted";
+  const auto read = ReadProfilePackage(package, extracted, {});
+  ASSERT_TRUE(read.Ok()) << read.detail.toStdString();
+
+  const auto tree = extracted + "/profile";
+  EXPECT_TRUE(QFileInfo::exists(tree + "/data_objs/abcd"));
+
+  // the other profiles on this machine are not part of this one
+  EXPECT_FALSE(QFileInfo::exists(tree + "/profiles"));
 }
 
 TEST(ProfilePackageRoundTripTest, AnUnprotectedPackageNeedsNoPassphrase) {

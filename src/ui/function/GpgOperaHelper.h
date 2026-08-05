@@ -32,6 +32,21 @@
 
 namespace GpgFrontend::UI {
 
+/**
+ * @brief The object a waiting operation's start is queued to.
+ *
+ * Never null, which is the whole point: a queued call to a null receiver is
+ * dropped without a word, so the operation would never run and the waiting
+ * dialog would sit on it forever. Callers pass `qApp->activeWindow()`, and that
+ * is null whenever no window of this application is active — on X11 that
+ * includes the moment just after a modal dialog closes, which is exactly when a
+ * deep restart asks to write a packaged profile back.
+ *
+ * @param parent the caller's parent widget, or nullptr
+ * @return the parent when there is one, the application object otherwise
+ */
+auto GF_UI_EXPORT OperaStartContext(QWidget* parent) -> QObject*;
+
 class GpgOperaHelper : QObject {
   Q_OBJECT
  public:
@@ -303,7 +318,11 @@ class GpgOperaHelper : QObject {
   /**
    * @brief Run a single operation behind a modal waiting dialog.
    *
-   * @param parent parent widget
+   * A null parent is allowed: the operation still starts, and the dialog is
+   * simply parentless. Callers pass `qApp->activeWindow()`, which is null
+   * whenever no window of this application is active.
+   *
+   * @param parent parent widget, or nullptr
    * @param title dialog title
    * @param opera operation to run
    * @param cancel_channel if >= 0, show a Cancel button that cancels the GPG

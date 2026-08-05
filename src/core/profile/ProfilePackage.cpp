@@ -76,6 +76,10 @@ auto IsExcludedFromPackage(const QString &relative_path) -> bool {
   if (top == "logs" || top == "mods" || top == "data_objs.quarantine") {
     return true;
   }
+  // A root profile has the profiles root inside it: every other profile on this
+  // machine, every session root of a live window, and the scratch directory
+  // this very export is staging into. None of that is this profile's own data.
+  if (top == "profiles") return true;
   if (relative_path == "data_objs.gc.json") return true;
   if (name == "profile.lock" || name == "profiles.lock") return true;
   if (name.startsWith("S.gpg-agent") || name == "S.dirmngr") return true;
@@ -130,7 +134,8 @@ auto DrainExchanger(const QSharedPointer<GFDataExchanger> &ex, qint64 cap,
 
 auto CopyTreeForPacking(const QString &source, const QString &destination,
                         const std::function<bool(const QString &)> &excluded,
-                        const QString &prefix, qint64 &bytes) -> QString {
+                        const QString &prefix, const QString &guard,
+                        qint64 &bytes) -> QString {
   QDir source_dir(source);
   if (!source_dir.exists()) return {};
 
@@ -150,9 +155,17 @@ auto CopyTreeForPacking(const QString &source, const QString &destination,
 
     if (entry.isSymLink()) continue;  // a package carries no links, by design
 
+    // The staging tree may sit inside the tree being copied, and copying it
+    // into itself does not terminate. The exclusions above should have taken
+    // it already; this is what makes that a bug and not an infinite walk.
+    if (!guard.isEmpty() &&
+        QDir::cleanPath(entry.absoluteFilePath()) == guard) {
+      continue;
+    }
+
     if (entry.isDir()) {
       const auto error = CopyTreeForPacking(entry.absoluteFilePath(), target,
-                                            excluded, relative, bytes);
+                                            excluded, relative, guard, bytes);
       if (!error.isEmpty()) return error;
       continue;
     }
@@ -712,8 +725,9 @@ auto StageProfileTree(const QString &profile_root, const QString &staging_dir,
     return IsExcludedFromPackage(relative);
   };
 
-  const auto error =
-      CopyTreeForPacking(profile_root, tree, excluded, {}, result.bytes);
+  const auto error = CopyTreeForPacking(
+      profile_root, tree, excluded, {},
+      QDir::cleanPath(QFileInfo(staging_dir).absoluteFilePath()), result.bytes);
   if (!error.isEmpty()) {
     result.error = error;
     RemoveDirectoryQuietly(staging_dir);

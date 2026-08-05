@@ -281,6 +281,10 @@ struct GF_CORE_EXPORT ProfileStagingResult {
  * or agent sockets. A file that vanishes mid-copy is skipped rather than
  * failing the export.
  *
+ * A nested `profiles/` directory is never copied either: a root profile has the
+ * profiles root inside it, holding the other profiles on this machine and the
+ * scratch directory of this very export, and following it would not terminate.
+ *
  * @param profile_root profile to copy
  * @param staging_dir destination; created, and must not already exist
  * @param include_workspace whether the user's own files come too
