@@ -50,6 +50,17 @@ namespace GpgFrontend::UI {
 auto GF_UI_EXPORT StripProfileArgs(const QStringList &args) -> QStringList;
 
 /**
+ * @brief The name filter every profile-file dialog uses.
+ *
+ * A function rather than a constant because it is translated: a constant would
+ * be built at static-initialisation time, before any translator exists. Shared
+ * so that what the dialogs offer and what the argv scan accepts cannot drift.
+ *
+ * @return a QFileDialog name filter for the package extension
+ */
+auto GF_UI_EXPORT ProfilePackageNameFilter() -> QString;
+
+/**
  * @brief What to open in a new window.
  *
  * Exactly one field is set: a profile this machine keeps, or a package to run
@@ -221,7 +232,7 @@ void GF_UI_EXPORT CreateProfileInteractive(
     const std::function<void()> &on_opened = {});
 
 /**
- * @brief Read a `.gfprofile` into a new profile on this computer.
+ * @brief Read a `.gfp` into a new profile on this computer.
  *
  * Asynchronous: reading and decrypting the package runs on a worker, so the
  * callbacks fire well after this returns.

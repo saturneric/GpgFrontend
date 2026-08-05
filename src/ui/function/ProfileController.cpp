@@ -225,12 +225,17 @@ auto StripProfileArgs(const QStringList& args) -> QStringList {
     // a package named on the command line selected the *previous* profile; a
     // switch away from it must not silently re-open it
     if (!arg.startsWith('-') &&
-        arg.endsWith(".gfprofile", Qt::CaseInsensitive)) {
+        arg.endsWith(kProfilePackageExtension, Qt::CaseInsensitive)) {
       continue;
     }
     out << arg;
   }
   return out;
+}
+
+auto ProfilePackageNameFilter() -> QString {
+  return QObject::tr("GpgFrontend Profile File") + " (*" +
+         QLatin1String(kProfilePackageExtension) + ")";
 }
 
 auto BuildLaunchArgs(const QStringList& args, const ProfileTarget& target)
@@ -489,7 +494,7 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
                                         : GetAppProfileSchemaVersion();
   request.manifest.min_reader_version = marker.min_reader_version > 0
                                             ? marker.min_reader_version
-                                            : GetAppProfileSchemaVersion();
+                                            : GetAppProfileMinReaderSchema();
   request.manifest.app_profile = GetAppProfileName();
   request.manifest.display_name = CurrentProfileDisplayName();
   request.manifest.key_databases = DescribeKeyDatabasesForManifest(packed);
@@ -537,7 +542,7 @@ void ImportProfileInteractive(QWidget* parent,
                               const std::function<void()>& on_opened) {
   const auto path = QFileDialog::getOpenFileName(
       parent, QObject::tr("Import Profile File"), GetDefaultUserFilePath(),
-      QObject::tr("GpgFrontend Profile File") + " (*.gfprofile)");
+      ProfilePackageNameFilter());
   if (path.isEmpty()) return;
 
   // The header is read first because it is cheap and says whether a passphrase

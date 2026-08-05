@@ -71,7 +71,7 @@ auto main(int argc, char* argv[]) -> int {
       // parser.process() rejecting it as unknown.
       {{{}, "profile"}, "open the named local profile", "id"},
   });
-  parser.addPositionalArgument("file", "a .gfprofile package to open",
+  parser.addPositionalArgument("file", "a .gfp package to open",
                                "[file]");
 
   // Hold back GoogleTest flags (`--gtest_*`) from the app's parser, which would

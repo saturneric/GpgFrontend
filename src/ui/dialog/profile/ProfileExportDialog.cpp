@@ -30,7 +30,9 @@
 
 #include <QFileDialog>
 
+#include "core/profile/ProfilePackage.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/function/ProfileController.h"
 
 namespace GpgFrontend::UI {
 
@@ -171,19 +173,18 @@ auto ProfileExportDialog::describe_contents() const -> QString {
 }
 
 void ProfileExportDialog::slot_choose_destination() {
-  auto suggestion =
-      QString("%1/%2.gfprofile")
-          .arg(GetDefaultUserFilePath(),
-               display_name_.simplified().replace(' ', '-').toLower());
+  auto suggestion = QString("%1/%2%3").arg(
+      GetDefaultUserFilePath(),
+      display_name_.simplified().replace(' ', '-').toLower(),
+      kProfilePackageExtension);
 
   const auto chosen = QFileDialog::getSaveFileName(
-      this, tr("Export Profile"), suggestion,
-      tr("GpgFrontend Profile File") + " (*.gfprofile)");
+      this, tr("Export Profile"), suggestion, ProfilePackageNameFilter());
   if (chosen.isEmpty()) return;
 
-  destination_ = chosen.endsWith(".gfprofile", Qt::CaseInsensitive)
+  destination_ = chosen.endsWith(kProfilePackageExtension, Qt::CaseInsensitive)
                      ? chosen
-                     : chosen + ".gfprofile";
+                     : chosen + kProfilePackageExtension;
   destination_label_->setText(QDir::toNativeSeparators(destination_));
   destination_label_->setStyleSheet({});
   slot_state_changed();

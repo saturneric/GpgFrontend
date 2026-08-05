@@ -549,7 +549,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_open_file_tab_with_directory();
 
   /**
-   * @brief Open a `.gfprofile` in a new window, as a temporary profile.
+   * @brief Open a `.gfp` in a new window, as a temporary profile.
    *
    * Temporary in the sense that nothing is added to this computer: it is
    * unpacked, used, and on closing the user says whether the changes go back

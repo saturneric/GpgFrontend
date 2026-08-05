@@ -143,7 +143,7 @@ void MainWindow::slot_open_file_tab_with_directory() {
 void MainWindow::slot_open_profile_package() {
   const auto path = QFileDialog::getOpenFileName(
       this, tr("Open Profile File"), GetDefaultUserFilePath(),
-      tr("GpgFrontend Profile File") + " (*.gfprofile)");
+      ProfilePackageNameFilter());
   if (path.isEmpty()) return;
 
   const auto result = OpenProfileInNewWindow({.package_path = path});

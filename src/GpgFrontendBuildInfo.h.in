@@ -74,10 +74,17 @@
  * APP_DISPLAY_NAME on purpose: the display name is cosmetic and may contain
  * spaces, this one is a path and registry component.
  *
- * APP_PROFILE_SCHEMA_VERSION is the layout version of that directory. Bump it
- * whenever a change would make the profile unreadable to older builds.
+ * APP_PROFILE_SCHEMA_VERSION is the layout version of that directory: bump it
+ * for any change to the layout at all, breaking or not.
+ *
+ * APP_PROFILE_MIN_READER_SCHEMA is the oldest build that may still touch what
+ * this one writes. Bump it only when a change genuinely makes the profile
+ * unintelligible to older builds -- which is far rarer than a layout change,
+ * and is the whole reason these are two numbers instead of one. Raising it
+ * needlessly locks users out of their own profiles after a downgrade.
  */
 #define APP_PROFILE_NAME "@GPGFRONTEND_APP_PROFILE_NAME@"
 #define APP_BUILD_STABLE @GPGFRONTEND_BUILD_STABLE_INT@
 #define APP_BUILD_PORTABLE @GPGFRONTEND_BUILD_PORTABLE_INT@
 #define APP_PROFILE_SCHEMA_VERSION 3
+#define APP_PROFILE_MIN_READER_SCHEMA 1

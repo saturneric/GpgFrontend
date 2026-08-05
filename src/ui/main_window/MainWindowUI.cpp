@@ -513,7 +513,7 @@ void MainWindow::create_menus() {
   //   3. converting between the two — a file becomes a profile kept here, or
   //      this profile becomes a file
   //
-  // "Open" and "Import" both start at a `.gfprofile` and are routinely read as
+  // "Open" and "Import" both start at a `.gfp` and are routinely read as
   // the same act. Separating them here is the only place the interface can say
   // that one leaves nothing behind and the other adds a profile permanently.
   profile_menu_ = menuBar()->addMenu(tr("Profiles"));
