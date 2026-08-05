@@ -71,13 +71,4 @@ void InitGlobalBasicEnvSync(const GFCxtWPtr &p_ctx);
  * @param p_ctx
  */
 void ShutdownGlobalBasicEnv(const GFCxtWPtr &p_ctx);
-
-/**
- * @brief
- *
- * @param arguments
- * @return true
- * @return false
- */
-auto RelaunchApplication(const QStringList &arguments) -> bool;
 }  // namespace GpgFrontend

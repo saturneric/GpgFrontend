@@ -330,21 +330,14 @@ if(MINGW OR WIN32)
   target_link_libraries(${APP_NAME} Wintrust Crypt32 Advapi32)
 elseif(APPLE)
   message(STATUS "Link Application Library For macOS")
+  # The NSWorkspace relaunch used to live here; it is now built into gf_ui,
+  # which is what calls it -- see src/ui/CMakeLists.txt.
   target_sources(${APP_NAME} PRIVATE
-    platform/MacRelaunch.mm
     platform/MacSecretStore.cpp
   )
-  # Only the Objective-C++ source needs the PCH skipped; MacSecretStore.cpp is
-  # plain C++ against the Security framework's C API.
-  set_source_files_properties(
-    platform/MacRelaunch.mm
-    PROPERTIES SKIP_PRECOMPILE_HEADERS ON
-  )
-  find_library(APPKIT_FRAMEWORK AppKit REQUIRED)
   find_library(SECURITY_FRAMEWORK Security REQUIRED)
   find_library(COREFOUNDATION_FRAMEWORK CoreFoundation REQUIRED)
   target_link_libraries(${APP_NAME}
-    ${APPKIT_FRAMEWORK}
     ${SECURITY_FRAMEWORK}
     ${COREFOUNDATION_FRAMEWORK}
   )

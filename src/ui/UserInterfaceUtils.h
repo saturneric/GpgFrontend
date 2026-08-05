@@ -211,6 +211,25 @@ auto GF_UI_EXPORT GetDefaultUserFilePath() -> QString;
  */
 auto GF_UI_EXPORT LowerSuffix(const QFileInfo& info) -> QString;
 
+#ifdef Q_OS_MACOS
+/**
+ * @brief Start another instance of this application bundle.
+ *
+ * macOS only, and implemented against NSWorkspace rather than by running the
+ * executable: that is what gives the new instance its own Dock entry and its
+ * own activation. Both the deep restart and "open a second window" come back
+ * through here.
+ *
+ * It lives in the UI library rather than beside the application's other
+ * platform sources because gf_ui itself calls it, and a library cannot resolve
+ * a symbol that only the executable defines.
+ *
+ * @param arguments arguments for the new instance, argv[0] excluded
+ * @return whether the launch was handed to the workspace
+ */
+auto GF_UI_EXPORT RelaunchApplication(const QStringList& arguments) -> bool;
+#endif
+
 /**
  * @brief Palette-derived accent colour for status chips.
  *

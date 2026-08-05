@@ -35,7 +35,7 @@
 
 #import <AppKit/AppKit.h>
 
-namespace GpgFrontend {
+namespace GpgFrontend::UI {
 
 // NOLINTNEXTLINE
 bool RelaunchApplication(const QStringList& arguments) {
@@ -77,6 +77,6 @@ bool RelaunchApplication(const QStringList& arguments) {
   }
 }
 
-} // namespace GpgFrontend
+} // namespace GpgFrontend::UI
 
 #endif

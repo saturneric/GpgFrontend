@@ -44,6 +44,21 @@ aux_source_directory(model UI_SOURCE)
 # register module
 register_library(ui LIBRARY_TARGET ${UI_SOURCE})
 
+# Relaunching the bundle goes through NSWorkspace, so it is Objective-C++ and
+# builds only on macOS. It belongs to this library rather than to the
+# application target because this library calls it, and nothing linked against
+# an executable can resolve a symbol the executable defines. It sits in its own
+# directory so that the aux_source_directory() sweep above -- which would drag
+# it into every platform's build -- never sees it.
+if(APPLE)
+  target_sources(${LIBRARY_TARGET} PRIVATE platform/MacRelaunch.mm)
+  # Only the Objective-C++ source needs the PCH skipped.
+  set_source_files_properties(platform/MacRelaunch.mm
+    PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+  find_library(APPKIT_FRAMEWORK AppKit REQUIRED)
+  target_link_libraries(${LIBRARY_TARGET} ${APPKIT_FRAMEWORK})
+endif()
+
 # link qt
 target_link_libraries(${LIBRARY_TARGET}
   Qt::Core Qt::Widgets Qt::Network Qt::PrintSupport)

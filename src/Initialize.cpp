@@ -46,6 +46,7 @@
 #include "core/profile/ProfileSession.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/GpgFrontendUIInit.h"
+#include "ui/UserInterfaceUtils.h"
 
 // main
 #include "Application.h"
@@ -291,7 +292,7 @@ void PerformDeepRestartRelaunch() {
   if (g_relaunch_program.isEmpty()) return;
 
 #ifdef Q_OS_MACOS
-  GpgFrontend::RelaunchApplication(g_relaunch_args);
+  GpgFrontend::UI::RelaunchApplication(g_relaunch_args);
 #else
   QProcess::startDetached(g_relaunch_program, g_relaunch_args);
 #endif
