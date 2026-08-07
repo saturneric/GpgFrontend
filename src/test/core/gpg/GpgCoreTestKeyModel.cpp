@@ -376,8 +376,9 @@ TEST_F(GpgCoreTest, GpgKeyTableModelExposesSortKeysForTheAwkwardColumns) {
   // Trust: a level, not the translated word shown in the cell.
   EXPECT_TRUE(sort_key(5).isValid());
   // Create and expire dates: real QDateTimes, so they order chronologically.
-  EXPECT_EQ(sort_key(7).typeId(), QMetaType::QDateTime);
-  EXPECT_EQ(sort_key(8).typeId(), QMetaType::QDateTime);
+  // userType() rather than typeId(): the latter is Qt 6 only.
+  EXPECT_EQ(sort_key(7).userType(), QMetaType::QDateTime);
+  EXPECT_EQ(sort_key(8).userType(), QMetaType::QDateTime);
   // Subkey count: a number, so "10" does not sort before "2".
   EXPECT_TRUE(sort_key(10).isValid());
   // Status: ranked by severity rather than alphabetically.

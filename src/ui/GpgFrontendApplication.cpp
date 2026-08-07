@@ -29,7 +29,9 @@
 #include "ui/GpgFrontendApplication.h"
 
 #include <QElapsedTimer>
+#include <QEventLoop>
 #include <QFileOpenEvent>
+#include <QThread>
 
 #include "core/profile/ProfilePackage.h"
 #include "core/utils/BuildInfoUtils.h"
@@ -136,12 +138,19 @@ auto GpgFrontendApplication::WaitForLaunchDocument(int timeout_ms) -> bool {
   QElapsedTimer timer;
   timer.start();
 
+  // QCoreApplication::processEvents() reports nothing back, so the pass has to
+  // go through an event loop of its own: that is the only overload that says
+  // whether it actually dispatched anything.
+  QEventLoop loop;
+
   int idle = 0;
   while (pending_documents_.isEmpty() && timer.elapsed() < timeout_ms) {
-    const auto busy = QCoreApplication::processEvents(
-        QEventLoop::ExcludeUserInputEvents, kSliceMs);
+    const auto busy = loop.processEvents(QEventLoop::ExcludeUserInputEvents);
     idle = busy ? 0 : idle + 1;
     if (timer.elapsed() >= kFloorMs && idle >= kIdlePasses) break;
+    // An empty pass returns immediately, so without this the wait would be a
+    // spin rather than a wait.
+    if (!busy) QThread::msleep(kSliceMs);
   }
   return !pending_documents_.isEmpty();
 #else

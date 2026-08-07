@@ -656,11 +656,17 @@ auto RecentProfiles(int limit) -> QList<ProfileRegistryEntry> {
   auto entries = LoadProfiles().profiles;
 
   const auto current = ProfileSession::Instance().Profile().Id();
-  entries.removeIf([&current](const ProfileRegistryEntry& e) {
-    // Never offered: the one this window is already running, and any profile
-    // that has never been opened, which has no place in a "recent" list.
-    return e.id == current || e.last_opened.isEmpty();
-  });
+  // Not QList::removeIf(): that arrived in Qt 6.1 and this has to build against
+  // Qt 5 as well.
+  entries.erase(
+      std::remove_if(entries.begin(), entries.end(),
+                     [&current](const ProfileRegistryEntry& e) {
+                       // Never offered: the one this window is already running,
+                       // and any profile that has never been opened, which has
+                       // no place in a "recent" list.
+                       return e.id == current || e.last_opened.isEmpty();
+                     }),
+      entries.end());
 
   // ISO-8601 in UTC, so lexicographic order is chronological order.
   std::sort(entries.begin(), entries.end(),
