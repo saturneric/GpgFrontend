@@ -108,14 +108,29 @@ jobs:
         shell: bash
         run: |
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
+
+          # Identifier the artifacts are named after. On Linux the runner label
+          # ("ubuntu-24.04-arm") is the wrong thing to publish: the build host's
+          # distro is not what an AppImage runs on, and the "-arm" suffix would
+          # read "arm-aarch64" next to the architecture. Just say "linux" — the
+          # architecture already keeps the two images apart. Windows and macOS
+          # keep their runner label.
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            echo "OS_IDENTIFIER=linux" >> $GITHUB_ENV
+          else
+            echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
+          fi
 
           # Build flavour: "portable" keeps the profile beside the application,
           # "installed" uses the OS user-data location. Compile-time only.
+          # "installed" is the default flavour, so only "portable" is spelled
+          # out in artifact names.
           if [[ "${{ matrix.flavor }}" == "portable" ]]; then
             echo "GPGFRONTEND_BUILD_PORTABLE=ON" >> $GITHUB_ENV
+            echo "FLAVOR_SUFFIX=-portable" >> $GITHUB_ENV
           else
             echo "GPGFRONTEND_BUILD_PORTABLE=OFF" >> $GITHUB_ENV
+            echo "FLAVOR_SUFFIX=" >> $GITHUB_ENV
           fi
 
           # Single-branch (trunk + tags) model:
@@ -508,7 +523,7 @@ jobs:
           rm -f linuxdeployqt-continuous.AppImage
           for image in Gpg_Frontend*.AppImage; do
             mv "$image" \
-              "GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-${ARCH}-${{matrix.flavor}}.AppImage"
+              "GpgFrontend-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-${ARCH}${{env.FLAVOR_SUFFIX}}.AppImage"
           done
           ls -l
         if: runner.os == 'Linux'
@@ -601,7 +616,7 @@ jobs:
         shell: msys2 {0}
         run: |
           cd $(cygpath -u "${{github.workspace}}")/build/artifacts
-          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64-portable.zip *
+          zip -r ../upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-x86_64-portable.zip *
         if: runner.os == 'Windows' && matrix.flavor == 'portable'
 
       - name: Build MSI Installer (Windows)
@@ -633,7 +648,7 @@ jobs:
             -d ProductVersion="$version" `
             -d IconSource="${{github.workspace}}/gpgfrontend.ico" `
             -d BrandingDir="${{github.workspace}}/resource/wix" `
-            -o "${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64-installed.msi" `
+            -o "${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-x86_64.msi" `
             resource/wix/Package.wxs
 
           # wix drops a .wixpdb next to the .msi; it is build metadata, not a deliverable.
