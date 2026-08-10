@@ -328,8 +328,9 @@ jobs:
             -no-translations \
             -extra-plugins=iconengines,platforms \
             -appimage \
-            -executable=$APP_DIR/usr/lib/libsecret-1.so.0 \
-            -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
+            -executable=$APP_DIR/usr/lib/libsecret-1.so.0
+          # No -executable-dir for usr/lib/modules: CMake skips the module
+          # targets entirely for a Qt5 build, so that directory never exists.
 
           # Without the rpath patch the staged copy cannot find its own
           # dependencies, which is the bug this whole step exists to fix, so it
@@ -403,23 +404,16 @@ jobs:
           cp COPYING build/artifacts/
           cp gpgfrontend.ico build/artifacts/bin/
           rm -rf build/artifacts/bin/*.a
-          rm -rf build/artifacts/bin/modules/*.a
-          mv build/artifacts/bin/modules build/artifacts/modules
           cd build
           # Deploy every gf_* library rather than a hand-kept list, so a newly
           # registered library (gf_res was the last one) cannot be forgotten.
+          # There is no modules/ tree to scan here: CMake skips the module
+          # targets entirely for a Qt5 build (BUILD_MODULES AND NOT
+          # GPGFRONTEND_QT5_BUILD).
           for lib in ./artifacts/bin/libgf_*.dll; do
             windeployqt-qt5 --no-translations --force "$lib"
           done
           windeployqt-qt5 --no-translations --force ./artifacts/bin/GpgFrontend.exe
-          # A module may need Qt modules the app itself never links (Qt5Xml,
-          # Qt5Network, ...), so each one still has to be scanned. But --dir
-          # sends what it needs into bin/, which is the first directory the
-          # loader searches, instead of duplicating the whole Qt runtime next
-          # to every module.
-          for module in ./artifacts/modules/*.dll; do
-            windeployqt-qt5 --no-translations --force --dir ./artifacts/bin "$module"
-          done
           mkdir -p upload-artifact
         if: runner.os == 'Windows'
 
