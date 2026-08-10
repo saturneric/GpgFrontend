@@ -94,6 +94,9 @@ GeneralTab::GeneralTab(QWidget* parent)
 
   ui_->asciiModeCheckBox->setText(tr("Use Binary Mode for File Operations"));
 
+  ui_->expiringSoonLabel->setText(tr("Warn about keys expiring within:"));
+  ui_->expiringSoonDaysSpinBox->setSuffix(tr(" days"));
+
   ui_->langBox->setTitle(tr("Language"));
 
   // Without wrapping, this note is laid out on a single line and drags the
