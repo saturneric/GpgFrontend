@@ -4,27 +4,27 @@
 <context>
     <name>GpgFrontend</name>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1051"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1102"/>
         <source>OK</source>
         <translation>确定</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1053"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1104"/>
         <source>Expiring Soon</source>
         <translation>即将过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1055"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1106"/>
         <source>Expired</source>
         <translation>已过期</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1057"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1108"/>
         <source>Revoked</source>
         <translation>已吊销</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1059"/>
+        <location filename="../../../../src/core/utils/GpgUtils.cpp" line="1110"/>
         <source>Disabled</source>
         <translation>已禁用</translation>
     </message>
@@ -1135,29 +1135,29 @@ Do you want to continue?</source>
 <context>
     <name>GpgFrontend::UI::AboutDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="253"/>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="263"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="254"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="264"/>
         <source>About</source>
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="264"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="265"/>
         <source>Build Information</source>
         <translation>构建信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="266"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="267"/>
         <location filename="../../../../src/ui/main_window/MainWindowUI.cpp" line="655"/>
         <source>Status</source>
         <translation>状态</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="269"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="270"/>
         <source>Rust Engine</source>
         <translation>Rust 引擎</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="265"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="266"/>
         <source>Translators</source>
         <translation>翻译者</translation>
     </message>
@@ -1634,62 +1634,62 @@ Do you want to continue?</source>
 <context>
     <name>GpgFrontend::UI::BuildInfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="444"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="445"/>
         <source>GpgFrontend:</source>
         <translation>GpgFrontend:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="447"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="448"/>
         <source>Qt:</source>
         <translation>Qt:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="448"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="449"/>
         <source>GPGME:</source>
         <translation>GPGME:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="450"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="451"/>
         <source>Assuan:</source>
         <translation>Assuan:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="453"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="454"/>
         <source>Libarchive:</source>
         <translation>Libarchive:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="456"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="457"/>
         <source>OpenSSL:</source>
         <translation>OpenSSL:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="458"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="459"/>
         <source>Sodium:</source>
         <translation>Sodium:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="461"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="462"/>
         <source>Git Branch:</source>
         <translation>Git 分支:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="464"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="465"/>
         <source>Git Commit:</source>
         <translation>Git 提交:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="467"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="468"/>
         <source>Built at:</source>
         <translation>构建时间:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="471"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="472"/>
         <source>Copy Build Information</source>
         <translation>复制构建信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="478"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="479"/>
         <source>Build Information</source>
         <translation>构建信息</translation>
     </message>
@@ -3379,181 +3379,191 @@ This will result in loss of all cached form positions, statuses, key servers, et
 <context>
     <name>GpgFrontend::UI::GnuPGTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="47"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="48"/>
         <source>General</source>
         <translation>通用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="48"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="49"/>
         <source>Advanced</source>
         <translation>高级</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="50"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="51"/>
         <source>Enable GpgME Debug Log</source>
         <translation>启用 GpgME 调试日志</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="52"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="53"/>
         <source>Enable verbose GpgME logs for troubleshooting. This may include technical details about GnuPG operations.</source>
         <translation>启用详细的 GpgME 日志以进行故障排除。这可能包括关于 GnuPG 操作的技术细节。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="55"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="56"/>
         <source>Use Custom GnuPG</source>
         <translation>使用自定义 GnuPG</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="56"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="57"/>
         <source>Select GnuPG Path</source>
         <translation>选择 GnuPG 路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="58"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="59"/>
         <source>Terminate GnuPG background processes on exit</source>
         <translation>在退出时终止 GnuPG 后台进程</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="60"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="61"/>
         <source>This may affect other applications that are using GnuPG.</source>
         <translation>这可能会影响其他正在使用 GnuPG 的应用程序。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="62"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="63"/>
         <source>Forbid all GnuPG network connection.</source>
         <translation>禁止所有 GnuPG 网络连接。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="67"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="68"/>
         <source>Clear password cache on exit</source>
         <translation>在退出时清除密码缓存</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="69"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="70"/>
         <source>Ask gpg-agent to forget all cached passphrases when GpgFrontend closes.</source>
         <translation>在 GpgFrontend 关闭时，要求 gpg-agent 忘记所有缓存的口令。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="75"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="76"/>
         <source>Select the directory that contains the &quot;gpgconf&quot; executable.</source>
         <translation>选择包含 &quot;gpgconf&quot; 可执行文件的目录。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="103"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="104"/>
         <source>Open Directory</source>
         <translation>打开目录</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="157"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="158"/>
         <source>Maintenance</source>
         <translation>维护</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="161"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="162"/>
         <source>These operations take effect immediately and are not undone by cancelling this dialog. Restarting components briefly interrupts any in-flight GnuPG operation.</source>
         <translation>这些操作会立即生效，取消此对话框不会撤销。重新启动组件会短暂中断任何正在进行的 GnuPG 操作。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="168"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="169"/>
         <source>Clear Password Cache</source>
         <translation>清除密码缓存</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="169"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="170"/>
         <source>Clear Password Cache of GnuPG</source>
         <translation>清除 GnuPG 的密码缓存</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="173"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="174"/>
         <source>Clear password cache successfully</source>
         <translation>清除密码缓存成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="174"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="175"/>
         <source>Failed to clear password cache of GnuPG</source>
         <translation>无法清除 GnuPG 的密码缓存</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="178"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="179"/>
         <source>Reload Components</source>
         <translation>重新加载组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="179"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="180"/>
         <source>Reload All GnuPG&apos;s Components</source>
         <translation>重新加载所有 GnuPG 的组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="183"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="184"/>
         <source>Reload all the GnuPG&apos;s components successfully</source>
         <translation>成功重新加载所有 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="184"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="185"/>
         <source>Failed to reload all or one of the GnuPG&apos;s component(s)</source>
         <translation>未能重新加载所有或其中一个 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="188"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="189"/>
         <source>Restart Components</source>
         <translation>重新启动组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="189"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="190"/>
         <source>Restart All GnuPG&apos;s Components</source>
         <translation>重新启动所有 GnuPG 的组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="193"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="194"/>
         <source>Confirm</source>
         <translation>确认</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="194"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="195"/>
         <source>Are you sure you want to restart all of GnuPG&apos;s components?
 Any GnuPG operation still running will be interrupted.</source>
         <translation>确定要重新启动 GnuPG 的所有组件吗？
 任何仍在运行的 GnuPG 操作都将被中断。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="201"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="202"/>
         <source>Restart all the GnuPG&apos;s components successfully</source>
         <translation>成功重启所有 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="202"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="203"/>
         <source>Failed to restart all or one of the GnuPG&apos;s component(s)</source>
         <translation>无法重新启动所有或其中一个 GnuPG 组件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="243"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="227"/>
+        <source>GnuPG Unavailable</source>
+        <translation>GnuPG 不可用</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="231"/>
+        <source>GnuPG cannot start: this key database&apos;s folder path is too long for GnuPG&apos;s agent socket. Choose a key database in a shorter path under Settings, Key Databases.</source>
+        <translation>GnuPG 无法启动：此密钥数据库的文件夹路径对于 GnuPG 的代理套接字来说过长。请在“设置”&gt;“密钥数据库”中选择一个路径较短的密钥数据库。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="272"/>
         <source>Successful Operation</source>
         <translation>操作成功</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="245"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="274"/>
         <source>Failed Operation</source>
         <translation>操作失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="343"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="350"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="364"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="372"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="379"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="393"/>
         <source>Illegal GnuPG Path</source>
         <translation>非法 GnuPG 路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="373"/>
         <source>Target GnuPG Path is not an exists readable directory.</source>
         <translation>目标 GnuPG 路径不是现有的可读目录。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="351"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="380"/>
         <source>Target GnuPG Path is not an absolute path.</source>
         <translation>目标 GnuPG 路径不是绝对路径。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="365"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsGnuPG.cpp" line="394"/>
         <source>Target GnuPG Path contains no &quot;gpgconf&quot; executable.</source>
         <translation>目标 GnuPG 路径不包含“gpgconf”可执行文件。</translation>
     </message>
@@ -4038,67 +4048,67 @@ Results will appear here as a summary document.</source>
 <context>
     <name>GpgFrontend::UI::InfoTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="351"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="352"/>
         <source>Developer</source>
         <translation>开发者</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="327"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="328"/>
         <source>A user-friendly OpenPGP tool for encryption, signing, and key management.</source>
         <translation>一个用户友好的 OpenPGP 工具，用于加密、签名和密钥管理。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="346"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="347"/>
         <source>Developed and maintained by Saturneric.</source>
         <translation>由 Saturneric 开发和维护。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="347"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="348"/>
         <source>Report an issue on GitHub</source>
         <translation>在 GitHub 上报告问题</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="348"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="349"/>
         <source>About and contact information</source>
         <translation>关于与联系信息</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="373"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="374"/>
         <source>Website:</source>
         <translation>网站：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="377"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="378"/>
         <source>Documentation:</source>
         <translation>文档：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="380"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="381"/>
         <source>User guides and overview</source>
         <translation>用户指南与概述</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="382"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="383"/>
         <source>Source code:</source>
         <translation>源代码：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="386"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="387"/>
         <source>Release notes:</source>
         <translation>发行说明：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="389"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="390"/>
         <source>Changelog and downloads</source>
         <translation>更新日志与下载</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="392"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="393"/>
         <source>Resources</source>
         <translation>资源</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="399"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="400"/>
         <source>GpgFrontend is free software, licensed under &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt;.</source>
         <translation>GpgFrontend 是自由软件，采用 &lt;a href=&quot;https://www.gnu.org/licenses/gpl-3.0.html&quot;&gt;GPL-3.0-or-later&lt;/a&gt; 许可证授权。</translation>
     </message>
@@ -4454,130 +4464,130 @@ Results will appear here as a summary document.</source>
 <context>
     <name>GpgFrontend::UI::KeyDatabasesTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="78"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="103"/>
         <source>Name</source>
         <translation>名称</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="78"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="103"/>
         <source>Backend Type</source>
         <translation>后端类型</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="78"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="103"/>
         <source>Status</source>
         <translation>状态</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="79"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="104"/>
         <source>Path</source>
         <translation>路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="79"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="104"/>
         <source>Real Path</source>
         <translation>实际路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="129"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="154"/>
         <source>Add New Key Database</source>
         <translation>添加新密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="180"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="205"/>
         <source>Unreadable Key Database Settings</source>
         <translation>无法读取的密钥数据库设置</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="181"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="206"/>
         <source>Your saved key database list exists but could not be read. This usually means it was written by another installation, or with a different application key.</source>
         <translation>您的已保存密钥数据库列表存在但无法读取。这通常意味着它是由其他安装或使用不同的应用密钥写入的。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="185"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="210"/>
         <source>Saving now replaces it with the list shown here. The previous list cannot be recovered afterwards.</source>
         <translation>现在保存将用此处显示的列表替换它。之前的列表之后无法恢复。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="247"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="272"/>
         <source>N/A</source>
         <translation>不适用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="343"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="368"/>
         <source>No Key Database Selected</source>
         <translation>未选择任何密钥数据库</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="344"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="369"/>
         <source>Please select a key database to edit.</source>
         <translation>请选择要编辑的密钥数据库。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="363"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="416"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="388"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="445"/>
         <source>Duplicate Key Database Paths</source>
         <translation>重复的密钥数据库路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="364"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="389"/>
         <source>The edited key database path duplicates a previously existing one.</source>
         <translation>编辑后的密钥数据库路径与先前存在的路径重复。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="374"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="449"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="399"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="478"/>
         <source>Invalid Key Database Paths</source>
         <translation>无效的密钥数据库路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="375"/>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="450"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="400"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="479"/>
         <source>The edited key database path is not a valid path that GpgFrontend can use</source>
         <translation>编辑的密钥数据库路径不是 GpgFrontend 可以使用的有效路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="400"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="429"/>
         <source>Maximum Key Database Limit Reached</source>
         <translation>已达到密钥数据库上限</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="401"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="430"/>
         <source>Currently, GpgFrontend supports a maximum of 8 key databases. Please remove an existing database to add a new one.</source>
         <translation>目前，GpgFrontend 最多支持 8 个密钥数据库。要添加新数据库，请移除现有数据库。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="417"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="446"/>
         <source>The newly added key database path duplicates a previously existing one.</source>
         <translation>新添加的密钥数据库路径与先前存在的路径重复。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="426"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="455"/>
         <source>Invalid Key Database Path</source>
         <translation>无效的密钥数据库路径</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="427"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="456"/>
         <source>The specified key database path points to an existing file. Please specify a path that does not exist or points to a directory.</source>
         <translation>指定的密钥数据库路径指向一个已存在的文件。请指定一个不存在或指向目录的路径。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="438"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="467"/>
         <source>Failed to Create Key Database Directory</source>
         <translation>创建密钥数据库目录失败</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="439"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="468"/>
         <source>GpgFrontend failed to create a directory at the specified key database path. Please check the path and your permissions.</source>
         <translation>GpgFrontend 在指定的密钥数据库路径创建目录失败。请检查路径和您的权限。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="484"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="515"/>
         <source>Confirm Deletion</source>
         <translation>确认删除</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="485"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="516"/>
         <source>Are you sure you want to remove the selected key database from the list?</source>
         <translation>你确定要从列表中移除选中的密钥数据库吗？</translation>
     </message>
@@ -10240,47 +10250,47 @@ Would you like to fetch these keys from the key server?</source>
 <context>
     <name>GpgFrontend::UI::RpgpEngineTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="697"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="708"/>
         <source>Unknown</source>
         <translation>未知</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="706"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="717"/>
         <source>GpgFrontend supports multiple OpenPGP backends. Alongside GnuPG, it can use a Rust-based engine (rPGP), giving you the freedom to choose the backend that best fits your needs. The details below describe the rPGP engine compiled into this build.</source>
         <translation>GpgFrontend 支持多种 OpenPGP 后端。除 GnuPG 外，还可使用基于 Rust 的引擎（rPGP），让您自由选择最合适的后端。以下详情介绍本版本编译的 rPGP 引擎。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="720"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="731"/>
         <source>Engine Version:</source>
         <translation>引擎版本：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="723"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="734"/>
         <source>Rust Compiler:</source>
         <translation>Rust 编译器：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="726"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="737"/>
         <source>Target:</source>
         <translation>目标平台：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="730"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="741"/>
         <source>Build Profile:</source>
         <translation>构建配置文件：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="734"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="745"/>
         <source>rPGP Engine</source>
         <translation>rPGP 引擎</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="748"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="759"/>
         <source>Key Dependencies</source>
         <translation>关键依赖项</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="767"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="778"/>
         <source>Copy Engine Information</source>
         <translation>复制引擎信息</translation>
     </message>
@@ -11400,73 +11410,73 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="56"/>
         <source>Click to manage profiles.</source>
-        <translation type="unfinished"></translation>
+        <translation>点击管理配置文件。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="61"/>
         <source>Click to see the full status.</source>
-        <translation type="unfinished"></translation>
+        <translation>点击查看完整状态。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="72"/>
         <source>Profile</source>
-        <translation type="unfinished">配置文件</translation>
+        <translation>配置文件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="78"/>
         <source>%1 (temporary)</source>
-        <translation type="unfinished"></translation>
+        <translation>%1（临时）</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="84"/>
         <source>Opened from a file, and not kept on this computer. Closing asks whether to save the changes back into it.</source>
-        <translation type="unfinished">从文件打开，不保留在此计算机上。关闭时会询问是否将更改保存回文件。</translation>
+        <translation>从文件打开，不保留在此计算机上。关闭时会询问是否将更改保存回该文件。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="88"/>
         <source>This window&apos;s profile — its own settings, keys and saved state</source>
-        <translation type="unfinished">此窗口的配置文件——其自身的设置、密钥和保存状态</translation>
+        <translation>此窗口的配置文件——其自己的设置、密钥和已保存状态</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="111"/>
         <source>Current OpenPGP backend and version</source>
-        <translation type="unfinished">当前 OpenPGP 后端和版本</translation>
+        <translation>当前 OpenPGP 后端及版本</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="115"/>
         <source>Key database: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>密钥数据库：%1</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="132"/>
         <source>Portable Mode</source>
-        <translation type="unfinished">便携模式</translation>
+        <translation>便携模式</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="134"/>
         <source>Installed Mode</source>
-        <translation type="unfinished">安装模式</translation>
+        <translation>已安装模式</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="139"/>
         <source>Running from the folder it was unpacked into, taking its settings and keys along with it.</source>
-        <translation type="unfinished"></translation>
+        <translation>从其解压到的文件夹运行，设置和密钥随其移动。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="143"/>
         <source>Installed on this computer, with its settings and keys kept in this user&apos;s data folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>已安装在此计算机上，设置和密钥保留在此用户的数据文件夹中。</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/StatusIndicatorInfo.cpp" line="147"/>
         <source>This profile keeps its own keys, separate from the rest of the computer.</source>
-        <translation type="unfinished"></translation>
+        <translation>此配置文件拥有自己的密钥，独立于计算机其他部分。</translation>
     </message>
 </context>
 <context>
     <name>GpgFrontend::UI::StatusTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="592"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="603"/>
         <source>Application Status</source>
         <translation>应用程序状态</translation>
     </message>
@@ -11491,12 +11501,12 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">未知</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="540"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="541"/>
         <source>Portable Mode</source>
         <translation>便携模式</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="540"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="541"/>
         <source>Installed Mode</source>
         <translation>安装模式</translation>
     </message>
@@ -11509,42 +11519,42 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">自检已禁用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="543"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="544"/>
         <source>Active</source>
         <translation>已启用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="543"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="544"/>
         <source>Disabled</source>
         <translation>已禁用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="546"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="547"/>
         <source>Default Pinentry Program</source>
         <translation>默认 Pinentry 程序</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="553"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="554"/>
         <source>Secure Level:</source>
         <translation>安全级别：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="555"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="556"/>
         <source>Application Key Protection:</source>
         <translation>应用密钥保护：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="564"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="565"/>
         <source>System Credential Store:</source>
         <translation>系统凭据存储：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="566"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="567"/>
         <source>Unavailable</source>
         <translation>不可用</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="576"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="577"/>
         <source>Credential Store Detail:</source>
         <translation>凭据存储详情：</translation>
     </message>
@@ -11553,7 +11563,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">安全级别：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="580"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="591"/>
         <source>Running Mode:</source>
         <translation>运行模式：</translation>
     </message>
@@ -11562,83 +11572,88 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">自检状态：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="584"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="587"/>
+        <source>GnuPG Home Path Detail:</source>
+        <translation>GnuPG 主目录路径详情：</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="595"/>
         <source>GnuPG Offline Mode:</source>
         <translation>GnuPG 离线模式：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="587"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="598"/>
         <source>Pinentry Program Path:</source>
         <translation>Pinentry 程序路径：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="605"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="616"/>
         <source>Profile:</source>
         <translation>配置文件：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="608"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="619"/>
         <source>Profile Type:</source>
         <translation>配置文件类型：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="610"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="621"/>
         <source>Profile Folder:</source>
         <translation>配置文件目录：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="617"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="628"/>
         <source>Keys:</source>
         <translation>密钥：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="619"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="630"/>
         <source>Inside this profile</source>
         <translation>此配置文件中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="620"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="631"/>
         <source>System keyring</source>
         <translation>系统密钥环</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="625"/>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="629"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="636"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="640"/>
         <source>Workspace:</source>
         <translation>工作区：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="626"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="637"/>
         <source>None</source>
         <translation>无</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="636"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="647"/>
         <source>Profile Layout Version:</source>
         <translation>配置文件布局版本：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="644"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="655"/>
         <source>Imported From Package:</source>
         <translation>从包导入：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="654"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="665"/>
         <source>Profiles Folder:</source>
         <translation>配置文件目录：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="659"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="670"/>
         <source>Profile</source>
         <translation>配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="676"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="687"/>
         <source>Supported OpenPGP Engines</source>
         <translation>支持的 OpenPGP 引擎</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="680"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="691"/>
         <source>Tip: These values reflect the current startup environment and may help when reporting issues.</source>
         <translation>提示：这些值反映了当前的启动环境，可能在报告问题时有所帮助。</translation>
     </message>
@@ -11945,17 +11960,17 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
 <context>
     <name>GpgFrontend::UI::TranslatorsTab</name>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="496"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="497"/>
         <source>Thanks to all translators</source>
         <translation>感谢所有翻译者</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="506"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="507"/>
         <source>Translator information is not available.</source>
         <translation>翻译者信息不可用。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="510"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="511"/>
         <source>If you want to help improve localization, please read the &lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;translation guide&lt;/a&gt;.!</source>
         <translation>如果您希望帮助改进本地化，请阅读&lt;a href=&apos;https://gpgfrontend.bktus.com/appendix/translate-interface/&apos;&gt;翻译指南&lt;/a&gt;。！</translation>
     </message>
@@ -12146,8 +12161,8 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <location filename="../../../../src/GpgFrontend.cpp" line="107"/>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="235"/>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="259"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="201"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="647"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="206"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="657"/>
         <source>Cannot Open Profile</source>
         <translation>无法打开配置文件</translation>
     </message>
@@ -12388,7 +12403,7 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
     </message>
     <message>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="104"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="577"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="582"/>
         <source>Enter the passphrase that protects this file:</source>
         <translation>输入保护此文件的口令：</translation>
     </message>
@@ -12544,12 +12559,22 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation type="vanished">无法解密应用安全密钥。您的 PIN 可能不正确，或密钥文件已损坏。请清除安全密钥后重试。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="55"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="59"/>
+        <source>Key Database Path Too Long</source>
+        <translation>密钥数据库路径过长</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="60"/>
+        <source>This folder&apos;s path is too long for GnuPG&apos;s agent socket, so GnuPG could not start against it. Choose a folder with a shorter path.</source>
+        <translation>此文件夹的路径对于 GnuPG 的代理套接字来说过长，因此 GnuPG 无法针对该文件夹启动。请选择路径较短的文件夹。</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="80"/>
         <source>Active</source>
         <translation>活跃</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="56"/>
+        <location filename="../../../../src/ui/dialog/settings/SettingsKeyDatabases.cpp" line="81"/>
         <source>Inactive</source>
         <translation>未活跃</translation>
     </message>
@@ -12569,12 +12594,12 @@ Choose Cancel to discard everything you changed in this dialog and keep the curr
         <translation>%1 个项目</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="148"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="149"/>
         <source>Open Link</source>
         <translation>打开链接</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="149"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="150"/>
         <source>Could not open a web browser on this system.
 
 The link has been copied to your clipboard:
@@ -12585,12 +12610,12 @@ The link has been copied to your clipboard:
 %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="177"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="178"/>
         <source>Star GpgFrontend on GitHub</source>
         <translation>在 GitHub 上为 GpgFrontend 加星</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="184"/>
+        <location filename="../../../../src/ui/dialog/help/AboutDialog.cpp" line="185"/>
         <source>GpgFrontend is free and open source. A star helps more people discover it and keeps the project moving forward.</source>
         <translation>GpgFrontend 是免费开源软件。一个星标能帮助更多人发现它，并推动项目持续发展。</translation>
     </message>
@@ -12875,9 +12900,10 @@ The link has been copied to your clipboard:
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="125"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="145"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="167"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="567"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="590"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="163"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="172"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="572"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="595"/>
         <source>Cannot Import Profile</source>
         <translation>无法导入配置文件</translation>
     </message>
@@ -12887,164 +12913,167 @@ The link has been copied to your clipboard:
         <translation>此配置文件由更新版本的 GpgFrontend (%1) 创建。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="174"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="638"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="179"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="648"/>
         <source>&quot;%1&quot; is ready.</source>
         <translation>“%1” 已就绪。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="177"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="182"/>
         <source>The file did not carry any workspace files.</source>
         <translation>该文件不包含任何工作区文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="182"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="187"/>
         <source>&quot;%1&quot; pointed at keys kept outside the profile, which do not travel. It will show as unavailable until you point it somewhere on this computer.</source>
         <translation>“%1” 指向配置文件外部的密钥，这些密钥不会随配置文件移动。在您将其指向此计算机上的某个位置之前，它将显示为不可用。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="191"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="196"/>
         <source>Profile Imported</source>
         <translation>配置文件已导入</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="193"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="639"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="198"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="649"/>
         <source>Open it now? It opens in a new window.</source>
         <translation>立即打开？它将在新窗口中打开。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="237"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="242"/>
         <source>GpgFrontend Profile File</source>
         <translation>GpgFrontend 配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="306"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="321"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="311"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="326"/>
         <source>Default</source>
         <translation>默认</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="308"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="323"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="313"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="328"/>
         <source>Portable</source>
         <translation>便携</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="310"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="315"/>
         <source>From a package</source>
         <translation>从包中</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="312"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="317"/>
         <source>Local</source>
         <translation>本地</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="359"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="364"/>
         <source>This file is no longer there:</source>
         <translation>该文件已不存在：</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="368"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="373"/>
         <source>This window is already using that profile.</source>
         <translation>此窗口已在使用该配置文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="378"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="383"/>
         <source>There is no profile called &quot;%1&quot;.</source>
         <translation>没有名为&quot;%1&quot;的配置文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="397"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="402"/>
         <source>&quot;%1&quot; is open in another window (process %2 on %3).</source>
         <translation>&quot;%1&quot;已在另一个窗口中打开（进程%2在%3上）。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="402"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="407"/>
         <source>&quot;%1&quot; is open in another window.</source>
         <translation>&quot;%1&quot;已在另一个窗口中打开。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="434"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="439"/>
         <source>Save Changes?</source>
         <translation>保存更改？</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="435"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="440"/>
         <source>This profile was opened from a file. It is not kept on this computer, and the copy it is running from is about to be deleted.</source>
         <translation>此配置文件是从文件打开的。它未保存在此计算机上，且正在运行的副本即将被删除。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="439"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="444"/>
         <source>Anything you changed is lost unless it is written back into that file.</source>
         <translation>除非将更改写回该文件，否则您所做的任何更改都将丢失。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="443"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="466"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="448"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="471"/>
         <source>Save Changes</source>
         <translation>保存更改</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="445"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="450"/>
         <source>Discard</source>
         <translation>放弃</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="446"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="451"/>
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="467"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="472"/>
         <source>Enter the passphrase to protect this file with:</source>
         <translation>输入用于保护此文件的口令:</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="518"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="540"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="523"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="545"/>
         <source>Cannot Save Changes</source>
         <translation>无法保存更改</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="519"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="524"/>
         <source>The application key is not available, so the profile could not be packed.</source>
         <translation>应用程序密钥不可用，因此无法打包配置文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="527"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="532"/>
         <source>Saving Profile</source>
         <translation>正在保存配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="558"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="576"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="563"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="581"/>
         <source>Import Profile File</source>
         <translation>导入配置文件</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="591"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="596"/>
         <source>A temporary folder could not be made.</source>
         <translation>无法创建临时文件夹。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="598"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="603"/>
         <source>Reading Profile</source>
         <translation>正在读取配置文件</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="627"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="637"/>
         <source>Cannot Create Profile</source>
         <translation>无法创建配置文件</translation>
     </message>
     <message>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="164"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="628"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="638"/>
         <source>The profile could not be created.</source>
         <translation>无法创建配置文件。</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="637"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="647"/>
         <source>Profile Created</source>
         <translation>配置文件已创建</translation>
     </message>
