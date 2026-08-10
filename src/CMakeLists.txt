@@ -344,7 +344,9 @@ elseif(APPLE)
 else()
   message(STATUS "Link Application Library For Linux")
   # libsecret is resolved at runtime through QLibrary, so nothing to link.
-  target_sources(${APP_NAME} PRIVATE platform/LinuxSecretStore.cpp)
+  target_sources(${APP_NAME} PRIVATE
+    platform/LinuxSecretStore.cpp
+    platform/LibSecretSearchPath.cpp)
   target_link_libraries(${APP_NAME} pthread)
 endif()
 

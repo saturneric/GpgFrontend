@@ -30,12 +30,15 @@
 
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
 
+#include <QDir>
+#include <QFileInfo>
 #include <QLibrary>
 #include <array>
 #include <type_traits>
 
 #include "core/function/GFBufferFactory.h"
 #include "core/function/SystemSecretStore.h"
+#include "platform/LibSecretSearchPath.h"
 #include "platform/PlatformSecretStore.h"
 
 namespace GpgFrontend {
@@ -131,10 +134,6 @@ using ClearSyncFn = int (*)(const GFSecretSchema*, void* cancellable,
 using PasswordFreeFn = void (*)(char*);
 using ErrorFreeFn = void (*)(GFGError*);
 
-/// SONAME reported to the user. QLibrary builds the same name from
-/// ("libsecret-1", 0).
-constexpr auto kLibSecretSoname = "libsecret-1.so.0";
-
 struct LibSecret {
   StoreSyncFn store = nullptr;
   LookupSyncFn lookup = nullptr;
@@ -188,53 +187,84 @@ struct LibSecret {
 
 auto ResolveLibSecret() -> const LibSecret& {
   static const LibSecret kLib = []() -> LibSecret {
-    LibSecret out;
+    // Kept per candidate rather than only for the last one: "no such file" for
+    // a bundled copy and "undefined symbol" for the host's are different bugs,
+    // and one message can only ever describe one of them.
+    QStringList failures;
 
-    // Version 0 gives libsecret-1.so.0. The unversioned name only exists in
-    // the -dev package and must not be relied on.
-    QLibrary library(QStringLiteral("libsecret-1"), 0);
-    if (!library.load()) {
-      // errorString() is the whole point of this branch. A missing package and
-      // a package that is present but cannot resolve its own dependencies --
-      // the usual way a bundled build shadows the host's glib -- are the same
-      // greyed-out menu item to the user, and only the loader can tell them
-      // apart.
-      out.error = QStringLiteral("%1 could not be loaded: %2")
-                      .arg(QLatin1String(kLibSecretSoname),
-                           library.errorString().trimmed());
-      qWarning().noquote() << out.error;
+    const auto candidates =
+        LibSecretSearchPaths(qEnvironmentVariable("APPDIR"),
+                             qEnvironmentVariable(kLibSecretPathEnv));
+
+    for (const auto& candidate : candidates) {
+      // Asked before QLibrary, because QLibrary answers a name it was never
+      // given: having failed to open the path verbatim it retries with "lib"
+      // and ".so" pasted on, and reports the error from that last attempt. A
+      // missing bundled copy would be reported as
+      // ".../liblibsecret-1.so.0.so: cannot open shared object file", which
+      // sends whoever reads it looking for a file nobody ever asked for.
+      if (QDir::isAbsolutePath(candidate) && !QFileInfo::exists(candidate)) {
+        failures << QStringLiteral("%1 (no such file)").arg(candidate);
+        continue;
+      }
+
+      QLibrary library(candidate);
+
+      // RTLD_NOW, not QLibrary's lazy default. The failure this list exists
+      // for -- a libsecret older or newer than the glib in front of it on the
+      // search path -- is a missing function symbol, and lazy binding defers
+      // that to the first call, where it takes the process down from inside a
+      // settings page instead of greying out a menu item here.
+      library.setLoadHints(QLibrary::ResolveAllSymbolsHint);
+
+      if (!library.load()) {
+        // errorString() is the whole point of this branch. A missing package
+        // and a package that is present but cannot resolve its own
+        // dependencies -- the usual way a bundled build shadows the host's
+        // glib -- are the same greyed-out menu item to the user, and only the
+        // loader can tell them apart.
+        failures << QStringLiteral("%1 (%2)").arg(
+            candidate, library.errorString().trimmed());
+        continue;
+      }
+
+      // Declared here, not outside the loop: a candidate that resolves only
+      // half its symbols must not leave those behind for the next one.
+      LibSecret out;
+      out.store = reinterpret_cast<StoreSyncFn>(
+          library.resolve("secret_password_store_sync"));
+      out.lookup = reinterpret_cast<LookupSyncFn>(
+          library.resolve("secret_password_lookup_sync"));
+      out.clear = reinterpret_cast<ClearSyncFn>(
+          library.resolve("secret_password_clear_sync"));
+      out.free_password = reinterpret_cast<PasswordFreeFn>(
+          library.resolve("secret_password_free"));
+      out.wipe_password = reinterpret_cast<PasswordFreeFn>(
+          library.resolve("secret_password_wipe"));
+      out.free_error =
+          reinterpret_cast<ErrorFreeFn>(library.resolve("g_error_free"));
+
+      if (!out.Loaded()) {
+        failures << QStringLiteral(
+                        "%1 loaded but its symbols could not be "
+                        "resolved")
+                        .arg(library.fileName());
+        continue;
+      }
+
+      // Which copy answered matters when several are reachable, and it is the
+      // first thing to ask for when the store misbehaves rather than vanishes.
+      qDebug().noquote() << "libsecret loaded from" << library.fileName();
+
       return out;
     }
 
-    out.store = reinterpret_cast<StoreSyncFn>(
-        library.resolve("secret_password_store_sync"));
-    out.lookup = reinterpret_cast<LookupSyncFn>(
-        library.resolve("secret_password_lookup_sync"));
-    out.clear = reinterpret_cast<ClearSyncFn>(
-        library.resolve("secret_password_clear_sync"));
-    out.free_password = reinterpret_cast<PasswordFreeFn>(
-        library.resolve("secret_password_free"));
-    out.wipe_password = reinterpret_cast<PasswordFreeFn>(
-        library.resolve("secret_password_wipe"));
-    out.free_error =
-        reinterpret_cast<ErrorFreeFn>(library.resolve("g_error_free"));
-
-    if (!out.Loaded()) {
-      LibSecret failed;
-      failed.error =
-          QStringLiteral(
-              "%1 loaded from %2 but its symbols could not be "
-              "resolved")
-              .arg(QLatin1String(kLibSecretSoname), library.fileName());
-      qWarning().noquote() << failed.error;
-      return failed;
-    }
-
-    // Which copy answered matters when several are reachable, and it is the
-    // first thing to ask for when the store misbehaves rather than vanishes.
-    qDebug().noquote() << "libsecret loaded from" << library.fileName();
-
-    return out;
+    LibSecret failed;
+    failed.error = QStringLiteral("%1 could not be loaded; tried: %2")
+                       .arg(QLatin1String(kLibSecretSoname),
+                            failures.join(QStringLiteral("; ")));
+    qWarning().noquote() << failed.error;
+    return failed;
   }();
 
   return kLib;

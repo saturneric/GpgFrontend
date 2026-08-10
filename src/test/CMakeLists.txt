@@ -37,6 +37,15 @@ aux_source_directory(. TEST_SOURCE)
 # define test library
 register_library(test LIBRARY_TARGET ${TEST_SOURCE})
 
+# the libsecret candidate ordering is what makes an AppImage able to reach the
+# system keychain, so it is covered by tests. Only this translation unit is
+# pulled in, never LinuxSecretStore.cpp: that one can register a live backend
+# and start writing to the developer's own keyring.
+if(UNIX AND NOT APPLE)
+  target_sources(${LIBRARY_TARGET} PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/platform/LibSecretSearchPath.cpp)
+endif()
+
 # set up pch
 target_precompile_headers(${LIBRARY_TARGET} PUBLIC GpgFrontendTest.h)
 

@@ -37,6 +37,9 @@
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSecureKeyManager.h"
 #include "core/profile/ProfileSession.h"
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
+#include "platform/LibSecretSearchPath.h"
+#endif
 
 namespace GpgFrontend::Test {
 
@@ -1220,6 +1223,55 @@ TEST(AppSecureKeyWrapTest, InstalledBackendRoundTrip) {
   EXPECT_TRUE(store->Remove(account));
   EXPECT_FALSE(store->Read(account).has_value());
 }
+
+#if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
+
+// --- libsecret search order -------------------------------------------------
+
+// Ordering is the entire reason an AppImage can reach the system keychain, and
+// nothing else in the suite can observe it: loading needs a real libsecret and
+// a real keyring daemon, and CI has neither. Only the pure function is linked
+// in, so none of this touches a keyring, a session bus, or the GUI thread.
+
+TEST(LibSecretSearchPathTest, BundledCopyComesFirstInsideAnAppImage) {
+  const auto paths = LibSecretSearchPaths("/tmp/.mount_GpgFroAbCdEf", {});
+
+  ASSERT_FALSE(paths.isEmpty());
+  EXPECT_EQ(paths.first(), "/tmp/.mount_GpgFroAbCdEf/usr/lib/libsecret-1.so.0");
+}
+
+TEST(LibSecretSearchPathTest, AlwaysFallsBackToTheLoaderSearchPath) {
+  // A bundle whose own copy is broken must still reach a working host one.
+  EXPECT_EQ(LibSecretSearchPaths("/tmp/.mount_GpgFroAbCdEf", {}).last(),
+            QLatin1String(kLibSecretSoname));
+}
+
+TEST(LibSecretSearchPathTest, OutsideAnAppImageOnlyTheLoaderPathIsTried) {
+  EXPECT_EQ(LibSecretSearchPaths({}, {}),
+            QStringList{QLatin1String(kLibSecretSoname)});
+}
+
+TEST(LibSecretSearchPathTest, ARelativeAppDirIsIgnored) {
+  // Resolved against the working directory it would name any directory at all.
+  EXPECT_EQ(LibSecretSearchPaths("usr/../.", {}),
+            QStringList{QLatin1String(kLibSecretSoname)});
+}
+
+TEST(LibSecretSearchPathTest, OverrideIsTriedBeforeAnythingElse) {
+  const auto paths =
+      LibSecretSearchPaths("/tmp/.mount_GpgFroAbCdEf", "/opt/libsecret.so.0");
+
+  ASSERT_EQ(paths.size(), 3);
+  EXPECT_EQ(paths.first(), "/opt/libsecret.so.0");
+}
+
+TEST(LibSecretSearchPathTest, NoCandidateIsTriedTwice) {
+  // Loading one file twice would report the same loader error twice.
+  EXPECT_EQ(LibSecretSearchPaths({}, QLatin1String(kLibSecretSoname)).size(),
+            1);
+}
+
+#endif
 
 /**
  * @brief Covers why no store is installed, not what an installed one does.
