@@ -75,6 +75,7 @@
   <url type="vcs-browser">https://github.com/saturneric/GpgFrontend</url>
   
   <releases>
+    <release version="2.2.2" date="2026-08-10"/>
     <release version="2.2.1" date="2026-06-28"/>
     <release version="2.2.0" date="2026-05-09"/>
     <release version="2.1.11" date="2026-04-10"/>
