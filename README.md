@@ -14,8 +14,8 @@ more trustworthy in everyday privacy workflows.
 
 - Easy: Encrypt and sign your texts, files and more in just a few clicks.
 - Cross-platform: Native support for Windows, macOS and Linux.
-- Portable: Run directly from a USB drive and carry your keys.
-- Flexible: Manage keys separately through multiple isolated key databases.
+- Profiles: Keep separate sets of keys and settings, and switch between them.
+- Portable: Run from a USB drive, or carry a profile in one encrypted file.
 - Dual-engine: Switch freely between the mature GnuPG and the Rust rPGP backend.
 - Future-proof: Explore OpenPGP v6 (RFC 9580) and post-quantum algorithms.
 - Memory-safe: Sensitive data is guarded in secure memory while in use.
