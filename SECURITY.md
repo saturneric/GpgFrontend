@@ -57,10 +57,14 @@ From version v2.1.11 onwards, we no longer support macOS 13, as it discontinued
 by GitHub Action. Given its age and the anticipated discontinuation of support
 by Apple, it is wise to drop it.
 
+From version v2.2.2 onwards, we no longer support macOS 14, as it will be soon
+discontinued by GitHub Action. Given its age and the anticipated discontinuation
+of support by Apple, it is wise to drop it.
+
 ## Reporting a Vulnerability
 
 In case you wish to report a vulnerability, please avoid raising an issue
-publicly. Instead, contact me directly via email at eric@bktus.com. In your
+publicly. Instead, contact me directly via email at <eric@bktus.com>. In your
 email, please describe the vulnerability you've discovered and request a hot-fix
 if necessary. Alternatively, you could create a git patch to resolve the issue
 and send it to me via email. This approach would expedite the resolution of any
