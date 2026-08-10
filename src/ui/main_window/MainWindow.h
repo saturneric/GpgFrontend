@@ -492,24 +492,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   /**
    * @brief
    *
-   */
-  void slot_clean_gpg_password_cache(bool);
-
-  /**
-   * @brief
-   *
-   */
-  void slot_reload_gpg_components(bool);
-
-  /**
-   * @brief
-   *
-   */
-  void slot_restart_gpg_components(bool);
-
-  /**
-   * @brief
-   *
    * @param results
    */
   void slot_gpg_opera_buffer_show_helper(
@@ -668,10 +650,6 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
 
   QAction* module_controller_open_act_{};      ///<
   QAction* smart_card_controller_open_act_{};  ///<
-
-  QAction* clean_gpg_password_cache_act_{};  ///<
-  QAction* reload_components_act_{};         ///<
-  QAction* restart_components_act_{};        ///<
 
   QAction* append_selected_keys_act_{};  ///< Action to append selected keys
                                          ///< to edit

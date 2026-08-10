@@ -131,11 +131,13 @@ SettingsDialog::SettingsDialog(QWidget* parent)
                       {tr("keyring"), tr("gpg home"), tr("database path")}});
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    descriptors.append({gnupg_tab_,
-                        gnupg_title,
-                        "keys_engines",
-                        {tr("gpgme"), tr("gpgconf"), tr("binary path"),
-                         tr("custom install")}});
+    descriptors.append(
+        {gnupg_tab_,
+         gnupg_title,
+         "keys_engines",
+         {tr("gpgme"), tr("gpgconf"), tr("binary path"), tr("custom install"),
+          tr("password cache"), tr("reload"), tr("restart"), tr("gpg-agent"),
+          tr("maintenance")}});
   }
 
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP)) {

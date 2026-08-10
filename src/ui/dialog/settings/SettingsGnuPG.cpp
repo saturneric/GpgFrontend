@@ -29,7 +29,10 @@
 #include "SettingsGnuPG.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GpgAdvancedOperator.h"
+#include "core/function/openpgp/OpenPGPContext.h"
 #include "core/module/ModuleManager.h"
+#include "core/utils/CommonUtils.h"
 #include "ui_GnuPGSettings.h"
 
 namespace GpgFrontend::UI {
@@ -38,6 +41,11 @@ GnuPGTab::GnuPGTab(QWidget* parent)
     : QWidget(parent),
       ui_(GpgFrontend::SecureCreateSharedObject<Ui_GnuPGSettings>()) {
   ui_->setupUi(this);
+
+  // The forms under the repo-root "ui/" directory are not scanned by lupdate,
+  // so every visible string has to be set from C++ to be translatable.
+  ui_->generalGroupBox->setTitle(tr("General"));
+  ui_->advancedGroupBox->setTitle(tr("Advanced"));
 
   ui_->gpgmeDebugLogCheckBox->setText(tr("Enable GpgME Debug Log"));
   ui_->gpgmeDebugLogCheckBox->setToolTip(
@@ -52,6 +60,15 @@ GnuPGTab::GnuPGTab(QWidget* parent)
       tr("This may affect other applications that are using GnuPG."));
   ui_->forbidALLGnuPGNetworkConnectionCheckBox->setText(
       tr("Forbid all GnuPG network connection."));
+
+  // Sits right after "Terminate GnuPG background processes on exit": both
+  // describe what GpgFrontend does to GnuPG when it closes.
+  clear_password_cache_at_close_check_ =
+      new QCheckBox(tr("Clear password cache on exit"), ui_->generalGroupBox);
+  clear_password_cache_at_close_check_->setToolTip(
+      tr("Ask gpg-agent to forget all cached passphrases when GpgFrontend "
+         "closes."));
+  ui_->verticalLayout_7->insertWidget(2, clear_password_cache_at_close_check_);
 
   // tips
   ui_->customGnuPGPathTipsLabel->setText(
@@ -134,15 +151,111 @@ GnuPGTab::GnuPGTab(QWidget* parent)
           });
 #endif
 
+  // ---- maintenance -------------------------------------------------------
+  // These act immediately, so they neither announce a restart nor take part in
+  // SetSettings()/ApplySettings().
+  auto* maintenance_box = new QGroupBox(tr("Maintenance"), this);
+  auto* maintenance_layout = new QVBoxLayout(maintenance_box);
+
+  auto* maintenance_note = new QLabel(
+      tr("These operations take effect immediately and are not undone by "
+         "cancelling this dialog. Restarting components briefly interrupts any "
+         "in-flight GnuPG operation."),
+      maintenance_box);
+  maintenance_note->setWordWrap(true);
+
+  auto* clear_cache_button =
+      new QPushButton(tr("Clear Password Cache"), maintenance_box);
+  clear_cache_button->setToolTip(tr("Clear Password Cache of GnuPG"));
+  connect(clear_cache_button, &QPushButton::clicked, this, [this]() {
+    run_advanced_operation(
+        [](GpgAdvancedOperator& o) { return o.ClearGpgPasswordCache(); },
+        tr("Clear password cache successfully"),
+        tr("Failed to clear password cache of GnuPG"));
+  });
+
+  auto* reload_button =
+      new QPushButton(tr("Reload Components"), maintenance_box);
+  reload_button->setToolTip(tr("Reload All GnuPG's Components"));
+  connect(reload_button, &QPushButton::clicked, this, [this]() {
+    run_advanced_operation(
+        [](GpgAdvancedOperator& o) { return o.ReloadAllGpgComponents(); },
+        tr("Reload all the GnuPG's components successfully"),
+        tr("Failed to reload all or one of the GnuPG's component(s)"));
+  });
+
+  auto* restart_button =
+      new QPushButton(tr("Restart Components"), maintenance_box);
+  restart_button->setToolTip(tr("Restart All GnuPG's Components"));
+  connect(restart_button, &QPushButton::clicked, this, [this]() {
+    // The disruptive one: it tears down every running GnuPG daemon.
+    const auto reply = QMessageBox::question(
+        this, tr("Confirm"),
+        tr("Are you sure you want to restart all of GnuPG's components?\nAny "
+           "GnuPG operation still running will be interrupted."),
+        QMessageBox::Yes | QMessageBox::No);
+    if (reply != QMessageBox::Yes) return;
+
+    run_advanced_operation(
+        [](GpgAdvancedOperator& o) { return o.RestartGpgComponents(); },
+        tr("Restart all the GnuPG's components successfully"),
+        tr("Failed to restart all or one of the GnuPG's component(s)"));
+  });
+
+  auto* button_row = new QVBoxLayout();
+  button_row->setContentsMargins(0, 0, 0, 0);
+  button_row->addStretch(1);
+  button_row->addWidget(clear_cache_button);
+  button_row->addWidget(reload_button);
+  button_row->addWidget(restart_button);
+
+  maintenance_layout->addWidget(maintenance_note);
+  maintenance_layout->addLayout(button_row);
+
+  // before the trailing vertical spacer
+  ui_->verticalLayout_2->insertWidget(2, maintenance_box);
+
+  // These were previously reachable only through the "Advanced" menu, which is
+  // hidden in sandbox; keep them unreachable there.
+  if (IsRunningInSandBox()) {
+    maintenance_box->setHidden(true);
+    clear_password_cache_at_close_check_->setHidden(true);
+  }
+
   SetSettings();
+}
+
+void GnuPGTab::run_advanced_operation(
+    const std::function<bool(GpgAdvancedOperator&)>& op,
+    const QString& success_text, const QString& failure_text) {
+  bool ret = true;
+  for (const auto& channel : OpenPGPContext::GetAllChannelId()) {
+    // these operations are GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
+    if (OpenPGPContext::GetInstance(channel).Engine() !=
+        OpenPGPEngine::kGNUPG) {
+      continue;
+    }
+    ret = op(GpgAdvancedOperator::GetInstance(channel));
+    if (!ret) break;
+  }
+
+  if (ret) {
+    QMessageBox::information(this, tr("Successful Operation"), success_text);
+  } else {
+    QMessageBox::critical(this, tr("Failed Operation"), failure_text);
+  }
 }
 
 void GnuPGTab::SetSettings() {
   QSignalBlocker blocker1(ui_->gpgmeDebugLogCheckBox);
   QSignalBlocker blocker2(ui_->killAllGnuPGDaemonCheckBox);
   QSignalBlocker blocker3(ui_->useCustomGnuPGInstallPathCheckBox);
+  QSignalBlocker blocker4(clear_password_cache_at_close_check_);
 
   auto settings = GetSettings();
+
+  clear_password_cache_at_close_check_->setChecked(
+      settings.value("basic/clear_gpg_password_cache", true).toBool());
 
   ui_->gpgmeDebugLogCheckBox->setChecked(
       settings.value("gnupg/enable_gpgme_debug_log", false).toBool());
@@ -180,6 +293,8 @@ void GnuPGTab::ApplySettings() {
                     ui_->killAllGnuPGDaemonCheckBox->isChecked());
   settings.setValue("network/forbid_all_gnupg_connection",
                     ui_->forbidALLGnuPGNetworkConnectionCheckBox->isChecked());
+  settings.setValue("basic/clear_gpg_password_cache",
+                    clear_password_cache_at_close_check_->isChecked());
 
   if (use_custom) {
     settings.setValue("gnupg/custom_gnupg_install_path", custom_gnupg_path_);

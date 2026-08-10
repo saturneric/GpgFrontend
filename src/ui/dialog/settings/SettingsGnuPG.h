@@ -30,6 +30,10 @@
 
 class Ui_GnuPGSettings;
 
+namespace GpgFrontend {
+class GpgAdvancedOperator;
+}
+
 namespace GpgFrontend::UI {
 class GnuPGTab : public QWidget {
   Q_OBJECT
@@ -74,6 +78,7 @@ class GnuPGTab : public QWidget {
  private:
   QSharedPointer<Ui_GnuPGSettings> ui_;  ///<
   QString custom_gnupg_path_;
+  QCheckBox* clear_password_cache_at_close_check_{};  ///< moved from GeneralTab
 
   /**
    * @brief
@@ -82,5 +87,17 @@ class GnuPGTab : public QWidget {
    * @return false
    */
   auto check_custom_gnupg_path(const QString& path) -> bool;
+
+  /**
+   * @brief Run a GnuPG-only advanced operation on every OpenPGP channel and
+   * report the outcome to the user.
+   *
+   * @param op the operation to run on each GnuPG channel
+   * @param success_text message shown when every channel succeeded
+   * @param failure_text message shown when any channel failed
+   */
+  void run_advanced_operation(
+      const std::function<bool(GpgAdvancedOperator&)>& op,
+      const QString& success_text, const QString& failure_text);
 };
 }  // namespace GpgFrontend::UI

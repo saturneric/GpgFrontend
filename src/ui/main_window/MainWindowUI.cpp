@@ -294,24 +294,6 @@ void MainWindow::create_actions() {
   connect(open_key_management_act_, &QAction::triggered, this,
           &MainWindow::slot_open_key_management);
 
-  clean_gpg_password_cache_act_ =
-      create_action("clean_password_cache", tr("Clear Password Cache"),
-                    ":/icons/clear-f.png", tr("Clear Password Cache of GnuPG"));
-  connect(clean_gpg_password_cache_act_, &QAction::triggered, this,
-          &MainWindow::slot_clean_gpg_password_cache);
-
-  reload_components_act_ =
-      create_action("reload_components", tr("Reload All Components"),
-                    ":/icons/restart.png", tr("Reload All GnuPG's Components"));
-  connect(reload_components_act_, &QAction::triggered, this,
-          &MainWindow::slot_reload_gpg_components);
-
-  restart_components_act_ = create_action(
-      "restart_components", tr("Restart All Components"), ":/icons/restart.png",
-      tr("Restart All GnuPG's Components"));
-  connect(restart_components_act_, &QAction::triggered, this,
-          &MainWindow::slot_restart_gpg_components);
-
   module_controller_open_act_ =
       create_action("module_controller_open", tr("Open Module Controller"),
                     ":/icons/module.png", tr("Open Module Controller Dialog"));
@@ -538,14 +520,8 @@ void MainWindow::create_menus() {
   profile_menu_->addAction(export_profile_act_);
 
   advance_menu_ = menuBar()->addMenu(tr("Advanced"));
-  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    advance_menu_->addAction(clean_gpg_password_cache_act_);
-    advance_menu_->addAction(reload_components_act_);
-    advance_menu_->addAction(restart_components_act_);
-    advance_menu_->addSeparator();
-  }
-  // Only show GnuPG Controller and Smart Card Controller if GnuPG is
-  // supported, since they are not useful for other engines.
+  // Only show Smart Card Controller if GnuPG is supported, since it is not
+  // useful for other engines.
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     advance_menu_->addAction(smart_card_controller_open_act_);
   }

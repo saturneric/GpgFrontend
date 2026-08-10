@@ -29,7 +29,6 @@
 #include "MainWindow.h"
 #include "core/GFConstants.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/function/gpg/GpgAdvancedOperator.h"
 #include "core/model/SettingsObject.h"
 #include "core/profile/ProfileLock.h"
 #include "core/profile/ProfilePackage.h"
@@ -550,73 +549,6 @@ void MainWindow::SlotGeneralDecryptVerify(bool) {
   }
 
   this->SlotCustomDecryptVerify(type);
-}
-
-void MainWindow::slot_clean_gpg_password_cache(bool) {
-  bool ret = true;
-  for (const auto& channel : OpenPGPContext::GetAllChannelId()) {
-    // these operations are GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
-    if (OpenPGPContext::GetInstance(channel).Engine() !=
-        OpenPGPEngine::kGNUPG) {
-      continue;
-    }
-    ret = GpgAdvancedOperator::GetInstance(channel).ClearGpgPasswordCache();
-    if (!ret) break;
-  }
-
-  if (ret) {
-    QMessageBox::information(this, tr("Successful Operation"),
-                             tr("Clear password cache successfully"));
-  } else {
-    QMessageBox::critical(this, tr("Failed Operation"),
-                          tr("Failed to clear password cache of GnuPG"));
-  }
-}
-
-void MainWindow::slot_reload_gpg_components(bool) {
-  bool ret = true;
-  for (const auto& channel : OpenPGPContext::GetAllChannelId()) {
-    // these operations are GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
-    if (OpenPGPContext::GetInstance(channel).Engine() !=
-        OpenPGPEngine::kGNUPG) {
-      continue;
-    }
-    ret = GpgAdvancedOperator::GetInstance(channel).ReloadAllGpgComponents();
-    if (!ret) break;
-  }
-
-  if (ret) {
-    QMessageBox::information(
-        this, tr("Successful Operation"),
-        tr("Reload all the GnuPG's components successfully"));
-  } else {
-    QMessageBox::critical(
-        this, tr("Failed Operation"),
-        tr("Failed to reload all or one of the GnuPG's component(s)"));
-  }
-}
-
-void MainWindow::slot_restart_gpg_components(bool) {
-  bool ret = true;
-  for (const auto& channel : OpenPGPContext::GetAllChannelId()) {
-    // these operations are GnuPG-only; skip non-GnuPG channels (e.g. rPGP)
-    if (OpenPGPContext::GetInstance(channel).Engine() !=
-        OpenPGPEngine::kGNUPG) {
-      continue;
-    }
-    ret = GpgAdvancedOperator::GetInstance(channel).RestartGpgComponents();
-    if (!ret) break;
-  }
-
-  if (ret) {
-    QMessageBox::information(
-        this, tr("Successful Operation"),
-        tr("Restart all the GnuPG's components successfully"));
-  } else {
-    QMessageBox::critical(
-        this, tr("Failed Operation"),
-        tr("Failed to restart all or one of the GnuPG's component(s)"));
-  }
 }
 
 void MainWindow::slot_update_operations_menu_by_checked_keys(

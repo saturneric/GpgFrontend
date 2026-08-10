@@ -36,9 +36,9 @@
 #include "SettingsDialog.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/profile/ProfileSession.h"
-#include "ui/UserInterfaceUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui_GeneralSettings.h"
 
 namespace GpgFrontend::UI {
@@ -49,16 +49,6 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->setupUi(this);
 
   ui_->baseBox->setTitle(tr("Base"));
-
-  ui_->clearGpgPasswordCacheCheckBox->setText(
-      tr("Clear gpg password cache when closing GpgFrontend."));
-
-  // Hide the "Clear gpg password cache" option if GnuPG is not supported, since
-  // this option is not useful without GnuPG and may cause confusion to users.
-  auto if_gnupg_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
-  if (!if_gnupg_supported) {
-    ui_->clearGpgPasswordCacheCheckBox->setHidden(true);
-  }
 
   ui_->defaultEngineLabel->setText(tr("Default Engine:"));
   for (const auto& engine : GetGSS().AllSupportedEngines()) {
@@ -125,7 +115,6 @@ GeneralTab::GeneralTab(QWidget* parent)
     ui_->textEditorRadioButton->setHidden(true);
     ui_->filePanelDefaultPathLabel->setHidden(true);
     ui_->filePanelDefaultPathComboBox->setHidden(true);
-    ui_->clearGpgPasswordCacheCheckBox->setHidden(true);
   }
 
   ui_->revealInFileExplorerButton->setText(tr("Reveal in File Explorer"));
@@ -181,7 +170,8 @@ void GeneralTab::SetSettings() {
   // profile's actual folder in its tooltip, and so it can be hidden for a
   // classic profile, which has no workspace of its own.
   ui_->filePanelDefaultPathComboBox->clear();
-  if (const auto workspace = ProfileSession::Instance().WorkspacePath(); !workspace.isEmpty()) {
+  if (const auto workspace = ProfileSession::Instance().WorkspacePath();
+      !workspace.isEmpty()) {
     ui_->filePanelDefaultPathComboBox->addItem(
         tr("Profile Workspace"),
         FilePanelDefaultPathModeToString(FilePanelDefaultPathMode::kWORKSPACE));
@@ -201,11 +191,6 @@ void GeneralTab::SetSettings() {
       FilePanelDefaultPathModeFromString(stored_mode));
   const auto index = ui_->filePanelDefaultPathComboBox->findData(mode);
   ui_->filePanelDefaultPathComboBox->setCurrentIndex(index < 0 ? 0 : index);
-
-  auto clear_gpg_password_cache =
-      settings.value("basic/clear_gpg_password_cache", true).toBool();
-  ui_->clearGpgPasswordCacheCheckBox->setCheckState(
-      clear_gpg_password_cache ? Qt::Checked : Qt::Unchecked);
 
   auto restore_text_editor_page =
       settings.value("basic/restore_text_editor_page", true).toBool();
@@ -274,8 +259,6 @@ void GeneralTab::ApplySettings() {
   settings.setValue(
       "basic/file_panel_default_path_mode",
       ui_->filePanelDefaultPathComboBox->currentData().toString());
-  settings.setValue("basic/clear_gpg_password_cache",
-                    ui_->clearGpgPasswordCacheCheckBox->isChecked());
   settings.setValue("basic/restore_text_editor_page",
                     ui_->restoreTextEditorPageCheckBox->isChecked());
   settings.setValue("basic/confirm_import_keys",
