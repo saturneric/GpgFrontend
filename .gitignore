@@ -110,7 +110,10 @@ ui_*.h
 *.qmlc
 *.jsc
 Makefile*
+# Qt Creator shadow-build dirs (build-GpgFrontend-Desktop_Qt_...). CI workflows
+# are named build-*.yml and are not what this pattern is after.
 *build-*
+!.github/workflows/*.yml
 *.qm
 *.prl
 
