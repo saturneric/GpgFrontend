@@ -125,6 +125,9 @@ jobs:
           sudo apt-get -y install libfuse2 libgcrypt20-dev libnss3-dev libpci-dev libpulse-dev libudev-dev libxtst-dev
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-image0 gyp
           sudo apt-get -y install libglu1-mesa-dev libfontconfig1-dev libx11-xcb-dev libxcb-* libxkbcommon-x11-0
+          # libsecret is dlopen'd, never linked. Installed only so the AppImage
+          # can carry a copy built against the same glib it bundles.
+          sudo apt-get -y install libsecret-1-0
         if: runner.os == 'Linux'
 
       - name: Install Qt5
@@ -205,13 +208,34 @@ jobs:
           cd ${{github.workspace}}/build/upload-artifact
           wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
           chmod u+x linuxdeployqt-continuous-x86_64.AppImage
+
+          APP_DIR="${{github.workspace}}/build/artifacts/AppDir"
+
+          # The AppImage bundles libglib/libgobject/libgio and its AppRun puts
+          # them ahead of the host's copies, so a host libsecret built against a
+          # newer glib cannot resolve its own symbols and the system keychain
+          # simply disappears -- see linuxdeployqt issue 544. Carrying our own
+          # copy is what makes the dependency closure self-consistent. It has to
+          # be staged before linuxdeployqt runs: a file dropped in afterwards
+          # gets neither an rpath nor its own dependencies deployed.
+          LIBSECRET_SRC="/usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/libsecret-1.so.0"
+          test -f "$LIBSECRET_SRC"
+          cp -L "$LIBSECRET_SRC" "$APP_DIR/usr/lib/libsecret-1.so.0"
+
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
           ./linuxdeployqt-continuous-x86_64.AppImage \
             ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
             -no-translations \
             -extra-plugins=iconengines,platforms \
             -appimage \
+            -executable=$APP_DIR/usr/lib/libsecret-1.so.0 \
             -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
+
+          # Without the rpath patch the staged copy cannot find its own
+          # dependencies, which is the bug this whole step exists to fix, so it
+          # fails the build rather than shipping a silent regression.
+          readelf -d "$APP_DIR/usr/lib/libsecret-1.so.0" | grep -q 'ORIGIN' \
+            || { echo "libsecret was not rpath-patched by linuxdeployqt"; exit 1; }
         if: runner.os == 'Linux'
 
       - name: Download GnuPG Binary Release (Windows)
