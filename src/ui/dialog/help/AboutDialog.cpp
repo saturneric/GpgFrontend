@@ -42,6 +42,7 @@
 #include "core/profile/ProfileSession.h"
 #include "ui/UserInterfaceUtils.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "core/utils/RustUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/function/ProfileController.h"
@@ -575,6 +576,16 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   if (!secret_store_detail.isEmpty()) {
     status_form->addRow(tr("Credential Store Detail:"),
                         CreateValueLabel(secret_store_detail, status_widget));
+  }
+
+  // Same reasoning as the credential store detail above: when GnuPG is
+  // unreachable because its home directory cannot host the agent sockets, this
+  // is the row that carries the measured length and the platform limit into a
+  // bug report. Untranslated and selectable, for the same reason.
+  const auto gnupg_home_detail = GnuPGHomePathUnusableReason();
+  if (!gnupg_home_detail.isEmpty()) {
+    status_form->addRow(tr("GnuPG Home Path Detail:"),
+                        CreateValueLabel(gnupg_home_detail, status_widget));
   }
 
   status_form->addRow(tr("Running Mode:"),

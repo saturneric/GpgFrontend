@@ -33,6 +33,7 @@
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/GpgUtils.h"
 #include "ui_GnuPGSettings.h"
 
 namespace GpgFrontend::UI {
@@ -214,6 +215,34 @@ GnuPGTab::GnuPGTab(QWidget* parent)
 
   // before the trailing vertical spacer
   ui_->verticalLayout_2->insertWidget(2, maintenance_box);
+
+  // ---- home directory too long for the agent sockets ---------------------
+  // Only shown when it actually happened. gpg-agent puts its sockets inside the
+  // key database folder, and once that path is too long for a unix socket
+  // address the agent exits without creating them -- GnuPG then simply does not
+  // work, with nothing anywhere to say why. Inserted above the maintenance box
+  // because none of those buttons can fix it.
+  const auto home_path_detail = GnuPGHomePathUnusableReason();
+  if (!home_path_detail.isEmpty()) {
+    auto* warning_box = new QGroupBox(tr("GnuPG Unavailable"), this);
+    auto* warning_layout = new QVBoxLayout(warning_box);
+
+    auto text =
+        tr("GnuPG cannot start: this key database's folder path is too long "
+           "for GnuPG's agent socket. Choose a key database in a shorter path "
+           "under Settings, Key Databases.");
+
+    // Untranslated on purpose: the measured length and the platform limit are
+    // what a maintainer needs read back verbatim from a bug report.
+    text += "\n\n" + home_path_detail;
+
+    auto* warning_label = new QLabel(text, warning_box);
+    warning_label->setWordWrap(true);
+    warning_label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+
+    warning_layout->addWidget(warning_label);
+    ui_->verticalLayout_2->insertWidget(2, warning_box);
+  }
 
   // These were previously reachable only through the "Advanced" menu, which is
   // hidden in sandbox; keep them unreachable there.

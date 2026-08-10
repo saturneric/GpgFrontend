@@ -42,6 +42,31 @@ namespace GpgFrontend::UI {
 
 namespace {
 
+// gpg-agent keeps its sockets inside the key database folder, and a unix socket
+// address is length-capped. A folder past that cap leaves the agent unable to
+// create its socket, so GnuPG never works there -- and nothing in the resulting
+// failure points back at the path that caused it. Caught while the path is
+// still being chosen, rather than at the next start.
+//
+// Only for gnupg-backed databases: rPGP opens no sockets, so the same path is
+// perfectly usable for it.
+auto RejectsGnuPGSocketPath(QWidget* parent, const QString& backend_type,
+                            const QString& path) -> bool {
+  if (backend_type != "gnupg") return false;
+  if (GnuPGHomePathFitsSocketBudget(path)) return false;
+
+  QMessageBox::warning(
+      parent, QObject::tr("Key Database Path Too Long"),
+      QObject::tr("This folder's path is too long for GnuPG's agent socket, so "
+                  "GnuPG could not start against it. Choose a folder with a "
+                  "shorter path.") +
+          "\n\n" +
+          QString("%1 bytes, max %2")
+              .arg(path.toUtf8().size())
+              .arg(GnuPGHomePathByteBudget()));
+  return true;
+}
+
 auto CreateTableItem(const QString& text,
                      Qt::Alignment alignment = Qt::AlignVCenter | Qt::AlignLeft)
     -> QTableWidgetItem* {
@@ -377,6 +402,10 @@ void KeyDatabasesTab::slot_edit_key_database() {
               return;
             }
 
+            if (RejectsGnuPGSocketPath(this, backend_type, key_db_fs_path)) {
+              return;
+            }
+
             LOG_D() << "edit key database path, name: " << name
                     << "path: " << path << "canonical path: " << key_db_fs_path;
 
@@ -451,6 +480,8 @@ void KeyDatabasesTab::slot_add_new_key_database() {
                                   "valid path that GpgFrontend can use"));
           return;
         }
+
+        if (RejectsGnuPGSocketPath(this, backend_type, key_db_fs_path)) return;
 
         LOG_D() << "new key database path, name: " << name << "path: " << path
                 << "canonical path: " << key_db_fs_path;
