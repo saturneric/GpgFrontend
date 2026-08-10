@@ -632,8 +632,13 @@ jobs:
             windeployqt6 --no-translations --force "$lib"
           done
           windeployqt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
+          # A module may need Qt modules the app itself never links (Qt6Xml,
+          # Qt6Network, ...), so each one still has to be scanned. But --dir
+          # sends what it needs into bin/, which is the first directory the
+          # loader searches, instead of duplicating the whole Qt runtime next
+          # to every module.
           for module in ./artifacts/modules/*.dll; do
-            windeployqt6 --no-translations --force "$module"
+            windeployqt6 --no-translations --force --dir ./artifacts/bin "$module"
           done
           mkdir -p upload-artifact
         if: runner.os == 'Windows'

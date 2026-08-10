@@ -305,6 +305,21 @@ void TriggerEvent(const EventIdentifier& event_id,
 }
 
 /**
+ * @brief Return the directory that should be searched for a module's own
+ * dependency libraries while that module is being loaded.
+ *
+ * A module may ship private shared libraries next to itself. The OS loader
+ * only looks at the executable directory and the system directories, so the
+ * module directory has to be handed to it explicitly.
+ *
+ * @param module_library_path absolute path of the module library
+ * @return the module's directory in native separators, or an empty string if
+ * the path is empty or its directory does not exist
+ */
+auto GF_CORE_EXPORT
+ResolveModuleLibrarySearchPath(const QString& module_library_path) -> QString;
+
+/**
  * @brief Return whether the module with the given identifier is currently
  * active.
  *

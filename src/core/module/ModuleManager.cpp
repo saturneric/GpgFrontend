@@ -40,7 +40,76 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/MemoryUtils.h"
 
+#if defined(Q_OS_WINDOWS)
+#include <windows.h>
+#endif
+
 namespace GpgFrontend::Module {
+
+namespace {
+
+/**
+ * @brief Make the module's own directory part of the loader search path for
+ * the duration of a single module load.
+ *
+ * The resulting search order is: executable directory, module directory,
+ * system directories, %PATH%. %PATH% is deliberately kept as the last resort
+ * so an uninstalled build, which picks Qt and the compiler runtime up from
+ * there, keeps working.
+ *
+ * SetDllDirectory() is process-global, which is safe here only because module
+ * loading is serialized on the module task runner and the guard is held just
+ * across QLibrary::load().
+ */
+class ScopedModuleLibrarySearchPath {
+ public:
+  explicit ScopedModuleLibrarySearchPath(const QString& module_library_path) {
+#if defined(Q_OS_WINDOWS)
+    const auto path = ResolveModuleLibrarySearchPath(module_library_path);
+    if (path.isEmpty()) return;
+
+    applied_ =
+        SetDllDirectoryW(reinterpret_cast<const wchar_t*>(path.utf16())) != 0;
+    if (!applied_) {
+      LOG_W() << "cannot add module directory to the library search path: "
+              << path;
+    }
+#else
+    Q_UNUSED(module_library_path)
+#endif
+  }
+
+  ~ScopedModuleLibrarySearchPath() {
+#if defined(Q_OS_WINDOWS)
+    // an empty string, unlike nullptr, restores the default search order
+    // without putting the current working directory back into it
+    if (applied_) SetDllDirectoryW(L"");
+#endif
+  }
+
+  ScopedModuleLibrarySearchPath(const ScopedModuleLibrarySearchPath&) = delete;
+  auto operator=(const ScopedModuleLibrarySearchPath&)
+      -> ScopedModuleLibrarySearchPath& = delete;
+  ScopedModuleLibrarySearchPath(ScopedModuleLibrarySearchPath&&) = delete;
+  auto operator=(ScopedModuleLibrarySearchPath&&)
+      -> ScopedModuleLibrarySearchPath& = delete;
+
+ private:
+  bool applied_ = false;
+};
+
+}  // namespace
+
+auto ResolveModuleLibrarySearchPath(const QString& module_library_path)
+    -> QString {
+  if (module_library_path.isEmpty()) return {};
+
+  const QFileInfo info(module_library_path);
+  const auto dir = info.absoluteDir();
+  if (!dir.exists()) return {};
+
+  return QDir::toNativeSeparators(dir.absolutePath());
+}
 
 class ModuleManager::Impl {
  public:
@@ -53,6 +122,8 @@ class ModuleManager::Impl {
   auto LoadAndRegisterModule(const QString& module_library_path,
                              bool integrated_module) -> bool {
     QLibrary module_library(module_library_path);
+
+    ScopedModuleLibrarySearchPath search_path(module_library_path);
     if (!module_library.load()) {
       LOG_W() << "module manager failed to load module: "
               << module_library.fileName()

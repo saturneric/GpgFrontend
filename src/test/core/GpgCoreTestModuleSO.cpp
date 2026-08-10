@@ -26,7 +26,10 @@
  *
  */
 
+#include <QTemporaryDir>
+
 #include "GFCoreTest.h"
+#include "core/module/ModuleManager.h"
 #include "core/struct/settings_object/ModuleSO.h"
 
 namespace GpgFrontend::Test {
@@ -75,6 +78,31 @@ TEST_F(GFCoreTest, ModuleSOIgnoresWrongTypedJsonValues) {
 
   EXPECT_TRUE(so.module_id.isEmpty());
   EXPECT_FALSE(so.auto_activate);
+}
+
+TEST_F(GFCoreTest, ModuleLibrarySearchPathOfEmptyPathIsEmpty) {
+  EXPECT_TRUE(Module::ResolveModuleLibrarySearchPath({}).isEmpty());
+}
+
+TEST_F(GFCoreTest, ModuleLibrarySearchPathOfMissingDirectoryIsEmpty) {
+  QTemporaryDir tmp;
+  ASSERT_TRUE(tmp.isValid());
+
+  const auto path =
+      QDir(tmp.path()).absoluteFilePath("no_such_dir/libgf_mod_test.so");
+
+  EXPECT_TRUE(Module::ResolveModuleLibrarySearchPath(path).isEmpty());
+}
+
+TEST_F(GFCoreTest, ModuleLibrarySearchPathIsTheModuleDirectory) {
+  QTemporaryDir tmp;
+  ASSERT_TRUE(tmp.isValid());
+
+  const auto path = QDir(tmp.path()).absoluteFilePath("libgf_mod_test.so");
+
+  // the module itself need not exist, only the directory it is loaded from
+  EXPECT_EQ(Module::ResolveModuleLibrarySearchPath(path),
+            QDir::toNativeSeparators(QDir(tmp.path()).absolutePath()));
 }
 
 }  // namespace GpgFrontend::Test
