@@ -229,6 +229,63 @@ auto GF_CORE_EXPORT DecideKeyDatabasePathAction(bool exists_as_dir,
     -> KeyDatabasePathAction;
 
 /**
+ * @brief Longest key database path GnuPG can still put its sockets in.
+ *
+ * gpg-agent binds its sockets inside the home directory, and a unix domain
+ * socket address is capped by sockaddr_un::sun_path -- 104 bytes on Darwin, 108
+ * on Linux, including the terminating NUL. Exceed it and gpg-agent refuses the
+ * name and exits, so the socket never appears and every later operation fails
+ * with GPG_ERR_ENOTSOCK. That is silent unless somebody checks the length up
+ * front, which is what this exists for.
+ *
+ * The budget is measured against "/S.gpg-agent.extra", the longest socket the
+ * agent actually binds given the flags GpgAgentProcess passes. The browser
+ * socket has a longer name but is only created with --enable-browser-socket,
+ * which we never pass; budgeting against it would condemn paths that work.
+ *
+ * @return the maximum home directory length in bytes, or -1 where no such limit
+ *         applies (Windows, which does not address these sockets by path)
+ */
+auto GF_CORE_EXPORT GnuPGHomePathByteBudget() -> int;
+
+/**
+ * @brief Whether GnuPG can host its agent sockets in @p home_path.
+ *
+ * Measured in UTF-8 bytes rather than characters: sun_path is a byte buffer, so
+ * a non-ASCII user name costs more room than its character count suggests.
+ *
+ * @param home_path the GnuPG home directory (the key database directory)
+ * @return true when the sockets fit, and always true where no limit applies
+ */
+auto GF_CORE_EXPORT GnuPGHomePathFitsSocketBudget(const QString& home_path)
+    -> bool;
+
+/**
+ * @brief Record that a GnuPG home directory cannot host the agent sockets.
+ *
+ * The reason has to reach the interface for the same cause the system secret
+ * store's does: the failure is invisible at the default log level, and what the
+ * user sees instead is an application that simply cannot reach GnuPG. Passing
+ * an empty reason clears it.
+ *
+ * @param reason technical, untranslated, safe to paste into a bug report; must
+ *               never contain secrets or a user's file paths -- report the
+ *               arithmetic, not the path
+ */
+void GF_CORE_EXPORT RegisterGnuPGHomePathUnusable(QString reason);
+
+/**
+ * @brief Explain why GnuPG cannot use its home directory.
+ *
+ * Untranslated on purpose: it carries the measured length and the platform
+ * limit, which is exactly what a maintainer needs read back verbatim. Callers
+ * pair it with translated prose rather than showing it alone.
+ *
+ * @return the reason, or empty when the home directory is usable
+ */
+auto GF_CORE_EXPORT GnuPGHomePathUnusableReason() -> QString;
+
+/**
  * @brief Keep only the databases that resolved to a real directory, re-seeding
  * the DEFAULT database when that leaves nothing behind.
  *

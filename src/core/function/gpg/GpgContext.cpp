@@ -166,6 +166,25 @@ auto GpgContext::init(const OpenPGPContextInitArgs& args) -> bool {
   // contexts configured exactly like this one.
   init_args_ = args;
 
+  // gpg-agent keeps its sockets inside the home directory, and a unix socket
+  // address has a hard length cap. Past it the agent exits without ever
+  // creating the socket, and every later operation fails with ENOTSOCK while
+  // nothing on screen explains why. Checked here because this is the first
+  // point at which the home directory this channel will really use is known.
+  const auto socket_budget = GnuPGHomePathByteBudget();
+  if (!GnuPGHomePathFitsSocketBudget(KeyDBPath())) {
+    auto reason =
+        QString("gnupg homedir exceeds unix socket path limit: %1 bytes, max %2")
+            .arg(KeyDBPath().toUtf8().size())
+            .arg(socket_budget);
+    LOG_E() << "gnupg home path is too long for the agent sockets, channel:"
+            << GetChannel() << reason;
+    RegisterGnuPGHomePathUnusable(std::move(reason));
+    Module::UpsertRTValue("core", "gnupg.homedir.socket_ok", 0);
+  } else {
+    Module::UpsertRTValue("core", "gnupg.homedir.socket_ok", 1);
+  }
+
   gpgconf_path_ = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{}),
   gpg_agent_path_ = Module::RetrieveRTValueTypedOrDefault<>(

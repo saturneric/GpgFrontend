@@ -44,6 +44,13 @@
 
 namespace GpgFrontend {
 
+namespace {
+// Set once during environment checking and read by the settings and about
+// dialogs. Not a settings value: it describes this run's environment, and
+// persisting it would outlive the condition it explains.
+QString g_gnupg_home_path_unusable_reason;
+}  // namespace
+
 inline auto Trim(QString& s) -> QString { return s.trimmed(); }
 
 auto GetGpgmeErrorString(size_t buffer_size, gpgme_error_t err) -> QString {
@@ -574,6 +581,50 @@ auto DecideKeyDatabasePathAction(bool exists_as_dir, bool exists_as_file,
 
   return inside_app_data ? KeyDatabasePathAction::kCREATE_FULL
                          : KeyDatabasePathAction::kREJECT;
+}
+
+auto GnuPGHomePathByteBudget() -> int {
+#ifdef Q_OS_WINDOWS
+  // Windows gnupg does not address these sockets through sun_path, so there is
+  // no length to budget against.
+  return -1;
+#else
+#ifdef Q_OS_MACOS
+  constexpr int kSunPathSize = 104;
+#else
+  constexpr int kSunPathSize = 108;
+#endif
+  // The longest socket gpg-agent binds under the home directory, separator
+  // included. GpgAgentProcess passes --enable-ssh-support but never
+  // --enable-browser-socket, so S.gpg-agent.browser is not created and must not
+  // be budgeted for.
+  constexpr int kLongestSocketSuffix =
+      static_cast<int>(sizeof("/S.gpg-agent.extra") - 1);
+
+  // -1 for the terminating NUL, which sun_path has to hold too.
+  return kSunPathSize - kLongestSocketSuffix - 1;
+#endif
+}
+
+auto GnuPGHomePathFitsSocketBudget(const QString& home_path) -> bool {
+  const auto budget = GnuPGHomePathByteBudget();
+  if (budget < 0) return true;
+
+  return home_path.toUtf8().size() <= budget;
+}
+
+void RegisterGnuPGHomePathUnusable(QString reason) {
+  if (reason.isEmpty()) {
+    g_gnupg_home_path_unusable_reason.clear();
+    return;
+  }
+
+  LOG_W() << "gnupg home path is unusable:" << reason;
+  g_gnupg_home_path_unusable_reason = std::move(reason);
+}
+
+auto GnuPGHomePathUnusableReason() -> QString {
+  return g_gnupg_home_path_unusable_reason;
 }
 
 auto ToProfileRelativeKeyDatabasePath(const QString& absolute_path,

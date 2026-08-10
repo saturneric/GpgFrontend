@@ -37,11 +37,13 @@ GpgComponentManager::GpgComponentManager(int channel)
 
 auto GpgComponentManager::GetGpgAgentVersion() -> QString {
   if (!gpg_agent_version_.isEmpty()) return gpg_agent_version_;
+  if (gpg_agent_version_failed_) return {};
 
   auto [r, s] =
       assuan_.SendDataCommand(GpgComponentType::kGPG_AGENT, "GETINFO version");
   if (s.isEmpty()) {
     LOG_D() << "invalid response of GETINFO version: " << s;
+    gpg_agent_version_failed_ = true;
     return {};
   }
 
@@ -52,11 +54,13 @@ auto GpgComponentManager::GetGpgAgentVersion() -> QString {
 auto GpgComponentManager::GetScdaemonVersion() -> QString {
   if (!GPG_CTX_MIN_SUPPORT()) return {};
   if (!scdaemon_version_.isEmpty()) return scdaemon_version_;
+  if (scdaemon_version_failed_) return {};
 
   auto [r, s] = assuan_.SendDataCommand(GpgComponentType::kGPG_AGENT,
                                         "SCD GETINFO version");
   if (s.isEmpty()) {
     LOG_D() << "invalid response of SCD GETINFO version: " << s;
+    scdaemon_version_failed_ = true;
     return {};
   }
 
@@ -92,6 +96,8 @@ auto GpgComponentManager::GpgKillAgent() -> bool {
 void GpgComponentManager::Reset() {
   scdaemon_version_.clear();
   gpg_agent_version_.clear();
+  scdaemon_version_failed_ = false;
+  gpg_agent_version_failed_ = false;
   assuan_.ResetAllConnections();
 }
 }  // namespace GpgFrontend

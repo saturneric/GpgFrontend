@@ -88,6 +88,14 @@ class GF_CORE_EXPORT GpgComponentManager
 
   QString gpg_agent_version_;
   QString scdaemon_version_;
+
+  /// Only a successful answer used to be remembered, so an unreachable agent
+  /// was re-queried on every call. The engine-support checks ask for the agent
+  /// version once per condition, and enumerating the key generation algorithms
+  /// runs hundreds of those, so a single failure multiplied into hundreds of
+  /// blocked round trips. Reset() clears these along with the versions.
+  bool gpg_agent_version_failed_ = false;
+  bool scdaemon_version_failed_ = false;
 };
 
 };  // namespace GpgFrontend

@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <chrono>
+
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/typedef/GpgTypedef.h"
 
@@ -130,12 +132,46 @@ class GF_CORE_EXPORT GpgAssuanHelper
   QMap<GpgComponentType, QSharedPointer<struct gpgme_context>> ctx_map_;
   QString gpgconf_path_;
 
+  /// Only successes were ever remembered, so a component that could not be
+  /// reached was retried from scratch on every single call -- each retry
+  /// spawning gpgconf and blocking the calling thread, which is the GUI thread
+  /// for most callers. One unreachable agent turned into hundreds of stalls.
+  /// These remember the failure instead, until the deadline passes.
+  struct ConnectFailure {
+    GpgError err = GPG_ERR_NO_ERROR;
+    std::chrono::steady_clock::time_point retry_after;
+    std::chrono::milliseconds backoff{0};
+  };
+  QMap<GpgComponentType, ConnectFailure> connect_failures_;
+
   /**
    * @brief
    *
    * @param type
    */
   void launch_component(GpgComponentType type);
+
+  /**
+   * @brief Remember that connecting failed, and when it may be tried again.
+   *
+   * The delay escalates so a genuinely transient restart still recovers
+   * quickly while a permanently broken environment stops costing anything.
+   *
+   * @param type the component that could not be reached
+   * @param err the error to replay until the deadline passes
+   * @return @p err, so callers can return it directly
+   */
+  auto record_connect_failure(GpgComponentType type, GpgError err) -> GpgError;
+
+  /**
+   * @brief Send a command, bounding reconnection attempts.
+   *
+   * @param depth how many times this call has already reconnected
+   */
+  auto send_command(GpgComponentType type, const QString& command,
+                    const DataCallback& data_cb,
+                    const InqueryCallback& inquery_cb,
+                    const StatusCallback& status_cb, int depth) -> GpgError;
 
   /**
    * @brief Forward the pinentry environment (tty, display, ...) to gpg-agent.
