@@ -63,7 +63,7 @@ TEST(SettingsLayeringTest, FallbackUsedWhenNoLayerHasValue) {
 
 TEST(SettingsLayeringTest, FalseAndZeroAreValuesNotAbsence) {
   // A stored `false` / `0` must not fall through to the default — that would
-  // make an explicitly disabled self-check silently re-enable itself.
+  // make an explicitly disabled offline mode silently re-enable itself.
   EXPECT_FALSE(ResolveLayeredValue(QVariant(), QVariant(false), QVariant(true))
                    .toBool());
   EXPECT_EQ(ResolveLayeredValue(QVariant(0), QVariant(1), QVariant(3)).toInt(),
@@ -92,14 +92,14 @@ TEST(SettingsLayeringTest, IniStringBooleansConvertCorrectly) {
   const auto path = dir.filePath("config.ini");
   {
     QSettings w(path, QSettings::IniFormat);
-    w.setValue("SelfCheck", "false");
+    w.setValue("GnuPGOfflineMode", "false");
     w.setValue("SecureLevel", "2");
     w.setValue("LogRingBufferCapacity", "4096");
     w.sync();
   }
 
   QSettings s(path, QSettings::IniFormat);
-  EXPECT_FALSE(s.value("SelfCheck").toBool());
+  EXPECT_FALSE(s.value("GnuPGOfflineMode").toBool());
   EXPECT_EQ(s.value("SecureLevel").toInt(), 2);
   EXPECT_EQ(s.value("LogRingBufferCapacity").toInt(), 4096);
 
@@ -109,37 +109,6 @@ TEST(SettingsLayeringTest, IniStringBooleansConvertCorrectly) {
                                 static_cast<int>(GFLogLevel::kCRITICAL))
                 .toInt(),
             static_cast<int>(GFLogLevel::kCRITICAL));
-}
-
-// The startup self-check compares the shipped files against signatures that are
-// only made when an official stable release is built. A nightly has none, so
-// the build flavour overrules every settings layer: whatever the profile pins
-// or the user's stored value asks for, the check stays off there.
-
-TEST(SettingsLayeringTest, SelfCheckAvailabilityFollowsBuildFlavour) {
-  EXPECT_EQ(IsSelfCheckAvailable(), IsStableBuild());
-}
-
-TEST(SettingsLayeringTest, SelfCheckIsForcedOffOnNonStableBuilds) {
-  // Exactly the composition GpgFrontendContext applies: resolve across the
-  // layers first, then let the build flavour have the last word.
-  const auto effective = [](const QVariant& env, const QVariant& user) {
-    return IsSelfCheckAvailable() &&
-           ResolveLayeredValue(env, user, false).toBool();
-  };
-
-  if (IsStableBuild()) {
-    EXPECT_TRUE(effective(QVariant(), QVariant(true)));
-    EXPECT_TRUE(effective(QVariant(true), QVariant(false)));
-  } else {
-    EXPECT_FALSE(effective(QVariant(), QVariant(true)));
-    EXPECT_FALSE(effective(QVariant(true), QVariant(false)));
-  }
-
-  // An explicit "off" is off on every build, whichever layer says so.
-  EXPECT_FALSE(effective(QVariant(false), QVariant(true)));
-  EXPECT_FALSE(effective(QVariant(), QVariant(false)));
-  EXPECT_FALSE(effective(QVariant(), QVariant()));
 }
 
 // How the application key file is protected at rest used to be spread across

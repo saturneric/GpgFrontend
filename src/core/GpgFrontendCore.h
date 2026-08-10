@@ -28,10 +28,6 @@
 
 #pragma once
 
-extern "C" {
-auto GF_CORE_EXPORT GFCoreValidateSymbol() -> int;
-}
-
 // qt
 #include <QtCore>
 

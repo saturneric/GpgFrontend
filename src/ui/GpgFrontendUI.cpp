@@ -29,5 +29,3 @@
 #include "GpgFrontendUI.h"
 
 Q_LOGGING_CATEGORY(ui, "ui")
-
-auto GF_UI_EXPORT GFUIValidateSymbol() -> int { return 0; }

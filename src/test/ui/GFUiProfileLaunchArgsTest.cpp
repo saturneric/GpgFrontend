@@ -51,7 +51,7 @@ TEST(ProfileLaunchArgsTest, APositionalPackageIsStripped) {
 }
 
 TEST(ProfileLaunchArgsTest, UnrelatedArgumentsAreLeftAlone) {
-  const QStringList args = {"gpgfrontend", "--self-check", "-l", "debug"};
+  const QStringList args = {"gpgfrontend", "--environment", "-l", "debug"};
   EXPECT_EQ(StripProfileArgs(args), args);
 }
 

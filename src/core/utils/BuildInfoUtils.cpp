@@ -95,8 +95,6 @@ auto IsStableBuild() -> bool { return APP_BUILD_STABLE != 0; }
 
 auto IsPortableBuild() -> bool { return APP_BUILD_PORTABLE != 0; }
 
-auto IsSelfCheckAvailable() -> bool { return IsStableBuild(); }
-
 auto GetAppProfileSchemaVersion() -> int { return APP_PROFILE_SCHEMA_VERSION; }
 
 auto GetAppProfileMinReaderSchema() -> int {

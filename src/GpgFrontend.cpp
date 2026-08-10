@@ -31,7 +31,6 @@
 
 //
 #include "Application.h"
-#include "BinaryValidate.h"
 #include "Command.h"
 #include "GpgFrontendContext.h"
 #include "Initialize.h"
@@ -64,7 +63,6 @@ auto main(int argc, char* argv[]) -> int {
       {{"t", "test"}, "run all unit test cases"},
       {{"e", "environment"}, "show environment information"},
       {{"l", "log-level"}, "set log level (debug, info, warn, error)", "none"},
-      {{{}, "self-check"}, "check libraries and executables validity"},
       // Declaration only: this was already resolved during InitApplication(),
       // long before this parser existed, because where the settings live is
       // exactly what it decides. Registering it here just stops
@@ -125,26 +123,6 @@ auto main(int argc, char* argv[]) -> int {
   // do some early init, now that the log has somewhere to write and the
   // properties it reads have been resolved against the right profile
   GpgFrontend::PreInit(ctx);
-
-  // The --self-check flag is gated on the build flavour just like the setting
-  // is: without build-time signatures to compare against there is nothing the
-  // check could confirm, so honouring the flag on a nightly would only refuse
-  // to start a perfectly good build.
-  const auto self_check = app->property("GFSelfCheck").toBool();
-  if (GpgFrontend::IsSelfCheckAvailable() &&
-      (self_check || parser.isSet("self-check")) && !ValidateLibraries()) {
-    QMessageBox::critical(
-        nullptr, QObject::tr("Program Self-Test Failed"),
-        QObject::tr(
-            "The application has detected an issue while verifying essential "
-            "libraries and binaries that were digitally signed during the "
-            "build. "
-            "This means one or more files may have been altered or are being "
-            "loaded from the wrong location. For security reasons, the program "
-            "must now exit."),
-        QMessageBox::Ok);
-    return -1;
-  }
 
   // Installed before the -e early return so that environment information can
   // report the credential store. Safe this early: on every platform this only

@@ -36,7 +36,6 @@
 #include "core/function/SystemSecretStore.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSession.h"
-#include "core/utils/BuildInfoUtils.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/AppKeyPinDialog.h"
 
@@ -163,19 +162,6 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
   protection_advice_label_->setVisible(false);
   security_form->addRow(protection_advice_label_);
 
-  // Only an official stable release carries the build-time signatures the check
-  // compares against, so on a nightly the row is left out entirely rather than
-  // shown as a switch that has to stay off.
-  if (IsSelfCheckAvailable()) {
-    self_check_box_ = new QCheckBox(
-        tr("Verify signed libraries and binaries at startup"), security_box);
-    self_check_box_->setToolTip(WrappingToolTip(
-        tr("Check that the shipped libraries and executables still match the "
-           "signatures made at build time. The application refuses to start if "
-           "the check fails.")));
-    security_form->addRow(self_check_box_);
-  }
-
   auto* diagnostics_box = new QGroupBox(tr("Diagnostics"), this);
   auto* diagnostics_form = new QFormLayout(diagnostics_box);
 
@@ -231,9 +217,6 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
           this, declare_restart);
   connect(secure_level_combo_, qOverload<int>(&QComboBox::currentIndexChanged),
           this, [this]() { refresh_protection_advice(); });
-  if (self_check_box_ != nullptr) {
-    connect(self_check_box_, &QCheckBox::toggled, this, declare_restart);
-  }
   connect(protection_combo_, qOverload<int>(&QComboBox::currentIndexChanged),
           this, declare_restart);
   // The advice tracks the pending selection, but the Change PIN button does
@@ -355,9 +338,6 @@ void AdvancedTab::SetSettings() {
 
   select(secure_level_combo_, secure_level);
   select(log_level_combo_, log_level);
-  if (self_check_box_ != nullptr) {
-    self_check_box_->setChecked(qApp->property("GFSelfCheck").toBool());
-  }
   ring_capacity_spin_->setValue(qBound(kMinRingCapacity,
                                        ring_capacity > 0 ? ring_capacity : 1024,
                                        kMaxRingCapacity));
@@ -369,9 +349,6 @@ void AdvancedTab::SetSettings() {
   refresh_protection_advice();
 
   lock_if_pinned(secure_level_combo_, "advanced/secure_level");
-  if (self_check_box_ != nullptr) {
-    lock_if_pinned(self_check_box_, "advanced/self_check");
-  }
   lock_if_pinned(log_level_combo_, "advanced/log_level");
   lock_if_pinned(ring_capacity_spin_, "advanced/log_ring_buffer_capacity");
 
@@ -474,11 +451,6 @@ void AdvancedTab::ApplySettings() {
   };
 
   store("advanced/secure_level", secure_level_combo_->currentData().toInt());
-  // Absent on a build without the self-check: leave whatever is stored alone,
-  // since the tab never offered the user a way to change it.
-  if (self_check_box_ != nullptr) {
-    store("advanced/self_check", self_check_box_->isChecked());
-  }
   store("advanced/log_level", log_level_combo_->currentData().toInt());
   store("advanced/log_ring_buffer_capacity", ring_capacity_spin_->value());
 

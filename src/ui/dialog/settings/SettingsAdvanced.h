@@ -102,7 +102,6 @@ class AdvancedTab : public QWidget {
   /// @brief Prompt for a new PIN and re-seal the key under it.
   void change_pin();
 
-  QCheckBox* self_check_box_{};        ///< verify signed libraries at start
   QComboBox* secure_level_combo_{};    ///< memory-hardening level
   QComboBox* protection_combo_{};      ///< at-rest protection of the app key
   QPushButton* change_pin_button_{};   ///< rotate the PIN, when one is set

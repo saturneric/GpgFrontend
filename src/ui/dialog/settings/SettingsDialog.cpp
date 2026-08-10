@@ -155,7 +155,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
        advanced_title,
        "system",
        {tr("security level"), tr("PIN"), tr("keychain"), tr("log level"),
-        tr("ring buffer"), tr("integrity check"), tr("ENV.ini")}});
+        tr("ring buffer"), tr("ENV.ini")}});
 
   descriptors.append(collect_module_pages());
 

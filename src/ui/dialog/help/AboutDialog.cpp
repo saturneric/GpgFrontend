@@ -523,7 +523,6 @@ TranslatorsTab::TranslatorsTab(QWidget* parent) : QWidget(parent) {
 StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   const int secure_level = qApp->property("GFSecureLevel").toInt();
   const bool portable_mode = qApp->property("GFPortableMode").toBool();
-  const bool self_check = qApp->property("GFSelfCheck").toBool();
   const bool gnupg_offline_mode = qApp->property("GFGnuPGOfflineMode").toBool();
   const QString pinentry_program_path =
       qApp->property("GFPinentryProgramPath").toString();
@@ -539,9 +538,6 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
 
   const QString portable_mode_str =
       portable_mode ? tr("Portable Mode") : tr("Installed Mode");
-
-  const QString self_check_str =
-      self_check ? tr("Self-Check Active") : tr("Self-Check Disabled");
 
   const QString gnupg_offline_mode_str =
       gnupg_offline_mode ? tr("Active") : tr("Disabled");
@@ -583,13 +579,6 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
 
   status_form->addRow(tr("Running Mode:"),
                       CreateValueLabel(portable_mode_str, status_widget));
-  // A build without build-time signatures can never run the check, so reporting
-  // it as "disabled" would only invite the user to look for a switch that this
-  // build does not have.
-  if (IsSelfCheckAvailable()) {
-    status_form->addRow(tr("Self-Check Status:"),
-                        CreateValueLabel(self_check_str, status_widget));
-  }
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     status_form->addRow(
         tr("GnuPG Offline Mode:"),

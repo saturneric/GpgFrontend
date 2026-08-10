@@ -29,5 +29,3 @@
 #include "core/GpgFrontendCore.h"
 
 Q_LOGGING_CATEGORY(core, "core")
-
-auto GF_CORE_EXPORT GFCoreValidateSymbol() -> int { return 0; }

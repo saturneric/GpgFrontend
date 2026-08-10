@@ -109,7 +109,7 @@ struct ProfileMarker {
    * only scope at which they were ever meaningful: settings are per-profile, so
    * an override that was not was overriding several stores at once.
    *
-   * Recognised keys mirror the Advanced tab: `SelfCheck`, `SecureLevel`,
+   * Recognised keys mirror the Advanced tab: `SecureLevel`,
    * `AppKeyProtection`, `OSSecretStore`, `LogLevel`, `LogRingBufferCapacity`,
    * `GnuPGOfflineMode`, `PinentryProgramPath`.
    *

@@ -327,7 +327,7 @@ if(MINGW OR WIN32)
   message(STATUS "Link Application Library For Windows")
   target_sources(${APP_NAME} PRIVATE platform/WinSecretStore.cpp)
   # Advapi32 provides the Credential Manager API (CredReadW and friends).
-  target_link_libraries(${APP_NAME} Wintrust Crypt32 Advapi32)
+  target_link_libraries(${APP_NAME} Advapi32)
 elseif(APPLE)
   message(STATUS "Link Application Library For macOS")
   # The NSWorkspace relaunch used to live here; it is now built into gf_ui,

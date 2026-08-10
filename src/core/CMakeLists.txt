@@ -109,7 +109,6 @@ target_precompile_headers(${LIBRARY_TARGET}
 # link for different platforms
 if(MINGW)
   target_link_libraries(${LIBRARY_TARGET} PUBLIC wsock32)
-  target_link_libraries(${LIBRARY_TARGET} PRIVATE Wintrust Crypt32)
 elseif(APPLE)
 else()
   target_link_libraries(${LIBRARY_TARGET} PUBLIC pthread dl)

@@ -39,8 +39,6 @@
 #include "core/function/GlobalSettingStation.h"
 Q_LOGGING_CATEGORY(test, "test")
 
-auto GF_TEST_EXPORT GFTestValidateSymbol() -> int { return 0; }
-
 namespace GpgFrontend::Test {
 
 void SetupGlobalTestEnv() {

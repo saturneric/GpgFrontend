@@ -102,13 +102,6 @@ void GpgFrontendContext::load_env_conf_set_properties() {
     return ResolveLayeredValue(pinned, user.value(user_key), fallback);
   };
 
-  // Resolve first, so a pinned SelfCheck key still registers as pinned and
-  // the Advanced tab stays consistent, then let the build flavour have the last
-  // word: a nightly ships no build-time signatures, so a check asked for there
-  // could only ever fail and is forced off.
-  const auto self_check_requested =
-      resolve("SelfCheck", "advanced/self_check", false).toBool();
-  property("GFSelfCheck", IsSelfCheckAvailable() && self_check_requested);
   property("GFSecureLevel",
            resolve("SecureLevel", "advanced/secure_level", 0).toInt());
 
@@ -162,7 +155,6 @@ void GpgFrontendContext::load_env_conf_set_properties() {
 
   property("GFEnvLockedKeys", locked_keys);
 
-  const auto self_check = property("GFSelfCheck").toInt();
   const auto secure_level = property("GFSecureLevel").toInt();
   const auto app_key_protection = property("GFAppKeyProtection").toString();
   const auto log_level = property("GFLogLevel").toInt();
@@ -189,8 +181,6 @@ void GpgFrontendContext::load_env_conf_set_properties() {
   qInfo().noquote().nospace()
       << "\n"
       << "================ GpgFrontend Startup Environment ================\n"
-      << "Self Check              : " << self_check
-      << source("advanced/self_check") << "\n"
       << "Secure Level            : " << secure_level
       << source("advanced/secure_level") << "\n"
       << "App Key Protection      : " << app_key_protection
