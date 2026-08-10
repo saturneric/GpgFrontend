@@ -352,7 +352,7 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   }
 }
 
-auto MainWindow::open_settings_dialog() -> SettingsDialog* {
+SettingsDialog* MainWindow::open_settings_dialog() {
   auto* dialog = new SettingsDialog(this);
 
   connect(dialog, &SettingsDialog::SignalAppearanceChanged, this,

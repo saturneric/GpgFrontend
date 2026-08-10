@@ -409,7 +409,7 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    * @brief Open the settings dialog and return it, so a caller can preselect a
    * page. The dialog is not modal and shows itself; it owns its own lifetime.
    */
-  auto open_settings_dialog() -> SettingsDialog*;
+  SettingsDialog* open_settings_dialog();
 
   /**
    * @details Replace double linebreaks by single linebreaks in currently active
