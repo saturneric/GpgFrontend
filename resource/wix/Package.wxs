@@ -288,9 +288,11 @@
     </Feature>
 
     <!-- MsiThemeComponent "classic" + FragmentComponent (WelcomeDlg, FolderDlg,
-         MaintenanceWelcome/TypeDlg, VerifyRemove/RepairDlg — note: NO license dialog).
-         WixUI_InstallDir is the equivalent stock dialog set; the two Publish overrides
-         skip its LicenseAgreementDlg to match the AIP's Welcome -> Folder flow. -->
+         MaintenanceWelcome/TypeDlg, VerifyRemove/RepairDlg). WixUI_InstallDir is the
+         equivalent stock dialog set. Its LicenseAgreementDlg is deliberately kept
+         (the AIP had no license step): GpgFrontend and its payload are GPL-3.0-or-later,
+         so the installer states the terms before anything is written to disk.
+         Flow: Welcome -> License -> Folder -> Ready. -->
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
 
     <!-- Branding art, replacing the stock WixUIExtension bitmaps (red sidebar, generic
@@ -301,10 +303,12 @@
     <WixVariable Id="WixUIDialogBmp" Value="$(BrandingDir)\dialog.bmp" />
     <WixVariable Id="WixUIBannerBmp" Value="$(BrandingDir)\banner.bmp" />
 
-    <UI>
-      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Order="2" Condition="NOT Installed" />
-      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" Condition="NOT Installed" />
-    </UI>
+    <!-- Text of LicenseAgreementDlg, replacing the stock placeholder ("<Your license
+         agreement here>"). RTF is not a preference: the dialog is a Windows RichEdit
+         control and cannot render the plain-text COPYING. license.rtf is generated
+         from the repository's COPYING by make_license_rtf.py in this folder; re-run it
+         if COPYING ever changes. -->
+    <WixVariable Id="WixUILicenseRtf" Value="$(BrandingDir)\license.rtf" />
 
   </Package>
 </Wix>
