@@ -29,6 +29,8 @@
 #include "GFCoreTest.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/module/ModuleManager.h"
+#include "core/profile/Profile.h"
+#include "core/profile/ProfileRegistry.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/utils/GpgUtils.h"
 
@@ -434,6 +436,88 @@ TEST_F(GFCoreTest, BadOpenPGPEnvReasonSurvivesQueuedConnection) {
   ASSERT_TRUE(received.load());
   EXPECT_EQ(got_reason, BadOpenPGPEnvReason::kNO_VALID_KEY_DATABASE);
   EXPECT_EQ(got_detail, QString("detail-payload"));
+}
+
+// gpg-agent could not create its sockets because the key database path was
+// longer than a unix socket address can hold, and nothing checked. These pin
+// the arithmetic that now catches it.
+TEST_F(GFCoreTest, GnuPGHomePathAcceptsAPathExactlyAtTheBudget) {
+  const auto budget = GnuPGHomePathByteBudget();
+  if (budget < 0) GTEST_SKIP() << "no socket path limit on this platform";
+
+  const QString path = "/" + QString(budget - 1, QLatin1Char('a'));
+  ASSERT_EQ(path.toUtf8().size(), budget);
+
+  EXPECT_TRUE(GnuPGHomePathFitsSocketBudget(path));
+}
+
+TEST_F(GFCoreTest, GnuPGHomePathRejectsAPathOneByteOverTheBudget) {
+  const auto budget = GnuPGHomePathByteBudget();
+  if (budget < 0) GTEST_SKIP() << "no socket path limit on this platform";
+
+  const QString path = "/" + QString(budget, QLatin1Char('a'));
+  ASSERT_EQ(path.toUtf8().size(), budget + 1);
+
+  EXPECT_FALSE(GnuPGHomePathFitsSocketBudget(path));
+}
+
+// sun_path is a byte buffer, so a non-ASCII user name costs more room than its
+// character count suggests. Measuring QChars would let exactly these paths
+// through and reproduce the original failure.
+TEST_F(GFCoreTest, GnuPGHomePathIsMeasuredInBytesNotCharacters) {
+  const auto budget = GnuPGHomePathByteBudget();
+  if (budget < 0) GTEST_SKIP() << "no socket path limit on this platform";
+
+  // Each of these is one QChar but two UTF-8 bytes, so a path of budget
+  // characters is twice the budget in bytes.
+  const QString path = "/" + QString(budget, QChar{0x00E4});
+  ASSERT_LT(path.size(), path.toUtf8().size());
+
+  EXPECT_FALSE(GnuPGHomePathFitsSocketBudget(path));
+}
+
+TEST_F(GFCoreTest, GnuPGHomePathUnusableReasonRoundTrips) {
+  const auto previous = GnuPGHomePathUnusableReason();
+
+  RegisterGnuPGHomePathUnusable("homedir too long: 110 bytes, max 85");
+  EXPECT_EQ(GnuPGHomePathUnusableReason(),
+            "homedir too long: 110 bytes, max 85");
+
+  // An empty reason clears it: the condition can be resolved, and a stale
+  // explanation on screen is worse than none.
+  RegisterGnuPGHomePathUnusable({});
+  EXPECT_TRUE(GnuPGHomePathUnusableReason().isEmpty());
+
+  RegisterGnuPGHomePathUnusable(previous);
+}
+
+// The profile directory name is part of the GnuPG home path, which is why it is
+// short now. A regression here silently pushes macOS profiles back over the
+// socket limit.
+TEST_F(GFCoreTest, MintedProfileDirectoryIdIsShortAndValid) {
+  QTemporaryDir profiles_root;
+  ASSERT_TRUE(profiles_root.isValid());
+
+  const auto id = MintProfileDirectoryId(profiles_root.path());
+
+  EXPECT_EQ(id.size(), 6);
+  EXPECT_TRUE(IsValidProfileId(id));
+}
+
+TEST_F(GFCoreTest, MintedProfileDirectoryIdSkipsNamesAlreadyTaken) {
+  QTemporaryDir profiles_root;
+  ASSERT_TRUE(profiles_root.isValid());
+
+  // Mint one, occupy it, then mint again: the second must not collide with the
+  // directory the first one named.
+  const auto first = MintProfileDirectoryId(profiles_root.path());
+  ASSERT_FALSE(first.isEmpty());
+  ASSERT_TRUE(QDir(profiles_root.path()).mkpath(first));
+
+  const auto second = MintProfileDirectoryId(profiles_root.path());
+
+  ASSERT_FALSE(second.isEmpty());
+  EXPECT_NE(second, first);
 }
 
 // The UI turns a fatal environment signal into a modal dialog that ends in

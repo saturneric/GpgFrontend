@@ -67,9 +67,9 @@ auto GpgAssuanHelper::ConnectToSocket(GpgComponentType type) -> GpgError {
   if (ctx_map_.contains(type)) return GPG_ERR_NO_ERROR;
 
   // Replay a recent failure rather than paying for it again. Without this every
-  // caller re-ran the whole probe -- including a blocking gpgconf spawn -- and a
-  // single unreachable agent froze the interface for as long as the callers kept
-  // coming.
+  // caller re-ran the whole probe -- including a blocking gpgconf spawn -- and
+  // a single unreachable agent froze the interface for as long as the callers
+  // kept coming.
   if (const auto it = connect_failures_.constFind(type);
       it != connect_failures_.constEnd() &&
       std::chrono::steady_clock::now() < it->retry_after) {

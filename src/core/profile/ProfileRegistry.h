@@ -138,9 +138,9 @@ struct GF_CORE_EXPORT ProfileCreateResult {
  * directory path, and gpg-agent has to fit that path plus a socket name into
  * sockaddr_un::sun_path -- 104 bytes on macOS. A full 32-hex uuid pushed the
  * default profile past that limit, so gpg-agent could not create its socket and
- * GnuPG was unreachable for the whole session. Six hex digits give 16.7M values,
- * which is ample for the handful of profiles one person keeps, and collisions
- * are resolved here rather than surfaced.
+ * GnuPG was unreachable for the whole session. Six hex digits give 16.7M
+ * values, which is ample for the handful of profiles one person keeps, and
+ * collisions are resolved here rather than surfaced.
  *
  * This is only the directory name. ProfileMarker::profile_uuid stays a full
  * uuid: it identifies the credential-store account and never appears in a path,

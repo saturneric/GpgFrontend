@@ -40,11 +40,11 @@
 #include "core/profile/ProfileMarker.h"
 #include "core/profile/ProfileSecureKeyManager.h"
 #include "core/profile/ProfileSession.h"
-#include "ui/UserInterfaceUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/RustUtils.h"
 #include "ui/UIModuleManager.h"
+#include "ui/UserInterfaceUtils.h"
 #include "ui/function/ProfileController.h"
 
 namespace GpgFrontend::UI {

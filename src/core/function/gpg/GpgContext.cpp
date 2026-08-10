@@ -174,7 +174,8 @@ auto GpgContext::init(const OpenPGPContextInitArgs& args) -> bool {
   const auto socket_budget = GnuPGHomePathByteBudget();
   if (!GnuPGHomePathFitsSocketBudget(KeyDBPath())) {
     auto reason =
-        QString("gnupg homedir exceeds unix socket path limit: %1 bytes, max %2")
+        QString(
+            "gnupg homedir exceeds unix socket path limit: %1 bytes, max %2")
             .arg(KeyDBPath().toUtf8().size())
             .arg(socket_budget);
     LOG_E() << "gnupg home path is too long for the agent sockets, channel:"

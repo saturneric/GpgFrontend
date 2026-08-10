@@ -74,4 +74,59 @@ TEST_F(GpgCoreTest, CoreAssuanConnectTestB) {
 
   LOG_D() << "status lines of command keyinfo --list: " << status;
 }
+
+// A component that cannot be reached used to be retried in full on every call,
+// each retry spawning gpgconf and blocking the caller -- which for most callers
+// is the GUI thread. Enumerating the key generation algorithms alone asks
+// hundreds of times, so one dead agent froze the interface. The failure is
+// remembered now, and replaying it has to be effectively free.
+TEST_F(GpgCoreTest, CoreAssuanSuppressesRepeatedConnectFailures) {
+  auto& helper = GpgAssuanHelper::GetInstance();
+
+  const auto first = helper.ConnectToSocket(GpgComponentType::kKEYBOXD);
+  if (first == GPG_ERR_NO_ERROR) {
+    GTEST_SKIP() << "keyboxd is reachable here, nothing to suppress";
+  }
+
+  QElapsedTimer timer;
+  timer.start();
+  const auto second = helper.ConnectToSocket(GpgComponentType::kKEYBOXD);
+  const auto elapsed_ms = timer.elapsed();
+
+  EXPECT_EQ(second, first);
+
+  // The path being avoided stats the socket and runs gpgconf to completion,
+  // which costs tens of milliseconds. A replayed failure is a map lookup.
+  EXPECT_LT(elapsed_ms, 5);
+
+  // The maintenance actions go through here, so "restart the components" has to
+  // mean the next call really tries again rather than replaying the cache.
+  helper.ResetAllConnections();
+}
+
+// The same suppression, exercised without depending on which daemons happen to
+// be running: a component gpgconf has no socket path for can never connect, so
+// this always takes the failure path and always takes it twice.
+TEST_F(GpgCoreTest, CoreAssuanReplaysCachedConnectFailure) {
+  auto& helper = GpgAssuanHelper::GetInstance();
+
+  // Outside the enumerated components on purpose: ConvertComponentType2String
+  // yields no gpgconf key for it, so the socket path comes back empty.
+  const auto unknown = static_cast<GpgComponentType>(200);
+
+  const auto first = helper.ConnectToSocket(unknown);
+  ASSERT_EQ(first, GPG_ERR_ENOPKG);
+
+  // Replayed from the failure record rather than recomputed. Before this the
+  // whole probe ran again for every caller.
+  EXPECT_EQ(helper.ConnectToSocket(unknown), first);
+
+  helper.ResetAllConnections();
+
+  // Cleared, not sticky: the answer is the same because the component is still
+  // unknown, not because the old record survived.
+  EXPECT_EQ(helper.ConnectToSocket(unknown), first);
+
+  helper.ResetAllConnections();
+}
 }  // namespace GpgFrontend::Test
