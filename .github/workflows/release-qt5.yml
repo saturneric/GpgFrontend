@@ -38,6 +38,15 @@ on:
       - "**.md"
 
   workflow_dispatch:
+    inputs:
+      build_mode:
+        description: "Build mode"
+        required: true
+        default: "release"
+        type: choice
+        options:
+          - nightly
+          - release
 
 env:
   BUILD_TYPE: Release
@@ -48,6 +57,13 @@ jobs:
     strategy:
       matrix:
         os: ["ubuntu-22.04", "windows-2022"]
+        # Portable vs installed is a compile-time decision
+        # (GPGFRONTEND_BUILD_PORTABLE decides where the profile, and with it the
+        # user's keys, lives), so each flavour needs its own configure + build.
+        # They run as separate matrix jobs on purpose: the generated build
+        # headers land in the source tree, so two flavours cannot share one
+        # checkout.
+        flavor: ["installed", "portable"]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -62,21 +78,86 @@ jobs:
           lfs: "false"
           submodules: recursive
 
-      - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: release-qt5-${{ github.job }}-${{ matrix.os }}
-
-      - name: Setup Environment Variables
+      - name: Setup Build Mode
         shell: bash
         run: |
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          echo "BUILD_TYPE_LOWER=$(echo $BUILD_TYPE | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+          # Identifier the artifacts are named after. On Linux the runner label
+          # is the wrong thing to publish: the build host's distro is not what
+          # an AppImage runs on. Just say "linux": the architecture already
+          # keeps the images apart. Windows keeps its runner label.
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            echo "OS_IDENTIFIER=linux" >> $GITHUB_ENV
+          else
+            echo "OS_IDENTIFIER=${{ matrix.os }}" >> $GITHUB_ENV
+          fi
+
+          # Build flavour: "portable" keeps the profile beside the application,
+          # "installed" uses the OS user-data location. Compile-time only.
+          # "installed" is the default flavour, so only "portable" is spelled
+          # out in artifact names.
+          if [[ "${{ matrix.flavor }}" == "portable" ]]; then
+            echo "GPGFRONTEND_BUILD_PORTABLE=ON" >> $GITHUB_ENV
+            echo "FLAVOR_SUFFIX=-portable" >> $GITHUB_ENV
+          else
+            echo "GPGFRONTEND_BUILD_PORTABLE=OFF" >> $GITHUB_ENV
+            echo "FLAVOR_SUFFIX=" >> $GITHUB_ENV
+          fi
+
+          # Same model as the main Build workflow:
+          #   - a version tag (v*)  -> stable release build
+          #   - a pull request      -> PR validation build
+          #   - workflow_dispatch   -> honour the chosen input, so a release
+          #                            build can be produced without re-tagging
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            BUILD_MODE="${{ github.event.inputs.build_mode }}"
+            if [[ "${BUILD_MODE}" == "release" ]]; then
+              BUILD_TYPE_EFFECTIVE="Release"
+            else
+              BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+            fi
+
+          elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            BUILD_MODE="pr"
+            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            BUILD_MODE="release"
+            BUILD_TYPE_EFFECTIVE="Release"
+
+          else
+            BUILD_MODE="nightly"
+            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+          fi
+
+          # Stable release builds drop the "Testing" suffix from the app name.
+          if [[ "${BUILD_MODE}" == "release" ]]; then
+            GPGFRONTEND_BUILD_STABLE="ON"
+          else
+            GPGFRONTEND_BUILD_STABLE="OFF"
+          fi
+
+          echo "BUILD_MODE=${BUILD_MODE}" >> $GITHUB_ENV
+          echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}" >> $GITHUB_ENV
+          echo "GPGFRONTEND_BUILD_STABLE=${GPGFRONTEND_BUILD_STABLE}" >> $GITHUB_ENV
+          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE_EFFECTIVE} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+          echo "Build mode: ${BUILD_MODE}"
+          echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
+          echo "Build flavor: ${{ matrix.flavor }}"
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: release-qt5-${{ github.job }}-${{ matrix.os }}-${{ matrix.flavor }}-${{ env.BUILD_TYPE }}
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         if: runner.os == 'Linux'
 
+      # The Rust crate does not see the portable flag, so both flavours produce
+      # the same cargo output and deliberately share one cache entry.
       - name: Cache Cargo
         uses: Swatinem/rust-cache@v2
         with:
@@ -85,6 +166,21 @@ jobs:
           shared-key: rust-qt5-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
           cache-on-failure: true
         if: runner.os == 'Linux'
+
+      # rust-cache cannot locate the msys2/mingw cargo, so cache the registry and
+      # Corrosion's target dir directly for the Windows build.
+      - name: Cache Cargo (Windows)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            ${{github.workspace}}/build/cargo
+          key: cargo-win-qt5-${{ matrix.os }}-${{ env.BUILD_TYPE }}-${{ hashFiles('rust/Cargo.lock') }}
+          restore-keys: |
+            cargo-win-qt5-${{ matrix.os }}-${{ env.BUILD_TYPE }}-
+        if: runner.os == 'Windows'
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@v2
@@ -176,16 +272,17 @@ jobs:
         shell: msys2 {0}
         run: |
           cd $(cygpath -u "${{github.workspace}}")
-          mkdir build && cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+          cmake -G "Ninja" -S . -B build \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_QT5_BUILD=ON \
-            -DGPGFRONTEND_BUILD_PORTABLE=ON \
-            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
-            ..
-          cmake --build . \
+            -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
+            -DGPGFRONTEND_BUILD_PORTABLE=${{env.GPGFRONTEND_BUILD_PORTABLE}} \
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
+          cmake --build build \
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
             --verbose
+          ccache -s
         if: runner.os == 'Windows'
 
       - name: Build GpgFrontend (Linux)
@@ -195,11 +292,14 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_QT5_BUILD=ON \
             -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
+            -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
+            -DGPGFRONTEND_BUILD_PORTABLE=${{env.GPGFRONTEND_BUILD_PORTABLE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
           cmake --build ${{ github.workspace }}/build \
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
             --verbose
+          ccache -s
         if: runner.os == 'Linux'
 
       - name: Package App Image (Linux)
@@ -236,6 +336,18 @@ jobs:
           # fails the build rather than shipping a silent regression.
           readelf -d "$APP_DIR/usr/lib/libsecret-1.so.0" | grep -q 'ORIGIN' \
             || { echo "libsecret was not rpath-patched by linuxdeployqt"; exit 1; }
+
+          # linuxdeployqt names the image after the .desktop entry, so both
+          # flavours would come out as Gpg_Frontend-<arch>.AppImage and collide
+          # once the artifacts are collected into one directory. Rename to the
+          # same scheme the other platforms use.
+          rm -f linuxdeployqt-continuous-x86_64.AppImage
+          ARCH=$(uname -m)
+          for image in Gpg_Frontend*.AppImage; do
+            mv "$image" \
+              "GpgFrontend-qt5-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-${ARCH}${{env.FLAVOR_SUFFIX}}.AppImage"
+          done
+          ls -l
         if: runner.os == 'Linux'
 
       - name: Download GnuPG Binary Release (Windows)
@@ -278,7 +390,9 @@ jobs:
           ls -l build/artifacts/gnupg/
         if: runner.os == 'Windows'
 
-      - name: Package (Windows)
+      # Payload staging is flavour-independent: the portable ZIP and the MSI are
+      # both built from this same tree, only from a differently configured build.
+      - name: Stage Payload (Windows)
         shell: msys2 {0}
         run: |
           cd $(cygpath -u "${{github.workspace}}")
@@ -289,28 +403,84 @@ jobs:
           cp COPYING build/artifacts/
           cp gpgfrontend.ico build/artifacts/bin/
           rm -rf build/artifacts/bin/*.a
+          rm -rf build/artifacts/bin/modules/*.a
+          mv build/artifacts/bin/modules build/artifacts/modules
           cd build
-          # Portable mode is no longer a runtime ENV.ini key; the build above
-          # sets GPGFRONTEND_BUILD_PORTABLE=ON for this archive.
+          # Deploy every gf_* library rather than a hand-kept list, so a newly
+          # registered library (gf_res was the last one) cannot be forgotten.
           for lib in ./artifacts/bin/libgf_*.dll; do
             windeployqt-qt5 --no-translations --force "$lib"
           done
           windeployqt-qt5 --no-translations --force ./artifacts/bin/GpgFrontend.exe
-          mkdir upload-artifact
-          cd artifacts
-          zip -r ../upload-artifact/GpgFrontend-qt5-${{env.SHORT_SHA}}-${{matrix.os}}-x86_64.zip *
+          # A module may need Qt modules the app itself never links (Qt5Xml,
+          # Qt5Network, ...), so each one still has to be scanned. But --dir
+          # sends what it needs into bin/, which is the first directory the
+          # loader searches, instead of duplicating the whole Qt runtime next
+          # to every module.
+          for module in ./artifacts/modules/*.dll; do
+            windeployqt-qt5 --no-translations --force --dir ./artifacts/bin "$module"
+          done
+          mkdir -p upload-artifact
         if: runner.os == 'Windows'
 
-      - name: Upload Artifact(Linux)
+      - name: Package Portable Archive (Windows)
+        shell: msys2 {0}
+        run: |
+          cd $(cygpath -u "${{github.workspace}}")/build/artifacts
+          zip -r ../upload-artifact/GpgFrontend-qt5-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-x86_64-portable.zip *
+        if: runner.os == 'Windows' && matrix.flavor == 'portable'
+
+      - name: Build MSI Installer (Windows)
+        shell: pwsh
+        run: |
+          # Version always tracks the CMake project() version, no wxs edit needed.
+          $match = Select-String -Path CMakeLists.txt `
+            -Pattern '^\s*VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)' | Select-Object -First 1
+          if (-not $match) { throw "Could not extract project version from CMakeLists.txt" }
+          $version = $match.Matches[0].Groups[1].Value
+          Write-Host "Project version: $version"
+
+          # Toolset and extension versions must match: an unpinned extension resolves
+          # to the latest major (7.x), which a WiX 5 host cannot load (wixext5 vs wixext7).
+          $wixVersion = '5.0.2'
+          dotnet tool install --global wix --version $wixVersion
+          wix extension add -g WixToolset.UI.wixext/$wixVersion
+          wix extension add -g WixToolset.Util.wixext/$wixVersion
+
+          New-Item -ItemType Directory -Force -Path "${{github.workspace}}/build/upload-artifact" | Out-Null
+
+          # -arch x64 is mandatory: the package is MsiPackageType=x64.
+          # PayloadDir / ProductVersion / IconSource / BrandingDir override the wxs
+          # defaults for this runner (its defaults assume a build run from resource/wix).
+          # Shares the Qt6 package's UpgradeCode on purpose: the legacy build is the
+          # same product for older Windows, so installing one replaces the other.
+          wix build -arch x64 `
+            -ext WixToolset.UI.wixext/$wixVersion `
+            -ext WixToolset.Util.wixext/$wixVersion `
+            -d PayloadDir="${{github.workspace}}/build/artifacts" `
+            -d ProductVersion="$version" `
+            -d IconSource="${{github.workspace}}/gpgfrontend.ico" `
+            -d BrandingDir="${{github.workspace}}/resource/wix" `
+            -o "${{github.workspace}}/build/upload-artifact/GpgFrontend-qt5-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-x86_64.msi" `
+            resource/wix/Package.wxs
+
+          # wix drops a .wixpdb next to the .msi; it is build metadata, not a deliverable.
+          Remove-Item -Force -ErrorAction SilentlyContinue `
+            "${{github.workspace}}/build/upload-artifact/*.wixpdb"
+        # An MSI installs into Program Files and keeps its data in the user
+        # profile, so it is only ever built from the installed flavour.
+        if: runner.os == 'Windows' && matrix.flavor == 'installed'
+
+      - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-qt5-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{ env.SHORT_SHA }}
-          path: ${{github.workspace}}/build/upload-artifact/Gpg_Frontend*.AppImage*
+          name: gpgfrontend-qt5-${{matrix.os}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          path: ${{github.workspace}}/build/upload-artifact/GpgFrontend-*.AppImage*
         if: runner.os == 'Linux'
 
       - name: Upload Artifact (Windows)
         uses: actions/upload-artifact@v7
         with:
-          name: gpgfrontend-qt5-${{matrix.os}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
+          name: gpgfrontend-qt5-${{matrix.os}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*
         if: runner.os == 'Windows'
