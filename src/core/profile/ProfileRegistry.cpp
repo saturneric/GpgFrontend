@@ -126,6 +126,31 @@ auto LoadProfileRegistry(const QString& profiles_root,
   return data;
 }
 
+auto MintProfileDirectoryId(const QString& profiles_root) -> QString {
+  // Six hex digits collide about once in 16.7M, so a handful of attempts is
+  // already far more than the birthday bound needs for a realistic profile
+  // count. Giving up empty-handed is better than returning a name that
+  // CreateProfile would only reject as kALREADY_EXISTS.
+  constexpr int kMaxAttempts = 16;
+  constexpr int kIdLength = 6;
+
+  for (int i = 0; i < kMaxAttempts; ++i) {
+    const auto id = QUuid::createUuid()
+                        .toString(QUuid::WithoutBraces)
+                        .remove('-')
+                        .left(kIdLength);
+
+    if (!IsValidProfileId(id)) continue;
+    if (QFileInfo::exists(profiles_root + "/" + id)) continue;
+
+    return id;
+  }
+
+  LOG_W() << "could not mint an unused profile directory id after"
+          << kMaxAttempts << "attempts";
+  return {};
+}
+
 auto CreateProfile(const QString& profiles_root, const QString& id,
                    const QString& display_name, bool self_contained)
     -> ProfileCreateResult {

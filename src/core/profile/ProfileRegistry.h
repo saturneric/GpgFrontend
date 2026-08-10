@@ -132,6 +132,27 @@ struct GF_CORE_EXPORT ProfileCreateResult {
 };
 
 /**
+ * @brief Mint a short, unused directory name for a new profile.
+ *
+ * Short on purpose. The profile directory name sits inside the GnuPG home
+ * directory path, and gpg-agent has to fit that path plus a socket name into
+ * sockaddr_un::sun_path -- 104 bytes on macOS. A full 32-hex uuid pushed the
+ * default profile past that limit, so gpg-agent could not create its socket and
+ * GnuPG was unreachable for the whole session. Six hex digits give 16.7M values,
+ * which is ample for the handful of profiles one person keeps, and collisions
+ * are resolved here rather than surfaced.
+ *
+ * This is only the directory name. ProfileMarker::profile_uuid stays a full
+ * uuid: it identifies the credential-store account and never appears in a path,
+ * so it has no reason to trade collision resistance for length.
+ *
+ * @param profiles_root where profiles live
+ * @return an id no existing profile directory uses, or empty if none was found
+ */
+auto GF_CORE_EXPORT MintProfileDirectoryId(const QString &profiles_root)
+    -> QString;
+
+/**
  * @brief Create a profile directory and write its marker.
  *
  * Writing the marker is what makes the directory a profile — there is nothing

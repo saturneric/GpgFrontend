@@ -157,10 +157,15 @@ void FinishImport(QWidget* parent, const QString& package_path,
 
   // The folder is named by a fresh id, not by the name: the id is a directory
   // name and an identity, and neither should have to survive being typed.
-  const auto id =
-      QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
-
   const auto roots = CurrentProfileRoots();
+  const auto id = MintProfileDirectoryId(roots.profiles_root);
+  if (id.isEmpty()) {
+    QMessageBox::critical(parent, QObject::tr("Cannot Import Profile"),
+                          QObject::tr("The profile could not be created."),
+                          QMessageBox::Ok);
+    return;
+  }
+
   const auto error = AdoptExtractedProfile(
       staging_dir, roots.profiles_root + "/" + id, id, name, result.manifest);
   if (!error.isEmpty()) {
@@ -616,12 +621,17 @@ void CreateProfileInteractive(QWidget* parent,
   ProfileCreateDialog dialog(parent);
   if (dialog.exec() != QDialog::Accepted) return;
 
-  const auto id =
-      QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
+  const auto profiles_root = CurrentProfileRoots().profiles_root;
+  const auto id = MintProfileDirectoryId(profiles_root);
+  if (id.isEmpty()) {
+    QMessageBox::critical(parent, QObject::tr("Cannot Create Profile"),
+                          QObject::tr("The profile could not be created."),
+                          QMessageBox::Ok);
+    return;
+  }
 
-  const auto result =
-      CreateProfile(CurrentProfileRoots().profiles_root, id,
-                    dialog.DisplayName(), dialog.SelfContained());
+  const auto result = CreateProfile(profiles_root, id, dialog.DisplayName(),
+                                    dialog.SelfContained());
 
   if (!result.Ok()) {
     QMessageBox::critical(parent, QObject::tr("Cannot Create Profile"),
