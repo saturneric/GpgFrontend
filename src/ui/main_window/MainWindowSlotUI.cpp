@@ -47,6 +47,7 @@
 #include "ui/function/ProfileController.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/widgets/KeyList.h"
+#include "ui/widgets/StatusIndicatorBar.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
@@ -580,19 +581,13 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
 }
 
 void MainWindow::slot_update_engine_status() {
+  if (status_indicator_bar_ == nullptr) return;
+
   auto& ctx =
       OpenPGPContext::GetInstance(m_key_list_->GetCurrentGpgContextChannel());
 
-  const auto engine = ctx.Engine();
-
-  auto engine_name = ConvertOpenPGPEngine2String(engine);
-  auto version = ctx.EngineVersion();
-  if (version.isEmpty()) {
-    engine_status_label_->setText(tr("Engine: %1").arg(engine_name));
-  } else {
-    engine_status_label_->setText(
-        tr("Engine: %1 %2").arg(engine_name, version));
-  }
+  status_indicator_bar_->SetEngine(DescribeEngineIndicator(
+      ctx.Engine(), ctx.EngineVersion(), ctx.KeyDBName(), ctx.KeyDBPath()));
 }
 
 }  // namespace GpgFrontend::UI

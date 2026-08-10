@@ -44,6 +44,7 @@
 #include "ui/function/ProfileController.h"
 #include "ui/main_window/ToolBarHelper.h"
 #include "ui/widgets/KeyList.h"
+#include "ui/widgets/StatusIndicatorBar.h"
 #include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
@@ -623,45 +624,47 @@ void MainWindow::create_tool_bars() {
 }
 
 void MainWindow::create_status_bar() {
-  // Which profile this window is using. Fixed for the window's whole life —
-  // opening another one opens another window — so it is set once here. Worth
-  // the space: with two windows open on two profiles, nothing else on screen
-  // says which keys are in front of you.
+  status_indicator_bar_ = new StatusIndicatorBar(this);
+
+  // Which profile this window is using, and whether this session is portable.
+  // Both are fixed for the window's whole life — opening another profile opens
+  // another window, and the mode is settled before the event loop starts — so
+  // they are set once here. Worth the space: with two windows open on two
+  // profiles, nothing else on screen says which keys are in front of you.
   const auto& profile = ProfileSession::Instance().Profile();
   const auto* packaged = dynamic_cast<const PackagedProfile*>(&profile);
 
-  profile_status_label_ = new QLabel(this);
+  status_indicator_bar_->SetProfile(DescribeProfileIndicator(
+      profile.Kind(), CurrentProfileDisplayName(), profile.Root(),
+      packaged != nullptr ? packaged->PackagePath() : QString()));
 
-  // A profile opened from a file is said to be temporary right here. It looks
-  // exactly like any other profile from inside the window, and a user who does
-  // not know it is a copy has no reason to expect the question on closing.
-  profile_status_label_->setText(
-      packaged != nullptr
-          ? tr("Profile: %1  (temporary)").arg(CurrentProfileDisplayName())
-          : tr("Profile: %1").arg(CurrentProfileDisplayName()));
+  // The mirrored property, not IsPortableBuild(): a --profile session on a
+  // portable build is not a portable session.
+  status_indicator_bar_->SetDeployment(DescribeDeploymentIndicator(
+      qApp->property("GFPortableMode").toBool(),
+      GlobalSettingStation::GetInstance().IsSelfContainedProfile()));
 
-  profile_status_label_->setToolTip(
-      packaged != nullptr
-          ? tr("Opened from a file, and not kept on this computer. Closing "
-               "asks whether to save the changes back into it.") +
-                "\n" + QDir::toNativeSeparators(packaged->PackagePath())
-          : tr("This window's profile — its own settings, keys and saved "
-               "state") +
-                "\n" + QDir::toNativeSeparators(profile.Root()));
-  statusBar()->addPermanentWidget(profile_status_label_);
+  connect(status_indicator_bar_, &StatusIndicatorBar::SignalProfileClicked,
+          this, [this]() { open_profile_act_->trigger(); });
 
-  // Show the current OpenPGP engine and version in the status bar
-  engine_status_label_ = new QLabel(this);
-  engine_status_label_->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  engine_status_label_->setToolTip(tr("Current OpenPGP backend and version"));
+  // Both readings are spelled out in full on the About dialog's Status tab,
+  // which is where a click on either one lands.
+  const auto open_status_tab = [this]() {
+    // The tab is found by matching its text, so the lookup has to happen in
+    // AboutDialog's own translation context.
+    auto* dialog = new AboutDialog(AboutDialog::tr("Status"), this);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+  };
+  connect(status_indicator_bar_, &StatusIndicatorBar::SignalEngineClicked, this,
+          open_status_tab);
+  connect(status_indicator_bar_, &StatusIndicatorBar::SignalDeploymentClicked,
+          this, open_status_tab);
 
-  statusBar()->addPermanentWidget(engine_status_label_);
-
-  auto* status_bar_box = new QWidget();
-  auto* status_bar_box_layout = new QHBoxLayout();
+  statusBar()->addPermanentWidget(status_indicator_bar_);
 
   statusBar()->showMessage(tr("Ready"), 2000);
-  status_bar_box->setLayout(status_bar_box_layout);
 }
 
 void MainWindow::create_dock_windows() {

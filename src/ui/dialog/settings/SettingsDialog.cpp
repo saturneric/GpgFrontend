@@ -150,12 +150,11 @@ SettingsDialog::SettingsDialog(QWidget* parent)
        tr("Instant Messaging"),
        "features",
        {tr("message book"), tr("phrase"), tr("fingerprint"), tr("token")}});
-  descriptors.append(
-      {advanced_tab_,
-       advanced_title,
-       "system",
-       {tr("security level"), tr("PIN"), tr("keychain"), tr("log level"),
-        tr("ring buffer"), tr("ENV.ini")}});
+  descriptors.append({advanced_tab_,
+                      advanced_title,
+                      "system",
+                      {tr("security level"), tr("PIN"), tr("keychain"),
+                       tr("log level"), tr("ring buffer"), tr("ENV.ini")}});
 
   descriptors.append(collect_module_pages());
 

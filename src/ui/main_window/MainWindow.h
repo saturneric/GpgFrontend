@@ -47,6 +47,7 @@ class KeyList;
 class TextEdit;
 class InfoBoardWidget;
 class SettingsDialog;
+class StatusIndicatorBar;
 struct GpgOperaContext;
 struct GpgOperaContextBasement;
 struct KeyTable;
@@ -687,9 +688,8 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* import_key_from_clipboard_act_{};  ///<
   QAction* show_log_view_act_{};              ///<
 
-  QLabel* status_bar_icon_{};  ///<
-  QLabel* profile_status_label_ = nullptr;
-  QLabel* engine_status_label_ = nullptr;
+  StatusIndicatorBar* status_indicator_bar_ =
+      nullptr;  ///< profile, engine and portable/installed, bottom right
 
   KeyList* m_key_list_{};          ///<
   InfoBoardWidget* info_board_{};  ///<

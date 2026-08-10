@@ -187,6 +187,12 @@ void MainWindow::Init() noexcept {
     connect(m_key_list_, &KeyList::SignalRefreshDatabase, this,
             [=]() { slot_update_engine_status(); });
 
+    // A key database can also be switched or reloaded without the key list
+    // asking for it, and the engine reading would sit there stale.
+    connect(UISignalStation::GetInstance(),
+            &UISignalStation::SignalKeyDatabaseRefreshDone, this,
+            [this]() { slot_update_engine_status(); });
+
     connect(this, &MainWindow::SignalLoaded, this, [this]() {
       QTimer::singleShot(100, this,
                          [self = QPointer<MainWindow>(this)]() -> void {
