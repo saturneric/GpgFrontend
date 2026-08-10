@@ -367,7 +367,7 @@ void GpgAssuanHelper::launch_component(GpgComponentType type) {
   // while the socket we are waiting on belongs to this channel's key database,
   // so the launch could never produce the socket being looked for. Every other
   // gpgconf call in the codebase passes it.
-  const auto home_path = GpgCtx(ctx_).KeyDBPath();
+  const auto home_path = GpgCtx(ctx_).EngineHomePath();
   if (!home_path.isEmpty()) {
     args.append({"--homedir", QDir::toNativeSeparators(home_path)});
   }

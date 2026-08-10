@@ -238,10 +238,12 @@ auto GF_CORE_EXPORT DecideKeyDatabasePathAction(bool exists_as_dir,
  * with GPG_ERR_ENOTSOCK. That is silent unless somebody checks the length up
  * front, which is what this exists for.
  *
- * The budget is measured against "/S.gpg-agent.extra", the longest socket the
- * agent actually binds given the flags GpgAgentProcess passes. The browser
- * socket has a longer name but is only created with --enable-browser-socket,
- * which we never pass; budgeting against it would condemn paths that work.
+ * The budget is measured against "/S.gpg-agent.browser", which is the longest
+ * name gpg-agent builds -- and it builds it even though we never pass
+ * --enable-browser-socket. It validates the name before deciding whether to
+ * bind it, and a name that does not fit makes it exit(2) outright, so a home
+ * directory where only that one socket is over is still a home directory GnuPG
+ * refuses to run in.
  *
  * @return the maximum home directory length in bytes, or -1 where no such limit
  *         applies (Windows, which does not address these sockets by path)
@@ -259,6 +261,34 @@ auto GF_CORE_EXPORT GnuPGHomePathByteBudget() -> int;
  */
 auto GF_CORE_EXPORT GnuPGHomePathFitsSocketBudget(const QString& home_path)
     -> bool;
+
+/**
+ * @brief The home directory to hand GnuPG for @p home_path.
+ *
+ * Returns @p home_path itself whenever it already fits, so nothing new appears
+ * on disk for the overwhelming majority of installations. When it does not fit,
+ * returns a short symlink pointing at it.
+ *
+ * The redirection works because bind() resolves the symlink when it creates the
+ * socket -- the socket file still lands in the real directory -- while the
+ * string that has to fit in sun_path is the short one. Only GnuPG is given the
+ * alias; storage, settings and packaging keep the real path, so a profile stays
+ * self-contained and a package still describes itself in terms of its own
+ * contents.
+ *
+ * Shortening the layout cannot replace this. The budget is fixed but the path
+ * is not: the user name alone moves it, so any fixed layout is only ever a few
+ * characters from failing again on somebody else's machine.
+ *
+ * @param home_path the real key database directory
+ * @param alias_root where to keep links, or empty for the default under the
+ *                   user's home directory; exists for testing, so a test never
+ *                   writes into the real one
+ * @return the path to give GnuPG, or empty when no usable one could be made
+ */
+auto GF_CORE_EXPORT ResolveGnuPGEngineHomePath(const QString& home_path,
+                                               const QString& alias_root = {})
+    -> QString;
 
 /**
  * @brief Record that a GnuPG home directory cannot host the agent sockets.

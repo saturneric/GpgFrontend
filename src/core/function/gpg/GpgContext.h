@@ -121,6 +121,24 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
   [[nodiscard]] auto ComponentDirectory(GpgComponentType type) const -> QString;
 
   /**
+   * @brief The home directory this channel hands to GnuPG.
+   *
+   * Usually KeyDBPath() itself. It differs only when that path is too long for
+   * gpg-agent to put its sockets in, in which case this is a short link to it
+   * and the real files are still where KeyDBPath() says.
+   *
+   * Everything that talks to gnupg -- the gpgme engine info, gpg-agent's
+   * --homedir, and every gpgconf invocation -- has to use this rather than
+   * KeyDBPath(), or the sockets and the processes end up describing two
+   * different directories.
+   *
+   * @return the home directory to pass to gnupg
+   */
+  [[nodiscard]] auto EngineHomePath() const -> QString {
+    return engine_home_path_;
+  }
+
+  /**
    * @brief Set the Passphrase Cb object
    *
    * @param ctx
@@ -152,6 +170,7 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
   std::mutex binary_ctx_ref_lock_;
   QString gpg_agent_path_;
   QString gpgconf_path_;
+  QString engine_home_path_;  ///< see EngineHomePath()
   QSharedPointer<GpgAgentProcess> agent_;
   QMap<QString, QString> component_dirs_;
 

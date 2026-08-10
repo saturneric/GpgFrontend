@@ -97,18 +97,51 @@ auto GpgAgentProcess::Start() -> bool {
   LOG_D() << "gpg-agent started, channel: " << channel_
           << "pid: " << process_.processId();
 
+  // --daemon forks: the process started above is the foreground half, which
+  // exits as soon as it has decided whether the daemon could come up -- 0 when
+  // it did, non-zero when it refused. Its reason for refusing goes to stderr.
+  //
+  // Both used to be discarded, so an agent that died on startup was
+  // indistinguishable from one that was merely slow, and everything downstream
+  // could only report the symptom ("socket path is still not exists", "No agent
+  // running") without ever naming the cause.
+  //
+  // Deliberately not turned into a false return: GpgContext::init() treats that
+  // as a fatal context failure, and a missing agent is better degraded than
+  // fatal. This reports, it does not decide.
+  constexpr int kForegroundExitTimeoutMs = 3000;
+  if (process_.waitForFinished(kForegroundExitTimeoutMs)) {
+    const auto output = QString::fromUtf8(process_.readAll()).trimmed();
+
+    if (process_.exitStatus() != QProcess::NormalExit ||
+        process_.exitCode() != 0) {
+      LOG_E() << "gpg-agent refused to start, channel:" << channel_
+              << "exit code:" << process_.exitCode()
+              << "exit status:" << process_.exitStatus() << "output:" << output;
+    } else if (!output.isEmpty()) {
+      LOG_I() << "gpg-agent start output, channel:" << channel_ << output;
+    }
+  } else {
+    // Still running after the timeout: it did not fork, so it is serving in the
+    // foreground. Not an error, but worth saying, because the socket then
+    // appears on its own schedule rather than by the time this returns.
+    LOG_W() << "gpg-agent has not detached, channel:" << channel_
+            << "- it may be running in the foreground";
+  }
+
   return true;
 }
 
 GpgAgentProcess::~GpgAgentProcess() {
-  // The spawned gpg-agent is terminated authoritatively via `gpgconf --kill all`
-  // (GpgContext::kill_gpg_agent), which is always paired with releasing this
-  // object. Do NOT run any blocking QProcess wait here: this QProcess may have
-  // been created on a worker thread (channels are built off the main thread)
-  // while teardown runs on the main thread, so a cross-thread waitForFinished()
-  // cannot observe completion and burns its full timeout -- accumulated across
-  // channels that overran the shutdown watchdog and force-exited the process
-  // before a pending deep restart could relaunch. Just signal a kill and return.
+  // The spawned gpg-agent is terminated authoritatively via `gpgconf --kill
+  // all` (GpgContext::kill_gpg_agent), which is always paired with releasing
+  // this object. Do NOT run any blocking QProcess wait here: this QProcess may
+  // have been created on a worker thread (channels are built off the main
+  // thread) while teardown runs on the main thread, so a cross-thread
+  // waitForFinished() cannot observe completion and burns its full timeout --
+  // accumulated across channels that overran the shutdown watchdog and
+  // force-exited the process before a pending deep restart could relaunch. Just
+  // signal a kill and return.
   if (process_.state() != QProcess::NotRunning) {
     qInfo() << "killing gpg-agent, channel: " << channel_;
     process_.kill();

@@ -116,7 +116,7 @@ void GpgContext::CancelCurrentOperation() {
 auto GpgContext::RestartGpgAgent() -> bool {
   if (agent_ != nullptr) {
     agent_ = SecureCreateSharedObject<GpgAgentProcess>(
-        GetChannel(), gpg_agent_path_, KeyDBPath());
+        GetChannel(), gpg_agent_path_, EngineHomePath());
   }
 
   // ensure all gpg-agent are killed.
@@ -167,31 +167,37 @@ auto GpgContext::init(const OpenPGPContextInitArgs& args) -> bool {
   init_args_ = args;
 
   // gpg-agent keeps its sockets inside the home directory, and a unix socket
-  // address has a hard length cap. Past it the agent exits without ever
-  // creating the socket, and every later operation fails with ENOTSOCK while
-  // nothing on screen explains why. Checked here because this is the first
-  // point at which the home directory this channel will really use is known.
-  const auto socket_budget = GnuPGHomePathByteBudget();
-  if (!GnuPGHomePathFitsSocketBudget(KeyDBPath())) {
-    auto reason =
-        QString(
-            "gnupg homedir exceeds unix socket path limit: %1 bytes, max %2")
-            .arg(KeyDBPath().toUtf8().size())
-            .arg(socket_budget);
-    LOG_E() << "gnupg home path is too long for the agent sockets, channel:"
-            << GetChannel() << reason;
-    RegisterGnuPGHomePathUnusable(std::move(reason));
-    Module::UpsertRTValue("core", "gnupg.homedir.socket_ok", 0);
-  } else {
-    Module::UpsertRTValue("core", "gnupg.homedir.socket_ok", 1);
+  // address has a hard length cap. Past it the agent exits(2) outright and
+  // every later operation fails with ENOTSOCK or "No agent running", while
+  // nothing on screen explains why.
+  //
+  // Resolved here because this is the first point at which the home directory
+  // this channel will really use is known -- and before the agent is spawned
+  // against it a few lines below, and before gpgconf is ever asked where the
+  // sockets are. All three have to agree on one home directory.
+  engine_home_path_ = ResolveGnuPGEngineHomePath(KeyDBPath());
+  if (engine_home_path_.isEmpty()) {
+    // Nothing usable could be made of it. Carry on with the real path so the
+    // failure stays where it has always been rather than moving somewhere new,
+    // and let the registered reason do the explaining.
+    LOG_E() << "gnupg home path is unusable, channel:" << GetChannel()
+            << GnuPGHomePathUnusableReason();
+    engine_home_path_ = KeyDBPath();
+  } else if (engine_home_path_ != KeyDBPath()) {
+    LOG_I() << "channel:" << GetChannel()
+            << "gnupg home path redirected through a shorter link:"
+            << engine_home_path_;
   }
+
+  Module::UpsertRTValue("core", "gnupg.homedir.socket_ok",
+                        GnuPGHomePathUnusableReason().isEmpty() ? 1 : 0);
 
   gpgconf_path_ = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{}),
   gpg_agent_path_ = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gnupg.components.gpg-agent.path", QString{});
   agent_ = SecureCreateSharedObject<GpgAgentProcess>(
-      GetChannel(), gpg_agent_path_, KeyDBPath());
+      GetChannel(), gpg_agent_path_, EngineHomePath());
 
   assert(!gpgconf_path_.isEmpty());
 
@@ -237,7 +243,7 @@ auto GpgContext::set_ctx_openpgp_engine_info(gpgme_ctx_t ctx) -> bool {
   assert(!KeyDBName().isEmpty());
   assert(!KeyDBPath().isEmpty());
 
-  auto database_path = KeyDBPath();
+  auto database_path = EngineHomePath();
 
   auto app_path_buffer = app_path.toUtf8();
   auto database_path_buffer = database_path.toUtf8();
@@ -393,8 +399,8 @@ void GpgContext::get_gpg_conf_dirs() {
 
   auto args = QStringList{};
 
-  if (!KeyDBPath().isEmpty()) {
-    args.append({"--homedir", QDir::toNativeSeparators(KeyDBPath())});
+  if (!EngineHomePath().isEmpty()) {
+    args.append({"--homedir", QDir::toNativeSeparators(EngineHomePath())});
   }
 
   args.append("--list-dirs");
@@ -445,8 +451,8 @@ auto GpgContext::kill_gpg_agent() -> bool {
 
   auto args = QStringList{};
 
-  if (!KeyDBPath().isEmpty()) {
-    args.append({"--homedir", QDir::toNativeSeparators(KeyDBPath())});
+  if (!EngineHomePath().isEmpty()) {
+    args.append({"--homedir", QDir::toNativeSeparators(EngineHomePath())});
   }
 
   // Kill *all* gnupg components (gpg-agent, scdaemon, dirmngr, keyboxd, ...),

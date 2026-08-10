@@ -491,6 +491,112 @@ TEST_F(GFCoreTest, GnuPGHomePathUnusableReasonRoundTrips) {
   RegisterGnuPGHomePathUnusable(previous);
 }
 
+namespace {
+
+// A directory whose path is comfortably past the budget, so the resolver has to
+// fall back to a link. Built under `base` so the test owns everything it makes.
+auto MakeOverBudgetDir(const QString& base) -> QString {
+  auto path = base;
+  while (GnuPGHomePathFitsSocketBudget(path)) path += "/0123456789";
+
+  return QDir().mkpath(path) ? path : QString{};
+}
+
+}  // namespace
+
+// A path that already fits must be handed to GnuPG untouched: the link only
+// exists to rescue paths that cannot work, and creating one anyway would leave
+// a trail of them on every installation that never had the problem.
+TEST_F(GFCoreTest, GnuPGEngineHomePathIsUnchangedWhenItAlreadyFits) {
+  QTemporaryDir root;
+  ASSERT_TRUE(root.isValid());
+  ASSERT_TRUE(GnuPGHomePathFitsSocketBudget(root.path()));
+
+  EXPECT_EQ(ResolveGnuPGEngineHomePath(root.path(), root.path() + "/links"),
+            root.path());
+}
+
+TEST_F(GFCoreTest, GnuPGEngineHomePathRedirectsAnOverBudgetPath) {
+  QTemporaryDir base;
+  ASSERT_TRUE(base.isValid());
+  if (GnuPGHomePathByteBudget() < 0) {
+    GTEST_SKIP() << "no socket path limit on this platform";
+  }
+
+  const auto deep = MakeOverBudgetDir(base.path());
+  ASSERT_FALSE(deep.isEmpty());
+
+  const auto links = base.path() + "/l";
+  const auto alias = ResolveGnuPGEngineHomePath(deep, links);
+
+  ASSERT_FALSE(alias.isEmpty());
+  EXPECT_NE(alias, deep);
+
+  // The whole point: short enough for the sockets, and still the same
+  // directory.
+  EXPECT_TRUE(GnuPGHomePathFitsSocketBudget(alias));
+  EXPECT_EQ(QFileInfo(alias).symLinkTarget(),
+            QFileInfo(deep).canonicalFilePath());
+
+  // Deterministic, so restarts and sibling channels converge on one link rather
+  // than littering a new one per call.
+  EXPECT_EQ(ResolveGnuPGEngineHomePath(deep, links), alias);
+}
+
+TEST_F(GFCoreTest, GnuPGEngineHomePathReplacesALinkPointingElsewhere) {
+  QTemporaryDir base;
+  ASSERT_TRUE(base.isValid());
+  if (GnuPGHomePathByteBudget() < 0) {
+    GTEST_SKIP() << "no socket path limit on this platform";
+  }
+
+  const auto deep = MakeOverBudgetDir(base.path());
+  ASSERT_FALSE(deep.isEmpty());
+
+  const auto links = base.path() + "/l";
+  const auto alias = ResolveGnuPGEngineHomePath(deep, links);
+  ASSERT_FALSE(alias.isEmpty());
+
+  // Point it somewhere else behind the resolver's back: a stale link left by a
+  // profile that moved, or an eight-hex collision. Either way the answer must
+  // be corrected rather than trusted.
+  const auto decoy = base.path() + "/decoy";
+  ASSERT_TRUE(QDir().mkpath(decoy));
+  ASSERT_TRUE(QFile::remove(alias));
+  ASSERT_TRUE(QFile::link(decoy, alias));
+
+  EXPECT_EQ(ResolveGnuPGEngineHomePath(deep, links), alias);
+  EXPECT_EQ(QFileInfo(alias).symLinkTarget(),
+            QFileInfo(deep).canonicalFilePath());
+}
+
+// A real directory sitting on the short name is somebody's data. Refuse rather
+// than clear it out of the way.
+TEST_F(GFCoreTest, GnuPGEngineHomePathRefusesToDisplaceARealDirectory) {
+  QTemporaryDir base;
+  ASSERT_TRUE(base.isValid());
+  if (GnuPGHomePathByteBudget() < 0) {
+    GTEST_SKIP() << "no socket path limit on this platform";
+  }
+
+  const auto deep = MakeOverBudgetDir(base.path());
+  ASSERT_FALSE(deep.isEmpty());
+
+  const auto links = base.path() + "/l";
+  const auto alias = ResolveGnuPGEngineHomePath(deep, links);
+  ASSERT_FALSE(alias.isEmpty());
+
+  ASSERT_TRUE(QFile::remove(alias));
+  ASSERT_TRUE(QDir().mkpath(alias));
+  ASSERT_TRUE(QFile::exists(alias + "/../"));
+
+  EXPECT_TRUE(ResolveGnuPGEngineHomePath(deep, links).isEmpty());
+  EXPECT_FALSE(GnuPGHomePathUnusableReason().isEmpty());
+  EXPECT_TRUE(QFileInfo(alias).isDir());
+
+  RegisterGnuPGHomePathUnusable({});
+}
+
 // The profile directory name is part of the GnuPG home path, which is why it is
 // short now. A regression here silently pushes macOS profiles back over the
 // socket limit.

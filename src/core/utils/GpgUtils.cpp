@@ -594,12 +594,22 @@ auto GnuPGHomePathByteBudget() -> int {
 #else
   constexpr int kSunPathSize = 108;
 #endif
-  // The longest socket gpg-agent binds under the home directory, separator
-  // included. GpgAgentProcess passes --enable-ssh-support but never
-  // --enable-browser-socket, so S.gpg-agent.browser is not created and must not
-  // be budgeted for.
+  // The longest socket name gpg-agent builds under the home directory,
+  // separator included.
+  //
+  // It is the browser socket even though we never pass
+  // --enable-browser-socket: gpg-agent validates the name regardless of whether
+  // it goes on to bind it, and refuses to start at all when it does not fit --
+  //
+  //   gpg-agent: socket name '.../S.gpg-agent.browser' is too long
+  //   exit=2
+  //
+  // -- while every other socket under the same home directory still fits.
+  // Budgeting against S.gpg-agent.extra instead passes a home directory that
+  // gpg-agent then rejects, which is exactly the failure this is meant to
+  // catch.
   constexpr int kLongestSocketSuffix =
-      static_cast<int>(sizeof("/S.gpg-agent.extra") - 1);
+      static_cast<int>(sizeof("/S.gpg-agent.browser") - 1);
 
   // -1 for the terminating NUL, which sun_path has to hold too.
   return kSunPathSize - kLongestSocketSuffix - 1;
@@ -611,6 +621,87 @@ auto GnuPGHomePathFitsSocketBudget(const QString& home_path) -> bool {
   if (budget < 0) return true;
 
   return home_path.toUtf8().size() <= budget;
+}
+
+auto ResolveGnuPGEngineHomePath(const QString& home_path,
+                                const QString& alias_root) -> QString {
+  if (GnuPGHomePathFitsSocketBudget(home_path)) {
+    RegisterGnuPGHomePathUnusable({});
+    return home_path;
+  }
+
+  const auto over_budget_reason =
+      QString("gnupg homedir exceeds unix socket path limit: %1 bytes, max %2")
+          .arg(home_path.toUtf8().size())
+          .arg(GnuPGHomePathByteBudget());
+
+  // Hashed from the canonical path so the same directory always resolves to the
+  // same link, however it was spelled, and so two profiles cannot quietly share
+  // one.
+  const auto target = QFileInfo(home_path).canonicalFilePath();
+  if (target.isEmpty()) {
+    RegisterGnuPGHomePathUnusable(over_budget_reason +
+                                  "; the directory could not be resolved");
+    return {};
+  }
+
+  const auto root =
+      alias_root.isEmpty() ? QDir::homePath() + "/.gpgfrontend" : alias_root;
+  if (!QDir().mkpath(root)) {
+    RegisterGnuPGHomePathUnusable(over_budget_reason +
+                                  "; a shorter link could not be created");
+    return {};
+  }
+
+  const auto alias =
+      root + "/" +
+      QString::fromLatin1(
+          QCryptographicHash::hash(target.toUtf8(), QCryptographicHash::Sha256)
+              .toHex()
+              .left(8));
+
+  // The link is only worth making if it is itself short enough. Inside a macOS
+  // sandbox container the user's home directory is already deep, so this is a
+  // real outcome and not a formality.
+  if (!GnuPGHomePathFitsSocketBudget(alias)) {
+    RegisterGnuPGHomePathUnusable(
+        over_budget_reason +
+        QString("; the shorter link would also be too long (%1 bytes)")
+            .arg(alias.toUtf8().size()));
+    return {};
+  }
+
+  QFileInfo alias_info(alias);
+  if (alias_info.isSymLink()) {
+    // Already ours and still pointing at the right place.
+    if (alias_info.symLinkTarget() == target) {
+      RegisterGnuPGHomePathUnusable({});
+      return alias;
+    }
+
+    // Stale, or an eight-hex collision. Removing a symlink discards no data.
+    if (!QFile::remove(alias)) {
+      RegisterGnuPGHomePathUnusable(over_budget_reason +
+                                    "; a stale link could not be replaced");
+      return {};
+    }
+  } else if (alias_info.exists()) {
+    // Something real is in the way. Never delete it to make room.
+    RegisterGnuPGHomePathUnusable(
+        over_budget_reason + "; the shorter path is occupied by a real file");
+    return {};
+  }
+
+  if (!QFile::link(target, alias)) {
+    RegisterGnuPGHomePathUnusable(over_budget_reason +
+                                  "; a shorter link could not be created");
+    return {};
+  }
+
+  LOG_I() << "gnupg home path is too long for its sockets; giving gnupg a "
+             "shorter link instead";
+  RegisterGnuPGHomePathUnusable({});
+  return alias;
 }
 
 void RegisterGnuPGHomePathUnusable(QString reason) {
