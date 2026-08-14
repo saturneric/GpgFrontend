@@ -43,8 +43,8 @@ using UI::DescribeProfileIndicator;
 }  // namespace
 
 TEST(StatusIndicatorInfoTest, AProfileOnThisComputerShowsItsNameAndItsRoot) {
-  const auto info = DescribeProfileIndicator(ProfileKind::kPERSIST, "Work",
-                                             "/home/u/.gpgfrontend", QString());
+  const auto info = DescribeProfileIndicator(
+      ProfileKind::kPERSIST, "Work", "/home/u/.gpgfrontend", QString(), true);
 
   EXPECT_EQ(info.value, "Work");
   EXPECT_FALSE(info.caption.isEmpty());
@@ -55,8 +55,9 @@ TEST(StatusIndicatorInfoTest, AProfileOnThisComputerShowsItsNameAndItsRoot) {
 TEST(StatusIndicatorInfoTest, AProfileOpenedFromAFileSaysItIsTemporary) {
   // The window looks exactly the same either way, so if the value does not say
   // it, nothing does — and the question on closing comes out of nowhere.
-  const auto info = DescribeProfileIndicator(
-      ProfileKind::kPACKAGED, "Handover", "/tmp/extracted", "/mnt/usb/x.gfp");
+  const auto info =
+      DescribeProfileIndicator(ProfileKind::kPACKAGED, "Handover",
+                               "/tmp/extracted", "/mnt/usb/x.gfp", true);
 
   EXPECT_NE(info.value, "Handover");
   EXPECT_TRUE(info.value.contains("Handover"));
@@ -70,12 +71,32 @@ TEST(StatusIndicatorInfoTest, AProfileOpenedFromAFileSaysItIsTemporary) {
 }
 
 TEST(StatusIndicatorInfoTest, TheProfileTooltipSurvivesAnUnknownRoot) {
-  const auto info = DescribeProfileIndicator(ProfileKind::kINSTALLED_ROOT,
-                                             "Default", QString(), QString());
+  const auto info = DescribeProfileIndicator(
+      ProfileKind::kINSTALLED_ROOT, "Default", QString(), QString(), true);
 
   EXPECT_EQ(info.value, "Default");
   EXPECT_FALSE(info.tooltip.isEmpty());
   EXPECT_FALSE(info.tooltip.contains("\n\n\n"));
+}
+
+TEST(StatusIndicatorInfoTest, AProfileThatCannotBeManagedPromisesNoClick) {
+  // The App Store build ships without profiles, so the segment is inert there.
+  // The hint is the only part of it that says otherwise, and a tooltip offering
+  // to manage profiles on a build that has none is worse than no tooltip.
+  const auto inert = DescribeProfileIndicator(
+      ProfileKind::kINSTALLED_ROOT, "Default", "/x", QString(), false);
+  const auto clickable = DescribeProfileIndicator(
+      ProfileKind::kINSTALLED_ROOT, "Default", "/x", QString(), true);
+
+  EXPECT_EQ(inert.value, clickable.value);
+  EXPECT_EQ(inert.caption, clickable.caption);
+
+  // Everything the reading itself says survives; only the hint goes.
+  EXPECT_FALSE(inert.tooltip.isEmpty());
+  EXPECT_TRUE(inert.tooltip.contains(QDir::toNativeSeparators("/x")));
+  EXPECT_FALSE(inert.tooltip.contains("\n\n"));
+  EXPECT_TRUE(clickable.tooltip.startsWith(inert.tooltip));
+  EXPECT_GT(clickable.tooltip.length(), inert.tooltip.length());
 }
 
 TEST(StatusIndicatorInfoTest, TheEngineReadingCarriesItsVersion) {
@@ -120,7 +141,8 @@ TEST(StatusIndicatorInfoTest, EveryTooltipEndsWithWhatAClickOpens) {
   // The segments look like text until you hover them; the hint is the only
   // thing that says they are not.
   const QList<UI::StatusIndicatorInfo> infos = {
-      DescribeProfileIndicator(ProfileKind::kPERSIST, "Work", "/x", QString()),
+      DescribeProfileIndicator(ProfileKind::kPERSIST, "Work", "/x", QString(),
+                               true),
       DescribeEngineIndicator(OpenPGPEngine::kGNUPG, "2.4.3", "default", "/y"),
       DescribeDeploymentIndicator(true, true),
   };

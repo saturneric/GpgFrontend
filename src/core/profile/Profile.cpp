@@ -466,6 +466,24 @@ auto ResolvePersist(const QString &id, const ProfileSelectionInput &in,
   return r;
 }
 
+/// This build's root profile: the bottom of the precedence ladder, and the only
+/// answer at all where profiles are not offered.
+auto ImplicitDefault(const ProfileSelectionInput &in,
+                     const QString &profiles_root) -> ProfileSelectionResult {
+  ProfileSelectionResult r;
+  r.selection.profiles_root = profiles_root;
+  if (in.portable_build) {
+    r.selection.kind = ProfileKind::kPORTABLE_ROOT;
+    r.selection.id = "portable";
+    r.selection.root = in.portable_root;
+  } else {
+    r.selection.kind = ProfileKind::kINSTALLED_ROOT;
+    r.selection.id = "classic";
+    r.selection.root = in.installed_root;
+  }
+  return r;
+}
+
 }  // namespace
 
 auto IsValidProfileId(const QString &id) -> bool {
@@ -484,6 +502,13 @@ auto ResolveProfileSelection(const ProfileSelectionInput &in)
     -> ProfileSelectionResult {
   const auto base = in.portable_build ? in.portable_root : in.installed_root;
   const auto profiles_root = base + "/profiles";
+
+  // A build without profiles has exactly one thing to resolve to, so the whole
+  // ladder below is skipped rather than each rung being guarded. Silently: a
+  // deep restart hands this process its predecessor's argv, so a `--profile`
+  // left over from an installation that once had profiles must not turn into a
+  // startup error the user cannot act on.
+  if (!in.multi_profile) return ImplicitDefault(in, profiles_root);
 
   // 1. a named profile. Explicit selection outranks the build flavour: on a
   // portable build this opens <portable-root>/profiles/<id>, and that profile's
@@ -513,18 +538,7 @@ auto ResolveProfileSelection(const ProfileSelectionInput &in)
   // 4. the implicit default: this build's root profile. Nothing is remembered
   // between runs on purpose — an instance always starts here, and another
   // profile or a package is opened from here into a new window.
-  ProfileSelectionResult r;
-  r.selection.profiles_root = profiles_root;
-  if (in.portable_build) {
-    r.selection.kind = ProfileKind::kPORTABLE_ROOT;
-    r.selection.id = "portable";
-    r.selection.root = in.portable_root;
-  } else {
-    r.selection.kind = ProfileKind::kINSTALLED_ROOT;
-    r.selection.id = "classic";
-    r.selection.root = in.installed_root;
-  }
-  return r;
+  return ImplicitDefault(in, profiles_root);
 }
 
 auto MakeProfile(const ProfileSelection &selection) -> QSharedPointer<Profile> {

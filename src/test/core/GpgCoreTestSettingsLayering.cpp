@@ -542,6 +542,64 @@ TEST(ProfileSelectionTest, TheScannedExtensionIsTheRegisteredOne) {
   EXPECT_EQ(r.selection.kind, ProfileKind::kPACKAGED);
 }
 
+// ------------------------------------------------ a build without profiles
+
+// The macOS App Store build ships without profiles: opening one means a second
+// instance told which profile it is for, and Launch Services will not pass
+// arguments on behalf of a sandboxed process. The successor would arrive with
+// an empty argv, resolve to the default profile, and collide with the lock the
+// window that asked for the switch is still holding. So such a build resolves
+// to its implicit default and nothing else can reach it.
+
+TEST(ProfileSelectionTest, WithoutProfilesEveryRungResolvesToTheDefault) {
+  const QList<ProfileSelectionInput> asked = [] {
+    QList<ProfileSelectionInput> out;
+    out.append(MakeInput({"--profile", "work"}));
+    out.append(MakeInput({"/home/x/work.gfp"}));
+    out.append(MakeInput());
+    out.last().env_profile = "ci";
+    return out;
+  }();
+
+  for (auto in : asked) {
+    in.multi_profile = false;
+    const auto r = ResolveProfileSelection(in);
+
+    // Silently, not as an error: a deep restart hands the successor its
+    // predecessor's argv, so a leftover --profile must not become a startup
+    // failure the user has no way to act on.
+    EXPECT_TRUE(r.error.isEmpty()) << r.error.toStdString();
+    EXPECT_EQ(r.selection.kind, ProfileKind::kINSTALLED_ROOT);
+    EXPECT_EQ(r.selection.id, QString("classic"));
+    EXPECT_EQ(r.selection.root, QString(kInstalledRoot));
+    EXPECT_TRUE(r.selection.package_path.isEmpty());
+  }
+}
+
+TEST(ProfileSelectionTest, WithoutProfilesAPortableBuildStillGetsItsOwnRoot) {
+  // The flavour still decides which root is the implicit one; only the ladder
+  // above it goes away.
+  auto in = MakeInput({"--profile", "work"});
+  in.multi_profile = false;
+  in.portable_build = true;
+
+  const auto r = ResolveProfileSelection(in);
+
+  EXPECT_TRUE(r.error.isEmpty());
+  EXPECT_EQ(r.selection.kind, ProfileKind::kPORTABLE_ROOT);
+  EXPECT_EQ(r.selection.id, QString("portable"));
+  EXPECT_EQ(r.selection.root, QString(kPortableRoot));
+}
+
+TEST(ProfileSelectionTest, ProfilesAreOfferedUnlessSaidOtherwise) {
+  // The field defaults to the behaviour every other build has, so a caller that
+  // has never heard of it cannot accidentally ship without profiles.
+  EXPECT_TRUE(ProfileSelectionInput{}.multi_profile);
+  EXPECT_EQ(
+      ResolveProfileSelection(MakeInput({"--profile", "work"})).selection.id,
+      QString("work"));
+}
+
 TEST(ProfileSelectionTest, NothingIsRememberedBetweenRuns) {
   // An instance always starts on its root profile. There is deliberately no
   // "reopen what was open last" rung: another profile is opened from the root

@@ -93,51 +93,59 @@ void MainWindow::create_actions() {
   connect(close_tab_act_, &QAction::triggered, edit_, &TextEdit::SlotCloseTab);
 
   /* Profile Menu — profiles this computer keeps */
-  open_profile_act_ = create_action(
-      "profile_manager", tr("Manage Profiles..."), {},
-      tr("See every profile on this computer, and open, rename or remove one"));
-  connect(open_profile_act_, &QAction::triggered, this, [this]() {
-    ProfileManagerDialog dialog(this);
-    dialog.exec();
-  });
-
-  new_profile_act_ = create_action(
-      "new_profile", tr("New Profile..."), {},
-      tr("Start an empty profile on this computer, with its own settings and "
-         "keys"));
-  connect(new_profile_act_, &QAction::triggered, this,
-          [this]() { CreateProfileInteractive(this); });
-
-  /* Profile Menu — a profile file, worked in directly */
   //
-  // The counterpart of opening a document: the file *is* the profile for as
-  // long as the window is up, nothing is added to this computer, and closing
-  // offers to write the changes back into the same file.
-  open_package_act_ = create_action(
-      "open_profile_package", tr("Open Profile File..."), {},
-      tr("Work inside a profile file, leaving it a file. Nothing is added to "
-         "this computer, and your changes go back into the same file."));
-  connect(open_package_act_, &QAction::triggered, this,
-          &MainWindow::slot_open_profile_package);
+  // Not built at all where profiles are not offered: opening one means a second
+  // instance told which profile it is for, and LaunchServices will not pass
+  // arguments on behalf of a sandboxed process, so every one of these actions
+  // could only ever end in the successor colliding with this window's lock.
+  if (!IsRunningInAppSandbox()) {
+    open_profile_act_ = create_action(
+        "profile_manager", tr("Manage Profiles..."), {},
+        tr("See every profile on this computer, and open, rename or remove "
+           "one"));
+    connect(open_profile_act_, &QAction::triggered, this, [this]() {
+      ProfileManagerDialog dialog(this);
+      dialog.exec();
+    });
 
-  /* Profile Menu — moving between a file and this computer */
-  //
-  // Import and export are conversions, and each other's inverse. Import ends
-  // with a profile this computer keeps and the file no longer involved;
-  // export ends with a file the computer does not track at all.
-  import_profile_act_ = create_action(
-      "import_profile", tr("Import Profile File..."), {},
-      tr("Copy a profile file into a new profile kept on this computer. The "
-         "file is not used again afterwards."));
-  connect(import_profile_act_, &QAction::triggered, this,
-          [this]() { ImportProfileInteractive(this); });
+    new_profile_act_ = create_action(
+        "new_profile", tr("New Profile..."), {},
+        tr("Start an empty profile on this computer, with its own settings and "
+           "keys"));
+    connect(new_profile_act_, &QAction::triggered, this,
+            [this]() { CreateProfileInteractive(this); });
 
-  export_profile_act_ = create_action(
-      "export_profile", tr("Export This Profile..."), {},
-      tr("Write the profile this window is using out to a new profile file, "
-         "to carry elsewhere or keep as a backup"));
-  connect(export_profile_act_, &QAction::triggered, this,
-          &MainWindow::slot_export_profile);
+    /* Profile Menu — a profile file, worked in directly */
+    //
+    // The counterpart of opening a document: the file *is* the profile for as
+    // long as the window is up, nothing is added to this computer, and closing
+    // offers to write the changes back into the same file.
+    open_package_act_ = create_action(
+        "open_profile_package", tr("Open Profile File..."), {},
+        tr("Work inside a profile file, leaving it a file. Nothing is added to "
+           "this computer, and your changes go back into the same file."));
+    connect(open_package_act_, &QAction::triggered, this,
+            &MainWindow::slot_open_profile_package);
+
+    /* Profile Menu — moving between a file and this computer */
+    //
+    // Import and export are conversions, and each other's inverse. Import ends
+    // with a profile this computer keeps and the file no longer involved;
+    // export ends with a file the computer does not track at all.
+    import_profile_act_ = create_action(
+        "import_profile", tr("Import Profile File..."), {},
+        tr("Copy a profile file into a new profile kept on this computer. The "
+           "file is not used again afterwards."));
+    connect(import_profile_act_, &QAction::triggered, this,
+            [this]() { ImportProfileInteractive(this); });
+
+    export_profile_act_ = create_action(
+        "export_profile", tr("Export This Profile..."), {},
+        tr("Write the profile this window is using out to a new profile file, "
+           "to carry elsewhere or keep as a backup"));
+    connect(export_profile_act_, &QAction::triggered, this,
+            &MainWindow::slot_export_profile);
+  }
 
   quit_act_ = create_action("quit", tr("Quit"), ":/icons/exit.png",
                             tr("Quit Program"), {QKeySequence::Quit});
@@ -499,26 +507,33 @@ void MainWindow::create_menus() {
   // "Open" and "Import" both start at a `.gfp` and are routinely read as
   // the same act. Separating them here is the only place the interface can say
   // that one leaves nothing behind and the other adds a profile permanently.
-  profile_menu_ = menuBar()->addMenu(tr("Profiles"));
-  profile_menu_->setToolTipsVisible(true);
+  //
+  // Absent entirely where profiles are not offered — see create_actions().
+  // Not built and then hidden, because every action it would hold is null
+  // there.
+  if (!IsRunningInAppSandbox()) {
+    profile_menu_ = menuBar()->addMenu(tr("Profiles"));
+    profile_menu_->setToolTipsVisible(true);
 
-  profile_menu_->addAction(open_profile_act_);
+    profile_menu_->addAction(open_profile_act_);
 
-  recent_profile_menu_ = profile_menu_->addMenu(tr("Open Recent"));
-  recent_profile_menu_->setToolTipsVisible(true);
-  // Filled on the way open, never cached: another window may have opened a
-  // profile since this menu was built, and each process stamps its own marker.
-  connect(recent_profile_menu_, &QMenu::aboutToShow, this,
-          &MainWindow::slot_refresh_recent_profiles);
+    recent_profile_menu_ = profile_menu_->addMenu(tr("Open Recent"));
+    recent_profile_menu_->setToolTipsVisible(true);
+    // Filled on the way open, never cached: another window may have opened a
+    // profile since this menu was built, and each process stamps its own
+    // marker.
+    connect(recent_profile_menu_, &QMenu::aboutToShow, this,
+            &MainWindow::slot_refresh_recent_profiles);
 
-  profile_menu_->addAction(new_profile_act_);
+    profile_menu_->addAction(new_profile_act_);
 
-  profile_menu_->addSeparator();
-  profile_menu_->addAction(open_package_act_);
+    profile_menu_->addSeparator();
+    profile_menu_->addAction(open_package_act_);
 
-  profile_menu_->addSeparator();
-  profile_menu_->addAction(import_profile_act_);
-  profile_menu_->addAction(export_profile_act_);
+    profile_menu_->addSeparator();
+    profile_menu_->addAction(import_profile_act_);
+    profile_menu_->addAction(export_profile_act_);
+  }
 
   advance_menu_ = menuBar()->addMenu(tr("Advanced"));
   // Only show Smart Card Controller if GnuPG is supported, since it is not
@@ -634,9 +649,14 @@ void MainWindow::create_status_bar() {
   const auto& profile = ProfileSession::Instance().Profile();
   const auto* packaged = dynamic_cast<const PackagedProfile*>(&profile);
 
+  // The segment still says which keys are in front of the user where profiles
+  // are not offered — it is just no longer a way in to managing them.
+  const auto profiles_offered = !IsRunningInAppSandbox();
+
   status_indicator_bar_->SetProfile(DescribeProfileIndicator(
       profile.Kind(), CurrentProfileDisplayName(), profile.Root(),
-      packaged != nullptr ? packaged->PackagePath() : QString()));
+      packaged != nullptr ? packaged->PackagePath() : QString(),
+      profiles_offered));
 
   // The mirrored property, not IsPortableBuild(): a --profile session on a
   // portable build is not a portable session.
@@ -644,8 +664,12 @@ void MainWindow::create_status_bar() {
       qApp->property("GFPortableMode").toBool(),
       GlobalSettingStation::GetInstance().IsSelfContainedProfile()));
 
-  connect(status_indicator_bar_, &StatusIndicatorBar::SignalProfileClicked,
-          this, [this]() { open_profile_act_->trigger(); });
+  // Left unconnected rather than connected to nothing: open_profile_act_ is
+  // null where profiles are not offered.
+  if (profiles_offered) {
+    connect(status_indicator_bar_, &StatusIndicatorBar::SignalProfileClicked,
+            this, [this]() { open_profile_act_->trigger(); });
+  }
 
   // Both readings are spelled out in full on the About dialog's Status tab,
   // which is where a click on either one lands.

@@ -199,15 +199,10 @@ void GpgFrontendContext::resolve_profile_selection() {
   ProfileSelectionInput in;
   in.args = QCoreApplication::arguments();
 
-  // Appended rather than given a rung of its own: the resolver already ranks a
-  // positional package below --profile and takes the first one it finds, so
-  // putting a handed-over document at the end gives it exactly the standing a
-  // typed one has — below an explicit profile, above the environment — with no
-  // second copy of the precedence rules to keep in step.
-  if (const auto handed = app_->TakePendingProfilePackage();
-      !handed.isEmpty()) {
-    in.args << handed;
-  }
+  // The macOS App Store build ships without profiles: LaunchServices will not
+  // pass arguments on behalf of a sandboxed process, so the second instance
+  // that a switch depends on can never be told which profile it is for.
+  in.multi_profile = !IsRunningInAppSandbox();
 
   in.env_profile = qEnvironmentVariable("GF_PROFILE");
   in.portable_build = IsPortableBuild();
@@ -215,12 +210,24 @@ void GpgFrontendContext::resolve_profile_selection() {
   in.installed_root =
       QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
 
-  // A scan rather than an index, so there is nothing here that can disagree
-  // with the filesystem. Cheap, and it is the only thing that makes naming a
-  // profile that does not exist an error rather than a request to create one.
-  const auto base = in.portable_build ? in.portable_root : in.installed_root;
-  for (const auto& entry : ScanProfilesRoot(base + "/profiles")) {
-    in.known_ids << entry.id;
+  if (in.multi_profile) {
+    // Appended rather than given a rung of its own: the resolver already ranks
+    // a positional package below --profile and takes the first one it finds, so
+    // putting a handed-over document at the end gives it exactly the standing a
+    // typed one has — below an explicit profile, above the environment — with
+    // no second copy of the precedence rules to keep in step.
+    if (const auto handed = app_->TakePendingProfilePackage();
+        !handed.isEmpty()) {
+      in.args << handed;
+    }
+
+    // A scan rather than an index, so there is nothing here that can disagree
+    // with the filesystem. Cheap, and it is the only thing that makes naming a
+    // profile that does not exist an error rather than a request to create one.
+    const auto base = in.portable_build ? in.portable_root : in.installed_root;
+    for (const auto& entry : ScanProfilesRoot(base + "/profiles")) {
+      in.known_ids << entry.id;
+    }
   }
 
   auto result = ResolveProfileSelection(in);

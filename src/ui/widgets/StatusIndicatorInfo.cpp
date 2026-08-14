@@ -46,6 +46,7 @@ auto JoinTooltip(const QStringList& lines, const QString& hint) -> QString {
     if (!line.isEmpty()) kept.append(line);
   }
   if (kept.isEmpty()) return hint;
+  if (hint.isEmpty()) return kept.join("\n");
 
   // The hint is what a click does, not more of the same detail, so it stands
   // apart from the lines above it.
@@ -66,7 +67,7 @@ auto ClickToSeeStatus() -> QString {
 
 auto DescribeProfileIndicator(ProfileKind kind, const QString& display_name,
                               const QString& root_path,
-                              const QString& package_path)
+                              const QString& package_path, bool clickable)
     -> StatusIndicatorInfo {
   StatusIndicatorInfo info;
   info.caption = QCoreApplication::translate(
@@ -90,7 +91,7 @@ auto DescribeProfileIndicator(ProfileKind kind, const QString& display_name,
                       "This window's profile — its own settings, keys and "
                       "saved state"),
        QDir::toNativeSeparators(packaged ? package_path : root_path)},
-      ClickToManageProfiles());
+      clickable ? ClickToManageProfiles() : QString());
 
   return info;
 }

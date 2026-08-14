@@ -56,13 +56,14 @@ struct StatusIndicatorInfo {
  * @param display_name its name, as CurrentProfileDisplayName() gives it
  * @param root_path where the profile lives on this computer
  * @param package_path the .gfp it came out of, for kPACKAGED only
+ * @param clickable whether this build offers profiles at all; false drops the
+ * "click to manage" hint, which is the only part of the segment that promises
+ * something to click, and would otherwise promise it where nothing happens
  * @return caption, value and tooltip for the profile segment
  */
-auto GF_UI_EXPORT DescribeProfileIndicator(ProfileKind kind,
-                                           const QString& display_name,
-                                           const QString& root_path,
-                                           const QString& package_path)
-    -> StatusIndicatorInfo;
+auto GF_UI_EXPORT DescribeProfileIndicator(
+    ProfileKind kind, const QString& display_name, const QString& root_path,
+    const QString& package_path, bool clickable) -> StatusIndicatorInfo;
 
 /**
  * @brief Describe the OpenPGP backend behind every operation in this window.

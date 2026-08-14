@@ -36,6 +36,7 @@
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/UserInterfaceUtils.h"
@@ -154,9 +155,16 @@ void MainWindow::slot_drain_pending_documents() {
   auto* app = qobject_cast<GpgFrontendApplication*>(qApp);
   if (app == nullptr) return;
 
+  // Still drained where profiles are not offered, just not acted on: the queue
+  // would otherwise grow for the life of the process. Nothing is said to the
+  // user either, because such a build does not claim the document type in the
+  // first place — anything arriving here came from a file manager that has not
+  // caught up yet.
+  const auto profiles_offered = !IsRunningInAppSandbox();
+
   for (auto path = app->TakePendingProfilePackage(); !path.isEmpty();
        path = app->TakePendingProfilePackage()) {
-    open_profile_package_path(path);
+    if (profiles_offered) open_profile_package_path(path);
   }
 }
 
@@ -178,6 +186,11 @@ void MainWindow::open_profile_package_path(const QString& path) {
 }
 
 void MainWindow::slot_refresh_recent_profiles() {
+  // Null where profiles are not offered, and the only connection to this slot
+  // is made alongside the menu itself — so this is unreachable there rather
+  // than merely unlikely. Guarded anyway: a slot is reachable by name.
+  if (recent_profile_menu_ == nullptr) return;
+
   recent_profile_menu_->clear();
 
   const auto recent = RecentProfiles(kRecentProfileLimit);

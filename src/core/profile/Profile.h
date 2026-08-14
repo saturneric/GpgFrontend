@@ -520,6 +520,21 @@ struct GF_CORE_EXPORT ProfileSelectionInput {
    * is always authoritative, so there is no "we do not know yet" case.
    */
   QStringList known_ids;
+
+  /**
+   * @brief Whether this build may open anything but its implicit default.
+   *
+   * False on a build that ships without profiles at all — the macOS App Store
+   * one, where opening another profile means launching a second instance with
+   * `--profile`, and LaunchServices refuses to pass arguments on behalf of a
+   * sandboxed process. The successor would arrive with an empty argv, fall back
+   * to the default profile, and collide with the lock the window that asked for
+   * the switch is still holding.
+   *
+   * A field rather than a call to IsRunningInAppSandbox() so this stays pure
+   * and both answers are assertable from one test binary.
+   */
+  bool multi_profile = true;
 };
 
 /**

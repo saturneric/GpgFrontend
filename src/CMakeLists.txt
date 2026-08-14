@@ -83,11 +83,29 @@ if(XCODE_BUILD)
     set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "Yes")
     set(APP_ENTITLEMENTS_FILE "${CMAKE_SOURCE_DIR}/resource/entitlements/Sandbox.entitlements")
     set(PROVISIONING_PROFILE_NAME "GpgFrontend_Mac_App_Store_Profile")
+
+    # The sandboxed build ships without profiles -- Launch Services will not
+    # pass arguments on behalf of a sandboxed process, so the second instance
+    # that opening one depends on can never be told which profile it is for.
+    # Claiming the document type would still put this application on a .gfp
+    # file's "Open with" menu, and it would then ignore what it was handed.
+    set(GPGFRONTEND_BUNDLE_DOCUMENT_TYPES "")
+    message(STATUS "Bundle Document Types: none (.gfp not claimed)")
   else()
     message(STATUS "Build Application Without App Sandbox")
     set(CUSTOM_ATTRIBUTE_ENABLE_APP_SANDBOX "No")
     set(APP_ENTITLEMENTS_FILE "${CMAKE_SOURCE_DIR}/resource/entitlements/Normal.entitlements")
     set(PROVISIONING_PROFILE_NAME "GpgFrontend")
+
+    # Expanded here rather than left to the Info.plist pass: that pass
+    # substitutes the template once, so a ${...} arriving through a substitution
+    # would reach the built plist verbatim.
+    file(READ
+      "${CMAKE_SOURCE_DIR}/resource/plist/BundleDocumentTypes.plist.in"
+      GPGFRONTEND_BUNDLE_DOCUMENT_TYPES)
+    string(CONFIGURE "${GPGFRONTEND_BUNDLE_DOCUMENT_TYPES}"
+      GPGFRONTEND_BUNDLE_DOCUMENT_TYPES)
+    message(STATUS "Bundle Document Types: .gfp claimed")
   endif()
 
   set_target_properties(${APP_NAME} PROPERTIES
