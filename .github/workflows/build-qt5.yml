@@ -356,6 +356,8 @@ jobs:
         run: |
           export URL="https://ftp.bktus.com/GnuPG/${{env.GNUPG_VERSION}}"
           export KEY_URL="https://bktus.com/pgp/saturneric-code-signing.asc"
+          export KEY_FPR="12F7E8858CF15BEC9975FF3C5CA3DA246843FD03"
+          export KEY_FILE="saturneric-code-signing.asc"
           export FILE="gnupg.zip"
           export CHECKSUM_FILE="SHA256SUMS.txt"
           export SIGNATURE_FILE="gnupg.zip.sig"
@@ -365,19 +367,40 @@ jobs:
 
           mkdir -p build/downloads
 
-          curl -o build/downloads/$FILE $URL/$FILE
-          curl -o build/downloads/$CHECKSUM_FILE $URL/$CHECKSUM_FILE
-          curl -o build/downloads/5CA3DA246843FD03.asc $KEY_URL
-          curl -o build/downloads/$SIGNATURE_FILE $URL/$SIGNATURE_FILE
+          curl -fL --retry 3 -o build/downloads/$FILE $URL/$FILE
+          curl -fL --retry 3 -o build/downloads/$CHECKSUM_FILE $URL/$CHECKSUM_FILE
+          curl -fL --retry 3 -o build/downloads/$KEY_FILE $KEY_URL
+          curl -fL --retry 3 -o build/downloads/$SIGNATURE_FILE $URL/$SIGNATURE_FILE
 
-          gpg --import build/downloads/5CA3DA246843FD03.asc
-          gpg --verify build/downloads/$SIGNATURE_FILE build/downloads/$FILE
-          if [ $? -ne 0 ]; then
+          gpg --import build/downloads/$KEY_FILE
+
+          # Trust is pinned to this exact fingerprint, not to whatever the
+          # downloaded key file happens to contain.
+          if ! KEY_INFO=$(gpg --batch --with-colons --list-keys "$KEY_FPR"); then
+            echo "Imported key does not match fingerprint $KEY_FPR!" >&2
+            exit 1
+          fi
+
+          EXPIRES=$(echo "$KEY_INFO" | awk -F: '/^pub:/ {print $7; exit}')
+          if [ -n "$EXPIRES" ]; then
+            echo "Signing key expires: $(date -u -d "@$EXPIRES")"
+            if [ "$EXPIRES" -le "$(date +%s)" ]; then
+              echo "Signing key has expired!" >&2
+              exit 1
+            fi
+          else
+            echo "Signing key has no expiration date"
+          fi
+
+          # VALIDSIG carries the primary key fingerprint as its last field, so
+          # this also rejects a valid signature from any other imported key.
+          if ! gpg --status-fd 1 --verify build/downloads/$SIGNATURE_FILE \
+              build/downloads/$FILE | grep "VALIDSIG" | grep -q "$KEY_FPR"; then
             echo "GnuPG signature verification failed!" >&2
             exit 1
           fi
 
-          CHECKSUM=$(grep "$FILE" build/downloads/$CHECKSUM_FILE | awk '{print $1}')
+          CHECKSUM=$(grep "$FILE\$" build/downloads/$CHECKSUM_FILE | awk '{print $1}')
           ACTUAL_CHECKSUM=$(sha256sum build/downloads/$FILE | awk '{print $1}')
           echo "Expected Checksum: $CHECKSUM"
           echo "Actual Checksum: $ACTUAL_CHECKSUM"
