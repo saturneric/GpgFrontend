@@ -359,11 +359,13 @@ void KeyList::apply_category_strip_style() {
   if (compact_rail_) {
     ui_->categoryList->setIconSize(QSize(20, 20));
     ui_->categoryList->setMinimumWidth(0);
-    // Hard-cap the rail so the splitter cannot widen it past a thin strip.
-    ui_->categoryPane->setMinimumWidth(28);
-    ui_->categoryPane->setMaximumWidth(30);
+    // Fix the rail width so the splitter cannot resize it at all.
+    ui_->categoryPane->setFixedWidth(28);
     ui_->categoryList->setTextElideMode(Qt::ElideNone);
     ui_->keyListSplitter->setSizes({28, 560});
+    if (auto* handle = ui_->keyListSplitter->handle(1); handle != nullptr) {
+      handle->setEnabled(false);
+    }
     // Neutral, theme-independent selection/hover so it never competes with the
     // colour swatches.
     ui_->categoryList->setStyleSheet(R"(
@@ -396,6 +398,9 @@ QListWidget#KeyCategoryList::item:hover:!selected {
   ui_->categoryPane->setMaximumWidth(QWIDGETSIZE_MAX);
   ui_->categoryList->setTextElideMode(Qt::ElideRight);
   ui_->keyListSplitter->setSizes({150, 470});
+  if (auto* handle = ui_->keyListSplitter->handle(1); handle != nullptr) {
+    handle->setEnabled(true);
+  }
   ui_->categoryList->setStyleSheet(R"(
 QListWidget#KeyCategoryList {
   outline: 0;
