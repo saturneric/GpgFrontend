@@ -574,7 +574,7 @@ jobs:
         shell: msys2 {0}
         run: |
           export URL="https://ftp.bktus.com/GnuPG/${{env.GNUPG_VERSION}}"
-          export KEY_URL="https://ftp.bktus.com/GPG_KEYS/5CA3DA246843FD03.asc"
+          export KEY_URL="https://bktus.com/pgp/saturneric-code-signing.asc"
           export FILE="gnupg.zip"
           export CHECKSUM_FILE="SHA256SUMS.txt"
           export SIGNATURE_FILE="gnupg.zip.sig"
