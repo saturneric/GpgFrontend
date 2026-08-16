@@ -103,6 +103,32 @@ class GF_CORE_EXPORT SystemSecretStore {
   [[nodiscard]] virtual auto LastError() const -> QString { return {}; }
 
   /**
+   * @brief Ask the platform to unlock its store, interactively if it must.
+   *
+   * Exists because a lookup that finds nothing cannot be told apart from a
+   * lookup against a store that never came online. On the Secret Service the
+   * two are the same call: it raises an unlock prompt only when the daemon
+   * reports the wanted item as locked, and a collection that has not been
+   * opened in this session reports nothing at all -- no item, no prompt, and
+   * no error either. Asking to unlock explicitly is the only way to reach the
+   * prompt in that state.
+   *
+   * Blocks on a human, so it may only be called where the user has already
+   * asked for the thing that needs the secret. There is no timeout: a prompter
+   * that never answers holds the caller, exactly as a lookup already does.
+   *
+   * The default does nothing on purpose, rather than being pure: macOS raises
+   * its own unlock panel from inside SecItemCopyMatching, and Credential
+   * Manager entries have no lock state for anything to raise. Only the Secret
+   * Service needs to be asked.
+   *
+   * @return true when the store is now unlocked, i.e. when a read that just
+   * came back empty is worth repeating; false leaves the caller's earlier
+   * result standing
+   */
+  [[nodiscard]] virtual auto Unlock() -> bool { return false; }
+
+  /**
    * @brief Read a secret.
    *
    * @param account account name within the service
@@ -168,6 +194,22 @@ auto GF_CORE_EXPORT GetSystemSecretStore() -> SystemSecretStore*;
  * @return the reason, or empty when a backend is installed or none was given
  */
 auto GF_CORE_EXPORT SystemSecretStoreUnavailableReason() -> QString;
+
+/**
+ * @brief Explain the credential store's current trouble, whatever its stage.
+ *
+ * Two failures reach every display path and only one of them has a reason at
+ * any given time: a backend that never loaded leaves it in the registry, and
+ * one that loaded and then refused leaves it on the store. Picking between
+ * them is the same three lines everywhere it is needed, so it lives here
+ * rather than in each dialog.
+ *
+ * Untranslated, for the same reason
+ * SystemSecretStoreUnavailableReason() is.
+ *
+ * @return the reason, or empty when nothing has anything to add
+ */
+auto GF_CORE_EXPORT SystemSecretStoreReason() -> QString;
 
 /**
  * @brief Round-trip a throwaway entry to prove the store really works.

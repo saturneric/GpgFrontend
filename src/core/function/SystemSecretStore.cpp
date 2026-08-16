@@ -78,6 +78,19 @@ auto SystemSecretStoreUnavailableReason() -> QString {
   return g_store != nullptr ? QString{} : g_unavailable_reason;
 }
 
+auto SystemSecretStoreReason() -> QString {
+  auto reason = SystemSecretStoreUnavailableReason();
+
+  // Only one of the two can be set at a time -- the reason above is suppressed
+  // once a backend registers -- so this is a fallback rather than a choice.
+  if (auto* store = GetSystemSecretStore();
+      reason.isEmpty() && store != nullptr) {
+    reason = store->LastError();
+  }
+
+  return reason;
+}
+
 auto ProbeSystemSecretStore(SystemSecretStore& store) -> bool {
   auto probe = SecureRandomGenerator::Generate(32);
   if (!probe) {

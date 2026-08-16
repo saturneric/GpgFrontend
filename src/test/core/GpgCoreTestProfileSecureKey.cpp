@@ -51,8 +51,8 @@ auto SampleKey() -> GFBuffer { return GFBuffer(QByteArray(256, '\x5A')); }
 
 /**
  * @brief In-memory credential store, with hooks for the failure modes that
- * matter: a store that refuses writes, and one that accepts a write but hands
- * back something else.
+ * matter: a store that refuses writes, one that accepts a write but hands back
+ * something else, and one that is locked.
  */
 class FakeSecretStore final : public SystemSecretStore {
  public:
@@ -63,8 +63,38 @@ class FakeSecretStore final : public SystemSecretStore {
   [[nodiscard]] auto IsAvailable() -> bool override { return available; }
 
   auto Read(const QString& account) -> GFBufferOrNone override {
-    if (!entries.contains(account)) return {};
+    ++read_calls;
+
+    // A locked store hides what it holds without saying so, exactly as a
+    // keyring that has not been opened this session does: the entry is still
+    // there, the lookup just comes back with nothing and no reason.
+    if (locked) {
+      last_error.clear();
+      return {};
+    }
+
+    if (!entries.contains(account)) {
+      last_error.clear();
+      return {};
+    }
     return entries.value(account);
+  }
+
+  [[nodiscard]] auto Unlock() -> bool override {
+    ++unlock_calls;
+
+    if (!unlockable) {
+      last_error = QStringLiteral("fake store refused to unlock");
+      return false;
+    }
+
+    locked = false;
+    last_error.clear();
+    return true;
+  }
+
+  [[nodiscard]] auto LastError() const -> QString override {
+    return last_error;
   }
 
   auto Write(const QString& account, const GFBuffer& secret) -> bool override {
@@ -86,6 +116,16 @@ class FakeSecretStore final : public SystemSecretStore {
   bool available = true;
   bool writable = true;
   bool corrupt_on_write = false;
+
+  /// Reads come back empty until something unlocks the store.
+  bool locked = false;
+  /// Whether Unlock() gives in, i.e. whether the user answers the prompt.
+  bool unlockable = true;
+
+  int unlock_calls = 0;
+  int read_calls = 0;
+
+  QString last_error;
 };
 
 /// A temporary key file holding the given contents.
@@ -1068,6 +1108,161 @@ TEST(AppSecureKeyWrapTest, LostSecretReportsLockedOutWithoutTouchingFile) {
   EXPECT_EQ(file.Read(), wrapped_bytes);
 }
 
+/**
+ * The regression test for the whole point of this: a keyring that has not been
+ * opened since boot answers a lookup with nothing rather than with a locked
+ * item, so nothing prompts the user and the secret looks lost. Asking the store
+ * to unlock and reading again must recover it, without ever touching the file.
+ */
+TEST(AppSecureKeyWrapTest, LockedStoreIsUnlockedBeforeReportingLockedOut) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  ASSERT_EQ(
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
+      AppKeyWrapStatus::kJUST_ENABLED);
+  const auto wrapped_bytes = file.Read();
+
+  store.locked = true;
+  store.unlock_calls = 0;
+  store.read_calls = 0;
+
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kWRAPPED);
+  EXPECT_EQ(store.unlock_calls, 1);
+  // Once before the unlock and once after: the retry is the whole fix.
+  EXPECT_EQ(store.read_calls, 2);
+  EXPECT_EQ(file.Read(), wrapped_bytes);
+}
+
+/**
+ * A declined prompt must keep the store's own explanation, since that is the
+ * only thing the reset dialog can show. A second read would report a missing
+ * entry, which records nothing and would erase it.
+ */
+TEST(AppSecureKeyWrapTest, DeclinedUnlockReportsLockedOutAndKeepsTheReason) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  ASSERT_EQ(
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
+      AppKeyWrapStatus::kJUST_ENABLED);
+  const auto wrapped_bytes = file.Read();
+
+  store.locked = true;
+  store.unlockable = false;
+  store.unlock_calls = 0;
+  store.read_calls = 0;
+
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
+  EXPECT_EQ(store.unlock_calls, 1);
+  // Not retried, so the reason the failed unlock recorded is still there.
+  EXPECT_EQ(store.read_calls, 1);
+  EXPECT_FALSE(store.LastError().isEmpty());
+  EXPECT_EQ(file.Read(), wrapped_bytes);
+}
+
+/**
+ * A store that unlocks but genuinely holds no entry must not be asked twice.
+ */
+TEST(AppSecureKeyWrapTest, UnlockIsAttemptedAtMostOnce) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  ASSERT_EQ(
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
+      AppKeyWrapStatus::kJUST_ENABLED);
+
+  store.locked = true;
+  store.entries.clear();
+  store.unlock_calls = 0;
+
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
+  EXPECT_EQ(store.unlock_calls, 1);
+}
+
+/**
+ * Turning protection off must not be blocked by a locked keyring: the unlock
+ * happens before the branch on intent, so the key still comes back out.
+ */
+TEST(AppSecureKeyWrapTest, DisablingProtectionUnlocksRatherThanLockingOut) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  ASSERT_EQ(
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
+      AppKeyWrapStatus::kJUST_ENABLED);
+
+  store.locked = true;
+
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kJUST_DISABLED);
+  EXPECT_EQ(file.Read(), key);
+}
+
+/**
+ * A secret that came back proves the store is open, so a key that then fails to
+ * decrypt is a mismatch, not a lock. Prompting there would ask for nothing.
+ */
+TEST(AppSecureKeyWrapTest, WrongSecretNeverAsksTheStoreToUnlock) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  ASSERT_EQ(
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
+      AppKeyWrapStatus::kJUST_ENABLED);
+
+  store.entries.insert(kAppKeyWrapAccount, GFBuffer(QByteArray(32, '\x01')));
+  store.unlock_calls = 0;
+
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
+  EXPECT_EQ(store.unlock_calls, 0);
+}
+
+/**
+ * The invariant that keeps this from prompting where it never did before:
+ * nothing outside the wrapped branch may reach for an unlock.
+ */
+TEST(AppSecureKeyWrapTest, UnwrappedKeyFileNeverAsksTheStoreToUnlock) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  const auto off =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, false);
+  EXPECT_EQ(off.status, AppKeyWrapStatus::kNOT_WRAPPED);
+  EXPECT_EQ(store.unlock_calls, 0);
+  EXPECT_EQ(store.read_calls, 0);
+
+  const auto on =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+  EXPECT_EQ(on.status, AppKeyWrapStatus::kJUST_ENABLED);
+  EXPECT_EQ(store.unlock_calls, 0);
+}
+
 TEST(AppSecureKeyWrapTest, DisableWithLostSecretIsLockedOutNotDataLoss) {
   const auto key = SampleKey();
   ScopedKeyFile file(key);
@@ -1313,12 +1508,54 @@ TEST_F(SystemSecretStoreReasonTest, PlainNullRegistrationReportsNoReason) {
   EXPECT_TRUE(SystemSecretStoreUnavailableReason().isEmpty());
 }
 
+namespace {
+
+/// A backend that overrides nothing optional, to pin the interface's defaults.
+class BareSecretStore final : public SystemSecretStore {
+ public:
+  [[nodiscard]] auto Name() const -> QString override {
+    return QStringLiteral("bare");
+  }
+  [[nodiscard]] auto IsAvailable() -> bool override { return true; }
+  auto Read(const QString&) -> GFBufferOrNone override { return {}; }
+  auto Write(const QString&, const GFBuffer&) -> bool override { return true; }
+  auto Remove(const QString&) -> bool override { return true; }
+};
+
+}  // namespace
+
 TEST_F(SystemSecretStoreReasonTest, BackendWithNothingToAddReportsNoLastError) {
-  FakeSecretStore store;
+  BareSecretStore store;
 
   // The default keeps backends that get no message from the platform, and the
   // test doubles, from having to implement LastError at all.
   EXPECT_TRUE(store.LastError().isEmpty());
+}
+
+TEST_F(SystemSecretStoreReasonTest, BackendWithNothingToUnlockReportsFalse) {
+  BareSecretStore store;
+
+  // False, not true: only the Secret Service has a lock to open, and a backend
+  // that answers otherwise would send the caller into a pointless second read.
+  EXPECT_FALSE(store.Unlock());
+}
+
+TEST_F(SystemSecretStoreReasonTest, ReasonFallsBackToTheStoresOwnMessage) {
+  auto store = std::make_unique<FakeSecretStore>();
+  store->locked = true;
+  store->unlockable = false;
+  auto* raw = store.get();
+  RegisterSystemSecretStore(std::move(store));
+
+  // Nothing yet: the registry's reason is suppressed while a store is
+  // installed, and the store has not been asked to do anything.
+  EXPECT_TRUE(SystemSecretStoreReason().isEmpty());
+
+  EXPECT_FALSE(raw->Unlock());
+
+  // This is what reaches the reset dialog's detail box.
+  EXPECT_EQ(SystemSecretStoreReason(), raw->LastError());
+  EXPECT_FALSE(SystemSecretStoreReason().isEmpty());
 }
 
 }  // namespace GpgFrontend::Test

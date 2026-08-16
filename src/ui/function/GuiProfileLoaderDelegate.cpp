@@ -211,6 +211,15 @@ auto GuiProfileLoaderDelegate::ConfirmKeyReset(ProfileKeyResetReason reason)
                     "start, but everything it previously encrypted becomes "
                     "permanently unreadable."));
 
+    // This is the most destructive choice the application ever puts in front
+    // of anyone, and until now it was the only credential store dialog that
+    // gave no way to find out what actually broke. A keyring that refused to
+    // unlock and a profile carried over from another machine read identically
+    // in the prose above; only the store's own message separates them.
+    if (const auto detail = SystemSecretStoreReason(); !detail.isEmpty()) {
+      box.setDetailedText(detail);
+    }
+
     auto* quit = box.addButton(QObject::tr("Quit"), QMessageBox::RejectRole);
     auto* reset = box.addButton(QObject::tr("Reset Secure Key"),
                                 QMessageBox::DestructiveRole);
@@ -375,11 +384,7 @@ void GuiProfileLoaderDelegate::Note(ProfileLoadNotice notice,
       // The user asked for keychain protection and is being silently dropped
       // back to none, so this is exactly the moment they need to be able to
       // find out what broke rather than guess.
-      auto reason = SystemSecretStoreUnavailableReason();
-      if (auto* store = GetSystemSecretStore();
-          reason.isEmpty() && store != nullptr) {
-        reason = store->LastError();
-      }
+      auto reason = SystemSecretStoreReason();
       if (reason.isEmpty()) reason = detail;
       if (!reason.isEmpty()) box.setDetailedText(reason);
 

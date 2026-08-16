@@ -254,10 +254,7 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
             // all, or one that loaded and then refused the probe. The second is
             // the more confusing of the two -- the menu item was enabled -- so
             // it is the one that most needs the platform's own message.
-            auto detail = SystemSecretStoreUnavailableReason();
-            if (detail.isEmpty() && store != nullptr) {
-              detail = store->LastError();
-            }
+            const auto detail = SystemSecretStoreReason();
             if (!detail.isEmpty()) box.setDetailedText(detail);
 
             box.exec();

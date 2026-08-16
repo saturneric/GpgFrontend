@@ -51,6 +51,12 @@ namespace {
 
 enum GFSecretSchemaAttributeType { kGF_SECRET_SCHEMA_ATTRIBUTE_STRING = 0 };
 
+/// SECRET_SERVICE_NONE: connect, but load neither collections nor a session.
+constexpr int kSecretServiceNone = 0;
+
+/// The alias every Secret Service maps to the collection secrets land in.
+constexpr auto kDefaultCollectionAlias = "default";
+
 struct GFSecretSchemaAttribute {
   const char* name;
   int type;
@@ -134,6 +140,25 @@ using ClearSyncFn = int (*)(const GFSecretSchema*, void* cancellable,
 using PasswordFreeFn = void (*)(char*);
 using ErrorFreeFn = void (*)(GFGError*);
 
+// The unlock trio, by contrast, must be declared with their arguments spelled
+// out: none of them takes attributes, so none is variadic, and declaring them
+// so would introduce the very ABI mismatch the note above guards against.
+//
+// SecretService*, SecretCollection* and GCancellable* stay void*: they are only
+// ever handed straight back to libsecret, so naming their types would mean
+// restating three more GObject headers for nothing. SecretServiceFlags is a
+// plain C enum and travels as int.
+using ServiceGetSyncFn = void* (*)(int flags, void* cancellable,
+                                   GFGError** error);
+using ReadAliasPathSyncFn = char* (*)(void* service, const char* alias,
+                                      void* cancellable, GFGError** error);
+using UnlockPathsSyncFn = int (*)(void* service, const char** paths,
+                                  void* cancellable, char*** unlocked,
+                                  GFGError** error);
+using MemFreeFn = void (*)(void*);
+using StrvFreeFn = void (*)(char**);
+using ObjectUnrefFn = void (*)(void*);
+
 struct LibSecret {
   StoreSyncFn store = nullptr;
   LookupSyncFn lookup = nullptr;
@@ -141,6 +166,12 @@ struct LibSecret {
   PasswordFreeFn free_password = nullptr;
   PasswordFreeFn wipe_password = nullptr;
   ErrorFreeFn free_error = nullptr;
+  ServiceGetSyncFn service_get = nullptr;
+  ReadAliasPathSyncFn read_alias_path = nullptr;
+  UnlockPathsSyncFn unlock_paths = nullptr;
+  MemFreeFn free_mem = nullptr;
+  StrvFreeFn free_strv = nullptr;
+  ObjectUnrefFn unref_object = nullptr;
 
   /// Why the library is unusable. Empty once it loaded.
   QString error;
@@ -151,6 +182,22 @@ struct LibSecret {
   }
 
   /**
+   * @brief Whether the explicit-unlock path can be taken.
+   *
+   * Deliberately not folded into Loaded(): a libsecret too old to export these
+   * still stores and reads perfectly well, and treating it as unloaded would
+   * turn one missing capability into a credential store that greys out
+   * entirely.
+   *
+   * @return true when every symbol Unlock() needs resolved
+   */
+  [[nodiscard]] auto CanUnlock() const -> bool {
+    return service_get != nullptr && read_alias_path != nullptr &&
+           unlock_paths != nullptr && free_mem != nullptr &&
+           unref_object != nullptr;
+  }
+
+  /**
    * @brief Consume a GError, returning its message.
    *
    * Every libsecret call here reports failure as a bare false or NULL, which
@@ -158,10 +205,15 @@ struct LibSecret {
    * write. The message is the only thing that can, so it is always collected
    * rather than passed as NULL and discarded.
    *
-   * @param error error to consume; may be null, in which case nothing is done
+   * Cleared as well as freed, because glib refuses to report into a location
+   * that is not null and a caller making more than one call in a row would
+   * otherwise hand the next one a dangling pointer.
+   *
+   * @param error error to consume, reset to null; may already be null, in
+   *              which case nothing is done
    * @return the message, or empty when there was no error or no message
    */
-  [[nodiscard]] auto TakeError(GFGError* error) const -> QString {
+  [[nodiscard]] auto TakeError(GFGError*& error) const -> QString {
     if (error == nullptr) return {};
 
     QString message = QString::fromUtf8(error->message);
@@ -170,6 +222,7 @@ struct LibSecret {
     // handle's dependencies, so it resolves without loading glib separately.
     // Should that ever fail, leaking one struct beats freeing it wrongly.
     if (free_error != nullptr) free_error(error);
+    error = nullptr;
 
     return message;
   }
@@ -244,6 +297,18 @@ auto ResolveLibSecret() -> const LibSecret& {
       out.free_error =
           reinterpret_cast<ErrorFreeFn>(library.resolve("g_error_free"));
 
+      out.service_get = reinterpret_cast<ServiceGetSyncFn>(
+          library.resolve("secret_service_get_sync"));
+      out.read_alias_path = reinterpret_cast<ReadAliasPathSyncFn>(
+          library.resolve("secret_service_read_alias_dbus_path_sync"));
+      out.unlock_paths = reinterpret_cast<UnlockPathsSyncFn>(
+          library.resolve("secret_service_unlock_dbus_paths_sync"));
+      out.free_mem = reinterpret_cast<MemFreeFn>(library.resolve("g_free"));
+      out.free_strv =
+          reinterpret_cast<StrvFreeFn>(library.resolve("g_strfreev"));
+      out.unref_object =
+          reinterpret_cast<ObjectUnrefFn>(library.resolve("g_object_unref"));
+
       if (!out.Loaded()) {
         failures << QStringLiteral(
                         "%1 loaded but its symbols could not be "
@@ -255,6 +320,16 @@ auto ResolveLibSecret() -> const LibSecret& {
       // Which copy answered matters when several are reachable, and it is the
       // first thing to ask for when the store misbehaves rather than vanishes.
       qDebug().noquote() << "libsecret loaded from" << library.fileName();
+
+      // Not a load failure, so this candidate still wins -- but it is worth
+      // saying out loud, because the symptom it produces is the one this whole
+      // path exists to remove: a locked keyring that never prompts.
+      if (!out.CanUnlock()) {
+        qWarning().noquote()
+            << library.fileName()
+            << "cannot unlock the keyring on demand: it does not export the "
+               "secret service entry points";
+      }
 
       return out;
     }
@@ -349,6 +424,78 @@ class LinuxSecretStore final : public SystemSecretStore {
     // clear_sync reports false when there was nothing to remove, which is the
     // state the caller wanted either way.
     return true;
+  }
+
+  /**
+   * @brief Unlock the default collection, prompting the user if it is locked.
+   *
+   * secret_password_lookup_sync() looks like it already does this, and in the
+   * common case it does: on finding the wanted item among the ones the daemon
+   * reports as locked, it unlocks that item, which raises the prompt. The case
+   * it does not cover is the one that matters here -- a collection that has not
+   * been opened since boot, whose items the daemon does not report at all.
+   * Search comes back with nothing in either list, so nothing is unlocked,
+   * nothing is prompted, and the lookup returns NULL without even setting an
+   * error. Unlocking the collection by name asks the same question with no
+   * search in the way, so the answer no longer depends on what the daemon is
+   * willing to enumerate while locked.
+   *
+   * @return true when the default collection is now unlocked
+   */
+  [[nodiscard]] auto Unlock() -> bool override {
+    const auto& lib = ResolveLibSecret();
+    if (!lib.Loaded() || !lib.CanUnlock()) return false;
+
+    GFGError* error = nullptr;
+
+    // The reference is ours to drop: libsecret only weak-refs the default
+    // service, so releasing it below costs at most a reconnect next time.
+    void* service = lib.service_get(kSecretServiceNone, nullptr, &error);
+    last_error_ = lib.TakeError(error);
+    if (service == nullptr) return false;
+
+    bool unlocked = false;
+    char* path =
+        lib.read_alias_path(service, kDefaultCollectionAlias, nullptr, &error);
+    last_error_ = lib.TakeError(error);
+
+    if (path == nullptr || *path == '\0') {
+      // Untranslated and deliberately ours: libsecret reports this as a bare
+      // NULL, and an empty detail box is what sent the user here.
+      if (last_error_.isEmpty()) {
+        last_error_ =
+            QStringLiteral("the secret service reports no default collection");
+      }
+    } else {
+      // Zero-terminated, as the paths argument is read until NULL.
+      std::array<const char*, 2> paths = {path, nullptr};
+
+      char** unlocked_paths = nullptr;
+      const int count = lib.unlock_paths(service, paths.data(), nullptr,
+                                         &unlocked_paths, &error);
+      last_error_ = lib.TakeError(error);
+
+      // A no-op when the collection is already open: the service answers with
+      // the path and no prompt object, so nobody is asked anything. That is
+      // what makes this safe to call before knowing whether it was locked.
+      unlocked = count > 0;
+
+      if (!unlocked && last_error_.isEmpty()) {
+        last_error_ = QStringLiteral(
+            "the default keyring is still locked; the unlock prompt was "
+            "dismissed or no prompter is available");
+      }
+
+      if (unlocked_paths != nullptr && lib.free_strv != nullptr) {
+        lib.free_strv(unlocked_paths);
+      }
+    }
+
+    if (path != nullptr) lib.free_mem(path);
+    lib.unref_object(service);
+
+    if (unlocked) last_error_.clear();
+    return unlocked;
   }
 
   [[nodiscard]] auto LastError() const -> QString override {

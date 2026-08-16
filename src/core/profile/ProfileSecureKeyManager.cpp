@@ -184,11 +184,31 @@ auto ProfileSecureKeyManager::ResolveWrapSecret(const QString& key_path,
     }
 
     auto secret = store->Read(account);
+
+    // An empty read does not mean the entry is gone. A keyring that has not
+    // been opened since boot answers a lookup with nothing rather than with a
+    // locked item, so the platform never gets as far as raising its unlock
+    // prompt -- the user is told their key is unrecoverable while the secret
+    // sits there, intact, behind a password nobody asked for. Ask for the
+    // unlock outright, then look once more.
+    //
+    // Only once, so a store that unlocks but genuinely holds no entry cannot
+    // loop. Only when the unlock succeeded, too: Read() overwrites the store's
+    // recorded reason on every call and a missing entry records nothing, so a
+    // second read after a declined prompt would replace the explanation with
+    // silence, which is the state this is meant to end.
+    if (!secret && store->Unlock()) secret = store->Read(account);
+
     if (!secret) {
-      LOG_W() << "app secure key is protected but its secret is unavailable";
+      LOG_W() << "app secure key is protected but its secret is unavailable, "
+                 "backend:"
+              << backend << "reason:" << store->LastError();
       return {AppKeyWrapStatus::kLOCKED_OUT, {}, backend};
     }
 
+    // Not retried through Unlock(): a secret came back, so the store is open
+    // and unlocking again would prompt for nothing. This is a mismatch between
+    // the key file and the secret, not a locked keyring.
     auto plain = UnsealKey({}, *secret, on_disk);
     if (!plain) {
       LOG_W() << "app secure key did not decrypt with the stored secret";
