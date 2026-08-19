@@ -43,28 +43,28 @@
 
   <screenshots>
     <screenshot type="default">
-      <image>https://image.cdn.bktus.com/i/2026/05/09/e52d15b54c558df107ee920325b9e73be3b01013.png</image>
-      <caption>Encrypt Text</caption>
+      <image>https://image.cdn.bktus.com/i/2026/08/20/c4ec5c3e9cc345b497d2f19abb3685696cadaba3.png</image>
+      <caption>Main Window</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2026/05/09/e422b4f157ee4222852a293e6a2f292a0763c577.png</image>
+      <image>https://image.cdn.bktus.com/i/2026/08/20/320dabed48d2fd7444777dd8647f2597decde069.png</image>
+      <caption>Main Window (Dark Mode)</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://image.cdn.bktus.com/i/2026/08/20/7fe39830af008b15a4d5e1821de67d2893516368.png</image>
       <caption>Verify Signature</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2026/05/09/f9afecdeaff9fed54b2f7e060f684d7293fd195e.png</image>
-      <caption>Verify Signature of File</caption>
+      <image>https://image.cdn.bktus.com/i/2026/08/20/96c4e57b2f251d68904c3189116f6a1c57a78c3a.png</image>
+      <caption>Key Management</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2026/05/09/aa2abf775bee0a5676593998624dfe99772accf7.png</image>
+      <image>https://image.cdn.bktus.com/i/2026/08/20/b444314b1d2a8fc2d8c91985aed8259559ec1ac7.png</image>
       <caption>Key Generation</caption>
     </screenshot>
     <screenshot>
-      <image>https://image.cdn.bktus.com/i/2026/05/09/02fc3a10c4d4b3182ac4dd8722c3d9e4f2bc08cc.png</image>
-      <caption>Keychain</caption>
-    </screenshot>
-    <screenshot>
-      <image>https://image.cdn.bktus.com/i/2026/05/09/fdd12cb7f8277d334177eae91ddd46de3c388484.png</image>
-      <caption>Key Management</caption>
+      <image>https://image.cdn.bktus.com/i/2026/08/20/9b471ac9a7d818f294d9ab8892ad90ed52aa9c28.png</image>
+      <caption>Key Details</caption>
     </screenshot>
   </screenshots>
 
