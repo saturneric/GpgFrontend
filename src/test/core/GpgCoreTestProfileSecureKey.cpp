@@ -83,6 +83,15 @@ class FakeSecretStore final : public SystemSecretStore {
   [[nodiscard]] auto Unlock() -> bool override {
     ++unlock_calls;
 
+    // A backend with no unlock capability at all, as libsecret is when it is
+    // too old to export the secret service entry points. It must still record
+    // why, since a silent false and a declined prompt reach the same dialog
+    // and only the message tells them apart.
+    if (!unlock_supported) {
+      last_error = QStringLiteral("fake store cannot unlock at all");
+      return false;
+    }
+
     if (!unlockable) {
       last_error = QStringLiteral("fake store refused to unlock");
       return false;
@@ -121,6 +130,8 @@ class FakeSecretStore final : public SystemSecretStore {
   bool locked = false;
   /// Whether Unlock() gives in, i.e. whether the user answers the prompt.
   bool unlockable = true;
+  /// Whether the backend can raise an unlock prompt in the first place.
+  bool unlock_supported = true;
 
   int unlock_calls = 0;
   int read_calls = 0;
@@ -1166,6 +1177,42 @@ TEST(AppSecureKeyWrapTest, DeclinedUnlockReportsLockedOutAndKeepsTheReason) {
   EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
   EXPECT_EQ(store.unlock_calls, 1);
   // Not retried, so the reason the failed unlock recorded is still there.
+  EXPECT_EQ(store.read_calls, 1);
+  EXPECT_FALSE(store.LastError().isEmpty());
+  EXPECT_EQ(file.Read(), wrapped_bytes);
+}
+
+/**
+ * A backend that cannot unlock at all must still say so. This is the one
+ * failure that used to pass through silently: the capability is missing, so
+ * nothing is attempted, so nothing is recorded, and the reset dialog -- which
+ * shows LastError() and nothing else -- offers to destroy the user's key with
+ * an empty detail box. Distinct from a declined prompt above only in the
+ * message; identical in that a message must exist.
+ */
+TEST(AppSecureKeyWrapTest, AStoreThatCannotUnlockStillReportsAReason) {
+  const auto key = SampleKey();
+  ScopedKeyFile file(key);
+  FakeSecretStore store;
+
+  ASSERT_EQ(
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true)
+          .status,
+      AppKeyWrapStatus::kJUST_ENABLED);
+  const auto wrapped_bytes = file.Read();
+
+  store.locked = true;
+  store.unlock_supported = false;
+  store.unlock_calls = 0;
+  store.read_calls = 0;
+
+  const auto result =
+      ProfileSecureKeyManager::ResolveWrapSecret(file.Path(), &store, true);
+
+  EXPECT_EQ(result.status, AppKeyWrapStatus::kLOCKED_OUT);
+  // Asked anyway: the capability check belongs inside the backend, so that a
+  // store which cannot unlock still gets to explain itself.
+  EXPECT_EQ(store.unlock_calls, 1);
   EXPECT_EQ(store.read_calls, 1);
   EXPECT_FALSE(store.LastError().isEmpty());
   EXPECT_EQ(file.Read(), wrapped_bytes);

@@ -194,7 +194,7 @@ struct LibSecret {
   [[nodiscard]] auto CanUnlock() const -> bool {
     return service_get != nullptr && read_alias_path != nullptr &&
            unlock_paths != nullptr && free_mem != nullptr &&
-           unref_object != nullptr;
+           free_strv != nullptr && unref_object != nullptr;
   }
 
   /**
@@ -444,12 +444,29 @@ class LinuxSecretStore final : public SystemSecretStore {
    */
   [[nodiscard]] auto Unlock() -> bool override {
     const auto& lib = ResolveLibSecret();
-    if (!lib.Loaded() || !lib.CanUnlock()) return false;
+
+    // Recorded rather than merely returned. Everything downstream of a failed
+    // unlock ends at the reset prompt, and that dialog shows nothing but
+    // LastError(): staying quiet here puts the user in front of the most
+    // destructive choice the application offers with an empty detail box,
+    // which is the state this whole path exists to end.
+    if (!lib.Loaded()) {
+      last_error_ = lib.error;
+      return false;
+    }
+
+    if (!lib.CanUnlock()) {
+      last_error_ = QStringLiteral(
+          "this libsecret cannot unlock the keyring on demand; it does not "
+          "export the secret service entry points");
+      return false;
+    }
 
     GFGError* error = nullptr;
 
-    // The reference is ours to drop: libsecret only weak-refs the default
-    // service, so releasing it below costs at most a reconnect next time.
+    // The reference is ours to drop, and dropping it disconnects nothing:
+    // libsecret hands back a new reference on every call, cached or freshly
+    // built, and keeps its own for as long as the service name is on the bus.
     void* service = lib.service_get(kSecretServiceNone, nullptr, &error);
     last_error_ = lib.TakeError(error);
     if (service == nullptr) return false;
@@ -459,6 +476,10 @@ class LinuxSecretStore final : public SystemSecretStore {
         lib.read_alias_path(service, kDefaultCollectionAlias, nullptr, &error);
     last_error_ = lib.TakeError(error);
 
+    // NULL is the real case: the D-Bus type is an object path, which cannot be
+    // empty, and libsecret turns the "/" that means "no such alias" into NULL
+    // before returning. The empty check only keeps a hostile service from
+    // reaching the unlock call with nothing to unlock.
     if (path == nullptr || *path == '\0') {
       // Untranslated and deliberately ours: libsecret reports this as a bare
       // NULL, and an empty detail box is what sent the user here.
@@ -486,9 +507,7 @@ class LinuxSecretStore final : public SystemSecretStore {
             "dismissed or no prompter is available");
       }
 
-      if (unlocked_paths != nullptr && lib.free_strv != nullptr) {
-        lib.free_strv(unlocked_paths);
-      }
+      if (unlocked_paths != nullptr) lib.free_strv(unlocked_paths);
     }
 
     if (path != nullptr) lib.free_mem(path);

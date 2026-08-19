@@ -117,6 +117,13 @@ class GF_CORE_EXPORT SystemSecretStore {
    * asked for the thing that needs the secret. There is no timeout: a prompter
    * that never answers holds the caller, exactly as a lookup already does.
    *
+   * The prompt it raises belongs to the platform, not to us, and on the Secret
+   * Service it is not transient for any of our windows -- libsecret performs
+   * unlock prompts with no parent window id, and the collection-level call has
+   * no argument through which to supply one. Whoever calls this should assume
+   * a dialog that can appear behind the application, and should have said what
+   * it is for beforehand rather than relying on the prompt to explain itself.
+   *
    * The default does nothing on purpose, rather than being pure: macOS raises
    * its own unlock panel from inside SecItemCopyMatching, and Credential
    * Manager entries have no lock state for anything to raise. Only the Secret
