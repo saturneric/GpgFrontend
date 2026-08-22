@@ -67,7 +67,8 @@ auto ClickToSeeStatus() -> QString {
 
 auto DescribeProfileIndicator(ProfileKind kind, const QString& display_name,
                               const QString& root_path,
-                              const QString& package_path, bool clickable)
+                              const QString& package_path, bool clickable,
+                              const QString& storage_label)
     -> StatusIndicatorInfo {
   StatusIndicatorInfo info;
   info.caption = QCoreApplication::translate(
@@ -90,7 +91,15 @@ auto DescribeProfileIndicator(ProfileKind kind, const QString& display_name,
                       "GpgFrontend::UI::StatusIndicatorInfo",
                       "This window's profile — its own settings, keys and "
                       "saved state"),
-       QDir::toNativeSeparators(packaged ? package_path : root_path)},
+       QDir::toNativeSeparators(packaged ? package_path : root_path),
+       // Only for a packaged session, and only ever the storage's own words: a
+       // session that fell back from memory to an ordinary folder must not be
+       // described as though it had not.
+       packaged && !storage_label.isEmpty()
+           ? QCoreApplication::translate("GpgFrontend::UI::StatusIndicatorInfo",
+                                         "Kept in %1.")
+                 .arg(storage_label)
+           : QString()},
       clickable ? ClickToManageProfiles() : QString());
 
   return info;

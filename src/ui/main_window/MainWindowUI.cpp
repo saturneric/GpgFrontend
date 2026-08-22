@@ -656,7 +656,12 @@ void MainWindow::create_status_bar() {
   status_indicator_bar_->SetProfile(DescribeProfileIndicator(
       profile.Kind(), CurrentProfileDisplayName(), profile.Root(),
       packaged != nullptr ? packaged->PackagePath() : QString(),
-      profiles_offered));
+      profiles_offered,
+      // Straight from the storage driver. Opening a package tries for somewhere
+      // this machine does not leave it readable and quietly settles for less
+      // when there is nowhere, so which of those happened is the user's to
+      // know rather than something to keep from them.
+      ProfileSession::Instance().Accessor().Label()));
 
   // The mirrored property, not IsPortableBuild(): a --profile session on a
   // portable build is not a portable session.

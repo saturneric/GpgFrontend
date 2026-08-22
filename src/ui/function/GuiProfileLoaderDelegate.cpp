@@ -269,6 +269,37 @@ void GuiProfileLoaderDelegate::Report(const ProfileLoadError& error) {
                             error.detail + "\n\n" + subject, QMessageBox::Ok);
       return;
 
+    case ProfileLoadFailure::kSTORAGE_UNAVAILABLE: {
+      // Every reason verbatim. "This machine cannot" is not something anyone
+      // can act on; "/dev/shm: not a RAM-backed filesystem" is, and it is the
+      // difference between a bug report and a settings change.
+      auto text = QObject::tr(
+          "This profile is set to open only in storage that is not "
+          "left readable on this disk, and none is available "
+          "here.");
+      if (!error.detail.isEmpty()) text += "\n\n" + error.detail;
+      text += "\n\n" + QObject::tr(
+                           "Change 'Profile package storage' in Settings to "
+                           "allow an ordinary temporary folder.");
+
+      QMessageBox::critical(nullptr, QObject::tr("Cannot Open Profile Safely"),
+                            text, QMessageBox::Ok);
+      return;
+    }
+
+    case ProfileLoadFailure::kSTORAGE_FULL:
+      QMessageBox::critical(
+          nullptr, QObject::tr("Not Enough Room"),
+          QObject::tr("There was not enough room to unpack this profile.") +
+              (error.detail.isEmpty()
+                   ? QString()
+                   : "\n\n" + QObject::tr("Storage: %1").arg(error.detail)) +
+              "\n\n" +
+              QObject::tr("The file itself is fine — free some space and try "
+                          "again."),
+          QMessageBox::Ok);
+      return;
+
     case ProfileLoadFailure::kPACKAGE_TAMPERED:
       QMessageBox::critical(nullptr, QObject::tr("This File Has Been Altered"),
                             error.detail + "\n\n" + subject, QMessageBox::Ok);

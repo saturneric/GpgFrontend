@@ -339,7 +339,7 @@ auto CurrentProfileDisplayName() -> QString {
   return session.Profile().DisplayName();
 }
 
-auto ProfileTargetRoot(const ProfileTarget& target) -> QString {
+auto ProfileTargetLockRoot(const ProfileTarget& target) -> QString {
   if (target.IsPackage()) {
     return ProfileSessionRoot(CurrentProfilesRoot(), target.package_path);
   }
@@ -394,7 +394,7 @@ auto OpenProfileInNewWindow(const ProfileTarget& target)
   // message here rather than a window that appears and immediately refuses. A
   // package is asked about in exactly the same way: its session root is derived
   // from its path, so both windows work out the same directory.
-  const auto lock = ProfileLock::Probe(ProfileTargetRoot(resolved));
+  const auto lock = ProfileLock::Probe(ProfileTargetLockRoot(resolved));
   if (lock.status == ProfileLockStatus::kHELD_ELSEWHERE) {
     result.status = ProfileLaunchStatus::kALREADY_OPEN;
     result.detail =

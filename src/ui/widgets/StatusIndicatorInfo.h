@@ -59,11 +59,17 @@ struct StatusIndicatorInfo {
  * @param clickable whether this build offers profiles at all; false drops the
  * "click to manage" hint, which is the only part of the segment that promises
  * something to click, and would otherwise promise it where nothing happens
+ * @param storage_label how the session's storage describes itself, from
+ * ProfileAccessor::Label(); empty for a profile that is simply kept here. A
+ * packaged session may have fallen back from memory to an ordinary folder, and
+ * that is a materially weaker guarantee — showing it is what keeps the fallback
+ * a compromise rather than a lie
  * @return caption, value and tooltip for the profile segment
  */
 auto GF_UI_EXPORT DescribeProfileIndicator(
     ProfileKind kind, const QString& display_name, const QString& root_path,
-    const QString& package_path, bool clickable) -> StatusIndicatorInfo;
+    const QString& package_path, bool clickable,
+    const QString& storage_label = {}) -> StatusIndicatorInfo;
 
 /**
  * @brief Describe the OpenPGP backend behind every operation in this window.

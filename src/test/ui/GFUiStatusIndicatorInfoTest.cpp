@@ -159,4 +159,49 @@ TEST(StatusIndicatorInfoTest, EveryTooltipEndsWithWhatAClickOpens) {
             infos[1].tooltip.section("\n\n", -1));
 }
 
+// Opening a package tries for storage this machine does not leave readable and
+// settles for less when there is nowhere. Which of those happened is the whole
+// difference between a compromise and a lie, so the strip repeats the storage's
+// own words rather than a phrase of its own.
+
+TEST(StatusIndicatorInfoTest, APackagedSessionNamesItsStorage) {
+  const auto info = DescribeProfileIndicator(
+      ProfileKind::kPACKAGED, "Handover", "/run/user/1000/gf-abcd",
+      "/tmp/handover.gfp", true, "memory only; not written to your disk");
+
+  EXPECT_TRUE(info.tooltip.contains("memory only"));
+}
+
+TEST(StatusIndicatorInfoTest, AFallbackIsNeverDescribedAsMemory) {
+  // The case this exists for. `auto` falls back silently, and a tooltip that
+  // still said "in memory" would be actively misleading about where somebody
+  // else's private keys just landed.
+  const auto info = DescribeProfileIndicator(
+      ProfileKind::kPACKAGED, "Handover", "/tmp/gf-abcd", "/tmp/handover.gfp",
+      true, "an ordinary temporary folder on this disk");
+
+  EXPECT_TRUE(info.tooltip.contains("ordinary temporary folder"));
+  EXPECT_FALSE(info.tooltip.contains("memory"));
+}
+
+TEST(StatusIndicatorInfoTest, AnOrdinaryProfileSaysNothingAboutStorage) {
+  // A profile that is simply kept here has no such question to answer, and a
+  // line about storage would only invite one.
+  const auto info = DescribeProfileIndicator(ProfileKind::kPERSIST, "Work",
+                                             "/data/profiles/work", QString(),
+                                             true, "an ordinary folder");
+
+  EXPECT_FALSE(info.tooltip.contains("Kept in"));
+}
+
+TEST(StatusIndicatorInfoTest, AnUnknownStorageAddsNoLine) {
+  // Called before a session exists, or by a build that does not ask. Better a
+  // missing line than an empty "Kept in ."
+  const auto info =
+      DescribeProfileIndicator(ProfileKind::kPACKAGED, "Handover", "/tmp/x",
+                               "/tmp/handover.gfp", true, QString());
+
+  EXPECT_FALSE(info.tooltip.contains("Kept in"));
+}
+
 }  // namespace GpgFrontend::Test

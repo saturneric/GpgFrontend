@@ -79,16 +79,20 @@ struct GF_UI_EXPORT ProfileTarget {
 };
 
 /**
- * @brief The root the target will run at.
+ * @brief The directory whose lock says whether the target is already open.
  *
- * For a package that is the session root it will be extracted into, which is
- * derived from the package's path — so this window can ask whether another
- * window already has that package open without either of them recording it.
+ * For a package this is derived from the package's own path, so this window can
+ * ask whether another window already has that package open without either of
+ * them recording it anywhere.
+ *
+ * Deliberately not "where the session's data will be": a session's storage is
+ * chosen at mount time and may not be here at all. Probing the wrong one would
+ * let two windows open one package and write back over each other.
  *
  * @param target what is to be opened
  * @return an absolute path, or empty when the target names nothing
  */
-auto GF_UI_EXPORT ProfileTargetRoot(const ProfileTarget &target) -> QString;
+auto GF_UI_EXPORT ProfileTargetLockRoot(const ProfileTarget &target) -> QString;
 
 /**
  * @brief The command line for a new instance opening a target.
