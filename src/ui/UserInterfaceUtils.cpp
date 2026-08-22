@@ -857,6 +857,33 @@ void SetChip(QLabel *label, const QString &text, const QColor &color) {
                      .arg(color.name(QColor::HexRgb), text.toHtmlEscaped()));
 }
 
+auto MixTextTowardsWindow(const QPalette &palette, double strength) -> QColor {
+  const auto text = palette.color(QPalette::WindowText);
+  const auto back = palette.color(QPalette::Window);
+
+  const auto mix = [strength](int a, int b) -> int {
+    return static_cast<int>((a * strength) + (b * (1 - strength)));
+  };
+  return {mix(text.red(), back.red()), mix(text.green(), back.green()),
+          mix(text.blue(), back.blue())};
+}
+
+auto MutedTextColor(const QPalette &palette) -> QColor {
+  // How much of the real text colour survives in a caption or a sub-line.
+  return MixTextTowardsWindow(palette, 0.72);
+}
+
+auto BorderColor(const QPalette &palette) -> QColor {
+  return MixTextTowardsWindow(palette, 0.22);
+}
+
+auto WarningColor(const QPalette &palette) -> QColor {
+  // Same light/dark test AccentColor() uses, so the two agree about which
+  // theme they are painting into.
+  const auto dark = palette.color(QPalette::Base).lightness() < 128;
+  return dark ? QColor(227, 179, 65) : QColor(155, 100, 0);
+}
+
 auto IsFixedPitchFontFamily(const QString &family) -> bool {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   return QFontDatabase::isFixedPitch(family);

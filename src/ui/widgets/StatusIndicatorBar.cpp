@@ -28,6 +28,8 @@
 
 #include "ui/widgets/StatusIndicatorBar.h"
 
+#include "ui/UserInterfaceUtils.h"
+
 namespace GpgFrontend::UI {
 
 namespace {
@@ -35,33 +37,6 @@ namespace {
 /// space between two readings; they are told apart by this and by the
 /// dim-caption contrast, never by a line we draw ourselves
 constexpr int kSegmentSpacing = 14;
-
-/// how much of the real text colour survives in the caption
-constexpr double kCaptionStrength = 0.72;
-
-/**
- * @brief The colour of a caption standing next to its value.
- *
- * Not QPalette::Disabled: that role says "you cannot use this" and is faint
- * enough to be hard to read at status bar size. This is the ordinary text
- * colour mixed towards the background, which reads as secondary without
- * reading as switched off. Mixed rather than made translucent because the
- * label draws through rich text, where an alpha channel would be dropped.
- *
- * @param palette the palette of the segment
- * @return an opaque colour a shade quieter than the value beside it
- */
-auto CaptionColor(const QPalette& palette) -> QColor {
-  const auto text = palette.color(QPalette::WindowText);
-  const auto back = palette.color(QPalette::Window);
-
-  const auto mix = [](int a, int b) -> int {
-    return static_cast<int>((a * kCaptionStrength) +
-                            (b * (1 - kCaptionStrength)));
-  };
-  return {mix(text.red(), back.red()), mix(text.green(), back.green()),
-          mix(text.blue(), back.blue())};
-}
 
 }  // namespace
 
@@ -87,7 +62,7 @@ void StatusIndicatorSegment::render_info() {
 
   // An inline span rather than a stylesheet, so the label keeps the platform
   // font and the colour can follow the palette.
-  const auto dim = CaptionColor(palette());
+  const auto dim = MutedTextColor(palette());
 
   QString text;
   if (!info_.caption.isEmpty()) {

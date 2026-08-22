@@ -257,6 +257,54 @@ void GF_UI_EXPORT SetChip(QLabel* label, const QString& text,
                           const QColor& color);
 
 /**
+ * @brief The ordinary text colour mixed @p strength of the way towards the
+ * window background.
+ *
+ * Not QPalette::Disabled: that role says "you cannot use this" and is faint
+ * enough to be hard to read at small sizes. This is the ordinary text colour
+ * moved towards the background, which reads as secondary without reading as
+ * switched off. Mixed rather than made translucent because a label drawing
+ * through rich text drops an alpha channel.
+ *
+ * @param palette the palette of the widget the colour is for
+ * @param strength how much of the real text colour survives, 0..1
+ * @return an opaque colour between the text and the window
+ */
+auto GF_UI_EXPORT MixTextTowardsWindow(const QPalette& palette, double strength)
+    -> QColor;
+
+/**
+ * @brief The secondary text colour: a caption beside a value, a sentence under
+ * one.
+ *
+ * @param palette the palette of the widget the text belongs to
+ * @return an opaque colour a shade quieter than the text beside it
+ */
+auto GF_UI_EXPORT MutedTextColor(const QPalette& palette) -> QColor;
+
+/**
+ * @brief Hairline colour for a card border.
+ *
+ * Far enough towards the background to draw a boundary without drawing a box.
+ *
+ * @param palette the palette of the widget being outlined
+ * @return an opaque colour just off the background
+ */
+auto GF_UI_EXPORT BorderColor(const QPalette& palette) -> QColor;
+
+/**
+ * @brief Palette-derived colour for a state that is a fallback, not the intent.
+ *
+ * Amber rather than red for the same reason AccentColor() paints no negative
+ * state red: nothing here is broken, something merely settled for less than it
+ * asked for.
+ *
+ * @param palette the palette of the widget the text belongs to
+ * @return a colour that stays legible under both light and dark themes
+ */
+auto GF_UI_EXPORT WarningColor(const QPalette& palette) -> QColor;
+
+/**
  * @brief Whether the entry looks like an OpenPGP message container.
  *
  * These are the files that can be decrypted or verified inline.

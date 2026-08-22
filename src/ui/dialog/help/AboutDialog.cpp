@@ -45,6 +45,7 @@
 #include "core/utils/RustUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/help/AboutStatusInfo.h"
 #include "ui/function/ProfileController.h"
 
 namespace GpgFrontend::UI {
@@ -61,29 +62,60 @@ auto CreateBodyLabel(const QString& text, QWidget* parent = nullptr)
   return label;
 }
 
+// A word-wrapped label that is actually given room for the lines it wraps to.
+//
+// Declaring heightForWidth on the size policy is not enough on its own: a
+// QFormLayout hands the field its sizeHint() and does not consult
+// heightForWidth, so a value that wrapped to three lines was allotted one and
+// the rest was drawn off the bottom of the row. Rows here read "Opened from a"
+// and "The package carries none of" and looked complete. The two overrides
+// below make the hints answer for the width the label actually has, and the
+// resize handler asks the layout to run again once that width is known.
+//
+// MinimumExpanding, so the field fills the form's value column instead of
+// settling for QLabel's own guess at a pleasing wrap width, which came out
+// around a hundred pixels and turned every sentence into a narrow ribbon.
+//
+// No Q_OBJECT: it declares no signals or slots, like ClickableFrame below.
+class WrappingLabel : public QLabel {
+ public:
+  explicit WrappingLabel(const QString& text, QWidget* parent = nullptr)
+      : QLabel(text, parent) {
+    setWordWrap(true);
+
+    QSizePolicy policy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+    policy.setHeightForWidth(true);
+    setSizePolicy(policy);
+  }
+
+  [[nodiscard]] auto sizeHint() const -> QSize override {
+    return {minimumWidth(), heightForWidth(width())};
+  }
+
+  [[nodiscard]] auto minimumSizeHint() const -> QSize override {
+    return {0, heightForWidth(width())};
+  }
+
+ protected:
+  void resizeEvent(QResizeEvent* event) override {
+    QLabel::resizeEvent(event);
+    updateGeometry();
+  }
+};
+
 auto CreateValueLabel(const QString& text, QWidget* parent = nullptr)
     -> QLabel* {
-  auto* label = new QLabel(text, parent);
-  label->setWordWrap(true);
+  auto* label = new WrappingLabel(text, parent);
   label->setTextInteractionFlags(Qt::TextSelectableByMouse);
-
-  // A word-wrapped label reports the height of a single line unless it is asked
-  // to declare heightForWidth, so a row whose value wraps gets one line's worth
-  // of space and the rest is cut off. Every value here exists to be read.
-  auto policy = label->sizePolicy();
-  policy.setHeightForWidth(true);
-  policy.setVerticalPolicy(QSizePolicy::Preferred);
-  label->setSizePolicy(policy);
-
   return label;
 }
 
-// A path is the one value here that has no natural length limit, and a
-// word-wrapped label cannot be trusted with it: heightForWidth does not survive
-// the trip through a form layout inside a scroll area, so the label is given
-// one or two lines' worth of space and quietly draws the rest off the edge —
-// leaving a path that looks complete and is not. A read-only field is always
-// exactly one line tall, scrolls to show the rest, and copies whole.
+// A path is the one value here that has no natural length limit, and it stays
+// out of a wrapping label even now that WrappingLabel gives one the lines it
+// asks for: a path is a single unbreakable token, so it either wraps at some
+// arbitrary character or runs past the edge, and a path that looks complete
+// and is not is worse than one that is visibly cut. A read-only field is
+// always exactly one line tall, scrolls to show the rest, and copies whole.
 auto CreatePathValue(const QString& text, QWidget* parent = nullptr)
     -> QLineEdit* {
   auto* edit = new QLineEdit(text, parent);
@@ -97,11 +129,98 @@ auto CreatePathValue(const QString& text, QWidget* parent = nullptr)
   return edit;
 }
 
+// The sentence that sits under a value. Quieter and a shade smaller, so it
+// reads as an explanation of the line above rather than as a second value.
+//
+// The colour goes through the widget's own palette rather than through an
+// inline rich-text span: that keeps the platform font, which a stylesheet on a
+// QLabel would otherwise take over.
+auto CreateDetailLabel(const QString& text, QWidget* parent = nullptr)
+    -> QLabel* {
+  auto* label = CreateValueLabel(text, parent);
+
+  auto font = label->font();
+  font.setPointSizeF(font.pointSizeF() * 0.92);
+  label->setFont(font);
+
+  auto palette = label->palette();
+  palette.setColor(QPalette::WindowText, MutedTextColor(palette));
+  palette.setColor(QPalette::Text, MutedTextColor(palette));
+  label->setPalette(palette);
+
+  return label;
+}
+
+// Put an already built value widget over its detail sentence. Separate from
+// CreateValueWithDetail() because a path value is a read-only field rather
+// than a label, and must stay one, but still deserves its explanation.
+auto StackValueAndDetail(QWidget* value_widget, const QString& detail,
+                         QWidget* parent = nullptr) -> QWidget* {
+  if (detail.isEmpty()) return value_widget;
+
+  auto* holder = new QWidget(parent);
+  auto* layout = new QVBoxLayout(holder);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(2);
+
+  value_widget->setParent(holder);
+  layout->addWidget(value_widget);
+  layout->addWidget(CreateDetailLabel(detail, holder));
+
+  // Same reasoning as WrappingLabel above: the stack has to fill the value
+  // column, or both of its lines wrap inside a ribbon of QLabel's choosing.
+  QSizePolicy policy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+  policy.setHeightForWidth(true);
+  holder->setSizePolicy(policy);
+
+  return holder;
+}
+
+// A value with an explanation under it.
+//
+// A form row carries one string, so a value that needed a sentence to be
+// honest either grew into a paragraph in the value column ("Memory - not
+// written to this disk in the normal course of things") or got a "... Detail:"
+// row of its own two rows down, detached from the thing it explained. Both
+// were happening on this tab. This gives the row a second line instead: the
+// value stays a value, and the sentence sits under it.
+//
+// @param value the reading itself
+// @param detail the sentence under it; empty yields the bare value label
+// @param degraded tint the value, for a state that is a fallback not an intent
+auto CreateValueWithDetail(const QString& value, const QString& detail,
+                           bool degraded = false, QWidget* parent = nullptr)
+    -> QWidget* {
+  auto* value_label = CreateValueLabel(value, parent);
+
+  if (degraded) {
+    auto palette = value_label->palette();
+    const auto warning = WarningColor(palette);
+    palette.setColor(QPalette::WindowText, warning);
+    palette.setColor(QPalette::Text, warning);
+    value_label->setPalette(palette);
+  }
+
+  if (detail.isEmpty()) return value_label;
+
+  return StackValueAndDetail(value_label, detail, parent);
+}
+
 auto CreateCard(const QString& title, QWidget* content,
                 QWidget* parent = nullptr) -> QFrame* {
   auto* frame = new QFrame(parent);
   frame->setObjectName(QStringLiteral("AboutCard"));
   frame->setFrameShape(QFrame::StyledPanel);
+
+  // A hairline drawn from the palette rather than the platform's StyledPanel
+  // groove, which is a bevel on some styles and nothing at all on others. This
+  // is the same shape the star card above already uses, so every card in the
+  // dialog now reads as one set.
+  frame->setStyleSheet(QStringLiteral("QFrame#AboutCard {"
+                                      "  border: 1px solid %1;"
+                                      "  border-radius: 8px;"
+                                      "}")
+                           .arg(BorderColor(frame->palette()).name()));
 
   auto* title_label = new QLabel(QStringLiteral("<b>%1</b>").arg(title), frame);
   title_label->setTextFormat(Qt::RichText);
@@ -204,7 +323,9 @@ auto CreateInfoForm(QWidget* parent = nullptr) -> QFormLayout* {
   form->setFormAlignment(Qt::AlignTop);
   form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
   form->setHorizontalSpacing(18);
-  form->setVerticalSpacing(8);
+  // Enough room that a row carrying a value over a detail sentence is still
+  // told apart from the row under it.
+  form->setVerticalSpacing(10);
   return form;
 }
 
@@ -533,67 +654,90 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   main_layout->setContentsMargins(18, 18, 18, 18);
   main_layout->setSpacing(14);
 
-  const QString secure_level_str = SecureLevelDisplayName(secure_level);
-  const QString app_key_protection_str =
-      AppKeyProtectionDisplayName(ProfileLoader::AppKeyProtectionFromApp());
+  // Built up alongside the rows themselves so the two cannot drift: this tab
+  // tells the user its values "may help when reporting issues", and until now
+  // the only way to act on that was to select them out of a scroll area by
+  // hand, one row at a time.
+  QStringList summary;
 
-  const QString portable_mode_str =
-      portable_mode ? tr("Portable Mode") : tr("Installed Mode");
+  const auto begin_section = [&summary](const QString& title) {
+    if (!summary.isEmpty()) summary << QString();
+    summary << QStringLiteral("[%1]").arg(title);
+  };
 
-  const QString gnupg_offline_mode_str =
-      gnupg_offline_mode ? tr("Active") : tr("Disabled");
+  // Add a row and record it, so every reading on screen is in the clipboard
+  // text too. The detail sentence is indented under its value there, the same
+  // way it sits under it here.
+  const auto add_row = [&summary](QFormLayout* form, const QString& label,
+                                  const QString& value,
+                                  const QString& detail = {},
+                                  bool degraded = false) {
+    auto* holder = form->parentWidget();
+    form->addRow(label, CreateValueWithDetail(value, detail, degraded, holder));
 
-  const QString pinentry_program_path_str = pinentry_program_path.isEmpty()
-                                                ? tr("Default Pinentry Program")
-                                                : pinentry_program_path;
+    summary << QStringLiteral("%1 %2").arg(label, value);
+    if (!detail.isEmpty()) summary << QStringLiteral("    %1").arg(detail);
+  };
+
+  // Paths go through CreatePathValue() rather than a label, so they need their
+  // own adder; see that function for why a wrapped label cannot be trusted
+  // with a path.
+  const auto add_path_row = [&summary](QFormLayout* form, const QString& label,
+                                       const QString& path,
+                                       const QString& detail = {}) {
+    auto* holder = form->parentWidget();
+    form->addRow(label, StackValueAndDetail(CreatePathValue(path, holder),
+                                            detail, holder));
+
+    summary << QStringLiteral("%1 %2").arg(label, path);
+    if (!detail.isEmpty()) summary << QStringLiteral("    %1").arg(detail);
+  };
+
+  begin_section(tr("Application Status"));
 
   auto* status_widget = new QWidget(content);
   auto* status_form = CreateInfoForm(status_widget);
   status_widget->setLayout(status_form);
 
-  status_form->addRow(tr("Secure Level:"),
-                      CreateValueLabel(secure_level_str, status_widget));
-  status_form->addRow(tr("Application Key Protection:"),
-                      CreateValueLabel(app_key_protection_str, status_widget));
+  add_row(status_form, tr("Secure Level:"),
+          SecureLevelDisplayName(secure_level));
+  add_row(
+      status_form, tr("Application Key Protection:"),
+      AppKeyProtectionDisplayName(ProfileLoader::AppKeyProtectionFromApp()));
 
   // Reported whether or not it is in use: when "System keychain" is greyed out
   // in the settings, this is the only place that says why. Read from the
   // registry rather than probed -- opening About must never raise a keyring
   // unlock prompt.
+  //
+  // The loader's reason rides along as this row's detail rather than as a
+  // "Credential Store Detail:" row of its own two rows down. It stays
+  // untranslated and selectable, so it can be pasted into a bug report exactly
+  // as the loader produced it.
   auto* secret_store = GetSystemSecretStore();
-  status_form->addRow(
-      tr("System Credential Store:"),
-      CreateValueLabel(
+  add_row(status_form, tr("System Credential Store:"),
           secret_store != nullptr ? secret_store->Name() : tr("Unavailable"),
-          status_widget));
+          SystemSecretStoreReason(), secret_store == nullptr);
 
-  // Untranslated, and selectable through CreateValueLabel, so it can be pasted
-  // into a bug report exactly as the loader produced it.
-  const auto secret_store_detail = SystemSecretStoreReason();
-  if (!secret_store_detail.isEmpty()) {
-    status_form->addRow(tr("Credential Store Detail:"),
-                        CreateValueLabel(secret_store_detail, status_widget));
+  // Only ever set when the home directory could not host the agent sockets, so
+  // the row says that outright and carries the measured length and the
+  // platform limit underneath. Untranslated and selectable, for the same
+  // reason as the credential store reason above.
+  if (const auto gnupg_home_detail = GnuPGHomePathUnusableReason();
+      !gnupg_home_detail.isEmpty()) {
+    add_row(status_form, tr("GnuPG Home:"), tr("Unusable"), gnupg_home_detail,
+            true);
   }
 
-  // Same reasoning as the credential store detail above: when GnuPG is
-  // unreachable because its home directory cannot host the agent sockets, this
-  // is the row that carries the measured length and the platform limit into a
-  // bug report. Untranslated and selectable, for the same reason.
-  const auto gnupg_home_detail = GnuPGHomePathUnusableReason();
-  if (!gnupg_home_detail.isEmpty()) {
-    status_form->addRow(tr("GnuPG Home Path Detail:"),
-                        CreateValueLabel(gnupg_home_detail, status_widget));
-  }
+  add_row(status_form, tr("Running Mode:"),
+          portable_mode ? tr("Portable Mode") : tr("Installed Mode"));
 
-  status_form->addRow(tr("Running Mode:"),
-                      CreateValueLabel(portable_mode_str, status_widget));
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    status_form->addRow(
-        tr("GnuPG Offline Mode:"),
-        CreateValueLabel(gnupg_offline_mode_str, status_widget));
-    status_form->addRow(
-        tr("Pinentry Program Path:"),
-        CreateValueLabel(pinentry_program_path_str, status_widget));
+    add_row(status_form, tr("GnuPG Offline Mode:"),
+            gnupg_offline_mode ? tr("Active") : tr("Disabled"));
+    add_row(status_form, tr("Pinentry Program Path:"),
+            pinentry_program_path.isEmpty() ? tr("Default Pinentry Program")
+                                            : pinentry_program_path);
   }
 
   main_layout->addWidget(
@@ -605,52 +749,55 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   const auto& session = ProfileSession::Instance();
   const auto& profile = session.Profile();
 
+  begin_section(tr("Profile"));
+
   auto* profile_widget = new QWidget(content);
   auto* profile_form = CreateInfoForm(profile_widget);
   profile_widget->setLayout(profile_form);
 
-  profile_form->addRow(
-      tr("Profile:"),
-      CreateValueLabel(CurrentProfileDisplayName(), profile_widget));
-  profile_form->addRow(
-      tr("Profile Type:"),
-      CreateValueLabel(ProfileKindDisplayName(profile.Kind()), profile_widget));
-  profile_form->addRow(tr("Profile Folder:"),
-                       CreatePathValue(QDir::toNativeSeparators(profile.Root()),
-                                       profile_widget));
+  add_row(profile_form, tr("Profile:"), CurrentProfileDisplayName());
+  add_row(profile_form, tr("Profile Type:"),
+          ProfileKindDisplayName(profile.Kind()));
+  add_path_row(profile_form, tr("Profile Folder:"),
+               QDir::toNativeSeparators(profile.Root()));
 
-  // Where the keyring comes from is the difference a user actually feels
-  // between two profiles, so it is stated rather than left to be inferred from
-  // the type above.
-  profile_form->addRow(tr("Keys:"),
-                       CreateValueLabel(profile.Policy().self_contained
-                                            ? tr("Inside this profile")
-                                            : tr("System keyring"),
-                                        profile_widget));
+  // Where the *keyring* comes from, which is not the credential store the card
+  // above already reports. "System keyring" was ambiguous between the two, and
+  // sat two rows under "System Credential Store: libsecret".
+  const auto keys =
+      DescribeKeySource(profile.Policy().self_contained, profile.Kind());
+  add_row(profile_form, tr("Keys:"), keys.value, keys.detail, keys.degraded);
+
+  // Only for a session opened from a package, because only there was there a
+  // choice to make. DescribeSessionStorage() carries the wording and decides
+  // which outcome counts as a fallback.
+  if (profile.Kind() == ProfileKind::kPACKAGED) {
+    const auto& storage = session.Accessor();
+    const auto session_storage = DescribeSessionStorage(
+        storage.IsVolatile(), storage.IsEncryptedAtRest());
+
+    add_row(profile_form, tr("Session Storage:"), session_storage.value,
+            session_storage.detail, session_storage.degraded);
+  }
 
   const auto workspace = ProfileSession::Instance().WorkspacePath();
   if (workspace.isEmpty()) {
-    profile_form->addRow(tr("Workspace:"),
-                         CreateValueLabel(tr("None"), profile_widget));
+    add_row(profile_form, tr("Workspace:"), tr("None"));
   } else {
-    profile_form->addRow(
-        tr("Workspace:"),
-        CreatePathValue(QDir::toNativeSeparators(workspace), profile_widget));
+    add_path_row(profile_form, tr("Workspace:"),
+                 QDir::toNativeSeparators(workspace));
   }
 
   const auto& marker = session.Marker();
   if (marker.schema_version > 0) {
-    profile_form->addRow(
-        tr("Profile Layout Version:"),
-        CreateValueLabel(QString::number(marker.schema_version),
-                         profile_widget));
+    add_row(profile_form, tr("Profile Layout Version:"),
+            QString::number(marker.schema_version));
   }
 
   // Present only on a profile that came from a package, and worth showing
   // there: it is the identity that says which document this copy came from.
   if (!marker.package_id.isEmpty()) {
-    profile_form->addRow(tr("Imported From Package:"),
-                         CreatePathValue(marker.package_id, profile_widget));
+    add_path_row(profile_form, tr("Imported From Package:"), marker.package_id);
   }
 
   // Mirrored onto the application rather than asked of the profile: where this
@@ -658,10 +805,8 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   // of the one profile in front of us.
   if (const auto profiles_root = qApp->property("GFProfilesRoot").toString();
       !profiles_root.isEmpty()) {
-    profile_form->addRow(
-        tr("Profiles Folder:"),
-        CreatePathValue(QDir::toNativeSeparators(profiles_root),
-                        profile_widget));
+    add_path_row(profile_form, tr("Profiles Folder:"),
+                 QDir::toNativeSeparators(profiles_root));
   }
 
   main_layout->addWidget(CreateCard(tr("Profile"), profile_widget, content));
@@ -669,6 +814,8 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   const auto active_engines = GetGSS().AllSupportedEngines();
 
   if (!active_engines.isEmpty()) {
+    begin_section(tr("Supported OpenPGP Engines"));
+
     auto* engines_widget = new QWidget(content);
     auto* engines_layout = new QVBoxLayout(engines_widget);
     engines_layout->setContentsMargins(0, 0, 0, 0);
@@ -678,24 +825,34 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
       auto* engine_label =
           CreateValueLabel(QStringLiteral("• %1").arg(engine), engines_widget);
       engines_layout->addWidget(engine_label);
+      summary << QStringLiteral("- %1").arg(engine);
     }
 
     main_layout->addWidget(
         CreateCard(tr("Supported OpenPGP Engines"), engines_widget, content));
   }
 
-  auto* tip_label = CreateBodyLabel(
-      tr("Tip: These values reflect the current startup environment and may "
-         "help when reporting issues."),
-      content);
-
   main_layout->addStretch();
+
+  auto* copy_button = CreateCopyButton(
+      tr("Copy Status Information"), summary.join(QLatin1Char('\n')), content);
+  main_layout->addWidget(copy_button, 0, Qt::AlignRight);
+
+  // A footnote, not another paragraph of body text: it explains the tab rather
+  // than reporting anything, so it reads at the detail size and colour every
+  // sub-line on this tab already uses.
+  auto* tip_label = CreateDetailLabel(
+      tr("These values reflect the current startup environment and may help "
+         "when reporting issues."),
+      content);
   main_layout->addWidget(tip_label);
 
   auto* outer_layout = new QVBoxLayout(this);
   outer_layout->setContentsMargins(0, 0, 0, 0);
   outer_layout->addWidget(CreateScrollArea(content, this));
   setLayout(outer_layout);
+
+  setObjectName(QStringLiteral("StatusTab"));
 }
 
 RpgpEngineTab::RpgpEngineTab(QWidget* parent) : QWidget(parent) {
