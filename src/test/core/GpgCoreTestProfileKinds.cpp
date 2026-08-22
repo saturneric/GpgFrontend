@@ -31,7 +31,6 @@
 #include <QDir>
 
 #include "core/profile/Profile.h"
-#include "core/profile/Profile.h"
 
 namespace GpgFrontend::Test {
 
@@ -59,8 +58,8 @@ TEST(ProfileKindsTest, OnlyProfilesThatStayHereMayUseTheKeychain) {
                   .AllowsSystemKeychain());
 
   EXPECT_FALSE(PortableRootProfile(kPortableRoot).AllowsSystemKeychain());
-  EXPECT_FALSE(PackagedProfile("/tmp/work.gfp", "/srv/profiles")
-                   .AllowsSystemKeychain());
+  EXPECT_FALSE(
+      PackagedProfile("/tmp/work.gfp", "/srv/profiles").AllowsSystemKeychain());
 }
 
 // -------------------------------------------------------------- key rotation
@@ -68,8 +67,8 @@ TEST(ProfileKindsTest, OnlyProfilesThatStayHereMayUseTheKeychain) {
 TEST(ProfileKindsTest, APackagedProfileNeverRotatesItsKey) {
   // A rotated key would be written into storage this process deletes on the
   // way out, taking everything it had encrypted with it.
-  EXPECT_FALSE(PackagedProfile("/tmp/work.gfp", "/srv/profiles")
-                   .AllowsKeyRotation());
+  EXPECT_FALSE(
+      PackagedProfile("/tmp/work.gfp", "/srv/profiles").AllowsKeyRotation());
 
   EXPECT_TRUE(InstalledRootProfile(kInstalledRoot).AllowsKeyRotation());
   EXPECT_TRUE(PortableRootProfile(kPortableRoot).AllowsKeyRotation());
@@ -123,8 +122,7 @@ TEST(ProfileKindsTest, OnlyAPersistedProfileBelongsInTheRegistry) {
 // ---------------------------------------------------------- disposable trees
 
 TEST(ProfileKindsTest, OnlyAPackagedProfileIsTransient) {
-  EXPECT_TRUE(
-      PackagedProfile("/tmp/work.gfp", "/srv/profiles").IsTransient());
+  EXPECT_TRUE(PackagedProfile("/tmp/work.gfp", "/srv/profiles").IsTransient());
 
   EXPECT_FALSE(InstalledRootProfile(kInstalledRoot).IsTransient());
   EXPECT_FALSE(PortableRootProfile(kPortableRoot).IsTransient());
@@ -141,9 +139,8 @@ TEST(ProfileKindsTest, EachShapeKnowsWhatReopensItInANewProcess) {
   EXPECT_EQ(PersistProfile("work", "/srv/p").LaunchArguments(),
             QStringList({"--profile", "work"}));
 
-  EXPECT_EQ(
-      PackagedProfile("/tmp/work.gfp", "/srv/profiles").LaunchArguments(),
-      QStringList({"/tmp/work.gfp"}));
+  EXPECT_EQ(PackagedProfile("/tmp/work.gfp", "/srv/profiles").LaunchArguments(),
+            QStringList({"/tmp/work.gfp"}));
 
   // The two implicit profiles are what the resolver picks when nothing is
   // named, so naming them would only pin a decision that is already made.
@@ -210,10 +207,75 @@ TEST(ProfileKindsTest, EverySelectionProducesTheMatchingProfile) {
   selection.package_path = "/tmp/work.gfp";
   const auto packaged = MakeProfile(selection);
   EXPECT_EQ(packaged->Kind(), ProfileKind::kPACKAGED);
-  // A package's root is derived from its own path, so it is known before
+  // A package's lock root is derived from its own path, so it is known before
   // anything is extracted — which is what lets the loader lock it first.
-  EXPECT_EQ(packaged->Root(), ProfileSessionRoot(selection.profiles_root,
-                                                 selection.package_path));
+  EXPECT_EQ(packaged->LockRoot(), ProfileSessionRoot(selection.profiles_root,
+                                                     selection.package_path));
+}
+
+TEST(ProfileKindsTest, EveryProfileLocksWhereItIsStoredExceptAPackage) {
+  // For everything whose storage is simply where it lives, the two are one
+  // question and must stay one answer.
+  ProfileSelection selection;
+  selection.profiles_root = QString(kInstalledRoot) + "/profiles";
+
+  for (const auto kind : {ProfileKind::kINSTALLED_ROOT,
+                          ProfileKind::kPORTABLE_ROOT, ProfileKind::kPERSIST}) {
+    selection.kind = kind;
+    selection.id = "work";
+    selection.root = kind == ProfileKind::kPORTABLE_ROOT
+                         ? kPortableRoot
+                         : QString(kInstalledRoot);
+    if (kind == ProfileKind::kPERSIST) {
+      selection.root = QString(kInstalledRoot) + "/profiles/work";
+    }
+
+    const auto profile = MakeProfile(selection);
+    EXPECT_EQ(profile->LockRoot(), profile->Root())
+        << "kind: " << ProfileKindToString(kind).toStdString();
+  }
+}
+
+TEST(ProfileKindsTest, APackageLockRootDoesNotDependOnWhereItIsStored) {
+  // The reason the two are separate at all. Storage is chosen by probing for
+  // somewhere the platform does not leave the tree readable, and probes differ
+  // between processes — XDG_RUNTIME_DIR unset under `su -`, encryption refused
+  // on one volume and not another. If the lock followed the storage, two
+  // windows could each conclude they were the only one holding a package and
+  // both write back over the other.
+  ProfileSelection selection;
+  selection.kind = ProfileKind::kPACKAGED;
+  selection.profiles_root = QString(kInstalledRoot) + "/profiles";
+  selection.package_path = "/tmp/work.gfp";
+
+  const auto first = MakeProfile(selection);
+  const auto second = MakeProfile(selection);
+
+  // Two processes, no shared state, same answer.
+  EXPECT_FALSE(first->LockRoot().isEmpty());
+  EXPECT_EQ(first->LockRoot(), second->LockRoot());
+
+  // And asking one of them for storage does not move the other's lock.
+  second->MakeAccessor();
+  EXPECT_EQ(first->LockRoot(), second->LockRoot());
+}
+
+TEST(ProfileKindsTest, APackageHandsOutOneStorageDriver) {
+  // The loader asks for an accessor more than once, and every caller has to be
+  // handed the same storage: choosing where a session goes is a decision, and a
+  // decision taken twice is two decisions.
+  ProfileSelection selection;
+  selection.kind = ProfileKind::kPACKAGED;
+  selection.profiles_root = QString(kInstalledRoot) + "/profiles";
+  selection.package_path = "/tmp/work.gfp";
+
+  const auto packaged = MakeProfile(selection);
+  const auto first = packaged->MakeAccessor();
+  const auto second = packaged->MakeAccessor();
+
+  ASSERT_FALSE(first.isNull());
+  EXPECT_EQ(first.data(), second.data());
+  EXPECT_EQ(first->PathOf(ProfileArea::kRoot), packaged->Root());
 }
 
 }  // namespace GpgFrontend::Test

@@ -28,6 +28,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QJsonObject>
 #include <QTemporaryDir>
 
 #include "core/function/AESCryptoHelper.h"
@@ -695,6 +696,125 @@ TEST(ProfileAdoptionTest, AnOccupiedRootIsNeverOverwritten) {
   EXPECT_EQ(key.readAll(), QByteArray("somebody's key"));
 }
 
+TEST(ProfileAdoptionTest, TheCopyBranchProducesTheSameProfile) {
+  // An import genuinely crosses a filesystem boundary once staging lives in
+  // protected storage, and QDir::rename cannot. There is no portable way to
+  // make a rename fail with EXDEV on demand, so the mover is a seam and this
+  // forces the branch that only fires on a real crossing.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+  WriteFile(root + "/db/pubring.kbx", "keys");
+
+  const auto package = dir.path() + "/work.gfp";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.protection = ProfilePackageProtection::kNONE;
+  ASSERT_TRUE(ExportProfilePackage(request).ok);
+
+  const auto extracted = dir.path() + "/extracted";
+  const auto read = ReadProfilePackage(package, extracted, {});
+  ASSERT_TRUE(read.Ok()) << read.detail.toStdString();
+
+  int renames = 0;
+  const ProfileTreeMover copy_only = [&renames](const QString &source,
+                                                const QString &destination) {
+    ++renames;
+    // Never the rename, so the fallback carries the whole import.
+    if (QFileInfo(source).isDir()) {
+      if (!QDir().mkpath(destination)) return false;
+      QDir from(source);
+      for (const auto &entry :
+           from.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot |
+                              QDir::Hidden)) {
+        QFile::copy(entry.absoluteFilePath(),
+                    destination + "/" + entry.fileName());
+      }
+      return true;
+    }
+    return QFile::copy(source, destination);
+  };
+
+  const auto imported = dir.path() + "/profiles/copy";
+  EXPECT_TRUE(AdoptExtractedProfile(extracted, imported, "copy", "Copy",
+                                    read.manifest, copy_only)
+                  .isEmpty());
+
+  EXPECT_GT(renames, 0);
+
+  const auto marker = ReadProfileMarker(ProfileMarkerPathFor(imported));
+  ASSERT_TRUE(marker.has_value());
+  EXPECT_EQ(marker->profile_id, "copy");
+
+  QFile keys(imported + "/db/pubring.kbx");
+  ASSERT_TRUE(keys.open(QIODevice::ReadOnly));
+  EXPECT_EQ(keys.readAll(), QByteArray("keys"));
+}
+
+TEST(ProfileAdoptionTest, AFailedMoveLeavesNoHalfProfile) {
+  // Half an import would be adopted as a whole profile: a marker and a config
+  // with the keyring missing looks like a profile whose keys were deleted.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  const auto package = dir.path() + "/work.gfp";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.protection = ProfilePackageProtection::kNONE;
+  ASSERT_TRUE(ExportProfilePackage(request).ok);
+
+  const auto extracted = dir.path() + "/extracted";
+  ASSERT_TRUE(ReadProfilePackage(package, extracted, {}).Ok());
+
+  const ProfileTreeMover always_fails = [](const QString &, const QString &) {
+    return false;
+  };
+
+  const auto imported = dir.path() + "/profiles/copy";
+  EXPECT_FALSE(AdoptExtractedProfile(extracted, imported, "copy", "Copy", {},
+                                     always_fails)
+                   .isEmpty());
+
+  EXPECT_FALSE(QFileInfo::exists(ProfileMarkerPathFor(imported)));
+}
+
+TEST(ProfileMoveTest, ARenameAcrossNothingStillMoves) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  WriteFile(dir.path() + "/from/a.txt", "hello");
+
+  ASSERT_TRUE(
+      MoveTreeAcrossFilesystems(dir.path() + "/from", dir.path() + "/to"));
+
+  EXPECT_FALSE(QFileInfo::exists(dir.path() + "/from"));
+
+  QFile moved(dir.path() + "/to/a.txt");
+  ASSERT_TRUE(moved.open(QIODevice::ReadOnly));
+  EXPECT_EQ(moved.readAll(), QByteArray("hello"));
+}
+
+TEST(ProfileMoveTest, MovingOntoSomethingThatExistsFailsWithoutDestroyingIt) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  WriteFile(dir.path() + "/from/a.txt", "new");
+  WriteFile(dir.path() + "/to/a.txt", "old");
+
+  EXPECT_FALSE(MoveTreeAcrossFilesystems(dir.path() + "/from/a.txt",
+                                         dir.path() + "/to/a.txt"));
+
+  // And the thing already there is untouched. The cleanup after a failed copy
+  // removes the destination, so refusing has to happen before anything is
+  // attempted — otherwise this deletes the profile the caller was protecting.
+  QFile kept(dir.path() + "/to/a.txt");
+  ASSERT_TRUE(kept.open(QIODevice::ReadOnly));
+  EXPECT_EQ(kept.readAll(), QByteArray("old"));
+}
+
 // -------------------------------------------------------- temporary sessions
 
 TEST(ProfileSessionRootTest, IsDerivedFromThePackageAndIsTransient) {
@@ -729,15 +849,28 @@ TEST(PackagedProfileTest, OpensAPackageAndWritesItBackToTheSameFile) {
   PackagedProfile packaged(package, dir.path());
   EXPECT_EQ(packaged.Inspect().status, ProfileMountStatus::kNEEDS_PASSPHRASE);
 
+  // Before storage exists there is no root, only a lock to take. Anything that
+  // assumed the two were the same thing should fail here rather than quietly
+  // read the anchor.
+  EXPECT_TRUE(packaged.Root().isEmpty());
+  EXPECT_EQ(packaged.LockRoot(), ProfileSessionRoot(dir.path(), package));
+
   const auto mounted = packaged.Mount({request.passphrase, 3});
   ASSERT_TRUE(mounted.Ok()) << mounted.detail.toStdString();
-  EXPECT_EQ(packaged.Root(), ProfileSessionRoot(dir.path(), package));
+  ASSERT_FALSE(packaged.Root().isEmpty());
+
+  // The whole point: the tree is not in the profiles folder. Where it *is*
+  // depends on what this machine offers, so what is asserted is that it went
+  // somewhere the driver chose and said so.
+  EXPECT_FALSE(packaged.Root().startsWith(dir.path() + "/."));
+  std::cerr << "  session storage: " << packaged.Root().toStdString()
+            << std::endl;
   EXPECT_EQ(packaged.Manifest().display_name, "Work");
 
   // The session is a profile root like any other: the tree is at the top, not
   // under `profile/`, and the extraction scratch did not outlive the call.
   EXPECT_TRUE(QFileInfo::exists(packaged.Root() + "/data_objs/abcd"));
-  EXPECT_TRUE(QDir(dir.path())
+  EXPECT_TRUE(QDir(packaged.Root() + "/.scratch")
                   .entryList({".gfp-*"}, QDir::Dirs | QDir::Hidden)
                   .isEmpty());
 
@@ -806,7 +939,11 @@ TEST(PackagedProfileTest, TheWrongPassphraseLeavesNothingBehind) {
   const auto mounted = packaged.Mount({GFBuffer(QString("wrong")), 3});
   EXPECT_EQ(mounted.status, ProfileMountStatus::kBAD_PASSPHRASE);
 
-  // Nothing was extracted, so there is nothing holding an unprotected key.
+  // Nothing was extracted, so there is nothing holding an unprotected key —
+  // neither where the tree would have gone nor in the profiles folder.
+  const auto claimed = packaged.Root();
+  packaged.DiscardSessionStorage();
+  if (!claimed.isEmpty()) EXPECT_FALSE(QFileInfo::exists(claimed));
   EXPECT_FALSE(QFileInfo::exists(ProfileSessionRoot(dir.path(), package)));
   EXPECT_TRUE(QDir(dir.path())
                   .entryList({".gfp-*"}, QDir::Dirs | QDir::Hidden)
@@ -831,7 +968,10 @@ TEST(PackagedProfileTest, ALayoutFromTheFutureIsRefusedBeforeAdoption) {
   EXPECT_EQ(mounted.status, ProfileMountStatus::kTOO_NEW);
 
   // Refused before anything was adopted: a package this build must not touch
-  // leaves no trace of having been opened.
+  // leaves no trace of having been opened, wherever the storage was claimed.
+  const auto claimed = packaged.Root();
+  packaged.DiscardSessionStorage();
+  if (!claimed.isEmpty()) EXPECT_FALSE(QFileInfo::exists(claimed));
   EXPECT_FALSE(QFileInfo::exists(ProfileSessionRoot(dir.path(), package)));
 }
 
@@ -887,10 +1027,18 @@ TEST(PackagedProfileTest, AStaleSessionFromACrashedProcessIsReplaced) {
   request.protection = ProfilePackageProtection::kNONE;
   ASSERT_TRUE(ExportProfilePackage(request).ok);
 
-  // What a process that died mid-session leaves: the directory is there and
-  // nobody holds it. Opening the same package again must not be refused.
-  const auto session = ProfileSessionRoot(dir.path(), package);
-  WriteFile(session + "/data_objs/abcd", "from a process that is gone");
+  // What a process that died mid-session leaves behind. Where that is depends
+  // on which storage was chosen, and the storage root is derived from the
+  // package the same way the lock is — so a second process finds the first
+  // one's leftovers without being told where to look, which is the whole point.
+  //
+  // Kept alive rather than destroyed, because the driver destroys its tree in
+  // its own destructor — which is exactly right for a process that exits and
+  // exactly wrong for one that dies. Holding it is how the tree stays put.
+  PackagedProfile crashed(package, dir.path());
+  ASSERT_TRUE(crashed.Mount({{}, 3}).Ok());
+  WriteFile(crashed.Root() + "/data_objs/abcd", "from a process that is gone");
+  // No Unmount(): that is what dying mid-session means.
 
   PackagedProfile packaged(package, dir.path());
   // An unprotected package needs no secret, and says so.
@@ -911,9 +1059,13 @@ TEST(PackagedProfileTest, AStaleSessionFromACrashedProcessIsReplaced) {
   EXPECT_EQ(session_settings.value("advanced/app_key_protection").toString(),
             QString("none"));
 
-  QFile object(session + "/data_objs/abcd");
+  // Replaced, not merged: what the dead process left is another machine's key
+  // material with no owner, and adopting half of it would be worse than either.
+  QFile object(packaged.Root() + "/data_objs/abcd");
   ASSERT_TRUE(object.open(QIODevice::ReadOnly));
   EXPECT_EQ(object.readAll(), QByteArray("encrypted-object"));
+
+  packaged.Unmount(ProfileUnmountMode::kNORMAL);
 }
 
 TEST(ProfileSweepTest, OnlyTransientRootsNobodyIsUsingAreRemoved) {
@@ -943,6 +1095,87 @@ TEST(ProfileSweepTest, OnlyTransientRootsNobodyIsUsingAreRemoved) {
   EXPECT_TRUE(QFileInfo::exists(real));
 }
 
+TEST(ProfileSweepTest, AnAnchorLeadsTheSweepToStrandedStorage) {
+  // The case the pointer exists for. The anchor is in the profiles folder and
+  // the storage is not — it may be in memory, or an encrypted volume, or a
+  // temporary directory — so a process that dies leaves a tree full of somebody
+  // else's key material somewhere nothing else would think to look.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto anchor = dir.path() + "/.abcd";
+  const auto stranded = dir.path() + "/elsewhere/gf-abcd";
+
+  WriteFile(stranded + "/secure/app.key", "another machine's key");
+
+  QJsonObject state;
+  state["driver"] = "fs-tmpfs";
+  state["root"] = stranded;
+  ASSERT_TRUE(WriteSessionPointer(anchor, state));
+
+  EXPECT_EQ(SweepTransientProfileRoots(dir.path(), {}), 1);
+
+  EXPECT_FALSE(QFileInfo::exists(stranded));
+  EXPECT_FALSE(QFileInfo::exists(anchor));
+}
+
+TEST(ProfileSweepTest, AnAnchorSomebodyHoldsIsLeftEntirelyAlone) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto anchor = dir.path() + "/.abcd";
+  const auto live = dir.path() + "/elsewhere/gf-abcd";
+
+  WriteFile(live + "/secure/app.key", "a running session's key");
+
+  QJsonObject state;
+  state["driver"] = "fs-tmpfs";
+  state["root"] = live;
+  ASSERT_TRUE(WriteSessionPointer(anchor, state));
+
+  // Named as the one to keep, exactly as the loader names its own.
+  EXPECT_EQ(SweepTransientProfileRoots(dir.path(), anchor), 0);
+
+  EXPECT_TRUE(QFileInfo::exists(live));
+  EXPECT_TRUE(QFileInfo::exists(anchor));
+}
+
+TEST(ProfileSweepTest, APointerIsNeverFollowedSomewhereItShouldNotGo) {
+  // The pointer is read off disk and a corrupted or malicious one must not be
+  // able to talk the sweep into deleting an arbitrary tree.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto precious = dir.path() + "/precious";
+  WriteFile(precious + "/keys", "not a session");
+
+  const auto anchor = dir.path() + "/.abcd";
+
+  QJsonObject relative;
+  relative["driver"] = "fs-tmpfs";
+  relative["root"] = "precious";  // not absolute
+  ASSERT_TRUE(WriteSessionPointer(anchor, relative));
+
+  EXPECT_EQ(SweepTransientProfileRoots(dir.path(), {}), 1);
+
+  // The anchor goes; the thing it pointed at does not.
+  EXPECT_FALSE(QFileInfo::exists(anchor));
+  EXPECT_TRUE(QFileInfo::exists(precious + "/keys"));
+}
+
+TEST(ProfileSweepTest, ALegacySessionRootIsStillCollected) {
+  // A package opened by an older build, or by one running the `disk` policy,
+  // is the tree itself with a marker in it and no pointer at all.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto legacy = dir.path() + "/.aaaa";
+  WriteFile(legacy + "/profile.json", R"({"schema_version":3})");
+
+  EXPECT_EQ(SweepTransientProfileRoots(dir.path(), {}), 1);
+  EXPECT_FALSE(QFileInfo::exists(legacy));
+}
+
 TEST(PackagedProfileTest, CarriesItsOwnSecretAndWritesBackWhereItCameFrom) {
   // The session state used to be a process-global struct beside the packing
   // code. It is now the profile object itself, which is what makes "one
@@ -951,9 +1184,14 @@ TEST(PackagedProfileTest, CarriesItsOwnSecretAndWritesBackWhereItCameFrom) {
 
   EXPECT_EQ(packaged.PackagePath(), "/tmp/work.gfp");
   EXPECT_EQ(packaged.ProfilesRoot(), "/srv/profiles");
-  EXPECT_EQ(packaged.Root(),
-            ProfileSessionRoot("/srv/profiles", "/tmp/work.gfp"));
   EXPECT_TRUE(packaged.IsTransient());
+
+  // The lock is where it always was, and is known before anything is opened.
+  EXPECT_EQ(packaged.LockRoot(),
+            ProfileSessionRoot("/srv/profiles", "/tmp/work.gfp"));
+
+  // The root is not, because nothing has decided where the tree goes yet.
+  EXPECT_TRUE(packaged.Root().isEmpty());
 
   // A write-back aims at the file this session came from, never at a new one.
   const auto request = packaged.WriteBackRequest();

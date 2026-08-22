@@ -48,7 +48,7 @@ auto Every() -> QList<ProfileArea> {
   return {ProfileArea::kRoot,        ProfileArea::kConfig,
           ProfileArea::kDataObjects, ProfileArea::kSecure,
           ProfileArea::kLogs,        ProfileArea::kModules,
-          ProfileArea::kWorkspace};
+          ProfileArea::kWorkspace,   ProfileArea::kScratch};
 }
 
 }  // namespace
@@ -77,6 +77,7 @@ TEST(ProfileAccessorTest, EveryAreaResolvesUnderTheRoot) {
   EXPECT_EQ(accessor.PathOf(ProfileArea::kWorkspace),
             dir.path() + "/workspace");
   EXPECT_EQ(accessor.PathOf(ProfileArea::kConfig), dir.path() + "/config");
+  EXPECT_EQ(accessor.PathOf(ProfileArea::kScratch), dir.path() + "/.scratch");
 }
 
 TEST(ProfileAccessorTest, EnsureIsIdempotent) {
@@ -222,6 +223,72 @@ TEST(ProfileAccessorTest, TheLiveSessionUsesTheFilesystemDriver) {
   // driver and that the running process is on it.
   ASSERT_TRUE(ProfileSession::Loaded());
   EXPECT_EQ(ProfileSession::Instance().Accessor().Driver(), QString("fs"));
+}
+
+// The capability half of the contract. It exists so that a driver storing the
+// profile somewhere the platform does not leave readable can say so, and so
+// that the one which cannot say so is obliged to admit it.
+
+TEST(ProfileAccessorTest, TheFilesystemDriverClaimsNoProtection) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  FsProfileAccessor accessor(dir.path(), dir.path() + "/config/config.ini");
+
+  EXPECT_EQ(accessor.Driver(), "fs");
+  EXPECT_FALSE(accessor.IsVolatile());
+
+  // Whole-disk encryption may well be on underneath. This driver did not
+  // arrange it and cannot tell whether it outlives Release(), and claiming a
+  // protection we did not provide is worse than admitting we provide none.
+  EXPECT_FALSE(accessor.IsEncryptedAtRest());
+
+  EXPECT_FALSE(accessor.Label().isEmpty());
+}
+
+TEST(ProfileAccessorTest, TheFilesystemDriverReportsFreeSpace) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  FsProfileAccessor accessor(dir.path(), {});
+  EXPECT_GT(accessor.FreeBytes(), 0);
+}
+
+TEST(ProfileAccessorTest, ReleasingTheFilesystemDriverKeepsTheProfile) {
+  // An installed or named profile is where the user keeps their keys. A window
+  // closing is not a reason to delete it, whatever mode the caller passes.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  FsProfileAccessor accessor(dir.path(), {});
+  ASSERT_TRUE(accessor.Ensure(ProfileArea::kSecure));
+  ASSERT_TRUE(accessor.Write(ProfileArea::kSecure, "app.key",
+                             GFBuffer(QByteArray("key material"))));
+
+  for (const auto mode :
+       {ProfileStorageRelease::kKEEP, ProfileStorageRelease::kSCRUB,
+        ProfileStorageRelease::kFAST}) {
+    accessor.Release(mode);
+    EXPECT_TRUE(QDir(dir.path()).exists());
+    EXPECT_TRUE(accessor.Exists(ProfileArea::kSecure, "app.key"));
+  }
+}
+
+TEST(ProfileAccessorTest, ScratchIsHiddenSoItIsNeverPacked) {
+  // The scratch area is a directory like any other, but its name has to stay
+  // dot-prefixed: that is the whole reason IsExcludedFromPackage() already
+  // skips it, and staging must never travel inside a package.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  FsProfileAccessor accessor(dir.path(), {});
+
+  const auto path = accessor.PathOf(ProfileArea::kScratch);
+  EXPECT_TRUE(path.startsWith(dir.path() + "/"));
+  EXPECT_TRUE(QFileInfo(path).fileName().startsWith('.'));
+
+  ASSERT_TRUE(accessor.Ensure(ProfileArea::kScratch));
+  EXPECT_TRUE(QDir(path).exists());
 }
 
 }  // namespace GpgFrontend::Test
