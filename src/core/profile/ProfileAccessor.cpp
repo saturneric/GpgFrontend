@@ -54,6 +54,10 @@ auto ProfileAreaDirName(ProfileArea area) -> QString {
       return "mods";
     case ProfileArea::kWorkspace:
       return "workspace";
+    // Dot-prefixed so that IsExcludedFromPackage() already skips it: staging is
+    // this machine's business and must never travel inside a package.
+    case ProfileArea::kScratch:
+      return ".scratch";
   }
   return {};
 }
@@ -128,5 +132,27 @@ auto FsProfileAccessor::Settings() const -> QSettings {
   if (settings_file_.isEmpty()) return QSettings();
   return {settings_file_, QSettings::IniFormat};
 }
+
+auto FsProfileAccessor::Label() const -> QString {
+  return QCoreApplication::translate("ProfileAccessor",
+                                     "an ordinary folder on this disk");
+}
+
+auto FsProfileAccessor::IsVolatile() const -> bool { return false; }
+
+auto FsProfileAccessor::IsEncryptedAtRest() const -> bool {
+  // Whole-disk encryption may well be on, but this driver did not arrange it
+  // and cannot tell whether it survives Release(). Claiming a protection we did
+  // not provide is worse than admitting we provide none.
+  return false;
+}
+
+auto FsProfileAccessor::FreeBytes() const -> qint64 {
+  QStorageInfo storage(root_);
+  if (!storage.isValid() || !storage.isReady()) return -1;
+  return storage.bytesAvailable();
+}
+
+void FsProfileAccessor::Release(ProfileStorageRelease /*mode*/) {}
 
 }  // namespace GpgFrontend

@@ -108,6 +108,11 @@ enum class ProfileMountStatus : std::uint8_t {
   kTOO_NEW,    ///< a layout this build must not touch
   kTAMPERED,   ///< the package header and its sealed manifest disagree
   kMALFORMED,  ///< the payload is not a profile tree
+  /// No storage was available that this profile's policy would accept. Not an
+  /// I/O failure: nothing was wrong with the package or the machine, the user
+  /// asked not to open it anywhere it would be left readable.
+  kNO_PROTECTED_STORAGE,
+  kNO_SPACE,  ///< the storage filled up part way through unpacking
   kIO_FAILED,
 };
 
@@ -278,6 +283,20 @@ class GF_CORE_EXPORT Profile {
    * @return the arguments, empty when the profile is the implicit default
    */
   [[nodiscard]] virtual auto LaunchArguments() const -> QStringList = 0;
+
+  /**
+   * @brief The directory whose lock decides who may open this profile.
+   *
+   * The same thing as Root() for every profile whose storage is where the lock
+   * is, which is all of them today. It is separate because it must be a pure
+   * function of the selection: a profile whose storage is *chosen* — by probing
+   * for somewhere the platform does not leave it readable — would otherwise
+   * have two processes probe differently, lock different directories, and both
+   * decide they were the only one open.
+   *
+   * @return the directory holding profile.lock
+   */
+  [[nodiscard]] virtual auto LockRoot() const -> QString;
 
   /**
    * @brief Build the storage driver for this profile.
@@ -458,6 +477,22 @@ class GF_CORE_EXPORT PackagedProfile final : public Profile {
    */
   [[nodiscard]] auto WriteBackRequest() const -> ProfileExportRequest;
 
+  [[nodiscard]] auto LockRoot() const -> QString override;
+
+  [[nodiscard]] auto MakeAccessor() const
+      -> QSharedPointer<ProfileAccessor> override;
+
+  /**
+   * @brief Throw away whatever storage was claimed for this session.
+   *
+   * For the path where the package would not open: the lock was taken and the
+   * storage provisioned before anyone knew whether the file was readable, and
+   * both have to be given back before a dialog stops to wait for a human.
+   *
+   * Safe to call when nothing was claimed.
+   */
+  void DiscardSessionStorage();
+
  private:
   /**
    * @brief Protect the extracted key with the passphrase that opened the
@@ -475,8 +510,23 @@ class GF_CORE_EXPORT PackagedProfile final : public Profile {
 
   QString package_path_;
   QString profiles_root_;
-  QString session_root_;
+
+  /// Where the lock lives. A pure function of the package path, so that a
+  /// second window computes the same one without being told.
+  QString anchor_;
+
   QString id_;
+
+  /// Made once, on the first MakeAccessor(). Cached because choosing where the
+  /// session goes is a decision, and a decision taken twice is two decisions.
+  mutable QSharedPointer<ProfileAccessor> storage_;
+
+  /// Set when no storage this profile's policy would accept was available, so
+  /// that asking again neither re-probes nor reports the refusal twice.
+  mutable bool storage_refused_ = false;
+
+  /// What the probe passed over, in the words the user will be shown.
+  mutable QStringList storage_rejections_;
 
   bool inspected_ = false;
   bool mounted_ = false;

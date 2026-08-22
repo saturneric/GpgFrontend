@@ -60,6 +60,12 @@ namespace {
 constexpr int kMaxHeaderLength = 64 * 1024;
 constexpr qint64 kDrainChunk = 64 * 1024;
 
+/// Headroom below which an unpacking failure is read as "the storage filled up"
+/// rather than "the package is damaged". Deliberately generous: the last write
+/// before ENOSPC often leaves a little back, and guessing wrong the other way
+/// blames a file that is fine.
+constexpr qint64 kStorageExhaustedSlack = 1024 * 1024;
+
 /// Absolute floor and ceiling for the one-shot payload cap. The floor keeps a
 /// container with a tiny locked-memory allowance from refusing every export;
 /// the ceiling keeps a machine with none from trying to hold a DVD in memory.
@@ -911,8 +917,18 @@ auto ExportProfilePackage(const ProfileExportRequest &request)
     -> ProfilePackageWriteResult {
   ProfilePackageWriteResult result;
 
-  const auto staging =
-      MakeProfilePackageScratchDir(request.profiles_root, "staging");
+  // The staging tree is a full plaintext copy of the profile, and
+  // WriteStagedAppKey() puts an *unprotected* application key in it. Where the
+  // caller has somewhere better to put that than the profiles folder — a
+  // session writing itself back into its own protected storage — it says so,
+  // and this obliges.
+  const auto scratch_base = request.scratch_root.isEmpty()
+                                ? request.profiles_root
+                                : request.scratch_root;
+
+  if (!scratch_base.isEmpty()) QDir().mkpath(scratch_base);
+
+  const auto staging = MakeProfilePackageScratchDir(scratch_base, "staging");
   if (staging.isEmpty()) {
     result.error = "a temporary folder could not be made";
     return result;
@@ -967,10 +983,78 @@ auto ExportProfilePackage(const ProfileExportRequest &request)
                              request.passphrase);
 }
 
+namespace {
+
+/// Copy a tree wholesale, links and all skipped, for the case where a rename
+/// cannot cross from where the staging is to where the profile goes.
+auto CopyTreeAcross(const QString &source, const QString &destination) -> bool {
+  const QFileInfo info(source);
+
+  if (info.isSymLink()) return false;  // a package carries no links, by design
+
+  if (info.isDir()) {
+    if (!QDir().mkpath(destination)) return false;
+    QDir dir(source);
+    for (const auto &entry : dir.entryInfoList(
+             QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden)) {
+      if (!CopyTreeAcross(entry.absoluteFilePath(),
+                          destination + "/" + entry.fileName())) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return QFile::copy(source, destination);
+}
+
+}  // namespace
+
+auto MoveTreeAcrossFilesystems(const QString &source,
+                               const QString &destination) -> bool {
+  // Refused before anything is attempted, because the cleanup below removes the
+  // destination and must only ever remove what this call put there. Without
+  // this, a failed copy onto an existing file deletes the file that was already
+  // there — which is the profile the caller was trying not to overwrite.
+  if (QFileInfo::exists(destination)) return false;
+
+  // The cheap path, and the only one taken when staging and destination share a
+  // filesystem — which a session's own staging always does, because it is an
+  // area under the same root.
+  if (QDir().rename(source, destination)) return true;
+
+  // An import is the case that genuinely crosses: the staging is wherever the
+  // session storage was provisioned, and the copy being made is a permanent
+  // profile in the profiles folder. QDir::rename cannot cross a mount point, so
+  // without this an import from protected storage fails with a message about
+  // the package being unreadable.
+  if (!CopyTreeAcross(source, destination)) {
+    // Half a copy is worse than none: it would be adopted as a profile with
+    // pieces missing. Safe to remove wholesale only because nothing was there
+    // before this call — checked above.
+    RemoveDirectoryQuietly(destination);
+    QFile::remove(destination);
+    return false;
+  }
+
+  // The source is staging and is about to be swept anyway, so failing to remove
+  // it is untidy rather than wrong.
+  if (QFileInfo(source).isDir()) {
+    RemoveDirectoryQuietly(source);
+  } else {
+    QFile::remove(source);
+  }
+  return true;
+}
+
 auto AdoptExtractedProfile(const QString &staging_dir,
                            const QString &profile_root, const QString &id,
                            const QString &display_name,
-                           const ProfilePackageManifest &manifest) -> QString {
+                           const ProfilePackageManifest &manifest,
+                           const ProfileTreeMover &mover) -> QString {
+  const auto &move =
+      mover ? mover : ProfileTreeMover(MoveTreeAcrossFilesystems);
+
   const auto tree = staging_dir + "/" + kProfilePackageTreePrefix;
   if (!QFileInfo::exists(tree)) return "the package carries no profile";
 
@@ -978,10 +1062,9 @@ auto AdoptExtractedProfile(const QString &staging_dir,
     return "the profile folder could not be created";
   }
 
-  // Moved entry by entry rather than renamed wholesale, because the
-  // destination may already exist and be locked: a session root is created and
-  // locked before anything is extracted into it, and the lock file living
-  // there is exactly what must survive.
+  // Moved entry by entry rather than renamed wholesale, because the destination
+  // already exists: it is provisioned before anything is extracted into it, and
+  // for the disk driver the profile lock lives there too.
   QDir source(tree);
   for (const auto &entry : source.entryInfoList(
            QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden)) {
@@ -989,7 +1072,7 @@ auto AdoptExtractedProfile(const QString &staging_dir,
     if (QFileInfo::exists(destination)) {
       return QString("%1 is already there").arg(entry.fileName());
     }
-    if (!QDir().rename(entry.absoluteFilePath(), destination)) {
+    if (!move(entry.absoluteFilePath(), destination)) {
       return QString("%1 could not be unpacked").arg(entry.fileName());
     }
   }
@@ -1046,6 +1129,31 @@ auto ProfileSessionRoot(const QString &profiles_root,
       profiles_root, ProfilePackageHeaderDigest(path.toUtf8()).left(32));
 }
 
+auto SessionPointerPathFor(const QString &anchor) -> QString {
+  return anchor + "/session.json";
+}
+
+auto WriteSessionPointer(const QString &anchor, const QJsonObject &state)
+    -> bool {
+  if (anchor.isEmpty()) return false;
+  if (!QDir().mkpath(anchor)) return false;
+
+  QFile file(SessionPointerPathFor(anchor));
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) return false;
+
+  file.write(QJsonDocument(state).toJson(QJsonDocument::Compact));
+  file.close();
+  return true;
+}
+
+auto ReadSessionPointer(const QString &anchor) -> QJsonObject {
+  QFile file(SessionPointerPathFor(anchor));
+  if (!file.open(QIODevice::ReadOnly)) return {};
+
+  const auto document = QJsonDocument::fromJson(file.readAll());
+  return document.isObject() ? document.object() : QJsonObject{};
+}
+
 auto SweepTransientProfileRoots(const QString &profiles_root,
                                 const QString &keep_root) -> int {
   QDir root(profiles_root);
@@ -1064,12 +1172,34 @@ auto SweepTransientProfileRoots(const QString &profiles_root,
     const auto path = entry.absoluteFilePath();
     if (!keep.isEmpty() && path == keep) continue;
 
-    // Only an adopted session, never scratch: staging and extraction trees are
-    // dot-prefixed too and never hold a lock, so sweeping one would delete an
-    // export that another window is running right now.
-    if (!QFileInfo::exists(ProfileMarkerPathFor(path))) continue;
+    // An anchor names storage that may not be here at all, and a session root
+    // from an older build is the tree itself. Either is a session; a staging or
+    // extraction tree is neither, is dot-prefixed too, and never holds a lock —
+    // sweeping one would delete an export another window is running right now.
+    const auto pointer = ReadSessionPointer(path);
+    const bool is_anchor = !pointer.isEmpty();
+    const bool is_legacy_session =
+        QFileInfo::exists(ProfileMarkerPathFor(path));
+
+    if (!is_anchor && !is_legacy_session) continue;
 
     if (!ProfileLock::Probe(path).Ok()) continue;
+
+    // The storage first, because the anchor is the only thing that knows where
+    // it went. Losing the pointer before following it would strand a tree full
+    // of somebody else's key material somewhere nothing thinks to look.
+    if (is_anchor) {
+      const auto stranded = pointer.value("root").toString();
+      if (!stranded.isEmpty() && QDir::isAbsolutePath(stranded) &&
+          stranded != path && QFileInfo::exists(stranded)) {
+        if (QDir(stranded).removeRecursively()) {
+          LOG_I() << "removed session storage left behind by a process that is"
+                  << "gone:" << stranded;
+        } else {
+          LOG_W() << "could not remove stranded session storage:" << stranded;
+        }
+      }
+    }
 
     if (QDir(path).removeRecursively()) {
       LOG_I() << "removed a session left behind by a process that is gone:"
@@ -1081,13 +1211,12 @@ auto SweepTransientProfileRoots(const QString &profiles_root,
   return removed;
 }
 
-auto OpenPackageSession(const QString &package_path,
-                        const QString &profiles_root,
+auto OpenPackageSession(const QString &package_path, ProfileAccessor &storage,
                         const GFBuffer &passphrase, int this_schema_version)
     -> ProfileSessionOpenResult {
   ProfileSessionOpenResult result;
 
-  const auto session_root = ProfileSessionRoot(profiles_root, package_path);
+  const auto session_root = storage.PathOf(ProfileArea::kRoot);
   if (session_root.isEmpty()) {
     result.status = ProfilePackageReadStatus::kIO_FAILED;
     result.detail = "there is nowhere to open this package";
@@ -1095,12 +1224,23 @@ auto OpenPackageSession(const QString &package_path,
   }
 
   // Anything already there belonged to a process that is gone: whoever calls
-  // this holds the lock on the session root, so a live session could not have
-  // got this far. The lock file itself stays — it is the caller's, and it is
-  // what tells the next process this root is in use.
+  // this holds the lock on this package, so a live session could not have got
+  // this far. The lock file, where it lives here at all, is the caller's and is
+  // what tells the next process this package is in use.
   ClearSessionRootContents(session_root);
 
-  const auto staging = MakeProfilePackageScratchDir(profiles_root, "extract");
+  // Staged inside the storage rather than beside it: the staging tree is a full
+  // plaintext copy of somebody else's profile, so it belongs wherever the
+  // driver decided that may be kept. It also keeps the move below on one
+  // filesystem, which a rename needs.
+  if (!storage.Ensure(ProfileArea::kScratch)) {
+    result.status = ProfilePackageReadStatus::kIO_FAILED;
+    result.detail = "a temporary folder could not be made";
+    return result;
+  }
+
+  const auto staging = MakeProfilePackageScratchDir(
+      storage.PathOf(ProfileArea::kScratch), "extract");
   if (staging.isEmpty()) {
     result.status = ProfilePackageReadStatus::kIO_FAILED;
     result.detail = "a temporary folder could not be made";
@@ -1112,6 +1252,18 @@ auto OpenPackageSession(const QString &package_path,
   if (!read.Ok()) {
     result.status = read.status;
     result.detail = read.detail;
+
+    // Asked only once it has already failed, and only to tell the user
+    // something they can act on: an unpacking failure with the storage full is
+    // not a damaged package, and reporting it as one sends them looking for a
+    // problem that is not there.
+    if (read.status == ProfilePackageReadStatus::kIO_FAILED) {
+      const auto free_bytes = storage.FreeBytes();
+      if (free_bytes >= 0 && free_bytes < kStorageExhaustedSlack) {
+        result.status = ProfilePackageReadStatus::kNO_SPACE;
+        result.detail = storage.Label();
+      }
+    }
     return result;
   }
 

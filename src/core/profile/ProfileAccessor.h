@@ -50,6 +50,22 @@ enum class ProfileArea : std::uint8_t {
   kLogs,         ///< logs/
   kModules,      ///< mods/, the user's own modules
   kWorkspace,    ///< workspace/, the user's own files
+  kScratch,      ///< .scratch/, staging that belongs to this session alone
+};
+
+/**
+ * @brief What to do with a profile's storage when the session ends.
+ *
+ * Separate from ProfileUnmountMode because it is the *storage's* question, not
+ * the profile's: a driver that did not provision its own root has nothing to
+ * give back, whatever the reason for shutting down.
+ */
+enum class ProfileStorageRelease : std::uint8_t {
+  kKEEP,   ///< the storage outlives the process; the filesystem driver's answer
+  kSCRUB,  ///< destroy the contents, overwriting first where that means
+           ///< anything
+  kFAST,   ///< destroy the contents cheaply; for the shutdown watchdog's
+           ///< deadline
 };
 
 /**
@@ -187,6 +203,58 @@ class GF_CORE_EXPORT ProfileAccessor {
   [[nodiscard]] virtual auto PathOf(ProfileArea area,
                                     const QString &name = {}) const
       -> QString = 0;
+
+  /**
+   * @brief A translated name for this storage, for the status strip.
+   *
+   * Where the data went is the user's business: a session that quietly fell
+   * back from memory to an ordinary folder has a materially weaker guarantee,
+   * and hiding that would make the fallback a lie rather than a compromise.
+   *
+   * @return a short phrase naming the storage, already translated
+   */
+  [[nodiscard]] virtual auto Label() const -> QString = 0;
+
+  /**
+   * @brief Whether the storage dies with power.
+   *
+   * @return true only when nothing survives a reboot
+   */
+  [[nodiscard]] virtual auto IsVolatile() const -> bool = 0;
+
+  /**
+   * @brief Whether what reaches the medium is unreadable once released.
+   *
+   * Deliberately a second axis rather than a weaker grade of IsVolatile(): no
+   * platform offers both, so collapsing them would mean calling one of them the
+   * real one. A caller that wants "not left readable on this disk" wants
+   * either.
+   *
+   * @return true when the bytes on the medium are ciphertext this process can
+   * no longer decrypt after Release()
+   */
+  [[nodiscard]] virtual auto IsEncryptedAtRest() const -> bool = 0;
+
+  /**
+   * @brief Room left where this profile is stored.
+   *
+   * Asked before unpacking a package, and again when unpacking fails: "the
+   * contents could not be unpacked" sends a user hunting for corruption, and
+   * "the storage is full" does not.
+   *
+   * @return free bytes, or -1 when the driver cannot say
+   */
+  [[nodiscard]] virtual auto FreeBytes() const -> qint64 = 0;
+
+  /**
+   * @brief Give the storage back.
+   *
+   * Idempotent, and safe to call from a teardown path that cannot log. A driver
+   * whose storage is not the profile's to destroy ignores anything but kKEEP.
+   *
+   * @param mode how much effort destruction is worth here
+   */
+  virtual void Release(ProfileStorageRelease mode) = 0;
 };
 
 /**
@@ -194,8 +262,12 @@ class GF_CORE_EXPORT ProfileAccessor {
  *
  * This is the layout every existing installation already has, so it is not a
  * choice so much as the shape of the data on disk.
+ *
+ * Not final: a driver that puts the same layout somewhere the platform does not
+ * leave it readable differs only in *which* root and in what happens on the way
+ * out, so it inherits these area operations rather than restating them.
  */
-class GF_CORE_EXPORT FsProfileAccessor final : public ProfileAccessor {
+class GF_CORE_EXPORT FsProfileAccessor : public ProfileAccessor {
  public:
   /**
    * @brief Construct the driver.
@@ -230,6 +302,25 @@ class GF_CORE_EXPORT FsProfileAccessor final : public ProfileAccessor {
 
   [[nodiscard]] auto PathOf(ProfileArea area, const QString &name = {}) const
       -> QString override;
+
+  [[nodiscard]] auto Label() const -> QString override;
+
+  [[nodiscard]] auto IsVolatile() const -> bool override;
+
+  [[nodiscard]] auto IsEncryptedAtRest() const -> bool override;
+
+  [[nodiscard]] auto FreeBytes() const -> qint64 override;
+
+  /**
+   * @brief Does nothing: this root is the machine's, not the session's.
+   *
+   * An installed or named profile is where the user keeps their keys. Deleting
+   * it because a window closed would be data loss, so every mode but kKEEP is
+   * ignored here rather than honoured.
+   *
+   * @param mode ignored
+   */
+  void Release(ProfileStorageRelease mode) override;
 
  private:
   QString root_;

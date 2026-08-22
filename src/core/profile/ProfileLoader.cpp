@@ -69,6 +69,13 @@ auto FailureFor(ProfileMountStatus status) -> ProfileLoadFailure {
       return ProfileLoadFailure::kPACKAGE_TAMPERED;
     case ProfileMountStatus::kMALFORMED:
       return ProfileLoadFailure::kPACKAGE_MALFORMED;
+    case ProfileMountStatus::kNO_PROTECTED_STORAGE:
+      return ProfileLoadFailure::kSTORAGE_UNAVAILABLE;
+    case ProfileMountStatus::kNO_SPACE:
+      return ProfileLoadFailure::kSTORAGE_FULL;
+    // The default arm means a status added upstream lands on a generic message
+    // rather than failing to compile, so anything that deserves its own must be
+    // named above.
     default:
       return ProfileLoadFailure::kMOUNT_FAILED;
   }
@@ -172,7 +179,11 @@ ProfileLoader::ProfileLoader(QSharedPointer<Profile> profile,
 }
 
 auto ProfileLoader::acquire_lock() -> bool {
-  const auto root = profile_->Root();
+  // The lock root, not the storage root: which directory is locked has to be a
+  // pure function of the selection, or two processes that chose their storage
+  // differently would each conclude they were the only one holding this
+  // package and both write back over the other.
+  const auto root = profile_->LockRoot();
 
   auto result = ProfileLock::Acquire(root, kLockWaitMs);
   if (result.Ok()) return true;
@@ -250,7 +261,7 @@ auto ProfileLoader::mount_package(int schema_version)
 }
 
 auto ProfileLoader::Mount(int schema_version) -> bool {
-  if (profile_->Root().isEmpty()) {
+  if (profile_->LockRoot().isEmpty()) {
     delegate_->Report({ProfileLoadFailure::kSELECTION_INVALID});
     return false;
   }
@@ -265,18 +276,20 @@ auto ProfileLoader::Mount(int schema_version) -> bool {
     // package's own root. Cheap, and this is the one moment when nothing else
     // can be holding one.
     auto& packaged = static_cast<PackagedProfile&>(*profile_);
-    SweepTransientProfileRoots(packaged.ProfilesRoot(), packaged.Root());
+    SweepTransientProfileRoots(packaged.ProfilesRoot(), packaged.LockRoot());
+
+    // Before the package is opened rather than after: the accessor is what
+    // owns the storage, so it has to exist before there is anywhere to unpack
+    // into.
+    profile_->MakeAccessor();
 
     if (const auto error = mount_package(schema_version)) {
       ProfileLock::Release();
 
-      // The root was created only so that it could be locked, and nothing was
-      // extracted into it. Leaving it behind would litter the profiles folder
-      // with one empty directory per package that failed to open, and the sweep
-      // deliberately ignores those: it only collects roots that carry a marker.
-      // Safe to remove, because reaching here means the lock was ours — and
-      // done before the report, which waits for a human.
-      QDir(packaged.Root()).removeRecursively();
+      // Nothing was extracted, and both the storage and the anchor were only
+      // claimed so that this attempt could be made. Given back before the
+      // report, which stops to wait for a human.
+      packaged.DiscardSessionStorage();
 
       delegate_->Report(*error);
       return false;
@@ -294,7 +307,8 @@ auto ProfileLoader::Mount(int schema_version) -> bool {
   auto accessor = profile_->MakeAccessor();
   for (const auto area :
        {ProfileArea::kRoot, ProfileArea::kConfig, ProfileArea::kDataObjects,
-        ProfileArea::kSecure, ProfileArea::kLogs, ProfileArea::kModules}) {
+        ProfileArea::kSecure, ProfileArea::kLogs, ProfileArea::kModules,
+        ProfileArea::kScratch}) {
     // The config area is only made where an INI actually lands in it; an
     // installed root on POSIX writes through the native store and has no
     // directory of its own to make.
@@ -302,6 +316,11 @@ auto ProfileLoader::Mount(int schema_version) -> bool {
         profile_->SettingsFilePath().isEmpty()) {
       continue;
     }
+
+    // Scratch belongs to a session, not to a profile. Making one in every
+    // installed root would leave an empty directory in the user's data folder
+    // that nothing ever writes to.
+    if (area == ProfileArea::kScratch && !profile_->IsTransient()) continue;
     accessor->Ensure(area);
   }
 

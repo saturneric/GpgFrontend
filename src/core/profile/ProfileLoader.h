@@ -44,11 +44,16 @@ namespace GpgFrontend {
  * assert which one happened without matching on a sentence.
  */
 enum class ProfileLoadFailure : std::uint8_t {
-  kSELECTION_INVALID,    ///< the command line named something unusable
-  kALREADY_OPEN,         ///< another process holds this profile
-  kLOCK_UNAVAILABLE,     ///< the lock file could not be created
-  kMOUNT_FAILED,         ///< the storage could not be made usable
-  kNOT_A_PACKAGE,        ///< the file named is not a .gfp
+  kSELECTION_INVALID,  ///< the command line named something unusable
+  kALREADY_OPEN,       ///< another process holds this profile
+  kLOCK_UNAVAILABLE,   ///< the lock file could not be created
+  kMOUNT_FAILED,       ///< the storage could not be made usable
+  /// Nothing was available that this profile's storage policy would accept.
+  /// Not a failure of the machine or the package: the user asked not to open it
+  /// anywhere it would be left readable, and nowhere qualified.
+  kSTORAGE_UNAVAILABLE,
+  kSTORAGE_FULL,   ///< the storage ran out of room part way through unpacking
+  kNOT_A_PACKAGE,  ///< the file named is not a .gfp
   kPACKAGE_TAMPERED,     ///< header and sealed manifest disagree
   kPACKAGE_MALFORMED,    ///< the payload is not a profile tree
   kTOO_NEW,              ///< written by a newer build; must not be touched

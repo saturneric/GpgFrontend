@@ -31,6 +31,7 @@
 #include <optional>
 
 #include "core/model/GFBuffer.h"
+#include "core/profile/ProfileAccessor.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/typedef/CoreTypedef.h"
 
@@ -45,7 +46,7 @@ inline constexpr int kProfilePackageMagicLength = 8;
 /// What was written, and what it takes to read it. Only the second is ever
 /// grounds for a refusal: a writer that adds a field an older build can ignore
 /// raises the first and leaves the second alone, and its packages keep opening
-/// here. 
+/// here.
 inline constexpr int kProfilePackageFormatVersion = 1;
 inline constexpr int kProfilePackageMinReader = 1;
 
@@ -362,6 +363,10 @@ enum class ProfilePackageReadStatus : std::uint8_t {
   kBAD_PASSPHRASE,
   kTAMPERED,   ///< the header and the sealed manifest disagree
   kMALFORMED,  ///< the payload is not a profile tree
+  /// The storage filled up part way through unpacking. Distinguished from
+  /// kIO_FAILED because "the package's contents could not be unpacked" sends a
+  /// user hunting for corruption in a file that is perfectly fine.
+  kNO_SPACE,
   kIO_FAILED,
 };
 
@@ -423,7 +428,16 @@ auto GF_CORE_EXPORT ReadProfilePackage(const QString &package_path,
 struct GF_CORE_EXPORT ProfileExportRequest {
   QString profile_root;
   QString profiles_root;  ///< where the scratch directory may be made
-  QString dest_path;      ///< the `.gfp` to write
+
+  /// Where the scratch directory should be made instead, when the caller has
+  /// somewhere better. Staging holds a full plaintext copy of the tree
+  /// *including an unprotected application key*, so a session writing itself
+  /// back must stage inside its own protected storage rather than in the
+  /// profiles folder. Empty means profiles_root, which is what every other
+  /// caller still wants.
+  QString scratch_root;
+
+  QString dest_path;  ///< the `.gfp` to write
 
   bool include_workspace = false;
   ProfilePackageProtection protection = ProfilePackageProtection::kPIN;
@@ -453,6 +467,36 @@ auto GF_CORE_EXPORT ExportProfilePackage(const ProfileExportRequest &request)
     -> ProfilePackageWriteResult;
 
 /**
+ * @brief Move one file or directory, even across a filesystem boundary.
+ *
+ * A rename is tried first and is what almost always happens. The copy is for
+ * the one case that genuinely crosses: an import, whose staging sits wherever
+ * the session storage was provisioned while the profile it produces belongs in
+ * the profiles folder. QDir::rename cannot cross a mount point, and without the
+ * fallback an import from protected storage fails claiming the package is
+ * unreadable.
+ *
+ * A failed copy leaves nothing behind: half a profile would be adopted as a
+ * whole one.
+ *
+ * @param source what to move
+ * @param destination where it goes; must not already exist
+ * @return true when the destination holds it and the source is gone
+ */
+auto GF_CORE_EXPORT MoveTreeAcrossFilesystems(const QString &source,
+                                              const QString &destination)
+    -> bool;
+
+/**
+ * @brief How AdoptExtractedProfile() moves each entry into place.
+ *
+ * A seam rather than a hard call, because the crossing case cannot be produced
+ * in a unit test: there is no portable way to make a rename fail with EXDEV on
+ * demand, and a test that needed a second filesystem would not run anywhere.
+ */
+using ProfileTreeMover = std::function<bool(const QString &, const QString &)>;
+
+/**
  * @brief Turn an extracted tree into a profile this machine owns.
  *
  * A package is a copy, not the same profile: the imported root gets a fresh
@@ -466,12 +510,14 @@ auto GF_CORE_EXPORT ExportProfilePackage(const ProfileExportRequest &request)
  * @param id profile id to record
  * @param display_name name to record
  * @param manifest the package's manifest
+ * @param mover how to move each entry; empty means
+ * MoveTreeAcrossFilesystems()
  * @return an error message, empty on success
  */
-auto GF_CORE_EXPORT
-AdoptExtractedProfile(const QString &staging_dir, const QString &profile_root,
-                      const QString &id, const QString &display_name,
-                      const ProfilePackageManifest &manifest) -> QString;
+auto GF_CORE_EXPORT AdoptExtractedProfile(
+    const QString &staging_dir, const QString &profile_root, const QString &id,
+    const QString &display_name, const ProfilePackageManifest &manifest,
+    const ProfileTreeMover &mover = {}) -> QString;
 
 /**
  * @brief A staging directory name the profile scan will never adopt.
@@ -553,13 +599,40 @@ struct GF_CORE_EXPORT ProfileSessionOpenResult {
  * Synchronous, and must not be called on the I/O task runner.
  *
  * @param package_path package to open
- * @param profiles_root where profiles live
+ * @param storage the session's storage driver, already provisioned. Both the
+ * destination and the staging come from it, so extraction never crosses a
+ * filesystem and the tree never touches anywhere the driver did not choose.
  * @param passphrase passphrase, ignored for an unprotected package
  * @param this_schema_version the layout version this build speaks
  * @return the outcome, with the session root and manifest on success
  */
+/**
+ * @brief Record where a session's storage went, next to its lock.
+ *
+ * The anchor is in the profiles folder and the storage may be anywhere — in
+ * memory, in an encrypted volume, in a temporary directory. A process that dies
+ * leaves this pointer and nothing else, and without it the tree is stranded
+ * somewhere no later sweep would think to look.
+ *
+ * Written before extraction rather than after, for the same reason.
+ *
+ * @param anchor the locked directory in the profiles folder
+ * @param state the driver's AnchorState()
+ * @return true when the pointer is on disk
+ */
+auto GF_CORE_EXPORT WriteSessionPointer(const QString &anchor,
+                                        const QJsonObject &state) -> bool;
+
+/**
+ * @brief Read back a session pointer, if there is one.
+ *
+ * @param anchor the directory to look in
+ * @return the recorded state, or an empty object when this is not an anchor
+ */
+auto GF_CORE_EXPORT ReadSessionPointer(const QString &anchor) -> QJsonObject;
+
 auto GF_CORE_EXPORT OpenPackageSession(const QString &package_path,
-                                       const QString &profiles_root,
+                                       ProfileAccessor &storage,
                                        const GFBuffer &passphrase,
                                        int this_schema_version)
     -> ProfileSessionOpenResult;

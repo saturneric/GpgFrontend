@@ -32,6 +32,7 @@
 #include "core/function/GFBufferFactory.h"
 #include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileSecureKeyManager.h"
+#include "core/profile/ProtectedFsProfileAccessor.h"
 #include "core/utils/CommonUtils.h"
 
 namespace GpgFrontend {
@@ -58,9 +59,14 @@ auto MountStatusFor(ProfilePackageReadStatus status) -> ProfileMountStatus {
       return ProfileMountStatus::kTAMPERED;
     case ProfilePackageReadStatus::kMALFORMED:
       return ProfileMountStatus::kMALFORMED;
+    case ProfilePackageReadStatus::kNO_SPACE:
+      return ProfileMountStatus::kNO_SPACE;
     case ProfilePackageReadStatus::kIO_FAILED:
       return ProfileMountStatus::kIO_FAILED;
   }
+  // Not dead code, and not a safety net either: the trailing return means a
+  // status added upstream lands here silently rather than failing to compile,
+  // so anything new must be added above deliberately.
   return ProfileMountStatus::kIO_FAILED;
 }
 
@@ -106,6 +112,8 @@ auto Profile::IsRegistrable() const -> bool { return false; }
 auto Profile::SettingsFilePath() const -> QString {
   return Root() + "/config/config.ini";
 }
+
+auto Profile::LockRoot() const -> QString { return Root(); }
 
 auto Profile::MakeAccessor() const -> QSharedPointer<ProfileAccessor> {
   return QSharedPointer<FsProfileAccessor>::create(Root(), SettingsFilePath());
@@ -202,11 +210,59 @@ PackagedProfile::PackagedProfile(QString package_path, QString profiles_root)
     : package_path_(std::move(package_path)),
       profiles_root_(std::move(profiles_root)) {
   // Derived from the package's own path rather than minted at random, so the
-  // root is known before anything is extracted — which is what lets the loader
-  // take the profile lock first, and lets a second window work out for itself
-  // that this very package is already open.
-  session_root_ = ProfileSessionRoot(profiles_root_, package_path_);
-  id_ = QFileInfo(session_root_).fileName();
+  // anchor is known before anything is extracted — which is what lets the
+  // loader take the profile lock first, and lets a second window work out for
+  // itself that this very package is already open.
+  anchor_ = ProfileSessionRoot(profiles_root_, package_path_);
+  id_ = QFileInfo(anchor_).fileName();
+}
+
+auto PackagedProfile::LockRoot() const -> QString { return anchor_; }
+
+auto PackagedProfile::MakeAccessor() const -> QSharedPointer<ProfileAccessor> {
+  // The one place where a packaged session's storage is decided. Cached rather
+  // than rebuilt, because the loader asks for an accessor more than once and
+  // every caller has to be handed the same storage — and because probing twice
+  // could answer differently the second time.
+  if (!storage_.isNull() || storage_refused_) return storage_;
+
+  ProfileAccessorSpec spec;
+  spec.digest = QFileInfo(anchor_).fileName();
+  spec.anchor = anchor_;
+  spec.policy = ResolveProfileStoragePolicy();
+  // No declared size to go on: the manifest that would carry one lives inside
+  // the ciphertext, and storage has to exist before there is anywhere to
+  // decrypt into. So the budget comes from the package's own size, which is the
+  // only thing readable this early.
+  spec.budget_bytes = ProfileStorageBudget(QFileInfo(package_path_).size(), 0);
+
+  // The digest is the anchor's directory name, which is dot-prefixed so that
+  // the profiles-folder scan skips it. Inside another base that leading dot
+  // would only hide the session from the sweep that has to find it.
+  while (spec.digest.startsWith('.')) spec.digest.remove(0, 1);
+
+  auto result = MakeProfileAccessorFor(spec);
+  storage_rejections_ = result.rejections;
+
+  if (result.accessor.isNull()) {
+    // Remembered, so that a second ask does not re-probe and does not report
+    // the same refusal twice.
+    storage_refused_ = true;
+    return storage_;
+  }
+
+  storage_ = result.accessor;
+  return storage_;
+}
+
+void PackagedProfile::DiscardSessionStorage() {
+  if (storage_) storage_->Release(ProfileStorageRelease::kSCRUB);
+  storage_.reset();
+
+  // The anchor was made only so that it could be locked. Leaving it behind
+  // would litter the profiles folder with one empty directory per package that
+  // failed to open, and the sweep deliberately ignores those.
+  if (!anchor_.isEmpty()) QDir(anchor_).removeRecursively();
 }
 
 auto PackagedProfile::Kind() const -> ProfileKind {
@@ -215,7 +271,12 @@ auto PackagedProfile::Kind() const -> ProfileKind {
 
 auto PackagedProfile::Id() const -> QString { return id_; }
 
-auto PackagedProfile::Root() const -> QString { return session_root_; }
+auto PackagedProfile::Root() const -> QString {
+  // Empty until storage has been provisioned, and deliberately so: where a
+  // session's tree lives is chosen, not derived, and anything that assumed
+  // otherwise should fail loudly here rather than quietly read the anchor.
+  return storage_.isNull() ? QString{} : storage_->PathOf(ProfileArea::kRoot);
+}
 
 auto PackagedProfile::DisplayName() const -> QString {
   if (!manifest_.display_name.isEmpty()) return manifest_.display_name;
@@ -268,7 +329,7 @@ auto PackagedProfile::Inspect() -> ProfileMountResult {
 
 auto PackagedProfile::Mount(const ProfileMountContext &ctx)
     -> ProfileMountResult {
-  if (session_root_.isEmpty()) {
+  if (anchor_.isEmpty()) {
     return {ProfileMountStatus::kIO_FAILED,
             "there is nowhere to open this package"};
   }
@@ -281,7 +342,31 @@ auto PackagedProfile::Mount(const ProfileMountContext &ctx)
     }
   }
 
-  const auto opened = OpenPackageSession(package_path_, profiles_root_,
+  // Provisioned by MakeAccessor(), which the loader calls before it gets here:
+  // the storage is what decides where the tree may be unpacked, so it has to
+  // exist before there is anywhere to unpack into.
+  auto storage = MakeAccessor();
+  if (storage.isNull()) {
+    // Every reason, verbatim: which candidate was passed over and why is the
+    // only part of this a user can act on.
+    return {ProfileMountStatus::kNO_PROTECTED_STORAGE,
+            storage_rejections_.join("\n")};
+  }
+
+  // Before anything is extracted, never after: the anchor is the only thing
+  // that knows where this session's tree went, and a process that dies between
+  // provisioning and recording it strands that tree somewhere no later sweep
+  // would think to look.
+  if (auto *protected_storage =
+          dynamic_cast<ProtectedFsProfileAccessor *>(storage.data());
+      protected_storage != nullptr) {
+    if (!WriteSessionPointer(anchor_, protected_storage->AnchorState())) {
+      LOG_W() << "could not record where this session's storage went:"
+              << anchor_;
+    }
+  }
+
+  const auto opened = OpenPackageSession(package_path_, *storage,
                                          ctx.passphrase, ctx.schema_version);
   if (!opened.Ok()) {
     return {MountStatusFor(opened.status), opened.detail};
@@ -310,7 +395,7 @@ auto PackagedProfile::seal_extracted_key() -> QString {
   //
   // The alternative was a second secret, which would be a second thing to
   // forget, and this way the user is asked exactly once.
-  const auto path = session_root_ + "/secure/app.key";
+  const auto path = MakeAccessor()->PathOf(ProfileArea::kSecure, "app.key");
 
   auto stored = GFBufferFactory::FromFile(path);
   if (!stored) return "the profile's key could not be read";
@@ -352,29 +437,42 @@ void PackagedProfile::record_key_protection(bool pin) {
   // resolves a protection the key on disk does not have. AdoptExtractedProfile
   // writes "none" for the import path, where a local copy deliberately does not
   // inherit the package's passphrase; a session does.
-  QSettings settings(SettingsFilePath(), QSettings::IniFormat);
+  auto settings = MakeAccessor()->Settings();
   settings.setValue("advanced/app_key_protection",
                     AppKeyProtectionToString(pin ? AppKeyProtection::kPIN
                                                  : AppKeyProtection::kNONE));
   settings.sync();
 }
 
-void PackagedProfile::Unmount(ProfileUnmountMode /*mode*/) {
-  if (!mounted_ || session_root_.isEmpty()) return;
+void PackagedProfile::Unmount(ProfileUnmountMode mode) {
+  if (!mounted_) return;
 
   // Whatever the mode: the tree holds a copy of the profile's key material and
   // must not survive the process that unpacked it. Writing the session back to
   // the file it came from happens before this, and belongs to the application —
   // it needs the resident key and the live settings, which a profile has no
   // business reaching for.
-  QDir(session_root_).removeRecursively();
+  //
+  // A forced unmount runs from the shutdown watchdog's thread against a
+  // deadline, so it gets the cheap destruction rather than the thorough one.
+  if (storage_) {
+    storage_->Release(mode == ProfileUnmountMode::kFORCED
+                          ? ProfileStorageRelease::kFAST
+                          : ProfileStorageRelease::kSCRUB);
+  }
   mounted_ = false;
 }
 
 auto PackagedProfile::WriteBackRequest() const -> ProfileExportRequest {
   ProfileExportRequest request;
-  request.profile_root = session_root_;
+  request.profile_root = Root();
   request.profiles_root = profiles_root_;
+
+  // Staged inside this session's own storage. The staging tree is a full
+  // plaintext copy of the profile *including an unprotected application key*,
+  // and putting that in the profiles folder would undo, at the last moment,
+  // exactly what opening the package in protected storage was for.
+  if (storage_) request.scratch_root = storage_->PathOf(ProfileArea::kScratch);
   request.dest_path = package_path_;
   request.include_workspace = manifest_.workspace_included;
   request.protection = protection_;
