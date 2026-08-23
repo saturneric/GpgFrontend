@@ -71,10 +71,15 @@ constexpr qint64 kUnknownSizeFactor = 6;
 /// under-provisioned any profile over about 38 MB.
 constexpr qint64 kBudgetCeiling = 16LL * 1024 * 1024 * 1024;
 
-/// Two and a half times the real unpacked size: one for the tree, one for the
-/// second copy the write-back stages beside it, and a half for what GnuPG adds
-/// while the window is open.
-constexpr qint64 kDeclaredSizeNumerator = 5;
+/// Three halves of the real unpacked size: one for the tree, and a half for
+/// what GnuPG adds while the window is open -- a keybox, private-keys-v1.d, a
+/// trustdb, a random seed.
+///
+/// It used to be two and a half, because a write-back staged a second full copy
+/// of the tree beside the first before packing it. Packing now reads the live
+/// profile, so that copy does not exist and a session no longer needs twice its
+/// own size in free space to be able to save itself.
+constexpr qint64 kDeclaredSizeNumerator = 3;
 constexpr qint64 kDeclaredSizeDenominator = 2;
 
 /// Multiply without wrapping. The inputs come off disk — a truncated or hostile

@@ -217,8 +217,9 @@ auto GF_CORE_EXPORT PlanProfileStorage(
  * Deliberately generous, because the moment this is wrong is the worst one:
  * running out of space at extraction merely fails to open, but running out at
  * close time fails the write-back and loses everything the user did in the
- * session. The tree is staged a second time on the way out, on the same medium,
- * and GnuPG grows its own home directory while the window is open.
+ * session. GnuPG grows its own home directory while the window is open, and
+ * that growth is what the headroom is for -- packing reads the live profile, so
+ * there is no longer a second copy of the tree to make room for.
  *
  * @param package_bytes size of the .gfp on disk; the only signal old packages
  * carry, since the manifest that would say more is inside the ciphertext
