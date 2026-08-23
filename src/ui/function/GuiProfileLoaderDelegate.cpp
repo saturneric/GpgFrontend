@@ -28,13 +28,12 @@
 
 #include "ui/function/GuiProfileLoaderDelegate.h"
 
-#include <qinputdialog.h>
-#include <qlineedit.h>
-
 #include <optional>
 
 #include "core/function/SystemSecretStore.h"
+#include "core/profile/ProfilePackage.h"
 #include "ui/dialog/AppKeyPinDialog.h"
+#include "ui/function/ProfileController.h"
 
 namespace GpgFrontend::UI {
 
@@ -92,24 +91,25 @@ auto ConfirmDestructiveReset(ProfileKeyResetReason reason) -> bool {
 auto GuiProfileLoaderDelegate::AskPackagePassphrase(const QString& package,
                                                     bool retry)
     -> std::optional<GFBuffer> {
-  if (retry) {
-    QMessageBox::warning(nullptr, QObject::tr("Open Profile"),
-                         QObject::tr("That passphrase did not open this file."),
-                         QMessageBox::Ok);
+  // The header is read here rather than passed in: the core delegate interface
+  // hands this only a path and a retry flag, and widening it to carry a parsed
+  // header would be a core API change in service of a label. Reading it costs
+  // one cheap open, and gf_ui links gf_core anyway.
+  //
+  // Whatever it says is shown as a claim and never as a fact. The header sits
+  // outside the sealed payload, so anyone holding the file can write anything
+  // into it; the point of showing it at all is that a file whose claims look
+  // wrong is worth a second thought before a passphrase is typed at it.
+  QString claims;
+  if (const auto inspection = InspectProfilePackage(package); inspection.Ok()) {
+    claims = DescribeUnverifiedHeader(inspection.header);
   }
 
-  bool accepted = false;
-  auto entered = QInputDialog::getText(
-      nullptr, QObject::tr("Open Profile"),
-      QObject::tr("Enter the passphrase that protects this file:") + "\n" +
-          QDir::toNativeSeparators(package),
-      QLineEdit::Password, {}, &accepted);
-  if (!accepted || entered.isEmpty()) return {};
-
-  GFBuffer passphrase(entered);
-  entered.fill('X');
-  entered.clear();
-  return passphrase;
+  // The retry message goes inside the prompt rather than into a box in front of
+  // it: the correction is typed here, so this is where the reason for it
+  // belongs, and one dialog to dismiss beats two.
+  return AppKeyPinDialog::AskPackagePassphrase(
+      nullptr, package, AppKeyPinDialog::Mode::kUNLOCK, retry, claims);
 }
 
 auto GuiProfileLoaderDelegate::AskAppKeyPin(const AppKeyPinRequest& request)

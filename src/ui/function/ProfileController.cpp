@@ -47,6 +47,8 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/AppKeyPinDialog.h"
+#include "ui/dialog/SecretPrompt.h"
 #include "ui/dialog/profile/ProfileCreateDialog.h"
 #include "ui/function/GpgOperaHelper.h"
 
@@ -236,6 +238,28 @@ auto StripProfileArgs(const QStringList& args) -> QStringList {
     out << arg;
   }
   return out;
+}
+
+auto DescribeUnverifiedHeader(const ProfilePackageHeader& header) -> QString {
+  QStringList said;
+  if (!header.created.isEmpty()) {
+    said << QObject::tr("made %1").arg(header.created);
+  }
+  if (!header.writer.isEmpty()) {
+    said << (header.writer_stable
+                 ? QObject::tr("by GpgFrontend %1").arg(header.writer)
+                 : QObject::tr("by a development build of GpgFrontend %1")
+                       .arg(header.writer));
+  }
+  if (said.isEmpty()) return {};
+
+  // The caveat is not optional decoration on the claim, it is the reason the
+  // claim is shown at all. Never returned without it.
+  return QObject::tr("The file says it was %1.").arg(said.join(" ")) + "\n" +
+         QObject::tr(
+             "That comes from the file's unencrypted header, which anyone "
+             "holding the file can change. Nothing is confirmed until the "
+             "passphrase opens it.");
 }
 
 auto ProfilePackageNameFilter() -> QString {
@@ -466,17 +490,29 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
       passphrase.Empty()) {
     // Only reachable when this process did not open the package itself — a deep
     // restart comes back on the same file with nothing carried over in memory.
-    bool accepted = false;
-    auto entered = QInputDialog::getText(
-        parent, QObject::tr("Save Changes"),
-        QObject::tr("Enter the passphrase to protect this file with:") + "\n" +
-            file,
-        QLineEdit::Password, {}, &accepted);
-    if (!accepted || entered.isEmpty()) return false;
+    //
+    // Asked for as kSET rather than kUNLOCK, because that is what it is: this
+    // prompt does not verify anything against the file, it chooses the
+    // passphrase the file is re-sealed with. Without a confirmation field a
+    // single typo here seals the file under something nobody knows, including
+    // the person who just typed it.
+    //
+    // The floor is lowered to one character for this prompt alone. A package
+    // sealed before the floor existed may use four, and someone re-typing the
+    // passphrase their file already has must not be forced to give it a new one
+    // just to save their work.
+    auto texts = DefaultSecretPromptTexts(SecretPromptSubject::kProfilePackage,
+                                          SecretPromptMode::kSET,
+                                          QFileInfo(file).fileName());
+    texts.context_detail =
+        QDir::toNativeSeparators(QFileInfo(file).absolutePath());
+    texts.min_length = 1;
 
-    passphrase = GFBuffer(entered);
-    entered.fill('X');
-    entered.clear();
+    AppKeyPinDialog dialog(SecretPromptMode::kSET, texts, parent);
+    if (dialog.exec() != QDialog::Accepted) return false;
+
+    passphrase = dialog.Pin();
+    if (passphrase.Empty()) return false;
   }
   request.passphrase = passphrase;
 
@@ -596,16 +632,15 @@ void ImportProfileInteractive(QWidget* parent,
 
   GFBuffer passphrase;
   if (inspection.header.protection == ProfilePackageProtection::kPIN) {
-    bool accepted = false;
-    auto entered = QInputDialog::getText(
-        parent, QObject::tr("Import Profile File"),
-        QObject::tr("Enter the passphrase that protects this file:"),
-        QLineEdit::Password, {}, &accepted);
-    if (!accepted || entered.isEmpty()) return;
-
-    passphrase = GFBuffer(entered);
-    entered.fill('X');
-    entered.clear();
+    // The same prompt the startup path uses, so a passphrase is asked for the
+    // same way wherever a profile file is opened. The header was already read
+    // above, so its claims come free — and are shown as claims: it sits outside
+    // the sealed payload, where anyone holding the file could have written it.
+    const auto entered = AppKeyPinDialog::AskPackagePassphrase(
+        parent, path, AppKeyPinDialog::Mode::kUNLOCK, false,
+        DescribeUnverifiedHeader(inspection.header));
+    if (!entered.has_value()) return;
+    passphrase = *entered;
   }
 
   const auto roots = CurrentProfileRoots();
