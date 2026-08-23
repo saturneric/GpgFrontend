@@ -148,4 +148,42 @@ TEST(ProfileLaunchArgsTest, Argv0IsNotPartOfTheRelaunchArguments) {
   EXPECT_EQ(out, QStringList({"-l", "info", "--profile", "work"}));
 }
 
+TEST(ProfileLaunchArgsTest, AnUnverifiedHeaderNeverAppearsWithoutItsCaveat) {
+  // The header sits outside the sealed payload, so anyone holding the file can
+  // write anything into it, and ProfilePackage.h is explicit that it must never
+  // be believed. Showing what it claims is only defensible alongside the
+  // sentence saying so, which is why the two are produced together and never
+  // separately.
+  ProfilePackageHeader header;
+  header.created = "2026-08-01T09:00:00Z";
+  header.writer = "2.1.9";
+  header.writer_stable = true;
+
+  const auto described = DescribeUnverifiedHeader(header);
+  EXPECT_TRUE(described.contains("2026-08-01T09:00:00Z"));
+  EXPECT_TRUE(described.contains("2.1.9"));
+  EXPECT_TRUE(described.contains("says"));
+  EXPECT_TRUE(described.contains("can change"));
+}
+
+TEST(ProfileLaunchArgsTest, ADevelopmentBuildIsSaidToBeOne) {
+  ProfilePackageHeader header;
+  header.writer = "2.1.9";
+  header.writer_stable = false;
+
+  EXPECT_TRUE(DescribeUnverifiedHeader(header).contains("development",
+                                                        Qt::CaseInsensitive));
+
+  header.writer_stable = true;
+  EXPECT_FALSE(DescribeUnverifiedHeader(header).contains("development",
+                                                         Qt::CaseInsensitive));
+}
+
+TEST(ProfileLaunchArgsTest, AHeaderThatClaimsNothingSaysNothing) {
+  // A file whose header carries neither a date nor a writer has nothing worth
+  // quoting, and a caveat about claims that were never made would only be
+  // noise above the passphrase field.
+  EXPECT_TRUE(DescribeUnverifiedHeader(ProfilePackageHeader{}).isEmpty());
+}
+
 }  // namespace GpgFrontend::UI::Test
