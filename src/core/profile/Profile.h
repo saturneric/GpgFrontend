@@ -112,7 +112,8 @@ enum class ProfileMountStatus : std::uint8_t {
   /// I/O failure: nothing was wrong with the package or the machine, the user
   /// asked not to open it anywhere it would be left readable.
   kNO_PROTECTED_STORAGE,
-  kNO_SPACE,  ///< the storage filled up part way through unpacking
+  kNO_SPACE,   ///< the storage filled up part way through unpacking
+  kTOO_LARGE,  ///< the file is larger than this build can open at all
   kIO_FAILED,
 };
 
@@ -527,6 +528,16 @@ class GF_CORE_EXPORT PackagedProfile final : public Profile {
 
   /// What the probe passed over, in the words the user will be shown.
   mutable QStringList storage_rejections_;
+
+  /// Unpacked size the package declares, or 0 when it declares none. Read from
+  /// the manifest by Mount() before any storage is asked for, which is the only
+  /// window in which it can influence how much is provisioned.
+  mutable qint64 declared_bytes_ = 0;
+
+  /// What a sweep needs to find this session's tree after a crash. Kept from
+  /// the moment the storage was chosen, because the accessor handed out above
+  /// may be a decorator and asking it for this would mean knowing its type.
+  mutable QJsonObject storage_anchor_state_;
 
   bool inspected_ = false;
   bool mounted_ = false;

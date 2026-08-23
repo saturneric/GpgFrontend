@@ -61,6 +61,8 @@ auto MountStatusFor(ProfilePackageReadStatus status) -> ProfileMountStatus {
       return ProfileMountStatus::kMALFORMED;
     case ProfilePackageReadStatus::kNO_SPACE:
       return ProfileMountStatus::kNO_SPACE;
+    case ProfilePackageReadStatus::kTOO_LARGE:
+      return ProfileMountStatus::kTOO_LARGE;
     case ProfilePackageReadStatus::kIO_FAILED:
       return ProfileMountStatus::kIO_FAILED;
   }
@@ -230,11 +232,17 @@ auto PackagedProfile::MakeAccessor() const -> QSharedPointer<ProfileAccessor> {
   spec.digest = QFileInfo(anchor_).fileName();
   spec.anchor = anchor_;
   spec.policy = ResolveProfileStoragePolicy();
-  // No declared size to go on: the manifest that would carry one lives inside
-  // the ciphertext, and storage has to exist before there is anywhere to
-  // decrypt into. So the budget comes from the package's own size, which is the
-  // only thing readable this early.
-  spec.budget_bytes = ProfileStorageBudget(QFileInfo(package_path_).size(), 0);
+
+  // The size the package declares, when it declares one. Mount() peeks the
+  // manifest before asking for storage precisely so that this is not a guess:
+  // sizing from the *compressed* file hands a profile that compressed well a
+  // storage too small to open in, which surfaces part way through unpacking or,
+  // worse, at the close that has to write it back.
+  //
+  // Zero for a package written before the field existed, which is the case the
+  // heuristic still covers.
+  spec.budget_bytes =
+      ProfileStorageBudget(QFileInfo(package_path_).size(), declared_bytes_);
 
   // The digest is the anchor's directory name, which is dot-prefixed so that
   // the profiles-folder scan skips it. Inside another base that leading dot
@@ -251,6 +259,7 @@ auto PackagedProfile::MakeAccessor() const -> QSharedPointer<ProfileAccessor> {
     return storage_;
   }
 
+  storage_anchor_state_ = result.anchor_state;
   storage_ = result.accessor;
   return storage_;
 }
@@ -342,8 +351,21 @@ auto PackagedProfile::Mount(const ProfileMountContext &ctx)
     }
   }
 
-  // Provisioned by MakeAccessor(), which the loader calls before it gets here:
-  // the storage is what decides where the tree may be unpacked, so it has to
+  // Ask the package how big it is before asking for anywhere to put it. This
+  // is the only window in which the answer can matter: storage has to exist
+  // before there is anywhere to unpack into, so a size learned afterwards would
+  // arrive too late to size it.
+  //
+  // Best effort by design. A package that will not describe itself here is not
+  // refused -- it may be one written before the field existed, and it may
+  // simply be a wrong passphrase, which the real open below reports properly.
+  if (declared_bytes_ == 0 && storage_.isNull()) {
+    const auto peeked =
+        PeekProfilePackageManifest(package_path_, ctx.passphrase);
+    if (peeked.Ok()) declared_bytes_ = peeked.manifest.uncompressed_bytes;
+  }
+
+  // The storage is what decides where the tree may be unpacked, so it has to
   // exist before there is anywhere to unpack into.
   auto storage = MakeAccessor();
   if (storage.isNull()) {
@@ -357,13 +379,15 @@ auto PackagedProfile::Mount(const ProfileMountContext &ctx)
   // that knows where this session's tree went, and a process that dies between
   // provisioning and recording it strands that tree somewhere no later sweep
   // would think to look.
-  if (auto *protected_storage =
-          dynamic_cast<ProtectedFsProfileAccessor *>(storage.data());
-      protected_storage != nullptr) {
-    if (!WriteSessionPointer(anchor_, protected_storage->AnchorState())) {
-      LOG_W() << "could not record where this session's storage went:"
-              << anchor_;
-    }
+  //
+  // Taken from the factory rather than from the accessor. The accessor may be
+  // wrapped -- a driver that holds an area in memory is still a
+  // ProfileAccessor -- and a cast to the concrete type would silently return
+  // null and skip this, which is exactly the failure the pointer exists to
+  // prevent.
+  if (!storage_anchor_state_.isEmpty() &&
+      !WriteSessionPointer(anchor_, storage_anchor_state_)) {
+    LOG_W() << "could not record where this session's storage went:" << anchor_;
   }
 
   const auto opened = OpenPackageSession(package_path_, *storage,
@@ -390,14 +414,20 @@ auto PackagedProfile::Mount(const ProfileMountContext &ctx)
 auto PackagedProfile::seal_extracted_key() -> QString {
   // A package carries its key unprotected — the package's own passphrase is
   // what protected it. Inside the session that passphrase is still the only
-  // secret in play, so it protects the key here too rather than leaving a
-  // plaintext copy on this disk for as long as the window is open.
+  // secret in play, so the stored form is sealed with it rather than left as
+  // plaintext for as long as the window is open.
   //
   // The alternative was a second secret, which would be a second thing to
   // forget, and this way the user is asked exactly once.
-  const auto path = MakeAccessor()->PathOf(ProfileArea::kSecure, "app.key");
+  //
+  // Through the accessor rather than by path: the driver may hold this area in
+  // memory, in which case there is no file here and never was. What this
+  // decides is the *stored form* — what init_root_key() will Read() and hand
+  // to UnsealKey() — not whether anything on a disk needs erasing.
+  auto storage = MakeAccessor();
+  if (storage.isNull()) return "the profile's key has nowhere to live";
 
-  auto stored = GFBufferFactory::FromFile(path);
+  auto stored = storage->Read(ProfileArea::kSecure, "app.key");
   if (!stored) return "the profile's key could not be read";
 
   const bool wanted = protection_ == ProfilePackageProtection::kPIN;
@@ -424,7 +454,7 @@ auto PackagedProfile::seal_extracted_key() -> QString {
     return "the profile's key did not survive being protected";
   }
 
-  if (!GFBufferFactory::ToFileAtomic(path, *protect)) {
+  if (!storage->Write(ProfileArea::kSecure, "app.key", *protect)) {
     return "the profile's key could not be written";
   }
 
@@ -472,7 +502,6 @@ auto PackagedProfile::WriteBackRequest() const -> ProfileExportRequest {
   // plaintext copy of the profile *including an unprotected application key*,
   // and putting that in the profiles folder would undo, at the last moment,
   // exactly what opening the package in protected storage was for.
-  if (storage_) request.scratch_root = storage_->PathOf(ProfileArea::kScratch);
   request.dest_path = package_path_;
   request.include_workspace = manifest_.workspace_included;
   request.protection = protection_;
