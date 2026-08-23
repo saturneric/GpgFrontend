@@ -71,7 +71,12 @@ class GlobalSettingStation::Impl {
     }
 
     LOG_I() << "app data path: " << GetAppDataPath();
-    LOG_I() << "app secure path: " << accessor().PathOf(ProfileArea::kSecure);
+    // Not the path: a driver may hold this area in memory, and then there is
+    // no path to log. What matters in the startup record is where it went.
+    LOG_I() << "app secure area: "
+            << (accessor().IsAreaResident(ProfileArea::kSecure)
+                    ? accessor().Label()
+                    : accessor().PathOf(ProfileArea::kSecure));
     LOG_I() << "app log path: " << accessor().PathOf(ProfileArea::kLogs);
     LOG_I() << "app modules path: " << accessor().PathOf(ProfileArea::kModules);
   }
