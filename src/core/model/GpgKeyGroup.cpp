@@ -118,6 +118,12 @@ void GpgKeyGroup::SetKeyIds(QStringList key_ids) {
   key_ids_ = std::move(key_ids);
 }
 
+void GpgKeyGroup::SetName(QString name) { name_ = std::move(name); }
+
+void GpgKeyGroup::SetEmail(QString email) { email_ = std::move(email); }
+
+void GpgKeyGroup::SetComment(QString comment) { comment_ = std::move(comment); }
+
 void GpgKeyGroup::SetKeyGroupGetter(KeyGroupRepository *getter) {
   getter_ = getter;
 }

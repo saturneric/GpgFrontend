@@ -247,6 +247,29 @@ class GF_CORE_EXPORT GpgKeyGroup : public GpgAbstractKey {
   void SetKeyIds(QStringList);
 
   /**
+   * @brief Set the display name of this key group.
+   *
+   * Plain setter: validation and persistence belong to KeyGroupRepository.
+   *
+   * @param name new display name
+   */
+  void SetName(QString name);
+
+  /**
+   * @brief Set the email address of this key group.
+   *
+   * @param email new email address, may be empty
+   */
+  void SetEmail(QString email);
+
+  /**
+   * @brief Set the comment of this key group.
+   *
+   * @param comment new comment, may be empty
+   */
+  void SetComment(QString comment);
+
+  /**
    * @brief Set the Disabled object
    *
    */

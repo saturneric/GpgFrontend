@@ -28,13 +28,28 @@
 
 #include "GpgKeyTreeModel.h"
 
+#include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgKey.h"
+#include "core/model/GpgKeyGroup.h"
 #include "core/utils/GpgUtils.h"
 
 namespace GpgFrontend {
 
+namespace {
+
+// The repository refuses to build a cyclic group forest, but the forest is
+// restored from a JSON blob on disk. The model must not be what hangs when
+// that blob is wrong.
+constexpr int kMaxKeyGroupNestingDepth = 8;
+
+}  // namespace
+
+// The build mode deliberately sits after parent: existing call sites pass
+// `this` as the fourth argument, and a pointer would not convert to the enum,
+// so inserting it earlier would silently mean something else.
 GpgKeyTreeModel::GpgKeyTreeModel(int channel, const GpgAbstractKeyPtrList &keys,
-                                 Detector checkable_detector, QObject *parent)
+                                 Detector checkable_detector, QObject *parent,
+                                 GpgKeyTreeBuildMode mode)
     : QAbstractItemModel(parent),
       gpg_context_channel_(channel),
       column_headers_({
@@ -46,7 +61,8 @@ GpgKeyTreeModel::GpgKeyTreeModel(int channel, const GpgAbstractKeyPtrList &keys,
           tr("Algorithm"),
           tr("Create Date"),
       }),
-      checkable_detector_(std::move(checkable_detector)) {
+      checkable_detector_(std::move(checkable_detector)),
+      build_mode_(mode) {
   setup_model_data(keys);
 }
 
@@ -78,10 +94,8 @@ auto GpgKeyTreeModel::rowCount(const QModelIndex &parent) const -> int {
 }
 
 auto GpgKeyTreeModel::columnCount(const QModelIndex &parent) const -> int {
-  if (parent.isValid()) {
-    return static_cast<int>(
-        static_cast<GpgKeyTreeItem *>(parent.internalPointer())->ColumnCount());
-  }
+  // A tree has one column count, not one per item.
+  Q_UNUSED(parent)
   return static_cast<int>(root_->ColumnCount());
 }
 
@@ -170,7 +184,11 @@ void GpgKeyTreeModel::setup_model_data(const GpgAbstractKeyPtrList &keys) {
   cached_items_.clear();
 
   for (const auto &key : keys) {
-    auto pi_key = create_gpg_key_tree_items(key);
+    // AbstractKeyRepository::GetKeys() yields a nullptr for an id that no
+    // longer resolves; such a member simply gets no row.
+    if (key == nullptr) continue;
+
+    auto pi_key = create_tree_items(key, 0, {});
     if (pi_key != nullptr) root->AppendChild(pi_key);
   }
 
@@ -207,7 +225,37 @@ auto GpgKeyTreeModel::GetAllCheckedKeys() -> GpgAbstractKeyPtrList {
   return ret;
 }
 
-auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
+auto GpgKeyTreeModel::create_tree_items(const GpgAbstractKeyPtr &key, int depth,
+                                        const QSet<QString> &visiting)
+    -> QSharedPointer<GpgKeyTreeItem> {
+  if (key == nullptr) return nullptr;
+
+  if (build_mode_ == GpgKeyTreeBuildMode::kKEY_GROUP_MEMBERS &&
+      key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
+    return create_key_group_tree_items(key, depth, visiting);
+  }
+
+  return create_gpg_key_tree_items(key, depth);
+}
+
+void GpgKeyTreeModel::finish_tree_item(
+    const QSharedPointer<GpgKeyTreeItem> &item, int depth) {
+  // Outside a key group tree every row is a root as far as checking goes.
+  const auto direct =
+      build_mode_ != GpgKeyTreeBuildMode::kKEY_GROUP_MEMBERS || depth == 0;
+
+  item->SetEnable(direct);
+  item->SetCheckable(direct && checkable_detector_(item->Key()));
+  item->SetChecked(false);
+
+  // Only rows that can actually be checked take part in the checked-key
+  // lookups. Keeping the deeper ones out makes it impossible for a key that
+  // several nested groups share to be reported more than once.
+  if (direct) cached_items_.push_back(item);
+}
+
+auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key,
+                                                int depth)
     -> QSharedPointer<GpgKeyTreeItem> {
   QVariantList columns;
   columns << "/";
@@ -226,16 +274,12 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
   columns << g_key->ID();
 
   columns << GetUsagesByAbstractKey(key.get());
-  columns << g_key->PublicKeyAlgo();
   columns << g_key->Algo();
   columns << QLocale().toString(g_key->CreationTime(), "yyyy-MM-dd");
 
   assert(key != nullptr);
   auto i_key = SecureCreateSharedObject<GpgKeyTreeItem>(key, columns);
-  i_key->SetEnable(true);
-  i_key->SetCheckable(checkable_detector_(i_key->Key()));
-  i_key->SetChecked(false);
-  cached_items_.push_back(i_key);
+  finish_tree_item(i_key, depth);
 
   for (const auto &s_key : g_key->SubKeys()) {
     // avoid bugs due to duplicate key ids
@@ -247,20 +291,66 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
     columns << g_key->UIDs().front().GetUID();
     columns << s_key.ID();
     columns << GetUsagesByAbstractKey(&s_key);
-    columns << s_key.PublicKeyAlgo();
     columns << s_key.Algo();
     columns << QLocale().toString(s_key.CreationTime(), "yyyy-MM-dd");
 
     auto i_s_key = SecureCreateSharedObject<GpgKeyTreeItem>(
         SecureCreateSharedObject<GpgSubKey>(s_key), columns);
-    i_s_key->SetEnable(true);
-    i_s_key->SetCheckable(checkable_detector_(i_s_key->Key()));
-    i_s_key->SetChecked(false);
+    finish_tree_item(i_s_key, depth + 1);
     i_key->AppendChild(i_s_key);
-    cached_items_.push_back(i_s_key);
   }
 
   return i_key;
+}
+
+auto GpgKeyTreeModel::create_key_group_tree_items(const GpgAbstractKeyPtr &key,
+                                                  int depth,
+                                                  QSet<QString> visiting)
+    -> QSharedPointer<GpgKeyTreeItem> {
+  auto key_group = qSharedPointerDynamicCast<GpgKeyGroup>(key);
+  if (key_group == nullptr) return nullptr;
+
+  // Stop, but still show the row: a group that is already on this path, or one
+  // nested absurdly deep, is rendered as a leaf rather than expanded again.
+  const auto stop =
+      visiting.contains(key_group->ID()) || depth >= kMaxKeyGroupNestingDepth;
+
+  auto identity = key_group->Name();
+  if (!key_group->Email().isEmpty()) {
+    identity = QString("%1 <%2>").arg(identity, key_group->Email());
+  }
+  if (stop) {
+    identity = QString("%1 %2").arg(identity, tr("(already shown above)"));
+  }
+
+  QVariantList columns;
+  columns << "/";
+  columns << "group";
+  columns << identity;
+  columns << key_group->ID();
+  columns << GetUsagesByAbstractKey(key.get());
+  // A key group has no algorithm of its own; anything put here would be a
+  // claim the column header does not support.
+  columns << QString{};
+  columns << QLocale().toString(key_group->CreationTime(), "yyyy-MM-dd");
+
+  auto i_key_group = SecureCreateSharedObject<GpgKeyTreeItem>(key, columns);
+  finish_tree_item(i_key_group, depth);
+
+  if (stop) return i_key_group;
+
+  visiting.insert(key_group->ID());
+  auto &getter = AbstractKeyRepository::GetInstance(gpg_context_channel_);
+
+  for (const auto &key_id : key_group->KeyIds()) {
+    auto member = getter.GetKey(key_id);
+    if (member == nullptr) continue;
+
+    auto i_member = create_tree_items(member, depth + 1, visiting);
+    if (i_member != nullptr) i_key_group->AppendChild(i_member);
+  }
+
+  return i_key_group;
 }
 
 auto GpgKeyTreeModel::GetAllCheckedSubKey() -> QContainer<GpgSubKey> {

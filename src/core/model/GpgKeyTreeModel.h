@@ -242,6 +242,20 @@ inline auto operator&(GpgKeyTreeDisplayMode lhs, GpgKeyTreeDisplayMode rhs)
   return (static_cast<T>(lhs) & static_cast<T>(rhs)) != 0;
 }
 
+/**
+ * @brief How GpgKeyTreeModel turns the keys it is given into a tree.
+ */
+enum class GpgKeyTreeBuildMode : unsigned int {
+  // Only kGPG_KEY roots are built, each with its subkeys as children. Key
+  // groups are dropped. This is what the key pickers use.
+  kKEYS_AND_SUBKEYS = 0,
+  // The roots are exactly the keys handed in, key groups included, and a key
+  // group expands into its own members recursively. Only depth-0 rows are
+  // checkable and only they enter the flat lookup cache, so a key reachable
+  // through several nested groups can never be reported twice.
+  kKEY_GROUP_MEMBERS = 1,
+};
+
 class GF_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
   Q_OBJECT
  public:
@@ -253,8 +267,10 @@ class GF_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
    * @param keys
    * @param parent
    */
-  explicit GpgKeyTreeModel(int channel, const GpgAbstractKeyPtrList &keys,
-                           Detector checkable, QObject *parent = nullptr);
+  explicit GpgKeyTreeModel(
+      int channel, const GpgAbstractKeyPtrList &keys, Detector checkable,
+      QObject *parent = nullptr,
+      GpgKeyTreeBuildMode mode = GpgKeyTreeBuildMode::kKEYS_AND_SUBKEYS);
 
   /**
    * @brief
@@ -384,6 +400,7 @@ class GF_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
   int gpg_context_channel_;
   QVariantList column_headers_;
   Detector checkable_detector_;
+  GpgKeyTreeBuildMode build_mode_;
 
   QSharedPointer<GpgKeyTreeItem> root_;
   QContainer<QSharedPointer<GpgKeyTreeItem>> cached_items_;
@@ -395,13 +412,51 @@ class GF_CORE_EXPORT GpgKeyTreeModel : public QAbstractItemModel {
   void setup_model_data(const GpgAbstractKeyPtrList &keys);
 
   /**
+   * @brief Build the tree item for a root key, dispatching on the build mode.
+   *
+   * @param key key to build a row for
+   * @param depth nesting depth, 0 for a root row
+   * @param visiting key group ids already on the current path, used to stop
+   * the recursion on a malformed (cyclic) group forest
+   * @return the new item, or nullptr if this key gets no row
+   */
+  auto create_tree_items(const GpgAbstractKeyPtr &key, int depth,
+                         const QSet<QString> &visiting)
+      -> QSharedPointer<GpgKeyTreeItem>;
+
+  /**
    * @brief Create a gpg key tree items object
    *
    * @param key
+   * @param depth nesting depth, 0 for a root row
    * @return QSharedPointer<GpgKeyTreeItem>
    */
-  auto create_gpg_key_tree_items(const GpgAbstractKeyPtr &key)
+  auto create_gpg_key_tree_items(const GpgAbstractKeyPtr &key, int depth)
       -> QSharedPointer<GpgKeyTreeItem>;
+
+  /**
+   * @brief Create the row for a key group and, unless the recursion has been
+   * stopped, rows for each of its members.
+   *
+   * @param key key group to build a row for
+   * @param depth nesting depth, 0 for a root row
+   * @param visiting key group ids already on the current path; passed by value
+   * so it tracks the path rather than the whole traversal, which lets a group
+   * that legitimately has several parents appear under each of them
+   * @return QSharedPointer<GpgKeyTreeItem>
+   */
+  auto create_key_group_tree_items(const GpgAbstractKeyPtr &key, int depth,
+                                   QSet<QString> visiting)
+      -> QSharedPointer<GpgKeyTreeItem>;
+
+  /**
+   * @brief Apply the checkability and enabled state for a freshly built item
+   * and, when it takes part in checked-key lookups, cache it.
+   *
+   * @param item item to finish
+   * @param depth nesting depth of the item
+   */
+  void finish_tree_item(const QSharedPointer<GpgKeyTreeItem> &item, int depth);
 };
 
 }  // namespace GpgFrontend
