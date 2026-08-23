@@ -85,4 +85,28 @@ auto GF_UI_EXPORT DescribeSessionStorage(bool is_volatile,
 auto GF_UI_EXPORT DescribeKeySource(bool self_contained, ProfileKind kind)
     -> AboutStatusValue;
 
+/**
+ * @brief Decide whether a reading's sentence belongs on screen or on hover.
+ *
+ * Every sentence written under a value was a line the page had to grow by, and
+ * three of them together pushed the Profile card off the bottom of the dialog.
+ * Elaboration does not need to cost that: it can wait behind a hover and still
+ * be there when someone goes looking.
+ *
+ * A fallback is the exception. The whole point of marking a state degraded is
+ * that the user did not ask for it and would not otherwise notice, so its
+ * reason stays where it cannot be missed. Nothing here is ever dropped: the
+ * clipboard summary carries every sentence either way.
+ *
+ * Deliberately a bool rather than an enum: a typed enum ahead of a Q_OBJECT
+ * class drops the namespace from its tr() context in this project, and this
+ * header is included by a file full of them.
+ *
+ * @param detail the sentence under consideration, possibly empty
+ * @param degraded whether the reading it explains is a fallback
+ * @return true to render it under the value, false to leave it to a tooltip
+ */
+auto GF_UI_EXPORT ShowsDetailInline(const QString& detail, bool degraded)
+    -> bool;
+
 }  // namespace GpgFrontend::UI

@@ -305,6 +305,34 @@ auto GF_UI_EXPORT BorderColor(const QPalette& palette) -> QColor;
 auto GF_UI_EXPORT WarningColor(const QPalette& palette) -> QColor;
 
 /**
+ * @brief Palette-derived colour for something that cannot be undone.
+ *
+ * The narrow exception to the rule the colours above follow: AccentColor()
+ * paints no negative state red and WarningColor() is amber because nothing
+ * there is broken, something merely settled for less than it asked for. This
+ * one is for the other case — key material about to become permanently
+ * unreadable, or about to travel in the clear — where amber would understate
+ * what is at stake. Per-theme like the rest, because a red tuned for a light
+ * background loses its contrast against a dark one.
+ *
+ * @param palette the palette of the widget the text belongs to
+ * @return a red that stays legible under both light and dark themes
+ */
+auto GF_UI_EXPORT DangerColor(const QPalette& palette) -> QColor;
+
+/**
+ * @brief Recolour a plain label's text through its palette.
+ *
+ * The sibling of SetChip() for labels that are not rich text. Going through the
+ * palette rather than a stylesheet keeps the platform font, works in both
+ * themes, and avoids the boxed-panel artefacts QSS introduces on some styles.
+ *
+ * @param label the label to recolour
+ * @param color the text colour, usually from one of the functions above
+ */
+void GF_UI_EXPORT SetLabelTextColor(QLabel* label, const QColor& color);
+
+/**
  * @brief Whether the entry looks like an OpenPGP message container.
  *
  * These are the files that can be decrypted or verified inline.

@@ -38,6 +38,7 @@ namespace {
 using UI::AboutStatusValue;
 using UI::DescribeKeySource;
 using UI::DescribeSessionStorage;
+using UI::ShowsDetailInline;
 
 /// The character the whole restructure exists to remove from these readings.
 constexpr auto kEmDash = QChar(0x2014);
@@ -144,6 +145,45 @@ TEST(AboutStatusInfoTest, EveryValueStillReadsAsAValue) {
           << reading.detail.toStdString();
     }
   }
+}
+
+TEST(AboutStatusInfoTest, ADetailWithoutADegradedStateIsAHover) {
+  // Elaboration does not have to cost the page a line. Three sentences written
+  // under their values is what pushed the Profile card off the bottom of the
+  // dialog; behind a tooltip they are still there for anyone who looks.
+  const auto detail = DescribeSessionStorage(true, false).detail;
+
+  ASSERT_FALSE(detail.isEmpty());
+  EXPECT_FALSE(ShowsDetailInline(detail, false));
+}
+
+TEST(AboutStatusInfoTest, ADegradedStateKeepsItsReasonOnScreen) {
+  // The point of marking a state degraded is that nobody asked for it and
+  // nobody would otherwise notice, so its reason is the one sentence that
+  // cannot be left to a hover.
+  const auto detail = DescribeSessionStorage(false, false).detail;
+
+  ASSERT_FALSE(detail.isEmpty());
+  EXPECT_TRUE(ShowsDetailInline(detail, true));
+}
+
+TEST(AboutStatusInfoTest, NothingIsShownInlineWithoutADetail) {
+  EXPECT_FALSE(ShowsDetailInline({}, false));
+  EXPECT_FALSE(ShowsDetailInline({}, true));
+}
+
+TEST(AboutStatusInfoTest, OnlyTheFallbackStorageOutcomeStaysOnScreen) {
+  // The regression guard: this fails the moment a reading is marked degraded
+  // without anyone deciding whether its sentence should be visible.
+  auto inline_count = 0;
+  for (const auto& reading : AllReadings()) {
+    if (ShowsDetailInline(reading.detail, reading.degraded)) inline_count++;
+  }
+
+  EXPECT_EQ(inline_count, 1);
+
+  const auto plain = DescribeSessionStorage(false, false);
+  EXPECT_TRUE(ShowsDetailInline(plain.detail, plain.degraded));
 }
 
 }  // namespace GpgFrontend::Test

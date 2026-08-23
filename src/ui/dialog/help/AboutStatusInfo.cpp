@@ -81,4 +81,8 @@ auto DescribeKeySource(bool self_contained, ProfileKind kind)
       false};
 }
 
+auto ShowsDetailInline(const QString& detail, bool degraded) -> bool {
+  return !detail.isEmpty() && degraded;
+}
+
 }  // namespace GpgFrontend::UI

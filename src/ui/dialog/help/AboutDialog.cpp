@@ -176,6 +176,67 @@ auto StackValueAndDetail(QWidget* value_widget, const QString& detail,
   return holder;
 }
 
+// Put a muted marker after a value whose explanation is one hover away.
+//
+// The horizontal sibling of StackValueAndDetail(), and it takes an already
+// built value widget for the same reason: a path value is a read-only field
+// rather than a label, and must stay one.
+//
+// The marker earns its place. A sentence moved into a tooltip that nothing
+// points at is a sentence nobody finds, and this one is the only place some of
+// these readings are explained at all.
+auto AttachDetailHint(QWidget* value_widget, const QString& detail,
+                      QWidget* parent = nullptr) -> QWidget* {
+  if (detail.isEmpty()) return value_widget;
+
+  // Qt lays a plain-text tooltip out on one line, and the longest of these
+  // sentences would run wider than the screen. Rich text is what makes it wrap,
+  // and escaping first is what keeps a path or a loader's reason from being
+  // read as markup. Line breaks have to survive that escaping, because a path
+  // row's tooltip carries the path and its sentence as two paragraphs.
+  const auto tip = QStringLiteral("<qt>%1</qt>")
+                       .arg(detail.toHtmlEscaped().replace(
+                           QLatin1Char('\n'), QLatin1String("<br>")));
+
+  auto* holder = new QWidget(parent);
+  auto* layout = new QHBoxLayout(holder);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(4);
+
+  // U+24D8, sized and coloured the way CreateDetailLabel() colours its text:
+  // through the palette rather than a stylesheet, so the platform font
+  // survives. Not selectable, so it never lands in a copied selection.
+  auto* marker = new QLabel(QString(QChar(0x24D8)), holder);
+  marker->setTextInteractionFlags(Qt::NoTextInteraction);
+
+  auto palette = marker->palette();
+  palette.setColor(QPalette::WindowText, MutedTextColor(palette));
+  palette.setColor(QPalette::Text, MutedTextColor(palette));
+  marker->setPalette(palette);
+
+  // The stretch goes on the value, not on a spacer after the marker. A
+  // WrappingLabel reports minimumWidth() as its hint width, which is zero, so a
+  // spacer would take the column and squeeze the value into a ribbon that wraps
+  // to two lines -- taller than the sub-label this replaces. Left to expand, it
+  // stays one line and the markers line up in a column of their own.
+  value_widget->setParent(holder);
+  layout->addWidget(value_widget, 1);
+  layout->addWidget(marker, 0, Qt::AlignTop);
+
+  // Same reasoning as StackValueAndDetail: the holder has to fill the value
+  // column, or the layout hands it a width of its own choosing.
+  QSizePolicy policy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
+  policy.setHeightForWidth(true);
+  holder->setSizePolicy(policy);
+
+  // On all three, so anywhere in the value column is a hover target.
+  holder->setToolTip(tip);
+  value_widget->setToolTip(tip);
+  marker->setToolTip(tip);
+
+  return holder;
+}
+
 // A value with an explanation under it.
 //
 // A form row carries one string, so a value that needed a sentence to be
@@ -185,8 +246,12 @@ auto StackValueAndDetail(QWidget* value_widget, const QString& detail,
 // were happening on this tab. This gives the row a second line instead: the
 // value stays a value, and the sentence sits under it.
 //
+// Which of the two shapes a row takes is ShowsDetailInline()'s call, not this
+// function's: a fallback keeps its reason on screen, everything else hands it
+// to a tooltip so the page stays short enough to read at a glance.
+//
 // @param value the reading itself
-// @param detail the sentence under it; empty yields the bare value label
+// @param detail the sentence about it; empty yields the bare value label
 // @param degraded tint the value, for a state that is a fallback not an intent
 auto CreateValueWithDetail(const QString& value, const QString& detail,
                            bool degraded = false, QWidget* parent = nullptr)
@@ -203,7 +268,11 @@ auto CreateValueWithDetail(const QString& value, const QString& detail,
 
   if (detail.isEmpty()) return value_label;
 
-  return StackValueAndDetail(value_label, detail, parent);
+  if (ShowsDetailInline(detail, degraded)) {
+    return StackValueAndDetail(value_label, detail, parent);
+  }
+
+  return AttachDetailHint(value_label, detail, parent);
 }
 
 auto CreateCard(const QString& title, QWidget* content,
@@ -323,9 +392,10 @@ auto CreateInfoForm(QWidget* parent = nullptr) -> QFormLayout* {
   form->setFormAlignment(Qt::AlignTop);
   form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
   form->setHorizontalSpacing(18);
-  // Enough room that a row carrying a value over a detail sentence is still
-  // told apart from the row under it.
-  form->setVerticalSpacing(10);
+  // Almost every row is one line tall now that a detail sentence waits behind a
+  // tooltip, so the wider gap that used to separate a value from the sentence
+  // of the row above it is just height the page cannot spare.
+  form->setVerticalSpacing(6);
   return form;
 }
 
@@ -668,16 +738,22 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   // Add a row and record it, so every reading on screen is in the clipboard
   // text too. The detail sentence is indented under its value there, the same
   // way it sits under it here.
-  const auto add_row = [&summary](QFormLayout* form, const QString& label,
-                                  const QString& value,
-                                  const QString& detail = {},
-                                  bool degraded = false) {
-    auto* holder = form->parentWidget();
-    form->addRow(label, CreateValueWithDetail(value, detail, degraded, holder));
+  const auto add_row =
+      [&summary](QFormLayout* form, const QString& label, const QString& value,
+                 const QString& detail = {}, bool degraded = false) {
+        auto* holder = form->parentWidget();
+        auto* field = CreateValueWithDetail(value, detail, degraded, holder);
+        form->addRow(label, field);
 
-    summary << QStringLiteral("%1 %2").arg(label, value);
-    if (!detail.isEmpty()) summary << QStringLiteral("    %1").arg(detail);
-  };
+        // The caption is as good a place to aim at as the value, and on a row
+        // whose sentence is only a tooltip it is half the row's hover target.
+        if (auto* caption = form->labelForField(field); caption != nullptr) {
+          caption->setToolTip(field->toolTip());
+        }
+
+        summary << QStringLiteral("%1 %2").arg(label, value);
+        if (!detail.isEmpty()) summary << QStringLiteral("    %1").arg(detail);
+      };
 
   // Paths go through CreatePathValue() rather than a label, so they need their
   // own adder; see that function for why a wrapped label cannot be trusted
@@ -686,8 +762,21 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
                                        const QString& path,
                                        const QString& detail = {}) {
     auto* holder = form->parentWidget();
-    form->addRow(label, StackValueAndDetail(CreatePathValue(path, holder),
-                                            detail, holder));
+
+    // A path is never a fallback state, so its sentence always goes to the
+    // tooltip -- joined to the path CreatePathValue() already put there, since
+    // the field can only carry the one tooltip and the path is the part a
+    // truncated field is hiding.
+    auto* field = AttachDetailHint(
+        CreatePathValue(path, holder),
+        detail.isEmpty() ? detail
+                         : QStringLiteral("%1\n\n%2").arg(path, detail),
+        holder);
+    form->addRow(label, field);
+
+    if (auto* caption = form->labelForField(field); caption != nullptr) {
+      caption->setToolTip(field->toolTip());
+    }
 
     summary << QStringLiteral("%1 %2").arg(label, path);
     if (!detail.isEmpty()) summary << QStringLiteral("    %1").arg(detail);
@@ -735,9 +824,16 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     add_row(status_form, tr("GnuPG Offline Mode:"),
             gnupg_offline_mode ? tr("Active") : tr("Disabled"));
-    add_row(status_form, tr("Pinentry Program Path:"),
-            pinentry_program_path.isEmpty() ? tr("Default Pinentry Program")
-                                            : pinentry_program_path);
+    // A configured path is a path, and gets the read-only field every other
+    // path on this tab gets rather than a label that wraps it at some arbitrary
+    // character. The default is a statement, not a path, so it stays a label.
+    if (pinentry_program_path.isEmpty()) {
+      add_row(status_form, tr("Pinentry Program Path:"),
+              tr("Default Pinentry Program"));
+    } else {
+      add_path_row(status_form, tr("Pinentry Program Path:"),
+                   QDir::toNativeSeparators(pinentry_program_path));
+    }
   }
 
   main_layout->addWidget(

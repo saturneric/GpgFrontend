@@ -884,6 +884,19 @@ auto WarningColor(const QPalette &palette) -> QColor {
   return dark ? QColor(227, 179, 65) : QColor(155, 100, 0);
 }
 
+auto DangerColor(const QPalette &palette) -> QColor {
+  // Same light/dark test AccentColor() and WarningColor() use, so all three
+  // agree about which theme they are painting into.
+  const auto dark = palette.color(QPalette::Base).lightness() < 128;
+  return dark ? QColor(239, 83, 80) : QColor(198, 40, 40);
+}
+
+void SetLabelTextColor(QLabel *label, const QColor &color) {
+  auto palette = label->palette();
+  palette.setColor(QPalette::WindowText, color);
+  label->setPalette(palette);
+}
+
 auto IsFixedPitchFontFamily(const QString &family) -> bool {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   return QFontDatabase::isFixedPitch(family);
