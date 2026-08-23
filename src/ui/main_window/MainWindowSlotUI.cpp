@@ -255,7 +255,6 @@ void MainWindow::slot_export_profile() {
 
   ProfileExportRequest request;
   request.profile_root = profile.Root();
-  request.profiles_root = qApp->property("GFProfilesRoot").toString();
   request.dest_path = dialog.DestinationPath();
   request.include_workspace = dialog.IncludeWorkspace();
   request.protection = dialog.Protection();

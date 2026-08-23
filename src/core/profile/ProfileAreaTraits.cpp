@@ -136,6 +136,11 @@ auto TraitsForArea(ProfileArea area) -> const ProfileAreaTraits * {
 }
 
 auto ProfileAreaDirName(ProfileArea area) -> QString {
+  // An area with no row would return an empty name, and an empty directory name
+  // resolves to the profile root itself -- so PathOf(new_area, "x") would
+  // quietly become <root>/x. Adding an enumerator without a row is a programming
+  // error, and this is where it should be noticed.
+  Q_ASSERT(TraitsForArea(area) != nullptr);
   const auto *traits = TraitsForArea(area);
   return traits == nullptr ? QString{} : QString(traits->dir);
 }
@@ -206,13 +211,18 @@ auto IsIncludedInPackage(const QString &relative_path, bool include_workspace)
 }
 
 auto ManagedKeyDatabaseDirs() -> QStringList {
-  QStringList dirs;
-  for (const auto &row : kAreaTable) {
-    if (!row.area.has_value() && row.packaging == AreaPackaging::kAlways) {
-      dirs << QString(row.dir);
+  // Built once. The table is constexpr, and the one caller is a predicate run
+  // per path during a tree walk.
+  static const QStringList kDirs = []() {
+    QStringList dirs;
+    for (const auto &row : kAreaTable) {
+      if (!row.area.has_value() && row.packaging == AreaPackaging::kAlways) {
+        dirs << QString(row.dir);
+      }
     }
-  }
-  return dirs;
+    return dirs;
+  }();
+  return kDirs;
 }
 
 auto IsManagedKeyDatabasePath(const QString &relative_path) -> bool {

@@ -120,6 +120,9 @@ inline constexpr auto kProfileRootKeyName = "app.key";
 /// Where a profile tree sits inside a package, relative to the archive root.
 inline constexpr auto kProfileTreePrefix = "profile";
 
+/// @note The rows are copies. TraitsForArea() and TraitsForTopLevel() return
+/// pointers into the underlying constexpr array instead, so a pointer from one
+/// never equals the address of a row from the other; compare by `dir` or `area`.
 auto GF_CORE_EXPORT ProfileAreaTable() -> const QList<ProfileAreaTraits> &;
 
 /**

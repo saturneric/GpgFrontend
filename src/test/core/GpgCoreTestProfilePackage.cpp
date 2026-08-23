@@ -88,11 +88,12 @@ auto TestRootKeyMember() -> ProfileMember {
   return member;
 }
 
-auto ExportRequestFor(const QString &root, const QString &profiles_root,
+/// @param profiles_root unused: an export no longer records one. Kept in the
+/// signature so the call sites still read as "this profile, in that folder".
+auto ExportRequestFor(const QString &root, const QString & /*profiles_root*/,
                       const QString &destination) -> ProfileExportRequest {
   ProfileExportRequest request;
   request.profile_root = root;
-  request.profiles_root = profiles_root;
   request.dest_path = destination;
   request.secure_members = {TestRootKeyMember()};
   request.settings.insert("basic/language", "en_US");
@@ -1512,7 +1513,6 @@ TEST(PackagedProfileTest, CarriesItsOwnSecretAndWritesBackWhereItCameFrom) {
   const auto request = packaged.WriteBackRequest();
   EXPECT_EQ(request.dest_path, "/tmp/work.gfp");
   EXPECT_EQ(request.profile_root, packaged.Root());
-  EXPECT_EQ(request.profiles_root, "/srv/profiles");
 }
 
 TEST(ProfilePackageCapTest, TheOneShotCapIsAReadableNumber) {

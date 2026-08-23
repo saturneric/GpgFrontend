@@ -496,7 +496,6 @@ void PackagedProfile::Unmount(ProfileUnmountMode mode) {
 auto PackagedProfile::WriteBackRequest() const -> ProfileExportRequest {
   ProfileExportRequest request;
   request.profile_root = Root();
-  request.profiles_root = profiles_root_;
 
   // Staged inside this session's own storage. The staging tree is a full
   // plaintext copy of the profile *including an unprotected application key*,
