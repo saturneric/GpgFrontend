@@ -133,6 +133,16 @@ struct GF_CORE_EXPORT ProfileAccessorResult {
   /// The policy forbade the only storage that was available, rather than
   /// nothing being available at all. The difference is what the user is told.
   bool refused_protected_only = false;
+
+  /// What a later sweep needs to find this session's tree if the process dies:
+  /// the driver, and the root it provisioned. Empty when the storage is not
+  /// this session's to clean up.
+  ///
+  /// Returned here rather than asked of the accessor afterwards, because the
+  /// accessor may be wrapped -- a decorator that holds an area in memory is
+  /// still a ProfileAccessor, and a dynamic_cast to the concrete driver would
+  /// quietly start returning null and strand the tree.
+  QJsonObject anchor_state;
 };
 
 /**

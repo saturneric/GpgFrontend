@@ -35,6 +35,9 @@
 #include <QStorageInfo>
 #include <array>
 
+#include "core/profile/MemoryAreaProfileAccessor.h"
+#include "core/profile/ProfileAreaTraits.h"
+
 #if defined(Q_OS_LINUX) || defined(Q_OS_FREEBSD)
 #include <sys/stat.h>
 #include <sys/statfs.h>
@@ -536,7 +539,34 @@ auto MakeProfileAccessorFor(const ProfileAccessorSpec &spec)
           << "volatile:" << accessor->IsVolatile()
           << "encrypted:" << accessor->IsEncryptedAtRest();
 
-  result.accessor = accessor;
+  // Taken from the concrete driver here, where the type is still known, rather
+  // than recovered by a cast at the call site.
+  result.anchor_state = accessor->AnchorState();
+
+  // A package carries its application key unprotected -- the package's own
+  // passphrase was what protected it -- so unpacking one normally writes
+  // another machine's key material onto this disk in plaintext, and the
+  // rewrite that follows unlinks the plaintext without overwriting it.
+  //
+  // Holding the secure area in memory instead means those bytes never reach a
+  // filesystem at all. Which areas may be held this way is the area table's
+  // answer, not this function's.
+  QSet<ProfileArea> resident;
+  for (const auto &row : ProfileAreaTable()) {
+    if (!row.area.has_value()) continue;
+    if (row.residency != AreaResidency::kVirtualisable) continue;
+    resident.insert(*row.area);
+  }
+
+  if (resident.isEmpty()) {
+    result.accessor = accessor;
+    return result;
+  }
+
+  result.accessor =
+      QSharedPointer<MemoryAreaProfileAccessor>::create(accessor, resident);
+  LOG_I() << "held in memory rather than on the storage:" << resident.size()
+          << "area(s)";
   return result;
 }
 
