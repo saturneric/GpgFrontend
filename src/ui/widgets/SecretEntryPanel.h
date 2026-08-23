@@ -139,6 +139,12 @@ class GF_UI_EXPORT SecretEntryPanel : public QWidget {
   void SignalStateChanged();
 
  private:
+  /// @brief Wipe every field without announcing it.
+  ///
+  /// Split out of Clear() because the destructor needs the wipe and must not
+  /// have the announcement; see the comment there.
+  void scrub();
+
   /// @brief Build one password field, sized and cleared like all the others.
   auto make_field() -> QLineEdit*;
 

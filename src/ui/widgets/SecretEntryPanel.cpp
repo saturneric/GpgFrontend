@@ -50,12 +50,13 @@ SecretEntryPanel::SecretEntryPanel(Config config, QWidget* parent)
   layout->setContentsMargins(0, 0, 0, 0);
   layout->setSpacing(10);
 
-  // A grid rather than a QFormLayout, because the generator button needs a
-  // column of its own. Putting it in a nested row beside one field makes that
-  // field narrower than the one under it, and two password fields whose right
-  // edges do not line up look like a mistake every time the dialog opens. With
-  // the button in column two, every field ends exactly where that column
-  // starts, whether or not the row beside it has a button.
+  // A grid rather than a QFormLayout so every field is laid out identically.
+  // The generator deliberately does not sit in a column beside the field it
+  // fills: giving it one either makes that field narrower than the one below it
+  // — two password fields whose right edges disagree look like a mistake — or
+  // leaves an empty column under the button, which looks like a missing
+  // control. It lives on the row of controls below instead, beside the reveal
+  // toggle, which is the other thing that acts on the fields above.
   auto* form = new QGridLayout();
   form->setHorizontalSpacing(12);
   form->setVerticalSpacing(10);
@@ -76,22 +77,7 @@ SecretEntryPanel::SecretEntryPanel(Config config, QWidget* parent)
 
   if (config_.ask_new) {
     new_edit_ = make_field();
-    const auto new_row = row;
     add_field(config_.texts.new_label, new_edit_);
-
-    // The generator sits on the row it fills rather than off in a corner, so it
-    // reads as an alternative to typing there rather than as a separate
-    // feature.
-    if (config_.offer_generation) {
-      generate_button_ = new QPushButton(tr("Generate"), this);
-      generate_button_->setIcon(QIcon(":/icons/password-generate.svg"));
-      generate_button_->setToolTip(tr(
-          "Invent a strong passphrase and show it, so you can write it down"));
-      form->addWidget(generate_button_, new_row, 2);
-
-      connect(generate_button_, &QPushButton::clicked, this,
-              &SecretEntryPanel::generate);
-    }
 
     confirm_edit_ = make_field();
     add_field(config_.texts.confirm_label, confirm_edit_);
@@ -99,10 +85,22 @@ SecretEntryPanel::SecretEntryPanel(Config config, QWidget* parent)
 
   layout->addLayout(form);
 
-  // Set apart as a quiet control rather than another form row competing with
-  // the field labels.
+  // The controls that act on the fields above, set apart as quiet controls
+  // rather than as more form rows competing with the field labels.
   reveal_box_ = new QCheckBox(config_.texts.reveal_label, this);
   auto* reveal_row = new QHBoxLayout();
+
+  if (config_.offer_generation) {
+    generate_button_ = new QPushButton(tr("Generate"), this);
+    generate_button_->setIcon(QIcon(":/icons/password-generate.svg"));
+    generate_button_->setToolTip(
+        tr("Invent a strong passphrase and show it, so you can write it down"));
+    reveal_row->addWidget(generate_button_);
+
+    connect(generate_button_, &QPushButton::clicked, this,
+            &SecretEntryPanel::generate);
+  }
+
   reveal_row->addStretch(1);
   reveal_row->addWidget(reveal_box_);
   layout->addLayout(reveal_row);
@@ -154,7 +152,16 @@ SecretEntryPanel::SecretEntryPanel(Config config, QWidget* parent)
   refresh();
 }
 
-SecretEntryPanel::~SecretEntryPanel() { Clear(); }
+SecretEntryPanel::~SecretEntryPanel() {
+  // scrub(), never Clear(). By the time a child widget is destroyed, the parent
+  // dialog's own destructor body has already run and its vtable has been
+  // downgraded to the base class, so announcing SignalStateChanged here would
+  // deliver a slot call to an object that is no longer of the receiving type —
+  // which Qt catches with "Called object is not of the correct type (class
+  // destructor may have already run)" and aborts on. The wipe still has to
+  // happen; only the announcement must not.
+  scrub();
+}
 
 auto SecretEntryPanel::make_field() -> QLineEdit* {
   auto* edit = new QLineEdit(this);
@@ -195,9 +202,17 @@ void SecretEntryPanel::show_default_hint() {
   message_label_->setText(config_.texts.hint);
 }
 
-void SecretEntryPanel::Clear() {
+void SecretEntryPanel::scrub() {
   for (auto* edit : {current_edit_, new_edit_, confirm_edit_}) {
     if (edit == nullptr) continue;
+
+    // Writing to a field emits textChanged, which would run refresh() once per
+    // field and announce a state nobody asked about. Blocked here rather than
+    // at the two call sites, so that scrubbing is silent by construction and a
+    // future caller cannot reintroduce the destruction-time crash by forgetting
+    // to block.
+    const QSignalBlocker block(edit);
+
     // Overwrite before clearing; see the note on Clear() in the header for what
     // this does and does not achieve.
     auto scratch = edit->text();
@@ -207,6 +222,15 @@ void SecretEntryPanel::Clear() {
     }
     edit->clear();
   }
+}
+
+void SecretEntryPanel::Clear() {
+  scrub();
+  // Announced explicitly, because emptying the fields genuinely does change the
+  // state: a retry loop clears and expects its accept button to go back to
+  // disabled. This also restores the idle hint, which is why callers setting an
+  // error message must do so after clearing, not before.
+  refresh();
 }
 
 void SecretEntryPanel::FocusFirstField() {
