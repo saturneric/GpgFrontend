@@ -293,10 +293,17 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * @param policy limits and permissions to enforce
    * @param divert entries this claims are handed to @p sink instead of being
    * written; a directory entry it claims is dropped, since there is nothing to
-   * store. Ignored when @p sink is empty.
-   * @param sink where diverted bytes go
-   * @return 0 on success, negative on failure
+   * store. Diversion happens only when both @p divert and @p sink are set.
+   * @param sink where diverted bytes go; it receives the buffer rather than a
+   * copy of it, so a sink that keeps the bytes keeps that very buffer
+   * @return 0 on success, non-zero on failure
    */
+  static auto ExtractArchiveFromDataExchangerSync(
+      const QSharedPointer<GFDataExchanger> &fd, const QString &target_path,
+      const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive(),
+      const ArchiveEntryFilter &divert = {}, const ArchiveEntrySink &sink = {})
+      -> GFError;
+
   /**
    * @brief Pack entries from a provider into a stream.
    *
@@ -305,20 +312,19 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * paths of the entries, so a provider need only yield those it wants to exist
    * on their own -- an empty one has no file to imply it.
    *
+   * The provider is trusted: entry paths are written as given, and nothing here
+   * checks them for `..` or for being absolute the way extraction checks what it
+   * reads. A caller assembling paths from anything it did not choose itself has
+   * to validate them first.
+   *
    * @param next yields entries until it returns false
    * @param exchanger stream to write the archive into
    * @param compression whether to gzip
-   * @return 0 on success, negative on failure
+   * @return 0 on success, non-zero on failure
    */
   static auto NewArchiveFromMembersSync(
       const ArchiveMemberProvider &next,
       const QSharedPointer<GFDataExchanger> &exchanger,
       ArchiveCompression compression) -> GFError;
-
-  static auto ExtractArchiveFromDataExchangerSync(
-      const QSharedPointer<GFDataExchanger> &fd, const QString &target_path,
-      const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive(),
-      const ArchiveEntryFilter &divert = {}, const ArchiveEntrySink &sink = {})
-      -> GFError;
 };
 }  // namespace GpgFrontend

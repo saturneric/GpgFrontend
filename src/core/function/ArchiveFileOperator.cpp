@@ -772,8 +772,12 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
             ret = -1;
             break;
           }
+          // Subtraction, not addition: `declared` comes off the pax header
+          // and can be any int64 at all, so `total_written + declared` is
+          // signed overflow -- which wraps negative and passes the very check
+          // it is here to make.
           if (policy.max_total_bytes >= 0 &&
-              total_written + declared > policy.max_total_bytes) {
+              declared > policy.max_total_bytes - total_written) {
             FLOG_W(
                 "refusing archive entry '%s': would exceed the total "
                 "extraction limit",
@@ -788,6 +792,17 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
         // filesystem. A directory it claims has no bytes and simply vanishes.
         if (sink && divert && divert(relative_path)) {
           if (filetype == AE_IFDIR) continue;
+
+          // A link's target lives in its header, not its body, so collecting
+          // one would hand the sink zero bytes and store an empty object where
+          // a link was. Strict() refuses links outright and is what the profile
+          // paths use; this is for anyone diverting under Permissive().
+          if (filetype == AE_IFLNK || is_hardlink) {
+            FLOG_W("refusing archive entry '%s': a link cannot be diverted",
+                   qPrintable(path_name));
+            ret = -1;
+            break;
+          }
 
           const auto remaining_for_entry =
               policy.max_total_bytes < 0
