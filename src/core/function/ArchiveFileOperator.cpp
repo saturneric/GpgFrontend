@@ -482,6 +482,23 @@ auto ArchiveFileOperator::NewArchiveFromMembersSync(
     if (!next(member)) break;
     if (member.relative_path.isEmpty()) continue;
 
+    // Exactly one of the three shapes, as the header says. Nothing enforced it,
+    // and FromFile() silently won -- so an entry carrying both was written from
+    // the file and its bytes were dropped without a word.
+    if (!member.source_file.isEmpty() && !member.bytes.Empty()) {
+      FLOG_W("refusing '%s': it is both a file and bytes in hand",
+             qPrintable(member.relative_path));
+      ret = -1;
+      break;
+    }
+    if (member.directory &&
+        (!member.source_file.isEmpty() || !member.bytes.Empty())) {
+      FLOG_W("refusing '%s': it is a directory with contents",
+             qPrintable(member.relative_path));
+      ret = -1;
+      break;
+    }
+
     QFile file(member.source_file);
     qint64 size = 0;
     if (member.directory) {

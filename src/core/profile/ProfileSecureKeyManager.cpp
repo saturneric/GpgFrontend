@@ -437,6 +437,16 @@ auto ProfileSecureKeyManager::KeyLocationForMessage() const -> QString {
 }
 
 auto ProfileSecureKeyManager::ResetKeyStorage(const QString& key_dir) -> bool {
+  // An empty directory is not "the root of the filesystem": it is what a
+  // storage with no path answers, and a driver holding the secure area in
+  // memory is one. Without this the join below addresses "/app.key", finds
+  // nothing there, and reports a reset that did not happen -- to a user who
+  // was told their key was destroyed.
+  if (key_dir.isEmpty()) {
+    LOG_E() << "refusing to reset key storage that has no path";
+    return false;
+  }
+
   const auto path = key_dir + "/" + QString::fromLatin1(kRootKeyName);
 
   // The app key file is the one that must go: without it Initialize() generates

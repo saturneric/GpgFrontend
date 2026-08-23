@@ -133,6 +133,54 @@ TEST(MemoryAreaAccessorTest, TheKeysProtectionCanStillBeChangedWithNoPath) {
       << "changing the key's protection wrote it to the filesystem";
 }
 
+TEST(MemoryAreaAccessorTest, TheKeySetLoadsAndRotatesWithNoFileAnywhere) {
+  // Nothing exercised Load() at all, and it is the path a packaged session
+  // takes on every start: generate or open the profile's own key, mint the
+  // rotating key for this period, and register every earlier one -- all of it
+  // now against a storage that has no filenames to work from.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  auto accessor = Make(dir.path(), {ProfileArea::kSecure});
+  const GFBuffer pin(QString("a-pin"));
+
+  GFBuffer root_key;
+  {
+    ProfileSecureKeyManager manager(accessor);
+    ASSERT_TRUE(manager.Load(pin, {}, true).Ok());
+
+    EXPECT_EQ(manager.Mode(), ProfileKeyMode::kROTATING);
+    EXPECT_FALSE(manager.RootKey().Empty());
+    EXPECT_FALSE(manager.ActiveKeyId().Empty());
+    EXPECT_FALSE(manager.KeyById(manager.ActiveKeyId()).Empty());
+
+    // The location is reportable even though there is no path to report.
+    EXPECT_TRUE(manager.KeyPath().isEmpty());
+    EXPECT_FALSE(manager.KeyLocationForMessage().isEmpty());
+
+    root_key = manager.RootKey();
+  }
+
+  // Both the profile's own key and the rotating key it minted are held here.
+  EXPECT_EQ(CountFilesUnder(dir.path()), 0)
+      << "loading the key set wrote something to the filesystem";
+  EXPECT_TRUE(accessor->Exists(ProfileArea::kSecure, "app.key"));
+  EXPECT_GE(accessor->List(ProfileArea::kSecure, "*.key").size(), 2);
+
+  // Opening the same storage again finds the key that is already there rather
+  // than generating a second one.
+  ProfileSecureKeyManager again(accessor);
+  ASSERT_TRUE(again.Load(pin, {}, true).Ok());
+  EXPECT_EQ(again.RootKey(), root_key);
+}
+
+TEST(MemoryAreaAccessorTest, AResetWithNoPathIsRefusedNotReportedAsDone) {
+  // A resident area has no directory to reset, and the join that used to happen
+  // anyway addressed "/app.key" -- found nothing, and reported success to a
+  // user who had just been told their key was destroyed.
+  EXPECT_FALSE(ProfileSecureKeyManager::ResetKeyStorage({}));
+}
+
 TEST(MemoryAreaAccessorTest, AResidentAreaHasNoPathAndSaysSo) {
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());

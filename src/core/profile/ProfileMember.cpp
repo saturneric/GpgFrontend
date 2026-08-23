@@ -249,6 +249,19 @@ auto StagingMemberSink::Accept(const ProfileMember &member) -> bool {
     return false;
   }
 
+  // The header says exactly one of these is set. Nothing enforced it, and the
+  // file won: a member carrying both silently lost its bytes, which for a
+  // synthesised member is the whole of its content.
+  if (!member.source_path.isEmpty() && !member.bytes.Empty()) {
+    error_ = QString("%1 is both a file and bytes in hand").arg(member.path);
+    return false;
+  }
+  if (member.directory &&
+      (!member.source_path.isEmpty() || !member.bytes.Empty())) {
+    error_ = QString("%1 is a directory with contents").arg(member.path);
+    return false;
+  }
+
   // The prefix is added here and only here. Members speak profile-relative
   // paths; where a package puts the tree is the sink's business.
   const auto target = staging_dir_ + "/" + kTreePrefix + "/" + member.path;
