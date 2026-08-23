@@ -333,6 +333,26 @@ auto GF_UI_EXPORT DangerColor(const QPalette& palette) -> QColor;
 void GF_UI_EXPORT SetLabelTextColor(QLabel* label, const QColor& color);
 
 /**
+ * @brief Wrap content in a titled card.
+ *
+ * A hairline drawn from the palette rather than the platform's StyledPanel
+ * groove, which is a bevel on some styles and nothing at all on others. Shared
+ * rather than rebuilt per dialog so that every card in the application reads as
+ * one set — the alternative is each dialog inventing its own border radius and
+ * padding, which is how a set of panels stops looking like a set.
+ *
+ * Lighter than a QGroupBox, which draws a heavy frame with a notched title and
+ * makes a dialog of three sections look like a form from another decade.
+ *
+ * @param title the card's heading
+ * @param content the widget to seat inside it; reparented to the card
+ * @param parent parent widget
+ * @return the card, ready to add to a layout
+ */
+auto GF_UI_EXPORT CreateCard(const QString& title, QWidget* content,
+                             QWidget* parent = nullptr) -> QFrame*;
+
+/**
  * @brief Whether the entry looks like an OpenPGP message container.
  *
  * These are the files that can be decrypted or verified inline.

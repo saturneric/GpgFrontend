@@ -275,35 +275,6 @@ auto CreateValueWithDetail(const QString& value, const QString& detail,
   return AttachDetailHint(value_label, detail, parent);
 }
 
-auto CreateCard(const QString& title, QWidget* content,
-                QWidget* parent = nullptr) -> QFrame* {
-  auto* frame = new QFrame(parent);
-  frame->setObjectName(QStringLiteral("AboutCard"));
-  frame->setFrameShape(QFrame::StyledPanel);
-
-  // A hairline drawn from the palette rather than the platform's StyledPanel
-  // groove, which is a bevel on some styles and nothing at all on others. This
-  // is the same shape the star card above already uses, so every card in the
-  // dialog now reads as one set.
-  frame->setStyleSheet(QStringLiteral("QFrame#AboutCard {"
-                                      "  border: 1px solid %1;"
-                                      "  border-radius: 8px;"
-                                      "}")
-                           .arg(BorderColor(frame->palette()).name()));
-
-  auto* title_label = new QLabel(QStringLiteral("<b>%1</b>").arg(title), frame);
-  title_label->setTextFormat(Qt::RichText);
-  title_label->setWordWrap(true);
-
-  auto* layout = new QVBoxLayout(frame);
-  layout->setContentsMargins(14, 12, 14, 12);
-  layout->setSpacing(8);
-  layout->addWidget(title_label);
-  layout->addWidget(content);
-
-  return frame;
-}
-
 // A QFrame that invokes a callback when clicked. It needs no signals/slots, so
 // it deliberately omits Q_OBJECT and just overrides the mouse handler.
 class ClickableFrame : public QFrame {

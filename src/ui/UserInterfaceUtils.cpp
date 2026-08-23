@@ -897,6 +897,33 @@ void SetLabelTextColor(QLabel *label, const QColor &color) {
   label->setPalette(palette);
 }
 
+auto CreateCard(const QString &title, QWidget *content, QWidget *parent)
+    -> QFrame * {
+  auto *frame = new QFrame(parent);
+  frame->setObjectName(QStringLiteral("GFCard"));
+  frame->setFrameShape(QFrame::StyledPanel);
+
+  // A hairline drawn from the palette rather than the platform's StyledPanel
+  // groove, which is a bevel on some styles and nothing at all on others.
+  frame->setStyleSheet(QStringLiteral("QFrame#GFCard {"
+                                      "  border: 1px solid %1;"
+                                      "  border-radius: 8px;"
+                                      "}")
+                           .arg(BorderColor(frame->palette()).name()));
+
+  auto *title_label = new QLabel(QStringLiteral("<b>%1</b>").arg(title), frame);
+  title_label->setTextFormat(Qt::RichText);
+  title_label->setWordWrap(true);
+
+  auto *layout = new QVBoxLayout(frame);
+  layout->setContentsMargins(14, 12, 14, 12);
+  layout->setSpacing(8);
+  layout->addWidget(title_label);
+  layout->addWidget(content);
+
+  return frame;
+}
+
 auto IsFixedPitchFontFamily(const QString &family) -> bool {
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
   return QFontDatabase::isFixedPitch(family);
