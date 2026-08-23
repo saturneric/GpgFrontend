@@ -28,36 +28,45 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/model/GFBuffer.h"
+#include "ui/dialog/SecretPrompt.h"
 
 class QLabel;
-class QLineEdit;
-class QProgressBar;
 class QPushButton;
 
 namespace GpgFrontend::UI {
 
+class SecretEntryPanel;
+
 /**
- * @brief Ask for the PIN that protects the application secure key file.
+ * @brief Ask for a secret that protects something on disk.
  *
  * Deliberately not PassphraseDialog: that one is bound to a
  * GpgPassphraseContext and carries a 120 second abort timer sized for gpgme's
  * pinentry callback, which would cut short a settings dialog that is waiting on
  * the answer. Only the strength scoring is shared, via PassphraseStrength.h.
  *
- * The dialog never touches the key itself. The caller decides what a PIN means
- * — unlocking the file at startup, or re-sealing it from the Advanced tab.
+ * The dialog never touches the secret's subject. The caller decides what an
+ * answer means — unlocking the application key at startup, re-sealing it from
+ * the Advanced tab, or opening a profile file somebody sent.
+ *
+ * The name is narrower than what it now does, and that is on purpose. Its
+ * twenty strings are translated into eight languages under the context
+ * GpgFrontend::UI::AppKeyPinDialog, and a class rename would silently orphan
+ * every one of them; what the dialog is *for* is carried by
+ * SecretPromptSubject instead.
  */
 class GF_UI_EXPORT AppKeyPinDialog : public QDialog {
   Q_OBJECT
 
  public:
-  /// What the dialog is being opened for.
-  enum class Mode {
-    kSET,     ///< choose a new PIN: new field, confirmation, strength meter
-    kUNLOCK,  ///< enter the existing PIN: one field, retryable
-    kCHANGE,  ///< current PIN, then a new one with confirmation
-  };
+  /// What the dialog is being opened for. An alias rather than its own enum, so
+  /// that AppKeyPinDialog::Mode::kSET still resolves at every existing caller
+  /// while the wording table can speak about modes without depending on a
+  /// dialog.
+  using Mode = SecretPromptMode;
 
   /// exec() result, alongside QDialog::Accepted (1) / Rejected (0), meaning the
   /// user asked to reset the key to its default unprotected state instead of
@@ -67,12 +76,42 @@ class GF_UI_EXPORT AppKeyPinDialog : public QDialog {
   static constexpr int kResetRequested = 2;
 
   /**
-   * @brief Construct the dialog.
+   * @brief Ask for the application key's PIN, with the wording that has always
+   * gone with it.
    *
    * @param mode what to ask for
    * @param parent parent widget
    */
   explicit AppKeyPinDialog(Mode mode, QWidget* parent = nullptr);
+
+  /**
+   * @brief Ask for some other secret, in the same shape.
+   *
+   * @param mode what to ask for
+   * @param texts what to call it; see DefaultSecretPromptTexts()
+   * @param parent parent widget
+   */
+  AppKeyPinDialog(Mode mode, SecretPromptTexts texts,
+                  QWidget* parent = nullptr);
+
+  /**
+   * @brief Run one prompt for a profile file's passphrase.
+   *
+   * The retry message goes inside the dialog rather than into a message box
+   * ahead of it: the correction is being typed here, so this is where the
+   * reason for it belongs.
+   *
+   * @param parent parent widget, may be null at startup
+   * @param package_file the file, already in native separators
+   * @param mode kUNLOCK to open a file, kSET to seal one
+   * @param retry true when a previous answer did not open it
+   * @param context_note what the file's own header claims, never believed
+   * @return the passphrase, or nothing when the user gave up
+   */
+  static auto AskPackagePassphrase(QWidget* parent, const QString& package_file,
+                                   Mode mode, bool retry,
+                                   const QString& context_note = {})
+      -> std::optional<GFBuffer>;
 
   /**
    * @brief The PIN the user chose or entered.
@@ -106,7 +145,8 @@ class GF_UI_EXPORT AppKeyPinDialog : public QDialog {
    * Hidden until the caller decides the user is stuck — typically after a few
    * failed attempts — so the destructive option is not put in front of someone
    * who simply mistyped once. Clicking it ends the dialog with kResetRequested;
-   * a no-op in the other modes.
+   * a no-op in the other modes, and never offered for a file, where there is
+   * nothing this application could reset.
    */
   void RevealResetOption();
 
@@ -119,25 +159,12 @@ class GF_UI_EXPORT AppKeyPinDialog : public QDialog {
   void showEvent(QShowEvent* event) override;
 
  private:
-  /// @brief Enable the accept button only when the input satisfies the mode.
-  void refresh_validity();
-
-  /// @brief Update the strength bar from the new-PIN field.
-  void refresh_strength();
-
-  /// @brief Restore the idle guidance in the message row: the mode's hint, in a
-  /// dimmed neutral colour, so the reserved space reads as advice rather than
-  /// an empty gap and never as an alarm.
-  void show_default_hint();
+  /// @brief Everything both constructors do, once.
+  void init_ui();
 
   Mode mode_;
-  QString hint_text_;          ///< dimmed guidance shown when there is no error
-  QLineEdit* current_edit_{};  ///< existing PIN; kCHANGE and kUNLOCK
-  QLineEdit* new_edit_{};      ///< new PIN; kSET and kCHANGE
-  QLineEdit* confirm_edit_{};  ///< repeat of new_edit_; kSET and kCHANGE
-  QProgressBar* strength_bar_{};
-  QLabel* strength_label_{};
-  QLabel* error_label_{};
+  SecretPromptTexts texts_;
+  SecretEntryPanel* entry_{};
   QPushButton* accept_button_{};
   QPushButton*
       reset_button_{};  ///< "reset to default" escape hatch; kUNLOCK only
