@@ -44,15 +44,21 @@ namespace {
 // The available pane holds exactly one tab.
 constexpr int kAvailableTabIndex = 0;
 
-// Columns of GpgKeyTreeModel that the member list hides.
+// Columns of GpgKeyTreeModel, as laid out by its column headers.
+constexpr int kSelectColumn = 0;
+constexpr int kTypeColumn = 1;
+constexpr int kIdentityColumn = 2;
+constexpr int kKeyIdColumn = 3;
 constexpr int kUsageColumn = 4;
 constexpr int kAlgorithmColumn = 5;
 constexpr int kCreateDateColumn = 6;
 
+// Every candidate is encryption-capable by construction, so a usage column
+// would read the same on every row, and owner trust is not what membership
+// turns on. Both stay available through the Columns chooser.
 const auto kAvailableColumns =
     GpgKeyTableColumn::kTYPE | GpgKeyTableColumn::kNAME |
-    GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kKEY_ID |
-    GpgKeyTableColumn::kUSAGE | GpgKeyTableColumn::kOWNER_TRUST;
+    GpgKeyTableColumn::kEMAIL_ADDRESS | GpgKeyTableColumn::kKEY_ID;
 
 auto MakeHintLabel(QWidget* parent) -> QLabel* {
   auto* label = new QLabel(parent);
@@ -238,6 +244,21 @@ void KeyGroupManageDialog::init_panes(QVBoxLayout* layout) {
     members_view_->setColumnHidden(column, true);
   }
 
+  // Identity absorbs the leftover width and elides. Sizing it to its contents
+  // instead, as the shared view does, lets a long user ID push the key ID off
+  // the pane and leaves a horizontal scrollbar behind.
+  members_view_->setTextElideMode(Qt::ElideRight);
+
+  auto* member_columns = members_view_->header();
+  member_columns->setStretchLastSection(false);
+  member_columns->setSectionResizeMode(kSelectColumn,
+                                       QHeaderView::ResizeToContents);
+  member_columns->setSectionResizeMode(kTypeColumn,
+                                       QHeaderView::ResizeToContents);
+  member_columns->setSectionResizeMode(kIdentityColumn, QHeaderView::Stretch);
+  member_columns->setSectionResizeMode(kKeyIdColumn,
+                                       QHeaderView::ResizeToContents);
+
   auto* members_header = new QHBoxLayout();
   members_header->setContentsMargins(0, 0, 0, 0);
   members_header->addWidget(MakeSectionLabel(tr("Members"), members_pane));
@@ -309,6 +330,11 @@ void KeyGroupManageDialog::init_panes(QVBoxLayout* layout) {
 
   // One fixed tab: the category rail would have nothing to switch between.
   available_list_->SetCategoryRailVisible(false);
+
+  // The key list carries its own chrome margins, sized for a main window. Left
+  // as-is they open a gap between the section label and the search box that the
+  // members pane opposite does not have.
+  available_list_->SetChromeInset({0, 0, 0, 0}, {0, 0, 0, 0});
 
   // The shared wording talks about tabs and keyrings, which explains nothing
   // here. Running out of candidates is the normal end state of this pane.
