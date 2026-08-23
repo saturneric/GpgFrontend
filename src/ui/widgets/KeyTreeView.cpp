@@ -32,6 +32,7 @@
 #include "ui/UISignalStation.h"
 #include "ui/UserInterfaceUtils.h"
 #include "ui/model/GpgKeyTreeProxyModel.h"
+#include "ui/widgets/KeyTableEmptyState.h"
 
 namespace GpgFrontend::UI {
 
@@ -40,8 +41,7 @@ KeyTreeView::KeyTreeView(QWidget* parent)
       checkable_detector_([](auto) { return false; }),
       key_filter_([](auto) { return true; }),
       model_(SecureCreateSharedObject<GpgKeyTreeModel>(
-          channel_, AbstractKeyRepository::GetInstance(channel_).Fetch(),
-          checkable_detector_, this)),
+          channel_, GpgAbstractKeyPtrList{}, checkable_detector_, this)),
       proxy_model_(model_, GpgKeyTreeDisplayMode::kALL, key_filter_, this) {
   init();
 }
@@ -55,8 +55,7 @@ KeyTreeView::KeyTreeView(int channel,
       checkable_detector_(std::move(checkable_detector)),
       key_filter_(std::move(filter)),
       model_(SecureCreateSharedObject<GpgKeyTreeModel>(
-          channel_, AbstractKeyRepository::GetInstance(channel_).Fetch(),
-          checkable_detector_, this)),
+          channel_, GpgAbstractKeyPtrList{}, checkable_detector_, this)),
       proxy_model_(model_, GpgKeyTreeDisplayMode::kALL, key_filter_, this) {
   init();
 }
@@ -77,7 +76,7 @@ void KeyTreeView::init_view_style() {
   setSelectionBehavior(QAbstractItemView::SelectRows);
   setSelectionMode(QAbstractItemView::SingleSelection);
   setEditTriggers(QAbstractItemView::NoEditTriggers);
-  setFocusPolicy(Qt::NoFocus);
+  setFocusPolicy(Qt::StrongFocus);
 
   setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
   setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
@@ -125,6 +124,46 @@ void KeyTreeView::paintEvent(QPaintEvent* event) {
     slot_adjust_column_widths();
     init_ = true;
   }
+
+  if (!empty_state_enabled_) return;
+
+  const auto reason = ClassifyKeyTableEmptyState(
+      proxy_model_.rowCount({}), model_ != nullptr ? model_->rowCount({}) : 0,
+      !search_keywords_.isEmpty(), false);
+  if (reason == KeyTableEmptyReason::kNotEmpty) return;
+
+  // The shared "no keys yet, generate one" wording is wrong when the tree
+  // shows the contents of something rather than a keyring.
+  const auto text = reason == KeyTableEmptyReason::kKeyringEmpty &&
+                            !empty_state_text_.isEmpty()
+                        ? empty_state_text_
+                        : DescribeKeyTableEmptyState(reason, search_keywords_);
+
+  QPainter painter(viewport());
+  painter.setPen(palette().color(QPalette::Disabled, QPalette::Text));
+  painter.drawText(viewport()->rect().adjusted(24, 24, -24, -24),
+                   Qt::AlignCenter | Qt::TextWordWrap, text);
+}
+
+void KeyTreeView::keyPressEvent(QKeyEvent* event) {
+  if (event->key() == Qt::Key_Space) {
+    const auto index = currentIndex();
+    if (index.isValid()) {
+      const auto check_index = index.sibling(index.row(), 0);
+      const auto state = check_index.data(Qt::CheckStateRole);
+
+      if (state.isValid()) {
+        proxy_model_.setData(
+            check_index,
+            state.toInt() == Qt::Checked ? Qt::Unchecked : Qt::Checked,
+            Qt::CheckStateRole);
+        event->accept();
+        return;
+      }
+    }
+  }
+
+  QTreeView::keyPressEvent(event);
 }
 
 void KeyTreeView::slot_adjust_column_widths() {
@@ -152,7 +191,7 @@ void KeyTreeView::init() {
 
   connect(this, &QTreeView::doubleClicked, this,
           [this](const QModelIndex& index) {
-            if (!index.isValid()) return;
+            if (!open_details_on_double_click_ || !index.isValid()) return;
 
             auto key = GetKeyByIndex(index);
             if (key == nullptr) return;
@@ -170,18 +209,20 @@ void KeyTreeView::init() {
             emit SignalKeysChecked(GetAllCheckedKeys());
           });
 
-  // Fully expand on first construction so subkeys are visible by default —
-  // reset_model() does the same after a refresh, but that path isn't taken
-  // when the view is first shown.
-  expandAll();
+  // The constructors build an empty model so that key_provider_ does not have
+  // to be alive before the member initialiser list runs; the first real build
+  // happens here, through the same path every later refresh takes.
+  reset_model();
 }
 
 void KeyTreeView::reset_model() {
   init_ = false;
 
   model_ = SecureCreateSharedObject<GpgKeyTreeModel>(
-      channel_, AbstractKeyRepository::GetInstance(channel_).Fetch(),
-      checkable_detector_, this);
+      channel_,
+      key_provider_ ? key_provider_()
+                    : AbstractKeyRepository::GetInstance(channel_).Fetch(),
+      checkable_detector_, this, build_mode_);
 
   proxy_model_.setSourceModel(model_.get());
   proxy_model_.SetKeyFilter(key_filter_);
@@ -202,6 +243,45 @@ void KeyTreeView::SetKeyFilter(const GpgKeyTreeProxyModel::KeyFilter& filter) {
   key_filter_ = filter;
   proxy_model_.SetKeyFilter(key_filter_);
   proxy_model_.invalidate();
+}
+
+void KeyTreeView::SetKeyProvider(KeyProvider provider) {
+  key_provider_ = std::move(provider);
+  reset_model();
+}
+
+void KeyTreeView::SetBuildMode(GpgKeyTreeBuildMode mode) {
+  if (build_mode_ == mode) return;
+
+  build_mode_ = mode;
+  reset_model();
+}
+
+void KeyTreeView::SetSearchKeywords(const QString& keywords) {
+  search_keywords_ = keywords;
+  proxy_model_.SetSearchKeywords(keywords);
+
+  // A match inside a collapsed branch is no match at all to the user.
+  expandAll();
+  viewport()->update();
+}
+
+void KeyTreeView::SetRecursiveFiltering(bool enabled) {
+  proxy_model_.SetRecursiveFiltering(enabled);
+}
+
+void KeyTreeView::SetEmptyStateEnabled(bool enabled) {
+  empty_state_enabled_ = enabled;
+  viewport()->update();
+}
+
+void KeyTreeView::SetEmptyStateText(const QString& when_empty) {
+  empty_state_text_ = when_empty;
+  viewport()->update();
+}
+
+void KeyTreeView::SetOpenDetailsOnDoubleClick(bool enabled) {
+  open_details_on_double_click_ = enabled;
 }
 
 void KeyTreeView::SetChannel(int channel) {

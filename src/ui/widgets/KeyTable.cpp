@@ -558,11 +558,20 @@ void KeyTable::paintEvent(QPaintEvent* event) {
       has_category_filter_);
   if (reason == KeyTableEmptyReason::kNotEmpty) return;
 
+  const auto text = reason == KeyTableEmptyReason::kFilteredOut &&
+                            !filtered_out_text_.isEmpty()
+                        ? filtered_out_text_
+                        : DescribeKeyTableEmptyState(reason, current_keyword_);
+
   QPainter painter(viewport());
   painter.setPen(palette().color(QPalette::Disabled, QPalette::Text));
   painter.drawText(viewport()->rect().adjusted(24, 24, -24, -24),
-                   Qt::AlignCenter | Qt::TextWordWrap,
-                   DescribeKeyTableEmptyState(reason, current_keyword_));
+                   Qt::AlignCenter | Qt::TextWordWrap, text);
+}
+
+void KeyTable::SetFilteredOutText(const QString& text) {
+  filtered_out_text_ = text;
+  viewport()->update();
 }
 
 void KeyTable::keyPressEvent(QKeyEvent* event) {

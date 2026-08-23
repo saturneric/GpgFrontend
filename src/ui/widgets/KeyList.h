@@ -183,6 +183,24 @@ class KeyList : public QWidget {
   void SetCategoryRailCompact(bool compact = true);
 
   /**
+   * @brief Show or hide the category rail.
+   *
+   * A host with a single fixed tab has nothing to switch between, so the rail
+   * is pure chrome there.
+   *
+   * @param visible whether the rail is shown
+   */
+  void SetCategoryRailVisible(bool visible);
+
+  /**
+   * @brief Override the message every page draws when it filters everything
+   * out.
+   *
+   * @param text message to draw, empty restores the shared wording
+   */
+  void SetFilteredOutText(const QString& text);
+
+  /**
    * @brief Enable the full category-management affordances on this key list:
    * an add-category (+) button and a context menu offering New / Rename /
    * Set Colour / Manage Members / Delete.
@@ -494,6 +512,7 @@ class KeyList : public QWidget {
   QString tab_order_settings_key_ = "keys/key_tab_order";
   ///< Durable-cache scope holding this key list's table layout.
   QString persistence_scope_ = "global";
+  QString filtered_out_text_;
 
   ///< When true this key list restores and persists its checked keys (subject
   ///< to the user setting). See SetRememberCheckedKeys().

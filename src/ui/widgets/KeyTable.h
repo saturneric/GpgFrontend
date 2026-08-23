@@ -177,6 +177,16 @@ struct KeyTable : public QTableView {
   void SetColumnWidthsScope(const QString& scope);
 
   /**
+   * @brief Override the message drawn when the table filters everything out.
+   *
+   * The shared wording explains an empty tab in terms of the keyring, which is
+   * wrong when the table is offering candidates for something.
+   *
+   * @param text message to draw, empty restores the shared wording
+   */
+  void SetFilteredOutText(const QString& text);
+
+  /**
    * @brief Re-read the persisted column widths and apply them. Used to keep
    * sibling tabs of the same key list in sync after a resize.
    */
@@ -263,6 +273,7 @@ struct KeyTable : public QTableView {
   ///< whether it is empty because of the search or because there is nothing to
   ///< show.
   QString current_keyword_;
+  QString filtered_out_text_;
 
   ///< False until the first model arrives. Only then is the default sort
   ///< applied; every later refresh restores whatever the user had chosen.

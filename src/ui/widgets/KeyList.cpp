@@ -346,6 +346,16 @@ void KeyList::SetCategoryRailCompact(bool compact) {
   }
 }
 
+void KeyList::SetCategoryRailVisible(bool visible) {
+  if (ui_ == nullptr || ui_->categoryPane == nullptr) return;
+  ui_->categoryPane->setVisible(visible);
+}
+
+void KeyList::SetFilteredOutText(const QString& text) {
+  filtered_out_text_ = text;
+  for (auto* page : pages_) page->SetFilteredOutText(text);
+}
+
 void KeyList::SetCategoryManagementEnabled(bool enabled) {
   category_management_enabled_ = enabled;
   if (ui_ != nullptr && ui_->addCategoryButton != nullptr) {
@@ -920,6 +930,9 @@ auto KeyList::AddListGroupTab(const QString& name, const QString& id,
 
   key_table->setObjectName(id);
   key_table->SetColumnWidthsScope(persistence_scope_);
+  if (!filtered_out_text_.isEmpty()) {
+    key_table->SetFilteredOutText(filtered_out_text_);
+  }
 
   ui_->keyStack->addWidget(key_table);
   pages_.insert(id, key_table);

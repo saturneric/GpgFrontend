@@ -100,6 +100,65 @@ class KeyTreeView : public QTreeView {
   void SetKeyFilter(const GpgKeyTreeProxyModel::KeyFilter& filter);
 
   /**
+   * @brief Supplies the root keys the tree is built from.
+   */
+  using KeyProvider = std::function<GpgAbstractKeyPtrList()>;
+
+  /**
+   * @brief Seed the tree from something other than the whole keyring.
+   *
+   * @param provider called on every rebuild; the default returns every key
+   * known to the channel
+   */
+  void SetKeyProvider(KeyProvider provider);
+
+  /**
+   * @brief Choose how the provided keys are turned into a tree.
+   *
+   * @param mode build mode, see GpgKeyTreeBuildMode
+   */
+  void SetBuildMode(GpgKeyTreeBuildMode mode);
+
+  /**
+   * @brief Filter the visible rows by a search keyword.
+   *
+   * @param keywords keyword to match, empty clears the filter
+   */
+  void SetSearchKeywords(const QString& keywords);
+
+  /**
+   * @brief Keep a row whose descendant matches the search keyword.
+   *
+   * @param enabled whether descendants may keep their ancestors visible
+   */
+  void SetRecursiveFiltering(bool enabled);
+
+  /**
+   * @brief Draw an explanatory message when no row is visible.
+   *
+   * @param enabled whether the overlay is drawn
+   */
+  void SetEmptyStateEnabled(bool enabled);
+
+  /**
+   * @brief Override the message shown when the tree holds nothing at all.
+   *
+   * The shared default points the user at key generation, which is the wrong
+   * advice when the tree shows the contents of something rather than a
+   * keyring.
+   *
+   * @param when_empty message to draw, empty restores the default
+   */
+  void SetEmptyStateText(const QString& when_empty);
+
+  /**
+   * @brief Whether a double click opens the key details dialog.
+   *
+   * @param enabled false leaves double click to expand and collapse only
+   */
+  void SetOpenDetailsOnDoubleClick(bool enabled);
+
+  /**
    * @brief
    *
    * @param channel
@@ -127,6 +186,12 @@ class KeyTreeView : public QTreeView {
    */
   void paintEvent(QPaintEvent* event) override;
 
+  /**
+   * @brief Toggle the current row's check state on Space.
+   *
+   */
+  void keyPressEvent(QKeyEvent* event) override;
+
  private:
   bool init_ = false;
   int channel_ = kGpgFrontendDefaultChannel;
@@ -135,6 +200,12 @@ class KeyTreeView : public QTreeView {
   };
   GpgKeyTreeProxyModel::KeyFilter key_filter_ =
       [](const GpgAbstractKey*) -> bool { return true; };
+  GpgKeyTreeBuildMode build_mode_ = GpgKeyTreeBuildMode::kKEYS_AND_SUBKEYS;
+  KeyProvider key_provider_;
+  QString search_keywords_;
+  bool empty_state_enabled_ = false;
+  bool open_details_on_double_click_ = true;
+  QString empty_state_text_;
   QSharedPointer<GpgKeyTreeModel> model_;
   GpgKeyTreeProxyModel proxy_model_;
 
