@@ -158,9 +158,9 @@ auto GF_CORE_EXPORT ProfileAreaDirName(ProfileArea area) -> QString;
  *
  * Two rules, in this order. The **top level** is an allow-list read from the
  * table: a name with no row does not travel, whatever it contains. **Within**
- * an admitted directory a deny-list still applies, because `db/` and `dbs/*`
- * are gpg-agent's working directories and hold sockets, lock files and editor
- * leftovers that mean nothing on another machine.
+ * an admitted directory a deny-list still applies, because the `db/` and
+ * `dbs/` subtrees are gpg-agent's working directories and hold sockets, lock
+ * files and editor leftovers that mean nothing on another machine.
  *
  * Pure, so the whole truth table can be asserted without a filesystem.
  *
