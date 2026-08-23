@@ -37,13 +37,10 @@ namespace GpgFrontend {
 
 namespace {
 
-/// The name of the profile's own key, and the reason this file exists: it is
-/// the one object in the secure area whose bytes do not come from where the
-/// others' do.
-constexpr auto kRootKeyName = "app.key";
-
-/// Where a profile tree sits inside a package.
-constexpr auto kTreePrefix = "profile";
+/// Both shared with ProfileSecureKeyManager and ProfilePackage, from the area
+/// table -- see kProfileRootKeyName for why these are not local strings.
+constexpr auto kRootKeyName = kProfileRootKeyName;
+constexpr auto kTreePrefix = kProfileTreePrefix;
 
 /// Storage of its own, not a share of somebody else's.
 ///

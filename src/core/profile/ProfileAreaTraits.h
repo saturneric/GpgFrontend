@@ -107,6 +107,19 @@ struct GF_CORE_EXPORT ProfileAreaTraits {
  *
  * @return the table, in no significant order
  */
+/// The name of the profile's own application key inside the secure area.
+///
+/// Here rather than beside either of its users. It is the one object in the
+/// secure area whose bytes do not come from where the others' do, so it is
+/// load-bearing in two unrelated places: the guard that keeps it out of the
+/// rotated-key trial-decrypt loop, and the rule that resolves it from the key
+/// in hand rather than from storage. Two private copies of the string meant
+/// changing one silently fed the root key into that loop.
+inline constexpr auto kProfileRootKeyName = "app.key";
+
+/// Where a profile tree sits inside a package, relative to the archive root.
+inline constexpr auto kProfileTreePrefix = "profile";
+
 auto GF_CORE_EXPORT ProfileAreaTable() -> const QList<ProfileAreaTraits> &;
 
 /**

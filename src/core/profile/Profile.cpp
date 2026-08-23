@@ -427,7 +427,7 @@ auto PackagedProfile::seal_extracted_key() -> QString {
   auto storage = MakeAccessor();
   if (storage.isNull()) return "the profile's key has nowhere to live";
 
-  auto stored = storage->Read(ProfileArea::kSecure, "app.key");
+  auto stored = storage->Read(ProfileArea::kSecure, kProfileRootKeyName);
   if (!stored) return "the profile's key could not be read";
 
   const bool wanted = protection_ == ProfilePackageProtection::kPIN;
@@ -454,7 +454,7 @@ auto PackagedProfile::seal_extracted_key() -> QString {
     return "the profile's key did not survive being protected";
   }
 
-  if (!storage->Write(ProfileArea::kSecure, "app.key", *protect)) {
+  if (!storage->Write(ProfileArea::kSecure, kProfileRootKeyName, *protect)) {
     return "the profile's key could not be written";
   }
 

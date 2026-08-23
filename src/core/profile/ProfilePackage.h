@@ -32,6 +32,7 @@
 
 #include "core/model/GFBuffer.h"
 #include "core/profile/ProfileAccessor.h"
+#include "core/profile/ProfileAreaTraits.h"
 #include "core/profile/ProfileMember.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/typedef/CoreTypedef.h"
@@ -63,7 +64,7 @@ inline constexpr int kProfilePackageMinReader = 2;
 inline constexpr int kProfilePackageStreamedFrom = 2;
 
 /// Where the tree sits inside the archive; `manifest.json` sits beside it.
-inline constexpr auto kProfilePackageTreePrefix = "profile";
+inline constexpr auto kProfilePackageTreePrefix = kProfileTreePrefix;
 
 /// The extension every desktop shell registers the format under, dot included.
 /// Short enough to survive an 8.3 filesystem, and spelled once: the argv scan,

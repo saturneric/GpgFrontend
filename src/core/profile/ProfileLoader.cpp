@@ -466,7 +466,7 @@ auto ProfileLoader::reset_key_storage() -> bool {
 auto ProfileLoader::resolve_secret(AppKeyProtection protection, GFBuffer& pin,
                                    GFBuffer& wrap) -> bool {
   const auto key_path =
-      session_->Accessor().PathOf(ProfileArea::kSecure, "app.key");
+      session_->Accessor().PathOf(ProfileArea::kSecure, kProfileRootKeyName);
 
   // A packaged profile has exactly one secret. The passphrase that opened the
   // package is also what seals the key inside it, so there is nothing to ask
@@ -479,7 +479,7 @@ auto ProfileLoader::resolve_secret(AppKeyProtection protection, GFBuffer& pin,
   // plaintext file would fail to open a key that is sitting right there.
   if (profile_->Kind() == ProfileKind::kPACKAGED) {
     const auto stored =
-        session_->Accessor().Read(ProfileArea::kSecure, "app.key");
+        session_->Accessor().Read(ProfileArea::kSecure, kProfileRootKeyName);
     if (stored && AESCryptoHelper::IsEncryptedBuffer(*stored)) {
       pin = static_cast<PackagedProfile&>(*profile_).Passphrase();
     }
@@ -552,7 +552,7 @@ auto ProfileLoader::resolve_secret(AppKeyProtection protection, GFBuffer& pin,
     return true;
   }
 
-  auto on_disk = session_->Accessor().Read(ProfileArea::kSecure, "app.key");
+  auto on_disk = session_->Accessor().Read(ProfileArea::kSecure, kProfileRootKeyName);
   if (!on_disk) {
     // The file exists but will not read: an unlock loop can only repeat, so say
     // what is actually wrong and stop.

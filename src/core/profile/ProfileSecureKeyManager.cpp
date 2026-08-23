@@ -28,6 +28,8 @@
 
 #include "core/profile/ProfileSecureKeyManager.h"
 
+#include "core/profile/ProfileAreaTraits.h"
+
 #include <sodium.h>
 
 #include "core/function/AESCryptoHelper.h"
@@ -48,7 +50,8 @@ constexpr auto kEmptyPinLabel = "GpgFrontend";
 constexpr int kRootKeyLen = 256;
 
 /// The file the profile's own key is stored in.
-constexpr auto kRootKeyName = "app.key";
+/// Shared with ProfileMember, from the area table: see kProfileRootKeyName.
+constexpr auto kRootKeyName = GpgFrontend::kProfileRootKeyName;
 
 /// Length of the secret that protects the key file at rest, in bytes.
 constexpr size_t kWrapSecretLen = 32;
@@ -434,7 +437,7 @@ auto ProfileSecureKeyManager::KeyLocationForMessage() const -> QString {
 }
 
 auto ProfileSecureKeyManager::ResetKeyStorage(const QString& key_dir) -> bool {
-  const auto path = key_dir + "/app.key";
+  const auto path = key_dir + "/" + QString::fromLatin1(kRootKeyName);
 
   // The app key file is the one that must go: without it Initialize() generates
   // a fresh key. Treat "already absent" as success, so a reset stays idempotent
@@ -450,7 +453,7 @@ auto ProfileSecureKeyManager::ResetKeyStorage(const QString& key_dir) -> bool {
   // reference.
   QDir dir(key_dir);
   for (const auto& name : dir.entryList({"*.key"}, QDir::Files)) {
-    if (name == "app.key") continue;  // already handled above
+    if (name == QLatin1StringView(kRootKeyName)) continue;  // already handled above
     if (!dir.remove(name)) {
       LOG_W() << "remove rotated key failed:" << dir.filePath(name);
     }
