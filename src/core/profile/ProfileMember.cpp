@@ -195,13 +195,20 @@ void TreeMemberSource::Collect() {
         // created by their paths anyway, but an empty one has no files to
         // create it, and dropping it means the profile that arrives is not the
         // profile that was sent.
+        //
+        // Except for an area packed from the accessor: its contents are emitted
+        // from wherever the driver actually put them, and a session holding it
+        // in memory has no directory here at all.
+        const auto *traits = TraitsForTopLevel(relative.section('/', 0, 0));
+        if (traits != nullptr &&
+            traits->pack_source == AreaPackSource::kAccessor) {
+          continue;
+        }
+
         ProfileMember dir_member;
         dir_member.path = relative;
         dir_member.directory = true;
-        if (const auto *traits = TraitsForTopLevel(relative.section('/', 0, 0));
-            traits != nullptr) {
-          dir_member.area = traits->area;
-        }
+        if (traits != nullptr) dir_member.area = traits->area;
         pending_.append(dir_member);
         continue;
       }
