@@ -38,13 +38,18 @@
 #include <optional>
 #include <thread>
 
+#include <QScopeGuard>
+
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/GFDataExchanger.h"
 #include "core/profile/Profile.h"
+#include "core/profile/ProfileAreaTraits.h"
 #include "core/profile/ProfileLock.h"
 #include "core/profile/ProfileMarker.h"
+#include "core/profile/ProfileMember.h"
+#include "core/profile/ProfilePackageStream.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 
@@ -71,36 +76,6 @@ constexpr qint64 kStorageExhaustedSlack = 1024 * 1024;
 /// the ceiling keeps a machine with none from trying to hold a DVD in memory.
 constexpr qint64 kPayloadCapFloor = 16LL * 1024 * 1024;
 constexpr qint64 kPayloadCapCeiling = 256LL * 1024 * 1024;
-
-/// Never packed. Logs and modules are not the profile; the quarantine and the
-/// collector's bookkeeping describe this machine's history with it; lock files
-/// and agent sockets describe a process that will not exist at the other end.
-auto IsExcludedFromPackage(const QString &relative_path) -> bool {
-  const auto name = relative_path.section('/', -1);
-  const auto top = relative_path.section('/', 0, 0);
-
-  if (top == "logs" || top == "mods" || top == "data_objs.quarantine") {
-    return true;
-  }
-  // A root profile has the profiles root inside it: every other profile on this
-  // machine, every session root of a live window, and the scratch directory
-  // this very export is staging into. None of that is this profile's own data.
-  if (top == "profiles") return true;
-  if (relative_path == "data_objs.gc.json") return true;
-  if (name == "profile.lock" || name == "profiles.lock") return true;
-  if (name.startsWith("S.gpg-agent") || name == "S.dirmngr") return true;
-  if (name == ".DS_Store" || name == "Thumbs.db" || name == "desktop.ini") {
-    return true;
-  }
-  if (name.endsWith('~')) return true;
-  if (top.startsWith('.')) return true;
-
-  // secure/app.key is written separately, unwrapped: what is on disk here may
-  // be sealed by this machine's credential store and would not open elsewhere
-  if (relative_path == "secure/app.key") return true;
-
-  return false;
-}
 
 auto DirectorySize(const QString &path) -> qint64 {
   if (!QFileInfo::exists(path)) return 0;
@@ -136,58 +111,6 @@ auto DrainExchanger(const QSharedPointer<GFDataExchanger> &ex, qint64 cap,
     out.append(chunk.constData(), static_cast<int>(read));
   }
   return true;
-}
-
-auto CopyTreeForPacking(const QString &source, const QString &destination,
-                        const std::function<bool(const QString &)> &excluded,
-                        const QString &prefix, const QString &guard,
-                        qint64 &bytes) -> QString {
-  QDir source_dir(source);
-  if (!source_dir.exists()) return {};
-
-  if (!QDir().mkpath(destination)) {
-    return QString("cannot create %1").arg(destination);
-  }
-
-  const auto entries = source_dir.entryInfoList(
-      QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden);
-
-  for (const auto &entry : entries) {
-    const auto relative =
-        prefix.isEmpty() ? entry.fileName() : prefix + "/" + entry.fileName();
-    if (excluded(relative)) continue;
-
-    const auto target = destination + "/" + entry.fileName();
-
-    if (entry.isSymLink()) continue;  // a package carries no links, by design
-
-    // The staging tree may sit inside the tree being copied, and copying it
-    // into itself does not terminate. The exclusions above should have taken
-    // it already; this is what makes that a bug and not an infinite walk.
-    if (!guard.isEmpty() &&
-        QDir::cleanPath(entry.absoluteFilePath()) == guard) {
-      continue;
-    }
-
-    if (entry.isDir()) {
-      const auto error = CopyTreeForPacking(entry.absoluteFilePath(), target,
-                                            excluded, relative, guard, bytes);
-      if (!error.isEmpty()) return error;
-      continue;
-    }
-
-    if (!QFile::copy(entry.absoluteFilePath(), target)) {
-      // A file the collector removed while we walked past it is not a reason
-      // to lose the whole export; anything else would have failed the mkpath.
-      if (QFileInfo::exists(entry.absoluteFilePath())) {
-        return QString("cannot copy %1").arg(relative);
-      }
-      LOG_W() << "file vanished while staging, skipped:" << relative;
-      continue;
-    }
-    bytes += entry.size();
-  }
-  return {};
 }
 
 auto RemoveDirectoryQuietly(const QString &path) -> void {
@@ -229,119 +152,150 @@ auto ReadWholeFile(const QString &path, qint64 max_bytes, QByteArray &out)
   return true;
 }
 
-auto WriteStagedAppKey(const QString &staging_dir, const GFBuffer &app_key)
-    -> bool {
-  if (app_key.Empty()) return false;
+auto RenderSettingsIni(const QMap<QString, QVariant> &settings)
+    -> std::optional<GFBuffer> {
+  QTemporaryDir scratch;
+  if (!scratch.isValid()) return {};
 
-  const auto directory =
-      staging_dir + "/" + kProfilePackageTreePrefix + "/secure";
-  if (!QDir().mkpath(directory)) return false;
-
-  QSaveFile file(directory + "/app.key");
-  if (!file.open(QIODevice::WriteOnly)) return false;
-
-  file.write(app_key.ConvertToQByteArray());
-  return file.commit();
-}
-
-auto WriteStagedSettings(const QString &staging_dir,
-                         const QMap<QString, QVariant> &settings) -> bool {
-  const auto directory =
-      staging_dir + "/" + kProfilePackageTreePrefix + "/config";
-  if (!QDir().mkpath(directory)) return false;
-
-  QSettings staged(directory + "/config.ini", QSettings::IniFormat);
-  staged.clear();
-  for (auto it = settings.constBegin(); it != settings.constEnd(); ++it) {
-    staged.setValue(it.key(), it.value());
+  const auto path = scratch.path() + "/config.ini";
+  {
+    QSettings staged(path, QSettings::IniFormat);
+    staged.clear();
+    for (auto it = settings.constBegin(); it != settings.constEnd(); ++it) {
+      staged.setValue(it.key(), it.value());
+    }
+    staged.sync();
+    if (staged.status() != QSettings::NoError) return {};
   }
-  staged.sync();
 
-  return staged.status() == QSettings::NoError;
+  QByteArray bytes;
+  if (!ReadWholeFile(path, 0, bytes)) return {};
+  return GFBuffer(bytes);
 }
 
-auto WriteStagedManifest(const QString &staging_dir,
-                         const ProfilePackageManifest &manifest) -> bool {
-  QSaveFile file(staging_dir + "/manifest.json");
-  if (!file.open(QIODevice::WriteOnly)) return false;
-
-  file.write(EncodeProfilePackageManifest(manifest));
-  return file.commit();
-}
-
-auto WriteProfilePackage(const QString &staging_dir, const QString &dest_path,
+auto WriteProfilePackage(const ArchiveMemberProvider &next,
+                         const QString &dest_path,
                          const ProfilePackageHeader &header,
                          const GFBuffer &passphrase)
     -> ProfilePackageWriteResult {
   ProfilePackageWriteResult result;
 
-  const auto cap = ProfilePackagePayloadCap();
-
   auto exchanger = CreateStandardGFDataExchanger();
   GFError archive_error = 0;
 
-  // The archive is produced on another thread because the exchanger is a pipe:
-  // it holds a few megabytes and then blocks its writer until someone reads.
+  // The archive is produced on another thread because the exchanger is a
+  // pipe: it holds a few megabytes and then blocks its writer until someone
+  // reads.
   std::thread producer([&]() {
-    archive_error = ArchiveFileOperator::NewArchive2DataExchangerSync(
-        staging_dir, exchanger, ArchiveCompression::kGZIP);
+    archive_error = ArchiveFileOperator::NewArchiveFromMembersSync(
+        next, exchanger, ArchiveCompression::kGZIP);
   });
 
-  QByteArray payload;
-  const auto within_cap = DrainExchanger(exchanger, cap, payload);
-  producer.join();
+  // Joining the producer while it is blocked writing into a full pipe is a
+  // deadlock, so nothing may join it without closing the pipe first. Written as
+  // a guard rather than as care at each call site because care is exactly what
+  // the early returns below were missing, and a fourth one would miss it too.
+  //
+  // The drain path below joins explicitly, once it has emptied the pipe and can
+  // read `archive_error`; this then finds the thread already joined and does
+  // nothing.
+  struct ProducerGuard {
+    std::thread &thread;
+    GFDataExchanger &pipe;
 
-  if (!within_cap) {
-    result.error =
-        QString(
-            "this profile is too large to export in one piece on this machine "
-            "(the limit is %1 MB)")
-            .arg(cap / (1024 * 1024));
-    return result;
-  }
-  if (archive_error < 0 || payload.isEmpty()) {
-    result.error = "the profile could not be packed";
-    return result;
-  }
-
-  QByteArray body;
-  if (header.protection == ProfilePackageProtection::kPIN) {
-    const auto encrypted =
-        AESCryptoHelper::Encrypt(passphrase, GFBuffer(payload));
-    if (!encrypted) {
-      result.error = "the package could not be encrypted";
-      return result;
+    ~ProducerGuard() {
+      if (!thread.joinable()) return;
+      pipe.CloseWrite();
+      thread.join();
     }
-    body = encrypted->ConvertToQByteArray();
-  } else {
-    body = payload;
-  }
+  } const producer_guard{producer, *exchanger};
 
   const auto header_bytes = EncodeProfilePackageHeader(header);
 
-  // Written beside the destination, so the final step is a rename inside one
-  // filesystem rather than a copy that could fail halfway. The destination is
-  // never opened for writing: a failed save that had truncated it would
-  // destroy keys, settings and workspace at once, and this file is the backup.
+  // Written beside the destination, so the final step is a rename inside
+  // one filesystem rather than a copy that could fail halfway. The
+  // destination is never opened for writing: a failed save that had
+  // truncated it would destroy keys, settings and workspace at once, and
+  // this file is the backup.
   const auto temporary_path =
       QString("%1/.%2.tmp-%3")
           .arg(QFileInfo(dest_path).absolutePath(),
                QFileInfo(dest_path).fileName(),
                QUuid::createUuid().toString(QUuid::WithoutBraces).left(8));
 
+  const auto abandon = [&](const QString &why) {
+    QFile::remove(temporary_path);
+    result.error = why;
+    return result;
+  };
+
+  qint64 payload_bytes = 0;
   {
     QFile temporary(temporary_path);
     if (!temporary.open(QIODevice::WriteOnly)) {
       result.error = "the package file could not be created";
       return result;
     }
-    if (temporary.write(header_bytes) != header_bytes.size() ||
-        temporary.write(body) != body.size()) {
+
+    if (temporary.write(header_bytes) != header_bytes.size()) {
       temporary.close();
-      QFile::remove(temporary_path);
-      result.error = "the package could not be written";
-      return result;
+      return abandon("the package could not be written");
     }
+
+    // The whole reason for the shape. The archive is drained a chunk at a
+    // time and each chunk is sealed and appended as it arrives, so neither the
+    // payload nor its ciphertext is ever held whole -- which is what used to
+    // cap a package at a couple of hundred megabytes and put several full
+    // copies of the plaintext, including the application key, on the ordinary
+    // heap for the length of the export.
+    ProfilePackageStreamWriter writer(
+        [&temporary](const char *data, qint64 length) {
+          return temporary.write(data, length) == length;
+        },
+        passphrase, header.protection == ProfilePackageProtection::kPIN);
+
+    if (!writer.Begin()) {
+      temporary.close();
+      return abandon("the package could not be encrypted");
+    }
+
+    QByteArray chunk(static_cast<int>(kDrainChunk), Qt::Uninitialized);
+    bool sink_failed = false;
+    while (true) {
+      const auto read = exchanger->Read(
+          reinterpret_cast<std::byte *>(chunk.data()), kDrainChunk);
+      if (read <= 0) break;
+
+      payload_bytes += read;
+      if (!writer.Write(chunk.constData(), read)) {
+        // Drain to the end regardless: the producer is blocked on this pipe
+        // and joining it while it waits would deadlock.
+        sink_failed = true;
+        while (exchanger->Read(reinterpret_cast<std::byte *>(chunk.data()),
+                               kDrainChunk) > 0) {
+        }
+        break;
+      }
+    }
+
+    producer.join();
+
+    if (sink_failed) {
+      temporary.close();
+      return abandon("the package could not be written");
+    }
+    // `!= 0`, not `< 0`: GFError is uint32_t, so the signed comparison this
+    // used to make was a tautology the compiler folded away, and no error the
+    // archive producer reported has ever been noticed here.
+    if (archive_error != 0 || payload_bytes == 0) {
+      temporary.close();
+      return abandon("the profile could not be packed");
+    }
+    if (!writer.Finish()) {
+      temporary.close();
+      return abandon("the package could not be written");
+    }
+
     temporary.flush();
 
     // Durable before it is believed: reading back what only the page cache
@@ -352,50 +306,74 @@ auto WriteProfilePackage(const QString &staging_dir, const QString &dest_path,
     temporary.close();
   }
 
-  // A package that cannot be read back is not a package. One extra decryption
-  // is worth knowing that before the only copy of something is trusted to it.
-  QByteArray written;
-  if (!ReadWholeFile(temporary_path, 0, written)) {
-    QFile::remove(temporary_path);
-    result.error = "the package could not be read back";
-    return result;
-  }
-
-  const auto view = ParseProfilePackageHeader(written);
-  if (!view.Ok() || view.header_bytes != header_bytes) {
-    QFile::remove(temporary_path);
-    result.error = "the package was written but does not read back correctly";
-    return result;
-  }
-
-  const auto written_body = written.mid(view.body_offset);
-  if (header.protection == ProfilePackageProtection::kPIN) {
-    const auto decrypted =
-        AESCryptoHelper::Decrypt(passphrase, GFBuffer(written_body));
-    if (!decrypted || decrypted->ConvertToQByteArray() != payload) {
-      QFile::remove(temporary_path);
-      result.error = "the package was written but cannot be decrypted";
-      return result;
+  // A package that cannot be read back is not a package. Read back as a
+  // stream and thrown away chunk by chunk rather than compared against a
+  // payload held in memory: every chunk carries its own tag, so walking to the
+  // final one proves the file authenticates end to end, which is the property
+  // the old byte-for-byte comparison was standing in for.
+  {
+    QFile written(temporary_path);
+    if (!written.open(QIODevice::ReadOnly)) {
+      return abandon("the package could not be read back");
     }
-  } else if (written_body != payload) {
-    QFile::remove(temporary_path);
-    result.error = "the package was written but does not read back correctly";
-    return result;
+
+    // Closed before the temporary is removed. Windows refuses to unlink an open
+    // file, so abandoning from in here left a complete encrypted copy of the
+    // profile sitting beside the destination.
+    const auto give_up = [&](const QString &why) {
+      written.close();
+      return abandon(why);
+    };
+
+    QByteArray head =
+        written.read(kProfilePackageMagicLength + 4 + kMaxHeaderLength);
+    const auto view = ParseProfilePackageHeader(head);
+    if (!view.Ok() || view.header_bytes != header_bytes) {
+      return give_up(
+          "the package was written but does not read back correctly");
+    }
+
+    if (!written.seek(view.body_offset)) {
+      return give_up("the package could not be read back");
+    }
+
+    ProfilePackageStreamReader reader(
+        [&written](char *out, qint64 length) {
+          return written.read(out, length);
+        },
+        passphrase, header.protection == ProfilePackageProtection::kPIN);
+
+    if (!reader.Begin()) {
+      return give_up("the package was written but cannot be decrypted");
+    }
+
+    qint64 verified = 0;
+    GFBuffer chunk;
+    const auto forget_chunk = qScopeGuard([&chunk]() { chunk.Zeroize(); });
+    while (true) {
+      if (!reader.Next(chunk)) {
+        return give_up("the package was written but cannot be decrypted");
+      }
+      if (chunk.Empty() && !reader.Complete()) break;
+      verified += static_cast<qint64>(chunk.Size());
+      if (reader.Complete()) break;
+    }
+
+    if (verified != payload_bytes) {
+      return give_up(
+          "the package was written but does not read back correctly");
+    }
   }
 
   if (QFileInfo::exists(dest_path) && !QFile::remove(dest_path)) {
-    QFile::remove(temporary_path);
-    result.error = "the existing package could not be replaced";
-    return result;
+    return abandon("the existing package could not be replaced");
   }
   if (!QFile::rename(temporary_path, dest_path)) {
-    QFile::remove(temporary_path);
-    result.error = "the package could not be moved into place";
-    return result;
+    return abandon("the package could not be moved into place");
   }
 
   result.ok = true;
-  result.bytes = header_bytes.size() + body.size();
+  result.bytes = header_bytes.size() + payload_bytes;
   return result;
 }
 
@@ -559,6 +537,7 @@ auto EncodeProfilePackageManifest(const ProfilePackageManifest &manifest)
 
   json["app_key_protection"] = manifest.app_key_protection;
   json["workspace_included"] = manifest.workspace_included;
+  json["uncompressed_bytes"] = static_cast<double>(manifest.uncompressed_bytes);
   json["self_contained"] = manifest.self_contained;
 
   QJsonArray databases;
@@ -604,6 +583,13 @@ auto ParseProfilePackageManifest(const QByteArray &bytes)
 
   manifest.app_key_protection = json["app_key_protection"].toString("none");
   manifest.workspace_included = json["workspace_included"].toBool();
+
+  // Absent on every package written before this field existed, and those keep
+  // opening: zero means "no declared size", which is what the budget already
+  // falls back from.
+  manifest.uncompressed_bytes =
+      static_cast<qint64>(json["uncompressed_bytes"].toDouble(0));
+  if (manifest.uncompressed_bytes < 0) manifest.uncompressed_bytes = 0;
   manifest.self_contained = json["self_contained"].toBool();
 
   for (const auto item : json["key_databases"].toArray()) {
@@ -625,7 +611,7 @@ auto ParseProfilePackageManifest(const QByteArray &bytes)
       "min_reader_version", "app_profile",        "display_name",
       "profile_id",         "writer_version",     "created",
       "package_id",         "app_key_protection", "workspace_included",
-      "self_contained",     "key_databases"};
+      "uncompressed_bytes", "self_contained",     "key_databases"};
   for (auto it = json.constBegin(); it != json.constEnd(); ++it) {
     if (!kKnown.contains(it.key()))
       manifest.unknown_fields[it.key()] = it.value();
@@ -662,7 +648,31 @@ auto RewriteKeyDatabaseListForPacking(
   for (auto item : databases) {
     const auto rewritten =
         ToProfileRelativeKeyDatabasePath(item.path, profile_root);
-    if (!rewritten.isEmpty()) item.path = rewritten;
+
+    // Not under the profile at all: it stays absolute and is marked external,
+    // which is the case this has always handled.
+    if (rewritten.isEmpty() || !rewritten.startsWith(kProfilePathToken)) {
+      out.push_back(item);
+      continue;
+    }
+
+    // Under the profile, but somewhere the user put it by hand. The packer will
+    // not carry that directory, so carrying the reference would make the
+    // package claim contents it does not have -- and the recipient's path
+    // resolution creates a missing key database directory rather than
+    // complaining, leaving them a keyring with no keys and no error.
+    //
+    // Dropped outright rather than marked external: keeping it would also put
+    // the sender's absolute path, usually including their username, inside a
+    // file meant for somebody else.
+    const auto relative =
+        rewritten.mid(static_cast<int>(qstrlen(kProfilePathToken))).mid(1);
+    if (!IsManagedKeyDatabasePath(relative)) {
+      LOG_I() << "key database not carried by the package:" << item.name;
+      continue;
+    }
+
+    item.path = rewritten;
     out.push_back(item);
   }
   return out;
@@ -748,22 +758,23 @@ auto StageProfileTree(const QString &profile_root, const QString &staging_dir,
     return result;
   }
 
-  const auto excluded = [include_workspace](const QString &relative) {
-    if (!include_workspace && relative.section('/', 0, 0) == "workspace") {
-      return true;
-    }
-    return IsExcludedFromPackage(relative);
-  };
+  TreeMemberSource source(
+      profile_root, include_workspace,
+      QDir::cleanPath(QFileInfo(staging_dir).absoluteFilePath()));
+  StagingMemberSink sink(staging_dir);
 
-  const auto error = CopyTreeForPacking(
-      profile_root, tree, excluded, {},
-      QDir::cleanPath(QFileInfo(staging_dir).absoluteFilePath()), result.bytes);
+  const auto error = TransferProfileMembers(source, sink);
   if (!error.isEmpty()) {
     result.error = error;
     RemoveDirectoryQuietly(staging_dir);
     return result;
   }
 
+  // Reported rather than merely done. Failing closed silently is its own trap:
+  // the sender should find out at export time, not by hearing that the copy on
+  // another machine was missing something.
+  result.skipped = source.Skipped();
+  result.bytes = sink.Bytes();
   result.ok = true;
   return result;
 }
@@ -810,19 +821,168 @@ auto InspectProfilePackage(const QString &package_path)
   return result;
 }
 
-auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
-                        const GFBuffer &passphrase)
+auto PeekProfilePackageManifest(const QString &package_path,
+                                const GFBuffer &passphrase)
     -> ProfilePackageReadResult {
-  ProfilePackageReadResult result;
+  auto result = InspectProfilePackage(package_path);
+  if (!result.Ok()) return result;
 
-  QByteArray bytes;
-  if (!ReadWholeFile(package_path, 0, bytes)) {
+  // Only a streamed package is worth looking inside for this. A version 1
+  // manifest never carried a size, so reading one would cost a full pass to
+  // learn nothing -- and version 1 makes no promise the manifest comes first,
+  // so that pass could pull an arbitrary member into memory on the way.
+  if (result.header.format_version < kProfilePackageStreamedFrom) return result;
+
+  QFile file(package_path);
+  if (!file.open(QIODevice::ReadOnly)) {
     result.status = ProfilePackageReadStatus::kIO_FAILED;
     result.detail = "this file could not be read";
     return result;
   }
 
-  const auto view = ParseProfilePackageHeader(bytes);
+  const auto head =
+      file.read(kProfilePackageMagicLength + 4 + kMaxHeaderLength);
+  const auto view = ParseProfilePackageHeader(head);
+  if (!view.Ok() || !file.seek(view.body_offset)) {
+    result.status = ProfilePackageReadStatus::kMALFORMED;
+    result.detail = "this package does not describe itself";
+    return result;
+  }
+
+  // Made before the feeder starts, so a failure here is a plain return rather
+  // than something that has to unwind a running thread. Nothing is ever written
+  // into it -- every entry is claimed -- but the extractor still insists on a
+  // destination, and an invalid one would hand it an empty path.
+  QTemporaryDir nowhere;
+  if (!nowhere.isValid()) {
+    result.status = ProfilePackageReadStatus::kIO_FAILED;
+    result.detail = "a temporary folder could not be made";
+    return result;
+  }
+
+  auto exchanger = CreateStandardGFDataExchanger();
+
+  // Set by the feeder and read after it is joined. This is the one failure that
+  // means "the passphrase does not open this package": every other way of
+  // arriving without a manifest is something else entirely, and reporting them
+  // all as a wrong passphrase sends a user typing the right one over and over
+  // at a file that is damaged.
+  bool body_ok = true;
+
+  std::thread feeder([&]() {
+    ProfilePackageStreamReader reader(
+        [&file](char *out, qint64 length) { return file.read(out, length); },
+        passphrase,
+        view.header.protection == ProfilePackageProtection::kPIN);
+
+    if (!reader.Begin()) {
+      body_ok = false;
+      exchanger->CloseWrite();
+      return;
+    }
+
+    GFBuffer chunk;
+    const auto forget_chunk = qScopeGuard([&chunk]() { chunk.Zeroize(); });
+    while (true) {
+      if (!reader.Next(chunk)) {
+        body_ok = false;
+        break;
+      }
+      if (chunk.Empty()) break;
+
+      // Stops the moment nobody is reading any more, and not a body failure:
+      // the extraction below refuses everything after the manifest, and without
+      // this the feeder went on decrypting the whole package into a pipe that
+      // was closed -- so opening a profile paid for two full passes over it
+      // rather than the chunk or two this is documented to need.
+      if (exchanger->Write(reinterpret_cast<const std::byte *>(chunk.Data()),
+                           static_cast<ssize_t>(chunk.Size())) < 0) {
+        break;
+      }
+      if (reader.Complete()) break;
+    }
+    exchanger->CloseWrite();
+  });
+
+  // Nothing is written: every entry is claimed, and the one that matters is
+  // kept. Refusing the entry *after* it is what stops the walk, so a package
+  // is opened far enough to describe itself and no further.
+  QByteArray manifest_bytes;
+  bool have_manifest = false;
+
+  const auto error = ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
+      exchanger, nowhere.path(),
+      ArchiveExtractPolicy::Strict(kMaxHeaderLength * 16, 200000),
+      [](const QString &) { return true; },
+      [&](const QString &path, const GFBuffer &bytes) {
+        if (have_manifest) return false;
+        if (path == "manifest.json") {
+          manifest_bytes = bytes.ConvertToQByteArray();
+          have_manifest = true;
+        }
+        return true;
+      });
+
+  exchanger->CloseWrite();
+  feeder.join();
+
+  // `error` is expected to be non-zero: refusing the entry after the manifest
+  // is how the walk was stopped, and that refusal is indistinguishable from any
+  // other. So it says nothing on its own, and what went wrong is read from the
+  // two things that do.
+  Q_UNUSED(error)
+
+  if (!have_manifest) {
+    // The chunks would not authenticate. A wrong passphrase and a damaged body
+    // are the same event to the stream, and the passphrase is far likelier.
+    if (!body_ok) {
+      result.status = ProfilePackageReadStatus::kBAD_PASSPHRASE;
+      result.detail = "the passphrase does not open this package";
+      return result;
+    }
+
+    // The body opened and the manifest still did not arrive, so this is not
+    // about the passphrase at all: a package whose first member is something
+    // else, or one whose archive could not be walked.
+    result.status = ProfilePackageReadStatus::kMALFORMED;
+    result.detail = "this package does not describe itself";
+    return result;
+  }
+
+  auto manifest = ParseProfilePackageManifest(manifest_bytes);
+  if (!manifest) {
+    result.status = ProfilePackageReadStatus::kMALFORMED;
+    result.detail = "this package does not describe itself";
+    return result;
+  }
+
+  result.manifest = *manifest;
+  return result;
+}
+
+auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
+                        const GFBuffer &passphrase,
+                        const ProfileExtractionRouting &routing)
+    -> ProfilePackageReadResult {
+  ProfilePackageReadResult result;
+
+  const auto file_bytes = QFileInfo(package_path).size();
+
+  // Only as much as the routing header can occupy. Which shape the body is in
+  // decides how much more may be read, so nothing larger than this is touched
+  // before that question has an answer.
+  QByteArray head;
+  {
+    QFile file(package_path);
+    if (!file.open(QIODevice::ReadOnly)) {
+      result.status = ProfilePackageReadStatus::kIO_FAILED;
+      result.detail = "this file could not be read";
+      return result;
+    }
+    head = file.read(kProfilePackageMagicLength + 4 + kMaxHeaderLength);
+  }
+
+  const auto view = ParseProfilePackageHeader(head);
   if (!view.Ok()) {
     result.status = view.status == ProfilePackageHeaderStatus::kTOO_NEW
                         ? ProfilePackageReadStatus::kTOO_NEW
@@ -834,40 +994,171 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
   }
   result.header = view.header;
 
-  QByteArray payload;
-  if (view.header.protection == ProfilePackageProtection::kPIN) {
-    const auto decrypted = AESCryptoHelper::Decrypt(
-        passphrase, GFBuffer(bytes.mid(view.body_offset)));
-    if (!decrypted) {
-      result.status = ProfilePackageReadStatus::kBAD_PASSPHRASE;
-      result.detail = "the passphrase does not open this package";
+  const auto streamed =
+      view.header.format_version >= kProfilePackageStreamedFrom;
+
+  // A version 1 body is one sealed block and has to be opened as one. Version 2
+  // is a stream of chunks, each authenticated on its own, and is never held
+  // whole -- so the payload buffer below, and the ceiling that guards it, exist
+  // only for the legacy shape.
+  QByteArray legacy_payload;
+  if (!streamed) {
+    // Opening a version 1 body holds it whole and then the plaintext beside it,
+    // so a file several times larger than memory takes the process down part
+    // way through mounting -- with the profile lock already held, which is a
+    // worse state to leave behind than a refusal. The file's own size is the
+    // only thing checkable before making the allocation it guards.
+    //
+    // Deliberately *not* applied to a streamed body: capping that would put
+    // back the very limit streaming was built to remove.
+    const auto cap = ProfilePackagePayloadCap();
+    if (file_bytes > cap) {
+      result.status = ProfilePackageReadStatus::kTOO_LARGE;
+      // Both numbers, because "too large" without them is not something a user
+      // can act on and not something a bug report can be written from.
+      result.detail =
+          QString("%1 / %2").arg(QLocale().formattedDataSize(file_bytes),
+                                 QLocale().formattedDataSize(cap));
       return result;
     }
-    payload = decrypted->ConvertToQByteArray();
-  } else {
-    payload = bytes.mid(view.body_offset);
+
+    QByteArray bytes;
+    if (!ReadWholeFile(package_path, 0, bytes)) {
+      result.status = ProfilePackageReadStatus::kIO_FAILED;
+      result.detail = "this file could not be read";
+      return result;
+    }
+
+    if (view.header.protection == ProfilePackageProtection::kPIN) {
+      const auto decrypted = AESCryptoHelper::Decrypt(
+          passphrase, GFBuffer(bytes.mid(view.body_offset)));
+      if (!decrypted) {
+        result.status = ProfilePackageReadStatus::kBAD_PASSPHRASE;
+        result.detail = "the passphrase does not open this package";
+        return result;
+      }
+      legacy_payload = decrypted->ConvertToQByteArray();
+    } else {
+      legacy_payload = bytes.mid(view.body_offset);
+    }
   }
 
-  // Derived from what is actually in hand rather than from anything the file
-  // claims about itself: an archive that says it is small and is not dies
-  // early instead of filling the disk.
+  // Derived from what the file weighs rather than from anything it claims about
+  // itself: an archive that says it is small and is not dies early instead of
+  // filling the disk.
   auto policy = ArchiveExtractPolicy::Strict(
-      qMax(static_cast<qint64>(64) * 1024 * 1024,
-           static_cast<qint64>(payload.size()) * 100),
-      200000);
+      qMax(static_cast<qint64>(64) * 1024 * 1024, file_bytes * 100), 200000);
 
   auto exchanger = CreateStandardGFDataExchanger();
+
+  // Set by the feeder and read after it is joined, so a body that stops
+  // authenticating part way through is reported as such rather than as a
+  // truncated archive.
+  bool body_ok = true;
+
   std::thread feeder([&]() {
-    exchanger->Write(reinterpret_cast<const std::byte *>(payload.constData()),
-                     payload.size());
+    if (!streamed) {
+      exchanger->Write(
+          reinterpret_cast<const std::byte *>(legacy_payload.constData()),
+          legacy_payload.size());
+      exchanger->CloseWrite();
+      return;
+    }
+
+    QFile file(package_path);
+    if (!file.open(QIODevice::ReadOnly) || !file.seek(view.body_offset)) {
+      body_ok = false;
+      exchanger->CloseWrite();
+      return;
+    }
+
+    ProfilePackageStreamReader reader(
+        [&file](char *out, qint64 length) { return file.read(out, length); },
+        passphrase,
+        view.header.protection == ProfilePackageProtection::kPIN);
+
+    if (!reader.Begin()) {
+      body_ok = false;
+      exchanger->CloseWrite();
+      return;
+    }
+
+    GFBuffer chunk;
+    const auto forget_chunk = qScopeGuard([&chunk]() { chunk.Zeroize(); });
+    while (true) {
+      if (!reader.Next(chunk)) {
+        body_ok = false;
+        break;
+      }
+      if (chunk.Empty()) break;
+
+      // A closed pipe means the extraction has already given up, so there is
+      // nothing left to decrypt for.
+      if (exchanger->Write(reinterpret_cast<const std::byte *>(chunk.Data()),
+                           static_cast<ssize_t>(chunk.Size())) < 0) {
+        break;
+      }
+      if (reader.Complete()) break;
+    }
+
+    // A stream that ran out without its final tag was cut short, which a
+    // length-prefixed format cannot otherwise tell from a smaller profile.
+    if (body_ok && !reader.Complete()) body_ok = false;
+
     exchanger->CloseWrite();
   });
 
+  // An area the driver holds in memory must not be written down on the way
+  // there. Entries under it are read straight out of the archive and handed to
+  // the storage, so the profile's own key never exists as a file at all --
+  // which is the difference between this and unpacking it and deleting it
+  // afterwards, since deleting does not erase.
+  ArchiveEntryFilter divert;
+  ArchiveEntrySink sink;
+  if (routing.Active()) {
+    const auto prefixes = routing.resident_dirs;
+    divert = [prefixes](const QString &path) {
+      // Archive-relative here: "profile/secure/app.key".
+      const auto parts = path.split('/', Qt::SkipEmptyParts);
+      if (parts.size() < 2 || parts.first() != kProfilePackageTreePrefix) {
+        return false;
+      }
+      return prefixes.contains(parts.at(1));
+    };
+    sink = [&routing](const QString &path, const GFBuffer &bytes) {
+      // Handed on profile-relative, the one namespace members speak.
+      return routing.store(path.section('/', 1), bytes);
+    };
+  }
+
   const auto error = ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
-      exchanger, staging_dir, policy);
+      exchanger, staging_dir, policy, divert, sink);
+
+  // Before the join, always. The exchanger is a bounded ring and its writer
+  // blocks when it fills, so a feeder still pushing when the extraction gives
+  // up -- a malformed archive, a refused entry, a sink that said no -- would
+  // wait for a reader that is never coming back, and join() would hang the
+  // process with the profile lock held.
+  //
+  // Closing here is what wakes it: Write() returns -1 once close_ is set, and
+  // the feeder unwinds. Cheap when extraction succeeded, since the feeder has
+  // already finished and closed.
+  exchanger->CloseWrite();
   feeder.join();
 
-  if (error < 0) {
+  if (!body_ok) {
+    RemoveDirectoryQuietly(staging_dir);
+    // The wrong passphrase and a damaged chunk are the same event to the
+    // stream, and the passphrase is overwhelmingly the likelier of the two.
+    result.status = ProfilePackageReadStatus::kBAD_PASSPHRASE;
+    result.detail = "the passphrase does not open this package";
+    return result;
+  }
+
+  // `!= 0`, not `< 0`: GFError is unsigned, so the comparison this used to make
+  // was always false and an extraction that gave up part way through was
+  // adopted as if it had finished.
+  if (error != 0) {
     RemoveDirectoryQuietly(staging_dir);
     result.status = ProfilePackageReadStatus::kMALFORMED;
     result.detail = "the package's contents could not be unpacked";
@@ -913,45 +1204,73 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
   return result;
 }
 
-auto ExportProfilePackage(const ProfileExportRequest &request)
+auto ExportProfilePackage(ProfileExportRequest request)
     -> ProfilePackageWriteResult {
+  // Taken by value so this can be done at all, and done on every exit. The
+  // members carry the profile's own key in the clear -- they are the only way
+  // it reaches a package now -- and an export that merely dropped them left it
+  // in memory for as long as the task object that captured the request lived.
+  const auto forget_secure_members = qScopeGuard([&request]() {
+    for (auto &member : request.secure_members) member.bytes.Zeroize();
+  });
+
   ProfilePackageWriteResult result;
 
-  // The staging tree is a full plaintext copy of the profile, and
-  // WriteStagedAppKey() puts an *unprotected* application key in it. Where the
-  // caller has somewhere better to put that than the profiles folder — a
-  // session writing itself back into its own protected storage — it says so,
-  // and this obliges.
-  const auto scratch_base = request.scratch_root.isEmpty()
-                                ? request.profiles_root
-                                : request.scratch_root;
-
-  if (!scratch_base.isEmpty()) QDir().mkpath(scratch_base);
-
-  const auto staging = MakeProfilePackageScratchDir(scratch_base, "staging");
-  if (staging.isEmpty()) {
-    result.error = "a temporary folder could not be made";
+  // A package cannot declare a passphrase it does not have. The reader picks
+  // its framing from the header, so writing this would produce a file whose
+  // header says "protected" over a body that is plaintext -- the whole profile
+  // and its application key in the clear, in a file the user was told was
+  // sealed. Refused here rather than deep in the writer, where the destination
+  // has already been chosen.
+  if (request.protection == ProfilePackageProtection::kPIN &&
+      request.passphrase.Empty()) {
+    result.error = "a protected package cannot be written without a passphrase";
     return result;
   }
 
-  const ScratchGuard guard{staging};
-
-  const auto staged = StageProfileTree(request.profile_root, staging,
-                                       request.include_workspace);
-  if (!staged.ok) {
-    result.error = staged.error;
+  // Everything the package carries, resolved before anything is written. The
+  // secure area is the reason it has to be: a packaged session holds it in
+  // memory, so there is nothing on the storage to copy, and the two kinds of
+  // key in it are sourced differently -- see ResolveSecureAreaMembers().
+  QList<ProfileMember> synthesised = request.secure_members;
+  if (synthesised.isEmpty()) {
+    result.error = "the application key could not be written into the package";
     return result;
   }
 
-  if (!WriteStagedSettings(staging, request.settings)) {
+  auto settings_ini = RenderSettingsIni(request.settings);
+  if (!settings_ini) {
     result.error = "the settings could not be written into the package";
     return result;
   }
 
-  if (!WriteStagedAppKey(staging, request.app_key)) {
-    result.error = "the application key could not be written into the package";
+  ProfileMember config;
+  config.path = "config/config.ini";
+  config.area = ProfileArea::kConfig;
+  config.bytes = *settings_ini;
+  synthesised.append(config);
+
+  // Walked before a byte is written, and before the manifest is built: the
+  // destination may already hold the only copy of this profile, and the
+  // manifest has to declare how big the tree is.
+  //
+  // The synthesised names are handed over so the walk neither yields nor
+  // measures them. `config/config.ini` is the live case: the area table is
+  // explicit that the file which travels is regenerated from the live settings
+  // rather than copied, but `config` is packed from the tree as well, so the
+  // walk offered the on-disk copy too. Both went into the archive under one
+  // name and the later one won -- the stale one -- and its bytes were counted
+  // twice into the size the recipient provisions from.
+  QSet<QString> synthesised_paths;
+  for (const auto &member : synthesised) synthesised_paths.insert(member.path);
+
+  TreeMemberSource tree(request.profile_root, request.include_workspace, {},
+                        synthesised_paths);
+  if (const auto error = tree.Prepare(); !error.isEmpty()) {
+    result.error = error;
     return result;
   }
+  const auto tree_bytes = tree.Bytes();
 
   ProfilePackageHeader header;
   header.writer = GetProjectVersion();
@@ -960,6 +1279,21 @@ auto ExportProfilePackage(const ProfileExportRequest &request)
   header.protection = request.protection;
 
   auto manifest = request.manifest;
+
+  // What the recipient will need room for. Known exactly here and nowhere else:
+  // the walk has already measured the tree, and the members above are bytes in
+  // hand. Recording it is what stops the other machine sizing its storage from
+  // the compressed size and coming up short on a profile that compressed well.
+  //
+  // The manifest's own bytes are not counted, and cannot be -- the figure is
+  // inside them. A few hundred bytes against a whole profile, and the budget
+  // built from this is deliberately generous anyway.
+  qint64 unpacked = tree_bytes;
+  for (const auto &member : synthesised) {
+    unpacked += static_cast<qint64>(member.bytes.Size());
+  }
+  manifest.uncompressed_bytes = unpacked;
+
   manifest.format_version = header.format_version;
   manifest.min_reader = header.min_reader;
   manifest.protection = ProfilePackageProtectionToString(header.protection);
@@ -974,13 +1308,58 @@ auto ExportProfilePackage(const ProfileExportRequest &request)
         QUuid::createUuid().toString(QUuid::WithoutBraces).remove('-');
   }
 
-  if (!WriteStagedManifest(staging, manifest)) {
-    result.error = "the package could not describe itself";
-    return result;
-  }
+  // No staging tree. The archive is fed from the live profile and from the
+  // members above, so the full plaintext copy that used to be written out
+  // first -- an unprotected application key in it -- never exists at all.
+  //
+  // That copy was also why a session needed twice its own size in free space
+  // to save itself.
+  ListMemberSource extra(synthesised);
 
-  return WriteProfilePackage(staging, request.dest_path, header,
-                             request.passphrase);
+  // The manifest goes first, by construction: it is what a reader needs before
+  // it can decide anything about the rest, and it sits beside the tree rather
+  // than inside it.
+  bool manifest_written = false;
+  bool extras_done = false;
+  const auto manifest_bytes = EncodeProfilePackageManifest(manifest);
+
+  const auto next = [&](ArchiveMemberEntry &out) -> bool {
+    if (!manifest_written) {
+      manifest_written = true;
+      out.relative_path = "manifest.json";
+      out.bytes = GFBuffer(manifest_bytes);
+      return true;
+    }
+
+    ProfileMember member;
+    if (!extras_done) {
+      if (extra.Next(member)) {
+        out.relative_path =
+            QString(kProfilePackageTreePrefix) + "/" + member.path;
+        out.bytes = member.bytes;
+        return true;
+      }
+      extras_done = true;
+    }
+
+    if (!tree.Next(member)) return false;
+
+    out.relative_path = QString(kProfilePackageTreePrefix) + "/" + member.path;
+    out.directory = member.directory;
+    // Carried as a path, so a workspace larger than memory is not a reason a
+    // profile cannot be packaged.
+    out.source_file = member.source_path;
+    return true;
+  };
+
+  auto written =
+      WriteProfilePackage(next, request.dest_path, header, request.passphrase);
+
+  // Reported rather than merely done. Failing closed silently is its own trap:
+  // the sender should find out here, not by hearing that the copy on another
+  // machine was missing something.
+  if (written.ok) written.skipped = tree.Skipped();
+  return written;
 }
 
 namespace {
@@ -1248,7 +1627,48 @@ auto OpenPackageSession(const QString &package_path, ProfileAccessor &storage,
   }
   const ScratchGuard guard{staging};
 
-  const auto read = ReadProfilePackage(package_path, staging, passphrase);
+  // Whatever the driver holds in memory, the extraction routes there instead
+  // of onto the storage. Read off the accessor rather than hardcoded, so an
+  // area becoming resident later needs no change here.
+  ProfileExtractionRouting routing;
+  for (const auto &row : ProfileAreaTable()) {
+    if (!row.area.has_value()) continue;
+    if (!storage.IsAreaResident(*row.area)) continue;
+    routing.resident_dirs << QString(row.dir);
+  }
+  // What the routing put into the storage, so a failure can take it back out
+  // again. The staging tree is removed by its guard and the session root is
+  // cleared on the way in, but a resident area is neither: objects already
+  // handed to the driver would otherwise outlive the failed open and leave
+  // another profile's key material in this session until the next mount.
+  QList<QPair<ProfileArea, QString>> routed;
+  auto unroute = [&storage, &routed]() {
+    for (const auto &object : routed) storage.Remove(object.first, object.second);
+    routed.clear();
+  };
+
+  if (!routing.resident_dirs.isEmpty()) {
+    routing.store = [&storage, &routed](const QString &relative,
+                                        const GFBuffer &bytes) {
+      const auto *traits = TraitsForTopLevel(relative.section('/', 0, 0));
+      if (traits == nullptr || !traits->area.has_value()) return false;
+
+      // An empty top-level segment resolves to the root row, whose directory
+      // name is the empty string. Nothing reaches here with one today, but this
+      // decides where somebody else's bytes land.
+      if (relative.section('/', 0, 0).isEmpty()) return false;
+
+      const auto name = relative.section('/', 1);
+      if (name.isEmpty() || name.contains('/')) return false;
+      if (!storage.Write(*traits->area, name, bytes)) return false;
+
+      routed.append({*traits->area, name});
+      return true;
+    };
+  }
+
+  const auto read =
+      ReadProfilePackage(package_path, staging, passphrase, routing);
   if (!read.Ok()) {
     result.status = read.status;
     result.detail = read.detail;
@@ -1264,6 +1684,7 @@ auto OpenPackageSession(const QString &package_path, ProfileAccessor &storage,
         result.detail = storage.Label();
       }
     }
+    unroute();
     return result;
   }
 
@@ -1279,6 +1700,7 @@ auto OpenPackageSession(const QString &package_path, ProfileAccessor &storage,
       ProfileCompatibility::kTOO_NEW) {
     result.status = ProfilePackageReadStatus::kTOO_NEW;
     result.detail = read.manifest.writer_version;
+    unroute();
     return result;
   }
 
@@ -1290,7 +1712,13 @@ auto OpenPackageSession(const QString &package_path, ProfileAccessor &storage,
                                            QFileInfo(session_root).fileName(),
                                            display_name, read.manifest);
   if (!error.isEmpty()) {
-    RemoveDirectoryQuietly(session_root);
+    // Emptied, not removed. The lock file in here is the caller's, and it is
+    // what tells the next process this package is in use -- removing the root
+    // wholesale takes it with it and hands the package to a second window while
+    // this one is still holding it. ClearSessionRootContents() is careful about
+    // exactly this on the way in; the failure path has to be too.
+    ClearSessionRootContents(session_root);
+    unroute();
     result.status = ProfilePackageReadStatus::kIO_FAILED;
     result.detail = error;
     return result;

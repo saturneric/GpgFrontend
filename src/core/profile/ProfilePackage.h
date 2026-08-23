@@ -32,6 +32,7 @@
 
 #include "core/model/GFBuffer.h"
 #include "core/profile/ProfileAccessor.h"
+#include "core/profile/ProfileMember.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
 #include "core/typedef/CoreTypedef.h"
 
@@ -47,8 +48,19 @@ inline constexpr int kProfilePackageMagicLength = 8;
 /// grounds for a refusal: a writer that adds a field an older build can ignore
 /// raises the first and leaves the second alone, and its packages keep opening
 /// here.
-inline constexpr int kProfilePackageFormatVersion = 1;
-inline constexpr int kProfilePackageMinReader = 1;
+inline constexpr int kProfilePackageFormatVersion = 2;
+inline constexpr int kProfilePackageMinReader = 2;
+
+/// The first version whose body is a stream of authenticated chunks rather than
+/// one sealed block.
+///
+/// Version 1 held the whole payload and its ciphertext in memory at once, which
+/// capped a package at a couple of hundred megabytes and put several full
+/// copies of the plaintext -- the application key among them -- on the ordinary
+/// heap. It is still read, because packages already exist; it is no longer
+/// written, because keeping a second writer alive is how the plaintext key
+/// survived in the export path for as long as it did.
+inline constexpr int kProfilePackageStreamedFrom = 2;
 
 /// Where the tree sits inside the archive; `manifest.json` sits beside it.
 inline constexpr auto kProfilePackageTreePrefix = "profile";
@@ -206,6 +218,18 @@ struct GF_CORE_EXPORT ProfilePackageManifest {
 
   QString app_key_protection = "none";  ///< always: the package protects it
   bool workspace_included = false;
+
+  /// Total size of everything the package carries, unpacked, in bytes.
+  ///
+  /// Zero on packages written before this was recorded, which is why every
+  /// reader has to treat it as a hint rather than a fact: it decides how much
+  /// room a session is provisioned with, not how much is extracted.
+  ///
+  /// The point of recording it is that room is otherwise guessed from the
+  /// *compressed* size, and a profile that compresses unusually well is then
+  /// handed storage too small to open in -- discovered part way through
+  /// unpacking, or worse, at the close that has to write it back.
+  qint64 uncompressed_bytes = 0;
   bool self_contained = false;
 
   QList<ProfilePackageKeyDatabaseEntry> key_databases;
@@ -304,6 +328,12 @@ struct GF_CORE_EXPORT ProfileStagingResult {
   bool ok = false;
   QString error;
   qint64 bytes = 0;
+
+  /// Top-level names in the profile folder that the package does not carry,
+  /// sorted. Inclusion is an allow-list, so leaving something out is silent by
+  /// default -- and a sender who kept notes beside their profile should learn
+  /// that here rather than from the copy on somebody else's machine.
+  QStringList skipped;
 };
 
 /**
@@ -351,6 +381,10 @@ struct GF_CORE_EXPORT ProfilePackageWriteResult {
   bool ok = false;
   QString error;
   qint64 bytes = 0;
+
+  /// Top-level names in the profile folder the package does not carry, sorted.
+  /// Inclusion is an allow-list, so leaving something out is silent by default.
+  QStringList skipped;
 };
 
 /**
@@ -367,6 +401,10 @@ enum class ProfilePackageReadStatus : std::uint8_t {
   /// kIO_FAILED because "the package's contents could not be unpacked" sends a
   /// user hunting for corruption in a file that is perfectly fine.
   kNO_SPACE,
+  /// The file is larger than this build can open. Reading one means holding it
+  /// whole, several times over, so the refusal has to come before the first
+  /// read rather than as an allocation failure part way through.
+  kTOO_LARGE,
   kIO_FAILED,
 };
 
@@ -413,9 +451,47 @@ auto GF_CORE_EXPORT InspectProfilePackage(const QString &package_path)
  * @param passphrase passphrase, ignored for an unprotected package
  * @return the outcome, with the manifest on success
  */
-auto GF_CORE_EXPORT ReadProfilePackage(const QString &package_path,
-                                       const QString &staging_dir,
-                                       const GFBuffer &passphrase)
+/// Areas an unpacker keeps out of the filesystem, and where their bytes go
+/// instead. Built from the session's storage: an area the driver holds in
+/// memory is one the extraction must never write down.
+struct GF_CORE_EXPORT ProfileExtractionRouting {
+  /// Profile-relative directory prefixes to divert, e.g. "secure".
+  QStringList resident_dirs;
+
+  /// Called with a profile-relative path and the entry's bytes.
+  std::function<bool(const QString &, const GFBuffer &)> store;
+
+  [[nodiscard]] auto Active() const -> bool {
+    return store && !resident_dirs.isEmpty();
+  }
+};
+
+/**
+ * @brief Read a package's manifest without unpacking anything.
+ *
+ * The manifest is the first member of a streamed archive, so this stops as soon
+ * as it has one -- a chunk or two of the file, whatever its size.
+ *
+ * It exists so a session can be sized before it is provisioned. Storage has to
+ * be chosen before there is anywhere to unpack into, and the alternative was
+ * guessing from the package's compressed size; a profile that compresses well
+ * was then handed storage too small to open in, which surfaces part way through
+ * unpacking or, worse, at the close that has to write it back.
+ *
+ * A version 1 package makes no promise about member order, so this may read
+ * further into one -- bounded, as ever, by the ceiling that shape carries.
+ *
+ * @param package_path the `.gfp` to look inside
+ * @param passphrase passphrase, ignored for an unprotected package
+ * @return the header and manifest; nothing is written anywhere
+ */
+auto GF_CORE_EXPORT PeekProfilePackageManifest(const QString &package_path,
+                                               const GFBuffer &passphrase)
+    -> ProfilePackageReadResult;
+
+auto GF_CORE_EXPORT ReadProfilePackage(
+    const QString &package_path, const QString &staging_dir,
+    const GFBuffer &passphrase, const ProfileExtractionRouting &routing = {})
     -> ProfilePackageReadResult;
 
 /**
@@ -427,23 +503,30 @@ auto GF_CORE_EXPORT ReadProfilePackage(const QString &package_path,
  */
 struct GF_CORE_EXPORT ProfileExportRequest {
   QString profile_root;
-  QString profiles_root;  ///< where the scratch directory may be made
 
-  /// Where the scratch directory should be made instead, when the caller has
-  /// somewhere better. Staging holds a full plaintext copy of the tree
-  /// *including an unprotected application key*, so a session writing itself
-  /// back must stage inside its own protected storage rather than in the
-  /// profiles folder. Empty means profiles_root, which is what every other
-  /// caller still wants.
-  QString scratch_root;
+  /// Kept for the profiles-folder identity an export still records, not for
+  /// scratch space: packing reads the live profile now and makes none.
+  QString profiles_root;
 
   QString dest_path;  ///< the `.gfp` to write
 
   bool include_workspace = false;
   ProfilePackageProtection protection = ProfilePackageProtection::kPIN;
 
+  /// The secure area, already resolved to the bytes that travel.
+  ///
+  /// Built by ResolveSecureAreaMembers(), which is where the difference between
+  /// the application key and the rotated keys is decided -- the first comes
+  /// from the plaintext key in hand because the stored form may be sealed by
+  /// this machine's credential store, the rest are carried exactly as stored.
+  /// Resolved here rather than during packing because it reads the session's
+  /// accessor, and the packing runs on a worker thread.
+  ///
+  /// Empty means there is no application key, which is not an exportable
+  /// profile.
+  QList<ProfileMember> secure_members;
+
   GFBuffer passphrase;  ///< ignored when protection is kNONE
-  GFBuffer app_key;     ///< the resident plaintext application key
 
   QMap<QString, QVariant> settings;
   ProfilePackageManifest manifest;  ///< identity fields; the rest is filled in
@@ -463,7 +546,7 @@ struct GF_CORE_EXPORT ProfileExportRequest {
  * @param request everything gathered from the running profile
  * @return the outcome
  */
-auto GF_CORE_EXPORT ExportProfilePackage(const ProfileExportRequest &request)
+auto GF_CORE_EXPORT ExportProfilePackage(ProfileExportRequest request)
     -> ProfilePackageWriteResult;
 
 /**
