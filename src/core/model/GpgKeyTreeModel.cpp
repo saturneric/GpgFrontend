@@ -124,8 +124,12 @@ auto GpgKeyTreeModel::data(const QModelIndex &index, int role) const
 
   if (role == Qt::TextAlignmentRole) {
     switch (index.column()) {
-      case 1:
+      // Identity is free text of wildly varying length. Centred, a short name
+      // floats in the middle of the column while a long one fills it, so the
+      // rows stop lining up with each other.
       case 2:
+        return QVariant{Qt::AlignLeft | Qt::AlignVCenter};
+      case 1:
       case 3:
       case 4:
       case 5:
