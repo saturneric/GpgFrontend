@@ -32,6 +32,7 @@
 #include <QFile>
 #include <QTemporaryDir>
 
+#include "core/profile/MemoryAreaProfileAccessor.h"
 #include "core/profile/ProfileAccessor.h"
 #include "core/profile/ProfileSession.h"
 
@@ -93,115 +94,198 @@ TEST(ProfileAccessorTest, EnsureIsIdempotent) {
   }
 }
 
-TEST(ProfileAccessorTest, WhatIsWrittenIsWhatIsRead) {
-  QTemporaryDir dir;
-  ASSERT_TRUE(dir.isValid());
+// The object contract, run against every driver rather than against the one
+// that happened to be written first. A decorator that holds an area in memory
+// has to behave identically through this interface or the callers above it --
+// the key manager especially -- would need to know which driver they had.
+//
+// The area under test is kSecure: it is the one the memory driver may hold, so
+// parameterising on it exercises the resident path in one case and the
+// delegating path in the other.
 
-  FsProfileAccessor accessor(dir.path(), {});
-  ASSERT_TRUE(accessor.Ensure(ProfileArea::kDataObjects));
+namespace {
 
-  const GFBuffer value(QByteArray("some sealed bytes"));
-  ASSERT_TRUE(accessor.Write(ProfileArea::kDataObjects, "abcd", value));
+struct DriverUnderTest {
+  QString name;
+  std::function<QSharedPointer<ProfileAccessor>(const QString&)> make;
+};
 
-  EXPECT_TRUE(accessor.Exists(ProfileArea::kDataObjects, "abcd"));
-
-  const auto read = accessor.Read(ProfileArea::kDataObjects, "abcd");
-  ASSERT_TRUE(read.has_value());
-  EXPECT_EQ(*read, value);
-
-  // And PathOf agrees with where the bytes actually went, which is the promise
-  // everything that needs a real path depends on.
-  QFile file(accessor.PathOf(ProfileArea::kDataObjects, "abcd"));
-  ASSERT_TRUE(file.open(QIODevice::ReadOnly));
-  EXPECT_EQ(file.readAll(), QByteArray("some sealed bytes"));
+auto Drivers() -> QList<DriverUnderTest> {
+  return {
+      {"fs",
+       [](const QString& root) -> QSharedPointer<ProfileAccessor> {
+         return QSharedPointer<FsProfileAccessor>::create(root, QString{});
+       }},
+      {"memory",
+       [](const QString& root) -> QSharedPointer<ProfileAccessor> {
+         return QSharedPointer<MemoryAreaProfileAccessor>::create(
+             QSharedPointer<FsProfileAccessor>::create(root, QString{}),
+             QSet<ProfileArea>{ProfileArea::kSecure});
+       }},
+  };
 }
 
-TEST(ProfileAccessorTest, AWriteReplacesRatherThanAppends) {
-  QTemporaryDir dir;
-  ASSERT_TRUE(dir.isValid());
+}  // namespace
 
-  FsProfileAccessor accessor(dir.path(), {});
-  ASSERT_TRUE(accessor.Ensure(ProfileArea::kDataObjects));
+class ProfileAccessorContractTest
+    : public ::testing::TestWithParam<DriverUnderTest> {
+ protected:
+  void SetUp() override {
+    ASSERT_TRUE(dir_.isValid());
+    accessor_ = GetParam().make(dir_.path());
+    ASSERT_FALSE(accessor_.isNull());
+  }
 
-  ASSERT_TRUE(accessor.Write(ProfileArea::kDataObjects, "abcd",
-                             GFBuffer(QByteArray("first, and longer"))));
-  ASSERT_TRUE(accessor.Write(ProfileArea::kDataObjects, "abcd",
-                             GFBuffer(QByteArray("second"))));
+  QTemporaryDir dir_;
+  QSharedPointer<ProfileAccessor> accessor_;
+};
 
-  const auto read = accessor.Read(ProfileArea::kDataObjects, "abcd");
+INSTANTIATE_TEST_SUITE_P(EveryDriver, ProfileAccessorContractTest,
+                         ::testing::ValuesIn(Drivers()), [](const auto& info) {
+                           return info.param.name.toStdString();
+                         });
+
+TEST_P(ProfileAccessorContractTest, WhatIsWrittenIsWhatIsRead) {
+  ASSERT_TRUE(accessor_->Ensure(ProfileArea::kSecure));
+
+  const GFBuffer value(QByteArray("some sealed bytes"));
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "abcd", value));
+
+  EXPECT_TRUE(accessor_->Exists(ProfileArea::kSecure, "abcd"));
+
+  const auto read = accessor_->Read(ProfileArea::kSecure, "abcd");
+  ASSERT_TRUE(read.has_value());
+  EXPECT_EQ(*read, value);
+}
+
+TEST_P(ProfileAccessorContractTest, AWriteReplacesRatherThanAppends) {
+  ASSERT_TRUE(accessor_->Ensure(ProfileArea::kSecure));
+
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "abcd",
+                               GFBuffer(QByteArray("first, and longer"))));
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "abcd",
+                               GFBuffer(QByteArray("second"))));
+
+  const auto read = accessor_->Read(ProfileArea::kSecure, "abcd");
   ASSERT_TRUE(read.has_value());
   EXPECT_EQ(read->ConvertToQByteArray(), QByteArray("second"));
 }
 
-TEST(ProfileAccessorTest, ReadingSomethingAbsentIsEmptyNotAnError) {
-  QTemporaryDir dir;
-  ASSERT_TRUE(dir.isValid());
-
-  FsProfileAccessor accessor(dir.path(), {});
-
-  EXPECT_FALSE(accessor.Exists(ProfileArea::kDataObjects, "nothing"));
-  EXPECT_FALSE(accessor.Read(ProfileArea::kDataObjects, "nothing").has_value());
+TEST_P(ProfileAccessorContractTest, ReadingSomethingAbsentIsEmptyNotAnError) {
+  EXPECT_FALSE(accessor_->Exists(ProfileArea::kSecure, "nothing"));
+  EXPECT_FALSE(accessor_->Read(ProfileArea::kSecure, "nothing").has_value());
 
   // Listing an area that was never made is empty rather than a failure: a
   // profile on its first start has none of them yet.
-  EXPECT_TRUE(accessor.List(ProfileArea::kDataObjects, "*").isEmpty());
-  EXPECT_EQ(accessor.TotalSize(ProfileArea::kDataObjects, "*"), 0);
+  EXPECT_TRUE(accessor_->List(ProfileArea::kSecure, "*").isEmpty());
+  EXPECT_EQ(accessor_->TotalSize(ProfileArea::kSecure, "*"), 0);
 }
 
-TEST(ProfileAccessorTest, RemovingSomethingAbsentSucceeds) {
-  QTemporaryDir dir;
-  ASSERT_TRUE(dir.isValid());
-
-  FsProfileAccessor accessor(dir.path(), {});
-  ASSERT_TRUE(accessor.Ensure(ProfileArea::kDataObjects));
+TEST_P(ProfileAccessorContractTest, RemovingSomethingAbsentSucceeds) {
+  ASSERT_TRUE(accessor_->Ensure(ProfileArea::kSecure));
 
   // A clear-out that stops on the first missing file would leave the rest
   // behind, so absence is success.
-  EXPECT_TRUE(accessor.Remove(ProfileArea::kDataObjects, "never-there"));
+  EXPECT_TRUE(accessor_->Remove(ProfileArea::kSecure, "never-there"));
 
-  ASSERT_TRUE(accessor.Write(ProfileArea::kDataObjects, "abcd",
-                             GFBuffer(QByteArray("x"))));
-  EXPECT_TRUE(accessor.Remove(ProfileArea::kDataObjects, "abcd"));
-  EXPECT_FALSE(accessor.Exists(ProfileArea::kDataObjects, "abcd"));
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "abcd",
+                               GFBuffer(QByteArray("x"))));
+  EXPECT_TRUE(accessor_->Remove(ProfileArea::kSecure, "abcd"));
+  EXPECT_FALSE(accessor_->Exists(ProfileArea::kSecure, "abcd"));
 }
 
-TEST(ProfileAccessorTest, ListingAndSizingRespectThePattern) {
-  QTemporaryDir dir;
-  ASSERT_TRUE(dir.isValid());
+TEST_P(ProfileAccessorContractTest, ListingAndSizingRespectThePattern) {
+  ASSERT_TRUE(accessor_->Ensure(ProfileArea::kSecure));
 
-  FsProfileAccessor accessor(dir.path(), {});
-  ASSERT_TRUE(accessor.Ensure(ProfileArea::kLogs));
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "a.key",
+                               GFBuffer(QByteArray("1234567890"))));
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "b.key",
+                               GFBuffer(QByteArray("12345"))));
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "notes.txt",
+                               GFBuffer(QByteArray("ignored"))));
 
-  ASSERT_TRUE(accessor.Write(ProfileArea::kLogs, "a.log",
-                             GFBuffer(QByteArray("1234567890"))));
-  ASSERT_TRUE(accessor.Write(ProfileArea::kLogs, "b.log",
-                             GFBuffer(QByteArray("12345"))));
-  ASSERT_TRUE(accessor.Write(ProfileArea::kLogs, "notes.txt",
-                             GFBuffer(QByteArray("ignored"))));
+  auto keys = accessor_->List(ProfileArea::kSecure, "*.key");
+  keys.sort();
+  EXPECT_EQ(keys, QStringList({"a.key", "b.key"}));
 
-  auto logs = accessor.List(ProfileArea::kLogs, "*.log");
-  logs.sort();
-  EXPECT_EQ(logs, QStringList({"a.log", "b.log"}));
-
-  EXPECT_EQ(accessor.TotalSize(ProfileArea::kLogs, "*.log"), 15);
-  EXPECT_EQ(accessor.List(ProfileArea::kLogs, "*").size(), 3);
+  EXPECT_EQ(accessor_->TotalSize(ProfileArea::kSecure, "*.key"), 15);
+  EXPECT_EQ(accessor_->List(ProfileArea::kSecure, "*").size(), 3);
 }
 
-TEST(ProfileAccessorTest, AreasDoNotSeeEachOther) {
+TEST_P(ProfileAccessorContractTest, APatternMatchesWholeNamesNotSubstrings) {
+  // The memory driver matched unanchored, so "*.key" caught anything with
+  // ".key" anywhere in it while the filesystem driver caught only names ending
+  // in it. An imported package chooses the names in the secure area, and this
+  // listing is what the trial-decrypt loops walk.
+  ASSERT_TRUE(accessor_->Ensure(ProfileArea::kSecure));
+
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "real.key",
+                               GFBuffer(QByteArray("1234"))));
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "decoy.key.bak",
+                               GFBuffer(QByteArray("5678"))));
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "a.keyring",
+                               GFBuffer(QByteArray("90"))));
+
+  EXPECT_EQ(accessor_->List(ProfileArea::kSecure, "*.key"),
+            QStringList({"real.key"}));
+  EXPECT_EQ(accessor_->TotalSize(ProfileArea::kSecure, "*.key"), 4);
+}
+
+TEST_P(ProfileAccessorContractTest, AnEmptyPatternMeansEverything) {
+  // QDir reads an empty name filter as "nothing matches" and the memory driver
+  // read it as "everything", so the same call answered differently depending on
+  // which driver was underneath.
+  ASSERT_TRUE(accessor_->Ensure(ProfileArea::kSecure));
+
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "a.key",
+                               GFBuffer(QByteArray("1234"))));
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "b.txt",
+                               GFBuffer(QByteArray("56"))));
+
+  EXPECT_EQ(accessor_->List(ProfileArea::kSecure, {}).size(), 2);
+  EXPECT_EQ(accessor_->TotalSize(ProfileArea::kSecure, {}), 6);
+}
+
+TEST_P(ProfileAccessorContractTest, AnEmptyNameIsNotAnObject) {
+  // An empty name addresses the area's own directory on a filesystem driver and
+  // nothing at all on a memory one, so Exists() said true on one and false on
+  // the other, and Remove() could have been read as "remove the area".
+  ASSERT_TRUE(accessor_->Ensure(ProfileArea::kSecure));
+
+  EXPECT_FALSE(accessor_->Exists(ProfileArea::kSecure, {}));
+  EXPECT_FALSE(accessor_->Write(ProfileArea::kSecure, {},
+                                GFBuffer(QByteArray("nowhere"))));
+  EXPECT_FALSE(accessor_->Remove(ProfileArea::kSecure, {}));
+}
+
+TEST_P(ProfileAccessorContractTest, AreasDoNotSeeEachOther) {
+  ASSERT_TRUE(accessor_->Ensure(ProfileArea::kDataObjects));
+  ASSERT_TRUE(accessor_->Ensure(ProfileArea::kSecure));
+
+  ASSERT_TRUE(accessor_->Write(ProfileArea::kSecure, "app.key",
+                               GFBuffer(QByteArray("key material"))));
+
+  // The closed set of areas is what stops one part of the profile reaching
+  // into another by assembling a path. For the memory driver this is also the
+  // check that a resident area and a delegated one stay separate.
+  EXPECT_FALSE(accessor_->Exists(ProfileArea::kDataObjects, "app.key"));
+  EXPECT_TRUE(accessor_->List(ProfileArea::kDataObjects, "*").isEmpty());
+}
+
+TEST(ProfileAccessorTest, TheFilesystemDriverPutsBytesWhereItSaysItDoes) {
+  // Split out of the contract above: only a driver with a path can promise
+  // this, and it is the promise everything that needs a real path depends on.
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());
 
   FsProfileAccessor accessor(dir.path(), {});
   ASSERT_TRUE(accessor.Ensure(ProfileArea::kDataObjects));
-  ASSERT_TRUE(accessor.Ensure(ProfileArea::kSecure));
+  ASSERT_TRUE(accessor.Write(ProfileArea::kDataObjects, "abcd",
+                             GFBuffer(QByteArray("some sealed bytes"))));
 
-  ASSERT_TRUE(accessor.Write(ProfileArea::kSecure, "app.key",
-                             GFBuffer(QByteArray("key material"))));
-
-  // The closed set of areas is what stops one part of the profile reaching
-  // into another by assembling a path.
-  EXPECT_FALSE(accessor.Exists(ProfileArea::kDataObjects, "app.key"));
-  EXPECT_TRUE(accessor.List(ProfileArea::kDataObjects, "*").isEmpty());
+  QFile file(accessor.PathOf(ProfileArea::kDataObjects, "abcd"));
+  ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+  EXPECT_EQ(file.readAll(), QByteArray("some sealed bytes"));
 }
 
 TEST(ProfileAccessorTest, SettingsFollowTheFileItWasGiven) {
@@ -276,7 +360,7 @@ TEST(ProfileAccessorTest, ReleasingTheFilesystemDriverKeepsTheProfile) {
 
 TEST(ProfileAccessorTest, ScratchIsHiddenSoItIsNeverPacked) {
   // The scratch area is a directory like any other, but its name has to stay
-  // dot-prefixed: that is the whole reason IsExcludedFromPackage() already
+  // dot-prefixed: that is the whole reason the area table already
   // skips it, and staging must never travel inside a package.
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());

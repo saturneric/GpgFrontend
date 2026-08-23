@@ -95,7 +95,7 @@ TEST(ProtectedAccessorTest, HonoursTheWholeAreaContract) {
 
 TEST(ProtectedAccessorTest, ScratchIsInsideTheRootAndHidden) {
   // Inside, so extraction never crosses a filesystem and a rename is all it
-  // takes. Hidden, so IsExcludedFromPackage() already refuses to pack it.
+  // takes. Hidden, so the area table already refuses to pack it.
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());
 

@@ -332,12 +332,15 @@ TEST(ProfileStoragePlanTest, SearchPathsCleanTheirInput) {
 TEST(ProfileStoragePlanTest, BudgetPrefersTheDeclaredSize) {
   constexpr qint64 kMb = 1024 * 1024;
 
-  // Two and a half times the real unpacked size, once that is past the floor.
-  EXPECT_EQ(ProfileStorageBudget(20 * kMb, 100 * kMb), 250 * kMb);
+  // Three halves of the real unpacked size, once that is past the floor: one
+  // for the tree, and a half for what GnuPG adds while the window is open.
+  // It was two and a half while a write-back staged a second copy of the tree;
+  // packing reads the live profile now, so that copy is gone.
+  EXPECT_EQ(ProfileStorageBudget(20 * kMb, 100 * kMb), 150 * kMb);
 
   // The declared size wins outright: a package that compresses unusually well
   // would otherwise be handed a budget built from its compressed size.
-  EXPECT_EQ(ProfileStorageBudget(1 * kMb, 100 * kMb), 250 * kMb);
+  EXPECT_EQ(ProfileStorageBudget(1 * kMb, 100 * kMb), 150 * kMb);
 }
 
 TEST(ProfileStoragePlanTest, BudgetFallsBackToTheHeuristic) {
@@ -383,7 +386,7 @@ TEST(ProfileStoragePlanTest, BudgetIsNotCappedByTheExportPayloadCap) {
   // ordinary machine -- capping every budget at 96 MB and under-provisioning
   // any profile over about 38 MB. The two limits are unrelated: that cap bounds
   // the compressed payload held in locked memory during an export.
-  EXPECT_EQ(ProfileStorageBudget(0, 500 * kMb), 1250 * kMb);
+  EXPECT_EQ(ProfileStorageBudget(0, 500 * kMb), 750 * kMb);
   EXPECT_GT(ProfileStorageBudget(0, 1024 * kMb), 1024 * kMb);
 }
 

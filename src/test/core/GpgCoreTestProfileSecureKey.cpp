@@ -634,7 +634,7 @@ auto SealAs(const ScopedKeyFile& file, FakeSecretStore& store,
             const GFBuffer& key, AppKeyProtection protection,
             const GFBuffer& pin) -> GFBuffer {
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kNONE, protection, pin);
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kNONE, protection, pin);
   EXPECT_TRUE(result.Ok()) << "setting up " << static_cast<int>(protection);
   return store.entries.value(kAppKeyWrapAccount, GFBuffer{});
 }
@@ -647,7 +647,7 @@ TEST(AppKeyProtectionTest, NoneToKeychainSealsFileAndStoresSecret) {
   FakeSecretStore store;
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kNONE,
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kNONE,
       AppKeyProtection::kKEYCHAIN, {});
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kOK);
@@ -667,7 +667,7 @@ TEST(AppKeyProtectionTest, NoneToPinSealsWithoutTouchingTheStore) {
   FakeSecretStore store;
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kNONE, AppKeyProtection::kPIN,
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kNONE, AppKeyProtection::kPIN,
       pin);
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kOK);
@@ -690,7 +690,7 @@ TEST(AppKeyProtectionTest, KeychainToNoneRestoresPlaintextAndClearsStore) {
   SealAs(file, store, key, AppKeyProtection::kKEYCHAIN, {});
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kKEYCHAIN,
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kKEYCHAIN,
       AppKeyProtection::kNONE, {});
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kOK);
@@ -707,7 +707,7 @@ TEST(AppKeyProtectionTest, PinToNoneRestoresPlaintext) {
   SealAs(file, store, key, AppKeyProtection::kPIN, pin);
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kPIN, AppKeyProtection::kNONE,
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kPIN, AppKeyProtection::kNONE,
       {});
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kOK);
@@ -723,7 +723,7 @@ TEST(AppKeyProtectionTest, KeychainToPinReleasesTheStoreEntry) {
   SealAs(file, store, key, AppKeyProtection::kKEYCHAIN, {});
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kKEYCHAIN,
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kKEYCHAIN,
       AppKeyProtection::kPIN, pin);
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kOK);
@@ -742,7 +742,7 @@ TEST(AppKeyProtectionTest, PinToKeychainProvisionsANewSecret) {
   SealAs(file, store, key, AppKeyProtection::kPIN, pin);
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kPIN,
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kPIN,
       AppKeyProtection::kKEYCHAIN, {});
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kOK);
@@ -776,7 +776,7 @@ TEST(AppKeyProtectionTest, EveryTransitionPreservesTheKeyId) {
       SealAs(file, store, key, from, from_pin);
 
       const auto result = ProfileSecureKeyManager::ChangeProtection(
-          file.Path(), &store, key, from, to, to_pin);
+          AppKeySinkForFile(file.Path()), &store, key, from, to, to_pin);
       ASSERT_TRUE(result.Ok())
           << static_cast<int>(from) << " -> " << static_cast<int>(to);
 
@@ -806,7 +806,7 @@ TEST(AppKeyProtectionTest, SameProtectionIsANoOp) {
   const auto before = file.Read();
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kNONE,
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kNONE,
       AppKeyProtection::kNONE, {});
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kUNCHANGED);
@@ -827,7 +827,7 @@ TEST(AppKeyProtectionTest, PinRekeyIsNotANoOp) {
   SealAs(file, store, key, AppKeyProtection::kPIN, old_pin);
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kPIN, AppKeyProtection::kPIN,
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kPIN, AppKeyProtection::kPIN,
       new_pin);
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kOK);
@@ -885,7 +885,7 @@ TEST(AppSecureKeyRotationTest, RotatedKeySurvivesEveryProtectionChange) {
   auto current = AppKeyProtection::kNONE;
   for (int i = 0; i < 4; ++i) {
     const auto result = ProfileSecureKeyManager::ChangeProtection(
-        file.Path(), &store, app_key, current, route[i], pins[i]);
+        AppKeySinkForFile(file.Path()), &store, app_key, current, route[i], pins[i]);
     ASSERT_TRUE(result.Ok()) << "step " << i;
     current = route[i];
 
@@ -953,7 +953,7 @@ TEST(AppKeyProtectionTest, PinTargetRejectsAnEmptyPin) {
   const auto before = file.Read();
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kNONE, AppKeyProtection::kPIN,
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kNONE, AppKeyProtection::kPIN,
       {});
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kBAD_PIN);
@@ -968,7 +968,7 @@ TEST(AppKeyProtectionTest, KeychainTargetWithUnavailableStoreLeavesFileAlone) {
   const auto before = file.Read();
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kNONE,
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kNONE,
       AppKeyProtection::kKEYCHAIN, {});
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kSTORE_UNAVAILABLE);
@@ -982,7 +982,7 @@ TEST(AppKeyProtectionTest, KeychainTargetWithMissingStoreLeavesFileAlone) {
   const auto before = file.Read();
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), nullptr, key, AppKeyProtection::kNONE,
+      AppKeySinkForFile(file.Path()), nullptr, key, AppKeyProtection::kNONE,
       AppKeyProtection::kKEYCHAIN, {});
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kSTORE_UNAVAILABLE);
@@ -997,7 +997,7 @@ TEST(AppKeyProtectionTest, SecretThatDoesNotReadBackAbortsTheTransition) {
   const auto before = file.Read();
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      file.Path(), &store, key, AppKeyProtection::kNONE,
+      AppKeySinkForFile(file.Path()), &store, key, AppKeyProtection::kNONE,
       AppKeyProtection::kKEYCHAIN, {});
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kSTORE_UNAVAILABLE);
@@ -1024,8 +1024,8 @@ TEST(AppKeyProtectionTest, FailedFileWriteKeepsTheOldSecretRecoverable) {
   ASSERT_TRUE(blocked.isValid());
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      blocked.path(), &store, key, AppKeyProtection::kKEYCHAIN,
-      AppKeyProtection::kNONE, {});
+      AppKeySinkForFile(blocked.path()), &store, key,
+      AppKeyProtection::kKEYCHAIN, AppKeyProtection::kNONE, {});
 
   EXPECT_EQ(result.status, AppKeyProtectionStatus::kIO_FAILED);
   EXPECT_EQ(file.Read(), sealed);

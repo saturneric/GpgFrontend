@@ -33,6 +33,10 @@
 #include <QTemporaryDir>
 #include <thread>
 
+#ifndef Q_OS_WINDOWS
+#include <unistd.h>
+#endif
+
 #include "core/function/ArchiveFileOperator.h"
 
 namespace {
@@ -627,5 +631,114 @@ TEST(ArchiveFileOperatorTest, HandleInvalidInput) {
   EXPECT_EQ(ExtractSync(exchanger, temp_dir.path(),
                         ArchiveExtractPolicy::Permissive()),
             0);
+}
+// ------------------------------------------------- failures must stay visible
+
+#ifndef Q_OS_WINDOWS
+TEST(ArchiveFileOperatorTest, AnEntryTheDestinationRefusesFailsTheExtraction) {
+  if (geteuid() == 0) {
+    GTEST_SKIP() << "root ignores the permission this test relies on";
+  }
+
+  QTemporaryDir out_dir;
+  ASSERT_TRUE(out_dir.isValid());
+  const auto dest = out_dir.path() + "/dest";
+  ASSERT_TRUE(QDir().mkpath(dest));
+
+  // Read-only, so creating the entry's file inside it cannot succeed. This is
+  // the shape a full disk takes as far as the extractor is concerned: the entry
+  // was refused, and it used to be skipped and the extraction called a success,
+  // which mounts a profile with files missing.
+  ASSERT_TRUE(QFile::setPermissions(
+      dest, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+
+  QByteArray tar;
+  tar.append(TarHeader("wanted.txt", '0', 5));
+  tar.append(TarPad("hello"));
+  tar.append(TarEnd());
+
+  const auto ret =
+      GpgFrontend::ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
+          ExchangerWith(tar), dest,
+          GpgFrontend::ArchiveExtractPolicy::Permissive());
+
+  // Restored before the assertion, so a failure still leaves a removable dir.
+  QFile::setPermissions(dest, QFileDevice::ReadOwner | QFileDevice::WriteOwner |
+                                  QFileDevice::ExeOwner);
+
+  EXPECT_NE(ret, 0U) << "an entry the destination refused was dropped silently";
+  EXPECT_FALSE(QFileInfo::exists(dest + "/wanted.txt"));
+}
+#endif
+
+TEST(ArchiveFileOperatorTest, ASinkThatRefusesEveryWriteIsNotASuccessfulPack) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  CreateTestFile(temp_dir.path(), "a.txt", "hello");
+
+  // Closed before a byte is asked of it, so every write the archive attempts
+  // fails -- including the last one, which a gzip filter only makes at close.
+  // That final flush is the one this used to return success in spite of.
+  auto exchanger = GpgFrontend::CreateStandardGFDataExchanger();
+  exchanger->CloseWrite();
+
+  bool done = false;
+  const auto next = [&](GpgFrontend::ArchiveMemberEntry& out) {
+    if (done) return false;
+    done = true;
+    out.relative_path = "a.txt";
+    out.source_file = temp_dir.path() + "/a.txt";
+    return true;
+  };
+
+  EXPECT_NE(GpgFrontend::ArchiveFileOperator::NewArchiveFromMembersSync(
+                next, exchanger, GpgFrontend::ArchiveCompression::kGZIP),
+            0U)
+      << "an archive nothing could be written to was reported as written";
+}
+
+TEST(ArchiveFileOperatorTest, AMemberShorterThanItsDeclaredSizeFailsThePack) {
+  // A file whose stat size is larger than what reading it yields. sysfs
+  // attributes are the reliable example: 4096 declared, a handful of bytes
+  // actually there. The header is written from the declared size, so packing
+  // one used to emit a null-padded member and report success -- which is what a
+  // keyring file hitting a read error would have done.
+  const QString probe = "/sys/devices/system/cpu/online";
+  const QFileInfo info(probe);
+  if (!info.isReadable() || info.size() <= 0) {
+    GTEST_SKIP() << "no file with an over-declared size available here";
+  }
+  {
+    QFile f(probe);
+    ASSERT_TRUE(f.open(QIODevice::ReadOnly));
+    if (f.readAll().size() >= info.size()) {
+      GTEST_SKIP() << probe.toStdString() << " does not over-declare its size";
+    }
+  }
+
+  auto exchanger = GpgFrontend::CreateStandardGFDataExchanger();
+  GpgFrontend::GFError ret = 0;
+  bool done = false;
+  const auto next = [&](GpgFrontend::ArchiveMemberEntry& out) {
+    if (done) return false;
+    done = true;
+    out.relative_path = "short.txt";
+    out.source_file = probe;
+    return true;
+  };
+
+  std::thread producer([&]() {
+    ret = GpgFrontend::ArchiveFileOperator::NewArchiveFromMembersSync(
+        next, exchanger, GpgFrontend::ArchiveCompression::kNONE);
+  });
+
+  QByteArray chunk(64 * 1024, Qt::Uninitialized);
+  while (exchanger->Read(reinterpret_cast<std::byte*>(chunk.data()),
+                         chunk.size()) > 0) {
+  }
+  producer.join();
+
+  EXPECT_NE(ret, 0U) << "a member that came up short was padded and passed off "
+                       "as complete";
 }
 }  // namespace GpgFrontend::Test
