@@ -148,16 +148,6 @@ class GF_CORE_EXPORT MemoryAreaProfileAccessor final : public ProfileAccessor {
    */
   void Release(ProfileStorageRelease mode) override;
 
-  /**
-   * @brief The driver this one wraps.
-   *
-   * For the few callers that need the concrete storage rather than the view of
-   * it -- recording where a session's tree went, for one.
-   *
-   * @return the wrapped driver
-   */
-  [[nodiscard]] auto Inner() const -> QSharedPointer<ProfileAccessor>;
-
  private:
   QSharedPointer<ProfileAccessor> inner_;
   QSet<ProfileArea> resident_;

@@ -38,7 +38,10 @@ namespace GpgFrontend {
 MemoryAreaProfileAccessor::MemoryAreaProfileAccessor(
     QSharedPointer<ProfileAccessor> inner, QSet<ProfileArea> resident)
     : inner_(std::move(inner)), resident_(std::move(resident)) {
-  Q_ASSERT(!inner_.isNull());
+  // Not a Q_ASSERT: that compiles out in release, and every method here
+  // dereferences this. A driver with nothing underneath it is a programming
+  // error worth failing loudly for in any build.
+  if (inner_.isNull()) qFatal("MemoryAreaProfileAccessor has no inner driver");
 
   // An area something outside this process opens by path cannot live here:
   // GnuPG is handed a home directory, QSettings opens a file, modules are
@@ -66,11 +69,6 @@ MemoryAreaProfileAccessor::~MemoryAreaProfileAccessor() {
 
 void MemoryAreaProfileAccessor::ForgetDetached(GFBuffer &buffer) {
   buffer.Zeroize();
-}
-
-auto MemoryAreaProfileAccessor::Inner() const
-    -> QSharedPointer<ProfileAccessor> {
-  return inner_;
 }
 
 auto MemoryAreaProfileAccessor::IsAreaResident(ProfileArea area) const -> bool {
