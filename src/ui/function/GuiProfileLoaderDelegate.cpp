@@ -300,6 +300,23 @@ void GuiProfileLoaderDelegate::Report(const ProfileLoadError& error) {
           QMessageBox::Ok);
       return;
 
+    case ProfileLoadFailure::kPACKAGE_TOO_LARGE:
+      QMessageBox::critical(
+          nullptr, QObject::tr("This Profile File Is Too Large"),
+          QObject::tr("Opening a profile file needs to hold all of it in "
+                      "memory at once, and this one is bigger than this "
+                      "version can manage.") +
+              (error.detail.isEmpty()
+                   ? QString()
+                   : "\n\n" +
+                         QObject::tr("Size / limit: %1").arg(error.detail)) +
+              "\n\n" +
+              QObject::tr("Nothing has been unpacked. This version cannot "
+                          "create a file this large either, so it was made "
+                          "somewhere else or has been damaged."),
+          QMessageBox::Ok);
+      return;
+
     case ProfileLoadFailure::kPACKAGE_TAMPERED:
       QMessageBox::critical(nullptr, QObject::tr("This File Has Been Altered"),
                             error.detail + "\n\n" + subject, QMessageBox::Ok);

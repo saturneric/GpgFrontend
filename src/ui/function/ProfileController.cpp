@@ -504,7 +504,10 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
 
   // Read here rather than inside the packing: the key manager and QSettings
   // both belong to this thread, and the packing does not run on it.
-  request.app_key = session.Keys().RootKey();
+  // One call, because which key comes from where is not this file's business
+  // to remember: ResolveSecureAreaMembers() is where that lives.
+  request.secure_members =
+      ResolveSecureAreaMembers(session.Accessor(), session.Keys().RootKey());
   auto settings = GetSettings();
   request.settings = SnapshotSettings(settings);
 
@@ -518,7 +521,7 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
   request.manifest.display_name = CurrentProfileDisplayName();
   request.manifest.key_databases = DescribeKeyDatabasesForManifest(packed);
 
-  if (request.app_key.Empty()) {
+  if (request.secure_members.isEmpty()) {
     QMessageBox::critical(
         parent, QObject::tr("Cannot Save Changes"),
         QObject::tr("The application key is not available, so the profile "
@@ -545,6 +548,23 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
                     parent, QObject::tr("Cannot Save Changes"),
                     result->error + "\n\n" + file, QMessageBox::Ok);
                 return;
+              }
+
+              // What a package carries is an allow-list, so anything else in
+              // the session folder is not saved. On an export that is somebody
+              // else's copy going out short; here it is the user's own work
+              // being dropped from the file they are saving into, and the
+              // session is about to go away -- so it has to be said even though
+              // nothing failed.
+              if (!result->skipped.isEmpty()) {
+                QMessageBox::warning(
+                    parent, QObject::tr("Not Everything Was Saved"),
+                    QObject::tr("These were left out of \"%1\", because a "
+                                "profile file only carries the profile itself: "
+                                "%2")
+                        .arg(QFileInfo(file).fileName(),
+                             result->skipped.join(", ")),
+                    QMessageBox::Ok);
               }
 
               g_session_write_back_settled = true;
