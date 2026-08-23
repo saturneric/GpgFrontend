@@ -711,50 +711,6 @@ auto MakeProfilePackageScratchDir(const QString &profiles_root,
   return {};
 }
 
-auto StageProfileTree(const QString &profile_root, const QString &staging_dir,
-                      bool include_workspace) -> ProfileStagingResult {
-  ProfileStagingResult result;
-
-  // Checked rather than assumed: the copy skips a source that is not there,
-  // so without this an export of nothing would succeed and produce an empty
-  // package — over whatever file the user pointed it at.
-  if (!QFileInfo(profile_root).isDir()) {
-    result.error = "the profile folder is not there";
-    return result;
-  }
-
-  if (QFileInfo::exists(staging_dir)) {
-    result.error = "the staging directory already exists";
-    return result;
-  }
-
-  const auto tree = staging_dir + "/" + kProfilePackageTreePrefix;
-  if (!QDir().mkpath(tree)) {
-    result.error = "the staging directory could not be created";
-    return result;
-  }
-
-  TreeMemberSource source(
-      profile_root, include_workspace,
-      QDir::cleanPath(QFileInfo(staging_dir).absoluteFilePath()));
-  StagingMemberSink sink(staging_dir);
-
-  const auto error = TransferProfileMembers(source, sink);
-  if (!error.isEmpty()) {
-    result.error = error;
-    RemoveDirectoryQuietly(staging_dir);
-    return result;
-  }
-
-  // Reported rather than merely done. Failing closed silently is its own trap:
-  // the sender should find out at export time, not by hearing that the copy on
-  // another machine was missing something.
-  result.skipped = source.Skipped();
-  result.bytes = sink.Bytes();
-  result.ok = true;
-  return result;
-}
-
 auto SnapshotSettings(QSettings &settings) -> QMap<QString, QVariant> {
   settings.sync();
 

@@ -338,31 +338,6 @@ struct GF_CORE_EXPORT ProfileStagingResult {
 };
 
 /**
- * @brief Copy a profile into a tree that is ready to be packed.
- *
- * Copies rather than packs in place so the plaintext application key, the
- * rewritten settings and the manifest never touch the live profile, and so the
- * existing directory-to-archive path is all that is needed afterwards.
- *
- * Logs and modules are never copied, nor lock files, quarantined data objects
- * or agent sockets. A file that vanishes mid-copy is skipped rather than
- * failing the export.
- *
- * A nested `profiles/` directory is never copied either: a root profile has the
- * profiles root inside it, holding the other profiles on this machine and the
- * scratch directory of this very export, and following it would not terminate.
- *
- * @param profile_root profile to copy
- * @param staging_dir destination; created, and must not already exist
- * @param include_workspace whether the user's own files come too
- * @return the outcome, with the copied size
- */
-auto GF_CORE_EXPORT StageProfileTree(const QString &profile_root,
-                                     const QString &staging_dir,
-                                     bool include_workspace)
-    -> ProfileStagingResult;
-
-/**
  * @brief Copy every setting out of a live store.
  *
  * Taken as a snapshot rather than read where it is needed, because the packing

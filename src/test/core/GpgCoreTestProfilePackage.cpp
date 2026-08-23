@@ -90,6 +90,22 @@ auto TestRootKeyMember() -> ProfileMember {
 
 /// @param profiles_root unused: an export no longer records one. Kept in the
 /// signature so the call sites still read as "this profile, in that folder".
+/// What StageProfileTree() used to do, kept here because the version 1 package
+/// built by hand below needs a staged tree and nothing in production stages one
+/// any more -- packing reads the live profile.
+auto StageTreeForLegacyPackage(const QString &profile_root,
+                               const QString &staging_dir) -> bool {
+  if (!QDir().mkpath(staging_dir + "/" + kProfilePackageTreePrefix)) {
+    return false;
+  }
+
+  TreeMemberSource source(
+      profile_root, false,
+      QDir::cleanPath(QFileInfo(staging_dir).absoluteFilePath()));
+  StagingMemberSink sink(staging_dir);
+  return TransferProfileMembers(source, sink).isEmpty();
+}
+
 auto ExportRequestFor(const QString &root, const QString & /*profiles_root*/,
                       const QString &destination) -> ProfileExportRequest {
   ProfileExportRequest request;
@@ -359,104 +375,6 @@ TEST(ProfilePackagePathTest, RewritingIsIdempotent) {
   EXPECT_EQ(once.at(0).path, "@profile/db");
   EXPECT_EQ(twice.at(0).path, "@profile/db");
   EXPECT_FALSE(DescribeKeyDatabasesForManifest(twice).at(0).external);
-}
-
-// ------------------------------------------------------------------ staging
-
-TEST(ProfileStagingTest, EverythingThatTravelsIsCopiedAndNothingElseIs) {
-  QTemporaryDir dir;
-  ASSERT_TRUE(dir.isValid());
-
-  const auto root = dir.path() + "/work";
-  MakeProfile(root);
-
-  // Something the user left beside their profile. An allow-list must leave it
-  // behind, and must say that it did.
-  QFile stray(root + "/notes.txt");
-  ASSERT_TRUE(stray.open(QIODevice::WriteOnly));
-  stray.write("private");
-  stray.close();
-
-  const auto staging = dir.path() + "/staging";
-  const auto staged = StageProfileTree(root, staging, false);
-  ASSERT_TRUE(staged.ok);
-  EXPECT_TRUE(staged.skipped.contains("notes.txt"))
-      << "a skipped top-level name was not reported to the sender";
-
-  const auto tree = staging + "/profile";
-  EXPECT_TRUE(QFileInfo::exists(tree + "/profile.json"));
-  EXPECT_TRUE(QFileInfo::exists(tree + "/data_objs/abcd"));
-  EXPECT_TRUE(QFileInfo::exists(tree + "/db/pubring.kbx"));
-
-  // logs and modules are this machine's, not the profile's; the quarantine and
-  // the lock describe a history and a process that do not travel
-  EXPECT_FALSE(QFileInfo::exists(tree + "/logs"));
-  EXPECT_FALSE(QFileInfo::exists(tree + "/mods"));
-  EXPECT_FALSE(QFileInfo::exists(tree + "/data_objs.quarantine"));
-  EXPECT_FALSE(QFileInfo::exists(tree + "/profile.lock"));
-
-  // The secure area is not walked at all. Its objects come from the accessor,
-  // because a packaged session holds them in memory and there would be nothing
-  // here to copy -- and because the on-disk app.key may be sealed by this
-  // machine's credential store and would not open anywhere else.
-  EXPECT_FALSE(QFileInfo::exists(tree + "/secure/app.key"));
-  EXPECT_FALSE(QFileInfo::exists(tree + "/secure/DEADBEEF.key"));
-
-  // Anything the profile folder happens to hold that nothing declared.
-  EXPECT_FALSE(QFileInfo::exists(tree + "/notes.txt"));
-
-  // off unless asked for
-  EXPECT_FALSE(QFileInfo::exists(tree + "/workspace"));
-}
-
-TEST(ProfileStagingTest, TheWorkspaceComesWhenItIsAskedFor) {
-  QTemporaryDir dir;
-  ASSERT_TRUE(dir.isValid());
-
-  const auto root = dir.path() + "/work";
-  MakeProfile(root);
-
-  const auto staging = dir.path() + "/staging";
-  ASSERT_TRUE(StageProfileTree(root, staging, true).ok);
-
-  EXPECT_TRUE(QFileInfo::exists(staging + "/profile/workspace/notes.txt"));
-}
-
-TEST(ProfileStagingTest, ARootProfileLeavesTheProfilesItContainsBehind) {
-  // The root profiles — installed and portable — have the profiles root inside
-  // them, so the scratch directory of their own export lands in the tree being
-  // copied. Following it copied the staging tree into itself until the path
-  // grew too long to open, which is how this reached the user: an export of
-  // the default profile that could not finish.
-  QTemporaryDir dir;
-  ASSERT_TRUE(dir.isValid());
-
-  const auto root = dir.path() + "/work";
-  MakeProfile(root);
-
-  // a sibling profile and a live window's session root, both under the root
-  // profile and neither one part of it
-  WriteFile(root + "/profiles/other/profile.json", R"({"schema_version":3})");
-  WriteFile(root + "/profiles/.abcd/profile.json", R"({"schema_version":3})");
-
-  const auto staging = root + "/profiles/.gfp-staging-eeee";
-  const auto result = StageProfileTree(root, staging, false);
-  ASSERT_TRUE(result.ok) << result.error.toStdString();
-
-  const auto tree = staging + "/profile";
-  EXPECT_TRUE(QFileInfo::exists(tree + "/profile.json"));
-  EXPECT_FALSE(QFileInfo::exists(tree + "/profiles"));
-}
-
-TEST(ProfileStagingTest, AnExistingStagingDirectoryIsRefused) {
-  QTemporaryDir dir;
-  ASSERT_TRUE(dir.isValid());
-
-  const auto root = dir.path() + "/work";
-  MakeProfile(root);
-
-  ASSERT_TRUE(QDir().mkpath(dir.path() + "/staging"));
-  EXPECT_FALSE(StageProfileTree(root, dir.path() + "/staging", false).ok);
 }
 
 // -------------------------------------------------------------- round trips
@@ -1693,13 +1611,46 @@ TEST(ProfilePackageStagingFreeTest, TheManifestIsTheFirstMemberOfTheArchive) {
   request.protection = ProfilePackageProtection::kNONE;
   ASSERT_TRUE(ExportProfilePackage(request).ok);
 
-  const auto extracted = dir.path() + "/extracted";
-  ASSERT_TRUE(ReadProfilePackage(package, extracted, {}).Ok());
+  // Order, not presence. Every entry is claimed so that nothing is written and
+  // each one is announced to the sink in the order the archive holds it, which
+  // is the only way to see the property PeekProfilePackageManifest() rests on.
+  QFile file(package);
+  ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+  // Comfortably more than a header can be; the parser reads what it needs and
+  // reports where the body starts.
+  const auto view = ParseProfilePackageHeader(file.read(64 * 1024));
+  ASSERT_TRUE(view.Ok());
+  ASSERT_TRUE(file.seek(view.body_offset));
 
-  // The extraction cannot report order, but the manifest being present and the
-  // tree beside it is the shape the reader depends on.
-  EXPECT_TRUE(QFileInfo::exists(extracted + "/manifest.json"));
-  EXPECT_TRUE(QFileInfo::exists(extracted + "/profile/profile.json"));
+  auto exchanger = CreateStandardGFDataExchanger();
+  std::thread feeder([&]() {
+    QByteArray chunk(64 * 1024, Qt::Uninitialized);
+    while (true) {
+      const auto read = file.read(chunk.data(), chunk.size());
+      if (read <= 0) break;
+      exchanger->Write(reinterpret_cast<const std::byte *>(chunk.constData()),
+                       read);
+    }
+    exchanger->CloseWrite();
+  });
+
+  QStringList order;
+  QTemporaryDir nowhere;
+  ASSERT_TRUE(nowhere.isValid());
+  ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
+      exchanger, nowhere.path(), ArchiveExtractPolicy::Strict(),
+      [](const QString &) { return true; },
+      [&order](const QString &path, const GFBuffer &) {
+        order << path;
+        return true;
+      });
+  exchanger->CloseWrite();
+  feeder.join();
+
+  ASSERT_FALSE(order.isEmpty());
+  EXPECT_EQ(order.first(), QString("manifest.json"))
+      << "the manifest was not the first member; got: "
+      << order.join(", ").toStdString();
 }
 
 TEST(ProfilePackageStagingFreeTest, AnExportReportsWhatItLeftBehind) {
@@ -1829,7 +1780,11 @@ TEST(ProfilePackageLegacyTest, AVersionOnePackageStillOpens) {
   MakeProfile(root);
 
   const auto staging = dir.path() + "/staging";
-  ASSERT_TRUE(StageProfileTree(root, staging, false).ok);
+  ASSERT_TRUE(StageTreeForLegacyPackage(root, staging));
+
+  // A version 1 package carried the key inside the tree; nothing stages it
+  // there now, so it is placed by hand.
+  WriteFile(staging + "/profile/secure/app.key", "0123456789abcdef");
 
   // The manifest a version 1 reader expects to find beside the tree.
   ProfilePackageManifest manifest;
