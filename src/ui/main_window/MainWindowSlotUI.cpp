@@ -263,7 +263,10 @@ void MainWindow::slot_export_profile() {
 
   // Read here rather than inside the packing: the key manager and QSettings
   // both belong to this thread, and the packing does not run on it.
-  request.app_key = session.Keys().RootKey();
+  // One call, because which key comes from where is not this file's business
+  // to remember: ResolveSecureAreaMembers() is where that lives.
+  request.secure_members =
+      ResolveSecureAreaMembers(session.Accessor(), session.Keys().RootKey());
   auto settings = GetSettings();
   request.settings = SnapshotSettings(settings);
 
@@ -279,7 +282,7 @@ void MainWindow::slot_export_profile() {
   request.manifest.self_contained = profile.Policy().self_contained;
   request.manifest.key_databases = DescribeKeyDatabasesForManifest(packed);
 
-  if (request.app_key.Empty()) {
+  if (request.secure_members.isEmpty()) {
     QMessageBox::critical(
         this, tr("Cannot Export Profile"),
         tr("The application key is not available, so the profile could not be "
@@ -305,6 +308,18 @@ void MainWindow::slot_export_profile() {
                 return;
               }
 
+              // What a package carries is an allow-list, so anything else in
+              // the profile folder stays behind silently. Said here, because
+              // the alternative is the sender finding out from the copy on
+              // somebody else's machine.
+              const auto left_behind =
+                  result->skipped.isEmpty()
+                      ? QString()
+                      : "\n\n" + tr("These were not included, because a "
+                                    "profile file "
+                                    "only carries the profile itself: %1")
+                                     .arg(result->skipped.join(", "));
+
               QMessageBox::information(
                   this, tr("Profile Exported"),
                   tr("\"%1\" was written to:")
@@ -315,7 +330,8 @@ void MainWindow::slot_export_profile() {
                            ? tr("It can only be opened with the passphrase you "
                                 "chose. There is no way to recover it.")
                            : tr("It is not protected: anyone who gets this "
-                                "file can read the keys inside it.")),
+                                "file can read the keys inside it.")) +
+                      left_behind,
                   QMessageBox::Ok);
             },
             "export_profile_package");

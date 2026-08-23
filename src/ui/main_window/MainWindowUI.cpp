@@ -661,7 +661,9 @@ void MainWindow::create_status_bar() {
       // this machine does not leave it readable and quietly settles for less
       // when there is nowhere, so which of those happened is the user's to
       // know rather than something to keep from them.
-      ProfileSession::Instance().Accessor().Label()));
+      ProfileSession::Instance().Accessor().Label(),
+      ProfileSession::Instance().Accessor().IsAreaResident(
+          ProfileArea::kSecure)));
 
   // The mirrored property, not IsPortableBuild(): a --profile session on a
   // portable build is not a portable session.
