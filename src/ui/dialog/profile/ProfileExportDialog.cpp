@@ -29,10 +29,13 @@
 #include "ui/dialog/profile/ProfileExportDialog.h"
 
 #include <QFileDialog>
+#include <QStorageInfo>
 
 #include "core/profile/ProfilePackage.h"
 #include "ui/UserInterfaceUtils.h"
+#include "ui/dialog/SecretPrompt.h"
 #include "ui/function/ProfileController.h"
+#include "ui/widgets/SecretEntryPanel.h"
 
 namespace GpgFrontend::UI {
 
@@ -67,73 +70,69 @@ void ProfileExportDialog::init_ui() {
 
   // Word-wrapped labels ask for almost no width, so the dialog would open as a
   // tall ribbon; stating the width once makes everything wrap against it.
-  setMinimumWidth(520);
+  setMinimumWidth(560);
 
-  auto* intro = new QLabel(
-      tr("\"%1\" is written into a single file you can copy to another "
-         "computer and import there.")
-          .arg(display_name_),
-      this);
-  intro->setWordWrap(true);
-  layout->addWidget(intro);
+  build_header(layout);
 
   auto* destination_row = new QHBoxLayout();
+  destination_row->setSpacing(10);
+
+  auto* destination_column = new QVBoxLayout();
+  destination_column->setSpacing(2);
   destination_label_ = new QLabel(tr("— choose a file —"), this);
-  destination_label_->setStyleSheet("color: gray;");
+  SetLabelTextColor(destination_label_,
+                    MutedTextColor(destination_label_->palette()));
+  destination_detail_ = new QLabel(this);
+  destination_detail_->setWordWrap(true);
+  SetLabelTextColor(destination_detail_,
+                    MutedTextColor(destination_detail_->palette()));
+  destination_detail_->hide();
+  destination_column->addWidget(destination_label_);
+  destination_column->addWidget(destination_detail_);
+
   destination_button_ = new QPushButton(tr("Choose..."), this);
   destination_row->addWidget(new QLabel(tr("Save to"), this));
-  destination_row->addWidget(destination_label_, 1);
-  destination_row->addWidget(destination_button_);
+  destination_row->addLayout(destination_column, 1);
+  destination_row->addWidget(destination_button_, 0, Qt::AlignTop);
   layout->addLayout(destination_row);
 
-  auto* contents = new QGroupBox(tr("What goes in"), this);
-  auto* contents_layout = new QVBoxLayout(contents);
+  build_contents(layout);
+  build_protection(layout);
 
-  contents_label_ = new QLabel(describe_contents(), contents);
-  contents_label_->setWordWrap(true);
-  contents_layout->addWidget(contents_label_);
+  // One footer, not two rows. The warning and the sentence saying what is about
+  // to happen are both about the same moment, and giving each its own reserved
+  // height left a block of blank space above the button whenever there was
+  // neither — which at open is always. Reserving the height once, on the block
+  // rather than on either label, still keeps the Export button from moving
+  // under the cursor aiming at it, without ever showing more emptiness than a
+  // single message would occupy.
+  auto* footer = new QWidget(this);
+  auto* footer_row = new QHBoxLayout(footer);
+  footer_row->setContentsMargins(0, 0, 0, 0);
+  footer_row->setSpacing(8);
 
-  workspace_box_ = new QCheckBox(tr("Include my workspace files (%1)")
-                                     .arg(HumanSize(areas_.value("workspace"))),
-                                 contents);
-  // Off unless asked for. The workspace has no size limit and is precisely
-  // where the cleartext of things meant to be encrypted ends up; nobody should
-  // discover after the fact that their drafts travelled inside a file they
-  // emailed to someone.
-  workspace_box_->setChecked(false);
-  workspace_box_->setEnabled(areas_.value("workspace") > 0);
-  contents_layout->addWidget(workspace_box_);
-  layout->addWidget(contents);
+  warning_icon_ = new QLabel(footer);
+  warning_icon_->setFixedWidth(18);
+  warning_icon_->setAlignment(Qt::AlignTop);
 
-  auto* protection = new QGroupBox(tr("Protection"), this);
-  auto* protection_layout = new QVBoxLayout(protection);
+  warning_label_ = new QLabel(footer);
+  warning_label_->setWordWrap(true);
+  SetLabelTextColor(warning_label_, DangerColor(palette()));
 
-  protect_with_pin_ =
-      new QRadioButton(tr("Protect with a passphrase"), protection);
-  protect_with_pin_->setChecked(true);
-  protection_layout->addWidget(protect_with_pin_);
+  summary_label_ = new QLabel(footer);
+  summary_label_->setWordWrap(true);
+  SetLabelTextColor(summary_label_, MutedTextColor(summary_label_->palette()));
 
-  auto* form = new QFormLayout();
-  passphrase_edit_ = new QLineEdit(protection);
-  passphrase_edit_->setEchoMode(QLineEdit::Password);
-  confirm_edit_ = new QLineEdit(protection);
-  confirm_edit_->setEchoMode(QLineEdit::Password);
-  form->addRow(tr("Passphrase"), passphrase_edit_);
-  form->addRow(tr("Repeat"), confirm_edit_);
-  protection_layout->addLayout(form);
+  auto* footer_column = new QVBoxLayout();
+  footer_column->setSpacing(4);
+  footer_column->addWidget(warning_label_);
+  footer_column->addWidget(summary_label_);
 
-  protect_with_nothing_ = new QRadioButton(tr("No protection"), protection);
-  protection_layout->addWidget(protect_with_nothing_);
+  footer_row->addWidget(warning_icon_, 0, Qt::AlignTop);
+  footer_row->addLayout(footer_column, 1);
 
-  protection_hint_ = new QLabel(protection);
-  protection_hint_->setWordWrap(true);
-  auto hint_policy = protection_hint_->sizePolicy();
-  hint_policy.setHeightForWidth(true);
-  hint_policy.setVerticalPolicy(QSizePolicy::MinimumExpanding);
-  protection_hint_->setSizePolicy(hint_policy);
-  protection_layout->addWidget(protection_hint_);
-
-  layout->addWidget(protection);
+  footer->setMinimumHeight(summary_label_->fontMetrics().lineSpacing() * 3);
+  layout->addWidget(footer);
 
   buttons_ = new QDialogButtonBox(
       QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -144,32 +143,199 @@ void ProfileExportDialog::init_ui() {
           &ProfileExportDialog::slot_choose_destination);
   connect(protect_with_pin_, &QRadioButton::toggled, this,
           &ProfileExportDialog::slot_state_changed);
-  connect(passphrase_edit_, &QLineEdit::textChanged, this,
+  connect(workspace_box_, &QCheckBox::toggled, this,
           &ProfileExportDialog::slot_state_changed);
-  connect(confirm_edit_, &QLineEdit::textChanged, this,
+  connect(entry_, &SecretEntryPanel::SignalStateChanged, this,
           &ProfileExportDialog::slot_state_changed);
   connect(buttons_, &QDialogButtonBox::accepted, this,
-          &ProfileExportDialog::slot_accept);
+          &ProfileExportDialog::accept);
   connect(buttons_, &QDialogButtonBox::rejected, this,
           &ProfileExportDialog::reject);
 
   slot_state_changed();
 }
 
-auto ProfileExportDialog::describe_contents() const -> QString {
-  const auto line = [](const QString& name, qint64 bytes) {
-    return QString("%1 — %2<br/>").arg(name, HumanSize(bytes));
-  };
+void ProfileExportDialog::build_header(QVBoxLayout* layout) {
+  // The same badge, heading and rule the PIN prompt uses. Handing over a whole
+  // profile deserves to look like the same class of act as unlocking one, and
+  // sharing the furniture is what makes the two read as one family.
+  auto* icon_label = new QLabel(this);
+  icon_label->setPixmap(
+      QPixmap(QStringLiteral(":/icons/lock.png"))
+          .scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  icon_label->setFixedSize(40, 40);
 
-  return line(tr("Settings"), areas_.value("config")) +
-         line(tr("Saved state, key groups and categories"),
-              areas_.value("data_objs")) +
-         line(tr("Keys stored inside this profile"),
-              areas_.value("key_databases")) +
-         "<span style='color: gray;'>" +
-         tr("Logs and modules are never included. Keys kept outside this "
-            "profile, such as the system GnuPG keyring, stay where they are.") +
-         "</span>";
+  auto* title_label = new QLabel(tr("Export \"%1\"").arg(display_name_), this);
+  auto title_font = title_label->font();
+  title_font.setBold(true);
+  title_font.setPointSizeF(title_font.pointSizeF() * 1.25);
+  title_label->setFont(title_font);
+
+  auto* subtitle_label = new QLabel(
+      tr("Everything below is written into a single file you can copy to "
+         "another computer and import there."),
+      this);
+  subtitle_label->setWordWrap(true);
+  SetLabelTextColor(subtitle_label, MutedTextColor(subtitle_label->palette()));
+
+  auto* title_row = new QHBoxLayout();
+  title_row->setSpacing(14);
+  title_row->addWidget(icon_label, 0, Qt::AlignVCenter);
+  title_row->addWidget(title_label, 1);
+
+  auto* header_layout = new QVBoxLayout();
+  header_layout->setSpacing(6);
+  header_layout->addLayout(title_row);
+  header_layout->addWidget(subtitle_label);
+  layout->addLayout(header_layout);
+
+  auto* separator = new QFrame(this);
+  separator->setFrameShape(QFrame::HLine);
+  separator->setFrameShadow(QFrame::Sunken);
+  layout->addWidget(separator);
+}
+
+void ProfileExportDialog::build_contents(QVBoxLayout* layout) {
+  auto* contents = new QWidget(this);
+  auto* contents_layout = new QVBoxLayout(contents);
+  contents_layout->setContentsMargins(0, 0, 0, 0);
+
+  // A grid rather than a run of wrapped rich text, because the only reason to
+  // print sizes is so they can be compared, and they cannot be compared until
+  // they line up in a column.
+  contents_grid_ = new QGridLayout();
+  contents_grid_->setHorizontalSpacing(10);
+  // Roomier than a form: these are five things to read and compare, not five
+  // things to fill in, and a list packed to the line height reads as a wall.
+  contents_grid_->setVerticalSpacing(9);
+  contents_grid_->setColumnStretch(1, 1);
+
+  const auto rows = BuildProfileExportContents(areas_, false);
+  for (int i = 0; i < rows.size(); ++i) {
+    const auto& row = rows.at(i);
+
+    auto* icon = new QLabel(contents);
+    icon->setPixmap(QPixmap(row.icon).scaled(16, 16, Qt::KeepAspectRatio,
+                                             Qt::SmoothTransformation));
+    icon->setFixedWidth(16);
+    contents_grid_->addWidget(icon, i, 0);
+
+    // The workspace row *is* its checkbox. A checkbox sitting below a list that
+    // never mentions the workspace is how someone ends up unsure whether the
+    // list they just read was the whole story.
+    if (row.optional) {
+      workspace_box_ = new QCheckBox(row.label, contents);
+      // Off unless asked for. The workspace has no size limit and is precisely
+      // where the cleartext of things meant to be encrypted ends up; nobody
+      // should discover after the fact that their drafts travelled inside a
+      // file they emailed to someone.
+      workspace_box_->setChecked(false);
+      workspace_box_->setEnabled(row.bytes > 0);
+      contents_grid_->addWidget(workspace_box_, i, 1);
+      row_widgets_.append(workspace_box_);
+    } else {
+      auto* name = new QLabel(row.label, contents);
+      contents_grid_->addWidget(name, i, 1);
+      row_widgets_.append(name);
+    }
+
+    auto* size = new QLabel(HumanSize(row.bytes), contents);
+    size->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    contents_grid_->addWidget(size, i, 2);
+    size_labels_.append(size);
+  }
+
+  auto* rule = new QFrame(contents);
+  rule->setFrameShape(QFrame::HLine);
+  rule->setFrameShadow(QFrame::Plain);
+  auto rule_palette = rule->palette();
+  rule_palette.setColor(QPalette::WindowText, BorderColor(rule->palette()));
+  rule->setPalette(rule_palette);
+  contents_grid_->addWidget(rule, rows.size(), 0, 1, 3);
+
+  auto* total_caption = new QLabel(tr("Total"), contents);
+  auto caption_font = total_caption->font();
+  caption_font.setBold(true);
+  total_caption->setFont(caption_font);
+  contents_grid_->addWidget(total_caption, rows.size() + 1, 1);
+
+  total_label_ = new QLabel(contents);
+  total_label_->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  auto total_font = total_label_->font();
+  total_font.setBold(true);
+  total_label_->setFont(total_font);
+  contents_grid_->addWidget(total_label_, rows.size() + 1, 2);
+
+  contents_layout->addLayout(contents_grid_);
+
+  auto* caveat = new QLabel(
+      tr("Logs and modules are never included. Keys kept outside this profile, "
+         "such as the system GnuPG keyring, stay where they are."),
+      contents);
+  caveat->setWordWrap(true);
+  SetLabelTextColor(caveat, MutedTextColor(caveat->palette()));
+  contents_layout->addWidget(caveat);
+
+  layout->addWidget(CreateCard(tr("What goes in"), contents, this));
+}
+
+void ProfileExportDialog::build_protection(QVBoxLayout* layout) {
+  auto* protection = new QWidget(this);
+  auto* protection_layout = new QVBoxLayout(protection);
+  protection_layout->setContentsMargins(0, 0, 0, 0);
+  protection_layout->setSpacing(8);
+
+  protect_with_pin_ =
+      new QRadioButton(tr("Protect with a passphrase"), protection);
+  protect_with_pin_->setChecked(true);
+  protection_layout->addWidget(protect_with_pin_);
+
+  // The same fields, reveal toggle, strength meter and floor the application
+  // PIN is chosen with. A generator is offered here and not there because this
+  // secret is going to be written down rather than remembered.
+  auto texts = DefaultSecretPromptTexts(SecretPromptSubject::kProfilePackage,
+                                        SecretPromptMode::kSET, {});
+  texts.hint = tr(
+      "The file cannot be opened without this passphrase, and there is no way "
+      "to recover it. This computer's keychain is not used: the file has to "
+      "open on another computer.");
+
+  SecretEntryPanel::Config config;
+  config.ask_current = false;
+  config.ask_new = true;
+  config.offer_generation = true;
+  config.texts = texts;
+  entry_ = new SecretEntryPanel(config, protection);
+  protection_layout->addWidget(entry_);
+
+  // Named rather than asserted. Someone who knows what these are can check the
+  // claim; someone who does not still reads a specific mechanism rather than a
+  // reassurance. The Argon2id parameters are deliberately left out: they will
+  // change, and a number nobody can evaluate is noise.
+  auto* mechanism = new QLabel(
+      tr("XChaCha20-Poly1305, with a key derived from your passphrase using "
+         "Argon2id."),
+      protection);
+  mechanism->setWordWrap(true);
+  SetLabelTextColor(mechanism, MutedTextColor(mechanism->palette()));
+  protection_layout->addWidget(mechanism);
+
+  protect_with_nothing_ = new QRadioButton(tr("No protection"), protection);
+  protection_layout->addWidget(protect_with_nothing_);
+
+  layout->addWidget(CreateCard(tr("Protection"), protection, this));
+}
+
+auto ProfileExportDialog::choice() const -> ProfileExportChoice {
+  ProfileExportChoice choice;
+  choice.has_destination = !destination_.isEmpty();
+  choice.include_workspace = IncludeWorkspace();
+  choice.protect_with_passphrase = protect_with_pin_->isChecked();
+  choice.passphrase_acceptable = entry_->Acceptable();
+  choice.total_bytes = TotalProfileExportBytes(
+      BuildProfileExportContents(areas_, choice.include_workspace));
+  choice.free_bytes = free_bytes_;
+  return choice;
 }
 
 void ProfileExportDialog::slot_choose_destination() {
@@ -185,48 +351,89 @@ void ProfileExportDialog::slot_choose_destination() {
   destination_ = chosen.endsWith(kProfilePackageExtension, Qt::CaseInsensitive)
                      ? chosen
                      : chosen + kProfilePackageExtension;
-  destination_label_->setText(QDir::toNativeSeparators(destination_));
-  destination_label_->setStyleSheet({});
+
+  const QFileInfo info(destination_);
+  destination_label_->setText(info.fileName());
+  SetLabelTextColor(destination_label_, palette().color(QPalette::WindowText));
+
+  // Free space as a fact, not a prediction. What the file will actually occupy
+  // is unknowable before it is packed, because the payload is compressed on the
+  // way out; what the volume has right now is simply true.
+  const QStorageInfo storage(info.absolutePath());
+  free_bytes_ = storage.isValid() ? storage.bytesAvailable() : -1;
+
+  auto detail = QDir::toNativeSeparators(info.absolutePath());
+  if (free_bytes_ >= 0) {
+    detail += " · " + tr("%1 free").arg(HumanSize(free_bytes_));
+  }
+  destination_detail_->setText(detail);
+  destination_detail_->show();
+
   slot_state_changed();
 }
 
 void ProfileExportDialog::slot_state_changed() {
   const auto with_pin = protect_with_pin_->isChecked();
+  entry_->setEnabled(with_pin);
 
-  passphrase_edit_->setEnabled(with_pin);
-  confirm_edit_->setEnabled(with_pin);
+  const auto current = choice();
 
-  const auto passphrase = passphrase_edit_->text();
-  const auto matched = passphrase == confirm_edit_->text();
+  // Re-render the sizes so the total visibly moves when the workspace box does;
+  // a number that does not react to the checkbox above it teaches the user that
+  // the list is decoration.
+  const auto rows =
+      BuildProfileExportContents(areas_, current.include_workspace);
+  for (int i = 0; i < rows.size() && i < size_labels_.size(); ++i) {
+    const auto& row = rows.at(i);
+    auto* label = size_labels_.at(i);
+    label->setText(HumanSize(row.bytes));
 
-  if (with_pin) {
-    protection_hint_->setText(
-        "<span style='color: gray;'>" +
-        tr("The file cannot be opened without this passphrase, and there is no "
-           "way to recover it. Keys wrapped by this computer's keychain are "
-           "not used: the file has to open on another computer.") +
-        "</span>" +
-        (matched || confirm_edit_->text().isEmpty()
-             ? QString{}
-             : "<br/><b>" + tr("The two entries do not match.") + "</b>"));
+    // Dimmed when the row carries nothing — either because it is empty or
+    // because it was left out. Five rows at equal weight make the reader work
+    // out which ones matter; dimming the ones that do not puts the emphasis
+    // where the bytes actually are.
+    const auto carries_something = row.included && row.bytes > 0;
+    const auto colour = carries_something
+                            ? palette().color(QPalette::WindowText)
+                            : MutedTextColor(palette());
+    SetLabelTextColor(label, colour);
+    if (i < row_widgets_.size()) {
+      if (auto* name = qobject_cast<QLabel*>(row_widgets_.at(i));
+          name != nullptr) {
+        SetLabelTextColor(name, colour);
+      }
+    }
+  }
+  total_label_->setText(HumanSize(current.total_bytes));
+
+  const auto readiness = EvaluateProfileExport(current);
+
+  // Only the first warning is shown. They are ordered by what it would cost to
+  // ignore them, and a stack of alarms is read as one alarm.
+  if (readiness.warnings.isEmpty()) {
+    warning_icon_->clear();
+    warning_label_->clear();
   } else {
-    // Said plainly, because it is the whole story: the profile's own key is
-    // inside this file, and without protection so is everything it opens.
-    protection_hint_->setText(
-        "<b>" +
-        tr("Anyone who gets this file can read your keys and everything in "
-           "the profile, and can change it before you import it.") +
-        "</b>");
+    const auto warning = readiness.warnings.front();
+    warning_icon_->setPixmap(
+        style()->standardIcon(QStyle::SP_MessageBoxWarning).pixmap(18, 18));
+    warning_label_->setText(DescribeProfileExportWarning(warning));
+    SetLabelTextColor(warning_label_,
+                      warning == ProfileExportWarning::kMayNotFit
+                          ? WarningColor(palette())
+                          : DangerColor(palette()));
   }
 
-  buttons_->button(QDialogButtonBox::Ok)
-      ->setEnabled(!destination_.isEmpty() &&
-                   (!with_pin || (!passphrase.isEmpty() && matched)));
-}
+  // Before a destination exists there is no summary to give, so the footer
+  // carries the one thing still to do rather than sitting blank.
+  const auto summary = DescribeProfileExport(
+      current,
+      destination_.isEmpty() ? QString{} : QFileInfo(destination_).fileName());
+  summary_label_->setText(summary.isEmpty()
+                              ? tr("Choose where to save the file to continue.")
+                              : summary);
 
-void ProfileExportDialog::slot_accept() {
-  if (destination_.isEmpty()) return;
-  accept();
+  buttons_->button(QDialogButtonBox::Ok)->setEnabled(readiness.can_export);
 }
 
 auto ProfileExportDialog::DestinationPath() const -> QString {
@@ -244,7 +451,7 @@ auto ProfileExportDialog::Protection() const -> ProfilePackageProtection {
 
 auto ProfileExportDialog::Passphrase() const -> GFBuffer {
   if (!protect_with_pin_->isChecked()) return {};
-  return GFBuffer(passphrase_edit_->text());
+  return entry_->Secret();
 }
 
 }  // namespace GpgFrontend::UI
