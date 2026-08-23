@@ -216,6 +216,23 @@ class GF_CORE_EXPORT ProfileAccessor {
   [[nodiscard]] virtual auto Label() const -> QString = 0;
 
   /**
+   * @brief Whether this area's objects live only in this process's memory.
+   *
+   * Asked rather than inferred from an empty PathOf(): "there is no file" and
+   * "there is a file somewhere I will not name" are different answers, and only
+   * the first means the bytes never reach a filesystem.
+   *
+   * What it decides: whether an unpacker routes the area's members into the
+   * driver instead of onto the storage, and whether the window may tell the
+   * user their key is held in memory. Both would otherwise need a dynamic_cast
+   * to a concrete driver.
+   *
+   * @param area area to ask about
+   * @return true when the area is held in memory alone
+   */
+  [[nodiscard]] virtual auto IsAreaResident(ProfileArea area) const -> bool = 0;
+
+  /**
    * @brief Whether the storage dies with power.
    *
    * @return true only when nothing survives a reboot
@@ -304,6 +321,8 @@ class GF_CORE_EXPORT FsProfileAccessor : public ProfileAccessor {
       -> QString override;
 
   [[nodiscard]] auto Label() const -> QString override;
+
+  [[nodiscard]] auto IsAreaResident(ProfileArea area) const -> bool override;
 
   [[nodiscard]] auto IsVolatile() const -> bool override;
 

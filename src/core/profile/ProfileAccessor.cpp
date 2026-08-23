@@ -29,40 +29,10 @@
 #include "core/profile/ProfileAccessor.h"
 
 #include "core/function/GFBufferFactory.h"
+#include "core/profile/ProfileAreaTraits.h"
 #include "core/utils/FilesystemUtils.h"
 
 namespace GpgFrontend {
-
-namespace {
-
-/// The directory an area occupies under a filesystem root. Internal: a driver
-/// that does not store in directories has no use for it, and nothing outside
-/// should be assembling paths of its own anyway.
-auto ProfileAreaDirName(ProfileArea area) -> QString {
-  switch (area) {
-    case ProfileArea::kRoot:
-      return {};
-    case ProfileArea::kConfig:
-      return "config";
-    case ProfileArea::kDataObjects:
-      return "data_objs";
-    case ProfileArea::kSecure:
-      return "secure";
-    case ProfileArea::kLogs:
-      return "logs";
-    case ProfileArea::kModules:
-      return "mods";
-    case ProfileArea::kWorkspace:
-      return "workspace";
-    // Dot-prefixed so that IsExcludedFromPackage() already skips it: staging is
-    // this machine's business and must never travel inside a package.
-    case ProfileArea::kScratch:
-      return ".scratch";
-  }
-  return {};
-}
-
-}  // namespace
 
 FsProfileAccessor::FsProfileAccessor(QString root, QString settings_file)
     : root_(std::move(root)), settings_file_(std::move(settings_file)) {}
@@ -136,6 +106,11 @@ auto FsProfileAccessor::Settings() const -> QSettings {
 auto FsProfileAccessor::Label() const -> QString {
   return QCoreApplication::translate("ProfileAccessor",
                                      "an ordinary folder on this disk");
+}
+
+auto FsProfileAccessor::IsAreaResident(ProfileArea /*area*/) const -> bool {
+  // Every area is a directory under the root. That is what this driver is.
+  return false;
 }
 
 auto FsProfileAccessor::IsVolatile() const -> bool { return false; }
