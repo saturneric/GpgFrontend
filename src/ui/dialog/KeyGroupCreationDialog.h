@@ -50,6 +50,9 @@ class KeyGroupCreationDialog : public GeneralDialog {
    */
   void SignalCreated();
 
+ protected:
+  void showEvent(QShowEvent* event) override;
+
  private slots:
 
   /**
@@ -57,6 +60,10 @@ class KeyGroupCreationDialog : public GeneralDialog {
    *
    */
   void slot_create_new_uid();
+
+ private:
+  // Re-run validation and gate the create button on the result.
+  void update_validation_state();
 
  private:
   int current_gpg_context_channel_;
@@ -68,7 +75,6 @@ class KeyGroupCreationDialog : public GeneralDialog {
 
   QPushButton* create_button_{};  ///<
 
-  QStringList error_messages_;  ///<
-  QLabel* error_label_{};       ///<
+  QLabel* error_label_{};  ///<
 };
 }  // namespace GpgFrontend::UI

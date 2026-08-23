@@ -32,92 +32,138 @@
 #include "core/model/GpgKeyGroup.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/dialog/KeyGroupMetadataRules.h"
 
 namespace GpgFrontend::UI {
 KeyGroupCreationDialog::KeyGroupCreationDialog(int channel, QStringList key_ids,
                                                QWidget* parent)
-    : GeneralDialog(typeid(KeyGroupCreationDialog).name(), parent),
+    : GeneralDialog("KeyGroupCreationDialog", parent),
       current_gpg_context_channel_(channel),
-      key_ids_(key_ids) {
-  assert(!key_ids.isEmpty());
+      key_ids_(std::move(key_ids)) {
+  assert(!key_ids_.isEmpty());
 
-  name_ = new QLineEdit();
+#ifdef Q_OS_MACOS
+  setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+#endif
+
+  setWindowTitle(tr("New Key Group"));
+  setModal(true);
+  setMinimumWidth(460);
+
+  name_ = new QLineEdit(this);
   name_->setMinimumWidth(240);
-  email_ = new QLineEdit();
+  name_->setPlaceholderText(tr("Engineering Team"));
+  email_ = new QLineEdit(this);
   email_->setMinimumWidth(240);
-  comment_ = new QLineEdit();
+  email_->setPlaceholderText(tr("Optional"));
+  comment_ = new QLineEdit(this);
   comment_->setMinimumWidth(240);
-  create_button_ = new QPushButton(tr("Create"));
-  error_label_ = new QLabel();
+  comment_->setPlaceholderText(tr("Optional"));
 
-  auto* grid_layout = new QGridLayout();
+  auto* title_label = new QLabel(tr("Create a Key Group"), this);
+  auto title_font = title_label->font();
+  title_font.setBold(true);
+  title_label->setFont(title_font);
 
-  auto* description_label = new QLabel(tr(
-      "A Key Group is a collection of keys. It allows you to encrypt data for "
-      "multiple recipients at once by grouping their public keys together."));
-  description_label->setWordWrap(true);
-  description_label->setStyleSheet("color: gray; font-size: 11px;");
+  auto* desc_label = new QLabel(
+      tr("Encrypting to a key group encrypts to every key it contains."), this);
+  desc_label->setWordWrap(true);
 
-  grid_layout->addWidget(description_label, 0, 0, 2, 2);
+  auto hint_palette = desc_label->palette();
+  hint_palette.setColor(
+      QPalette::WindowText,
+      palette().color(QPalette::Disabled, QPalette::WindowText));
+  desc_label->setPalette(hint_palette);
 
-  grid_layout->addWidget(new QLabel(tr("Name")), 2, 0);
-  grid_layout->addWidget(new QLabel(tr("Email")), 3, 0);
-  grid_layout->addWidget(new QLabel(tr("Comment")), 4, 0);
+  auto* members_label = new QLabel(
+      DescribeKeyGroupCreation(static_cast<int>(key_ids_.size())), this);
+  members_label->setWordWrap(true);
 
-  grid_layout->addWidget(name_, 2, 1);
-  grid_layout->addWidget(email_, 3, 1);
-  grid_layout->addWidget(comment_, 4, 1);
+  error_label_ = new QLabel(this);
+  error_label_->setWordWrap(true);
+  auto error_palette = error_label_->palette();
+  error_palette.setColor(QPalette::WindowText, QColor("#d33"));
+  error_label_->setPalette(error_palette);
 
-  grid_layout->addWidget(create_button_, 5, 0, 1, 2);
-  grid_layout->addWidget(error_label_, 6, 0, 1, 2);
+  auto* form_layout = new QGridLayout();
+  form_layout->addWidget(new QLabel(tr("Name"), this), 0, 0);
+  form_layout->addWidget(name_, 0, 1);
+  form_layout->addWidget(new QLabel(tr("Email"), this), 1, 0);
+  form_layout->addWidget(email_, 1, 1);
+  form_layout->addWidget(new QLabel(tr("Comment"), this), 2, 0);
+  form_layout->addWidget(comment_, 2, 1);
+  form_layout->setColumnStretch(1, 1);
 
-  connect(create_button_, &QPushButton::clicked, this,
+  auto* button_box = new QDialogButtonBox(
+      QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
+  create_button_ = button_box->button(QDialogButtonBox::Ok);
+  create_button_->setText(tr("Create"));
+  button_box->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
+
+  connect(button_box, &QDialogButtonBox::accepted, this,
           &KeyGroupCreationDialog::slot_create_new_uid);
+  connect(button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+  connect(name_, &QLineEdit::textChanged, this,
+          &KeyGroupCreationDialog::update_validation_state);
+  connect(email_, &QLineEdit::textChanged, this,
+          &KeyGroupCreationDialog::update_validation_state);
 
   connect(this, &KeyGroupCreationDialog::SignalCreated,
           UISignalStation::GetInstance(),
           &UISignalStation::SignalKeyDatabaseRefresh);
 
-  setMinimumHeight(250);
+  auto* layout = new QVBoxLayout(this);
+  layout->setContentsMargins(10, 10, 10, 10);
+  layout->setSpacing(8);
+  layout->addWidget(title_label);
+  layout->addWidget(desc_label);
+  layout->addLayout(form_layout);
+  layout->addWidget(members_label);
+  layout->addWidget(error_label_);
+  layout->addWidget(button_box);
 
-  this->setLayout(grid_layout);
-  this->setWindowTitle(tr("New Key Group"));
   this->setAttribute(Qt::WA_DeleteOnClose, true);
-  this->setModal(true);
+
+  update_validation_state();
+  name_->setFocus();
+}
+
+void KeyGroupCreationDialog::update_validation_state() {
+  const auto problem = ValidateKeyGroupMetadata(name_->text(), email_->text());
+
+  // Stay quiet until there is something to type into: an error shown before
+  // the first keystroke reads as a complaint about opening the dialog.
+  error_label_->setText(name_->text().isEmpty()
+                            ? QString{}
+                            : DescribeKeyGroupMetadataProblem(problem));
+
+  if (create_button_ != nullptr) {
+    create_button_->setEnabled(problem == KeyGroupMetadataProblem::kNone);
+  }
+}
+
+void KeyGroupCreationDialog::showEvent(QShowEvent* event) {
+  GeneralDialog::showEvent(event);
+  if (!isRectRestored()) movePosition2CenterOfParent();
 }
 
 void KeyGroupCreationDialog::slot_create_new_uid() {
-  QString buffer;
-  QTextStream error_stream(&buffer);
-
-  /**
-   * check for errors in keygen dialog input
-   */
-  if ((name_->text()).size() < 5) {
-    error_stream << "  " << tr("Name must contain at least five characters.")
-                 << Qt::endl;
+  // Shared with KeyGroupEditDialog so the two forms cannot disagree about what
+  // a valid key group is.
+  const auto problem = ValidateKeyGroupMetadata(name_->text(), email_->text());
+  if (problem != KeyGroupMetadataProblem::kNone) {
+    error_label_->setText(DescribeKeyGroupMetadataProblem(problem));
+    return;
   }
 
-  auto error_string = error_stream.readAll();
-  if (error_string.isEmpty()) {
-    auto p_kg =
-        GpgKeyGroup{name_->text(), email_->text(), comment_->text(), key_ids_};
-    KeyGroupRepository::GetInstance(current_gpg_context_channel_)
-        .AddKeyGroup(p_kg);
+  auto p_kg = GpgKeyGroup{name_->text().trimmed(), email_->text().trimmed(),
+                          comment_->text().trimmed(), key_ids_};
+  KeyGroupRepository::GetInstance(current_gpg_context_channel_)
+      .AddKeyGroup(p_kg);
 
-    emit SignalCreated();
-    this->close();
-  } else {
-    error_label_->setAutoFillBackground(true);
-    QPalette error = error_label_->palette();
-    error.setColor(QPalette::Window, "#ff8080");
-    error_label_->setPalette(error);
-    error_label_->setText(error_string);
-
-    this->show();
-    this->raise();
-    this->activateWindow();
-  }
+  emit SignalCreated();
+  this->close();
 }
 
 }  // namespace GpgFrontend::UI
