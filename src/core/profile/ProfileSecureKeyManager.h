@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "core/function/SystemSecretStore.h"
 #include "core/model/GFBuffer.h"
 #include "core/profile/Profile.h"
@@ -232,6 +234,33 @@ struct GF_CORE_EXPORT AppKeyWrapResult {
  * could not be turned on from the UI; RegisterKeyIds() keeps the objects such a
  * profile already wrote readable.
  */
+/**
+ * @brief Where a re-sealed application key is written, and what to call there.
+ *
+ * A path is not enough. A driver may hold the secure area in memory, where
+ * there is no file to write and nothing to name -- a legitimate answer rather
+ * than a failure -- so a re-protection is handed somewhere to put the key
+ * instead of a place on a filesystem to put it.
+ */
+struct GF_CORE_EXPORT AppKeySink {
+  /// Replaces the stored key in one step. False when it could not.
+  std::function<bool(const GFBuffer&)> write;
+
+  /// Where the key is, in words fit for a log line or an error detail.
+  QString location;
+};
+
+/**
+ * @brief A sink that rewrites the key file at @p path.
+ *
+ * For a key addressed as a file in its own right rather than through a
+ * session's storage.
+ *
+ * @param path the key file to replace
+ * @return a sink writing there, atomically
+ */
+auto GF_CORE_EXPORT AppKeySinkForFile(const QString& path) -> AppKeySink;
+
 class GF_CORE_EXPORT ProfileSecureKeyManager {
  public:
   /**
@@ -312,6 +341,18 @@ class GF_CORE_EXPORT ProfileSecureKeyManager {
    * @return absolute path to secure/app.key
    */
   [[nodiscard]] auto KeyPath() const -> QString;
+
+  /**
+   * @brief Where the key is, in words fit for a log line or an error.
+   *
+   * KeyPath() is empty when the driver holds the secure area in memory, which
+   * is a legitimate answer rather than a failure. Everything that only wants to
+   * *say* where the key is should ask for this instead, so a report never comes
+   * out with a blank where a location should be.
+   *
+   * @return the key file's path, or the storage's name when it has none
+   */
+  [[nodiscard]] auto KeyLocationForMessage() const -> QString;
 
   /**
    * @brief Delete every on-disk key file, for a destructive reset to default.
@@ -416,7 +457,8 @@ class GF_CORE_EXPORT ProfileSecureKeyManager {
    * Re-sealing with a fresh PIN is a real transition rather than a no-op, which
    * is how a PIN is changed without passing through a plaintext file on disk.
    *
-   * @param key_path path of the key file
+   * @param sink where the re-sealed key goes: KeySink() for a live session,
+   * AppKeySinkForFile() for a key file addressed in its own right
    * @param store credential store to use, or nullptr when none is installed
    * @param plain_key plaintext key material
    * @param from protection currently in effect
@@ -426,11 +468,37 @@ class GF_CORE_EXPORT ProfileSecureKeyManager {
    * @return what happened, with a detail string on failure
    */
   static auto ChangeProtection(
-      const QString& key_path, SystemSecretStore* store,
+      const AppKeySink& sink, SystemSecretStore* store,
       const GFBuffer& plain_key, AppKeyProtection from, AppKeyProtection to,
       const GFBuffer& new_pin,
       const QString& account = QString::fromLatin1(kAppKeyWrapAccount))
       -> AppKeyProtectionResult;
+
+  /**
+   * @brief A sink that writes this session's key through its own storage.
+   *
+   * The reason ChangeProtection() takes a sink at all. A driver may hold the
+   * secure area in memory, where KeyPath() is empty and rightly so -- and a
+   * change that wrote by path would either fail outright or, handed a path,
+   * write the key onto the disk the session arranged to keep it off.
+   *
+   * Keeps a reference to this manager's storage, so it must not outlive it.
+   *
+   * @return a sink addressing this session's application key
+   */
+  [[nodiscard]] auto KeySink() const -> AppKeySink;
+
+  /**
+   * @brief The stored application key, in whatever form it is sealed.
+   *
+   * Read through the storage rather than from a path, for the same reason
+   * KeySink() writes through it. Verifying a PIN is the caller this exists for:
+   * a session holding the area in memory has no file to read back, and reading
+   * an empty path fails in a way that is indistinguishable from a wrong PIN.
+   *
+   * @return the sealed key, or nothing when there is none to read
+   */
+  [[nodiscard]] auto ReadStoredKey() const -> GFBufferOrNone;
 
   /**
    * @brief Derive the rotating key for one rotation period.

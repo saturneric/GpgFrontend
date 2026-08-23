@@ -290,11 +290,38 @@ auto ProfileSecureKeyManager::ResolveWrapSecret(const QString& key_path,
   return {AppKeyWrapStatus::kJUST_ENABLED, *secret, backend};
 }
 
+auto AppKeySinkForFile(const QString& path) -> AppKeySink {
+  return {[path](const GFBuffer& sealed) {
+            return GFBufferFactory::ToFileAtomic(path, sealed);
+          },
+          path};
+}
+
+auto ProfileSecureKeyManager::KeySink() const -> AppKeySink {
+  // The accessor is captured by value: it is shared-owned, and a sink outliving
+  // the manager it came from would otherwise write through a dangling one.
+  auto accessor = accessor_;
+  return {[accessor](const GFBuffer& sealed) {
+            return accessor->Write(ProfileArea::kSecure, kRootKeyName, sealed);
+          },
+          KeyLocationForMessage()};
+}
+
+auto ProfileSecureKeyManager::ReadStoredKey() const -> GFBufferOrNone {
+  return accessor_->Read(ProfileArea::kSecure, kRootKeyName);
+}
+
 auto ProfileSecureKeyManager::ChangeProtection(
-    const QString& key_path, SystemSecretStore* store,
-    const GFBuffer& plain_key, AppKeyProtection from, AppKeyProtection to,
-    const GFBuffer& new_pin, const QString& account) -> AppKeyProtectionResult {
+    const AppKeySink& sink, SystemSecretStore* store, const GFBuffer& plain_key,
+    AppKeyProtection from, AppKeyProtection to, const GFBuffer& new_pin,
+    const QString& account) -> AppKeyProtectionResult {
   const auto backend = store != nullptr ? store->Name() : QString("none");
+  const auto& key_path = sink.location;
+
+  if (!sink.write) {
+    LOG_E() << "refusing to re-protect an app secure key with nowhere to put it";
+    return {AppKeyProtectionStatus::kIO_FAILED, key_path};
+  }
 
   // Re-sealing under a new PIN is how a PIN is changed, so it is the one
   // same-mode transition that still has work to do.
@@ -374,7 +401,7 @@ auto ProfileSecureKeyManager::ChangeProtection(
     return {AppKeyProtectionStatus::kIO_FAILED, key_path};
   }
 
-  if (!GFBufferFactory::ToFileAtomic(key_path, *sealed)) {
+  if (!sink.write(*sealed)) {
     LOG_E() << "rewriting the app secure key failed:" << key_path;
     rollback();
     return {AppKeyProtectionStatus::kIO_FAILED, key_path};
@@ -395,7 +422,15 @@ auto ProfileSecureKeyManager::ChangeProtection(
 }
 
 auto ProfileSecureKeyManager::KeyPath() const -> QString {
-  return accessor_->PathOf(ProfileArea::kSecure, "app.key");
+  return accessor_->PathOf(ProfileArea::kSecure, kRootKeyName);
+}
+
+auto ProfileSecureKeyManager::KeyLocationForMessage() const -> QString {
+  // Every internal use of KeyPath() is a log line or a failure detail shown to
+  // the user, and an area held in memory has no path to put there. Naming the
+  // storage is the honest answer and is more use than an empty string.
+  const auto path = KeyPath();
+  return path.isEmpty() ? accessor_->Label() : path;
 }
 
 auto ProfileSecureKeyManager::ResetKeyStorage(const QString& key_dir) -> bool {
@@ -483,7 +518,7 @@ auto ProfileSecureKeyManager::new_root_key(const GFBuffer& pin,
   }
 
   if (!accessor_->Write(ProfileArea::kSecure, kRootKeyName, *sealed)) {
-    const auto path = KeyPath();
+    const auto path = KeyLocationForMessage();
     LOG_E() << "write app secure key failed:" << path;
     status = {ProfileKeyLoadStatus::kWRITE_FAILED, path};
   }
@@ -497,8 +532,8 @@ auto ProfileSecureKeyManager::init_root_key(const GFBuffer& pin,
   ProfileKeyLoadResult result;
 
   GFBuffer root_key;
-  const auto path = KeyPath();
-  LOG_D() << "profile secure key path:" << path;
+  const auto path = KeyLocationForMessage();
+  LOG_D() << "profile secure key kept in:" << path;
 
   if (!accessor_->Exists(ProfileArea::kSecure, kRootKeyName)) {
     root_key = new_root_key(pin, wrap, result);
@@ -608,8 +643,7 @@ auto ProfileSecureKeyManager::Load(const GFBuffer& pin, const GFBuffer& wrap,
 
   auto t_key = fetch_time_related_key(app_key);
   if (t_key.Empty()) {
-    return {ProfileKeyLoadStatus::kGENERATE_FAILED,
-            accessor_->PathOf(ProfileArea::kSecure)};
+    return {ProfileKeyLoadStatus::kGENERATE_FAILED, KeyLocationForMessage()};
   }
   RegisterKeyIds(keys_, pin, t_key);
 
@@ -617,7 +651,12 @@ auto ProfileSecureKeyManager::Load(const GFBuffer& pin, const GFBuffer& wrap,
   // key that opens is listed beside the active one. A key belonging to neither
   // form simply fails to decrypt and is skipped, which is how rotated keys from
   // earlier weeks have always survived.
-  const auto root_key_file = QFileInfo(KeyPath()).fileName();
+  // The name itself, not a name derived from a path. A driver that holds this
+  // area in memory has no path to take a filename from, and the empty string
+  // that produced would stop this guard matching anything -- feeding the root
+  // key into the trial-decrypt loop below, where for a PIN-protected package it
+  // would succeed and be registered as a rotated key.
+  const auto root_key_file = QString::fromLatin1(kRootKeyName);
 
   for (const auto& key_file : accessor_->List(ProfileArea::kSecure, "*.key")) {
     // The root key is not a rotated key and was already registered above; it is
@@ -626,9 +665,8 @@ auto ProfileSecureKeyManager::Load(const GFBuffer& pin, const GFBuffer& wrap,
 
     auto stored = accessor_->Read(ProfileArea::kSecure, key_file);
     if (!stored) {
-      const auto key_path = accessor_->PathOf(ProfileArea::kSecure, key_file);
-      LOG_E() << "read app secure key failed:" << key_path;
-      return {ProfileKeyLoadStatus::kREAD_FAILED, key_path};
+      LOG_E() << "read app secure key failed:" << key_file;
+      return {ProfileKeyLoadStatus::kREAD_FAILED, KeyLocationForMessage()};
     }
 
     // Trial-decrypt: first the way rotated keys are written now, then the way a
