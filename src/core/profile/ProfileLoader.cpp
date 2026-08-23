@@ -73,6 +73,8 @@ auto FailureFor(ProfileMountStatus status) -> ProfileLoadFailure {
       return ProfileLoadFailure::kSTORAGE_UNAVAILABLE;
     case ProfileMountStatus::kNO_SPACE:
       return ProfileLoadFailure::kSTORAGE_FULL;
+    case ProfileMountStatus::kTOO_LARGE:
+      return ProfileLoadFailure::kPACKAGE_TOO_LARGE;
     // The default arm means a status added upstream lands on a generic message
     // rather than failing to compile, so anything that deserves its own must be
     // named above.
@@ -278,11 +280,10 @@ auto ProfileLoader::Mount(int schema_version) -> bool {
     auto& packaged = static_cast<PackagedProfile&>(*profile_);
     SweepTransientProfileRoots(packaged.ProfilesRoot(), packaged.LockRoot());
 
-    // Before the package is opened rather than after: the accessor is what
-    // owns the storage, so it has to exist before there is anywhere to unpack
-    // into.
-    profile_->MakeAccessor();
-
+    // Deliberately not provisioned here. Mount() reads the package's declared
+    // size first and then asks, and provisioning eagerly would settle where the
+    // session goes -- and how much room it gets -- before anything had been
+    // read that could inform either.
     if (const auto error = mount_package(schema_version)) {
       ProfileLock::Release();
 
@@ -431,6 +432,19 @@ void ProfileLoader::stamp_marker() {
 
 auto ProfileLoader::reset_key_storage() -> bool {
   const auto key_dir = session_->Accessor().PathOf(ProfileArea::kSecure);
+
+  // A driver that holds the secure area in memory has no directory to empty,
+  // and ResetKeyStorage() would take the empty path for the current working
+  // directory: it would find no app.key there, report success, and tell the
+  // user their key was reset when nothing had been touched. No packaged
+  // profile reaches here today -- resolve_secret() returns before either call
+  // site -- but that is incidental, and a silent false success is the worst
+  // shape this could fail in.
+  if (key_dir.isEmpty()) {
+    LOG_E() << "refusing to reset a key store that has no directory";
+    return false;
+  }
+
   if (!ProfileSecureKeyManager::ResetKeyStorage(key_dir)) return false;
 
   if (auto* store = GetSystemSecretStore(); store != nullptr) {

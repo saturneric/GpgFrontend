@@ -52,8 +52,9 @@ enum class ProfileLoadFailure : std::uint8_t {
   /// Not a failure of the machine or the package: the user asked not to open it
   /// anywhere it would be left readable, and nowhere qualified.
   kSTORAGE_UNAVAILABLE,
-  kSTORAGE_FULL,   ///< the storage ran out of room part way through unpacking
-  kNOT_A_PACKAGE,  ///< the file named is not a .gfp
+  kSTORAGE_FULL,  ///< the storage ran out of room part way through unpacking
+  kPACKAGE_TOO_LARGE,    ///< the file is larger than this build can open
+  kNOT_A_PACKAGE,        ///< the file named is not a .gfp
   kPACKAGE_TAMPERED,     ///< header and sealed manifest disagree
   kPACKAGE_MALFORMED,    ///< the payload is not a profile tree
   kTOO_NEW,              ///< written by a newer build; must not be touched
