@@ -107,7 +107,9 @@ auto FsProfileAccessor::List(ProfileArea area, const QString& pattern) const
 
 auto FsProfileAccessor::TotalSize(ProfileArea area,
                                   const QString& pattern) const -> qint64 {
-  return GetFileSizeByPath(PathOf(area), pattern);
+  // Empty means everything here too; see List().
+  return GetFileSizeByPath(PathOf(area),
+                           pattern.isEmpty() ? QString("*") : pattern);
 }
 
 auto FsProfileAccessor::Settings() const -> QSettings {
