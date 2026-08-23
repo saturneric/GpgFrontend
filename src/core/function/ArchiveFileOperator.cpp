@@ -484,6 +484,26 @@ auto ArchiveFileOperator::NewArchiveFromMembersSync(
 
     QFile file(member.source_file);
     qint64 size = 0;
+    if (member.directory) {
+      auto *entry = archive_entry_new();
+      archive_entry_set_pathname(entry, member.relative_path.toUtf8());
+      archive_entry_set_size(entry, 0);
+      archive_entry_set_filetype(entry, AE_IFDIR);
+      archive_entry_set_perm(entry, 0700);
+
+      const auto r = archive_write_header(archive, entry);
+      archive_entry_free(entry);
+      if (r < ARCHIVE_OK) {
+        FLOG_W("archive_write_header() failed for %s: %s",
+               qPrintable(member.relative_path), archive_error_string(archive));
+        if (r == ARCHIVE_FATAL) {
+          ret = -1;
+          break;
+        }
+      }
+      continue;
+    }
+
     if (member.FromFile()) {
       if (!file.open(QIODevice::ReadOnly)) {
         // A file the collector removed while this walked past it is not a

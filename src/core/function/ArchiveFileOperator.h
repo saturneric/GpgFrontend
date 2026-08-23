@@ -192,7 +192,14 @@ struct GF_CORE_EXPORT ArchiveMemberEntry {
   QString source_file;    ///< read from here, when set
   GFBuffer bytes;         ///< otherwise, these
 
-  [[nodiscard]] auto FromFile() const -> bool { return !source_file.isEmpty(); }
+  /// A directory entry, carrying neither. The paths of file entries create
+  /// every directory that has something in it, so this is for the empty ones,
+  /// which would otherwise not survive the round trip.
+  bool directory = false;
+
+  [[nodiscard]] auto FromFile() const -> bool {
+    return !directory && !source_file.isEmpty();
+  }
 };
 
 /**
@@ -295,7 +302,8 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    *
    * The counterpart of NewArchive2DataExchangerSync() for callers whose
    * contents are not a directory. Directories are created implicitly by the
-   * paths of the entries, so a provider yields files only.
+   * paths of the entries, so a provider need only yield those it wants to exist
+   * on their own -- an empty one has no file to imply it.
    *
    * @param next yields entries until it returns false
    * @param exchanger stream to write the archive into
