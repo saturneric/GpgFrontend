@@ -489,7 +489,7 @@ auto AdvancedTab::apply_app_key_protection() -> bool {
   }
 
   const auto result = ProfileSecureKeyManager::ChangeProtection(
-      mgr.KeyPath(), GetSystemSecretStore(), mgr.RootKey(), from, to, pin,
+      mgr.KeySink(), GetSystemSecretStore(), mgr.RootKey(), from, to, pin,
       ProfileLoader::CurrentWrapAccount());
 
   if (!result.Ok()) {
@@ -525,16 +525,21 @@ void AdvancedTab::change_pin() {
   while (dialog.exec() == QDialog::Accepted) {
     // Verify the current PIN before re-keying, so someone at an unlocked
     // machine cannot silently change it.
-    auto on_disk = GFBufferFactory::FromFile(mgr.KeyPath());
-    if (!on_disk || !ProfileSecureKeyManager::UnsealKey(dialog.CurrentPin(), {},
-                                                        *on_disk)) {
+    //
+    // Read through the storage, not from KeyPath(): a packaged session holds
+    // the secure area in memory, where the path is empty and reading it fails
+    // for a reason that has nothing to do with the PIN -- which is what this
+    // used to report, in a loop, to a user typing the right one.
+    auto stored = mgr.ReadStoredKey();
+    if (!stored || !ProfileSecureKeyManager::UnsealKey(dialog.CurrentPin(), {},
+                                                       *stored)) {
       dialog.SetErrorText(tr("The current PIN is not correct."));
       dialog.Clear();
       continue;
     }
 
     const auto result = ProfileSecureKeyManager::ChangeProtection(
-        mgr.KeyPath(), GetSystemSecretStore(), mgr.RootKey(),
+        mgr.KeySink(), GetSystemSecretStore(), mgr.RootKey(),
         AppKeyProtection::kPIN, AppKeyProtection::kPIN, dialog.Pin(),
         ProfileLoader::CurrentWrapAccount());
 
