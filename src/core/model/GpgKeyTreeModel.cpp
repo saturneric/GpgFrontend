@@ -113,7 +113,12 @@ auto GpgKeyTreeModel::data(const QModelIndex &index, int role) const
   }
 
   if (role == Qt::DisplayRole) {
-    if (index.column() == 0) return item->Row();
+    if (index.column() == 0) {
+      // The row number is a picker affordance; in a membership list it just
+      // reads as a stray value next to the checkbox.
+      if (build_mode_ == GpgKeyTreeBuildMode::kKEY_GROUP_MEMBERS) return {};
+      return item->Row();
+    }
     return item->Data(index.column());
   }
 
@@ -280,6 +285,10 @@ auto GpgKeyTreeModel::create_gpg_key_tree_items(const GpgAbstractKeyPtr &key,
   assert(key != nullptr);
   auto i_key = SecureCreateSharedObject<GpgKeyTreeItem>(key, columns);
   finish_tree_item(i_key, depth);
+
+  // Membership is per key: a group contains keys and other groups, never a
+  // single subkey, so expanding one here would only add unselectable noise.
+  if (build_mode_ == GpgKeyTreeBuildMode::kKEY_GROUP_MEMBERS) return i_key;
 
   for (const auto &s_key : g_key->SubKeys()) {
     // avoid bugs due to duplicate key ids
