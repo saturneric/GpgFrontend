@@ -59,6 +59,10 @@ struct StatusIndicatorInfo {
  * @param clickable whether this build offers profiles at all; false drops the
  * "click to manage" hint, which is the only part of the segment that promises
  * something to click, and would otherwise promise it where nothing happens
+ * @param key_in_memory whether the profile's own key is held in memory rather
+ * than written to that storage. Said separately from storage_label and kept
+ * narrow: it is one thing inside the session, and folding the two together
+ * would suggest the OpenPGP keys are in memory too, which they are not
  * @param storage_label how the session's storage describes itself, from
  * ProfileAccessor::Label(); empty for a profile that is simply kept here. A
  * packaged session may have fallen back from memory to an ordinary folder, and
@@ -66,10 +70,11 @@ struct StatusIndicatorInfo {
  * a compromise rather than a lie
  * @return caption, value and tooltip for the profile segment
  */
-auto GF_UI_EXPORT DescribeProfileIndicator(
-    ProfileKind kind, const QString& display_name, const QString& root_path,
-    const QString& package_path, bool clickable,
-    const QString& storage_label = {}) -> StatusIndicatorInfo;
+auto GF_UI_EXPORT
+DescribeProfileIndicator(ProfileKind kind, const QString& display_name,
+                         const QString& root_path, const QString& package_path,
+                         bool clickable, const QString& storage_label = {},
+                         bool key_in_memory = false) -> StatusIndicatorInfo;
 
 /**
  * @brief Describe the OpenPGP backend behind every operation in this window.

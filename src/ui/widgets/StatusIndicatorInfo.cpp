@@ -68,7 +68,7 @@ auto ClickToSeeStatus() -> QString {
 auto DescribeProfileIndicator(ProfileKind kind, const QString& display_name,
                               const QString& root_path,
                               const QString& package_path, bool clickable,
-                              const QString& storage_label)
+                              const QString& storage_label, bool key_in_memory)
     -> StatusIndicatorInfo {
   StatusIndicatorInfo info;
   info.caption = QCoreApplication::translate(
@@ -98,7 +98,17 @@ auto DescribeProfileIndicator(ProfileKind kind, const QString& display_name,
        packaged && !storage_label.isEmpty()
            ? QCoreApplication::translate("GpgFrontend::UI::StatusIndicatorInfo",
                                          "Kept in %1.")
-                 .arg(storage_label)
+                     .arg(storage_label) +
+                 // Narrow on purpose: this profile's own key, not the user's
+                 // OpenPGP keys, which are in the storage named above because
+                 // GnuPG needs real files for them.
+                 (key_in_memory
+                      ? QString(" ") +
+                            QCoreApplication::translate(
+                                "GpgFrontend::UI::StatusIndicatorInfo",
+                                "This profile's own key is held in memory "
+                                "only.")
+                      : QString())
            : QString()},
       clickable ? ClickToManageProfiles() : QString());
 

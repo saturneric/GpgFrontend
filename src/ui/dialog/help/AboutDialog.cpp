@@ -778,6 +778,18 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
 
     add_row(profile_form, tr("Session Storage:"), session_storage.value,
             session_storage.detail, session_storage.degraded);
+
+    // Stated separately from the row above, and deliberately narrow. The
+    // storage line describes where the *profile* went; this describes one thing
+    // inside it. Folding them together would suggest the keyring is held in
+    // memory too, and it is not -- GnuPG needs real files for that.
+    if (storage.IsAreaResident(ProfileArea::kSecure)) {
+      add_row(profile_form, tr("Profile Key:"), tr("Held in memory only"),
+              tr("The key that protects this profile's own saved data is never "
+                 "written here. Your OpenPGP keys are a separate thing and do "
+                 "live in the session storage above, because GnuPG needs real "
+                 "files for them."));
+    }
   }
 
   const auto workspace = ProfileSession::Instance().WorkspacePath();
