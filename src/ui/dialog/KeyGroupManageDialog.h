@@ -28,27 +28,36 @@
 
 #pragma once
 
+#include "core/function/openpgp/KeyGroupRepository.h"
 #include "core/model/GpgKeyGroup.h"
-#include "ui/dialog//GeneralDialog.h"
+#include "ui/dialog/GeneralDialog.h"
 
-class Ui_KeyGroupManageDialog;
+class QLabel;
+class QLineEdit;
+class QTimer;
+class QToolButton;
 
 namespace GpgFrontend::UI {
 
 class KeyList;
+class KeyTreeView;
 
 /**
- * @brief
+ * @brief Manage one key group: its members, its name and its existence.
  *
+ * The left pane is a tree of the group's direct members, where a nested group
+ * expands to show what it holds; the right pane offers every key that may
+ * still be added.
  */
 class KeyGroupManageDialog : public GeneralDialog {
   Q_OBJECT
-
  public:
   /**
-   * @brief Construct a new Signers Picker object
+   * @brief Construct a new Key Group Manage Dialog object.
    *
-   * @param parent
+   * @param channel gpg context channel
+   * @param key_group key group to manage
+   * @param parent parent widget
    */
   explicit KeyGroupManageDialog(int channel,
                                 const QSharedPointer<GpgKeyGroup>& key_group,
@@ -58,41 +67,52 @@ class KeyGroupManageDialog : public GeneralDialog {
   void showEvent(QShowEvent* event) override;
 
  private slots:
-
-  /**
-   * @brief
-   *
-   */
   void slot_add_to_key_group();
-
-  /**
-   * @brief
-   *
-   */
   void slot_remove_from_key_group();
-
-  /**
-   * @brief
-   *
-   */
+  void slot_edit_metadata();
+  void slot_delete_group();
+  void slot_reload();
   void slot_notify_invalid_key_ids();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_set_add_button_state();
-
-  /**
-   * @brief
-   *
-   */
-  void slot_set_remove_button_state();
+  void slot_update_action_state();
+  void slot_members_context_menu(const QPoint& pos);
 
  private:
-  QSharedPointer<Ui_KeyGroupManageDialog> ui_;  ///<
   int channel_;
-  QSharedPointer<GpgKeyGroup> key_group_;
+  // The id, not the object: KeyGroupRepository rebuilds every GpgKeyGroup when
+  // the key database changes, which would leave a held pointer editing an
+  // orphan.
+  QString group_id_;
+
+  KeyTreeView* members_view_ = nullptr;
+  KeyList* available_list_ = nullptr;
+  QLineEdit* member_filter_ = nullptr;
+  QTimer* filter_timer_ = nullptr;
+
+  QLabel* icon_label_ = nullptr;
+  QLabel* name_label_ = nullptr;
+  QLabel* identity_label_ = nullptr;
+  QLabel* footer_label_ = nullptr;
+  QToolButton* add_button_ = nullptr;
+  QToolButton* remove_button_ = nullptr;
+
+  bool invalid_prompt_shown_ = false;
+
+  // Re-resolve the managed group; nullptr means it is gone.
+  [[nodiscard]] auto group() const -> QSharedPointer<GpgKeyGroup>;
+
+  // Build the header card, the two panes and the footer.
+  void init_ui();
+  void init_header_card(QVBoxLayout* layout);
+  void init_panes(QVBoxLayout* layout);
+
+  // Redraw the header card and the footer summary from the current group.
+  void refresh_header();
+
+  // Refresh both panes, the header, the footer and the button states, then
+  // tell the rest of the app that membership changed.
+  void refresh_after_mutation(const QStringList& failed_ids,
+                              const QString& failure_title,
+                              const QString& failure_text);
 };
 
 }  // namespace GpgFrontend::UI
