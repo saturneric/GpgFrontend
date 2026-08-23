@@ -31,6 +31,7 @@
 #include <functional>
 
 #include "core/model/DataObject.h"
+#include "core/model/GFBuffer.h"
 #include "core/model/GFDataExchanger.h"
 
 namespace GpgFrontend {
@@ -165,6 +166,44 @@ auto GF_CORE_EXPORT ArchiveEntryVerdictToString(ArchiveEntryVerdict v) -> const
  */
 using ArchiveEntryFilter = std::function<bool(const QString &relative_path)>;
 
+/**
+ * @brief Take an entry's bytes instead of the filesystem.
+ *
+ * Paired with an ArchiveEntryFilter on the extract side: an entry the filter
+ * claims is read into memory and handed here, and `archive_write_header()` is
+ * never called for it, so those bytes never reach any filesystem at all.
+ *
+ * Returning false aborts the extraction, exactly as a failed write does.
+ *
+ * The path is the same normalised, archive-relative form the filter saw.
+ */
+using ArchiveEntrySink =
+    std::function<bool(const QString &relative_path, const GFBuffer &bytes)>;
+
+/**
+ * @brief One entry a caller wants written into an archive.
+ *
+ * Either a file to copy or bytes in hand, never both. A caller that has to
+ * archive somebody's workspace cannot hold it in memory, and one synthesising a
+ * manifest has no file to point at.
+ */
+struct GF_CORE_EXPORT ArchiveMemberEntry {
+  QString relative_path;  ///< where it sits in the archive
+  QString source_file;    ///< read from here, when set
+  GFBuffer bytes;         ///< otherwise, these
+
+  [[nodiscard]] auto FromFile() const -> bool { return !source_file.isEmpty(); }
+};
+
+/**
+ * @brief Yields the entries of an archive, in order.
+ *
+ * Returning false ends the archive. Lets a caller build one from whatever it
+ * has -- a live directory, bytes it just produced, or both -- instead of having
+ * to assemble a directory on disk first purely so that something can walk it.
+ */
+using ArchiveMemberProvider = std::function<bool(ArchiveMemberEntry &)>;
+
 class GF_CORE_EXPORT ArchiveFileOperator {
  public:
   /**
@@ -245,11 +284,33 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * @param fd stream to read the archive from
    * @param target_path directory to extract into
    * @param policy limits and permissions to enforce
+   * @param divert entries this claims are handed to @p sink instead of being
+   * written; a directory entry it claims is dropped, since there is nothing to
+   * store. Ignored when @p sink is empty.
+   * @param sink where diverted bytes go
    * @return 0 on success, negative on failure
    */
+  /**
+   * @brief Pack entries from a provider into a stream.
+   *
+   * The counterpart of NewArchive2DataExchangerSync() for callers whose
+   * contents are not a directory. Directories are created implicitly by the
+   * paths of the entries, so a provider yields files only.
+   *
+   * @param next yields entries until it returns false
+   * @param exchanger stream to write the archive into
+   * @param compression whether to gzip
+   * @return 0 on success, negative on failure
+   */
+  static auto NewArchiveFromMembersSync(
+      const ArchiveMemberProvider &next,
+      const QSharedPointer<GFDataExchanger> &exchanger,
+      ArchiveCompression compression) -> GFError;
+
   static auto ExtractArchiveFromDataExchangerSync(
       const QSharedPointer<GFDataExchanger> &fd, const QString &target_path,
-      const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive())
+      const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive(),
+      const ArchiveEntryFilter &divert = {}, const ArchiveEntrySink &sink = {})
       -> GFError;
 };
 }  // namespace GpgFrontend

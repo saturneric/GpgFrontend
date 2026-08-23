@@ -30,7 +30,10 @@
 
 #include <archive.h>
 #include <archive_entry.h>
+#include <sodium.h>
 #include <sys/fcntl.h>
+
+#include <cstring>
 
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/AsyncUtils.h"
@@ -85,6 +88,76 @@ auto CopyData(struct archive *ar, struct archive *aw, qint64 max_entry_bytes,
     }
   }
 }
+
+/// Read an entry's body into memory instead of onto the filesystem.
+///
+/// A deliberate mirror of CopyData(), ceilings included. Bytes that skipped the
+/// accounting would make the sink an unbounded allocation driven by an
+/// untrusted archive -- a zip bomb that lands in RAM rather than on disk, and
+/// the memory it lands in may be locked.
+auto CollectData(struct archive *ar, qint64 max_entry_bytes,
+                 qint64 remaining_total, qint64 capacity_hint, GpgFrontend::GFBuffer &out,
+                 qint64 &written) -> int {
+  int r;
+  const void *buff;
+  size_t size;
+  int64_t offset;
+
+  written = 0;
+
+  // Secure storage from the start, sized from the entry's declared length when
+  // it has one so there is a single allocation and nothing to abandon. What
+  // lands here is what the caller asked to keep off the filesystem -- the
+  // profile's own key, in the only case in the tree -- and staging it in an
+  // ordinary growing QByteArray left a copy of it in every block the append
+  // outgrew, which is precisely what the diversion exists to prevent.
+  out = capacity_hint > 0
+            ? GpgFrontend::GFBuffer(static_cast<size_t>(capacity_hint))
+            : GpgFrontend::GFBuffer();
+
+  const auto give_up = [&out](int code) {
+    out.Zeroize();
+    out = GpgFrontend::GFBuffer();
+    return code;
+  };
+
+  for (;;) {
+    r = archive_read_data_block(ar, &buff, &size, &offset);
+    if (r == ARCHIVE_EOF) break;
+    if (r != ARCHIVE_OK) {
+      LOG_W() << "archive_read_data_block() failed: "
+              << archive_error_string(ar);
+      return give_up(r);
+    }
+
+    const auto filled = written;
+    written += static_cast<qint64>(size);
+    if (max_entry_bytes >= 0 && written > max_entry_bytes) {
+      LOG_W() << "archive entry exceeds the per-entry limit, aborting; limit: "
+              << max_entry_bytes;
+      return give_up(ARCHIVE_FATAL);
+    }
+    if (remaining_total >= 0 && written > remaining_total) {
+      LOG_W() << "archive exceeds the total extraction limit, aborting";
+      return give_up(ARCHIVE_FATAL);
+    }
+
+    // Only when the entry lied about its size, or did not declare one.
+    if (static_cast<qint64>(out.Size()) < written) {
+      out.Resize(static_cast<ssize_t>(written));
+    }
+    std::memcpy(out.Data() + filled, buff, size);
+  }
+
+  if (static_cast<qint64>(out.Size()) > written) {
+    sodium_memzero(out.Data() + written, out.Size() - static_cast<size_t>(written));
+    out.Resize(static_cast<ssize_t>(written));
+  }
+  return ARCHIVE_OK;
+}
+
+/// How much of a file is moved into the archive at a time.
+constexpr qint64 kArchiveCopyChunk = 256 * 1024;
 
 /// True when the entry is one of the types no caller has any use for.
 auto IsRefusedEntryType(mode_t filetype) -> bool {
@@ -370,9 +443,158 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
       ->PostTask(task);
 }
 
+auto ArchiveFileOperator::NewArchiveFromMembersSync(
+    const ArchiveMemberProvider &next,
+    const QSharedPointer<GFDataExchanger> &exchanger,
+    ArchiveCompression compression) -> GFError {
+  auto *archive = archive_write_new();
+  if (compression == ArchiveCompression::kGZIP) {
+    archive_write_add_filter_gzip(archive);
+  } else {
+    archive_write_add_filter_none(archive);
+  }
+  archive_write_set_format_pax_restricted(archive);
+  archive_write_set_format_option(archive, "pax", "hdrcharset", "BINARY");
+
+  // A handle whose open failed still accepts headers and silently discards
+  // them, so leaving this unchecked produces an empty archive and calls it a
+  // success.
+  if (archive_write_open(archive, exchanger.get(), nullptr, ArchiveWriteCallback,
+                         ArchiveCloseWriteCallback) != ARCHIVE_OK) {
+    FLOG_W("archive_write_open() failed: %s", archive_error_string(archive));
+    archive_write_free(archive);
+    // The close callback is what normally releases whoever is reading the other
+    // end of this pipe, and it never ran. Saying so here is what stops the
+    // reader waiting for an archive that is not coming.
+    exchanger->CloseWrite();
+    return -1;
+  }
+
+  auto ret = 0;
+
+  // Hoisted: one buffer for the whole archive rather than a fresh 256 KiB
+  // allocation per member.
+  QByteArray chunk(kArchiveCopyChunk, Qt::Uninitialized);
+
+  ArchiveMemberEntry member;
+  while (true) {
+    member = {};
+    if (!next(member)) break;
+    if (member.relative_path.isEmpty()) continue;
+
+    QFile file(member.source_file);
+    qint64 size = 0;
+    if (member.FromFile()) {
+      if (!file.open(QIODevice::ReadOnly)) {
+        // A file the collector removed while this walked past it is not a
+        // reason to lose the whole archive.
+        if (QFileInfo::exists(member.source_file)) {
+          FLOG_W("cannot open '%s' for packing",
+                 qPrintable(member.relative_path));
+          ret = -1;
+          break;
+        }
+        continue;
+      }
+      size = file.size();
+    } else {
+      size = static_cast<qint64>(member.bytes.Size());
+    }
+
+    auto *entry = archive_entry_new();
+    archive_entry_set_pathname(entry, member.relative_path.toUtf8());
+    archive_entry_set_size(entry, size);
+    archive_entry_set_filetype(entry, AE_IFREG);
+    // Owner-only. Nothing here is meant to be readable by anyone else on the
+    // machine it lands on, and the archive is the only place to say so.
+    archive_entry_set_perm(entry, 0600);
+
+    auto r = archive_write_header(archive, entry);
+    archive_entry_free(entry);
+    if (r < ARCHIVE_OK) {
+      FLOG_W("archive_write_header() failed for %s: %s",
+             qPrintable(member.relative_path), archive_error_string(archive));
+      if (r == ARCHIVE_FATAL) {
+        ret = -1;
+        break;
+      }
+      continue;
+    }
+
+    if (member.FromFile()) {
+      qint64 remaining = size;
+      while (remaining > 0) {
+        const auto read =
+            file.read(chunk.data(), std::min<qint64>(remaining, chunk.size()));
+
+        // A read error and a file that ended early are not the same event, and
+        // neither may be waved through: the header already declared `size`, so
+        // stopping short leaves pax to pad the difference with nulls. Treating
+        // that as success is how a bad sector becomes a zero-filled keyring in
+        // a package the user is told was written correctly.
+        if (read < 0) {
+          FLOG_W("cannot read '%s' for packing: %s",
+                 qPrintable(member.relative_path),
+                 qPrintable(file.errorString()));
+          ret = -1;
+          break;
+        }
+        if (read == 0) break;
+
+        if (archive_write_data(archive, chunk.constData(),
+                               static_cast<size_t>(read)) < 0) {
+          FLOG_W("archive_write_data() failed: %s",
+                 archive_error_string(archive));
+          ret = -1;
+          break;
+        }
+        remaining -= read;
+      }
+      if (ret < 0) break;
+
+      if (remaining > 0) {
+        FLOG_W("'%s' ended %lld bytes short of the size its header declares",
+               qPrintable(member.relative_path),
+               static_cast<long long>(remaining));
+        ret = -1;
+        break;
+      }
+    } else if (size > 0) {
+      if (archive_write_data(archive, member.bytes.Data(),
+                             static_cast<size_t>(size)) < 0) {
+        FLOG_W("archive_write_data() failed: %s",
+               archive_error_string(archive));
+        ret = -1;
+        break;
+      }
+    }
+
+    const auto finished = archive_write_finish_entry(archive);
+    if (finished < ARCHIVE_OK) {
+      FLOG_W("archive_write_finish_entry() failed for %s: %s",
+             qPrintable(member.relative_path), archive_error_string(archive));
+      if (finished == ARCHIVE_FATAL) {
+        ret = -1;
+        break;
+      }
+    }
+  }
+
+  // Where a gzip filter emits its tail and its last buffered block, which makes
+  // this the one call that can still fail after every entry was written.
+  // Logged before the free, because the error string does not outlive it.
+  if (archive_write_close(archive) != ARCHIVE_OK) {
+    FLOG_W("archive_write_close() failed: %s", archive_error_string(archive));
+    ret = -1;
+  }
+  if (archive_write_free(archive) != ARCHIVE_OK) ret = -1;
+  return ret;
+}
+
 auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
     const QSharedPointer<GFDataExchanger> &ex, const QString &target_path,
-    const ArchiveExtractPolicy &policy) -> GFError {
+    const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
+    const ArchiveEntrySink &sink) -> GFError {
   {
     {
       // only ever true for a destination this call is responsible for, which
@@ -516,8 +738,11 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
 
         // reject before writing, on the declared size, so an obviously
         // oversized entry never starts landing on disk at all
-        if (archive_entry_size_is_set(entry)) {
-          const auto declared = static_cast<qint64>(archive_entry_size(entry));
+        const auto declared =
+            archive_entry_size_is_set(entry)
+                ? static_cast<qint64>(archive_entry_size(entry))
+                : qint64{-1};
+        if (declared >= 0) {
           if (policy.max_entry_bytes >= 0 &&
               declared > policy.max_entry_bytes) {
             FLOG_W(
@@ -538,6 +763,45 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
           }
         }
 
+        // Claimed by the caller: read the body into memory and never call
+        // archive_write_header(), so nothing about this entry touches a
+        // filesystem. A directory it claims has no bytes and simply vanishes.
+        if (sink && divert && divert(relative_path)) {
+          if (filetype == AE_IFDIR) continue;
+
+          const auto remaining_for_entry =
+              policy.max_total_bytes < 0
+                  ? qint64{-1}
+                  : policy.max_total_bytes - total_written;
+
+          GFBuffer body;
+          qint64 collected = 0;
+          r = CollectData(archive, policy.max_entry_bytes, remaining_for_entry,
+                          declared, body, collected);
+          total_written += collected;
+          if (r != ARCHIVE_OK) {
+            ret = -1;
+            break;
+          }
+
+          // Not wiped afterwards: a GFBuffer copy shares its storage, so a
+          // sink that kept the bytes -- which is the entire point of diverting
+          // them -- keeps this very buffer, and erasing it here would erase
+          // what was just stored. The buffer is secure storage from the start,
+          // which is what this needed to be.
+          if (!sink(relative_path, body)) {
+            // "did not take it", not "could not store it": a sink declining
+            // an entry is also how a caller stops the walk once it has what it
+            // came for, and reporting that as a storage failure reads as a
+            // problem on a path where nothing is wrong.
+            FLOG_D("ending extraction at '%s': the sink did not take it",
+                   qPrintable(path_name));
+            ret = -1;
+            break;
+          }
+          continue;
+        }
+
         const auto target_path_name = target_path + "/" + relative_path;
 
 #ifdef Q_OS_WINDOWS
@@ -549,9 +813,20 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
 #endif
 
         r = archive_write_header(ext, entry);
-        if (r != ARCHIVE_OK) {
+        if (r < ARCHIVE_OK) {
           FLOG_W("archive_write_header(), ret: %d, reason: %s", r,
                  archive_error_string(ext));
+
+          // Only a warning may be walked past. Below that the entry was not
+          // created at all -- a full disk, a permission the destination does
+          // not grant -- and skipping those quietly mounts a profile with files
+          // missing while still returning success. It also strands the
+          // out-of-space reporting downstream, which can only recognise the
+          // failure this abort produces.
+          if (r < ARCHIVE_WARN) {
+            ret = -1;
+            break;
+          }
           continue;
         }
 
@@ -572,14 +847,22 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
 
       r = archive_read_free(archive);
       if (r != ARCHIVE_OK) {
-        FLOG_W("archive_read_free(), ret: %d, reason: %s", r,
-               archive_error_string(archive));
+        FLOG_W("archive_read_free(), ret: %d", r);
+        ret = -1;
       }
-      r = archive_write_free(ext);
+
+      // Closed explicitly rather than left to the free, and the result folded
+      // into `ret` rather than merely logged. Closing a disk writer is where the
+      // last entry's deferred writes actually happen, so it is the usual place a
+      // full disk finally reports itself -- and doing it here is what makes the
+      // reason legible, since the error string does not outlive the free.
+      r = archive_write_close(ext);
       if (r != ARCHIVE_OK) {
-        FLOG_W("archive_write_free(), ret: %d, reason: %s", r,
+        FLOG_W("archive_write_close(), ret: %d, reason: %s", r,
                archive_error_string(ext));
+        ret = -1;
       }
+      if (archive_write_free(ext) != ARCHIVE_OK) ret = -1;
 
       return ret;
     }
