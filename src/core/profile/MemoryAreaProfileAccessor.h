@@ -134,8 +134,15 @@ class GF_CORE_EXPORT MemoryAreaProfileAccessor final : public ProfileAccessor {
   /**
    * @brief Erase what is held here, then hand the wrapped storage back.
    *
-   * Whatever the mode: memory this process is about to stop using is not
-   * something to leave a key in, and erasing it costs microseconds.
+   * Whatever the mode, kKEEP included -- which looks like a divergence from
+   * both wrapped drivers and is not one. kKEEP means "the storage outlives the
+   * process", and a resident area is this process's memory: there is no mode
+   * under which it can be kept, so the only question left is whether it is
+   * erased or merely abandoned. Memory this process is about to stop using is
+   * not somewhere to leave a key.
+   *
+   * The wrapped driver still gets the mode unchanged, so what it does with its
+   * own storage is unaffected.
    *
    * @param mode passed through to the wrapped driver
    */
