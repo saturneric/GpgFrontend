@@ -48,18 +48,124 @@ auto KeyGroupRepository::Fetch() -> QContainer<QSharedPointer<GpgKeyGroup>> {
   return ret;
 }
 
-void KeyGroupRepository::Remove(const QString& id) {
-  if (id.isEmpty() || !key_groups_forest_.contains(id)) return;
+auto KeyGroupRepository::Remove(const QString& id) -> bool {
+  if (id.isEmpty() || !key_groups_forest_.contains(id)) return false;
 
   auto target_node = key_groups_forest_.value(id);
+  auto* target = target_node.get();
 
-  for (const auto& node : key_groups_forest_) {
-    if (target_node == node) continue;
-    node->RemoveChildren(target_node.get());
+  // Both loops iterate over copies: RemoveChildren() mutates the very
+  // containers we are walking.
+  const auto parents = target->parents;
+  for (auto* parent : parents) {
+    if (parent == target) continue;
+    parent->RemoveChildren(target);
   }
+
+  // Children keep a raw back-pointer to this node. Dropping the last shared
+  // pointer below frees it, so the back-pointers have to go first.
+  const auto children = target->children;
+  for (auto* child : children) {
+    if (child == target) continue;
+    child->parents.removeAll(target);
+  }
+  target->children.clear();
 
   key_groups_forest_.remove(id);
   FlushCache();
+  return true;
+}
+
+auto KeyGroupRepository::Rename(const QString& id, const QString& name)
+    -> bool {
+  if (!key_groups_forest_.contains(id) || name.trimmed().isEmpty()) {
+    return false;
+  }
+
+  key_groups_forest_.value(id)->key_group->SetName(name);
+  persist_key_groups();
+  return true;
+}
+
+auto KeyGroupRepository::UpdateMetadata(const QString& id, const QString& name,
+                                        const QString& email,
+                                        const QString& comment) -> bool {
+  if (!key_groups_forest_.contains(id) || name.trimmed().isEmpty()) {
+    return false;
+  }
+
+  const auto& key_group = key_groups_forest_.value(id)->key_group;
+  key_group->SetName(name);
+  key_group->SetEmail(email);
+  key_group->SetComment(comment);
+
+  // Membership did not change, so a full FlushCache() (Apply() on every node
+  // plus a keyring-wide revalidation) would be pure cost here.
+  persist_key_groups();
+  return true;
+}
+
+auto KeyGroupRepository::Contains(const QString& id, const QString& key_id)
+    -> bool {
+  if (!key_groups_forest_.contains(id)) return false;
+
+  // GpgKeyGroupTreeNode::KeyIds() is direct membership only; it never
+  // flattens nested groups.
+  return key_groups_forest_.value(id)->KeyIds().contains(key_id);
+}
+
+auto KeyGroupRepository::IsAncestorOf(const QString& ancestor_id,
+                                      const QString& descendant_id) -> bool {
+  if (ancestor_id.isEmpty() || descendant_id.isEmpty()) return false;
+  if (!key_groups_forest_.contains(descendant_id)) return false;
+
+  // Iterative, with a visited set: GpgKeyGroupTreeNode::HasAncestor() recurses
+  // without one and degrades badly on a wide DAG.
+  QSet<GpgKeyGroupTreeNode*> seen;
+  QContainer<GpgKeyGroupTreeNode*> pending;
+  pending.push_back(key_groups_forest_.value(descendant_id).get());
+
+  while (!pending.isEmpty()) {
+    auto* node = pending.takeLast();
+    if (node == nullptr || seen.contains(node)) continue;
+    seen.insert(node);
+
+    for (auto* parent : node->parents) {
+      if (parent == nullptr) continue;
+      if (parent->key_group != nullptr &&
+          parent->key_group->ID() == ancestor_id) {
+        return true;
+      }
+      pending.push_back(parent);
+    }
+  }
+
+  return false;
+}
+
+auto KeyGroupRepository::CanAddKeyToKeyGroup(const QString& id,
+                                             const QString& key_id) -> bool {
+  if (!key_groups_forest_.contains(id) || key_id.isEmpty()) return false;
+  if (key_id == id) return false;
+  if (Contains(id, key_id)) return false;
+
+  if (!IsKeyGroupID(key_id)) return true;
+
+  // Nesting a group is only legal when it is not already an ancestor of the
+  // target, which is what AddChildren() checks after the fact.
+  if (!key_groups_forest_.contains(key_id)) return false;
+  return !IsAncestorOf(key_id, id);
+}
+
+auto KeyGroupRepository::ParentsOf(const QString& id) -> QStringList {
+  if (!key_groups_forest_.contains(id)) return {};
+
+  QStringList ret;
+  for (auto* parent : key_groups_forest_.value(id)->parents) {
+    if (parent == nullptr || parent->key_group == nullptr) continue;
+    ret.push_back(parent->key_group->ID());
+  }
+  return ret;
 }
 
 void KeyGroupRepository::fetch_key_groups() {

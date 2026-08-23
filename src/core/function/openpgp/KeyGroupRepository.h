@@ -43,7 +43,7 @@ namespace GpgFrontend {
  * group hierarchy. A node may also hold individual GPG key IDs that belong
  * to this group but are not themselves key groups.
  */
-struct GpgKeyGroupTreeNode {
+struct GF_CORE_EXPORT GpgKeyGroupTreeNode {
   // Parent nodes in the key group hierarchy.
   QContainer<GpgKeyGroupTreeNode*> parents;
   // Child nodes in the key group hierarchy.
@@ -190,9 +190,82 @@ class GF_CORE_EXPORT KeyGroupRepository
   /**
    * @brief Delete the key group with the given identifier.
    *
+   * The group is detached from every parent and from every child before it is
+   * dropped, so no surviving node keeps a pointer to it. Member keys are not
+   * touched; only the grouping is removed.
+   *
    * @param id key group identifier to remove
+   * @return true if the group existed and was removed
    */
-  void Remove(const QString& id);
+  auto Remove(const QString& id) -> bool;
+
+  /**
+   * @brief Replace the display name of a key group.
+   *
+   * @param id key group identifier
+   * @param name new display name, must not be blank
+   * @return true if the group was found and renamed
+   */
+  auto Rename(const QString& id, const QString& name) -> bool;
+
+  /**
+   * @brief Replace all display fields of a key group at once.
+   *
+   * Membership is untouched, so only the metadata is re-persisted.
+   *
+   * @param id key group identifier
+   * @param name new display name, must not be blank
+   * @param email new email address, may be empty
+   * @param comment new comment, may be empty
+   * @return true if the group was found and updated
+   */
+  auto UpdateMetadata(const QString& id, const QString& name,
+                      const QString& email, const QString& comment) -> bool;
+
+  /**
+   * @brief Return whether @p key_id is a *direct* member of the group.
+   *
+   * A key reachable only through a nested group is not contained.
+   *
+   * @param id key group identifier
+   * @param key_id key or key group ID to test
+   * @return true if the id is a direct member
+   */
+  auto Contains(const QString& id, const QString& key_id) -> bool;
+
+  /**
+   * @brief Return whether @p ancestor_id is a direct or indirect parent of
+   * @p descendant_id.
+   *
+   * @param ancestor_id key group identifier to look for
+   * @param descendant_id key group identifier to start from
+   * @return true if the ancestor relation holds
+   */
+  auto IsAncestorOf(const QString& ancestor_id, const QString& descendant_id)
+      -> bool;
+
+  /**
+   * @brief Return whether a key or key group may be added to a group.
+   *
+   * False when the group is unknown, when the candidate is the group itself,
+   * when it is already a direct member, or when adding it would create a
+   * cycle. This is the same rule AddKey2KeyGroup() enforces, exposed up front
+   * so callers can filter instead of failing.
+   *
+   * @param id key group identifier
+   * @param key_id candidate key or key group ID
+   * @return true if the candidate can be added
+   */
+  auto CanAddKeyToKeyGroup(const QString& id, const QString& key_id) -> bool;
+
+  /**
+   * @brief Return the IDs of the key groups holding this one as a direct
+   * member.
+   *
+   * @param id key group identifier
+   * @return list of parent key group IDs, empty if there are none
+   */
+  auto ParentsOf(const QString& id) -> QStringList;
 
   /**
    * @brief Return the key group with the given identifier.
