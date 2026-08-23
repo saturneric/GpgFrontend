@@ -64,7 +64,10 @@ void CreateArchiveHelper(const QString& in_path,
   ArchiveFileOperator::NewArchive2DataExchanger(
       in_path, ex, [=](GFError err, const DataObjectPtr&) {
         FLOG_D("new archive 2 data exchanger operation, err: %d", err);
-        if (decltype(ex) p_ex = w_ex.lock(); err < 0 && p_ex != nullptr) {
+        // `!= 0`, not `< 0`: GFError is unsigned. The signed form was always
+        // false, so a failed archive never closed the pipe and left whoever was
+        // reading it waiting for bytes that were not coming.
+        if (decltype(ex) p_ex = w_ex.lock(); err != 0 && p_ex != nullptr) {
           ex->CloseWrite();
         }
       });
