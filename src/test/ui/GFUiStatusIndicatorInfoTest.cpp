@@ -204,4 +204,25 @@ TEST(StatusIndicatorInfoTest, AnUnknownStorageAddsNoLine) {
   EXPECT_FALSE(info.tooltip.contains("Kept in"));
 }
 
+TEST(StatusIndicatorInfoTest, AMemoryHeldKeyIsSaidSeparatelyFromTheStorage) {
+  // Two different claims. The storage line is about where the profile went;
+  // this is about one thing inside it. Merging them would tell the user their
+  // OpenPGP keys are in memory, and they are not -- GnuPG needs real files.
+  const auto info = DescribeProfileIndicator(
+      ProfileKind::kPACKAGED, "Work", "/run/user/1000/gf-abc", "/tmp/work.gfp",
+      true, "an ordinary folder on this disk", true);
+
+  EXPECT_TRUE(info.tooltip.contains("an ordinary folder on this disk"));
+  EXPECT_TRUE(info.tooltip.contains("own key is held in memory"));
+}
+
+TEST(StatusIndicatorInfoTest, NothingIsClaimedAboutAKeyThatIsNotInMemory) {
+  const auto info = DescribeProfileIndicator(
+      ProfileKind::kPACKAGED, "Work", "/run/user/1000/gf-abc", "/tmp/work.gfp",
+      true, "an ordinary folder on this disk", false);
+
+  EXPECT_TRUE(info.tooltip.contains("an ordinary folder on this disk"));
+  EXPECT_FALSE(info.tooltip.contains("held in memory"));
+}
+
 }  // namespace GpgFrontend::Test
