@@ -49,12 +49,10 @@ auto GpgKeyTreeProxyModel::filterAcceptsRow(
   auto *i = index.isValid()
                 ? static_cast<GpgKeyTreeItem *>(index.internalPointer())
                 : nullptr;
+  if (i == nullptr) return false;
 
   const auto *key = i->Key();
-  assert(key != nullptr && key->IsGood());
-  LOG_D() << "get key: " << key->ID()
-          << "from channel: " << model_->GetGpgContextChannel()
-          << "fingerprint: " << key->Fingerprint();
+  if (key == nullptr) return false;
 
   if (!(display_mode_ & GpgKeyTreeDisplayMode::kPRIVATE_KEY) &&
       key->IsPrivateKey()) {
@@ -74,19 +72,22 @@ auto GpgKeyTreeProxyModel::filterAcceptsRow(
   for (int column = 0; column < sourceModel()->columnCount(); ++column) {
     auto index = sourceModel()->index(source_row, column, sourceParent);
     infos << sourceModel()->data(index).toString();
+  }
 
-    if (key->KeyType() != GpgAbstractKeyType::kGPG_SUBKEY) {
-      for (const auto &uid : dynamic_cast<const GpgKey *>(key)->UIDs()) {
-        infos << uid.GetUID();
-      }
-    }
+  // Not every row is a GpgKey: a subkey has no UIDs of its own, and a key
+  // group is not a GpgKey at all, so the cast has to be checked.
+  if (const auto *g_key = dynamic_cast<const GpgKey *>(key); g_key != nullptr) {
+    for (const auto &uid : g_key->UIDs()) infos << uid.GetUID();
   }
 
   return std::any_of(infos.cbegin(), infos.cend(), [&](const QString &info) {
     return info.contains(filter_keywords_, Qt::CaseInsensitive);
   });
+}
 
-  return false;
+void GpgKeyTreeProxyModel::SetRecursiveFiltering(bool enabled) {
+  setRecursiveFilteringEnabled(enabled);
+  invalidateFilter();
 }
 
 void GpgKeyTreeProxyModel::SetSearchKeywords(const QString &keywords) {

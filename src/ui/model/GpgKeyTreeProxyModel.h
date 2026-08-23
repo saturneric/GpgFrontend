@@ -60,6 +60,17 @@ class GpgKeyTreeProxyModel : public QSortFilterProxyModel {
   void SetSearchKeywords(const QString &keywords);
 
   /**
+   * @brief Keep a row whose descendant matches the filter.
+   *
+   * Off by default: the key pickers rely on a rejected parent hiding its whole
+   * subtree, which is how they restrict a key without having to restate the
+   * rule for every one of its subkeys.
+   *
+   * @param enabled whether descendants may keep their ancestors visible
+   */
+  void SetRecursiveFiltering(bool enabled);
+
+  /**
    * @brief
    *
    * @param model
@@ -74,8 +85,9 @@ class GpgKeyTreeProxyModel : public QSortFilterProxyModel {
   void SetKeyFilter(const KeyFilter &filter);
 
  protected:
-  [[nodiscard]] auto filterAcceptsRow(
-      int sourceRow, const QModelIndex &sourceParent) const -> bool override;
+  [[nodiscard]] auto filterAcceptsRow(int sourceRow,
+                                      const QModelIndex &sourceParent) const
+      -> bool override;
 
  private:
   QSharedPointer<GpgKeyTreeModel> model_;
