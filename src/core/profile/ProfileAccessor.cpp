@@ -65,12 +65,19 @@ auto FsProfileAccessor::Read(ProfileArea area, const QString& name) const
 
 auto FsProfileAccessor::Write(ProfileArea area, const QString& name,
                               const GFBuffer& value) -> bool {
+  if (name.isEmpty()) return false;
+
   // Atomic: everything stored here is a whole-file replace, and a truncated
   // one reads back exactly like a file written with a key we no longer hold.
   return GFBufferFactory::ToFileAtomic(PathOf(area, name), value);
 }
 
 auto FsProfileAccessor::Remove(ProfileArea area, const QString& name) -> bool {
+  // An empty name addresses the area's own directory, not an object in it. Both
+  // drivers refuse it, so that "no such object" cannot mean "the whole area"
+  // on one of them.
+  if (name.isEmpty()) return false;
+
   const auto path = PathOf(area, name);
   if (!QFileInfo::exists(path)) return true;
   if (QFile::remove(path)) return true;
@@ -81,6 +88,7 @@ auto FsProfileAccessor::Remove(ProfileArea area, const QString& name) -> bool {
 
 auto FsProfileAccessor::Exists(ProfileArea area, const QString& name) const
     -> bool {
+  if (name.isEmpty()) return false;
   return QFileInfo::exists(PathOf(area, name));
 }
 
@@ -88,7 +96,13 @@ auto FsProfileAccessor::List(ProfileArea area, const QString& pattern) const
     -> QStringList {
   QDir dir(PathOf(area));
   if (!dir.exists()) return {};
-  return dir.entryList({pattern}, QDir::Files | QDir::NoSymLinks);
+
+  // An empty pattern means everything, the same as it does for the decorator
+  // that may wrap this. QDir reads an empty name filter as "nothing matches",
+  // which is a trap rather than a contract, and the two drivers have to give
+  // the same answer to the same call.
+  return dir.entryList({pattern.isEmpty() ? QString("*") : pattern},
+                       QDir::Files | QDir::NoSymLinks);
 }
 
 auto FsProfileAccessor::TotalSize(ProfileArea area,
