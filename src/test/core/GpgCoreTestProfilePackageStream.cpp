@@ -158,7 +158,8 @@ TEST(ProfilePackageStreamTest, ATruncatedPackageIsRefusedNotReadShort) {
   EXPECT_FALSE(opened.ok) << "a truncated package was accepted as complete";
 }
 
-TEST(ProfilePackageStreamTest, AProtectedBodyWithNoPassphraseIsRefusedNotMisread) {
+TEST(ProfilePackageStreamTest,
+     AProtectedBodyWithNoPassphraseIsRefusedNotMisread) {
   // What framing the body is in comes from the package's own header, never from
   // whether a passphrase was handed over. Inferring it from the secret meant an
   // empty passphrase turned a protected body into "this package is not

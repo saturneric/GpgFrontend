@@ -96,8 +96,8 @@ auto CopyData(struct archive *ar, struct archive *aw, qint64 max_entry_bytes,
 /// untrusted archive -- a zip bomb that lands in RAM rather than on disk, and
 /// the memory it lands in may be locked.
 auto CollectData(struct archive *ar, qint64 max_entry_bytes,
-                 qint64 remaining_total, qint64 capacity_hint, GpgFrontend::GFBuffer &out,
-                 qint64 &written) -> int {
+                 qint64 remaining_total, qint64 capacity_hint,
+                 GpgFrontend::GFBuffer &out, qint64 &written) -> int {
   int r;
   const void *buff;
   size_t size;
@@ -150,7 +150,8 @@ auto CollectData(struct archive *ar, qint64 max_entry_bytes,
   }
 
   if (static_cast<qint64>(out.Size()) > written) {
-    sodium_memzero(out.Data() + written, out.Size() - static_cast<size_t>(written));
+    sodium_memzero(out.Data() + written,
+                   out.Size() - static_cast<size_t>(written));
     out.Resize(static_cast<ssize_t>(written));
   }
   return ARCHIVE_OK;
@@ -459,7 +460,8 @@ auto ArchiveFileOperator::NewArchiveFromMembersSync(
   // A handle whose open failed still accepts headers and silently discards
   // them, so leaving this unchecked produces an empty archive and calls it a
   // success.
-  if (archive_write_open(archive, exchanger.get(), nullptr, ArchiveWriteCallback,
+  if (archive_write_open(archive, exchanger.get(), nullptr,
+                         ArchiveWriteCallback,
                          ArchiveCloseWriteCallback) != ARCHIVE_OK) {
     FLOG_W("archive_write_open() failed: %s", archive_error_string(archive));
     archive_write_free(archive);
@@ -904,10 +906,11 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
       }
 
       // Closed explicitly rather than left to the free, and the result folded
-      // into `ret` rather than merely logged. Closing a disk writer is where the
-      // last entry's deferred writes actually happen, so it is the usual place a
-      // full disk finally reports itself -- and doing it here is what makes the
-      // reason legible, since the error string does not outlive the free.
+      // into `ret` rather than merely logged. Closing a disk writer is where
+      // the last entry's deferred writes actually happen, so it is the usual
+      // place a full disk finally reports itself -- and doing it here is what
+      // makes the reason legible, since the error string does not outlive the
+      // free.
       r = archive_write_close(ext);
       if (r != ARCHIVE_OK) {
         FLOG_W("archive_write_close(), ret: %d, reason: %s", r,

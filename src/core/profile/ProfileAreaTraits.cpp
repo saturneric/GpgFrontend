@@ -138,8 +138,8 @@ auto TraitsForArea(ProfileArea area) -> const ProfileAreaTraits * {
 auto ProfileAreaDirName(ProfileArea area) -> QString {
   // An area with no row would return an empty name, and an empty directory name
   // resolves to the profile root itself -- so PathOf(new_area, "x") would
-  // quietly become <root>/x. Adding an enumerator without a row is a programming
-  // error, and this is where it should be noticed.
+  // quietly become <root>/x. Adding an enumerator without a row is a
+  // programming error, and this is where it should be noticed.
   Q_ASSERT(TraitsForArea(area) != nullptr);
   const auto *traits = TraitsForArea(area);
   return traits == nullptr ? QString{} : QString(traits->dir);

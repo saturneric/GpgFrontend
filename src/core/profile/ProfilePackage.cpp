@@ -33,11 +33,10 @@
 #include <QDirIterator>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QScopeGuard>
 #include <QUuid>
 #include <optional>
 #include <thread>
-
-#include <QScopeGuard>
 
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/ArchiveFileOperator.h"
@@ -804,8 +803,7 @@ auto PeekProfilePackageManifest(const QString &package_path,
   std::thread feeder([&]() {
     ProfilePackageStreamReader reader(
         [&file](char *out, qint64 length) { return file.read(out, length); },
-        passphrase,
-        view.header.protection == ProfilePackageProtection::kPIN);
+        passphrase, view.header.protection == ProfilePackageProtection::kPIN);
 
     if (!reader.Begin()) {
       body_ok = false;
@@ -1006,8 +1004,7 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
 
     ProfilePackageStreamReader reader(
         [&file](char *out, qint64 length) { return file.read(out, length); },
-        passphrase,
-        view.header.protection == ProfilePackageProtection::kPIN);
+        passphrase, view.header.protection == ProfilePackageProtection::kPIN);
 
     if (!reader.Begin()) {
       body_ok = false;
@@ -1575,7 +1572,8 @@ auto OpenPackageSession(const QString &package_path, ProfileAccessor &storage,
   // another profile's key material in this session until the next mount.
   QList<QPair<ProfileArea, QString>> routed;
   auto unroute = [&storage, &routed]() {
-    for (const auto &object : routed) storage.Remove(object.first, object.second);
+    for (const auto &object : routed)
+      storage.Remove(object.first, object.second);
     routed.clear();
   };
 

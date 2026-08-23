@@ -531,8 +531,8 @@ void AdvancedTab::change_pin() {
     // for a reason that has nothing to do with the PIN -- which is what this
     // used to report, in a loop, to a user typing the right one.
     auto stored = mgr.ReadStoredKey();
-    if (!stored || !ProfileSecureKeyManager::UnsealKey(dialog.CurrentPin(), {},
-                                                       *stored)) {
+    if (!stored ||
+        !ProfileSecureKeyManager::UnsealKey(dialog.CurrentPin(), {}, *stored)) {
       dialog.SetErrorText(tr("The current PIN is not correct."));
       dialog.Clear();
       continue;

@@ -552,7 +552,8 @@ auto ProfileLoader::resolve_secret(AppKeyProtection protection, GFBuffer& pin,
     return true;
   }
 
-  auto on_disk = session_->Accessor().Read(ProfileArea::kSecure, kProfileRootKeyName);
+  auto on_disk =
+      session_->Accessor().Read(ProfileArea::kSecure, kProfileRootKeyName);
   if (!on_disk) {
     // The file exists but will not read: an unlock loop can only repeat, so say
     // what is actually wrong and stop.

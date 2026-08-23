@@ -313,9 +313,9 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * on their own -- an empty one has no file to imply it.
    *
    * The provider is trusted: entry paths are written as given, and nothing here
-   * checks them for `..` or for being absolute the way extraction checks what it
-   * reads. A caller assembling paths from anything it did not choose itself has
-   * to validate them first.
+   * checks them for `..` or for being absolute the way extraction checks what
+   * it reads. A caller assembling paths from anything it did not choose itself
+   * has to validate them first.
    *
    * @param next yields entries until it returns false
    * @param exchanger stream to write the archive into

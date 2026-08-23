@@ -739,6 +739,6 @@ TEST(ArchiveFileOperatorTest, AMemberShorterThanItsDeclaredSizeFailsThePack) {
   producer.join();
 
   EXPECT_NE(ret, 0U) << "a member that came up short was padded and passed off "
-                       "as complete";
+                        "as complete";
 }
 }  // namespace GpgFrontend::Test

@@ -28,8 +28,6 @@
 
 #include "core/profile/ProfileSecureKeyManager.h"
 
-#include "core/profile/ProfileAreaTraits.h"
-
 #include <sodium.h>
 
 #include "core/function/AESCryptoHelper.h"
@@ -38,6 +36,7 @@
 #include "core/function/PassphraseGenerator.h"
 #include "core/function/SecureRandomGenerator.h"
 #include "core/function/SystemSecretStore.h"
+#include "core/profile/ProfileAreaTraits.h"
 #include "core/profile/ProfileMarker.h"
 
 namespace {
@@ -322,7 +321,8 @@ auto ProfileSecureKeyManager::ChangeProtection(
   const auto& key_path = sink.location;
 
   if (!sink.write) {
-    LOG_E() << "refusing to re-protect an app secure key with nowhere to put it";
+    LOG_E()
+        << "refusing to re-protect an app secure key with nowhere to put it";
     return {AppKeyProtectionStatus::kIO_FAILED, key_path};
   }
 
@@ -463,7 +463,8 @@ auto ProfileSecureKeyManager::ResetKeyStorage(const QString& key_dir) -> bool {
   // reference.
   QDir dir(key_dir);
   for (const auto& name : dir.entryList({"*.key"}, QDir::Files)) {
-    if (name == QLatin1StringView(kRootKeyName)) continue;  // already handled above
+    if (name == QLatin1StringView(kRootKeyName))
+      continue;  // already handled above
     if (!dir.remove(name)) {
       LOG_W() << "remove rotated key failed:" << dir.filePath(name);
     }

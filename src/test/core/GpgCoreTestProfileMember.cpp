@@ -246,10 +246,9 @@ TEST(TreeMemberSourceTest, ItYieldsWhatTravelsAndReportsWhatItLeft) {
 
   // Directories are members too, so an empty one still travels. The areas
   // themselves therefore appear beside the files inside them.
-  EXPECT_EQ(PathsOf(members),
-            QStringList({"config", "config/config.ini", "data_objs",
-                         "data_objs/abcd", "db", "db/pubring.kbx",
-                         "profile.json"}));
+  EXPECT_EQ(PathsOf(members), QStringList({"config", "config/config.ini",
+                                           "data_objs", "data_objs/abcd", "db",
+                                           "db/pubring.kbx", "profile.json"}));
 
   // The secure area is not walked at all, directory included: its objects come
   // from the accessor, and a walk would pack the stored form of the key rather
