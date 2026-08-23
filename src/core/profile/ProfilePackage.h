@@ -479,8 +479,12 @@ struct GF_CORE_EXPORT ProfileExtractionRouting {
  * was then handed storage too small to open in, which surfaces part way through
  * unpacking or, worse, at the close that has to write it back.
  *
- * A version 1 package makes no promise about member order, so this may read
- * further into one -- bounded, as ever, by the ceiling that shape carries.
+ * A version 1 package is not looked inside at all: its manifest never carried
+ * a size, so a pass over one would cost a full decryption to learn nothing --
+ * and version 1 makes no promise the manifest comes first, so that pass could
+ * pull an arbitrary member into memory on the way. Such a package comes back
+ * with a header and an empty manifest, which is a size of zero, which is the
+ * hint every reader already has to tolerate.
  *
  * @param package_path the `.gfp` to look inside
  * @param passphrase passphrase, ignored for an unprotected package
@@ -504,10 +508,6 @@ auto GF_CORE_EXPORT ReadProfilePackage(
  */
 struct GF_CORE_EXPORT ProfileExportRequest {
   QString profile_root;
-
-  /// Kept for the profiles-folder identity an export still records, not for
-  /// scratch space: packing reads the live profile now and makes none.
-  QString profiles_root;
 
   QString dest_path;  ///< the `.gfp` to write
 

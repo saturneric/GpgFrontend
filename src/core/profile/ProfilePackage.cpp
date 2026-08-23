@@ -33,7 +33,6 @@
 #include <QDirIterator>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include <QSaveFile>
 #include <QUuid>
 #include <optional>
 #include <thread>
@@ -88,29 +87,6 @@ auto DirectorySize(const QString &path) -> qint64 {
     total += it.fileInfo().size();
   }
   return total;
-}
-
-auto DrainExchanger(const QSharedPointer<GFDataExchanger> &ex, qint64 cap,
-                    QByteArray &out) -> bool {
-  QByteArray chunk(static_cast<int>(kDrainChunk), Qt::Uninitialized);
-
-  while (true) {
-    const auto read =
-        ex->Read(reinterpret_cast<std::byte *>(chunk.data()), kDrainChunk);
-    if (read <= 0) break;
-
-    if (cap > 0 && out.size() + read > cap) {
-      // Keep reading is not an option and neither is stopping silently: the
-      // writer is blocked on us, so drain to the end and report afterwards.
-      out.clear();
-      while (ex->Read(reinterpret_cast<std::byte *>(chunk.data()),
-                      kDrainChunk) > 0) {
-      }
-      return false;
-    }
-    out.append(chunk.constData(), static_cast<int>(read));
-  }
-  return true;
 }
 
 auto RemoveDirectoryQuietly(const QString &path) -> void {
