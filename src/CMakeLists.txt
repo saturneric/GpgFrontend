@@ -414,6 +414,16 @@ install(FILES "${CMAKE_SOURCE_DIR}/COPYING"
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/licenses/${APP_NAME_LOWER}"
   COMPONENT runtime)
 
+# The bundled JetBrains Mono NL is OFL-1.1, not GPL, and its license has to
+# travel with it. It is also embedded as ":/fonts/OFL.txt" -- that copy is the
+# one that reaches the macOS .app and the Windows MSI, neither of which runs
+# these install() rules. RENAME because a bare OFL.txt in a licenses directory
+# says nothing about which font it covers.
+install(FILES "${CMAKE_SOURCE_DIR}/resource/lfs/fonts/OFL.txt"
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/licenses/${APP_NAME_LOWER}"
+  RENAME "OFL-1.1-JetBrainsMono.txt"
+  COMPONENT runtime)
+
 install(FILES "${CMAKE_SOURCE_DIR}/README.md"
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/doc/${APP_NAME_LOWER}"
   COMPONENT runtime)
