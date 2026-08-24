@@ -303,11 +303,15 @@ DescribeKeyDatabasesForManifest(const QContainer<KeyDatabaseItemSO> &databases)
  * it can say which part is the problem — in practice almost always the
  * workspace, which is the one directory with no bound.
  *
- * @param profile_root root to measure
+ * Measured through the storage rather than by walking the root: an area held
+ * in memory has no directory to walk, and the settings file is not always
+ * inside the profile at all.
+ *
+ * @param storage the session's storage
  * @return area name to size; keys are `config`, `data_objs`, `secure`,
  * `key_databases` and `workspace`
  */
-auto GF_CORE_EXPORT MeasureProfileAreas(const QString &profile_root)
+auto GF_CORE_EXPORT MeasureProfileAreas(const ProfileAccessor &storage)
     -> QMap<QString, qint64>;
 
 /**

@@ -76,7 +76,7 @@ constexpr qint64 kPayloadCapFloor = 16LL * 1024 * 1024;
 constexpr qint64 kPayloadCapCeiling = 256LL * 1024 * 1024;
 
 auto DirectorySize(const QString &path) -> qint64 {
-  if (!QFileInfo::exists(path)) return 0;
+  if (path.isEmpty() || !QFileInfo::exists(path)) return 0;
 
   qint64 total = 0;
   QDirIterator it(path, QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot,
@@ -84,6 +84,37 @@ auto DirectorySize(const QString &path) -> qint64 {
   while (it.hasNext()) {
     it.next();
     total += it.fileInfo().size();
+  }
+  return total;
+}
+
+/**
+ * @brief How much the settings this package would carry actually weigh.
+ *
+ * The config area and the settings file are not the same thing. An installed
+ * profile on Windows keeps its INI in AppConfigLocation and on POSIX writes
+ * through Qt's native store; in neither case is there anything under the
+ * profile's `config/` to measure, and the export dialog said "0 B" beside
+ * "Settings" for every such profile.
+ *
+ * What travels is the file regenerated from the live settings, so the live
+ * file is what this is about. The area is measured too, for whatever else was
+ * put there, and the file is added only when it is somewhere else -- counting
+ * the ordinary case twice would be a different wrong number.
+ *
+ * @param storage the session's storage
+ * @return bytes the settings occupy
+ */
+auto SettingsBytes(const ProfileAccessor &storage) -> qint64 {
+  const auto dir = storage.PathOf(ProfileArea::kConfig);
+  auto total = DirectorySize(dir);
+
+  const auto file = storage.Settings().fileName();
+  if (file.isEmpty()) return total;
+
+  const auto path = QFileInfo(file).absoluteFilePath();
+  if (dir.isEmpty() || !path.startsWith(QDir(dir).absolutePath() + "/")) {
+    total += QFileInfo(path).size();
   }
   return total;
 }
@@ -672,14 +703,31 @@ auto DescribeKeyDatabasesForManifest(
   return out;
 }
 
-auto MeasureProfileAreas(const QString &profile_root) -> QMap<QString, qint64> {
+auto MeasureProfileAreas(const ProfileAccessor &storage)
+    -> QMap<QString, qint64> {
+  // Asked of the storage, not of the tree under the root. Walking the tree was
+  // right only for a profile whose every area is a directory, and two are not:
+  // a packaged session holds `secure` in memory, where a walk finds nothing,
+  // and an installed profile keeps its settings file outside the root on
+  // Windows and outside the profile entirely on POSIX. Both reported 0 bytes --
+  // the row for the profile's own key, and the row for the settings, in the
+  // dialog whose whole job is to say what is about to be handed to somebody.
   QMap<QString, qint64> areas;
-  areas["config"] = DirectorySize(profile_root + "/config");
-  areas["data_objs"] = DirectorySize(profile_root + "/data_objs");
-  areas["secure"] = DirectorySize(profile_root + "/secure");
-  areas["key_databases"] = DirectorySize(profile_root + "/db") +
-                           DirectorySize(profile_root + "/dbs");
-  areas["workspace"] = DirectorySize(profile_root + "/workspace");
+
+  areas["config"] = SettingsBytes(storage);
+  areas["data_objs"] = storage.TotalSize(ProfileArea::kDataObjects, "*");
+  areas["secure"] = storage.TotalSize(ProfileArea::kSecure, "*");
+
+  // Key databases have no ProfileArea of their own: they are gpg-agent's
+  // working directories, which nothing but a filesystem can host, so the tree
+  // is the only place to measure them.
+  const auto root = storage.PathOf(ProfileArea::kRoot);
+  areas["key_databases"] =
+      root.isEmpty()
+          ? 0
+          : DirectorySize(root + "/db") + DirectorySize(root + "/dbs");
+
+  areas["workspace"] = DirectorySize(storage.PathOf(ProfileArea::kWorkspace));
   return areas;
 }
 

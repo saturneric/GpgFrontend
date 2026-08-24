@@ -160,6 +160,14 @@ void GFLogManager::StopFileLogger() {
   }
 }
 
+auto GFLogManager::FileLoggerPath() const -> QString {
+  QMutexLocker locker(&mutex_);
+
+  // log_file_path_ outlives the handle, so the file is what is asked about.
+  // A stale path would have a caller keep waiting on a handle nobody holds.
+  return log_file_ == nullptr ? QString{} : log_file_path_;
+}
+
 void GFLogManager::WriteEntryToFileUnlocked(const GFLogEntry& entry) {
   if (log_stream_ == nullptr) return;
 

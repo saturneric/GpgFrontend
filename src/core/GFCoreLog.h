@@ -177,6 +177,22 @@ class GF_CORE_EXPORT GFLogManager {
   void StopFileLogger();
 
   /**
+   * @brief Path of the log file currently open, if any.
+   *
+   * Empty whenever nothing is being written to a file, so that "no file
+   * logging" and "a file this caller does not care about" are one answer
+   * rather than two.
+   *
+   * Asked by whoever is about to destroy a directory: this process holds the
+   * file open, and on Windows an open file cannot be deleted -- nor can the
+   * directory holding it. A session that logged into its own storage could not
+   * be cleaned up until the handle was released.
+   *
+   * @return absolute path of the active log file, or empty
+   */
+  [[nodiscard]] auto FileLoggerPath() const -> QString;
+
+  /**
    * @brief Thread-safe push of a log entry into the ring buffer.
    *
    * @param entry log entry to store

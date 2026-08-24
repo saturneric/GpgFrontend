@@ -430,10 +430,22 @@ auto ProfileSecureKeyManager::KeyPath() const -> QString {
 
 auto ProfileSecureKeyManager::KeyLocationForMessage() const -> QString {
   // Every internal use of KeyPath() is a log line or a failure detail shown to
-  // the user, and an area held in memory has no path to put there. Naming the
-  // storage is the honest answer and is more use than an empty string.
+  // the user, and an area held in memory has no path to put there.
   const auto path = KeyPath();
-  return path.isEmpty() ? accessor_->Label() : path;
+  if (!path.isEmpty()) return path;
+
+  // Label() describes the storage the rest of the profile went to, which for a
+  // memory-held area is the one place this key is not. It read "an encrypted
+  // folder this session alone can read" while the key was never written to any
+  // folder at all -- a weaker claim than the truth, in the message that exists
+  // to state where the key is.
+  if (accessor_->IsAreaResident(ProfileArea::kSecure)) {
+    return QCoreApplication::translate("ProfileSecureKeyManager",
+                                       "this session's memory, and nowhere on "
+                                       "this machine");
+  }
+
+  return accessor_->Label();
 }
 
 auto ProfileSecureKeyManager::ResetKeyStorage(const QString& key_dir) -> bool {

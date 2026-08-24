@@ -350,7 +350,8 @@ class GF_CORE_EXPORT ProfileSecureKeyManager {
    * *say* where the key is should ask for this instead, so a report never comes
    * out with a blank where a location should be.
    *
-   * @return the key file's path, or the storage's name when it has none
+   * @return the key file's path; where there is none, that the key is held in
+   * memory, or failing that the storage's name
    */
   [[nodiscard]] auto KeyLocationForMessage() const -> QString;
 

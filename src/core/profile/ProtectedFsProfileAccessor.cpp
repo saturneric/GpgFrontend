@@ -35,6 +35,7 @@
 #include <QStorageInfo>
 #include <array>
 
+#include "core/GFCoreLog.h"
 #include "core/profile/MemoryAreaProfileAccessor.h"
 #include "core/profile/ProfileAreaTraits.h"
 
@@ -192,6 +193,33 @@ auto DescribeShortfall(qint64 free_bytes, qint64 budget_bytes) -> QString {
       .arg(mb(budget_bytes));
 }
 
+/**
+ * @brief Close this process's log file when it is inside the tree being freed.
+ *
+ * A session logs into its own storage, so the handle points at the directory
+ * about to be destroyed. POSIX unlinks an open file without complaint; Windows
+ * refuses, and refuses for the directory holding it too -- so every packaged
+ * session left its whole storage tree behind in the user's temporary folder,
+ * log file included, and the sweep on the next start could not remove it
+ * either while the same handle was held.
+ *
+ * Scoped to the tree: a session that logs somewhere else keeps logging there,
+ * and the entries this teardown still emits reach the ring buffer and stderr
+ * regardless.
+ *
+ * @param root storage root about to be removed
+ */
+void ReleaseLogFileUnder(const QString &root) {
+  const auto log_path = GFLogManager::Instance().FileLoggerPath();
+  if (log_path.isEmpty()) return;
+
+  const auto inside = QFileInfo(log_path).absoluteFilePath();
+  const auto tree = QDir(root).absolutePath();
+  if (inside != tree && !inside.startsWith(tree + "/")) return;
+
+  GFLogManager::Instance().StopFileLogger();
+}
+
 }  // namespace
 
 // ------------------------------------------------------------------ the driver
@@ -293,10 +321,12 @@ auto ProtectedFsProfileAccessor::AnchorState() const -> QJsonObject {
 
 void ProtectedFsProfileAccessor::Release(ProfileStorageRelease mode) {
   if (released_ || mode == ProfileStorageRelease::kKEEP) return;
-  released_ = true;
 
   const auto root = PathOf(ProfileArea::kRoot);
-  if (root.isEmpty()) return;
+  if (root.isEmpty()) {
+    released_ = true;
+    return;
+  }
 
   // Skipped where it buys nothing: unlinking a tmpfs file already frees the
   // page, ciphertext whose key is gone is already unreadable, and kFAST runs
@@ -305,9 +335,29 @@ void ProtectedFsProfileAccessor::Release(ProfileStorageRelease mode) {
                                !plan_.is_volatile &&
                                !plan_.is_encrypted_at_rest;
 
+  ReleaseLogFileUnder(root);
+
   if (worth_scrubbing) ScrubDirectory(root);
 
-  QDir(root).removeRecursively();
+  if (QDir(root).removeRecursively()) {
+    released_ = true;
+    return;
+  }
+
+  // Something in the tree would not go. On Windows that means a handle is
+  // still open on a file inside it, and the directory holding an open file
+  // cannot be removed either.
+  //
+  // Reporting that and marking the storage released would be the dangerous
+  // answer: this call is the only promise that an unpacked profile does not
+  // outlive the process that unpacked it, and every later caller -- the
+  // destructor included -- would take the flag at its word and never come
+  // back. So the contents are destroyed whatever the mode said, which leaves
+  // empty names rather than key material behind, and the flag stays down so
+  // the destructor tries the removal again once the rest of the shutdown has
+  // let go of whatever was holding it.
+  ScrubDirectory(root);
+  released_ = QDir(root).removeRecursively();
 }
 
 // ------------------------------------------------------------------- hardening
