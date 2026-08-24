@@ -609,19 +609,55 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
 
 auto AskProfilePackageAction(QWidget* parent, const QString& path)
     -> ProfilePackageAction {
-  const auto file = QDir::toNativeSeparators(path);
+  const QFileInfo info(path);
+  const auto file = QDir::toNativeSeparators(info.absoluteFilePath());
+
+  // The header is unencrypted and a few hundred bytes, so it is read before the
+  // question rather than after the answer. A file that is not a package, or is
+  // written by a build newer than this one, says so here -- rather than after a
+  // choice has been made and, for a protected file, a passphrase typed.
+  const auto inspection = InspectProfilePackage(path);
+  if (!inspection.Ok()) {
+    QMessageBox::critical(parent, QObject::tr("Cannot Open Profile"),
+                          inspection.detail + "\n\n" + file, QMessageBox::Ok);
+    return ProfilePackageAction::kCANCEL;
+  }
+
+  // Same shape as the passphrase prompt: what this application can establish
+  // for itself, then what the file says about itself, marked as a claim. The
+  // order matters -- a fact and a claim shown as one list read as two facts.
+  QStringList facts;
+  facts << QDir::toNativeSeparators(info.absolutePath());
+  if (info.exists()) {
+    facts << QLocale().formattedDataSize(info.size(), 1,
+                                         QLocale::DataSizeTraditionalFormat);
+    facts << QLocale().toString(info.lastModified(), QLocale::ShortFormat);
+  }
+
+  QStringList detail;
+  detail << facts.join(" · ");
+  detail << (inspection.header.protection == ProfilePackageProtection::kPIN
+                 ? QObject::tr("It is sealed with a passphrase, which is asked "
+                               "for once you choose.")
+                 : QObject::tr("It is not sealed with a passphrase: anyone "
+                               "holding it can read what is in it."));
+
+  const auto claims = DescribeUnverifiedHeader(inspection.header);
+  if (!claims.isEmpty()) detail << claims;
 
   // Both offered rather than one of them guessed: the Profiles menu keeps
   // "Open" and "Import" apart precisely because they are routinely read as the
   // same act, and a double-click says which file is meant, not which act.
-  QMessageBox box(
-      QMessageBox::Question, QObject::tr("Open Profile File"),
-      QObject::tr("This is a profile file.") + "\n\n" + file + "\n\n" +
-          QObject::tr("Open it to work in it directly and leave it a file, "
-                      "with nothing kept on this computer. Import it to "
-                      "copy it into a profile kept here, after which the "
-                      "file is not used again."),
-      QMessageBox::NoButton, parent);
+  detail << QObject::tr(
+      "Open it to work in it directly and leave it a file, with nothing kept "
+      "on this computer. Import it to copy it into a profile kept here, after "
+      "which the file is not used again.");
+
+  QMessageBox box(QMessageBox::Question, QObject::tr("Open Profile File"),
+                  QObject::tr("\"%1\" is a profile file.").arg(info.fileName()),
+                  QMessageBox::NoButton, parent);
+  box.setInformativeText(detail.join("\n\n"));
+
   auto* open_it = box.addButton(QObject::tr("Open"), QMessageBox::AcceptRole);
   auto* import_it =
       box.addButton(QObject::tr("Import"), QMessageBox::ActionRole);

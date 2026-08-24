@@ -314,9 +314,15 @@ enum class ProfilePackageAction {
  * asked rather than guessed — the two leave the computer in different states,
  * and the wrong guess is not undone by closing a window.
  *
+ * The question introduces the file first: where it is, how big it is and when
+ * it was last written, which this application establishes for itself, then
+ * whether it is sealed and what its header claims, which it does not. Reading
+ * that header also means a file that is not a package at all is refused here,
+ * before a choice is made and a passphrase typed.
+ *
  * @param parent parent for the dialog
  * @param path the package the user pointed at, shown in the question
- * @return what the user chose
+ * @return what the user chose, or kCANCEL when the file was refused
  */
 auto GF_UI_EXPORT AskProfilePackageAction(QWidget *parent, const QString &path)
     -> ProfilePackageAction;
