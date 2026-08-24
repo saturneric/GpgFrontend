@@ -8401,7 +8401,7 @@ Voulez-vous continuer ?</translation>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="430"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="698"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="892"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="580"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="594"/>
         <source>Encrypting</source>
         <translation>Chiffrement en cours</translation>
     </message>
@@ -8533,7 +8533,7 @@ Le message chiffré fait %1 octets, et le format de messagerie instantanée supp
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="480"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="979"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="652"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="666"/>
         <source>Signing</source>
         <translation>Signature en cours</translation>
     </message>
@@ -8552,7 +8552,7 @@ Si les données et la signature sont COMBINÉES dans un seul fichier, LAISSEZ CE
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="521"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1025"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="520"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="534"/>
         <source>Verifying</source>
         <translation>Vérification en cours</translation>
     </message>
@@ -8560,7 +8560,7 @@ Si les données et la signature sont COMBINÉES dans un seul fichier, LAISSEZ CE
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="562"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="698"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1087"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="743"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="757"/>
         <source>Encrypting and Signing</source>
         <translation>Chiffrement et signature en cours</translation>
     </message>
@@ -8568,17 +8568,17 @@ Si les données et la signature sont COMBINÉES dans un seul fichier, LAISSEZ CE
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="577"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="589"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1135"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="801"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="815"/>
         <source>Decrypting and Verifying</source>
         <translation>Déchiffrement et vérification en cours</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="247"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="261"/>
         <source>Missing Keys</source>
         <translation>Clés manquantes</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="248"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="262"/>
         <source>Some signatures cannot be verified because the corresponding keys are missing.
 
 The following fingerprints are missing:
@@ -8593,183 +8593,183 @@ Les empreintes suivantes sont manquantes :
 Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="269"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="283"/>
         <source>Verification Incomplete</source>
         <translation>Vérification incomplète</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="270"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="284"/>
         <source>Verification was incomplete due to missing keys. You can manually import the keys later.</source>
         <translation>La vérification était incomplète en raison de clés manquantes. Vous pouvez importer les clés manuellement plus tard.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="88"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="90"/>
         <source>Localize</source>
         <translation>Localiser</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="91"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="93"/>
         <source>UTC</source>
         <translation>UTC</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="102"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="104"/>
         <source>Local Time</source>
         <translation>Heure locale</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="315"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="329"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="292"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="306"/>
         <source>No operation result available.</source>
         <translation>Aucun résultat d&apos;opération disponible.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="311"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="325"/>
         <source>FAILED</source>
         <translation>ÉCHEC</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="318"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="332"/>
         <source>WARNING</source>
         <translation>AVERTISSEMENT</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="324"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="338"/>
         <source>Object: %1</source>
         <translation>Objet : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="340"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="354"/>
         <source>Summary</source>
         <translation>Résumé</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="342"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="356"/>
         <source>Total operations: %1</source>
         <translation>Opérations totales : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="348"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="362"/>
         <source>Failed objects: %1</source>
         <translation>Objets ayant échoué : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="352"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="366"/>
         <source>Warning objects: %1</source>
         <translation>Objets avec avertissement : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="357"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="371"/>
         <source>Details</source>
         <translation>Détails</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="420"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="434"/>
         <source>Email Operation Failed</source>
         <translation>Échec de l&apos;opération e-mail</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="426"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="440"/>
         <source>The operation could not be completed. See the reason and suggested solutions below.</source>
         <translation>L&apos;opération n&apos;a pas pu être terminée. Consultez la raison et les solutions suggérées ci-dessous.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="428"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="442"/>
         <source>Report</source>
         <translation>Signaler</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="461"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="506"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="554"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="619"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="691"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="784"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="475"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="520"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="568"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="633"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="705"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="798"/>
         <source>Unsupported Operation</source>
         <translation>Opération non prise en charge</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="462"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="476"/>
         <source>The decrypt operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;opération de déchiffrement pour le type d&apos;onglet « %1 » n&apos;est pas prise en charge.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="507"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="521"/>
         <source>The verify operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;opération de vérification pour le type d&apos;onglet « %1 » n&apos;est pas prise en charge.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="555"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="569"/>
         <source>The encryption operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;opération de chiffrement pour le type d&apos;onglet « %1 » n&apos;est pas prise en charge.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="562"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="629"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="701"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="720"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="576"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="643"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="715"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="734"/>
         <source>No Key Selected</source>
         <translation>Aucune clé sélectionnée</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="563"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="577"/>
         <source>Please select a key for encryption.</source>
         <translation>Veuillez sélectionner une clé pour le chiffrement.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="620"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="634"/>
         <source>The sign operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;opération de signature pour le type d&apos;onglet « %1 » n&apos;est pas prise en charge.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="692"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="706"/>
         <source>The encrypt and sign operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;opération de chiffrement et de signature pour le type d&apos;onglet « %1 » n&apos;est pas prise en charge.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="702"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="716"/>
         <source>Please select a key for encrypt the EML.</source>
         <translation>Veuillez sélectionner une clé pour chiffrer l&apos;EML.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="785"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="799"/>
         <source>The decrypt and verify operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;opération de déchiffrement et de vérification pour le type d&apos;onglet « %1 » n&apos;est pas prise en charge.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="630"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="721"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="644"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="735"/>
         <source>Please select a key for signing the EML.</source>
         <translation>Veuillez sélectionner une clé pour signer l&apos;EML.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="343"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="357"/>
         <source>Successful: %1</source>
         <translation>Réussites : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="344"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="358"/>
         <source>Warnings: %1</source>
         <translation>Avertissements : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="345"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="359"/>
         <source>Failures: %1</source>
         <translation>Échecs : %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="635"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="726"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="649"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="740"/>
         <source>Multiple Keys Selected</source>
         <translation>Plusieurs clés sélectionnées</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="636"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="727"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="650"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="741"/>
         <source>Please select only one key to sign the EML.</source>
         <translation>Veuillez sélectionner une seule clé pour signer l&apos;EML.</translation>
     </message>
@@ -9229,58 +9229,58 @@ Souhaitez-vous récupérer ces clés depuis le serveur de clés ?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="183"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="222"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="243"/>
         <source>Cannot Open Profile</source>
         <translation>Impossible d&apos;ouvrir le profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="200"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="221"/>
         <source>Nothing opened yet</source>
         <translation>Rien n&apos;est encore ouvert</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="213"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="234"/>
         <source>%1  (open in another window)</source>
         <translation>%1  (ouvrir dans une autre fenêtre)</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="286"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="305"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="307"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="326"/>
         <source>Cannot Export Profile</source>
         <translation>Impossible d&apos;exporter le profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="287"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="308"/>
         <source>The application key is not available, so the profile could not be packed.</source>
         <translation>La clé de l&apos;application n&apos;est pas disponible, le profil n&apos;a donc pas pu être empaqueté.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="295"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="316"/>
         <source>Exporting Profile</source>
         <translation>Exportation du profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="317"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="338"/>
         <source>These were not included, because a profile file only carries the profile itself: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="323"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="344"/>
         <source>Profile Exported</source>
         <translation>Profil exporté</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="324"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="345"/>
         <source>&quot;%1&quot; was written to:</source>
         <translation>&quot;%1&quot; a été écrit dans :</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="329"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="350"/>
         <source>It can only be opened with the passphrase you chose. There is no way to recover it.</source>
         <translation>Il ne peut être ouvert qu&apos;avec la phrase secrète que vous avez choisie. Il n&apos;y a aucun moyen de la récupérer.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="331"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotUI.cpp" line="352"/>
         <source>It is not protected: anyone who gets this file can read the keys inside it.</source>
         <translation>Il n&apos;est pas protégé : quiconque obtient ce fichier peut lire les clés qu&apos;il contient.</translation>
     </message>
@@ -12614,7 +12614,8 @@ Choisissez Annuler pour ignorer toutes les modifications apportées dans cette b
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="244"/>
         <location filename="../../../../src/ui/function/GuiProfileLoaderDelegate.cpp" line="268"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="209"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="713"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="621"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="778"/>
         <source>Cannot Open Profile</source>
         <translation>Impossible d&apos;ouvrir le profil</translation>
     </message>
@@ -13290,6 +13291,7 @@ Le lien a été copié dans votre presse-papiers :
     </message>
     <message>
         <location filename="../../../../src/ui/dialog/SecretPrompt.cpp" line="145"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="661"/>
         <source>Open</source>
         <translation type="unfinished">Ouvrir</translation>
     </message>
@@ -13481,8 +13483,8 @@ Le lien a été copié dans votre presse-papiers :
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="148"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="166"/>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="175"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="629"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="651"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="694"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="716"/>
         <source>Cannot Import Profile</source>
         <translation>Impossible d&apos;importer le profil</translation>
     </message>
@@ -13493,7 +13495,7 @@ Le lien a été copié dans votre presse-papiers :
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="182"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="704"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="769"/>
         <source>&quot;%1&quot; is ready.</source>
         <translation>« %1 » est prêt.</translation>
     </message>
@@ -13514,7 +13516,7 @@ Le lien a été copié dans votre presse-papiers :
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="201"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="705"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="770"/>
         <source>Open it now? It opens in a new window.</source>
         <translation>L&apos;ouvrir maintenant ? Il s&apos;ouvre dans une nouvelle fenêtre.</translation>
     </message>
@@ -13622,6 +13624,7 @@ Le lien a été copié dans votre presse-papiers :
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="476"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="664"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
@@ -13646,45 +13649,65 @@ Le lien a été copié dans votre presse-papiers :
         <translation>Enregistrement du profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="598"/>
-        <source>Not Everything Was Saved</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="599"/>
-        <source>These were left out of &quot;%1&quot;, because a profile file only carries the profile itself: %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="620"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="677"/>
         <source>Import Profile File</source>
         <translation>Importer un fichier de profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="652"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="717"/>
         <source>A temporary folder could not be made.</source>
         <translation>Impossible de créer un dossier temporaire.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="659"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="724"/>
         <source>Reading Profile</source>
         <translation>Lecture du profil</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="683"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="693"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="748"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="758"/>
         <source>Cannot Create Profile</source>
         <translation>Impossible de créer le profil</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="167"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="684"/>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="694"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="749"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="759"/>
         <source>The profile could not be created.</source>
         <translation>Le profil n&apos;a pas pu être créé.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/function/ProfileController.cpp" line="703"/>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="640"/>
+        <source>It is sealed with a passphrase, which is asked for once you choose.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="642"/>
+        <source>It is not sealed with a passphrase: anyone holding it can read what is in it.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="651"/>
+        <source>Open it to work in it directly and leave it a file, with nothing kept on this computer. Import it to copy it into a profile kept here, after which the file is not used again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="656"/>
+        <source>Open Profile File</source>
+        <translation type="unfinished">Ouvrir le fichier de profil</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="657"/>
+        <source>&quot;%1&quot; is a profile file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="663"/>
+        <source>Import</source>
+        <translation type="unfinished">Importer</translation>
+    </message>
+    <message>
+        <location filename="../../../../src/ui/function/ProfileController.cpp" line="768"/>
         <source>Profile Created</source>
         <translation>Profil créé</translation>
     </message>
