@@ -59,4 +59,15 @@ auto GF_UI_EXPORT IsOpenPGPRelatedFile(const QFileInfo& info) -> bool;
  */
 auto GF_UI_EXPORT IsOpenPGPSignatureFile(const QFileInfo& info) -> bool;
 
+/**
+ * @brief Whether the entry is a profile file.
+ *
+ * A `.gfp` is not a document at all: it is a whole profile, and opening one
+ * means running it or copying it in, never showing its bytes in the editor.
+ *
+ * @param info entry to inspect
+ * @return true for .gfp files
+ */
+auto GF_UI_EXPORT IsProfilePackageFile(const QFileInfo& info) -> bool;
+
 }  // namespace GpgFrontend::UI

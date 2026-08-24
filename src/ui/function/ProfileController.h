@@ -281,6 +281,47 @@ void GF_UI_EXPORT ImportProfileInteractive(
     const std::function<void()> &on_opened = {});
 
 /**
+ * @brief Import a `.gfp` that has already been named.
+ *
+ * The same import, minus the file dialog: the file panel already knows which
+ * file was double-clicked, and asking for it again would be asking a question
+ * that has been answered.
+ *
+ * @param parent parent for the dialogs
+ * @param path the package to import
+ * @param on_changed invoked once the profile list has changed
+ * @param on_opened invoked when a new window was launched
+ */
+void GF_UI_EXPORT
+ImportProfileInteractive(QWidget *parent, const QString &path,
+                         const std::function<void()> &on_changed = {},
+                         const std::function<void()> &on_opened = {});
+
+/**
+ * @brief What to do with a profile file the user pointed at.
+ */
+enum class ProfilePackageAction {
+  kOPEN,    ///< run it temporarily, leaving it a file
+  kIMPORT,  ///< copy it into a profile kept on this computer
+  kCANCEL,  ///< neither
+};
+
+/**
+ * @brief Ask which of the two a profile file is meant for.
+ *
+ * The Profiles menu keeps "Open" and "Import" apart because they are routinely
+ * read as the same act. A double-click cannot say which one is meant, so it is
+ * asked rather than guessed — the two leave the computer in different states,
+ * and the wrong guess is not undone by closing a window.
+ *
+ * @param parent parent for the dialog
+ * @param path the package the user pointed at, shown in the question
+ * @return what the user chose
+ */
+auto GF_UI_EXPORT AskProfilePackageAction(QWidget *parent, const QString &path)
+    -> ProfilePackageAction;
+
+/**
  * @brief The profiles most recently opened, newest first.
  *
  * Sorted on the `last_opened` each profile's own marker carries, which every

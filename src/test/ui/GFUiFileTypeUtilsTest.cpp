@@ -57,10 +57,38 @@ TEST(FileTypeUtilsTest, PlainFilesMatchNothing) {
   }
 }
 
+TEST(FileTypeUtilsTest, ProfilePackagesAreRecognised) {
+  for (const auto* n : {"a.gfp", "A.GFP", "profile.gfp", "/tmp/work.Gfp"}) {
+    EXPECT_TRUE(UI::IsProfilePackageFile(QFileInfo(n))) << n;
+  }
+}
+
+TEST(FileTypeUtilsTest, NearMissesAreNotProfilePackages) {
+  // .gfpack is the key package, an unrelated thing that merely starts the same
+  // way; the rest are ordinary files that happen to mention the extension.
+  for (const auto* n : {"a.gfpack", "a.gfp.txt", "a.txt", "a", "gfp"}) {
+    EXPECT_FALSE(UI::IsProfilePackageFile(QFileInfo(n))) << n;
+  }
+}
+
+TEST(FileTypeUtilsTest, ProfilePackagesAndOpenPGPFilesAreDisjoint) {
+  // What decides the file panel's double-click and what decides its
+  // encrypt/decrypt menu must never claim the same file.
+  const QFileInfo package("a.gfp");
+  EXPECT_FALSE(UI::IsOpenPGPMessageFile(package));
+  EXPECT_FALSE(UI::IsOpenPGPSignatureFile(package));
+  EXPECT_FALSE(UI::IsOpenPGPRelatedFile(package));
+
+  for (const auto* n : {"a.gpg", "a.pgp", "a.asc", "a.sig"}) {
+    EXPECT_FALSE(UI::IsProfilePackageFile(QFileInfo(n))) << n;
+  }
+}
+
 TEST(FileTypeUtilsTest, SuffixMatchingIgnoresCase) {
   EXPECT_TRUE(UI::IsOpenPGPMessageFile(QFileInfo("KEY.ASC")));
   EXPECT_TRUE(UI::IsOpenPGPMessageFile(QFileInfo("Key.Gpg")));
   EXPECT_TRUE(UI::IsOpenPGPSignatureFile(QFileInfo("a.SIG")));
+  EXPECT_TRUE(UI::IsProfilePackageFile(QFileInfo("Work.GFP")));
 }
 
 }  // namespace GpgFrontend::Test

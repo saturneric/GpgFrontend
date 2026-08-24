@@ -28,6 +28,8 @@
 
 #include "ui/function/FileTypeUtils.h"
 
+#include "core/profile/ProfilePackage.h"
+
 namespace GpgFrontend::UI {
 
 namespace {
@@ -51,6 +53,15 @@ auto IsOpenPGPRelatedFile(const QFileInfo& info) -> bool {
 
 auto IsOpenPGPSignatureFile(const QFileInfo& info) -> bool {
   return LowerSuffix(info) == "sig";
+}
+
+auto IsProfilePackageFile(const QFileInfo& info) -> bool {
+  // Taken from the format's own constant rather than spelled out again here:
+  // what the file panel calls a profile file and what the packing code writes
+  // must be the same thing, and two literals are how that stops being true.
+  static const auto kSuffix =
+      QString::fromLatin1(kProfilePackageExtension).mid(1).toLower();
+  return LowerSuffix(info) == kSuffix;
 }
 
 }  // namespace GpgFrontend::UI

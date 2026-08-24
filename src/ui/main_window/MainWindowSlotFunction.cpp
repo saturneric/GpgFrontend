@@ -36,10 +36,12 @@
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/SigningKeysPicker.h"
+#include "ui/function/FileTypeUtils.h"
 #include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/ImportKey.h"
 #include "ui/function/InfoBoardCardConverter.h"
+#include "ui/function/ProfileController.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 #include "ui/function/ShowKeyDetails.h"
 #include "ui/struct/GpgOperaResult.h"
@@ -159,6 +161,18 @@ void MainWindow::slot_set_owner_trust_level_of_key() {
 }
 
 void MainWindow::SlotOpenFile(const QString& path) {
+  // A profile file is not a document: showing its bytes in the editor is never
+  // what was meant, and today it does not even get that far -- it is refused as
+  // binary. Caught here rather than in the file panel because both ways of
+  // opening a file there, the double-click and the context menu, arrive here.
+  //
+  // Not where profiles are not offered: a sandboxed build has no window to open
+  // one in, so there a .gfp goes to the editor like any other file.
+  if (!IsRunningInAppSandbox() && IsProfilePackageFile(QFileInfo(path))) {
+    handle_profile_package_from_file_view(path);
+    return;
+  }
+
   edit_->SlotOpenFile(path);
 }
 

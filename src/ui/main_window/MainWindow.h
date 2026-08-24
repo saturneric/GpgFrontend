@@ -587,6 +587,19 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
    */
   void open_profile_package_path(const QString& path);
 
+  /**
+   * @brief Act on a profile file the user opened from the file panel.
+   *
+   * Separate from open_profile_package_path() because the two requests do not
+   * say the same thing: a document handed over by the system, or picked in the
+   * profile chooser, is already an instruction to open it, while a
+   * double-click in the file browser is only a way of pointing at a file — so
+   * this one asks whether it is to be opened or imported.
+   *
+   * @param path the package
+   */
+  void handle_profile_package_from_file_view(const QString& path);
+
   TextEdit* edit_{};          ///< Tabwidget holding the edit-windows
   QMenu* file_menu_{};        ///<  Submenu for file-operations
   QMenu* edit_menu_{};        ///<  Submenu for text-operations

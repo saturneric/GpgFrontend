@@ -185,6 +185,27 @@ void MainWindow::open_profile_package_path(const QString& path) {
   }
 }
 
+void MainWindow::handle_profile_package_from_file_view(const QString& path) {
+  // The file this window is already running: raising it is the whole answer,
+  // and asking open-or-import here would be a question with no right answer.
+  if (IsCurrentPackageSession(path)) {
+    raise();
+    activateWindow();
+    return;
+  }
+
+  switch (AskProfilePackageAction(this, path)) {
+    case ProfilePackageAction::kOPEN:
+      open_profile_package_path(path);
+      break;
+    case ProfilePackageAction::kIMPORT:
+      ImportProfileInteractive(this, path);
+      break;
+    case ProfilePackageAction::kCANCEL:
+      break;
+  }
+}
+
 void MainWindow::slot_refresh_recent_profiles() {
   // Null where profiles are not offered, and the only connection to this slot
   // is made alongside the menu itself — so this is unreachable there rather
