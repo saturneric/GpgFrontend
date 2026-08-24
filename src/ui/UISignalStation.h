@@ -147,6 +147,12 @@ class UISignalStation : public QObject {
   void SignalKeyCategoryColorsChanged();
 
   /**
+   * @brief Emitted when any key category is added, removed or renamed, so the
+   * key tables refresh their filtered views and category tabs.
+   */
+  void SignalKeyCategoriesChanged();
+
+  /**
    * @brief Emitted when the appearance preferences change, so every open main
    * window re-reads its icon size and button style.
    *

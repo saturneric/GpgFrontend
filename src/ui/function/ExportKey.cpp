@@ -32,7 +32,7 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/GpgErrorMessageBox.h"
 
 namespace GpgFrontend::UI {
 
@@ -124,7 +124,7 @@ void ExportKey::exec_export(int channel, const GpgKeyPtr& key, bool secret,
         auto gf_buffer = ExtractParams<GFBuffer>(data_object, 1);
 
         if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-          CommonUtils::RaiseMessageBox(dialog_parent, err);
+          RaiseMessageBox(dialog_parent, err);
           return;
         }
 

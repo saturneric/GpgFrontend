@@ -46,11 +46,12 @@
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/AppKeyPinDialog.h"
 #include "ui/dialog/SecretPrompt.h"
 #include "ui/dialog/profile/ProfileCreateDialog.h"
+#include "ui/function/FilePanelPath.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/platform/PlatformRelaunch.h"
 
 namespace GpgFrontend::UI {
 
