@@ -252,7 +252,10 @@ void MainWindow::slot_export_profile() {
   const auto& session = ProfileSession::Instance();
   const auto& profile = session.Profile();
 
-  ProfileExportDialog dialog(CurrentProfileDisplayName(), profile.Root(), this);
+  // The storage, not the root: the sizes shown come from areas the accessor
+  // knows about, one of which is not on the filesystem at all.
+  ProfileExportDialog dialog(CurrentProfileDisplayName(), session.Accessor(),
+                             this);
   if (dialog.exec() != QDialog::Accepted) return;
 
   // Stored key database paths are normalised to the `@profile/` form first.

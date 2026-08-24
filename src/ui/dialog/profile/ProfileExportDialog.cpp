@@ -50,11 +50,11 @@ auto HumanSize(qint64 bytes) -> QString {
 }  // namespace
 
 ProfileExportDialog::ProfileExportDialog(QString display_name,
-                                         QString profile_root, QWidget* parent)
+                                         const ProfileAccessor& storage,
+                                         QWidget* parent)
     : GeneralDialog("profile_export_dialog", parent),
       display_name_(std::move(display_name)),
-      profile_root_(std::move(profile_root)),
-      areas_(MeasureProfileAreas(profile_root_)) {
+      areas_(MeasureProfileAreas(storage)) {
   init_ui();
   setWindowTitle(tr("Export Profile"));
   setModal(true);

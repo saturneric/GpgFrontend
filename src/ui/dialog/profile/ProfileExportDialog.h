@@ -63,10 +63,10 @@ class ProfileExportDialog : public GeneralDialog {
    * @brief Construct the dialog.
    *
    * @param display_name what the profile is called
-   * @param profile_root root being exported, for the size figures
+   * @param storage the session's storage, asked for the size figures
    * @param parent parent widget
    */
-  ProfileExportDialog(QString display_name, QString profile_root,
+  ProfileExportDialog(QString display_name, const ProfileAccessor& storage,
                       QWidget* parent);
 
   /**
@@ -103,7 +103,6 @@ class ProfileExportDialog : public GeneralDialog {
 
  private:
   QString display_name_;
-  QString profile_root_;
   QMap<QString, qint64> areas_;
 
   QLabel* destination_label_{};
