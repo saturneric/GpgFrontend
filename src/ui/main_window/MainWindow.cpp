@@ -109,6 +109,10 @@ void MainWindow::Init() noexcept {
 
     connect(edit_->TabWidget(), &TextEditTabWidget::currentChanged, this,
             &MainWindow::slot_switch_menu_control_mode);
+    // Automatic mode re-resolves whenever a tab's content changes, so the menu
+    // toggle has to hear about it rather than only read it on a tab switch.
+    connect(edit_->TabWidget(), &TextEditTabWidget::SignalTextDirectionChanged,
+            this, &MainWindow::sync_text_direction_action);
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalRefreshStatusBar, this,
             [=](const QString& message, int timeout) {
@@ -484,6 +488,8 @@ void MainWindow::ApplyAppearanceSettingsToOpenedWidgets() {
   }
 
   if (info_board_ != nullptr) info_board_->ApplyAppearanceSettings();
+
+  sync_text_direction_action();
 
   // Reaches the main windows this one does not own, first among them the key
   // management window.

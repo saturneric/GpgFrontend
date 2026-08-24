@@ -437,6 +437,27 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_switch_menu_control_mode(int);
 
   /**
+   * @details Lay the current tab's text out right-to-left or left-to-right.
+   *
+   * Turning the toggle off selects left-to-right explicitly rather than
+   * returning to automatic detection: a two-state control cannot express the
+   * third state, and text that flipped back on its own would read as the
+   * toggle having been ignored. Automatic remains reachable through the
+   * appearance settings, which is also where the default for new tabs lives.
+   *
+   * @param checked whether right-to-left was requested
+   */
+  void slot_toggle_text_direction(bool checked);
+
+  /**
+   * @details Point the direction toggle at the tab it now applies to.
+   *
+   * Reads the direction actually in effect, so the check mark stays honest
+   * when automatic mode re-resolves after new text arrives.
+   */
+  void sync_text_direction_action();
+
+  /**
    * @details
    */
   void slot_set_owner_trust_level_of_key();
@@ -690,6 +711,8 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   QAction* redo_act_{};                 ///< Action to redo last action
   QAction* zoom_in_act_{};              ///< Action to zoom in
   QAction* zoom_out_act_{};             ///< Action to zoom out
+  QAction* text_direction_rtl_act_{};   ///< Action to lay the current tab's
+                                        ///< text out right-to-left
   QAction* about_act_{};                ///< Action to open about dialog
   QAction* open_settings_act_{};        ///< Action to open settings dialog
   QAction* show_key_details_act_{};     ///< Action to open key-details dialog

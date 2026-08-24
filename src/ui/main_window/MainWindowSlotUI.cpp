@@ -48,6 +48,7 @@
 #include "ui/function/ProfileController.h"
 #include "ui/main_window/KeyMgmt.h"
 #include "ui/widgets/KeyList.h"
+#include "ui/widgets/PlainTextEditorPage.h"
 #include "ui/widgets/StatusIndicatorBar.h"
 #include "ui/widgets/TextEdit.h"
 
@@ -392,6 +393,9 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   im_encrypt_act_->setDisabled(disable);
   im_encrypt_sign_act_->setDisabled(disable);
 
+  text_direction_rtl_act_->setDisabled(disable);
+  sync_text_direction_action();
+
   if (edit_->CurFilePage() != nullptr) {
     auto* file_page = edit_->CurFilePage();
     emit file_page->SignalCurrentTabChanged();
@@ -399,6 +403,23 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
     operations_menu_mask_ = ~0;
     slot_update_operations_menu_by_checked_keys(operations_menu_mask_);
   }
+}
+
+void MainWindow::slot_toggle_text_direction(bool checked) {
+  auto* page = edit_->CurTextPage();
+  if (page == nullptr) return;
+
+  page->SetTextDirectionMode(checked ? kTEXT_DIRECTION_RTL
+                                     : kTEXT_DIRECTION_LTR);
+}
+
+void MainWindow::sync_text_direction_action() {
+  auto* page = edit_->CurTextPage();
+
+  // triggered() rather than toggled() is what makes this safe to call while the
+  // action already carries a state, without blocking its signals first.
+  text_direction_rtl_act_->setChecked(
+      page != nullptr && page->GetEffectiveTextDirection() == Qt::RightToLeft);
 }
 
 SettingsDialog* MainWindow::open_settings_dialog() {
