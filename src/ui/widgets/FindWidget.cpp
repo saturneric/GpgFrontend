@@ -28,6 +28,8 @@
 
 #include "FindWidget.h"
 
+#include "ui/function/TextFind.h"
+
 namespace GpgFrontend::UI {
 
 FindWidget::FindWidget(QWidget* parent, PlainTextEditorPage* edit)
@@ -65,70 +67,36 @@ FindWidget::FindWidget(QWidget* parent, PlainTextEditorPage* edit)
 void FindWidget::set_background() {}
 
 void FindWidget::slot_find_next() {
-  QTextCursor cursor = m_text_page_->GetTextPage()->textCursor();
-  cursor = m_text_page_->GetTextPage()->document()->find(
-      find_edit_->text(), cursor, QTextDocument::FindCaseSensitively);
+  auto* text_page = m_text_page_->GetTextPage();
 
-  // if end of document is reached, restart search from beginning
-  if (cursor.position() == -1) {
-    cursor = m_text_page_->GetTextPage()->document()->find(
-        find_edit_->text(), cursor, QTextDocument::FindCaseSensitively);
-  }
-
-  // cursor should not stay at -1, otherwise text is not editable
-  // todo: check how gedit handles this
-  if (cursor.position() != -1) {
-    m_text_page_->GetTextPage()->setTextCursor(cursor);
-  }
+  // Searched from the end of the current match, so repeated presses walk
+  // forwards through the document.
+  text_page->setTextCursor(FindInDocument(text_page->document(),
+                                          text_page->textCursor(),
+                                          find_edit_->text(), false));
   this->set_background();
 }
 
 void FindWidget::slot_find() {
-  QTextCursor cursor = m_text_page_->GetTextPage()->textCursor();
+  auto* text_page = m_text_page_->GetTextPage();
 
-  if (cursor.anchor() == -1) {
-    cursor = m_text_page_->GetTextPage()->document()->find(
-        find_edit_->text(), cursor, QTextDocument::FindCaseSensitively);
-  } else {
-    cursor = m_text_page_->GetTextPage()->document()->find(
-        find_edit_->text(), cursor.anchor(),
-        QTextDocument::FindCaseSensitively);
-  }
+  // Restarted from where the current match begins rather than from its end:
+  // typing one more character extends the match in place, and searching past
+  // it would skip the very occurrence being typed out.
+  auto cursor = text_page->textCursor();
+  cursor.setPosition(cursor.selectionStart());
 
-  // if end of document is reached, restart search from beginning
-  if (cursor.position() == -1) {
-    cursor = m_text_page_->GetTextPage()->document()->find(
-        find_edit_->text(), cursor, QTextDocument::FindCaseSensitively);
-  }
-
-  // cursor should not stay at -1, otherwise text is not editable
-  // todo: check how gedit handles this
-  if (cursor.position() != -1) {
-    m_text_page_->GetTextPage()->setTextCursor(cursor);
-  }
+  text_page->setTextCursor(
+      FindInDocument(text_page->document(), cursor, find_edit_->text(), false));
   this->set_background();
 }
 
 void FindWidget::slot_find_previous() {
-  QTextDocument::FindFlags flags;
-  flags |= QTextDocument::FindBackward;
-  flags |= QTextDocument::FindCaseSensitively;
+  auto* text_page = m_text_page_->GetTextPage();
 
-  QTextCursor cursor = m_text_page_->GetTextPage()->textCursor();
-  cursor = m_text_page_->GetTextPage()->document()->find(find_edit_->text(),
-                                                         cursor, flags);
-
-  // if begin of document is reached, restart search from end
-  if (cursor.position() == -1) {
-    cursor = m_text_page_->GetTextPage()->document()->find(
-        find_edit_->text(), QTextCursor::End, flags);
-  }
-
-  // cursor should not stay at -1, otherwise text is not editable
-  // todo: check how gedit handles this
-  if (cursor.position() != -1) {
-    m_text_page_->GetTextPage()->setTextCursor(cursor);
-  }
+  text_page->setTextCursor(FindInDocument(text_page->document(),
+                                          text_page->textCursor(),
+                                          find_edit_->text(), true));
   this->set_background();
 }
 
