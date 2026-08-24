@@ -73,7 +73,18 @@ auto PlainTextEditor::LineNumberAreaWidth() const -> int {
 }
 
 void PlainTextEditor::slot_update_line_number_area_width(int) {
-  setViewportMargins(LineNumberAreaWidth(), 0, 0, 0);
+  const int width = LineNumberAreaWidth();
+
+  // Viewport margins are taken literally rather than mirrored for a
+  // right-to-left layout, unlike the scroll bar, so the strip has to be
+  // reserved on the side the text actually starts at.
+  if (isRightToLeft()) {
+    setViewportMargins(0, 0, width, 0);
+  } else {
+    setViewportMargins(width, 0, 0, 0);
+  }
+
+  update_line_number_area_geometry();
 }
 
 void PlainTextEditor::slot_update_line_number_area(const QRect& rect, int dy) {
@@ -92,9 +103,28 @@ void PlainTextEditor::slot_update_line_number_area(const QRect& rect, int dy) {
 void PlainTextEditor::resizeEvent(QResizeEvent* event) {
   QPlainTextEdit::resizeEvent(event);
 
-  const QRect cr = contentsRect();
+  update_line_number_area_geometry();
+}
+
+void PlainTextEditor::changeEvent(QEvent* event) {
+  QPlainTextEdit::changeEvent(event);
+
+  if (event->type() == QEvent::LayoutDirectionChange) {
+    slot_update_line_number_area_width(0);
+    update_line_number_area_geometry();
+    line_number_area_->update();
+  }
+}
+
+void PlainTextEditor::update_line_number_area_geometry() {
+  const QRect viewport_rect = viewport()->geometry();
+  const int width = LineNumberAreaWidth();
+
   line_number_area_->setGeometry(
-      QRect(cr.left(), cr.top(), LineNumberAreaWidth(), cr.height()));
+      isRightToLeft() ? QRect(viewport_rect.right() + 1, viewport_rect.top(),
+                              width, viewport_rect.height())
+                      : QRect(viewport_rect.left() - width, viewport_rect.top(),
+                              width, viewport_rect.height()));
 }
 
 void PlainTextEditor::LineNumberAreaPaintEvent(QPaintEvent* event) {
@@ -124,8 +154,12 @@ void PlainTextEditor::LineNumberAreaPaintEvent(QPaintEvent* event) {
 
       painter.setPen(is_current ? pal.highlight().color() : pal.mid().color());
 
-      painter.drawText(0, top, line_number_area_->width() - 6,
-                       fontMetrics().height(), Qt::AlignRight, number);
+      // The numbers stay next to the text, so the padding and the alignment
+      // both move to the outer edge when the gutter sits on the right.
+      const bool rtl = isRightToLeft();
+      painter.drawText(rtl ? 6 : 0, top, line_number_area_->width() - 6,
+                       fontMetrics().height(),
+                       rtl ? Qt::AlignLeft : Qt::AlignRight, number);
     }
 
     block = block.next();

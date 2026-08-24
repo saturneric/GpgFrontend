@@ -635,7 +635,9 @@ auto TextEdit::CurPlainText() const -> QString {
   return plain_text_tab->GetPlainText();
 }
 
-auto TextEdit::TabWidget() const -> QTabWidget* { return tab_widget_; }
+auto TextEdit::TabWidget() const -> TextEditTabWidget* {
+  return tab_widget_;
+}
 
 void TextEdit::SlotOpenDefaultFileBrowserTab() {
   tab_widget_->SlotOpenDefaultPath();

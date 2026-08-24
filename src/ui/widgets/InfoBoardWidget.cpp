@@ -31,6 +31,7 @@
 #include "core/model/SettingsObject.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/AppearanceFont.h"
+#include "ui/function/TextDirection.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/InfoBoardDocFrame.h"
 #include "ui_InfoBoard.h"
@@ -149,6 +150,15 @@ void InfoBoardWidget::ApplyAppearanceSettings() {
 
   ui_->infoBoard->setFont(ResolveAppearanceFont(
       appearance.info_board_font_family, appearance.info_board_font_size));
+
+  text_direction_mode_ = appearance.text_direction;
+  apply_text_direction();
+}
+
+void InfoBoardWidget::apply_text_direction() {
+  ApplyTextDirectionToDocument(
+      ui_->infoBoard, ui_->infoBoard->document(),
+      ResolveTextDirection(text_direction_mode_, info_board_body_));
 }
 
 void InfoBoardWidget::InitUI() {
@@ -380,6 +390,9 @@ void InfoBoardWidget::set_info_board_text(const QString& text,
   const auto title = StatusTitle(status);
   const auto body = text.trimmed();
 
+  info_board_body_ = body;
+  apply_text_direction();
+
   const auto final_text = body.isEmpty()
                               ? tr("[%1] No details available.").arg(title)
                               : QString("[%1] %2").arg(title, body);
@@ -529,6 +542,8 @@ void InfoBoardWidget::reset_document_view() {
 
 void InfoBoardWidget::SlotReset() {
   ui_->infoBoard->clear();
+  info_board_body_.clear();
+  apply_text_direction();
   ui_->infoBoard->setPlaceholderText(tr("Operation status will appear here."));
   ApplyStatusStyle(kINFO_ERROR_NEUTRAL);
   ResetOptionActionsMenu();

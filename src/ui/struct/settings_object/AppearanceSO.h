@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/typedef/GpgTypedef.h"
+#include "ui/function/TextDirection.h"
 
 namespace GpgFrontend::UI {
 
@@ -38,6 +39,8 @@ struct AppearanceSO {
   QString info_board_font_family;
   int text_editor_font_size = 12;
   int info_board_font_size = 12;
+  // Shared by both text surfaces, so it carries no text_editor_ prefix.
+  TextDirectionMode text_direction = kTEXT_DIRECTION_AUTO;
   int tool_bar_icon_width = 24;
   int tool_bar_icon_height = 24;
   Qt::ToolButtonStyle tool_bar_button_style = Qt::ToolButtonTextUnderIcon;
@@ -62,6 +65,10 @@ struct AppearanceSO {
     }
     if (const auto v = j["info_board_font_size"]; v.isDouble()) {
       info_board_font_size = v.toInt();
+    }
+    if (const auto v = j["text_direction"]; v.isDouble()) {
+      // Clamped rather than cast: this file is user editable.
+      text_direction = TextDirectionModeFromInt(v.toInt());
     }
     if (const auto v = j["tool_bar_icon_width"]; v.isDouble()) {
       tool_bar_icon_width = v.toInt();
@@ -88,6 +95,7 @@ struct AppearanceSO {
     j["text_editor_tab_size"] = text_editor_tab_size;
     j["info_board_font_family"] = info_board_font_family;
     j["info_board_font_size"] = info_board_font_size;
+    j["text_direction"] = static_cast<int>(text_direction);
     j["tool_bar_icon_width"] = tool_bar_icon_width;
     j["tool_bar_icon_height"] = tool_bar_icon_height;
     j["tool_bar_button_style"] = tool_bar_button_style;

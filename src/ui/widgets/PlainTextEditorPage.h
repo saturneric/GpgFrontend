@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "ui/function/TextDirection.h"
+
 class Ui_PlainTextEditor;
 
 namespace GpgFrontend::UI {
@@ -131,6 +133,33 @@ class PlainTextEditorPage : public QWidget {
    */
   void ApplyAppearanceSettings();
 
+  /**
+   * @brief Overrides the direction this page lays its text out in.
+   *
+   * The mode is not stored: it is a view choice for this tab and this session,
+   * while the default for new tabs lives in the appearance settings.
+   *
+   * @param mode Direction mode to apply.
+   */
+  void SetTextDirectionMode(TextDirectionMode mode);
+
+  /**
+   * @brief Returns the direction mode configured for this page.
+   *
+   * @return The mode, which may be kTEXT_DIRECTION_AUTO.
+   */
+  [[nodiscard]] auto GetTextDirectionMode() const -> TextDirectionMode;
+
+  /**
+   * @brief Returns the direction the text is actually laid out in.
+   *
+   * Unlike GetTextDirectionMode(), this resolves kTEXT_DIRECTION_AUTO against
+   * the current content.
+   *
+   * @return Qt::RightToLeft or Qt::LeftToRight.
+   */
+  [[nodiscard]] auto GetEffectiveTextDirection() const -> Qt::LayoutDirection;
+
  public slots:
   /**
    * @brief Returns the file path associated with this editor page.
@@ -170,6 +199,14 @@ class PlainTextEditorPage : public QWidget {
    * has inserted one chunk, this signal requests the next chunk.
    */
   void SignalUIBytesDisplayed();
+
+  /**
+   * @brief Emitted when the direction the text is laid out in changes.
+   *
+   * Automatic mode re-resolves whenever the content changes, so this is what
+   * lets the main window keep its menu toggle in step without polling.
+   */
+  void SignalTextDirectionChanged();
 
  protected:
   QSharedPointer<Ui_PlainTextEditor> ui_;  ///< Generated editor page UI object.
@@ -216,8 +253,20 @@ class PlainTextEditorPage : public QWidget {
   size_t read_bytes_ = 0;   ///< Number of file bytes inserted into the editor.
   bool is_crlf_ = false;    ///< Whether CRLF line endings were detected.
   bool last_insert_has_partial_cr_ =
-      false;  ///< Whether previous chunk ended with '\r'.
+      false;                        ///< Whether previous chunk ended with '\r'.
   QTimer* sha256_timer_ = nullptr;  ///< Debounce timer for SHA-256 updates.
+  TextDirectionMode text_direction_mode_ =
+      kTEXT_DIRECTION_AUTO;  ///< Configured direction mode.
+  Qt::LayoutDirection applied_text_direction_ =
+      Qt::LeftToRight;  ///< Direction currently laid out.
+
+  /**
+   * @brief Resolves the configured mode against the content and applies it.
+   *
+   * Emits SignalTextDirectionChanged() only when the resulting direction
+   * actually differs from the one already in effect.
+   */
+  void apply_text_direction();
 
   /**
    * @brief Initializes editor styling, status labels and page stylesheet.

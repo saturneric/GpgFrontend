@@ -33,6 +33,7 @@
 #include "core/thread/FileReadTask.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/function/AppearanceFont.h"
+#include "ui/function/TextDirection.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_PlainTextEditor.h"
 
@@ -54,6 +55,9 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
     update_status_bar();
     set_editor_modified(ui_->textPage->document()->isModified());
     sha256_timer_->start();
+
+    // Only automatic mode follows the content; an explicit choice stays put.
+    if (text_direction_mode_ == kTEXT_DIRECTION_AUTO) apply_text_direction();
   });
 
   connect(ui_->textPage, &QPlainTextEdit::cursorPositionChanged, this,
@@ -95,6 +99,9 @@ void PlainTextEditorPage::init_editor_style() {
   ui_->textPage->setTabStopDistance(
       QFontMetricsF(editor_font).horizontalAdvance(' ') *
       appearance.text_editor_tab_size);
+
+  text_direction_mode_ = appearance.text_direction;
+  apply_text_direction();
 
   auto setup_status_label = [](QLabel *label, const QString &width_sample) {
     QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
@@ -363,6 +370,7 @@ void PlainTextEditorPage::ReadFile() {
     update_status_bar();
     slot_format_gpg_header();
     slot_update_sha256();
+    apply_text_direction();
 
     text_page->setFocus();
   });
@@ -434,6 +442,38 @@ void PlainTextEditorPage::ApplyAppearanceSettings() {
   ui_->textPage->setTabStopDistance(
       QFontMetricsF(editor_font).horizontalAdvance(QLatin1Char(' ')) *
       appearance.text_editor_tab_size);
+
+  // The stored default wins over whatever this tab was toggled to, the same way
+  // it does for the font and the tab size.
+  text_direction_mode_ = appearance.text_direction;
+  apply_text_direction();
+}
+
+void PlainTextEditorPage::SetTextDirectionMode(TextDirectionMode mode) {
+  text_direction_mode_ = mode;
+  apply_text_direction();
+}
+
+auto PlainTextEditorPage::GetTextDirectionMode() const -> TextDirectionMode {
+  return text_direction_mode_;
+}
+
+auto PlainTextEditorPage::GetEffectiveTextDirection() const
+    -> Qt::LayoutDirection {
+  return applied_text_direction_;
+}
+
+void PlainTextEditorPage::apply_text_direction() {
+  const auto direction =
+      ResolveTextDirection(text_direction_mode_, ui_->textPage->document());
+
+  ApplyTextDirectionToDocument(ui_->textPage, ui_->textPage->document(),
+                               direction);
+
+  if (direction == applied_text_direction_) return;
+
+  applied_text_direction_ = direction;
+  emit SignalTextDirectionChanged();
 }
 
 }  // namespace GpgFrontend::UI

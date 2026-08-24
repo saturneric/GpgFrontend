@@ -182,6 +182,15 @@ class TextEditTabWidget : public QTabWidget {
    */
   void dropEvent(QDropEvent* event) override;
 
+ signals:
+  /**
+   * @brief Emitted when a text page changes the direction it lays its text out.
+   *
+   * Re-emitted on behalf of the pages so the main window can follow every tab
+   * through one connection instead of one per page.
+   */
+  void SignalTextDirectionChanged();
+
  private:
   int count_page_ = 0;
   int text_page_data_modified_count_ = 0;

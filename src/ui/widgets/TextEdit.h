@@ -132,9 +132,9 @@ class TextEdit : public QWidget {
   /**
    * @brief Returns the underlying tab widget.
    *
-   * @return Pointer to the internal QTabWidget.
+   * @return Pointer to the internal TextEditTabWidget.
    */
-  [[nodiscard]] auto TabWidget() const -> QTabWidget*;
+  [[nodiscard]] auto TabWidget() const -> TextEditTabWidget*;
 
   /**
    * @brief Returns the current plain-text editor page.
@@ -394,7 +394,7 @@ class TextEdit : public QWidget {
    *
    * Slot-style accessor kept for signal/slot based callers.
    *
-   * @return Pointer to the internal QTabWidget.
+   * @return Pointer to the internal TextEditTabWidget.
    */
   QTabWidget* SlotGetTabWidget();  // NOLINT
 

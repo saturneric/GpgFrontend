@@ -938,6 +938,9 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
   connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
           this, [this, page]() -> void { schedule_recovery_cache(page); });
 
+  connect(page, &PlainTextEditorPage::SignalTextDirectionChanged, this,
+          &TextEditTabWidget::SignalTextDirectionChanged);
+
   page->GetTextPage()->setFocus();
   return page;
 }

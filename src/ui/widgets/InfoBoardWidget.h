@@ -30,6 +30,7 @@
 
 #include "core/function/result_analyse/GpgOpResultInfo.h"
 #include "core/typedef/CoreTypedef.h"
+#include "ui/function/TextDirection.h"
 #include "ui/struct/GpgOperaResult.h"
 
 class Ui_InfoBoard;
@@ -127,6 +128,23 @@ class InfoBoardWidget : public QWidget {
   };
 
   QSharedPointer<Ui_InfoBoard> ui_;
+
+  /// Message body last shown in the raw text pane, without the status prefix.
+  QString info_board_body_;
+
+  /// Cached direction setting, refreshed by ApplyAppearanceSettings(): the pane
+  /// is re-laid out on every operation, and re-opening the settings object each
+  /// time would decrypt it for nothing.
+  TextDirectionMode text_direction_mode_ = kTEXT_DIRECTION_AUTO;
+
+  /**
+   * @brief Lays the raw text pane out the way the message body reads.
+   *
+   * Resolved against the body alone: the pane's "[STATUS] " prefix is
+   * translated, so classifying the whole pane would report the direction of the
+   * interface language instead of the message's.
+   */
+  void apply_text_direction();
 
   QTextEdit* text_page_{nullptr};
   QTabWidget* tab_widget_{nullptr};

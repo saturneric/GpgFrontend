@@ -79,6 +79,17 @@ class PlainTextEditor : public QPlainTextEdit {
    */
   void resizeEvent(QResizeEvent* event) override;
 
+  /**
+   * @brief Keeps the line number gutter on the side the text starts at.
+   *
+   * The gutter is placed next to the viewport, so it has to move whenever the
+   * editor is laid out the other way round. Without this it would only follow
+   * on the next resize.
+   *
+   * @param event
+   */
+  void changeEvent(QEvent* event) override;
+
  private slots:
   /**
    * @brief
@@ -103,6 +114,16 @@ class PlainTextEditor : public QPlainTextEdit {
 
  private:
   QWidget* line_number_area_ = nullptr;
+
+  /**
+   * @brief Places the line number gutter beside the viewport.
+   *
+   * Anchored to the viewport rather than to the editor's own contents rect, so
+   * it follows the strip that slot_update_line_number_area_width() reserved,
+   * whichever side that was, and stays clear of the vertical scroll bar, which
+   * does swap sides under a right-to-left layout.
+   */
+  void update_line_number_area_geometry();
 };
 
 }  // namespace GpgFrontend::UI
