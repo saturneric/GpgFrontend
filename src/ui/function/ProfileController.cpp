@@ -588,20 +588,14 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
               }
 
               // What a package carries is an allow-list, so anything else in
-              // the session folder is not saved. On an export that is somebody
-              // else's copy going out short; here it is the user's own work
-              // being dropped from the file they are saving into, and the
-              // session is about to go away -- so it has to be said even though
-              // nothing failed.
+              // the session folder is not saved. Logged rather than shown: the
+              // save the user asked for succeeded, and the format leaving out
+              // what it never carried is not a failure to interrupt them with
+              // on the way out.
               if (!result->skipped.isEmpty()) {
-                QMessageBox::warning(
-                    parent, QObject::tr("Not Everything Was Saved"),
-                    QObject::tr("These were left out of \"%1\", because a "
-                                "profile file only carries the profile itself: "
-                                "%2")
-                        .arg(QFileInfo(file).fileName(),
-                             result->skipped.join(", ")),
-                    QMessageBox::Ok);
+                LOG_W() << "profile package write-back left out non-profile "
+                           "members:"
+                        << result->skipped.join(", ");
               }
 
               g_session_write_back_settled = true;
@@ -613,12 +607,47 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
   return false;
 }
 
+auto AskProfilePackageAction(QWidget* parent, const QString& path)
+    -> ProfilePackageAction {
+  const auto file = QDir::toNativeSeparators(path);
+
+  // Both offered rather than one of them guessed: the Profiles menu keeps
+  // "Open" and "Import" apart precisely because they are routinely read as the
+  // same act, and a double-click says which file is meant, not which act.
+  QMessageBox box(
+      QMessageBox::Question, QObject::tr("Open Profile File"),
+      QObject::tr("This is a profile file.") + "\n\n" + file + "\n\n" +
+          QObject::tr("Open it to work in it directly and leave it a file, "
+                      "with nothing kept on this computer. Import it to "
+                      "copy it into a profile kept here, after which the "
+                      "file is not used again."),
+      QMessageBox::NoButton, parent);
+  auto* open_it = box.addButton(QObject::tr("Open"), QMessageBox::AcceptRole);
+  auto* import_it =
+      box.addButton(QObject::tr("Import"), QMessageBox::ActionRole);
+  box.addButton(QObject::tr("Cancel"), QMessageBox::RejectRole);
+  box.setDefaultButton(open_it);
+  box.exec();
+
+  if (box.clickedButton() == open_it) return ProfilePackageAction::kOPEN;
+  if (box.clickedButton() == import_it) return ProfilePackageAction::kIMPORT;
+  return ProfilePackageAction::kCANCEL;
+}
+
 void ImportProfileInteractive(QWidget* parent,
                               const std::function<void()>& on_changed,
                               const std::function<void()>& on_opened) {
   const auto path = QFileDialog::getOpenFileName(
       parent, QObject::tr("Import Profile File"), GetDefaultUserFilePath(),
       ProfilePackageNameFilter());
+  if (path.isEmpty()) return;
+
+  ImportProfileInteractive(parent, path, on_changed, on_opened);
+}
+
+void ImportProfileInteractive(QWidget* parent, const QString& path,
+                              const std::function<void()>& on_changed,
+                              const std::function<void()>& on_opened) {
   if (path.isEmpty()) return;
 
   // The header is read first because it is cheap and says whether a passphrase
