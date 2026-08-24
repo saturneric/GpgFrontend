@@ -35,11 +35,17 @@
 
 #include "core/profile/ProfilePackage.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "ui/function/AppearanceFont.h"
 
 namespace GpgFrontend::UI {
 
 GpgFrontendApplication::GpgFrontendApplication(int &argc, char *argv[])
     : QApplication(argc, argv) {
+  // Before anything can ask for a font. This is the only place that runs
+  // exactly once with a live QApplication: InitGpgFrontendUI() sits inside the
+  // restart loop and would re-register on every relaunch.
+  RegisterBundledFonts();
+
 #ifndef Q_OS_MACOS
   // Try system theme icon first, fall back to resource
   QIcon app_icon = QIcon::fromTheme("com.bktus.gpgfrontend",

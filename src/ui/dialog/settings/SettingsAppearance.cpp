@@ -62,12 +62,26 @@ constexpr std::array<ToolBarOperaEntry, 9> kToolBarOperas{{
 }};
 
 /// The stored family as a font the combo boxes can select, falling back to the
-/// system's fixed-pitch font when nothing was ever chosen.
-auto FamilyOrSystemDefault(const QString& family) -> QFont {
-  if (family.isEmpty()) {
-    return QFontDatabase::systemFont(QFontDatabase::FixedFont);
-  }
+/// bundled monospaced family when nothing was ever chosen. That fallback has
+/// to match what the surfaces actually render with, or the page misreports the
+/// state it is there to show.
+auto FamilyOrBundledDefault(const QString& family) -> QFont {
+  if (family.isEmpty()) return DefaultMonospaceFont();
   return {family};
+}
+
+/// The inverse of FamilyOrBundledDefault(): the bundled family is stored as
+/// "unset" rather than as its own name. Otherwise the first OK press pins the
+/// user to today's bundled family by name, and a later change of which font
+/// ships would leave them on the not-installed fallback path instead of
+/// following the new default. Someone who picks it deliberately gets the same
+/// rendering either way, so nothing is lost.
+auto FamilyOrUnset(const QFont& font) -> QString {
+  const auto family = font.family();
+  if (family.compare(BundledMonospaceFamily(), Qt::CaseInsensitive) == 0) {
+    return {};
+  }
+  return family;
 }
 
 }  // namespace
@@ -120,7 +134,8 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   ui_->showAllFontsCheckBox->setToolTip(
       tr("Also offer proportional fonts for both surfaces below. They line up "
          "best with a monospaced one, but scripts such as Arabic are only "
-         "shaped correctly by a font that covers them."));
+         "shaped correctly by a font that covers them, and the monospaced font "
+         "shipped with GpgFrontend covers Latin, Greek and Cyrillic only."));
 
   ui_->fontSizeBox->setTitle(tr("Status Panel"));
   ui_->infoBoardFontLabel->setText(tr("Font Family"));
@@ -210,9 +225,9 @@ void AppearanceTab::SetSettings() {
   // would quietly overwrite their choice. Either surface having a proportional
   // family is enough, since one checkbox governs both.
   const auto info_board_font =
-      FamilyOrSystemDefault(appearance.info_board_font_family);
+      FamilyOrBundledDefault(appearance.info_board_font_family);
   const auto text_editor_font =
-      FamilyOrSystemDefault(appearance.text_editor_font_family);
+      FamilyOrBundledDefault(appearance.text_editor_font_family);
 
   const auto show_all_fonts =
       !IsFixedPitchFontFamily(text_editor_font.family()) ||
@@ -313,9 +328,9 @@ void AppearanceTab::ApplySettings() {
   appearance.info_board_font_size =
       ui_->fontSizeInformationBoardSpinBox->value();
   appearance.info_board_font_family =
-      ui_->infoBoardFontComboBox->currentFont().family();
+      FamilyOrUnset(ui_->infoBoardFontComboBox->currentFont());
   appearance.text_editor_font_family =
-      ui_->textEditorFontComboBox->currentFont().family();
+      FamilyOrUnset(ui_->textEditorFontComboBox->currentFont());
   appearance.text_editor_font_size = ui_->textEditorFontSizeSpinBox->value();
   appearance.text_editor_tab_size = ui_->textEditorTabSizeSpinBox->value();
   appearance.text_direction = TextDirectionModeFromInt(

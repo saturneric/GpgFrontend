@@ -137,9 +137,6 @@ class GpgKeyTableProxyModel : public QSortFilterProxyModel {
   QString category_id_;
   QSet<QString> category_key_ids_;
   KeyFilter custom_filter_;
-
-  QFont default_font_;
-  QFontMetrics default_metrics_;
 };
 
 }  // namespace GpgFrontend::UI

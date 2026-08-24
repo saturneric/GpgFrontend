@@ -30,6 +30,7 @@
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/model/GpgImportInformation.h"
+#include "ui/function/AppearanceFont.h"
 
 namespace GpgFrontend::UI {
 KeyImportDetailDialog::KeyImportDetailDialog(
@@ -89,10 +90,8 @@ void KeyImportDetailDialog::create_header_box() {
   header_layout->setContentsMargins(14, 12, 14, 12);
   header_layout->setSpacing(14);
 
-  const auto imported_total =
-      m_result_->imported + m_result_->secret_imported;
-  const auto updated_total = m_result_->new_user_ids +
-                             m_result_->new_sub_keys +
+  const auto imported_total = m_result_->imported + m_result_->secret_imported;
+  const auto updated_total = m_result_->new_user_ids + m_result_->new_sub_keys +
                              m_result_->new_signatures;
 
   QString icon_path = ":/icons/info.png";
@@ -112,13 +111,13 @@ void KeyImportDetailDialog::create_header_box() {
         tr("Successfully processed %1 key(s).").arg(m_result_->considered);
   } else {
     title = tr("Nothing to Import");
-    summary = tr("All %1 key(s) are already up to date.")
-                  .arg(m_result_->considered);
+    summary =
+        tr("All %1 key(s) are already up to date.").arg(m_result_->considered);
   }
 
   auto* icon_label = new QLabel(header_box_);
-  icon_label->setPixmap(QPixmap(icon_path).scaled(
-      40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+  icon_label->setPixmap(QPixmap(icon_path).scaled(40, 40, Qt::KeepAspectRatio,
+                                                  Qt::SmoothTransformation));
   icon_label->setFixedSize(40, 40);
 
   auto* text_layout = new QVBoxLayout();
@@ -218,7 +217,7 @@ void KeyImportDetailDialog::create_keys_table() {
 
   keys_table_->setHorizontalHeaderLabels(header_labels);
 
-  QFont monospace_font(QStringLiteral("monospace"));
+  const auto monospace_font = DefaultMonospaceFont();
 
   int row = 0;
   for (const auto& imp_key : m_result_->imported_keys) {

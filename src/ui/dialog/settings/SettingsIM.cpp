@@ -33,6 +33,7 @@
 #include "core/function/InstantMessageOperator.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "ui/function/AppearanceFont.h"
 
 namespace GpgFrontend::UI {
 
@@ -52,10 +53,11 @@ auto CleanPhrase(const QString& text) -> QString {
   return out;
 }
 
+/// Starts from the widget's own font on purpose, so the token and the
+/// fingerprint keep the size of the page around them and only change family.
 auto MonospaceFont(const QWidget* widget) -> QFont {
   auto font = widget->font();
-  font.setStyleHint(QFont::Monospace);
-  font.setFamily("Monospace");
+  ApplyMonospaceFamily(font);
   return font;
 }
 

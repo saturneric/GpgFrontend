@@ -31,14 +31,61 @@
 namespace GpgFrontend::UI {
 
 /**
+ * @brief Hand the fonts bundled in ":/fonts" to the font database.
+ *
+ * Idempotent and safe to call from any thread: the work happens once, so a
+ * second call cannot register a duplicate family (Qt tolerates that, but the
+ * family would then be listed twice in every QFontComboBox).
+ *
+ * Does nothing when no QGuiApplication exists yet, since QFontDatabase needs
+ * one. A core-only caller therefore degrades instead of crashing.
+ */
+void GF_UI_EXPORT RegisterBundledFonts();
+
+/**
+ * @brief Family name of the bundled monospaced font, read back from the font
+ *        database rather than hard-coded.
+ *
+ * @return the family, or an empty string when the bundled font failed to load
+ */
+auto GF_UI_EXPORT BundledMonospaceFamily() -> QString;
+
+/**
+ * @brief A fresh monospaced font: the bundled family, or the system's
+ *        fixed-pitch font if the bundle could not be loaded.
+ *
+ * This is what every surface that wants "a monospaced font" should ask for.
+ * Hard-coding a family literal does not work across platforms -- "Monospace"
+ * in particular is a Fontconfig alias that resolves on Linux only, and
+ * elsewhere Qt silently substitutes a proportional font, which is how aligned
+ * columns of hashes end up ragged.
+ *
+ * @param point_size point size to apply, or -1 to leave the size alone
+ * @return the monospaced font
+ */
+auto GF_UI_EXPORT DefaultMonospaceFont(int point_size = -1) -> QFont;
+
+/**
+ * @brief Move @p font onto the monospaced family, keeping its size and weight.
+ *
+ * The retrofit counterpart of DefaultMonospaceFont(), for the surfaces that
+ * start from a widget's own font on purpose so they inherit the surrounding
+ * point size and only want the family changed.
+ *
+ * @param font font to adjust in place
+ */
+void GF_UI_EXPORT ApplyMonospaceFamily(QFont& font);
+
+/**
  * @brief The font a text surface should use for a stored appearance setting.
  *
- * Starts from the system's fixed-pitch font and only takes @p family over it
- * when that family is actually installed: a font that was uninstalled since it
- * was chosen must fall back to something readable rather than let Qt
- * substitute an arbitrary family.
+ * Starts from the bundled monospaced font (the system's fixed-pitch font if
+ * the bundle failed to load) and only takes @p family over it when that family
+ * is actually installed: a font that was uninstalled since it was chosen must
+ * fall back to something readable rather than let Qt substitute an arbitrary
+ * family.
  *
- * @param family stored family name, empty to keep the system fixed-pitch font
+ * @param family stored family name, empty to keep the bundled monospaced font
  * @param point_size point size to apply
  * @return the resolved font
  */

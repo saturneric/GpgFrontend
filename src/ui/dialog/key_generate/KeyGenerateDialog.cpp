@@ -36,6 +36,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/function/AppearanceFont.h"
 #include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/KeyGenerateHelper.h"
@@ -651,12 +652,10 @@ void KeyGenerateDialog::InitUi() {
 
   ui_->statusPlainTextEdit->setFocusPolicy(Qt::ClickFocus);
 
-  QFont status_font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+  QFont status_font = DefaultMonospaceFont();
 #ifndef Q_OS_MACOS
   status_font.setPointSize(std::max(10, status_font.pointSize()));
 #endif
-  status_font.setStyleHint(QFont::Monospace);
-  status_font.setFixedPitch(true);
   ui_->statusPlainTextEdit->setFont(status_font);
 
   const auto setup_combo = [](QComboBox* combo) {

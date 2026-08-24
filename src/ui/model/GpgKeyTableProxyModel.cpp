@@ -44,9 +44,7 @@ GpgKeyTableProxyModel::GpgKeyTableProxyModel(
       model_(std::move(model)),
       display_mode_(display_mode),
       filter_columns_(columns),
-      custom_filter_(std::move(filter)),
-      default_font_("Arial", 14),
-      default_metrics_(default_font_) {
+      custom_filter_(std::move(filter)) {
   setSourceModel(model_.get());
 
   // Sort on the comparable value the model exposes rather than on the text in

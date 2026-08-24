@@ -28,6 +28,8 @@
 
 #include "LogViewDialog.h"
 
+#include "ui/function/AppearanceFont.h"
+
 namespace {
 
 auto LogTypeToString(QtMsgType type) -> QString {
@@ -115,9 +117,7 @@ void LogViewDialog::init_ui() {
   log_text_edit_->setReadOnly(true);
   log_text_edit_->setLineWrapMode(QPlainTextEdit::NoWrap);
 
-  QFont mono_font(QStringLiteral("Monospace"));
-  mono_font.setStyleHint(QFont::TypeWriter);
-  log_text_edit_->setFont(mono_font);
+  log_text_edit_->setFont(DefaultMonospaceFont());
 
   new LogHighlighter(log_text_edit_->document());
 

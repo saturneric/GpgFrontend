@@ -104,9 +104,7 @@ void PlainTextEditorPage::init_editor_style() {
   apply_text_direction();
 
   auto setup_status_label = [](QLabel *label, const QString &width_sample) {
-    QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    font.setStyleHint(QFont::Monospace);
-    font.setFixedPitch(true);
+    QFont font = DefaultMonospaceFont();
 
 #ifdef Q_OS_MACOS
     font.setPointSize(std::max(10, font.pointSize()));

@@ -26,6 +26,7 @@
  *
  */
 
+#include "ui/function/AppearanceFont.h"
 #include "ui/widgets/InfoBoardDocFrame.h"
 #include "ui/widgets/InfoBoardWidget.h"
 #include "ui_InfoBoard.h"
@@ -484,7 +485,9 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
           field.first.compare(QStringLiteral("SHA-256"), Qt::CaseInsensitive) ==
               0;
       if (is_hash_col) {
-        vf.setFamily(QStringLiteral("Monospace"));
+        // A hash is only readable as an aligned column of fixed-width digits,
+        // so this must be a family that exists on every platform.
+        ApplyMonospaceFamily(vf);
       }
       vf.setPointSize(std::max(7, vf.pointSize() - 1));
       vl->setFont(vf);
