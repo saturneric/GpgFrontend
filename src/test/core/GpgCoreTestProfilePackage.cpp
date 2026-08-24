@@ -40,6 +40,7 @@
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/profile/Profile.h"
+#include "core/profile/MemoryAreaProfileAccessor.h"
 #include "core/profile/ProfileMarker.h"
 #include "core/profile/ProfileMember.h"
 #include "core/profile/ProfileMigration.h"
@@ -72,6 +73,19 @@ void MakeProfile(const QString &root) {
   WriteFile(root + "/mods/module.so", "module");
   WriteFile(root + "/data_objs.quarantine/broken", "broken");
   WriteFile(root + "/profile.lock", "1234");
+}
+
+/// Total bytes of everything under a tree, for comparing against what a
+/// package would actually carry.
+auto DirectorySizeOfTreeForTest(const QString &root) -> qint64 {
+  qint64 total = 0;
+  QDirIterator it(root, QDir::Files | QDir::Hidden | QDir::NoDotAndDotDot,
+                  QDirIterator::Subdirectories);
+  while (it.hasNext()) {
+    it.next();
+    total += it.fileInfo().size();
+  }
+  return total;
 }
 
 /// The application key every export in this file carries.
@@ -1985,6 +1999,98 @@ TEST(ProfilePackageOversizeTest, ASmallFileIsNotRefusedForItsSize) {
 
   const auto read = ReadProfilePackage(path, dir.path() + "/out", {});
   EXPECT_NE(read.status, ProfilePackageReadStatus::kTOO_LARGE);
+}
+
+TEST(ProfileMeasureTest, MeasuresEveryAreaThroughTheStorage) {
+  // The figures behind the export dialog's contents list, which is the last
+  // thing a user reads before handing the file to somebody.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/profile";
+  MakeProfile(root);
+  WriteFile(root + "/dbs/Key DB 2/pubring.kbx", "second keyring");
+
+  FsProfileAccessor storage(root, root + "/config/config.ini");
+  const auto areas = MeasureProfileAreas(storage);
+
+  EXPECT_GT(areas.value("config"), 0);
+  EXPECT_GT(areas.value("data_objs"), 0);
+  EXPECT_GT(areas.value("secure"), 0);
+  EXPECT_GT(areas.value("workspace"), 0);
+
+  // Both database directories, since both travel.
+  EXPECT_EQ(areas.value("key_databases"),
+            QByteArray("keyring").size() +
+                QByteArray("second keyring").size());
+
+  // Areas a package never carries are not measured into any row, or the total
+  // would promise a file bigger than the one that gets written.
+  qint64 total = 0;
+  for (const auto &bytes : areas) total += bytes;
+  EXPECT_LT(total, DirectorySizeOfTreeForTest(root));
+}
+
+TEST(ProfileMeasureTest, ReportsAKeyHeldInMemoryRatherThanZero) {
+  // The defect this is the guard for: `secure` was measured by walking
+  // <root>/secure, and a packaged session holds that area in memory, where a
+  // walk finds nothing. The row is "This profile's own key" -- the one entry
+  // in the list whose whole purpose is to say that the file about to be
+  // written contains it -- and it read 0 B.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/profile";
+  MakeProfile(root);
+
+  auto inner = QSharedPointer<FsProfileAccessor>::create(
+      root, root + "/config/config.ini");
+  MemoryAreaProfileAccessor storage(inner, {ProfileArea::kSecure});
+
+  // Nothing on the storage: this is the state a packaged session is in.
+  ASSERT_TRUE(QDir(root + "/secure").removeRecursively());
+
+  const GFBuffer key(QByteArray(256, 'k'));
+  ASSERT_TRUE(storage.Write(ProfileArea::kSecure, "app.key", key));
+
+  const auto areas = MeasureProfileAreas(storage);
+  EXPECT_EQ(areas.value("secure"), 256);
+
+  // And the rest still comes from the tree, unchanged by the decorator.
+  EXPECT_GT(areas.value("data_objs"), 0);
+}
+
+TEST(ProfileMeasureTest, CountsASettingsFileKeptOutsideTheProfile) {
+  // An installed profile on Windows keeps its INI in AppConfigLocation, and on
+  // POSIX writes through Qt's native store; neither is under the profile root,
+  // so measuring `config/` reported 0 B beside "Settings" for exactly the
+  // profiles people export most.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/profile";
+  QDir().mkpath(root);
+  const auto ini = dir.path() + "/elsewhere/config.ini";
+  WriteFile(ini, "[basic]\nlanguage=de_DE\n");
+
+  FsProfileAccessor storage(root, ini);
+  EXPECT_EQ(MeasureProfileAreas(storage).value("config"),
+            QFileInfo(ini).size());
+}
+
+TEST(ProfileMeasureTest, CountsTheSettingsFileInsideTheAreaExactlyOnce) {
+  // The ordinary case, where the file is in the area that was just measured.
+  // Adding it again would be a different wrong number in the same row.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/profile";
+  const auto ini = root + "/config/config.ini";
+  WriteFile(ini, "[basic]\nlanguage=en_US\n");
+
+  FsProfileAccessor storage(root, ini);
+  EXPECT_EQ(MeasureProfileAreas(storage).value("config"),
+            QFileInfo(ini).size());
 }
 
 }  // namespace GpgFrontend::Test

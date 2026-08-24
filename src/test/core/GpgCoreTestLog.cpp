@@ -130,4 +130,26 @@ TEST(GFLogFileTest, InitIsNoOpForEmptyDirAndWhileAlreadyOpen) {
   mgr.StopFileLogger();
 }
 
+TEST(GFLogFileTest, FileLoggerPathNamesTheOpenFileAndNothingElse) {
+  // Asked by whoever is about to delete a directory, so a path left over from
+  // a file nobody holds would be worse than no answer: it would have the
+  // caller stop and close a handle that does not exist, or worse, believe the
+  // directory is still in use.
+  auto& mgr = GFLogManager::Instance();
+  mgr.StopFileLogger();
+  mgr.InitRingBuffer(64);
+
+  EXPECT_TRUE(mgr.FileLoggerPath().isEmpty());
+
+  QTemporaryDir tmp;
+  ASSERT_TRUE(tmp.isValid());
+  mgr.InitFileLogger(tmp.path());
+
+  EXPECT_EQ(mgr.FileLoggerPath(),
+            QDir(tmp.path()).absoluteFilePath("gpgfrontend.log"));
+
+  mgr.StopFileLogger();
+  EXPECT_TRUE(mgr.FileLoggerPath().isEmpty());
+}
+
 }  // namespace GpgFrontend::Test

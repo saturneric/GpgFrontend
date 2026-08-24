@@ -37,6 +37,7 @@
 #include <unistd.h>
 #endif
 
+#include "core/GFCoreLog.h"
 #include "core/profile/ProtectedFsProfileAccessor.h"
 
 namespace GpgFrontend::Test {
@@ -368,5 +369,104 @@ TEST(StorageProbeTest, AnImpossibleBudgetIsReportedNotIgnored) {
         << "candidate: " << candidate.path.toStdString();
   }
 }
+
+TEST(ProtectedAccessorTest, ReleaseClosesTheLogFileInsideTheTreeItRemoves) {
+  // The session logs into its own storage, so this process holds a handle on a
+  // file in the tree it is about to destroy. POSIX unlinks an open file
+  // happily, which is why this went unnoticed for so long; Windows refuses,
+  // and refuses for the directory holding it too, so every packaged session
+  // left its whole storage folder behind -- log file included -- on close.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  auto accessor = ProtectedFsProfileAccessor::Provision(
+      "0123456789abcdef", DiskPlanAt(dir.path() + "/session"));
+  ASSERT_FALSE(accessor.isNull());
+  ASSERT_TRUE(accessor->Ensure(ProfileArea::kLogs));
+
+  auto &log = GFLogManager::Instance();
+  log.StopFileLogger();
+  log.InitRingBuffer(64);
+  log.InitFileLogger(accessor->PathOf(ProfileArea::kLogs));
+  ASSERT_FALSE(log.FileLoggerPath().isEmpty());
+
+  const auto root = accessor->PathOf(ProfileArea::kRoot);
+  accessor->Release(ProfileStorageRelease::kSCRUB);
+
+  EXPECT_TRUE(log.FileLoggerPath().isEmpty());
+  EXPECT_FALSE(QFileInfo::exists(root));
+}
+
+TEST(ProtectedAccessorTest, ReleaseLeavesALogFileOutsideItsTreeAlone) {
+  // Scoped to the tree, not to "there is a log file". A window closing its own
+  // package must not silence the logging of a profile it has nothing to do
+  // with -- and on a machine running two, that is the other window's diary of
+  // the failure this one is in the middle of.
+  QTemporaryDir dir;
+  QTemporaryDir elsewhere;
+  ASSERT_TRUE(dir.isValid());
+  ASSERT_TRUE(elsewhere.isValid());
+
+  auto accessor = ProtectedFsProfileAccessor::Provision(
+      "0123456789abcdef", DiskPlanAt(dir.path() + "/session"));
+  ASSERT_FALSE(accessor.isNull());
+
+  auto &log = GFLogManager::Instance();
+  log.StopFileLogger();
+  log.InitRingBuffer(64);
+  log.InitFileLogger(elsewhere.path());
+  const auto path = log.FileLoggerPath();
+  ASSERT_FALSE(path.isEmpty());
+
+  accessor->Release(ProfileStorageRelease::kSCRUB);
+
+  EXPECT_EQ(log.FileLoggerPath(), path);
+  log.StopFileLogger();
+}
+
+#ifdef Q_OS_UNIX
+TEST(ProtectedAccessorTest, AReleaseThatCannotRemoveTheTreeStillEmptiesIt) {
+  // What "could not be removed" has to mean. Reporting it and marking the
+  // storage released is the dangerous answer: this call is the only promise
+  // that an unpacked profile does not outlive the process, and every later
+  // caller would take that flag at its word.
+  //
+  // A directory with no write permission is the portable stand-in for the
+  // Windows case: its entries cannot be unlinked, though their contents can
+  // still be overwritten -- which is the distinction that decides whether what
+  // survives is key material or an empty name.
+  if (::geteuid() == 0) GTEST_SKIP() << "root ignores directory permissions";
+
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  auto accessor = ProtectedFsProfileAccessor::Provision(
+      "0123456789abcdef", DiskPlanAt(dir.path() + "/session"));
+  ASSERT_FALSE(accessor.isNull());
+  ASSERT_TRUE(accessor->Ensure(ProfileArea::kSecure));
+
+  const auto root = accessor->PathOf(ProfileArea::kRoot);
+  const auto pinned = accessor->PathOf(ProfileArea::kSecure);
+  const auto key = pinned + "/app.key";
+  WriteFile(key, QByteArray("PLAINTEXT-KEY-MATERIAL"));
+
+  ASSERT_TRUE(QFile::setPermissions(
+      pinned, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+
+  accessor->Release(ProfileStorageRelease::kSCRUB);
+
+  // Still there, because nothing could unlink it -- but holding nothing.
+  ASSERT_TRUE(QFileInfo::exists(key));
+  EXPECT_EQ(QFileInfo(key).size(), 0);
+
+  // And not marked released: the next attempt, once whatever held the tree has
+  // let go, has to actually run.
+  ASSERT_TRUE(QFile::setPermissions(pinned, QFileDevice::ReadOwner |
+                                                QFileDevice::WriteOwner |
+                                                QFileDevice::ExeOwner));
+  accessor->Release(ProfileStorageRelease::kSCRUB);
+  EXPECT_FALSE(QFileInfo::exists(root));
+}
+#endif
 
 }  // namespace GpgFrontend::Test
