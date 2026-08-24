@@ -13452,7 +13452,7 @@ The link has been copied to your clipboard:
     <message>
         <location filename="../../../../src/ui/widgets/FilePathBar.cpp" line="98"/>
         <source>Home</source>
-        <translation>主页</translation>
+        <translation>家目录</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/function/ProfileController.cpp" line="89"/>
