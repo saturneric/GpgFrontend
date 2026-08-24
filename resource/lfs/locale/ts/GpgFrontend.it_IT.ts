@@ -2008,89 +2008,89 @@ Vuoi continuare?</translation>
     </message>
 </context>
 <context>
-    <name>GpgFrontend::UI::CreateFileSystemItemDialog</name>
+    <name>GpgFrontend::UI::FileSystemItemNameDialog</name>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="68"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="68"/>
         <source>New Folder</source>
         <translation>Nuova cartella</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="69"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="69"/>
         <source>New File</source>
         <translation>Nuovo file</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="77"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="77"/>
         <source>Create a new folder</source>
         <translation>Crea una nuova cartella</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="78"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="78"/>
         <source>Create a new empty file</source>
         <translation>Crea un nuovo file vuoto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="89"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="89"/>
         <source>Location: %1</source>
         <translation>Posizione: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="94"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="94"/>
         <source>Folder name</source>
         <translation>Nome della cartella</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="95"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="95"/>
         <source>File name, e.g. notes.txt</source>
         <translation>Nome del file, ad esempio notes.txt</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="102"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="102"/>
         <source>Name:</source>
         <translation>Nome</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="107"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="107"/>
         <source>Create</source>
         <translation>Crea</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="143"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="143"/>
         <source>Enter a folder name.</source>
         <translation>Inserisci il nome di una cartella.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="144"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="144"/>
         <source>Enter a file name.</source>
         <translation>Inserisci un nome file.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="147"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="147"/>
         <source>This name is reserved.</source>
         <translation>Questo nome è riservato.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="150"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="150"/>
         <source>The name must not contain path separators.</source>
         <translation>Il nome non deve contenere separatori di percorso.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="153"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="153"/>
         <source>This name is reserved by the operating system.</source>
         <translation>Questo nome è riservato dal sistema operativo.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="156"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="156"/>
         <source>A file or folder with this name already exists.</source>
         <translation>Esiste già un file o una cartella con questo nome.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="160"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="160"/>
         <source>The folder will be created in the selected location.</source>
         <translation>La cartella verrà creata nella posizione selezionata.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/dialog/CreateFileSystemItemDialog.cpp" line="161"/>
+        <location filename="../../../../src/ui/dialog/FileSystemItemNameDialog.cpp" line="161"/>
         <source>An empty file will be created in the selected location.</source>
         <translation>Verrà creato un file vuoto nella posizione selezionata.</translation>
     </message>
