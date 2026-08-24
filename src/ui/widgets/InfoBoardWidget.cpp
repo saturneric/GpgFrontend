@@ -30,7 +30,7 @@
 
 #include "core/model/SettingsObject.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/AppearanceFont.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/InfoBoardDocFrame.h"
 #include "ui_InfoBoard.h"

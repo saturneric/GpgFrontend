@@ -56,7 +56,7 @@ constexpr auto kFprB = "2222222222222222222222222222222222222222";
 /**
  * @brief Stands in for the real passphrase dialog.
  *
- * Connects to SignalNeedUserInputPassphrase exactly as UserInterfaceUtils does
+ * Connects to SignalNeedUserInputPassphrase exactly as PassphrasePrompt does
  * — with the application object as context, so the handler runs on the main
  * thread — and answers after a delay instead of opening a window. The delay is
  * the point: it holds the "prompt" open long enough for a second request to
@@ -67,9 +67,10 @@ class FakePassphrasePrompt : public QObject {
   explicit FakePassphrasePrompt(int answer_delay_ms = 200,
                                 QString answer = QStringLiteral("secret"))
       : answer_delay_ms_(answer_delay_ms), answer_(std::move(answer)) {
-    // The real handler in CommonUtils is live in the test runner too, but it
-    // opens no prompt in unit-test mode and leaves the request unanswered, so
-    // this stand-in is the only thing that ever answers one here.
+    // The real handler in ui/function/PassphrasePrompt.h is live in the test
+    // runner too, but it opens no prompt in unit-test mode and leaves the
+    // request unanswered, so this stand-in is the only thing that ever
+    // answers one here.
     connection_ = connect(
         CoreSignalStation::GetInstance(),
         &CoreSignalStation::SignalNeedUserInputPassphrase,

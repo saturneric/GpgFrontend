@@ -35,7 +35,7 @@
 
 //
 #include "core/module/ModuleManager.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/UIStyle.h"
 #include "ui/widgets/GRTTreeView.h"
 #include "ui/widgets/ModuleListView.h"
 

@@ -39,11 +39,12 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/ADSKsPicker.h"
 #include "ui/dialog/RevocationOptionsDialog.h"
 #include "ui/dialog/key_generate/SubkeyGenerateDialog.h"
 #include "ui/dialog/keypair_details/KeySetExpireDateDialog.h"
+#include "ui/function/GpgErrorMessageBox.h"
+#include "ui/function/MoveKeyToCard.h"
 
 namespace GpgFrontend::UI {
 
@@ -636,7 +637,7 @@ void KeyPairSubkeyTab::slot_export_subkey() {
           .ExportSubkey(s_key.Fingerprint(), true);
 
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-    CommonUtils::RaiseMessageBox(this, err);
+    RaiseMessageBox(this, err);
     return;
   }
 
@@ -721,7 +722,7 @@ void KeyPairSubkeyTab::slot_modify_subkey_passphrase() {
   KeyManagementOperation::GetInstance(current_gpg_context_channel_)
       .ModifySubkeyPassword(key_, s_key.Fingerprint(),
                             [this](GpgError err, const DataObjectPtr&) {
-                              CommonUtils::RaiseMessageBox(this, err);
+                              RaiseMessageBox(this, err);
                               if (CheckGpgError(err) == GPG_ERR_NO_ERROR) {
                                 emit SignalKeyDatabaseRefresh();
                               }

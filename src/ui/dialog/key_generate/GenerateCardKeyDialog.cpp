@@ -32,8 +32,9 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/function/KeyGenerateHelper.h"
 
 //
 #include "ui_GenerateCardKeyDialog.h"
@@ -134,7 +135,7 @@ void GenerateCardKeyDialog::slot_generate_card_key() {
     if (err != GPG_ERR_NO_ERROR) {
       // Report the failure on the still-open dialog so the user can adjust and
       // retry; success is handled below.
-      CommonUtils::RaiseMessageBox(this, err);
+      RaiseMessageBox(this, err);
       return;
     }
 

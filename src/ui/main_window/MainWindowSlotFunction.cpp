@@ -29,16 +29,19 @@
 #include "MainWindow.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/openpgp/KeyImportExportOperation.h"
+#include "core/function/result_analyse/GpgResultAnalyse.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SigningKeysPicker.h"
+#include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/function/ImportKey.h"
 #include "ui/function/InfoBoardCardConverter.h"
 #include "ui/function/SetOwnerTrustLevel.h"
+#include "ui/function/ShowKeyDetails.h"
 #include "ui/struct/GpgOperaResult.h"
 #include "ui/widgets/FindWidget.h"
 #include "ui/widgets/InfoBoardWidget.h"
@@ -70,7 +73,7 @@ void MainWindow::slot_append_selected_keys() {
                               m_key_list_->GetCurrentGpgContextChannel())
                               .ExportKey(keys.front(), false, true, false);
   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-    CommonUtils::RaiseMessageBox(this, err);
+    RaiseMessageBox(this, err);
     return;
   }
 
@@ -142,8 +145,8 @@ void MainWindow::slot_show_key_details() {
   auto keys = m_key_list_->GetSelectedKeys();
   if (keys.isEmpty()) return;
 
-  CommonUtils::OpenDetailsDialogByKey(
-      this, m_key_list_->GetCurrentGpgContextChannel(), keys.front());
+  ShowKeyDetails(this, m_key_list_->GetCurrentGpgContextChannel(),
+                 keys.front());
 }
 
 void MainWindow::slot_set_owner_trust_level_of_key() {
@@ -169,8 +172,8 @@ void MainWindow::slot_import_key_from_edit() {
   if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) return;
 
   auto plain_text = edit_->CurPlainText().toLatin1();
-  CommonUtils::GetInstance()->SlotImportKeys(
-      this, m_key_list_->GetCurrentGpgContextChannel(), GFBuffer(plain_text));
+  ImportKeys(this, m_key_list_->GetCurrentGpgContextChannel(),
+             GFBuffer(plain_text));
 
   plain_text.fill('X');
   plain_text.clear();
@@ -212,8 +215,7 @@ void MainWindow::slot_import_keys_from_key_server(const QStringList& fprs) {
 
                     // all tasks are done
                     if (*remaining_tasks == 0) {
-                      CommonUtils::GetInstance()->ImportKeys(that, channel,
-                                                             *all_key_data);
+                      ImportKeys(that, channel, *all_key_data);
                     }
                   });
 

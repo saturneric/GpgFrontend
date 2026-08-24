@@ -37,7 +37,10 @@
 #include "core/utils/CommonUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/ApplicationRestart.h"
+#include "ui/function/KeyDatabaseRefresh.h"
+#include "ui/function/OpenPGPEnvGuard.h"
+#include "ui/function/PassphrasePrompt.h"
 #include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {
@@ -224,7 +227,15 @@ void WaitEnvCheckingProcess() {
 
 }  // namespace
 
-void PreInitGpgFrontendUI() { CommonUtils::GetInstance(); }
+void PreInitGpgFrontendUI() {
+  // These must be subscribed before the core can report anything: the
+  // bad-environment path ends in std::exit(0), so a handler installed later
+  // never hears it at all. Each one is idempotent.
+  InstallBadOpenPGPEnvHandler();
+  InstallRestartHandler();
+  InstallKeyDatabaseRefreshHandler();
+  InstallPassphrasePromptHandler();
+}
 
 void SetFusionAsDefaultStyle() {
   // Set Fusion style for better dark mode support across platforms
@@ -312,9 +323,6 @@ void InitGpgFrontendUI(QApplication* app) {
   // init signal station
   UISignalStation::GetInstance();
 
-  // init common utils
-  CommonUtils::GetInstance();
-
   // application proxy configure
   auto proxy_enable = settings.value("proxy/enable", false).toBool();
 
@@ -383,7 +391,7 @@ auto RunGpgFrontendUI(QApplication* app) -> int {
   main_window->setAttribute(Qt::WA_DeleteOnClose, false);
 
   // pre-check, if application need to restart
-  if (CommonUtils::GetInstance()->IsApplicationNeedRestart()) {
+  if (IsApplicationNeedRestart()) {
     FLOG_D("application need to restart, before main window init.");
     return kDeepRestartCode;
   }

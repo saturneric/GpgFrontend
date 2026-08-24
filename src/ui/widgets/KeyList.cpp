@@ -41,7 +41,6 @@
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/KeyGroupCreationDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
 
@@ -718,8 +717,9 @@ void KeyList::init_signals() {
   connect(UISignalStation::GetInstance(), &UISignalStation::SignalUIRefresh,
           this, &KeyList::SlotRefreshUI);
 
-  connect(CommonUtils::GetInstance(), &CommonUtils::SignalCategoriesChanged,
-          this, &KeyList::RebuildCategoryTabs);
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyCategoriesChanged, this,
+          &KeyList::RebuildCategoryTabs);
 
   // Switch the shown key table when the selected category row changes.
   connect(ui_->categoryList, &QListWidget::currentRowChanged, this,
@@ -1194,7 +1194,7 @@ void KeyList::delete_category(const QString& id, const QString& name) {
   if (ret != QMessageBox::Yes) return;
 
   KeyCategoryRepository::GetInstance(current_gpg_context_channel_).Remove(id);
-  CommonUtils::GetInstance()->NotifyCategoriesChanged();
+  emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
 }
 
 auto KeyList::current_page() const -> KeyTable* {
@@ -1334,7 +1334,7 @@ void KeyList::new_category() {
   const auto id =
       repo.AddCategory(name, color.isValid() ? color.name() : QString{});
 
-  CommonUtils::GetInstance()->NotifyCategoriesChanged();
+  emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
   select_category(id);
 }
 
@@ -1348,7 +1348,7 @@ void KeyList::rename_category(const QString& id, const QString& current_name) {
 
   KeyCategoryRepository::GetInstance(current_gpg_context_channel_)
       .Rename(id, name);
-  CommonUtils::GetInstance()->NotifyCategoriesChanged();
+  emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
 }
 
 void KeyList::SlotRefresh() {

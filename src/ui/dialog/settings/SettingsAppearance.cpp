@@ -31,7 +31,7 @@
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
 #include "core/utils/MemoryUtils.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/AppearanceFont.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_AppearanceSettings.h"
 

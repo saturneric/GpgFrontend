@@ -40,7 +40,7 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/GpgFrontendUIInit.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/LanguageOptions.h"
 
 namespace GpgFrontend::UI {
 namespace {

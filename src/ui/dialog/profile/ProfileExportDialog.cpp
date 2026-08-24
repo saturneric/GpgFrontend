@@ -32,9 +32,10 @@
 #include <QStorageInfo>
 
 #include "core/profile/ProfilePackage.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/SecretPrompt.h"
+#include "ui/function/FilePanelPath.h"
 #include "ui/function/ProfileController.h"
+#include "ui/function/UIStyle.h"
 #include "ui/widgets/SecretEntryPanel.h"
 
 namespace GpgFrontend::UI {

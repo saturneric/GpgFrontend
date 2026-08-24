@@ -46,7 +46,6 @@
 #include "core/utils/IOUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/import_export/ExportKeyPackageDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
 #include "ui/dialog/key_generate/KeyGenerateDialog.h"
@@ -55,8 +54,11 @@
 #include "ui/dialog/keypair_details/KeyUIDSignDialog.h"
 #include "ui/function/ExportKey.h"
 #include "ui/function/GenerateRevocationCert.h"
+#include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/function/ImportKey.h"
 #include "ui/function/SetOwnerTrustLevel.h"
+#include "ui/function/ShowKeyDetails.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui/main_window/ToolBarHelper.h"
 #include "ui/widgets/KeyList.h"
@@ -338,8 +340,7 @@ void KeyMgmt::create_actions() {
   open_key_file_act_ = make_action(tr("Open"), {}, tr("Open Key File"),
                                    {QKeySequence(Qt::CTRL | Qt::Key_O)});
   connect(open_key_file_act_, &QAction::triggered, this, [this]() {
-    CommonUtils::GetInstance()->SlotImportKeyFromFile(
-        this, key_list_->GetCurrentGpgContextChannel());
+    ImportKeyFromFile(this, key_list_->GetCurrentGpgContextChannel());
   });
 
   close_act_ = make_action(tr("Close"), ":/icons/exit.png", tr("Close"),
@@ -368,8 +369,7 @@ void KeyMgmt::create_actions() {
       make_action(tr("File"), ":/icons/import_key_from_file.png",
                   tr("Import New Key From File"));
   connect(import_key_from_file_act_, &QAction::triggered, this, [this]() {
-    CommonUtils::GetInstance()->SlotImportKeyFromFile(
-        this, key_list_->GetCurrentGpgContextChannel());
+    ImportKeyFromFile(this, key_list_->GetCurrentGpgContextChannel());
   });
 
   import_key_from_clipboard_act_ =
@@ -378,8 +378,7 @@ void KeyMgmt::create_actions() {
   import_key_from_clipboard_act_->setShortcutContext(Qt::WindowShortcut);
   addAction(import_key_from_clipboard_act_);
   connect(import_key_from_clipboard_act_, &QAction::triggered, this, [this]() {
-    CommonUtils::GetInstance()->SlotImportKeyFromClipboard(
-        this, key_list_->GetCurrentGpgContextChannel());
+    ImportKeyFromClipboard(this, key_list_->GetCurrentGpgContextChannel());
   });
 
   import_keys_from_key_package_act_ =
@@ -901,8 +900,7 @@ void KeyMgmt::SlotShowKeyDetails() {
   auto keys = key_list_->GetSelectedKeys();
   if (keys.isEmpty()) return;
 
-  CommonUtils::OpenDetailsDialogByKey(
-      this, key_list_->GetCurrentGpgContextChannel(), keys.front());
+  ShowKeyDetails(this, key_list_->GetCurrentGpgContextChannel(), keys.front());
 }
 
 void KeyMgmt::SlotExportKeyToKeyPackage() {
@@ -944,7 +942,7 @@ void KeyMgmt::export_keys_to_clipboard(const GpgAbstractKeyPtrList& keys) {
                   }
 
                   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                    CommonUtils::RaiseMessageBox(this, err);
+                    RaiseMessageBox(this, err);
                     return;
                   }
 
@@ -1004,7 +1002,7 @@ void KeyMgmt::publish_keys_to_key_server(const GpgAbstractKeyPtrList& keys) {
                   op_hd();
 
                   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                    CommonUtils::RaiseMessageBox(this, err);
+                    RaiseMessageBox(this, err);
                     return;
                   }
 
@@ -1243,7 +1241,7 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
                   }
 
                   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                    CommonUtils::RaiseMessageBox(this, err);
+                    RaiseMessageBox(this, err);
                     return;
                   }
 
@@ -1255,7 +1253,7 @@ void KeyMgmt::SlotExportAsOpenSSHFormat() {
 
                   auto gf_buffer = ExtractParams<GFBuffer>(data_obj, 0);
                   if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-                    CommonUtils::RaiseMessageBox(this, err);
+                    RaiseMessageBox(this, err);
                     return;
                   }
 
@@ -1405,15 +1403,14 @@ void KeyMgmt::dropEvent(QDropEvent* event) {
       if (!url.isLocalFile()) continue;
       auto [succ, buffer] = ReadFileGFBuffer(url.toLocalFile());
       if (!succ) continue;
-      CommonUtils::GetInstance()->SlotImportKeys(this, channel, buffer);
+      ImportKeys(this, channel, buffer);
     }
     event->acceptProposedAction();
     return;
   }
 
   if (mime->hasText()) {
-    CommonUtils::GetInstance()->SlotImportKeys(
-        this, channel, GFBuffer(mime->text().toLatin1()));
+    ImportKeys(this, channel, GFBuffer(mime->text().toLatin1()));
     event->acceptProposedAction();
   }
 }
@@ -1616,7 +1613,7 @@ void KeyMgmt::populate_key_category_menu(int channel,
         auto& r = KeyCategoryRepository::GetInstance(channel);
         for (const auto& id : key_ids)
           r.RemoveKeyFromCategory(current_tab_id, id);
-        CommonUtils::GetInstance()->NotifyCategoriesChanged();
+        emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
       });
       add_key_2_category_menu_->addSeparator();
     }
@@ -1642,7 +1639,7 @@ void KeyMgmt::populate_key_category_menu(int channel,
           r.RemoveKeyFromCategory(category_id, id);
         }
       }
-      CommonUtils::GetInstance()->NotifyCategoriesChanged();
+      emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
     });
   }
 
@@ -1659,7 +1656,7 @@ void KeyMgmt::populate_key_category_menu(int channel,
     auto& r = KeyCategoryRepository::GetInstance(channel);
     const auto id = r.AddCategory(name);
     for (const auto& key_id : key_ids) r.AddKey2Category(id, key_id);
-    CommonUtils::GetInstance()->NotifyCategoriesChanged();
+    emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
   });
 }
 

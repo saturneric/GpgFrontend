@@ -28,7 +28,7 @@
 
 #include "ui/widgets/StatusIndicatorBar.h"
 
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/UIStyle.h"
 
 namespace GpgFrontend::UI {
 

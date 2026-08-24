@@ -33,9 +33,11 @@
 #include "core/function/gpg/GpgSmartCardManager.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/MoveKeyToCardPicker.h"
 #include "ui/dialog/key_generate/GenerateCardKeyDialog.h"
+#include "ui/function/GpgErrorMessageBox.h"
+#include "ui/function/MoveKeyToCard.h"
+#include "ui/function/UIStyle.h"
 
 //
 #include "ui_SmartCardControllerDialog.h"
@@ -246,7 +248,7 @@ void SmartCardControllerDialog::select_smart_card_by_serial_number(
   if (err != GPG_ERR_NO_ERROR) {
     LOG_E() << "select card by serial number failed, err:" << CheckGpgError(err)
             << "status:" << status;
-    CommonUtils::RaiseFailureMessageBox(this, err, status);
+    RaiseFailureMessageBox(this, err, status);
     reset_status();
     return;
   }
@@ -535,7 +537,7 @@ void SmartCardControllerDialog::slot_fetch_smart_card_keys() {
     // re-enable before bailing out, otherwise one failed fetch kills the
     // button for the rest of the dialog's life
     ui_->fetchButton->setDisabled(false);
-    CommonUtils::RaiseFailureMessageBox(this, err);
+    RaiseFailureMessageBox(this, err);
     return;
   }
 
@@ -652,7 +654,7 @@ void SmartCardControllerDialog::modify_key_attribute(const QString& attr) {
   if (err != GPG_ERR_NO_ERROR) {
     LOG_D() << "SCD SETATTR command failed for attr:" << attr
             << ", err:" << CheckGpgError(err);
-    CommonUtils::RaiseFailureMessageBox(this, err, status);
+    RaiseFailureMessageBox(this, err, status);
     return;
   }
   QMessageBox::information(this, tr("Success"),
@@ -665,7 +667,7 @@ void SmartCardControllerDialog::modify_key_pin(const QString& pinref) {
       GpgSmartCardManager::GetInstance(channel_).ModifyPin(pinref);
 
   if (err != GPG_ERR_NO_ERROR) {
-    CommonUtils::RaiseFailureMessageBox(this, err, status);
+    RaiseFailureMessageBox(this, err, status);
     return;
   }
 

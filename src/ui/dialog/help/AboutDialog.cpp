@@ -44,9 +44,10 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/RustUtils.h"
 #include "ui/UIModuleManager.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/help/AboutStatusInfo.h"
 #include "ui/function/ProfileController.h"
+#include "ui/function/SecurityDisplayNames.h"
+#include "ui/function/UIStyle.h"
 
 namespace GpgFrontend::UI {
 namespace {

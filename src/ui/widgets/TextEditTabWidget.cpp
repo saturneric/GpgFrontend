@@ -35,10 +35,10 @@
 #include "core/model/GFBuffer.h"
 #include "core/module/ModuleManager.h"
 #include "core/profile/ProfileSession.h"
-#include "ui/UserInterfaceUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
+#include "ui/function/FilePanelPath.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
 

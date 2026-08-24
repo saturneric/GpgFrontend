@@ -32,8 +32,8 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/function/GpgOperaHelper.h"
+#include "ui/function/KeyGenerateHelper.h"
 
 namespace GpgFrontend::UI {
 KeyNewUIDDialog::KeyNewUIDDialog(int channel, GpgKeyPtr key, QWidget* parent)

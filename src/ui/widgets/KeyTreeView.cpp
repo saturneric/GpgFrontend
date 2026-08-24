@@ -30,7 +30,7 @@
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/ShowKeyDetails.h"
 #include "ui/model/GpgKeyTreeProxyModel.h"
 #include "ui/widgets/KeyTableEmptyState.h"
 
@@ -196,8 +196,7 @@ void KeyTreeView::init() {
             auto key = GetKeyByIndex(index);
             if (key == nullptr) return;
 
-            CommonUtils::OpenDetailsDialogByKey(
-                this, model_->GetGpgContextChannel(), key);
+            ShowKeyDetails(this, model_->GetGpgContextChannel(), key);
           });
 
   connect(UISignalStation::GetInstance(),

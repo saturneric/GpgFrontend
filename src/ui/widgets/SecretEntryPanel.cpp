@@ -29,8 +29,8 @@
 #include "ui/widgets/SecretEntryPanel.h"
 
 #include "core/function/PassphraseGenerator.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/PassphraseStrength.h"
+#include "ui/function/UIStyle.h"
 
 namespace GpgFrontend::UI {
 

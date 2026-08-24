@@ -38,7 +38,8 @@
 #include "core/profile/ProfileSession.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/FilePanelPath.h"
+#include "ui/function/LanguageOptions.h"
 #include "ui_GeneralSettings.h"
 
 namespace GpgFrontend::UI {

@@ -35,13 +35,14 @@
 #include "core/profile/ProfileSession.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/UIModuleManager.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/controller/ModuleControllerDialog.h"
 #include "ui/dialog/controller/SmartCardControllerDialog.h"
 #include "ui/dialog/help/AboutDialog.h"
 #include "ui/dialog/key_generate/KeyGenerateDialog.h"
 #include "ui/dialog/profile/ProfileManagerDialog.h"
+#include "ui/function/ImportKey.h"
 #include "ui/function/ProfileController.h"
+#include "ui/function/WindowGeometry.h"
 #include "ui/main_window/ToolBarHelper.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/StatusIndicatorBar.h"
@@ -278,8 +279,7 @@ void MainWindow::create_actions() {
                                             ":/icons/import_key_from_file.png",
                                             tr("Import New Key From File"));
   connect(import_key_from_file_act_, &QAction::triggered, this, [=]() {
-    CommonUtils::GetInstance()->SlotImportKeyFromFile(
-        this, m_key_list_->GetCurrentGpgContextChannel());
+    ImportKeyFromFile(this, m_key_list_->GetCurrentGpgContextChannel());
   });
 
   import_key_from_clipboard_act_ =
@@ -287,8 +287,7 @@ void MainWindow::create_actions() {
                     ":/icons/import_key_from_clipboard.png",
                     tr("Import New Key From Clipboard"));
   connect(import_key_from_clipboard_act_, &QAction::triggered, this, [this]() {
-    CommonUtils::GetInstance()->SlotImportKeyFromClipboard(
-        this, m_key_list_->GetCurrentGpgContextChannel());
+    ImportKeyFromClipboard(this, m_key_list_->GetCurrentGpgContextChannel());
   });
 
   import_key_from_edit_act_ =

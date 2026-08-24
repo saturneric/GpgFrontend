@@ -35,7 +35,6 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/EncryptionKeysPicker.h"
 #include "ui/dialog/SigningKeysPicker.h"
 #include "ui/dialog/settings/SettingsDialog.h"

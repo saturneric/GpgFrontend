@@ -29,7 +29,8 @@
 #include "ui/widgets/KeyTable.h"
 
 #include "core/function/CacheManager.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/UISignalStation.h"
+#include "ui/function/ShowKeyDetails.h"
 #include "ui/widgets/KeyTableEmptyState.h"
 
 namespace GpgFrontend::UI {
@@ -129,8 +130,9 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
             emit SignalColumnWidthChanged();
           });
 
-  connect(CommonUtils::GetInstance(), &CommonUtils::SignalCategoriesChanged,
-          &proxy_model_, &GpgKeyTableProxyModel::SignalCategoriesRefresh);
+  connect(UISignalStation::GetInstance(),
+          &UISignalStation::SignalKeyCategoriesChanged, &proxy_model_,
+          &GpgKeyTableProxyModel::SignalCategoriesRefresh);
 
   connect(this, &KeyTable::SignalColumnTypeChange, this,
           [this](GpgKeyTableColumn global_column_filter) {
@@ -146,8 +148,7 @@ KeyTable::KeyTable(QWidget* parent, QSharedPointer<GpgKeyTableModel> model,
             auto key = GetKeyByIndex(index);
             if (key == nullptr) return;
 
-            CommonUtils::OpenDetailsDialogByKey(
-                this, model_->GetGpgContextChannel(), key);
+            ShowKeyDetails(this, model_->GetGpgContextChannel(), key);
           });
 
   connect(&proxy_model_, &GpgKeyTableProxyModel::dataChanged, this,

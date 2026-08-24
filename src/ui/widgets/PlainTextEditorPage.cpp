@@ -32,7 +32,7 @@
 #include "core/model/SettingsObject.h"
 #include "core/thread/FileReadTask.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/AppearanceFont.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_PlainTextEditor.h"
 

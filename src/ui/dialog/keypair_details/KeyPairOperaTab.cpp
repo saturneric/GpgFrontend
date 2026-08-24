@@ -44,9 +44,10 @@
 #include "core/utils/IOUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/function/ExportKey.h"
 #include "ui/function/GenerateRevocationCert.h"
+#include "ui/function/GpgErrorMessageBox.h"
+#include "ui/function/ImportKey.h"
 #include "ui/function/SetOwnerTrustLevel.h"
 
 namespace GpgFrontend::UI {
@@ -206,7 +207,7 @@ void KeyPairOperaTab::slot_gen_revoke_cert() {
 void KeyPairOperaTab::slot_modify_password() {
   KeyManagementOperation::GetInstance(current_gpg_context_channel_)
       .ModifyPassword(m_key_, [this](GpgError err, const DataObjectPtr&) {
-        CommonUtils::RaiseMessageBox(this, err);
+        RaiseMessageBox(this, err);
       });
 }
 
@@ -266,8 +267,7 @@ void KeyPairOperaTab::slot_import_revoke_cert() {
   emit UISignalStation::GetInstance() -> SignalKeyRevoked(m_key_->ID());
 
   // import revocation certificate
-  CommonUtils::GetInstance()->SlotImportKeys(
-      nullptr, current_gpg_context_channel_, buffer, true);
+  ImportKeys(nullptr, current_gpg_context_channel_, buffer, true);
 }
 
 }  // namespace GpgFrontend::UI

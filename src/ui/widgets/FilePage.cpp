@@ -30,8 +30,8 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/profile/ProfileSession.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/UISignalStation.h"
+#include "ui/function/FileTypeUtils.h"
 #include "ui/main_window/MainWindow.h"
 #include "ui_FilePage.h"
 

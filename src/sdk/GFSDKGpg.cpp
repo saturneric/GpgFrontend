@@ -50,7 +50,7 @@
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UIModuleManager.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/ImportKey.h"
 #include "ui/function/InfoBoardCardConverter.h"
 
 //
@@ -317,8 +317,7 @@ auto GFGpgImportKeys(int channel, void* parent, const char* data, int size)
     p = static_cast<QObject*>(parent);
   }
 
-  GpgFrontend::UI::CommonUtils::GetInstance()->ImportKeys(
-      qobject_cast<QWidget*>(p), channel, in_buffer);
+  GpgFrontend::UI::ImportKeys(qobject_cast<QWidget*>(p), channel, in_buffer);
   return 0;
 }
 

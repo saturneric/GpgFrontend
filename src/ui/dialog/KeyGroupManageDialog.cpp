@@ -31,9 +31,9 @@
 #include "core/function/openpgp/AbstractKeyRepository.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/dialog/KeyGroupEditDialog.h"
 #include "ui/dialog/KeyGroupMetadataRules.h"
+#include "ui/function/ShowKeyDetails.h"
 #include "ui/widgets/KeyList.h"
 #include "ui/widgets/KeyTreeView.h"
 
@@ -378,7 +378,7 @@ void KeyGroupManageDialog::init_panes(QVBoxLayout* layout) {
   connect(available_list_, &KeyList::SignalRequestShowDetails, this, [this]() {
     auto keys = available_list_->GetSelectedKeys();
     if (keys.isEmpty()) return;
-    CommonUtils::OpenDetailsDialogByKey(this, channel_, keys.front());
+    ShowKeyDetails(this, channel_, keys.front());
   });
 
   connect(members_view_, &QWidget::customContextMenuRequested, this,
@@ -622,15 +622,13 @@ void KeyGroupManageDialog::slot_members_context_menu(const QPoint& pos) {
   if (key->KeyType() == GpgAbstractKeyType::kGPG_KEYGROUP) {
     auto* open_action =
         menu.addAction(QIcon(":/icons/key-group.png"), tr("Manage Group…"));
-    connect(open_action, &QAction::triggered, this, [this, key]() {
-      CommonUtils::OpenDetailsDialogByKey(this, channel_, key);
-    });
+    connect(open_action, &QAction::triggered, this,
+            [this, key]() { ShowKeyDetails(this, channel_, key); });
   } else {
     auto* details_action =
         menu.addAction(QIcon(":/icons/detail.png"), tr("Key Details…"));
-    connect(details_action, &QAction::triggered, this, [this, key]() {
-      CommonUtils::OpenDetailsDialogByKey(this, channel_, key);
-    });
+    connect(details_action, &QAction::triggered, this,
+            [this, key]() { ShowKeyDetails(this, channel_, key); });
   }
 
   if (menu.isEmpty()) return;

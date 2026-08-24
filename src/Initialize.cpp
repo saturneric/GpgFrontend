@@ -46,7 +46,7 @@
 #include "core/profile/ProfileSession.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "ui/GpgFrontendUIInit.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/platform/PlatformRelaunch.h"
 
 // main
 #include "Application.h"

@@ -29,7 +29,7 @@
 #include "GeneralDialog.h"
 
 #include "core/model/SettingsObject.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/WindowGeometry.h"
 #include "ui/struct/settings_object/WindowStateSO.h"
 
 namespace GpgFrontend::UI {

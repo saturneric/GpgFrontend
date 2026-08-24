@@ -39,7 +39,6 @@
 #include "ui/GpgFrontendApplication.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
 #include "ui/function/ProfileController.h"
 #include "ui/main_window/GeneralMainWindow.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
@@ -375,7 +374,7 @@ void MainWindow::populate_key_category_menu(int channel,
     connect(remove_act, &QAction::triggered, this, [=]() {
       KeyCategoryRepository::GetInstance(channel).RemoveKeyFromCategory(
           current_tab_id, key_id);
-      CommonUtils::GetInstance()->NotifyCategoriesChanged();
+      emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
       emit SignalUIRefresh();
     });
     add_key_2_category_menu_->addSeparator();
@@ -395,7 +394,7 @@ void MainWindow::populate_key_category_menu(int channel,
       } else {
         r.RemoveKeyFromCategory(category_id, key_id);
       }
-      CommonUtils::GetInstance()->NotifyCategoriesChanged();
+      emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
       emit SignalUIRefresh();
     });
   }
@@ -412,7 +411,7 @@ void MainWindow::populate_key_category_menu(int channel,
     auto& r = KeyCategoryRepository::GetInstance(channel);
     auto id = r.AddCategory(name.trimmed());
     r.AddKey2Category(id, key_id);
-    CommonUtils::GetInstance()->NotifyCategoriesChanged();
+    emit UISignalStation::GetInstance() -> SignalKeyCategoriesChanged();
     emit SignalUIRefresh();
   });
 }

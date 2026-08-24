@@ -28,7 +28,7 @@
 
 #include "AppKeyPinDialog.h"
 
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/UIStyle.h"
 #include "ui/widgets/SecretEntryPanel.h"
 
 namespace GpgFrontend::UI {

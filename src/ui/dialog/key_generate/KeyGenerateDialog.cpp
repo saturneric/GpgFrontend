@@ -36,7 +36,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/KeyGenerateHelper.h"
 
@@ -1530,7 +1530,7 @@ auto KeyGenerateDialog::do_generate() -> bool {
           if (CheckGpgError(err) != GPG_ERR_NO_ERROR) {
             // Report the failure on the still-open dialog so the user can fix
             // the input and retry; success is handled by the caller.
-            CommonUtils::RaiseMessageBox(this, err);
+            RaiseMessageBox(this, err);
             return;
           }
 

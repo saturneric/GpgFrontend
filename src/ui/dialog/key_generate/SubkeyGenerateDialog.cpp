@@ -35,7 +35,7 @@
 #include "core/function/openpgp/support/KeyManagementOpSupport.h"
 #include "core/utils/GpgUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/UserInterfaceUtils.h"
+#include "ui/function/GpgErrorMessageBox.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/function/KeyGenerateHelper.h"
 
@@ -530,7 +530,7 @@ void SubkeyGenerateDialog::slot_key_gen_accept() {
                                 // Report the failure on the still-open dialog
                                 // so the user can adjust and retry; success is
                                 // handled by the caller.
-                                CommonUtils::RaiseMessageBox(this, err);
+                                RaiseMessageBox(this, err);
                                 return;
                               }
 
