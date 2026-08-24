@@ -74,9 +74,14 @@ class GF_CORE_EXPORT Module : public QObject {
    * SDK version, and Qt version strings. Call IsGood() after construction to
    * verify the module loaded successfully.
    *
+   * The checksum is taken by the caller before the library is mapped, see
+   * InspectModuleLibrary(), and handed in here so the module binary is never
+   * read a second time behind the loader's back.
+   *
    * @param module_library loaded QLibrary to extract the module from
+   * @param module_hash checksum of the bytes that were inspected before load
    */
-  explicit Module(QLibrary& module_library);
+  Module(QLibrary& module_library, QString module_hash);
 
   ~Module();
 
@@ -169,7 +174,9 @@ class GF_CORE_EXPORT Module : public QObject {
   /**
    * @brief Return a checksum of the module binary.
    *
-   * Used to detect version changes between runs. Empty for integrated modules.
+   * Taken from the pre-load inspection, so it describes the bytes that were
+   * checked before the image was mapped. Used to detect version changes
+   * between runs. Empty for integrated modules.
    *
    * @return binary checksum string
    */

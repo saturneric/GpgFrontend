@@ -47,10 +47,10 @@ auto SearchModuleFromPath(const QString& mods_path, bool integrated)
   const auto entries = dir.entryInfoList(
       QStringList() << "*.so" << "*.dll" << "*.dylib", QDir::Files);
 
-  const QRegularExpression rx(QStringLiteral("^libgf_mod_.+$"));
-
   for (const auto& info : entries) {
-    if (rx.match(info.fileName()).hasMatch()) {
+    // the same rule the pre-load gate applies, so the scan cannot offer a file
+    // that LoadModule() would then refuse
+    if (GpgFrontend::Module::IsModuleLibraryFileName(info.fileName())) {
       modules.insert(info.absoluteFilePath(), integrated);
     }
   }

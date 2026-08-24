@@ -32,7 +32,6 @@
 
 #include "core/module/GlobalModuleContext.h"
 #include "core/utils/CommonUtils.h"
-#include "core/utils/IOUtils.h"
 #include "sdk/GFSDKModuleModel.h"
 #include "utils/BuildInfoUtils.h"
 
@@ -52,9 +51,9 @@ class Module::Impl {
         meta_data_(std::move(meta_data)),
         good_(true) {}
 
-  Impl(ModuleRawPtr m_ptr, QLibrary& module_library)
+  Impl(ModuleRawPtr m_ptr, QLibrary& module_library, QString module_hash)
       : m_ptr_(m_ptr),
-        module_hash_(CalculateBinaryChacksum(module_library.fileName())),
+        module_hash_(std::move(module_hash)),
         module_library_path_(module_library.fileName()),
         good_(false) {
     for (auto& required_symbol : module_required_symbols_) {
@@ -264,8 +263,9 @@ Module::Module(ModuleIdentifier id, ModuleVersion version,
                const ModuleMetaData& meta_data)
     : p_(SecureCreateUniqueObject<Impl>(this, id, version, meta_data)) {}
 
-Module::Module(QLibrary& module_library)
-    : p_(SecureCreateUniqueObject<Impl>(this, module_library)) {}
+Module::Module(QLibrary& module_library, QString module_hash)
+    : p_(SecureCreateUniqueObject<Impl>(this, module_library,
+                                        std::move(module_hash))) {}
 
 Module::~Module() = default;
 

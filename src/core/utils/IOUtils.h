@@ -105,6 +105,18 @@ auto GF_CORE_EXPORT FormatFileHashInfo(
     const QContainer<QPair<QString, QString>>& fields) -> QString;
 
 /**
+ * @brief Calculate a checksum of the data behind an already open device.
+ *
+ * The device is rewound before hashing, so a caller that has already read a
+ * header from it can reuse the very same handle instead of reopening the path.
+ * This is what lets a module binary be hashed and loaded from one single open.
+ *
+ * @param io an open, readable and seekable device
+ * @return hex-encoded checksum string, empty on error
+ */
+auto GF_CORE_EXPORT CalculateBinaryChacksum(QIODevice& io) -> QString;
+
+/**
  * @brief Calculate a checksum of a binary file and return it as a hex string.
  *
  * @param path path to the binary file

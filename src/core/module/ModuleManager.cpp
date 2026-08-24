@@ -38,6 +38,7 @@
 #include "core/struct/settings_object/ModuleSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/IOUtils.h"
 #include "core/utils/MemoryUtils.h"
 
 #if defined(Q_OS_WINDOWS)
@@ -98,7 +99,72 @@ class ScopedModuleLibrarySearchPath {
   bool applied_ = false;
 };
 
+/**
+ * @brief Whether the given file header looks like a shared library image the
+ * platform loader could actually map.
+ *
+ * Cheap sanity filter only: it keeps text files, scripts and truncated
+ * downloads away from the loader. It says nothing about who produced the file.
+ */
+auto HasNativeImageHeader(const QByteArray& header) -> bool {
+#if defined(Q_OS_WINDOWS)
+  return header.size() >= 2 && header.startsWith("MZ");
+#elif defined(Q_OS_MACOS)
+  if (header.size() < 4) return false;
+
+  const auto magic = static_cast<quint32>(
+      (static_cast<quint8>(header[0]) << 24) |
+      (static_cast<quint8>(header[1]) << 16) |
+      (static_cast<quint8>(header[2]) << 8) | static_cast<quint8>(header[3]));
+
+  // thin mach-o in both endiannesses, plus a fat/universal archive
+  return magic == 0xFEEDFACE || magic == 0xFEEDFACF || magic == 0xCEFAEDFE ||
+         magic == 0xCFFAEDFE || magic == 0xCAFEBABE || magic == 0xBEBAFECA;
+#else
+  return header.size() >= 4 && header[0] == '\x7f' && header[1] == 'E' &&
+         header[2] == 'L' && header[3] == 'F';
+#endif
+}
+
 }  // namespace
+
+auto IsModuleLibraryFileName(const QString& file_name) -> bool {
+  static const QRegularExpression kModuleFileNameRegex(
+      QStringLiteral("^libgf_mod_.+$"));
+  return kModuleFileNameRegex.match(file_name).hasMatch();
+}
+
+auto InspectModuleLibrary(const QString& module_library_path)
+    -> ModuleLibraryInspection {
+  if (module_library_path.isEmpty()) return {false, "empty module path", {}};
+
+  const QFileInfo info(module_library_path);
+  if (!info.exists() || !info.isFile()) {
+    return {false, "not an existing regular file", {}};
+  }
+  if (!info.isReadable()) return {false, "file is not readable", {}};
+  if (info.size() <= 0) return {false, "file is empty", {}};
+
+  if (!IsModuleLibraryFileName(info.fileName())) {
+    return {false, "file name is not a module library name", {}};
+  }
+
+  // one single open: the header check and the hash both come from this handle,
+  // so the hash describes the bytes that were actually inspected
+  QFile file(info.filePath());
+  if (!file.open(QIODevice::ReadOnly)) {
+    return {false, QString("cannot open file: %1").arg(file.errorString()), {}};
+  }
+
+  if (!HasNativeImageHeader(file.read(8))) {
+    return {false, "file is not a native shared library image", {}};
+  }
+
+  auto hash = CalculateBinaryChacksum(file);
+  if (hash.isEmpty()) return {false, "cannot calculate module checksum", {}};
+
+  return {true, {}, hash};
+}
 
 auto ResolveModuleLibrarySearchPath(const QString& module_library_path)
     -> QString {
@@ -121,6 +187,16 @@ class ModuleManager::Impl {
 
   auto LoadAndRegisterModule(const QString& module_library_path,
                              bool integrated_module) -> bool {
+    // everything that can be decided without mapping the image has to be
+    // decided here: QLibrary::load() below runs the module's own initializers
+    const auto inspection = InspectModuleLibrary(module_library_path);
+    if (!inspection.ok) {
+      LOG_W() << "module manager refuses to load module: "
+              << module_library_path << ", reason: " << inspection.reason;
+      need_register_modules_--;
+      return false;
+    }
+
     QLibrary module_library(module_library_path);
 
     ScopedModuleLibrarySearchPath search_path(module_library_path);
@@ -132,11 +208,16 @@ class ModuleManager::Impl {
       return false;
     }
 
-    auto module = SecureCreateSharedObject<Module>(module_library);
+    auto module =
+        SecureCreateSharedObject<Module>(module_library, inspection.hash);
     if (!module->IsGood()) {
       LOG_W() << "module manager failed to load module, "
                  "reason: illegal module: "
               << module_library.fileName();
+      // drop the resolved symbol pointers before the image goes away, then
+      // unload so a rejected module does not stay mapped for the whole run
+      module.reset();
+      module_library.unload();
       need_register_modules_--;
       return false;
     }
@@ -317,7 +398,6 @@ class ModuleManager::Impl {
   static ModuleMangerPtr global_module_manager;
   SecureUniquePtr<GlobalModuleContext> gmc_;
   SecureUniquePtr<GlobalRegisterTable> grt_;
-  QContainer<QLibrary> module_libraries_;
   int need_register_modules_ = -1;
 };
 

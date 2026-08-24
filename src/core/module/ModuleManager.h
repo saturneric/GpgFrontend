@@ -320,6 +320,47 @@ auto GF_CORE_EXPORT
 ResolveModuleLibrarySearchPath(const QString& module_library_path) -> QString;
 
 /**
+ * @brief Return whether a file name is shaped like a module library.
+ *
+ * Shared by the module directory scan and by the pre-load gate, so the set of
+ * files that are looked for and the set of files that may be loaded cannot
+ * drift apart.
+ *
+ * @param file_name the bare file name, without any directory part
+ * @return true if the name may belong to a module library
+ */
+auto GF_CORE_EXPORT IsModuleLibraryFileName(const QString& file_name) -> bool;
+
+/**
+ * @brief Outcome of inspecting a module library before it is loaded.
+ */
+struct GF_CORE_EXPORT ModuleLibraryInspection {
+  bool ok = false;  ///< whether the file may be handed to the loader
+  QString reason;   ///< why it was refused, empty when ok
+  QString hash;     ///< sha-256 of the inspected bytes, empty when refused
+};
+
+/**
+ * @brief Inspect a module library before mapping it into the process.
+ *
+ * QLibrary::load() runs the library's own initializers, so everything that can
+ * be decided by looking at the file has to be decided first. This opens the
+ * file exactly once and, from that one handle, checks that it is a readable
+ * regular file with a module file name and a native executable image header,
+ * then hashes it. The hash therefore describes the bytes that were inspected
+ * rather than whatever the path happens to point at afterwards.
+ *
+ * The image header check is a cheap sanity filter, not a trust decision: it
+ * rejects obvious non-libraries, it does not tell an honest module from a
+ * hostile one.
+ *
+ * @param module_library_path absolute path of the module library
+ * @return the inspection outcome, carrying the hash when it passed
+ */
+auto GF_CORE_EXPORT InspectModuleLibrary(const QString& module_library_path)
+    -> ModuleLibraryInspection;
+
+/**
  * @brief Return whether the module with the given identifier is currently
  * active.
  *
