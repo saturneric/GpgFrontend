@@ -148,8 +148,9 @@ auto ClaimBaseDirectory(const QString &path, QString &reason) -> bool {
 /// created files inherit encryption.
 ///
 /// Verified by reading the attribute back rather than trusting the return
-/// value. A driver that claims an encryption it did not get is worse than one
-/// that admits it has none.
+/// value, and then by creating a file and asking about that. A driver that
+/// claims an encryption it did not get is worse than one that admits it has
+/// none.
 auto EncryptDirectory(const QString &path, QString &reason) -> bool {
   const auto native = QDir::toNativeSeparators(path).toStdWString();
 
@@ -162,6 +163,38 @@ auto EncryptDirectory(const QString &path, QString &reason) -> bool {
   if (attributes == INVALID_FILE_ATTRIBUTES ||
       (attributes & FILE_ATTRIBUTE_ENCRYPTED) == 0) {
     reason = "file encryption was accepted but did not take effect";
+    return false;
+  }
+
+  // The directory's own attribute says only that files created here should
+  // inherit encryption. It is not a statement about any file, and the claim
+  // this makes to the user -- that what lands here is unreadable to anyone
+  // else -- is entirely about the files. So one is created and asked.
+  //
+  // The case this catches is not hypothetical: inheritance is what fails when
+  // the account has no usable EFS certificate, and the directory keeps its
+  // attribute either way. Without this, that machine would be told its keys
+  // were in an encrypted folder while every file in it was plaintext.
+  const auto probe = path + "/.gf-encryption-probe";
+
+  QFile file(probe);
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+    reason = "this folder could not be written to";
+    return false;
+  }
+  file.write("probe");
+  file.close();
+
+  const auto probe_native = QDir::toNativeSeparators(probe).toStdWString();
+  const auto probe_attributes = GetFileAttributesW(probe_native.c_str());
+
+  // Removed whatever the answer: it has served its purpose, and leaving a file
+  // behind in a directory whose emptiness the caller relies on is its own bug.
+  QFile::remove(probe);
+
+  if (probe_attributes == INVALID_FILE_ATTRIBUTES ||
+      (probe_attributes & FILE_ATTRIBUTE_ENCRYPTED) == 0) {
+    reason = "files created in this folder are not encrypted";
     return false;
   }
 
