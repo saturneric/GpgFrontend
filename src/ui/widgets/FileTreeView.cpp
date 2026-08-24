@@ -31,7 +31,8 @@
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/IOUtils.h"
 #include "ui/UISignalStation.h"
-#include "ui/dialog/CreateFileSystemItemDialog.h"
+#include "ui/dialog/FileSystemItemNameDialog.h"
+#include "ui/function/FileSystemItemRules.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/widgets/FileTreeItemDelegate.h"
 
@@ -456,12 +457,11 @@ void FileTreeView::SlotMkdirBelowAtSelectedItem() {
   const auto target_dir = current_target_directory_path();
   if (target_dir.isEmpty()) return;
 
-  CreateFileSystemItemDialog dialog(
-      CreateFileSystemItemDialog::ItemType::kFOLDER, target_dir, this);
+  FileSystemItemNameDialog dialog(FileSystemItemNameDialog::ItemType::kFOLDER,
+                                  target_dir, this);
 
   if (dialog.exec() != QDialog::Accepted) return;
 
-  const auto new_path = dialog.GetPath();
   const auto new_name = dialog.GetName();
 
   const auto parent_index = dir_model_->index(target_dir);
@@ -496,8 +496,8 @@ void FileTreeView::SlotTouchBelowAtSelectedItem() {
   const auto target_dir = current_target_directory_path();
   if (target_dir.isEmpty()) return;
 
-  CreateFileSystemItemDialog dialog(CreateFileSystemItemDialog::ItemType::kFILE,
-                                    target_dir, this);
+  FileSystemItemNameDialog dialog(FileSystemItemNameDialog::ItemType::kFILE,
+                                  target_dir, this);
 
   if (dialog.exec() != QDialog::Accepted) return;
 
@@ -567,30 +567,13 @@ void FileTreeView::SlotRenameSelectedItem() {
   const QFileInfo file_info(selected_path);
   const auto old_name = file_info.fileName();
 
-  bool ok = false;
-  const auto text =
-      QInputDialog::getText(this, tr("Rename"), tr("New name:"),
-                            QLineEdit::Normal, file_info.fileName(), &ok);
+  // the dialog applies the same name rules the create path uses, and will not
+  // hand back a name that cannot be used.
+  FileSystemItemNameDialog dialog(selected_path, this);
+  if (dialog.exec() != QDialog::Accepted) return;
 
-  if (!ok) return;
-
-  const auto new_name = text.trimmed();
-  if (new_name.isEmpty() || new_name == file_info.fileName()) return;
-
-  if (new_name.contains("/") || new_name.contains("\\")) {
-    QMessageBox::warning(this, tr("Invalid Name"),
-                         tr("The name must not contain path separators."));
-    return;
-  }
-
-  const auto new_name_path =
-      QDir(file_info.absolutePath()).absoluteFilePath(new_name);
-
-  if (QFileInfo::exists(new_name_path)) {
-    QMessageBox::warning(this, tr("Name Already Exists"),
-                         tr("A file or folder with this name already exists."));
-    return;
-  }
+  const auto new_name = dialog.GetName();
+  const auto new_name_path = dialog.GetPath();
 
   if (!QDir().rename(file_info.absoluteFilePath(), new_name_path)) {
     QMessageBox::warning(this, tr("Unable to Rename"),
@@ -760,12 +743,16 @@ void FileTreeView::slot_show_custom_context_menu(const QPoint& point) {
 
   const bool single_selection = select_paths.size() <= 1;
 
+  // SlotRenameSelectedItem() needs exactly one selected path, so anything
+  // looser leaves the action enabled but inert.
+  const bool exactly_one_selection = select_paths.size() == 1;
+
   action_copy_path_->setEnabled(!select_paths.isEmpty());
   action_open_file_->setEnabled(file_info.isFile() && file_info.isReadable());
   action_open_with_system_default_application_->setEnabled(file_info.exists() &&
                                                            single_selection);
   action_rename_file_->setEnabled(
-      single_selection && file_info.exists() &&
+      exactly_one_selection && file_info.exists() &&
       QFileInfo(file_info.absolutePath()).isWritable());
   action_delete_file_->setEnabled(
       !select_paths.isEmpty() &&
@@ -997,29 +984,6 @@ auto FileTreeView::get_drop_target_directory(const QPoint& pos) const
   return current_path_;
 }
 
-auto FileTreeView::is_move_into_itself_or_child(const QString& source_path,
-                                                const QString& target_dir) const
-    -> bool {
-  auto source = QDir::cleanPath(QFileInfo(source_path).absoluteFilePath());
-  auto target = QDir::cleanPath(QFileInfo(target_dir).absoluteFilePath());
-
-#ifdef Q_OS_WIN
-  source.replace("\\", "/");
-  target.replace("\\", "/");
-#endif
-
-  if (source == target) {
-    return true;
-  }
-
-  const QFileInfo source_info(source);
-  if (!source_info.isDir()) {
-    return false;
-  }
-
-  return target.startsWith(source + "/");
-}
-
 auto FileTreeView::move_path_to_directory(const QString& source_path,
                                           const QString& target_dir) -> bool {
   const QFileInfo source_info(source_path);
@@ -1033,7 +997,7 @@ auto FileTreeView::move_path_to_directory(const QString& source_path,
     return false;
   }
 
-  if (is_move_into_itself_or_child(source_path, target_dir)) {
+  if (IsMoveIntoItselfOrChild(source_path, target_dir, source_info.isDir())) {
     return false;
   }
 
@@ -1060,32 +1024,6 @@ auto FileTreeView::move_path_to_directory(const QString& source_path,
            "you may not have sufficient permissions.")
             .arg(source_info.fileName()));
     return false;
-  }
-
-  return true;
-}
-
-auto FileTreeView::is_same_directory_operation(const QStringList& source_paths,
-                                               const QString& target_dir) const
-    -> bool {
-  auto clean_target_dir =
-      QDir::cleanPath(QFileInfo(target_dir).absoluteFilePath());
-
-#ifdef Q_OS_WIN
-  clean_target_dir.replace("\\", "/");
-#endif
-
-  for (const auto& source_path : source_paths) {
-    const QFileInfo source_info(source_path);
-    auto source_dir = QDir::cleanPath(source_info.absoluteDir().absolutePath());
-
-#ifdef Q_OS_WIN
-    source_dir.replace("\\", "/");
-#endif
-
-    if (source_dir != clean_target_dir) {
-      return false;
-    }
   }
 
   return true;
@@ -1138,13 +1076,7 @@ void FileTreeView::dropEvent(QDropEvent* event) {
     return;
   }
 
-  if (internal_drag && is_same_directory_operation(source_paths, target_dir)) {
-    NotifyStatus(tr("The source and target folder are the same."), 2000);
-    event->ignore();
-    return;
-  }
-
-  if (!internal_drag && is_same_directory_operation(source_paths, target_dir)) {
+  if (IsSameDirectoryOperation(source_paths, target_dir)) {
     NotifyStatus(tr("The source and target folder are the same."), 2000);
     event->ignore();
     return;
@@ -1157,22 +1089,21 @@ void FileTreeView::dropEvent(QDropEvent* event) {
       continue;
     }
 
-    if (internal_drag &&
-        is_move_into_itself_or_child(source_path, target_dir)) {
-      QMessageBox::warning(
-          this, tr("Move Failed"),
-          tr("Cannot move \"%1\" into itself or one of its subfolders.")
-              .arg(source_info.fileName()));
-      event->ignore();
-      return;
-    }
+    // dropping an item on itself, or into its own subtree, changes nothing on
+    // disk. That is almost always a drag being let go of rather than aimed, so
+    // it gets a status line instead of a dialog to dismiss.
+    if ((internal_drag || source_info.isDir()) &&
+        IsMoveIntoItselfOrChild(source_path, target_dir, source_info.isDir())) {
+      const auto dropped_on_itself =
+          QDir::cleanPath(QFileInfo(target_dir).absoluteFilePath()) ==
+          QDir::cleanPath(source_info.absoluteFilePath());
 
-    if (!internal_drag && source_info.isDir() &&
-        is_move_into_itself_or_child(source_path, target_dir)) {
-      QMessageBox::warning(
-          this, tr("Copy Failed"),
-          tr("Cannot copy \"%1\" into itself or one of its subfolders.")
-              .arg(source_info.fileName()));
+      NotifyStatus(
+          dropped_on_itself
+              ? tr("The source and target folder are the same.")
+              : tr("Cannot put \"%1\" into itself or one of its subfolders.")
+                    .arg(source_info.fileName()),
+          2000);
       event->ignore();
       return;
     }
@@ -1245,12 +1176,6 @@ void FileTreeView::dropEvent(QDropEvent* event) {
     NotifyStatus(internal_drag
                      ? tr("Moved %1 item(s).").arg(result_paths.size())
                      : tr("Copied %1 item(s).").arg(result_paths.size()));
-
-    if (internal_drag &&
-        is_same_directory_operation(source_paths, target_dir)) {
-      event->ignore();
-      return;
-    }
   }
 
   if (!all_ok && !detailed_error_shown) {

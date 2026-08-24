@@ -334,9 +334,10 @@ class FileTreeView : public QTreeView {
   /**
    * @brief Renames the single selected file or folder.
    *
-   * The method asks the user for a new name, rejects empty names, unchanged
-   * names, path separators and existing target names, then refreshes the view
-   * and selects the renamed item.
+   * The name is asked for with FileSystemItemNameDialog, the same dialog the
+   * create actions use, so a name is refused while it is being typed rather
+   * than after the user commits to it. On success the view refreshes and the
+   * renamed item ends up selected.
    */
   void SlotRenameSelectedItem();
 
@@ -498,35 +499,6 @@ class FileTreeView : public QTreeView {
    */
   auto move_path_to_directory(const QString& source_path,
                               const QString& target_dir) -> bool;
-
-  /**
-   * @brief Checks whether a source directory would be moved or copied into
-   * itself.
-   *
-   * For non-directory sources this only returns true when source and target are
-   * the same path. For directory sources it also returns true when the target
-   * is one of the source directory's child paths.
-   *
-   * @param source_path Source path.
-   * @param target_dir Target directory path.
-   * @return true if the operation would target the source itself or its child.
-   */
-  [[nodiscard]] auto is_move_into_itself_or_child(
-      const QString& source_path, const QString& target_dir) const -> bool;
-
-  /**
-   * @brief Checks whether all source paths already belong to the target
-   * directory.
-   *
-   * This is used to ignore no-op drag-and-drop operations within the same
-   * folder.
-   *
-   * @param source_paths Source paths.
-   * @param target_dir Target directory path.
-   * @return true if every source path is already in @p target_dir.
-   */
-  [[nodiscard]] auto is_same_directory_operation(
-      const QStringList& source_paths, const QString& target_dir) const -> bool;
 
   /**
    * @brief Copies a file or folder into a target directory.

@@ -39,7 +39,15 @@
 
 namespace GpgFrontend::UI {
 
-class CreateFileSystemItemDialog : public QDialog {
+/**
+ * @brief Asks for the name of a file or folder, and refuses a bad one early.
+ *
+ * Creating and renaming ask the same question and apply the same rules, so
+ * they ask it with the same dialog. The OK button stays disabled until the
+ * name is usable and the hint label says what is wrong, rather than letting
+ * the user commit and then arguing with them.
+ */
+class FileSystemItemNameDialog : public QDialog {
   Q_OBJECT
 
  public:
@@ -48,18 +56,54 @@ class CreateFileSystemItemDialog : public QDialog {
     kFOLDER,
   };
 
-  explicit CreateFileSystemItemDialog(ItemType item_type,
-                                      const QString& target_dir,
-                                      QWidget* parent = nullptr);
+  enum class Mode : uint8_t {
+    kCREATE,
+    kRENAME,
+  };
+
+  /**
+   * @brief Name a new item in the given directory.
+   *
+   * @param item_type what is being created
+   * @param target_dir where it will be created
+   * @param parent the parent widget
+   */
+  explicit FileSystemItemNameDialog(ItemType item_type,
+                                    const QString& target_dir,
+                                    QWidget* parent = nullptr);
+
+  /**
+   * @brief Rename an existing item.
+   *
+   * The directory, the current name and the item type all come from the path,
+   * so the caller has nothing left to get wrong.
+   *
+   * @param path the item to rename
+   * @param parent the parent widget
+   */
+  explicit FileSystemItemNameDialog(const QString& path,
+                                    QWidget* parent = nullptr);
 
   auto GetName() const -> QString;
   auto GetPath() const -> QString;
 
  private:
+  void init_ui();
   void UpdateState();
 
+  /**
+   * @brief Whether something other than this item already sits at the target.
+   *
+   * On a case-insensitive filesystem an item collides with itself the moment
+   * its name is only re-cased, which is a rename worth allowing.
+   */
+  [[nodiscard]] auto target_is_taken() const -> bool;
+
+  Mode mode_;
   ItemType item_type_;
   QString target_dir_;
+  QString original_name_;
+  QString original_path_;
 
   QLabel* title_label_ = nullptr;
   QLabel* location_label_ = nullptr;
