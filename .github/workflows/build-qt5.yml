@@ -410,7 +410,43 @@ jobs:
           fi
 
           mkdir -p build/artifacts/gnupg
-          unzip -o build/downloads/$FILE -d build/artifacts/gnupg/
+
+          # Extraction has to be byte-exact. A text-mode extractor rewrites every
+          # LF as CRLF, which shifts each PE image away from the offset its
+          # e_lfanew field points at: the staged binaries then carry no readable
+          # Authenticode signature and Windows refuses to load them, while the
+          # archive-level OpenPGP and SHA256 checks above still pass because the
+          # downloaded zip is intact. bsdtar has no text mode at all.
+          if command -v bsdtar >/dev/null 2>&1; then
+            bsdtar -xf build/downloads/$FILE -C build/artifacts/gnupg
+          else
+            unzip -o build/downloads/$FILE -d build/artifacts/gnupg/
+          fi
+
+          # Gate the staged payload rather than trusting the extractor: every
+          # image must still start with MZ and hold the PE signature exactly
+          # where e_lfanew points.
+          BROKEN=0
+          COUNT=0
+          while IFS= read -r pe; do
+            COUNT=$((COUNT + 1))
+            MZ=$(dd if="$pe" bs=1 count=2 2>/dev/null | od -An -tx1 | tr -d ' \n')
+            OFF=$(od -An -tu4 -j 60 -N 4 "$pe" | tr -d ' ')
+            SIG=$(dd if="$pe" bs=1 skip="$OFF" count=4 2>/dev/null | od -An -tx1 | tr -d ' \n')
+            if [ "$MZ" != "4d5a" ] || [ "$SIG" != "50450000" ]; then
+              echo "corrupt PE image: $pe (mz=$MZ e_lfanew=$OFF sig=$SIG)" >&2
+              BROKEN=$((BROKEN + 1))
+            fi
+          done < <(find build/artifacts/gnupg -type f \( -name '*.exe' -o -name '*.dll' \))
+
+          if [ "$BROKEN" -ne 0 ]; then
+            echo "$BROKEN of $COUNT staged GnuPG images are not loadable PE files!" >&2
+            type -a bsdtar unzip >&2 || true
+            env | grep -iE '^(UNZIP|UNZIPOPT|ZIPOPT|MSYS|CYGWIN)=' >&2 || true
+            exit 1
+          fi
+          echo "verified $COUNT staged GnuPG PE images"
+
           ls -l build/artifacts/gnupg/
         if: runner.os == 'Windows'
 
