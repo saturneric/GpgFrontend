@@ -280,7 +280,7 @@ void KeyGroupManageDialog::init_panes(QVBoxLayout* layout) {
   add_button_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
   add_button_->setToolTip(
       tr("Add the keys checked on the right to this group."));
-  add_button_->setShortcut(Qt::ALT | Qt::Key_Left);
+  add_button_->setShortcut(QKeySequence(Qt::ALT | Qt::Key_Left));
 
   remove_button_ = new QToolButton(transfer_column);
   remove_button_->setIcon(QIcon(":/icons/button_next.png"));
@@ -288,7 +288,7 @@ void KeyGroupManageDialog::init_panes(QVBoxLayout* layout) {
   remove_button_->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
   remove_button_->setToolTip(
       tr("Remove the members checked on the left from this group."));
-  remove_button_->setShortcut(Qt::ALT | Qt::Key_Right);
+  remove_button_->setShortcut(QKeySequence(Qt::ALT | Qt::Key_Right));
 
   const auto button_width =
       qMax(add_button_->sizeHint().width(), remove_button_->sizeHint().width());
