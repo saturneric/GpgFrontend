@@ -39,8 +39,8 @@
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/profile/Profile.h"
 #include "core/profile/MemoryAreaProfileAccessor.h"
+#include "core/profile/Profile.h"
 #include "core/profile/ProfileMarker.h"
 #include "core/profile/ProfileMember.h"
 #include "core/profile/ProfileMigration.h"
@@ -2021,8 +2021,7 @@ TEST(ProfileMeasureTest, MeasuresEveryAreaThroughTheStorage) {
 
   // Both database directories, since both travel.
   EXPECT_EQ(areas.value("key_databases"),
-            QByteArray("keyring").size() +
-                QByteArray("second keyring").size());
+            QByteArray("keyring").size() + QByteArray("second keyring").size());
 
   // Areas a package never carries are not measured into any row, or the total
   // would promise a file bigger than the one that gets written.

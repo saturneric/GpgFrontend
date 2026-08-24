@@ -722,10 +722,9 @@ auto MeasureProfileAreas(const ProfileAccessor &storage)
   // working directories, which nothing but a filesystem can host, so the tree
   // is the only place to measure them.
   const auto root = storage.PathOf(ProfileArea::kRoot);
-  areas["key_databases"] =
-      root.isEmpty()
-          ? 0
-          : DirectorySize(root + "/db") + DirectorySize(root + "/dbs");
+  areas["key_databases"] = root.isEmpty() ? 0
+                                          : DirectorySize(root + "/db") +
+                                                DirectorySize(root + "/dbs");
 
   areas["workspace"] = DirectorySize(storage.PathOf(ProfileArea::kWorkspace));
   return areas;
