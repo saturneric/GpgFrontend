@@ -43,16 +43,18 @@ target_link_libraries(${LIBRARY_TARGET} PRIVATE Qt::Core)
 #   resource/qrc/icons.qrc -> /icons           (UI icons + app .ico)
 #   resource/qrc/test.qrc  -> /test/*          (gpg/rpgp test keys and RFC 9580 vectors)
 #   resource/qrc/app.qrc   -> / (TRANSLATORS)  (shipped app metadata)
+#   resource/qrc/fonts.qrc -> /fonts           (bundled JetBrains Mono NL + OFL)
 # CMAKE_AUTORCC is globally ON, so listing each .qrc as a source RCC-compiles it
-# with base name = file stem -> qInitResources_icons / _test / _app, matching
-# the Q_INIT_RESOURCE calls in GpgFrontendResource.cpp. rcc resolves each <file>
-# body relative to the .qrc's own directory (resource/qrc/), so the "../lfs/..."
-# paths (and the "../../" paths to the root-level .ico / TRANSLATORS) stay valid
-# even though the qrc is referenced from src/res.
+# with base name = file stem -> qInitResources_icons / _test / _app / _fonts,
+# matching the Q_INIT_RESOURCE calls in GpgFrontendResource.cpp. rcc resolves
+# each <file> body relative to the .qrc's own directory (resource/qrc/), so the
+# "../lfs/..." paths (and the "../../" paths to the root-level .ico /
+# TRANSLATORS) stay valid even though the qrc is referenced from src/res.
 target_sources(${LIBRARY_TARGET} PRIVATE
   ${CMAKE_SOURCE_DIR}/resource/qrc/icons.qrc
   ${CMAKE_SOURCE_DIR}/resource/qrc/test.qrc
-  ${CMAKE_SOURCE_DIR}/resource/qrc/app.qrc)
+  ${CMAKE_SOURCE_DIR}/resource/qrc/app.qrc
+  ${CMAKE_SOURCE_DIR}/resource/qrc/fonts.qrc)
 
 # --- translations (moved out of the executable) ---
 set(LOCALE_TS_PATH ${CMAKE_SOURCE_DIR}/resource/lfs/locale/ts)

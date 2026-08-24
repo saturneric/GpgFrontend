@@ -36,13 +36,14 @@
 // namespace: calling it inside namespace GpgFrontend would reference a
 // non-existent GpgFrontend::qInitResources_* and fail to link.
 //
-// All three RCC objects are compiled into this same shared library, so their
+// All the RCC objects are compiled into this same shared library, so their
 // qInitResources_* symbols only need internal (hidden) visibility. Referencing
 // them here also keeps the linker from garbage-collecting the resource data.
 static void GfInitEmbeddedResources() {
   Q_INIT_RESOURCE(icons);           // /icons (icons.qrc)
   Q_INIT_RESOURCE(test);            // /test/* (test.qrc)
   Q_INIT_RESOURCE(app);             // / -> TRANSLATORS (app.qrc)
+  Q_INIT_RESOURCE(fonts);           // /fonts (fonts.qrc)
   Q_INIT_RESOURCE(gftranslations);  // /i18n
   Q_INIT_RESOURCE(qttranslations);  // /i18n_qt
 }

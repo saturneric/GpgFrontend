@@ -1,0 +1,8 @@
+<!DOCTYPE RCC>
+<RCC>
+    <qresource prefix="/fonts">
+        <file alias="JetBrainsMonoNL-Regular.ttf">../lfs/fonts/JetBrainsMonoNL-Regular.ttf</file>
+        <file alias="JetBrainsMonoNL-Bold.ttf">../lfs/fonts/JetBrainsMonoNL-Bold.ttf</file>
+        <file alias="OFL.txt">../lfs/fonts/OFL.txt</file>
+    </qresource>
+</RCC>
