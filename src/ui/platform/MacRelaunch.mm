@@ -40,6 +40,7 @@
 // the target's hidden default visibility, leaving the application unable to
 // link against it.
 #include "GFUiExport.h"
+#include "ui/platform/PlatformRelaunch.h"
 
 #import <AppKit/AppKit.h>
 
