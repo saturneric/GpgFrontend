@@ -178,6 +178,20 @@ void InfoBoardWidget::setup_status_page_layout(QVBoxLayout* page_layout) {
 
   doc_frame_ = new DocFrame(ui_->page_1);
   doc_frame_->setObjectName(QStringLiteral("DocFrame"));
+
+  // The whole report is monospaced, not just its hash rows. It is rendered
+  // straight to a PNG that people file and share (see render_doc_pixmap), so
+  // its columns have to line up and it has to look the same on a machine that
+  // has none of the reader's UI fonts installed -- which is what the bundled
+  // family guarantees.
+  //
+  // Family only, deliberately: the point size stays whatever the panel
+  // inherits, and every label below derives its own size from this one by
+  // relative steps, so changing the size here would rescale the entire
+  // document.
+  QFont doc_font = doc_frame_->font();
+  ApplyMonospaceFamily(doc_font);
+  doc_frame_->setFont(doc_font);
 }
 
 void InfoBoardWidget::create_field_rows(QWidget* parent,
@@ -474,21 +488,9 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
       auto* vl = new QLabel(field.second, card);
       vl->setWordWrap(true);
       vl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+      // No hash-column special case: doc_frame_ is monospaced, so every value
+      // in the document already is.
       QFont vf = vl->font();
-      const bool is_hash_col =
-          field.first.compare(QStringLiteral("MD5"), Qt::CaseInsensitive) ==
-              0 ||
-          field.first.compare(QStringLiteral("SHA1"), Qt::CaseInsensitive) ==
-              0 ||
-          field.first.compare(QStringLiteral("SHA256"), Qt::CaseInsensitive) ==
-              0 ||
-          field.first.compare(QStringLiteral("SHA-256"), Qt::CaseInsensitive) ==
-              0;
-      if (is_hash_col) {
-        // A hash is only readable as an aligned column of fixed-width digits,
-        // so this must be a family that exists on every platform.
-        ApplyMonospaceFamily(vf);
-      }
       vf.setPointSize(std::max(7, vf.pointSize() - 1));
       vl->setFont(vf);
       vl->setStyleSheet(QStringLiteral("color: palette(text);"));
