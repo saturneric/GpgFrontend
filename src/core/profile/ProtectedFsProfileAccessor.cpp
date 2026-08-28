@@ -36,6 +36,7 @@
 #include <array>
 
 #include "core/GFCoreLog.h"
+#include "core/profile/FscryptStorage.h"
 #include "core/profile/MemoryAreaProfileAccessor.h"
 #include "core/profile/ProfileAreaTraits.h"
 
@@ -60,9 +61,17 @@ namespace {
 /// Driver tokens. Stable, because they end up in logs, in the anchor pointer a
 /// later process reads back, and in the status strip.
 constexpr auto kDriverTmpfs = "fs-tmpfs";
+constexpr auto kDriverFscrypt = "fs-fscrypt";
 constexpr auto kDriverEfs = "fs-efs";
 constexpr auto kDriverTemp = "fs-temp";
 constexpr auto kDriverDisk = "fs";
+
+/// Keys in the anchor pointer. Read by a later process out of a file this one
+/// wrote, so they are spelled once here rather than at each end.
+constexpr auto kPointerDriver = "driver";
+constexpr auto kPointerRoot = "root";
+constexpr auto kPointerBase = "base";
+constexpr auto kPointerFscryptKey = "fscrypt_key";
 
 /// The standard cache-directory tag, honoured by tar --exclude-caches, borg,
 /// restic and rsnapshot. One line, and it keeps a session tree out of a whole
@@ -135,6 +144,54 @@ auto ClaimBaseDirectory(const QString &path, QString &reason) -> bool {
   }
 
   return S_ISDIR(info.st_mode) != 0;
+}
+
+#endif
+
+#ifdef Q_OS_LINUX
+
+/// The nearest ancestor of a path that exists. The interesting candidates have
+/// not been created yet, and the question being asked -- what filesystem is
+/// this -- is answerable about the place they would land.
+auto NearestExistingAncestor(const QString &path) -> QString {
+  auto current = QDir::cleanPath(path);
+
+  while (!current.isEmpty()) {
+    if (QFileInfo::exists(current)) return current;
+
+    const auto cut = current.lastIndexOf('/');
+    if (cut <= 0) return QStringLiteral("/");
+    current.truncate(cut);
+  }
+
+  return {};
+}
+
+/// Whether the filesystem a path would land on is one that implements fscrypt.
+///
+/// A pre-filter and not the answer: the feature is per-superblock, so an ext4
+/// here still has to be asked properly. What it settles cheaply is the common
+/// case -- a temporary directory on a tmpfs, which cannot carry a policy at all
+/// -- without opening or creating anything.
+auto IsFscryptCapableOrigin(const QString &path, QString &reason) -> bool {
+  const auto origin = NearestExistingAncestor(path);
+  if (origin.isEmpty()) {
+    reason = "this folder could not be examined";
+    return false;
+  }
+
+  struct statfs info{};
+  if (statfs(origin.toLocal8Bit().constData(), &info) != 0) {
+    reason = "this folder could not be examined";
+    return false;
+  }
+
+  if (!IsFscryptCapableMagic(static_cast<quint64>(info.f_type))) {
+    reason = "this filesystem cannot encrypt folders";
+    return false;
+  }
+
+  return true;
 }
 
 #endif
@@ -305,10 +362,55 @@ auto ProtectedFsProfileAccessor::Provision(const QString &digest,
   }
 #endif
 
+  QByteArray fscrypt_key_id;
+
+#ifdef Q_OS_LINUX
+  if (plan.driver == QLatin1String(kDriverFscrypt)) {
+    // A policy can only be set on an empty directory, and mkpath() above
+    // succeeds on one that was already there. A tree the sweep did not reach --
+    // same package, same digest, a process killed outright -- would otherwise
+    // make this fail for as long as it sits there, and fail as an ordinary
+    // downgrade that says nothing about why.
+    //
+    // Emptied rather than emptied unconditionally: the usual case is a
+    // directory this call just created, and destroying and recreating that
+    // would be one more way for the whole provision to fail for nothing.
+    QDir root_dir(root);
+    if (!root_dir.isEmpty(QDir::AllEntries | QDir::NoDotAndDotDot |
+                          QDir::Hidden | QDir::System)) {
+      root_dir.removeRecursively();
+
+      // Refused rather than carried on with: every later step, including the
+      // fallback to a plain folder, needs this directory to be there.
+      if (!QDir().mkpath(root)) {
+        LOG_E() << "cannot reclaim session storage:" << root;
+        return {};
+      }
+    }
+
+    QString reason;
+    if (!FscryptProvisionDirectory(root, fscrypt_key_id, reason)) {
+      // Reported as an ordinary temporary folder rather than refused: it is
+      // still better than the profiles folder, and saying so honestly is the
+      // whole contract. The same answer the EFS branch gives, for the same
+      // reason.
+      LOG_W() << "filesystem encryption unavailable for the session folder:"
+              << reason;
+      settled.driver = kDriverTemp;
+      settled.is_encrypted_at_rest = false;
+    }
+  }
+#endif
+
   HardenStorageDirectory(root);
 
   auto accessor = QSharedPointer<ProtectedFsProfileAccessor>::create(
       root, root + "/config/config.ini", settled);
+
+  // Set here rather than passed through the plan: the plan is what a pure
+  // function decided, and this is what actually happened.
+  accessor->fscrypt_key_id_ = fscrypt_key_id;
+  accessor->fscrypt_base_ = plan.path;
 
   return accessor;
 }
@@ -347,14 +449,46 @@ auto ProtectedFsProfileAccessor::IsEncryptedAtRest() const -> bool {
 
 auto ProtectedFsProfileAccessor::AnchorState() const -> QJsonObject {
   QJsonObject state;
-  state["driver"] = plan_.driver;
-  state["root"] = PathOf(ProfileArea::kRoot);
+  state[QLatin1String(kPointerDriver)] = plan_.driver;
+  state[QLatin1String(kPointerRoot)] = PathOf(ProfileArea::kRoot);
+
+  if (!fscrypt_key_id_.isEmpty()) {
+    // The base rather than the root, because a sweep needs an open directory on
+    // the filesystem holding the key and the root is the thing it just deleted.
+    state[QLatin1String(kPointerBase)] = fscrypt_base_;
+    state[QLatin1String(kPointerFscryptKey)] =
+        FscryptIdentifierToHex(fscrypt_key_id_);
+  }
+
   return state;
 }
 
 void ProtectedFsProfileAccessor::Release(ProfileStorageRelease mode) {
   if (released_ || mode == ProfileStorageRelease::kKEEP) return;
 
+  RemoveTree(mode);
+
+  if (fscrypt_key_id_.isEmpty()) return;
+
+  // After the tree, never before. With the key gone a file cannot be opened,
+  // so evicting first would leave a tree that could no longer be scrubbed or,
+  // on the failure path above, retried. Unlink and rmdir keep working without
+  // it, which is what makes this order safe.
+  QString reason;
+  if (FscryptRemoveKey(fscrypt_base_, fscrypt_key_id_, reason)) {
+    fscrypt_key_id_.clear();
+    return;
+  }
+
+  // The one outcome where the tree is not yet unreadable: the master secret is
+  // wiped but files somebody still holds open keep their derived keys. Worth
+  // saying, and not worth waiting on -- kFAST runs against the shutdown
+  // watchdog's deadline, and the key is recorded next to the anchor precisely
+  // so a later sweep can finish this.
+  LOG_W() << "session key not fully evicted:" << reason;
+}
+
+void ProtectedFsProfileAccessor::RemoveTree(ProfileStorageRelease mode) {
   const auto root = PathOf(ProfileArea::kRoot);
   if (root.isEmpty()) {
     released_ = true;
@@ -497,6 +631,56 @@ void ScrubDirectory(const QString &path) {
   QDir(path).removeRecursively();
 }
 
+auto ReleaseStrandedSessionStorage(const QJsonObject &pointer,
+                                   const QString &anchor) -> bool {
+  if (pointer.isEmpty()) return true;
+
+  auto done = true;
+
+  const auto root = pointer.value(QLatin1String(kPointerRoot)).toString();
+
+  // Absolute or nothing. This deletes what the pointer names, and the pointer
+  // is a file on disk that some other process wrote.
+  if (!root.isEmpty() && QDir::isAbsolutePath(root) && root != anchor &&
+      QFileInfo::exists(root)) {
+    if (QDir(root).removeRecursively()) {
+      LOG_I() << "removed session storage left behind by a process that is"
+              << "gone:" << root;
+    } else {
+      LOG_W() << "could not remove stranded session storage:" << root;
+      done = false;
+    }
+  }
+
+  const auto key = FscryptIdentifierFromHex(
+      pointer.value(QLatin1String(kPointerFscryptKey)).toString());
+  if (key.isEmpty()) return done;
+
+  // Outside the tree's guard on purpose. A key lives in the kernel, not in the
+  // directory, so it can perfectly well still be there when the tree is
+  // already gone — and that is precisely the case worth cleaning, because
+  // nothing else will ever come back for it.
+  auto base = pointer.value(QLatin1String(kPointerBase)).toString();
+  if (base.isEmpty() && !root.isEmpty()) {
+    base = QFileInfo(root).absolutePath();
+  }
+
+  if (base.isEmpty() || !QDir::isAbsolutePath(base) ||
+      !QFileInfo::exists(base)) {
+    LOG_W() << "cannot reach the filesystem holding a stranded session key";
+    return false;
+  }
+
+  QString reason;
+  if (!FscryptRemoveKey(base, key, reason)) {
+    LOG_W() << "could not remove a stranded session key:" << reason;
+    return false;
+  }
+
+  LOG_I() << "removed a session key left behind by a process that is gone";
+  return done;
+}
+
 // ------------------------------------------------------------------- the probe
 
 auto ProbeStorageCandidates(qint64 budget_bytes, const QString &anchor)
@@ -534,6 +718,65 @@ auto ProbeStorageCandidates(qint64 budget_bytes, const QString &anchor)
     }
 
     candidate.usable = true;
+    candidates << candidate;
+  }
+
+  // The encrypted rung, between memory and a plain temporary folder. Not
+  // another place to put a session: it is the temporary folder with a policy
+  // on it, so the rung below is the same folder without one.
+  //
+  // At most one candidate, because all of these answer the same question and
+  // three lines of "not this one either" in a refusal dialog is noise rather
+  // than something to act on.
+  if (FscryptAvailable()) {
+    StorageCandidate candidate;
+    candidate.driver = kDriverFscrypt;
+    candidate.is_encrypted_at_rest = true;
+
+    const auto bases =
+        EncryptableStoreSearchPaths(qEnvironmentVariable(kProfileStorageDirEnv),
+                                    QDir::tempPath(), geteuid());
+
+    for (const auto &base : bases) {
+      candidate.path = base;
+      candidate.free_bytes = 0;
+
+      // The cheap answer first, on whatever part of the path already exists:
+      // a temporary folder on a tmpfs is the common case and is settled here
+      // without creating anything.
+      if (!IsFscryptCapableOrigin(base, candidate.reason)) continue;
+
+      if (!ClaimBaseDirectory(base, candidate.reason)) continue;
+
+      // Asked again on the directory that was created, because the first
+      // answer was about an ancestor and the two can be different mounts.
+      if (!FscryptDirectoryIsUsable(base, candidate.reason)) {
+        // Left behind it would be an empty directory this build will never use
+        // again, in the user's temporary folder, once per launch.
+        QDir().rmdir(base);
+        continue;
+      }
+
+      candidate.free_bytes = ProbeFreeBytes(base);
+      if (candidate.free_bytes >= 0 && candidate.free_bytes < budget_bytes) {
+        candidate.reason =
+            DescribeShortfall(candidate.free_bytes, budget_bytes);
+        continue;
+      }
+
+      // Whether a policy actually applies is only knowable by setting one, and
+      // that mints a key -- so it is settled at provisioning time against the
+      // real session directory rather than guessed at here. The same division
+      // the EFS candidate makes.
+      candidate.usable = true;
+      break;
+    }
+
+    if (candidate.path.isEmpty()) {
+      candidate.path = bases.isEmpty() ? QDir::tempPath() : bases.constLast();
+      candidate.reason = "there is nowhere on this machine that can encrypt it";
+    }
+
     candidates << candidate;
   }
 #endif

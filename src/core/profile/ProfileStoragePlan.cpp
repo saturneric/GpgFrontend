@@ -44,6 +44,13 @@ constexpr auto kTokenDisk = "disk";
 constexpr quint64 kTmpfsMagic = 0x01021994;
 constexpr quint64 kRamfsMagic = 0x858458f6;
 
+/// ext4 and f2fs, likewise from linux/magic.h and likewise spelled out. These
+/// are the two filesystems a desktop is likely to have that can carry an
+/// fscrypt policy; UBIFS and CephFS can too, and neither is where a temporary
+/// directory lives.
+constexpr quint64 kExt4Magic = 0xEF53;
+constexpr quint64 kF2fsMagic = 0xF2F52010;
+
 /// Below this a session is not worth opening. A small package needs room for
 /// the tree, for the second copy the write-back stages beside it, and for what
 /// GnuPG adds once an agent starts — a keybox, private-keys-v1.d, a trustdb —
@@ -180,8 +187,42 @@ auto VolatileStoreSearchPaths(const QString &xdg_runtime_dir,
   return candidates;
 }
 
+auto EncryptableStoreSearchPaths(const QString &override_path,
+                                 const QString &temp_path, uint uid)
+    -> QStringList {
+  QStringList candidates;
+  const auto add = [&candidates](const QString &path) {
+    if (path.isEmpty() || candidates.contains(path)) return;
+    if (!QDir::isAbsolutePath(path)) return;
+    candidates << QDir::cleanPath(path);
+  };
+
+  add(override_path.trimmed());
+
+  // The same temporary directory the unprotected fallback would use. That is
+  // the point of this rung: it is not another place to put a session, it is
+  // that place with a policy on it, so the rung below is the same directory
+  // without one.
+  if (!temp_path.trimmed().isEmpty()) {
+    add(QString("%1/gpgfrontend-%2").arg(temp_path.trimmed()).arg(uid));
+  }
+
+  // Because /tmp is a tmpfs on most systemd distributions, and a tmpfs cannot
+  // carry an fscrypt policy at all -- so on exactly the machines where the
+  // memory-backed rung is unavailable for want of room, the entry above would
+  // be unusable too. /var/tmp is required to survive a reboot, so it is on a
+  // real filesystem, which is what this needs.
+  add(QString("/var/tmp/gpgfrontend-%1").arg(uid));
+
+  return candidates;
+}
+
 auto IsRamBackedMagic(quint64 f_type) -> bool {
   return f_type == kTmpfsMagic || f_type == kRamfsMagic;
+}
+
+auto IsFscryptCapableMagic(quint64 f_type) -> bool {
+  return f_type == kExt4Magic || f_type == kF2fsMagic;
 }
 
 auto IsAcceptableOwnership(uint owner_uid, uint mode, bool is_symlink,

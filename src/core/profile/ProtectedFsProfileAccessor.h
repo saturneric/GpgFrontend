@@ -41,11 +41,12 @@ namespace GpgFrontend {
  * differs is only *which* root, and what happens on the way out.
  *
  * The root is somewhere the platform does not leave the tree readable, where it
- * has such a place: memory on Linux and FreeBSD, an NTFS-encrypted directory on
- * Windows, and an ordinary hardened temporary directory where there is neither
- * — which today includes macOS. Which of those happened is reported honestly
- * through IsVolatile() and IsEncryptedAtRest() rather than assumed from the
- * platform.
+ * has such a place: memory on Linux and FreeBSD, a directory under an fscrypt
+ * policy on a Linux whose filesystem can carry one, an NTFS-encrypted directory
+ * on Windows, and an ordinary hardened temporary directory where there is none
+ * of those — which today includes macOS. Which of them happened is reported
+ * honestly through IsVolatile() and IsEncryptedAtRest() rather than assumed
+ * from the platform.
  */
 class GF_CORE_EXPORT ProtectedFsProfileAccessor final
     : public FsProfileAccessor {
@@ -96,12 +97,32 @@ class GF_CORE_EXPORT ProtectedFsProfileAccessor final
    * leaves a pointer here and nothing else. Without it a crash would strand the
    * tree somewhere nothing thinks to look.
    *
+   * For an encrypted driver it also carries the key: the tree is one thing a
+   * dead process leaves behind, and the key in the kernel is another. The value
+   * recorded is the kernel's identifier, which is a hash of the key rather than
+   * the key, and the only thing it can be used for is eviction.
+   *
    * @return the driver token and the root, as JSON
    */
   [[nodiscard]] auto AnchorState() const -> QJsonObject;
 
  private:
+  /// Destroy the tree, without touching the key. Split out because Release()
+  /// returns early in more than one place and the key must be evicted on every
+  /// one of them.
+  void RemoveTree(ProfileStorageRelease mode);
+
   ProfileStoragePlan plan_;
+
+  /// The fscrypt key this session minted, empty for every other driver. Held
+  /// here rather than on the plan: the plan is the output of a pure function
+  /// with a pure test suite, and this is a runtime handle.
+  QByteArray fscrypt_key_id_;
+
+  /// The filesystem the key lives on, named by a directory that outlives the
+  /// session root. Release() removes the root before evicting the key, so the
+  /// root itself is gone by the time the eviction needs somewhere to point.
+  QString fscrypt_base_;
 
   bool released_ = false;
 };
@@ -204,5 +225,28 @@ void GF_CORE_EXPORT HardenStorageDirectory(const QString &path);
  * @param path the tree to destroy
  */
 void GF_CORE_EXPORT ScrubDirectory(const QString &path);
+
+/**
+ * @brief Give back storage a process that is gone left behind.
+ *
+ * The sweep's half of Release(). A session that died leaves an anchor pointer
+ * and two things to clean up, and they are not the same thing: the tree on some
+ * filesystem, and — for an encrypted driver — the key in the kernel, which
+ * outlives every process that used it. Either can be present without the other,
+ * so each is handled on its own rather than the second being reached only
+ * through the first.
+ *
+ * Refuses to act on anything the pointer does not describe properly, because a
+ * pointer is a file on disk and this deletes what it names.
+ *
+ * @param pointer what AnchorState() recorded, read back by ReadSessionPointer()
+ * @param anchor the anchor the pointer was read from, which the caller removes
+ * itself — the plain-folder driver's root *is* the anchor, and removing it here
+ * would leave the caller reporting a failure for work that was already done
+ * @return true when nothing the pointer named is left
+ */
+auto GF_CORE_EXPORT ReleaseStrandedSessionStorage(const QJsonObject &pointer,
+                                                  const QString &anchor)
+    -> bool;
 
 }  // namespace GpgFrontend

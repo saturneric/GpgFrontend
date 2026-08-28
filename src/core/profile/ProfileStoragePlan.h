@@ -115,6 +115,29 @@ auto GF_CORE_EXPORT VolatileStoreSearchPaths(const QString &xdg_runtime_dir,
                                              uint uid) -> QStringList;
 
 /**
+ * @brief Directories to try, in order, when looking for storage that can be
+ * encrypted.
+ *
+ * The same shape as VolatileStoreSearchPaths() and for the same reason: the
+ * order is the whole point, so every input is a parameter rather than an
+ * environment read.
+ *
+ * Deliberately temporary directories and nothing else. The user's home is where
+ * fscrypt is most often already in use -- systemd-homed encrypts it -- and a
+ * policy cannot be set inside one, so pointing at it would fail on exactly the
+ * machines best equipped to succeed.
+ *
+ * @param override_path $GF_PROFILE_PACKAGE_STORAGE_DIR, empty when unset
+ * @param temp_path this platform's temporary directory, empty when there is
+ * none
+ * @param uid the effective user id, for the paths that embed one
+ * @return candidates, most specific first; free of duplicates
+ */
+auto GF_CORE_EXPORT EncryptableStoreSearchPaths(const QString &override_path,
+                                                const QString &temp_path,
+                                                uint uid) -> QStringList;
+
+/**
  * @brief Whether a statfs(2) f_type names a filesystem that lives in memory.
  *
  * The check that the whole Linux side rests on. $XDG_RUNTIME_DIR is a tmpfs on
@@ -127,6 +150,20 @@ auto GF_CORE_EXPORT VolatileStoreSearchPaths(const QString &xdg_runtime_dir,
  * @return true only for tmpfs and ramfs
  */
 auto GF_CORE_EXPORT IsRamBackedMagic(quint64 f_type) -> bool;
+
+/**
+ * @brief Whether a statfs(2) f_type names a filesystem that can encrypt.
+ *
+ * A pre-filter, not the answer: the feature is per-superblock rather than per
+ * filesystem type, and mkfs leaves it off by default nearly everywhere, so a
+ * true here still has to be confirmed by asking the kernel. What it buys is
+ * that the common case -- a temporary directory on a tmpfs -- is settled
+ * without opening anything.
+ *
+ * @param f_type the f_type field of a statfs result
+ * @return true for the filesystem types that implement fscrypt
+ */
+auto GF_CORE_EXPORT IsFscryptCapableMagic(quint64 f_type) -> bool;
 
 /**
  * @brief Whether an existing directory is safe to put a session tree in.

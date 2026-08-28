@@ -48,6 +48,7 @@
 #include "core/profile/ProfileMarker.h"
 #include "core/profile/ProfileMember.h"
 #include "core/profile/ProfilePackageStream.h"
+#include "core/profile/ProtectedFsProfileAccessor.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/GpgUtils.h"
 
@@ -1542,19 +1543,10 @@ auto SweepTransientProfileRoots(const QString &profiles_root,
 
     // The storage first, because the anchor is the only thing that knows where
     // it went. Losing the pointer before following it would strand a tree full
-    // of somebody else's key material somewhere nothing thinks to look.
-    if (is_anchor) {
-      const auto stranded = pointer.value("root").toString();
-      if (!stranded.isEmpty() && QDir::isAbsolutePath(stranded) &&
-          stranded != path && QFileInfo::exists(stranded)) {
-        if (QDir(stranded).removeRecursively()) {
-          LOG_I() << "removed session storage left behind by a process that is"
-                  << "gone:" << stranded;
-        } else {
-          LOG_W() << "could not remove stranded session storage:" << stranded;
-        }
-      }
-    }
+    // of somebody else's key material somewhere nothing thinks to look -- and,
+    // for an encrypted driver, a key in the kernel that would stay readable to
+    // this user until the machine is rebooted.
+    if (is_anchor) ReleaseStrandedSessionStorage(pointer, path);
 
     if (QDir(path).removeRecursively()) {
       LOG_I() << "removed a session left behind by a process that is gone:"
