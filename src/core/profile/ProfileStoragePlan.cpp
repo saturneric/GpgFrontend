@@ -287,6 +287,16 @@ auto PlanProfileStorage(ProfileStoragePolicy policy,
   return plan;
 }
 
+auto ProvisionedStorageSatisfies(ProfileStoragePolicy policy, bool is_volatile,
+                                 bool is_encrypted_at_rest) -> bool {
+  // Only kPROTECTED_ONLY makes a promise about the outcome. kAUTO asked for the
+  // best available and a downgrade is the best available; kDISK asked for the
+  // plain folder and cannot be disappointed by getting one.
+  if (policy != ProfileStoragePolicy::kPROTECTED_ONLY) return true;
+
+  return is_volatile || is_encrypted_at_rest;
+}
+
 auto ProfileStorageBudget(qint64 package_bytes, qint64 declared_uncompressed)
     -> qint64 {
   const auto wanted =

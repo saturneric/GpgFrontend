@@ -102,12 +102,20 @@ auto SupportsFscrypt(int fd, QString &reason) -> bool {
 
   if (ioctl(fd, FS_IOC_GET_ENCRYPTION_KEY_STATUS, &arg) == 0) return true;
 
+  // Neither errno names a single cause, so neither message claims one. ENOTTY
+  // is what a filesystem that does not implement the ioctls at all returns --
+  // tmpfs and overlayfs do, on a kernel that encrypts perfectly well
+  // elsewhere. EOPNOTSUPP is returned both by an ext4 whose superblock lacks
+  // the encrypt feature and by any ext4 on a kernel built without
+  // CONFIG_FS_ENCRYPTION: an image created with `mkfs.ext4 -O encrypt` answers
+  // EOPNOTSUPP there, so blaming the filesystem would send the user to run
+  // exactly the command that cannot help them.
   switch (errno) {
     case ENOTTY:
-      reason = "this kernel has no filesystem encryption";
+      reason = "this kind of folder cannot be encrypted";
       break;
     case EOPNOTSUPP:
-      reason = "this filesystem was created without encryption support";
+      reason = "this filesystem or this kernel was built without encryption";
       break;
     default:
       reason = QString("this filesystem refused an encryption query (%1)")
@@ -441,6 +449,14 @@ auto FscryptRemoveKey(const QString &any_path_on_fs,
     // shutdown got there first.
     if (errno == ENOKEY) return true;
 
+    // And so is a filesystem or kernel that cannot hold such a key at all: a
+    // key exists only in a running kernel's keyring for one superblock, so
+    // where the ioctls do not exist, neither does the key. Answering "gone"
+    // rather than "failed" is what tells a sweep there is nothing here left to
+    // come back for -- otherwise a pointer written under one kernel would be
+    // retried forever under another that cannot act on it.
+    if (errno == ENOTTY || errno == EOPNOTSUPP) return true;
+
     reason = QString("this session's key could not be removed (%1)")
                  .arg(QLatin1String(strerror(errno)));
     return false;
@@ -459,8 +475,13 @@ auto FscryptRemoveKey(const QString &any_path_on_fs,
 #else
   Q_UNUSED(any_path_on_fs)
   Q_UNUSED(identifier)
-  reason = "this build has no filesystem encryption support";
-  return false;
+
+  // Nothing to remove rather than a failure to remove it, for the same reason
+  // as the two errnos above: a build without the entry points never minted a
+  // key and can never evict one, so a caller asking whether anything is left
+  // to clean up is owed "no".
+  reason.clear();
+  return true;
 #endif
 }
 

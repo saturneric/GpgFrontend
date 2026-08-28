@@ -249,6 +249,28 @@ auto GF_CORE_EXPORT PlanProfileStorage(
     -> ProfileStoragePlan;
 
 /**
+ * @brief Whether storage that was actually provisioned still satisfies the
+ * policy.
+ *
+ * PlanProfileStorage() judges a prediction; this judges the outcome, and they
+ * are not the same question. Whether a candidate protects anything is only
+ * knowable by asking for the protection -- an fscrypt policy is proved by
+ * setting one, EFS by requesting it -- so a candidate can be usable when probed
+ * and unprotected when provisioned. Under kPROTECTED_ONLY that downgrade is
+ * precisely the silent fallback the policy exists to refuse, so it has to be
+ * caught after the fact as well as before.
+ *
+ * @param policy what the user asked for
+ * @param is_volatile whether the storage that was provisioned dies with power
+ * @param is_encrypted_at_rest whether what reaches the medium is ciphertext
+ * @return true when this outcome may be handed to the caller
+ */
+auto GF_CORE_EXPORT ProvisionedStorageSatisfies(ProfileStoragePolicy policy,
+                                                bool is_volatile,
+                                                bool is_encrypted_at_rest)
+    -> bool;
+
+/**
  * @brief How much room a package's session will need.
  *
  * Deliberately generous, because the moment this is wrong is the worst one:

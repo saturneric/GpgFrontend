@@ -407,4 +407,35 @@ TEST(ProfileStoragePlanTest, BudgetSurvivesAbsurdInput) {
   EXPECT_EQ(ProfileStorageBudget(kHuge, -1), kCeiling);
 }
 
+// ------------------------------------------------ the promise after the fact
+
+TEST(ProfileStoragePlanTest, ProtectedOnlyRefusesAProvisioningTimeDowngrade) {
+  // The plan judges a prediction: a candidate is marked usable before anything
+  // is provisioned, because whether it protects anything is only knowable by
+  // asking for the protection. So an fscrypt candidate can be chosen under
+  // kPROTECTED_ONLY and still come back as a plain temporary folder -- the
+  // kernel refused the key, the policy did not take, the socket would not bind.
+  //
+  // That is the silent fallback this policy exists to refuse, so the outcome is
+  // judged as well as the prediction.
+  EXPECT_FALSE(ProvisionedStorageSatisfies(
+      ProfileStoragePolicy::kPROTECTED_ONLY, false, false));
+
+  EXPECT_TRUE(ProvisionedStorageSatisfies(ProfileStoragePolicy::kPROTECTED_ONLY,
+                                          true, false));
+  EXPECT_TRUE(ProvisionedStorageSatisfies(ProfileStoragePolicy::kPROTECTED_ONLY,
+                                          false, true));
+}
+
+TEST(ProfileStoragePlanTest, EveryOtherPolicyAcceptsWhatItGot) {
+  // kAUTO asked for the best available, and a downgrade is the best available.
+  // kDISK asked for the plain folder by name and cannot be disappointed by one.
+  for (const auto policy :
+       {ProfileStoragePolicy::kAUTO, ProfileStoragePolicy::kDISK}) {
+    EXPECT_TRUE(ProvisionedStorageSatisfies(policy, false, false));
+    EXPECT_TRUE(ProvisionedStorageSatisfies(policy, true, false));
+    EXPECT_TRUE(ProvisionedStorageSatisfies(policy, false, true));
+  }
+}
+
 }  // namespace GpgFrontend::Test

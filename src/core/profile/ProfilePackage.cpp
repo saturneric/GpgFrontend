@@ -1546,7 +1546,18 @@ auto SweepTransientProfileRoots(const QString &profiles_root,
     // of somebody else's key material somewhere nothing thinks to look -- and,
     // for an encrypted driver, a key in the kernel that would stay readable to
     // this user until the machine is rebooted.
-    if (is_anchor) ReleaseStrandedSessionStorage(pointer, path);
+    //
+    // Which is also why the answer is not ignored. A key cannot be found again
+    // by looking around: no filesystem names it, so the pointer is the only
+    // record there is. When the release did not finish, the anchor stays and
+    // the next sweep tries again -- and a release that can never finish reports
+    // itself done rather than false, so nothing is kept for a retry that would
+    // reach the same dead end.
+    if (is_anchor && !ReleaseStrandedSessionStorage(pointer, path)) {
+      LOG_W() << "keeping the anchor of a session that could not be released:"
+              << path;
+      continue;
+    }
 
     if (QDir(path).removeRecursively()) {
       LOG_I() << "removed a session left behind by a process that is gone:"

@@ -665,14 +665,32 @@ auto ReleaseStrandedSessionStorage(const QJsonObject &pointer,
     base = QFileInfo(root).absolutePath();
   }
 
+  // The base was recorded because a key is evicted through any path on the
+  // filesystem holding it, and the root is the thing that was just deleted. The
+  // base can be gone too, though -- it is a temporary directory -- so what is
+  // needed is any surviving path on that filesystem, which is what the nearest
+  // existing ancestor is.
+#ifdef Q_OS_LINUX
+  if (!base.isEmpty() && QDir::isAbsolutePath(base)) {
+    base = NearestExistingAncestor(base);
+  }
+#endif
+
   if (base.isEmpty() || !QDir::isAbsolutePath(base) ||
       !QFileInfo::exists(base)) {
-    LOG_W() << "cannot reach the filesystem holding a stranded session key";
-    return false;
+    // Nothing to come back for: an eviction needs a path on the filesystem, and
+    // a later sweep would be handed this same pointer and reach this same dead
+    // end. Reported as done so the pointer can go, rather than kept forever as
+    // a retry that can never run.
+    LOG_W() << "a stranded session key names a filesystem that is not here";
+    return done;
   }
 
   QString reason;
   if (!FscryptRemoveKey(base, key, reason)) {
+    // Kept, because this one *can* be retried: what fails here is a key that is
+    // still in the kernel, held by files somebody has open. The pointer is the
+    // only record of it, so it has to outlive this attempt.
     LOG_W() << "could not remove a stranded session key:" << reason;
     return false;
   }
@@ -859,6 +877,32 @@ auto MakeProfileAccessorFor(const ProfileAccessorSpec &spec)
 
   auto accessor = ProtectedFsProfileAccessor::Provision(spec.digest, plan);
   if (accessor.isNull()) return result;
+
+  // The plan is what a probe predicted; this is what the machine actually did.
+  // Whether a candidate protects anything is only knowable by asking for the
+  // protection -- a policy is proved by setting one, EFS by requesting it -- so
+  // a candidate can be usable at probe time and downgrade at provisioning time.
+  // That downgrade is precisely the silent fallback kPROTECTED_ONLY exists to
+  // refuse, so the promise is kept here against the outcome rather than only in
+  // PlanProfileStorage() against the prediction.
+  if (!ProvisionedStorageSatisfies(spec.policy, accessor->IsVolatile(),
+                                   accessor->IsEncryptedAtRest())) {
+    const auto root = accessor->PathOf(ProfileArea::kRoot);
+
+    // Released before returning, because nothing else holds it now: the caller
+    // gets no accessor, so a tree left here would be one nothing ever comes
+    // back for. Scrubbed rather than merely unlinked -- an unprotected folder
+    // is exactly the case where the contents matter.
+    accessor->Release(ProfileStorageRelease::kSCRUB);
+
+    LOG_W() << "session storage downgraded to" << accessor->Driver()
+            << "during provisioning; refused under protected-only";
+
+    result.rejections << QString("%1: %2").arg(
+        root, "this folder could not be protected after all");
+    result.refused_protected_only = true;
+    return result;
+  }
 
   LOG_I() << "session storage:" << accessor->Driver() << "at"
           << accessor->PathOf(ProfileArea::kRoot)

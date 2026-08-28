@@ -114,7 +114,11 @@ auto GF_CORE_EXPORT FscryptProvisionDirectory(const QString &dir,
  * @param any_path_on_fs any existing path on the filesystem holding the key
  * @param identifier the identifier FscryptProvisionDirectory() returned
  * @param reason set to why not
- * @return true when the key is gone, including when it was already gone
+ * @return true when the key is gone -- including when it was already gone, and
+ * when this filesystem, kernel or build cannot hold such a key at all, which
+ * for a caller deciding whether anything is left to clean up is the same
+ * answer. False means a key that may well still be there, so a later attempt
+ * is worth making.
  */
 auto GF_CORE_EXPORT FscryptRemoveKey(const QString &any_path_on_fs,
                                      const QByteArray &identifier,

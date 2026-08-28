@@ -38,6 +38,7 @@
 #endif
 
 #include "core/profile/FscryptStorage.h"
+#include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileStoragePlan.h"
 #include "core/profile/ProtectedFsProfileAccessor.h"
 
@@ -316,6 +317,87 @@ TEST(FscryptStorageTest, ACorruptKeyInAPointerIsNotActedOn) {
   EXPECT_FALSE(QFileInfo::exists(stranded));
 }
 
+// ----------------------------------------------------- the sweep's own record
+
+TEST(FscryptStorageTest, AnAnchorOutlivesAReleaseThatCouldNotFinish) {
+  // The pointer is the only record of what a dead session left behind, and for
+  // an encrypted driver one of those things -- a key in the kernel -- cannot be
+  // found by looking around: no filesystem names it. So an anchor removed after
+  // a release that did not finish takes the last thing that could name that key
+  // with it.
+  //
+  // Forced here through the tree rather than the key, because that is the half
+  // a machine without fscrypt can still fail at, and it is the same branch: a
+  // directory whose parent this process cannot write to cannot be removed.
+  if (::geteuid() == 0)
+    GTEST_SKIP() << "root ignores the permissions this uses";
+
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto locked = dir.path() + "/locked";
+  const auto stranded = locked + "/gf-abcd";
+  ASSERT_TRUE(QDir().mkpath(stranded));
+
+  const auto anchor = dir.path() + "/.abcd";
+  QJsonObject state;
+  state["driver"] = "fs-fscrypt";
+  state["root"] = stranded;
+  state["base"] = locked;
+  state["fscrypt_key"] = QString(kFscryptKeyIdentifierSize * 2, 'a');
+  ASSERT_TRUE(WriteSessionPointer(anchor, state));
+
+  ASSERT_TRUE(QFile::setPermissions(
+      locked, QFileDevice::ReadOwner | QFileDevice::ExeOwner));
+
+  const auto swept = SweepTransientProfileRoots(dir.path(), {});
+
+  // Restored first, so that a failed expectation below cannot leave a directory
+  // the harness is unable to clean up.
+  QFile::setPermissions(locked, QFileDevice::ReadOwner |
+                                    QFileDevice::WriteOwner |
+                                    QFileDevice::ExeOwner);
+
+  EXPECT_EQ(swept, 0);
+  EXPECT_TRUE(QFileInfo::exists(anchor));
+  EXPECT_FALSE(ReadSessionPointer(anchor).isEmpty())
+      << "the pointer is the only thing that can name what was left behind";
+}
+
+TEST(FscryptStorageTest, AKeyOnAFilesystemThatIsGoneDoesNotPinTheAnchor) {
+  // The other side of it. A key exists only in a running kernel's keyring for
+  // one superblock, so a base that is not there names nothing that could still
+  // be evicted -- and a later sweep would be handed the same pointer and reach
+  // the same dead end. Keeping the anchor for that retry would keep it forever.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto anchor = dir.path() + "/.abcd";
+
+  QJsonObject state;
+  state["driver"] = "fs-fscrypt";
+  state["root"] = "/nonexistent/gf-abcd";
+  state["base"] = "/nonexistent/base";
+  state["fscrypt_key"] = QString(kFscryptKeyIdentifierSize * 2, 'b');
+  ASSERT_TRUE(WriteSessionPointer(anchor, state));
+
+  EXPECT_EQ(SweepTransientProfileRoots(dir.path(), {}), 1);
+  EXPECT_FALSE(QFileInfo::exists(anchor));
+}
+
+TEST(FscryptStorageTest, AKeyThatIsNotThereIsReportedAsAlreadyGone) {
+  // What lets the sweep be correct on every machine. An identifier that names
+  // no key -- because nothing minted one, or because this kernel or filesystem
+  // cannot hold one at all -- is gone, not a removal that failed. Only a key
+  // that may still be there is worth keeping a pointer for.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  QString reason;
+  EXPECT_TRUE(FscryptRemoveKey(dir.path(), Identifier('\x01'), reason))
+      << reason.toStdString();
+}
+
 // ------------------------------------------------------------- the platform
 
 TEST(FscryptStorageTest, WhatThisMachineActuallyOffersIsReported) {
@@ -482,6 +564,48 @@ TEST(LiveFscryptTest, ADirectoryAlreadyUnderAPolicyIsRefused) {
   QString ignored;
   FscryptRemoveKey(dir, id, ignored);
   QDir(dir).removeRecursively();
+}
+
+TEST(LiveFscryptTest, AKeyStillHeldOpenKeepsThePointerThatNamesIt) {
+  // The retention case a machine without fscrypt cannot reach: the master
+  // secret is dropped but files somebody still holds open keep their derived
+  // keys, so the tree is not yet unreadable and the key is not yet gone. That
+  // is the one outcome where a later sweep has real work to do, and it can only
+  // find it through the pointer.
+  const auto base = LiveDir("busy");
+  if (base.isEmpty()) GTEST_SKIP() << "no usable " << kLiveDirEnv;
+
+  const auto stranded = base + "/gf-abcd";
+  ASSERT_TRUE(QDir().mkpath(stranded));
+
+  QByteArray id;
+  QString reason;
+  ASSERT_TRUE(FscryptProvisionDirectory(stranded, id, reason))
+      << reason.toStdString();
+
+  // Held open across the release, which is what produces FILES_BUSY.
+  QFile busy(stranded + "/held");
+  ASSERT_TRUE(busy.open(QIODevice::WriteOnly));
+  busy.write("still open");
+  busy.flush();
+
+  QJsonObject pointer;
+  pointer["driver"] = "fs-fscrypt";
+  pointer["root"] = stranded;
+  pointer["base"] = base;
+  pointer["fscrypt_key"] = FscryptIdentifierToHex(id);
+
+  EXPECT_FALSE(ReleaseStrandedSessionStorage(pointer, base + "/.anchor"))
+      << "a key still held open is a key a later sweep must be able to find";
+
+  busy.close();
+
+  // And once the handle is gone the retry the pointer was kept for succeeds.
+  EXPECT_TRUE(ReleaseStrandedSessionStorage(pointer, base + "/.anchor"));
+
+  QString ignored;
+  FscryptRemoveKey(base, id, ignored);
+  QDir(base).removeRecursively();
 }
 
 TEST(LiveFscryptTest, TheDriverProvisionsAndReleasesRealEncryptedStorage) {
