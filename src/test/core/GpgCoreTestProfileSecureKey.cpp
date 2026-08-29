@@ -1366,17 +1366,63 @@ TEST(AppSecureKeyWrapTest, DisabledAndUnwrappedNeverConsultsTheStore) {
 }
 
 /**
- * The feature is opt-in. With nothing enabling it, the running process must
- * report it off and the real key file must be left in its default form, so a
- * changed default or an accidental auto-enable is caught here.
+ * The feature is opt-in: the protection this run reports must be the one its
+ * own layers asked for, and nothing else. Asserting kNONE outright would only
+ * hold on a machine whose settings happen to be untouched -- a developer who
+ * has turned the keychain on is not a bug -- so the expectation is compared
+ * against what the deployment marker and the settings actually say. An
+ * accidental auto-enable, or a changed default, still fails here: it would be
+ * protection in effect with every layer silent.
  */
-TEST(AppSecureKeyWrapTest, FeatureIsOffUnlessExplicitlyEnabled) {
-  EXPECT_EQ(ProfileLoader::AppKeyProtectionFromApp(), AppKeyProtection::kNONE);
+TEST(AppSecureKeyWrapTest, ProtectionInEffectIsTheOneTheSettingsAskedFor) {
+  const auto& session = ProfileSession::Instance();
+  const auto& deployment = session.Marker().deployment;
+  auto user = session.Settings();
 
-  auto& mgr = ProfileSession::Instance().Keys();
-  auto on_disk = GFBufferFactory::FromFile(mgr.KeyPath());
+  const auto requested = ProfileLoader::ApplyProfilePortabilityRule(
+      ProfileLoader::ResolveAppKeyProtection(
+          deployment.value(QStringLiteral("AppKeyProtection")),
+          deployment.value(QStringLiteral("SecureLevel")),
+          deployment.value(QStringLiteral("OSSecretStore")),
+          user.value(QStringLiteral("advanced/app_key_protection")),
+          user.value(QStringLiteral("advanced/secure_level")),
+          user.value(QStringLiteral("advanced/os_secret_store"))),
+      session.Profile().AllowsSystemKeychain());
+
+  const auto in_effect = ProfileLoader::AppKeyProtectionFromApp();
+  EXPECT_EQ(in_effect, requested);
+
+  // Only the unprotected case says anything definite about the file: a
+  // protection that was asked for can still have been dropped for this run --
+  // an unavailable credential store leaves the key exactly as it was -- and
+  // that path turns the setting back off, so it is already covered above.
+  if (in_effect != AppKeyProtection::kNONE) return;
+
+  // A profile that keeps its secure area in memory has no key file to look at.
+  const auto key_path = session.Keys().KeyPath();
+  if (key_path.isEmpty()) return;
+
+  auto on_disk = GFBufferFactory::FromFile(key_path);
   ASSERT_TRUE(on_disk.has_value());
   EXPECT_FALSE(AESCryptoHelper::IsEncryptedBuffer(*on_disk));
+}
+
+/**
+ * The property is what everything else asks for the protection in effect, so a
+ * startup that drops the protection has to be able to say so through it.
+ */
+TEST(AppSecureKeyWrapTest, ProtectionInEffectRoundTripsThroughTheProperty) {
+  const auto original = ProfileLoader::AppKeyProtectionFromApp();
+
+  for (const auto p : {AppKeyProtection::kKEYCHAIN, AppKeyProtection::kPIN,
+                       AppKeyProtection::kNONE}) {
+    ProfileLoader::SetAppKeyProtectionInApp(p);
+    EXPECT_EQ(ProfileLoader::AppKeyProtectionFromApp(), p);
+  }
+
+  // Global state: everything else in the process reads this one.
+  ProfileLoader::SetAppKeyProtectionInApp(original);
+  ASSERT_EQ(ProfileLoader::AppKeyProtectionFromApp(), original);
 }
 
 // --- reset to default -------------------------------------------------------

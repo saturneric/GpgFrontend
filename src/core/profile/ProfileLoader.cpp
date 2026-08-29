@@ -121,6 +121,11 @@ auto ProfileLoader::AppKeyProtectionFromApp() -> AppKeyProtection {
       qApp->property("GFAppKeyProtection").toString());
 }
 
+void ProfileLoader::SetAppKeyProtectionInApp(AppKeyProtection protection) {
+  if (qApp == nullptr) return;
+  qApp->setProperty("GFAppKeyProtection", AppKeyProtectionToString(protection));
+}
+
 auto ProfileLoader::ApplyProfilePortabilityRule(AppKeyProtection resolved,
                                                 bool keychain_allowed)
     -> AppKeyProtection {
@@ -430,6 +435,19 @@ void ProfileLoader::stamp_marker() {
   });
 }
 
+void ProfileLoader::turn_protection_off() {
+  auto settings = session_->Settings();
+  settings.setValue("advanced/app_key_protection",
+                    AppKeyProtectionToString(AppKeyProtection::kNONE));
+  settings.sync();
+
+  // The stored setting is only half of it: the Advanced tab, the About dialog
+  // and the startup banner all read the property to say what this run is
+  // actually using, and one still saying "keychain" over a key file nothing
+  // wrapped would offer the user a protection they do not have.
+  SetAppKeyProtectionInApp(AppKeyProtection::kNONE);
+}
+
 auto ProfileLoader::reset_key_storage() -> bool {
   const auto key_dir = session_->Accessor().PathOf(ProfileArea::kSecure);
 
@@ -453,10 +471,7 @@ auto ProfileLoader::reset_key_storage() -> bool {
     store->Remove(CurrentWrapAccount());
   }
 
-  auto settings = session_->Settings();
-  settings.setValue("advanced/app_key_protection",
-                    AppKeyProtectionToString(AppKeyProtection::kNONE));
-  settings.sync();
+  turn_protection_off();
 
   qWarning() << "the profile secure key was reset at the user's request";
   delegate_->Note(ProfileLoadNotice::kKEY_WAS_RESET, key_dir);
@@ -502,10 +517,7 @@ auto ProfileLoader::resolve_secret(AppKeyProtection protection, GFBuffer& pin,
       case AppKeyWrapStatus::kSTORE_UNAVAILABLE: {
         // Turn the preference back off rather than retrying, and failing, at
         // every launch. The key stays exactly as it was, just unprotected.
-        auto settings = session_->Settings();
-        settings.setValue("advanced/app_key_protection",
-                          AppKeyProtectionToString(AppKeyProtection::kNONE));
-        settings.sync();
+        turn_protection_off();
         delegate_->Note(ProfileLoadNotice::kKEYCHAIN_UNAVAILABLE,
                         result.detail);
         return true;
@@ -564,10 +576,7 @@ auto ProfileLoader::resolve_secret(AppKeyProtection protection, GFBuffer& pin,
   if (!AESCryptoHelper::IsEncryptedBuffer(*on_disk)) {
     // The setting and the file disagree — a crashed transition or a hand-edited
     // ini. The key is intact, so proceed unprotected rather than refusing.
-    auto settings = session_->Settings();
-    settings.setValue("advanced/app_key_protection",
-                      AppKeyProtectionToString(AppKeyProtection::kNONE));
-    settings.sync();
+    turn_protection_off();
     delegate_->Note(ProfileLoadNotice::kPIN_SET_BUT_KEY_PLAINTEXT, key_path);
     return true;
   }

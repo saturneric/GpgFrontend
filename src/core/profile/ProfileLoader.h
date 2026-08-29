@@ -303,6 +303,22 @@ class GF_CORE_EXPORT ProfileLoader {
   static auto AppKeyProtectionFromApp() -> AppKeyProtection;
 
   /**
+   * @brief Write the protection in effect into the "GFAppKeyProtection"
+   * property.
+   *
+   * Startup can end up with a protection the settings asked for but the key
+   * file does not have -- an unavailable credential store, a reset key, a PIN
+   * setting over a plaintext file. The stored setting is turned back off in
+   * each of those cases, and the property has to follow it: everything that
+   * asks what is in effect this run reads the property, so one left saying
+   * "keychain" over an unprotected key file shows the user a protection they do
+   * not have.
+   *
+   * @param protection the mode actually in effect for this process
+   */
+  static void SetAppKeyProtectionInApp(AppKeyProtection protection);
+
+  /**
    * @brief Refuse the credential store for any profile that leaves this
    * machine.
    *
@@ -380,6 +396,10 @@ class GF_CORE_EXPORT ProfileLoader {
 
   /// Discard the key material and drop the protection back to none.
   auto reset_key_storage() -> bool;
+
+  /// Record that the key file is unprotected this run, in the stored setting
+  /// and in the property that says what is in effect.
+  void turn_protection_off();
 
   QSharedPointer<Profile> profile_;
   ProfileLoaderDelegate *delegate_;
