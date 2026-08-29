@@ -516,7 +516,11 @@ TEST(LiveFscryptTest, ProvisionEncryptsAndRemovingTheKeyLocksItOut) {
     EXPECT_EQ(in.readAll(), QByteArray("app.key"));
   }
 
-  ASSERT_TRUE(FscryptRemoveKey(dir, id, reason)) << reason.toStdString();
+  // Through the base, which is what Release() passes and what the contract
+  // requires: the descriptor this ioctl needs is itself a file in use under the
+  // key, so a path inside the tree cannot lock that tree cleanly.
+  ASSERT_TRUE(FscryptRemoveKey(QFileInfo(dir).absolutePath(), id, reason))
+      << reason.toStdString();
 
   // The whole promise: the bytes are still on the medium and this process can
   // no longer read them.
@@ -564,6 +568,72 @@ TEST(LiveFscryptTest, ADirectoryAlreadyUnderAPolicyIsRefused) {
   QString ignored;
   FscryptRemoveKey(dir, id, ignored);
   QDir(dir).removeRecursively();
+}
+
+TEST(LiveFscryptTest, EvictingThroughTheTreeReportsBusyAndStillWipesTheSecret) {
+  // Why every caller passes a path outside the tree. The ioctl needs an open
+  // descriptor on the filesystem, and one taken inside an encrypted tree is
+  // itself a file in use under the key being removed -- so the kernel answers
+  // FILES_BUSY, and this function reports the one outcome where the tree is not
+  // yet unreadable.
+  //
+  // What it does *not* mean is that the key survived: FILES_BUSY says the
+  // master secret was wiped and only the derived keys of inodes still in use
+  // remain. Pinned here because the provisioning failure path relies on it --
+  // a directory that cannot be verified is left with no usable key even though
+  // its own eviction reports failure.
+  const auto dir = LiveDir("busy-self");
+  if (dir.isEmpty()) GTEST_SKIP() << "no usable " << kLiveDirEnv;
+
+  QByteArray id;
+  QString reason;
+  ASSERT_TRUE(FscryptProvisionDirectory(dir, id, reason))
+      << reason.toStdString();
+
+  QFile out(dir + "/secret");
+  ASSERT_TRUE(out.open(QIODevice::WriteOnly));
+  out.write("app.key");
+  out.close();
+
+  EXPECT_FALSE(FscryptRemoveKey(dir, id, reason));
+  EXPECT_FALSE(reason.isEmpty());
+
+  // Wiped all the same, which is the part that matters.
+  QFile locked(dir + "/secret");
+  EXPECT_FALSE(locked.open(QIODevice::ReadOnly));
+
+  QString ignored;
+  FscryptRemoveKey(QFileInfo(dir).absolutePath(), id, ignored);
+  QDir(dir).removeRecursively();
+}
+
+TEST(LiveFscryptTest, AProvisioningThatFailsAfterThePolicyLeavesNoKey) {
+  // A failure after the policy is on is a fallback to plain storage, not a
+  // reason to leave a key sitting in the kernel until the next reboot.
+  //
+  // The socket probe is the one check that can be failed on demand: a unix
+  // socket path is capped at 108 bytes by the socket API, so a deep enough
+  // session root cannot hold the sockets GnuPG needs, and provisioning gives up
+  // at the last of its three verifications -- with the policy already set.
+  const auto base = LiveDir("nokey");
+  if (base.isEmpty()) GTEST_SKIP() << "no usable " << kLiveDirEnv;
+
+  const auto dir = base + "/" + QString(120, 'd');
+  ASSERT_TRUE(QDir().mkpath(dir));
+
+  QByteArray id;
+  QString reason;
+  ASSERT_FALSE(FscryptProvisionDirectory(dir, id, reason));
+  EXPECT_TRUE(id.isEmpty());
+
+  // The policy cannot be taken off the directory again, so whether the key went
+  // with it is directly observable: with the key gone the kernel refuses to
+  // create a file here, and with the key still in place it does not.
+  QFile after(dir + "/after");
+  EXPECT_FALSE(after.open(QIODevice::WriteOnly))
+      << "the key outlived a provisioning that failed";
+
+  QDir(base).removeRecursively();
 }
 
 TEST(LiveFscryptTest, AKeyStillHeldOpenKeepsThePointerThatNamesIt) {

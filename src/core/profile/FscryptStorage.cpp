@@ -30,6 +30,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 
 #include "core/GFCoreLog.h"
 
@@ -388,17 +389,29 @@ auto FscryptProvisionDirectory(const QString &dir, QByteArray &identifier,
     // The key is ours and nothing is using it, so it does not outlive the
     // attempt. A failure here is a fallback to plain storage, not a reason to
     // leave a key sitting in the kernel until the next reboot.
+    //
+    // Through the parent as well, for one rule rather than two: no policy took
+    // here, so the directory would have done, but a reader should not have to
+    // work out which of these two calls is the safe one.
     QString ignored;
-    FscryptRemoveKey(dir, minted, ignored);
+    FscryptRemoveKey(QFileInfo(dir).absolutePath(), minted, ignored);
     return false;
   }
 
   // From here the policy is set, so every failure must also evict the key --
   // otherwise the directory stays encrypted under a key nobody will ever drop.
-  const auto give_up = [&dir, &minted](const QString &why, QString &out) {
+  //
+  // Through the parent, never through `dir`. The directory is encrypted under
+  // this key now, so the descriptor the eviction ioctl needs would itself be a
+  // file in use under the key being removed, and the kernel answers that with
+  // FILES_BUSY. The master secret does go either way -- which is the only
+  // reason this worked when it asked the wrong way -- but a cleanup whose
+  // success depends on that subtlety is a cleanup nobody can read.
+  const auto parent = QFileInfo(dir).absolutePath();
+  const auto give_up = [&parent, &minted](const QString &why, QString &out) {
     out = why;
     QString ignored;
-    FscryptRemoveKey(dir, minted, ignored);
+    FscryptRemoveKey(parent, minted, ignored);
     return false;
   };
 

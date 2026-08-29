@@ -111,7 +111,13 @@ auto GF_CORE_EXPORT FscryptProvisionDirectory(const QString &dir,
  * recorded next to the anchor — a session killed outright leaves its key in the
  * kernel, readable to that user, until something evicts it.
  *
- * @param any_path_on_fs any existing path on the filesystem holding the key
+ * Must be given a path *outside* the tree being locked -- the base, not the
+ * session root. The ioctl needs an open descriptor on the filesystem, and one
+ * taken inside the encrypted tree is itself a file in use under the key being
+ * removed, which the kernel reports as FILES_BUSY.
+ *
+ * @param any_path_on_fs an existing path on the filesystem holding the key, and
+ * not one encrypted by it
  * @param identifier the identifier FscryptProvisionDirectory() returned
  * @param reason set to why not
  * @return true when the key is gone -- including when it was already gone, and
