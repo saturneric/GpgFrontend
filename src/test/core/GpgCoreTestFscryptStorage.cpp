@@ -65,6 +65,17 @@ auto Identifier(char fill) -> QByteArray {
   return QByteArray(kFscryptKeyIdentifierSize, fill);
 }
 
+/// The uid the search paths are built for. Windows has no such thing, and the
+/// paths that use it are never reached there, so any value reports the same
+/// thing: what this machine offers, which on Windows is nothing.
+auto CurrentUid() -> uint {
+#ifdef Q_OS_UNIX
+  return static_cast<uint>(::geteuid());
+#else
+  return 0;
+#endif
+}
+
 }  // namespace
 
 // ------------------------------------------------------------- the identifier
@@ -319,6 +330,10 @@ TEST(FscryptStorageTest, ACorruptKeyInAPointerIsNotActedOn) {
 
 // ----------------------------------------------------- the sweep's own record
 
+// Windows keeps its own counsel about who may delete what: a directory this
+// process cannot write to is still one it can empty, so there is no portable
+// way to force the half-finished release this needs.
+#ifdef Q_OS_UNIX
 TEST(FscryptStorageTest, AnAnchorOutlivesAReleaseThatCouldNotFinish) {
   // The pointer is the only record of what a dead session left behind, and for
   // an encrypted driver one of those things -- a key in the kernel -- cannot be
@@ -363,6 +378,7 @@ TEST(FscryptStorageTest, AnAnchorOutlivesAReleaseThatCouldNotFinish) {
   EXPECT_FALSE(ReadSessionPointer(anchor).isEmpty())
       << "the pointer is the only thing that can name what was left behind";
 }
+#endif
 
 TEST(FscryptStorageTest, AKeyOnAFilesystemThatIsGoneDoesNotPinTheAnchor) {
   // The other side of it. A key exists only in a running kernel's keyring for
@@ -407,8 +423,8 @@ TEST(FscryptStorageTest, WhatThisMachineActuallyOffersIsReported) {
   std::cerr << "  fscrypt available: " << (FscryptAvailable() ? "yes" : "no")
             << std::endl;
 
-  for (const auto &base : EncryptableStoreSearchPaths(
-           {}, QDir::tempPath(), static_cast<uint>(::geteuid()))) {
+  for (const auto &base :
+       EncryptableStoreSearchPaths({}, QDir::tempPath(), CurrentUid())) {
     // Asked of the parent, which exists, rather than of the base, which is
     // created only once a plan has chosen it. That is also the order the probe
     // itself uses, so this reports what a real session would find.
