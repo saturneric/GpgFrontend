@@ -36,7 +36,8 @@ namespace GpgFrontend::Test {
 namespace {
 
 using UI::AboutStatusValue;
-using UI::DescribeKeySource;
+using UI::BuildProfileIdentityRows;
+using UI::DescribeAppKeyProtection;
 using UI::DescribeSessionStorage;
 using UI::ShowsDetailInline;
 
@@ -48,9 +49,9 @@ auto AllReadings() -> QList<AboutStatusValue> {
       DescribeSessionStorage(true, false),
       DescribeSessionStorage(false, true),
       DescribeSessionStorage(false, false),
-      DescribeKeySource(true, ProfileKind::kPERSIST),
-      DescribeKeySource(false, ProfileKind::kPERSIST),
-      DescribeKeySource(false, ProfileKind::kPACKAGED),
+      DescribeAppKeyProtection(AppKeyProtection::kNONE, true),
+      DescribeAppKeyProtection(AppKeyProtection::kPIN, false),
+      DescribeAppKeyProtection(AppKeyProtection::kKEYCHAIN, true),
   };
 }
 
@@ -89,30 +90,60 @@ TEST(AboutStatusInfoTest, OnlyTheOrdinaryFolderCountsAsAFallback) {
   EXPECT_TRUE(DescribeSessionStorage(false, false).degraded);
 }
 
-TEST(AboutStatusInfoTest, ASelfContainedProfileNeedsNoExplanation) {
-  const auto contained = DescribeKeySource(true, ProfileKind::kPERSIST);
+TEST(AboutStatusInfoTest, ARootProfileDoesNotPrintItsNameTwice) {
+  // The defect: CurrentProfileDisplayName() answers with the kind for a profile
+  // that has no name of its own, and the type row under it then said the same
+  // word again.
+  for (const auto kind :
+       {ProfileKind::kINSTALLED_ROOT, ProfileKind::kPORTABLE_ROOT}) {
+    const auto rows = BuildProfileIdentityRows(kind, "Default", false);
 
-  EXPECT_FALSE(contained.value.isEmpty());
-  EXPECT_TRUE(contained.detail.isEmpty());
-  EXPECT_FALSE(contained.degraded);
-
-  // The profile kind cannot change the answer once the keys are inside it.
-  EXPECT_EQ(contained.value,
-            DescribeKeySource(true, ProfileKind::kPACKAGED).value);
-  EXPECT_TRUE(DescribeKeySource(true, ProfileKind::kPACKAGED).detail.isEmpty());
+    ASSERT_EQ(rows.size(), 1) << ProfileKindToString(kind).toStdString();
+    EXPECT_EQ(rows.first().value, "Default");
+    // Nothing is lost by the merge: what the second row would have said is now
+    // the sentence under the first.
+    EXPECT_FALSE(rows.first().detail.isEmpty());
+  }
 }
 
-TEST(AboutStatusInfoTest, OnlyAPackageSaysItCarriesNoKeysOfItsOwn) {
-  const auto packaged = DescribeKeySource(false, ProfileKind::kPACKAGED);
-  const auto ordinary = DescribeKeySource(false, ProfileKind::kPERSIST);
+TEST(AboutStatusInfoTest, ANamedProfileKeepsItsTypeRow) {
+  // Where the two rows say different things, they both earn their place.
+  for (const auto kind : {ProfileKind::kPERSIST, ProfileKind::kPACKAGED}) {
+    const auto rows = BuildProfileIdentityRows(kind, "Work", false);
 
-  // Both are looking at the same keyring, and say so identically.
-  EXPECT_EQ(packaged.value, ordinary.value);
+    ASSERT_EQ(rows.size(), 2) << ProfileKindToString(kind).toStdString();
+    EXPECT_EQ(rows.first().value, "Work");
+    EXPECT_NE(rows.at(1).value, rows.first().value);
+    EXPECT_FALSE(rows.at(1).value.isEmpty());
+  }
+}
 
-  // Only the package has the thing worth adding: the window is showing this
-  // computer's keys, not the ones the sender meant to hand over.
-  EXPECT_FALSE(packaged.detail.isEmpty());
-  EXPECT_TRUE(ordinary.detail.isEmpty());
+TEST(AboutStatusInfoTest, OnlyATransientSessionIsCalledTemporary) {
+  // Asked of the profile rather than of the kind, so a shape added later cannot
+  // inherit the sentence just by being packaged.
+  const auto transient =
+      BuildProfileIdentityRows(ProfileKind::kPACKAGED, "Work", true);
+  const auto kept =
+      BuildProfileIdentityRows(ProfileKind::kPACKAGED, "Work", false);
+
+  ASSERT_EQ(transient.size(), 2);
+  ASSERT_EQ(kept.size(), 2);
+  EXPECT_FALSE(transient.at(1).detail.isEmpty());
+  EXPECT_TRUE(kept.at(1).detail.isEmpty());
+}
+
+TEST(AboutStatusInfoTest, AForcedProtectionSaysWhyItWasForced) {
+  // The settings page greys the keychain out for anything that travels and does
+  // not explain itself; this row is where that explanation lives.
+  const auto forced = DescribeAppKeyProtection(AppKeyProtection::kNONE, false);
+  const auto chosen = DescribeAppKeyProtection(AppKeyProtection::kNONE, true);
+
+  EXPECT_EQ(forced.value, chosen.value);
+  EXPECT_FALSE(forced.detail.isEmpty());
+  EXPECT_TRUE(chosen.detail.isEmpty());
+
+  // A rule, not a fallback: nothing here went wrong.
+  EXPECT_FALSE(forced.degraded);
 }
 
 TEST(AboutStatusInfoTest, NoReadingCarriesAnEmDash) {

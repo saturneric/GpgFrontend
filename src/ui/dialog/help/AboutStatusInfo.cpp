@@ -62,23 +62,98 @@ auto DescribeSessionStorage(bool is_volatile, bool encrypted_at_rest)
           true};
 }
 
-auto DescribeKeySource(bool self_contained, ProfileKind kind)
+auto BuildProfileIdentityRows(ProfileKind kind, const QString& display_name,
+                              bool transient) -> QVector<MetaListRow> {
+  QVector<MetaListRow> rows;
+
+  const auto name_caption = QCoreApplication::translate(
+      "GpgFrontend::UI::AboutStatusInfo", "Profile:");
+  const auto type_caption = QCoreApplication::translate(
+      "GpgFrontend::UI::AboutStatusInfo", "Profile Type:");
+
+  // A root profile is not named by its user, so CurrentProfileDisplayName()
+  // answers with the kind -- and a type row under it then said the same word a
+  // second time. What that row would have carried becomes the sentence here,
+  // which is the part that was never on the page at all.
+  if (kind == ProfileKind::kINSTALLED_ROOT) {
+    rows.append({.caption = name_caption,
+                 .value = display_name,
+                 .detail = QCoreApplication::translate(
+                     "GpgFrontend::UI::AboutStatusInfo",
+                     "The profile this computer starts on, in your user data "
+                     "folder."),
+                 .emphasis = true});
+    return rows;
+  }
+
+  if (kind == ProfileKind::kPORTABLE_ROOT) {
+    rows.append({.caption = name_caption,
+                 .value = display_name,
+                 .detail = QCoreApplication::translate(
+                     "GpgFrontend::UI::AboutStatusInfo",
+                     "Kept beside the application, so it travels with it."),
+                 .emphasis = true});
+    return rows;
+  }
+
+  rows.append(
+      {.caption = name_caption, .value = display_name, .emphasis = true});
+
+  if (kind == ProfileKind::kPACKAGED) {
+    rows.append(
+        {.caption = type_caption,
+         .value = QCoreApplication::translate(
+             "GpgFrontend::UI::AboutStatusInfo", "Opened from a profile file"),
+         // Asked of the profile rather than of the kind, so a shape
+         // added later cannot inherit the sentence by being packaged.
+         .detail = transient ? QCoreApplication::translate(
+                                   "GpgFrontend::UI::AboutStatusInfo",
+                                   "Temporary. It disappears when this "
+                                   "window closes, and closing asks whether "
+                                   "to save your changes back into the file.")
+                             : QString()});
+    return rows;
+  }
+
+  rows.append(
+      {.caption = type_caption,
+       .value = QCoreApplication::translate("GpgFrontend::UI::AboutStatusInfo",
+                                            "Kept on this computer")});
+  return rows;
+}
+
+auto DescribeAppKeyProtection(AppKeyProtection protection, bool allows_keychain)
     -> AboutStatusValue {
-  if (self_contained) {
-    return {QCoreApplication::translate("GpgFrontend::UI::AboutStatusInfo",
-                                        "Inside this profile"),
-            {},
+  QString value;
+  switch (protection) {
+    case AppKeyProtection::kKEYCHAIN:
+      value = QCoreApplication::translate("GpgFrontend::UI::AboutStatusInfo",
+                                          "System keychain");
+      break;
+    case AppKeyProtection::kPIN:
+      value = QCoreApplication::translate("GpgFrontend::UI::AboutStatusInfo",
+                                          "PIN at startup");
+      break;
+    case AppKeyProtection::kNONE:
+      value = QCoreApplication::translate("GpgFrontend::UI::AboutStatusInfo",
+                                          "No extra protection");
+      break;
+  }
+
+  // Not a fallback, so not degraded: the rule is what keeps the profile
+  // openable elsewhere. It is still the answer to a question the settings page
+  // raises by greying the option out and then not explaining itself.
+  if (!allows_keychain) {
+    return {value,
+            QCoreApplication::translate(
+                "GpgFrontend::UI::AboutStatusInfo",
+                "This profile can leave this computer, so the system keychain "
+                "is not offered: a key sealed with one computer's keychain "
+                "cannot be opened on another."),
             false};
   }
 
-  return {
-      QCoreApplication::translate("GpgFrontend::UI::AboutStatusInfo",
-                                  "This computer's GnuPG keyring"),
-      kind == ProfileKind::kPACKAGED
-          ? QCoreApplication::translate("GpgFrontend::UI::AboutStatusInfo",
-                                        "The package carries none of its own.")
-          : QString(),
-      false};
+  return {value, {}, false};
 }
 
 auto ShowsDetailInline(const QString& detail, bool degraded) -> bool {

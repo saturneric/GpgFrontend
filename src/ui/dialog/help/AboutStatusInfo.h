@@ -29,7 +29,9 @@
 #pragma once
 
 #include "core/profile/Profile.h"
+#include "core/profile/ProfileSecureKeyManager.h"
 #include "core/typedef/GFTypedef.h"
+#include "ui/widgets/MetaListPanel.h"
 
 namespace GpgFrontend::UI {
 
@@ -69,20 +71,36 @@ auto GF_UI_EXPORT DescribeSessionStorage(bool is_volatile,
     -> AboutStatusValue;
 
 /**
- * @brief Describe which keyring the window in front of the user is showing.
+ * @brief The profile's name and shape, as one row or two.
  *
- * Not the credential store, which the Application Status card reports on its
- * own. For a session opened from a package the distinction matters more than
- * anywhere else: a package exported from a profile whose keys lived outside it
- * carries no keys at all, so the window is showing this computer's, not the
- * ones the sender meant to hand over. That earns a sentence of its own rather
- * than being left to be inferred from two words.
+ * A root profile has no name of its own, so CurrentProfileDisplayName() answers
+ * with its kind -- and the tab then printed that same word twice, once as the
+ * name and once as the type. Where the two would say the same thing there is
+ * one row, and what the second would have said becomes its sentence.
  *
- * @param self_contained whether the profile keeps its keys to itself
  * @param kind what sort of profile the session resolved to
- * @return value and detail for the keys row
+ * @param display_name what to call it, from CurrentProfileDisplayName()
+ * @param transient whether its storage is deleted when the window closes
+ * @return one row for a root profile, two for a profile with a name
  */
-auto GF_UI_EXPORT DescribeKeySource(bool self_contained, ProfileKind kind)
+auto GF_UI_EXPORT BuildProfileIdentityRows(ProfileKind kind,
+                                           const QString& display_name,
+                                           bool transient)
+    -> QVector<MetaListRow>;
+
+/**
+ * @brief Describe what protects the application key, and why it is that.
+ *
+ * The value alone cannot say why the keychain is not in use. Anything that can
+ * leave this computer has the choice made for it, the settings page greys it
+ * out, and nothing anywhere says what the user is looking at.
+ *
+ * @param protection the protection in effect, from AppKeyProtectionFromApp()
+ * @param allows_keychain whether this profile may use the credential store
+ * @return value and detail for the protection row
+ */
+auto GF_UI_EXPORT DescribeAppKeyProtection(AppKeyProtection protection,
+                                           bool allows_keychain)
     -> AboutStatusValue;
 
 /**

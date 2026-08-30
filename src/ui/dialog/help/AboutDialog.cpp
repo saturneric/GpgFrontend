@@ -458,35 +458,23 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   // why, and the loader's reason rides along untranslated and selectable so it
   // can be pasted into a bug report exactly as it was produced.
   auto* secret_store = GetSystemSecretStore();
-  const auto keys =
-      DescribeKeySource(profile.Policy().self_contained, profile.Kind());
 
-  glance.append({.caption = tr("Profile:"),
-                 .value = CurrentProfileDisplayName(),
-                 .emphasis = true});
-  // Its own row rather than a hover on the one above: which kind of profile
-  // this is decides where everything in it lives, and it is two words.
-  glance.append({.caption = tr("Profile Type:"),
-                 .value = ProfileKindDisplayName(profile.Kind())});
-  glance.append({.caption = tr("Keys:"),
-                 .value = keys.value,
-                 .detail = keys.degraded ? QString() : keys.detail});
+  // Nothing here reports the key databases. There is a settings page whose
+  // whole subject they are, and a second, shorter account of them on a tab the
+  // user reaches from a different menu is how the two come to disagree.
+  const auto protection = DescribeAppKeyProtection(
+      ProfileLoader::AppKeyProtectionFromApp(), profile.AllowsSystemKeychain());
+
+  // One row or two, decided by whether the profile has a name of its own: a
+  // root profile is named after its kind, and a type row under it printed that
+  // same word a second time.
+  glance.append(BuildProfileIdentityRows(
+      profile.Kind(), CurrentProfileDisplayName(), profile.IsTransient()));
   glance.append({.caption = tr("Application Key Protection:"),
-                 .value = AppKeyProtectionDisplayName(
-                     ProfileLoader::AppKeyProtectionFromApp())});
+                 .value = protection.value,
+                 .detail = protection.detail});
   glance.append({.caption = tr("Secure Level:"),
                  .value = SecureLevelDisplayName(secure_level)});
-
-  // A degraded reading is the whole reason somebody opens this tab, so it is
-  // lifted out of the card it belongs to and shown on its own. Nothing is lost
-  // by the move: the row says what it always said, in the one place it is not
-  // competing with fifteen readings that are simply fine.
-  if (keys.degraded) {
-    attention.append({.caption = tr("Keys:"),
-                      .value = keys.value,
-                      .detail = keys.detail,
-                      .degraded = true});
-  }
 
   if (secret_store == nullptr) {
     attention.append({.caption = tr("System Credential Store:"),
@@ -519,6 +507,12 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
 
   QVector<MetaListRow> profile_rows;
 
+  // The one value that identifies this profile in a bug report, which is what
+  // the footnote at the bottom of this tab invites. A uuid is an unbreakable
+  // token, so it gets the same treatment as a path.
+  profile_rows.append(
+      {.caption = tr("Profile ID:"), .value = profile.Id(), .path = true});
+
   // Only for a session opened from a package, because only there was there a
   // choice to make. DescribeSessionStorage() carries the wording and decides
   // which outcome counts as a fallback.
@@ -549,16 +543,43 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
     }
   }
 
+  // Asked only once the key set is attached: Keys() aborts before that, and
+  // this tab is reachable from a window that opened without one.
+  if (session.KeysLoaded() &&
+      session.Keys().Mode() == ProfileKeyMode::kROTATING) {
+    profile_rows.append(
+        {.caption = tr("Profile Key Rotation:"),
+         .value = tr("On a schedule"),
+         .detail = tr("New saved data uses the current period's key, and the "
+                      "keys that open what earlier periods wrote are kept "
+                      "alongside it.")});
+  }
+
   const auto& marker = session.Marker();
   if (marker.schema_version > 0) {
-    profile_rows.append({.caption = tr("Profile Layout Version:"),
+    // "Layout" was this project's word for it and nobody else's. The number is
+    // a format version, and saying so is the difference between a reader
+    // knowing what it means and guessing.
+    profile_rows.append({.caption = tr("Profile Format Version:"),
                          .value = QString::number(marker.schema_version)});
   }
 
-  // Present only on a profile that came from a package, and worth showing
-  // there: it is the identity that says which document this copy came from.
+  // The file this window is running out of. The status bar has always shown it
+  // and this tab never did, which left the one place that collects everything
+  // for a bug report unable to say which document was open.
+  if (const auto* packaged = dynamic_cast<const PackagedProfile*>(&profile);
+      packaged != nullptr && !packaged->PackagePath().isEmpty()) {
+    profile_rows.append(
+        {.caption = tr("Profile File:"),
+         .value = QDir::toNativeSeparators(packaged->PackagePath()),
+         .path = true});
+  }
+
+  // A different fact from the row above, and previously wearing its caption.
+  // This one is stamped by an *import*, which mints a fresh identity and never
+  // touches the file again; the row above is the file a session is open on.
   if (!marker.package_id.isEmpty()) {
-    profile_rows.append({.caption = tr("Imported From Package:"),
+    profile_rows.append({.caption = tr("Imported From:"),
                          .value = marker.package_id,
                          .path = true});
   }
