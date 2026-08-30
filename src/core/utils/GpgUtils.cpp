@@ -38,6 +38,8 @@
 #include "core/model/KeyDatabaseInfo.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
+#include "core/profile/ProfileAreaTraits.h"
+#include "core/profile/ProfileSession.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
@@ -489,7 +491,7 @@ auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
 namespace {
 
 auto GetKeyDatabasesByAppSandboxScan() -> QContainer<KeyDatabaseItemSO> {
-  auto key_db_list_so = SettingsObject("key_database_list");
+  auto key_db_list_so = SettingsObject(kKeyDatabaseListObject);
   auto stored = KeyDatabaseListSO(key_db_list_so);
 
   auto key_dbs = ReconcileSandboxKeyDatabaseList(
@@ -511,6 +513,32 @@ auto GetKeyDatabasesByAppSandboxScan() -> QContainer<KeyDatabaseItemSO> {
 
 }  // namespace
 
+auto ReanchorKeyDatabasePath(const QString& stored_path,
+                             const QString& profile_root) -> QString {
+  if (profile_root.isEmpty() || stored_path.isEmpty()) return stored_path;
+  if (stored_path.startsWith(QLatin1String(kProfilePathToken))) {
+    return stored_path;
+  }
+
+  // Inside this profile already, just spelled the long way. Tokenising it is
+  // the hygiene an export used to do to the live list behind the user's back.
+  const auto relative =
+      ToProfileRelativeKeyDatabasePath(stored_path, profile_root);
+  if (relative.startsWith(QLatin1String(kProfilePathToken))) return relative;
+
+  if (QFileInfo(stored_path).isDir()) return stored_path;
+
+  const auto tail = ForeignKeyDatabasePathTail(stored_path);
+  if (tail.isEmpty()) return stored_path;
+
+  const auto candidate = QDir::cleanPath(profile_root + "/" + tail);
+  if (!QFileInfo(candidate).isDir()) return stored_path;
+
+  LOG_I() << "re-anchoring a key database path written elsewhere:"
+          << stored_path << "->" << candidate;
+  return QString::fromLatin1(kProfilePathToken) + "/" + tail;
+}
+
 auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
   // In the macOS app sandbox the stored settings paths may not match the
   // databases that actually exist under the fixed dbs/ path, so rebuild the
@@ -519,12 +547,16 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
     return GetKeyDatabasesByAppSandboxScan();
   }
 
-  auto key_db_list_so = SettingsObject("key_database_list");
+  auto key_db_list_so = SettingsObject(kKeyDatabaseListObject);
   auto key_db_list = KeyDatabaseListSO(key_db_list_so);
   auto& key_dbs = key_db_list.key_databases;
 
+  // The root the stored paths are read against. Empty for a profile shape that
+  // has none, and then nothing below re-anchors anything.
+  const auto profile_root = ProfileSession::Instance().Root();
+
   QContainer<KeyDatabaseItemSO> tmp_key_dbs;
-  for (const auto& key_db : key_dbs) {
+  for (auto key_db : key_dbs) {
     LOG_D() << "filtering key database from settings:" << key_db.name
             << ", path:" << key_db.path;
 
@@ -534,6 +566,7 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
       continue;
     }
 
+    key_db.path = ReanchorKeyDatabasePath(key_db.path, profile_root);
     tmp_key_dbs.push_back(key_db);
   }
   key_dbs = std::move(tmp_key_dbs);
@@ -753,6 +786,33 @@ auto FromProfileRelativeKeyDatabasePath(const QString& stored_path,
     return {};
   }
   return resolved;
+}
+
+auto ForeignKeyDatabasePathTail(const QString& stored_path) -> QString {
+  if (stored_path.isEmpty()) return {};
+  if (stored_path.startsWith(QLatin1String(kProfilePathToken))) return {};
+
+  // Both separators, because a Windows path is not absolute to a POSIX build
+  // and QDir::cleanPath() therefore leaves its backslashes alone.
+  static const QRegularExpression kSeparator(R"([/\\])");
+  const auto components = stored_path.split(kSeparator, Qt::SkipEmptyParts);
+  if (components.contains("..")) return {};
+
+  const auto managed = ManagedKeyDatabaseDirs();
+
+  // The last match, not the first: a profile lives under a folder that may
+  // itself be called anything, and only the innermost one can be the key
+  // database directory the profile actually owns.
+  //
+  // The final component counts too. "db" and "rpgp_db" are key databases in
+  // their own right -- the DEFAULT one is exactly that -- and only "dbs" is a
+  // container that needs a name after it. Not special-cased, because the
+  // caller will not act on a tail the local profile does not actually have.
+  for (int i = components.size() - 1; i >= 0; --i) {
+    if (!managed.contains(components.at(i))) continue;
+    return components.mid(i).join('/');
+  }
+  return {};
 }
 
 auto GetCanonicalKeyDatabasePath(const QDir& app_path, const QString& path)

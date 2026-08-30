@@ -153,6 +153,58 @@ auto GF_CORE_EXPORT ToProfileRelativeKeyDatabasePath(
 auto GF_CORE_EXPORT FromProfileRelativeKeyDatabasePath(
     const QString& stored_path, const QString& profile_root) -> QString;
 
+/**
+ * @brief The profile-relative tail of a key database path written elsewhere.
+ *
+ * A stored path from another machine is not something this one can resolve, and
+ * on a different platform it is not even recognisable as absolute: Qt reads
+ * "C:/Users/..." as a relative path on Unix and "/Users/..." as an absolute one
+ * on Windows, so both end up naming a directory that is not there. What is
+ * still readable is the tail — the managed key database directory and whatever
+ * the user called the database — and that tail is exactly what the local
+ * profile holds.
+ *
+ * Only the tail is returned; whether the local profile really has it is the
+ * caller's to check, and must be checked, because this says nothing about
+ * where the path came from.
+ *
+ * Pure. Splits on both separators, since a Windows path reaching a POSIX build
+ * is never cleaned into forward slashes by QDir.
+ *
+ * @param stored_path a key database path as stored, from anywhere
+ * @return e.g. "dbs/Key DB 2", or empty when no component names a managed key
+ * database directory or the path tries to climb out of one
+ */
+auto GF_CORE_EXPORT ForeignKeyDatabasePathTail(const QString& stored_path)
+    -> QString;
+
+/**
+ * @brief Re-anchor a stored key database path to the profile that owns it now.
+ *
+ * Two cases, and both come down to a path written against a root that is no
+ * longer the root. A profile that was moved, copied or unpacked somewhere else
+ * keeps naming where it used to be; a profile that arrived in a package names
+ * the sender's computer, on the sender's operating system, which the receiving
+ * one cannot even recognise as absolute. Either way the keys are sitting in the
+ * profile, under the name the user gave them, and only the prefix is wrong.
+ *
+ * Rewritten to the `@profile/` token rather than to today's absolute path, so
+ * the next move needs no repair at all.
+ *
+ * Deliberately narrow: the recovery fires only when the stored path is not
+ * there *and* the profile has the directory it names. A key database on a
+ * volume that happens to be unmounted this morning keeps pointing at its
+ * volume, and a database the user put somewhere by hand is never invented a
+ * profile-local location for.
+ *
+ * @param stored_path the value from settings
+ * @param profile_root the profile that is open, empty to leave it alone
+ * @return the profile-relative form, or @p stored_path unchanged
+ */
+auto GF_CORE_EXPORT ReanchorKeyDatabasePath(const QString& stored_path,
+                                            const QString& profile_root)
+    -> QString;
+
 auto GF_CORE_EXPORT GetCanonicalKeyDatabasePath(const QDir& app_path,
                                                 const QString& path) -> QString;
 
