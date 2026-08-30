@@ -271,6 +271,12 @@ auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo> {
         "core", grt_key_prefix + ".database_name", QString{});
     auto database_path = Module::RetrieveRTValueTypedOrDefault(
         "core", grt_key_prefix + ".database_path", QString{});
+    // Published by OpenPGPContext::Initialize() alongside the other three and
+    // never read back until now, which left every caller to re-derive the
+    // engine by constructing a context -- and constructing one for a channel
+    // that has none lazily creates a placeholder that reports GnuPG.
+    auto backend_type = Module::RetrieveRTValueTypedOrDefault(
+        "core", grt_key_prefix + ".backend_type", QString{});
 
     LOG_D() << "context grt channel: " << channel
             << "GRT key prefix: " << grt_key_prefix
@@ -291,6 +297,7 @@ auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo> {
     i.channel = channel;
     i.name = database_name;
     i.path = database_path;
+    i.backend_type = backend_type;
     gpg_key_database_info_cache[channel] = i;
   }
 
