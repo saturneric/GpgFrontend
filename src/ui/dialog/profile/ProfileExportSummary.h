@@ -124,9 +124,10 @@ struct ProfileExportReadiness {
  *
  * Running short of disk is reported but never blocks. The estimate sums the
  * areas uncompressed while the payload is gzip'd, so "too tight" very often
- * still fits — and the packing has its own refusal, in
- * ProfilePackagePayloadCap(), which is where a real one belongs. This is a
- * courtesy ahead of that, and reads like one.
+ * still fits, and the packing itself has no size limit to fail against: a
+ * streamed body is never held whole, so an export that genuinely cannot fit
+ * fails on the write, where the real refusal belongs. This is a courtesy ahead
+ * of that, and reads like one.
  *
  * @param choice what has been chosen
  * @return whether to enable the button, and what to warn about

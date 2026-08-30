@@ -567,8 +567,9 @@ void KeyDatabasesTab::slot_toggle_default_key_database(bool checked) {
   }
 
   // Turning it off has to leave something behind. An empty list is not a state
-  // the program has: GetKeyDatabasesBySettings() puts the default one back, so
-  // the checkbox would come back on by itself at the next start.
+  // the program has: ReconcileKeyDatabaseList() seeds the default one back
+  // whenever nothing survives, so the checkbox would come back on by itself at
+  // the next start.
   if (total_count() <= 1) {
     QMessageBox::warning(
         this, tr("Key Database Required"),
