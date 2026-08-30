@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/GFCoreRust.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/model/GpgAbstractKey.h"
@@ -239,6 +241,138 @@ NormalizeKeyDatabaseChannels(QContainer<KeyDatabaseItemSO>& key_dbs);
 auto GF_CORE_EXPORT AdoptLocalDefaultKeyDatabase(
     const QContainer<KeyDatabaseItemSO>& databases, const QString& local_path,
     const QString& local_backend) -> QContainer<KeyDatabaseItemSO>;
+
+/**
+ * @brief Which of the three kinds a stored entry is.
+ *
+ * The reserved name decides first and on its own: the DEFAULT database is an
+ * identity rather than a location, and AdoptLocalDefaultKeyDatabase() re-points
+ * it at this computer's keyring on every read, so whatever path is stored for
+ * it says nothing about what it is.
+ *
+ * Everything else is decided by where it lives. The path is tokenised against
+ * the root first, so a database recorded the long way round is recognised as
+ * the same thing as one recorded as `@profile/...` -- they are the same
+ * directory, and which spelling reached the settings file is an accident of
+ * which build wrote it. What remains is asked of IsManagedKeyDatabasePath(),
+ * the one list that says which directories a package carries, so this cannot
+ * drift from what RewriteKeyDatabaseListForPacking() actually packs.
+ *
+ * A path inside the profile but outside those directories -- under `workspace`,
+ * say -- is external, and deliberately so: the package would not carry it, and
+ * calling it managed here would promise a recipient a keyring that never
+ * shipped.
+ *
+ * @param name the database's name
+ * @param stored_path its path as stored, absolute or `@profile/...`
+ * @param profile_root the root stored paths are read against
+ * @return the kind it belongs to
+ */
+auto GF_CORE_EXPORT ClassifyKeyDatabase(const QString& name,
+                                        const QString& stored_path,
+                                        const QString& profile_root)
+    -> KeyDatabaseKind;
+
+/**
+ * @brief Settle the kind of every entry that does not already carry one.
+ *
+ * The kind is recorded with the database from now on, because it is a statement
+ * of what the user meant rather than a fact about where a directory currently
+ * sits. A path can be re-anchored, moved, or arrive from another machine; what
+ * the database *is* should survive all of that, and a package deciding what to
+ * carry should be reading an intention rather than re-guessing one.
+ *
+ * An entry from a build before the field existed has none, and there is exactly
+ * one honest thing to do with it: derive it from the path, which is what every
+ * one of those builds did. That happens here, once, so no caller has to know
+ * about the two vintages.
+ *
+ * The reserved name overrides whatever is recorded. Only one thing may answer
+ * to it, and the code that acts on that -- DropDuplicateDefaultKeyDatabases(),
+ * AdoptLocalDefaultKeyDatabase(), ChooseChannelZeroEngine() -- all go by the
+ * name. A stored kind disagreeing with the name would split that agreement.
+ *
+ * Pure, and idempotent.
+ *
+ * @param databases the stored list
+ * @param profile_root root to derive a missing kind against
+ * @return the list with every kind settled, order preserved
+ */
+auto GF_CORE_EXPORT ResolveKeyDatabaseKinds(
+    const QContainer<KeyDatabaseItemSO>& databases, const QString& profile_root)
+    -> QContainer<KeyDatabaseItemSO>;
+
+/**
+ * @brief Where a managed key database of this name lives.
+ *
+ * The one place `<app-data>/dbs/<name>` is spelled. It was written out at each
+ * site that needed it, which is how the dialog came to build the folder from
+ * the trimmed name while storing the untrimmed one.
+ *
+ * The name is trimmed here rather than at the callers, so the folder a rename
+ * moves to and the folder an add creates cannot disagree.
+ *
+ * @param app_data_path the profile's data directory
+ * @param name the database name as typed
+ * @return the directory that name denotes, empty when either input is empty
+ */
+auto GF_CORE_EXPORT ManagedKeyDatabasePath(const QString& app_data_path,
+                                           const QString& name) -> QString;
+
+/**
+ * @brief Assemble the stored list from the three kinds, in the fixed order.
+ *
+ * DEFAULT first, then the managed databases, then the external ones, numbered
+ * from zero as they land. The order is a rule rather than something the user
+ * arranges, because channel 0 is not merely first: it is built synchronously at
+ * startup, it is what the key list opens on, and `basic/default_engine` is a
+ * statement about the DEFAULT database specifically. Letting an external
+ * database drift into that position is how an engine setting meant for one
+ * database came to be applied to another.
+ *
+ * Within each group the caller's order is kept -- that part is the user's.
+ *
+ * Pure, so the whole ordering rule can be tested without a settings file.
+ *
+ * @param default_db the DEFAULT database, absent when the user turned it off
+ * @param managed the profile's own databases, in the order they should appear
+ * @param external this computer's databases, in the order they should appear
+ * @return one list, channels 0..n-1 in that order
+ */
+auto GF_CORE_EXPORT
+ComposeKeyDatabaseList(const std::optional<KeyDatabaseItemSO>& default_db,
+                       const QContainer<KeyDatabaseItemSO>& managed,
+                       const QContainer<KeyDatabaseItemSO>& external)
+    -> QContainer<KeyDatabaseItemSO>;
+
+/// What renaming a managed database should do to its directory.
+enum class ManagedRenameAction {
+  kRENAME,           ///< move the directory to the new name
+  kNOTHING_TO_MOVE,  ///< no directory there yet; the entry alone changes
+  kTARGET_TAKEN,     ///< something already occupies the new name; refuse
+};
+
+/**
+ * @brief Decide what a managed rename does on disk, before doing any of it.
+ *
+ * A managed database's name *is* its directory name -- the sandbox rescan reads
+ * the list back out of the filesystem, so an entry whose name and folder
+ * disagree is an entry that gets silently reverted. Renaming therefore has to
+ * move the directory, and the interesting cases are the ones where it must not.
+ *
+ * kTARGET_TAKEN rather than a merge or an overwrite: whatever is already there
+ * is a keyring, and the only safe thing to do with somebody's keyring is
+ * nothing.
+ *
+ * Split out as a pure decision, like DecideKeyDatabasePathAction(), so the rule
+ * is testable without a filesystem and the caller is left with the doing.
+ *
+ * @param old_exists the current directory is there
+ * @param new_exists something already occupies the new directory
+ * @return what the caller should do
+ */
+auto GF_CORE_EXPORT DecideManagedRename(bool old_exists, bool new_exists)
+    -> ManagedRenameAction;
 
 /**
  * @brief Record an absolute key database path relative to its profile.

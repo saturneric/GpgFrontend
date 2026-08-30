@@ -654,6 +654,22 @@ auto RewriteKeyDatabaseListForPacking(
   out.reserve(databases.size());
 
   for (auto item : databases) {
+    // What the user said this database is, which is the first and cheapest
+    // reason to leave it behind. A database marked as belonging to this
+    // computer -- the DEFAULT one, or one the user pointed at themselves -- is
+    // not a thing whose absence the recipient has to be told about; they have
+    // their own. Checked before the path, because it is a statement of intent
+    // and the path is only evidence.
+    //
+    // It cannot admit anything the path checks below would refuse: those still
+    // run, so a kind recorded as managed on a path that is not still drops out.
+    if (item.kind && *item.kind != KeyDatabaseKind::kMANAGED) {
+      LOG_I() << "key database belongs to this computer, not carried:"
+              << item.name
+              << "kind:" << ConvertKeyDatabaseKind2String(*item.kind);
+      continue;
+    }
+
     const auto rewritten =
         ToProfileRelativeKeyDatabasePath(item.path, profile_root);
 

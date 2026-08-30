@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/model/KeyDatabaseInfo.h"
 
 namespace GpgFrontend {
@@ -39,6 +41,11 @@ struct KeyDatabaseItemSO {
                     ///< indeterminate -- it feeds channel normalization
   QString backend_type;
 
+  /// What this database is, and so whether a package may carry it. Empty for an
+  /// entry written before the field existed; ResolveKeyDatabaseKinds() fills
+  /// those in from the path, which is what every earlier build inferred.
+  std::optional<KeyDatabaseKind> kind;
+
   KeyDatabaseItemSO() = default;
 
   explicit KeyDatabaseItemSO(KeyDatabaseInfo i) {
@@ -46,6 +53,7 @@ struct KeyDatabaseItemSO {
     path = i.origin_path.isEmpty() ? i.path : i.origin_path;
     channel = i.channel;
     backend_type = i.backend_type;
+    kind = i.kind;
   }
 
   explicit KeyDatabaseItemSO(const QJsonObject& j) {
@@ -61,6 +69,9 @@ struct KeyDatabaseItemSO {
     if (const auto v = j["backend_type"]; v.isString()) {
       backend_type = v.toString();
     }
+    if (const auto v = j["kind"]; v.isString()) {
+      kind = ConvertString2KeyDatabaseKind(v.toString());
+    }
   }
 
   [[nodiscard]] auto ToJson() const -> QJsonObject {
@@ -69,6 +80,11 @@ struct KeyDatabaseItemSO {
     j["path"] = path;
     j["channel"] = channel;
     j["backend_type"] = backend_type;
+
+    // Omitted rather than written as a placeholder when it is not yet settled:
+    // a "kind" key that is present but meaningless is one an older reader and a
+    // newer one would disagree about.
+    if (kind) j["kind"] = ConvertKeyDatabaseKind2String(*kind);
     return j;
   }
 };

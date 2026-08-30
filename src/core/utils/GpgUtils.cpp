@@ -283,6 +283,17 @@ auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo> {
             << "GRT key prefix: " << grt_key_prefix
             << "database name: " << database_name;
 
+    // Indexed by channel rather than by loop position, because the caller asks
+    // by channel. That only lines up while the channels are the contiguous run
+    // GFCoreInit builds; a channel outside it would be written past the end of
+    // the list, and a torn KeyDatabaseInfo is read as a QString whose pointer
+    // is whatever was there -- a crash a long way from the cause.
+    if (channel < 0 || channel >= gpg_key_database_info_cache.size()) {
+      LOG_W() << "context reports a channel outside the context list, skip:"
+              << channel << "database name:" << database_name;
+      continue;
+    }
+
     auto i = KeyDatabaseInfo();
     i.channel = channel;
     i.name = database_name;
@@ -317,6 +328,7 @@ auto DefaultKeyDatabaseCandidate() -> KeyDatabaseItemSO {
   KeyDatabaseItemSO key_db;
   key_db.channel = 0;
   key_db.name = QLatin1String(kDefaultKeyDatabaseName);
+  key_db.kind = KeyDatabaseKind::kDEFAULT;
   key_db.backend_type = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)
                             ? QString("gnupg")
                             : QString("rpgp");
@@ -428,6 +440,9 @@ auto ScanSandboxKeyDatabaseDir() -> QContainer<KeyDatabaseItemSO> {
     KeyDatabaseItemSO key_db;
     key_db.name = entry.fileName();
     key_db.path = entry.absoluteFilePath();
+    // Scanned out of the profile's own dbs/ directory, so managed by
+    // construction -- there is nowhere else a sandbox database can be.
+    key_db.kind = KeyDatabaseKind::kMANAGED;
     LOG_I() << "discovered sandbox key database:" << key_db.name
             << "path:" << key_db.path;
     discovered.append(key_db);
@@ -473,6 +488,7 @@ auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
     default_db.backend_type = pick_default_backend();
   }
   default_db.channel = 0;
+  default_db.kind = KeyDatabaseKind::kDEFAULT;
   key_dbs.append(default_db);
 
   int next_channel = 1;
@@ -590,6 +606,12 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
   key_db_list.key_databases = AdoptLocalDefaultKeyDatabase(
       key_db_list.key_databases, local_default.path,
       local_default.backend_type);
+
+  // What each database is, settled once here so nothing below has to guess it
+  // from a path. An entry from a build before the field existed gets its kind
+  // derived the way those builds inferred it.
+  key_db_list.key_databases = ResolveKeyDatabaseKinds(
+      key_db_list.key_databases, GetGSS().GetAppDataPath());
 
   auto& key_dbs = key_db_list.key_databases;
 
@@ -938,6 +960,7 @@ auto MakeDefaultKeyDatabaseInfo() -> KeyDatabaseInfo {
   info.origin_path = item.path;
   info.channel = 0;
   info.valid = !fs_path.isEmpty();
+  info.kind = KeyDatabaseKind::kDEFAULT;
   return info;
 }
 
@@ -966,6 +989,7 @@ auto GetAllKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
     key_db_info.path = key_database_fs_path;
     key_db_info.origin_path = key_database.path;
     key_db_info.valid = !key_database_fs_path.isEmpty();
+    key_db_info.kind = key_database.kind.value_or(KeyDatabaseKind::kEXTERNAL);
     key_db_infos.append(key_db_info);
 
     LOG_D() << "plan to load gpg key database at:" << key_database_fs_path;
@@ -1289,10 +1313,105 @@ auto ChooseChannelZeroEngine(const QString& db_name,
                              const QString& default_engine,
                              bool gnupg_supported, bool rpgp_supported)
     -> EngineChoice {
-  const auto is_default = db_name == QLatin1String(kDefaultKeyDatabaseName);
+  // The reserved-name rule, not string equality: every other site that asks
+  // "is this the default one" trims and ignores case, and a channel-0 entry
+  // spelled "default" would otherwise be handed the wrong engine.
+  const auto is_default = IsReservedKeyDatabaseName(db_name);
   return ChooseKeyDatabaseEngine(is_default ? default_engine : backend_type,
                                  default_engine, gnupg_supported,
                                  rpgp_supported);
+}
+
+auto ClassifyKeyDatabase(const QString& name, const QString& stored_path,
+                         const QString& profile_root) -> KeyDatabaseKind {
+  // The name settles it on its own. The DEFAULT database is an identity rather
+  // than a location, and its stored path is replaced on every read, so asking
+  // where it sits would be asking about a value nothing depends on.
+  if (IsReservedKeyDatabaseName(name)) return KeyDatabaseKind::kDEFAULT;
+
+  if (stored_path.isEmpty() || profile_root.isEmpty()) {
+    return KeyDatabaseKind::kEXTERNAL;
+  }
+
+  // Tokenised first so the long spelling and the `@profile` one are recognised
+  // as the same directory; which of them is in the settings file is an accident
+  // of which build wrote it.
+  const auto relative =
+      ToProfileRelativeKeyDatabasePath(stored_path, profile_root);
+  if (!relative.startsWith(QLatin1String(kProfilePathToken) + "/")) {
+    return KeyDatabaseKind::kEXTERNAL;
+  }
+
+  const auto tail =
+      relative.mid(static_cast<int>(qstrlen(kProfilePathToken)) + 1);
+  return IsManagedKeyDatabasePath(tail) ? KeyDatabaseKind::kMANAGED
+                                        : KeyDatabaseKind::kEXTERNAL;
+}
+
+auto ResolveKeyDatabaseKinds(const QContainer<KeyDatabaseItemSO>& databases,
+                             const QString& profile_root)
+    -> QContainer<KeyDatabaseItemSO> {
+  QContainer<KeyDatabaseItemSO> out;
+  out.reserve(databases.size());
+
+  for (auto item : databases) {
+    // The name wins over anything recorded. Every other rule about the default
+    // database goes by the name, and a kind that disagreed with it would put
+    // this one check out of step with all of them.
+    if (IsReservedKeyDatabaseName(item.name)) {
+      item.kind = KeyDatabaseKind::kDEFAULT;
+      out.push_back(item);
+      continue;
+    }
+
+    if (!item.kind) {
+      item.kind = ClassifyKeyDatabase(item.name, item.path, profile_root);
+      LOG_D() << "settled the kind of an untyped key database:" << item.name
+              << "->" << ConvertKeyDatabaseKind2String(*item.kind);
+    } else if (*item.kind == KeyDatabaseKind::kDEFAULT) {
+      // Recorded as the default one while not wearing the reserved name. It
+      // cannot be: the name is the identity, and only one thing holds it.
+      item.kind = ClassifyKeyDatabase(item.name, item.path, profile_root);
+    }
+
+    out.push_back(item);
+  }
+  return out;
+}
+
+auto ManagedKeyDatabasePath(const QString& app_data_path, const QString& name)
+    -> QString {
+  const auto trimmed = name.trimmed();
+  if (app_data_path.isEmpty() || trimmed.isEmpty()) return {};
+
+  return QDir::cleanPath(app_data_path + "/dbs/" + trimmed);
+}
+
+auto ComposeKeyDatabaseList(const std::optional<KeyDatabaseItemSO>& default_db,
+                            const QContainer<KeyDatabaseItemSO>& managed,
+                            const QContainer<KeyDatabaseItemSO>& external)
+    -> QContainer<KeyDatabaseItemSO> {
+  QContainer<KeyDatabaseItemSO> out;
+  out.reserve((default_db ? 1 : 0) + managed.size() + external.size());
+
+  if (default_db) out.push_back(*default_db);
+  for (const auto& item : managed) out.push_back(item);
+  for (const auto& item : external) out.push_back(item);
+
+  // Numbered here rather than left to NormalizeKeyDatabaseChannels(): the order
+  // is the whole point of this function, and handing the normaliser a list of
+  // entries carrying stale channels would let it reorder what was just
+  // arranged.
+  for (int i = 0; i < out.size(); ++i) out[i].channel = i;
+
+  return out;
+}
+
+auto DecideManagedRename(bool old_exists, bool new_exists)
+    -> ManagedRenameAction {
+  if (new_exists) return ManagedRenameAction::kTARGET_TAKEN;
+  return old_exists ? ManagedRenameAction::kRENAME
+                    : ManagedRenameAction::kNOTHING_TO_MOVE;
 }
 
 auto ConvertComponentType2String(GpgComponentType type) -> QString {
