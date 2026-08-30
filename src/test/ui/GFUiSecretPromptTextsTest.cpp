@@ -42,12 +42,11 @@ using UI::SecretPromptSubject;
 using UI::SecretPromptTexts;
 
 auto AppKey(SecretPromptMode mode) -> SecretPromptTexts {
-  return DefaultSecretPromptTexts(SecretPromptSubject::kAppKey, mode, {});
+  return DefaultSecretPromptTexts(SecretPromptSubject::kAppKey, mode);
 }
 
 auto Package(SecretPromptMode mode) -> SecretPromptTexts {
-  return DefaultSecretPromptTexts(SecretPromptSubject::kProfilePackage, mode,
-                                  "work.gfp");
+  return DefaultSecretPromptTexts(SecretPromptSubject::kProfilePackage, mode);
 }
 
 constexpr std::array kAllModes = {
@@ -92,22 +91,44 @@ TEST(SecretPromptTextsTest, OnlyPromptsThatChooseASecretWarn) {
   EXPECT_TRUE(AppKey(SecretPromptMode::kUNLOCK).warning.isEmpty());
 }
 
-TEST(SecretPromptTextsTest, TheApplicationKeyPromptsNameNoFile) {
-  // The context row is new. Leaving it empty for every application-key mode is
-  // what guarantees it cannot appear in the three prompts that already existed.
+TEST(SecretPromptTextsTest, NoPromptNamesAFileByItself) {
+  // What a prompt is about is a list of rows a caller builds from
+  // BuildProfilePackageRows(), never a string this table invents. Two
+  // descriptions of one file are two descriptions that can disagree, and the
+  // application-key prompts are about no file at all.
   for (const auto mode : kAllModes) {
-    const auto texts = AppKey(mode);
-    EXPECT_TRUE(texts.context.isEmpty());
-    EXPECT_TRUE(texts.context_caption.isEmpty());
-    EXPECT_TRUE(texts.context_note.isEmpty());
+    EXPECT_TRUE(AppKey(mode).context_rows.isEmpty());
+    EXPECT_TRUE(Package(mode).context_rows.isEmpty());
   }
 }
 
-TEST(SecretPromptTextsTest, ThePackagePromptsNameTheFile) {
+TEST(SecretPromptTextsTest, NoPromptSaysTheSameThingTwice) {
+  // The reason this prompt was rebuilt: it once said "nothing can be read until
+  // the passphrase opens it" in the subtitle, again in the hint, and a third
+  // time in the header note, and three ways of saying one thing is how the
+  // sentence that matters stops being read. Each row that survives has to say
+  // something the others do not.
   for (const auto mode : kAllModes) {
     const auto texts = Package(mode);
-    EXPECT_EQ(texts.context, "work.gfp");
-    EXPECT_FALSE(texts.context_caption.isEmpty());
+    for (const auto& other : {texts.hint, texts.warning}) {
+      if (other.isEmpty()) continue;
+      EXPECT_NE(texts.subtitle, other);
+    }
+  }
+}
+
+TEST(SecretPromptTextsTest, EveryPromptLineIsShortEnoughToRead) {
+  // These are single wrapped lines in a 470 pixel dialog, above the field the
+  // user came here to type in. A sentence that wraps three times is one nobody
+  // finishes.
+  for (const auto subject :
+       {SecretPromptSubject::kAppKey, SecretPromptSubject::kProfilePackage}) {
+    for (const auto mode : kAllModes) {
+      const auto texts = DefaultSecretPromptTexts(subject, mode);
+      EXPECT_LT(texts.subtitle.size(), 120) << texts.subtitle.toStdString();
+      EXPECT_LT(texts.hint.size(), 120) << texts.hint.toStdString();
+      EXPECT_LT(texts.warning.size(), 140) << texts.warning.toStdString();
+    }
   }
 }
 
@@ -139,16 +160,23 @@ TEST(SecretPromptTextsTest, EveryStringAPromptWillRenderIsPopulated) {
   for (const auto subject :
        {SecretPromptSubject::kAppKey, SecretPromptSubject::kProfilePackage}) {
     for (const auto mode : kAllModes) {
-      const auto texts = DefaultSecretPromptTexts(subject, mode, "work.gfp");
+      const auto texts = DefaultSecretPromptTexts(subject, mode);
 
       EXPECT_FALSE(texts.window_title.isEmpty());
       EXPECT_FALSE(texts.subtitle.isEmpty());
       EXPECT_FALSE(texts.accept_button.isEmpty());
       EXPECT_FALSE(texts.reveal_label.isEmpty());
-      EXPECT_FALSE(texts.hint.isEmpty());
       EXPECT_FALSE(texts.strength_caption.isEmpty());
       EXPECT_FALSE(texts.mismatch_message.isEmpty());
       EXPECT_FALSE(texts.too_short_message.isEmpty());
+
+      // The hint is the one line a prompt is allowed to leave out: the row it
+      // fills is always there for error messages, and a prompt with nothing
+      // left to add should add nothing. Every prompt that chooses a secret
+      // still has something to say about the choice.
+      if (mode != SecretPromptMode::kUNLOCK) {
+        EXPECT_FALSE(texts.hint.isEmpty());
+      }
 
       if (mode != SecretPromptMode::kSET) {
         EXPECT_FALSE(texts.current_label.isEmpty());
@@ -167,7 +195,7 @@ TEST(SecretPromptTextsTest, TheFloorAppearsInItsOwnMessage) {
   for (const auto subject :
        {SecretPromptSubject::kAppKey, SecretPromptSubject::kProfilePackage}) {
     const auto texts =
-        DefaultSecretPromptTexts(subject, SecretPromptMode::kSET, {});
+        DefaultSecretPromptTexts(subject, SecretPromptMode::kSET);
     EXPECT_TRUE(texts.too_short_message.contains("%1"));
     EXPECT_TRUE(texts.too_short_message.arg(12).contains("12"));
   }
@@ -179,7 +207,7 @@ TEST(SecretPromptTextsTest, TheFloorIsEightUnlessACallerLowersIt) {
   for (const auto subject :
        {SecretPromptSubject::kAppKey, SecretPromptSubject::kProfilePackage}) {
     for (const auto mode : kAllModes) {
-      EXPECT_EQ(DefaultSecretPromptTexts(subject, mode, {}).min_length,
+      EXPECT_EQ(DefaultSecretPromptTexts(subject, mode).min_length,
                 kMinSecretLength);
     }
   }

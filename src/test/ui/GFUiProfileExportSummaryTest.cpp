@@ -35,6 +35,7 @@ namespace GpgFrontend::Test {
 
 namespace {
 
+using UI::BuildExportProtectionRows;
 using UI::BuildProfileExportContents;
 using UI::DescribeProfileExport;
 using UI::DescribeProfileExportWarning;
@@ -42,6 +43,7 @@ using UI::EvaluateProfileExport;
 using UI::ProfileExportArea;
 using UI::ProfileExportChoice;
 using UI::ProfileExportWarning;
+using UI::ToMetaListRows;
 using UI::TotalProfileExportBytes;
 
 /// Exactly the five keys MeasureProfileAreas() returns, with distinct sizes so
@@ -56,7 +58,6 @@ auto MeasuredAreas() -> QMap<QString, qint64> {
 auto Ready() -> ProfileExportChoice {
   ProfileExportChoice choice;
   choice.has_destination = true;
-  choice.protect_with_passphrase = true;
   choice.passphrase_acceptable = true;
   return choice;
 }
@@ -142,12 +143,9 @@ TEST(ProfileExportSummaryTest, ADestinationIsAlwaysRequired) {
   auto choice = Ready();
   choice.has_destination = false;
 
-  for (const auto protect : {false, true}) {
-    for (const auto acceptable : {false, true}) {
-      choice.protect_with_passphrase = protect;
-      choice.passphrase_acceptable = acceptable;
-      EXPECT_FALSE(EvaluateProfileExport(choice).can_export);
-    }
+  for (const auto acceptable : {false, true}) {
+    choice.passphrase_acceptable = acceptable;
+    EXPECT_FALSE(EvaluateProfileExport(choice).can_export);
   }
 }
 
@@ -160,39 +158,20 @@ TEST(ProfileExportSummaryTest, ProtectedExportWaitsForAnAcceptablePassphrase) {
   EXPECT_TRUE(EvaluateProfileExport(choice).can_export);
 }
 
-TEST(ProfileExportSummaryTest, UnprotectedExportNeedsNoPassphrase) {
-  // Choosing no protection is a deliberate act, and the floor that governs
-  // choosing a passphrase has nothing to say about it.
-  auto choice = Ready();
-  choice.protect_with_passphrase = false;
-  choice.passphrase_acceptable = false;
-
-  EXPECT_TRUE(EvaluateProfileExport(choice).can_export);
-}
-
-TEST(ProfileExportSummaryTest, UnprotectedAlwaysWarnsExactlyOnce) {
-  // The two unprotected warnings say the same thing at different strengths.
-  // Showing both would sound the same alarm twice; showing neither would let
-  // the most dangerous choice in the dialog pass in silence.
-  for (const auto workspace : {false, true}) {
-    auto choice = Ready();
-    choice.protect_with_passphrase = false;
-    choice.include_workspace = workspace;
-
-    const auto warnings = EvaluateProfileExport(choice).warnings;
-    EXPECT_EQ(Contains(warnings, ProfileExportWarning::kUnprotected),
-              !workspace);
-    EXPECT_EQ(
-        Contains(warnings, ProfileExportWarning::kUnprotectedWithWorkspace),
-        workspace);
+TEST(ProfileExportSummaryTest, NoChoiceProducesAnUnprotectedExport) {
+  // A profile file carries the profile's own key, so an unsealed one hands over
+  // everything the profile ever encrypted. The dialog no longer offers that,
+  // and this is what keeps the option from coming back through the rules: there
+  // is no combination of choices that exports without an acceptable passphrase.
+  ProfileExportChoice choice;
+  for (const auto destination : {false, true}) {
+    for (const auto workspace : {false, true}) {
+      choice.has_destination = destination;
+      choice.include_workspace = workspace;
+      choice.passphrase_acceptable = false;
+      EXPECT_FALSE(EvaluateProfileExport(choice).can_export);
+    }
   }
-}
-
-TEST(ProfileExportSummaryTest, AProtectedExportRaisesNoProtectionWarning) {
-  const auto warnings = EvaluateProfileExport(Ready()).warnings;
-  EXPECT_FALSE(Contains(warnings, ProfileExportWarning::kUnprotected));
-  EXPECT_FALSE(
-      Contains(warnings, ProfileExportWarning::kUnprotectedWithWorkspace));
 }
 
 TEST(ProfileExportSummaryTest, SpaceIsOnlyJudgedWhenItIsKnown) {
@@ -231,21 +210,8 @@ TEST(ProfileExportSummaryTest, RunningOutOfRoomDoesNotBlockTheExport) {
   EXPECT_TRUE(Contains(readiness.warnings, ProfileExportWarning::kMayNotFit));
 }
 
-TEST(ProfileExportSummaryTest, WarningsComeMostSevereFirst) {
-  auto choice = Ready();
-  choice.protect_with_passphrase = false;
-  choice.free_bytes = 10;
-  choice.total_bytes = 1000;
-
-  const auto warnings = EvaluateProfileExport(choice).warnings;
-  ASSERT_EQ(warnings.size(), 2);
-  EXPECT_EQ(warnings.front(), ProfileExportWarning::kUnprotected);
-}
-
 TEST(ProfileExportSummaryTest, EveryWarningHasAMessage) {
-  for (const auto warning : {ProfileExportWarning::kUnprotected,
-                             ProfileExportWarning::kUnprotectedWithWorkspace,
-                             ProfileExportWarning::kMayNotFit}) {
+  for (const auto warning : {ProfileExportWarning::kMayNotFit}) {
     EXPECT_FALSE(DescribeProfileExportWarning(warning).isEmpty());
   }
 }
@@ -261,16 +227,15 @@ TEST(ProfileExportSummaryTest, TheSummaryNamesTheDestination) {
   EXPECT_TRUE(DescribeProfileExport(Ready(), "work.gfp").contains("work.gfp"));
 }
 
-TEST(ProfileExportSummaryTest, TheSummarySaysWhetherItIsProtected) {
-  auto unprotected = Ready();
-  unprotected.protect_with_passphrase = false;
+TEST(ProfileExportSummaryTest, TheSummaryIsOneLine) {
+  // It sits immediately above the button, where a paragraph is not read at all.
+  // Everything it used to spell out -- what is inside, what it comes to -- is a
+  // row in the list above it now, and rows can be checked; what is left here is
+  // the act itself.
+  const auto summary = DescribeProfileExport(Ready(), "work.gfp");
 
-  const auto with = DescribeProfileExport(Ready(), "work.gfp");
-  const auto without = DescribeProfileExport(unprotected, "work.gfp");
-
-  EXPECT_FALSE(with.isEmpty());
-  EXPECT_FALSE(without.isEmpty());
-  EXPECT_NE(with, without);
+  EXPECT_FALSE(summary.contains('\n'));
+  EXPECT_LT(summary.size(), 110) << summary.toStdString();
 }
 
 TEST(ProfileExportSummaryTest,
@@ -285,6 +250,71 @@ TEST(ProfileExportSummaryTest,
 
   EXPECT_FALSE(without.contains("workspace", Qt::CaseInsensitive));
   EXPECT_TRUE(with.contains("workspace", Qt::CaseInsensitive));
+}
+
+TEST(ProfileExportSummaryTest, TheContentsRowsEndWithTheTotalAndTheExclusions) {
+  // The dialog holds no wording of its own, so what the list adds up to and
+  // what never travels are decided here, where they can be asserted.
+  const auto rows =
+      ToMetaListRows(BuildProfileExportContents(MeasuredAreas(), true));
+
+  ASSERT_GE(rows.size(), 8);
+  EXPECT_EQ(rows.at(5).kind, UI::MetaRowKind::kRule);
+  EXPECT_EQ(rows.at(6).bytes, 1000 + 2000 + 4000 + 8000 + 16000);
+  EXPECT_TRUE(rows.at(6).emphasis);
+  EXPECT_FALSE(rows.at(7).value.isEmpty());
+  EXPECT_TRUE(rows.at(7).dimmed);
+}
+
+TEST(ProfileExportSummaryTest, TheWorkspaceIsTheOnlyRowAnyoneCanTick) {
+  // The workspace row *is* its checkbox: a checkbox below a list that never
+  // mentions the workspace is how someone ends up unsure whether the list they
+  // just read was the whole story.
+  for (const auto include : {false, true}) {
+    const auto rows =
+        ToMetaListRows(BuildProfileExportContents(MeasuredAreas(), include));
+
+    int checkable = 0;
+    for (const auto& row : rows) {
+      if (!row.checkable) continue;
+      ++checkable;
+      EXPECT_EQ(row.checked, include);
+    }
+    EXPECT_EQ(checkable, 1);
+  }
+}
+
+TEST(ProfileExportSummaryTest, ARowCarryingNothingIsDimmed) {
+  // Rows at equal weight make the reader work out which ones matter. An area
+  // that is empty, and one that was left out, are both nothing to carry.
+  const auto rows = ToMetaListRows(BuildProfileExportContents(
+      {{"config", 1000}, {"workspace", 16000}}, false));
+
+  EXPECT_FALSE(rows.at(0).dimmed);  // settings, 1000 bytes
+  EXPECT_TRUE(rows.at(1).dimmed);   // saved state, measured nothing
+  EXPECT_TRUE(rows.at(4).dimmed);   // workspace, left out
+}
+
+TEST(ProfileExportSummaryTest, TheProtectionRowsNameTheMechanism) {
+  // Named rather than asserted: someone who knows what these are can check the
+  // claim, and someone who does not still reads a specific mechanism rather
+  // than a reassurance.
+  const auto rows = BuildExportProtectionRows();
+  ASSERT_FALSE(rows.isEmpty());
+
+  QStringList values;
+  for (const auto& row : rows) {
+    EXPECT_FALSE(row.caption.isEmpty());
+    values << row.value;
+  }
+
+  const auto all = values.join(" ");
+  EXPECT_TRUE(all.contains("XChaCha20-Poly1305"));
+  EXPECT_TRUE(all.contains("Argon2id"));
+  // The keychain is named because its absence is the surprising part: a package
+  // has to open on a computer this one's keychain knows nothing about.
+  EXPECT_TRUE(all.contains("keychain", Qt::CaseInsensitive) ||
+              all.contains("computer", Qt::CaseInsensitive));
 }
 
 }  // namespace GpgFrontend::Test
