@@ -657,10 +657,21 @@ auto RewriteKeyDatabaseListForPacking(
     const auto rewritten =
         ToProfileRelativeKeyDatabasePath(item.path, profile_root);
 
-    // Not under the profile at all: it stays absolute and is marked external,
-    // which is the case this has always handled.
+    // Not under the profile at all, so the package cannot carry it and the
+    // reference is worthless on the machine it lands on. Dropped, for the same
+    // reason a hand-placed one is: an absolute path from another computer does
+    // not merely fail to resolve, it fails *differently* on each platform.
+    // Qt reads "C:/Users/..." as relative on Unix and "/Users/..." as absolute
+    // on Windows, so one becomes a directory invented under the executable and
+    // the other a database that is simply missing -- and a database that goes
+    // missing shifts every one after it up a channel, which is how an rPGP
+    // keyring came to be opened with GnuPG. The recipient deriving their own
+    // DEFAULT is the right answer and the only portable one.
+    //
+    // It also keeps the sender's absolute path, usually including their
+    // username, out of a file meant for somebody else.
     if (rewritten.isEmpty() || !rewritten.startsWith(kProfilePathToken)) {
-      out.push_back(item);
+      LOG_I() << "key database outside the profile, not carried:" << item.name;
       continue;
     }
 
@@ -670,9 +681,6 @@ auto RewriteKeyDatabaseListForPacking(
     // resolution creates a missing key database directory rather than
     // complaining, leaving them a keyring with no keys and no error.
     //
-    // Dropped outright rather than marked external: keeping it would also put
-    // the sender's absolute path, usually including their username, inside a
-    // file meant for somebody else.
     const auto relative =
         rewritten.mid(static_cast<int>(qstrlen(kProfilePathToken))).mid(1);
     if (!IsManagedKeyDatabasePath(relative)) {

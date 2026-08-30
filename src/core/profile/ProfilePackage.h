@@ -268,19 +268,31 @@ auto GF_CORE_EXPORT CheckPackageHeaderAgainstManifest(
     const ProfilePackageManifest &manifest) -> QString;
 
 /**
- * @brief Rewrite stored key database paths so they travel.
+ * @brief Reduce a stored key database list to the databases that travel.
  *
- * A path inside the profile becomes `@profile/...`, which resolves against
- * whatever root the profile is opened at next. A path outside it is left
- * exactly as it is: the database is not ours to move, its contents are not in
- * the package, and inventing a path would produce an empty database wearing the
- * name of a real one.
+ * A path inside the profile, in one of the directories the package carries,
+ * becomes `@profile/...` and resolves against whatever root the profile is
+ * opened at next. Everything else is dropped: a database the user placed by
+ * hand somewhere under the root, and a database outside the root altogether --
+ * the DEFAULT one usually is.
+ *
+ * Dropped rather than carried with its absolute path, because a path from
+ * another computer does not simply fail to resolve; it fails differently on
+ * each platform. Qt reads "C:/Users/..." as relative on Unix and "/Users/..."
+ * as absolute on Windows, so the same entry becomes a directory invented under
+ * the executable on one and a missing database on the other -- and a missing
+ * database shifts every database after it up one channel, which is how an rPGP
+ * keyring came to be opened with GnuPG. A recipient deriving their own DEFAULT
+ * is both the right answer and the only portable one. It also keeps the
+ * sender's absolute path, usually carrying their username, out of a file meant
+ * for somebody else.
  *
  * Pure, and idempotent — a list that already travelled comes back unchanged.
  *
  * @param databases the stored list
  * @param profile_root root to make paths relative to
- * @return the rewritten list, in the same order
+ * @return the databases that travel, in the same order; may be shorter than
+ * @p databases, and may be empty
  */
 auto GF_CORE_EXPORT RewriteKeyDatabaseListForPacking(
     const QContainer<KeyDatabaseItemSO> &databases, const QString &profile_root)
@@ -289,9 +301,13 @@ auto GF_CORE_EXPORT RewriteKeyDatabaseListForPacking(
 /**
  * @brief Describe a stored key database list for the manifest.
  *
- * @param databases the list, already rewritten by
+ * Every entry that reaches here travels, so `external` is always false now.
+ * The field stays because a package written by an older build can carry an
+ * entry that was marked true, and the import still explains that one.
+ *
+ * @param databases the list, already reduced by
  * RewriteKeyDatabaseListForPacking()
- * @return one entry per database, the ones that cannot travel marked
+ * @return one entry per database
  */
 auto GF_CORE_EXPORT
 DescribeKeyDatabasesForManifest(const QContainer<KeyDatabaseItemSO> &databases)
