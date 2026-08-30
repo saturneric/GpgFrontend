@@ -29,6 +29,7 @@
 #include "SettingsKeyDatabases.h"
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GnuPGHome.h"
 #include "core/model/SettingsObject.h"
 #include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/utils/CommonUtils.h"
@@ -52,22 +53,26 @@ constexpr int kMaxKeyDatabases = 8;
 // failure points back at the path that caused it. Caught while the path is
 // still being chosen, rather than at the next start.
 //
+// Asked of the resolver rather than measured here, so this cannot refuse a
+// folder the engine would have rescued with a short link. Measuring it
+// separately is exactly how the two came to disagree.
+//
 // Only for gnupg-backed databases: rPGP opens no sockets, so the same path is
 // perfectly usable for it.
 auto RejectsGnuPGSocketPath(QWidget* parent, const QString& backend_type,
                             const QString& path) -> bool {
   if (backend_type != "gnupg") return false;
-  if (GnuPGHomePathFitsSocketBudget(path)) return false;
+
+  const auto home = GnuPGHomeResolver().Inspect(path);
+  if (home.IsUsable()) return false;
 
   QMessageBox::warning(
       parent, QObject::tr("Key Database Path Too Long"),
-      QObject::tr("This folder's path is too long for GnuPG's agent socket, so "
-                  "GnuPG could not start against it. Choose a folder with a "
-                  "shorter path.") +
-          "\n\n" +
-          QString("%1 bytes, max %2")
-              .arg(path.toUtf8().size())
-              .arg(GnuPGHomePathByteBudget()));
+      QObject::tr("This folder's path is too long for GnuPG's agent socket, "
+                  "and no short enough link to it could be made, so GnuPG "
+                  "could not start against it. Choose a folder with a shorter "
+                  "path.") +
+          "\n\n" + home.unusable_reason);
   return true;
 }
 

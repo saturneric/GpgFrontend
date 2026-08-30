@@ -30,6 +30,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GpgAdvancedOperator.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
@@ -222,7 +223,7 @@ GnuPGTab::GnuPGTab(QWidget* parent)
   // address the agent exits without creating them -- GnuPG then simply does not
   // work, with nothing anywhere to say why. Inserted above the maintenance box
   // because none of those buttons can fix it.
-  const auto home_path_detail = GnuPGHomePathUnusableReason();
+  const auto home_path_detail = GpgContext::FirstUnusableHomeReason();
   if (!home_path_detail.isEmpty()) {
     auto* warning_box = new QGroupBox(tr("GnuPG Unavailable"), this);
     auto* warning_layout = new QVBoxLayout(warning_box);

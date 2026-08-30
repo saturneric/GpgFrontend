@@ -35,6 +35,7 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/SystemSecretStore.h"
+#include "core/function/gpg/GpgContext.h"
 #include "core/module/ModuleManager.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileMarker.h"
@@ -497,7 +498,7 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   // Only ever set when the home directory could not host the agent sockets, so
   // the row says that outright and carries the measured length and the platform
   // limit underneath.
-  if (const auto gnupg_home_detail = GnuPGHomePathUnusableReason();
+  if (const auto gnupg_home_detail = GpgContext::FirstUnusableHomeReason();
       !gnupg_home_detail.isEmpty()) {
     attention.append({.caption = tr("GnuPG Home:"),
                       .value = tr("Unusable"),
