@@ -33,6 +33,7 @@
 #include "core/function/SystemSecretStore.h"
 #include "core/profile/ProfilePackage.h"
 #include "ui/dialog/AppKeyPinDialog.h"
+#include "ui/dialog/profile/ProfilePackageMeta.h"
 #include "ui/function/ProfileController.h"
 
 namespace GpgFrontend::UI {
@@ -100,16 +101,15 @@ auto GuiProfileLoaderDelegate::AskPackagePassphrase(const QString& package,
   // outside the sealed payload, so anyone holding the file can write anything
   // into it; the point of showing it at all is that a file whose claims look
   // wrong is worth a second thought before a passphrase is typed at it.
-  QString claims;
-  if (const auto inspection = InspectProfilePackage(package); inspection.Ok()) {
-    claims = DescribeUnverifiedHeader(inspection.header);
-  }
+  const auto inspection = InspectProfilePackage(package);
 
   // The retry message goes inside the prompt rather than into a box in front of
   // it: the correction is typed here, so this is where the reason for it
   // belongs, and one dialog to dismiss beats two.
   return AppKeyPinDialog::AskPackagePassphrase(
-      nullptr, package, AppKeyPinDialog::Mode::kUNLOCK, retry, claims);
+      nullptr, AppKeyPinDialog::Mode::kUNLOCK, retry,
+      BuildProfilePackageRows(QFileInfo(package), inspection.header,
+                              inspection.Ok()));
 }
 
 auto GuiProfileLoaderDelegate::AskAppKeyPin(const AppKeyPinRequest& request)

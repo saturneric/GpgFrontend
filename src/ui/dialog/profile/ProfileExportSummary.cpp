@@ -28,16 +28,9 @@
 
 #include "ui/dialog/profile/ProfileExportSummary.h"
 
+#include "ui/function/UIStyle.h"
+
 namespace GpgFrontend::UI {
-
-namespace {
-
-auto HumanSize(qint64 bytes) -> QString {
-  return QLocale().formattedDataSize(bytes, 1,
-                                     QLocale::DataSizeTraditionalFormat);
-}
-
-}  // namespace
 
 auto BuildProfileExportContents(const QMap<QString, qint64>& areas,
                                 bool include_workspace)
@@ -89,19 +82,9 @@ auto EvaluateProfileExport(const ProfileExportChoice& choice)
     -> ProfileExportReadiness {
   ProfileExportReadiness readiness;
 
-  readiness.can_export =
-      choice.has_destination &&
-      (!choice.protect_with_passphrase || choice.passphrase_acceptable);
-
-  // Ordered by what it would cost to ignore. Handing somebody the profile's
-  // key outranks running out of room, which is merely inconvenient and may not
-  // even happen.
-  if (!choice.protect_with_passphrase) {
-    readiness.warnings.append(
-        choice.include_workspace
-            ? ProfileExportWarning::kUnprotectedWithWorkspace
-            : ProfileExportWarning::kUnprotected);
-  }
+  // A profile file is always sealed, so there is nothing left to decide about
+  // protection: an acceptable passphrase is simply part of being ready.
+  readiness.can_export = choice.has_destination && choice.passphrase_acceptable;
 
   // Only judged when the volume could actually be read; a destination
   // QStorageInfo knows nothing about must not produce a scare.
@@ -114,15 +97,6 @@ auto EvaluateProfileExport(const ProfileExportChoice& choice)
 
 auto DescribeProfileExportWarning(ProfileExportWarning warning) -> QString {
   switch (warning) {
-    case ProfileExportWarning::kUnprotected:
-      return QObject::tr(
-          "Anyone who gets this file can read your keys and everything in the "
-          "profile, and can change it before you import it.");
-    case ProfileExportWarning::kUnprotectedWithWorkspace:
-      return QObject::tr(
-          "Anyone who gets this file can read your keys, everything in the "
-          "profile, and your workspace files — including anything you meant to "
-          "encrypt but had not yet.");
     case ProfileExportWarning::kMayNotFit:
       return QObject::tr(
           "There may not be room for this where you are saving it. The file is "
@@ -138,27 +112,62 @@ auto DescribeProfileExport(const ProfileExportChoice& choice,
   // than a claim.
   if (!choice.has_destination || destination.isEmpty()) return {};
 
-  return choice.protect_with_passphrase
-             ? (choice.include_workspace
-                    ? QObject::tr(
-                          "A passphrase-protected file holding your keys, "
-                          "settings and workspace files — about %1 before "
-                          "compression — will be written to %2.")
-                    : QObject::tr(
-                          "A passphrase-protected file holding your keys and "
-                          "settings — about %1 before compression — will be "
-                          "written to %2."))
-                   .arg(HumanSize(choice.total_bytes), destination)
-             : (choice.include_workspace
-                    ? QObject::tr(
-                          "An unprotected file holding your keys, settings and "
-                          "workspace files — about %1 before compression — "
-                          "will be written to %2.")
-                    : QObject::tr(
-                          "An unprotected file holding your keys and settings "
-                          "— about %1 before compression — will be written to "
-                          "%2."))
-                   .arg(HumanSize(choice.total_bytes), destination);
+  // One line, because everything else it used to spell out -- what is inside,
+  // what it comes to, that it is sealed -- is now a row above it that the
+  // reader can check. What is left is the act itself.
+  return (choice.include_workspace
+              ? QObject::tr("Writes %1: keys, settings and workspace files, "
+                            "about %2 before compression.")
+              : QObject::tr("Writes %1: keys and settings, about %2 before "
+                            "compression."))
+      .arg(destination, HumanSize(choice.total_bytes));
+}
+
+auto ToMetaListRows(const QVector<ProfileExportContentsRow>& rows)
+    -> QVector<MetaListRow> {
+  QVector<MetaListRow> out;
+
+  for (const auto& row : rows) {
+    // Dimmed when the row carries nothing -- either because it is empty or
+    // because it was left out. Rows at equal weight make the reader work out
+    // which ones matter; dimming the rest puts the emphasis where the bytes
+    // actually are.
+    out.append({.caption = row.label,
+                .icon = row.icon,
+                .bytes = row.bytes,
+                .dimmed = !row.included || row.bytes <= 0,
+                .checkable = row.optional,
+                .checked = row.included});
+  }
+
+  out.append({.kind = MetaRowKind::kRule});
+  out.append({.caption = QObject::tr("Total"),
+              .bytes = TotalProfileExportBytes(rows),
+              .emphasis = true});
+
+  // What a package carries is an allow-list, so saying what never travels is
+  // part of saying what does -- and it belongs in the list rather than in a
+  // paragraph under it.
+  out.append(
+      {.caption = QObject::tr("Never included"),
+       .value = QObject::tr("Logs, modules, keys kept elsewhere"),
+       .detail = QObject::tr(
+           "Keys kept outside this profile, such as the system GnuPG keyring, "
+           "stay where they are."),
+       .dimmed = true});
+
+  return out;
+}
+
+auto BuildExportProtectionRows() -> QVector<MetaListRow> {
+  return {
+      {.caption = QObject::tr("Cipher"), .value = "XChaCha20-Poly1305"},
+      {.caption = QObject::tr("Key derivation"),
+       .value = QObject::tr("Argon2id, from your passphrase")},
+      {.caption = QObject::tr("Keychain"),
+       .value = QObject::tr("Not used: the file has to open on another "
+                            "computer")},
+  };
 }
 
 }  // namespace GpgFrontend::UI

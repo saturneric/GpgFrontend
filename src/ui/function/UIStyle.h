@@ -141,4 +141,64 @@ void GF_UI_EXPORT SetLabelTextColor(QLabel* label, const QColor& color);
 auto GF_UI_EXPORT CreateCard(const QString& title, QWidget* content,
                              QWidget* parent = nullptr) -> QFrame*;
 
+/**
+ * @brief A file size as a person reads it.
+ *
+ * One function rather than the four private copies this replaced, because a
+ * dialog that prints "50.2 kB" beside another that prints "50.2 KiB" makes the
+ * reader wonder which of the two numbers is the real one.
+ *
+ * @param bytes the size
+ * @return the localised size, traditional units
+ */
+auto GF_UI_EXPORT HumanSize(qint64 bytes) -> QString;
+
+/**
+ * @brief A quieter, slightly smaller label: the sentence under a value.
+ *
+ * Reads as an explanation of the line above rather than as a second value. The
+ * colour goes through the widget's palette rather than an inline rich-text
+ * span, which keeps the platform font a stylesheet would take over.
+ *
+ * @param text the sentence
+ * @param parent parent widget
+ * @return the label
+ */
+auto GF_UI_EXPORT CreateDetailLabel(const QString& text,
+                                    QWidget* parent = nullptr) -> QLabel*;
+
+/**
+ * @brief The badge, heading, explanation and rule that open a serious dialog.
+ *
+ * Handing over a whole profile, unlocking one, and choosing what to do with a
+ * file somebody sent are the same class of act, and sharing the furniture is
+ * what makes them read as one family rather than three dialogs that happen to
+ * be in the same application.
+ *
+ * @param icon a `:/icons/…` path for the 40px badge
+ * @param title the heading, usually also the window title
+ * @param subtitle one wrapped line saying what this is for; may be empty
+ * @param parent parent widget
+ * @return a layout to insert at the top of the dialog, rule included
+ */
+/**
+ * @brief Hide something behind a disclosure the reader can open.
+ *
+ * For everything that is true, occasionally needed, and not what the page is
+ * for. A page that answers the reader's question in four rows and keeps the
+ * other twenty one click away is read; the same twenty-four rows in a column
+ * are skimmed and trusted rather than read.
+ *
+ * @param title what the toggle offers, e.g. "More details"
+ * @param content the widget to hide; reparented, and hidden to start with
+ * @param parent parent widget
+ * @return the toggle and its content, ready to add to a layout
+ */
+auto GF_UI_EXPORT CreateDisclosure(const QString& title, QWidget* content,
+                                   QWidget* parent = nullptr) -> QWidget*;
+
+auto GF_UI_EXPORT CreateDialogHeader(const QString& icon, const QString& title,
+                                     const QString& subtitle, QWidget* parent)
+    -> QLayout*;
+
 }  // namespace GpgFrontend::UI

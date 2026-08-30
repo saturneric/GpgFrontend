@@ -113,9 +113,115 @@ auto CreateCard(const QString& title, QWidget* content, QWidget* parent)
   layout->setContentsMargins(14, 12, 14, 12);
   layout->setSpacing(8);
   layout->addWidget(title_label);
-  layout->addWidget(content);
+  layout->addWidget(content, 1);
+
+  // A card is as tall as what is in it. Left to grow, it takes a share of
+  // whatever height its page has spare and pads its contents with it, which is
+  // how a card of five readings ends up half a screen tall -- unless the thing
+  // inside genuinely wants the room, which it says by being expandable.
+  if (content->sizePolicy().verticalPolicy() != QSizePolicy::Expanding) {
+    frame->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
+  }
 
   return frame;
+}
+
+auto HumanSize(qint64 bytes) -> QString {
+  return QLocale().formattedDataSize(bytes, 1,
+                                     QLocale::DataSizeTraditionalFormat);
+}
+
+auto CreateDetailLabel(const QString& text, QWidget* parent) -> QLabel* {
+  auto* label = new QLabel(text, parent);
+  label->setWordWrap(true);
+  label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+
+  auto font = label->font();
+  font.setPointSizeF(font.pointSizeF() * 0.92);
+  label->setFont(font);
+
+  SetLabelTextColor(label, MutedTextColor(label->palette()));
+  return label;
+}
+
+auto CreateDisclosure(const QString& title, QWidget* content, QWidget* parent)
+    -> QWidget* {
+  auto* holder = new QWidget(parent);
+  auto* layout = new QVBoxLayout(holder);
+  layout->setContentsMargins(0, 0, 0, 0);
+  layout->setSpacing(8);
+
+  auto* toggle = new QToolButton(holder);
+  toggle->setCheckable(true);
+  toggle->setChecked(false);
+  toggle->setText(title);
+  toggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+  toggle->setArrowType(Qt::RightArrow);
+  toggle->setAutoRaise(true);
+
+  content->setParent(holder);
+  content->hide();
+
+  QObject::connect(
+      toggle, &QToolButton::toggled, holder, [toggle, content](bool open) {
+        toggle->setArrowType(open ? Qt::DownArrow : Qt::RightArrow);
+        content->setVisible(open);
+      });
+
+  auto* toggle_row = new QHBoxLayout();
+  toggle_row->addWidget(toggle);
+  toggle_row->addStretch(1);
+
+  layout->addLayout(toggle_row);
+  layout->addWidget(content);
+
+  return holder;
+}
+
+auto CreateDialogHeader(const QString& icon, const QString& title,
+                        const QString& subtitle, QWidget* parent) -> QLayout* {
+  auto* icon_label = new QLabel(parent);
+  icon_label->setPixmap(QPixmap(icon).scaled(40, 40, Qt::KeepAspectRatio,
+                                             Qt::SmoothTransformation));
+  icon_label->setFixedSize(40, 40);
+
+  auto* title_label = new QLabel(title, parent);
+  auto title_font = title_label->font();
+  title_font.setBold(true);
+  title_font.setPointSizeF(title_font.pointSizeF() * 1.25);
+  title_label->setFont(title_font);
+
+  // Icon and title share one line; the wrapped description spans the full width
+  // beneath them. Keeping the subtitle out of the icon's column lets the
+  // vertical layout honour its height-for-width, so no line ever clips -- a
+  // wrapped QLabel nested inside a horizontal layout does not get that.
+  auto* title_row = new QHBoxLayout();
+  title_row->setSpacing(14);
+  title_row->addWidget(icon_label, 0, Qt::AlignVCenter);
+  title_row->addWidget(title_label, 1);
+
+  auto* header = new QVBoxLayout();
+  header->setSpacing(6);
+  header->addLayout(title_row);
+
+  if (!subtitle.isEmpty()) {
+    auto* subtitle_label = new QLabel(subtitle, parent);
+    subtitle_label->setWordWrap(true);
+    SetLabelTextColor(subtitle_label,
+                      MutedTextColor(subtitle_label->palette()));
+    header->addWidget(subtitle_label);
+  }
+
+  // A native rule sets the identity apart from what follows without the weight
+  // of a boxed group; the platform style draws it to match its own separators
+  // on every OS and theme.
+  auto* separator = new QFrame(parent);
+  separator->setFrameShape(QFrame::HLine);
+  separator->setFrameShadow(QFrame::Sunken);
+  header->addSpacing(2);
+  header->addWidget(separator);
+
+  return header;
 }
 
 }  // namespace GpgFrontend::UI

@@ -62,23 +62,6 @@ auto GF_UI_EXPORT StripProfileArgs(const QStringList &args) -> QStringList;
 auto GF_UI_EXPORT ProfilePackageNameFilter() -> QString;
 
 /**
- * @brief What a profile file's unencrypted header claims about itself.
- *
- * Shown before a passphrase is typed, so that a file whose claims look wrong
- * gets a second thought first. Deliberately worded as a claim throughout, and
- * paired with the sentence saying why: the header sits outside the sealed
- * payload, so anyone holding the file can write anything into it, and
- * ProfilePackage.h is explicit that it may reject but must never be believed.
- *
- * Pure, so the framing can be asserted rather than trusted to survive editing.
- *
- * @param header the parsed header, from InspectProfilePackage()
- * @return plain text, or empty when the header claims nothing worth showing
- */
-auto GF_UI_EXPORT DescribeUnverifiedHeader(const ProfilePackageHeader &header)
-    -> QString;
-
-/**
  * @brief What to open in a new window.
  *
  * Exactly one field is set: a profile this machine keeps, or a package to run

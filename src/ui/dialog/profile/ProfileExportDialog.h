@@ -32,14 +32,13 @@
 #include "ui/dialog/GeneralDialog.h"
 #include "ui/dialog/profile/ProfileExportSummary.h"
 
-class QCheckBox;
 class QDialogButtonBox;
 class QLabel;
 class QPushButton;
-class QRadioButton;
 
 namespace GpgFrontend::UI {
 
+class MetaListPanel;
 class SecretEntryPanel;
 
 /**
@@ -53,7 +52,9 @@ class SecretEntryPanel;
  * The passphrase is typed into the same SecretEntryPanel the application key's
  * PIN uses, so that a profile file's protection is offered with the same
  * seriousness, the same reveal toggle and the same floor rather than as two
- * bare fields at the bottom of a form.
+ * bare fields at the bottom of a form. It is not optional: a profile file
+ * carries the profile's own key, so an unsealed one hands over everything the
+ * profile ever encrypted, and this dialog no longer offers that.
  */
 class ProfileExportDialog : public GeneralDialog {
   Q_OBJECT
@@ -84,16 +85,20 @@ class ProfileExportDialog : public GeneralDialog {
   [[nodiscard]] auto IncludeWorkspace() const -> bool;
 
   /**
-   * @brief What will protect the package.
+   * @brief What will protect the package: always a passphrase.
    *
-   * @return the chosen protection
+   * Kept as a call rather than dropped, because the packing request carries the
+   * field and the reader still understands unsealed files written by older
+   * builds.
+   *
+   * @return kPIN
    */
   [[nodiscard]] auto Protection() const -> ProfilePackageProtection;
 
   /**
-   * @brief The passphrase, when one was chosen.
+   * @brief The passphrase the file will be sealed with.
    *
-   * @return the passphrase, empty when unprotected
+   * @return the passphrase
    */
   [[nodiscard]] auto Passphrase() const -> GFBuffer;
 
@@ -105,18 +110,13 @@ class ProfileExportDialog : public GeneralDialog {
   QString display_name_;
   QMap<QString, qint64> areas_;
 
-  QLabel* destination_label_{};
-  QLabel* destination_detail_{};
+  QLabel* destination_hint_{};         ///< shown until a destination is chosen
+  MetaListPanel* destination_list_{};  ///< shown once one is
   QPushButton* destination_button_{};
 
-  QGridLayout* contents_grid_{};
-  QVector<QLabel*> size_labels_;
-  QVector<QWidget*> row_widgets_;  ///< the label or checkbox naming each row
-  QLabel* total_label_{};
-  QCheckBox* workspace_box_{};
+  MetaListPanel* contents_{};
+  bool include_workspace_ = false;
 
-  QRadioButton* protect_with_pin_{};
-  QRadioButton* protect_with_nothing_{};
   SecretEntryPanel* entry_{};
 
   QLabel* warning_icon_{};
@@ -129,14 +129,18 @@ class ProfileExportDialog : public GeneralDialog {
 
   void init_ui();
 
-  /// @brief Build the header: lock badge, heading, one-line explanation, rule.
-  void build_header(QVBoxLayout* layout);
+  /// @brief Build the "save to" group: the rows, and the button that fills
+  /// them.
+  void build_destination(QVBoxLayout* layout);
 
   /// @brief Build the "what goes in" group from BuildProfileExportContents().
   void build_contents(QVBoxLayout* layout);
 
-  /// @brief Build the protection group: the choice, the fields, the mechanism.
+  /// @brief Build the protection group: the fields, and how they are used.
   void build_protection(QVBoxLayout* layout);
+
+  /// @brief The contents rows for the current choice.
+  [[nodiscard]] auto contents_rows() const -> QVector<MetaListRow>;
 
   /// @brief What has been chosen so far, for the pure rules.
   [[nodiscard]] auto choice() const -> ProfileExportChoice;

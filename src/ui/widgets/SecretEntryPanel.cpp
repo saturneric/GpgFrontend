@@ -138,8 +138,12 @@ SecretEntryPanel::SecretEntryPanel(Config config, QWidget* parent)
   // reserved space carries guidance instead of reading as empty padding, and
   // the two-line floor keeps everything below it from moving when a longer
   // message replaces a shorter one.
+  //
+  // A prompt with no hint has nothing to put in the second line, and reserving
+  // it anyway would leave a blank band above the buttons that reads as a
+  // missing control. One line still absorbs the messages such a prompt shows.
   message_label_->setMinimumHeight(message_label_->fontMetrics().lineSpacing() *
-                                   2);
+                                   (config_.texts.hint.isEmpty() ? 1 : 2));
   layout->addWidget(message_label_);
 
   for (auto* edit : {current_edit_, new_edit_, confirm_edit_}) {

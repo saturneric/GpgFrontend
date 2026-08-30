@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "ui/widgets/MetaListPanel.h"
+
 namespace GpgFrontend::UI {
 
 /**
@@ -96,7 +98,6 @@ auto GF_UI_EXPORT TotalProfileExportBytes(
 struct ProfileExportChoice {
   bool has_destination = false;
   bool include_workspace = false;
-  bool protect_with_passphrase = true;
   bool passphrase_acceptable = false;  ///< from EvaluateSecretEntry()
   qint64 total_bytes = 0;
   qint64 free_bytes = -1;  ///< -1 when unknown, or no destination yet
@@ -104,10 +105,12 @@ struct ProfileExportChoice {
 
 /**
  * @brief Something the user should read before pressing the button.
+ *
+ * Only one of these left. A profile file is always sealed with a passphrase
+ * now, so the two warnings about handing over an unprotected copy of the
+ * profile's own key describe a file this application can no longer write.
  */
 enum class ProfileExportWarning {
-  kUnprotected,               ///< the profile's own key travels in the clear
-  kUnprotectedWithWorkspace,  ///< …and so do the user's own files
   kMayNotFit,
 };
 
@@ -158,5 +161,29 @@ auto GF_UI_EXPORT DescribeProfileExportWarning(ProfileExportWarning warning)
  */
 auto GF_UI_EXPORT DescribeProfileExport(const ProfileExportChoice& choice,
                                         const QString& destination) -> QString;
+
+/**
+ * @brief The contents list as rows, total included.
+ *
+ * The dialog holds no wording of its own: what goes in, what it adds up to and
+ * what never travels are decided here, where they can be asserted.
+ *
+ * @param rows what BuildProfileExportContents() returned
+ * @return the rows to hand a MetaListPanel
+ */
+auto GF_UI_EXPORT ToMetaListRows(const QVector<ProfileExportContentsRow>& rows)
+    -> QVector<MetaListRow>;
+
+/**
+ * @brief How the file is sealed, as rows.
+ *
+ * Named rather than asserted. Someone who knows what these are can check the
+ * claim; someone who does not still reads a specific mechanism rather than a
+ * reassurance. The Argon2id parameters are deliberately left out: they will
+ * change, and a number nobody can evaluate is noise.
+ *
+ * @return the rows
+ */
+auto GF_UI_EXPORT BuildExportProtectionRows() -> QVector<MetaListRow>;
 
 }  // namespace GpgFrontend::UI

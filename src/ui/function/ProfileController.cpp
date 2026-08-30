@@ -47,8 +47,10 @@
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "ui/dialog/AppKeyPinDialog.h"
+#include "ui/dialog/MetaListDialog.h"
 #include "ui/dialog/SecretPrompt.h"
 #include "ui/dialog/profile/ProfileCreateDialog.h"
+#include "ui/dialog/profile/ProfilePackageMeta.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/GpgOperaHelper.h"
 #include "ui/platform/PlatformRelaunch.h"
@@ -179,30 +181,49 @@ void FinishImport(QWidget* parent, const QString& package_path,
 
   if (on_changed) on_changed();
 
-  auto message = QObject::tr("\"%1\" is ready.").arg(name);
-  if (!result.manifest.workspace_included) {
-    message +=
-        "\n\n" + QObject::tr("The file did not carry any workspace files.");
+  // Now that the payload is open, what it says about itself is a fact rather
+  // than a claim -- so this list carries no caveat, unlike the one shown before
+  // the passphrase was typed.
+  QVector<MetaListRow> rows;
+  rows.append(
+      {.caption = QObject::tr("Profile"), .value = name, .emphasis = true});
+  if (!result.manifest.writer_version.isEmpty()) {
+    rows.append({.caption = QObject::tr("Written by"),
+                 .value = QObject::tr("GpgFrontend %1")
+                              .arg(result.manifest.writer_version)});
   }
+  rows.append({.caption = QObject::tr("Workspace files"),
+               .value = result.manifest.workspace_included
+                            ? QObject::tr("Included")
+                            : QObject::tr("None in the file"),
+               .dimmed = !result.manifest.workspace_included});
+
   for (const auto& database : result.manifest.key_databases) {
     if (!database.external) continue;
-    message += "\n\n" +
-               QObject::tr(
-                   "\"%1\" pointed at keys kept outside the profile, which do "
-                   "not travel. It will show as unavailable until you point it "
-                   "somewhere on this computer.")
-                   .arg(database.name);
+    // Keys kept outside the profile never travel, so a database naming them
+    // arrives pointing at nothing. Said once, about the first such database,
+    // rather than once per database: the fix is the same for all of them.
+    rows.append(
+        {.caption = QObject::tr("Keys"),
+         .value = QObject::tr("\"%1\" is unavailable").arg(database.name),
+         .detail = QObject::tr(
+             "It pointed at keys kept outside the profile, which do not "
+             "travel. Point it somewhere on this computer to use it."),
+         .degraded = true});
     break;
   }
 
-  if (QMessageBox::question(
-          parent, QObject::tr("Profile Imported"),
-          message + "\n\n" +
-              QObject::tr("Open it now? It opens in a new window."),
-          QMessageBox::Yes | QMessageBox::No,
-          QMessageBox::Yes) != QMessageBox::Yes) {
-    return;
-  }
+  MetaListDialog done(QObject::tr("Profile Imported"),
+                      QObject::tr("\"%1\" is ready.").arg(name), parent);
+  done.AddSection({}, rows);
+  done.AddNote(QObject::tr("Open it now? It opens in a new window."));
+
+  const auto open_it =
+      done.AddButton(QObject::tr("Open"), QDialogButtonBox::AcceptRole);
+  done.AddButton(QObject::tr("Not Now"), QDialogButtonBox::RejectRole);
+  done.exec();
+
+  if (done.Choice() != open_it) return;
 
   const auto opened = OpenProfileInNewWindow({.profile_id = id});
   if (!opened.Ok()) {
@@ -239,28 +260,6 @@ auto StripProfileArgs(const QStringList& args) -> QStringList {
     out << arg;
   }
   return out;
-}
-
-auto DescribeUnverifiedHeader(const ProfilePackageHeader& header) -> QString {
-  QStringList said;
-  if (!header.created.isEmpty()) {
-    said << QObject::tr("made %1").arg(header.created);
-  }
-  if (!header.writer.isEmpty()) {
-    said << (header.writer_stable
-                 ? QObject::tr("by GpgFrontend %1").arg(header.writer)
-                 : QObject::tr("by a development build of GpgFrontend %1")
-                       .arg(header.writer));
-  }
-  if (said.isEmpty()) return {};
-
-  // The caveat is not optional decoration on the claim, it is the reason the
-  // claim is shown at all. Never returned without it.
-  return QObject::tr("The file says it was %1.").arg(said.join(" ")) + "\n" +
-         QObject::tr(
-             "That comes from the file's unencrypted header, which anyone "
-             "holding the file can change. Nothing is confirmed until the "
-             "passphrase opens it.");
 }
 
 auto ProfilePackageNameFilter() -> QString {
@@ -460,29 +459,30 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
 
   const auto file = QDir::toNativeSeparators(packaged->PackagePath());
 
-  QMessageBox box(
-      QMessageBox::Question, QObject::tr("Save Changes?"),
+  MetaListDialog box(
+      QObject::tr("Save Changes?"),
       QObject::tr("This profile was opened from a file. It is not kept on this "
                   "computer, and the copy it is running from is about to be "
-                  "deleted.") +
-          "\n\n" + file + "\n\n" +
-          QObject::tr("Anything you changed is lost unless it is written back "
-                      "into that file."),
-      QMessageBox::NoButton, parent);
-  auto* save =
-      box.addButton(QObject::tr("Save Changes"), QMessageBox::AcceptRole);
-  auto* discard =
-      box.addButton(QObject::tr("Discard"), QMessageBox::DestructiveRole);
-  box.addButton(QObject::tr("Cancel"), QMessageBox::RejectRole);
-  box.setDefaultButton(save);
+                  "deleted."),
+      parent);
+  box.AddSection({}, BuildProfilePackageRows(QFileInfo(file), {}, false));
+  box.AddNote(QObject::tr("Anything you changed is lost unless it is written "
+                          "back into that file."),
+              true);
+
+  const auto save =
+      box.AddButton(QObject::tr("Save Changes"), QDialogButtonBox::AcceptRole);
+  const auto discard =
+      box.AddButton(QObject::tr("Discard"), QDialogButtonBox::DestructiveRole);
+  box.AddButton(QObject::tr("Cancel"), QDialogButtonBox::RejectRole);
   box.exec();
 
-  if (box.clickedButton() == discard) {
+  if (box.Choice() == discard) {
     g_session_write_back_settled = true;
     return true;
   }
   // Cancel is not an answer: the next attempt to close asks again.
-  if (box.clickedButton() != save) return false;
+  if (box.Choice() != save) return false;
 
   auto request = packaged->WriteBackRequest();
 
@@ -503,10 +503,8 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
     // passphrase their file already has must not be forced to give it a new one
     // just to save their work.
     auto texts = DefaultSecretPromptTexts(SecretPromptSubject::kProfilePackage,
-                                          SecretPromptMode::kSET,
-                                          QFileInfo(file).fileName());
-    texts.context_detail =
-        QDir::toNativeSeparators(QFileInfo(file).absolutePath());
+                                          SecretPromptMode::kSET);
+    texts.context_rows = BuildProfilePackageRows(QFileInfo(file), {}, false);
     texts.min_length = 1;
 
     AppKeyPinDialog dialog(SecretPromptMode::kSET, texts, parent);
@@ -623,50 +621,39 @@ auto AskProfilePackageAction(QWidget* parent, const QString& path)
     return ProfilePackageAction::kCANCEL;
   }
 
-  // Same shape as the passphrase prompt: what this application can establish
-  // for itself, then what the file says about itself, marked as a claim. The
-  // order matters -- a fact and a claim shown as one list read as two facts.
-  QStringList facts;
-  facts << QDir::toNativeSeparators(info.absolutePath());
-  if (info.exists()) {
-    facts << QLocale().formattedDataSize(info.size(), 1,
-                                         QLocale::DataSizeTraditionalFormat);
-    facts << QLocale().toString(info.lastModified(), QLocale::ShortFormat);
-  }
-
-  QStringList detail;
-  detail << facts.join(" · ");
-  detail << (inspection.header.protection == ProfilePackageProtection::kPIN
-                 ? QObject::tr("It is sealed with a passphrase, which is asked "
-                               "for once you choose.")
-                 : QObject::tr("It is not sealed with a passphrase: anyone "
-                               "holding it can read what is in it."));
-
-  const auto claims = DescribeUnverifiedHeader(inspection.header);
-  if (!claims.isEmpty()) detail << claims;
+  MetaListDialog dialog(
+      QObject::tr("Open Profile File"),
+      QObject::tr("\"%1\" is a profile file. Choose what to do with it.")
+          .arg(info.fileName()),
+      parent);
+  dialog.AddSection({}, BuildProfilePackageRows(info, inspection.header, true));
 
   // Both offered rather than one of them guessed: the Profiles menu keeps
   // "Open" and "Import" apart precisely because they are routinely read as the
-  // same act, and a double-click says which file is meant, not which act.
-  detail << QObject::tr(
-      "Open it to work in it directly and leave it a file, with nothing kept "
-      "on this computer. Import it to copy it into a profile kept here, after "
-      "which the file is not used again.");
+  // same act, and a double-click says which file is meant, not which act. What
+  // each act costs is a row beside it rather than a paragraph under both.
+  dialog.AddSection(
+      QObject::tr("What happens next"),
+      {{.caption = QObject::tr("Open"),
+        .value = QObject::tr("Work in the file itself"),
+        .detail = QObject::tr(
+            "Nothing is kept on this computer. What you change is written back "
+            "into the file.")},
+       {.caption = QObject::tr("Import"),
+        .value = QObject::tr("Copy it into a profile kept here"),
+        .detail = QObject::tr(
+            "The copy lives on this computer from then on, and the file is not "
+            "used again.")}});
 
-  QMessageBox box(QMessageBox::Question, QObject::tr("Open Profile File"),
-                  QObject::tr("\"%1\" is a profile file.").arg(info.fileName()),
-                  QMessageBox::NoButton, parent);
-  box.setInformativeText(detail.join("\n\n"));
+  const auto open_it =
+      dialog.AddButton(QObject::tr("Open"), QDialogButtonBox::AcceptRole);
+  const auto import_it =
+      dialog.AddButton(QObject::tr("Import"), QDialogButtonBox::ActionRole);
+  dialog.AddButton(QObject::tr("Cancel"), QDialogButtonBox::RejectRole);
+  dialog.exec();
 
-  auto* open_it = box.addButton(QObject::tr("Open"), QMessageBox::AcceptRole);
-  auto* import_it =
-      box.addButton(QObject::tr("Import"), QMessageBox::ActionRole);
-  box.addButton(QObject::tr("Cancel"), QMessageBox::RejectRole);
-  box.setDefaultButton(open_it);
-  box.exec();
-
-  if (box.clickedButton() == open_it) return ProfilePackageAction::kOPEN;
-  if (box.clickedButton() == import_it) return ProfilePackageAction::kIMPORT;
+  if (dialog.Choice() == open_it) return ProfilePackageAction::kOPEN;
+  if (dialog.Choice() == import_it) return ProfilePackageAction::kIMPORT;
   return ProfilePackageAction::kCANCEL;
 }
 
@@ -703,8 +690,8 @@ void ImportProfileInteractive(QWidget* parent, const QString& path,
     // above, so its claims come free — and are shown as claims: it sits outside
     // the sealed payload, where anyone holding the file could have written it.
     const auto entered = AppKeyPinDialog::AskPackagePassphrase(
-        parent, path, AppKeyPinDialog::Mode::kUNLOCK, false,
-        DescribeUnverifiedHeader(inspection.header));
+        parent, AppKeyPinDialog::Mode::kUNLOCK, false,
+        BuildProfilePackageRows(QFileInfo(path), inspection.header, true));
     if (!entered.has_value()) return;
     passphrase = *entered;
   }
