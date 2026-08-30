@@ -946,11 +946,9 @@ auto DataObjectOperator::read_decr_json_object(const GFBuffer& ref)
   }
 }
 
-auto DataObjectOperator::write_encr_object(const GFBuffer& ref,
-                                           const GFBuffer& value) -> QString {
+auto DataObjectOperator::seal_object(const GFBuffer& ref, const GFBuffer& value)
+    -> GFBufferOrNone {
   const auto ref_hex = ref.ConvertToQByteArray().toHex();
-  const auto ref_path =
-      store_.PathOf(ProfileArea::kDataObjects) + "/" + ref_hex;
 
   auto drv_key = DeriveObjectKey(key_, ref);
   if (!drv_key) {
@@ -966,11 +964,37 @@ auto DataObjectOperator::write_encr_object(const GFBuffer& ref,
 
   GFBuffer data;
   data.Combine({key_id_, *encrypted});
+  return data;
+}
 
-  if (!WriteFileGFBuffer(ref_path, data)) {
+auto DataObjectOperator::write_encr_object(const GFBuffer& ref,
+                                           const GFBuffer& value) -> QString {
+  const auto ref_hex = ref.ConvertToQByteArray().toHex();
+  const auto ref_path =
+      store_.PathOf(ProfileArea::kDataObjects) + "/" + ref_hex;
+
+  auto data = seal_object(ref, value);
+  if (!data) return {};
+
+  if (!WriteFileGFBuffer(ref_path, *data)) {
     LOG_E() << "failed to write data object to disk: " << ref_hex;
   }
 
   return ref_hex;
+}
+
+auto DataObjectOperator::SealDataObjForPackage(const QString& key,
+                                               const QJsonDocument& value)
+    -> std::optional<std::pair<QString, GFBuffer>> {
+  if (key_.Empty() || key.isEmpty()) return {};
+
+  const auto ref = get_object_ref(key);
+  if (ref.Empty()) return {};
+
+  auto data = seal_object(ref, GFBuffer(value.toJson()));
+  if (!data) return {};
+
+  return std::make_pair(QString::fromLatin1(ref.ConvertToQByteArray().toHex()),
+                        *data);
 }
 }  // namespace GpgFrontend

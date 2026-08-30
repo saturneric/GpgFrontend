@@ -29,6 +29,7 @@
 #pragma once
 
 #include <optional>
+#include <utility>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
@@ -138,6 +139,31 @@ class GF_CORE_EXPORT DataObjectOperator
    */
   auto HasDataObj(const QString &key) -> bool;
 
+  /**
+   * @brief The storage name and sealed bytes a data object would have, without
+   * writing it.
+   *
+   * For the one caller that needs an object it is not storing: a profile
+   * package carries a rewritten copy of a data object -- key database paths in
+   * the portable `@profile/` form rather than this machine's absolute ones --
+   * while the sender's own copy stays exactly as it is. Regenerating what
+   * travels is the same thing the package already does for `config.ini`, and
+   * it is the only way to do it without briefly writing somebody else's
+   * version of their own settings over theirs.
+   *
+   * The name is HMAC-SHA256 of @p key under the profile's own key, and that
+   * key travels inside the package, so the recipient derives the identical
+   * file name and reads the object back as its own.
+   *
+   * @param key logical name the object would be stored under
+   * @param value JSON document to seal
+   * @return the hex reference and the bytes that belong at
+   * `data_objs/<reference>`, or nothing if the key material is unavailable or
+   * the sealing failed
+   */
+  auto SealDataObjForPackage(const QString &key, const QJsonDocument &value)
+      -> std::optional<std::pair<QString, GFBuffer>>;
+
  private:
   ProfileAccessor &store_ =
       ProfileSession::Instance().Accessor();  ///< Where objects are kept
@@ -176,6 +202,20 @@ class GF_CORE_EXPORT DataObjectOperator
    * @return hex-encoded reference string, or empty on failure
    */
   auto write_encr_object(const GFBuffer &ref, const GFBuffer &value) -> QString;
+
+  /**
+   * @brief Encrypt a value into the exact bytes a stored object is made of.
+   *
+   * Split out of write_encr_object() so that what a package carries and what
+   * lands on disk cannot drift apart: both go through here.
+   *
+   * @param ref binary reference the object key is derived from
+   * @param value binary data to encrypt
+   * @return the on-disk representation (key id followed by ciphertext), or
+   * empty on failure
+   */
+  auto seal_object(const GFBuffer &ref, const GFBuffer &value)
+      -> GFBufferOrNone;
 
   /**
    * @brief Read, decrypt, and parse a JSON data object from disk using its
