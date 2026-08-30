@@ -33,6 +33,14 @@
 
 namespace GpgFrontend {
 
+/// The data object the key database list is stored under.
+///
+/// Spelled once because the name is what the storage reference is derived
+/// from: a package seals a rewritten copy of this object under the same name
+/// so the recipient reads it back as its own, and a disagreement between the
+/// two spellings would not fail -- it would hand the recipient an empty list.
+inline constexpr auto kKeyDatabaseListObject = "key_database_list";
+
 struct KeyDatabaseListSO {
   QContainer<KeyDatabaseItemSO> key_databases;
 
