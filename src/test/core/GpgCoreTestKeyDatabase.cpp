@@ -28,6 +28,7 @@
 
 #include "GFCoreTest.h"
 #include "core/function/CoreSignalStation.h"
+#include "core/function/gpg/GnuPGHome.h"
 #include "core/module/ModuleManager.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileRegistry.h"
@@ -874,31 +875,31 @@ TEST_F(GFCoreTest, BadOpenPGPEnvReasonSurvivesQueuedConnection) {
 // gpg-agent could not create its sockets because the key database path was
 // longer than a unix socket address can hold, and nothing checked. These pin
 // the arithmetic that now catches it.
-TEST_F(GFCoreTest, GnuPGHomePathAcceptsAPathExactlyAtTheBudget) {
-  const auto budget = GnuPGHomePathByteBudget();
+TEST_F(GFCoreTest, GnuPGSocketBudgetAcceptsAPathExactlyAtTheBudget) {
+  const auto budget = GnuPGSocketBudget::Bytes();
   if (budget < 0) GTEST_SKIP() << "no socket path limit on this platform";
 
   const QString path = "/" + QString(budget - 1, QLatin1Char('a'));
   ASSERT_EQ(path.toUtf8().size(), budget);
 
-  EXPECT_TRUE(GnuPGHomePathFitsSocketBudget(path));
+  EXPECT_TRUE(GnuPGSocketBudget::Fits(path));
 }
 
-TEST_F(GFCoreTest, GnuPGHomePathRejectsAPathOneByteOverTheBudget) {
-  const auto budget = GnuPGHomePathByteBudget();
+TEST_F(GFCoreTest, GnuPGSocketBudgetRejectsAPathOneByteOverTheBudget) {
+  const auto budget = GnuPGSocketBudget::Bytes();
   if (budget < 0) GTEST_SKIP() << "no socket path limit on this platform";
 
   const QString path = "/" + QString(budget, QLatin1Char('a'));
   ASSERT_EQ(path.toUtf8().size(), budget + 1);
 
-  EXPECT_FALSE(GnuPGHomePathFitsSocketBudget(path));
+  EXPECT_FALSE(GnuPGSocketBudget::Fits(path));
 }
 
 // sun_path is a byte buffer, so a non-ASCII user name costs more room than its
 // character count suggests. Measuring QChars would let exactly these paths
 // through and reproduce the original failure.
-TEST_F(GFCoreTest, GnuPGHomePathIsMeasuredInBytesNotCharacters) {
-  const auto budget = GnuPGHomePathByteBudget();
+TEST_F(GFCoreTest, GnuPGSocketBudgetIsMeasuredInBytesNotCharacters) {
+  const auto budget = GnuPGSocketBudget::Bytes();
   if (budget < 0) GTEST_SKIP() << "no socket path limit on this platform";
 
   // Each of these is one QChar but two UTF-8 bytes, so a path of budget
@@ -906,22 +907,7 @@ TEST_F(GFCoreTest, GnuPGHomePathIsMeasuredInBytesNotCharacters) {
   const QString path = "/" + QString(budget, QChar{0x00E4});
   ASSERT_LT(path.size(), path.toUtf8().size());
 
-  EXPECT_FALSE(GnuPGHomePathFitsSocketBudget(path));
-}
-
-TEST_F(GFCoreTest, GnuPGHomePathUnusableReasonRoundTrips) {
-  const auto previous = GnuPGHomePathUnusableReason();
-
-  RegisterGnuPGHomePathUnusable("homedir too long: 110 bytes, max 85");
-  EXPECT_EQ(GnuPGHomePathUnusableReason(),
-            "homedir too long: 110 bytes, max 85");
-
-  // An empty reason clears it: the condition can be resolved, and a stale
-  // explanation on screen is worse than none.
-  RegisterGnuPGHomePathUnusable({});
-  EXPECT_TRUE(GnuPGHomePathUnusableReason().isEmpty());
-
-  RegisterGnuPGHomePathUnusable(previous);
+  EXPECT_FALSE(GnuPGSocketBudget::Fits(path));
 }
 
 namespace {
@@ -930,104 +916,224 @@ namespace {
 // fall back to a link. Built under `base` so the test owns everything it makes.
 auto MakeOverBudgetDir(const QString& base) -> QString {
   auto path = base;
-  while (GnuPGHomePathFitsSocketBudget(path)) path += "/0123456789";
+  while (GnuPGSocketBudget::Fits(path)) path += "/0123456789";
 
   return QDir().mkpath(path) ? path : QString{};
 }
+
+// A store of this test's own, so nothing here touches the links the running
+// application is using. Channels are per test to keep them independent.
+auto StoreOn(int channel, const QString& root) -> GnuPGHomeLinkStore& {
+  auto& store = GnuPGHomeLinkStore::GetInstance(channel);
+  store.ReleaseAll();
+  store.UseRoot(root);
+  return store;
+}
+
+auto SkipWhenUnlimited() -> bool { return GnuPGSocketBudget::Bytes() < 0; }
 
 }  // namespace
 
 // A path that already fits must be handed to GnuPG untouched: the link only
 // exists to rescue paths that cannot work, and creating one anyway would leave
 // a trail of them on every installation that never had the problem.
-TEST_F(GFCoreTest, GnuPGEngineHomePathIsUnchangedWhenItAlreadyFits) {
+TEST_F(GFCoreTest, GnuPGHomeIsUnchangedWhenItAlreadyFits) {
   QTemporaryDir root;
   ASSERT_TRUE(root.isValid());
-  ASSERT_TRUE(GnuPGHomePathFitsSocketBudget(root.path()));
+  ASSERT_TRUE(GnuPGSocketBudget::Fits(root.path()));
 
-  EXPECT_EQ(ResolveGnuPGEngineHomePath(root.path(), root.path() + "/links"),
-            root.path());
+  auto& store = StoreOn(5101, root.path());
+  const auto home = GnuPGHomeResolver(store).Provision(root.path());
+
+  EXPECT_TRUE(home.IsUsable());
+  EXPECT_FALSE(home.IsRedirected());
+  EXPECT_EQ(home.engine_path, root.path());
+  EXPECT_EQ(home.key_db_path, root.path());
 }
 
-TEST_F(GFCoreTest, GnuPGEngineHomePathRedirectsAnOverBudgetPath) {
+TEST_F(GFCoreTest, GnuPGHomeRedirectsAnOverBudgetPath) {
+  if (SkipWhenUnlimited()) GTEST_SKIP() << "no socket path limit here";
+
   QTemporaryDir base;
   ASSERT_TRUE(base.isValid());
-  if (GnuPGHomePathByteBudget() < 0) {
-    GTEST_SKIP() << "no socket path limit on this platform";
-  }
-
   const auto deep = MakeOverBudgetDir(base.path());
   ASSERT_FALSE(deep.isEmpty());
 
-  const auto links = base.path() + "/l";
-  const auto alias = ResolveGnuPGEngineHomePath(deep, links);
+  auto& store = StoreOn(5102, base.path());
+  const auto home = GnuPGHomeResolver(store).Provision(deep);
 
-  ASSERT_FALSE(alias.isEmpty());
-  EXPECT_NE(alias, deep);
+  ASSERT_TRUE(home.IsUsable());
+  EXPECT_TRUE(home.IsRedirected());
 
   // The whole point: short enough for the sockets, and still the same
-  // directory.
-  EXPECT_TRUE(GnuPGHomePathFitsSocketBudget(alias));
-  EXPECT_EQ(QFileInfo(alias).symLinkTarget(),
-            QFileInfo(deep).canonicalFilePath());
+  // directory. The real files stay where key_db_path says.
+  EXPECT_TRUE(GnuPGSocketBudget::Fits(home.engine_path));
+  EXPECT_EQ(home.key_db_path, deep);
+  EXPECT_EQ(QFileInfo(home.engine_path).symLinkTarget(), deep);
 
-  // Deterministic, so restarts and sibling channels converge on one link rather
-  // than littering a new one per call.
-  EXPECT_EQ(ResolveGnuPGEngineHomePath(deep, links), alias);
+  store.ReleaseAll();
 }
 
-TEST_F(GFCoreTest, GnuPGEngineHomePathReplacesALinkPointingElsewhere) {
+// Inspect() is what the settings dialog asks while a path is still being
+// chosen. Answering it must not leave anything behind on a path the user is
+// only considering.
+TEST_F(GFCoreTest, GnuPGHomeInspectCreatesNothing) {
+  if (SkipWhenUnlimited()) GTEST_SKIP() << "no socket path limit here";
+
   QTemporaryDir base;
   ASSERT_TRUE(base.isValid());
-  if (GnuPGHomePathByteBudget() < 0) {
-    GTEST_SKIP() << "no socket path limit on this platform";
-  }
-
   const auto deep = MakeOverBudgetDir(base.path());
   ASSERT_FALSE(deep.isEmpty());
 
   const auto links = base.path() + "/l";
-  const auto alias = ResolveGnuPGEngineHomePath(deep, links);
-  ASSERT_FALSE(alias.isEmpty());
+  auto& store = StoreOn(5103, links);
+  ASSERT_FALSE(store.Root().isEmpty());
 
-  // Point it somewhere else behind the resolver's back: a stale link left by a
-  // profile that moved, or an eight-hex collision. Either way the answer must
-  // be corrected rather than trusted.
-  const auto decoy = base.path() + "/decoy";
-  ASSERT_TRUE(QDir().mkpath(decoy));
-  ASSERT_TRUE(QFile::remove(alias));
-  ASSERT_TRUE(QFile::link(decoy, alias));
+  const auto home = GnuPGHomeResolver(store).Inspect(deep);
 
-  EXPECT_EQ(ResolveGnuPGEngineHomePath(deep, links), alias);
-  EXPECT_EQ(QFileInfo(alias).symLinkTarget(),
-            QFileInfo(deep).canonicalFilePath());
+  EXPECT_TRUE(home.IsUsable());
+  // Usable, but no link exists yet -- that is Provision()'s job.
+  EXPECT_TRUE(home.engine_path.isEmpty());
+  EXPECT_FALSE(home.IsRedirected());
+  EXPECT_FALSE(QFileInfo::exists(links));
 }
 
-// A real directory sitting on the short name is somebody's data. Refuse rather
-// than clear it out of the way.
-TEST_F(GFCoreTest, GnuPGEngineHomePathRefusesToDisplaceARealDirectory) {
+// The macOS sandbox case: the container is deep enough that even a link inside
+// it is over the limit, and there is then nothing honest to do but refuse.
+TEST_F(GFCoreTest, GnuPGHomeIsUnusableWhenTheRootIsItselfOverBudget) {
+  if (SkipWhenUnlimited()) GTEST_SKIP() << "no socket path limit here";
+
   QTemporaryDir base;
   ASSERT_TRUE(base.isValid());
-  if (GnuPGHomePathByteBudget() < 0) {
-    GTEST_SKIP() << "no socket path limit on this platform";
-  }
-
   const auto deep = MakeOverBudgetDir(base.path());
   ASSERT_FALSE(deep.isEmpty());
 
-  const auto links = base.path() + "/l";
-  const auto alias = ResolveGnuPGEngineHomePath(deep, links);
-  ASSERT_FALSE(alias.isEmpty());
+  // A root no link can fit inside reads back as no root at all.
+  auto& store = StoreOn(5104, deep);
+  EXPECT_TRUE(store.Root().isEmpty());
 
-  ASSERT_TRUE(QFile::remove(alias));
-  ASSERT_TRUE(QDir().mkpath(alias));
-  ASSERT_TRUE(QFile::exists(alias + "/../"));
+  const auto home = GnuPGHomeResolver(store).Provision(deep);
 
-  EXPECT_TRUE(ResolveGnuPGEngineHomePath(deep, links).isEmpty());
-  EXPECT_FALSE(GnuPGHomePathUnusableReason().isEmpty());
-  EXPECT_TRUE(QFileInfo(alias).isDir());
+  EXPECT_FALSE(home.IsUsable());
+  EXPECT_FALSE(home.unusable_reason.isEmpty());
 
-  RegisterGnuPGHomePathUnusable({});
+  // Untranslated and carrying the arithmetic, never the user's path.
+  EXPECT_TRUE(home.unusable_reason.contains("max"));
+  EXPECT_FALSE(home.unusable_reason.contains(deep));
+}
+
+// The defect this whole change exists for: the settings dialog measured the
+// path itself and refused folders the engine would have rescued with a link.
+// Both sides now run one predicate, and these are the three properties that
+// say so.
+TEST_F(GFCoreTest, GnuPGHomeInspectAndProvisionAgree) {
+  if (SkipWhenUnlimited()) GTEST_SKIP() << "no socket path limit here";
+
+  QTemporaryDir base;
+  ASSERT_TRUE(base.isValid());
+  const auto deep = MakeOverBudgetDir(base.path());
+  ASSERT_FALSE(deep.isEmpty());
+
+  // Fits directly, needs a link, and cannot be helped at all.
+  const QStringList paths = {base.path(), deep};
+
+  for (const auto& root : QStringList{base.path(), deep}) {
+    auto& store = StoreOn(5105, root);
+    GnuPGHomeResolver resolver(store);
+    SCOPED_TRACE(store.Root().isEmpty() ? "no usable link root"
+                                        : "link root available");
+
+    for (const auto& path : paths) {
+      SCOPED_TRACE(GnuPGSocketBudget::Fits(path) ? "path fits directly"
+                                                 : "path needs a link");
+
+      const auto inspected = resolver.Inspect(path);
+      const auto provisioned = resolver.Provision(path);
+
+      // 1. Every path Inspect() rejects, Provision() rejects too.
+      if (!inspected.IsUsable()) {
+        EXPECT_FALSE(provisioned.IsUsable());
+        continue;
+      }
+
+      // 2. Every directly fitting path comes back identical from both, and
+      //    equal to what went in.
+      if (GnuPGSocketBudget::Fits(path)) {
+        EXPECT_EQ(inspected.engine_path, path);
+        EXPECT_EQ(provisioned.engine_path, path);
+        continue;
+      }
+
+      // 3. Every alias-eligible path reaches the store: a link exists, under
+      //    the store's root, resolving to the real directory.
+      ASSERT_TRUE(provisioned.IsUsable());
+      EXPECT_TRUE(provisioned.IsRedirected());
+      EXPECT_TRUE(provisioned.engine_path.startsWith(store.Root()));
+      EXPECT_EQ(QFileInfo(provisioned.engine_path).symLinkTarget(), path);
+    }
+
+    store.ReleaseAll();
+  }
+}
+
+// Sibling channels opening one key database share a link rather than each
+// minting its own, and two databases never collapse onto one.
+TEST_F(GFCoreTest, GnuPGHomeLinksAreLeasedPerRealPath) {
+  if (SkipWhenUnlimited()) GTEST_SKIP() << "no socket path limit here";
+
+  QTemporaryDir base;
+  ASSERT_TRUE(base.isValid());
+  const auto first = MakeOverBudgetDir(base.path() + "/a");
+  const auto second = MakeOverBudgetDir(base.path() + "/b");
+  ASSERT_FALSE(first.isEmpty());
+  ASSERT_FALSE(second.isEmpty());
+
+  auto& store = StoreOn(5106, base.path());
+
+  const auto link = store.Acquire(first);
+  ASSERT_FALSE(link.isEmpty());
+  EXPECT_EQ(store.Acquire(first), link);
+  EXPECT_NE(store.Acquire(second), link);
+
+  store.ReleaseAll();
+}
+
+// The links are this run's, and removing one discards no data: the key database
+// it points at is untouched.
+TEST_F(GFCoreTest, GnuPGHomeReleaseAllRemovesTheLinksItMade) {
+  if (SkipWhenUnlimited()) GTEST_SKIP() << "no socket path limit here";
+
+  QTemporaryDir base;
+  ASSERT_TRUE(base.isValid());
+  const auto deep = MakeOverBudgetDir(base.path());
+  ASSERT_FALSE(deep.isEmpty());
+
+  auto& store = StoreOn(5107, base.path());
+  const auto link = store.Acquire(deep);
+  ASSERT_FALSE(link.isEmpty());
+  ASSERT_TRUE(QFileInfo(link).isSymLink());
+
+  store.ReleaseAll();
+
+  EXPECT_FALSE(QFileInfo(link).isSymLink());
+  EXPECT_TRUE(QFileInfo(deep).isDir());
+
+  // Released means released: the next Acquire mints a fresh one.
+  EXPECT_NE(store.Acquire(deep), link);
+  store.ReleaseAll();
+}
+
+// Only gpg-agent puts length-capped sockets in the home directory, so every
+// other engine is told exactly where its files are.
+TEST_F(GFCoreTest, NonGnuPGContextEngineHomePathIsTheKeyDatabasePath) {
+  // A channel never configured with a real context, which lazily yields an
+  // rPGP placeholder rather than a GpgContext.
+  constexpr int kUnusedChannel = 4097;
+
+  auto& ctx = OpenPGPContext::GetInstance(kUnusedChannel);
+  ASSERT_EQ(ctx.Engine(), OpenPGPEngine::kRPGP);
+
+  EXPECT_EQ(ctx.EngineHomePath(), ctx.KeyDBPath());
 }
 
 // The profile directory name is part of the GnuPG home path, which is why it is
