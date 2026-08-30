@@ -376,6 +376,216 @@ TEST_F(GFCoreTest, ChooseEngineDefaultsToGnupgOnEmptyPreference) {
   EXPECT_EQ(choice.engine, OpenPGPEngine::kGNUPG);
 }
 
+// ------------------------------------------------- the reserved DEFAULT name
+
+TEST_F(GFCoreTest, TheDefaultNameBelongsToTheApplication) {
+  // DEFAULT is derived, not stored: its path comes from the engine and it is
+  // the one database `basic/default_engine` speaks for. A second thing wearing
+  // that name is found first by every lookup that goes by name, and takes the
+  // default engine along with the identity.
+  EXPECT_TRUE(IsReservedKeyDatabaseName("DEFAULT"));
+}
+
+TEST_F(GFCoreTest, TheReservedNameIsNotReservedOnlyInOneSpelling) {
+  // The name becomes a folder, and "default" and "DEFAULT" are the same folder
+  // on Windows and on macOS. Reserving the exact spelling alone would reserve
+  // nothing on either.
+  EXPECT_TRUE(IsReservedKeyDatabaseName("default"));
+  EXPECT_TRUE(IsReservedKeyDatabaseName("Default"));
+  EXPECT_TRUE(IsReservedKeyDatabaseName("  DEFAULT  "));
+}
+
+TEST_F(GFCoreTest, AnOrdinaryNameIsNotReserved) {
+  EXPECT_FALSE(IsReservedKeyDatabaseName("Key DB 2"));
+  EXPECT_FALSE(IsReservedKeyDatabaseName("DEFAULTS"));
+  EXPECT_FALSE(IsReservedKeyDatabaseName("My DEFAULT"));
+  EXPECT_FALSE(IsReservedKeyDatabaseName(""));
+}
+
+TEST_F(GFCoreTest, TheDerivedDefaultDatabaseNamesItselfReservedly) {
+  // What the dialog's Default mode adds. The path depends on the engine this
+  // machine has, so it is not asserted -- the identity is.
+  const auto candidate = DefaultKeyDatabaseCandidate();
+
+  EXPECT_TRUE(IsReservedKeyDatabaseName(candidate.name));
+  EXPECT_EQ(candidate.channel, 0);
+  EXPECT_FALSE(candidate.backend_type.isEmpty());
+}
+
+// ------------------------------------------------- one default, or none
+
+TEST_F(GFCoreTest, ASecondDefaultIsDroppedAndTheFirstIsKept) {
+  // A stored list is not only ever written by the dialog: it can arrive in a
+  // package, be hand-edited, or come from a build older than this rule. Two
+  // databases answering to one identity is not a state anything downstream can
+  // make sense of -- every lookup by name finds whichever comes first, and the
+  // default engine follows the name.
+  QContainer<KeyDatabaseItemSO> databases;
+  databases.push_back(MakeItem("DEFAULT", "/first", "gnupg", 0));
+  databases.push_back(MakeItem("Work", "/work", "rpgp", 1));
+  databases.push_back(MakeItem("Default", "/second", "rpgp", 2));
+  databases.push_back(MakeItem("default", "/third", "rpgp", 3));
+
+  const auto kept = DropDuplicateDefaultKeyDatabases(databases);
+
+  ASSERT_EQ(kept.size(), 2);
+  EXPECT_EQ(kept.at(0).name, "DEFAULT");
+  EXPECT_EQ(kept.at(0).path, "/first") << "the first one is the one that stays";
+  EXPECT_EQ(kept.at(1).name, "Work");
+}
+
+TEST_F(GFCoreTest, AListWithNoDefaultIsLeftAlone) {
+  // Zero is as legitimate as one: a profile that arrived in a package has none,
+  // because a package never carries a database that lived outside it.
+  QContainer<KeyDatabaseItemSO> databases;
+  databases.push_back(MakeItem("Key DB 2", "@profile/dbs/Key DB 2", "rpgp", 0));
+  databases.push_back(
+      MakeItem("Key DB 3", "@profile/dbs/Key DB 3", "gnupg", 1));
+
+  const auto kept = DropDuplicateDefaultKeyDatabases(databases);
+
+  ASSERT_EQ(kept.size(), 2);
+  EXPECT_EQ(kept.at(0).name, "Key DB 2");
+  EXPECT_EQ(kept.at(1).name, "Key DB 3");
+}
+
+TEST_F(GFCoreTest, DroppingDuplicateDefaultsIsIdempotent) {
+  QContainer<KeyDatabaseItemSO> databases;
+  databases.push_back(MakeItem("DEFAULT", "/first", "gnupg", 0));
+  databases.push_back(MakeItem("DEFAULT", "/second", "gnupg", 1));
+
+  const auto once = DropDuplicateDefaultKeyDatabases(databases);
+  const auto twice = DropDuplicateDefaultKeyDatabases(once);
+
+  ASSERT_EQ(once.size(), 1);
+  ASSERT_EQ(twice.size(), 1);
+  EXPECT_EQ(twice.at(0).path, "/first");
+}
+
+TEST_F(GFCoreTest, ChannelsSharedByTwoEntriesAreBrokenInListOrder) {
+  // Which database is channel 0 has to be a fact about the profile, not a
+  // coin toss. Adding the DEFAULT database puts it at channel 0 while another
+  // entry still holds 0, and an unstable sort would decide between them
+  // differently from one run to the next.
+  QContainer<KeyDatabaseItemSO> databases;
+  databases.push_back(MakeItem("DEFAULT", "/default", "gnupg", 0));
+  databases.push_back(MakeItem("Work", "/work", "rpgp", 0));
+  databases.push_back(MakeItem("Spare", "/spare", "rpgp", 0));
+
+  NormalizeKeyDatabaseChannels(databases);
+
+  ASSERT_EQ(databases.size(), 3);
+  EXPECT_EQ(databases.at(0).name, "DEFAULT");
+  EXPECT_EQ(databases.at(0).channel, 0);
+  EXPECT_EQ(databases.at(1).name, "Work");
+  EXPECT_EQ(databases.at(1).channel, 1);
+  EXPECT_EQ(databases.at(2).name, "Spare");
+  EXPECT_EQ(databases.at(2).channel, 2);
+}
+
+// ------------------------------- the default database is this computer's
+
+TEST_F(GFCoreTest, ADefaultPathFromAnotherSystemIsReplacedNotRepaired) {
+  // The report this exists for: a package opened on Linux whose DEFAULT entry
+  // still said "C:/Users/eric/AppData/Roaming/gnupg". Not a path Linux has, and
+  // not even one Qt reads as absolute there. Repairing it is impossible anyway
+  // -- the sender's keyring never travelled, because a package carries nothing
+  // from outside the profile root -- and what the recipient wants under that
+  // name is their own default keyring.
+  QContainer<KeyDatabaseItemSO> databases;
+  databases.push_back(
+      MakeItem("DEFAULT", "C:/Users/eric/AppData/Roaming/gnupg", "gnupg", 0));
+  databases.push_back(MakeItem("Key DB 2", "@profile/dbs/Key DB 2", "rpgp", 1));
+
+  const auto adopted =
+      AdoptLocalDefaultKeyDatabase(databases, "/home/eric/.gnupg", "gnupg");
+
+  ASSERT_EQ(adopted.size(), 2);
+  EXPECT_EQ(adopted.at(0).path, "/home/eric/.gnupg");
+  EXPECT_EQ(adopted.at(1).path, "@profile/dbs/Key DB 2")
+      << "only the derived database is derived";
+}
+
+TEST_F(GFCoreTest, TheBackendTravelsWithTheDefaultPath) {
+  // Which engine derived the keyring is part of the same fact. A DEFAULT
+  // recorded as gnupg by a machine that had it, opened on a build that does
+  // not, has to become that build's default rather than name an engine that is
+  // not there.
+  QContainer<KeyDatabaseItemSO> databases;
+  databases.push_back(MakeItem("Default", "C:/Users/eric/gnupg", "gnupg", 0));
+
+  const auto adopted =
+      AdoptLocalDefaultKeyDatabase(databases, "/home/eric/.rpgp_db", "rpgp");
+
+  ASSERT_EQ(adopted.size(), 1);
+  EXPECT_EQ(adopted.at(0).path, "/home/eric/.rpgp_db");
+  EXPECT_EQ(adopted.at(0).backend_type, "rpgp");
+}
+
+TEST_F(GFCoreTest, WithNoLocalDefaultNothingIsTakenAway) {
+  // An engine reporting no database is not a reason to blank the entry: the
+  // stored path is still the best thing known about it.
+  QContainer<KeyDatabaseItemSO> databases;
+  databases.push_back(MakeItem("DEFAULT", "/home/eric/.gnupg", "gnupg", 0));
+
+  const auto adopted = AdoptLocalDefaultKeyDatabase(databases, {}, {});
+
+  ASSERT_EQ(adopted.size(), 1);
+  EXPECT_EQ(adopted.at(0).path, "/home/eric/.gnupg");
+}
+
+TEST_F(GFCoreTest, AdoptingTheLocalDefaultIsIdempotent) {
+  QContainer<KeyDatabaseItemSO> databases;
+  databases.push_back(MakeItem("DEFAULT", "C:/Users/eric/gnupg", "gnupg", 0));
+
+  const auto once =
+      AdoptLocalDefaultKeyDatabase(databases, "/home/eric/.gnupg", "gnupg");
+  const auto twice =
+      AdoptLocalDefaultKeyDatabase(once, "/home/eric/.gnupg", "gnupg");
+
+  ASSERT_EQ(twice.size(), 1);
+  EXPECT_EQ(twice.at(0).path, "/home/eric/.gnupg");
+}
+
+// ------------------------------------- the engine belongs to the database
+
+TEST_F(GFCoreTest, AKeyDatabaseIsOpenedWithItsOwnBackend) {
+  // The bug this exists for. Channel 0 took its engine from
+  // `basic/default_engine` while every other channel took it from the database,
+  // so the two agreed only while the first database was the DEFAULT one. An
+  // imported profile whose DEFAULT still names a path on the machine it came
+  // from is dropped as unusable, the next database moves up into channel 0, and
+  // an rPGP keyring was opened with GnuPG.
+  const auto choice = ChooseKeyDatabaseEngine("rpgp", "GNUPG", true, true);
+
+  EXPECT_TRUE(choice.ok);
+  EXPECT_EQ(choice.engine, OpenPGPEngine::kRPGP)
+      << "the setting outvoted the database it was not about";
+}
+
+TEST_F(GFCoreTest, TheDefaultEngineOnlyAnswersForADatabaseThatNamesNone) {
+  // What the setting is actually for: it preselects the backend for a database
+  // the user is creating, and stands in for a stored entry old enough not to
+  // record one.
+  EXPECT_EQ(ChooseKeyDatabaseEngine("", "rpgp", true, true).engine,
+            OpenPGPEngine::kRPGP);
+  EXPECT_EQ(ChooseKeyDatabaseEngine("   ", "rpgp", true, true).engine,
+            OpenPGPEngine::kRPGP);
+  EXPECT_EQ(ChooseKeyDatabaseEngine("gnupg", "rpgp", true, true).engine,
+            OpenPGPEngine::kGNUPG);
+}
+
+TEST_F(GFCoreTest, ADatabaseBackendThisBuildLacksStillFallsBack) {
+  // The fallback is the one in ChooseOpenPGPEngine(), unchanged: a database
+  // stored as "rpgp" by a build that had it must still open somewhere.
+  const auto choice = ChooseKeyDatabaseEngine("rpgp", "rpgp", true, false);
+
+  EXPECT_TRUE(choice.ok);
+  EXPECT_EQ(choice.engine, OpenPGPEngine::kGNUPG);
+
+  EXPECT_FALSE(ChooseKeyDatabaseEngine("rpgp", "gnupg", false, false).ok);
+}
+
 // SignalBadOpenPGPEnv is emitted from a worker thread and received on the main
 // thread, so its custom enum argument has to survive a queued connection. If
 // the metatype registration and the spelling moc records ever drift apart, Qt

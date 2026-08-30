@@ -358,9 +358,14 @@ TEST(ProfilePackagePathTest, PathsInsideTheProfileAreMadeToTravel) {
   EXPECT_EQ(packed.at(0).path, "@profile/db");
 }
 
-TEST(ProfilePackagePathTest, PathsOutsideTheProfileAreLeftExactlyAsTheyAre) {
-  // Inventing a path here would produce an empty database wearing the name of
-  // a real one, which is worse than a database that says it is unavailable.
+TEST(ProfilePackagePathTest, PathsOutsideTheProfileDoNotTravelAtAll) {
+  // They used to travel as absolute paths, marked external. That is worse than
+  // useless on another machine: Qt reads "C:/Users/..." as relative on Unix and
+  // "/Users/..." as absolute on Windows, so the same entry is a directory
+  // invented under the executable on one platform and a missing database on the
+  // other -- and a missing database shifts every database after it up a
+  // channel. That is how a package whose DEFAULT lived outside the profile got
+  // an rPGP keyring opened with GnuPG on the machine it was imported to.
   QContainer<KeyDatabaseItemSO> databases;
 
   KeyDatabaseItemSO outside;
@@ -368,12 +373,36 @@ TEST(ProfilePackagePathTest, PathsOutsideTheProfileAreLeftExactlyAsTheyAre) {
   outside.path = "/home/eric/.gnupg";
   databases.push_back(outside);
 
-  const auto packed =
-      RewriteKeyDatabaseListForPacking(databases, "/srv/profiles/work");
+  KeyDatabaseItemSO windows_default;
+  windows_default.name = "DEFAULT";
+  windows_default.path = "C:/Users/eric/AppData/Roaming/gnupg";
+  databases.push_back(windows_default);
 
-  ASSERT_EQ(packed.size(), 1);
-  EXPECT_EQ(packed.at(0).path, "/home/eric/.gnupg");
-  EXPECT_TRUE(DescribeKeyDatabasesForManifest(packed).at(0).external);
+  EXPECT_TRUE(RewriteKeyDatabaseListForPacking(databases, "/srv/profiles/work")
+                  .isEmpty());
+}
+
+TEST(ProfilePackagePathTest, NothingThatTravelsIsEverMarkedExternal) {
+  // The manifest field survives for packages older builds wrote; nothing this
+  // build packs can set it any more.
+  QContainer<KeyDatabaseItemSO> databases;
+
+  KeyDatabaseItemSO inside;
+  inside.name = "Default";
+  inside.path = "/srv/profiles/work/db";
+  databases.push_back(inside);
+
+  KeyDatabaseItemSO outside;
+  outside.name = "System";
+  outside.path = "/home/eric/.gnupg";
+  databases.push_back(outside);
+
+  const auto entries = DescribeKeyDatabasesForManifest(
+      RewriteKeyDatabaseListForPacking(databases, "/srv/profiles/work"));
+
+  ASSERT_EQ(entries.size(), 1);
+  EXPECT_EQ(entries.at(0).name, "Default");
+  EXPECT_FALSE(entries.at(0).external);
 }
 
 TEST(ProfilePackagePathTest, RewritingIsIdempotent) {
@@ -848,16 +877,15 @@ TEST(ProfilePackageRoundTripTest,
   EXPECT_FALSE(names.contains("Hand Placed"))
       << "a hand-placed key database was carried into the package";
 
-  // The one outside the profile keeps its absolute path and is marked external,
-  // which is the case this has always handled.
-  EXPECT_TRUE(names.contains("Elsewhere"));
+  // The one outside the profile does not travel either, and for a sharper
+  // reason: its absolute path is meaningless on the machine that opens this,
+  // and a database that resolves to nothing there shifts every database after
+  // it up a channel.
+  EXPECT_FALSE(names.contains("Elsewhere"))
+      << "a key database outside the profile was named in the package";
 
   const auto entries = DescribeKeyDatabasesForManifest(packed);
   for (const auto &entry : entries) {
-    if (entry.name == "Elsewhere") {
-      EXPECT_TRUE(entry.external);
-      continue;
-    }
     EXPECT_FALSE(entry.external);
     EXPECT_TRUE(entry.stored_path.startsWith("@profile"))
         << "an absolute path from this machine reached the manifest: "
