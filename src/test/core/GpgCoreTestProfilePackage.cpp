@@ -405,6 +405,66 @@ TEST(ProfilePackagePathTest, NothingThatTravelsIsEverMarkedExternal) {
   EXPECT_FALSE(entries.at(0).external);
 }
 
+TEST(ProfilePackagePathTest, ADatabaseMarkedAsThisComputersDoesNotTravel) {
+  // The path would have carried it: it is inside the profile, in a directory
+  // the packer walks. What keeps it home is the user having said what it is.
+  QContainer<KeyDatabaseItemSO> databases;
+
+  KeyDatabaseItemSO external;
+  external.name = "Stick";
+  external.path = "/srv/profiles/work/dbs/Stick";
+  external.kind = KeyDatabaseKind::kEXTERNAL;
+  databases.push_back(external);
+
+  KeyDatabaseItemSO derived;
+  derived.name = "DEFAULT";
+  derived.path = "/srv/profiles/work/db";
+  derived.kind = KeyDatabaseKind::kDEFAULT;
+  databases.push_back(derived);
+
+  EXPECT_TRUE(RewriteKeyDatabaseListForPacking(databases, "/srv/profiles/work")
+                  .isEmpty());
+}
+
+TEST(ProfilePackagePathTest, AKindCannotTalkAPathIntoTravelling) {
+  // The kind may only ever exclude. A database claiming to be managed while
+  // sitting outside the profile is still one the package cannot carry.
+  QContainer<KeyDatabaseItemSO> databases;
+
+  KeyDatabaseItemSO lying;
+  lying.name = "System";
+  lying.path = "/home/eric/.gnupg";
+  lying.kind = KeyDatabaseKind::kMANAGED;
+  databases.push_back(lying);
+
+  KeyDatabaseItemSO unmanaged_dir;
+  unmanaged_dir.name = "Notes";
+  unmanaged_dir.path = "/srv/profiles/work/workspace/keys";
+  unmanaged_dir.kind = KeyDatabaseKind::kMANAGED;
+  databases.push_back(unmanaged_dir);
+
+  EXPECT_TRUE(RewriteKeyDatabaseListForPacking(databases, "/srv/profiles/work")
+                  .isEmpty());
+}
+
+TEST(ProfilePackagePathTest, AManagedDatabaseStillTravelsWithItsKindRecorded) {
+  QContainer<KeyDatabaseItemSO> databases;
+
+  KeyDatabaseItemSO managed;
+  managed.name = "Work";
+  managed.path = "/srv/profiles/work/dbs/Work";
+  managed.kind = KeyDatabaseKind::kMANAGED;
+  databases.push_back(managed);
+
+  const auto packed =
+      RewriteKeyDatabaseListForPacking(databases, "/srv/profiles/work");
+
+  ASSERT_EQ(packed.size(), 1);
+  EXPECT_EQ(packed.at(0).path, "@profile/dbs/Work");
+  ASSERT_TRUE(packed.at(0).kind.has_value());
+  EXPECT_EQ(*packed.at(0).kind, KeyDatabaseKind::kMANAGED);
+}
+
 TEST(ProfilePackagePathTest, RewritingIsIdempotent) {
   QContainer<KeyDatabaseItemSO> databases;
 

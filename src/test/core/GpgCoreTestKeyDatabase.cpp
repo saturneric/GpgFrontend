@@ -586,6 +586,229 @@ TEST_F(GFCoreTest, ADatabaseBackendThisBuildLacksStillFallsBack) {
   EXPECT_FALSE(ChooseKeyDatabaseEngine("rpgp", "gnupg", false, false).ok);
 }
 
+TEST_F(GFCoreTest, TheDefaultEngineAnswersForEverySpellingOfTheReservedName) {
+  // The rest of the program decides "is this the default one" by trimming and
+  // ignoring case. An entry spelled otherwise would have been handed its own
+  // backend where every other site would have handed it the setting.
+  for (const auto& spelling : {"DEFAULT", "default", " Default "}) {
+    const auto choice =
+        ChooseChannelZeroEngine(spelling, "rpgp", "gnupg", true, true);
+
+    EXPECT_TRUE(choice.ok) << spelling;
+    EXPECT_EQ(choice.engine, OpenPGPEngine::kGNUPG) << spelling;
+  }
+}
+
+TEST_F(GFCoreTest, TheReservedNameIsTheDefaultDatabaseWhereverItPoints) {
+  // Its stored path is replaced on every read, so where it currently points
+  // says nothing about what it is. Only the name can answer.
+  EXPECT_EQ(ClassifyKeyDatabase("DEFAULT", "/elsewhere/gnupg", "/profile"),
+            KeyDatabaseKind::kDEFAULT);
+  EXPECT_EQ(ClassifyKeyDatabase(" default ", "@profile/dbs/x", "/profile"),
+            KeyDatabaseKind::kDEFAULT);
+}
+
+TEST_F(GFCoreTest, EveryDirectoryAPackageCarriesIsManaged) {
+  // The same three directories ManagedKeyDatabaseDirs() names, so the settings
+  // page cannot promise a recipient something the packer would not ship.
+  EXPECT_EQ(ClassifyKeyDatabase("Work", "@profile/dbs/Work", "/profile"),
+            KeyDatabaseKind::kMANAGED);
+  EXPECT_EQ(ClassifyKeyDatabase("Work", "@profile/db", "/profile"),
+            KeyDatabaseKind::kMANAGED);
+  EXPECT_EQ(ClassifyKeyDatabase("Work", "@profile/rpgp_db", "/profile"),
+            KeyDatabaseKind::kMANAGED);
+}
+
+TEST_F(GFCoreTest, TheLongSpellingIsTheSameDatabaseAsTheTokenisedOne) {
+  // Which spelling reached the settings file is an accident of which build
+  // wrote it; they are one directory.
+  EXPECT_EQ(ClassifyKeyDatabase("Work", "/profile/dbs/Work", "/profile"),
+            KeyDatabaseKind::kMANAGED);
+}
+
+TEST_F(GFCoreTest, ADatabaseInsideTheProfileButOutsideThoseDirsIsExternal) {
+  // The package would not carry it, so calling it managed here would promise a
+  // recipient a keyring that never shipped.
+  EXPECT_EQ(ClassifyKeyDatabase("Work", "@profile/workspace/keys", "/profile"),
+            KeyDatabaseKind::kEXTERNAL);
+  EXPECT_EQ(ClassifyKeyDatabase("Work", "/somewhere/else", "/profile"),
+            KeyDatabaseKind::kEXTERNAL);
+}
+
+TEST_F(GFCoreTest, ADatabaseWithNothingToGoOnIsExternal) {
+  // External is the restrictive answer: it never travels and is never
+  // channel 0, so guessing it costs nothing that guessing managed would not.
+  EXPECT_EQ(ClassifyKeyDatabase("Work", "", "/profile"),
+            KeyDatabaseKind::kEXTERNAL);
+  EXPECT_EQ(ClassifyKeyDatabase("Work", "/profile/dbs/Work", ""),
+            KeyDatabaseKind::kEXTERNAL);
+}
+
+TEST_F(GFCoreTest, AManagedDatabaseLivesUnderTheNameItIsGiven) {
+  EXPECT_EQ(ManagedKeyDatabasePath("/app-data", "Work"), "/app-data/dbs/Work");
+
+  // Trimmed here rather than at the callers, so the folder an add creates and
+  // the folder a rename moves to cannot disagree.
+  EXPECT_EQ(ManagedKeyDatabasePath("/app-data", "  Work  "),
+            "/app-data/dbs/Work");
+
+  EXPECT_TRUE(ManagedKeyDatabasePath("/app-data", "   ").isEmpty());
+  EXPECT_TRUE(ManagedKeyDatabasePath("", "Work").isEmpty());
+}
+
+TEST_F(GFCoreTest, TheDefaultDatabaseTakesChannelZero) {
+  const auto list = ComposeKeyDatabaseList(
+      MakeItem("DEFAULT", "/gnupg", "gnupg", 7),
+      {MakeItem("Work", "@profile/dbs/Work", "gnupg", 3)},
+      {MakeItem("Stick", "/media/stick", "gnupg", 1)});
+
+  ASSERT_EQ(list.size(), 3);
+  EXPECT_EQ(list[0].name, QString("DEFAULT"));
+  EXPECT_EQ(list[1].name, QString("Work"));
+  EXPECT_EQ(list[2].name, QString("Stick"));
+
+  // The channels each entry arrived with are discarded: the order is the rule,
+  // not something carried over from however the list was last written.
+  for (int i = 0; i < list.size(); ++i) EXPECT_EQ(list[i].channel, i);
+}
+
+TEST_F(GFCoreTest, WithNoDefaultTheFirstProfileDatabaseLeads) {
+  const auto list = ComposeKeyDatabaseList(
+      std::nullopt, {MakeItem("Work", "@profile/dbs/Work")},
+      {MakeItem("Stick", "/media/stick")});
+
+  ASSERT_EQ(list.size(), 2);
+  EXPECT_EQ(list[0].name, QString("Work"));
+  EXPECT_EQ(list[0].channel, 0);
+  EXPECT_EQ(list[1].channel, 1);
+}
+
+TEST_F(GFCoreTest, ThisComputersDatabasesAlwaysComeLast) {
+  // Channel 0 is built synchronously at startup and is what the key list opens
+  // on. A database that cannot travel must never drift into it.
+  const auto list =
+      ComposeKeyDatabaseList(std::nullopt, {MakeItem("A", "@profile/dbs/A")},
+                             {MakeItem("X", "/x"), MakeItem("Y", "/y")});
+
+  ASSERT_EQ(list.size(), 3);
+  EXPECT_EQ(list[0].name, QString("A"));
+  EXPECT_EQ(list[1].name, QString("X"));
+  EXPECT_EQ(list[2].name, QString("Y"));
+}
+
+TEST_F(GFCoreTest, ComposingNothingGivesNothing) {
+  EXPECT_TRUE(ComposeKeyDatabaseList(std::nullopt, {}, {}).isEmpty());
+}
+
+TEST_F(GFCoreTest, RenamingAManagedDatabaseMovesItsFolder) {
+  EXPECT_EQ(DecideManagedRename(true, false), ManagedRenameAction::kRENAME);
+}
+
+TEST_F(GFCoreTest, RenamingOntoAnExistingFolderIsRefused) {
+  // Whatever is already there is a keyring, and the only safe thing to do with
+  // somebody's keyring is nothing. Refused even when there is nothing to move.
+  EXPECT_EQ(DecideManagedRename(true, true),
+            ManagedRenameAction::kTARGET_TAKEN);
+  EXPECT_EQ(DecideManagedRename(false, true),
+            ManagedRenameAction::kTARGET_TAKEN);
+}
+
+TEST_F(GFCoreTest, RenamingADatabaseWhoseFolderIsNotThereYetJustRenames) {
+  EXPECT_EQ(DecideManagedRename(false, false),
+            ManagedRenameAction::kNOTHING_TO_MOVE);
+}
+
+TEST_F(GFCoreTest, AKindSurvivesBeingWrittenAndReadBack) {
+  auto item = MakeItem("Stick", "/media/stick", "gnupg", 2);
+  item.kind = KeyDatabaseKind::kEXTERNAL;
+
+  const KeyDatabaseItemSO round_tripped(item.ToJson());
+
+  ASSERT_TRUE(round_tripped.kind.has_value());
+  EXPECT_EQ(*round_tripped.kind, KeyDatabaseKind::kEXTERNAL);
+}
+
+TEST_F(GFCoreTest, AnEntryWithNoKindWritesNoKindField) {
+  // A "kind" key that is present but meaningless is one an older reader and a
+  // newer one would disagree about, so it is left out entirely.
+  const auto json = MakeItem("Work", "@profile/dbs/Work").ToJson();
+
+  EXPECT_FALSE(json.contains("kind"));
+}
+
+TEST_F(GFCoreTest, AKindNoBuildKnowsIsTreatedAsAbsent) {
+  auto json = MakeItem("Work", "@profile/dbs/Work").ToJson();
+  json["kind"] = "something-later";
+
+  EXPECT_FALSE(KeyDatabaseItemSO(json).kind.has_value());
+}
+
+TEST_F(GFCoreTest, AnEntryFromBeforeTheFieldGetsItsKindFromItsPath) {
+  // Derived exactly as every build before the field inferred it, so upgrading
+  // does not silently reclassify anything.
+  const auto resolved =
+      ResolveKeyDatabaseKinds({MakeItem("Work", "@profile/dbs/Work"),
+                               MakeItem("Stick", "/media/stick")},
+                              "/profile");
+
+  ASSERT_EQ(resolved.size(), 2);
+  ASSERT_TRUE(resolved[0].kind.has_value());
+  EXPECT_EQ(*resolved[0].kind, KeyDatabaseKind::kMANAGED);
+  ASSERT_TRUE(resolved[1].kind.has_value());
+  EXPECT_EQ(*resolved[1].kind, KeyDatabaseKind::kEXTERNAL);
+}
+
+TEST_F(GFCoreTest, ARecordedKindIsKeptRatherThanReDerived) {
+  // The whole point of the field: the user said this database belongs to this
+  // computer, and a path that happens to sit inside the profile does not
+  // overrule them.
+  auto item = MakeItem("Work", "@profile/dbs/Work");
+  item.kind = KeyDatabaseKind::kEXTERNAL;
+
+  const auto resolved = ResolveKeyDatabaseKinds({item}, "/profile");
+
+  ASSERT_EQ(resolved.size(), 1);
+  ASSERT_TRUE(resolved[0].kind.has_value());
+  EXPECT_EQ(*resolved[0].kind, KeyDatabaseKind::kEXTERNAL);
+}
+
+TEST_F(GFCoreTest, TheReservedNameIsTheDefaultKindWhateverWasRecorded) {
+  // Every other rule about the default database goes by the name, so a kind
+  // disagreeing with it would put this one check out of step with all of them.
+  auto item = MakeItem("default", "/gnupg");
+  item.kind = KeyDatabaseKind::kMANAGED;
+
+  const auto resolved = ResolveKeyDatabaseKinds({item}, "/profile");
+
+  ASSERT_EQ(resolved.size(), 1);
+  ASSERT_TRUE(resolved[0].kind.has_value());
+  EXPECT_EQ(*resolved[0].kind, KeyDatabaseKind::kDEFAULT);
+}
+
+TEST_F(GFCoreTest, OnlyTheDatabaseHoldingTheReservedNameCanBeTheDefaultKind) {
+  // Recorded as the default one while not wearing the name. It cannot be: the
+  // name is the identity, and only one thing holds it.
+  auto item = MakeItem("Stick", "/media/stick");
+  item.kind = KeyDatabaseKind::kDEFAULT;
+
+  const auto resolved = ResolveKeyDatabaseKinds({item}, "/profile");
+
+  ASSERT_EQ(resolved.size(), 1);
+  ASSERT_TRUE(resolved[0].kind.has_value());
+  EXPECT_EQ(*resolved[0].kind, KeyDatabaseKind::kEXTERNAL);
+}
+
+TEST_F(GFCoreTest, SettlingKindsIsIdempotent) {
+  const auto once = ResolveKeyDatabaseKinds(
+      {MakeItem("DEFAULT", "/gnupg"), MakeItem("Work", "@profile/dbs/Work"),
+       MakeItem("Stick", "/media/stick")},
+      "/profile");
+  const auto twice = ResolveKeyDatabaseKinds(once, "/profile");
+
+  ASSERT_EQ(once.size(), twice.size());
+  for (int i = 0; i < once.size(); ++i) EXPECT_EQ(once[i].kind, twice[i].kind);
+}
+
 // SignalBadOpenPGPEnv is emitted from a worker thread and received on the main
 // thread, so its custom enum argument has to survive a queued connection. If
 // the metatype registration and the spelling moc records ever drift apart, Qt
