@@ -236,8 +236,6 @@ class InfoBoardWidget : public QWidget {
   auto create_card(QWidget* parent, InfoBoardStatus status) const -> QFrame*;
   void add_card_header(QVBoxLayout* card_layout, QWidget* parent,
                        InfoBoardStatus status, const QString& title) const;
-  void add_card_field(QVBoxLayout* card_layout, QWidget* parent,
-                      const QString& key, const QString& value) const;
   auto create_detail_chip(QWidget* parent, const QString& text,
                           InfoBoardStatus status) const -> QLabel*;
 

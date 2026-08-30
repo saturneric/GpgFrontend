@@ -181,6 +181,42 @@ TEST(AppearanceFontTest, AnInstalledStoredFamilyWinsOverTheBundledOne) {
   EXPECT_EQ(UI::ResolveAppearanceFont(*other, 11).family(), *other);
 }
 
+TEST(AppearanceFontTest, TheReportScaleStepsFromItsBaseAndFloors) {
+  EXPECT_EQ(UI::ReportFontPixelSize(0), UI::kReportBaseFontPx);
+  EXPECT_EQ(UI::ReportFontPixelSize(-1), UI::kReportBaseFontPx - 1);
+  EXPECT_EQ(UI::ReportFontPixelSize(3), UI::kReportBaseFontPx + 3);
+
+  // The floor is what keeps a deep step from disappearing. It used to be
+  // spelled inline at every call site, with two different values (7 and 8).
+  EXPECT_EQ(UI::ReportFontPixelSize(-100), UI::kReportMinFontPx);
+}
+
+TEST(AppearanceFontTest, TheReportFontIsSizedInPixelsNotPoints) {
+  const auto family = UI::BundledMonospaceFamily();
+  ASSERT_FALSE(family.isEmpty());
+
+  const auto font = UI::ReportFont();
+  EXPECT_EQ(font.family(), family);
+  EXPECT_TRUE(font.fixedPitch());
+  EXPECT_EQ(font.pixelSize(), UI::kReportBaseFontPx);
+
+  // The regression guard. Points are not comparable across platforms here: Qt
+  // reports 72 logical DPI on macOS and 96 everywhere else, which is how the
+  // report document ended up visibly larger on macOS. A pointSize() other than
+  // -1 means a point-size path survived somewhere in the scale.
+  EXPECT_EQ(font.pointSize(), -1);
+}
+
+TEST(AppearanceFontTest, TheReportFontCarriesItsStepAndWeight) {
+  ASSERT_FALSE(UI::BundledMonospaceFamily().isEmpty());
+
+  const auto key_font = UI::ReportFont(-1, true);
+  EXPECT_EQ(key_font.pixelSize(), UI::kReportBaseFontPx - 1);
+  EXPECT_TRUE(key_font.bold());
+
+  EXPECT_FALSE(UI::ReportFont(-1).bold());
+}
+
 TEST(AppearanceFontTest, TheBundledFontRendersEveryCharacterAtTheSameWidth) {
   const auto family = UI::BundledMonospaceFamily();
   ASSERT_FALSE(family.isEmpty());

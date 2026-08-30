@@ -28,6 +28,7 @@
 
 #include "ui/function/AppearanceFont.h"
 
+#include <algorithm>
 #include <array>
 #include <mutex>
 
@@ -165,6 +166,19 @@ auto ResolveAppearanceFont(const QString& family, int point_size) -> QFont {
   }
 
   font.setPointSize(point_size);
+  return font;
+}
+
+auto ReportFontPixelSize(int delta_px) -> int {
+  return std::max(kReportMinFontPx, kReportBaseFontPx + delta_px);
+}
+
+auto ReportFont(int delta_px, bool bold) -> QFont {
+  // Built on DefaultMonospaceFont() so the bundled-family lookup and its
+  // fallback live in exactly one place; only the size is ours to pin.
+  QFont font = DefaultMonospaceFont();
+  font.setPixelSize(ReportFontPixelSize(delta_px));
+  font.setBold(bold);
   return font;
 }
 

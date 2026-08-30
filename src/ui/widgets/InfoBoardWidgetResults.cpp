@@ -27,6 +27,7 @@
  */
 
 #include "core/function/result_analyse/GpgOpResultInfo.h"
+#include "ui/function/AppearanceFont.h"
 #include "ui/function/InfoBoardCardConverter.h"
 #include "ui/widgets/InfoBoardDocFrame.h"
 #include "ui/widgets/InfoBoardWidget.h"
@@ -262,8 +263,8 @@ void InfoBoardWidget::populate_extra_section(
     auto* desc_label = new QLabel(extra_widget_);
     desc_label->setTextFormat(Qt::RichText);
     desc_label->setText(
-        QStringLiteral("<span style='font-size:%1pt;'>%2</span>")
-            .arg(font().pointSize())
+        QStringLiteral("<span style='font-size:%1px;'>%2</span>")
+            .arg(ReportFontPixelSize(0))
             .arg(desc));
     desc_label->setWordWrap(true);
     desc_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -299,8 +300,8 @@ void InfoBoardWidget::populate_details_section_generic(
     desc_label->setTextFormat(Qt::RichText);
     desc_label->setText(
         QStringLiteral(
-            "<span style='font-size:%1pt; font-style:italic;'>%2</span>")
-            .arg(font().pointSize())
+            "<span style='font-size:%1px; font-style:italic;'>%2</span>")
+            .arg(ReportFontPixelSize(0))
             .arg(description));
     desc_label->setWordWrap(true);
     desc_label->setAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -482,8 +483,8 @@ void InfoBoardWidget::update_status_page_from_results(
     auto* desc_label = new QLabel(extra_widget_);
     desc_label->setTextFormat(Qt::RichText);
     desc_label->setText(
-        QStringLiteral("<span style='font-size:%1pt;'>%2</span>")
-            .arg(font().pointSize())
+        QStringLiteral("<span style='font-size:%1px;'>%2</span>")
+            .arg(ReportFontPixelSize(0))
             .arg(agg_desc));
     desc_label->setWordWrap(true);
     desc_label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -502,9 +503,7 @@ void InfoBoardWidget::update_status_page_from_results(
       auto* more = new QLabel(tr("… and %1 more").arg(results.size() - shown),
                               extra_widget_);
       more->setAlignment(Qt::AlignCenter);
-      QFont f = more->font();
-      f.setPointSize(std::max(7, f.pointSize() - 1));
-      more->setFont(f);
+      more->setFont(ReportFont(-1));
       more->setStyleSheet(QStringLiteral("color: palette(text);"));
       extra_layout->addWidget(more);
       break;
@@ -538,9 +537,7 @@ void InfoBoardWidget::update_status_page_from_results(
       auto* tag_lbl = new QLabel(r.tag, row);
       tag_lbl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
       tag_lbl->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-      QFont tf = tag_lbl->font();
-      tf.setPointSize(std::max(8, tf.pointSize() - 1));
-      tag_lbl->setFont(tf);
+      tag_lbl->setFont(ReportFont(-1));
       rl->addWidget(tag_lbl, 1);
 
       extra_layout->addWidget(row);

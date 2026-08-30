@@ -93,6 +93,45 @@ auto GF_UI_EXPORT ResolveAppearanceFont(const QString& family, int point_size)
     -> QFont;
 
 /**
+ * @brief Base size of the generated report document, in device-independent
+ *        pixels.
+ *
+ * Pixels rather than points, deliberately: Qt reports 72 logical DPI on macOS
+ * and 96 everywhere else, so the same point size is a different physical size
+ * per platform. The report used to inherit the platform's default UI point size
+ * (13pt on macOS, 9pt on Windows, 10-11pt on most Linux desktops) and derive
+ * every label from it by relative steps, which is how it ended up visibly
+ * larger on macOS while the pixel-sized card chrome around it stayed put.
+ *
+ * 13px reproduces what Linux and Windows render today.
+ */
+constexpr int kReportBaseFontPx = 13;
+
+/// Nothing in the report goes below this, however deep the step.
+constexpr int kReportMinFontPx = 9;
+
+/**
+ * @brief A size on the report's typographic scale.
+ *
+ * @param delta_px step from kReportBaseFontPx, clamped at kReportMinFontPx
+ * @return the pixel size to apply
+ */
+auto GF_UI_EXPORT ReportFontPixelSize(int delta_px) -> int;
+
+/**
+ * @brief The monospaced font a surface of the report document should use.
+ *
+ * Absolute, not derived from whatever font the surrounding widget happens to
+ * carry: that is the whole point of the scale. Every label in the document asks
+ * for its own step here instead of stepping off its parent.
+ *
+ * @param delta_px step from kReportBaseFontPx, clamped at kReportMinFontPx
+ * @param bold whether to ask for the bold cut
+ * @return the report font at that step
+ */
+auto GF_UI_EXPORT ReportFont(int delta_px = 0, bool bold = false) -> QFont;
+
+/**
  * @brief Whether @p family is a monospaced family.
  *
  * Wraps the version split in QFontDatabase: Qt 6 made its query functions

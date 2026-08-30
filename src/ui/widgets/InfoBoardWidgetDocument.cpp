@@ -38,24 +38,28 @@ auto InfoBoardWidget::build_header_html(InfoBoardStatus status,
                                         const QString& accent) const
     -> QString {
   const QString text_color = palette().color(QPalette::WindowText).name();
-  const int base = font().pointSize();
-  const int small_pt = std::max(7, base - 1);
-  const int large_pt = base + 2;
+  // px rather than pt: Qt resolves a pt size in rich text against the paint
+  // device's DPI, which is 72 on macOS and 96 elsewhere. These spans sit beside
+  // plain labels that are all on the report's pixel scale, so they have to be
+  // measured in the same unit or the header drifts away from the body.
+  const int base_px = ReportFontPixelSize(0);
+  const int small_px = ReportFontPixelSize(-1);
+  const int large_px = ReportFontPixelSize(3);
   QString html = QStringLiteral(
-                     "<span style='font-size:%3pt; color:%1; "
+                     "<span style='font-size:%3px; color:%1; "
                      "letter-spacing:2px;'>%2</span>")
                      .arg(text_color, tr("GPGFRONTEND SECURITY REPORT"),
-                          QString::number(small_pt));
+                          QString::number(small_px));
   if (!subtitle.isEmpty()) {
     html +=
-        QStringLiteral("<br/><span style='font-size:%3pt; color:%1;'>%2</span>")
-            .arg(text_color, subtitle, QString::number(base));
+        QStringLiteral("<br/><span style='font-size:%3px; color:%1;'>%2</span>")
+            .arg(text_color, subtitle, QString::number(base_px));
   }
   const QString symbol = build_status_symbol(status);
   html += QStringLiteral(
-              "<br/><br/><span style='font-size:%3pt; font-weight:bold; "
+              "<br/><br/><span style='font-size:%3px; font-weight:bold; "
               "color:%1;'>%2</span>")
-              .arg(accent, symbol, QString::number(large_pt));
+              .arg(accent, symbol, QString::number(large_px));
   return html;
 }
 
@@ -112,44 +116,15 @@ void InfoBoardWidget::add_card_header(QVBoxLayout* card_layout, QWidget* parent,
       QPixmap(StatusIconPath(status))
           .scaled(14, 14, Qt::KeepAspectRatio, Qt::SmoothTransformation));
   auto* lbl = new QLabel(title, parent);
-  lbl->setStyleSheet(
-      QStringLiteral("color: %1; font-weight: bold;").arg(ic.name()));
+  // Weight through the font rather than the stylesheet: every other label in
+  // the card uses QFont::setBold, and a QSS rule carrying a font property
+  // resolves down a different path into the font database -- and can drop the
+  // pixel size the document set. The stylesheet keeps only the colour.
+  lbl->setFont(ReportFont(0, true));
+  lbl->setStyleSheet(QStringLiteral("color: %1;").arg(ic.name()));
   hdr->addWidget(icon, 0, Qt::AlignVCenter);
   hdr->addWidget(lbl, 1);
   card_layout->addLayout(hdr);
-}
-
-void InfoBoardWidget::add_card_field(QVBoxLayout* card_layout, QWidget* parent,
-                                     const QString& key,
-                                     const QString& value) const {
-  if (value.isEmpty()) return;
-  auto* row = new QHBoxLayout();
-  row->setContentsMargins(0, 1, 0, 1);
-  row->setSpacing(6);
-  auto* kl = new QLabel(key, parent);
-  QFont kf = kl->font();
-  kf.setBold(true);
-  kf.setPointSize(std::max(7, kf.pointSize() - 1));
-  kl->setFont(kf);
-  kl->setStyleSheet(QStringLiteral("color: palette(text);"));
-  // Grow the key column with the label text (up to a max) instead of clipping.
-  const int key_w =
-      std::min(std::max(StyleConstants::kCardKeyWidth,
-                        QFontMetrics(kf).horizontalAdvance(key) + 8),
-               StyleConstants::kCardKeyMaxWidth);
-  kl->setFixedWidth(key_w);
-  kl->setWordWrap(true);
-  kl->setAlignment(Qt::AlignRight | Qt::AlignTop);
-  auto* vl = new QLabel(value, parent);
-  vl->setWordWrap(true);
-  vl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-  QFont vf = vl->font();
-  vf.setPointSize(std::max(7, vf.pointSize() - 1));
-  vl->setFont(vf);
-  vl->setStyleSheet(QStringLiteral("color: palette(text);"));
-  row->addWidget(kl);
-  row->addWidget(vl, 1);
-  card_layout->addLayout(row);
 }
 
 auto InfoBoardWidget::create_detail_chip(QWidget* parent, const QString& text,
@@ -185,13 +160,26 @@ void InfoBoardWidget::setup_status_page_layout(QVBoxLayout* page_layout) {
   // has none of the reader's UI fonts installed -- which is what the bundled
   // family guarantees.
   //
-  // Family only, deliberately: the point size stays whatever the panel
-  // inherits, and every label below derives its own size from this one by
-  // relative steps, so changing the size here would rescale the entire
-  // document.
-  QFont doc_font = doc_frame_->font();
-  ApplyMonospaceFamily(doc_font);
+  // The size is pinned rather than inherited, and pinned in pixels. Inheriting
+  // it meant the report took the platform's default UI point size (13pt on
+  // macOS, 9pt on Windows, 10-11pt on most Linux desktops) and every label
+  // stepped off that; on top of which Qt reports 72 logical DPI on macOS
+  // against 96 elsewhere, so a "pt" is not even the same unit. The document
+  // came out visibly larger on macOS while the pixel-sized card chrome around
+  // it stayed put. Every label below asks ReportFont() for its own step instead
+  // of deriving one from this font.
+  const QFont doc_font = ReportFont();
   doc_frame_->setFont(doc_font);
+
+  // QFontInfo reports what Qt actually resolved; QFont::family() only echoes
+  // back what was asked for. A silent substitution -- CoreText falling back to
+  // Menlo because the bundled family never registered, say -- looks like a
+  // styling quirk on screen but is baked into every exported PNG, so say it out
+  // loud once at startup.
+  const QFontInfo doc_font_info(doc_font);
+  LOG_D() << "report document font: requested" << doc_font.family()
+          << "resolved" << doc_font_info.family() << "at"
+          << doc_font_info.pixelSize() << "px";
 }
 
 void InfoBoardWidget::create_field_rows(QWidget* parent,
@@ -203,10 +191,7 @@ void InfoBoardWidget::create_field_rows(QWidget* parent,
     auto* lbl = new QLabel(text, p);
     lbl->setFixedWidth(StyleConstants::kKeyColumnWidth);
     lbl->setAlignment(Qt::AlignRight | Qt::AlignTop);
-    QFont kf = lbl->font();
-    kf.setBold(true);
-    kf.setPointSize(std::max(7, kf.pointSize() - 1));
-    lbl->setFont(kf);
+    lbl->setFont(ReportFont(-1, true));
     lbl->setStyleSheet(QStringLiteral("color: palette(text);"));
     return lbl;
   };
@@ -272,8 +257,7 @@ void InfoBoardWidget::create_footer(QVBoxLayout* doc_layout) {
   footer_row->setContentsMargins(0, 0, 0, 0);
   footer_row->setSpacing(8);
 
-  QFont footer_font = font();
-  footer_font.setPointSize(std::max(7, footer_font.pointSize() - 2));
+  const QFont footer_font = ReportFont(-3);
   const QString footer_style = QStringLiteral("color: palette(text);");
 
   id_label_ = new QLabel(doc_frame_);
@@ -456,9 +440,7 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
     // long labels (e.g. "Primary Key Algorithm") are not clipped, while still
     // keeping every key in the card right-aligned to a shared column. Clamp to
     // a max so a single long key can't crowd out the value column.
-    QFont kf = card->font();
-    kf.setBold(true);
-    kf.setPointSize(std::max(7, kf.pointSize() - 1));
+    const QFont kf = ReportFont(-1, true);
     const QFontMetrics kfm(kf);
     int key_w = StyleConstants::kCardKeyWidth;
     for (const auto& field : card_data.fields) {
@@ -488,11 +470,9 @@ void InfoBoardWidget::render_cards(QVBoxLayout* layout, QWidget* parent,
       auto* vl = new QLabel(field.second, card);
       vl->setWordWrap(true);
       vl->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-      // No hash-column special case: doc_frame_ is monospaced, so every value
-      // in the document already is.
-      QFont vf = vl->font();
-      vf.setPointSize(std::max(7, vf.pointSize() - 1));
-      vl->setFont(vf);
+      // No hash-column special case: the whole document is monospaced, so
+      // every value in it already is.
+      vl->setFont(ReportFont(-1));
       vl->setStyleSheet(QStringLiteral("color: palette(text);"));
 
       row->addWidget(kl);
