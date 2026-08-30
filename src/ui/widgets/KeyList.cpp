@@ -618,6 +618,15 @@ void KeyList::init_context_menu() {
     action->setCheckable(true);
     action->setChecked(channel == current_gpg_context_channel_);
 
+    // The derived database, marked the same way the settings table marks it:
+    // it is the one the OpenPGP engine already uses, its name and folder are
+    // not the user's to choose, and a profile has at most one.
+    if (IsReservedKeyDatabaseName(key_db_name)) {
+      auto font = action->font();
+      font.setBold(true);
+      action->setFont(font);
+    }
+
     if (channel == current_gpg_context_channel_) {
       set_context_button_text(key_db_name);
     }
