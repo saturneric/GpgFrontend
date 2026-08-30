@@ -92,9 +92,13 @@ auto BuildKeyDatabaseToolTip(const KeyDatabaseInfo& info, const QString& engine)
 
   auto text = QString("<b>%1</b>").arg(info.name.toHtmlEscaped());
 
-  text += QString("<br/>%1 · %2 · %3")
-              .arg(DescribeKeyDatabaseKind(kind).toHtmlEscaped(),
-                   engine.toUpper().toHtmlEscaped(),
+  // The kind gets a line to itself. Run together with the engine and channel it
+  // wrapped mid-phrase at the tooltip's own width, which broke the one sentence
+  // here that has to be read rather than glanced at.
+  text += QString("<br/>%1").arg(DescribeKeyDatabaseKind(kind).toHtmlEscaped());
+
+  text += QString("<br/>%1 · %2")
+              .arg(engine.toUpper().toHtmlEscaped(),
                    QObject::tr("Channel %1").arg(info.channel));
 
   if (!info.path.isEmpty()) {
