@@ -328,6 +328,79 @@ TEST_F(GFCoreTest, KeyDatabaseItemChannelDefaultsToZero) {
   EXPECT_EQ(item.channel, 0);
 }
 
+// An info nothing has assigned a channel to must say so, rather than reading
+// as whatever was on the stack -- callers hand this field straight to
+// OpenPGPContext::GetInstance().
+TEST_F(GFCoreTest, KeyDatabaseInfoChannelDefaultsToUnassigned) {
+  const KeyDatabaseInfo info;
+
+  EXPECT_LT(info.channel, 0);
+}
+
+// A context that reported no channel is not a key database anything can be
+// asked about, so it does not enter the list at all.
+TEST_F(GFCoreTest, BuildGpgKeyDatabaseInfosDropsUnassignedChannel) {
+  QContainer<KeyDatabaseInfo> reported{
+      MakeInfo("alpha", "/db/alpha", true, 0),
+      KeyDatabaseInfo(),
+      MakeInfo("beta", "/db/beta", true, 1),
+  };
+
+  auto result = BuildGpgKeyDatabaseInfos(reported);
+
+  ASSERT_EQ(result.size(), 2);
+  EXPECT_EQ(result[0].name, QString("alpha"));
+  EXPECT_EQ(result[1].name, QString("beta"));
+  for (const auto& info : result) EXPECT_GE(info.channel, 0);
+}
+
+// One channel is one context: the second claim on it is dropped instead of
+// replacing the first.
+TEST_F(GFCoreTest, BuildGpgKeyDatabaseInfosDropsDuplicateChannel) {
+  QContainer<KeyDatabaseInfo> reported{
+      MakeInfo("first", "/db/first", true, 1),
+      MakeInfo("second", "/db/second", true, 1),
+  };
+
+  auto result = BuildGpgKeyDatabaseInfos(reported);
+
+  ASSERT_EQ(result.size(), 1);
+  EXPECT_EQ(result[0].name, QString("first"));
+  EXPECT_EQ(result[0].channel, 1);
+}
+
+TEST_F(GFCoreTest, BuildGpgKeyDatabaseInfosOrdersByChannel) {
+  QContainer<KeyDatabaseInfo> reported{
+      MakeInfo("two", "/db/two", true, 2),
+      MakeInfo("zero", "/db/zero", true, 0),
+      MakeInfo("one", "/db/one", true, 1),
+  };
+
+  auto result = BuildGpgKeyDatabaseInfos(reported);
+
+  ASSERT_EQ(result.size(), 3);
+  EXPECT_EQ(result[0].name, QString("zero"));
+  EXPECT_EQ(result[1].name, QString("one"));
+  EXPECT_EQ(result[2].name, QString("two"));
+}
+
+// Channels are not required to be the contiguous run starting at zero that
+// startup usually builds. A database on a channel past the end of that run
+// used to be written past the end of a list sized by context count -- or
+// skipped, and so missing from every menu that lists databases.
+TEST_F(GFCoreTest, BuildGpgKeyDatabaseInfosKeepsSparseChannels) {
+  QContainer<KeyDatabaseInfo> reported{
+      MakeInfo("zero", "/db/zero", true, 0),
+      MakeInfo("far", "/db/far", true, 7),
+  };
+
+  auto result = BuildGpgKeyDatabaseInfos(reported);
+
+  ASSERT_EQ(result.size(), 2);
+  EXPECT_EQ(result[1].name, QString("far"));
+  EXPECT_EQ(result[1].channel, 7);
+}
+
 TEST_F(GFCoreTest, ChooseEngineHonoursGnupgPreferenceWhenSupported) {
   const auto choice = ChooseOpenPGPEngine("GNUPG", true, true);
 

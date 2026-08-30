@@ -75,7 +75,12 @@ inline auto ConvertString2KeyDatabaseKind(const QString& kind)
 }
 
 struct KeyDatabaseInfo {
-  int channel;
+  /// No channel until something assigns one. Left uninitialised, an entry that
+  /// was never filled in -- and one always can be, since callers build these
+  /// from settings entries that carry no channel at all -- reads as a channel
+  /// number that happens to be whatever was on the stack, which is then handed
+  /// to OpenPGPContext::GetInstance() as if it named a context.
+  int channel{-1};
   QString name;
   QString path;
   QString origin_path;

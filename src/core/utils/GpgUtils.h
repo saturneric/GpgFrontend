@@ -637,7 +637,26 @@ auto GF_CORE_EXPORT GetKeyDatabaseInfoBySettings()
     -> QContainer<KeyDatabaseInfo>;
 
 /**
+ * @brief Assemble the key database list out of what the contexts reported.
+ *
+ * One entry per live context, ordered by channel: an entry naming no channel,
+ * or a channel another entry already claimed, is dropped rather than kept as a
+ * database nothing can be asked about. The result is ordered by channel but
+ * NOT indexed by it -- look an entry up by its channel field, never by
+ * position.
+ *
+ * Exposed primarily for unit testing.
+ *
+ * @param reported one entry per context, as read from the module runtime
+ * @return the usable subset, ascending by channel
+ */
+auto GF_CORE_EXPORT BuildGpgKeyDatabaseInfos(
+    const QContainer<KeyDatabaseInfo>& reported) -> QContainer<KeyDatabaseInfo>;
+
+/**
  * @brief Return key database infos for all GPG key databases.
+ *
+ * Ordered by channel, one entry per live context. Not indexed by channel.
  *
  * @return list of KeyDatabaseInfo for GPG databases
  */

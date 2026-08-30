@@ -247,19 +247,51 @@ auto SetExtensionOfOutputFileForArchive(const QString& path, GpgOperation opera,
 
 static QContainer<KeyDatabaseInfo> gpg_key_database_info_cache;
 
+auto GF_CORE_EXPORT
+BuildGpgKeyDatabaseInfos(const QContainer<KeyDatabaseInfo>& reported)
+    -> QContainer<KeyDatabaseInfo> {
+  QContainer<KeyDatabaseInfo> infos;
+  QSet<int> seen_channels;
+
+  for (const auto& info : reported) {
+    // An entry that names no channel names no context either. Keeping it would
+    // put a KeyDatabaseInfo carrying channel -1 in a list every caller walks
+    // asking OpenPGPContext::GetInstance() about, which lazily creates a
+    // placeholder context for a channel that has none.
+    if (info.channel < 0) {
+      LOG_W() << "context reports no channel, skip. database name:"
+              << info.name;
+      continue;
+    }
+
+    // A channel is one context. Two entries claiming the same one is a
+    // contradiction the list cannot express, so the first one wins rather than
+    // the last silently replacing it.
+    if (seen_channels.contains(info.channel)) {
+      LOG_W() << "context reports an already claimed channel, skip:"
+              << info.channel << "database name:" << info.name;
+      continue;
+    }
+
+    seen_channels.insert(info.channel);
+    infos.append(info);
+  }
+
+  std::sort(infos.begin(), infos.end(),
+            [](const KeyDatabaseInfo& a, const KeyDatabaseInfo& b) -> bool {
+              return a.channel < b.channel;
+            });
+
+  return infos;
+}
+
 auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo> {
   if (!gpg_key_database_info_cache.empty()) return gpg_key_database_info_cache;
 
   auto context_index_list = Module::ListRTChildKeys("core", "gpgme.ctx.list");
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-  gpg_key_database_info_cache.resize(
-      static_cast<qsizetype>(context_index_list.size()));
-#else
-  gpg_key_database_info_cache.reserve(
-      static_cast<qsizetype>(context_index_list.size()));
-  std::fill_n(std::back_inserter(gpg_key_database_info_cache),
-              context_index_list.size(), KeyDatabaseInfo{});
-#endif
+
+  QContainer<KeyDatabaseInfo> reported;
+  reported.reserve(static_cast<qsizetype>(context_index_list.size()));
 
   for (auto& context_index : context_index_list) {
     LOG_D() << "context grt key: " << context_index;
@@ -282,31 +314,30 @@ auto GF_CORE_EXPORT GetGpgKeyDatabaseInfos() -> QContainer<KeyDatabaseInfo> {
             << "GRT key prefix: " << grt_key_prefix
             << "database name: " << database_name;
 
-    // Indexed by channel rather than by loop position, because the caller asks
-    // by channel. That only lines up while the channels are the contiguous run
-    // GFCoreInit builds; a channel outside it would be written past the end of
-    // the list, and a torn KeyDatabaseInfo is read as a QString whose pointer
-    // is whatever was there -- a crash a long way from the cause.
-    if (channel < 0 || channel >= gpg_key_database_info_cache.size()) {
-      LOG_W() << "context reports a channel outside the context list, skip:"
-              << channel << "database name:" << database_name;
-      continue;
-    }
-
     auto i = KeyDatabaseInfo();
     i.channel = channel;
     i.name = database_name;
     i.path = database_path;
     i.backend_type = backend_type;
-    gpg_key_database_info_cache[channel] = i;
+    reported.append(i);
   }
+
+  // Ordered by channel and holding one entry per live context, rather than
+  // indexed by channel: a list indexed by channel has a slot for every channel
+  // no context reported, and those slots are key databases that do not exist.
+  gpg_key_database_info_cache = BuildGpgKeyDatabaseInfos(reported);
 
   return gpg_key_database_info_cache;
 }
+
 auto GF_CORE_EXPORT GetGpgKeyDatabaseName(int channel) -> QString {
-  auto info = GetGpgKeyDatabaseInfos();
-  if (channel >= info.size()) return {};
-  return info[channel].name;
+  // Asked by channel, so answered by channel: the list is ordered by channel
+  // but not indexed by it, and never was for a profile whose channels are not
+  // the contiguous run starting at zero that GFCoreInit usually builds.
+  for (const auto& info : GetGpgKeyDatabaseInfos()) {
+    if (info.channel == channel) return info.name;
+  }
+  return {};
 }
 
 namespace {
@@ -838,6 +869,10 @@ auto GetAllKeyDatabaseInfoBySettings() -> QContainer<KeyDatabaseInfo> {
         GetCanonicalKeyDatabasePath(app_path, key_database.path);
 
     KeyDatabaseInfo key_db_info;
+    // Carried over rather than left unset: the stored entry is where the
+    // channel of a configured database comes from, and an info that does not
+    // know its channel is one no caller can ask a context about.
+    key_db_info.channel = key_database.channel;
     key_db_info.name = key_database.name;
     key_db_info.backend_type = key_database.backend_type;
     key_db_info.path = key_database_fs_path;
