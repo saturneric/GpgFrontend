@@ -612,7 +612,10 @@ class KeyList : public QWidget {
   /**
    * @brief Set the context button label to the given key database name.
    */
-  void set_context_button_text(const QString& db_name);
+  /// Label the key database button and say, on hover, which database that name
+  /// belongs to. @p description is rich text, empty before one is chosen.
+  void set_context_button_text(const QString& db_name,
+                               const QString& description);
 
   /**
    * @brief Apply the category strip styling for the current strip mode

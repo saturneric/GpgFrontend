@@ -59,6 +59,51 @@ auto IsCustomCategoryId(const QString& id) -> bool {
   return id.startsWith("cat:");
 }
 
+// What a key database is, said in the words the settings page uses. The kind is
+// the thing this button cannot show and the user most needs: two databases look
+// identical in a menu, and which one travels with the profile is not a detail
+// you want to discover after sending it.
+auto DescribeKeyDatabaseKind(KeyDatabaseKind kind) -> QString {
+  switch (kind) {
+    case KeyDatabaseKind::kDEFAULT:
+      return QObject::tr("This computer's default key database");
+    case KeyDatabaseKind::kMANAGED:
+      return QObject::tr("Kept inside your profile");
+    case KeyDatabaseKind::kEXTERNAL:
+      return QObject::tr("On this computer only");
+  }
+  return {};
+}
+
+// Name, what it is, what opens it, where it is. Rich text, so the name can lead
+// and the path can recede -- a tooltip that is one long line reads as one fact
+// rather than four.
+//
+// Everything interpolated is escaped: a key database name is user-typed and a
+// path can contain '&' or '<', either of which would otherwise be swallowed as
+// markup.
+auto BuildKeyDatabaseToolTip(const KeyDatabaseInfo& info, const QString& engine)
+    -> QString {
+  // Classified from the resolved path the running context reports, rather than
+  // read back out of settings: this is a description of the database that is
+  // actually open on this channel.
+  const auto kind =
+      ClassifyKeyDatabase(info.name, info.path, GetGSS().GetAppDataPath());
+
+  auto text = QString("<b>%1</b>").arg(info.name.toHtmlEscaped());
+
+  text += QString("<br/>%1 · %2 · %3")
+              .arg(DescribeKeyDatabaseKind(kind).toHtmlEscaped(),
+                   engine.toUpper().toHtmlEscaped(),
+                   QObject::tr("Channel %1").arg(info.channel));
+
+  if (!info.path.isEmpty()) {
+    text += QString("<br/><span style=\"color:gray;\">%1</span>")
+                .arg(QDir::toNativeSeparators(info.path).toHtmlEscaped());
+  }
+  return text;
+}
+
 // Order the ids that are actually present to match `saved`, appending any
 // present id that is not in `saved` at the end (preserving its current order).
 auto OrderIdsBy(const QStringList& present, const QStringList& saved)
@@ -587,9 +632,10 @@ void KeyList::init_texts() {
   ui_->keyGroupButton->setToolTip(
       tr("Create a key group from checked encryption-capable keys."));
 
-  // The visible text is the active key database name (set by
-  // init_context_menu / set_context_button_text); only the tooltip is fixed.
-  ui_->switchContextButton->setToolTip(tr("Switch between key databases."));
+  // The key database button is deliberately absent here. Both its label and its
+  // tooltip describe whichever database is active, so init_context_menu() owns
+  // them -- and it runs before this, so anything set here would overwrite the
+  // real database with the placeholder.
 }
 
 void KeyList::init_context_menu() {
@@ -597,8 +643,12 @@ void KeyList::init_context_menu() {
   auto* gpg_context_groups = new QActionGroup(this);
   gpg_context_groups->setExclusive(true);
 
+  // Menus hide action tooltips unless asked; these are the whole point of the
+  // menu, since the label alone cannot say whether a database travels.
+  gpg_context_menu->setToolTipsVisible(true);
+
   // Baseline label; overridden below with the current database name if any.
-  set_context_button_text(QString());
+  set_context_button_text(QString(), {});
 
   const auto key_db_infos = GetGpgKeyDatabaseInfos();
 
@@ -615,6 +665,9 @@ void KeyList::init_context_menu() {
                                    .arg(tr("Channel %1").arg(channel)),
                                this);
 
+    const auto tooltip = BuildKeyDatabaseToolTip(key_db_info, engine);
+    action->setToolTip(tooltip);
+
     action->setCheckable(true);
     action->setChecked(channel == current_gpg_context_channel_);
 
@@ -628,15 +681,15 @@ void KeyList::init_context_menu() {
     }
 
     if (channel == current_gpg_context_channel_) {
-      set_context_button_text(key_db_name);
+      set_context_button_text(key_db_name, tooltip);
     }
 
     connect(action, &QAction::toggled, this,
-            [this, channel, key_db_name](bool checked) {
+            [this, channel, key_db_name, tooltip](bool checked) {
               if (!checked) return;
 
               current_gpg_context_channel_ = channel;
-              set_context_button_text(key_db_name);
+              set_context_button_text(key_db_name, tooltip);
 
               init_column_menu();
               UpdateKeyTableColumnType(global_column_filter_);
@@ -657,9 +710,20 @@ void KeyList::init_context_menu() {
   ui_->switchContextButton->setMenu(gpg_context_menu);
 }
 
-void KeyList::set_context_button_text(const QString& db_name) {
+void KeyList::set_context_button_text(const QString& db_name,
+                                      const QString& description) {
   ui_->switchContextButton->setText(db_name.isEmpty() ? tr("Key Database")
                                                       : db_name);
+
+  // The button shows a name and nothing else, and a name is exactly what does
+  // not distinguish two key databases. The tooltip carries what the choice
+  // actually turns on, and closes with what the button does -- in that order,
+  // because "which one am I on" is the question being asked when someone stops
+  // over it.
+  ui_->switchContextButton->setToolTip(
+      description.isEmpty()
+          ? tr("Switch between key databases.")
+          : description + "<br/><br/>" + tr("Click to switch key databases."));
 }
 
 void KeyList::init_column_menu() {
