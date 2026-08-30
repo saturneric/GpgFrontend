@@ -31,6 +31,7 @@
 #include <gpg-error.h>
 #include <gpgme.h>
 
+#include "core/function/gpg/GnuPGHome.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/GpgUtils.h"
 
@@ -155,6 +156,25 @@ auto GpgContext::SetPassphraseCb(const gpgme_ctx_t& ctx,
   return true;
 }
 
+auto GpgContext::FirstUnusableHomeReason() -> QString {
+  for (auto channel : OpenPGPContext::GetAllChannelId()) {
+    auto& ctx = OpenPGPContext::GetInstance(channel);
+    if (ctx.Engine() != OpenPGPEngine::kGNUPG) continue;
+
+    // Every kGNUPG context is a GpgContext; the cast is what lets this ask a
+    // question the base class has no business answering.
+    const auto* gpg_ctx = dynamic_cast<const GpgContext*>(&ctx);
+    if (gpg_ctx == nullptr) continue;
+
+    if (const auto reason = gpg_ctx->Home().unusable_reason;
+        !reason.isEmpty()) {
+      return reason;
+    }
+  }
+
+  return {};
+}
+
 auto GpgContext::init(const OpenPGPContextInitArgs& args) -> bool {
   LOG_D() << "initializing gpg context, channel: " << GetChannel()
           << ", key db name: " << KeyDBName();
@@ -175,22 +195,22 @@ auto GpgContext::init(const OpenPGPContextInitArgs& args) -> bool {
   // this channel will really use is known -- and before the agent is spawned
   // against it a few lines below, and before gpgconf is ever asked where the
   // sockets are. All three have to agree on one home directory.
-  engine_home_path_ = ResolveGnuPGEngineHomePath(KeyDBPath());
-  if (engine_home_path_.isEmpty()) {
+  home_ = GnuPGHomeResolver().Provision(KeyDBPath());
+  if (!home_.IsUsable()) {
     // Nothing usable could be made of it. Carry on with the real path so the
     // failure stays where it has always been rather than moving somewhere new,
-    // and let the registered reason do the explaining.
+    // and let the recorded reason do the explaining.
     LOG_E() << "gnupg home path is unusable, channel:" << GetChannel()
-            << GnuPGHomePathUnusableReason();
-    engine_home_path_ = KeyDBPath();
-  } else if (engine_home_path_ != KeyDBPath()) {
+            << home_.unusable_reason;
+    home_.engine_path = KeyDBPath();
+  } else if (home_.IsRedirected()) {
     LOG_I() << "channel:" << GetChannel()
             << "gnupg home path redirected through a shorter link:"
-            << engine_home_path_;
+            << home_.engine_path;
   }
 
   Module::UpsertRTValue("core", "gnupg.homedir.socket_ok",
-                        GnuPGHomePathUnusableReason().isEmpty() ? 1 : 0);
+                        home_.IsUsable() ? 1 : 0);
 
   gpgconf_path_ = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.gpgconf_path", QString{}),

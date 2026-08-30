@@ -102,53 +102,61 @@ auto GenerateRevCertGnuPGImpl(OpenPGPContext& ctx_, const GpgKeyPtr& key,
   auto reason_text_lines = GpgFrontend::SecureCreateSharedObject<QStringList>(
       reason_text.split('\n', Qt::SkipEmptyParts));
 
-  const auto app_path = Module::RetrieveRTValueTypedOrDefault<>(
-      "core", "gpgme.ctx.app_path", QString{});
-  // get all components
-  GpgCommandExecutor::ExecuteSync(
-      {app_path,
-       QStringList{"--homedir", ctx_.KeyDBPath(), "--command-fd", "0",
-                   "--status-fd", "1", "--no-tty", "-o", output_path,
-                   "--gen-revoke", key->Fingerprint()},
-       [=](int exit_code, const QString& p_out, const QString& p_err) {
-         if (exit_code != 0) {
-           LOG_W() << "gnupg gen revoke execute error, process stderr: "
-                   << p_err << ", process stdout: " << p_out;
-           return;
-         }
-         LOG_D() << "gnupg gen revoke exit_code: " << exit_code
-                 << "process stdout size: " << p_out.size();
-       },
-       nullptr,
-       [reason_code, reason_text_lines](QProcess* proc) -> void {
-         // Code From Gpg4Win
-         while (proc->canReadLine()) {
-           const QString line = QString::fromUtf8(proc->readLine()).trimmed();
-           LOG_D() << "gpg revoke proc line:" << line;
+  // Through the channel's executor rather than the static one: that is what
+  // supplies --homedir, and it supplies the home GnuPG was actually started
+  // against. Spelling the argument here meant spelling KeyDBPath(), which is
+  // the wrong directory whenever the agent was given a shorter link.
+  auto [exit_code, p_out, p_err] =
+      GpgCommandExecutor::GetInstance(ctx_.GetChannel())
+          .GpgExecuteSync(
+              {{},
+               QStringList{"--command-fd", "0", "--status-fd", "1", "--no-tty",
+                           "-o", output_path, "--gen-revoke",
+                           key->Fingerprint()},
+               {},
+               nullptr,
+               [reason_code, reason_text_lines](QProcess* proc) -> void {
+                 // Code From Gpg4Win
+                 while (proc->canReadLine()) {
+                   const QString line =
+                       QString::fromUtf8(proc->readLine()).trimmed();
+                   LOG_D() << "gpg revoke proc line:" << line;
 
-           if (line == QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
-             proc->write("y\n");
-           } else if (line == QLatin1String("[GNUPG:] GET_LINE "
+                   if (line ==
+                       QLatin1String("[GNUPG:] GET_BOOL gen_revoke.okay")) {
+                     proc->write("y\n");
+                   } else if (line ==
+                              QLatin1String("[GNUPG:] GET_LINE "
                                             "ask_revocation_reason.code")) {
-             proc->write(QString("%1%\n").arg(reason_code).toLatin1());
-           } else if (line == QLatin1String("[GNUPG:] GET_LINE "
+                     proc->write(QString("%1%\n").arg(reason_code).toLatin1());
+                   } else if (line ==
+                              QLatin1String("[GNUPG:] GET_LINE "
                                             "ask_revocation_reason.text")) {
-             if (!reason_text_lines->isEmpty()) {
-               proc->write(reason_text_lines->takeFirst().toUtf8());
-             }
-             proc->write("\n");
-           } else if (line ==
-                      QLatin1String(
-                          "[GNUPG:] GET_BOOL openfile.overwrite.okay")) {
-             // We asked before
-             proc->write("y\n");
-           } else if (line == QLatin1String("[GNUPG:] GET_BOOL "
+                     if (!reason_text_lines->isEmpty()) {
+                       proc->write(reason_text_lines->takeFirst().toUtf8());
+                     }
+                     proc->write("\n");
+                   } else if (line ==
+                              QLatin1String("[GNUPG:] GET_BOOL "
+                                            "openfile.overwrite.okay")) {
+                     // We asked before
+                     proc->write("y\n");
+                   } else if (line ==
+                              QLatin1String("[GNUPG:] GET_BOOL "
                                             "ask_revocation_reason.okay")) {
-             proc->write("y\n");
-           }
-         }
-       }});
+                     proc->write("y\n");
+                   }
+                 }
+               }});
 
+  if (exit_code != 0) {
+    LOG_W() << "gnupg gen revoke execute error, process stderr: " << p_err
+            << ", process stdout: " << p_out;
+    return false;
+  }
+
+  LOG_D() << "gnupg gen revoke exit_code: " << exit_code
+          << "process stdout size: " << p_out.size();
   return true;
 }
 

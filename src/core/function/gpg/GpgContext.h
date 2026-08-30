@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/function/gpg/GnuPGHome.h"
 #include "core/function/gpg/GpgAgentProcess.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/typedef/GpgTypedef.h"
@@ -127,16 +128,31 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
    * gpg-agent to put its sockets in, in which case this is a short link to it
    * and the real files are still where KeyDBPath() says.
    *
-   * Everything that talks to gnupg -- the gpgme engine info, gpg-agent's
-   * --homedir, and every gpgconf invocation -- has to use this rather than
-   * KeyDBPath(), or the sockets and the processes end up describing two
-   * different directories.
-   *
    * @return the home directory to pass to gnupg
    */
-  [[nodiscard]] auto EngineHomePath() const -> QString {
-    return engine_home_path_;
+  [[nodiscard]] auto EngineHomePath() const -> QString override {
+    return home_.engine_path;
   }
+
+  /**
+   * @brief Where this channel's key database is, what GnuPG was told about it,
+   * and why that failed if it did.
+   *
+   * @return this channel's resolved home
+   */
+  [[nodiscard]] auto Home() const -> const GnuPGHome & { return home_; }
+
+  /**
+   * @brief The first key database on this machine whose GnuPG home cannot host
+   * the agent sockets.
+   *
+   * For the interface surfaces that report on the installation as a whole
+   * rather than on one channel. It walks the live contexts instead of reading a
+   * cached answer, so it cannot report a database that has since been closed.
+   *
+   * @return the reason, or empty when every open GnuPG database is fine
+   */
+  static auto FirstUnusableHomeReason() -> QString;
 
   /**
    * @brief Set the Passphrase Cb object
@@ -170,7 +186,7 @@ class GF_CORE_EXPORT GpgContext : public OpenPGPContext {
   std::mutex binary_ctx_ref_lock_;
   QString gpg_agent_path_;
   QString gpgconf_path_;
-  QString engine_home_path_;  ///< see EngineHomePath()
+  GnuPGHome home_;  ///< see Home(); set once by init()
   QSharedPointer<GpgAgentProcess> agent_;
   QMap<QString, QString> component_dirs_;
 

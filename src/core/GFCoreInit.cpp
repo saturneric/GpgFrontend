@@ -35,6 +35,7 @@
 #include "core/function/CacheManager.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/gpg/GnuPGHome.h"
 #include "core/function/openpgp/GpgKeyRepository.h"
 #include "core/function/openpgp/OpenPGPContext.h"
 #include "core/function/openpgp/helper/Async.h"
@@ -837,6 +838,12 @@ void DestroyGpgFrontendCore() {
   qDebug() << "Flushing all cache storage...";
 
   CacheManager::GetInstance().FlushCacheStorage();
+
+  // Remove the short links handed to gnupg before the store that owns them
+  // goes. Explicit rather than destructor-driven: teardown ordering here is
+  // already delicate, and a link outliving the run it belongs to is litter.
+  qDebug() << "Releasing gnupg home links...";
+  GnuPGHomeLinkStore::GetInstance().ReleaseAll();
 
   // destroy all singleton objects
   qDebug() << "Destroying all singleton objects...";

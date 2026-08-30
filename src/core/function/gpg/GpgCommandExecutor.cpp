@@ -258,7 +258,7 @@ auto PrepareContext(const OpenPGPContext &ctx_, const QString &path,
   }
 
   LOG_D() << "got path:" << path << "context channel:" << ctx_.GetChannel()
-          << "home path: " << ctx_.KeyDBPath();
+          << "home path: " << ctx_.EngineHomePath();
 
   GpgCommandExecutor::ExecuteContext ctx = {
       context.cmd.isEmpty() ? path : context.cmd,
@@ -268,8 +268,12 @@ auto PrepareContext(const OpenPGPContext &ctx_, const QString &path,
       context.int_func,
   };
 
-  if (!ctx.arguments.contains("--homedir") && !ctx_.KeyDBPath().isEmpty()) {
-    ctx.arguments.prepend(QDir::toNativeSeparators((ctx_.KeyDBPath())));
+  // Unconditional: this is the only place a command built through this class
+  // gets a home directory, so there is no caller-supplied one to defer to. An
+  // opt-out here is what previously let a caller hand-roll --homedir from
+  // KeyDBPath() and send gpg to a directory the agent had never bound.
+  if (!ctx_.EngineHomePath().isEmpty()) {
+    ctx.arguments.prepend(QDir::toNativeSeparators(ctx_.EngineHomePath()));
     ctx.arguments.prepend("--homedir");
   }
 

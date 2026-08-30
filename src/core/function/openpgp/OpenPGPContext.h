@@ -142,6 +142,22 @@ class GF_CORE_EXPORT OpenPGPContext
   [[nodiscard]] auto KeyDBPath() const -> QString;
 
   /**
+   * @brief Return the home directory this context hands to its engine.
+   *
+   * Everything that talks to the engine -- engine info, a spawned agent's
+   * --homedir, and every command this context builds -- has to use this rather
+   * than KeyDBPath(), or the sockets and the processes end up describing two
+   * different directories.
+   *
+   * They are the same path for every engine but GnuPG, which is why the default
+   * is KeyDBPath(): only gpg-agent puts length-capped unix sockets inside the
+   * home directory, so only GnuPG ever needs to be pointed somewhere shorter.
+   *
+   * @return the home directory to pass to the engine
+   */
+  [[nodiscard]] virtual auto EngineHomePath() const -> QString;
+
+  /**
    * @brief Return a shared pointer to the GFKeyDatabase for this context.
    *
    * @return shared pointer to the key database; never null after successful

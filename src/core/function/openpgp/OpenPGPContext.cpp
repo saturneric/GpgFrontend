@@ -133,6 +133,8 @@ auto OpenPGPContext::KeyDBName() const -> QString { return p_->KeyDBName(); }
 
 auto OpenPGPContext::KeyDBPath() const -> QString { return p_->KeyDBPath(); }
 
+auto OpenPGPContext::EngineHomePath() const -> QString { return KeyDBPath(); }
+
 auto OpenPGPContext::Engine() const -> OpenPGPEngine { return p_->Engine(); }
 
 auto OpenPGPContext::EngineVersion() const -> QString {
