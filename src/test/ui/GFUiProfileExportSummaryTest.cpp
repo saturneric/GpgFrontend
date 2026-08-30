@@ -262,8 +262,13 @@ TEST(ProfileExportSummaryTest, TheContentsRowsEndWithTheTotalAndTheExclusions) {
   EXPECT_EQ(rows.at(5).kind, UI::MetaRowKind::kRule);
   EXPECT_EQ(rows.at(6).bytes, 1000 + 2000 + 4000 + 8000 + 16000);
   EXPECT_TRUE(rows.at(6).emphasis);
-  EXPECT_FALSE(rows.at(7).value.isEmpty());
-  EXPECT_TRUE(rows.at(7).dimmed);
+
+  // What never travels is a note about the whole list rather than a row of it:
+  // squeezed into the value column it was cut down to three words, and what a
+  // package leaves behind is the part somebody is checking for.
+  EXPECT_EQ(rows.at(7).kind, UI::MetaRowKind::kNote);
+  EXPECT_FALSE(rows.at(7).caption.isEmpty());
+  EXPECT_FALSE(rows.at(7).detail.isEmpty());
 }
 
 TEST(ProfileExportSummaryTest, TheWorkspaceIsTheOnlyRowAnyoneCanTick) {
