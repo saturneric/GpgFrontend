@@ -633,7 +633,16 @@ auto ArchiveFileOperator::NewArchiveFromMembersSync(
 auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
     const QSharedPointer<GFDataExchanger> &ex, const QString &target_path,
     const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
-    const ArchiveEntrySink &sink) -> GFError {
+    const ArchiveEntrySink &sink, QString *reason) -> GFError {
+  // The first refusal is the one that stopped the walk; everything after it is
+  // unwinding. Kept because the caller's own message is necessarily vague --
+  // "the package's contents could not be unpacked" is all it can say on its
+  // own -- and the entry and the verdict are the whole diagnosis.
+  const auto note = [&reason](const QString &text) {
+    if (reason != nullptr && reason->isEmpty()) *reason = text;
+  };
+  if (reason != nullptr) reason->clear();
+
   {
     {
       // only ever true for a destination this call is responsible for, which
@@ -721,6 +730,9 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
         if (r != ARCHIVE_OK) {
           FLOG_W("archive_read_next_header(), ret: %d, reason: %s", r,
                  archive_error_string(archive));
+          note(QString("the archive could not be read past entry %1: %2")
+                   .arg(entry_count)
+                   .arg(QString::fromUtf8(archive_error_string(archive))));
           ret = r;
           break;
         }
@@ -728,6 +740,8 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
         if (policy.max_entries >= 0 && ++entry_count > policy.max_entries) {
           FLOG_W("archive exceeds the entry limit (%d), aborting",
                  policy.max_entries);
+          note(
+              QString("it holds more than %1 entries").arg(policy.max_entries));
           ret = -1;
           break;
         }
@@ -740,6 +754,9 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
         if (verdict != ArchiveEntryVerdict::kACCEPT) {
           FLOG_W("refusing archive entry '%s': %s", qPrintable(path_name),
                  ArchiveEntryVerdictToString(verdict));
+          note(QString("entry \"%1\" was refused: %2")
+                   .arg(path_name, QString::fromUtf8(
+                                       ArchiveEntryVerdictToString(verdict))));
           ret = -1;
           break;
         }
@@ -750,18 +767,22 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
         if (IsRefusedEntryType(filetype)) {
           FLOG_W("refusing archive entry '%s': unsupported entry type",
                  qPrintable(path_name));
+          note(QString("entry \"%1\" is of a kind a profile never carries")
+                   .arg(path_name));
           ret = -1;
           break;
         }
         if (filetype == AE_IFLNK && !policy.allow_symlinks) {
           FLOG_W("refusing archive entry '%s': symbolic links not allowed",
                  qPrintable(path_name));
+          note(QString("entry \"%1\" is a symbolic link").arg(path_name));
           ret = -1;
           break;
         }
         if (is_hardlink && !policy.allow_hardlinks) {
           FLOG_W("refusing archive entry '%s': hard links not allowed",
                  qPrintable(path_name));
+          note(QString("entry \"%1\" is a hard link").arg(path_name));
           ret = -1;
           break;
         }
@@ -788,6 +809,8 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
                 "refusing archive entry '%s': declared size %lld exceeds "
                 "the per-entry limit",
                 qPrintable(path_name), static_cast<long long>(declared));
+            note(QString("entry \"%1\" is larger than a single entry may be")
+                     .arg(path_name));
             ret = -1;
             break;
           }
@@ -801,6 +824,9 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
                 "refusing archive entry '%s': would exceed the total "
                 "extraction limit",
                 qPrintable(path_name));
+            note(QString("it unpacks to more than this package declared, "
+                         "starting at entry \"%1\"")
+                     .arg(path_name));
             ret = -1;
             break;
           }
@@ -819,6 +845,8 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
           if (filetype == AE_IFLNK || is_hardlink) {
             FLOG_W("refusing archive entry '%s': a link cannot be diverted",
                    qPrintable(path_name));
+            note(QString("entry \"%1\" is a link where bytes were expected")
+                     .arg(path_name));
             ret = -1;
             break;
           }
@@ -834,6 +862,8 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
                           declared, body, collected);
           total_written += collected;
           if (r != ARCHIVE_OK) {
+            note(QString("entry \"%1\" could not be read out of the archive")
+                     .arg(path_name));
             ret = -1;
             break;
           }
@@ -870,6 +900,11 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
         if (r < ARCHIVE_OK) {
           FLOG_W("archive_write_header(), ret: %d, reason: %s", r,
                  archive_error_string(ext));
+          if (r < ARCHIVE_WARN) {
+            note(QString("entry \"%1\" could not be created here: %2")
+                     .arg(relative_path,
+                          QString::fromUtf8(archive_error_string(ext))));
+          }
 
           // Only a warning may be walked past. Below that the entry was not
           // created at all -- a full disk, a permission the destination does
@@ -892,6 +927,9 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
         r = CopyData(archive, ext, policy.max_entry_bytes, remaining, written);
         total_written += written;
         if (r != ARCHIVE_OK) {
+          note(QString("entry \"%1\" could not be written here: %2")
+                   .arg(relative_path,
+                        QString::fromUtf8(archive_error_string(ext))));
           ret = -1;
           break;
         }
@@ -915,6 +953,8 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
       if (r != ARCHIVE_OK) {
         FLOG_W("archive_write_close(), ret: %d, reason: %s", r,
                archive_error_string(ext));
+        note(QString("the last entries could not be finished: %1")
+                 .arg(QString::fromUtf8(archive_error_string(ext))));
         ret = -1;
       }
       if (archive_write_free(ext) != ARCHIVE_OK) ret = -1;

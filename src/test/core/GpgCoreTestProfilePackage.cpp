@@ -580,6 +580,57 @@ TEST(ProfilePackageRoundTripTest, AnUnpackThatFailsIsNotAWrongPassphrase) {
       << "an unpack that failed was reported as the wrong passphrase";
 }
 
+TEST(ProfilePackageRoundTripTest, AnUnpackFailureSaysWhichEntryStoppedIt) {
+  // "the package's contents could not be unpacked" is not something anyone can
+  // act on, and the refusal that produced it went to the log and nowhere else.
+  // A package that will not open is exactly the moment the entry and the
+  // verdict have to be in front of the person holding it.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  const auto package = dir.path() + "/work.gfp";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.protection = ProfilePackageProtection::kNONE;
+  ASSERT_TRUE(ExportProfilePackage(request).ok);
+
+  // One entry allowed: the manifest. Whatever comes next is refused, which is
+  // the same abort any refused entry produces.
+  QString reason;
+  auto exchanger = CreateStandardGFDataExchanger();
+  std::thread feeder([&]() {
+    QFile file(package);
+    if (file.open(QIODevice::ReadOnly)) {
+      const auto view = ParseProfilePackageHeader(
+          file.read(kProfilePackageMagicLength + 4 + 65536));
+      if (view.Ok() && file.seek(view.body_offset)) {
+        while (!file.atEnd()) {
+          const auto chunk = file.read(64 * 1024);
+          if (chunk.isEmpty()) break;
+          if (exchanger->Write(
+                  reinterpret_cast<const std::byte *>(chunk.constData()),
+                  chunk.size()) < 0) {
+            break;
+          }
+        }
+      }
+    }
+    exchanger->CloseWrite();
+  });
+
+  ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
+      exchanger, dir.path() + "/out", ArchiveExtractPolicy::Strict(-1, 1), {},
+      {}, &reason);
+
+  exchanger->CloseWrite();
+  feeder.join();
+
+  EXPECT_FALSE(reason.isEmpty()) << "the walk stopped and could not say why";
+  EXPECT_TRUE(reason.contains("entries")) << reason.toStdString();
+}
+
 TEST(ProfilePackageRoundTripTest, AWrongPassphraseIsStillAWrongPassphrase) {
   // The other half, so that the change above cannot be made by simply never
   // reporting a bad passphrase again.

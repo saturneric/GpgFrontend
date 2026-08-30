@@ -1166,8 +1166,9 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
     };
   }
 
+  QString unpack_reason;
   const auto error = ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
-      exchanger, staging_dir, policy, divert, sink);
+      exchanger, staging_dir, policy, divert, sink, &unpack_reason);
 
   // Before the join, always. The exchanger is a bounded ring and its writer
   // blocks when it fills, so a feeder still pushing when the extraction gives
@@ -1196,7 +1197,17 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
   if (error != 0) {
     RemoveDirectoryQuietly(staging_dir);
     result.status = ProfilePackageReadStatus::kMALFORMED;
-    result.detail = "the package's contents could not be unpacked";
+    // The reason, whenever the walk knows one. A package that will not open is
+    // exactly the moment a user needs to be told which entry stopped it and
+    // why -- the alternative is a sentence they can do nothing with and a log
+    // file they have no reason to know exists.
+    result.detail =
+        unpack_reason.isEmpty()
+            ? QString("the package's contents could not be unpacked")
+            : QString(
+                  "the package's contents could not be "
+                  "unpacked: %1")
+                  .arg(unpack_reason);
     return result;
   }
 

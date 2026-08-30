@@ -296,13 +296,17 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * store. Diversion happens only when both @p divert and @p sink are set.
    * @param sink where diverted bytes go; it receives the buffer rather than a
    * copy of it, so a sink that keeps the bytes keeps that very buffer
+   * @param reason set, when given, to why the walk stopped -- the entry and the
+   * verdict. Without it the only thing a caller can tell a user is that
+   * something did not unpack, which is not something anyone can act on; the
+   * refusals themselves went to the log and nowhere else.
    * @return 0 on success, non-zero on failure
    */
   static auto ExtractArchiveFromDataExchangerSync(
       const QSharedPointer<GFDataExchanger> &fd, const QString &target_path,
       const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive(),
-      const ArchiveEntryFilter &divert = {}, const ArchiveEntrySink &sink = {})
-      -> GFError;
+      const ArchiveEntryFilter &divert = {}, const ArchiveEntrySink &sink = {},
+      QString *reason = nullptr) -> GFError;
 
   /**
    * @brief Pack entries from a provider into a stream.
