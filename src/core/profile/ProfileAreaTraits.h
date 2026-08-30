@@ -87,7 +87,7 @@ enum class AreaPackSource : std::uint8_t {
  */
 struct GF_CORE_EXPORT ProfileAreaTraits {
   /// Top-level name under the profile root; empty for the root itself.
-  QLatin1StringView dir;
+  QLatin1String dir;
 
   /// The area this name is, when it is one. The key databases are directories
   /// GnuPG owns rather than areas this program addresses, so they have none.
