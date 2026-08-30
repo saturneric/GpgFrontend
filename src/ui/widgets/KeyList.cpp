@@ -43,6 +43,7 @@
 #include "ui/UISignalStation.h"
 #include "ui/dialog/KeyGroupCreationDialog.h"
 #include "ui/dialog/import_export/KeyImportDetailDialog.h"
+#include "ui/function/KeyDatabaseDisplayNames.h"
 
 //
 #include "ui_KeyList.h"
@@ -59,22 +60,6 @@ auto IsCustomCategoryId(const QString& id) -> bool {
   return id.startsWith("cat:");
 }
 
-// What a key database is, said in the words the settings page uses. The kind is
-// the thing this button cannot show and the user most needs: two databases look
-// identical in a menu, and which one travels with the profile is not a detail
-// you want to discover after sending it.
-auto DescribeKeyDatabaseKind(KeyDatabaseKind kind) -> QString {
-  switch (kind) {
-    case KeyDatabaseKind::kDEFAULT:
-      return QObject::tr("This computer's default key database");
-    case KeyDatabaseKind::kMANAGED:
-      return QObject::tr("Kept inside your profile");
-    case KeyDatabaseKind::kEXTERNAL:
-      return QObject::tr("On this computer only");
-  }
-  return {};
-}
-
 // Name, what it is, what opens it, where it is. Rich text, so the name can lead
 // and the path can recede -- a tooltip that is one long line reads as one fact
 // rather than four.
@@ -87,15 +72,18 @@ auto BuildKeyDatabaseToolTip(const KeyDatabaseInfo& info, const QString& engine)
   // Classified from the resolved path the running context reports, rather than
   // read back out of settings: this is a description of the database that is
   // actually open on this channel.
-  const auto kind =
-      ClassifyKeyDatabase(info.name, info.path, GetGSS().GetAppDataPath());
+  const auto profile_root = GetGSS().GetAppDataPath();
+  const auto kind = ClassifyKeyDatabase(info.name, info.path, profile_root);
 
   auto text = QString("<b>%1</b>").arg(info.name.toHtmlEscaped());
 
   // The kind gets a line to itself. Run together with the engine and channel it
   // wrapped mid-phrase at the tooltip's own width, which broke the one sentence
   // here that has to be read rather than glanced at.
-  text += QString("<br/>%1").arg(DescribeKeyDatabaseKind(kind).toHtmlEscaped());
+  text += QString("<br/>%1").arg(
+      KeyDatabaseKindDisplayName(
+          kind, KeyDatabaseTravelsWithProfile(info.path, profile_root))
+          .toHtmlEscaped());
 
   text += QString("<br/>%1 · %2")
               .arg(engine.toUpper().toHtmlEscaped(),
