@@ -187,7 +187,7 @@ void KeyDatabasesTab::SetSettings() {
 }
 
 void KeyDatabasesTab::ApplySettings() {
-  auto so = SettingsObject("key_database_list");
+  auto so = SettingsObject(kKeyDatabaseListObject);
   auto key_database_list = KeyDatabaseListSO(so);
   key_database_list.key_databases.clear();
 
