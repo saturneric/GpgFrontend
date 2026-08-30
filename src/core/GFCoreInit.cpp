@@ -601,11 +601,23 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     return -1;
   }
 
-  const auto gnupg_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
+  const auto gnupg_supported =
+      GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG);
   const auto rpgp_supported = GetGSS().IsEngineSupported(OpenPGPEngine::kRPGP);
 
-  const auto default_choice =
-      ChooseOpenPGPEngine(default_engine, gnupg_supported, rpgp_supported);
+  // `basic/default_engine` is a statement about the DEFAULT database -- the one
+  // every profile derives rather than stores, and the one that setting exists
+  // to let a user open with rPGP even where GnuPG is available. It was being
+  // applied to whichever database came first instead, which is the same thing
+  // only while DEFAULT is usable. The moment it is not -- and
+  // SelectUsableKeyDatabases() drops it, which is exactly what an imported
+  // profile does while its DEFAULT still names a path on the machine it came
+  // from -- the next database moves up into channel 0 and was opened with
+  // GnuPG because the setting said so, whatever backend that database was
+  // actually written with. An rPGP keyring handed to GnuPG.
+  const auto default_choice = ChooseChannelZeroEngine(
+      key_dbs.front().name, key_dbs.front().backend_type, default_engine,
+      gnupg_supported, rpgp_supported);
 
   if (!default_choice.ok) {
     LOG_E() << "no usable OpenPGP engine for the default key database!"
@@ -674,10 +686,11 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
 
           // Same check for both engines: guarding only GnuPG here meant a
           // database stored as "rpgp" was handed to an engine that might not
-          // exist in this build.
-          const auto choice = ChooseOpenPGPEngine(key_db.backend_type,
-                                                  gnupg_supported,
-                                                  rpgp_supported);
+          // exist in this build. The same rule as channel 0, so that where a
+          // database lands can never change which engine opens it.
+          const auto choice =
+              ChooseKeyDatabaseEngine(key_db.backend_type, default_engine,
+                                      gnupg_supported, rpgp_supported);
           if (!choice.ok) {
             LOG_W() << "no usable engine for key db, skip:" << key_db.name
                     << "requested backend:" << key_db.backend_type;
