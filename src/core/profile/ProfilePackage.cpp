@@ -71,9 +71,10 @@ constexpr qint64 kDrainChunk = 64 * 1024;
 /// blames a file that is fine.
 constexpr qint64 kStorageExhaustedSlack = 1024 * 1024;
 
-/// Absolute floor and ceiling for the one-shot payload cap. The floor keeps a
-/// container with a tiny locked-memory allowance from refusing every export;
-/// the ceiling keeps a machine with none from trying to hold a DVD in memory.
+/// Absolute floor and ceiling for the version 1 read cap. The floor keeps a
+/// container with a tiny locked-memory allowance from refusing every legacy
+/// package it is handed; the ceiling keeps a machine that reports no allowance
+/// at all from trying to hold a DVD in memory.
 constexpr qint64 kPayloadCapFloor = 16LL * 1024 * 1024;
 constexpr qint64 kPayloadCapCeiling = 256LL * 1024 * 1024;
 
@@ -781,9 +782,9 @@ auto ProfilePackagePayloadCap() -> qint64 {
   struct rlimit limit{};
   if (getrlimit(RLIMIT_MEMLOCK, &limit) == 0 &&
       limit.rlim_cur != RLIM_INFINITY) {
-    // The payload and its ciphertext are both live, both in locked memory, and
-    // the allocator needs headroom on top; a quarter of the allowance is the
-    // conservative reading of that.
+    // Opening a version 1 body holds it whole and then its plaintext beside
+    // it, both in locked memory, and the allocator needs headroom on top; a
+    // quarter of the allowance is the conservative reading of that.
     const auto quarter = static_cast<qint64>(limit.rlim_cur) / 4;
     return qBound(kPayloadCapFloor, quarter, kPayloadCapCeiling);
   }

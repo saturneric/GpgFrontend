@@ -354,14 +354,29 @@ auto GF_CORE_EXPORT MeasureProfileAreas(const ProfileAccessor &storage)
     -> QMap<QString, qint64>;
 
 /**
- * @brief The largest payload this machine can pack in one piece.
+ * @brief The largest version 1 package this machine may open.
  *
- * Encryption is one-shot: the payload and its ciphertext are both live at once
- * and both sit in secure, page-locked memory, so the ceiling is the process's
- * locked-memory allowance rather than its RAM. Detected at runtime so the
- * refusal can name a real number instead of a guess.
+ * A guard for the legacy shape alone, and only when reading. A version 1 body
+ * is one sealed block, so opening it holds the whole thing and then its
+ * plaintext beside it, both in secure page-locked memory; the ceiling is
+ * therefore the process's locked-memory allowance rather than its RAM. The
+ * file's own size is the only thing checkable before making that allocation,
+ * and the profile lock is already held by then, so refusing is better than
+ * being killed part way through a mount.
  *
- * @return the cap in bytes
+ * A version 2 body is a stream of chunks, each authenticated on its own, and is
+ * never held whole. It is deliberately **not** capped: capping it would put
+ * back the very limit streaming was built to remove. See
+ * kProfilePackageStreamedFrom, the `!streamed` branch in ReadProfilePackage()
+ * that is this function's only caller, and the test
+ * `APackageLargerThanTheOldCapRoundTrips`.
+ *
+ * Nothing on the writing side consults this, because nothing is written in one
+ * piece any more. An export that cannot fit fails on the write, not here.
+ *
+ * Detected at runtime so the refusal can name a real number instead of a guess.
+ *
+ * @return the cap in bytes, applied only to reading a version 1 package
  */
 auto GF_CORE_EXPORT ProfilePackagePayloadCap() -> qint64;
 

@@ -72,10 +72,12 @@ constexpr qint64 kUnknownSizeFactor = 6;
 ///
 /// The real limit is whether the chosen storage actually has room, which the
 /// probe measures and reports per candidate. Deriving this from
-/// ProfilePackagePayloadCap() was tried and was wrong: that cap bounds the
-/// *compressed* payload held in locked memory during an export, so on a machine
-/// with a small RLIMIT_MEMLOCK it capped every budget at 96 MB and quietly
-/// under-provisioned any profile over about 38 MB.
+/// ProfilePackagePayloadCap() was tried and was wrong twice over: that cap is
+/// the on-disk size a *version 1* package may be before it is read whole into
+/// locked memory, it says nothing about an export or about a streamed package,
+/// and it is a bound on compressed bytes being used to provision room for
+/// uncompressed ones. On a machine with a small RLIMIT_MEMLOCK it capped every
+/// budget at 96 MB and quietly under-provisioned any profile over about 38 MB.
 constexpr qint64 kBudgetCeiling = 16LL * 1024 * 1024 * 1024;
 
 /// Three halves of the real unpacked size: one for the tree, and a half for
