@@ -35,6 +35,7 @@
 #include "core/profile/ProfileAreaTraits.h"
 #include "core/profile/ProfileMember.h"
 #include "core/struct/settings_object/KeyDatabaseItemSO.h"
+#include "core/struct/settings_object/KeyDatabaseListSO.h"
 #include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
@@ -297,6 +298,28 @@ DescribeKeyDatabasesForManifest(const QContainer<KeyDatabaseItemSO> &databases)
     -> QList<ProfilePackageKeyDatabaseEntry>;
 
 /**
+ * @brief Seal a key database list into the data object the package carries.
+ *
+ * The stored object holds this machine's absolute paths and must keep them;
+ * the copy that travels holds the `@profile/` form and is built here instead of
+ * by rewriting the sender's own. That was the bug this exists to close: the
+ * rewrite went into a SettingsObject whose destructor had not run yet, so the
+ * package was fed the unrewritten file straight off the disk and arrived
+ * naming a folder on the sender's computer.
+ *
+ * Reads the session's key material, so it must be called on the thread that
+ * owns it -- the same reason SnapshotSettings() is called where it is -- and
+ * the result handed to ProfileExportRequest::data_object_members.
+ *
+ * @param databases the list, already rewritten by
+ * RewriteKeyDatabaseListForPacking()
+ * @return the member to pack, or nothing if the key material is unavailable
+ */
+auto GF_CORE_EXPORT
+MakeTravellingKeyDatabaseMember(const QContainer<KeyDatabaseItemSO> &databases)
+    -> std::optional<ProfileMember>;
+
+/**
  * @brief Sizes of the areas a package would carry, in bytes.
  *
  * Per area rather than one total, because refusing an export is only useful if
@@ -342,14 +365,33 @@ struct GF_CORE_EXPORT ProfileStagingResult {
 };
 
 /**
- * @brief Copy every setting out of a live store.
+ * @brief Whether a setting is the profile's, or this machine's.
+ *
+ * A package is handed to somebody else, so a value that names something only
+ * the sender's computer has is not a setting the copy should arrive with: it
+ * points the recipient at a GnuPG installation, a folder or a credential store
+ * that is not there. The recipient's own value -- or the default -- is the
+ * right one, and the only way to get it is to carry nothing.
+ *
+ * Pure, and the deny-list is spelled once here rather than at the three places
+ * that would otherwise each have to remember it.
+ *
+ * @param key a settings key, group included
+ * @return true when the value belongs to the profile and should travel
+ */
+auto GF_CORE_EXPORT SettingTravelsInPackage(const QString &key) -> bool;
+
+/**
+ * @brief Copy every setting that travels out of a live store.
  *
  * Taken as a snapshot rather than read where it is needed, because the packing
  * itself runs on a worker thread and QSettings is not something two threads may
  * share. Cheap: settings are a few kilobytes.
  *
+ * Machine-specific keys are left behind; see SettingTravelsInPackage().
+ *
  * @param settings the live settings
- * @return every key and its value
+ * @return every key that travels, and its value
  */
 auto GF_CORE_EXPORT SnapshotSettings(QSettings &settings)
     -> QMap<QString, QVariant>;
@@ -505,6 +547,20 @@ struct GF_CORE_EXPORT ProfileExportRequest {
   /// Empty means there is no application key, which is not an exportable
   /// profile.
   QList<ProfileMember> secure_members;
+
+  /// Data objects the package carries instead of the copies on disk.
+  ///
+  /// The one that matters is `key_database_list`: what is stored here holds
+  /// this machine's absolute paths, and what travels has to hold the portable
+  /// `@profile/` form. Regenerated rather than copied, exactly as
+  /// `config/config.ini` is -- and for the same reason the settings are
+  /// snapshotted here, sealed on the caller's thread because it is the thread
+  /// that owns the key material.
+  ///
+  /// Each member's path is `data_objs/<hex reference>`; a member here
+  /// supersedes the file of the same name in the tree, so neither is packed
+  /// twice.
+  QList<ProfileMember> data_object_members;
 
   GFBuffer passphrase;  ///< ignored when protection is kNONE
 

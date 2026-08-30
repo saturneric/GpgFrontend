@@ -40,6 +40,7 @@
 
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/ArchiveFileOperator.h"
+#include "core/function/DataObjectOperator.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/GFDataExchanger.h"
 #include "core/profile/Profile.h"
@@ -704,6 +705,26 @@ auto DescribeKeyDatabasesForManifest(
   return out;
 }
 
+auto MakeTravellingKeyDatabaseMember(
+    const QContainer<KeyDatabaseItemSO> &databases)
+    -> std::optional<ProfileMember> {
+  KeyDatabaseListSO travelling;
+  travelling.key_databases = databases;
+
+  auto sealed = DataObjectOperator::GetInstance().SealDataObjForPackage(
+      kKeyDatabaseListObject, QJsonDocument(travelling.ToJson()));
+  if (!sealed) {
+    LOG_E() << "the key database list could not be sealed for the package";
+    return {};
+  }
+
+  ProfileMember member;
+  member.path = QString("data_objs/%1").arg(sealed->first);
+  member.area = ProfileArea::kDataObjects;
+  member.bytes = sealed->second;
+  return member;
+}
+
 auto MeasureProfileAreas(const ProfileAccessor &storage)
     -> QMap<QString, qint64> {
   // Asked of the storage, not of the tree under the root. Walking the tree was
@@ -758,11 +779,37 @@ auto MakeProfilePackageScratchDir(const QString &profiles_root,
   return {};
 }
 
+auto SettingTravelsInPackage(const QString &key) -> bool {
+  // Each of these names something that exists on one computer and not on the
+  // next one. Carried, they do not merely fail to apply -- they actively point
+  // the copy at the wrong thing: a gpgconf that is not there, a workspace
+  // folder that is not there, a credential store this platform does not have.
+  static const QSet<QString> kStaysHome = {
+      // An absolute path to a GnuPG installation, and the flag that turns it
+      // on. Startup falls back when it does not resolve, but only after
+      // reporting an illegal path and prepending it to PATH.
+      "gnupg/custom_gnupg_install_path",
+      "gnupg/use_custom_gnupg_install_path",
+
+      // An absolute override for where the profile's workspace lives.
+      "workspace/path",
+
+      // Which credential store held the key here. The key inside a package is
+      // not sealed by any store -- the package's own passphrase is what
+      // protected it -- so the recipient must decide this for themselves.
+      "advanced/os_secret_store",
+      "advanced/app_key_protection",
+  };
+
+  return !kStaysHome.contains(key);
+}
+
 auto SnapshotSettings(QSettings &settings) -> QMap<QString, QVariant> {
   settings.sync();
 
   QMap<QString, QVariant> snapshot;
   for (const auto &key : settings.allKeys()) {
+    if (!SettingTravelsInPackage(key)) continue;
     snapshot.insert(key, settings.value(key));
   }
   return snapshot;
@@ -1034,6 +1081,14 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
   // truncated archive.
   bool body_ok = true;
 
+  // The other reason the feeder stops early, and not a body failure at all: the
+  // extraction gave up and closed the pipe. Told apart because the two are
+  // reported to the user as completely different things -- a wrong passphrase,
+  // or a package that could not be unpacked -- and an unpack that failed for a
+  // reason of the recipient's platform was being called a wrong passphrase,
+  // which the open path then re-prompts on forever.
+  bool sink_closed = false;
+
   std::thread feeder([&]() {
     if (!streamed) {
       exchanger->Write(
@@ -1073,6 +1128,7 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
       // nothing left to decrypt for.
       if (exchanger->Write(reinterpret_cast<const std::byte *>(chunk.Data()),
                            static_cast<ssize_t>(chunk.Size())) < 0) {
+        sink_closed = true;
         break;
       }
       if (reader.Complete()) break;
@@ -1080,7 +1136,9 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
 
     // A stream that ran out without its final tag was cut short, which a
     // length-prefixed format cannot otherwise tell from a smaller profile.
-    if (body_ok && !reader.Complete()) body_ok = false;
+    // Unless nobody was reading any more: then the stream did not run out, it
+    // was abandoned, and what went wrong is the extraction's to report.
+    if (body_ok && !sink_closed && !reader.Complete()) body_ok = false;
 
     exchanger->CloseWrite();
   });
@@ -1226,6 +1284,15 @@ auto ExportProfilePackage(ProfileExportRequest request)
   config.area = ProfileArea::kConfig;
   config.bytes = *settings_ini;
   synthesised.append(config);
+
+  // The data objects that travel rewritten rather than copied. Added to
+  // `synthesised` before the superseded set is taken from it, so the walk below
+  // neither yields nor measures the copy on disk and the recipient reads
+  // exactly one version of each.
+  for (const auto &member : request.data_object_members) {
+    if (member.path.isEmpty()) continue;
+    synthesised.append(member);
+  }
 
   // Walked before a byte is written, and before the manifest is built: the
   // destination may already hold the only copy of this profile, and the
