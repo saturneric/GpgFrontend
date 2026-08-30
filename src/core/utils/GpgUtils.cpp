@@ -311,59 +311,31 @@ auto SupportedKeyDatabaseBackends() -> QSet<QString> {
   return backends;
 }
 
-// Build the channel-0 "DEFAULT" key database entry. Its path is derived from
-// the gpgme context (or an app-data fallback), never from a fixed user dir.
-auto MakeDefaultKeyDatabaseItem() -> KeyDatabaseItemSO {
-  KeyDatabaseItemSO key_db;
+}  // namespace
 
-  // try to get default key database path from gpgme context
-  // if gpgme checking failed, this is likely to be empty
+auto DefaultKeyDatabaseCandidate() -> KeyDatabaseItemSO {
+  KeyDatabaseItemSO key_db;
+  key_db.channel = 0;
+  key_db.name = QLatin1String(kDefaultKeyDatabaseName);
+  key_db.backend_type = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)
+                            ? QString("gnupg")
+                            : QString("rpgp");
+
   auto home_path = Module::RetrieveRTValueTypedOrDefault<>(
       "core", "gpgme.ctx.default_database_path", QString{});
-  LOG_D() << "got default key database path from context: " << home_path;
-  assert(!home_path.isEmpty());
 
-  if (home_path.isEmpty()) {
-    LOG_E() << "failed to get default key database path from gpgme context, "
-               "fallback to default app data path";
-
-    // this should not happen, but just in case, fallback to app data path
-    home_path =
-        GlobalSettingStation::GetInstance().GetAppDataPath() + "/rpgp_db";
-
-    // since we cannot get default key database path from gpgme context, it's
-    // likely that gpgme is not working properly, we should fallback to rpgp --
-    // but only if this build actually has it. Claiming support unconditionally
-    // would hand out an engine that does not exist.
-    if (HasRustSupport()) {
-      GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
-    } else {
-      LOG_E() << "gpgme is not usable and this build has no rPGP support";
-    }
-  }
-
-  key_db.channel = 0;
-  key_db.name = "DEFAULT";
-
-  // default to gnupg backend if possible if gnupg backend is not supported,
-  // fallback to rpgp backend, and set the default key database path to rpgp
-  // default path
-  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    key_db.backend_type = "gnupg";
-    LOG_I() << "gnupg backend is supported, use gnupg backend as default";
-  } else {
-    // fallback to rpgp backend
-    key_db.backend_type = "rpgp";
-    LOG_W() << "gnupg backend is not supported, fallback to rpgp backend";
-  }
+  // Left empty rather than invented. This answers a question a caller is
+  // allowed to hear "no" to -- the dialog offering to add the DEFAULT database
+  // has to be able to say the engine does not name one -- which is the
+  // difference between this and MakeDefaultKeyDatabaseItem() below.
+  if (home_path.isEmpty()) return key_db;
 
   // A self-contained profile records its keyring as profile-relative, so the
   // whole profile can be moved, copied or packaged without the path going
-  // stale. This replaces a relative-to-the-executable path that only portable
-  // mode ever produced and that no other profile shape could have used.
-  if (GlobalSettingStation::GetInstance().IsSelfContainedProfile()) {
-    home_path = ToProfileRelativeKeyDatabasePath(
-        home_path, GlobalSettingStation::GetInstance().GetAppDataPath());
+  // stale.
+  if (GetGSS().IsSelfContainedProfile()) {
+    home_path =
+        ToProfileRelativeKeyDatabasePath(home_path, GetGSS().GetAppDataPath());
   }
 
   key_db.path = home_path;
@@ -372,11 +344,17 @@ auto MakeDefaultKeyDatabaseItem() -> KeyDatabaseItemSO {
 
 // Sort entries by channel, then resolve duplicate channels by incrementing so
 // every key database ends up with a unique, ascending channel.
-void NormalizeKeyDatabaseChannels(QContainer<KeyDatabaseItemSO>& key_dbs) {
-  std::sort(key_dbs.begin(), key_dbs.end(),
-            [](const auto& a, const auto& b) -> bool {
-              return a.channel < b.channel;
-            });
+void GF_CORE_EXPORT
+NormalizeKeyDatabaseChannels(QContainer<KeyDatabaseItemSO>& key_dbs) {
+  // Stable, because two entries may legitimately arrive holding the same
+  // channel -- a list that has never been normalised, or one just given a
+  // DEFAULT at channel 0 -- and an unstable sort would decide between them
+  // differently from one run to the next. Which database is channel 0 would
+  // then not be a fact about the profile at all.
+  std::stable_sort(key_dbs.begin(), key_dbs.end(),
+                   [](const auto& a, const auto& b) -> bool {
+                     return a.channel < b.channel;
+                   });
 
   for (auto it = key_dbs.begin(); it != key_dbs.end(); ++it) {
     auto next_it = std::next(it);
@@ -385,6 +363,49 @@ void NormalizeKeyDatabaseChannels(QContainer<KeyDatabaseItemSO>& key_dbs) {
       ++next_it;
     }
   }
+}
+
+namespace {
+
+// Build the channel-0 "DEFAULT" key database entry. Its path is derived from
+// the gpgme context (or an app-data fallback), never from a fixed user dir.
+//
+// Unlike DefaultKeyDatabaseCandidate(), this one must always answer: it is what
+// a profile falls back to when nothing else is usable, and returning nothing
+// there means refusing to start.
+auto MakeDefaultKeyDatabaseItem() -> KeyDatabaseItemSO {
+  auto key_db = DefaultKeyDatabaseCandidate();
+  if (!key_db.path.isEmpty()) return key_db;
+
+  LOG_E() << "failed to get default key database path from gpgme context, "
+             "fallback to default app data path";
+
+  // this should not happen, but just in case, fallback to app data path
+  auto home_path = GetGSS().GetAppDataPath() + "/rpgp_db";
+
+  // since we cannot get default key database path from gpgme context, it's
+  // likely that gpgme is not working properly, we should fallback to rpgp --
+  // but only if this build actually has it. Claiming support unconditionally
+  // would hand out an engine that does not exist.
+  if (HasRustSupport()) {
+    GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
+  } else {
+    LOG_E() << "gpgme is not usable and this build has no rPGP support";
+  }
+
+  // Re-picked after the fallback: registering rPGP above can change which
+  // engines this build reports as supported.
+  key_db.backend_type = GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)
+                            ? QString("gnupg")
+                            : QString("rpgp");
+
+  if (GetGSS().IsSelfContainedProfile()) {
+    home_path =
+        ToProfileRelativeKeyDatabasePath(home_path, GetGSS().GetAppDataPath());
+  }
+
+  key_db.path = home_path;
+  return key_db;
 }
 
 // Scan the fixed sandbox directory (<app-data>/dbs) for user key databases,
@@ -457,8 +478,11 @@ auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
   int next_channel = 1;
   for (auto& key_db : discovered) {
     if (key_db.name.isEmpty()) continue;
-    // never let a scanned dir shadow the channel-0 DEFAULT database
-    if (key_db.name == default_db.name) continue;
+    // Never let a scanned dir shadow the channel-0 DEFAULT database. Compared
+    // by the reserved-name rule rather than by string equality, because the
+    // directory this came from is on a filesystem where "Default" and "DEFAULT"
+    // are the same folder.
+    if (IsReservedKeyDatabaseName(key_db.name)) continue;
 
     if (const auto it = stored_by_name.constFind(key_db.name);
         it != stored_by_name.constEnd()) {
@@ -549,6 +573,24 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
 
   auto key_db_list_so = SettingsObject(kKeyDatabaseListObject);
   auto key_db_list = KeyDatabaseListSO(key_db_list_so);
+
+  // Enforced here rather than only in the dialog: a stored list can arrive in a
+  // package, be hand-edited, or come from a build older than this rule, and two
+  // databases answering to the same identity is not a state anything below can
+  // make sense of.
+  key_db_list.key_databases =
+      DropDuplicateDefaultKeyDatabases(key_db_list.key_databases);
+
+  // And the one that remains names this computer's keyring, whatever the
+  // settings say it named. That entry is derived rather than stored, so a
+  // stored path for it only ever records where it was on whichever machine last
+  // wrote the settings -- which, for a profile opened from a package, is
+  // somewhere else entirely.
+  const auto local_default = DefaultKeyDatabaseCandidate();
+  key_db_list.key_databases = AdoptLocalDefaultKeyDatabase(
+      key_db_list.key_databases, local_default.path,
+      local_default.backend_type);
+
   auto& key_dbs = key_db_list.key_databases;
 
   // The root the stored paths are read against. Empty for a profile shape that
@@ -1182,6 +1224,75 @@ auto ChooseOpenPGPEngine(const QString& preferred, bool gnupg_supported,
   if (rpgp_supported) return {true, OpenPGPEngine::kRPGP};
 
   return {};
+}
+
+auto ChooseKeyDatabaseEngine(const QString& backend_type,
+                             const QString& fallback_engine,
+                             bool gnupg_supported, bool rpgp_supported)
+    -> EngineChoice {
+  return ChooseOpenPGPEngine(
+      backend_type.trimmed().isEmpty() ? fallback_engine : backend_type,
+      gnupg_supported, rpgp_supported);
+}
+
+auto DropDuplicateDefaultKeyDatabases(
+    const QContainer<KeyDatabaseItemSO>& databases)
+    -> QContainer<KeyDatabaseItemSO> {
+  QContainer<KeyDatabaseItemSO> out;
+  out.reserve(databases.size());
+
+  auto seen_default = false;
+  for (const auto& item : databases) {
+    if (!IsReservedKeyDatabaseName(item.name)) {
+      out.push_back(item);
+      continue;
+    }
+    if (seen_default) {
+      LOG_W() << "a second key database is named for the default one, "
+                 "dropping the entry (its folder is untouched):"
+              << item.path;
+      continue;
+    }
+    seen_default = true;
+    out.push_back(item);
+  }
+  return out;
+}
+
+auto AdoptLocalDefaultKeyDatabase(
+    const QContainer<KeyDatabaseItemSO>& databases, const QString& local_path,
+    const QString& local_backend) -> QContainer<KeyDatabaseItemSO> {
+  if (local_path.isEmpty()) return databases;
+
+  QContainer<KeyDatabaseItemSO> out;
+  out.reserve(databases.size());
+
+  for (auto item : databases) {
+    if (IsReservedKeyDatabaseName(item.name) && item.path != local_path) {
+      LOG_I() << "pointing the default key database at this computer's own:"
+              << item.path << "->" << local_path;
+      item.path = local_path;
+      if (!local_backend.isEmpty()) item.backend_type = local_backend;
+    }
+    out.push_back(item);
+  }
+  return out;
+}
+
+auto IsReservedKeyDatabaseName(const QString& name) -> bool {
+  return name.trimmed().compare(QLatin1String(kDefaultKeyDatabaseName),
+                                Qt::CaseInsensitive) == 0;
+}
+
+auto ChooseChannelZeroEngine(const QString& db_name,
+                             const QString& backend_type,
+                             const QString& default_engine,
+                             bool gnupg_supported, bool rpgp_supported)
+    -> EngineChoice {
+  const auto is_default = db_name == QLatin1String(kDefaultKeyDatabaseName);
+  return ChooseKeyDatabaseEngine(is_default ? default_engine : backend_type,
+                                 default_engine, gnupg_supported,
+                                 rpgp_supported);
 }
 
 auto ConvertComponentType2String(GpgComponentType type) -> QString {

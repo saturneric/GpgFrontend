@@ -126,6 +126,120 @@ auto GF_CORE_EXPORT SetExtensionOfOutputFileForArchive(const QString& path,
 /// move every existing portable installation's keyring.
 constexpr auto kProfilePathToken = "@profile";
 
+/// The name of the channel-0 database every profile derives rather than stores.
+/// Spelled once because it is what tells the derived database apart from one
+/// the user made, and `basic/default_engine` is a statement about this one.
+constexpr auto kDefaultKeyDatabaseName = "DEFAULT";
+
+/**
+ * @brief Whether a name belongs to the application rather than to the user.
+ *
+ * The DEFAULT database is derived, not stored: its path comes from the engine
+ * and it is the one database `basic/default_engine` speaks for. A user-made
+ * database wearing the same name is therefore not a duplicate to be tolerated
+ * but a second thing answering to an identity only one thing may have -- it
+ * would be found first by every lookup that goes by name, and it would take the
+ * default engine along with the identity.
+ *
+ * Compared case-insensitively and after trimming, because the user is typing a
+ * name that becomes a directory: "default" and "DEFAULT " are the same folder
+ * on Windows and on macOS, and reserving only the exact spelling would reserve
+ * nothing there.
+ *
+ * @param name a key database name as typed
+ * @return true when the name is the application's to use
+ */
+auto GF_CORE_EXPORT IsReservedKeyDatabaseName(const QString& name) -> bool;
+
+/**
+ * @brief The DEFAULT key database as this computer's engine describes it.
+ *
+ * Derived, never stored: the path is whatever the OpenPGP engine already uses,
+ * and the backend is whichever engine that is. A profile may hold one of these
+ * and no more, and it is the only sanctioned way to obtain one -- the name is
+ * reserved, so it cannot be typed.
+ *
+ * The reason it can be asked for at all: a package never carries a key database
+ * that lived outside the profile it came from, and the DEFAULT one usually did.
+ * A profile that arrives from another computer therefore has none, and needs a
+ * way to adopt this computer's.
+ *
+ * Returns an entry whose path is empty when the engine names no database --
+ * the one question this answers that MakeDefaultKeyDatabaseItem() may not, and
+ * why the two are separate. Free of side effects, so a dialog may ask.
+ *
+ * @return the DEFAULT entry, with an empty path when there is none
+ */
+auto GF_CORE_EXPORT DefaultKeyDatabaseCandidate() -> KeyDatabaseItemSO;
+
+/**
+ * @brief Reduce a stored list to at most one DEFAULT database.
+ *
+ * The name is an identity, and only one thing may hold it: every lookup that
+ * goes by name finds whichever comes first, and `basic/default_engine` speaks
+ * for whichever that is. The dialog will not let a second one be made, but a
+ * stored list is not only ever written by the dialog -- it can arrive in a
+ * package, be hand-edited, or come from a build older than this rule.
+ *
+ * The first one in list order is kept, the rest are dropped. Only the settings
+ * entry goes; the directory it named is left alone, so the keyring is still
+ * there to be added back under a name of its own.
+ *
+ * Pure, and idempotent.
+ *
+ * @param databases the stored list
+ * @return the list with any DEFAULT after the first removed, order preserved
+ */
+auto GF_CORE_EXPORT
+DropDuplicateDefaultKeyDatabases(const QContainer<KeyDatabaseItemSO>& databases)
+    -> QContainer<KeyDatabaseItemSO>;
+
+/**
+ * @brief Give every key database a unique, ascending channel.
+ *
+ * Sorted by the channel each entry already carries and then de-duplicated
+ * upward, so the list keeps the order the profile means and the numbers become
+ * usable. The sort is stable: entries can legitimately arrive sharing a channel
+ * -- a list that has never been normalised, or one just given a DEFAULT at
+ * channel 0 -- and which of them ends up as channel 0 has to be a fact about
+ * the profile rather than something that changes between runs.
+ *
+ * @param key_dbs the list, renumbered and reordered in place
+ */
+void GF_CORE_EXPORT
+NormalizeKeyDatabaseChannels(QContainer<KeyDatabaseItemSO>& key_dbs);
+
+/**
+ * @brief Point the DEFAULT entry at this computer's own default keyring.
+ *
+ * The DEFAULT database is derived, not stored: it names whatever keyring the
+ * OpenPGP engine on *this* machine already uses. A stored path for it is
+ * therefore a record of where that was, on whichever machine last wrote the
+ * settings -- and a profile opened from a package was last written somewhere
+ * else. "C:/Users/eric/AppData/Roaming/gnupg" is not a location Linux has, and
+ * is not even a path Qt reads as absolute there.
+ *
+ * So the stored value is replaced rather than repaired. Repairing it is not
+ * possible in any case: the sender's keyring never travelled, because a package
+ * carries nothing from outside the profile root. What the recipient wants under
+ * that name is their own default keyring, which is exactly what this supplies.
+ *
+ * The backend goes with the path, since which engine derived the keyring is
+ * part of the same fact.
+ *
+ * Pure, so the local values are passed in rather than looked up. Entries that
+ * are not the DEFAULT one are untouched, and a local default that is not there
+ * -- an engine reporting none -- changes nothing.
+ *
+ * @param databases the stored list
+ * @param local_path this computer's default keyring, empty if it has none
+ * @param local_backend the engine that keyring belongs to
+ * @return the list with the DEFAULT entry re-pointed, order preserved
+ */
+auto GF_CORE_EXPORT AdoptLocalDefaultKeyDatabase(
+    const QContainer<KeyDatabaseItemSO>& databases, const QString& local_path,
+    const QString& local_backend) -> QContainer<KeyDatabaseItemSO>;
+
 /**
  * @brief Record an absolute key database path relative to its profile.
  *
@@ -574,6 +688,62 @@ struct EngineChoice {
 auto GF_CORE_EXPORT ChooseOpenPGPEngine(const QString& preferred,
                                         bool gnupg_supported,
                                         bool rpgp_supported) -> EngineChoice;
+
+/**
+ * @brief Pick the engine for one key database, from that database.
+ *
+ * The engine belongs to the database, not to the channel it lands in.
+ * `basic/default_engine` preselects the backend for a database the user is
+ * *creating* and is the fallback for a stored entry that names none; it is not
+ * a statement about whichever database happens to come first.
+ *
+ * Treating it as one is a real defect and not a hypothetical: channel 0 took
+ * its engine from that setting while every other channel took it from the
+ * database, so the two agreed only as long as the first database was the
+ * DEFAULT one. An imported profile whose DEFAULT still names a path on the
+ * machine it came from drops out as unusable, the next database moves up into
+ * channel 0, and an rPGP keyring is opened with GnuPG.
+ *
+ * @param backend_type the database's own backend, empty if it names none
+ * @param fallback_engine what to use when it does not, from settings
+ * @param gnupg_supported GnuPG is usable in this build
+ * @param rpgp_supported rPGP is usable in this build
+ * @return the engine to open this database with, or a choice that is not ok
+ */
+auto GF_CORE_EXPORT ChooseKeyDatabaseEngine(const QString& backend_type,
+                                            const QString& fallback_engine,
+                                            bool gnupg_supported,
+                                            bool rpgp_supported)
+    -> EngineChoice;
+
+/**
+ * @brief Pick the engine for whichever database ends up in channel 0.
+ *
+ * Channel 0 is a position, not an identity: the databases that do not resolve
+ * to a real directory are dropped, so the one that lands there is simply the
+ * first that survived. `basic/default_engine` is a statement about the DEFAULT
+ * database -- the one every profile derives rather than stores -- so it answers
+ * only when DEFAULT is the database still standing there. For anything else,
+ * the database's own backend does, exactly as it does for every other channel.
+ *
+ * A separate function from ChooseKeyDatabaseEngine() because *which* database
+ * the setting is about is the thing that was wrong, and it was wrong silently:
+ * an imported profile whose DEFAULT still names a path from the machine it came
+ * from would open its first surviving keyring with the wrong engine.
+ *
+ * @param db_name name of the database that will occupy channel 0
+ * @param backend_type that database's own backend, empty if it names none
+ * @param default_engine the `basic/default_engine` setting
+ * @param gnupg_supported GnuPG is usable in this build
+ * @param rpgp_supported rPGP is usable in this build
+ * @return the engine to open channel 0 with, or a choice that is not ok
+ */
+auto GF_CORE_EXPORT ChooseChannelZeroEngine(const QString& db_name,
+                                            const QString& backend_type,
+                                            const QString& default_engine,
+                                            bool gnupg_supported,
+                                            bool rpgp_supported)
+    -> EngineChoice;
 
 /**
  * @brief Convert a GpgComponentType enum value to its string name.
