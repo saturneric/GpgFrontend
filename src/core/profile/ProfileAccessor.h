@@ -53,6 +53,18 @@ enum class ProfileArea : std::uint8_t {
   kScratch,      ///< .scratch/, staging that belongs to this session alone
 };
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+/**
+ * @brief Hash a ProfileArea, so it can key a QHash or QSet.
+ *
+ * Qt 6 hashes any enum through a generic overload; Qt 5 has none, and a scoped
+ * enum does not convert to int on its own to reach the integral ones.
+ */
+inline auto qHash(ProfileArea area, uint seed = 0) -> uint {
+  return ::qHash(static_cast<int>(area), seed);
+}
+#endif
+
 /**
  * @brief What to do with a profile's storage when the session ends.
  *
