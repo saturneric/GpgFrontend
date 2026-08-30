@@ -626,6 +626,153 @@ TEST_F(GFCoreTest, MintedProfileDirectoryIdSkipsNamesAlreadyTaken) {
   EXPECT_NE(second, first);
 }
 
+// ------------------------------------------- key database paths from elsewhere
+
+// The tail is what survives a profile changing machines. A stored path was
+// written against a root that no longer exists -- another computer's, or this
+// one's before the folder moved -- and on a different platform it is not even
+// recognisable as absolute: Qt reads "C:/Users/..." as relative on Unix and
+// "/Users/..." as absolute on Windows, so both name a directory that is not
+// there. The keys themselves never moved out of the profile.
+
+TEST(ForeignKeyDatabasePathTest, AWindowsPathIsReadOnAPlatformWithoutDrives) {
+  EXPECT_EQ(
+      ForeignKeyDatabasePathTail(
+          R"(C:\Users\erich\AppData\Roaming\BKTUS\GpgFrontend\profiles\5be270\dbs\Key DB 2)"),
+      "dbs/Key DB 2");
+}
+
+TEST(ForeignKeyDatabasePathTest, AMacOSPathIsReadOnAPlatformWithDrives) {
+  EXPECT_EQ(
+      ForeignKeyDatabasePathTail("/Users/erich/Library/Application Support/"
+                                 "BKTUS/GpgFrontend/profiles/5be270/dbs/"
+                                 "Key DB 2"),
+      "dbs/Key DB 2");
+}
+
+TEST(ForeignKeyDatabasePathTest, EveryManagedDirectoryIsRecognised) {
+  // "db" and "rpgp_db" are key databases in their own right -- the DEFAULT one
+  // is exactly that -- so the final component has to count as a match.
+  EXPECT_EQ(ForeignKeyDatabasePathTail("/somewhere/profiles/ab/db"), "db");
+  EXPECT_EQ(ForeignKeyDatabasePathTail("/somewhere/profiles/ab/rpgp_db"),
+            "rpgp_db");
+  EXPECT_EQ(ForeignKeyDatabasePathTail("/somewhere/profiles/ab/dbs/Work"),
+            "dbs/Work");
+}
+
+TEST(ForeignKeyDatabasePathTest, TheInnermostMatchWins) {
+  // A profiles folder the user happened to put inside a folder called "db"
+  // would otherwise hand back the whole rest of the path.
+  EXPECT_EQ(ForeignKeyDatabasePathTail("/backup/db/profiles/ab/dbs/Work"),
+            "dbs/Work");
+}
+
+TEST(ForeignKeyDatabasePathTest, APathNamingNoManagedDirectoryIsNotRecovered) {
+  // A key database the user pointed at by hand is genuinely somewhere else,
+  // and inventing a profile-local location for it would hand them an empty
+  // keyring wearing the name of a real one.
+  EXPECT_TRUE(ForeignKeyDatabasePathTail("/home/eric/.gnupg").isEmpty());
+  EXPECT_TRUE(ForeignKeyDatabasePathTail("/srv/keys/work").isEmpty());
+  EXPECT_TRUE(ForeignKeyDatabasePathTail({}).isEmpty());
+}
+
+TEST(ForeignKeyDatabasePathTest, AlreadyProfileRelativeIsLeftAlone) {
+  // It is not foreign: it resolves against whatever root it is opened under,
+  // which is the whole point of the token.
+  EXPECT_TRUE(ForeignKeyDatabasePathTail("@profile/dbs/Work").isEmpty());
+  EXPECT_TRUE(ForeignKeyDatabasePathTail("@profile").isEmpty());
+}
+
+TEST(ForeignKeyDatabasePathTest, APathThatClimbsIsRefused) {
+  // The stored value is not necessarily one we wrote, and the tail is joined
+  // onto a profile root by the caller.
+  EXPECT_TRUE(
+      ForeignKeyDatabasePathTail("/somewhere/dbs/../../../etc").isEmpty());
+  EXPECT_TRUE(
+      ForeignKeyDatabasePathTail(R"(C:\p\dbs\..\..\Windows)").isEmpty());
+}
+
+// ------------------------------------------------ re-anchoring what travelled
+
+namespace {
+
+/// A profile root with the two key database directories a package carries.
+auto MakeProfileWithDatabases(const QString& root) -> bool {
+  return QDir().mkpath(root + "/db") && QDir().mkpath(root + "/dbs/Key DB 2");
+}
+
+}  // namespace
+
+TEST(ReanchorKeyDatabasePathTest, APathFromAnotherMachineFindsTheLocalCopy) {
+  // The report this exists for: a profile exported on macOS and opened on
+  // Windows, whose key database still named a folder under /Users. The keys
+  // were in the profile the whole time.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto root = dir.path() + "/5be270";
+  ASSERT_TRUE(MakeProfileWithDatabases(root));
+
+  EXPECT_EQ(
+      ReanchorKeyDatabasePath("/Users/erich/Library/Application Support/BKTUS/"
+                              "GpgFrontendTesting/profiles/5be270/dbs/Key DB 2",
+                              root),
+      "@profile/dbs/Key DB 2");
+
+  EXPECT_EQ(
+      ReanchorKeyDatabasePath(
+          R"(C:\Users\erich\AppData\Roaming\BKTUS\GpgFrontend\profiles\ab\db)",
+          root),
+      "@profile/db");
+}
+
+TEST(ReanchorKeyDatabasePathTest, APathInsideThisProfileIsSpelledPortably) {
+  // The same normalisation an export used to do to the live list behind the
+  // user's back, in the one place that owns the stored list.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto root = dir.path() + "/5be270";
+  ASSERT_TRUE(MakeProfileWithDatabases(root));
+
+  EXPECT_EQ(ReanchorKeyDatabasePath(root + "/dbs/Key DB 2", root),
+            "@profile/dbs/Key DB 2");
+}
+
+TEST(ReanchorKeyDatabasePathTest, APathThatIsThereIsNeverRepointed) {
+  // A key database really kept outside the profile stays where it is, even
+  // when the profile happens to hold a directory of the same name. Guessing
+  // here would silently swap one keyring for another.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto root = dir.path() + "/5be270";
+  ASSERT_TRUE(MakeProfileWithDatabases(root));
+
+  const auto elsewhere = dir.path() + "/elsewhere/dbs/Key DB 2";
+  ASSERT_TRUE(QDir().mkpath(elsewhere));
+
+  EXPECT_EQ(ReanchorKeyDatabasePath(elsewhere, root), elsewhere);
+}
+
+TEST(ReanchorKeyDatabasePathTest, AMissingPathThisProfileCannotSupplyIsKept) {
+  // An unmounted volume, or a folder the user moved themselves. Reporting it
+  // as unavailable is the honest answer; inventing a location is not.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto root = dir.path() + "/5be270";
+  ASSERT_TRUE(MakeProfileWithDatabases(root));
+
+  EXPECT_EQ(ReanchorKeyDatabasePath("/Volumes/stick/dbs/Not Here", root),
+            "/Volumes/stick/dbs/Not Here");
+  EXPECT_EQ(ReanchorKeyDatabasePath("/home/eric/.gnupg", root),
+            "/home/eric/.gnupg");
+}
+
+TEST(ReanchorKeyDatabasePathTest, WithoutARootNothingIsTouched) {
+  EXPECT_EQ(ReanchorKeyDatabasePath("/anything/dbs/Work", {}),
+            "/anything/dbs/Work");
+  EXPECT_EQ(ReanchorKeyDatabasePath("@profile/dbs/Work", "/srv/p/work"),
+            "@profile/dbs/Work");
+}
+
 // The UI turns a fatal environment signal into a modal dialog that ends in
 // std::exit(0). This flag is what suppresses it here, so if it stops being
 // published the suppression rots silently.

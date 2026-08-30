@@ -100,6 +100,46 @@ TEST(DataObjectOperatorSingletonTest, GetByRef) {
   EXPECT_EQ(result.value().toJson(), doc.toJson());
 }
 
+TEST(DataObjectOperatorSingletonTest, SealingForAPackageMatchesStoringIt) {
+  // What makes a rewritten data object readable on the other machine. The
+  // package carries a copy built rather than copied -- key database paths in
+  // the portable form -- and it is only found and opened there if it lands
+  // under the same name, sealed the same way, as the store would have written.
+  // The name is derived from the profile's own key, and that key travels.
+  auto& op = DataObjectOperator::GetInstance();
+
+  QJsonDocument doc(QJsonObject{{"key_databases", QJsonArray{}}});
+
+  auto sealed = op.SealDataObjForPackage("singleton-seal-key", doc);
+  ASSERT_TRUE(sealed.has_value());
+
+  const auto ref = op.StoreDataObj("singleton-seal-key", doc);
+  ASSERT_FALSE(ref.isEmpty());
+  EXPECT_EQ(sealed->first, ref) << "the package would carry it under a name "
+                                   "the recipient never looks for";
+
+  // Sealing writes nothing of its own, and the bytes it produced open as the
+  // object they claim to be.
+  auto read = op.GetDataObjectByRef(sealed->first);
+  ASSERT_TRUE(read.has_value());
+  EXPECT_EQ(read->toJson(), doc.toJson());
+
+  // Not byte-identical to the stored file -- every seal draws a fresh nonce --
+  // so the sizes are what can be compared, and a mismatch there would mean the
+  // two went through different framing.
+  EXPECT_EQ(static_cast<qint64>(sealed->second.Size()),
+            QFileInfo(StoredObjectPath(ref)).size());
+}
+
+TEST(DataObjectOperatorSingletonTest, SealingRefusesAnObjectWithNoName) {
+  // An empty name would otherwise take get_object_ref()'s random branch and
+  // produce a member nothing on the other side can ever ask for.
+  auto& op = DataObjectOperator::GetInstance();
+
+  EXPECT_FALSE(
+      op.SealDataObjForPackage({}, QJsonDocument(QJsonObject{})).has_value());
+}
+
 TEST(DataObjectOperatorSingletonTest, InvalidRefReturnsEmpty) {
   auto& op = DataObjectOperator::GetInstance();
 
@@ -261,7 +301,8 @@ TEST(SettingsObjectTest, RefusesToOverwriteUnreadableObject) {
   auto& op = DataObjectOperator::GetInstance();
   const QString name = "so-unreadable-test";
 
-  const QJsonObject original{{"v", 1}, {"pad", "some padding to grow the body"}};
+  const QJsonObject original{{"v", 1},
+                             {"pad", "some padding to grow the body"}};
   const auto ref = op.StoreDataObj(name, QJsonDocument(original));
   ASSERT_FALSE(ref.isEmpty());
   ASSERT_TRUE(CorruptStoredObjectBody(ref));
@@ -285,7 +326,8 @@ TEST(SettingsObjectTest, StoreReturnsFalseAfterFailedLoad) {
   auto& op = DataObjectOperator::GetInstance();
   const QString name = "so-store-refused-test";
 
-  const QJsonObject original{{"v", 1}, {"pad", "some padding to grow the body"}};
+  const QJsonObject original{{"v", 1},
+                             {"pad", "some padding to grow the body"}};
   const auto ref = op.StoreDataObj(name, QJsonDocument(original));
   ASSERT_FALSE(ref.isEmpty());
   ASSERT_TRUE(CorruptStoredObjectBody(ref));
@@ -308,7 +350,8 @@ TEST(SettingsObjectTest, StoreOverridingUnreadableWritesThrough) {
   auto& op = DataObjectOperator::GetInstance();
   const QString name = "so-override-test";
 
-  const QJsonObject original{{"v", 1}, {"pad", "some padding to grow the body"}};
+  const QJsonObject original{{"v", 1},
+                             {"pad", "some padding to grow the body"}};
   const auto ref = op.StoreDataObj(name, QJsonDocument(original));
   ASSERT_FALSE(ref.isEmpty());
   ASSERT_TRUE(CorruptStoredObjectBody(ref));

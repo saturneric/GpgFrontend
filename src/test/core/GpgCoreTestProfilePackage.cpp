@@ -30,6 +30,7 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QJsonObject>
+#include <QRandomGenerator>
 #include <QTemporaryDir>
 #include <chrono>
 #include <future>
@@ -391,6 +392,44 @@ TEST(ProfilePackagePathTest, RewritingIsIdempotent) {
   EXPECT_FALSE(DescribeKeyDatabasesForManifest(twice).at(0).external);
 }
 
+// --------------------------------------------------- what a package carries
+
+TEST(ProfilePackageSettingsTest, AMachineSpecificSettingStaysOnItsMachine) {
+  // Each of these names something the recipient does not have, and carrying it
+  // does not merely fail to apply -- it points the copy at the wrong thing.
+  EXPECT_FALSE(SettingTravelsInPackage("gnupg/custom_gnupg_install_path"));
+  EXPECT_FALSE(SettingTravelsInPackage("gnupg/use_custom_gnupg_install_path"));
+  EXPECT_FALSE(SettingTravelsInPackage("workspace/path"));
+  EXPECT_FALSE(SettingTravelsInPackage("advanced/os_secret_store"));
+  EXPECT_FALSE(SettingTravelsInPackage("advanced/app_key_protection"));
+
+  // Everything else is the profile's, and the profile is what travels.
+  EXPECT_TRUE(SettingTravelsInPackage("basic/language"));
+  EXPECT_TRUE(SettingTravelsInPackage("appearance/theme"));
+  EXPECT_TRUE(SettingTravelsInPackage("gnupg/kill_all_gnupg_daemon_at_close"));
+}
+
+TEST(ProfilePackageSettingsTest, TheSnapshotLeavesThoseSettingsBehind) {
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  QSettings settings(dir.path() + "/config.ini", QSettings::IniFormat);
+  settings.setValue("basic/language", "de_DE");
+  settings.setValue("gnupg/use_custom_gnupg_install_path", true);
+  settings.setValue("gnupg/custom_gnupg_install_path", "/opt/homebrew/bin");
+  settings.setValue("workspace/path", "/Users/erich/Documents/keys");
+  settings.setValue("advanced/os_secret_store", true);
+  settings.sync();
+
+  const auto snapshot = SnapshotSettings(settings);
+
+  EXPECT_EQ(snapshot.value("basic/language").toString(), "de_DE");
+  EXPECT_FALSE(snapshot.contains("gnupg/use_custom_gnupg_install_path"));
+  EXPECT_FALSE(snapshot.contains("gnupg/custom_gnupg_install_path"));
+  EXPECT_FALSE(snapshot.contains("workspace/path"));
+  EXPECT_FALSE(snapshot.contains("advanced/os_secret_store"));
+}
+
 // -------------------------------------------------------------- round trips
 
 TEST(ProfilePackageRoundTripTest, AProtectedPackageComesBackByteForByte) {
@@ -442,6 +481,125 @@ TEST(ProfilePackageRoundTripTest, AProtectedPackageComesBackByteForByte) {
 
   QSettings settings(tree + "/config/config.ini", QSettings::IniFormat);
   EXPECT_EQ(settings.value("basic/language").toString(), "en_US");
+}
+
+TEST(ProfilePackageRoundTripTest, ASynthesisedDataObjectReplacesTheStoredOne) {
+  // The bug this exists for. Key database paths are stored as this machine's
+  // absolute ones and have to travel as "@profile/...", and the rewrite used to
+  // be done by storing it back into the live profile -- through a
+  // SettingsObject whose destructor had not run by the time the packing read
+  // the file off the disk. So every package went out naming a folder on the
+  // sender's computer, the sender's own copy was corrected a moment later, and
+  // nobody found out until the file was opened on another machine.
+  //
+  // What travels is now built rather than written down first, and this is the
+  // property that makes that true: the member wins over the file of the same
+  // name, and the file is not packed twice.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  ProfileMember rewritten;
+  rewritten.path = "data_objs/abcd";
+  rewritten.area = ProfileArea::kDataObjects;
+  rewritten.bytes = GFBuffer(QByteArray("the-copy-that-travels"));
+
+  const auto package = dir.path() + "/work.gfp";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.protection = ProfilePackageProtection::kNONE;
+  request.data_object_members = {rewritten};
+
+  const auto written = ExportProfilePackage(request);
+  ASSERT_TRUE(written.ok) << written.error.toStdString();
+
+  const auto extracted = dir.path() + "/extracted";
+  const auto read = ReadProfilePackage(package, extracted, {});
+  ASSERT_TRUE(read.Ok()) << read.detail.toStdString();
+
+  QFile object(extracted + "/profile/data_objs/abcd");
+  ASSERT_TRUE(object.open(QIODevice::ReadOnly));
+  EXPECT_EQ(object.readAll(), QByteArray("the-copy-that-travels"))
+      << "the package carried the copy on disk instead of the one built for it";
+
+  // Counted once, too. The stored copy being measured as well would have the
+  // recipient provision storage for a file that is not in the package.
+  EXPECT_EQ(read.manifest.uncompressed_bytes,
+            DirectorySizeOfTreeForTest(extracted + "/profile"));
+
+  // And the sender's own profile is untouched: what it holds is right for the
+  // machine it is on, and an export is not a reason to rewrite it.
+  QFile stored(root + "/data_objs/abcd");
+  ASSERT_TRUE(stored.open(QIODevice::ReadOnly));
+  EXPECT_EQ(stored.readAll(), QByteArray("encrypted-object"));
+}
+
+TEST(ProfilePackageRoundTripTest, AnUnpackThatFailsIsNotAWrongPassphrase) {
+  // The two are told apart by nothing the reader can see -- a wrong passphrase
+  // and a damaged chunk are the same event to the stream -- so an unpack that
+  // gave up for a reason of the recipient's platform was reported as a wrong
+  // passphrase, and the open path re-prompts on that forever. Somebody typing
+  // the right passphrase over and over is the symptom.
+  //
+  // Driven here through the routing sink, which is the same closed pipe a
+  // refused archive entry produces. The workspace is deliberately large and
+  // incompressible so the feeder is still pushing when the extraction stops;
+  // otherwise the whole body is already in the pipe and the case never arises.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  QByteArray bulk(8 * 1024 * 1024, Qt::Uninitialized);
+  for (qsizetype i = 0; i < bulk.size(); ++i) {
+    bulk[i] = static_cast<char>(QRandomGenerator::global()->bounded(256));
+  }
+  WriteFile(root + "/workspace/bulk.bin", bulk);
+
+  const auto package = dir.path() + "/work.gfp";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.protection = ProfilePackageProtection::kPIN;
+  request.passphrase = GFBuffer(QString("correct horse battery staple"));
+  request.include_workspace = true;
+
+  const auto written = ExportProfilePackage(request);
+  ASSERT_TRUE(written.ok) << written.error.toStdString();
+
+  ProfileExtractionRouting routing;
+  routing.resident_dirs = {"secure"};
+  routing.store = [](const QString &, const GFBuffer &) { return false; };
+
+  const auto extracted = dir.path() + "/extracted";
+  const auto read =
+      ReadProfilePackage(package, extracted, request.passphrase, routing);
+
+  EXPECT_FALSE(read.Ok());
+  EXPECT_EQ(read.status, ProfilePackageReadStatus::kMALFORMED)
+      << "an unpack that failed was reported as the wrong passphrase";
+}
+
+TEST(ProfilePackageRoundTripTest, AWrongPassphraseIsStillAWrongPassphrase) {
+  // The other half, so that the change above cannot be made by simply never
+  // reporting a bad passphrase again.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  const auto root = dir.path() + "/work";
+  MakeProfile(root);
+
+  const auto package = dir.path() + "/work.gfp";
+  auto request = ExportRequestFor(root, dir.path(), package);
+  request.protection = ProfilePackageProtection::kPIN;
+  request.passphrase = GFBuffer(QString("correct horse battery staple"));
+
+  ASSERT_TRUE(ExportProfilePackage(request).ok);
+
+  const auto read = ReadProfilePackage(package, dir.path() + "/extracted",
+                                       GFBuffer(QString("not that one")));
+
+  EXPECT_EQ(read.status, ProfilePackageReadStatus::kBAD_PASSPHRASE);
 }
 
 TEST(ProfilePackageRoundTripTest, RotatedKeysTravelEvenWhenTheAreaHasNoFiles) {
