@@ -43,6 +43,7 @@ namespace GpgFrontend::UI {
 enum class MetaRowKind {
   kValue,    ///< a named value, the only kind that carries anything
   kSection,  ///< a heading that groups the rows under it
+  kNote,     ///< a quiet line across the list, about the list
   kRule,     ///< a hairline, for the line above a total
 };
 
@@ -195,6 +196,7 @@ class GF_UI_EXPORT MetaListPanel : public QWidget {
 
   QVector<MetaListRow> rows_;
   int caption_width_ = 0;  ///< what the captions want, before any capping
+  int value_width_ = 0;    ///< what the widest value wants
   QTreeWidget* tree_{};
   QLabel* caveat_{};
 };

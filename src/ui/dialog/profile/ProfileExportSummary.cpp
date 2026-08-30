@@ -149,12 +149,12 @@ auto ToMetaListRows(const QVector<ProfileExportContentsRow>& rows)
   // part of saying what does -- and it belongs in the list rather than in a
   // paragraph under it.
   out.append(
-      {.caption = QObject::tr("Never included"),
-       .value = QObject::tr("Logs, modules, keys kept elsewhere"),
+      {.kind = MetaRowKind::kNote,
+       .caption = QObject::tr(
+           "Never included: logs, modules, and keys kept elsewhere."),
        .detail = QObject::tr(
            "Keys kept outside this profile, such as the system GnuPG keyring, "
-           "stay where they are."),
-       .dimmed = true});
+           "stay where they are.")});
 
   return out;
 }

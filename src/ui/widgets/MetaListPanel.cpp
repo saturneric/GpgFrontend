@@ -99,6 +99,9 @@ auto MetaListSummaryText(const QVector<MetaListRow>& rows) -> QString {
         if (!lines.isEmpty()) lines << QString();
         lines << QStringLiteral("[%1]").arg(row.caption);
         continue;
+      case MetaRowKind::kNote:
+        lines << row.caption;
+        continue;
       case MetaRowKind::kValue:
         break;
     }
@@ -317,6 +320,20 @@ void MetaListPanel::rebuild() {
       continue;
     }
 
+    if (row.kind == MetaRowKind::kNote) {
+      // A sentence about the whole list rather than about one row of it: it
+      // takes the width of the list instead of being squeezed into the value
+      // column and cut down to three words.
+      item->setFlags(Qt::ItemIsEnabled);
+      item->setFirstColumnSpanned(true);
+      item->setText(0, row.caption);
+      item->setToolTip(0, row.detail);
+      item->setForeground(0, MutedTextColor(palette()));
+      item->setSizeHint(0,
+                        QSize(0, tree_->fontMetrics().height() + kRowPadding));
+      continue;
+    }
+
     if (row.kind == MetaRowKind::kSection) {
       // A heading is not a row anybody selects, and it earns a little air above
       // it: without that, the group it opens reads as one more row of the group
@@ -388,6 +405,7 @@ void MetaListPanel::rebuild() {
                    style()->pixelMetric(QStyle::PM_CheckBoxLabelSpacing);
 
   int captions = 0;
+  int values = 0;
   int sizes = 0;
   for (const auto& row : rows_) {
     if (row.kind != MetaRowKind::kValue) continue;
@@ -395,6 +413,7 @@ void MetaListPanel::rebuild() {
     captions = std::max(captions, metrics.horizontalAdvance(row.caption) +
                                       (row.checkable ? box : 0) +
                                       (row.icon.isEmpty() ? 0 : kIconWidth));
+    values = std::max(values, metrics.horizontalAdvance(row.value));
     if (row.bytes >= 0) {
       sizes = std::max(sizes, metrics.horizontalAdvance(HumanSize(row.bytes)));
     }
@@ -410,6 +429,7 @@ void MetaListPanel::rebuild() {
   }
 
   caption_width_ = captions + kColumnGap;
+  value_width_ = values;
   fit_caption_column();
 
   // Nothing is selected to begin with. A view selects its first row on its own,
@@ -422,12 +442,20 @@ void MetaListPanel::rebuild() {
 }
 
 void MetaListPanel::fit_caption_column() {
-  // Never more than its share of the width. One long name -- "Saved state, key
-  // groups and categories" -- would otherwise take the room the values need and
-  // leave every value on the list cut down to a word and an ellipsis.
-  const auto share = static_cast<int>(tree_->viewport()->width() * 0.45);
-  const auto width = share > kMinCaptionWidth ? std::min(caption_width_, share)
-                                              : caption_width_;
+  auto width = caption_width_;
+
+  // Capped only against what the values actually need. A list of names and
+  // sizes has nothing in its value column, and cutting its names short to
+  // reserve room nothing will use is how "Saved state, key groups and
+  // categories" turned into "Saved state, key groups an...". A list that does
+  // carry values keeps at least half the width for them.
+  const auto available = tree_->viewport()->width() -
+                         (tree_->columnCount() > 2 ? tree_->columnWidth(2) : 0);
+
+  if (value_width_ > 0 && available > kMinCaptionWidth) {
+    const auto values = std::min(value_width_, available / 2);
+    width = std::min(width, std::max(available - values, kMinCaptionWidth));
+  }
 
   tree_->setColumnWidth(0, width);
 }
