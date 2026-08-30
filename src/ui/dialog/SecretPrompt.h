@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "ui/widgets/MetaListPanel.h"
+
 namespace GpgFrontend::UI {
 
 /**
@@ -79,14 +81,12 @@ struct GF_UI_EXPORT SecretPromptTexts {
       window_title;  ///< the window title, and the heading by the lock badge
   QString subtitle;  ///< one wrapped line saying what the secret is for
 
-  QString context_caption;  ///< e.g. "File"; empty hides the context row
-  QString context;          ///< what this is about, usually a file name
-  QString context_detail;   ///< a dimmed second line, e.g. the folder and size
-  /// What a file's own unencrypted header claims about itself. Rendered in a
-  /// block of its own and never as rich text, because it came from the file:
-  /// the header is attacker-controllable, and the point of showing it at all is
-  /// to show that it is a claim.
-  QString context_note;
+  /// What this prompt is about, as a list: the file's name, where it is, and
+  /// whatever it claims about itself. Empty for the application key, which is
+  /// not about a file at all. Built by a caller from BuildProfilePackageRows()
+  /// rather than described here, so that every dialog naming a package names it
+  /// the same way.
+  QVector<MetaListRow> context_rows;
 
   QString current_label;     ///< label for the existing-secret field
   QString new_label;         ///< label for the new-secret field
@@ -120,12 +120,10 @@ struct GF_UI_EXPORT SecretPromptTexts {
  *
  * @param subject what the secret protects
  * @param mode what is being asked for
- * @param context the file the prompt is about, empty for the application key
  * @return the strings to render
  */
 auto GF_UI_EXPORT DefaultSecretPromptTexts(SecretPromptSubject subject,
-                                           SecretPromptMode mode,
-                                           const QString& context)
+                                           SecretPromptMode mode)
     -> SecretPromptTexts;
 
 }  // namespace GpgFrontend::UI

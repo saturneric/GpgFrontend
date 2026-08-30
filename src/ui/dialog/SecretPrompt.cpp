@@ -132,41 +132,39 @@ auto AppKeyTexts(SecretPromptMode mode) -> SecretPromptTexts {
  * Deliberately never says "PIN". These are new strings with no translations to
  * preserve, so they go through QObject::tr() and take their own context.
  */
-auto ProfilePackageTexts(SecretPromptMode mode, const QString& context)
-    -> SecretPromptTexts {
+auto ProfilePackageTexts(SecretPromptMode mode) -> SecretPromptTexts {
   SecretPromptTexts texts;
 
   switch (mode) {
     case SecretPromptMode::kUNLOCK:
       texts.window_title = QObject::tr("Open a Profile File");
-      texts.subtitle = QObject::tr(
-          "This file is protected by a passphrase. Enter it to "
-          "read what is inside.");
+      texts.subtitle =
+          QObject::tr("Enter the passphrase that opens this file.");
       texts.accept_button = QObject::tr("Open");
-      texts.hint = QObject::tr(
-          "Nothing in this file can be read until the passphrase opens it.");
+      // Deliberately empty. Everything the old hint said — that the file stays
+      // unreadable until the passphrase opens it — the subtitle and the note's
+      // caveat already say, and a prompt that says one thing three ways is how
+      // the sentence that matters stops being read. The message row stays for
+      // the retry message, which is the only thing left worth putting there.
+      texts.hint = {};
       break;
 
     case SecretPromptMode::kSET:
     case SecretPromptMode::kCHANGE:
       texts.window_title = QObject::tr("Protect This Profile File");
+      texts.subtitle =
+          QObject::tr("Choose the passphrase this file will be sealed with.");
+      texts.accept_button = QObject::tr("Save");
       // Said because it is otherwise unsaid: this prompt does not verify the
       // old passphrase, it replaces it. Someone re-typing what they believe the
       // file already uses can hand it a new one without ever being told.
-      texts.subtitle = QObject::tr(
-          "This is the passphrase the file will be sealed with from now on. If "
-          "you enter a different one, the old one will no longer open it.");
-      texts.accept_button = QObject::tr("Save");
       texts.hint = QObject::tr(
-          "Keep this passphrase. The file cannot be opened without it.");
+          "A different passphrase replaces the old one, which will no longer "
+          "open this file.");
       texts.warning = QObject::tr(
-          "If you lose this passphrase, this file can never be opened again. "
-          "There is no recovery.");
+          "If you lose this passphrase, this file can never be opened again.");
       break;
   }
-
-  texts.context_caption = QObject::tr("File");
-  texts.context = context;
 
   texts.current_label = QObject::tr("Passphrase");
   texts.new_label = QObject::tr("Passphrase");
@@ -185,11 +183,9 @@ auto ProfilePackageTexts(SecretPromptMode mode, const QString& context)
 }  // namespace
 
 auto DefaultSecretPromptTexts(SecretPromptSubject subject,
-                              SecretPromptMode mode, const QString& context)
-    -> SecretPromptTexts {
-  return subject == SecretPromptSubject::kAppKey
-             ? AppKeyTexts(mode)
-             : ProfilePackageTexts(mode, context);
+                              SecretPromptMode mode) -> SecretPromptTexts {
+  return subject == SecretPromptSubject::kAppKey ? AppKeyTexts(mode)
+                                                 : ProfilePackageTexts(mode);
 }
 
 }  // namespace GpgFrontend::UI

@@ -29,14 +29,14 @@
 #include "AppKeyPinDialog.h"
 
 #include "ui/function/UIStyle.h"
+#include "ui/widgets/MetaListPanel.h"
 #include "ui/widgets/SecretEntryPanel.h"
 
 namespace GpgFrontend::UI {
 
 AppKeyPinDialog::AppKeyPinDialog(Mode mode, QWidget* parent)
     : AppKeyPinDialog(
-          mode,
-          DefaultSecretPromptTexts(SecretPromptSubject::kAppKey, mode, {}),
+          mode, DefaultSecretPromptTexts(SecretPromptSubject::kAppKey, mode),
           parent) {}
 
 AppKeyPinDialog::AppKeyPinDialog(Mode mode, SecretPromptTexts texts,
@@ -56,84 +56,19 @@ void AppKeyPinDialog::init_ui() {
   main_layout->setContentsMargins(24, 22, 24, 18);
   main_layout->setSpacing(16);
 
-  // Header: a lock badge next to the heading and its one-line explanation.
-  // Gives the dialog a face so it reads as "a secure prompt", not "a form".
-  auto* icon_label = new QLabel(this);
-  auto pixmap =
-      QPixmap(QStringLiteral(":/icons/lock.png"))
-          .scaled(40, 40, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-  icon_label->setPixmap(pixmap);
-  icon_label->setFixedSize(40, 40);
-
-  auto* title_label = new QLabel(texts_.window_title, this);
-  auto title_font = title_label->font();
-  title_font.setBold(true);
-  title_font.setPointSizeF(title_font.pointSizeF() * 1.25);
-  title_label->setFont(title_font);
-
-  auto* subtitle_label = new QLabel(texts_.subtitle, this);
-  subtitle_label->setWordWrap(true);
-  SetLabelTextColor(subtitle_label, MutedTextColor(subtitle_label->palette()));
-
-  // Icon and title share one line; the wrapped description spans the full
-  // width beneath them. Keeping the subtitle out of the icon's column lets the
-  // vertical layout honour its height-for-width, so no line ever clips — a
-  // wrapped QLabel nested inside a horizontal layout does not get that.
-  auto* title_row = new QHBoxLayout();
-  title_row->setSpacing(14);
-  title_row->addWidget(icon_label, 0, Qt::AlignVCenter);
-  title_row->addWidget(title_label, 1);
-
-  auto* header_layout = new QVBoxLayout();
-  header_layout->setSpacing(6);
-  header_layout->addLayout(title_row);
-  header_layout->addWidget(subtitle_label);
-  main_layout->addLayout(header_layout);
-
-  // A native rule sets the identity apart from the input area without the
-  // weight of a boxed group; the platform style draws it to match its own
-  // separators on every OS and theme.
-  auto* separator = new QFrame(this);
-  separator->setFrameShape(QFrame::HLine);
-  separator->setFrameShadow(QFrame::Sunken);
-  main_layout->addWidget(separator);
+  // The badge, heading, explanation and rule every serious dialog opens with.
+  main_layout->addLayout(CreateDialogHeader(QStringLiteral(":/icons/lock.png"),
+                                            texts_.window_title,
+                                            texts_.subtitle, this));
 
   // Which file this is about, when it is about one. Named before the field, so
-  // nobody types a passphrase at a prompt they have not identified.
-  if (!texts_.context.isEmpty()) {
-    auto* context_layout = new QVBoxLayout();
-    context_layout->setSpacing(2);
-
-    auto* caption = new QLabel(texts_.context_caption, this);
-    SetLabelTextColor(caption, MutedTextColor(caption->palette()));
-    context_layout->addWidget(caption);
-
-    auto* value = new QLabel(texts_.context, this);
-    value->setWordWrap(true);
-    value->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    context_layout->addWidget(value);
-
-    if (!texts_.context_detail.isEmpty()) {
-      auto* detail = new QLabel(texts_.context_detail, this);
-      detail->setWordWrap(true);
-      SetLabelTextColor(detail, MutedTextColor(detail->palette()));
-      context_layout->addWidget(detail);
-    }
-
-    // What the file says about itself, kept visibly apart from what this
-    // application knows. The header is outside the sealed payload, so anyone
-    // holding the file can write anything here; showing it is only worth doing
-    // alongside the sentence saying so.
-    if (!texts_.context_note.isEmpty()) {
-      auto* note = new QLabel(texts_.context_note, this);
-      note->setWordWrap(true);
-      note->setTextFormat(Qt::PlainText);
-      SetLabelTextColor(note, MutedTextColor(note->palette()));
-      context_layout->addSpacing(4);
-      context_layout->addWidget(note);
-    }
-
-    main_layout->addLayout(context_layout);
+  // nobody types a passphrase at a prompt they have not identified -- and named
+  // in the same rows, in the same order, as every other dialog that names a
+  // profile file.
+  if (!texts_.context_rows.isEmpty()) {
+    auto* context = new MetaListPanel(this);
+    context->SetRows(texts_.context_rows);
+    main_layout->addWidget(context);
   }
 
   SecretEntryPanel::Config config;
@@ -184,7 +119,7 @@ void AppKeyPinDialog::init_ui() {
   // ResetRole lets the platform style seat it apart from Unlock/Quit — on the
   // left of the row on most styles. It only signals intent by closing with
   // kResetRequested; the caller confirms and resets.
-  if (mode_ == Mode::kUNLOCK && texts_.context.isEmpty()) {
+  if (mode_ == Mode::kUNLOCK && texts_.context_rows.isEmpty()) {
     reset_button_ = buttons->addButton(tr("Forgot PIN? Reset…"),
                                        QDialogButtonBox::ResetRole);
     reset_button_->setVisible(false);
@@ -210,28 +145,13 @@ void AppKeyPinDialog::init_ui() {
   adjustSize();
 }
 
-auto AppKeyPinDialog::AskPackagePassphrase(QWidget* parent,
-                                           const QString& package_file,
-                                           Mode mode, bool retry,
-                                           const QString& context_note)
+auto AppKeyPinDialog::AskPackagePassphrase(QWidget* parent, Mode mode,
+                                           bool retry,
+                                           QVector<MetaListRow> context_rows)
     -> std::optional<GFBuffer> {
   auto texts =
-      DefaultSecretPromptTexts(SecretPromptSubject::kProfilePackage, mode,
-                               QFileInfo(package_file).fileName());
-
-  // Facts this application can establish for itself, as against the header's
-  // claims below them: where the file actually is, how big it actually is, and
-  // when it was actually last written.
-  const QFileInfo info(package_file);
-  QStringList detail;
-  detail << QDir::toNativeSeparators(info.absolutePath());
-  if (info.exists()) {
-    detail << QLocale().formattedDataSize(info.size(), 1,
-                                          QLocale::DataSizeTraditionalFormat);
-    detail << QLocale().toString(info.lastModified(), QLocale::ShortFormat);
-  }
-  texts.context_detail = detail.join(" · ");
-  texts.context_note = context_note;
+      DefaultSecretPromptTexts(SecretPromptSubject::kProfilePackage, mode);
+  texts.context_rows = std::move(context_rows);
 
   AppKeyPinDialog dialog(mode, texts, parent);
   if (retry) {

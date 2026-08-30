@@ -48,6 +48,7 @@
 #include "ui/function/ProfileController.h"
 #include "ui/function/SecurityDisplayNames.h"
 #include "ui/function/UIStyle.h"
+#include "ui/widgets/MetaListPanel.h"
 
 namespace GpgFrontend::UI {
 namespace {
@@ -61,219 +62,6 @@ auto CreateBodyLabel(const QString& text, QWidget* parent = nullptr)
                                  Qt::TextSelectableByMouse);
   label->setOpenExternalLinks(true);
   return label;
-}
-
-// A word-wrapped label that is actually given room for the lines it wraps to.
-//
-// Declaring heightForWidth on the size policy is not enough on its own: a
-// QFormLayout hands the field its sizeHint() and does not consult
-// heightForWidth, so a value that wrapped to three lines was allotted one and
-// the rest was drawn off the bottom of the row. Rows here read "Opened from a"
-// and "The package carries none of" and looked complete. The two overrides
-// below make the hints answer for the width the label actually has, and the
-// resize handler asks the layout to run again once that width is known.
-//
-// MinimumExpanding, so the field fills the form's value column instead of
-// settling for QLabel's own guess at a pleasing wrap width, which came out
-// around a hundred pixels and turned every sentence into a narrow ribbon.
-//
-// No Q_OBJECT: it declares no signals or slots, like ClickableFrame below.
-class WrappingLabel : public QLabel {
- public:
-  explicit WrappingLabel(const QString& text, QWidget* parent = nullptr)
-      : QLabel(text, parent) {
-    setWordWrap(true);
-
-    QSizePolicy policy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-    policy.setHeightForWidth(true);
-    setSizePolicy(policy);
-  }
-
-  [[nodiscard]] auto sizeHint() const -> QSize override {
-    return {minimumWidth(), heightForWidth(width())};
-  }
-
-  [[nodiscard]] auto minimumSizeHint() const -> QSize override {
-    return {0, heightForWidth(width())};
-  }
-
- protected:
-  void resizeEvent(QResizeEvent* event) override {
-    QLabel::resizeEvent(event);
-    updateGeometry();
-  }
-};
-
-auto CreateValueLabel(const QString& text, QWidget* parent = nullptr)
-    -> QLabel* {
-  auto* label = new WrappingLabel(text, parent);
-  label->setTextInteractionFlags(Qt::TextSelectableByMouse);
-  return label;
-}
-
-// A path is the one value here that has no natural length limit, and it stays
-// out of a wrapping label even now that WrappingLabel gives one the lines it
-// asks for: a path is a single unbreakable token, so it either wraps at some
-// arbitrary character or runs past the edge, and a path that looks complete
-// and is not is worse than one that is visibly cut. A read-only field is
-// always exactly one line tall, scrolls to show the rest, and copies whole.
-auto CreatePathValue(const QString& text, QWidget* parent = nullptr)
-    -> QLineEdit* {
-  auto* edit = new QLineEdit(text, parent);
-  edit->setReadOnly(true);
-  edit->setFrame(false);
-  edit->setToolTip(text);
-  edit->setCursorPosition(0);
-  edit->setStyleSheet(
-      QStringLiteral("QLineEdit { background: transparent; border: none; "
-                     "padding: 0; }"));
-  return edit;
-}
-
-// The sentence that sits under a value. Quieter and a shade smaller, so it
-// reads as an explanation of the line above rather than as a second value.
-//
-// The colour goes through the widget's own palette rather than through an
-// inline rich-text span: that keeps the platform font, which a stylesheet on a
-// QLabel would otherwise take over.
-auto CreateDetailLabel(const QString& text, QWidget* parent = nullptr)
-    -> QLabel* {
-  auto* label = CreateValueLabel(text, parent);
-
-  auto font = label->font();
-  font.setPointSizeF(font.pointSizeF() * 0.92);
-  label->setFont(font);
-
-  auto palette = label->palette();
-  palette.setColor(QPalette::WindowText, MutedTextColor(palette));
-  palette.setColor(QPalette::Text, MutedTextColor(palette));
-  label->setPalette(palette);
-
-  return label;
-}
-
-// Put an already built value widget over its detail sentence. Separate from
-// CreateValueWithDetail() because a path value is a read-only field rather
-// than a label, and must stay one, but still deserves its explanation.
-auto StackValueAndDetail(QWidget* value_widget, const QString& detail,
-                         QWidget* parent = nullptr) -> QWidget* {
-  if (detail.isEmpty()) return value_widget;
-
-  auto* holder = new QWidget(parent);
-  auto* layout = new QVBoxLayout(holder);
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->setSpacing(2);
-
-  value_widget->setParent(holder);
-  layout->addWidget(value_widget);
-  layout->addWidget(CreateDetailLabel(detail, holder));
-
-  // Same reasoning as WrappingLabel above: the stack has to fill the value
-  // column, or both of its lines wrap inside a ribbon of QLabel's choosing.
-  QSizePolicy policy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-  policy.setHeightForWidth(true);
-  holder->setSizePolicy(policy);
-
-  return holder;
-}
-
-// Put a muted marker after a value whose explanation is one hover away.
-//
-// The horizontal sibling of StackValueAndDetail(), and it takes an already
-// built value widget for the same reason: a path value is a read-only field
-// rather than a label, and must stay one.
-//
-// The marker earns its place. A sentence moved into a tooltip that nothing
-// points at is a sentence nobody finds, and this one is the only place some of
-// these readings are explained at all.
-auto AttachDetailHint(QWidget* value_widget, const QString& detail,
-                      QWidget* parent = nullptr) -> QWidget* {
-  if (detail.isEmpty()) return value_widget;
-
-  // Qt lays a plain-text tooltip out on one line, and the longest of these
-  // sentences would run wider than the screen. Rich text is what makes it wrap,
-  // and escaping first is what keeps a path or a loader's reason from being
-  // read as markup. Line breaks have to survive that escaping, because a path
-  // row's tooltip carries the path and its sentence as two paragraphs.
-  const auto tip = QStringLiteral("<qt>%1</qt>")
-                       .arg(detail.toHtmlEscaped().replace(
-                           QLatin1Char('\n'), QLatin1String("<br>")));
-
-  auto* holder = new QWidget(parent);
-  auto* layout = new QHBoxLayout(holder);
-  layout->setContentsMargins(0, 0, 0, 0);
-  layout->setSpacing(4);
-
-  // U+24D8, sized and coloured the way CreateDetailLabel() colours its text:
-  // through the palette rather than a stylesheet, so the platform font
-  // survives. Not selectable, so it never lands in a copied selection.
-  auto* marker = new QLabel(QString(QChar(0x24D8)), holder);
-  marker->setTextInteractionFlags(Qt::NoTextInteraction);
-
-  auto palette = marker->palette();
-  palette.setColor(QPalette::WindowText, MutedTextColor(palette));
-  palette.setColor(QPalette::Text, MutedTextColor(palette));
-  marker->setPalette(palette);
-
-  // The stretch goes on the value, not on a spacer after the marker. A
-  // WrappingLabel reports minimumWidth() as its hint width, which is zero, so a
-  // spacer would take the column and squeeze the value into a ribbon that wraps
-  // to two lines -- taller than the sub-label this replaces. Left to expand, it
-  // stays one line and the markers line up in a column of their own.
-  value_widget->setParent(holder);
-  layout->addWidget(value_widget, 1);
-  layout->addWidget(marker, 0, Qt::AlignTop);
-
-  // Same reasoning as StackValueAndDetail: the holder has to fill the value
-  // column, or the layout hands it a width of its own choosing.
-  QSizePolicy policy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
-  policy.setHeightForWidth(true);
-  holder->setSizePolicy(policy);
-
-  // On all three, so anywhere in the value column is a hover target.
-  holder->setToolTip(tip);
-  value_widget->setToolTip(tip);
-  marker->setToolTip(tip);
-
-  return holder;
-}
-
-// A value with an explanation under it.
-//
-// A form row carries one string, so a value that needed a sentence to be
-// honest either grew into a paragraph in the value column ("Memory - not
-// written to this disk in the normal course of things") or got a "... Detail:"
-// row of its own two rows down, detached from the thing it explained. Both
-// were happening on this tab. This gives the row a second line instead: the
-// value stays a value, and the sentence sits under it.
-//
-// Which of the two shapes a row takes is ShowsDetailInline()'s call, not this
-// function's: a fallback keeps its reason on screen, everything else hands it
-// to a tooltip so the page stays short enough to read at a glance.
-//
-// @param value the reading itself
-// @param detail the sentence about it; empty yields the bare value label
-// @param degraded tint the value, for a state that is a fallback not an intent
-auto CreateValueWithDetail(const QString& value, const QString& detail,
-                           bool degraded = false, QWidget* parent = nullptr)
-    -> QWidget* {
-  auto* value_label = CreateValueLabel(value, parent);
-
-  if (degraded) {
-    auto palette = value_label->palette();
-    const auto warning = WarningColor(palette);
-    palette.setColor(QPalette::WindowText, warning);
-    palette.setColor(QPalette::Text, warning);
-    value_label->setPalette(palette);
-  }
-
-  if (detail.isEmpty()) return value_label;
-
-  if (ShowsDetailInline(detail, degraded)) {
-    return StackValueAndDetail(value_label, detail, parent);
-  }
-
-  return AttachDetailHint(value_label, detail, parent);
 }
 
 // A QFrame that invokes a callback when clicked. It needs no signals/slots, so
@@ -355,20 +143,6 @@ auto CreateStarCard(QWidget* parent = nullptr) -> QFrame* {
   layout->addWidget(desc_label);
 
   return frame;
-}
-
-auto CreateInfoForm(QWidget* parent = nullptr) -> QFormLayout* {
-  auto* form = new QFormLayout(parent);
-  form->setRowWrapPolicy(QFormLayout::WrapLongRows);
-  form->setFieldGrowthPolicy(QFormLayout::ExpandingFieldsGrow);
-  form->setFormAlignment(Qt::AlignTop);
-  form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-  form->setHorizontalSpacing(18);
-  // Almost every row is one line tall now that a detail sentence waits behind a
-  // tooltip, so the wider gap that used to separate a value from the sentence
-  // of the row above it is just height the page cannot spare.
-  form->setVerticalSpacing(6);
-  return form;
 }
 
 auto CreateBuildInfoText() -> QString {
@@ -516,44 +290,24 @@ InfoTab::InfoTab(QWidget* parent) : QWidget(parent) {
 
   // Resources card: static links to the project's main destinations. Each is
   // opened only when the user clicks it; nothing is fetched here.
-  auto* resources_widget = new QWidget(content);
-  auto* resources_form = CreateInfoForm(resources_widget);
-  resources_widget->setLayout(resources_form);
+  auto* resources = new MetaListPanel(content);
+  resources->SetRows({
+      {.caption = tr("Website:"),
+       .value = QStringLiteral("gpgfrontend.bktus.com"),
+       .link = QStringLiteral("https://gpgfrontend.bktus.com")},
+      {.caption = tr("Documentation:"),
+       .value = tr("User guides and overview"),
+       .link = QStringLiteral("https://gpgfrontend.bktus.com/overview/glance")},
+      {.caption = tr("Source code:"),
+       .value = QStringLiteral("github.com/saturneric/GpgFrontend"),
+       .link = QStringLiteral("https://github.com/saturneric/GpgFrontend")},
+      {.caption = tr("Release notes:"),
+       .value = tr("Changelog and downloads"),
+       .link = QStringLiteral(
+           "https://github.com/saturneric/GpgFrontend/releases")},
+  });
 
-  // Build a single-line link label for a resource row. Word wrap is left off so
-  // the form's field column sizes to the full link text: a word-wrapped
-  // rich-text label reports a collapsed width hint here and gets clipped (e.g.
-  // "User guides and…", "github.com/…").
-  const auto link_label = [resources_widget](const QString& url,
-                                             const QString& text) -> QLabel* {
-    auto* label =
-        CreateBodyLabel(QStringLiteral("<a href=\"%1\">%2</a>").arg(url, text),
-                        resources_widget);
-    label->setWordWrap(false);
-    return label;
-  };
-
-  resources_form->addRow(
-      tr("Website:"),
-      link_label(QStringLiteral("https://gpgfrontend.bktus.com"),
-                 QStringLiteral("gpgfrontend.bktus.com")));
-  resources_form->addRow(
-      tr("Documentation:"),
-      link_label(
-          QStringLiteral("https://gpgfrontend.bktus.com/overview/glance"),
-          tr("User guides and overview")));
-  resources_form->addRow(
-      tr("Source code:"),
-      link_label(QStringLiteral("https://github.com/saturneric/GpgFrontend"),
-                 QStringLiteral("github.com/saturneric/GpgFrontend")));
-  resources_form->addRow(
-      tr("Release notes:"),
-      link_label(
-          QStringLiteral("https://github.com/saturneric/GpgFrontend/releases"),
-          tr("Changelog and downloads")));
-
-  main_layout->addWidget(
-      CreateCard(tr("Resources"), resources_widget, content));
+  main_layout->addWidget(CreateCard(tr("Resources"), resources, content));
 
   main_layout->addStretch();
 
@@ -601,41 +355,25 @@ BuildInfoTab::BuildInfoTab(QWidget* parent) : QWidget(parent) {
   build_layout->setContentsMargins(0, 0, 0, 0);
   build_layout->setSpacing(10);
 
-  auto* build_form_widget = new QWidget(build_widget);
-  auto* build_form = CreateInfoForm(build_form_widget);
-  build_form_widget->setLayout(build_form);
-
-  build_form->addRow(tr("GpgFrontend:"),
-                     CreateValueLabel(GetProjectVersion(), build_form_widget));
-  build_form->addRow(
-      tr("Qt:"), CreateValueLabel(GetProjectQtVersion(), build_form_widget));
-  build_form->addRow(tr("GPGME:"), CreateValueLabel(GetProjectGpgMEVersion(),
-                                                    build_form_widget));
-  build_form->addRow(tr("Assuan:"), CreateValueLabel(GetProjectAssuanVersion(),
-                                                     build_form_widget));
-  build_form->addRow(
-      tr("Libarchive:"),
-      CreateValueLabel(GetProjectLibarchiveVersion(), build_form_widget));
-  build_form->addRow(
-      tr("OpenSSL:"),
-      CreateValueLabel(GetProjectOpenSSLVersion(), build_form_widget));
-  build_form->addRow(tr("Sodium:"),
-                     CreateValueLabel(GetSodiumVersion(), build_form_widget));
-  build_form->addRow(
-      tr("Git Branch:"),
-      CreateValueLabel(GetProjectBuildGitBranchName(), build_form_widget));
-  build_form->addRow(
-      tr("Git Commit:"),
-      CreateValueLabel(GetProjectBuildGitCommitHash(), build_form_widget));
-  build_form->addRow(
-      tr("Built at:"),
-      CreateValueLabel(QLocale().toString(GetProjectBuildTimestamp()),
-                       build_form_widget));
+  auto* build_rows = new MetaListPanel(build_widget);
+  build_rows->SetRows({
+      {.caption = tr("GpgFrontend:"), .value = GetProjectVersion()},
+      {.caption = tr("Qt:"), .value = GetProjectQtVersion()},
+      {.caption = tr("GPGME:"), .value = GetProjectGpgMEVersion()},
+      {.caption = tr("Assuan:"), .value = GetProjectAssuanVersion()},
+      {.caption = tr("Libarchive:"), .value = GetProjectLibarchiveVersion()},
+      {.caption = tr("OpenSSL:"), .value = GetProjectOpenSSLVersion()},
+      {.caption = tr("Sodium:"), .value = GetSodiumVersion()},
+      {.caption = tr("Git Branch:"), .value = GetProjectBuildGitBranchName()},
+      {.caption = tr("Git Commit:"), .value = GetProjectBuildGitCommitHash()},
+      {.caption = tr("Built at:"),
+       .value = QLocale().toString(GetProjectBuildTimestamp())},
+  });
 
   auto* copy_button = CreateCopyButton(tr("Copy Build Information"),
                                        CreateBuildInfoText(), build_widget);
 
-  build_layout->addWidget(build_form_widget);
+  build_layout->addWidget(build_rows);
   build_layout->addWidget(copy_button, 0, Qt::AlignRight);
 
   main_layout->addWidget(
@@ -694,147 +432,91 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   auto* content = new QWidget(this);
   auto* main_layout = new QVBoxLayout(content);
   main_layout->setContentsMargins(18, 18, 18, 18);
-  main_layout->setSpacing(14);
+  main_layout->setSpacing(10);
 
-  // Built up alongside the rows themselves so the two cannot drift: this tab
-  // tells the user its values "may help when reporting issues", and until now
-  // the only way to act on that was to select them out of a scroll area by
-  // hand, one row at a time.
-  QStringList summary;
-
-  const auto begin_section = [&summary](const QString& title) {
-    if (!summary.isEmpty()) summary << QString();
-    summary << QStringLiteral("[%1]").arg(title);
-  };
-
-  // Add a row and record it, so every reading on screen is in the clipboard
-  // text too. The detail sentence is indented under its value there, the same
-  // way it sits under it here.
-  const auto add_row =
-      [&summary](QFormLayout* form, const QString& label, const QString& value,
-                 const QString& detail = {}, bool degraded = false) {
-        auto* holder = form->parentWidget();
-        auto* field = CreateValueWithDetail(value, detail, degraded, holder);
-        form->addRow(label, field);
-
-        // The caption is as good a place to aim at as the value, and on a row
-        // whose sentence is only a tooltip it is half the row's hover target.
-        if (auto* caption = form->labelForField(field); caption != nullptr) {
-          caption->setToolTip(field->toolTip());
-        }
-
-        summary << QStringLiteral("%1 %2").arg(label, value);
-        if (!detail.isEmpty()) summary << QStringLiteral("    %1").arg(detail);
-      };
-
-  // Paths go through CreatePathValue() rather than a label, so they need their
-  // own adder; see that function for why a wrapped label cannot be trusted
-  // with a path.
-  const auto add_path_row = [&summary](QFormLayout* form, const QString& label,
-                                       const QString& path,
-                                       const QString& detail = {}) {
-    auto* holder = form->parentWidget();
-
-    // A path is never a fallback state, so its sentence always goes to the
-    // tooltip -- joined to the path CreatePathValue() already put there, since
-    // the field can only carry the one tooltip and the path is the part a
-    // truncated field is hiding.
-    auto* field = AttachDetailHint(
-        CreatePathValue(path, holder),
-        detail.isEmpty() ? detail
-                         : QStringLiteral("%1\n\n%2").arg(path, detail),
-        holder);
-    form->addRow(label, field);
-
-    if (auto* caption = form->labelForField(field); caption != nullptr) {
-      caption->setToolTip(field->toolTip());
-    }
-
-    summary << QStringLiteral("%1 %2").arg(label, path);
-    if (!detail.isEmpty()) summary << QStringLiteral("    %1").arg(detail);
-  };
-
-  begin_section(tr("Application Status"));
-
-  auto* status_widget = new QWidget(content);
-  auto* status_form = CreateInfoForm(status_widget);
-  status_widget->setLayout(status_form);
-
-  add_row(status_form, tr("Secure Level:"),
-          SecureLevelDisplayName(secure_level));
-  add_row(
-      status_form, tr("Application Key Protection:"),
-      AppKeyProtectionDisplayName(ProfileLoader::AppKeyProtectionFromApp()));
-
-  // Reported whether or not it is in use: when "System keychain" is greyed out
-  // in the settings, this is the only place that says why. Read from the
-  // registry rather than probed -- opening About must never raise a keyring
-  // unlock prompt.
+  // This tab used to print everything it knew, in the order it happened to
+  // learn it: how the key is protected, whether the install is portable, which
+  // pinentry GnuPG uses, three paths and a layout version, all at one weight.
+  // Every line was true and the page answered no question.
   //
-  // The loader's reason rides along as this row's detail rather than as a
-  // "Credential Store Detail:" row of its own two rows down. It stays
-  // untranslated and selectable, so it can be pasted into a bug report exactly
-  // as the loader produced it.
-  auto* secret_store = GetSystemSecretStore();
-  add_row(status_form, tr("System Credential Store:"),
-          secret_store != nullptr ? secret_store->Name() : tr("Unavailable"),
-          SystemSecretStoreReason(), secret_store == nullptr);
+  // It is now three things in order of what somebody opening it actually wants.
+  // Anything wrong, first and by itself. Then the four readings that answer
+  // "what am I running and where are my keys". Everything else is one click
+  // away -- still here, still copied by the button at the bottom, no longer in
+  // the way of the four rows that matter.
+  QVector<MetaListRow> attention;  // anything not as it should be
+  QVector<MetaListRow> glance;     // what the page is for
+  QVector<QPair<QString, QVector<MetaListRow>>> details;  // true, but not now
 
-  // Only ever set when the home directory could not host the agent sockets, so
-  // the row says that outright and carries the measured length and the
-  // platform limit underneath. Untranslated and selectable, for the same
-  // reason as the credential store reason above.
-  if (const auto gnupg_home_detail = GnuPGHomePathUnusableReason();
-      !gnupg_home_detail.isEmpty()) {
-    add_row(status_form, tr("GnuPG Home:"), tr("Unusable"), gnupg_home_detail,
-            true);
-  }
-
-  add_row(status_form, tr("Running Mode:"),
-          portable_mode ? tr("Portable Mode") : tr("Installed Mode"));
-
-  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
-    add_row(status_form, tr("GnuPG Offline Mode:"),
-            gnupg_offline_mode ? tr("Active") : tr("Disabled"));
-    // A configured path is a path, and gets the read-only field every other
-    // path on this tab gets rather than a label that wraps it at some arbitrary
-    // character. The default is a statement, not a path, so it stays a label.
-    if (pinentry_program_path.isEmpty()) {
-      add_row(status_form, tr("Pinentry Program Path:"),
-              tr("Default Pinentry Program"));
-    } else {
-      add_path_row(status_form, tr("Pinentry Program Path:"),
-                   QDir::toNativeSeparators(pinentry_program_path));
-    }
-  }
-
-  main_layout->addWidget(
-      CreateCard(tr("Application Status"), status_widget, content));
-
-  // Which profile this window is using, and where it keeps things. With two
-  // windows open on two profiles, "which keys am I looking at" is the first
-  // question of any bug report, and the paths below answer it exactly.
   const auto& session = ProfileSession::Instance();
   const auto& profile = session.Profile();
 
-  begin_section(tr("Profile"));
-
-  auto* profile_widget = new QWidget(content);
-  auto* profile_form = CreateInfoForm(profile_widget);
-  profile_widget->setLayout(profile_form);
-
-  add_row(profile_form, tr("Profile:"), CurrentProfileDisplayName());
-  add_row(profile_form, tr("Profile Type:"),
-          ProfileKindDisplayName(profile.Kind()));
-  add_path_row(profile_form, tr("Profile Folder:"),
-               QDir::toNativeSeparators(profile.Root()));
-
-  // Where the *keyring* comes from, which is not the credential store the card
-  // above already reports. "System keyring" was ambiguous between the two, and
-  // sat two rows under "System Credential Store: libsecret".
+  // Read from the registry rather than probed -- opening About must never raise
+  // a keyring unlock prompt. Reported whether or not it is in use: when "System
+  // keychain" is greyed out in the settings, this is the only place that says
+  // why, and the loader's reason rides along untranslated and selectable so it
+  // can be pasted into a bug report exactly as it was produced.
+  auto* secret_store = GetSystemSecretStore();
   const auto keys =
       DescribeKeySource(profile.Policy().self_contained, profile.Kind());
-  add_row(profile_form, tr("Keys:"), keys.value, keys.detail, keys.degraded);
+
+  glance.append({.caption = tr("Profile:"),
+                 .value = CurrentProfileDisplayName(),
+                 .emphasis = true});
+  // Its own row rather than a hover on the one above: which kind of profile
+  // this is decides where everything in it lives, and it is two words.
+  glance.append({.caption = tr("Profile Type:"),
+                 .value = ProfileKindDisplayName(profile.Kind())});
+  glance.append({.caption = tr("Keys:"),
+                 .value = keys.value,
+                 .detail = keys.degraded ? QString() : keys.detail});
+  glance.append({.caption = tr("Application Key Protection:"),
+                 .value = AppKeyProtectionDisplayName(
+                     ProfileLoader::AppKeyProtectionFromApp())});
+  glance.append({.caption = tr("Secure Level:"),
+                 .value = SecureLevelDisplayName(secure_level)});
+
+  // A degraded reading is the whole reason somebody opens this tab, so it is
+  // lifted out of the card it belongs to and shown on its own. Nothing is lost
+  // by the move: the row says what it always said, in the one place it is not
+  // competing with fifteen readings that are simply fine.
+  if (keys.degraded) {
+    attention.append({.caption = tr("Keys:"),
+                      .value = keys.value,
+                      .detail = keys.detail,
+                      .degraded = true});
+  }
+
+  if (secret_store == nullptr) {
+    attention.append({.caption = tr("System Credential Store:"),
+                      .value = tr("Unavailable"),
+                      .detail = SystemSecretStoreReason(),
+                      .degraded = true});
+  }
+
+  // Only ever set when the home directory could not host the agent sockets, so
+  // the row says that outright and carries the measured length and the platform
+  // limit underneath.
+  if (const auto gnupg_home_detail = GnuPGHomePathUnusableReason();
+      !gnupg_home_detail.isEmpty()) {
+    attention.append({.caption = tr("GnuPG Home:"),
+                      .value = tr("Unusable"),
+                      .detail = gnupg_home_detail,
+                      .degraded = true});
+  }
+
+  QVector<MetaListRow> application;
+  application.append(
+      {.caption = tr("Running Mode:"),
+       .value = portable_mode ? tr("Portable Mode") : tr("Installed Mode")});
+  if (secret_store != nullptr) {
+    application.append({.caption = tr("System Credential Store:"),
+                        .value = secret_store->Name(),
+                        .detail = SystemSecretStoreReason()});
+  }
+  details.append({tr("Application"), application});
+
+  QVector<MetaListRow> profile_rows;
 
   // Only for a session opened from a package, because only there was there a
   // choice to make. DescribeSessionStorage() carries the wording and decides
@@ -844,40 +526,59 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
     const auto session_storage = DescribeSessionStorage(
         storage.IsVolatile(), storage.IsEncryptedAtRest());
 
-    add_row(profile_form, tr("Session Storage:"), session_storage.value,
-            session_storage.detail, session_storage.degraded);
+    auto& into = session_storage.degraded ? attention : profile_rows;
+    into.append({.caption = tr("Session Storage:"),
+                 .value = session_storage.value,
+                 .detail = session_storage.detail,
+                 .degraded = session_storage.degraded});
 
     // Stated separately from the row above, and deliberately narrow. The
     // storage line describes where the *profile* went; this describes one thing
     // inside it. Folding them together would suggest the keyring is held in
     // memory too, and it is not -- GnuPG needs real files for that.
     if (storage.IsAreaResident(ProfileArea::kSecure)) {
-      add_row(profile_form, tr("Profile Key:"), tr("Held in memory only"),
-              tr("The key that protects this profile's own saved data is never "
-                 "written here. Your OpenPGP keys are a separate thing and do "
-                 "live in the session storage above, because GnuPG needs real "
-                 "files for them."));
+      profile_rows.append(
+          {.caption = tr("Profile Key:"),
+           .value = tr("Held in memory only"),
+           .detail = tr(
+               "The key that protects this profile's own saved data is never "
+               "written here. Your OpenPGP keys are a separate thing and do "
+               "live in the session storage above, because GnuPG needs real "
+               "files for them.")});
     }
-  }
-
-  const auto workspace = ProfileSession::Instance().WorkspacePath();
-  if (workspace.isEmpty()) {
-    add_row(profile_form, tr("Workspace:"), tr("None"));
-  } else {
-    add_path_row(profile_form, tr("Workspace:"),
-                 QDir::toNativeSeparators(workspace));
   }
 
   const auto& marker = session.Marker();
   if (marker.schema_version > 0) {
-    add_row(profile_form, tr("Profile Layout Version:"),
-            QString::number(marker.schema_version));
+    profile_rows.append({.caption = tr("Profile Layout Version:"),
+                         .value = QString::number(marker.schema_version)});
   }
 
   // Present only on a profile that came from a package, and worth showing
   // there: it is the identity that says which document this copy came from.
   if (!marker.package_id.isEmpty()) {
-    add_path_row(profile_form, tr("Imported From Package:"), marker.package_id);
+    profile_rows.append({.caption = tr("Imported From Package:"),
+                         .value = marker.package_id,
+                         .path = true});
+  }
+  details.append({tr("Profile"), profile_rows});
+
+  // Every path together. Scattered among the readings they belong to, they were
+  // the rows a reader had to hunt for, and each one made the card it sat in
+  // twice as tall as the readings around it.
+  QVector<MetaListRow> folders;
+  folders.append({.caption = tr("Profile Folder:"),
+                  .value = QDir::toNativeSeparators(profile.Root()),
+                  .path = true});
+
+  const auto workspace = ProfileSession::Instance().WorkspacePath();
+  if (workspace.isEmpty()) {
+    folders.append(
+        {.caption = tr("Workspace:"), .value = tr("None"), .dimmed = true});
+  } else {
+    folders.append({.caption = tr("Workspace:"),
+                    .value = QDir::toNativeSeparators(workspace),
+                    .path = true});
   }
 
   // Mirrored onto the application rather than asked of the profile: where this
@@ -885,37 +586,81 @@ StatusTab::StatusTab(QWidget* parent) : QWidget(parent) {
   // of the one profile in front of us.
   if (const auto profiles_root = qApp->property("GFProfilesRoot").toString();
       !profiles_root.isEmpty()) {
-    add_path_row(profile_form, tr("Profiles Folder:"),
-                 QDir::toNativeSeparators(profiles_root));
+    folders.append({.caption = tr("Profiles Folder:"),
+                    .value = QDir::toNativeSeparators(profiles_root),
+                    .path = true});
+  }
+  details.append({tr("Folders"), folders});
+
+  // The engines, and the settings that belong to one of them: a pinentry path
+  // is not a property of GpgFrontend, it is how GnuPG asks for a passphrase.
+  QVector<MetaListRow> engines;
+  for (const auto& engine : GetGSS().AllSupportedEngines()) {
+    engines.append({.caption = engine, .value = tr("Available")});
   }
 
-  main_layout->addWidget(CreateCard(tr("Profile"), profile_widget, content));
+  if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
+    engines.append({.caption = tr("GnuPG Offline Mode:"),
+                    .value = gnupg_offline_mode ? tr("Active") : tr("Disabled"),
+                    .dimmed = !gnupg_offline_mode});
 
-  const auto active_engines = GetGSS().AllSupportedEngines();
-
-  if (!active_engines.isEmpty()) {
-    begin_section(tr("Supported OpenPGP Engines"));
-
-    auto* engines_widget = new QWidget(content);
-    auto* engines_layout = new QVBoxLayout(engines_widget);
-    engines_layout->setContentsMargins(0, 0, 0, 0);
-    engines_layout->setSpacing(6);
-
-    for (const auto& engine : active_engines) {
-      auto* engine_label =
-          CreateValueLabel(QStringLiteral("• %1").arg(engine), engines_widget);
-      engines_layout->addWidget(engine_label);
-      summary << QStringLiteral("- %1").arg(engine);
-    }
-
-    main_layout->addWidget(
-        CreateCard(tr("Supported OpenPGP Engines"), engines_widget, content));
+    // A configured path is a path, and gets the read-only field every other
+    // path on this tab gets rather than a label that wraps it at some arbitrary
+    // character. The default is a statement, not a path, so it stays a label.
+    engines.append(
+        {.caption = tr("Pinentry Program Path:"),
+         .value = pinentry_program_path.isEmpty()
+                      ? tr("Default Pinentry Program")
+                      : QDir::toNativeSeparators(pinentry_program_path),
+         .dimmed = pinentry_program_path.isEmpty(),
+         .path = !pinentry_program_path.isEmpty()});
   }
+  details.append({tr("OpenPGP Engines"), engines});
+
+  // Built from the rows themselves rather than accumulated alongside them, so
+  // what is copied cannot drift from what is shown -- and so the rows folded
+  // away below are copied too. This tab tells the user its values "may help
+  // when reporting issues"; the button is what makes that actionable.
+  QVector<MetaListRow> summary_rows;
+
+  const auto add_card = [&](QWidget* into_parent, QVBoxLayout* into,
+                            const QString& title,
+                            const QVector<MetaListRow>& rows) {
+    if (rows.isEmpty()) return;
+
+    auto* panel = new MetaListPanel(into_parent);
+    panel->SetRows(rows);
+    into->addWidget(CreateCard(title, panel, into_parent));
+
+    summary_rows.append({.kind = MetaRowKind::kSection, .caption = title});
+    summary_rows.append(rows);
+  };
+
+  add_card(content, main_layout, tr("Needs Attention"), attention);
+  add_card(content, main_layout, tr("At a Glance"), glance);
+
+  // One card with headings inside it, not four cards of two rows each: a card
+  // costs a border, a title and twenty-six pixels of padding, and four of them
+  // around eight readings is mostly padding.
+  QVector<MetaListRow> more_rows;
+  for (const auto& section : details) {
+    if (section.second.isEmpty()) continue;
+    more_rows.append({.kind = MetaRowKind::kSection, .caption = section.first});
+    more_rows.append(section.second);
+  }
+
+  auto* more = new MetaListPanel(content);
+  more->SetRows(more_rows);
+  summary_rows.append(more_rows);
+
+  main_layout->addWidget(CreateDisclosure(
+      tr("More details"), CreateCard(tr("Details"), more, content), content));
 
   main_layout->addStretch();
 
-  auto* copy_button = CreateCopyButton(
-      tr("Copy Status Information"), summary.join(QLatin1Char('\n')), content);
+  auto* copy_button =
+      CreateCopyButton(tr("Copy Status Information"),
+                       MetaListSummaryText(summary_rows), content);
   main_layout->addWidget(copy_button, 0, Qt::AlignRight);
 
   // A footnote, not another paragraph of body text: it explains the tab rather
@@ -957,40 +702,29 @@ RpgpEngineTab::RpgpEngineTab(QWidget* parent) : QWidget(parent) {
   main_layout->addWidget(intro_label);
 
   // Engine card: version, compiler, target, profile.
-  auto* engine_widget = new QWidget(content);
-  auto* engine_form = CreateInfoForm(engine_widget);
-  engine_widget->setLayout(engine_form);
-
-  engine_form->addRow(
-      tr("Engine Version:"),
-      CreateValueLabel(or_unknown(info.engine_version), engine_widget));
-  engine_form->addRow(
-      tr("Rust Compiler:"),
-      CreateValueLabel(or_unknown(info.rustc_version), engine_widget));
+  QVector<MetaListRow> engine_rows;
+  engine_rows.append({.caption = tr("Engine Version:"),
+                      .value = or_unknown(info.engine_version)});
+  engine_rows.append({.caption = tr("Rust Compiler:"),
+                      .value = or_unknown(info.rustc_version)});
   if (!info.target.isEmpty()) {
-    engine_form->addRow(tr("Target:"),
-                        CreateValueLabel(info.target, engine_widget));
+    engine_rows.append({.caption = tr("Target:"), .value = info.target});
   }
   if (!info.profile.isEmpty()) {
-    engine_form->addRow(tr("Build Profile:"),
-                        CreateValueLabel(info.profile, engine_widget));
+    engine_rows.append(
+        {.caption = tr("Build Profile:"), .value = info.profile});
   }
 
-  main_layout->addWidget(CreateCard(tr("rPGP Engine"), engine_widget, content));
+  auto* engine_panel = new MetaListPanel(content);
+  engine_panel->SetRows(engine_rows);
+  main_layout->addWidget(CreateCard(tr("rPGP Engine"), engine_panel, content));
 
   // Dependency card: key crate versions.
   if (!info.dependencies.isEmpty()) {
-    auto* deps_widget = new QWidget(content);
-    auto* deps_form = CreateInfoForm(deps_widget);
-    deps_widget->setLayout(deps_form);
+    auto* deps = new MetaListPanel(content);
+    deps->SetRows(ToMetaListRows(info.dependencies));
 
-    for (const auto& dep : info.dependencies) {
-      deps_form->addRow(QStringLiteral("%1:").arg(dep.first),
-                        CreateValueLabel(dep.second, deps_widget));
-    }
-
-    main_layout->addWidget(
-        CreateCard(tr("Key Dependencies"), deps_widget, content));
+    main_layout->addWidget(CreateCard(tr("Key Dependencies"), deps, content));
   }
 
   // Assemble a plain-text summary for the copy button.

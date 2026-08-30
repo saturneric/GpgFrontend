@@ -102,15 +102,13 @@ class GF_UI_EXPORT AppKeyPinDialog : public QDialog {
    * reason for it belongs.
    *
    * @param parent parent widget, may be null at startup
-   * @param package_file the file, already in native separators
    * @param mode kUNLOCK to open a file, kSET to seal one
    * @param retry true when a previous answer did not open it
-   * @param context_note what the file's own header claims, never believed
+   * @param context_rows the file, as BuildProfilePackageRows() describes it
    * @return the passphrase, or nothing when the user gave up
    */
-  static auto AskPackagePassphrase(QWidget* parent, const QString& package_file,
-                                   Mode mode, bool retry,
-                                   const QString& context_note = {})
+  static auto AskPackagePassphrase(QWidget* parent, Mode mode, bool retry,
+                                   QVector<MetaListRow> context_rows)
       -> std::optional<GFBuffer>;
 
   /**

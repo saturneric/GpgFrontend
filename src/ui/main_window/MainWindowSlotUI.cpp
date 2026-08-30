@@ -40,8 +40,10 @@
 #include "core/utils/GpgUtils.h"
 #include "ui/GpgFrontendApplication.h"
 #include "ui/dialog/LogViewDialog.h"
+#include "ui/dialog/MetaListDialog.h"
 #include "ui/dialog/Wizard.h"
 #include "ui/dialog/profile/ProfileExportDialog.h"
+#include "ui/dialog/profile/ProfilePackageMeta.h"
 #include "ui/dialog/settings/SettingsDialog.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/GpgOperaHelper.h"
@@ -332,31 +334,34 @@ void MainWindow::slot_export_profile() {
                 return;
               }
 
+              // Named in rows rather than in a paragraph, and in the same
+              // rows the file will be described by when somebody opens it
+              // again: this is the same file, at the other end of its life.
+              MetaListDialog done(tr("Profile Exported"),
+                                  tr("\"%1\" was written to a single file.")
+                                      .arg(request.manifest.display_name),
+                                  this);
+              done.AddSection({}, BuildProfilePackageDestinationRows(
+                                      QFileInfo(request.dest_path), -1));
+
               // What a package carries is an allow-list, so anything else in
               // the profile folder stays behind silently. Said here, because
               // the alternative is the sender finding out from the copy on
               // somebody else's machine.
-              const auto left_behind =
-                  result->skipped.isEmpty()
-                      ? QString()
-                      : "\n\n" + tr("These were not included, because a "
-                                    "profile file "
-                                    "only carries the profile itself: %1")
-                                     .arg(result->skipped.join(", "));
+              if (!result->skipped.isEmpty()) {
+                done.AddSection(
+                    {}, {{.caption = tr("Left out"),
+                          .value = result->skipped.join(", "),
+                          .detail = tr("A profile file only carries the "
+                                       "profile itself."),
+                          .dimmed = true}});
+              }
 
-              QMessageBox::information(
-                  this, tr("Profile Exported"),
-                  tr("\"%1\" was written to:")
-                          .arg(request.manifest.display_name) +
-                      "\n" + QDir::toNativeSeparators(request.dest_path) +
-                      "\n\n" +
-                      (request.protection == ProfilePackageProtection::kPIN
-                           ? tr("It can only be opened with the passphrase you "
-                                "chose. There is no way to recover it.")
-                           : tr("It is not protected: anyone who gets this "
-                                "file can read the keys inside it.")) +
-                      left_behind,
-                  QMessageBox::Ok);
+              done.AddNote(
+                  tr("It can only be opened with the passphrase you "
+                     "chose. There is no way to recover it."));
+              done.AddButton(tr("Done"), QDialogButtonBox::AcceptRole);
+              done.exec();
             },
             "export_profile_package");
       });
