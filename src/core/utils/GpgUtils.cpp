@@ -528,31 +528,6 @@ auto GF_CORE_EXPORT ReconcileSandboxKeyDatabaseList(
 // broader IsRunningInSandBox(): the Flatpak data dir is a stable bind-mount, so
 // stored paths stay valid there and a rescan would be both unnecessary and
 // wrong (Flatpak databases are not constrained to the dbs/ layout).
-namespace {
-
-auto GetKeyDatabasesByAppSandboxScan() -> QContainer<KeyDatabaseItemSO> {
-  auto key_db_list_so = SettingsObject(kKeyDatabaseListObject);
-  auto stored = KeyDatabaseListSO(key_db_list_so);
-
-  auto key_dbs = ReconcileSandboxKeyDatabaseList(
-      MakeDefaultKeyDatabaseItem(), ScanSandboxKeyDatabaseDir(),
-      stored.key_databases, SupportedKeyDatabaseBackends());
-
-  // persist the reconciled list so settings stay in sync with disk
-  KeyDatabaseListSO reconciled;
-  reconciled.key_databases = key_dbs;
-  key_db_list_so.Store(reconciled.ToJson());
-
-  for (const auto& key_db : key_dbs) {
-    LOG_I() << "got sandbox key database:" << key_db.name
-            << ", path:" << key_db.path;
-  }
-
-  return key_dbs;
-}
-
-}  // namespace
-
 auto ReanchorKeyDatabasePath(const QString& stored_path,
                              const QString& profile_root) -> QString {
   if (profile_root.isEmpty() || stored_path.isEmpty()) return stored_path;
@@ -579,51 +554,38 @@ auto ReanchorKeyDatabasePath(const QString& stored_path,
   return QString::fromLatin1(kProfilePathToken) + "/" + tail;
 }
 
-auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
-  // In the macOS app sandbox the stored settings paths may not match the
-  // databases that actually exist under the fixed dbs/ path, so rebuild the
-  // list from a filesystem scan instead of trusting settings.
-  if (IsRunningInAppSandbox()) {
-    return GetKeyDatabasesByAppSandboxScan();
-  }
+auto LoadKeyDatabaseList() -> QContainer<KeyDatabaseItemSO> {
+  return KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject))
+      .key_databases;
+}
 
-  auto key_db_list_so = SettingsObject(kKeyDatabaseListObject);
-  auto key_db_list = KeyDatabaseListSO(key_db_list_so);
-
-  // Enforced here rather than only in the dialog: a stored list can arrive in a
-  // package, be hand-edited, or come from a build older than this rule, and two
-  // databases answering to the same identity is not a state anything below can
-  // make sense of.
-  key_db_list.key_databases =
-      DropDuplicateDefaultKeyDatabases(key_db_list.key_databases);
+auto ReconcileKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& stored,
+                              const KeyDatabaseItemSO& local_default,
+                              const KeyDatabaseItemSO& fallback,
+                              const QString& profile_root,
+                              const QString& app_data_path)
+    -> QContainer<KeyDatabaseItemSO> {
+  // Two things answering to one identity is not a state anything below can make
+  // sense of, and a stored list is not only ever written by the dialog: it can
+  // arrive in a package, be hand-edited, or come from a build older than the
+  // rule.
+  auto key_dbs = DropDuplicateDefaultKeyDatabases(stored);
 
   // And the one that remains names this computer's keyring, whatever the
   // settings say it named. That entry is derived rather than stored, so a
   // stored path for it only ever records where it was on whichever machine last
   // wrote the settings -- which, for a profile opened from a package, is
   // somewhere else entirely.
-  const auto local_default = DefaultKeyDatabaseCandidate();
-  key_db_list.key_databases = AdoptLocalDefaultKeyDatabase(
-      key_db_list.key_databases, local_default.path,
-      local_default.backend_type);
+  key_dbs = AdoptLocalDefaultKeyDatabase(key_dbs, local_default.path,
+                                         local_default.backend_type);
 
   // What each database is, settled once here so nothing below has to guess it
   // from a path. An entry from a build before the field existed gets its kind
   // derived the way those builds inferred it.
-  key_db_list.key_databases = ResolveKeyDatabaseKinds(
-      key_db_list.key_databases, GetGSS().GetAppDataPath());
+  key_dbs = ResolveKeyDatabaseKinds(key_dbs, app_data_path);
 
-  auto& key_dbs = key_db_list.key_databases;
-
-  // The root the stored paths are read against. Empty for a profile shape that
-  // has none, and then nothing below re-anchors anything.
-  const auto profile_root = ProfileSession::Instance().Root();
-
-  QContainer<KeyDatabaseItemSO> tmp_key_dbs;
+  QContainer<KeyDatabaseItemSO> kept;
   for (auto key_db : key_dbs) {
-    LOG_D() << "filtering key database from settings:" << key_db.name
-            << ", path:" << key_db.path;
-
     if (key_db.path.isEmpty() || key_db.name.isEmpty()) {
       LOG_W() << "invalid key db info, skip, name:" << key_db.name
               << "key db path:" << key_db.path;
@@ -631,24 +593,51 @@ auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
     }
 
     key_db.path = ReanchorKeyDatabasePath(key_db.path, profile_root);
-    tmp_key_dbs.push_back(key_db);
-  }
-  key_dbs = std::move(tmp_key_dbs);
-
-  if (key_dbs.empty()) {
-    key_dbs.append(MakeDefaultKeyDatabaseItem());
+    kept.push_back(key_db);
   }
 
-  NormalizeKeyDatabaseChannels(key_dbs);
+  // Never hand back nothing. A profile with no usable database cannot open a
+  // key list at all, and the honest recovery is this computer's own keyring
+  // rather than a refusal to start.
+  if (kept.empty()) kept.append(fallback);
 
-  key_db_list_so.Store(key_db_list.ToJson());
+  NormalizeKeyDatabaseChannels(kept);
+  return kept;
+}
 
-  for (const auto& key_db : key_db_list.key_databases) {
+void PersistKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& key_dbs) {
+  KeyDatabaseListSO list;
+  list.key_databases = key_dbs;
+
+  auto so = SettingsObject(kKeyDatabaseListObject);
+  so.Store(list.ToJson());
+}
+
+auto GetKeyDatabasesBySettings() -> QContainer<KeyDatabaseItemSO> {
+  const auto stored = LoadKeyDatabaseList();
+
+  // In the macOS app sandbox the stored settings paths may not match the
+  // databases that actually exist under the fixed dbs/ path, so which list is
+  // authoritative differs -- but the shape does not: load, reconcile against
+  // this computer, persist what came back.
+  const auto reconciled =
+      IsRunningInAppSandbox()
+          ? ReconcileSandboxKeyDatabaseList(MakeDefaultKeyDatabaseItem(),
+                                            ScanSandboxKeyDatabaseDir(), stored,
+                                            SupportedKeyDatabaseBackends())
+          : ReconcileKeyDatabaseList(stored, DefaultKeyDatabaseCandidate(),
+                                     MakeDefaultKeyDatabaseItem(),
+                                     ProfileSession::Instance().Root(),
+                                     GetGSS().GetAppDataPath());
+
+  PersistKeyDatabaseList(reconciled);
+
+  for (const auto& key_db : reconciled) {
     LOG_I() << "got key database from settings:" << key_db.name
             << ", path:" << key_db.path;
   }
 
-  return key_db_list.key_databases;
+  return reconciled;
 }
 
 auto VerifyKeyDatabasePath(const QFileInfo& key_database_fs_path) -> bool {

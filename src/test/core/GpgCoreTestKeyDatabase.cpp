@@ -1215,4 +1215,124 @@ TEST_F(GFCoreTest, UnitTestModeFlagIsPublishedToRuntime) {
             1);
 }
 
+// -----------------------------------------------------------------------------
+// ReconcileKeyDatabaseList(): the healing pass, now callable on its own.
+//
+// It used to be the middle of GetKeyDatabasesBySettings(), which reads a
+// settings object, a profile session and the engine, so none of this could be
+// asserted without a running profile. Every input is a parameter now, so it
+// can.
+// -----------------------------------------------------------------------------
+
+TEST(KeyDatabaseReconcileTest, TheStoredListIsHealedWithoutBeingWritten) {
+  // The whole pass in one: a duplicate DEFAULT, a DEFAULT path from another
+  // machine, an entry naming nothing, and channels that collide.
+  const QContainer<KeyDatabaseItemSO> stored = {
+      MakeItem("DEFAULT", "C:/Users/someone/AppData/Roaming/gnupg", "gnupg", 0),
+      MakeItem("DEFAULT", "/somewhere/else", "rpgp", 0),
+      MakeItem("", "/app-data/dbs/nameless", "gnupg", 1),
+      MakeItem("work", "/app-data/dbs/work", "rpgp", 1),
+  };
+
+  const auto out = ReconcileKeyDatabaseList(
+      stored, MakeItem("DEFAULT", "/home/me/.gnupg", "gnupg"),
+      MakeItem("DEFAULT", "/app-data/rpgp_db", "rpgp"), "/app-data",
+      "/app-data");
+
+  ASSERT_EQ(out.size(), 2) << "the duplicate and the nameless entry survived";
+
+  const auto* def = FindByName(out, "DEFAULT");
+  ASSERT_NE(def, nullptr);
+  EXPECT_EQ(def->path, "/home/me/.gnupg")
+      << "the foreign path was not replaced";
+  EXPECT_EQ(def->backend_type, "gnupg");
+  EXPECT_EQ(def->channel, 0) << "DEFAULT did not keep channel 0";
+  ASSERT_TRUE(def->kind.has_value());
+  EXPECT_EQ(*def->kind, KeyDatabaseKind::kDEFAULT);
+
+  const auto* work = FindByName(out, "work");
+  ASSERT_NE(work, nullptr);
+  EXPECT_EQ(work->channel, 1) << "the colliding channel was not broken";
+  ASSERT_TRUE(work->kind.has_value())
+      << "a kind was left unsettled for a later reader to guess";
+}
+
+TEST(KeyDatabaseReconcileTest, ReconcilingIsIdempotent) {
+  // Running it over its own output must change nothing. It runs on every read,
+  // so a pass that kept editing would rewrite settings forever.
+  const QContainer<KeyDatabaseItemSO> stored = {
+      MakeItem("DEFAULT", "/stale", "gnupg", 0),
+      MakeItem("work", "@profile/dbs/work", "rpgp", 3),
+  };
+
+  const auto local = MakeItem("DEFAULT", "/home/me/.gnupg", "gnupg");
+  const auto fallback = MakeItem("DEFAULT", "/app-data/rpgp_db", "rpgp");
+
+  const auto once = ReconcileKeyDatabaseList(stored, local, fallback,
+                                             "/app-data", "/app-data");
+  const auto twice =
+      ReconcileKeyDatabaseList(once, local, fallback, "/app-data", "/app-data");
+
+  ASSERT_EQ(once.size(), twice.size());
+  for (int i = 0; i < once.size(); ++i) {
+    EXPECT_EQ(once[i].name, twice[i].name);
+    EXPECT_EQ(once[i].path, twice[i].path);
+    EXPECT_EQ(once[i].channel, twice[i].channel);
+    EXPECT_EQ(once[i].backend_type, twice[i].backend_type);
+    EXPECT_EQ(once[i].kind.has_value(), twice[i].kind.has_value());
+  }
+}
+
+TEST(KeyDatabaseReconcileTest, AnEmptyResultIsSeededRatherThanReturned) {
+  // Handing back nothing would leave the program with no key list to open. The
+  // fallback is used rather than the candidate, because the candidate may
+  // legitimately name no database at all.
+  const QContainer<KeyDatabaseItemSO> stored = {
+      MakeItem("", "", "gnupg", 0),
+  };
+
+  const auto out =
+      ReconcileKeyDatabaseList(stored, MakeItem("DEFAULT", "", ""),
+                               MakeItem("DEFAULT", "/app-data/rpgp_db", "rpgp"),
+                               "/app-data", "/app-data");
+
+  ASSERT_EQ(out.size(), 1);
+  EXPECT_EQ(out.front().name, "DEFAULT");
+  EXPECT_EQ(out.front().path, "/app-data/rpgp_db");
+  EXPECT_EQ(out.front().channel, 0);
+}
+
+TEST(KeyDatabaseReconcileTest, AnEmptyLocalDefaultTakesNothingAway) {
+  // An engine reporting no database this run must not blank a stored path. The
+  // database may be on a volume that is simply not mounted this morning.
+  const QContainer<KeyDatabaseItemSO> stored = {
+      MakeItem("DEFAULT", "/home/me/.gnupg", "gnupg", 0),
+  };
+
+  const auto out =
+      ReconcileKeyDatabaseList(stored, MakeItem("DEFAULT", "", ""),
+                               MakeItem("DEFAULT", "/app-data/rpgp_db", "rpgp"),
+                               "/app-data", "/app-data");
+
+  ASSERT_EQ(out.size(), 1);
+  EXPECT_EQ(out.front().path, "/home/me/.gnupg");
+  EXPECT_EQ(out.front().backend_type, "gnupg");
+}
+
+TEST(KeyDatabaseReconcileTest, WithoutARootNothingIsReanchored) {
+  // The shape a profile with no root has. Re-anchoring against nothing would
+  // have to invent a location.
+  const QContainer<KeyDatabaseItemSO> stored = {
+      MakeItem("DEFAULT", "/home/me/.gnupg", "gnupg", 0),
+      MakeItem("work", "/elsewhere/dbs/work", "rpgp", 1),
+  };
+
+  const auto out = ReconcileKeyDatabaseList(
+      stored, MakeItem("DEFAULT", "/home/me/.gnupg", "gnupg"),
+      MakeItem("DEFAULT", "/app-data/rpgp_db", "rpgp"), {}, {});
+
+  ASSERT_EQ(out.size(), 2);
+  EXPECT_EQ(FindByName(out, "work")->path, "/elsewhere/dbs/work");
+}
+
 }  // namespace GpgFrontend::Test

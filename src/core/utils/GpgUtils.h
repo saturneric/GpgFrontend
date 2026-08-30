@@ -465,9 +465,83 @@ auto GF_CORE_EXPORT GetAllKeyDatabaseInfoBySettings()
     -> QContainer<KeyDatabaseInfo>;
 
 /**
- * @brief Return the raw settings objects for all configured key databases.
+ * @brief The key database list exactly as it is stored.
  *
- * @return list of KeyDatabaseItemSO settings objects
+ * A plain read: no healing, no re-anchoring, no channel renumbering, and
+ * nothing written back. That matters because every other reader of this list
+ * gets the reconciled form, and there was no way to ask what is actually on
+ * disk -- which is the question a settings page has to answer before it offers
+ * to overwrite it.
+ *
+ * @return the stored entries, in stored order, kinds unsettled where the
+ * writing build had none
+ */
+auto GF_CORE_EXPORT LoadKeyDatabaseList() -> QContainer<KeyDatabaseItemSO>;
+
+/**
+ * @brief Make a stored list usable on this computer.
+ *
+ * The healing pass, in one place and in a fixed order: at most one DEFAULT, its
+ * path and backend replaced by this computer's own, every kind settled, entries
+ * naming nothing dropped, paths re-anchored to the profile that holds them now,
+ * a fallback seeded if that leaves nothing, and channels renumbered.
+ *
+ * Every input is a parameter rather than something read here, so the whole pass
+ * is exercisable without a profile session, a settings file or an engine --
+ * which is what it was not, when it lived inside GetKeyDatabasesBySettings().
+ * It is not pure: ReanchorKeyDatabasePath() asks the filesystem whether a
+ * stored path is still there, because that is the question it answers.
+ *
+ * Idempotent, and it never writes. Persisting the result is
+ * PersistKeyDatabaseList()'s job, and deliberately the caller's decision.
+ *
+ * @param stored the list as read, from LoadKeyDatabaseList() or a package
+ * @param local_default this computer's DEFAULT database, from
+ * DefaultKeyDatabaseCandidate(); an empty path leaves the stored one alone
+ * @param fallback what to seed with when nothing survives; must name a real
+ * database, so MakeDefaultKeyDatabaseItem() rather than the candidate
+ * @param profile_root root to re-anchor against, empty to re-anchor nothing
+ * @param app_data_path root that decides whether a path is managed
+ * @return the usable list, channels 0..n-1, never empty
+ */
+auto GF_CORE_EXPORT ReconcileKeyDatabaseList(
+    const QContainer<KeyDatabaseItemSO>& stored,
+    const KeyDatabaseItemSO& local_default, const KeyDatabaseItemSO& fallback,
+    const QString& profile_root, const QString& app_data_path)
+    -> QContainer<KeyDatabaseItemSO>;
+
+/**
+ * @brief Write a key database list back to settings.
+ *
+ * Separate from the reconciliation that produces one so that a caller can heal
+ * a list without committing to it, and so the one place that writes is
+ * findable. The underlying SettingsObject still refuses to overwrite an object
+ * that would not load, which is what keeps an unreadable list from being
+ * replaced by the empty one a failed read falls back to.
+ *
+ * @param key_dbs the list to store
+ */
+void GF_CORE_EXPORT
+PersistKeyDatabaseList(const QContainer<KeyDatabaseItemSO>& key_dbs);
+
+/**
+ * @brief The stored key database list, made usable, and written back.
+ *
+ * LoadKeyDatabaseList(), then ReconcileKeyDatabaseList(), then
+ * PersistKeyDatabaseList(). The composition is kept because almost every caller
+ * wants exactly this, and because the order is a fact about the program rather
+ * than something a call site should restate.
+ *
+ * @note **Reading this writes.** The healed list goes back to settings before
+ * it is returned, so a stored path that was re-anchored, a duplicate DEFAULT
+ * that was dropped or a channel that was renumbered is committed by the act of
+ * asking. Callers that must not write should use LoadKeyDatabaseList() and
+ * reconcile for themselves.
+ *
+ * In the macOS app sandbox the filesystem is authoritative rather than the
+ * settings, so the middle step is ReconcileSandboxKeyDatabaseList() instead.
+ *
+ * @return the usable list, channels 0..n-1, never empty
  */
 auto GF_CORE_EXPORT GetKeyDatabasesBySettings()
     -> QContainer<KeyDatabaseItemSO>;

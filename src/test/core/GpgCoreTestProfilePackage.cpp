@@ -1744,12 +1744,12 @@ TEST(PackagedProfileTest, CarriesItsOwnSecretAndWritesBackWhereItCameFrom) {
   EXPECT_EQ(request.profile_root, packaged.Root());
 }
 
-TEST(ProfilePackageCapTest, TheOneShotCapIsAReadableNumber) {
+TEST(ProfilePackageCapTest, TheLegacyReadCapIsAReadableNumber) {
   const auto cap = ProfilePackagePayloadCap();
 
   // Derived from this machine's locked-memory allowance, and bounded so that a
-  // container with almost none still exports and one with none does not try to
-  // hold something enormous in memory.
+  // container with almost none can still open a legacy package and one with
+  // none does not try to hold something enormous in memory.
   EXPECT_GE(cap, 16LL * 1024 * 1024);
   EXPECT_LE(cap, 256LL * 1024 * 1024);
 }
