@@ -519,23 +519,14 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
 
   const auto& profile = session.Profile();
 
-  // The stored key database paths are normalised to the `@profile/` form
-  // first, exactly as an export does: they resolve to the same directories
-  // either way, and the copy that travels then finds its keys wherever it is
-  // opened next.
-  auto stored = SettingsObject("key_database_list");
-  auto list = KeyDatabaseListSO(stored);
-  const auto packed =
-      RewriteKeyDatabaseListForPacking(list.key_databases, profile.Root());
-  if (packed.size() == list.key_databases.size()) {
-    for (int i = 0; i < packed.size(); ++i) {
-      if (packed.at(i).path != list.key_databases.at(i).path) {
-        list.key_databases = packed;
-        stored.Store(list.ToJson());
-        break;
-      }
-    }
-  }
+  // The key database paths that travel are normalised to the `@profile/` form,
+  // so the copy finds its keys at whatever root it is opened under. The
+  // sender's own stored list is left exactly as it is: it names directories on
+  // this machine, which is right here and wrong everywhere else, and the
+  // rewritten copy goes into the package as a member of its own below.
+  const auto packed = RewriteKeyDatabaseListForPacking(
+      KeyDatabaseListSO(SettingsObject(kKeyDatabaseListObject)).key_databases,
+      profile.Root());
 
   const auto& marker = session.Marker();
 
@@ -557,6 +548,15 @@ auto MaybeWriteBackPackageSession(QWidget* parent,
   request.manifest.app_profile = GetAppProfileName();
   request.manifest.display_name = CurrentProfileDisplayName();
   request.manifest.key_databases = DescribeKeyDatabasesForManifest(packed);
+
+  // Sealed here, on the thread that owns the key material, for the same reason
+  // the settings are snapshotted here. Without it the package would carry the
+  // stored object instead, and that one names directories on this machine.
+  if (auto member = MakeTravellingKeyDatabaseMember(packed)) {
+    request.data_object_members.append(*member);
+  } else {
+    LOG_W() << "the package will carry the stored key database list unchanged";
+  }
 
   if (request.secure_members.isEmpty()) {
     QMessageBox::critical(
