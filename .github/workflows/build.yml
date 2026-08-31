@@ -922,6 +922,44 @@ jobs:
     # `main` and tags matching `v*`, as defence in depth behind the `if:` above.
     environment: macos-signing
     steps:
+      # Runs before anything else so a half-configured environment costs ten
+      # seconds rather than a download, a full inside-out signing pass and a
+      # notarization round trip. Only tests for emptiness; no value is printed,
+      # and an unset secret arrives as the empty string.
+      - name: Preflight Check Signing Credentials
+        env:
+          DEVELOP_ID_CERT: ${{ secrets.DEVELOP_ID_CERT }}
+          DEVELOP_ID_CERT_PWD: ${{ secrets.DEVELOP_ID_CERT_PWD }}
+          DEVELOPER_ID_CODE_SIGN_IDENTITY: ${{ secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          missing=""
+          [ -n "${DEVELOP_ID_CERT:-}" ] || missing="$missing DEVELOP_ID_CERT"
+          [ -n "${DEVELOP_ID_CERT_PWD:-}" ] || missing="$missing DEVELOP_ID_CERT_PWD"
+          [ -n "${DEVELOPER_ID_CODE_SIGN_IDENTITY:-}" ] || missing="$missing DEVELOPER_ID_CODE_SIGN_IDENTITY"
+          [ -n "${ASC_API_KEY_P8:-}" ] || missing="$missing ASC_API_KEY_P8"
+          [ -n "${ASC_KEY_ID:-}" ] || missing="$missing ASC_KEY_ID"
+          [ -n "${ASC_ISSUER_ID:-}" ] || missing="$missing ASC_ISSUER_ID"
+
+          if [ -n "$missing" ]; then
+            echo "The 'macos-signing' environment is missing:" >&2
+            for name in $missing; do echo "  - $name" >&2; done
+            echo >&2
+            echo "Set them under Settings > Environments > macos-signing." >&2
+            echo "The ASC_* trio comes from an App Store Connect API key:" >&2
+            echo "  App Store Connect > Users and Access > Integrations >" >&2
+            echo "  App Store Connect API > Team Keys > generate a key with the" >&2
+            echo "  Developer role. ASC_API_KEY_P8 is the whole .p8 file including" >&2
+            echo "  its BEGIN/END PRIVATE KEY lines (downloadable only once)," >&2
+            echo "  ASC_KEY_ID is the Key ID column, ASC_ISSUER_ID the Issuer ID" >&2
+            echo "  shown above the table." >&2
+            exit 1
+          fi
+          echo "all six signing credentials are present"
+
       - name: Resolve Artifact Metadata
         id: meta
         env:
@@ -1078,7 +1116,11 @@ jobs:
           #!/bin/bash
           set -euo pipefail
           TARGET="$1"
-          : "${ASC_API_KEY_P8:?}" "${ASC_KEY_ID:?}" "${ASC_ISSUER_ID:?}"
+          # Guard again here: this script is what actually spends the
+          # credential, and a clear message beats "parameter null or not set".
+          : "${ASC_API_KEY_P8:?not set - add it to the macos-signing environment}"
+          : "${ASC_KEY_ID:?not set - add it to the macos-signing environment}"
+          : "${ASC_ISSUER_ID:?not set - add it to the macos-signing environment}"
 
           KEY_PATH="$RUNNER_TEMP/asc_api_key.p8"
           RESULT="$RUNNER_TEMP/notary-result.json"
