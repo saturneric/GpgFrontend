@@ -22,6 +22,39 @@
 # Saturneric <eric@bktus.com> starting on May 12, 2021.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
+#
+# macOS trust boundary
+# --------------------
+# The macOS pipeline is split in two on purpose. `build-macos` compiles and
+# deploys the bundle and never sees a secret; `sign-macos` holds the Apple
+# credentials and runs nothing but Apple's own tools on the finished bundle.
+# That keeps the Developer ID private key off any runner that also executes
+# build-time code -- submodules, cargo build scripts, brew formulas and
+# third-party build actions.
+#
+# `build-macos` is treated as potentially compromised, so everything it hands
+# over is untrusted bytes. `sign-macos` may unpack, inspect and sign that
+# payload; it must never source, evaluate, execute, or take configuration or
+# signing policy from it. Signing identity, entitlement policy, signing order
+# and acceptance checks all live in this file, not in the artifact.
+#
+# What this does NOT do is establish provenance: a compromised build job can
+# still present a malicious payload that the signing job faithfully signs.
+# Isolating the key is the goal here; attestation is a separate problem.
+#
+# `sign-macos` reads these from the `macos-signing` GitHub environment:
+#   DEVELOP_ID_CERT                  base64 of the Developer ID .p12
+#   DEVELOP_ID_CERT_PWD              its export password
+#   DEVELOPER_ID_CODE_SIGN_IDENTITY  the identity string codesign selects
+#   ASC_API_KEY_P8                   contents of the App Store Connect .p8
+#   ASC_KEY_ID / ASC_ISSUER_ID       its key id and issuer uuid
+# Once this flow is verified, these repository secrets can be deleted:
+#   APPLE_DEVELOPER_ID, APPLE_DEVELOPER_TEAM_ID, APPLE_DEVELOPER_ID_SECRET
+#     -- replaced by the App Store Connect API key above;
+#   DEVELOPER_ID_PROVISIONING_PROFILE_DATA, DEVELOPER_ID_PROVISIONING_PROFILE_UUID
+#     -- the Developer ID entitlements are hardened-runtime exceptions only and
+#        need no provisioning profile.
+# GPGFRONTEND_XCODE_TEAM_ID and the MAS_* secrets stay: mas-sandbox.yml uses them.
 
 name: Build
 
@@ -53,6 +86,10 @@ on:
           - nightly
           - release
 
+# Least privilege by default; only the release job is granted contents: write.
+permissions:
+  contents: read
+
 env:
   BUILD_TYPE: RelWithDebInfo
   GNUPG_VERSION: "2.5.21"
@@ -61,16 +98,10 @@ jobs:
   build:
     strategy:
       matrix:
-        os:
-          [
-            "ubuntu-22.04",
-            "ubuntu-24.04-arm",
-            "macos-15-intel",
-            "macos-15",
-            "macos-26-intel",
-            "macos-26",
-            "windows-2022",
-          ]
+        # macOS is built and signed by the separate build-macos / sign-macos
+        # jobs below, so that the Developer ID key never shares a runner with a
+        # compiler, a package manager or a third-party build action.
+        os: ["ubuntu-22.04", "ubuntu-24.04-arm", "windows-2022"]
         # Portable vs installed is a compile-time decision
         # (GPGFRONTEND_BUILD_PORTABLE decides where the profile, and with it the
         # user's keys, lives), so each flavour needs its own configure + build.
@@ -78,34 +109,28 @@ jobs:
         # headers land in the source tree, so two flavours cannot share one
         # checkout.
         flavor: ["installed", "portable"]
-        exclude:
-          # macOS ships as a signed, notarized .app bundle installed to
-          # /Applications; a portable bundle has no meaning there (and the App
-          # Store / sandbox variants forbid it outright).
-          - os: "macos-15-intel"
-            flavor: "portable"
-          - os: "macos-15"
-            flavor: "portable"
-          - os: "macos-26-intel"
-            flavor: "portable"
-          - os: "macos-26"
-            flavor: "portable"
     runs-on: ${{ matrix.os }}
     continue-on-error: true
+    permissions:
+      contents: read
     steps:
-      - name: Set git to use LF(Windows) or CRLF(MacOS) line endings
+      - name: Set git to use LF line endings (Windows)
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
-        if: runner.os == 'Windows'  || runner.os == 'macOS'
+        if: runner.os == 'Windows'
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           lfs: "false"
           submodules: recursive
 
       - name: Setup Build Mode
         shell: bash
+        env:
+          # Read through an env var rather than interpolated into the script:
+          # an expression expanded inside `run:` is textual substitution.
+          BUILD_MODE_INPUT: ${{ github.event.inputs.build_mode }}
         run: |
           echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
@@ -113,8 +138,8 @@ jobs:
           # ("ubuntu-24.04-arm") is the wrong thing to publish: the build host's
           # distro is not what an AppImage runs on, and the "-arm" suffix would
           # read "arm-aarch64" next to the architecture. Just say "linux" — the
-          # architecture already keeps the two images apart. Windows and macOS
-          # keep their runner label.
+          # architecture already keeps the two images apart. Windows keeps its
+          # runner label.
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             echo "OS_IDENTIFIER=linux" >> $GITHUB_ENV
           else
@@ -139,7 +164,7 @@ jobs:
           #   - a pull request      -> PR validation build
           #   - workflow_dispatch   -> honour the chosen input
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            BUILD_MODE="${{ github.event.inputs.build_mode }}"
+            BUILD_MODE="${BUILD_MODE_INPUT}"
             if [[ "${BUILD_MODE}" == "release" ]]; then
               BUILD_TYPE_EFFECTIVE="Release"
             else
@@ -172,15 +197,13 @@ jobs:
           echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE_EFFECTIVE} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
           echo "SANDBOX_CMAKE_FLAG=" >> $GITHUB_ENV
-          echo "CODE_SIGNING_IDENTITY=${{secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
-          echo "PROVISIONING_PROFILE_UUID=${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_UUID}}" >> $GITHUB_ENV
 
           echo "Build mode: ${BUILD_MODE}"
           echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
           echo "Build flavor: ${{ matrix.flavor }}"
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2.20
         with:
           key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.flavor }}-${{ env.BUILD_TYPE }}
 
@@ -200,43 +223,17 @@ jobs:
           sudo apt-get -y install libsecret-1-0
         if: runner.os == 'Linux'
 
-      - name: Codesign Configuration (macOS)
-        run: |
-          APP_CERT_PATH=$RUNNER_TEMP/app_certificate.p12
-
-          PP_PATH=$RUNNER_TEMP/${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_UUID}}.provisionprofile
-          echo -n "${{secrets.DEVELOPER_ID_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-
-          # Import the certificates and provisioning profile into the keychain
-          echo -n "${{secrets.DEVELOP_ID_CERT}}" | base64 --decode -o $APP_CERT_PATH
-
-          security create-keychain -p gpgfrontend build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p gpgfrontend build.keychain
-          security import $APP_CERT_PATH -k build.keychain -P ${{secrets.DEVELOP_ID_CERT_PWD}} -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
-          security set-keychain-settings -lut 3600
-
-          PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
-          mkdir -p "$PROFILE_DIR"
-          cp "$PP_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile"
-        if: runner.os == 'macOS'
 
       - name: Install Qt6
-        uses: jurplel/install-qt-action@v4
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
         with:
           version: "6.10.3"
           cache: "true"
-        if: runner.os == 'Linux' || runner.os == 'macOS'
+        if: runner.os == 'Linux'
 
-      - name: Install Dependence (macOS)
-        run: |
-          brew install --formula automake texinfo libarchive googletest create-dmg libsodium
-        if: runner.os == 'macOS'
 
       - name: Set up MinGW (Windows)
-        uses: msys2/setup-msys2@v2
+        uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
         id: msys2
         with:
           update: false
@@ -266,24 +263,28 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        if: runner.os == 'Linux' || runner.os == 'macOS'
+        # Pinned to a SHA, so the @stable ref name no longer selects the
+        # toolchain; say it explicitly instead.
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
+        with:
+          toolchain: stable
+        if: runner.os == 'Linux'
 
       # The Rust crate does not see the portable flag, so both flavours produce
       # the same cargo output and deliberately share one cache entry.
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: |
             rust -> build/cargo
           shared-key: rust-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
           cache-on-failure: true
-        if: runner.os == 'Linux' || runner.os == 'macOS'
+        if: runner.os == 'Linux'
 
       # rust-cache cannot locate the msys2/mingw cargo, so cache the registry and
       # Corrosion's target dir directly for the Windows build.
       - name: Cache Cargo (Windows)
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
             ~/.cargo/registry/index
@@ -295,26 +296,6 @@ jobs:
             cargo-win-${{ matrix.os }}-${{ env.BUILD_TYPE }}-
         if: runner.os == 'Windows'
 
-      - name: Build GpgME (macOS)
-        run: |
-          cd ${{github.workspace}}/third_party/gpgme
-          export CC="ccache gcc"
-          export CXX="ccache g++"
-          ./autogen.sh
-          mkdir -p build && cd build
-          ../configure --enable-static \
-          --disable-shared \
-          --enable-silent-rules \
-          --disable-dependency-tracking \
-          --enable-languages=cl \
-          --disable-gpgconf-test \
-          --disable-gpg-test \
-          --disable-gpgsm-test \
-          --disable-g13-test
-          make -j$(sysctl -n hw.logicalcpu)
-          sudo make install
-          ccache -s
-        if: runner.os == 'macOS'
 
       - name: Build GpgME (Windows)
         shell: msys2 {0}
@@ -343,7 +324,7 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Cache googletest (Linux)
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ${{github.workspace}}/third_party/googletest
           key: gtest-${{ matrix.os }}-v1.15.2
@@ -368,99 +349,9 @@ jobs:
           sudo ninja install
         if: runner.os == 'Linux'
 
-      - name: Build GpgFrontend (macOS)
-        run: |
-          MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
-          MACOS_MINOR=$(sw_vers -productVersion | cut -d. -f2)
 
-          if [[ "$MACOS_MAJOR" == "13" ]]; then
-            DEPLOY_TARGET="13.0"
-          elif [[ "$MACOS_MAJOR" == "14" ]]; then
-            DEPLOY_TARGET="14.0"
-          elif [[ "$MACOS_MAJOR" == "15" ]]; then
-            DEPLOY_TARGET="15.0"
-          elif [[ "$MACOS_MAJOR" == "26" ]]; then
-            DEPLOY_TARGET="26.0"
-          else
-            DEPLOY_TARGET="${MACOS_MAJOR}.${MACOS_MINOR}"
-          fi
 
-          echo "Set MacOS Deployment Target: $DEPLOY_TARGET"
 
-          cmake -B ${{github.workspace}}/build -G Xcode \
-            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=${DEPLOY_TARGET} \
-            -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}" \
-            -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
-            -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{env.PROVISIONING_PROFILE_UUID}}" \
-            -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
-            -DGPGFRONTEND_BUILD_PORTABLE=OFF \
-            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
-
-          xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
-
-          echo "CODE_SIGNING_IDENTITY=${{env.CODE_SIGNING_IDENTITY}}"
-          echo "PROFILE_UUID=${{env.PROVISIONING_PROFILE_UUID}}"
-          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
-          security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile" | plutil -p -
-          security find-identity -v -p codesigning
-
-          cd ${{github.workspace}}/build/
-          xcodebuild -project ${{github.workspace}}/build/GpgFrontend.xcodeproj \
-            -scheme GpgFrontend \
-            -configuration "${{env.BUILD_TYPE}}" \
-            -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
-            archive \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
-            CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}"
-          mkdir ${{github.workspace}}/build/package
-
-          xcodebuild -exportArchive -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
-            -exportOptionsPlist ${{github.workspace}}/build/ExportOptions.plist \
-            -exportPath ${{github.workspace}}/build/package/
-        if: runner.os == 'macOS'
-
-      - name: Deploy Qt & Code Sign (macOS)
-        run: |
-          # Use macdeployqt to deploy the Qt frameworks and plugins, and sign
-          # the app bundle in one step.
-          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app \
-            -verbose=2 \
-            -always-overwrite \
-            -codesign="${{env.CODE_SIGNING_IDENTITY}}"
-
-          # Sign the app bundle with the specified identity and provisioning profile.
-          codesign -s "${{env.CODE_SIGNING_IDENTITY}}" \
-            -f --deep --options=runtime --timestamp \
-            ${{github.workspace}}/build/package/GpgFrontend.app
-
-          codesign --verify --deep --strict --verbose=4 \
-            ${{github.workspace}}/build/package/GpgFrontend.app
-        if: runner.os == 'macOS'
-
-      - name: Package & Sign App Bundle (macOS)
-        run: |
-          security -v unlock-keychain -p gpgfrontend
-          ditto -c -k --keepParent ${{github.workspace}}/build/package/GpgFrontend.app ${{github.workspace}}/build/GpgFrontend.app.zip
-          hdiutil create ${{github.workspace}}/build/tmp.dmg -ov \
-            -volname "GpgFrontend" -fs HFS+ -srcfolder ${{github.workspace}}/build/package/
-          mkdir ${{github.workspace}}/build/upload-artifact
-          create-dmg --codesign "${{secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY}}" --volicon "${{github.workspace}}/resource/lfs/icns/GpgFrontend.icns" --volname GpgFrontend --app-drop-link 600 185 --window-size 800 400 ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg ${{github.workspace}}/build/package/GpgFrontend.app
-          mv ${{github.workspace}}/build/upload-artifact/GpgFrontend.dmg \
-            ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.dmg
-          mv ${{github.workspace}}/build/GpgFrontend.app.zip \
-            ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.zip
-        if: runner.os == 'macOS'
-
-      - name: Notarize macOS Build (macOS)
-        run: |
-          xcrun notarytool submit \
-          --apple-id ${{secrets.APPLE_DEVELOPER_ID}} \
-          --team-id ${{secrets.APPLE_DEVELOPER_TEAM_ID}} \
-          --password ${{secrets.APPLE_DEVELOPER_ID_SECRET}} \
-          ${{github.workspace}}/build/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.zip
-        if: runner.os == 'macOS'
 
       - name: Build GpgFrontend (Linux)
         run: |
@@ -749,35 +640,674 @@ jobs:
         if: runner.os == 'Windows' && matrix.flavor == 'installed'
 
       - name: Upload Artifact (Linux)
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/GpgFrontend-*.AppImage*
         if: runner.os == 'Linux'
 
-      - name: Upload Artifact (macOS)
-        uses: actions/upload-artifact@v7
-        with:
-          name: gpgfrontend-${{env.OS_IDENTIFIER}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: ${{github.workspace}}/build/upload-artifact/*
-        if: runner.os == 'macOS'
 
       - name: Upload Artifact (Windows)
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
           path: ${{github.workspace}}/build/upload-artifact/*
         if: runner.os == 'Windows'
 
+  # Compiles and deploys the macOS bundle. Deliberately holds no secrets: the
+  # Developer ID key must never share a runner with brew, cargo build scripts,
+  # recursive submodules or third-party build actions. The bundle leaves here
+  # unsigned and is signed by sign-macos below.
+  build-macos:
+    strategy:
+      matrix:
+        # macOS ships only the installed flavour: the app is a notarized bundle
+        # in /Applications, so a portable layout has no meaning there.
+        os: ["macos-15-intel", "macos-15", "macos-26-intel", "macos-26"]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    steps:
+      - name: Set git to use LF line endings
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+          submodules: recursive
+
+      - name: Setup Build Mode
+        shell: bash
+        env:
+          # Read through an env var rather than interpolated into the script:
+          # an expression expanded inside `run:` is textual substitution.
+          BUILD_MODE_INPUT: ${{ github.event.inputs.build_mode }}
+        run: |
+          # Single-branch (trunk + tags) model:
+          #   - a version tag (v*)  -> stable release build
+          #   - a push to main      -> nightly build
+          #   - a pull request      -> PR validation build
+          #   - workflow_dispatch   -> honour the chosen input
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            BUILD_MODE="${BUILD_MODE_INPUT}"
+            if [[ "${BUILD_MODE}" == "release" ]]; then
+              BUILD_TYPE_EFFECTIVE="Release"
+            else
+              BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+            fi
+
+          elif [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            BUILD_MODE="pr"
+            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+
+          elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            BUILD_MODE="release"
+            BUILD_TYPE_EFFECTIVE="Release"
+
+          else
+            BUILD_MODE="nightly"
+            BUILD_TYPE_EFFECTIVE="RelWithDebInfo"
+          fi
+
+          # Stable release builds drop the "Testing" suffix from the app name.
+          if [[ "${BUILD_MODE}" == "release" ]]; then
+            GPGFRONTEND_BUILD_STABLE="ON"
+          else
+            GPGFRONTEND_BUILD_STABLE="OFF"
+          fi
+
+          {
+            echo "BUILD_MODE=${BUILD_MODE}"
+            echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}"
+            echo "GPGFRONTEND_BUILD_STABLE=${GPGFRONTEND_BUILD_STABLE}"
+          } >> "$GITHUB_ENV"
+
+          echo "Build mode: ${BUILD_MODE}"
+          echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2.20
+        with:
+          key: ${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
+
+      - name: Install Qt6
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
+        with:
+          version: "6.10.3"
+          cache: "true"
+
+      - name: Install Dependence
+        run: |
+          brew install --formula automake texinfo libarchive googletest libsodium
+
+      - name: Install Rust
+        # Pinned to a SHA, so the @stable ref name no longer selects the
+        # toolchain; say it explicitly instead.
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
+        with:
+          toolchain: stable
+
+      - name: Cache Cargo
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: |
+            rust -> build/cargo
+          shared-key: rust-${{ runner.os }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
+          cache-on-failure: true
+
+      - name: Build GpgME
+        run: |
+          cd ${{github.workspace}}/third_party/gpgme
+          export CC="ccache gcc"
+          export CXX="ccache g++"
+          ./autogen.sh
+          mkdir -p build && cd build
+          ../configure --enable-static \
+          --disable-shared \
+          --enable-silent-rules \
+          --disable-dependency-tracking \
+          --enable-languages=cl \
+          --disable-gpgconf-test \
+          --disable-gpg-test \
+          --disable-gpgsm-test \
+          --disable-g13-test
+          make -j"$(sysctl -n hw.logicalcpu)"
+          sudo make install
+          ccache -s
+
+      - name: Build GpgFrontend
+        run: |
+          MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
+          MACOS_MINOR=$(sw_vers -productVersion | cut -d. -f2)
+
+          if [[ "$MACOS_MAJOR" == "13" ]]; then
+            DEPLOY_TARGET="13.0"
+          elif [[ "$MACOS_MAJOR" == "14" ]]; then
+            DEPLOY_TARGET="14.0"
+          elif [[ "$MACOS_MAJOR" == "15" ]]; then
+            DEPLOY_TARGET="15.0"
+          elif [[ "$MACOS_MAJOR" == "26" ]]; then
+            DEPLOY_TARGET="26.0"
+          else
+            DEPLOY_TARGET="${MACOS_MAJOR}.${MACOS_MINOR}"
+          fi
+
+          echo "Set MacOS Deployment Target: $DEPLOY_TARGET"
+
+          # No signing identity, team id or provisioning profile is passed: this
+          # job has none, by design. The bundle is signed in sign-macos.
+          cmake -B ${{github.workspace}}/build -G Xcode \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET="${DEPLOY_TARGET}" \
+            -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
+            -DGPGFRONTEND_BUILD_PORTABLE=OFF \
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
+
+          # DEVELOPMENT_TEAM and PROVISIONING_PROFILE_SPECIFIER are cleared as
+          # well as the identity: src/CMakeLists.txt bakes a profile specifier
+          # into the project, and Xcode would otherwise try to resolve a profile
+          # this job has no business holding.
+          cd ${{github.workspace}}/build/
+          xcodebuild -project ${{github.workspace}}/build/GpgFrontend.xcodeproj \
+            -scheme GpgFrontend \
+            -configuration "${{env.BUILD_TYPE}}" \
+            -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
+            archive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER=""
+
+          # Skip -exportArchive: the generated ExportOptions.plist is
+          # method=developer-id with signingStyle=manual, so exporting demands a
+          # Developer ID identity in the keychain. Copy the app out of the
+          # archive instead, exactly as mas-sandbox.yml does.
+          mkdir -p ${{github.workspace}}/build/package
+          cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app \
+            ${{github.workspace}}/build/package/
+
+      - name: Deploy Qt
+        run: |
+          # No -codesign=: macdeployqt only ever signed what it copied itself.
+          # sign-macos signs every code object explicitly, inside out.
+          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app \
+            -verbose=2 \
+            -always-overwrite
+
+      - name: Inventory Bundle Code Objects
+        run: |
+          set -euo pipefail
+          APP="${{github.workspace}}/build/package/GpgFrontend.app"
+
+          # This listing is the ground truth that sign-macos's explicit signer
+          # has to match. Read it whenever the bundle layout could have moved:
+          # every object below must map to a deliberate rule over there.
+          echo "--- nested bundles ---"
+          find "$APP/Contents" -type d \
+            \( -name '*.framework' -o -name '*.app' -o -name '*.appex' \
+               -o -name '*.xpc' -o -name '*.bundle' -o -name '*.systemextension' \
+               -o -name '*.pluginkit' \)
+
+          echo "--- Mach-O files and their signature state as built ---"
+          # CODE_SIGNING_ALLOWED=NO leaves the Xcode products bare, while
+          # macdeployqt ad-hoc signs some of what it copies even without
+          # -codesign. Record which is which.
+          find "$APP/Contents" -type f | while IFS= read -r f; do
+            if file -b "$f" | grep -q 'Mach-O'; then
+              state=$(codesign -dv "$f" 2>&1 | sed -n 's/^Signature=/sig:/p' | tr '\n' ' ')
+              printf '%-24s %s\n' "${state:-unsigned}" "$f"
+            fi
+          done
+
+      - name: Stage Unsigned Payload
+        run: |
+          set -euo pipefail
+          mkdir -p ${{github.workspace}}/build/unsigned
+          # ditto, not zip: it is the only archiver that round-trips a bundle's
+          # symlinks and permission bits through actions/upload-artifact intact.
+          #
+          # The app and nothing else. sign-macos is forbidden to take
+          # configuration, environment or signing policy from this artifact, so
+          # none is sent -- no build-info file, no entitlements, no icon.
+          ditto -c -k --keepParent \
+            ${{github.workspace}}/build/package/GpgFrontend.app \
+            ${{github.workspace}}/build/unsigned/GpgFrontend.app.zip
+
+      - name: Upload Unsigned Artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          # NOT "gpgfrontend-*": that is the pattern the release job downloads,
+          # and an unsigned bundle must never reach a release.
+          name: unsigned-macos-app-${{ matrix.os }}
+          path: ${{github.workspace}}/build/unsigned/GpgFrontend.app.zip
+          retention-days: 5
+
+  # Holds the Apple credentials and nothing else. No checkout, no package
+  # manager, no compiler, no Qt, no cargo, no cmake -- only Apple's own tools
+  # plus the two artifact actions. The downloaded bundle is untrusted payload:
+  # it is unpacked, inspected and signed, never sourced, evaluated, executed, or
+  # consulted for configuration or signing policy.
+  sign-macos:
+    needs: build-macos
+    # Two independent gates on which refs may ever request the signing key: this
+    # condition, and the deployment branch rule on the environment below. Never
+    # a pull request, never a branch other than main, never a non-v tag.
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    strategy:
+      matrix:
+        os: ["macos-15-intel", "macos-15", "macos-26-intel", "macos-26"]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    # All Apple signing material lives in this environment, not in repository
+    # secrets. Maintainer: configure its deployment branch rule to allow only
+    # `main` and tags matching `v*`, as defence in depth behind the `if:` above.
+    environment: macos-signing
+    steps:
+      - name: Resolve Artifact Metadata
+        id: meta
+        env:
+          # github.ref_type == 'tag' covers v* pushes; the dispatch input covers
+          # a manual release build. Pull requests never reach this job.
+          BUILD_TYPE_LOWER: ${{ (github.ref_type == 'tag' || github.event.inputs.build_mode == 'release') && 'release' || 'relwithdebinfo' }}
+        run: |
+          set -euo pipefail
+          # Every name this job produces comes from GitHub context and runner
+          # variables. Nothing is read back out of the downloaded artifact:
+          # that would let the build side steer the privileged job. GITHUB_SHA
+          # is set by the runner; eight hex digits is what `git rev-parse
+          # --short HEAD` abbreviates to in this repository, so the macOS names
+          # line up with the Linux and Windows artifacts.
+          {
+            echo "short_sha=${GITHUB_SHA:0:8}"
+            echo "build_type_lower=${BUILD_TYPE_LOWER}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Download Unsigned Bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: unsigned-macos-app-${{ matrix.os }}
+          path: ${{ runner.temp }}/unsigned
+
+      - name: Unpack Unsigned Bundle
+        run: |
+          set -euo pipefail
+          ditto -x -k "$RUNNER_TEMP/unsigned/GpgFrontend.app.zip" "$RUNNER_TEMP/app"
+          test -d "$RUNNER_TEMP/app/GpgFrontend.app"
+
+      - name: Write Signing Policy And Helpers
+        run: |
+          set -euo pipefail
+
+          # --- Entitlement policy -------------------------------------------
+          # A verbatim copy of resource/entitlements/Normal.entitlements, and
+          # deliberately a copy: reading it from the build artifact would let a
+          # compromised build job pick its own entitlements and then verify them
+          # against its own choice. Keep the two in sync by hand.
+          cat > "$RUNNER_TEMP/entitlements.plist" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>com.apple.security.cs.disable-library-validation</key>
+              <true/>
+
+              <key>com.apple.security.cs.allow-jit</key>
+              <true/>
+
+              <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+              <true/>
+          </dict>
+          </plist>
+          PLIST
+
+          # --- Explicit inside-out signer ------------------------------------
+          # A `run:` step is its own shell process, so a function defined in one
+          # step is invisible in the next; the helpers go on disk instead. The
+          # heredocs are quoted, so nothing expands at write time and no secret
+          # ever lands in a script file -- they read credentials from the
+          # environment of the step that calls them.
+          cat > "$RUNNER_TEMP/sign-bundle.sh" <<'SH'
+          #!/bin/bash
+          set -euo pipefail
+          APP="$1"
+          ENTITLEMENTS="$2"
+          : "${IDENTITY:?IDENTITY must be set}"
+
+          sign_inner() {   # nested code: hardened runtime, never entitlements
+            codesign --force --timestamp --options=runtime --sign "$IDENTITY" "$1"
+          }
+
+          # Gate: fail closed on any executable bundle type this script does not
+          # handle deliberately. Two nets -- known bundle suffixes, and the
+          # structural giveaway of a Contents/MacOS directory anywhere but the
+          # app root. This is what stops the loose Mach-O pass from signing the
+          # executable inside an unknown bundle while leaving that bundle
+          # unsigned. If GpgFrontend ever gains an XPC service, an appex, a
+          # helper app or a plugin bundle, its signing and entitlements get
+          # added here on purpose.
+          UNEXPECTED="$(mktemp)"
+          {
+            find "$APP/Contents" -type d \
+              \( -name '*.app' -o -name '*.appex' -o -name '*.xpc' \
+                 -o -name '*.bundle' -o -name '*.systemextension' \
+                 -o -name '*.pluginkit' -o -name '*.qlgenerator' \)
+            find "$APP/Contents" -type d -name 'MacOS' ! -path "$APP/Contents/MacOS"
+          } > "$UNEXPECTED"
+          if [ -s "$UNEXPECTED" ]; then
+            echo "unexpected nested code bundle(s); extend sign-bundle.sh deliberately:" >&2
+            cat "$UNEXPECTED" >&2
+            exit 1
+          fi
+          rm -f "$UNEXPECTED"
+
+          # Pass 1: loose Mach-O files outside any framework -- the gf_* dylibs
+          # Xcode embeds via XCODE_EMBED_FRAMEWORKS, the gf_mod_* modules from
+          # XCODE_EMBED_PLUGINS, and every Qt plugin and third-party dylib
+          # macdeployqt copied in.
+          #
+          # NB: `[ x ] && continue` would abort the loop under `set -e` whenever
+          # the test is false, so the skips are written as full if-blocks.
+          find "$APP/Contents" -type f ! -path '*.framework/*' | while IFS= read -r f; do
+            if [ "$f" = "$APP/Contents/MacOS/GpgFrontend" ]; then
+              continue
+            fi
+            if file -b "$f" | grep -q 'Mach-O'; then
+              sign_inner "$f"
+            fi
+          done
+
+          # Pass 2: framework bundles, signed at the .framework path. The
+          # Versions/A plus symlink layout is the normal shape of a macOS
+          # framework, not a reason to sign a subdirectory. Nested code a
+          # framework carries of its own is signed first; its own principal
+          # executable is not signed separately, because the bundle signature
+          # is what covers it.
+          sign_framework() {
+            fw="$1"
+            name="$(basename "$fw" .framework)"
+            find "$fw" -type f | while IFS= read -r f; do
+              case "$f" in
+                "$fw"/*.framework/*) continue ;;       # deeper framework, done
+                "$fw"/Versions/*/"$name") continue ;;  # versioned framework binary
+                "$fw"/"$name") continue ;;             # flat framework binary
+              esac
+              if file -b "$f" | grep -q 'Mach-O'; then
+                sign_inner "$f"
+              fi
+            done
+            sign_inner "$fw"
+          }
+
+          # -d walks depth first, so an inner framework is fully signed before
+          # the one that contains it.
+          find -d "$APP/Contents" -type d -name '*.framework' | while IFS= read -r fw; do
+            sign_framework "$fw"
+          done
+
+          # Pass 3: the application itself, last, and the only thing that gets
+          # entitlements.
+          codesign --force --timestamp --options=runtime \
+            --entitlements "$ENTITLEMENTS" --sign "$IDENTITY" "$APP"
+          SH
+
+          # --- Notarization ---------------------------------------------------
+          # Submits and gates on Accepted. It deliberately does not staple:
+          # stapler cannot staple a .zip (that is only a transport for
+          # notarytool), so stapling belongs at the call sites, which know
+          # whether they hold a bundle or a disk image.
+          cat > "$RUNNER_TEMP/notarize.sh" <<'SH'
+          #!/bin/bash
+          set -euo pipefail
+          TARGET="$1"
+          : "${ASC_API_KEY_P8:?}" "${ASC_KEY_ID:?}" "${ASC_ISSUER_ID:?}"
+
+          KEY_PATH="$RUNNER_TEMP/asc_api_key.p8"
+          RESULT="$RUNNER_TEMP/notary-result.json"
+          # The key exists on disk only for the length of this one invocation.
+          trap 'rm -f "$KEY_PATH"' EXIT
+          umask 077
+          printf '%s\n' "$ASC_API_KEY_P8" > "$KEY_PATH"
+
+          xcrun notarytool submit "$TARGET" \
+            --key "$KEY_PATH" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" \
+            --wait --output-format json > "$RESULT"
+
+          # --wait exits 0 even when the verdict is Invalid, so read the verdict
+          # back explicitly rather than trusting the exit status.
+          STATUS="$(plutil -extract status raw -o - "$RESULT")"
+          if [ "$STATUS" != "Accepted" ]; then
+            SUBMISSION_ID="$(plutil -extract id raw -o - "$RESULT")"
+            echo "notarization of $(basename "$TARGET") returned: $STATUS" >&2
+            xcrun notarytool log "$SUBMISSION_ID" \
+              --key "$KEY_PATH" --key-id "$ASC_KEY_ID" --issuer "$ASC_ISSUER_ID" >&2 || true
+            exit 1
+          fi
+          echo "notarization accepted: $(basename "$TARGET")"
+          SH
+
+          # --- Entitlement equality check -------------------------------------
+          cat > "$RUNNER_TEMP/check-entitlements.py" <<'PY'
+          #!/usr/bin/env python3
+          """Assert the signed bundle carries exactly the entitlements we asked for."""
+          import plistlib
+          import sys
+
+          expected_path, actual_path = sys.argv[1], sys.argv[2]
+          with open(expected_path, "rb") as f:
+              expected = plistlib.load(f)
+          with open(actual_path, "rb") as f:
+              actual = plistlib.load(f)
+
+          if expected == actual:
+              print("entitlements match policy (%d keys)" % len(expected))
+              sys.exit(0)
+
+          for k in sorted(set(expected) - set(actual)):
+              print("missing entitlement:    %s = %r" % (k, expected[k]), file=sys.stderr)
+          for k in sorted(set(actual) - set(expected)):
+              print("unexpected entitlement: %s = %r" % (k, actual[k]), file=sys.stderr)
+          for k in sorted(set(expected) & set(actual)):
+              if expected[k] != actual[k]:
+                  print("changed entitlement:    %s: expected %r, got %r"
+                        % (k, expected[k], actual[k]), file=sys.stderr)
+          sys.exit(1)
+          PY
+
+          chmod 700 "$RUNNER_TEMP/sign-bundle.sh" "$RUNNER_TEMP/notarize.sh"
+
+      - name: Prepare Signing Keychain
+        env:
+          DEVELOP_ID_CERT: ${{ secrets.DEVELOP_ID_CERT }}
+          DEVELOP_ID_CERT_PWD: ${{ secrets.DEVELOP_ID_CERT_PWD }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          # Random per run: a hardcoded keychain password is a credential
+          # checked into the repository.
+          KEYCHAIN_PWD="$(openssl rand -hex 24)"
+          CERT_PATH="$RUNNER_TEMP/certificate.p12"
+
+          umask 077
+          printf '%s' "$DEVELOP_ID_CERT" | base64 --decode -o "$CERT_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 3600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -k "$KEYCHAIN_PATH" \
+            -P "$DEVELOP_ID_CERT_PWD" -t cert -f pkcs12 -T /usr/bin/codesign
+          # The private key is in the keychain now; the file is not needed again.
+          rm -f "$CERT_PATH"
+
+          # Without this codesign blocks on a UI prompt no runner can answer.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PWD" "$KEYCHAIN_PATH" > /dev/null
+
+          # Prepend rather than replace: the Apple intermediate CAs live in the
+          # system keychain and codesign must still find them. `security
+          # list-keychains` prints one indented, double-quoted path per line;
+          # strip only the indent and the two surrounding quotes, and collect
+          # into the positional parameters (macOS bash is 3.2, no mapfile). A
+          # here-doc rather than a pipe, so `set --` runs in this shell.
+          set --
+          while IFS= read -r line; do
+            kc=$(printf '%s\n' "$line" | sed -e 's/^[[:space:]]*"//' -e 's/"[[:space:]]*$//')
+            if [ -n "$kc" ]; then
+              set -- "$@" "$kc"
+            fi
+          done <<EOF
+          $(security list-keychains -d user)
+          EOF
+          security list-keychains -d user -s "$KEYCHAIN_PATH" "$@"
+
+          # The keychain stays unlocked and in the search list, so no later step
+          # needs the password -- which is why it never leaves this step.
+
+      - name: Sign Application
+        env:
+          IDENTITY: ${{ secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY }}
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/sign-bundle.sh" "$RUNNER_TEMP/app/GpgFrontend.app" \
+            "$RUNNER_TEMP/entitlements.plist"
+          # --deep survives here for verification only, where recursing over
+          # everything is exactly what is wanted. It never signs.
+          codesign --verify --deep --strict --verbose=4 \
+            "$RUNNER_TEMP/app/GpgFrontend.app"
+
+      - name: Verify Embedded Entitlements
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/app/GpgFrontend.app"
+
+          codesign -d --entitlements - --xml "$APP" \
+            > "$RUNNER_TEMP/actual.entitlements" 2>/dev/null
+          # Equality in both directions: an entitlement that appears only in the
+          # signed result is as much a defect as a missing one.
+          python3 "$RUNNER_TEMP/check-entitlements.py" \
+            "$RUNNER_TEMP/entitlements.plist" "$RUNNER_TEMP/actual.entitlements"
+
+          # Entitlements are inert without the hardened runtime, and that is a
+          # property of the signature, not of the entitlement dictionary.
+          if ! codesign -d --verbose=2 "$APP" 2>&1 | grep -q 'flags=.*runtime'; then
+            echo "hardened runtime is not enabled on the signed app" >&2
+            exit 1
+          fi
+
+      - name: Notarize And Staple Application
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+          OS_IDENTIFIER: ${{ matrix.os }}
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/upload-artifact"
+          mkdir -p "$OUT"
+
+          # notarytool only accepts an archive, so the bundle travels as a
+          # throwaway zip; the ticket is issued against the bundle, so the
+          # bundle is what gets stapled.
+          ditto -c -k --keepParent "$RUNNER_TEMP/app/GpgFrontend.app" \
+            "$RUNNER_TEMP/notarize-app.zip"
+          "$RUNNER_TEMP/notarize.sh" "$RUNNER_TEMP/notarize-app.zip"
+          xcrun stapler staple "$RUNNER_TEMP/app/GpgFrontend.app"
+          xcrun stapler validate "$RUNNER_TEMP/app/GpgFrontend.app"
+          rm -f "$RUNNER_TEMP/notarize-app.zip"
+
+          # Cut from the already-stapled bundle, so the published zip carries a
+          # ticket and works with no network on first launch.
+          ditto -c -k --keepParent "$RUNNER_TEMP/app/GpgFrontend.app" \
+            "$OUT/GpgFrontend-${OS_IDENTIFIER}-${SHORT_SHA}.zip"
+
+      - name: Build Notarize And Staple Disk Image
+        env:
+          IDENTITY: ${{ secrets.DEVELOPER_ID_CODE_SIGN_IDENTITY }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+          OS_IDENTIFIER: ${{ matrix.os }}
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/upload-artifact"
+          DMG="$OUT/GpgFrontend-${OS_IDENTIFIER}-${SHORT_SHA}.dmg"
+
+          # hdiutil rather than create-dmg: this job runs Apple tooling only.
+          # The /Applications symlink keeps the drag-to-install gesture; the
+          # custom volume icon and window layout create-dmg used to draw are
+          # gone, deliberately -- the icon would have to come from the untrusted
+          # build artifact.
+          STAGE="$RUNNER_TEMP/dmg-root"
+          mkdir -p "$STAGE"
+          ditto "$RUNNER_TEMP/app/GpgFrontend.app" "$STAGE/GpgFrontend.app"
+          ln -s /Applications "$STAGE/Applications"
+          hdiutil create -format UDZO -volname GpgFrontend -srcfolder "$STAGE" -ov "$DMG"
+
+          codesign --force --timestamp --sign "$IDENTITY" "$DMG"
+          "$RUNNER_TEMP/notarize.sh" "$DMG"
+          xcrun stapler staple "$DMG"
+          xcrun stapler validate "$DMG"
+
+      - name: Assess With Gatekeeper
+        env:
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+          OS_IDENTIFIER: ${{ matrix.os }}
+        run: |
+          set -euo pipefail
+          # The acceptance test: what macOS itself decides about the finished
+          # deliverables, not just what codesign says about their structure.
+          # --type execute is the assessment performed when the app is launched.
+          spctl --assess --type execute --verbose=4 \
+            "$RUNNER_TEMP/app/GpgFrontend.app"
+          # --type open with the primary-signature context is what Finder
+          # performs when the downloaded disk image is mounted.
+          spctl --assess --type open --context context:primary-signature --verbose=4 \
+            "$RUNNER_TEMP/upload-artifact/GpgFrontend-${OS_IDENTIFIER}-${SHORT_SHA}.dmg"
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gpgfrontend-${{ matrix.os }}-installed-${{ steps.meta.outputs.build_type_lower }}-${{ steps.meta.outputs.short_sha }}
+          path: ${{ runner.temp }}/upload-artifact/*
+
+      - name: Clean Up Signing Material
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" || true
+          rm -f "$RUNNER_TEMP/asc_api_key.p8" \
+                "$RUNNER_TEMP/certificate.p12" \
+                "$RUNNER_TEMP/sign-bundle.sh" \
+                "$RUNNER_TEMP/notarize.sh" \
+                "$RUNNER_TEMP/check-entitlements.py" \
+                "$RUNNER_TEMP/notary-result.json"
+
   release:
-    needs: build
+    needs: [build, sign-macos]
     runs-on: ubuntu-latest
     # Only publish the rolling nightly release from pushes to the main branch.
     # Stable releases (version tags) are packaged manually/offline.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    #
+    # sign-macos runs on every non-PR event whose ref is main or a v* tag, so it
+    # is never skipped in a run where this job is eligible -- adding it to
+    # `needs` propagates no skip. The explicit result check states the intent
+    # anyway: a nightly is never published off a signing job that failed, was
+    # cancelled, or did not run.
+    if: >-
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      needs.sign-macos.result == 'success'
     environment: nightly-release-approval
+    permissions:
+      # Deletes and re-creates the nightly tag and its release.
+      contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           lfs: "false"
           submodules: recursive
@@ -792,7 +1322,7 @@ jobs:
           git push origin nightly --force
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: artifacts/
           pattern: gpgfrontend-*
@@ -818,7 +1348,7 @@ jobs:
         run: echo "title=Nightly Build $(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
       - name: Update Nightly Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           tag_name: nightly
           name: ${{ steps.release_title.outputs.title }}
