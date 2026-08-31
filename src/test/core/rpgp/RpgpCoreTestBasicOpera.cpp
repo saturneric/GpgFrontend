@@ -312,6 +312,61 @@ TEST_F(RpgpCoreTest, CoreEncryptSymmetricDecryptTest) {
   ASSERT_EQ(decr_out_buffer, encrypt_text);
 }
 
+TEST_F(RpgpCoreTest, CoreArgon2ProfileResolvesToRfc9106Parameters) {
+  // RFC 9106 section 4 first recommendation: t=1, p=4, m=2^21 KiB (2 GiB).
+  auto high = RpgpArgon2ParamsOfProfile(kRpgpArgon2ProfileHighMemory);
+  ASSERT_EQ(high.t, 1);
+  ASSERT_EQ(high.p, 4);
+  ASSERT_EQ(high.m_enc, 21);
+
+  // Second recommendation: t=3, p=4, m=2^16 KiB (64 MiB).
+  auto low = RpgpArgon2ParamsOfProfile(kRpgpArgon2ProfileLowMemory);
+  ASSERT_EQ(low.t, 3);
+  ASSERT_EQ(low.p, 4);
+  ASSERT_EQ(low.m_enc, 16);
+
+  // An unrecognised or absent token must never silently weaken the
+  // derivation, so it resolves to the stronger of the two.
+  for (const auto& unknown : {QString(""), QString("rfc9106_third")}) {
+    auto params = RpgpArgon2ParamsOfProfile(unknown);
+    ASSERT_EQ(params.t, high.t);
+    ASSERT_EQ(params.p, high.p);
+    ASSERT_EQ(params.m_enc, high.m_enc);
+  }
+}
+
+TEST_F(RpgpCoreTest, CoreEncryptSymmetricLowMemoryProfileRoundTrips) {
+  SetRpgpArgon2S2kParams(
+      RpgpArgon2ParamsOfProfile(kRpgpArgon2ProfileLowMemory));
+
+  auto encrypt_text = GFBuffer(QString("Hello RPGP Low Memory Argon2!"));
+  auto [err, data_object] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .EncryptSymmetricSync(encrypt_text, true);
+
+  // The parameters are process-wide, so restore them before any assertion can
+  // abort this test and leave them changed for the next one. Restore the
+  // *test process* default, which SetupGlobalTestEnv sets to the low-memory
+  // profile -- putting back the high-memory one instead would hand every
+  // symmetric test that runs after this a 2 GiB derivation, which is exactly
+  // the cost the test binary opts out of.
+  SetRpgpArgon2S2kParams(
+      RpgpArgon2ParamsOfProfile(kRpgpArgon2ProfileLowMemory));
+
+  ASSERT_EQ(CheckGpgError(err), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE((data_object->Check<GpgEncryptResult, GFBuffer>()));
+  auto encr_out_buffer = ExtractParams<GFBuffer>(data_object, 1);
+
+  auto [err_0, data_object_0] =
+      MessageCryptoOperation::GetInstance(kRpgpChannelForUnitTest)
+          .DecryptSync(encr_out_buffer);
+
+  ASSERT_EQ(CheckGpgError(err_0), GPG_ERR_NO_ERROR);
+  ASSERT_TRUE((data_object_0->Check<GpgDecryptResult, GFBuffer>()));
+  auto decr_out_buffer = ExtractParams<GFBuffer>(data_object_0, 1);
+  ASSERT_EQ(decr_out_buffer, encrypt_text);
+}
+
 TEST_F(RpgpCoreTest, CoreSignVerifyNormalTest) {
   auto sign_key = GpgKeyRepository::GetInstance(kRpgpChannelForUnitTest)
                       .GetPubkeyPtr("3B20B337A988D2C9917D0F33BDB8BB6BDDFA8497");
