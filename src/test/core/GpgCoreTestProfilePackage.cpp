@@ -1482,7 +1482,9 @@ TEST(PackagedProfileTest, TheWrongPassphraseLeavesNothingBehind) {
   // neither where the tree would have gone nor in the profiles folder.
   const auto claimed = packaged.Root();
   packaged.DiscardSessionStorage();
-  if (!claimed.isEmpty()) EXPECT_FALSE(QFileInfo::exists(claimed));
+  if (!claimed.isEmpty()) {
+    EXPECT_FALSE(QFileInfo::exists(claimed));
+  }
   EXPECT_FALSE(QFileInfo::exists(ProfileSessionRoot(dir.path(), package)));
   EXPECT_TRUE(QDir(dir.path())
                   .entryList({".gfp-*"}, QDir::Dirs | QDir::Hidden)
@@ -1510,7 +1512,9 @@ TEST(PackagedProfileTest, ALayoutFromTheFutureIsRefusedBeforeAdoption) {
   // leaves no trace of having been opened, wherever the storage was claimed.
   const auto claimed = packaged.Root();
   packaged.DiscardSessionStorage();
-  if (!claimed.isEmpty()) EXPECT_FALSE(QFileInfo::exists(claimed));
+  if (!claimed.isEmpty()) {
+    EXPECT_FALSE(QFileInfo::exists(claimed));
+  }
   EXPECT_FALSE(QFileInfo::exists(ProfileSessionRoot(dir.path(), package)));
 }
 

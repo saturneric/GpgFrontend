@@ -75,10 +75,11 @@ TEST(ProfilePackageMetaTest, EveryClaimIsMarkedAsOne) {
       past_the_heading = true;
       continue;
     }
-    if (past_the_heading)
+    if (past_the_heading) {
       EXPECT_TRUE(row.unverified) << row.caption.toStdString();
-    if (!past_the_heading)
+    } else {
       EXPECT_FALSE(row.unverified) << row.caption.toStdString();
+    }
   }
   EXPECT_TRUE(past_the_heading) << "the claims were never separated out";
 }

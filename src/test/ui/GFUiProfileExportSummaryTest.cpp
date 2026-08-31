@@ -187,7 +187,7 @@ TEST(ProfileExportSummaryTest, MayNotFitFiresOnlyAboveTheFreeSpace) {
   auto choice = Ready();
   choice.free_bytes = 1000;
 
-  for (const auto [total, expected] : std::array<std::pair<qint64, bool>, 3>{
+  for (const auto& [total, expected] : std::array<std::pair<qint64, bool>, 3>{
            {{999, false}, {1000, false}, {1001, true}}}) {
     choice.total_bytes = total;
     EXPECT_EQ(Contains(EvaluateProfileExport(choice).warnings,
