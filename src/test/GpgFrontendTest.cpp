@@ -37,6 +37,8 @@
 #include <thread>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/function/InstantMessageOperator.h"
+#include "core/utils/RustUtils.h"
 Q_LOGGING_CATEGORY(test, "test")
 
 namespace GpgFrontend::Test {
@@ -49,6 +51,33 @@ void SetupGlobalTestEnv() {
 
   LOG_I() << "test config file path: " << test_config_path;
   LOG_I() << "test data file path: " << test_data_path;
+
+  // Passphrase encryption derives its key with Argon2id, and the shipped
+  // default is RFC 9106's first recommendation -- 2 GiB, about a second per
+  // derivation on ordinary hardware. That cost is the point in production and
+  // pure dead time here: every symmetric test pays it twice, once to encrypt
+  // and once to decrypt, and EncryptSymmetricDecryptStress pays it for every
+  // iteration. Switching the whole test process to the RFC's second
+  // recommendation (64 MiB) keeps a real Argon2id derivation in the path --
+  // the S2K packet is still exercised, still parsed, still RFC 9580 shaped --
+  // for roughly a tenth of the work.
+  //
+  // This changes only what the tests do. The production default lives in
+  // InitGpgFrontendCore() and is covered by RpgpArgon2ProfileTest, which tests
+  // the token-to-octet mapping rather than this process-global setting.
+  SetRpgpArgon2S2kParams(
+      RpgpArgon2ParamsOfProfile(kRpgpArgon2ProfileLowMemory));
+
+  // The same trade for instant messages. Their per-message Argon2id is 128 MiB
+  // and runs on every encode and every decode with no cache, so the two heavy
+  // IM tests alone spent 11s of the suite inside it. Unlike the rPGP S2K this
+  // cost is not carried in the token -- it is a protocol constant both sides
+  // must agree on -- so it can only ever move for a whole process, never per
+  // user. Here both halves move together and round-trips still work.
+  //
+  // ImPreFilterCostGuard puts the shipped cost back for the one test whose
+  // assertion depends on it.
+  InstantMessageOperator::SetKdfCostForTesting({1, 8ULL * 1024 * 1024});
 }
 
 auto ExecuteAllTestCase(GpgFrontendContext args) -> int {
