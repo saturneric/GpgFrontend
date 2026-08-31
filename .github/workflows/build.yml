@@ -86,6 +86,16 @@ on:
           - nightly
           - release
 
+# Supersede in-flight work: a new commit on a ref makes the run already going
+# for that ref obsolete. Grouping by ref keeps each PR, main, and each v* tag
+# in its own lane, so a tag build is never cancelled by unrelated activity.
+# Cancelling a run mid-signing is safe: the sign-macos cleanup step is
+# `if: always()`, which still fires on cancellation, so the temporary keychain
+# and the Apple credentials are removed either way.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # Least privilege by default; only the release job is granted contents: write.
 permissions:
   contents: read
