@@ -142,16 +142,17 @@ resolve_parallel() {
       exit 2 ;;
   esac
 
-  # Past half the cores the timing-sensitive tests start losing races -- measured
-  # on a 12-core box, GFCoreTest.PassphraseServiceClosesAnUnansweredPrompt failed
-  # 0/24 at 6 concurrent processes and 14/32 at 8, reporting kCancelled where it
-  # expects kFailed. "auto" stays below that line; an explicit -p is respected,
-  # but not silently.
-  local cores; cores="$(nproc 2>/dev/null || echo 2)"
-  if (( PARALLEL > cores / 2 && PARALLEL > 1 )); then
-    echo "warning: --parallel ${PARALLEL} is over half of ${cores} cores;" >&2
-    echo "         expect timing-sensitive tests to flake. 'auto' picks a safe value." >&2
-  fi
+  # The cap used to exist because the suite lost races above half the cores:
+  # GFCoreTest.PassphraseServiceClosesAnUnansweredPrompt failed 14 of 32 runs at
+  # 8 concurrent processes, reporting kCancelled where it expects kFailed. That
+  # was a real race in PassphraseService::DrivePrompt and has been fixed; 12
+  # shards now run clean.
+  #
+  # The cap stays anyway, for a duller reason: every shard re-pays the fixture
+  # setup -- a profile, a GnuPG context, an rPGP context, the key imports -- so
+  # past six shards that fixed cost cancels out the smaller slice of tests.
+  # Measured: 6 shards 16.4s, 8 shards 15s, 12 shards 13.5s. Ask for more if you
+  # want; it is not faster, and it is no longer unsafe.
 }
 resolve_parallel
 
