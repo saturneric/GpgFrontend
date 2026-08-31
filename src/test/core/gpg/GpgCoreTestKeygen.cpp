@@ -207,7 +207,6 @@ TEST_F(GpgCoreTest, GenerateKeyRSA4096Test) {
   auto expire_time =
       QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
   p_info->SetExpireTime(expire_time);
-  p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
@@ -247,7 +246,6 @@ TEST_F(GpgCoreTest, GenerateKeyDSA2048Test) {
   auto expire_time =
       QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
   p_info->SetExpireTime(expire_time);
-  p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
@@ -305,7 +303,6 @@ TEST_F(GpgCoreTest, GenerateKeyED25519Test) {
   auto expire_time =
       QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
   p_info->SetExpireTime(expire_time);
-  p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
@@ -597,7 +594,6 @@ TEST_F(GpgCoreTest, GenerateKeyNISTP256Test) {
   auto expire_time =
       QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
   p_info->SetExpireTime(expire_time);
-  p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
@@ -655,7 +651,6 @@ TEST_F(GpgCoreTest, GenerateKeyED448Test) {
   auto expire_time =
       QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
   p_info->SetExpireTime(expire_time);
-  p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)
@@ -717,7 +712,6 @@ TEST_F(GpgCoreTest, GenerateKeySECP256K1Test) {
   auto expire_time =
       QDateTime::currentDateTime().addSecs(static_cast<qint64>(24 * 3600));
   p_info->SetExpireTime(expire_time);
-  p_info->SetNonPassPhrase(false);
 
   auto [err, data_object] =
       KeyGenerationOperation::GetInstance(kGpgFrontendDefaultChannel)

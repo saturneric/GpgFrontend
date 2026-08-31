@@ -285,11 +285,14 @@ TEST_F(GpgCoreTest, CoreAutomatonTimeoutDoesNotBlockNextEditA) {
       [](AutomatonState, const QString&, const QString&) {
         return GpgAutomatonHandler::kAS_COMMAND;
       };
-  // Sleep longer than the 1s cancel-drain so cancellation never settles and the
-  // watchdog has to abandon + release the context.
+  // Sleep well past the 200 ms watchdog below so its deadline is certainly
+  // blown and DoInteract has to take the cancel path. The sleep runs inside
+  // gpgme's callback, i.e. inside the poll loop's gpgme_wait, so it is
+  // serialised *before* the cancel and its drain -- it does not need to outlast
+  // kInteractCancelDrainMs, and making it do so only added dead time.
   GpgAutomatonHandler::AutomatonActionHandler hang_action =
       [](AutomatonHandelStruct&, AutomatonState) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(600));
         return QString("list");
       };
 
