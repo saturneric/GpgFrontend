@@ -51,6 +51,16 @@ constexpr int kDefaultPromptTimeoutSeconds = 60;
 // Only if this grace elapses too does the requester force the prompt closed.
 constexpr int kRequesterGraceMs = 5000;
 
+// Settable so a test can drive the give-up path without paying five seconds of
+// dead wait for it; unset -- which is every real run -- keeps the constant.
+auto ReadRequesterGraceMs() -> int {
+  auto grace =
+      GetSettings()
+          .value("engine/passphrase_requester_grace_ms", kRequesterGraceMs)
+          .toInt();
+  return grace > 0 ? grace : kRequesterGraceMs;
+}
+
 auto ReadPromptTimeoutSeconds() -> int {
   auto timeout = GetSettings()
                      .value("engine/passphrase_prompt_timeout",
@@ -72,14 +82,20 @@ class PassphraseRequest {
   /**
    * @brief Record the outcome and wake everyone waiting on it. The first answer
    * wins; anything arriving later is stale and ignored.
+   *
+   * @return true if this call is the one that settled the request. Callers that
+   * need to act only when they won -- rather than test-then-set, which is a
+   * race across two statements -- branch on this.
    */
-  void Settle(const GFBuffer& passphrase, PassphraseRequestStatus status) {
+  auto Settle(const GFBuffer& passphrase, PassphraseRequestStatus status)
+      -> bool {
     QMutexLocker locker(&mutex_);
-    if (settled_) return;
+    if (settled_) return false;
     passphrase_ = passphrase;
     status_ = status;
     settled_ = true;
     settled_cv_.wakeAll();
+    return true;
   }
 
   /**
@@ -257,11 +273,25 @@ void DrivePrompt(const PassphraseRequestPtr& request,
 
   WaitForRequest(request, wait_ms);
 
-  if (!request->IsSettled()) {
+  // Settle first, then dismiss -- never the other way round, and never behind
+  // an IsSettled() check.
+  //
+  // SignalCloseUserInputPassphrase is queued to the UI thread, so it returns
+  // here immediately having only posted an event. The UI thread then answers
+  // the close by cancelling the context, which runs the direct-connected lambda
+  // above and stamps kCancelled. If the dismissal were emitted before this
+  // Settle, that whole sequence could land in the gap between the two
+  // statements and win -- reporting "the user cancelled" for a prompt no user
+  // ever saw. Under load that is not theoretical: it was observed on 14 of 32
+  // runs with 8 test processes competing for 12 cores.
+  //
+  // Settle is first-wins and reports whether it won, so this is a single atomic
+  // decision: a prompt that genuinely answered in the meantime keeps its
+  // answer, and only the requester that actually gave up sends the dismissal.
+  if (request->Settle(GFBuffer(), PassphraseRequestStatus::kFailed)) {
     // The prompt outlived its own countdown. Dismiss it, so it cannot linger on
     // screen holding the modal stack with nobody waiting for its answer.
     emit CoreSignalStation::GetInstance() -> SignalCloseUserInputPassphrase(c);
-    request->Settle(GFBuffer(), PassphraseRequestStatus::kFailed);
   }
 
   QObject::disconnect(connection);
@@ -310,8 +340,9 @@ auto PassphraseService::RequestPassphrase(const PassphraseState& state,
   const auto [request, owns_prompt] = AcquireRequest(in_flight_key, shareable);
 
   const auto timeout_seconds = ReadPromptTimeoutSeconds();
-  const auto wait_ms =
-      timeout_seconds > 0 ? (timeout_seconds * 1000) + kRequesterGraceMs : 0;
+  const auto wait_ms = timeout_seconds > 0
+                           ? (timeout_seconds * 1000) + ReadRequesterGraceMs()
+                           : 0;
 
   if (owns_prompt) {
     auto c = QSharedPointer<GpgPassphraseContext>::create(GetChannel(), key);
