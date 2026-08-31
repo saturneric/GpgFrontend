@@ -157,6 +157,23 @@ pub extern "C" fn gfr_set_password_cache_ttl(ttl_secs: u64, max_ttl_secs: u64) {
     );
 }
 
+/// Configure the Argon2id S2K parameters used when encrypting with a passphrase.
+///
+/// `t` is the number of passes, `p` the degree of parallelism and `m_enc` the
+/// exponent of the memory size in KiB, so the derivation costs `2^m_enc` KiB.
+/// RFC 9106 §4 names two choices: `(1, 4, 21)` for 2 GiB and `(3, 4, 16)` for
+/// 64 MiB.
+///
+/// The parameters are recorded in the message, so every decryption of it pays
+/// the same memory cost, on the recipient's machine as well as ours.
+///
+/// A triple rPGP would reject is ignored, leaving the current parameters in
+/// place — an unset or malformed setting must not break encryption outright.
+#[unsafe(no_mangle)]
+pub extern "C" fn gfr_set_argon2_s2k_params(t: u8, p: u8, m_enc: u8) {
+    crate::crypto::set_argon2_s2k_params(t, p, m_enc);
+}
+
 /// Drop every cached passphrase, for every channel and key.
 ///
 /// Used when the keyring underneath the cache is replaced wholesale — otherwise
@@ -305,6 +322,30 @@ mod ffi_mod_tests {
     fn a_cache_ttl_longer_than_its_cap_is_clamped_not_rejected() {
         gfr_set_password_cache_ttl(900, 30);
         gfr_set_password_cache_ttl(600, 7200);
+    }
+
+    #[test]
+    fn the_argon2_s2k_parameters_can_be_reconfigured() {
+        // The parameters are process-wide; the lock keeps this off the other
+        // tests that set them.
+        let _guard = crate::crypto::ARGON2_TEST_LOCK.lock().expect("lock");
+
+        // Both RFC 9106 choices go through; restore the default (the first
+        // recommendation) afterwards so this does not disturb other tests.
+        gfr_set_argon2_s2k_params(3, 4, 16);
+        assert_eq!(crate::crypto::argon2_s2k_params(), (3, 4, 16));
+        gfr_set_argon2_s2k_params(1, 4, 21);
+        assert_eq!(crate::crypto::argon2_s2k_params(), (1, 4, 21));
+    }
+
+    #[test]
+    fn invalid_argon2_s2k_parameters_are_ignored_not_fatal() {
+        let _guard = crate::crypto::ARGON2_TEST_LOCK.lock().expect("lock");
+
+        // Above rPGP's 2 GiB cap: refused, and no panic across the boundary.
+        let before = crate::crypto::argon2_s2k_params();
+        gfr_set_argon2_s2k_params(1, 4, 31);
+        assert_eq!(crate::crypto::argon2_s2k_params(), before);
     }
 
     #[test]

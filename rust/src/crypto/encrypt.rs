@@ -26,11 +26,89 @@
  *
  */
 
+use std::sync::atomic::{AtomicU32, Ordering};
+
 use zeroize::Zeroizing;
 
 use crate::utils::{armor_opts, password_from_zeroizing_bytes};
 
 use super::*;
+
+/// RFC 9106 §4 "first recommended" Argon2id parameters: t=1, p=4, m=2^21 KiB
+/// (2 GiB). The strongest of the two choices the RFC names, and the default.
+pub const ARGON2_S2K_HIGH_MEMORY: (u8, u8, u8) = (1, 4, 21);
+
+/// RFC 9106 §4 "second recommended" Argon2id parameters: t=3, p=4, m=2^16 KiB
+/// (64 MiB), for machines that cannot spare 2 GiB. This is also what rPGP
+/// itself picks when locking a v6 secret key.
+pub const ARGON2_S2K_LOW_MEMORY: (u8, u8, u8) = (3, 4, 16);
+
+/// The Argon2id S2K parameters used when encrypting with a passphrase.
+///
+/// The three octets are packed into one atomic so a concurrent read can never
+/// observe a new `t` paired with an old `m_enc`. Reconfigured from C++ through
+/// [`gfr_set_argon2_s2k_params`](crate::ffi::gfr_set_argon2_s2k_params); the
+/// built-in value is the RFC's first recommendation, so an unset setting
+/// changes nothing.
+static ARGON2_S2K_PARAMS: AtomicU32 = AtomicU32::new(pack_argon2_s2k_params(
+    ARGON2_S2K_HIGH_MEMORY.0,
+    ARGON2_S2K_HIGH_MEMORY.1,
+    ARGON2_S2K_HIGH_MEMORY.2,
+));
+
+const fn pack_argon2_s2k_params(t: u8, p: u8, m_enc: u8) -> u32 {
+    (t as u32) << 16 | (p as u32) << 8 | m_enc as u32
+}
+
+/// Whether rPGP would accept this parameter triple.
+///
+/// Mirrors the checks in rPGP's `StringToKey::derive_key` so a bad setting is
+/// refused once, at configuration time, instead of failing every later
+/// encryption. The `m_enc` ceiling is 21 rather than the RFC's 31 because rPGP
+/// caps the decoded memory size at 2 GiB (`ARGON2_MEMORY_LIMIT_KIB`), and a
+/// message we cannot decrypt ourselves is not worth writing.
+pub fn validate_argon2_s2k_params(t: u8, p: u8, m_enc: u8) -> bool {
+    if t == 0 || t > 32 || p == 0 || p > 32 {
+        return false;
+    }
+
+    // RFC 9580 §3.7.1.4: the encoded memory size must leave at least 8*p
+    // blocks, i.e. m_enc >= ceil(log_2(p)).
+    let min_m_enc = (p as f32).log2().ceil() as u8;
+    m_enc >= min_m_enc && m_enc <= 21
+}
+
+/// The Argon2id S2K parameters currently in effect, as `(t, p, m_enc)`.
+pub fn argon2_s2k_params() -> (u8, u8, u8) {
+    let packed = ARGON2_S2K_PARAMS.load(Ordering::Relaxed);
+    (
+        (packed >> 16) as u8,
+        (packed >> 8) as u8,
+        (packed & 0xFF) as u8,
+    )
+}
+
+/// Serialises the tests that mutate [`ARGON2_S2K_PARAMS`]. The parameters are
+/// process-wide, so tests that set them (here and in the FFI module) must not
+/// run against each other's value.
+#[cfg(test)]
+pub(crate) static ARGON2_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+/// Install new Argon2id S2K parameters for passphrase encryption.
+///
+/// Returns `false` and leaves the current parameters untouched when the triple
+/// is one rPGP would reject, so a malformed setting degrades to the previous
+/// (valid) choice rather than breaking encryption outright.
+pub fn set_argon2_s2k_params(t: u8, p: u8, m_enc: u8) -> bool {
+    if !validate_argon2_s2k_params(t, p, m_enc) {
+        log::warn!("refusing invalid argon2 s2k parameters: t={t}, p={p}, m_enc={m_enc}");
+        return false;
+    }
+
+    ARGON2_S2K_PARAMS.store(pack_argon2_s2k_params(t, p, m_enc), Ordering::Relaxed);
+    log::info!("argon2 s2k parameters set to t={t}, p={p}, m_enc={m_enc}");
+    true
+}
 
 /// Encrypt a stream with one or more public keys (no signature).
 ///
@@ -450,7 +528,8 @@ where
     }
 
     let msg_pw = password_from_zeroizing_bytes(password);
-    let s2k = StringToKey::new_argon2(&mut rng, 1, 4, 21);
+    let (t, p, m_enc) = argon2_s2k_params();
+    let s2k = StringToKey::new_argon2(&mut rng, t, p, m_enc);
     enc_builder.encrypt_with_password(s2k, &msg_pw).into_gfr()?;
 
     let result = if ascii_armor {
@@ -562,6 +641,16 @@ mod encrypt_tests {
 
     use super::*;
     use crate::testutil::{cb, corpus, keys, packets};
+
+    // RFC 9580 3.7.1.4 requires m_enc to leave at least 8*p blocks.
+    // parameters_rpgp_would_reject_are_refused covers the reject side of that
+    // bound; this pins the accept side, so tightening the rule is caught too.
+    #[test]
+    fn the_smallest_memory_size_each_parallelism_allows_is_accepted() {
+        assert!(validate_argon2_s2k_params(1, 4, 2), "p=4 at its minimum");
+        assert!(!validate_argon2_s2k_params(1, 4, 1), "p=4 one below");
+        assert!(validate_argon2_s2k_params(1, 1, 0), "p=1 demands nothing");
+    }
 
     fn cert_of(fixture: &keys::Fixture) -> SignedPublicKey {
         SignedPublicKey::from_string(&fixture.public_armored)
@@ -942,6 +1031,112 @@ mod encrypt_tests {
     }
 
     // -- symmetric (passphrase) encryption -------------------------------------------
+
+    // -- argon2 s2k parameters ------------------------------------------------
+
+    #[test]
+    fn both_rfc9106_parameter_choices_are_accepted() {
+        let (t, p, m_enc) = ARGON2_S2K_HIGH_MEMORY;
+        assert!(validate_argon2_s2k_params(t, p, m_enc));
+        let (t, p, m_enc) = ARGON2_S2K_LOW_MEMORY;
+        assert!(validate_argon2_s2k_params(t, p, m_enc));
+    }
+
+    #[test]
+    fn parameters_rpgp_would_reject_are_refused() {
+        // Above rPGP's 2 GiB ARGON2_MEMORY_LIMIT_KIB, so the message would be
+        // undecryptable by the very engine that wrote it.
+        assert!(!validate_argon2_s2k_params(1, 4, 22));
+        // §3.7.1.4: m_enc must be at least ceil(log_2(p)).
+        assert!(!validate_argon2_s2k_params(1, 4, 1));
+        // rPGP's derive_key caps t and p at 32, and neither may be zero.
+        assert!(!validate_argon2_s2k_params(0, 4, 16));
+        assert!(!validate_argon2_s2k_params(1, 0, 16));
+        assert!(!validate_argon2_s2k_params(33, 4, 16));
+        assert!(!validate_argon2_s2k_params(1, 33, 16));
+    }
+
+    #[test]
+    fn the_built_in_default_is_the_rfc9106_first_recommendation() {
+        // Nothing configured means today's behaviour is unchanged.
+        let _guard = ARGON2_TEST_LOCK.lock().expect("lock");
+        assert_eq!(argon2_s2k_params(), ARGON2_S2K_HIGH_MEMORY);
+    }
+
+    #[test]
+    fn a_rejected_setting_leaves_the_current_parameters_in_place() {
+        let _guard = ARGON2_TEST_LOCK.lock().expect("lock");
+
+        let before = argon2_s2k_params();
+        assert!(!set_argon2_s2k_params(1, 4, 31));
+        assert_eq!(argon2_s2k_params(), before);
+    }
+
+    /// The Argon2 parameters a passphrase-encrypted message actually carries.
+    ///
+    /// Reads them back out of the SKESK, which is what every decrypting
+    /// implementation will act on, rather than trusting the global.
+    fn emitted_argon2_params(payload: &[u8]) -> (u8, u8, u8) {
+        let mut out = Vec::new();
+        encrypt_stream_with_password_internal(
+            0,
+            "",
+            payload,
+            &mut out,
+            Some(cb::pwd_correct),
+            true,
+        )
+        .expect("encrypt");
+
+        let (msg, _) = Message::from_armor(std::io::Cursor::new(&out)).expect("parse");
+        let Message::Encrypted { esk, .. } = &msg else {
+            panic!("a passphrase-encrypted message is an Encrypted message");
+        };
+
+        let s2k = esk
+            .iter()
+            .find_map(|e| match e {
+                Esk::SymKeyEncryptedSessionKey(skesk) => skesk.s2k(),
+                _ => None,
+            })
+            .expect("the message carries a SKESK with an s2k");
+
+        match s2k {
+            StringToKey::Argon2 { t, p, m_enc, .. } => (*t, *p, *m_enc),
+            other => panic!("expected an argon2 s2k, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn an_unconfigured_engine_emits_the_rfc9106_first_recommendation() {
+        // Pins the default: the 2 GiB choice, unchanged from before the
+        // parameters became configurable.
+        let _guard = ARGON2_TEST_LOCK.lock().expect("lock");
+
+        assert_eq!(
+            emitted_argon2_params(b"default payload"),
+            ARGON2_S2K_HIGH_MEMORY
+        );
+    }
+
+    #[test]
+    fn the_configured_parameters_reach_the_emitted_skesk() {
+        let _guard = ARGON2_TEST_LOCK.lock().expect("lock");
+
+        let (t, p, m_enc) = ARGON2_S2K_LOW_MEMORY;
+        assert!(set_argon2_s2k_params(t, p, m_enc));
+        let emitted = std::panic::catch_unwind(|| emitted_argon2_params(b"low memory payload"));
+
+        // Restore the default before asserting, so a failure here does not
+        // leak the low-memory profile into every later test in this process.
+        assert!(set_argon2_s2k_params(
+            ARGON2_S2K_HIGH_MEMORY.0,
+            ARGON2_S2K_HIGH_MEMORY.1,
+            ARGON2_S2K_HIGH_MEMORY.2
+        ));
+
+        assert_eq!(emitted.expect("encrypt"), ARGON2_S2K_LOW_MEMORY);
+    }
 
     #[test]
     fn a_symmetric_message_round_trips() {
