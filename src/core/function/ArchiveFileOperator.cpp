@@ -165,6 +165,45 @@ auto IsRefusedEntryType(mode_t filetype) -> bool {
   return filetype != AE_IFREG && filetype != AE_IFDIR && filetype != AE_IFLNK;
 }
 
+/// The destination with every symbolic link along the way resolved.
+///
+/// ARCHIVE_EXTRACT_SECURE_SYMLINKS makes libarchive walk *every* component of
+/// the pathname it is handed, and the pathname is destination-prefixed. On
+/// macOS the temporary directory sits under /var, which is a symlink to
+/// /private/var, so an unresolved prefix loses the very first entry to
+/// "Cannot extract through symlink /var/folders/.../manifest.json" -- the
+/// destination the caller chose, not anything the archive brought with it.
+///
+/// Only the part that already exists can be resolved; whatever libarchive has
+/// still to create is appended back unchanged, so the guarantee that matters
+/// is untouched: every component below the destination is still one this
+/// extraction created, and a symlink appearing among them is still refused.
+auto ResolveExtractionRoot(const QString &target_path) -> QString {
+  if (auto canonical = QFileInfo(target_path).canonicalFilePath();
+      !canonical.isEmpty()) {
+    return canonical;
+  }
+
+  QStringList tail;
+  auto head = QDir::cleanPath(target_path);
+  for (;;) {
+    const auto slash = head.lastIndexOf('/');
+    // No resolvable ancestor: a relative destination, or a root that does not
+    // exist. Nothing to correct, and inventing a prefix here would be worse
+    // than leaving the caller's own path alone.
+    if (slash <= 0) return target_path;
+
+    tail.prepend(head.mid(slash + 1));
+    head.truncate(slash);
+
+    if (auto canonical = QFileInfo(head).canonicalFilePath();
+        !canonical.isEmpty()) {
+      tail.prepend(canonical);
+      return tail.join('/');
+    }
+  }
+}
+
 }  // namespace
 
 namespace GpgFrontend {
@@ -666,6 +705,10 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
         may_remove_destination = true;
       }
 
+      // Resolved once, before a single header is written, because libarchive
+      // judges the whole pathname and not just the part the archive named.
+      const auto write_root = ResolveExtractionRoot(target_path);
+
       int ret = 0;
       auto *archive = archive_read_new();
       auto *ext = archive_write_disk_new();
@@ -886,7 +929,7 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
           continue;
         }
 
-        const auto target_path_name = target_path + "/" + relative_path;
+        const auto target_path_name = write_root + "/" + relative_path;
 
 #ifdef Q_OS_WINDOWS
         auto target_path_utf16_wstr = std::wstring(

@@ -285,6 +285,67 @@ TEST(ArchiveFileOperatorTest, TheSynchronousPairRoundTrips) {
   EXPECT_EQ(f.readAll(), QByteArray("hello world 2"));
 }
 
+#ifndef Q_OS_WINDOWS
+// SECURE_SYMLINKS makes libarchive judge every component of the pathname it is
+// handed, and that pathname carries the destination prefix. macOS puts the
+// temporary directory under /var, a symlink to /private/var, so an unresolved
+// destination lost the first entry of every profile package opened from there
+// to "Cannot extract through symlink .../manifest.json" — a property of the
+// caller's own destination, nothing the archive brought with it.
+TEST(ArchiveFileOperatorTest, ExtractsIntoADestinationReachedThroughASymlink) {
+  QTemporaryDir temp_dir;
+  ASSERT_TRUE(temp_dir.isValid());
+  const auto src_dir = temp_dir.path() + "/src";
+  ASSERT_TRUE(QDir().mkpath(src_dir));
+  CreateTestFile(src_dir, "manifest.json", "{}");
+
+  auto exchanger = GpgFrontend::CreateStandardGFDataExchanger();
+  GpgFrontend::GFError archive_error = 0;
+  std::thread producer([&]() {
+    archive_error =
+        GpgFrontend::ArchiveFileOperator::NewArchive2DataExchangerSync(
+            src_dir, exchanger, GpgFrontend::ArchiveCompression::kGZIP);
+  });
+
+  QByteArray payload;
+  QByteArray chunk(64 * 1024, Qt::Uninitialized);
+  while (true) {
+    const auto read = exchanger->Read(
+        reinterpret_cast<std::byte*>(chunk.data()), chunk.size());
+    if (read <= 0) break;
+    payload.append(chunk.constData(), static_cast<int>(read));
+  }
+  producer.join();
+  ASSERT_EQ(archive_error, 0);
+  ASSERT_FALSE(payload.isEmpty());
+
+  // The shape macOS hands every caller: a symlinked ancestor, and nothing
+  // symlinked below the destination itself.
+  const auto real_root = temp_dir.path() + "/real";
+  ASSERT_TRUE(QDir().mkpath(real_root));
+  const auto linked_root = temp_dir.path() + "/linked";
+  ASSERT_EQ(symlink(qPrintable(real_root), qPrintable(linked_root)), 0);
+
+  auto back = GpgFrontend::CreateStandardGFDataExchanger();
+  std::thread feeder([&]() {
+    back->Write(reinterpret_cast<const std::byte*>(payload.constData()),
+                payload.size());
+    back->CloseWrite();
+  });
+  QString reason;
+  const auto extract_error =
+      GpgFrontend::ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
+          back, linked_root + "/out",
+          GpgFrontend::ArchiveExtractPolicy::Strict(), {}, {}, &reason);
+  feeder.join();
+
+  ASSERT_EQ(extract_error, 0) << reason.toStdString();
+  QFile f(real_root + "/out/manifest.json");
+  ASSERT_TRUE(f.open(QIODevice::ReadOnly));
+  EXPECT_EQ(f.readAll(), QByteArray("{}"));
+}
+#endif
+
 TEST(ArchiveFileOperatorTest, ArchiveAndExtract) {
   QTemporaryDir temp_dir;
   ASSERT_TRUE(temp_dir.isValid());
