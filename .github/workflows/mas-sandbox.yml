@@ -22,6 +22,47 @@
 # Saturneric <eric@bktus.com> starting on May 12, 2021.
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
+#
+# macOS trust boundary
+# --------------------
+# Same split as build.yml: `build-mas` compiles and deploys the sandboxed
+# bundle and never sees a secret; `sign-mas` holds the App Store signing
+# material and runs nothing but Apple's own tools on the finished bundle.
+# Before this split, the Developer ID key and both App Store certificates sat
+# on the same runner as brew, cargo build scripts, recursive submodules and
+# third-party build actions.
+#
+# `build-mas` is treated as potentially compromised, so what it hands over is
+# untrusted bytes. `sign-mas` may unpack, inspect and sign that payload; it
+# must never source, evaluate, execute, or take configuration or signing policy
+# from it. Signing identities, the entitlement policy and the provisioning
+# profile all live in this file or in the environment, not in the artifact.
+#
+# `sign-mas` reads these from the `mas-signing` GitHub environment:
+#   MAS_APPLICATION_CERT / _PWD          base64 .p12 of the Apple Distribution
+#                                        (3rd Party Mac Developer Application)
+#                                        certificate, and its export password
+#   MAS_APPLICATION_CODE_SIGN_IDENTITY   identity string codesign selects
+#   MAS_INSTALLER_CERT / _PWD            base64 .p12 of the Mac Installer
+#                                        Distribution certificate, and its
+#                                        export password
+#   MAS_INSTALLER_CODE_SIGN_IDENTITY     identity string productbuild selects
+#   MAS_PROVISIONING_PROFILE_DATA        base64 .provisionprofile, embedded in
+#                                        the bundle before it is signed
+#
+# Two secrets this workflow used to read are gone:
+#   DEVELOP_ID_CERT / DEVELOP_ID_CERT_PWD -- the Developer ID certificate was
+#     imported into the keychain here but never used to sign anything; every
+#     signature comes from a MAS_* identity. Carrying it meant this workflow
+#     was a second route to the Developer ID private key that build.yml works
+#     hard to isolate. Once build.yml's `macos-signing` environment is the only
+#     holder, the repository-level copies can be deleted.
+#   MAS_PROVISIONING_PROFILE_UUID -- only ever used to name a file. The profile
+#     now goes to a fixed path, and Xcode no longer resolves a profile at build
+#     time because the archive is unsigned.
+# GPGFRONTEND_XCODE_TEAM_ID is no longer read either: the team id is not
+# secret (it is committed in resource/entitlements/Sandbox.entitlements) and
+# the unsigned archive does not need it.
 
 name: Build MAS Sandbox Package
 
@@ -48,38 +89,52 @@ on:
           - nightly
           - release
 
+# Supersede in-flight work: a new commit on a ref makes the run already going
+# for that ref obsolete. Grouping by ref keeps main and each v* tag in its own
+# lane. Cancelling mid-signing is safe: the sign-mas cleanup step is
+# `if: always()`, which still fires on cancellation.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege by default. Nothing here publishes a release.
+permissions:
+  contents: read
+
 env:
   BUILD_TYPE: RelWithDebInfo
 
+
 jobs:
-  build:
+  # Compiles and deploys the sandboxed bundle. Holds no secrets: the App Store
+  # certificates must never share a runner with brew, cargo build scripts,
+  # recursive submodules or third-party build actions. The bundle leaves here
+  # unsigned and is signed by sign-mas below.
+  build-mas:
     strategy:
       matrix:
         os: ["macos-15"]
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
     steps:
-      - name: Set git to use LF(Windows) or CRLF(MacOS) line endings
+      - name: Set git to use LF line endings
         run: |
           git config --global core.autocrlf false
           git config --global core.eol lf
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           lfs: "false"
           submodules: recursive
 
       - name: Setup Build Mode
         shell: bash
+        env:
+          # Read through an env var rather than interpolated into the script:
+          # an expression expanded inside `run:` is textual substitution.
+          BUILD_MODE_INPUT: ${{ github.event.inputs.build_mode }}
         run: |
-          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-
-          # The App Store package is always sandboxed, so the identifier says so
-          # next to the runner label it was built on.
-          echo "OS_IDENTIFIER=${{ matrix.os }}-sandbox" >> $GITHUB_ENV
-
-          echo "CODE_SIGNING_IDENTITY=${{secrets.MAS_APPLICATION_CODE_SIGN_IDENTITY}}" >> $GITHUB_ENV
-          echo "PROVISIONING_PROFILE_UUID=${{secrets.MAS_PROVISIONING_PROFILE_UUID}}" >> $GITHUB_ENV
-
           # Same model as the main Build workflow:
           #   - a version tag (v*)  -> stable release build
           #   - a push to main      -> nightly build
@@ -87,7 +142,7 @@ jobs:
           #                            release package can be produced without
           #                            re-tagging
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            BUILD_MODE="${{ github.event.inputs.build_mode }}"
+            BUILD_MODE="${BUILD_MODE_INPUT}"
             if [[ "${BUILD_MODE}" == "release" ]]; then
               BUILD_TYPE_EFFECTIVE="Release"
             else
@@ -112,67 +167,39 @@ jobs:
             GPGFRONTEND_BUILD_STABLE="OFF"
           fi
 
-          echo "BUILD_MODE=${BUILD_MODE}" >> $GITHUB_ENV
-          echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}" >> $GITHUB_ENV
-          echo "GPGFRONTEND_BUILD_STABLE=${GPGFRONTEND_BUILD_STABLE}" >> $GITHUB_ENV
-          echo "BUILD_TYPE_LOWER=$(echo ${BUILD_TYPE_EFFECTIVE} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          {
+            echo "BUILD_MODE=${BUILD_MODE}"
+            echo "BUILD_TYPE=${BUILD_TYPE_EFFECTIVE}"
+            echo "GPGFRONTEND_BUILD_STABLE=${GPGFRONTEND_BUILD_STABLE}"
+          } >> "$GITHUB_ENV"
 
           echo "Build mode: ${BUILD_MODE}"
           echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2.20
         with:
           key: mas-${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
 
-      - name: Codesign Configuration
-        run: |
-          APP_CERT_PATH=$RUNNER_TEMP/app_certificate.p12
-          MAS_INSTALLER_CERT_PATH=$RUNNER_TEMP/installer_certificate.p12
-          MAS_APP_CERT_PATH=$RUNNER_TEMP/mas_app_certificate.p12
-
-          PP_PATH=$RUNNER_TEMP/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile
-          echo -n "${{secrets.MAS_PROVISIONING_PROFILE_DATA}}" | base64 --decode -o $PP_PATH
-          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-
-          # Import the certificates and provisioning profile into the keychain
-          echo -n "${{secrets.DEVELOP_ID_CERT}}" | base64 --decode -o $APP_CERT_PATH
-          echo -n "${{secrets.MAS_INSTALLER_CERT}}" | base64 --decode -o $MAS_INSTALLER_CERT_PATH
-          echo -n "${{secrets.MAS_APPLICATION_CERT}}" | base64 --decode -o $MAS_APP_CERT_PATH
-
-          security create-keychain -p gpgfrontend build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p gpgfrontend build.keychain
-          security import $APP_CERT_PATH -k build.keychain -P ${{secrets.DEVELOP_ID_CERT_PWD}} -T /usr/bin/codesign
-          security import $MAS_INSTALLER_CERT_PATH -k build.keychain -P ${{secrets.MAS_INSTALLER_CERT_PWD}} -T /usr/bin/productbuild
-          security import $MAS_APP_CERT_PATH -k build.keychain -P ${{secrets.MAS_APPLICATION_CERT_PWD}} -T /usr/bin/codesign -T /usr/bin/xcodebuild -T /usr/bin/productbuild -T /usr/bin/security
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k gpgfrontend build.keychain
-          security set-keychain-settings -lut 3600
-
-          PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
-          mkdir -p "$PROFILE_DIR"
-          cp "$PP_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile"
-
-          # copy the provisioning profile to the repository root for later use,
-          # because the sandboxing feature requires the provisioning profile to
-          # be embedded in the app bundle.
-          cp $PP_PATH ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile
-
       - name: Install Qt6
-        uses: jurplel/install-qt-action@v4
+        uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
         with:
           version: "6.10.3"
           cache: "true"
 
-      - name: Install Dependence (macOS)
+      - name: Install Dependence
         run: |
           brew install --formula automake texinfo libarchive googletest libsodium
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        # Pinned to a SHA, so the @stable ref name no longer selects the
+        # toolchain; say it explicitly instead.
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable branch
+        with:
+          toolchain: stable
 
       - name: Cache Cargo
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: |
             rust -> build/cargo
@@ -195,7 +222,7 @@ jobs:
           --disable-gpg-test \
           --disable-gpgsm-test \
           --disable-g13-test
-          make -j$(sysctl -n hw.logicalcpu)
+          make -j"$(sysctl -n hw.logicalcpu)"
           sudo make install
           ccache -s
 
@@ -218,73 +245,485 @@ jobs:
 
           echo "Set MacOS Deployment Target: $DEPLOY_TARGET"
 
+          # No signing identity, team id or provisioning profile is passed:
+          # this job has none, by design. The bundle is signed in sign-mas.
           cmake -B ${{github.workspace}}/build -G Xcode \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=${DEPLOY_TARGET} \
-            -DGPGFRONTEND_XCODE_CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}" \
-            -DGPGFRONTEND_XCODE_TEAM_ID="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
-            -DGPGFRONTEND_XCODE_PROVISIONING_PROFILE_UUID="${{env.PROVISIONING_PROFILE_UUID}}" \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET="${DEPLOY_TARGET}" \
             -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
             -DGPGFRONTEND_BUILD_PORTABLE=OFF \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
             -DGPGFRONTEND_XCODE_ENABLE_SANDBOX=ON
 
-          xcodebuild -list -project ${{github.workspace}}/build/GpgFrontend.xcodeproj
-
-          echo "CODE_SIGNING_IDENTITY=${{env.CODE_SIGNING_IDENTITY}}"
-          echo "PROFILE_UUID=${{env.PROVISIONING_PROFILE_UUID}}"
-          ls -la "$HOME/Library/MobileDevice/Provisioning Profiles/"
-          security cms -D -i "$HOME/Library/MobileDevice/Provisioning Profiles/${{env.PROVISIONING_PROFILE_UUID}}.provisionprofile" | plutil -p -
-          security find-identity -v -p codesigning
-
+          # DEVELOPMENT_TEAM and PROVISIONING_PROFILE_SPECIFIER are cleared as
+          # well as the identity: src/CMakeLists.txt bakes a profile specifier
+          # into the project, and Xcode would otherwise try to resolve a profile
+          # this job has no business holding.
           cd ${{github.workspace}}/build/
           xcodebuild -project ${{github.workspace}}/build/GpgFrontend.xcodeproj \
             -scheme GpgFrontend \
             -configuration "${{env.BUILD_TYPE}}" \
             -archivePath ${{github.workspace}}/build/GpgFrontend.xcarchive \
             archive \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM="${{secrets.GPGFRONTEND_XCODE_TEAM_ID}}" \
-            CODE_SIGN_IDENTITY="${{env.CODE_SIGNING_IDENTITY}}"
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER=""
 
-          # skip exporting the archive, because we will use macdeployqt to
-          # deploy the Qt frameworks and plugins, and sign the app bundle in one
-          # step, which is more suitable for our use case.
+          # Skip -exportArchive, as this workflow always has: the app is copied
+          # straight out of the archive so macdeployqt can deploy into it.
           mkdir -p ${{github.workspace}}/build/package
-          cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app ${{github.workspace}}/build/package/
+          cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app \
+            ${{github.workspace}}/build/package/
 
-      - name: Deploy Qt & Code Sign
+      - name: Deploy Qt
         run: |
-          # Copy the provisioning profile to the app bundle if sandboxing is
-          # enabled, because the sandboxing feature requires the provisioning
-          # profile to be embedded in the app bundle.
-          cp ${{github.workspace}}/${{secrets.MAS_PROVISIONING_PROFILE_UUID}}.provisionprofile ${{github.workspace}}/build/package/GpgFrontend.app/Contents/embedded.provisionprofile
-
-          # Use macdeployqt to deploy the Qt frameworks and plugins, and sign
-          # the app bundle in one step.
+          # -appstore-compliant drops the plugins that use API the App Store
+          # rejects. No -codesign=: sign-mas signs every code object explicitly,
+          # inside out.
           macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app \
             -verbose=2 \
             -appstore-compliant \
-            -always-overwrite \
-            -codesign="${{env.CODE_SIGNING_IDENTITY}}"
+            -always-overwrite
 
-          codesign -s "${{env.CODE_SIGNING_IDENTITY}}" \
-            -f --deep --options=runtime --timestamp \
-            --entitlements ${{github.workspace}}/resource/entitlements/Sandbox.entitlements \
-            ${{github.workspace}}/build/package/GpgFrontend.app
-
-          codesign --verify --deep --strict --verbose=4 \
-            ${{github.workspace}}/build/package/GpgFrontend.app
-
-      - name: Create Installer Package
+      - name: Inventory Bundle Code Objects
         run: |
-          mkdir -p ${{github.workspace}}/build/upload-artifact
-          productbuild --component ${{github.workspace}}/build/package/GpgFrontend.app /Applications \
-            --sign "${{secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY}}" \
-            ${{github.workspace}}/build/upload-artifact/GpgFrontend-${{env.OS_IDENTIFIER}}-${{env.SHORT_SHA}}.pkg
+          set -euo pipefail
+          APP="${{github.workspace}}/build/package/GpgFrontend.app"
+
+          # This listing is the ground truth that sign-mas's explicit signer has
+          # to match. -appstore-compliant deploys a different plugin set than a
+          # Developer ID build, so it is worth reading on its own terms.
+          echo "--- nested bundles ---"
+          find "$APP/Contents" -type d \
+            \( -name '*.framework' -o -name '*.app' -o -name '*.appex' \
+               -o -name '*.xpc' -o -name '*.bundle' -o -name '*.systemextension' \
+               -o -name '*.pluginkit' \) | sed "s#^$APP/##"
+
+          echo "--- Mach-O files and their signature state as built ---"
+          # `codesign -dv` exits non-zero on an unsigned object -- the normal
+          # state here -- so its status is classified rather than allowed to
+          # abort the loop.
+          find "$APP/Contents" -type f | while IFS= read -r f; do
+            if file -b "$f" | grep -q 'Mach-O'; then
+              out=$(codesign -dv "$f" 2>&1 || true)
+              case "$out" in
+                *"not signed at all"*) state=unsigned ;;
+                *"Signature=adhoc"*)   state=adhoc ;;
+                *"Signature size="*)   state=signed ;;
+                *)                     state=unknown ;;
+              esac
+              printf '%-9s %s\n' "$state" "${f#"$APP"/}"
+            fi
+          done
+
+      - name: Stage Unsigned Payload
+        run: |
+          set -euo pipefail
+          mkdir -p ${{github.workspace}}/build/unsigned
+          # ditto, not zip: it is the only archiver that round-trips a bundle's
+          # symlinks and permission bits through actions/upload-artifact intact.
+          #
+          # The app and nothing else. sign-mas is forbidden to take
+          # configuration, environment or signing policy from this artifact, so
+          # none is sent -- no build-info file, no entitlements, no profile.
+          ditto -c -k --keepParent \
+            ${{github.workspace}}/build/package/GpgFrontend.app \
+            ${{github.workspace}}/build/unsigned/GpgFrontend.app.zip
+
+      - name: Upload Unsigned Artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          # NOT "gpgfrontend-*": that is the pattern release jobs download, and
+          # an unsigned bundle must never reach a release.
+          name: unsigned-mas-app-${{ matrix.os }}
+          path: ${{github.workspace}}/build/unsigned/GpgFrontend.app.zip
+          retention-days: 5
+
+  # Holds the App Store signing material and nothing else. No checkout, no
+  # package manager, no compiler, no Qt, no cargo, no cmake -- only Apple's own
+  # tools plus the two artifact actions. The downloaded bundle is untrusted
+  # payload: it is unpacked, inspected and signed, never sourced, evaluated,
+  # executed, or consulted for configuration or signing policy.
+  #
+  # Unlike sign-macos in build.yml there is no notarization here, and no
+  # `spctl --assess`. Both would be wrong for an App Store package: notarytool
+  # is for Developer ID distribution, App Store Connect validates on upload,
+  # and Gatekeeper deliberately rejects an Apple Distribution signature outside
+  # the App Store, so a correct package would fail the assessment.
+  sign-mas:
+    needs: build-mas
+    # Two independent gates on which refs may ever request the signing
+    # material: this condition, and the deployment branch rule on the
+    # environment below. This workflow has no pull_request trigger either.
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    strategy:
+      matrix:
+        os: ["macos-15"]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    # Maintainer: configure this environment's deployment branch rule to allow
+    # only `main` and tags matching `v*`, as defence in depth behind the `if:`.
+    environment: mas-signing
+    steps:
+      # Runs before anything else so a half-configured environment costs ten
+      # seconds rather than a download and a full inside-out signing pass. Only
+      # tests for emptiness; no value is printed, and an unset secret arrives
+      # as the empty string.
+      - name: Preflight Check Signing Credentials
+        env:
+          MAS_APPLICATION_CERT: ${{ secrets.MAS_APPLICATION_CERT }}
+          MAS_APPLICATION_CERT_PWD: ${{ secrets.MAS_APPLICATION_CERT_PWD }}
+          MAS_APPLICATION_CODE_SIGN_IDENTITY: ${{ secrets.MAS_APPLICATION_CODE_SIGN_IDENTITY }}
+          MAS_INSTALLER_CERT: ${{ secrets.MAS_INSTALLER_CERT }}
+          MAS_INSTALLER_CERT_PWD: ${{ secrets.MAS_INSTALLER_CERT_PWD }}
+          MAS_INSTALLER_CODE_SIGN_IDENTITY: ${{ secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY }}
+          MAS_PROVISIONING_PROFILE_DATA: ${{ secrets.MAS_PROVISIONING_PROFILE_DATA }}
+        run: |
+          set -euo pipefail
+          missing=""
+          [ -n "${MAS_APPLICATION_CERT:-}" ] || missing="$missing MAS_APPLICATION_CERT"
+          [ -n "${MAS_APPLICATION_CERT_PWD:-}" ] || missing="$missing MAS_APPLICATION_CERT_PWD"
+          [ -n "${MAS_APPLICATION_CODE_SIGN_IDENTITY:-}" ] || missing="$missing MAS_APPLICATION_CODE_SIGN_IDENTITY"
+          [ -n "${MAS_INSTALLER_CERT:-}" ] || missing="$missing MAS_INSTALLER_CERT"
+          [ -n "${MAS_INSTALLER_CERT_PWD:-}" ] || missing="$missing MAS_INSTALLER_CERT_PWD"
+          [ -n "${MAS_INSTALLER_CODE_SIGN_IDENTITY:-}" ] || missing="$missing MAS_INSTALLER_CODE_SIGN_IDENTITY"
+          [ -n "${MAS_PROVISIONING_PROFILE_DATA:-}" ] || missing="$missing MAS_PROVISIONING_PROFILE_DATA"
+
+          if [ -n "$missing" ]; then
+            echo "The 'mas-signing' environment is missing:" >&2
+            for name in $missing; do echo "  - $name" >&2; done
+            echo >&2
+            echo "Set them under Settings > Environments > mas-signing." >&2
+            echo "The two certificates are exported from Keychain Access as .p12" >&2
+            echo "and base64-encoded; the profile is the App Store" >&2
+            echo ".provisionprofile, also base64-encoded." >&2
+            exit 1
+          fi
+          echo "all seven signing credentials are present"
+
+      - name: Resolve Artifact Metadata
+        id: meta
+        env:
+          BUILD_TYPE_LOWER: ${{ (github.ref_type == 'tag' || github.event.inputs.build_mode == 'release') && 'release' || 'relwithdebinfo' }}
+        run: |
+          set -euo pipefail
+          # Every name this job produces comes from GitHub context and runner
+          # variables. Nothing is read back out of the downloaded artifact:
+          # that would let the build side steer the privileged job.
+          {
+            echo "short_sha=${GITHUB_SHA:0:7}"
+            echo "build_type_lower=${BUILD_TYPE_LOWER}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Download Unsigned Bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: unsigned-mas-app-${{ matrix.os }}
+          path: ${{ runner.temp }}/unsigned
+
+      - name: Unpack Unsigned Bundle
+        run: |
+          set -euo pipefail
+          ditto -x -k "$RUNNER_TEMP/unsigned/GpgFrontend.app.zip" "$RUNNER_TEMP/app"
+          test -d "$RUNNER_TEMP/app/GpgFrontend.app"
+
+      - name: Write Signing Policy And Helpers
+        run: |
+          set -euo pipefail
+
+          # --- Entitlement policy -------------------------------------------
+          # A verbatim copy of resource/entitlements/Sandbox.entitlements, and
+          # deliberately a copy: reading it from the build artifact would let a
+          # compromised build job pick its own entitlements -- including its own
+          # sandbox and keychain-access-group settings -- and then verify them
+          # against its own choice. Keep the two in sync by hand.
+          cat > "$RUNNER_TEMP/entitlements.plist" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>com.apple.application-identifier</key>
+              <string>4279AWUL3X.com.bktus.gpgfrontend</string>
+
+              <key>com.apple.developer.team-identifier</key>
+              <string>4279AWUL3X</string>
+
+              <key>keychain-access-groups</key>
+              <array>
+                  <string>4279AWUL3X.com.bktus.gpgfrontend</string>
+              </array>
+
+              <key>com.apple.security.app-sandbox</key>
+              <true/>
+
+              <key>com.apple.security.files.user-selected.read-write</key>
+              <true/>
+
+              <key>com.apple.security.network.client</key>
+              <true/>
+
+              <key>com.apple.security.print</key>
+              <true/>
+          </dict>
+          </plist>
+          PLIST
+
+          # --- Explicit inside-out signer ------------------------------------
+          # Identical to the copy in build.yml's sign-macos. It is duplicated
+          # rather than shared because neither signing job checks the
+          # repository out -- that is the property being protected. Change both
+          # together.
+          cat > "$RUNNER_TEMP/sign-bundle.sh" <<'SH'
+          #!/bin/bash
+          set -euo pipefail
+          APP="$1"
+          ENTITLEMENTS="$2"
+          : "${IDENTITY:?IDENTITY must be set}"
+
+          sign_inner() {   # nested code: hardened runtime, never entitlements
+            codesign --force --timestamp --options=runtime --sign "$IDENTITY" "$1"
+          }
+
+          # Gate: fail closed on any executable bundle type this script does not
+          # handle deliberately. Two nets -- known bundle suffixes, and the
+          # structural giveaway of a Contents/MacOS directory anywhere but the
+          # app root. This is what stops the loose Mach-O pass from signing the
+          # executable inside an unknown bundle while leaving that bundle
+          # unsigned.
+          UNEXPECTED="$(mktemp)"
+          {
+            find "$APP/Contents" -type d \
+              \( -name '*.app' -o -name '*.appex' -o -name '*.xpc' \
+                 -o -name '*.bundle' -o -name '*.systemextension' \
+                 -o -name '*.pluginkit' -o -name '*.qlgenerator' \)
+            find "$APP/Contents" -type d -name 'MacOS' ! -path "$APP/Contents/MacOS"
+          } > "$UNEXPECTED"
+          if [ -s "$UNEXPECTED" ]; then
+            echo "unexpected nested code bundle(s); extend sign-bundle.sh deliberately:" >&2
+            cat "$UNEXPECTED" >&2
+            exit 1
+          fi
+          rm -f "$UNEXPECTED"
+
+          # Pass 1: loose Mach-O files outside any framework.
+          #
+          # NB: `[ x ] && continue` would abort the loop under `set -e` whenever
+          # the test is false, so the skips are written as full if-blocks.
+          find "$APP/Contents" -type f ! -path '*.framework/*' | while IFS= read -r f; do
+            if [ "$f" = "$APP/Contents/MacOS/GpgFrontend" ]; then
+              continue
+            fi
+            if file -b "$f" | grep -q 'Mach-O'; then
+              sign_inner "$f"
+            fi
+          done
+
+          # Pass 2: framework bundles, signed at the .framework path. Nested
+          # code a framework carries of its own is signed first; its own
+          # principal executable is not signed separately, because the bundle
+          # signature is what covers it.
+          sign_framework() {
+            fw="$1"
+            name="$(basename "$fw" .framework)"
+            find "$fw" -type f | while IFS= read -r f; do
+              case "$f" in
+                "$fw"/*.framework/*) continue ;;       # deeper framework, done
+                "$fw"/Versions/*/"$name") continue ;;  # versioned framework binary
+                "$fw"/"$name") continue ;;             # flat framework binary
+              esac
+              if file -b "$f" | grep -q 'Mach-O'; then
+                sign_inner "$f"
+              fi
+            done
+            sign_inner "$fw"
+          }
+
+          # -d walks depth first, so an inner framework is fully signed before
+          # the one that contains it.
+          find -d "$APP/Contents" -type d -name '*.framework' | while IFS= read -r fw; do
+            sign_framework "$fw"
+          done
+
+          # Pass 3: the application itself, last, and the only thing that gets
+          # entitlements.
+          codesign --force --timestamp --options=runtime \
+            --entitlements "$ENTITLEMENTS" --sign "$IDENTITY" "$APP"
+          SH
+
+          # --- Entitlement equality check -------------------------------------
+          cat > "$RUNNER_TEMP/check-entitlements.py" <<'PY'
+          #!/usr/bin/env python3
+          """Assert the signed bundle carries exactly the entitlements we asked for."""
+          import plistlib
+          import sys
+
+          expected_path, actual_path = sys.argv[1], sys.argv[2]
+          with open(expected_path, "rb") as f:
+              expected = plistlib.load(f)
+          with open(actual_path, "rb") as f:
+              actual = plistlib.load(f)
+
+          if expected == actual:
+              print("entitlements match policy (%d keys)" % len(expected))
+              sys.exit(0)
+
+          for k in sorted(set(expected) - set(actual)):
+              print("missing entitlement:    %s = %r" % (k, expected[k]), file=sys.stderr)
+          for k in sorted(set(actual) - set(expected)):
+              print("unexpected entitlement: %s = %r" % (k, actual[k]), file=sys.stderr)
+          for k in sorted(set(expected) & set(actual)):
+              if expected[k] != actual[k]:
+                  print("changed entitlement:    %s: expected %r, got %r"
+                        % (k, expected[k], actual[k]), file=sys.stderr)
+          sys.exit(1)
+          PY
+
+          chmod 700 "$RUNNER_TEMP/sign-bundle.sh"
+
+      - name: Prepare Signing Keychain
+        env:
+          MAS_APPLICATION_CERT: ${{ secrets.MAS_APPLICATION_CERT }}
+          MAS_APPLICATION_CERT_PWD: ${{ secrets.MAS_APPLICATION_CERT_PWD }}
+          MAS_INSTALLER_CERT: ${{ secrets.MAS_INSTALLER_CERT }}
+          MAS_INSTALLER_CERT_PWD: ${{ secrets.MAS_INSTALLER_CERT_PWD }}
+        run: |
+          set -euo pipefail
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          # Random per run: a hardcoded keychain password is a credential
+          # checked into the repository.
+          KEYCHAIN_PWD="$(openssl rand -hex 24)"
+          APP_CERT="$RUNNER_TEMP/mas_application.p12"
+          INSTALLER_CERT="$RUNNER_TEMP/mas_installer.p12"
+
+          umask 077
+          printf '%s' "$MAS_APPLICATION_CERT" | base64 --decode -o "$APP_CERT"
+          printf '%s' "$MAS_INSTALLER_CERT" | base64 --decode -o "$INSTALLER_CERT"
+
+          security create-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 3600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PWD" "$KEYCHAIN_PATH"
+
+          # The application certificate signs the bundle; the installer
+          # certificate signs the .pkg, so each is granted only the tool that
+          # uses it.
+          security import "$APP_CERT" -k "$KEYCHAIN_PATH" \
+            -P "$MAS_APPLICATION_CERT_PWD" -t cert -f pkcs12 -T /usr/bin/codesign
+          security import "$INSTALLER_CERT" -k "$KEYCHAIN_PATH" \
+            -P "$MAS_INSTALLER_CERT_PWD" -t cert -f pkcs12 -T /usr/bin/productbuild
+          rm -f "$APP_CERT" "$INSTALLER_CERT"
+
+          # Without this codesign and productbuild block on a UI prompt no
+          # runner can answer. productbuild needs no partition of its own: it is
+          # an Apple-signed tool, so apple-tool:/apple: already cover it, and
+          # this is the exact list this workflow used before the split.
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PWD" "$KEYCHAIN_PATH" > /dev/null
+
+          # Prepend rather than replace: the Apple intermediate CAs live in the
+          # system keychain and codesign must still find them. `security
+          # list-keychains` prints one indented, double-quoted path per line;
+          # strip only the indent and the two surrounding quotes, and collect
+          # into the positional parameters (macOS bash is 3.2, no mapfile). A
+          # here-doc rather than a pipe, so `set --` runs in this shell.
+          set --
+          while IFS= read -r line; do
+            kc=$(printf '%s\n' "$line" | sed -e 's/^[[:space:]]*"//' -e 's/"[[:space:]]*$//')
+            if [ -n "$kc" ]; then
+              set -- "$@" "$kc"
+            fi
+          done <<EOF
+          $(security list-keychains -d user)
+          EOF
+          security list-keychains -d user -s "$KEYCHAIN_PATH" "$@"
+
+      - name: Embed Provisioning Profile
+        env:
+          MAS_PROVISIONING_PROFILE_DATA: ${{ secrets.MAS_PROVISIONING_PROFILE_DATA }}
+        run: |
+          set -euo pipefail
+          # Must happen BEFORE signing: the profile is sealed into the bundle's
+          # signature, so embedding it afterwards would invalidate the seal.
+          # A fixed path -- the profile's UUID was only ever used to name a
+          # file, and Xcode no longer resolves a profile at build time.
+          umask 077
+          printf '%s' "$MAS_PROVISIONING_PROFILE_DATA" | base64 --decode \
+            -o "$RUNNER_TEMP/app/GpgFrontend.app/Contents/embedded.provisionprofile"
+          test -s "$RUNNER_TEMP/app/GpgFrontend.app/Contents/embedded.provisionprofile"
+
+      - name: Sign Application
+        env:
+          IDENTITY: ${{ secrets.MAS_APPLICATION_CODE_SIGN_IDENTITY }}
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/sign-bundle.sh" "$RUNNER_TEMP/app/GpgFrontend.app" \
+            "$RUNNER_TEMP/entitlements.plist"
+          # --deep survives here for verification only, where recursing over
+          # everything is exactly what is wanted. It never signs.
+          codesign --verify --deep --strict --verbose=4 \
+            "$RUNNER_TEMP/app/GpgFrontend.app"
+
+      - name: Verify Embedded Entitlements And Profile
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/app/GpgFrontend.app"
+
+          codesign -d --entitlements - --xml "$APP" \
+            > "$RUNNER_TEMP/actual.entitlements" 2>/dev/null
+          # Equality in both directions: an entitlement that appears only in the
+          # signed result is as much a defect as a missing one. For a sandboxed
+          # App Store build this is the check that would catch a lost
+          # app-sandbox key or a wrong application-identifier, either of which
+          # App Store Connect rejects on upload.
+          python3 "$RUNNER_TEMP/check-entitlements.py" \
+            "$RUNNER_TEMP/entitlements.plist" "$RUNNER_TEMP/actual.entitlements"
+
+          # The profile has to have survived signing, sealed inside the bundle.
+          test -s "$APP/Contents/embedded.provisionprofile"
+          echo "embedded.provisionprofile present after signing"
+
+      - name: Build Installer Package
+        env:
+          INSTALLER_IDENTITY: ${{ secrets.MAS_INSTALLER_CODE_SIGN_IDENTITY }}
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+          OS_IDENTIFIER: ${{ matrix.os }}-sandbox
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/upload-artifact"
+          mkdir -p "$OUT"
+          productbuild --component "$RUNNER_TEMP/app/GpgFrontend.app" /Applications \
+            --sign "$INSTALLER_IDENTITY" \
+            "$OUT/GpgFrontend-${OS_IDENTIFIER}-${SHORT_SHA}.pkg"
+
+      - name: Verify Package Signature
+        env:
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+          OS_IDENTIFIER: ${{ matrix.os }}-sandbox
+        run: |
+          set -euo pipefail
+          PKG="$RUNNER_TEMP/upload-artifact/GpgFrontend-${OS_IDENTIFIER}-${SHORT_SHA}.pkg"
+          # The acceptance test available offline for an App Store package.
+          # `spctl --assess` is deliberately not used: Gatekeeper rejects an
+          # Apple Distribution signature outside the App Store, so a correct
+          # package would fail it. Final validation happens when App Store
+          # Connect accepts the upload.
+          pkgutil --check-signature "$PKG"
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: gpgfrontend-${{env.OS_IDENTIFIER}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: ${{github.workspace}}/build/upload-artifact/*
+          name: gpgfrontend-${{ matrix.os }}-sandbox-${{ steps.meta.outputs.build_type_lower }}-${{ steps.meta.outputs.short_sha }}
+          path: ${{ runner.temp }}/upload-artifact/*
+
+      - name: Clean Up Signing Material
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" || true
+          rm -f "$RUNNER_TEMP/mas_application.p12" \
+                "$RUNNER_TEMP/mas_installer.p12" \
+                "$RUNNER_TEMP/sign-bundle.sh" \
+                "$RUNNER_TEMP/check-entitlements.py"

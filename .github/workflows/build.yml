@@ -142,7 +142,12 @@ jobs:
           # an expression expanded inside `run:` is textual substitution.
           BUILD_MODE_INPUT: ${{ github.event.inputs.build_mode }}
         run: |
-          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          # A fixed slice of GITHUB_SHA, not `git rev-parse --short`: git's
+          # abbreviation length scales with object count, so it yields 7 here
+          # (actions/checkout is shallow by default) and 8 in a full clone.
+          # Pinning it keeps artifact names stable and identical across
+          # platforms.
+          echo "SHORT_SHA=${GITHUB_SHA:0:7}" >> $GITHUB_ENV
 
           # Identifier the artifacts are named after. On Linux the runner label
           # ("ubuntu-24.04-arm") is the wrong thing to publish: the build host's
@@ -975,7 +980,7 @@ jobs:
           # --short HEAD` abbreviates to in this repository, so the macOS names
           # line up with the Linux and Windows artifacts.
           {
-            echo "short_sha=${GITHUB_SHA:0:8}"
+            echo "short_sha=${GITHUB_SHA:0:7}"
             echo "build_type_lower=${BUILD_TYPE_LOWER}"
           } >> "$GITHUB_OUTPUT"
 
