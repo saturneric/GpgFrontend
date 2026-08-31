@@ -887,12 +887,21 @@ jobs:
           # ditto, not zip: it is the only archiver that round-trips a bundle's
           # symlinks and permission bits through actions/upload-artifact intact.
           #
-          # The app and nothing else. sign-macos is forbidden to take
-          # configuration, environment or signing policy from this artifact, so
-          # none is sent -- no build-info file, no entitlements, no icon.
+          # The app, plus the two files that dress the dmg window. sign-macos
+          # is forbidden to take configuration, environment or signing policy
+          # from this artifact -- no build-info file, no entitlements -- but
+          # Finder dressing is inert: .DS_Store holds window bounds and icon
+          # positions, the icns is the mounted volume's icon. Neither can reach
+          # the signature or the entitlements.
           ditto -c -k --keepParent \
             ${{github.workspace}}/build/package/GpgFrontend.app \
             ${{github.workspace}}/build/unsigned/GpgFrontend.app.zip
+          cp resource/lfs/dmg/DS_Store ${{github.workspace}}/build/unsigned/
+          # The volume icon is the app icon, as create-dmg's --volicon used to
+          # be. Renamed on the way out rather than committed a third time: the
+          # repository already carries this exact file twice.
+          cp resource/lfs/icns/GpgFrontend.icns \
+            ${{github.workspace}}/build/unsigned/VolumeIcon.icns
 
       - name: Upload Unsigned Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -900,7 +909,7 @@ jobs:
           # NOT "gpgfrontend-*": that is the pattern the release job downloads,
           # and an unsigned bundle must never reach a release.
           name: unsigned-macos-app-${{ matrix.os }}
-          path: ${{github.workspace}}/build/unsigned/GpgFrontend.app.zip
+          path: ${{github.workspace}}/build/unsigned/*
           retention-days: 5
 
   # Holds the Apple credentials and nothing else. No checkout, no package
@@ -1268,9 +1277,6 @@ jobs:
           OS_IDENTIFIER: ${{ matrix.os }}
         run: |
           set -euo pipefail
-          OUT="$RUNNER_TEMP/upload-artifact"
-          mkdir -p "$OUT"
-
           # notarytool only accepts an archive, so the bundle travels as a
           # throwaway zip; the ticket is issued against the bundle, so the
           # bundle is what gets stapled.
@@ -1281,10 +1287,11 @@ jobs:
           xcrun stapler validate "$RUNNER_TEMP/app/GpgFrontend.app"
           rm -f "$RUNNER_TEMP/notarize-app.zip"
 
-          # Cut from the already-stapled bundle, so the published zip carries a
-          # ticket and works with no network on first launch.
-          ditto -c -k --keepParent "$RUNNER_TEMP/app/GpgFrontend.app" \
-            "$OUT/GpgFrontend-${OS_IDENTIFIER}-${SHORT_SHA}.zip"
+          # The .app is stapled but not shipped on its own: the dmg is the only
+          # deliverable. Stapling it still matters, because the ticket travels
+          # inside the dmg -- once a user drags the app to /Applications the
+          # dmg's own staple no longer covers it, and without this the first
+          # launch would need a network round trip to Apple.
 
       - name: Build Notarize And Staple Disk Image
         env:
@@ -1297,18 +1304,39 @@ jobs:
         run: |
           set -euo pipefail
           OUT="$RUNNER_TEMP/upload-artifact"
+          mkdir -p "$OUT"
           DMG="$OUT/GpgFrontend-${OS_IDENTIFIER}-${SHORT_SHA}.dmg"
 
           # hdiutil rather than create-dmg: this job runs Apple tooling only.
-          # The /Applications symlink keeps the drag-to-install gesture; the
-          # custom volume icon and window layout create-dmg used to draw are
-          # gone, deliberately -- the icon would have to come from the untrusted
-          # build artifact.
+          # create-dmg drove Finder over AppleScript to place the icons, which
+          # is exactly the part that flakes on a headless runner. The committed
+          # .DS_Store carries the same window bounds and icon positions, so the
+          # layout is reproduced without Finder ever being involved.
           STAGE="$RUNNER_TEMP/dmg-root"
           mkdir -p "$STAGE"
           ditto "$RUNNER_TEMP/app/GpgFrontend.app" "$STAGE/GpgFrontend.app"
           ln -s /Applications "$STAGE/Applications"
-          hdiutil create -format UDZO -volname GpgFrontend -srcfolder "$STAGE" -ov "$DMG"
+          cp "$RUNNER_TEMP/unsigned/DS_Store" "$STAGE/.DS_Store"
+          cp "$RUNNER_TEMP/unsigned/VolumeIcon.icns" "$STAGE/.VolumeIcon.icns"
+
+          # A read/write image first: the volume's custom-icon bit can only be
+          # set on a mounted volume, and hdiutil cannot set it from -srcfolder.
+          RW="$RUNNER_TEMP/rw.dmg"
+          MNT="$RUNNER_TEMP/dmg-mnt"
+          hdiutil create -format UDRW -volname GpgFrontend -srcfolder "$STAGE" -ov "$RW"
+          hdiutil attach "$RW" -nobrowse -readwrite -noverify -mountpoint "$MNT"
+          # Without the custom-icon attribute Finder ignores .VolumeIcon.icns.
+          # SetFile ships with the Xcode command line tools and is deprecated,
+          # so warn rather than fail if a future runner image drops it.
+          if command -v SetFile > /dev/null 2>&1; then
+            SetFile -a C "$MNT"
+          else
+            echo "::warning::SetFile not found; dmg volume icon not applied"
+          fi
+          # Detach can lose a race with a background scan; retry once forcibly.
+          hdiutil detach "$MNT" || { sleep 5; hdiutil detach "$MNT" -force; }
+          hdiutil convert "$RW" -format UDZO -o "$DMG" -ov
+          rm -f "$RW"
 
           codesign --force --timestamp --sign "$IDENTITY" "$DMG"
           "$RUNNER_TEMP/notarize.sh" "$DMG"
