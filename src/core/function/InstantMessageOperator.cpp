@@ -101,12 +101,12 @@ constexpr std::array<quint64, 6> kB58Pow58 = {1,      58,       3364,
 auto Base58Encode(const QByteArray& in) -> QString {
   // Leading zero bytes are not part of the number; they become leading '1's.
   qsizetype zeroes = 0;
-  while (zeroes < in.size() && in[zeroes] == '\0') ++zeroes;
+  while (zeroes < in.size() && in.at(zeroes) == '\0') ++zeroes;
   const auto body = in.size() - zeroes;
 
   // log(256)/log(58) rounded up, then five characters to the limb.
   QVector<quint32> limbs;
-  limbs.reserve(body * 138 / 100 / 5 + 1);
+  limbs.reserve((body * 138 / 100 / 5) + 1);
 
   const auto absorb = [&limbs](quint64 chunk, quint64 base) {
     quint64 carry = chunk;
@@ -128,22 +128,22 @@ auto Base58Encode(const QByteArray& in) -> QString {
   if (const auto head = body % 4; head != 0) {
     quint64 chunk = 0;
     for (qsizetype k = 0; k < head; ++k) {
-      chunk = (chunk << 8) | static_cast<quint8>(in[i + k]);
+      chunk = (chunk << 8) | static_cast<quint8>(in.at(i + k));
     }
     absorb(chunk, quint64{1} << (8 * head));
     i += head;
   }
   for (; i < in.size(); i += 4) {
     const quint64 chunk =
-        (static_cast<quint64>(static_cast<quint8>(in[i])) << 24) |
-        (static_cast<quint64>(static_cast<quint8>(in[i + 1])) << 16) |
-        (static_cast<quint64>(static_cast<quint8>(in[i + 2])) << 8) |
-        static_cast<quint64>(static_cast<quint8>(in[i + 3]));
+        (static_cast<quint64>(static_cast<quint8>(in.at(i))) << 24) |
+        (static_cast<quint64>(static_cast<quint8>(in.at(i + 1))) << 16) |
+        (static_cast<quint64>(static_cast<quint8>(in.at(i + 2))) << 8) |
+        static_cast<quint64>(static_cast<quint8>(in.at(i + 3)));
     absorb(chunk, quint64{1} << 32);
   }
 
   QString out;
-  out.reserve(zeroes + limbs.size() * 5 + 1);
+  out.reserve(zeroes + (limbs.size() * 5) + 1);
   for (qsizetype k = 0; k < zeroes; ++k) {
     out.append(QLatin1Char(kB58Alphabet[0]));
   }
@@ -183,14 +183,14 @@ auto Base58Decode(const QString& in, bool& ok) -> QByteArray {
   }
 
   qsizetype zeroes = 0;
-  while (zeroes < in.size() && in[zeroes] == QLatin1Char(kB58Alphabet[0])) {
+  while (zeroes < in.size() && in.at(zeroes) == QLatin1Char(kB58Alphabet[0])) {
     ++zeroes;
   }
   const auto body = in.size() - zeroes;
 
   // log(58)/log(256) rounded up, then four bytes to the limb.
   QVector<quint32> limbs;
-  limbs.reserve(body * 733 / 1000 / 4 + 1);
+  limbs.reserve((body * 733 / 1000 / 4) + 1);
 
   const auto absorb = [&limbs](quint64 chunk, quint64 base) {
     quint64 carry = chunk;
@@ -209,7 +209,7 @@ auto Base58Decode(const QString& in, bool& ok) -> QByteArray {
   if (const auto head = body % 5; head != 0) {
     quint64 chunk = 0;
     for (qsizetype k = 0; k < head; ++k) {
-      chunk = chunk * 58 + kB58Reverse[in[i + k].unicode()];
+      chunk = chunk * 58 + kB58Reverse[in.at(i + k).unicode()];
     }
     absorb(chunk, kB58Pow58[head]);
     i += head;
@@ -217,13 +217,13 @@ auto Base58Decode(const QString& in, bool& ok) -> QByteArray {
   for (; i < in.size(); i += 5) {
     quint64 chunk = 0;
     for (int k = 0; k < 5; ++k) {
-      chunk = chunk * 58 + kB58Reverse[in[i + k].unicode()];
+      chunk = chunk * 58 + kB58Reverse[in.at(i + k).unicode()];
     }
     absorb(chunk, kB58Pow58[5]);
   }
 
   QByteArray out;
-  out.reserve(zeroes + limbs.size() * 4);
+  out.reserve(zeroes + (limbs.size() * 4));
   out.append(zeroes, '\0');
   if (!limbs.isEmpty()) {
     // The top limb keeps only its significant bytes, for the same reason the
