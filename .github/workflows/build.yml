@@ -203,7 +203,7 @@ jobs:
           echo "Build flavor: ${{ matrix.flavor }}"
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2.20
+        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
           key: ${{ github.job }}-${{ matrix.os }}-${{ matrix.flavor }}-${{ env.BUILD_TYPE }}
 
@@ -223,14 +223,12 @@ jobs:
           sudo apt-get -y install libsecret-1-0
         if: runner.os == 'Linux'
 
-
       - name: Install Qt6
         uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
         with:
           version: "6.10.3"
           cache: "true"
         if: runner.os == 'Linux'
-
 
       - name: Set up MinGW (Windows)
         uses: msys2/setup-msys2@66cd2cce69caa17b53920067426061ca1de3a884 # v2.32.0
@@ -296,7 +294,6 @@ jobs:
             cargo-win-${{ matrix.os }}-${{ env.BUILD_TYPE }}-
         if: runner.os == 'Windows'
 
-
       - name: Build GpgME (Windows)
         shell: msys2 {0}
         run: |
@@ -348,10 +345,6 @@ jobs:
           cd ${{github.workspace}}/third_party/googletest/build
           sudo ninja install
         if: runner.os == 'Linux'
-
-
-
-
 
       - name: Build GpgFrontend (Linux)
         run: |
@@ -646,7 +639,6 @@ jobs:
           path: ${{github.workspace}}/build/upload-artifact/GpgFrontend-*.AppImage*
         if: runner.os == 'Linux'
 
-
       - name: Upload Artifact (Windows)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -728,7 +720,7 @@ jobs:
           echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
 
       - name: ccache
-        uses: hendrikmuhs/ccache-action@5ebbd400eff9e74630f759d94ddd7b6c26299639 # v1.2.20
+        uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
           key: ${{ github.job }}-${{ matrix.os }}-${{ env.BUILD_TYPE }}
 
@@ -849,16 +841,27 @@ jobs:
           find "$APP/Contents" -type d \
             \( -name '*.framework' -o -name '*.app' -o -name '*.appex' \
                -o -name '*.xpc' -o -name '*.bundle' -o -name '*.systemextension' \
-               -o -name '*.pluginkit' \)
+               -o -name '*.pluginkit' \) | sed "s#^$APP/##"
 
           echo "--- Mach-O files and their signature state as built ---"
           # CODE_SIGNING_ALLOWED=NO leaves the Xcode products bare, while
           # macdeployqt ad-hoc signs some of what it copies even without
           # -codesign. Record which is which.
+          #
+          # `codesign -dv` exits non-zero on an unsigned object -- the normal
+          # state here -- so its status is classified rather than allowed to
+          # abort the loop. A real signature reports "Signature size=", only an
+          # ad-hoc one reports "Signature=adhoc".
           find "$APP/Contents" -type f | while IFS= read -r f; do
             if file -b "$f" | grep -q 'Mach-O'; then
-              state=$(codesign -dv "$f" 2>&1 | sed -n 's/^Signature=/sig:/p' | tr '\n' ' ')
-              printf '%-24s %s\n' "${state:-unsigned}" "$f"
+              out=$(codesign -dv "$f" 2>&1 || true)
+              case "$out" in
+                *"not signed at all"*) state=unsigned ;;
+                *"Signature=adhoc"*)   state=adhoc ;;
+                *"Signature size="*)   state=signed ;;
+                *)                     state=unknown ;;
+              esac
+              printf '%-9s %s\n' "$state" "${f#"$APP"/}"
             fi
           done
 
