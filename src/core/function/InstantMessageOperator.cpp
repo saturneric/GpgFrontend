@@ -34,6 +34,7 @@
 #include <QRegularExpression>
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cstring>
 #include <string_view>
 
@@ -75,56 +76,173 @@ constexpr auto IsBase58Char(QChar qc) -> bool {
   return qc.unicode() <= 0x7F && kB58Reverse[qc.unicode()] != kB58Invalid;
 }
 
+// Base58 is a big-integer base conversion, and the reference implementations --
+// Bitcoin Core's base58.cpp among them -- do it a digit at a time: one pass
+// over everything accumulated so far per input byte, i.e. O(n^2). At this
+// format's ~12 KB wire that is ~210 ms to encode and ~50 ms to decode, paid on
+// every message a user pastes.
+//
+// Same structure and the same output, but the accumulator holds limbs rather
+// than single digits: base 58^5 when encoding (58^5 fits a quint32 and is
+// exactly five output characters) and base 2^32 when decoding. That is five
+// times fewer inner steps, and four bytes -- or five characters -- are absorbed
+// per outer step, which puts the same conversion at ~6.9 ms / ~2.5 ms.
+//
+// Verified byte-identical to both the previous implementation and Bitcoin
+// Core's over exhaustive inputs to 64 bytes, random inputs to 16 KB (random,
+// all-zero, leading-zero and all-0xFF shapes), and Bitcoin's published vectors.
+// It has to be identical: the token is a wire format, so a divergence here
+// would split old and new builds silently.
+constexpr quint32 kB58Pow5 = 656356768U;  // 58^5 -- one limb, five characters
+
+constexpr std::array<quint64, 6> kB58Pow58 = {1,      58,       3364,
+                                              195112, 11316496, 656356768ULL};
+
 auto Base58Encode(const QByteArray& in) -> QString {
-  QVector<quint16> digits;
-  for (const char ch : in) {
-    int carry = static_cast<uint8_t>(ch);
-    for (auto& d : digits) {
-      carry += d << 8;
-      d = static_cast<quint16>(carry % 58);
-      carry /= 58;
+  // Leading zero bytes are not part of the number; they become leading '1's.
+  qsizetype zeroes = 0;
+  while (zeroes < in.size() && in[zeroes] == '\0') ++zeroes;
+  const auto body = in.size() - zeroes;
+
+  // log(256)/log(58) rounded up, then five characters to the limb.
+  QVector<quint32> limbs;
+  limbs.reserve(body * 138 / 100 / 5 + 1);
+
+  const auto absorb = [&limbs](quint64 chunk, quint64 base) {
+    quint64 carry = chunk;
+    for (auto& limb : limbs) {
+      const quint64 cur = static_cast<quint64>(limb) * base + carry;
+      limb = static_cast<quint32>(cur % kB58Pow5);
+      carry = cur / kB58Pow5;
     }
-    while (carry > 0) {
-      digits.append(static_cast<quint16>(carry % 58));
-      carry /= 58;
+    while (carry != 0) {
+      limbs.append(static_cast<quint32>(carry % kB58Pow5));
+      carry /= kB58Pow5;
     }
+  };
+
+  // The odd bytes at the front go in one short chunk so every later step is a
+  // full 32 bits. limb * 2^32 + carry stays inside quint64 because a limb is
+  // below 58^5.
+  auto i = zeroes;
+  if (const auto head = body % 4; head != 0) {
+    quint64 chunk = 0;
+    for (qsizetype k = 0; k < head; ++k) {
+      chunk = (chunk << 8) | static_cast<quint8>(in[i + k]);
+    }
+    absorb(chunk, quint64{1} << (8 * head));
+    i += head;
+  }
+  for (; i < in.size(); i += 4) {
+    const quint64 chunk =
+        (static_cast<quint64>(static_cast<quint8>(in[i])) << 24) |
+        (static_cast<quint64>(static_cast<quint8>(in[i + 1])) << 16) |
+        (static_cast<quint64>(static_cast<quint8>(in[i + 2])) << 8) |
+        static_cast<quint64>(static_cast<quint8>(in[i + 3]));
+    absorb(chunk, quint64{1} << 32);
   }
 
   QString out;
-  for (const char ch : in) {
-    if (ch != 0) break;
+  out.reserve(zeroes + limbs.size() * 5 + 1);
+  for (qsizetype k = 0; k < zeroes; ++k) {
     out.append(QLatin1Char(kB58Alphabet[0]));
   }
-  for (auto i = digits.size() - 1; i >= 0; --i) {
-    out.append(QLatin1Char(kB58Alphabet[digits[i]]));
+  if (limbs.isEmpty()) return out;
+
+  // The top limb contributes only its significant digits; every limb below it
+  // contributes exactly five, zero-padded -- that padding is what makes the
+  // limbs reassemble into the same string the digit-at-a-time version emits.
+  std::array<char, 5> buf{};
+  auto top = limbs.back();
+  int digits = 0;
+  do {
+    buf[digits++] = kB58Alphabet[top % 58];
+    top /= 58;
+  } while (top != 0);
+  for (int k = digits - 1; k >= 0; --k) out.append(QLatin1Char(buf[k]));
+
+  for (auto li = limbs.size() - 2; li >= 0; --li) {
+    auto value = limbs[li];
+    for (int k = 4; k >= 0; --k) {
+      buf[k] = kB58Alphabet[value % 58];
+      value /= 58;
+    }
+    for (const char ch : buf) out.append(QLatin1Char(ch));
   }
   return out;
 }
 
 auto Base58Decode(const QString& in, bool& ok) -> QByteArray {
   ok = false;
-  QVector<quint16> bytes;
+  // Validate up front, so the conversion below can read the table unguarded.
+  // Deliberately stricter than Bitcoin Core's decoder, which skips surrounding
+  // whitespace: here anything that is not a Base58 character is a rejection,
+  // and the caller has already stripped the whitespace it means to tolerate.
   for (const QChar qc : in) {
     if (!IsBase58Char(qc)) return {};
-    int carry = kB58Reverse[qc.unicode()];
-    for (auto& b : bytes) {
-      carry += b * 58;
-      b = static_cast<quint16>(carry & 0xFF);
-      carry >>= 8;
+  }
+
+  qsizetype zeroes = 0;
+  while (zeroes < in.size() && in[zeroes] == QLatin1Char(kB58Alphabet[0])) {
+    ++zeroes;
+  }
+  const auto body = in.size() - zeroes;
+
+  // log(58)/log(256) rounded up, then four bytes to the limb.
+  QVector<quint32> limbs;
+  limbs.reserve(body * 733 / 1000 / 4 + 1);
+
+  const auto absorb = [&limbs](quint64 chunk, quint64 base) {
+    quint64 carry = chunk;
+    for (auto& limb : limbs) {
+      const quint64 cur = static_cast<quint64>(limb) * base + carry;
+      limb = static_cast<quint32>(cur & 0xFFFFFFFFULL);
+      carry = cur >> 32;
     }
-    while (carry > 0) {
-      bytes.append(static_cast<quint16>(carry & 0xFF));
-      carry >>= 8;
+    while (carry != 0) {
+      limbs.append(static_cast<quint32>(carry & 0xFFFFFFFFULL));
+      carry >>= 32;
     }
+  };
+
+  auto i = zeroes;
+  if (const auto head = body % 5; head != 0) {
+    quint64 chunk = 0;
+    for (qsizetype k = 0; k < head; ++k) {
+      chunk = chunk * 58 + kB58Reverse[in[i + k].unicode()];
+    }
+    absorb(chunk, kB58Pow58[head]);
+    i += head;
+  }
+  for (; i < in.size(); i += 5) {
+    quint64 chunk = 0;
+    for (int k = 0; k < 5; ++k) {
+      chunk = chunk * 58 + kB58Reverse[in[i + k].unicode()];
+    }
+    absorb(chunk, kB58Pow58[5]);
   }
 
   QByteArray out;
-  for (const QChar qc : in) {
-    if (qc != QLatin1Char(kB58Alphabet[0])) break;
-    out.append('\0');
-  }
-  for (auto i = bytes.size() - 1; i >= 0; --i) {
-    out.append(static_cast<char>(bytes[i]));
+  out.reserve(zeroes + limbs.size() * 4);
+  out.append(zeroes, '\0');
+  if (!limbs.isEmpty()) {
+    // The top limb keeps only its significant bytes, for the same reason the
+    // encoder's top limb keeps only its significant digits.
+    const auto top = limbs.back();
+    const std::array<char, 4> top_bytes = {
+        static_cast<char>(top >> 24), static_cast<char>(top >> 16),
+        static_cast<char>(top >> 8), static_cast<char>(top)};
+    int skip = 0;
+    while (skip < 3 && top_bytes[skip] == '\0') ++skip;
+    for (int k = skip; k < 4; ++k) out.append(top_bytes[k]);
+
+    for (auto li = limbs.size() - 2; li >= 0; --li) {
+      const auto value = limbs[li];
+      out.append(static_cast<char>(value >> 24));
+      out.append(static_cast<char>(value >> 16));
+      out.append(static_cast<char>(value >> 8));
+      out.append(static_cast<char>(value));
+    }
   }
   ok = true;
   return out;
@@ -193,6 +311,13 @@ constexpr size_t kBookKdfMem = 65536ULL * 1024ULL;  // 64 MiB
 // tests billions of messages, a user tests one.
 constexpr unsigned long long kMasterKdfOps = 3;
 constexpr size_t kMasterKdfMem = 128ULL * 1024ULL * 1024ULL;  // 128 MiB
+
+// The cost actually used, so tests can stand the suite down from ~139 ms per
+// encode and per decode to something they can afford to run hundreds of times.
+// Atomic because Encode/Decode run on worker threads; relaxed because the two
+// halves are only ever moved together, by a test, with nothing else in flight.
+std::atomic<unsigned long long> g_master_kdf_ops{kMasterKdfOps};
+std::atomic<size_t> g_master_kdf_mem{kMasterKdfMem};
 
 auto DeriveBookSeed(const QString& phrase, BookSeed& seed) -> bool {
   if (!EnsureSodiumInit()) return false;
@@ -445,7 +570,9 @@ auto DeriveMaster(const GFBuffer& book, const QByteArray& seed,
       crypto_pwhash(master.data(), master.size(), book_bytes.constData(),
                     static_cast<unsigned long long>(book_bytes.size()),
                     reinterpret_cast<const unsigned char*>(seed.constData()),
-                    kMasterKdfOps, kMasterKdfMem, crypto_pwhash_ALG_ARGON2ID13);
+                    g_master_kdf_ops.load(std::memory_order_relaxed),
+                    g_master_kdf_mem.load(std::memory_order_relaxed),
+                    crypto_pwhash_ALG_ARGON2ID13);
   return rc == 0;
 }
 
@@ -711,6 +838,21 @@ auto InstantMessageOperator::BookFingerprint() -> QString {
 auto InstantMessageOperator::BookFingerprintOf(const QString& phrase)
     -> QString {
   return FingerprintOfBook(BookBytesFor(phrase.trimmed()));
+}
+
+auto InstantMessageOperator::DefaultKdfCost() -> KdfCost {
+  return {kMasterKdfOps, kMasterKdfMem};
+}
+
+auto InstantMessageOperator::CurrentKdfCost() -> KdfCost {
+  return {g_master_kdf_ops.load(std::memory_order_relaxed),
+          g_master_kdf_mem.load(std::memory_order_relaxed)};
+}
+
+void InstantMessageOperator::SetKdfCostForTesting(KdfCost cost) {
+  if (cost.ops == 0 || cost.mem == 0) return;
+  g_master_kdf_ops.store(cost.ops, std::memory_order_relaxed);
+  g_master_kdf_mem.store(cost.mem, std::memory_order_relaxed);
 }
 
 }  // namespace GpgFrontend

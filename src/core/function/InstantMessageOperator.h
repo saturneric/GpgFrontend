@@ -159,6 +159,41 @@ class GF_CORE_EXPORT InstantMessageOperator {
    * UI thread. Carries the same disclosure caveat as BookFingerprint().
    */
   static auto BookFingerprintOf(const QString& phrase) -> QString;
+
+  /**
+   * @brief The per-message Argon2id cost, as (ops, memory in bytes).
+   */
+  struct KdfCost {
+    unsigned long long ops;
+    size_t mem;
+  };
+
+  /**
+   * @brief The per-message Argon2id cost the format ships with.
+   */
+  static auto DefaultKdfCost() -> KdfCost;
+
+  /**
+   * @brief The per-message Argon2id cost currently in effect.
+   */
+  static auto CurrentKdfCost() -> KdfCost;
+
+  /**
+   * @brief Override the per-message Argon2id cost. **Tests only.**
+   *
+   * Deliberately not a setting and not reachable from the UI. The cost is a
+   * protocol constant rather than something carried in the token, so Encode()
+   * and Decode() must agree on it: two peers running different values cannot
+   * exchange messages at all. Within one test process both sides move
+   * together, which is the only reason this is safe.
+   *
+   * It is also the feature's whole security argument -- a scanner must pay one
+   * full Argon2id per candidate message -- so lowering it anywhere but a test
+   * would quietly remove the protection rather than make anything faster.
+   *
+   * @param cost the cost to install; DefaultKdfCost() restores the shipped one
+   */
+  static void SetKdfCostForTesting(KdfCost cost);
 };
 
 }  // namespace GpgFrontend
