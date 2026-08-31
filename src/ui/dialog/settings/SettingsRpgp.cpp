@@ -78,6 +78,27 @@ RpgpTab::RpgpTab(QWidget* parent)
          "engine. GnuPG keys are unlocked through pinentry, which has its own "
          "timeout."));
 
+  ui_->symmetricEncryptionGroupBox->setTitle(tr("Passphrase Encryption"));
+
+  // The Argon2id parameters written into a passphrase-encrypted message.
+  // RFC 9106 section 4 names exactly these two choices; the display text is
+  // translated, the data token is the stable value stored in the settings.
+  ui_->argon2ProfileLabel->setText(tr("Argon2 Parameters:"));
+  ui_->argon2ProfileComboBox->addItem(tr("High memory, 2 GiB"),
+                                      QString(kRpgpArgon2ProfileHighMemory));
+  ui_->argon2ProfileComboBox->addItem(tr("Low memory, 64 MiB"),
+                                      QString(kRpgpArgon2ProfileLowMemory));
+  ui_->argon2ProfileComboBox->setToolTip(
+      tr("How much work it takes to turn the passphrase into an encryption "
+         "key. More memory makes a stolen message far more expensive to "
+         "crack."));
+
+  ui_->symmetricEncryptionTipsLabel->setText(
+      tr("Decrypting a message needs as much memory as encrypting it, on "
+         "every machine that opens it. Choose the low-memory option if this "
+         "computer or the recipient's cannot spare 2 GiB. This applies only "
+         "to messages encrypted from now on. "));
+
   SetSettings();
 }
 
@@ -97,6 +118,16 @@ void RpgpTab::SetSettings() {
 
   ui_->promptTimeoutSpinBox->setValue(
       settings.value("engine/passphrase_prompt_timeout", 60).toInt());
+
+  // An unknown token (an older or newer profile name) falls back to the first
+  // entry, which is the high-memory default.
+  auto argon2_profile = settings
+                            .value("engine/argon2_s2k_profile",
+                                   QString(kRpgpArgon2ProfileHighMemory))
+                            .toString();
+  auto argon2_index = ui_->argon2ProfileComboBox->findData(argon2_profile);
+  ui_->argon2ProfileComboBox->setCurrentIndex(argon2_index != -1 ? argon2_index
+                                                                 : 0);
 }
 
 void RpgpTab::ApplySettings() {
@@ -123,6 +154,12 @@ void RpgpTab::ApplySettings() {
   // already uses this value.
   settings.setValue("engine/passphrase_prompt_timeout",
                     ui_->promptTimeoutSpinBox->value());
+
+  auto argon2_profile = ui_->argon2ProfileComboBox->currentData().toString();
+  settings.setValue("engine/argon2_s2k_profile", argon2_profile);
+
+  // Apply immediately so the next passphrase encryption already uses it.
+  SetRpgpArgon2S2kParams(RpgpArgon2ParamsOfProfile(argon2_profile));
 }
 
 }  // namespace GpgFrontend::UI
