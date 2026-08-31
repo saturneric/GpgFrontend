@@ -50,6 +50,47 @@ void GF_CORE_EXPORT SetRpgpPasswordCacheTtl(uint64_t ttl_secs,
                                             uint64_t max_ttl_secs);
 
 /**
+ * @brief Argon2id String-to-Key parameters for passphrase (symmetric)
+ * encryption, as RFC 9580 section 3.7.1.4 encodes them.
+ */
+struct RpgpArgon2Params {
+  quint8 t;      ///< number of passes
+  quint8 p;      ///< degree of parallelism
+  quint8 m_enc;  ///< exponent of the memory size in KiB (memory is 2^m_enc KiB)
+};
+
+/// RFC 9106 section 4 first recommendation: t=1, p=4, 2 GiB. The default.
+inline constexpr auto kRpgpArgon2ProfileHighMemory = "high_memory";
+
+/// RFC 9106 section 4 second recommendation: t=3, p=4, 64 MiB.
+inline constexpr auto kRpgpArgon2ProfileLowMemory = "low_memory";
+
+/**
+ * @brief Resolve a stored profile token to its Argon2id parameters.
+ *
+ * The single mapping from token to octets, shared by the startup path and the
+ * settings page so the two can never disagree.
+ *
+ * @param profile one of the kRpgpArgon2Profile* tokens; anything else, an empty
+ * string included, resolves to the high-memory default
+ */
+auto GF_CORE_EXPORT RpgpArgon2ParamsOfProfile(const QString& profile)
+    -> RpgpArgon2Params;
+
+/**
+ * @brief Configure the Argon2id S2K parameters the rPGP engine uses when
+ * encrypting with a passphrase, and apply them immediately.
+ *
+ * Only affects messages created from now on; a message already made carries the
+ * parameters it was made with. Declared unconditionally, and a no-op when the
+ * Rust engine is not built in.
+ *
+ * @param params parameters to install; a triple the engine would reject leaves
+ * the current ones in place
+ */
+void GF_CORE_EXPORT SetRpgpArgon2S2kParams(RpgpArgon2Params params);
+
+/**
  * @brief Build-time details of the embedded Rust (rPGP) engine, suitable for
  * display in the About dialog.
  */

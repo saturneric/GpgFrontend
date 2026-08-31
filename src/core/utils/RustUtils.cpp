@@ -56,6 +56,27 @@ void SetRpgpPasswordCacheTtl(uint64_t ttl_secs, uint64_t max_ttl_secs) {
 #endif
 }
 
+auto RpgpArgon2ParamsOfProfile(const QString& profile) -> RpgpArgon2Params {
+  // RFC 9106 section 4 names exactly two parameter choices; anything else,
+  // including a token written by a newer version, falls back to the stronger
+  // of the two rather than silently weakening the derivation.
+  if (profile == kRpgpArgon2ProfileLowMemory) return {3, 4, 16};
+  return {1, 4, 21};
+}
+
+void SetRpgpArgon2S2kParams(RpgpArgon2Params params) {
+#ifdef HAS_RUST_SUPPORT
+  Rust::gfr_set_argon2_s2k_params(params.t, params.p, params.m_enc);
+  // Cast the octets: QDebug renders a quint8 as a character, not a number.
+  LOG_I() << "applied rPGP argon2 s2k parameters: t="
+          << static_cast<int>(params.t) << "p=" << static_cast<int>(params.p)
+          << "m_enc=" << static_cast<int>(params.m_enc) << "("
+          << (1ULL << params.m_enc) << "KiB)";
+#else
+  (void)params;
+#endif
+}
+
 auto GF_CORE_EXPORT RustEngineBuildInfo() -> RpgpEngineInfo {
   RpgpEngineInfo info;
 

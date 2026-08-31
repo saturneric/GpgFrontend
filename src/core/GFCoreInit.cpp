@@ -518,6 +518,15 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
         settings.value("engine/password_cache_max_ttl", 7200).toULongLong();
     SetRpgpPasswordCacheTtl(cache_ttl, cache_max_ttl);
 
+    // RFC 9106 section 4 parameter choice for the Argon2id S2K used when
+    // encrypting with a passphrase. The first recommendation (2 GiB) is the
+    // default; memory-constrained machines can select the second (64 MiB).
+    auto argon2_profile = settings
+                              .value("engine/argon2_s2k_profile",
+                                     QString(kRpgpArgon2ProfileHighMemory))
+                              .toString();
+    SetRpgpArgon2S2kParams(RpgpArgon2ParamsOfProfile(argon2_profile));
+
     GetGSS().AddSupportedEngine(OpenPGPEngine::kRPGP);
   }
 
