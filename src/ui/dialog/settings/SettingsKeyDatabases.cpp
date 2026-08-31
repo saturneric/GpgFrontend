@@ -94,11 +94,11 @@ auto CreateStatusItem(bool active) -> QTableWidgetItem* {
   font.setBold(active);
   item->setFont(font);
 
-  // Inactive is the state worth spotting -- the database is configured but was
-  // not opened -- so it is the one that reads differently, greyed rather than
-  // shouted about.
+  // Told apart by weight alone. A colour would have to be picked against a
+  // background the theme owns, and every role that looks like it means "dim
+  // text" fails on one theme or the other -- which is how the hints on this
+  // page came to be invisible on Windows dark mode.
   if (!active) {
-    item->setForeground(QBrush(QColor(150, 150, 150)));
     item->setToolTip(QObject::tr(
         "GpgFrontend could not open this key database at the last start."));
   }
@@ -191,12 +191,6 @@ KeyDatabasesTab::KeyDatabasesTab(QWidget* parent)
   ui_->addNewKeyDatabaseButton->setText(tr("Add Key Database"));
   ui_->addExternalKeyDatabaseButton->setText(
       tr("Add Key Database On This Computer"));
-
-  // Muted, but not italic: these are full sentences meant to be read, and an
-  // italic paragraph is harder to read than a plain one.
-  ui_->defaultKeyDatabaseHintLabel->setStyleSheet("color: palette(mid);");
-  ui_->profileHintLabel->setStyleSheet("color: palette(mid);");
-  ui_->externalHintLabel->setStyleSheet("color: palette(mid);");
 
   // A key database outside the profile cannot survive here at all: the sandbox
   // reads its list back off the fixed dbs/ directory on every start, so an

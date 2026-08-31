@@ -144,9 +144,6 @@ void KeyDatabaseEditDialog::init_ui() {
 
   // Muted, but not italic: the hint is a full sentence the user is meant to
   // read, and a whole italic paragraph is harder to read than a plain one.
-  ui_->modeHintLabel->setStyleSheet("color: palette(mid);");
-  ui_->keyDBPathShowLabel->setStyleSheet("color: palette(mid);");
-
   QRegularExpression safe_string_re(R"([a-zA-Z0-9\s\-_]+)");
   auto* safe_validator = new QRegularExpressionValidator(safe_string_re, this);
   ui_->keyDBNameLineEdit->setValidator(safe_validator);
