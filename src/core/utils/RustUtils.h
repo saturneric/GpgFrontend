@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/model/GFBuffer.h"
+#include "core/typedef/CoreTypedef.h"
 
 namespace GpgFrontend {
 
@@ -59,7 +60,7 @@ struct RpgpEngineInfo {
   QString profile;         ///< Cargo build profile (e.g. "release")
 
   /// Key dependency versions as (crate name, version) pairs, in display order.
-  QList<QPair<QString, QString>> dependencies;
+  QContainer<QPair<QString, QString>> dependencies;
 };
 
 /**
