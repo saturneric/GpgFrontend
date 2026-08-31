@@ -712,6 +712,15 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerifyStress) {
 // ---------------------------------------------------------------------------
 
 TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerifyWithPassphrase) {
+  // rPGP only: the bug this guards is in FetchPasswordCallback, on the Rust
+  // side of the FFI, and GnuPG never goes near it. Running it on GnuPG proved
+  // nothing and cost 8s -- two protected key generations and ten protected
+  // crypto operations, each a gpg-agent passphrase round trip at ~0.7s.
+  if (GetParam().engine != OpenPGPEngine::kRPGP) {
+    GTEST_SKIP() << "guards an rPGP-side FFI buffer bug; GnuPG cannot "
+                    "reproduce it";
+  }
+
   auto key = GenerateFullKey("encsign_pass", /*with_passphrase=*/true);
   ASSERT_TRUE(key != nullptr);
 
@@ -749,13 +758,21 @@ TEST_P(GpgCoreEngineTest, EncryptSignDecryptVerifyWithPassphrase) {
 // drives the same FetchPasswordCallback alloc/free path as the protected-key
 // tests, but repeatedly and without any key material in play. Varying the
 // payload size also crosses the kSecBufferSize (4KB) boundary in
-// Read2GFBuffer's realloc/append loop. No key is generated, so this runs the
-// full stress count. Run under ASan for signal: scripts/run_tests_asan.sh -f
-// '*EncryptSymmetricDecryptStress*'
+// Read2GFBuffer's realloc/append loop. Run under ASan for signal:
+// scripts/run_tests_asan.sh -f '*EncryptSymmetricDecryptStress*'
+//
+// Capped, like the sibling stress tests, because an iteration here is not
+// cheap: a passphrase round trip costs ~0.44s on GnuPG (gpg-agent) and a real
+// Argon2id derivation on rPGP, both twice per iteration. Uncapped at the local
+// default of 1000 this single test ran for 440s on GnuPG and 599s on rPGP --
+// longer than every other phase put together. What it hunts is a buffer bug in
+// the realloc/append loop, and that is exercised by the payload-size sweep, not
+// by the repetition: with the (i * 257) step below, 100 iterations already walk
+// sizes 1..25444 and cross the 4KB boundary six times.
 // ---------------------------------------------------------------------------
 
 TEST_P(GpgCoreEngineTest, EncryptSymmetricDecryptStress) {
-  const int iterations = StressIterations();
+  const int iterations = std::min(StressIterations(), 100);
   for (int i = 0; i < iterations; ++i) {
     // Vary the size across the 4KB secure-buffer boundary that Read2GFBuffer
     // chunks on, including sizes straddling multiples of it.

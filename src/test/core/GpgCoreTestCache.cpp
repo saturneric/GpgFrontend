@@ -72,9 +72,14 @@ TEST_F(GFCoreTest, CoreCacheTestB) {
 }
 
 TEST_F(GFCoreTest, CoreCacheTestC) {
-  CacheManager::GetInstance().SaveCache("ABCDEF", "DEFEEE", 2);
+  // Expiry is lazy and second-granular: SaveCache stores
+  // currentSecsSinceEpoch() + ttl and LoadSecCache compares with a strict '>',
+  // so a 1 s ttl needs the wait to cross two second boundaries in the worst
+  // case. 1200 ms does that; the old 4000 ms against a 2 s ttl waited twice as
+  // long as even the worst case required.
+  CacheManager::GetInstance().SaveCache("ABCDEF", "DEFEEE", 1);
   ASSERT_EQ(CacheManager::GetInstance().LoadCache("ABCDEF"), QString("DEFEEE"));
-  std::this_thread::sleep_for(std::chrono::milliseconds(4000));
+  std::this_thread::sleep_for(std::chrono::milliseconds(2100));
   ASSERT_EQ(CacheManager::GetInstance().LoadCache("ABCDEF"), QString(""));
 }
 

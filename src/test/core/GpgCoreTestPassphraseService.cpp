@@ -40,6 +40,7 @@ namespace GpgFrontend::Test {
 namespace {
 
 constexpr auto kTimeoutSettingKey = "engine/passphrase_prompt_timeout";
+constexpr auto kGraceSettingKey = "engine/passphrase_requester_grace_ms";
 
 // A channel of this suite's own. Asking for a passphrase reaches into the
 // channel's key repository, which brings that channel's OpenPGP context into
@@ -211,26 +212,45 @@ void Drain(int ms) {
   }
 }
 
-/// Restores the prompt timeout setting, which is global to the process.
-class ScopedPromptTimeout {
+/// Restores a process-global setting when it goes out of scope.
+class ScopedSetting {
  public:
-  explicit ScopedPromptTimeout(int seconds) {
+  ScopedSetting(const char* key, const QVariant& value) : key_(key) {
     auto settings = GetSettings();
-    previous_ = settings.value(kTimeoutSettingKey);
-    settings.setValue(kTimeoutSettingKey, seconds);
+    previous_ = settings.value(key_);
+    settings.setValue(key_, value);
   }
 
-  ~ScopedPromptTimeout() {
+  ~ScopedSetting() {
     auto settings = GetSettings();
     if (previous_.isValid()) {
-      settings.setValue(kTimeoutSettingKey, previous_);
+      settings.setValue(key_, previous_);
     } else {
-      settings.remove(kTimeoutSettingKey);
+      settings.remove(key_);
     }
   }
 
  private:
+  const char* key_;
   QVariant previous_;
+};
+
+/// Restores the prompt timeout setting, which is global to the process.
+class ScopedPromptTimeout : public ScopedSetting {
+ public:
+  explicit ScopedPromptTimeout(int seconds)
+      : ScopedSetting(kTimeoutSettingKey, seconds) {}
+};
+
+/// Restores the requester grace, which is global to the process.
+///
+/// The requester deliberately outlives the prompt's own countdown so the
+/// ordinary outcome is "the prompt answered". Nothing runs that countdown in a
+/// unit test, so the give-up path pays the whole grace as dead time -- five
+/// seconds of it at the shipped default.
+class ScopedRequesterGrace : public ScopedSetting {
+ public:
+  explicit ScopedRequesterGrace(int ms) : ScopedSetting(kGraceSettingKey, ms) {}
 };
 
 }  // namespace
@@ -434,6 +454,11 @@ TEST_F(GFCoreTest, PassphraseServiceStampsConfiguredTimeoutOnTheContext) {
  */
 TEST_F(GFCoreTest, PassphraseServiceClosesAnUnansweredPrompt) {
   ScopedPromptTimeout timeout(1);
+  // Nothing here runs the prompt's countdown, so the whole grace is dead wait.
+  // 200 ms still proves the requester waits past the prompt's own deadline
+  // before giving up, which is the property; the shipped 5000 ms only made the
+  // test the slowest in the suite.
+  ScopedRequesterGrace grace(200);
   FakePassphrasePrompt prompt(0);
   prompt.StopAnswering();
 

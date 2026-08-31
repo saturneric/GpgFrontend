@@ -211,11 +211,33 @@ TEST(InstantMessageOperatorTest, NonBase58InputIsRejected) {
   }
 }
 
+/// Restores the per-message KDF cost. The test process runs a cheap one (see
+/// SetupGlobalTestEnv); the tests below that reason about the *shipped* cost
+/// have to put it back for their duration or they stop measuring anything.
+class ScopedImKdfCost {
+ public:
+  explicit ScopedImKdfCost(InstantMessageOperator::KdfCost cost)
+      : previous_(InstantMessageOperator::CurrentKdfCost()) {
+    InstantMessageOperator::SetKdfCostForTesting(cost);
+  }
+  ~ScopedImKdfCost() {
+    InstantMessageOperator::SetKdfCostForTesting(previous_);
+  }
+
+ private:
+  InstantMessageOperator::KdfCost previous_;
+};
+
 // The regression guard for the whole point of the pre-filter: a big paste of
 // ordinary text must not reach the decoder or the KDF. A single Argon2id at
 // 128 MiB is ~100-200ms, and the old uncapped O(n^2) Base58 decode was far
 // worse, so the bound is loose enough not to be flaky but far below either.
 TEST(InstantMessageOperatorTest, PreFilterIsFastOnLargeInput) {
+  // At the process-wide test cost a stray KDF would finish inside the bound and
+  // this would stop catching the thing it exists to catch, so run it at the
+  // shipped cost.
+  ScopedImKdfCost cost(InstantMessageOperator::DefaultKdfCost());
+
   const QString prose = QStringLiteral("the quick brown fox. ").repeated(50000);
   const QString base58_only = QString(qsizetype{1024} * 1024, 'z');
 

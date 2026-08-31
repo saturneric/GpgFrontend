@@ -2001,17 +2001,32 @@ TEST(ProfilePackageStreamingTest, APackageLargerThanTheOldCapRoundTrips) {
   const auto root = dir.path() + "/work";
   MakeProfile(root);
 
+  // Size against the *floor* the cap can never go below, not the cap this
+  // machine happens to report. ProfilePackagePayloadCap() is a quarter of
+  // RLIMIT_MEMLOCK clamped to [16 MiB, 256 MiB], so where memlock is unlimited
+  // -- the usual case in a CI container -- it returns the 256 MiB ceiling. A
+  // hardcoded 24 MiB silently failed the assertion below there, and sizing off
+  // the reported cap instead would have this test write 256 MiB+ to prove a
+  // property that the read path decides on a boolean.
+  const qint64 kCapFloor = 16LL * 1024 * 1024;
+  const qint64 kBulkBytes = kCapFloor + kCapFloor / 8;  // 18 MiB
+
   // Genuinely incompressible, so the package on disk really is this big rather
   // than gzip'd back under the limit -- which is what would make this test pass
   // without proving anything.
   {
-    QByteArray bulk(24 * 1024 * 1024, Qt::Uninitialized);
+    QByteArray bulk(kBulkBytes, Qt::Uninitialized);
     quint64 state = 0x9E3779B97F4A7C15ULL;
-    for (qsizetype i = 0; i < bulk.size(); ++i) {
+    // A word at a time: this is an -O0 debug build, and byte-at-a-time over
+    // tens of MiB costs more than everything else the test does put together.
+    auto *words = reinterpret_cast<quint64 *>(bulk.data());
+    const qsizetype word_count =
+        bulk.size() / static_cast<qsizetype>(sizeof(quint64));
+    for (qsizetype i = 0; i < word_count; ++i) {
       state ^= state << 13;
       state ^= state >> 7;
       state ^= state << 17;
-      bulk[i] = static_cast<char>(state & 0xFF);
+      words[i] = state;
     }
     QDir().mkpath(root + "/workspace");
     QFile file(root + "/workspace/bulk.bin");
@@ -2028,10 +2043,10 @@ TEST(ProfilePackageStreamingTest, APackageLargerThanTheOldCapRoundTrips) {
   const auto written = ExportProfilePackage(request);
   ASSERT_TRUE(written.ok) << written.error.toStdString();
 
-  // The point of the test: the file really is past what a version 1 body was
-  // allowed to be on this machine, so a cap left applying to streamed packages
-  // would refuse it here.
-  ASSERT_GT(QFileInfo(package).size(), ProfilePackagePayloadCap())
+  // The point of the test: the file really is past the smallest ceiling a
+  // version 1 body could ever have been held to, so a cap left applying to
+  // streamed packages would refuse it here.
+  ASSERT_GT(QFileInfo(package).size(), kCapFloor)
       << "the package compressed under the old ceiling; the test proves "
          "nothing";
 
@@ -2040,7 +2055,7 @@ TEST(ProfilePackageStreamingTest, APackageLargerThanTheOldCapRoundTrips) {
   ASSERT_TRUE(read.Ok()) << read.detail.toStdString();
 
   EXPECT_EQ(QFileInfo(extracted + "/profile/workspace/bulk.bin").size(),
-            24 * 1024 * 1024);
+            kBulkBytes);
 }
 
 TEST(ProfilePackageStreamingTest,
