@@ -124,7 +124,10 @@ jobs:
         run: |
           # `timeout` gives a clean non-zero exit (124) if the suite wedges,
           # belt-and-suspenders alongside the step-level timeout-minutes above.
-          timeout 900 scripts/run_tests.sh --no-build --unit-only \
+          # -p auto shards the phase across processes, each in its own
+          # throwaway HOME. It self-limits: on a 2-core runner it resolves to 1,
+          # i.e. exactly the previous behaviour.
+          timeout 900 scripts/run_tests.sh --no-build --unit-only -p auto \
             --build-dir ${{github.workspace}}/build
 
       - name: Run Stress Tests
