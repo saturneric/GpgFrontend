@@ -41,7 +41,12 @@ pub const ARGON2_S2K_HIGH_MEMORY: (u8, u8, u8) = (1, 4, 21);
 /// RFC 9106 §4 "second recommended" Argon2id parameters: t=3, p=4, m=2^16 KiB
 /// (64 MiB), for machines that cannot spare 2 GiB. This is also what rPGP
 /// itself picks when locking a v6 secret key.
-pub const ARGON2_S2K_LOW_MEMORY: (u8, u8, u8) = (3, 4, 16);
+///
+/// Test-only: the profile is chosen on the C++ side, which sends the octets
+/// through [`gfr_set_argon2_s2k_params`](crate::ffi::gfr_set_argon2_s2k_params),
+/// so the engine never selects this triple itself.
+#[cfg(test)]
+pub(crate) const ARGON2_S2K_LOW_MEMORY: (u8, u8, u8) = (3, 4, 16);
 
 /// The Argon2id S2K parameters used when encrypting with a passphrase.
 ///
