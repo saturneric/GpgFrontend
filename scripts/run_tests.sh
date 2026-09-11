@@ -31,6 +31,7 @@
 #       --coverage-only    Run only the algorithm-generation coverage sweep
 #                          (*GenerateAllDeclared*; sets GF_RUN_ALGO_COVERAGE=1)
 #       --rust-only        Run only the Rust (cargo test) phase
+#       --modules-only     Run only the modules' own gtest binaries
 #       --rust-slow-only   Run only the ignored/slow Rust tests
 #       --no-rust          Skip the Rust phase
 #   -i, --stress-iter N    Iterations per stress test    (default: 1000)
@@ -104,6 +105,7 @@ while [[ $# -gt 0 ]]; do
     --stress-only)    MODE="stress" ;;
     --coverage-only)  MODE="coverage" ;;
     --rust-only)      MODE="rust" ;;
+    --modules-only)   MODE="modules" ;;
     --rust-slow-only) MODE="rust-slow" ;;
     --no-rust)        RUN_RUST="no" ;;
     -i|--stress-iter) STRESS_ITER="${2:?missing value for $1}"; shift ;;
@@ -620,6 +622,50 @@ run_rust_slow_phase() {
   return "${PIPESTATUS[0]}"
 }
 
+# --- modules phase runner --------------------------------------------------
+# Runs the modules' own gtest binaries. These are separate executables rather
+# than part of `gpgfrontend -t`: the module code lives in the `modules`
+# submodule and is deliberately built without the GF SDK behind it, so it
+# cannot be linked into the main test library. Like cargo, a plain gtest binary
+# returns an authoritative exit code, so it (not log parsing) decides the
+# result.
+#
+# The binaries only exist when the tree was configured with
+# -DGPGFRONTEND_MODULES_BUILD_TESTS=ON; without that this phase is a no-op.
+run_modules_phase() {
+  local log="$RESULTS_DIR/modules.log"
+  local dir="$BUILD_DIR/artifacts/modules"
+
+  echo
+  echo "============================================================"
+  echo "  Phase: modules"
+  echo "  Runner: module gtest binaries (${dir})"
+  echo "============================================================"
+
+  local -a binaries=()
+  if [[ -d "$dir" ]]; then
+    while IFS= read -r -d '' b; do binaries+=("$b"); done \
+      < <(find "$dir" -maxdepth 1 -type f -name '*_test' -print0 2>/dev/null)
+  fi
+
+  if [[ ${#binaries[@]} -eq 0 ]]; then
+    echo "warning: no module test binaries found; skipping modules phase" \
+      "(configure with -DGPGFRONTEND_MODULES_BUILD_TESTS=ON)" | tee "$log" >&2
+    return 0
+  fi
+
+  : > "$log"
+  local rc=0
+  for b in "${binaries[@]}"; do
+    echo "--- $(basename "$b") ---" | tee -a "$log"
+    if ! "$b" 2>&1 | tee -a "$log"; then rc=1; fi
+    # tee swallows the binary's status, so take it from PIPESTATUS.
+    [[ "${PIPESTATUS[0]}" -eq 0 ]] || rc=1
+  done
+
+  return "$rc"
+}
+
 # --- run requested phases --------------------------------------------------
 overall_rc=0
 declare -a phases=()
@@ -636,8 +682,14 @@ case "$MODE" in
       run_rust_phase || overall_rc=1
       phases+=("rust")
     fi
+    run_modules_phase || overall_rc=1
+    phases+=("modules")
     run_gtest_phase "unit" "*-*Stress*:${COVERAGE_FILTER}" "$STRESS_ITER" || overall_rc=1
     phases+=("unit")
+    ;;
+  modules)
+    run_modules_phase || overall_rc=1
+    phases+=("modules")
     ;;
   stress)
     run_gtest_phase "stress" '*Stress*' "$STRESS_ITER" || overall_rc=1
@@ -660,6 +712,8 @@ case "$MODE" in
       run_rust_phase || overall_rc=1
       phases+=("rust")
     fi
+    run_modules_phase || overall_rc=1
+    phases+=("modules")
     run_gtest_phase "unit" "*-*Stress*:${COVERAGE_FILTER}" "$STRESS_ITER" || overall_rc=1
     phases+=("unit")
     run_gtest_phase "stress" '*Stress*' "$STRESS_ITER" || overall_rc=1
