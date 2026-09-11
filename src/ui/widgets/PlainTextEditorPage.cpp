@@ -41,6 +41,7 @@
 #include "ui/function/AppearanceFont.h"
 #include "ui/function/SecureWipe.h"
 #include "ui/function/TextDirection.h"
+#include "ui/function/UIStyle.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_PlainTextEditor.h"
 
@@ -580,18 +581,25 @@ void PlainTextEditorPage::invoke_primary_view(const char *method) {
 
 void PlainTextEditorPage::build_view_switcher() {
   view_switcher_ = new QWidget(this);
-  auto *layout = new QHBoxLayout(view_switcher_);
-  layout->setContentsMargins(5, 3, 5, 3);
-  layout->setSpacing(6);
+  auto *layout = new QHBoxLayout();
+  layout->setContentsMargins(6, 2, 6, 0);
+  layout->setSpacing(2);
 
-  auto *message_button = new QToolButton(view_switcher_);
-  message_button->setText(tr("Message"));
-  message_button->setCheckable(true);
-  message_button->setChecked(true);
+  // Flat and adjacent, so the pair reads as two views of one document rather
+  // than as two buttons that do something.
+  const auto make_tab = [this](const QString &text, bool checked) {
+    auto *button = new QToolButton(view_switcher_);
+    button->setText(text);
+    button->setCheckable(true);
+    button->setChecked(checked);
+    button->setAutoRaise(true);
+    button->setFocusPolicy(Qt::NoFocus);
+    button->setCursor(Qt::PointingHandCursor);
+    return button;
+  };
 
-  auto *source_button = new QToolButton(view_switcher_);
-  source_button->setText(tr("Raw Source"));
-  source_button->setCheckable(true);
+  auto *message_button = make_tab(tr("Message"), true);
+  auto *source_button = make_tab(tr("Raw Source"), false);
 
   auto *group = new QButtonGroup(view_switcher_);
   group->setExclusive(true);
@@ -601,6 +609,28 @@ void PlainTextEditorPage::build_view_switcher() {
   layout->addWidget(message_button);
   layout->addWidget(source_button);
   layout->addStretch();
+
+  // A hairline under the row, which is what turns two flat buttons into a tab
+  // strip. Drawn from the palette so it follows the theme, like every other
+  // rule in the application.
+  auto *rule = new QFrame(view_switcher_);
+  rule->setFrameShape(QFrame::HLine);
+  rule->setFrameShadow(QFrame::Plain);
+  rule->setFixedHeight(1);
+  auto rule_palette = rule->palette();
+  rule_palette.setColor(QPalette::WindowText, BorderColor(palette()));
+  rule->setPalette(rule_palette);
+
+  auto *column = new QVBoxLayout();
+  column->setContentsMargins(0, 0, 0, 0);
+  column->setSpacing(0);
+  column->addLayout(layout);
+  column->addWidget(rule);
+
+  auto *wrapper = new QVBoxLayout(view_switcher_);
+  wrapper->setContentsMargins(0, 0, 0, 0);
+  wrapper->setSpacing(0);
+  wrapper->addLayout(column);
 
   connect(message_button, &QToolButton::clicked, this,
           [this]() { show_primary_view(true); });

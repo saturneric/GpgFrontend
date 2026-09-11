@@ -37,6 +37,7 @@
 #include "private/GFSDKPrivat.h"
 #include "ui/UIModuleManager.h"
 #include "ui/function/FilePanelPath.h"
+#include "ui/function/UIStyle.h"
 
 auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> bool {
   if (dialog_raw_ptr == nullptr) {
@@ -199,4 +200,55 @@ auto GFUIUnregisterTabPageView(const char* tab_type) -> int {
 
 auto GFUIDefaultUserFilePath() -> char* {
   return GFStrDup(GpgFrontend::UI::GetDefaultUserFilePath());
+}
+
+namespace {
+
+// Every colour getter is the same shape: resolve the widget, hand its palette
+// to the shared UI style, and return the result in a form that survives the C
+// boundary. 0 is "not a widget", which callers treat as "use the default".
+auto ColorOf(void* widget_raw_ptr,
+             const std::function<QColor(const QPalette&)>& pick) -> uint32_t {
+  auto* widget = qobject_cast<QWidget*>(static_cast<QObject*>(widget_raw_ptr));
+  if (widget == nullptr) {
+    LOG_W() << "colour requested for something that is not a QWidget";
+    return 0;
+  }
+  return pick(widget->palette()).rgba();
+}
+
+}  // namespace
+
+auto GFUIMutedTextColor(void* widget) -> uint32_t {
+  return ColorOf(widget, [](const QPalette& p) {
+    return GpgFrontend::UI::MutedTextColor(p);
+  });
+}
+
+auto GFUIBorderColor(void* widget) -> uint32_t {
+  return ColorOf(widget, [](const QPalette& p) {
+    return GpgFrontend::UI::BorderColor(p);
+  });
+}
+
+auto GFUIWarningColor(void* widget) -> uint32_t {
+  return ColorOf(widget, [](const QPalette& p) {
+    return GpgFrontend::UI::WarningColor(p);
+  });
+}
+
+auto GFUIDangerColor(void* widget) -> uint32_t {
+  return ColorOf(widget, [](const QPalette& p) {
+    return GpgFrontend::UI::DangerColor(p);
+  });
+}
+
+auto GFUIAccentColor(void* widget, int positive) -> uint32_t {
+  return ColorOf(widget, [positive](const QPalette& p) {
+    return GpgFrontend::UI::AccentColor(p, positive != 0);
+  });
+}
+
+auto GFUIHumanSize(int64_t bytes) -> char* {
+  return GFStrDup(GpgFrontend::UI::HumanSize(static_cast<qint64>(bytes)));
 }

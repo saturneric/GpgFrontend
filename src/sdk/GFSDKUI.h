@@ -209,4 +209,47 @@ auto GF_SDK_EXPORT GFUIUnregisterTabPageView(const char* tab_type) -> int;
  * @return Newly allocated absolute path; free it with GFFreeMemory.
  */
 auto GF_SDK_EXPORT GFUIDefaultUserFilePath() -> char*;
+
+/**
+ * @brief Colours of the application's own visual language, for module widgets.
+ *
+ * A module cannot link the UI library, so without these it has to invent its
+ * own palette -- and a panel that picks its own greys and greens stops looking
+ * like part of the application, and stops following the user's theme.
+ *
+ * Every colour is derived from the widget's palette rather than fixed, so it
+ * stays legible under both light and dark themes. Two conventions are worth
+ * knowing before using them: a negative state is *not* painted red, it is
+ * de-emphasised (GFUIAccentColor with @p positive false); and danger red is
+ * reserved for what cannot be undone, or for secrets about to travel in the
+ * clear.
+ *
+ * @param widget Opaque pointer to the QWidget whose palette to derive from.
+ * @return Colour as 0xAARRGGBB, or 0 if @p widget is not a QWidget.
+ */
+auto GF_SDK_EXPORT GFUIMutedTextColor(void* widget) -> uint32_t;
+auto GF_SDK_EXPORT GFUIBorderColor(void* widget) -> uint32_t;
+auto GF_SDK_EXPORT GFUIWarningColor(void* widget) -> uint32_t;
+auto GF_SDK_EXPORT GFUIDangerColor(void* widget) -> uint32_t;
+
+/**
+ * @brief Accent colour for a status chip.
+ *
+ * @param widget Opaque pointer to the QWidget whose palette to derive from.
+ * @param positive Non-zero when the chip reports a good state.
+ * @return Colour as 0xAARRGGBB, or 0 if @p widget is not a QWidget.
+ */
+auto GF_SDK_EXPORT GFUIAccentColor(void* widget, int positive) -> uint32_t;
+
+/**
+ * @brief A file size as the rest of the application writes it.
+ *
+ * Traditional units, one decimal. Worth going through rather than reaching for
+ * QLocale directly: a panel printing "50.2 kB" beside one printing "50.2 KiB"
+ * makes the reader wonder which of the two numbers is the real one.
+ *
+ * @param bytes The size.
+ * @return Newly allocated string; free it with GFFreeMemory.
+ */
+auto GF_SDK_EXPORT GFUIHumanSize(int64_t bytes) -> char*;
 }
