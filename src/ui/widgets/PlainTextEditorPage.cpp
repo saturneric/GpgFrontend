@@ -28,6 +28,8 @@
 
 #include "PlainTextEditorPage.h"
 
+#include <QActionGroup>
+
 #include "core/function/GFBufferFactory.h"
 #include "core/model/SettingsObject.h"
 #include "core/thread/FileReadTask.h"
@@ -58,7 +60,10 @@ PlainTextEditorPage::PlainTextEditorPage(QString file_path, QWidget *parent)
     set_editor_modified(ui_->textPage->document()->isModified());
     sha256_timer_->start();
 
-    // Only automatic mode follows the content; an explicit choice stays put.
+    // The paragraphs re-resolve themselves during layout, so this is only here
+    // for the document anchor: which edge the lines align to and which side the
+    // gutter sits on. Automatic is the only mode that has an anchor to move,
+    // and resolving it stops at the first strong character.
     if (text_direction_mode_ == kTEXT_DIRECTION_AUTO) apply_text_direction();
   });
 
@@ -102,7 +107,7 @@ void PlainTextEditorPage::init_editor_style() {
       QFontMetricsF(editor_font).horizontalAdvance(' ') *
       appearance.text_editor_tab_size);
 
-  text_direction_mode_ = appearance.text_direction;
+  build_text_direction_menu();
   apply_text_direction();
 
   auto setup_status_label = [](QLabel *label, const QString &width_sample) {
@@ -437,38 +442,66 @@ void PlainTextEditorPage::ApplyAppearanceSettings() {
   ui_->textPage->setTabStopDistance(
       QFontMetricsF(editor_font).horizontalAdvance(QLatin1Char(' ')) *
       appearance.text_editor_tab_size);
-
-  // The stored default wins over whatever this tab was toggled to, the same way
-  // it does for the font and the tab size.
-  text_direction_mode_ = appearance.text_direction;
-  apply_text_direction();
 }
 
 void PlainTextEditorPage::SetTextDirectionMode(TextDirectionMode mode) {
+  const auto changed = mode != text_direction_mode_;
+
   text_direction_mode_ = mode;
   apply_text_direction();
+
+  for (auto *action : text_direction_group_->actions()) {
+    if (action->data().toInt() == static_cast<int>(mode)) {
+      action->setChecked(true);
+      break;
+    }
+  }
+
+  if (changed) emit SignalTextDirectionModeChanged();
 }
 
 auto PlainTextEditorPage::GetTextDirectionMode() const -> TextDirectionMode {
   return text_direction_mode_;
 }
 
-auto PlainTextEditorPage::GetEffectiveTextDirection() const
-    -> Qt::LayoutDirection {
-  return applied_text_direction_;
+auto PlainTextEditorPage::TextDirectionMenuAction() const -> QAction * {
+  return text_direction_menu_->menuAction();
 }
 
 void PlainTextEditorPage::apply_text_direction() {
-  const auto direction =
-      ResolveTextDirection(text_direction_mode_, ui_->textPage->document());
-
   ApplyTextDirectionToDocument(ui_->textPage, ui_->textPage->document(),
-                               direction);
+                               text_direction_mode_);
+}
 
-  if (direction == applied_text_direction_) return;
+void PlainTextEditorPage::build_text_direction_menu() {
+  text_direction_menu_ = new QMenu(tr("Text Direction"), this);
+  text_direction_group_ = new QActionGroup(this);
+  text_direction_group_->setExclusive(true);
 
-  applied_text_direction_ = direction;
-  emit SignalTextDirectionChanged();
+  // Carried as a plain int: QVariant would otherwise hold an unregistered enum
+  // type, which toInt() handles badly.
+  const std::array<std::pair<TextDirectionMode, QString>, 3> modes{{
+      {kTEXT_DIRECTION_AUTO, tr("Automatic")},
+      {kTEXT_DIRECTION_LTR, tr("Left-to-Right")},
+      {kTEXT_DIRECTION_RTL, tr("Right-to-Left")},
+  }};
+
+  for (const auto &[mode, text] : modes) {
+    auto *action = text_direction_group_->addAction(text);
+    action->setCheckable(true);
+    action->setData(static_cast<int>(mode));
+    action->setChecked(mode == text_direction_mode_);
+    connect(action, &QAction::triggered, this,
+            [this, mode = mode]() { SetTextDirectionMode(mode); });
+    text_direction_menu_->addAction(action);
+  }
+
+  text_direction_menu_->setToolTip(
+      tr("Which way the text runs. Automatic gives every line the direction of "
+         "its own first letter."));
+
+  // This is what puts the submenu in the editor's context menu.
+  ui_->textPage->addAction(text_direction_menu_->menuAction());
 }
 
 }  // namespace GpgFrontend::UI

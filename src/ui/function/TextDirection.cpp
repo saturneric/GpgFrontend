@@ -68,6 +68,44 @@ auto FirstStrongDirection(const QString& text)
   return std::nullopt;
 }
 
+/// Writes @p base as the direction every paragraph starts from and anchors the
+/// alignment to @p anchor, leaving the rest of the option alone.
+///
+/// @p base may be Qt::LayoutDirectionAuto, which asks QTextEngine to resolve
+/// each paragraph from its own text. @p anchor is always a real direction: the
+/// alignment is one value for the whole document either way, so it needs an
+/// answer even when the paragraphs disagree.
+void SetDocumentTextOption(QTextDocument* doc, Qt::LayoutDirection base,
+                           Qt::LayoutDirection anchor) {
+  auto option = doc->defaultTextOption();
+
+  // The two document layouts want opposite things, and getting it the wrong way
+  // round is silent: the text simply does not move.
+  //
+  // QTextDocumentLayout, behind QTextEdit and QTextBrowser, resolves the
+  // default leading alignment against each block's own direction, so asking it
+  // for Qt::AlignRight is reversed straight back to the left edge. Left alone,
+  // it right-aligns right-to-left paragraphs by itself, per paragraph.
+  //
+  // QPlainTextDocumentLayout, behind QPlainTextEdit, does no such thing. It
+  // reorders the characters for the base direction but leaves every line parked
+  // at the left margin unless an alignment says otherwise, and it ignores the
+  // per-block formats that would say so, so one document-wide answer is all it
+  // can be given.
+  const auto alignment =
+      qobject_cast<QPlainTextDocumentLayout*>(doc->documentLayout()) != nullptr
+          ? Qt::Alignment(anchor == Qt::RightToLeft ? Qt::AlignRight
+                                                    : Qt::AlignLeft)
+          : option.alignment();
+
+  if (option.textDirection() == base && option.alignment() == alignment) return;
+
+  // Re-lays out every block, so it is only worth doing on an actual change.
+  option.setTextDirection(base);
+  option.setAlignment(alignment);
+  doc->setDefaultTextOption(option);
+}
+
 }  // namespace
 
 auto DetectTextDirection(const QString& text) -> Qt::LayoutDirection {
@@ -86,57 +124,34 @@ auto DetectTextDirection(const QTextDocument* doc) -> Qt::LayoutDirection {
   return Qt::LeftToRight;
 }
 
-auto ResolveTextDirection(TextDirectionMode mode, const QString& text)
-    -> Qt::LayoutDirection {
-  if (mode == kTEXT_DIRECTION_AUTO) return DetectTextDirection(text);
-  return mode == kTEXT_DIRECTION_RTL ? Qt::RightToLeft : Qt::LeftToRight;
-}
-
-auto ResolveTextDirection(TextDirectionMode mode, const QTextDocument* doc)
-    -> Qt::LayoutDirection {
-  if (mode == kTEXT_DIRECTION_AUTO) return DetectTextDirection(doc);
-  return mode == kTEXT_DIRECTION_RTL ? Qt::RightToLeft : Qt::LeftToRight;
-}
-
-auto TextDirectionModeFromInt(int value) -> TextDirectionMode {
-  switch (value) {
-    case kTEXT_DIRECTION_LTR:
-      return kTEXT_DIRECTION_LTR;
-    case kTEXT_DIRECTION_RTL:
-      return kTEXT_DIRECTION_RTL;
-    default:
-      return kTEXT_DIRECTION_AUTO;
-  }
-}
-
 void ApplyTextDirectionToDocument(QWidget* view, QTextDocument* doc,
                                   Qt::LayoutDirection dir) {
   if (view != nullptr) view->setLayoutDirection(dir);
   if (doc == nullptr) return;
 
-  auto option = doc->defaultTextOption();
+  SetDocumentTextOption(doc, dir, dir);
+}
 
-  // The two document layouts want opposite things, and getting it the wrong way
-  // round is silent: the text simply does not move.
-  //
-  // QTextDocumentLayout, behind QTextEdit and QTextBrowser, resolves the
-  // default leading alignment against the base direction itself, so asking it
-  // for Qt::AlignRight is reversed straight back to the left edge.
-  //
-  // QPlainTextDocumentLayout, behind QPlainTextEdit, does no such thing. It
-  // reorders the characters for the new base direction but leaves every line
-  // parked at the left margin unless an alignment says otherwise.
-  const auto alignment =
-      qobject_cast<QPlainTextDocumentLayout*>(doc->documentLayout()) != nullptr
-          ? (dir == Qt::RightToLeft ? Qt::AlignRight : Qt::AlignLeft)
-          : option.alignment();
+void ApplyTextDirectionToDocument(QWidget* view, QTextDocument* doc,
+                                  TextDirectionMode mode) {
+  if (mode != kTEXT_DIRECTION_AUTO) {
+    ApplyTextDirectionToDocument(
+        view, doc,
+        mode == kTEXT_DIRECTION_RTL ? Qt::RightToLeft : Qt::LeftToRight);
+    return;
+  }
 
-  if (option.textDirection() == dir && option.alignment() == alignment) return;
+  // Automatic still needs one answer for the things a document has only one of.
+  // The widget decides which side its scroll bar and its line number gutter
+  // open on, and a plain text editor aligns every line to the same edge; a
+  // document that opens in Arabic should get both, even though each paragraph
+  // goes on to resolve its own reading order.
+  const auto anchor = DetectTextDirection(doc);
 
-  // Re-lays out every block, so it is only worth doing on an actual change.
-  option.setTextDirection(dir);
-  option.setAlignment(alignment);
-  doc->setDefaultTextOption(option);
+  if (view != nullptr) view->setLayoutDirection(anchor);
+  if (doc == nullptr) return;
+
+  SetDocumentTextOption(doc, Qt::LayoutDirectionAuto, anchor);
 }
 
 }  // namespace GpgFrontend::UI

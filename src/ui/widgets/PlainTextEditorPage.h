@@ -31,6 +31,7 @@
 #include "ui/function/TextDirection.h"
 
 class Ui_PlainTextEditor;
+class QActionGroup;
 
 namespace GpgFrontend::UI {
 
@@ -146,8 +147,13 @@ class PlainTextEditorPage : public QWidget {
   /**
    * @brief Overrides the direction this page lays its text out in.
    *
-   * The mode is not stored: it is a view choice for this tab and this session,
-   * while the default for new tabs lives in the appearance settings.
+   * The mode is not stored: it is a view choice for this tab and this session.
+   * Every tab opens in kTEXT_DIRECTION_AUTO, which is the mode that lets each
+   * paragraph follow its own content; the explicit modes are the override.
+   *
+   * Also moves the check mark in the menu returned by
+   * TextDirectionMenuAction(), so a change made anywhere shows up everywhere
+   * that menu is shown.
    *
    * @param mode Direction mode to apply.
    */
@@ -161,14 +167,16 @@ class PlainTextEditorPage : public QWidget {
   [[nodiscard]] auto GetTextDirectionMode() const -> TextDirectionMode;
 
   /**
-   * @brief Returns the direction the text is actually laid out in.
+   * @brief Returns the action opening this page's text direction submenu.
    *
-   * Unlike GetTextDirectionMode(), this resolves kTEXT_DIRECTION_AUTO against
-   * the current content.
+   * The page owns the three mode actions, and this is how anything else shows
+   * them. The main window puts these very actions in its View menu rather than
+   * building a second set, so the two menus cannot disagree and each label is
+   * translated once.
    *
-   * @return Qt::RightToLeft or Qt::LeftToRight.
+   * @return Menu action owned by this page; never null.
    */
-  [[nodiscard]] auto GetEffectiveTextDirection() const -> Qt::LayoutDirection;
+  [[nodiscard]] auto TextDirectionMenuAction() const -> QAction*;
 
  public slots:
   /**
@@ -211,12 +219,13 @@ class PlainTextEditorPage : public QWidget {
   void SignalUIBytesDisplayed();
 
   /**
-   * @brief Emitted when the direction the text is laid out in changes.
+   * @brief Emitted when the direction mode chosen for this page changes.
    *
-   * Automatic mode re-resolves whenever the content changes, so this is what
-   * lets the main window keep its menu toggle in step without polling.
+   * Fires on an actual change of mode, not on every edit: under
+   * kTEXT_DIRECTION_AUTO the paragraphs re-resolve themselves during layout,
+   * with nothing for anyone to be told about.
    */
-  void SignalTextDirectionChanged();
+  void SignalTextDirectionModeChanged();
 
  protected:
   QSharedPointer<Ui_PlainTextEditor> ui_;  ///< Generated editor page UI object.
@@ -266,17 +275,24 @@ class PlainTextEditorPage : public QWidget {
       false;                        ///< Whether previous chunk ended with '\r'.
   QTimer* sha256_timer_ = nullptr;  ///< Debounce timer for SHA-256 updates.
   TextDirectionMode text_direction_mode_ =
-      kTEXT_DIRECTION_AUTO;  ///< Configured direction mode.
-  Qt::LayoutDirection applied_text_direction_ =
-      Qt::LeftToRight;  ///< Direction currently laid out.
+      kTEXT_DIRECTION_AUTO;               ///< Configured direction mode.
+  QMenu* text_direction_menu_ = nullptr;  ///< Submenu holding the mode actions.
+  QActionGroup* text_direction_group_ =
+      nullptr;  ///< Makes the three mode actions exclusive.
 
   /**
-   * @brief Resolves the configured mode against the content and applies it.
-   *
-   * Emits SignalTextDirectionChanged() only when the resulting direction
-   * actually differs from the one already in effect.
+   * @brief Applies the configured mode to the editor.
    */
   void apply_text_direction();
+
+  /**
+   * @brief Builds the text direction submenu and attaches it to the editor.
+   *
+   * The actions are added to the editor widget as well, which is what puts them
+   * in its context menu: PlainTextEditor appends whatever actions it carries to
+   * the standard menu.
+   */
+  void build_text_direction_menu();
 
   /**
    * @brief Initializes editor styling, status labels and page stylesheet.

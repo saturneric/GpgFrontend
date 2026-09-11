@@ -132,17 +132,14 @@ class InfoBoardWidget : public QWidget {
   /// Message body last shown in the raw text pane, without the status prefix.
   QString info_board_body_;
 
-  /// Cached direction setting, refreshed by ApplyAppearanceSettings(): the pane
-  /// is re-laid out on every operation, and re-opening the settings object each
-  /// time would decrypt it for nothing.
-  TextDirectionMode text_direction_mode_ = kTEXT_DIRECTION_AUTO;
-
   /**
-   * @brief Lays the raw text pane out the way the message body reads.
+   * @brief Lays the raw text pane out the way its content reads.
    *
-   * Resolved against the body alone: the pane's "[STATUS] " prefix is
-   * translated, so classifying the whole pane would report the direction of the
-   * interface language instead of the message's.
+   * The pane is always automatic: it shows whatever an operation produced, and
+   * there is nothing for a reader of a read-only status pane to override. Each
+   * paragraph takes the direction of its own first letter, which this surface
+   * needs more than most, since a message can answer in a different script from
+   * the one the interface is in.
    */
   void apply_text_direction();
 

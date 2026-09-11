@@ -184,12 +184,12 @@ class TextEditTabWidget : public QTabWidget {
 
  signals:
   /**
-   * @brief Emitted when a text page changes the direction it lays its text out.
+   * @brief Emitted when a text page changes its text direction mode.
    *
    * Re-emitted on behalf of the pages so the main window can follow every tab
    * through one connection instead of one per page.
    */
-  void SignalTextDirectionChanged();
+  void SignalTextDirectionModeChanged();
 
  private:
   int count_page_ = 0;

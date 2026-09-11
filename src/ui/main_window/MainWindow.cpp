@@ -109,10 +109,11 @@ void MainWindow::Init() noexcept {
 
     connect(edit_->TabWidget(), &TextEditTabWidget::currentChanged, this,
             &MainWindow::slot_switch_menu_control_mode);
-    // Automatic mode re-resolves whenever a tab's content changes, so the menu
-    // toggle has to hear about it rather than only read it on a tab switch.
-    connect(edit_->TabWidget(), &TextEditTabWidget::SignalTextDirectionChanged,
-            this, &MainWindow::sync_text_direction_action);
+    // A mode picked from the editor's own context menu has to move the check
+    // mark in the View menu too.
+    connect(edit_->TabWidget(),
+            &TextEditTabWidget::SignalTextDirectionModeChanged, this,
+            &MainWindow::sync_text_direction_action);
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalRefreshStatusBar, this,
             [=](const QString& message, int timeout) {

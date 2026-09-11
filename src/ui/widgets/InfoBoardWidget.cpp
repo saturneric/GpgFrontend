@@ -153,14 +153,20 @@ void InfoBoardWidget::ApplyAppearanceSettings() {
   ui_->infoBoard->setFont(ResolveAppearanceFont(
       appearance.info_board_font_family, appearance.info_board_font_size));
 
-  text_direction_mode_ = appearance.text_direction;
   apply_text_direction();
 }
 
 void InfoBoardWidget::apply_text_direction() {
-  ApplyTextDirectionToDocument(
-      ui_->infoBoard, ui_->infoBoard->document(),
-      ResolveTextDirection(text_direction_mode_, info_board_body_));
+  // The widget anchor decides which side the scroll bar opens on, and is
+  // resolved against the body alone: the pane's "[STATUS] " prefix is
+  // translated, so classifying the pane as a whole would report the direction
+  // of the interface language instead of the message's.
+  ui_->infoBoard->setLayoutDirection(DetectTextDirection(info_board_body_));
+
+  // The paragraphs are left to resolve themselves. This is a QTextBrowser, so
+  // QTextDocumentLayout both orders and aligns each one on its own.
+  ApplyTextDirectionToDocument(nullptr, ui_->infoBoard->document(),
+                               kTEXT_DIRECTION_AUTO);
 }
 
 void InfoBoardWidget::InitUI() {

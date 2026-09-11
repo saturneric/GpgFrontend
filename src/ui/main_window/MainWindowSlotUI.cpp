@@ -401,7 +401,6 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   im_encrypt_act_->setDisabled(disable);
   im_encrypt_sign_act_->setDisabled(disable);
 
-  text_direction_rtl_act_->setDisabled(disable);
   sync_text_direction_action();
 
   if (edit_->CurFilePage() != nullptr) {
@@ -413,21 +412,19 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   }
 }
 
-void MainWindow::slot_toggle_text_direction(bool checked) {
-  auto* page = edit_->CurTextPage();
-  if (page == nullptr) return;
-
-  page->SetTextDirectionMode(checked ? kTEXT_DIRECTION_RTL
-                                     : kTEXT_DIRECTION_LTR);
-}
-
 void MainWindow::sync_text_direction_action() {
   auto* page = edit_->CurTextPage();
 
-  // triggered() rather than toggled() is what makes this safe to call while the
-  // action already carries a state, without blocking its signals first.
-  text_direction_rtl_act_->setChecked(
-      page != nullptr && page->GetEffectiveTextDirection() == Qt::RightToLeft);
+  // clear() only deletes the actions the menu owns. These are owned by the
+  // page, and are in its editor's context menu at the same time, so they
+  // survive being taken out of here and put back.
+  text_direction_menu_->clear();
+  text_direction_menu_->menuAction()->setVisible(page != nullptr);
+  if (page == nullptr) return;
+
+  auto* source = page->TextDirectionMenuAction();
+  text_direction_menu_->setTitle(source->text());
+  text_direction_menu_->addActions(source->menu()->actions());
 }
 
 SettingsDialog* MainWindow::open_settings_dialog() {

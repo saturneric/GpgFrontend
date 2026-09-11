@@ -28,6 +28,8 @@
 
 #include "PlainTextEditor.h"
 
+#include <QContextMenuEvent>
+#include <QMenu>
 #include <QPainter>
 #include <QTextBlock>
 
@@ -114,6 +116,20 @@ void PlainTextEditor::changeEvent(QEvent* event) {
     update_line_number_area_geometry();
     line_number_area_->update();
   }
+}
+
+void PlainTextEditor::contextMenuEvent(QContextMenuEvent* event) {
+  auto* menu = createStandardContextMenu(event->pos());
+
+  if (const auto extra_actions = actions(); !extra_actions.isEmpty()) {
+    menu->addSeparator();
+    menu->addActions(extra_actions);
+  }
+
+  // popup() rather than exec(): exec() would spin a nested event loop inside
+  // the event handler, and the actions belong to the page, not to this menu.
+  menu->setAttribute(Qt::WA_DeleteOnClose);
+  menu->popup(event->globalPos());
 }
 
 void PlainTextEditor::update_line_number_area_geometry() {

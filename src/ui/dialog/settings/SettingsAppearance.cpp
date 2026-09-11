@@ -115,21 +115,6 @@ AppearanceTab::AppearanceTab(QWidget* parent)
   ui_->fontSizeTextEditorLabel->setText(tr("Font Size"));
   ui_->textEditorTabSizeLabel->setText(tr("Tab Size"));
 
-  ui_->textEditorDirectionLabel->setText(tr("Text Direction"));
-  // Stored as plain ints: QVariant would otherwise carry an unregistered enum
-  // type, which findData() and toInt() both handle badly.
-  ui_->textEditorDirectionComboBox->addItem(
-      tr("Automatic"), static_cast<int>(kTEXT_DIRECTION_AUTO));
-  ui_->textEditorDirectionComboBox->addItem(
-      tr("Left-to-Right"), static_cast<int>(kTEXT_DIRECTION_LTR));
-  ui_->textEditorDirectionComboBox->addItem(
-      tr("Right-to-Left"), static_cast<int>(kTEXT_DIRECTION_RTL));
-  ui_->textEditorDirectionComboBox->setToolTip(
-      tr("Which way the message text runs. Automatic follows the first letter "
-         "of the text, so a message written in Arabic, Hebrew or Persian reads "
-         "from the right on its own. Applies to the editor tabs and to the "
-         "status panel."));
-
   ui_->showAllFontsCheckBox->setText(tr("Show all fonts"));
   ui_->showAllFontsCheckBox->setToolTip(
       tr("Also offer proportional fonts for both surfaces below. They line up "
@@ -251,11 +236,6 @@ void AppearanceTab::SetSettings() {
   }
   ui_->textEditorTabSizeSpinBox->setValue(text_editor_tab_size);
 
-  const auto text_direction_index = ui_->textEditorDirectionComboBox->findData(
-      static_cast<int>(TextDirectionModeFromInt(appearance.text_direction)));
-  ui_->textEditorDirectionComboBox->setCurrentIndex(
-      text_direction_index < 0 ? 0 : text_direction_index);
-
   // init available styles
   for (const auto& s : QStyleFactory::keys()) {
     ui_->themeComboBox->addItem(s.toLower());
@@ -333,8 +313,6 @@ void AppearanceTab::ApplySettings() {
       FamilyOrUnset(ui_->textEditorFontComboBox->currentFont());
   appearance.text_editor_font_size = ui_->textEditorFontSizeSpinBox->value();
   appearance.text_editor_tab_size = ui_->textEditorTabSizeSpinBox->value();
-  appearance.text_direction = TextDirectionModeFromInt(
-      ui_->textEditorDirectionComboBox->currentData().toInt());
 
   appearance.tool_bar_crypto_operas_type = kNONE;
   for (const auto& entry : kToolBarOperas) {

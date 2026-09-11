@@ -112,9 +112,7 @@ SettingsDialog::SettingsDialog(QWidget* parent)
        "application",
        {tr("theme"), tr("icon"), tr("font size"), tr("font family"),
         tr("toolbar"), tr("actions"), tr("instant messaging"),
-        tr("text editor"), tr("status panel"), tr("text direction"),
-        tr("right-to-left"), tr("rtl"), tr("arabic"), tr("hebrew"),
-        tr("persian")}},
+        tr("text editor"), tr("status panel"), tr("arabic")}},
   };
 
   // network settings is not available in sandbox environment, so only add the

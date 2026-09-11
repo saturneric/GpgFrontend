@@ -201,15 +201,6 @@ void MainWindow::create_actions() {
                             tr("Find a word"), {QKeySequence::Find});
   connect(find_act_, &QAction::triggered, this, &MainWindow::slot_find);
 
-  text_direction_rtl_act_ = create_action(
-      "text_direction_rtl", tr("Right-to-Left"), {},
-      tr("Lay this tab's text out from right to left, the way Arabic, Hebrew "
-         "and Persian read"));
-  // create_action() builds a plain action, so the checkable state is set here.
-  text_direction_rtl_act_->setCheckable(true);
-  connect(text_direction_rtl_act_, &QAction::triggered, this,
-          &MainWindow::slot_toggle_text_direction);
-
   clean_double_line_breaks_act_ = create_action(
       "remove_spacing", tr("Remove spacing"),
       ":/icons/format-line-spacing-triple.png",
@@ -561,7 +552,11 @@ void MainWindow::create_menus() {
   view_menu_ = menuBar()->addMenu(tr("View"));
   // The panel toggles are appended later, when the tool bars and docks are
   // built, so the text option keeps the top of the menu to itself.
-  view_menu_->addAction(text_direction_rtl_act_);
+  //
+  // An empty submenu owned by the window, refilled by
+  // sync_text_direction_action() with whichever page is current. Its title is
+  // taken from that page so the label is translated in one place.
+  text_direction_menu_ = view_menu_->addMenu(QString{});
   view_menu_->addSeparator();
 
   help_menu_ = menuBar()->addMenu(tr("Help"));

@@ -90,6 +90,17 @@ class PlainTextEditor : public QPlainTextEdit {
    */
   void changeEvent(QEvent* event) override;
 
+  /**
+   * @brief Appends this widget's own actions to the standard context menu.
+   *
+   * Qt's menu, with undo, the clipboard entries and select all, then whatever
+   * actions have been added to this widget. The editor page hangs its text
+   * direction submenu there, so it needs no knowledge of what it is showing.
+   *
+   * @param event
+   */
+  void contextMenuEvent(QContextMenuEvent* event) override;
+
  private slots:
   /**
    * @brief
