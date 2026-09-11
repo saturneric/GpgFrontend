@@ -28,6 +28,8 @@
 
 #include "GpgOperaResultContext.h"
 
+#include "core/utils/MemoryUtils.h"
+
 namespace GpgFrontend::UI {
 
 GpgOperaContext::GpgOperaContext(QSharedPointer<GpgOperaContextBasement> base)
@@ -87,4 +89,21 @@ auto GetGpgOperaContextFromBasement(
 
   return nullptr;
 }
+
+GpgOperaContextHolder::GpgOperaContextHolder()
+    : base_(SecureCreateSharedObject<GpgOperaContextBasement>()) {}
+
+GpgOperaContextHolder::~GpgOperaContextHolder() {
+  if (!base_.isNull()) base_->operas.clear();
+}
+
+auto GpgOperaContextHolder::operator->() const -> GpgOperaContextBasement* {
+  return base_.data();
+}
+
+auto GpgOperaContextHolder::Base() const
+    -> const QSharedPointer<GpgOperaContextBasement>& {
+  return base_;
+}
+
 }  // namespace GpgFrontend::UI

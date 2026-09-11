@@ -135,7 +135,7 @@ class GpgOperaHelper : QObject {
    * @param channel
    * @param f
    */
-  static void BuildOperas(QSharedPointer<GpgOperaContextBasement>& base,
+  static void BuildOperas(const QSharedPointer<GpgOperaContextBasement>& base,
                           int category, int channel, const GpgOperaFactory& f);
 
   /**

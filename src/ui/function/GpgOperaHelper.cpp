@@ -179,9 +179,9 @@ auto OperaStartContext(QWidget* parent) -> QObject* {
                            : static_cast<QObject*>(qApp);
 }
 
-void GpgOperaHelper::BuildOperas(QSharedPointer<GpgOperaContextBasement>& base,
-                                 int category, int channel,
-                                 const GpgOperaFactory& f) {
+void GpgOperaHelper::BuildOperas(
+    const QSharedPointer<GpgOperaContextBasement>& base, int category,
+    int channel, const GpgOperaFactory& f) {
   assert(base != nullptr);
 
   auto context = GetGpgOperaContextFromBasement(base, category);
@@ -277,6 +277,11 @@ auto GpgOperaHelper::BuildSimpleGpgFileOperasHelper(
     OperaFunc opera_func) -> OperaWaitingCb {
   const auto& path = context->paths[index];
   const auto& o_path = context->o_paths[index];
+  // Held by raw reference and written from the completion callback, which can
+  // run after WaitForMultipleOperas returns (the waiting dialog is cancelable).
+  // What keeps it valid is the strong context->base the callback captures, so
+  // that reference must stay strong — making it weak would turn a cancelled
+  // operation into a write into freed secure memory.
   auto& opera_results = context->base->opera_results;
 
   auto input_hash = SecureCreateSharedObject<QString>();
@@ -342,6 +347,11 @@ auto GpgOperaHelper::BuildComplexGpgFileOperasHelper(
     OperaFunc opera_func) -> OperaWaitingCb {
   const auto& path = context->paths[index];
   const auto& o_path = context->o_paths[index];
+  // Held by raw reference and written from the completion callback, which can
+  // run after WaitForMultipleOperas returns (the waiting dialog is cancelable).
+  // What keeps it valid is the strong context->base the callback captures, so
+  // that reference must stay strong — making it weak would turn a cancelled
+  // operation into a write into freed secure memory.
   auto& opera_results = context->base->opera_results;
 
   auto input_hash = SecureCreateSharedObject<QString>();
@@ -413,6 +423,11 @@ auto GpgOperaHelper::BuildSimpleGpgOperasHelper(
     QSharedPointer<GpgOperaContext>& context, int channel, int index,
     OperaFunc opera_func) -> OperaWaitingCb {
   const auto& buffer = context->buffers[index];
+  // Held by raw reference and written from the completion callback, which can
+  // run after WaitForMultipleOperas returns (the waiting dialog is cancelable).
+  // What keeps it valid is the strong context->base the callback captures, so
+  // that reference must stay strong — making it weak would turn a cancelled
+  // operation into a write into freed secure memory.
   auto& opera_results = context->base->opera_results;
 
   const auto hash_result = GFBufferFactory::ToSha256(buffer);
@@ -474,6 +489,11 @@ auto GpgOperaHelper::BuildComplexGpgOperasHelper(
     QSharedPointer<GpgOperaContext>& context, int channel, int index,
     OperaFunc opera_func) -> OperaWaitingCb {
   const auto& buffer = context->buffers[index];
+  // Held by raw reference and written from the completion callback, which can
+  // run after WaitForMultipleOperas returns (the waiting dialog is cancelable).
+  // What keeps it valid is the strong context->base the callback captures, so
+  // that reference must stay strong — making it weak would turn a cancelled
+  // operation into a write into freed secure memory.
   auto& opera_results = context->base->opera_results;
 
   const auto hash_result = GFBufferFactory::ToSha256(buffer);
