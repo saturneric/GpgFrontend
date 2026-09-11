@@ -26,11 +26,15 @@
  *
  */
 
+#include <array>
+#include <cstring>
+
 #include "GFCoreTest.h"
 #include "core/function/AESCryptoHelper.h"
 #include "core/function/GFBufferFactory.h"
 #include "core/function/PassphraseGenerator.h"
 #include "core/function/SecureRandomGenerator.h"
+#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend::Test {
 
@@ -124,6 +128,59 @@ TEST(SecureMemoryAllocatorTest, SecDoubleFreeShouldWarn) {
 #else
   SMASecFree(ptr);
 #endif
+}
+
+TEST(SecureMemoryAllocatorTest, SecMallocReturnsZeroedMemory) {
+  // Both tiers hand back cleared memory: calloc below level 2, an explicit
+  // memset on the guarded pages above it. Callers rely on not inheriting
+  // whatever the previous owner left there.
+  auto* ptr = static_cast<unsigned char*>(SMASecMalloc(256));
+  ASSERT_NE(ptr, nullptr);
+
+  for (size_t i = 0; i < 256; ++i) EXPECT_EQ(ptr[i], 0);
+
+  SMASecFree(ptr);
+}
+
+TEST(SecureMemoryAllocatorTest, SecReallocGrowKeepsTheContents) {
+  auto* ptr = static_cast<char*>(SMASecMalloc(8));
+  ASSERT_NE(ptr, nullptr);
+  std::memcpy(ptr, "secret", 6);
+
+  auto* grown = static_cast<char*>(SMASecRealloc(ptr, 64));
+  ASSERT_NE(grown, nullptr);
+  EXPECT_EQ(std::memcmp(grown, "secret", 6), 0);
+
+  SMASecFree(grown);
+}
+
+TEST(SecureMemoryAllocatorTest, SecReallocShrinkKeepsTheLeadingBytes) {
+  auto* ptr = static_cast<char*>(SMASecMalloc(64));
+  ASSERT_NE(ptr, nullptr);
+  std::memcpy(ptr, "secret", 6);
+
+  auto* shrunk = static_cast<char*>(SMASecRealloc(ptr, 6));
+  ASSERT_NE(shrunk, nullptr);
+  EXPECT_EQ(std::memcmp(shrunk, "secret", 6), 0);
+
+  SMASecFree(shrunk);
+}
+
+TEST(SecureMemoryAllocatorTest, SecReallocToZeroReleasesTheBlock) {
+  auto* ptr = SMASecMalloc(32);
+  ASSERT_NE(ptr, nullptr);
+
+  EXPECT_EQ(SMASecRealloc(ptr, 0), nullptr);
+}
+
+TEST(SecureMemoryAllocatorTest, SecureMemoryCanBeReleasedThroughSMAFree) {
+  // The secure tier registers its allocations at every level, so the plain
+  // free path recognises the pointer and still wipes it rather than handing a
+  // secret straight back to the heap.
+  auto* ptr = SMASecMalloc(128);
+  ASSERT_NE(ptr, nullptr);
+
+  SMAFree(ptr);
 }
 
 TEST(SecureMemoryAllocatorTest, ParallelAllocAndFree) {
@@ -391,6 +448,96 @@ TEST(PassphraseAlphabetTest, GenerateProducesOnlyAlphanum) {
 TEST(PassphraseAlphabetTest, GenerateRejectsNonPositiveLength) {
   EXPECT_FALSE(PassphraseGenerator::GetInstance().Generate(0).has_value());
   EXPECT_FALSE(PassphraseGenerator::GetInstance().Generate(-1).has_value());
+}
+
+// --- MemoryWipeTest ------------------------------------------------------
+//
+// These pin the wipe primitives themselves. Note what is deliberately NOT
+// tested: GFBuffer::Impl's wipe-on-release. Observing it would mean reading
+// memory after it was freed, which is undefined behaviour and would trip ASan.
+// The primitive below is tested, the safety argument (impl_ is a shared_ptr,
+// so the destructor runs only after the last copy-on-write share is gone)
+// lives in a comment at the call site, and the wiring is a review fact.
+
+TEST(MemoryWipeTest, SecureWipeMemoryZeroesEveryByte) {
+  std::array<unsigned char, 64> buf{};
+  buf.fill(0xAB);
+
+  SecureWipeMemory(buf.data(), buf.size());
+
+  for (const auto byte : buf) EXPECT_EQ(byte, 0);
+}
+
+TEST(MemoryWipeTest, SecureWipeMemoryToleratesNullAndZeroLength) {
+  SecureWipeMemory(nullptr, 16);
+
+  std::array<unsigned char, 4> buf{};
+  buf.fill(0xCD);
+  SecureWipeMemory(buf.data(), 0);
+
+  // A zero length must leave the region untouched rather than guess.
+  for (const auto byte : buf) EXPECT_EQ(byte, 0xCD);
+}
+
+TEST(MemoryWipeTest, WipeStringOverwritesAnUnsharedStringWhereItLies) {
+  QString secret = QStringLiteral("correct horse battery staple");
+  secret.detach();
+
+  const auto* storage = secret.constData();
+  const auto size = secret.size();
+
+  EXPECT_TRUE(WipeString(secret));
+
+  // The wipe happened in the original storage, so the characters that were
+  // there are gone rather than merely unreferenced.
+  for (qsizetype i = 0; i < size; ++i) EXPECT_EQ(storage[i].unicode(), 0);
+  EXPECT_TRUE(secret.isEmpty());
+}
+
+TEST(MemoryWipeTest, WipeStringReportsThatASharedStringCouldNotBeOverwritten) {
+  QString secret = QStringLiteral("shared secret");
+  QString other = secret;  // implicit sharing: same storage
+
+  // data() has to detach, so the wipe lands on a private copy and the original
+  // characters survive in `other`. Saying so is the whole point of the bool.
+  EXPECT_FALSE(WipeString(secret));
+  EXPECT_EQ(other, QStringLiteral("shared secret"));
+  EXPECT_TRUE(secret.isEmpty());
+}
+
+TEST(MemoryWipeTest, WipeStringOnAnEmptyStringIsANoOp) {
+  QString empty;
+  EXPECT_TRUE(WipeString(empty));
+  EXPECT_TRUE(empty.isEmpty());
+}
+
+TEST(MemoryWipeTest, WipeByteArrayOverwritesAnUnsharedArrayWhereItLies) {
+  QByteArray secret("super secret bytes");
+  secret.detach();
+
+  const auto* storage = secret.constData();
+  const auto size = secret.size();
+
+  EXPECT_TRUE(WipeByteArray(secret));
+
+  for (qsizetype i = 0; i < size; ++i) EXPECT_EQ(storage[i], 0);
+  EXPECT_TRUE(secret.isEmpty());
+}
+
+TEST(MemoryWipeTest,
+     WipeByteArrayReportsThatASharedArrayCouldNotBeOverwritten) {
+  QByteArray secret("shared bytes");
+  QByteArray other = secret;
+
+  EXPECT_FALSE(WipeByteArray(secret));
+  EXPECT_EQ(other, QByteArray("shared bytes"));
+  EXPECT_TRUE(secret.isEmpty());
+}
+
+TEST(MemoryWipeTest, WipeByteArrayOnAnEmptyArrayIsANoOp) {
+  QByteArray empty;
+  EXPECT_TRUE(WipeByteArray(empty));
+  EXPECT_TRUE(empty.isEmpty());
 }
 
 }  // namespace GpgFrontend::Test
