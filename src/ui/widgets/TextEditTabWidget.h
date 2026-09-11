@@ -243,6 +243,17 @@ class TextEditTabWidget : public QTabWidget {
       -> PlainTextEditorPage*;
 
   /**
+   * @brief Mounts a module-registered primary view on a freshly created tab.
+   *
+   * Does nothing when no module has claimed @p type, which is what keeps every
+   * pre-existing tab type behaving exactly as it did before.
+   *
+   * @param page the page just created for the tab
+   * @param type the tab type, matched case-insensitively
+   */
+  void mount_module_view(PlainTextEditorPage* page, const QString& type);
+
+  /**
    * @brief
    *
    * @param path

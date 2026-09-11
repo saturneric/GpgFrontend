@@ -205,6 +205,42 @@ auto UIModuleManager::ListSettingsPages() const
   return settings_pages_;
 }
 
+auto UIModuleManager::RegisterTabPageView(const TabPageViewRegistration& reg)
+    -> bool {
+  if (reg.tab_type.isEmpty() || reg.factory == nullptr) {
+    LOG_W() << "incomplete tab page view registration, type:" << reg.tab_type;
+    return false;
+  }
+
+  // Rejected rather than replaced, for the same reason a settings page is: a
+  // tab that is already open holds a widget built by the current factory, and
+  // swapping the registration under it would leave that tab pointing at a view
+  // nobody owns any more.
+  const auto key = reg.tab_type.toUpper();
+  if (tab_page_views_.contains(key)) {
+    LOG_W() << "tab page view already registered:" << key;
+    return false;
+  }
+
+  auto normalized = reg;
+  normalized.tab_type = key;
+  tab_page_views_.insert(key, normalized);
+  return true;
+}
+
+auto UIModuleManager::UnregisterTabPageView(const QString& tab_type) -> bool {
+  if (tab_type.isEmpty()) return false;
+  return tab_page_views_.remove(tab_type.toUpper()) > 0;
+}
+
+auto UIModuleManager::TabPageViewFor(const QString& tab_type) const
+    -> std::optional<TabPageViewRegistration> {
+  if (tab_type.isEmpty()) return std::nullopt;
+  const auto it = tab_page_views_.constFind(tab_type.toUpper());
+  if (it == tab_page_views_.constEnd()) return std::nullopt;
+  return *it;
+}
+
 auto RegisterQObject(QObject* p) -> QString {
   return UIModuleManager::GetInstance().RegisterQObject(p);
 }

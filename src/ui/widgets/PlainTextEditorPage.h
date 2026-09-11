@@ -89,6 +89,56 @@ class PlainTextEditorPage : public QWidget {
   void ShowNotificationWidget(QWidget* widget, const char* className);
 
   /**
+   * @brief Mounts a module-supplied widget as this page's primary view.
+   *
+   * The page keeps owning the text document, which stays the canonical content
+   * of the tab: saving, crash recovery, the unsaved-changes prompt and
+   * CurPlainText() all keep reading it. The mounted widget is shown above the
+   * editor and a switcher lets the user move between it ("Message") and the
+   * raw document ("Raw Source").
+   *
+   * Ownership of @p view passes to the page. Mounting a second view is
+   * rejected; a page has one primary view for its whole life.
+   *
+   * @param view Fresh, unparented widget. Must not be nullptr.
+   * @return true when the view was mounted.
+   */
+  auto MountPrimaryView(QWidget* view) -> bool;
+
+  /**
+   * @brief The mounted primary view, or nullptr when the tab has none.
+   */
+  [[nodiscard]] auto PrimaryView() const -> QWidget*;
+
+  /**
+   * @brief Asks the primary view to reserialize itself into the document.
+   *
+   * A no-op when there is no primary view, or when it does not declare
+   * FlushToSource(). Callers use this before reading the document for a save
+   * or a crypto operation, so the bytes they read are never stale.
+   */
+  void FlushPrimaryView();
+
+  /**
+   * @brief Whether the primary view holds edits it has not written back yet.
+   *
+   * Only meaningful between an edit and the flush that follows it; the
+   * document's own modified flag is what the rest of the application consults,
+   * and the view marks that eagerly.
+   *
+   * @return false when there is no primary view or it declares no IsDirty().
+   */
+  [[nodiscard]] auto PrimaryViewIsDirty() const -> bool;
+
+  /**
+   * @brief Hands the document's current bytes to the primary view.
+   *
+   * Used when content arrives from outside the view -- a file being opened, or
+   * the result of a crypto operation. A no-op without a primary view.
+   */
+  void ReloadPrimaryView();
+
+  /**
    * @brief Closes notification widgets with a matching dynamic property.
    *
    * Every child widget whose @p className property is true will be closed.
@@ -239,6 +289,15 @@ class PlainTextEditorPage : public QWidget {
 
  private slots:
   /**
+   * @brief Marks the document modified because the primary view was edited.
+   *
+   * Deliberately does not reserialize: the flag has to be correct immediately
+   * so that closing the tab prompts to save, while writing the document back
+   * is deferred until something actually needs to read it.
+   */
+  void slot_primary_view_modified();
+
+  /**
    * @brief Applies a subdued text style to OpenPGP cleartext signature
    * metadata.
    *
@@ -277,8 +336,43 @@ class PlainTextEditorPage : public QWidget {
   TextDirectionMode text_direction_mode_ =
       kTEXT_DIRECTION_AUTO;               ///< Configured direction mode.
   QMenu* text_direction_menu_ = nullptr;  ///< Submenu holding the mode actions.
+  QPointer<QWidget> primary_view_;        ///< Module-supplied view, or null.
+  QWidget* view_switcher_ = nullptr;      ///< Message / Raw Source selector.
+  /// Set while content is being moved between the view and the document, in
+  /// either direction. Both handlers bail out on it, which is what stops a
+  /// write in one direction bouncing straight back as a write in the other.
+  bool primary_view_syncing_ = false;
+  /// Document revision as of the last sync. A contentsChanged carrying this
+  /// revision is the echo of our own write, not an external edit -- the check
+  /// that catches what the flag above misses when the signal is queued.
+  int source_generation_ = -1;
   QActionGroup* text_direction_group_ =
       nullptr;  ///< Makes the three mode actions exclusive.
+
+  /**
+   * @brief Calls a no-argument member on the primary view, if it declares one.
+   *
+   * The page/view contract is additive: a view that does not declare a member
+   * simply sits out that step, so every call site probes rather than assumes.
+   *
+   * @param method Member name, without parentheses.
+   */
+  void invoke_primary_view(const char* method);
+
+  /**
+   * @brief Builds the Message / Raw Source selector shown above both views.
+   */
+  void build_view_switcher();
+
+  /**
+   * @brief Shows either the mounted view or the raw document.
+   *
+   * Switching away from the mounted view flushes it first, so what the user
+   * reads as "Raw Source" is never behind the structured view.
+   *
+   * @param primary true for the mounted view, false for the editor.
+   */
+  void show_primary_view(bool primary);
 
   /**
    * @brief Applies the configured mode to the editor.

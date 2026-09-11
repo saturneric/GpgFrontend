@@ -670,6 +670,13 @@ auto TextEdit::CurPlainText() const -> QString {
   return plain_text_tab->GetPlainText();
 }
 
+auto TextEdit::CurPlainTextForOperation() const -> QString {
+  auto* plain_text_tab = CurTextPage();
+  if (plain_text_tab == nullptr) return {};
+  plain_text_tab->FlushPrimaryView();
+  return plain_text_tab->GetPlainText();
+}
+
 auto TextEdit::TabWidget() const -> TextEditTabWidget* { return tab_widget_; }
 
 void TextEdit::SlotOpenDefaultFileBrowserTab() {

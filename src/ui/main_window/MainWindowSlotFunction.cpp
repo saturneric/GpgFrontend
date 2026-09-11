@@ -53,6 +53,36 @@
 
 namespace GpgFrontend::UI {
 
+namespace {
+
+/// The current tab's content, prepared for a module operation.
+///
+/// Two things used to differ between the six SlotCustom* paths and both were
+/// wrong in at least one of them: decrypt and verify encoded the text as
+/// Latin-1 while every result came back decoded as UTF-8, so any non-ASCII
+/// subject or body was corrupted on the way through; and only those two
+/// restored CRLF, even though MIME is CRLF-delimited on every path. Going
+/// through one helper is what stops them drifting apart again.
+///
+/// Reading also flushes a module tab's structured view, so the bytes can never
+/// be behind what the user sees.
+auto CurrentTabOperationPayload(TextEdit* edit) -> std::optional<GFBuffer> {
+  auto text = edit->CurPlainTextForOperation();
+
+  // Normalize to LF first so an already-CRLF document does not become CRCRLF.
+  text.replace("\r\n", "\n");
+  text.replace("\n", "\r\n");
+
+  GFBuffer buffer(text);
+  WipeString(text);
+
+  auto base64 = GFBufferFactory::ToBase64(buffer);
+  if (!base64) return std::nullopt;
+  return base64;
+}
+
+}  // namespace
+
 void MainWindow::slot_find() {
   if (edit_->TabCount() == 0 || edit_->CurTextPage() == nullptr) {
     return;
@@ -480,11 +510,7 @@ void MainWindow::SlotCustomDecrypt(const QString& type) {
     return;
   }
 
-  auto buffer = edit_->CurPlainText().toLatin1();
-  buffer = buffer.replace("\n", "\r\n");
-
-  GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
   if (!sec_buf_base64) return;
 
   Module::TriggerEvent(
@@ -525,11 +551,7 @@ void MainWindow::SlotCustomVerify(const QString& type) {
     return;
   }
 
-  auto buffer = edit_->CurPlainText().toLatin1();
-  buffer = buffer.replace("\n", "\r\n");
-
-  GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
   if (!sec_buf_base64) return;
 
   GpgOperaHelper::WaitForOpera(
@@ -580,16 +602,11 @@ void MainWindow::SlotCustomEncrypt(const QString& type) {
     return;
   }
 
-  auto buffer = edit_->CurPlainText();
-
   auto key_ids =
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
-  GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
   if (!sec_buf_base64) return;
-
-  WipeString(buffer);
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting"),
@@ -652,15 +669,11 @@ void MainWindow::SlotCustomSign(const QString& type) {
     return;
   }
 
-  auto buffer = edit_->CurPlainText();
   auto key_ids =
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
-  GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
   if (!sec_buf_base64) return;
-
-  WipeString(buffer);
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Signing"),
@@ -742,15 +755,11 @@ void MainWindow::SlotCustomEncryptSign(const QString& type) {
     return;
   }
 
-  auto buffer = edit_->CurPlainText();
   auto key_ids =
       ConvertKey2GpgKeyIdList(m_key_list_->GetCurrentGpgContextChannel(), keys);
 
-  GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
   if (!sec_buf_base64) return;
-
-  WipeString(buffer);
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Encrypting and Signing"),
@@ -801,13 +810,8 @@ void MainWindow::SlotCustomDecryptVerify(const QString& type) {
     return;
   }
 
-  auto buffer = edit_->CurPlainText();
-
-  GFBuffer sec_buf(buffer);
-  auto sec_buf_base64 = GFBufferFactory::ToBase64(sec_buf);
+  auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
   if (!sec_buf_base64) return;
-
-  WipeString(buffer);
 
   GpgOperaHelper::WaitForOpera(
       this, tr("Decrypting and Verifying"),

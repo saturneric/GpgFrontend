@@ -141,6 +141,21 @@ class TextEdit : public QWidget {
   [[nodiscard]] auto CurPlainText() const -> QString;
 
   /**
+   * @brief Asks the current tab's module view to write itself back first, then
+   * returns the tab's text.
+   *
+   * A module-backed tab keeps its structured view and the text document in
+   * step lazily, so reading the document straight after an edit can hand back
+   * stale bytes. Every caller that is about to *act* on the content -- a save,
+   * a crypto operation -- must come through here instead of CurPlainText().
+   *
+   * Identical to CurPlainText() on a tab with no module view.
+   *
+   * @return The tab's text, or an empty string when there is no text page.
+   */
+  [[nodiscard]] auto CurPlainTextForOperation() const -> QString;
+
+  /**
    * @brief Returns the underlying tab widget.
    *
    * @return Pointer to the internal TextEditTabWidget.

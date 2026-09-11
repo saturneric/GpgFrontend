@@ -139,4 +139,74 @@ auto GF_SDK_EXPORT GFUIRegisterSettingsPage(
  * @return 0 on success, -1 if @p page_id is nullptr or was never registered.
  */
 auto GF_SDK_EXPORT GFUIUnregisterSettingsPage(const char* page_id) -> int;
+
+/**
+ * @brief Registers a module-owned primary view for a tab type.
+ *
+ * The host still creates and owns the editor page for the tab, and that page's
+ * text document stays the canonical content -- so saving, crash recovery and
+ * the unsaved-changes prompt keep working exactly as they do for a plain text
+ * tab. This factory only supplies the widget shown *on top of* that document,
+ * with the plain editor remaining reachable as the tab's "Raw Source" view.
+ *
+ * @p factory is invoked once per tab, on the main (UI) thread, and must return
+ * a *fresh*, unparented QWidget each time. Ownership passes to the page.
+ *
+ * The widget may expose any of the following as slots or Q_INVOKABLE members;
+ * the host probes for each by name and simply skips the ones that are absent,
+ * so the contract is additive:
+ *   - `void LoadFromSource(const QByteArray&)` -- the document changed from
+ *     the outside (file opened, operation result applied). The widget must not
+ *     write the document back from inside this call.
+ *   - `QByteArray SaveToSource()` -- return the view reserialized. The host
+ *     writes the result into the document; the view never touches it. Called
+ *     only when IsDirty() says so, and always before a save, before every
+ *     crypto operation, on a view switch and before the tab closes.
+ *   - `bool IsDirty()` -- the view holds edits not yet written back.
+ *   - `void WipeContent()` -- zero any decrypted plaintext the view holds,
+ *     including attachment buffers. Called when the tab closes and at exit.
+ *
+ * A view may also declare a `void SignalContentModified()` signal. Emitting it
+ * marks the tab modified straight away, without reserializing anything -- so a
+ * tab closed immediately after an edit still prompts to save. Serialization
+ * stays lazy; only the flag is eager.
+ *
+ * A tab type with no registered view behaves exactly as before: the host opens
+ * an ordinary plain text tab.
+ *
+ * @param tab_type Tab type as used in `EDIT_TAB_TYPE_<TYPE>_OP_*`, matched
+ *                 case-insensitively (e.g. "email").
+ * @param factory  Widget factory, invoked on the main thread.
+ * @param data     Opaque pointer handed unchanged to @p factory on *every*
+ *                 invocation; it must stay valid while the module is loaded.
+ * @return 0 on success, -1 on a missing argument or a duplicate @p tab_type.
+ */
+auto GF_SDK_EXPORT GFUIRegisterTabPageView(const char* tab_type,
+                                           QObjectFactory factory, void* data)
+    -> int;
+
+/**
+ * @brief Removes a tab page view registration.
+ *
+ * Call this from GFDeactivateModule(): a factory pointing into an unloaded
+ * shared object would crash the next time a tab of this type is opened. Tabs
+ * already on screen keep the widget they built.
+ *
+ * @param tab_type Type passed to GFUIRegisterTabPageView.
+ * @return 0 on success, -1 if @p tab_type is nullptr or was never registered.
+ */
+auto GF_SDK_EXPORT GFUIUnregisterTabPageView(const char* tab_type) -> int;
+
+/**
+ * @brief The directory a file dialog for *user files* should open in.
+ *
+ * The same answer the application's own file dialogs use, so a module's dialog
+ * lands where the user expects rather than in the process working directory.
+ *
+ * Only for user files. A dialog picking a system location -- a GnuPG
+ * installation, a key database -- is asking a different question.
+ *
+ * @return Newly allocated absolute path; free it with GFFreeMemory.
+ */
+auto GF_SDK_EXPORT GFUIDefaultUserFilePath() -> char*;
 }

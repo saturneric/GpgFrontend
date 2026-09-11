@@ -430,7 +430,36 @@ auto TextEditTabWidget::SlotNewTab(const QString& type, const QString& title,
     }
   }
 
+  mount_module_view(page, type);
+
   return page;
+}
+
+void TextEditTabWidget::mount_module_view(PlainTextEditorPage* page,
+                                          const QString& type) {
+  if (page == nullptr) return;
+
+  // A tab type no module has claimed stays an ordinary plain text tab, which
+  // is what every tab type was before module views existed.
+  const auto reg = UIModuleManager::GetInstance().TabPageViewFor(type);
+  if (!reg.has_value()) return;
+
+  auto* raw = reg->factory(reg->data);
+  if (raw == nullptr) {
+    LOG_W() << "tab page view factory returned nothing for type:" << type;
+    return;
+  }
+
+  // The factory is declared to return a QWidget. Anything else is a module
+  // bug, and mounting it would crash later rather than here.
+  auto* view = qobject_cast<QWidget*>(static_cast<QObject*>(raw));
+  if (view == nullptr) {
+    LOG_W() << "tab page view factory returned a non-widget for type:" << type;
+    delete static_cast<QObject*>(raw);
+    return;
+  }
+
+  if (!page->MountPrimaryView(view)) delete view;
 }
 
 void TextEditTabWidget::SlotNewTabWithGFBuffer(QString title,

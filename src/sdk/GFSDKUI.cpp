@@ -36,6 +36,7 @@
 
 #include "private/GFSDKPrivat.h"
 #include "ui/UIModuleManager.h"
+#include "ui/function/FilePanelPath.h"
 
 auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> bool {
   if (dialog_raw_ptr == nullptr) {
@@ -168,4 +169,34 @@ auto GFUIUnregisterSettingsPage(const char* page_id) -> int {
              GFUnStrDup(page_id))
              ? 0
              : -1;
+}
+auto GFUIRegisterTabPageView(const char* tab_type, QObjectFactory factory,
+                             void* data) -> int {
+  // Consumed first: GFUnStrDup frees what it is given, so returning early on a
+  // null factory would leak the type string.
+  GpgFrontend::UI::TabPageViewRegistration reg;
+  reg.tab_type = tab_type == nullptr ? QString() : GFUnStrDup(tab_type);
+  reg.factory = factory;
+  reg.data = data;
+
+  return GpgFrontend::UI::UIModuleManager::GetInstance().RegisterTabPageView(
+             reg)
+             ? 0
+             : -1;
+}
+
+auto GFUIUnregisterTabPageView(const char* tab_type) -> int {
+  if (tab_type == nullptr) {
+    LOG_W() << "tab page view type is nullptr";
+    return -1;
+  }
+
+  return GpgFrontend::UI::UIModuleManager::GetInstance().UnregisterTabPageView(
+             GFUnStrDup(tab_type))
+             ? 0
+             : -1;
+}
+
+auto GFUIDefaultUserFilePath() -> char* {
+  return GFStrDup(GpgFrontend::UI::GetDefaultUserFilePath());
 }

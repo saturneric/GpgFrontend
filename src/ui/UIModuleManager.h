@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Module.h"
 #include "sdk/GFSDKBasicModel.h"
@@ -64,6 +66,22 @@ struct GF_UI_EXPORT SettingsPageRegistration {
   QString section_id;    ///< canonical section key, see SettingsSectionOrder()
   QString title;         ///< untranslated source string, "GTrC" context
   QStringList keywords;  ///< untranslated source strings, "GTrC" context
+  QObjectFactory factory{nullptr};  ///< runs on the main thread
+  void* data{nullptr};              ///< passed to factory on every invocation
+};
+
+/**
+ * @brief A tab page view contributed by a module.
+ *
+ * The host still builds the PlainTextEditorPage that owns the document; this
+ * factory only supplies the widget mounted on top of it as the page's primary
+ * view. Keeping the host page means save, crash recovery, the unsaved-changes
+ * prompt and CurPlainText() all keep working untouched.
+ *
+ * Holds a factory rather than a widget: every tab of the type needs its own.
+ */
+struct GF_UI_EXPORT TabPageViewRegistration {
+  QString tab_type;                 ///< upper-cased, e.g. "EMAIL"
   QObjectFactory factory{nullptr};  ///< runs on the main thread
   void* data{nullptr};              ///< passed to factory on every invocation
 };
@@ -186,6 +204,38 @@ class GF_UI_EXPORT UIModuleManager
   auto UnregisterSettingsPage(const QString& id) -> bool;
 
   /**
+   * @brief Register a module-owned primary view for a tab type.
+   *
+   * A duplicate tab type is rejected rather than overwritten, for the same
+   * reason a duplicate settings page is: tabs already open hold a widget built
+   * by the previous factory.
+   *
+   * @param reg the registration; tab_type and factory are required
+   * @return true when the view was registered
+   */
+  auto RegisterTabPageView(const TabPageViewRegistration& reg) -> bool;
+
+  /**
+   * @brief Drop a module-owned tab page view registration.
+   *
+   * Modules must do this before unloading — a factory pointing into an
+   * unloaded shared object would crash the next time a tab of this type opens.
+   *
+   * @param tab_type the type used to register; matched case-insensitively
+   * @return true when a registration was removed
+   */
+  auto UnregisterTabPageView(const QString& tab_type) -> bool;
+
+  /**
+   * @brief The view factory registered for a tab type, if any.
+   *
+   * @param tab_type matched case-insensitively
+   * @return the registration, or nullopt when the type has no module view
+   */
+  [[nodiscard]] auto TabPageViewFor(const QString& tab_type) const
+      -> std::optional<TabPageViewRegistration>;
+
+  /**
    * @brief Every registered module settings page, in registration order.
    *
    * Order is preserved so it can act as the tiebreak between pages sharing a
@@ -235,6 +285,7 @@ class GF_UI_EXPORT UIModuleManager
   QMap<QString, std::any> capsule_;
   QMap<QString, QString> file_ext_event_prefix_map_;
   QList<SettingsPageRegistration> settings_pages_;
+  QMap<QString, TabPageViewRegistration> tab_page_views_;
   /// Mutable so the const accessor can sync() it; syncing only reconciles with
   /// the backing store, it does not change what this object represents.
   mutable QSettings settings_;

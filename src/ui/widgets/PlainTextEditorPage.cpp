@@ -29,6 +29,9 @@
 #include "PlainTextEditorPage.h"
 
 #include <QActionGroup>
+#include <QButtonGroup>
+#include <QHBoxLayout>
+#include <QToolButton>
 
 #include "core/function/GFBufferFactory.h"
 #include "core/model/SettingsObject.h"
@@ -430,7 +433,197 @@ void PlainTextEditorPage::Clear() {
   set_editor_modified(false);
 }
 
-void PlainTextEditorPage::WipeContent() { Clear(); }
+void PlainTextEditorPage::WipeContent() {
+  // The primary view holds its own copy of whatever it parsed out of the
+  // document -- a decrypted body, attachment buffers -- and clearing the
+  // document alone would leave all of that in memory. Ask it first, while it
+  // still exists, then clear the document.
+  invoke_primary_view("WipeContent");
+  Clear();
+}
+
+auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
+  if (view == nullptr) {
+    LOG_W() << "refusing to mount a null primary view";
+    return false;
+  }
+
+  if (primary_view_ != nullptr) {
+    LOG_W() << "page already has a primary view";
+    return false;
+  }
+
+  primary_view_ = view;
+  view->setParent(this);
+
+  build_view_switcher();
+
+  // The switcher sits above both views, the mounted view directly above the
+  // editor. The editor keeps its place in the layout so everything that
+  // reaches for it by name still finds it.
+  const int editor_index = ui_->verticalLayout->indexOf(ui_->textPage);
+  ui_->verticalLayout->insertWidget(editor_index, view);
+  ui_->verticalLayout->insertWidget(editor_index, view_switcher_);
+
+  // Content can also arrive from outside the view: a file being opened, or the
+  // result of a crypto operation replacing the whole document. The view has to
+  // follow that, but must not react to its own writes coming back -- hence the
+  // flag and, for the queued case where the flag has already been cleared, the
+  // revision check.
+  connect(ui_->textPage->document(), &QTextDocument::contentsChanged, this,
+          [this]() {
+            if (primary_view_syncing_ || primary_view_.isNull()) return;
+            if (ui_->textPage->document()->revision() == source_generation_) {
+              return;
+            }
+            ReloadPrimaryView();
+          });
+
+  // Eager marking, lazy serialization: the view says "I changed" the moment an
+  // edit happens, which is what makes closing the tab right afterwards prompt
+  // to save. Reserializing the document is deferred until something actually
+  // needs to read it.
+  if (view->metaObject()->indexOfSignal("SignalContentModified()") >= 0) {
+    connect(view, SIGNAL(SignalContentModified()), this,
+            SLOT(slot_primary_view_modified()));
+  }
+
+  show_primary_view(true);
+  ReloadPrimaryView();
+  return true;
+}
+
+void PlainTextEditorPage::slot_primary_view_modified() {
+  if (primary_view_syncing_) return;
+  ui_->textPage->document()->setModified(true);
+  set_editor_modified(true);
+}
+
+auto PlainTextEditorPage::PrimaryView() const -> QWidget * {
+  return primary_view_.data();
+}
+
+void PlainTextEditorPage::FlushPrimaryView() {
+  if (primary_view_.isNull() || primary_view_syncing_) return;
+  if (!PrimaryViewIsDirty()) return;
+
+  const auto *meta = primary_view_->metaObject();
+  if (meta->indexOfMethod("SaveToSource()") < 0) return;
+
+  QByteArray bytes;
+  if (!QMetaObject::invokeMethod(primary_view_.data(), "SaveToSource",
+                                 Qt::DirectConnection,
+                                 Q_RETURN_ARG(QByteArray, bytes))) {
+    LOG_W() << "primary view SaveToSource failed";
+    return;
+  }
+
+  // Guarded on both sides: this write raises contentsChanged, and without the
+  // flag the handler would push the text straight back into the view, which
+  // would mark it dirty again and flush again.
+  const bool was_modified = ui_->textPage->document()->isModified();
+  {
+    primary_view_syncing_ = true;
+    ui_->textPage->setPlainText(QString::fromUtf8(bytes));
+    primary_view_syncing_ = false;
+  }
+  source_generation_ = ui_->textPage->document()->revision();
+
+  // setPlainText() always marks the document modified. That is right when the
+  // view actually changed something -- which it did, or IsDirty() would have
+  // returned false -- but the flag must not be *cleared* by a flush either.
+  ui_->textPage->document()->setModified(was_modified || true);
+}
+
+auto PlainTextEditorPage::PrimaryViewIsDirty() const -> bool {
+  if (primary_view_.isNull()) return false;
+
+  const auto *meta = primary_view_->metaObject();
+  if (meta->indexOfMethod("IsDirty()") < 0) return false;
+
+  bool dirty = false;
+  QMetaObject::invokeMethod(primary_view_.data(), "IsDirty",
+                            Qt::DirectConnection, Q_RETURN_ARG(bool, dirty));
+  return dirty;
+}
+
+void PlainTextEditorPage::ReloadPrimaryView() {
+  if (primary_view_.isNull()) return;
+
+  const auto *meta = primary_view_->metaObject();
+  if (meta->indexOfMethod("LoadFromSource(QByteArray)") < 0) return;
+
+  if (primary_view_syncing_) return;
+
+  const auto bytes = ui_->textPage->toPlainText().toUtf8();
+
+  primary_view_syncing_ = true;
+  QMetaObject::invokeMethod(primary_view_.data(), "LoadFromSource",
+                            Qt::DirectConnection, Q_ARG(QByteArray, bytes));
+  primary_view_syncing_ = false;
+
+  source_generation_ = ui_->textPage->document()->revision();
+}
+
+void PlainTextEditorPage::invoke_primary_view(const char *method) {
+  if (primary_view_.isNull()) return;
+
+  // Probed rather than assumed: the contract is additive, so a view that does
+  // not declare a member simply does not take part in that step.
+  const auto signature = QByteArray(method) + "()";
+  if (primary_view_->metaObject()->indexOfMethod(signature.constData()) < 0) {
+    return;
+  }
+
+  QMetaObject::invokeMethod(primary_view_.data(), method, Qt::DirectConnection);
+}
+
+void PlainTextEditorPage::build_view_switcher() {
+  view_switcher_ = new QWidget(this);
+  auto *layout = new QHBoxLayout(view_switcher_);
+  layout->setContentsMargins(5, 3, 5, 3);
+  layout->setSpacing(6);
+
+  auto *message_button = new QToolButton(view_switcher_);
+  message_button->setText(tr("Message"));
+  message_button->setCheckable(true);
+  message_button->setChecked(true);
+
+  auto *source_button = new QToolButton(view_switcher_);
+  source_button->setText(tr("Raw Source"));
+  source_button->setCheckable(true);
+
+  auto *group = new QButtonGroup(view_switcher_);
+  group->setExclusive(true);
+  group->addButton(message_button);
+  group->addButton(source_button);
+
+  layout->addWidget(message_button);
+  layout->addWidget(source_button);
+  layout->addStretch();
+
+  connect(message_button, &QToolButton::clicked, this,
+          [this]() { show_primary_view(true); });
+  connect(source_button, &QToolButton::clicked, this,
+          [this]() { show_primary_view(false); });
+}
+
+void PlainTextEditorPage::show_primary_view(bool primary) {
+  if (primary_view_.isNull()) return;
+
+  // Leaving the structured view means the raw document is about to be read by
+  // a human, so it has to be current first.
+  if (!primary) FlushPrimaryView();
+
+  primary_view_->setVisible(primary);
+  ui_->textPage->setVisible(!primary);
+
+  if (primary) {
+    ReloadPrimaryView();
+  } else {
+    ui_->textPage->setFocus();
+  }
+}
 
 void PlainTextEditorPage::ApplyAppearanceSettings() {
   AppearanceSO appearance(SettingsObject("general_settings_state"));
