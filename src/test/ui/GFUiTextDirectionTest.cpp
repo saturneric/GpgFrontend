@@ -103,34 +103,14 @@ TEST(TextDirectionTest, ALoneSurrogateDoesNotDecide) {
   EXPECT_EQ(UI::DetectTextDirection(text), Qt::LeftToRight);
 }
 
-TEST(TextDirectionTest, ExplicitModesIgnoreTheContent) {
-  EXPECT_EQ(UI::ResolveTextDirection(UI::kTEXT_DIRECTION_LTR,
-                                     QString::fromUtf8("مرحبا")),
-            Qt::LeftToRight);
-  EXPECT_EQ(UI::ResolveTextDirection(UI::kTEXT_DIRECTION_RTL,
-                                     QStringLiteral("hello")),
-            Qt::RightToLeft);
-}
+TEST(TextDirectionTest, TheDocumentAnchorStopsAtTheFirstStrongCharacter) {
+  QTextDocument doc;
+  doc.setPlainText(QStringLiteral("\n123\n") + QString::fromUtf8("مرحبا") +
+                   QStringLiteral("\nhello"));
 
-TEST(TextDirectionTest, AutomaticModeFollowsTheContent) {
-  for (const auto& text : {QStringLiteral("hello"), QString::fromUtf8("مرحبا"),
-                           QString(), QString::fromUtf8("123 שלום")}) {
-    EXPECT_EQ(UI::ResolveTextDirection(UI::kTEXT_DIRECTION_AUTO, text),
-              UI::DetectTextDirection(text))
-        << text.toStdString();
-  }
-}
-
-TEST(TextDirectionTest, UnrecognisedStoredValuesReadAsAutomatic) {
-  // The settings file is user editable, so an out-of-range value has to land
-  // somewhere defined rather than be cast into the enum.
-  EXPECT_EQ(UI::TextDirectionModeFromInt(-1), UI::kTEXT_DIRECTION_AUTO);
-  EXPECT_EQ(UI::TextDirectionModeFromInt(3), UI::kTEXT_DIRECTION_AUTO);
-  EXPECT_EQ(UI::TextDirectionModeFromInt(99), UI::kTEXT_DIRECTION_AUTO);
-
-  EXPECT_EQ(UI::TextDirectionModeFromInt(0), UI::kTEXT_DIRECTION_AUTO);
-  EXPECT_EQ(UI::TextDirectionModeFromInt(1), UI::kTEXT_DIRECTION_LTR);
-  EXPECT_EQ(UI::TextDirectionModeFromInt(2), UI::kTEXT_DIRECTION_RTL);
+  // The blocks disagree, which under automatic is normal and is exactly why the
+  // anchor is a separate question from how any one paragraph is laid out.
+  EXPECT_EQ(UI::DetectTextDirection(&doc), Qt::RightToLeft);
 }
 
 TEST(TextDirectionTest, APlainTextLayoutIsGivenAnExplicitAlignment) {
@@ -179,31 +159,93 @@ TEST(TextDirectionTest, ANullDocumentIsIgnored) {
   UI::ApplyTextDirectionToDocument(nullptr, nullptr, Qt::RightToLeft);
 }
 
-TEST(AppearanceSOTest, TextDirectionDefaultsToAutomatic) {
-  const UI::AppearanceSO appearance{QJsonObject{}};
-  EXPECT_EQ(appearance.text_direction, UI::kTEXT_DIRECTION_AUTO);
+TEST(TextDirectionTest, AutomaticHandsThePlainTextLayoutBackToQt) {
+  // Qt::LayoutDirectionAuto is the whole per-paragraph feature: with it in the
+  // document option, QTextEngine resolves each block from its own first strong
+  // character. Pinning a real direction here is what used to suppress that.
+  QTextDocument doc;
+  doc.setDocumentLayout(new QPlainTextDocumentLayout(&doc));
+  doc.setPlainText(QStringLiteral("hello\n") + QString::fromUtf8("مرحبا"));
+
+  UI::ApplyTextDirectionToDocument(nullptr, &doc, UI::kTEXT_DIRECTION_AUTO);
+  EXPECT_EQ(doc.defaultTextOption().textDirection(), Qt::LayoutDirectionAuto);
 }
 
-TEST(AppearanceSOTest, TextDirectionSurvivesARoundTrip) {
-  UI::AppearanceSO appearance{QJsonObject{}};
-  appearance.text_direction = UI::kTEXT_DIRECTION_RTL;
+TEST(TextDirectionTest, AutomaticAnchorsThePlainTextAlignmentToTheDocument) {
+  // QPlainTextDocumentLayout ignores per-block formats, so the lines cannot be
+  // aligned one at a time and share the document's anchor instead. A file that
+  // opens in Arabic still has to reach the right edge, as it did before any of
+  // this was resolved per paragraph.
+  QTextDocument rtl_doc;
+  rtl_doc.setDocumentLayout(new QPlainTextDocumentLayout(&rtl_doc));
+  rtl_doc.setPlainText(QString::fromUtf8("مرحبا") + QStringLiteral("\nhello"));
 
-  const auto json = appearance.ToJson();
-  // Pins the stored encoding: the settings page reads this back through
-  // findData() on an int, so a string here would silently select nothing.
-  EXPECT_TRUE(json["text_direction"].isDouble());
+  UI::ApplyTextDirectionToDocument(nullptr, &rtl_doc, UI::kTEXT_DIRECTION_AUTO);
+  EXPECT_EQ(rtl_doc.defaultTextOption().alignment(), Qt::AlignRight);
 
-  const UI::AppearanceSO restored{json};
-  EXPECT_EQ(restored.text_direction, UI::kTEXT_DIRECTION_RTL);
+  QTextDocument ltr_doc;
+  ltr_doc.setDocumentLayout(new QPlainTextDocumentLayout(&ltr_doc));
+  ltr_doc.setPlainText(QStringLiteral("hello\n") + QString::fromUtf8("مرحبا"));
+
+  UI::ApplyTextDirectionToDocument(nullptr, &ltr_doc, UI::kTEXT_DIRECTION_AUTO);
+  EXPECT_EQ(ltr_doc.defaultTextOption().alignment(), Qt::AlignLeft);
 }
 
-TEST(AppearanceSOTest, ACorruptStoredTextDirectionFallsBackToAutomatic) {
-  EXPECT_EQ(
-      UI::AppearanceSO(QJsonObject{{"text_direction", 42}}).text_direction,
-      UI::kTEXT_DIRECTION_AUTO);
-  EXPECT_EQ(
-      UI::AppearanceSO(QJsonObject{{"text_direction", "rtl"}}).text_direction,
-      UI::kTEXT_DIRECTION_AUTO);
+TEST(TextDirectionTest, AutomaticLeavesARichTextLayoutAlignmentAlone) {
+  // QTextDocumentLayout aligns each block against that block's own direction,
+  // so it needs no anchor and an explicit alignment would only get in its way.
+  QTextDocument doc;
+  doc.setPlainText(QString::fromUtf8("مرحبا"));
+  const auto alignment_before = doc.defaultTextOption().alignment();
+
+  UI::ApplyTextDirectionToDocument(nullptr, &doc, UI::kTEXT_DIRECTION_AUTO);
+  EXPECT_EQ(doc.defaultTextOption().textDirection(), Qt::LayoutDirectionAuto);
+  EXPECT_EQ(doc.defaultTextOption().alignment(), alignment_before);
+}
+
+TEST(TextDirectionTest, ExplicitModesStillPinTheWholeDocument) {
+  QTextDocument doc;
+  doc.setDocumentLayout(new QPlainTextDocumentLayout(&doc));
+  doc.setPlainText(QString::fromUtf8("مرحبا"));
+
+  UI::ApplyTextDirectionToDocument(nullptr, &doc, UI::kTEXT_DIRECTION_LTR);
+  EXPECT_EQ(doc.defaultTextOption().textDirection(), Qt::LeftToRight);
+  EXPECT_EQ(doc.defaultTextOption().alignment(), Qt::AlignLeft);
+
+  UI::ApplyTextDirectionToDocument(nullptr, &doc, UI::kTEXT_DIRECTION_RTL);
+  EXPECT_EQ(doc.defaultTextOption().textDirection(), Qt::RightToLeft);
+  EXPECT_EQ(doc.defaultTextOption().alignment(), Qt::AlignRight);
+}
+
+TEST(TextDirectionTest, TheWrapModeSurvivesAModeChange) {
+  QTextDocument doc;
+  doc.setDocumentLayout(new QPlainTextDocumentLayout(&doc));
+
+  auto option = doc.defaultTextOption();
+  option.setWrapMode(QTextOption::WrapAnywhere);
+  doc.setDefaultTextOption(option);
+
+  for (const auto mode : {UI::kTEXT_DIRECTION_AUTO, UI::kTEXT_DIRECTION_RTL,
+                          UI::kTEXT_DIRECTION_AUTO}) {
+    UI::ApplyTextDirectionToDocument(nullptr, &doc, mode);
+    EXPECT_EQ(doc.defaultTextOption().wrapMode(), QTextOption::WrapAnywhere);
+  }
+}
+
+TEST(TextDirectionTest, ANullDocumentIsIgnoredByTheModeOverload) {
+  for (const auto mode : {UI::kTEXT_DIRECTION_AUTO, UI::kTEXT_DIRECTION_LTR,
+                          UI::kTEXT_DIRECTION_RTL}) {
+    UI::ApplyTextDirectionToDocument(nullptr, nullptr, mode);
+  }
+}
+
+TEST(AppearanceSOTest, AStoredTextDirectionIsIgnored) {
+  // The setting was removed. A profile written by an older build still carries
+  // the key, which has to be read past without complaint and dropped on the
+  // next write; an older build reading it back then falls back to automatic,
+  // which is both its own default and what this one now always does.
+  const UI::AppearanceSO appearance{QJsonObject{{"text_direction", 2}}};
+  EXPECT_FALSE(appearance.ToJson().contains("text_direction"));
 }
 
 }  // namespace GpgFrontend::Test
