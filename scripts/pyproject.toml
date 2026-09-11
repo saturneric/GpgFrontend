@@ -1,0 +1,14 @@
+[project]
+name = "scripts"
+version = "0.1.0"
+description = "Script helpers for managing the GpgFrontend project"
+authors = [{ name = "saturneric", email = "eric@bktus.com" }]
+requires-python = ">=3.14"
+dependencies = [
+    "aiohttp==3.13.5",
+    "pyyaml==6.0.3",
+    "tomlkit==0.14.0",
+]
+
+[tool.uv]
+package = false
