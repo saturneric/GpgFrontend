@@ -61,6 +61,74 @@
 namespace GpgFrontend {
 
 /**
+ * @brief Zero @p size bytes at @p ptr in a form the compiler may not elide.
+ *
+ * A named wrapper over the wipememory macro above, so the wipe has one call
+ * site that can be unit tested and one place to change.
+ *
+ * @param ptr start of the region, may be null
+ * @param size number of bytes to zero
+ */
+inline void SecureWipeMemory(void *ptr, size_t size) {
+  if (ptr == nullptr || size == 0) return;
+  wipememory(ptr, size);
+}
+
+/**
+ * @brief Overwrite @p str's characters, then clear it.
+ *
+ * Honest about what this achieves. QString is implicitly shared, and data()
+ * detaches, so on a shared string this wipes a fresh private copy while the
+ * secret stays behind in the share it came from. The hand written
+ * `fill('X'); clear();` pattern this replaces had the same hole and reported
+ * nothing; the return value here says which of the two actually happened, so a
+ * caller can react and a test can pin it.
+ *
+ * Prefer GFBuffer for anything that must genuinely be erasable: it owns its
+ * storage and wipes through every share.
+ *
+ * @param str string to wipe, left empty either way
+ * @return true when the characters were overwritten where they lay
+ */
+inline auto WipeString(QString &str) -> bool {
+  if (str.isEmpty()) {
+    str.clear();
+    return true;
+  }
+
+  const auto *before = str.constData();
+  auto *writable = str.data();  // detaches when shared
+  const bool in_place = writable == before;
+
+  SecureWipeMemory(writable, static_cast<size_t>(str.size()) * sizeof(QChar));
+  str.clear();
+  return in_place;
+}
+
+/**
+ * @brief Overwrite @p bytes' contents, then clear it.
+ *
+ * Same sharing caveat as WipeString().
+ *
+ * @param bytes byte array to wipe, left empty either way
+ * @return true when the bytes were overwritten where they lay
+ */
+inline auto WipeByteArray(QByteArray &bytes) -> bool {
+  if (bytes.isEmpty()) {
+    bytes.clear();
+    return true;
+  }
+
+  const auto *before = bytes.constData();
+  auto *writable = bytes.data();  // detaches when shared
+  const bool in_place = writable == before;
+
+  SecureWipeMemory(writable, static_cast<size_t>(bytes.size()));
+  bytes.clear();
+  return in_place;
+}
+
+/**
  * @brief Type-safe wrapper for casting a void pointer to a typed pointer.
  *
  * @tparam T target type
