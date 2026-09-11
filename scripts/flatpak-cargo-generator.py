@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # /// script
-# requires-python = ">=3.9"
+# requires-python = ">=3.10"
 # dependencies = [
-#    "aiohttp<4.0.0,>=3.9.5",
-#    "PyYAML<7.0.0,>=6.0.2",
-#    "tomlkit>=0.13.3,<1.0"
+#    "aiohttp<4.0.0,>=3.14.3",
+#    "PyYAML<7.0.0,>=6.0.3",
+#    "tomlkit>=0.15.1,<1.0"
 # ]
 # ///
 
