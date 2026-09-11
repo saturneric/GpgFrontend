@@ -28,6 +28,8 @@
 
 #include "GpgPassphraseContext.h"
 
+#include "core/utils/MemoryUtils.h"
+
 namespace GpgFrontend {
 
 GpgPassphraseContext::GpgPassphraseContext(int channel, GpgAbstractKeyPtr key)
@@ -36,8 +38,7 @@ GpgPassphraseContext::GpgPassphraseContext(int channel, GpgAbstractKeyPtr key)
 GpgPassphraseContext::GpgPassphraseContext() = default;
 
 GpgPassphraseContext::~GpgPassphraseContext() {
-  passphrase_info_.fill('X');
-  passphrase_info_.clear();
+  WipeString(passphrase_info_);
   channel_ = -1;
   key_ = nullptr;
   prev_was_bad_ = false;

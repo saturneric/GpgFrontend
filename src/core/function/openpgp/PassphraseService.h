@@ -33,6 +33,7 @@
 // channel's context here forced one into existence just to open a prompt.
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/typedef/GFTypedef.h"
+#include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend {
 
@@ -61,10 +62,8 @@ struct PassphraseState {
 
   ~PassphraseState() {
     // Clear sensitive data
-    info.fill('X');
-    info.clear();
-    fpr.fill('X');
-    fpr.clear();
+    WipeString(info);
+    WipeString(fpr);
     retry = false;
     ask_for_new = false;
     should_confirm = false;
