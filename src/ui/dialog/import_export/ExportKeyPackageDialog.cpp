@@ -29,6 +29,7 @@
 #include "ExportKeyPackageDialog.h"
 
 #include "core/function/KeyPackageOperator.h"
+#include "core/utils/MemoryUtils.h"
 #include "ui/function/GpgOperaHelper.h"
 
 //
@@ -106,8 +107,7 @@ GpgFrontend::UI::ExportKeyPackageDialog::ExportKeyPackageDialog(
     if (!ok || pin.isEmpty()) return;
 
     GFBuffer buf(pin);
-    pin.fill('X');
-    pin.clear();
+    WipeString(pin);
 
     GpgOperaHelper::WaitForOpera(
         this, tr("Generating"), [this, buf](const OperaWaitingHd& op_hd) {

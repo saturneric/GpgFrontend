@@ -119,11 +119,21 @@ class PlainTextEditorPage : public QWidget {
   /**
    * @brief Clears editor content and resets editor state.
    *
-   * Before clearing, existing text is overwritten with bullet characters to
-   * reduce the chance that sensitive content remains in the document buffer.
-   * Undo/redo history is cleared and the document is marked as unmodified.
+   * Undo and redo history is discarded first, so the content cannot be
+   * restored, and the document is marked unmodified. See WipeTextDocument()
+   * for what clearing a QTextDocument does and does not achieve.
    */
   void Clear();
+
+  /**
+   * @brief Wipes the content this page is holding.
+   *
+   * Called explicitly when the tab is closed and when the window is closing,
+   * rather than relying on closeEvent reaching an already removed, hidden and
+   * unparented widget. Idempotent, so the belt-and-braces call from closeEvent
+   * costs nothing.
+   */
+  void WipeContent();
 
   /**
    * @brief Reapplies editor appearance settings.

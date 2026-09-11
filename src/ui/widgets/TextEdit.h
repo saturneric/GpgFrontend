@@ -90,6 +90,17 @@ class TextEdit : public QWidget {
   auto MaybeSaveAnyTab() -> bool;
 
   /**
+   * @brief Wipes every open tab on the way out.
+   *
+   * Closing a tab wipes its page, but quitting did not: MaybeSaveAnyTab()
+   * either caches or saves and never closes a page, so the content sat in the
+   * heap until the process died. Only closes the window a little sooner than
+   * the kernel would zero the pages anyway, so this narrows the swap and
+   * core-dump window rather than the long exposure that tab close covers.
+   */
+  void WipeAllTabs();
+
+  /**
    * @brief Returns the number of currently opened tabs.
    *
    * @return Tab count.

@@ -29,8 +29,10 @@
 #include "ui/widgets/InfoBoardWidget.h"
 
 #include "core/model/SettingsObject.h"
+#include "core/utils/MemoryUtils.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/AppearanceFont.h"
+#include "ui/function/SecureWipe.h"
 #include "ui/function/TextDirection.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui/widgets/InfoBoardDocFrame.h"
@@ -507,9 +509,14 @@ void InfoBoardWidget::clear_document_fields() {
   if (time_label_ != nullptr) time_label_->clear();
   if (id_label_ != nullptr) id_label_->clear();
   if (hash_label_ != nullptr) hash_label_->clear();
-  current_id_.clear();
-  current_input_hash_.clear();
-  current_copy_text_.clear();
+  // Not plaintext — this board shows operation metadata (signer identities,
+  // fingerprints, key ids, paths, hashes) and, on the instant message path,
+  // the ciphertext token. The labels above are left to plain clear():
+  // overwriting a QLabel's text before clearing it is theatre one indirection
+  // further out than the strings themselves.
+  WipeString(current_id_);
+  WipeString(current_input_hash_);
+  WipeString(current_copy_text_);
 
   if (doc_frame_ != nullptr)
     static_cast<DocFrame*>(doc_frame_)->ClearWatermark();
@@ -541,8 +548,12 @@ void InfoBoardWidget::reset_document_view() {
 }
 
 void InfoBoardWidget::SlotReset() {
+  // Wipe the document first, then still call clear(): the view resets widget
+  // level state (cursor, current char format, navigation history) that
+  // clearing the document alone would leave behind.
+  WipeTextDocument(ui_->infoBoard->document());
   ui_->infoBoard->clear();
-  info_board_body_.clear();
+  WipeString(info_board_body_);
   apply_text_direction();
   ui_->infoBoard->setPlaceholderText(tr("Operation status will appear here."));
   ApplyStatusStyle(kINFO_ERROR_NEUTRAL);

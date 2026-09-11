@@ -34,6 +34,7 @@
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/IOUtils.h"
+#include "core/utils/MemoryUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/QuitDialog.h"
 #include "ui/widgets/TextEditTabWidget.h"
@@ -241,6 +242,14 @@ void TextEdit::slot_remove_tab(int index) {
     tab_widget_->SlotRefreshRecoveryCache();
 
     if (tab != nullptr) {
+      // Wiped through the page rather than left to close(): by now the widget
+      // is removed, hidden and unparented, and hanging the erasure of a
+      // decrypted message on a QCloseEvent still reaching it is not a bet
+      // worth taking.
+      if (auto* page = qobject_cast<PlainTextEditorPage*>(tab)) {
+        page->WipeContent();
+      }
+
       tab->close();
       tab->deleteLater();
     }
@@ -346,10 +355,36 @@ auto TextEdit::MaybeSaveAnyTab() -> bool {
   return can_close;
 }
 
+namespace {
+
+/**
+ * @brief Move a buffer's text into @p edit without leaving a copy behind.
+ *
+ * ConvertToQString() hands back an ordinary QString, which cannot be wiped once
+ * it has been shared. Wiping the intermediate removes one of the two copies;
+ * the document keeps its own, and only clearing the document releases that.
+ */
+void SetPlainTextFromBuffer(QPlainTextEdit* edit, const GFBuffer& buffer) {
+  auto text = buffer.ConvertToQString();
+  edit->setPlainText(text);
+  WipeString(text);
+}
+
+}  // namespace
+
+void TextEdit::WipeAllTabs() {
+  for (int i = 0; i < tab_widget_->count(); ++i) {
+    if (auto* page =
+            qobject_cast<PlainTextEditorPage*>(tab_widget_->widget(i))) {
+      page->WipeContent();
+    }
+  }
+}
+
 void TextEdit::SlotSetGFBuffer2CurTextPage(const GFBuffer& buffer) {
   if (CurTextPage() == nullptr) SlotNewTab();
   auto* edit = CurTextPage()->GetTextPage();
-  edit->setPlainText(buffer.ConvertToQString());
+  SetPlainTextFromBuffer(edit, buffer);
 }
 
 void TextEdit::SlotAppendText2CurTextPage(const QString& text) {
@@ -463,7 +498,7 @@ void TextEdit::SlotFillTextEditWithText(const QString& text) const {
 void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
   auto* edit = this->CurTextPage()->GetTextPage();
   edit->setUndoRedoEnabled(false);
-  edit->setPlainText(buffer.ConvertToQString());
+  SetPlainTextFromBuffer(edit, buffer);
   edit->setUndoRedoEnabled(true);
   edit->document()->setModified(true);
 }
@@ -482,7 +517,7 @@ void TextEdit::LoadFile(const QString& fileName) {
   }
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  CurTextPage()->GetTextPage()->setPlainText(buffer.ConvertToQString());
+  SetPlainTextFromBuffer(CurTextPage()->GetTextPage(), buffer);
   QApplication::restoreOverrideCursor();
 
   CurPageTextEdit()->SetFilePath(fileName);
@@ -635,9 +670,7 @@ auto TextEdit::CurPlainText() const -> QString {
   return plain_text_tab->GetPlainText();
 }
 
-auto TextEdit::TabWidget() const -> TextEditTabWidget* {
-  return tab_widget_;
-}
+auto TextEdit::TabWidget() const -> TextEditTabWidget* { return tab_widget_; }
 
 void TextEdit::SlotOpenDefaultFileBrowserTab() {
   tab_widget_->SlotOpenDefaultPath();

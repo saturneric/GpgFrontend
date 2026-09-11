@@ -35,6 +35,7 @@
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
 #include "core/utils/IOUtils.h"
+#include "core/utils/MemoryUtils.h"
 #include "ui/dialog/EncryptionKeysPicker.h"
 #include "ui/dialog/SigningKeysPicker.h"
 #include "ui/dialog/settings/SettingsDialog.h"
@@ -408,32 +409,31 @@ void MainWindow::SlotEncrypt() {
   auto* text_edit = edit_->CurPageTextEdit();
   if (text_edit == nullptr) return;
 
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = true;
 
-  if (!encrypt_operation_key_validate(contexts)) return;
+  if (!encrypt_operation_key_validate(contexts.Base())) return;
 
   auto plain_text = edit_->CurPlainText();
   if (plain_text.isEmpty()) return;
 
   GFBuffer secure_plain_text(plain_text);
 
-  plain_text.fill(QLatin1Char('X'));
-  plain_text.clear();
+  WipeString(plain_text);
 
   contexts->GetContextBuffer(0).append(secure_plain_text);
 
-  GpgOperaHelper::BuildOperas(contexts, 0,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasEncrypt);
 
-  exec_operas_helper(tr("Encrypting"), contexts);
+  exec_operas_helper(tr("Encrypting"), contexts.Base());
 }
 
 void MainWindow::SlotSign() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = true;
 
   auto keys = m_key_list_->GetCheckedKeys();
@@ -473,11 +473,11 @@ void MainWindow::SlotSign() {
   if (contexts->keys.isEmpty()) return;
 
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
-  GpgOperaHelper::BuildOperas(contexts, 0,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasSign);
 
-  exec_operas_helper(tr("Signing"), contexts);
+  exec_operas_helper(tr("Signing"), contexts.Base());
 }
 
 void MainWindow::SlotDecrypt() {
@@ -490,35 +490,35 @@ void MainWindow::SlotDecrypt() {
   // text is treated as ordinary input below.
   const auto im = exec_im_decode_helper(edit_->CurPlainText());
   if (im->ok) {
-    auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+    GpgOperaContextHolder contexts;
     contexts->ascii = true;
     contexts->GetContextBuffer(0).append(im->pgp_message);
-    GpgOperaHelper::BuildOperas(contexts, 0, channel,
+    GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                                 GpgOperaHelper::BuildOperasDecrypt);
-    exec_im_normal_decrypt_helper(tr("Decrypting"), contexts);
+    exec_im_normal_decrypt_helper(tr("Decrypting"), contexts.Base());
     return;
   }
 
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = true;
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
-  GpgOperaHelper::BuildOperas(contexts, 0, channel,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                               GpgOperaHelper::BuildOperasDecrypt);
-  exec_operas_helper(tr("Decrypting"), contexts);
+  exec_operas_helper(tr("Decrypting"), contexts.Base());
 }
 
 void MainWindow::SlotVerify() {
   if (edit_->CurPageTextEdit() == nullptr) return;
 
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = true;
 
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
-  GpgOperaHelper::BuildOperas(contexts, 0,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasVerify);
 
-  exec_operas_helper(tr("Verifying"), contexts);
+  exec_operas_helper(tr("Verifying"), contexts.Base());
 
   if (!contexts->unknown_fprs.isEmpty()) {
     slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
@@ -529,7 +529,7 @@ void MainWindow::SlotEncryptSign() {
   auto* text_edit = edit_->CurPageTextEdit();
   if (text_edit == nullptr) return;
 
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = true;
 
   auto keys = m_key_list_->GetCheckedKeys();
@@ -543,23 +543,22 @@ void MainWindow::SlotEncryptSign() {
   contexts->keys = resolve_encrypt_recipients_helper(enc_keys, canceled);
   if (canceled || contexts->keys.empty()) return;
 
-  if (!sign_operation_key_validate(contexts)) return;
+  if (!sign_operation_key_validate(contexts.Base())) return;
 
   auto plain_text = edit_->CurPlainText();
   if (plain_text.isEmpty()) return;
 
   GFBuffer secure_plain_text(plain_text);
 
-  plain_text.fill(QLatin1Char('X'));
-  plain_text.clear();
+  WipeString(plain_text);
 
   contexts->GetContextBuffer(0).append(secure_plain_text);
 
-  GpgOperaHelper::BuildOperas(contexts, 0,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasEncryptSign);
 
-  exec_operas_helper(tr("Encrypting and Signing"), contexts);
+  exec_operas_helper(tr("Encrypting and Signing"), contexts.Base());
 }
 
 void MainWindow::SlotDecryptVerify() {
@@ -569,24 +568,25 @@ void MainWindow::SlotDecryptVerify() {
 
   const auto im = exec_im_decode_helper(edit_->CurPlainText());
   if (im->ok) {
-    auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+    GpgOperaContextHolder contexts;
     contexts->ascii = true;
     contexts->GetContextBuffer(0).append(im->pgp_message);
-    GpgOperaHelper::BuildOperas(contexts, 0, channel,
+    GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                                 GpgOperaHelper::BuildOperasDecryptVerify);
-    exec_im_normal_decrypt_helper(tr("Decrypting and Verifying"), contexts);
+    exec_im_normal_decrypt_helper(tr("Decrypting and Verifying"),
+                                  contexts.Base());
     if (!contexts->unknown_fprs.isEmpty()) {
       slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
     }
     return;
   }
 
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = true;
   contexts->GetContextBuffer(0).append(GFBuffer(edit_->CurPlainText()));
-  GpgOperaHelper::BuildOperas(contexts, 0, channel,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                               GpgOperaHelper::BuildOperasDecryptVerify);
-  exec_operas_helper(tr("Decrypting and Verifying"), contexts);
+  exec_operas_helper(tr("Decrypting and Verifying"), contexts.Base());
 
   if (!contexts->unknown_fprs.isEmpty()) {
     slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
@@ -658,7 +658,7 @@ void MainWindow::exec_im_encrypt_helper(bool sign) {
 
   const int channel = m_key_list_->GetCurrentGpgContextChannel();
 
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = false;
 
   if (sign) {
@@ -675,23 +675,22 @@ void MainWindow::exec_im_encrypt_helper(bool sign) {
     contexts->keys = resolve_encrypt_recipients_helper(enc_keys, canceled);
     if (canceled || contexts->keys.empty()) return;
 
-    if (!sign_operation_key_validate(contexts)) return;
+    if (!sign_operation_key_validate(contexts.Base())) return;
   } else {
     // Encrypt to the checked recipient key(s), or symmetrically (passphrase)
     // when none are checked — same rule as the standard Encrypt.
-    if (!encrypt_operation_key_validate(contexts)) return;
+    if (!encrypt_operation_key_validate(contexts.Base())) return;
   }
 
   auto plain_text = edit_->CurPlainText();
   if (plain_text.isEmpty()) return;
   GFBuffer secure_plain_text(plain_text);
-  plain_text.fill(QLatin1Char('X'));
-  plain_text.clear();
+  WipeString(plain_text);
 
   // PGP-encrypt, then whiten the binary ciphertext into one Base58 token with
   // the shared password book — no marker survives on the wire.
   contexts->GetContextBuffer(0).append(secure_plain_text);
-  GpgOperaHelper::BuildOperas(contexts, 0, channel,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0, channel,
                               sign ? GpgOperaHelper::BuildOperasEncryptSign
                                    : GpgOperaHelper::BuildOperasEncrypt);
   GpgOperaHelper::WaitForMultipleOperas(
@@ -798,6 +797,11 @@ auto MainWindow::exec_im_normal_decrypt_helper(
   GpgOperaHelper::WaitForMultipleOperas(
       this, task, contexts->operas, m_key_list_->GetCurrentGpgContextChannel());
 
+  // Releases the reference cycle the operas hold on this basement, the same as
+  // the other exec helpers. Without it every instant message decrypted in this
+  // session keeps its plaintext buffer alive until the process exits.
+  contexts->operas.clear();
+
   // Overall status like the standard path: the minimum across results. A
   // status of 0 is a warning (e.g. Decrypt & Verify on an encrypt-only IM
   // message, which has no signature) — not an error.
@@ -845,10 +849,10 @@ auto MainWindow::exec_im_normal_decrypt_helper(
 }
 
 void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = ascii;
 
-  if (!encrypt_operation_key_validate(contexts)) return;
+  if (!encrypt_operation_key_validate(contexts.Base())) return;
   if (!check_read_file_paths_helper(paths)) return;
 
   QStringList final_output_paths;
@@ -881,19 +885,19 @@ void MainWindow::SlotFileEncrypt(const QStringList& paths, bool ascii) {
     return;
   }
 
-  GpgOperaHelper::BuildOperas(contexts, 0,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasFileEncrypt);
 
-  GpgOperaHelper::BuildOperas(contexts, 1,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 1,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasDirectoryEncrypt);
 
-  exec_file_operas_helper(tr("Encrypting"), contexts, safe_outputs);
+  exec_file_operas_helper(tr("Encrypting"), contexts.Base(), safe_outputs);
 }
 
 void MainWindow::SlotFileDecrypt(const QStringList& paths) {
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = true;
 
   if (!check_read_file_paths_helper(paths)) return;
@@ -929,19 +933,19 @@ void MainWindow::SlotFileDecrypt(const QStringList& paths) {
     return;
   }
 
-  GpgOperaHelper::BuildOperas(contexts, 0,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasFileDecrypt);
 
-  GpgOperaHelper::BuildOperas(contexts, 1,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 1,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasArchiveDecrypt);
 
-  exec_file_operas_helper(tr("Decrypting"), contexts, safe_outputs);
+  exec_file_operas_helper(tr("Decrypting"), contexts.Base(), safe_outputs);
 }
 
 void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = ascii;
 
   auto keys = m_key_list_->GetCheckedKeys();
@@ -972,15 +976,15 @@ void MainWindow::SlotFileSign(const QStringList& paths, bool ascii) {
     return;
   }
 
-  GpgOperaHelper::BuildOperas(contexts, 0,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasFileSign);
 
-  exec_file_operas_helper(tr("Signing"), contexts, safe_outputs);
+  exec_file_operas_helper(tr("Signing"), contexts.Base(), safe_outputs);
 }
 
 void MainWindow::SlotFileVerify(const QStringList& paths) {
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
 
   if (!check_read_file_paths_helper(paths)) return;
 
@@ -1018,11 +1022,11 @@ void MainWindow::SlotFileVerify(const QStringList& paths) {
     contexts->GetContextOutPath(0).append(data_file_path);
   }
 
-  GpgOperaHelper::BuildOperas(contexts, 0,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasFileVerify);
 
-  exec_operas_helper(tr("Verifying"), contexts);
+  exec_operas_helper(tr("Verifying"), contexts.Base());
 
   if (!contexts->unknown_fprs.isEmpty()) {
     slot_verifying_unknown_signature_helper(contexts->unknown_fprs);
@@ -1030,7 +1034,7 @@ void MainWindow::SlotFileVerify(const QStringList& paths) {
 }
 
 void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = ascii;
 
   auto keys = m_key_list_->GetCheckedKeys();
@@ -1043,7 +1047,7 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
   contexts->keys = resolve_encrypt_recipients_helper(enc_keys, canceled);
   if (canceled || contexts->keys.empty()) return;
 
-  if (!sign_operation_key_validate(contexts)) return;
+  if (!sign_operation_key_validate(contexts.Base())) return;
   if (!check_read_file_paths_helper(paths)) return;
 
   QStringList final_output_paths;
@@ -1076,19 +1080,20 @@ void MainWindow::SlotFileEncryptSign(const QStringList& paths, bool ascii) {
     return;
   }
 
-  GpgOperaHelper::BuildOperas(contexts, 0,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasFileEncryptSign);
 
-  GpgOperaHelper::BuildOperas(contexts, 1,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 1,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasDirectoryEncryptSign);
 
-  exec_file_operas_helper(tr("Encrypting and Signing"), contexts, safe_outputs);
+  exec_file_operas_helper(tr("Encrypting and Signing"), contexts.Base(),
+                          safe_outputs);
 }
 
 void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
-  auto contexts = SecureCreateSharedObject<GpgOperaContextBasement>();
+  GpgOperaContextHolder contexts;
   contexts->ascii = true;
 
   if (!check_read_file_paths_helper(paths)) return;
@@ -1124,15 +1129,15 @@ void MainWindow::SlotFileDecryptVerify(const QStringList& paths) {
     return;
   }
 
-  GpgOperaHelper::BuildOperas(contexts, 0,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 0,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasFileDecryptVerify);
 
-  GpgOperaHelper::BuildOperas(contexts, 1,
+  GpgOperaHelper::BuildOperas(contexts.Base(), 1,
                               m_key_list_->GetCurrentGpgContextChannel(),
                               GpgOperaHelper::BuildOperasArchiveDecryptVerify);
 
-  exec_file_operas_helper(tr("Decrypting and Verifying"), contexts,
+  exec_file_operas_helper(tr("Decrypting and Verifying"), contexts.Base(),
                           safe_outputs);
 
   if (!contexts->unknown_fprs.isEmpty()) {

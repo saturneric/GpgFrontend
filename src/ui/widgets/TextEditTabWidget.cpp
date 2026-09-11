@@ -36,6 +36,7 @@
 #include "core/module/ModuleManager.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/CommonUtils.h"
+#include "core/utils/MemoryUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/UISignalStation.h"
 #include "ui/function/FilePanelPath.h"
@@ -618,8 +619,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
         GFBuffer(content),
     });
 
-    content.fill('X');
-    content.clear();
+    WipeString(content);
   }
 
   if (unsaved_pages.empty()) {
@@ -787,8 +787,7 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
 
     auto key_id = QByteArray::fromHex(json["key_id"].toString().toLatin1());
     auto key = key_mgr.KeyById(GFBuffer(key_id));
-    key_id.fill('X');
-    key_id.clear();
+    WipeByteArray(key_id);
 
     if (!key.Empty()) {
       auto content = GFBufferFactory::Decrypt(key, *encrypted_content);

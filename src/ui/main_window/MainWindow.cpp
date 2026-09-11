@@ -315,6 +315,12 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     return;
   }
 
+  // Only now that the close is certain: the write-back above can defer it and
+  // call back into close(), and blanking the pages before that would throw the
+  // content away under a close that had not been decided yet.
+  edit_->WipeAllTabs();
+  info_board_->SlotReset();
+
   GeneralMainWindow::closeEvent(event);
 }
 

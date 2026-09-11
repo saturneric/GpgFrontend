@@ -32,7 +32,9 @@
 #include "core/model/SettingsObject.h"
 #include "core/thread/FileReadTask.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "core/utils/MemoryUtils.h"
 #include "ui/function/AppearanceFont.h"
+#include "ui/function/SecureWipe.h"
 #include "ui/function/TextDirection.h"
 #include "ui/struct/settings_object/AppearanceSO.h"
 #include "ui_PlainTextEditor.h"
@@ -221,7 +223,9 @@ void PlainTextEditorPage::set_editor_modified(bool modified) {
 }
 
 void PlainTextEditorPage::closeEvent(QCloseEvent *event) {
-  if (ui_ && (ui_->textPage != nullptr)) Clear();
+  // A backstop for close routes other than the tab bar; the tab close and the
+  // window close both call WipeContent() directly.
+  WipeContent();
   QWidget::closeEvent(event);
 }
 
@@ -303,8 +307,12 @@ void PlainTextEditorPage::slot_update_sha256() {
       [doc](const GFBufferFactory::Sha256Chunk &update) -> void {
         auto block = doc->begin();
         while (block != doc->end()) {
-          const auto utf8 = block.text().toUtf8();
+          // Wiped rather than dropped: this runs on a debounce timer while
+          // the user types, so leaving the copies behind would strew the whole
+          // document across the heap every few keystrokes.
+          auto utf8 = block.text().toUtf8();
           update(utf8.constData(), static_cast<size_t>(utf8.size()));
+          WipeByteArray(utf8);
           block = block.next();
           if (block != doc->end()) {
             const char nl = '\n';
@@ -411,24 +419,13 @@ auto PlainTextEditorPage::ReadDone() const -> bool { return this->read_done_; }
 void PlainTextEditorPage::Clear() {
   if (ui_ == nullptr || ui_->textPage == nullptr) return;
 
-  auto *editor = ui_->textPage;
-
-  editor->setUndoRedoEnabled(false);
-
-  const auto char_count = editor->document()->characterCount();
-  if (char_count > 1) {
-    editor->selectAll();
-    editor->insertPlainText(QString(char_count - 1, QChar(0x2022)));
-  }
-
-  editor->clear();
-  editor->document()->clearUndoRedoStacks();
-  editor->document()->setModified(false);
-  editor->setUndoRedoEnabled(true);
+  WipeTextDocument(ui_->textPage->document());
 
   update_status_bar();
   set_editor_modified(false);
 }
+
+void PlainTextEditorPage::WipeContent() { Clear(); }
 
 void PlainTextEditorPage::ApplyAppearanceSettings() {
   AppearanceSO appearance(SettingsObject("general_settings_state"));

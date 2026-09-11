@@ -29,6 +29,7 @@
 #include "ui/widgets/SecretEntryPanel.h"
 
 #include "core/function/PassphraseGenerator.h"
+#include "core/utils/MemoryUtils.h"
 #include "ui/dialog/PassphraseStrength.h"
 #include "ui/function/UIStyle.h"
 
@@ -221,7 +222,7 @@ void SecretEntryPanel::scrub() {
     // this does and does not achieve.
     auto scratch = edit->text();
     if (!scratch.isEmpty()) {
-      scratch.fill('X');
+      WipeString(scratch);
       edit->setText(scratch);
     }
     edit->clear();
