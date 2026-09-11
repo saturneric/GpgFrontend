@@ -67,13 +67,13 @@ workflows, and recommended practices for using GpgFrontend effectively.
 GpgFrontend currently supports an array of languages including:
 
 - English
-- Chinese (Simplified)
-- Chinese (Traditional)
+- Chinese (Simplified/Traditional)
 - French
 - German
 - Italian
 - Spanish
 - Russian
+- Polish
 
 And these translations are contributed by our community: [SHOW](TRANSLATORS)
 
