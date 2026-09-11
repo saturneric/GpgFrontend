@@ -34,14 +34,24 @@
  * libsodium guarded memory.
  *
  * Two allocation tiers are provided:
- * - Standard (SMAMalloc / SMARealloc / SMAFree): tracks allocations and wipes
- *   memory on free when the application secure level is >= 1.
- * - Secure (SMASecMalloc / SMASecRealloc / SMASecFree): uses libsodium
- *   guarded memory (sodium_malloc / sodium_free) when the secure level is >= 2,
- *   falling back to the standard tier otherwise.
+ * - Standard (SMAMalloc / SMARealloc / SMAFree): for ordinary allocations.
+ *   Tracks allocations and wipes memory on free when the application secure
+ *   level is >= 1; below that it is plain malloc and free, untracked.
+ * - Secure (SMASecMalloc / SMASecRealloc / SMASecFree): for secrets. Always
+ *   tracked and **always wiped on release, at every secure level**. Above
+ *   level 2 it additionally uses libsodium guarded memory (sodium_malloc /
+ *   sodium_free), which locks the pages against swap.
+ *
+ * The wipe is a property of the secure tier rather than of the caller, so a
+ * secret does not depend on every release site remembering to zero it, nor on
+ * a secure level the user has no reason to have raised. Growing a secure block
+ * never uses plain realloc either: the contents are moved and the block left
+ * behind is wiped, instead of being handed back to the heap intact.
  *
  * Memory allocated through these functions must be freed with the corresponding
- * SMA* free function and must not be passed to raw free().
+ * SMA* free function and must not be passed to raw free(). Releasing a secure
+ * block through SMAFree is recognised and still wipes it, but it is a mistake
+ * worth fixing.
  */
 
 namespace GpgFrontend {
@@ -80,7 +90,8 @@ void GF_CORE_EXPORT SMAFree(void* ptr);
  * @brief Allocate @p size bytes of zeroed secure memory.
  *
  * Uses libsodium guarded memory (sodium_malloc) when the application secure
- * level is >= 2, otherwise falls back to SMAMalloc.
+ * level is >= 2, and ordinary tracked memory below that. Either way the block
+ * is registered, so its size is known when it is released and it can be wiped.
  *
  * @param size number of bytes to allocate
  * @return pointer to allocated secure memory, or nullptr if size is zero or
@@ -92,7 +103,9 @@ auto GF_CORE_EXPORT SMASecMalloc(size_t size) -> void*;
  * @brief Resize a previously SMASecMalloc-allocated block to @p size bytes.
  *
  * If @p ptr is nullptr, behaves like SMASecMalloc. If @p size is zero, frees
- * the block and returns nullptr.
+ * the block and returns nullptr. The contents are moved to the new block and
+ * the old one is wiped before release; plain realloc is never used, as it
+ * would leave a full copy of the secret in freed memory.
  *
  * @param ptr pointer to an existing SMASecMalloc-allocated block, or nullptr
  * @param size new size in bytes
@@ -103,8 +116,9 @@ auto GF_CORE_EXPORT SMASecRealloc(void* ptr, size_t size) -> void*;
 /**
  * @brief Free a block allocated by SMASecMalloc or SMASecRealloc.
  *
- * Uses sodium_free when the block was allocated with guarded memory,
- * otherwise wipes and frees normally.
+ * Always erases the contents first: sodium_free zeroes the guarded pages it
+ * releases, and an ordinary block is wiped by hand before it is freed. This
+ * holds at every secure level.
  *
  * @param ptr pointer to the block to free, or nullptr (no-op)
  */

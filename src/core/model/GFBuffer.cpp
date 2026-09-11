@@ -52,6 +52,8 @@ struct GFBuffer::Impl {
   }
 
   ~Impl() {
+    // SMASecFree wipes what it releases, at every secure level. impl_ is a
+    // shared_ptr, so this runs only once the last copy-on-write share is gone.
     if (sec_ptr_ != nullptr) {
       SMASecFree(sec_ptr_);
       sec_ptr_ = nullptr;
@@ -154,6 +156,8 @@ void GFBuffer::Resize(ssize_t size) {
     return;
   }
 
+  // SMASecRealloc never grows a secret in place: it moves the contents and
+  // wipes the block it leaves behind.
   impl_->sec_ptr_ = SMASecRealloc(impl_->sec_ptr_, size);
   impl_->sec_size_ = size;
 }

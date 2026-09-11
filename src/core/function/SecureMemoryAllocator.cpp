@@ -52,7 +52,12 @@ GpgFrontend::SecureMemoryAllocator* instance = nullptr;
 
 struct AllocationInfo {
   size_t size = 0;
-  bool secure = false;
+  // Allocated with sodium_malloc, so it has to go back through sodium_free.
+  bool guarded = false;
+  // Must be zeroed before the memory is released. Kept separate from
+  // `guarded` because sodium_free already zeroes what it frees, while an
+  // ordinary block holding a secret has to be wiped by hand.
+  bool wipe = false;
 };
 
 auto NormalAllocate(size_t size) -> void* {
@@ -101,8 +106,10 @@ class SecureMemoryAllocator {
 
   ~SecureMemoryAllocator();
 
-  auto reg_mem(void* ptr, size_t size, bool secure) -> void;
+  auto reg_mem(void* ptr, size_t size, bool guarded, bool wipe) -> void;
   auto take_info(void* ptr) -> std::optional<AllocationInfo>;
+  auto take_info_if_tracked(void* ptr) -> std::optional<AllocationInfo>;
+  static void report_invalid_free(void* ptr);
 
  private:
   int secure_level_ = 0;
@@ -119,36 +126,47 @@ SecureMemoryAllocator::SecureMemoryAllocator(int secure_level)
 
 SecureMemoryAllocator::~SecureMemoryAllocator() = default;
 
-auto SecureMemoryAllocator::reg_mem(void* ptr, size_t size, bool secure)
-    -> void {
+auto SecureMemoryAllocator::reg_mem(void* ptr, size_t size, bool guarded,
+                                    bool wipe) -> void {
   if (ptr == nullptr) return;
 
   QMutexLocker locker(&mutex_);
   Q_ASSERT(!allocated_.contains(ptr));
 
-  allocated_.insert(ptr, AllocationInfo{size, secure});
+  allocated_.insert(ptr, AllocationInfo{size, guarded, wipe});
+}
+
+auto SecureMemoryAllocator::take_info_if_tracked(void* ptr)
+    -> std::optional<AllocationInfo> {
+  if (ptr == nullptr) return {};
+
+  QMutexLocker locker(&mutex_);
+
+  auto it = allocated_.find(ptr);
+  if (it == allocated_.end()) return {};
+
+  auto info = it.value();
+  allocated_.erase(it);
+  return info;
+}
+
+void SecureMemoryAllocator::report_invalid_free(void* ptr) {
+  FLOG_W() << "this memory address was not allocated by "
+              "SecureMemoryAllocator:"
+           << ptr;
+#ifdef DEBUG
+  // a double free or a foreign pointer. release builds only warn and leak,
+  // debug builds fail fast so the offending call site is caught.
+  qFatal("SecureMemoryAllocator: invalid free of %p", ptr);
+#endif
 }
 
 auto SecureMemoryAllocator::take_info(void* ptr)
     -> std::optional<AllocationInfo> {
   if (ptr == nullptr) return {};
 
-  QMutexLocker locker(&mutex_);
-
-  if (!allocated_.contains(ptr)) {
-    FLOG_W() << "this memory address was not allocated by "
-                "SecureMemoryAllocator:"
-             << ptr;
-#ifdef DEBUG
-    // a double free or a foreign pointer. release builds only warn and leak,
-    // debug builds fail fast so the offending call site is caught.
-    qFatal("SecureMemoryAllocator: invalid free of %p", ptr);
-#endif
-    return {};
-  }
-
-  auto info = allocated_.value(ptr);
-  allocated_.remove(ptr);
+  auto info = take_info_if_tracked(ptr);
+  if (!info) report_invalid_free(ptr);
   return info;
 }
 
@@ -160,20 +178,12 @@ auto SecureMemoryAllocator::Allocate(size_t size) -> void* {
   }
 
   auto* ptr = NormalAllocate(size);
-  reg_mem(ptr, size, false);
+  reg_mem(ptr, size, false, true);
 
   return ptr;
 }
 
 auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
-  if (secure_level_ < 1) {
-    if (size == 0) {
-      std::free(ptr);
-      return nullptr;
-    }
-    return std::realloc(ptr, size);
-  }
-
   if (ptr == nullptr) return Allocate(size);
 
   if (size == 0) {
@@ -181,67 +191,81 @@ auto SecureMemoryAllocator::Reallocate(void* ptr, size_t size) -> void* {
     return nullptr;
   }
 
-  auto old_info = take_info(ptr);
-  if (!old_info) return nullptr;
+  // The secure tier registers its allocations at every level, so a pointer can
+  // be tracked even while the normal tier is running untracked. Look before
+  // reaching for realloc: a tracked block may hold a secret, and realloc would
+  // copy it into a new block and hand the old one back to the heap intact.
+  auto info = take_info_if_tracked(ptr);
+  if (!info) {
+    if (secure_level_ < 1) return std::realloc(ptr, size);
 
-  if (old_info->secure) {
+    report_invalid_free(ptr);
+    return nullptr;
+  }
+
+  if (info->guarded) {
     FLOG_W()
         << "SMARealloc called for secure memory; using secure reallocation";
 
-    auto* new_ptr = sodium_malloc(size);
+    auto* new_ptr = SecAllocate(size);
     if (new_ptr == nullptr) {
-      reg_mem(ptr, old_info->size, true);
-      FLOG_F("sodium_malloc failed");
+      reg_mem(ptr, info->size, info->guarded, info->wipe);
       return nullptr;
     }
 
-    std::memset(new_ptr, 0, size);
-    std::memcpy(new_ptr, ptr, std::min(size, old_info->size));
-
-    reg_mem(new_ptr, size, true);
+    std::memcpy(new_ptr, ptr, std::min(size, info->size));
     sodium_free(ptr);
     return new_ptr;
   }
 
   auto* new_ptr = NormalAllocate(size);
   if (new_ptr == nullptr) {
-    reg_mem(ptr, old_info->size, false);
+    reg_mem(ptr, info->size, info->guarded, info->wipe);
     return nullptr;
   }
 
-  std::memcpy(new_ptr, ptr, std::min(size, old_info->size));
-  NormalDeallocate(ptr, old_info->size, true);
+  std::memcpy(new_ptr, ptr, std::min(size, info->size));
+  NormalDeallocate(ptr, info->size, info->wipe);
 
-  reg_mem(new_ptr, size, false);
+  reg_mem(new_ptr, size, false, info->wipe);
   return new_ptr;
 }
 
 void SecureMemoryAllocator::Deallocate(void* ptr) {
   if (ptr == nullptr) return;
 
-  if (secure_level_ < 1) {
-    std::free(ptr);
+  // Tracked first, for the same reason as Reallocate: a secret freed through
+  // SMAFree must still be wiped, and must still leave the registry.
+  auto info = take_info_if_tracked(ptr);
+  if (!info) {
+    if (secure_level_ < 1) {
+      std::free(ptr);
+      return;
+    }
+
+    report_invalid_free(ptr);
     return;
   }
 
-  auto info = take_info(ptr);
-  if (!info) return;
-
-  if (info->secure) {
+  if (info->guarded) {
     FLOG_W() << "SMAFree called for secure memory; using sodium_free";
     sodium_free(ptr);
     return;
   }
 
-  const bool wipe = secure_level_ >= 1;
-  NormalDeallocate(ptr, info->size, wipe);
+  NormalDeallocate(ptr, info->size, info->wipe);
 }
 
 auto SecureMemoryAllocator::SecAllocate(size_t size) -> void* {
   if (size == 0) return nullptr;
 
   if (secure_level_ < 2) {
-    return Allocate(size);
+    // Registered even when the normal tier is running untracked. This tier is
+    // the one GFBuffer and the other secret holders allocate from, so
+    // SecDeallocate has to know how many bytes to wipe whatever the level is.
+    auto* ptr = NormalAllocate(size);
+    reg_mem(ptr, size, false, true);
+    return ptr;
   }
 
   auto* ptr = sodium_malloc(size);
@@ -251,16 +275,13 @@ auto SecureMemoryAllocator::SecAllocate(size_t size) -> void* {
   }
 
   std::memset(ptr, 0, size);
-  reg_mem(ptr, size, true);
+  // No wipe flag: sodium_free zeroes the guarded pages it releases.
+  reg_mem(ptr, size, true, false);
 
   return ptr;
 }
 
 auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
-  if (secure_level_ < 2) {
-    return Reallocate(ptr, size);
-  }
-
   if (ptr == nullptr) return SecAllocate(size);
 
   if (size == 0) {
@@ -268,21 +289,26 @@ auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
     return nullptr;
   }
 
-  auto old_info = take_info(ptr);
-  if (!old_info) return nullptr;
-
-  auto* new_ptr = SecAllocate(size);
-  if (new_ptr == nullptr) {
-    reg_mem(ptr, old_info->size, old_info->secure);
+  auto info = take_info_if_tracked(ptr);
+  if (!info) {
+    report_invalid_free(ptr);
     return nullptr;
   }
 
-  std::memcpy(new_ptr, ptr, std::min(size, old_info->size));
+  auto* new_ptr = SecAllocate(size);
+  if (new_ptr == nullptr) {
+    reg_mem(ptr, info->size, info->guarded, info->wipe);
+    return nullptr;
+  }
 
-  if (old_info->secure) {
+  std::memcpy(new_ptr, ptr, std::min(size, info->size));
+
+  // Deliberately never plain realloc: growing a secret in place would copy it
+  // into a new block and release the old one with the contents still in it.
+  if (info->guarded) {
     sodium_free(ptr);
   } else {
-    NormalDeallocate(ptr, old_info->size, secure_level_ >= 1);
+    NormalDeallocate(ptr, info->size, info->wipe);
   }
 
   return new_ptr;
@@ -291,20 +317,21 @@ auto SecureMemoryAllocator::SecReallocate(void* ptr, size_t size) -> void* {
 void SecureMemoryAllocator::SecDeallocate(void* ptr) {
   if (ptr == nullptr) return;
 
-  if (secure_level_ < 2) {
-    Deallocate(ptr);
+  auto info = take_info_if_tracked(ptr);
+  if (!info) {
+    report_invalid_free(ptr);
     return;
   }
 
-  auto info = take_info(ptr);
-  if (!info) return;
-
-  if (info->secure) {
+  if (info->guarded) {
     sodium_free(ptr);
     return;
   }
 
-  NormalDeallocate(ptr, info->size, secure_level_ >= 1);
+  // Always wiped, at every secure level. Releasing this tier intact would
+  // defeat the only reason it exists, so the guarantee does not depend on a
+  // setting the user has no reason to have changed.
+  NormalDeallocate(ptr, info->size, true);
 }
 
 auto SecureMemoryAllocator::GetInstance() -> SecureMemoryAllocator* {
