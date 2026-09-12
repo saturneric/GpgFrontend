@@ -54,6 +54,11 @@
         <file alias="misc_doc.png">../lfs/icons/misc_doc.png</file>
         <file alias="quote.png">../lfs/icons/quote.png</file>
         <file alias="receive_email.png">../lfs/icons/receive_email.png</file>
+        <file alias="reply-all.png">../lfs/icons/reply-all.png</file>
+        <file alias="reply.png">../lfs/icons/reply.png</file>
+        <file alias="read-only.png">../lfs/icons/read-only.png</file>
+        <file alias="remove.png">../lfs/icons/remove.png</file>
+        <file alias="code.png">../lfs/icons/code.png</file>
         <file alias="sent.png">../lfs/icons/sent.png</file>
         <file alias="server.png">../lfs/icons/server.png</file>
         <file alias="signature.png">../lfs/icons/signature.png</file>
@@ -110,6 +115,7 @@
         <file alias="warning-filling.png">../lfs/icons/warning-filling.png</file>
         <file alias="upgrade.png">../lfs/icons/upgrade.png</file>
         <file alias="batch.png">../lfs/icons/batch.png</file>
+        <file alias="attachment.png">../lfs/icons/attachment.png</file>
         <file alias="encr-sign.png">../lfs/icons/encr-sign.png</file>
         <file alias="decr-verify.png">../lfs/icons/decr-verify.png</file>
         <file alias="smart-card.png">../lfs/icons/smart-card.png</file>
