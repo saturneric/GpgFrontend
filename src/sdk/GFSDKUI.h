@@ -165,6 +165,15 @@ auto GF_SDK_EXPORT GFUIUnregisterSettingsPage(const char* page_id) -> int;
  *   - `bool IsDirty()` -- the view holds edits not yet written back.
  *   - `void WipeContent()` -- zero any decrypted plaintext the view holds,
  *     including attachment buffers. Called when the tab closes and at exit.
+ *   - `QString SuggestedFileName()` -- a name to offer when this tab is saved
+ *     and has no file yet, WITH its extension and already safe to use as a
+ *     single path component. Only the view knows what the content is called:
+ *     a message has a subject, a tab title does not. Return an empty string to
+ *     leave the host's own guess in place. The host never writes to this name
+ *     without asking; it only prefills the dialog.
+ *   - `QString FileTypeFilter()` -- a QFileDialog filter for this tab's type,
+ *     such as `E-Mail Message (*.eml);;All Files (*)`. Empty means the host's
+ *     default.
  *
  * A view may also declare a `void SignalContentModified()` signal. Emitting it
  * marks the tab modified straight away, without reserializing anything -- so a

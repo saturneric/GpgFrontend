@@ -37,6 +37,7 @@
 #include "core/utils/MemoryUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/dialog/QuitDialog.h"
+#include "ui/function/FilePanelPath.h"
 #include "ui/widgets/TextEditTabWidget.h"
 
 namespace GpgFrontend::UI {
@@ -171,6 +172,13 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
   PlainTextEditorPage* page = CurPageTextEdit();
   if (page == nullptr) return false;
 
+  // A mounted view owns the document's real content until it hands it back, so
+  // it is asked for it before the bytes are read. Without this a message edited
+  // in the e-mail view and saved without leaving that view writes what the
+  // document held BEFORE the edits -- which is what the SDK contract says this
+  // call site guarantees against.
+  page->FlushPrimaryView();
+
   QFile file(file_name);
   // Written as bytes, and without QIODevice::Text: the document knows which
   // line endings it came with and DocumentBytes() has already applied them.
@@ -213,10 +221,32 @@ auto TextEdit::SlotSaveAs() -> bool {
   if (!page->GetFilePath().isEmpty()) {
     path = page->GetFilePath();
   } else {
-    path = tab_widget_->tabText(tab_widget_->currentIndex()).remove(0, 2);
+    // What the content calls itself, asked of the view that knows: a message
+    // has a subject, a tab title does not.
+    const auto suggested = page->PrimaryViewSuggestedFileName();
+
+    // The tab's own title, from the property that holds it WITHOUT the
+    // modified marker. This used to chop two characters off the tab text to
+    // drop a "* " that is only there while the tab is modified -- so an
+    // unmodified "untitled.eml" was offered as "titled.eml".
+    auto title = page->property("base_title").toString().trimmed();
+    if (title.isEmpty())
+      title = tab_widget_->tabText(tab_widget_->currentIndex());
+    while (title.startsWith('*')) title = title.remove(0, 1).trimmed();
+
+    path = suggested.isEmpty() ? title : suggested;
+
+    // Offered in the folder this application saves things in, the same one
+    // every other export dialog opens at, rather than wherever the process
+    // happens to be.
+    if (!path.isEmpty()) {
+      const auto dir = GetDefaultUserFilePath();
+      if (!dir.isEmpty()) path = QDir(dir).filePath(path);
+    }
   }
 
-  return saveFile(QFileDialog::getSaveFileName(this, tr("Save file"), path));
+  return saveFile(QFileDialog::getSaveFileName(
+      this, tr("Save file"), path, page->PrimaryViewFileTypeFilter()));
 }
 
 void TextEdit::SlotCloseTab() { slot_remove_tab(tab_widget_->currentIndex()); }
@@ -387,6 +417,15 @@ void TextEdit::SlotSetGFBuffer2CurTextPage(const GFBuffer& buffer) {
   if (CurTextPage() == nullptr) SlotNewTab();
   auto* edit = CurTextPage()->GetTextPage();
   SetPlainTextFromBuffer(edit, buffer);
+
+  // These bytes are the RESULT of an operation -- a signature, a ciphertext --
+  // and they exist nowhere but in this document. setPlainText() clears the
+  // modified flag, which would say the opposite: that the tab matches a file on
+  // disk. On an untitled tab there is no such file at all, and the flag is what
+  // makes the tab show its asterisk, prompt before closing, and be written to
+  // the recovery cache. Cleared, a freshly signed message is discarded on close
+  // without a word.
+  edit->document()->setModified(true);
 }
 
 void TextEdit::SlotAppendText2CurTextPage(const QString& text) {

@@ -160,6 +160,20 @@ class PlainTextEditorPage : public QWidget {
   void FlushPrimaryView();
 
   /**
+   * @brief A name the mounted view suggests for saving this tab, if any.
+   *
+   * Only the view knows what its content is called -- a message has a subject,
+   * a tab title does not. Empty when there is no view, when it does not offer
+   * one, or when it has nothing to suggest; the caller then keeps its own
+   * guess. The name is already safe to use as a single path component.
+   */
+  [[nodiscard]] auto PrimaryViewSuggestedFileName() const -> QString;
+
+  /// A QFileDialog filter for this tab's content type, or empty for the
+  /// host's default.
+  [[nodiscard]] auto PrimaryViewFileTypeFilter() const -> QString;
+
+  /**
    * @brief Whether the primary view holds edits it has not written back yet.
    *
    * Only meaningful between an edit and the flush that follows it; the

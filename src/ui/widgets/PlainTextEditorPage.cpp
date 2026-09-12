@@ -615,6 +615,35 @@ auto PlainTextEditorPage::PrimaryViewCryptoOperations(bool &has_opinion) const
   return operations;
 }
 
+auto PlainTextEditorPage::PrimaryViewSuggestedFileName() const -> QString {
+  if (primary_view_.isNull()) return {};
+
+  auto *view = primary_view_.data();
+  if (view->metaObject()->indexOfMethod("SuggestedFileName()") < 0) return {};
+
+  QString name;
+  if (!QMetaObject::invokeMethod(view, "SuggestedFileName",
+                                 Qt::DirectConnection,
+                                 Q_RETURN_ARG(QString, name))) {
+    return {};
+  }
+  return name;
+}
+
+auto PlainTextEditorPage::PrimaryViewFileTypeFilter() const -> QString {
+  if (primary_view_.isNull()) return {};
+
+  auto *view = primary_view_.data();
+  if (view->metaObject()->indexOfMethod("FileTypeFilter()") < 0) return {};
+
+  QString filter;
+  if (!QMetaObject::invokeMethod(view, "FileTypeFilter", Qt::DirectConnection,
+                                 Q_RETURN_ARG(QString, filter))) {
+    return {};
+  }
+  return filter;
+}
+
 auto PlainTextEditorPage::AppendTextToPrimaryView(const QString &text) -> int {
   if (primary_view_.isNull()) return 0;
 
@@ -663,7 +692,6 @@ void PlainTextEditorPage::FlushPrimaryView() {
   // Guarded on both sides: this write raises contentsChanged, and without the
   // flag the handler would push the text straight back into the view, which
   // would mark it dirty again and flush again.
-  const bool was_modified = ui_->textPage->document()->isModified();
   {
     primary_view_syncing_ = true;
     ui_->textPage->setPlainText(QString::fromUtf8(bytes));
@@ -671,10 +699,11 @@ void PlainTextEditorPage::FlushPrimaryView() {
   }
   source_generation_ = ui_->textPage->document()->revision();
 
-  // setPlainText() always marks the document modified. That is right when the
-  // view actually changed something -- which it did, or IsDirty() would have
-  // returned false -- but the flag must not be *cleared* by a flush either.
-  ui_->textPage->document()->setModified(was_modified || true);
+  // setPlainText() CLEARS the modified flag, which would say this document
+  // matches a file on disk. Re-asserted rather than restored: a flush only
+  // happens when the view had edits the document did not have, so the document
+  // is modified afterwards whatever it was before.
+  ui_->textPage->document()->setModified(true);
 }
 
 auto PlainTextEditorPage::PrimaryViewIsDirty() const -> bool {
