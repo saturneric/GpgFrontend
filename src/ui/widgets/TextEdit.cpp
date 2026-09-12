@@ -172,10 +172,12 @@ auto TextEdit::saveFile(const QString& file_name) -> bool {
   if (page == nullptr) return false;
 
   QFile file(file_name);
-  if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-    QTextStream output_stream(&file);
+  // Written as bytes, and without QIODevice::Text: the document knows which
+  // line endings it came with and DocumentBytes() has already applied them.
+  // Going through a text-mode stream would translate them a second time.
+  if (file.open(QIODevice::WriteOnly)) {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    output_stream << page->GetTextPage()->toPlainText();
+    file.write(page->DocumentBytes());
     QApplication::restoreOverrideCursor();
     QTextDocument* document = page->GetTextPage()->document();
 

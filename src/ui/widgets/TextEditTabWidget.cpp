@@ -614,6 +614,11 @@ void TextEditTabWidget::SlotCacheTextEditors() {
     auto* target_page = qobject_cast<PlainTextEditorPage*>(this->widget(i));
     if (target_page == nullptr) continue;
 
+    // Anything a mounted view is still holding has to reach the document
+    // first, or what gets cached is the message as it was before the user
+    // touched it -- which recovers a tab, but not their work.
+    target_page->FlushPrimaryView();
+
     auto* document = target_page->GetTextPage()->document();
     auto tab_title = NormalizeTabTitle(this->tabText(i));
 
@@ -706,7 +711,7 @@ void TextEditTabWidget::SlotRestoreTextEditorsCache() {
 
 void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
   const bool restore_text_editor_page =
-      GetSettings().value("basic/restore_text_editor_page", false).toBool();
+      GetSettings().value("basic/restore_text_editor_page", true).toBool();
   if (!restore_text_editor_page) {
     ClearEditorPagesRecoveryCache(true);
     return;
@@ -850,9 +855,21 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
               content->ConvertToQString());
           page->GetTextPage()->document()->setModified(true);
           update_tab_modified_mark(page, true);
+
+          // The page type is restored, so the view that belongs to it has to
+          // be restored with it -- otherwise an e-mail comes back as raw text
+          // and the tab silently loses everything the module gave it.
+          //
+          // Mounted after the document is filled in, because mounting reloads
+          // the view from the document: doing it first would hand the view an
+          // empty page.
+          mount_module_view(page, page_type);
         }
 
-        page->GetTextPage()->setFocus();
+        // The raw editor may now be inside the mounted view rather than the
+        // page, where focusing it would put the caret somewhere the user
+        // cannot see. The view decides what to focus in that case.
+        if (page->PrimaryView() == nullptr) page->GetTextPage()->setFocus();
 
         last_restored_page = page;
         ++restored_count;
@@ -961,6 +978,12 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
   connect(page->GetTextPage()->document(), &QTextDocument::modificationChanged,
           this, [this, page](bool modified) {
             update_tab_modified_mark(page, modified);
+
+            // A mounted view keeps its edits to itself until something asks
+            // for them, so the document's own contentsChanged never fires and
+            // the recovery cache below would never learn the tab has unsaved
+            // work in it. This is the only notice that arrives.
+            if (modified) schedule_recovery_cache(page);
           });
 
   connect(page->GetTextPage()->document(), &QTextDocument::contentsChanged,
@@ -1021,7 +1044,7 @@ void TextEditTabWidget::schedule_recovery_cache(PlainTextEditorPage* page) {
   if (page->property("recovery_suspended").toBool()) return;
 
   const bool restore_text_editor_page =
-      GetSettings().value("basic/restore_text_editor_page", false).toBool();
+      GetSettings().value("basic/restore_text_editor_page", true).toBool();
   if (!restore_text_editor_page) return;
 
   auto* document = page->GetTextPage()->document();
@@ -1038,7 +1061,7 @@ void TextEditTabWidget::schedule_recovery_cache(PlainTextEditorPage* page) {
 
 void TextEditTabWidget::flush_recovery_cache(bool force) {
   const bool restore_text_editor_page =
-      GetSettings().value("basic/restore_text_editor_page", false).toBool();
+      GetSettings().value("basic/restore_text_editor_page", true).toBool();
 
   if (!restore_text_editor_page) return;
 

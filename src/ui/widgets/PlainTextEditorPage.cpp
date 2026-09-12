@@ -248,6 +248,35 @@ auto PlainTextEditorPage::GetPlainText() -> QString {
   return ui_->textPage->toPlainText();
 }
 
+void PlainTextEditorPage::SetContentFromBytes(const QByteArray &bytes) {
+  // Recorded before the text goes in, because once it is in the document the
+  // evidence is gone: the editor stores bare LF either way.
+  is_crlf_ = bytes.contains("\r\n");
+
+  ui_->textPage->setPlainText(QString::fromUtf8(bytes));
+  ui_->textPage->document()->setModified(false);
+
+  read_done_ = true;
+  read_bytes_ = static_cast<size_t>(bytes.size());
+
+  update_status_bar();
+}
+
+auto PlainTextEditorPage::DocumentBytes() const -> QByteArray {
+  // QPlainTextEdit stores line breaks as paragraph separators, so whatever
+  // the document was loaded from, toPlainText() hands back bare LF. Writing
+  // that out, or handing it to a view, silently rewrites every line ending in
+  // the file.
+  //
+  // For prose that is merely untidy. For a PGP/MIME message it is fatal: the
+  // signature covers exact octets in canonical CRLF form, so a document that
+  // came in as CRLF must go back out as CRLF or nothing it carries can ever
+  // verify again.
+  auto bytes = ui_->textPage->toPlainText().toUtf8();
+  if (is_crlf_) bytes.replace('\n', "\r\n");
+  return bytes;
+}
+
 void PlainTextEditorPage::NotifyFileSaved() {
   ui_->textPage->document()->setModified(false);
   set_editor_modified(false);
@@ -510,6 +539,12 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
   }
 
   if (!source_view_adopted_) show_primary_view(true);
+
+  // The editor font was resolved in the constructor, before this view existed.
+  // Re-applying now is what gets the user's chosen font and size into it from
+  // the start rather than only after they next change a setting.
+  ApplyAppearanceSettings();
+
   ReloadPrimaryView();
   return true;
 }
@@ -542,6 +577,12 @@ void PlainTextEditorPage::FlushPrimaryView() {
     LOG_W() << "primary view SaveToSource failed";
     return;
   }
+
+  // The view has just told us what the message's canonical form is. A message
+  // it built with CRLF endings has to be remembered as a CRLF document, or
+  // saving it would write back the LF the editor stores internally and break
+  // the signature that was just made over it.
+  if (bytes.contains("\r\n")) is_crlf_ = true;
 
   // Guarded on both sides: this write raises contentsChanged, and without the
   // flag the handler would push the text straight back into the view, which
@@ -580,7 +621,7 @@ void PlainTextEditorPage::ReloadPrimaryView() {
 
   if (primary_view_syncing_) return;
 
-  const auto bytes = ui_->textPage->toPlainText().toUtf8();
+  const auto bytes = DocumentBytes();
 
   primary_view_syncing_ = true;
   QMetaObject::invokeMethod(primary_view_.data(), "LoadFromSource",
@@ -689,6 +730,17 @@ void PlainTextEditorPage::ApplyAppearanceSettings() {
   ui_->textPage->setTabStopDistance(
       QFontMetricsF(editor_font).horizontalAdvance(QLatin1Char(' ')) *
       appearance.text_editor_tab_size);
+
+  // A mounted view edits the same document in the same tab, so the editor
+  // font the user chose has to reach it too -- otherwise the setting appears
+  // to do nothing for exactly the tabs that have a view. Only the view knows
+  // which of its widgets are editors rather than chrome, so it is asked
+  // rather than restyled from here.
+  if (!primary_view_.isNull() && primary_view_->metaObject()->indexOfMethod(
+                                     "ApplyEditorFont(QFont)") >= 0) {
+    QMetaObject::invokeMethod(primary_view_.data(), "ApplyEditorFont",
+                              Qt::DirectConnection, Q_ARG(QFont, editor_font));
+  }
 }
 
 void PlainTextEditorPage::SetTextDirectionMode(TextDirectionMode mode) {
