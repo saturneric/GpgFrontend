@@ -231,6 +231,66 @@ auto GF_SDK_EXPORT GFGpgCurrentGpgContextChannel() -> int;
 auto GF_SDK_EXPORT GFGpgFreeResult(void* r) -> void;
 
 /**
+ * @brief Whether a key can be used, and how well its identity matches.
+ *
+ * Two independent axes, deliberately kept apart. @ref usability says whether
+ * the key is usable at all; it says nothing about whether the key belongs to
+ * the person claimed. A perfectly usable key held by the wrong party is the
+ * case that matters most, and collapsing the two into one verdict hides it.
+ *
+ * Allocated by GFGpgFindKeysByEmail and released, as a whole array, by
+ * GFGpgFreeKeyBriefs. Never free an individual brief or any of its strings.
+ */
+struct GFGpgKeyBrief {
+  char* fingerprint;
+  char* key_id;
+  char* uid;            ///< primary UID, "Name (Comment) <email>"
+  char* matched_email;  ///< the UID email that matched the query
+
+  int64_t expires_at;  ///< seconds since the epoch; 0 means never
+
+  /// Mirrors GpgFrontend::GpgKeyStatus:
+  /// 0 ok, 1 expiring soon, 2 expired, 3 revoked, 4 disabled.
+  int usability;
+
+  int can_encrypt;
+  int can_sign;
+
+  /// Whether the matched UID is the key's primary one, and whether that UID
+  /// has itself been revoked. Identity-binding facts, not usability ones.
+  int matched_uid_is_primary;
+  int matched_uid_revoked;
+};
+
+/**
+ * @brief Finds keys carrying a UID whose e-mail address matches @p email.
+ *
+ * Every UID is considered, not just the primary one: a correspondent
+ * legitimately has several addresses on one key, and matching only the primary
+ * would report "no key" for a key that is right there.
+ *
+ * @param channel    GPG context channel index.
+ * @param email      address to match, compared case-insensitively.
+ * @param[out] keys  Set to a newly allocated array of @p count briefs, or
+ *                   nullptr when nothing matched. Release the whole array with
+ *                   GFGpgFreeKeyBriefs.
+ * @param[out] count Number of briefs written.
+ * @return 0 on success (including no match), -1 on a missing argument.
+ */
+auto GF_SDK_EXPORT GFGpgFindKeysByEmail(int channel, const char* email,
+                                        GFGpgKeyBrief** keys, int* count)
+    -> int;
+
+/**
+ * @brief Releases an array returned by GFGpgFindKeysByEmail.
+ *
+ * Frees every string each brief owns and then the array itself, so the nested
+ * allocation layout stays an implementation detail of the SDK. No-op when
+ * @p keys is nullptr. Pass the count that GFGpgFindKeysByEmail returned.
+ */
+auto GF_SDK_EXPORT GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void;
+
+/**
  * @brief Analyses a GPGME encryption result and produces a human-readable
  *        report.
  *
@@ -367,5 +427,69 @@ auto GF_SDK_EXPORT GFAnalyseVerifyResultByCapsule(int channel,
                                                   char* capsule_id,
                                                   const char** analyse,
                                                   const char** cards) -> int;
+
+/**
+ * @brief As GFAnalyseVerifyResultByCapsule, plus the structured result as JSON.
+ *
+ * The card and report forms are shaped for display; this one is shaped for
+ * decisions. A module that has to reason about individual signatures or
+ * recipients -- their fingerprints, algorithms, timestamps, validity, and
+ * whether the key was found at all -- cannot get there by re-reading prose.
+ *
+ * All three out-params are caller-owned; free each with GFFreeMemory. @p cards
+ * and @p info_json may be nullptr to skip producing them.
+ *
+ * The capsule is CONSUMED by this call, exactly as by the non-Info variants,
+ * so a result can be analysed once: ask for everything you need here rather
+ * than calling both forms.
+ *
+ * JSON shape (fields absent when the operation does not produce them):
+ * @code
+ * {
+ *   "status": 1, "operation": "Verify", "engine": "GPG v2.4.1",
+ *   "description": "...", "details": ["..."], "inputHash": "...",
+ *   "signatures": [ { "fingerprint": "...", "keyId": "...", "uid": "...",
+ *                     "pubkeyAlgo": "...", "hashAlgo": "...",
+ *                     "signTime": "ISO-8601", "validity": 0,
+ *                     "warnings": ["..."] } ],
+ *   "newSignatures": [ { ..., "sigMode": "Detach" } ],
+ *   "invalidSigners": [ { "fingerprint": "...", "error": "..." } ],
+ *   "recipients": [ { "fingerprint": "...", "keyId": "...", "uid": "...",
+ *                     "pubkeyAlgo": "...", "keyFound": true,
+ *                     "algoIsPrimaryKey": false } ],
+ *   "filename": "...", "mimeEncoded": false,
+ *   "messageIntegrityProtected": true, "symmetricAlgo": "AES256"
+ * }
+ * @endcode
+ *
+ * "validity" mirrors GpgFrontend::GpgSigValidity.
+ */
+auto GF_SDK_EXPORT GFAnalyseVerifyResultInfoByCapsule(
+    int channel, gpgme_error_t err, char* capsule_id, const char** analyse,
+    const char** cards, const char** info_json) -> int;
+
+/**
+ * @brief Structured counterpart of GFAnalyseSignResultByCapsule.
+ * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
+ */
+auto GF_SDK_EXPORT GFAnalyseSignResultInfoByCapsule(
+    int channel, gpgme_error_t err, char* capsule_id, const char** analyse,
+    const char** cards, const char** info_json) -> int;
+
+/**
+ * @brief Structured counterpart of GFAnalyseEncryptResultByCapsule.
+ * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
+ */
+auto GF_SDK_EXPORT GFAnalyseEncryptResultInfoByCapsule(
+    int channel, gpgme_error_t err, char* capsule_id, const char** analyse,
+    const char** cards, const char** info_json) -> int;
+
+/**
+ * @brief Structured counterpart of GFAnalyseDecryptResultByCapsule.
+ * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
+ */
+auto GF_SDK_EXPORT GFAnalyseDecryptResultInfoByCapsule(
+    int channel, gpgme_error_t err, char* capsule_id, const char** analyse,
+    const char** cards, const char** info_json) -> int;
 
 }  // extern "C"
