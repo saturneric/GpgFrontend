@@ -29,6 +29,8 @@
 #include "GFSDKBasic.h"
 
 #include "core/function/CacheManager.h"
+#include "core/model/GFBuffer.h"
+#include "core/profile/ProfileSecureKeyManager.h"
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/function/gpg/GpgCommandExecutor.h"
 #include "core/utils/BuildInfoUtils.h"
@@ -170,4 +172,62 @@ auto GF_SDK_EXPORT GFDurableCacheSave(const char* key, const char* value)
       "__module_" + GFUnStrDup(key),
       QJsonDocument::fromJson(GFUnStrDup(value).toUtf8()));
   return 0;
+}
+
+auto GF_SDK_EXPORT GFSecDurableCacheGet(const char* key) -> char* {
+  auto buffer = GpgFrontend::CacheManager::GetInstance().LoadSecDurableCache(
+      "__module_" + GFUnStrDup(key));
+  if (buffer.Empty()) return nullptr;
+
+  // GFModuleSecStrDup copies into zeroizing memory; the GFBuffer wipes itself
+  // when it leaves scope, so the secret never sits in an ordinary allocation.
+  return GFModuleSecStrDup(
+      QString::fromUtf8(buffer.Data(), static_cast<int>(buffer.Size()))
+          .toUtf8()
+          .constData());
+}
+
+auto GF_SDK_EXPORT GFSecDurableCacheSave(const char* key, const char* value)
+    -> int {
+  if (key == nullptr || value == nullptr) return -1;
+
+  auto secret = GFUnStrDup(value);
+  auto utf8 = secret.toUtf8();
+  GpgFrontend::GFBuffer buffer(utf8);
+
+  // flush=true: a credential the user just typed has to survive a crash that
+  // happens before the periodic flush would have run.
+  GpgFrontend::CacheManager::GetInstance().SaveSecDurableCache(
+      "__module_" + GFUnStrDup(key), buffer, true);
+
+  utf8.fill('\0');
+  secret.fill(QChar('\0'));
+  return 0;
+}
+
+auto GF_SDK_EXPORT GFSecDurableCacheRemove(const char* key) -> int {
+  if (key == nullptr) return -1;
+  GpgFrontend::CacheManager::GetInstance().ResetDurableCache(
+      "__module_" + GFUnStrDup(key));
+  return 0;
+}
+
+auto GF_SDK_EXPORT GFAppKeyProtectionLevel() -> int {
+  // The live value is published on the application object rather than read back
+  // from the key manager: the manager answers about a key it is holding, and
+  // this has to be answerable at any time, including before one is loaded.
+  if (qApp == nullptr) return -1;
+
+  const auto property = qApp->property("GFAppKeyProtection");
+  if (!property.isValid()) return -1;
+
+  switch (GpgFrontend::AppKeyProtectionFromString(property.toString())) {
+    case GpgFrontend::AppKeyProtection::kNONE:
+      return 0;
+    case GpgFrontend::AppKeyProtection::kKEYCHAIN:
+      return 1;
+    case GpgFrontend::AppKeyProtection::kPIN:
+      return 2;
+  }
+  return -1;
 }

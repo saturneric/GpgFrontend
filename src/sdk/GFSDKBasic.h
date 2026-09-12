@@ -212,6 +212,54 @@ auto GF_SDK_EXPORT GFDurableCacheSave(const char* key, const char* value)
     -> int;
 
 /**
+ * @brief Retrieves a secret from the durable cache's secure tier.
+ *
+ * Same encrypted-at-rest store as GFDurableCacheGet and namespaced the same
+ * way, but the value travels through zeroizing memory on both sides, so a
+ * password does not linger in a freed heap block. Use this, never
+ * GFDurableCacheGet, for anything the user would call a secret.
+ *
+ * @param key Cache key.
+ * @return Caller-owned string, or nullptr if not found.
+ *         Free with GFSecFreeMemory, NOT GFFreeMemory.
+ */
+auto GF_SDK_EXPORT GFSecDurableCacheGet(const char* key) -> char*;
+
+/**
+ * @brief Stores a secret in the durable cache's secure tier.
+ *
+ * Written through immediately rather than waiting for the periodic flush: a
+ * credential the user just entered must survive a crash before the next tick.
+ *
+ * @param key   Cache key.
+ * @param value Secret to store. Its bytes are wiped once copied.
+ * @return 0 on success.
+ */
+auto GF_SDK_EXPORT GFSecDurableCacheSave(const char* key, const char* value)
+    -> int;
+
+/**
+ * @brief Removes a secret from the durable cache's secure tier.
+ *
+ * @param key Cache key.
+ * @return 0 on success, including when nothing was stored under @p key.
+ */
+auto GF_SDK_EXPORT GFSecDurableCacheRemove(const char* key) -> int;
+
+/**
+ * @brief How the application secure key itself is protected.
+ *
+ * Everything in the durable cache is encrypted under that key, so this is the
+ * ceiling on how well a module can protect anything it stores. A module that
+ * persists a credential is expected to consult this and decline to do so
+ * silently when the answer is 0.
+ *
+ * @return 0 = unprotected (key file is plaintext), 1 = system keychain,
+ *         2 = user PIN, -1 = unknown.
+ */
+auto GF_SDK_EXPORT GFAppKeyProtectionLevel() -> int;
+
+/**
  * @brief Retrieves a value from the in-memory cache.
  * @param key Cache key.
  * @return Caller-owned string, or nullptr if the key is not present.
