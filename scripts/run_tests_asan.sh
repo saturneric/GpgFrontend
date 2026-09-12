@@ -83,6 +83,7 @@ if [[ ! -f "$BUILD_DIR/CMakeCache.txt" ]]; then
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DGPGFRONTEND_LINK_GPGME_INTO_CORE=On \
     -DGPGFRONTEND_BUILD_MODULES=ON \
+    -DGPGFRONTEND_MODULES_BUILD_TESTS=ON \
     -DCMAKE_C_FLAGS="$SAN_FLAGS" \
     -DCMAKE_CXX_FLAGS="$SAN_FLAGS" \
     -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined" \
@@ -95,6 +96,31 @@ fi
 echo "==> Building gpgfrontend ($BUILD_DIR, -j$JOBS) — this is a full sanitized rebuild"
 cmake --build "$BUILD_DIR" --target gpgfrontend -j"$JOBS" \
   || { echo "error: build failed" >&2; exit 1; }
+
+# The modules' own tests, under the same sanitizer. They exercise the MIME
+# parser and the transport workers on untrusted input, which is precisely the
+# code where a read past the end of a buffer is both most likely and least
+# visible -- and until now nothing sanitized ran over them at all.
+echo "==> Building module tests ($BUILD_DIR)"
+cmake --build "$BUILD_DIR" --target gf_mod_email_test gf_mod_email_net_test \
+  gf_mod_email_crypto_test -j"$JOBS" \
+  || { echo "error: module test build failed" >&2; exit 1; }
+
+MODULE_TEST_RC=0
+for t in gf_mod_email_test gf_mod_email_net_test gf_mod_email_crypto_test; do
+  bin="$BUILD_DIR/artifacts/modules/$t"
+  if [[ ! -x "$bin" ]]; then
+    echo "error: expected sanitized module test not built: $t" >&2
+    MODULE_TEST_RC=1
+    continue
+  fi
+  echo "==> Running $t under ASan/UBSan"
+  QT_QPA_PLATFORM=offscreen "$bin" || MODULE_TEST_RC=1
+done
+[[ "$MODULE_TEST_RC" -eq 0 ]] || {
+  echo "error: sanitized module tests failed" >&2
+  exit 1
+}
 
 BIN="$BUILD_DIR/artifacts/gpgfrontend"
 if [[ ! -x "$BIN" ]]; then

@@ -187,3 +187,23 @@ jobs:
             --filter '*Stress*/RPGP' \
             --stress-iter 200 \
             --log-level warn
+
+      # A short, bounded fuzz of the MIME parser. The harness has existed for a
+      # while and ran nowhere, which made it coverage on paper only. Sixty
+      # seconds will not find anything deep, but it does catch a parser that
+      # has started crashing or allocating without bound, and it keeps the
+      # harness building. Skipped rather than failed where clang is absent, so
+      # this cannot become the reason a pipeline goes red on an unrelated
+      # change.
+      - name: Fuzz Smoke (MIME parser)
+        timeout-minutes: 20
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          if ! command -v clang++ >/dev/null 2>&1; then
+            echo "clang++ not available on this runner; skipping fuzz smoke"
+            exit 0
+          fi
+          timeout 900 scripts/run_fuzz_smoke.sh \
+            --seconds 60 \
+            --build-dir ${{github.workspace}}/build-fuzz
