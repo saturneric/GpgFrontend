@@ -201,7 +201,10 @@ auto ProfileLoader::acquire_lock() -> bool {
   }
 
   if (!delegate_->ConfirmForceUnlock(result)) {
-    delegate_->Report({ProfileLoadFailure::kALREADY_OPEN, root});
+    // Cancelled, not newly failed: the refusal that was just read said all of
+    // this, and reporting it as a fresh problem would put the same sentence in
+    // front of the user a second time for having agreed with it.
+    delegate_->Report({ProfileLoadFailure::kCANCELLED, root});
     return false;
   }
 

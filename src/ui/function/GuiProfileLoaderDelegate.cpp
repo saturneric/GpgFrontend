@@ -155,8 +155,8 @@ auto GuiProfileLoaderDelegate::AskAppKeyPin(const AppKeyPinRequest& request)
   return {AppKeyPinAnswer::Action::kUsePin, dialog.Pin()};
 }
 
-auto GuiProfileLoaderDelegate::ConfirmForceUnlock(const ProfileLockResult& held)
-    -> bool {
+auto BuildProfileLockConflictTexts(const ProfileLockResult& held)
+    -> ProfileLockConflictTexts {
   const auto held_by =
       held.pid != 0
           ? QObject::tr("It is open in process %1 on %2.")
@@ -165,32 +165,37 @@ auto GuiProfileLoaderDelegate::ConfirmForceUnlock(const ProfileLockResult& held)
                                          : held.host)
           : QObject::tr("Another process has it open.");
 
-  QMessageBox box(
-      QMessageBox::Warning, QObject::tr("Profile Is Already Open"),
+  return {
+      QObject::tr("Profile Is Already Open"),
       QObject::tr("This profile is already open in another window.") + "\n\n" +
           held_by + "\n\n" +
           QObject::tr("Opening it twice would corrupt its stored data.") +
-          "\n\n" + QObject::tr("Profile: %1").arg(held.path));
+          "\n\n" + QObject::tr("Profile: %1").arg(held.path),
+      // What forcing the lock actually risks. This used to be a second dialog
+      // behind the Force Unlock button; it says the same thing here, where it
+      // is read before the choice rather than after it, and where neither
+      // answer costs a second box to dismiss.
+      QObject::tr("Only do this if you are certain no other GpgFrontend "
+                  "window has this profile open.") +
+          "\n\n" +
+          QObject::tr("If one does, both copies will corrupt the "
+                      "profile's stored data."),
+  };
+}
+
+auto GuiProfileLoaderDelegate::ConfirmForceUnlock(const ProfileLockResult& held)
+    -> bool {
+  const auto texts = BuildProfileLockConflictTexts(held);
+
+  QMessageBox box(QMessageBox::Warning, texts.title, texts.text);
+  box.setInformativeText(texts.informative);
   auto* quit = box.addButton(QObject::tr("Quit"), QMessageBox::AcceptRole);
   auto* force =
       box.addButton(QObject::tr("Force Unlock"), QMessageBox::DestructiveRole);
   box.setDefaultButton(quit);
   box.exec();
 
-  if (box.clickedButton() != force) return false;
-
-  // Deliberately a second, separate confirmation: if the holder is in fact
-  // alive, this reintroduces exactly the concurrent-write window the lock
-  // exists to prevent.
-  return QMessageBox::warning(
-             nullptr, QObject::tr("Force Unlock"),
-             QObject::tr("Only do this if you are certain no other GpgFrontend "
-                         "window has this profile open.") +
-                 "\n\n" +
-                 QObject::tr("If one does, both copies will corrupt the "
-                             "profile's stored data."),
-             QMessageBox::Cancel | QMessageBox::Yes,
-             QMessageBox::Cancel) == QMessageBox::Yes;
+  return box.clickedButton() == force;
 }
 
 auto GuiProfileLoaderDelegate::ConfirmKeyReset(ProfileKeyResetReason reason)

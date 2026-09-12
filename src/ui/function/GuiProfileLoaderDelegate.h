@@ -35,6 +35,28 @@
 namespace GpgFrontend::UI {
 
 /**
+ * @brief What to say when another process already holds the profile.
+ *
+ * Split out of the dialog so the wording can be asserted in a test: this is the
+ * one and only warning the user gets before overriding a lock, and everything
+ * it has to say has to be in it.
+ */
+struct GF_UI_EXPORT ProfileLockConflictTexts {
+  QString title;        ///< window title
+  QString text;         ///< what is wrong, and which profile
+  QString informative;  ///< what forcing it past this costs
+};
+
+/**
+ * @brief Build the one prompt shown for a profile held by another process.
+ *
+ * @param held the refused lock, with whatever it knows about its holder
+ * @return the strings for that prompt
+ */
+auto GF_UI_EXPORT BuildProfileLockConflictTexts(const ProfileLockResult &held)
+    -> ProfileLockConflictTexts;
+
+/**
  * @brief The profile loader's questions, asked with dialogs.
  *
  * Every decision this makes is the loader's; everything here is presentation.
