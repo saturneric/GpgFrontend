@@ -29,6 +29,7 @@
 #include "ui/function/KeyDatabaseRefresh.h"
 
 #include "core/function/openpgp/AbstractKeyRepository.h"
+#include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/GpgUtils.h"
@@ -65,6 +66,15 @@ void InstallKeyDatabaseRefreshHandler() {
         QObject::connect(refresh_task, &Thread::Task::SignalTaskEnd,
                          UISignalStation::GetInstance(),
                          &UISignalStation::SignalKeyDatabaseRefreshDone);
+
+        // Modules cannot reach UISignalStation, and some of them cache answers
+        // that depend on what is in the keyring -- a verification that said
+        // "key missing" stops being true the moment the key is imported. Give
+        // them the same notification the UI gets.
+        QObject::connect(refresh_task, &Thread::Task::SignalTaskEnd,
+                         UISignalStation::GetInstance(), []() -> void {
+                           Module::TriggerEvent("KEY_DATABASE_REFRESH_DONE");
+                         });
 
         // post the task to the default task runner
         LOG_D() << "sending key database refresh task to gpg task runner...";
