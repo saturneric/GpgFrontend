@@ -128,7 +128,11 @@ jobs:
           # -p auto shards the phase across processes, each in its own
           # throwaway HOME. It self-limits: on a 2-core runner it resolves to 1,
           # i.e. exactly the previous behaviour.
+          # --require-modules: without it, a tree configured without
+          # GPGFRONTEND_MODULES_BUILD_TESTS reports green having run no module
+          # tests at all, which is indistinguishable from passing.
           timeout 900 scripts/run_tests.sh --no-build --unit-only -p auto \
+            --require-modules \
             --build-dir ${{github.workspace}}/build
 
       - name: Run Stress Tests

@@ -32,6 +32,10 @@
 #                          (*GenerateAllDeclared*; sets GF_RUN_ALGO_COVERAGE=1)
 #       --rust-only        Run only the Rust (cargo test) phase
 #       --modules-only     Run only the modules' own gtest binaries
+#       --require-modules  Treat missing module test binaries as a FAILURE
+#                          rather than a skip. For CI: without it a tree
+#                          configured without GPGFRONTEND_MODULES_BUILD_TESTS
+#                          reports green having run nothing.
 #       --rust-slow-only   Run only the ignored/slow Rust tests
 #       --no-rust          Skip the Rust phase
 #   -i, --stress-iter N    Iterations per stress test    (default: 1000)
@@ -81,6 +85,7 @@ LOG_LEVEL="warn"
 DO_BUILD="auto"   # auto | yes | no
 MODE="all"        # all | unit | stress | coverage | custom | rust
 RUN_RUST="auto"   # auto | no  (auto = include rust in all/unit modes)
+REQUIRE_MODULES="no"  # yes = missing module test binaries is a failure
 CUSTOM_FILTER=""
 JOBS="$(nproc 2>/dev/null || echo 4)"
 PARALLEL=1                                     # 1 = serial; N or "auto"
@@ -108,6 +113,7 @@ while [[ $# -gt 0 ]]; do
     --modules-only)   MODE="modules" ;;
     --rust-slow-only) MODE="rust-slow" ;;
     --no-rust)        RUN_RUST="no" ;;
+    --require-modules) REQUIRE_MODULES="yes" ;;
     -i|--stress-iter) STRESS_ITER="${2:?missing value for $1}"; shift ;;
     -f|--filter)      MODE="custom"; CUSTOM_FILTER="${2:?missing value for $1}"; shift ;;
     -l|--log-level)   LOG_LEVEL="${2:?missing value for $1}"; shift ;;
@@ -642,6 +648,8 @@ run_modules_phase() {
   echo "  Runner: module gtest binaries (${dir})"
   echo "============================================================"
 
+  : > "$log"
+
   local -a binaries=()
   if [[ -d "$dir" ]]; then
     while IFS= read -r -d '' b; do binaries+=("$b"); done \
@@ -649,12 +657,37 @@ run_modules_phase() {
   fi
 
   if [[ ${#binaries[@]} -eq 0 ]]; then
+    if [[ "$REQUIRE_MODULES" == "yes" ]]; then
+      echo "error: no module test binaries found in ${dir}" \
+        "(configure with -DGPGFRONTEND_MODULES_BUILD_TESTS=ON)" \
+        | tee -a "$log" >&2
+      return 1
+    fi
     echo "warning: no module test binaries found; skipping modules phase" \
-      "(configure with -DGPGFRONTEND_MODULES_BUILD_TESTS=ON)" | tee "$log" >&2
+      "(configure with -DGPGFRONTEND_MODULES_BUILD_TESTS=ON)" | tee -a "$log" >&2
     return 0
   fi
 
-  : > "$log"
+  # Named rather than merely counted. A glob that finds *something* cannot tell
+  # a full run from one where a target silently stopped being built -- which is
+  # exactly how a whole suite disappears without anyone noticing.
+  if [[ "$REQUIRE_MODULES" == "yes" ]]; then
+    local -a expected=(
+      gf_mod_email_test
+      gf_mod_email_net_test
+      gf_mod_email_crypto_test
+    )
+    local missing=0
+    for name in "${expected[@]}"; do
+      if [[ ! -x "${dir}/${name}" ]]; then
+        echo "error: expected module test binary not built: ${name}" \
+          | tee -a "$log" >&2
+        missing=1
+      fi
+    done
+    [[ "$missing" -eq 0 ]] || return 1
+  fi
+
   local rc=0
   for b in "${binaries[@]}"; do
     echo "--- $(basename "$b") ---" | tee -a "$log"
