@@ -57,4 +57,9 @@ target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_core)
 # already links gf_core, so this is purely additive
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_ui)
 
+# the sdk tests cover the exported C ABI's string-ownership rules, which modules
+# depend on and cannot check for themselves; gf_sdk already links gf_core and
+# gf_ui, so this is purely additive
+target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_sdk)
+
 add_test(AllTestsInGpgFrontend ${LIBRARY_TARGET})
