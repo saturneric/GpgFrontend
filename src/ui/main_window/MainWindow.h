@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "core/function/InstantMessageOperator.h"
 #include "core/module/Event.h"
 #include "core/typedef/CoreTypedef.h"
@@ -80,6 +82,20 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
     static constexpr OperationType kDecryptAndVerify = 1 << 5;
     static constexpr OperationType kSymmetricEncrypt = 1 << 6;
   };
+
+  /**
+   * @brief Which crypto operations a tab of this type can actually perform.
+   *
+   * "text" gets everything. A module tab gets exactly the operations whose
+   * EDIT_TAB_TYPE_<TYPE>_OP_<OP> event some module is listening for, and never
+   * symmetric encryption, which has no module event to route to at all.
+   *
+   * @p is_listening is injected so the rule can be exercised without a module
+   * host behind it.
+   */
+  static auto OperationsMaskForTabType(
+      const QString& type,
+      const std::function<bool(const QString&)>& is_listening) -> unsigned int;
 
   /**
    * @brief
@@ -437,6 +453,23 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   void slot_switch_menu_control_mode(int);
 
   /**
+   * @brief Runs the operation a mounted tab view asked for.
+   *
+   * Routed through the ordinary SlotGeneral* slots rather than reimplemented,
+   * so an operation reached from inside a message behaves exactly like the
+   * same one reached from the menu bar.
+   */
+  void slot_page_requested_crypto_operation(const QString& operation);
+
+  /// Re-evaluates the crypto menu after the open document changed kind.
+  void slot_page_crypto_operations_changed();
+
+  /// Which operations the CURRENT document admits of, as a menu mask.
+  /// All of them when no view has an opinion, so silence never disables
+  /// anything.
+  [[nodiscard]] auto current_page_state_mask() const -> unsigned int;
+
+  /**
    * @details Point the View menu's direction submenu at the tab it applies to.
    *
    * Fills the placeholder with the current page's own three mode actions rather
@@ -728,6 +761,9 @@ class GF_UI_EXPORT MainWindow : public GeneralMainWindow {
   bool show_wizard_on_startup_ = false;    ///<
   bool wizard_checked_ = false;            ///<
   unsigned int operations_menu_mask_ = ~0;
+  /// What the CURRENT TAB's type can do, kept apart from the mask above
+  /// because that one is overwritten wholesale whenever the key list changes.
+  unsigned int tab_type_menu_mask_ = ~0;
 
   /**
    * @details Create actions for the main-menu and the context-menu of the

@@ -30,6 +30,7 @@
 #include "core/GFConstants.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
+#include "core/module/ModuleManager.h"
 #include "core/profile/ProfileLock.h"
 #include "core/profile/ProfilePackage.h"
 #include "core/profile/ProfileSession.h"
@@ -375,7 +376,6 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   print_act_->setDisabled(disable);
   save_act_->setDisabled(disable);
   save_as_act_->setDisabled(disable);
-  quote_act_->setDisabled(disable);
   cut_act_->setDisabled(disable);
   copy_act_->setDisabled(disable);
   paste_act_->setDisabled(disable);
@@ -390,12 +390,16 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   decrypt_verify_act_->setDisabled(disable);
   sym_encrypt_act_->setDisabled(disable);
 
+  // Text surgery on a structured document corrupts it: quoting a message
+  // prefixes "> " to its headers as readily as to its body.
+  const bool plain_text = edit_->CurPageIsPlainText();
+  quote_act_->setDisabled(disable || !plain_text);
+  clean_double_line_breaks_act_->setDisabled(disable || !plain_text);
+
   redo_act_->setDisabled(disable);
   undo_act_->setDisabled(disable);
   zoom_out_act_->setDisabled(disable);
   zoom_in_act_->setDisabled(disable);
-  clean_double_line_breaks_act_->setDisabled(disable);
-  quote_act_->setDisabled(disable);
   import_key_from_edit_act_->setDisabled(disable);
 
   im_encrypt_act_->setDisabled(disable);
@@ -404,10 +408,35 @@ void MainWindow::slot_switch_menu_control_mode(int index) {
   sync_text_direction_action();
 
   if (edit_->CurFilePage() != nullptr) {
+    // A file page describes its own capabilities completely, through the mask
+    // it is about to emit. Leaving a document tab's restriction latched here
+    // would subtract from that -- an encrypted message's "decrypt only" would
+    // follow the user onto the file browser.
+    tab_type_menu_mask_ = ~0;
+
     auto* file_page = edit_->CurFilePage();
     emit file_page->SignalCurrentTabChanged();
   } else {
+    // A file page sets this from its own selection, and clears it outright
+    // when nothing is selected. Leaving that value latched would carry a file
+    // tab's "nothing selected" over onto a document tab, where it means
+    // nothing, and disable the whole crypto menu.
     operations_menu_mask_ = ~0;
+
+    auto* page = edit_->CurPage();
+    const auto type =
+        page != nullptr ? page->property("type").toString() : QString("text");
+
+    // Kept out of operations_menu_mask_ on purpose: that member is overwritten
+    // wholesale every time the key list changes, which would silently lift the
+    // restriction this tab's type imposes.
+    tab_type_menu_mask_ = OperationsMaskForTabType(
+        type, [](const QString& id) { return Module::IsEventListening(id); });
+
+    // ...and narrowed again by what the open document actually admits of.
+    // There is nothing to decrypt in a message that is not encrypted.
+    tab_type_menu_mask_ &= current_page_state_mask();
+
     slot_update_operations_menu_by_checked_keys(operations_menu_mask_);
   }
 }
@@ -448,7 +477,9 @@ SettingsDialog* MainWindow::open_settings_dialog() {
 void MainWindow::slot_open_settings_dialog() { open_settings_dialog(); }
 
 void MainWindow::slot_clean_double_line_breaks() {
-  if (edit_->TabCount() == 0 || edit_->CurPageTextEdit() == nullptr) {
+  // Collapsing blank lines in a structured document destroys the empty line
+  // that separates its headers from its body, and with it any signature.
+  if (edit_->TabCount() == 0 || !edit_->CurPageIsPlainText()) {
     return;
   }
 
@@ -458,6 +489,95 @@ void MainWindow::slot_clean_double_line_breaks() {
 }
 
 void MainWindow::SlotSetRestartNeeded(int mode) { this->restart_mode_ = mode; }
+
+namespace {
+
+struct CryptoOperation {
+  const char* name;    ///< as a tab view names it
+  const char* suffix;  ///< as the module event id spells it
+  unsigned int bit;    ///< as the menu mask holds it
+};
+
+/// The six operations the host routes per tab type, in one place so a view's
+/// name, a module's event id and a menu bit can never drift apart.
+auto CryptoOperationTable() -> const std::array<CryptoOperation, 6>& {
+  static const std::array<CryptoOperation, 6> kOperations{{
+      {"encrypt", "ENCRYPT", MainWindow::OperationMenu::kEncrypt},
+      {"decrypt", "DECRYPT", MainWindow::OperationMenu::kDecrypt},
+      {"sign", "SIGN", MainWindow::OperationMenu::kSign},
+      {"verify", "VERIFY", MainWindow::OperationMenu::kVerify},
+      {"encrypt_sign", "ENCRYPT_SIGN",
+       MainWindow::OperationMenu::kEncryptAndSign},
+      {"decrypt_verify", "DECRYPT_VERIFY",
+       MainWindow::OperationMenu::kDecryptAndVerify},
+  }};
+  return kOperations;
+}
+
+/// The mask for a set of operation names, ignoring any name we do not know.
+auto MaskFromOperationNames(const QStringList& names) -> unsigned int {
+  unsigned int mask = MainWindow::OperationMenu::kNone;
+  for (const auto& operation : CryptoOperationTable()) {
+    if (names.contains(QLatin1String(operation.name))) mask |= operation.bit;
+  }
+  return mask;
+}
+
+}  // namespace
+
+auto MainWindow::OperationsMaskForTabType(
+    const QString& type,
+    const std::function<bool(const QString&)>& is_listening) -> unsigned int {
+  // The ordinary editor has always been able to do everything; nothing about
+  // a plain text document restricts it.
+  if (type == "text") return ~0U;
+
+  // A module tab can do exactly what its module registered a handler for.
+  // Offering the rest and then apologising afterwards teaches the user to
+  // ignore the menu; this makes the menu the truth.
+  unsigned int mask = OperationMenu::kNone;
+  for (const auto& operation : CryptoOperationTable()) {
+    const auto event_id =
+        QString("EDIT_TAB_TYPE_%1_OP_%2").arg(type.toUpper(), operation.suffix);
+    if (is_listening(event_id)) mask |= operation.bit;
+  }
+
+  // Never symmetric encryption: there is no module event to route it to, so
+  // it could only ever be performed against the raw document.
+  return mask & ~static_cast<unsigned int>(OperationMenu::kSymmetricEncrypt);
+}
+
+void MainWindow::slot_page_crypto_operations_changed() {
+  // The open document became a different kind of thing -- decrypted, signed,
+  // or had its signature taken off -- so the menu has to be worked out again
+  // rather than describing the message as it was when the tab was opened.
+  slot_switch_menu_control_mode(edit_->TabWidget()->currentIndex());
+}
+
+auto MainWindow::current_page_state_mask() const -> unsigned int {
+  bool has_opinion = false;
+  const auto operations = edit_->CurPageCryptoOperations(has_opinion);
+
+  // A tab whose view does not answer -- an ordinary text tab, or a module
+  // that does not implement this -- is not restricted by state at all. Only a
+  // view that DID answer can narrow the menu, so silence never disables
+  // anything.
+  if (!has_opinion) return ~0U;
+
+  return MaskFromOperationNames(operations);
+}
+
+void MainWindow::slot_page_requested_crypto_operation(
+    const QString& operation) {
+  if (operation == "encrypt") return SlotGeneralEncrypt(false);
+  if (operation == "decrypt") return SlotGeneralDecrypt(false);
+  if (operation == "sign") return SlotGeneralSign(false);
+  if (operation == "verify") return SlotGeneralVerify(false);
+  if (operation == "encrypt_sign") return SlotGeneralEncryptSign(false);
+  if (operation == "decrypt_verify") return SlotGeneralDecryptVerify(false);
+
+  LOG_W() << "a tab view asked for an unknown operation:" << operation;
+}
 
 void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   OperationMenu::OperationType opera_type = mask;
@@ -492,14 +612,17 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
   if ((opera_type & OperationMenu::kDecryptAndVerify) != 0U) {
     decrypt_verify_act_->setDisabled(false);
   }
-  if ((opera_type & OperationMenu::kSymmetricEncrypt) != 0U) {
+  // Symmetric encryption replaces the editor's text with an armored blob, so
+  // it only means anything on a tab whose document IS that text.
+  if (edit_->CurPageIsPlainText() &&
+      (opera_type & OperationMenu::kSymmetricEncrypt) != 0U) {
     sym_encrypt_act_->setDisabled(false);
   }
 
   // Instant Messaging encrypt wraps a public-key OR symmetric encryption, so it
   // is available whenever either of those is — but only for a text tab, since
   // it turns editor text into a chat token (it does nothing on a file tab).
-  if (edit_->CurPageTextEdit() != nullptr &&
+  if (edit_->CurPageIsPlainText() &&
       (opera_type &
        (OperationMenu::kEncrypt | OperationMenu::kSymmetricEncrypt)) != 0U) {
     im_encrypt_act_->setDisabled(false);
@@ -507,7 +630,7 @@ void MainWindow::slot_update_crypto_operations_menu(unsigned int mask) {
 
   // Instant Messaging encrypt & sign wraps a public-key encrypt-and-sign, so it
   // tracks that operation exactly — again only on a text tab.
-  if (edit_->CurPageTextEdit() != nullptr &&
+  if (edit_->CurPageIsPlainText() &&
       (opera_type & OperationMenu::kEncryptAndSign) != 0U) {
     im_encrypt_sign_act_->setDisabled(false);
   }
@@ -652,7 +775,8 @@ void MainWindow::slot_update_operations_menu_by_checked_keys(
     }
   }
 
-  slot_update_crypto_operations_menu(operations_menu_mask_ & mask & temp);
+  slot_update_crypto_operations_menu(operations_menu_mask_ &
+                                     tab_type_menu_mask_ & mask & temp);
 }
 
 void MainWindow::slot_update_engine_status() {

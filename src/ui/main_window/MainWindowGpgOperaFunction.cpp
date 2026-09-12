@@ -653,6 +653,11 @@ void MainWindow::exec_im_encrypt_helper(bool sign) {
   auto* text_edit = edit_->CurPageTextEdit();
   if (text_edit == nullptr) return;
 
+  // Turning the editor's text into a chat token only means anything when that
+  // text IS the document. The action is greyed out elsewhere, but it also has
+  // a shortcut, so the rule is enforced here too.
+  if (!edit_->CurPageIsPlainText()) return;
+
   // Ask before making the user pick recipients, not after.
   if (!confirm_default_im_book()) return;
 

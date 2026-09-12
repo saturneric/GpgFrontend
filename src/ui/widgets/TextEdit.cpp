@@ -407,6 +407,12 @@ void TextEdit::SlotAppendText2CurTextPage(const QString& text, bool reveal) {
   auto* page = CurTextPage();
   if (page == nullptr) return;
 
+  // A page with a mounted view gets asked first. "Append this" means "put it
+  // in what I am writing", and for a structured document that is somewhere
+  // inside the message -- never a paste into the middle of its raw bytes.
+  // Only a view that declares no opinion falls through to the document.
+  if (page->AppendTextToPrimaryView(text) != 0) return;
+
   auto* edit = page->GetTextPage();
   if (edit == nullptr) return;
 
@@ -456,6 +462,21 @@ auto TextEdit::CurTextPage() const -> PlainTextEditorPage* {
 
 auto TextEdit::CurPageTextEdit() const -> PlainTextEditorPage* {
   return tab_widget_->CurPageTextEdit();
+}
+
+auto TextEdit::CurPageIsPlainText() const -> bool {
+  return tab_widget_->CurPageIsPlainText();
+}
+
+auto TextEdit::CurPageCryptoOperations(bool& has_opinion) const -> QStringList {
+  return tab_widget_->CurPageCryptoOperations(has_opinion);
+}
+
+auto TextEdit::AttachPublicKeyToCurPage(const QByteArray& key,
+                                        const QString& name) -> int {
+  auto* page = CurTextPage();
+  if (page == nullptr) return 0;
+  return page->AttachPublicKeyToPrimaryView(key, name);
 }
 auto TextEdit::CurFilePage() const -> FilePage* {
   return tab_widget_->CurFilePage();

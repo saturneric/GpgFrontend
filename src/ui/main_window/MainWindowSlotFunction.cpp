@@ -111,7 +111,15 @@ void MainWindow::slot_append_selected_keys() {
   }
 
   auto key_text = gf_buffer.ConvertToQByteArray();
-  edit_->SlotAppendText2CurTextPage(key_text);
+
+  // A structured document has a proper place for a key -- an
+  // application/pgp-keys part -- so its view is offered the key first. Only a
+  // tab that has no opinion about where a key goes gets the armor pasted in.
+  const auto name = QString("%1.asc").arg(keys.front()->ID());
+  if (edit_->AttachPublicKeyToCurPage(key_text, name) == 0) {
+    edit_->SlotAppendText2CurTextPage(key_text);
+  }
+
   WipeByteArray(key_text);
 }
 

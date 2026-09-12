@@ -538,6 +538,24 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
             SLOT(slot_primary_view_modified()));
   }
 
+  // A view may offer the crypto operations from inside the message itself --
+  // a Decrypt button on an encrypted mail, say. It only names the operation;
+  // running it stays with the host, so there is exactly one implementation of
+  // each and no way for the two entry points to diverge.
+  if (view->metaObject()->indexOfSignal(
+          "SignalCryptoOperationRequested(QString)") >= 0) {
+    connect(view, SIGNAL(SignalCryptoOperationRequested(QString)), this,
+            SLOT(slot_primary_view_crypto_operation_requested(QString)));
+  }
+
+  // A view may also say which of those operations mean anything for what it
+  // currently holds, and tell us when that changes.
+  if (view->metaObject()->indexOfSignal("SignalCryptoOperationsChanged()") >=
+      0) {
+    connect(view, SIGNAL(SignalCryptoOperationsChanged()), this,
+            SIGNAL(SignalCryptoOperationsChanged()));
+  }
+
   if (!source_view_adopted_) show_primary_view(true);
 
   // The editor font was resolved in the constructor, before this view existed.
@@ -551,6 +569,64 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
 
 void PlainTextEditorPage::slot_flush_before_source_view() {
   FlushPrimaryView();
+}
+
+void PlainTextEditorPage::slot_primary_view_crypto_operation_requested(
+    const QString &operation) {
+  emit SignalCryptoOperationRequested(operation);
+}
+
+auto PlainTextEditorPage::AttachPublicKeyToPrimaryView(const QByteArray &key,
+                                                       const QString &name)
+    -> int {
+  if (primary_view_.isNull()) return 0;
+
+  auto *view = primary_view_.data();
+  if (view->metaObject()->indexOfMethod("AttachPublicKey(QByteArray,QString)") <
+      0) {
+    return 0;
+  }
+
+  int result = 0;
+  QMetaObject::invokeMethod(view, "AttachPublicKey", Qt::DirectConnection,
+                            Q_RETURN_ARG(int, result), Q_ARG(QByteArray, key),
+                            Q_ARG(QString, name));
+  return result;
+}
+
+auto PlainTextEditorPage::PrimaryViewCryptoOperations(bool &has_opinion) const
+    -> QStringList {
+  has_opinion = false;
+  if (primary_view_.isNull()) return {};
+
+  auto *view = primary_view_.data();
+  if (view->metaObject()->indexOfMethod("AvailableCryptoOperations()") < 0) {
+    return {};
+  }
+
+  QStringList operations;
+  if (!QMetaObject::invokeMethod(view, "AvailableCryptoOperations",
+                                 Qt::DirectConnection,
+                                 Q_RETURN_ARG(QStringList, operations))) {
+    return {};
+  }
+
+  has_opinion = true;
+  return operations;
+}
+
+auto PlainTextEditorPage::AppendTextToPrimaryView(const QString &text) -> int {
+  if (primary_view_.isNull()) return 0;
+
+  auto *view = primary_view_.data();
+  if (view->metaObject()->indexOfMethod("AppendBodyText(QString)") < 0) {
+    return 0;
+  }
+
+  int result = 0;
+  QMetaObject::invokeMethod(view, "AppendBodyText", Qt::DirectConnection,
+                            Q_RETURN_ARG(int, result), Q_ARG(QString, text));
+  return result;
 }
 
 void PlainTextEditorPage::slot_primary_view_modified() {

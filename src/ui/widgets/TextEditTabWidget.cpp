@@ -405,6 +405,20 @@ auto TextEditTabWidget::CurPageTextEdit() const -> PlainTextEditorPage* {
   return cur_page;
 }
 
+auto TextEditTabWidget::CurPageIsPlainText() const -> bool {
+  auto* page = CurTextPage();
+  return page != nullptr &&
+         page->property("type").toString() == QLatin1String("text");
+}
+
+auto TextEditTabWidget::CurPageCryptoOperations(bool& has_opinion) const
+    -> QStringList {
+  has_opinion = false;
+  auto* page = CurTextPage();
+  if (page == nullptr) return {};
+  return page->PrimaryViewCryptoOperations(has_opinion);
+}
+
 auto TextEditTabWidget::CurFilePage() const -> FilePage* {
   auto* cur_file_page = qobject_cast<FilePage*>(this->currentWidget());
   return cur_file_page;
@@ -1019,6 +1033,23 @@ auto TextEditTabWidget::create_plain_text_tab(const QString& title,
 
   connect(page, &PlainTextEditorPage::SignalTextDirectionModeChanged, this,
           &TextEditTabWidget::SignalTextDirectionModeChanged);
+
+  connect(page, &PlainTextEditorPage::SignalCryptoOperationRequested, this,
+          [this, page](const QString& operation) {
+            // The menu-bar operations always act on the current tab, so only
+            // the tab the user is actually looking at may drive them. A button
+            // clicked on a background tab would otherwise encrypt or decrypt
+            // whatever happens to be in front.
+            if (currentWidget() != page) return;
+            emit SignalCryptoOperationRequested(operation);
+          });
+
+  connect(page, &PlainTextEditorPage::SignalCryptoOperationsChanged, this,
+          [this, page]() {
+            // Same reason as above: the menu bar describes the tab in front.
+            if (currentWidget() != page) return;
+            emit SignalCryptoOperationsChanged();
+          });
 
   page->GetTextPage()->setFocus();
   return page;

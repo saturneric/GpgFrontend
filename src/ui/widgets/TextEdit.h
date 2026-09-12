@@ -173,6 +173,30 @@ class TextEdit : public QWidget {
   [[nodiscard]] auto CurPageTextEdit() const -> PlainTextEditorPage*;
 
   /**
+   * @brief Whether the current tab is an ordinary plain-text document.
+   *
+   * A module-backed tab (an e-mail, say) IS a PlainTextEditorPage, so
+   * CurPageTextEdit() != nullptr is true for it and cannot answer this. Its
+   * document is a structured format the module owns, and an operation that
+   * rewrites the editor's text wholesale would corrupt it.
+   */
+  [[nodiscard]] auto CurPageIsPlainText() const -> bool;
+
+  /// Which crypto operations the current tab's mounted view says apply now.
+  /// @p has_opinion is false when no view answered.
+  [[nodiscard]] auto CurPageCryptoOperations(bool& has_opinion) const
+      -> QStringList;
+
+  /**
+   * @brief Offers an exported public key to the current tab's mounted view.
+   *
+   * @return 0 when nothing handled it and the caller should fall back to
+   * appending armor, 1 when the view took it, 2 when the view refused
+   */
+  auto AttachPublicKeyToCurPage(const QByteArray& key, const QString& name)
+      -> int;
+
+  /**
    * @brief Returns the current file browser page.
    *
    * This is an alias for the current file page accessor used by parts of the UI

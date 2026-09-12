@@ -116,6 +116,36 @@ class PlainTextEditorPage : public QWidget {
   auto MountPrimaryView(QWidget* view) -> bool;
 
   /**
+   * @brief Offers an exported public key to the mounted view.
+   *
+   * A structured document has somewhere better to put a key than the middle
+   * of its own bytes, so the view is asked first. Returns 0 (not handled) when
+   * there is no view or it declares no such member, which is the caller's
+   * signal to fall back to appending the armor as text.
+   *
+   * @return the view's add-content result: 0 not handled, 1 done, 2 refused
+   */
+  auto AttachPublicKeyToPrimaryView(const QByteArray& key, const QString& name)
+      -> int;
+
+  /**
+   * @brief Offers text to the mounted view rather than to the document.
+   *
+   * Same contract as AttachPublicKeyToPrimaryView().
+   */
+  auto AppendTextToPrimaryView(const QString& text) -> int;
+
+  /**
+   * @brief Which crypto operations the mounted view says apply right now.
+   *
+   * An empty list means the view has no opinion -- either there is none, or
+   * it declares no such member -- and the caller should fall back to whatever
+   * the tab type alone allows. @p has_opinion distinguishes that from a view
+   * that answered "none of them".
+   */
+  auto PrimaryViewCryptoOperations(bool& has_opinion) const -> QStringList;
+
+  /**
    * @brief The mounted primary view, or nullptr when the tab has none.
    */
   [[nodiscard]] auto PrimaryView() const -> QWidget*;
@@ -300,6 +330,21 @@ class PlainTextEditorPage : public QWidget {
    */
   void SignalTextDirectionModeChanged();
 
+  /**
+   * @brief Emitted when the mounted view asks for a crypto operation.
+   *
+   * The view says which of the operations the host already routes per tab
+   * type the user asked for -- "encrypt", "decrypt", "sign", "verify",
+   * "encrypt_sign" or "decrypt_verify" -- and nothing more. Performing it
+   * stays entirely with the host, so an operation reached from inside a
+   * message and one reached from the menu bar are the same code path.
+   */
+  void SignalCryptoOperationRequested(const QString& operation);
+
+  /// Emitted when the mounted view's answer about applicable operations
+  /// changed, so whoever drives a menu from it can ask again.
+  void SignalCryptoOperationsChanged();
+
  protected:
   QSharedPointer<Ui_PlainTextEditor> ui_;  ///< Generated editor page UI object.
 
@@ -319,6 +364,9 @@ class PlainTextEditorPage : public QWidget {
    * is deferred until something actually needs to read it.
    */
   void slot_primary_view_modified();
+
+  /// Relays the mounted view's request up to whoever can actually run it.
+  void slot_primary_view_crypto_operation_requested(const QString& operation);
 
   /**
    * @brief Writes the primary view back into the document before its own

@@ -56,6 +56,23 @@ class TextEditTabWidget : public QTabWidget {
   [[nodiscard]] auto CurPageTextEdit() const -> PlainTextEditorPage*;
 
   /**
+   * @brief Whether the current tab is an ordinary plain-text document.
+   *
+   * A module-backed tab IS a PlainTextEditorPage, so CurPageTextEdit() cannot
+   * answer this; only the tab type can.
+   */
+  [[nodiscard]] auto CurPageIsPlainText() const -> bool;
+
+  /**
+   * @brief Which crypto operations the current tab's view says apply now.
+   *
+   * @p has_opinion is false when no view answered, which means the tab type's
+   * own capabilities are the whole answer.
+   */
+  [[nodiscard]] auto CurPageCryptoOperations(bool& has_opinion) const
+      -> QStringList;
+
+  /**
    * @brief
    *
    * @return FilePage*
@@ -190,6 +207,18 @@ class TextEditTabWidget : public QTabWidget {
    * through one connection instead of one per page.
    */
   void SignalTextDirectionModeChanged();
+
+  /**
+   * @brief Emitted when the CURRENT tab's mounted view asks for a crypto
+   * operation.
+   *
+   * Only the current tab: the operations act on whatever tab is in front, so
+   * a request from a background one would run against the wrong document.
+   */
+  void SignalCryptoOperationRequested(const QString& operation);
+
+  /// Emitted when the CURRENT tab's view changed which operations apply.
+  void SignalCryptoOperationsChanged();
 
  private:
   int count_page_ = 0;

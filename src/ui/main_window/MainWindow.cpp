@@ -114,6 +114,17 @@ void MainWindow::Init() noexcept {
     connect(edit_->TabWidget(),
             &TextEditTabWidget::SignalTextDirectionModeChanged, this,
             &MainWindow::sync_text_direction_action);
+    // A mounted tab view can offer the crypto operations from inside the
+    // document itself. It only names one; running it stays here, so there is
+    // exactly one implementation of each.
+    connect(edit_->TabWidget(),
+            &TextEditTabWidget::SignalCryptoOperationRequested, this,
+            &MainWindow::slot_page_requested_crypto_operation);
+    // What a message IS decides what may be done to it, and that changes
+    // under us: decrypting one turns it into an ordinary document.
+    connect(edit_->TabWidget(),
+            &TextEditTabWidget::SignalCryptoOperationsChanged, this,
+            &MainWindow::slot_page_crypto_operations_changed);
     connect(UISignalStation::GetInstance(),
             &UISignalStation::SignalRefreshStatusBar, this,
             [=](const QString& message, int timeout) {
