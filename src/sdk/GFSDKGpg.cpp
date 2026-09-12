@@ -28,6 +28,8 @@
 
 #include "GFSDKGpg.h"
 
+#include <QSet>
+
 // std::memset
 #include <cstring>
 
@@ -703,6 +705,76 @@ auto GF_SDK_EXPORT GFGpgFindKeysByEmail(int channel, const char* email,
   *keys = array;
   *count = static_cast<int>(matches.size());
   return 0;
+}
+
+auto GF_SDK_EXPORT GFGpgListKeyAddresses(int channel, int secret_only,
+                                         char*** addresses, int* count) -> int {
+  if (addresses == nullptr || count == nullptr) return -1;
+  *addresses = nullptr;
+  *count = 0;
+
+  QStringList entries;
+  QSet<QString> seen;
+
+  auto all = GpgFrontend::AbstractKeyRepository::GetInstance(channel).Fetch();
+  for (const auto& abstract_key : all) {
+    if (abstract_key == nullptr) continue;
+    if (abstract_key->KeyType() != GpgFrontend::GpgAbstractKeyType::kGPG_KEY) {
+      continue;
+    }
+
+    auto key = qSharedPointerDynamicCast<GpgFrontend::GpgKey>(abstract_key);
+    if (key == nullptr) continue;
+
+    // The identities this user can send AS are exactly the ones they hold a
+    // secret half for. A public key in the keyring is someone else's address.
+    if (secret_only != 0 && !key->IsPrivateKey()) continue;
+
+    // Every UID, not only the primary: one key legitimately carries several
+    // addresses, and offering only the first hides the rest of them.
+    for (const auto& uid : key->UIDs()) {
+      // A revoked UID is an address its owner has withdrawn. Offering it as a
+      // suggestion would invite the user to send to an identity that has been
+      // retired, which is worse than not suggesting anything.
+      if (uid.GetRevoked()) continue;
+
+      const auto email = uid.GetEmail().trimmed();
+      if (email.isEmpty()) continue;
+
+      // Deduplicated on the address alone: a correspondent who appears on
+      // three keys is one entry, and the name attached to the first is as good
+      // as any. This list is a hint, not an identity claim.
+      const auto seen_key = email.toLower();
+      if (seen.contains(seen_key)) continue;
+      seen.insert(seen_key);
+
+      const auto name = uid.GetName().trimmed();
+      entries.append(name.isEmpty() ? email
+                                    : QString("%1 <%2>").arg(name, email));
+    }
+  }
+
+  if (entries.isEmpty()) return 0;
+
+  entries.sort(Qt::CaseInsensitive);
+
+  auto* array =
+      static_cast<char**>(GFAllocateMemory(sizeof(char*) * entries.size()));
+  if (array == nullptr) return -1;
+
+  for (int i = 0; i < entries.size(); ++i) {
+    array[i] = GFStrDup(entries.at(i));
+  }
+
+  *addresses = array;
+  *count = static_cast<int>(entries.size());
+  return 0;
+}
+
+auto GF_SDK_EXPORT GFGpgFreeStringArray(char** strings, int count) -> void {
+  if (strings == nullptr) return;
+  for (int i = 0; i < count; ++i) GFFreeMemory(strings[i]);
+  GFFreeMemory(strings);
 }
 
 auto GF_SDK_EXPORT GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void {

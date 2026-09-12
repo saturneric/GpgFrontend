@@ -291,6 +291,40 @@ auto GF_SDK_EXPORT GFGpgFindKeysByEmail(int channel, const char* email,
 auto GF_SDK_EXPORT GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void;
 
 /**
+ * @brief Every e-mail address the keyring knows, for offering as a hint.
+ *
+ * Each UID is considered, not only the primary one, for the same reason
+ * GFGpgFindKeysByEmail considers them all: one key legitimately carries
+ * several addresses. Addresses are deduplicated case-insensitively, so a
+ * correspondent who appears on three keys is offered once.
+ *
+ * This is a convenience for completion and nothing more. An address being
+ * listed says the keyring has seen it; it is not a claim that a usable key
+ * exists for it, still less that the key belongs to whoever the name says.
+ * Anything acting on a choice must still resolve it with GFGpgFindKeysByEmail.
+ *
+ * @param channel     GPG context channel index.
+ * @param secret_only 1 to list only addresses on keys this user holds the
+ *                    secret half of -- the identities they can send AS.
+ * @param[out] addresses Set to a newly allocated array of "Name <email>"
+ *                    strings (bare address when the UID has no name), or
+ *                    nullptr when the keyring is empty. Release the whole
+ *                    array with GFGpgFreeStringArray.
+ * @param[out] count  Number of strings written.
+ * @return 0 on success (including an empty keyring), -1 on a missing argument.
+ */
+auto GF_SDK_EXPORT GFGpgListKeyAddresses(int channel, int secret_only,
+                                         char*** addresses, int* count) -> int;
+
+/**
+ * @brief Releases an array returned by GFGpgListKeyAddresses.
+ *
+ * Frees every string and then the array itself. No-op when @p strings is
+ * nullptr. Pass the count that produced the array.
+ */
+auto GF_SDK_EXPORT GFGpgFreeStringArray(char** strings, int count) -> void;
+
+/**
  * @brief Analyses a GPGME encryption result and produces a human-readable
  *        report.
  *
