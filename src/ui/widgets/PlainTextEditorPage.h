@@ -298,6 +298,16 @@ class PlainTextEditorPage : public QWidget {
   void slot_primary_view_modified();
 
   /**
+   * @brief Writes the primary view back into the document before its own
+   * raw-source presentation is shown.
+   *
+   * Only used by a view that adopted the editor: it is the same guarantee the
+   * built-in switcher gives, that what the user reads as the raw source is
+   * never behind the structured view.
+   */
+  void slot_flush_before_source_view();
+
+  /**
    * @brief Applies a subdued text style to OpenPGP cleartext signature
    * metadata.
    *
@@ -338,6 +348,10 @@ class PlainTextEditorPage : public QWidget {
   QMenu* text_direction_menu_ = nullptr;  ///< Submenu holding the mode actions.
   QPointer<QWidget> primary_view_;        ///< Module-supplied view, or null.
   QWidget* view_switcher_ = nullptr;      ///< Message / Raw Source selector.
+  /// Set when the mounted view took the editor over and presents it itself.
+  /// The page then builds no switcher and never toggles visibility: the view
+  /// decides when the raw document is on screen.
+  bool source_view_adopted_ = false;
   /// Set while content is being moved between the view and the document, in
   /// either direction. Both handlers bail out on it, which is what stops a
   /// write in one direction bouncing straight back as a write in the other.

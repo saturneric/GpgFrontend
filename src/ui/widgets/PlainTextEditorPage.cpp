@@ -457,14 +457,34 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
   primary_view_ = view;
   view->setParent(this);
 
-  build_view_switcher();
+  // A view may present the raw document itself, as one more tab beside its own
+  // rather than behind a switcher the page puts above it. It is handed the
+  // real editor, not a copy: the document stays the one canonical content of
+  // the tab, and editing the raw source keeps working exactly as before.
+  source_view_adopted_ =
+      view->metaObject()->indexOfMethod("AdoptSourceView(QWidget*)") >= 0;
 
-  // The switcher sits above both views, the mounted view directly above the
-  // editor. The editor keeps its place in the layout so everything that
-  // reaches for it by name still finds it.
   const int editor_index = ui_->verticalLayout->indexOf(ui_->textPage);
   ui_->verticalLayout->insertWidget(editor_index, view);
-  ui_->verticalLayout->insertWidget(editor_index, view_switcher_);
+
+  if (source_view_adopted_) {
+    QMetaObject::invokeMethod(view, "AdoptSourceView", Qt::DirectConnection,
+                              Q_ARG(QWidget *, ui_->textPage));
+
+    // The view owns the choice of what is on screen, so the page stops
+    // hiding either side. It only needs to hear when the raw document is
+    // about to be read, so it can be made current first.
+    if (view->metaObject()->indexOfSignal("SignalSourceViewRequested()") >= 0) {
+      connect(view, SIGNAL(SignalSourceViewRequested()), this,
+              SLOT(slot_flush_before_source_view()));
+    }
+  } else {
+    build_view_switcher();
+    // The switcher sits above both views, the mounted view directly above the
+    // editor. The editor keeps its place in the layout so everything that
+    // reaches for it by name still finds it.
+    ui_->verticalLayout->insertWidget(editor_index, view_switcher_);
+  }
 
   // Content can also arrive from outside the view: a file being opened, or the
   // result of a crypto operation replacing the whole document. The view has to
@@ -489,9 +509,13 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
             SLOT(slot_primary_view_modified()));
   }
 
-  show_primary_view(true);
+  if (!source_view_adopted_) show_primary_view(true);
   ReloadPrimaryView();
   return true;
+}
+
+void PlainTextEditorPage::slot_flush_before_source_view() {
+  FlushPrimaryView();
 }
 
 void PlainTextEditorPage::slot_primary_view_modified() {
