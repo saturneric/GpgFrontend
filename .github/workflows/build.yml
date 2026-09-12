@@ -273,6 +273,7 @@ jobs:
             mingw-w64-x86_64-ccache
             mingw-w64-x86_64-rust
             mingw-w64-x86_64-libsodium
+            mingw-w64-x86_64-openssl
         if: runner.os == 'Windows'
 
       - name: Install Rust
@@ -747,7 +748,7 @@ jobs:
 
       - name: Install Dependence
         run: |
-          brew install --formula automake texinfo libarchive googletest libsodium
+          brew install --formula automake texinfo libarchive googletest libsodium openssl@3
 
       - name: Install Rust
         # Pinned to a SHA, so the @stable ref name no longer selects the
@@ -803,6 +804,12 @@ jobs:
 
           echo "Set MacOS Deployment Target: $DEPLOY_TARGET"
 
+          # Homebrew's openssl@3 is keg-only, so it is not on the default search
+          # path and find_package(OpenSSL) would pick up the unusable LibreSSL
+          # headers that ship with macOS. vmime's TLS backend needs the real one.
+          OPENSSL_ROOT="$(brew --prefix openssl@3)"
+          echo "Using OpenSSL from: $OPENSSL_ROOT"
+
           # No signing identity, team id or provisioning profile is passed: this
           # job has none, by design. The bundle is signed in sign-macos.
           cmake -B ${{github.workspace}}/build -G Xcode \
@@ -810,6 +817,7 @@ jobs:
             -DCMAKE_OSX_DEPLOYMENT_TARGET="${DEPLOY_TARGET}" \
             -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
             -DGPGFRONTEND_BUILD_PORTABLE=OFF \
+            -DOPENSSL_ROOT_DIR="${OPENSSL_ROOT}" \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
 
           # DEVELOPMENT_TEAM and PROVISIONING_PROFILE_SPECIFIER are cleared as
