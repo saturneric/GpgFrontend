@@ -428,6 +428,40 @@ void TextEdit::SlotSetGFBuffer2CurTextPage(const GFBuffer& buffer) {
   edit->document()->setModified(true);
 }
 
+auto TextEdit::ClassifyResultTarget(bool page_alive, int tab_index,
+                                    bool is_text_page) -> ResultTarget {
+  if (!page_alive) return ResultTarget::kPageDestroyed;
+  // Still alive is not the same as still ours: a page removed from the tab
+  // widget but not yet deleted must not be written to either.
+  if (tab_index < 0) return ResultTarget::kPageDetached;
+  if (!is_text_page) return ResultTarget::kNotATextPage;
+  return ResultTarget::kDeliver;
+}
+
+auto TextEdit::SetGFBuffer2Page(const QPointer<QWidget>& page,
+                                const GFBuffer& buffer) -> bool {
+  // QPointer, so a destroyed page reads as null rather than as a stale
+  // address. That is the whole reason the caller hands one over.
+  auto* text_page = qobject_cast<PlainTextEditorPage*>(page.data());
+  const auto target = ClassifyResultTarget(
+      !page.isNull(), page.isNull() ? -1 : tab_widget_->indexOf(page),
+      text_page != nullptr && text_page->GetTextPage() != nullptr);
+
+  if (target != ResultTarget::kDeliver) {
+    LOG_W() << "discarding an operation result; target state: "
+            << static_cast<int>(target);
+    return false;
+  }
+
+  auto* edit = text_page->GetTextPage();
+  SetPlainTextFromBuffer(edit, buffer);
+
+  // See SlotSetGFBuffer2CurTextPage: these bytes exist nowhere but in this
+  // document, so the modified flag has to say so.
+  edit->document()->setModified(true);
+  return true;
+}
+
 void TextEdit::SlotAppendText2CurTextPage(const QString& text) {
   SlotAppendText2CurTextPage(text, false);
 }

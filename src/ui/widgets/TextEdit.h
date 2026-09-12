@@ -28,10 +28,12 @@
 
 #pragma once
 
+#include <QPointer>
+
 #include "core/model/GFBuffer.h"
 #include "ui/widgets/FilePage.h"
 #include "ui/widgets/PlainTextEditorPage.h"
-#include "widgets/TextEditTabWidget.h"
+#include "ui/widgets/TextEditTabWidget.h"
 
 namespace GpgFrontend::UI {
 
@@ -212,6 +214,32 @@ class TextEdit : public QWidget {
    * @return Current tab widget page, or nullptr if no page is available.
    */
   [[nodiscard]] auto CurPage() -> QWidget*;
+
+  /**
+   * @brief Why an operation result may or may not be written to a page.
+   */
+  enum class ResultTarget {
+    kDeliver,        ///< alive, still one of our tabs, and can hold text
+    kPageDestroyed,  ///< closed and deleted while the operation was running
+    kPageDetached,   ///< alive, but no longer one of our tabs
+    kNotATextPage,   ///< ours, but not a document that can take the bytes
+  };
+
+  /**
+   * @brief Decides whether a result may be delivered to its originating page.
+   *
+   * Split out as a pure function so the policy can be exercised without a
+   * widget -- the unit tests run off the GUI thread and cannot build one.
+   *
+   * Only kDeliver may write. Every other answer discards the result: there is
+   * deliberately no fallback to the current tab and no "open a new tab for
+   * it", because either would put the output of one document's operation --
+   * a decrypted message, say -- into a different document.
+   */
+  [[nodiscard]] static auto GF_UI_EXPORT ClassifyResultTarget(bool page_alive,
+                                                              int tab_index,
+                                                              bool is_text_page)
+      -> ResultTarget;
 
  public slots:
   /**
@@ -438,6 +466,30 @@ class TextEdit : public QWidget {
    * @param buffer Buffer to convert and insert.
    */
   void SlotSetGFBuffer2CurTextPage(const GFBuffer& buffer);
+
+  /**
+   * @brief Writes operation output back to the page that ASKED for it.
+   *
+   * A crypto operation runs on another thread and its callback arrives an
+   * unbounded time later. By then the user may have switched tabs, or closed
+   * the one the operation started from. Writing to whatever tab happens to be
+   * current at that moment puts a decrypted message into an unrelated
+   * document -- and because SlotSetGFBuffer2CurTextPage() opens a new tab when
+   * the current widget is not a text page, it could even mint a fresh tab and
+   * put the plaintext there.
+   *
+   * So the result is addressed to a specific page, and delivered only if that
+   * exact page is still one of this widget's tabs. @p page is taken as a
+   * QPointer so a destroyed page reads as null rather than as a stale
+   * address.
+   *
+   * @param page the page that initiated the operation
+   * @param buffer the bytes to write
+   * @return true if the bytes were written; false if the page is gone or is
+   *         no longer a text page, in which case nothing is written anywhere
+   */
+  auto SetGFBuffer2Page(const QPointer<QWidget>& page, const GFBuffer& buffer)
+      -> bool;
 
   /**
    * @brief Returns the underlying tab widget.
