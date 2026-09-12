@@ -30,6 +30,8 @@
 
 #include <gpgme.h>
 
+#include <cstddef>
+
 extern "C" {
 
 /**
@@ -41,6 +43,7 @@ extern "C" {
  */
 struct GFGpgSignResult {
   char* signature;            ///< Signed/armored output data.
+  size_t signature_size;      ///< Exact length of @p signature in bytes.
   char* hash_algo;            ///< Hash algorithm used (e.g. "SHA256").
   char* capsule_id;           ///< Opaque ID for UI capsule access.
   char* error_string;         ///< Human-readable error description.
@@ -55,7 +58,8 @@ struct GFGpgSignResult {
  * Release @p gpgme_encrypt_result with GFGpgFreeResult before freeing.
  */
 struct GFGpgEncryptionResult {
-  char* encrypted_data;       ///< Encrypted output data.
+  char* encrypted_data;        ///< Encrypted output data.
+  size_t encrypted_data_size;  ///< Exact length of @p encrypted_data.
   char* capsule_id;           ///< Opaque ID for UI capsule access.
   char* error_string;         ///< Human-readable error description.
   gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
@@ -70,7 +74,8 @@ struct GFGpgEncryptionResult {
  * Release @p gpgme_decrypt_result with GFGpgFreeResult before freeing.
  */
 struct GFGpgDecryptResult {
-  char* decrypted_data;       ///< Plaintext output data.
+  char* decrypted_data;        ///< Plaintext output data.
+  size_t decrypted_data_size;  ///< Exact length of @p decrypted_data.
   char* capsule_id;           ///< Opaque ID for UI capsule access.
   char* error_string;         ///< Human-readable error description.
   gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
@@ -159,6 +164,51 @@ auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
  */
 auto GF_SDK_EXPORT GFGpgVerifyData(int channel, char* data, char* signature,
                                    GFGpgVerifyResult** result) -> int;
+
+/* --- binary-safe entry points ---------------------------------------------
+ *
+ * The four calls above take NUL-terminated strings, so they cannot express a
+ * message octet that happens to be 0x00 -- the data stops there -- and they
+ * route bytes through a UTF-8 decode that replaces any ill-formed sequence.
+ * Neither is acceptable for OpenPGP: a MIME entity may legitimately be 8bit or
+ * binary, and a signature covers exact octets. Verifying a NUL-truncated
+ * prefix of what the user is shown reports a good signature over bytes that
+ * are not the bytes on screen.
+ *
+ * These variants carry an explicit length and copy the octets verbatim.
+ *
+ * OWNERSHIP DIFFERS, deliberately: @p data and @p signature are BORROWED --
+ * the caller keeps ownership and must free them itself. The string forms free
+ * the buffers they are given; these do not, so a caller can pass a pointer
+ * straight into its own QByteArray without an allocator round trip.
+ *
+ * Output is carried by the @c *_size field alongside each @c char* in the
+ * result structs. The buffer is still NUL-terminated for the benefit of
+ * callers that treat it as text, but the size is authoritative.
+ */
+
+/** @brief Binary-safe GFGpgSignData. @p data is borrowed, not freed. */
+auto GF_SDK_EXPORT GFGpgSignDataN(int channel, char** key_ids, int key_ids_size,
+                                  const char* data, size_t data_size,
+                                  int sign_mode, int ascii,
+                                  GFGpgSignResult** result) -> int;
+
+/** @brief Binary-safe GFGpgEncryptData. @p data is borrowed, not freed. */
+auto GF_SDK_EXPORT GFGpgEncryptDataN(int channel, char** key_ids,
+                                     int key_ids_size, const char* data,
+                                     size_t data_size, int ascii,
+                                     GFGpgEncryptionResult** result) -> int;
+
+/** @brief Binary-safe GFGpgDecryptData. @p data is borrowed, not freed. */
+auto GF_SDK_EXPORT GFGpgDecryptDataN(int channel, const char* data,
+                                     size_t data_size,
+                                     GFGpgDecryptResult** result) -> int;
+
+/** @brief Binary-safe GFGpgVerifyData. Both buffers are borrowed, not freed. */
+auto GF_SDK_EXPORT GFGpgVerifyDataN(int channel, const char* data,
+                                    size_t data_size, const char* signature,
+                                    size_t signature_size,
+                                    GFGpgVerifyResult** result) -> int;
 
 /**
  * @brief Exports the public key block for a given key ID.

@@ -51,6 +51,20 @@ struct GFModuleEventParam;
 auto GFStrDup(const QString &) -> char *;
 
 /**
+ * @brief Copies raw octets into an SDK-allocated buffer, byte for byte.
+ *
+ * Unlike GFStrDup this performs no text conversion and stops at nothing: an
+ * embedded NUL is copied like any other byte. The result is NUL-terminated one
+ * past @p size so callers that still treat it as a C string see something
+ * sane, but @p size is the authoritative length.
+ *
+ * @param bytes the octets to copy
+ * @param[out] size receives the exact byte count (may be nullptr)
+ * @return caller-owned buffer, free with GFFreeMemory
+ */
+auto GFBytesDup(const QByteArray &bytes, size_t *size) -> char *;
+
+/**
  * @brief
  *
  * @param str

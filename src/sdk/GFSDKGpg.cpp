@@ -82,6 +82,19 @@ void EmitResultCards(const GpgFrontend::GpgOpResultInfo& info,
 auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
                                  char* data, int sign_mode, int ascii,
                                  GFGpgSignResult** ps) -> int {
+  // Kept for source compatibility. It cannot express an embedded NUL, so it
+  // stops at the first one; binary callers must use GFGpgSignDataN.
+  const auto size = data == nullptr ? 0 : std::strlen(data);
+  auto ret = GFGpgSignDataN(channel, key_ids, key_ids_size, data, size,
+                            sign_mode, ascii, ps);
+  if (data != nullptr) GpgFrontend::SMAFree(static_cast<void*>(data));
+  return ret;
+}
+
+auto GF_SDK_EXPORT GFGpgSignDataN(int channel, char** key_ids, int key_ids_size,
+                                  const char* data, size_t data_size,
+                                  int sign_mode, int ascii,
+                                  GFGpgSignResult** ps) -> int {
   void* mem = GFAllocateMemory(sizeof(GFGpgSignResult));
   if (mem == nullptr) {
     *ps = nullptr;
@@ -103,7 +116,7 @@ auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
 
   if (signer_keys.empty()) return -1;
 
-  auto in_buffer = GpgFrontend::GFBuffer(GFUnStrDup(data).toUtf8());
+  auto in_buffer = GpgFrontend::GFBuffer(data, data_size);
 
   auto gpg_sign_mode =
       sign_mode == 0 ? GPGME_SIG_MODE_NORMAL : GPGME_SIG_MODE_DETACH;
@@ -130,7 +143,8 @@ auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
   auto* raw_result = result.GetRaw();
   if (raw_result != nullptr) gpgme_result_ref(raw_result);
 
-  s->signature = GFStrDup(out_buffer.ConvertToQByteArray());
+  s->signature =
+      GFBytesDup(out_buffer.ConvertToQByteArray(), &s->signature_size);
   s->hash_algo = GFStrDup(result.HashAlgo());
   s->capsule_id = GFStrDup(capsule_id);
   s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
@@ -176,6 +190,18 @@ auto GF_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
 auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
                                     int key_ids_size, char* data, int ascii,
                                     GFGpgEncryptionResult** ps) -> int {
+  // See GFGpgSignData: NUL-terminated, therefore not binary-safe.
+  const auto size = data == nullptr ? 0 : std::strlen(data);
+  auto ret =
+      GFGpgEncryptDataN(channel, key_ids, key_ids_size, data, size, ascii, ps);
+  if (data != nullptr) GpgFrontend::SMAFree(static_cast<void*>(data));
+  return ret;
+}
+
+auto GF_SDK_EXPORT GFGpgEncryptDataN(int channel, char** key_ids,
+                                     int key_ids_size, const char* data,
+                                     size_t data_size, int ascii,
+                                     GFGpgEncryptionResult** ps) -> int {
   void* mem = GFAllocateMemory(sizeof(GFGpgEncryptionResult));
   if (mem == nullptr) {
     *ps = nullptr;
@@ -197,7 +223,7 @@ auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
 
   if (encrypt_keys.empty()) return -1;
 
-  auto in_buffer = GpgFrontend::GFBuffer(GFUnStrDup(data).toUtf8());
+  auto in_buffer = GpgFrontend::GFBuffer(data, data_size);
 
   auto [err, data_object] =
       GpgFrontend::MessageCryptoOperation::GetInstance(channel).EncryptSync(
@@ -221,7 +247,8 @@ auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
   auto* raw_result = result.GetRaw();
   if (raw_result != nullptr) gpgme_result_ref(raw_result);
 
-  s->encrypted_data = GFStrDup(out_buffer.ConvertToQByteArray());
+  s->encrypted_data =
+      GFBytesDup(out_buffer.ConvertToQByteArray(), &s->encrypted_data_size);
   s->capsule_id = GFStrDup(capsule_id);
   s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
   s->gpgme_error = err;
@@ -231,6 +258,16 @@ auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
 
 auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
                                     GFGpgDecryptResult** ps) -> int {
+  // See GFGpgSignData: NUL-terminated, therefore not binary-safe.
+  const auto size = data == nullptr ? 0 : std::strlen(data);
+  auto ret = GFGpgDecryptDataN(channel, data, size, ps);
+  if (data != nullptr) GpgFrontend::SMAFree(static_cast<void*>(data));
+  return ret;
+}
+
+auto GF_SDK_EXPORT GFGpgDecryptDataN(int channel, const char* data,
+                                     size_t data_size, GFGpgDecryptResult** ps)
+    -> int {
   void* mem = GFAllocateMemory(sizeof(GFGpgDecryptResult));
   if (mem == nullptr) {
     *ps = nullptr;
@@ -241,7 +278,7 @@ auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
   *ps = new (mem) GFGpgDecryptResult{};
   auto* s = *ps;
 
-  auto in_buffer = GpgFrontend::GFBuffer(GFUnStrDup(data).toUtf8());
+  auto in_buffer = GpgFrontend::GFBuffer(data, data_size);
 
   auto [err, data_object] =
       GpgFrontend::MessageCryptoOperation::GetInstance(channel).DecryptSync(
@@ -260,11 +297,11 @@ auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
   auto* raw_result = result.GetRaw();
   if (raw_result != nullptr) gpgme_result_ref(raw_result);
 
-  if (out_buffer.Empty()) {
-    s->decrypted_data = GFStrDup("");
-  } else {
-    s->decrypted_data = GFStrDup(out_buffer.ConvertToQByteArray());
-  }
+  // Decrypted output is arbitrary octets -- an 8bit or binary MIME entity may
+  // legitimately contain 0x00 -- so it is copied by length, never by strlen.
+  s->decrypted_data = GFBytesDup(
+      out_buffer.Empty() ? QByteArray() : out_buffer.ConvertToQByteArray(),
+      &s->decrypted_data_size);
   s->capsule_id = GFStrDup(capsule_id);
   s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
   s->gpgme_error = err;
@@ -274,6 +311,24 @@ auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
 
 auto GF_SDK_EXPORT GFGpgVerifyData(int channel, char* data, char* signature,
                                    GFGpgVerifyResult** ps) -> int {
+  // See GFGpgSignData: NUL-terminated, therefore not binary-safe. For verify
+  // that is not merely lossy, it is unsound -- a signature would be checked
+  // against a prefix of the data the caller believes it passed.
+  const auto data_size = data == nullptr ? 0 : std::strlen(data);
+  const auto sig_size = signature == nullptr ? 0 : std::strlen(signature);
+  auto ret =
+      GFGpgVerifyDataN(channel, data, data_size, signature, sig_size, ps);
+  if (data != nullptr) GpgFrontend::SMAFree(static_cast<void*>(data));
+  if (signature != nullptr) {
+    GpgFrontend::SMAFree(static_cast<void*>(signature));
+  }
+  return ret;
+}
+
+auto GF_SDK_EXPORT GFGpgVerifyDataN(int channel, const char* data,
+                                    size_t data_size, const char* signature,
+                                    size_t signature_size,
+                                    GFGpgVerifyResult** ps) -> int {
   void* mem = GFAllocateMemory(sizeof(GFGpgVerifyResult));
   if (mem == nullptr) {
     *ps = nullptr;
@@ -284,8 +339,8 @@ auto GF_SDK_EXPORT GFGpgVerifyData(int channel, char* data, char* signature,
   *ps = new (mem) GFGpgVerifyResult{};
   auto* s = *ps;
 
-  auto in_buffer = GpgFrontend::GFBuffer(GFUnStrDup(data).toUtf8());
-  auto sig_buffer = GpgFrontend::GFBuffer(GFUnStrDup(signature).toUtf8());
+  auto in_buffer = GpgFrontend::GFBuffer(data, data_size);
+  auto sig_buffer = GpgFrontend::GFBuffer(signature, signature_size);
 
   auto [err, data_object] =
       GpgFrontend::MessageCryptoOperation::GetInstance(channel).VerifySync(

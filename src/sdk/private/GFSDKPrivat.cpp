@@ -46,6 +46,16 @@ auto GFStrDup(const QString& str) -> char* {
   return c_str;
 }
 
+auto GFBytesDup(const QByteArray& bytes, size_t* size) -> char* {
+  auto* c_str = static_cast<char*>(
+      GpgFrontend::SMAMalloc((bytes.size() + 1) * sizeof(char)));
+
+  memcpy(c_str, bytes.constData(), bytes.size());
+  c_str[bytes.size()] = '\0';
+  if (size != nullptr) *size = static_cast<size_t>(bytes.size());
+  return c_str;
+}
+
 auto GFUnStrDup(char* str) -> QString {
   auto qt_str = QString::fromUtf8(str);
   GpgFrontend::SMAFree(static_cast<void*>(str));
