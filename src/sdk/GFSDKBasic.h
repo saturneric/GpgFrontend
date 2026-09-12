@@ -231,8 +231,13 @@ auto GF_SDK_EXPORT GFSecDurableCacheGet(const char* key) -> char*;
  * Written through immediately rather than waiting for the periodic flush: a
  * credential the user just entered must survive a crash before the next tick.
  *
+ * Both arguments are taken by value in the SDK sense: this call frees them.
+ * @p key must come from GFModuleStrDup (or QDUP) and @p value from
+ * GFModuleSecStrDup (or QSECDUP) -- passing a pointer owned by anything else,
+ * such as a QByteArray's internal buffer, aborts the process.
+ *
  * @param key   Cache key.
- * @param value Secret to store. Its bytes are wiped once copied.
+ * @param value Secret to store. Wiped and released by this call.
  * @return 0 on success.
  */
 auto GF_SDK_EXPORT GFSecDurableCacheSave(const char* key, const char* value)

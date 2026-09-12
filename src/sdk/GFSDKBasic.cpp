@@ -191,17 +191,23 @@ auto GF_SDK_EXPORT GFSecDurableCacheSave(const char* key, const char* value)
     -> int {
   if (key == nullptr || value == nullptr) return -1;
 
-  auto secret = GFUnStrDup(value);
-  auto utf8 = secret.toUtf8();
+  // Both arguments are owned, as everywhere else in this SDK -- but they come
+  // from different allocators and must go back to the matching one. The key is
+  // ordinary module memory; the secret came from GFModuleSecStrDup and has to
+  // be released through the secure allocator, which also wipes it. Freeing it
+  // the ordinary way aborts the process.
+  const auto key_string = GFUnStrDup(key);
+
+  auto utf8 = QByteArray(value);
   GpgFrontend::GFBuffer buffer(utf8);
 
   // flush=true: a credential the user just typed has to survive a crash that
   // happens before the periodic flush would have run.
   GpgFrontend::CacheManager::GetInstance().SaveSecDurableCache(
-      "__module_" + GFUnStrDup(key), buffer, true);
+      "__module_" + key_string, buffer, true);
 
   utf8.fill('\0');
-  secret.fill(QChar('\0'));
+  GFSecFreeMemory(static_cast<void*>(const_cast<char*>(value)));
   return 0;
 }
 
