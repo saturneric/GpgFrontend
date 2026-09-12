@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <QReadWriteLock>
+
 #include <optional>
 
 #include "core/function/basic/GpgFunctionObject.h"
@@ -243,8 +245,10 @@ class GF_UI_EXPORT UIModuleManager
    *
    * @return const QList<SettingsPageRegistration>&
    */
+  /// Returned BY VALUE, deliberately: a reference would outlive the lock that
+  /// makes reading the list safe at all. See registry_lock_.
   [[nodiscard]] auto ListSettingsPages() const
-      -> const QList<SettingsPageRegistration>&;
+      -> QList<SettingsPageRegistration>;
 
   /**
    * @brief
@@ -286,6 +290,20 @@ class GF_UI_EXPORT UIModuleManager
   QMap<QString, QString> file_ext_event_prefix_map_;
   QList<SettingsPageRegistration> settings_pages_;
   QMap<QString, TabPageViewRegistration> tab_page_views_;
+  /// Guards the two registries above.
+  ///
+  /// Modules register from GFRegisterModule and unregister from
+  /// GFDeactivateModule, and BOTH of those run on the module task runner --
+  /// ModuleManager posts them there -- while the GUI thread reads the same
+  /// containers to build a Settings dialog or open a tab. Deactivating a
+  /// module from the Module Controller while a .eml file is being opened was
+  /// enough to have one thread erasing from a QMap another was walking.
+  ///
+  /// A lock rather than marshalling onto the GUI thread: the GUI thread can be
+  /// sitting in a nested event loop waiting on the module runner (see
+  /// GpgOperaHelper::WaitForOpera), so a blocking queued call in the other
+  /// direction would deadlock.
+  mutable QReadWriteLock registry_lock_;
   /// Mutable so the const accessor can sync() it; syncing only reconciles with
   /// the backing store, it does not change what this object represents.
   mutable QSettings settings_;

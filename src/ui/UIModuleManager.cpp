@@ -28,6 +28,8 @@
 
 #include "UIModuleManager.h"
 
+#include <QReadWriteLock>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
@@ -175,6 +177,8 @@ auto UIModuleManager::RegisterSettingsPage(const SettingsPageRegistration& reg)
   // Rejected rather than replaced: a Settings dialog that is already open holds
   // a widget built by the current factory, and swapping the registration under
   // it would leave that dialog pointing at a page nobody owns any more.
+  const QWriteLocker locker(&registry_lock_);
+
   const auto exists = std::any_of(
       settings_pages_.cbegin(), settings_pages_.cend(),
       [&reg](const SettingsPageRegistration& p) { return p.id == reg.id; });
@@ -189,6 +193,8 @@ auto UIModuleManager::RegisterSettingsPage(const SettingsPageRegistration& reg)
 
 auto UIModuleManager::UnregisterSettingsPage(const QString& id) -> bool {
   if (id.isEmpty()) return false;
+
+  const QWriteLocker locker(&registry_lock_);
   // Not QList::removeIf(): that arrived in Qt 6.1 and this has to build against
   // Qt 5 as well.
   const auto before = settings_pages_.size();
@@ -201,7 +207,10 @@ auto UIModuleManager::UnregisterSettingsPage(const QString& id) -> bool {
 }
 
 auto UIModuleManager::ListSettingsPages() const
-    -> const QList<SettingsPageRegistration>& {
+    -> QList<SettingsPageRegistration> {
+  const QReadLocker locker(&registry_lock_);
+  // A copy, not a reference: the caller reads it after this lock is gone, and
+  // a module can be deactivated from another thread at any moment.
   return settings_pages_;
 }
 
@@ -216,6 +225,8 @@ auto UIModuleManager::RegisterTabPageView(const TabPageViewRegistration& reg)
   // tab that is already open holds a widget built by the current factory, and
   // swapping the registration under it would leave that tab pointing at a view
   // nobody owns any more.
+  const QWriteLocker locker(&registry_lock_);
+
   const auto key = reg.tab_type.toUpper();
   if (tab_page_views_.contains(key)) {
     LOG_W() << "tab page view already registered:" << key;
@@ -230,12 +241,16 @@ auto UIModuleManager::RegisterTabPageView(const TabPageViewRegistration& reg)
 
 auto UIModuleManager::UnregisterTabPageView(const QString& tab_type) -> bool {
   if (tab_type.isEmpty()) return false;
+
+  const QWriteLocker locker(&registry_lock_);
   return tab_page_views_.remove(tab_type.toUpper()) > 0;
 }
 
 auto UIModuleManager::TabPageViewFor(const QString& tab_type) const
     -> std::optional<TabPageViewRegistration> {
   if (tab_type.isEmpty()) return std::nullopt;
+
+  const QReadLocker locker(&registry_lock_);
   const auto it = tab_page_views_.constFind(tab_type.toUpper());
   if (it == tab_page_views_.constEnd()) return std::nullopt;
   return *it;
