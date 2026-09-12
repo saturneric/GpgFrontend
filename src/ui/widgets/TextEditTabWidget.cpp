@@ -129,8 +129,12 @@ TextEditTabWidget::TextEditTabWidget(QWidget* parent) : QTabWidget(parent) {
   connect(recovery_cache_timer_, &QTimer::timeout, this,
           [this]() -> void { flush_recovery_cache(false); });
 
-  connect(qApp, &QCoreApplication::aboutToQuit, this,
-          [this]() -> void { flush_recovery_cache(true); });
+  connect(qApp, &QCoreApplication::aboutToQuit, this, [this]() -> void {
+    // From here on the tabs are being torn down, so an empty sweep means
+    // "they are already gone", not "there was nothing worth keeping".
+    recovery_shutting_down_ = true;
+    flush_recovery_cache(true);
+  });
 
   connect(this, &QTabWidget::currentChanged, this, [this](int) -> void {
     if (ContainsPagePointer(recovery_dirty_pages_, last_current_text_page_)) {
@@ -657,7 +661,11 @@ void TextEditTabWidget::SlotCacheTextEditors() {
   }
 
   if (unsaved_pages.empty()) {
-    ClearEditorPagesRecoveryCache(true);
+    // Never on the way out. The snapshot that matters was written moments
+    // earlier, while the tabs still existed; clearing it here because they
+    // have since been destroyed is what silently threw away the user's
+    // unsaved work on almost every quit.
+    if (!recovery_shutting_down_) ClearEditorPagesRecoveryCache(true);
     return;
   }
 
@@ -688,7 +696,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
   }
 
   if (unsaved_page_array.isEmpty()) {
-    ClearEditorPagesRecoveryCache(true);
+    if (!recovery_shutting_down_) ClearEditorPagesRecoveryCache(true);
     return;
   }
 
@@ -722,7 +730,10 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
   auto json_data =
       CacheManager::GetInstance().LoadDurableCache(kEditorPagesCacheKey);
 
-  if (json_data.isEmpty()) return;
+  if (json_data.isEmpty()) {
+    LOG_D() << "no text editor recovery cache stored";
+    return;
+  }
 
   QJsonArray json_array;
   if (json_data.isArray()) {
@@ -733,7 +744,12 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     return;
   }
 
+  LOG_D() << "text editor recovery cache loaded, array:" << json_data.isArray()
+          << ", object:" << json_data.isObject()
+          << ", entries:" << json_array.size();
+
   if (json_array.isEmpty()) {
+    LOG_D() << "text editor recovery cache holds no pages";
     ClearEditorPagesRecoveryCache(true);
     return;
   }
@@ -808,6 +824,8 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     // Only recovery_type decides which recovery handler to use.
     // page_type is semantic type, e.g. "text", "email", module-defined type.
     if (recovery_type_key != "text_editor") {
+      LOG_D() << "skipping recovery entry handled elsewhere, recovery_type:"
+              << recovery_type;
       next_recovery_pages.push_back(value_ref);
       continue;
     }
@@ -822,6 +840,14 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     auto key_id = QByteArray::fromHex(json["key_id"].toString().toLatin1());
     auto key = key_mgr.KeyById(GFBuffer(key_id));
     WipeByteArray(key_id);
+
+    if (key.Empty()) {
+      // Losing unsaved work must never be silent: without this the tab simply
+      // does not come back and nothing anywhere says why.
+      LOG_W() << "cannot restore text editor tab, its encryption key is not "
+                 "available, title:"
+              << title;
+    }
 
     if (!key.Empty()) {
       auto content = GFBufferFactory::Decrypt(key, *encrypted_content);
@@ -889,6 +915,8 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
     }
 
     if (!restored) {
+      LOG_W() << "failed to restore text editor tab, title:" << title
+              << ", type:" << page_type << ", recovery_type:" << recovery_type;
       next_recovery_pages.push_back(value_ref);
     }
   }
