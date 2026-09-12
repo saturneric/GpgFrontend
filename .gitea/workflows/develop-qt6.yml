@@ -36,7 +36,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest-server
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
@@ -112,7 +112,8 @@ jobs:
         run: |
           cmake -B ${{github.workspace}}/build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
+            -DGPGFRONTEND_MODULES_BUILD_TESTS=ON
           cmake --build ${{github.workspace}}/build --config {{$env.BUILD_TYPE}} -- -v
 
       - name: Run Unit Tests
