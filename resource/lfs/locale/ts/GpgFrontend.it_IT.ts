@@ -879,67 +879,67 @@
         <translation>Foglia</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="236"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="240"/>
         <source>Namespace</source>
         <translation>Namespace</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="264"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="272"/>
         <source>Empty</source>
         <translation>Vuoto</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="268"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="277"/>
         <source>String</source>
         <translation>Stringa</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="270"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="281"/>
         <source>Boolean</source>
         <translation>Booleano</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="275"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="287"/>
         <source>Integer</source>
         <translation>Intero</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="278"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="291"/>
         <source>Number</source>
         <translation>Numero</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="280"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="294"/>
         <source>Unsupported</source>
         <translation>Non supportato</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="323"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="339"/>
         <source>&lt;UNSUPPORTED&gt;</source>
         <translation>&lt;NON-SUPPORTATO&gt;</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="358"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="376"/>
         <source>Key</source>
         <translation>Chiave</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="360"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="379"/>
         <source>Type</source>
         <translation>Tipo</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="362"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="383"/>
         <source>Value Type</source>
         <translation>Tipo Valore</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="364"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="387"/>
         <source>Value</source>
         <translation>Valore</translation>
     </message>
     <message>
-        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="366"/>
+        <location filename="../../../../src/core/module/GlobalRegisterTable.cpp" line="391"/>
         <source>Version</source>
         <translation>Versione</translation>
     </message>
@@ -8699,7 +8699,7 @@ Si desidera continuare?</translation>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="430"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="702"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="901"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="643"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="683"/>
         <source>Encrypting</source>
         <translation>Sto cifrando</translation>
     </message>
@@ -8707,7 +8707,7 @@ Si desidera continuare?</translation>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="498"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="507"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="949"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="533"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="554"/>
         <source>Decrypting</source>
         <translation>Decifra</translation>
     </message>
@@ -8832,7 +8832,7 @@ Il messaggio cifrato è %1 byte e il formato di messaggistica istantanea support
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="480"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="988"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="715"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="755"/>
         <source>Signing</source>
         <translation>Firma</translation>
     </message>
@@ -8851,7 +8851,7 @@ Se i dati e la firma sono COMBINATI in un singolo file, MANTIENI QUESTO CAMPO VU
     <message>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="521"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1034"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="585"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="608"/>
         <source>Verifying</source>
         <translation>Verifica</translation>
     </message>
@@ -8859,7 +8859,7 @@ Se i dati e la firma sono COMBINATI in un singolo file, MANTIENI QUESTO CAMPO VU
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="561"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="702"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1096"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="806"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="846"/>
         <source>Encrypting and Signing</source>
         <translation>Cifra e Firma</translation>
     </message>
@@ -8867,17 +8867,17 @@ Se i dati e la firma sono COMBINATI in un singolo file, MANTIENI QUESTO CAMPO VU
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="576"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="589"/>
         <location filename="../../../../src/ui/main_window/MainWindowGpgOperaFunction.cpp" line="1145"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="862"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="902"/>
         <source>Decrypting and Verifying</source>
         <translation>Decifra e verifica</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="301"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="322"/>
         <source>Missing Keys</source>
         <translation>Chiavi mancanti</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="302"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="323"/>
         <source>Some signatures cannot be verified because the corresponding keys are missing.
 
 The following fingerprints are missing:
@@ -8892,183 +8892,183 @@ Mancano le seguenti impronte digitali:
 Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="323"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="344"/>
         <source>Verification Incomplete</source>
         <translation>Verifica incompleta</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="324"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="345"/>
         <source>Verification was incomplete due to missing keys. You can manually import the keys later.</source>
         <translation>La verifica è stata incompleta a causa di chiavi mancanti. Puoi importare manualmente le chiavi in ​​seguito.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="131"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="152"/>
         <source>Localize</source>
         <translation>Localizza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="134"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="155"/>
         <source>UTC</source>
         <translation>UTC</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="145"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="166"/>
         <source>Local Time</source>
         <translation>Tempo Locale</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="369"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="390"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="346"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="367"/>
         <source>No operation result available.</source>
         <translation>Nessun risultato dell&apos;operazione disponibile.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="365"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="386"/>
         <source>FAILED</source>
         <translation>FALLITO</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="372"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="393"/>
         <source>WARNING</source>
         <translation>AVVISO</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="378"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="399"/>
         <source>Object: %1</source>
         <translation>Oggetto: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="394"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="415"/>
         <source>Summary</source>
         <translation>Riepilogo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="396"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="417"/>
         <source>Total operations: %1</source>
         <translation>Totale operazioni: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="402"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="423"/>
         <source>Failed objects: %1</source>
         <translation>Oggetti non riusciti: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="406"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="427"/>
         <source>Warning objects: %1</source>
         <translation>Oggetti avvisati: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="411"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="432"/>
         <source>Details</source>
         <translation>Dettagli</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="474"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="495"/>
         <source>Email Operation Failed</source>
         <translation>Operazione Email non riuscita</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="480"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="501"/>
         <source>The operation could not be completed. See the reason and suggested solutions below.</source>
         <translation>L&apos;operazione non è stata completata. Consulta il motivo e le soluzioni suggerite di seguito.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="482"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="503"/>
         <source>Report</source>
         <translation>Rapporto</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="519"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="575"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="623"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="687"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="759"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="851"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="540"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="596"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="663"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="727"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="799"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="891"/>
         <source>Unsupported Operation</source>
         <translation>Operazioni non supportate</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="520"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="541"/>
         <source>The decrypt operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;operazione di decrittazione per il tipo di tabulazione &apos;%1&apos; non è supportata.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="576"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="597"/>
         <source>The verify operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;operazione di verifica per il tipo di scheda &apos;%1&apos; non è supportata.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="624"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="664"/>
         <source>The encryption operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;operazione di crittografia per il tipo di scheda &apos;%1&apos; non è supportata.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="631"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="697"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="769"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="788"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="671"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="737"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="809"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="828"/>
         <source>No Key Selected</source>
         <translation>Nessuna chiave selezionata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="632"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="672"/>
         <source>Please select a key for encryption.</source>
         <translation>Seleziona una chiave per la crittografia.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="688"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="728"/>
         <source>The sign operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;operazione di firma per il tipo di tabulazione &apos;%1&apos; non è supportata.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="760"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="800"/>
         <source>The encrypt and sign operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;operazione di crittografia e firma per il tipo di tabulazione &apos;%1&apos; non è supportata.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="770"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="810"/>
         <source>Please select a key for encrypt the EML.</source>
         <translation>Selezionare una chiave per cifrare l&apos;EML.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="852"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="892"/>
         <source>The decrypt and verify operation for the tab type &apos;%1&apos; is not supported.</source>
         <translation>L&apos;operazione di decrittazione e verifica per il tipo di scheda &apos;%1&apos; non è supportata.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="698"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="789"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="738"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="829"/>
         <source>Please select a key for signing the EML.</source>
         <translation>Selezionare una chiave per firmare l&apos;EML.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="397"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="418"/>
         <source>Successful: %1</source>
         <translation>Riuscite %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="398"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="419"/>
         <source>Warnings: %1</source>
         <translation>Avvisi: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="399"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="420"/>
         <source>Failures: %1</source>
         <translation>Errori: %1</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="703"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="794"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="743"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="834"/>
         <source>Multiple Keys Selected</source>
         <translation>Più chiavi selezionate</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="704"/>
-        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="795"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="744"/>
+        <location filename="../../../../src/ui/main_window/MainWindowSlotFunction.cpp" line="835"/>
         <source>Please select only one key to sign the EML.</source>
         <translation>Selezionare una sola chiave per firmare l&apos;EML.</translation>
     </message>
@@ -10487,7 +10487,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="139"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="224"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="232"/>
         <source>LF</source>
         <translation>LF</translation>
     </message>
@@ -10507,70 +10507,70 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
         <translation>Checksum SHA-256 del contenuto dell&apos;editor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="218"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="226"/>
         <source>Ln %1, Col %2 · %3 chars%4</source>
         <translation>Ln %1, Col %2 · %3 caratt.%4</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="224"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="232"/>
         <source>CRLF</source>
         <translation>CRLF</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="230"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="238"/>
         <source>The document has unsaved changes.</source>
         <translation>Il documento presenta modifiche non salvate.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="231"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="239"/>
         <source>The document is unchanged.</source>
         <translation>Il documento rimane invariato.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="449"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="481"/>
         <source>Loading... %1 KB</source>
         <translation>Caricamento in corso... %1 KB</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="771"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="835"/>
         <source>Message</source>
         <translation>Messaggio</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="772"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="836"/>
         <source>Raw Source</source>
         <translation>Sorgente grezza</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="881"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="945"/>
         <source>Text Direction</source>
         <translation>Direzione del testo</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="888"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="952"/>
         <source>Automatic</source>
         <translation>Automatico</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="889"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="953"/>
         <source>Left-to-Right</source>
         <translation>Da sinistra a destra</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="890"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="954"/>
         <source>Right-to-Left</source>
         <translation>Da destra a sinistra</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="904"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="968"/>
         <source>Which way the text runs. Automatic gives every line the direction of its own first letter.</source>
         <translation>Indica la direzione del testo. Automatico assegna a ogni riga la direzione del suo primo carattere.</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="91"/>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="134"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="200"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="379"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="203"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="411"/>
         <source>Loading...</source>
         <translation>Caricamento in corso...</translation>
     </message>
@@ -10581,7 +10581,7 @@ Vuoi recuperare queste chiavi dal server delle chiavi?</translation>
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="143"/>
-        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="225"/>
+        <location filename="../../../../src/ui/widgets/PlainTextEditorPage.cpp" line="233"/>
         <source>UTF-8</source>
         <translation>UTF-8</translation>
     </message>
@@ -12685,7 +12685,7 @@ Scegli Annulla per scartare tutte le modifiche apportate in questa finestra e ma
     <name>GpgFrontend::UI::TextEdit</name>
     <message>
         <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="208"/>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="646"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="662"/>
         <source>Warning</source>
         <translation>Avvertimento</translation>
     </message>
@@ -12720,12 +12720,12 @@ Scegli Annulla per scartare tutte le modifiche apportate in questa finestra e ma
         <translation type="vanished">Impossibile aprire questo file. Il file è TROPPO GRANDE (&gt;1MB) per GpgFrontend Text Editor.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="605"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="613"/>
         <source>File Open Error</source>
         <translation>Errore di apertura file</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="606"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="614"/>
         <source>The file &quot;%1&quot; could not be opened.</source>
         <translation>Impossibile aprire il file &quot;%1&quot;.</translation>
     </message>
@@ -12783,7 +12783,7 @@ Scegli Annulla per scartare tutte le modifiche apportate in questa finestra e ma
         <translation>Se non salvi questi file, tutte le modifiche andranno perse.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="646"/>
+        <location filename="../../../../src/ui/widgets/TextEdit.cpp" line="662"/>
         <source>No document to print</source>
         <translation>Nessun documento da stampare</translation>
     </message>
@@ -12847,22 +12847,22 @@ Scegli Annulla per scartare tutte le modifiche apportate in questa finestra e ma
     </message>
     <message>
         <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="602"/>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1097"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1120"/>
         <source>Workspace</source>
         <translation>Area di lavoro</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1069"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1092"/>
         <source>Directory Permission Denied</source>
         <translation>Autorizzazione alla directory negata</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1070"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1093"/>
         <source>You do not have permission to access the directory &quot;%1&quot;.</source>
         <translation>Non hai l&apos;autorizzazione per accedere alla directory &quot;%1&quot;.</translation>
     </message>
     <message>
-        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1092"/>
+        <location filename="../../../../src/ui/widgets/TextEditTabWidget.cpp" line="1115"/>
         <source>Root</source>
         <translation>Root</translation>
     </message>
