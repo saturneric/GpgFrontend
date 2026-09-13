@@ -650,7 +650,17 @@ void TextEditTabWidget::SlotCacheTextEditors() {
       continue;
     }
 
-    auto content = document->toRawText();
+    // The page's BYTES, not the document's text. DocumentBytes() puts back the
+    // line endings the document actually has, and it is exactly what saving
+    // this tab to a file would write -- so what comes back after a crash is
+    // the tab the user had, not a transcription of it.
+    //
+    // toRawText() lost that: the editor stores bare LF whatever it was given,
+    // so a message signed over canonical CRLF came back from recovery with its
+    // line endings rewritten, and a signature that was valid before the
+    // restart could never verify again. It reads as a forgery, which is the
+    // worst possible way to lose a byte.
+    auto content = target_page->DocumentBytes();
 
     auto page_type = target_page->property("type").toString().trimmed();
     if (page_type.isEmpty()) {
@@ -671,7 +681,7 @@ void TextEditTabWidget::SlotCacheTextEditors() {
         GFBuffer(content),
     });
 
-    WipeString(content);
+    WipeByteArray(content);
   }
 
   if (unsaved_pages.empty()) {
@@ -891,8 +901,21 @@ void TextEditTabWidget::SlotRestoreTextEditorsCacheNow() {
             setTabIcon(page_index, QIcon(icon_name));
           }
 
-          page->GetTextPage()->document()->setPlainText(
-              content->ConvertToQString());
+          // Through the page, as BYTES: it is the only thing that records
+          // which line endings the content has, and a write straight to the
+          // document throws that away. A cache entry written before this was
+          // fixed simply has no CR in it, and comes back exactly as it did
+          // before -- there is nothing there to lose.
+          {
+            auto bytes = content->ConvertToQByteArray();
+            page->SetContentFromBytes(bytes);
+            WipeByteArray(bytes);
+          }
+
+          // SetContentFromBytes() leaves the document clean, which would say
+          // it matches a file on disk. A recovered tab matches nothing: it is
+          // unsaved work, and the asterisk and the close prompt depend on
+          // this saying so.
           page->GetTextPage()->document()->setModified(true);
           update_tab_modified_mark(page, true);
 
