@@ -233,7 +233,14 @@ class GlobalRegisterTableTreeModel::Impl {
         case 0:
           return node->name;
         case 1:
-          return node->leaf ? tr("Leaf") : tr("Namespace");
+          return node->leaf ? QCoreApplication::translate(
+                                  "GpgFrontend::Module::"
+                                  "GlobalRegisterTableTreeModel::Impl",
+                                  "Leaf")
+                            : QCoreApplication::translate(
+                                  "GpgFrontend::Module::"
+                                  "GlobalRegisterTableTreeModel::Impl",
+                                  "Namespace");
         case 2:
           return node->leaf ? node->value_type : QString();
         case 3:
@@ -261,23 +268,32 @@ class GlobalRegisterTableTreeModel::Impl {
    * @brief Human readable name of the type currently held by a value.
    */
   static auto Any2TypeName(const std::optional<std::any>& op) -> QString {
-    if (!op || !op->has_value()) return tr("Empty");
+    if (!op || !op->has_value())
+      return QCoreApplication::translate(
+          "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl", "Empty");
 
     const auto& o = op.value();
     if (o.type() == typeid(QString) || o.type() == typeid(std::string)) {
-      return tr("String");
+      return QCoreApplication::translate(
+          "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl", "String");
     }
-    if (o.type() == typeid(bool)) return tr("Boolean");
+    if (o.type() == typeid(bool))
+      return QCoreApplication::translate(
+          "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl", "Boolean");
     if (o.type() == typeid(int) || o.type() == typeid(long) ||
         o.type() == typeid(long long) || o.type() == typeid(unsigned) ||
         o.type() == typeid(unsigned long) ||
         o.type() == typeid(unsigned long long)) {
-      return tr("Integer");
+      return QCoreApplication::translate(
+          "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl", "Integer");
     }
     if (o.type() == typeid(float) || o.type() == typeid(double)) {
-      return tr("Number");
+      return QCoreApplication::translate(
+          "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl", "Number");
     }
-    return tr("Unsupported");
+    return QCoreApplication::translate(
+        "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl",
+        "Unsupported");
   }
 
   static auto Any2QVariant(std::optional<std::any> op) -> QVariant {
@@ -320,7 +336,9 @@ class GlobalRegisterTableTreeModel::Impl {
     if (o.type() == typeid(bool)) {
       return QVariant::fromValue(std::any_cast<bool>(o));
     }
-    return tr("<UNSUPPORTED>");
+    return QCoreApplication::translate(
+        "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl",
+        "<UNSUPPORTED>");
   }
 
   [[nodiscard]] auto Index(int row, int column, const QModelIndex& parent) const
@@ -355,15 +373,24 @@ class GlobalRegisterTableTreeModel::Impl {
     if (orientation == Qt::Horizontal) {
       switch (section) {
         case 0:
-          return tr("Key");
+          return QCoreApplication::translate(
+              "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl", "Key");
         case 1:
-          return tr("Type");
+          return QCoreApplication::translate(
+              "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl",
+              "Type");
         case 2:
-          return tr("Value Type");
+          return QCoreApplication::translate(
+              "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl",
+              "Value Type");
         case 3:
-          return tr("Value");
+          return QCoreApplication::translate(
+              "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl",
+              "Value");
         case 4:
-          return tr("Version");
+          return QCoreApplication::translate(
+              "GpgFrontend::Module::GlobalRegisterTableTreeModel::Impl",
+              "Version");
         default:
           return {};
       }

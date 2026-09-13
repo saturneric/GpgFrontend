@@ -537,8 +537,10 @@ auto ProfileSecureKeyManager::new_root_key(const GFBuffer& pin,
   if (!sealed) {
     LOG_E() << "encrypt app secure key failed, won't write it to disk";
     status = {ProfileKeyLoadStatus::kWRITE_FAILED,
-              QObject::tr("The secure key could not be encrypted, so it was "
-                          "not saved to disk.")};
+              QCoreApplication::translate(
+                  "QObject",
+                  "The secure key could not be encrypted, so it was "
+                  "not saved to disk.")};
     return plain_key;
   }
 
