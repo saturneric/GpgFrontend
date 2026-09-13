@@ -158,6 +158,38 @@ class TextEdit : public QWidget {
   [[nodiscard]] auto CurPlainTextForOperation() const -> QString;
 
   /**
+   * @brief The same, as the document's own bytes.
+   *
+   * Flushes the module view like CurPlainTextForOperation(), then hands back
+   * DocumentBytes() rather than text -- line endings included, exactly as the
+   * document holds them.
+   *
+   * For the operations that JUDGE content rather than produce it. A signature
+   * covers exact octets, so a verify has to be given the document as it is:
+   * normalizing first would answer for a repaired copy and report a good
+   * signature over a document that does not have one.
+   *
+   * @return The tab's bytes, or an empty array when there is no text page.
+   */
+  [[nodiscard]] auto CurDocumentBytesForOperation() const -> QByteArray;
+
+  /**
+   * @brief Hands a verification result to a page's mounted module view.
+   *
+   * Addressed to THAT page rather than to whichever is current when the answer
+   * arrives, for the same reason SetGFBuffer2Page() is: an operation's result
+   * comes back an unbounded time later, by which point the tab may have been
+   * switched away from or closed.
+   *
+   * A view that does not declare ApplyVerificationResult simply does not take
+   * part; the contract is additive.
+   *
+   * @return true when a view was given the result.
+   */
+  auto ApplyVerificationToPage(const QPointer<QWidget>& page,
+                               const QByteArray& payload) -> bool;
+
+  /**
    * @brief Returns the underlying tab widget.
    *
    * @return Pointer to the internal TextEditTabWidget.

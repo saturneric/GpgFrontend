@@ -390,16 +390,23 @@ auto TextEdit::MaybeSaveAnyTab() -> bool {
 namespace {
 
 /**
- * @brief Move a buffer's text into @p edit without leaving a copy behind.
+ * @brief Hand an operation's result bytes to @p page, leaving no copy behind.
  *
- * ConvertToQString() hands back an ordinary QString, which cannot be wiped once
- * it has been shared. Wiping the intermediate removes one of the two copies;
- * the document keeps its own, and only clearing the document releases that.
+ * Bytes rather than text, and through the page rather than into its editor:
+ * the page is what records which line endings the document has, and a write
+ * that goes straight to the QPlainTextEdit throws that away -- which is how a
+ * message signed over CRLF came back out as bare LF and stopped verifying.
+ *
+ * ConvertToQByteArray() hands back an ordinary QByteArray, which cannot be
+ * wiped once it has been shared. Wiping the intermediate removes one of the
+ * two copies; the document keeps its own, and only clearing the document
+ * releases that.
  */
-void SetPlainTextFromBuffer(QPlainTextEdit* edit, const GFBuffer& buffer) {
-  auto text = buffer.ConvertToQString();
-  edit->setPlainText(text);
-  WipeString(text);
+void SetOperationResultFromBuffer(PlainTextEditorPage* page,
+                                  const GFBuffer& buffer) {
+  auto bytes = buffer.ConvertToQByteArray();
+  page->SetOperationResultBytes(bytes);
+  WipeByteArray(bytes);
 }
 
 }  // namespace
@@ -415,17 +422,7 @@ void TextEdit::WipeAllTabs() {
 
 void TextEdit::SlotSetGFBuffer2CurTextPage(const GFBuffer& buffer) {
   if (CurTextPage() == nullptr) SlotNewTab();
-  auto* edit = CurTextPage()->GetTextPage();
-  SetPlainTextFromBuffer(edit, buffer);
-
-  // These bytes are the RESULT of an operation -- a signature, a ciphertext --
-  // and they exist nowhere but in this document. setPlainText() clears the
-  // modified flag, which would say the opposite: that the tab matches a file on
-  // disk. On an untitled tab there is no such file at all, and the flag is what
-  // makes the tab show its asterisk, prompt before closing, and be written to
-  // the recovery cache. Cleared, a freshly signed message is discarded on close
-  // without a word.
-  edit->document()->setModified(true);
+  SetOperationResultFromBuffer(CurTextPage(), buffer);
 }
 
 auto TextEdit::ClassifyResultTarget(bool page_alive, int tab_index,
@@ -453,13 +450,24 @@ auto TextEdit::SetGFBuffer2Page(const QPointer<QWidget>& page,
     return false;
   }
 
-  auto* edit = text_page->GetTextPage();
-  SetPlainTextFromBuffer(edit, buffer);
-
-  // See SlotSetGFBuffer2CurTextPage: these bytes exist nowhere but in this
-  // document, so the modified flag has to say so.
-  edit->document()->setModified(true);
+  SetOperationResultFromBuffer(text_page, buffer);
   return true;
+}
+
+auto TextEdit::ApplyVerificationToPage(const QPointer<QWidget>& page,
+                                       const QByteArray& payload) -> bool {
+  auto* text_page = qobject_cast<PlainTextEditorPage*>(page.data());
+  const auto target = ClassifyResultTarget(
+      !page.isNull(), page.isNull() ? -1 : tab_widget_->indexOf(page),
+      text_page != nullptr && text_page->GetTextPage() != nullptr);
+
+  if (target != ResultTarget::kDeliver) {
+    LOG_W() << "discarding a verification result; target state: "
+            << static_cast<int>(target);
+    return false;
+  }
+
+  return text_page->ApplyVerificationToPrimaryView(payload);
 }
 
 void TextEdit::SlotAppendText2CurTextPage(const QString& text) {
@@ -592,11 +600,11 @@ void TextEdit::SlotFillTextEditWithText(const QString& text) const {
 }
 
 void TextEdit::SlotFillTextEditWithText(const GFBuffer& buffer) const {
-  auto* edit = this->CurTextPage()->GetTextPage();
+  auto* page = this->CurTextPage();
+  auto* edit = page->GetTextPage();
   edit->setUndoRedoEnabled(false);
-  SetPlainTextFromBuffer(edit, buffer);
+  SetOperationResultFromBuffer(page, buffer);
   edit->setUndoRedoEnabled(true);
-  edit->document()->setModified(true);
 }
 
 void TextEdit::LoadFile(const QString& fileName) {
@@ -613,7 +621,15 @@ void TextEdit::LoadFile(const QString& fileName) {
   }
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  SetPlainTextFromBuffer(CurTextPage()->GetTextPage(), buffer);
+  // Through the page, not its editor: a file opened here keeps the line
+  // endings it has on disk, which is what lets a signed message it carries
+  // still verify. This one has a file behind it, so the document comes out
+  // clean rather than modified.
+  {
+    auto bytes = buffer.ConvertToQByteArray();
+    CurTextPage()->SetContentFromBytes(bytes);
+    WipeByteArray(bytes);
+  }
   QApplication::restoreOverrideCursor();
 
   CurPageTextEdit()->SetFilePath(fileName);
@@ -771,6 +787,17 @@ auto TextEdit::CurPlainTextForOperation() const -> QString {
   if (plain_text_tab == nullptr) return {};
   plain_text_tab->FlushPrimaryView();
   return plain_text_tab->GetPlainText();
+}
+
+auto TextEdit::CurDocumentBytesForOperation() const -> QByteArray {
+  auto* plain_text_tab = CurTextPage();
+  if (plain_text_tab == nullptr) return {};
+  plain_text_tab->FlushPrimaryView();
+
+  // DocumentBytes(), not the text: it puts back the line endings the document
+  // actually has, which for anything carrying a signature is the difference
+  // between the bytes that were signed and a rewrite of them.
+  return plain_text_tab->DocumentBytes();
 }
 
 auto TextEdit::TabWidget() const -> TextEditTabWidget* { return tab_widget_; }

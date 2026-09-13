@@ -136,6 +136,17 @@ class PlainTextEditorPage : public QWidget {
   auto AppendTextToPrimaryView(const QString& text) -> int;
 
   /**
+   * @brief Hands a verification result to the mounted view, if it takes one.
+   *
+   * Optional half of the page/view contract. The host performs the one
+   * verification there is; a structured view is what renders it, and this is
+   * how the answer reaches it.
+   *
+   * @return true when a view took the result.
+   */
+  auto ApplyVerificationToPrimaryView(const QByteArray& payload) -> bool;
+
+  /**
    * @brief Which crypto operations the mounted view says apply right now.
    *
    * An empty list means the view has no opinion -- either there is none, or
@@ -324,6 +335,20 @@ class PlainTextEditorPage : public QWidget {
    * caller that normalises line endings on the way in has already broken it.
    */
   void SetContentFromBytes(const QByteArray& bytes);
+
+  /**
+   * @brief Fills the document with the bytes an in-app operation produced.
+   *
+   * The other half of SetContentFromBytes(): same byte-exact handling of line
+   * endings, different history. These bytes are a decryption, a signature, a
+   * ciphertext -- they exist nowhere but in this document, so the page comes
+   * out MODIFIED rather than matching a file on disk.
+   *
+   * Named rather than a flag on SetContentFromBytes() because the two differ
+   * in what the document then is, not in a setting: one has a file behind it
+   * and one does not.
+   */
+  void SetOperationResultBytes(const QByteArray& bytes);
 
  signals:
   /**
@@ -522,6 +547,17 @@ class PlainTextEditorPage : public QWidget {
    * @param modified true if the document has unsaved changes, otherwise false.
    */
   void set_editor_modified(bool modified);
+
+  /**
+   * @brief Puts raw bytes into the document, remembering their line endings.
+   *
+   * The ONLY place is_crlf_ is decided. Recorded before the text goes in,
+   * because once it is in the document the evidence is gone: the editor
+   * stores bare LF either way, and a caller that wrote through the
+   * QPlainTextEdit directly silently threw the convention away -- which is
+   * what made a freshly signed message stop verifying.
+   */
+  void load_bytes_into_editor(const QByteArray& bytes);
 };
 
 }  // namespace GpgFrontend::UI

@@ -81,6 +81,27 @@ auto CurrentTabOperationPayload(TextEdit* edit) -> std::optional<GFBuffer> {
   return base64;
 }
 
+/// The current tab's content for a VERIFY, exactly as the document holds it.
+///
+/// Deliberately not CurrentTabOperationPayload(): that rewrites every line
+/// ending to CRLF, which is right for content about to be signed or encrypted
+/// and wrong for content about to be judged. A signature covers exact octets,
+/// so repairing them first answers a question about a document the user does
+/// not have -- a message whose line endings were rewritten after signing
+/// verified cleanly here while the message surface, reading the real bytes,
+/// called it a forgery. The bytes are judged as they stand; that they are no
+/// longer canonical is something the report says, not something it fixes.
+auto CurrentTabVerifyPayload(TextEdit* edit) -> std::optional<GFBuffer> {
+  auto bytes = edit->CurDocumentBytesForOperation();
+
+  GFBuffer buffer(bytes);
+  WipeByteArray(bytes);
+
+  auto base64 = GFBufferFactory::ToBase64(buffer);
+  if (!base64) return std::nullopt;
+  return base64;
+}
+
 }  // namespace
 
 void MainWindow::slot_find() {
@@ -578,7 +599,9 @@ void MainWindow::SlotCustomVerify(const QString& type) {
     return;
   }
 
-  auto sec_buf_base64 = CurrentTabOperationPayload(edit_);
+  // The document as it stands, not a canonicalized copy of it: see
+  // CurrentTabVerifyPayload.
+  auto sec_buf_base64 = CurrentTabVerifyPayload(edit_);
   if (!sec_buf_base64) return;
 
   GpgOperaHelper::WaitForOpera(
@@ -599,9 +622,26 @@ void MainWindow::SlotCustomVerify(const QString& type) {
               hd();
 
               // check if error occurred
-              if (handle_module_error(p)) return -1;
+              if (handle_module_error(p)) {
+                // The page asked for this and is waiting on it. Told that it
+                // ended, even though it ended with nothing: a request whose
+                // answer never arrives at all would leave the message surface
+                // unable to ask again.
+                edit_->ApplyVerificationToPage(page, {});
+                return -1;
+              }
 
               slot_refresh_info_board_from_module(p);
+
+              // The same answer the board above was just given, to the message
+              // surface that shows the badge and the attachment list. One
+              // verification, one result, every surface quoting it: the tab
+              // used to run a second verification of its own and the two
+              // regularly disagreed about the same message.
+              edit_->ApplyVerificationToPage(
+                  page, p.contains("verification")
+                            ? p.value("verification").ConvertToQByteArray()
+                            : QByteArray{});
 
               return 0;
             });

@@ -256,13 +256,33 @@ auto PlainTextEditorPage::GetPlainText() -> QString {
   return ui_->textPage->toPlainText();
 }
 
-void PlainTextEditorPage::SetContentFromBytes(const QByteArray &bytes) {
+void PlainTextEditorPage::load_bytes_into_editor(const QByteArray &bytes) {
   // Recorded before the text goes in, because once it is in the document the
   // evidence is gone: the editor stores bare LF either way.
   is_crlf_ = bytes.contains("\r\n");
 
   ui_->textPage->setPlainText(QString::fromUtf8(bytes));
+}
+
+void PlainTextEditorPage::SetContentFromBytes(const QByteArray &bytes) {
+  load_bytes_into_editor(bytes);
   ui_->textPage->document()->setModified(false);
+
+  read_done_ = true;
+  read_bytes_ = static_cast<size_t>(bytes.size());
+
+  update_status_bar();
+}
+
+void PlainTextEditorPage::SetOperationResultBytes(const QByteArray &bytes) {
+  load_bytes_into_editor(bytes);
+
+  // setPlainText() CLEARS the modified flag, which would say this document
+  // matches a file on disk. These bytes are the RESULT of an operation and
+  // exist nowhere else, so the flag is what makes the tab show its asterisk,
+  // prompt before closing, and be written to the recovery cache. Cleared, a
+  // freshly signed message is discarded on close without a word.
+  ui_->textPage->document()->setModified(true);
 
   read_done_ = true;
   read_bytes_ = static_cast<size_t>(bytes.size());
@@ -684,6 +704,22 @@ auto PlainTextEditorPage::AppendTextToPrimaryView(const QString &text) -> int {
   QMetaObject::invokeMethod(view, "AppendBodyText", Qt::DirectConnection,
                             Q_RETURN_ARG(int, result), Q_ARG(QString, text));
   return result;
+}
+
+auto PlainTextEditorPage::ApplyVerificationToPrimaryView(
+    const QByteArray &payload) -> bool {
+  if (primary_view_.isNull()) return false;
+
+  // Probed rather than assumed: the contract is additive, so a view that does
+  // not declare this member simply does not take part.
+  const auto *meta = primary_view_->metaObject();
+  if (meta->indexOfMethod("ApplyVerificationResult(QByteArray)") < 0) {
+    return false;
+  }
+
+  return QMetaObject::invokeMethod(
+      primary_view_.data(), "ApplyVerificationResult", Qt::DirectConnection,
+      Q_ARG(QByteArray, payload));
 }
 
 void PlainTextEditorPage::slot_primary_view_modified() {
