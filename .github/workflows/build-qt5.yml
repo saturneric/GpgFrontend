@@ -170,7 +170,7 @@ jobs:
       # rust-cache cannot locate the msys2/mingw cargo, so cache the registry and
       # Corrosion's target dir directly for the Windows build.
       - name: Cache Cargo (Windows)
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry/index
