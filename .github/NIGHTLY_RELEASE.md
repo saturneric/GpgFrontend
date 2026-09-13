@@ -22,6 +22,9 @@ from scratch.
 #### Good to know
 
 - Things may change or break between nightly builds, without warning.
+- Nightly downloads are much larger than official releases. They carry extra
+  debugging information, so crash reports are useful. The program itself runs
+  just as fast.
 - Please test it and tell us what you find: bug reports and ideas go to GitHub
   Issues, or write to the maintainer directly.
 
