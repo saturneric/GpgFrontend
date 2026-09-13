@@ -4,16 +4,16 @@ and not for anything you can't afford to lose.
 
 #### Why nightly builds?
 
-They let you try new features and fixes right away — often within days of a
+They let you try new features and fixes right away, often within days of a
 request or bug report, instead of waiting for the next official release.
 
 #### Which file do I download?
 
 There are two kinds (macOS has **installed** only):
 
-- **installed** — the normal choice. Your keys and settings are stored in the
+- **installed**: the normal choice. Your keys and settings are stored in the
   usual place for your system.
-- **portable** — everything is stored next to the application, so it can run
+- **portable**: everything is stored next to the application, so it can run
   from a USB stick. Anyone holding that stick has your keys, so keep it safe.
 
 The two do not share data. Switching from one to the other looks like starting
@@ -22,7 +22,7 @@ from scratch.
 #### Good to know
 
 - Things may change or break between nightly builds, without warning.
-- Please test and tell us what you find — bug reports and ideas go to GitHub
+- Please test it and tell us what you find: bug reports and ideas go to GitHub
   Issues, or write to the maintainer directly.
 
 #### Signatures and checksums
