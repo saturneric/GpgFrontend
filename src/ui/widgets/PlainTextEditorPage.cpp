@@ -190,8 +190,11 @@ QWidget#PlainTextEditorPage QLabel[loading="true"] {
 
 void PlainTextEditorPage::set_loading_state(bool loading,
                                             const QString &message) {
-  ui_->loadingLabel->setHidden(!loading);
-  ui_->sha256Label->setHidden(loading);
+  // The whole status row stays collapsed once a module view is mounted (see
+  // MountPrimaryView()), loading or not.
+  const bool status_row_hidden = !primary_view_.isNull();
+  ui_->loadingLabel->setHidden(status_row_hidden || !loading);
+  ui_->sha256Label->setHidden(status_row_hidden || loading);
   ui_->loadingLabel->setProperty("loading", loading);
   ui_->loadingLabel->style()->unpolish(ui_->loadingLabel);
   ui_->loadingLabel->style()->polish(ui_->loadingLabel);
@@ -205,6 +208,11 @@ void PlainTextEditorPage::set_loading_state(bool loading,
 }
 
 void PlainTextEditorPage::update_status_bar() {
+  // Collapsed for good once a module view is mounted (see MountPrimaryView())
+  // -- line/column, char count and line-ending all describe the raw editor
+  // text, which nobody is looking at behind that view.
+  if (!primary_view_.isNull()) return;
+
   const auto char_count =
       std::max(0, ui_->textPage->document()->characterCount() - 1);
 
@@ -339,6 +347,10 @@ void PlainTextEditorPage::slot_format_gpg_header() {
 
 void PlainTextEditorPage::slot_update_sha256() {
   if (!read_done_) return;
+
+  // Hidden behind a mounted module view (see MountPrimaryView()) -- skip the
+  // full-document hash, there is no label left to show it in.
+  if (!primary_view_.isNull()) return;
 
   const auto *doc = ui_->textPage->document();
   const auto result = GFBufferFactory::ToSha256(
@@ -485,6 +497,22 @@ auto PlainTextEditorPage::MountPrimaryView(QWidget *view) -> bool {
 
   primary_view_ = view;
   view->setParent(this);
+
+  // A mounted module view (currently just email) replaces the raw editor as
+  // what the tab is actually about: line/column, char count, line-ending and
+  // checksum all describe the raw editor text, which nobody is looking at
+  // behind that view. Collapse the whole status row rather than leave an
+  // empty strip -- shrink the spacer and margins along with the labels, or
+  // the row keeps its height even with every label hidden.
+  ui_->loadingLabel->setHidden(true);
+  ui_->sha256Label->setHidden(true);
+  ui_->characterLabel->setHidden(true);
+  ui_->lfLabel->setHidden(true);
+  ui_->encodingLabel->setHidden(true);
+  ui_->horizontalSpacer->changeSize(0, 0, QSizePolicy::Fixed,
+                                    QSizePolicy::Fixed);
+  ui_->horizontalLayout->setContentsMargins(0, 0, 0, 0);
+  ui_->horizontalLayout->invalidate();
 
   // A view may present the raw document itself, as one more tab beside its own
   // rather than behind a switcher the page puts above it. It is handed the
