@@ -56,13 +56,5 @@ target_include_directories(gf_sdk_c_abi_check PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR})
 
-# gpgme.h is still on GFSDKGpg.h's include path.
-if(GNUPG_DEPS_BUILT)
-  get_target_property(_gnupg_incs GnuPGDeps INTERFACE_INCLUDE_DIRECTORIES)
-  if(_gnupg_incs)
-    target_include_directories(gf_sdk_c_abi_check PRIVATE ${_gnupg_incs})
-  endif()
-endif()
-
 # Built as part of the normal build, so the check cannot be skipped.
 add_dependencies(${LIBRARY_TARGET} gf_sdk_c_abi_check)
