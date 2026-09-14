@@ -32,6 +32,7 @@
 
 #include "core/module/GlobalModuleContext.h"
 #include "core/utils/CommonUtils.h"
+#include "sdk/GFSDKBuildInfo.h"
 #include "sdk/GFSDKModuleModel.h"
 #include "utils/BuildInfoUtils.h"
 
@@ -95,6 +96,21 @@ class Module::Impl {
       LOG_W() << "uncompatible module: " << identifier_
               << ", reason sdk version: " << gf_sdk_ver_
               << "current sdk version: " << GetProjectVersion() << ", abort...";
+      return;
+    }
+
+    // The ABI gate proper. The version comparison above is one-sided: it only
+    // rejects a module built against a NEWER sdk, so a stale module built
+    // against an older ABI passed it, loaded, and then crashed on the first
+    // changed entry point. A floor is what actually prevents that.
+    sdk_abi_ver_ = get_sdk_abi_api_();
+    if (sdk_abi_ver_ < GF_SDK_ABI_MIN_SUPPORTED ||
+        sdk_abi_ver_ > GF_SDK_ABI_VERSION) {
+      LOG_W() << "incompatible module: " << identifier_
+              << ", reason module sdk abi version: " << sdk_abi_ver_
+              << ", but this application supports ["
+              << GF_SDK_ABI_MIN_SUPPORTED << ", " << GF_SDK_ABI_VERSION
+              << "]; rebuild the module against this sdk, abort...";
       return;
     }
 
@@ -221,7 +237,10 @@ class Module::Impl {
 
   bool good_;
 
+  int sdk_abi_ver_ = 0;
+
   GFModuleAPIGetModuleGFSDKVersion get_sdk_ver_api_;
+  GFModuleAPIGetModuleSDKABIVersion get_sdk_abi_api_;
   GFModuleAPIGetModuleQtEnvVersion get_qt_ver_api_;
 
   GFModuleAPIGetModuleID get_id_api_;
@@ -240,6 +259,8 @@ class Module::Impl {
 
   QContainer<Symbol> module_required_symbols_ = {
       {"GFGetModuleGFSDKVersion", reinterpret_cast<void**>(&get_sdk_ver_api_)},
+      {"GFGetModuleGFSDKABIVersion",
+       reinterpret_cast<void**>(&get_sdk_abi_api_)},
       {"GFGetModuleQtEnvVersion", reinterpret_cast<void**>(&get_qt_ver_api_)},
       {"GFGetModuleID", reinterpret_cast<void**>(&get_id_api_)},
       {"GFGetModuleVersion", reinterpret_cast<void**>(&get_version_api_)},
