@@ -37,6 +37,15 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Success, in the gpg error space.
+ *
+ * Spelled here rather than taken from <gpg-error.h> so that a module needs no
+ * GnuPG headers at all to talk to the SDK. The value is fixed by the gpg
+ * error encoding, and the rPGP engine reports through the same space.
+ */
+#define GF_GPG_ERR_NO_ERROR 0U
+
 
 
 
