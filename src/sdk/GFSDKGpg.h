@@ -444,10 +444,6 @@ GF_SDK_EXPORT int GFGpgListKeyAddresses(int channel, int secret_only,
  */
 GF_SDK_EXPORT void GFGpgFreeStringArray(char** strings, int count);
 
-
-
-
-
 /**
  * @brief Analyses an encryption result referenced by capsule ID.
  *

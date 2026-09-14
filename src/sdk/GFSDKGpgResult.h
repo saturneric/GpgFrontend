@@ -37,13 +37,13 @@
  * @file GFSDKGpgResult.h
  * @brief Opaque results and lists for the gpg operations.
  *
- * WHAT THIS REPLACES, AND WHY. The older GFGpgSignResult / GFGpgEncryptionResult
- * / GFGpgDecryptResult / GFGpgVerifyResult are plain structs whose every char*
- * member the caller must reclaim individually, in the right order, on every
- * path including the error paths. Correctness depended on remembering each
- * field of each struct, and it did not survive contact: the verify success
- * path forgot error_string and leaked it once per signed region for as long as
- * the code existed, which ASan later confirmed.
+ * WHAT THIS REPLACES, AND WHY. The older GFGpgSignResult /
+ * GFGpgEncryptionResult / GFGpgDecryptResult / GFGpgVerifyResult are plain
+ * structs whose every char* member the caller must reclaim individually, in the
+ * right order, on every path including the error paths. Correctness depended on
+ * remembering each field of each struct, and it did not survive contact: the
+ * verify success path forgot error_string and leaked it once per signed region
+ * for as long as the code existed, which ASan later confirmed.
  *
  * Here there is exactly ONE release per owned object and NO per-field free at
  * all, so that entire class of bug is unwritable rather than merely fixed.
@@ -94,8 +94,8 @@ typedef enum {
 
 /** @brief Sign @p in. @p sign_mode 0 = inline, 1 = detached. */
 GF_SDK_EXPORT int GFGpgSign(int channel, const char* const* key_ids,
-                            size_t key_ids_size, GFBufferView in,
-                            int sign_mode, int ascii, GFGpgResultRef* out);
+                            size_t key_ids_size, GFBufferView in, int sign_mode,
+                            int ascii, GFGpgResultRef* out);
 
 /** @brief Encrypt @p in to @p key_ids. */
 GF_SDK_EXPORT int GFGpgEncrypt(int channel, const char* const* key_ids,
@@ -144,8 +144,7 @@ GF_SDK_EXPORT const char* GFGpgResultHashAlgo(GFGpgResultRef r);
  * The only accessor here that transfers, and named to say so. Afterwards
  * GFGpgResultData returns NULL. Release the returned handle yourself.
  */
-GF_SDK_EXPORT GF_SDK_MUST_USE GFBufferRef
-GFGpgResultTakeData(GFGpgResultRef r);
+GF_SDK_EXPORT GF_SDK_MUST_USE GFBufferRef GFGpgResultTakeData(GFGpgResultRef r);
 
 /** @brief The one teardown. Releases every field with it. NULL-safe. */
 GF_SDK_EXPORT void GFGpgResultRelease(GFGpgResultRef r);

@@ -61,7 +61,8 @@ class GFGpgResult {
   GFGpgResult(const GFGpgResult&) = delete;
   auto operator=(const GFGpgResult&) -> GFGpgResult& = delete;
 
-  GFGpgResult(GFGpgResult&& o) noexcept : ref_(std::exchange(o.ref_, nullptr)) {}
+  GFGpgResult(GFGpgResult&& o) noexcept
+      : ref_(std::exchange(o.ref_, nullptr)) {}
 
   auto operator=(GFGpgResult&& o) noexcept -> GFGpgResult& {
     if (this != &o) {
@@ -83,7 +84,9 @@ class GFGpgResult {
   [[nodiscard]] auto Ok() const -> bool { return Status() == GF_GPG_OK; }
   [[nodiscard]] explicit operator bool() const { return ref_ != nullptr; }
 
-  [[nodiscard]] auto Error() const -> uint32_t { return GFGpgResultError(ref_); }
+  [[nodiscard]] auto Error() const -> uint32_t {
+    return GFGpgResultError(ref_);
+  }
 
   /// Borrowed; dies with this object. Use TakeData() to outlive it.
   [[nodiscard]] auto Data() const -> GFBufferView {

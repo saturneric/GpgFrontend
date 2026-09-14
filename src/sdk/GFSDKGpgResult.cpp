@@ -133,8 +133,7 @@ auto FailOperation(GFGpgResultImpl* impl, GpgFrontend::GFError err,
                    GFGpgResultRef* out) -> int {
   impl->status = GF_GPG_OP_FAILED;
   impl->gpgme_error = static_cast<uint32_t>(err);
-  impl->error_string =
-      GpgFrontend::DescribeGpgErrCode(err).second.toUtf8();
+  impl->error_string = GpgFrontend::DescribeGpgErrCode(err).second.toUtf8();
   *out = impl;
   return GF_GPG_OP_FAILED;
 }
@@ -167,11 +166,10 @@ void Finish(GFGpgResultImpl* impl, const ResultT& result,
             const GpgFrontend::GFBuffer& out_buffer, GpgFrontend::GFError err) {
   impl->status = GF_GPG_OK;
   impl->gpgme_error = static_cast<uint32_t>(err);
-  impl->capsule_id =
-      GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result)
-          .toUtf8();
-  impl->error_string =
-      GpgFrontend::DescribeGpgErrCode(err).second.toUtf8();
+  impl->capsule_id = GpgFrontend::UI::UIModuleManager::GetInstance()
+                         .MakeCapsule(result)
+                         .toUtf8();
+  impl->error_string = GpgFrontend::DescribeGpgErrCode(err).second.toUtf8();
   impl->data = GFBufferNewFromBytes(out_buffer.Data(), out_buffer.Size());
 }
 
