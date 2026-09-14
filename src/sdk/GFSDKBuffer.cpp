@@ -28,14 +28,12 @@
 
 #include "GFSDKBuffer.h"
 
-#include <QHash>
-#include <QMutex>
-#include <QMutexLocker>
 #include <cstdint>
 #include <new>
 
 #include "core/model/GFBuffer.h"
 #include "core/utils/MemoryUtils.h"
+#include "private/GFSDKHandleRegistry.h"
 #include "private/GFSDKPrivat.h"
 
 namespace {
@@ -67,69 +65,6 @@ struct AllocationSite {
   QString module_id;
 };
 
-/**
- * @brief The live-handle registry: the authority on whether a handle is real.
- *
- * Validation is a lookup on the POINTER VALUE. It never dereferences the
- * candidate, because reading a magic word out of a released handle would
- * itself be undefined behaviour -- exactly what ASan traps, and able to read
- * anything at all once the allocator reuses the block. The magic word inside
- * the struct is only a secondary consistency check, applied after the handle
- * is already known live, and it catches corruption rather than use-after-free.
- *
- * This mirrors SecureMemoryAllocator::take_info_if_tracked +
- * report_invalid_free, which already decide validity from a registry rather
- * than from the block's contents.
- *
- * What this does NOT do: make concurrent release safe. The mutex protects the
- * hash, nothing more. Once Lookup returns and the lock is dropped, another
- * thread may release the same handle and the pointer dangles. Borrowed-view
- * lifetime is an ownership rule, not a locking one -- see GFSDKBuffer.h.
- * ASan/UBSan remains the real use-after-free backstop.
- */
-class BufferRegistry {
- public:
-  static auto Instance() -> BufferRegistry& {
-    static BufferRegistry instance;
-    return instance;
-  }
-
-  void Register(GFBufferImpl* impl, const QString& module_id) {
-    QMutexLocker locker(&mutex_);
-    live_.insert(impl, AllocationSite{module_id});
-  }
-
-  /// True when @p handle is a handle we issued and have not released.
-  /// Decided without touching the pointed-to memory.
-  [[nodiscard]] auto IsLive(const GFBufferImpl* handle) -> bool {
-    if (handle == nullptr) return false;
-    QMutexLocker locker(&mutex_);
-    return live_.contains(const_cast<GFBufferImpl*>(handle));
-  }
-
-  /// Removes @p handle and reports whether it was ours to remove.
-  auto Take(GFBufferImpl* handle) -> bool {
-    if (handle == nullptr) return false;
-    QMutexLocker locker(&mutex_);
-    return live_.remove(handle) > 0;
-  }
-
-  [[nodiscard]] auto Count(const QString& module_id) -> size_t {
-    QMutexLocker locker(&mutex_);
-    if (module_id.isNull()) return static_cast<size_t>(live_.size());
-
-    size_t n = 0;
-    for (auto it = live_.constBegin(); it != live_.constEnd(); ++it) {
-      if (it.value().module_id == module_id) ++n;
-    }
-    return n;
-  }
-
- private:
-  QMutex mutex_;
-  QHash<GFBufferImpl*, AllocationSite> live_;
-};
-
 void ReportStaleHandle(const void* handle, const char* what) {
   LOG_W() << "GFSDKBuffer:" << what
           << "called on a handle that is not live (already released, or never "
@@ -143,7 +78,7 @@ void ReportStaleHandle(const void* handle, const char* what) {
 /// Validate then dereference, never the other way around.
 auto ResolveLive(GFBufferView buf, const char* what) -> const GFBufferImpl* {
   if (buf == nullptr) return nullptr;
-  if (!BufferRegistry::Instance().IsLive(buf)) {
+  if (!GFHandleRegistry<GFBufferImpl>::Instance().IsLive(buf)) {
     ReportStaleHandle(buf, what);
     return nullptr;
   }
@@ -165,7 +100,7 @@ auto GFBufferNewFromBytes(const void* data, size_t size) -> GFBufferRef {
     if (mem == nullptr) return nullptr;
 
     auto* impl = new (mem) GFBufferImpl(std::move(buffer));
-    BufferRegistry::Instance().Register(impl, QString());
+    GFHandleRegistry<GFBufferImpl>::Instance().Register(impl, QString());
     return impl;
   } catch (...) {
     // No C++ exception may cross the C ABI.
@@ -197,7 +132,7 @@ void GFBufferRelease(GFBufferRef buf) {
 
   // Registry first: a pointer we never issued, or already reclaimed, must not
   // be dereferenced at all.
-  if (!BufferRegistry::Instance().Take(buf)) {
+  if (!GFHandleRegistry<GFBufferImpl>::Instance().Take(buf)) {
     ReportStaleHandle(buf, "GFBufferRelease");
     return;
   }
@@ -208,6 +143,6 @@ void GFBufferRelease(GFBufferRef buf) {
 }
 
 auto GFBufferOutstandingCount(const char* module_id) -> size_t {
-  return BufferRegistry::Instance().Count(
+  return GFHandleRegistry<GFBufferImpl>::Instance().Count(
       module_id == nullptr ? QString() : QString::fromUtf8(module_id));
 }

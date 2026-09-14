@@ -444,79 +444,9 @@ GF_SDK_EXPORT int GFGpgListKeyAddresses(int channel, int secret_only,
  */
 GF_SDK_EXPORT void GFGpgFreeStringArray(char** strings, int count);
 
-/**
- * @brief Analyses a GPGME encryption result and produces a human-readable
- *        report.
- *
- * @param channel       GPG context channel index.
- * @param err           GPGME error code from the encrypt operation.
- * @param result        GPGME encryption result handle.
- * @param[out] analyse  Set to a caller-owned string with the analysis report;
- *                      free with GFFreeMemory.
- * @param[out] cards    Optional; when non-null, set to a caller-owned JSON
- *                      array string of Info Board cards for the result (free
- *                      with GFFreeMemory). Pass nullptr to skip.
- * @return Status code: positive on success, negative on detected errors.
- */
-GF_SDK_EXPORT int GFAnalyseEncryptResult(int channel, gpgme_error_t err,
-                                         gpgme_encrypt_result_t result,
-                                         const char** analyse,
-                                         const char** cards);
 
-/**
- * @brief Analyses a GPGME signing result and produces a human-readable report.
- *
- * @param channel       GPG context channel index.
- * @param err           GPGME error code from the sign operation.
- * @param result        GPGME sign result handle.
- * @param[out] analyse  Set to a caller-owned string with the analysis report;
- *                      free with GFFreeMemory.
- * @param[out] cards    Optional; when non-null, set to a caller-owned JSON
- *                      array string of Info Board cards for the result (free
- *                      with GFFreeMemory). Pass nullptr to skip.
- * @return Status code: positive on success, negative on detected errors.
- */
-GF_SDK_EXPORT int GFAnalyseSignResult(int channel, gpgme_error_t err,
-                                      gpgme_sign_result_t result,
-                                      const char** analyse, const char** cards);
 
-/**
- * @brief Analyses a GPGME decryption result and produces a human-readable
- *        report.
- *
- * @param channel       GPG context channel index.
- * @param err           GPGME error code from the decrypt operation.
- * @param result        GPGME decrypt result handle.
- * @param[out] analyse  Set to a caller-owned string with the analysis report;
- *                      free with GFFreeMemory.
- * @param[out] cards    Optional; when non-null, set to a caller-owned JSON
- *                      array string of Info Board cards for the result (free
- *                      with GFFreeMemory). Pass nullptr to skip.
- * @return Status code: positive on success, negative on detected errors.
- */
-GF_SDK_EXPORT int GFAnalyseDecryptResult(int channel, gpgme_error_t err,
-                                         gpgme_decrypt_result_t result,
-                                         const char** analyse,
-                                         const char** cards);
 
-/**
- * @brief Analyses a GPGME verification result and produces a human-readable
- *        report.
- *
- * @param channel       GPG context channel index.
- * @param err           GPGME error code from the verify operation.
- * @param result        GPGME verify result handle.
- * @param[out] analyse  Set to a caller-owned string with the analysis report;
- *                      free with GFFreeMemory.
- * @param[out] cards    Optional; when non-null, set to a caller-owned JSON
- *                      array string of Info Board cards for the result (free
- *                      with GFFreeMemory). Pass nullptr to skip.
- * @return Status code: positive on success, negative on detected errors.
- */
-GF_SDK_EXPORT int GFAnalyseVerifyResult(int channel, gpgme_error_t err,
-                                        gpgme_verify_result_t result,
-                                        const char** analyse,
-                                        const char** cards);
 
 /**
  * @brief Analyses an encryption result referenced by capsule ID.

@@ -418,55 +418,6 @@ auto GFGpgFreeResult(void* r) -> void {
   gpgme_result_unref(r);
 }
 
-auto GFAnalyseEncryptResult(int channel, gpgme_error_t err,
-                            gpgme_encrypt_result_t result, const char** analyse,
-                            const char** cards) -> int {
-  if (result == nullptr || analyse == nullptr) return -1;
-
-  GpgFrontend::GpgEncryptResult result_obj(result);
-  GpgFrontend::GpgEncryptResultAnalyse ra(channel, err, result_obj);
-  ra.Analyse();
-  *analyse = GFStrDup(ra.GetResultReport());
-  EmitResultCards(ra.GetOpInfo(), cards);
-  return ra.GetStatus();
-}
-
-auto GFAnalyseDecryptResult(int channel, gpgme_error_t err,
-                            gpgme_decrypt_result_t result, const char** analyse,
-                            const char** cards) -> int {
-  if (result == nullptr || analyse == nullptr) return -1;
-  GpgFrontend::GpgDecryptResult result_obj(result);
-  GpgFrontend::GpgDecryptResultAnalyse ra(channel, err, result_obj);
-  ra.Analyse();
-  *analyse = GFStrDup(ra.GetResultReport());
-  EmitResultCards(ra.GetOpInfo(), cards);
-  return ra.GetStatus();
-}
-
-auto GFAnalyseSignResult(int channel, gpgme_error_t err,
-                         gpgme_sign_result_t result, const char** analyse,
-                         const char** cards) -> int {
-  if (result == nullptr || analyse == nullptr) return -1;
-  GpgFrontend::GpgSignResult result_obj(result);
-  GpgFrontend::GpgSignResultAnalyse ra(channel, err, result_obj);
-  ra.Analyse();
-  *analyse = GFStrDup(ra.GetResultReport());
-  EmitResultCards(ra.GetOpInfo(), cards);
-  return ra.GetStatus();
-}
-
-auto GFAnalyseVerifyResult(int channel, gpgme_error_t err,
-                           gpgme_verify_result_t result, const char** analyse,
-                           const char** cards) -> int {
-  if (result == nullptr || analyse == nullptr) return -1;
-  GpgFrontend::GpgVerifyResult result_obj(result);
-  GpgFrontend::GpgVerifyResultAnalyse ra(channel, err, result_obj);
-  ra.Analyse();
-  *analyse = GFStrDup(ra.GetResultReport());
-  EmitResultCards(ra.GetOpInfo(), cards);
-  return ra.GetStatus();
-}
-
 namespace {
 
 // Engine-neutral analysis. The raw gpgme_*_result handles only exist for the
