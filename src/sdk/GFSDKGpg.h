@@ -30,75 +30,16 @@
 
 #include "GFSDKVisibility.h"
 
-#include <gpgme.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/**
- * @brief Result of a GPG sign operation.
- *
- * Allocated by GFGpgSignData and must be freed with GFFreeMemory.
- * The embedded @p gpgme_sign_result reference must be released with
- * GFGpgFreeResult before freeing this struct.
- */
-typedef struct GFGpgSignResult {
-  char* signature;            ///< Signed/armored output data.
-  size_t signature_size;      ///< Exact length of @p signature in bytes.
-  char* hash_algo;            ///< Hash algorithm used (e.g. "SHA256").
-  char* capsule_id;           ///< Opaque ID for UI capsule access.
-  char* error_string;         ///< Human-readable error description.
-  gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
-  gpgme_sign_result_t gpgme_sign_result;  ///< Ref-counted GPGME result handle.
-} GFGpgSignResult;
 
-/**
- * @brief Result of a GPG encrypt operation.
- *
- * Allocated by GFGpgEncryptData and must be freed with GFFreeMemory.
- * Release @p gpgme_encrypt_result with GFGpgFreeResult before freeing.
- */
-typedef struct GFGpgEncryptionResult {
-  char* encrypted_data;        ///< Encrypted output data.
-  size_t encrypted_data_size;  ///< Exact length of @p encrypted_data.
-  char* capsule_id;            ///< Opaque ID for UI capsule access.
-  char* error_string;          ///< Human-readable error description.
-  gpgme_error_t gpgme_error;   ///< Raw GPGME error code.
-  gpgme_encrypt_result_t
-      gpgme_encrypt_result;  ///< Ref-counted GPGME result handle.
-} GFGpgEncryptionResult;
 
-/**
- * @brief Result of a GPG decrypt operation.
- *
- * Allocated by GFGpgDecryptData and must be freed with GFFreeMemory.
- * Release @p gpgme_decrypt_result with GFGpgFreeResult before freeing.
- */
-typedef struct GFGpgDecryptResult {
-  char* decrypted_data;        ///< Plaintext output data.
-  size_t decrypted_data_size;  ///< Exact length of @p decrypted_data.
-  char* capsule_id;            ///< Opaque ID for UI capsule access.
-  char* error_string;          ///< Human-readable error description.
-  gpgme_error_t gpgme_error;   ///< Raw GPGME error code.
-  gpgme_decrypt_result_t
-      gpgme_decrypt_result;  ///< Ref-counted GPGME result handle.
-} GFGpgDecryptResult;
 
-/**
- * @brief Result of a GPG signature verification operation.
- *
- * Allocated by GFGpgVerifyData and must be freed with GFFreeMemory.
- * Release @p gpgme_verify_result with GFGpgFreeResult before freeing.
- */
-typedef struct GFGpgVerifyResult {
-  char* capsule_id;           ///< Opaque ID for UI capsule access.
-  char* error_string;         ///< Human-readable error description.
-  gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
-  gpgme_verify_result_t
-      gpgme_verify_result;  ///< Ref-counted GPGME result handle.
-} GFGpgVerifyResult;
 
 /**
  * @brief A User ID (UID) associated with a GPG key.
@@ -295,7 +236,7 @@ typedef struct GFGpgEncRecipient {
  *         the capsule is missing or of an unexpected type.
  */
 GF_SDK_EXPORT int GFAnalyseEncryptResultByCapsule(int channel,
-                                                  gpgme_error_t err,
+                                                  uint32_t err,
                                                   const char* capsule_id,
                                                   const char** analyse,
                                                   const char** cards);
@@ -307,7 +248,7 @@ GF_SDK_EXPORT int GFAnalyseEncryptResultByCapsule(int channel,
  * GFAnalyseEncryptResultByCapsule for the rationale and ownership rules; the
  * capsule comes from GFGpgSignResult::capsule_id.
  */
-GF_SDK_EXPORT int GFAnalyseSignResultByCapsule(int channel, gpgme_error_t err,
+GF_SDK_EXPORT int GFAnalyseSignResultByCapsule(int channel, uint32_t err,
                                                const char* capsule_id,
                                                const char** analyse,
                                                const char** cards);
@@ -320,7 +261,7 @@ GF_SDK_EXPORT int GFAnalyseSignResultByCapsule(int channel, gpgme_error_t err,
  * capsule comes from GFGpgDecryptResult::capsule_id.
  */
 GF_SDK_EXPORT int GFAnalyseDecryptResultByCapsule(int channel,
-                                                  gpgme_error_t err,
+                                                  uint32_t err,
                                                   const char* capsule_id,
                                                   const char** analyse,
                                                   const char** cards);
@@ -332,7 +273,7 @@ GF_SDK_EXPORT int GFAnalyseDecryptResultByCapsule(int channel,
  * GFAnalyseEncryptResultByCapsule for the rationale and ownership rules; the
  * capsule comes from GFGpgVerifyResult::capsule_id.
  */
-GF_SDK_EXPORT int GFAnalyseVerifyResultByCapsule(int channel, gpgme_error_t err,
+GF_SDK_EXPORT int GFAnalyseVerifyResultByCapsule(int channel, uint32_t err,
                                                  const char* capsule_id,
                                                  const char** analyse,
                                                  const char** cards);
@@ -374,7 +315,7 @@ GF_SDK_EXPORT int GFAnalyseVerifyResultByCapsule(int channel, gpgme_error_t err,
  * "validity" mirrors GpgFrontend::GpgSigValidity.
  */
 GF_SDK_EXPORT int GFAnalyseVerifyResultInfoByCapsule(
-    int channel, gpgme_error_t err, const char* capsule_id, const char** analyse,
+    int channel, uint32_t err, const char* capsule_id, const char** analyse,
     const char** cards, const char** info_json);
 
 /**
@@ -382,7 +323,7 @@ GF_SDK_EXPORT int GFAnalyseVerifyResultInfoByCapsule(
  * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
  */
 GF_SDK_EXPORT int GFAnalyseSignResultInfoByCapsule(
-    int channel, gpgme_error_t err, const char* capsule_id, const char** analyse,
+    int channel, uint32_t err, const char* capsule_id, const char** analyse,
     const char** cards, const char** info_json);
 
 /**
@@ -390,7 +331,7 @@ GF_SDK_EXPORT int GFAnalyseSignResultInfoByCapsule(
  * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
  */
 GF_SDK_EXPORT int GFAnalyseEncryptResultInfoByCapsule(
-    int channel, gpgme_error_t err, const char* capsule_id, const char** analyse,
+    int channel, uint32_t err, const char* capsule_id, const char** analyse,
     const char** cards, const char** info_json);
 
 /**
@@ -398,7 +339,7 @@ GF_SDK_EXPORT int GFAnalyseEncryptResultInfoByCapsule(
  * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
  */
 GF_SDK_EXPORT int GFAnalyseDecryptResultInfoByCapsule(
-    int channel, gpgme_error_t err, const char* capsule_id, const char** analyse,
+    int channel, uint32_t err, const char* capsule_id, const char** analyse,
     const char** cards, const char** info_json);
 
 #ifdef __cplusplus
