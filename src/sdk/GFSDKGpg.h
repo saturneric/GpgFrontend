@@ -111,62 +111,9 @@ typedef struct GFGpgKeyUID {
   char* comment;  ///< Optional comment from the UID packet.
 } GFGpgKeyUID;
 
-/**
- * @brief Signs data using one or more GPG keys.
- *
- * @param channel      GPG context channel index.
- * @param key_ids      Array of key fingerprints or IDs to sign with.
- * @param key_ids_size Number of entries in @p key_ids.
- * @param data         Null-terminated plaintext to sign.
- * @param sign_mode    0 for normal (inline) signature, 1 for detached.
- * @param ascii        Non-zero to produce ASCII-armored output.
- * @param[out] result  Set to a newly allocated GFGpgSignResult on success.
- * @return 0 on success, -1 on failure (result->error_string is set).
- */
-GF_SDK_EXPORT int GFGpgSignData(int channel, char** key_ids, int key_ids_size,
-                                char* data, int sign_mode, int ascii,
-                                GFGpgSignResult** result);
 
-/**
- * @brief Encrypts data for one or more recipients.
- *
- * @param channel      GPG context channel index.
- * @param key_ids      Array of recipient key fingerprints or IDs.
- * @param key_ids_size Number of entries in @p key_ids.
- * @param data         Null-terminated plaintext to encrypt.
- * @param ascii        Non-zero to produce ASCII-armored output.
- * @param[out] result  Set to a newly allocated GFGpgEncryptionResult on
- * success.
- * @return 0 on success, -1 on failure (result->error_string is set).
- */
-GF_SDK_EXPORT int GFGpgEncryptData(int channel, char** key_ids,
-                                   int key_ids_size, char* data, int ascii,
-                                   GFGpgEncryptionResult** result);
 
-/**
- * @brief Decrypts GPG-encrypted data using available secret keys.
- *
- * @param channel     GPG context channel index.
- * @param data        Null-terminated encrypted (PGP) message.
- * @param[out] result Set to a newly allocated GFGpgDecryptResult.
- * @return 0 on success, -1 on failure.
- */
-GF_SDK_EXPORT int GFGpgDecryptData(int channel, char* data,
-                                   GFGpgDecryptResult** result);
 
-/**
- * @brief Verifies a detached or inline GPG signature.
- *
- * @param channel      GPG context channel index.
- * @param data         Null-terminated original plaintext (for detached sig)
- *                     or signed message (for inline sig).
- * @param signature    Null-terminated detached signature data; pass an empty
- *                     string for inline/clearsign messages.
- * @param[out] result  Set to a newly allocated GFGpgVerifyResult.
- * @return 0 on success, -1 on failure.
- */
-GF_SDK_EXPORT int GFGpgVerifyData(int channel, char* data, char* signature,
-                                  GFGpgVerifyResult** result);
 
 /* --- binary-safe entry points ---------------------------------------------
  *
@@ -190,28 +137,9 @@ GF_SDK_EXPORT int GFGpgVerifyData(int channel, char* data, char* signature,
  * callers that treat it as text, but the size is authoritative.
  */
 
-/** @brief Binary-safe GFGpgSignData. @p data is borrowed, not freed. */
-GF_SDK_EXPORT int GFGpgSignDataN(int channel, char** key_ids, int key_ids_size,
-                                 const char* data, size_t data_size,
-                                 int sign_mode, int ascii,
-                                 GFGpgSignResult** result);
 
-/** @brief Binary-safe GFGpgEncryptData. @p data is borrowed, not freed. */
-GF_SDK_EXPORT int GFGpgEncryptDataN(int channel, char** key_ids,
-                                    int key_ids_size, const char* data,
-                                    size_t data_size, int ascii,
-                                    GFGpgEncryptionResult** result);
 
-/** @brief Binary-safe GFGpgDecryptData. @p data is borrowed, not freed. */
-GF_SDK_EXPORT int GFGpgDecryptDataN(int channel, const char* data,
-                                    size_t data_size,
-                                    GFGpgDecryptResult** result);
 
-/** @brief Binary-safe GFGpgVerifyData. Both buffers are borrowed, not freed. */
-GF_SDK_EXPORT int GFGpgVerifyDataN(int channel, const char* data,
-                                   size_t data_size, const char* signature,
-                                   size_t signature_size,
-                                   GFGpgVerifyResult** result);
 
 /**
  * @brief Exports the public key block for a given key ID.
@@ -271,16 +199,6 @@ GF_SDK_EXPORT int GFGpgExportKey(int channel, const char* key_id, int ascii,
  */
 GF_SDK_EXPORT int GFGpgCurrentGpgContextChannel();
 
-/**
- * @brief Releases a ref-counted GPGME result object.
- *
- * Call this on the raw GPGME result handle (e.g. gpgme_sign_result) stored
- * inside a GFGpgSignResult / GFGpgEncryptionResult / etc. before freeing the
- * enclosing struct.
- *
- * @param r GPGME result pointer to dereference; no-op if nullptr.
- */
-GF_SDK_EXPORT void GFGpgFreeResult(void* r);
 
 /**
  * @brief Whether a key can be used, and how well its identity matches.
@@ -314,32 +232,7 @@ typedef struct GFGpgKeyBrief {
   int matched_uid_revoked;
 } GFGpgKeyBrief;
 
-/**
- * @brief Finds keys carrying a UID whose e-mail address matches @p email.
- *
- * Every UID is considered, not just the primary one: a correspondent
- * legitimately has several addresses on one key, and matching only the primary
- * would report "no key" for a key that is right there.
- *
- * @param channel    GPG context channel index.
- * @param email      address to match, compared case-insensitively.
- * @param[out] keys  Set to a newly allocated array of @p count briefs, or
- *                   nullptr when nothing matched. Release the whole array with
- *                   GFGpgFreeKeyBriefs.
- * @param[out] count Number of briefs written.
- * @return 0 on success (including no match), -1 on a missing argument.
- */
-GF_SDK_EXPORT int GFGpgFindKeysByEmail(int channel, const char* email,
-                                       GFGpgKeyBrief** keys, int* count);
 
-/**
- * @brief Releases an array returned by GFGpgFindKeysByEmail.
- *
- * Frees every string each brief owns and then the array itself, so the nested
- * allocation layout stays an implementation detail of the SDK. No-op when
- * @p keys is nullptr. Pass the count that GFGpgFindKeysByEmail returned.
- */
-GF_SDK_EXPORT void GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count);
 
 /**
  * @brief One recipient an encrypted message was encrypted to.
@@ -378,73 +271,9 @@ typedef struct GFGpgEncRecipient {
   int hidden;
 } GFGpgEncRecipient;
 
-/**
- * @brief The recipients @p data was encrypted to, without decrypting it.
- *
- * Reads the PKESK packets of the OpenPGP envelope and resolves each recipient
- * against this channel's key database. Nothing is decrypted and no passphrase
- * is requested, so this is safe to call to decide what to TELL the user before
- * they ask for a decryption.
- *
- * A message with no PKESK packet at all -- symmetric-only, or not an encrypted
- * message -- yields a count of 0 rather than an error: "encrypted to nobody we
- * can name" is an answer, not a failure.
- *
- * @param channel     GPG context channel index.
- * @param data        the raw ciphertext, armored or binary.
- * @param size        length of @p data in bytes.
- * @param[out] out    Set to a newly allocated array of @p count recipients, or
- *                    nullptr when none were found. Release the whole array
- *                    with GFGpgFreeEncRecipients.
- * @param[out] count  Number of entries written.
- * @return 0 on success (including no recipients), -1 on a missing argument.
- */
-GF_SDK_EXPORT int GFGpgSniffEncryptedRecipients(int channel, const char* data,
-                                                int size,
-                                                GFGpgEncRecipient** out,
-                                                int* count);
 
-/**
- * @brief Releases an array returned by GFGpgSniffEncryptedRecipients.
- *
- * Frees every string each entry owns and then the array itself. No-op when
- * @p out is nullptr. Pass the count that produced the array.
- */
-GF_SDK_EXPORT void GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count);
 
-/**
- * @brief Every e-mail address the keyring knows, for offering as a hint.
- *
- * Each UID is considered, not only the primary one, for the same reason
- * GFGpgFindKeysByEmail considers them all: one key legitimately carries
- * several addresses. Addresses are deduplicated case-insensitively, so a
- * correspondent who appears on three keys is offered once.
- *
- * This is a convenience for completion and nothing more. An address being
- * listed says the keyring has seen it; it is not a claim that a usable key
- * exists for it, still less that the key belongs to whoever the name says.
- * Anything acting on a choice must still resolve it with GFGpgFindKeysByEmail.
- *
- * @param channel     GPG context channel index.
- * @param secret_only 1 to list only addresses on keys this user holds the
- *                    secret half of -- the identities they can send AS.
- * @param[out] addresses Set to a newly allocated array of "Name <email>"
- *                    strings (bare address when the UID has no name), or
- *                    nullptr when the keyring is empty. Release the whole
- *                    array with GFGpgFreeStringArray.
- * @param[out] count  Number of strings written.
- * @return 0 on success (including an empty keyring), -1 on a missing argument.
- */
-GF_SDK_EXPORT int GFGpgListKeyAddresses(int channel, int secret_only,
-                                        char*** addresses, int* count);
 
-/**
- * @brief Releases an array returned by GFGpgListKeyAddresses.
- *
- * Frees every string and then the array itself. No-op when @p strings is
- * nullptr. Pass the count that produced the array.
- */
-GF_SDK_EXPORT void GFGpgFreeStringArray(char** strings, int count);
 
 /**
  * @brief Analyses an encryption result referenced by capsule ID.

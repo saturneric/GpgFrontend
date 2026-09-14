@@ -28,6 +28,8 @@
 
 #include "GFSDKGpg.h"
 
+#include "private/GFSDKGpgInternal.h"
+
 #include <QSet>
 
 // std::memset
@@ -80,80 +82,6 @@ void EmitResultCards(const GpgFrontend::GpgOpResultInfo& info,
 
 }  // namespace
 
-auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
-                                 char* data, int sign_mode, int ascii,
-                                 GFGpgSignResult** ps) -> int {
-  // Kept for source compatibility. It cannot express an embedded NUL, so it
-  // stops at the first one; binary callers must use GFGpgSignDataN.
-  const auto size = data == nullptr ? 0 : std::strlen(data);
-  auto ret = GFGpgSignDataN(channel, key_ids, key_ids_size, data, size,
-                            sign_mode, ascii, ps);
-  if (data != nullptr) GpgFrontend::SMAFree(static_cast<void*>(data));
-  return ret;
-}
-
-auto GF_SDK_EXPORT GFGpgSignDataN(int channel, char** key_ids, int key_ids_size,
-                                  const char* data, size_t data_size,
-                                  int sign_mode, int ascii,
-                                  GFGpgSignResult** ps) -> int {
-  void* mem = GFAllocateMemory(sizeof(GFGpgSignResult));
-  if (mem == nullptr) {
-    *ps = nullptr;
-    return -1;
-  }
-
-  std::memset(mem, 0, sizeof(GFGpgSignResult));
-  *ps = new (mem) GFGpgSignResult{};
-  auto* s = *ps;
-
-  auto singer_ids = CharArrayToQStringList(key_ids, key_ids_size);
-
-  GpgFrontend::GpgAbstractKeyPtrList signer_keys;
-  for (const auto& signer_id : singer_ids) {
-    auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
-        signer_id);
-    if (key != nullptr) signer_keys.push_back(key);
-  }
-
-  if (signer_keys.empty()) return -1;
-
-  auto in_buffer = GpgFrontend::GFBuffer(data, data_size);
-
-  auto gpg_sign_mode =
-      sign_mode == 0 ? GPGME_SIG_MODE_NORMAL : GPGME_SIG_MODE_DETACH;
-
-  auto [err, data_object] =
-      GpgFrontend::MessageCryptoOperation::GetInstance(channel).SignSync(
-          signer_keys, in_buffer, gpg_sign_mode, ascii != 0);
-
-  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-    s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
-    return -1;
-  }
-
-  auto result =
-      GpgFrontend::ExtractParams<GpgFrontend::GpgSignResult>(data_object, 0);
-  auto out_buffer =
-      GpgFrontend::ExtractParams<GpgFrontend::GFBuffer>(data_object, 1);
-
-  auto capsule_id =
-      GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
-
-  // rPGP-backed results have no raw gpgme handle (GetRaw() is null); only the
-  // analyse-by-capsule path can read them. Native results expose a raw handle.
-  auto* raw_result = result.GetRaw();
-  if (raw_result != nullptr) gpgme_result_ref(raw_result);
-
-  s->signature =
-      GFBytesDup(out_buffer.ConvertToQByteArray(), &s->signature_size);
-  s->hash_algo = GFStrDup(result.HashAlgo());
-  s->capsule_id = GFStrDup(capsule_id);
-  s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
-  s->gpgme_error = err;
-  s->gpgme_sign_result = raw_result;
-  return 0;
-}
-
 auto GF_SDK_EXPORT GFGpgPublicKey(int channel, const char* key_id, int ascii)
     -> char* {
   auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
@@ -185,190 +113,6 @@ auto GF_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, const char* key_id,
   s->name = GFStrDup(primary_uid.GetName());
   s->email = GFStrDup(primary_uid.GetEmail());
   s->comment = GFStrDup(primary_uid.GetComment());
-  return 0;
-}
-
-auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
-                                    int key_ids_size, char* data, int ascii,
-                                    GFGpgEncryptionResult** ps) -> int {
-  // See GFGpgSignData: NUL-terminated, therefore not binary-safe.
-  const auto size = data == nullptr ? 0 : std::strlen(data);
-  auto ret =
-      GFGpgEncryptDataN(channel, key_ids, key_ids_size, data, size, ascii, ps);
-  if (data != nullptr) GpgFrontend::SMAFree(static_cast<void*>(data));
-  return ret;
-}
-
-auto GF_SDK_EXPORT GFGpgEncryptDataN(int channel, char** key_ids,
-                                     int key_ids_size, const char* data,
-                                     size_t data_size, int ascii,
-                                     GFGpgEncryptionResult** ps) -> int {
-  void* mem = GFAllocateMemory(sizeof(GFGpgEncryptionResult));
-  if (mem == nullptr) {
-    *ps = nullptr;
-    return -1;
-  }
-
-  std::memset(mem, 0, sizeof(GFGpgEncryptionResult));
-  *ps = new (mem) GFGpgEncryptionResult{};
-  auto* s = *ps;
-
-  auto encrypt_key_ids = CharArrayToQStringList(key_ids, key_ids_size);
-
-  GpgFrontend::GpgAbstractKeyPtrList encrypt_keys;
-  for (const auto& encrypt_key_id : encrypt_key_ids) {
-    auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
-        encrypt_key_id);
-    if (key != nullptr) encrypt_keys.push_back(key);
-  }
-
-  if (encrypt_keys.empty()) return -1;
-
-  auto in_buffer = GpgFrontend::GFBuffer(data, data_size);
-
-  auto [err, data_object] =
-      GpgFrontend::MessageCryptoOperation::GetInstance(channel).EncryptSync(
-          encrypt_keys, in_buffer, ascii != 0);
-
-  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-    s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
-    return -1;
-  }
-
-  auto result =
-      GpgFrontend::ExtractParams<GpgFrontend::GpgEncryptResult>(data_object, 0);
-  auto out_buffer =
-      GpgFrontend::ExtractParams<GpgFrontend::GFBuffer>(data_object, 1);
-
-  auto capsule_id =
-      GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
-
-  // rPGP-backed results have no raw gpgme handle (GetRaw() is null); only the
-  // analyse-by-capsule path can read them. Native results expose a raw handle.
-  auto* raw_result = result.GetRaw();
-  if (raw_result != nullptr) gpgme_result_ref(raw_result);
-
-  s->encrypted_data =
-      GFBytesDup(out_buffer.ConvertToQByteArray(), &s->encrypted_data_size);
-  s->capsule_id = GFStrDup(capsule_id);
-  s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
-  s->gpgme_error = err;
-  s->gpgme_encrypt_result = raw_result;
-  return 0;
-}
-
-auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
-                                    GFGpgDecryptResult** ps) -> int {
-  // See GFGpgSignData: NUL-terminated, therefore not binary-safe.
-  const auto size = data == nullptr ? 0 : std::strlen(data);
-  auto ret = GFGpgDecryptDataN(channel, data, size, ps);
-  if (data != nullptr) GpgFrontend::SMAFree(static_cast<void*>(data));
-  return ret;
-}
-
-auto GF_SDK_EXPORT GFGpgDecryptDataN(int channel, const char* data,
-                                     size_t data_size, GFGpgDecryptResult** ps)
-    -> int {
-  void* mem = GFAllocateMemory(sizeof(GFGpgDecryptResult));
-  if (mem == nullptr) {
-    *ps = nullptr;
-    return -1;
-  }
-
-  std::memset(mem, 0, sizeof(GFGpgDecryptResult));
-  *ps = new (mem) GFGpgDecryptResult{};
-  auto* s = *ps;
-
-  auto in_buffer = GpgFrontend::GFBuffer(data, data_size);
-
-  auto [err, data_object] =
-      GpgFrontend::MessageCryptoOperation::GetInstance(channel).DecryptSync(
-          in_buffer);
-
-  auto result =
-      GpgFrontend::ExtractParams<GpgFrontend::GpgDecryptResult>(data_object, 0);
-  auto out_buffer =
-      GpgFrontend::ExtractParams<GpgFrontend::GFBuffer>(data_object, 1);
-
-  auto capsule_id =
-      GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
-
-  // rPGP-backed results have no raw gpgme handle (GetRaw() is null); only the
-  // analyse-by-capsule path can read them. Native results expose a raw handle.
-  auto* raw_result = result.GetRaw();
-  if (raw_result != nullptr) gpgme_result_ref(raw_result);
-
-  // Decrypted output is arbitrary octets -- an 8bit or binary MIME entity may
-  // legitimately contain 0x00 -- so it is copied by length, never by strlen.
-  s->decrypted_data = GFBytesDup(
-      out_buffer.Empty() ? QByteArray() : out_buffer.ConvertToQByteArray(),
-      &s->decrypted_data_size);
-  s->capsule_id = GFStrDup(capsule_id);
-  s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
-  s->gpgme_error = err;
-  s->gpgme_decrypt_result = raw_result;
-  return 0;
-}
-
-auto GF_SDK_EXPORT GFGpgVerifyData(int channel, char* data, char* signature,
-                                   GFGpgVerifyResult** ps) -> int {
-  // See GFGpgSignData: NUL-terminated, therefore not binary-safe. For verify
-  // that is not merely lossy, it is unsound -- a signature would be checked
-  // against a prefix of the data the caller believes it passed.
-  const auto data_size = data == nullptr ? 0 : std::strlen(data);
-  const auto sig_size = signature == nullptr ? 0 : std::strlen(signature);
-  auto ret =
-      GFGpgVerifyDataN(channel, data, data_size, signature, sig_size, ps);
-  if (data != nullptr) GpgFrontend::SMAFree(static_cast<void*>(data));
-  if (signature != nullptr) {
-    GpgFrontend::SMAFree(static_cast<void*>(signature));
-  }
-  return ret;
-}
-
-auto GF_SDK_EXPORT GFGpgVerifyDataN(int channel, const char* data,
-                                    size_t data_size, const char* signature,
-                                    size_t signature_size,
-                                    GFGpgVerifyResult** ps) -> int {
-  void* mem = GFAllocateMemory(sizeof(GFGpgVerifyResult));
-  if (mem == nullptr) {
-    *ps = nullptr;
-    return -1;
-  }
-
-  std::memset(mem, 0, sizeof(GFGpgVerifyResult));
-  *ps = new (mem) GFGpgVerifyResult{};
-  auto* s = *ps;
-
-  auto in_buffer = GpgFrontend::GFBuffer(data, data_size);
-  auto sig_buffer = GpgFrontend::GFBuffer(signature, signature_size);
-
-  auto [err, data_object] =
-      GpgFrontend::MessageCryptoOperation::GetInstance(channel).VerifySync(
-          in_buffer, sig_buffer);
-
-  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) {
-    s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
-    return -1;
-  }
-
-  if (GpgFrontend::CheckGpgError(err) != GPG_ERR_NO_ERROR) return -1;
-
-  auto result =
-      GpgFrontend::ExtractParams<GpgFrontend::GpgVerifyResult>(data_object, 0);
-
-  auto capsule_id =
-      GpgFrontend::UI::UIModuleManager::GetInstance().MakeCapsule(result);
-
-  // rPGP-backed results have no raw gpgme handle (GetRaw() is null); only the
-  // analyse-by-capsule path can read them. Native results expose a raw handle.
-  auto* raw_result = result.GetRaw();
-  if (raw_result != nullptr) gpgme_result_ref(raw_result);
-
-  s->capsule_id = GFStrDup(capsule_id);
-  s->error_string = GFStrDup(GpgFrontend::DescribeGpgErrCode(err).second);
-  s->gpgme_error = err;
-  s->gpgme_verify_result = raw_result;
   return 0;
 }
 
@@ -411,11 +155,6 @@ auto GFGpgExportKey(int channel, const char* key_id, int ascii, char** data,
   *data = GFStrDup(byte_array);
   *size = static_cast<int>(byte_array.size());
   return 0;
-}
-
-auto GFGpgFreeResult(void* r) -> void {
-  if (r == nullptr) return;
-  gpgme_result_unref(r);
 }
 
 namespace {
@@ -631,7 +370,7 @@ auto GF_SDK_EXPORT GFAnalyseDecryptResultInfoByCapsule(
       channel, err, capsule_id, analyse, cards, info_json);
 }
 
-auto GF_SDK_EXPORT GFGpgFindKeysByEmail(int channel, const char* email,
+auto GFGpgFindKeysByEmail(int channel, const char* email,
                                         GFGpgKeyBrief** keys, int* count)
     -> int {
   if (keys == nullptr || count == nullptr) return -1;
@@ -714,7 +453,7 @@ auto GF_SDK_EXPORT GFGpgFindKeysByEmail(int channel, const char* email,
   return 0;
 }
 
-auto GF_SDK_EXPORT GFGpgListKeyAddresses(int channel, int secret_only,
+auto GFGpgListKeyAddresses(int channel, int secret_only,
                                          char*** addresses, int* count) -> int {
   if (addresses == nullptr || count == nullptr) return -1;
   *addresses = nullptr;
@@ -778,13 +517,13 @@ auto GF_SDK_EXPORT GFGpgListKeyAddresses(int channel, int secret_only,
   return 0;
 }
 
-auto GF_SDK_EXPORT GFGpgFreeStringArray(char** strings, int count) -> void {
+auto GFGpgFreeStringArray(char** strings, int count) -> void {
   if (strings == nullptr) return;
   for (int i = 0; i < count; ++i) GFFreeMemory(strings[i]);
   GFFreeMemory(strings);
 }
 
-auto GF_SDK_EXPORT GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void {
+auto GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void {
   if (keys == nullptr) return;
   for (int i = 0; i < count; ++i) {
     GFFreeMemory(keys[i].fingerprint);
@@ -795,7 +534,7 @@ auto GF_SDK_EXPORT GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void {
   GFFreeMemory(keys);
 }
 
-auto GF_SDK_EXPORT GFGpgSniffEncryptedRecipients(int channel, const char* data,
+auto GFGpgSniffEncryptedRecipients(int channel, const char* data,
                                                  int size,
                                                  GFGpgEncRecipient** out,
                                                  int* count) -> int {
@@ -860,7 +599,7 @@ auto GF_SDK_EXPORT GFGpgSniffEncryptedRecipients(int channel, const char* data,
   return 0;
 }
 
-auto GF_SDK_EXPORT GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count)
+auto GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count)
     -> void {
   if (out == nullptr) return;
   for (int i = 0; i < count; ++i) {
