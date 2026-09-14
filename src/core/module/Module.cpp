@@ -78,10 +78,23 @@ class Module::Impl {
       }
     }
 
-    identifier_ = GFUnStrDup(get_id_api_());
-    version_ = GFUnStrDup(get_version_api_());
-    gf_sdk_ver_ = GFUnStrDup(get_sdk_ver_api_());
-    qt_env_ver_ = GFUnStrDup(get_qt_ver_api_());
+    // Borrowed, like every other string crossing this boundary: the module
+    // returns static storage and the host must not free it. These used to be
+    // fresh allocations the host consumed, which is the convention the
+    // ownership rule replaced.
+    // Borrowed, like every other string crossing this boundary: the module
+    // returns static storage and the host must not free it. These used to be
+    // fresh allocations the host consumed, which is the convention the
+    // ownership rule replaced. Converted inline rather than through the SDK's
+    // GFStrView because gf_core cannot link gf_sdk -- gf_sdk depends on it.
+    const auto borrowed = [](const char* s) -> QString {
+      return s == nullptr ? QString() : QString::fromUtf8(s);
+    };
+
+    identifier_ = borrowed(get_id_api_());
+    version_ = borrowed(get_version_api_());
+    gf_sdk_ver_ = borrowed(get_sdk_ver_api_());
+    qt_env_ver_ = borrowed(get_qt_ver_api_());
 
     if (!module_identifier_regex_exp_.match(identifier_).hasMatch()) {
       LOG_W() << "illegal module: " << identifier_

@@ -73,6 +73,23 @@ auto GFBytesDup(const QByteArray &bytes, size_t *size) -> char *;
 auto GFUnStrDup(char *str) -> QString;
 
 /**
+ * @brief Read a borrowed C string WITHOUT taking ownership of it.
+ *
+ * The counterpart to GFUnStrDup, and the one to reach for at a public entry
+ * point. Under the SDK's ownership rule an ARGUMENT is always borrowed: the
+ * caller created it and the caller releases it. GFUnStrDup frees what it is
+ * handed, which is right only where the SDK genuinely took ownership.
+ *
+ * Getting this backwards is the mistake the whole redesign exists to remove:
+ * freeing an argument means a module must pre-allocate every string it passes
+ * (the DUP(...) wrapping at every call site), and forgetting to means the SDK
+ * frees memory it never owned.
+ *
+ * Null-safe: a null pointer reads as an empty string.
+ */
+auto GFStrView(const char *str) -> QString;
+
+/**
  * @brief
  *
  * @return QString

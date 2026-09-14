@@ -67,6 +67,10 @@ auto GFUnStrDup(char* str) -> QString {
   return qt_str;
 }
 
+auto GFStrView(const char* str) -> QString {
+  return str == nullptr ? QString() : QString::fromUtf8(str);
+}
+
 auto GFUnStrDup(const char* str) -> QString {
   return GFUnStrDup(const_cast<char*>(str));
 }

@@ -157,7 +157,7 @@ auto GF_SDK_EXPORT GFGpgSignDataN(int channel, char** key_ids, int key_ids_size,
 auto GF_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id, int ascii)
     -> char* {
   auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
-      GFUnStrDup(key_id));
+      GFStrView(key_id));
   if (key == nullptr) return nullptr;
 
   auto [err, buffer] =
@@ -172,7 +172,7 @@ auto GF_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id, int ascii)
 auto GF_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
                                       GFGpgKeyUID** ps) -> int {
   auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKey(
-      GFUnStrDup(key_id));
+      GFStrView(key_id));
 
   if (!key.IsGood()) return -1;
 
@@ -400,7 +400,7 @@ auto GFGpgCurrentGpgContextChannel() -> int {
 auto GFGpgExportKey(int channel, char* key_id, int ascii, char** data,
                     int* size) -> int {
   auto key = GpgFrontend::GpgKeyRepository::GetInstance(channel).GetKeyPtr(
-      GFUnStrDup(key_id));
+      GFStrView(key_id));
   if (key == nullptr) return -1;
 
   auto [err, buffer] =
@@ -432,7 +432,7 @@ auto AnalyseResultByCapsule(int channel, gpgme_error_t err, char* capsule_id,
   if (analyse == nullptr) return -1;
 
   auto capsule = GpgFrontend::UI::UIModuleManager::GetInstance().GetCapsule(
-      GFUnStrDup(capsule_id));
+      GFStrView(capsule_id));
 
   auto* result = std::any_cast<ResultT>(&capsule);
   if (result == nullptr) return -1;
@@ -584,7 +584,7 @@ auto AnalyseResultInfoByCapsule(int channel, gpgme_error_t err,
   if (analyse == nullptr) return -1;
 
   auto capsule = GpgFrontend::UI::UIModuleManager::GetInstance().GetCapsule(
-      GFUnStrDup(capsule_id));
+      GFStrView(capsule_id));
 
   auto* result = std::any_cast<ResultT>(&capsule);
   if (result == nullptr) return -1;

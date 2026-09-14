@@ -35,34 +35,34 @@
 
 void GFModuleListenEvent(const char *module_id, const char *event_id) {
   return GpgFrontend::Module::ModuleManager::GetInstance().ListenEvent(
-      GFUnStrDup(module_id).toLower(), GFUnStrDup(event_id).toUpper());
+      GFStrView(module_id).toLower(), GFStrView(event_id).toUpper());
 }
 
 auto GFModuleRetrieveRTValueOrDefault(const char *namespace_, const char *key,
                                       const char *default_value) -> const
     char * {
   return GFStrDup(GpgFrontend::Module::RetrieveRTValueTypedOrDefault(
-      GFUnStrDup(namespace_), GFUnStrDup(key), GFUnStrDup(default_value)));
+      GFStrView(namespace_), GFStrView(key), GFStrView(default_value)));
 }
 
 void GFModuleUpsertRTValue(const char *namespace_, const char *key,
                            const char *vaule) {
-  GpgFrontend::Module::UpsertRTValue(GFUnStrDup(namespace_).toLower(),
-                                     GFUnStrDup(key).toLower(),
-                                     GFUnStrDup(vaule));
+  GpgFrontend::Module::UpsertRTValue(GFStrView(namespace_).toLower(),
+                                     GFStrView(key).toLower(),
+                                     GFStrView(vaule));
 }
 
 void GFModuleUpsertRTValueBool(const char *namespace_, const char *key,
                                int value) {
-  GpgFrontend::Module::UpsertRTValue(GFUnStrDup(namespace_).toLower(),
-                                     GFUnStrDup(key).toLower(), value != 0);
+  GpgFrontend::Module::UpsertRTValue(GFStrView(namespace_).toLower(),
+                                     GFStrView(key).toLower(), value != 0);
 }
 
 auto GFModuleListRTChildKeys(const char *namespace_, const char *key,
                              char ***child_keys) -> int32_t {
   *child_keys = nullptr;
   auto keys = GpgFrontend::Module::ListRTChildKeys(
-      GFUnStrDup(namespace_).toLower(), GFUnStrDup(key).toLower());
+      GFStrView(namespace_).toLower(), GFStrView(key).toLower());
 
   if (keys.empty()) return 0;
 
@@ -92,7 +92,7 @@ void GFModuleTriggerModuleEventCallback(GFModuleEvent *module_event,
     GpgFrontend::SMAFree(static_cast<void *>(module_event));
   }
 
-  auto caller_id = GFUnStrDup(module_id);
+  auto caller_id = GFStrView(module_id);
 
   auto event = GpgFrontend::Module::ModuleManager::GetInstance().SearchEvent(
       trigger_id.toLower());
@@ -106,6 +106,6 @@ auto GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
     -> int {
   return static_cast<const int>(
       GpgFrontend::Module::RetrieveRTValueTypedOrDefault(
-          GFUnStrDup(namespace_), GFUnStrDup(key),
+          GFStrView(namespace_), GFStrView(key),
           static_cast<bool>(default_value)));
 }

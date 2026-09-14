@@ -115,7 +115,7 @@ auto GF_SDK_EXPORT GFUIGetGUIObject(const char* id) -> void* {
   }
 
   auto* object = GpgFrontend::UI::UIModuleManager::GetInstance().GetQObject(
-      GFUnStrDup(id));
+      GFStrView(id));
 
   return object;
 }
@@ -134,8 +134,8 @@ auto GFUIRegisterFileExtensionHandleEvent(const char* extension,
   }
 
   GpgFrontend::UI::UIModuleManager::GetInstance()
-      .RegisterFileExtensionHandleEvent(GFUnStrDup(extension),
-                                        GFUnStrDup(event_prefix));
+      .RegisterFileExtensionHandleEvent(GFStrView(extension),
+                                        GFStrView(event_prefix));
   return 0;
 }
 
@@ -145,12 +145,12 @@ auto GFUIRegisterSettingsPage(const char* page_id, const char* section_id,
   // Every string is consumed first: GFUnStrDup frees what it is given, so
   // returning early on one null argument would leak the others.
   GpgFrontend::UI::SettingsPageRegistration reg;
-  reg.id = page_id == nullptr ? QString() : GFUnStrDup(page_id);
-  reg.section_id = section_id == nullptr ? QString() : GFUnStrDup(section_id);
-  reg.title = title == nullptr ? QString() : GFUnStrDup(title);
+  reg.id = page_id == nullptr ? QString() : GFStrView(page_id);
+  reg.section_id = section_id == nullptr ? QString() : GFStrView(section_id);
+  reg.title = title == nullptr ? QString() : GFStrView(title);
   reg.keywords = keywords == nullptr
                      ? QStringList{}
-                     : GFUnStrDup(keywords).split('\n', Qt::SkipEmptyParts);
+                     : GFStrView(keywords).split('\n', Qt::SkipEmptyParts);
   reg.factory = factory;
   reg.data = data;
 
@@ -167,7 +167,7 @@ auto GFUIUnregisterSettingsPage(const char* page_id) -> int {
   }
 
   return GpgFrontend::UI::UIModuleManager::GetInstance().UnregisterSettingsPage(
-             GFUnStrDup(page_id))
+             GFStrView(page_id))
              ? 0
              : -1;
 }
@@ -176,7 +176,7 @@ auto GFUIRegisterTabPageView(const char* tab_type, QObjectFactory factory,
   // Consumed first: GFUnStrDup frees what it is given, so returning early on a
   // null factory would leak the type string.
   GpgFrontend::UI::TabPageViewRegistration reg;
-  reg.tab_type = tab_type == nullptr ? QString() : GFUnStrDup(tab_type);
+  reg.tab_type = tab_type == nullptr ? QString() : GFStrView(tab_type);
   reg.factory = factory;
   reg.data = data;
 
@@ -193,7 +193,7 @@ auto GFUIUnregisterTabPageView(const char* tab_type) -> int {
   }
 
   return GpgFrontend::UI::UIModuleManager::GetInstance().UnregisterTabPageView(
-             GFUnStrDup(tab_type))
+             GFStrView(tab_type))
              ? 0
              : -1;
 }

@@ -123,27 +123,27 @@ auto GFAppActiveLocale() -> char* { return GFStrDup(QLocale().name()); }
 auto GFAppRegisterTranslatorReader(const char* id,
                                    GFTranslatorDataReader reader) -> int {
   return GpgFrontend::UI::UIModuleManager::GetInstance()
-                 .RegisterTranslatorDataReader(GFUnStrDup(id), reader)
+                 .RegisterTranslatorDataReader(GFStrView(id), reader)
              ? 0
              : -1;
 }
 
 auto GF_SDK_EXPORT GFCacheSave(const char* key, const char* value) -> int {
-  GpgFrontend::CacheManager::GetInstance().SaveCache(GFUnStrDup(key),
-                                                     GFUnStrDup(value));
+  GpgFrontend::CacheManager::GetInstance().SaveCache(GFStrView(key),
+                                                     GFStrView(value));
   return 0;
 }
 
 auto GF_SDK_EXPORT GFCacheGet(const char* key) -> const char* {
   auto value =
-      GpgFrontend::CacheManager::GetInstance().LoadCache(GFUnStrDup(key));
+      GpgFrontend::CacheManager::GetInstance().LoadCache(GFStrView(key));
   return GFStrDup(value);
 }
 
 auto GF_SDK_EXPORT GFCacheSaveWithTTL(const char* key, const char* value,
                                       int ttl) -> int {
-  GpgFrontend::CacheManager::GetInstance().SaveCache(GFUnStrDup(key),
-                                                     GFUnStrDup(value), ttl);
+  GpgFrontend::CacheManager::GetInstance().SaveCache(GFStrView(key),
+                                                     GFStrView(value), ttl);
   return 0;
 }
 
@@ -169,21 +169,21 @@ void GF_SDK_EXPORT GFSecFreeMemory(void* ptr) { GpgFrontend::SMASecFree(ptr); }
 
 auto GF_SDK_EXPORT GFDurableCacheGet(const char* key) -> const char* {
   auto value = GpgFrontend::CacheManager::GetInstance().LoadDurableCache(
-      "__module_" + GFUnStrDup(key));
+      "__module_" + GFStrView(key));
   return GFStrDup(value.toJson());
 }
 
 auto GF_SDK_EXPORT GFDurableCacheSave(const char* key, const char* value)
     -> int {
   GpgFrontend::CacheManager::GetInstance().SaveDurableCache(
-      "__module_" + GFUnStrDup(key),
-      QJsonDocument::fromJson(GFUnStrDup(value).toUtf8()));
+      "__module_" + GFStrView(key),
+      QJsonDocument::fromJson(GFStrView(value).toUtf8()));
   return 0;
 }
 
 auto GF_SDK_EXPORT GFSecDurableCacheGet(const char* key) -> char* {
   auto buffer = GpgFrontend::CacheManager::GetInstance().LoadSecDurableCache(
-      "__module_" + GFUnStrDup(key));
+      "__module_" + GFStrView(key));
   if (buffer.Empty()) return nullptr;
 
   // GFModuleSecStrDup copies into zeroizing memory; the GFBuffer wipes itself
@@ -203,7 +203,7 @@ auto GF_SDK_EXPORT GFSecDurableCacheSave(const char* key, const char* value)
   // ordinary module memory; the secret came from GFModuleSecStrDup and has to
   // be released through the secure allocator, which also wipes it. Freeing it
   // the ordinary way aborts the process.
-  const auto key_string = GFUnStrDup(key);
+  const auto key_string = GFStrView(key);
 
   auto utf8 = QByteArray(value);
   GpgFrontend::GFBuffer buffer(utf8);
@@ -221,7 +221,7 @@ auto GF_SDK_EXPORT GFSecDurableCacheSave(const char* key, const char* value)
 auto GF_SDK_EXPORT GFSecDurableCacheRemove(const char* key) -> int {
   if (key == nullptr) return -1;
   GpgFrontend::CacheManager::GetInstance().ResetDurableCache(
-      "__module_" + GFUnStrDup(key));
+      "__module_" + GFStrView(key));
   return 0;
 }
 

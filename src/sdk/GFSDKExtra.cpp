@@ -35,8 +35,8 @@
 
 auto GFCompareSoftwareVersion(const char *current_version,
                               const char *latest_version) -> int {
-  return GpgFrontend::GFCompareSoftwareVersion(GFUnStrDup(current_version),
-                                               GFUnStrDup(latest_version));
+  return GpgFrontend::GFCompareSoftwareVersion(GFStrView(current_version),
+                                               GFStrView(latest_version));
 }
 auto GFHttpRequestUserAgent() -> const char * {
   // Borrowed, with process lifetime -- which is what the header has always
