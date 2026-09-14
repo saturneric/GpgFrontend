@@ -58,117 +58,21 @@ class Module::Impl {
         module_hash_(std::move(module_hash)),
         module_library_path_(module_library.fileName()),
         good_(false) {
-    // Prefer the single bootstrap symbol. A module that exports it describes
-    // itself through one versioned table instead of ten separately-resolved
-    // symbols, which is what lets the host and the module NEGOTIATE an ABI
-    // rather than discover a mismatch on the first call.
+    // ONE way in. A module describes itself through a single versioned table
+    // returned by GFModuleGetApi; the host hands over its own ABI so the
+    // module can decline a host it cannot work with, rather than loading and
+    // failing on the first mismatched call.
     //
-    // Both paths are accepted while the in-tree modules are ported; the
-    // ten-symbol path goes away once nothing uses it.
+    // The ten separately-resolved symbols this replaces could not express
+    // that negotiation at all, and gave the host no place to stand to
+    // withhold a capability. A module that does not export the bootstrap
+    // symbol is rejected here, by name, rather than half-loaded.
     if (try_bootstrap_api(module_library)) return;
 
-    for (auto& required_symbol : module_required_symbols_) {
-      *required_symbol.pointer =
-          reinterpret_cast<void*>(module_library.resolve(required_symbol.name));
-      if (*required_symbol.pointer == nullptr) {
-        LOG_W() << "illegal module: " << module_library.fileName()
-                << ", reason cannot load symbol: " << required_symbol.name
-                << ", abort...";
-        return;
-      }
-    }
-
-    // Borrowed, like every other string crossing this boundary: the module
-    // returns static storage and the host must not free it. These used to be
-    // fresh allocations the host consumed, which is the convention the
-    // ownership rule replaced.
-    // Borrowed, like every other string crossing this boundary: the module
-    // returns static storage and the host must not free it. These used to be
-    // fresh allocations the host consumed, which is the convention the
-    // ownership rule replaced. Converted inline rather than through the SDK's
-    // GFStrView because gf_core cannot link gf_sdk -- gf_sdk depends on it.
-    const auto borrowed = [](const char* s) -> QString {
-      return s == nullptr ? QString() : QString::fromUtf8(s);
-    };
-
-    identifier_ = borrowed(get_id_api_());
-    version_ = borrowed(get_version_api_());
-    gf_sdk_ver_ = borrowed(get_sdk_ver_api_());
-    qt_env_ver_ = borrowed(get_qt_ver_api_());
-
-    if (!module_identifier_regex_exp_.match(identifier_).hasMatch()) {
-      LOG_W() << "illegal module: " << identifier_
-              << ", reason invalid module id, abort...";
-      return;
-    }
-
-    if (!module_version_regex_exp_.match(version_).hasMatch()) {
-      LOG_W() << "illegal module: " << identifier_
-              << ", reason invalid version: " << version_ << ", abort...";
-      return;
-    }
-
-    if (!module_version_regex_exp_.match(gf_sdk_ver_).hasMatch()) {
-      LOG_W() << "illegal module: " << identifier_
-              << ", reason invalid sdk version: " << gf_sdk_ver_
-              << ", abort...";
-      return;
-    }
-
-    if (GFCompareSoftwareVersion(gf_sdk_ver_, GetProjectVersion()) > 0) {
-      LOG_W() << "uncompatible module: " << identifier_
-              << ", reason sdk version: " << gf_sdk_ver_
-              << "current sdk version: " << GetProjectVersion() << ", abort...";
-      return;
-    }
-
-    // The ABI gate proper. The version comparison above is one-sided: it only
-    // rejects a module built against a NEWER sdk, so a stale module built
-    // against an older ABI passed it, loaded, and then crashed on the first
-    // changed entry point. A floor is what actually prevents that.
-    sdk_abi_ver_ = get_sdk_abi_api_();
-    if (sdk_abi_ver_ < GF_SDK_ABI_MIN_SUPPORTED ||
-        sdk_abi_ver_ > GF_SDK_ABI_VERSION) {
-      LOG_W() << "incompatible module: " << identifier_
-              << ", reason module sdk abi version: " << sdk_abi_ver_
-              << ", but this application supports ["
-              << GF_SDK_ABI_MIN_SUPPORTED << ", " << GF_SDK_ABI_VERSION
-              << "]; rebuild the module against this sdk, abort...";
-      return;
-    }
-
-    auto qt_env_ver_regex_match = module_version_regex_exp_.match(qt_env_ver_);
-    if (!qt_env_ver_regex_match.hasMatch()) {
-      LOG_W() << "illegal module: " << identifier_
-              << ", reason invalid qt env version: " << qt_env_ver_
-              << ", abort...";
-      return;
-    }
-
-    auto qt_env_ver_major = qt_env_ver_regex_match.captured(1);
-    auto qt_env_ver_minor = qt_env_ver_regex_match.captured(2);
-
-    if (qt_env_ver_major != QString::number(QT_VERSION_MAJOR) + "." ||
-        qt_env_ver_minor != QString::number(QT_VERSION_MINOR) + ".") {
-      LOG_W() << "module: " << identifier_
-              << "is not compatible, reason module qt version: " << qt_env_ver_
-              << ", but application qt version: "
-              << QString::fromUtf8(QT_VERSION_STR) << ", abort...";
-      return;
-    }
-
-    ::GFModuleMetaData* p_meta_data = get_metadata_api_();
-
-    while (p_meta_data != nullptr) {
-      ::GFModuleMetaData* l_meta_data;
-      meta_data_[QString::fromUtf8(p_meta_data->key)] =
-          QString::fromUtf8(p_meta_data->value);
-      l_meta_data = p_meta_data;
-      p_meta_data = p_meta_data->next;
-      SMAFree(l_meta_data);
-    }
-
-    good_ = true;
+    LOG_W() << "illegal module: " << module_library.fileName()
+            << ", reason cannot load symbol: GFModuleGetApi"
+            << " (module was built against an older sdk; rebuild it)"
+            << ", abort...";
   }
 
   /**
@@ -249,7 +153,6 @@ class Module::Impl {
     // do there belongs in activate(), which is the call that receives the
     // host api it needs in order to do anything at all.
     if (api_ != nullptr) return 0;
-    if (register_api_ != nullptr) return register_api_();
     return -1;
   }
 
@@ -261,7 +164,6 @@ class Module::Impl {
       // hold on to it for its whole life.
       return api_->activate(GFGetHostApi(), nullptr);
     }
-    if (activate_api_ != nullptr) return activate_api_();
     return -1;
   }
 
@@ -271,7 +173,6 @@ class Module::Impl {
       if (api_->execute == nullptr) return -1;
       return api_->execute(event->ToModuleEvent());
     }
-    if (execute_api_ != nullptr) return execute_api_(event->ToModuleEvent());
     return -1;
   }
 
@@ -281,7 +182,6 @@ class Module::Impl {
       if (api_->deactivate == nullptr) return 0;
       return api_->deactivate();
     }
-    if (deactivate_api_ != nullptr) return deactivate_api_();
     return -1;
   }
 
@@ -294,7 +194,6 @@ class Module::Impl {
       if (api_->unregister != nullptr) api_->unregister();
       return 0;
     }
-    if (unregister_api_ != nullptr) return unregister_api_();
     return -1;
   }
 
@@ -364,38 +263,9 @@ class Module::Impl {
   /// Borrowed: it has static storage inside the module's own library.
   const GFModuleApi* api_ = nullptr;
 
-  GFModuleAPIGetModuleGFSDKVersion get_sdk_ver_api_;
-  GFModuleAPIGetModuleSDKABIVersion get_sdk_abi_api_;
-  GFModuleAPIGetModuleQtEnvVersion get_qt_ver_api_;
 
-  GFModuleAPIGetModuleID get_id_api_;
-  GFModuleAPIGetModuleVersion get_version_api_;
-  GFModuleAPIGetModuleMetaData get_metadata_api_;
-  GFModuleAPIRegisterModule register_api_;
-  GFModuleAPIActivateModule activate_api_;
-  GFModuleAPIExecuteModule execute_api_;
-  GFModuleAPIDeactivateModule deactivate_api_;
-  GFModuleAPIUnregisterModule unregister_api_;
 
-  struct Symbol {
-    const char* name;
-    void** pointer;
-  };
 
-  QContainer<Symbol> module_required_symbols_ = {
-      {"GFGetModuleGFSDKVersion", reinterpret_cast<void**>(&get_sdk_ver_api_)},
-      {"GFGetModuleGFSDKABIVersion",
-       reinterpret_cast<void**>(&get_sdk_abi_api_)},
-      {"GFGetModuleQtEnvVersion", reinterpret_cast<void**>(&get_qt_ver_api_)},
-      {"GFGetModuleID", reinterpret_cast<void**>(&get_id_api_)},
-      {"GFGetModuleVersion", reinterpret_cast<void**>(&get_version_api_)},
-      {"GFGetModuleMetaData", reinterpret_cast<void**>(&get_metadata_api_)},
-      {"GFRegisterModule", reinterpret_cast<void**>(&register_api_)},
-      {"GFActiveModule", reinterpret_cast<void**>(&activate_api_)},
-      {"GFExecuteModule", reinterpret_cast<void**>(&execute_api_)},
-      {"GFDeactivateModule", reinterpret_cast<void**>(&deactivate_api_)},
-      {"GFUnregisterModule", reinterpret_cast<void**>(&unregister_api_)},
-  };
 
   auto get_gpc() -> GlobalModuleContext* {
     if (gpc_ == nullptr) {
