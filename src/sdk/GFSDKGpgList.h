@@ -28,12 +28,11 @@
 
 #pragma once
 
-#include "GFSDKVisibility.h"
-
 #include <stddef.h>
 #include <stdint.h>
 
 #include "GFSDKBuffer.h"
+#include "GFSDKVisibility.h"
 
 /**
  * @file GFSDKGpgList.h

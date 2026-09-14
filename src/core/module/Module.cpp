@@ -114,16 +114,15 @@ class Module::Impl {
         api->abi_version > GF_SDK_ABI_VERSION) {
       LOG_W() << "incompatible module: " << module_library.fileName()
               << ", reason module sdk abi version: " << api->abi_version
-              << ", but this application supports ["
-              << GF_SDK_ABI_MIN_SUPPORTED << ", " << GF_SDK_ABI_VERSION
+              << ", but this application supports [" << GF_SDK_ABI_MIN_SUPPORTED
+              << ", " << GF_SDK_ABI_VERSION
               << "]; rebuild the module against this sdk, abort...";
       return true;
     }
 
-    identifier_ = QString::fromUtf8(
-        api->module_id == nullptr ? "" : api->module_id);
-    version_ =
-        QString::fromUtf8(api->version == nullptr ? "" : api->version);
+    identifier_ =
+        QString::fromUtf8(api->module_id == nullptr ? "" : api->module_id);
+    version_ = QString::fromUtf8(api->version == nullptr ? "" : api->version);
     gf_sdk_ver_ = GetProjectVersion();
     qt_env_ver_ = QString::fromUtf8(QT_VERSION_STR);
     sdk_abi_ver_ = static_cast<int>(api->abi_version);
@@ -262,10 +261,6 @@ class Module::Impl {
   /// Non-null when this module described itself through the bootstrap table.
   /// Borrowed: it has static storage inside the module's own library.
   const GFModuleApi* api_ = nullptr;
-
-
-
-
 
   auto get_gpc() -> GlobalModuleContext* {
     if (gpc_ == nullptr) {

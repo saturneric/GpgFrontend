@@ -28,8 +28,6 @@
 
 #pragma once
 
-#include "GFSDKVisibility.h"
-
 #include <stddef.h>
 #include <stdint.h>
 
@@ -37,6 +35,7 @@
 #include "GFSDKGpgList.h"
 #include "GFSDKGpgResult.h"
 #include "GFSDKModuleModel.h"
+#include "GFSDKVisibility.h"
 
 /**
  * @file GFSDKModuleApi.h

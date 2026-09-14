@@ -36,9 +36,9 @@
 
 #include "GFSDKBasic.h"
 #include "GFSDKGpg.h"
-#include "private/GFSDKGpgInternal.h"
 #include "core/model/GFBuffer.h"
 #include "core/utils/MemoryUtils.h"
+#include "private/GFSDKGpgInternal.h"
 #include "private/GFSDKHandleRegistry.h"
 #include "private/GFSDKPrivat.h"
 
