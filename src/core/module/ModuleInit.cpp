@@ -31,6 +31,7 @@
 #include <QDir>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -132,6 +133,62 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
           << ModuleManager::GetInstance().IsAllModulesRegistered();
 }
 
-void ShutdownGpgFrontendModules() {}
+void ShutdownGpgFrontendModules() {
+  // The ordering here is the contract, and every step exists because skipping
+  // it turns a tidy shutdown into a use-after-free. This function used to be
+  // empty: nothing was deactivated, nothing was unregistered, no library was
+  // ever unloaded, and nothing waited for module work to finish.
+  auto& manager = ModuleManager::GetInstance();
+  auto& gate = GlobalModuleDispatchGate();
+
+  // 1. STOP NEW CALLS. From here the set of in-flight calls can only shrink.
+  //    An event that arrives after this point is refused with
+  //    kModuleUnloadingCode rather than being queued into a module that is
+  //    about to go away.
+  gate.Close();
+
+  // 2. DEACTIVATE. Gives each module its chance to cancel its own in-flight
+  //    work and drop the registrations it owns (settings pages, tab pages),
+  //    which is why it runs before the wait rather than after it.
+  const auto module_ids = manager.ListAllRegisteredModuleID();
+  for (const auto& module_id : module_ids) {
+    if (!manager.IsModuleActivated(module_id)) continue;
+    manager.DeactivateModule(module_id);
+  }
+
+  // 3. QUIESCE. The step that did not exist. Without it, everything below
+  //    races module code that is still running: unregistering state it is
+  //    using, reclaiming handles it still holds, unmapping the code itself.
+  //
+  //    A timeout is REPORTED, not swallowed. Continuing to tear down after
+  //    one would be exactly the hazard this ordering exists to prevent, so
+  //    the later steps are skipped and the modules are left mapped -- leaking
+  //    on the way out of a process that is exiting anyway is strictly better
+  //    than freeing memory somebody is still reading.
+  constexpr int kQuiesceTimeoutMs = 5000;
+  if (!gate.WaitQuiescent(kQuiesceTimeoutMs)) {
+    LOG_W() << "module system did not go quiet within" << kQuiesceTimeoutMs
+            << "ms;" << gate.InFlight()
+            << "call(s) still inside module code. Skipping teardown rather "
+               "than freeing resources they may still be using.";
+    return;
+  }
+
+  // 4. DESTROY MODULE-OWNED STATE. Only now is it safe: no module code runs.
+  for (const auto& module_id : module_ids) {
+    auto module = manager.SearchModule(module_id);
+    if (module == nullptr) continue;
+    module->UnRegister();
+  }
+
+  LOG_D() << "module system shut down cleanly, modules:" << module_ids.size();
+
+  // Steps 5 (sweep outstanding SDK handles) and 6 (unload the libraries) are
+  // deliberately not here yet. The sweep needs the SDK's per-module handle
+  // ledger, which currently records no module id; unloading needs the module
+  // objects to be destroyed first, and they are owned elsewhere. Both are
+  // safe to add at this point in the sequence precisely because step 3 has
+  // already established that nothing is running.
+}
 
 }  // namespace GpgFrontend::Module

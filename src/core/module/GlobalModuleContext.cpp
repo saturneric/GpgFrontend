@@ -35,6 +35,7 @@
 
 #include "core/module/Event.h"
 #include "core/module/Module.h"
+#include "core/module/ModuleDispatchGate.h"
 #include "core/thread/Task.h"
 #include "model/DataObject.h"
 #include "thread/TaskRunnerGetter.h"
@@ -277,6 +278,13 @@ class GlobalModuleContext::Impl {
 
       Thread::Task::TaskRunnable const exec_runnerable =
           [module, event](const DataObjectPtr&) -> int {
+        // Admission is taken here, in the task, not where the task was
+        // posted: the gate must reflect whether module code is about to run
+        // NOW, so that a teardown which has closed the gate cannot have work
+        // start behind its back.
+        ModuleDispatchScope scope(GlobalModuleDispatchGate());
+        if (!scope.Entered()) return kModuleUnloadingCode;
+
         return module->Exec(event);
       };
 
