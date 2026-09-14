@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "GFSDKVisibility.h"
+
 #include "GFSDKUIModel.h"
 
 #ifdef __cplusplus

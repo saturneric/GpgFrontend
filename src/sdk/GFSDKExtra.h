@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "GFSDKVisibility.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

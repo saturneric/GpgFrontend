@@ -33,6 +33,7 @@
 #include "core/module/GlobalModuleContext.h"
 #include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
+#include "sdk/GFSDKModuleApi.h"
 #include "sdk/GFSDKModuleModel.h"
 #include "utils/BuildInfoUtils.h"
 
@@ -57,6 +58,15 @@ class Module::Impl {
         module_hash_(std::move(module_hash)),
         module_library_path_(module_library.fileName()),
         good_(false) {
+    // Prefer the single bootstrap symbol. A module that exports it describes
+    // itself through one versioned table instead of ten separately-resolved
+    // symbols, which is what lets the host and the module NEGOTIATE an ABI
+    // rather than discover a mismatch on the first call.
+    //
+    // Both paths are accepted while the in-tree modules are ported; the
+    // ten-symbol path goes away once nothing uses it.
+    if (try_bootstrap_api(module_library)) return;
+
     for (auto& required_symbol : module_required_symbols_) {
       *required_symbol.pointer =
           reinterpret_cast<void*>(module_library.resolve(required_symbol.name));
@@ -148,32 +158,130 @@ class Module::Impl {
     good_ = true;
   }
 
+  /**
+   * @brief Resolve and validate the table-based entry point.
+   *
+   * @return true when this module has been fully decided through the table --
+   *         accepted OR rejected. false means "no such symbol, try the older
+   *         ten-symbol path", and only that.
+   */
+  auto try_bootstrap_api(QLibrary& module_library) -> bool {
+    auto* get_api = reinterpret_cast<GFModuleGetApiFn>(
+        module_library.resolve("GFModuleGetApi"));
+    if (get_api == nullptr) return false;
+
+    // Hand the module OUR abi so it can decline a host it cannot work with,
+    // rather than being loaded and failing later.
+    const auto* api = get_api(GF_SDK_ABI_VERSION);
+    if (api == nullptr) {
+      LOG_W() << "module declined this host: " << module_library.fileName()
+              << ", host sdk abi version: " << GF_SDK_ABI_VERSION
+              << ", abort...";
+      return true;
+    }
+
+    // struct_size is written by whichever side COMPILED the struct, so a
+    // module built against an older, smaller table is still usable: only the
+    // prefix both sides agree on is read. A table smaller than the fields we
+    // actually touch is not.
+    static constexpr size_t kMinUsableSize =
+        offsetof(GFModuleApi, unregister) + sizeof(void*);
+    if (api->struct_size < kMinUsableSize) {
+      LOG_W() << "illegal module: " << module_library.fileName()
+              << ", reason module api struct is too small: " << api->struct_size
+              << "<" << kMinUsableSize << ", abort...";
+      return true;
+    }
+
+    if (api->abi_version < GF_SDK_ABI_MIN_SUPPORTED ||
+        api->abi_version > GF_SDK_ABI_VERSION) {
+      LOG_W() << "incompatible module: " << module_library.fileName()
+              << ", reason module sdk abi version: " << api->abi_version
+              << ", but this application supports ["
+              << GF_SDK_ABI_MIN_SUPPORTED << ", " << GF_SDK_ABI_VERSION
+              << "]; rebuild the module against this sdk, abort...";
+      return true;
+    }
+
+    identifier_ = QString::fromUtf8(
+        api->module_id == nullptr ? "" : api->module_id);
+    version_ =
+        QString::fromUtf8(api->version == nullptr ? "" : api->version);
+    gf_sdk_ver_ = GetProjectVersion();
+    qt_env_ver_ = QString::fromUtf8(QT_VERSION_STR);
+    sdk_abi_ver_ = static_cast<int>(api->abi_version);
+
+    if (!module_identifier_regex_exp_.match(identifier_).hasMatch()) {
+      LOG_W() << "illegal module: " << module_library.fileName()
+              << ", reason invalid module id: " << identifier_ << ", abort...";
+      return true;
+    }
+
+    if (!module_version_regex_exp_.match(version_).hasMatch()) {
+      LOG_W() << "illegal module: " << identifier_
+              << ", reason invalid version: " << version_ << ", abort...";
+      return true;
+    }
+
+    api_ = api;
+    good_ = true;
+    return true;
+  }
+
   [[nodiscard]] auto IsGood() const -> bool { return good_; }
 
   auto Register() -> int {
-    if (good_ && register_api_ != nullptr) return register_api_();
+    if (!good_) return -1;
+    // A table-based module has no separate register step: whatever it used to
+    // do there belongs in activate(), which is the call that receives the
+    // host api it needs in order to do anything at all.
+    if (api_ != nullptr) return 0;
+    if (register_api_ != nullptr) return register_api_();
     return -1;
   }
 
   auto Active() -> int {
-    if (good_ && activate_api_ != nullptr) return activate_api_();
+    if (!good_) return -1;
+    if (api_ != nullptr) {
+      if (api_->activate == nullptr) return -1;
+      // The host table is static and outlives every module, so the module may
+      // hold on to it for its whole life.
+      return api_->activate(GFGetHostApi(), nullptr);
+    }
+    if (activate_api_ != nullptr) return activate_api_();
     return -1;
   }
 
   auto Exec(const EventReference& event) -> int {
-    if (good_ && execute_api_ != nullptr) {
-      return execute_api_(event->ToModuleEvent());
+    if (!good_) return -1;
+    if (api_ != nullptr) {
+      if (api_->execute == nullptr) return -1;
+      return api_->execute(event->ToModuleEvent());
     }
+    if (execute_api_ != nullptr) return execute_api_(event->ToModuleEvent());
     return -1;
   }
 
   auto Deactivate() -> int {
-    if (good_ && deactivate_api_ != nullptr) return deactivate_api_();
+    if (!good_) return -1;
+    if (api_ != nullptr) {
+      if (api_->deactivate == nullptr) return 0;
+      return api_->deactivate();
+    }
+    if (deactivate_api_ != nullptr) return deactivate_api_();
     return -1;
   }
 
   auto UnRegister() -> int {
-    if (good_ && unregister_api_ != nullptr) return unregister_api_();
+    if (!good_) return -1;
+    if (api_ != nullptr) {
+      // Returns void in the table: final teardown has nothing useful to
+      // report, and a host that is shutting down has nothing to do with a
+      // failure code anyway.
+      if (api_->unregister != nullptr) api_->unregister();
+      return 0;
+    }
+    if (unregister_api_ != nullptr) return unregister_api_();
     return -1;
   }
 
@@ -238,6 +346,10 @@ class Module::Impl {
   bool good_;
 
   int sdk_abi_ver_ = 0;
+
+  /// Non-null when this module described itself through the bootstrap table.
+  /// Borrowed: it has static storage inside the module's own library.
+  const GFModuleApi* api_ = nullptr;
 
   GFModuleAPIGetModuleGFSDKVersion get_sdk_ver_api_;
   GFModuleAPIGetModuleSDKABIVersion get_sdk_abi_api_;

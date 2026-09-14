@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "GFSDKVisibility.h"
+
 #include <gpgme.h>
 #include <stddef.h>
 

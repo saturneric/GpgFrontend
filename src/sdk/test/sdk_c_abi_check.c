@@ -46,6 +46,7 @@
 #include "GFSDKExtra.h"
 #include "GFSDKGpg.h"
 #include "GFSDKGpgList.h"
+#include "GFSDKModuleApi.h"
 #include "GFSDKGpgResult.h"
 #include "GFSDKLog.h"
 #include "GFSDKModule.h"
