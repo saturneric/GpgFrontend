@@ -167,7 +167,6 @@ TEST(SdkGpgResultTest, ASignRoundTripCarriesItsPayloadAndCapsule) {
 // must be empty rather than undefined.
 TEST(SdkGpgResultTest, AVerifyResultCarriesNoPayload) {
   if (!ChannelIsUsable(0)) GTEST_SKIP() << "no usable engine on channel 0";
-
   auto in = GFBuf::Copy(QByteArray("not a signed message"));
   GFGpgResult r;
   const auto ret = GFGpgVerify(0, in.View(), nullptr, r.Out());
