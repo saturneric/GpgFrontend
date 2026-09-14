@@ -57,6 +57,7 @@
 #include "core/model/GpgVerifyResult.h"
 #include "core/typedef/GpgTypedef.h"
 #include "core/utils/GpgUtils.h"
+#include "core/utils/RustUtils.h"
 #include "ui/UIModuleManager.h"
 #include "ui/function/ImportKey.h"
 #include "ui/function/InfoBoardCardConverter.h"
@@ -841,4 +842,82 @@ auto GF_SDK_EXPORT GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void {
     GFFreeMemory(keys[i].matched_email);
   }
   GFFreeMemory(keys);
+}
+
+auto GF_SDK_EXPORT GFGpgSniffEncryptedRecipients(int channel, const char* data,
+                                                 int size,
+                                                 GFGpgEncRecipient** out,
+                                                 int* count) -> int {
+  if (out == nullptr || count == nullptr) return -1;
+  *out = nullptr;
+  *count = 0;
+
+  // Like `email` in GFGpgFindKeysByEmail, `data` is a plain const input the
+  // caller still owns: not GFUnStrDup, which would free it.
+  if (data == nullptr || size <= 0) return -1;
+
+  const auto key_ids = GpgFrontend::SniffRecipientKeyIds(
+      GpgFrontend::GFBuffer(data, static_cast<size_t>(size)));
+  if (key_ids.isEmpty()) return 0;
+
+  auto* array = static_cast<GFGpgEncRecipient*>(
+      GFAllocateMemory(sizeof(GFGpgEncRecipient) * key_ids.size()));
+  if (array == nullptr) return -1;
+  std::memset(array, 0, sizeof(GFGpgEncRecipient) * key_ids.size());
+
+  auto& repository =
+      GpgFrontend::AbstractKeyRepository::GetInstance(channel);
+
+  for (int i = 0; i < key_ids.size(); ++i) {
+    const auto& key_id = key_ids[i];
+    auto& entry = array[i];
+
+    entry.key_id = GFStrDup(key_id);
+    entry.pub_algo = GFStrDup(QString{});
+    entry.fingerprint = GFStrDup(QString{});
+    entry.uid = GFStrDup(QString{});
+
+    // An all-zero identifier is the wildcard key id: the sender asked for the
+    // recipient to be withheld. Looking it up would report "no such key" for
+    // what is really "no answer given", and the user may well be that hidden
+    // recipient themselves.
+    if (key_id.count('0') == key_id.size()) {
+      entry.hidden = 1;
+      continue;
+    }
+
+    // Resolves a key id OR a fingerprint, and a subkey as readily as a
+    // primary -- which is what this needs, since a PKESK names the encryption
+    // subkey. Engine-neutral, so it is equally right on a GnuPG channel and
+    // an rPGP one.
+    auto key = repository.GetKey(key_id);
+    if (key == nullptr) continue;
+
+    entry.key_found = 1;
+    // The secret half, and nothing else, is what decides decryptability.
+    entry.has_secret = key->IsPrivateKey() ? 1 : 0;
+
+    GFFreeMemory(entry.pub_algo);
+    GFFreeMemory(entry.fingerprint);
+    GFFreeMemory(entry.uid);
+    entry.pub_algo = GFStrDup(key->PublicKeyAlgo());
+    entry.fingerprint = GFStrDup(key->Fingerprint());
+    entry.uid = GFStrDup(key->UID());
+  }
+
+  *out = array;
+  *count = static_cast<int>(key_ids.size());
+  return 0;
+}
+
+auto GF_SDK_EXPORT GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count)
+    -> void {
+  if (out == nullptr) return;
+  for (int i = 0; i < count; ++i) {
+    GFFreeMemory(out[i].key_id);
+    GFFreeMemory(out[i].pub_algo);
+    GFFreeMemory(out[i].fingerprint);
+    GFFreeMemory(out[i].uid);
+  }
+  GFFreeMemory(out);
 }

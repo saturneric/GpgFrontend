@@ -133,6 +133,29 @@ auto GF_CORE_EXPORT RustEngineBuildInfo() -> RpgpEngineInfo;
  */
 auto GF_CORE_EXPORT DetectKeyVersionByRpgp(const GFBuffer& key_block) -> int;
 
+/**
+ * @brief Extract the recipient key IDs of an encrypted buffer.
+ *
+ * Reads only the PKESK packets of the OpenPGP envelope, so it answers who the
+ * message was encrypted to without recovering a session key or touching any
+ * key database. A v3 PKESK names the key by its 8-byte key ID, a v6 PKESK by
+ * the full fingerprint; both are returned upper-cased, exactly as the packet
+ * spelled them.
+ *
+ * An all-zero identifier is a deliberately anonymous recipient
+ * (`--hidden-recipient`) and is returned as-is: it is unidentifiable, which is
+ * not the same as absent.
+ *
+ * Declared unconditionally so it is callable from targets that are not
+ * compiled with HAS_RUST_SUPPORT; it returns an empty list when the Rust
+ * engine is not built in.
+ *
+ * @param in_buffer encrypted data buffer to analyse
+ * @return one identifier per PKESK packet, in the order they appear
+ */
+auto GF_CORE_EXPORT SniffRecipientKeyIds(const GFBuffer& in_buffer)
+    -> QStringList;
+
 }  // namespace GpgFrontend
 
 #ifdef HAS_RUST_SUPPORT

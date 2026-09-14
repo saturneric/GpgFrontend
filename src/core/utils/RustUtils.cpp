@@ -188,6 +188,63 @@ auto DetectKeyVersionByRpgp(const GFBuffer& key_block) -> int {
 #endif
 }
 
+namespace {
+
+// One PKESK recipient as the packet spelled it, before anything is looked up.
+struct SniffedRecipient {
+  QString key_id;
+  QString pub_algo;
+};
+
+// The shared half of the two public sniffing entry points: run the packet
+// parse and copy the results out of Rust-owned memory. Kept in one place so
+// the FFI ownership rules are stated once rather than at every call site.
+auto sniff_recipients_raw(const GFBuffer& in_buffer)
+    -> QContainer<SniffedRecipient> {
+  Rust::GfrRecipientResultC* out_recipients = nullptr;
+  size_t recipient_count = 0;
+  auto err = Rust::gfr_crypto_get_recipients(
+      reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
+      &out_recipients, &recipient_count);
+
+  if (err != Rust::GfrStatus::Success || out_recipients == nullptr) {
+    LOG_E() << "Rust FFI get_recipients failed.";
+    return {};
+  }
+
+  QContainer<SniffedRecipient> sniffed;
+  for (size_t i = 0; i < recipient_count; ++i) {
+    const auto& rec = out_recipients[i];
+    sniffed.push_back(SniffedRecipient{
+        QString::fromUtf8(rec.key_id).toUpper(),
+        QString::fromUtf8(rec.pub_algo),
+    });
+  }
+
+  // The recipient array (and its per-entry key_id/pub_algo C strings) is heap
+  // owned by the Rust engine; free it through the dedicated FFI routine.
+  Rust::gfr_crypto_free_recipients(out_recipients, recipient_count);
+
+  return sniffed;
+}
+
+}  // namespace
+
+auto SniffRecipientKeyIds(const GFBuffer& in_buffer) -> QStringList {
+#ifndef HAS_RUST_SUPPORT
+  (void)in_buffer;
+  return {};
+#else
+  if (in_buffer.Empty()) return {};
+
+  QStringList key_ids;
+  for (const auto& rec : sniff_recipients_raw(in_buffer)) {
+    key_ids.append(rec.key_id);
+  }
+  return key_ids;
+#endif
+}
+
 auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoName(Rust::GfrKeyAlgo algo) -> QString {
   switch (algo) {
     case Rust::GfrKeyAlgo::ED25519:
@@ -247,36 +304,15 @@ auto GF_CORE_EXPORT GfrKeyAlgo2KeyAlgoName(Rust::GfrKeyAlgo algo) -> QString {
 
 auto SniffRecipients(GFKeyDatabase& key_db, const GFBuffer& in_buffer)
     -> QContainer<GFRecipient> {
-  Rust::GfrRecipientResultC* out_recipients = nullptr;
-  size_t recipient_count = 0;
-  auto err = Rust::gfr_crypto_get_recipients(
-      reinterpret_cast<const uint8_t*>(in_buffer.Data()), in_buffer.Size(),
-      &out_recipients, &recipient_count);
-
-  if (err != Rust::GfrStatus::Success || out_recipients == nullptr) {
-    LOG_E() << "Rust FFI get_recipients failed.";
-    return {};
-  }
-
   QContainer<GFRecipient> recipients;
-  for (size_t i = 0; i < recipient_count; ++i) {
-    const auto& rec = out_recipients[i];
-
-    auto recipient = GFRecipient{
-        QString::fromUtf8(rec.key_id).toUpper(),
-        QString::fromUtf8(rec.pub_algo),
-    };
+  for (const auto& rec : sniff_recipients_raw(in_buffer)) {
+    auto recipient = GFRecipient{rec.key_id, rec.pub_algo};
 
     auto gf_key = GetKeyByKeyIdsForDecryption(key_db, {recipient.key_id});
     recipient.status = !gf_key ? GPG_ERR_NO_KEY : GPG_ERR_NO_ERROR;
 
     recipients.push_back(recipient);
   }
-
-  // The recipient array (and its per-entry key_id/pub_algo C strings) is heap
-  // owned by the Rust engine; free it through the dedicated FFI routine.
-  Rust::gfr_crypto_free_recipients(out_recipients, recipient_count);
-
   return recipients;
 }
 

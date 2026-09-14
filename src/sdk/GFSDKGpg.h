@@ -341,6 +341,78 @@ auto GF_SDK_EXPORT GFGpgFindKeysByEmail(int channel, const char* email,
 auto GF_SDK_EXPORT GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void;
 
 /**
+ * @brief One recipient an encrypted message was encrypted to.
+ *
+ * @ref key_id is what the message itself names, which is the only thing that
+ * decides whether it can be opened. An e-mail address cannot answer that
+ * question: a message is encrypted to a KEY, and the key that matters is
+ * usually an encryption subkey whose UID address need not appear anywhere in
+ * the headers.
+ *
+ * Allocated by GFGpgSniffEncryptedRecipients and released, as a whole array,
+ * by GFGpgFreeEncRecipients. Never free an individual entry or any of its
+ * strings.
+ */
+struct GFGpgEncRecipient {
+  /// As the message names it: an 8-byte key id (v3 PKESK) or a full
+  /// fingerprint (v6 PKESK), upper-cased.
+  char* key_id;
+  char* pub_algo;
+
+  /// Of the key this resolved to; empty when nothing resolved.
+  char* fingerprint;
+  /// Primary UID of the key this resolved to; empty when nothing resolved.
+  char* uid;
+
+  /// Whether @ref key_id names a key this channel's key database holds at all.
+  int key_found;
+
+  /// Whether the secret half is held -- the only field that answers "can this
+  /// message be opened on this computer". A public key alone cannot decrypt.
+  int has_secret;
+
+  /// The sender withheld the recipient key id (`--hidden-recipient`), so this
+  /// recipient is deliberately unidentifiable rather than missing. It may
+  /// still be the user themselves.
+  int hidden;
+};
+
+/**
+ * @brief The recipients @p data was encrypted to, without decrypting it.
+ *
+ * Reads the PKESK packets of the OpenPGP envelope and resolves each recipient
+ * against this channel's key database. Nothing is decrypted and no passphrase
+ * is requested, so this is safe to call to decide what to TELL the user before
+ * they ask for a decryption.
+ *
+ * A message with no PKESK packet at all -- symmetric-only, or not an encrypted
+ * message -- yields a count of 0 rather than an error: "encrypted to nobody we
+ * can name" is an answer, not a failure.
+ *
+ * @param channel     GPG context channel index.
+ * @param data        the raw ciphertext, armored or binary.
+ * @param size        length of @p data in bytes.
+ * @param[out] out    Set to a newly allocated array of @p count recipients, or
+ *                    nullptr when none were found. Release the whole array
+ *                    with GFGpgFreeEncRecipients.
+ * @param[out] count  Number of entries written.
+ * @return 0 on success (including no recipients), -1 on a missing argument.
+ */
+auto GF_SDK_EXPORT GFGpgSniffEncryptedRecipients(int channel, const char* data,
+                                                 int size,
+                                                 GFGpgEncRecipient** out,
+                                                 int* count) -> int;
+
+/**
+ * @brief Releases an array returned by GFGpgSniffEncryptedRecipients.
+ *
+ * Frees every string each entry owns and then the array itself. No-op when
+ * @p out is nullptr. Pass the count that produced the array.
+ */
+auto GF_SDK_EXPORT GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count)
+    -> void;
+
+/**
  * @brief Every e-mail address the keyring knows, for offering as a hint.
  *
  * Each UID is considered, not only the primary one, for the same reason
