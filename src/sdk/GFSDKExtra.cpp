@@ -39,5 +39,14 @@ auto GFCompareSoftwareVersion(const char *current_version,
                                                GFUnStrDup(latest_version));
 }
 auto GFHttpRequestUserAgent() -> const char * {
-  return GFStrDup(GpgFrontend::GetHttpRequestUserAgent());
+  // Borrowed, with process lifetime -- which is what the header has always
+  // claimed. It used to hand back a fresh GFStrDup allocation instead, so the
+  // five call sites that took the documentation at its word and did not free
+  // leaked once per request, while the two that did free were the only ones
+  // written against the implementation. Under the SDK's one ownership rule a
+  // const char* return is ALWAYS borrowed, so there is no per-function rule
+  // left to get wrong.
+  static const QByteArray kUserAgent =
+      GpgFrontend::GetHttpRequestUserAgent().toUtf8();
+  return kUserAgent.constData();
 }

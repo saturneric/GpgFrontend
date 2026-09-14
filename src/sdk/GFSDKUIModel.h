@@ -28,7 +28,9 @@
 
 #pragma once
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 /**
  * @brief Factory function type for creating a QObject-derived GUI object.
@@ -36,13 +38,15 @@ extern "C" {
  * @param data Arbitrary user data forwarded from the GFUICreateGUIObject call.
  * @return Newly constructed QObject instance, or nullptr on failure.
  */
-using QObjectFactory = void* (*)(void* data);
+typedef void* (*QObjectFactory)(void* data);
 
 /**
  * @brief A simple key-value pair used for passing metadata.
  */
 struct MetaData {
-  const char* key;   ///< Metadata key string.
-  const char* value; ///< Metadata value string.
+  const char* key;    ///< Metadata key string.
+  const char* value;  ///< Metadata value string.
 };
+#ifdef __cplusplus
 }
+#endif

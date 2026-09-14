@@ -34,3 +34,15 @@
 
 #define GF_SDK_VERSION_STR \
   GF_SDK_VERSION_MAJOR "." GF_SDK_VERSION_MINOR "." GF_SDK_VERSION_PATCH
+/**
+ * @brief The module ABI generation. Bumped BY HAND on any breaking change.
+ *
+ * Deliberately independent of the project version: the project version moves
+ * for reasons that have nothing to do with the module ABI, and using it as an
+ * ABI number means either spurious rejections or none at all.
+ *
+ * GF_SDK_ABI_MIN_SUPPORTED is the floor the host will still load. Raising it
+ * is what retires an old ABI.
+ */
+#define GF_SDK_ABI_VERSION 3
+#define GF_SDK_ABI_MIN_SUPPORTED 3

@@ -29,10 +29,11 @@
 #pragma once
 
 #include <gpgme.h>
+#include <stddef.h>
 
-#include <cstddef>
-
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 /**
  * @brief Result of a GPG sign operation.
@@ -41,7 +42,7 @@ extern "C" {
  * The embedded @p gpgme_sign_result reference must be released with
  * GFGpgFreeResult before freeing this struct.
  */
-struct GFGpgSignResult {
+typedef struct GFGpgSignResult {
   char* signature;            ///< Signed/armored output data.
   size_t signature_size;      ///< Exact length of @p signature in bytes.
   char* hash_algo;            ///< Hash algorithm used (e.g. "SHA256").
@@ -49,7 +50,7 @@ struct GFGpgSignResult {
   char* error_string;         ///< Human-readable error description.
   gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
   gpgme_sign_result_t gpgme_sign_result;  ///< Ref-counted GPGME result handle.
-};
+} GFGpgSignResult;
 
 /**
  * @brief Result of a GPG encrypt operation.
@@ -57,15 +58,15 @@ struct GFGpgSignResult {
  * Allocated by GFGpgEncryptData and must be freed with GFFreeMemory.
  * Release @p gpgme_encrypt_result with GFGpgFreeResult before freeing.
  */
-struct GFGpgEncryptionResult {
+typedef struct GFGpgEncryptionResult {
   char* encrypted_data;        ///< Encrypted output data.
   size_t encrypted_data_size;  ///< Exact length of @p encrypted_data.
-  char* capsule_id;           ///< Opaque ID for UI capsule access.
-  char* error_string;         ///< Human-readable error description.
-  gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
+  char* capsule_id;            ///< Opaque ID for UI capsule access.
+  char* error_string;          ///< Human-readable error description.
+  gpgme_error_t gpgme_error;   ///< Raw GPGME error code.
   gpgme_encrypt_result_t
       gpgme_encrypt_result;  ///< Ref-counted GPGME result handle.
-};
+} GFGpgEncryptionResult;
 
 /**
  * @brief Result of a GPG decrypt operation.
@@ -73,15 +74,15 @@ struct GFGpgEncryptionResult {
  * Allocated by GFGpgDecryptData and must be freed with GFFreeMemory.
  * Release @p gpgme_decrypt_result with GFGpgFreeResult before freeing.
  */
-struct GFGpgDecryptResult {
+typedef struct GFGpgDecryptResult {
   char* decrypted_data;        ///< Plaintext output data.
   size_t decrypted_data_size;  ///< Exact length of @p decrypted_data.
-  char* capsule_id;           ///< Opaque ID for UI capsule access.
-  char* error_string;         ///< Human-readable error description.
-  gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
+  char* capsule_id;            ///< Opaque ID for UI capsule access.
+  char* error_string;          ///< Human-readable error description.
+  gpgme_error_t gpgme_error;   ///< Raw GPGME error code.
   gpgme_decrypt_result_t
       gpgme_decrypt_result;  ///< Ref-counted GPGME result handle.
-};
+} GFGpgDecryptResult;
 
 /**
  * @brief Result of a GPG signature verification operation.
@@ -89,24 +90,24 @@ struct GFGpgDecryptResult {
  * Allocated by GFGpgVerifyData and must be freed with GFFreeMemory.
  * Release @p gpgme_verify_result with GFGpgFreeResult before freeing.
  */
-struct GFGpgVerifyResult {
+typedef struct GFGpgVerifyResult {
   char* capsule_id;           ///< Opaque ID for UI capsule access.
   char* error_string;         ///< Human-readable error description.
   gpgme_error_t gpgme_error;  ///< Raw GPGME error code.
   gpgme_verify_result_t
       gpgme_verify_result;  ///< Ref-counted GPGME result handle.
-};
+} GFGpgVerifyResult;
 
 /**
  * @brief A User ID (UID) associated with a GPG key.
  *
  * Allocated by GFGpgKeyPrimaryUID and must be freed with GFFreeMemory.
  */
-struct GFGpgKeyUID {
+typedef struct GFGpgKeyUID {
   char* name;     ///< Display name from the UID packet.
   char* email;    ///< Email address from the UID packet.
   char* comment;  ///< Optional comment from the UID packet.
-};
+} GFGpgKeyUID;
 
 /**
  * @brief Signs data using one or more GPG keys.
@@ -120,9 +121,9 @@ struct GFGpgKeyUID {
  * @param[out] result  Set to a newly allocated GFGpgSignResult on success.
  * @return 0 on success, -1 on failure (result->error_string is set).
  */
-auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
-                                 char* data, int sign_mode, int ascii,
-                                 GFGpgSignResult** result) -> int;
+GF_SDK_EXPORT int GFGpgSignData(int channel, char** key_ids, int key_ids_size,
+                                char* data, int sign_mode, int ascii,
+                                GFGpgSignResult** result);
 
 /**
  * @brief Encrypts data for one or more recipients.
@@ -136,9 +137,9 @@ auto GF_SDK_EXPORT GFGpgSignData(int channel, char** key_ids, int key_ids_size,
  * success.
  * @return 0 on success, -1 on failure (result->error_string is set).
  */
-auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
-                                    int key_ids_size, char* data, int ascii,
-                                    GFGpgEncryptionResult** result) -> int;
+GF_SDK_EXPORT int GFGpgEncryptData(int channel, char** key_ids,
+                                   int key_ids_size, char* data, int ascii,
+                                   GFGpgEncryptionResult** result);
 
 /**
  * @brief Decrypts GPG-encrypted data using available secret keys.
@@ -148,8 +149,8 @@ auto GF_SDK_EXPORT GFGpgEncryptData(int channel, char** key_ids,
  * @param[out] result Set to a newly allocated GFGpgDecryptResult.
  * @return 0 on success, -1 on failure.
  */
-auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
-                                    GFGpgDecryptResult** result) -> int;
+GF_SDK_EXPORT int GFGpgDecryptData(int channel, char* data,
+                                   GFGpgDecryptResult** result);
 
 /**
  * @brief Verifies a detached or inline GPG signature.
@@ -162,8 +163,8 @@ auto GF_SDK_EXPORT GFGpgDecryptData(int channel, char* data,
  * @param[out] result  Set to a newly allocated GFGpgVerifyResult.
  * @return 0 on success, -1 on failure.
  */
-auto GF_SDK_EXPORT GFGpgVerifyData(int channel, char* data, char* signature,
-                                   GFGpgVerifyResult** result) -> int;
+GF_SDK_EXPORT int GFGpgVerifyData(int channel, char* data, char* signature,
+                                  GFGpgVerifyResult** result);
 
 /* --- binary-safe entry points ---------------------------------------------
  *
@@ -188,27 +189,27 @@ auto GF_SDK_EXPORT GFGpgVerifyData(int channel, char* data, char* signature,
  */
 
 /** @brief Binary-safe GFGpgSignData. @p data is borrowed, not freed. */
-auto GF_SDK_EXPORT GFGpgSignDataN(int channel, char** key_ids, int key_ids_size,
-                                  const char* data, size_t data_size,
-                                  int sign_mode, int ascii,
-                                  GFGpgSignResult** result) -> int;
+GF_SDK_EXPORT int GFGpgSignDataN(int channel, char** key_ids, int key_ids_size,
+                                 const char* data, size_t data_size,
+                                 int sign_mode, int ascii,
+                                 GFGpgSignResult** result);
 
 /** @brief Binary-safe GFGpgEncryptData. @p data is borrowed, not freed. */
-auto GF_SDK_EXPORT GFGpgEncryptDataN(int channel, char** key_ids,
-                                     int key_ids_size, const char* data,
-                                     size_t data_size, int ascii,
-                                     GFGpgEncryptionResult** result) -> int;
+GF_SDK_EXPORT int GFGpgEncryptDataN(int channel, char** key_ids,
+                                    int key_ids_size, const char* data,
+                                    size_t data_size, int ascii,
+                                    GFGpgEncryptionResult** result);
 
 /** @brief Binary-safe GFGpgDecryptData. @p data is borrowed, not freed. */
-auto GF_SDK_EXPORT GFGpgDecryptDataN(int channel, const char* data,
-                                     size_t data_size,
-                                     GFGpgDecryptResult** result) -> int;
+GF_SDK_EXPORT int GFGpgDecryptDataN(int channel, const char* data,
+                                    size_t data_size,
+                                    GFGpgDecryptResult** result);
 
 /** @brief Binary-safe GFGpgVerifyData. Both buffers are borrowed, not freed. */
-auto GF_SDK_EXPORT GFGpgVerifyDataN(int channel, const char* data,
-                                    size_t data_size, const char* signature,
-                                    size_t signature_size,
-                                    GFGpgVerifyResult** result) -> int;
+GF_SDK_EXPORT int GFGpgVerifyDataN(int channel, const char* data,
+                                   size_t data_size, const char* signature,
+                                   size_t signature_size,
+                                   GFGpgVerifyResult** result);
 
 /**
  * @brief Exports the public key block for a given key ID.
@@ -219,8 +220,7 @@ auto GF_SDK_EXPORT GFGpgVerifyDataN(int channel, const char* data,
  * @return Caller-owned string containing the exported key; free with
  *         GFFreeMemory. Returns nullptr if the key is not found.
  */
-auto GF_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id, int ascii)
-    -> char*;
+GF_SDK_EXPORT char* GFGpgPublicKey(int channel, char* key_id, int ascii);
 
 /**
  * @brief Retrieves the primary User ID of a key.
@@ -230,8 +230,8 @@ auto GF_SDK_EXPORT GFGpgPublicKey(int channel, char* key_id, int ascii)
  * @param[out] uid   Set to a newly allocated GFGpgKeyUID on success.
  * @return 0 on success, -1 if the key is not found or has no UIDs.
  */
-auto GF_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
-                                      GFGpgKeyUID** uid) -> int;
+GF_SDK_EXPORT int GFGpgKeyPrimaryUID(int channel, char* key_id,
+                                     GFGpgKeyUID** uid);
 
 /**
  * @brief Imports keys from a binary or ASCII-armored data buffer.
@@ -245,8 +245,8 @@ auto GF_SDK_EXPORT GFGpgKeyPrimaryUID(int channel, char* key_id,
  * @param size    Length of @p data in bytes.
  * @return 0 on success, -1 on failure.
  */
-auto GF_SDK_EXPORT GFGpgImportKeys(int channel, void* parent, const char* data,
-                                   int size) -> int;
+GF_SDK_EXPORT int GFGpgImportKeys(int channel, void* parent, const char* data,
+                                  int size);
 
 /**
  * @brief Exports a key to a caller-owned buffer.
@@ -259,15 +259,15 @@ auto GF_SDK_EXPORT GFGpgImportKeys(int channel, void* parent, const char* data,
  * @param[out] size  Set to the number of bytes written to @p data.
  * @return 0 on success, -1 if the key is not found or export fails.
  */
-auto GF_SDK_EXPORT GFGpgExportKey(int channel, char* key_id, int ascii,
-                                  char** data, int* size) -> int;
+GF_SDK_EXPORT int GFGpgExportKey(int channel, char* key_id, int ascii,
+                                 char** data, int* size);
 
 /**
  * @brief Returns the GPG context channel index currently active in the main
  *        window.
  * @return Channel index, or -1 if the main window is not available.
  */
-auto GF_SDK_EXPORT GFGpgCurrentGpgContextChannel() -> int;
+GF_SDK_EXPORT int GFGpgCurrentGpgContextChannel();
 
 /**
  * @brief Releases a ref-counted GPGME result object.
@@ -278,7 +278,7 @@ auto GF_SDK_EXPORT GFGpgCurrentGpgContextChannel() -> int;
  *
  * @param r GPGME result pointer to dereference; no-op if nullptr.
  */
-auto GF_SDK_EXPORT GFGpgFreeResult(void* r) -> void;
+GF_SDK_EXPORT void GFGpgFreeResult(void* r);
 
 /**
  * @brief Whether a key can be used, and how well its identity matches.
@@ -291,7 +291,7 @@ auto GF_SDK_EXPORT GFGpgFreeResult(void* r) -> void;
  * Allocated by GFGpgFindKeysByEmail and released, as a whole array, by
  * GFGpgFreeKeyBriefs. Never free an individual brief or any of its strings.
  */
-struct GFGpgKeyBrief {
+typedef struct GFGpgKeyBrief {
   char* fingerprint;
   char* key_id;
   char* uid;            ///< primary UID, "Name (Comment) <email>"
@@ -310,7 +310,7 @@ struct GFGpgKeyBrief {
   /// has itself been revoked. Identity-binding facts, not usability ones.
   int matched_uid_is_primary;
   int matched_uid_revoked;
-};
+} GFGpgKeyBrief;
 
 /**
  * @brief Finds keys carrying a UID whose e-mail address matches @p email.
@@ -327,9 +327,8 @@ struct GFGpgKeyBrief {
  * @param[out] count Number of briefs written.
  * @return 0 on success (including no match), -1 on a missing argument.
  */
-auto GF_SDK_EXPORT GFGpgFindKeysByEmail(int channel, const char* email,
-                                        GFGpgKeyBrief** keys, int* count)
-    -> int;
+GF_SDK_EXPORT int GFGpgFindKeysByEmail(int channel, const char* email,
+                                       GFGpgKeyBrief** keys, int* count);
 
 /**
  * @brief Releases an array returned by GFGpgFindKeysByEmail.
@@ -338,7 +337,7 @@ auto GF_SDK_EXPORT GFGpgFindKeysByEmail(int channel, const char* email,
  * allocation layout stays an implementation detail of the SDK. No-op when
  * @p keys is nullptr. Pass the count that GFGpgFindKeysByEmail returned.
  */
-auto GF_SDK_EXPORT GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void;
+GF_SDK_EXPORT void GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count);
 
 /**
  * @brief One recipient an encrypted message was encrypted to.
@@ -353,7 +352,7 @@ auto GF_SDK_EXPORT GFGpgFreeKeyBriefs(GFGpgKeyBrief* keys, int count) -> void;
  * by GFGpgFreeEncRecipients. Never free an individual entry or any of its
  * strings.
  */
-struct GFGpgEncRecipient {
+typedef struct GFGpgEncRecipient {
   /// As the message names it: an 8-byte key id (v3 PKESK) or a full
   /// fingerprint (v6 PKESK), upper-cased.
   char* key_id;
@@ -375,7 +374,7 @@ struct GFGpgEncRecipient {
   /// recipient is deliberately unidentifiable rather than missing. It may
   /// still be the user themselves.
   int hidden;
-};
+} GFGpgEncRecipient;
 
 /**
  * @brief The recipients @p data was encrypted to, without decrypting it.
@@ -398,10 +397,10 @@ struct GFGpgEncRecipient {
  * @param[out] count  Number of entries written.
  * @return 0 on success (including no recipients), -1 on a missing argument.
  */
-auto GF_SDK_EXPORT GFGpgSniffEncryptedRecipients(int channel, const char* data,
-                                                 int size,
-                                                 GFGpgEncRecipient** out,
-                                                 int* count) -> int;
+GF_SDK_EXPORT int GFGpgSniffEncryptedRecipients(int channel, const char* data,
+                                                int size,
+                                                GFGpgEncRecipient** out,
+                                                int* count);
 
 /**
  * @brief Releases an array returned by GFGpgSniffEncryptedRecipients.
@@ -409,8 +408,7 @@ auto GF_SDK_EXPORT GFGpgSniffEncryptedRecipients(int channel, const char* data,
  * Frees every string each entry owns and then the array itself. No-op when
  * @p out is nullptr. Pass the count that produced the array.
  */
-auto GF_SDK_EXPORT GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count)
-    -> void;
+GF_SDK_EXPORT void GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count);
 
 /**
  * @brief Every e-mail address the keyring knows, for offering as a hint.
@@ -435,8 +433,8 @@ auto GF_SDK_EXPORT GFGpgFreeEncRecipients(GFGpgEncRecipient* out, int count)
  * @param[out] count  Number of strings written.
  * @return 0 on success (including an empty keyring), -1 on a missing argument.
  */
-auto GF_SDK_EXPORT GFGpgListKeyAddresses(int channel, int secret_only,
-                                         char*** addresses, int* count) -> int;
+GF_SDK_EXPORT int GFGpgListKeyAddresses(int channel, int secret_only,
+                                        char*** addresses, int* count);
 
 /**
  * @brief Releases an array returned by GFGpgListKeyAddresses.
@@ -444,7 +442,7 @@ auto GF_SDK_EXPORT GFGpgListKeyAddresses(int channel, int secret_only,
  * Frees every string and then the array itself. No-op when @p strings is
  * nullptr. Pass the count that produced the array.
  */
-auto GF_SDK_EXPORT GFGpgFreeStringArray(char** strings, int count) -> void;
+GF_SDK_EXPORT void GFGpgFreeStringArray(char** strings, int count);
 
 /**
  * @brief Analyses a GPGME encryption result and produces a human-readable
@@ -460,10 +458,10 @@ auto GF_SDK_EXPORT GFGpgFreeStringArray(char** strings, int count) -> void;
  *                      with GFFreeMemory). Pass nullptr to skip.
  * @return Status code: positive on success, negative on detected errors.
  */
-auto GF_SDK_EXPORT GFAnalyseEncryptResult(int channel, gpgme_error_t err,
-                                          gpgme_encrypt_result_t result,
-                                          const char** analyse,
-                                          const char** cards) -> int;
+GF_SDK_EXPORT int GFAnalyseEncryptResult(int channel, gpgme_error_t err,
+                                         gpgme_encrypt_result_t result,
+                                         const char** analyse,
+                                         const char** cards);
 
 /**
  * @brief Analyses a GPGME signing result and produces a human-readable report.
@@ -478,10 +476,9 @@ auto GF_SDK_EXPORT GFAnalyseEncryptResult(int channel, gpgme_error_t err,
  *                      with GFFreeMemory). Pass nullptr to skip.
  * @return Status code: positive on success, negative on detected errors.
  */
-auto GF_SDK_EXPORT GFAnalyseSignResult(int channel, gpgme_error_t err,
-                                       gpgme_sign_result_t result,
-                                       const char** analyse, const char** cards)
-    -> int;
+GF_SDK_EXPORT int GFAnalyseSignResult(int channel, gpgme_error_t err,
+                                      gpgme_sign_result_t result,
+                                      const char** analyse, const char** cards);
 
 /**
  * @brief Analyses a GPGME decryption result and produces a human-readable
@@ -497,10 +494,10 @@ auto GF_SDK_EXPORT GFAnalyseSignResult(int channel, gpgme_error_t err,
  *                      with GFFreeMemory). Pass nullptr to skip.
  * @return Status code: positive on success, negative on detected errors.
  */
-auto GF_SDK_EXPORT GFAnalyseDecryptResult(int channel, gpgme_error_t err,
-                                          gpgme_decrypt_result_t result,
-                                          const char** analyse,
-                                          const char** cards) -> int;
+GF_SDK_EXPORT int GFAnalyseDecryptResult(int channel, gpgme_error_t err,
+                                         gpgme_decrypt_result_t result,
+                                         const char** analyse,
+                                         const char** cards);
 
 /**
  * @brief Analyses a GPGME verification result and produces a human-readable
@@ -516,10 +513,10 @@ auto GF_SDK_EXPORT GFAnalyseDecryptResult(int channel, gpgme_error_t err,
  *                      with GFFreeMemory). Pass nullptr to skip.
  * @return Status code: positive on success, negative on detected errors.
  */
-auto GF_SDK_EXPORT GFAnalyseVerifyResult(int channel, gpgme_error_t err,
-                                         gpgme_verify_result_t result,
-                                         const char** analyse,
-                                         const char** cards) -> int;
+GF_SDK_EXPORT int GFAnalyseVerifyResult(int channel, gpgme_error_t err,
+                                        gpgme_verify_result_t result,
+                                        const char** analyse,
+                                        const char** cards);
 
 /**
  * @brief Analyses an encryption result referenced by capsule ID.
@@ -540,11 +537,11 @@ auto GF_SDK_EXPORT GFAnalyseVerifyResult(int channel, gpgme_error_t err,
  * @return Status code: positive on success, negative on detected errors, -1 if
  *         the capsule is missing or of an unexpected type.
  */
-auto GF_SDK_EXPORT GFAnalyseEncryptResultByCapsule(int channel,
-                                                   gpgme_error_t err,
-                                                   char* capsule_id,
-                                                   const char** analyse,
-                                                   const char** cards) -> int;
+GF_SDK_EXPORT int GFAnalyseEncryptResultByCapsule(int channel,
+                                                  gpgme_error_t err,
+                                                  char* capsule_id,
+                                                  const char** analyse,
+                                                  const char** cards);
 
 /**
  * @brief Analyses a signing result referenced by capsule ID.
@@ -553,10 +550,10 @@ auto GF_SDK_EXPORT GFAnalyseEncryptResultByCapsule(int channel,
  * GFAnalyseEncryptResultByCapsule for the rationale and ownership rules; the
  * capsule comes from GFGpgSignResult::capsule_id.
  */
-auto GF_SDK_EXPORT GFAnalyseSignResultByCapsule(int channel, gpgme_error_t err,
-                                                char* capsule_id,
-                                                const char** analyse,
-                                                const char** cards) -> int;
+GF_SDK_EXPORT int GFAnalyseSignResultByCapsule(int channel, gpgme_error_t err,
+                                               char* capsule_id,
+                                               const char** analyse,
+                                               const char** cards);
 
 /**
  * @brief Analyses a decryption result referenced by capsule ID.
@@ -565,11 +562,11 @@ auto GF_SDK_EXPORT GFAnalyseSignResultByCapsule(int channel, gpgme_error_t err,
  * GFAnalyseEncryptResultByCapsule for the rationale and ownership rules; the
  * capsule comes from GFGpgDecryptResult::capsule_id.
  */
-auto GF_SDK_EXPORT GFAnalyseDecryptResultByCapsule(int channel,
-                                                   gpgme_error_t err,
-                                                   char* capsule_id,
-                                                   const char** analyse,
-                                                   const char** cards) -> int;
+GF_SDK_EXPORT int GFAnalyseDecryptResultByCapsule(int channel,
+                                                  gpgme_error_t err,
+                                                  char* capsule_id,
+                                                  const char** analyse,
+                                                  const char** cards);
 
 /**
  * @brief Analyses a verification result referenced by capsule ID.
@@ -578,11 +575,10 @@ auto GF_SDK_EXPORT GFAnalyseDecryptResultByCapsule(int channel,
  * GFAnalyseEncryptResultByCapsule for the rationale and ownership rules; the
  * capsule comes from GFGpgVerifyResult::capsule_id.
  */
-auto GF_SDK_EXPORT GFAnalyseVerifyResultByCapsule(int channel,
-                                                  gpgme_error_t err,
-                                                  char* capsule_id,
-                                                  const char** analyse,
-                                                  const char** cards) -> int;
+GF_SDK_EXPORT int GFAnalyseVerifyResultByCapsule(int channel, gpgme_error_t err,
+                                                 char* capsule_id,
+                                                 const char** analyse,
+                                                 const char** cards);
 
 /**
  * @brief As GFAnalyseVerifyResultByCapsule, plus the structured result as JSON.
@@ -620,32 +616,34 @@ auto GF_SDK_EXPORT GFAnalyseVerifyResultByCapsule(int channel,
  *
  * "validity" mirrors GpgFrontend::GpgSigValidity.
  */
-auto GF_SDK_EXPORT GFAnalyseVerifyResultInfoByCapsule(
+GF_SDK_EXPORT int GFAnalyseVerifyResultInfoByCapsule(
     int channel, gpgme_error_t err, char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json) -> int;
+    const char** cards, const char** info_json);
 
 /**
  * @brief Structured counterpart of GFAnalyseSignResultByCapsule.
  * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
  */
-auto GF_SDK_EXPORT GFAnalyseSignResultInfoByCapsule(
+GF_SDK_EXPORT int GFAnalyseSignResultInfoByCapsule(
     int channel, gpgme_error_t err, char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json) -> int;
+    const char** cards, const char** info_json);
 
 /**
  * @brief Structured counterpart of GFAnalyseEncryptResultByCapsule.
  * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
  */
-auto GF_SDK_EXPORT GFAnalyseEncryptResultInfoByCapsule(
+GF_SDK_EXPORT int GFAnalyseEncryptResultInfoByCapsule(
     int channel, gpgme_error_t err, char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json) -> int;
+    const char** cards, const char** info_json);
 
 /**
  * @brief Structured counterpart of GFAnalyseDecryptResultByCapsule.
  * See GFAnalyseVerifyResultInfoByCapsule for ownership and the JSON shape.
  */
-auto GF_SDK_EXPORT GFAnalyseDecryptResultInfoByCapsule(
+GF_SDK_EXPORT int GFAnalyseDecryptResultInfoByCapsule(
     int channel, gpgme_error_t err, char* capsule_id, const char** analyse,
-    const char** cards, const char** info_json) -> int;
+    const char** cards, const char** info_json);
 
-}  // extern "C"
+#ifdef __cplusplus
+}
+#endif  // extern "C"

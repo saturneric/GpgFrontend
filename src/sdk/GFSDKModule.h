@@ -30,12 +30,15 @@
 
 #include "GFSDKModuleModel.h"
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 #include <stdint.h>
 
 /**
- * @brief Registers the module to receive dispatched events matching @p event_id.
+ * @brief Registers the module to receive dispatched events matching @p
+ * event_id.
  *
  * The module ID is compared case-insensitively (stored lower-case) and the
  * event ID is stored upper-case.
@@ -43,7 +46,7 @@ extern "C" {
  * @param module_id Unique identifier of the calling module.
  * @param event_id  Event identifier to subscribe to.
  */
-void GF_SDK_EXPORT GFModuleListenEvent(const char *module_id,
+GF_SDK_EXPORT void GFModuleListenEvent(const char *module_id,
                                        const char *event_id);
 
 /**
@@ -54,10 +57,8 @@ void GF_SDK_EXPORT GFModuleListenEvent(const char *module_id,
  * @param default_value Value to return when the key is absent.
  * @return Caller-owned string; free with GFFreeMemory.
  */
-auto GF_SDK_EXPORT GFModuleRetrieveRTValueOrDefault(const char *namespace_,
-                                                    const char *key,
-                                                    const char *default_value)
-    -> const char *;
+GF_SDK_EXPORT const char *GFModuleRetrieveRTValueOrDefault(
+    const char *namespace_, const char *key, const char *default_value);
 
 /**
  * @brief Retrieves a runtime boolean value, returning a default if not set.
@@ -67,10 +68,9 @@ auto GF_SDK_EXPORT GFModuleRetrieveRTValueOrDefault(const char *namespace_,
  * @param default_value Default to return when the key is absent (0 = false).
  * @return 1 for true, 0 for false.
  */
-auto GF_SDK_EXPORT GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
-                                                        const char *key,
-                                                        int default_value)
-    -> int;
+GF_SDK_EXPORT int GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
+                                                       const char *key,
+                                                       int default_value);
 
 /**
  * @brief Inserts or updates a runtime string value.
@@ -81,7 +81,7 @@ auto GF_SDK_EXPORT GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
  * @param key        Key within the namespace.
  * @param value      String value to store.
  */
-void GF_SDK_EXPORT GFModuleUpsertRTValue(const char *namespace_,
+GF_SDK_EXPORT void GFModuleUpsertRTValue(const char *namespace_,
                                          const char *key, const char *value);
 
 /**
@@ -93,7 +93,7 @@ void GF_SDK_EXPORT GFModuleUpsertRTValue(const char *namespace_,
  * @param key        Key within the namespace.
  * @param value      Non-zero for true, 0 for false.
  */
-void GF_SDK_EXPORT GFModuleUpsertRTValueBool(const char *namespace_,
+GF_SDK_EXPORT void GFModuleUpsertRTValueBool(const char *namespace_,
                                              const char *key, int value);
 
 /**
@@ -107,9 +107,9 @@ void GF_SDK_EXPORT GFModuleUpsertRTValueBool(const char *namespace_,
  *                            GFFreeMemory. Set to nullptr when the count is 0.
  * @return Number of child keys found, or 0 if none.
  */
-auto GF_SDK_EXPORT GFModuleListRTChildKeys(const char *namespace_,
-                                           const char *key, char ***child_keys)
-    -> int32_t;
+GF_SDK_EXPORT int32_t GFModuleListRTChildKeys(const char *namespace_,
+                                              const char *key,
+                                              char ***child_keys);
 
 /**
  * @brief Invokes the event callback chain for a module event.
@@ -121,7 +121,9 @@ auto GF_SDK_EXPORT GFModuleListRTChildKeys(const char *namespace_,
  * @param module_id Identifier of the module invoking the callback.
  * @param argv      Linked list of additional parameters; may be nullptr.
  */
-void GF_SDK_EXPORT GFModuleTriggerModuleEventCallback(GFModuleEvent *event,
+GF_SDK_EXPORT void GFModuleTriggerModuleEventCallback(GFModuleEvent *event,
                                                       const char *module_id,
                                                       GFModuleEventParam *argv);
-};
+#ifdef __cplusplus
+}
+#endif

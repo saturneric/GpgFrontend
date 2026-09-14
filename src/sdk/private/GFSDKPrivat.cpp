@@ -57,6 +57,11 @@ auto GFBytesDup(const QByteArray& bytes, size_t* size) -> char* {
 }
 
 auto GFUnStrDup(char* str) -> QString {
+  // Guarded, like the core twin in CommonUtils.cpp. Modules do pass a null
+  // here -- GnuPGInfoGatheringModule hands nullptr as a default_value -- and
+  // an unguarded SMAFree(nullptr) reached report_invalid_free on some paths.
+  if (str == nullptr) return {};
+
   auto qt_str = QString::fromUtf8(str);
   GpgFrontend::SMAFree(static_cast<void*>(str));
   return qt_str;

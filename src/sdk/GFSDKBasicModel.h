@@ -28,13 +28,15 @@
 
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 /// Maximum allowed string length for SDK string operations (32 MiB).
-constexpr int32_t kGfStrlenMax = static_cast<const int32_t>(1024 * 1024 * 32);
+#define kGfStrlenMax ((int32_t)(1024 * 1024 * 32))
 
 /**
  * @brief Callback invoked after a command finishes executing.
@@ -43,8 +45,8 @@ constexpr int32_t kGfStrlenMax = static_cast<const int32_t>(1024 * 1024 * 32);
  * @param out    Null-terminated standard output of the command.
  * @param err    Null-terminated standard error of the command.
  */
-using GFCommandExecuteCallback = void (*)(void* data, int errcode,
-                                          const char* out, const char* err);
+typedef void (*GFCommandExecuteCallback)(void* data, int errcode,
+                                         const char* out, const char* err);
 
 /**
  * @brief Execution context for a single command in a batch operation.
@@ -52,13 +54,13 @@ using GFCommandExecuteCallback = void (*)(void* data, int errcode,
  * Used with GFExecuteCommandBatchSync to submit multiple commands at once.
  * The @p data pointer must be freed by the caller after the callback returns.
  */
-using GFCommandExecuteContext = struct {
-  char* cmd;                  ///< Command path or name to execute.
-  int32_t argc;               ///< Number of arguments in @p argv.
-  char** argv;                ///< Argument array of length @p argc.
-  GFCommandExecuteCallback cb; ///< Callback invoked on completion.
-  void* data;                 ///< User context pointer; must be freed by caller.
-};
+typedef struct {
+  char* cmd;                    ///< Command path or name to execute.
+  int32_t argc;                 ///< Number of arguments in @p argv.
+  char** argv;                  ///< Argument array of length @p argc.
+  GFCommandExecuteCallback cb;  ///< Callback invoked on completion.
+  void* data;  ///< User context pointer; must be freed by caller.
+} GFCommandExecuteContext;
 
 /**
  * @brief Callback that supplies translation data for a given locale.
@@ -66,5 +68,7 @@ using GFCommandExecuteContext = struct {
  * @param data   Output pointer set to a caller-owned buffer with the data.
  * @return 0 on success, non-zero on failure.
  */
-using GFTranslatorDataReader = int (*)(const char* locale, char** data);
+typedef int (*GFTranslatorDataReader)(const char* locale, char** data);
+#ifdef __cplusplus
 }
+#endif

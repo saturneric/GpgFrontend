@@ -28,19 +28,21 @@
 
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "GFSDKBasicModel.h"
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 /**
  * @brief Allocates a block of memory from the module allocator.
  * @param size Number of bytes to allocate.
  * @return Pointer to the allocated memory, or nullptr on failure.
  */
-auto GF_SDK_EXPORT GFAllocateMemory(uint32_t size) -> void*;
+GF_SDK_EXPORT void* GFAllocateMemory(uint32_t size);
 
 /**
  * @brief Resizes a previously allocated memory block.
@@ -48,20 +50,20 @@ auto GF_SDK_EXPORT GFAllocateMemory(uint32_t size) -> void*;
  * @param size New size in bytes.
  * @return Pointer to the reallocated memory, or nullptr on failure.
  */
-auto GF_SDK_EXPORT GFReallocateMemory(void* ptr, uint32_t size) -> void*;
+GF_SDK_EXPORT void* GFReallocateMemory(void* ptr, uint32_t size);
 
 /**
  * @brief Frees a block allocated by GFAllocateMemory or GFReallocateMemory.
  * @param ptr Pointer to the memory block to free.
  */
-void GF_SDK_EXPORT GFFreeMemory(void* ptr);
+GF_SDK_EXPORT void GFFreeMemory(void* ptr);
 
 /**
  * @brief Allocates a block of secure memory that is zeroed before release.
  * @param size Number of bytes to allocate.
  * @return Pointer to the allocated secure memory, or nullptr on failure.
  */
-auto GF_SDK_EXPORT GFSecAllocateMemory(uint32_t size) -> void*;
+GF_SDK_EXPORT void* GFSecAllocateMemory(uint32_t size);
 
 /**
  * @brief Resizes a previously allocated secure memory block.
@@ -69,34 +71,35 @@ auto GF_SDK_EXPORT GFSecAllocateMemory(uint32_t size) -> void*;
  * @param size New size in bytes.
  * @return Pointer to the reallocated secure memory, or nullptr on failure.
  */
-auto GF_SDK_EXPORT GFSecReallocateMemory(void* ptr, uint32_t size) -> void*;
+GF_SDK_EXPORT void* GFSecReallocateMemory(void* ptr, uint32_t size);
 
 /**
- * @brief Frees a block allocated by GFSecAllocateMemory or GFSecReallocateMemory.
+ * @brief Frees a block allocated by GFSecAllocateMemory or
+ * GFSecReallocateMemory.
  *
  * The memory is zeroed before being released to prevent sensitive data leaks.
  * @param ptr Pointer to the secure memory block to free.
  */
-void GF_SDK_EXPORT GFSecFreeMemory(void* ptr);
+GF_SDK_EXPORT void GFSecFreeMemory(void* ptr);
 
 /**
  * @brief Returns the GpgFrontend application version string (e.g. "2.1.0").
- * @return Caller-owned string; free with GFFreeMemory.
+ * @return Borrowed string with process lifetime. Do NOT free.
  */
-auto GF_SDK_EXPORT GFProjectVersion() -> const char*;
+GF_SDK_EXPORT const char* GFProjectVersion();
 
 /**
  * @brief Returns the abbreviated git commit hash of the current build.
- * @return Caller-owned string; free with GFFreeMemory.
+ * @return Borrowed string with process lifetime. Do NOT free.
  */
-auto GF_SDK_EXPORT GFProjectGitCommitHash() -> const char*;
+GF_SDK_EXPORT const char* GFProjectGitCommitHash();
 
 /**
  * @brief Returns the Qt version string the application was built against
  *        (e.g. "6.6.1").
- * @return Caller-owned string; free with GFFreeMemory.
+ * @return Borrowed string with process lifetime. Do NOT free.
  */
-auto GF_SDK_EXPORT GFQtEnvVersion() -> const char*;
+GF_SDK_EXPORT const char* GFQtEnvVersion();
 
 /**
  * @brief Executes an external command synchronously on a worker thread.
@@ -110,7 +113,7 @@ auto GF_SDK_EXPORT GFQtEnvVersion() -> const char*;
  * @param cb   Callback invoked with (data, exit_code, stdout, stderr).
  * @param data User context pointer forwarded to @p cb.
  */
-void GF_SDK_EXPORT GFExecuteCommandSync(const char* cmd, int32_t argc,
+GF_SDK_EXPORT void GFExecuteCommandSync(const char* cmd, int32_t argc,
                                         char** argv,
                                         GFCommandExecuteCallback cb,
                                         void* data);
@@ -123,7 +126,7 @@ void GF_SDK_EXPORT GFExecuteCommandSync(const char* cmd, int32_t argc,
  * @param contexts      Array of pointers to GFCommandExecuteContext structures.
  * @param contexts_size Number of entries in @p contexts.
  */
-void GF_SDK_EXPORT GFExecuteCommandBatchSync(GFCommandExecuteContext** contexts,
+GF_SDK_EXPORT void GFExecuteCommandBatchSync(GFCommandExecuteContext** contexts,
                                              int32_t contexts_size);
 
 /**
@@ -134,7 +137,7 @@ void GF_SDK_EXPORT GFExecuteCommandBatchSync(GFCommandExecuteContext** contexts,
  * @param src Null-terminated source string (max length kGfStrlenMax).
  * @return Caller-owned copy, or nullptr if @p src exceeds kGfStrlenMax.
  */
-auto GF_SDK_EXPORT GFModuleStrDup(const char* src) -> char*;
+GF_SDK_EXPORT char* GFModuleStrDup(const char* src);
 
 /**
  * @brief Duplicates a string using the secure allocator.
@@ -145,13 +148,13 @@ auto GF_SDK_EXPORT GFModuleStrDup(const char* src) -> char*;
  * @param src Null-terminated source string (max length kGfStrlenMax).
  * @return Caller-owned secure copy, or nullptr if @p src exceeds kGfStrlenMax.
  */
-auto GF_SDK_EXPORT GFModuleSecStrDup(const char* src) -> char*;
+GF_SDK_EXPORT char* GFModuleSecStrDup(const char* src);
 
 /**
  * @brief Returns the active locale name of the application (e.g. "en_US").
  * @return Caller-owned string; free with GFFreeMemory.
  */
-auto GF_SDK_EXPORT GFAppActiveLocale() -> char*;
+GF_SDK_EXPORT char* GFAppActiveLocale();
 
 /**
  * @brief Registers a translator data reader callback for a given module.
@@ -164,9 +167,8 @@ auto GF_SDK_EXPORT GFAppActiveLocale() -> char*;
  * @param reader Callback that supplies translation data for a locale.
  * @return 0 on success, -1 on failure.
  */
-auto GF_SDK_EXPORT GFAppRegisterTranslatorReader(const char* id,
-                                                 GFTranslatorDataReader reader)
-    -> int;
+GF_SDK_EXPORT int GFAppRegisterTranslatorReader(const char* id,
+                                                GFTranslatorDataReader reader);
 
 /**
  * @brief Saves a string value to the in-memory cache.
@@ -174,7 +176,7 @@ auto GF_SDK_EXPORT GFAppRegisterTranslatorReader(const char* id,
  * @param value Value to store.
  * @return 0 on success.
  */
-auto GF_SDK_EXPORT GFCacheSave(const char* key, const char* value) -> int;
+GF_SDK_EXPORT int GFCacheSave(const char* key, const char* value);
 
 /**
  * @brief Saves a string value to the in-memory cache with an expiry time.
@@ -183,8 +185,8 @@ auto GF_SDK_EXPORT GFCacheSave(const char* key, const char* value) -> int;
  * @param ttl   Time-to-live in seconds; the entry expires after this duration.
  * @return 0 on success.
  */
-auto GF_SDK_EXPORT GFCacheSaveWithTTL(const char* key, const char* value,
-                                      int ttl) -> int;
+GF_SDK_EXPORT int GFCacheSaveWithTTL(const char* key, const char* value,
+                                     int ttl);
 
 /**
  * @brief Retrieves a value from the persistent (durable) cache.
@@ -196,7 +198,7 @@ auto GF_SDK_EXPORT GFCacheSaveWithTTL(const char* key, const char* value,
  * @return Caller-owned JSON string, or nullptr if not found.
  *         Free with GFFreeMemory.
  */
-auto GF_SDK_EXPORT GFDurableCacheGet(const char* key) -> const char*;
+GF_SDK_EXPORT const char* GFDurableCacheGet(const char* key);
 
 /**
  * @brief Saves a JSON string value to the persistent (durable) cache.
@@ -208,8 +210,7 @@ auto GF_SDK_EXPORT GFDurableCacheGet(const char* key) -> const char*;
  * @param value JSON-encoded value to store.
  * @return 0 on success.
  */
-auto GF_SDK_EXPORT GFDurableCacheSave(const char* key, const char* value)
-    -> int;
+GF_SDK_EXPORT int GFDurableCacheSave(const char* key, const char* value);
 
 /**
  * @brief Retrieves a secret from the durable cache's secure tier.
@@ -223,7 +224,7 @@ auto GF_SDK_EXPORT GFDurableCacheSave(const char* key, const char* value)
  * @return Caller-owned string, or nullptr if not found.
  *         Free with GFSecFreeMemory, NOT GFFreeMemory.
  */
-auto GF_SDK_EXPORT GFSecDurableCacheGet(const char* key) -> char*;
+GF_SDK_EXPORT char* GFSecDurableCacheGet(const char* key);
 
 /**
  * @brief Stores a secret in the durable cache's secure tier.
@@ -240,8 +241,7 @@ auto GF_SDK_EXPORT GFSecDurableCacheGet(const char* key) -> char*;
  * @param value Secret to store. Wiped and released by this call.
  * @return 0 on success.
  */
-auto GF_SDK_EXPORT GFSecDurableCacheSave(const char* key, const char* value)
-    -> int;
+GF_SDK_EXPORT int GFSecDurableCacheSave(const char* key, const char* value);
 
 /**
  * @brief Removes a secret from the durable cache's secure tier.
@@ -249,7 +249,7 @@ auto GF_SDK_EXPORT GFSecDurableCacheSave(const char* key, const char* value)
  * @param key Cache key.
  * @return 0 on success, including when nothing was stored under @p key.
  */
-auto GF_SDK_EXPORT GFSecDurableCacheRemove(const char* key) -> int;
+GF_SDK_EXPORT int GFSecDurableCacheRemove(const char* key);
 
 /**
  * @brief How the application secure key itself is protected.
@@ -262,7 +262,7 @@ auto GF_SDK_EXPORT GFSecDurableCacheRemove(const char* key) -> int;
  * @return 0 = unprotected (key file is plaintext), 1 = system keychain,
  *         2 = user PIN, -1 = unknown.
  */
-auto GF_SDK_EXPORT GFAppKeyProtectionLevel() -> int;
+GF_SDK_EXPORT int GFAppKeyProtectionLevel();
 
 /**
  * @brief Retrieves a value from the in-memory cache.
@@ -270,11 +270,13 @@ auto GF_SDK_EXPORT GFAppKeyProtectionLevel() -> int;
  * @return Caller-owned string, or nullptr if the key is not present.
  *         Free with GFFreeMemory.
  */
-auto GF_SDK_EXPORT GFCacheGet(const char* key) -> const char*;
+GF_SDK_EXPORT const char* GFCacheGet(const char* key);
 
 /**
  * @brief Returns whether the application is running inside a Flatpak sandbox.
- * @return true if running under Flatpak, false otherwise.
+ * @return non-zero if running under Flatpak, 0 otherwise.
  */
-auto GF_SDK_EXPORT GFIsFlatpakENV() -> bool;
+GF_SDK_EXPORT int GFIsFlatpakENV();
+#ifdef __cplusplus
 }
+#endif

@@ -49,10 +49,15 @@ auto GFReallocateMemory(void* ptr, uint32_t size) -> void* {
 void GFFreeMemory(void* ptr) { return GpgFrontend::SMAFree(ptr); }
 
 auto GFProjectVersion() -> const char* {
-  return GFStrDup(GpgFrontend::GetProjectVersion());
+  // Borrowed statics, see the note in GFHttpRequestUserAgent: a caller-owned
+  // const char* is implicitly convertible to QString, so every call site that
+  // assigned one straight into a QString leaked silently.
+  static const QByteArray kVersion =
+      GpgFrontend::GetProjectVersion().toUtf8();
+  return kVersion.constData();
 }
 
-auto GFQtEnvVersion() -> const char* { return GFStrDup(QT_VERSION_STR); }
+auto GFQtEnvVersion() -> const char* { return QT_VERSION_STR; }
 
 void GFExecuteCommandSync(const char* cmd, int32_t argc, char** argv,
                           GFCommandExecuteCallback cb, void* data) {
@@ -143,11 +148,13 @@ auto GF_SDK_EXPORT GFCacheSaveWithTTL(const char* key, const char* value,
 }
 
 auto GF_SDK_EXPORT GFProjectGitCommitHash() -> const char* {
-  return GFStrDup(GpgFrontend::GetProjectBuildGitCommitHash());
+  static const QByteArray kHash =
+      GpgFrontend::GetProjectBuildGitCommitHash().toUtf8();
+  return kHash.constData();
 }
 
-auto GF_SDK_EXPORT GFIsFlatpakENV() -> bool {
-  return GpgFrontend::IsFlatpakENV();
+auto GF_SDK_EXPORT GFIsFlatpakENV() -> int {
+  return GpgFrontend::IsFlatpakENV() ? 1 : 0;
 }
 
 auto GF_SDK_EXPORT GFSecAllocateMemory(uint32_t size) -> void* {

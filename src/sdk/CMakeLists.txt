@@ -36,3 +36,33 @@ target_include_directories(${LIBRARY_TARGET} PUBLIC sdk)
 
 # link module system
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_core gf_ui)
+# Proves the public SDK headers are consumable from C.
+#
+# Its own OBJECT target, compiled as C11, so it inherits neither the C++ PCH
+# nor gf_sdk's include interface: a C++-only construct creeping into a public
+# header fails the BUILD rather than being noticed in review. GF_SDK_EXPORT is
+# stubbed empty, following modules/src/m_email/test/CMakeLists.txt.
+add_library(gf_sdk_c_abi_check OBJECT
+  ${CMAKE_CURRENT_SOURCE_DIR}/test/sdk_c_abi_check.c)
+
+set_target_properties(gf_sdk_c_abi_check PROPERTIES
+  C_STANDARD 11
+  C_STANDARD_REQUIRED ON
+  POSITION_INDEPENDENT_CODE ON)
+
+target_compile_definitions(gf_sdk_c_abi_check PRIVATE GF_SDK_EXPORT=)
+
+target_include_directories(gf_sdk_c_abi_check PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR})
+
+# gpgme.h is still on GFSDKGpg.h's include path.
+if(GNUPG_DEPS_BUILT)
+  get_target_property(_gnupg_incs GnuPGDeps INTERFACE_INCLUDE_DIRECTORIES)
+  if(_gnupg_incs)
+    target_include_directories(gf_sdk_c_abi_check PRIVATE ${_gnupg_incs})
+  endif()
+endif()
+
+# Built as part of the normal build, so the check cannot be skipped.
+add_dependencies(${LIBRARY_TARGET} gf_sdk_c_abi_check)

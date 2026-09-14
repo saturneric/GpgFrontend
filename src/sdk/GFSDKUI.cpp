@@ -39,10 +39,10 @@
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/UIStyle.h"
 
-auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> bool {
+auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> int {
   if (dialog_raw_ptr == nullptr) {
     LOG_E() << "dialog raw ptr is nullptr";
-    return false;
+    return 0;
   }
 
   auto* q_obj = static_cast<QObject*>(dialog_raw_ptr);
@@ -50,7 +50,7 @@ auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> bool {
 
   if (dialog == nullptr) {
     LOG_E() << "convert dialog raw ptr to qdialog failed";
-    return false;
+    return 0;
   }
 
   QPointer<QWidget> parent = nullptr;
@@ -60,7 +60,7 @@ auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> bool {
 
     if (parent == nullptr) {
       LOG_E() << "convert parent raw ptr to qwidget failed";
-      return false;
+      return 0;
     }
   }
 
@@ -73,7 +73,7 @@ auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> bool {
 
   if (dialog->thread() != main_thread) {
     LOG_E() << "dialog must be created on main thread";
-    return false;
+    return 0;
   }
 
   QMetaObject::invokeMethod(
@@ -86,7 +86,7 @@ auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> bool {
         return 0;
       });
 
-  return true;
+  return 1;
 }
 
 auto GFUICreateGUIObject(QObjectFactory factory, void* data) -> void* {

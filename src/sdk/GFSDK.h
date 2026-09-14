@@ -28,35 +28,39 @@
 
 #pragma once
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 /**
  * @brief Emits a trace-level log message from a module.
  * @param msg Null-terminated message string.
  */
-void GF_SDK_EXPORT GFModuleLogTrace(const char* msg);
+GF_SDK_EXPORT void GFModuleLogTrace(const char* msg);
 
 /**
  * @brief Emits a debug-level log message from a module.
  * @param msg Null-terminated message string.
  */
-void GF_SDK_EXPORT GFModuleLogDebug(const char* msg);
+GF_SDK_EXPORT void GFModuleLogDebug(const char* msg);
 
 /**
  * @brief Emits an info-level log message from a module.
  * @param msg Null-terminated message string.
  */
-void GF_SDK_EXPORT GFModuleLogInfo(const char* msg);
+GF_SDK_EXPORT void GFModuleLogInfo(const char* msg);
 
 /**
  * @brief Emits a warning-level log message from a module.
  * @param msg Null-terminated message string.
  */
-void GF_SDK_EXPORT GFModuleLogWarn(const char* msg);
+GF_SDK_EXPORT void GFModuleLogWarn(const char* msg);
 
 /**
  * @brief Emits an error-level log message from a module.
  * @param msg Null-terminated message string.
  */
-void GF_SDK_EXPORT GFModuleLogError(const char* msg);
+GF_SDK_EXPORT void GFModuleLogError(const char* msg);
+#ifdef __cplusplus
 }
+#endif

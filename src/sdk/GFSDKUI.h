@@ -30,7 +30,9 @@
 
 #include "GFSDKUIModel.h"
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 /**
  * @brief Creates a QObject-derived GUI object on the main (UI) thread.
@@ -42,8 +44,7 @@ extern "C" {
  * @param data    User data forwarded to @p factory.
  * @return Opaque pointer to the created QObject, or nullptr on failure.
  */
-auto GF_SDK_EXPORT GFUICreateGUIObject(QObjectFactory factory, void* data)
-    -> void*;
+GF_SDK_EXPORT void* GFUICreateGUIObject(QObjectFactory factory, void* data);
 
 /**
  * @brief Retrieves a registered GUI object by its string identifier.
@@ -51,7 +52,7 @@ auto GF_SDK_EXPORT GFUICreateGUIObject(QObjectFactory factory, void* data)
  * @param id Null-terminated identifier of the GUI object.
  * @return Opaque QObject pointer, or nullptr if not found or @p id is nullptr.
  */
-auto GF_SDK_EXPORT GFUIGetGUIObject(const char* id) -> void*;
+GF_SDK_EXPORT void* GFUIGetGUIObject(const char* id);
 
 /**
  * @brief Shows a QDialog on the main thread.
@@ -64,7 +65,7 @@ auto GF_SDK_EXPORT GFUIGetGUIObject(const char* id) -> void*;
  * @param parent Opaque pointer to a QWidget parent, or nullptr for no parent.
  * @return true if the dialog was shown successfully, false on error.
  */
-auto GF_SDK_EXPORT GFUIShowDialog(void* dialog, void* parent) -> bool;
+GF_SDK_EXPORT int GFUIShowDialog(void* dialog, void* parent);
 
 /**
  * @brief Returns a pointer to the application-wide QSettings object.
@@ -74,7 +75,7 @@ auto GF_SDK_EXPORT GFUIShowDialog(void* dialog, void* parent) -> bool;
  *
  * @return Opaque pointer to the global QSettings instance.
  */
-auto GF_SDK_EXPORT GFUIGlobalSettings() -> void*;
+GF_SDK_EXPORT void* GFUIGlobalSettings();
 
 /**
  * @brief Associates a file extension with an event prefix for open-file
@@ -88,8 +89,8 @@ auto GF_SDK_EXPORT GFUIGlobalSettings() -> void*;
  * @param event_prefix Prefix used to construct the event identifier.
  * @return 0 on success, -1 if either argument is nullptr.
  */
-auto GF_SDK_EXPORT GFUIRegisterFileExtensionHandleEvent(
-    const char* extension, const char* event_prefix) -> int;
+GF_SDK_EXPORT int GFUIRegisterFileExtensionHandleEvent(
+    const char* extension, const char* event_prefix);
 
 /**
  * @brief Registers a settings page owned by a module.
@@ -124,9 +125,11 @@ auto GF_SDK_EXPORT GFUIRegisterFileExtensionHandleEvent(
  *                   loaded.
  * @return 0 on success, -1 on a missing argument or a duplicate @p page_id.
  */
-auto GF_SDK_EXPORT GFUIRegisterSettingsPage(
-    const char* page_id, const char* section_id, const char* title,
-    const char* keywords, QObjectFactory factory, void* data) -> int;
+GF_SDK_EXPORT int GFUIRegisterSettingsPage(const char* page_id,
+                                           const char* section_id,
+                                           const char* title,
+                                           const char* keywords,
+                                           QObjectFactory factory, void* data);
 
 /**
  * @brief Removes a settings page registration.
@@ -138,7 +141,7 @@ auto GF_SDK_EXPORT GFUIRegisterSettingsPage(
  * @param page_id Identifier passed to GFUIRegisterSettingsPage.
  * @return 0 on success, -1 if @p page_id is nullptr or was never registered.
  */
-auto GF_SDK_EXPORT GFUIUnregisterSettingsPage(const char* page_id) -> int;
+GF_SDK_EXPORT int GFUIUnregisterSettingsPage(const char* page_id);
 
 /**
  * @brief Registers a module-owned primary view for a tab type.
@@ -190,9 +193,8 @@ auto GF_SDK_EXPORT GFUIUnregisterSettingsPage(const char* page_id) -> int;
  *                 invocation; it must stay valid while the module is loaded.
  * @return 0 on success, -1 on a missing argument or a duplicate @p tab_type.
  */
-auto GF_SDK_EXPORT GFUIRegisterTabPageView(const char* tab_type,
-                                           QObjectFactory factory, void* data)
-    -> int;
+GF_SDK_EXPORT int GFUIRegisterTabPageView(const char* tab_type,
+                                          QObjectFactory factory, void* data);
 
 /**
  * @brief Removes a tab page view registration.
@@ -204,7 +206,7 @@ auto GF_SDK_EXPORT GFUIRegisterTabPageView(const char* tab_type,
  * @param tab_type Type passed to GFUIRegisterTabPageView.
  * @return 0 on success, -1 if @p tab_type is nullptr or was never registered.
  */
-auto GF_SDK_EXPORT GFUIUnregisterTabPageView(const char* tab_type) -> int;
+GF_SDK_EXPORT int GFUIUnregisterTabPageView(const char* tab_type);
 
 /**
  * @brief The directory a file dialog for *user files* should open in.
@@ -217,7 +219,7 @@ auto GF_SDK_EXPORT GFUIUnregisterTabPageView(const char* tab_type) -> int;
  *
  * @return Newly allocated absolute path; free it with GFFreeMemory.
  */
-auto GF_SDK_EXPORT GFUIDefaultUserFilePath() -> char*;
+GF_SDK_EXPORT char* GFUIDefaultUserFilePath();
 
 /**
  * @brief Colours of the application's own visual language, for module widgets.
@@ -236,10 +238,10 @@ auto GF_SDK_EXPORT GFUIDefaultUserFilePath() -> char*;
  * @param widget Opaque pointer to the QWidget whose palette to derive from.
  * @return Colour as 0xAARRGGBB, or 0 if @p widget is not a QWidget.
  */
-auto GF_SDK_EXPORT GFUIMutedTextColor(void* widget) -> uint32_t;
-auto GF_SDK_EXPORT GFUIBorderColor(void* widget) -> uint32_t;
-auto GF_SDK_EXPORT GFUIWarningColor(void* widget) -> uint32_t;
-auto GF_SDK_EXPORT GFUIDangerColor(void* widget) -> uint32_t;
+GF_SDK_EXPORT uint32_t GFUIMutedTextColor(void* widget);
+GF_SDK_EXPORT uint32_t GFUIBorderColor(void* widget);
+GF_SDK_EXPORT uint32_t GFUIWarningColor(void* widget);
+GF_SDK_EXPORT uint32_t GFUIDangerColor(void* widget);
 
 /**
  * @brief Accent colour for a status chip.
@@ -248,7 +250,7 @@ auto GF_SDK_EXPORT GFUIDangerColor(void* widget) -> uint32_t;
  * @param positive Non-zero when the chip reports a good state.
  * @return Colour as 0xAARRGGBB, or 0 if @p widget is not a QWidget.
  */
-auto GF_SDK_EXPORT GFUIAccentColor(void* widget, int positive) -> uint32_t;
+GF_SDK_EXPORT uint32_t GFUIAccentColor(void* widget, int positive);
 
 /**
  * @brief A file size as the rest of the application writes it.
@@ -260,5 +262,7 @@ auto GF_SDK_EXPORT GFUIAccentColor(void* widget, int positive) -> uint32_t;
  * @param bytes The size.
  * @return Newly allocated string; free it with GFFreeMemory.
  */
-auto GF_SDK_EXPORT GFUIHumanSize(int64_t bytes) -> char*;
+GF_SDK_EXPORT char* GFUIHumanSize(int64_t bytes);
+#ifdef __cplusplus
 }
+#endif

@@ -865,8 +865,7 @@ auto GF_SDK_EXPORT GFGpgSniffEncryptedRecipients(int channel, const char* data,
   if (array == nullptr) return -1;
   std::memset(array, 0, sizeof(GFGpgEncRecipient) * key_ids.size());
 
-  auto& repository =
-      GpgFrontend::AbstractKeyRepository::GetInstance(channel);
+  auto& repository = GpgFrontend::AbstractKeyRepository::GetInstance(channel);
 
   for (int i = 0; i < key_ids.size(); ++i) {
     const auto& key_id = key_ids[i];

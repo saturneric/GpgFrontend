@@ -79,12 +79,26 @@ auto GFModuleListRTChildKeys(const char *namespace_, const char *key,
 void GFModuleTriggerModuleEventCallback(GFModuleEvent *module_event,
                                         const char *module_id,
                                         GFModuleEventParam *p_argv) {
+  // Every field of the event, and the event node itself, is reclaimed on
+  // BOTH paths. This used to consume only trigger_id, leaking module_event
+  // and module_event->id on every single module callback, plus module_id as
+  // well whenever the event was not found.
   auto argv = ConvertEventParamsToMap(p_argv);
+
+  QString trigger_id;
+  if (module_event != nullptr) {
+    trigger_id = GFUnStrDup(module_event->trigger_id);
+    GFUnStrDup(module_event->id);
+    GpgFrontend::SMAFree(static_cast<void *>(module_event));
+  }
+
+  auto caller_id = GFUnStrDup(module_id);
+
   auto event = GpgFrontend::Module::ModuleManager::GetInstance().SearchEvent(
-      GFUnStrDup(module_event->trigger_id).toLower());
+      trigger_id.toLower());
   if (!event) return;
 
-  event.value()->ExecuteCallback(GFUnStrDup(module_id), argv);
+  event.value()->ExecuteCallback(caller_id, argv);
 }
 
 auto GFModuleRetrieveRTValueOrDefaultBool(const char *namespace_,
