@@ -49,6 +49,22 @@ enum class ArchiveCompression {
 };
 
 /**
+ * @brief Container format an archive is written in.
+ *
+ * Reading needs no equivalent: the reader already turns on every format
+ * libarchive knows, so a container is recognised by its bytes. Only writing has
+ * to be told, and it used to be told at two hardcoded call sites.
+ *
+ * ZIP exists for `*.gfmodule` packages, whose entries are named by a signed
+ * manifest -- so the container has to be one whose paths are plain UTF-8 rather
+ * than pax's BINARY header charset.
+ */
+enum class ArchiveFormat {
+  kPAX_RESTRICTED,  ///< the historical behaviour, used by profile packages
+  kZIP,             ///< zip, used by module packages
+};
+
+/**
  * @brief Limits and permissions applied while extracting an archive.
  *
  * Two callers with genuinely different needs share one extractor. Decrypting a
@@ -89,6 +105,49 @@ struct GF_CORE_EXPORT ArchiveExtractPolicy {
    * because it knows it created nothing else there.
    */
   bool require_empty_destination = false;
+
+  /**
+   * @brief Refuse an archive that names the same path twice.
+   *
+   * ZIP permits repeated entry names, and tar simply overwrites. That is
+   * harmless until something else decides what an archive contains by reading
+   * it separately -- a verifier hashing the first copy while the extractor
+   * keeps the last is the whole of a split-view attack, and neither half is
+   * wrong on its own.
+   */
+  bool reject_duplicate_paths = false;
+
+  /**
+   * @brief Refuse paths that differ only by case.
+   *
+   * `BIN/module.so` and `bin/module.so` are two files on Linux and one file on
+   * macOS and Windows. An archive that relies on the difference extracts to a
+   * different tree depending on who unpacks it, which is the same split view
+   * arrived at by another route.
+   */
+  bool reject_case_colliding_paths = false;
+
+  /**
+   * @brief Refuse entry names that are not valid UTF-8.
+   *
+   * Decoding replaces a bad sequence rather than failing, so two distinct
+   * entries can decode to one string -- and a manifest keyed by path then
+   * describes a file that is not the one extracted. Formats that key contents
+   * by name need the encoding pinned; ones that carry whatever the user's
+   * filesystem held do not, which is why this is off by default.
+   */
+  bool require_utf8_paths = false;
+
+  /**
+   * @brief Ceiling on extracted bytes per byte of archive; -1 disables.
+   *
+   * The size limits cap what an archive unpacks to. They do not cap how little
+   * it costs to ask for it: a few hundred kilobytes of zeros inflate to
+   * gigabytes, and a caller whose ceiling is generous enough to be useful is
+   * exactly the one that pays. Checked as the data streams, once enough has
+   * been read for the figure to mean anything.
+   */
+  qint64 max_compression_ratio = -1;
 
   /**
    * @brief The historical behaviour, for archives the user built themselves.
@@ -256,12 +315,14 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * @param exchanger stream to write the archive into
    * @param compression compression filter to apply
    * @param filter optional predicate deciding what is included
+   * @param format container format to write
    * @return 0 on success, negative on failure
    */
   static auto NewArchive2DataExchangerSync(
       const QString &target_directory, const QSharedPointer<GFDataExchanger> &,
       ArchiveCompression compression = ArchiveCompression::kNONE,
-      const ArchiveEntryFilter &filter = {}) -> GFError;
+      const ArchiveEntryFilter &filter = {},
+      ArchiveFormat format = ArchiveFormat::kPAX_RESTRICTED) -> GFError;
 
   /**
    * @brief Unpack a stream into a directory.
@@ -309,6 +370,30 @@ class GF_CORE_EXPORT ArchiveFileOperator {
       QString *reason = nullptr) -> GFError;
 
   /**
+   * @brief Unpack an archive that is already a file on disk.
+   *
+   * Every read entry point takes a stream rather than a path, because the one
+   * format that needed them decrypts into that stream. An archive that is
+   * plainly a file still has to be fed through one, so this is the feeder every
+   * such caller would otherwise write again -- including the detail that sinks
+   * the ones that wrote it: the pipe is closed *before* the thread is joined,
+   * since joining a feeder blocked on a full pipe never returns.
+   *
+   * @param archive_path archive to read
+   * @param target_path directory to extract into
+   * @param policy limits and permissions to enforce
+   * @param divert entries this claims go to @p sink instead of the filesystem
+   * @param sink where diverted bytes go
+   * @param reason set, when given, to why the walk stopped
+   * @return 0 on success, non-zero on failure
+   */
+  static auto ExtractArchiveFromFileSync(
+      const QString &archive_path, const QString &target_path,
+      const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive(),
+      const ArchiveEntryFilter &divert = {}, const ArchiveEntrySink &sink = {},
+      QString *reason = nullptr) -> GFError;
+
+  /**
    * @brief Pack entries from a provider into a stream.
    *
    * The counterpart of NewArchive2DataExchangerSync() for callers whose
@@ -324,11 +409,13 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * @param next yields entries until it returns false
    * @param exchanger stream to write the archive into
    * @param compression whether to gzip
+   * @param format container format to write
    * @return 0 on success, non-zero on failure
    */
   static auto NewArchiveFromMembersSync(
       const ArchiveMemberProvider &next,
       const QSharedPointer<GFDataExchanger> &exchanger,
-      ArchiveCompression compression) -> GFError;
+      ArchiveCompression compression,
+      ArchiveFormat format = ArchiveFormat::kPAX_RESTRICTED) -> GFError;
 };
 }  // namespace GpgFrontend

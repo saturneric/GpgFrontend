@@ -34,6 +34,7 @@
 #include <sys/fcntl.h>
 
 #include <cstring>
+#include <thread>
 
 #include "core/thread/TaskRunnerGetter.h"
 #include "core/utils/AsyncUtils.h"
@@ -303,6 +304,27 @@ auto ArchiveWriteCallback(struct archive *, void *client_data,
   return ex->Write(static_cast<const std::byte *>(buffer), length);
 }
 
+/**
+ * @brief Tell a write handle which container to emit.
+ *
+ * The pax hdrcharset option is deliberately not applied to zip: it is a pax
+ * extended-header setting, and a zip whose entry names are anything but UTF-8
+ * cannot be keyed by a manifest.
+ */
+void ApplyArchiveFormat(struct archive *archive,
+                        GpgFrontend::ArchiveFormat format) {
+  if (format == GpgFrontend::ArchiveFormat::kZIP) {
+    archive_write_set_format_zip(archive);
+    // Store-only. The container is already the compression boundary for a
+    // module package, and an entry the writer deflates is one more thing
+    // standing between a signed digest and the bytes on disk.
+    archive_write_set_format_option(archive, "zip", "compression", "store");
+    return;
+  }
+  archive_write_set_format_pax_restricted(archive);
+  archive_write_set_format_option(archive, "pax", "hdrcharset", "BINARY");
+}
+
 auto ArchiveCloseWriteCallback(struct archive *, void *client_data) -> int {
   auto *ex = static_cast<GFDataExchanger *>(client_data);
   ex->CloseWrite();
@@ -312,8 +334,8 @@ auto ArchiveCloseWriteCallback(struct archive *, void *client_data) -> int {
 auto ArchiveFileOperator::NewArchive2DataExchangerSync(
     const QString &target_directory,
     const QSharedPointer<GFDataExchanger> &exchanger,
-    ArchiveCompression compression, const ArchiveEntryFilter &filter)
-    -> GFError {
+    ArchiveCompression compression, const ArchiveEntryFilter &filter,
+    ArchiveFormat format) -> GFError {
   {
     {
       auto ret = 0;
@@ -325,8 +347,7 @@ auto ArchiveFileOperator::NewArchive2DataExchangerSync(
       } else {
         archive_write_add_filter_none(archive);
       }
-      archive_write_set_format_pax_restricted(archive);
-      archive_write_set_format_option(archive, "pax", "hdrcharset", "BINARY");
+      ApplyArchiveFormat(archive, format);
 
       archive_write_open(archive, exchanger.get(), nullptr,
                          ArchiveWriteCallback, ArchiveCloseWriteCallback);
@@ -486,15 +507,14 @@ void ArchiveFileOperator::NewArchive2DataExchanger(
 auto ArchiveFileOperator::NewArchiveFromMembersSync(
     const ArchiveMemberProvider &next,
     const QSharedPointer<GFDataExchanger> &exchanger,
-    ArchiveCompression compression) -> GFError {
+    ArchiveCompression compression, ArchiveFormat format) -> GFError {
   auto *archive = archive_write_new();
   if (compression == ArchiveCompression::kGZIP) {
     archive_write_add_filter_gzip(archive);
   } else {
     archive_write_add_filter_none(archive);
   }
-  archive_write_set_format_pax_restricted(archive);
-  archive_write_set_format_option(archive, "pax", "hdrcharset", "BINARY");
+  ApplyArchiveFormat(archive, format);
 
   // A handle whose open failed still accepts headers and silently discards
   // them, so leaving this unchecked produces an empty archive and calls it a
@@ -766,6 +786,25 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
       qint64 total_written = 0;
       int entry_count = 0;
 
+      // Only populated when the policy asks for them, so an extraction that
+      // does not care about duplicates does not pay to remember every path.
+      QSet<QString> seen_paths;
+      QSet<QString> seen_paths_folded;
+
+      // Refuse an archive that unpacks to far more than it costs to send.
+      // Deferred until a threshold of input has actually been consumed: the
+      // first few entries come out of a filter that has read a block and
+      // produced almost nothing, or the reverse, and a ratio computed there is
+      // noise rather than evidence.
+      constexpr qint64 kRatioFloorBytes = 64 * 1024;
+      const auto ratio_exceeded = [&]() {
+        if (policy.max_compression_ratio < 0) return false;
+        const auto consumed =
+            static_cast<qint64>(archive_filter_bytes(archive, -1));
+        if (consumed <= 0 || total_written < kRatioFloorBytes) return false;
+        return total_written / consumed > policy.max_compression_ratio;
+      };
+
       for (;;) {
         struct archive_entry *entry;
         r = archive_read_next_header(archive, &entry);
@@ -789,7 +828,34 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
           break;
         }
 
-        const auto path_name = QString::fromUtf8(archive_entry_pathname(entry));
+        if (ratio_exceeded()) {
+          FLOG_W("refusing archive: it inflates by more than %lld to 1",
+                 static_cast<long long>(policy.max_compression_ratio));
+          note("it unpacks to far more than it takes up");
+          ret = -1;
+          break;
+        }
+
+        const auto *raw_path_name = archive_entry_pathname(entry);
+        if (policy.require_utf8_paths) {
+          // Decoding never fails on its own -- a bad sequence becomes U+FFFD,
+          // so two different entries can arrive as one string. A stateless
+          // decoder is the only thing here that can tell the difference.
+          auto decoder =
+              QStringDecoder(QStringDecoder::Utf8,
+                             QStringDecoder::Flag::Stateless |
+                                 QStringDecoder::Flag::ConvertInvalidToNull);
+          const QString probe = decoder(
+              QByteArray(raw_path_name == nullptr ? "" : raw_path_name));
+          if (decoder.hasError()) {
+            FLOG_W("refusing archive entry: its name is not valid UTF-8");
+            note("an entry in it is named in something other than UTF-8");
+            ret = -1;
+            break;
+          }
+        }
+
+        const auto path_name = QString::fromUtf8(raw_path_name);
 
         QString relative_path;
         const auto verdict =
@@ -802,6 +868,33 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
                                        ArchiveEntryVerdictToString(verdict))));
           ret = -1;
           break;
+        }
+
+        if (policy.reject_duplicate_paths) {
+          if (seen_paths.contains(relative_path)) {
+            FLOG_W("refusing archive entry '%s': named twice",
+                   qPrintable(relative_path));
+            note(QString("entry \"%1\" appears more than once")
+                     .arg(relative_path));
+            ret = -1;
+            break;
+          }
+          seen_paths.insert(relative_path);
+        }
+        if (policy.reject_case_colliding_paths) {
+          const auto folded = relative_path.toCaseFolded();
+          if (seen_paths_folded.contains(folded)) {
+            FLOG_W(
+                "refusing archive entry '%s': collides with an earlier "
+                "entry on a case-insensitive filesystem",
+                qPrintable(relative_path));
+            note(QString("entry \"%1\" differs from an earlier one only by "
+                         "case")
+                     .arg(relative_path));
+            ret = -1;
+            break;
+          }
+          seen_paths_folded.insert(folded);
         }
 
         const auto filetype = archive_entry_filetype(entry);
@@ -978,6 +1071,17 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
         }
       }
 
+      // Once more after the walk, because the check inside it runs before an
+      // entry rather than after: a bomb that is a single entry would otherwise
+      // be measured only against the entries preceding it, of which there are
+      // none.
+      if (ret == 0 && ratio_exceeded()) {
+        FLOG_W("refusing archive: it inflates by more than %lld to 1",
+               static_cast<long long>(policy.max_compression_ratio));
+        note("it unpacks to far more than it takes up");
+        ret = -1;
+      }
+
       if (ret != 0) return fail(ret);
 
       r = archive_read_free(archive);
@@ -1019,6 +1123,63 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_IO)
       ->PostTask(task);
+}
+
+auto ArchiveFileOperator::ExtractArchiveFromFileSync(
+    const QString &archive_path, const QString &target_path,
+    const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
+    const ArchiveEntrySink &sink, QString *reason) -> GFError {
+  QFile file(archive_path);
+  if (!file.open(QIODevice::ReadOnly)) {
+    if (reason != nullptr) *reason = "this file could not be read";
+    return -1;
+  }
+
+  auto exchanger = CreateStandardGFDataExchanger();
+
+  // Set by the feeder and read only after it is joined.
+  bool read_ok = true;
+
+  std::thread feeder([&]() {
+    // Closes the pipe however this thread leaves, including by exception. The
+    // extractor on the other end is waiting for either bytes or a close, and a
+    // feeder that returns without one of the two hangs it forever.
+    struct ProducerGuard {
+      GFDataExchanger &pipe;
+      ~ProducerGuard() { pipe.CloseWrite(); }
+    } guard{*exchanger};
+
+    QByteArray chunk(kArchiveCopyChunk, Qt::Uninitialized);
+    while (true) {
+      const auto n = file.read(chunk.data(), chunk.size());
+      if (n < 0) {
+        read_ok = false;
+        return;
+      }
+      if (n == 0) return;
+      if (exchanger->Write(
+              reinterpret_cast<const std::byte *>(chunk.constData()),
+              static_cast<ssize_t>(n)) < 0) {
+        // Nobody is reading any more -- a sink that stopped the walk, or a
+        // refusal. Not a read failure, and not ours to report.
+        return;
+      }
+    }
+  });
+
+  const auto error = ExtractArchiveFromDataExchangerSync(
+      exchanger, target_path, policy, divert, sink, reason);
+
+  // Before the join, never after: a feeder blocked on a full pipe is released
+  // by the close and by nothing else.
+  exchanger->CloseWrite();
+  feeder.join();
+
+  if (!read_ok) {
+    if (reason != nullptr) *reason = "this file could not be read";
+    return -1;
+  }
+  return error;
 }
 
 void ArchiveFileOperator::ListArchive(const QString &archive_path) {
