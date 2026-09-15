@@ -378,17 +378,41 @@ auto InstallModulePackage(const QString& package_path,
 
   auto state = ReadState(store_root, manifest.id);
 
-  // Already there, and byte-identical: the version directory is named by the
-  // package's own digest, so this is not a guess about sameness.
+  // Already there? The directory is named by the package's own digest, so its
+  // NAME is not a guess about sameness -- but its CONTENTS are a separate
+  // question, and existence used to be taken as the answer to both. It is not:
+  // an installed tree is ordinary files on a disk the user owns, so a tree
+  // that has been changed since it was installed would have been handed
+  // straight back, unverified, for as long as the package it came from was
+  // still lying around.
+  //
+  // So the tree is verified here like anywhere else. When it fails and the
+  // package is good -- which it is, it just verified -- the useful answer is
+  // to replace the damaged tree rather than refuse: the user ends up with a
+  // working module whose bytes match a signature, which is the outcome they
+  // wanted. What must never happen is loading the damaged one, and that is
+  // what this prevents.
   if (QDir(final_dir).exists()) {
-    if (state.installed != version_key) {
-      state.previous = state.installed;
-      state.installed = version_key;
-      WriteState(store_root, manifest.id, state);
+    const auto existing =
+        VerifyExtractedModuleTree(final_dir, expected_public_key);
+    if (existing.ok) {
+      if (state.installed != version_key) {
+        state.previous = state.installed;
+        state.installed = version_key;
+        WriteState(store_root, manifest.id, state);
+      }
+      WriteDigestIndex(store_root, {stat_key, verification.package_sha256},
+                       manifest.id);
+      return Succeed(final_dir, manifest, true);
     }
-    WriteDigestIndex(store_root, {stat_key, verification.package_sha256},
-                     manifest.id);
-    return Succeed(final_dir, manifest, true);
+
+    LOG_W() << "module store: the installed copy of" << manifest.id
+            << "no longer matches its manifest (" << existing.reason
+            << "); replacing it from the package";
+    if (!RemoveInstalledTree(final_dir)) {
+      return Fail(ModulePackageStatus::kIO_FAILED,
+                  "a damaged installed copy could not be removed");
+    }
   }
 
   if (!QDir().mkpath(versions)) {
