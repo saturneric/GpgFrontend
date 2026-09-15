@@ -38,6 +38,7 @@
 
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GFBufferFactory.h"
+#include "core/module/ModuleLoadStats.h"
 
 namespace GpgFrontend::Module {
 
@@ -100,6 +101,46 @@ auto StoreKeyFor(const QString& module_id) -> QString {
  * that tree carries its own signature. Nothing here decides that something is
  * genuine -- it decides where to look.
  */
+/**
+ * @brief Serialises access to the store's shared bookkeeping.
+ *
+ * Modules are prepared concurrently, and the digest index is the one piece of
+ * store state they share: a read-modify-write from two threads at once would
+ * lose whichever entry was written second.
+ *
+ * Nothing else here needs it. Per-module `state.json` is per module, and no
+ * two threads prepare the same one. Reads of the index are unlocked because
+ * the write is a QSaveFile rename, so a reader sees the old file or the new
+ * one and never half of either. `QDir::mkpath` is idempotent and tolerates
+ * losing the race to create a directory.
+ */
+/**
+ * @brief A cheap key for "is this the same package file as last time".
+ *
+ * Path, size and modification time, which costs one stat. Deliberately NOT a
+ * digest: this key only decides *where to look*, and the tree it selects is
+ * verified in full against its own signature before anything loads. A stale or
+ * forged stamp therefore buys nothing -- it sends the loader at a tree that
+ * must still pass, or misses and falls through to the full path.
+ *
+ * That is the whole reason the fast key is allowed to be weak, and it is worth
+ * being exact about: it is not a security check that has been relaxed, it is a
+ * cache lookup that never was one.
+ */
+auto StatKeyFor(const QString& path) -> QString {
+  const QFileInfo info(path);
+  if (!info.exists()) return {};
+  return QString("stat:%1|%2|%3")
+      .arg(info.absoluteFilePath())
+      .arg(info.size())
+      .arg(info.lastModified().toMSecsSinceEpoch());
+}
+
+auto StoreMutex() -> QMutex& {
+  static QMutex mutex;
+  return mutex;
+}
+
 auto ReadDigestIndex(const QString& store_root) -> QJsonObject {
   QFile f(store_root + "/" + kIndexFileName);
   if (!f.open(QIODevice::ReadOnly)) return {};
@@ -107,11 +148,19 @@ auto ReadDigestIndex(const QString& store_root) -> QJsonObject {
   return doc.isObject() ? doc.object() : QJsonObject{};
 }
 
-void WriteDigestIndex(const QString& store_root, const QString& digest,
+void WriteDigestIndex(const QString& store_root, const QStringList& keys,
                       const QString& module_id) {
+  QMutexLocker locker(&StoreMutex());
+
   auto index = ReadDigestIndex(store_root);
-  if (index.value(digest).toString() == module_id) return;
-  index.insert(digest, module_id);
+  auto changed = false;
+  for (const auto& key : keys) {
+    if (key.isEmpty()) continue;
+    if (index.value(key).toString() == module_id) continue;
+    index.insert(key, module_id);
+    changed = true;
+  }
+  if (!changed) return;
 
   QDir().mkpath(store_root);
   QSaveFile f(store_root + "/" + kIndexFileName);
@@ -225,6 +274,8 @@ auto FileDigest(const QString& path) -> QString {
   QFile f(path);
   if (!f.open(QIODevice::ReadOnly)) return {};
 
+  ModuleLoadStats::GetInstance().AddHashedBytes(f.size());
+
   auto digest = GFBufferFactory::ToSha256(
       [&f](const GFBufferFactory::Sha256Chunk& chunk) {
         QByteArray buf(64 * 1024, Qt::Uninitialized);
@@ -274,18 +325,41 @@ auto InstallModulePackage(const QString& package_path,
   // in full against its own signature before anything loads, so a wrong answer
   // here costs correctness nothing -- a miss just falls through to the slow
   // path below.
+  const auto index = ReadDigestIndex(store_root);
+  const auto resolve_cached = [&](const QString& key) -> ModuleInstallResult {
+    ModuleInstallResult miss;
+    if (key.isEmpty()) return miss;
+
+    const auto cached = index.value(key).toString();
+    if (cached.isEmpty()) return miss;
+
+    auto resolved =
+        ResolveInstalledModule(store_root, cached, expected_public_key);
+    if (!resolved.ok) return miss;
+
+    resolved.already_installed = true;
+    return resolved;
+  };
+
+  // The cheap key first: one stat, no read. On a warm start this is the whole
+  // of what it costs to recognise a package that is already installed --
+  // previously it cost a full SHA-256 of the package file, which for the
+  // largest module was tens of megabytes read and hashed to learn something
+  // the store already knew.
+  const auto stat_key = StatKeyFor(package_path);
+  if (auto cached = resolve_cached(stat_key); cached.ok) return cached;
+
+  // Then the content key, which still catches a package that moved or whose
+  // timestamp changed without its bytes changing.
   const auto package_digest = FileDigest(package_path);
-  if (!package_digest.isEmpty()) {
-    const auto cached =
-        ReadDigestIndex(store_root).value(package_digest).toString();
-    if (!cached.isEmpty()) {
-      auto resolved =
-          ResolveInstalledModule(store_root, cached, expected_public_key);
-      if (resolved.ok) {
-        resolved.already_installed = true;
-        return resolved;
-      }
-    }
+  if (auto cached = resolve_cached(package_digest); cached.ok) {
+    // Record the cheap key, so the next start does not have to hash the
+    // package to arrive here again. Without this the stat key is only ever
+    // written by a fresh install, so a store that predates it -- or any store
+    // whose package was touched -- pays the full read forever.
+    WriteDigestIndex(store_root, {stat_key, package_digest},
+                     cached.manifest.id);
+    return cached;
   }
 
   // Completely, and before anything is written. A package that fails here has
@@ -312,7 +386,8 @@ auto InstallModulePackage(const QString& package_path,
       state.installed = version_key;
       WriteState(store_root, manifest.id, state);
     }
-    WriteDigestIndex(store_root, verification.package_sha256, manifest.id);
+    WriteDigestIndex(store_root, {stat_key, verification.package_sha256},
+                     manifest.id);
     return Succeed(final_dir, manifest, true);
   }
 
@@ -371,7 +446,8 @@ auto InstallModulePackage(const QString& package_path,
     }
   }
 
-  WriteDigestIndex(store_root, verification.package_sha256, manifest.id);
+  WriteDigestIndex(store_root, {stat_key, verification.package_sha256},
+                   manifest.id);
   return Succeed(final_dir, landed.manifest, false);
 }
 
