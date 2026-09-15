@@ -45,6 +45,7 @@
 #include "core/utils/GpgUtils.h"
 #include "core/utils/MemoryUtils.h"
 #include "private/GFSDKHandleRegistry.h"
+#include "private/GFSDKHandleSweep.h"
 #include "private/GFSDKPrivat.h"
 #include "ui/UIModuleManager.h"
 
@@ -103,21 +104,35 @@ auto ResolveLive(GFGpgResultRef r, const char* what) -> GFGpgResultImpl* {
   return r;
 }
 
+/// Wipe and free one result handle. The single place that knows how, so
+/// release and the unload sweep cannot diverge about what destruction means.
+void DestroyResult(GFGpgResultImpl* impl) {
+  // The nested buffer goes through its own release, so it leaves the buffer
+  // registry rather than being destroyed behind its back -- which is also
+  // what stops the buffer sweep finding it again afterwards.
+  GFBufferRelease(impl->data);
+  impl->magic = 0;
+  impl->~GFGpgResultImpl();
+  GpgFrontend::SMAFree(impl);
+}
+
 /// Allocate a live result. Returns nullptr only when memory is exhausted.
-auto NewResult() -> GFGpgResultImpl* {
+auto NewResult(const char* origin) -> GFGpgResultImpl* {
   auto* mem = GpgFrontend::SMAMalloc(sizeof(GFGpgResultImpl));
   if (mem == nullptr) return nullptr;
 
   auto* impl = new (mem) GFGpgResultImpl{};
-  ResultRegistry::Instance().Register(impl, QString());
+  ResultRegistry::Instance().Register(impl, gf_sdk_internal::CurrentModuleId(),
+                                      origin);
   return impl;
 }
 
 /// The arguments were unusable, so nothing was attempted. The caller still
 /// gets an owned result carrying the reason -- the contract says a
 /// non-negative return always means there is something to release.
-auto FailRequest(GFGpgResultRef* out, const char* why) -> int {
-  auto* impl = NewResult();
+auto FailRequest(GFGpgResultRef* out, const char* why, const char* origin)
+    -> int {
+  auto* impl = NewResult(origin);
   if (impl == nullptr) {
     *out = nullptr;
     return -1;
@@ -184,10 +199,10 @@ auto GFGpgSign(int channel, const char* const* key_ids, size_t key_ids_size,
   try {
     auto signer_keys = KeysOf(channel, key_ids, key_ids_size);
     if (signer_keys.empty()) {
-      return FailRequest(out, "no usable signing key was given");
+      return FailRequest(out, "no usable signing key was given", "GFGpgSign");
     }
 
-    auto* impl = NewResult();
+    auto* impl = NewResult("GFGpgSign");
     if (impl == nullptr) return -1;
 
     auto [err, data_object] =
@@ -224,10 +239,11 @@ auto GFGpgEncrypt(int channel, const char* const* key_ids, size_t key_ids_size,
   try {
     auto recipients = KeysOf(channel, key_ids, key_ids_size);
     if (recipients.empty()) {
-      return FailRequest(out, "no usable recipient key was given");
+      return FailRequest(out, "no usable recipient key was given",
+                         "GFGpgEncrypt");
     }
 
-    auto* impl = NewResult();
+    auto* impl = NewResult("GFGpgEncrypt");
     if (impl == nullptr) return -1;
 
     auto [err, data_object] =
@@ -257,7 +273,7 @@ auto GFGpgDecrypt(int channel, GFBufferView in, GFGpgResultRef* out) -> int {
   *out = nullptr;
 
   try {
-    auto* impl = NewResult();
+    auto* impl = NewResult("GFGpgDecrypt");
     if (impl == nullptr) return -1;
 
     auto [err, data_object] =
@@ -288,7 +304,7 @@ auto GFGpgVerify(int channel, GFBufferView in, GFBufferView signature,
   *out = nullptr;
 
   try {
-    auto* impl = NewResult();
+    auto* impl = NewResult("GFGpgVerify");
     if (impl == nullptr) return -1;
 
     auto [err, data_object] =
@@ -365,11 +381,21 @@ void GFGpgResultRelease(GFGpgResultRef r) {
   // The one teardown. Note there is no per-field free here for the strings:
   // they are QByteArray members, so ~GFGpgResultImpl reclaims them, and a
   // caller cannot forget one because a caller never sees them.
-  GFBufferRelease(r->data);
-  r->magic = 0;
-  r->~GFGpgResultImpl();
-  GpgFrontend::SMAFree(r);
+  DestroyResult(r);
 }
+
+namespace gf_sdk_internal {
+
+auto SweepResultHandles(const QString& module_id) -> QList<const char*> {
+  QList<const char*> origins;
+  for (const auto& entry : ResultRegistry::Instance().TakeAllFor(module_id)) {
+    origins.append(entry.second);
+    DestroyResult(entry.first);
+  }
+  return origins;
+}
+
+}  // namespace gf_sdk_internal
 
 auto GFGpgResultOutstandingCount(const char* module_id) -> size_t {
   return ResultRegistry::Instance().Count(

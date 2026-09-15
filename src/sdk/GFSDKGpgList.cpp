@@ -40,6 +40,7 @@
 #include "core/utils/MemoryUtils.h"
 #include "private/GFSDKGpgInternal.h"
 #include "private/GFSDKHandleRegistry.h"
+#include "private/GFSDKHandleSweep.h"
 #include "private/GFSDKPrivat.h"
 
 namespace {
@@ -119,13 +120,22 @@ auto ResolveLive(T* l, const char* what) -> T* {
 }
 
 template <typename T>
-auto NewList() -> T* {
+auto NewList(const char* origin) -> T* {
   auto* mem = GpgFrontend::SMAMalloc(sizeof(T));
   if (mem == nullptr) return nullptr;
 
   auto* impl = new (mem) T{};
-  Reg<T>::Instance().Register(impl, QString());
+  Reg<T>::Instance().Register(impl, gf_sdk_internal::CurrentModuleId(), origin);
   return impl;
+}
+
+/// Free one list handle. The single place that knows how, so release and the
+/// unload sweep cannot diverge about what destruction means.
+template <typename T>
+void DestroyList(T* l) {
+  l->magic = 0;
+  l->~T();
+  GpgFrontend::SMAFree(l);
 }
 
 template <typename T>
@@ -135,9 +145,16 @@ void ReleaseList(T* l, const char* what) {
     ReportStaleList(l, what);
     return;
   }
-  l->magic = 0;
-  l->~T();
-  GpgFrontend::SMAFree(l);
+  DestroyList(l);
+}
+
+/// Reclaim one list type's outstanding handles, appending what issued each.
+template <typename T>
+void SweepOneListType(const QString& module_id, QList<const char*>& origins) {
+  for (const auto& entry : Reg<T>::Instance().TakeAllFor(module_id)) {
+    origins.append(entry.second);
+    DestroyList(entry.first);
+  }
 }
 
 /// Bounds-checked row access. An out-of-range index is a caller bug, but it
@@ -169,7 +186,7 @@ auto GFGpgFindKeys(int channel, const char* email, GFGpgKeyBriefListRef* out)
     int count = 0;
     if (GFGpgFindKeysByEmail(channel, email, &briefs, &count) != 0) return -1;
 
-    auto* impl = NewList<GFGpgKeyBriefListImpl>();
+    auto* impl = NewList<GFGpgKeyBriefListImpl>("GFGpgFindKeys");
     if (impl == nullptr) {
       GFGpgFreeKeyBriefs(briefs, count);
       return -1;
@@ -250,7 +267,7 @@ auto GFGpgSniffRecipients(int channel, GFBufferView in,
       return -1;
     }
 
-    auto* impl = NewList<GFGpgRecipientListImpl>();
+    auto* impl = NewList<GFGpgRecipientListImpl>("GFGpgSniffRecipients");
     if (impl == nullptr) {
       GFGpgFreeEncRecipients(raw, count);
       return -1;
@@ -321,7 +338,7 @@ auto GFGpgListAddresses(int channel, int secret_only, GFStringListRef* out)
       return -1;
     }
 
-    auto* impl = NewList<GFStringListImpl>();
+    auto* impl = NewList<GFStringListImpl>("GFGpgListAddresses");
     if (impl == nullptr) {
       GFGpgFreeStringArray(raw, count);
       return -1;
@@ -353,6 +370,18 @@ auto GFStringListAt(GFStringListRef l, size_t i) -> const char* {
 void GFStringListRelease(GFStringListRef l) {
   ReleaseList(l, "GFStringListRelease");
 }
+
+namespace gf_sdk_internal {
+
+auto SweepListHandles(const QString& module_id) -> QList<const char*> {
+  QList<const char*> origins;
+  SweepOneListType<GFGpgKeyBriefListImpl>(module_id, origins);
+  SweepOneListType<GFGpgRecipientListImpl>(module_id, origins);
+  SweepOneListType<GFStringListImpl>(module_id, origins);
+  return origins;
+}
+
+}  // namespace gf_sdk_internal
 
 auto GFGpgListOutstandingCount(const char* module_id) -> size_t {
   const auto id =

@@ -34,6 +34,7 @@
 #include "core/model/GFBuffer.h"
 #include "core/utils/MemoryUtils.h"
 #include "private/GFSDKHandleRegistry.h"
+#include "private/GFSDKHandleSweep.h"
 #include "private/GFSDKPrivat.h"
 
 namespace {
@@ -60,10 +61,13 @@ struct GFBufferImpl {
 
 namespace {
 
-/// Where a handle was created, for attributing a leak at sweep time.
-struct AllocationSite {
-  QString module_id;
-};
+/// Wipe and free one buffer handle. The single place that knows how, so
+/// release and the unload sweep cannot diverge about what destruction means.
+void DestroyBuffer(GFBufferImpl* impl) {
+  impl->magic = 0;        // scrub, so corruption is distinguishable from reuse
+  impl->~GFBufferImpl();  // wipes the payload: GFBuffer frees via SMASecFree
+  GpgFrontend::SMAFree(impl);
+}
 
 void ReportStaleHandle(const void* handle, const char* what) {
   LOG_W() << "GFSDKBuffer:" << what
@@ -100,7 +104,8 @@ auto GFBufferNewFromBytes(const void* data, size_t size) -> GFBufferRef {
     if (mem == nullptr) return nullptr;
 
     auto* impl = new (mem) GFBufferImpl(std::move(buffer));
-    GFHandleRegistry<GFBufferImpl>::Instance().Register(impl, QString());
+    GFHandleRegistry<GFBufferImpl>::Instance().Register(
+        impl, gf_sdk_internal::CurrentModuleId(), "GFBufferNewFromBytes");
     return impl;
   } catch (...) {
     // No C++ exception may cross the C ABI.
@@ -137,10 +142,22 @@ void GFBufferRelease(GFBufferRef buf) {
     return;
   }
 
-  buf->magic = 0;        // scrub, so corruption is distinguishable from reuse
-  buf->~GFBufferImpl();  // wipes the payload: GFBuffer frees via SMASecFree
-  GpgFrontend::SMAFree(buf);
+  DestroyBuffer(buf);
 }
+
+namespace gf_sdk_internal {
+
+auto SweepBufferHandles(const QString& module_id) -> QList<const char*> {
+  QList<const char*> origins;
+  for (const auto& entry :
+       GFHandleRegistry<GFBufferImpl>::Instance().TakeAllFor(module_id)) {
+    origins.append(entry.second);
+    DestroyBuffer(entry.first);
+  }
+  return origins;
+}
+
+}  // namespace gf_sdk_internal
 
 auto GFBufferOutstandingCount(const char* module_id) -> size_t {
   return GFHandleRegistry<GFBufferImpl>::Instance().Count(

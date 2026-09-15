@@ -61,6 +61,27 @@
  * owner's lifetime on the owning thread. ASan/UBSan remains the real
  * use-after-free backstop; this catches the cheap, decidable cases and turns
  * them into an attributable log line instead of heap corruption.
+ */
+
+/**
+ * @brief Who asked for a handle, and what issued it.
+ *
+ * `origin` is the name of the SDK entry point that created it, which is a
+ * string literal with static storage -- so recording it costs a pointer and
+ * nothing is owned. It is not the module's own file and line: capturing that
+ * would mean wrapping every creator in a macro that passes __FILE__ and
+ * __LINE__, changing the public C surface of each one. What this gives
+ * instead is "module X leaked two buffers from GFBufferNewFromBytes and one
+ * result from GFGpgEncrypt", which narrows a leak to a call site's kind
+ * rather than its line. ASan gives the exact line when that is not enough.
+ */
+struct GFHandleOrigin {
+  QString module_id;
+  const char* origin = nullptr;
+};
+
+/**
+ * @brief The live-handle table for one handle type.
  *
  * @tparam T the handle's implementation struct
  */
@@ -73,10 +94,10 @@ class GFHandleRegistry {
   }
 
   /// Record a newly issued handle against the module that asked for it.
-  void Register(T* impl, const QString& module_id) {
+  void Register(T* impl, const QString& module_id, const char* origin) {
     if (impl == nullptr) return;
     QMutexLocker locker(&mutex_);
-    live_.insert(impl, module_id);
+    live_.insert(impl, GFHandleOrigin{module_id, origin});
   }
 
   /// Is @p handle one we issued and have not reclaimed? Decided WITHOUT
@@ -101,12 +122,38 @@ class GFHandleRegistry {
 
     size_t n = 0;
     for (auto it = live_.constBegin(); it != live_.constEnd(); ++it) {
-      if (it.value() == module_id) ++n;
+      if (it.value().module_id == module_id) ++n;
     }
     return n;
   }
 
+  /**
+   * @brief Remove and return every handle belonging to @p module_id.
+   *
+   * For the unload sweep, and only safe where the caller has already
+   * established that no module code can run -- which is why it is called from
+   * step 5 of teardown and from nowhere else. The handles come out of the
+   * table before the caller destroys them, so a concurrent accessor sees them
+   * as stale rather than following a pointer into a destructor.
+   *
+   * @param module_id the module whose handles to reclaim
+   * @return the handles, which the caller now owns and must destroy
+   */
+  auto TakeAllFor(const QString& module_id) -> QList<QPair<T*, const char*>> {
+    QList<QPair<T*, const char*>> taken;
+    QMutexLocker locker(&mutex_);
+    for (auto it = live_.begin(); it != live_.end();) {
+      if (it.value().module_id != module_id) {
+        ++it;
+        continue;
+      }
+      taken.append({it.key(), it.value().origin});
+      it = live_.erase(it);
+    }
+    return taken;
+  }
+
  private:
   QMutex mutex_;
-  QHash<T*, QString> live_;
+  QHash<T*, GFHandleOrigin> live_;
 };
