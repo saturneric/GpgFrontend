@@ -38,6 +38,7 @@
 #include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleDispatchGate.h"
+#include "core/module/ModuleLoadStats.h"
 #include "core/module/ModulePackageVerifier.h"
 #include "core/module/ModuleStore.h"
 #include "core/struct/settings_object/ModuleSO.h"
@@ -143,8 +144,8 @@ auto IsModulePackageFileName(const QString& file_name) -> bool {
   return file_name.endsWith(kModulePackageSuffix, Qt::CaseInsensitive);
 }
 
-auto InspectModuleLibrary(const QString& module_library_path)
-    -> ModuleLibraryInspection {
+auto InspectModuleLibrary(const QString& module_library_path,
+                          const QString& known_hash) -> ModuleLibraryInspection {
   if (module_library_path.isEmpty()) return {false, "empty module path", {}};
 
   const QFileInfo info(module_library_path);
@@ -168,6 +169,17 @@ auto InspectModuleLibrary(const QString& module_library_path)
   if (!HasNativeImageHeader(file.read(8))) {
     return {false, "file is not a native shared library image", {}};
   }
+
+  // A packaged module already has this digest, from the signed manifest, and
+  // VerifyExtractedModuleTree checked it against these very bytes a moment
+  // ago. Recomputing it read the whole library a second time to arrive at an
+  // answer that was already known -- for the largest module, tens of megabytes
+  // per start to produce a settings-invalidation marker.
+  //
+  // Nothing is given up by trusting it here: this value is not a security
+  // check. It records what was last seen so stale module settings can be
+  // reset, and the security check is the tree verification that produced it.
+  if (!known_hash.isEmpty()) return {true, {}, known_hash};
 
   auto hash = CalculateBinaryChacksum(file);
   if (hash.isEmpty()) return {false, "cannot calculate module checksum", {}};
@@ -240,59 +252,95 @@ class ModuleManager::Impl {
     return true;
   }
 
-  auto LoadAndRegisterModule(const QString& module_library_path,
-                             bool integrated_module) -> bool {
-    // Loading is work inside the module system, so it takes an admission
-    // ticket like any other: once the gate is closed no new load starts, and
-    // while one is running teardown's quiesce waits for it instead of tearing
-    // down around it.
-    //
-    // This is not a formality. Verifying and unpacking a package is seconds of
-    // synchronous work on the module runner, and every one of those seconds is
-    // time TaskRunner::Stop() spends waiting for an event loop that is not
-    // going to be reached -- it gives up after three, and destroying a QThread
-    // that is still running is fatal. Loose libraries hid this by loading in
-    // milliseconds; they did not make it untrue, and a large package makes it
-    // reproducible.
+  /**
+   * @brief Phase one: verify and install. Maps nothing, runs no module code.
+   *
+   * Takes an admission ticket like any other work inside the module system, so
+   * a preparation already running when teardown begins is waited for by the
+   * quiesce step, and one starting after it declines.
+   *
+   * This is where the seconds are: verifying and unpacking a package is
+   * expensive, and it used to sit on the module runner where
+   * TaskRunner::Stop()'s three-second wait could time out -- and destroying a
+   * QThread that is still running is fatal. Off that thread, the cost stops
+   * being a shutdown hazard as well as stopping being serial.
+   */
+  auto PrepareModule(const QString& path, bool integrated)
+      -> ModuleLoadCandidate {
+    ModuleLoadCandidate candidate;
+    candidate.source_path = path;
+    candidate.integrated = integrated;
+    candidate.packaged = IsModulePackageFileName(QFileInfo(path).fileName());
+    candidate.library_path = path;
+
     ModuleDispatchScope admission(GlobalModuleDispatchGate());
     if (!admission.Entered()) {
-      LOG_D() << "module manager declines to load during shutdown: "
-              << module_library_path;
+      LOG_D() << "module manager declines to prepare during shutdown: " << path;
+      return candidate;
+    }
+
+    if (candidate.packaged) {
+      QString library_path;
+      ModuleManifest unpacked;
+      if (!InstallAndResolvePackage(path, library_path, unpacked)) {
+        return candidate;
+      }
+      candidate.library_path = library_path;
+      candidate.manifest = unpacked;
+    }
+
+    candidate.ok = true;
+    return candidate;
+  }
+
+  auto LoadPreparedModule(const ModuleLoadCandidate& candidate) -> bool {
+    if (!candidate.ok) {
       need_register_modules_--;
+      ModuleLoadStats::GetInstance().AddRefusedModule();
       return false;
     }
 
-    auto library_path = module_library_path;
-    std::optional<ModuleManifest> manifest;
+    const auto& module_library_path = candidate.source_path;
+    const auto& library_path = candidate.library_path;
+    const auto& manifest = candidate.manifest;
 
-    if (IsModulePackageFileName(QFileInfo(module_library_path).fileName())) {
-      ModuleManifest unpacked;
-      if (!InstallAndResolvePackage(module_library_path, library_path,
-                                    unpacked)) {
-        need_register_modules_--;
-        return false;
-      }
-      manifest = unpacked;
+    // Mapping an image is work inside the module system too, so it takes its
+    // own ticket -- and shutdown may have begun while phase one was reading a
+    // package, in which case loading now would put module code into a process
+    // that has already stopped waiting for it.
+    ModuleDispatchScope admission(GlobalModuleDispatchGate());
+    if (!admission.Entered()) {
+      LOG_D() << "module manager abandons a load that shutdown overtook: "
+              << module_library_path;
+      need_register_modules_--;
+      ModuleLoadStats::GetInstance().AddRefusedModule();
+      return false;
+    }
 
-      // Checked again on the far side of the expensive part: shutdown may have
-      // begun while this was reading a package, and mapping the library now
-      // would put module code into a process that has already stopped waiting
-      // for it.
-      if (GlobalModuleDispatchGate().IsClosed()) {
-        LOG_D() << "module manager abandons a load that shutdown overtook: "
-                << module_library_path;
-        need_register_modules_--;
-        return false;
+    // For a package, the manifest's digest for the binary -- already checked
+    // against these bytes by VerifyExtractedModuleTree during phase one.
+    QString known_hash;
+    if (manifest) {
+      for (const auto& file : manifest->files) {
+        if (file.path.startsWith("bin/")) {
+          known_hash = file.sha256;
+          break;
+        }
       }
+    }
+    if (known_hash.isEmpty()) {
+      ModuleLoadStats::GetInstance().AddHashedBytes(
+          QFileInfo(library_path).size());
     }
 
     // everything that can be decided without mapping the image has to be
     // decided here: QLibrary::load() below runs the module's own initializers
-    const auto inspection = InspectModuleLibrary(library_path);
+    const auto inspection = InspectModuleLibrary(library_path, known_hash);
     if (!inspection.ok) {
       LOG_W() << "module manager refuses to load module: " << library_path
               << ", reason: " << inspection.reason;
       need_register_modules_--;
+      ModuleLoadStats::GetInstance().AddRefusedModule();
       return false;
     }
 
@@ -304,6 +352,7 @@ class ModuleManager::Impl {
               << module_library->fileName()
               << ", reason: " << module_library->errorString();
       need_register_modules_--;
+      ModuleLoadStats::GetInstance().AddRefusedModule();
       return false;
     }
 
@@ -322,6 +371,7 @@ class ModuleManager::Impl {
       module->UnloadLibrary();
       module.reset();
       need_register_modules_--;
+      ModuleLoadStats::GetInstance().AddRefusedModule();
       return false;
     }
 
@@ -338,6 +388,7 @@ class ModuleManager::Impl {
         module->UnloadLibrary();
         module.reset();
         need_register_modules_--;
+        ModuleLoadStats::GetInstance().AddRefusedModule();
         return false;
       }
 
@@ -347,6 +398,7 @@ class ModuleManager::Impl {
     }
 
     module->SetGPC(gmc_.get());
+    ModuleLoadStats::GetInstance().AddLoadedModule();
 
     LOG_D() << "a new need register module: "
             << QFileInfo(module_library_path).fileName();
@@ -357,7 +409,7 @@ class ModuleManager::Impl {
     runner->PostTask(new Thread::Task(
         [=](const GpgFrontend::DataObjectPtr&) -> int {
           // register module
-          if (!gmc_->RegisterModule(module, integrated_module)) return -1;
+          if (!gmc_->RegisterModule(module, candidate.integrated)) return -1;
 
           return 0;
         },
@@ -388,7 +440,7 @@ class ModuleManager::Impl {
             module_so.module_id = module_id;
             module_so.module_hash = module_hash;
             // auto active integrated module by default
-            module_so.auto_activate = integrated_module;
+            module_so.auto_activate = candidate.integrated;
             module_so.set_by_user = false;
 
             so.Store(module_so.ToJson());
@@ -571,7 +623,19 @@ ModuleManager::ModuleManager(int channel)
 ModuleManager::~ModuleManager() = default;
 
 auto ModuleManager::LoadModule(QString path, bool integrated) -> bool {
-  return p_->LoadAndRegisterModule(path, integrated);
+  // Both phases back to back, for a caller that has one module and no reason
+  // to overlap anything.
+  return p_->LoadPreparedModule(p_->PrepareModule(path, integrated));
+}
+
+auto ModuleManager::PrepareModule(const QString& path, bool integrated)
+    -> ModuleLoadCandidate {
+  return p_->PrepareModule(path, integrated);
+}
+
+auto ModuleManager::LoadPreparedModule(const ModuleLoadCandidate& candidate)
+    -> bool {
+  return p_->LoadPreparedModule(candidate);
 }
 
 auto ModuleManager::SearchModule(ModuleIdentifier id) -> ModulePtr {

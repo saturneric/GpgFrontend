@@ -32,6 +32,7 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Event.h"
+#include "core/module/ModuleManifest.h"
 #include "core/utils/MemoryUtils.h"
 
 namespace GpgFrontend::Thread {
@@ -64,6 +65,24 @@ using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
  * communicating with modules. Also exposes the runtime value store
  * (UpsertRTValue / RetrieveRTValue) and event dispatch (TriggerEvent).
  */
+/**
+ * @brief A module the scan offered, and what preparing it established.
+ *
+ * Loading happens in two phases, and this is what passes between them. The
+ * split is what lets the expensive half run concurrently while the half that
+ * maps an image and runs its initialisers stays sequential -- see
+ * ModuleManager::PrepareModule().
+ */
+struct GF_CORE_EXPORT ModuleLoadCandidate {
+  QString source_path;    ///< the `*.gfmodule`, or the loose library
+  bool integrated = false;
+  bool packaged = false;
+
+  bool ok = false;         ///< preparation succeeded; phase 2 may proceed
+  QString library_path;    ///< the binary phase 2 maps
+  std::optional<ModuleManifest> manifest;  ///< set for a package only
+};
+
 class GF_CORE_EXPORT ModuleManager
     : public SingletonFunctionObject<ModuleManager> {
  public:
@@ -86,6 +105,39 @@ class GF_CORE_EXPORT ModuleManager
    * @return true if the library was loaded and the module is valid
    */
   auto LoadModule(QString path, bool integrated) -> bool;
+
+  /**
+   * @brief Phase one: verify and install, without mapping anything.
+   *
+   * All the expensive work -- reading a package, checking its signature,
+   * extracting it, re-verifying the installed tree -- and none of the
+   * dangerous work. It maps no image and runs no module code, so it is safe
+   * to run for several modules at once and is where the wall-clock win is.
+   *
+   * Safe to call from any thread. It takes an admission ticket, so a
+   * preparation started before teardown is waited for and one started after it
+   * declines.
+   *
+   * @param path the `*.gfmodule` or loose library the scan found
+   * @param integrated whether it came from the integrated module directory
+   * @return what was established; @c ok is false when it was refused
+   */
+  auto PrepareModule(const QString& path, bool integrated)
+      -> ModuleLoadCandidate;
+
+  /**
+   * @brief Phase two: map the library and register the module.
+   *
+   * Deliberately NOT safe to run concurrently with itself.
+   * @c QLibrary::load() runs the module's own static initialisers, which are
+   * third-party code whose thread-safety against *other modules'* initialisers
+   * the host is in no position to establish. `dlopen` is thread-safe;
+   * arbitrary static constructors racing each other are not.
+   *
+   * @param candidate a prepared candidate whose @c ok is true
+   * @return true if the module was loaded and is valid
+   */
+  auto LoadPreparedModule(const ModuleLoadCandidate& candidate) -> bool;
 
   /**
    * @brief Find a registered module by its identifier.
@@ -376,9 +428,14 @@ struct GF_CORE_EXPORT ModuleLibraryInspection {
  * hostile one.
  *
  * @param module_library_path absolute path of the module library
+ * @param known_hash the digest of these bytes, when a caller already has one
+ * that was checked against them -- a packaged module's signed manifest carries
+ * exactly that, and recomputing it means reading the library twice per start.
+ * The value is a settings-invalidation marker, not a security check.
  * @return the inspection outcome, carrying the hash when it passed
  */
-auto GF_CORE_EXPORT InspectModuleLibrary(const QString& module_library_path)
+auto GF_CORE_EXPORT InspectModuleLibrary(const QString& module_library_path,
+                                         const QString& known_hash = {})
     -> ModuleLibraryInspection;
 
 /**
