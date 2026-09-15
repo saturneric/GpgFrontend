@@ -30,9 +30,14 @@
 
 #include <QDir>
 
+#include <atomic>
+#include <thread>
+#include <vector>
+
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleManager.h"
+#include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleStore.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -95,6 +100,53 @@ auto LoadExternalMods(bool packaged_only) -> QMap<QString, bool> {
   return SearchModuleFromPath(mods_path, false, packaged_only);
 }
 
+/**
+ * @brief Run phase one for every discovered module, several at a time.
+ *
+ * One thread per module up to a cap, which is plenty: the work is I/O and
+ * hashing, there are a handful of modules, and the existing concurrency
+ * primitive in this tree is likewise a thread per task.
+ *
+ * Order is preserved so that what loads in phase two does not depend on which
+ * verification happened to finish first -- a build whose module order changes
+ * run to run is a build that is harder to reason about.
+ */
+auto PrepareModulesConcurrently(GpgFrontend::Module::ModuleManager& manager,
+                                const QMap<QString, bool>& modules)
+    -> QList<GpgFrontend::Module::ModuleLoadCandidate> {
+  QList<QPair<QString, bool>> discovered;
+  discovered.reserve(modules.size());
+  for (auto it = modules.keyValueBegin(); it != modules.keyValueEnd(); ++it) {
+    discovered.append({it->first, it->second});
+  }
+
+  QList<GpgFrontend::Module::ModuleLoadCandidate> prepared;
+  prepared.resize(discovered.size());
+  if (discovered.isEmpty()) return prepared;
+
+  const auto hardware = static_cast<int>(std::thread::hardware_concurrency());
+  const auto workers =
+      std::max(1, std::min<int>(discovered.size(), hardware > 0 ? hardware : 1));
+
+  std::atomic<int> next{0};
+  std::vector<std::thread> pool;
+  pool.reserve(static_cast<size_t>(workers));
+
+  for (auto w = 0; w < workers; ++w) {
+    pool.emplace_back([&]() {
+      while (true) {
+        const auto i = next.fetch_add(1);
+        if (i >= discovered.size()) return;
+        prepared[i] = manager.PrepareModule(discovered.at(i).first,
+                                            discovered.at(i).second);
+      }
+    });
+  }
+  for (auto& t : pool) t.join();
+
+  return prepared;
+}
+
 }  // namespace
 
 namespace GpgFrontend::Module {
@@ -129,6 +181,8 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             // builds and buy them less than it appears to.
             const auto packaged_only = module_loading_policy == "packaged_only";
 
+            ModuleLoadStats::GetInstance().Begin();
+
             QMap<QString, bool> modules = LoadIntegratedMods(packaged_only);
 
             // if user want to load all modules, then check external modules
@@ -139,11 +193,50 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             }
 
             auto& manager = ModuleManager::GetInstance();
-            manager.SetNeedRegisterModulesNum(static_cast<int>(modules.size()));
 
-            for (auto it = modules.keyValueBegin(); it != modules.keyValueEnd();
-                 ++it) {
-              manager.LoadModule(it->first, it->second);
+            // PHASE ONE, concurrent: verify and install. This maps no image
+            // and runs no module code, so several can run at once -- and it
+            // is essentially the whole cost of loading.
+            auto prepared = PrepareModulesConcurrently(manager, modules);
+
+            // A package supersedes the loose library it carries. A build tree
+            // holds both -- `mod_email.gfmodule` and
+            // `libgf_mod_mod_email.so` -- and offering both loaded one module
+            // identity twice, the second copy failing registration after
+            // paying in full to be verified. The names do not correspond
+            // (the package is named for the CMake target, the library for the
+            // SDK prefix), so the package's own manifest is what says which
+            // library it provides.
+            QSet<QString> provided_by_package;
+            for (const auto& candidate : prepared) {
+              if (!candidate.ok || !candidate.packaged) continue;
+              provided_by_package.insert(
+                  QFileInfo(candidate.library_path).fileName());
+            }
+
+            QList<ModuleLoadCandidate> to_load;
+            to_load.reserve(prepared.size());
+            for (const auto& candidate : prepared) {
+              if (!candidate.packaged &&
+                  provided_by_package.contains(
+                      QFileInfo(candidate.source_path).fileName())) {
+                LOG_D() << "skipping loose module superseded by a package: "
+                        << candidate.source_path;
+                continue;
+              }
+              to_load.append(candidate);
+            }
+
+            // Counted after superseding, so the number the manager waits for
+            // is the number that will actually be attempted.
+            manager.SetNeedRegisterModulesNum(static_cast<int>(to_load.size()));
+
+            // PHASE TWO, sequential: map each library and register it.
+            // QLibrary::load() runs the module's own static initialisers, and
+            // the host cannot establish that one module's are safe against
+            // another's -- so this half stays one at a time, on purpose.
+            for (const auto& candidate : to_load) {
+              manager.LoadPreparedModule(candidate);
             }
 
             // After loading, not before: what is collected is whatever no
@@ -159,7 +252,10 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
                       << "unreachable directories";
             }
 
-            LOG_D() << "all modules are loaded into memory: " << modules.size();
+            // Stated rather than left to be inferred from the gap between
+            // two log lines, which is how this was got wrong twice.
+            LOG_I() << "module loading finished:"
+                    << ModuleLoadStats::GetInstance().Summary();
             return 0;
           },
           "modules_system_init_task"));
