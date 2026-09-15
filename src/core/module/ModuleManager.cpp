@@ -37,6 +37,7 @@
 #include "core/module/GlobalModuleContext.h"
 #include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
+#include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModulePackageVerifier.h"
 #include "core/struct/settings_object/ModuleSO.h"
 #include "core/thread/Task.h"
@@ -235,6 +236,26 @@ class ModuleManager::Impl {
 
   auto LoadAndRegisterModule(const QString& module_library_path,
                              bool integrated_module) -> bool {
+    // Loading is work inside the module system, so it takes an admission
+    // ticket like any other: once the gate is closed no new load starts, and
+    // while one is running teardown's quiesce waits for it instead of tearing
+    // down around it.
+    //
+    // This is not a formality. Verifying and unpacking a package is seconds of
+    // synchronous work on the module runner, and every one of those seconds is
+    // time TaskRunner::Stop() spends waiting for an event loop that is not
+    // going to be reached -- it gives up after three, and destroying a QThread
+    // that is still running is fatal. Loose libraries hid this by loading in
+    // milliseconds; they did not make it untrue, and a large package makes it
+    // reproducible.
+    ModuleDispatchScope admission(GlobalModuleDispatchGate());
+    if (!admission.Entered()) {
+      LOG_D() << "module manager declines to load during shutdown: "
+              << module_library_path;
+      need_register_modules_--;
+      return false;
+    }
+
     auto library_path = module_library_path;
     std::optional<ModuleManifest> manifest;
 
@@ -245,6 +266,17 @@ class ModuleManager::Impl {
         return false;
       }
       manifest = unpacked;
+
+      // Checked again on the far side of the expensive part: shutdown may have
+      // begun while this was reading a package, and mapping the library now
+      // would put module code into a process that has already stopped waiting
+      // for it.
+      if (GlobalModuleDispatchGate().IsClosed()) {
+        LOG_D() << "module manager abandons a load that shutdown overtook: "
+                << module_library_path;
+        need_register_modules_--;
+        return false;
+      }
     }
 
     // everything that can be decided without mapping the image has to be
