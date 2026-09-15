@@ -296,27 +296,31 @@ class ModuleManager::Impl {
       return false;
     }
 
-    QLibrary module_library(library_path);
+    auto module_library = std::make_unique<QLibrary>(library_path);
 
     ScopedModuleLibrarySearchPath search_path(library_path);
-    if (!module_library.load()) {
+    if (!module_library->load()) {
       LOG_W() << "module manager failed to load module: "
-              << module_library.fileName()
-              << ", reason: " << module_library.errorString();
+              << module_library->fileName()
+              << ", reason: " << module_library->errorString();
       need_register_modules_--;
       return false;
     }
 
-    auto module =
-        SecureCreateSharedObject<Module>(module_library, inspection.hash);
+    // Ownership moves into the Module, which is what gives teardown something
+    // to unload. It used to be a local here, so a successfully loaded module
+    // stayed mapped for the whole run with nothing holding a handle on it.
+    auto module = SecureCreateSharedObject<Module>(std::move(module_library),
+                                                  inspection.hash);
     if (!module->IsGood()) {
       LOG_W() << "module manager failed to load module, "
                  "reason: illegal module: "
-              << module_library.fileName();
-      // drop the resolved symbol pointers before the image goes away, then
-      // unload so a rejected module does not stay mapped for the whole run
+              << library_path;
+      // Drop the symbol pointers before the image goes away. The Module owns
+      // the library now, so destroying it is what unloads: a rejected module
+      // does not stay mapped for the whole run.
+      module->UnloadLibrary();
       module.reset();
-      module_library.unload();
       need_register_modules_--;
       return false;
     }
@@ -331,8 +335,8 @@ class ModuleManager::Impl {
                 << module_library_path << ", reason: its manifest says "
                 << manifest->id << " and the module inside says "
                 << module->GetModuleIdentifier();
+        module->UnloadLibrary();
         module.reset();
-        module_library.unload();
         need_register_modules_--;
         return false;
       }
@@ -416,6 +420,8 @@ class ModuleManager::Impl {
   auto ListAllRegisteredModuleID() -> QStringList {
     return gmc_->ListAllRegisteredModuleID();
   }
+
+  auto TakeAllModules() -> QList<ModulePtr> { return gmc_->TakeAllModules(); }
 
   void RegisterModule(const ModulePtr& module) {
     Thread::TaskRunnerGetter::GetInstance()
@@ -635,6 +641,10 @@ auto ModuleManager::IsIntegratedModule(ModuleIdentifier id) -> bool {
 
 auto ModuleManager::ListAllRegisteredModuleID() -> QStringList {
   return p_->ListAllRegisteredModuleID();
+}
+
+auto ModuleManager::TakeAllModules() -> QList<ModulePtr> {
+  return p_->TakeAllModules();
 };
 
 auto ModuleManager::GRT() -> GlobalRegisterTable* { return p_->GRT(); }

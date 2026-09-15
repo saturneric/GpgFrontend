@@ -213,22 +213,28 @@ void ShutdownGpgFrontendModules() {
     swept += GFSdkSweepModuleHandles(module_id.toUtf8().constData());
   }
 
-  LOG_D() << "module system shut down cleanly, modules:" << module_ids.size()
-          << ", sdk handles reclaimed:" << swept;
-
-  // 6. UNLOAD THE LIBRARIES is deliberately still not here, and the reason is
-  //    a prerequisite rather than an oversight. Module objects outlive this
-  //    function: the registries hold them, and each one holds an api_ pointer
-  //    into its library's image. Unloading now would leave those dangling,
-  //    and unloading a Qt library whose static state is still referenced is
-  //    its own class of shutdown crash -- which is why the only existing
-  //    QLibrary::unload() is on the path where nothing was registered at all.
+  // 6. UNLOAD THE LIBRARIES. Last, so that no module code is unmapped while a
+  //    thread could still be inside it -- which is what steps 1 to 3
+  //    established, and the only reason this is safe here and nowhere else.
   //
-  //    Doing it properly means the Module owning its QLibrary and the
-  //    registries dropping their modules first. That is what unload-on-
-  //    upgrade needs, so it belongs with the module store rather than here.
-  //    This point in the sequence is the right place for it once those exist,
-  //    precisely because step 3 has established that nothing is running.
+  //    The registries let go first. Their ModulePtr is what an event would be
+  //    routed through, so dropping it is what makes "nothing can call into
+  //    this module" true rather than merely likely; unloading before that
+  //    would leave the routing table pointing into unmapped code.
+  //
+  //    Unloading is asked of each module rather than inferred from a refcount
+  //    reaching zero: other holders may still have a reference, and a module
+  //    that has been unloaded is inert rather than dangling -- it drops its
+  //    own function table and refuses every later call.
+  auto modules = manager.TakeAllModules();
+  auto unloaded = 0;
+  for (const auto& module : modules) {
+    if (module != nullptr && module->UnloadLibrary()) ++unloaded;
+  }
+
+  LOG_D() << "module system shut down cleanly, modules:" << module_ids.size()
+          << ", sdk handles reclaimed:" << swept
+          << ", libraries unloaded:" << unloaded;
 }
 
 }  // namespace GpgFrontend::Module

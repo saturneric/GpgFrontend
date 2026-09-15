@@ -81,7 +81,7 @@ class GF_CORE_EXPORT Module : public QObject {
    * @param module_library loaded QLibrary to extract the module from
    * @param module_hash checksum of the bytes that were inspected before load
    */
-  Module(QLibrary& module_library, QString module_hash);
+  Module(std::unique_ptr<QLibrary> module_library, QString module_hash);
 
   ~Module();
 
@@ -177,6 +177,21 @@ class GF_CORE_EXPORT Module : public QObject {
    * @param meta_data key-value metadata, as read from the manifest
    */
   void SetModuleMetaData(const ModuleMetaData& meta_data);
+
+  /**
+   * @brief Drop this module's code and unmap its library.
+   *
+   * The last step of teardown, and only valid once nothing can call into the
+   * module: the table of function pointers it describes itself with lives
+   * inside the image being unmapped, so this drops that table first and the
+   * module is inert afterwards.
+   *
+   * A module with no library of its own -- an integrated one -- does nothing
+   * here.
+   *
+   * @return true if a library was unloaded
+   */
+  auto UnloadLibrary() -> bool;
 
   /**
    * @brief Return the filesystem path of the dynamic module library.

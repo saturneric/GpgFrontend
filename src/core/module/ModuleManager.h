@@ -112,6 +112,15 @@ class GF_CORE_EXPORT ModuleManager
   auto ListAllRegisteredModuleID() -> QStringList;
 
   /**
+   * @brief Forget every module, returning what was registered.
+   *
+   * Teardown only; see GlobalModuleContext::TakeAllModules().
+   *
+   * @return the modules that were registered
+   */
+  auto TakeAllModules() -> QList<ModulePtr>;
+
+  /**
    * @brief Register a module with the GlobalModuleContext.
    *
    * @param module shared pointer to the module to register

@@ -56,10 +56,12 @@ class Module::Impl {
     identifier_utf8_ = identifier_.toUtf8();
   }
 
-  Impl(ModuleRawPtr m_ptr, QLibrary& module_library, QString module_hash)
+  Impl(ModuleRawPtr m_ptr, std::unique_ptr<QLibrary> module_library,
+       QString module_hash)
       : m_ptr_(m_ptr),
         module_hash_(std::move(module_hash)),
-        module_library_path_(module_library.fileName()),
+        module_library_(std::move(module_library)),
+        module_library_path_(module_library_->fileName()),
         good_(false) {
     // ONE way in. A module describes itself through a single versioned table
     // returned by GFModuleGetApi; the host hands over its own ABI so the
@@ -70,9 +72,9 @@ class Module::Impl {
     // that negotiation at all, and gave the host no place to stand to
     // withhold a capability. A module that does not export the bootstrap
     // symbol is rejected here, by name, rather than half-loaded.
-    if (try_bootstrap_api(module_library)) return;
+    if (try_bootstrap_api(*module_library_)) return;
 
-    LOG_W() << "illegal module: " << module_library.fileName()
+    LOG_W() << "illegal module: " << module_library_->fileName()
             << ", reason cannot load symbol: GFModuleGetApi"
             << " (module was built against an older sdk; rebuild it)"
             << ", abort...";
@@ -214,6 +216,21 @@ class Module::Impl {
     return -1;
   }
 
+  auto UnloadLibrary() -> bool {
+    if (module_library_ == nullptr) return false;
+
+    // Before the unmap, not after: this table has static storage inside the
+    // image, so keeping it would leave every entry point dangling. Clearing
+    // `good_` too makes every lifecycle call above refuse rather than follow
+    // a pointer into memory that is no longer mapped.
+    api_ = nullptr;
+    good_ = false;
+
+    const auto unloaded = module_library_->unload();
+    module_library_.reset();
+    return unloaded;
+  }
+
   auto GetChannel() -> int { return get_gpc()->GetChannel(m_ptr_); }
 
   auto GetDefaultChannel() -> int {
@@ -268,6 +285,12 @@ class Module::Impl {
   ModuleMetaData meta_data_;
   QString module_hash_;
   QByteArray identifier_utf8_;
+
+  /// Owned, so that teardown has something to unload. It used to be a
+  /// reference to a local in the loader, which meant a successfully loaded
+  /// module stayed mapped for the life of the process because nothing had a
+  /// handle on it any more.
+  std::unique_ptr<QLibrary> module_library_;
   QString module_library_path_;
   QString gf_sdk_ver_;
   QString qt_env_ver_;
@@ -297,8 +320,8 @@ Module::Module(ModuleIdentifier id, ModuleVersion version,
                const ModuleMetaData& meta_data)
     : p_(SecureCreateUniqueObject<Impl>(this, id, version, meta_data)) {}
 
-Module::Module(QLibrary& module_library, QString module_hash)
-    : p_(SecureCreateUniqueObject<Impl>(this, module_library,
+Module::Module(std::unique_ptr<QLibrary> module_library, QString module_hash)
+    : p_(SecureCreateUniqueObject<Impl>(this, std::move(module_library),
                                         std::move(module_hash))) {}
 
 Module::~Module() = default;
@@ -317,6 +340,8 @@ auto Module::Exec(EventReference event) -> int {
 auto Module::Deactivate() -> int { return p_->Deactivate(); }
 
 auto Module::UnRegister() -> int { return p_->UnRegister(); }
+
+auto Module::UnloadLibrary() -> bool { return p_->UnloadLibrary(); }
 
 auto Module::getChannel() -> int { return p_->GetChannel(); }
 

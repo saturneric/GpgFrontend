@@ -207,6 +207,18 @@ class GF_CORE_EXPORT GlobalModuleContext : public QObject {
   auto ListAllRegisteredModuleID() -> QStringList;
 
   /**
+   * @brief Forget every module, returning what was registered.
+   *
+   * For teardown only, and only after everything has gone quiet: it drops this
+   * context's references so no event can be routed into a module whose code is
+   * about to be unmapped. The modules themselves are returned rather than
+   * destroyed, because other holders may still have a reference.
+   *
+   * @return the modules that were registered
+   */
+  auto TakeAllModules() -> QList<ModulePtr>;
+
+  /**
    * @brief Return the number of currently registered modules.
    *
    * @return registered module count

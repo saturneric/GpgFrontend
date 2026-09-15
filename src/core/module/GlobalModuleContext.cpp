@@ -360,6 +360,34 @@ class GlobalModuleContext::Impl {
     return registered_modules_;
   }
 
+  /**
+   * @brief Forget every module, dropping the context's references to them.
+   *
+   * The last step of teardown before the libraries are unmapped, and valid
+   * only there: this drops the registry's own ModulePtr for each module, so
+   * nothing here can route an event into code that is about to be unmapped.
+   *
+   * It does not destroy the modules. Other holders may still have a reference
+   * -- which is exactly why unloading has to be asked of each module rather
+   * than inferred from a refcount reaching zero.
+   *
+   * @return the modules that were registered, in registration order
+   */
+  auto TakeAllModules() -> QList<ModulePtr> {
+    QList<ModulePtr> modules;
+    modules.reserve(static_cast<qsizetype>(module_register_table_.size()));
+    for (const auto& entry : module_register_table_) {
+      if (entry.second != nullptr && entry.second->module != nullptr) {
+        modules.append(entry.second->module);
+      }
+    }
+
+    module_register_table_.clear();
+    module_events_table_.clear();
+    module_on_triggering_events_table_.clear();
+    return modules;
+  }
+
  private:
   struct ModuleRegisterInfo {
     int channel;
@@ -485,6 +513,10 @@ auto GlobalModuleContext::IsIntegratedModule(const ModuleIdentifier& m_id)
 
 auto GlobalModuleContext::ListAllRegisteredModuleID() -> QStringList {
   return p_->ListAllRegisteredModuleID();
+}
+
+auto GlobalModuleContext::TakeAllModules() -> QList<ModulePtr> {
+  return p_->TakeAllModules();
 }
 
 auto GlobalModuleContext::GetModuleListening(const ModuleIdentifier& module_id)
