@@ -35,6 +35,7 @@
 #include "core/module/ModuleManager.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
+#include "sdk/GFSDKModuleAttribution.h"
 
 namespace {
 
@@ -201,14 +202,33 @@ void ShutdownGpgFrontendModules() {
     module->UnRegister();
   }
 
-  LOG_D() << "module system shut down cleanly, modules:" << module_ids.size();
+  // 5. SWEEP OUTSTANDING SDK HANDLES. Only now is the ledger authoritative:
+  //    no module code can run, so anything a module still holds is
+  //    definitively leaked rather than merely in use. Each one is logged
+  //    against the module and the entry point that issued it, then wiped and
+  //    freed -- which for a secret means it stops living in the heap for the
+  //    rest of the process rather than merely being unreachable.
+  size_t swept = 0;
+  for (const auto& module_id : module_ids) {
+    swept += GFSdkSweepModuleHandles(module_id.toUtf8().constData());
+  }
 
-  // Steps 5 (sweep outstanding SDK handles) and 6 (unload the libraries) are
-  // deliberately not here yet. The sweep needs the SDK's per-module handle
-  // ledger, which currently records no module id; unloading needs the module
-  // objects to be destroyed first, and they are owned elsewhere. Both are
-  // safe to add at this point in the sequence precisely because step 3 has
-  // already established that nothing is running.
+  LOG_D() << "module system shut down cleanly, modules:" << module_ids.size()
+          << ", sdk handles reclaimed:" << swept;
+
+  // 6. UNLOAD THE LIBRARIES is deliberately still not here, and the reason is
+  //    a prerequisite rather than an oversight. Module objects outlive this
+  //    function: the registries hold them, and each one holds an api_ pointer
+  //    into its library's image. Unloading now would leave those dangling,
+  //    and unloading a Qt library whose static state is still referenced is
+  //    its own class of shutdown crash -- which is why the only existing
+  //    QLibrary::unload() is on the path where nothing was registered at all.
+  //
+  //    Doing it properly means the Module owning its QLibrary and the
+  //    registries dropping their modules first. That is what unload-on-
+  //    upgrade needs, so it belongs with the module store rather than here.
+  //    This point in the sequence is the right place for it once those exist,
+  //    precisely because step 3 has established that nothing is running.
 }
 
 }  // namespace GpgFrontend::Module

@@ -34,6 +34,7 @@
 #include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
 #include "sdk/GFSDKModuleApi.h"
+#include "sdk/GFSDKModuleAttribution.h"
 #include "sdk/GFSDKModuleModel.h"
 #include "utils/BuildInfoUtils.h"
 
@@ -51,7 +52,9 @@ class Module::Impl {
         identifier_(std::move(id)),
         version_(std::move(version)),
         meta_data_(std::move(meta_data)),
-        good_(true) {}
+        good_(true) {
+    identifier_utf8_ = identifier_.toUtf8();
+  }
 
   Impl(ModuleRawPtr m_ptr, QLibrary& module_library, QString module_hash)
       : m_ptr_(m_ptr),
@@ -122,6 +125,9 @@ class Module::Impl {
 
     identifier_ =
         QString::fromUtf8(api->module_id == nullptr ? "" : api->module_id);
+    // Kept as bytes so attribution() can hand out a stable C string without
+    // re-encoding on every call into the module.
+    identifier_utf8_ = identifier_.toUtf8();
     version_ = QString::fromUtf8(api->version == nullptr ? "" : api->version);
     gf_sdk_ver_ = GetProjectVersion();
     qt_env_ver_ = QString::fromUtf8(QT_VERSION_STR);
@@ -146,6 +152,14 @@ class Module::Impl {
 
   [[nodiscard]] auto IsGood() const -> bool { return good_; }
 
+  /// Every call that hands control to module code is bracketed so that the
+  /// handles it asks for are recorded against it. The SDK cannot work this
+  /// out for itself: its host table is one static table shared by every
+  /// module, so a call arriving through it carries no identity.
+  [[nodiscard]] auto attribution() const -> GFSdkModuleAttributionScope {
+    return GFSdkModuleAttributionScope(identifier_utf8_.constData());
+  }
+
   auto Register() -> int {
     if (!good_) return -1;
     // A table-based module has no separate register step: whatever it used to
@@ -159,6 +173,7 @@ class Module::Impl {
     if (!good_) return -1;
     if (api_ != nullptr) {
       if (api_->activate == nullptr) return -1;
+      const auto attributed = attribution();
       // The host table is static and outlives every module, so the module may
       // hold on to it for its whole life.
       return api_->activate(GFGetHostApi(), nullptr);
@@ -170,6 +185,7 @@ class Module::Impl {
     if (!good_) return -1;
     if (api_ != nullptr) {
       if (api_->execute == nullptr) return -1;
+      const auto attributed = attribution();
       return api_->execute(event->ToModuleEvent());
     }
     return -1;
@@ -179,6 +195,7 @@ class Module::Impl {
     if (!good_) return -1;
     if (api_ != nullptr) {
       if (api_->deactivate == nullptr) return 0;
+      const auto attributed = attribution();
       return api_->deactivate();
     }
     return -1;
@@ -190,6 +207,7 @@ class Module::Impl {
       // Returns void in the table: final teardown has nothing useful to
       // report, and a host that is shutting down has nothing to do with a
       // failure code anyway.
+      const auto attributed = attribution();
       if (api_->unregister != nullptr) api_->unregister();
       return 0;
     }
@@ -249,6 +267,7 @@ class Module::Impl {
   ModuleVersion version_;
   ModuleMetaData meta_data_;
   QString module_hash_;
+  QByteArray identifier_utf8_;
   QString module_library_path_;
   QString gf_sdk_ver_;
   QString qt_env_ver_;
