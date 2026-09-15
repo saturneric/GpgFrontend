@@ -802,4 +802,192 @@ TEST(ArchiveFileOperatorTest, AMemberShorterThanItsDeclaredSizeFailsThePack) {
   EXPECT_NE(ret, 0U) << "a member that came up short was padded and passed off "
                         "as complete";
 }
+
+// --------------------------------------------- the zip container and its rules
+
+namespace {
+
+/// Build an archive in memory from bytes in hand, in the given format.
+auto PackMembers(const QVector<QPair<QString, QByteArray>>& members,
+                 GpgFrontend::ArchiveFormat format, const QString& out_path)
+    -> bool {
+  QFile out(out_path);
+  if (!out.open(QIODevice::WriteOnly)) return false;
+
+  auto exchanger = GpgFrontend::CreateStandardGFDataExchanger();
+  GpgFrontend::GFError ret = 0;
+  std::thread producer([&]() {
+    qsizetype index = 0;
+    ret = GpgFrontend::ArchiveFileOperator::NewArchiveFromMembersSync(
+        [&](GpgFrontend::ArchiveMemberEntry& entry) {
+          if (index >= members.size()) return false;
+          const auto& m = members.at(index++);
+          entry.relative_path = m.first;
+          entry.bytes = GpgFrontend::GFBuffer(m.second);
+          return true;
+        },
+        exchanger, GpgFrontend::ArchiveCompression::kNONE, format);
+  });
+
+  QByteArray chunk(64 * 1024, Qt::Uninitialized);
+  while (true) {
+    const auto n = exchanger->Read(reinterpret_cast<std::byte*>(chunk.data()),
+                                   chunk.size());
+    if (n <= 0) break;
+    out.write(chunk.constData(), n);
+  }
+  producer.join();
+  out.close();
+  return ret == 0;
+}
+
+}  // namespace
+
+TEST(ArchiveZipTest, RoundTripsThroughTheZipContainer) {
+  // Reading needed no change at all: the reader already turns on every format
+  // libarchive knows, so a zip is recognised by its bytes. This pins that the
+  // selector on the writing side actually produces one, and that the existing
+  // extraction path reads it back unchanged.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto zip = dir.path() + "/a.zip";
+
+  ASSERT_TRUE(PackMembers({{"a/one.txt", QByteArray("first")},
+                           {"b/two.bin", QByteArray(1024, '\x7f')}},
+                          GpgFrontend::ArchiveFormat::kZIP, zip));
+
+  QFile probe(zip);
+  ASSERT_TRUE(probe.open(QIODevice::ReadOnly));
+  EXPECT_TRUE(probe.read(2).startsWith("PK"));
+  probe.close();
+
+  QMap<QString, QByteArray> back;
+  QTemporaryDir nowhere;
+  ASSERT_TRUE(nowhere.isValid());
+  const auto error =
+      GpgFrontend::ArchiveFileOperator::ExtractArchiveFromFileSync(
+          zip, nowhere.path(), GpgFrontend::ArchiveExtractPolicy::Permissive(),
+          [](const QString&) { return true; },
+          [&](const QString& path, const GpgFrontend::GFBuffer& bytes) {
+            back.insert(path, bytes.ConvertToQByteArray());
+            return true;
+          });
+  EXPECT_EQ(error, 0U);
+  EXPECT_EQ(back.value("a/one.txt"), QByteArray("first"));
+  EXPECT_EQ(back.value("b/two.bin"), QByteArray(1024, '\x7f'));
+}
+
+TEST(ArchiveZipTest, ExtractFromFileReportsAnUnreadablePath) {
+  QString reason;
+  const auto error =
+      GpgFrontend::ArchiveFileOperator::ExtractArchiveFromFileSync(
+          "/nonexistent/nowhere.zip", QDir::tempPath(),
+          GpgFrontend::ArchiveExtractPolicy::Permissive(), {}, {}, &reason);
+  EXPECT_NE(error, 0U);
+  EXPECT_FALSE(reason.isEmpty());
+}
+
+namespace {
+
+/// Walk an archive with a policy, claiming every entry so nothing is written.
+auto WalkWithPolicy(const QString& archive,
+                    const GpgFrontend::ArchiveExtractPolicy& policy)
+    -> GpgFrontend::GFError {
+  QTemporaryDir nowhere;
+  if (!nowhere.isValid()) return -1;
+  return GpgFrontend::ArchiveFileOperator::ExtractArchiveFromFileSync(
+      archive, nowhere.path(), policy, [](const QString&) { return true; },
+      [](const QString&, const GpgFrontend::GFBuffer&) { return true; });
+}
+
+}  // namespace
+
+TEST(ArchiveZipTest, DuplicatePathsAreRefusedOnlyWhenAsked) {
+  // Zip permits repeated entry names. That is harmless until something decides
+  // what an archive holds by reading it separately from whoever extracts it --
+  // hashing the first copy and extracting the last is the whole of a split
+  // view, and neither half is wrong on its own.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto zip = dir.path() + "/dup.zip";
+  ASSERT_TRUE(
+      PackMembers({{"x.txt", QByteArray("one")}, {"x.txt", QByteArray("two")}},
+                  GpgFrontend::ArchiveFormat::kZIP, zip));
+
+  EXPECT_EQ(
+      WalkWithPolicy(zip, GpgFrontend::ArchiveExtractPolicy::Permissive()), 0U);
+
+  auto policy = GpgFrontend::ArchiveExtractPolicy::Permissive();
+  policy.reject_duplicate_paths = true;
+  EXPECT_NE(WalkWithPolicy(zip, policy), 0U);
+}
+
+TEST(ArchiveZipTest, CaseCollidingPathsAreRefusedOnlyWhenAsked) {
+  // Two files here, one file on macOS or Windows. An archive relying on the
+  // difference extracts to a different tree depending on who unpacks it.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto zip = dir.path() + "/case.zip";
+  ASSERT_TRUE(PackMembers({{"bin/Module.so", QByteArray("one")},
+                           {"bin/module.so", QByteArray("two")}},
+                          GpgFrontend::ArchiveFormat::kZIP, zip));
+
+  EXPECT_EQ(
+      WalkWithPolicy(zip, GpgFrontend::ArchiveExtractPolicy::Permissive()), 0U);
+
+  auto policy = GpgFrontend::ArchiveExtractPolicy::Permissive();
+  policy.reject_case_colliding_paths = true;
+  EXPECT_NE(WalkWithPolicy(zip, policy), 0U);
+
+  // And a duplicate check alone does not catch it: the paths are distinct.
+  auto only_duplicates = GpgFrontend::ArchiveExtractPolicy::Permissive();
+  only_duplicates.reject_duplicate_paths = true;
+  EXPECT_EQ(WalkWithPolicy(zip, only_duplicates), 0U);
+}
+
+TEST(ArchiveZipTest, ACompressionBombIsRefusedByRatio) {
+  // The size limits cap what an archive unpacks to. They do not cap how little
+  // it costs to ask: a few kilobytes of zeros inflate to hundreds of megabytes,
+  // and a ceiling generous enough to be useful is exactly the one that pays.
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto gz = dir.path() + "/bomb.tar.gz";
+
+  QFile out(gz);
+  ASSERT_TRUE(out.open(QIODevice::WriteOnly));
+  auto exchanger = GpgFrontend::CreateStandardGFDataExchanger();
+  bool done = false;
+  std::thread producer([&]() {
+    GpgFrontend::ArchiveFileOperator::NewArchiveFromMembersSync(
+        [&](GpgFrontend::ArchiveMemberEntry& entry) {
+          if (done) return false;
+          done = true;
+          entry.relative_path = "zeros.bin";
+          // Compresses to almost nothing, which is the point.
+          entry.bytes =
+              GpgFrontend::GFBuffer(QByteArray(32 * 1024 * 1024, '\0'));
+          return true;
+        },
+        exchanger, GpgFrontend::ArchiveCompression::kGZIP,
+        GpgFrontend::ArchiveFormat::kPAX_RESTRICTED);
+  });
+  QByteArray chunk(64 * 1024, Qt::Uninitialized);
+  while (true) {
+    const auto n = exchanger->Read(reinterpret_cast<std::byte*>(chunk.data()),
+                                   chunk.size());
+    if (n <= 0) break;
+    out.write(chunk.constData(), n);
+  }
+  producer.join();
+  out.close();
+
+  // Well inside every size limit: 32 MiB out of a 64 MiB allowance.
+  auto generous = GpgFrontend::ArchiveExtractPolicy::Strict(64 * 1024 * 1024);
+  EXPECT_EQ(WalkWithPolicy(gz, generous), 0U);
+
+  // And refused the moment the ratio is bounded, without moving any of them.
+  generous.max_compression_ratio = 100;
+  EXPECT_NE(WalkWithPolicy(gz, generous), 0U);
+}
+
 }  // namespace GpgFrontend::Test

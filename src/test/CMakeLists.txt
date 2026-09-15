@@ -63,3 +63,24 @@ target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_ui)
 target_link_libraries(${LIBRARY_TARGET} PRIVATE gf_sdk)
 
 add_test(AllTestsInGpgFrontend ${LIBRARY_TARGET})
+
+# A shared library that writes a file when it is mapped.
+#
+# It backs the one assertion about module packages that cannot be made any
+# other way: that a refused package never has its code executed. Asserting only
+# that loading returned an error would pass even if the image had already been
+# mapped and its initialisers run, so the test needs something whose loading is
+# observable from outside the process that loaded it.
+#
+# Deliberately not a module: it exports no entry point, and the host refuses it
+# as one. What is under test is whether its constructor ran.
+add_library(gf_mod_test_sentinel SHARED sentinel_module/sentinel.cpp)
+
+set_target_properties(gf_mod_test_sentinel PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+  AUTOMOC OFF
+  AUTOUIC OFF
+  AUTORCC OFF
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts/test-modules)
+
+# Not installed: a test fixture is not something a user gets.
