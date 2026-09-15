@@ -153,8 +153,12 @@ void MakeTreeReadOnly(const QString& directory) {
   while (it.hasNext()) {
     const auto path = it.next();
     auto permissions = QFile::permissions(path);
-    permissions &= ~(QFileDevice::WriteOwner | QFileDevice::WriteGroup |
-                     QFileDevice::WriteOther);
+    // WriteUser as well as WriteOwner, and the distinction is not cosmetic:
+    // on Unix both map to the same mode bit, and setPermissions() builds the
+    // mode from the *User* flags -- so clearing WriteOwner alone leaves the
+    // file writable and the whole call silently does nothing.
+    permissions &= ~(QFileDevice::WriteOwner | QFileDevice::WriteUser |
+                     QFileDevice::WriteGroup | QFileDevice::WriteOther);
     QFile::setPermissions(path, permissions);
   }
 }
@@ -165,8 +169,9 @@ auto RemoveInstalledTree(const QString& directory) -> bool {
                   QDirIterator::Subdirectories);
   while (it.hasNext()) {
     const auto path = it.next();
-    QFile::setPermissions(path,
-                          QFile::permissions(path) | QFileDevice::WriteOwner);
+    QFile::setPermissions(path, QFile::permissions(path) |
+                                    QFileDevice::WriteOwner |
+                                    QFileDevice::WriteUser);
   }
   return QDir(directory).removeRecursively();
 }
