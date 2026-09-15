@@ -168,6 +168,26 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
           << ModuleManager::GetInstance().IsAllModulesRegistered();
 }
 
+/**
+ * @brief Whether step 6 actually unmaps the libraries.
+ *
+ * Off, on evidence rather than on caution. With it on, roughly one run in four
+ * died under ASan in `QArrayDataPointer<char16_t>::data()` -- a QString whose
+ * storage is a QStringLiteral in a module's own read-only data. Such a string
+ * costs nothing to copy and is shared by pointer, so any one of them that
+ * outlives the module (an event id, a registry key, a translation) dangles the
+ * moment the image is unmapped, and the crash lands far from the cause.
+ *
+ * Nothing is gained by unmapping at process exit: the process is ending. What
+ * unloading is *for* is replacing a module without restarting, and that needs
+ * the host to own every string that came from a module, which is a larger
+ * piece of work than the ordering here. Everything that makes it possible is
+ * in place -- the Module owns its library, the registries let go first, and
+ * this is the right point in the sequence -- so it is one constant away when
+ * that work is done.
+ */
+constexpr bool kUnloadLibrariesAtShutdown = false;
+
 void ShutdownGpgFrontendModules() {
   // The ordering here is the contract, and every step exists because skipping
   // it turns a tidy shutdown into a use-after-free. This function used to be
@@ -227,9 +247,13 @@ void ShutdownGpgFrontendModules() {
     swept += GFSdkSweepModuleHandles(module_id.toUtf8().constData());
   }
 
-  // 6. UNLOAD THE LIBRARIES. Last, so that no module code is unmapped while a
-  //    thread could still be inside it -- which is what steps 1 to 3
-  //    established, and the only reason this is safe here and nowhere else.
+  // 6. UNLOAD THE LIBRARIES -- last, so that no module code is unmapped while
+  //    a thread could still be inside it, which is what steps 1 to 3
+  //    established and the only reason this point is safe at all.
+  //
+  //    Gated off; see kUnloadLibrariesAtShutdown for the measurement that
+  //    decided it. The registries still let go here, which is the half that
+  //    matters at shutdown: nothing can route an event into a module any more.
   //
   //    The registries let go first. Their ModulePtr is what an event would be
   //    routed through, so dropping it is what makes "nothing can call into
@@ -242,8 +266,10 @@ void ShutdownGpgFrontendModules() {
   //    own function table and refuses every later call.
   auto modules = manager.TakeAllModules();
   auto unloaded = 0;
-  for (const auto& module : modules) {
-    if (module != nullptr && module->UnloadLibrary()) ++unloaded;
+  if (kUnloadLibrariesAtShutdown) {
+    for (const auto& module : modules) {
+      if (module != nullptr && module->UnloadLibrary()) ++unloaded;
+    }
   }
 
   LOG_D() << "module system shut down cleanly, modules:" << module_ids.size()
