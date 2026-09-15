@@ -59,13 +59,6 @@ using Key = QString;
 using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
 
 /**
- * @brief Singleton facade over GlobalModuleContext and GlobalRegisterTable.
- *
- * Provides the primary API for loading, registering, activating, and
- * communicating with modules. Also exposes the runtime value store
- * (UpsertRTValue / RetrieveRTValue) and event dispatch (TriggerEvent).
- */
-/**
  * @brief A module the scan offered, and what preparing it established.
  *
  * Loading happens in two phases, and this is what passes between them. The
@@ -74,15 +67,22 @@ using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
  * ModuleManager::PrepareModule().
  */
 struct GF_CORE_EXPORT ModuleLoadCandidate {
-  QString source_path;    ///< the `*.gfmodule`, or the loose library
+  QString source_path;  ///< the `*.gfmodule`, or the loose library
   bool integrated = false;
   bool packaged = false;
 
-  bool ok = false;         ///< preparation succeeded; phase 2 may proceed
-  QString library_path;    ///< the binary phase 2 maps
+  bool ok = false;       ///< preparation succeeded; phase 2 may proceed
+  QString library_path;  ///< the binary phase 2 maps
   std::optional<ModuleManifest> manifest;  ///< set for a package only
 };
 
+/**
+ * @brief Singleton facade over GlobalModuleContext and GlobalRegisterTable.
+ *
+ * Provides the primary API for loading, registering, activating, and
+ * communicating with modules. Also exposes the runtime value store
+ * (UpsertRTValue / RetrieveRTValue) and event dispatch (TriggerEvent).
+ */
 class GF_CORE_EXPORT ModuleManager
     : public SingletonFunctionObject<ModuleManager> {
  public:

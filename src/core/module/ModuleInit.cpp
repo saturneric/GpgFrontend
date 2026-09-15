@@ -29,15 +29,14 @@
 #include "ModuleInit.h"
 
 #include <QDir>
-
 #include <atomic>
 #include <thread>
 #include <vector>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleDispatchGate.h"
-#include "core/module/ModuleManager.h"
 #include "core/module/ModuleLoadStats.h"
+#include "core/module/ModuleManager.h"
 #include "core/module/ModuleStore.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -125,8 +124,8 @@ auto PrepareModulesConcurrently(GpgFrontend::Module::ModuleManager& manager,
   if (discovered.isEmpty()) return prepared;
 
   const auto hardware = static_cast<int>(std::thread::hardware_concurrency());
-  const auto workers =
-      std::max(1, std::min<int>(discovered.size(), hardware > 0 ? hardware : 1));
+  const auto workers = std::max(
+      1, std::min<int>(discovered.size(), hardware > 0 ? hardware : 1));
 
   std::atomic<int> next{0};
   std::vector<std::thread> pool;

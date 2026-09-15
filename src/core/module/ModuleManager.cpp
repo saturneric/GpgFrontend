@@ -145,7 +145,8 @@ auto IsModulePackageFileName(const QString& file_name) -> bool {
 }
 
 auto InspectModuleLibrary(const QString& module_library_path,
-                          const QString& known_hash) -> ModuleLibraryInspection {
+                          const QString& known_hash)
+    -> ModuleLibraryInspection {
   if (module_library_path.isEmpty()) return {false, "empty module path", {}};
 
   const QFileInfo info(module_library_path);

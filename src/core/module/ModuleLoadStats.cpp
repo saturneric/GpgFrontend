@@ -64,8 +64,8 @@ auto ModuleLoadStats::Summary() const -> QString {
   return QString("loaded %1 module(s), refused %2, hashed %3 MiB, %4 ms")
       .arg(loaded_.load(std::memory_order_relaxed))
       .arg(refused_.load(std::memory_order_relaxed))
-      .arg(QString::number(static_cast<double>(hashed) / (1024.0 * 1024.0),
-                           'f', 1))
+      .arg(QString::number(static_cast<double>(hashed) / (1024.0 * 1024.0), 'f',
+                           1))
       .arg(elapsed);
 }
 
