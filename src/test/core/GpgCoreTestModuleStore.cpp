@@ -65,8 +65,7 @@ auto HostOs() -> QString {
 /// A package that installs cleanly. `body` distinguishes two builds of the
 /// same version, which is exactly the case the store keys on a digest for.
 auto BuildPackage(const QString& dir, const QString& name,
-                  const QString& version, const QByteArray& body)
-    -> QString {
+                  const QString& version, const QByteArray& body) -> QString {
   Module::ModulePackageBuildSpec spec;
   spec.module_id = "com.bktus.gpgfrontend.module.store_test";
   spec.version = version;
@@ -210,7 +209,8 @@ TEST_F(ModuleStoreTest, InstalledFilesAreReadOnly) {
   ASSERT_TRUE(installed.ok);
 
   auto checked = 0;
-  QDirIterator it(installed.install_dir, QDir::Files, QDirIterator::Subdirectories);
+  QDirIterator it(installed.install_dir, QDir::Files,
+                  QDirIterator::Subdirectories);
   while (it.hasNext()) {
     const auto path = it.next();
     const auto permissions = QFile::permissions(path);
@@ -332,6 +332,43 @@ TEST_F(ModuleStoreTest, TheSweepCollectsAbandonedStaging) {
 TEST_F(ModuleStoreTest, SweepingAnEmptyStoreIsHarmless) {
   EXPECT_EQ(Module::SweepModuleStore(store_), 0);
   EXPECT_EQ(Module::SweepModuleStore(dir_.path() + "/never-created"), 0);
+}
+
+// ------------------------------------------------------------- digest index
+
+TEST_F(ModuleStoreTest, AWrongDigestIndexCostsNothingButTime) {
+  // The index is a cache that says where to look, never that something is
+  // genuine: the tree it points at is verified in full before anything loads.
+  // So a wrong entry has to fall through to the slow path rather than mislead
+  // -- which is what makes it safe to keep at all.
+  const auto pkg = Pkg("a.gfmodule", "1.0.0", QByteArray(2048, 'a'));
+  ASSERT_TRUE(QDir().mkpath(store_));
+
+  QFile index(store_ + "/index.json");
+  ASSERT_TRUE(index.open(QIODevice::WriteOnly));
+  index.write(R"({"deadbeef":"com.example.not.installed"})");
+  index.close();
+
+  const auto installed = Module::InstallModulePackage(pkg, store_);
+  ASSERT_TRUE(installed.ok) << installed.reason.toStdString();
+  EXPECT_FALSE(installed.already_installed);
+
+  // And the second time round the real entry is there and is used.
+  const auto again = Module::InstallModulePackage(pkg, store_);
+  ASSERT_TRUE(again.ok);
+  EXPECT_TRUE(again.already_installed);
+  EXPECT_EQ(again.install_dir, installed.install_dir);
+}
+
+TEST_F(ModuleStoreTest, AnUnreadableIndexIsNotFatal) {
+  ASSERT_TRUE(QDir().mkpath(store_));
+  QFile index(store_ + "/index.json");
+  ASSERT_TRUE(index.open(QIODevice::WriteOnly));
+  index.write("{not json");
+  index.close();
+
+  const auto pkg = Pkg("a.gfmodule", "1.0.0", QByteArray(2048, 'a'));
+  EXPECT_TRUE(Module::InstallModulePackage(pkg, store_).ok);
 }
 
 // ------------------------------------------------------------------ refusal
