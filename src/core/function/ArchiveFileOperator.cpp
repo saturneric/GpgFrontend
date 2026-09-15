@@ -33,6 +33,7 @@
 #include <sodium.h>
 #include <sys/fcntl.h>
 
+#include <algorithm>
 #include <cstring>
 #include <thread>
 
@@ -143,9 +144,31 @@ auto CollectData(struct archive *ar, qint64 max_entry_bytes,
       return give_up(ARCHIVE_FATAL);
     }
 
-    // Only when the entry lied about its size, or did not declare one.
+    // Only when the entry lied about its size, or did not declare one -- and
+    // then geometrically, never to the exact watermark. Resize() here is a
+    // realloc that MOVES the contents and wipes the block it leaves behind, so
+    // growing once per data block makes reading one entry quadratic. That is
+    // not hypothetical: a zip written to a pipe cannot back-patch its local
+    // headers, so its entries declare no size at all, and a few-megabyte
+    // module binary arrives in hundreds of blocks each of which recopied and
+    // re-wiped everything read so far. Verifying a 3 MiB package took close to
+    // five seconds before this.
     if (static_cast<qint64>(out.Size()) < written) {
-      out.Resize(static_cast<ssize_t>(written));
+      constexpr qint64 kFirstCollectCapacity = 64 * 1024;
+      auto capacity = static_cast<qint64>(out.Size());
+      capacity = std::max(capacity, kFirstCollectCapacity);
+      while (capacity < written) capacity *= 2;
+
+      // No point reserving past a ceiling this entry is not allowed to cross.
+      if (max_entry_bytes >= 0 && capacity > max_entry_bytes) {
+        capacity = max_entry_bytes;
+      }
+      if (remaining_total >= 0 && capacity > remaining_total) {
+        capacity = remaining_total;
+      }
+      capacity = std::max(capacity, written);
+
+      out.Resize(static_cast<ssize_t>(capacity));
     }
     std::memcpy(out.Data() + filled, buff, size);
   }
@@ -287,7 +310,7 @@ auto ValidateArchiveEntryPath(const QString &path_name,
 
 struct ArchiveReadClientData {
   GFDataExchanger *ex;
-  std::array<std::byte, 1024> buf;
+  std::array<std::byte, 64 * 1024> buf;
   const std::byte *p_buf = buf.data();
 };
 
@@ -1192,7 +1215,13 @@ void ArchiveFileOperator::ListArchive(const QString &archive_path) {
   archive_read_support_format_all(a);
   r = archive_read_open_filename(a, archive_path.toUtf8(),
                                  10240);  // Note 1
-  if (r != ARCHIVE_OK) return;
+  if (r != ARCHIVE_OK) {
+    // The handle exists whether or not the open succeeded, and every format
+    // reader registered above hangs off it -- so returning here without
+    // freeing it leaked about 150 KiB per failed open.
+    archive_read_free(a);
+    return;
+  }
   while (archive_read_next_header(a, &entry) == ARCHIVE_OK) {
     FLOG_D("File: %s", archive_entry_pathname(entry));
     FLOG_D("File Path: %s", archive_entry_pathname(entry));
