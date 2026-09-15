@@ -28,13 +28,16 @@
 
 #include "ModuleManager.h"
 
+#include <QTemporaryDir>
 #include <optional>
 
+#include "core/function/ArchiveFileOperator.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/GlobalModuleContext.h"
 #include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
+#include "core/module/ModulePackageVerifier.h"
 #include "core/struct/settings_object/ModuleSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -134,6 +137,10 @@ auto IsModuleLibraryFileName(const QString& file_name) -> bool {
   return kModuleFileNameRegex.match(file_name).hasMatch();
 }
 
+auto IsModulePackageFileName(const QString& file_name) -> bool {
+  return file_name.endsWith(kModulePackageSuffix, Qt::CaseInsensitive);
+}
+
 auto InspectModuleLibrary(const QString& module_library_path)
     -> ModuleLibraryInspection {
   if (module_library_path.isEmpty()) return {false, "empty module path", {}};
@@ -185,21 +192,74 @@ class ModuleManager::Impl {
 
   ~Impl() = default;
 
+  /**
+   * @brief Verify a package and unpack the part that has to be loaded.
+   *
+   * The invariant this holds: no byte of an unverified package reaches the
+   * filesystem, and no module code runs until the whole package has been
+   * judged. The ordering lives in UnpackVerifiedModulePackage(); what is here
+   * is the scratch directory it unpacks into and the fact that the directory
+   * outlives the mapping.
+   *
+   * @param package_path the `*.gfmodule` to open
+   * @param[out] library_path the extracted module binary, on success
+   * @param[out] manifest what the package says about itself, on success
+   * @return false when the package was refused; nothing has been extracted
+   */
+  auto UnpackVerifiedPackage(const QString& package_path, QString& library_path,
+                             ModuleManifest& manifest) -> bool {
+    // Held for the life of the process: the extracted binary stays mapped
+    // until teardown unloads it, and a QTemporaryDir that goes out of scope
+    // takes the file the loader is using with it.
+    auto scratch = QSharedPointer<QTemporaryDir>::create();
+    if (!scratch->isValid()) {
+      LOG_W() << "module manager cannot make a scratch directory for: "
+              << package_path;
+      return false;
+    }
+
+    const auto unpacked =
+        UnpackVerifiedModulePackage(package_path, scratch->path());
+    if (!unpacked.ok) {
+      LOG_W() << "module manager refuses module package: " << package_path
+              << ", reason: " << unpacked.reason << " ("
+              << ModulePackageStatusToString(unpacked.status) << ")";
+      return false;
+    }
+
+    package_scratch_dirs_.append(scratch);
+    library_path = unpacked.library_path;
+    manifest = unpacked.manifest;
+    return true;
+  }
+
   auto LoadAndRegisterModule(const QString& module_library_path,
                              bool integrated_module) -> bool {
+    auto library_path = module_library_path;
+    std::optional<ModuleManifest> manifest;
+
+    if (IsModulePackageFileName(QFileInfo(module_library_path).fileName())) {
+      ModuleManifest unpacked;
+      if (!UnpackVerifiedPackage(module_library_path, library_path, unpacked)) {
+        need_register_modules_--;
+        return false;
+      }
+      manifest = unpacked;
+    }
+
     // everything that can be decided without mapping the image has to be
     // decided here: QLibrary::load() below runs the module's own initializers
-    const auto inspection = InspectModuleLibrary(module_library_path);
+    const auto inspection = InspectModuleLibrary(library_path);
     if (!inspection.ok) {
-      LOG_W() << "module manager refuses to load module: "
-              << module_library_path << ", reason: " << inspection.reason;
+      LOG_W() << "module manager refuses to load module: " << library_path
+              << ", reason: " << inspection.reason;
       need_register_modules_--;
       return false;
     }
 
-    QLibrary module_library(module_library_path);
+    QLibrary module_library(library_path);
 
-    ScopedModuleLibrarySearchPath search_path(module_library_path);
+    ScopedModuleLibrarySearchPath search_path(library_path);
     if (!module_library.load()) {
       LOG_W() << "module manager failed to load module: "
               << module_library.fileName()
@@ -220,6 +280,27 @@ class ModuleManager::Impl {
       module_library.unload();
       need_register_modules_--;
       return false;
+    }
+
+    if (manifest) {
+      // Runtime identity against signed identity. Without this the signature
+      // covers a name nothing enforces: a package could say it is one module
+      // and carry another, and everything downstream -- settings, activation,
+      // the module list -- would key off the binary's word for it.
+      if (module->GetModuleIdentifier() != manifest->id) {
+        LOG_W() << "module manager refuses module package: "
+                << module_library_path << ", reason: its manifest says "
+                << manifest->id << " and the module inside says "
+                << module->GetModuleIdentifier();
+        module.reset();
+        module_library.unload();
+        need_register_modules_--;
+        return false;
+      }
+
+      // Metadata now comes from the manifest, which is readable without
+      // executing anything.
+      module->SetModuleMetaData(manifest->metadata);
     }
 
     module->SetGPC(gmc_.get());
@@ -247,6 +328,17 @@ class ModuleManager::Impl {
           SettingsObject so(QString("module.%1.so").arg(module_id));
           ModuleSO module_so(so);
 
+          // A changed hash resets this module's stored settings rather
+          // than refusing the module. That is right while the hash is only a
+          // record of what was last seen: a developer rebuilding a module
+          // changes it every time, and a rebuilt module is not an attack.
+          //
+          // It stops being right once an installed package's digest is
+          // authoritative -- once there is a store that says which version is
+          // installed, a binary that changed underneath it is a refusal and
+          // not a settings migration. That store does not exist yet, so
+          // neither does the refusal.
+          //
           // reset module settings if necessary
           if (module_so.module_id != module_id ||
               module_so.module_hash != module_hash) {
@@ -399,6 +491,11 @@ class ModuleManager::Impl {
   SecureUniquePtr<GlobalModuleContext> gmc_;
   SecureUniquePtr<GlobalRegisterTable> grt_;
   int need_register_modules_ = -1;
+
+  /// One per loaded package, kept for the life of the process. A QTemporaryDir
+  /// removes its tree when it dies, and the tree holds the very library the
+  /// loader has mapped.
+  QList<QSharedPointer<QTemporaryDir>> package_scratch_dirs_;
 };
 
 auto IsModuleActivate(ModuleIdentifier id) -> bool {

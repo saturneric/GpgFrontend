@@ -163,6 +163,22 @@ class GF_CORE_EXPORT Module : public QObject {
   [[nodiscard]] auto GetModuleMetaData() const -> ModuleMetaData;
 
   /**
+   * @brief Supply this module's metadata from outside the module.
+   *
+   * A module used to answer for itself, through an exported function, which
+   * meant the only way to learn what it claimed to be was to map it and run
+   * its initialisers first. That is the wrong order for anything that informs
+   * a decision about whether to load it at all, so a packaged module's
+   * metadata now comes from its signed manifest and is handed here.
+   *
+   * A module loaded loosely has no manifest and so has no metadata, which is
+   * exactly as much as can honestly be said about a file nothing vouches for.
+   *
+   * @param meta_data key-value metadata, as read from the manifest
+   */
+  void SetModuleMetaData(const ModuleMetaData& meta_data);
+
+  /**
    * @brief Return the filesystem path of the dynamic module library.
    *
    * Returns an empty string for integrated modules.

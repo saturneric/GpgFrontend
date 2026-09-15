@@ -332,6 +332,18 @@ ResolveModuleLibrarySearchPath(const QString& module_library_path) -> QString;
 auto GF_CORE_EXPORT IsModuleLibraryFileName(const QString& file_name) -> bool;
 
 /**
+ * @brief Whether a file name may belong to a module package.
+ *
+ * Separate from IsModuleLibraryFileName() because a package is named for the
+ * module rather than for the library inside it: the `libgf_mod_` prefix
+ * belongs to the binary, which lives one level down.
+ *
+ * @param file_name the bare file name, without any directory part
+ * @return true if the name may belong to a module package
+ */
+auto GF_CORE_EXPORT IsModulePackageFileName(const QString& file_name) -> bool;
+
+/**
  * @brief Outcome of inspecting a module library before it is loaded.
  */
 struct GF_CORE_EXPORT ModuleLibraryInspection {

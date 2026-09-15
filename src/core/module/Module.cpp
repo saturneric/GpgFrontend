@@ -226,6 +226,10 @@ class Module::Impl {
     return qt_env_ver_;
   }
 
+  void SetModuleMetaData(const ModuleMetaData& meta_data) {
+    meta_data_ = meta_data;
+  }
+
   [[nodiscard]] auto GetModuleMetaData() const -> ModuleMetaData {
     return meta_data_;
   }
@@ -317,6 +321,10 @@ auto Module::GetModuleIdentifier() const -> ModuleIdentifier {
 
 [[nodiscard]] auto Module::GetModuleMetaData() const -> ModuleMetaData {
   return p_->GetModuleMetaData();
+}
+
+void Module::SetModuleMetaData(const ModuleMetaData& meta_data) {
+  p_->SetModuleMetaData(meta_data);
 }
 
 [[nodiscard]] auto Module::GetModulePath() const -> QString {

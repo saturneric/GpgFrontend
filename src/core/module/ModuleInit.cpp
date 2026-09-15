@@ -38,19 +38,26 @@
 
 namespace {
 
-auto SearchModuleFromPath(const QString& mods_path, bool integrated)
-    -> QMap<QString, bool> {
+auto SearchModuleFromPath(const QString& mods_path, bool integrated,
+                          bool packaged_only) -> QMap<QString, bool> {
   QMap<QString, bool> modules;
 
   QDir dir(mods_path);
   if (!dir.exists()) return modules;
 
-  const auto entries = dir.entryInfoList(
-      QStringList() << "*.so" << "*.dll" << "*.dylib", QDir::Files);
+  const auto entries =
+      dir.entryInfoList(QStringList() << "*.so" << "*.dll" << "*.dylib"
+                                      << "*.gfmodule",
+                        QDir::Files);
 
   for (const auto& info : entries) {
-    // the same rule the pre-load gate applies, so the scan cannot offer a file
-    // that LoadModule() would then refuse
+    // the same rules the pre-load gate applies, so the scan cannot offer a
+    // file that LoadModule() would then refuse
+    if (GpgFrontend::Module::IsModulePackageFileName(info.fileName())) {
+      modules.insert(info.absoluteFilePath(), integrated);
+      continue;
+    }
+    if (packaged_only) continue;
     if (GpgFrontend::Module::IsModuleLibraryFileName(info.fileName())) {
       modules.insert(info.absoluteFilePath(), integrated);
     }
@@ -59,7 +66,7 @@ auto SearchModuleFromPath(const QString& mods_path, bool integrated)
   return modules;
 }
 
-auto LoadIntegratedMods() -> QMap<QString, bool> {
+auto LoadIntegratedMods(bool packaged_only) -> QMap<QString, bool> {
   const auto module_path = GpgFrontend::GlobalSettingStation::GetInstance()
                                .GetIntegratedModulePath();
   LOG_I() << "loading integrated modules from path:" << module_path;
@@ -70,10 +77,10 @@ auto LoadIntegratedMods() -> QMap<QString, bool> {
     return {};
   }
 
-  return SearchModuleFromPath(module_path, true);
+  return SearchModuleFromPath(module_path, true, packaged_only);
 }
 
-auto LoadExternalMods() -> QMap<QString, bool> {
+auto LoadExternalMods(bool packaged_only) -> QMap<QString, bool> {
   auto mods_path =
       GpgFrontend::GlobalSettingStation::GetInstance().GetModulesDir();
 
@@ -83,7 +90,7 @@ auto LoadExternalMods() -> QMap<QString, bool> {
     return {};
   }
 
-  return SearchModuleFromPath(mods_path, false);
+  return SearchModuleFromPath(mods_path, false, packaged_only);
 }
 
 }  // namespace
@@ -107,13 +114,26 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
       ->PostTask(new Thread::Task(
           [module_loading_policy](const DataObjectPtr&) -> int {
-            QMap<QString, bool> modules = LoadIntegratedMods();
+            // "packaged_only" is a level above "all", not beside it: it
+            // loads everything, and refuses to consider a loose library that
+            // nothing vouches for.
+            //
+            // This is the direction of travel, not a niche option: loose
+            // module libraries are transitional, and a future version will
+            // stop loading them. It is opt-in for now only because the four
+            // in-tree modules still ship loose, and because a signature today
+            // establishes that a package agrees with itself rather than who
+            // built it -- so making it the default would cost users their own
+            // builds and buy them less than it appears to.
+            const auto packaged_only = module_loading_policy == "packaged_only";
+
+            QMap<QString, bool> modules = LoadIntegratedMods(packaged_only);
 
             // if user want to load all modules, then check external modules
-            if (module_loading_policy == "all") {
+            if (module_loading_policy == "all" || packaged_only) {
               LOG_I() << "loading external modules as well since user settings "
                          "is set to load all modules";
-              modules.insert(LoadExternalMods());
+              modules.insert(LoadExternalMods(packaged_only));
             }
 
             auto& manager = ModuleManager::GetInstance();
