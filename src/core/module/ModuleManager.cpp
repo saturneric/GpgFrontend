@@ -28,10 +28,10 @@
 
 #include "ModuleManager.h"
 
-#include <QTemporaryDir>
 #include <optional>
 
 #include "core/function/ArchiveFileOperator.h"
+#include "core/function/GlobalSettingStation.h"
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/model/SettingsObject.h"
 #include "core/module/GlobalModuleContext.h"
@@ -39,6 +39,7 @@
 #include "core/module/Module.h"
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModulePackageVerifier.h"
+#include "core/module/ModuleStore.h"
 #include "core/struct/settings_object/ModuleSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -194,43 +195,48 @@ class ModuleManager::Impl {
   ~Impl() = default;
 
   /**
-   * @brief Verify a package and unpack the part that has to be loaded.
+   * @brief Install a package if it is new, then hand back where it lives.
    *
-   * The invariant this holds: no byte of an unverified package reaches the
-   * filesystem, and no module code runs until the whole package has been
-   * judged. The ordering lives in UnpackVerifiedModulePackage(); what is here
-   * is the scratch directory it unpacks into and the fact that the directory
-   * outlives the mapping.
+   * The ordering the whole format exists for is inside
+   * InstallModulePackage(): verify completely, in memory, writing nothing;
+   * extract only then; re-verify where it landed; and only then let anything
+   * point at it.
    *
-   * @param package_path the `*.gfmodule` to open
-   * @param[out] library_path the extracted module binary, on success
+   * Installing means a package is unpacked once rather than on every start,
+   * and that what gets loaded is a tree whose digests were re-checked against
+   * the signed manifest a moment ago. That check is the enforceable half of
+   * immutability -- the files sit on a disk the user owns, so a change is
+   * something to detect before loading, not something to prevent.
+   *
+   * @param package_path the `*.gfmodule` the scan found
+   * @param[out] library_path the installed module binary, on success
    * @param[out] manifest what the package says about itself, on success
-   * @return false when the package was refused; nothing has been extracted
+   * @return false when the package was refused; nothing was installed
    */
-  auto UnpackVerifiedPackage(const QString& package_path, QString& library_path,
-                             ModuleManifest& manifest) -> bool {
-    // Held for the life of the process: the extracted binary stays mapped
-    // until teardown unloads it, and a QTemporaryDir that goes out of scope
-    // takes the file the loader is using with it.
-    auto scratch = QSharedPointer<QTemporaryDir>::create();
-    if (!scratch->isValid()) {
-      LOG_W() << "module manager cannot make a scratch directory for: "
-              << package_path;
-      return false;
-    }
+  auto InstallAndResolvePackage(const QString& package_path,
+                                QString& library_path,
+                                ModuleManifest& manifest) -> bool {
+    const auto store_root =
+        ModuleStoreRoot(GlobalSettingStation::GetInstance().GetModulesDir());
 
-    const auto unpacked =
-        UnpackVerifiedModulePackage(package_path, scratch->path());
-    if (!unpacked.ok) {
+    const auto installed = InstallModulePackage(package_path, store_root);
+    if (!installed.ok) {
       LOG_W() << "module manager refuses module package: " << package_path
-              << ", reason: " << unpacked.reason << " ("
-              << ModulePackageStatusToString(unpacked.status) << ")";
+              << ", reason: " << installed.reason << " ("
+              << ModulePackageStatusToString(installed.status) << ")";
       return false;
     }
 
-    package_scratch_dirs_.append(scratch);
-    library_path = unpacked.library_path;
-    manifest = unpacked.manifest;
+    if (installed.already_installed) {
+      LOG_D() << "module already installed, loading from the store: "
+              << installed.manifest.id;
+    } else {
+      LOG_I() << "installed module package: " << installed.manifest.id
+              << installed.manifest.version << "into" << installed.install_dir;
+    }
+
+    library_path = installed.library_path;
+    manifest = installed.manifest;
     return true;
   }
 
@@ -261,7 +267,8 @@ class ModuleManager::Impl {
 
     if (IsModulePackageFileName(QFileInfo(module_library_path).fileName())) {
       ModuleManifest unpacked;
-      if (!UnpackVerifiedPackage(module_library_path, library_path, unpacked)) {
+      if (!InstallAndResolvePackage(module_library_path, library_path,
+                                    unpacked)) {
         need_register_modules_--;
         return false;
       }
@@ -524,10 +531,6 @@ class ModuleManager::Impl {
   SecureUniquePtr<GlobalRegisterTable> grt_;
   int need_register_modules_ = -1;
 
-  /// One per loaded package, kept for the life of the process. A QTemporaryDir
-  /// removes its tree when it dies, and the tree holds the very library the
-  /// loader has mapped.
-  QList<QSharedPointer<QTemporaryDir>> package_scratch_dirs_;
 };
 
 auto IsModuleActivate(ModuleIdentifier id) -> bool {

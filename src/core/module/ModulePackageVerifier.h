@@ -59,6 +59,7 @@ enum class ModulePackageStatus {
   kWRONG_PLATFORM,         ///< built for another os or architecture
   kINCOMPATIBLE_ABI,       ///< outside [GF_SDK_ABI_MIN_SUPPORTED, ...]
   kIO_FAILED,              ///< the file could not be read
+  kNOT_INSTALLED,          ///< no such module in the store
 };
 
 /**
@@ -125,6 +126,32 @@ struct GF_CORE_EXPORT ModulePackageVerification {
  */
 auto GF_CORE_EXPORT VerifyModulePackage(
     const QString& package_path, const QByteArray& expected_public_key = {})
+    -> ModulePackageVerification;
+
+/**
+ * @brief Re-check an already-extracted package, in place.
+ *
+ * The same three questions as VerifyModulePackage(), asked of a directory
+ * instead of an archive: does the manifest match its signature, does every
+ * declared file still hash to what the manifest says, and is there anything
+ * present that the manifest does not cover.
+ *
+ * This is what makes an installed module's immutability *enforceable* rather
+ * than merely asserted. Marking the files read-only after install is advisory
+ * -- on a machine the user owns, the user can always write to their own files
+ * -- so the property that actually holds is that a change is **detected before
+ * the module is loaded**, not that it was prevented.
+ *
+ * `META-INF` members are excluded from the undeclared-file check exactly as
+ * they are for a package, and anything the store adds outside the extracted
+ * tree is not its business.
+ *
+ * @param directory an extracted package root
+ * @param expected_public_key when non-empty, the key the tree MUST carry
+ * @return the verdict, with the manifest filled in only when it verified
+ */
+auto GF_CORE_EXPORT VerifyExtractedModuleTree(
+    const QString& directory, const QByteArray& expected_public_key = {})
     -> ModulePackageVerification;
 
 /**
