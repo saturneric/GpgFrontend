@@ -37,7 +37,7 @@ project(GpgFrontend
   VERSION 2.2.2
   DESCRIPTION "A modern, cross-platform OpenPGP tool with a unique dual-engine core."
   HOMEPAGE_URL "https://gpgfrontend.bktus.com"
-  LANGUAGES CXX)
+  LANGUAGES CXX C)
 
 # show cmake version
 message(STATUS "GpgFrontend Build Configuration Started CMAKE Version ${CMAKE_VERSION}")
@@ -417,6 +417,13 @@ else()
 endif()
 
 message(STATUS "Portable Build: ${GPGFRONTEND_BUILD_PORTABLE}")
+
+# The module ABI generation, bumped BY HAND on any breaking change. It lives
+# here rather than only in GFSDKBuildInfo.h.in because the packaging function
+# has to stamp it into every manifest, and a number written down twice is a
+# number that will eventually disagree with itself.
+set(GF_SDK_ABI_VERSION 3)
+set(GF_SDK_ABI_MIN_SUPPORTED 3)
 
 # Set build information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
