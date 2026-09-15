@@ -38,6 +38,7 @@
 
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GFBufferFactory.h"
+#include "core/module/ModuleLoadStats.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
@@ -289,6 +290,7 @@ auto VerifyModulePackage(const QString& package_path,
       return Refuse(ModulePackageStatus::kIO_FAILED,
                     "this file could not be read");
     }
+    ModuleLoadStats::GetInstance().AddHashedBytes(package.size());
     auto digest = GFBufferFactory::ToSha256(
         [&package](const GFBufferFactory::Sha256Chunk& chunk) {
           QByteArray buf(64 * 1024, Qt::Uninitialized);
@@ -350,6 +352,8 @@ auto VerifyModulePackage(const QString& package_path,
           return true;
         }
 
+        ModuleLoadStats::GetInstance().AddHashedBytes(
+            static_cast<qint64>(bytes.Size()));
         auto digest = GFBufferFactory::ToSha256(
             [&bytes](const GFBufferFactory::Sha256Chunk& chunk) {
               chunk(bytes.Data(), bytes.Size());
@@ -440,6 +444,7 @@ auto VerifyExtractedModuleTree(const QString& directory,
       return Refuse(ModulePackageStatus::kIO_FAILED,
                     QString("\"%1\" could not be read").arg(relative));
     }
+    ModuleLoadStats::GetInstance().AddHashedBytes(file.size());
     auto digest = GFBufferFactory::ToSha256(
         [&file](const GFBufferFactory::Sha256Chunk& chunk) {
           QByteArray buf(64 * 1024, Qt::Uninitialized);
