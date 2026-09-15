@@ -214,8 +214,8 @@ class ModuleManager::Impl {
    * @return false when the package was refused; nothing was installed
    */
   auto InstallAndResolvePackage(const QString& package_path,
-                                QString& library_path,
-                                ModuleManifest& manifest) -> bool {
+                                QString& library_path, ModuleManifest& manifest)
+      -> bool {
     const auto store_root =
         ModuleStoreRoot(GlobalSettingStation::GetInstance().GetModulesDir());
 
@@ -311,7 +311,7 @@ class ModuleManager::Impl {
     // to unload. It used to be a local here, so a successfully loaded module
     // stayed mapped for the whole run with nothing holding a handle on it.
     auto module = SecureCreateSharedObject<Module>(std::move(module_library),
-                                                  inspection.hash);
+                                                   inspection.hash);
     if (!module->IsGood()) {
       LOG_W() << "module manager failed to load module, "
                  "reason: illegal module: "
@@ -536,7 +536,6 @@ class ModuleManager::Impl {
   SecureUniquePtr<GlobalModuleContext> gmc_;
   SecureUniquePtr<GlobalRegisterTable> grt_;
   int need_register_modules_ = -1;
-
 };
 
 auto IsModuleActivate(ModuleIdentifier id) -> bool {

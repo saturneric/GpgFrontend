@@ -37,6 +37,7 @@
 #include <QUuid>
 
 #include "core/function/ArchiveFileOperator.h"
+#include "core/function/GFBufferFactory.h"
 
 namespace GpgFrontend::Module {
 
@@ -49,6 +50,10 @@ constexpr auto kVersionsDirName = "versions";
 /// Scratch directories are dot-prefixed so the version scan never sees a
 /// half-extracted tree as an installed version.
 constexpr auto kScratchPrefix = ".staging-";
+
+/// Package digest -> module id, so an already-installed package can be
+/// recognised without walking its archive.
+constexpr auto kIndexFileName = "index.json";
 
 auto Fail(ModulePackageStatus status, const QString& reason)
     -> ModuleInstallResult {
@@ -79,11 +84,40 @@ auto StoreKeyFor(const QString& module_id) -> QString {
   }
   if (safe.isEmpty()) safe = "module";
 
-  const auto digest = QCryptographicHash::hash(module_id.toUtf8(),
-                                               QCryptographicHash::Sha256)
-                          .toHex()
-                          .left(8);
+  const auto digest =
+      QCryptographicHash::hash(module_id.toUtf8(), QCryptographicHash::Sha256)
+          .toHex()
+          .left(8);
   return safe + "-" + QString::fromLatin1(digest);
+}
+
+/**
+ * @brief Which module a package with this digest installed, if any.
+ *
+ * Purely a cache, and safe to be wrong in either direction. A miss costs a
+ * full verification, which is what would have happened anyway. A hit is not
+ * trusted on its own: it only selects which installed tree to re-verify, and
+ * that tree carries its own signature. Nothing here decides that something is
+ * genuine -- it decides where to look.
+ */
+auto ReadDigestIndex(const QString& store_root) -> QJsonObject {
+  QFile f(store_root + "/" + kIndexFileName);
+  if (!f.open(QIODevice::ReadOnly)) return {};
+  const auto doc = QJsonDocument::fromJson(f.readAll());
+  return doc.isObject() ? doc.object() : QJsonObject{};
+}
+
+void WriteDigestIndex(const QString& store_root, const QString& digest,
+                      const QString& module_id) {
+  auto index = ReadDigestIndex(store_root);
+  if (index.value(digest).toString() == module_id) return;
+  index.insert(digest, module_id);
+
+  QDir().mkpath(store_root);
+  QSaveFile f(store_root + "/" + kIndexFileName);
+  if (!f.open(QIODevice::WriteOnly)) return;
+  f.write(QJsonDocument(index).toJson(QJsonDocument::Compact));
+  f.commit();
 }
 
 auto ModuleDir(const QString& store_root, const QString& module_id) -> QString {
@@ -116,7 +150,8 @@ auto ReadState(const QString& store_root, const QString& module_id)
   if (!doc.isObject()) return state;
 
   const auto o = doc.object();
-  if (o.value("installed").isString()) state.installed = o["installed"].toString();
+  if (o.value("installed").isString())
+    state.installed = o["installed"].toString();
   if (o.value("previous").isString()) state.previous = o["previous"].toString();
   return state;
 }
@@ -185,6 +220,24 @@ auto LibraryPathIn(const QString& directory, const ModuleManifest& manifest)
   return {};
 }
 
+/// SHA-256 of a whole file, streamed, as lower-case hex.
+auto FileDigest(const QString& path) -> QString {
+  QFile f(path);
+  if (!f.open(QIODevice::ReadOnly)) return {};
+
+  auto digest = GFBufferFactory::ToSha256(
+      [&f](const GFBufferFactory::Sha256Chunk& chunk) {
+        QByteArray buf(64 * 1024, Qt::Uninitialized);
+        while (true) {
+          const auto n = f.read(buf.data(), buf.size());
+          if (n <= 0) break;
+          chunk(buf.constData(), static_cast<size_t>(n));
+        }
+      });
+  if (!digest) return {};
+  return QString::fromLatin1(digest->ConvertToQByteArray().toHex());
+}
+
 auto Succeed(const QString& install_dir, const ModuleManifest& manifest,
              bool already_installed) -> ModuleInstallResult {
   ModuleInstallResult r;
@@ -212,6 +265,29 @@ auto InstallModulePackage(const QString& package_path,
     return Fail(ModulePackageStatus::kIO_FAILED, "there is no module store");
   }
 
+  // Recognise an already-installed package before paying to verify it again.
+  // Hashing the file is a single fast pass; verifying it means walking the
+  // whole archive and hashing every member, which for a large module was
+  // seconds of startup spent re-deciding something already decided.
+  //
+  // This is a lookup, not a trust decision. The tree it points at is verified
+  // in full against its own signature before anything loads, so a wrong answer
+  // here costs correctness nothing -- a miss just falls through to the slow
+  // path below.
+  const auto package_digest = FileDigest(package_path);
+  if (!package_digest.isEmpty()) {
+    const auto cached =
+        ReadDigestIndex(store_root).value(package_digest).toString();
+    if (!cached.isEmpty()) {
+      auto resolved =
+          ResolveInstalledModule(store_root, cached, expected_public_key);
+      if (resolved.ok) {
+        resolved.already_installed = true;
+        return resolved;
+      }
+    }
+  }
+
   // Completely, and before anything is written. A package that fails here has
   // had nothing extracted, so there is nothing anywhere for anything to load.
   const auto verification =
@@ -236,6 +312,7 @@ auto InstallModulePackage(const QString& package_path,
       state.installed = version_key;
       WriteState(store_root, manifest.id, state);
     }
+    WriteDigestIndex(store_root, verification.package_sha256, manifest.id);
     return Succeed(final_dir, manifest, true);
   }
 
@@ -258,9 +335,9 @@ auto InstallModulePackage(const QString& package_path,
       &reason);
   if (error != 0) {
     QDir(staging).removeRecursively();
-    return Fail(ModulePackageStatus::kIO_FAILED,
-                reason.isEmpty() ? QString("it could not be unpacked")
-                                 : reason);
+    return Fail(
+        ModulePackageStatus::kIO_FAILED,
+        reason.isEmpty() ? QString("it could not be unpacked") : reason);
   }
 
   // Re-verified where it landed, not trusted because it was verified in the
@@ -269,9 +346,9 @@ auto InstallModulePackage(const QString& package_path,
   const auto landed = VerifyExtractedModuleTree(staging, expected_public_key);
   if (!landed.ok) {
     QDir(staging).removeRecursively();
-    return Fail(landed.status,
-                QString("it did not survive being unpacked: %1")
-                    .arg(landed.reason));
+    return Fail(
+        landed.status,
+        QString("it did not survive being unpacked: %1").arg(landed.reason));
   }
 
   MakeTreeReadOnly(staging);
@@ -294,6 +371,7 @@ auto InstallModulePackage(const QString& package_path,
     }
   }
 
+  WriteDigestIndex(store_root, verification.package_sha256, manifest.id);
   return Succeed(final_dir, landed.manifest, false);
 }
 
@@ -312,8 +390,7 @@ auto ResolveInstalledModule(const QString& store_root, const QString& module_id,
   }
 
   const auto dir = VersionsDir(store_root, module_id) + "/" + state.installed;
-  const auto verification =
-      VerifyExtractedModuleTree(dir, expected_public_key);
+  const auto verification = VerifyExtractedModuleTree(dir, expected_public_key);
   if (!verification.ok) {
     return Fail(verification.status, verification.reason);
   }

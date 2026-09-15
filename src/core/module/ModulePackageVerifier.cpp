@@ -33,8 +33,8 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
-#include <array>
 #include <QTemporaryDir>
+#include <array>
 
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GFBufferFactory.h"
@@ -374,10 +374,10 @@ auto VerifyModulePackage(const QString& package_path,
                   "a file in it could not be read");
   }
 
-  auto conclusion = ConcludeVerification(
-      manifest_bytes, signature_bytes, public_key_bytes,
-      {manifest_count, signature_count, public_key_count}, actual_digests,
-      expected_public_key);
+  auto conclusion =
+      ConcludeVerification(manifest_bytes, signature_bytes, public_key_bytes,
+                           {manifest_count, signature_count, public_key_count},
+                           actual_digests, expected_public_key);
   if (!conclusion.ok) return conclusion;
 
   conclusion.package_sha256 = package_sha256;
