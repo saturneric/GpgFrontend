@@ -359,10 +359,22 @@ void ShutdownGpgFrontendModules() {
   //    reaching zero: other holders may still have a reference, and a module
   //    that has been unloaded is inert rather than dangling -- it drops its
   //    own function table and refuses every later call.
-  auto modules = manager.TakeAllModules();
+  //    Taking the modules out of the registries is part of unloading, so it
+  //    happens only when unloading does. It is not free: this runs on the
+  //    calling thread while step 2's deactivations were POSTED to the module
+  //    runner, so clearing the register table here races a queued deactivation
+  //    still reading it -- observed once in sixteen runs under ASan as a
+  //    double free of a ModuleRegisterInfo, on the module runner, inside
+  //    GlobalModuleContext::DeactivateModule.
+  //
+  //    Doing it unconditionally bought nothing while unloading is off, so it
+  //    no longer happens unconditionally. Turning unloading back on means
+  //    fixing the ordering first: either the deactivations must complete
+  //    before the table is touched, or the table must be taken on the module
+  //    runner rather than from here.
   auto unloaded = 0;
   if (kUnloadLibrariesAtShutdown) {
-    for (const auto& module : modules) {
+    for (const auto& module : manager.TakeAllModules()) {
       if (module != nullptr && module->UnloadLibrary()) ++unloaded;
     }
   }
