@@ -213,7 +213,10 @@ TEST_F(ModuleStoreTest, InstalledFilesAreReadOnly) {
   QDirIterator it(installed.install_dir, QDir::Files, QDirIterator::Subdirectories);
   while (it.hasNext()) {
     const auto path = it.next();
-    EXPECT_FALSE(QFile::permissions(path).testFlag(QFileDevice::WriteOwner))
+    const auto permissions = QFile::permissions(path);
+    EXPECT_FALSE(permissions.testFlag(QFileDevice::WriteOwner))
+        << path.toStdString();
+    EXPECT_FALSE(permissions.testFlag(QFileDevice::WriteUser))
         << path.toStdString();
     ++checked;
   }
@@ -231,8 +234,11 @@ TEST_F(ModuleStoreTest, ATamperedInstallIsRefusedBeforeItCanBeLoaded) {
   ASSERT_TRUE(Module::ResolveInstalledModule(store_, kId).ok);
 
   const auto binary = installed.library_path;
-  ASSERT_TRUE(QFile::setPermissions(
-      binary, QFile::permissions(binary) | QFileDevice::WriteOwner));
+  // Both flags, for the same reason the installer clears both: on Unix they
+  // are one mode bit, and setPermissions() reads the *User* one.
+  ASSERT_TRUE(QFile::setPermissions(binary, QFile::permissions(binary) |
+                                                QFileDevice::WriteOwner |
+                                                QFileDevice::WriteUser));
   {
     QFile f(binary);
     ASSERT_TRUE(f.open(QIODevice::WriteOnly));
@@ -269,8 +275,9 @@ TEST_F(ModuleStoreTest, ARemovedFileIsRefused) {
   ASSERT_TRUE(installed.ok);
 
   const auto note = installed.install_dir + "/resources/note.txt";
-  ASSERT_TRUE(QFile::setPermissions(
-      note, QFile::permissions(note) | QFileDevice::WriteOwner));
+  ASSERT_TRUE(QFile::setPermissions(note, QFile::permissions(note) |
+                                              QFileDevice::WriteOwner |
+                                              QFileDevice::WriteUser));
   ASSERT_TRUE(QFile::remove(note));
 
   const auto resolved = Module::ResolveInstalledModule(store_, kId);
