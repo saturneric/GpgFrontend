@@ -44,5 +44,5 @@
  * GF_SDK_ABI_MIN_SUPPORTED is the floor the host will still load. Raising it
  * is what retires an old ABI.
  */
-#define GF_SDK_ABI_VERSION 3
-#define GF_SDK_ABI_MIN_SUPPORTED 3
+#define GF_SDK_ABI_VERSION @GF_SDK_ABI_VERSION@
+#define GF_SDK_ABI_MIN_SUPPORTED @GF_SDK_ABI_MIN_SUPPORTED@

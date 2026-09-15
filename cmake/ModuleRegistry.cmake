@@ -96,3 +96,104 @@ function(register_module name out_var)
 
   set(${out_var} "${target_name}" PARENT_SCOPE)
 endfunction()
+# gf_add_module_package(
+#   TARGET           <name as given to register_module>
+#   MODULE_ID        <reverse-dns identifier>
+#   [VERSION         <x.y.z>]              defaults to PROJECT_VERSION
+#   [MIN_HOST_VERSION <x.y.z>]             defaults to PROJECT_VERSION
+#   [CAPABILITIES    <name>...]
+#   [META            KEY=VALUE...]
+#   [RESOURCES       <archive path>=<source file>...])
+#
+# Produces `<name>.gfmodule` as an ordinary build artifact, signed with a key
+# generated for that build and destroyed with it. There is no CI-specific
+# environment and no key to configure: a developer runs the normal build and
+# gets a signed package.
+#
+# What that signature proves is narrow, and is spelled out in full on
+# VerifyModulePackage(): the public key travels inside the package, so it
+# establishes that the package agrees with itself, not who built it.
+function(gf_add_module_package)
+  cmake_parse_arguments(GAMP
+    ""
+    "TARGET;MODULE_ID;VERSION;MIN_HOST_VERSION"
+    "CAPABILITIES;META;RESOURCES"
+    ${ARGN})
+
+  if(NOT GAMP_TARGET)
+    message(FATAL_ERROR "gf_add_module_package: TARGET is required")
+  endif()
+  if(NOT GAMP_MODULE_ID)
+    message(FATAL_ERROR "gf_add_module_package: MODULE_ID is required")
+  endif()
+
+  set(module_target "gf_mod_${GAMP_TARGET}")
+  if(NOT TARGET ${module_target})
+    message(FATAL_ERROR
+      "gf_add_module_package: no such module target: ${module_target}")
+  endif()
+
+  if(NOT GAMP_VERSION)
+    set(GAMP_VERSION "${PROJECT_VERSION}")
+  endif()
+  if(NOT GAMP_MIN_HOST_VERSION)
+    set(GAMP_MIN_HOST_VERSION "${PROJECT_VERSION}")
+  endif()
+
+  # The target platform, not the host one. A cross build describes what it
+  # built for, and a package whose manifest says otherwise is refused by the
+  # verifier on the machine that would have run it.
+  if(WIN32)
+    set(package_os "windows")
+  elseif(APPLE)
+    set(package_os "macos")
+  else()
+    set(package_os "linux")
+  endif()
+
+  if(GPGFRONTEND_QT5_BUILD)
+    set(gf_qt_version "${Qt5_VERSION}")
+  else()
+    set(gf_qt_version "${Qt6_VERSION}")
+  endif()
+
+  set(package_dir "${CMAKE_BINARY_DIR}/artifacts/module-packages")
+  set(package_file "${package_dir}/${GAMP_TARGET}.gfmodule")
+
+  set(packager_args
+    --output "${package_file}"
+    --id "${GAMP_MODULE_ID}"
+    --version "${GAMP_VERSION}"
+    --sdk-abi "${GF_SDK_ABI_VERSION}"
+    --min-host-version "${GAMP_MIN_HOST_VERSION}"
+    --os "${package_os}"
+    --arch "${CMAKE_SYSTEM_PROCESSOR}"
+    --qt "${gf_qt_version}")
+
+  foreach(capability IN LISTS GAMP_CAPABILITIES)
+    list(APPEND packager_args --capability "${capability}")
+  endforeach()
+
+  foreach(entry IN LISTS GAMP_META)
+    list(APPEND packager_args --meta "${entry}")
+  endforeach()
+
+  foreach(entry IN LISTS GAMP_RESOURCES)
+    list(APPEND packager_args --file "${entry}")
+  endforeach()
+
+  # The module binary itself, named by its own extension so a package built on
+  # one platform is not silently loadable on another.
+  list(APPEND packager_args
+    --file "bin/$<TARGET_FILE_NAME:${module_target}>=$<TARGET_FILE:${module_target}>")
+
+  add_custom_command(
+    OUTPUT "${package_file}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${package_dir}"
+    COMMAND gf_module_packager ${packager_args}
+    DEPENDS ${module_target} gf_module_packager
+    COMMENT "Packaging ${GAMP_TARGET}.gfmodule"
+    VERBATIM)
+
+  add_custom_target(${module_target}_package ALL DEPENDS "${package_file}")
+endfunction()

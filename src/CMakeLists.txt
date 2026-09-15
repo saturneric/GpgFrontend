@@ -44,6 +44,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/LibraryRegistry.cmake)
 add_subdirectory(core)
 add_subdirectory(ui)
 add_subdirectory(sdk)
+add_subdirectory(tools)
 add_subdirectory(test)
 add_subdirectory(res)
 
