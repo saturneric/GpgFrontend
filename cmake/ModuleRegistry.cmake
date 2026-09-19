@@ -155,6 +155,17 @@ endfunction()
 # it is right regardless of which directory calls the function later.
 set(GF_MODULE_REGISTRY_DIR "${CMAKE_CURRENT_LIST_DIR}")
 
+# Start every configure from an empty list.
+#
+# This is a CACHE variable that gf_add_module() appends to, and it used to only
+# ever grow: renaming a module left the OLD target name in it permanently, and
+# deleting one left a name that referred to nothing. src/CMakeLists.txt feeds
+# this list to XCODE_EMBED_PLUGINS, so a phantom entry is a broken Xcode build
+# that no source change explains. This file is included exactly once, from the
+# top-level CMakeLists, before any module is added -- so here is the one moment
+# when clearing it is unambiguously right.
+set(GPGFRONTEND_MODULE_TARGETS "" CACHE INTERNAL "All modules" FORCE)
+
 # Read a required string out of a module.json, or stop the configure.
 #
 # The inversion is deliberate and matches the runtime manifest parser: a
