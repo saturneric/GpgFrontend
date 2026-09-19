@@ -1193,7 +1193,7 @@ auto ReadProfilePackage(const QString &package_path, const QString &staging_dir,
 
   QString unpack_reason;
   const auto error = ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
-      exchanger, staging_dir, policy, divert, sink, &unpack_reason);
+      exchanger, staging_dir, policy, divert, sink, {}, &unpack_reason);
 
   // Before the join, always. The exchanger is a bounded ring and its writer
   // blocks when it fills, so a feeder still pushing when the extraction gives
