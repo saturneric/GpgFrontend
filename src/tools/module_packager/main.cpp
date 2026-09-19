@@ -62,7 +62,8 @@ void PrintUsage(QTextStream& err) {
       << "                         [--event EVENT_ID]...\n"
       << "                         [--translation-context NAME]\n"
       << "                         [--meta KEY=VALUE]...\n"
-      << "                         --file ARCHIVE_PATH=SOURCE_FILE...\n";
+      << "                         --entry-native name=NAME,file=PATH\n"
+      << "                         [--file ARCHIVE_PATH=SOURCE_FILE]...\n";
 }
 
 /// Split `KEY=VALUE` at the FIRST `=`, so a value may contain one.
@@ -129,6 +130,29 @@ auto main(int argc, char** argv) -> int {
         return 2;
       }
       spec.metadata.insert(key, text);
+    } else if (flag == "--entry-native") {
+      // name=<logical>,file=<path>. The logical name is what the descriptor
+      // records; the file is read to compute the binding value and is NOT
+      // packaged, because executable code never travels inside a descriptor.
+      const auto text = value();
+      for (const auto& part : text.split(u',', Qt::SkipEmptyParts)) {
+        QString key;
+        QString val;
+        if (!SplitPair(part, key, val)) {
+          err << "gf_module_packager: --entry-native wants "
+                 "name=NAME,file=PATH\n";
+          return 2;
+        }
+        if (key == "name") {
+          spec.entry_native_name = val;
+        } else if (key == "file") {
+          spec.entry_native_file = val;
+        } else {
+          err << "gf_module_packager: unknown --entry-native key: " << key
+              << "\n";
+          return 2;
+        }
+      }
     } else if (flag == "--file") {
       QString archive_path;
       QString source_file;
@@ -136,7 +160,7 @@ auto main(int argc, char** argv) -> int {
         err << "gf_module_packager: --file wants ARCHIVE_PATH=SOURCE_FILE\n";
         return 2;
       }
-      spec.files.append({archive_path, source_file, {}});
+      spec.resources.append({archive_path, source_file, {}});
     } else if (flag == "--help" || flag == "-h") {
       QTextStream(stdout) << "";
       PrintUsage(err);
@@ -164,7 +188,8 @@ auto main(int argc, char** argv) -> int {
     return 1;
   }
 
-  QTextStream(stdout) << QFileInfo(spec.output_path).fileName() << ": signed "
-                      << spec.files.size() << " file(s)\n";
+  QTextStream(stdout) << QFileInfo(spec.output_path).fileName() << ": bound "
+                      << spec.entry_native_name << ", signed "
+                      << spec.resources.size() << " resource(s)\n";
   return 0;
 }
