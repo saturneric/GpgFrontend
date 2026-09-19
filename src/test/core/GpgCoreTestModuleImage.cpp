@@ -54,7 +54,8 @@ auto AnyBuiltPackage() -> QString {
   const auto built = packages.entryInfoList(QStringList{"*.gfmodule"},
                                             QDir::Files, QDir::Size);
   if (built.isEmpty()) return {};
-  // The smallest, since several of these load it and one of them is 48 MiB.
+  // QDir::Size sorts largest first, and largest is what these want: a 46 MiB
+  // module is where a per-byte cost shows up and a 3 MiB one hides it.
   return built.first().absoluteFilePath();
 }
 
@@ -117,6 +118,37 @@ TEST_F(ModuleImageTest, OnLinuxTheImageNeverExistsInAnyDirectory) {
   const auto mapped = QString::fromLatin1(maps.readAll());
   EXPECT_TRUE(mapped.contains("/memfd:"));
   library.unload();
+}
+#endif
+
+#ifdef Q_OS_LINUX
+TEST_F(ModuleImageTest, TwoMappingsNeverShareALoadPath) {
+  // A regression test for a bug this design invites and which cost a real
+  // failure to find. On the memfd path the descriptor number *is* the name the
+  // loader is given, and glibc matches an already-loaded object by name before
+  // it looks at an inode. Recycle the number and dlopen returns the previous
+  // object: success reported, no initialisers run, the wrong module mapped.
+  //
+  // So a load path, once handed out, must never come back for a different
+  // image -- including after the mapping that owned it has been destroyed,
+  // which is what happens whenever a module loads and is then rejected.
+  const auto read = Module::ReadVerifiedModuleImage(package_);
+  ASSERT_TRUE(read.ok) << read.reason.toStdString();
+
+  QString first_path;
+  {
+    auto first = Module::ModuleImageMapping::Create(read.image);
+    ASSERT_TRUE(first);
+    first_path = first->LoadPath();
+
+    QLibrary library(first_path);
+    ASSERT_TRUE(library.load()) << library.errorString().toStdString();
+    library.unload();
+  }
+
+  auto second = Module::ModuleImageMapping::Create(read.image);
+  ASSERT_TRUE(second);
+  EXPECT_NE(second->LoadPath(), first_path);
 }
 #endif
 
