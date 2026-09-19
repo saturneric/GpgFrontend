@@ -17,7 +17,7 @@
 # both would be a statement about nothing.
 #
 # Usage: scripts/verify_build_record_set.sh --records DIR --expected FILE
-#     --records DIR    directory searched recursively for build-record.json
+#     --records DIR    directory searched recursively for build-record-*.json
 #     --expected FILE  resource/provenance/expected-build-matrix.json
 
 set -u -o pipefail
@@ -53,7 +53,7 @@ fail() { echo "  FAIL  $*" >&2; FAILURES=$((FAILURES + 1)); }
 
 echo "verifying build records under $RECORDS"
 
-mapfile -t FOUND < <(find "$RECORDS" -type f -name 'build-record.json' | sort)
+mapfile -t FOUND < <(find "$RECORDS" -type f -name 'build-record-*.json' | sort)
 if [[ ${#FOUND[@]} -eq 0 ]]; then
   fail "no build records at all; nothing here is signable"
 fi
