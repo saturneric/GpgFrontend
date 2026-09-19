@@ -400,8 +400,7 @@ void Module::SetSourcePackagePath(const QString& path) {
   p_->SetSourcePackagePath(path);
 }
 
-void Module::AdoptImageMapping(
-    std::shared_ptr<ModuleImageMapping> mapping) {
+void Module::AdoptImageMapping(std::shared_ptr<ModuleImageMapping> mapping) {
   p_->AdoptImageMapping(std::move(mapping));
 }
 

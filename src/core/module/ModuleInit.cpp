@@ -233,7 +233,8 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
                 continue;
               }
 
-              const auto loose_name = QFileInfo(candidate.source_path).fileName();
+              const auto loose_name =
+                  QFileInfo(candidate.source_path).fileName();
               const auto it = provided_by_package.constFind(loose_name);
               if (it == provided_by_package.constEnd()) {
                 to_load.append(candidate);
@@ -251,9 +252,8 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
               if (library_time > package_time) {
                 LOG_W() << "a newer module library is being ignored:"
                         << candidate.source_path << "was built at"
-                        << library_time.toString(Qt::ISODate) << "but"
-                        << *it << "dates from"
-                        << package_time.toString(Qt::ISODate)
+                        << library_time.toString(Qt::ISODate) << "but" << *it
+                        << "dates from" << package_time.toString(Qt::ISODate)
                         << "-- the package is what loads; rebuild the module "
                            "packaging target to pick up your changes";
               } else {

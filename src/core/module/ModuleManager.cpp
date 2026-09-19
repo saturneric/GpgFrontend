@@ -192,11 +192,11 @@ auto InspectModuleLibrary(const QString& module_library_path,
     return {false, "file is not a native shared library image", {}};
   }
 
-  // A packaged module already has this digest, from the signed manifest, and
-  // VerifyExtractedModuleTree checked it against these very bytes a moment
-  // ago. Recomputing it read the whole library a second time to arrive at an
-  // answer that was already known -- for the largest module, tens of megabytes
-  // per start to produce a settings-invalidation marker.
+  // A packaged module already has this digest, from the signed manifest, which
+  // verification checked against those very bytes a moment ago -- see
+  // InspectModuleImage(), which is the path a package takes. Recomputing it
+  // here read the whole library a second time to arrive at an answer that was
+  // already known.
   //
   // Nothing is given up by trusting it here: this value is not a security
   // check. It records what was last seen so stale module settings can be
@@ -255,8 +255,8 @@ class ModuleManager::Impl {
                                    std::shared_ptr<ModuleImageMapping>& mapping,
                                    QString& library_path,
                                    ModuleManifest& manifest,
-                                   QString& module_hash,
-                                   QString& library_name) -> bool {
+                                   QString& module_hash, QString& library_name)
+      -> bool {
     const auto read = ReadVerifiedModuleImage(package_path);
     if (!read.ok) {
       LOG_W() << "module manager refuses module package: " << package_path
@@ -414,8 +414,8 @@ class ModuleManager::Impl {
     // Ownership moves into the Module, which is what gives teardown something
     // to unload. It used to be a local here, so a successfully loaded module
     // stayed mapped for the whole run with nothing holding a handle on it.
-    auto module =
-        SecureCreateSharedObject<Module>(std::move(module_library), module_hash);
+    auto module = SecureCreateSharedObject<Module>(std::move(module_library),
+                                                   module_hash);
     if (!module->IsGood()) {
       LOG_W() << "module manager failed to load module, "
                  "reason: illegal module: "

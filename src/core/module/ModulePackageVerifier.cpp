@@ -262,8 +262,6 @@ auto ModulePackageStatusToString(ModulePackageStatus s) -> const char* {
       return "built against a different sdk";
     case ModulePackageStatus::kIO_FAILED:
       return "it could not be read";
-    case ModulePackageStatus::kNOT_INSTALLED:
-      return "it is not installed";
   }
   return "unknown";
 }

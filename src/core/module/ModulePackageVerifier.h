@@ -59,7 +59,6 @@ enum class ModulePackageStatus {
   kWRONG_PLATFORM,         ///< built for another os or architecture
   kINCOMPATIBLE_ABI,       ///< outside [GF_SDK_ABI_MIN_SUPPORTED, ...]
   kIO_FAILED,              ///< the file could not be read
-  kNOT_INSTALLED,          ///< no such module in the store
 };
 
 /**
