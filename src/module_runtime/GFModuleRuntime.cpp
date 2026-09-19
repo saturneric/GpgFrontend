@@ -95,13 +95,18 @@ auto IndexHooks(const GFModuleHooks* hooks) -> QSet<QString> {
 auto ReconcileSubscriptions(const QSet<QString>& hooked) -> bool {
   const auto& facts = gf::runtime::Facts();
 
-  if (!facts.verified) {
-    // Nothing signed says what this module may subscribe to, so its own table
-    // is all there is. Said out loud, because it is a weaker guarantee.
-    LOG_WARN(QString("unverified module %1: subscribing to %2 event(s) from "
-                     "its own hook table; a packaged build subscribes only to "
-                     "what its signed manifest declares")
-                 .arg(facts.id)
+  // Two cases fall back to the module's own table, and both are weaker
+  // guarantees than a declared allowlist, so both say so.
+  //
+  // An unverified module has no manifest at all. A verified one that declares
+  // nothing is a package built before the field existed -- indistinguishable
+  // from one that genuinely subscribes to nothing, which is why the builder
+  // omits the field rather than writing an empty array.
+  if (!facts.verified || facts.events.isEmpty()) {
+    LOG_WARN(QString("%1 module %2: subscribing to %3 event(s) from its own "
+                     "hook table; a module whose manifest declares its events "
+                     "subscribes only to those")
+                 .arg(facts.verified ? "undeclared" : "unverified", facts.id)
                  .arg(hooked.size()));
     return true;
   }

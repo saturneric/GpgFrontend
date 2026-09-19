@@ -28,6 +28,7 @@
 
 #include "Module.h"
 
+#include <QLocale>
 #include <optional>
 
 #include "core/module/GlobalModuleContext.h"
@@ -173,14 +174,63 @@ class Module::Impl {
 
   auto Active() -> int {
     if (!good_) return -1;
-    if (api_ != nullptr) {
-      if (api_->activate == nullptr) return -1;
-      const auto attributed = attribution();
-      // The host table is static and outlives every module, so the module may
-      // hold on to it for its whole life.
-      return api_->activate(GFGetHostApi(), nullptr);
+    if (api_ == nullptr || api_->activate == nullptr) return -1;
+
+    // What the host established about this module, handed over so the module
+    // does not have to take its own compiled-in constants as authority. Every
+    // pointer below is BORROWED for the duration of this call only: the
+    // backing storage is in this frame, and the module is required to copy
+    // what it keeps before returning.
+    const auto locale_utf8 = QLocale().name().toUtf8();
+
+    QByteArray version_utf8;
+    QByteArray context_utf8;
+    QList<QByteArray> capability_utf8;
+    QList<QByteArray> event_utf8;
+    QVector<const char*> capabilities;
+    QVector<const char*> events;
+
+    GFModuleBootstrapInfo info{};
+    info.struct_size = sizeof(GFModuleBootstrapInfo);
+    info.abi_version = GF_SDK_ABI_VERSION;
+    info.locale = locale_utf8.constData();
+
+    // Identity always comes from the binary itself, because that is the only
+    // thing that exists for a loose build. What the flag records is whether a
+    // verified manifest AGREED with it -- and by the time this runs, the load
+    // path has already refused the package if it did not.
+    info.module_id = identifier_utf8_.constData();
+    version_utf8 = version_.toUtf8();
+    info.module_version = version_utf8.constData();
+
+    if (manifest_.has_value()) {
+      const auto& m = manifest_.value();
+      info.flags |= GF_MODULE_BOOT_VERIFIED;
+
+      context_utf8 = m.translation_context.toUtf8();
+      if (!context_utf8.isEmpty()) {
+        info.translation_context = context_utf8.constData();
+      }
+
+      capability_utf8.reserve(m.capabilities.size());
+      for (const auto& c : m.capabilities) capability_utf8.append(c.toUtf8());
+      capabilities.reserve(capability_utf8.size());
+      for (const auto& c : capability_utf8) capabilities.append(c.constData());
+      info.capabilities = capabilities.constData();
+      info.capabilities_size = static_cast<size_t>(capabilities.size());
+
+      event_utf8.reserve(m.events.size());
+      for (const auto& e : m.events) event_utf8.append(e.toUtf8());
+      events.reserve(event_utf8.size());
+      for (const auto& e : event_utf8) events.append(e.constData());
+      info.events = events.constData();
+      info.events_size = static_cast<size_t>(events.size());
     }
-    return -1;
+
+    const auto attributed = attribution();
+    // The host table is static and outlives every module, so the module may
+    // hold on to it for its whole life. The bootstrap payload may NOT be.
+    return api_->activate(GFGetHostApi(), &info);
   }
 
   auto Exec(const EventReference& event) -> int {

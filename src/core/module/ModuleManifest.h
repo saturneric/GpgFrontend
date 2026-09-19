@@ -85,6 +85,16 @@ struct GF_CORE_EXPORT ModuleManifest {
 
   QStringList capabilities;
 
+  /// Event ids this module subscribes to, UPPER-CASE. An allowlist: the
+  /// runtime subscribes to exactly these and refuses to start if its handler
+  /// table disagrees, which is what stops a subscription and a handler from
+  /// drifting apart unnoticed.
+  QStringList events;
+
+  /// Names this module's compiled .qm files. Verified, so the runtime can
+  /// load translations without trusting a constant compiled into the module.
+  QString translation_context;
+
   /// Display metadata: Name, Description, Author. Free-form by design.
   QMap<QString, QString> metadata;
 

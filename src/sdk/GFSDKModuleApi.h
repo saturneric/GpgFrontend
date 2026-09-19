@@ -120,6 +120,58 @@ typedef struct GFHostApi {
   void (*log_error)(const char* msg);
 } GFHostApi;
 
+/**
+ * @brief What the HOST verified about this module, handed to it at activate().
+ *
+ * Passed as GFModuleApi::activate's @c reserved argument, which was NULL until
+ * this existed. A module built against an older host must tolerate NULL, and a
+ * host older than a field must be detected through @ref struct_size -- this
+ * table grows by APPENDING only, exactly like GFHostApi.
+ *
+ * WHY IT EXISTS. The host parses and signature-checks a module's manifest,
+ * cross-checks its id and version against the loaded binary, and then had no
+ * way to tell the module any of it. Every fact a module knew about itself came
+ * from constants compiled into it, which is to say from an unverified source.
+ *
+ * OWNERSHIP. Everything here is BORROWED and valid only for the duration of
+ * the activate() call. The host owns every pointer and frees nothing; the
+ * strings point into storage in the caller's frame. A module that retains one
+ * of these pointers past activate() has a dangling pointer -- copy what you
+ * keep, before you return.
+ *
+ * TRUST. These fields only ever NARROW what a module does; none of them is a
+ * grant. A capability list here is not permission to use a capability: that is
+ * decided by what the host puts in GFHostApi, which is the only side the
+ * module cannot replace.
+ */
+typedef struct GFModuleBootstrapInfo {
+  size_t struct_size;   /**< sizeof as the HOST compiled it */
+  uint32_t abi_version; /**< the host's ABI generation */
+  uint32_t flags;       /**< GF_MODULE_BOOT_* */
+
+  const char* module_id;      /**< the verified id, == GFModuleApi::module_id */
+  const char* module_version; /**< the verified version */
+
+  /** The signed manifest's translation context, or NULL when unverified. */
+  const char* translation_context;
+
+  /** The locale in effect at activation, e.g. "en_US". */
+  const char* locale;
+
+  const char* const* capabilities; /**< from the signed manifest */
+  size_t capabilities_size;
+
+  /** Event ids this module declared it subscribes to, UPPER-CASE. This is an
+   *  allowlist: a module may subscribe to these and to nothing else. */
+  const char* const* events;
+  size_t events_size;
+} GFModuleBootstrapInfo;
+
+/** Every field above was backed by a verified signed manifest. When this is
+ *  clear, the module was loaded loose (a development tree): the id and version
+ *  are the module's own word for itself and nothing else is populated. */
+#define GF_MODULE_BOOT_VERIFIED 0x1u
+
 /* --- what the module provides to the host -------------------------------- */
 
 /**

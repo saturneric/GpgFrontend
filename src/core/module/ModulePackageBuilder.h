@@ -56,6 +56,13 @@ struct GF_CORE_EXPORT ModulePackageBuildSpec {
   QString min_host_version;
   int security_epoch = 0;
   QStringList capabilities;
+
+  /// Event ids the module subscribes to. Sorted by the caller so the canonical
+  /// manifest is byte-identical across rebuilds.
+  QStringList events;
+
+  /// Names the module's .qm files.
+  QString translation_context;
   QMap<QString, QString> metadata;
 
   QString build_id;

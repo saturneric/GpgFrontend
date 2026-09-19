@@ -234,7 +234,7 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
     metadata.insert(it.key(), it.value());
   }
 
-  const QJsonObject manifest{
+  QJsonObject manifest{
       {"schema_version", kModuleManifestSchemaVersion},
       {"id", spec.module_id},
       {"version", spec.version},
@@ -251,6 +251,17 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
                                {"qt", spec.platform_qt}}},
       {"files", files_json},
   };
+
+  // Written only when the module actually stated them. Both are optional at
+  // schema 1, and "declares no events" is not the same claim as "predates the
+  // field" -- an empty array would erase that difference, and the runtime has
+  // to be able to tell them apart to know whether it may trust its own table.
+  if (!spec.events.isEmpty()) {
+    manifest.insert("events", QJsonArray::fromStringList(spec.events));
+  }
+  if (!spec.translation_context.isEmpty()) {
+    manifest.insert("translation_context", spec.translation_context);
+  }
 
   QByteArray manifest_bytes;
   if (!CanonicalJson(manifest, manifest_bytes)) {

@@ -189,6 +189,44 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
     }
   }
 
+  // events: optional at schema 1, required at schema 2. Every element an
+  // upper-case identifier, because that is the form the host dispatches on.
+  {
+    const auto v = root.value("events");
+    if (!v.isUndefined()) {
+      if (!v.isArray()) return Malformed("\"events\" is not an array");
+      for (const auto& e : v.toArray()) {
+        if (!e.isString()) {
+          return Malformed("a value in \"events\" is not a string");
+        }
+        const auto id = e.toString();
+        if (id.isEmpty()) return Malformed("an event id is empty");
+        if (id != id.toUpper()) {
+          return Malformed(
+              QString("event id \"%1\" is not upper-case").arg(id));
+        }
+        if (m.events.contains(id)) {
+          return Malformed(QString("event id \"%1\" is declared twice").arg(id));
+        }
+        m.events.append(id);
+      }
+    }
+  }
+
+  // translation_context: optional at schema 1, required at schema 2.
+  {
+    const auto v = root.value("translation_context");
+    if (!v.isUndefined()) {
+      if (!v.isString()) {
+        return Malformed("\"translation_context\" is not a string");
+      }
+      m.translation_context = v.toString();
+      if (m.translation_context.isEmpty()) {
+        return Malformed("\"translation_context\" is empty");
+      }
+    }
+  }
+
   // metadata: required object, every value a string. This is what the module
   // used to answer by being loaded and asked -- which meant the only way to
   // learn what a module claimed to be was to run its initialisers first.

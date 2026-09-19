@@ -75,11 +75,18 @@ void UIModuleManager::RegisterAllModuleTranslators() {
 
   const auto locale_name = QLocale().name();
 
+  // Borrowed, not donated. This used to pass GFStrDup(locale_name) -- a fresh
+  // SDK allocation handed to the module on every reader call, which no module
+  // frees and the host never reclaims, so it leaked once per module per locale
+  // change. It also contradicted the SDK's own rule that arguments are
+  // borrowed, which is the rule every reader is written against.
+  const auto locale_utf8 = locale_name.toUtf8();
+
   for (auto it = translator_data_readers_.keyValueBegin();
        it != translator_data_readers_.keyValueEnd(); ++it) {
     char* data = nullptr;
 
-    auto data_size = it->second.reader_(GFStrDup(locale_name), &data);
+    auto data_size = it->second.reader_(locale_utf8.constData(), &data);
     LOG_D() << "module " << it->first << "reader, read locale " << locale_name
             << ", data size: " << data_size;
 
