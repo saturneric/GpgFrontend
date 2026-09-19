@@ -418,6 +418,33 @@ class GF_CORE_EXPORT ArchiveFileOperator {
       -> GFError;
 
   /**
+   * @brief Walk an archive held in memory, handing every member to a sink.
+   *
+   * The counterpart of NewArchiveFromMembersSync(): that one builds an archive
+   * from bytes a caller has, this one takes one apart into bytes a caller
+   * wants. There is **no destination parameter and no disk writer**, so this
+   * function cannot create a file, a directory or a temporary anything.
+   *
+   * That is the point, and it is why this exists rather than
+   * ExtractArchiveFromFileSync() with a divert that claims everything. The
+   * older shape needed a destination it never wrote to, so callers passed a
+   * throwaway QTemporaryDir and the "nothing is extracted" property lived in a
+   * comment. Here it is a property of the signature.
+   *
+   * @p archive_bytes is borrowed and must outlive the call; libarchive reads
+   * it in place rather than copying it.
+   *
+   * @param archive_bytes the whole archive, already in memory
+   * @param policy limits and path rules to enforce
+   * @param sink receives every member's bytes; returning false ends the walk
+   * @param reason set, when given, to why the walk stopped
+   * @return 0 on success, non-zero on failure
+   */
+  static auto ReadArchiveMembersSync(
+      const QByteArray &archive_bytes, const ArchiveExtractPolicy &policy,
+      const ArchiveEntryRawSink &sink, QString *reason = nullptr) -> GFError;
+
+  /**
    * @brief Pack entries from a provider into a stream.
    *
    * The counterpart of NewArchive2DataExchangerSync() for callers whose

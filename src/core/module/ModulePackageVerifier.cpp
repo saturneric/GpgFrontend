@@ -33,7 +33,6 @@
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
-#include <QTemporaryDir>
 #include <array>
 
 #include "core/function/ArchiveFileOperator.h"
@@ -297,12 +296,26 @@ auto ReadPackage(const QString& package_path,
     return Refuse(ModulePackageStatus::kIO_FAILED, "this file does not exist");
   }
 
-  // Nothing is written into it. The extractor still insists on a destination,
-  // and an invalid one would hand it an empty path.
-  QTemporaryDir nowhere;
-  if (!nowhere.isValid()) {
-    return Refuse(ModulePackageStatus::kIO_FAILED,
-                  "a temporary folder could not be made");
+  // Read once, whole, and judged from that one snapshot. Nothing below reopens
+  // the path, so what the signature covers and what the digests are computed
+  // over cannot be two different files -- and a package replaced on disk
+  // midway through verification cannot be half of each.
+  //
+  // Affordable because this is a package: the ceiling below is the same one
+  // the walk enforces per entry, so a file too large to be one of these is
+  // refused before it is held rather than after.
+  if (!package.open(QIODevice::ReadOnly)) {
+    return Refuse(ModulePackageStatus::kIO_FAILED, "this file could not be "
+                                                   "read");
+  }
+  if (package.size() > kMaxPackageTotalBytes) {
+    return Refuse(ModulePackageStatus::kMALFORMED,
+                  "this file is larger than a module package may be");
+  }
+  const auto package_bytes = package.readAll();
+  package.close();
+  if (package_bytes.isEmpty()) {
+    return Refuse(ModulePackageStatus::kNOT_A_PACKAGE, "this file is empty");
   }
 
   QByteArray manifest_bytes;
@@ -321,15 +334,16 @@ auto ReadPackage(const QString& package_path,
   QMap<QString, QByteArray> kept;
 
   QString reason;
-  const auto error = ArchiveFileOperator::ExtractArchiveFromFileSync(
-      package_path, nowhere.path(), PackagePolicy(),
-      // Claim every entry. This is the whole safety property of this
-      // function: no byte of an unverified package ever reaches a filesystem,
-      // so there is nothing for a later step to accidentally execute.
-      [](const QString&) { return true; }, {},
-      // The ordinary-memory sink. A native module image is tens of megabytes
-      // and is not a secret; the secure tier is locked, guarded pages whose
-      // budget one such image would exhaust on its own.
+  // No destination, no disk writer, no filter that has to remember to claim
+  // everything. The safety property -- no byte of an unverified package ever
+  // reaches a filesystem -- is now a fact about the function being called
+  // rather than a promise about how a general extractor is being used.
+  //
+  // The sink takes ordinary memory. A native module image is tens of megabytes
+  // and is not a secret; the secure tier is locked, guarded pages whose budget
+  // one such image would exhaust on its own.
+  const auto error = ArchiveFileOperator::ReadArchiveMembersSync(
+      package_bytes, PackagePolicy(),
       [&](const QString& path, const QByteArray& bytes) {
         if (path == kModulePackageManifestPath) {
           ++manifest_count;

@@ -763,17 +763,29 @@ namespace {
 
 /// The one extraction walk, however the archive is opened.
 ///
-/// Exactly one of @p ex and @p archive_file is used. A stream is what an
-/// encrypted package needs, because it decrypts into one; a plain file on disk
-/// needs nothing of the sort, and routing it through the stream anyway costs a
-/// thread, a copy, and every byte's trip through a byte-at-a-time queue.
+/// Exactly one of @p ex, @p archive_file and @p archive_bytes is used. A
+/// stream is what an encrypted package needs, because it decrypts into one; a
+/// plain file on disk needs nothing of the sort, and routing it through the
+/// stream anyway costs a thread, a copy, and every byte's trip through a
+/// byte-at-a-time queue. Bytes already in memory need even less.
+///
+/// An empty @p target_path means there is no destination at all: no disk
+/// writer is created, so this call cannot write a file even by mistake. Every
+/// entry must then be claimed by @p divert, and one that is not is a refusal
+/// rather than something quietly skipped.
 auto ExtractArchiveSync(const QSharedPointer<GFDataExchanger> &ex,
-                        const QString &archive_file, const QString &target_path,
+                        const QString &archive_file,
+                        const QByteArray *archive_bytes,
+                        const QString &target_path,
                         const ArchiveExtractPolicy &policy,
                         const ArchiveEntryFilter &divert,
                         const ArchiveEntrySink &sink,
                         const ArchiveEntryRawSink &raw_sink, QString *reason)
     -> GFError {
+  // Not a mode a caller selects, but the absence of a destination. Keeping it
+  // derived means there is no way to ask for "no destination" and still hand
+  // over a path, which is the combination that would be a lie.
+  const auto to_disk = !target_path.isEmpty();
   // Two sinks would mean two answers to "are these bytes a secret", and the
   // caller would not know which one it got. There is no sensible way to honour
   // both, so this is a programming error rather than a runtime condition.
@@ -798,7 +810,7 @@ auto ExtractArchiveSync(const QSharedPointer<GFDataExchanger> &ex,
       // is what makes removing it on failure safe rather than destructive
       auto may_remove_destination = false;
 
-      if (policy.require_empty_destination) {
+      if (to_disk && policy.require_empty_destination) {
         QDir dir(target_path);
         if (!dir.exists()) {
           if (!QDir().mkpath(target_path)) {
@@ -817,15 +829,19 @@ auto ExtractArchiveSync(const QSharedPointer<GFDataExchanger> &ex,
 
       // Resolved once, before a single header is written, because libarchive
       // judges the whole pathname and not just the part the archive named.
-      const auto write_root = ResolveExtractionRoot(target_path);
+      const auto write_root =
+          to_disk ? ResolveExtractionRoot(target_path) : QString();
 
       int ret = 0;
       auto *archive = archive_read_new();
-      auto *ext = archive_write_disk_new();
+      // Deliberately not created when there is no destination. The property
+      // "this walk cannot write to a filesystem" is then a fact about the
+      // absence of a writer rather than a promise about how it is used.
+      auto *ext = to_disk ? archive_write_disk_new() : nullptr;
 
       auto fail = [&](int code) -> GFError {
         archive_read_free(archive);
-        archive_write_free(ext);
+        if (ext != nullptr) archive_write_free(ext);
         if (may_remove_destination) QDir(target_path).removeRecursively();
         return code;
       };
@@ -846,7 +862,13 @@ auto ExtractArchiveSync(const QSharedPointer<GFDataExchanger> &ex,
 
       auto rdata = ArchiveReadClientData{};
 
-      if (!archive_file.isEmpty()) {
+      if (archive_bytes != nullptr) {
+        // Already in memory, and the caller owns it for the duration of this
+        // call. libarchive reads it in place: no copy, no thread, no file.
+        r = archive_read_open_memory(
+            archive, archive_bytes->constData(),
+            static_cast<size_t>(archive_bytes->size()));
+      } else if (!archive_file.isEmpty()) {
         // Straight to libarchive. Going through the exchanger instead moved
         // 46 MiB one std::byte at a time through a deque -- roughly fifty
         // million push/pop pairs -- which took 2.4 seconds to do 0.3 seconds
@@ -877,11 +899,14 @@ auto ExtractArchiveSync(const QSharedPointer<GFDataExchanger> &ex,
       // actually carries are checked by ValidateArchiveEntryPath() above,
       // which is strictly stronger: it also rejects Windows drive letters
       // and treats a backslash as a separator on every platform.
-      r = archive_write_disk_set_options(ext, ARCHIVE_EXTRACT_SECURE_SYMLINKS);
-      if (r != ARCHIVE_OK) {
-        FLOG_W("archive_write_disk_set_options(), ret: %d, reason: %s", r,
-               archive_error_string(archive));
-        return fail(r);
+      if (ext != nullptr) {
+        r = archive_write_disk_set_options(ext,
+                                           ARCHIVE_EXTRACT_SECURE_SYMLINKS);
+        if (r != ARCHIVE_OK) {
+          FLOG_W("archive_write_disk_set_options(), ret: %d, reason: %s", r,
+                 archive_error_string(archive));
+          return fail(r);
+        }
       }
 
       qint64 total_written = 0;
@@ -1138,6 +1163,19 @@ auto ExtractArchiveSync(const QSharedPointer<GFDataExchanger> &ex,
           continue;
         }
 
+        if (ext == nullptr) {
+          // Nowhere to put it. Reached only when a caller passed a divert that
+          // declined an entry while asking for no destination; saying so is
+          // better than dropping the entry and returning success.
+          FLOG_W("refusing archive entry '%s': no destination for it",
+                 qPrintable(relative_path));
+          note(QString("entry \"%1\" was not claimed, and there is nowhere "
+                       "to put it")
+                   .arg(relative_path));
+          ret = -1;
+          break;
+        }
+
         const auto target_path_name = write_root + "/" + relative_path;
 
 #ifdef Q_OS_WINDOWS
@@ -1212,15 +1250,17 @@ auto ExtractArchiveSync(const QSharedPointer<GFDataExchanger> &ex,
       // place a full disk finally reports itself -- and doing it here is what
       // makes the reason legible, since the error string does not outlive the
       // free.
-      r = archive_write_close(ext);
-      if (r != ARCHIVE_OK) {
-        FLOG_W("archive_write_close(), ret: %d, reason: %s", r,
-               archive_error_string(ext));
-        note(QString("the last entries could not be finished: %1")
-                 .arg(QString::fromUtf8(archive_error_string(ext))));
-        ret = -1;
+      if (ext != nullptr) {
+        r = archive_write_close(ext);
+        if (r != ARCHIVE_OK) {
+          FLOG_W("archive_write_close(), ret: %d, reason: %s", r,
+                 archive_error_string(ext));
+          note(QString("the last entries could not be finished: %1")
+                   .arg(QString::fromUtf8(archive_error_string(ext))));
+          ret = -1;
+        }
+        if (archive_write_free(ext) != ARCHIVE_OK) ret = -1;
       }
-      if (archive_write_free(ext) != ARCHIVE_OK) ret = -1;
 
       return ret;
     }
@@ -1234,8 +1274,8 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
     const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
     const ArchiveEntrySink &sink, const ArchiveEntryRawSink &raw_sink,
     QString *reason) -> GFError {
-  return ExtractArchiveSync(ex, {}, target_path, policy, divert, sink, raw_sink,
-                            reason);
+  return ExtractArchiveSync(ex, {}, nullptr, target_path, policy, divert, sink,
+                            raw_sink, reason);
 }
 
 void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
@@ -1270,8 +1310,23 @@ auto ArchiveFileOperator::ExtractArchiveFromFileSync(
   // through the exchanger, which exists so that an encrypted package can
   // decrypt into a stream -- a property a file already sitting on the disk has
   // no use for. libarchive reads files perfectly well by itself.
-  return ExtractArchiveSync({}, archive_path, target_path, policy, divert, sink,
-                            raw_sink, reason);
+  return ExtractArchiveSync({}, archive_path, nullptr, target_path, policy,
+                            divert, sink, raw_sink, reason);
+}
+
+auto ArchiveFileOperator::ReadArchiveMembersSync(
+    const QByteArray &archive_bytes, const ArchiveExtractPolicy &policy,
+    const ArchiveEntryRawSink &sink, QString *reason) -> GFError {
+  if (!sink) {
+    if (reason != nullptr) *reason = "no sink was given for this archive";
+    return -1;
+  }
+
+  // Everything is claimed, which is the whole of it: with no destination and
+  // no unclaimed entry, there is no path through the walk that writes a file.
+  return ExtractArchiveSync({}, {}, &archive_bytes, {}, policy,
+                            [](const QString &) { return true; }, {}, sink,
+                            reason);
 }
 
 void ArchiveFileOperator::ListArchive(const QString &archive_path) {
