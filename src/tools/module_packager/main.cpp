@@ -27,6 +27,7 @@
  */
 
 #include <QCoreApplication>
+#include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
 
@@ -130,6 +131,18 @@ auto main(int argc, char** argv) -> int {
         return 2;
       }
       spec.metadata.insert(key, text);
+    } else if (flag == "--signing-seed") {
+      // Read here rather than taken as hex on a command line: a key on an
+      // argv is a key in every process listing on the machine.
+      const auto path = value();
+      QFile seed(path);
+      if (!seed.open(QIODevice::ReadOnly)) {
+        err << "gf_module_packager: the signing seed could not be read: "
+            << path << "\n";
+        return 2;
+      }
+      spec.signing_seed = seed.readAll();
+      seed.close();
     } else if (flag == "--entry-native") {
       // name=<logical>,file=<path>. The logical name is what the descriptor
       // records; the file is read to compute the binding value and is NOT
