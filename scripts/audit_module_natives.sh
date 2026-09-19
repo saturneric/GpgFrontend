@@ -20,6 +20,10 @@
 #
 # Usage: scripts/audit_module_natives.sh --namespace-root DIR [options]
 #     --namespace-root DIR   the tree holding <key>/native/ directories
+#     --packager PATH        gf_module_packager, asked which native is each
+#                            namespace's entry. Without it every native is
+#                            held to the entry's rules, which is stricter than
+#                            the format requires of a private helper.
 #     --qt-relative PATH     a path, relative to a module's native directory,
 #                            that its RUNPATH must be able to reach (Linux)
 #     --expect-count N       fail unless exactly N namespaces were audited
@@ -36,14 +40,16 @@ NAMESPACE_ROOT=""
 QT_RELATIVE=""
 EXPECT_COUNT=-1
 STRICT=0
+PACKAGER=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --namespace-root) NAMESPACE_ROOT="${2:-}"; shift 2 ;;
     --qt-relative) QT_RELATIVE="${2:-}"; shift 2 ;;
     --expect-count) EXPECT_COUNT="${2:--1}"; shift 2 ;;
+    --packager) PACKAGER="${2:-}"; shift 2 ;;
     --warnings-are-errors) STRICT=1; shift ;;
-    -h|--help) sed -n '3,40p' "$0"; exit 0 ;;
+    -h|--help) sed -n '3,35p' "$0"; exit 0 ;;
     *) echo "audit_module_natives: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -56,6 +62,38 @@ if [[ ! -d "$NAMESPACE_ROOT" ]]; then
   echo "audit_module_natives: $NAMESPACE_ROOT: this directory does not exist" >&2
   exit 1
 fi
+
+# Which file is a namespace's entry, keyed by "<key>/<basename>". Taken from
+# the signed descriptor via the packager rather than from a filename pattern:
+# the pattern is exactly what a rename breaks, and a helper misread as an
+# entry is held to rules the format never placed on it.
+declare -A IS_ENTRY=()
+ENTRIES_KNOWN=0
+
+if [[ -n "$PACKAGER" ]]; then
+  if [[ ! -x "$PACKAGER" ]]; then
+    echo "audit_module_natives: $PACKAGER: not an executable" >&2
+    exit 2
+  fi
+  while read -r _ key path; do
+    [[ -n "$key" && -n "$path" ]] || continue
+    IS_ENTRY["$key/$(basename "$path")"]=1
+    ENTRIES_KNOWN=1
+  done < <("$PACKAGER" verify-module-set --namespace-root "$NAMESPACE_ROOT" \
+             --print-entries 2>/dev/null | grep '^entry ')
+  if [[ $ENTRIES_KNOWN -eq 0 ]]; then
+    echo "audit_module_natives: $PACKAGER reported no entries; verify the set" \
+         "before auditing it" >&2
+    exit 1
+  fi
+fi
+
+# Whether a native is its namespace's entry. Without a packager nothing here
+# knows, so everything is treated as one -- stricter, never laxer.
+is_entry() {
+  [[ $ENTRIES_KNOWN -eq 0 ]] && return 0
+  [[ -n "${IS_ENTRY["$1/$(basename "$2")"]:-}" ]]
+}
 
 FAILURES=0
 WARNINGS=0
@@ -85,7 +123,8 @@ is_build_tree_path() {
 
 audit_elf() {
   local file="$1" ns="$2" native_dir="$3"
-  local dyn runpath
+  local dyn runpath entry=0
+  is_entry "$ns" "$file" && entry=1
 
   dyn="$(readelf -d "$file" 2>/dev/null)" || {
     fail "$ns/$(basename "$file"): readelf could not read it"
@@ -97,8 +136,13 @@ audit_elf() {
     head -1)"
 
   if [[ -z "$runpath" ]]; then
-    fail "$ns/$(basename "$file"): it has no RUNPATH, so it can only resolve
+    # Only the entry must carry one. A private helper that needs nothing but
+    # system libraries legitimately has no RUNPATH, and failing it would be
+    # inventing a requirement -- the same mistake the orphan rule avoids.
+    if [[ $entry -eq 1 ]]; then
+      fail "$ns/$(basename "$file"): it has no RUNPATH, so it can only resolve
         its dependencies from whatever the process already loaded"
+    fi
     return
   fi
 
@@ -115,7 +159,7 @@ audit_elf() {
     [[ "$entry" == \$ORIGIN* || "$entry" == '${ORIGIN}'* ]] && origin_seen=1
   done
 
-  if [[ $origin_seen -eq 0 ]]; then
+  if [[ $origin_seen -eq 0 && $entry -eq 1 ]]; then
     fail "$ns/$(basename "$file"): its RUNPATH does not mention \$ORIGIN, so it
         cannot find the private helpers beside it"
   fi
@@ -124,7 +168,7 @@ audit_elf() {
   # about, because the number of levels between a module's native directory
   # and Qt differs per layout and getting it wrong is a startup failure rather
   # than a build failure.
-  if [[ -n "$QT_RELATIVE" ]]; then
+  if [[ -n "$QT_RELATIVE" && $entry -eq 1 ]]; then
     local reachable=0
     for entry in "${entries[@]}"; do
       [[ "$entry" == \$ORIGIN* || "$entry" == '${ORIGIN}'* ]] || continue
@@ -259,9 +303,7 @@ for ns_dir in "$NAMESPACE_ROOT"/*/; do
   # a rename probably left behind.
   for file in "${natives[@]}"; do
     base="$(basename "$file")"
-    case "$base" in
-      *gf_mod_*) continue ;;
-    esac
+    is_entry "$ns" "$file" && continue
     if ! printf '%s\n' "$referenced" | grep -qxF "$base"; then
       warn "$ns/native/$base: nothing in this namespace names it; it may be
         left over from a rename"

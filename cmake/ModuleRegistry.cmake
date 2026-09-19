@@ -156,6 +156,19 @@ function(_gf_module_package_command)
   list(APPEND packager_args
     --entry-native "name=${module_target},file=$<TARGET_FILE:${module_target}>")
 
+  # The finalize half of the release pipeline (see ModulePreparedEntry.h).
+  #
+  # OFF for an ordinary build, because there is nothing to seal against: the
+  # native was linked by this same build graph moments ago. It is turned ON
+  # only for the reconfigure CI does after platform deployment has rewritten
+  # those natives, and then it is fail-closed -- a namespace with no seal, or
+  # one whose native no longer binds to what was sealed, stops the build rather
+  # than producing a descriptor that describes the file as it used to be.
+  if(GPGFRONTEND_MODULE_REQUIRE_SEAL)
+    list(APPEND packager_args
+      --prepared-manifest "${package_dir}/native/prepared.json")
+  endif()
+
   add_custom_command(
     OUTPUT "${package_file}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${package_dir}"
