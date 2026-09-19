@@ -37,6 +37,7 @@
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleManager.h"
+#include "core/module/ModulePackageVerifier.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "sdk/GFSDKModuleAttribution.h"
@@ -50,22 +51,31 @@ auto SearchModuleFromPath(const QString& mods_path, bool integrated,
   QDir dir(mods_path);
   if (!dir.exists()) return modules;
 
-  // Descriptors only. A native library is no longer something that can be
-  // *found*: it is something a verified descriptor *names*, and one sitting in
-  // this directory that no descriptor binds is not a module at all.
+  // One namespace per module: <root>/<key>/module.gfmodule, with the module's
+  // native files beside it under native/. A native library is no longer
+  // something that can be *found* -- it is something a verified descriptor
+  // *names*, and one sitting in a namespace that no descriptor binds is not a
+  // module at all.
   //
   // This is also what retires the package-supersedes-loose-library
   // reconciliation that used to live further down. The two never corresponded
   // by name -- the package was named for the CMake target and the library for
-  // the SDK prefix -- and now they do not need to: the descriptor says which
-  // library it binds, and nothing else is offered to the loader.
+  // the SDK prefix -- and now they do not need to: the descriptor's filename
+  // is fixed, and its directory is derived from the identity it signs.
   Q_UNUSED(packaged_only)
 
-  const auto entries =
-      dir.entryInfoList(QStringList() << "*.gfmodule", QDir::Files);
+  const auto namespaces =
+      dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
 
-  for (const auto& info : entries) {
-    modules.insert(info.absoluteFilePath(), integrated);
+  for (const auto& candidate : namespaces) {
+    const QFileInfo descriptor(candidate.absoluteFilePath() + "/" +
+                               GpgFrontend::Module::kModuleDescriptorFileName);
+    // Not every subdirectory is a module namespace, and one that holds no
+    // descriptor is simply not offered. Whether the directory NAME is the
+    // right one for the identity inside is a question only the verified
+    // manifest can answer, so it is asked later, by the manager.
+    if (!descriptor.isFile()) continue;
+    modules.insert(descriptor.absoluteFilePath(), integrated);
   }
 
   return modules;

@@ -39,6 +39,7 @@
 #include "core/module/Module.h"
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleEntryBinding.h"
+#include "core/module/ModuleNamespace.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModulePackageVerifier.h"
 #include "core/struct/settings_object/ModuleSO.h"
@@ -219,11 +220,26 @@ class ModuleManager::Impl {
       return false;
     }
 
-    // The native root is the descriptor's own directory for now. The
-    // per-module namespace -- modules/<key>/{module.gfmodule,native/} -- is a
-    // separate step; until then a descriptor and the library it binds are
-    // siblings, which is where this build already puts them.
-    const ModuleNativeRoot root{QFileInfo(package_path).absolutePath()};
+    // The namespace this descriptor was found in, and whether it is the one
+    // its own signed identity says it should be.
+    //
+    // A locator check, not the integrity check -- that is the entry binding
+    // below. What this catches is a descriptor dropped into another module's
+    // namespace, where the relative native/ lookup would otherwise go looking
+    // in a directory that belongs to something else. Recomputed from the id
+    // rather than read from anywhere, so there is no second statement about
+    // where a module lives for the first to disagree with.
+    const QDir namespace_dir(QFileInfo(package_path).absolutePath());
+    const auto expected_key = ModuleDirectoryKey(read.manifest.id);
+    if (namespace_dir.dirName() != expected_key) {
+      LOG_W() << "module manager refuses module descriptor: " << package_path
+              << ", reason: it declares" << read.manifest.id
+              << "but sits in a namespace named" << namespace_dir.dirName()
+              << "rather than" << expected_key;
+      return false;
+    }
+
+    const ModuleNativeRoot root{namespace_dir.absoluteFilePath("native")};
 
     const auto entry = ResolveAndVerifyNativeEntry(read.manifest, root);
     if (!entry.ok) {

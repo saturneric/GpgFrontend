@@ -36,6 +36,11 @@ namespace GpgFrontend::Module {
 /// The extension a module package carries.
 constexpr auto kModulePackageSuffix = ".gfmodule";
 
+/// The descriptor's filename inside a module namespace. Fixed, not derived:
+/// the old scheme named the package for its CMake target and the library for
+/// its SDK prefix, and reconciling the two was a source of real bugs.
+constexpr auto kModuleDescriptorFileName = "module.gfmodule";
+
 /// Where the signed metadata lives inside the package.
 constexpr auto kModulePackageManifestPath = "META-INF/manifest.json";
 constexpr auto kModulePackageSignaturePath = "META-INF/manifest.sig";
