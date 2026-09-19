@@ -1199,6 +1199,66 @@ jobs:
             -verbose=2 \
             -always-overwrite
 
+      # Replace symlinked module natives with the real files.
+      #
+      # `xcodebuild archive` does not put products where CMake asked. Targets
+      # marked SKIP_INSTALL -- which every module is -- are built into
+      # DerivedData under ArchiveIntermediates/.../UninstalledProducts/macosx,
+      # and CMake leaves a SYMLINK in the requested output directory pointing
+      # there. So `artifacts/modules/<key>/native/libgf_mod_*.dylib` is a link
+      # into a path that exists only on this runner, only during this job.
+      #
+      # That has to be resolved here rather than tolerated downstream. A
+      # symlink cannot be shipped in a bundle, cannot be code-signed as its own
+      # object, and cannot be what a descriptor binds: the Host refuses a
+      # symlinked entry outright, because following one would mean loading
+      # something the descriptor did not name.
+      #
+      # Safe to do at this point precisely because macOS binds its entry by
+      # `apple-binding-id` -- an identifier embedded at link time -- and not by
+      # a digest of the file. Copying the bytes changes nothing the descriptor
+      # claims. On a platform that bound a file digest this step would have to
+      # come before the descriptors were written.
+      - name: Materialize Module Natives (macOS)
+        run: |
+          set -euo pipefail
+          MODULE_ROOT="${{github.workspace}}/build/artifacts/modules"
+          test -d "$MODULE_ROOT"
+
+          materialized=0
+          while IFS= read -r link; do
+            target="$(readlink "$link")"
+            case "$target" in
+              /*) resolved="$target" ;;
+              *)  resolved="$(cd "$(dirname "$link")" && cd "$(dirname "$target")" \
+                              && pwd)/$(basename "$target")" ;;
+            esac
+
+            if [ ! -f "$resolved" ]; then
+              echo "$link points at $resolved, which is not a regular file" >&2
+              exit 1
+            fi
+
+            # Copy beside it and rename over the link, rather than deleting the
+            # link first: a failed copy then leaves the tree as it was instead
+            # of leaving a module with no native at all.
+            cp "$resolved" "$link.materialized"
+            mv -f "$link.materialized" "$link"
+            echo "materialized $(basename "$link") ($(stat -f%z "$link") bytes)"
+            materialized=$((materialized + 1))
+          done < <(find "$MODULE_ROOT" -type l -name '*.dylib')
+
+          echo "$materialized module native(s) materialized"
+
+          # Nothing may remain a link. The audit and the binding check below
+          # both read these files, and `codesign` later signs them; each would
+          # fail differently and none would say why.
+          if find "$MODULE_ROOT" -type l | grep -q .; then
+            echo "symlinks remain under $MODULE_ROOT:" >&2
+            find "$MODULE_ROOT" -type l -print >&2
+            exit 1
+          fi
+
       # §11.0's dependency audit, plus the one property the macOS entry
       # binding rests on.
       #

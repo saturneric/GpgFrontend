@@ -93,9 +93,13 @@ if [ -n "$PACKAGER" ]; then
   if [ "$PACKAGER_RC" -ne 0 ]; then
     echo "audit_module_natives: the module set does not verify, so there is" >&2
     echo "  no authoritative answer to which native is which module's entry." >&2
-    echo "  If this ran before the descriptors were finalized, that is the" >&2
-    echo "  bug: deployment rewrites the natives, so every descriptor is" >&2
-    echo "  stale until the seal and finalize steps have run." >&2
+    echo "  The packager's own report below names the module and the reason;" >&2
+    echo "  read that first. Two causes recur:" >&2
+    echo "    - this ran before the descriptors were regenerated, so the" >&2
+    echo "      natives deployment rewrote no longer match them; or" >&2
+    echo "    - the natives are not really there -- a symlink into a build" >&2
+    echo "      tree, for instance, which is what xcodebuild archive leaves" >&2
+    echo "      behind and what the materialize step exists to resolve." >&2
     echo "--- $PACKAGER verify-module-set ---" >&2
     echo "$PACKAGER_OUT" >&2
     exit 1
