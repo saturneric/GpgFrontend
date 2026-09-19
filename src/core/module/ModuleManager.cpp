@@ -39,6 +39,7 @@
 #include "core/module/Module.h"
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleLoadStats.h"
+#include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModulePackageVerifier.h"
 #include "core/struct/settings_object/ModuleSO.h"
 #include "core/thread/Task.h"
@@ -104,33 +105,6 @@ class ScopedModuleLibrarySearchPath {
   bool applied_ = false;
 };
 
-/**
- * @brief Whether the given file header looks like a shared library image the
- * platform loader could actually map.
- *
- * Cheap sanity filter only: it keeps text files, scripts and truncated
- * downloads away from the loader. It says nothing about who produced the file.
- */
-auto HasNativeImageHeader(const QByteArray& header) -> bool {
-#if defined(Q_OS_WINDOWS)
-  return header.size() >= 2 && header.startsWith("MZ");
-#elif defined(Q_OS_MACOS)
-  if (header.size() < 4) return false;
-
-  const auto magic = static_cast<quint32>(
-      (static_cast<quint8>(header[0]) << 24) |
-      (static_cast<quint8>(header[1]) << 16) |
-      (static_cast<quint8>(header[2]) << 8) | static_cast<quint8>(header[3]));
-
-  // thin mach-o in both endiannesses, plus a fat/universal archive
-  return magic == 0xFEEDFACE || magic == 0xFEEDFACF || magic == 0xCEFAEDFE ||
-         magic == 0xCFFAEDFE || magic == 0xCAFEBABE || magic == 0xBEBAFECA;
-#else
-  return header.size() >= 4 && header[0] == '\x7f' && header[1] == 'E' &&
-         header[2] == 'L' && header[3] == 'F';
-#endif
-}
-
 }  // namespace
 
 auto IsModuleLibraryFileName(const QString& file_name) -> bool {
@@ -141,28 +115,6 @@ auto IsModuleLibraryFileName(const QString& file_name) -> bool {
 
 auto IsModulePackageFileName(const QString& file_name) -> bool {
   return file_name.endsWith(kModulePackageSuffix, Qt::CaseInsensitive);
-}
-
-auto InspectModuleImage(const VerifiedModuleImage& image,
-                        const QString& known_hash) -> ModuleLibraryInspection {
-  if (!image.IsValid()) return {false, "there is no image to inspect", {}};
-
-  // From the manifest, which is signed, rather than from a filename -- there
-  // is no file yet, and on the platform where there never will be one the load
-  // path is a number.
-  if (!IsModuleLibraryFileName(image.LibraryName())) {
-    return {false, "the packaged library is not named like a module", {}};
-  }
-
-  if (!HasNativeImageHeader(image.Bytes().left(8))) {
-    return {false, "the packaged library is not a native image", {}};
-  }
-
-  if (known_hash.isEmpty()) {
-    return {false, "the manifest carries no digest for the library", {}};
-  }
-
-  return {true, {}, known_hash};
 }
 
 auto InspectModuleLibrary(const QString& module_library_path,
@@ -229,73 +181,63 @@ class ModuleManager::Impl {
   ~Impl() = default;
 
   /**
-   * @brief Verify a package and make its library loadable, installing nothing.
+   * @brief Verify a descriptor and locate the native library it binds.
    *
-   * The ordering the whole format exists for is inside
-   * ReadVerifiedModuleImage(): every entry is diverted, so no byte of an
-   * unverified package reaches a filesystem, and the library is handed back
-   * only once the manifest, the signature and every file digest agree.
+   * Two questions, asked by two layers, and kept apart on purpose.
    *
-   * Nothing is installed and nothing is cached. The verified bytes are
-   * materialised only as far as the native loader requires -- on Linux not at
-   * all, the image being an anonymous descriptor -- and that materialisation
-   * lives exactly as long as the module does. A start therefore costs the same
-   * every time, and there is no on-disk state for a later start, an upgrade or
-   * a second profile to disagree with.
+   * VerifyModuleDescriptor() answers the first entirely in memory: is this a
+   * descriptor signed for this Host, and do its metadata and resources agree
+   * with what it carries. It never touches a filesystem and has no idea that
+   * native libraries exist.
+   *
+   * ResolveAndVerifyNativeEntry() answers the second: which file does its
+   * logical entry name mean here, is that file inside the directory this Host
+   * chose, and is it the one the descriptor binds. The descriptor never says
+   * where its native lives -- a logical name has no room for a path -- so this
+   * is the only place the mapping happens, which is what keeps a package from
+   * influencing where a loader looks.
+   *
+   * Nothing is installed, nothing is cached and nothing is materialised. The
+   * library is loaded from where it already is, which is what lets $ORIGIN,
+   * @loader_path, debuggers and platform code signing all work normally on it.
    *
    * @param package_path the `*.gfmodule` the scan found
-   * @param[out] mapping the materialised image, on success
-   * @param[out] library_path the path to hand the loader, on success
-   * @param[out] manifest what the package says about itself, on success
-   * @param[out] module_hash the signed digest of the library, on success
-   * @param[out] library_name the library's name per the signed manifest
-   * @return false when the package was refused; nothing was materialised
+   * @param[out] library_path the verified path to hand the loader, on success
+   * @param[out] manifest what the descriptor says about itself, on success
+   * @param[out] module_hash the binding value the descriptor recorded
+   * @param[out] library_name the entry's filename on this platform
+   * @return false when the descriptor or its entry was refused
    */
-  auto VerifyAndMaterializePackage(const QString& package_path,
-                                   std::shared_ptr<ModuleImageMapping>& mapping,
-                                   QString& library_path,
-                                   ModuleManifest& manifest,
-                                   QString& module_hash, QString& library_name)
+  auto VerifyAndResolveEntry(const QString& package_path,
+                             QString& library_path, ModuleManifest& manifest,
+                             QString& module_hash, QString& library_name)
       -> bool {
-    const auto read = ReadVerifiedModuleImage(package_path);
+    const auto read = VerifyModulePackage(package_path);
     if (!read.ok) {
-      LOG_W() << "module manager refuses module package: " << package_path
+      LOG_W() << "module manager refuses module descriptor: " << package_path
               << ", reason: " << read.reason << " ("
               << ModulePackageStatusToString(read.status) << ")";
       return false;
     }
 
-    // Everything a pre-load inspection can ask about a packaged module is a
-    // property of the package, not of wherever its bytes end up. Asking here,
-    // of the bytes, is both earlier and more honest than asking later of a
-    // path -- and a path is the one thing that cannot answer it, since a
-    // descriptor in /proc/self/fd is named after a number.
-    //
-    // The digest comes from the verification result rather than a fresh walk
-    // of manifest.files: the verifier already located the sole bin/ entry, and
-    // finding it a second time here is a second chance to find it differently.
-    const auto inspection = InspectModuleImage(read.image, read.library_sha256);
-    if (!inspection.ok) {
-      LOG_W() << "module manager refuses module package: " << package_path
-              << ", reason: " << inspection.reason;
+    // The native root is the descriptor's own directory for now. The
+    // per-module namespace -- modules/<key>/{module.gfmodule,native/} -- is a
+    // separate step; until then a descriptor and the library it binds are
+    // siblings, which is where this build already puts them.
+    const ModuleNativeRoot root{QFileInfo(package_path).absolutePath()};
+
+    const auto entry = ResolveAndVerifyNativeEntry(read.manifest, root);
+    if (!entry.ok) {
+      LOG_W() << "module manager refuses module entry: " << package_path
+              << ", reason: " << entry.reason << " ("
+              << ModuleEntryStatusToString(entry.status) << ")";
       return false;
     }
 
-    QString reason;
-    auto materialized = ModuleImageMapping::Create(read.image, &reason);
-    if (!materialized) {
-      // Fails closed: there is no path, so there is nothing for phase two to
-      // load even if it were careless enough to try.
-      LOG_W() << "module manager could not make module loadable: "
-              << package_path << ", reason: " << reason;
-      return false;
-    }
-
-    library_path = materialized->LoadPath();
-    mapping = std::shared_ptr<ModuleImageMapping>(std::move(materialized));
+    library_path = entry.path;
     manifest = read.manifest;
-    module_hash = inspection.hash;
-    library_name = read.image.LibraryName();
+    module_hash = read.manifest.entry_native.value;
+    library_name = QFileInfo(entry.path).fileName();
     return true;
   }
 
@@ -327,17 +269,15 @@ class ModuleManager::Impl {
     }
 
     if (candidate.packaged) {
-      std::shared_ptr<ModuleImageMapping> mapping;
       QString library_path;
       ModuleManifest verified;
       QString module_hash;
       QString library_name;
-      if (!VerifyAndMaterializePackage(path, mapping, library_path, verified,
-                                       module_hash, library_name)) {
+      if (!VerifyAndResolveEntry(path, library_path, verified, module_hash,
+                                 library_name)) {
         return candidate;
       }
       candidate.library_path = library_path;
-      candidate.mapping = mapping;
       candidate.manifest = verified;
       candidate.module_hash = module_hash;
       candidate.library_name = library_name;
@@ -479,7 +419,6 @@ class ModuleManager::Impl {
     // this is also when that happens, so the file stops existing the moment it
     // has been mapped; where it cannot -- Windows -- the module outliving it is
     // exactly what keeps the mapping valid.
-    if (candidate.mapping) module->AdoptImageMapping(candidate.mapping);
 
     module->SetGPC(gmc_.get());
     ModuleLoadStats::GetInstance().AddLoadedModule();

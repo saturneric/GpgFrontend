@@ -140,16 +140,21 @@ function(_gf_module_package_command)
     list(APPEND packager_args --file "${entry}")
   endforeach()
 
-  # The module binary itself, named by its own extension so a package built on
-  # one platform is not silently loadable on another.
+  # The entry native. Bound by the descriptor, and deliberately NOT packaged
+  # into it: executable code never travels inside a descriptor. The logical
+  # name is the CMake target name, which is what the Host maps back to a
+  # filename using this toolchain's own library prefix and suffix.
   list(APPEND packager_args
-    --file "bin/$<TARGET_FILE_NAME:${module_target}>=$<TARGET_FILE:${module_target}>")
+    --entry-native "name=${module_target},file=$<TARGET_FILE:${module_target}>")
 
   add_custom_command(
     OUTPUT "${package_file}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${package_dir}"
     COMMAND gf_module_packager ${packager_args}
-    DEPENDS ${module_target} gf_module_packager
+    # The target FILE, not just the target: the descriptor records a value
+    # computed from those bytes, so a relink has to re-run this even when the
+    # target itself is considered up to date.
+    DEPENDS $<TARGET_FILE:${module_target}> gf_module_packager
     COMMENT "Packaging ${GAMP_SHORT_NAME}.gfmodule"
     VERBATIM)
 

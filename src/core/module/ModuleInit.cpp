@@ -50,22 +50,22 @@ auto SearchModuleFromPath(const QString& mods_path, bool integrated,
   QDir dir(mods_path);
   if (!dir.exists()) return modules;
 
+  // Descriptors only. A native library is no longer something that can be
+  // *found*: it is something a verified descriptor *names*, and one sitting in
+  // this directory that no descriptor binds is not a module at all.
+  //
+  // This is also what retires the package-supersedes-loose-library
+  // reconciliation that used to live further down. The two never corresponded
+  // by name -- the package was named for the CMake target and the library for
+  // the SDK prefix -- and now they do not need to: the descriptor says which
+  // library it binds, and nothing else is offered to the loader.
+  Q_UNUSED(packaged_only)
+
   const auto entries =
-      dir.entryInfoList(QStringList() << "*.so" << "*.dll" << "*.dylib"
-                                      << "*.gfmodule",
-                        QDir::Files);
+      dir.entryInfoList(QStringList() << "*.gfmodule", QDir::Files);
 
   for (const auto& info : entries) {
-    // the same rules the pre-load gate applies, so the scan cannot offer a
-    // file that LoadModule() would then refuse
-    if (GpgFrontend::Module::IsModulePackageFileName(info.fileName())) {
-      modules.insert(info.absoluteFilePath(), integrated);
-      continue;
-    }
-    if (packaged_only) continue;
-    if (GpgFrontend::Module::IsModuleLibraryFileName(info.fileName())) {
-      modules.insert(info.absoluteFilePath(), integrated);
-    }
+    modules.insert(info.absoluteFilePath(), integrated);
   }
 
   return modules;
@@ -231,75 +231,15 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
 
             auto& manager = ModuleManager::GetInstance();
 
-            // Before anything is materialised: a crash leaves a private
-            // directory behind, and the only moment it is certain nobody is
-            // using one is before this process has made its own. Ownership is
-            // an advisory lock the kernel released when the owner died, never
-            // a recorded process id.
-            if (const auto swept =
-                    ModuleImageMapping::SweepAbandonedDirectories();
-                swept > 0) {
-              LOG_I() << "removed" << swept
-                      << "module directories left behind by earlier runs";
-            }
-
             // PHASE ONE, concurrent: verify and install. This maps no image
             // and runs no module code, so several can run at once -- and it
             // is essentially the whole cost of loading.
             auto prepared = PrepareModulesConcurrently(manager, modules);
 
-            // A package supersedes the loose library it carries, always. A
-            // build tree holds both -- `mod_email.gfmodule` and
-            // `libgf_mod_mod_email.so` -- and offering both loaded one module
-            // identity twice, the second copy failing registration after
-            // paying in full to be verified. The names do not correspond (the
-            // package is named for the CMake target, the library for the SDK
-            // prefix), so the package's signed manifest is what says which
-            // library it provides. It is also the only thing that can say so
-            // now: a materialised image has no filename worth reading.
-            QMap<QString, QString> provided_by_package;
-            for (const auto& candidate : prepared) {
-              if (!candidate.ok || !candidate.packaged) continue;
-              provided_by_package.insert(candidate.library_name,
-                                         candidate.source_path);
-            }
-
-            QList<ModuleLoadCandidate> to_load;
-            to_load.reserve(prepared.size());
-            for (const auto& candidate : prepared) {
-              if (candidate.packaged) {
-                to_load.append(candidate);
-                continue;
-              }
-
-              const auto loose_name =
-                  QFileInfo(candidate.source_path).fileName();
-              const auto it = provided_by_package.constFind(loose_name);
-              if (it == provided_by_package.constEnd()) {
-                to_load.append(candidate);
-                continue;
-              }
-
-              // The package wins, but silently losing a rebuild is how a
-              // developer spends an afternoon debugging code that is not
-              // running. Whichever is newer, the package is what loads; when
-              // the library is the newer of the two, say so where it will
-              // actually be seen rather than at debug level.
-              const auto package_time = QFileInfo(*it).lastModified();
-              const auto library_time =
-                  QFileInfo(candidate.source_path).lastModified();
-              if (library_time > package_time) {
-                LOG_W() << "a newer module library is being ignored:"
-                        << candidate.source_path << "was built at"
-                        << library_time.toString(Qt::ISODate) << "but" << *it
-                        << "dates from" << package_time.toString(Qt::ISODate)
-                        << "-- the package is what loads; rebuild the module "
-                           "packaging target to pick up your changes";
-              } else {
-                LOG_D() << "skipping loose module superseded by a package: "
-                        << candidate.source_path;
-              }
-            }
+            // Every prepared candidate is a verified descriptor, so
+            // there is nothing left to reconcile: a loose library is no
+            // longer a candidate, it is a referent.
+            auto to_load = prepared;
 
             // Counted after superseding, so the number the manager waits for
             // is the number that will actually be attempted.

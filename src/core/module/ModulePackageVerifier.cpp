@@ -250,44 +250,16 @@ auto ModulePackageStatusToString(ModulePackageStatus s) -> const char* {
 
 namespace {
 
-/// The one `bin/` entry a package is allowed to carry.
+/// Verify a descriptor, from one immutable snapshot of its bytes.
 ///
-/// The manifest has already been checked against what the package actually
-/// holds, so this picks the binary out of a list known to be both complete and
-/// accurate. More than one, or none, is a malformed package rather than a
-/// choice to make.
-auto SoleLibraryEntry(const ModuleManifest& manifest, QString& out_path,
-                      QString& out_sha256, QString& out_reason) -> bool {
-  QString found;
-  QString digest;
-  for (const auto& file : manifest.files) {
-    if (!file.path.startsWith(kModulePackageBinaryDir)) continue;
-    if (!found.isEmpty()) {
-      out_reason = "it carries more than one module binary";
-      return false;
-    }
-    found = file.path;
-    digest = file.sha256;
-  }
-  if (found.isEmpty()) {
-    out_reason = "it carries no module binary";
-    return false;
-  }
-  out_path = found;
-  out_sha256 = digest;
-  return true;
-}
-
-/// Verify a package, optionally keeping its library.
-///
-/// One walk serves both entry points. Every entry is diverted whether or not
-/// the caller wants the bytes, because that -- not the retention -- is the
-/// safety property: no byte of an unverified package reaches a filesystem, so
-/// there is nothing for a later step to accidentally execute.
+/// Nothing executable is retained, because nothing executable is in here: the
+/// entry native is an external file, and binding it is ResolveAndVerify\
+/// NativeEntry()'s job, one layer up. This function knows about archives,
+/// manifests, signatures and resources, and deliberately knows nothing about
+/// how a library is found or loaded.
 auto ReadPackage(const QString& package_path,
-                 const QByteArray& expected_public_key, bool retain_image,
-                 QString& out_library_name,
-                 QByteArray& out_library_bytes) -> ModulePackageVerification {
+                 const QByteArray& expected_public_key)
+    -> ModulePackageVerification {
   if (!EnsureSodiumInit()) {
     return Refuse(ModulePackageStatus::kIO_FAILED,
                   "the cryptography library could not be started");
@@ -333,8 +305,6 @@ auto ReadPackage(const QString& package_path,
   QMap<QString, QString> actual_digests;
   bool hash_failed = false;
 
-  QMap<QString, QByteArray> kept;
-
   QString reason;
   // No destination, no disk writer, no filter that has to remember to claim
   // everything. The safety property -- no byte of an unverified package ever
@@ -372,11 +342,6 @@ auto ReadPackage(const QString& package_path,
         }
         actual_digests.insert(path, digest);
 
-        // Held, not copied: QByteArray shares its storage, so this is a
-        // reference count rather than another forty-eight megabytes. It is
-        // still nothing anyone may use until ConcludeVerification() has
-        // passed, which is enforced below by discarding it on every refusal.
-        if (retain_image && path.startsWith("bin/")) kept.insert(path, bytes);
         return true;
       },
       &reason);
@@ -396,31 +361,6 @@ auto ReadPackage(const QString& package_path,
       ConcludeVerification(manifest_bytes, signature_bytes, public_key_bytes,
                            {manifest_count, signature_count, public_key_count},
                            actual_digests, expected_public_key);
-  if (!conclusion.ok) return conclusion;
-
-  // Found once, here, while the manifest that names it is known to match the
-  // package that holds it. Everything downstream consumes this rather than
-  // searching manifest.files again.
-  QString binary;
-  QString why;
-  const auto has_binary =
-      SoleLibraryEntry(conclusion.manifest, binary, conclusion.library_sha256,
-                       why);
-
-  if (retain_image) {
-    if (!has_binary) {
-      return Refuse(ModulePackageStatus::kMALFORMED, why);
-    }
-    const auto it = kept.constFind(binary);
-    if (it == kept.constEnd()) {
-      // ConcludeVerification() already requires that every declared file was
-      // present, so this cannot happen without the two disagreeing.
-      return Refuse(ModulePackageStatus::kMALFORMED,
-                    "its module binary was not where the manifest said");
-    }
-    out_library_name = binary.mid(qstrlen(kModulePackageBinaryDir));
-    out_library_bytes = *it;
-  }
 
   return conclusion;
 }
@@ -430,32 +370,7 @@ auto ReadPackage(const QString& package_path,
 auto VerifyModulePackage(const QString& package_path,
                          const QByteArray& expected_public_key)
     -> ModulePackageVerification {
-  QString unused_name;
-  QByteArray unused_bytes;
-  return ReadPackage(package_path, expected_public_key, false, unused_name,
-                     unused_bytes);
-}
-
-auto ReadVerifiedModuleImage(const QString& package_path,
-                             const QByteArray& expected_public_key)
-    -> ModulePackageImage {
-  QString library_name;
-  QByteArray library_bytes;
-  const auto verdict = ReadPackage(package_path, expected_public_key, true,
-                                   library_name, library_bytes);
-
-  ModulePackageImage result;
-  result.ok = verdict.ok;
-  result.status = verdict.status;
-  result.reason = verdict.reason;
-  if (!verdict.ok) return result;
-
-  result.manifest = verdict.manifest;
-  result.library_sha256 = verdict.library_sha256;
-  result.build_public_key = verdict.build_public_key;
-  result.image =
-      VerifiedModuleImage(std::move(library_name), std::move(library_bytes));
-  return result;
+  return ReadPackage(package_path, expected_public_key);
 }
 
 }  // namespace GpgFrontend::Module

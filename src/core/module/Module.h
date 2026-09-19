@@ -37,7 +37,6 @@
 
 namespace GpgFrontend::Module {
 
-class ModuleImageMapping;
 
 class Module;
 class GlobalModuleContext;
@@ -256,18 +255,6 @@ class GF_CORE_EXPORT Module : public QObject {
    */
   [[nodiscard]] auto GetModuleSDKABIVersion() const -> int;
 
-  /**
-   * @brief Take ownership of the materialised image backing this module.
-   *
-   * The mapping must outlive the load, and on a platform that cannot unlink an
-   * open image it must outlive the module itself -- so the module is where it
-   * belongs. Handing it over is also what triggers the unlink where one is
-   * possible, so an image stops existing the moment it has been mapped,
-   * whatever else still holds a reference to the mapping.
-   *
-   * @param mapping the mapping the image was loaded through
-   */
-  void AdoptImageMapping(std::shared_ptr<ModuleImageMapping> mapping);
 
   /**
    * @brief Return a checksum of the module binary.

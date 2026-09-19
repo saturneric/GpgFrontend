@@ -40,11 +40,6 @@ constexpr auto kModulePackageManifestPath = "META-INF/manifest.json";
 constexpr auto kModulePackageSignaturePath = "META-INF/manifest.sig";
 constexpr auto kModulePackageBuildKeyPath = "META-INF/build-key.pub";
 
-/// Where a package keeps its one native image. The only place this prefix is
-/// spelled: the manager used to repeat it to re-find the binary the verifier
-/// had already found.
-constexpr auto kModulePackageBinaryDir = "bin/";
-
 /**
  * @brief Why a package was refused.
  *
@@ -93,10 +88,6 @@ struct GF_CORE_EXPORT ModulePackageVerification {
   /// Parsed only after the signature over its raw bytes verified.
   ModuleManifest manifest;
 
-  /// The signed digest of the one `bin/` entry, found while verifying it.
-  /// This is what a pre-load inspection checks the image against.
-  QString library_sha256;
-
   /// The public key as found in META-INF. A hint, not a trust root.
   QByteArray build_public_key;
 };
@@ -139,90 +130,5 @@ struct GF_CORE_EXPORT ModulePackageVerification {
 auto GF_CORE_EXPORT VerifyModulePackage(
     const QString& package_path, const QByteArray& expected_public_key = {})
     -> ModulePackageVerification;
-
-struct ModulePackageImage;
-
-/**
- * @brief A native module image that verification has already vouched for.
- *
- * The point of the type is that it cannot be forged by accident. Only
- * ReadVerifiedModuleImage() can produce a non-empty one, so a `QByteArray` that
- * came from anywhere else -- a file someone read, a download, a test fixture --
- * has no way to reach the loader. Materialisation takes this and nothing else,
- * which is what makes "no unverified byte reaches the native loader" a property
- * of the types rather than a rule someone has to remember.
- *
- * The bytes are ordinary memory. A native library is not a secret, and the
- * secure tier is locked, guarded pages whose budget one module image would
- * exhaust by itself.
- */
-class GF_CORE_EXPORT VerifiedModuleImage {
- public:
-  /// An empty image, which nothing will load.
-  VerifiedModuleImage() = default;
-
-  [[nodiscard]] auto IsValid() const -> bool {
-    return !library_name_.isEmpty() && !bytes_.isEmpty();
-  }
-
-  /// The library's name as the signed manifest spells it.
-  [[nodiscard]] auto LibraryName() const -> QString { return library_name_; }
-
-  [[nodiscard]] auto Bytes() const -> const QByteArray& { return bytes_; }
-
-  [[nodiscard]] auto Size() const -> qint64 {
-    return static_cast<qint64>(bytes_.size());
-  }
-
- private:
-  friend auto ReadVerifiedModuleImage(const QString&, const QByteArray&)
-      -> ModulePackageImage;
-
-  VerifiedModuleImage(QString library_name, QByteArray bytes)
-      : library_name_(std::move(library_name)), bytes_(std::move(bytes)) {}
-
-  QString library_name_;
-  QByteArray bytes_;
-};
-
-/**
- * @brief What reading a package concluded, and the image if it concluded yes.
- */
-struct GF_CORE_EXPORT ModulePackageImage {
-  bool ok = false;
-  ModulePackageStatus status = ModulePackageStatus::kOK;
-  QString reason;
-
-  ModuleManifest manifest;
-
-  /// The signed digest of the retained image. See ModulePackageVerification.
-  QString library_sha256;
-
-  QByteArray build_public_key;
-
-  /// Empty unless @c ok. Never populated on any refusal path.
-  VerifiedModuleImage image;
-};
-
-/**
- * @brief Verify a package and keep its library, without writing anything.
- *
- * The same verification as VerifyModulePackage(), which this is the whole of:
- * every entry is diverted, so no byte of an unverified package reaches a
- * filesystem. The difference is that the one `bin/` entry is *retained* rather
- * than hashed and dropped, which is what lets a module be loaded from a package
- * without the package ever being extracted, installed or cached.
- *
- * The ordering is the safety property and is why this is one function: the
- * image is attached only after ConcludeVerification() has passed, so a package
- * that fails yields nothing that anything could map.
- *
- * @param package_path the `*.gfmodule` to read
- * @param expected_public_key when non-empty, the key the package MUST carry
- * @return the verdict, with the manifest and image filled in only on success
- */
-auto GF_CORE_EXPORT ReadVerifiedModuleImage(
-    const QString& package_path, const QByteArray& expected_public_key = {})
-    -> ModulePackageImage;
 
 }  // namespace GpgFrontend::Module

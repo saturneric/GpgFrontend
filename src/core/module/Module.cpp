@@ -32,7 +32,6 @@
 #include <optional>
 
 #include "core/module/GlobalModuleContext.h"
-#include "core/module/ModuleImageMapping.h"
 #include "core/module/ModuleManifest.h"
 #include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
@@ -337,12 +336,6 @@ class Module::Impl {
     return sdk_abi_ver_;
   }
 
-  void AdoptImageMapping(std::shared_ptr<ModuleImageMapping> mapping) {
-    image_mapping_ = std::move(mapping);
-    // Now, not at destruction: the image has been mapped, so on every platform
-    // that allows it the file can stop existing immediately.
-    if (image_mapping_) image_mapping_->NotifyLoaded();
-  }
 
   [[nodiscard]] auto GetModuleHash() const -> QString { return module_hash_; }
 
@@ -374,7 +367,6 @@ class Module::Impl {
   /// Keeps the materialised image alive for as long as the module is mapped,
   /// which on Windows is the whole of it -- an open image cannot be unlinked
   /// there, so the mapping's destructor is what removes the file.
-  std::shared_ptr<ModuleImageMapping> image_mapping_;
 
   QRegularExpression module_identifier_regex_exp_ = QRegularExpression(
       R"(^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$)");
@@ -477,9 +469,6 @@ void Module::SetModuleManifest(const ModuleManifest& manifest) {
   return p_->GetModuleSDKABIVersion();
 }
 
-void Module::AdoptImageMapping(std::shared_ptr<ModuleImageMapping> mapping) {
-  p_->AdoptImageMapping(std::move(mapping));
-}
 
 [[nodiscard]] auto Module::GetModuleHash() const -> QString {
   return p_->GetModuleHash();
