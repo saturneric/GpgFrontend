@@ -712,11 +712,20 @@ jobs:
           rm -rf build/artifacts/modules/*/native/*.a
           rm -rf build/artifacts/modules/*/native/*.dll.a
           cd build
-          # Deploy every gf_* library rather than a hand-kept list, so a newly
-          # registered library (gf_res was the last one) cannot be forgotten.
-          for lib in ./artifacts/bin/libgf_*.dll; do
-            windeployqt6 --no-translations --force "$lib"
-          done
+          # The libraries CMake registered, read from the list it writes --
+          # not a `libgf_*.dll` glob. The glob kept the "a new library cannot
+          # be forgotten" property and added a sharp edge: it matches by name,
+          # so a test fixture called libgf_mod_test_sentinel.dll was handed to
+          # windeployqt6, which correctly reported that it is not a Qt
+          # executable and stopped the build.
+          while IFS= read -r lib; do
+            [ -n "$lib" ] || continue
+            test -f "./artifacts/bin/$lib" || {
+              echo "registered library $lib is not in artifacts/bin" >&2
+              exit 1
+            }
+            windeployqt6 --no-translations --force "./artifacts/bin/$lib"
+          done < ./artifacts/deployable-libraries.txt
           windeployqt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
           # A module may need Qt modules the app itself never links (Qt6Xml,
           # Qt6Network, ...), so each one still has to be scanned. But --dir
@@ -862,7 +871,8 @@ jobs:
           echo "arch: $(cat build/host-arch.txt)"
         if: runner.os == 'Linux' || runner.os == 'Windows'
 
-      # The host tools have done their last job. They must not ship.
+      # The host tools and test fixtures have done their last job. They must
+      # not ship.
       #
       # On Windows they live in artifacts/bin -- they have to, because Windows
       # resolves a DLL from the executable's own directory and nowhere useful
@@ -876,7 +886,7 @@ jobs:
       # Authenticode gate and the module-binding capture are all above this
       # line. The build record is written after packaging -- it hashes the
       # finished packages, not these tools -- so it does not need them.
-      - name: Remove Host Build Tools (Windows)
+      - name: Remove Build-Only Files From The Payload (Windows)
         shell: msys2 {0}
         run: |
           set -euo pipefail
@@ -884,12 +894,19 @@ jobs:
           TOOL_DIR="$(cat build/artifacts/host-tool-dir.txt)"
           rm -f "$TOOL_DIR/gf_module_packager.exe" "$TOOL_DIR/gf_module_keygen.exe"
 
+          # Test fixtures are not deliverables either, and artifacts/ is what
+          # gets packaged wholesale on this platform.
+          rm -rf build/artifacts/test-modules
+
           # Stated as a check rather than assumed: this is the last chance to
           # notice, and a stray build tool in a signed installer is the kind of
           # thing found by a user rather than by us.
-          if find build/artifacts -name 'gf_module_*' -print | grep -q .; then
-            echo "host build tools are still in the payload:" >&2
-            find build/artifacts -name 'gf_module_*' -print >&2
+          STRAY="$(find build/artifacts \( -name 'gf_module_packager*' \
+                     -o -name 'gf_module_keygen*' \
+                     -o -name '*test_sentinel*' \) -print)"
+          if [ -n "$STRAY" ]; then
+            echo "these are not deliverables and are still in the payload:" >&2
+            printf '%s\n' "$STRAY" >&2
             exit 1
           fi
         if: runner.os == 'Windows'

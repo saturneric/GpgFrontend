@@ -80,8 +80,19 @@ set_target_properties(gf_mod_test_sentinel PROPERTIES
   POSITION_INDEPENDENT_CODE ON
   AUTOMOC OFF
   AUTOUIC OFF
-  AUTORCC OFF
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts/test-modules)
+  AUTORCC OFF)
+
+# Pinned, not LIBRARY_OUTPUT_DIRECTORY alone.
+#
+# On Windows a SHARED library's .dll is a RUNTIME output -- LIBRARY_OUTPUT_
+# DIRECTORY governs the import library there and nothing else -- so setting
+# only that put this fixture in artifacts/bin beside the real libraries, where
+# the Windows packaging step's `libgf_*.dll` glob handed it to windeployqt6.
+# It is not a Qt executable, windeployqt6 said so, and the build stopped. On
+# Linux the .so IS a LIBRARY output, which is why this only ever broke on one
+# platform.
+gf_pin_output_directory(gf_mod_test_sentinel
+  "${CMAKE_BINARY_DIR}/artifacts/test-modules")
 
 # Not installed: a test fixture is not something a user gets.
 

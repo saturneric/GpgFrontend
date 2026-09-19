@@ -405,6 +405,26 @@ configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInstallInfo.h.in ${CMAKE_
 # Install generated libraries and application
 #
 message(STATUS "Registered libraries: ${GPGFRONTEND_LIBRARY_TARGETS}")
+
+# The libraries the Windows packaging step deploys Qt dependencies for.
+#
+# It used to glob `artifacts/bin/libgf_*.dll`, which was chosen so that a newly
+# registered library could not be forgotten -- a good instinct with a sharp
+# edge: the glob matches by NAME, and anything else whose name begins with
+# `libgf_` and is not a Qt executable stops the build. A test fixture did
+# exactly that.
+#
+# Written out here instead, from the list CMake already maintains. Same
+# property -- a new library is picked up without anyone remembering -- without
+# the guess about what a filename means.
+set(gf_deployable_library_files)
+foreach(gf_library_target IN LISTS GPGFRONTEND_LIBRARY_TARGETS)
+  list(APPEND gf_deployable_library_files
+    "$<TARGET_FILE_NAME:${gf_library_target}>")
+endforeach()
+file(GENERATE
+  OUTPUT "${CMAKE_BINARY_DIR}/artifacts/deployable-libraries.txt"
+  CONTENT "$<JOIN:${gf_deployable_library_files},\n>\n")
 message(STATUS "Registered modules: ${GPGFRONTEND_MODULE_TARGETS}")
 
 if(XCODE_BUILD)
