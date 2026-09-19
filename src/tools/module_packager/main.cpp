@@ -74,7 +74,8 @@ void PrintUsage(QTextStream& err) {
       << "                         [--prepared-manifest FILE]\n"
       << "                         [--file ARCHIVE_PATH=SOURCE_FILE]...\n"
       << "\n"
-      << "subcommands: verify-module-set, seal-prepared, binding-id\n";
+      << "subcommands: verify-module-set, seal-prepared, reseal, "
+         "binding-id\n";
 }
 
 /// Split `KEY=VALUE` at the FIRST `=`, so a value may contain one.
@@ -339,6 +340,183 @@ auto SealPreparedCommand(const QStringList& args, QTextStream& err) -> int {
   return 0;
 }
 
+/// `reseal`: regenerate every descriptor in a tree against the natives as they
+/// stand now.
+///
+/// ## Why this exists instead of re-running the build
+///
+/// The obvious way to refresh a descriptor is to delete it and let CMake make
+/// another. That does not work on a deployed tree, and the reason is worth
+/// writing down because it is invisible until it bites: the module natives ARE
+/// build outputs, and `linuxdeployqt`, `patchelf` and `install_name_tool` have
+/// just rewritten them. Ninja records the mtime of every output it produces, so
+/// the next `cmake --build` sees they changed underneath it and RELINKS them --
+/// throwing away the rpath work the deployment step just did, and then failing
+/// the seal comparison for good measure.
+///
+/// So the descriptors are regenerated without the build graph. Each one is
+/// verified first, so its metadata is this build's own signed statement rather
+/// than whatever a file on disk claimed; only the entry binding is recomputed;
+/// resources are carried over from the original; and the result is re-signed
+/// with the same build key.
+///
+/// ## What it does not do
+///
+/// It does not make a rewritten native trustworthy -- it describes what is
+/// there. The guarantee that matters comes afterwards, from `verify-module-set`
+/// over the finished tree, and from nothing touching the natives in between.
+auto ResealCommand(const QStringList& args, QTextStream& err) -> int {
+  QString root;
+  QString seed_path;
+  auto expected = -1;
+
+  for (auto i = 0; i < args.size(); ++i) {
+    const auto& flag = args.at(i);
+    const auto value = [&]() -> QString {
+      if (i + 1 >= args.size()) return {};
+      return args.at(++i);
+    };
+
+    if (flag == "--namespace-root") {
+      root = value();
+    } else if (flag == "--signing-seed") {
+      seed_path = value();
+    } else if (flag == "--expect-count") {
+      expected = value().toInt();
+    } else {
+      err << "gf_module_packager: unknown argument: " << flag << "\n";
+      return 2;
+    }
+  }
+
+  if (root.isEmpty() || seed_path.isEmpty()) {
+    err << "usage: gf_module_packager reseal --namespace-root DIR\n"
+        << "                         --signing-seed FILE [--expect-count N]\n";
+    return 2;
+  }
+
+  QFile seed_file(seed_path);
+  if (!seed_file.open(QIODevice::ReadOnly)) {
+    err << "gf_module_packager: the signing seed could not be read: "
+        << seed_path << "\n";
+    return 2;
+  }
+  const auto seed = seed_file.readAll();
+  seed_file.close();
+
+  const QDir dir(root);
+  if (!dir.exists()) {
+    err << "gf_module_packager: " << root
+        << ": this directory does not exist\n";
+    return 1;
+  }
+
+  QTextStream out(stdout);
+  out << "resealing " << root << "\n";
+
+  auto resealed = 0;
+  auto failed = false;
+
+  for (const auto& ns :
+       dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name)) {
+    const auto descriptor = ns.absoluteFilePath() + "/" +
+                            GpgFrontend::Module::kModuleDescriptorFileName;
+    if (!QFileInfo(descriptor).isFile()) continue;
+
+    // Verified, not merely parsed. Everything carried into the new descriptor
+    // comes from bytes this build signed; the only thing taken from the
+    // filesystem is the entry binding, which is the one thing that changed.
+    const auto verdict =
+        GpgFrontend::Module::VerifyModuleDescriptor(descriptor);
+    if (!verdict.ok) {
+      err << "  FAIL  " << ns.fileName()
+          << ": its descriptor was refused: " << verdict.reason << "\n";
+      failed = true;
+      continue;
+    }
+
+    const auto& manifest = verdict.manifest;
+
+    if (ns.fileName() != GpgFrontend::Module::ModuleDirectoryKey(manifest.id)) {
+      err << "  FAIL  " << ns.fileName() << ": it declares " << manifest.id
+          << ", whose namespace is "
+          << GpgFrontend::Module::ModuleDirectoryKey(manifest.id) << "\n";
+      failed = true;
+      continue;
+    }
+
+    const auto native_path =
+        ns.absoluteFilePath() + "/native/" +
+        GpgFrontend::Module::ModuleNativeFileName(manifest.entry_native.name);
+    if (!QFileInfo(native_path).isFile()) {
+      err << "  FAIL  " << ns.fileName()
+          << ": its entry native is not there: " << native_path << "\n";
+      failed = true;
+      continue;
+    }
+
+    QMap<QString, QByteArray> resources;
+    QString why;
+    if (!GpgFrontend::Module::ReadModuleDescriptorResources(descriptor,
+                                                            resources, why)) {
+      err << "  FAIL  " << ns.fileName()
+          << ": its resources could not be read: " << why << "\n";
+      failed = true;
+      continue;
+    }
+
+    GpgFrontend::Module::ModuleDescriptorBuildSpec spec;
+    spec.module_id = manifest.id;
+    spec.version = manifest.version;
+    spec.sdk_abi = manifest.sdk_abi;
+    spec.min_host_version = manifest.min_host_version;
+    spec.security_epoch = manifest.security_epoch;
+    spec.capabilities = manifest.capabilities;
+    spec.events = manifest.events;
+    spec.translation_context = manifest.translation_context;
+    spec.metadata = manifest.metadata;
+    spec.build_id = manifest.build_id;
+    spec.build_timestamp = manifest.build_timestamp;
+    spec.build_source_commit = manifest.build_source_commit;
+    spec.platform_os = manifest.platform_os;
+    spec.platform_arch = manifest.platform_arch;
+    spec.platform_qt = manifest.platform_qt;
+    spec.entry_native_name = manifest.entry_native.name;
+    spec.entry_native_file = native_path;
+    spec.signing_seed = seed;
+    spec.output_path = descriptor;
+
+    for (auto it = resources.constBegin(); it != resources.constEnd(); ++it) {
+      spec.resources.append({it.key(), {}, it.value()});
+    }
+
+    const auto built = GpgFrontend::Module::BuildModuleDescriptor(spec);
+    if (!built.ok) {
+      err << "  FAIL  " << ns.fileName() << ": " << built.reason << "\n";
+      failed = true;
+      continue;
+    }
+
+    out << "  reseal " << manifest.id << " " << resources.size()
+        << " resource(s)\n";
+    ++resealed;
+  }
+
+  if (expected >= 0 && resealed != expected) {
+    err << "  FAIL  " << root << ": " << resealed << " resealed, and "
+        << expected << " were expected\n";
+    failed = true;
+  }
+
+  if (failed) {
+    err << "gf_module_packager: this tree was not fully resealed\n";
+    return 1;
+  }
+
+  out << "  " << resealed << " descriptor(s) resealed\n";
+  return 0;
+}
+
 /// `binding-id`: write the macOS binding id for a module into a file.
 ///
 /// A subcommand rather than a CMake function, and for a reason worth stating:
@@ -408,6 +586,9 @@ auto main(int argc, char** argv) -> int {
   }
   if (args.size() > 1 && args.at(1) == "seal-prepared") {
     return SealPreparedCommand(args.mid(2), err);
+  }
+  if (args.size() > 1 && args.at(1) == "reseal") {
+    return ResealCommand(args.mid(2), err);
   }
   if (args.size() > 1 && args.at(1) == "binding-id") {
     return BindingIdCommand(args.mid(2), err);

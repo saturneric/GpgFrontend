@@ -63,27 +63,53 @@ if [[ ! -d "$NAMESPACE_ROOT" ]]; then
   exit 1
 fi
 
-# Which file is a namespace's entry, keyed by "<key>/<basename>". Taken from
-# the signed descriptor via the packager rather than from a filename pattern:
-# the pattern is exactly what a rename breaks, and a helper misread as an
-# entry is held to rules the format never placed on it.
-declare -A IS_ENTRY=()
+# Which file is a namespace's entry, as newline-separated "<key>/<basename>"
+# lines. Taken from the signed descriptor via the packager rather than from a
+# filename pattern: the pattern is exactly what a rename breaks, and a helper
+# misread as an entry is held to rules the format never placed on it.
+#
+# A plain string rather than an associative array because macOS ships bash
+# 3.2, which has no `declare -A`. There are four modules; a grep over four
+# lines is not the cost worth a second dialect of this script.
+IS_ENTRY=""
 ENTRIES_KNOWN=0
 
-if [[ -n "$PACKAGER" ]]; then
-  if [[ ! -x "$PACKAGER" ]]; then
+if [ -n "$PACKAGER" ]; then
+  if [ ! -x "$PACKAGER" ]; then
     echo "audit_module_natives: $PACKAGER: not an executable" >&2
     exit 2
   fi
-  while read -r _ key path; do
-    [[ -n "$key" && -n "$path" ]] || continue
-    IS_ENTRY["$key/$(basename "$path")"]=1
-    ENTRIES_KNOWN=1
-  done < <("$PACKAGER" verify-module-set --namespace-root "$NAMESPACE_ROOT" \
-             --print-entries 2>/dev/null | grep '^entry ')
-  if [[ $ENTRIES_KNOWN -eq 0 ]]; then
-    echo "audit_module_natives: $PACKAGER reported no entries; verify the set" \
-         "before auditing it" >&2
+
+  # Captured rather than piped, and its stderr deliberately NOT discarded.
+  # When this fails it is because the descriptors do not match the natives,
+  # and `verify-module-set` says exactly which module and why -- a message
+  # worth ten of anything repeated here. Throwing it away once turned "this
+  # native was rewritten after its descriptor was signed" into "reported no
+  # entries", which sent the reader to the wrong file entirely.
+  PACKAGER_OUT="$("$PACKAGER" verify-module-set \
+    --namespace-root "$NAMESPACE_ROOT" --print-entries 2>&1)"
+  PACKAGER_RC=$?
+
+  if [ "$PACKAGER_RC" -ne 0 ]; then
+    echo "audit_module_natives: the module set does not verify, so there is" >&2
+    echo "  no authoritative answer to which native is which module's entry." >&2
+    echo "  If this ran before the descriptors were finalized, that is the" >&2
+    echo "  bug: deployment rewrites the natives, so every descriptor is" >&2
+    echo "  stale until the seal and finalize steps have run." >&2
+    echo "--- $PACKAGER verify-module-set ---" >&2
+    echo "$PACKAGER_OUT" >&2
+    exit 1
+  fi
+
+  IS_ENTRY="$(printf '%s\n' "$PACKAGER_OUT" | awk '$1 == "entry" {
+    n = split($3, parts, "/")
+    print $2 "/" parts[n]
+  }')"
+  [ -n "$IS_ENTRY" ] && ENTRIES_KNOWN=1
+
+  if [ "$ENTRIES_KNOWN" -eq 0 ]; then
+    echo "audit_module_natives: $PACKAGER verified the set but named no" >&2
+    echo "  entries, which means this tree holds no modules at all." >&2
     exit 1
   fi
 fi
@@ -91,8 +117,8 @@ fi
 # Whether a native is its namespace's entry. Without a packager nothing here
 # knows, so everything is treated as one -- stricter, never laxer.
 is_entry() {
-  [[ $ENTRIES_KNOWN -eq 0 ]] && return 0
-  [[ -n "${IS_ENTRY["$1/$(basename "$2")"]:-}" ]]
+  [ "$ENTRIES_KNOWN" -eq 0 ] && return 0
+  printf '%s\n' "$IS_ENTRY" | grep -qxF "$1/$(basename "$2")"
 }
 
 FAILURES=0

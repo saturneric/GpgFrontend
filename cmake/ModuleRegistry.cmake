@@ -494,9 +494,10 @@ function(gf_add_module)
   gf_module_directory_key("${module_id}" target_namespace_key)
   set(target_native_dir
     "${GPGFRONTEND_MODULE_NAMESPACE_ROOT}/${target_namespace_key}/native")
-  set_target_properties(${target_name} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${target_native_dir}"
-    LIBRARY_OUTPUT_DIRECTORY "${target_native_dir}")
+  # Pinned, not merely set: on Xcode a plain RUNTIME_OUTPUT_DIRECTORY gains a
+  # per-config subdirectory, and the entry native must be a DIRECT child of
+  # native/ or the Host refuses to resolve it.
+  gf_pin_output_directory(${target_name} "${target_native_dir}")
 
   if(APPLE)
     # The GpgFrontend binding, placed in its own Mach-O section at LINK time.

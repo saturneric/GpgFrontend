@@ -65,6 +65,21 @@ namespace GpgFrontend::Module {
  * build tree, and is never shipped. Anyone who can rewrite the native can
  * rewrite the seal beside it. What it catches is a pipeline that reordered
  * itself, which is the failure that actually happens.
+ *
+ * ## When to use this, and when to use `reseal` instead
+ *
+ * This guards a regeneration driven by the BUILD GRAPH: the descriptors are
+ * deleted, `cmake --build` makes them again, and `--prepared-manifest` refuses
+ * any whose native moved in between.
+ *
+ * That flow cannot be used on a tree external tools have already rewritten,
+ * which is every real deployment. The natives are build outputs, so ninja
+ * notices they changed underneath it and relinks them -- discarding the very
+ * `patchelf` and `install_name_tool` work the deployment step just did.
+ * `gf_module_packager reseal` exists for that case: it regenerates each
+ * descriptor in place, without the build graph, and the release workflows use
+ * it. The guarantee there comes from `verify-module-set` over the finished
+ * tree rather than from a seal.
  */
 
 /// What a preparation step sealed about one module's entry native.

@@ -38,8 +38,7 @@ add_executable(gf_module_packager module_packager/main.cpp)
 # is an ordinary link.
 target_link_libraries(gf_module_packager PRIVATE gf_core Qt::Core)
 
-set_target_properties(gf_module_packager PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${GPGFRONTEND_HOST_TOOL_DIR})
+gf_pin_output_directory(gf_module_packager "${GPGFRONTEND_HOST_TOOL_DIR}")
 
 # Not installed: a packager is a thing a build runs, not a thing a user gets.
 

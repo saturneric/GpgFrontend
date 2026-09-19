@@ -149,6 +149,27 @@ struct GF_CORE_EXPORT ModuleDescriptorVerification {
  * that a foreign key is refused rather than accepted.
  * @return the verdict, with the manifest filled in only when it verified
  */
+/**
+ * @brief Read back every non-META-INF member of a descriptor.
+ *
+ * For regenerating a descriptor in place: a rewritten one has to carry
+ * forward exactly the resources the old one did, and re-reading them from the
+ * signed original is the only way to be sure it does.
+ *
+ * Call this only on a descriptor that has already verified. It re-reads the
+ * file rather than taking a verified handle because the one caller -- the
+ * packager's `reseal` -- has just verified it and wants the bytes, and adding
+ * a second lifetime to reason about buys nothing.
+ *
+ * @param descriptor_path the `*.gfmodule` to read
+ * @param[out] out archive path -> bytes, for every member outside META-INF/
+ * @param[out] reason set on failure
+ * @return whether every member could be read
+ */
+auto GF_CORE_EXPORT ReadModuleDescriptorResources(
+    const QString& descriptor_path, QMap<QString, QByteArray>& out,
+    QString& reason) -> bool;
+
 auto GF_CORE_EXPORT VerifyModuleDescriptor(
     const QString& package_path,
     const QByteArray& expected_public_key = ModuleBuildPublicKey())

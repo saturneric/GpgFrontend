@@ -493,10 +493,48 @@ jobs:
           done < <(find "$MODULE_ROOT" -type f -name '*.so' | sort)
         if: runner.os == 'Linux'
 
+      # Regenerate every descriptor against the natives as they now stand.
+      #
+      # NOT by deleting them and re-running the build, which is the obvious
+      # thing and is wrong here. The module natives are build outputs, and
+      # ninja records the mtime of everything it produces -- so a `cmake
+      # --build` at this point sees that linuxdeployqt and patchelf changed
+      # them underneath it and RELINKS them, discarding the rpath work of the
+      # two steps above. `reseal` does not involve the build graph at all: it
+      # verifies each descriptor, recomputes only the entry binding, carries
+      # the resources over and re-signs.
+      - name: Reseal Module Descriptors (Linux)
+        run: |
+          set -euo pipefail
+          MODULE_ROOT="${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules"
+
+          ${{github.workspace}}/build/artifacts/tools/gf_module_packager reseal \
+            --namespace-root "$MODULE_ROOT" \
+            --signing-seed ${{github.workspace}}/build/.module-build-key/module-build.seed \
+            --expect-count 4
+
+          # The generator-independent proof, run over the finished tree: every
+          # descriptor verifies under the Host's own embedded key, sits in the
+          # namespace its signed identity derives, and binds the native that is
+          # actually there. NOTHING may touch a module native after this point.
+          ${{github.workspace}}/build/artifacts/tools/gf_module_packager verify-module-set \
+            --namespace-root "$MODULE_ROOT" \
+            --expect-count 4 \
+            --assert-no-native-outside ${{github.workspace}}/build/artifacts/AppDir
+        if: runner.os == 'Linux'
+
       # Deployment correctness, not descriptor authentication -- the two are
       # different claims and the script says so at length. This is the gate
       # that decides whether the $ORIGIN hop above actually reaches Qt in THIS
       # layout, rather than in the one someone assumed while writing it down.
+      #
+      # AFTER finalize, not before, and the reason is worth stating because
+      # putting it earlier looks more natural and cannot work. The audit asks
+      # the packager which native each module's SIGNED DESCRIPTOR binds, so it
+      # needs the descriptors to verify -- and between the build and this point
+      # linuxdeployqt and patchelf have rewritten every one of those natives,
+      # which is precisely why the seal and finalize steps exist. Run any
+      # earlier and every descriptor is stale by construction.
       - name: Audit Module Native Dependencies (Linux)
         run: |
           set -euo pipefail
@@ -505,50 +543,6 @@ jobs:
             --packager ${{github.workspace}}/build/artifacts/tools/gf_module_packager \
             --qt-relative ../../../.. \
             --expect-count 4
-        if: runner.os == 'Linux'
-
-      # Record what each entry binds to now that deployment has finished with
-      # it. Everything after this point is checked against these values.
-      - name: Seal Entry Natives (Linux)
-        run: |
-          set -euo pipefail
-          ${{github.workspace}}/build/artifacts/tools/gf_module_packager seal-prepared \
-            --namespace-root ${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules \
-            --expect-count 4
-        if: runner.os == 'Linux'
-
-      # Delete every descriptor and rebuild it against the sealed value.
-      #
-      # Deleting first is what makes staleness impossible by construction
-      # rather than by the build graph noticing: ninja cannot see what
-      # linuxdeployqt and patchelf did to those natives. GPGFRONTEND_MODULE_REQUIRE_SEAL
-      # then makes the regeneration fail closed -- a native that moved between
-      # the seal and here stops the build instead of being described as it used
-      # to be.
-      - name: Finalize Module Descriptors (Linux)
-        run: |
-          set -euo pipefail
-          MODULE_ROOT="${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules"
-
-          rm -f "$MODULE_ROOT"/*/module.gfmodule
-
-          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
-          cmake -B ${{github.workspace}}/build -DGPGFRONTEND_MODULE_REQUIRE_SEAL=ON
-          cmake --build ${{github.workspace}}/build --parallel
-
-          # The generator-independent proof, run over the finished tree: every
-          # descriptor verifies under the Host's own embedded key, sits in the
-          # namespace its signed identity derives, and binds the native that is
-          # actually there.
-          ${{github.workspace}}/build/artifacts/tools/gf_module_packager verify-module-set \
-            --namespace-root "$MODULE_ROOT" \
-            --expect-count 4 \
-            --assert-no-native-outside ${{github.workspace}}/build/artifacts/AppDir
-
-          # prepared.json is a note from the seal step to this one. It is not
-          # shipped, and leaving it would put an unsigned file inside a module
-          # namespace.
-          rm -f "$MODULE_ROOT"/*/native/prepared.json
         if: runner.os == 'Linux'
 
       - name: Build AppImage (Linux)
@@ -731,10 +725,14 @@ jobs:
           mkdir -p upload-artifact
         if: runner.os == 'Windows'
 
-      # The same three steps the Linux leg runs, for the same reason:
-      # windeployqt has just finished touching the module DLLs, so nothing may
-      # describe them until it has. See ModulePreparedEntry.h.
-      - name: Audit, Seal and Finalize Module Descriptors (Windows)
+      # The same steps the Linux leg runs, in the same order and for the same
+      # reason: windeployqt has just finished touching the module tree, so
+      # nothing may describe it until it has. See ModulePreparedEntry.h.
+      #
+      # The audit comes LAST, after finalize. It asks the packager which native
+      # each module's signed descriptor binds, so it needs descriptors that
+      # verify -- which, before finalize, they are not guaranteed to be.
+      - name: Reseal and Audit Module Descriptors (Windows)
         shell: msys2 {0}
         run: |
           set -euo pipefail
@@ -742,24 +740,25 @@ jobs:
           MODULE_ROOT="build/artifacts/modules"
           PACKAGER="build/artifacts/tools/gf_module_packager.exe"
 
-          ./scripts/audit_module_natives.sh \
+          # windeployqt does not rewrite module DLLs, so these descriptors are
+          # very likely still accurate. Resealing anyway costs a second and
+          # makes the step independent of that continuing to be true -- and
+          # `verify-module-set` below then proves the tree rather than assuming
+          # the deployment tool's manners.
+          "$PACKAGER" reseal \
             --namespace-root "$MODULE_ROOT" \
-            --packager "$PACKAGER" \
+            --signing-seed build/.module-build-key/module-build.seed \
             --expect-count 4
-
-          "$PACKAGER" seal-prepared --namespace-root "$MODULE_ROOT" \
-            --expect-count 4
-
-          rm -f "$MODULE_ROOT"/*/module.gfmodule
-          cmake -B build -DGPGFRONTEND_MODULE_REQUIRE_SEAL=ON
-          cmake --build build --parallel
 
           "$PACKAGER" verify-module-set \
             --namespace-root "$MODULE_ROOT" \
             --expect-count 4 \
             --assert-no-native-outside build/artifacts
 
-          rm -f "$MODULE_ROOT"/*/native/prepared.json
+          ./scripts/audit_module_natives.sh \
+            --namespace-root "$MODULE_ROOT" \
+            --packager "$PACKAGER" \
+            --expect-count 4
         if: runner.os == 'Windows'
 
       # The claim §14.2 rests on, checked against the binaries this build

@@ -572,6 +572,30 @@ endif()
 set(GPGFRONTEND_HOST_TOOL_DIR "${CMAKE_BINARY_DIR}/artifacts/tools")
 message(STATUS "Host build tools: ${GPGFRONTEND_HOST_TOOL_DIR}")
 
+# Put a target's output exactly where it is told, on every generator.
+#
+# A multi-config generator -- Xcode, Visual Studio -- appends the
+# configuration name to RUNTIME_OUTPUT_DIRECTORY unless the per-config
+# property is set too. So `.../native` quietly becomes
+# `.../native/RelWithDebInfo`, which breaks two things that are not obviously
+# related: the CI steps that look for a host tool at a fixed path, and module
+# loading itself, because the Host requires a module's entry native to be a
+# DIRECT child of its namespace's native directory.
+#
+# Single-config generators leave CMAKE_CONFIGURATION_TYPES empty and the loop
+# does nothing, so this is free on Ninja and Makefiles.
+function(gf_pin_output_directory target dir)
+  set_target_properties(${target} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${dir}"
+    LIBRARY_OUTPUT_DIRECTORY "${dir}")
+  foreach(config IN LISTS CMAKE_CONFIGURATION_TYPES)
+    string(TOUPPER "${config}" config_upper)
+    set_target_properties(${target} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY_${config_upper} "${dir}"
+      LIBRARY_OUTPUT_DIRECTORY_${config_upper} "${dir}")
+  endforeach()
+endfunction()
+
 # The module namespace root: one `<key>/{module.gfmodule,native/}` per module.
 #
 # Every layout but the AppImage uses the build tree's own artifacts directory,

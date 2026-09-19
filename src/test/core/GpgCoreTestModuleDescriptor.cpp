@@ -530,6 +530,66 @@ TEST_F(ModuleDescriptorTest, NoPrivateKeyMaterialIsLeftAnywhere) {
 
 // ------------------------------------------------------------- the builder
 
+// ------------------------------------------------- reading resources back
+
+TEST_F(ModuleDescriptorTest, ResourcesCanBeReadBackForRegeneration) {
+  // `reseal` rewrites a descriptor in place against a native that deployment
+  // has since rewritten. It must carry the resources forward EXACTLY, and the
+  // only trustworthy source for them is the signed original.
+  QMap<QString, QByteArray> resources;
+  QString why;
+  ASSERT_TRUE(Module::ReadModuleDescriptorResources(Package(), resources, why))
+      << why.toStdString();
+
+  ASSERT_EQ(resources.size(), 1);
+  EXPECT_EQ(resources.value("resources/note.txt"), QByteArray("a resource"));
+}
+
+TEST_F(ModuleDescriptorTest, ReadingResourcesSkipsTheDescriptorsOwnMachinery) {
+  // META-INF is regenerated, never carried forward. Carrying the old manifest
+  // or signature into a new descriptor would put two of each in the archive,
+  // which the verifier refuses -- correctly, and confusingly.
+  QMap<QString, QByteArray> resources;
+  QString why;
+  ASSERT_TRUE(Module::ReadModuleDescriptorResources(Package(), resources, why));
+
+  for (const auto& name : resources.keys()) {
+    EXPECT_FALSE(name.startsWith("META-INF/")) << name.toStdString();
+  }
+}
+
+TEST_F(ModuleDescriptorTest, ARegeneratedDescriptorKeepsEveryResource) {
+  // The round trip `reseal` performs, without the tool: read the resources
+  // out, build a new descriptor from the same manifest, read them back.
+  QMap<QString, QByteArray> original;
+  QString why;
+  ASSERT_TRUE(Module::ReadModuleDescriptorResources(Package(), original, why));
+
+  auto spec = GoodSpec(dir_.path(), payload_);
+  spec.output_path = Path("regenerated.gfmodule");
+  spec.resources.clear();
+  for (auto it = original.constBegin(); it != original.constEnd(); ++it) {
+    spec.resources.append({it.key(), {}, it.value()});
+  }
+
+  const auto built = Module::BuildModuleDescriptor(spec);
+  ASSERT_TRUE(built.ok) << built.reason.toStdString();
+  ASSERT_TRUE(Module::VerifyModuleDescriptor(spec.output_path).ok);
+
+  QMap<QString, QByteArray> again;
+  ASSERT_TRUE(
+      Module::ReadModuleDescriptorResources(spec.output_path, again, why));
+  EXPECT_EQ(again, original);
+}
+
+TEST_F(ModuleDescriptorTest, ReadingResourcesFromANonDescriptorFails) {
+  QMap<QString, QByteArray> resources;
+  QString why;
+  EXPECT_FALSE(Module::ReadModuleDescriptorResources(Path("nope.gfmodule"),
+                                                     resources, why));
+  EXPECT_FALSE(why.isEmpty());
+}
+
 // ------------------------------------------------- the preparation seal
 
 TEST_F(ModuleDescriptorTest, ASealedValueThatStillMatchesChangesNothing) {

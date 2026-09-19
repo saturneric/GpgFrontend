@@ -385,6 +385,38 @@ auto ReadPackage(const QString& package_path,
 
 }  // namespace
 
+auto ReadModuleDescriptorResources(const QString& descriptor_path,
+                                   QMap<QString, QByteArray>& out,
+                                   QString& reason) -> bool {
+  QFile file(descriptor_path);
+  if (!file.open(QIODevice::ReadOnly)) {
+    reason = QString("it could not be read: %1").arg(file.errorString());
+    return false;
+  }
+  const auto bytes = file.readAll();
+  file.close();
+
+  out.clear();
+  QString why;
+  const auto error = ArchiveFileOperator::ReadArchiveMembersSync(
+      bytes, PackagePolicy(),
+      [&out](const QString& path, const QByteArray& member) {
+        // META-INF is the descriptor's own machinery -- manifest, signature,
+        // and the build key that used to live there. It is regenerated, never
+        // carried forward.
+        if (path.startsWith("META-INF/")) return true;
+        out.insert(path, member);
+        return true;
+      },
+      &why);
+
+  if (error != 0) {
+    reason = why.isEmpty() ? QString("its members could not be read") : why;
+    return false;
+  }
+  return true;
+}
+
 auto VerifyModuleDescriptor(const QString& package_path,
                             const QByteArray& expected_public_key)
     -> ModuleDescriptorVerification {
