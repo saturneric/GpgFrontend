@@ -169,6 +169,10 @@ TEST(ModuleLoadInvariantsTest, APackageCannotClaimAnIdentityItsBinaryDenies) {
   spec.sdk_abi = GF_SDK_ABI_VERSION;
   spec.min_host_version = "2.0.0";
   spec.capabilities = QStringList{"gpg"};
+  // Required at schema 2. Empty is a legitimate statement and keeps this test
+  // about identity rather than about subscriptions.
+  spec.events = {};
+  spec.translation_context = "ModuleImpostor";
   spec.metadata = {{"Name", "Impostor"}};
   spec.build_id = "test-build";
   spec.build_timestamp = "2026-09-15T00:00:00Z";

@@ -67,6 +67,8 @@ auto GoodManifestObject() -> QJsonObject {
       {"min_host_version", "2.0.0"},
       {"security_epoch", 0},
       {"capabilities", QJsonArray{"gpg"}},
+      {"events", QJsonArray{"APPLICATION_LOADED"}},
+      {"translation_context", "ModuleTest"},
       {"metadata", QJsonObject{{"Name", "Test"}}},
       {"build",
        QJsonObject{{"id", "b"}, {"timestamp", "t"}, {"source_commit", "c"}}},
@@ -116,6 +118,8 @@ TEST(ModuleManifestTest, RejectsEveryMissingRequiredField) {
                                     "min_host_version",
                                     "security_epoch",
                                     "capabilities",
+                                    "events",
+                                    "translation_context",
                                     "metadata",
                                     "build",
                                     "platform",
@@ -231,4 +235,58 @@ TEST(ModuleManifestTest, CanonicalJsonRefusesANonIntegralNumber) {
   QByteArray out;
   EXPECT_FALSE(Module::CanonicalJson(QJsonObject{{"k", 1.5}}, out));
 }
+// The subscription allowlist is only worth signing if it is well formed: the
+// runtime matches these against its handler table by exact upper-case id.
+TEST(ModuleManifestTest, RejectsAMalformedEventList) {
+  auto o = GoodManifestObject();
+  o["events"] = "APPLICATION_LOADED";
+  EXPECT_FALSE(ParseObject(o).ok) << "a bare string is not an event list";
+
+  o = GoodManifestObject();
+  o["events"] = QJsonArray{"APPLICATION_LOADED", 7};
+  EXPECT_FALSE(ParseObject(o).ok) << "a non-string event id";
+
+  o = GoodManifestObject();
+  o["events"] = QJsonArray{"application_loaded"};
+  EXPECT_FALSE(ParseObject(o).ok)
+      << "lower case would never match what the host dispatches";
+
+  o = GoodManifestObject();
+  o["events"] = QJsonArray{"APPLICATION_LOADED", "APPLICATION_LOADED"};
+  EXPECT_FALSE(ParseObject(o).ok) << "a duplicate declaration";
+
+  o = GoodManifestObject();
+  o["events"] = QJsonArray{""};
+  EXPECT_FALSE(ParseObject(o).ok) << "an empty event id";
+
+  // A module that subscribes to nothing is a legitimate thing to say.
+  o = GoodManifestObject();
+  o["events"] = QJsonArray{};
+  EXPECT_TRUE(ParseObject(o).ok);
+}
+
+TEST(ModuleManifestTest, RejectsAnEmptyTranslationContext) {
+  auto o = GoodManifestObject();
+  o["translation_context"] = "";
+  EXPECT_FALSE(ParseObject(o).ok);
+
+  o = GoodManifestObject();
+  o["translation_context"] = 7;
+  EXPECT_FALSE(ParseObject(o).ok);
+}
+
+// A package built before these fields existed carries no statement about what
+// it subscribes to. Refusing it is the point: the allowlist is not optional.
+TEST(ModuleManifestTest, ASchemaOneManifestIsRefusedWithAReason) {
+  auto o = GoodManifestObject();
+  o["schema_version"] = 1;
+  o.remove("events");
+  o.remove("translation_context");
+
+  const auto r = ParseObject(o);
+  EXPECT_FALSE(r.ok);
+  EXPECT_EQ(r.status, Module::ModuleManifestStatus::kMALFORMED);
+  EXPECT_TRUE(r.reason.contains("events")) << r.reason.toStdString();
+}
+
 }  // namespace GpgFrontend::Test
