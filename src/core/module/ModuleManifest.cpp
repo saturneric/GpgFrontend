@@ -117,16 +117,6 @@ auto TakeObject(const QJsonObject& o, const QString& key, QJsonObject& out,
   return true;
 }
 
-auto IsHexDigest(const QString& s) -> bool {
-  if (s.size() != 64) return false;
-  for (const auto c : s) {
-    const auto ch = c.unicode();
-    const auto is_digit = ch >= u'0' && ch <= u'9';
-    const auto is_lower_hex = ch >= u'a' && ch <= u'f';
-    if (!is_digit && !is_lower_hex) return false;
-  }
-  return true;
-}
 
 /// A logical native name: no separator, no dot, no drive letter, no scheme.
 ///
@@ -148,6 +138,17 @@ auto IsLogicalNativeName(const QString& s) -> bool {
 }
 
 }  // namespace
+
+auto IsModuleHexDigest(const QString& s) -> bool {
+  if (s.size() != 64) return false;
+  for (const auto c : s) {
+    const auto ch = c.unicode();
+    const auto is_digit = ch >= u'0' && ch <= u'9';
+    const auto is_lower_hex = ch >= u'a' && ch <= u'f';
+    if (!is_digit && !is_lower_hex) return false;
+  }
+  return true;
+}
 
 auto ModuleEntryVerificationModeKey(ModuleEntryVerificationMode mode)
     -> QString {
@@ -376,7 +377,7 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
     // different things -- a file digest, a PE image digest, an embedded
     // identifier -- and the check here is only that the spelling is one a
     // comparison can be made against.
-    if (!IsHexDigest(m.entry_native.value)) {
+    if (!IsModuleHexDigest(m.entry_native.value)) {
       return Malformed(
           "entry_native.verification.value is not 64 lower-case hexadecimal "
           "characters");
@@ -428,7 +429,7 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
           !TakeString(fo, "sha256", entry.sha256, error)) {
         return Malformed(QString("resources.%1").arg(error));
       }
-      if (!IsHexDigest(entry.sha256)) {
+      if (!IsModuleHexDigest(entry.sha256)) {
         return Malformed(QString("the digest of \"%1\" is not 64 lower-case "
                                  "hexadecimal characters")
                              .arg(entry.path));

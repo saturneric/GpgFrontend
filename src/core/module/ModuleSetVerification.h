@@ -66,6 +66,15 @@ struct GF_CORE_EXPORT ModuleSetVerification {
   /// Descriptors that verified and resolved, by module id.
   QMap<QString, QString> verified;
 
+  /// The verified entry native of each namespace, by directory key.
+  ///
+  /// Carried out rather than left to be worked out again, because the
+  /// deployment audit needs to tell an entry from a private helper and the
+  /// only authoritative answer is the one the signed descriptor gave. Deriving
+  /// it from a filename convention instead would be a second truth, and the
+  /// convention is exactly what a rename breaks.
+  QMap<QString, QString> entries;
+
   /// Anything that makes the tree unshippable.
   QVector<ModuleSetFinding> problems;
 

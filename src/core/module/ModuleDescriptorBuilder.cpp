@@ -290,6 +290,18 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
       return Fail(why);
     }
 
+    // The seal, when there is one. Checked here rather than in the tool so
+    // that a descriptor which was written at all was written against the file
+    // as it stood when preparation finished.
+    if (!spec.expected_entry_value.isEmpty() &&
+        value != spec.expected_entry_value) {
+      return Fail(
+          QString("the entry native no longer binds to what was sealed for it "
+                  "(sealed %1, now %2) -- something rewrote it after the "
+                  "preparation step")
+              .arg(spec.expected_entry_value, value));
+    }
+
     QJsonObject entry{
         {"name", spec.entry_native_name},
         {"verification",

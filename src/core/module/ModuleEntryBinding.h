@@ -64,19 +64,6 @@ namespace GpgFrontend::Module {
  * native's identity. The mechanism is deliberately not the same everywhere.
  */
 
-/**
- * @brief Compute what a descriptor should record for an entry native.
- *
- * The producer's half of the contract, and the same function the verifier
- * uses, so "the build tool and the runtime agree" is a property of there
- * being one implementation rather than of a test that two of them match.
- *
- * @param mode which binding applies; fixed by the target platform
- * @param native_path the finished native file, after all platform preparation
- * @param out set to the value on success, 64 lower-case hex characters
- * @param reason set on failure, to something worth showing a person
- * @return whether a value could be computed
- */
 /// Whether these leading bytes look like a shared library this platform could
 /// map. A cheap sanity filter that keeps text files, scripts and truncated
 /// downloads away from the loader; it says nothing about who produced the file.
@@ -118,6 +105,22 @@ struct GF_CORE_EXPORT ModuleEntryBindingContext {
 auto GF_CORE_EXPORT
 ModuleEntryBindingId(const ModuleEntryBindingContext& context) -> QString;
 
+/**
+ * @brief Compute what a descriptor should record for an entry native.
+ *
+ * The producer's half of the contract, and the same function the verifier
+ * uses, so "the build tool and the runtime agree" is a property of there
+ * being one implementation rather than of a test that two of them match.
+ *
+ * @param mode which binding applies; fixed by the target platform
+ * @param context the identity `apple-binding-id` is derived from; required
+ * rather than optional so a mode that needs it cannot silently get an empty
+ * one
+ * @param native_path the finished native file, after all platform preparation
+ * @param out set to the value on success, 64 lower-case hex characters
+ * @param reason set on failure, to something worth showing a person
+ * @return whether a value could be computed
+ */
 auto GF_CORE_EXPORT ComputeEntryVerificationValue(
     ModuleEntryVerificationMode mode, const QString& native_path,
     const ModuleEntryBindingContext& context, QString& out, QString& reason)

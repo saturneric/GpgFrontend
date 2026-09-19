@@ -87,6 +87,16 @@ enum class ModuleEntryVerificationMode {
   kAPPLE_BINDING_ID,  ///< macos: an id embedded in the Mach-O before signing
 };
 
+/**
+ * @brief Whether @p s is exactly 64 lower-case hex characters.
+ *
+ * Every 256-bit value in this subsystem is spelled that way -- a resource
+ * digest, an entry binding value, a sealed preparation value -- so there is
+ * one predicate for all of them. Three that agree today are three chances to
+ * disagree later.
+ */
+auto GF_CORE_EXPORT IsModuleHexDigest(const QString& s) -> bool;
+
 /// The wire spelling of a mode, as it appears in `verification.mode`.
 auto GF_CORE_EXPORT
 ModuleEntryVerificationModeKey(ModuleEntryVerificationMode mode) -> QString;

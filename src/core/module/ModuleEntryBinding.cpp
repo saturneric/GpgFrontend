@@ -472,8 +472,7 @@ auto MachOBindingSection(const QByteArray& macho, QString& reason) -> QString {
 
         const auto text =
             QString::fromLatin1(QByteArray(macho.constData() + offset, 64));
-        static const QRegularExpression kHex("^[0-9a-f]{64}$");
-        if (!kHex.match(text).hasMatch()) {
+        if (!IsModuleHexDigest(text)) {
           return fail("its binding section is not a binding id");
         }
         return text;

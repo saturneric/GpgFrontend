@@ -36,6 +36,7 @@
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManager.h"
 #include "core/module/ModuleNamespace.h"
+#include "core/module/ModulePreparedEntry.h"
 #include "core/module/ModuleTrustRoot.h"
 
 namespace GpgFrontend::Module {
@@ -123,6 +124,10 @@ auto VerifyModuleSet(const QString& root, int expected_count)
     const QDir native_dir(native.path);
     for (const auto& file : native_dir.entryInfoList(QDir::Files)) {
       if (file.absoluteFilePath() == entry.path) continue;
+      // The preparation seal is a build-tree note to the finalize step, not a
+      // shipped artifact and not a helper. Staging drops it; reporting it here
+      // would train a reader to ignore this warning.
+      if (file.fileName() == kPreparedEntrySealFileName) continue;
       result.warnings.append(
           {ns.fileName() + "/native/" + file.fileName(),
            "a private helper the descriptor does not bind; the platform "
@@ -130,6 +135,7 @@ auto VerifyModuleSet(const QString& root, int expected_count)
     }
 
     result.verified.insert(id, descriptor);
+    result.entries.insert(ns.fileName(), entry.path);
   }
 
   if (expected_count >= 0 && result.verified.size() != expected_count) {
