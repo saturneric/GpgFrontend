@@ -165,9 +165,8 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
     } else {
       what = "not a regular file";
     }
-    return Refuse(
-        ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE,
-        QString("\"%1\" is %2").arg(info.fileName(), what));
+    return Refuse(ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE,
+                  QString("\"%1\" is %2").arg(info.fileName(), what));
   }
 
   const auto canonical_root = QFileInfo(root.path).canonicalFilePath();

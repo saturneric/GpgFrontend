@@ -176,8 +176,8 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
       NormalizeManifestArch(m.platform_arch) != ManifestHostArchName()) {
     return Refuse(ModuleDescriptorStatus::kWRONG_PLATFORM,
                   QString("it was built for %1/%2, and this is %3/%4")
-                      .arg(m.platform_os, m.platform_arch,
-                           ManifestHostOsName(), ManifestHostArchName()));
+                      .arg(m.platform_os, m.platform_arch, ManifestHostOsName(),
+                           ManifestHostArchName()));
   }
 
   // One decision point, shared with the loader's check of the module's own

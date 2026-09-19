@@ -33,9 +33,9 @@
 #include <QTextStream>
 
 #include "core/module/ModuleDescriptor.h"
-#include "core/module/ModuleManifest.h"
 #include "core/module/ModuleDescriptorBuilder.h"
 #include "core/module/ModuleEntryBinding.h"
+#include "core/module/ModuleManifest.h"
 #include "core/module/ModuleNamespace.h"
 #include "core/module/ModulePreparedEntry.h"
 #include "core/module/ModuleSetVerification.h"
@@ -517,7 +517,6 @@ auto ResealCommand(const QStringList& args, QTextStream& err) -> int {
   out << "  " << resealed << " descriptor(s) resealed\n";
   return 0;
 }
-
 
 /// `host-info`: the canonical os and architecture names this build uses.
 ///
