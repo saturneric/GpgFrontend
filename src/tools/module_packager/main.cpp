@@ -31,7 +31,10 @@
 #include <QFileInfo>
 #include <QTextStream>
 
+#include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModulePackageBuilder.h"
+#include "core/module/ModuleSetVerification.h"
+#include "core/module/ModuleTrustRoot.h"
 
 /**
  * @file main.cpp
@@ -78,12 +81,155 @@ auto SplitPair(const QString& text, QString& key, QString& value) -> bool {
 
 }  // namespace
 
+/// `verify-module-set`: the release gate, run over a finished tree.
+///
+/// It verifies against THIS binary's own embedded trust root, which is the
+/// same one gf_core compiled into the Host beside it. That is why it needs no
+/// key argument and cannot be pointed at the wrong key: the tool and the
+/// application are built from one trust root, so "the tool says yes" and "the
+/// Host will load these" are the same statement.
+auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
+  QString root;
+  auto expected = -1;
+  QString outside_root;
+
+  for (auto i = 0; i < args.size(); ++i) {
+    const auto& flag = args.at(i);
+    const auto value = [&]() -> QString {
+      if (i + 1 >= args.size()) return {};
+      return args.at(++i);
+    };
+
+    if (flag == "--namespace-root") {
+      root = value();
+    } else if (flag == "--expect-count") {
+      expected = value().toInt();
+    } else if (flag == "--assert-no-native-outside") {
+      // A SHIPPING tree, not a build tree. A build tree legitimately holds
+      // module libraries outside any namespace -- test fixtures, intermediate
+      // outputs -- and pointing this at one reports them all, correctly and
+      // uselessly. It belongs in the staging step, after the tree has been
+      // assembled from what is meant to ship.
+      outside_root = value();
+    } else {
+      err << "gf_module_packager: unknown argument: " << flag << "\n";
+      return 2;
+    }
+  }
+
+  if (root.isEmpty()) {
+    err << "usage: gf_module_packager verify-module-set --namespace-root DIR\n"
+        << "                         [--expect-count N]\n"
+        << "                         [--assert-no-native-outside TREE]\n";
+    return 2;
+  }
+
+  QTextStream out(stdout);
+  out << "verifying " << root << "\n"
+      << "  build: " << GpgFrontend::Module::ModuleBuildId() << "\n";
+
+  const auto result = GpgFrontend::Module::VerifyModuleSet(root, expected);
+
+  for (auto it = result.verified.constBegin(); it != result.verified.constEnd();
+       ++it) {
+    out << "  ok    " << it.key() << "\n";
+  }
+  for (const auto& warning : result.warnings) {
+    out << "  warn  " << warning.where << ": " << warning.reason << "\n";
+  }
+  for (const auto& problem : result.problems) {
+    err << "  FAIL  " << problem.where << ": " << problem.reason << "\n";
+  }
+
+  auto failed = !result.ok;
+
+  if (!outside_root.isEmpty()) {
+    const auto leaked = GpgFrontend::Module::FindNativeModuleBinariesOutside(
+        outside_root, root);
+    for (const auto& path : leaked) {
+      err << "  FAIL  " << path
+          << ": a module library outside any module namespace\n";
+      failed = true;
+    }
+  }
+
+  if (failed) {
+    err << "gf_module_packager: this tree is not shippable\n";
+    return 1;
+  }
+
+  out << "  " << result.verified.size() << " module(s) verified\n";
+  return 0;
+}
+
+/// `binding-id`: write the macOS binding id for a module into a file.
+///
+/// A subcommand rather than a CMake function, and for a reason worth stating:
+/// the derivation hashes NUL-separated fields, and a CMake string cannot
+/// contain a NUL. Computing it there would mean hashing something else and
+/// calling it the same name -- a second implementation that could never agree
+/// with this one. So there is only this one, and CMake calls it.
+auto BindingIdCommand(const QStringList& args, QTextStream& err) -> int {
+  GpgFrontend::Module::ModuleEntryBindingContext context;
+  QString out_path;
+
+  for (auto i = 0; i < args.size(); ++i) {
+    const auto& flag = args.at(i);
+    const auto value = [&]() -> QString {
+      if (i + 1 >= args.size()) return {};
+      return args.at(++i);
+    };
+
+    if (flag == "--id") {
+      context.module_id = value();
+    } else if (flag == "--build-id") {
+      context.build_id = value();
+    } else if (flag == "--sdk-abi") {
+      context.sdk_abi = value().toInt();
+    } else if (flag == "--output") {
+      out_path = value();
+    } else {
+      err << "gf_module_packager: unknown argument: " << flag << "\n";
+      return 2;
+    }
+  }
+
+  if (context.module_id.isEmpty() || context.build_id.isEmpty() ||
+      context.sdk_abi <= 0 || out_path.isEmpty()) {
+    err << "usage: gf_module_packager binding-id --id ID --build-id ID "
+           "--sdk-abi N --output FILE\n";
+    return 2;
+  }
+
+  const auto binding = GpgFrontend::Module::ModuleEntryBindingId(context);
+
+  QFile out(out_path);
+  if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+    err << "gf_module_packager: could not write " << out_path << "\n";
+    return 1;
+  }
+  // Exactly 64 characters and no newline: this becomes the whole content of a
+  // Mach-O section, and a trailing byte would make it the wrong length.
+  out.write(binding.toLatin1());
+  out.close();
+  return 0;
+}
+
 auto main(int argc, char** argv) -> int {
   QCoreApplication app(argc, argv);
   QTextStream err(stderr);
 
   GpgFrontend::Module::ModulePackageBuildSpec spec;
-  const auto args = QCoreApplication::arguments();
+  auto args = QCoreApplication::arguments();
+
+  // One subcommand so far, and the packaging flags stay the default so every
+  // existing caller is unchanged.
+  if (args.size() > 1 && args.at(1) == "verify-module-set") {
+    return VerifyModuleSetCommand(args.mid(2), err);
+  }
+  if (args.size() > 1 && args.at(1) == "binding-id") {
+    return BindingIdCommand(args.mid(2), err);
+  }
 
   for (auto i = 1; i < args.size(); ++i) {
     const auto& flag = args.at(i);
