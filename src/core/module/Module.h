@@ -29,8 +29,10 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 
 #include "core/module/Event.h"
+#include "core/module/ModuleManifest.h"
 #include "core/thread/TaskRunner.h"
 
 namespace GpgFrontend::Module {
@@ -219,6 +221,40 @@ class GF_CORE_EXPORT Module : public QObject {
    * @param path the `*.gfmodule` on disk
    */
   void SetSourcePackagePath(const QString& path);
+
+  /**
+   * @brief Whether this module came from a signed package.
+   *
+   * False for a loose development library and for an integrated module. It is
+   * the difference between what the host verified and what it merely loaded,
+   * which is a distinction the user is entitled to see.
+   */
+  [[nodiscard]] auto IsPackaged() const -> bool;
+
+  /**
+   * @brief What the signed manifest says, when there is one.
+   *
+   * Empty for a loose library. Everything in it was covered by a signature the
+   * host checked before any of this module's code ran, which is what separates
+   * it from the module's own word for the same values.
+   */
+  [[nodiscard]] auto GetModuleManifest() const -> std::optional<ModuleManifest>;
+
+  /**
+   * @brief Record the manifest this module was verified against.
+   *
+   * @param manifest the verified manifest
+   */
+  void SetModuleManifest(const ModuleManifest& manifest);
+
+  /**
+   * @brief The SDK ABI version the module itself reported at load.
+   *
+   * Distinct from GetModuleSDKVersion(), which returns the HOST's version and
+   * is therefore identical for every module. This is the module's own number,
+   * negotiated when its bootstrap table was fetched.
+   */
+  [[nodiscard]] auto GetModuleSDKABIVersion() const -> int;
 
   /**
    * @brief Take ownership of the materialised image backing this module.

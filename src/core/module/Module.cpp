@@ -279,6 +279,23 @@ class Module::Impl {
     source_package_path_ = std::move(path);
   }
 
+  [[nodiscard]] auto IsPackaged() const -> bool {
+    return manifest_.has_value();
+  }
+
+  [[nodiscard]] auto GetModuleManifest() const
+      -> std::optional<ModuleManifest> {
+    return manifest_;
+  }
+
+  void SetModuleManifest(const ModuleManifest& manifest) {
+    manifest_ = manifest;
+  }
+
+  [[nodiscard]] auto GetModuleSDKABIVersion() const -> int {
+    return sdk_abi_ver_;
+  }
+
   void AdoptImageMapping(std::shared_ptr<ModuleImageMapping> mapping) {
     image_mapping_ = std::move(mapping);
     // Now, not at destruction: the image has been mapped, so on every platform
@@ -308,6 +325,10 @@ class Module::Impl {
 
   /// The `*.gfmodule` this was verified from, for a packaged module.
   QString source_package_path_;
+
+  /// The signed manifest, for a packaged module. Its presence is what
+  /// "packaged" means -- a loose library has nothing vouching for it.
+  std::optional<ModuleManifest> manifest_;
 
   /// Keeps the materialised image alive for as long as the module is mapped,
   /// which on Windows is the whole of it -- an open image cannot be unlinked
@@ -398,6 +419,23 @@ void Module::SetModuleMetaData(const ModuleMetaData& meta_data) {
 
 void Module::SetSourcePackagePath(const QString& path) {
   p_->SetSourcePackagePath(path);
+}
+
+[[nodiscard]] auto Module::IsPackaged() const -> bool {
+  return p_->IsPackaged();
+}
+
+[[nodiscard]] auto Module::GetModuleManifest() const
+    -> std::optional<ModuleManifest> {
+  return p_->GetModuleManifest();
+}
+
+void Module::SetModuleManifest(const ModuleManifest& manifest) {
+  p_->SetModuleManifest(manifest);
+}
+
+[[nodiscard]] auto Module::GetModuleSDKABIVersion() const -> int {
+  return p_->GetModuleSDKABIVersion();
 }
 
 void Module::AdoptImageMapping(std::shared_ptr<ModuleImageMapping> mapping) {

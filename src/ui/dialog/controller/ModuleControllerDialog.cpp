@@ -32,6 +32,7 @@
 #include "core/model/SettingsObject.h"
 #include "core/struct/settings_object/ModuleSO.h"
 #include "ui_ModuleControllerDialog.h"
+#include "ui/dialog/controller/ModuleMeta.h"
 
 //
 #include "core/module/ModuleManager.h"
@@ -103,12 +104,6 @@ void ModuleControllerDialog::init_texts() {
   ui_->detailPlaceholderLabel->setText(
       tr("Select a module to see its details."));
 
-  ui_->idKeyLabel->setText(tr("ID"));
-  ui_->sdkKeyLabel->setText(tr("SDK Version"));
-  ui_->qtKeyLabel->setText(tr("Qt ENV Version"));
-  ui_->hashKeyLabel->setText(tr("Hash"));
-  ui_->pathKeyLabel->setText(tr("Path"));
-
   ui_->listeningEventsGroup->setTitle(tr("Listening Events"));
 
   ui_->autoActivateCheckBox->setText(tr("Activate on Start"));
@@ -178,12 +173,6 @@ void ModuleControllerDialog::init_connections() {
             refresh_all();
           });
 
-  connect(ui_->pathValueLabel, &QLabel::linkActivated, this,
-          [](const QString& link) {
-            QDesktopServices::openUrl(
-                QUrl::fromLocalFile(QFileInfo(link).absolutePath()));
-          });
-
   connect(ui_->showModsDirButton, &QPushButton::clicked, this, [=]() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
         GlobalSettingStation::GetInstance().GetModulesDir()));
@@ -240,6 +229,13 @@ void ModuleControllerDialog::update_policy_notice() {
         tr("Only integrated modules are loaded. To load external modules from "
            "the mods directory, change the module loading policy in "
            "Settings > General."));
+  } else if (module_loading_policy == "packaged_only") {
+    ui_->policyNoticeLabel->setText(
+        tr("Only modules that ship as signed packages are loaded. Loose "
+           "module libraries will stop being loaded in a future version, so "
+           "this is where module loading is going. A signature shows that a "
+           "package has not been altered since it was built; it does not show "
+           "who built it."));
   } else {
     ui_->policyNoticeLabel->hide();
   }
@@ -306,30 +302,19 @@ void ModuleControllerDialog::slot_load_module_details(
   ui_->descriptionLabel->setVisible(!description.isEmpty());
   ui_->descriptionLabel->setText(description);
 
-  ui_->idValueLabel->setText(module->GetModuleIdentifier());
-  ui_->sdkValueLabel->setText(module->GetModuleSDKVersion());
-  ui_->qtValueLabel->setText(module->GetModuleQtEnvVersion());
-
-  // hashes have no break opportunity, shorten them instead of widening the
-  // whole panel
-  const auto hash = module->GetModuleHash();
-  auto hash_text = tr("N/A");
-  if (!hash.isEmpty()) {
-    hash_text = hash.size() > kHashDisplayLength
-                    ? hash.left(kHashDisplayLength) + "..."
-                    : hash;
-  }
-  ui_->hashValueLabel->setText(hash_text);
-  ui_->hashValueLabel->setToolTip(hash);
-
-  const auto path = module->GetModulePath();
-  if (path.isEmpty()) {
-    ui_->pathValueLabel->setText(tr("N/A (integrated)"));
-  } else {
-    ui_->pathValueLabel->setText(
-        QString("<a href=\"%1\">%1</a>").arg(path.toHtmlEscaped()));
-    ui_->pathValueLabel->setToolTip(tr("Click to open the containing folder"));
-  }
+  // One description of a module, built by a pure function and rendered by the
+  // shared panel -- so what it says can be asserted by a test, and so a fact
+  // and a claim are never shown as one undifferentiated list.
+  ModuleView view;
+  view.identifier = module->GetModuleIdentifier();
+  view.version = module->GetModuleVersion();
+  view.integrated = integrated;
+  view.activated = if_activated;
+  view.source_package_path = module->GetModulePath();
+  view.manifest = module->GetModuleManifest();
+  view.sdk_abi = module->GetModuleSDKABIVersion();
+  view.hash = module->GetModuleHash();
+  ui_->detailMetaPanel->SetRows(BuildModuleRows(view));
 
   ui_->listeningEventsListWidget->clear();
   const auto listening_event_ids =

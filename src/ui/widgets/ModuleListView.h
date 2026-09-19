@@ -45,6 +45,7 @@ enum ModuleItemRole {
   kModuleActiveRole,                 ///< true if currently activated
   kModuleAutoActivateRole,           ///< true if activated on start
   kModuleSearchTextRole,             ///< joined text used by the search filter
+  kModulePackagedRole,               ///< true if loaded from a signed package
 };
 
 /**

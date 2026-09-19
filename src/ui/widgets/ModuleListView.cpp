@@ -120,6 +120,7 @@ void ModuleItemDelegate::paint(QPainter* painter,
 
   const auto active = index.data(kModuleActiveRole).toBool();
   const auto integrated = index.data(kModuleIntegratedRole).toBool();
+  const auto packaged = index.data(kModulePackagedRole).toBool();
   const auto auto_activate = index.data(kModuleAutoActivateRole).toBool();
   const auto name = index.data(kModuleNameRole).toString();
   const auto version = index.data(kModuleVersionRole).toString();
@@ -197,6 +198,21 @@ void ModuleItemDelegate::paint(QPainter* painter,
                      small_font)
                .right() +
            kChipSpacing + 1;
+
+  // Whether the host verified a signature over this module, beside where it
+  // came from. An integrated module has no package and needs no chip: it was
+  // not loaded from anywhere. An external one always does, because "unsigned"
+  // is the case worth seeing at a glance.
+  if (!integrated) {
+    const auto signed_color =
+        selected ? palette.color(QPalette::HighlightedText)
+                 : (packaged ? ActiveColor(palette) : DimColor(palette, false));
+    chip_x = PaintChip(painter, QPoint(chip_x, y),
+                       packaged ? tr("Signed") : tr("Unsigned"), signed_color,
+                       small_font)
+                 .right() +
+             kChipSpacing + 1;
+  }
 
   if (auto_activate) {
     PaintChip(painter, QPoint(chip_x, y), tr("Auto"),
@@ -345,6 +361,7 @@ void ModuleListView::load_module_information() {
     item->setData(integrated_module, kModuleIntegratedRole);
     item->setData(activated, kModuleActiveRole);
     item->setData(module_so.auto_activate, kModuleAutoActivateRole);
+    item->setData(module->IsPackaged(), kModulePackagedRole);
     item->setData(QStringList{name, module_id, description, author}.join(' '),
                   kModuleSearchTextRole);
     item->setToolTip(description.isEmpty() ? module_id : description);

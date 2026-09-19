@@ -60,6 +60,10 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->modulePolicyComboBox->addItem(tr("Only Integrated Modules"),
                                      "only_integrated");
   ui_->modulePolicyComboBox->addItem(tr("All Modules"), "all");
+  // Where module loading is going: loose libraries are transitional, and a
+  // future version will stop loading them at all.
+  ui_->modulePolicyComboBox->addItem(tr("Signed Packages Only"),
+                                     "packaged_only");
   ui_->modulePolicyComboBox->addItem(tr("Disable"), "disable");
 
   ui_->importConfirmationBox->setTitle(tr("Operation"));
@@ -219,6 +223,9 @@ void GeneralTab::SetSettings() {
   } else if (module_loading_policy == "only_integrated") {
     ui_->modulePolicyComboBox->setCurrentIndex(
         ui_->modulePolicyComboBox->findData("only_integrated"));
+  } else if (module_loading_policy == "packaged_only") {
+    ui_->modulePolicyComboBox->setCurrentIndex(
+        ui_->modulePolicyComboBox->findData("packaged_only"));
   } else if (module_loading_policy == "disable") {
     ui_->modulePolicyComboBox->setCurrentIndex(
         ui_->modulePolicyComboBox->findData("disable"));

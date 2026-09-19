@@ -470,6 +470,10 @@ class ModuleManager::Impl {
       // What a user can act on is the package, not the descriptor or temporary
       // file the image happened to arrive through.
       module->SetSourcePackagePath(module_library_path);
+
+      // Kept so the UI can separate what the host verified from what the
+      // module says about itself.
+      module->SetModuleManifest(*manifest);
     }
 
     // The module takes the image with it. Where an open image can be unlinked
