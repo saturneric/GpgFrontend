@@ -390,9 +390,30 @@ if(XCODE_BUILD)
     EXPORT GpgFrontendTargets
     BUNDLE DESTINATION /Applications
   )
+
+  # What ships is the signed package, so Contents/PlugIns has to receive
+  # `*.gfmodule` files rather than the module targets.
+  #
+  # XCODE_EMBED_PLUGINS cannot do that: it embeds build TARGETS, and a package
+  # is a file produced by one. Attaching the files as bundle resources with
+  # MACOSX_PACKAGE_LOCATION is how a file gets into a bundle directory, and
+  # PlugIns is the directory GlobalSettingStation searches on macOS.
+  set(gf_module_packages)
+  foreach(module_target IN LISTS GPGFRONTEND_MODULE_TARGETS)
+    string(REGEX REPLACE "^gf_mod_" "" module_short_name "${module_target}")
+    list(APPEND gf_module_packages
+      "${CMAKE_BINARY_DIR}/artifacts/module-packages/${module_short_name}.gfmodule")
+    # The package is made by a custom command, so the app has to wait for it.
+    add_dependencies(${APP_NAME} ${module_target}_package)
+  endforeach()
+
+  set_source_files_properties(${gf_module_packages} PROPERTIES
+    MACOSX_PACKAGE_LOCATION "PlugIns"
+    GENERATED TRUE)
+  target_sources(${APP_NAME} PRIVATE ${gf_module_packages})
+
   set_target_properties(${APP_NAME} PROPERTIES
     XCODE_EMBED_FRAMEWORKS "${GPGFRONTEND_LIBRARY_TARGETS}"
-    XCODE_EMBED_PLUGINS "${GPGFRONTEND_MODULE_TARGETS}"
   )
 else()
   install(TARGETS ${APP_NAME} ${GPGFRONTEND_LIBRARY_TARGETS}
