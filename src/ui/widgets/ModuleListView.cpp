@@ -336,32 +336,33 @@ void ModuleListView::load_module_information() {
 
   auto active_count = 0;
   for (const auto& module_id : module_ids) {
-    auto module = module_manager.SearchModule(module_id);
-    if (module == nullptr) continue;
+    // The same facts the detail panel is built from, assembled in one place
+    // rather than gathered accessor by accessor here as well.
+    const auto provenance = module_manager.GetModuleProvenance(module_id);
+    if (provenance.identifier.isEmpty()) continue;
 
-    auto integrated_module = module_manager.IsIntegratedModule(module_id);
-    auto activated = module_manager.IsModuleActivated(module_id);
-    auto meta_data = module->GetModuleMetaData();
+    const auto integrated_module = provenance.integrated;
+    const auto activated = provenance.activated;
 
     SettingsObject so(QString("module.%1.so").arg(module_id));
     ModuleSO const module_so(so);
 
     if (activated) active_count++;
 
-    const auto name = meta_data.value("Name", module_id);
-    const auto description = meta_data.value("Description");
-    const auto author = meta_data.value("Author");
+    const auto name = provenance.metadata.value("Name", module_id);
+    const auto description = provenance.metadata.value("Description");
+    const auto author = provenance.metadata.value("Author");
 
     auto* item = new QStandardItem(name);
     item->setData(module_id, kModuleIdRole);
     item->setData(name, kModuleNameRole);
     item->setData(description, kModuleDescriptionRole);
     item->setData(author, kModuleAuthorRole);
-    item->setData(module->GetModuleVersion(), kModuleVersionRole);
+    item->setData(provenance.version, kModuleVersionRole);
     item->setData(integrated_module, kModuleIntegratedRole);
     item->setData(activated, kModuleActiveRole);
     item->setData(module_so.auto_activate, kModuleAutoActivateRole);
-    item->setData(module->IsPackaged(), kModulePackagedRole);
+    item->setData(provenance.packaged, kModulePackagedRole);
     item->setData(QStringList{name, module_id, description, author}.join(' '),
                   kModuleSearchTextRole);
     item->setToolTip(description.isEmpty() ? module_id : description);

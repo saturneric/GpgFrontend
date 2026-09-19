@@ -34,6 +34,58 @@ namespace GpgFrontend::Module {
 struct ModuleInitArgs {};
 
 /**
+ * @brief What the user asked the module loader to do.
+ *
+ * An enum rather than the bare strings this was compared against in eleven
+ * places across three files. The value is PERSISTED, so an unrecognised one is
+ * a real case rather than a hypothetical: before this, a typo in the settings
+ * file was indistinguishable from having chosen "only_integrated".
+ */
+enum class ModuleLoadingPolicy {
+  kDISABLE,          ///< load nothing at all
+  kONLY_INTEGRATED,  ///< only the modules shipped with the application
+  kALL,              ///< also external ones, packaged or loose
+  kPACKAGED_ONLY,    ///< everything, but refuse loose libraries
+};
+
+/// The outcome of reading a persisted policy.
+struct GF_CORE_EXPORT ModuleLoadingPolicyParse {
+  ModuleLoadingPolicy policy = ModuleLoadingPolicy::kONLY_INTEGRATED;
+
+  /// False when the stored value was not a known key. The caller reports it;
+  /// silently repairing a value the user cannot see is how a setting comes to
+  /// mean something other than what it says.
+  bool recognised = true;
+};
+
+/**
+ * @brief Read a persisted policy key, failing closed.
+ *
+ * Pure -- no settings store, no logging -- so every case including the
+ * malformed ones is testable directly.
+ *
+ * An unrecognised value falls back to kONLY_INTEGRATED: the shipped default,
+ * and the most restrictive policy that still loads the application's own
+ * modules. kDISABLE would be safer still, but would turn one typo into a
+ * silent feature outage, which is the worse failure for a value nobody can
+ * see.
+ *
+ * @param key the stored string
+ * @return the policy, and whether the key was actually understood
+ */
+auto GF_CORE_EXPORT ParseModuleLoadingPolicy(const QString& key)
+    -> ModuleLoadingPolicyParse;
+
+/**
+ * @brief The key a policy is stored as. The inverse of the parse.
+ *
+ * @param policy the policy
+ * @return the settings key for it
+ */
+auto GF_CORE_EXPORT ModuleLoadingPolicyKey(ModuleLoadingPolicy policy)
+    -> QString;
+
+/**
  * @brief Load, register, and activate all built-in and configured modules.
  *
  * Must be called once during application startup after the ModuleManager

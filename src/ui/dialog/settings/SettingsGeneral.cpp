@@ -35,6 +35,7 @@
 
 #include "SettingsDialog.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleInit.h"
 #include "core/profile/ProfileSession.h"
 #include "core/utils/CommonUtils.h"
 #include "core/utils/GpgUtils.h"
@@ -214,24 +215,21 @@ void GeneralTab::SetSettings() {
 
   ui_->expiringSoonDaysSpinBox->setValue(GetKeyExpiringSoonDays());
 
-  auto module_loading_policy =
-      settings.value("basic/module_loading_policy", "only_integrated")
-          .toString();
-  if (module_loading_policy == "all") {
-    ui_->modulePolicyComboBox->setCurrentIndex(
-        ui_->modulePolicyComboBox->findData("all"));
-  } else if (module_loading_policy == "only_integrated") {
-    ui_->modulePolicyComboBox->setCurrentIndex(
-        ui_->modulePolicyComboBox->findData("only_integrated"));
-  } else if (module_loading_policy == "packaged_only") {
-    ui_->modulePolicyComboBox->setCurrentIndex(
-        ui_->modulePolicyComboBox->findData("packaged_only"));
-  } else if (module_loading_policy == "disable") {
-    ui_->modulePolicyComboBox->setCurrentIndex(
-        ui_->modulePolicyComboBox->findData("disable"));
-  } else {
-    ui_->modulePolicyComboBox->findData("only_integrated");
-  }
+  // One parse, shared with the loader. The five-branch chain this replaces
+  // ended in an else that called findData() and threw the answer away, so an
+  // unrecognised stored value left the box showing whichever policy happened
+  // to be selected -- the one case where showing the truth matters most.
+  const auto policy =
+      Module::ParseModuleLoadingPolicy(
+          settings
+              .value("basic/module_loading_policy",
+                     Module::ModuleLoadingPolicyKey(
+                         Module::ModuleLoadingPolicy::kONLY_INTEGRATED))
+              .toString())
+          .policy;
+  ui_->modulePolicyComboBox->setCurrentIndex(
+      ui_->modulePolicyComboBox->findData(
+          Module::ModuleLoadingPolicyKey(policy)));
 
   auto default_engine =
       settings.value("basic/default_engine", "GNUPG").toString().toUpper();

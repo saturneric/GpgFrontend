@@ -49,9 +49,19 @@ auto ShortHash(const QString &hash) -> QString {
 
 }  // namespace
 
-auto BuildModuleRows(const ModuleView &module) -> QVector<MetaListRow> {
+auto UnattributedSignatureCaveat() -> QString {
+  return QObject::tr(
+      "The signature shows this package was not altered after it was built. "
+      "It does not show who built it: the key travels inside the package.");
+}
+
+auto BuildModuleRows(const Module::ModuleProvenance &module)
+    -> QVector<MetaListRow> {
   QVector<MetaListRow> rows;
-  const auto packaged = module.manifest.has_value();
+  // Established once, by the manager, from Module::IsPackaged(). This used to
+  // be re-derived here as manifest.has_value() while ModuleListView asked
+  // IsPackaged() -- two answers to one question.
+  const auto packaged = module.packaged;
 
   // ---- what this application established -------------------------------
 
@@ -70,13 +80,9 @@ auto BuildModuleRows(const ModuleView &module) -> QVector<MetaListRow> {
                  .detail = QObject::tr(
                      "Ships with GpgFrontend and is not loaded from disk.")});
   } else if (packaged) {
-    rows.append(
-        {.caption = QObject::tr("Origin"),
-         .value = QObject::tr("Signed package"),
-         .detail = QObject::tr(
-             "The signature shows this package was not altered after it was "
-             "built. It does not show who built it: the key travels inside "
-             "the package.")});
+    rows.append({.caption = QObject::tr("Origin"),
+                 .value = QObject::tr("Signed package"),
+                 .detail = UnattributedSignatureCaveat()});
     rows.append({.caption = QObject::tr("Package"),
                  .value = QDir::toNativeSeparators(module.source_package_path),
                  .path = true});
@@ -135,12 +141,13 @@ auto BuildModuleRows(const ModuleView &module) -> QVector<MetaListRow> {
 
   // ---- what the module says about itself --------------------------------
 
-  const auto name =
-      packaged ? module.manifest->metadata.value("Name") : QString();
+  // One source. The provenance carries the manifest's metadata for a packaged
+  // module and the module's own for a loose one, so this no longer has to know
+  // which to read -- only whether it was verified, which `packaged` says.
+  const auto name = packaged ? module.metadata.value("Name") : QString();
   const auto description =
-      packaged ? module.manifest->metadata.value("Description") : QString();
-  const auto author =
-      packaged ? module.manifest->metadata.value("Author") : QString();
+      packaged ? module.metadata.value("Description") : QString();
+  const auto author = packaged ? module.metadata.value("Author") : QString();
 
   if (name.isEmpty() && description.isEmpty() && author.isEmpty()) {
     // Nothing to show, and nothing to pretend about. A loose library carries

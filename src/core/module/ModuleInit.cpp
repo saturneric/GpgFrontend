@@ -149,13 +149,51 @@ auto PrepareModulesConcurrently(GpgFrontend::Module::ModuleManager& manager,
 
 namespace GpgFrontend::Module {
 
+auto ParseModuleLoadingPolicy(const QString& key) -> ModuleLoadingPolicyParse {
+  if (key == "disable") return {ModuleLoadingPolicy::kDISABLE, true};
+  if (key == "only_integrated") {
+    return {ModuleLoadingPolicy::kONLY_INTEGRATED, true};
+  }
+  if (key == "all") return {ModuleLoadingPolicy::kALL, true};
+  if (key == "packaged_only") {
+    return {ModuleLoadingPolicy::kPACKAGED_ONLY, true};
+  }
+  return {ModuleLoadingPolicy::kONLY_INTEGRATED, false};
+}
+
+auto ModuleLoadingPolicyKey(ModuleLoadingPolicy policy) -> QString {
+  switch (policy) {
+    case ModuleLoadingPolicy::kDISABLE:
+      return "disable";
+    case ModuleLoadingPolicy::kONLY_INTEGRATED:
+      return "only_integrated";
+    case ModuleLoadingPolicy::kALL:
+      return "all";
+    case ModuleLoadingPolicy::kPACKAGED_ONLY:
+      return "packaged_only";
+  }
+  return "only_integrated";
+}
+
 void LoadGpgFrontendModules(ModuleInitArgs) {
-  const auto module_loading_policy =
+  const auto stored =
       GetSettings()
-          .value("basic/module_loading_policy", "only_integrated")
+          .value("basic/module_loading_policy",
+                 ModuleLoadingPolicyKey(ModuleLoadingPolicy::kONLY_INTEGRATED))
           .toString();
 
-  if (module_loading_policy == "disable") {
+  const auto parsed = ParseModuleLoadingPolicy(stored);
+  if (!parsed.recognised) {
+    // Said out loud rather than quietly repaired: the stored value is not one
+    // this build knows, and behaving as though the user had chosen the
+    // fallback would make the setting mean something other than it says.
+    LOG_W() << "module loading policy" << stored
+            << "is not one this version understands; falling back to"
+            << ModuleLoadingPolicyKey(parsed.policy);
+  }
+  const auto policy = parsed.policy;
+
+  if (policy == ModuleLoadingPolicy::kDISABLE) {
     LOG_I() << "module loading is disabled by user settings, abort...";
     ModuleManager::GetInstance().SetNeedRegisterModulesNum(0);
     return;
@@ -165,7 +203,7 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
   Thread::TaskRunnerGetter::GetInstance()
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
       ->PostTask(new Thread::Task(
-          [module_loading_policy](const DataObjectPtr&) -> int {
+          [policy](const DataObjectPtr&) -> int {
             // "packaged_only" is a level above "all", not beside it: it
             // loads everything, and refuses to consider a loose library that
             // nothing vouches for.
@@ -177,14 +215,15 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             // establishes that a package agrees with itself rather than who
             // built it -- so making it the default would cost users their own
             // builds and buy them less than it appears to.
-            const auto packaged_only = module_loading_policy == "packaged_only";
+            const auto packaged_only =
+                policy == ModuleLoadingPolicy::kPACKAGED_ONLY;
 
             ModuleLoadStats::GetInstance().Begin();
 
             QMap<QString, bool> modules = LoadIntegratedMods(packaged_only);
 
             // if user want to load all modules, then check external modules
-            if (module_loading_policy == "all" || packaged_only) {
+            if (policy == ModuleLoadingPolicy::kALL || packaged_only) {
               LOG_I() << "loading external modules as well since user settings "
                          "is set to load all modules";
               modules.insert(LoadExternalMods(packaged_only));
@@ -273,6 +312,10 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             for (const auto& candidate : to_load) {
               manager.LoadPreparedModule(candidate);
             }
+
+            // Freeze the figures before anything else in the process can
+            // add to them, so what startup cost stays answerable afterwards.
+            ModuleLoadStats::GetInstance().Finish();
 
             // Stated rather than left to be inferred from the gap between
             // two log lines, which is how this was got wrong twice.

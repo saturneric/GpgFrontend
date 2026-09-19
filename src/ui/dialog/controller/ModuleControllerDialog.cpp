@@ -30,9 +30,10 @@
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/model/SettingsObject.h"
+#include "core/module/ModuleInit.h"
 #include "core/struct/settings_object/ModuleSO.h"
-#include "ui_ModuleControllerDialog.h"
 #include "ui/dialog/controller/ModuleMeta.h"
+#include "ui_ModuleControllerDialog.h"
 
 //
 #include "core/module/ModuleManager.h"
@@ -44,12 +45,28 @@ namespace GpgFrontend::UI {
 
 namespace {
 
+/// The stored policy, as the one enum that names it. Parsing is the core's
+/// job, so the dialog cannot come to disagree with the loader about what a
+/// stored string means.
+auto CurrentLoadingPolicy() -> Module::ModuleLoadingPolicy {
+  return Module::ParseModuleLoadingPolicy(
+             GetSettings()
+                 .value("basic/module_loading_policy",
+                        Module::ModuleLoadingPolicyKey(
+                            Module::ModuleLoadingPolicy::kONLY_INTEGRATED))
+                 .toString())
+      .policy;
+}
+
+}  // namespace
+
+namespace {
+
 /// delay before the second refresh, module (de)activation is posted to the
 /// module task runner and does not take effect synchronously
 constexpr int kActivationSettleMs = 300;
 
 /// number of hash characters shown before the ellipsis
-constexpr int kHashDisplayLength = 24;
 
 }  // namespace
 
@@ -72,12 +89,7 @@ ModuleControllerDialog::ModuleControllerDialog(QWidget* parent)
   ui_->tabWidget->setTabVisible(2, false);
 #endif
 
-  const auto module_loading_policy =
-      GetSettings()
-          .value("basic/module_loading_policy", "only_integrated")
-          .toString();
-
-  if (module_loading_policy == "disable") {
+  if (CurrentLoadingPolicy() == Module::ModuleLoadingPolicy::kDISABLE) {
     ui_->tabWidget->setTabEnabled(0, false);
   }
 }
@@ -215,29 +227,29 @@ void ModuleControllerDialog::init_connections() {
 }
 
 void ModuleControllerDialog::update_policy_notice() {
-  const auto module_loading_policy =
-      GetSettings()
-          .value("basic/module_loading_policy", "only_integrated")
-          .toString();
-
-  if (module_loading_policy == "disable") {
-    ui_->policyNoticeLabel->setText(
-        tr("Module loading is disabled. Enable it in Settings > General to "
-           "use modules."));
-  } else if (module_loading_policy == "only_integrated") {
-    ui_->policyNoticeLabel->setText(
-        tr("Only integrated modules are loaded. To load external modules from "
-           "the mods directory, change the module loading policy in "
-           "Settings > General."));
-  } else if (module_loading_policy == "packaged_only") {
-    ui_->policyNoticeLabel->setText(
-        tr("Only modules that ship as signed packages are loaded. Loose "
-           "module libraries will stop being loaded in a future version, so "
-           "this is where module loading is going. A signature shows that a "
-           "package has not been altered since it was built; it does not show "
-           "who built it."));
-  } else {
-    ui_->policyNoticeLabel->hide();
+  switch (CurrentLoadingPolicy()) {
+    case Module::ModuleLoadingPolicy::kDISABLE:
+      ui_->policyNoticeLabel->setText(
+          tr("Module loading is disabled. Enable it in Settings > General to "
+             "use modules."));
+      break;
+    case Module::ModuleLoadingPolicy::kONLY_INTEGRATED:
+      ui_->policyNoticeLabel->setText(
+          tr("Only integrated modules are loaded. To load external modules "
+             "from the mods directory, change the module loading policy in "
+             "Settings > General."));
+      break;
+    case Module::ModuleLoadingPolicy::kPACKAGED_ONLY:
+      ui_->policyNoticeLabel->setText(
+          tr("Only modules that ship as signed packages are loaded. Loose "
+             "module libraries will stop being loaded in a future version, so "
+             "this is where module loading is going. A signature shows that a "
+             "package has not been altered since it was built; it does not "
+             "show who built it."));
+      break;
+    case Module::ModuleLoadingPolicy::kALL:
+      ui_->policyNoticeLabel->hide();
+      break;
   }
 }
 
@@ -272,9 +284,13 @@ void ModuleControllerDialog::slot_load_module_details(
   ui_->activateOrDeactivateButton->setEnabled(true);
   ui_->autoActivateCheckBox->setEnabled(true);
 
-  const auto meta_data = module->GetModuleMetaData();
-  const auto if_activated = module_manager_->IsModuleActivated(module_id);
-  const auto integrated = module_manager_->IsIntegratedModule(module_id);
+  // One set of facts, assembled by the manager. The header labels below and
+  // the metadata panel further down used to read them from two different
+  // sources, which agreed only because one setter call bridged them.
+  const auto provenance = module_manager_->GetModuleProvenance(module_id);
+  const auto& meta_data = provenance.metadata;
+  const auto if_activated = provenance.activated;
+  const auto integrated = provenance.integrated;
 
   auto name_font = ui_->detailNameLabel->font();
   name_font.setBold(true);
@@ -282,13 +298,9 @@ void ModuleControllerDialog::slot_load_module_details(
   ui_->detailNameLabel->setFont(name_font);
   ui_->detailNameLabel->setText(meta_data.value("Name", module_id));
 
-  ui_->detailVersionLabel->setText(module->GetModuleVersion());
-
   SetChip(ui_->statusChipLabel,
           if_activated ? tr("● Active") : tr("○ Inactive"),
           AccentColor(palette(), if_activated));
-  SetChip(ui_->typeChipLabel, integrated ? tr("Integrated") : tr("External"),
-          palette().color(QPalette::Link));
   ui_->autoChipLabel->setVisible(module_so.auto_activate);
   if (module_so.auto_activate) {
     SetChip(ui_->autoChipLabel, tr("Auto Start"), AccentColor(palette(), true));
@@ -305,16 +317,7 @@ void ModuleControllerDialog::slot_load_module_details(
   // One description of a module, built by a pure function and rendered by the
   // shared panel -- so what it says can be asserted by a test, and so a fact
   // and a claim are never shown as one undifferentiated list.
-  ModuleView view;
-  view.identifier = module->GetModuleIdentifier();
-  view.version = module->GetModuleVersion();
-  view.integrated = integrated;
-  view.activated = if_activated;
-  view.source_package_path = module->GetModulePath();
-  view.manifest = module->GetModuleManifest();
-  view.sdk_abi = module->GetModuleSDKABIVersion();
-  view.hash = module->GetModuleHash();
-  ui_->detailMetaPanel->SetRows(BuildModuleRows(view));
+  ui_->detailMetaPanel->SetRows(BuildModuleRows(provenance));
 
   ui_->listeningEventsListWidget->clear();
   const auto listening_event_ids =

@@ -30,35 +30,10 @@
 
 #include <optional>
 
-#include "core/module/ModuleManifest.h"
+#include "core/module/ModuleManager.h"
 #include "ui/widgets/MetaListPanel.h"
 
 namespace GpgFrontend::UI {
-
-/**
- * @brief Everything the Controller needs to describe one module.
- *
- * A plain struct rather than a Module pointer, so BuildModuleRows() stays pure
- * and its wording can be asserted by a test that constructs no widget and
- * loads no module. gtest bodies run off the GUI thread, so a test that needed
- * a widget could not exist at all.
- */
-struct GF_UI_EXPORT ModuleView {
-  QString identifier;  ///< the runtime identifier, always present
-  QString version;     ///< what the binary reports
-  bool integrated = false;
-  bool activated = false;
-
-  /// The `*.gfmodule` this was verified from. Empty for a loose library.
-  QString source_package_path;
-
-  /// The signed manifest, when there is one. Its presence is what packaged
-  /// means, and what divides fact from claim below.
-  std::optional<Module::ModuleManifest> manifest;
-
-  int sdk_abi = 0;  ///< the module's own ABI, not the host's
-  QString hash;     ///< digest of the bytes that were loaded
-};
 
 /**
  * @brief Describe a module in rows: what was verified, then what is claimed.
@@ -80,10 +55,21 @@ struct GF_UI_EXPORT ModuleView {
  * does not show who built it -- the key travels inside the package -- and the
  * rows say so rather than leaving it to be inferred.
  *
- * @param module what is known about the module
+ * @param module the facts the module pipeline established
  * @return the rows, facts before claims
  */
-auto GF_UI_EXPORT BuildModuleRows(const ModuleView& module)
+/**
+ * @brief What a signature on a module package does and does not establish.
+ *
+ * Exposed so a test can assert the exact sentence rather than searching a
+ * translated one for a fragment -- a substring match on tr() output is not
+ * required to hold in any other locale, and breaks on any rewording.
+ *
+ * @return the caveat shown beside a signed package's Origin row
+ */
+auto GF_UI_EXPORT UnattributedSignatureCaveat() -> QString;
+
+auto GF_UI_EXPORT BuildModuleRows(const Module::ModuleProvenance& module)
     -> QVector<MetaListRow>;
 
 }  // namespace GpgFrontend::UI
