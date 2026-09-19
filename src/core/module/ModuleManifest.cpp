@@ -28,6 +28,8 @@
 
 #include "ModuleManifest.h"
 
+#include <cmath>
+
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -127,7 +129,51 @@ auto IsHexDigest(const QString& s) -> bool {
   return true;
 }
 
+/// A logical native name: no separator, no dot, no drive letter, no scheme.
+///
+/// Validated by construction rather than by blacklist. A name that matches
+/// this cannot express a path at all, which is why the descriptor never needs
+/// a rule about traversal.
+auto IsLogicalNativeName(const QString& s) -> bool {
+  if (s.isEmpty() || s.size() > 64) return false;
+  if (s.front() < u'a' || s.front() > u'z') return false;
+  for (const auto c : s) {
+    const auto ch = c.unicode();
+    const auto ok = (ch >= u'a' && ch <= u'z') || (ch >= u'0' && ch <= u'9') ||
+                    ch == u'_';
+    if (!ok) return false;
+  }
+  // The platform prefix is the Host's to add. A name carrying one is
+  // ambiguous about whether it has already been mapped.
+  return !s.startsWith("lib");
+}
+
 }  // namespace
+
+auto ModuleEntryVerificationModeKey(ModuleEntryVerificationMode mode)
+    -> QString {
+  switch (mode) {
+    case ModuleEntryVerificationMode::kFILE_SHA256:
+      return "file-sha256";
+    case ModuleEntryVerificationMode::kPE_AUTHENTICODE_SHA256:
+      return "pe-authenticode-sha256";
+    case ModuleEntryVerificationMode::kAPPLE_BINDING_ID:
+      return "apple-binding-id";
+  }
+  return {};
+}
+
+auto ModuleEntryVerificationModeFor(const QString& platform_os)
+    -> std::optional<ModuleEntryVerificationMode> {
+  if (platform_os == "linux") return ModuleEntryVerificationMode::kFILE_SHA256;
+  if (platform_os == "windows") {
+    return ModuleEntryVerificationMode::kPE_AUTHENTICODE_SHA256;
+  }
+  if (platform_os == "macos") {
+    return ModuleEntryVerificationMode::kAPPLE_BINDING_ID;
+  }
+  return std::nullopt;
+}
 
 auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
   QJsonParseError parse_error{};
@@ -155,8 +201,15 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
                       .arg(schema_version)
                       .arg(kModuleManifestSchemaVersion));
   }
-  if (schema_version < 1) {
-    return Malformed(QString("\"schema_version\" is %1").arg(schema_version));
+  if (schema_version < kModuleManifestMinSupportedSchema) {
+    // Named, not merely refused. A package built before schema 3 carries its
+    // executable payload inside itself, which this build has no path for at
+    // all, and "a field is missing" would be a worse sentence than saying so.
+    return Malformed(
+        QString("\"schema_version\" is %1; this build reads %2 and later, "
+                "which is when the module binary moved out of the package")
+            .arg(schema_version)
+            .arg(kModuleManifestMinSupportedSchema));
   }
 
   ModuleManifest m;
@@ -270,31 +323,117 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
     }
   }
 
-  // files: required, non-empty, and every entry a path and a digest. A package
-  // whose manifest covers nothing would verify trivially, which is the one
-  // outcome this whole format exists to prevent.
+  // entry_native: the one executable artifact this descriptor binds. It lives
+  // OUTSIDE the package -- nothing executable is ever carried inside one --
+  // so what is recorded here is a logical name and a verification value, and
+  // the Host is what turns the first into a path.
   {
-    const auto v = root.value("files");
-    if (v.isUndefined()) return Malformed("\"files\" is missing");
-    if (!v.isArray()) return Malformed("\"files\" is not an array");
-    const auto files = v.toArray();
-    if (files.isEmpty()) return Malformed("\"files\" is empty");
+    QJsonObject entry;
+    if (!TakeObject(root, "entry_native", entry, error)) {
+      return Malformed(error);
+    }
 
-    for (const auto& f : files) {
-      if (!f.isObject())
-        return Malformed("a value in \"files\" is not an object");
+    if (!TakeString(entry, "name", m.entry_native.name, error)) {
+      return Malformed(QString("entry_native.%1").arg(error));
+    }
+    if (!IsLogicalNativeName(m.entry_native.name)) {
+      return Malformed(
+          QString("\"%1\" is not a logical native name: it must match "
+                  "[a-z][a-z0-9_]{0,63} and must not begin with \"lib\"")
+              .arg(m.entry_native.name));
+    }
+
+    QJsonObject verification;
+    if (!TakeObject(entry, "verification", verification, error)) {
+      return Malformed(QString("entry_native.%1").arg(error));
+    }
+
+    QString mode_key;
+    if (!TakeString(verification, "mode", mode_key, error) ||
+        !TakeString(verification, "value", m.entry_native.value, error)) {
+      return Malformed(QString("entry_native.verification.%1").arg(error));
+    }
+
+    // The mode is not a choice. It follows platform.os, which was parsed
+    // above and which the verifier separately checks against the host it is
+    // running on -- so a descriptor cannot select a weaker mode by claiming a
+    // platform, because the claim is refused first.
+    const auto required = ModuleEntryVerificationModeFor(m.platform_os);
+    if (!required.has_value()) {
+      return Malformed(
+          QString("there is no entry verification mode for platform \"%1\"")
+              .arg(m.platform_os));
+    }
+    const auto expected_key = ModuleEntryVerificationModeKey(*required);
+    if (mode_key != expected_key) {
+      return Malformed(
+          QString("entry_native.verification.mode is \"%1\", but a \"%2\" "
+                  "module must use \"%3\"")
+              .arg(mode_key, m.platform_os, expected_key));
+    }
+    m.entry_native.mode = *required;
+
+    // All three modes currently carry a 256-bit value as hex. They mean
+    // different things -- a file digest, a PE image digest, an embedded
+    // identifier -- and the check here is only that the spelling is one a
+    // comparison can be made against.
+    if (!IsHexDigest(m.entry_native.value)) {
+      return Malformed(
+          "entry_native.verification.value is not 64 lower-case hexadecimal "
+          "characters");
+    }
+
+    // size: optional, and only where it means anything. Windows Authenticode
+    // signing appends a certificate table and macOS signing rewrites
+    // __LINKEDIT, so under either of those modes a recorded size is an
+    // invariant that legitimately breaks.
+    const auto size_value = entry.value("size");
+    if (!size_value.isUndefined()) {
+      if (m.entry_native.mode != ModuleEntryVerificationMode::kFILE_SHA256) {
+        return Malformed(
+            QString("entry_native.size is only meaningful with \"%1\"; "
+                    "platform signing legitimately changes the size of a "
+                    "\"%2\" entry")
+                .arg(ModuleEntryVerificationModeKey(
+                         ModuleEntryVerificationMode::kFILE_SHA256),
+                     m.platform_os));
+      }
+      if (!size_value.isDouble()) {
+        return Malformed("entry_native.size is not a number");
+      }
+      const auto as_double = size_value.toDouble();
+      if (as_double < 0 || as_double != std::floor(as_double)) {
+        return Malformed("entry_native.size is not a whole, non-negative "
+                         "number");
+      }
+      m.entry_native.size = static_cast<qint64>(as_double);
+    }
+  }
+
+  // resources: required, MAY BE EMPTY. Empty is a real statement -- this
+  // module carries no non-executable members -- and is different from the
+  // field being absent, which is a manifest that predates the distinction.
+  {
+    const auto v = root.value("resources");
+    if (v.isUndefined()) return Malformed("\"resources\" is missing");
+    if (!v.isArray()) return Malformed("\"resources\" is not an array");
+
+    for (const auto& f : v.toArray()) {
+      if (!f.isObject()) {
+        return Malformed("a value in \"resources\" is not an object");
+      }
       const auto fo = f.toObject();
-      ModuleManifestFile entry;
+      ModuleManifestResource entry;
       if (!TakeString(fo, "path", entry.path, error) ||
           !TakeString(fo, "sha256", entry.sha256, error)) {
-        return Malformed(QString("files.%1").arg(error));
+        return Malformed(QString("resources.%1").arg(error));
       }
       if (!IsHexDigest(entry.sha256)) {
         return Malformed(QString("the digest of \"%1\" is not 64 lower-case "
                                  "hexadecimal characters")
                              .arg(entry.path));
       }
-      m.files.append(entry);
+      m.resources.append(entry);
     }
   }
 

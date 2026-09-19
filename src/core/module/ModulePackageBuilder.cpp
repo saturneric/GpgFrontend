@@ -31,6 +31,7 @@
 #include <sodium.h>
 
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QSaveFile>
@@ -38,6 +39,7 @@
 
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GFBufferFactory.h"
+#include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManifest.h"
 #include "core/module/ModulePackageVerifier.h"
 #include "core/utils/AsyncUtils.h"
@@ -178,7 +180,12 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
     return Fail("the cryptography library could not be started");
   }
   if (spec.output_path.isEmpty()) return Fail("no output path was given");
-  if (spec.files.isEmpty()) return Fail("a package with no files is not one");
+  if (spec.entry_native_name.isEmpty()) {
+    return Fail("a descriptor that binds no entry native is not one");
+  }
+  if (spec.entry_native_file.isEmpty()) {
+    return Fail("no entry native file was given to verify against");
+  }
 
   // The archive writer trusts whatever paths it is handed -- it is the
   // extractor that validates, and it is not running yet. Validating here is
@@ -186,11 +193,11 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
   ArchiveExtractPolicy naming;
   naming.reject_duplicate_paths = true;
 
-  QJsonArray files_json;
+  QJsonArray resources_json;
   QVector<ModulePackageSource> staged;
   QSet<QString> seen;
 
-  for (const auto& source : spec.files) {
+  for (const auto& source : spec.resources) {
     QString normalised;
     const auto verdict =
         ValidateArchiveEntryPath(source.archive_path, naming, normalised);
@@ -220,7 +227,8 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
                                                         : source.source_file));
     }
 
-    files_json.append(QJsonObject{{"path", normalised}, {"sha256", digest}});
+    resources_json.append(
+        QJsonObject{{"path", normalised}, {"sha256", digest}});
 
     auto entry = source;
     entry.archive_path = normalised;
@@ -248,14 +256,53 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
       {"platform", QJsonObject{{"os", platform_os},
                                {"arch", spec.platform_arch},
                                {"qt", spec.platform_qt}}},
-      {"files", files_json},
+      {"resources", resources_json},
   };
 
-  // Both are required at schema 2. An empty events array is still a legitimate
-  // statement -- a module that subscribes to nothing -- and is written as such;
-  // what is refused below is a manifest that says nothing at all.
+  // Both required. An empty events array is still a legitimate statement -- a
+  // module that subscribes to nothing -- and is written as such; what is
+  // refused is a manifest that says nothing at all.
   manifest.insert("events", QJsonArray::fromStringList(spec.events));
   manifest.insert("translation_context", spec.translation_context);
+
+  // The entry native, computed from the file as it stands right now.
+  //
+  // Which mode applies is decided by the target platform and not by the
+  // caller, so a packaging script cannot ask for a weaker one. The value is
+  // computed here, at the moment the descriptor is written, which is what
+  // makes "the descriptor binds the final bytes" a property of the build
+  // order rather than of anyone's discipline.
+  {
+    const auto mode = ModuleEntryVerificationModeFor(platform_os);
+    if (!mode.has_value()) {
+      return Fail(QString("there is no entry verification mode for platform "
+                          "\"%1\"").arg(platform_os));
+    }
+
+    QString value;
+    QString why;
+    if (!ComputeEntryVerificationValue(*mode, spec.entry_native_file, value,
+                                       why)) {
+      return Fail(why);
+    }
+
+    QJsonObject entry{
+        {"name", spec.entry_native_name},
+        {"verification",
+         QJsonObject{{"mode", ModuleEntryVerificationModeKey(*mode)},
+                     {"value", value}}},
+    };
+
+    // Only where it means anything: platform signing changes the size of a
+    // Windows or macOS entry, so recording one there would be an invariant
+    // that legitimately breaks.
+    if (*mode == ModuleEntryVerificationMode::kFILE_SHA256) {
+      const QFileInfo info(spec.entry_native_file);
+      entry.insert("size", static_cast<double>(info.size()));
+    }
+
+    manifest.insert("entry_native", entry);
+  }
 
   QByteArray manifest_bytes;
   if (!CanonicalJson(manifest, manifest_bytes)) {

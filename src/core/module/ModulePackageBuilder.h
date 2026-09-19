@@ -76,7 +76,19 @@ struct GF_CORE_EXPORT ModulePackageBuildSpec {
   QString platform_arch;
   QString platform_qt;
 
-  QVector<ModulePackageSource> files;
+  /// Non-executable members carried inside the package. May be empty.
+  QVector<ModulePackageSource> resources;
+
+  /// The logical name of the module's entry native, matching
+  /// `[a-z][a-z0-9_]{0,63}` and not beginning with `lib`. This is what the
+  /// descriptor records; the Host maps it to a filename.
+  QString entry_native_name;
+
+  /// The finished entry native on disk, read to compute the binding value.
+  /// It is NOT packaged: executable code never travels inside a descriptor.
+  /// It must already have had every platform preparation step applied to it,
+  /// because what is recorded is what is there now.
+  QString entry_native_file;
 
   QString output_path;  ///< the `*.gfmodule` to write
 };

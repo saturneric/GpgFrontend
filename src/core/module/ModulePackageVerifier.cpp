@@ -123,15 +123,6 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
                   "its signature or build key is the wrong size");
   }
 
-  // The seam publisher trust will use, present and unexercised. When a catalog
-  // supplies a key, the key inside the package stops being the thing trusted
-  // and becomes a value that has to match.
-  if (!expected_public_key.isEmpty() &&
-      public_key_bytes != expected_public_key) {
-    return Refuse(ModulePackageStatus::kBAD_SIGNATURE,
-                  "it was not signed by the expected key");
-  }
-
   // Over the bytes as stored, and BEFORE they are parsed. That ordering is
   // what removes canonicalisation from the verifier entirely: there is no
   // second serialiser here to disagree with the one that built the package,
@@ -144,6 +135,17 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
               public_key_bytes.constData())) != 0) {
     return Refuse(ModulePackageStatus::kBAD_SIGNATURE,
                   "its manifest does not match its signature");
+  }
+
+  // The seam publisher trust will use, present and unexercised. When the Host
+  // supplies its embedded key, the key inside the package stops being the
+  // thing trusted and becomes a value that has to match -- and at that point
+  // the member itself goes, because a trust root that travels with what it
+  // vouches for vouches for nothing.
+  if (!expected_public_key.isEmpty() &&
+      public_key_bytes != expected_public_key) {
+    return Refuse(ModulePackageStatus::kBAD_SIGNATURE,
+                  "it was not signed by the expected key");
   }
 
   const auto parsed = ParseModuleManifest(manifest_bytes);
@@ -176,10 +178,11 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
                       .arg(m.min_host_version, GetProjectVersion()));
   }
 
-  // Both directions. A declared file that is absent is a broken package; an
-  // undeclared file that is present is an appended payload the signature says
-  // nothing about, which is the more interesting of the two.
-  for (const auto& declared : m.files) {
+  // Both directions, over the package's non-executable members. A declared
+  // resource that is absent is a broken descriptor; an undeclared member that
+  // is present is an appended payload the signature says nothing about, which
+  // is the more interesting of the two.
+  for (const auto& declared : m.resources) {
     const auto it = actual_digests.constFind(declared.path);
     if (it == actual_digests.constEnd()) {
       return Refuse(ModulePackageStatus::kMISSING_DECLARED_FILE,
@@ -193,10 +196,10 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
                         .arg(declared.path));
     }
   }
-  if (actual_digests.size() != m.files.size()) {
+  if (actual_digests.size() != m.resources.size()) {
     QStringList declared_paths;
-    declared_paths.reserve(m.files.size());
-    for (const auto& f : m.files) declared_paths.append(f.path);
+    declared_paths.reserve(m.resources.size());
+    for (const auto& f : m.resources) declared_paths.append(f.path);
     for (auto it = actual_digests.constBegin(); it != actual_digests.constEnd();
          ++it) {
       if (!declared_paths.contains(it.key())) {
@@ -212,7 +215,6 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
   v.ok = true;
   v.status = ModulePackageStatus::kOK;
   v.manifest = m;
-  v.build_public_key = public_key_bytes;
   return v;
 }
 

@@ -33,7 +33,17 @@
 namespace GpgFrontend::Module {
 
 /// The only manifest schema this build understands.
-constexpr int kModuleManifestSchemaVersion = 2;
+constexpr int kModuleManifestSchemaVersion = 3;
+
+/// The oldest schema this build will read.
+///
+/// Equal to the current one, deliberately: schema 3 moved the native image out
+/// of the package entirely, so a schema 2 manifest does not describe a
+/// different arrangement of the same thing -- it describes a package whose
+/// executable payload is inside it, which this build will not load at all.
+/// Reading one and refusing it later, on a field it does not have, would be a
+/// worse sentence than refusing it by version here.
+constexpr int kModuleManifestMinSupportedSchema = 3;
 
 /**
  * @brief Why a manifest was refused.
@@ -51,11 +61,60 @@ enum class ModuleManifestStatus {
 };
 
 /**
- * @brief One file the manifest covers, and the digest it must have.
+ * @brief One non-executable member the manifest covers, and its digest.
+ *
+ * Resources live *inside* the package. Executable code never does: the entry
+ * native is an external platform file named by ModuleEntryNative.
  */
-struct GF_CORE_EXPORT ModuleManifestFile {
+struct GF_CORE_EXPORT ModuleManifestResource {
   QString path;    ///< archive-relative, forward slashes
   QString sha256;  ///< lower-case hex, 64 characters
+};
+
+/**
+ * @brief How a platform decides that an entry native is the right one.
+ *
+ * The mode is a function of `platform.os` and is never chosen by a module
+ * author. It differs per platform because the platforms differ: Windows
+ * Authenticode signing and macOS code signing both rewrite bytes of a file
+ * that is otherwise unchanged, and a full-file digest would either forbid
+ * normal platform signing or have to be regenerated after it.
+ */
+enum class ModuleEntryVerificationMode {
+  kFILE_SHA256,            ///< linux: the exact final ELF bytes
+  kPE_AUTHENTICODE_SHA256, ///< windows: PE image content, certificates excluded
+  kAPPLE_BINDING_ID,       ///< macos: an id embedded in the Mach-O before signing
+};
+
+/// The wire spelling of a mode, as it appears in `verification.mode`.
+auto GF_CORE_EXPORT ModuleEntryVerificationModeKey(
+    ModuleEntryVerificationMode mode) -> QString;
+
+/// The one mode a manifest for @p platform_os may carry.
+///
+/// Returns nullopt for an os this build has no mode for, which is a refusal
+/// rather than a reason to fall back to anything.
+auto GF_CORE_EXPORT ModuleEntryVerificationModeFor(const QString& platform_os)
+    -> std::optional<ModuleEntryVerificationMode>;
+
+/**
+ * @brief The one executable artifact a descriptor binds.
+ *
+ * `name` is a *logical* name, never a path and never a platform filename. The
+ * Host maps it to a file, which is what keeps a descriptor from influencing
+ * where the loader looks.
+ */
+struct GF_CORE_EXPORT ModuleEntryNative {
+  QString name;
+  ModuleEntryVerificationMode mode = ModuleEntryVerificationMode::kFILE_SHA256;
+  QString value;  ///< meaning fixed by `mode`; 64 lower-case hex for all three
+
+  /// An early-mismatch optimisation and NEVER a security proof: a size
+  /// disagreement refuses before hashing a large file. Permitted only with
+  /// kFILE_SHA256, because Windows and macOS signing both change file size and
+  /// an invariant that legitimately breaks is a trap rather than a check.
+  /// Negative means absent.
+  qint64 size = -1;
 };
 
 /**
@@ -106,7 +165,13 @@ struct GF_CORE_EXPORT ModuleManifest {
   QString platform_arch;
   QString platform_qt;
 
-  QVector<ModuleManifestFile> files;
+  /// The external executable this descriptor binds.
+  ModuleEntryNative entry_native;
+
+  /// Non-executable members carried inside the package. May be empty: no
+  /// module ships one today, and the field exists so the first that does
+  /// needs no schema change.
+  QVector<ModuleManifestResource> resources;
 };
 
 /**
