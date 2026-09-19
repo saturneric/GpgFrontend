@@ -102,12 +102,19 @@ function(_gf_module_package_command)
     set(gf_qt_version "${Qt6_VERSION}")
   endif()
 
-  # Where the application scans, so a development build exercises the same
-  # path a shipped one does: package verified, image mapped, nothing
-  # installed. Writing it anywhere else meant a dev tree only ever loaded
-  # loose libraries, and the packaged path went untested until release.
-  set(package_dir "${CMAKE_BINARY_DIR}/artifacts/modules")
-  set(package_file "${package_dir}/${GAMP_SHORT_NAME}.gfmodule")
+  # One namespace per module, and the dev tree IS the deployment tree:
+  #
+  #   modules/<key>/module.gfmodule
+  #   modules/<key>/native/lib<entry>.so
+  #
+  # The directory name is derived from the module id, never chosen, and the
+  # Host recomputes it and refuses a descriptor found anywhere else. The
+  # descriptor filename is fixed, which retires the old package-versus-library
+  # name reconciliation entirely: the two used to be named for different
+  # things (the CMake target and the SDK prefix) and had to be matched up.
+  gf_module_directory_key("${GAMP_MODULE_ID}" namespace_key)
+  set(package_dir "${CMAKE_BINARY_DIR}/artifacts/modules/${namespace_key}")
+  set(package_file "${package_dir}/module.gfmodule")
 
   set(packager_args
     --output "${package_file}"
@@ -445,6 +452,30 @@ function(gf_add_module)
       AUTOUIC_SEARCH_PATHS "${CMAKE_CURRENT_SOURCE_DIR}/${GAM_UI_DIR}")
   endif()
 
+  # The module's own namespace: modules/<key>/native. Derived from the id it
+  # signs, so the build tree is laid out the way a shipped tree is and a
+  # development build exercises the same resolution a user's does.
+  #
+  # It also gives the platform loader a module-local directory to resolve
+  # private dependencies from -- $ORIGIN on Linux, @loader_path on macOS, the
+  # DLL load directory on Windows -- which a single flat directory could not.
+  gf_module_directory_key("${module_id}" target_namespace_key)
+  set(target_native_dir
+    "${CMAKE_BINARY_DIR}/artifacts/modules/${target_namespace_key}/native")
+  set_target_properties(${target_name} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY "${target_native_dir}"
+    LIBRARY_OUTPUT_DIRECTORY "${target_native_dir}")
+
+  if(NOT WIN32 AND NOT APPLE)
+    # $ORIGIN so a private helper beside the entry resolves without any search
+    # path being widened, and the relative hop so Qt is still reachable from
+    # four levels down. The exact depth is a property of the layout above and
+    # is asserted by the dependency audit rather than assumed here.
+    set_target_properties(${target_name} PROPERTIES
+      INSTALL_RPATH "$ORIGIN:$ORIGIN/../../.."
+      BUILD_WITH_INSTALL_RPATH TRUE)
+  endif()
+
   if(XCODE_BUILD)
     set_target_properties(${target_name} PROPERTIES
       XCODE_ATTRIBUTE_SKIP_INSTALL "Yes"
@@ -511,17 +542,27 @@ function(gf_add_module)
                  "Author=${module_author}"
     RESOURCES    ${GAM_RESOURCES})
 
-  # ---- what ships is the package, and only the package -------------------
+  # ---- what ships is the namespace: descriptor AND native ----------------
 
-  # The loose library is still built: it is what the packager packages, and it
-  # is what a developer iterates on. It is simply not installed. A shipped
-  # tree therefore holds no unsigned module binary at all, which is also what
-  # makes the supersede rule in ModuleInit a development-only concern.
+  # Both, now, and that is the change. The native library used to be built and
+  # deliberately not installed, because it travelled inside the package; it is
+  # now an ordinary platform file that the descriptor binds by digest. Shipping
+  # it is what lets $ORIGIN, @loader_path, debuggers, dependency scanners and
+  # platform code signing all treat it as what it is.
   #
-  # The destination is the one GlobalSettingStation actually searches. The old
-  # rule installed to ${CMAKE_INSTALL_LIBDIR} while the application looked in
-  # ${CMAKE_INSTALL_FULL_LIBDIR}/gpgfrontend/modules, so a module installed
-  # that way was never found.
-  install(FILES "${CMAKE_BINARY_DIR}/artifacts/modules/${GAM_NAME}.gfmodule"
-    DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/gpgfrontend/modules")
+  # "No loose module binaries in a shipping tree" is therefore no longer the
+  # invariant. The invariant is that every one of them is bound by exactly one
+  # verified descriptor, which is a thing gf_module_tool can check and a
+  # directory listing cannot.
+  gf_module_directory_key("${module_id}" install_namespace_key)
+  set(install_namespace
+    "${CMAKE_INSTALL_FULL_LIBDIR}/gpgfrontend/modules/${install_namespace_key}")
+
+  install(FILES
+    "${CMAKE_BINARY_DIR}/artifacts/modules/${install_namespace_key}/module.gfmodule"
+    DESTINATION "${install_namespace}")
+
+  install(TARGETS ${target_name}
+    LIBRARY DESTINATION "${install_namespace}/native"
+    RUNTIME DESTINATION "${install_namespace}/native")
 endfunction()
