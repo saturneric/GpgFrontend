@@ -100,6 +100,7 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
   auto expected = -1;
   QString outside_root;
   auto print_entries = false;
+  auto print_bindings = false;
 
   for (auto i = 0; i < args.size(); ++i) {
     const auto& flag = args.at(i);
@@ -118,6 +119,12 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
       // No value to consume: the loop's own ++i is the whole advance. An
       // extra decrement here would cancel it out and spin forever.
       print_entries = true;
+    } else if (flag == "--print-bindings") {
+      // For the build record: what each module's entry is bound by, and to
+      // what. Separate from --print-entries because they answer different
+      // questions and one line trying to answer both is a line every consumer
+      // has to re-parse when either changes.
+      print_bindings = true;
     } else if (flag == "--assert-no-native-outside") {
       // A SHIPPING tree, not a build tree. A build tree legitimately holds
       // module libraries outside any namespace -- test fixtures, intermediate
@@ -135,7 +142,7 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
     err << "usage: gf_module_packager verify-module-set --namespace-root DIR\n"
         << "                         [--expect-count N]\n"
         << "                         [--assert-no-native-outside TREE]\n"
-        << "                         [--print-entries]\n";
+        << "                         [--print-entries] [--print-bindings]\n";
     return 2;
   }
 
@@ -180,6 +187,13 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
     for (auto it = result.entries.constBegin(); it != result.entries.constEnd();
          ++it) {
       out << "entry " << it.key() << " " << it.value() << "\n";
+    }
+  }
+
+  if (print_bindings) {
+    for (auto it = result.bindings.constBegin();
+         it != result.bindings.constEnd(); ++it) {
+      out << "binding " << it.key() << " " << it.value() << "\n";
     }
   }
 

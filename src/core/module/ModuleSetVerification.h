@@ -66,6 +66,14 @@ struct GF_CORE_EXPORT ModuleSetVerification {
   /// Descriptors that verified and resolved, by module id.
   QMap<QString, QString> verified;
 
+  /// The entry binding each verified descriptor records, by module id, as
+  /// `<mode> <value>`.
+  ///
+  /// For the build record, which states what was shipped rather than asking a
+  /// reader to open four descriptors to find out. Taken from the manifest
+  /// that verified, so it cannot describe a descriptor that did not.
+  QMap<QString, QString> bindings;
+
   /// The verified entry native of each namespace, by directory key.
   ///
   /// Carried out rather than left to be worked out again, because the

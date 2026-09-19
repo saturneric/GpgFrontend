@@ -136,6 +136,9 @@ auto VerifyModuleSet(const QString& root, int expected_count)
 
     result.verified.insert(id, descriptor);
     result.entries.insert(ns.fileName(), entry.path);
+    result.bindings.insert(
+        id, ModuleEntryVerificationModeKey(verdict.manifest.entry_native.mode) +
+                " " + verdict.manifest.entry_native.value);
   }
 
   if (expected_count >= 0 && result.verified.size() != expected_count) {
