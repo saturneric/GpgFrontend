@@ -189,11 +189,14 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
     }
   }
 
-  // events: optional at schema 1, required at schema 2. Every element an
-  // upper-case identifier, because that is the form the host dispatches on.
+  // events: required. Every element an upper-case identifier, because that is
+  // the form the host dispatches on. This is the subscription allowlist, so a
+  // package that omits it is a package whose signature covers no statement
+  // about what the module may listen to -- which is what the field is for.
   {
     const auto v = root.value("events");
-    if (!v.isUndefined()) {
+    if (v.isUndefined()) return Malformed("\"events\" is missing");
+    {
       if (!v.isArray()) return Malformed("\"events\" is not an array");
       for (const auto& e : v.toArray()) {
         if (!e.isString()) {
@@ -213,10 +216,14 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
     }
   }
 
-  // translation_context: optional at schema 1, required at schema 2.
+  // translation_context: required, so the runtime loads translations named by
+  // a verified value rather than by a constant compiled into the module.
   {
     const auto v = root.value("translation_context");
-    if (!v.isUndefined()) {
+    if (v.isUndefined()) {
+      return Malformed("\"translation_context\" is missing");
+    }
+    {
       if (!v.isString()) {
         return Malformed("\"translation_context\" is not a string");
       }

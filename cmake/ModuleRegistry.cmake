@@ -318,10 +318,10 @@ function(gf_add_module)
   _gf_module_json_string_array("${manifest_json}" "${manifest_file}"
     capabilities module_capabilities)
 
-  # events: the subscription allowlist. Optional while the modules migrate;
-  # required once every module.json declares one.
-  set(module_events "")
-  _gf_module_json_string_array_optional("${manifest_json}" "${manifest_file}"
+  # events: the subscription allowlist, required. The runtime subscribes to
+  # exactly these and refuses to activate if the module's handler table
+  # disagrees, so an omission here is not a smaller claim -- it is no claim.
+  _gf_module_json_string_array("${manifest_json}" "${manifest_file}"
     events module_events)
   foreach(event IN LISTS module_events)
     if(NOT event MATCHES "^[A-Z][A-Z0-9_]*$")

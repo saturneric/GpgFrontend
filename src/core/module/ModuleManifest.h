@@ -33,7 +33,7 @@
 namespace GpgFrontend::Module {
 
 /// The only manifest schema this build understands.
-constexpr int kModuleManifestSchemaVersion = 1;
+constexpr int kModuleManifestSchemaVersion = 2;
 
 /**
  * @brief Why a manifest was refused.

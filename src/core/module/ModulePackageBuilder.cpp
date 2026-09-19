@@ -252,16 +252,11 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
       {"files", files_json},
   };
 
-  // Written only when the module actually stated them. Both are optional at
-  // schema 1, and "declares no events" is not the same claim as "predates the
-  // field" -- an empty array would erase that difference, and the runtime has
-  // to be able to tell them apart to know whether it may trust its own table.
-  if (!spec.events.isEmpty()) {
-    manifest.insert("events", QJsonArray::fromStringList(spec.events));
-  }
-  if (!spec.translation_context.isEmpty()) {
-    manifest.insert("translation_context", spec.translation_context);
-  }
+  // Both are required at schema 2. An empty events array is still a legitimate
+  // statement -- a module that subscribes to nothing -- and is written as such;
+  // what is refused below is a manifest that says nothing at all.
+  manifest.insert("events", QJsonArray::fromStringList(spec.events));
+  manifest.insert("translation_context", spec.translation_context);
 
   QByteArray manifest_bytes;
   if (!CanonicalJson(manifest, manifest_bytes)) {
