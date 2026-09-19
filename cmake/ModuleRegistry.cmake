@@ -466,6 +466,46 @@ function(gf_add_module)
     RUNTIME_OUTPUT_DIRECTORY "${target_native_dir}"
     LIBRARY_OUTPUT_DIRECTORY "${target_native_dir}")
 
+  if(APPLE)
+    # The GpgFrontend binding, placed in its own Mach-O section at LINK time.
+    #
+    # macOS binds its entry by this identifier rather than by a digest of the
+    # file, because Apple signing rewrites __LINKEDIT and the App Store may
+    # re-sign again on download -- so a digest would either forbid normal
+    # platform signing or have to be regenerated after it, which is what would
+    # drag a build-produced packager into a privileged signing job.
+    #
+    # Sections survive both: codesign appends and rewrites load commands, and
+    # install_name_tool rewrites load commands, and neither touches section
+    # contents. The reader walks load commands rather than file offsets, so it
+    # is indifferent to both.
+    #
+    # It must be here, at link time, because everything it is derived from --
+    # module id, build id, SDK ABI -- is known at configure time and the
+    # section cannot be added afterwards without invalidating a signature.
+    # Computed by gf_module_packager, never here. The derivation hashes
+    # NUL-separated fields and a CMake string cannot hold a NUL, so a CMake
+    # implementation could not agree with the runtime's even in principle.
+    set(binding_file "${CMAKE_CURRENT_BINARY_DIR}/${target_name}_binding.bin")
+
+    add_custom_command(
+      OUTPUT "${binding_file}"
+      COMMAND gf_module_packager binding-id
+        --id "${module_id}"
+        --build-id "${GPGFRONTEND_BUILD_ID}"
+        --sdk-abi "${GF_SDK_ABI_VERSION}"
+        --output "${binding_file}"
+      DEPENDS gf_module_packager "${GF_MODULE_TRUST_ROOT_SOURCE}"
+      COMMENT "Binding id for ${target_name}"
+      VERBATIM)
+
+    add_custom_target(${target_name}_binding DEPENDS "${binding_file}")
+    add_dependencies(${target_name} ${target_name}_binding)
+
+    target_link_options(${target_name} PRIVATE
+      "LINKER:-sectcreate,__GPGFRONTEND,__gf_binding,${binding_file}")
+  endif()
+
   if(NOT WIN32 AND NOT APPLE)
     # $ORIGIN so a private helper beside the entry resolves without any search
     # path being widened, and the relative hop so Qt is still reachable from
