@@ -882,6 +882,42 @@ TEST_F(ModuleDescriptorTest, ASymlinkedEntryNativeIsRefusedRatherThanFollowed) {
   EXPECT_EQ(entry.status, Module::ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE);
 }
 
+TEST_F(ModuleDescriptorTest, ARefusedEntryNativeSaysWhatItActuallyFound) {
+  // "is not a regular file" covers a symlink, a directory and something
+  // exotic, and a reader who cannot tell them apart cannot tell a packaging
+  // mistake from a build-system one. It cost a CI round trip to learn that
+  // `xcodebuild archive` leaves a symlink into DerivedData where the module
+  // native should be -- the message named the condition but not the cause,
+  // and the cause was in the link target all along.
+  const auto sentinel_library = SentinelLibrary();
+  if (sentinel_library.isEmpty()) {
+    GTEST_SKIP() << "this build has no sentinel library";
+  }
+
+  auto spec = spec_;
+  spec.entry_native_name = "gf_mod_test_sentinel";
+  spec.entry_native_file = sentinel_library;
+  spec.output_path = Path("linked.gfmodule");
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
+
+  const auto native =
+      Path(Module::ModuleNativeFileName("gf_mod_test_sentinel"));
+  ASSERT_TRUE(QFile::link(sentinel_library, native));
+
+  const auto read = Module::VerifyModuleDescriptor(spec.output_path);
+  ASSERT_TRUE(read.ok) << read.reason.toStdString();
+
+  const Module::ModuleNativeRoot root{dir_.path()};
+  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  EXPECT_FALSE(entry.ok);
+  EXPECT_EQ(entry.status, Module::ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE);
+  EXPECT_TRUE(entry.reason.contains("symlink")) << entry.reason.toStdString();
+  EXPECT_TRUE(entry.reason.contains(sentinel_library))
+      << "the reason must name where the link points, which is the only part "
+         "that says WHY: "
+      << entry.reason.toStdString();
+}
+
 TEST_F(ModuleDescriptorTest, ATextFileWearingALibraryNameIsRefused) {
   auto spec = spec_;
   spec.entry_native_name = "gf_mod_test_sentinel";
