@@ -40,6 +40,7 @@
 
 #include "GpgFrontendTest.h"
 #include "core/function/ArchiveFileOperator.h"
+#include "core/module/ModuleImageMapping.h"
 #include "core/module/ModuleManifest.h"
 #include "core/module/ModulePackageBuilder.h"
 #include "core/module/ModulePackageVerifier.h"
@@ -539,14 +540,15 @@ TEST_F(ModulePackageTest, AVerifiedPackageDoesLoadItsCode) {
   ASSERT_FALSE(QFile::exists(sentinel));
   qputenv("GPGFRONTEND_TEST_SENTINEL", sentinel.toUtf8());
 
-  QTemporaryDir into;
-  ASSERT_TRUE(into.isValid());
-  const auto unpacked =
-      Module::UnpackVerifiedModulePackage(spec.output_path, into.path());
-  ASSERT_TRUE(unpacked.ok) << unpacked.reason.toStdString();
-  ASSERT_TRUE(QFile::exists(unpacked.library_path));
+  const auto read = Module::ReadVerifiedModuleImage(spec.output_path);
+  ASSERT_TRUE(read.ok) << read.reason.toStdString();
+  ASSERT_TRUE(read.image.IsValid());
 
-  QLibrary library(unpacked.library_path);
+  QString reason;
+  auto mapping = Module::ModuleImageMapping::Create(read.image, &reason);
+  ASSERT_TRUE(mapping) << reason.toStdString();
+
+  QLibrary library(mapping->LoadPath());
   ASSERT_TRUE(library.load()) << library.errorString().toStdString();
   EXPECT_TRUE(QFile::exists(sentinel));
 
@@ -589,20 +591,20 @@ TEST_F(ModulePackageTest, ARefusedPackageNeverRunsItsCode) {
   const auto sentinel = Path("it-ran-anyway");
   qputenv("GPGFRONTEND_TEST_SENTINEL", sentinel.toUtf8());
 
-  QTemporaryDir into;
-  ASSERT_TRUE(into.isValid());
-  const auto unpacked =
-      Module::UnpackVerifiedModulePackage(tampered, into.path());
+  const auto read = Module::ReadVerifiedModuleImage(tampered);
 
-  EXPECT_FALSE(unpacked.ok);
-  EXPECT_EQ(unpacked.status,
-            Module::ModulePackageStatus::kFILE_DIGEST_MISMATCH);
-  EXPECT_TRUE(unpacked.library_path.isEmpty());
+  EXPECT_FALSE(read.ok);
+  EXPECT_EQ(read.status, Module::ModulePackageStatus::kFILE_DIGEST_MISMATCH);
 
-  // Nothing was unpacked, so there is no binary to have been mapped.
-  EXPECT_TRUE(QDir(into.path())
-                  .entryList(QDir::AllEntries | QDir::NoDotAndDotDot)
-                  .isEmpty());
+  // The refusal does not merely report an error: it hands back no image at
+  // all, and an image is the only thing materialisation accepts. There is
+  // therefore no path in existence for anything to load, deliberately or by
+  // mistake -- which is the property the type is for.
+  EXPECT_FALSE(read.image.IsValid());
+
+  QString reason;
+  EXPECT_FALSE(Module::ModuleImageMapping::Create(read.image, &reason));
+
   EXPECT_FALSE(QFile::exists(sentinel));
 
   qunsetenv("GPGFRONTEND_TEST_SENTINEL");

@@ -711,7 +711,7 @@ TEST(ProfilePackageRoundTripTest, AnUnpackFailureSaysWhichEntryStoppedIt) {
 
   ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
       exchanger, dir.path() + "/out", ArchiveExtractPolicy::Strict(-1, 1), {},
-      {}, &reason);
+      {}, {}, &reason);
 
   exchanger->CloseWrite();
   feeder.join();

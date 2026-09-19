@@ -336,7 +336,8 @@ TEST(ArchiveFileOperatorTest, ExtractsIntoADestinationReachedThroughASymlink) {
   const auto extract_error =
       GpgFrontend::ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
           back, linked_root + "/out",
-          GpgFrontend::ArchiveExtractPolicy::Strict(), {}, {}, &reason);
+          GpgFrontend::ArchiveExtractPolicy::Strict(), {}, {}, {},
+          &reason);
   feeder.join();
 
   ASSERT_EQ(extract_error, 0) << reason.toStdString();
@@ -882,7 +883,8 @@ TEST(ArchiveZipTest, ExtractFromFileReportsAnUnreadablePath) {
   const auto error =
       GpgFrontend::ArchiveFileOperator::ExtractArchiveFromFileSync(
           "/nonexistent/nowhere.zip", QDir::tempPath(),
-          GpgFrontend::ArchiveExtractPolicy::Permissive(), {}, {}, &reason);
+          GpgFrontend::ArchiveExtractPolicy::Permissive(), {}, {}, {},
+          &reason);
   EXPECT_NE(error, 0U);
   EXPECT_FALSE(reason.isEmpty());
 }
