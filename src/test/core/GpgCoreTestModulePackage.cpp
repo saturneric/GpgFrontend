@@ -42,6 +42,7 @@
 #include "core/ModuleTestPackages.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/module/ModuleEntryBinding.h"
+#include "core/module/ModuleTrustRoot.h"
 #include "core/module/ModuleManifest.h"
 #include "core/module/ModulePackageBuilder.h"
 #include "core/module/ModulePackageVerifier.h"
@@ -76,7 +77,7 @@ auto GoodSpec(const QString& dir, const QString& payload_path)
   spec.metadata = {{"Name", "Test Module"},
                    {"Description", "a module that exists to be packaged"},
                    {"Author", "Saturneric"}};
-  spec.build_id = "test-build";
+  spec.build_id = Module::ModuleBuildId();
   spec.build_timestamp = "2026-09-15T00:00:00Z";
   spec.build_source_commit = "0000000000000000000000000000000000000000";
   spec.platform_os = Module::ManifestHostOsName();
@@ -84,6 +85,8 @@ auto GoodSpec(const QString& dir, const QString& payload_path)
   spec.platform_qt = QT_VERSION_STR;
   // The entry native is bound, not packaged: the descriptor records a value
   // computed from these bytes and the file stays where it is.
+  spec.signing_seed = BuildSigningSeed();
+  spec.build_id = Module::ModuleBuildId();
   spec.entry_native_name = "gf_mod_test";
   spec.entry_native_file = payload_path;
   spec.resources = {{"resources/note.txt", {}, QByteArray("a resource")}};
@@ -267,7 +270,7 @@ TEST_F(ModulePackageTest, AModifiedManifestFails) {
 
   const auto v = Module::VerifyModulePackage(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kBAD_SIGNATURE);
+  EXPECT_EQ(v.status, Module::ModulePackageStatus::kUNTRUSTED_BUILD_KEY);
 }
 
 TEST_F(ModulePackageTest, AModifiedSignatureFails) {
@@ -281,42 +284,84 @@ TEST_F(ModulePackageTest, AModifiedSignatureFails) {
 
   const auto v = Module::VerifyModulePackage(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kBAD_SIGNATURE);
+  EXPECT_EQ(v.status, Module::ModulePackageStatus::kUNTRUSTED_BUILD_KEY);
 }
 
-TEST_F(ModulePackageTest, AMismatchedBuildKeyFails) {
-  // A second build's key: a perfectly valid Ed25519 public key, and not the
-  // one that signed this manifest.
-  auto other = spec_;
-  other.output_path = Path("other.gfmodule");
-  const auto second = Module::BuildModulePackage(other);
-  ASSERT_TRUE(second.ok);
-  ASSERT_NE(second.build_public_key, public_key_);
-
-  const auto out = Path("wrongkey.gfmodule");
+TEST_F(ModulePackageTest, ADescriptorCarryingABuildKeyIsRefused) {
+  // The key used to travel inside the package, which established that the
+  // package agreed with itself and nothing else: anyone able to replace it
+  // could also mint a keypair, re-sign an altered manifest and ship the
+  // matching key. A descriptor still carrying one is not a descriptor with an
+  // extra file -- it is one from before the trust root moved into the Host.
+  const auto out = Path("carrieskey.gfmodule");
   ASSERT_TRUE(RepackWith(
-      Package(), out,
-      {{Module::kModulePackageBuildKeyPath, second.build_public_key}}));
+      Package(), out, {}, {},
+      {{Module::kModulePackageBuildKeyPath, QByteArray(32, '\x01')}}));
 
   const auto v = Module::VerifyModulePackage(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kBAD_SIGNATURE);
+  EXPECT_EQ(v.status, Module::ModulePackageStatus::kMALFORMED);
+  EXPECT_TRUE(v.reason.contains("trust root")) << v.reason.toStdString();
 }
 
-TEST_F(ModulePackageTest, AnUnexpectedBuildKeyFailsWhenOneIsExpected) {
-  // The seam publisher trust will use. With no expected key a package verifies
-  // on its own terms; with one that does not match, it does not. That is the
-  // whole of what a catalog would have to change.
+TEST_F(ModulePackageTest, ADescriptorIsVerifiedWithTheHostsOwnKey) {
+  // The default is not "no key" but "this Host's key". There is no longer a
+  // way to ask for a verification that passes on the descriptor's own terms.
   ASSERT_TRUE(Module::VerifyModulePackage(Package()).ok);
+  EXPECT_TRUE(
+      Module::VerifyModulePackage(Package(), Module::ModuleBuildPublicKey())
+          .ok);
 
-  QByteArray wrong(public_key_);
+  QByteArray wrong(Module::ModuleBuildPublicKey());
   wrong[0] = static_cast<char>(wrong[0] ^ 0xFF);
 
   const auto v = Module::VerifyModulePackage(Package(), wrong);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kBAD_SIGNATURE);
+  EXPECT_EQ(v.status, Module::ModulePackageStatus::kUNTRUSTED_BUILD_KEY);
+}
 
-  EXPECT_TRUE(Module::VerifyModulePackage(Package(), public_key_).ok);
+TEST_F(ModulePackageTest, ADescriptorFromAnotherBuildIsRefusedByBuildId) {
+  // Right key, wrong build: reachable only from the same tree, which is what
+  // makes it worth a separate status. "Not ours" and "ours, but from a
+  // different build" are different problems, and only the second is one a
+  // rebuild fixes.
+  auto spec = spec_;
+  spec.build_id = "gfb1-00000000000000000000000000000000";
+  spec.output_path = Path("otherbuild.gfmodule");
+  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+
+  const auto v = Module::VerifyModulePackage(spec.output_path);
+  EXPECT_FALSE(v.ok);
+  EXPECT_EQ(v.status, Module::ModulePackageStatus::kWRONG_BUILD);
+  EXPECT_TRUE(v.reason.contains(Module::ModuleBuildId()))
+      << v.reason.toStdString();
+}
+
+TEST_F(ModulePackageTest, TheBuilderRefusesASeedThatIsNotThisBuilds) {
+  // Structural, and the point of it: gf_module_tool links gf_core, so it
+  // carries the very trust root the Host does. A descriptor signed with some
+  // other key would be one no Host could load, so it cannot be produced at
+  // all rather than produced and discovered later.
+  auto spec = spec_;
+  spec.signing_seed = QByteArray(32, '\x07');
+  spec.output_path = Path("wrongseed.gfmodule");
+
+  const auto result = Module::BuildModulePackage(spec);
+  EXPECT_FALSE(result.ok);
+  EXPECT_TRUE(result.reason.contains("module-build key"))
+      << result.reason.toStdString();
+  EXPECT_FALSE(QFile::exists(spec.output_path))
+      << "nothing should have been written";
+}
+
+TEST_F(ModulePackageTest, TheBuilderRefusesAnEmptySeed) {
+  auto spec = spec_;
+  spec.signing_seed.clear();
+  spec.output_path = Path("noseed.gfmodule");
+
+  const auto result = Module::BuildModulePackage(spec);
+  EXPECT_FALSE(result.ok);
+  EXPECT_FALSE(QFile::exists(spec.output_path));
 }
 
 // ----------------------------------------------------------- file integrity
@@ -463,15 +508,16 @@ TEST_F(ModulePackageTest, AMissingFileIsRefused) {
 // --------------------------------------------------------------- key hygiene
 
 TEST_F(ModulePackageTest, NoPrivateKeyMaterialIsLeftAnywhere) {
-  // The signing key is generated per build and wiped before the builder
-  // returns; the public half travels in the package and nothing else does.
-  // What is assertable from outside is that the package carries exactly the
-  // three META-INF members, and that the build left nothing beside it.
+  // The signing key is the build's, derived from a seed that stays in the
+  // build tree; the expanded secret is wiped before the builder returns and
+  // neither half travels in the descriptor. What is assertable from outside is
+  // that the package carries exactly two META-INF members -- no key among
+  // them -- and that the build left nothing beside it.
   auto meta_members = ListMembers(Package()).filter(QString("META-INF/"));
   meta_members.sort();
-  EXPECT_EQ(meta_members, (QStringList{Module::kModulePackageBuildKeyPath,
-                                       Module::kModulePackageManifestPath,
-                                       Module::kModulePackageSignaturePath}));
+  EXPECT_EQ(meta_members, (QStringList{Module::kModulePackageManifestPath,
+                                       Module::kModulePackageSignaturePath}))
+      << "a descriptor carries a manifest and a signature, and nothing else";
 
   const auto stray =
       QDir(dir_.path())

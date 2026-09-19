@@ -38,6 +38,7 @@
 #include "core/ModuleTestPackages.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleEntryBinding.h"
+#include "core/module/ModuleTrustRoot.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleManager.h"
 #include "core/module/ModulePackageBuilder.h"
@@ -181,7 +182,8 @@ TEST(ModuleLoadInvariantsTest, APackageCannotClaimAnIdentityItsBinaryDenies) {
   spec.events = {};
   spec.translation_context = "ModuleImpostor";
   spec.metadata = {{"Name", "Impostor"}};
-  spec.build_id = "test-build";
+  spec.signing_seed = BuildSigningSeed();
+  spec.build_id = Module::ModuleBuildId();
   spec.build_timestamp = "2026-09-15T00:00:00Z";
   spec.build_source_commit = QString(40, '0');
   spec.platform_arch = QSysInfo::currentCpuArchitecture();

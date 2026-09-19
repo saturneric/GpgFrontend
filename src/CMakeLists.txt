@@ -41,6 +41,28 @@ find_package(Sodium REQUIRED)
 
 # add libraries
 include(${CMAKE_SOURCE_DIR}/cmake/LibraryRegistry.cmake)
+# Before core, because core compiles what it produces. See its CMakeLists.
+add_subdirectory(tools/module_keygen)
+
+# The module-build trust root, generated before core compiles it.
+#
+# The command is NOT marked as always-out-of-date: gf_module_keygen rewrites
+# the source only when the key or the build id actually changed, so a rebuild
+# does not relink the world. What it will do is refuse, loudly, if the seed and
+# the already-generated trust root have fallen out of step -- see its Decide().
+add_custom_command(
+  OUTPUT "${GF_MODULE_TRUST_ROOT_SOURCE}"
+  COMMAND gf_module_keygen
+    --key-dir "${GF_MODULE_BUILD_KEY_DIR}"
+    --source-out "${GF_MODULE_TRUST_ROOT_SOURCE}"
+    --build-id "${GPGFRONTEND_BUILD_ID}"
+  DEPENDS gf_module_keygen
+  COMMENT "Module-build key for ${GPGFRONTEND_BUILD_ID}"
+  VERBATIM)
+
+add_custom_target(gf_module_trust_root
+  DEPENDS "${GF_MODULE_TRUST_ROOT_SOURCE}")
+
 add_subdirectory(core)
 add_subdirectory(ui)
 add_subdirectory(sdk)

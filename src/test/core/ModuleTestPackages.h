@@ -30,6 +30,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QFile>
 #include <QFileInfoList>
 
 /**
@@ -64,6 +65,25 @@ inline auto LargestBuiltModulePackage() -> QString {
     if (info.size() > largest->size()) largest = &info;
   }
   return largest->absoluteFilePath();
+}
+
+/// The seed this build signs module descriptors with.
+///
+/// Tests use the real one rather than a key of their own, and they have no
+/// choice: BuildModulePackage() refuses a seed that does not derive the public
+/// key compiled into gf_core, precisely so a descriptor the Host could not
+/// load cannot be produced. That makes every packaging test exercise the
+/// signing path a build actually takes.
+///
+/// It lives beside the build tree, not inside the artifacts directory, because
+/// nothing that stages or installs artifacts should be able to sweep it up.
+inline auto BuildSigningSeed() -> QByteArray {
+  const QDir artifacts(QCoreApplication::applicationDirPath());
+  QFile seed(artifacts.absoluteFilePath("../.module-build-key/module-build.seed"));
+  if (!seed.open(QIODevice::ReadOnly)) return {};
+  const auto bytes = seed.readAll();
+  seed.close();
+  return bytes;
 }
 
 }  // namespace GpgFrontend::Test
