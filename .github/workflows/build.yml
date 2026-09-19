@@ -507,8 +507,12 @@ jobs:
         run: |
           set -euo pipefail
           MODULE_ROOT="${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules"
+          # Where CMake actually put the host tools. Read, not assumed: the
+          # answer differs per platform (Windows has no rpath, so a tool has to
+          # sit beside its DLLs) and guessing it was wrong twice.
+          PACKAGER="$(cat ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
 
-          ${{github.workspace}}/build/artifacts/tools/gf_module_packager reseal \
+          "$PACKAGER" reseal \
             --namespace-root "$MODULE_ROOT" \
             --signing-seed ${{github.workspace}}/build/.module-build-key/module-build.seed \
             --expect-count 4
@@ -517,7 +521,7 @@ jobs:
           # descriptor verifies under the Host's own embedded key, sits in the
           # namespace its signed identity derives, and binds the native that is
           # actually there. NOTHING may touch a module native after this point.
-          ${{github.workspace}}/build/artifacts/tools/gf_module_packager verify-module-set \
+          "$PACKAGER" verify-module-set \
             --namespace-root "$MODULE_ROOT" \
             --expect-count 4 \
             --assert-no-native-outside ${{github.workspace}}/build/artifacts/AppDir
@@ -540,7 +544,7 @@ jobs:
           set -euo pipefail
           ${{github.workspace}}/scripts/audit_module_natives.sh \
             --namespace-root ${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules \
-            --packager ${{github.workspace}}/build/artifacts/tools/gf_module_packager \
+            --packager "$(cat ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager" \
             --qt-relative ../../../.. \
             --expect-count 4
         if: runner.os == 'Linux'
@@ -738,7 +742,7 @@ jobs:
           set -euo pipefail
           cd $(cygpath -u "${{github.workspace}}")
           MODULE_ROOT="build/artifacts/modules"
-          PACKAGER="build/artifacts/tools/gf_module_packager.exe"
+          PACKAGER="$(cat build/artifacts/host-tool-dir.txt)/gf_module_packager.exe"
 
           # windeployqt does not rewrite module DLLs, so these descriptors are
           # very likely still accurate. Resealing anyway costs a second and
@@ -780,7 +784,8 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $root = "${{github.workspace}}/build/artifacts/modules"
-          $packager = "${{github.workspace}}/build/artifacts/tools/gf_module_packager.exe"
+          $toolDir = (Get-Content "${{github.workspace}}/build/artifacts/host-tool-dir.txt" -Raw).Trim()
+          $packager = Join-Path $toolDir 'gf_module_packager.exe'
 
           # A scratch copy of the whole tree, so a failure here cannot damage
           # what is about to ship.
@@ -818,6 +823,98 @@ jobs:
 
           Remove-Item -Recurse -Force $scratch
           Remove-Item -Force ("Cert:\CurrentUser\My\" + $cert.Thumbprint)
+        if: runner.os == 'Windows'
+
+      # The build record: what this leg produced, for the provenance job to
+      # attest to. NOT a trust input -- nothing at runtime reads it, and the
+      # Host's module trust root does not depend on a single field in it.
+      #
+      # The split between `product` and `ci` is the point. The product build id
+      # is derived from the product configuration alone -- repository, commit,
+      # ref, os, arch, flavour, build type, SDK ABI, Qt -- so two runs of the
+      # same commit produce the same id, and a descriptor signed by one build
+      # is refused by another only when the PRODUCT differs. CI execution
+      # identity (run id, attempt, actor) is real and worth recording, and is
+      # confined to `ci` so it can never leak into what the runtime compares.
+      - name: Write Build Record (Linux/Windows)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "${{github.workspace}}"
+
+          # One path on every platform: host tools go to artifacts/tools/,
+          # which does not move with the application's layout.
+          PACKAGER="$(cat build/artifacts/host-tool-dir.txt)/gf_module_packager${{ runner.os == 'Windows' && '.exe' || '' }}"
+          BINDINGS=$("$PACKAGER" verify-module-set \
+            --namespace-root "${{ runner.os == 'Windows' && 'build/artifacts/modules' || 'build/artifacts/AppDir/usr/lib/gpgfrontend/modules' }}" \
+            --print-bindings \
+            | sed -n 's/^binding //p' \
+            | jq -R 'split(" ") | {module: .[0], mode: .[1], value: .[2]}' \
+            | jq -s .)
+
+          jq -n \
+            --arg build_id "$(cat build/.module-build-key/build-id)" \
+            --arg commit "${{ github.sha }}" \
+            --arg ref "${{ github.ref }}" \
+            --arg os "${{ matrix.os }}" \
+            --arg flavor "${{ matrix.flavor }}" \
+            --arg build_type "${{ env.BUILD_TYPE }}" \
+            --arg run_id "${{ github.run_id }}" \
+            --arg run_attempt "${{ github.run_attempt }}" \
+            --arg actor "${{ github.actor }}" \
+            --arg workflow_ref "${{ github.workflow_ref }}" \
+            --argjson bindings "$BINDINGS" \
+            '{
+              schema: 1,
+              artifact_stage: "unsigned",
+              product: {
+                build_id: $build_id,
+                repository: "${{ github.repository }}",
+                source_commit: $commit,
+                ref: $ref,
+                build_type: $build_type
+              },
+              leg: { os: $os, flavor: $flavor },
+              modules: $bindings,
+              ci: {
+                run_id: $run_id,
+                run_attempt: $run_attempt,
+                actor: $actor,
+                workflow_ref: $workflow_ref
+              }
+            }' > "build/upload-artifact/build-record-${{ matrix.os }}-${{ matrix.flavor }}.json"
+
+          cat "build/upload-artifact/build-record-${{ matrix.os }}-${{ matrix.flavor }}.json"
+        if: runner.os == 'Linux' || runner.os == 'Windows'
+
+      # The host tools have done their last job. They must not ship.
+      #
+      # On Windows they live in artifacts/bin -- they have to, because Windows
+      # resolves a DLL from the executable's own directory and nowhere useful
+      # else -- and artifacts/ is exactly what the portable ZIP zips and what
+      # the MSI harvests (`<Files Include="$(PayloadDir)\**" />`). So both
+      # packages have been shipping gf_module_packager.exe and, more to the
+      # point, gf_module_keygen.exe. Neither is any use to a user and the
+      # second one invites a question with an alarming-sounding answer.
+      #
+      # Every step that needs them has run by now: reseal, the audit, the
+      # Authenticode gate and the build record are all above this line.
+      - name: Remove Host Build Tools (Windows)
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          cd $(cygpath -u "${{github.workspace}}")
+          TOOL_DIR="$(cat build/artifacts/host-tool-dir.txt)"
+          rm -f "$TOOL_DIR/gf_module_packager.exe" "$TOOL_DIR/gf_module_keygen.exe"
+
+          # Stated as a check rather than assumed: this is the last chance to
+          # notice, and a stray build tool in a signed installer is the kind of
+          # thing found by a user rather than by us.
+          if find build/artifacts -name 'gf_module_*' -print | grep -q .; then
+            echo "host build tools are still in the payload:" >&2
+            find build/artifacts -name 'gf_module_*' -print >&2
+            exit 1
+          fi
         if: runner.os == 'Windows'
 
       - name: Package Portable Archive (Windows)
@@ -865,70 +962,6 @@ jobs:
         # An MSI installs into Program Files and keeps its data in the user
         # profile, so it is only ever built from the installed flavour.
         if: runner.os == 'Windows' && matrix.flavor == 'installed'
-
-
-      # The build record: what this leg produced, for the provenance job to
-      # attest to. NOT a trust input -- nothing at runtime reads it, and the
-      # Host's module trust root does not depend on a single field in it.
-      #
-      # The split between `product` and `ci` is the point. The product build id
-      # is derived from the product configuration alone -- repository, commit,
-      # ref, os, arch, flavour, build type, SDK ABI, Qt -- so two runs of the
-      # same commit produce the same id, and a descriptor signed by one build
-      # is refused by another only when the PRODUCT differs. CI execution
-      # identity (run id, attempt, actor) is real and worth recording, and is
-      # confined to `ci` so it can never leak into what the runtime compares.
-      - name: Write Build Record (Linux/Windows)
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd "${{github.workspace}}"
-
-          # One path on every platform: host tools go to artifacts/tools/,
-          # which does not move with the application's layout.
-          PACKAGER="build/artifacts/tools/gf_module_packager${{ runner.os == 'Windows' && '.exe' || '' }}"
-          BINDINGS=$("$PACKAGER" verify-module-set \
-            --namespace-root "${{ runner.os == 'Windows' && 'build/artifacts/modules' || 'build/artifacts/AppDir/usr/lib/gpgfrontend/modules' }}" \
-            --print-bindings \
-            | sed -n 's/^binding //p' \
-            | jq -R 'split(" ") | {module: .[0], mode: .[1], value: .[2]}' \
-            | jq -s .)
-
-          jq -n \
-            --arg build_id "$(cat build/.module-build-key/build-id)" \
-            --arg commit "${{ github.sha }}" \
-            --arg ref "${{ github.ref }}" \
-            --arg os "${{ matrix.os }}" \
-            --arg flavor "${{ matrix.flavor }}" \
-            --arg build_type "${{ env.BUILD_TYPE }}" \
-            --arg run_id "${{ github.run_id }}" \
-            --arg run_attempt "${{ github.run_attempt }}" \
-            --arg actor "${{ github.actor }}" \
-            --arg workflow_ref "${{ github.workflow_ref }}" \
-            --argjson bindings "$BINDINGS" \
-            '{
-              schema: 1,
-              artifact_stage: "unsigned",
-              product: {
-                build_id: $build_id,
-                repository: "${{ github.repository }}",
-                source_commit: $commit,
-                ref: $ref,
-                build_type: $build_type
-              },
-              leg: { os: $os, flavor: $flavor },
-              modules: $bindings,
-              ci: {
-                run_id: $run_id,
-                run_attempt: $run_attempt,
-                actor: $actor,
-                workflow_ref: $workflow_ref
-              }
-            }' > "build/upload-artifact/build-record-${{ matrix.os }}-${{ matrix.flavor }}.json"
-
-          cat "build/upload-artifact/build-record-${{ matrix.os }}-${{ matrix.flavor }}.json"
-        if: runner.os == 'Linux' || runner.os == 'Windows'
-
       - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -1153,7 +1186,7 @@ jobs:
 
           "${{github.workspace}}/scripts/audit_module_natives.sh" \
             --namespace-root "$MODULE_ROOT" \
-            --packager "${{github.workspace}}/build/artifacts/tools/gf_module_packager" \
+            --packager "$(cat ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager" \
             --expect-count 4
 
           echo "--- GpgFrontend binding sections ---"
@@ -1234,7 +1267,8 @@ jobs:
           set -euo pipefail
           cd "${{github.workspace}}"
 
-          BINDINGS=$(./build/artifacts/tools/gf_module_packager verify-module-set \
+          PACKAGER="$(cat build/artifacts/host-tool-dir.txt)/gf_module_packager"
+          BINDINGS=$("$PACKAGER" verify-module-set \
             --namespace-root build/artifacts/modules \
             --print-bindings \
             | sed -n 's/^binding //p' \

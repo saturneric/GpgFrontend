@@ -569,8 +569,25 @@ endif()
 #
 # One fixed path instead. These are host tools: they run on the machine doing
 # the build, and where the application's files go is none of their business.
-set(GPGFRONTEND_HOST_TOOL_DIR "${CMAKE_BINARY_DIR}/artifacts/tools")
+#
+# Windows is the exception, and not by preference. gf_module_packager links
+# gf_core, and Windows has no rpath: a DLL is found in the executable's own
+# directory or on PATH, and nothing else. A tool in its own directory simply
+# cannot start -- `0xc0000135`, STATUS_DLL_NOT_FOUND, from a ninja edge that
+# says nothing about which DLL. ELF and Mach-O both carry a build rpath, so
+# everywhere else the tools can live wherever is tidiest.
+if(MINGW)
+  set(GPGFRONTEND_HOST_TOOL_DIR "${CMAKE_BINARY_DIR}/artifacts/bin")
+else()
+  set(GPGFRONTEND_HOST_TOOL_DIR "${CMAKE_BINARY_DIR}/artifacts/tools")
+endif()
 message(STATUS "Host build tools: ${GPGFRONTEND_HOST_TOOL_DIR}")
+
+# Published so nothing downstream has to re-derive it. The CI steps that run
+# these tools read this file instead of knowing which platform puts them
+# where, which is the knowledge that was wrong twice in two runs.
+file(WRITE "${CMAKE_BINARY_DIR}/artifacts/host-tool-dir.txt"
+  "${GPGFRONTEND_HOST_TOOL_DIR}\n")
 
 # Put a target's output exactly where it is told, on every generator.
 #
@@ -585,14 +602,20 @@ message(STATUS "Host build tools: ${GPGFRONTEND_HOST_TOOL_DIR}")
 # Single-config generators leave CMAKE_CONFIGURATION_TYPES empty and the loop
 # does nothing, so this is free on Ninja and Makefiles.
 function(gf_pin_output_directory target dir)
+  # ARCHIVE as well as RUNTIME and LIBRARY. On MinGW the import library
+  # (`*.dll.a`) is an ARCHIVE output, so leaving it unpinned scattered import
+  # libraries into the old flat `artifacts/bin/modules/` while the DLLs went to
+  # their namespaces -- files nothing cleans up and nothing needs.
   set_target_properties(${target} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${dir}"
-    LIBRARY_OUTPUT_DIRECTORY "${dir}")
+    LIBRARY_OUTPUT_DIRECTORY "${dir}"
+    ARCHIVE_OUTPUT_DIRECTORY "${dir}")
   foreach(config IN LISTS CMAKE_CONFIGURATION_TYPES)
     string(TOUPPER "${config}" config_upper)
     set_target_properties(${target} PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY_${config_upper} "${dir}"
-      LIBRARY_OUTPUT_DIRECTORY_${config_upper} "${dir}")
+      LIBRARY_OUTPUT_DIRECTORY_${config_upper} "${dir}"
+      ARCHIVE_OUTPUT_DIRECTORY_${config_upper} "${dir}")
   endforeach()
 endfunction()
 
