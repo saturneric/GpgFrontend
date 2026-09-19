@@ -128,65 +128,86 @@ auto GF_CORE_EXPORT VerifyModulePackage(
     const QString& package_path, const QByteArray& expected_public_key = {})
     -> ModulePackageVerification;
 
-/**
- * @brief Re-check an already-extracted package, in place.
- *
- * The same three questions as VerifyModulePackage(), asked of a directory
- * instead of an archive: does the manifest match its signature, does every
- * declared file still hash to what the manifest says, and is there anything
- * present that the manifest does not cover.
- *
- * This is what makes an installed module's immutability *enforceable* rather
- * than merely asserted. Marking the files read-only after install is advisory
- * -- on a machine the user owns, the user can always write to their own files
- * -- so the property that actually holds is that a change is **detected before
- * the module is loaded**, not that it was prevented.
- *
- * `META-INF` members are excluded from the undeclared-file check exactly as
- * they are for a package, and anything the store adds outside the extracted
- * tree is not its business.
- *
- * @param directory an extracted package root
- * @param expected_public_key when non-empty, the key the tree MUST carry
- * @return the verdict, with the manifest filled in only when it verified
- */
-auto GF_CORE_EXPORT VerifyExtractedModuleTree(
-    const QString& directory, const QByteArray& expected_public_key = {})
-    -> ModulePackageVerification;
+struct ModulePackageImage;
 
 /**
- * @brief What verifying and unpacking a package produced.
+ * @brief A native module image that verification has already vouched for.
+ *
+ * The point of the type is that it cannot be forged by accident. Only
+ * ReadVerifiedModuleImage() can produce a non-empty one, so a `QByteArray` that
+ * came from anywhere else -- a file someone read, a download, a test fixture --
+ * has no way to reach the loader. Materialisation takes this and nothing else,
+ * which is what makes "no unverified byte reaches the native loader" a property
+ * of the types rather than a rule someone has to remember.
+ *
+ * The bytes are ordinary memory. A native library is not a secret, and the
+ * secure tier is locked, guarded pages whose budget one module image would
+ * exhaust by itself.
  */
-struct GF_CORE_EXPORT ModulePackageUnpack {
-  bool ok = false;
-  QString reason;
-  ModulePackageStatus status = ModulePackageStatus::kOK;
+class GF_CORE_EXPORT VerifiedModuleImage {
+ public:
+  /// An empty image, which nothing will load.
+  VerifiedModuleImage() = default;
 
-  /// The extracted module binary, ready to be handed to the loader.
-  QString library_path;
+  [[nodiscard]] auto IsValid() const -> bool {
+    return !library_name_.isEmpty() && !bytes_.isEmpty();
+  }
 
-  ModuleManifest manifest;
+  /// The library's name as the signed manifest spells it.
+  [[nodiscard]] auto LibraryName() const -> QString { return library_name_; }
+
+  [[nodiscard]] auto Bytes() const -> const QByteArray& { return bytes_; }
+
+  [[nodiscard]] auto Size() const -> qint64 {
+    return static_cast<qint64>(bytes_.size());
+  }
+
+ private:
+  friend auto ReadVerifiedModuleImage(const QString&, const QByteArray&)
+      -> ModulePackageImage;
+
+  VerifiedModuleImage(QString library_name, QByteArray bytes)
+      : library_name_(std::move(library_name)), bytes_(std::move(bytes)) {}
+
+  QString library_name_;
+  QByteArray bytes_;
 };
 
 /**
- * @brief Verify a package, and only then unpack it.
- *
- * The ordering is the point, and it is why this is one function rather than
- * two calls a caller has to remember to make in order: nothing is extracted
- * until the whole package has been judged, so a package that fails leaves
- * @p destination exactly as it found it and there is no binary anywhere for
- * anything to map. On failure @c library_path is empty.
- *
- * Extraction is to a directory the caller owns and must keep alive: the
- * returned path points into it, and the library stays mapped from there until
- * the module is unloaded.
- *
- * @param package_path the `*.gfmodule` to open
- * @param destination an existing empty directory to unpack into
- * @return the verdict, and where the module binary landed on success
+ * @brief What reading a package concluded, and the image if it concluded yes.
  */
-auto GF_CORE_EXPORT UnpackVerifiedModulePackage(const QString& package_path,
-                                                const QString& destination)
-    -> ModulePackageUnpack;
+struct GF_CORE_EXPORT ModulePackageImage {
+  bool ok = false;
+  ModulePackageStatus status = ModulePackageStatus::kOK;
+  QString reason;
+
+  ModuleManifest manifest;
+  QString package_sha256;
+  QByteArray build_public_key;
+
+  /// Empty unless @c ok. Never populated on any refusal path.
+  VerifiedModuleImage image;
+};
+
+/**
+ * @brief Verify a package and keep its library, without writing anything.
+ *
+ * The same verification as VerifyModulePackage(), which this is the whole of:
+ * every entry is diverted, so no byte of an unverified package reaches a
+ * filesystem. The difference is that the one `bin/` entry is *retained* rather
+ * than hashed and dropped, which is what lets a module be loaded from a package
+ * without the package ever being extracted, installed or cached.
+ *
+ * The ordering is the safety property and is why this is one function: the
+ * image is attached only after ConcludeVerification() has passed, so a package
+ * that fails yields nothing that anything could map.
+ *
+ * @param package_path the `*.gfmodule` to read
+ * @param expected_public_key when non-empty, the key the package MUST carry
+ * @return the verdict, with the manifest and image filled in only on success
+ */
+auto GF_CORE_EXPORT ReadVerifiedModuleImage(
+    const QString& package_path, const QByteArray& expected_public_key = {})
+    -> ModulePackageImage;
 
 }  // namespace GpgFrontend::Module

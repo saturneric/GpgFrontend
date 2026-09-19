@@ -268,8 +268,42 @@ auto ModulePackageStatusToString(ModulePackageStatus s) -> const char* {
   return "unknown";
 }
 
-auto VerifyModulePackage(const QString& package_path,
-                         const QByteArray& expected_public_key)
+namespace {
+
+/// The one `bin/` entry a package is allowed to carry.
+///
+/// The manifest has already been checked against what the package actually
+/// holds, so this picks the binary out of a list known to be both complete and
+/// accurate. More than one, or none, is a malformed package rather than a
+/// choice to make.
+auto SoleLibraryEntry(const ModuleManifest& manifest, QString& out_path,
+                      QString& out_reason) -> bool {
+  QString found;
+  for (const auto& file : manifest.files) {
+    if (!file.path.startsWith("bin/")) continue;
+    if (!found.isEmpty()) {
+      out_reason = "it carries more than one module binary";
+      return false;
+    }
+    found = file.path;
+  }
+  if (found.isEmpty()) {
+    out_reason = "it carries no module binary";
+    return false;
+  }
+  out_path = found;
+  return true;
+}
+
+/// Verify a package, optionally keeping its library.
+///
+/// One walk serves both entry points. Every entry is diverted whether or not
+/// the caller wants the bytes, because that -- not the retention -- is the
+/// safety property: no byte of an unverified package reaches a filesystem, so
+/// there is nothing for a later step to accidentally execute.
+auto ReadPackage(const QString& package_path,
+                 const QByteArray& expected_public_key, bool retain_image,
+                 QString& out_library_name, QByteArray& out_library_bytes)
     -> ModulePackageVerification {
   if (!EnsureSodiumInit()) {
     return Refuse(ModulePackageStatus::kIO_FAILED,
@@ -324,9 +358,12 @@ auto VerifyModulePackage(const QString& package_path,
   int public_key_count = 0;
 
   // Path -> digest of what the package actually holds. Filled as the walk
-  // streams, so no entry is kept beyond the moment it is hashed.
+  // streams, so no entry is kept beyond the moment it is hashed -- except the
+  // single binary a retaining caller asked for.
   QMap<QString, QString> actual_digests;
   bool hash_failed = false;
+
+  QMap<QString, QByteArray> kept;
 
   QString reason;
   const auto error = ArchiveFileOperator::ExtractArchiveFromFileSync(
@@ -334,35 +371,44 @@ auto VerifyModulePackage(const QString& package_path,
       // Claim every entry. This is the whole safety property of this
       // function: no byte of an unverified package ever reaches a filesystem,
       // so there is nothing for a later step to accidentally execute.
-      [](const QString&) { return true; },
-      [&](const QString& path, const GFBuffer& bytes) {
+      [](const QString&) { return true; }, {},
+      // The ordinary-memory sink. A native module image is tens of megabytes
+      // and is not a secret; the secure tier is locked, guarded pages whose
+      // budget one such image would exhaust on its own.
+      [&](const QString& path, const QByteArray& bytes) {
         if (path == kModulePackageManifestPath) {
           ++manifest_count;
-          manifest_bytes = bytes.ConvertToQByteArray();
+          manifest_bytes = bytes;
           return true;
         }
         if (path == kModulePackageSignaturePath) {
           ++signature_count;
-          signature_bytes = bytes.ConvertToQByteArray();
+          signature_bytes = bytes;
           return true;
         }
         if (path == kModulePackageBuildKeyPath) {
           ++public_key_count;
-          public_key_bytes = bytes.ConvertToQByteArray();
+          public_key_bytes = bytes;
           return true;
         }
 
         ModuleLoadStats::GetInstance().AddHashedBytes(
-            static_cast<qint64>(bytes.Size()));
+            static_cast<qint64>(bytes.size()));
         auto digest = GFBufferFactory::ToSha256(
             [&bytes](const GFBufferFactory::Sha256Chunk& chunk) {
-              chunk(bytes.Data(), bytes.Size());
+              chunk(bytes.constData(), static_cast<size_t>(bytes.size()));
             });
         if (!digest) {
           hash_failed = true;
           return false;
         }
         actual_digests.insert(path, ToHex(*digest));
+
+        // Held, not copied: QByteArray shares its storage, so this is a
+        // reference count rather than another forty-eight megabytes. It is
+        // still nothing anyone may use until ConcludeVerification() has
+        // passed, which is enforced below by discarding it on every refusal.
+        if (retain_image && path.startsWith("bin/")) kept.insert(path, bytes);
         return true;
       },
       &reason);
@@ -385,138 +431,57 @@ auto VerifyModulePackage(const QString& package_path,
   if (!conclusion.ok) return conclusion;
 
   conclusion.package_sha256 = package_sha256;
+
+  if (retain_image) {
+    QString binary;
+    QString why;
+    if (!SoleLibraryEntry(conclusion.manifest, binary, why)) {
+      return Refuse(ModulePackageStatus::kMALFORMED, why);
+    }
+    const auto it = kept.constFind(binary);
+    if (it == kept.constEnd()) {
+      // ConcludeVerification() already requires that every declared file was
+      // present, so this cannot happen without the two disagreeing.
+      return Refuse(ModulePackageStatus::kMALFORMED,
+                    "its module binary was not where the manifest said");
+    }
+    out_library_name = binary.mid(QString("bin/").size());
+    out_library_bytes = *it;
+  }
+
   return conclusion;
 }
 
-auto VerifyExtractedModuleTree(const QString& directory,
-                               const QByteArray& expected_public_key)
+}  // namespace
+
+auto VerifyModulePackage(const QString& package_path,
+                         const QByteArray& expected_public_key)
     -> ModulePackageVerification {
-  if (!EnsureSodiumInit()) {
-    return Refuse(ModulePackageStatus::kIO_FAILED,
-                  "the cryptography library could not be started");
-  }
-
-  const QDir root(directory);
-  if (!root.exists()) {
-    return Refuse(ModulePackageStatus::kNOT_INSTALLED,
-                  "this module is not installed");
-  }
-
-  const auto read_whole = [](const QString& path, QByteArray& out) -> bool {
-    QFile f(path);
-    if (!f.open(QIODevice::ReadOnly)) return false;
-    out = f.readAll();
-    return true;
-  };
-
-  QByteArray manifest_bytes;
-  QByteArray signature_bytes;
-  QByteArray public_key_bytes;
-  std::array<int, 3> counts{0, 0, 0};
-  if (read_whole(root.filePath(kModulePackageManifestPath), manifest_bytes)) {
-    counts[0] = 1;
-  }
-  if (read_whole(root.filePath(kModulePackageSignaturePath), signature_bytes)) {
-    counts[1] = 1;
-  }
-  if (read_whole(root.filePath(kModulePackageBuildKeyPath), public_key_bytes)) {
-    counts[2] = 1;
-  }
-
-  // Every regular file under the tree except the three META-INF members, so
-  // the undeclared-file rule holds here too: something dropped into an
-  // installed module is a file nothing vouches for, exactly as it would be
-  // inside the package.
-  QMap<QString, QString> actual_digests;
-  QDirIterator it(directory, QDir::Files | QDir::NoSymLinks,
-                  QDirIterator::Subdirectories);
-  while (it.hasNext()) {
-    const auto absolute = it.next();
-    const auto relative = root.relativeFilePath(absolute);
-    if (relative == kModulePackageManifestPath ||
-        relative == kModulePackageSignaturePath ||
-        relative == kModulePackageBuildKeyPath) {
-      continue;
-    }
-
-    QFile file(absolute);
-    if (!file.open(QIODevice::ReadOnly)) {
-      return Refuse(ModulePackageStatus::kIO_FAILED,
-                    QString("\"%1\" could not be read").arg(relative));
-    }
-    ModuleLoadStats::GetInstance().AddHashedBytes(file.size());
-    auto digest = GFBufferFactory::ToSha256(
-        [&file](const GFBufferFactory::Sha256Chunk& chunk) {
-          QByteArray buf(64 * 1024, Qt::Uninitialized);
-          while (true) {
-            const auto n = file.read(buf.data(), buf.size());
-            if (n <= 0) break;
-            chunk(buf.constData(), static_cast<size_t>(n));
-          }
-        });
-    if (!digest) {
-      return Refuse(ModulePackageStatus::kIO_FAILED,
-                    QString("\"%1\" could not be read").arg(relative));
-    }
-    actual_digests.insert(relative, ToHex(*digest));
-  }
-
-  return ConcludeVerification(manifest_bytes, signature_bytes, public_key_bytes,
-                              counts, actual_digests, expected_public_key);
+  QString unused_name;
+  QByteArray unused_bytes;
+  return ReadPackage(package_path, expected_public_key, false, unused_name,
+                     unused_bytes);
 }
 
-auto UnpackVerifiedModulePackage(const QString& package_path,
-                                 const QString& destination)
-    -> ModulePackageUnpack {
-  ModulePackageUnpack result;
+auto ReadVerifiedModuleImage(const QString& package_path,
+                             const QByteArray& expected_public_key)
+    -> ModulePackageImage {
+  QString library_name;
+  QByteArray library_bytes;
+  const auto verdict = ReadPackage(package_path, expected_public_key, true,
+                                   library_name, library_bytes);
 
-  const auto verification = VerifyModulePackage(package_path);
-  if (!verification.ok) {
-    result.ok = false;
-    result.status = verification.status;
-    result.reason = verification.reason;
-    return result;
-  }
+  ModulePackageImage result;
+  result.ok = verdict.ok;
+  result.status = verdict.status;
+  result.reason = verdict.reason;
+  if (!verdict.ok) return result;
 
-  // Only now. Everything above read the package into memory and wrote nothing,
-  // so up to this line there is no file anywhere for anything to execute.
-  QString reason;
-  const auto error = ArchiveFileOperator::ExtractArchiveFromFileSync(
-      package_path, destination, ArchiveExtractPolicy::Strict(-1, -1), {}, {},
-      &reason);
-  if (error != 0) {
-    result.ok = false;
-    result.status = ModulePackageStatus::kIO_FAILED;
-    result.reason =
-        reason.isEmpty() ? QString("it could not be unpacked") : reason;
-    return result;
-  }
-
-  // The manifest names what the package carries and has already been checked
-  // against what it actually holds, so this picks the binary out of a list
-  // that is known to be both complete and accurate.
-  QString binary;
-  for (const auto& file : verification.manifest.files) {
-    if (!file.path.startsWith("bin/")) continue;
-    if (!binary.isEmpty()) {
-      result.ok = false;
-      result.status = ModulePackageStatus::kMALFORMED;
-      result.reason = "it carries more than one module binary";
-      return result;
-    }
-    binary = file.path;
-  }
-  if (binary.isEmpty()) {
-    result.ok = false;
-    result.status = ModulePackageStatus::kMALFORMED;
-    result.reason = "it carries no module binary";
-    return result;
-  }
-
-  result.ok = true;
-  result.status = ModulePackageStatus::kOK;
-  result.library_path = destination + "/" + binary;
-  result.manifest = verification.manifest;
+  result.manifest = verdict.manifest;
+  result.package_sha256 = verdict.package_sha256;
+  result.build_public_key = verdict.build_public_key;
+  result.image =
+      VerifiedModuleImage(std::move(library_name), std::move(library_bytes));
   return result;
 }
 
