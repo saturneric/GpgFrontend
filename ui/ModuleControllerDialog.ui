@@ -272,96 +272,7 @@
                     </widget>
                    </item>
                    <item>
-                    <layout class="QFormLayout" name="detailFormLayout">
-                     <item row="0" column="0">
-                      <widget class="QLabel" name="idKeyLabel">
-                       <property name="text">
-                        <string>ID</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="1">
-                      <widget class="QLabel" name="idValueLabel">
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="textInteractionFlags">
-                        <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="0">
-                      <widget class="QLabel" name="sdkKeyLabel">
-                       <property name="text">
-                        <string>SDK Version</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="1">
-                      <widget class="QLabel" name="sdkValueLabel">
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="textInteractionFlags">
-                        <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="2" column="0">
-                      <widget class="QLabel" name="qtKeyLabel">
-                       <property name="text">
-                        <string>Qt ENV Version</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="2" column="1">
-                      <widget class="QLabel" name="qtValueLabel">
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="textInteractionFlags">
-                        <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="3" column="0">
-                      <widget class="QLabel" name="hashKeyLabel">
-                       <property name="text">
-                        <string>Hash</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="3" column="1">
-                      <widget class="QLabel" name="hashValueLabel">
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="textInteractionFlags">
-                        <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="4" column="0">
-                      <widget class="QLabel" name="pathKeyLabel">
-                       <property name="text">
-                        <string>Path</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="4" column="1">
-                      <widget class="QLabel" name="pathValueLabel">
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="wordWrap">
-                        <bool>true</bool>
-                       </property>
-                       <property name="openExternalLinks">
-                        <bool>false</bool>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
+                    <widget class="GpgFrontend::UI::MetaListPanel" name="detailMetaPanel" native="true"/>
                    </item>
                    <item>
                     <widget class="QGroupBox" name="listeningEventsGroup">
@@ -581,6 +492,12 @@
    <class>GpgFrontend::UI::GRTTreeView</class>
    <extends>QTreeView</extends>
    <header>ui/widgets/GRTTreeView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>GpgFrontend::UI::MetaListPanel</class>
+   <extends>QWidget</extends>
+   <header>ui/widgets/MetaListPanel.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
