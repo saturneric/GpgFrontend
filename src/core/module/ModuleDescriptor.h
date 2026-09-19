@@ -33,7 +33,9 @@
 
 namespace GpgFrontend::Module {
 
-/// The extension a module package carries.
+/// The extension a module descriptor carries. Deliberately unchanged: the
+/// name is user-visible, and renaming it would break every existing file for
+/// the sake of an internal vocabulary change.
 constexpr auto kModulePackageSuffix = ".gfmodule";
 
 /// The descriptor's filename inside a module namespace. Fixed, not derived:
@@ -41,7 +43,7 @@ constexpr auto kModulePackageSuffix = ".gfmodule";
 /// its SDK prefix, and reconciling the two was a source of real bugs.
 constexpr auto kModuleDescriptorFileName = "module.gfmodule";
 
-/// Where the signed metadata lives inside the package.
+/// Where the signed metadata lives inside the descriptor.
 constexpr auto kModuleDescriptorManifestPath = "META-INF/manifest.json";
 constexpr auto kModuleDescriptorSignaturePath = "META-INF/manifest.sig";
 /// Where the build key USED to live. Retained only so a descriptor that still
@@ -49,7 +51,7 @@ constexpr auto kModuleDescriptorSignaturePath = "META-INF/manifest.sig";
 constexpr auto kModuleDescriptorBuildKeyPath = "META-INF/build-key.pub";
 
 /**
- * @brief Why a package was refused.
+ * @brief Why a descriptor was refused.
  *
  * Mirrors ProfilePackageReadStatus rather than inventing a second vocabulary
  * for the same job: a caller that already knows how to turn one of those into
@@ -57,18 +59,22 @@ constexpr auto kModuleDescriptorBuildKeyPath = "META-INF/build-key.pub";
  */
 enum class ModuleDescriptorStatus {
   kOK,
-  kNOT_A_PACKAGE,          ///< not a readable archive of this shape
-  kTOO_NEW,                ///< manifest schema beyond this build
-  kMALFORMED,              ///< structurally wrong, including a bad manifest
-  kBAD_SIGNATURE,          ///< the signature does not cover these bytes
-  kUNTRUSTED_BUILD_KEY,    ///< not signed by this Host build's module key
-  kWRONG_BUILD,            ///< signed by this key, but for a different build
-  kRESOURCE_DIGEST_MISMATCH,   ///< a declared file is not the file that is there
-  kUNDECLARED_RESOURCE,        ///< a file the signature does not cover
-  kMISSING_DECLARED_RESOURCE,  ///< the manifest names a file the package lacks
-  kWRONG_PLATFORM,         ///< built for another os or architecture
-  kINCOMPATIBLE_ABI,       ///< outside [GF_SDK_ABI_MIN_SUPPORTED, ...]
-  kIO_FAILED,              ///< the file could not be read
+  kNOT_A_PACKAGE,        ///< not a readable archive of this shape
+  kTOO_NEW,              ///< manifest schema beyond this build
+  kMALFORMED,            ///< structurally wrong, including a bad manifest
+  kBAD_SIGNATURE,        ///< the signature does not cover these bytes
+  kUNTRUSTED_BUILD_KEY,  ///< not signed by this Host build's module key
+  kWRONG_BUILD,          ///< signed by this key, but for a different build
+  /// A declared resource is not the resource that is there.
+  kRESOURCE_DIGEST_MISMATCH,
+  /// A member the manifest does not declare, so the signature does not cover
+  /// it. Refused outright rather than ignored: see the set rule below.
+  kUNDECLARED_RESOURCE,
+  /// The manifest names a resource the descriptor lacks.
+  kMISSING_DECLARED_RESOURCE,
+  kWRONG_PLATFORM,    ///< built for another os or architecture
+  kINCOMPATIBLE_ABI,  ///< outside [GF_SDK_ABI_MIN_SUPPORTED, ...]
+  kIO_FAILED,         ///< the file could not be read
 };
 
 /**
@@ -77,18 +83,20 @@ enum class ModuleDescriptorStatus {
  * @param s status to spell
  * @return a short static string
  */
-auto GF_CORE_EXPORT ModuleDescriptorStatusToString(ModuleDescriptorStatus s) -> const
-    char*;
+auto GF_CORE_EXPORT ModuleDescriptorStatusToString(ModuleDescriptorStatus s)
+    -> const char*;
 
 /**
- * @brief What verification concluded about a package.
+ * @brief What verification concluded about a descriptor.
  *
  * AUTHORITATIVE. Every fact here was established against the bytes the
  * signature covers, and callers are expected to *consume* them -- not to
- * reopen the package and work any of them out again. The manager used to
- * re-scan `manifest.files` for the `bin/` entry that @ref library_sha256 now
- * carries; the two agreed, but nothing made them agree, and a second search
- * is a second chance to search differently.
+ * reopen the descriptor and work any of them out again. A second search is a
+ * second chance to search differently.
+ *
+ * In particular @ref manifest carries the entry-native binding, and
+ * ResolveAndVerifyNativeEntry() takes it from here rather than re-reading the
+ * file.
  */
 struct GF_CORE_EXPORT ModuleDescriptorVerification {
   bool ok = false;
@@ -98,43 +106,47 @@ struct GF_CORE_EXPORT ModuleDescriptorVerification {
   /// Parsed only after the signature over its raw bytes verified.
   ModuleManifest manifest;
 
-  /// The public key as found in META-INF. A hint, not a trust root.
+  /// The trust root this verdict was reached under -- the key the caller
+  /// passed, echoed back so a caller holding several need not track which one
+  /// answered. It is NOT read out of the descriptor: nothing inside a
+  /// descriptor is ever treated as a trust root, which is why
+  /// `META-INF/build-key.pub` was removed rather than merely ignored.
   QByteArray build_public_key;
 };
 
 /**
- * @brief Decide whether a package is internally consistent, without running it.
+ * @brief Authenticate a descriptor against this Host build's trust root.
  *
- * Pure with respect to the package: it reads the file and nothing else. No
- * extraction, no store, no side effects beyond a temporary directory that
- * nothing is ever written into. Keeping it that way is what lets a persistent
- * module store arrive later without touching this function, and it is why
- * every negative case below is a single call rather than a fixture.
+ * Reads the file once into an owned buffer and works entirely in memory: no
+ * extraction, no store, no temporary directory, no second open. That is a
+ * structural property rather than a discipline -- the archive is walked by
+ * ReadArchiveMembersSync(), which takes bytes and has no destination
+ * parameter to point anywhere.
  *
- * ## What this proves, and what it does not
+ * ## What this proves
  *
- * `META-INF/build-key.pub` travels *inside* the package. So an adversary who
- * can replace the package can also generate a keypair, re-sign an altered
- * manifest, and ship the matching public key -- and this function will say
- * yes. What it therefore establishes is exactly three things:
+ * The descriptor was signed by the ephemeral Ed25519 key belonging to *this*
+ * Host build, over exactly the manifest bytes stored in it, and it names this
+ * build's id. A descriptor from another build, or one re-signed with a fresh
+ * key, is refused -- @ref ModuleDescriptorStatus::kWRONG_BUILD and
+ * @ref ModuleDescriptorStatus::kUNTRUSTED_BUILD_KEY respectively.
  *
- * - **internal consistency**: manifest, signature and file digests agree;
- * - **accidental or partial modification**: a truncated download, a
- *   half-written file, a botched repack;
- * - **bit rot and single-file tampering**, *provided the rest of the package
- *   is unchanged* -- someone editing `bin/module.so` inside the zip without
- *   re-signing everything.
+ * The member *set* is checked exactly: every declared resource present, every
+ * present member declared. Resource *bytes* are hashed lazily, on
+ * ReadResource(), so a large unused resource costs nothing here.
  *
- * It does **not** establish who built the package, and it does **not** stop
- * anyone substituting the whole package with a freshly self-signed one --
- * including on the download path. Publisher authenticity needs a key delivered
- * out of band, which is what @p expected_public_key is for and which nothing
- * supplies yet.
+ * ## What this does not prove
+ *
+ * Nothing about the entry native. The descriptor names it logically and
+ * carries its binding value; resolving and verifying it is
+ * ResolveAndVerifyNativeEntry()'s job, under the mode the target platform
+ * mandates. Nor does it authenticate the entry's dependency closure, which
+ * stays the platform loader's business.
  *
  * @param package_path the `*.gfmodule` file to verify
- * @param expected_public_key when non-empty, the key the package MUST carry;
- * the package's own key is then a value to check rather than a value to trust.
- * Empty in this phase, which means self-consistency only.
+ * @param expected_public_key the trust root to verify against. Defaults to
+ * the key compiled into this Host; a test passes a different one to prove
+ * that a foreign key is refused rather than accepted.
  * @return the verdict, with the manifest filled in only when it verified
  */
 auto GF_CORE_EXPORT VerifyModuleDescriptor(

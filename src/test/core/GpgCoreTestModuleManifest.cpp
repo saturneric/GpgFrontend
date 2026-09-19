@@ -33,19 +33,19 @@
 #include <QJsonObject>
 
 #include "GpgFrontendTest.h"
-#include "core/module/ModuleManifest.h"
 #include "core/module/ModuleDescriptorBuilder.h"
+#include "core/module/ModuleManifest.h"
 #include "sdk/GFSDKBuildInfo.h"
 
 /**
  * @file GpgCoreTestModuleManifest.cpp
  * @brief The manifest parser, and the canonical JSON the signature covers.
  *
- * Split out of GpgCoreTestModuleDescriptor.cpp, which had grown to 846 lines and
- * two subjects. These need no package, no archive and no key: they are about
- * whether a string of JSON is accepted, and about the exact bytes a signature
- * is computed over. Keeping them beside a fixture that builds and signs a real
- * archive made both harder to read than either needs to be.
+ * Split out of GpgCoreTestModuleDescriptor.cpp, which had grown to 846 lines
+ * and two subjects. These need no package, no archive and no key: they are
+ * about whether a string of JSON is accepted, and about the exact bytes a
+ * signature is computed over. Keeping them beside a fixture that builds and
+ * signs a real archive made both harder to read than either needs to be.
  *
  * The strictness here is deliberate and is the opposite of the settings
  * layer's: a missing field, an unknown schema version or a field of the wrong

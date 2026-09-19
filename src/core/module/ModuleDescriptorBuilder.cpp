@@ -39,9 +39,9 @@
 
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GFBufferFactory.h"
+#include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManifest.h"
-#include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleTrustRoot.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/CommonUtils.h"

@@ -33,7 +33,7 @@
 namespace GpgFrontend::Module {
 
 /**
- * @brief One file to put into a package.
+ * @brief One non-executable resource to put into a descriptor.
  */
 struct GF_CORE_EXPORT ModuleResourceSource {
   QString archive_path;  ///< where it goes, archive-relative, forward slashes
@@ -42,11 +42,11 @@ struct GF_CORE_EXPORT ModuleResourceSource {
 };
 
 /**
- * @brief Everything a package needs to be built.
+ * @brief Everything a descriptor needs to be built.
  *
  * The platform and build fields are inputs rather than things this deduces,
  * because the tool that fills them in is the one that knows: a cross-built
- * package is described by its target, not by the machine that ran the
+ * descriptor is described by its target, not by the machine that ran the
  * packager.
  */
 struct GF_CORE_EXPORT ModuleDescriptorBuildSpec {
@@ -76,7 +76,8 @@ struct GF_CORE_EXPORT ModuleDescriptorBuildSpec {
   QString platform_arch;
   QString platform_qt;
 
-  /// Non-executable members carried inside the package. May be empty.
+  /// Non-executable members carried inside the descriptor. May be empty, and
+  /// is in every descriptor the tree currently produces.
   QVector<ModuleResourceSource> resources;
 
   /// The logical name of the module's entry native, matching
@@ -103,7 +104,7 @@ struct GF_CORE_EXPORT ModuleDescriptorBuildSpec {
 };
 
 /**
- * @brief What building a package produced.
+ * @brief What building a descriptor produced.
  */
 struct GF_CORE_EXPORT ModuleDescriptorBuildResult {
   bool ok = false;
@@ -143,20 +144,20 @@ auto GF_CORE_EXPORT CanonicalJson(const QJsonValue& value, QByteArray& out)
     -> bool;
 
 /**
- * @brief Build and sign a `*.gfmodule` package.
+ * @brief Build and sign a `*.gfmodule` descriptor.
  *
- * Each package is signed with a **freshly generated Ed25519 key pair** whose
- * private half exists only in this function's memory and is wiped before it
- * returns. It is never written into the package, and never into any build
- * artifact. That means there is no long-lived signing secret to steal, and
- * compromising one build cannot forge another -- which is also what lets a
- * catalog later record a per-build public key without changing anything here.
+ * The signing key is **not** generated here. @ref
+ * ModuleDescriptorBuildSpec::signing_seed must derive the public key this Host
+ * build was compiled with, and this function checks that before writing
+ * anything -- so a descriptor that verifies at all was signed by the key the
+ * Host carries, and `pack` structurally cannot produce one the Host would
+ * refuse.
  *
- * What the resulting signature proves is narrow, and stated in full on
- * VerifyModuleDescriptor(): the public key travels inside the package, so this
- * establishes self-consistency and nothing about who built it.
+ * No executable code goes in. The entry native is read only to compute its
+ * binding value under the mode its platform mandates; the file itself stays
+ * where it was built, and the descriptor names it logically.
  *
- * @param spec what to package
+ * @param spec what to describe, and what to sign it with
  * @return whether it was written, and the public key it was signed with
  */
 auto GF_CORE_EXPORT BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)

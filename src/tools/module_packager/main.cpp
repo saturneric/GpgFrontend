@@ -31,8 +31,8 @@
 #include <QFileInfo>
 #include <QTextStream>
 
-#include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleDescriptorBuilder.h"
+#include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleSetVerification.h"
 #include "core/module/ModuleTrustRoot.h"
 
@@ -42,8 +42,8 @@
  *
  * Crypto and canonical JSON are not things to write in CMake language, so the
  * build system's whole involvement is calling this with arguments. Everything
- * it does lives in ModuleDescriptorBuilder, which is also what the tests drive --
- * so the packaging path a developer's build takes is the packaging path the
+ * it does lives in ModuleDescriptorBuilder, which is also what the tests drive
+ * -- so the packaging path a developer's build takes is the packaging path the
  * tests cover, rather than a second implementation that agrees with it today.
  *
  * It deliberately touches no core runtime state: no singletons, no task

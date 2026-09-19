@@ -41,10 +41,10 @@
 #include "GpgFrontendTest.h"
 #include "core/ModuleTestPackages.h"
 #include "core/function/ArchiveFileOperator.h"
+#include "core/module/ModuleDescriptor.h"
+#include "core/module/ModuleDescriptorBuilder.h"
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManifest.h"
-#include "core/module/ModuleDescriptorBuilder.h"
-#include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleTrustRoot.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
@@ -274,13 +274,14 @@ TEST_F(ModuleDescriptorTest, AModifiedManifestFails) {
 }
 
 TEST_F(ModuleDescriptorTest, AModifiedSignatureFails) {
-  auto signature = ReadMember(Package(), Module::kModuleDescriptorSignaturePath);
+  auto signature =
+      ReadMember(Package(), Module::kModuleDescriptorSignaturePath);
   ASSERT_EQ(signature.size(), 64);
   signature[0] = static_cast<char>(signature[0] ^ 0xFF);
 
   const auto out = Path("badsig.gfmodule");
-  ASSERT_TRUE(RepackWith(Package(), out,
-                         {{Module::kModuleDescriptorSignaturePath, signature}}));
+  ASSERT_TRUE(RepackWith(
+      Package(), out, {{Module::kModuleDescriptorSignaturePath, signature}}));
 
   const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
@@ -387,7 +388,8 @@ TEST_F(ModuleDescriptorTest, AModifiedResourceFails) {
 
   const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kRESOURCE_DIGEST_MISMATCH);
+  EXPECT_EQ(v.status,
+            Module::ModuleDescriptorStatus::kRESOURCE_DIGEST_MISMATCH);
 }
 
 TEST_F(ModuleDescriptorTest, AMissingDeclaredFileFails) {
@@ -396,7 +398,8 @@ TEST_F(ModuleDescriptorTest, AMissingDeclaredFileFails) {
 
   const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kMISSING_DECLARED_RESOURCE);
+  EXPECT_EQ(v.status,
+            Module::ModuleDescriptorStatus::kMISSING_DECLARED_RESOURCE);
 }
 
 TEST_F(ModuleDescriptorTest, AnUndeclaredExtraFileFails) {
@@ -812,7 +815,8 @@ TEST(ModuleDescriptorSmokeTest, APackageBuiltByTheBuildVerifies) {
 
   QString package;
   for (const auto& info : built) {
-    const auto candidate = Module::VerifyModuleDescriptor(info.absoluteFilePath());
+    const auto candidate =
+        Module::VerifyModuleDescriptor(info.absoluteFilePath());
     if (candidate.ok && candidate.manifest.id == kExpectedId) {
       package = info.absoluteFilePath();
       break;

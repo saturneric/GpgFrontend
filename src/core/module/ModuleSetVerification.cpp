@@ -32,10 +32,10 @@
 #include <QDirIterator>
 #include <QFileInfo>
 
+#include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManager.h"
 #include "core/module/ModuleNamespace.h"
-#include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleTrustRoot.h"
 
 namespace GpgFrontend::Module {

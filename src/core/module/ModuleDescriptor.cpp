@@ -283,7 +283,8 @@ auto ReadPackage(const QString& package_path,
 
   QFile package(package_path);
   if (!package.exists()) {
-    return Refuse(ModuleDescriptorStatus::kIO_FAILED, "this file does not exist");
+    return Refuse(ModuleDescriptorStatus::kIO_FAILED,
+                  "this file does not exist");
   }
 
   // Read once, whole, and judged from that one snapshot. Nothing below reopens
@@ -385,7 +386,7 @@ auto ReadPackage(const QString& package_path,
 }  // namespace
 
 auto VerifyModuleDescriptor(const QString& package_path,
-                         const QByteArray& expected_public_key)
+                            const QByteArray& expected_public_key)
     -> ModuleDescriptorVerification {
   return ReadPackage(package_path, expected_public_key);
 }

@@ -77,10 +77,10 @@ auto SnapshotOf(const QString& path) -> QSet<QString> {
 
 /// A minimal archive, built in memory, so the read tests need no fixture file.
 ///
-/// The producer/consumer shape is the builder's own (ModuleDescriptorBuilder.cpp):
-/// the archive writer runs on a thread and this drains the pipe, because there
-/// is no way to close the read side and a producer pushing into a full one
-/// would never return from the join.
+/// The producer/consumer shape is the builder's own
+/// (ModuleDescriptorBuilder.cpp): the archive writer runs on a thread and this
+/// drains the pipe, because there is no way to close the read side and a
+/// producer pushing into a full one would never return from the join.
 auto TinyArchiveBytes(const QMap<QString, QByteArray>& members) -> QByteArray {
   auto exchanger = CreateStandardGFDataExchanger();
 
