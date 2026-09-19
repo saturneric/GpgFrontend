@@ -836,55 +836,30 @@ jobs:
       # is refused by another only when the PRODUCT differs. CI execution
       # identity (run id, attempt, actor) is real and worth recording, and is
       # confined to `ci` so it can never leak into what the runtime compares.
-      - name: Write Build Record (Linux/Windows)
+      # Captured while the host tools still exist, because Windows deletes
+      # them below -- they live beside the DLLs there, which is inside what
+      # gets packaged. The bindings and the canonical architecture are the two
+      # things the build record needs that only these tools can answer.
+      #
+      # `host-info` rather than `uname -m`: uname says `aarch64` where this
+      # project says `arm64`, and a record whose architecture disagreed with
+      # the descriptors beside it would describe a machine nothing recognises.
+      - name: Collect Module Bindings (Linux/Windows)
         shell: bash
         run: |
           set -euo pipefail
           cd "${{github.workspace}}"
 
-          # One path on every platform: host tools go to artifacts/tools/,
-          # which does not move with the application's layout.
           PACKAGER="$(cat build/artifacts/host-tool-dir.txt)/gf_module_packager${{ runner.os == 'Windows' && '.exe' || '' }}"
-          BINDINGS=$("$PACKAGER" verify-module-set \
-            --namespace-root "${{ runner.os == 'Windows' && 'build/artifacts/modules' || 'build/artifacts/AppDir/usr/lib/gpgfrontend/modules' }}" \
-            --print-bindings \
-            | sed -n 's/^binding //p' \
-            | jq -R 'split(" ") | {module: .[0], mode: .[1], value: .[2]}' \
-            | jq -s .)
+          MODULE_ROOT="${{ runner.os == 'Windows' && 'build/artifacts/modules' || 'build/artifacts/AppDir/usr/lib/gpgfrontend/modules' }}"
 
-          jq -n \
-            --arg build_id "$(cat build/.module-build-key/build-id)" \
-            --arg commit "${{ github.sha }}" \
-            --arg ref "${{ github.ref }}" \
-            --arg os "${{ matrix.os }}" \
-            --arg flavor "${{ matrix.flavor }}" \
-            --arg build_type "${{ env.BUILD_TYPE }}" \
-            --arg run_id "${{ github.run_id }}" \
-            --arg run_attempt "${{ github.run_attempt }}" \
-            --arg actor "${{ github.actor }}" \
-            --arg workflow_ref "${{ github.workflow_ref }}" \
-            --argjson bindings "$BINDINGS" \
-            '{
-              schema: 1,
-              artifact_stage: "unsigned",
-              product: {
-                build_id: $build_id,
-                repository: "${{ github.repository }}",
-                source_commit: $commit,
-                ref: $ref,
-                build_type: $build_type
-              },
-              leg: { os: $os, flavor: $flavor },
-              modules: $bindings,
-              ci: {
-                run_id: $run_id,
-                run_attempt: $run_attempt,
-                actor: $actor,
-                workflow_ref: $workflow_ref
-              }
-            }' > "build/upload-artifact/build-record-${{ matrix.os }}-${{ matrix.flavor }}.json"
+          "$PACKAGER" verify-module-set \
+            --namespace-root "$MODULE_ROOT" \
+            --print-bindings > build/module-bindings.txt
+          "$PACKAGER" host-info | sed -n 's/^arch //p' > build/host-arch.txt
 
-          cat "build/upload-artifact/build-record-${{ matrix.os }}-${{ matrix.flavor }}.json"
+          cat build/module-bindings.txt
+          echo "arch: $(cat build/host-arch.txt)"
         if: runner.os == 'Linux' || runner.os == 'Windows'
 
       # The host tools have done their last job. They must not ship.
@@ -898,7 +873,9 @@ jobs:
       # second one invites a question with an alarming-sounding answer.
       #
       # Every step that needs them has run by now: reseal, the audit, the
-      # Authenticode gate and the build record are all above this line.
+      # Authenticode gate and the module-binding capture are all above this
+      # line. The build record is written after packaging -- it hashes the
+      # finished packages, not these tools -- so it does not need them.
       - name: Remove Host Build Tools (Windows)
         shell: msys2 {0}
         run: |
@@ -962,6 +939,60 @@ jobs:
         # An MSI installs into Program Files and keeps its data in the user
         # profile, so it is only ever built from the installed flavour.
         if: runner.os == 'Windows' && matrix.flavor == 'installed'
+      # The build record: what this leg produced, and the exact bytes of it.
+      #
+      # AFTER packaging, deliberately. The digests have to be of the files that
+      # are actually uploaded -- not of an intermediate that a later step
+      # rewrites, and not of an equivalent copy from somewhere else. That is
+      # the whole value of the artifacts[] array: it lets someone holding a
+      # download decide whether it is one of the bytes this build produced,
+      # which module entry digests cannot answer because they describe the
+      # modules inside, not the package around them.
+      #
+      # The stage is `unsigned` on both platforms and it means it: nothing here
+      # Authenticode-signs the MSI or the ZIP. If that ever changes, signing
+      # rewrites the file, and this record must NOT be what claims to identify
+      # the signed download -- a second record at a second stage must, the way
+      # macOS does it.
+      #
+      # `product` holds only the product configuration; CI execution identity
+      # is confined to `ci`, so it can never leak into what the runtime
+      # compares.
+      - name: Write Build Record (Linux/Windows)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "${{github.workspace}}"
+
+          # Everything that will be uploaded, and nothing else. Collected from
+          # the upload directory itself rather than from a list written here,
+          # so an artifact this workflow starts producing cannot be left out of
+          # its own provenance by omission.
+          ARGS=()
+          while IFS= read -r artifact; do
+            ARGS+=(--artifact "$artifact")
+          done < <(find build/upload-artifact -maxdepth 1 -type f \
+                     ! -name 'build-record-*.json' | sort)
+
+          ./scripts/write_build_record.sh \
+            --output "build/upload-artifact/build-record-${{ matrix.os }}-$(cat build/host-arch.txt)-${{ matrix.flavor }}-unsigned.json" \
+            --stage unsigned \
+            --build-id "$(cat build/.module-build-key/build-id)" \
+            --repository "${{ github.repository }}" \
+            --commit "${{ github.sha }}" \
+            --ref "${{ github.ref }}" \
+            --build-type "${{ env.BUILD_TYPE }}" \
+            --os "${{ matrix.os }}" \
+            --arch "$(cat build/host-arch.txt)" \
+            --flavor "${{ matrix.flavor }}" \
+            --modules-from build/module-bindings.txt \
+            --ci-run-id "${{ github.run_id }}" \
+            --ci-run-attempt "${{ github.run_attempt }}" \
+            --ci-actor "${{ github.actor }}" \
+            --ci-workflow-ref "${{ github.workflow_ref }}" \
+            "${ARGS[@]}"
+        if: runner.os == 'Linux' || runner.os == 'Windows'
+
       - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -1259,48 +1290,6 @@ jobs:
             fi
           done
 
-      # Written here, in the unprivileged job, because this is the job that
-      # knows what was built. sign-macos only flips artifact_stage afterwards;
-      # it does not and must not learn about modules.
-      - name: Write Build Record (macOS)
-        run: |
-          set -euo pipefail
-          cd "${{github.workspace}}"
-
-          PACKAGER="$(cat build/artifacts/host-tool-dir.txt)/gf_module_packager"
-          BINDINGS=$("$PACKAGER" verify-module-set \
-            --namespace-root build/artifacts/modules \
-            --print-bindings \
-            | sed -n 's/^binding //p' \
-            | jq -R 'split(" ") | {module: .[0], mode: .[1], value: .[2]}' \
-            | jq -s .)
-
-          mkdir -p build/unsigned
-          jq -n \
-            --arg build_id "$(cat build/.module-build-key/build-id)" \
-            --argjson bindings "$BINDINGS" \
-            '{
-              schema: 1,
-              artifact_stage: "unsigned",
-              product: {
-                build_id: $build_id,
-                repository: "${{ github.repository }}",
-                source_commit: "${{ github.sha }}",
-                ref: "${{ github.ref }}",
-                build_type: "${{ env.BUILD_TYPE }}"
-              },
-              leg: { os: "${{ matrix.os }}", flavor: "installed" },
-              modules: $bindings,
-              ci: {
-                run_id: "${{ github.run_id }}",
-                run_attempt: "${{ github.run_attempt }}",
-                actor: "${{ github.actor }}",
-                workflow_ref: "${{ github.workflow_ref }}"
-              }
-            }' > "build/unsigned/build-record-${{ matrix.os }}-installed.json"
-
-          cat "build/unsigned/build-record-${{ matrix.os }}-installed.json"
-
       - name: Stage Unsigned Payload
         run: |
           set -euo pipefail
@@ -1324,6 +1313,44 @@ jobs:
           cp resource/lfs/icns/GpgFrontend.icns \
             ${{github.workspace}}/build/unsigned/VolumeIcon.icns
 
+      # The unsigned stage, hashed AFTER the payload is staged.
+      #
+      # This record identifies the bytes build-macos produced and nothing else.
+      # sign-macos rewrites the app -- codesigning changes the file -- and then
+      # wraps it in a dmg, so neither of those is described here. A second
+      # record, written by that job at stage `signed-notarized`, covers what a
+      # user actually downloads. Two stages, two statements, two sets of
+      # digests: the alternative is publishing a hash that cannot match the
+      # file it claims to identify.
+      - name: Write Build Record (macOS, unsigned stage)
+        run: |
+          set -euo pipefail
+          cd "${{github.workspace}}"
+
+          PACKAGER="$(cat build/artifacts/host-tool-dir.txt)/gf_module_packager"
+          "$PACKAGER" verify-module-set \
+            --namespace-root build/artifacts/modules \
+            --print-bindings > build/module-bindings.txt
+          ARCH="$("$PACKAGER" host-info | sed -n 's/^arch //p')"
+
+          ./scripts/write_build_record.sh \
+            --output "build/unsigned/build-record-${{ matrix.os }}-${ARCH}-installed-unsigned.json" \
+            --stage unsigned \
+            --build-id "$(cat build/.module-build-key/build-id)" \
+            --repository "${{ github.repository }}" \
+            --commit "${{ github.sha }}" \
+            --ref "${{ github.ref }}" \
+            --build-type "${{ env.BUILD_TYPE }}" \
+            --os "${{ matrix.os }}" \
+            --arch "$ARCH" \
+            --flavor installed \
+            --modules-from build/module-bindings.txt \
+            --ci-run-id "${{ github.run_id }}" \
+            --ci-run-attempt "${{ github.run_attempt }}" \
+            --ci-actor "${{ github.actor }}" \
+            --ci-workflow-ref "${{ github.workflow_ref }}" \
+            --artifact build/unsigned/GpgFrontend.app.zip
+
       - name: Upload Unsigned Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -1331,6 +1358,20 @@ jobs:
           # and an unsigned bundle must never reach a release.
           name: unsigned-macos-app-${{ matrix.os }}
           path: ${{github.workspace}}/build/unsigned/*
+
+      # The unsigned STAGE's record, on its own, under a name the provenance
+      # job does see. The bundle it describes stays out of the release -- that
+      # is what the naming above is for -- but its provenance must not, or the
+      # completeness gate cannot check a stage that definitely happened.
+      #
+      # A record is a few hundred bytes of JSON and contains no code, so there
+      # is nothing here for the "unsigned bundles never reach a release" rule
+      # to protect against.
+      - name: Upload Unsigned Build Record
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gpgfrontend-record-macos-unsigned-${{ matrix.os }}
+          path: ${{github.workspace}}/build/unsigned/build-record-*.json
           retention-days: 5
 
   # Holds the Apple credentials and nothing else. No checkout, no package
@@ -1808,19 +1849,78 @@ jobs:
           spctl --assess --type open --context context:primary-signature --verbose=4 \
             "$RUNNER_TEMP/upload-artifact/GpgFrontend-${OS_IDENTIFIER}-${SHORT_SHA}.dmg"
 
-      # The record travels with the artifact it describes. sign-macos flips
-      # one field and copies it; it does not regenerate it, and it learns
-      # nothing about modules from doing so -- the boundary recorded at the top
-      # of this file stands: this job runs Apple's tools on data, and jq on a
-      # JSON file is not an exception to that, it is an instance of it.
-      - name: Carry Forward The Build Record
+      # A SECOND record, for the stage this job produced.
+      #
+      # It used to flip `artifact_stage` on the unsigned record and copy it.
+      # That was wrong in the way that matters: the digests in that record are
+      # of the bytes BEFORE codesigning, and codesigning rewrites the file. A
+      # record labelled `signed-notarized` carrying pre-signing digests invites
+      # a user to check a hash against the dmg they downloaded and find it does
+      # not match -- which looks exactly like tampering.
+      #
+      # So this computes its own digest, of the dmg, which is the file people
+      # actually download. The unsigned record still exists and still describes
+      # what build-macos produced; the two are separate statements about
+      # different bytes and the completeness gate requires both.
+      #
+      # Written with the runner's own jq and shasum, not a repository script:
+      # this job has no checkout by design. Product metadata is copied from the
+      # unsigned record, which is data rather than configuration or signing
+      # policy -- the boundary at the top of this file forbids the latter two,
+      # and the provenance gate cross-checks that every record agrees on the
+      # commit, so a build job cannot quietly relabel its own provenance here
+      # any more effectively than it could in its own record.
+      - name: Write Build Record (signed stage)
         run: |
           set -euo pipefail
-          RECORD="$RUNNER_TEMP/unsigned/build-record-${{ matrix.os }}-installed.json"
-          test -f "$RECORD"
-          jq '.artifact_stage = "signed-notarized"' "$RECORD" \
-            > "$RUNNER_TEMP/upload-artifact/$(basename "$RECORD")"
-          cat "$RUNNER_TEMP/upload-artifact/$(basename "$RECORD")"
+          UNSIGNED="$(find "$RUNNER_TEMP/unsigned" -name 'build-record-*.json' | head -1)"
+          test -n "$UNSIGNED" || { echo "no unsigned build record to build on"; exit 1; }
+
+          DMG="$RUNNER_TEMP/upload-artifact/GpgFrontend-${{ matrix.os }}-${{ steps.meta.outputs.short_sha }}.dmg"
+          test -f "$DMG" || { echo "$DMG: not there"; exit 1; }
+
+          DIGEST="$(shasum -a 256 "$DMG" | awk '{print $1}')"
+          SIZE="$(stat -f%z "$DMG")"
+          test "${#DIGEST}" -eq 64 || { echo "digest is not 256 bits"; exit 1; }
+          test "$SIZE" -gt 0 || { echo "$DMG is empty"; exit 1; }
+
+          ARCH="$(jq -r '.leg.arch' "$UNSIGNED")"
+          OUT="$RUNNER_TEMP/upload-artifact/build-record-${{ matrix.os }}-${ARCH}-installed-signed-notarized.json"
+
+          jq -S \
+            --arg name "$(basename "$DMG")" \
+            --arg sha256 "$DIGEST" \
+            --argjson size "$SIZE" \
+            --arg run_id "${{ github.run_id }}" \
+            --arg run_attempt "${{ github.run_attempt }}" \
+            --arg actor "${{ github.actor }}" \
+            --arg workflow_ref "${{ github.workflow_ref }}" \
+            '{
+               schema: 2,
+               artifact_stage: "signed-notarized",
+               product: .product,
+               leg: .leg,
+               modules: .modules,
+               artifacts: [{name: $name, sha256: $sha256, size: $size}],
+               ci: {
+                 run_id: $run_id,
+                 run_attempt: $run_attempt,
+                 actor: $actor,
+                 workflow_ref: $workflow_ref
+               }
+             }' "$UNSIGNED" > "$OUT"
+
+          # The two stages must not agree on a digest. If they did, either
+          # signing changed nothing -- which would mean the dmg is not signed
+          # -- or one of these records is describing the other's bytes.
+          if jq -e --arg d "$DIGEST" '.artifacts[] | select(.sha256 == $d)' \
+               "$UNSIGNED" >/dev/null; then
+            echo "the signed dmg has the same digest as an unsigned artifact;" >&2
+            echo "one of these two records is not describing its own bytes" >&2
+            exit 1
+          fi
+
+          cat "$OUT"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
