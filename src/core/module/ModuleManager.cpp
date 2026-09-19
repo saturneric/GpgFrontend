@@ -265,22 +265,16 @@ class ModuleManager::Impl {
       return false;
     }
 
-    // The manifest's digest for the binary, already checked against these very
-    // bytes by the verification above.
-    QString known_hash;
-    for (const auto& file : read.manifest.files) {
-      if (file.path.startsWith("bin/")) {
-        known_hash = file.sha256;
-        break;
-      }
-    }
-
     // Everything a pre-load inspection can ask about a packaged module is a
     // property of the package, not of wherever its bytes end up. Asking here,
     // of the bytes, is both earlier and more honest than asking later of a
     // path -- and a path is the one thing that cannot answer it, since a
     // descriptor in /proc/self/fd is named after a number.
-    const auto inspection = InspectModuleImage(read.image, known_hash);
+    //
+    // The digest comes from the verification result rather than a fresh walk
+    // of manifest.files: the verifier already located the sole bin/ entry, and
+    // finding it a second time here is a second chance to find it differently.
+    const auto inspection = InspectModuleImage(read.image, read.library_sha256);
     if (!inspection.ok) {
       LOG_W() << "module manager refuses module package: " << package_path
               << ", reason: " << inspection.reason;

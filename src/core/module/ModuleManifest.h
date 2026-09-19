@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <optional>
+
 namespace GpgFrontend::Module {
 
 /// The only manifest schema this build understands.
@@ -129,5 +131,34 @@ struct GF_CORE_EXPORT ModuleManifestParseResult {
  */
 auto GF_CORE_EXPORT ParseModuleManifest(const QByteArray& bytes)
     -> ModuleManifestParseResult;
+
+/**
+ * @brief The os string a manifest must carry to run on this machine.
+ *
+ * One spelling, used by BOTH sides: the packager stamps `platform.os` with it
+ * and the verifier compares against it. They used to be independent -- the
+ * packager took the value from its command line -- so a packaging script with
+ * a typo produced a package that was refused everywhere, for a reason that
+ * named neither the script nor the typo.
+ *
+ * @return "windows", "macos", "linux", or the kernel type elsewhere
+ */
+auto GF_CORE_EXPORT ManifestHostOsName() -> QString;
+
+/**
+ * @brief Why this SDK ABI generation is unacceptable to this host.
+ *
+ * THE decision about ABI compatibility. It is deliberately one function
+ * returning a reason rather than a predicate plus a message builder: the
+ * range was previously compared in two places, in the verifier against the
+ * manifest and in the loader against the module's own table, with two
+ * differently-worded messages that could drift apart. A caller wanting a
+ * yes/no asks `.has_value()` -- there is no second predicate to disagree with
+ * this one.
+ *
+ * @param abi the ABI generation the module or manifest claims
+ * @return nullopt when supported, else a sentence naming the supported range
+ */
+auto GF_CORE_EXPORT SdkAbiRejection(int abi) -> std::optional<QString>;
 
 }  // namespace GpgFrontend::Module

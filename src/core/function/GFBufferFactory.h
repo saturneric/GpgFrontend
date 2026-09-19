@@ -143,10 +143,14 @@ class GF_CORE_EXPORT GFBufferFactory
    * return unambiguously means FAILURE -- a successful hash is always 64
    * lower-case hex characters, never the empty string.
    *
+   * (The `::` qualifications below are not decoration: this class has member
+   * functions NAMED QString and QByteArray, which shadow the Qt types inside
+   * class scope. Unqualified, these declarations mean something else.)
+   *
    * @param bytes data to hash; may be empty
    * @return 64 lower-case hex characters, or empty on failure
    */
-  static auto Sha256Hex(const QByteArray& bytes) -> QString;
+  static auto Sha256Hex(const ::QByteArray& bytes) -> ::QString;
 
   /**
    * @brief Hex-encoded SHA-256 of everything in an open, readable device.
@@ -157,7 +161,7 @@ class GF_CORE_EXPORT GFBufferFactory
    * @param io an open, readable, seekable device
    * @return 64 lower-case hex characters, or empty on failure
    */
-  static auto Sha256HexOfDevice(QIODevice& io) -> QString;
+  static auto Sha256HexOfDevice(::QIODevice& io) -> ::QString;
 
   /**
    * @brief Hex-encoded SHA-256 of a file's contents.
@@ -165,7 +169,7 @@ class GF_CORE_EXPORT GFBufferFactory
    * @param path file to hash
    * @return 64 lower-case hex characters, or empty if it could not be read
    */
-  static auto Sha256HexOfFile(const QString& path) -> QString;
+  static auto Sha256HexOfFile(const ::QString& path) -> ::QString;
 
   /**
    * @brief Compute HMAC-SHA256 of @p data authenticated with @p key.

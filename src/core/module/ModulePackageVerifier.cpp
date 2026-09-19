@@ -88,19 +88,6 @@ auto Refuse(ModulePackageStatus status, const QString& reason)
   return v;
 }
 
-/// The os string a manifest must carry to run here.
-auto HostOsName() -> QString {
-#if defined(Q_OS_WIN)
-  return "windows";
-#elif defined(Q_OS_MACOS)
-  return "macos";
-#elif defined(Q_OS_LINUX)
-  return "linux";
-#else
-  return QSysInfo::kernelType();
-#endif
-}
-
 /**
  * @brief Everything that is true of a verified package, wherever it came from.
  *
@@ -169,21 +156,19 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
   }
   const auto& m = parsed.manifest;
 
-  if (m.platform_os != HostOsName() ||
+  if (m.platform_os != ManifestHostOsName() ||
       m.platform_arch != QSysInfo::currentCpuArchitecture()) {
     return Refuse(ModulePackageStatus::kWRONG_PLATFORM,
                   QString("it was built for %1/%2, and this is %3/%4")
-                      .arg(m.platform_os, m.platform_arch, HostOsName(),
+                      .arg(m.platform_os, m.platform_arch,
+                           ManifestHostOsName(),
                            QSysInfo::currentCpuArchitecture()));
   }
 
-  if (m.sdk_abi < GF_SDK_ABI_MIN_SUPPORTED || m.sdk_abi > GF_SDK_ABI_VERSION) {
-    return Refuse(ModulePackageStatus::kINCOMPATIBLE_ABI,
-                  QString("it was built against sdk abi %1, and this version "
-                          "of GpgFrontend supports %2 to %3")
-                      .arg(m.sdk_abi)
-                      .arg(GF_SDK_ABI_MIN_SUPPORTED)
-                      .arg(GF_SDK_ABI_VERSION));
+  // One decision point, shared with the loader's check of the module's own
+  // table -- see SdkAbiRejection().
+  if (const auto why = SdkAbiRejection(m.sdk_abi); why) {
+    return Refuse(ModulePackageStatus::kINCOMPATIBLE_ABI, *why);
   }
 
   if (GFCompareSoftwareVersion(m.min_host_version, GetProjectVersion()) > 0) {
@@ -271,21 +256,24 @@ namespace {
 /// accurate. More than one, or none, is a malformed package rather than a
 /// choice to make.
 auto SoleLibraryEntry(const ModuleManifest& manifest, QString& out_path,
-                      QString& out_reason) -> bool {
+                      QString& out_sha256, QString& out_reason) -> bool {
   QString found;
+  QString digest;
   for (const auto& file : manifest.files) {
-    if (!file.path.startsWith("bin/")) continue;
+    if (!file.path.startsWith(kModulePackageBinaryDir)) continue;
     if (!found.isEmpty()) {
       out_reason = "it carries more than one module binary";
       return false;
     }
     found = file.path;
+    digest = file.sha256;
   }
   if (found.isEmpty()) {
     out_reason = "it carries no module binary";
     return false;
   }
   out_path = found;
+  out_sha256 = digest;
   return true;
 }
 
@@ -297,7 +285,7 @@ auto SoleLibraryEntry(const ModuleManifest& manifest, QString& out_path,
 /// there is nothing for a later step to accidentally execute.
 auto ReadPackage(const QString& package_path,
                  const QByteArray& expected_public_key, bool retain_image,
-                 bool want_package_digest, QString& out_library_name,
+                 QString& out_library_name,
                  QByteArray& out_library_bytes) -> ModulePackageVerification {
   if (!EnsureSodiumInit()) {
     return Refuse(ModulePackageStatus::kIO_FAILED,
@@ -307,27 +295,6 @@ auto ReadPackage(const QString& package_path,
   QFile package(package_path);
   if (!package.exists()) {
     return Refuse(ModulePackageStatus::kIO_FAILED, "this file does not exist");
-  }
-
-  // The digest of the package as a whole, which nothing in this phase compares
-  // against anything: it is what a catalog would key on, and no catalog is
-  // wired to anything. It is therefore not computed on the load path, where it
-  // would be a second full pass over every module on every start -- roughly
-  // 280 ms for the largest one -- to produce a value with no reader. Whatever
-  // eventually checks a catalog can compute it at the point it does so.
-  QString package_sha256;
-  if (want_package_digest) {
-    if (!package.open(QIODevice::ReadOnly)) {
-      return Refuse(ModulePackageStatus::kIO_FAILED,
-                    "this file could not be read");
-    }
-    ModuleLoadStats::GetInstance().AddHashedBytes(package.size());
-    package_sha256 = GFBufferFactory::Sha256HexOfDevice(package);
-    package.close();
-    if (package_sha256.isEmpty()) {
-      return Refuse(ModulePackageStatus::kIO_FAILED,
-                    "this file could not be read");
-    }
   }
 
   // Nothing is written into it. The extractor still insists on a destination,
@@ -415,12 +382,17 @@ auto ReadPackage(const QString& package_path,
                            actual_digests, expected_public_key);
   if (!conclusion.ok) return conclusion;
 
-  conclusion.package_sha256 = package_sha256;
+  // Found once, here, while the manifest that names it is known to match the
+  // package that holds it. Everything downstream consumes this rather than
+  // searching manifest.files again.
+  QString binary;
+  QString why;
+  const auto has_binary =
+      SoleLibraryEntry(conclusion.manifest, binary, conclusion.library_sha256,
+                       why);
 
   if (retain_image) {
-    QString binary;
-    QString why;
-    if (!SoleLibraryEntry(conclusion.manifest, binary, why)) {
+    if (!has_binary) {
       return Refuse(ModulePackageStatus::kMALFORMED, why);
     }
     const auto it = kept.constFind(binary);
@@ -430,7 +402,7 @@ auto ReadPackage(const QString& package_path,
       return Refuse(ModulePackageStatus::kMALFORMED,
                     "its module binary was not where the manifest said");
     }
-    out_library_name = binary.mid(QString("bin/").size());
+    out_library_name = binary.mid(qstrlen(kModulePackageBinaryDir));
     out_library_bytes = *it;
   }
 
@@ -444,8 +416,8 @@ auto VerifyModulePackage(const QString& package_path,
     -> ModulePackageVerification {
   QString unused_name;
   QByteArray unused_bytes;
-  return ReadPackage(package_path, expected_public_key, false, true,
-                     unused_name, unused_bytes);
+  return ReadPackage(package_path, expected_public_key, false, unused_name,
+                     unused_bytes);
 }
 
 auto ReadVerifiedModuleImage(const QString& package_path,
@@ -454,7 +426,7 @@ auto ReadVerifiedModuleImage(const QString& package_path,
   QString library_name;
   QByteArray library_bytes;
   const auto verdict = ReadPackage(package_path, expected_public_key, true,
-                                   false, library_name, library_bytes);
+                                   library_name, library_bytes);
 
   ModulePackageImage result;
   result.ok = verdict.ok;
@@ -463,7 +435,7 @@ auto ReadVerifiedModuleImage(const QString& package_path,
   if (!verdict.ok) return result;
 
   result.manifest = verdict.manifest;
-  result.package_sha256 = verdict.package_sha256;
+  result.library_sha256 = verdict.library_sha256;
   result.build_public_key = verdict.build_public_key;
   result.image =
       VerifiedModuleImage(std::move(library_name), std::move(library_bytes));

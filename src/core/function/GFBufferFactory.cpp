@@ -208,14 +208,14 @@ namespace {
 /// point where syscall overhead stops dominating on the module load path.
 constexpr qint64 kSha256ChunkSize = 64 * 1024;
 
-auto DigestToHex(const GFBufferOrNone& digest) -> QString {
+auto DigestToHex(const GFBufferOrNone& digest) -> ::QString {
   if (!digest) return {};
   return QString::fromLatin1(digest->ConvertToQByteArray().toHex());
 }
 
 }  // namespace
 
-auto GFBufferFactory::Sha256Hex(const QByteArray& bytes) -> QString {
+auto GFBufferFactory::Sha256Hex(const ::QByteArray& bytes) -> ::QString {
   // The streaming overload, deliberately: the one-shot ToSha256() returns
   // nothing for empty input, which would make the hash of zero bytes
   // indistinguishable from a failure.
@@ -224,7 +224,7 @@ auto GFBufferFactory::Sha256Hex(const QByteArray& bytes) -> QString {
   }));
 }
 
-auto GFBufferFactory::Sha256HexOfDevice(QIODevice& io) -> QString {
+auto GFBufferFactory::Sha256HexOfDevice(::QIODevice& io) -> ::QString {
   if (!io.isOpen() || !io.isReadable()) {
     LOG_W() << "cannot hash, device is not open for reading";
     return {};
@@ -238,7 +238,7 @@ auto GFBufferFactory::Sha256HexOfDevice(QIODevice& io) -> QString {
 
   bool read_failed = false;
   auto digest = ToSha256([&io, &read_failed](const Sha256Chunk& chunk) {
-    QByteArray buffer(kSha256ChunkSize, Qt::Uninitialized);
+    ::QByteArray buffer(kSha256ChunkSize, Qt::Uninitialized);
     while (!io.atEnd()) {
       const auto n = io.read(buffer.data(), buffer.size());
       if (n < 0) {
@@ -255,7 +255,7 @@ auto GFBufferFactory::Sha256HexOfDevice(QIODevice& io) -> QString {
   return DigestToHex(digest);
 }
 
-auto GFBufferFactory::Sha256HexOfFile(const QString& path) -> QString {
+auto GFBufferFactory::Sha256HexOfFile(const ::QString& path) -> ::QString {
   QFile file(path);
   if (!file.open(QIODevice::ReadOnly)) {
     LOG_W() << "cannot hash, file could not be opened:" << path;

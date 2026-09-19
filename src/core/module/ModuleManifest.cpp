@@ -34,6 +34,8 @@
 #include <QJsonParseError>
 #include <QRegularExpression>
 
+#include "sdk/GFSDKBuildInfo.h"
+
 namespace GpgFrontend::Module {
 
 namespace {
@@ -255,6 +257,28 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
   result.status = ModuleManifestStatus::kOK;
   result.manifest = m;
   return result;
+}
+
+auto ManifestHostOsName() -> QString {
+#if defined(Q_OS_WIN)
+  return "windows";
+#elif defined(Q_OS_MACOS)
+  return "macos";
+#elif defined(Q_OS_LINUX)
+  return "linux";
+#else
+  return QSysInfo::kernelType();
+#endif
+}
+
+auto SdkAbiRejection(int abi) -> std::optional<QString> {
+  if (abi >= GF_SDK_ABI_MIN_SUPPORTED && abi <= GF_SDK_ABI_VERSION) return {};
+
+  return QString("it was built against sdk abi %1, and this version of "
+                 "GpgFrontend supports %2 to %3")
+      .arg(abi)
+      .arg(GF_SDK_ABI_MIN_SUPPORTED)
+      .arg(GF_SDK_ABI_VERSION);
 }
 
 }  // namespace GpgFrontend::Module

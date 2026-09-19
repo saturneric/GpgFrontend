@@ -40,6 +40,11 @@ constexpr auto kModulePackageManifestPath = "META-INF/manifest.json";
 constexpr auto kModulePackageSignaturePath = "META-INF/manifest.sig";
 constexpr auto kModulePackageBuildKeyPath = "META-INF/build-key.pub";
 
+/// Where a package keeps its one native image. The only place this prefix is
+/// spelled: the manager used to repeat it to re-find the binary the verifier
+/// had already found.
+constexpr auto kModulePackageBinaryDir = "bin/";
+
 /**
  * @brief Why a package was refused.
  *
@@ -72,6 +77,13 @@ auto GF_CORE_EXPORT ModulePackageStatusToString(ModulePackageStatus s) -> const
 
 /**
  * @brief What verification concluded about a package.
+ *
+ * AUTHORITATIVE. Every fact here was established against the bytes the
+ * signature covers, and callers are expected to *consume* them -- not to
+ * reopen the package and work any of them out again. The manager used to
+ * re-scan `manifest.files` for the `bin/` entry that @ref library_sha256 now
+ * carries; the two agreed, but nothing made them agree, and a second search
+ * is a second chance to search differently.
  */
 struct GF_CORE_EXPORT ModulePackageVerification {
   bool ok = false;
@@ -81,8 +93,9 @@ struct GF_CORE_EXPORT ModulePackageVerification {
   /// Parsed only after the signature over its raw bytes verified.
   ModuleManifest manifest;
 
-  /// Digest of the whole package file, for a future catalog to key on.
-  QString package_sha256;
+  /// The signed digest of the one `bin/` entry, found while verifying it.
+  /// This is what a pre-load inspection checks the image against.
+  QString library_sha256;
 
   /// The public key as found in META-INF. A hint, not a trust root.
   QByteArray build_public_key;
@@ -181,7 +194,10 @@ struct GF_CORE_EXPORT ModulePackageImage {
   QString reason;
 
   ModuleManifest manifest;
-  QString package_sha256;
+
+  /// The signed digest of the retained image. See ModulePackageVerification.
+  QString library_sha256;
+
   QByteArray build_public_key;
 
   /// Empty unless @c ok. Never populated on any refusal path.
