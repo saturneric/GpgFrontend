@@ -530,6 +530,56 @@ TEST_F(ModuleDescriptorTest, NoPrivateKeyMaterialIsLeftAnywhere) {
 
 // ------------------------------------------------------------- the builder
 
+// ------------------------------------------------- the preparation seal
+
+TEST_F(ModuleDescriptorTest, ASealedValueThatStillMatchesChangesNothing) {
+  auto spec = GoodSpec(dir_.path(), payload_);
+  spec.output_path = Path("sealed.gfmodule");
+
+  // What seal-prepared would have recorded, taken from the descriptor the
+  // fixture already built against the same unchanged file.
+  const auto v = Module::VerifyModuleDescriptor(Package());
+  ASSERT_TRUE(v.ok) << v.reason.toStdString();
+  spec.expected_entry_value = v.manifest.entry_native.value;
+
+  const auto built = Module::BuildModuleDescriptor(spec);
+  EXPECT_TRUE(built.ok) << built.reason.toStdString();
+  EXPECT_TRUE(Module::VerifyModuleDescriptor(spec.output_path).ok);
+}
+
+TEST_F(ModuleDescriptorTest, AnEntryRewrittenAfterSealingIsRefused) {
+  // The case the seal exists for: preparation finished, something wrote to the
+  // native afterwards, and the descriptor about to be written would describe
+  // the file as it used to be.
+  const auto v = Module::VerifyModuleDescriptor(Package());
+  ASSERT_TRUE(v.ok) << v.reason.toStdString();
+  const auto sealed_value = v.manifest.entry_native.value;
+
+  QFile payload(payload_);
+  ASSERT_TRUE(payload.open(QIODevice::WriteOnly | QIODevice::Truncate));
+  payload.write(QByteArray(4096, 'n'));
+  payload.close();
+
+  auto spec = GoodSpec(dir_.path(), payload_);
+  spec.output_path = Path("stale.gfmodule");
+  spec.expected_entry_value = sealed_value;
+
+  const auto built = Module::BuildModuleDescriptor(spec);
+  EXPECT_FALSE(built.ok);
+  EXPECT_TRUE(built.reason.contains("sealed")) << built.reason.toStdString();
+  EXPECT_FALSE(QFileInfo::exists(spec.output_path))
+      << "a refused build must not leave a descriptor behind";
+}
+
+TEST_F(ModuleDescriptorTest, NoSealMeansNoCheckRatherThanAFailedOne) {
+  // A release that skips seal-prepared loses the check and nothing else.
+  auto spec = GoodSpec(dir_.path(), payload_);
+  spec.output_path = Path("unsealed.gfmodule");
+  ASSERT_TRUE(spec.expected_entry_value.isEmpty());
+
+  EXPECT_TRUE(Module::BuildModuleDescriptor(spec).ok);
+}
+
 TEST_F(ModuleDescriptorTest, TheBuilderRefusesAReservedPath) {
   auto spec = spec_;
   spec.resources.append({"META-INF/manifest.json", {}, QByteArray("mine")});
