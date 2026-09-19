@@ -146,37 +146,16 @@ auto AppendCanonicalValue(const QJsonValue& value, QByteArray& out) -> bool {
   }
 }
 
-/// SHA-256 of a file, streamed, as lower-case hex.
+/// SHA-256 of a file, as lower-case hex. The digest the signature will cover,
+/// so it comes from the same place the verifier's does.
 auto HashFile(const QString& path, QString& out) -> bool {
-  QFile file(path);
-  if (!file.open(QIODevice::ReadOnly)) return false;
-  auto read_ok = true;
-  auto digest = GFBufferFactory::ToSha256(
-      [&file, &read_ok](const GFBufferFactory::Sha256Chunk& chunk) {
-        QByteArray buf(64 * 1024, Qt::Uninitialized);
-        while (true) {
-          const auto n = file.read(buf.data(), buf.size());
-          if (n < 0) {
-            read_ok = false;
-            return;
-          }
-          if (n == 0) return;
-          chunk(buf.constData(), static_cast<size_t>(n));
-        }
-      });
-  if (!read_ok || !digest) return false;
-  out = QString::fromLatin1(digest->ConvertToQByteArray().toHex());
-  return true;
+  out = GFBufferFactory::Sha256HexOfFile(path);
+  return !out.isEmpty();
 }
 
 auto HashBytes(const QByteArray& bytes, QString& out) -> bool {
-  auto digest = GFBufferFactory::ToSha256(
-      [&bytes](const GFBufferFactory::Sha256Chunk& chunk) {
-        chunk(bytes.constData(), static_cast<size_t>(bytes.size()));
-      });
-  if (!digest) return false;
-  out = QString::fromLatin1(digest->ConvertToQByteArray().toHex());
-  return true;
+  out = GFBufferFactory::Sha256Hex(bytes);
+  return !out.isEmpty();
 }
 
 }  // namespace

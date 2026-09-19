@@ -28,6 +28,7 @@
 
 #include "IOUtils.h"
 
+#include "core/function/GFBufferFactory.h"
 #include "core/utils/FilesystemUtils.h"
 
 namespace {
@@ -293,32 +294,13 @@ void RemoveSafeOutputWorkDir(const QString& temp_path) {
 }
 
 auto CalculateBinaryChacksum(QIODevice& io) -> QString {
-  if (!io.isOpen() || !io.isReadable()) {
-    LOG_W() << "cannot calculate checksum, device is not open for reading";
-    return {};
-  }
-
-  // the caller may already have read a header from the device
-  if (!io.seek(0)) {
-    LOG_W() << "cannot calculate checksum, device is not seekable";
-    return {};
-  }
-
-  QCryptographicHash hash_sha(QCryptographicHash::Sha256);
-
-  // read data by chunks
-  const qint64 buffer_size = 8192;  // Define a suitable buffer size
-  while (!io.atEnd()) {
-    QByteArray const buffer = io.read(buffer_size);
-    if (buffer.isEmpty()) {
-      LOG_W() << "error reading device during checksum calculation";
-      return {};
-    }
-    hash_sha.addData(buffer);
-  }
-
-  // return the SHA-256 hash of the data
-  return hash_sha.result().toHex();
+  // Integrity digests belong to GFBufferFactory, which is where the module
+  // pipeline computes every one it compares against. This kept a private
+  // QCryptographicHash loop, so the digest a module was admitted on came from
+  // a different library than the digest its package was signed over.
+  // (GetFileHashQt() above is unrelated: it offers several algorithms for the
+  // file-info panel to display, and nothing decides anything on its output.)
+  return GFBufferFactory::Sha256HexOfDevice(io);
 }
 
 auto CalculateBinaryChacksum(const QString& path) -> QString {

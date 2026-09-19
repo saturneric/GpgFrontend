@@ -30,6 +30,7 @@
 
 #include <atomic>
 
+#include "core/function/GFBufferFactory.h"
 #include "core/function/SecureMemoryAllocator.h"
 #include "core/model/GFBuffer.h"
 #include "core/utils/MemoryUtils.h"
@@ -137,12 +138,6 @@ class DirectoryLock {
   int fd_ = -1;
 #endif
 };
-
-auto Sha256Of(const char* data, qint64 size) -> QString {
-  QCryptographicHash hash(QCryptographicHash::Sha256);
-  hash.addData(QByteArrayView(data, static_cast<qsizetype>(size)));
-  return QString::fromLatin1(hash.result().toHex());
-}
 
 }  // namespace
 
@@ -345,6 +340,11 @@ auto ModuleImageMapping::Create(const VerifiedModuleImage& image,
   // transport was faithful. It catches a truncated or failed write, which is
   // the failure this path actually has; it is not a defence against a hostile
   // same-user process, and nothing here pretends it is.
+  //
+  // This is a DOCUMENTED EXCEPTION to "a verified fact is never recomputed
+  // downstream": it does not re-establish the package's digest, it asks a
+  // different question -- did these exact bytes reach the filesystem. Deleting
+  // it as a duplicate would remove the only detector of a short write.
   {
     QFile back(path);
     if (!back.open(QIODevice::ReadOnly)) {
@@ -354,9 +354,8 @@ auto ModuleImageMapping::Create(const VerifiedModuleImage& image,
     const auto written = back.readAll();
     back.close();
 
-    const auto expected =
-        Sha256Of(image.Bytes().constData(), image.Bytes().size());
-    auto actual = Sha256Of(written.constData(), written.size());
+    const auto expected = GFBufferFactory::Sha256Hex(image.Bytes());
+    auto actual = GFBufferFactory::Sha256Hex(written);
     if (fault == ModuleImageFaultPoint::kREADBACK_DIFFERS) actual.clear();
 
     if (actual != expected) {

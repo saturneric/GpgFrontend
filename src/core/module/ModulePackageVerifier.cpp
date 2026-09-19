@@ -101,10 +101,6 @@ auto HostOsName() -> QString {
 #endif
 }
 
-auto ToHex(const GFBuffer& digest) -> QString {
-  return QString::fromLatin1(digest.ConvertToQByteArray().toHex());
-}
-
 /**
  * @brief Everything that is true of a verified package, wherever it came from.
  *
@@ -326,21 +322,12 @@ auto ReadPackage(const QString& package_path,
                     "this file could not be read");
     }
     ModuleLoadStats::GetInstance().AddHashedBytes(package.size());
-    auto digest = GFBufferFactory::ToSha256(
-        [&package](const GFBufferFactory::Sha256Chunk& chunk) {
-          QByteArray buf(64 * 1024, Qt::Uninitialized);
-          while (true) {
-            const auto n = package.read(buf.data(), buf.size());
-            if (n <= 0) break;
-            chunk(buf.constData(), static_cast<size_t>(n));
-          }
-        });
+    package_sha256 = GFBufferFactory::Sha256HexOfDevice(package);
     package.close();
-    if (!digest) {
+    if (package_sha256.isEmpty()) {
       return Refuse(ModulePackageStatus::kIO_FAILED,
                     "this file could not be read");
     }
-    package_sha256 = ToHex(*digest);
   }
 
   // Nothing is written into it. The extractor still insists on a destination,
@@ -395,15 +382,12 @@ auto ReadPackage(const QString& package_path,
 
         ModuleLoadStats::GetInstance().AddHashedBytes(
             static_cast<qint64>(bytes.size()));
-        auto digest = GFBufferFactory::ToSha256(
-            [&bytes](const GFBufferFactory::Sha256Chunk& chunk) {
-              chunk(bytes.constData(), static_cast<size_t>(bytes.size()));
-            });
-        if (!digest) {
+        const auto digest = GFBufferFactory::Sha256Hex(bytes);
+        if (digest.isEmpty()) {
           hash_failed = true;
           return false;
         }
-        actual_digests.insert(path, ToHex(*digest));
+        actual_digests.insert(path, digest);
 
         // Held, not copied: QByteArray shares its storage, so this is a
         // reference count rather than another forty-eight megabytes. It is
