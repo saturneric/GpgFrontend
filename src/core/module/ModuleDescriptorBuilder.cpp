@@ -26,7 +26,7 @@
  *
  */
 
-#include "ModulePackageBuilder.h"
+#include "ModuleDescriptorBuilder.h"
 
 #include <sodium.h>
 
@@ -41,7 +41,7 @@
 #include "core/function/GFBufferFactory.h"
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManifest.h"
-#include "core/module/ModulePackageVerifier.h"
+#include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleTrustRoot.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/CommonUtils.h"
@@ -50,8 +50,8 @@ namespace GpgFrontend::Module {
 
 namespace {
 
-auto Fail(const QString& reason) -> ModulePackageBuildResult {
-  ModulePackageBuildResult r;
+auto Fail(const QString& reason) -> ModuleDescriptorBuildResult {
+  ModuleDescriptorBuildResult r;
   r.ok = false;
   r.reason = reason;
   return r;
@@ -169,8 +169,8 @@ auto CanonicalJson(const QJsonValue& value, QByteArray& out) -> bool {
   return AppendCanonicalValue(value, out);
 }
 
-auto BuildModulePackage(const ModulePackageBuildSpec& spec)
-    -> ModulePackageBuildResult {
+auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
+    -> ModuleDescriptorBuildResult {
   // The os string the verifier will compare against, unless the caller is
   // deliberately cross-packaging. Taking it from the command line by default
   // meant a packaging script could stamp a spelling nothing accepts.
@@ -195,7 +195,7 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
   naming.reject_duplicate_paths = true;
 
   QJsonArray resources_json;
-  QVector<ModulePackageSource> staged;
+  QVector<ModuleResourceSource> staged;
   QSet<QString> seen;
 
   for (const auto& source : spec.resources) {
@@ -364,9 +364,9 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
     return Fail("the manifest could not be signed");
   }
 
-  QVector<ModulePackageSource> members;
-  members.append({kModulePackageManifestPath, {}, manifest_bytes});
-  members.append({kModulePackageSignaturePath,
+  QVector<ModuleResourceSource> members;
+  members.append({kModuleDescriptorManifestPath, {}, manifest_bytes});
+  members.append({kModuleDescriptorSignaturePath,
                   {},
                   QByteArray(reinterpret_cast<const char*>(signature.data()),
                              static_cast<qsizetype>(signature_length))});
@@ -430,7 +430,7 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
     return Fail(QString("\"%1\" could not be written").arg(spec.output_path));
   }
 
-  ModulePackageBuildResult result;
+  ModuleDescriptorBuildResult result;
   result.ok = true;
   result.build_public_key =
       QByteArray(reinterpret_cast<const char*>(public_key.data()),

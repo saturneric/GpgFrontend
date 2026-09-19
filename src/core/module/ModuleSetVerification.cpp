@@ -35,7 +35,7 @@
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManager.h"
 #include "core/module/ModuleNamespace.h"
-#include "core/module/ModulePackageVerifier.h"
+#include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleTrustRoot.h"
 
 namespace GpgFrontend::Module {
@@ -75,14 +75,14 @@ auto VerifyModuleSet(const QString& root, int expected_count)
       continue;
     }
 
-    const auto verdict = VerifyModulePackage(descriptor);
+    const auto verdict = VerifyModuleDescriptor(descriptor);
     if (!verdict.ok) {
       result.problems.append(
           {ns.fileName(),
            QString("its descriptor was refused: %1 (%2)")
                .arg(verdict.reason,
                     QString::fromUtf8(
-                        ModulePackageStatusToString(verdict.status)))});
+                        ModuleDescriptorStatusToString(verdict.status)))});
       continue;
     }
 

@@ -41,7 +41,7 @@
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleNamespace.h"
-#include "core/module/ModulePackageVerifier.h"
+#include "core/module/ModuleDescriptor.h"
 #include "core/struct/settings_object/ModuleSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -114,7 +114,7 @@ auto IsModuleLibraryFileName(const QString& file_name) -> bool {
   return kModuleFileNameRegex.match(file_name).hasMatch();
 }
 
-auto IsModulePackageFileName(const QString& file_name) -> bool {
+auto IsModuleDescriptorFileName(const QString& file_name) -> bool {
   return file_name.endsWith(kModulePackageSuffix, Qt::CaseInsensitive);
 }
 
@@ -212,11 +212,11 @@ class ModuleManager::Impl {
   auto VerifyAndResolveEntry(const QString& package_path, QString& library_path,
                              ModuleManifest& manifest, QString& module_hash,
                              QString& library_name) -> bool {
-    const auto read = VerifyModulePackage(package_path);
+    const auto read = VerifyModuleDescriptor(package_path);
     if (!read.ok) {
       LOG_W() << "module manager refuses module descriptor: " << package_path
               << ", reason: " << read.reason << " ("
-              << ModulePackageStatusToString(read.status) << ")";
+              << ModuleDescriptorStatusToString(read.status) << ")";
       return false;
     }
 
@@ -274,7 +274,7 @@ class ModuleManager::Impl {
     ModuleLoadCandidate candidate;
     candidate.source_path = path;
     candidate.integrated = integrated;
-    candidate.packaged = IsModulePackageFileName(QFileInfo(path).fileName());
+    candidate.packaged = IsModuleDescriptorFileName(QFileInfo(path).fileName());
     candidate.library_path = path;
 
     ModuleDispatchScope admission(GlobalModuleDispatchGate());

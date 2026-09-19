@@ -41,8 +41,8 @@
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleManager.h"
 #include "core/module/ModuleNamespace.h"
-#include "core/module/ModulePackageBuilder.h"
-#include "core/module/ModulePackageVerifier.h"
+#include "core/module/ModuleDescriptorBuilder.h"
+#include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleTrustRoot.h"
 #include "sdk/GFSDKBuildInfo.h"
 
@@ -109,7 +109,7 @@ TEST(ModuleLoadInvariantsTest, VerifyingAPackageReadsItExactlyOnce) {
   const auto largest = LargestBuiltModulePackage();
   ASSERT_FALSE(largest.isEmpty());
 
-  const auto read = Module::VerifyModulePackage(largest);
+  const auto read = Module::VerifyModuleDescriptor(largest);
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
   const Module::ModuleNativeRoot root{QFileInfo(largest).absolutePath() +
@@ -179,7 +179,7 @@ TEST(ModuleLoadInvariantsTest, APackageCannotClaimAnIdentityItsBinaryDenies) {
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());
 
-  Module::ModulePackageBuildSpec spec;
+  Module::ModuleDescriptorBuildSpec spec;
   // An id no module in this build reports, but a well-formed one -- so it is
   // the CROSS-CHECK that refuses this, not the identifier syntax rule.
   spec.module_id = "com.bktus.gpgfrontend.module.notwhatisinside";
@@ -211,7 +211,7 @@ TEST(ModuleLoadInvariantsTest, APackageCannotClaimAnIdentityItsBinaryDenies) {
   spec.entry_native_name = "gf_mod_test_sentinel";
   spec.entry_native_file = native;
   spec.output_path = namespace_dir + "/module.gfmodule";
-  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
 
   auto& manager = Module::ModuleManager::GetInstance();
 
@@ -312,7 +312,7 @@ TEST(ModuleLoadInvariantsTest, ADescriptorInTheWrongNamespaceIsRefused) {
                       Module::ModuleNativeFileName("gf_mod_misplaced");
   ASSERT_TRUE(QFile::copy(library, native));
 
-  Module::ModulePackageBuildSpec spec;
+  Module::ModuleDescriptorBuildSpec spec;
   spec.module_id = "com.bktus.gpgfrontend.module.misplaced";
   spec.version = "1.0.0";
   spec.sdk_abi = GF_SDK_ABI_VERSION;
@@ -330,12 +330,12 @@ TEST(ModuleLoadInvariantsTest, ADescriptorInTheWrongNamespaceIsRefused) {
   spec.entry_native_name = "gf_mod_misplaced";
   spec.entry_native_file = native;
   spec.output_path = namespace_dir + "/module.gfmodule";
-  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
 
   // The descriptor itself is impeccable: correctly signed, right build, and
   // its entry really is there and really does match. Only its address is
   // wrong, and that alone is enough.
-  const auto direct = Module::VerifyModulePackage(spec.output_path);
+  const auto direct = Module::VerifyModuleDescriptor(spec.output_path);
   ASSERT_TRUE(direct.ok) << direct.reason.toStdString();
 
   auto& manager = Module::ModuleManager::GetInstance();

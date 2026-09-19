@@ -37,7 +37,7 @@
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleManager.h"
-#include "core/module/ModulePackageVerifier.h"
+#include "core/module/ModuleDescriptor.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "sdk/GFSDKModuleAttribution.h"

@@ -40,7 +40,7 @@
 #include "ModuleTestPackages.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/model/GFDataExchanger.h"
-#include "core/module/ModulePackageVerifier.h"
+#include "core/module/ModuleDescriptor.h"
 
 /**
  * @file GpgCoreTestModuleInMemory.cpp
@@ -77,7 +77,7 @@ auto SnapshotOf(const QString& path) -> QSet<QString> {
 
 /// A minimal archive, built in memory, so the read tests need no fixture file.
 ///
-/// The producer/consumer shape is the builder's own (ModulePackageBuilder.cpp):
+/// The producer/consumer shape is the builder's own (ModuleDescriptorBuilder.cpp):
 /// the archive writer runs on a thread and this drains the pipe, because there
 /// is no way to close the read side and a producer pushing into a full one
 /// would never return from the join.
@@ -213,7 +213,7 @@ TEST(ModuleInMemoryTest, VerifyingAPackageCreatesNoFilesystemEntry) {
   const auto temp_before = SnapshotOf(temp_root);
   const auto dir_before = SnapshotOf(package_dir);
 
-  const auto verdict = Module::VerifyModulePackage(package);
+  const auto verdict = Module::VerifyModuleDescriptor(package);
   ASSERT_TRUE(verdict.ok) << verdict.reason.toStdString();
 
   // The two places a stray file would land: the system temporary directory,
@@ -252,7 +252,7 @@ TEST(ModuleInMemoryTest, VerificationSurvivesAnUnusableTempDirectory) {
     }
   }
 
-  const auto verdict = Module::VerifyModulePackage(package);
+  const auto verdict = Module::VerifyModuleDescriptor(package);
   EXPECT_TRUE(verdict.ok)
       << "verification must not depend on a usable temporary directory: "
       << verdict.reason.toStdString();
@@ -267,7 +267,7 @@ TEST(ModuleInMemoryTest, VerificationReadsThePackageOnlyOnce) {
   const auto copy = scratch.path() + "/copy.gfmodule";
   ASSERT_TRUE(QFile::copy(package, copy));
 
-  const auto verdict = Module::VerifyModulePackage(copy);
+  const auto verdict = Module::VerifyModuleDescriptor(copy);
   ASSERT_TRUE(verdict.ok) << verdict.reason.toStdString();
 
   // Replace the file with something that is not a package at all, then ask the
@@ -281,7 +281,7 @@ TEST(ModuleInMemoryTest, VerificationReadsThePackageOnlyOnce) {
     clobber.close();
   }
 
-  const auto second = Module::VerifyModulePackage(copy);
+  const auto second = Module::VerifyModuleDescriptor(copy);
   EXPECT_FALSE(second.ok);
 }
 

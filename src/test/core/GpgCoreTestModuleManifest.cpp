@@ -34,14 +34,14 @@
 
 #include "GpgFrontendTest.h"
 #include "core/module/ModuleManifest.h"
-#include "core/module/ModulePackageBuilder.h"
+#include "core/module/ModuleDescriptorBuilder.h"
 #include "sdk/GFSDKBuildInfo.h"
 
 /**
  * @file GpgCoreTestModuleManifest.cpp
  * @brief The manifest parser, and the canonical JSON the signature covers.
  *
- * Split out of GpgCoreTestModulePackage.cpp, which had grown to 846 lines and
+ * Split out of GpgCoreTestModuleDescriptor.cpp, which had grown to 846 lines and
  * two subjects. These need no package, no archive and no key: they are about
  * whether a string of JSON is accepted, and about the exact bytes a signature
  * is computed over. Keeping them beside a fixture that builds and signs a real

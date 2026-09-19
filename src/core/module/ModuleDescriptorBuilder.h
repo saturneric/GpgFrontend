@@ -35,7 +35,7 @@ namespace GpgFrontend::Module {
 /**
  * @brief One file to put into a package.
  */
-struct GF_CORE_EXPORT ModulePackageSource {
+struct GF_CORE_EXPORT ModuleResourceSource {
   QString archive_path;  ///< where it goes, archive-relative, forward slashes
   QString source_file;   ///< read from here, when set
   QByteArray bytes;      ///< otherwise, these
@@ -49,7 +49,7 @@ struct GF_CORE_EXPORT ModulePackageSource {
  * package is described by its target, not by the machine that ran the
  * packager.
  */
-struct GF_CORE_EXPORT ModulePackageBuildSpec {
+struct GF_CORE_EXPORT ModuleDescriptorBuildSpec {
   QString module_id;
   QString version;
   int sdk_abi = 0;
@@ -77,7 +77,7 @@ struct GF_CORE_EXPORT ModulePackageBuildSpec {
   QString platform_qt;
 
   /// Non-executable members carried inside the package. May be empty.
-  QVector<ModulePackageSource> resources;
+  QVector<ModuleResourceSource> resources;
 
   /// The logical name of the module's entry native, matching
   /// `[a-z][a-z0-9_]{0,63}` and not beginning with `lib`. This is what the
@@ -95,7 +95,7 @@ struct GF_CORE_EXPORT ModulePackageBuildSpec {
   /// Required. There is no per-package key any more: a descriptor signed by a
   /// key nobody else holds establishes that it agrees with itself, which is
   /// not a property worth the bytes. The seed must derive the public key the
-  /// Host was built with, and BuildModulePackage() checks that rather than
+  /// Host was built with, and BuildModuleDescriptor() checks that rather than
   /// trusting the caller to have passed the right file.
   QByteArray signing_seed;
 
@@ -105,7 +105,7 @@ struct GF_CORE_EXPORT ModulePackageBuildSpec {
 /**
  * @brief What building a package produced.
  */
-struct GF_CORE_EXPORT ModulePackageBuildResult {
+struct GF_CORE_EXPORT ModuleDescriptorBuildResult {
   bool ok = false;
   QString reason;
   QByteArray
@@ -153,13 +153,13 @@ auto GF_CORE_EXPORT CanonicalJson(const QJsonValue& value, QByteArray& out)
  * catalog later record a per-build public key without changing anything here.
  *
  * What the resulting signature proves is narrow, and stated in full on
- * VerifyModulePackage(): the public key travels inside the package, so this
+ * VerifyModuleDescriptor(): the public key travels inside the package, so this
  * establishes self-consistency and nothing about who built it.
  *
  * @param spec what to package
  * @return whether it was written, and the public key it was signed with
  */
-auto GF_CORE_EXPORT BuildModulePackage(const ModulePackageBuildSpec& spec)
-    -> ModulePackageBuildResult;
+auto GF_CORE_EXPORT BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
+    -> ModuleDescriptorBuildResult;
 
 }  // namespace GpgFrontend::Module

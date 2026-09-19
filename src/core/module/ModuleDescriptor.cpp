@@ -26,7 +26,7 @@
  *
  */
 
-#include "ModulePackageVerifier.h"
+#include "ModuleDescriptor.h"
 
 #include <sodium.h>
 
@@ -78,9 +78,9 @@ auto PackagePolicy() -> ArchiveExtractPolicy {
   return policy;
 }
 
-auto Refuse(ModulePackageStatus status, const QString& reason)
-    -> ModulePackageVerification {
-  ModulePackageVerification v;
+auto Refuse(ModuleDescriptorStatus status, const QString& reason)
+    -> ModuleDescriptorVerification {
+  ModuleDescriptorVerification v;
   v.ok = false;
   v.status = status;
   v.reason = reason;
@@ -108,12 +108,12 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
                           const std::array<int, 3>& counts,
                           const QMap<QString, QString>& actual_digests,
                           const QByteArray& expected_public_key)
-    -> ModulePackageVerification {
+    -> ModuleDescriptorVerification {
   // Exactly one of each, and each present. More than one is how an archive
   // says two different things at once; a reader that takes the first and a
   // reader that takes the last then disagree about what was signed.
   if (counts[0] != 1 || counts[1] != 1) {
-    return Refuse(ModulePackageStatus::kMALFORMED,
+    return Refuse(ModuleDescriptorStatus::kMALFORMED,
                   "it does not carry exactly one manifest and one signature");
   }
   // The build key used to live in META-INF. A descriptor still carrying one is
@@ -121,16 +121,16 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
   // trust root moved into the Host, and it was signed by a key this build has
   // no reason to accept.
   if (counts[2] != 0) {
-    return Refuse(ModulePackageStatus::kMALFORMED,
+    return Refuse(ModuleDescriptorStatus::kMALFORMED,
                   "it carries a build key inside itself; the trust root "
                   "belongs to the Host that loads it, not to the package");
   }
   if (signature_bytes.size() != crypto_sign_BYTES) {
-    return Refuse(ModulePackageStatus::kMALFORMED,
+    return Refuse(ModuleDescriptorStatus::kMALFORMED,
                   "its signature is the wrong size");
   }
   if (expected_public_key.size() != crypto_sign_PUBLICKEYBYTES) {
-    return Refuse(ModulePackageStatus::kMALFORMED,
+    return Refuse(ModuleDescriptorStatus::kMALFORMED,
                   "no usable verification key was supplied");
   }
 
@@ -147,15 +147,15 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
     // Verified WITH the Host's key, not merely compared against it. There is
     // no second key in play any more, so there is no version of this check
     // that can pass for a descriptor this build did not sign.
-    return Refuse(ModulePackageStatus::kUNTRUSTED_BUILD_KEY,
+    return Refuse(ModuleDescriptorStatus::kUNTRUSTED_BUILD_KEY,
                   "it was not signed by this build of GpgFrontend");
   }
 
   const auto parsed = ParseModuleManifest(manifest_bytes);
   if (!parsed.ok) {
     return Refuse(parsed.status == ModuleManifestStatus::kTOO_NEW
-                      ? ModulePackageStatus::kTOO_NEW
-                      : ModulePackageStatus::kMALFORMED,
+                      ? ModuleDescriptorStatus::kTOO_NEW
+                      : ModuleDescriptorStatus::kMALFORMED,
                   parsed.reason);
   }
   const auto& m = parsed.manifest;
@@ -164,14 +164,14 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
   // one means "not ours", the other means "ours, but from a different build",
   // and only the second is something a rebuild fixes.
   if (m.build_id != ModuleBuildId()) {
-    return Refuse(ModulePackageStatus::kWRONG_BUILD,
+    return Refuse(ModuleDescriptorStatus::kWRONG_BUILD,
                   QString("it was built for %1, and this is %2")
                       .arg(m.build_id, ModuleBuildId()));
   }
 
   if (m.platform_os != ManifestHostOsName() ||
       m.platform_arch != QSysInfo::currentCpuArchitecture()) {
-    return Refuse(ModulePackageStatus::kWRONG_PLATFORM,
+    return Refuse(ModuleDescriptorStatus::kWRONG_PLATFORM,
                   QString("it was built for %1/%2, and this is %3/%4")
                       .arg(m.platform_os, m.platform_arch, ManifestHostOsName(),
                            QSysInfo::currentCpuArchitecture()));
@@ -180,11 +180,11 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
   // One decision point, shared with the loader's check of the module's own
   // table -- see SdkAbiRejection().
   if (const auto why = SdkAbiRejection(m.sdk_abi); why) {
-    return Refuse(ModulePackageStatus::kINCOMPATIBLE_ABI, *why);
+    return Refuse(ModuleDescriptorStatus::kINCOMPATIBLE_ABI, *why);
   }
 
   if (GFCompareSoftwareVersion(m.min_host_version, GetProjectVersion()) > 0) {
-    return Refuse(ModulePackageStatus::kINCOMPATIBLE_ABI,
+    return Refuse(ModuleDescriptorStatus::kINCOMPATIBLE_ABI,
                   QString("it needs GpgFrontend %1 or newer, and this is %2")
                       .arg(m.min_host_version, GetProjectVersion()));
   }
@@ -196,12 +196,12 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
   for (const auto& declared : m.resources) {
     const auto it = actual_digests.constFind(declared.path);
     if (it == actual_digests.constEnd()) {
-      return Refuse(ModulePackageStatus::kMISSING_DECLARED_FILE,
+      return Refuse(ModuleDescriptorStatus::kMISSING_DECLARED_RESOURCE,
                     QString("it promises \"%1\" and does not carry it")
                         .arg(declared.path));
     }
     if (*it != declared.sha256) {
-      return Refuse(ModulePackageStatus::kFILE_DIGEST_MISMATCH,
+      return Refuse(ModuleDescriptorStatus::kRESOURCE_DIGEST_MISMATCH,
                     QString("\"%1\" is not the file this package was signed "
                             "for")
                         .arg(declared.path));
@@ -214,7 +214,7 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
     for (auto it = actual_digests.constBegin(); it != actual_digests.constEnd();
          ++it) {
       if (!declared_paths.contains(it.key())) {
-        return Refuse(ModulePackageStatus::kUNDECLARED_FILE,
+        return Refuse(ModuleDescriptorStatus::kUNDECLARED_RESOURCE,
                       QString("it carries \"%1\", which nothing in it vouches "
                               "for")
                           .arg(it.key()));
@@ -222,9 +222,9 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
     }
   }
 
-  ModulePackageVerification v;
+  ModuleDescriptorVerification v;
   v.ok = true;
-  v.status = ModulePackageStatus::kOK;
+  v.status = ModuleDescriptorStatus::kOK;
   v.manifest = m;
   v.build_public_key = expected_public_key;
   return v;
@@ -232,33 +232,33 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
 
 }  // namespace
 
-auto ModulePackageStatusToString(ModulePackageStatus s) -> const char* {
+auto ModuleDescriptorStatusToString(ModuleDescriptorStatus s) -> const char* {
   switch (s) {
-    case ModulePackageStatus::kOK:
+    case ModuleDescriptorStatus::kOK:
       return "ok";
-    case ModulePackageStatus::kNOT_A_PACKAGE:
+    case ModuleDescriptorStatus::kNOT_A_PACKAGE:
       return "not a module package";
-    case ModulePackageStatus::kTOO_NEW:
+    case ModuleDescriptorStatus::kTOO_NEW:
       return "written by a newer version";
-    case ModulePackageStatus::kMALFORMED:
+    case ModuleDescriptorStatus::kMALFORMED:
       return "malformed";
-    case ModulePackageStatus::kUNTRUSTED_BUILD_KEY:
+    case ModuleDescriptorStatus::kUNTRUSTED_BUILD_KEY:
       return "not signed by this build";
-    case ModulePackageStatus::kWRONG_BUILD:
+    case ModuleDescriptorStatus::kWRONG_BUILD:
       return "built for a different build of this application";
-    case ModulePackageStatus::kBAD_SIGNATURE:
+    case ModuleDescriptorStatus::kBAD_SIGNATURE:
       return "the signature does not match";
-    case ModulePackageStatus::kFILE_DIGEST_MISMATCH:
+    case ModuleDescriptorStatus::kRESOURCE_DIGEST_MISMATCH:
       return "a file in it has changed";
-    case ModulePackageStatus::kUNDECLARED_FILE:
+    case ModuleDescriptorStatus::kUNDECLARED_RESOURCE:
       return "it carries a file nothing vouches for";
-    case ModulePackageStatus::kMISSING_DECLARED_FILE:
+    case ModuleDescriptorStatus::kMISSING_DECLARED_RESOURCE:
       return "a file it promises is not there";
-    case ModulePackageStatus::kWRONG_PLATFORM:
+    case ModuleDescriptorStatus::kWRONG_PLATFORM:
       return "built for a different system";
-    case ModulePackageStatus::kINCOMPATIBLE_ABI:
+    case ModuleDescriptorStatus::kINCOMPATIBLE_ABI:
       return "built against a different sdk";
-    case ModulePackageStatus::kIO_FAILED:
+    case ModuleDescriptorStatus::kIO_FAILED:
       return "it could not be read";
   }
   return "unknown";
@@ -275,15 +275,15 @@ namespace {
 /// how a library is found or loaded.
 auto ReadPackage(const QString& package_path,
                  const QByteArray& expected_public_key)
-    -> ModulePackageVerification {
+    -> ModuleDescriptorVerification {
   if (!EnsureSodiumInit()) {
-    return Refuse(ModulePackageStatus::kIO_FAILED,
+    return Refuse(ModuleDescriptorStatus::kIO_FAILED,
                   "the cryptography library could not be started");
   }
 
   QFile package(package_path);
   if (!package.exists()) {
-    return Refuse(ModulePackageStatus::kIO_FAILED, "this file does not exist");
+    return Refuse(ModuleDescriptorStatus::kIO_FAILED, "this file does not exist");
   }
 
   // Read once, whole, and judged from that one snapshot. Nothing below reopens
@@ -295,18 +295,18 @@ auto ReadPackage(const QString& package_path,
   // the walk enforces per entry, so a file too large to be one of these is
   // refused before it is held rather than after.
   if (!package.open(QIODevice::ReadOnly)) {
-    return Refuse(ModulePackageStatus::kIO_FAILED,
+    return Refuse(ModuleDescriptorStatus::kIO_FAILED,
                   "this file could not be "
                   "read");
   }
   if (package.size() > kMaxPackageTotalBytes) {
-    return Refuse(ModulePackageStatus::kMALFORMED,
+    return Refuse(ModuleDescriptorStatus::kMALFORMED,
                   "this file is larger than a module package may be");
   }
   const auto package_bytes = package.readAll();
   package.close();
   if (package_bytes.isEmpty()) {
-    return Refuse(ModulePackageStatus::kNOT_A_PACKAGE, "this file is empty");
+    return Refuse(ModuleDescriptorStatus::kNOT_A_PACKAGE, "this file is empty");
   }
 
   QByteArray manifest_bytes;
@@ -334,17 +334,17 @@ auto ReadPackage(const QString& package_path,
   const auto error = ArchiveFileOperator::ReadArchiveMembersSync(
       package_bytes, PackagePolicy(),
       [&](const QString& path, const QByteArray& bytes) {
-        if (path == kModulePackageManifestPath) {
+        if (path == kModuleDescriptorManifestPath) {
           ++manifest_count;
           manifest_bytes = bytes;
           return true;
         }
-        if (path == kModulePackageSignaturePath) {
+        if (path == kModuleDescriptorSignaturePath) {
           ++signature_count;
           signature_bytes = bytes;
           return true;
         }
-        if (path == kModulePackageBuildKeyPath) {
+        if (path == kModuleDescriptorBuildKeyPath) {
           ++public_key_count;
           public_key_bytes = bytes;
           return true;
@@ -364,13 +364,13 @@ auto ReadPackage(const QString& package_path,
       &reason);
 
   if (error != 0) {
-    return Refuse(ModulePackageStatus::kNOT_A_PACKAGE,
+    return Refuse(ModuleDescriptorStatus::kNOT_A_PACKAGE,
                   reason.isEmpty() ? QString("this file is not a module "
                                              "package")
                                    : reason);
   }
   if (hash_failed) {
-    return Refuse(ModulePackageStatus::kIO_FAILED,
+    return Refuse(ModuleDescriptorStatus::kIO_FAILED,
                   "a file in it could not be read");
   }
 
@@ -384,9 +384,9 @@ auto ReadPackage(const QString& package_path,
 
 }  // namespace
 
-auto VerifyModulePackage(const QString& package_path,
+auto VerifyModuleDescriptor(const QString& package_path,
                          const QByteArray& expected_public_key)
-    -> ModulePackageVerification {
+    -> ModuleDescriptorVerification {
   return ReadPackage(package_path, expected_public_key);
 }
 

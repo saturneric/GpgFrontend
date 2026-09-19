@@ -91,7 +91,7 @@ inline auto LargestBuiltModulePackage() -> QString {
 /// The seed this build signs module descriptors with.
 ///
 /// Tests use the real one rather than a key of their own, and they have no
-/// choice: BuildModulePackage() refuses a seed that does not derive the public
+/// choice: BuildModuleDescriptor() refuses a seed that does not derive the public
 /// key compiled into gf_core, precisely so a descriptor the Host could not
 /// load cannot be produced. That makes every packaging test exercise the
 /// signing path a build actually takes.

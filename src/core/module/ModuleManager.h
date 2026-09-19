@@ -478,7 +478,7 @@ auto GF_CORE_EXPORT IsModuleLibraryFileName(const QString& file_name) -> bool;
  * @param file_name the bare file name, without any directory part
  * @return true if the name may belong to a module package
  */
-auto GF_CORE_EXPORT IsModulePackageFileName(const QString& file_name) -> bool;
+auto GF_CORE_EXPORT IsModuleDescriptorFileName(const QString& file_name) -> bool;
 
 /**
  * @brief Outcome of inspecting a module library before it is loaded.

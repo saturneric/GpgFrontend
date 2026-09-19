@@ -42,11 +42,11 @@ constexpr auto kModulePackageSuffix = ".gfmodule";
 constexpr auto kModuleDescriptorFileName = "module.gfmodule";
 
 /// Where the signed metadata lives inside the package.
-constexpr auto kModulePackageManifestPath = "META-INF/manifest.json";
-constexpr auto kModulePackageSignaturePath = "META-INF/manifest.sig";
+constexpr auto kModuleDescriptorManifestPath = "META-INF/manifest.json";
+constexpr auto kModuleDescriptorSignaturePath = "META-INF/manifest.sig";
 /// Where the build key USED to live. Retained only so a descriptor that still
 /// carries one can be refused by name rather than as an undeclared member.
-constexpr auto kModulePackageBuildKeyPath = "META-INF/build-key.pub";
+constexpr auto kModuleDescriptorBuildKeyPath = "META-INF/build-key.pub";
 
 /**
  * @brief Why a package was refused.
@@ -55,7 +55,7 @@ constexpr auto kModulePackageBuildKeyPath = "META-INF/build-key.pub";
  * for the same job: a caller that already knows how to turn one of those into
  * a sentence needs no new habits for this.
  */
-enum class ModulePackageStatus {
+enum class ModuleDescriptorStatus {
   kOK,
   kNOT_A_PACKAGE,          ///< not a readable archive of this shape
   kTOO_NEW,                ///< manifest schema beyond this build
@@ -63,9 +63,9 @@ enum class ModulePackageStatus {
   kBAD_SIGNATURE,          ///< the signature does not cover these bytes
   kUNTRUSTED_BUILD_KEY,    ///< not signed by this Host build's module key
   kWRONG_BUILD,            ///< signed by this key, but for a different build
-  kFILE_DIGEST_MISMATCH,   ///< a declared file is not the file that is there
-  kUNDECLARED_FILE,        ///< a file the signature does not cover
-  kMISSING_DECLARED_FILE,  ///< the manifest names a file the package lacks
+  kRESOURCE_DIGEST_MISMATCH,   ///< a declared file is not the file that is there
+  kUNDECLARED_RESOURCE,        ///< a file the signature does not cover
+  kMISSING_DECLARED_RESOURCE,  ///< the manifest names a file the package lacks
   kWRONG_PLATFORM,         ///< built for another os or architecture
   kINCOMPATIBLE_ABI,       ///< outside [GF_SDK_ABI_MIN_SUPPORTED, ...]
   kIO_FAILED,              ///< the file could not be read
@@ -77,7 +77,7 @@ enum class ModulePackageStatus {
  * @param s status to spell
  * @return a short static string
  */
-auto GF_CORE_EXPORT ModulePackageStatusToString(ModulePackageStatus s) -> const
+auto GF_CORE_EXPORT ModuleDescriptorStatusToString(ModuleDescriptorStatus s) -> const
     char*;
 
 /**
@@ -90,9 +90,9 @@ auto GF_CORE_EXPORT ModulePackageStatusToString(ModulePackageStatus s) -> const
  * carries; the two agreed, but nothing made them agree, and a second search
  * is a second chance to search differently.
  */
-struct GF_CORE_EXPORT ModulePackageVerification {
+struct GF_CORE_EXPORT ModuleDescriptorVerification {
   bool ok = false;
-  ModulePackageStatus status = ModulePackageStatus::kOK;
+  ModuleDescriptorStatus status = ModuleDescriptorStatus::kOK;
   QString reason;  ///< human-readable, for the log and the UI
 
   /// Parsed only after the signature over its raw bytes verified.
@@ -137,9 +137,9 @@ struct GF_CORE_EXPORT ModulePackageVerification {
  * Empty in this phase, which means self-consistency only.
  * @return the verdict, with the manifest filled in only when it verified
  */
-auto GF_CORE_EXPORT VerifyModulePackage(
+auto GF_CORE_EXPORT VerifyModuleDescriptor(
     const QString& package_path,
     const QByteArray& expected_public_key = ModuleBuildPublicKey())
-    -> ModulePackageVerification;
+    -> ModuleDescriptorVerification;
 
 }  // namespace GpgFrontend::Module

@@ -43,15 +43,15 @@
 #include "core/function/ArchiveFileOperator.h"
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManifest.h"
-#include "core/module/ModulePackageBuilder.h"
-#include "core/module/ModulePackageVerifier.h"
+#include "core/module/ModuleDescriptorBuilder.h"
+#include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleTrustRoot.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
 
 /**
- * @file GpgCoreTestModulePackage.cpp
+ * @file GpgCoreTestModuleDescriptor.cpp
  * @brief The integrity claims of `*.gfmodule`, as executable rules.
  *
  * Every negative case is one mutation away from a package that is known to
@@ -65,8 +65,8 @@ namespace {
 
 /// A spec that verifies as-is on this machine. Tests mutate one thing.
 auto GoodSpec(const QString& dir, const QString& payload_path)
-    -> Module::ModulePackageBuildSpec {
-  Module::ModulePackageBuildSpec spec;
+    -> Module::ModuleDescriptorBuildSpec {
+  Module::ModuleDescriptorBuildSpec spec;
   spec.module_id = "com.bktus.gpgfrontend.module.test";
   spec.version = "1.0.0";
   spec.sdk_abi = GF_SDK_ABI_VERSION;
@@ -183,7 +183,7 @@ auto RepackWith(const QString& source, const QString& destination,
 }
 
 /// A temporary directory holding one package that is known to verify.
-class ModulePackageTest : public ::testing::Test {
+class ModuleDescriptorTest : public ::testing::Test {
  protected:
   void SetUp() override {
     ASSERT_TRUE(dir_.isValid());
@@ -194,7 +194,7 @@ class ModulePackageTest : public ::testing::Test {
     f.close();
 
     spec_ = GoodSpec(dir_.path(), payload_);
-    const auto built = Module::BuildModulePackage(spec_);
+    const auto built = Module::BuildModuleDescriptor(spec_);
     ASSERT_TRUE(built.ok) << built.reason.toStdString();
     manifest_bytes_ = built.manifest_bytes;
     public_key_ = built.build_public_key;
@@ -207,7 +207,7 @@ class ModulePackageTest : public ::testing::Test {
 
   QTemporaryDir dir_;
   QString payload_;
-  Module::ModulePackageBuildSpec spec_;
+  Module::ModuleDescriptorBuildSpec spec_;
   QByteArray manifest_bytes_;
   QByteArray public_key_;
 };
@@ -216,10 +216,10 @@ class ModulePackageTest : public ::testing::Test {
 
 // --------------------------------------------------------------- happy path
 
-TEST_F(ModulePackageTest, AValidPackageVerifies) {
-  const auto v = Module::VerifyModulePackage(Package());
+TEST_F(ModuleDescriptorTest, AValidPackageVerifies) {
+  const auto v = Module::VerifyModuleDescriptor(Package());
   ASSERT_TRUE(v.ok) << v.reason.toStdString();
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kOK);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kOK);
   EXPECT_EQ(v.manifest.id, spec_.module_id);
   EXPECT_EQ(v.manifest.version, "1.0.0");
   EXPECT_EQ(v.manifest.sdk_abi, GF_SDK_ABI_VERSION);
@@ -237,21 +237,21 @@ TEST_F(ModulePackageTest, AValidPackageVerifies) {
   EXPECT_EQ(v.manifest.entry_native.value.size(), 64);
 }
 
-TEST_F(ModulePackageTest, TheSignedBytesAreTheStoredBytes) {
+TEST_F(ModuleDescriptorTest, TheSignedBytesAreTheStoredBytes) {
   // The signature covers manifest.json as stored, so what the builder reports
   // signing has to be byte-identical to what the package carries. If these
   // ever diverge, every verification still passes and the format has quietly
   // acquired a canonicalisation step on the reading side that nobody wrote.
-  EXPECT_EQ(ReadMember(Package(), Module::kModulePackageManifestPath),
+  EXPECT_EQ(ReadMember(Package(), Module::kModuleDescriptorManifestPath),
             manifest_bytes_);
 }
 
-TEST_F(ModulePackageTest, NothingIsWrittenWhileVerifying) {
+TEST_F(ModuleDescriptorTest, NothingIsWrittenWhileVerifying) {
   // The safety property, asserted rather than assumed: verification reads a
   // package and leaves nothing behind that a later step could execute.
   const auto before =
       QDir(dir_.path()).entryList(QDir::AllEntries | QDir::NoDotAndDotDot);
-  ASSERT_TRUE(Module::VerifyModulePackage(Package()).ok);
+  ASSERT_TRUE(Module::VerifyModuleDescriptor(Package()).ok);
   EXPECT_EQ(
       QDir(dir_.path()).entryList(QDir::AllEntries | QDir::NoDotAndDotDot),
       before);
@@ -259,35 +259,35 @@ TEST_F(ModulePackageTest, NothingIsWrittenWhileVerifying) {
 
 // ---------------------------------------------------------------- signature
 
-TEST_F(ModulePackageTest, AModifiedManifestFails) {
+TEST_F(ModuleDescriptorTest, AModifiedManifestFails) {
   auto altered = manifest_bytes_;
   altered.replace("1.0.0", "9.9.9");
   ASSERT_NE(altered, manifest_bytes_);
 
   const auto out = Path("tampered.gfmodule");
   ASSERT_TRUE(RepackWith(Package(), out,
-                         {{Module::kModulePackageManifestPath, altered}}));
+                         {{Module::kModuleDescriptorManifestPath, altered}}));
 
-  const auto v = Module::VerifyModulePackage(out);
+  const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kUNTRUSTED_BUILD_KEY);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kUNTRUSTED_BUILD_KEY);
 }
 
-TEST_F(ModulePackageTest, AModifiedSignatureFails) {
-  auto signature = ReadMember(Package(), Module::kModulePackageSignaturePath);
+TEST_F(ModuleDescriptorTest, AModifiedSignatureFails) {
+  auto signature = ReadMember(Package(), Module::kModuleDescriptorSignaturePath);
   ASSERT_EQ(signature.size(), 64);
   signature[0] = static_cast<char>(signature[0] ^ 0xFF);
 
   const auto out = Path("badsig.gfmodule");
   ASSERT_TRUE(RepackWith(Package(), out,
-                         {{Module::kModulePackageSignaturePath, signature}}));
+                         {{Module::kModuleDescriptorSignaturePath, signature}}));
 
-  const auto v = Module::VerifyModulePackage(out);
+  const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kUNTRUSTED_BUILD_KEY);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kUNTRUSTED_BUILD_KEY);
 }
 
-TEST_F(ModulePackageTest, ADescriptorCarryingABuildKeyIsRefused) {
+TEST_F(ModuleDescriptorTest, ADescriptorCarryingABuildKeyIsRefused) {
   // The key used to travel inside the package, which established that the
   // package agreed with itself and nothing else: anyone able to replace it
   // could also mint a keypair, re-sign an altered manifest and ship the
@@ -296,31 +296,31 @@ TEST_F(ModulePackageTest, ADescriptorCarryingABuildKeyIsRefused) {
   const auto out = Path("carrieskey.gfmodule");
   ASSERT_TRUE(RepackWith(
       Package(), out, {}, {},
-      {{Module::kModulePackageBuildKeyPath, QByteArray(32, '\x01')}}));
+      {{Module::kModuleDescriptorBuildKeyPath, QByteArray(32, '\x01')}}));
 
-  const auto v = Module::VerifyModulePackage(out);
+  const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kMALFORMED);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kMALFORMED);
   EXPECT_TRUE(v.reason.contains("trust root")) << v.reason.toStdString();
 }
 
-TEST_F(ModulePackageTest, ADescriptorIsVerifiedWithTheHostsOwnKey) {
+TEST_F(ModuleDescriptorTest, ADescriptorIsVerifiedWithTheHostsOwnKey) {
   // The default is not "no key" but "this Host's key". There is no longer a
   // way to ask for a verification that passes on the descriptor's own terms.
-  ASSERT_TRUE(Module::VerifyModulePackage(Package()).ok);
+  ASSERT_TRUE(Module::VerifyModuleDescriptor(Package()).ok);
   EXPECT_TRUE(
-      Module::VerifyModulePackage(Package(), Module::ModuleBuildPublicKey())
+      Module::VerifyModuleDescriptor(Package(), Module::ModuleBuildPublicKey())
           .ok);
 
   QByteArray wrong(Module::ModuleBuildPublicKey());
   wrong[0] = static_cast<char>(wrong[0] ^ 0xFF);
 
-  const auto v = Module::VerifyModulePackage(Package(), wrong);
+  const auto v = Module::VerifyModuleDescriptor(Package(), wrong);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kUNTRUSTED_BUILD_KEY);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kUNTRUSTED_BUILD_KEY);
 }
 
-TEST_F(ModulePackageTest, ADescriptorFromAnotherBuildIsRefusedByBuildId) {
+TEST_F(ModuleDescriptorTest, ADescriptorFromAnotherBuildIsRefusedByBuildId) {
   // Right key, wrong build: reachable only from the same tree, which is what
   // makes it worth a separate status. "Not ours" and "ours, but from a
   // different build" are different problems, and only the second is one a
@@ -328,16 +328,16 @@ TEST_F(ModulePackageTest, ADescriptorFromAnotherBuildIsRefusedByBuildId) {
   auto spec = spec_;
   spec.build_id = "gfb1-00000000000000000000000000000000";
   spec.output_path = Path("otherbuild.gfmodule");
-  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
 
-  const auto v = Module::VerifyModulePackage(spec.output_path);
+  const auto v = Module::VerifyModuleDescriptor(spec.output_path);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kWRONG_BUILD);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kWRONG_BUILD);
   EXPECT_TRUE(v.reason.contains(Module::ModuleBuildId()))
       << v.reason.toStdString();
 }
 
-TEST_F(ModulePackageTest, TheBuilderRefusesASeedThatIsNotThisBuilds) {
+TEST_F(ModuleDescriptorTest, TheBuilderRefusesASeedThatIsNotThisBuilds) {
   // Structural, and the point of it: gf_module_tool links gf_core, so it
   // carries the very trust root the Host does. A descriptor signed with some
   // other key would be one no Host could load, so it cannot be produced at
@@ -346,7 +346,7 @@ TEST_F(ModulePackageTest, TheBuilderRefusesASeedThatIsNotThisBuilds) {
   spec.signing_seed = QByteArray(32, '\x07');
   spec.output_path = Path("wrongseed.gfmodule");
 
-  const auto result = Module::BuildModulePackage(spec);
+  const auto result = Module::BuildModuleDescriptor(spec);
   EXPECT_FALSE(result.ok);
   EXPECT_TRUE(result.reason.contains("module-build key"))
       << result.reason.toStdString();
@@ -354,19 +354,19 @@ TEST_F(ModulePackageTest, TheBuilderRefusesASeedThatIsNotThisBuilds) {
       << "nothing should have been written";
 }
 
-TEST_F(ModulePackageTest, TheBuilderRefusesAnEmptySeed) {
+TEST_F(ModuleDescriptorTest, TheBuilderRefusesAnEmptySeed) {
   auto spec = spec_;
   spec.signing_seed.clear();
   spec.output_path = Path("noseed.gfmodule");
 
-  const auto result = Module::BuildModulePackage(spec);
+  const auto result = Module::BuildModuleDescriptor(spec);
   EXPECT_FALSE(result.ok);
   EXPECT_FALSE(QFile::exists(spec.output_path));
 }
 
 // ----------------------------------------------------------- file integrity
 
-TEST_F(ModulePackageTest, AnAppendedMemberIsRefused) {
+TEST_F(ModuleDescriptorTest, AnAppendedMemberIsRefused) {
   // There is no executable member to modify any more, which is the change.
   // What remains, and matters more, is that a member the manifest does not
   // cover cannot be smuggled in: the signature says nothing about it, so the
@@ -375,68 +375,68 @@ TEST_F(ModulePackageTest, AnAppendedMemberIsRefused) {
   ASSERT_TRUE(RepackWith(Package(), out, {}, {},
                          {{"resources/extra.txt", QByteArray("smuggled")}}));
 
-  const auto v = Module::VerifyModulePackage(out);
+  const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kUNDECLARED_FILE);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kUNDECLARED_RESOURCE);
 }
 
-TEST_F(ModulePackageTest, AModifiedResourceFails) {
+TEST_F(ModuleDescriptorTest, AModifiedResourceFails) {
   const auto out = Path("badres.gfmodule");
   ASSERT_TRUE(RepackWith(
       Package(), out, {{"resources/note.txt", QByteArray("not a resource")}}));
 
-  const auto v = Module::VerifyModulePackage(out);
+  const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kFILE_DIGEST_MISMATCH);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kRESOURCE_DIGEST_MISMATCH);
 }
 
-TEST_F(ModulePackageTest, AMissingDeclaredFileFails) {
+TEST_F(ModuleDescriptorTest, AMissingDeclaredFileFails) {
   const auto out = Path("missing.gfmodule");
   ASSERT_TRUE(RepackWith(Package(), out, {}, {"resources/note.txt"}));
 
-  const auto v = Module::VerifyModulePackage(out);
+  const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kMISSING_DECLARED_FILE);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kMISSING_DECLARED_RESOURCE);
 }
 
-TEST_F(ModulePackageTest, AnUndeclaredExtraFileFails) {
+TEST_F(ModuleDescriptorTest, AnUndeclaredExtraFileFails) {
   // The appended-payload case: everything the manifest covers is intact, and
   // the package carries one more thing the signature says nothing about.
   const auto out = Path("extra.gfmodule");
   ASSERT_TRUE(RepackWith(Package(), out, {}, {},
                          {{"bin/extra.so", QByteArray("payload")}}));
 
-  const auto v = Module::VerifyModulePackage(out);
+  const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kUNDECLARED_FILE);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kUNDECLARED_RESOURCE);
 }
 
 // -------------------------------------------------------------- meta members
 
-TEST_F(ModulePackageTest, ADuplicateManifestFails) {
+TEST_F(ModuleDescriptorTest, ADuplicateManifestFails) {
   // Two members under one name: one reader takes the first and another takes
   // the last, and they disagree about what was signed.
   const auto out = Path("dupmanifest.gfmodule");
   ASSERT_TRUE(
       RepackWith(Package(), out, {}, {},
-                 {{Module::kModulePackageManifestPath, manifest_bytes_}}));
+                 {{Module::kModuleDescriptorManifestPath, manifest_bytes_}}));
 
-  const auto v = Module::VerifyModulePackage(out);
+  const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kNOT_A_PACKAGE);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kNOT_A_PACKAGE);
 }
 
-TEST_F(ModulePackageTest, AMissingSignatureFails) {
+TEST_F(ModuleDescriptorTest, AMissingSignatureFails) {
   const auto out = Path("nosig.gfmodule");
   ASSERT_TRUE(
-      RepackWith(Package(), out, {}, {Module::kModulePackageSignaturePath}));
+      RepackWith(Package(), out, {}, {Module::kModuleDescriptorSignaturePath}));
 
-  const auto v = Module::VerifyModulePackage(out);
+  const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kMALFORMED);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kMALFORMED);
 }
 
-TEST_F(ModulePackageTest, ACaseCollidingEntryFails) {
+TEST_F(ModuleDescriptorTest, ACaseCollidingEntryFails) {
   // `RESOURCES/note.txt` and `resources/note.txt` are two members here and one
   // on macOS or Windows, so the package would mean different things depending
   // on who read it. Refused at the archive walk, before any of it is trusted.
@@ -444,70 +444,70 @@ TEST_F(ModulePackageTest, ACaseCollidingEntryFails) {
   ASSERT_TRUE(RepackWith(Package(), out, {}, {},
                          {{"RESOURCES/note.txt", QByteArray("payload")}}));
 
-  const auto v = Module::VerifyModulePackage(out);
+  const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kNOT_A_PACKAGE);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kNOT_A_PACKAGE);
 }
 
 // ------------------------------------------------------------------- policy
 
-TEST_F(ModulePackageTest, AWrongPlatformIsRejected) {
+TEST_F(ModuleDescriptorTest, AWrongPlatformIsRejected) {
   auto spec = spec_;
   spec.platform_arch = "pdp11";
   spec.output_path = Path("wrongarch.gfmodule");
-  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
 
-  const auto v = Module::VerifyModulePackage(spec.output_path);
+  const auto v = Module::VerifyModuleDescriptor(spec.output_path);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kWRONG_PLATFORM);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kWRONG_PLATFORM);
 }
 
-TEST_F(ModulePackageTest, AnIncompatibleAbiIsRejectedInBothDirections) {
+TEST_F(ModuleDescriptorTest, AnIncompatibleAbiIsRejectedInBothDirections) {
   auto too_old = spec_;
   too_old.sdk_abi = GF_SDK_ABI_MIN_SUPPORTED - 1;
   too_old.output_path = Path("tooold.gfmodule");
-  ASSERT_TRUE(Module::BuildModulePackage(too_old).ok);
-  EXPECT_EQ(Module::VerifyModulePackage(too_old.output_path).status,
-            Module::ModulePackageStatus::kINCOMPATIBLE_ABI);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(too_old).ok);
+  EXPECT_EQ(Module::VerifyModuleDescriptor(too_old.output_path).status,
+            Module::ModuleDescriptorStatus::kINCOMPATIBLE_ABI);
 
   auto too_new = spec_;
   too_new.sdk_abi = GF_SDK_ABI_VERSION + 1;
   too_new.output_path = Path("toonew.gfmodule");
-  ASSERT_TRUE(Module::BuildModulePackage(too_new).ok);
-  EXPECT_EQ(Module::VerifyModulePackage(too_new.output_path).status,
-            Module::ModulePackageStatus::kINCOMPATIBLE_ABI);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(too_new).ok);
+  EXPECT_EQ(Module::VerifyModuleDescriptor(too_new.output_path).status,
+            Module::ModuleDescriptorStatus::kINCOMPATIBLE_ABI);
 }
 
-TEST_F(ModulePackageTest, AHostTooOldIsRejected) {
+TEST_F(ModuleDescriptorTest, AHostTooOldIsRejected) {
   auto spec = spec_;
   spec.min_host_version = "99.0.0";
   spec.output_path = Path("needsnewer.gfmodule");
-  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
-  EXPECT_EQ(Module::VerifyModulePackage(spec.output_path).status,
-            Module::ModulePackageStatus::kINCOMPATIBLE_ABI);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
+  EXPECT_EQ(Module::VerifyModuleDescriptor(spec.output_path).status,
+            Module::ModuleDescriptorStatus::kINCOMPATIBLE_ABI);
 }
 
-TEST_F(ModulePackageTest, AFileThatIsNotAPackageIsRefused) {
+TEST_F(ModuleDescriptorTest, AFileThatIsNotAPackageIsRefused) {
   const auto out = Path("garbage.gfmodule");
   QFile f(out);
   ASSERT_TRUE(f.open(QIODevice::WriteOnly));
   f.write(QByteArray(1024, 'z'));
   f.close();
 
-  const auto v = Module::VerifyModulePackage(out);
+  const auto v = Module::VerifyModuleDescriptor(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kNOT_A_PACKAGE);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kNOT_A_PACKAGE);
 }
 
-TEST_F(ModulePackageTest, AMissingFileIsRefused) {
-  const auto v = Module::VerifyModulePackage(Path("nope.gfmodule"));
+TEST_F(ModuleDescriptorTest, AMissingFileIsRefused) {
+  const auto v = Module::VerifyModuleDescriptor(Path("nope.gfmodule"));
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kIO_FAILED);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kIO_FAILED);
 }
 
 // --------------------------------------------------------------- key hygiene
 
-TEST_F(ModulePackageTest, NoPrivateKeyMaterialIsLeftAnywhere) {
+TEST_F(ModuleDescriptorTest, NoPrivateKeyMaterialIsLeftAnywhere) {
   // The signing key is the build's, derived from a seed that stays in the
   // build tree; the expanded secret is wiped before the builder returns and
   // neither half travels in the descriptor. What is assertable from outside is
@@ -515,8 +515,8 @@ TEST_F(ModulePackageTest, NoPrivateKeyMaterialIsLeftAnywhere) {
   // them -- and that the build left nothing beside it.
   auto meta_members = ListMembers(Package()).filter(QString("META-INF/"));
   meta_members.sort();
-  EXPECT_EQ(meta_members, (QStringList{Module::kModulePackageManifestPath,
-                                       Module::kModulePackageSignaturePath}))
+  EXPECT_EQ(meta_members, (QStringList{Module::kModuleDescriptorManifestPath,
+                                       Module::kModuleDescriptorSignaturePath}))
       << "a descriptor carries a manifest and a signature, and nothing else";
 
   const auto stray =
@@ -527,32 +527,32 @@ TEST_F(ModulePackageTest, NoPrivateKeyMaterialIsLeftAnywhere) {
 
 // ------------------------------------------------------------- the builder
 
-TEST_F(ModulePackageTest, TheBuilderRefusesAReservedPath) {
+TEST_F(ModuleDescriptorTest, TheBuilderRefusesAReservedPath) {
   auto spec = spec_;
   spec.resources.append({"META-INF/manifest.json", {}, QByteArray("mine")});
   spec.output_path = Path("reserved.gfmodule");
-  EXPECT_FALSE(Module::BuildModulePackage(spec).ok);
+  EXPECT_FALSE(Module::BuildModuleDescriptor(spec).ok);
 }
 
-TEST_F(ModulePackageTest, TheBuilderRefusesAnEscapingPath) {
+TEST_F(ModuleDescriptorTest, TheBuilderRefusesAnEscapingPath) {
   auto spec = spec_;
   spec.resources.append({"../outside.so", {}, QByteArray("mine")});
   spec.output_path = Path("escape.gfmodule");
-  EXPECT_FALSE(Module::BuildModulePackage(spec).ok);
+  EXPECT_FALSE(Module::BuildModuleDescriptor(spec).ok);
 }
 
-TEST_F(ModulePackageTest, TheBuilderRefusesACaseCollision) {
+TEST_F(ModuleDescriptorTest, TheBuilderRefusesACaseCollision) {
   auto spec = spec_;
   spec.resources.append({"resources/NOTE.txt", {}, QByteArray("mine")});
   spec.output_path = Path("collide.gfmodule");
-  EXPECT_FALSE(Module::BuildModulePackage(spec).ok);
+  EXPECT_FALSE(Module::BuildModuleDescriptor(spec).ok);
 }
 
-TEST_F(ModulePackageTest, TheBuilderRefusesAnUnreadableSource) {
+TEST_F(ModuleDescriptorTest, TheBuilderRefusesAnUnreadableSource) {
   auto spec = spec_;
   spec.resources = {{"resources/x.txt", Path("does-not-exist"), {}}};
   spec.output_path = Path("unreadable.gfmodule");
-  EXPECT_FALSE(Module::BuildModulePackage(spec).ok);
+  EXPECT_FALSE(Module::BuildModuleDescriptor(spec).ok);
 }
 
 // ------------------------------------------------- nothing runs unverified
@@ -575,7 +575,7 @@ auto SentinelLibrary() -> QString {
 
 }  // namespace
 
-TEST_F(ModulePackageTest, AVerifiedDescriptorDoesLoadTheCodeItBinds) {
+TEST_F(ModuleDescriptorTest, AVerifiedDescriptorDoesLoadTheCodeItBinds) {
   // The positive control, and the test below it is worthless without it: a
   // refusal that runs no code proves nothing if a success would not have run
   // any either.
@@ -597,13 +597,13 @@ TEST_F(ModulePackageTest, AVerifiedDescriptorDoesLoadTheCodeItBinds) {
   spec.entry_native_file = native;
   spec.resources.clear();
   spec.output_path = Path("sentinel.gfmodule");
-  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
 
   const auto sentinel = Path("it-ran");
   ASSERT_FALSE(QFile::exists(sentinel));
   qputenv("GPGFRONTEND_TEST_SENTINEL", sentinel.toUtf8());
 
-  const auto read = Module::VerifyModulePackage(spec.output_path);
+  const auto read = Module::VerifyModuleDescriptor(spec.output_path);
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
   const Module::ModuleNativeRoot root{Path("")};
@@ -618,7 +618,7 @@ TEST_F(ModulePackageTest, AVerifiedDescriptorDoesLoadTheCodeItBinds) {
   qunsetenv("GPGFRONTEND_TEST_SENTINEL");
 }
 
-TEST_F(ModulePackageTest, ATamperedEntryNativeIsRefusedAndNeverRuns) {
+TEST_F(ModuleDescriptorTest, ATamperedEntryNativeIsRefusedAndNeverRuns) {
   // The claim, asserted the only way it can be: not that resolution returned
   // an error, but that the code never executed. By the time an error comes
   // back a library could already have been mapped and its initialisers run,
@@ -644,7 +644,7 @@ TEST_F(ModulePackageTest, ATamperedEntryNativeIsRefusedAndNeverRuns) {
   spec.entry_native_file = native;
   spec.resources.clear();
   spec.output_path = Path("sentinel2.gfmodule");
-  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
 
   // One mutation, AFTER the descriptor was signed for these bytes. The file
   // still loads perfectly well; it is simply no longer the one this
@@ -666,7 +666,7 @@ TEST_F(ModulePackageTest, ATamperedEntryNativeIsRefusedAndNeverRuns) {
 
   // The descriptor itself is untouched and still verifies: it is a separate
   // artifact from what it binds, which is the point of splitting them.
-  const auto read = Module::VerifyModulePackage(spec.output_path);
+  const auto read = Module::VerifyModuleDescriptor(spec.output_path);
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
   const Module::ModuleNativeRoot root{Path("")};
@@ -683,17 +683,17 @@ TEST_F(ModulePackageTest, ATamperedEntryNativeIsRefusedAndNeverRuns) {
   qunsetenv("GPGFRONTEND_TEST_SENTINEL");
 }
 
-TEST_F(ModulePackageTest, AMissingEntryNativeIsItsOwnRefusal) {
+TEST_F(ModuleDescriptorTest, AMissingEntryNativeIsItsOwnRefusal) {
   // A descriptor whose library was never installed, or was removed, is a
   // different problem from one whose library was altered -- and says so.
   auto spec = spec_;
   spec.entry_native_name = "gf_mod_test";
   spec.resources.clear();
   spec.output_path = Path("absent.gfmodule");
-  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
 
   const Module::ModuleNativeRoot root{Path("no-such-directory")};
-  const auto read = Module::VerifyModulePackage(spec.output_path);
+  const auto read = Module::VerifyModuleDescriptor(spec.output_path);
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
   const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
@@ -701,7 +701,7 @@ TEST_F(ModulePackageTest, AMissingEntryNativeIsItsOwnRefusal) {
   EXPECT_EQ(entry.status, Module::ModuleEntryStatus::kMISSING_ENTRY_NATIVE);
 }
 
-TEST_F(ModulePackageTest, ASymlinkedEntryNativeIsRefusedRatherThanFollowed) {
+TEST_F(ModuleDescriptorTest, ASymlinkedEntryNativeIsRefusedRatherThanFollowed) {
   // The descriptor names a file in this directory. A link wearing that name
   // is a different file, and following it would be the Host choosing to load
   // something the descriptor did not bind.
@@ -717,14 +717,14 @@ TEST_F(ModulePackageTest, ASymlinkedEntryNativeIsRefusedRatherThanFollowed) {
   spec.entry_native_file = sentinel_library;
   spec.resources.clear();
   spec.output_path = Path("linked.gfmodule");
-  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
 
   // Points at the very library the descriptor was signed for, so the digest
   // would match if it were followed. Only the file type refuses it.
   ASSERT_TRUE(QFile::link(sentinel_library, native));
 
   const Module::ModuleNativeRoot root{Path("")};
-  const auto read = Module::VerifyModulePackage(spec.output_path);
+  const auto read = Module::VerifyModuleDescriptor(spec.output_path);
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
   const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
@@ -732,7 +732,7 @@ TEST_F(ModulePackageTest, ASymlinkedEntryNativeIsRefusedRatherThanFollowed) {
   EXPECT_EQ(entry.status, Module::ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE);
 }
 
-TEST_F(ModulePackageTest, ATextFileWearingALibraryNameIsRefused) {
+TEST_F(ModuleDescriptorTest, ATextFileWearingALibraryNameIsRefused) {
   auto spec = spec_;
   spec.entry_native_name = "gf_mod_test_sentinel";
   spec.resources.clear();
@@ -747,10 +747,10 @@ TEST_F(ModulePackageTest, ATextFileWearingALibraryNameIsRefused) {
     file.close();
   }
   spec.entry_native_file = native;
-  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
 
   const Module::ModuleNativeRoot root{Path("")};
-  const auto read = Module::VerifyModulePackage(spec.output_path);
+  const auto read = Module::VerifyModuleDescriptor(spec.output_path);
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
   // The digest matches -- it was computed from this very file. The refusal is
@@ -762,7 +762,7 @@ TEST_F(ModulePackageTest, ATextFileWearingALibraryNameIsRefused) {
 
 // ------------------------------------------------------ producer / verifier
 
-TEST(ModulePackageSmokeTest, APackageBuiltByTheBuildVerifies) {
+TEST(ModuleDescriptorSmokeTest, APackageBuiltByTheBuildVerifies) {
   // End to end, against the artifact CMake actually produced: the packaging
   // tool ran, with the arguments gf_add_module_package chose, and what came
   // out is fed to the verifier.
@@ -779,7 +779,7 @@ TEST(ModulePackageSmokeTest, APackageBuiltByTheBuildVerifies) {
   // Every package the build produced, not just one: a packaging recipe that
   // only works for the smallest module is a recipe that has not been tested.
   for (const auto& info : built) {
-    const auto v = Module::VerifyModulePackage(info.absoluteFilePath());
+    const auto v = Module::VerifyModuleDescriptor(info.absoluteFilePath());
     EXPECT_TRUE(v.ok) << info.fileName().toStdString() << ": "
                       << v.reason.toStdString();
     EXPECT_TRUE(v.manifest.id.startsWith("com.bktus.gpgfrontend.module."));
@@ -812,7 +812,7 @@ TEST(ModulePackageSmokeTest, APackageBuiltByTheBuildVerifies) {
 
   QString package;
   for (const auto& info : built) {
-    const auto candidate = Module::VerifyModulePackage(info.absoluteFilePath());
+    const auto candidate = Module::VerifyModuleDescriptor(info.absoluteFilePath());
     if (candidate.ok && candidate.manifest.id == kExpectedId) {
       package = info.absoluteFilePath();
       break;
@@ -820,7 +820,7 @@ TEST(ModulePackageSmokeTest, APackageBuiltByTheBuildVerifies) {
   }
   if (package.isEmpty()) return;
 
-  const auto v = Module::VerifyModulePackage(package);
+  const auto v = Module::VerifyModuleDescriptor(package);
   ASSERT_TRUE(v.ok) << v.reason.toStdString();
   EXPECT_EQ(v.manifest.id, kExpectedId);
   EXPECT_EQ(v.manifest.sdk_abi, GF_SDK_ABI_VERSION);

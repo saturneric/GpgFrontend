@@ -32,7 +32,7 @@
 #include <QTextStream>
 
 #include "core/module/ModuleEntryBinding.h"
-#include "core/module/ModulePackageBuilder.h"
+#include "core/module/ModuleDescriptorBuilder.h"
 #include "core/module/ModuleSetVerification.h"
 #include "core/module/ModuleTrustRoot.h"
 
@@ -42,7 +42,7 @@
  *
  * Crypto and canonical JSON are not things to write in CMake language, so the
  * build system's whole involvement is calling this with arguments. Everything
- * it does lives in ModulePackageBuilder, which is also what the tests drive --
+ * it does lives in ModuleDescriptorBuilder, which is also what the tests drive --
  * so the packaging path a developer's build takes is the packaging path the
  * tests cover, rather than a second implementation that agrees with it today.
  *
@@ -219,7 +219,7 @@ auto main(int argc, char** argv) -> int {
   QCoreApplication app(argc, argv);
   QTextStream err(stderr);
 
-  GpgFrontend::Module::ModulePackageBuildSpec spec;
+  GpgFrontend::Module::ModuleDescriptorBuildSpec spec;
   auto args = QCoreApplication::arguments();
 
   // One subcommand so far, and the packaging flags stay the default so every
@@ -341,7 +341,7 @@ auto main(int argc, char** argv) -> int {
   }
   if (spec.build_source_commit.isEmpty()) spec.build_source_commit = "unknown";
 
-  const auto result = GpgFrontend::Module::BuildModulePackage(spec);
+  const auto result = GpgFrontend::Module::BuildModuleDescriptor(spec);
   if (!result.ok) {
     err << "gf_module_packager: " << result.reason << "\n";
     return 1;
