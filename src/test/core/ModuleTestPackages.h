@@ -45,24 +45,45 @@
 
 namespace GpgFrontend::Test {
 
-/// Every `*.gfmodule` the build produced, in a stable order.
+/// Every module descriptor the build produced, in a stable order.
+///
+/// One namespace per module -- modules/<key>/module.gfmodule -- so this walks
+/// directories rather than globbing, which is also what the Host does.
 inline auto BuiltModulePackages() -> QFileInfoList {
-  const QDir packages(QCoreApplication::applicationDirPath() + "/modules");
-  return packages.entryInfoList(QStringList{"*.gfmodule"}, QDir::Files,
-                                QDir::Name);
+  const QDir root(QCoreApplication::applicationDirPath() + "/modules");
+
+  QFileInfoList found;
+  for (const auto& candidate :
+       root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name)) {
+    const QFileInfo descriptor(candidate.absoluteFilePath() +
+                               "/module.gfmodule");
+    if (descriptor.isFile()) found.append(descriptor);
+  }
+  return found;
 }
 
-/// The biggest one, or empty if this build made none.
+/// The one whose entry native is biggest, or empty if this build made none.
 ///
-/// Size rather than name, and for a stated reason: a 46 MiB module is where a
-/// per-byte cost or a second read shows up, and a 3 MiB one hides it.
+/// Size rather than name, and for a stated reason: a per-byte cost shows up on
+/// the largest module and hides on the smallest. It is the NATIVE that is
+/// measured now -- every descriptor is a few kilobytes of metadata, so
+/// comparing those would pick one essentially at random.
 inline auto LargestBuiltModulePackage() -> QString {
   const auto built = BuiltModulePackages();
   if (built.isEmpty()) return {};
 
+  const auto native_size = [](const QFileInfo& descriptor) -> qint64 {
+    const QDir native(descriptor.absolutePath() + "/native");
+    qint64 total = 0;
+    for (const auto& file : native.entryInfoList(QDir::Files)) {
+      total += file.size();
+    }
+    return total;
+  };
+
   const auto* largest = &built.first();
   for (const auto& info : built) {
-    if (info.size() > largest->size()) largest = &info;
+    if (native_size(info) > native_size(*largest)) largest = &info;
   }
   return largest->absoluteFilePath();
 }
@@ -79,7 +100,8 @@ inline auto LargestBuiltModulePackage() -> QString {
 /// nothing that stages or installs artifacts should be able to sweep it up.
 inline auto BuildSigningSeed() -> QByteArray {
   const QDir artifacts(QCoreApplication::applicationDirPath());
-  QFile seed(artifacts.absoluteFilePath("../.module-build-key/module-build.seed"));
+  QFile seed(
+      artifacts.absoluteFilePath("../.module-build-key/module-build.seed"));
   if (!seed.open(QIODevice::ReadOnly)) return {};
   const auto bytes = seed.readAll();
   seed.close();

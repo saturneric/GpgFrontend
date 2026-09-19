@@ -42,10 +42,10 @@
 #include "core/ModuleTestPackages.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/module/ModuleEntryBinding.h"
-#include "core/module/ModuleTrustRoot.h"
 #include "core/module/ModuleManifest.h"
 #include "core/module/ModulePackageBuilder.h"
 #include "core/module/ModulePackageVerifier.h"
+#include "core/module/ModuleTrustRoot.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
@@ -798,19 +798,31 @@ TEST(ModulePackageSmokeTest, APackageBuiltByTheBuildVerifies) {
     // And the entry it binds really is installed beside it, under the name
     // this platform spells it with. This is the end-to-end check that CMake's
     // placement and the Host's mapping agree.
-    const Module::ModuleNativeRoot root{info.absolutePath()};
+    const Module::ModuleNativeRoot root{info.absolutePath() + "/native"};
     const auto entry = Module::ResolveAndVerifyNativeEntry(v.manifest, root);
     EXPECT_TRUE(entry.ok) << info.fileName().toStdString() << ": "
                           << entry.reason.toStdString();
   }
 
-  const QDir packages(QCoreApplication::applicationDirPath() + "/modules");
-  const auto package = packages.absoluteFilePath("gpg_info.gfmodule");
-  if (!QFile::exists(package)) return;
+  // One module in detail, chosen by the identity it declares rather than by
+  // where it sits: a namespace directory is named by a derived key, so
+  // picking one by path would be picking whichever sorted first.
+  constexpr auto kExpectedId =
+      "com.bktus.gpgfrontend.module.gnupg_info_gathering";
+
+  QString package;
+  for (const auto& info : built) {
+    const auto candidate = Module::VerifyModulePackage(info.absoluteFilePath());
+    if (candidate.ok && candidate.manifest.id == kExpectedId) {
+      package = info.absoluteFilePath();
+      break;
+    }
+  }
+  if (package.isEmpty()) return;
 
   const auto v = Module::VerifyModulePackage(package);
   ASSERT_TRUE(v.ok) << v.reason.toStdString();
-  EXPECT_EQ(v.manifest.id, "com.bktus.gpgfrontend.module.gnupg_info_gathering");
+  EXPECT_EQ(v.manifest.id, kExpectedId);
   EXPECT_EQ(v.manifest.sdk_abi, GF_SDK_ABI_VERSION);
   EXPECT_EQ(v.manifest.metadata.value("Name"), "GatherGnupgInfo");
   EXPECT_EQ(v.manifest.metadata.value("Author"), "Saturneric");

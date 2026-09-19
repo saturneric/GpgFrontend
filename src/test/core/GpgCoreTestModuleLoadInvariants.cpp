@@ -38,11 +38,12 @@
 #include "core/ModuleTestPackages.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleEntryBinding.h"
-#include "core/module/ModuleTrustRoot.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleManager.h"
+#include "core/module/ModuleNamespace.h"
 #include "core/module/ModulePackageBuilder.h"
 #include "core/module/ModulePackageVerifier.h"
+#include "core/module/ModuleTrustRoot.h"
 #include "sdk/GFSDKBuildInfo.h"
 
 /**
@@ -63,11 +64,19 @@ namespace {
 /// module api -- so it will load, and the only thing left to refuse it for is
 /// what its manifest claims.
 auto ARealModuleLibrary() -> QString {
-  const QDir dir(QCoreApplication::applicationDirPath() + "/modules");
-  const auto libs = dir.entryInfoList(
-      QStringList{"libgf_mod_*.so", "libgf_mod_*.dylib", "gf_mod_*.dll"},
-      QDir::Files, QDir::Size | QDir::Reversed);
-  return libs.isEmpty() ? QString() : libs.first().absoluteFilePath();
+  // Inside a module's own namespace now -- modules/<key>/native -- rather than
+  // loose in one flat directory. Searching the old place would silently find
+  // nothing, and a test that skips is a test that stopped being run.
+  const QDir root(QCoreApplication::applicationDirPath() + "/modules");
+  for (const auto& ns :
+       root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name)) {
+    const QDir native(ns.absoluteFilePath() + "/native");
+    const auto libs = native.entryInfoList(
+        QStringList{"libgf_mod_*.so", "libgf_mod_*.dylib", "gf_mod_*.dll"},
+        QDir::Files, QDir::Size | QDir::Reversed);
+    if (!libs.isEmpty()) return libs.first().absoluteFilePath();
+  }
+  return {};
 }
 
 }  // namespace
@@ -103,7 +112,8 @@ TEST(ModuleLoadInvariantsTest, VerifyingAPackageReadsItExactlyOnce) {
   const auto read = Module::VerifyModulePackage(largest);
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
-  const Module::ModuleNativeRoot root{QFileInfo(largest).absolutePath()};
+  const Module::ModuleNativeRoot root{QFileInfo(largest).absolutePath() +
+                                      "/native"};
   const auto native = QDir(root.path).absoluteFilePath(
       Module::ModuleNativeFileName(read.manifest.entry_native.name));
   const auto size = QFileInfo(native).size();
@@ -188,13 +198,19 @@ TEST(ModuleLoadInvariantsTest, APackageCannotClaimAnIdentityItsBinaryDenies) {
   spec.build_source_commit = QString(40, '0');
   spec.platform_arch = QSysInfo::currentCpuArchitecture();
   spec.platform_qt = QT_VERSION_STR;
-  // Beside the descriptor, because that is where the Host resolves it from.
-  const auto native =
-      dir.path() + "/" + Module::ModuleNativeFileName("gf_mod_test_sentinel");
+  // In the namespace its OWN declared id derives, so the locator check passes
+  // and the identity cross-check is what has to refuse it. Putting it
+  // anywhere else would make this a second test of the namespace rule.
+  const auto namespace_dir =
+      dir.path() + "/" + Module::ModuleDirectoryKey(spec.module_id);
+  ASSERT_TRUE(QDir().mkpath(namespace_dir + "/native"));
+
+  const auto native = namespace_dir + "/native/" +
+                      Module::ModuleNativeFileName("gf_mod_test_sentinel");
   ASSERT_TRUE(QFile::copy(library, native));
   spec.entry_native_name = "gf_mod_test_sentinel";
   spec.entry_native_file = native;
-  spec.output_path = dir.path() + "/impostor.gfmodule";
+  spec.output_path = namespace_dir + "/module.gfmodule";
   ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
 
   auto& manager = Module::ModuleManager::GetInstance();
@@ -260,6 +276,73 @@ TEST(ModuleLoadInvariantsTest, ProvenanceAnswersPackagedExactlyOnce) {
     // negotiated with this particular binary.
     EXPECT_GT(p.sdk_abi, 0) << id.toStdString();
   }
+}
+
+/**
+ * A descriptor is refused in a namespace that is not the one its identity
+ * derives.
+ *
+ * A locator check rather than an integrity one -- the entry binding is what
+ * establishes integrity -- and worth having because of what it prevents:
+ * a perfectly valid descriptor dropped into another module's namespace, where
+ * the relative native/ lookup would go searching in a directory belonging to
+ * something else.
+ *
+ * The key is recomputed from the signed id every time. It is deliberately not
+ * a manifest field, because a second signed statement about where a module
+ * lives would be a second thing for the first to disagree with.
+ */
+TEST(ModuleLoadInvariantsTest, ADescriptorInTheWrongNamespaceIsRefused) {
+  const auto seed = BuildSigningSeed();
+  if (seed.isEmpty()) GTEST_SKIP() << "this build has no module-build seed";
+
+  const auto library = ARealModuleLibrary();
+  if (library.isEmpty()) GTEST_SKIP() << "this build has no module libraries";
+
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+
+  // A namespace named for one module, holding a descriptor for another.
+  const auto wrong_key =
+      Module::ModuleDirectoryKey("com.bktus.gpgfrontend.module.somethingelse");
+  const auto namespace_dir = dir.path() + "/" + wrong_key;
+  ASSERT_TRUE(QDir().mkpath(namespace_dir + "/native"));
+
+  const auto native = namespace_dir + "/native/" +
+                      Module::ModuleNativeFileName("gf_mod_misplaced");
+  ASSERT_TRUE(QFile::copy(library, native));
+
+  Module::ModulePackageBuildSpec spec;
+  spec.module_id = "com.bktus.gpgfrontend.module.misplaced";
+  spec.version = "1.0.0";
+  spec.sdk_abi = GF_SDK_ABI_VERSION;
+  spec.min_host_version = "2.0.0";
+  spec.capabilities = {};
+  spec.events = {};
+  spec.translation_context = "ModuleMisplaced";
+  spec.metadata = {{"Name", "Misplaced"}};
+  spec.signing_seed = seed;
+  spec.build_id = Module::ModuleBuildId();
+  spec.build_timestamp = "2026-09-15T00:00:00Z";
+  spec.build_source_commit = QString(40, '0');
+  spec.platform_arch = QSysInfo::currentCpuArchitecture();
+  spec.platform_qt = QT_VERSION_STR;
+  spec.entry_native_name = "gf_mod_misplaced";
+  spec.entry_native_file = native;
+  spec.output_path = namespace_dir + "/module.gfmodule";
+  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+
+  // The descriptor itself is impeccable: correctly signed, right build, and
+  // its entry really is there and really does match. Only its address is
+  // wrong, and that alone is enough.
+  const auto direct = Module::VerifyModulePackage(spec.output_path);
+  ASSERT_TRUE(direct.ok) << direct.reason.toStdString();
+
+  auto& manager = Module::ModuleManager::GetInstance();
+  const auto candidate = manager.PrepareModule(spec.output_path, false);
+  EXPECT_FALSE(candidate.ok)
+      << "a descriptor in a namespace its identity does not derive must be "
+         "refused";
 }
 
 }  // namespace GpgFrontend::Test
