@@ -197,26 +197,12 @@
                        </property>
                       </spacer>
                      </item>
-                     <item>
-                      <widget class="QLabel" name="detailVersionLabel">
-                       <property name="text">
-                        <string/>
-                       </property>
-                      </widget>
-                     </item>
                     </layout>
                    </item>
                    <item>
                     <layout class="QHBoxLayout" name="detailChipsLayout">
                      <item>
                       <widget class="QLabel" name="statusChipLabel">
-                       <property name="text">
-                        <string/>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="typeChipLabel">
                        <property name="text">
                         <string/>
                        </property>
