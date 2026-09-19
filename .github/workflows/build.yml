@@ -378,36 +378,46 @@ jobs:
           ccache -s
         if: runner.os == 'Linux'
 
-      - name: Package App Image (Linux)
+      # The AppImage is assembled in five steps rather than one, because the
+      # module descriptors have to be written AFTER deployment has finished
+      # rewriting the natives they bind. linuxdeployqt patches rpaths, so a
+      # descriptor generated before it runs would describe bytes that no
+      # longer exist. See ModulePreparedEntry.h.
+      #
+      #   deploy -> repair rpaths -> audit -> seal -> finalize -> appimagetool
+      #
+      # Nothing here copies modules into place: CMake builds them straight
+      # into the AppDir at the path the Host looks for them, so the tree that
+      # is deployed, audited, sealed, verified and shipped is one tree.
+      - name: Deploy Qt Dependencies (Linux)
         run: |
+          set -euo pipefail
+
           QT_PLUGIN_DIR=$(qmake -query QT_INSTALL_PLUGINS)
           echo "Found Qt plugin dir: $QT_PLUGIN_DIR"
 
-          # enter the sqldrivers directory
-          cd $QT_PLUGIN_DIR/sqldrivers
-
           # remove all non-sqlite drivers to reduce the size of the final AppImage
+          cd "$QT_PLUGIN_DIR/sqldrivers"
           find . -type f ! -name '*sqlite*' -delete
           ls -l
 
-          # return to the root of the repository
           cd ${{github.workspace}}
-
-          mkdir ${{github.workspace}}/build/upload-artifact
+          mkdir -p ${{github.workspace}}/build/upload-artifact
           cd ${{github.workspace}}/build/upload-artifact
 
           ARCH=$(uname -m)
           if [[ "$ARCH" == "x86_64" ]]; then
             wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-            mv linuxdeployqt-continuous-x86_64.AppImage linuxdeployqt-continuous.AppImage 
+            mv linuxdeployqt-continuous-x86_64.AppImage linuxdeployqt-continuous.AppImage
             EXTRA_ARGS=""
           elif [[ "$ARCH" == "aarch64" ]]; then
             wget -c -nv https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-aarch64.AppImage
             mv linuxdeployqt-continuous-aarch64.AppImage linuxdeployqt-continuous.AppImage
             mkdir -p ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/
-            touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright        
+            touch ${{github.workspace}}/build/artifacts/AppDir/usr/share/doc/libc6/copyright
             EXTRA_ARGS="-unsupported-allow-new-glibc"
           fi
+          echo "ARCH=$ARCH" >> "$GITHUB_ENV"
 
           APP_DIR="${{github.workspace}}/build/artifacts/AppDir"
 
@@ -422,16 +432,29 @@ jobs:
           test -f "$LIBSECRET_SRC"
           cp -L "$LIBSECRET_SRC" "$APP_DIR/usr/lib/libsecret-1.so.0"
 
+          # Every module native, named individually. `-executable-dir=` took a
+          # single flat directory, which the namespace layout no longer has:
+          # each module owns usr/lib/gpgfrontend/modules/<key>/native/.
+          MODULE_ROOT="$APP_DIR/usr/lib/gpgfrontend/modules"
+          test -d "$MODULE_ROOT"
+          EXECUTABLES=()
+          while read -r native; do
+            EXECUTABLES+=("-executable=$native")
+          done < <(find "$MODULE_ROOT" -type f -name '*.so' | sort)
+          test "${#EXECUTABLES[@]}" -gt 0
+          echo "deploying ${#EXECUTABLES[@]} module native(s)"
+
           chmod u+x linuxdeployqt-continuous.AppImage
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
+          # Deliberately no -appimage: the image is built at the end, after the
+          # descriptors have been regenerated against the deployed natives.
           ./linuxdeployqt-continuous.AppImage \
-            ${{github.workspace}}/build/artifacts/AppDir/usr/share/applications/*.desktop \
+            "$APP_DIR/usr/share/applications"/*.desktop \
             $EXTRA_ARGS \
             -no-translations \
             -extra-plugins=iconengines,platforms,sqldrivers/libqsqlite.so \
-            -appimage \
             -executable=$APP_DIR/usr/lib/libsecret-1.so.0 \
-            -executable-dir=${{github.workspace}}/build/artifacts/AppDir/usr/lib/modules
+            "${EXECUTABLES[@]}"
 
           # Without the rpath patch the staged copy cannot find its own
           # dependencies, which is the bug this whole step exists to fix, so it
@@ -441,16 +464,116 @@ jobs:
           readelf -d "$APP_DIR/usr/lib/libsecret-1.so.0" | grep -E 'RUNPATH|RPATH|SONAME|NEEDED' || true
           readelf -d "$APP_DIR/usr/lib/libsecret-1.so.0" | grep -q 'ORIGIN' \
             || { echo "libsecret was not rpath-patched by linuxdeployqt"; exit 1; }
+        if: runner.os == 'Linux'
 
-          # linuxdeployqt names the image after the .desktop entry, so both
-          # flavours would come out as Gpg_Frontend-<arch>.AppImage and collide
-          # once the release job merges every runner's artifacts into one
-          # directory. Rename to the same scheme the other platforms use.
-          rm -f linuxdeployqt-continuous.AppImage
-          for image in Gpg_Frontend*.AppImage; do
-            mv "$image" \
-              "GpgFrontend-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-${ARCH}${{env.FLAVOR_SUFFIX}}.AppImage"
-          done
+      # linuxdeployqt REPLACES a file's RUNPATH with its own computed hop to
+      # usr/lib. That is correct for reaching Qt and wrong for reaching the
+      # private helpers beside the entry, which need $ORIGIN itself -- so it is
+      # put back here. This must run BEFORE sealing, because it rewrites the
+      # very bytes the descriptor will bind.
+      #
+      # Unconditional and idempotent rather than conditional on what
+      # linuxdeployqt did: the audit below is the gate, and a repair that only
+      # runs when someone predicted the need is a repair that stops running.
+      - name: Repair Module RUNPATHs (Linux)
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y --no-install-recommends patchelf
+
+          MODULE_ROOT="${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules"
+          while read -r native; do
+            current="$(patchelf --print-rpath "$native" || true)"
+            case ":$current:" in
+              *':$ORIGIN:'*) want="$current" ;;
+              '::') want='$ORIGIN:$ORIGIN/../../../..' ;;
+              *) want="\$ORIGIN:$current" ;;
+            esac
+            patchelf --set-rpath "$want" "$native"
+            echo "$(basename "$native"): $want"
+          done < <(find "$MODULE_ROOT" -type f -name '*.so' | sort)
+        if: runner.os == 'Linux'
+
+      # Deployment correctness, not descriptor authentication -- the two are
+      # different claims and the script says so at length. This is the gate
+      # that decides whether the $ORIGIN hop above actually reaches Qt in THIS
+      # layout, rather than in the one someone assumed while writing it down.
+      - name: Audit Module Native Dependencies (Linux)
+        run: |
+          set -euo pipefail
+          ${{github.workspace}}/scripts/audit_module_natives.sh \
+            --namespace-root ${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules \
+            --packager ${{github.workspace}}/build/artifacts/gf_module_packager \
+            --qt-relative ../../../.. \
+            --expect-count 4
+        if: runner.os == 'Linux'
+
+      # Record what each entry binds to now that deployment has finished with
+      # it. Everything after this point is checked against these values.
+      - name: Seal Entry Natives (Linux)
+        run: |
+          set -euo pipefail
+          ${{github.workspace}}/build/artifacts/gf_module_packager seal-prepared \
+            --namespace-root ${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules \
+            --expect-count 4
+        if: runner.os == 'Linux'
+
+      # Delete every descriptor and rebuild it against the sealed value.
+      #
+      # Deleting first is what makes staleness impossible by construction
+      # rather than by the build graph noticing: ninja cannot see what
+      # linuxdeployqt and patchelf did to those natives. GPGFRONTEND_MODULE_REQUIRE_SEAL
+      # then makes the regeneration fail closed -- a native that moved between
+      # the seal and here stops the build instead of being described as it used
+      # to be.
+      - name: Finalize Module Descriptors (Linux)
+        run: |
+          set -euo pipefail
+          MODULE_ROOT="${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules"
+
+          rm -f "$MODULE_ROOT"/*/module.gfmodule
+
+          export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
+          cmake -B ${{github.workspace}}/build -DGPGFRONTEND_MODULE_REQUIRE_SEAL=ON
+          cmake --build ${{github.workspace}}/build --parallel
+
+          # The generator-independent proof, run over the finished tree: every
+          # descriptor verifies under the Host's own embedded key, sits in the
+          # namespace its signed identity derives, and binds the native that is
+          # actually there.
+          ${{github.workspace}}/build/artifacts/gf_module_packager verify-module-set \
+            --namespace-root "$MODULE_ROOT" \
+            --expect-count 4 \
+            --assert-no-native-outside ${{github.workspace}}/build/artifacts/AppDir
+
+          # prepared.json is a note from the seal step to this one. It is not
+          # shipped, and leaving it would put an unsigned file inside a module
+          # namespace.
+          rm -f "$MODULE_ROOT"/*/native/prepared.json
+        if: runner.os == 'Linux'
+
+      - name: Build AppImage (Linux)
+        run: |
+          set -euo pipefail
+          cd ${{github.workspace}}/build/upload-artifact
+
+          if [[ "$ARCH" == "x86_64" ]]; then
+            wget -c -nv https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+            mv appimagetool-x86_64.AppImage appimagetool.AppImage
+          else
+            wget -c -nv https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-aarch64.AppImage
+            mv appimagetool-aarch64.AppImage appimagetool.AppImage
+          fi
+          chmod u+x appimagetool.AppImage
+
+          # Same naming scheme as every other platform. linuxdeployqt's own
+          # -appimage named the image after the .desktop entry, so both
+          # flavours came out as Gpg_Frontend-<arch>.AppImage and collided once
+          # the release job merged every runner's artifacts into one directory.
+          OUTPUT="GpgFrontend-${{env.SHORT_SHA}}-${{env.OS_IDENTIFIER}}-${ARCH}${{env.FLAVOR_SUFFIX}}.AppImage"
+          ARCH="$ARCH" ./appimagetool.AppImage \
+            ${{github.workspace}}/build/artifacts/AppDir "$OUTPUT"
+
+          rm -f linuxdeployqt-continuous.AppImage appimagetool.AppImage
           ls -l
         if: runner.os == 'Linux'
 
@@ -582,8 +705,14 @@ jobs:
           cp COPYING build/artifacts/
           cp gpgfrontend.ico build/artifacts/bin/
           rm -rf build/artifacts/bin/*.a
-          rm -rf build/artifacts/bin/modules/*.a
-          mv build/artifacts/bin/modules build/artifacts/modules
+          # No `mv build/artifacts/bin/modules build/artifacts/modules` any
+          # more: CMake writes each module straight into its own namespace at
+          # build/artifacts/modules/<key>/{module.gfmodule,native/}, which is
+          # exactly where the Host looks (<appdir>/../modules). Moving a
+          # directory into place after the fact was the step that made the old
+          # layout's ordering load-bearing.
+          rm -rf build/artifacts/modules/*/native/*.a
+          rm -rf build/artifacts/modules/*/native/*.dll.a
           cd build
           # Deploy every gf_* library rather than a hand-kept list, so a newly
           # registered library (gf_res was the last one) cannot be forgotten.
@@ -596,10 +725,100 @@ jobs:
           # sends what it needs into bin/, which is the first directory the
           # loader searches, instead of duplicating the whole Qt runtime next
           # to every module.
-          for module in ./artifacts/modules/*.dll; do
+          for module in $(find ./artifacts/modules -type f -name '*.dll' | sort); do
             windeployqt6 --no-translations --force --dir ./artifacts/bin "$module"
           done
           mkdir -p upload-artifact
+        if: runner.os == 'Windows'
+
+      # The same three steps the Linux leg runs, for the same reason:
+      # windeployqt has just finished touching the module DLLs, so nothing may
+      # describe them until it has. See ModulePreparedEntry.h.
+      - name: Audit, Seal and Finalize Module Descriptors (Windows)
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          cd $(cygpath -u "${{github.workspace}}")
+          MODULE_ROOT="build/artifacts/modules"
+          PACKAGER="build/artifacts/bin/gf_module_packager.exe"
+
+          ./scripts/audit_module_natives.sh \
+            --namespace-root "$MODULE_ROOT" \
+            --packager "$PACKAGER" \
+            --expect-count 4
+
+          "$PACKAGER" seal-prepared --namespace-root "$MODULE_ROOT" \
+            --expect-count 4
+
+          rm -f "$MODULE_ROOT"/*/module.gfmodule
+          cmake -B build -DGPGFRONTEND_MODULE_REQUIRE_SEAL=ON
+          cmake --build build --parallel
+
+          "$PACKAGER" verify-module-set \
+            --namespace-root "$MODULE_ROOT" \
+            --expect-count 4 \
+            --assert-no-native-outside build/artifacts
+
+          rm -f "$MODULE_ROOT"/*/native/prepared.json
+        if: runner.os == 'Windows'
+
+      # The claim §14.2 rests on, checked against the binaries this build
+      # actually produced rather than against the specification.
+      #
+      # The PE Authenticode image digest skips exactly the three regions
+      # signing and timestamping write -- the checksum, the certificate table
+      # directory entry, and the certificate table itself -- so a module DLL
+      # may be signed after its descriptor is final, by CI or by hand, with no
+      # access to the build key. That is a strong claim about a format, and a
+      # format claim that is only ever asserted is one that quietly stops being
+      # true.
+      #
+      # Signed with a throwaway self-signed certificate: the point is that the
+      # binding survives the FILE CHANGES signing makes, and nothing here cares
+      # who signed it. No release key is involved and none is needed.
+      - name: Verify Authenticode Does Not Break The Binding (Windows)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = "${{github.workspace}}/build/artifacts/modules"
+          $packager = "${{github.workspace}}/build/artifacts/bin/gf_module_packager.exe"
+
+          # A scratch copy of the whole tree, so a failure here cannot damage
+          # what is about to ship.
+          $scratch = Join-Path $env:RUNNER_TEMP 'authenticode-gate'
+          Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $scratch
+          Copy-Item -Recurse $root $scratch
+
+          $cert = New-SelfSignedCertificate `
+            -Type CodeSigningCert `
+            -Subject 'CN=GpgFrontend Authenticode Gate (throwaway)' `
+            -CertStoreLocation Cert:\CurrentUser\My
+
+          $natives = Get-ChildItem -Path $scratch -Recurse -Filter '*.dll'
+          if ($natives.Count -lt 1) { throw 'no module natives to sign' }
+          foreach ($native in $natives) {
+            Set-AuthenticodeSignature -FilePath $native.FullName `
+              -Certificate $cert -HashAlgorithm SHA256 | Out-Null
+          }
+
+          # Signing must have CHANGED the files -- otherwise this gate would
+          # pass without testing anything at all.
+          foreach ($native in $natives) {
+            $original = Join-Path $root ($native.FullName.Substring($scratch.Length + 1))
+            $a = (Get-FileHash $original -Algorithm SHA256).Hash
+            $b = (Get-FileHash $native.FullName -Algorithm SHA256).Hash
+            if ($a -eq $b) {
+              throw "signing did not change $($native.Name); this gate proves nothing"
+            }
+          }
+
+          & $packager verify-module-set --namespace-root $scratch --expect-count 4
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Authenticode signing broke the entry binding'
+          }
+
+          Remove-Item -Recurse -Force $scratch
+          Remove-Item -Force ("Cert:\CurrentUser\My\" + $cert.Thumbprint)
         if: runner.os == 'Windows'
 
       - name: Package Portable Archive (Windows)
@@ -648,11 +867,74 @@ jobs:
         # profile, so it is only ever built from the installed flavour.
         if: runner.os == 'Windows' && matrix.flavor == 'installed'
 
+
+      # The build record: what this leg produced, for the provenance job to
+      # attest to. NOT a trust input -- nothing at runtime reads it, and the
+      # Host's module trust root does not depend on a single field in it.
+      #
+      # The split between `product` and `ci` is the point. The product build id
+      # is derived from the product configuration alone -- repository, commit,
+      # ref, os, arch, flavour, build type, SDK ABI, Qt -- so two runs of the
+      # same commit produce the same id, and a descriptor signed by one build
+      # is refused by another only when the PRODUCT differs. CI execution
+      # identity (run id, attempt, actor) is real and worth recording, and is
+      # confined to `ci` so it can never leak into what the runtime compares.
+      - name: Write Build Record (Linux/Windows)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "${{github.workspace}}"
+
+          BINDINGS=$(./build/artifacts/${{ runner.os == 'Windows' && 'bin/gf_module_packager.exe' || 'gf_module_packager' }} \
+            verify-module-set \
+            --namespace-root "${{ runner.os == 'Windows' && 'build/artifacts/modules' || 'build/artifacts/AppDir/usr/lib/gpgfrontend/modules' }}" \
+            --print-bindings \
+            | sed -n 's/^binding //p' \
+            | jq -R 'split(" ") | {module: .[0], mode: .[1], value: .[2]}' \
+            | jq -s .)
+
+          jq -n \
+            --arg build_id "$(cat build/.module-build-key/build-id)" \
+            --arg commit "${{ github.sha }}" \
+            --arg ref "${{ github.ref }}" \
+            --arg os "${{ matrix.os }}" \
+            --arg flavor "${{ matrix.flavor }}" \
+            --arg build_type "${{ env.BUILD_TYPE }}" \
+            --arg run_id "${{ github.run_id }}" \
+            --arg run_attempt "${{ github.run_attempt }}" \
+            --arg actor "${{ github.actor }}" \
+            --arg workflow_ref "${{ github.workflow_ref }}" \
+            --argjson bindings "$BINDINGS" \
+            '{
+              schema: 1,
+              artifact_stage: "unsigned",
+              product: {
+                build_id: $build_id,
+                repository: "${{ github.repository }}",
+                source_commit: $commit,
+                ref: $ref,
+                build_type: $build_type
+              },
+              leg: { os: $os, flavor: $flavor },
+              modules: $bindings,
+              ci: {
+                run_id: $run_id,
+                run_attempt: $run_attempt,
+                actor: $actor,
+                workflow_ref: $workflow_ref
+              }
+            }' > "build/upload-artifact/build-record-${{ matrix.os }}-${{ matrix.flavor }}.json"
+
+          cat "build/upload-artifact/build-record-${{ matrix.os }}-${{ matrix.flavor }}.json"
+        if: runner.os == 'Linux' || runner.os == 'Windows'
+
       - name: Upload Artifact (Linux)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: gpgfrontend-${{matrix.os}}-${{matrix.flavor}}-${{env.BUILD_TYPE_LOWER}}-${{env.SHORT_SHA}}
-          path: ${{github.workspace}}/build/upload-artifact/GpgFrontend-*.AppImage*
+          path: |
+            ${{github.workspace}}/build/upload-artifact/GpgFrontend-*.AppImage*
+            ${{github.workspace}}/build/upload-artifact/build-record-*.json
         if: runner.os == 'Linux'
 
       - name: Upload Artifact (Windows)
@@ -852,6 +1134,61 @@ jobs:
             -verbose=2 \
             -always-overwrite
 
+      # §11.0's dependency audit, plus the one property the macOS entry
+      # binding rests on.
+      #
+      # macOS does not bind its entry by a digest of the file: Apple signing
+      # rewrites __LINKEDIT and the App Store may re-sign again on download, so
+      # a digest would either forbid normal platform signing or have to be
+      # regenerated after it -- which is what would drag a build-produced
+      # packager into the privileged signing job. It binds an identifier placed
+      # in a Mach-O section at LINK time instead, and everything downstream
+      # assumes that section is there. Nothing else checks that it is.
+      - name: Audit Module Natives And Binding Sections (macOS)
+        run: |
+          set -euo pipefail
+          MODULE_ROOT="${{github.workspace}}/build/artifacts/modules"
+          test -d "$MODULE_ROOT"
+
+          "${{github.workspace}}/scripts/audit_module_natives.sh" \
+            --namespace-root "$MODULE_ROOT" \
+            --packager "${{github.workspace}}/build/artifacts/gf_module_packager" \
+            --expect-count 4
+
+          echo "--- GpgFrontend binding sections ---"
+          found=0
+          while read -r dylib; do
+            # 64 lower-case hex characters, as text. otool prints the section
+            # contents as bytes; what matters here is that the section exists
+            # and is the right size, which is what -sectcreate was asked for.
+            if ! otool -s __GPGFRONTEND __gf_binding "$dylib" \
+                 | grep -q 'Contents of (__GPGFRONTEND,__gf_binding) section'; then
+              echo "FAIL $dylib carries no __GPGFRONTEND,__gf_binding section"
+              exit 1
+            fi
+            printf 'ok   %s\n' "$(basename "$dylib")"
+            found=$((found + 1))
+          done < <(find "$MODULE_ROOT" -type f -name '*.dylib' | sort)
+
+          test "$found" -eq 4 || {
+            echo "expected 4 module natives, found $found"
+            exit 1
+          }
+
+      # NOTE (stage J, needs a Mac): the descriptors and natives are not yet
+      # placed inside the bundle. They belong at
+      #   Contents/Resources/modules/<key>/module.gfmodule
+      #   Contents/Frameworks/GpgFrontendModules/<key>/lib*.dylib
+      # which is what ModuleNativeRootFor() resolves and what
+      # GetIntegratedModulePath() searches. Getting an Xcode build to place
+      # them there -- with install names under @loader_path and the binding
+      # section intact -- has to be done and checked on a real Mac with
+      # `codesign --verify` and `verify-module-set` run three times: after the
+      # outer signature, after notarization and after stapling. Adding the
+      # placement untested would produce a bundle that looks right and fails
+      # Library Validation at launch, which is worse than one that plainly has
+      # no modules yet.
+
       - name: Inventory Bundle Code Objects
         run: |
           set -euo pipefail
@@ -887,6 +1224,47 @@ jobs:
               printf '%-9s %s\n' "$state" "${f#"$APP"/}"
             fi
           done
+
+      # Written here, in the unprivileged job, because this is the job that
+      # knows what was built. sign-macos only flips artifact_stage afterwards;
+      # it does not and must not learn about modules.
+      - name: Write Build Record (macOS)
+        run: |
+          set -euo pipefail
+          cd "${{github.workspace}}"
+
+          BINDINGS=$(./build/artifacts/gf_module_packager verify-module-set \
+            --namespace-root build/artifacts/modules \
+            --print-bindings \
+            | sed -n 's/^binding //p' \
+            | jq -R 'split(" ") | {module: .[0], mode: .[1], value: .[2]}' \
+            | jq -s .)
+
+          mkdir -p build/unsigned
+          jq -n \
+            --arg build_id "$(cat build/.module-build-key/build-id)" \
+            --argjson bindings "$BINDINGS" \
+            '{
+              schema: 1,
+              artifact_stage: "unsigned",
+              product: {
+                build_id: $build_id,
+                repository: "${{ github.repository }}",
+                source_commit: "${{ github.sha }}",
+                ref: "${{ github.ref }}",
+                build_type: "${{ env.BUILD_TYPE }}"
+              },
+              leg: { os: "${{ matrix.os }}", flavor: "installed" },
+              modules: $bindings,
+              ci: {
+                run_id: "${{ github.run_id }}",
+                run_attempt: "${{ github.run_attempt }}",
+                actor: "${{ github.actor }}",
+                workflow_ref: "${{ github.workflow_ref }}"
+              }
+            }' > "build/unsigned/build-record-${{ matrix.os }}-installed.json"
+
+          cat "build/unsigned/build-record-${{ matrix.os }}-installed.json"
 
       - name: Stage Unsigned Payload
         run: |
@@ -1395,6 +1773,20 @@ jobs:
           spctl --assess --type open --context context:primary-signature --verbose=4 \
             "$RUNNER_TEMP/upload-artifact/GpgFrontend-${OS_IDENTIFIER}-${SHORT_SHA}.dmg"
 
+      # The record travels with the artifact it describes. sign-macos flips
+      # one field and copies it; it does not regenerate it, and it learns
+      # nothing about modules from doing so -- the boundary recorded at the top
+      # of this file stands: this job runs Apple's tools on data, and jq on a
+      # JSON file is not an exception to that, it is an instance of it.
+      - name: Carry Forward The Build Record
+        run: |
+          set -euo pipefail
+          RECORD="$RUNNER_TEMP/unsigned/build-record-${{ matrix.os }}-installed.json"
+          test -f "$RECORD"
+          jq '.artifact_stage = "signed-notarized"' "$RECORD" \
+            > "$RUNNER_TEMP/upload-artifact/$(basename "$RECORD")"
+          cat "$RUNNER_TEMP/upload-artifact/$(basename "$RECORD")"
+
       - name: Upload Artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -1412,8 +1804,104 @@ jobs:
                 "$RUNNER_TEMP/check-entitlements.py" \
                 "$RUNNER_TEMP/notary-result.json"
 
-  release:
+  # Public build provenance, and the ONLY job in this workflow with
+  # `id-token: write`.
+  #
+  # Keyless Sigstore: Fulcio issues a short-lived certificate bound to this
+  # job's OIDC identity, the signature and certificate go into the public Rekor
+  # transparency log, and the private key exists for seconds and is never
+  # written down. There is no signing secret here to steal or rotate.
+  #
+  # What this establishes and what it does not, stated plainly because the two
+  # are easy to conflate:
+  #
+  #   it DOES     prove these exact bytes were produced by this workflow, at
+  #               this commit, in this repository, and say so in a public log
+  #               anyone can query without asking us
+  #
+  #   it does NOT authenticate a module descriptor, replace Apple code signing
+  #               or Windows Authenticode, or participate in module loading at
+  #               all. Runtime verification is offline and depends on none of
+  #               this: a user with no network still gets every guarantee the
+  #               Host makes about its modules.
+  #
+  # Least privilege is the reason this is a separate job rather than a step in
+  # `release`: `release` needs `contents: write` to publish, and nothing should
+  # hold both the ability to mint an identity token and the ability to rewrite
+  # the repository.
+  provenance:
     needs: [build, sign-macos]
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      needs.sign-macos.result == 'success'
+    permissions:
+      # The identity token Fulcio exchanges for a certificate. Nothing else.
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          lfs: "false"
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          path: artifacts/
+          pattern: gpgfrontend-*
+
+      # BEFORE any cosign call, deliberately. The build matrix runs with
+      # continue-on-error, so a leg can fail and the release still assemble --
+      # fine for a nightly, and not fine for a provenance claim. Signing
+      # whatever happened to arrive would attest to a set nobody chose, and the
+      # attestation would look identical whether ten legs ran or three.
+      - name: Verify Build Record Set
+        run: |
+          set -euo pipefail
+          ./scripts/verify_build_record_set.sh \
+            --records artifacts/ \
+            --expected resource/provenance/expected-build-matrix.json
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
+
+      - name: Sign Deliverables
+        run: |
+          set -euo pipefail
+          mkdir -p provenance
+
+          # Every deliverable, plus the build record that describes it. The
+          # record is signed too: an attestation over the binaries that said
+          # nothing about which build produced them would leave the
+          # interesting question unanswered.
+          COUNT=0
+          while read -r artifact; do
+            name="$(basename "$artifact")"
+            leg="$(basename "$(dirname "$artifact")")"
+            bundle="provenance/${leg}--${name}.sigstore.json"
+
+            COSIGN_EXPERIMENTAL=1 cosign sign-blob \
+              --yes \
+              --bundle "$bundle" \
+              "$artifact"
+
+            echo "signed ${leg}/${name}"
+            COUNT=$((COUNT + 1))
+          done < <(find artifacts/ -type f \
+                     \( -name 'GpgFrontend-*' -o -name 'build-record-*.json' \) \
+                     | sort)
+
+          test "$COUNT" -gt 0 || { echo "nothing was signed"; exit 1; }
+          echo "$COUNT blob(s) signed"
+
+      - name: Upload Provenance Bundles
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: gpgfrontend-provenance
+          path: provenance/*
+
+  release:
+    needs: [build, sign-macos, provenance]
     runs-on: ubuntu-latest
     # Only publish the rolling nightly release from pushes to the main branch.
     # Stable releases (version tags) are packaged manually/offline.
@@ -1425,7 +1913,8 @@ jobs:
     # cancelled, or did not run.
     if: >-
       github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-      needs.sign-macos.result == 'success'
+      needs.sign-macos.result == 'success' &&
+      needs.provenance.result == 'success'
     environment: nightly-release-approval
     permissions:
       # Deletes and re-creates the nightly tag and its release.
@@ -1445,6 +1934,11 @@ jobs:
           git tag -f nightly $GITHUB_SHA
           git push origin nightly --force
 
+      # Deliberately two downloads. merge-multiple flattens everything into
+      # one directory, which is what the deliverables want and what the
+      # provenance bundles must not have: they are matched to artifacts by
+      # name, so they need a directory of their own to be told apart from what
+      # they cover.
       - name: Download Artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
@@ -1452,12 +1946,67 @@ jobs:
           pattern: gpgfrontend-*
           merge-multiple: true
 
+      - name: Download Provenance Bundles
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: gpgfrontend-provenance
+          path: artifacts/provenance/
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 # v3.9.2
+
+      # Verified here as well as produced there. The provenance job could sign
+      # a bundle this job then fails to attach, or attach one that covers
+      # different bytes -- and a broken attestation is worse than none, because
+      # it invites a user to check something that cannot succeed.
+      #
+      # The identity is pinned to this workflow in this repository: a valid
+      # Sigstore signature made by some other workflow is not evidence about
+      # this release.
+      - name: Verify Provenance Bundles
+        run: |
+          set -euo pipefail
+          test -d artifacts/provenance || {
+            echo "no provenance bundles were attached"; exit 1; }
+
+          COUNT=0
+          while read -r bundle; do
+            # "<leg>--<filename>.sigstore.json" -> the file it covers
+            base="$(basename "$bundle" .sigstore.json)"
+            name="${base#*--}"
+            artifact="$(find artifacts/ -type f -name "$name" \
+                          -not -path 'artifacts/provenance/*' | head -1)"
+            test -n "$artifact" || {
+              echo "bundle $base covers nothing that was downloaded"; exit 1; }
+
+            cosign verify-blob \
+              --bundle "$bundle" \
+              --certificate-identity-regexp \
+                "^https://github.com/${{ github.repository }}/" \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+              "$artifact"
+
+            echo "verified $name"
+            COUNT=$((COUNT + 1))
+          done < <(find artifacts/provenance -type f -name '*.sigstore.json' | sort)
+
+          test "$COUNT" -gt 0 || { echo "no bundles verified"; exit 1; }
+          echo "$COUNT provenance bundle(s) verified"
+
       - name: Ignore Non-Artifact Files
         run: |
           # Remove MAS specific .pkg files if they exist, since they are not
           # needed for the release and we only want to keep the main artifacts
           # (dmg, AppImage, zip).
           find artifacts/ -type f -name '*.pkg' -delete
+
+          # Both halves ship: the deliverables and, beside them, the bundles
+          # and build records that say where they came from. A provenance
+          # bundle nobody can download is a provenance bundle nobody can check.
+          if [ -d artifacts/provenance ]; then
+            mv artifacts/provenance/* artifacts/ 2>/dev/null || true
+            rmdir artifacts/provenance 2>/dev/null || true
+          fi
 
       - name: Generate SHA256 checksums
         run: |
