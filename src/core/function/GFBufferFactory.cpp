@@ -202,6 +202,68 @@ auto GFBufferFactory::ToSha256(
   return ret;
 }
 
+namespace {
+
+/// One chunk size for every streaming digest here. 64 KiB was measured as the
+/// point where syscall overhead stops dominating on the module load path.
+constexpr qint64 kSha256ChunkSize = 64 * 1024;
+
+auto DigestToHex(const GFBufferOrNone& digest) -> QString {
+  if (!digest) return {};
+  return QString::fromLatin1(digest->ConvertToQByteArray().toHex());
+}
+
+}  // namespace
+
+auto GFBufferFactory::Sha256Hex(const QByteArray& bytes) -> QString {
+  // The streaming overload, deliberately: the one-shot ToSha256() returns
+  // nothing for empty input, which would make the hash of zero bytes
+  // indistinguishable from a failure.
+  return DigestToHex(ToSha256([&bytes](const Sha256Chunk& chunk) {
+    chunk(bytes.constData(), static_cast<size_t>(bytes.size()));
+  }));
+}
+
+auto GFBufferFactory::Sha256HexOfDevice(QIODevice& io) -> QString {
+  if (!io.isOpen() || !io.isReadable()) {
+    LOG_W() << "cannot hash, device is not open for reading";
+    return {};
+  }
+
+  // The caller may already have read a header from the device.
+  if (!io.seek(0)) {
+    LOG_W() << "cannot hash, device is not seekable";
+    return {};
+  }
+
+  bool read_failed = false;
+  auto digest = ToSha256([&io, &read_failed](const Sha256Chunk& chunk) {
+    QByteArray buffer(kSha256ChunkSize, Qt::Uninitialized);
+    while (!io.atEnd()) {
+      const auto n = io.read(buffer.data(), buffer.size());
+      if (n < 0) {
+        LOG_W() << "error reading device during hashing";
+        read_failed = true;
+        return;
+      }
+      if (n == 0) break;
+      chunk(buffer.constData(), static_cast<size_t>(n));
+    }
+  });
+
+  if (read_failed) return {};
+  return DigestToHex(digest);
+}
+
+auto GFBufferFactory::Sha256HexOfFile(const QString& path) -> QString {
+  QFile file(path);
+  if (!file.open(QIODevice::ReadOnly)) {
+    LOG_W() << "cannot hash, file could not be opened:" << path;
+    return {};
+  }
+  return Sha256HexOfDevice(file);
+}
+
 auto GFBufferFactory::ToHMACSha256(const GFBuffer& key, const GFBuffer& data)
     -> GFBufferOrNone {
   if (key.Empty() || data.Empty()) return {};

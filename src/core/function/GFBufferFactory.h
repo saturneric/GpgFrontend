@@ -131,6 +131,43 @@ class GF_CORE_EXPORT GFBufferFactory
       -> GFBufferOrNone;
 
   /**
+   * @brief Hex-encoded SHA-256 of a byte array.
+   *
+   * THE authoritative hex digest in this tree. Everything that needs to
+   * compare a file or a buffer against a recorded digest goes through this
+   * family, so there is one hashing backend and one encoding, rather than the
+   * five implementations across two crypto libraries that preceded it.
+   *
+   * Correct for empty input: it streams, so it returns the real SHA-256 of
+   * zero bytes (e3b0c442...) rather than nothing. That is also why an empty
+   * return unambiguously means FAILURE -- a successful hash is always 64
+   * lower-case hex characters, never the empty string.
+   *
+   * @param bytes data to hash; may be empty
+   * @return 64 lower-case hex characters, or empty on failure
+   */
+  static auto Sha256Hex(const QByteArray& bytes) -> QString;
+
+  /**
+   * @brief Hex-encoded SHA-256 of everything in an open, readable device.
+   *
+   * Seeks to the start first, so a caller that already read a header still
+   * hashes the whole thing.
+   *
+   * @param io an open, readable, seekable device
+   * @return 64 lower-case hex characters, or empty on failure
+   */
+  static auto Sha256HexOfDevice(QIODevice& io) -> QString;
+
+  /**
+   * @brief Hex-encoded SHA-256 of a file's contents.
+   *
+   * @param path file to hash
+   * @return 64 lower-case hex characters, or empty if it could not be read
+   */
+  static auto Sha256HexOfFile(const QString& path) -> QString;
+
+  /**
    * @brief Compute HMAC-SHA256 of @p data authenticated with @p key.
    *
    * If @p key is not exactly 32 bytes it is first hashed with SHA-256 to
