@@ -167,4 +167,3 @@ inline auto ConvertVoidPtrToQVariant(void* ptr) -> QVariant {
   GFFreeMemory(variant_ptr);
   return variant;
 }
-

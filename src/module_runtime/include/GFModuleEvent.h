@@ -33,7 +33,6 @@
 #include <QObject>
 #include <QSharedPointer>
 #include <QString>
-
 #include <atomic>
 
 /**
@@ -190,8 +189,8 @@ class GFEvent {
  private:
   friend class GFEventFactory;
 
-  [[nodiscard]] auto require_gui_object(const QString& key,
-                                        QObject*& out) const -> GFEventResult;
+  [[nodiscard]] auto require_gui_object(const QString& key, QObject*& out) const
+      -> GFEventResult;
   [[nodiscard]] static auto gui_object_wrong_type(const QString& key)
       -> GFEventResult;
 

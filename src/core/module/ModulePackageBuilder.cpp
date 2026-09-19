@@ -28,8 +28,6 @@
 
 #include "ModulePackageBuilder.h"
 
-#include "core/module/ModuleManifest.h"
-
 #include <sodium.h>
 
 #include <QFile>
@@ -40,6 +38,7 @@
 
 #include "core/function/ArchiveFileOperator.h"
 #include "core/function/GFBufferFactory.h"
+#include "core/module/ModuleManifest.h"
 #include "core/module/ModulePackageVerifier.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/CommonUtils.h"

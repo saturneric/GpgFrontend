@@ -69,4 +69,3 @@ auto GFUIObject(const QString& handle) -> T* {
 
 #define GUI_OBJECT(factory, data) \
   GFUICreateGUIObject(factory, ConvertQVariantToVoidPtr(data))
-

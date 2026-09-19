@@ -26,6 +26,8 @@
  *
  */
 
+#include "ModuleRuntimeStubs.h"
+
 #include <GFSDKBasic.h>
 #include <GFSDKBasicModel.h>
 #include <GFSDKModule.h>
@@ -35,11 +37,9 @@
 #include <QByteArray>
 #include <QMap>
 #include <QString>
-#include <cstdlib>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
-
-#include "ModuleRuntimeStubs.h"
 
 /**
  * @file ModuleRuntimeStubs.cpp

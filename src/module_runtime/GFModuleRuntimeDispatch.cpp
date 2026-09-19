@@ -30,7 +30,6 @@
 
 #include <GFSDKBasic.h>
 #include <GFSDKModule.h>
-
 #include <GFSDKUI.h>
 
 #include <atomic>
@@ -51,11 +50,11 @@ auto ConsumeParams(GFModuleEventParam* params) -> QMap<QString, QByteArray> {
   while (current != nullptr) {
     // UDUPN keeps the octets; the value is NOT read as text anywhere here.
     const auto name = UDUP(current->name);
-    auto value = current->value == nullptr
-                     ? QByteArray()
-                     : QByteArray(current->value,
-                                  static_cast<qsizetype>(
-                                      qstrlen(current->value)));
+    auto value =
+        current->value == nullptr
+            ? QByteArray()
+            : QByteArray(current->value,
+                         static_cast<qsizetype>(qstrlen(current->value)));
     GFSecFreeMemory(const_cast<char*>(current->value));
 
     if (!name.isEmpty()) out.insert(name, value);
@@ -130,8 +129,8 @@ void SendAnswer(const QString& event_id, const QString& trigger_id,
   }
 
   // The host frees all of it, on both the found and not-found paths.
-  GFModuleTriggerModuleEventCallback(
-      reply, Facts().id.toUtf8().constData(), head);
+  GFModuleTriggerModuleEventCallback(reply, Facts().id.toUtf8().constData(),
+                                     head);
 }
 
 auto HookTable() -> QHash<QString, GFEventHook>& {
@@ -180,8 +179,7 @@ auto GFEvent::Params() const -> QMap<QString, QString> {
   return out;
 }
 
-auto GFEvent::Require(const QString& key, QString& out) const
-    -> GFEventResult {
+auto GFEvent::Require(const QString& key, QString& out) const -> GFEventResult {
   if (!Has(key)) {
     return GFEventResult::Bad(QString("no %1 in this event").arg(key));
   }
@@ -221,9 +219,7 @@ auto GFEvent::Answer() const -> GFEventAnswer {
 
 // ----------------------------------------------------------- GFEventAnswer
 
-auto GFEventAnswer::Answered() const -> bool {
-  return s_ && s_->sent.load();
-}
+auto GFEventAnswer::Answered() const -> bool { return s_ && s_->sent.load(); }
 
 void GFEventAnswer::Send(const GFEventResult& result) const {
   if (!s_) return;

@@ -57,7 +57,7 @@ const GFHostApi* g_host = nullptr;
 
 /// Whether a field is within the hook table as the module compiled it.
 template <typename M>
-auto HooksCover(const GFModuleHooks* hooks, M GFModuleHooks::*member) -> bool {
+auto HooksCover(const GFModuleHooks* hooks, M GFModuleHooks::* member) -> bool {
   const auto* base = reinterpret_cast<const char*>(hooks);
   const auto* field = reinterpret_cast<const char*>(&(hooks->*member));
   return hooks->struct_size >= static_cast<size_t>(field - base) + sizeof(M);
@@ -111,13 +111,11 @@ auto ReconcileSubscriptions(const QSet<QString>& hooked) -> bool {
     return true;
   }
 
-  const auto declared = QSet<QString>(facts.events.cbegin(),
-                                      facts.events.cend());
+  const auto declared =
+      QSet<QString>(facts.events.cbegin(), facts.events.cend());
 
-  const auto unhandled = QStringList(
-      (declared - hooked).values()).join(", ");
-  const auto undeclared = QStringList(
-      (hooked - declared).values()).join(", ");
+  const auto unhandled = QStringList((declared - hooked).values()).join(", ");
+  const auto undeclared = QStringList((hooked - declared).values()).join(", ");
 
   if (unhandled.isEmpty() && undeclared.isEmpty()) return true;
 
@@ -246,14 +244,9 @@ extern "C" auto GFModuleRuntimeGetApi(uint32_t host_abi,
   // comes from the hooks, because this runtime is compiled once and linked
   // into every module -- it cannot see any one module's generated header.
   static const GFModuleApi kApi = {
-      sizeof(GFModuleApi),
-      GF_SDK_ABI_VERSION,
-      hooks->module_id,
-      hooks->module_version,
-      &RuntimeActivate,
-      &RuntimeExecute,
-      &RuntimeDeactivate,
-      &RuntimeUnregister,
+      sizeof(GFModuleApi),   GF_SDK_ABI_VERSION, hooks->module_id,
+      hooks->module_version, &RuntimeActivate,   &RuntimeExecute,
+      &RuntimeDeactivate,    &RuntimeUnregister,
   };
   return &kApi;
 }
@@ -269,7 +262,9 @@ auto GFGetModuleID() -> const char* {
   static const QByteArray kId = gf::runtime::Facts().id.toUtf8();
   return kId.constData();
 }
-auto GFModuleVersion() -> const QString& { return gf::runtime::Facts().version; }
+auto GFModuleVersion() -> const QString& {
+  return gf::runtime::Facts().version;
+}
 auto GFModuleIsVerified() -> bool { return gf::runtime::Facts().verified; }
 auto GFHost() -> const GFHostApi* { return g_host; }
 

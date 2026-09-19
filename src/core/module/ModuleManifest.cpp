@@ -209,7 +209,8 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
               QString("event id \"%1\" is not upper-case").arg(id));
         }
         if (m.events.contains(id)) {
-          return Malformed(QString("event id \"%1\" is declared twice").arg(id));
+          return Malformed(
+              QString("event id \"%1\" is declared twice").arg(id));
         }
         m.events.append(id);
       }
@@ -319,8 +320,9 @@ auto ManifestHostOsName() -> QString {
 auto SdkAbiRejection(int abi) -> std::optional<QString> {
   if (abi >= GF_SDK_ABI_MIN_SUPPORTED && abi <= GF_SDK_ABI_VERSION) return {};
 
-  return QString("it was built against sdk abi %1, and this version of "
-                 "GpgFrontend supports %2 to %3")
+  return QString(
+             "it was built against sdk abi %1, and this version of "
+             "GpgFrontend supports %2 to %3")
       .arg(abi)
       .arg(GF_SDK_ABI_MIN_SUPPORTED)
       .arg(GF_SDK_ABI_VERSION);

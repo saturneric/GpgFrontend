@@ -83,10 +83,15 @@ constexpr GFEventBinding kEvents[] = {
 };
 
 auto MakeHooks() -> GFModuleHooks {
-  return GFModuleHooks{
-      sizeof(GFModuleHooks), "com.bktus.gpgfrontend.module.test", "1.0.0",
-      "ModuleTest",          &OnActivate,                         &OnDeactivate,
-      &OnUnload,             kEvents,                             std::size(kEvents)};
+  return GFModuleHooks{sizeof(GFModuleHooks),
+                       "com.bktus.gpgfrontend.module.test",
+                       "1.0.0",
+                       "ModuleTest",
+                       &OnActivate,
+                       &OnDeactivate,
+                       &OnUnload,
+                       kEvents,
+                       std::size(kEvents)};
 }
 
 // ------------------------------------------------------- host-side fakes
@@ -135,7 +140,8 @@ class Payload {
 /// A delivered event, allocated the way the host allocates one.
 auto MakeEvent(const QString& id, const QMap<QString, QByteArray>& params)
     -> GFModuleEvent* {
-  auto* e = static_cast<GFModuleEvent*>(GFAllocateMemory(sizeof(GFModuleEvent)));
+  auto* e =
+      static_cast<GFModuleEvent*>(GFAllocateMemory(sizeof(GFModuleEvent)));
   e->id = GFModuleStrDup(id.toUtf8().constData());
   e->trigger_id = GFModuleStrDup("trigger-1");
   e->params = nullptr;

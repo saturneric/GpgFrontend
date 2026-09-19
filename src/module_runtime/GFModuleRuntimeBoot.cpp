@@ -57,7 +57,7 @@ auto OwnList(const char* const* items, size_t size) -> QStringList {
 /// this field" and "this field is present" are the same question asked of
 /// struct_size. Asking it is what makes appending safe later.
 template <typename T, typename M>
-auto Covers(const T* t, M T::*member) -> bool {
+auto Covers(const T* t, M T::* member) -> bool {
   const auto* base = reinterpret_cast<const char*>(t);
   const auto* field = reinterpret_cast<const char*>(&(t->*member));
   return t->struct_size >= static_cast<size_t>(field - base) + sizeof(M);
