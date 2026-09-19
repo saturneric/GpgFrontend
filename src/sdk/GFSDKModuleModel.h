@@ -33,17 +33,6 @@ extern "C" {
 #endif
 
 /**
- * @brief A singly-linked list node for arbitrary key-value module metadata.
- *
- * Returned by GFModuleAPIGetModuleMetaData to describe the module.
- */
-typedef struct GFModuleMetaData {
-  const char *key;                ///< Metadata key string.
-  const char *value;              ///< Metadata value string.
-  struct GFModuleMetaData *next;  ///< Next node, or nullptr at end of list.
-} GFModuleMetaData;
-
-/**
  * @brief A singly-linked list node carrying one named parameter of an event.
  */
 typedef struct GFModuleEventParam {
@@ -63,46 +52,6 @@ typedef struct GFModuleEvent {
       *params;  ///< Linked list of event parameters; may be nullptr.
 } GFModuleEvent;
 
-/// Returns the GpgFrontend SDK version the module was compiled against.
-typedef const char *(*GFModuleAPIGetModuleGFSDKVersion)();
-
-/// Returns the Qt version the module was compiled against.
-typedef const char *(*GFModuleAPIGetModuleQtEnvVersion)();
-
-/// Returns the module's unique identifier string (lower-case, dot-separated).
-typedef const char *(*GFModuleAPIGetModuleID)();
-
-/// Returns the module's version string.
-typedef const char *(*GFModuleAPIGetModuleVersion)();
-
-/// Returns a linked list of key-value metadata describing the module.
-typedef GFModuleMetaData *(*GFModuleAPIGetModuleMetaData)();
-
-/// Called once to register the module with the module manager. Return 0 on
-/// success.
-typedef int (*GFModuleAPIRegisterModule)();
-
-/// Called to activate the module; subscribe to events here. Return 0 on
-/// success.
-typedef int (*GFModuleAPIActivateModule)();
-
-/// Called when the module receives an event to handle. Return 0 on success.
-typedef int (*GFModuleAPIExecuteModule)(GFModuleEvent *);
-
-/// Called to deactivate the module; unsubscribe from events here. Return 0 on
-/// success.
-typedef int (*GFModuleAPIDeactivateModule)();
-
-/// Called once to unregister and clean up the module. Return 0 on success.
-typedef int (*GFModuleAPIUnregisterModule)();
-
-/// Reports the module ABI generation the module was compiled against.
-///
-/// Required. A module built before this symbol existed simply does not export
-/// it, so it is rejected by the host's existing required-symbol loop -- with
-/// the missing symbol named in the log -- instead of loading and then
-/// crashing on a changed ABI.
-typedef int (*GFModuleAPIGetModuleSDKABIVersion)();
 #ifdef __cplusplus
 }
 #endif
