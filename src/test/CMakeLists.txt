@@ -84,3 +84,10 @@ set_target_properties(gf_mod_test_sentinel PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts/test-modules)
 
 # Not installed: a test fixture is not something a user gets.
+
+# The module-side runtime is only built when modules are, and it is tested
+# against stubs rather than against the host -- so it gets its own target
+# rather than linking into gf_test.
+if(TARGET gf_module_runtime)
+  add_subdirectory(module_runtime)
+endif()

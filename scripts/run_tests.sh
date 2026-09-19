@@ -676,6 +676,7 @@ run_modules_phase() {
       gf_mod_email_test
       gf_mod_email_net_test
       gf_mod_email_crypto_test
+      gf_module_runtime_test
     )
     local missing=0
     for name in "${expected[@]}"; do
