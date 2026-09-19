@@ -33,10 +33,14 @@
 
 #include "core/module/GlobalModuleContext.h"
 #include "core/module/ModuleManifest.h"
+#include "core/module/ModuleSdkBridge.h"
 #include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
+// For the GFHostApi and GFModuleApi TYPES only. gf_core must not reference a
+// gf_sdk FUNCTION: that would make the two libraries mutually dependent, which
+// neither a MinGW DLL nor a Mach-O dylib can link. The four functions this
+// file used to call now arrive through ModuleSdkBridge.
 #include "sdk/GFSDKModuleApi.h"
-#include "sdk/GFSDKModuleAttribution.h"
 #include "sdk/GFSDKModuleModel.h"
 
 namespace GpgFrontend::Module {
@@ -158,8 +162,8 @@ class Module::Impl {
   /// handles it asks for are recorded against it. The SDK cannot work this
   /// out for itself: its host table is one static table shared by every
   /// module, so a call arriving through it carries no identity.
-  [[nodiscard]] auto attribution() const -> GFSdkModuleAttributionScope {
-    return GFSdkModuleAttributionScope(identifier_utf8_.constData());
+  [[nodiscard]] auto attribution() const -> ModuleAttributionScope {
+    return ModuleAttributionScope(identifier_utf8_.constData());
   }
 
   auto Register() -> int {
@@ -226,10 +230,23 @@ class Module::Impl {
       info.events_size = static_cast<size_t>(events.size());
     }
 
+    // Refused rather than activated with nothing: a module handed a null host
+    // api could call nothing and could not say why. This cannot happen in a
+    // normal process -- gf_sdk installs the bridge when it loads, and a module
+    // cannot exist without it -- but "cannot happen" is the wrong thing to
+    // encode as an unchecked dereference.
+    const auto* host_api = ModuleSdkHostApi();
+    if (host_api == nullptr) {
+      LOG_W() << "refusing to activate module" << identifier_utf8_
+              << ": the sdk bridge was never installed, so there is no host "
+                 "api to give it";
+      return -1;
+    }
+
     const auto attributed = attribution();
     // The host table is static and outlives every module, so the module may
     // hold on to it for its whole life. The bootstrap payload may NOT be.
-    return api_->activate(GFGetHostApi(), &info);
+    return api_->activate(static_cast<const GFHostApi*>(host_api), &info);
   }
 
   auto Exec(const EventReference& event) -> int {
@@ -335,7 +352,6 @@ class Module::Impl {
   [[nodiscard]] auto GetModuleSDKABIVersion() const -> int {
     return sdk_abi_ver_;
   }
-
 
   [[nodiscard]] auto GetModuleHash() const -> QString { return module_hash_; }
 
@@ -468,7 +484,6 @@ void Module::SetModuleManifest(const ModuleManifest& manifest) {
 [[nodiscard]] auto Module::GetModuleSDKABIVersion() const -> int {
   return p_->GetModuleSDKABIVersion();
 }
-
 
 [[nodiscard]] auto Module::GetModuleHash() const -> QString {
   return p_->GetModuleHash();

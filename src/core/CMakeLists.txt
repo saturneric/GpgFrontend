@@ -120,4 +120,19 @@ if(MINGW)
 elseif(APPLE)
 else()
   target_link_libraries(${LIBRARY_TARGET} PUBLIC pthread dl)
+
+  # Refuse to produce a gf_core with unresolved symbols.
+  #
+  # This is not tidiness. A MinGW DLL and a Mach-O dylib BOTH require every
+  # symbol to resolve at link time, while ELF shared libraries do not -- so an
+  # undefined symbol here is a Linux build that succeeds and a Windows and
+  # macOS build that fails, which is the worst possible place to find out. It
+  # cost two broken platforms once already: gf_core acquired references to
+  # four gf_sdk entry points, Linux linked them happily and resolved them
+  # lazily once a module dragged libgf_sdk.so in, and both other platforms
+  # stopped linking entirely.
+  #
+  # With this, that failure happens at the developer's desk, in the form the
+  # other two platforms would have reported it.
+  target_link_options(${LIBRARY_TARGET} PRIVATE "LINKER:--no-undefined")
 endif()

@@ -1,0 +1,143 @@
+/**
+ * Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
+ *
+ * This file is part of GpgFrontend.
+ *
+ * GpgFrontend is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * GpgFrontend is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GpgFrontend. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * The initial version of the source code is inherited from
+ * the gpg4usb project, which is under GPL-3.0-or-later.
+ *
+ * All the source code of GpgFrontend was modified and released by
+ * Saturneric <eric@bktus.com> starting on May 12, 2021.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ */
+
+#pragma once
+
+#include <cstddef>
+
+namespace GpgFrontend::Module {
+
+/**
+ * @file ModuleSdkBridge.h
+ * @brief The four SDK services gf_core needs, supplied by gf_sdk rather than
+ * linked against it.
+ *
+ * ## Why this exists
+ *
+ * `gf_sdk` links `gf_core`: the SDK is implemented on top of the core. But the
+ * core's module loader needs four things that only the SDK can provide -- the
+ * host API table it hands a module at activation, the attribution brackets
+ * that record which module asked for a handle, and the sweep that reclaims
+ * what a module leaked. Calling them directly makes the two libraries mutually
+ * dependent.
+ *
+ * On Linux that appeared to work, because an ELF shared library may carry
+ * unresolved symbols and the dynamic linker fixes them up later -- in this
+ * case only once a module's own `DT_NEEDED` had dragged `libgf_sdk.so` in. A
+ * MinGW DLL and a Mach-O dylib both require every symbol to resolve at link
+ * time, so on those two platforms `gf_core` simply stopped linking. It is also
+ * a fragile arrangement on Linux: it depends on lazy binding and on the SDK
+ * landing in the global symbol scope, neither of which is guaranteed.
+ *
+ * So the dependency is inverted. `gf_core` declares what it needs, `gf_sdk`
+ * installs it, and the link graph stays a DAG:
+ *
+ * ```
+ *   gf_sdk  ---- links ---->  gf_core
+ *      |                         ^
+ *      '---- installs bridge ----'      (at load, no link dependency)
+ * ```
+ *
+ * ## It is not a plugin seam
+ *
+ * Exactly one implementation exists and exactly one ever will: `gf_sdk`'s.
+ * This is not an extension point, and nothing should grow policy behind it.
+ * It is the narrowest possible way to say "these four functions live on the
+ * other side of a link edge that only points one way".
+ */
+
+/// The four entry points, as a table. A null member is a service this build
+/// does not have, which is not the same as one that does nothing -- see
+/// ModuleSdkHostApi().
+struct GF_CORE_EXPORT ModuleSdkBridge {
+  const void* (*get_host_api)() = nullptr;
+  const char* (*enter_module)(const char* module_id) = nullptr;
+  void (*leave_module)(const char* previous) = nullptr;
+  size_t (*sweep_module_handles)(const char* module_id) = nullptr;
+};
+
+/**
+ * @brief Install the SDK's implementation. Called once, by gf_sdk.
+ *
+ * Idempotent, and deliberately not reversible: there is no uninstall, because
+ * a module that has already been handed the host api table holds it for the
+ * life of the process.
+ */
+void GF_CORE_EXPORT InstallModuleSdkBridge(const ModuleSdkBridge& bridge);
+
+/// Whether gf_sdk has installed itself yet.
+auto GF_CORE_EXPORT IsModuleSdkBridgeInstalled() -> bool;
+
+/**
+ * @brief The host API table to hand a module at activation.
+ *
+ * Returns nullptr when the bridge is not installed, which a caller MUST treat
+ * as a refusal to activate rather than as an empty table. Handing a module a
+ * null host api would leave it unable to call anything and unable to say why;
+ * refusing to activate it says so once, in the log, at the point of failure.
+ *
+ * The type is erased so this header does not drag the SDK's headers into
+ * gf_core's. The one caller casts it back to `const GFHostApi*`, which is
+ * safe because there is exactly one producer of this pointer.
+ */
+auto GF_CORE_EXPORT ModuleSdkHostApi() -> const void*;
+
+/**
+ * @brief Reclaim every SDK handle still held by @p module_id.
+ *
+ * Zero when the bridge was never installed, which is the honest answer: if
+ * gf_sdk never loaded then no module ever obtained a handle from it.
+ */
+auto GF_CORE_EXPORT ModuleSdkSweepHandles(const char* module_id) -> size_t;
+
+/**
+ * @brief Bracket a call into module code so its handles are attributed to it.
+ *
+ * The SDK cannot work this out for itself: its host table is one static table
+ * shared by every module, so a call arriving through it carries no identity.
+ *
+ * A no-op when the bridge is not installed. That is correct rather than
+ * merely tolerable -- with no SDK loaded there are no handles to attribute.
+ */
+class GF_CORE_EXPORT ModuleAttributionScope {
+ public:
+  explicit ModuleAttributionScope(const char* module_id);
+  ~ModuleAttributionScope();
+
+  ModuleAttributionScope(const ModuleAttributionScope&) = delete;
+  auto operator=(const ModuleAttributionScope&)
+      -> ModuleAttributionScope& = delete;
+  ModuleAttributionScope(ModuleAttributionScope&&) = delete;
+  auto operator=(ModuleAttributionScope&&) -> ModuleAttributionScope& = delete;
+
+ private:
+  const char* previous_ = nullptr;
+  bool bracketed_ = false;
+};
+
+}  // namespace GpgFrontend::Module

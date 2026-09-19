@@ -38,9 +38,9 @@
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleManager.h"
+#include "core/module/ModuleSdkBridge.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
-#include "sdk/GFSDKModuleAttribution.h"
 
 namespace {
 
@@ -355,7 +355,7 @@ void ShutdownGpgFrontendModules() {
   //    rest of the process rather than merely being unreachable.
   size_t swept = 0;
   for (const auto& module_id : module_ids) {
-    swept += GFSdkSweepModuleHandles(module_id.toUtf8().constData());
+    swept += ModuleSdkSweepHandles(module_id.toUtf8().constData());
   }
 
   // 6. UNLOAD THE LIBRARIES -- last, so that no module code is unmapped while
