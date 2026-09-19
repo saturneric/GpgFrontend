@@ -1259,6 +1259,25 @@ jobs:
             exit 1
           fi
 
+      # Bring each module's private dependencies into its own namespace.
+      #
+      # m_email links OpenSSL through vmime's TLS backend, and Homebrew builds
+      # its dylibs with an absolute install name in the Cellar -- a path that
+      # is correct here and absent on a user's Mac, or under /usr/local instead
+      # of /opt/homebrew on Intel. linuxdeployqt and windeployqt already handle
+      # this for the other two platforms; macdeployqt only processes the .app
+      # bundle, and the module natives are not in it, so nothing was doing it
+      # for them.
+      #
+      # Runs after materialization, because there is no point rewriting the
+      # load commands of a symlink, and before the audit, which is what proves
+      # it worked.
+      - name: Bundle Module Dependencies (macOS)
+        run: |
+          set -euo pipefail
+          ${{github.workspace}}/scripts/bundle_macos_module_deps.sh \
+            --namespace-root ${{github.workspace}}/build/artifacts/modules
+
       # §11.0's dependency audit, plus the one property the macOS entry
       # binding rests on.
       #
@@ -1281,11 +1300,21 @@ jobs:
             --expect-count 4
 
           echo "--- GpgFrontend binding sections ---"
+          # ENTRY natives only, taken from what each signed descriptor binds.
+          #
+          # Not every dylib under here: since the bundling step above, this
+          # directory also holds private dependencies -- libssl, libcrypto --
+          # and those are ordinary third-party libraries that have never
+          # carried a GpgFrontend section and never should. Requiring one of
+          # them would fail the build for a file doing exactly what it is
+          # supposed to.
+          PACKAGER="$(cat ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
           found=0
-          while read -r dylib; do
-            # 64 lower-case hex characters, as text. otool prints the section
-            # contents as bytes; what matters here is that the section exists
-            # and is the right size, which is what -sectcreate was asked for.
+          while read -r _ _ dylib; do
+            [ -n "$dylib" ] || continue
+            # otool prints the section contents as bytes; what matters here is
+            # that the section exists at all, which is what -sectcreate was
+            # asked for and what the descriptor's binding depends on.
             if ! otool -s __GPGFRONTEND __gf_binding "$dylib" \
                  | grep -q 'Contents of (__GPGFRONTEND,__gf_binding) section'; then
               echo "FAIL $dylib carries no __GPGFRONTEND,__gf_binding section"
@@ -1293,10 +1322,12 @@ jobs:
             fi
             printf 'ok   %s\n' "$(basename "$dylib")"
             found=$((found + 1))
-          done < <(find "$MODULE_ROOT" -type f -name '*.dylib' | sort)
+          done < <("$PACKAGER" verify-module-set \
+                     --namespace-root "$MODULE_ROOT" --print-entries \
+                   | grep '^entry ')
 
           test "$found" -eq 4 || {
-            echo "expected 4 module natives, found $found"
+            echo "expected 4 module entry natives, found $found"
             exit 1
           }
 
