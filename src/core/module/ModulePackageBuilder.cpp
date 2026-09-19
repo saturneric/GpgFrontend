@@ -41,8 +41,8 @@
 #include "core/function/GFBufferFactory.h"
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManifest.h"
-#include "core/module/ModuleTrustRoot.h"
 #include "core/module/ModulePackageVerifier.h"
+#include "core/module/ModuleTrustRoot.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/CommonUtils.h"
 
@@ -333,10 +333,9 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
   if (spec.signing_seed.size() != crypto_sign_SEEDBYTES) {
     return Fail("no module-build signing seed was given");
   }
-  if (crypto_sign_seed_keypair(
-          public_key.data(), secret_key.data(),
-          reinterpret_cast<const unsigned char*>(
-              spec.signing_seed.constData())) != 0) {
+  if (crypto_sign_seed_keypair(public_key.data(), secret_key.data(),
+                               reinterpret_cast<const unsigned char*>(
+                                   spec.signing_seed.constData())) != 0) {
     return Fail("the module-build signing seed could not be used");
   }
 

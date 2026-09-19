@@ -138,8 +138,8 @@ struct GF_CORE_EXPORT ModulePackageVerification {
  * @return the verdict, with the manifest filled in only when it verified
  */
 auto GF_CORE_EXPORT VerifyModulePackage(
-    const QString& package_path, const QByteArray& expected_public_key =
-                                     ModuleBuildPublicKey())
+    const QString& package_path,
+    const QByteArray& expected_public_key = ModuleBuildPublicKey())
     -> ModulePackageVerification;
 
 }  // namespace GpgFrontend::Module

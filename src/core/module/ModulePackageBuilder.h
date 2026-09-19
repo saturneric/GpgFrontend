@@ -108,8 +108,9 @@ struct GF_CORE_EXPORT ModulePackageBuildSpec {
 struct GF_CORE_EXPORT ModulePackageBuildResult {
   bool ok = false;
   QString reason;
-  QByteArray build_public_key;  ///< the build key this descriptor was signed with
-  QByteArray manifest_bytes;    ///< exactly the bytes the signature covers
+  QByteArray
+      build_public_key;       ///< the build key this descriptor was signed with
+  QByteArray manifest_bytes;  ///< exactly the bytes the signature covers
 };
 
 /**
