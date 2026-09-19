@@ -145,13 +145,6 @@ function(_gf_module_package_command)
     VERBATIM)
 
   add_custom_target(${module_target}_package ALL DEPENDS "${package_file}")
-
-  # Where the application actually looks. The loose-library rule installed to
-  # ${CMAKE_INSTALL_LIBDIR} while GlobalSettingStation searches
-  # ${CMAKE_INSTALL_FULL_LIBDIR}/gpgfrontend/modules, so nothing installed that
-  # way was ever found.
-  set(GF_MODULE_PACKAGE_FILE_${GAMP_SHORT_NAME} "${package_file}"
-    CACHE INTERNAL "package for ${GAMP_SHORT_NAME}" FORCE)
 endfunction()
 
 # ---------------------------------------------------------------------------
