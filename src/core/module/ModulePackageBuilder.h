@@ -90,6 +90,15 @@ struct GF_CORE_EXPORT ModulePackageBuildSpec {
   /// because what is recorded is what is there now.
   QString entry_native_file;
 
+  /// The 32-byte Ed25519 seed this build signs descriptors with.
+  ///
+  /// Required. There is no per-package key any more: a descriptor signed by a
+  /// key nobody else holds establishes that it agrees with itself, which is
+  /// not a property worth the bytes. The seed must derive the public key the
+  /// Host was built with, and BuildModulePackage() checks that rather than
+  /// trusting the caller to have passed the right file.
+  QByteArray signing_seed;
+
   QString output_path;  ///< the `*.gfmodule` to write
 };
 
@@ -99,7 +108,7 @@ struct GF_CORE_EXPORT ModulePackageBuildSpec {
 struct GF_CORE_EXPORT ModulePackageBuildResult {
   bool ok = false;
   QString reason;
-  QByteArray build_public_key;  ///< the ephemeral key this build signed with
+  QByteArray build_public_key;  ///< the build key this descriptor was signed with
   QByteArray manifest_bytes;    ///< exactly the bytes the signature covers
 };
 

@@ -29,6 +29,7 @@
 #pragma once
 
 #include "core/module/ModuleManifest.h"
+#include "core/module/ModuleTrustRoot.h"
 
 namespace GpgFrontend::Module {
 
@@ -38,6 +39,8 @@ constexpr auto kModulePackageSuffix = ".gfmodule";
 /// Where the signed metadata lives inside the package.
 constexpr auto kModulePackageManifestPath = "META-INF/manifest.json";
 constexpr auto kModulePackageSignaturePath = "META-INF/manifest.sig";
+/// Where the build key USED to live. Retained only so a descriptor that still
+/// carries one can be refused by name rather than as an undeclared member.
 constexpr auto kModulePackageBuildKeyPath = "META-INF/build-key.pub";
 
 /**
@@ -53,6 +56,8 @@ enum class ModulePackageStatus {
   kTOO_NEW,                ///< manifest schema beyond this build
   kMALFORMED,              ///< structurally wrong, including a bad manifest
   kBAD_SIGNATURE,          ///< the signature does not cover these bytes
+  kUNTRUSTED_BUILD_KEY,    ///< not signed by this Host build's module key
+  kWRONG_BUILD,            ///< signed by this key, but for a different build
   kFILE_DIGEST_MISMATCH,   ///< a declared file is not the file that is there
   kUNDECLARED_FILE,        ///< a file the signature does not cover
   kMISSING_DECLARED_FILE,  ///< the manifest names a file the package lacks
@@ -128,7 +133,8 @@ struct GF_CORE_EXPORT ModulePackageVerification {
  * @return the verdict, with the manifest filled in only when it verified
  */
 auto GF_CORE_EXPORT VerifyModulePackage(
-    const QString& package_path, const QByteArray& expected_public_key = {})
+    const QString& package_path, const QByteArray& expected_public_key =
+                                     ModuleBuildPublicKey())
     -> ModulePackageVerification;
 
 }  // namespace GpgFrontend::Module

@@ -112,15 +112,26 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
   // Exactly one of each, and each present. More than one is how an archive
   // says two different things at once; a reader that takes the first and a
   // reader that takes the last then disagree about what was signed.
-  if (counts[0] != 1 || counts[1] != 1 || counts[2] != 1) {
+  if (counts[0] != 1 || counts[1] != 1) {
     return Refuse(ModulePackageStatus::kMALFORMED,
-                  "it does not carry exactly one manifest, one signature and "
-                  "one build key");
+                  "it does not carry exactly one manifest and one signature");
   }
-  if (signature_bytes.size() != crypto_sign_BYTES ||
-      public_key_bytes.size() != crypto_sign_PUBLICKEYBYTES) {
+  // The build key used to live in META-INF. A descriptor still carrying one is
+  // not a descriptor with an extra file in it -- it is one from before the
+  // trust root moved into the Host, and it was signed by a key this build has
+  // no reason to accept.
+  if (counts[2] != 0) {
     return Refuse(ModulePackageStatus::kMALFORMED,
-                  "its signature or build key is the wrong size");
+                  "it carries a build key inside itself; the trust root "
+                  "belongs to the Host that loads it, not to the package");
+  }
+  if (signature_bytes.size() != crypto_sign_BYTES) {
+    return Refuse(ModulePackageStatus::kMALFORMED,
+                  "its signature is the wrong size");
+  }
+  if (expected_public_key.size() != crypto_sign_PUBLICKEYBYTES) {
+    return Refuse(ModulePackageStatus::kMALFORMED,
+                  "no usable verification key was supplied");
   }
 
   // Over the bytes as stored, and BEFORE they are parsed. That ordering is
@@ -132,20 +143,12 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
           reinterpret_cast<const unsigned char*>(manifest_bytes.constData()),
           static_cast<unsigned long long>(manifest_bytes.size()),
           reinterpret_cast<const unsigned char*>(
-              public_key_bytes.constData())) != 0) {
-    return Refuse(ModulePackageStatus::kBAD_SIGNATURE,
-                  "its manifest does not match its signature");
-  }
-
-  // The seam publisher trust will use, present and unexercised. When the Host
-  // supplies its embedded key, the key inside the package stops being the
-  // thing trusted and becomes a value that has to match -- and at that point
-  // the member itself goes, because a trust root that travels with what it
-  // vouches for vouches for nothing.
-  if (!expected_public_key.isEmpty() &&
-      public_key_bytes != expected_public_key) {
-    return Refuse(ModulePackageStatus::kBAD_SIGNATURE,
-                  "it was not signed by the expected key");
+              expected_public_key.constData())) != 0) {
+    // Verified WITH the Host's key, not merely compared against it. There is
+    // no second key in play any more, so there is no version of this check
+    // that can pass for a descriptor this build did not sign.
+    return Refuse(ModulePackageStatus::kUNTRUSTED_BUILD_KEY,
+                  "it was not signed by this build of GpgFrontend");
   }
 
   const auto parsed = ParseModuleManifest(manifest_bytes);
@@ -156,6 +159,15 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
                   parsed.reason);
   }
   const auto& m = parsed.manifest;
+
+  // Right key, wrong build. Distinct from kUNTRUSTED_BUILD_KEY on purpose:
+  // one means "not ours", the other means "ours, but from a different build",
+  // and only the second is something a rebuild fixes.
+  if (m.build_id != ModuleBuildId()) {
+    return Refuse(ModulePackageStatus::kWRONG_BUILD,
+                  QString("it was built for %1, and this is %2")
+                      .arg(m.build_id, ModuleBuildId()));
+  }
 
   if (m.platform_os != ManifestHostOsName() ||
       m.platform_arch != QSysInfo::currentCpuArchitecture()) {
@@ -214,7 +226,7 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
   v.ok = true;
   v.status = ModulePackageStatus::kOK;
   v.manifest = m;
-  v.build_public_key = public_key_bytes;
+  v.build_public_key = expected_public_key;
   return v;
 }
 
@@ -230,6 +242,10 @@ auto ModulePackageStatusToString(ModulePackageStatus s) -> const char* {
       return "written by a newer version";
     case ModulePackageStatus::kMALFORMED:
       return "malformed";
+    case ModulePackageStatus::kUNTRUSTED_BUILD_KEY:
+      return "not signed by this build";
+    case ModulePackageStatus::kWRONG_BUILD:
+      return "built for a different build of this application";
     case ModulePackageStatus::kBAD_SIGNATURE:
       return "the signature does not match";
     case ModulePackageStatus::kFILE_DIGEST_MISMATCH:

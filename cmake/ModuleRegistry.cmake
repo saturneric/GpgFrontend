@@ -115,6 +115,8 @@ function(_gf_module_package_command)
     --version "${GAMP_VERSION}"
     --sdk-abi "${GF_SDK_ABI_VERSION}"
     --min-host-version "${GAMP_MIN_HOST_VERSION}"
+    --signing-seed "${GF_MODULE_BUILD_KEY_DIR}/module-build.seed"
+    --build-id "${GPGFRONTEND_BUILD_ID}"
     --os "${package_os}"
     --arch "${CMAKE_SYSTEM_PROCESSOR}"
     --qt "${gf_qt_version}")
@@ -155,6 +157,7 @@ function(_gf_module_package_command)
     # computed from those bytes, so a relink has to re-run this even when the
     # target itself is considered up to date.
     DEPENDS $<TARGET_FILE:${module_target}> gf_module_packager
+            "${GF_MODULE_TRUST_ROOT_SOURCE}"
     COMMENT "Packaging ${GAMP_SHORT_NAME}.gfmodule"
     VERBATIM)
 

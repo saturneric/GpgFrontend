@@ -41,6 +41,7 @@
 #include "core/function/GFBufferFactory.h"
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManifest.h"
+#include "core/module/ModuleTrustRoot.h"
 #include "core/module/ModulePackageVerifier.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/CommonUtils.h"
@@ -319,15 +320,37 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
                     .arg(self_check.reason));
   }
 
-  // Ephemeral, and destroyed before this function returns by whichever path.
+  // The build's own key, derived from the seed the caller supplied. Expanded
+  // here and wiped on the way out by whichever path: the seed is the only
+  // stored form, and the expanded secret exists for the length of one
+  // signature.
   std::array<unsigned char, crypto_sign_PUBLICKEYBYTES> public_key{};
   std::array<unsigned char, crypto_sign_SECRETKEYBYTES> secret_key{};
   const auto forget_secret = qScopeGuard([&secret_key]() {
     sodium_memzero(secret_key.data(), secret_key.size());
   });
 
-  if (crypto_sign_keypair(public_key.data(), secret_key.data()) != 0) {
-    return Fail("a signing key could not be generated");
+  if (spec.signing_seed.size() != crypto_sign_SEEDBYTES) {
+    return Fail("no module-build signing seed was given");
+  }
+  if (crypto_sign_seed_keypair(
+          public_key.data(), secret_key.data(),
+          reinterpret_cast<const unsigned char*>(
+              spec.signing_seed.constData())) != 0) {
+    return Fail("the module-build signing seed could not be used");
+  }
+
+  // Structural, not advisory. gf_module_tool links gf_core, so it carries the
+  // very trust root the Host does -- and a descriptor signed with a seed that
+  // does not derive it would be one no Host could load. Refusing here means
+  // that cannot be produced at all, rather than produced and discovered later.
+  const QByteArray derived(reinterpret_cast<const char*>(public_key.data()),
+                           static_cast<qsizetype>(public_key.size()));
+  if (derived != ModuleBuildPublicKey()) {
+    return Fail(
+        "the signing seed does not derive this build's module-build key; a "
+        "descriptor signed with it could not be loaded by the Host it was "
+        "built alongside");
   }
 
   std::array<unsigned char, crypto_sign_BYTES> signature{};
@@ -346,10 +369,9 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
                   {},
                   QByteArray(reinterpret_cast<const char*>(signature.data()),
                              static_cast<qsizetype>(signature_length))});
-  members.append({kModulePackageBuildKeyPath,
-                  {},
-                  QByteArray(reinterpret_cast<const char*>(public_key.data()),
-                             static_cast<qsizetype>(public_key.size()))});
+  // No build key member. The trust root belongs to the Host that loads this,
+  // not to the descriptor: one that travels inside what it vouches for
+  // vouches for nothing.
   members.append(staged);
 
   QSaveFile out(spec.output_path);
