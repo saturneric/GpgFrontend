@@ -37,3 +37,15 @@
 #define APP_SYSCONF_PATH "@CMAKE_INSTALL_FULL_SYSCONFDIR@"
 #define APP_INFO_PATH "@CMAKE_INSTALL_FULL_INFODIR@"
 #define APP_LIB_PATH "@CMAKE_INSTALL_FULL_LIBDIR@"
+
+/**
+ * How this toolchain spells a shared library's filename.
+ *
+ * Taken from CMake rather than written out per platform, because the answer is
+ * a property of the toolchain and not of the operating system: MinGW prefixes
+ * shared libraries with `lib` where MSVC does not, and both are "windows".
+ * ModuleNativeFileName() maps a descriptor's logical entry name to a real file
+ * with these, so a guess here would be a module the Host cannot find.
+ */
+#define GF_SHARED_LIBRARY_PREFIX "@CMAKE_SHARED_LIBRARY_PREFIX@"
+#define GF_SHARED_LIBRARY_SUFFIX "@CMAKE_SHARED_LIBRARY_SUFFIX@"
