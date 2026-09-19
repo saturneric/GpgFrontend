@@ -115,8 +115,9 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
     } else if (flag == "--print-entries") {
       // For the deployment audit, which has to tell an entry from a private
       // helper and must not guess it from a filename.
+      // No value to consume: the loop's own ++i is the whole advance. An
+      // extra decrement here would cancel it out and spin forever.
       print_entries = true;
-      --i;
     } else if (flag == "--assert-no-native-outside") {
       // A SHIPPING tree, not a build tree. A build tree legitimately holds
       // module libraries outside any namespace -- test fixtures, intermediate
