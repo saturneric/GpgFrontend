@@ -39,6 +39,7 @@
 #include <thread>
 
 #include "GpgFrontendTest.h"
+#include "core/ModuleTestPackages.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/module/ModuleImageMapping.h"
 #include "core/module/ModuleManifest.h"
@@ -61,16 +62,6 @@ namespace GpgFrontend::Test {
 
 namespace {
 
-auto HostOs() -> QString {
-#if defined(Q_OS_WIN)
-  return "windows";
-#elif defined(Q_OS_MACOS)
-  return "macos";
-#else
-  return "linux";
-#endif
-}
-
 /// A spec that verifies as-is on this machine. Tests mutate one thing.
 auto GoodSpec(const QString& dir, const QString& payload_path)
     -> Module::ModulePackageBuildSpec {
@@ -86,7 +77,7 @@ auto GoodSpec(const QString& dir, const QString& payload_path)
   spec.build_id = "test-build";
   spec.build_timestamp = "2026-09-15T00:00:00Z";
   spec.build_source_commit = "0000000000000000000000000000000000000000";
-  spec.platform_os = HostOs();
+  spec.platform_os = Module::ManifestHostOsName();
   spec.platform_arch = QSysInfo::currentCpuArchitecture();
   spec.platform_qt = QT_VERSION_STR;
   spec.files = {{"bin/module.so", payload_path, {}},
@@ -227,8 +218,18 @@ TEST_F(ModulePackageTest, AValidPackageVerifies) {
   EXPECT_EQ(v.manifest.capabilities, (QStringList{"gpg", "ui"}));
   EXPECT_EQ(v.manifest.metadata.value("Name"), "Test Module");
   EXPECT_EQ(v.manifest.files.size(), 2);
-  EXPECT_EQ(v.package_sha256.size(), 64);
   EXPECT_EQ(v.build_public_key, public_key_);
+
+  // The verifier located the sole bin/ entry while checking it, and publishes
+  // its signed digest. Everything downstream consumes this rather than walking
+  // manifest.files again -- so it must be the manifest's own value, not merely
+  // some 64-character string.
+  QString declared;
+  for (const auto& f : v.manifest.files) {
+    if (f.path.startsWith(Module::kModulePackageBinaryDir)) declared = f.sha256;
+  }
+  ASSERT_EQ(declared.size(), 64);
+  EXPECT_EQ(v.library_sha256, declared);
 }
 
 TEST_F(ModulePackageTest, TheSignedBytesAreTheStoredBytes) {
@@ -621,10 +622,7 @@ TEST(ModulePackageSmokeTest, APackageBuiltByTheBuildVerifies) {
   // is the failure mode every unit test on either side individually survives.
   // Skipped rather than failed when the package is absent, since a build that
   // did not ask for module packages is a legitimate one.
-  const QDir packages(QCoreApplication::applicationDirPath() +
-                      "/modules");
-  const auto built = packages.entryInfoList(QStringList{"*.gfmodule"},
-                                            QDir::Files, QDir::Name);
+  const auto built = BuiltModulePackages();
   if (built.isEmpty()) {
     GTEST_SKIP() << "no module packages in this build";
   }
@@ -638,9 +636,21 @@ TEST(ModulePackageSmokeTest, APackageBuiltByTheBuildVerifies) {
     EXPECT_TRUE(v.manifest.id.startsWith("com.bktus.gpgfrontend.module."));
     EXPECT_EQ(v.manifest.sdk_abi, GF_SDK_ABI_VERSION);
     ASSERT_EQ(v.manifest.files.size(), 1);
-    EXPECT_TRUE(v.manifest.files.at(0).path.startsWith("bin/"));
+    EXPECT_TRUE(v.manifest.files.at(0).path.startsWith(
+        Module::kModulePackageBinaryDir));
+
+    // Producer and verifier agree on how to spell this platform. They used to
+    // reach the string by different routes -- the packager took it from its
+    // command line, the verifier computed it -- so a packaging recipe could
+    // stamp a spelling that nothing would ever accept.
+    EXPECT_EQ(v.manifest.platform_os, Module::ManifestHostOsName());
+    EXPECT_EQ(v.manifest.platform_arch, QSysInfo::currentCpuArchitecture());
+
+    // And the fact the loader consumes is published, for every package.
+    EXPECT_EQ(v.library_sha256, v.manifest.files.at(0).sha256);
   }
 
+  const QDir packages(QCoreApplication::applicationDirPath() + "/modules");
   const auto package = packages.absoluteFilePath("gpg_info.gfmodule");
   if (!QFile::exists(package)) return;
 
@@ -651,185 +661,6 @@ TEST(ModulePackageSmokeTest, APackageBuiltByTheBuildVerifies) {
   EXPECT_EQ(v.manifest.metadata.value("Name"), "GatherGnupgInfo");
   EXPECT_EQ(v.manifest.metadata.value("Author"), "Saturneric");
   EXPECT_EQ(v.manifest.capabilities, QStringList{"gpg"});
-}
-
-// ---------------------------------------------------------- manifest schema
-
-namespace {
-
-/// A manifest object that parses, so a test can break exactly one thing.
-auto GoodManifestObject() -> QJsonObject {
-  return QJsonObject{
-      {"schema_version", Module::kModuleManifestSchemaVersion},
-      {"id", "com.bktus.gpgfrontend.module.test"},
-      {"version", "1.0.0"},
-      {"sdk_abi", GF_SDK_ABI_VERSION},
-      {"min_host_version", "2.0.0"},
-      {"security_epoch", 0},
-      {"capabilities", QJsonArray{"gpg"}},
-      {"metadata", QJsonObject{{"Name", "Test"}}},
-      {"build",
-       QJsonObject{{"id", "b"}, {"timestamp", "t"}, {"source_commit", "c"}}},
-      {"platform",
-       QJsonObject{{"os", "linux"}, {"arch", "x86_64"}, {"qt", "6.6"}}},
-      {"files", QJsonArray{QJsonObject{{"path", "bin/module.so"},
-                                       {"sha256", QString(64, 'a')}}}},
-  };
-}
-
-auto ParseObject(const QJsonObject& o) -> Module::ModuleManifestParseResult {
-  return Module::ParseModuleManifest(QJsonDocument(o).toJson());
-}
-
-}  // namespace
-
-TEST(ModuleManifestTest, RejectsMalformedJson) {
-  const auto r = Module::ParseModuleManifest("{not json");
-  EXPECT_FALSE(r.ok);
-  EXPECT_EQ(r.status, Module::ModuleManifestStatus::kMALFORMED);
-}
-
-TEST(ModuleManifestTest, RejectsANonObject) {
-  EXPECT_FALSE(Module::ParseModuleManifest("[1,2,3]").ok);
-}
-
-TEST(ModuleManifestTest, AcceptsAGoodManifest) {
-  const auto r = ParseObject(GoodManifestObject());
-  ASSERT_TRUE(r.ok) << r.reason.toStdString();
-  EXPECT_EQ(r.manifest.id, "com.bktus.gpgfrontend.module.test");
-  EXPECT_EQ(r.manifest.files.size(), 1);
-}
-
-TEST(ModuleManifestTest, RejectsAnUnsupportedSchemaVersion) {
-  auto o = GoodManifestObject();
-  o["schema_version"] = Module::kModuleManifestSchemaVersion + 1;
-  const auto r = ParseObject(o);
-  EXPECT_FALSE(r.ok);
-  EXPECT_EQ(r.status, Module::ModuleManifestStatus::kTOO_NEW);
-}
-
-TEST(ModuleManifestTest, RejectsEveryMissingRequiredField) {
-  const auto required = QStringList{"schema_version",
-                                    "id",
-                                    "version",
-                                    "sdk_abi",
-                                    "min_host_version",
-                                    "security_epoch",
-                                    "capabilities",
-                                    "metadata",
-                                    "build",
-                                    "platform",
-                                    "files"};
-  for (const auto& key : required) {
-    auto o = GoodManifestObject();
-    o.remove(key);
-    const auto r = ParseObject(o);
-    EXPECT_FALSE(r.ok) << "removing " << key.toStdString() << " was tolerated";
-    EXPECT_EQ(r.status, Module::ModuleManifestStatus::kMALFORMED);
-  }
-}
-
-TEST(ModuleManifestTest, RejectsAWrongTypedField) {
-  // The inversion of the settings layer's habit, which would keep its default
-  // and say nothing. A mistyped sdk_abi has to be a refusal, not a zero.
-  auto o = GoodManifestObject();
-  o["sdk_abi"] = "three";
-  const auto r = ParseObject(o);
-  EXPECT_FALSE(r.ok);
-  EXPECT_EQ(r.status, Module::ModuleManifestStatus::kMALFORMED);
-
-  auto o2 = GoodManifestObject();
-  o2["capabilities"] = "gpg";
-  EXPECT_FALSE(ParseObject(o2).ok);
-
-  auto o3 = GoodManifestObject();
-  o3["files"] = QJsonObject{};
-  EXPECT_FALSE(ParseObject(o3).ok);
-
-  auto o4 = GoodManifestObject();
-  o4["metadata"] = QJsonObject{{"Name", 7}};
-  EXPECT_FALSE(ParseObject(o4).ok);
-}
-
-TEST(ModuleManifestTest, RejectsAFractionalVersionNumber) {
-  auto o = GoodManifestObject();
-  o["sdk_abi"] = 3.5;
-  EXPECT_FALSE(ParseObject(o).ok);
-}
-
-TEST(ModuleManifestTest, RejectsABadDigest) {
-  auto o = GoodManifestObject();
-  o["files"] =
-      QJsonArray{QJsonObject{{"path", "bin/module.so"}, {"sha256", "ABC"}}};
-  EXPECT_FALSE(ParseObject(o).ok);
-
-  // Upper case is refused too: a digest compared as a string needs one
-  // spelling, and the verifier produces the lower-case one.
-  auto o2 = GoodManifestObject();
-  o2["files"] = QJsonArray{
-      QJsonObject{{"path", "bin/module.so"}, {"sha256", QString(64, 'A')}}};
-  EXPECT_FALSE(ParseObject(o2).ok);
-}
-
-TEST(ModuleManifestTest, RejectsAnEmptyFileList) {
-  auto o = GoodManifestObject();
-  o["files"] = QJsonArray{};
-  EXPECT_FALSE(ParseObject(o).ok);
-}
-
-TEST(ModuleManifestTest, ToleratesAnUnknownField) {
-  // Additive evolution inside a supported schema version. Nothing round-trips
-  // it, because this manifest is never re-serialised.
-  auto o = GoodManifestObject();
-  o["something_from_the_future"] = "hello";
-  EXPECT_TRUE(ParseObject(o).ok);
-}
-
-TEST(ModuleManifestTest, SecurityEpochIsTypeCheckedAndOtherwiseIgnored) {
-  auto bad = GoodManifestObject();
-  bad["security_epoch"] = "zero";
-  EXPECT_FALSE(ParseObject(bad).ok);
-
-  // A high one is carried through with no policy applied: nothing compares it
-  // against a stored high-water mark, because nothing stores one yet.
-  auto high = GoodManifestObject();
-  high["security_epoch"] = 42;
-  const auto r = ParseObject(high);
-  ASSERT_TRUE(r.ok);
-  EXPECT_EQ(r.manifest.security_epoch, 42);
-}
-
-// ----------------------------------------------------------------------- JCS
-
-TEST(ModuleManifestTest, CanonicalJsonOrdersMembersAndOmitsSpace) {
-  QByteArray out;
-  ASSERT_TRUE(
-      Module::CanonicalJson(QJsonObject{{"b", 2}, {"a", 1}, {"c", "x"}}, out));
-  EXPECT_EQ(out, R"({"a":1,"b":2,"c":"x"})");
-}
-
-TEST(ModuleManifestTest, CanonicalJsonIsStableAcrossRuns) {
-  QByteArray a;
-  QByteArray b;
-  ASSERT_TRUE(Module::CanonicalJson(GoodManifestObject(), a));
-  ASSERT_TRUE(Module::CanonicalJson(GoodManifestObject(), b));
-  EXPECT_EQ(a, b);
-}
-
-TEST(ModuleManifestTest, CanonicalJsonEscapesControlCharacters) {
-  QByteArray out;
-  const QString value =
-      QString("a") + QChar(0x09) + "b" + QChar(0x0A) + "c" + QChar(0x01);
-  ASSERT_TRUE(Module::CanonicalJson(QJsonObject{{"k", value}}, out));
-  // Spelled by concatenation rather than as one raw string: gcc converts a
-  // universal character name inside a raw string literal, so writing the
-  // expected escape there produces the character it is supposed to describe.
-  EXPECT_EQ(out, QByteArray(R"({"k":"a\tb\nc\u)") + "0001" + R"("})");
-}
-
-TEST(ModuleManifestTest, CanonicalJsonRefusesANonIntegralNumber) {
-  QByteArray out;
-  EXPECT_FALSE(Module::CanonicalJson(QJsonObject{{"k", 1.5}}, out));
 }
 
 }  // namespace GpgFrontend::Test

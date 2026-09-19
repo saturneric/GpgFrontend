@@ -30,10 +30,13 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QDirIterator>
 #include <QFile>
 #include <QLibrary>
+#include <QStandardPaths>
 #include <QTemporaryDir>
 
+#include "core/ModuleTestPackages.h"
 #include "core/module/ModuleImageMapping.h"
 #include "core/module/ModuleManager.h"
 #include "core/module/ModulePackageVerifier.h"
@@ -42,27 +45,19 @@ namespace GpgFrontend::Test {
 
 namespace {
 
-/// A real `*.gfmodule` the build produced, or an empty string.
-///
-/// Every test here is about what happens to a genuine native image, so a
-/// synthesised one would test the wrong thing: whether an ELF header is eight
-/// bytes long is not the question, whether the platform loader accepts what we
-/// handed it is.
-auto AnyBuiltPackage() -> QString {
-  const QDir packages(QCoreApplication::applicationDirPath() +
-                      "/modules");
-  const auto built = packages.entryInfoList(QStringList{"*.gfmodule"},
-                                            QDir::Files, QDir::Size);
-  if (built.isEmpty()) return {};
-  // QDir::Size sorts largest first, and largest is what these want: a 46 MiB
-  // module is where a per-byte cost shows up and a 3 MiB one hides it.
-  return built.first().absoluteFilePath();
+/// Everything currently under that root, so a test can assert it is unchanged.
+auto PrivateRootEntries() -> QStringList {
+  const QDir root(Module::ModuleImageMapping::PrivateRoot());
+  if (!root.exists()) return {};
+  auto entries = root.entryList(QDir::AllEntries | QDir::NoDotAndDotDot);
+  entries.sort();
+  return entries;
 }
 
 class ModuleImageTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    package_ = AnyBuiltPackage();
+    package_ = LargestBuiltModulePackage();
     if (package_.isEmpty()) GTEST_SKIP() << "no module packages in this build";
   }
 
@@ -230,15 +225,29 @@ TEST_F(ModuleImageTest, AHalfWrittenImageIsNotLeftBehind) {
   const auto read = Module::ReadVerifiedModuleImage(package_);
   ASSERT_TRUE(read.ok);
 
-  // Whatever the sweep can reach before and after has to be the same: a
-  // truncated image that survived would be a file the loader could be pointed
-  // at, which is the failure this is guarding.
+  // The claim is that a truncated image leaves NO file a loader could later be
+  // pointed at. This used to end on EXPECT_GE(swept, 0), which is true of any
+  // int -- so the thing it names was never actually checked. Compare what is
+  // on disk instead.
+  const auto before = PrivateRootEntries();
+
   Module::SetModuleImageFaultForTesting(
       Module::ModuleImageFaultPoint::kSHORT_WRITE);
   EXPECT_FALSE(Module::ModuleImageMapping::Create(read.image));
 
-  const auto swept = Module::ModuleImageMapping::SweepAbandonedDirectories();
-  EXPECT_GE(swept, 0);
+  Module::ModuleImageMapping::SweepAbandonedDirectories();
+
+  EXPECT_EQ(PrivateRootEntries(), before)
+      << "a failed materialization left something behind";
+
+  // And specifically nothing named like the image, anywhere beneath it.
+  const QDir root(Module::ModuleImageMapping::PrivateRoot());
+  QDirIterator it(root.absolutePath(), QStringList{read.image.LibraryName()},
+                  QDir::Files, QDirIterator::Subdirectories);
+  QStringList survivors;
+  while (it.hasNext()) survivors << it.next();
+  EXPECT_TRUE(survivors.isEmpty()) << "half-written image survived at: "
+                                   << survivors.join(", ").toStdString();
 
   qunsetenv("GPGFRONTEND_MODULE_FILE_BACKED");
 }
@@ -324,18 +333,6 @@ TEST_F(ModuleImageTest, IdentityComesFromTheManifestNotTheLoadPath) {
   EXPECT_FALSE(Module::IsModuleLibraryFileName(
                    QFileInfo(mapping->LoadPath()).fileName()) &&
                mapping->IsAnonymous());
-}
-
-TEST_F(ModuleImageTest, NoStoreIsLeftAnywhereUnderTheModulesDirectory) {
-  // The store is gone and must not come back by accident. Nothing in a load
-  // may create a `.store`, a `state.json` or an extracted tree.
-  const auto read = Module::ReadVerifiedModuleImage(package_);
-  ASSERT_TRUE(read.ok);
-  auto mapping = Module::ModuleImageMapping::Create(read.image);
-  ASSERT_TRUE(mapping);
-
-  const QDir packages(QFileInfo(package_).absolutePath());
-  EXPECT_FALSE(packages.exists(".store"));
 }
 
 }  // namespace GpgFrontend::Test

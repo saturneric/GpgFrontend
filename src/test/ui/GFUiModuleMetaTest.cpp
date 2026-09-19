@@ -31,13 +31,14 @@
 #include <optional>
 
 #include "GpgFrontendTest.h"
+#include "sdk/GFSDKBuildInfo.h"
 #include "ui/dialog/controller/ModuleMeta.h"
 
 namespace GpgFrontend::UI::Test {
 
 namespace {
 
-auto PackagedView() -> ModuleView {
+auto PackagedView() -> Module::ModuleProvenance {
   Module::ModuleManifest manifest;
   manifest.id = "com.example.thing";
   manifest.version = "1.4.0";
@@ -49,22 +50,25 @@ auto PackagedView() -> ModuleView {
                        {"Description", "Does a thing."},
                        {"Author", "Someone"}};
 
-  ModuleView view;
+  Module::ModuleProvenance view;
   view.identifier = "com.example.thing";
   view.version = "1.4.0";
+  view.packaged = true;
   view.source_package_path = "/opt/gpgfrontend/modules/thing.gfmodule";
   view.manifest = manifest;
-  view.sdk_abi = 3;
+  view.metadata = manifest.metadata;
+  view.sdk_abi = GF_SDK_ABI_VERSION;
   view.hash = QString(64, 'a');
   return view;
 }
 
-auto LooseView() -> ModuleView {
-  ModuleView view;
+auto LooseView() -> Module::ModuleProvenance {
+  Module::ModuleProvenance view;
   view.identifier = "com.example.loose";
   view.version = "0.9.0";
+  view.packaged = false;
   view.source_package_path = "/home/dev/build/libgf_mod_loose.so";
-  view.sdk_abi = 3;
+  view.sdk_abi = GF_SDK_ABI_VERSION;
   view.hash = QString(64, 'b');
   return view;
 }
@@ -132,9 +136,11 @@ TEST(ModuleMetaTest, ASignatureDoesNotClaimToSayWhoBuiltIt) {
 
   const auto origin = Find(rows, QObject::tr("Origin"));
   ASSERT_TRUE(origin.has_value());
-  // The one thing most easily misread about this format, said where it is
-  // read rather than left to be inferred from the word "signed".
-  EXPECT_TRUE(origin->detail.contains(QObject::tr("does not show who built")));
+  // Compared against the exact string, not searched for a fragment of it: a
+  // substring of tr() output need not be a substring of the translation, so
+  // the old form asserted nothing outside English.
+  EXPECT_EQ(origin->detail, UnattributedSignatureCaveat());
+  EXPECT_FALSE(origin->detail.isEmpty());
 }
 
 TEST(ModuleMetaTest, PackagedMetadataIsNotMarkedUnverified) {
@@ -171,13 +177,16 @@ TEST(ModuleMetaTest, TheSdkAbiIsTheModulesOwnNotTheHosts) {
   // These two rows used to show the host's SDK and Qt versions, which are
   // identical for every module -- the panel appeared to say something about a
   // module while saying nothing at all.
+  // Deliberately a number this host CANNOT have supplied: previously the test
+  // set the same ABI the host has, so it could not distinguish the module's
+  // value from the host's and could not fail.
   auto view = PackagedView();
-  view.sdk_abi = 3;
+  view.sdk_abi = GF_SDK_ABI_VERSION + 1;
   const auto rows = BuildModuleRows(view);
 
   const auto abi = Find(rows, QObject::tr("SDK ABI"));
   ASSERT_TRUE(abi.has_value());
-  EXPECT_EQ(abi->value, "3");
+  EXPECT_EQ(abi->value, QString::number(GF_SDK_ABI_VERSION + 1));
 
   const auto qt = Find(rows, QObject::tr("Built against Qt"));
   ASSERT_TRUE(qt.has_value());
@@ -185,7 +194,7 @@ TEST(ModuleMetaTest, TheSdkAbiIsTheModulesOwnNotTheHosts) {
 }
 
 TEST(ModuleMetaTest, AnIntegratedModuleIsNeitherSignedNorUnsigned) {
-  ModuleView view;
+  Module::ModuleProvenance view;
   view.identifier = "com.example.builtin";
   view.version = "2.0.0";
   view.integrated = true;
