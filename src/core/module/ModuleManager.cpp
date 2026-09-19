@@ -248,13 +248,15 @@ class ModuleManager::Impl {
    * @param[out] library_path the path to hand the loader, on success
    * @param[out] manifest what the package says about itself, on success
    * @param[out] module_hash the signed digest of the library, on success
+   * @param[out] library_name the library's name per the signed manifest
    * @return false when the package was refused; nothing was materialised
    */
   auto VerifyAndMaterializePackage(const QString& package_path,
                                    std::shared_ptr<ModuleImageMapping>& mapping,
                                    QString& library_path,
                                    ModuleManifest& manifest,
-                                   QString& module_hash) -> bool {
+                                   QString& module_hash,
+                                   QString& library_name) -> bool {
     const auto read = ReadVerifiedModuleImage(package_path);
     if (!read.ok) {
       LOG_W() << "module manager refuses module package: " << package_path
@@ -299,6 +301,7 @@ class ModuleManager::Impl {
     mapping = std::shared_ptr<ModuleImageMapping>(std::move(materialized));
     manifest = read.manifest;
     module_hash = inspection.hash;
+    library_name = read.image.LibraryName();
     return true;
   }
 
@@ -334,14 +337,16 @@ class ModuleManager::Impl {
       QString library_path;
       ModuleManifest verified;
       QString module_hash;
+      QString library_name;
       if (!VerifyAndMaterializePackage(path, mapping, library_path, verified,
-                                       module_hash)) {
+                                       module_hash, library_name)) {
         return candidate;
       }
       candidate.library_path = library_path;
       candidate.mapping = mapping;
       candidate.manifest = verified;
       candidate.module_hash = module_hash;
+      candidate.library_name = library_name;
     }
 
     candidate.ok = true;

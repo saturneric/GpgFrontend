@@ -184,7 +184,19 @@ ModuleImageMapping::ModuleImageMapping() : impl_(std::make_unique<Impl>()) {}
 
 ModuleImageMapping::~ModuleImageMapping() {
 #ifdef Q_OS_LINUX
-  if (impl_->memfd >= 0) ::close(impl_->memfd);
+  // The descriptor is deliberately never closed.
+  //
+  // On this path the descriptor number *is* the name the loader was given, and
+  // glibc matches an already-loaded object by name before it ever looks at an
+  // inode. Close it and the number is recycled, so the next image gets the
+  // identical path string -- and dlopen hands back the previous object instead
+  // of mapping the new one. It reports success and runs no initialisers, which
+  // is the worst possible shape for this bug: the wrong module, silently.
+  //
+  // Holding the descriptor makes the number unavailable, which is precisely
+  // the guarantee needed. The cost is one descriptor per module load attempt,
+  // and the number of modules is a handful.
+  (void)impl_;
 #endif
 }
 

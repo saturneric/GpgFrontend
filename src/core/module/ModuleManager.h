@@ -87,6 +87,12 @@ struct GF_CORE_EXPORT ModuleLoadCandidate {
   /// goes out of scope, with nothing left behind either way.
   std::shared_ptr<ModuleImageMapping> mapping;
 
+  /// Set for a package only: the library's name as the signed manifest spells
+  /// it. This is the only place that name can come from now -- the load path
+  /// is a descriptor on Linux and a temporary file elsewhere, and neither is
+  /// something to derive identity from.
+  QString library_name;
+
   std::optional<ModuleManifest> manifest;  ///< set for a package only
 
   /// The digest to record against this module's settings. For a package it is

@@ -303,8 +303,8 @@ auto SoleLibraryEntry(const ModuleManifest& manifest, QString& out_path,
 /// there is nothing for a later step to accidentally execute.
 auto ReadPackage(const QString& package_path,
                  const QByteArray& expected_public_key, bool retain_image,
-                 QString& out_library_name, QByteArray& out_library_bytes)
-    -> ModulePackageVerification {
+                 bool want_package_digest, QString& out_library_name,
+                 QByteArray& out_library_bytes) -> ModulePackageVerification {
   if (!EnsureSodiumInit()) {
     return Refuse(ModulePackageStatus::kIO_FAILED,
                   "the cryptography library could not be started");
@@ -315,11 +315,14 @@ auto ReadPackage(const QString& package_path,
     return Refuse(ModulePackageStatus::kIO_FAILED, "this file does not exist");
   }
 
-  // The digest of the package as a whole. Nothing in this phase compares it
-  // against anything -- it is what a catalog would key on -- but computing it
-  // here is what keeps the catalog from needing its own pass over the file.
+  // The digest of the package as a whole, which nothing in this phase compares
+  // against anything: it is what a catalog would key on, and no catalog is
+  // wired to anything. It is therefore not computed on the load path, where it
+  // would be a second full pass over every module on every start -- roughly
+  // 280 ms for the largest one -- to produce a value with no reader. Whatever
+  // eventually checks a catalog can compute it at the point it does so.
   QString package_sha256;
-  {
+  if (want_package_digest) {
     if (!package.open(QIODevice::ReadOnly)) {
       return Refuse(ModulePackageStatus::kIO_FAILED,
                     "this file could not be read");
@@ -459,8 +462,8 @@ auto VerifyModulePackage(const QString& package_path,
     -> ModulePackageVerification {
   QString unused_name;
   QByteArray unused_bytes;
-  return ReadPackage(package_path, expected_public_key, false, unused_name,
-                     unused_bytes);
+  return ReadPackage(package_path, expected_public_key, false, true,
+                     unused_name, unused_bytes);
 }
 
 auto ReadVerifiedModuleImage(const QString& package_path,
@@ -469,7 +472,7 @@ auto ReadVerifiedModuleImage(const QString& package_path,
   QString library_name;
   QByteArray library_bytes;
   const auto verdict = ReadPackage(package_path, expected_public_key, true,
-                                   library_name, library_bytes);
+                                   false, library_name, library_bytes);
 
   ModulePackageImage result;
   result.ok = verdict.ok;
