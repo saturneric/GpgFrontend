@@ -122,16 +122,6 @@ class GF_CORE_EXPORT ModuleManager
   virtual ~ModuleManager() override;
 
   /**
-   * @brief Load a module from the given library path and schedule it for
-   * registration.
-   *
-   * @param path filesystem path to the module shared library
-   * @param integrated true if this is a built-in integrated module
-   * @return true if the library was loaded and the module is valid
-   */
-  auto LoadModule(QString path, bool integrated) -> bool;
-
-  /**
    * @brief Phase one: verify and install, without mapping anything.
    *
    * All the expensive work -- reading a package, checking its signature,
@@ -487,15 +477,6 @@ auto GF_CORE_EXPORT InspectModuleLibrary(const QString& module_library_path,
     -> ModuleLibraryInspection;
 
 /**
- * @brief Return whether the module with the given identifier is currently
- * active.
- *
- * @param module_id module identifier
- * @return true if the module is registered and active
- */
-auto GF_CORE_EXPORT IsModuleActivate(ModuleIdentifier module_id) -> bool;
-
-/**
  * @brief Return whether a module with the given identifier is registered.
  *
  * @param module_id module identifier
@@ -514,19 +495,6 @@ auto GF_CORE_EXPORT IsModuleExists(ModuleIdentifier module_id) -> bool;
  */
 auto GF_CORE_EXPORT UpsertRTValue(const QString& namespace_, const QString& key,
                                   const std::any& value) -> bool;
-
-/**
- * @brief Subscribe to register table change notifications via the singleton
- * ModuleManager.
- *
- * @param obj QObject whose lifetime bounds the subscription
- * @param ns namespace string
- * @param key key string
- * @param callback function called on each publish
- * @return true if the subscription was registered
- */
-auto GF_CORE_EXPORT ListenRTPublishEvent(QObject* obj, Namespace ns, Key key,
-                                         LPCallback callback) -> bool;
 
 /**
  * @brief List child keys under a namespace/key node via the singleton

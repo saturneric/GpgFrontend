@@ -130,13 +130,4 @@ struct GF_CORE_EXPORT ModuleManifestParseResult {
 auto GF_CORE_EXPORT ParseModuleManifest(const QByteArray& bytes)
     -> ModuleManifestParseResult;
 
-/**
- * @brief Human-readable spelling of a status, for logs and messages.
- *
- * @param s status to spell
- * @return a short static string
- */
-auto GF_CORE_EXPORT ModuleManifestStatusToString(ModuleManifestStatus s)
-    -> const char*;
-
 }  // namespace GpgFrontend::Module

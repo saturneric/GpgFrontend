@@ -127,18 +127,6 @@ auto IsHexDigest(const QString& s) -> bool {
 
 }  // namespace
 
-auto ModuleManifestStatusToString(ModuleManifestStatus s) -> const char* {
-  switch (s) {
-    case ModuleManifestStatus::kOK:
-      return "ok";
-    case ModuleManifestStatus::kMALFORMED:
-      return "malformed";
-    case ModuleManifestStatus::kTOO_NEW:
-      return "written by a newer version";
-  }
-  return "unknown";
-}
-
 auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
   QJsonParseError parse_error{};
   const auto doc = QJsonDocument::fromJson(bytes, &parse_error);

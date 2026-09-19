@@ -37,7 +37,6 @@
 #include "sdk/GFSDKModuleApi.h"
 #include "sdk/GFSDKModuleAttribution.h"
 #include "sdk/GFSDKModuleModel.h"
-#include "utils/BuildInfoUtils.h"
 
 namespace GpgFrontend::Module {
 
@@ -132,8 +131,6 @@ class Module::Impl {
     // re-encoding on every call into the module.
     identifier_utf8_ = identifier_.toUtf8();
     version_ = QString::fromUtf8(api->version == nullptr ? "" : api->version);
-    gf_sdk_ver_ = GetProjectVersion();
-    qt_env_ver_ = QString::fromUtf8(QT_VERSION_STR);
     sdk_abi_ver_ = static_cast<int>(api->abi_version);
 
     if (!module_identifier_regex_exp_.match(identifier_).hasMatch()) {
@@ -254,14 +251,6 @@ class Module::Impl {
     return version_;
   }
 
-  [[nodiscard]] auto GetModuleSDKVersion() const -> QString {
-    return gf_sdk_ver_;
-  }
-
-  [[nodiscard]] auto GetModuleQtEnvVersion() const -> QString {
-    return qt_env_ver_;
-  }
-
   void SetModuleMetaData(const ModuleMetaData& meta_data) {
     meta_data_ = meta_data;
   }
@@ -334,8 +323,6 @@ class Module::Impl {
   /// which on Windows is the whole of it -- an open image cannot be unlinked
   /// there, so the mapping's destructor is what removes the file.
   std::shared_ptr<ModuleImageMapping> image_mapping_;
-  QString gf_sdk_ver_;
-  QString qt_env_ver_;
 
   QRegularExpression module_identifier_regex_exp_ = QRegularExpression(
       R"(^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$)");
@@ -444,14 +431,6 @@ void Module::AdoptImageMapping(std::shared_ptr<ModuleImageMapping> mapping) {
 
 [[nodiscard]] auto Module::GetModuleHash() const -> QString {
   return p_->GetModuleHash();
-}
-
-[[nodiscard]] auto Module::GetModuleSDKVersion() const -> QString {
-  return p_->GetModuleSDKVersion();
-}
-
-[[nodiscard]] auto Module::GetModuleQtEnvVersion() const -> QString {
-  return p_->GetModuleQtEnvVersion();
 }
 
 void Module::SetGPC(GlobalModuleContext* gpc) { p_->SetGPC(gpc); }

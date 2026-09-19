@@ -78,9 +78,6 @@ class GF_CORE_EXPORT ModuleDispatchGate {
   /// Stop admitting. Calls already inside are unaffected and still Leave().
   void Close();
 
-  /// Re-open. Only for tests and for a module system that is restarted.
-  void Open();
-
   [[nodiscard]] auto IsClosed() -> bool;
 
   /// In-flight calls right now. Diagnostic; do not branch on it.

@@ -675,10 +675,6 @@ class ModuleManager::Impl {
   int need_register_modules_ = -1;
 };
 
-auto IsModuleActivate(ModuleIdentifier id) -> bool {
-  return ModuleManager::GetInstance().IsModuleActivated(std::move(id));
-}
-
 auto GF_CORE_EXPORT IsModuleExists(ModuleIdentifier id) -> bool {
   auto module = ModuleManager::GetInstance().SearchModule(std::move(id));
   return module != nullptr && module->IsGood();
@@ -688,12 +684,6 @@ auto UpsertRTValue(const QString& namespace_, const QString& key,
                    const std::any& value) -> bool {
   return ModuleManager::GetInstance().UpsertRTValue(namespace_, key,
                                                     std::any(value));
-}
-
-auto ListenRTPublishEvent(QObject* o, Namespace n, Key k, LPCallback c)
-    -> bool {
-  return ModuleManager::GetInstance().ListenRTPublish(
-      o, std::move(n), std::move(k), std::move(c));
 }
 
 auto ListRTChildKeys(const QString& namespace_, const QString& key)
@@ -706,12 +696,6 @@ ModuleManager::ModuleManager(int channel)
       p_(SecureCreateUniqueObject<Impl>()) {}
 
 ModuleManager::~ModuleManager() = default;
-
-auto ModuleManager::LoadModule(QString path, bool integrated) -> bool {
-  // Both phases back to back, for a caller that has one module and no reason
-  // to overlap anything.
-  return p_->LoadPreparedModule(p_->PrepareModule(path, integrated));
-}
 
 auto ModuleManager::PrepareModule(const QString& path, bool integrated)
     -> ModuleLoadCandidate {

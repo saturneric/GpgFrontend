@@ -250,9 +250,9 @@ class GF_CORE_EXPORT Module : public QObject {
   /**
    * @brief The SDK ABI version the module itself reported at load.
    *
-   * Distinct from GetModuleSDKVersion(), which returns the HOST's version and
-   * is therefore identical for every module. This is the module's own number,
-   * negotiated when its bootstrap table was fetched.
+   * This is the module's OWN number, negotiated when its bootstrap table was
+   * fetched -- not the host's, which would be identical for every module and
+   * so could never tell two of them apart.
    */
   [[nodiscard]] auto GetModuleSDKABIVersion() const -> int;
 
@@ -279,20 +279,6 @@ class GF_CORE_EXPORT Module : public QObject {
    * @return binary checksum string
    */
   [[nodiscard]] auto GetModuleHash() const -> QString;
-
-  /**
-   * @brief Return the GF SDK version the module was built against.
-   *
-   * @return SDK version string
-   */
-  [[nodiscard]] auto GetModuleSDKVersion() const -> QString;
-
-  /**
-   * @brief Return the Qt version the module was built against.
-   *
-   * @return Qt version string
-   */
-  [[nodiscard]] auto GetModuleQtEnvVersion() const -> QString;
 
   /**
    * @brief Inject the GlobalModuleContext into the module.

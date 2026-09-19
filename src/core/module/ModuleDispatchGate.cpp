@@ -52,11 +52,6 @@ void ModuleDispatchGate::Close() {
   closed_ = true;
 }
 
-void ModuleDispatchGate::Open() {
-  QMutexLocker locker(&mutex_);
-  closed_ = false;
-}
-
 auto ModuleDispatchGate::IsClosed() -> bool {
   QMutexLocker locker(&mutex_);
   return closed_;
