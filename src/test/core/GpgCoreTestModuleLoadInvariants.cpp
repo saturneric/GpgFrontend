@@ -37,6 +37,7 @@
 #include "GpgFrontendTest.h"
 #include "core/ModuleTestPackages.h"
 #include "core/module/Module.h"
+#include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleManager.h"
 #include "core/module/ModulePackageBuilder.h"
@@ -92,29 +93,36 @@ TEST(ModuleLoadInvariantsTest, VerifyingAPackageReadsItExactlyOnce) {
   // Startup hashes on this same counter, so let it finish before measuring.
   if (!stats.Summary().isEmpty()) WAIT_FOR_TRUE(stats.IsFinished(), 10000);
 
-  // The largest one: a second pass over 46 MiB is unmistakable, where a second
-  // pass over a small module could hide inside container overhead.
+  // The measurement moved with the bytes. A descriptor no longer carries the
+  // module binary, so verifying one hashes almost nothing; the entry native
+  // is where the cost is, and resolving it is what gets measured.
   const auto largest = LargestBuiltModulePackage();
   ASSERT_FALSE(largest.isEmpty());
-  const auto size = QFileInfo(largest).size();
+
+  const auto read = Module::VerifyModulePackage(largest);
+  ASSERT_TRUE(read.ok) << read.reason.toStdString();
+
+  const Module::ModuleNativeRoot root{QFileInfo(largest).absolutePath()};
+  const auto native = QDir(root.path).absoluteFilePath(
+      Module::ModuleNativeFileName(read.manifest.entry_native.name));
+  const auto size = QFileInfo(native).size();
+  ASSERT_GT(size, 0);
 
   const auto before = stats.HashedBytes();
-  const auto read = Module::ReadVerifiedModuleImage(largest);
-  ASSERT_TRUE(read.ok) << read.reason.toStdString();
+  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  ASSERT_TRUE(entry.ok) << entry.reason.toStdString();
   const auto delta = stats.HashedBytes() - before;
 
-  // Stored, not compressed, so the entries sum to very nearly the file. The
-  // slack is container overhead; a second read would be off by a whole
-  // package, not by a few hundred bytes.
-  EXPECT_LE(delta, size)
-      << "more was hashed than the package contains, so it was read twice -- "
-         "a fact the verifier already established is being re-derived";
-  EXPECT_GT(delta, size / 2) << "less than one full pass over the package";
+  // Exactly once over exactly the file. Not "at most", because there is no
+  // container slack to allow for any more: the entry is one file, and hashing
+  // it twice would double this precisely.
+  EXPECT_EQ(delta, size)
+      << "the entry native was not hashed exactly once";
 
   // And the fact itself is published, so nobody downstream needs to look for
   // it: this is what the manager consumes in place of its own search.
-  EXPECT_EQ(read.library_sha256.size(), 64);
-  EXPECT_FALSE(read.image.LibraryName().isEmpty());
+  EXPECT_EQ(read.manifest.entry_native.value.size(), 64);
+  EXPECT_FALSE(read.manifest.entry_native.name.isEmpty());
 }
 
 /**
@@ -179,7 +187,12 @@ TEST(ModuleLoadInvariantsTest, APackageCannotClaimAnIdentityItsBinaryDenies) {
   spec.build_source_commit = QString(40, '0');
   spec.platform_arch = QSysInfo::currentCpuArchitecture();
   spec.platform_qt = QT_VERSION_STR;
-  spec.files = {{"bin/" + QFileInfo(library).fileName(), library, {}}};
+  // Beside the descriptor, because that is where the Host resolves it from.
+  const auto native =
+      dir.path() + "/" + Module::ModuleNativeFileName("gf_mod_test_sentinel");
+  ASSERT_TRUE(QFile::copy(library, native));
+  spec.entry_native_name = "gf_mod_test_sentinel";
+  spec.entry_native_file = native;
   spec.output_path = dir.path() + "/impostor.gfmodule";
   ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
 

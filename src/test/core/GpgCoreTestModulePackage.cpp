@@ -41,7 +41,7 @@
 #include "GpgFrontendTest.h"
 #include "core/ModuleTestPackages.h"
 #include "core/function/ArchiveFileOperator.h"
-#include "core/module/ModuleImageMapping.h"
+#include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManifest.h"
 #include "core/module/ModulePackageBuilder.h"
 #include "core/module/ModulePackageVerifier.h"
@@ -82,8 +82,11 @@ auto GoodSpec(const QString& dir, const QString& payload_path)
   spec.platform_os = Module::ManifestHostOsName();
   spec.platform_arch = QSysInfo::currentCpuArchitecture();
   spec.platform_qt = QT_VERSION_STR;
-  spec.files = {{"bin/module.so", payload_path, {}},
-                {"resources/note.txt", {}, QByteArray("a resource")}};
+  // The entry native is bound, not packaged: the descriptor records a value
+  // computed from these bytes and the file stays where it is.
+  spec.entry_native_name = "gf_mod_test";
+  spec.entry_native_file = payload_path;
+  spec.resources = {{"resources/note.txt", {}, QByteArray("a resource")}};
   spec.output_path = dir + "/test.gfmodule";
   return spec;
 }
@@ -219,19 +222,16 @@ TEST_F(ModulePackageTest, AValidPackageVerifies) {
   EXPECT_EQ(v.manifest.sdk_abi, GF_SDK_ABI_VERSION);
   EXPECT_EQ(v.manifest.capabilities, (QStringList{"gpg", "ui"}));
   EXPECT_EQ(v.manifest.metadata.value("Name"), "Test Module");
-  EXPECT_EQ(v.manifest.files.size(), 2);
+  EXPECT_EQ(v.manifest.resources.size(), 1);
   EXPECT_EQ(v.build_public_key, public_key_);
 
-  // The verifier located the sole bin/ entry while checking it, and publishes
-  // its signed digest. Everything downstream consumes this rather than walking
-  // manifest.files again -- so it must be the manifest's own value, not merely
-  // some 64-character string.
-  QString declared;
-  for (const auto& f : v.manifest.files) {
-    if (f.path.startsWith(Module::kModulePackageBinaryDir)) declared = f.sha256;
-  }
-  ASSERT_EQ(declared.size(), 64);
-  EXPECT_EQ(v.library_sha256, declared);
+  // The entry native is named logically and bound by value. The name is not a
+  // filename and the value is not a path: turning the first into the second is
+  // the Host's job, one layer up.
+  EXPECT_EQ(v.manifest.entry_native.name, "gf_mod_test");
+  EXPECT_EQ(v.manifest.entry_native.mode,
+            Module::ModuleEntryVerificationMode::kFILE_SHA256);
+  EXPECT_EQ(v.manifest.entry_native.value.size(), 64);
 }
 
 TEST_F(ModulePackageTest, TheSignedBytesAreTheStoredBytes) {
@@ -321,14 +321,18 @@ TEST_F(ModulePackageTest, AnUnexpectedBuildKeyFailsWhenOneIsExpected) {
 
 // ----------------------------------------------------------- file integrity
 
-TEST_F(ModulePackageTest, AModifiedBinaryFails) {
-  const auto out = Path("badbin.gfmodule");
-  ASSERT_TRUE(
-      RepackWith(Package(), out, {{"bin/module.so", QByteArray(4096, 'x')}}));
+TEST_F(ModulePackageTest, AnAppendedMemberIsRefused) {
+  // There is no executable member to modify any more, which is the change.
+  // What remains, and matters more, is that a member the manifest does not
+  // cover cannot be smuggled in: the signature says nothing about it, so the
+  // package must refuse rather than carry it.
+  const auto out = Path("appended.gfmodule");
+  ASSERT_TRUE(RepackWith(Package(), out, {}, {},
+                         {{"resources/extra.txt", QByteArray("smuggled")}}));
 
   const auto v = Module::VerifyModulePackage(out);
   EXPECT_FALSE(v.ok);
-  EXPECT_EQ(v.status, Module::ModulePackageStatus::kFILE_DIGEST_MISMATCH);
+  EXPECT_EQ(v.status, Module::ModulePackageStatus::kUNDECLARED_FILE);
 }
 
 TEST_F(ModulePackageTest, AModifiedResourceFails) {
@@ -388,12 +392,12 @@ TEST_F(ModulePackageTest, AMissingSignatureFails) {
 }
 
 TEST_F(ModulePackageTest, ACaseCollidingEntryFails) {
-  // `BIN/module.so` and `bin/module.so` are two files here and one file on
-  // macOS or Windows, so the package extracts to a different tree depending on
-  // who unpacks it.
+  // `RESOURCES/note.txt` and `resources/note.txt` are two members here and one
+  // on macOS or Windows, so the package would mean different things depending
+  // on who read it. Refused at the archive walk, before any of it is trusted.
   const auto out = Path("casecollide.gfmodule");
   ASSERT_TRUE(RepackWith(Package(), out, {}, {},
-                         {{"BIN/module.so", QByteArray("payload")}}));
+                         {{"RESOURCES/note.txt", QByteArray("payload")}}));
 
   const auto v = Module::VerifyModulePackage(out);
   EXPECT_FALSE(v.ok);
@@ -479,28 +483,28 @@ TEST_F(ModulePackageTest, NoPrivateKeyMaterialIsLeftAnywhere) {
 
 TEST_F(ModulePackageTest, TheBuilderRefusesAReservedPath) {
   auto spec = spec_;
-  spec.files.append({"META-INF/manifest.json", {}, QByteArray("mine")});
+  spec.resources.append({"META-INF/manifest.json", {}, QByteArray("mine")});
   spec.output_path = Path("reserved.gfmodule");
   EXPECT_FALSE(Module::BuildModulePackage(spec).ok);
 }
 
 TEST_F(ModulePackageTest, TheBuilderRefusesAnEscapingPath) {
   auto spec = spec_;
-  spec.files.append({"../outside.so", {}, QByteArray("mine")});
+  spec.resources.append({"../outside.so", {}, QByteArray("mine")});
   spec.output_path = Path("escape.gfmodule");
   EXPECT_FALSE(Module::BuildModulePackage(spec).ok);
 }
 
 TEST_F(ModulePackageTest, TheBuilderRefusesACaseCollision) {
   auto spec = spec_;
-  spec.files.append({"bin/MODULE.so", {}, QByteArray("mine")});
+  spec.resources.append({"resources/NOTE.txt", {}, QByteArray("mine")});
   spec.output_path = Path("collide.gfmodule");
   EXPECT_FALSE(Module::BuildModulePackage(spec).ok);
 }
 
 TEST_F(ModulePackageTest, TheBuilderRefusesAnUnreadableSource) {
   auto spec = spec_;
-  spec.files = {{"bin/module.so", Path("does-not-exist"), {}}};
+  spec.resources = {{"resources/x.txt", Path("does-not-exist"), {}}};
   spec.output_path = Path("unreadable.gfmodule");
   EXPECT_FALSE(Module::BuildModulePackage(spec).ok);
 }
@@ -525,8 +529,8 @@ auto SentinelLibrary() -> QString {
 
 }  // namespace
 
-TEST_F(ModulePackageTest, AVerifiedPackageDoesLoadItsCode) {
-  // The positive control, and the test above it is worthless without it: a
+TEST_F(ModulePackageTest, AVerifiedDescriptorDoesLoadTheCodeItBinds) {
+  // The positive control, and the test below it is worthless without it: a
   // refusal that runs no code proves nothing if a success would not have run
   // any either.
   const auto sentinel_library = SentinelLibrary();
@@ -534,8 +538,18 @@ TEST_F(ModulePackageTest, AVerifiedPackageDoesLoadItsCode) {
     GTEST_SKIP() << "this build has no sentinel library";
   }
 
+  // Beside the descriptor, because that is where the Host looks. The
+  // descriptor names `gf_mod_test_sentinel` and never says where it lives;
+  // turning that into `libgf_mod_test_sentinel.so` in this directory is the
+  // whole of what ResolveAndVerifyNativeEntry() does.
+  const auto native =
+      Path(Module::ModuleNativeFileName("gf_mod_test_sentinel"));
+  ASSERT_TRUE(QFile::copy(sentinel_library, native));
+
   auto spec = spec_;
-  spec.files = {{"bin/libgf_mod_test_sentinel.so", sentinel_library, {}}};
+  spec.entry_native_name = "gf_mod_test_sentinel";
+  spec.entry_native_file = native;
+  spec.resources.clear();
   spec.output_path = Path("sentinel.gfmodule");
   ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
 
@@ -543,15 +557,14 @@ TEST_F(ModulePackageTest, AVerifiedPackageDoesLoadItsCode) {
   ASSERT_FALSE(QFile::exists(sentinel));
   qputenv("GPGFRONTEND_TEST_SENTINEL", sentinel.toUtf8());
 
-  const auto read = Module::ReadVerifiedModuleImage(spec.output_path);
+  const auto read = Module::VerifyModulePackage(spec.output_path);
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
-  ASSERT_TRUE(read.image.IsValid());
 
-  QString reason;
-  auto mapping = Module::ModuleImageMapping::Create(read.image, &reason);
-  ASSERT_TRUE(mapping) << reason.toStdString();
+  const Module::ModuleNativeRoot root{Path("")};
+  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  ASSERT_TRUE(entry.ok) << entry.reason.toStdString();
 
-  QLibrary library(mapping->LoadPath());
+  QLibrary library(entry.path);
   ASSERT_TRUE(library.load()) << library.errorString().toStdString();
   EXPECT_TRUE(QFile::exists(sentinel));
 
@@ -559,58 +572,146 @@ TEST_F(ModulePackageTest, AVerifiedPackageDoesLoadItsCode) {
   qunsetenv("GPGFRONTEND_TEST_SENTINEL");
 }
 
-TEST_F(ModulePackageTest, ARefusedPackageNeverRunsItsCode) {
-  // The claim, asserted the only way it can be: not that loading returned an
-  // error, but that the code never executed. By the time an error is returned
-  // an image may already be mapped and its initialisers run, so the assertion
-  // has to be about an observable side effect that never happened.
+TEST_F(ModulePackageTest, ATamperedEntryNativeIsRefusedAndNeverRuns) {
+  // The claim, asserted the only way it can be: not that resolution returned
+  // an error, but that the code never executed. By the time an error comes
+  // back a library could already have been mapped and its initialisers run,
+  // so the assertion has to be about a side effect that never happened.
   //
-  // Here it is stronger still. The refused package's binary is never written
-  // anywhere at all, so there is nothing on disk for anything to map, whether
-  // deliberately or by mistake.
+  // This is also where the model's one real cost is visible, and worth being
+  // precise about. The entry native now lives on disk before it is checked,
+  // so what is proven here is that it is checked BEFORE anything opens it --
+  // not that it could not have been swapped by another process in between.
+  // That window is documented on ResolveAndVerifyNativeEntry() and is outside
+  // the threat model; this test is about the ordering, which is inside it.
   const auto sentinel_library = SentinelLibrary();
   if (sentinel_library.isEmpty()) {
     GTEST_SKIP() << "this build has no sentinel library";
   }
 
+  const auto native =
+      Path(Module::ModuleNativeFileName("gf_mod_test_sentinel"));
+  ASSERT_TRUE(QFile::copy(sentinel_library, native));
+
   auto spec = spec_;
-  spec.files = {{"bin/libgf_mod_test_sentinel.so", sentinel_library, {}}};
+  spec.entry_native_name = "gf_mod_test_sentinel";
+  spec.entry_native_file = native;
+  spec.resources.clear();
   spec.output_path = Path("sentinel2.gfmodule");
   ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
 
-  // One mutation: the binary no longer matches the digest the manifest was
-  // signed for.
-  QFile library_file(sentinel_library);
-  ASSERT_TRUE(library_file.open(QIODevice::ReadOnly));
-  auto image = library_file.readAll();
-  library_file.close();
-  ASSERT_GT(image.size(), 1024);
-  image[image.size() - 1] = static_cast<char>(image.at(image.size() - 1) ^ 1);
-
-  const auto tampered = Path("sentinel-tampered.gfmodule");
-  ASSERT_TRUE(RepackWith(spec.output_path, tampered,
-                         {{"bin/libgf_mod_test_sentinel.so", image}}));
+  // One mutation, AFTER the descriptor was signed for these bytes. The file
+  // still loads perfectly well; it is simply no longer the one this
+  // descriptor binds.
+  {
+    QFile file(native);
+    ASSERT_TRUE(file.open(QIODevice::ReadWrite));
+    ASSERT_TRUE(file.seek(file.size() - 1));
+    const auto last = file.read(1);
+    ASSERT_EQ(last.size(), 1);
+    ASSERT_TRUE(file.seek(file.size() - 1));
+    const char flipped = static_cast<char>(last.at(0) ^ 1);
+    ASSERT_EQ(file.write(&flipped, 1), 1);
+    file.close();
+  }
 
   const auto sentinel = Path("it-ran-anyway");
   qputenv("GPGFRONTEND_TEST_SENTINEL", sentinel.toUtf8());
 
-  const auto read = Module::ReadVerifiedModuleImage(tampered);
+  // The descriptor itself is untouched and still verifies: it is a separate
+  // artifact from what it binds, which is the point of splitting them.
+  const auto read = Module::VerifyModulePackage(spec.output_path);
+  ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
-  EXPECT_FALSE(read.ok);
-  EXPECT_EQ(read.status, Module::ModulePackageStatus::kFILE_DIGEST_MISMATCH);
+  const Module::ModuleNativeRoot root{Path("")};
+  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
 
-  // The refusal does not merely report an error: it hands back no image at
-  // all, and an image is the only thing materialisation accepts. There is
-  // therefore no path in existence for anything to load, deliberately or by
-  // mistake -- which is the property the type is for.
-  EXPECT_FALSE(read.image.IsValid());
+  EXPECT_FALSE(entry.ok);
+  EXPECT_EQ(entry.status,
+            Module::ModuleEntryStatus::kENTRY_VERIFICATION_MISMATCH);
 
-  QString reason;
-  EXPECT_FALSE(Module::ModuleImageMapping::Create(read.image, &reason));
-
+  // No path came back, and a path is the only thing a loader is ever given.
+  EXPECT_TRUE(entry.path.isEmpty());
   EXPECT_FALSE(QFile::exists(sentinel));
 
   qunsetenv("GPGFRONTEND_TEST_SENTINEL");
+}
+
+TEST_F(ModulePackageTest, AMissingEntryNativeIsItsOwnRefusal) {
+  // A descriptor whose library was never installed, or was removed, is a
+  // different problem from one whose library was altered -- and says so.
+  auto spec = spec_;
+  spec.entry_native_name = "gf_mod_test";
+  spec.resources.clear();
+  spec.output_path = Path("absent.gfmodule");
+  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+
+  const Module::ModuleNativeRoot root{Path("no-such-directory")};
+  const auto read = Module::VerifyModulePackage(spec.output_path);
+  ASSERT_TRUE(read.ok) << read.reason.toStdString();
+
+  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  EXPECT_FALSE(entry.ok);
+  EXPECT_EQ(entry.status, Module::ModuleEntryStatus::kMISSING_ENTRY_NATIVE);
+}
+
+TEST_F(ModulePackageTest, ASymlinkedEntryNativeIsRefusedRatherThanFollowed) {
+  // The descriptor names a file in this directory. A link wearing that name
+  // is a different file, and following it would be the Host choosing to load
+  // something the descriptor did not bind.
+  const auto sentinel_library = SentinelLibrary();
+  if (sentinel_library.isEmpty()) {
+    GTEST_SKIP() << "this build has no sentinel library";
+  }
+
+  const auto native =
+      Path(Module::ModuleNativeFileName("gf_mod_test_sentinel"));
+  auto spec = spec_;
+  spec.entry_native_name = "gf_mod_test_sentinel";
+  spec.entry_native_file = sentinel_library;
+  spec.resources.clear();
+  spec.output_path = Path("linked.gfmodule");
+  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+
+  // Points at the very library the descriptor was signed for, so the digest
+  // would match if it were followed. Only the file type refuses it.
+  ASSERT_TRUE(QFile::link(sentinel_library, native));
+
+  const Module::ModuleNativeRoot root{Path("")};
+  const auto read = Module::VerifyModulePackage(spec.output_path);
+  ASSERT_TRUE(read.ok) << read.reason.toStdString();
+
+  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  EXPECT_FALSE(entry.ok);
+  EXPECT_EQ(entry.status, Module::ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE);
+}
+
+TEST_F(ModulePackageTest, ATextFileWearingALibraryNameIsRefused) {
+  auto spec = spec_;
+  spec.entry_native_name = "gf_mod_test_sentinel";
+  spec.resources.clear();
+  spec.output_path = Path("textfile.gfmodule");
+
+  const auto native =
+      Path(Module::ModuleNativeFileName("gf_mod_test_sentinel"));
+  {
+    QFile file(native);
+    ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+    file.write("#!/bin/sh\necho not a library\n");
+    file.close();
+  }
+  spec.entry_native_file = native;
+  ASSERT_TRUE(Module::BuildModulePackage(spec).ok);
+
+  const Module::ModuleNativeRoot root{Path("")};
+  const auto read = Module::VerifyModulePackage(spec.output_path);
+  ASSERT_TRUE(read.ok) << read.reason.toStdString();
+
+  // The digest matches -- it was computed from this very file. The refusal is
+  // the file type, checked before anything is hashed or handed to a loader.
+  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  EXPECT_FALSE(entry.ok);
+  EXPECT_EQ(entry.status, Module::ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE);
 }
 
 // ------------------------------------------------------ producer / verifier
@@ -637,9 +738,9 @@ TEST(ModulePackageSmokeTest, APackageBuiltByTheBuildVerifies) {
                       << v.reason.toStdString();
     EXPECT_TRUE(v.manifest.id.startsWith("com.bktus.gpgfrontend.module."));
     EXPECT_EQ(v.manifest.sdk_abi, GF_SDK_ABI_VERSION);
-    ASSERT_EQ(v.manifest.files.size(), 1);
-    EXPECT_TRUE(v.manifest.files.at(0).path.startsWith(
-        Module::kModulePackageBinaryDir));
+    // Nothing executable inside, and an entry bound from outside.
+    EXPECT_TRUE(v.manifest.resources.isEmpty());
+    EXPECT_TRUE(v.manifest.entry_native.name.startsWith("gf_mod_"));
 
     // Producer and verifier agree on how to spell this platform. They used to
     // reach the string by different routes -- the packager took it from its
@@ -648,8 +749,13 @@ TEST(ModulePackageSmokeTest, APackageBuiltByTheBuildVerifies) {
     EXPECT_EQ(v.manifest.platform_os, Module::ManifestHostOsName());
     EXPECT_EQ(v.manifest.platform_arch, QSysInfo::currentCpuArchitecture());
 
-    // And the fact the loader consumes is published, for every package.
-    EXPECT_EQ(v.library_sha256, v.manifest.files.at(0).sha256);
+    // And the entry it binds really is installed beside it, under the name
+    // this platform spells it with. This is the end-to-end check that CMake's
+    // placement and the Host's mapping agree.
+    const Module::ModuleNativeRoot root{info.absolutePath()};
+    const auto entry = Module::ResolveAndVerifyNativeEntry(v.manifest, root);
+    EXPECT_TRUE(entry.ok) << info.fileName().toStdString() << ": "
+                          << entry.reason.toStdString();
   }
 
   const QDir packages(QCoreApplication::applicationDirPath() + "/modules");

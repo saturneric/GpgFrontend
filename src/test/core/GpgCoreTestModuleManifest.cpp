@@ -74,8 +74,13 @@ auto GoodManifestObject() -> QJsonObject {
        QJsonObject{{"id", "b"}, {"timestamp", "t"}, {"source_commit", "c"}}},
       {"platform",
        QJsonObject{{"os", "linux"}, {"arch", "x86_64"}, {"qt", "6.6"}}},
-      {"files", QJsonArray{QJsonObject{{"path", "bin/module.so"},
-                                       {"sha256", QString(64, 'a')}}}},
+      {"entry_native",
+       QJsonObject{{"name", "gf_mod_test"},
+                   {"verification",
+                    QJsonObject{{"mode", "file-sha256"},
+                                {"value", QString(64, 'a')}}},
+                   {"size", 4096}}},
+      {"resources", QJsonArray{}},
   };
 }
 
@@ -99,7 +104,8 @@ TEST(ModuleManifestTest, AcceptsAGoodManifest) {
   const auto r = ParseObject(GoodManifestObject());
   ASSERT_TRUE(r.ok) << r.reason.toStdString();
   EXPECT_EQ(r.manifest.id, "com.bktus.gpgfrontend.module.test");
-  EXPECT_EQ(r.manifest.files.size(), 1);
+  EXPECT_EQ(r.manifest.entry_native.name, "gf_mod_test");
+  EXPECT_TRUE(r.manifest.resources.isEmpty());
 }
 
 TEST(ModuleManifestTest, RejectsAnUnsupportedSchemaVersion) {
@@ -123,7 +129,8 @@ TEST(ModuleManifestTest, RejectsEveryMissingRequiredField) {
                                     "metadata",
                                     "build",
                                     "platform",
-                                    "files"};
+                                    "entry_native",
+                                    "resources"};
   for (const auto& key : required) {
     auto o = GoodManifestObject();
     o.remove(key);
@@ -147,7 +154,7 @@ TEST(ModuleManifestTest, RejectsAWrongTypedField) {
   EXPECT_FALSE(ParseObject(o2).ok);
 
   auto o3 = GoodManifestObject();
-  o3["files"] = QJsonObject{};
+  o3["resources"] = QJsonObject{};
   EXPECT_FALSE(ParseObject(o3).ok);
 
   auto o4 = GoodManifestObject();
@@ -163,22 +170,27 @@ TEST(ModuleManifestTest, RejectsAFractionalVersionNumber) {
 
 TEST(ModuleManifestTest, RejectsABadDigest) {
   auto o = GoodManifestObject();
-  o["files"] =
-      QJsonArray{QJsonObject{{"path", "bin/module.so"}, {"sha256", "ABC"}}};
+  o["resources"] =
+      QJsonArray{QJsonObject{{"path", "icons/a.svg"}, {"sha256", "ABC"}}};
   EXPECT_FALSE(ParseObject(o).ok);
 
   // Upper case is refused too: a digest compared as a string needs one
   // spelling, and the verifier produces the lower-case one.
   auto o2 = GoodManifestObject();
-  o2["files"] = QJsonArray{
-      QJsonObject{{"path", "bin/module.so"}, {"sha256", QString(64, 'A')}}};
+  o2["resources"] = QJsonArray{
+      QJsonObject{{"path", "icons/a.svg"}, {"sha256", QString(64, 'A')}}};
   EXPECT_FALSE(ParseObject(o2).ok);
 }
 
-TEST(ModuleManifestTest, RejectsAnEmptyFileList) {
+TEST(ModuleManifestTest, AnEmptyResourceListIsFine) {
+  // The inversion of the old rule, and deliberate. `files` had to be non-empty
+  // because it covered the module binary, and a manifest covering nothing
+  // would have verified trivially. `resources` covers only non-executable
+  // members, and carrying none is the normal case: the thing that must not be
+  // missing is `entry_native`, which is a separate, required field.
   auto o = GoodManifestObject();
-  o["files"] = QJsonArray{};
-  EXPECT_FALSE(ParseObject(o).ok);
+  o["resources"] = QJsonArray{};
+  EXPECT_TRUE(ParseObject(o).ok);
 }
 
 TEST(ModuleManifestTest, ToleratesAnUnknownField) {
@@ -275,18 +287,138 @@ TEST(ModuleManifestTest, RejectsAnEmptyTranslationContext) {
   EXPECT_FALSE(ParseObject(o).ok);
 }
 
-// A package built before these fields existed carries no statement about what
-// it subscribes to. Refusing it is the point: the allowlist is not optional.
-TEST(ModuleManifestTest, ASchemaOneManifestIsRefusedWithAReason) {
+// A package from before schema 3 carries its executable payload inside itself,
+// which this build has no path for at all. Refusing it by version, with the
+// reason said out loud, beats refusing it later on a field it does not have.
+TEST(ModuleManifestTest, AnOlderSchemaIsRefusedByVersionWithAReason) {
+  for (const auto older : {1, 2}) {
+    auto o = GoodManifestObject();
+    o["schema_version"] = older;
+
+    const auto r = ParseObject(o);
+    EXPECT_FALSE(r.ok) << "schema " << older << " was tolerated";
+    EXPECT_EQ(r.status, Module::ModuleManifestStatus::kMALFORMED);
+    EXPECT_TRUE(r.reason.contains("schema_version"))
+        << r.reason.toStdString();
+  }
+}
+
+// ------------------------------------------------- entry_native, section 7a
+
+TEST(ModuleManifestTest, RejectsAnEntryNameThatIsNotLogical) {
+  // Each of these is a path, or could become one. A logical name cannot
+  // express a path at all, which is why the descriptor needs no rule about
+  // traversal: there is nothing to traverse with.
+  for (const auto* bad : {"../x", "/x", "C:\\x", "a/b", "a.b", "libgf_mod_x",
+                          "Gf_Mod_X", "", "9lives"}) {
+    auto o = GoodManifestObject();
+    auto entry = o["entry_native"].toObject();
+    entry["name"] = QString::fromLatin1(bad);
+    o["entry_native"] = entry;
+    EXPECT_FALSE(ParseObject(o).ok)
+        << "\"" << bad << "\" was accepted as a logical native name";
+  }
+}
+
+TEST(ModuleManifestTest, RejectsAnEntryNameOfSixtyFivePlusCharacters) {
   auto o = GoodManifestObject();
-  o["schema_version"] = 1;
-  o.remove("events");
-  o.remove("translation_context");
+  auto entry = o["entry_native"].toObject();
+  entry["name"] = "a" + QString(64, u'b');
+  o["entry_native"] = entry;
+  EXPECT_FALSE(ParseObject(o).ok);
+}
+
+TEST(ModuleManifestTest, TheVerificationModeMustBeTheOneThePlatformMandates) {
+  // The module author does not choose this. Every wrong pairing is refused,
+  // and a descriptor cannot select a weaker mode by claiming a platform --
+  // the platform claim is checked against the host before any of this matters.
+  const QMap<QString, QString> wrong{
+      {"linux", "apple-binding-id"},
+      {"linux", "pe-authenticode-sha256"},
+      {"macos", "file-sha256"},
+      {"windows", "file-sha256"},
+  };
+
+  for (auto it = wrong.constBegin(); it != wrong.constEnd(); ++it) {
+    auto o = GoodManifestObject();
+    auto platform = o["platform"].toObject();
+    platform["os"] = it.key();
+    o["platform"] = platform;
+
+    auto entry = o["entry_native"].toObject();
+    auto verification = entry["verification"].toObject();
+    verification["mode"] = it.value();
+    entry["verification"] = verification;
+    // size is only legal under file-sha256; drop it so the mode is what fails
+    entry.remove("size");
+    o["entry_native"] = entry;
+
+    EXPECT_FALSE(ParseObject(o).ok)
+        << it.key().toStdString() << " accepted " << it.value().toStdString();
+  }
+}
+
+TEST(ModuleManifestTest, RejectsAnUnknownOrMissingVerificationMode) {
+  auto o = GoodManifestObject();
+  auto entry = o["entry_native"].toObject();
+  auto verification = entry["verification"].toObject();
+  verification["mode"] = "sha1-of-something";
+  entry["verification"] = verification;
+  o["entry_native"] = entry;
+  EXPECT_FALSE(ParseObject(o).ok);
+
+  o = GoodManifestObject();
+  entry = o["entry_native"].toObject();
+  verification = entry["verification"].toObject();
+  verification.remove("mode");
+  entry["verification"] = verification;
+  o["entry_native"] = entry;
+  EXPECT_FALSE(ParseObject(o).ok);
+
+  o = GoodManifestObject();
+  entry = o["entry_native"].toObject();
+  verification = entry["verification"].toObject();
+  verification["value"] = "";
+  entry["verification"] = verification;
+  o["entry_native"] = entry;
+  EXPECT_FALSE(ParseObject(o).ok) << "an empty value is not a skipped check";
+}
+
+TEST(ModuleManifestTest, SizeIsOnlyAllowedWhereItMeansAnything) {
+  // Windows Authenticode signing appends a certificate table and macOS signing
+  // rewrites __LINKEDIT; a size recorded under either would be an invariant
+  // that legitimately breaks. Refusing it in the schema beats leaving a trap.
+  auto o = GoodManifestObject();
+  auto platform = o["platform"].toObject();
+  platform["os"] = "macos";
+  o["platform"] = platform;
+
+  auto entry = o["entry_native"].toObject();
+  auto verification = entry["verification"].toObject();
+  verification["mode"] = "apple-binding-id";
+  entry["verification"] = verification;
+  entry["size"] = 4096;
+  o["entry_native"] = entry;
 
   const auto r = ParseObject(o);
   EXPECT_FALSE(r.ok);
-  EXPECT_EQ(r.status, Module::ModuleManifestStatus::kMALFORMED);
-  EXPECT_TRUE(r.reason.contains("events")) << r.reason.toStdString();
+  EXPECT_TRUE(r.reason.contains("size")) << r.reason.toStdString();
+}
+
+TEST(ModuleManifestTest, SizeIsOptionalAndTypeChecked) {
+  auto o = GoodManifestObject();
+  auto entry = o["entry_native"].toObject();
+  entry.remove("size");
+  o["entry_native"] = entry;
+  EXPECT_TRUE(ParseObject(o).ok) << "size is an optimisation, not a field";
+
+  for (const auto bad : {QJsonValue("4096"), QJsonValue(-1), QJsonValue(1.5)}) {
+    o = GoodManifestObject();
+    entry = o["entry_native"].toObject();
+    entry["size"] = bad;
+    o["entry_native"] = entry;
+    EXPECT_FALSE(ParseObject(o).ok);
+  }
 }
 
 }  // namespace GpgFrontend::Test
