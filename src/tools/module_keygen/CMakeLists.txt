@@ -32,7 +32,7 @@ add_executable(gf_module_keygen main.cpp)
 target_link_libraries(gf_module_keygen PRIVATE Qt::Core sodium)
 
 set_target_properties(gf_module_keygen PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+  RUNTIME_OUTPUT_DIRECTORY ${GPGFRONTEND_HOST_TOOL_DIR})
 
 # Not installed: a key generator is a thing a build runs, not a thing a user
 # gets.

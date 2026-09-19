@@ -557,6 +557,21 @@ else()
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
 endif()
 
+# Where host build tools go, and deliberately NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY.
+#
+# That variable follows the layout: on an AppImage build it is the AppDir's
+# usr/bin, on MinGW it is artifacts/bin. Letting the tools follow it had two
+# consequences, both bad. gf_module_packager and gf_module_keygen ended up
+# INSIDE the AppDir, so a build tool would have shipped in the AppImage; and
+# every caller outside CMake -- the CI audit, seal and finalize steps -- had to
+# know which layout was in effect to find the tool at all, which is exactly the
+# kind of thing that is discovered in CI rather than at the desk.
+#
+# One fixed path instead. These are host tools: they run on the machine doing
+# the build, and where the application's files go is none of their business.
+set(GPGFRONTEND_HOST_TOOL_DIR "${CMAKE_BINARY_DIR}/artifacts/tools")
+message(STATUS "Host build tools: ${GPGFRONTEND_HOST_TOOL_DIR}")
+
 # The module namespace root: one `<key>/{module.gfmodule,native/}` per module.
 #
 # Every layout but the AppImage uses the build tree's own artifacts directory,

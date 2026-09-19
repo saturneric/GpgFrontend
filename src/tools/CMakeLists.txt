@@ -31,25 +31,15 @@
 
 add_executable(gf_module_packager module_packager/main.cpp)
 
-# gf_sdk as well as gf_core: gf_core's module loader calls GFGetHostApi(),
-# which lives in the sdk, and a shared library leaves that unresolved until
-# something links both.
-#
-# --no-as-needed is required rather than tidy. Nothing in the packager itself
-# calls into the sdk, so a linker with --as-needed (the default on most Linux
-# distributions) drops the gf_sdk dependency it was just given and then fails
-# on the very symbol that dependency was there to supply.
-if(UNIX AND NOT APPLE)
-  target_link_libraries(gf_module_packager PRIVATE
-    -Wl,--no-as-needed gf_sdk -Wl,--as-needed)
-else()
-  target_link_libraries(gf_module_packager PRIVATE gf_sdk)
-endif()
-
+# gf_core alone. This used to have to link gf_sdk too -- with --no-as-needed
+# to stop the linker dropping it again -- because gf_core referenced four
+# gf_sdk entry points and left them unresolved. It does not any more: those
+# four arrive through ModuleSdkBridge, so gf_core is self-contained and this
+# is an ordinary link.
 target_link_libraries(gf_module_packager PRIVATE gf_core Qt::Core)
 
 set_target_properties(gf_module_packager PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+  RUNTIME_OUTPUT_DIRECTORY ${GPGFRONTEND_HOST_TOOL_DIR})
 
 # Not installed: a packager is a thing a build runs, not a thing a user gets.
 

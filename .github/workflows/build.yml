@@ -502,7 +502,7 @@ jobs:
           set -euo pipefail
           ${{github.workspace}}/scripts/audit_module_natives.sh \
             --namespace-root ${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules \
-            --packager ${{github.workspace}}/build/artifacts/gf_module_packager \
+            --packager ${{github.workspace}}/build/artifacts/tools/gf_module_packager \
             --qt-relative ../../../.. \
             --expect-count 4
         if: runner.os == 'Linux'
@@ -512,7 +512,7 @@ jobs:
       - name: Seal Entry Natives (Linux)
         run: |
           set -euo pipefail
-          ${{github.workspace}}/build/artifacts/gf_module_packager seal-prepared \
+          ${{github.workspace}}/build/artifacts/tools/gf_module_packager seal-prepared \
             --namespace-root ${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules \
             --expect-count 4
         if: runner.os == 'Linux'
@@ -540,7 +540,7 @@ jobs:
           # descriptor verifies under the Host's own embedded key, sits in the
           # namespace its signed identity derives, and binds the native that is
           # actually there.
-          ${{github.workspace}}/build/artifacts/gf_module_packager verify-module-set \
+          ${{github.workspace}}/build/artifacts/tools/gf_module_packager verify-module-set \
             --namespace-root "$MODULE_ROOT" \
             --expect-count 4 \
             --assert-no-native-outside ${{github.workspace}}/build/artifacts/AppDir
@@ -740,7 +740,7 @@ jobs:
           set -euo pipefail
           cd $(cygpath -u "${{github.workspace}}")
           MODULE_ROOT="build/artifacts/modules"
-          PACKAGER="build/artifacts/bin/gf_module_packager.exe"
+          PACKAGER="build/artifacts/tools/gf_module_packager.exe"
 
           ./scripts/audit_module_natives.sh \
             --namespace-root "$MODULE_ROOT" \
@@ -781,7 +781,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $root = "${{github.workspace}}/build/artifacts/modules"
-          $packager = "${{github.workspace}}/build/artifacts/bin/gf_module_packager.exe"
+          $packager = "${{github.workspace}}/build/artifacts/tools/gf_module_packager.exe"
 
           # A scratch copy of the whole tree, so a failure here cannot damage
           # what is about to ship.
@@ -885,8 +885,10 @@ jobs:
           set -euo pipefail
           cd "${{github.workspace}}"
 
-          BINDINGS=$(./build/artifacts/${{ runner.os == 'Windows' && 'bin/gf_module_packager.exe' || 'gf_module_packager' }} \
-            verify-module-set \
+          # One path on every platform: host tools go to artifacts/tools/,
+          # which does not move with the application's layout.
+          PACKAGER="build/artifacts/tools/gf_module_packager${{ runner.os == 'Windows' && '.exe' || '' }}"
+          BINDINGS=$("$PACKAGER" verify-module-set \
             --namespace-root "${{ runner.os == 'Windows' && 'build/artifacts/modules' || 'build/artifacts/AppDir/usr/lib/gpgfrontend/modules' }}" \
             --print-bindings \
             | sed -n 's/^binding //p' \
@@ -1152,7 +1154,7 @@ jobs:
 
           "${{github.workspace}}/scripts/audit_module_natives.sh" \
             --namespace-root "$MODULE_ROOT" \
-            --packager "${{github.workspace}}/build/artifacts/gf_module_packager" \
+            --packager "${{github.workspace}}/build/artifacts/tools/gf_module_packager" \
             --expect-count 4
 
           echo "--- GpgFrontend binding sections ---"
@@ -1233,7 +1235,7 @@ jobs:
           set -euo pipefail
           cd "${{github.workspace}}"
 
-          BINDINGS=$(./build/artifacts/gf_module_packager verify-module-set \
+          BINDINGS=$(./build/artifacts/tools/gf_module_packager verify-module-set \
             --namespace-root build/artifacts/modules \
             --print-bindings \
             | sed -n 's/^binding //p' \
