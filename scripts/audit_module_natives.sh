@@ -1,0 +1,282 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Audit the native dependency closure of every module namespace in a tree.
+#
+# This is a DEPLOYMENT-CORRECTNESS check, not descriptor authentication, and
+# the difference matters enough to state at the top of the file. A .gfmodule
+# binds exactly one entry native and deliberately does not enumerate or
+# authenticate the rest of the closure -- copying a dependency graph into JSON
+# would create a second truth that can drift while looking authoritative. What
+# covers those dependencies at runtime is the platform's own mechanism: Apple
+# code signing plus Library Validation on macOS, and nothing at all on Linux
+# and Windows.
+#
+# So this runs at build time, on the build machine, and proves nothing about
+# the bytes on a user's disk. What it does catch is the class of failure that
+# actually happens: a module that links against a build-tree absolute path, a
+# RUNPATH that cannot reach Qt from where the module will finally live, or a
+# private helper that was renamed in one place and not the other.
+#
+# Usage: scripts/audit_module_natives.sh --namespace-root DIR [options]
+#     --namespace-root DIR   the tree holding <key>/native/ directories
+#     --qt-relative PATH     a path, relative to a module's native directory,
+#                            that its RUNPATH must be able to reach (Linux)
+#     --expect-count N       fail unless exactly N namespaces were audited
+#     --warnings-are-errors  treat orphan helpers as failures too
+#
+# An orphan private helper -- a library in native/ that nothing in the
+# namespace imports -- is a WARNING by default. Making it fatal would invent a
+# requirement the format does not have; reporting it catches the stale file a
+# rename leaves behind.
+
+set -u -o pipefail
+
+NAMESPACE_ROOT=""
+QT_RELATIVE=""
+EXPECT_COUNT=-1
+STRICT=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --namespace-root) NAMESPACE_ROOT="${2:-}"; shift 2 ;;
+    --qt-relative) QT_RELATIVE="${2:-}"; shift 2 ;;
+    --expect-count) EXPECT_COUNT="${2:--1}"; shift 2 ;;
+    --warnings-are-errors) STRICT=1; shift ;;
+    -h|--help) sed -n '3,40p' "$0"; exit 0 ;;
+    *) echo "audit_module_natives: unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+
+if [[ -z "$NAMESPACE_ROOT" ]]; then
+  echo "audit_module_natives: --namespace-root is required" >&2
+  exit 2
+fi
+if [[ ! -d "$NAMESPACE_ROOT" ]]; then
+  echo "audit_module_natives: $NAMESPACE_ROOT: this directory does not exist" >&2
+  exit 1
+fi
+
+FAILURES=0
+WARNINGS=0
+AUDITED=0
+
+fail() { echo "  FAIL  $*" >&2; FAILURES=$((FAILURES + 1)); }
+warn() { echo "  warn  $*"; WARNINGS=$((WARNINGS + 1)); }
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+# A path is "from the build tree" if it is absolute and not one of the system
+# locations a deployed binary may legitimately name. Checked by shape rather
+# than against a list of known build directories, because the interesting case
+# is always the build directory nobody thought to list.
+is_build_tree_path() {
+  local p="$1"
+  [[ "$p" != /* ]] && return 1
+  case "$p" in
+    /usr/lib|/usr/lib/*|/usr/lib64|/usr/lib64/*) return 1 ;;
+    /lib|/lib/*|/lib64|/lib64/*) return 1 ;;
+    /usr/local/lib|/usr/local/lib/*|/usr/local/lib64|/usr/local/lib64/*)
+      return 1 ;;
+    /System/*|/Library/Frameworks/*) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
+audit_elf() {
+  local file="$1" ns="$2" native_dir="$3"
+  local dyn runpath
+
+  dyn="$(readelf -d "$file" 2>/dev/null)" || {
+    fail "$ns/$(basename "$file"): readelf could not read it"
+    return
+  }
+
+  runpath="$(printf '%s\n' "$dyn" |
+    sed -n 's/.*(RUNPATH).*\[\(.*\)\]/\1/p;s/.*(RPATH).*\[\(.*\)\]/\1/p' |
+    head -1)"
+
+  if [[ -z "$runpath" ]]; then
+    fail "$ns/$(basename "$file"): it has no RUNPATH, so it can only resolve
+        its dependencies from whatever the process already loaded"
+    return
+  fi
+
+  local origin_seen=0
+  local IFS=':'
+  # shellcheck disable=SC2206
+  local entries=($runpath)
+  unset IFS
+  for entry in "${entries[@]}"; do
+    if is_build_tree_path "$entry"; then
+      fail "$ns/$(basename "$file"): its RUNPATH names \"$entry\", which is a
+        build-tree path and will not exist on a user's machine"
+    fi
+    [[ "$entry" == \$ORIGIN* || "$entry" == '${ORIGIN}'* ]] && origin_seen=1
+  done
+
+  if [[ $origin_seen -eq 0 ]]; then
+    fail "$ns/$(basename "$file"): its RUNPATH does not mention \$ORIGIN, so it
+        cannot find the private helpers beside it"
+  fi
+
+  # Reachability is checked against the real directory rather than reasoned
+  # about, because the number of levels between a module's native directory
+  # and Qt differs per layout and getting it wrong is a startup failure rather
+  # than a build failure.
+  if [[ -n "$QT_RELATIVE" ]]; then
+    local reachable=0
+    for entry in "${entries[@]}"; do
+      [[ "$entry" == \$ORIGIN* || "$entry" == '${ORIGIN}'* ]] || continue
+      local resolved="${entry/\$\{ORIGIN\}/$native_dir}"
+      resolved="${resolved/\$ORIGIN/$native_dir}"
+      if [[ -d "$resolved" ]] &&
+         [[ "$(cd "$resolved" 2>/dev/null && pwd -P)" == \
+            "$(cd "$native_dir/$QT_RELATIVE" 2>/dev/null && pwd -P)" ]]; then
+        reachable=1
+      fi
+    done
+    if [[ $reachable -eq 0 ]]; then
+      fail "$ns/$(basename "$file"): no \$ORIGIN entry in its RUNPATH reaches
+        \"$QT_RELATIVE\", where Qt lives in this layout"
+    fi
+  fi
+
+  # A DT_NEEDED naming a module-owned library that is not in native/ is a
+  # broken deployment: the loader will look for it by name and find whatever a
+  # system path happens to hold, or nothing.
+  while read -r needed; do
+    [[ -z "$needed" ]] && continue
+    case "$needed" in
+      libgf_mod_*|libgf_mail_*)
+        if [[ ! -e "$native_dir/$needed" ]]; then
+          fail "$ns/$(basename "$file"): it needs \"$needed\", which is
+        module-owned and is not in this namespace"
+        fi
+        ;;
+    esac
+  done < <(printf '%s\n' "$dyn" |
+           sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p')
+}
+
+audit_macho() {
+  local file="$1" ns="$2"
+  local install_name
+
+  install_name="$(otool -D "$file" 2>/dev/null | sed -n '2p')"
+  if [[ -n "$install_name" ]] && is_build_tree_path "$install_name"; then
+    fail "$ns/$(basename "$file"): its install name is \"$install_name\", a
+        build-tree path"
+  fi
+
+  while read -r dep; do
+    [[ -z "$dep" ]] && continue
+    case "$dep" in
+      @loader_path/*|@rpath/*|@executable_path/*) ;;
+      /usr/lib/*|/System/*) ;;
+      *)
+        fail "$ns/$(basename "$file"): it loads \"$dep\", which is neither
+        relocatable nor a system library"
+        ;;
+    esac
+  done < <(otool -L "$file" 2>/dev/null | tail -n +2 |
+           sed 's/^[[:space:]]*//;s/ (compatibility.*//')
+}
+
+audit_pe() {
+  local file="$1" ns="$2" native_dir="$3"
+
+  while read -r imported; do
+    [[ -z "$imported" ]] && continue
+    case "$imported" in
+      gf_mod_*|libgf_mod_*)
+        if [[ ! -e "$native_dir/$imported" ]]; then
+          fail "$ns/$(basename "$file"): it imports \"$imported\", which is
+        module-owned and is not in this namespace"
+        fi
+        ;;
+    esac
+  done < <(objdump -p "$file" 2>/dev/null |
+           sed -n 's/^\tDLL Name: //p')
+}
+
+echo "auditing $NAMESPACE_ROOT"
+
+for ns_dir in "$NAMESPACE_ROOT"/*/; do
+  [[ -d "$ns_dir" ]] || continue
+  ns="$(basename "$ns_dir")"
+  native_dir="${ns_dir}native"
+  [[ -d "$native_dir" ]] || continue
+
+  shopt -s nullglob
+  natives=("$native_dir"/*.so "$native_dir"/*.so.* "$native_dir"/*.dylib \
+           "$native_dir"/*.dll)
+  shopt -u nullglob
+  [[ ${#natives[@]} -gt 0 ]] || continue
+
+  AUDITED=$((AUDITED + 1))
+
+  # What every native in this namespace names, so an orphan can be spotted
+  # afterwards rather than guessed at.
+  referenced=""
+
+  for file in "${natives[@]}"; do
+    case "$file" in
+      *.dylib)
+        if have otool; then
+          audit_macho "$file" "$ns"
+          referenced+=$'\n'"$(otool -L "$file" 2>/dev/null | tail -n +2 |
+            sed 's/^[[:space:]]*//;s/ (compatibility.*//' |
+            sed 's|.*/||')"
+        else
+          warn "$ns: otool is not available, so Mach-O dependencies were not
+        audited"
+        fi
+        ;;
+      *.dll)
+        if have objdump; then
+          audit_pe "$file" "$ns" "$native_dir"
+          referenced+=$'\n'"$(objdump -p "$file" 2>/dev/null |
+            sed -n 's/^\tDLL Name: //p')"
+        else
+          warn "$ns: objdump is not available, so PE imports were not audited"
+        fi
+        ;;
+      *)
+        if have readelf; then
+          audit_elf "$file" "$ns" "$native_dir"
+          referenced+=$'\n'"$(readelf -d "$file" 2>/dev/null |
+            sed -n 's/.*(NEEDED).*\[\(.*\)\]/\1/p')"
+        else
+          warn "$ns: readelf is not available, so ELF dependencies were not
+        audited"
+        fi
+        ;;
+    esac
+  done
+
+  # The entry itself is never an orphan; anything else nothing names is a file
+  # a rename probably left behind.
+  for file in "${natives[@]}"; do
+    base="$(basename "$file")"
+    case "$base" in
+      *gf_mod_*) continue ;;
+    esac
+    if ! printf '%s\n' "$referenced" | grep -qxF "$base"; then
+      warn "$ns/native/$base: nothing in this namespace names it; it may be
+        left over from a rename"
+    fi
+  done
+done
+
+if [[ $EXPECT_COUNT -ge 0 && $AUDITED -ne $EXPECT_COUNT ]]; then
+  fail "$NAMESPACE_ROOT: $AUDITED namespace(s) audited, and $EXPECT_COUNT were
+        expected"
+fi
+
+if [[ $FAILURES -gt 0 ]] || { [[ $STRICT -eq 1 ]] && [[ $WARNINGS -gt 0 ]]; }; then
+  echo "audit_module_natives: this tree is not deployable" >&2
+  exit 1
+fi
+
+echo "  $AUDITED namespace(s) audited, $WARNINGS warning(s)"
