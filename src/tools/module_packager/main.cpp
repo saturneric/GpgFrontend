@@ -59,6 +59,8 @@ void PrintUsage(QTextStream& err) {
          "[--commit S]\n"
       << "                         [--security-epoch N]\n"
       << "                         [--capability NAME]...\n"
+      << "                         [--event EVENT_ID]...\n"
+      << "                         [--translation-context NAME]\n"
       << "                         [--meta KEY=VALUE]...\n"
       << "                         --file ARCHIVE_PATH=SOURCE_FILE...\n";
 }
@@ -115,6 +117,10 @@ auto main(int argc, char** argv) -> int {
       spec.build_source_commit = value();
     } else if (flag == "--capability") {
       spec.capabilities.append(value());
+    } else if (flag == "--event") {
+      spec.events.append(value());
+    } else if (flag == "--translation-context") {
+      spec.translation_context = value();
     } else if (flag == "--meta") {
       QString key;
       QString text;

@@ -72,8 +72,8 @@ endfunction()
 function(_gf_module_package_command)
   cmake_parse_arguments(GAMP
     ""
-    "TARGET_NAME;SHORT_NAME;MODULE_ID;VERSION;MIN_HOST_VERSION"
-    "CAPABILITIES;META;RESOURCES"
+    "TARGET_NAME;SHORT_NAME;MODULE_ID;VERSION;MIN_HOST_VERSION;TRANSLATION_CONTEXT"
+    "CAPABILITIES;EVENTS;META;RESOURCES"
     ${ARGN})
 
   set(module_target "${GAMP_TARGET_NAME}")
@@ -119,8 +119,17 @@ function(_gf_module_package_command)
     --arch "${CMAKE_SYSTEM_PROCESSOR}"
     --qt "${gf_qt_version}")
 
+  if(GAMP_TRANSLATION_CONTEXT)
+    list(APPEND packager_args
+      --translation-context "${GAMP_TRANSLATION_CONTEXT}")
+  endif()
+
   foreach(capability IN LISTS GAMP_CAPABILITIES)
     list(APPEND packager_args --capability "${capability}")
+  endforeach()
+
+  foreach(event IN LISTS GAMP_EVENTS)
+    list(APPEND packager_args --event "${event}")
   endforeach()
 
   foreach(entry IN LISTS GAMP_META)
@@ -230,6 +239,20 @@ function(_gf_module_json_string_array json file key out_var)
   set(${out_var} "${values}" PARENT_SCOPE)
 endfunction()
 
+# The same, but tolerating an absent key. For a field being introduced across
+# two repositories, where the modules cannot gain it in the same commit that
+# starts reading it.
+function(_gf_module_json_string_array_optional json file key out_var)
+  string(JSON type ERROR_VARIABLE type_err TYPE "${json}" ${key})
+  if(type_err)
+    set(${out_var} "" PARENT_SCOPE)
+    return()
+  endif()
+  _gf_module_json_string_array("${json}" "${file}" ${key} values)
+  set(${out_var} "${values}" PARENT_SCOPE)
+endfunction()
+
+
 # gf_add_module(
 #   NAME         <short name>          -> target gf_mod_<name>
 #   QT           <component>...        -> Qt::<component>
@@ -295,6 +318,27 @@ function(gf_add_module)
   _gf_module_json_string_array("${manifest_json}" "${manifest_file}"
     capabilities module_capabilities)
 
+  # events: the subscription allowlist. Optional while the modules migrate;
+  # required once every module.json declares one.
+  set(module_events "")
+  _gf_module_json_string_array_optional("${manifest_json}" "${manifest_file}"
+    events module_events)
+  foreach(event IN LISTS module_events)
+    if(NOT event MATCHES "^[A-Z][A-Z0-9_]*$")
+      message(FATAL_ERROR
+        "${manifest_file}: event \"${event}\" is not an upper-case identifier")
+    endif()
+  endforeach()
+  # Sorted and de-duplicated, so the canonical manifest -- which the signature
+  # covers -- is byte-identical however the file happened to be ordered.
+  list(LENGTH module_events _gf_events_raw)
+  list(SORT module_events)
+  list(REMOVE_DUPLICATES module_events)
+  list(LENGTH module_events _gf_events_uniq)
+  if(NOT _gf_events_raw EQUAL _gf_events_uniq)
+    message(FATAL_ERROR "${manifest_file}: \"events\" contains duplicates")
+  endif()
+
   set(module_min_host_version "${PROJECT_VERSION}")
   _gf_module_json_optional_string("${manifest_json}" "${manifest_file}"
     min_host_version module_min_host_version)
@@ -314,7 +358,11 @@ function(gf_add_module)
 
   set_target_properties(${target_name} PROPERTIES POSITION_INDEPENDENT_CODE ON)
   target_compile_features(${target_name} PRIVATE cxx_std_17)
-  target_link_libraries(${target_name} PRIVATE gf_sdk)
+  # The runtime first: its undefined SDK symbols are resolved by gf_sdk, which
+  # follows it on the link line. Nothing forces the archive open -- the
+  # module's own GFModuleGetApi references GFModuleRuntimeGetApi, and that
+  # reference is what makes the linker keep the entry point.
+  target_link_libraries(${target_name} PRIVATE gf_module_runtime gf_sdk)
 
   foreach(component IN LISTS GAM_QT)
     target_link_libraries(${target_name} PRIVATE Qt::${component})
@@ -374,7 +422,9 @@ function(gf_add_module)
     MODULE_ID    "${module_id}"
     VERSION      "${module_version}"
     MIN_HOST_VERSION "${module_min_host_version}"
+    TRANSLATION_CONTEXT "${module_translation_context}"
     CAPABILITIES ${module_capabilities}
+    EVENTS       ${module_events}
     META         "Name=${module_name}"
                  "Description=${module_description}"
                  "Author=${module_author}"
