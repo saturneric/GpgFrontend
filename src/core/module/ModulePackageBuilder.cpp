@@ -28,6 +28,8 @@
 
 #include "ModulePackageBuilder.h"
 
+#include "core/module/ModuleManifest.h"
+
 #include <sodium.h>
 
 #include <QFile>
@@ -167,6 +169,12 @@ auto CanonicalJson(const QJsonValue& value, QByteArray& out) -> bool {
 
 auto BuildModulePackage(const ModulePackageBuildSpec& spec)
     -> ModulePackageBuildResult {
+  // The os string the verifier will compare against, unless the caller is
+  // deliberately cross-packaging. Taking it from the command line by default
+  // meant a packaging script could stamp a spelling nothing accepts.
+  const auto platform_os =
+      spec.platform_os.isEmpty() ? ManifestHostOsName() : spec.platform_os;
+
   if (!EnsureSodiumInit()) {
     return Fail("the cryptography library could not be started");
   }
@@ -238,7 +246,7 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
       {"build", QJsonObject{{"id", spec.build_id},
                             {"timestamp", spec.build_timestamp},
                             {"source_commit", spec.build_source_commit}}},
-      {"platform", QJsonObject{{"os", spec.platform_os},
+      {"platform", QJsonObject{{"os", platform_os},
                                {"arch", spec.platform_arch},
                                {"qt", spec.platform_qt}}},
       {"files", files_json},

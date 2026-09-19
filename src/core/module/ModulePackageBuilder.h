@@ -62,6 +62,9 @@ struct GF_CORE_EXPORT ModulePackageBuildSpec {
   QString build_timestamp;
   QString build_source_commit;
 
+  /// Left empty, this defaults to ManifestHostOsName() -- the same spelling
+  /// the verifier compares against, so a native build cannot produce a package
+  /// its own host would refuse. Set it explicitly only to cross-package.
   QString platform_os;
   QString platform_arch;
   QString platform_qt;
