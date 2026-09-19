@@ -28,10 +28,14 @@
 
 #pragma once
 
+#include <memory>
+
 #include "core/module/Event.h"
 #include "core/thread/TaskRunner.h"
 
 namespace GpgFrontend::Module {
+
+class ModuleImageMapping;
 
 class Module;
 class GlobalModuleContext;
@@ -194,13 +198,40 @@ class GF_CORE_EXPORT Module : public QObject {
   auto UnloadLibrary() -> bool;
 
   /**
-   * @brief Return the filesystem path of the dynamic module library.
+   * @brief Return where this module came from.
+   *
+   * For a packaged module this is the `*.gfmodule` it was verified from, not
+   * the path it was loaded through. The two are different things and only the
+   * first is meaningful to anyone: the load path is ephemeral by design, and on
+   * Linux it is a file descriptor in `/proc/self/fd` that names nothing a user
+   * could open. The package is also the honest answer, being the thing the
+   * host actually checked a signature over.
    *
    * Returns an empty string for integrated modules.
    *
-   * @return absolute path to the module library file
+   * @return the source package, or the library file for a loose module
    */
   [[nodiscard]] auto GetModulePath() const -> QString;
+
+  /**
+   * @brief Record the package this module was verified from.
+   *
+   * @param path the `*.gfmodule` on disk
+   */
+  void SetSourcePackagePath(const QString& path);
+
+  /**
+   * @brief Take ownership of the materialised image backing this module.
+   *
+   * The mapping must outlive the load, and on a platform that cannot unlink an
+   * open image it must outlive the module itself -- so the module is where it
+   * belongs. Handing it over is also what triggers the unlink where one is
+   * possible, so an image stops existing the moment it has been mapped,
+   * whatever else still holds a reference to the mapping.
+   *
+   * @param mapping the mapping the image was loaded through
+   */
+  void AdoptImageMapping(std::shared_ptr<ModuleImageMapping> mapping);
 
   /**
    * @brief Return a checksum of the module binary.

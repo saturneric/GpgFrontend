@@ -37,7 +37,6 @@
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleManager.h"
-#include "core/module/ModuleStore.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 #include "sdk/GFSDKModuleAttribution.h"
@@ -236,19 +235,6 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             // another's -- so this half stays one at a time, on purpose.
             for (const auto& candidate : to_load) {
               manager.LoadPreparedModule(candidate);
-            }
-
-            // After loading, not before: what is collected is whatever no
-            // longer has anything pointing at it, and this start's installs
-            // are what decide that. A crashed install leaves dot-prefixed
-            // staging, and a version superseded twice can no longer be
-            // reached even by a rollback.
-            const auto store_root = ModuleStoreRoot(
-                GlobalSettingStation::GetInstance().GetModulesDir());
-            const auto collected = SweepModuleStore(store_root);
-            if (collected > 0) {
-              LOG_I() << "module store: removed" << collected
-                      << "unreachable directories";
             }
 
             // Stated rather than left to be inferred from the gap between

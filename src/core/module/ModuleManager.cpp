@@ -40,7 +40,6 @@
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModulePackageVerifier.h"
-#include "core/module/ModuleStore.h"
 #include "core/struct/settings_object/ModuleSO.h"
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
@@ -144,6 +143,28 @@ auto IsModulePackageFileName(const QString& file_name) -> bool {
   return file_name.endsWith(kModulePackageSuffix, Qt::CaseInsensitive);
 }
 
+auto InspectModuleImage(const VerifiedModuleImage& image,
+                        const QString& known_hash) -> ModuleLibraryInspection {
+  if (!image.IsValid()) return {false, "there is no image to inspect", {}};
+
+  // From the manifest, which is signed, rather than from a filename -- there
+  // is no file yet, and on the platform where there never will be one the load
+  // path is a number.
+  if (!IsModuleLibraryFileName(image.LibraryName())) {
+    return {false, "the packaged library is not named like a module", {}};
+  }
+
+  if (!HasNativeImageHeader(image.Bytes().left(8))) {
+    return {false, "the packaged library is not a native image", {}};
+  }
+
+  if (known_hash.isEmpty()) {
+    return {false, "the manifest carries no digest for the library", {}};
+  }
+
+  return {true, {}, known_hash};
+}
+
 auto InspectModuleLibrary(const QString& module_library_path,
                           const QString& known_hash)
     -> ModuleLibraryInspection {
@@ -208,48 +229,76 @@ class ModuleManager::Impl {
   ~Impl() = default;
 
   /**
-   * @brief Install a package if it is new, then hand back where it lives.
+   * @brief Verify a package and make its library loadable, installing nothing.
    *
    * The ordering the whole format exists for is inside
-   * InstallModulePackage(): verify completely, in memory, writing nothing;
-   * extract only then; re-verify where it landed; and only then let anything
-   * point at it.
+   * ReadVerifiedModuleImage(): every entry is diverted, so no byte of an
+   * unverified package reaches a filesystem, and the library is handed back
+   * only once the manifest, the signature and every file digest agree.
    *
-   * Installing means a package is unpacked once rather than on every start,
-   * and that what gets loaded is a tree whose digests were re-checked against
-   * the signed manifest a moment ago. That check is the enforceable half of
-   * immutability -- the files sit on a disk the user owns, so a change is
-   * something to detect before loading, not something to prevent.
+   * Nothing is installed and nothing is cached. The verified bytes are
+   * materialised only as far as the native loader requires -- on Linux not at
+   * all, the image being an anonymous descriptor -- and that materialisation
+   * lives exactly as long as the module does. A start therefore costs the same
+   * every time, and there is no on-disk state for a later start, an upgrade or
+   * a second profile to disagree with.
    *
    * @param package_path the `*.gfmodule` the scan found
-   * @param[out] library_path the installed module binary, on success
+   * @param[out] mapping the materialised image, on success
+   * @param[out] library_path the path to hand the loader, on success
    * @param[out] manifest what the package says about itself, on success
-   * @return false when the package was refused; nothing was installed
+   * @param[out] module_hash the signed digest of the library, on success
+   * @return false when the package was refused; nothing was materialised
    */
-  auto InstallAndResolvePackage(const QString& package_path,
-                                QString& library_path, ModuleManifest& manifest)
-      -> bool {
-    const auto store_root =
-        ModuleStoreRoot(GlobalSettingStation::GetInstance().GetModulesDir());
-
-    const auto installed = InstallModulePackage(package_path, store_root);
-    if (!installed.ok) {
+  auto VerifyAndMaterializePackage(const QString& package_path,
+                                   std::shared_ptr<ModuleImageMapping>& mapping,
+                                   QString& library_path,
+                                   ModuleManifest& manifest,
+                                   QString& module_hash) -> bool {
+    const auto read = ReadVerifiedModuleImage(package_path);
+    if (!read.ok) {
       LOG_W() << "module manager refuses module package: " << package_path
-              << ", reason: " << installed.reason << " ("
-              << ModulePackageStatusToString(installed.status) << ")";
+              << ", reason: " << read.reason << " ("
+              << ModulePackageStatusToString(read.status) << ")";
       return false;
     }
 
-    if (installed.already_installed) {
-      LOG_D() << "module already installed, loading from the store: "
-              << installed.manifest.id;
-    } else {
-      LOG_I() << "installed module package: " << installed.manifest.id
-              << installed.manifest.version << "into" << installed.install_dir;
+    // The manifest's digest for the binary, already checked against these very
+    // bytes by the verification above.
+    QString known_hash;
+    for (const auto& file : read.manifest.files) {
+      if (file.path.startsWith("bin/")) {
+        known_hash = file.sha256;
+        break;
+      }
     }
 
-    library_path = installed.library_path;
-    manifest = installed.manifest;
+    // Everything a pre-load inspection can ask about a packaged module is a
+    // property of the package, not of wherever its bytes end up. Asking here,
+    // of the bytes, is both earlier and more honest than asking later of a
+    // path -- and a path is the one thing that cannot answer it, since a
+    // descriptor in /proc/self/fd is named after a number.
+    const auto inspection = InspectModuleImage(read.image, known_hash);
+    if (!inspection.ok) {
+      LOG_W() << "module manager refuses module package: " << package_path
+              << ", reason: " << inspection.reason;
+      return false;
+    }
+
+    QString reason;
+    auto materialized = ModuleImageMapping::Create(read.image, &reason);
+    if (!materialized) {
+      // Fails closed: there is no path, so there is nothing for phase two to
+      // load even if it were careless enough to try.
+      LOG_W() << "module manager could not make module loadable: "
+              << package_path << ", reason: " << reason;
+      return false;
+    }
+
+    library_path = materialized->LoadPath();
+    mapping = std::shared_ptr<ModuleImageMapping>(std::move(materialized));
+    manifest = read.manifest;
+    module_hash = inspection.hash;
     return true;
   }
 
@@ -281,13 +330,18 @@ class ModuleManager::Impl {
     }
 
     if (candidate.packaged) {
+      std::shared_ptr<ModuleImageMapping> mapping;
       QString library_path;
-      ModuleManifest unpacked;
-      if (!InstallAndResolvePackage(path, library_path, unpacked)) {
+      ModuleManifest verified;
+      QString module_hash;
+      if (!VerifyAndMaterializePackage(path, mapping, library_path, verified,
+                                       module_hash)) {
         return candidate;
       }
       candidate.library_path = library_path;
-      candidate.manifest = unpacked;
+      candidate.mapping = mapping;
+      candidate.manifest = verified;
+      candidate.module_hash = module_hash;
     }
 
     candidate.ok = true;
@@ -318,31 +372,26 @@ class ModuleManager::Impl {
       return false;
     }
 
-    // For a package, the manifest's digest for the binary -- already checked
-    // against these bytes by VerifyExtractedModuleTree during phase one.
-    QString known_hash;
-    if (manifest) {
-      for (const auto& file : manifest->files) {
-        if (file.path.startsWith("bin/")) {
-          known_hash = file.sha256;
-          break;
-        }
-      }
-    }
-    if (known_hash.isEmpty()) {
+    // A packaged module was inspected in phase one, against its bytes rather
+    // than against a path -- which is the only place that question can be
+    // answered for an image that never becomes a file. A loose library has no
+    // manifest to inspect, so it is inspected here, where it still can be:
+    // QLibrary::load() below runs the module's own initializers, so everything
+    // decidable without mapping has to be decided before this point.
+    QString module_hash = candidate.module_hash;
+    if (!candidate.packaged) {
       ModuleLoadStats::GetInstance().AddHashedBytes(
           QFileInfo(library_path).size());
-    }
 
-    // everything that can be decided without mapping the image has to be
-    // decided here: QLibrary::load() below runs the module's own initializers
-    const auto inspection = InspectModuleLibrary(library_path, known_hash);
-    if (!inspection.ok) {
-      LOG_W() << "module manager refuses to load module: " << library_path
-              << ", reason: " << inspection.reason;
-      need_register_modules_--;
-      ModuleLoadStats::GetInstance().AddRefusedModule();
-      return false;
+      const auto inspection = InspectModuleLibrary(library_path);
+      if (!inspection.ok) {
+        LOG_W() << "module manager refuses to load module: " << library_path
+                << ", reason: " << inspection.reason;
+        need_register_modules_--;
+        ModuleLoadStats::GetInstance().AddRefusedModule();
+        return false;
+      }
+      module_hash = inspection.hash;
     }
 
     auto module_library = std::make_unique<QLibrary>(library_path);
@@ -360,8 +409,8 @@ class ModuleManager::Impl {
     // Ownership moves into the Module, which is what gives teardown something
     // to unload. It used to be a local here, so a successfully loaded module
     // stayed mapped for the whole run with nothing holding a handle on it.
-    auto module = SecureCreateSharedObject<Module>(std::move(module_library),
-                                                   inspection.hash);
+    auto module =
+        SecureCreateSharedObject<Module>(std::move(module_library), module_hash);
     if (!module->IsGood()) {
       LOG_W() << "module manager failed to load module, "
                  "reason: illegal module: "
@@ -393,10 +442,36 @@ class ModuleManager::Impl {
         return false;
       }
 
+      // The same argument applies to the version, which until now was signed
+      // and then not looked at. A package saying 1.3.2 while the binary says
+      // something else is a package whose signature covers a claim nothing
+      // checks -- and the version is what an update decision is made on.
+      if (module->GetModuleVersion() != manifest->version) {
+        LOG_W() << "module manager refuses module package: "
+                << module_library_path << ", reason: its manifest says version "
+                << manifest->version << " and the module inside says "
+                << module->GetModuleVersion();
+        module->UnloadLibrary();
+        module.reset();
+        need_register_modules_--;
+        ModuleLoadStats::GetInstance().AddRefusedModule();
+        return false;
+      }
+
       // Metadata now comes from the manifest, which is readable without
       // executing anything.
       module->SetModuleMetaData(manifest->metadata);
+
+      // What a user can act on is the package, not the descriptor or temporary
+      // file the image happened to arrive through.
+      module->SetSourcePackagePath(module_library_path);
     }
+
+    // The module takes the image with it. Where an open image can be unlinked
+    // this is also when that happens, so the file stops existing the moment it
+    // has been mapped; where it cannot -- Windows -- the module outliving it is
+    // exactly what keeps the mapping valid.
+    if (candidate.mapping) module->AdoptImageMapping(candidate.mapping);
 
     module->SetGPC(gmc_.get());
     ModuleLoadStats::GetInstance().AddLoadedModule();

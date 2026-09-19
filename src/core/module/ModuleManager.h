@@ -28,10 +28,12 @@
 
 #pragma once
 
+#include <memory>
 #include <optional>
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Event.h"
+#include "core/module/ModuleImageMapping.h"
 #include "core/module/ModuleManifest.h"
 #include "core/utils/MemoryUtils.h"
 
@@ -71,9 +73,26 @@ struct GF_CORE_EXPORT ModuleLoadCandidate {
   bool integrated = false;
   bool packaged = false;
 
-  bool ok = false;       ///< preparation succeeded; phase 2 may proceed
-  QString library_path;  ///< the binary phase 2 maps
+  bool ok = false;  ///< preparation succeeded; phase 2 may proceed
+
+  /// Where phase 2 maps from. For a loose library this is the library itself;
+  /// for a package it is whatever @c mapping made available, which is a
+  /// descriptor rather than a file wherever the platform allows.
+  QString library_path;
+
+  /// Set for a package only: the materialised image. Shared rather than
+  /// unique because a candidate is carried through a vector between the two
+  /// phases -- the module that loads from it takes a reference, and a
+  /// materialisation phase 2 never reaches is released when the candidate
+  /// goes out of scope, with nothing left behind either way.
+  std::shared_ptr<ModuleImageMapping> mapping;
+
   std::optional<ModuleManifest> manifest;  ///< set for a package only
+
+  /// The digest to record against this module's settings. For a package it is
+  /// the manifest's, already checked against the bytes; for a loose library
+  /// the pre-load inspection computes it.
+  QString module_hash;
 };
 
 /**
@@ -412,6 +431,29 @@ struct GF_CORE_EXPORT ModuleLibraryInspection {
   QString reason;   ///< why it was refused, empty when ok
   QString hash;     ///< sha-256 of the inspected bytes, empty when refused
 };
+
+/**
+ * @brief Inspect a verified module image before it is materialised.
+ *
+ * The packaged counterpart of InspectModuleLibrary(), and the reason the two
+ * are separate: every question worth asking about a packaged module is a
+ * property of the package, so it can be asked of the bytes, before they are
+ * anywhere, rather than of a path afterwards. The library's name comes from
+ * the signed manifest instead of from a filename, which is what makes this
+ * work at all on a platform where the load path is a descriptor number.
+ *
+ * Nothing here re-hashes the image. The manifest's digest was checked against
+ * these very bytes a moment ago, so @p known_hash is passed through: this
+ * value is a settings-invalidation marker, not a security check, and the
+ * security check is the verification that produced it.
+ *
+ * @param image the verified image
+ * @param known_hash the manifest's digest for it
+ * @return whether it may be materialised, and the hash to record
+ */
+auto GF_CORE_EXPORT InspectModuleImage(const VerifiedModuleImage& image,
+                                       const QString& known_hash)
+    -> ModuleLibraryInspection;
 
 /**
  * @brief Inspect a module library before mapping it into the process.

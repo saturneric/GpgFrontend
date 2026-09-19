@@ -31,6 +31,7 @@
 #include <optional>
 
 #include "core/module/GlobalModuleContext.h"
+#include "core/module/ModuleImageMapping.h"
 #include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
 #include "sdk/GFSDKModuleApi.h"
@@ -270,7 +271,19 @@ class Module::Impl {
   }
 
   [[nodiscard]] auto GetModulePath() const -> QString {
-    return module_library_path_;
+    return source_package_path_.isEmpty() ? module_library_path_
+                                          : source_package_path_;
+  }
+
+  void SetSourcePackagePath(QString path) {
+    source_package_path_ = std::move(path);
+  }
+
+  void AdoptImageMapping(std::shared_ptr<ModuleImageMapping> mapping) {
+    image_mapping_ = std::move(mapping);
+    // Now, not at destruction: the image has been mapped, so on every platform
+    // that allows it the file can stop existing immediately.
+    if (image_mapping_) image_mapping_->NotifyLoaded();
   }
 
   [[nodiscard]] auto GetModuleHash() const -> QString { return module_hash_; }
@@ -292,6 +305,14 @@ class Module::Impl {
   /// handle on it any more.
   std::unique_ptr<QLibrary> module_library_;
   QString module_library_path_;
+
+  /// The `*.gfmodule` this was verified from, for a packaged module.
+  QString source_package_path_;
+
+  /// Keeps the materialised image alive for as long as the module is mapped,
+  /// which on Windows is the whole of it -- an open image cannot be unlinked
+  /// there, so the mapping's destructor is what removes the file.
+  std::shared_ptr<ModuleImageMapping> image_mapping_;
   QString gf_sdk_ver_;
   QString qt_env_ver_;
 
@@ -373,6 +394,15 @@ void Module::SetModuleMetaData(const ModuleMetaData& meta_data) {
 
 [[nodiscard]] auto Module::GetModulePath() const -> QString {
   return p_->GetModulePath();
+}
+
+void Module::SetSourcePackagePath(const QString& path) {
+  p_->SetSourcePackagePath(path);
+}
+
+void Module::AdoptImageMapping(
+    std::shared_ptr<ModuleImageMapping> mapping) {
+  p_->AdoptImageMapping(std::move(mapping));
 }
 
 [[nodiscard]] auto Module::GetModuleHash() const -> QString {
