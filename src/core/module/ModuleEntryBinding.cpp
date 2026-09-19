@@ -153,8 +153,21 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
   // descriptor names a file in this directory, and anything else is a
   // different file wearing its name.
   if (info.isSymLink() || !info.isFile()) {
-    return Refuse(ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE,
-                  QString("\"%1\" is not a regular file").arg(info.fileName()));
+    // Say WHICH, and for a link say where it points. "is not a regular file"
+    // covers three quite different situations -- a symlink, a directory, and
+    // something exotic -- and a reader who cannot tell them apart cannot tell
+    // a packaging mistake from a build-system one. This cost a CI round trip.
+    QString what;
+    if (info.isSymLink()) {
+      what = QString("a symlink to \"%1\"").arg(info.symLinkTarget());
+    } else if (info.isDir()) {
+      what = "a directory";
+    } else {
+      what = "not a regular file";
+    }
+    return Refuse(
+        ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE,
+        QString("\"%1\" is %2").arg(info.fileName(), what));
   }
 
   const auto canonical_root = QFileInfo(root.path).canonicalFilePath();

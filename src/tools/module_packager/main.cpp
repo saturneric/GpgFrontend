@@ -33,6 +33,7 @@
 #include <QTextStream>
 
 #include "core/module/ModuleDescriptor.h"
+#include "core/module/ModuleManifest.h"
 #include "core/module/ModuleDescriptorBuilder.h"
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleNamespace.h"
@@ -75,7 +76,7 @@ void PrintUsage(QTextStream& err) {
       << "                         [--file ARCHIVE_PATH=SOURCE_FILE]...\n"
       << "\n"
       << "subcommands: verify-module-set, seal-prepared, reseal, "
-         "binding-id\n";
+         "binding-id, host-info\n";
 }
 
 /// Split `KEY=VALUE` at the FIRST `=`, so a value may contain one.
@@ -517,6 +518,25 @@ auto ResealCommand(const QStringList& args, QTextStream& err) -> int {
   return 0;
 }
 
+
+/// `host-info`: the canonical os and architecture names this build uses.
+///
+/// So a shell script does not have to reimplement NormalizeManifestArch().
+/// `uname -m` says `aarch64` where Qt says `arm64`, and a build record that
+/// spelled the architecture differently from the descriptors beside it would
+/// be describing a machine nothing else recognises. One implementation,
+/// printed on request.
+auto HostInfoCommand(const QStringList& args, QTextStream& err) -> int {
+  if (!args.isEmpty()) {
+    err << "usage: gf_module_packager host-info\n";
+    return 2;
+  }
+  QTextStream out(stdout);
+  out << "os " << GpgFrontend::Module::ManifestHostOsName() << "\n";
+  out << "arch " << GpgFrontend::Module::ManifestHostArchName() << "\n";
+  return 0;
+}
+
 /// `binding-id`: write the macOS binding id for a module into a file.
 ///
 /// A subcommand rather than a CMake function, and for a reason worth stating:
@@ -589,6 +609,9 @@ auto main(int argc, char** argv) -> int {
   }
   if (args.size() > 1 && args.at(1) == "reseal") {
     return ResealCommand(args.mid(2), err);
+  }
+  if (args.size() > 1 && args.at(1) == "host-info") {
+    return HostInfoCommand(args.mid(2), err);
   }
   if (args.size() > 1 && args.at(1) == "binding-id") {
     return BindingIdCommand(args.mid(2), err);
