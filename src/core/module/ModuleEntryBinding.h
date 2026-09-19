@@ -82,9 +82,81 @@ namespace GpgFrontend::Module {
 /// downloads away from the loader; it says nothing about who produced the file.
 auto GF_CORE_EXPORT HasNativeImageHeader(const QByteArray& header) -> bool;
 
+/**
+ * @brief What a binding is computed relative to.
+ *
+ * Only `apple-binding-id` uses it, and it is a required argument rather than
+ * an optional one so that adding a mode which needs identity cannot silently
+ * get an empty one.
+ */
+struct GF_CORE_EXPORT ModuleEntryBindingContext {
+  QString module_id;
+  QString build_id;
+  int sdk_abi = 0;
+};
+
+/**
+ * @brief The GpgFrontend binding id for a module in a build.
+ *
+ * Not secret, not a signature, and not derived from the file: it is a name for
+ * "this module, in this build", computed from three public values so that a
+ * test, CMake and the runtime all reach the same answer independently.
+ *
+ * ```
+ * SHA-256( "GpgFrontend.ModuleBinding.v1" 0x00
+ *          module_id                      0x00
+ *          build_id                       0x00
+ *          sdk_abi as ASCII decimal )
+ * ```
+ *
+ * The domain prefix and the version in it make the scheme replaceable without
+ * ambiguity. The separators are single NULs and there are no length prefixes,
+ * which is safe here only because none of the three inputs may contain a NUL:
+ * a module id and a build id are both constrained character sets, and the ABI
+ * is a number.
+ */
+auto GF_CORE_EXPORT
+ModuleEntryBindingId(const ModuleEntryBindingContext& context) -> QString;
+
 auto GF_CORE_EXPORT ComputeEntryVerificationValue(
-    ModuleEntryVerificationMode mode, const QString& native_path, QString& out,
-    QString& reason) -> bool;
+    ModuleEntryVerificationMode mode, const QString& native_path,
+    const ModuleEntryBindingContext& context, QString& out, QString& reason)
+    -> bool;
+
+/**
+ * @brief The Authenticode image digest of a PE file.
+ *
+ * Not a digest of the file. It skips exactly the three regions that
+ * Authenticode signing and timestamping write, per Microsoft's *Windows
+ * Authenticode Portable Executable Signature Format*:
+ *
+ *  1. the `CheckSum` field in the Optional Header (4 bytes);
+ *  2. the Certificate Table entry in the Data Directory (8 bytes);
+ *  3. the attribute certificate table itself, at the end of the file.
+ *
+ * That is what lets a module DLL be signed after its descriptor is final, by
+ * CI or by hand, without the binding breaking and without the build key being
+ * needed again.
+ *
+ * Exposed for testing. Everything else should go through
+ * ComputeEntryVerificationValue(), so the producer and the verifier are
+ * calling one implementation rather than two that agree today.
+ */
+auto GF_CORE_EXPORT PeAuthenticodeDigest(const QByteArray& pe_bytes,
+                                         QString& reason) -> QString;
+
+/**
+ * @brief Read the GpgFrontend binding section out of a Mach-O, without loading
+ * it.
+ *
+ * Walks load commands rather than trusting file offsets, so it is indifferent
+ * to `codesign` having appended to `__LINKEDIT` and rewritten them. A
+ * universal (fat) binary is refused rather than parsed: no build in this
+ * matrix produces one, so accepting it would mean guessing which slice was
+ * authoritative.
+ */
+auto GF_CORE_EXPORT MachOBindingSection(const QByteArray& macho_bytes,
+                                        QString& reason) -> QString;
 
 /**
  * @brief The directory a module's native files live in.

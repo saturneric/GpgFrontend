@@ -283,8 +283,10 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
 
     QString value;
     QString why;
-    if (!ComputeEntryVerificationValue(*mode, spec.entry_native_file, value,
-                                       why)) {
+    const ModuleEntryBindingContext context{spec.module_id, spec.build_id,
+                                            spec.sdk_abi};
+    if (!ComputeEntryVerificationValue(*mode, spec.entry_native_file, context,
+                                       value, why)) {
       return Fail(why);
     }
 

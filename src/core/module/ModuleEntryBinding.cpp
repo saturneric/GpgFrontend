@@ -28,9 +28,12 @@
 
 #include "core/module/ModuleEntryBinding.h"
 
+#include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QRegularExpression>
+#include <algorithm>
 
 #include "GpgFrontendBuildInstallInfo.h"
 #include "core/function/GFBufferFactory.h"
@@ -199,7 +202,10 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
 
   QString actual;
   QString why;
-  if (!ComputeEntryVerificationValue(entry.mode, canonical_file, actual, why)) {
+  const ModuleEntryBindingContext context{manifest.id, manifest.build_id,
+                                          manifest.sdk_abi};
+  if (!ComputeEntryVerificationValue(entry.mode, canonical_file, context,
+                                     actual, why)) {
     return Refuse(ModuleEntryStatus::kIO_FAILED, why);
   }
   if (actual != entry.value) {
@@ -215,9 +221,289 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
   return v;
 }
 
+namespace {
+
+/// Little-endian reads, bounds-checked, because every offset in a PE or a
+/// Mach-O header comes from the file being examined.
+auto ReadU16(const QByteArray& b, qsizetype at, quint16& out) -> bool {
+  if (at < 0 || at + 2 > b.size()) return false;
+  out = static_cast<quint16>(static_cast<quint8>(b[at])) |
+        static_cast<quint16>(static_cast<quint8>(b[at + 1]) << 8);
+  return true;
+}
+
+auto ReadU32(const QByteArray& b, qsizetype at, quint32& out) -> bool {
+  if (at < 0 || at + 4 > b.size()) return false;
+  out = static_cast<quint32>(static_cast<quint8>(b[at])) |
+        (static_cast<quint32>(static_cast<quint8>(b[at + 1])) << 8) |
+        (static_cast<quint32>(static_cast<quint8>(b[at + 2])) << 16) |
+        (static_cast<quint32>(static_cast<quint8>(b[at + 3])) << 24);
+  return true;
+}
+
+auto ReadU64(const QByteArray& b, qsizetype at, quint64& out) -> bool {
+  quint32 lo = 0;
+  quint32 hi = 0;
+  if (!ReadU32(b, at, lo) || !ReadU32(b, at + 4, hi)) return false;
+  out = static_cast<quint64>(lo) | (static_cast<quint64>(hi) << 32);
+  return true;
+}
+
+}  // namespace
+
+auto PeAuthenticodeDigest(const QByteArray& pe, QString& reason) -> QString {
+  const auto fail = [&reason](const char* why) -> QString {
+    reason = QString("this is not a PE image this can hash: %1").arg(why);
+    return {};
+  };
+
+  if (pe.size() < 0x40 || !pe.startsWith("MZ")) return fail("no MZ header");
+
+  quint32 pe_offset = 0;
+  if (!ReadU32(pe, 0x3C, pe_offset)) return fail("no e_lfanew");
+  if (pe_offset + 24 > static_cast<quint32>(pe.size())) {
+    return fail("the PE header is past the end");
+  }
+  if (pe.mid(static_cast<qsizetype>(pe_offset), 4) !=
+      QByteArray("PE\x00\x00", 4)) {
+    return fail("no PE signature");
+  }
+
+  quint16 sections = 0;
+  quint16 optional_size = 0;
+  if (!ReadU16(pe, pe_offset + 6, sections) ||
+      !ReadU16(pe, pe_offset + 20, optional_size)) {
+    return fail("a truncated COFF header");
+  }
+
+  const auto optional_at = static_cast<qsizetype>(pe_offset) + 24;
+  quint16 magic = 0;
+  if (!ReadU16(pe, optional_at, magic)) return fail("no optional header");
+
+  // The only difference that matters here: where the data directories start.
+  // CheckSum is at +64 in both.
+  qsizetype directories_at = 0;
+  if (magic == 0x10B) {
+    directories_at = optional_at + 96;
+  } else if (magic == 0x20B) {
+    directories_at = optional_at + 112;
+  } else {
+    return fail("an unknown optional header magic");
+  }
+
+  const auto checksum_at = optional_at + 64;
+  const auto certificate_entry_at = directories_at + 4 * 8;
+
+  quint32 size_of_headers = 0;
+  if (!ReadU32(pe, optional_at + 60, size_of_headers)) {
+    return fail("no SizeOfHeaders");
+  }
+  if (size_of_headers > static_cast<quint32>(pe.size())) {
+    return fail("SizeOfHeaders is past the end");
+  }
+
+  quint32 certificate_at = 0;
+  quint32 certificate_size = 0;
+  quint16 directory_count = 0;
+  if (!ReadU16(pe, optional_at + 92 + (magic == 0x20B ? 16 : 0),
+               directory_count)) {
+    directory_count = 0;
+  }
+  // Absent is normal: an unsigned file has no certificate table, and its
+  // entry is sixteen zero bytes. It is still skipped, so signing one later
+  // does not change the digest.
+  if (certificate_entry_at + 8 <= pe.size()) {
+    ReadU32(pe, certificate_entry_at, certificate_at);
+    ReadU32(pe, certificate_entry_at + 4, certificate_size);
+  } else {
+    return fail("no certificate table directory entry");
+  }
+
+  QCryptographicHash hash(QCryptographicHash::Sha256);
+
+  // 1..4: headers, with the checksum and the certificate directory entry cut
+  // out. Everything else about the headers is covered.
+  hash.addData(pe.mid(0, checksum_at));
+  hash.addData(pe.mid(checksum_at + 4, certificate_entry_at - checksum_at - 4));
+  hash.addData(pe.mid(
+      certificate_entry_at + 8,
+      static_cast<qsizetype>(size_of_headers) - (certificate_entry_at + 8)));
+
+  // 5: every section, in file order, by its raw pointer and raw size.
+  const auto section_table_at = optional_at + optional_size;
+  QVector<QPair<quint32, quint32>> chunks;
+  for (quint16 i = 0; i < sections; ++i) {
+    const auto entry = section_table_at + static_cast<qsizetype>(i) * 40;
+    quint32 raw_size = 0;
+    quint32 raw_pointer = 0;
+    if (!ReadU32(pe, entry + 16, raw_size) ||
+        !ReadU32(pe, entry + 20, raw_pointer)) {
+      return fail("a truncated section table");
+    }
+    if (raw_size == 0) continue;
+    if (static_cast<qint64>(raw_pointer) + raw_size > pe.size()) {
+      return fail("a section past the end of the file");
+    }
+    chunks.append({raw_pointer, raw_size});
+  }
+  std::sort(chunks.begin(), chunks.end());
+
+  qint64 covered = size_of_headers;
+  for (const auto& chunk : chunks) {
+    hash.addData(pe.mid(chunk.first, chunk.second));
+    covered =
+        qMax<qint64>(covered, static_cast<qint64>(chunk.first) + chunk.second);
+  }
+
+  // 6: whatever trails the sections, MINUS the certificate table. This is the
+  // part that makes signing invisible to the digest.
+  if (pe.size() > covered) {
+    const auto trailing = pe.size() - covered;
+    const auto certificate_bytes =
+        certificate_at == 0 ? qint64{0} : static_cast<qint64>(certificate_size);
+    const auto extra = trailing - certificate_bytes;
+    if (extra > 0) hash.addData(pe.mid(covered, extra));
+  }
+
+  return QString::fromLatin1(hash.result().toHex());
+}
+
+auto MachOBindingSection(const QByteArray& macho, QString& reason) -> QString {
+  const auto fail = [&reason](const QString& why) -> QString {
+    reason = why;
+    return {};
+  };
+
+  quint32 magic = 0;
+  if (!ReadU32(macho, 0, magic)) return fail("this file has no Mach-O header");
+
+  if (magic == 0xCAFEBABE || magic == 0xBEBAFECA) {
+    // Refused rather than parsed: no build in this matrix produces a universal
+    // binary, so picking a slice would be guessing which one was authoritative.
+    return fail(
+        "this is a universal binary, and a single-architecture one was "
+        "expected");
+  }
+
+  const auto sixty_four = magic == 0xFEEDFACF;
+  if (magic != 0xFEEDFACE && !sixty_four) {
+    return fail("this file is not a thin Mach-O image");
+  }
+
+  quint32 command_count = 0;
+  if (!ReadU32(macho, 16, command_count)) return fail("a truncated header");
+
+  auto at = static_cast<qsizetype>(sixty_four ? 32 : 28);
+
+  for (quint32 i = 0; i < command_count; ++i) {
+    quint32 command = 0;
+    quint32 command_size = 0;
+    if (!ReadU32(macho, at, command) || !ReadU32(macho, at + 4, command_size) ||
+        command_size < 8 || at + command_size > macho.size()) {
+      return fail("a truncated load command");
+    }
+
+    constexpr quint32 kSegment32 = 0x01;
+    constexpr quint32 kSegment64 = 0x19;
+
+    if (command == kSegment64 || command == kSegment32) {
+      const auto wide = command == kSegment64;
+      const auto section_count_at = at + (wide ? 64 : 48);
+      quint32 section_count = 0;
+      if (!ReadU32(macho, section_count_at, section_count)) {
+        return fail("a truncated segment command");
+      }
+
+      const auto sections_at = at + (wide ? 72 : 56);
+      const auto section_size = wide ? 80 : 68;
+
+      for (quint32 sec = 0; sec < section_count; ++sec) {
+        const auto section_at =
+            sections_at + static_cast<qsizetype>(sec) * section_size;
+        if (section_at + section_size > macho.size()) {
+          return fail("a truncated section header");
+        }
+
+        // 16 bytes of section name, then 16 of segment name, both NUL-padded
+        // rather than NUL-terminated, so they are taken by length.
+        const auto section_name =
+            QByteArray(macho.constData() + section_at, 16);
+        const auto segment_name =
+            QByteArray(macho.constData() + section_at + 16, 16);
+
+        const auto matches = [](const QByteArray& padded, const char* want) {
+          return padded.left(static_cast<qsizetype>(qstrlen(want))) == want &&
+                 (padded.size() == static_cast<qsizetype>(qstrlen(want)) ||
+                  padded.at(static_cast<qsizetype>(qstrlen(want))) == '\0');
+        };
+
+        if (!matches(section_name, "__gf_binding") ||
+            !matches(segment_name, "__GPGFRONTEND")) {
+          continue;
+        }
+
+        quint64 offset = 0;
+        quint64 size = 0;
+        if (wide) {
+          quint32 narrow_offset = 0;
+          if (!ReadU64(macho, section_at + 40, size) ||
+              !ReadU32(macho, section_at + 48, narrow_offset)) {
+            return fail("a truncated section header");
+          }
+          offset = narrow_offset;
+        } else {
+          quint32 narrow_size = 0;
+          quint32 narrow_offset = 0;
+          if (!ReadU32(macho, section_at + 40, narrow_size) ||
+              !ReadU32(macho, section_at + 44, narrow_offset)) {
+            return fail("a truncated section header");
+          }
+          size = narrow_size;
+          offset = narrow_offset;
+        }
+
+        // 64 lower-case hex characters, as text. Text rather than 32 raw
+        // bytes because the section content is produced by the build, and a
+        // build system writing exact binary is a build system with an
+        // encoding bug waiting in it.
+        if (size != 64 || static_cast<qint64>(offset) + 64 > macho.size()) {
+          return fail("its binding section is not sixty-four characters");
+        }
+
+        const auto text =
+            QString::fromLatin1(QByteArray(macho.constData() + offset, 64));
+        static const QRegularExpression kHex("^[0-9a-f]{64}$");
+        if (!kHex.match(text).hasMatch()) {
+          return fail("its binding section is not a binding id");
+        }
+        return text;
+      }
+    }
+
+    at += command_size;
+  }
+
+  return fail("it carries no GpgFrontend binding section");
+}
+
+auto ModuleEntryBindingId(const ModuleEntryBindingContext& context) -> QString {
+  QByteArray input;
+  input.append("GpgFrontend.ModuleBinding.v1");
+  input.append('\0');
+  input.append(context.module_id.toUtf8());
+  input.append('\0');
+  input.append(context.build_id.toUtf8());
+  input.append('\0');
+  input.append(QByteArray::number(context.sdk_abi));
+
+  return QString::fromLatin1(
+      QCryptographicHash::hash(input, QCryptographicHash::Sha256).toHex());
+}
+
 auto ComputeEntryVerificationValue(ModuleEntryVerificationMode mode,
-                                   const QString& native_path, QString& out,
-                                   QString& reason) -> bool {
+                                   const QString& native_path,
+                                   const ModuleEntryBindingContext& context,
+                                   QString& out, QString& reason) -> bool {
   switch (mode) {
     case ModuleEntryVerificationMode::kFILE_SHA256: {
       const auto digest = GFBufferFactory::Sha256HexOfFile(native_path);
@@ -229,8 +515,51 @@ auto ComputeEntryVerificationValue(ModuleEntryVerificationMode mode,
       return true;
     }
 
-    case ModuleEntryVerificationMode::kPE_AUTHENTICODE_SHA256:
-    case ModuleEntryVerificationMode::kAPPLE_BINDING_ID:
+    case ModuleEntryVerificationMode::kPE_AUTHENTICODE_SHA256: {
+      QFile file(native_path);
+      if (!file.open(QIODevice::ReadOnly)) {
+        reason = QString("\"%1\" could not be read").arg(native_path);
+        return false;
+      }
+      const auto bytes = file.readAll();
+      file.close();
+
+      const auto digest = PeAuthenticodeDigest(bytes, reason);
+      if (digest.isEmpty()) return false;
+      out = digest;
+      return true;
+    }
+
+    case ModuleEntryVerificationMode::kAPPLE_BINDING_ID: {
+      // Two questions, both of which have to answer yes. What the Mach-O
+      // carries has to be what this module in this build should carry --
+      // otherwise a dylib from another module, signed by the same Apple team,
+      // would satisfy a descriptor it has nothing to do with.
+      QFile file(native_path);
+      if (!file.open(QIODevice::ReadOnly)) {
+        reason = QString("\"%1\" could not be read").arg(native_path);
+        return false;
+      }
+      const auto bytes = file.readAll();
+      file.close();
+
+      const auto embedded = MachOBindingSection(bytes, reason);
+      if (embedded.isEmpty()) return false;
+
+      const auto expected = ModuleEntryBindingId(context);
+      if (embedded != expected) {
+        reason = QString(
+                     "\"%1\" carries a binding for a different module or "
+                     "build")
+                     .arg(QFileInfo(native_path).fileName());
+        return false;
+      }
+
+      out = expected;
+      return true;
+    }
+
+    default:
       // Deliberately a loud refusal rather than a plausible-looking value.
       //
       // Both of these are real algorithms with real specifications -- the PE
