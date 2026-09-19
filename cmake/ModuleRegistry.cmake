@@ -113,7 +113,7 @@ function(_gf_module_package_command)
   # name reconciliation entirely: the two used to be named for different
   # things (the CMake target and the SDK prefix) and had to be matched up.
   gf_module_directory_key("${GAMP_MODULE_ID}" namespace_key)
-  set(package_dir "${CMAKE_BINARY_DIR}/artifacts/modules/${namespace_key}")
+  set(package_dir "${GPGFRONTEND_MODULE_NAMESPACE_ROOT}/${namespace_key}")
   set(package_file "${package_dir}/module.gfmodule")
 
   set(packager_args
@@ -204,6 +204,25 @@ set(GF_MODULE_REGISTRY_DIR "${CMAKE_CURRENT_LIST_DIR}")
 set(GPGFRONTEND_MODULE_TARGETS "" CACHE INTERNAL "All modules" FORCE)
 set(GPGFRONTEND_MODULE_DIRECTORY_KEYS "" CACHE INTERNAL
   "module id=directory key, as CMake derives them" FORCE)
+set(GPGFRONTEND_MODULE_TARGET_KEYS "" CACHE INTERNAL
+  "module target=directory key" FORCE)
+
+# The namespace directory of a module, by its CMake target name.
+#
+# For callers that hold a target rather than an id -- the macOS bundle
+# assembly in src/CMakeLists.txt, mainly. It is a lookup rather than a second
+# derivation: the key follows from the module ID, and re-deriving it from a
+# target name would be inventing a second rule for where a module lives.
+function(gf_module_target_directory_key target_name out_var)
+  foreach(pair IN LISTS GPGFRONTEND_MODULE_TARGET_KEYS)
+    if(pair MATCHES "^${target_name}=(.*)$")
+      set(${out_var} "${CMAKE_MATCH_1}" PARENT_SCOPE)
+      return()
+    endif()
+  endforeach()
+  message(FATAL_ERROR
+    "gf_module_target_directory_key: no module target named ${target_name}")
+endfunction()
 
 # The directory a module owns, derived from the identity it signs.
 #
@@ -474,7 +493,7 @@ function(gf_add_module)
   # DLL load directory on Windows -- which a single flat directory could not.
   gf_module_directory_key("${module_id}" target_namespace_key)
   set(target_native_dir
-    "${CMAKE_BINARY_DIR}/artifacts/modules/${target_namespace_key}/native")
+    "${GPGFRONTEND_MODULE_NAMESPACE_ROOT}/${target_namespace_key}/native")
   set_target_properties(${target_name} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${target_native_dir}"
     LIBRARY_OUTPUT_DIRECTORY "${target_native_dir}")
@@ -520,12 +539,23 @@ function(gf_add_module)
   endif()
 
   if(NOT WIN32 AND NOT APPLE)
-    # $ORIGIN so a private helper beside the entry resolves without any search
-    # path being widened, and the relative hop so Qt is still reachable from
-    # four levels down. The exact depth is a property of the layout above and
-    # is asserted by the dependency audit rather than assumed here.
+    # $ORIGIN first, so a private helper beside the entry resolves without any
+    # search path being widened. Then the hop up to wherever the host's own
+    # libraries are, which is a property of the LAYOUT and differs between the
+    # two the tree produces:
+    #
+    #   dev tree   artifacts/modules/<key>/native      -> ../../..
+    #   AppImage   usr/lib/gpgfrontend/modules/<key>/native -> ../../../..
+    #
+    # Both are listed rather than switched on BUILD_APP_IMAGE. A RUNPATH entry
+    # that does not exist costs one failed stat at load time and nothing else,
+    # while picking the wrong one is a startup failure -- and the two trees are
+    # built by the same code path, so keeping them in step by hand is exactly
+    # the kind of bookkeeping that quietly stops being true. The dependency
+    # audit asserts reachability against a real tree either way, which is the
+    # check that matters.
     set_target_properties(${target_name} PROPERTIES
-      INSTALL_RPATH "$ORIGIN:$ORIGIN/../../.."
+      INSTALL_RPATH "$ORIGIN:$ORIGIN/../../..:$ORIGIN/../../../.."
       BUILD_WITH_INSTALL_RPATH TRUE)
   endif()
 
@@ -554,6 +584,12 @@ function(gf_add_module)
   list(REMOVE_DUPLICATES keys)
   set(GPGFRONTEND_MODULE_DIRECTORY_KEYS "${keys}"
     CACHE INTERNAL "module id=directory key, as CMake derives them" FORCE)
+
+  set(target_keys "${GPGFRONTEND_MODULE_TARGET_KEYS}")
+  list(APPEND target_keys "${target_name}=${module_dir_key}")
+  list(REMOVE_DUPLICATES target_keys)
+  set(GPGFRONTEND_MODULE_TARGET_KEYS "${target_keys}"
+    CACHE INTERNAL "module target=directory key" FORCE)
 
   string(REPLACE ";" "\n" keys_text "${keys}")
   file(WRITE "${CMAKE_BINARY_DIR}/artifacts/module-directory-keys.txt"
@@ -612,7 +648,7 @@ function(gf_add_module)
     "${CMAKE_INSTALL_FULL_LIBDIR}/gpgfrontend/modules/${install_namespace_key}")
 
   install(FILES
-    "${CMAKE_BINARY_DIR}/artifacts/modules/${install_namespace_key}/module.gfmodule"
+    "${GPGFRONTEND_MODULE_NAMESPACE_ROOT}/${install_namespace_key}/module.gfmodule"
     DESTINATION "${install_namespace}")
 
   install(TARGETS ${target_name}

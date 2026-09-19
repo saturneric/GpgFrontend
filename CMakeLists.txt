@@ -522,6 +522,13 @@ elseif(BUILD_APP_IMAGE)
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${APPDIR}/usr/lib")
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${APPDIR}/usr/lib")
 
+  # Modules are built straight into the AppDir at the path the Host will look
+  # for them (GlobalSettingStation::GetIntegratedModulePath), so the tree that
+  # linuxdeployqt scans, the tree the audit checks, the tree that gets sealed
+  # and the tree that ships are all one tree. Copying them in afterwards was
+  # what made the old pipeline's ordering load-bearing and unverifiable.
+  set(GPGFRONTEND_MODULE_NAMESPACE_ROOT "${APPDIR}/usr/lib/gpgfrontend/modules")
+
   file(MAKE_DIRECTORY "${APPDIR}/usr/share/icons")
   file(COPY "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor" DESTINATION "${APPDIR}/usr/share/icons")
 
@@ -549,6 +556,16 @@ else()
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
 endif()
+
+# The module namespace root: one `<key>/{module.gfmodule,native/}` per module.
+#
+# Every layout but the AppImage uses the build tree's own artifacts directory,
+# which is also what a development run discovers -- the dev tree IS the
+# deployment tree, so a developer exercises the same resolution a user does.
+if(NOT DEFINED GPGFRONTEND_MODULE_NAMESPACE_ROOT)
+  set(GPGFRONTEND_MODULE_NAMESPACE_ROOT "${CMAKE_BINARY_DIR}/artifacts/modules")
+endif()
+message(STATUS "Module namespace root: ${GPGFRONTEND_MODULE_NAMESPACE_ROOT}")
 
 # rpath
 if(BUILD_STRIP_RPATH)

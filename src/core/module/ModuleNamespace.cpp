@@ -29,6 +29,8 @@
 #include "core/module/ModuleNamespace.h"
 
 #include <QCryptographicHash>
+#include <QDir>
+#include <QFileInfo>
 
 namespace GpgFrontend::Module {
 
@@ -92,6 +94,33 @@ auto ModuleDirectoryKey(const QString& module_id) -> QString {
   const auto suffix = QString::fromLatin1(digest.toHex().left(kSuffixHexChars));
 
   return LeafOf(module_id) + u'-' + suffix;
+}
+
+auto ModuleNativeRootFor(const QString& descriptor_path) -> QString {
+  // Purely textual, on the cleaned absolute path. QDir::cd()/cdUp() would be
+  // the obvious way to walk this and are the wrong one: they check that the
+  // directory exists, so the answer would depend on what happens to be on
+  // disk, and a test could not ask about a layout it is not running on.
+  const auto full = QDir::cleanPath(QFileInfo(descriptor_path).absolutePath());
+  const auto parts = full.split(u'/', Qt::SkipEmptyParts);
+  if (parts.isEmpty()) return full + "/" + kModuleNativeDirName;
+
+  const auto& namespace_key = parts.constLast();
+
+  // The macOS bundle is the only layout that splits a namespace across two
+  // trees: Apple wants data under Resources and executable code under
+  // Frameworks. Both levels must match -- a namespace that merely happens to
+  // sit under some directory called Resources is not a bundle, and answering
+  // as though it were would point the resolver at nothing.
+  if (parts.size() >= 3 && parts.at(parts.size() - 2) == "modules" &&
+      parts.at(parts.size() - 3) == "Resources") {
+    const auto contents =
+        QStringList(parts.mid(0, parts.size() - 3)).join(u'/');
+    return "/" + contents + "/" + QString::fromUtf8(kAppleModuleNativeRoot) +
+           "/" + namespace_key;
+  }
+
+  return full + "/" + QString::fromUtf8(kModuleNativeDirName);
 }
 
 }  // namespace GpgFrontend::Module

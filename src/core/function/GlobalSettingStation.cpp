@@ -150,13 +150,30 @@ class GlobalSettingStation::Impl {
     return accessor().PathOf(ProfileArea::kModules);
   }
 
+  /**
+   * @brief The module NAMESPACE ROOT: the directory holding one
+   * `<key>/module.gfmodule` per module.
+   *
+   * Every layout below points at the same shape, which is the whole reason
+   * the dev tree was made to match the deployed one: a development build
+   * exercises the same discovery, key check and native resolution a shipped
+   * one does.
+   *
+   * macOS is the exception, and only on one side: descriptors live under
+   * `Resources` and the natives under `Frameworks`, because Apple wants data
+   * in the first and executable code in the second. This returns the
+   * descriptor root; ModuleNativeRootFor() knows the other half, and is the
+   * only thing that does.
+   */
   [[nodiscard]] auto GetIntegratedModulePath() const -> QString {
     const auto exec_binary_path = GetAppDir();
 
 #ifdef Q_OS_LINUX
-    // AppImage
+    // AppImage. Under `gpgfrontend/` rather than directly under `usr/lib`,
+    // matching the install layout: the namespace root now holds directories
+    // that a deployment tool walking `usr/lib` would otherwise scan.
     if (IsAppImageENV()) {
-      return qEnvironmentVariable("APPDIR") + "/usr/lib/modules";
+      return qEnvironmentVariable("APPDIR") + "/usr/lib/gpgfrontend/modules";
     }
     // Flatpak
     if (IsFlatpakENV()) {
@@ -171,7 +188,10 @@ class GlobalSettingStation::Impl {
 #ifdef Q_OS_MACOS
 
 #ifndef GF_BUILD_DEBUG
-    return exec_binary_path + "/../PlugIns";
+    // Contents/MacOS/.. -> Contents. `PlugIns` held loose libraries, which is
+    // what this layout stopped shipping; a descriptor is a resource and its
+    // native is a framework.
+    return exec_binary_path + "/../Resources/modules";
 #endif
 
 #endif

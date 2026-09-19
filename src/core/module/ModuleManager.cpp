@@ -239,7 +239,10 @@ class ModuleManager::Impl {
       return false;
     }
 
-    const ModuleNativeRoot root{namespace_dir.absoluteFilePath("native")};
+    // Where the natives live is ModuleNamespace's to answer, not this
+    // function's: on macOS the descriptor and the code are in two different
+    // trees, because Apple wants executable code under Frameworks.
+    const ModuleNativeRoot root{ModuleNativeRootFor(package_path)};
 
     const auto entry = ResolveAndVerifyNativeEntry(read.manifest, root);
     if (!entry.ok) {

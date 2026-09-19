@@ -413,26 +413,43 @@ if(XCODE_BUILD)
     BUNDLE DESTINATION /Applications
   )
 
-  # What ships is the signed package, so Contents/PlugIns has to receive
-  # `*.gfmodule` files rather than the module targets.
+  # The descriptors, into Contents/Resources/modules/<key>/.
   #
-  # XCODE_EMBED_PLUGINS cannot do that: it embeds build TARGETS, and a package
-  # is a file produced by one. Attaching the files as bundle resources with
-  # MACOSX_PACKAGE_LOCATION is how a file gets into a bundle directory, and
-  # PlugIns is the directory GlobalSettingStation searches on macOS.
-  set(gf_module_packages)
+  # `PlugIns` is gone with the layout that put loose libraries there. A
+  # descriptor is data and belongs under Resources; its entry native is
+  # executable code and belongs under Frameworks, which is what Apple's
+  # signing and Library Validation expect. ModuleNativeRootFor() is the one
+  # place that knows the two halves belong together.
+  #
+  # XCODE_EMBED_PLUGINS cannot place these: it embeds build TARGETS, and a
+  # descriptor is a file produced by one. MACOSX_PACKAGE_LOCATION is how a
+  # file reaches a bundle directory, and it is set per file because each
+  # descriptor goes into its own namespace directory.
+  #
+  # The key is recomputed here from the module id rather than derived from the
+  # target name, for the same reason the Host recomputes it: the directory a
+  # module lives in follows from the identity it signs, and nothing else.
   foreach(module_target IN LISTS GPGFRONTEND_MODULE_TARGETS)
-    string(REGEX REPLACE "^gf_mod_" "" module_short_name "${module_target}")
-    list(APPEND gf_module_packages
-      "${CMAKE_BINARY_DIR}/artifacts/modules/${module_short_name}.gfmodule")
-    # The package is made by a custom command, so the app has to wait for it.
+    gf_module_target_directory_key("${module_target}" bundle_namespace_key)
+    set(bundle_descriptor
+      "${GPGFRONTEND_MODULE_NAMESPACE_ROOT}/${bundle_namespace_key}/module.gfmodule")
+
+    set_source_files_properties("${bundle_descriptor}" PROPERTIES
+      MACOSX_PACKAGE_LOCATION "Resources/modules/${bundle_namespace_key}"
+      GENERATED TRUE)
+    target_sources(${APP_NAME} PRIVATE "${bundle_descriptor}")
+
+    # The descriptor is made by a custom command, so the app has to wait.
     add_dependencies(${APP_NAME} ${module_target}_package)
   endforeach()
 
-  set_source_files_properties(${gf_module_packages} PROPERTIES
-    MACOSX_PACKAGE_LOCATION "PlugIns"
-    GENERATED TRUE)
-  target_sources(${APP_NAME} PRIVATE ${gf_module_packages})
+  # NOTE: the entry natives are NOT placed here. They belong at
+  # Contents/Frameworks/GpgFrontendModules/<key>/, and getting an Xcode build
+  # to put them there -- with install names under @loader_path and the binding
+  # section intact -- has to be done on a Mac and checked with
+  # `codesign --verify` and `verify-module-set`, which is stage J. Placing
+  # them speculatively from here would produce a bundle that looks right and
+  # fails Library Validation.
 
   set_target_properties(${APP_NAME} PROPERTIES
     XCODE_EMBED_FRAMEWORKS "${GPGFRONTEND_LIBRARY_TARGETS}"

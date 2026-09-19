@@ -87,4 +87,45 @@ namespace GpgFrontend::Module {
  */
 auto GF_CORE_EXPORT ModuleDirectoryKey(const QString& module_id) -> QString;
 
+/// The subdirectory of a module namespace holding its native files, on every
+/// layout but the macOS bundle.
+constexpr auto kModuleNativeDirName = "native";
+
+/// The bundle subtree macOS module natives live in, relative to `Contents`.
+///
+/// Apple executable code belongs under `Frameworks`, never under `Resources`:
+/// `Resources` is for data, and code placed there is neither signed nor
+/// validated the way the platform expects.
+constexpr auto kAppleModuleNativeRoot = "Frameworks/GpgFrontendModules";
+
+/// The namespace root inside a macOS bundle, relative to `Contents`.
+constexpr auto kAppleModuleDescriptorRoot = "Resources/modules";
+
+/**
+ * @brief Where a namespace's native files live, given its descriptor.
+ *
+ * The ONE place this is known. Callers never build these paths, which is the
+ * point: on every layout but one the descriptor and the natives are two levels
+ * of a single tree, and on macOS they are genuinely different trees, because
+ * Apple wants code under `Frameworks` and data under `Resources`.
+ *
+ * ```
+ * everywhere   <root>/<key>/module.gfmodule
+ *              <root>/<key>/native/...
+ *
+ * macOS bundle Contents/Resources/modules/<key>/module.gfmodule
+ *              Contents/Frameworks/GpgFrontendModules/<key>/...
+ * ```
+ *
+ * Decided from the descriptor's own path rather than from an `#ifdef`, so a
+ * macOS *development* build -- which uses the unified layout, as the existing
+ * `GF_BUILD_DEBUG` guard already arranges -- takes the unified answer without
+ * a second code path, and so this is testable on any host.
+ *
+ * @param descriptor_path an existing descriptor's path
+ * @return the directory its entry native must be a direct child of
+ */
+auto GF_CORE_EXPORT ModuleNativeRootFor(const QString& descriptor_path)
+    -> QString;
+
 }  // namespace GpgFrontend::Module

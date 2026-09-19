@@ -34,6 +34,7 @@
 #include <QSet>
 
 #include "GpgFrontendTest.h"
+#include "ModuleTestPackages.h"
 #include "core/module/ModuleNamespace.h"
 
 /**
@@ -207,6 +208,57 @@ TEST(ModuleNamespaceTest, CMakeDerivesTheSameKeysThisBuildDoes) {
   }
 
   EXPECT_GT(checked, 0) << "the key file was empty";
+}
+
+// ------------------------------------------------- where the natives live
+
+TEST(ModuleNamespaceTest, TheUnifiedLayoutPutsNativesBesideTheDescriptor) {
+  const auto root = Module::ModuleNativeRootFor(
+      "/opt/gpgfrontend/modules/email-0123456789abcdef0123/module.gfmodule");
+  EXPECT_EQ(root, "/opt/gpgfrontend/modules/email-0123456789abcdef0123/native");
+}
+
+TEST(ModuleNamespaceTest, AMacOsBundleSplitsTheNamespaceAcrossTwoTrees) {
+  // Apple wants data under Resources and executable code under Frameworks, so
+  // this is the one layout where a namespace is not two levels of one tree.
+  const auto root = Module::ModuleNativeRootFor(
+      "/Applications/GpgFrontend.app/Contents/Resources/modules/"
+      "email-0123456789abcdef0123/module.gfmodule");
+  EXPECT_EQ(root.toStdString(),
+            std::string("/Applications/GpgFrontend.app/Contents/Frameworks/"
+                        "GpgFrontendModules/email-0123456789abcdef0123"));
+}
+
+TEST(ModuleNamespaceTest, AMacOsDevelopmentTreeTakesTheUnifiedAnswer) {
+  // A macOS debug build uses the unified layout, and this decides from the
+  // path's shape rather than from an #ifdef -- which is what makes both cases
+  // testable on any host, and what keeps the two from needing separate code.
+  const auto root = Module::ModuleNativeRootFor(
+      "/home/dev/build/artifacts/modules/email-0123456789abcdef0123/"
+      "module.gfmodule");
+  EXPECT_EQ(root,
+            "/home/dev/build/artifacts/modules/email-0123456789abcdef0123/"
+            "native");
+}
+
+TEST(ModuleNamespaceTest, ResourcesAloneIsNotABundleLayout) {
+  // Both levels have to match. A namespace that merely happens to sit under a
+  // directory called Resources is not a bundle, and answering as though it
+  // were would send the resolver somewhere that does not exist.
+  const auto root = Module::ModuleNativeRootFor(
+      "/srv/Resources/email-0123456789abcdef0123/module.gfmodule");
+  EXPECT_EQ(root, "/srv/Resources/email-0123456789abcdef0123/native");
+}
+
+TEST(ModuleNamespaceTest, TheBuiltTreeResolvesToDirectoriesThatExist) {
+  // The derivation above is about strings; this is the one case that checks
+  // it against the tree this build actually produced.
+  for (const auto& descriptor : BuiltModulePackages()) {
+    const auto root =
+        Module::ModuleNativeRootFor(descriptor.absoluteFilePath());
+    EXPECT_TRUE(QFileInfo(root).isDir())
+        << root.toStdString() << " is not a directory";
+  }
 }
 
 }  // namespace GpgFrontend::Test

@@ -151,12 +151,14 @@ audit_elf() {
   # shellcheck disable=SC2206
   local entries=($runpath)
   unset IFS
-  for entry in "${entries[@]}"; do
-    if is_build_tree_path "$entry"; then
-      fail "$ns/$(basename "$file"): its RUNPATH names \"$entry\", which is a
-        build-tree path and will not exist on a user's machine"
+  local rpath_entry
+  for rpath_entry in "${entries[@]}"; do
+    if is_build_tree_path "$rpath_entry"; then
+      fail "$ns/$(basename "$file"): its RUNPATH names \"$rpath_entry\", which
+        is a build-tree path and will not exist on a user's machine"
     fi
-    [[ "$entry" == \$ORIGIN* || "$entry" == '${ORIGIN}'* ]] && origin_seen=1
+    [[ "$rpath_entry" == \$ORIGIN* || "$rpath_entry" == '${ORIGIN}'* ]] \
+      && origin_seen=1
   done
 
   if [[ $origin_seen -eq 0 && $entry -eq 1 ]]; then
@@ -168,11 +170,15 @@ audit_elf() {
   # about, because the number of levels between a module's native directory
   # and Qt differs per layout and getting it wrong is a startup failure rather
   # than a build failure.
+  # Deliberately NOT named `entry`: that is the is-this-the-entry flag above,
+  # and shadowing it here made every reachability comparison meaningless while
+  # still reporting success.
   if [[ -n "$QT_RELATIVE" && $entry -eq 1 ]]; then
     local reachable=0
-    for entry in "${entries[@]}"; do
-      [[ "$entry" == \$ORIGIN* || "$entry" == '${ORIGIN}'* ]] || continue
-      local resolved="${entry/\$\{ORIGIN\}/$native_dir}"
+    for rpath_entry in "${entries[@]}"; do
+      [[ "$rpath_entry" == \$ORIGIN* || "$rpath_entry" == '${ORIGIN}'* ]] \
+        || continue
+      local resolved="${rpath_entry/\$\{ORIGIN\}/$native_dir}"
       resolved="${resolved/\$ORIGIN/$native_dir}"
       if [[ -d "$resolved" ]] &&
          [[ "$(cd "$resolved" 2>/dev/null && pwd -P)" == \
