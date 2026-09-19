@@ -29,6 +29,7 @@
 #include "ModuleLoadStats.h"
 
 #include <QDateTime>
+#include <QThread>
 
 namespace GpgFrontend::Module {
 
@@ -67,6 +68,74 @@ auto ModuleLoadStats::Summary() const -> QString {
       .arg(QString::number(static_cast<double>(hashed) / (1024.0 * 1024.0), 'f',
                            1))
       .arg(elapsed);
+}
+
+void ModuleLoadStats::EnterNativeLoad() {
+  const auto in_flight =
+      native_loads_in_flight_.fetch_add(1, std::memory_order_acq_rel) + 1;
+
+  // Monotonic max, without a lock.
+  auto peak = peak_native_loads_.load(std::memory_order_relaxed);
+  while (in_flight > peak && !peak_native_loads_.compare_exchange_weak(
+                                 peak, in_flight, std::memory_order_relaxed)) {
+  }
+
+  Qt::HANDLE none = nullptr;
+  const auto self = QThread::currentThreadId();
+  if (first_native_load_thread_.compare_exchange_strong(
+          none, self, std::memory_order_acq_rel)) {
+    native_load_threads_.fetch_add(1, std::memory_order_relaxed);
+  } else if (first_native_load_thread_.load(std::memory_order_acquire) !=
+             self) {
+    // A second thread has loaded a module. Counted rather than asserted, so
+    // the test reports it as a failed expectation instead of a crash.
+    native_load_threads_.fetch_add(1, std::memory_order_relaxed);
+  }
+
+  // In a debug build, say so where the mistake is rather than only at the
+  // end of the run.
+  Q_ASSERT_X(in_flight == 1, "ModuleLoadStats::NativeLoadScope",
+             "two modules are being loaded natively at once; "
+             "QLibrary::load() runs third-party static initialisers and "
+             "phase two must stay serial");
+}
+
+void ModuleLoadStats::LeaveNativeLoad() {
+  native_loads_in_flight_.fetch_sub(1, std::memory_order_acq_rel);
+}
+
+void ModuleLoadStats::Finish() {
+  hashed_bytes_at_finish_.store(hashed_bytes_.load(std::memory_order_relaxed),
+                                std::memory_order_relaxed);
+  finished_.store(true, std::memory_order_release);
+}
+
+auto ModuleLoadStats::IsFinished() const -> bool {
+  return finished_.load(std::memory_order_acquire);
+}
+
+auto ModuleLoadStats::HashedBytes() const -> qint64 {
+  return hashed_bytes_.load(std::memory_order_relaxed);
+}
+
+auto ModuleLoadStats::HashedBytesAtFinish() const -> qint64 {
+  return hashed_bytes_at_finish_.load(std::memory_order_relaxed);
+}
+
+auto ModuleLoadStats::PeakConcurrentNativeLoads() const -> int {
+  return peak_native_loads_.load(std::memory_order_relaxed);
+}
+
+auto ModuleLoadStats::NativeLoadThreadCount() const -> int {
+  return native_load_threads_.load(std::memory_order_relaxed);
+}
+
+ModuleLoadStats::NativeLoadScope::NativeLoadScope() {
+  GetInstance().EnterNativeLoad();
+}
+
+ModuleLoadStats::NativeLoadScope::~NativeLoadScope() {
+  GetInstance().LeaveNativeLoad();
 }
 
 }  // namespace GpgFrontend::Module

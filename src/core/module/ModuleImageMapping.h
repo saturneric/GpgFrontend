@@ -132,6 +132,18 @@ class GF_CORE_EXPORT ModuleImageMapping {
    */
   static auto SweepAbandonedDirectories() -> int;
 
+  /**
+   * @brief The private directory file-backed images are materialized into.
+   *
+   * The territory SweepAbandonedDirectories() owns, and nothing else's. Named
+   * here rather than recomputed by callers: a test that wants to assert
+   * nothing was left behind has to look in the same place this writes, and a
+   * second copy of the rule is a second place for it to be wrong.
+   *
+   * @return the root path, which may not exist yet
+   */
+  static auto PrivateRoot() -> QString;
+
  private:
   ModuleImageMapping();
 

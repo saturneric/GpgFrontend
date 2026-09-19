@@ -403,8 +403,8 @@ class ModuleManager::Impl {
 
       const auto inspection = InspectModuleLibrary(library_path);
       if (!inspection.ok) {
-        return refuse(QString("%1, reason: %2")
-                          .arg(library_path, inspection.reason));
+        return refuse(
+            QString("%1, reason: %2").arg(library_path, inspection.reason));
       }
       module_hash = inspection.hash;
     }
@@ -413,9 +413,9 @@ class ModuleManager::Impl {
 
     ScopedModuleLibrarySearchPath search_path(library_path);
     if (!module_library->load()) {
-      return refuse(QString("%1, reason: %2")
-                        .arg(module_library->fileName(),
-                             module_library->errorString()));
+      return refuse(
+          QString("%1, reason: %2")
+              .arg(module_library->fileName(), module_library->errorString()));
     }
 
     // Ownership moves into the Module, which is what gives teardown something
@@ -429,8 +429,8 @@ class ModuleManager::Impl {
       // does not stay mapped for the whole run.
       module->UnloadLibrary();
       module.reset();
-      return refuse(QString("%1, reason: it is not a usable module")
-                        .arg(library_path));
+      return refuse(
+          QString("%1, reason: it is not a usable module").arg(library_path));
     }
 
     if (manifest) {
@@ -768,6 +768,34 @@ auto ModuleManager::IsModuleActivated(ModuleIdentifier id) -> bool {
 
 auto ModuleManager::IsIntegratedModule(ModuleIdentifier id) -> bool {
   return p_->IsIntegratedModule(id);
+}
+
+auto ModuleManager::GetModuleProvenance(ModuleIdentifier id)
+    -> ModuleProvenance {
+  ModuleProvenance p;
+
+  auto module = p_->SearchModule(id);
+  if (module == nullptr) return p;
+
+  p.identifier = module->GetModuleIdentifier();
+  p.version = module->GetModuleVersion();
+  p.integrated = p_->IsIntegratedModule(id);
+  p.activated = p_->IsModuleActivated(id);
+
+  // Asked once, of the module, and recorded. Two widgets used to answer this
+  // separately -- one via IsPackaged(), one by testing whether a manifest was
+  // present -- which are the same answer only for as long as nothing changes.
+  p.packaged = module->IsPackaged();
+
+  // The package it came from, never the descriptor or temporary file its
+  // image was mapped through.
+  p.source_package_path = module->GetModulePath();
+  p.manifest = module->GetModuleManifest();
+  p.sdk_abi = module->GetModuleSDKABIVersion();
+  p.hash = module->GetModuleHash();
+  p.metadata = module->GetModuleMetaData();
+
+  return p;
 }
 
 auto ModuleManager::ListAllRegisteredModuleID() -> QStringList {

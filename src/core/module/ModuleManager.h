@@ -54,6 +54,54 @@ class GlobalRegisterTable;
 using EventReference = QSharedPointer<Event>;
 using ModuleIdentifier = QString;
 using ModulePtr = QSharedPointer<Module>;
+
+/**
+ * @brief Everything the module pipeline established about one module.
+ *
+ * FACTS ONLY. What was discovered, what was verified, and what the loaded
+ * binary reports about itself. It carries no presentation state -- no display
+ * strings, no icons, no policy-derived labels, no localized text, no ordering.
+ * Those belong to the code that draws it. If a field would only ever be read
+ * in order to render something, it does not belong here.
+ *
+ * It exists because three widgets used to assemble these same facts
+ * independently, two of them from a different source than the third: the
+ * dialog and the list read GetModuleMetaData(), while the metadata panel read
+ * the manifest directly, and `packaged` was answered by IsPackaged() in one
+ * place and by manifest.has_value() in another. They agreed only by accident
+ * of a setter call.
+ *
+ * The trust distinction is preserved rather than flattened: @ref manifest
+ * having a value is what makes the metadata a host-verified fact rather than
+ * the module's own claim, and callers still key that difference off it.
+ */
+struct GF_CORE_EXPORT ModuleProvenance {
+  QString identifier;  ///< the runtime identifier, always present
+  QString version;     ///< what the loaded binary reports
+
+  bool integrated = false;
+  bool activated = false;
+
+  /// Whether this came from a signed package the host verified.
+  bool packaged = false;
+
+  /// The `*.gfmodule` it was verified from, or the loose library's path.
+  /// Never the ephemeral path an image was mapped through.
+  QString source_package_path;
+
+  /// The signed manifest, when there is one. Its presence is what divides a
+  /// verified fact from a module's claim about itself.
+  std::optional<ModuleManifest> manifest;
+
+  int sdk_abi = 0;  ///< the module's own ABI generation, never the host's
+  QString hash;     ///< digest of the bytes that were loaded
+
+  /// Name / Description / Author. From the verified manifest when packaged,
+  /// and from the module itself otherwise -- which is exactly the difference
+  /// @ref packaged records.
+  QMap<QString, QString> metadata;
+};
+
 using ModuleMangerPtr = QSharedPointer<ModuleManager>;
 using GMCPtr = QSharedPointer<GlobalModuleContext>;
 using Namespace = QString;
@@ -217,6 +265,21 @@ class GF_CORE_EXPORT ModuleManager
    * @return true if integrated
    */
   auto IsIntegratedModule(ModuleIdentifier module_id) -> bool;
+
+  /**
+   * @brief Everything established about one module, in one place.
+   *
+   * The manager is the only thing that knows all of it: it holds the Module,
+   * and it alone knows whether the module is integrated and whether it is
+   * currently active. Callers that need to describe a module ask for this
+   * rather than assembling the same facts from six accessors -- which is how
+   * two widgets came to answer "is this packaged?" in two different ways.
+   *
+   * @param module_id module identifier
+   * @return the facts, or a default-constructed value if there is no such
+   *         module (its @c identifier is then empty)
+   */
+  auto GetModuleProvenance(ModuleIdentifier module_id) -> ModuleProvenance;
 
   /**
    * @brief Subscribe a module to an event type.

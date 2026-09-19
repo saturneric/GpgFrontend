@@ -65,7 +65,7 @@ auto TakeFault() -> ModuleImageFaultPoint {
 }
 
 /// The parent of every per-process directory, so a sweep has one place to look.
-auto PrivateRoot() -> QString {
+auto PrivateRootImpl() -> QString {
   auto base = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation);
   if (base.isEmpty()) base = QDir::tempPath();
   return base + "/gpgfrontend-modules";
@@ -295,7 +295,7 @@ auto ModuleImageMapping::Create(const VerifiedModuleImage& image,
     return Fail(reason, "a private folder for the module could not be made");
   }
 
-  const auto root = PrivateRoot();
+  const auto root = PrivateRootImpl();
   if (!QDir().mkpath(root)) {
     return Fail(reason, "a private folder for the module could not be made");
   }
@@ -371,8 +371,10 @@ auto ModuleImageMapping::Create(const VerifiedModuleImage& image,
   return mapping;
 }
 
+auto ModuleImageMapping::PrivateRoot() -> QString { return PrivateRootImpl(); }
+
 auto ModuleImageMapping::SweepAbandonedDirectories() -> int {
-  const QDir root(PrivateRoot());
+  const QDir root(PrivateRootImpl());
   if (!root.exists()) return 0;
 
   int removed = 0;
