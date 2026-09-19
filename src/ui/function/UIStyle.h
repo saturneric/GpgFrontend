@@ -110,6 +110,26 @@ void GF_UI_EXPORT SetChip(QLabel* label, const QString& text,
                           const QColor& color);
 
 /**
+ * @brief Paint a small rounded chip, and return the rect it occupied.
+ *
+ * The painter-drawn sibling of SetChip(): the same visual token, for a
+ * delegate that has no QLabel to style. ModuleListView carried its own copy,
+ * along with its own IsDarkPalette() and an ActiveColor() byte-identical to
+ * AccentColor(palette, true) -- so the module list drifting away from the rest
+ * of the application was a matter of somebody editing one of the two.
+ *
+ * @param painter the painter, saved and restored around the call
+ * @param top_left where to put the chip
+ * @param text the chip's label
+ * @param color the accent it is drawn in; fill and border are derived
+ * @param font the font to measure and draw with
+ * @return the rectangle the chip occupied, for laying out the next one
+ */
+auto GF_UI_EXPORT PaintChip(QPainter* painter, const QPoint& top_left,
+                            const QString& text, const QColor& color,
+                            const QFont& font) -> QRect;
+
+/**
  * @brief Recolour a plain label's text through its palette.
  *
  * The sibling of SetChip() for labels that are not rich text. Going through the

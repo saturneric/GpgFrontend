@@ -63,6 +63,36 @@ auto AccentColor(const QPalette& palette, bool positive) -> QColor {
   return IsDarkPalette(palette) ? QColor(102, 187, 106) : QColor(46, 125, 50);
 }
 
+namespace {
+/// Horizontal breathing room inside a painted chip.
+constexpr int kChipPaddingH = 5;
+}  // namespace
+
+auto PaintChip(QPainter* painter, const QPoint& top_left, const QString& text,
+               const QColor& color, const QFont& font) -> QRect {
+  const QFontMetrics fm(font);
+  const auto width = fm.horizontalAdvance(text) + 2 * kChipPaddingH;
+  const auto height = fm.height() + 2;
+  const QRect rect(top_left.x(), top_left.y(), width, height);
+
+  auto fill = color;
+  fill.setAlpha(38);
+  auto border = color;
+  border.setAlpha(110);
+
+  painter->save();
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  painter->setPen(QPen(border, 1));
+  painter->setBrush(fill);
+  painter->drawRoundedRect(QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5), 4, 4);
+  painter->setFont(font);
+  painter->setPen(color);
+  painter->drawText(rect, Qt::AlignCenter, text);
+  painter->restore();
+
+  return rect;
+}
+
 auto MutedTextColor(const QPalette& palette) -> QColor {
   // How much of the real text colour survives in a caption or a sub-line.
   return MixTextTowardsWindow(palette, 0.72);

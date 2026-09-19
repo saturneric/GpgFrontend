@@ -31,6 +31,7 @@
 #include "core/model/SettingsObject.h"
 #include "core/module/ModuleManager.h"
 #include "core/struct/settings_object/ModuleSO.h"
+#include "ui/function/UIStyle.h"
 
 namespace GpgFrontend::UI {
 
@@ -39,51 +40,17 @@ namespace {
 constexpr int kCardPaddingH = 10;
 constexpr int kCardPaddingV = 8;
 constexpr int kDotSize = 8;
-constexpr int kChipPaddingH = 5;
 constexpr int kChipSpacing = 4;
 constexpr int kLineSpacing = 3;
 
-auto IsDarkPalette(const QPalette& palette) -> bool {
-  return palette.color(QPalette::Base).lightness() < 128;
-}
-
-auto ActiveColor(const QPalette& palette) -> QColor {
-  return IsDarkPalette(palette) ? QColor(102, 187, 106) : QColor(46, 125, 50);
-}
-
+/// Deliberately NOT UIStyle's MutedTextColor: this one is selection-aware and
+/// reads from HighlightedText, so a selected row stays legible against the
+/// highlight. Collapsing the two would change how selected rows look.
 auto DimColor(const QPalette& palette, bool selected) -> QColor {
   auto color = selected ? palette.color(QPalette::HighlightedText)
                         : palette.color(QPalette::Text);
   color.setAlpha(selected ? 200 : 140);
   return color;
-}
-
-/**
- * @brief Paint a small rounded chip and return the rect it occupied.
- */
-auto PaintChip(QPainter* painter, const QPoint& top_left, const QString& text,
-               const QColor& color, const QFont& font) -> QRect {
-  const QFontMetrics fm(font);
-  const auto width = fm.horizontalAdvance(text) + 2 * kChipPaddingH;
-  const auto height = fm.height() + 2;
-  const QRect rect(top_left.x(), top_left.y(), width, height);
-
-  auto fill = color;
-  fill.setAlpha(38);
-  auto border = color;
-  border.setAlpha(110);
-
-  painter->save();
-  painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setPen(QPen(border, 1));
-  painter->setBrush(fill);
-  painter->drawRoundedRect(QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5), 4, 4);
-  painter->setFont(font);
-  painter->setPen(color);
-  painter->drawText(rect, Qt::AlignCenter, text);
-  painter->restore();
-
-  return rect;
 }
 
 }  // namespace
@@ -129,7 +96,7 @@ void ModuleItemDelegate::paint(QPainter* painter,
   const auto text_color = selected ? palette.color(QPalette::HighlightedText)
                                    : palette.color(QPalette::Text);
   const auto accent =
-      active ? ActiveColor(palette) : DimColor(palette, selected);
+      active ? AccentColor(palette, true) : DimColor(palette, selected);
 
   auto x = card.left() + kCardPaddingH;
   auto y = card.top() + kCardPaddingV;
@@ -204,9 +171,10 @@ void ModuleItemDelegate::paint(QPainter* painter,
   // not loaded from anywhere. An external one always does, because "unsigned"
   // is the case worth seeing at a glance.
   if (!integrated) {
-    const auto signed_color =
-        selected ? palette.color(QPalette::HighlightedText)
-                 : (packaged ? ActiveColor(palette) : DimColor(palette, false));
+    const auto signed_color = selected
+                                  ? palette.color(QPalette::HighlightedText)
+                                  : (packaged ? AccentColor(palette, true)
+                                              : DimColor(palette, false));
     chip_x = PaintChip(painter, QPoint(chip_x, y),
                        packaged ? tr("Signed") : tr("Unsigned"), signed_color,
                        small_font)
@@ -217,7 +185,7 @@ void ModuleItemDelegate::paint(QPainter* painter,
   if (auto_activate) {
     PaintChip(painter, QPoint(chip_x, y), tr("Auto"),
               selected ? palette.color(QPalette::HighlightedText)
-                       : ActiveColor(palette),
+                       : AccentColor(palette, true),
               small_font);
   }
 
