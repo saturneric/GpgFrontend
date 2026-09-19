@@ -177,6 +177,13 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
   const auto platform_os =
       spec.platform_os.isEmpty() ? ManifestHostOsName() : spec.platform_os;
 
+  // Normalised on the way in, so a descriptor always carries one spelling
+  // whatever the build system called it. The verifier normalises too -- both
+  // sides, because descriptors stamped before this existed must still verify.
+  const auto platform_arch = spec.platform_arch.isEmpty()
+                                 ? ManifestHostArchName()
+                                 : NormalizeManifestArch(spec.platform_arch);
+
   if (!EnsureSodiumInit()) {
     return Fail("the cryptography library could not be started");
   }
@@ -255,7 +262,7 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
                             {"timestamp", spec.build_timestamp},
                             {"source_commit", spec.build_source_commit}}},
       {"platform", QJsonObject{{"os", platform_os},
-                               {"arch", spec.platform_arch},
+                               {"arch", platform_arch},
                                {"qt", spec.platform_qt}}},
       {"resources", resources_json},
   };

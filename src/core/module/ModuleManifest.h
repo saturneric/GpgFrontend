@@ -232,6 +232,35 @@ auto GF_CORE_EXPORT ParseModuleManifest(const QByteArray& bytes)
 auto GF_CORE_EXPORT ManifestHostOsName() -> QString;
 
 /**
+ * @brief The canonical spelling of a CPU architecture name.
+ *
+ * The same machine has more than one name depending on who is asked, and the
+ * two that matter here disagree: CMake's `CMAKE_SYSTEM_PROCESSOR` says
+ * `aarch64` on 64-bit ARM Linux, while `QSysInfo::currentCpuArchitecture()`
+ * says `arm64`. The descriptor was stamped by the first and verified against
+ * the second, so every module was refused on ARM Linux -- for a mismatch
+ * between two names for one machine.
+ *
+ * Normalising rather than picking a side, and applied on BOTH sides, is what
+ * makes this robust against the next toolchain that invents a third spelling:
+ * a descriptor stamped `aarch64`, `arm64` or `ARM64` verifies on a host that
+ * calls itself any of them, and an unrecognised name is passed through
+ * unchanged rather than mangled.
+ *
+ * @param arch a name from any source, in any case
+ * @return the canonical spelling, or @p arch lower-cased if it is unknown
+ */
+auto GF_CORE_EXPORT NormalizeManifestArch(const QString& arch) -> QString;
+
+/**
+ * @brief The architecture a manifest must name to run on this machine.
+ *
+ * The counterpart of ManifestHostOsName(), and it exists for exactly the same
+ * reason: one spelling, used by both the packager and the verifier.
+ */
+auto GF_CORE_EXPORT ManifestHostArchName() -> QString;
+
+/**
  * @brief Why this SDK ABI generation is unacceptable to this host.
  *
  * THE decision about ABI compatibility. It is deliberately one function

@@ -456,6 +456,38 @@ auto ManifestHostOsName() -> QString {
 #endif
 }
 
+auto NormalizeManifestArch(const QString& arch) -> QString {
+  const auto lower = arch.trimmed().toLower();
+
+  // 64-bit ARM. `aarch64` is what CMake, gcc and the Linux kernel say;
+  // `arm64` is what Qt and Apple say.
+  if (lower == "aarch64" || lower == "arm64" || lower == "aarch64_be" ||
+      lower == "armv8" || lower == "armv8-a") {
+    return "arm64";
+  }
+
+  // 64-bit x86. `x86_64` from CMake and uname, `amd64` from Debian, `x64`
+  // from MSVC.
+  if (lower == "x86_64" || lower == "amd64" || lower == "x64") {
+    return "x86_64";
+  }
+
+  // 32-bit x86, whichever of the several names the toolchain prefers.
+  if (lower == "i386" || lower == "i486" || lower == "i586" ||
+      lower == "i686" || lower == "x86") {
+    return "i386";
+  }
+
+  // Anything else is passed through lower-cased rather than guessed at. An
+  // unknown architecture that compares equal to itself still works; one this
+  // function mangled would fail in a way nothing here could explain.
+  return lower;
+}
+
+auto ManifestHostArchName() -> QString {
+  return NormalizeManifestArch(QSysInfo::currentCpuArchitecture());
+}
+
 auto SdkAbiRejection(int abi) -> std::optional<QString> {
   if (abi >= GF_SDK_ABI_MIN_SUPPORTED && abi <= GF_SDK_ABI_VERSION) return {};
 

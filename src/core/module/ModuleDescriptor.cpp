@@ -169,12 +169,15 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
                       .arg(m.build_id, ModuleBuildId()));
   }
 
+  // Both sides normalised. The descriptor's arch is stamped by CMake, which
+  // says `aarch64` where Qt says `arm64`; comparing the raw strings refused
+  // every module on ARM Linux.
   if (m.platform_os != ManifestHostOsName() ||
-      m.platform_arch != QSysInfo::currentCpuArchitecture()) {
+      NormalizeManifestArch(m.platform_arch) != ManifestHostArchName()) {
     return Refuse(ModuleDescriptorStatus::kWRONG_PLATFORM,
                   QString("it was built for %1/%2, and this is %3/%4")
-                      .arg(m.platform_os, m.platform_arch, ManifestHostOsName(),
-                           QSysInfo::currentCpuArchitecture()));
+                      .arg(m.platform_os, m.platform_arch,
+                           ManifestHostOsName(), ManifestHostArchName()));
   }
 
   // One decision point, shared with the loader's check of the module's own
