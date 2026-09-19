@@ -358,7 +358,7 @@ class ModuleManager::Impl {
     // discipline problem wearing a different hat.
     const auto refuse = [this](const QString& why) {
       LOG_W() << "module manager refuses module: " << why;
-      need_register_modules_--;
+      DropFromExpectedRegistrations();
       ModuleLoadStats::GetInstance().AddRefusedModule();
       return false;
     };
@@ -385,7 +385,7 @@ class ModuleManager::Impl {
       // the module, so it is not worth a warning in the user's log.
       LOG_D() << "module manager abandons a load that shutdown overtook: "
               << module_library_path;
-      need_register_modules_--;
+      DropFromExpectedRegistrations();
       ModuleLoadStats::GetInstance().AddRefusedModule();
       return false;
     }
@@ -651,6 +651,18 @@ class ModuleManager::Impl {
 
   auto IsIntegratedModule(const ModuleIdentifier& id) -> bool {
     return gmc_->IsIntegratedModule(id);
+  }
+
+  /// One fewer module the startup scan is still waiting for.
+  ///
+  /// Only while startup is still waiting. IsAllModulesRegistered() is the
+  /// equality of this count with the number actually registered, so a module
+  /// refused AFTER startup finished -- loaded ad hoc, or by a test -- would
+  /// otherwise push the target below the count permanently, and the
+  /// "modules are ready" signal would never be true again.
+  void DropFromExpectedRegistrations() {
+    if (need_register_modules_ <= gmc_->GetRegisteredModuleNum()) return;
+    need_register_modules_--;
   }
 
   auto IsAllModulesRegistered() {
