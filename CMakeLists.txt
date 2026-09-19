@@ -425,6 +425,66 @@ message(STATUS "Portable Build: ${GPGFRONTEND_BUILD_PORTABLE}")
 set(GF_SDK_ABI_VERSION 3)
 set(GF_SDK_ABI_MIN_SUPPORTED 3)
 
+# ---------------------------------------------------------------------------
+# Product build identity
+# ---------------------------------------------------------------------------
+#
+# A pure function of PRODUCT configuration. Deliberately NOT a function of who
+# ran the build or when: no run id, no run attempt, no runner image, no
+# timestamp, no nonce. A CI retry of the same commit must produce the same
+# Host and the same descriptors, because nothing a user can observe differs.
+#
+# It is therefore NOT a unique instance identifier either. Two build trees with
+# the same configuration share a build id and are told apart by their keys,
+# which is the pair that actually identifies an instance: (build id, public
+# key). Execution identity -- run id, runner image -- belongs in a provenance
+# record, not in a compiled byte.
+set(GPGFRONTEND_BUILD_REPOSITORY "saturneric/GpgFrontend"
+  CACHE STRING "The repository this build claims to come from")
+set(GPGFRONTEND_BUILD_REF "${GIT_BRANCH_NAME}"
+  CACHE STRING "The ref this build was made from")
+set(GPGFRONTEND_BUILD_FLAVOR "installed"
+  CACHE STRING "installed | portable | sandbox")
+set(GPGFRONTEND_BUILD_MODE "nightly"
+  CACHE STRING "nightly | release")
+
+if(WIN32)
+  set(_gf_build_os "windows")
+elseif(APPLE)
+  set(_gf_build_os "macos")
+else()
+  set(_gf_build_os "linux")
+endif()
+
+if(GPGFRONTEND_QT5_BUILD)
+  set(_gf_build_qt "${Qt5_VERSION}")
+else()
+  set(_gf_build_qt "${Qt6_VERSION}")
+endif()
+
+# Newline-joined and hashed, so adding an input later cannot silently collide
+# with an existing key by concatenating differently.
+string(JOIN "\n" _gf_build_identity
+  "${GPGFRONTEND_BUILD_REPOSITORY}"
+  "${GIT_COMMIT_HASH}"
+  "${GPGFRONTEND_BUILD_REF}"
+  "${_gf_build_os}"
+  "${CMAKE_SYSTEM_PROCESSOR}"
+  "${GPGFRONTEND_BUILD_FLAVOR}"
+  "${GPGFRONTEND_BUILD_MODE}"
+  "${CMAKE_BUILD_TYPE}"
+  "${GF_SDK_ABI_VERSION}"
+  "${_gf_build_qt}")
+string(SHA256 _gf_build_identity_digest "${_gf_build_identity}")
+string(SUBSTRING "${_gf_build_identity_digest}" 0 32 _gf_build_identity_short)
+set(GPGFRONTEND_BUILD_ID "gfb1-${_gf_build_identity_short}")
+message(STATUS "GpgFrontend Build ID: ${GPGFRONTEND_BUILD_ID}")
+
+set(GF_MODULE_BUILD_KEY_DIR "${CMAKE_BINARY_DIR}/.module-build-key")
+set(GF_MODULE_TRUST_ROOT_SOURCE
+  "${CMAKE_BINARY_DIR}/generated/ModuleTrustRootGenerated.cpp")
+
+
 # Set build information
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontend.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontend.h @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h.in ${CMAKE_SOURCE_DIR}/src/GpgFrontendBuildInfo.h @ONLY)
