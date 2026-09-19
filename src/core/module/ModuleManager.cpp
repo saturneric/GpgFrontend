@@ -348,11 +348,28 @@ class ModuleManager::Impl {
   }
 
   auto LoadPreparedModule(const ModuleLoadCandidate& candidate) -> bool {
-    if (!candidate.ok) {
+    // Every refusal below owes the same three things: say why, stop waiting
+    // for this module, and count it. Written out seven times, one of them
+    // eventually forgets one -- and a forgotten decrement is a startup that
+    // never finishes waiting for registration.
+    //
+    // Deliberately not an RAII guard: the SUCCESS path must not decrement, so
+    // a scope-exit version would have to be disarmed, which is the same
+    // discipline problem wearing a different hat.
+    const auto refuse = [this](const QString& why) {
+      LOG_W() << "module manager refuses module: " << why;
       need_register_modules_--;
       ModuleLoadStats::GetInstance().AddRefusedModule();
       return false;
-    }
+    };
+
+    if (!candidate.ok) return refuse(candidate.source_path);
+
+    // Phase two is serial because QLibrary::load() below runs third-party
+    // static initialisers. This records that it stayed serial, so a later
+    // refactor that parallelises the loop fails a test instead of passing
+    // quietly -- see ModuleLoadStats::NativeLoadScope.
+    ModuleLoadStats::NativeLoadScope native_load;
 
     const auto& module_library_path = candidate.source_path;
     const auto& library_path = candidate.library_path;
@@ -364,6 +381,8 @@ class ModuleManager::Impl {
     // that has already stopped waiting for it.
     ModuleDispatchScope admission(GlobalModuleDispatchGate());
     if (!admission.Entered()) {
+      // Not refuse(): shutdown overtaking a load is routine, not a fault of
+      // the module, so it is not worth a warning in the user's log.
       LOG_D() << "module manager abandons a load that shutdown overtook: "
               << module_library_path;
       need_register_modules_--;
@@ -384,11 +403,8 @@ class ModuleManager::Impl {
 
       const auto inspection = InspectModuleLibrary(library_path);
       if (!inspection.ok) {
-        LOG_W() << "module manager refuses to load module: " << library_path
-                << ", reason: " << inspection.reason;
-        need_register_modules_--;
-        ModuleLoadStats::GetInstance().AddRefusedModule();
-        return false;
+        return refuse(QString("%1, reason: %2")
+                          .arg(library_path, inspection.reason));
       }
       module_hash = inspection.hash;
     }
@@ -397,12 +413,9 @@ class ModuleManager::Impl {
 
     ScopedModuleLibrarySearchPath search_path(library_path);
     if (!module_library->load()) {
-      LOG_W() << "module manager failed to load module: "
-              << module_library->fileName()
-              << ", reason: " << module_library->errorString();
-      need_register_modules_--;
-      ModuleLoadStats::GetInstance().AddRefusedModule();
-      return false;
+      return refuse(QString("%1, reason: %2")
+                        .arg(module_library->fileName(),
+                             module_library->errorString()));
     }
 
     // Ownership moves into the Module, which is what gives teardown something
@@ -411,17 +424,13 @@ class ModuleManager::Impl {
     auto module = SecureCreateSharedObject<Module>(std::move(module_library),
                                                    module_hash);
     if (!module->IsGood()) {
-      LOG_W() << "module manager failed to load module, "
-                 "reason: illegal module: "
-              << library_path;
       // Drop the symbol pointers before the image goes away. The Module owns
       // the library now, so destroying it is what unloads: a rejected module
       // does not stay mapped for the whole run.
       module->UnloadLibrary();
       module.reset();
-      need_register_modules_--;
-      ModuleLoadStats::GetInstance().AddRefusedModule();
-      return false;
+      return refuse(QString("%1, reason: it is not a usable module")
+                        .arg(library_path));
     }
 
     if (manifest) {
@@ -430,15 +439,13 @@ class ModuleManager::Impl {
       // and carry another, and everything downstream -- settings, activation,
       // the module list -- would key off the binary's word for it.
       if (module->GetModuleIdentifier() != manifest->id) {
-        LOG_W() << "module manager refuses module package: "
-                << module_library_path << ", reason: its manifest says "
-                << manifest->id << " and the module inside says "
-                << module->GetModuleIdentifier();
+        const auto said = module->GetModuleIdentifier();
         module->UnloadLibrary();
         module.reset();
-        need_register_modules_--;
-        ModuleLoadStats::GetInstance().AddRefusedModule();
-        return false;
+        return refuse(
+            QString("%1, reason: its manifest says %2 and the module inside "
+                    "says %3")
+                .arg(module_library_path, manifest->id, said));
       }
 
       // The same argument applies to the version, which until now was signed
@@ -446,15 +453,13 @@ class ModuleManager::Impl {
       // something else is a package whose signature covers a claim nothing
       // checks -- and the version is what an update decision is made on.
       if (module->GetModuleVersion() != manifest->version) {
-        LOG_W() << "module manager refuses module package: "
-                << module_library_path << ", reason: its manifest says version "
-                << manifest->version << " and the module inside says "
-                << module->GetModuleVersion();
+        const auto said = module->GetModuleVersion();
         module->UnloadLibrary();
         module.reset();
-        need_register_modules_--;
-        ModuleLoadStats::GetInstance().AddRefusedModule();
-        return false;
+        return refuse(
+            QString("%1, reason: its manifest says version %2 and the module "
+                    "inside says %3")
+                .arg(module_library_path, manifest->version, said));
       }
 
       // Metadata now comes from the manifest, which is readable without

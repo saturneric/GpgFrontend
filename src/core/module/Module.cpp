@@ -32,6 +32,7 @@
 
 #include "core/module/GlobalModuleContext.h"
 #include "core/module/ModuleImageMapping.h"
+#include "core/module/ModuleManifest.h"
 #include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
 #include "sdk/GFSDKModuleApi.h"
@@ -115,13 +116,14 @@ class Module::Impl {
       return true;
     }
 
-    if (api->abi_version < GF_SDK_ABI_MIN_SUPPORTED ||
-        api->abi_version > GF_SDK_ABI_VERSION) {
+    // The same decision the verifier makes about a manifest's sdk_abi, made
+    // here about what the module's own table reports. Two ranges compared in
+    // two places was how they could come to disagree.
+    if (const auto why = SdkAbiRejection(static_cast<int>(api->abi_version));
+        why) {
       LOG_W() << "incompatible module: " << module_library.fileName()
-              << ", reason module sdk abi version: " << api->abi_version
-              << ", but this application supports [" << GF_SDK_ABI_MIN_SUPPORTED
-              << ", " << GF_SDK_ABI_VERSION
-              << "]; rebuild the module against this sdk, abort...";
+              << ", reason: " << *why
+              << "; rebuild the module against this sdk, abort...";
       return true;
     }
 
