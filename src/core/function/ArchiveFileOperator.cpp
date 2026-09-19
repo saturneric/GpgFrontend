@@ -759,11 +759,21 @@ auto ArchiveFileOperator::NewArchiveFromMembersSync(
   return ret;
 }
 
-auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
-    const QSharedPointer<GFDataExchanger> &ex, const QString &target_path,
-    const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
-    const ArchiveEntrySink &sink, const ArchiveEntryRawSink &raw_sink,
-    QString *reason) -> GFError {
+namespace {
+
+/// The one extraction walk, however the archive is opened.
+///
+/// Exactly one of @p ex and @p archive_file is used. A stream is what an
+/// encrypted package needs, because it decrypts into one; a plain file on disk
+/// needs nothing of the sort, and routing it through the stream anyway costs a
+/// thread, a copy, and every byte's trip through a byte-at-a-time queue.
+auto ExtractArchiveSync(const QSharedPointer<GFDataExchanger> &ex,
+                        const QString &archive_file, const QString &target_path,
+                        const ArchiveExtractPolicy &policy,
+                        const ArchiveEntryFilter &divert,
+                        const ArchiveEntrySink &sink,
+                        const ArchiveEntryRawSink &raw_sink, QString *reason)
+    -> GFError {
   // Two sinks would mean two answers to "are these bytes a secret", and the
   // caller would not know which one it got. There is no sensible way to honour
   // both, so this is a programming error rather than a runtime condition.
@@ -835,10 +845,21 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
       }
 
       auto rdata = ArchiveReadClientData{};
-      rdata.ex = ex.get();
 
-      r = archive_read_open(archive, &rdata, nullptr, ArchiveReadCallback,
-                            nullptr);
+      if (!archive_file.isEmpty()) {
+        // Straight to libarchive. Going through the exchanger instead moved
+        // 46 MiB one std::byte at a time through a deque -- roughly fifty
+        // million push/pop pairs -- which took 2.4 seconds to do 0.3 seconds
+        // of work. The queue's element type is what gives its contents the
+        // wiping allocator, so it is the right shape for the thing it exists
+        // for and the wrong one for a file that is already on the disk.
+        r = archive_read_open_filename(
+            archive, archive_file.toUtf8().constData(), kArchiveCopyChunk);
+      } else {
+        rdata.ex = ex.get();
+        r = archive_read_open(archive, &rdata, nullptr, ArchiveReadCallback,
+                              nullptr);
+      }
 
       if (r != ARCHIVE_OK) {
         FLOG_W("archive_read_open(), ret: %d, reason: %s", r,
@@ -1206,6 +1227,17 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
   }
 }
 
+}  // namespace
+
+auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
+    const QSharedPointer<GFDataExchanger> &ex, const QString &target_path,
+    const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
+    const ArchiveEntrySink &sink, const ArchiveEntryRawSink &raw_sink,
+    QString *reason) -> GFError {
+  return ExtractArchiveSync(ex, {}, target_path, policy, divert, sink, raw_sink,
+                            reason);
+}
+
 void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
     const QSharedPointer<GFDataExchanger> &ex, const QString &target_path,
     const OperationCallback &cb, const ArchiveExtractPolicy &policy) {
@@ -1225,57 +1257,21 @@ auto ArchiveFileOperator::ExtractArchiveFromFileSync(
     const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
     const ArchiveEntrySink &sink, const ArchiveEntryRawSink &raw_sink,
     QString *reason) -> GFError {
-  QFile file(archive_path);
-  if (!file.open(QIODevice::ReadOnly)) {
+  // Readability is checked here rather than left to libarchive, which reports
+  // a missing file the same way it reports a malformed one -- and a caller
+  // told "this is not an archive" about a file it cannot open has been told
+  // the wrong thing.
+  if (!QFileInfo(archive_path).isReadable()) {
     if (reason != nullptr) *reason = "this file could not be read";
     return -1;
   }
 
-  auto exchanger = CreateStandardGFDataExchanger();
-
-  // Set by the feeder and read only after it is joined.
-  bool read_ok = true;
-
-  std::thread feeder([&]() {
-    // Closes the pipe however this thread leaves, including by exception. The
-    // extractor on the other end is waiting for either bytes or a close, and a
-    // feeder that returns without one of the two hangs it forever.
-    struct ProducerGuard {
-      GFDataExchanger &pipe;
-      ~ProducerGuard() { pipe.CloseWrite(); }
-    } guard{*exchanger};
-
-    QByteArray chunk(kArchiveCopyChunk, Qt::Uninitialized);
-    while (true) {
-      const auto n = file.read(chunk.data(), chunk.size());
-      if (n < 0) {
-        read_ok = false;
-        return;
-      }
-      if (n == 0) return;
-      if (exchanger->Write(
-              reinterpret_cast<const std::byte *>(chunk.constData()),
-              static_cast<ssize_t>(n)) < 0) {
-        // Nobody is reading any more -- a sink that stopped the walk, or a
-        // refusal. Not a read failure, and not ours to report.
-        return;
-      }
-    }
-  });
-
-  const auto error = ExtractArchiveFromDataExchangerSync(
-      exchanger, target_path, policy, divert, sink, raw_sink, reason);
-
-  // Before the join, never after: a feeder blocked on a full pipe is released
-  // by the close and by nothing else.
-  exchanger->CloseWrite();
-  feeder.join();
-
-  if (!read_ok) {
-    if (reason != nullptr) *reason = "this file could not be read";
-    return -1;
-  }
-  return error;
+  // No feeder thread and no pipe. This used to spawn one and push every byte
+  // through the exchanger, which exists so that an encrypted package can
+  // decrypt into a stream -- a property a file already sitting on the disk has
+  // no use for. libarchive reads files perfectly well by itself.
+  return ExtractArchiveSync({}, archive_path, target_path, policy, divert, sink,
+                            raw_sink, reason);
 }
 
 void ArchiveFileOperator::ListArchive(const QString &archive_path) {
