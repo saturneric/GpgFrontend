@@ -27,13 +27,13 @@
  */
 
 #include <QCoreApplication>
-#include <QFile>
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
 #include <QTextStream>
 
-#include "core/module/ModuleDescriptorBuilder.h"
 #include "core/module/ModuleDescriptor.h"
+#include "core/module/ModuleDescriptorBuilder.h"
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleNamespace.h"
 #include "core/module/ModulePreparedEntry.h"
@@ -177,8 +177,8 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
     // Machine-readable, on stdout, after everything else: `<key> <path>` per
     // line. The audit script reads it rather than inferring the entry from a
     // name.
-    for (auto it = result.entries.constBegin();
-         it != result.entries.constEnd(); ++it) {
+    for (auto it = result.entries.constBegin(); it != result.entries.constEnd();
+         ++it) {
       out << "entry " << it.key() << " " << it.value() << "\n";
     }
   }
@@ -186,7 +186,6 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
   out << "  " << result.verified.size() << " module(s) verified\n";
   return 0;
 }
-
 
 /// `seal-prepared`: record what each entry native binds to, after preparation.
 ///
@@ -250,10 +249,11 @@ auto SealPreparedCommand(const QStringList& args, QTextStream& err) -> int {
     // Verified, not merely parsed: the id and the entry name about to be
     // sealed have to come from bytes this build signed, or the seal records
     // whatever an unsigned file claimed.
-    const auto verdict = GpgFrontend::Module::VerifyModuleDescriptor(descriptor);
+    const auto verdict =
+        GpgFrontend::Module::VerifyModuleDescriptor(descriptor);
     if (!verdict.ok) {
-      err << "  FAIL  " << ns.fileName() << ": its descriptor was refused: "
-          << verdict.reason << "\n";
+      err << "  FAIL  " << ns.fileName()
+          << ": its descriptor was refused: " << verdict.reason << "\n";
       failed = true;
       continue;
     }
@@ -265,8 +265,8 @@ auto SealPreparedCommand(const QStringList& args, QTextStream& err) -> int {
         GpgFrontend::Module::ModuleNativeFileName(manifest.entry_native.name);
 
     if (!QFileInfo(native_path).isFile()) {
-      err << "  FAIL  " << ns.fileName() << ": its entry native is not there: "
-          << native_path << "\n";
+      err << "  FAIL  " << ns.fileName()
+          << ": its entry native is not there: " << native_path << "\n";
       failed = true;
       continue;
     }
@@ -296,8 +296,8 @@ auto SealPreparedCommand(const QStringList& args, QTextStream& err) -> int {
         native_root + "/" +
         QString::fromUtf8(GpgFrontend::Module::kPreparedEntrySealFileName);
     if (!GpgFrontend::Module::WritePreparedEntrySeal(seal_path, seal, why)) {
-      err << "  FAIL  " << ns.fileName() << ": its seal could not be written: "
-          << why << "\n";
+      err << "  FAIL  " << ns.fileName()
+          << ": its seal could not be written: " << why << "\n";
       failed = true;
       continue;
     }

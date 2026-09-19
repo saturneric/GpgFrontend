@@ -141,8 +141,8 @@ auto ReadPreparedEntrySeal(const QString& path, PreparedEntrySeal& seal,
 
   const auto mode = ModeFromKey(mode_key);
   if (!mode) {
-    reason = QString("its mode \"%1\" is not one this build knows")
-                 .arg(mode_key);
+    reason =
+        QString("its mode \"%1\" is not one this build knows").arg(mode_key);
     return false;
   }
   read.mode = *mode;

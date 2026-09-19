@@ -117,7 +117,6 @@ auto TakeObject(const QJsonObject& o, const QString& key, QJsonObject& out,
   return true;
 }
 
-
 /// A logical native name: no separator, no dot, no drive letter, no scheme.
 ///
 /// Validated by construction rather than by blacklist. A name that matches

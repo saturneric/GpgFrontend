@@ -50,8 +50,8 @@ namespace GpgFrontend::Module {
  * ```
  * build -> platform preparation -> seal-prepared -> finalize descriptors
  *                                      |                   |
- *                                      |                   uses --prepared-manifest
- *                                      writes native/prepared.json
+ *                                      |                   uses
+ * --prepared-manifest writes native/prepared.json
  * ```
  *
  * `seal-prepared` records what the entry native binds to *now*, after
@@ -73,7 +73,7 @@ struct GF_CORE_EXPORT PreparedEntrySeal {
   QString build_id;
   QString entry_native_name;
   ModuleEntryVerificationMode mode = ModuleEntryVerificationMode::kFILE_SHA256;
-  QString value;  ///< 64 lower-case hex, meaning fixed by @ref mode
+  QString value;     ///< 64 lower-case hex, meaning fixed by @ref mode
   qint64 size = -1;  ///< only under kFILE_SHA256; negative means absent
 };
 

@@ -89,10 +89,12 @@ class ModulePreparedEntryTest : public ::testing::Test {
 TEST_F(ModulePreparedEntryTest, ASealRoundTrips) {
   const auto written = Sealed();
   QString why;
-  ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, written, why)) << why.toStdString();
+  ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, written, why))
+      << why.toStdString();
 
   Module::PreparedEntrySeal read;
-  ASSERT_TRUE(Module::ReadPreparedEntrySeal(path_, read, why)) << why.toStdString();
+  ASSERT_TRUE(Module::ReadPreparedEntrySeal(path_, read, why))
+      << why.toStdString();
 
   EXPECT_EQ(read.module_id, written.module_id);
   EXPECT_EQ(read.build_id, written.build_id);
@@ -110,10 +112,12 @@ TEST_F(ModulePreparedEntryTest, WritingReplacesAStaleSeal) {
 
   auto seal = Sealed();
   QString why;
-  ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, seal, why)) << why.toStdString();
+  ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, seal, why))
+      << why.toStdString();
 
   Module::PreparedEntrySeal read;
-  EXPECT_TRUE(Module::ReadPreparedEntrySeal(path_, read, why)) << why.toStdString();
+  EXPECT_TRUE(Module::ReadPreparedEntrySeal(path_, read, why))
+      << why.toStdString();
   EXPECT_EQ(read.value, seal.value);
 }
 
@@ -121,10 +125,12 @@ TEST_F(ModulePreparedEntryTest, ASizelessSealIsFine) {
   auto seal = Sealed();
   seal.size = -1;
   QString why;
-  ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, seal, why)) << why.toStdString();
+  ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, seal, why))
+      << why.toStdString();
 
   Module::PreparedEntrySeal read;
-  ASSERT_TRUE(Module::ReadPreparedEntrySeal(path_, read, why)) << why.toStdString();
+  ASSERT_TRUE(Module::ReadPreparedEntrySeal(path_, read, why))
+      << why.toStdString();
   EXPECT_LT(read.size, 0);
 }
 
@@ -135,10 +141,12 @@ TEST_F(ModulePreparedEntryTest, ANonLinuxModeCarriesNoSize) {
   seal.mode = Module::ModuleEntryVerificationMode::kAPPLE_BINDING_ID;
   seal.size = -1;
   QString why;
-  ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, seal, why)) << why.toStdString();
+  ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, seal, why))
+      << why.toStdString();
 
   Module::PreparedEntrySeal read;
-  ASSERT_TRUE(Module::ReadPreparedEntrySeal(path_, read, why)) << why.toStdString();
+  ASSERT_TRUE(Module::ReadPreparedEntrySeal(path_, read, why))
+      << why.toStdString();
   EXPECT_EQ(read.mode, Module::ModuleEntryVerificationMode::kAPPLE_BINDING_ID);
 }
 
@@ -159,7 +167,8 @@ TEST_F(ModulePreparedEntryTest, ASizeUnderANonLinuxModeIsRefused) {
   EXPECT_TRUE(why.contains("size")) << why.toStdString();
 }
 
-TEST_F(ModulePreparedEntryTest, AnUnwritableValueIsRefusedBeforeAnyFileAppears) {
+TEST_F(ModulePreparedEntryTest,
+       AnUnwritableValueIsRefusedBeforeAnyFileAppears) {
   auto seal = Sealed();
   seal.value = "not a digest";
   QString why;
@@ -203,11 +212,12 @@ TEST_F(ModulePreparedEntryTest, AMalformedValueIsRefused) {
 }
 
 TEST_F(ModulePreparedEntryTest, EveryFieldIsRequired) {
-  for (const auto* missing : {"module_id", "build_id", "entry_native_name",
-                              "mode", "value"}) {
+  for (const auto* missing :
+       {"module_id", "build_id", "entry_native_name", "mode", "value"}) {
     auto seal = Sealed();
     QString why;
-    ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, seal, why)) << why.toStdString();
+    ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, seal, why))
+        << why.toStdString();
 
     QFile file(path_);
     ASSERT_TRUE(file.open(QIODevice::ReadOnly));
@@ -259,8 +269,8 @@ TEST_F(ModulePreparedEntryTest, TheSealedValueIsWhatTheBinderComputes) {
   ASSERT_TRUE(native.isValid());
 
   const auto path = native.path() + "/libgf_mod_probe.so";
-  ASSERT_TRUE(WriteRaw(path, QByteArray("\x7f", 1) + "ELF" +
-                                 QByteArray(256, '\x11')));
+  ASSERT_TRUE(
+      WriteRaw(path, QByteArray("\x7f", 1) + "ELF" + QByteArray(256, '\x11')));
 
   QString value;
   QString why;
@@ -273,10 +283,12 @@ TEST_F(ModulePreparedEntryTest, TheSealedValueIsWhatTheBinderComputes) {
   auto seal = Sealed();
   seal.value = value;
   seal.size = QFileInfo(path).size();
-  ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, seal, why)) << why.toStdString();
+  ASSERT_TRUE(Module::WritePreparedEntrySeal(path_, seal, why))
+      << why.toStdString();
 
   Module::PreparedEntrySeal read;
-  ASSERT_TRUE(Module::ReadPreparedEntrySeal(path_, read, why)) << why.toStdString();
+  ASSERT_TRUE(Module::ReadPreparedEntrySeal(path_, read, why))
+      << why.toStdString();
   EXPECT_EQ(read.value, value);
 }
 
