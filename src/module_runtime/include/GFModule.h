@@ -172,6 +172,13 @@ extern "C" auto GFModuleRuntimeGetApi(uint32_t host_abi,
 
 /// This module's identity, as the host verified it. Valid from on_activate().
 auto GFModuleId() -> const QString&;
+
+/// The same, as a stable UTF-8 C string, for passing straight to the SDK.
+///
+/// Kept because the SDK takes `const char*` and roughly seventy call sites
+/// across the modules pass this without wanting a conversion at each one. The
+/// storage belongs to the runtime and lives as long as the module.
+auto GFGetModuleID() -> const char*;
 auto GFModuleVersion() -> const QString&;
 
 /// Whether the signed manifest declared a capability. A courtesy check: what a

@@ -261,6 +261,14 @@ extern "C" auto GFModuleRuntimeGetApi(uint32_t host_abi,
 // -------------------------------------------------- facts, for module code
 
 auto GFModuleId() -> const QString& { return gf::runtime::Facts().id; }
+
+auto GFGetModuleID() -> const char* {
+  // Encoded once and held, so the pointer stays valid for as long as the
+  // module does. Re-encoding per call would hand out a dangling pointer the
+  // moment the temporary died.
+  static const QByteArray kId = gf::runtime::Facts().id.toUtf8();
+  return kId.constData();
+}
 auto GFModuleVersion() -> const QString& { return gf::runtime::Facts().version; }
 auto GFModuleIsVerified() -> bool { return gf::runtime::Facts().verified; }
 auto GFHost() -> const GFHostApi* { return g_host; }
