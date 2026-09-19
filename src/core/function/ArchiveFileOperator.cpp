@@ -91,15 +91,68 @@ auto CopyData(struct archive *ar, struct archive *aw, qint64 max_entry_bytes,
   }
 }
 
+/// The storage-shaped operations CollectData() needs, for each kind of buffer
+/// an entry may be collected into.
+///
+/// Which buffer a caller gets is a statement about what the bytes are: a
+/// secret goes to secure storage, a native image does not. The reading loop and
+/// every ceiling it enforces are identical either way, so they are written
+/// once and only the storage varies.
+void CollectBufCreate(qint64 capacity, GpgFrontend::GFBuffer &out) {
+  out = capacity > 0 ? GpgFrontend::GFBuffer(static_cast<size_t>(capacity))
+                     : GpgFrontend::GFBuffer();
+}
+void CollectBufCreate(qint64 capacity, QByteArray &out) {
+  out = capacity > 0
+            ? QByteArray(static_cast<qsizetype>(capacity), Qt::Uninitialized)
+            : QByteArray();
+}
+
+auto CollectBufSize(const GpgFrontend::GFBuffer &b) -> qint64 {
+  return static_cast<qint64>(b.Size());
+}
+auto CollectBufSize(const QByteArray &b) -> qint64 {
+  return static_cast<qint64>(b.size());
+}
+
+auto CollectBufData(GpgFrontend::GFBuffer &b) -> char * { return b.Data(); }
+auto CollectBufData(QByteArray &b) -> char * { return b.data(); }
+
+void CollectBufResize(GpgFrontend::GFBuffer &b, qint64 n) {
+  b.Resize(static_cast<ssize_t>(n));
+}
+void CollectBufResize(QByteArray &b, qint64 n) {
+  b.resize(static_cast<qsizetype>(n));
+}
+
+/// Abandon what was read. The secure buffer is wiped first; an ordinary one
+/// holds nothing worth wiping, and pretending otherwise would suggest the
+/// distinction between the two sinks is smaller than it is.
+void CollectBufDiscard(GpgFrontend::GFBuffer &b) {
+  b.Zeroize();
+  b = GpgFrontend::GFBuffer();
+}
+void CollectBufDiscard(QByteArray &b) { b.clear(); }
+
+/// Give back the slack that geometric growth left past the real length.
+void CollectBufTrim(GpgFrontend::GFBuffer &b, qint64 written) {
+  sodium_memzero(b.Data() + written, b.Size() - static_cast<size_t>(written));
+  b.Resize(static_cast<ssize_t>(written));
+}
+void CollectBufTrim(QByteArray &b, qint64 written) {
+  b.resize(static_cast<qsizetype>(written));
+}
+
 /// Read an entry's body into memory instead of onto the filesystem.
 ///
 /// A deliberate mirror of CopyData(), ceilings included. Bytes that skipped the
 /// accounting would make the sink an unbounded allocation driven by an
 /// untrusted archive -- a zip bomb that lands in RAM rather than on disk, and
 /// the memory it lands in may be locked.
+template <typename Buf>
 auto CollectData(struct archive *ar, qint64 max_entry_bytes,
-                 qint64 remaining_total, qint64 capacity_hint,
-                 GpgFrontend::GFBuffer &out, qint64 &written) -> int {
+                 qint64 remaining_total, qint64 capacity_hint, Buf &out,
+                 qint64 &written) -> int {
   int r;
   const void *buff;
   size_t size;
@@ -107,19 +160,17 @@ auto CollectData(struct archive *ar, qint64 max_entry_bytes,
 
   written = 0;
 
-  // Secure storage from the start, sized from the entry's declared length when
-  // it has one so there is a single allocation and nothing to abandon. What
-  // lands here is what the caller asked to keep off the filesystem -- the
-  // profile's own key, in the only case in the tree -- and staging it in an
-  // ordinary growing QByteArray left a copy of it in every block the append
-  // outgrew, which is precisely what the diversion exists to prevent.
-  out = capacity_hint > 0
-            ? GpgFrontend::GFBuffer(static_cast<size_t>(capacity_hint))
-            : GpgFrontend::GFBuffer();
+  // Allocated once up front, sized from the entry's declared length when it has
+  // one so there is nothing to abandon. For the secure buffer this also matters
+  // for a second reason: what lands there is what the caller asked to keep off
+  // the filesystem -- the profile's own key, in the only case in the tree --
+  // and staging it in an ordinary growing QByteArray left a copy of it in every
+  // block the append outgrew, which is precisely what diversion exists to
+  // prevent.
+  CollectBufCreate(capacity_hint, out);
 
   const auto give_up = [&out](int code) {
-    out.Zeroize();
-    out = GpgFrontend::GFBuffer();
+    CollectBufDiscard(out);
     return code;
   };
 
@@ -153,9 +204,9 @@ auto CollectData(struct archive *ar, qint64 max_entry_bytes,
     // module binary arrives in hundreds of blocks each of which recopied and
     // re-wiped everything read so far. Verifying a 3 MiB package took close to
     // five seconds before this.
-    if (static_cast<qint64>(out.Size()) < written) {
+    if (CollectBufSize(out) < written) {
       constexpr qint64 kFirstCollectCapacity = 64 * 1024;
-      auto capacity = static_cast<qint64>(out.Size());
+      auto capacity = CollectBufSize(out);
       capacity = std::max(capacity, kFirstCollectCapacity);
       while (capacity < written) capacity *= 2;
 
@@ -168,16 +219,12 @@ auto CollectData(struct archive *ar, qint64 max_entry_bytes,
       }
       capacity = std::max(capacity, written);
 
-      out.Resize(static_cast<ssize_t>(capacity));
+      CollectBufResize(out, capacity);
     }
-    std::memcpy(out.Data() + filled, buff, size);
+    std::memcpy(CollectBufData(out) + filled, buff, size);
   }
 
-  if (static_cast<qint64>(out.Size()) > written) {
-    sodium_memzero(out.Data() + written,
-                   out.Size() - static_cast<size_t>(written));
-    out.Resize(static_cast<ssize_t>(written));
-  }
+  if (CollectBufSize(out) > written) CollectBufTrim(out, written);
   return ARCHIVE_OK;
 }
 
@@ -715,7 +762,17 @@ auto ArchiveFileOperator::NewArchiveFromMembersSync(
 auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
     const QSharedPointer<GFDataExchanger> &ex, const QString &target_path,
     const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
-    const ArchiveEntrySink &sink, QString *reason) -> GFError {
+    const ArchiveEntrySink &sink, const ArchiveEntryRawSink &raw_sink,
+    QString *reason) -> GFError {
+  // Two sinks would mean two answers to "are these bytes a secret", and the
+  // caller would not know which one it got. There is no sensible way to honour
+  // both, so this is a programming error rather than a runtime condition.
+  Q_ASSERT(!(sink && raw_sink));
+  if (sink && raw_sink) {
+    if (reason != nullptr) *reason = "two sinks were given for one extraction";
+    return -1;
+  }
+
   // The first refusal is the one that stopped the walk; everything after it is
   // unwinding. Kept because the caller's own message is necessarily vague --
   // "the package's contents could not be unpacked" is all it can say on its
@@ -994,7 +1051,7 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
         // Claimed by the caller: read the body into memory and never call
         // archive_write_header(), so nothing about this entry touches a
         // filesystem. A directory it claims has no bytes and simply vanishes.
-        if (sink && divert && divert(relative_path)) {
+        if ((sink || raw_sink) && divert && divert(relative_path)) {
           if (filetype == AE_IFDIR) continue;
 
           // A link's target lives in its header, not its body, so collecting
@@ -1015,11 +1072,31 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
                   ? qint64{-1}
                   : policy.max_total_bytes - total_written;
 
-          GFBuffer body;
           qint64 collected = 0;
-          r = CollectData(archive, policy.max_entry_bytes, remaining_for_entry,
-                          declared, body, collected);
-          total_written += collected;
+          bool taken = false;
+
+          if (raw_sink) {
+            // Ordinary storage: these bytes are not a secret, and the secure
+            // tier is a locked, guarded allocation whose budget a module image
+            // would exhaust on its own.
+            QByteArray body;
+            r = CollectData(archive, policy.max_entry_bytes,
+                            remaining_for_entry, declared, body, collected);
+            total_written += collected;
+            if (r == ARCHIVE_OK) taken = raw_sink(relative_path, body);
+          } else {
+            GFBuffer body;
+            r = CollectData(archive, policy.max_entry_bytes,
+                            remaining_for_entry, declared, body, collected);
+            total_written += collected;
+            // Not wiped afterwards: a GFBuffer copy shares its storage, so a
+            // sink that kept the bytes -- which is the entire point of
+            // diverting them -- keeps this very buffer, and erasing it here
+            // would erase what was just stored. The buffer is secure storage
+            // from the start, which is what this needed to be.
+            if (r == ARCHIVE_OK) taken = sink(relative_path, body);
+          }
+
           if (r != ARCHIVE_OK) {
             note(QString("entry \"%1\" could not be read out of the archive")
                      .arg(path_name));
@@ -1027,12 +1104,7 @@ auto ArchiveFileOperator::ExtractArchiveFromDataExchangerSync(
             break;
           }
 
-          // Not wiped afterwards: a GFBuffer copy shares its storage, so a
-          // sink that kept the bytes -- which is the entire point of diverting
-          // them -- keeps this very buffer, and erasing it here would erase
-          // what was just stored. The buffer is secure storage from the start,
-          // which is what this needed to be.
-          if (!sink(relative_path, body)) {
+          if (!taken) {
             // "did not take it", not "could not store it": a sink declining
             // an entry is also how a caller stops the walk once it has what it
             // came for, and reporting that as a storage failure reads as a
@@ -1151,7 +1223,8 @@ void ArchiveFileOperator::ExtractArchiveFromDataExchanger(
 auto ArchiveFileOperator::ExtractArchiveFromFileSync(
     const QString &archive_path, const QString &target_path,
     const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
-    const ArchiveEntrySink &sink, QString *reason) -> GFError {
+    const ArchiveEntrySink &sink, const ArchiveEntryRawSink &raw_sink,
+    QString *reason) -> GFError {
   QFile file(archive_path);
   if (!file.open(QIODevice::ReadOnly)) {
     if (reason != nullptr) *reason = "this file could not be read";
@@ -1191,7 +1264,7 @@ auto ArchiveFileOperator::ExtractArchiveFromFileSync(
   });
 
   const auto error = ExtractArchiveFromDataExchangerSync(
-      exchanger, target_path, policy, divert, sink, reason);
+      exchanger, target_path, policy, divert, sink, raw_sink, reason);
 
   // Before the join, never after: a feeder blocked on a full pipe is released
   // by the close and by nothing else.

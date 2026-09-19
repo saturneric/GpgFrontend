@@ -240,6 +240,23 @@ using ArchiveEntrySink =
     std::function<bool(const QString &relative_path, const GFBuffer &bytes)>;
 
 /**
+ * @brief Take an entry's bytes into ordinary memory.
+ *
+ * The same diversion as ArchiveEntrySink, for entries that are not secrets.
+ * GFBuffer allocates from the secure tier, which at secure level 2 is
+ * sodium_malloc(): guarded, mlock()ed pages drawn from RLIMIT_MEMLOCK, which
+ * is commonly 8 MiB. A native module image is tens of megabytes and is not a
+ * secret, so diverting one through the secure sink would charge the lock
+ * budget for nothing and, past that budget, simply fail to allocate.
+ *
+ * Which sink a caller passes is therefore a statement about what the bytes
+ * are, and the two stay separate types so that statement cannot be made by
+ * accident. At most one may be set.
+ */
+using ArchiveEntryRawSink =
+    std::function<bool(const QString &relative_path, const QByteArray &bytes)>;
+
+/**
  * @brief One entry a caller wants written into an archive.
  *
  * Either a file to copy or bytes in hand, never both. A caller that has to
@@ -355,8 +372,11 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * @param divert entries this claims are handed to @p sink instead of being
    * written; a directory entry it claims is dropped, since there is nothing to
    * store. Diversion happens only when both @p divert and @p sink are set.
-   * @param sink where diverted bytes go; it receives the buffer rather than a
-   * copy of it, so a sink that keeps the bytes keeps that very buffer
+   * @param sink where diverted bytes go, in secure storage; it receives the
+   * buffer rather than a copy of it, so a sink that keeps the bytes keeps that
+   * very buffer
+   * @param raw_sink the same, in ordinary storage, for entries that are not
+   * secrets. At most one of @p sink and @p raw_sink may be set.
    * @param reason set, when given, to why the walk stopped -- the entry and the
    * verdict. Without it the only thing a caller can tell a user is that
    * something did not unpack, which is not something anyone can act on; the
@@ -367,7 +387,8 @@ class GF_CORE_EXPORT ArchiveFileOperator {
       const QSharedPointer<GFDataExchanger> &fd, const QString &target_path,
       const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive(),
       const ArchiveEntryFilter &divert = {}, const ArchiveEntrySink &sink = {},
-      QString *reason = nullptr) -> GFError;
+      const ArchiveEntryRawSink &raw_sink = {}, QString *reason = nullptr)
+      -> GFError;
 
   /**
    * @brief Unpack an archive that is already a file on disk.
@@ -382,8 +403,10 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * @param archive_path archive to read
    * @param target_path directory to extract into
    * @param policy limits and permissions to enforce
-   * @param divert entries this claims go to @p sink instead of the filesystem
-   * @param sink where diverted bytes go
+   * @param divert entries this claims go to a sink instead of the filesystem
+   * @param sink where diverted bytes go, in secure storage
+   * @param raw_sink the same, in ordinary storage, for entries that are not
+   * secrets. At most one of @p sink and @p raw_sink may be set.
    * @param reason set, when given, to why the walk stopped
    * @return 0 on success, non-zero on failure
    */
@@ -391,7 +414,8 @@ class GF_CORE_EXPORT ArchiveFileOperator {
       const QString &archive_path, const QString &target_path,
       const ArchiveExtractPolicy &policy = ArchiveExtractPolicy::Permissive(),
       const ArchiveEntryFilter &divert = {}, const ArchiveEntrySink &sink = {},
-      QString *reason = nullptr) -> GFError;
+      const ArchiveEntryRawSink &raw_sink = {}, QString *reason = nullptr)
+      -> GFError;
 
   /**
    * @brief Pack entries from a provider into a stream.
