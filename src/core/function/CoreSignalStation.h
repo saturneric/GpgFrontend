@@ -103,6 +103,21 @@ class GF_CORE_EXPORT CoreSignalStation : public QObject {
    *
    */
   void SignalCoreFullyLoaded();
+
+  /**
+   * @brief How far startup has got, for the dialog that is blocking on it.
+   *
+   * Emitted from whichever task runner thread did the work, so every delivery
+   * is queued. The step is a code rather than a sentence on purpose: this
+   * fires before InitUITranslations() has installed a translator, so a string
+   * built here would reach the user untranslated. The UI owns the wording.
+   *
+   * @param percent 0 to 100, never decreasing within a run
+   * @param step what is happening now
+   * @param subject the key database or module name, where the step names one
+   */
+  void SignalCoreInitProgress(int percent, GpgFrontend::CoreInitStep step,
+                              QString subject);
 };
 
 }  // namespace GpgFrontend

@@ -62,6 +62,46 @@ enum class BadOpenPGPEnvReason : std::uint8_t {
   kKEY_CACHE_INIT_FAILED,        ///< the context built but the keys would not
 };
 
+/**
+ * @brief Which of the four startup tracks a progress report belongs to.
+ *
+ * The tracks do not run one after another: modules load on their own task
+ * runner while the core is still probing gpgconf. So a single percentage is a
+ * weighted blend of all four rather than a position along a line -- see
+ * CoreInitProgress.
+ */
+enum class CoreInitStage : std::uint8_t {
+  kCORE,          ///< process-level setup, before any engine exists
+  kENGINE,        ///< gpgme/rPGP backend selection and the channel-0 context
+  kKEY_DATABASE,  ///< one keyring flush per configured key database
+  kMODULES,       ///< discovery, verification and registration of modules
+};
+
+/**
+ * @brief What the startup sequence is doing right now.
+ *
+ * Deliberately a code rather than a sentence. The core begins initializing
+ * before InitUITranslations() has installed a single translator, so a string
+ * built in the core would resolve against an empty catalog and reach the user
+ * untranslated. The UI owns every tr() template and maps it from this.
+ *
+ * kLOADING_KEY_DATABASE and kLOADING_MODULE carry a subject (the database or
+ * module name); the rest carry none.
+ */
+enum class CoreInitStep : std::uint8_t {
+  kSTARTING_UP,
+  kCHECKING_GNUPG_ENV,
+  kCHECKING_RUST_ENGINE,
+  kRESOLVING_PATHS,
+  kREFRESHING_BACKEND_ENGINE,
+  kBUILDING_DEFAULT_CONTEXT,
+  kLOADING_KEY_DATABASE,
+  kSCANNING_MODULES,
+  kVERIFYING_MODULES,
+  kLOADING_MODULE,
+  kREADY,
+};
+
 struct GFUserId {
   QString name;
   QString email;
@@ -217,3 +257,7 @@ struct GFDecryptAndVerifyResult {
 // sit on the loading dialog forever in precisely the broken-environment case
 // this reporting exists to explain.
 Q_DECLARE_METATYPE(GpgFrontend::BadOpenPGPEnvReason)
+
+// Same reasoning for SignalCoreInitProgress, which is emitted from three
+// different task runner threads and received by the startup dialog.
+Q_DECLARE_METATYPE(GpgFrontend::CoreInitStep)

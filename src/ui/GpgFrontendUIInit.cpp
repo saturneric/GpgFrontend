@@ -31,6 +31,7 @@
 #include <QtNetwork>
 
 #include "core/GFConstants.h"
+#include "core/function/CoreInitProgress.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
@@ -85,6 +86,56 @@ class StartupWaitingDialog : public QDialog {
   QPixmap logo_;
 };
 
+/**
+ * @brief The wording for one startup step.
+ *
+ * The core reports a code, not a sentence, because it begins initializing
+ * before InitUITranslations() has installed a translator -- a string built
+ * there would resolve against an empty catalog and reach the user in English
+ * whatever their language. So the wording lives here, and QCoreApplication::tr
+ * keeps these strings in the same catalog context as the rest of this dialog.
+ */
+auto DescribeCoreInitStep(CoreInitStep step, const QString& subject)
+    -> QString {
+  switch (step) {
+    case CoreInitStep::kSTARTING_UP:
+      return QCoreApplication::tr("Starting up...");
+    case CoreInitStep::kCHECKING_GNUPG_ENV:
+      return QCoreApplication::tr("Checking the GnuPG environment...");
+    case CoreInitStep::kCHECKING_RUST_ENGINE:
+      return QCoreApplication::tr("Checking the rPGP engine...");
+    case CoreInitStep::kRESOLVING_PATHS:
+      return QCoreApplication::tr("Resolving GnuPG paths...");
+    case CoreInitStep::kREFRESHING_BACKEND_ENGINE:
+      return QCoreApplication::tr("Preparing the OpenPGP backend engine...");
+    case CoreInitStep::kBUILDING_DEFAULT_CONTEXT:
+      return QCoreApplication::tr("Building the default engine context...");
+    case CoreInitStep::kLOADING_KEY_DATABASE:
+      return subject.isEmpty()
+                 ? QCoreApplication::tr("Loading key databases...")
+                 : QCoreApplication::tr("Loading key database \"%1\"...")
+                       .arg(subject);
+    case CoreInitStep::kSCANNING_MODULES:
+      return QCoreApplication::tr("Scanning modules...");
+    case CoreInitStep::kVERIFYING_MODULES:
+      return QCoreApplication::tr("Verifying modules...");
+    case CoreInitStep::kLOADING_MODULE:
+      return subject.isEmpty()
+                 ? QCoreApplication::tr("Loading modules...")
+                 : QCoreApplication::tr("Loading module \"%1\"...")
+                       .arg(subject);
+    case CoreInitStep::kREADY:
+      return QCoreApplication::tr("Ready.");
+  }
+  return {};
+}
+
+/// The startup dialog's width, and what the layout leaves inside its margins.
+constexpr int kStartupDialogWidth = 460;
+constexpr int kStartupDialogMargin = 24;
+constexpr int kStartupDialogContentWidth =
+    kStartupDialogWidth - 2 * kStartupDialogMargin;
+
 void WaitEnvCheckingProcess() {
   FLOG_D() << "we need to wait for env checking process";
 
@@ -121,8 +172,22 @@ void WaitEnvCheckingProcess() {
   hint_label->setWordWrap(true);
 
   auto* progress_bar = new QProgressBar;
-  progress_bar->setRange(0, 0);
-  progress_bar->setTextVisible(false);
+  progress_bar->setRange(0, 100);
+  progress_bar->setValue(0);
+  progress_bar->setTextVisible(true);
+  progress_bar->setFormat(QStringLiteral("%p%"));
+
+  // The one line that says what is actually happening. Elided rather than
+  // wrapped: a key database is a filesystem path, and letting one wrap would
+  // resize the dialog every few hundred milliseconds during a start.
+  auto* detail_label = new QLabel;
+  detail_label->setWordWrap(false);
+  detail_label->setTextFormat(Qt::PlainText);
+  auto detail_palette = detail_label->palette();
+  detail_palette.setColor(
+      detail_label->foregroundRole(),
+      detail_palette.color(QPalette::Disabled, QPalette::WindowText));
+  detail_label->setPalette(detail_palette);
 
 #if defined(Q_OS_MACOS)
   progress_bar->setFixedHeight(14);
@@ -136,19 +201,48 @@ void WaitEnvCheckingProcess() {
   button_layout->addWidget(cancel_button);
 
   auto* layout = new QVBoxLayout(dialog);
-  layout->setContentsMargins(24, 20, 24, 20);
+  layout->setContentsMargins(kStartupDialogMargin, 20, kStartupDialogMargin,
+                             20);
   layout->setSpacing(12);
   layout->addWidget(title_label);
   layout->addWidget(message_label);
   layout->addSpacing(4);
   layout->addWidget(progress_bar);
+  layout->addWidget(detail_label);
   layout->addWidget(hint_label);
   layout->addSpacing(4);
   layout->addLayout(button_layout);
 
-  dialog->resize(460, dialog->sizeHint().height());
+  dialog->resize(kStartupDialogWidth, dialog->sizeHint().height());
 
   QEventLoop looper;
+
+  const auto apply_progress = [progress_bar, detail_label](
+                                  int percent, CoreInitStep step,
+                                  const QString& subject) {
+    progress_bar->setValue(percent);
+    const auto text = DescribeCoreInitStep(step, subject);
+
+    // Reports can arrive before the dialog is mapped, when the label has no
+    // width yet and eliding against it would leave nothing but the ellipsis.
+    // Fall back to what the layout will give it: the dialog's width less its
+    // horizontal margins.
+    auto available = detail_label->width();
+    if (available < kStartupDialogContentWidth) {
+      available = kStartupDialogContentWidth;
+    }
+
+    detail_label->setText(detail_label->fontMetrics().elidedText(
+        text, Qt::ElideMiddle, available));
+    detail_label->setToolTip(text);
+  };
+
+  QApplication::connect(
+      CoreSignalStation::GetInstance(),
+      &CoreSignalStation::SignalCoreInitProgress, dialog,
+      [apply_progress](int percent, CoreInitStep step, QString subject) {
+        apply_progress(percent, step, subject);
+      });
 
   const auto close_dialog = [dialog]() {
     LOG_D() << "closing env checking dialog";
@@ -214,6 +308,17 @@ void WaitEnvCheckingProcess() {
            Module::RetrieveRTValueTypedOrDefault<>("core", "env.state.basic",
                                                    0) < 0;
   };
+
+  // Same reasoning as the terminal-state re-check below, applied to the bar
+  // itself: SignalCoreInitProgress is edge-triggered too, so every report that
+  // landed before this dialog existed was delivered to nobody. Without this
+  // the bar reads 0% for the whole of a fast start, which is the case it was
+  // least useful in already.
+  {
+    auto& progress = CoreInitProgress::GetInstance();
+    apply_progress(progress.Percent(), progress.CurrentStep(),
+                   progress.CurrentSubject());
+  }
 
   if (core_reached_terminal_state()) {
     LOG_D()

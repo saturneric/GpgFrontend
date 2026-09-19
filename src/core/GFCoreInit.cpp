@@ -33,6 +33,7 @@
 
 #include "core/GFCoreRust.h"
 #include "core/function/CacheManager.h"
+#include "core/function/CoreInitProgress.h"
 #include "core/function/CoreSignalStation.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/function/gpg/GnuPGHome.h"
@@ -495,13 +496,19 @@ auto BuildOpenPGPContext(int channel, OpenPGPContextInitArgs args) -> bool {
 }
 
 auto InitGpgFrontendCore(CoreInitArgs args) -> int {
+  auto& progress = CoreInitProgress::GetInstance();
+  progress.Report(CoreInitStage::kCORE, 0.0, CoreInitStep::kSTARTING_UP);
+
   // check gpgme env
+  progress.Report(CoreInitStage::kCORE, 0.3, CoreInitStep::kCHECKING_GNUPG_ENV);
   if (InitGnuPGEnv()) {
     GetGSS().AddSupportedEngine(OpenPGPEngine::kGNUPG);
   }
 
   // check rpgp env, actually rpgp is always integrated and supported, but
   // just in case
+  progress.Report(CoreInitStage::kCORE, 0.6,
+                  CoreInitStep::kCHECKING_RUST_ENGINE);
   if (HasRustSupport()) {
     GpgFrontend::Rust::gfr_rust_hello();
     GpgFrontend::Rust::gfr_init_logger();
@@ -531,6 +538,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   }
 
   // decide gpgconf, gnupg and default home path
+  progress.Report(CoreInitStage::kCORE, 0.8, CoreInitStep::kRESOLVING_PATHS);
   if (!InitBasicPath()) {
     LOG_E() << "Oops, Basic Path init failed!"
             << "GpgFrontend cannot start under this situation!";
@@ -541,7 +549,11 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
     return -1;
   }
 
+  progress.MarkStageDone(CoreInitStage::kCORE, CoreInitStep::kRESOLVING_PATHS);
+
   // refresh gpgme backend engine, if gnupg is supported
+  progress.Report(CoreInitStage::kENGINE, 0.3,
+                  CoreInitStep::kREFRESHING_BACKEND_ENGINE);
   if (GetGSS().IsEngineSupported(OpenPGPEngine::kGNUPG)) {
     auto gpgconf_path = Module::RetrieveRTValueTypedOrDefault<>(
         "core", "gpgme.ctx.gpgconf_path", QString{});
@@ -591,6 +603,7 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
 
   // unit test mode
   if (args.unit_test_mode) {
+    progress.MarkAllDone();
     Module::UpsertRTValue("core", "env.state.basic", 1);
     Module::UpsertRTValue("core", "env.state.key_dbs", 1);
     CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
@@ -642,6 +655,9 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   LOG_I() << "default openpgp engine:"
           << ConvertOpenPGPEngine2String(default_choice.engine);
 
+  progress.Report(CoreInitStage::kENGINE, 0.7,
+                  CoreInitStep::kBUILDING_DEFAULT_CONTEXT);
+
   // build default openpgp context
   auto succ = [=]() -> auto {
     OpenPGPContextInitArgs ctx_args;
@@ -672,6 +688,15 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
   }
 
   Module::UpsertRTValue("core", "env.state.ctx", 1);
+  progress.MarkStageDone(CoreInitStage::kENGINE,
+                         CoreInitStep::kBUILDING_DEFAULT_CONTEXT);
+
+  // Every database counts for the same share of the key-database track, and
+  // the default one is simply the first of them. Held in a local because the
+  // second task below needs the same denominator.
+  const auto key_db_count = static_cast<double>(key_dbs.size());
+  progress.Report(CoreInitStage::kKEY_DATABASE, 0.0,
+                  CoreInitStep::kLOADING_KEY_DATABASE, key_dbs.front().name);
 
   if (!GpgKeyRepository::GetInstance(kGpgFrontendDefaultChannel)
            .FlushKeyCache()) {
@@ -683,6 +708,9 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
         QCoreApplication::tr("Gpg Default Key Database Initiation Failed"));
     return -1;
   };
+
+  progress.Report(CoreInitStage::kKEY_DATABASE, 1.0 / key_db_count,
+                  CoreInitStep::kLOADING_KEY_DATABASE, key_dbs.front().name);
 
   Module::UpsertRTValue("core", "env.state.basic", 1);
   CoreSignalStation::GetInstance()->SignalGoodGnupgEnv();
@@ -714,6 +742,10 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
                     << key_db.path;
             continue;
           }
+
+          CoreInitProgress::GetInstance().Report(
+              CoreInitStage::kKEY_DATABASE, i / key_db_count,
+              CoreInitStep::kLOADING_KEY_DATABASE, key_db.name);
 
           auto succ = [=]() -> auto {
             GpgFrontend::OpenPGPContextInitArgs args;
@@ -747,6 +779,8 @@ auto InitGpgFrontendCore(CoreInitArgs args) -> int {
         }
 
         Module::UpsertRTValue("core", "env.state.key_dbs", 1);
+        CoreInitProgress::GetInstance().MarkStageDone(
+            CoreInitStage::kKEY_DATABASE, CoreInitStep::kLOADING_KEY_DATABASE);
 
         return 0;
       },
@@ -814,6 +848,10 @@ void StartMonitorCoreInitializationStatus() {
         if (IsCoreShuttingDown()) return -1;
         LOG_D()
             << "monitor: core is fully initialized, sending signal to ui...";
+        // Before the RT value, which is what the startup dialog re-reads to
+        // close the edge-triggered gap around its own show(). By then the bar
+        // must already say 100, or it is left showing a fraction forever.
+        CoreInitProgress::GetInstance().MarkAllDone();
         Module::UpsertRTValue("core", "env.state.all", 1);
         CoreSignalStation::GetInstance()->SignalCoreFullyLoaded();
         return 0;

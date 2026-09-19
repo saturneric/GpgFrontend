@@ -42,6 +42,7 @@ auto GpgFrontend::CoreSignalStation::GetInstance()
     // which is why the signal declares the fully qualified type.
     qRegisterMetaType<GpgFrontend::BadOpenPGPEnvReason>(
         "GpgFrontend::BadOpenPGPEnvReason");
+    qRegisterMetaType<GpgFrontend::CoreInitStep>("GpgFrontend::CoreInitStep");
 
     // The passphrase signals always cross a thread boundary: they are emitted
     // from whichever task runner needs the passphrase and handled on the GUI

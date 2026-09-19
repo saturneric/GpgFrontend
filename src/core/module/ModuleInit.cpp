@@ -33,6 +33,7 @@
 #include <thread>
 #include <vector>
 
+#include "core/function/CoreInitProgress.h"
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleDispatchGate.h"
@@ -206,6 +207,11 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
   if (policy == ModuleLoadingPolicy::kDISABLE) {
     LOG_I() << "module loading is disabled by user settings, abort...";
     ModuleManager::GetInstance().SetNeedRegisterModulesNum(0);
+    // Credited rather than skipped: the startup progress bar blends a fixed
+    // set of weights, so a track that never reports leaves it stuck short of
+    // 100 for the whole of every start with modules turned off.
+    CoreInitProgress::GetInstance().MarkStageDone(
+        CoreInitStage::kMODULES, CoreInitStep::kSCANNING_MODULES);
     return;
   }
 
@@ -229,6 +235,9 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
                 policy == ModuleLoadingPolicy::kPACKAGED_ONLY;
 
             ModuleLoadStats::GetInstance().Begin();
+            auto& progress = CoreInitProgress::GetInstance();
+            progress.Report(CoreInitStage::kMODULES, 0.0,
+                            CoreInitStep::kSCANNING_MODULES);
 
             QMap<QString, bool> modules = LoadIntegratedMods(packaged_only);
 
@@ -244,6 +253,8 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             // PHASE ONE, concurrent: verify and install. This maps no image
             // and runs no module code, so several can run at once -- and it
             // is essentially the whole cost of loading.
+            progress.Report(CoreInitStage::kMODULES, 0.1,
+                            CoreInitStep::kVERIFYING_MODULES);
             auto prepared = PrepareModulesConcurrently(manager, modules);
 
             // Every prepared candidate is a verified descriptor, so
@@ -259,13 +270,30 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             // QLibrary::load() runs the module's own static initialisers, and
             // the host cannot establish that one module's are safe against
             // another's -- so this half stays one at a time, on purpose.
+            // Phase one is the hashing and so most of the cost, which is why
+            // it is worth the larger share of this track. The rest is spent
+            // naming modules as they register -- the part of a start a user
+            // can actually recognise.
+            const auto to_load_count = static_cast<double>(to_load.size());
+            auto loaded = 0;
             for (const auto& candidate : to_load) {
+              // library_name is a package's manifest name and is empty for a
+              // loose library, which still has a filename worth showing.
+              progress.Report(CoreInitStage::kMODULES,
+                              0.7 + 0.3 * (loaded / to_load_count),
+                              CoreInitStep::kLOADING_MODULE,
+                              candidate.library_name.isEmpty()
+                                  ? QFileInfo(candidate.source_path).fileName()
+                                  : candidate.library_name);
               manager.LoadPreparedModule(candidate);
+              ++loaded;
             }
 
             // Freeze the figures before anything else in the process can
             // add to them, so what startup cost stays answerable afterwards.
             ModuleLoadStats::GetInstance().Finish();
+            progress.MarkStageDone(CoreInitStage::kMODULES,
+                                   CoreInitStep::kLOADING_MODULE);
 
             // Stated rather than left to be inferred from the gap between
             // two log lines, which is how this was got wrong twice.
