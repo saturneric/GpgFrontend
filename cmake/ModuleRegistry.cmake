@@ -102,7 +102,11 @@ function(_gf_module_package_command)
     set(gf_qt_version "${Qt6_VERSION}")
   endif()
 
-  set(package_dir "${CMAKE_BINARY_DIR}/artifacts/module-packages")
+  # Where the application scans, so a development build exercises the same
+  # path a shipped one does: package verified, image mapped, nothing
+  # installed. Writing it anywhere else meant a dev tree only ever loaded
+  # loose libraries, and the packaged path went untested until release.
+  set(package_dir "${CMAKE_BINARY_DIR}/artifacts/modules")
   set(package_file "${package_dir}/${GAMP_SHORT_NAME}.gfmodule")
 
   set(packager_args
@@ -383,6 +387,6 @@ function(gf_add_module)
   # rule installed to ${CMAKE_INSTALL_LIBDIR} while the application looked in
   # ${CMAKE_INSTALL_FULL_LIBDIR}/gpgfrontend/modules, so a module installed
   # that way was never found.
-  install(FILES "${CMAKE_BINARY_DIR}/artifacts/module-packages/${GAM_NAME}.gfmodule"
+  install(FILES "${CMAKE_BINARY_DIR}/artifacts/modules/${GAM_NAME}.gfmodule"
     DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/gpgfrontend/modules")
 endfunction()

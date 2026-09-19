@@ -50,7 +50,7 @@ namespace {
 /// handed it is.
 auto AnyBuiltPackage() -> QString {
   const QDir packages(QCoreApplication::applicationDirPath() +
-                      "/module-packages");
+                      "/modules");
   const auto built = packages.entryInfoList(QStringList{"*.gfmodule"},
                                             QDir::Files, QDir::Size);
   if (built.isEmpty()) return {};

@@ -622,7 +622,7 @@ TEST(ModulePackageSmokeTest, APackageBuiltByTheBuildVerifies) {
   // Skipped rather than failed when the package is absent, since a build that
   // did not ask for module packages is a legitimate one.
   const QDir packages(QCoreApplication::applicationDirPath() +
-                      "/module-packages");
+                      "/modules");
   const auto built = packages.entryInfoList(QStringList{"*.gfmodule"},
                                             QDir::Files, QDir::Name);
   if (built.isEmpty()) {

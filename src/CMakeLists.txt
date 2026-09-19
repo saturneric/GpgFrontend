@@ -402,7 +402,7 @@ if(XCODE_BUILD)
   foreach(module_target IN LISTS GPGFRONTEND_MODULE_TARGETS)
     string(REGEX REPLACE "^gf_mod_" "" module_short_name "${module_target}")
     list(APPEND gf_module_packages
-      "${CMAKE_BINARY_DIR}/artifacts/module-packages/${module_short_name}.gfmodule")
+      "${CMAKE_BINARY_DIR}/artifacts/modules/${module_short_name}.gfmodule")
     # The package is made by a custom command, so the app has to wait for it.
     add_dependencies(${APP_NAME} ${module_target}_package)
   endforeach()
