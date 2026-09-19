@@ -28,13 +28,12 @@
 
 #include "ModuleManifest.h"
 
-#include <cmath>
-
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QRegularExpression>
+#include <cmath>
 
 #include "sdk/GFSDKBuildInfo.h"
 
@@ -139,8 +138,8 @@ auto IsLogicalNativeName(const QString& s) -> bool {
   if (s.front() < u'a' || s.front() > u'z') return false;
   for (const auto c : s) {
     const auto ch = c.unicode();
-    const auto ok = (ch >= u'a' && ch <= u'z') || (ch >= u'0' && ch <= u'9') ||
-                    ch == u'_';
+    const auto ok =
+        (ch >= u'a' && ch <= u'z') || (ch >= u'0' && ch <= u'9') || ch == u'_';
     if (!ok) return false;
   }
   // The platform prefix is the Host's to add. A name carrying one is
@@ -403,8 +402,9 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
       }
       const auto as_double = size_value.toDouble();
       if (as_double < 0 || as_double != std::floor(as_double)) {
-        return Malformed("entry_native.size is not a whole, non-negative "
-                         "number");
+        return Malformed(
+            "entry_native.size is not a whole, non-negative "
+            "number");
       }
       m.entry_native.size = static_cast<qint64>(as_double);
     }

@@ -38,8 +38,8 @@
 #include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleDispatchGate.h"
-#include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleEntryBinding.h"
+#include "core/module/ModuleLoadStats.h"
 #include "core/module/ModulePackageVerifier.h"
 #include "core/struct/settings_object/ModuleSO.h"
 #include "core/thread/Task.h"
@@ -208,10 +208,9 @@ class ModuleManager::Impl {
    * @param[out] library_name the entry's filename on this platform
    * @return false when the descriptor or its entry was refused
    */
-  auto VerifyAndResolveEntry(const QString& package_path,
-                             QString& library_path, ModuleManifest& manifest,
-                             QString& module_hash, QString& library_name)
-      -> bool {
+  auto VerifyAndResolveEntry(const QString& package_path, QString& library_path,
+                             ModuleManifest& manifest, QString& module_hash,
+                             QString& library_name) -> bool {
     const auto read = VerifyModulePackage(package_path);
     if (!read.ok) {
       LOG_W() << "module manager refuses module descriptor: " << package_path

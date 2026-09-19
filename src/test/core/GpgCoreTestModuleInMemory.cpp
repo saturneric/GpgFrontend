@@ -33,7 +33,6 @@
 #include <QScopeGuard>
 #include <QSet>
 #include <QTemporaryDir>
-
 #include <array>
 #include <thread>
 
@@ -120,9 +119,10 @@ auto TinyArchiveBytes(const QMap<QString, QByteArray>& members) -> QByteArray {
 // ------------------------------------------------------- the archive primitive
 
 TEST(ModuleInMemoryTest, ReadArchiveMembersHandsOverEveryMember) {
-  const auto bytes = TinyArchiveBytes({{"a.txt", "alpha"},
-                                       {"nested/b.bin", QByteArray("\0\xff", 2)},
-                                       {"c.txt", "gamma"}});
+  const auto bytes =
+      TinyArchiveBytes({{"a.txt", "alpha"},
+                        {"nested/b.bin", QByteArray("\0\xff", 2)},
+                        {"c.txt", "gamma"}});
   ASSERT_FALSE(bytes.isEmpty());
 
   QMap<QString, QByteArray> seen;
@@ -143,7 +143,8 @@ TEST(ModuleInMemoryTest, ReadArchiveMembersHandsOverEveryMember) {
 }
 
 TEST(ModuleInMemoryTest, ReadArchiveMembersWritesNothingAnywhere) {
-  const auto bytes = TinyArchiveBytes({{"a.txt", "alpha"}, {"d/b.txt", "beta"}});
+  const auto bytes =
+      TinyArchiveBytes({{"a.txt", "alpha"}, {"d/b.txt", "beta"}});
   ASSERT_FALSE(bytes.isEmpty());
 
   const auto temp_root = QDir::tempPath();

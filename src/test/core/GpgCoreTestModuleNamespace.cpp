@@ -91,8 +91,7 @@ TEST(ModuleNamespaceTest, GoldenKeysDoNotDriftSilently) {
   // the previous Host cannot find. Changing these values is allowed; changing
   // them by accident is what this catches.
   const QMap<QString, QString> golden{
-      {"com.bktus.gpgfrontend.module.email",
-       "email-7752caa0259f59619e44"},
+      {"com.bktus.gpgfrontend.module.email", "email-7752caa0259f59619e44"},
       {"com.bktus.gpgfrontend.module.gnupg_info_gathering",
        "gnupg-info-gathering-cdbefa3d0e760c00fd76"},
       {"com.bktus.gpgfrontend.module.key_server_sync",
@@ -140,8 +139,8 @@ TEST(ModuleNamespaceTest, AnOverLongLeafIsTruncatedAndStillWellFormed) {
 }
 
 TEST(ModuleNamespaceTest, NonAsciiInTheLeafIsDroppedNotEncoded) {
-  const auto key = Module::ModuleDirectoryKey(QString::fromUtf8(
-      "com.example.\xe9\x82\xae\xe4\xbb\xb6mail"));
+  const auto key = Module::ModuleDirectoryKey(
+      QString::fromUtf8("com.example.\xe9\x82\xae\xe4\xbb\xb6mail"));
   EXPECT_TRUE(WellFormed(key)) << key.toStdString();
   EXPECT_TRUE(key.startsWith("mail-")) << key.toStdString();
 }
@@ -180,8 +179,8 @@ TEST(ModuleNamespaceTest, ManyNearbyIdsDoNotCollide) {
 TEST(ModuleNamespaceTest, CMakeDerivesTheSameKeysThisBuildDoes) {
   // Written by gf_add_module() during configure, one `id=key` per line. This
   // is the only place the CMake implementation and this one ever meet.
-  const auto path = QCoreApplication::applicationDirPath() +
-                    "/module-directory-keys.txt";
+  const auto path =
+      QCoreApplication::applicationDirPath() + "/module-directory-keys.txt";
 
   QFile file(path);
   if (!file.exists()) {

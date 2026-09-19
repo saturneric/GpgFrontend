@@ -116,8 +116,7 @@ TEST(ModuleLoadInvariantsTest, VerifyingAPackageReadsItExactlyOnce) {
   // Exactly once over exactly the file. Not "at most", because there is no
   // container slack to allow for any more: the entry is one file, and hashing
   // it twice would double this precisely.
-  EXPECT_EQ(delta, size)
-      << "the entry native was not hashed exactly once";
+  EXPECT_EQ(delta, size) << "the entry native was not hashed exactly once";
 
   // And the fact itself is published, so nobody downstream needs to look for
   // it: this is what the manager consumes in place of its own search.

@@ -773,15 +773,12 @@ namespace {
 /// writer is created, so this call cannot write a file even by mistake. Every
 /// entry must then be claimed by @p divert, and one that is not is a refusal
 /// rather than something quietly skipped.
-auto ExtractArchiveSync(const QSharedPointer<GFDataExchanger> &ex,
-                        const QString &archive_file,
-                        const QByteArray *archive_bytes,
-                        const QString &target_path,
-                        const ArchiveExtractPolicy &policy,
-                        const ArchiveEntryFilter &divert,
-                        const ArchiveEntrySink &sink,
-                        const ArchiveEntryRawSink &raw_sink, QString *reason)
-    -> GFError {
+auto ExtractArchiveSync(
+    const QSharedPointer<GFDataExchanger> &ex, const QString &archive_file,
+    const QByteArray *archive_bytes, const QString &target_path,
+    const ArchiveExtractPolicy &policy, const ArchiveEntryFilter &divert,
+    const ArchiveEntrySink &sink, const ArchiveEntryRawSink &raw_sink,
+    QString *reason) -> GFError {
   // Not a mode a caller selects, but the absence of a destination. Keeping it
   // derived means there is no way to ask for "no destination" and still hand
   // over a path, which is the combination that would be a lie.
@@ -1324,9 +1321,9 @@ auto ArchiveFileOperator::ReadArchiveMembersSync(
 
   // Everything is claimed, which is the whole of it: with no destination and
   // no unclaimed entry, there is no path through the walk that writes a file.
-  return ExtractArchiveSync({}, {}, &archive_bytes, {}, policy,
-                            [](const QString &) { return true; }, {}, sink,
-                            reason);
+  return ExtractArchiveSync(
+      {}, {}, &archive_bytes, {}, policy, [](const QString &) { return true; },
+      {}, sink, reason);
 }
 
 void ArchiveFileOperator::ListArchive(const QString &archive_path) {

@@ -45,8 +45,7 @@ constexpr qsizetype kSuffixHexChars = 20;  // 80 bits
 /// The readable half: the last dotted component, reduced to a safe spelling.
 auto LeafOf(const QString& module_id) -> QString {
   const auto last_dot = module_id.lastIndexOf('.');
-  const auto tail =
-      last_dot < 0 ? module_id : module_id.mid(last_dot + 1);
+  const auto tail = last_dot < 0 ? module_id : module_id.mid(last_dot + 1);
 
   QString leaf;
   leaf.reserve(tail.size());
@@ -88,10 +87,9 @@ auto ModuleDirectoryKey(const QString& module_id) -> QString {
   // leaf, and not over any normalised form: two ids that differ anywhere at
   // all must land on different keys, and the leaf has already thrown
   // information away by the time it is computed.
-  const auto digest = QCryptographicHash::hash(module_id.toUtf8(),
-                                               QCryptographicHash::Sha256);
-  const auto suffix =
-      QString::fromLatin1(digest.toHex().left(kSuffixHexChars));
+  const auto digest =
+      QCryptographicHash::hash(module_id.toUtf8(), QCryptographicHash::Sha256);
+  const auto suffix = QString::fromLatin1(digest.toHex().left(kSuffixHexChars));
 
   return LeafOf(module_id) + u'-' + suffix;
 }

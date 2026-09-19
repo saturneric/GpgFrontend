@@ -109,17 +109,17 @@ auto GF_CORE_EXPORT ModuleNativeFileName(const QString& logical_name)
 /// Why an entry native was refused.
 enum class ModuleEntryStatus {
   kOK,
-  kBAD_ENTRY_NAME,              ///< not a logical name at all
-  kNATIVE_PATH_ESCAPE,          ///< it resolved outside the native root
-  kMISSING_ENTRY_NATIVE,        ///< the file is not there
-  kBAD_NATIVE_FILE_TYPE,        ///< a symlink, a directory, or not an image
-  kENTRY_VERIFICATION_MISMATCH, ///< it is not the one the descriptor binds
-  kENTRY_BINDING_ABSENT,        ///< macOS: the Mach-O carries no binding
+  kBAD_ENTRY_NAME,               ///< not a logical name at all
+  kNATIVE_PATH_ESCAPE,           ///< it resolved outside the native root
+  kMISSING_ENTRY_NATIVE,         ///< the file is not there
+  kBAD_NATIVE_FILE_TYPE,         ///< a symlink, a directory, or not an image
+  kENTRY_VERIFICATION_MISMATCH,  ///< it is not the one the descriptor binds
+  kENTRY_BINDING_ABSENT,         ///< macOS: the Mach-O carries no binding
   kIO_FAILED,
 };
 
-auto GF_CORE_EXPORT ModuleEntryStatusToString(ModuleEntryStatus status)
-    -> const char*;
+auto GF_CORE_EXPORT ModuleEntryStatusToString(ModuleEntryStatus status) -> const
+    char*;
 
 /// What resolving and verifying a descriptor's entry native concluded.
 struct GF_CORE_EXPORT VerifiedNativeEntry {

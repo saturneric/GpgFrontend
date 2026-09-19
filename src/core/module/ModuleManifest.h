@@ -81,14 +81,15 @@ struct GF_CORE_EXPORT ModuleManifestResource {
  * normal platform signing or have to be regenerated after it.
  */
 enum class ModuleEntryVerificationMode {
-  kFILE_SHA256,            ///< linux: the exact final ELF bytes
-  kPE_AUTHENTICODE_SHA256, ///< windows: PE image content, certificates excluded
-  kAPPLE_BINDING_ID,       ///< macos: an id embedded in the Mach-O before signing
+  kFILE_SHA256,             ///< linux: the exact final ELF bytes
+  kPE_AUTHENTICODE_SHA256,  ///< windows: PE image content, certificates
+                            ///< excluded
+  kAPPLE_BINDING_ID,  ///< macos: an id embedded in the Mach-O before signing
 };
 
 /// The wire spelling of a mode, as it appears in `verification.mode`.
-auto GF_CORE_EXPORT ModuleEntryVerificationModeKey(
-    ModuleEntryVerificationMode mode) -> QString;
+auto GF_CORE_EXPORT
+ModuleEntryVerificationModeKey(ModuleEntryVerificationMode mode) -> QString;
 
 /// The one mode a manifest for @p platform_os may carry.
 ///

@@ -76,9 +76,8 @@ auto GoodManifestObject() -> QJsonObject {
        QJsonObject{{"os", "linux"}, {"arch", "x86_64"}, {"qt", "6.6"}}},
       {"entry_native",
        QJsonObject{{"name", "gf_mod_test"},
-                   {"verification",
-                    QJsonObject{{"mode", "file-sha256"},
-                                {"value", QString(64, 'a')}}},
+                   {"verification", QJsonObject{{"mode", "file-sha256"},
+                                                {"value", QString(64, 'a')}}},
                    {"size", 4096}}},
       {"resources", QJsonArray{}},
   };
@@ -298,8 +297,7 @@ TEST(ModuleManifestTest, AnOlderSchemaIsRefusedByVersionWithAReason) {
     const auto r = ParseObject(o);
     EXPECT_FALSE(r.ok) << "schema " << older << " was tolerated";
     EXPECT_EQ(r.status, Module::ModuleManifestStatus::kMALFORMED);
-    EXPECT_TRUE(r.reason.contains("schema_version"))
-        << r.reason.toStdString();
+    EXPECT_TRUE(r.reason.contains("schema_version")) << r.reason.toStdString();
   }
 }
 

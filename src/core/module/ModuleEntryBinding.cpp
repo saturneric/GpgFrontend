@@ -34,6 +34,7 @@
 
 #include "GpgFrontendBuildInstallInfo.h"
 #include "core/function/GFBufferFactory.h"
+#include "core/module/ModuleLoadStats.h"
 
 namespace GpgFrontend::Module {
 
@@ -58,8 +59,8 @@ auto IsLogicalNativeName(const QString& s) -> bool {
   if (s.front() < u'a' || s.front() > u'z') return false;
   for (const auto c : s) {
     const auto ch = c.unicode();
-    const auto ok = (ch >= u'a' && ch <= u'z') || (ch >= u'0' && ch <= u'9') ||
-                    ch == u'_';
+    const auto ok =
+        (ch >= u'a' && ch <= u'z') || (ch >= u'0' && ch <= u'9') || ch == u'_';
     if (!ok) return false;
   }
   return !s.startsWith("lib");
@@ -121,9 +122,9 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
   const auto& entry = manifest.entry_native;
 
   if (!IsLogicalNativeName(entry.name)) {
-    return Refuse(ModuleEntryStatus::kBAD_ENTRY_NAME,
-                  QString("\"%1\" is not a logical native name")
-                      .arg(entry.name));
+    return Refuse(
+        ModuleEntryStatus::kBAD_ENTRY_NAME,
+        QString("\"%1\" is not a logical native name").arg(entry.name));
   }
   if (root.path.isEmpty()) {
     return Refuse(ModuleEntryStatus::kIO_FAILED,
@@ -150,8 +151,7 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
   // different file wearing its name.
   if (info.isSymLink() || !info.isFile()) {
     return Refuse(ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE,
-                  QString("\"%1\" is not a regular file")
-                      .arg(info.fileName()));
+                  QString("\"%1\" is not a regular file").arg(info.fileName()));
   }
 
   const auto canonical_root = QFileInfo(root.path).canonicalFilePath();
@@ -168,15 +168,14 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
     QFile file(canonical_file);
     if (!file.open(QIODevice::ReadOnly)) {
       return Refuse(ModuleEntryStatus::kIO_FAILED,
-                    QString("\"%1\" could not be read")
-                        .arg(info.fileName()));
+                    QString("\"%1\" could not be read").arg(info.fileName()));
     }
     const auto header = file.read(8);
     file.close();
     if (!HasNativeImageHeader(header)) {
-      return Refuse(ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE,
-                    QString("\"%1\" is not a loadable library")
-                        .arg(info.fileName()));
+      return Refuse(
+          ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE,
+          QString("\"%1\" is not a loadable library").arg(info.fileName()));
     }
   }
 
@@ -192,16 +191,21 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
                       .arg(entry.size));
   }
 
+  // Counted here because this is now where the bytes are. The descriptor
+  // carries no payload, so the resource walk hashes almost nothing; the entry
+  // native is the whole of the cost, and a startup figure that omitted it
+  // would report a few kilobytes for work measured in tens of megabytes.
+  ModuleLoadStats::GetInstance().AddHashedBytes(info.size());
+
   QString actual;
   QString why;
   if (!ComputeEntryVerificationValue(entry.mode, canonical_file, actual, why)) {
     return Refuse(ModuleEntryStatus::kIO_FAILED, why);
   }
   if (actual != entry.value) {
-    return Refuse(
-        ModuleEntryStatus::kENTRY_VERIFICATION_MISMATCH,
-        QString("\"%1\" is not the library this descriptor binds")
-            .arg(info.fileName()));
+    return Refuse(ModuleEntryStatus::kENTRY_VERIFICATION_MISMATCH,
+                  QString("\"%1\" is not the library this descriptor binds")
+                      .arg(info.fileName()));
   }
 
   VerifiedNativeEntry v;

@@ -440,9 +440,10 @@ class GF_CORE_EXPORT ArchiveFileOperator {
    * @param reason set, when given, to why the walk stopped
    * @return 0 on success, non-zero on failure
    */
-  static auto ReadArchiveMembersSync(
-      const QByteArray &archive_bytes, const ArchiveExtractPolicy &policy,
-      const ArchiveEntryRawSink &sink, QString *reason = nullptr) -> GFError;
+  static auto ReadArchiveMembersSync(const QByteArray &archive_bytes,
+                                     const ArchiveExtractPolicy &policy,
+                                     const ArchiveEntryRawSink &sink,
+                                     QString *reason = nullptr) -> GFError;
 
   /**
    * @brief Pack entries from a provider into a stream.

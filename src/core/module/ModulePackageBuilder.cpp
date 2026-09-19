@@ -276,7 +276,8 @@ auto BuildModulePackage(const ModulePackageBuildSpec& spec)
     const auto mode = ModuleEntryVerificationModeFor(platform_os);
     if (!mode.has_value()) {
       return Fail(QString("there is no entry verification mode for platform "
-                          "\"%1\"").arg(platform_os));
+                          "\"%1\"")
+                      .arg(platform_os));
     }
 
     QString value;

@@ -161,8 +161,7 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
       m.platform_arch != QSysInfo::currentCpuArchitecture()) {
     return Refuse(ModulePackageStatus::kWRONG_PLATFORM,
                   QString("it was built for %1/%2, and this is %3/%4")
-                      .arg(m.platform_os, m.platform_arch,
-                           ManifestHostOsName(),
+                      .arg(m.platform_os, m.platform_arch, ManifestHostOsName(),
                            QSysInfo::currentCpuArchitecture()));
   }
 
@@ -215,6 +214,7 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
   v.ok = true;
   v.status = ModulePackageStatus::kOK;
   v.manifest = m;
+  v.build_public_key = public_key_bytes;
   return v;
 }
 
@@ -279,8 +279,9 @@ auto ReadPackage(const QString& package_path,
   // the walk enforces per entry, so a file too large to be one of these is
   // refused before it is held rather than after.
   if (!package.open(QIODevice::ReadOnly)) {
-    return Refuse(ModulePackageStatus::kIO_FAILED, "this file could not be "
-                                                   "read");
+    return Refuse(ModulePackageStatus::kIO_FAILED,
+                  "this file could not be "
+                  "read");
   }
   if (package.size() > kMaxPackageTotalBytes) {
     return Refuse(ModulePackageStatus::kMALFORMED,
