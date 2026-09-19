@@ -419,4 +419,48 @@ TEST(ModuleManifestTest, SizeIsOptionalAndTypeChecked) {
   }
 }
 
+// ------------------------------------------------- architecture spelling
+
+TEST(ModuleManifestTest, OneMachineHasOneCanonicalArchitectureName) {
+  // CMake's CMAKE_SYSTEM_PROCESSOR says `aarch64`; Qt's
+  // currentCpuArchitecture() says `arm64`. The descriptor was stamped by the
+  // first and verified against the second, so every module was refused on ARM
+  // Linux -- for a disagreement between two names for one machine.
+  EXPECT_EQ(Module::NormalizeManifestArch("aarch64"), "arm64");
+  EXPECT_EQ(Module::NormalizeManifestArch("arm64"), "arm64");
+  EXPECT_EQ(Module::NormalizeManifestArch("ARM64"), "arm64");
+
+  EXPECT_EQ(Module::NormalizeManifestArch("x86_64"), "x86_64");
+  EXPECT_EQ(Module::NormalizeManifestArch("amd64"), "x86_64");
+  EXPECT_EQ(Module::NormalizeManifestArch("AMD64"), "x86_64");
+  EXPECT_EQ(Module::NormalizeManifestArch("x64"), "x86_64");
+
+  EXPECT_EQ(Module::NormalizeManifestArch("i686"), "i386");
+  EXPECT_EQ(Module::NormalizeManifestArch("i386"), "i386");
+}
+
+TEST(ModuleManifestTest, AnUnknownArchitectureIsPassedThroughNotMangled) {
+  // An architecture nobody anticipated still compares equal to itself, which
+  // is all the check needs. One this function rewrote would fail in a way
+  // nothing here could explain.
+  EXPECT_EQ(Module::NormalizeManifestArch("riscv64"), "riscv64");
+  EXPECT_EQ(Module::NormalizeManifestArch("s390x"), "s390x");
+  EXPECT_EQ(Module::NormalizeManifestArch("  PPC64LE  "), "ppc64le");
+}
+
+TEST(ModuleManifestTest, TheHostArchNameIsAlreadyCanonical) {
+  const auto host = Module::ManifestHostArchName();
+  EXPECT_EQ(host, Module::NormalizeManifestArch(host))
+      << "normalising the host's own name must be a no-op, or the verifier "
+         "compares a canonical value against a non-canonical one";
+  EXPECT_FALSE(host.isEmpty());
+}
+
+TEST(ModuleManifestTest, NormalisationIsIdempotent) {
+  for (const auto* name : {"aarch64", "amd64", "i686", "riscv64", "arm64"}) {
+    const auto once = Module::NormalizeManifestArch(name);
+    EXPECT_EQ(Module::NormalizeManifestArch(once), once) << name;
+  }
+}
+
 }  // namespace GpgFrontend::Test

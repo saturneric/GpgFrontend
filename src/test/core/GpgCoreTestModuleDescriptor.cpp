@@ -454,6 +454,43 @@ TEST_F(ModuleDescriptorTest, ACaseCollidingEntryFails) {
 
 // ------------------------------------------------------------------- policy
 
+TEST_F(ModuleDescriptorTest, AnAlternateSpellingOfThisArchitectureVerifies) {
+  // The ARM Linux regression, in a form that runs anywhere. CMake stamps
+  // `aarch64` where Qt says `arm64`, and on x86_64 the same fault is reachable
+  // through `amd64` vs `x86_64`. Both sides normalise, so either spelling of
+  // THIS machine verifies -- and a descriptor stamped before normalisation
+  // existed still verifies too, which is why the verifier normalises rather
+  // than trusting the builder to have done it.
+  const auto host = Module::ManifestHostArchName();
+  const QString alternate = host == "x86_64"  ? "amd64"
+                            : host == "arm64" ? "aarch64"
+                                              : host;
+
+  auto spec = GoodSpec(dir_.path(), payload_);
+  spec.platform_arch = alternate;
+  spec.output_path = Path("alt-arch.gfmodule");
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
+
+  const auto v = Module::VerifyModuleDescriptor(spec.output_path);
+  EXPECT_TRUE(v.ok) << v.reason.toStdString();
+
+  // And the descriptor records the canonical spelling, whatever it was given.
+  EXPECT_EQ(v.manifest.platform_arch, host);
+}
+
+TEST_F(ModuleDescriptorTest, ADifferentArchitectureIsStillRejected) {
+  // Normalising must not turn the architecture check into a formality.
+  auto spec = GoodSpec(dir_.path(), payload_);
+  spec.platform_arch =
+      Module::ManifestHostArchName() == "riscv64" ? "s390x" : "riscv64";
+  spec.output_path = Path("wrong-arch.gfmodule");
+  ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
+
+  const auto v = Module::VerifyModuleDescriptor(spec.output_path);
+  EXPECT_FALSE(v.ok);
+  EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kWRONG_PLATFORM);
+}
+
 TEST_F(ModuleDescriptorTest, AWrongPlatformIsRejected) {
   auto spec = spec_;
   spec.platform_arch = "pdp11";
