@@ -506,6 +506,8 @@ include(${CMAKE_SOURCE_DIR}/cmake/Translations.cmake)
 
 # modules are only for qt6
 if(BUILD_MODULES AND NOT GPGFRONTEND_QT5_BUILD)
+  # Before modules/, because every module links it.
+  add_subdirectory(src/module_runtime)
   include(${CMAKE_SOURCE_DIR}/cmake/ModuleRegistry.cmake)
   add_subdirectory(modules)
 endif()
