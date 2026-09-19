@@ -174,6 +174,60 @@ set(GF_MODULE_REGISTRY_DIR "${CMAKE_CURRENT_LIST_DIR}")
 # top-level CMakeLists, before any module is added -- so here is the one moment
 # when clearing it is unambiguously right.
 set(GPGFRONTEND_MODULE_TARGETS "" CACHE INTERNAL "All modules" FORCE)
+set(GPGFRONTEND_MODULE_DIRECTORY_KEYS "" CACHE INTERNAL
+  "module id=directory key, as CMake derives them" FORCE)
+
+# The directory a module owns, derived from the identity it signs.
+#
+# THIS MUST AGREE, CHARACTER FOR CHARACTER, WITH
+# ModuleDirectoryKey() in src/core/module/ModuleNamespace.cpp.
+#
+# It exists twice because the two halves run at different times: CMake places
+# the build output, and the Host resolves it again at load. There is no way to
+# share one implementation across that boundary -- a host tool that could
+# compute it is not built yet when the output directory has to be named -- so
+# the agreement is pinned by a test instead (GpgCoreTestModuleNamespace.cpp),
+# which compares this function's answer for every in-tree module against the
+# C++ one.
+#
+# The suffix is hex rather than base32 for exactly this reason: CMake has
+# string(SHA256) and substrings, and hand-rolling a base32 here to save four
+# characters would buy a way for the two to disagree in silence.
+function(gf_module_directory_key module_id out_var)
+  if(module_id STREQUAL "")
+    set(${out_var} "" PARENT_SCOPE)
+    return()
+  endif()
+
+  # The readable half: the final dotted component, reduced to a safe spelling.
+  string(REGEX REPLACE "^.*\\." "" leaf "${module_id}")
+  string(TOLOWER "${leaf}" leaf)
+  string(REPLACE "_" "-" leaf "${leaf}")
+  string(REGEX REPLACE "[^a-z0-9-]" "" leaf "${leaf}")
+  string(REGEX REPLACE "^-+" "" leaf "${leaf}")
+  string(REGEX REPLACE "-+$" "" leaf "${leaf}")
+
+  # A component that does not begin with a letter is prefixed rather than
+  # rejected, so an id ending in a digit is a naming choice and not a build
+  # failure a long way from its cause.
+  if(NOT leaf MATCHES "^[a-z]")
+    set(leaf "m${leaf}")
+  endif()
+
+  string(LENGTH "${leaf}" leaf_len)
+  if(leaf_len GREATER 24)
+    string(SUBSTRING "${leaf}" 0 24 leaf)
+    # Truncation can strand a separator, which would produce two adjacent
+    # dashes once the suffix is joined on.
+    string(REGEX REPLACE "-+$" "" leaf "${leaf}")
+  endif()
+
+  # Over the id exactly as the manifest spells it. First 80 bits.
+  string(SHA256 digest "${module_id}")
+  string(SUBSTRING "${digest}" 0 20 suffix)
+
+  set(${out_var} "${leaf}-${suffix}" PARENT_SCOPE)
+endfunction()
 
 # Read a required string out of a module.json, or stop the configure.
 #
@@ -393,6 +447,25 @@ function(gf_add_module)
   list(APPEND current "${target_name}")
   list(REMOVE_DUPLICATES current)
   set(GPGFRONTEND_MODULE_TARGETS "${current}" CACHE INTERNAL "All modules" FORCE)
+
+  # ---- the namespace key CMake computed, recorded for the test ------------
+  #
+  # gf_module_directory_key() has to agree with ModuleDirectoryKey() in
+  # gf_core, and nothing in a build failure would say otherwise if it drifted:
+  # the directory would simply be named something the Host later refuses to
+  # find. Writing the pairs out is what lets a unit test recompute them and
+  # compare, which is the only place the two implementations ever meet.
+  gf_module_directory_key("${module_id}" module_dir_key)
+
+  set(keys "${GPGFRONTEND_MODULE_DIRECTORY_KEYS}")
+  list(APPEND keys "${module_id}=${module_dir_key}")
+  list(REMOVE_DUPLICATES keys)
+  set(GPGFRONTEND_MODULE_DIRECTORY_KEYS "${keys}"
+    CACHE INTERNAL "module id=directory key, as CMake derives them" FORCE)
+
+  string(REPLACE ";" "\n" keys_text "${keys}")
+  file(WRITE "${CMAKE_BINARY_DIR}/artifacts/module-directory-keys.txt"
+    "${keys_text}\n")
 
   # ---- generated identity, minimal ----------------------------------------
 
