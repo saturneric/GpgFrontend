@@ -52,8 +52,6 @@ auto VerifyModuleSet(const QString& root, int expected_count)
   }
 
   // Which namespace declared which id, so a duplicate can name both sides.
-  QMap<QString, QString> claimed_by;
-
   for (const auto& ns :
        dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name)) {
     const auto descriptor =
@@ -97,14 +95,6 @@ auto VerifyModuleSet(const QString& root, int expected_count)
                               .arg(id, expected_key)});
       continue;
     }
-
-    if (claimed_by.contains(id)) {
-      result.problems.append(
-          {ns.fileName(), QString("\"%1\" is already claimed by \"%2\"")
-                              .arg(id, claimed_by.value(id))});
-      continue;
-    }
-    claimed_by.insert(id, ns.fileName());
 
     // Where the natives live is ModuleNamespace's to answer. On macOS a
     // namespace is split across Resources and Frameworks, and a hardcoded

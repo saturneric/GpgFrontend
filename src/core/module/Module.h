@@ -201,12 +201,10 @@ class GF_CORE_EXPORT Module : public QObject {
   /**
    * @brief Return where this module came from.
    *
-   * For a packaged module this is the `*.gfmodule` it was verified from, not
-   * the path it was loaded through. The two are different things and only the
-   * first is meaningful to anyone: the load path is ephemeral by design, and on
-   * Linux it is a file descriptor in `/proc/self/fd` that names nothing a user
-   * could open. The package is also the honest answer, being the thing the
-   * host actually checked a signature over.
+   * For a packaged module this is the `*.gfmodule` it was verified from,
+   * rather than the native it was loaded through. That is the honest answer:
+   * the descriptor is the thing a signature was checked over, and it is the
+   * file a person can point at.
    *
    * Returns an empty string for integrated modules.
    *

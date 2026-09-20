@@ -146,11 +146,10 @@ auto InspectModuleLibrary(const QString& module_library_path,
     return {false, "file is not a native shared library image", {}};
   }
 
-  // A packaged module already has this digest, from the signed manifest, which
-  // verification checked against those very bytes a moment ago -- see
-  // InspectModuleImage(), which is the path a package takes. Recomputing it
-  // here read the whole library a second time to arrive at an answer that was
-  // already known.
+  // A packaged module already has this value, from the signed manifest, which
+  // ResolveAndVerifyNativeEntry() checked against those very bytes a moment
+  // ago. Recomputing it here read the whole library a second time to arrive at
+  // an answer that was already known.
   //
   // Nothing is given up by trusting it here: this value is not a security
   // check. It records what was last seen so stale module settings can be
@@ -646,8 +645,8 @@ class ModuleManager::Impl {
     const auto needed = need_register_modules_.load(std::memory_order_relaxed);
     if (needed == -1) return false;
     const auto registered = gmc_->GetRegisteredModuleNum();
-    LOG_D() << "module manager report, need register:" << needed
-            << "registered" << registered;
+    LOG_D() << "module manager report, need register:" << needed << "registered"
+            << registered;
     return needed == registered;
   }
 

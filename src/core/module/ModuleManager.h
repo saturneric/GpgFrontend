@@ -123,20 +123,14 @@ struct GF_CORE_EXPORT ModuleLoadCandidate {
   bool ok = false;  ///< preparation succeeded; phase 2 may proceed
 
   /// Where phase 2 maps from. For a loose library this is the library itself;
-  /// for a package it is whatever @c mapping made available, which is a
-  /// descriptor rather than a file wherever the platform allows.
+  /// for a package it is the entry native its descriptor binds, verified and
+  /// resolved inside that module's own namespace.
   QString library_path;
 
-  /// Set for a package only: the materialised image. Shared rather than
-  /// unique because a candidate is carried through a vector between the two
-  /// phases -- the module that loads from it takes a reference, and a
-  /// materialisation phase 2 never reaches is released when the candidate
-  /// goes out of scope, with nothing left behind either way.
-
   /// Set for a package only: the library's name as the signed manifest spells
-  /// it. This is the only place that name can come from now -- the load path
-  /// is a descriptor on Linux and a temporary file elsewhere, and neither is
-  /// something to derive identity from.
+  /// it. Taken from the manifest rather than from the path, so identity comes
+  /// from what was signed rather than from what a directory happens to be
+  /// called.
   QString library_name;
 
   std::optional<ModuleManifest> manifest;  ///< set for a package only

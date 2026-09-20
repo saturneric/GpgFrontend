@@ -46,7 +46,20 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --namespace-root) NAMESPACE_ROOT="${2:-}"; shift 2 ;;
     --qt-relative) QT_RELATIVE="${2:-}"; shift 2 ;;
-    --expect-count) EXPECT_COUNT="${2:--1}"; shift 2 ;;
+    --expect-count)
+      # Validated, not defaulted. `${2:--1}` turned a missing operand into -1,
+      # which is this script's sentinel for "check nothing" -- so forgetting
+      # the value, or substituting an empty variable, silently disabled the
+      # count check in the gate that decides whether a tree is deployable.
+      # That is the same fault that reached CI through the packager.
+      case "${2:-}" in
+        ''|*[!0-9]*)
+          echo "audit_module_natives: --expect-count needs a non-negative \
+integer, got \"${2:-}\"" >&2
+          exit 2
+          ;;
+      esac
+      EXPECT_COUNT="$2"; shift 2 ;;
     --packager) PACKAGER="${2:-}"; shift 2 ;;
     --warnings-are-errors) STRICT=1; shift ;;
     -h|--help) sed -n '3,35p' "$0"; exit 0 ;;

@@ -468,15 +468,17 @@ auto ResealCommand(const QStringList& args, QTextStream& err) -> int {
       continue;
     }
 
-    const auto native_path =
-        GpgFrontend::Module::ModuleNativeRootFor(descriptor) + "/" +
-        GpgFrontend::Module::ModuleNativeFileName(manifest.entry_native.name);
-    if (!QFileInfo(native_path).isFile()) {
+    const GpgFrontend::Module::ModuleNativeRoot native_root{
+        GpgFrontend::Module::ModuleNativeRootFor(descriptor)};
+    const auto resolved =
+        GpgFrontend::Module::ResolveNativeEntry(manifest, native_root);
+    if (!resolved.ok) {
       err << "  FAIL  " << ns.fileName()
-          << ": its entry native is not there: " << native_path << "\n";
+          << ": its entry native was refused: " << resolved.reason << "\n";
       failed = true;
       continue;
     }
+    const auto native_path = resolved.path;
 
     QMap<QString, QByteArray> resources;
     QString why;
