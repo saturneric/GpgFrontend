@@ -432,6 +432,37 @@ jobs:
           test -f "$LIBSECRET_SRC"
           cp -L "$LIBSECRET_SRC" "$APP_DIR/usr/lib/libsecret-1.so.0"
 
+          # Anything the app needs out of /usr/local, staged the same way and
+          # for the same reason: linuxdeployqt patches what is in the AppDir
+          # when it runs, and a file dropped in afterwards gets neither an
+          # rpath nor its own dependencies deployed.
+          #
+          # This is googletest in practice. The application links gf_test --
+          # `gpgfrontend -t` runs the suite from the shipped binary -- and CI
+          # builds googletest as a SHARED library into /usr/local/lib, which is
+          # a directory that exists on this runner and on nobody's desktop. The
+          # AppImage started, looked for libgtest.so.1.15.2, and died before
+          # main(). A developer building locally never sees it, because a local
+          # googletest is usually static.
+          #
+          # Resolved rather than named: /usr/local is where a hand-built
+          # dependency lands, and the next one should not need this comment
+          # rewritten.
+          APP_BIN="$(find "$APP_DIR/usr/bin" -maxdepth 1 -type f -perm -u+x \
+                       | head -1)"
+          test -n "$APP_BIN" || { echo "no application binary in the AppDir" >&2; exit 1; }
+
+          staged=0
+          while IFS= read -r lib; do
+            [ -n "$lib" ] || continue
+            cp -L "$lib" "$APP_DIR/usr/lib/$(basename "$lib")"
+            echo "staged $(basename "$lib") from /usr/local"
+            staged=$((staged + 1))
+          done < <(LD_LIBRARY_PATH="$APP_DIR/usr/lib:/usr/local/lib:/usr/local/lib64" \
+                     ldd "$APP_BIN" \
+                     | awk '$3 ~ /^\/usr\/local\// { print $3 }' | sort -u)
+          echo "$staged library/libraries staged from /usr/local"
+
           # Every module native, named individually. `-executable-dir=` took a
           # single flat directory, which the namespace layout no longer has:
           # each module owns usr/lib/gpgfrontend/modules/<key>/native/.
@@ -861,6 +892,81 @@ jobs:
       # is refused by another only when the PRODUCT differs. CI execution
       # identity (run id, attempt, actor) is real and worth recording, and is
       # confined to `ci` so it can never leak into what the runtime compares.
+      # Run the thing we ship, and count the modules.
+      #
+      # The Linux counterpart of macos-smoke, added after an AppImage shipped
+      # that could not start at all: it wanted libgtest.so.1.15.2, a shared
+      # googletest that exists in /usr/local on this runner and nowhere else.
+      # Every check in this job passed. Descriptors verified, natives audited,
+      # the module set was provably shippable -- and the binary died before
+      # main(), which none of those checks can see because none of them runs
+      # it.
+      #
+      # `--appimage-extract` rather than executing the image directly: a CI
+      # runner has no FUSE, and what is under test is the payload, not
+      # squashfs.
+      - name: Smoke Test The AppImage (Linux)
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          IMAGE="$(find ${{github.workspace}}/build/upload-artifact \
+                     -name '*.AppImage' | head -1)"
+          test -n "$IMAGE" || { echo "no AppImage was built" >&2; exit 1; }
+
+          rm -rf squashfs-root
+          "$IMAGE" --appimage-extract >/dev/null
+
+          # A profile that has never existed, and nothing of the runner's
+          # touched. XDG_* explicitly as well as HOME: the defaults derive from
+          # HOME, but only if nothing else is already exported.
+          export HOME="$RUNNER_TEMP/smoke-home"
+          export XDG_DATA_HOME="$HOME/.local/share"
+          export XDG_CONFIG_HOME="$HOME/.config"
+          export XDG_CACHE_HOME="$HOME/.cache"
+          mkdir -p "$XDG_DATA_HOME" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME"
+
+          # No window server here. Module loading happens in the first
+          # milliseconds of startup, on a worker thread, so it is measurable
+          # without the GUI ever coming up.
+          export QT_QPA_PLATFORM=offscreen
+
+          ./squashfs-root/AppRun >"$RUNNER_TEMP/smoke-stdout.log" 2>&1 &
+          APP_PID=$!
+
+          found=""
+          for _ in $(seq 1 60); do
+            sleep 1
+            line="$(grep -rh 'module loading finished' "$HOME" 2>/dev/null | tail -1 || true)"
+            if [ -n "$line" ]; then found="$line"; break; fi
+            if ! kill -0 "$APP_PID" 2>/dev/null; then
+              echo "the app exited before it reported module loading" >&2
+              break
+            fi
+          done
+
+          kill "$APP_PID" 2>/dev/null || true
+          wait "$APP_PID" 2>/dev/null || true
+
+          if [ -z "$found" ]; then
+            echo "the AppImage never reported module loading" >&2
+            echo "--- stdout (a missing shared library appears here) ---" >&2
+            cat "$RUNNER_TEMP/smoke-stdout.log" >&2 || true
+            echo "--- logs ---" >&2
+            find "$HOME" -name '*.txt' -exec cat {} \; >&2 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "$found"
+          case "$found" in
+            *"loaded 4 module(s), refused 0"*)
+              echo "all four modules loaded" ;;
+            *)
+              echo "the shipped AppImage did not load its modules" >&2
+              grep -rh 'refuses module' "$HOME" 2>/dev/null >&2 || true
+              exit 1 ;;
+          esac
+        if: runner.os == 'Linux'
+
       # Captured while the host tools still exist, because Windows deletes
       # them below -- they live beside the DLLs there, which is inside what
       # gets packaged. The bindings and the canonical architecture are the two
@@ -2316,6 +2422,159 @@ jobs:
                 "$RUNNER_TEMP/check-entitlements.py" \
                 "$RUNNER_TEMP/notary-result.json"
 
+  # Does the thing we ship actually work.
+  #
+  # Every other macOS check asks whether the bundle is AUTHENTIC: descriptors
+  # verify, natives resolve, binding sections survive, codesign is happy. None
+  # of them asks whether it RUNS. That gap shipped a notarized dmg in which
+  # three of four modules could not load, and the only reason it was caught is
+  # that a person opened it and read the log.
+  #
+  # So this opens it and reads the log. It is deliberately the dmg from
+  # sign-macos -- signed, notarized, stapled -- and not the bundle build-macos
+  # produced, because every step between those two can break loading and none
+  # of them is exercised by looking at the earlier one.
+  #
+  # Unprivileged: no Apple credentials, nothing to sign. It only consumes.
+  macos-smoke:
+    needs: sign-macos
+    if: >-
+      github.event_name != 'pull_request' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    strategy:
+      # Same legs as sign-macos: an arm64 bundle cannot be smoke-tested on an
+      # Intel runner, and a module that loads on one may not on the other.
+      fail-fast: false
+      matrix:
+        os: ["macos-15-intel", "macos-15", "macos-26-intel", "macos-26"]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    steps:
+      - name: Download Signed Artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          path: signed/
+          pattern: gpgfrontend-${{ matrix.os }}-installed-*
+          merge-multiple: true
+
+      - name: Mount The Disk Image
+        run: |
+          set -euo pipefail
+          DMG="$(find signed -name '*.dmg' | head -1)"
+          test -n "$DMG" || { echo "no dmg in the artifact" >&2; ls -R signed >&2; exit 1; }
+          echo "DMG=$DMG" >> "$GITHUB_ENV"
+
+          MNT="$RUNNER_TEMP/dmg"
+          hdiutil attach "$DMG" -nobrowse -noautoopen -readonly -mountpoint "$MNT"
+
+          # Copied OUT of the read-only image: the app writes nothing, but a
+          # mounted dmg is a strange place to launch from and `ditto` keeps the
+          # signature intact where `cp -r` does not.
+          ditto "$MNT/GpgFrontend.app" "$RUNNER_TEMP/GpgFrontend.app"
+          hdiutil detach "$MNT"
+          echo "APP=$RUNNER_TEMP/GpgFrontend.app" >> "$GITHUB_ENV"
+
+      - name: Assess The Signature As macOS Would
+        run: |
+          set -euo pipefail
+
+          # --deep because the modules are nested code: a shallow verify would
+          # pass on a bundle whose module dylibs are unsigned or mis-signed,
+          # which is the failure Library Validation exists to catch.
+          codesign --verify --deep --strict --verbose=2 "$APP"
+
+          # What Gatekeeper decides when the app is launched.
+          spctl --assess --type execute --verbose=4 "$APP"
+
+          # The app and every module must share a Team ID. This is the whole
+          # basis on which Library Validation permits loading them, so it is
+          # asserted rather than assumed.
+          APP_TEAM="$(codesign -dv --verbose=4 "$APP" 2>&1 \
+                        | sed -n 's/^TeamIdentifier=//p')"
+          test -n "$APP_TEAM" && test "$APP_TEAM" != "not set"
+          echo "app team identifier: $APP_TEAM"
+
+          while IFS= read -r dylib; do
+            team="$(codesign -dv --verbose=4 "$dylib" 2>&1 \
+                      | sed -n 's/^TeamIdentifier=//p')"
+            if [ "$team" != "$APP_TEAM" ]; then
+              echo "  FAIL  $(basename "$dylib") is team \"$team\", app is \"$APP_TEAM\"" >&2
+              exit 1
+            fi
+            echo "  ok    $(basename "$dylib")"
+          done < <(find "$APP/Contents/Frameworks/GpgFrontendModules" \
+                     -type f -name '*.dylib' | sort)
+
+          # §15/§16: the exception must not have come back.
+          if codesign -d --entitlements - --xml "$APP" 2>/dev/null \
+               | grep -q 'disable-library-validation'; then
+            echo "the shipped app carries disable-library-validation" >&2
+            exit 1
+          fi
+          echo "library validation is ON"
+
+      - name: Launch It And Count The Modules
+        run: |
+          set -euo pipefail
+
+          # An isolated HOME, so this touches no runner state and starts from a
+          # profile that has never existed. Everything the app writes -- its
+          # profile, its logs -- lands under here.
+          export HOME="$RUNNER_TEMP/smoke-home"
+          mkdir -p "$HOME"
+
+          # offscreen, because a CI runner has no window server to talk to.
+          # Module loading happens in the first few milliseconds of startup and
+          # does not depend on the GUI coming up, which is what makes this
+          # measurable without one.
+          export QT_QPA_PLATFORM=offscreen
+
+          "$APP/Contents/MacOS/GpgFrontend" >"$RUNNER_TEMP/stdout.log" 2>&1 &
+          APP_PID=$!
+
+          # Poll for the line rather than sleeping a fixed time: the answer
+          # usually exists within a second, and waiting thirty for it wastes
+          # four runners.
+          LOGS="$HOME/Library/Application Support/BKTUS"
+          found=""
+          for _ in $(seq 1 60); do
+            sleep 1
+            line="$(grep -rh 'module loading finished' "$LOGS" 2>/dev/null | tail -1 || true)"
+            if [ -n "$line" ]; then found="$line"; break; fi
+            if ! kill -0 "$APP_PID" 2>/dev/null; then
+              echo "the app exited before it reported module loading" >&2
+              break
+            fi
+          done
+
+          kill "$APP_PID" 2>/dev/null || true
+          wait "$APP_PID" 2>/dev/null || true
+
+          if [ -z "$found" ]; then
+            echo "the app never reported module loading" >&2
+            echo "--- stdout ---" >&2
+            cat "$RUNNER_TEMP/stdout.log" >&2 || true
+            echo "--- logs ---" >&2
+            find "$LOGS" -name '*.txt' -exec cat {} \; >&2 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "$found"
+
+          # The assertion. Four modules ship; four must load, and none may be
+          # refused. "refused 0" is the half that matters: a build that loads
+          # four and refuses one has a fifth module nobody knows about.
+          case "$found" in
+            *"loaded 4 module(s), refused 0"*)
+              echo "all four modules loaded" ;;
+            *)
+              echo "the shipped app did not load its modules" >&2
+              echo "--- every module the loader refused ---" >&2
+              grep -rh 'refuses module' "$LOGS" 2>/dev/null >&2 || true
+              exit 1 ;;
+          esac
+
   # Public build provenance, and the ONLY job in this workflow with
   # `id-token: write`.
   #
@@ -2413,7 +2672,7 @@ jobs:
           path: provenance/*
 
   release:
-    needs: [build, sign-macos, provenance]
+    needs: [build, sign-macos, macos-smoke, provenance]
     runs-on: ubuntu-latest
     # Only publish the rolling nightly release from pushes to the main branch.
     # Stable releases (version tags) are packaged manually/offline.
@@ -2423,9 +2682,15 @@ jobs:
     # `needs` propagates no skip. The explicit result check states the intent
     # anyway: a nightly is never published off a signing job that failed, was
     # cancelled, or did not run.
+    #
+    # macos-smoke is in the same position and matters for a different reason:
+    # it is the only thing in this workflow that answers whether the macOS app
+    # RUNS. A dmg that is signed, notarized, stapled and unable to load its
+    # modules passes every other gate here, and did once.
     if: >-
       github.event_name == 'push' && github.ref == 'refs/heads/main' &&
       needs.sign-macos.result == 'success' &&
+      needs.macos-smoke.result == 'success' &&
       needs.provenance.result == 'success'
     environment: nightly-release-approval
     permissions:
