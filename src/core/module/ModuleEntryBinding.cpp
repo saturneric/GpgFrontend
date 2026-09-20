@@ -119,9 +119,8 @@ auto ModuleEntryStatusToString(ModuleEntryStatus status) -> const char* {
   return "unknown";
 }
 
-auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
-                                 const ModuleNativeRoot& root)
-    -> VerifiedNativeEntry {
+auto ResolveNativeEntry(const ModuleManifest& manifest,
+                        const ModuleNativeRoot& root) -> VerifiedNativeEntry {
   const auto& entry = manifest.entry_native;
 
   if (!IsLogicalNativeName(entry.name)) {
@@ -193,6 +192,23 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
           QString("\"%1\" is not a loadable library").arg(info.fileName()));
     }
   }
+
+  VerifiedNativeEntry resolved;
+  resolved.ok = true;
+  resolved.path = canonical_file;
+  return resolved;
+}
+
+auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
+                                 const ModuleNativeRoot& root)
+    -> VerifiedNativeEntry {
+  const auto& entry = manifest.entry_native;
+
+  const auto resolved = ResolveNativeEntry(manifest, root);
+  if (!resolved.ok) return resolved;
+
+  const auto& canonical_file = resolved.path;
+  const QFileInfo info(canonical_file);
 
   // Cheap, and only where it means anything: the parser permits a size only
   // under file-sha256, because platform signing legitimately changes the size

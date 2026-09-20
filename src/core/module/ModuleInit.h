@@ -44,8 +44,7 @@ struct ModuleInitArgs {};
 enum class ModuleLoadingPolicy {
   kDISABLE,          ///< load nothing at all
   kONLY_INTEGRATED,  ///< only the modules shipped with the application
-  kALL,              ///< also external ones, packaged or loose
-  kPACKAGED_ONLY,    ///< everything, but refuse loose libraries
+  kALL,              ///< also external ones
 };
 
 /// The outcome of reading a persisted policy.

@@ -62,8 +62,14 @@ enum class ModuleDescriptorStatus {
   kNOT_A_PACKAGE,        ///< not a readable archive of this shape
   kTOO_NEW,              ///< manifest schema beyond this build
   kMALFORMED,            ///< structurally wrong, including a bad manifest
-  kBAD_SIGNATURE,        ///< the signature does not cover these bytes
-  kUNTRUSTED_BUILD_KEY,  ///< not signed by this Host build's module key
+  /// Not signed by this Host build's module key.
+  ///
+  /// There is deliberately no separate "bad signature" status. With a single
+  /// trust root, a failed verification means either the bytes were tampered
+  /// with or the signer was someone else, and nothing on this side can tell
+  /// which. Two statuses would have meant reporting a distinction the code
+  /// cannot actually make.
+  kUNTRUSTED_BUILD_KEY,
   kWRONG_BUILD,          ///< signed by this key, but for a different build
   /// A declared resource is not the resource that is there.
   kRESOURCE_DIGEST_MISMATCH,

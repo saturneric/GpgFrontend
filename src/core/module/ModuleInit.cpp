@@ -45,8 +45,8 @@
 
 namespace {
 
-auto SearchModuleFromPath(const QString& mods_path, bool integrated,
-                          bool packaged_only) -> QMap<QString, bool> {
+auto SearchModuleFromPath(const QString& mods_path, bool integrated)
+    -> QMap<QString, bool> {
   QMap<QString, bool> modules;
 
   QDir dir(mods_path);
@@ -63,7 +63,9 @@ auto SearchModuleFromPath(const QString& mods_path, bool integrated,
   // by name -- the package was named for the CMake target and the library for
   // the SDK prefix -- and now they do not need to: the descriptor's filename
   // is fixed, and its directory is derived from the identity it signs.
-  Q_UNUSED(packaged_only)
+  //
+  // This is also why there is no "packaged only" policy to honour here: there
+  // is no other kind.
 
   const auto namespaces =
       dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
@@ -82,7 +84,7 @@ auto SearchModuleFromPath(const QString& mods_path, bool integrated,
   return modules;
 }
 
-auto LoadIntegratedMods(bool packaged_only) -> QMap<QString, bool> {
+auto LoadIntegratedMods() -> QMap<QString, bool> {
   const auto module_path = GpgFrontend::GlobalSettingStation::GetInstance()
                                .GetIntegratedModulePath();
   LOG_I() << "loading integrated modules from path:" << module_path;
@@ -93,10 +95,10 @@ auto LoadIntegratedMods(bool packaged_only) -> QMap<QString, bool> {
     return {};
   }
 
-  return SearchModuleFromPath(module_path, true, packaged_only);
+  return SearchModuleFromPath(module_path, true);
 }
 
-auto LoadExternalMods(bool packaged_only) -> QMap<QString, bool> {
+auto LoadExternalMods() -> QMap<QString, bool> {
   auto mods_path =
       GpgFrontend::GlobalSettingStation::GetInstance().GetModulesDir();
 
@@ -106,7 +108,7 @@ auto LoadExternalMods(bool packaged_only) -> QMap<QString, bool> {
     return {};
   }
 
-  return SearchModuleFromPath(mods_path, false, packaged_only);
+  return SearchModuleFromPath(mods_path, false);
 }
 
 /**
@@ -166,9 +168,9 @@ auto ParseModuleLoadingPolicy(const QString& key) -> ModuleLoadingPolicyParse {
     return {ModuleLoadingPolicy::kONLY_INTEGRATED, true};
   }
   if (key == "all") return {ModuleLoadingPolicy::kALL, true};
-  if (key == "packaged_only") {
-    return {ModuleLoadingPolicy::kPACKAGED_ONLY, true};
-  }
+  // Accepted, never written: an alias kept so an existing profile is not
+  // reported as corrupt on upgrade. See ModuleInit.h.
+  if (key == "packaged_only") return {ModuleLoadingPolicy::kALL, true};
   return {ModuleLoadingPolicy::kONLY_INTEGRATED, false};
 }
 
@@ -180,8 +182,6 @@ auto ModuleLoadingPolicyKey(ModuleLoadingPolicy policy) -> QString {
       return "only_integrated";
     case ModuleLoadingPolicy::kALL:
       return "all";
-    case ModuleLoadingPolicy::kPACKAGED_ONLY:
-      return "packaged_only";
   }
   return "only_integrated";
 }
@@ -220,32 +220,18 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
       .GetTaskRunner(Thread::TaskRunnerGetter::kTaskRunnerType_Module)
       ->PostTask(new Thread::Task(
           [policy](const DataObjectPtr&) -> int {
-            // "packaged_only" is a level above "all", not beside it: it
-            // loads everything, and refuses to consider a loose library that
-            // nothing vouches for.
-            //
-            // This is the direction of travel, not a niche option: loose
-            // module libraries are transitional, and a future version will
-            // stop loading them. It is opt-in for now only because the four
-            // in-tree modules still ship loose, and because a signature today
-            // establishes that a package agrees with itself rather than who
-            // built it -- so making it the default would cost users their own
-            // builds and buy them less than it appears to.
-            const auto packaged_only =
-                policy == ModuleLoadingPolicy::kPACKAGED_ONLY;
-
             ModuleLoadStats::GetInstance().Begin();
             auto& progress = CoreInitProgress::GetInstance();
             progress.Report(CoreInitStage::kMODULES, 0.0,
                             CoreInitStep::kSCANNING_MODULES);
 
-            QMap<QString, bool> modules = LoadIntegratedMods(packaged_only);
+            QMap<QString, bool> modules = LoadIntegratedMods();
 
             // if user want to load all modules, then check external modules
-            if (policy == ModuleLoadingPolicy::kALL || packaged_only) {
+            if (policy == ModuleLoadingPolicy::kALL) {
               LOG_I() << "loading external modules as well since user settings "
                          "is set to load all modules";
-              modules.insert(LoadExternalMods(packaged_only));
+              modules.insert(LoadExternalMods());
             }
 
             auto& manager = ModuleManager::GetInstance();

@@ -220,6 +220,28 @@ struct GF_CORE_EXPORT VerifiedNativeEntry {
 };
 
 /**
+ * @brief Find the entry native a descriptor names, without checking its
+ * binding.
+ *
+ * The resolution half of ResolveAndVerifyNativeEntry(): validate the logical
+ * name, map it to a filename, resolve it inside @p root and prove it did not
+ * escape, refuse a symlink or anything that is not a regular file, and require
+ * a native image header. What it does NOT do is compare the entry's size or
+ * its verification value.
+ *
+ * Exposed for exactly one caller: the packager's `reseal`, which exists
+ * precisely because the binding is stale -- a deployment tool has just
+ * rewritten the native -- and so cannot use the verifying form. It used to
+ * build the path itself and settle for `isFile()`, which meant the one command
+ * the release pipeline actually runs was the one that would follow a symlink,
+ * accept a text file, and seal whatever it found. A resolution rule with two
+ * implementations is a resolution rule the stricter half does not own.
+ */
+auto GF_CORE_EXPORT ResolveNativeEntry(const ModuleManifest& manifest,
+                                       const ModuleNativeRoot& root)
+    -> VerifiedNativeEntry;
+
+/**
  * @brief Find the entry native a descriptor names, and prove it is the one.
  *
  * The descriptor never says where its native lives -- it cannot, because a

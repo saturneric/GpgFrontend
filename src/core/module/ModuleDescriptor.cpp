@@ -249,8 +249,6 @@ auto ModuleDescriptorStatusToString(ModuleDescriptorStatus s) -> const char* {
       return "not signed by this build";
     case ModuleDescriptorStatus::kWRONG_BUILD:
       return "built for a different build of this application";
-    case ModuleDescriptorStatus::kBAD_SIGNATURE:
-      return "the signature does not match";
     case ModuleDescriptorStatus::kRESOURCE_DIGEST_MISMATCH:
       return "a file in it has changed";
     case ModuleDescriptorStatus::kUNDECLARED_RESOURCE:
