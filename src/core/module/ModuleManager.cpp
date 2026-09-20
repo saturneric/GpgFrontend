@@ -775,8 +775,8 @@ auto ModuleManager::GetModuleProvenance(ModuleIdentifier id)
   // present -- which are the same answer only for as long as nothing changes.
   p.packaged = module->IsPackaged();
 
-  // The package it came from, never the descriptor or temporary file its
-  // image was mapped through.
+  // The descriptor it was verified from, which is the file a person can point
+  // at -- not the native inside its namespace.
   p.source_package_path = module->GetModulePath();
   p.manifest = module->GetModuleManifest();
   p.sdk_abi = module->GetModuleSDKABIVersion();

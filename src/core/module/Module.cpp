@@ -380,10 +380,6 @@ class Module::Impl {
   /// "packaged" means -- a loose library has nothing vouching for it.
   std::optional<ModuleManifest> manifest_;
 
-  /// Keeps the materialised image alive for as long as the module is mapped,
-  /// which on Windows is the whole of it -- an open image cannot be unlinked
-  /// there, so the mapping's destructor is what removes the file.
-
   QRegularExpression module_identifier_regex_exp_ = QRegularExpression(
       R"(^([A-Za-z]{1}[A-Za-z\d_]*\.)+[A-Za-z][A-Za-z\d_]*$)");
   QRegularExpression module_version_regex_exp_ =
