@@ -55,6 +55,14 @@ void ModuleLoadStats::Begin() {
                   std::memory_order_relaxed);
 }
 
+auto ModuleLoadStats::LoadedModules() const -> int {
+  return loaded_.load(std::memory_order_relaxed);
+}
+
+auto ModuleLoadStats::RefusedModules() const -> int {
+  return refused_.load(std::memory_order_relaxed);
+}
+
 auto ModuleLoadStats::Summary() const -> QString {
   const auto began = began_ms_.load(std::memory_order_relaxed);
   if (began == 0) return {};

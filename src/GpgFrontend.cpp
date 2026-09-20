@@ -29,12 +29,15 @@
 #include <qcommandlineparser.h>
 #include <qloggingcategory.h>
 
+#include <QTextStream>
+
 //
 #include "Application.h"
 #include "Command.h"
 #include "GpgFrontendContext.h"
 #include "Initialize.h"
 #include "core/GFCoreLog.h"
+#include "core/module/ModuleStatusReport.h"
 #include "core/profile/Profile.h"
 #include "core/profile/ProfileLoader.h"
 #include "core/profile/ProfileSession.h"
@@ -62,6 +65,13 @@ auto main(int argc, char* argv[]) -> int {
       {{"v", "version"}, "show version information"},
       {{"t", "test"}, "run all unit test cases"},
       {{"e", "environment"}, "show environment information"},
+      // A testing aid: start, let the module system settle, write what it did
+      // as JSON, and exit. The smoke tests used to grep a log line for this,
+      // which coupled them to a sentence, to a hardcoded module count, and to
+      // knowing where a given flavour puts its log.
+      {{{}, "module-status"},
+       "load modules, write a JSON status report to FILE, and exit",
+       "file"},
       {{"l", "log-level"}, "set log level (debug, info, warn, error)", "none"},
       // Declaration only: this was already resolved during InitApplication(),
       // long before this parser existed, because where the settings live is
@@ -69,8 +79,7 @@ auto main(int argc, char* argv[]) -> int {
       // parser.process() rejecting it as unknown.
       {{{}, "profile"}, "open the named local profile", "id"},
   });
-  parser.addPositionalArgument("file", "a .gfp package to open",
-                               "[file]");
+  parser.addPositionalArgument("file", "a .gfp package to open", "[file]");
 
   // Hold back GoogleTest flags (`--gtest_*`) from the app's parser, which would
   // otherwise reject them as unknown options. They are consumed later by
@@ -147,6 +156,50 @@ auto main(int argc, char* argv[]) -> int {
   }
 
   auto rtn = 0;
+
+  if (parser.isSet("module-status")) {
+    // The same synchronous startup `-t` uses, for the same reason: it brings
+    // the module system all the way up before returning, so the report is of
+    // a finished state rather than a race. External gnupg discovery is off --
+    // this asks what the module system did, and a machine without gpg should
+    // still be able to ask it.
+    ctx->gather_external_gnupg_info = false;
+    ctx->unit_test_mode = true;
+
+    InitGlobalBasicEnvSync(ctx);
+
+    // Startup returns before the module task runner has finished; asking now
+    // reports zeros, which reads exactly like a build whose modules are all
+    // broken. A timeout rather than a wait forever: a hung loader must fail
+    // the smoke test, not hang the runner until the job is cancelled.
+    if (!GpgFrontend::Module::WaitForModuleLoading()) {
+      QTextStream(stderr) << "module loading did not finish in time\n";
+    }
+
+    QString reason;
+    const auto path = parser.value("module-status");
+    if (!GpgFrontend::Module::WriteModuleStatusReport(path, reason)) {
+      QTextStream(stderr) << reason << "\n";
+      rtn = 2;
+    } else {
+      const auto report = GpgFrontend::Module::CollectModuleStatusReport();
+      // A non-zero exit when anything was refused, so the common case needs no
+      // JSON parsing at all: `gpgfrontend --module-status out.json` either
+      // succeeds or names the problem. The file is still written either way --
+      // a caller that wants to know WHICH module failed needs it most when the
+      // command failed.
+      if (report.refused != 0 || report.loaded == 0) {
+        QTextStream(stderr) << QString("module loading: %1 loaded, %2 refused")
+                                   .arg(report.loaded)
+                                   .arg(report.refused)
+                            << "\n";
+        rtn = 1;
+      }
+    }
+
+    ShutdownGlobalBasicEnv(ctx);
+    return rtn;
+  }
 
   if (parser.isSet("t")) {
     ctx->gather_external_gnupg_info = false;

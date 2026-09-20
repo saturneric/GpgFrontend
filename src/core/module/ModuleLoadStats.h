@@ -110,6 +110,17 @@ class GF_CORE_EXPORT ModuleLoadStats {
   /// How many distinct threads have performed a native load. Must be 1.
   [[nodiscard]] auto NativeLoadThreadCount() const -> int;
 
+  /// Modules the loader took all the way to registration.
+  ///
+  /// Exposed because Summary() is prose: a smoke test that has to recover a
+  /// number by parsing "loaded 4 module(s), refused 0" out of a log line is a
+  /// test coupled to a sentence, and it breaks when the sentence is improved
+  /// or a fifth module ships.
+  [[nodiscard]] auto LoadedModules() const -> int;
+
+  /// Candidates the scan offered and the loader refused.
+  [[nodiscard]] auto RefusedModules() const -> int;
+
  private:
   ModuleLoadStats() = default;
 
