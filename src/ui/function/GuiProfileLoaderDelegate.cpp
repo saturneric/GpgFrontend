@@ -33,6 +33,7 @@
 #include "core/function/SystemSecretStore.h"
 #include "core/profile/ProfilePackage.h"
 #include "ui/dialog/AppKeyPinDialog.h"
+#include "ui/dialog/MetaListDialog.h"
 #include "ui/dialog/profile/ProfilePackageMeta.h"
 #include "ui/function/ProfileController.h"
 
@@ -159,27 +160,26 @@ auto BuildProfileLockConflictTexts(const ProfileLockResult& held)
     -> ProfileLockConflictTexts {
   const auto held_by =
       held.pid != 0
-          ? QObject::tr("It is open in process %1 on %2.")
+          ? QObject::tr("Process %1 on %2")
                 .arg(held.pid)
                 .arg(held.host.isEmpty() ? QObject::tr("this computer")
                                          : held.host)
-          : QObject::tr("Another process has it open.");
+          : QObject::tr("Another process");
 
   return {
       QObject::tr("Profile Is Already Open"),
-      QObject::tr("This profile is already open in another window.") + "\n\n" +
-          held_by + "\n\n" +
-          QObject::tr("Opening it twice would corrupt its stored data.") +
-          "\n\n" + QObject::tr("Profile: %1").arg(held.path),
+      QObject::tr("Opening it twice would corrupt its stored data."),
+      {
+          {.caption = QObject::tr("Profile"), .value = held.path, .path = true},
+          {.caption = QObject::tr("Held by"), .value = held_by},
+      },
       // What forcing the lock actually risks. This used to be a second dialog
       // behind the Force Unlock button; it says the same thing here, where it
       // is read before the choice rather than after it, and where neither
       // answer costs a second box to dismiss.
       QObject::tr("Only do this if you are certain no other GpgFrontend "
-                  "window has this profile open.") +
-          "\n\n" +
-          QObject::tr("If one does, both copies will corrupt the "
-                      "profile's stored data."),
+                  "window has this profile open. If one does, both copies "
+                  "will corrupt the profile's stored data."),
   };
 }
 
@@ -187,15 +187,17 @@ auto GuiProfileLoaderDelegate::ConfirmForceUnlock(const ProfileLockResult& held)
     -> bool {
   const auto texts = BuildProfileLockConflictTexts(held);
 
-  QMessageBox box(QMessageBox::Warning, texts.title, texts.text);
-  box.setInformativeText(texts.informative);
-  auto* quit = box.addButton(QObject::tr("Quit"), QMessageBox::AcceptRole);
-  auto* force =
-      box.addButton(QObject::tr("Force Unlock"), QMessageBox::DestructiveRole);
-  box.setDefaultButton(quit);
-  box.exec();
+  MetaListDialog dialog(texts.title, texts.subtitle);
+  dialog.AddSection({}, texts.rows);
+  dialog.AddNote(texts.note, /*danger=*/true);
+  // Index 0, so MetaListDialog::AddButton makes it the default -- the same
+  // safe default the old QMessageBox::setDefaultButton(quit) gave it.
+  dialog.AddButton(QObject::tr("Quit"), QDialogButtonBox::AcceptRole);
+  const auto force = dialog.AddButton(QObject::tr("Force Unlock"),
+                                      QDialogButtonBox::DestructiveRole);
+  dialog.exec();
 
-  return box.clickedButton() == force;
+  return dialog.Choice() == force;
 }
 
 auto GuiProfileLoaderDelegate::ConfirmKeyReset(ProfileKeyResetReason reason)

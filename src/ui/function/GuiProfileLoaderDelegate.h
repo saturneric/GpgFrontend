@@ -31,20 +31,23 @@
 #include <optional>
 
 #include "core/profile/ProfileLoader.h"
+#include "ui/widgets/MetaListPanel.h"
 
 namespace GpgFrontend::UI {
 
 /**
- * @brief What to say when another process already holds the profile.
+ * @brief What to show when another process already holds the profile.
  *
- * Split out of the dialog so the wording can be asserted in a test: this is the
- * one and only warning the user gets before overriding a lock, and everything
- * it has to say has to be in it.
+ * Split out of the dialog so the wording and the shape of the list can be
+ * asserted in a test -- gtest bodies run off the GUI thread, where
+ * constructing a widget is a crash, so this stays plain data, rendered by
+ * MetaListDialog rather than describing its own QMessageBox paragraphs.
  */
 struct GF_UI_EXPORT ProfileLockConflictTexts {
-  QString title;        ///< window title
-  QString text;         ///< what is wrong, and which profile
-  QString informative;  ///< what forcing it past this costs
+  QString title;              ///< header title, and the window title
+  QString subtitle;           ///< one wrapped line saying what is wrong
+  QVector<MetaListRow> rows;  ///< the profile, and who holds it
+  QString note;               ///< what forcing the lock past this costs
 };
 
 /**
