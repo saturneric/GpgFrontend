@@ -110,17 +110,8 @@ ui_*.h
 *.qmlc
 *.jsc
 Makefile*
-# Qt Creator shadow-build dirs (build-GpgFrontend-Desktop_Qt_...). CI workflows
-# are named build-*.yml and are not what this pattern is after, and neither is
-# the provenance matrix -- `*build-*` matches anything with "build-" ANYWHERE
-# in the name, which is a wide net for a rule aimed at directory prefixes.
-#
-# expected-build-matrix.json was swallowed by it silently: committed to nothing,
-# invisible to `git status`, and absent from every checkout, so the provenance
-# gate failed in CI on a file that was right there on the machine that wrote it.
 *build-*
 !.github/workflows/*.yml
-!resource/provenance/expected-build-matrix.json
 *.qm
 *.prl
 
