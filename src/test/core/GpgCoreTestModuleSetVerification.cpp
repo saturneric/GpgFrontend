@@ -82,7 +82,96 @@ auto CopyBuiltTree(const QString& into) -> bool {
   return true;
 }
 
+/// This build's modules, laid out the way a macOS bundle lays them out.
+///
+/// Descriptors under `Contents/Resources/modules/<key>/`, natives under
+/// `Contents/Frameworks/GpgFrontendModules/<key>/` -- the one layout where a
+/// namespace is not two levels of a single tree, because Apple wants data in
+/// the first place and executable code in the second.
+auto CopyBuiltTreeAsBundle(const QString& app) -> bool {
+  const auto built = BuiltModulePackages();
+  if (built.isEmpty()) return false;
+
+  const auto descriptors = app + "/Contents/Resources/modules";
+  const auto natives = app + "/Contents/Frameworks/GpgFrontendModules";
+
+  const QDir root(built.first().absolutePath() + "/..");
+  for (const auto& ns : root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot)) {
+    const QDir source(ns.absoluteFilePath());
+    if (!QFileInfo(source.absoluteFilePath("module.gfmodule")).isFile()) {
+      continue;
+    }
+
+    if (!QDir().mkpath(descriptors + "/" + ns.fileName()) ||
+        !QDir().mkpath(natives + "/" + ns.fileName())) {
+      return false;
+    }
+    if (!QFile::copy(source.absoluteFilePath("module.gfmodule"),
+                     descriptors + "/" + ns.fileName() + "/module.gfmodule")) {
+      return false;
+    }
+    const QDir native(source.absoluteFilePath("native"));
+    for (const auto& file : native.entryInfoList(QDir::Files)) {
+      if (!QFile::copy(file.absoluteFilePath(),
+                       natives + "/" + ns.fileName() + "/" + file.fileName())) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 }  // namespace
+
+TEST(ModuleSetVerificationTest, ABundleLayoutResolvesAcrossItsTwoTrees) {
+  // The macOS shipping layout, checked on any host.
+  //
+  // ModuleNativeRootFor() decides the split from the path's shape rather than
+  // from an #ifdef, precisely so this is testable here -- and the test is
+  // worth having because the unit tests for that function only ever fed it
+  // synthetic strings. VerifyModuleSet had its own hardcoded "<ns>/native"
+  // and never called it, so a correctly assembled bundle reported every module
+  // as missing its native. Covering the function and not its caller is how
+  // that survived.
+  const auto built = BuiltModulePackages();
+  if (built.isEmpty()) GTEST_SKIP() << "this build produced no modules";
+
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto app = dir.path() + "/GpgFrontend.app";
+  ASSERT_TRUE(CopyBuiltTreeAsBundle(app));
+
+  const auto result = Module::VerifyModuleSet(
+      app + "/Contents/Resources/modules", static_cast<int>(built.size()));
+
+  for (const auto& problem : result.problems) {
+    ADD_FAILURE() << problem.where.toStdString() << ": "
+                  << problem.reason.toStdString();
+  }
+  EXPECT_TRUE(result.ok);
+  EXPECT_EQ(result.verified.size(), built.size());
+}
+
+TEST(ModuleSetVerificationTest, ABundleMissingItsFrameworksHalfIsRefused) {
+  // Half a namespace is not a namespace. If the descriptors ship and the
+  // natives do not -- the exact shape of the bug this layout work fixed --
+  // every module must be refused rather than quietly absent.
+  const auto built = BuiltModulePackages();
+  if (built.isEmpty()) GTEST_SKIP() << "this build produced no modules";
+
+  QTemporaryDir dir;
+  ASSERT_TRUE(dir.isValid());
+  const auto app = dir.path() + "/GpgFrontend.app";
+  ASSERT_TRUE(CopyBuiltTreeAsBundle(app));
+
+  QDir(app + "/Contents/Frameworks").removeRecursively();
+
+  const auto result = Module::VerifyModuleSet(
+      app + "/Contents/Resources/modules", static_cast<int>(built.size()));
+  EXPECT_FALSE(result.ok);
+  EXPECT_EQ(result.problems.size(), built.size() + 1)
+      << "one refusal per module, plus the count mismatch";
+}
 
 TEST(ModuleSetVerificationTest, ThisBuildsOwnTreeVerifies) {
   const auto built = BuiltModulePackages();

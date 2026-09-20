@@ -204,25 +204,7 @@ set(GF_MODULE_REGISTRY_DIR "${CMAKE_CURRENT_LIST_DIR}")
 set(GPGFRONTEND_MODULE_TARGETS "" CACHE INTERNAL "All modules" FORCE)
 set(GPGFRONTEND_MODULE_DIRECTORY_KEYS "" CACHE INTERNAL
   "module id=directory key, as CMake derives them" FORCE)
-set(GPGFRONTEND_MODULE_TARGET_KEYS "" CACHE INTERNAL
-  "module target=directory key" FORCE)
 
-# The namespace directory of a module, by its CMake target name.
-#
-# For callers that hold a target rather than an id -- the macOS bundle
-# assembly in src/CMakeLists.txt, mainly. It is a lookup rather than a second
-# derivation: the key follows from the module ID, and re-deriving it from a
-# target name would be inventing a second rule for where a module lives.
-function(gf_module_target_directory_key target_name out_var)
-  foreach(pair IN LISTS GPGFRONTEND_MODULE_TARGET_KEYS)
-    if(pair MATCHES "^${target_name}=(.*)$")
-      set(${out_var} "${CMAKE_MATCH_1}" PARENT_SCOPE)
-      return()
-    endif()
-  endforeach()
-  message(FATAL_ERROR
-    "gf_module_target_directory_key: no module target named ${target_name}")
-endfunction()
 
 # The directory a module owns, derived from the identity it signs.
 #
@@ -539,6 +521,29 @@ function(gf_add_module)
       "LINKER:-sectcreate,__GPGFRONTEND,__gf_binding,${binding_file}")
   endif()
 
+  if(APPLE)
+    # Where a module looks for Qt and the gf_* libraries.
+    #
+    # Set at LINK time rather than patched in later with install_name_tool:
+    # adding a load command after the fact needs header padding that may not be
+    # there, and a failure would show up as a module that does not load rather
+    # than as a build that does not finish.
+    #
+    # Both hops, for the same reason Linux carries both -- the two layouts put
+    # the host's libraries at different depths, and a load command that
+    # resolves to nothing costs one failed stat:
+    #
+    #   bundle   Contents/Frameworks/GpgFrontendModules/<key>/  -> ../..
+    #   dev tree artifacts/modules/<key>/native/                -> ../../..
+    #
+    # @loader_path itself is first, so the private dependencies bundled beside
+    # the entry resolve without any search widening -- the same module-local
+    # namespace $ORIGIN gives on Linux.
+    set_target_properties(${target_name} PROPERTIES
+      INSTALL_RPATH "@loader_path;@loader_path/../..;@loader_path/../../.."
+      BUILD_WITH_INSTALL_RPATH TRUE)
+  endif()
+
   if(NOT WIN32 AND NOT APPLE)
     # $ORIGIN first, so a private helper beside the entry resolves without any
     # search path being widened. Then the hop up to wherever the host's own
@@ -585,12 +590,6 @@ function(gf_add_module)
   list(REMOVE_DUPLICATES keys)
   set(GPGFRONTEND_MODULE_DIRECTORY_KEYS "${keys}"
     CACHE INTERNAL "module id=directory key, as CMake derives them" FORCE)
-
-  set(target_keys "${GPGFRONTEND_MODULE_TARGET_KEYS}")
-  list(APPEND target_keys "${target_name}=${module_dir_key}")
-  list(REMOVE_DUPLICATES target_keys)
-  set(GPGFRONTEND_MODULE_TARGET_KEYS "${target_keys}"
-    CACHE INTERNAL "module target=directory key" FORCE)
 
   string(REPLACE ";" "\n" keys_text "${keys}")
   file(WRITE "${CMAKE_BINARY_DIR}/artifacts/module-directory-keys.txt"

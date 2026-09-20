@@ -275,7 +275,8 @@ auto SealPreparedCommand(const QStringList& args, QTextStream& err) -> int {
     }
 
     const auto& manifest = verdict.manifest;
-    const auto native_root = ns.absoluteFilePath() + "/native";
+    const auto native_root =
+        GpgFrontend::Module::ModuleNativeRootFor(descriptor);
     const auto native_path =
         native_root + "/" +
         GpgFrontend::Module::ModuleNativeFileName(manifest.entry_native.name);
@@ -447,7 +448,7 @@ auto ResealCommand(const QStringList& args, QTextStream& err) -> int {
     }
 
     const auto native_path =
-        ns.absoluteFilePath() + "/native/" +
+        GpgFrontend::Module::ModuleNativeRootFor(descriptor) + "/" +
         GpgFrontend::Module::ModuleNativeFileName(manifest.entry_native.name);
     if (!QFileInfo(native_path).isFile()) {
       err << "  FAIL  " << ns.fileName()

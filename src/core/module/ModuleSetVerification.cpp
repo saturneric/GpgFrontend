@@ -63,7 +63,7 @@ auto VerifyModuleSet(const QString& root, int expected_count)
       // Not fatal on its own: a tree may legitimately hold something else.
       // It becomes fatal below only if it holds native libraries, which would
       // make it a module namespace with no descriptor to bind them.
-      const QDir native(ns.absoluteFilePath() + "/native");
+      const QDir native(ModuleNativeRootFor(descriptor));
       if (native.exists() && !native.entryInfoList(QDir::Files).isEmpty()) {
         result.problems.append(
             {ns.fileName(),
@@ -106,7 +106,11 @@ auto VerifyModuleSet(const QString& root, int expected_count)
     }
     claimed_by.insert(id, ns.fileName());
 
-    const ModuleNativeRoot native{ns.absoluteFilePath() + "/native"};
+    // Where the natives live is ModuleNamespace's to answer. On macOS a
+    // namespace is split across Resources and Frameworks, and a hardcoded
+    // "<ns>/native" finds nothing there -- which is how a bundle full of
+    // correctly placed modules reports every one of them as missing.
+    const ModuleNativeRoot native{ModuleNativeRootFor(descriptor)};
     const auto entry = ResolveAndVerifyNativeEntry(verdict.manifest, native);
     if (!entry.ok) {
       result.problems.append(
@@ -129,7 +133,8 @@ auto VerifyModuleSet(const QString& root, int expected_count)
       // would train a reader to ignore this warning.
       if (file.fileName() == kPreparedEntrySealFileName) continue;
       result.warnings.append(
-          {ns.fileName() + "/native/" + file.fileName(),
+          {ns.fileName() + "/" + QFileInfo(native.path).fileName() + "/" +
+               file.fileName(),
            "a private helper the descriptor does not bind; the platform "
            "loader resolves it, and nothing here vouches for it"});
     }

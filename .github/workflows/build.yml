@@ -1310,6 +1310,77 @@ jobs:
           ${{github.workspace}}/scripts/bundle_macos_module_deps.sh \
             --namespace-root ${{github.workspace}}/build/artifacts/modules
 
+      # Put the modules in the bundle. This is what makes macOS actually ship
+      # them, and it is the last piece of §14.3.
+      #
+      # A namespace is split across two directories here and nowhere else,
+      # because Apple wants data under Resources and executable code under
+      # Frameworks:
+      #
+      #   Contents/Resources/modules/<key>/module.gfmodule
+      #   Contents/Frameworks/GpgFrontendModules/<key>/lib*.dylib
+      #
+      # ModuleNativeRootFor() is the single place that knows those two belong
+      # together, and this step is the first thing that exercises its macOS
+      # branch against a real bundle rather than a synthetic path.
+      #
+      # No install_name_tool here: the rpaths a module needs are set at link
+      # time (see ModuleRegistry.cmake), so this is a copy and nothing more.
+      # Nothing re-signs either -- sign-macos signs every loose Mach-O under
+      # Contents, these included, with the app's own identity, which is exactly
+      # what Library Validation wants.
+      - name: Place Modules In The Bundle (macOS)
+        run: |
+          set -euo pipefail
+          APP="${{github.workspace}}/build/package/GpgFrontend.app"
+          MODULE_ROOT="${{github.workspace}}/build/artifacts/modules"
+          DESC_ROOT="$APP/Contents/Resources/modules"
+          NATIVE_ROOT="$APP/Contents/Frameworks/GpgFrontendModules"
+
+          test -d "$APP"
+          rm -rf "$DESC_ROOT" "$NATIVE_ROOT"
+          mkdir -p "$DESC_ROOT" "$NATIVE_ROOT"
+
+          placed=0
+          for ns in "$MODULE_ROOT"/*/; do
+            key="$(basename "$ns")"
+            [ -f "$ns/module.gfmodule" ] || continue
+
+            mkdir -p "$DESC_ROOT/$key" "$NATIVE_ROOT/$key"
+            cp "$ns/module.gfmodule" "$DESC_ROOT/$key/"
+            cp "$ns"native/*.dylib "$NATIVE_ROOT/$key/"
+
+            echo "  placed $key ($(ls -1 "$NATIVE_ROOT/$key" | wc -l | tr -d ' ') native file(s))"
+            placed=$((placed + 1))
+          done
+
+          test "$placed" -eq 4 || {
+            echo "placed $placed namespaces, expected 4" >&2
+            exit 1
+          }
+
+          # Every module-shaped dylib in the bundle must be inside a namespace.
+          # §16 item 11, done in shell because on macOS the two physical roots
+          # differ and --assert-no-native-outside takes only one of them.
+          STRAY="$(find "$APP/Contents" -name 'libgf_mod_*' \
+                     ! -path "$NATIVE_ROOT/*" -print)"
+          if [ -n "$STRAY" ]; then
+            echo "module libraries outside any namespace in the bundle:" >&2
+            printf '%s\n' "$STRAY" >&2
+            exit 1
+          fi
+
+          # And the proof: every descriptor in the bundle verifies, sits in the
+          # namespace its signed identity derives, and resolves to the native
+          # that is actually there -- across the Resources/Frameworks split.
+          PACKAGER="$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
+          "$PACKAGER" verify-module-set \
+            --namespace-root "$DESC_ROOT" \
+            --expect-count 4
+
+          echo "--- what ships ---"
+          find "$DESC_ROOT" "$NATIVE_ROOT" -type f | sed "s#^$APP/##" | sort
+
       # §11.0's dependency audit, plus the one property the macOS entry
       # binding rests on.
       #
