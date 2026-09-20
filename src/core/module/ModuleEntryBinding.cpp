@@ -360,21 +360,51 @@ auto PeAuthenticodeDigest(const QByteArray& pe, QString& reason) -> QString {
   }
   std::sort(chunks.begin(), chunks.end());
 
+  // SUM_OF_BYTES_HASHED, as the specification defines it: SizeOfHeaders plus
+  // each section's SizeOfRawData. Deliberately a SUM and not "the end of the
+  // last section" -- those agree for every well-formed image, where sections
+  // run contiguously from SizeOfHeaders, and the specification's arithmetic is
+  // what a real signer uses when they do not.
   qint64 covered = size_of_headers;
   for (const auto& chunk : chunks) {
     hash.addData(pe.mid(chunk.first, chunk.second));
-    covered =
-        qMax<qint64>(covered, static_cast<qint64>(chunk.first) + chunk.second);
+    covered += chunk.second;
   }
 
-  // 6: whatever trails the sections, MINUS the certificate table. This is the
-  // part that makes signing invisible to the digest.
-  if (pe.size() > covered) {
-    const auto trailing = pe.size() - covered;
-    const auto certificate_bytes =
-        certificate_at == 0 ? qint64{0} : static_cast<qint64>(certificate_size);
-    const auto extra = trailing - certificate_bytes;
-    if (extra > 0) hash.addData(pe.mid(covered, extra));
+  // 6: whatever trails the sections, up to where the certificate table
+  // begins. This is the part that makes signing invisible to the digest, and
+  // it is the part that is easy to get subtly wrong.
+  //
+  // Two details, both learned the hard way:
+  //
+  //  - The end of the hashed region is the certificate table's OFFSET, taken
+  //    from the data directory, not "end of file minus its size". Those differ
+  //    whenever the recorded size excludes padding or the table is not the
+  //    very last thing in the file, and the difference is invisible until
+  //    something is actually signed.
+  //
+  //  - An attribute certificate entry must begin on an EIGHT-BYTE boundary, so
+  //    a signer zero-pads the file before appending one, and that padding falls
+  //    INSIDE the hashed region. An unsigned image whose size is not already a
+  //    multiple of eight must therefore be hashed as though the padding were
+  //    there -- otherwise the digest changes the moment the file is signed,
+  //    which is precisely what this mode exists to prevent.
+  const auto has_certificate = certificate_at != 0 && certificate_size != 0;
+
+  if (has_certificate) {
+    const auto table_at = static_cast<qint64>(certificate_at);
+    if (table_at < covered || table_at > pe.size()) {
+      return fail("a certificate table outside the image");
+    }
+    if (table_at > covered) hash.addData(pe.mid(covered, table_at - covered));
+  } else {
+    if (pe.size() > covered) {
+      hash.addData(pe.mid(covered, pe.size() - covered));
+    }
+    // The padding a signer would insert. Hashing it now is what makes this
+    // value survive signing later.
+    const auto padding = (8 - (pe.size() % 8)) % 8;
+    if (padding > 0) hash.addData(QByteArray(padding, '\0'));
   }
 
   return QString::fromLatin1(hash.result().toHex());

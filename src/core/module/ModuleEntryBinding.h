@@ -141,6 +141,19 @@ auto GF_CORE_EXPORT ComputeEntryVerificationValue(
  * CI or by hand, without the binding breaking and without the build key being
  * needed again.
  *
+ * ## Two details the specification states and implementations forget
+ *
+ * An attribute certificate entry must begin on an EIGHT-BYTE boundary, so a
+ * signer zero-pads the file before appending one and that padding is inside
+ * the hashed region. An unsigned image is therefore hashed as though the
+ * padding were already there; without that, the digest changes the instant the
+ * file is signed -- which is the one thing this mode exists to prevent.
+ *
+ * The hashed region ends at the certificate table's OFFSET, taken from the
+ * data directory, rather than at "end of file minus its recorded size". The
+ * two agree for a well-formed image and the offset is right in the cases where
+ * they do not.
+ *
  * Exposed for testing. Everything else should go through
  * ComputeEntryVerificationValue(), so the producer and the verifier are
  * calling one implementation rather than two that agree today.

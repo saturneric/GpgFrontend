@@ -112,6 +112,37 @@ constexpr qsizetype kPeOptionalAt = 0x80 + 24;
 constexpr qsizetype kPeChecksumAt = kPeOptionalAt + 64;
 constexpr qsizetype kPeCertificateEntryAt = kPeOptionalAt + 112 + 4 * 8;
 
+/// Sign @p pe the way a real Authenticode signer does.
+///
+/// The earlier version of this helper appended the certificate directly, which
+/// is not what happens: an attribute certificate entry must begin on an
+/// EIGHT-BYTE boundary, so the signer zero-pads the file first. On a synthetic
+/// image whose size was already a multiple of eight that distinction is
+/// invisible -- which is exactly why the digest looked stable here and was not
+/// stable in CI.
+auto SignPeFaithfully(const QByteArray& pe, char filler = '\xAB',
+                      qsizetype certificate_bytes = 256) -> QByteArray {
+  auto signed_pe = pe;
+
+  // The signer pads to an 8-byte boundary before the certificate table, and
+  // those padding bytes fall INSIDE the hashed region.
+  const auto padding = (8 - (signed_pe.size() % 8)) % 8;
+  signed_pe.append(QByteArray(padding, '\0'));
+
+  const auto certificate_at = signed_pe.size();
+  const QByteArray certificate(certificate_bytes, filler);
+  signed_pe.append(certificate);
+
+  PutU32(signed_pe, kPeCertificateEntryAt,
+         static_cast<quint32>(certificate_at));
+  PutU32(signed_pe, kPeCertificateEntryAt + 4,
+         static_cast<quint32>(certificate.size()));
+
+  // And it recomputes the checksum.
+  PutU32(signed_pe, kPeChecksumAt, 0x12345678);
+  return signed_pe;
+}
+
 }  // namespace
 
 // ------------------------------------------------------------ linux
@@ -154,31 +185,82 @@ TEST(ModuleEntryBindingModesTest, ThePeDigestIgnoresCertificateMaterial) {
   const auto before = Module::PeAuthenticodeDigest(pe, reason);
   ASSERT_FALSE(before.isEmpty()) << reason.toStdString();
 
-  auto signed_pe = pe;
-
-  // 1. the checksum, which signing recomputes
-  PutU32(signed_pe, kPeChecksumAt, 0x12345678);
-
-  // 2. the certificate table directory entry, which signing fills in
-  const auto certificate = QByteArray(256, '\xAB');
-  PutU32(signed_pe, kPeCertificateEntryAt,
-         static_cast<quint32>(signed_pe.size()));
-  PutU32(signed_pe, kPeCertificateEntryAt + 4,
-         static_cast<quint32>(certificate.size()));
-
-  // 3. the certificate table itself, appended
-  signed_pe.append(certificate);
-
+  const auto signed_pe = SignPeFaithfully(pe);
   const auto after = Module::PeAuthenticodeDigest(signed_pe, reason);
   ASSERT_FALSE(after.isEmpty()) << reason.toStdString();
   EXPECT_EQ(before, after)
       << "Authenticode signing must be invisible to the descriptor binding";
 
   // And re-signing with a different certificate is equally invisible.
-  auto resigned = signed_pe;
-  resigned.replace(resigned.size() - certificate.size(), certificate.size(),
-                   QByteArray(certificate.size(), '\xCD'));
-  EXPECT_EQ(before, Module::PeAuthenticodeDigest(resigned, reason));
+  EXPECT_EQ(before,
+            Module::PeAuthenticodeDigest(SignPeFaithfully(pe, '\xCD'), reason));
+}
+
+TEST(ModuleEntryBindingModesTest, ThePeDigestSurvivesSigningAnUnalignedImage) {
+  // The case CI found and the synthetic image hid.
+  //
+  // A signer pads the file to an 8-byte boundary before appending the
+  // certificate table, and that padding lands inside the hashed region. An
+  // implementation that hashes "everything up to EOF" when unsigned, and
+  // "everything up to EOF minus the certificate size" when signed, silently
+  // disagrees with itself by exactly those padding bytes -- so the descriptor
+  // stops matching the DLL the moment anyone signs it.
+  //
+  // Sizes chosen to land on every residue mod 8, because the failure only
+  // appears when the unaligned ones are exercised.
+  for (const qsizetype section_bytes :
+       {qsizetype{500}, qsizetype{501}, qsizetype{502}, qsizetype{503},
+        qsizetype{504}, qsizetype{505}, qsizetype{506}, qsizetype{507}}) {
+    QString reason;
+    const auto pe = SyntheticPe(section_bytes);
+    const auto before = Module::PeAuthenticodeDigest(pe, reason);
+    ASSERT_FALSE(before.isEmpty()) << reason.toStdString();
+
+    const auto after =
+        Module::PeAuthenticodeDigest(SignPeFaithfully(pe), reason);
+    ASSERT_FALSE(after.isEmpty()) << reason.toStdString();
+
+    EXPECT_EQ(before, after)
+        << "a " << section_bytes << "-byte section (file size " << pe.size()
+        << ", " << (pe.size() % 8) << " mod 8) changed digest when signed";
+  }
+}
+
+TEST(ModuleEntryBindingModesTest,
+     ThePeDigestSurvivesResigningAtADifferentSize) {
+  // Timestamping enlarges a signature, and re-signing with a different
+  // certificate changes its size too. Neither may move the digest, or a DLL
+  // signed once and timestamped afterwards would stop matching its
+  // descriptor -- which §14.2 explicitly promises does not happen.
+  QString reason;
+  const auto pe = SyntheticPe(503);  // not 8-aligned, so padding is in play
+  const auto before = Module::PeAuthenticodeDigest(pe, reason);
+  ASSERT_FALSE(before.isEmpty()) << reason.toStdString();
+
+  for (const qsizetype size :
+       {qsizetype{8}, qsizetype{256}, qsizetype{1024}, qsizetype{4096}}) {
+    const auto digest = Module::PeAuthenticodeDigest(
+        SignPeFaithfully(pe, '\xAB', size), reason);
+    EXPECT_EQ(before, digest)
+        << "a " << size << "-byte certificate changed the digest";
+  }
+}
+
+TEST(ModuleEntryBindingModesTest, ThePeDigestSurvivesSigningWithATrailingGap) {
+  // A real PE need not end exactly where its last section does. Trailing
+  // bytes are hashed, and must still be hashed identically once a certificate
+  // sits behind them.
+  QString reason;
+  auto pe = SyntheticPe();
+  pe.append(QByteArray(37, '\x5A'));  // deliberately not a multiple of 8
+
+  const auto before = Module::PeAuthenticodeDigest(pe, reason);
+  ASSERT_FALSE(before.isEmpty()) << reason.toStdString();
+
+  const auto after = Module::PeAuthenticodeDigest(SignPeFaithfully(pe), reason);
+  EXPECT_EQ(before, after)
+      << "trailing data before the certificate table must hash the same way "
+         "before and after signing";
 }
 
 TEST(ModuleEntryBindingModesTest, ThePeDigestRefusesWhatIsNotAPe) {
