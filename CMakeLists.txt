@@ -59,13 +59,6 @@ option(GPGFRONTEND_BUILD_APP_FOR_PACKAGE "Allow generating an installable packag
 option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN for memory testing" OFF)
 option(GPGFRONTEND_BUILD_APP_IMAGE "Deprecated; the AppImage job installs" OFF)
 option(GPGFRONTEND_BUILD_MODULES "Build Modules" ON)
-# Only the release pipeline's finalize step turns this on, after platform
-# deployment has rewritten the module natives. See ModulePreparedEntry.h: with
-# it on, a descriptor is written only if its entry still binds to what
-# `gf_module_packager seal-prepared` recorded, which is the check that makes
-# the pipeline content-based rather than build-graph-based.
-option(GPGFRONTEND_MODULE_REQUIRE_SEAL
-  "Refuse to write a module descriptor whose entry native was not sealed" OFF)
 option(GPGFRONTEND_BUILD_STRIP_RPATH "Strip RPATH from binaries for packaging" OFF)
 option(GPGFRONTEND_BUILD_STABLE "Build as a stable release (drops the \"Testing\" display-name suffix)" OFF)
 option(GPGFRONTEND_BUILD_PORTABLE "Build as a portable release (data lives beside the application, not in the OS user-data location)" OFF)
