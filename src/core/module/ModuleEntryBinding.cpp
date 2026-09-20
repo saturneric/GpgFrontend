@@ -28,6 +28,16 @@
 
 #include "core/module/ModuleEntryBinding.h"
 
+#if defined(Q_OS_WINDOWS)
+// <windows.h> before <imagehlp.h>: the latter is not self-contained. Both are
+// only needed for the Authenticode image digest, which is the one value here
+// the operating system computes rather than this file.
+#include <windows.h>
+// clang-format off
+#include <imagehlp.h>
+// clang-format on
+#endif
+
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
@@ -267,15 +277,19 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
 
 namespace {
 
+#if defined(Q_OS_WINDOWS)
+/// Receives the image bytes ImageGetDigestStream() decides are covered.
+auto WINAPI PeDigestSink(DIGEST_HANDLE handle, PBYTE data, DWORD length)
+    -> BOOL {
+  auto* hash = reinterpret_cast<QCryptographicHash*>(handle);
+  hash->addData(QByteArray(reinterpret_cast<const char*>(data),
+                           static_cast<qsizetype>(length)));
+  return TRUE;
+}
+#endif
+
 /// Little-endian reads, bounds-checked, because every offset in a PE or a
 /// Mach-O header comes from the file being examined.
-auto ReadU16(const QByteArray& b, qsizetype at, quint16& out) -> bool {
-  if (at < 0 || at + 2 > b.size()) return false;
-  out = static_cast<quint16>(static_cast<quint8>(b[at])) |
-        static_cast<quint16>(static_cast<quint8>(b[at + 1]) << 8);
-  return true;
-}
-
 auto ReadU32(const QByteArray& b, qsizetype at, quint32& out) -> bool {
   if (at < 0 || at + 4 > b.size()) return false;
   out = static_cast<quint32>(static_cast<quint8>(b[at])) |
@@ -294,152 +308,40 @@ auto ReadU64(const QByteArray& b, qsizetype at, quint64& out) -> bool {
 }
 
 }  // namespace
-
-auto PeAuthenticodeDigest(const QByteArray& pe, QString& reason) -> QString {
-  const auto fail = [&reason](const char* why) -> QString {
-    reason = QString("this is not a PE image this can hash: %1").arg(why);
+auto PeAuthenticodeDigestOfFile(const QString& path, QString& reason)
+    -> QString {
+#if defined(Q_OS_WINDOWS)
+  const auto handle = CreateFileW(
+      reinterpret_cast<const wchar_t*>(path.utf16()), GENERIC_READ,
+      FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+  if (handle == INVALID_HANDLE_VALUE) {
+    reason = QString("\"%1\" could not be opened to hash it").arg(path);
     return {};
-  };
-
-  if (pe.size() < 0x40 || !pe.startsWith("MZ")) return fail("no MZ header");
-
-  quint32 pe_offset = 0;
-  if (!ReadU32(pe, 0x3C, pe_offset)) return fail("no e_lfanew");
-  if (pe_offset + 24 > static_cast<quint32>(pe.size())) {
-    return fail("the PE header is past the end");
-  }
-  if (pe.mid(static_cast<qsizetype>(pe_offset), 4) !=
-      QByteArray("PE\x00\x00", 4)) {
-    return fail("no PE signature");
-  }
-
-  quint16 sections = 0;
-  quint16 optional_size = 0;
-  if (!ReadU16(pe, pe_offset + 6, sections) ||
-      !ReadU16(pe, pe_offset + 20, optional_size)) {
-    return fail("a truncated COFF header");
-  }
-
-  const auto optional_at = static_cast<qsizetype>(pe_offset) + 24;
-  quint16 magic = 0;
-  if (!ReadU16(pe, optional_at, magic)) return fail("no optional header");
-
-  // The only difference that matters here: where the data directories start.
-  // CheckSum is at +64 in both.
-  qsizetype directories_at = 0;
-  if (magic == 0x10B) {
-    directories_at = optional_at + 96;
-  } else if (magic == 0x20B) {
-    directories_at = optional_at + 112;
-  } else {
-    return fail("an unknown optional header magic");
-  }
-
-  const auto checksum_at = optional_at + 64;
-  const auto certificate_entry_at = directories_at + 4 * 8;
-
-  quint32 size_of_headers = 0;
-  if (!ReadU32(pe, optional_at + 60, size_of_headers)) {
-    return fail("no SizeOfHeaders");
-  }
-  if (size_of_headers > static_cast<quint32>(pe.size())) {
-    return fail("SizeOfHeaders is past the end");
-  }
-
-  quint32 certificate_at = 0;
-  quint32 certificate_size = 0;
-  quint16 directory_count = 0;
-  if (!ReadU16(pe, optional_at + 92 + (magic == 0x20B ? 16 : 0),
-               directory_count)) {
-    directory_count = 0;
-  }
-  // Absent is normal: an unsigned file has no certificate table, and its
-  // entry is sixteen zero bytes. It is still skipped, so signing one later
-  // does not change the digest.
-  if (certificate_entry_at + 8 <= pe.size()) {
-    ReadU32(pe, certificate_entry_at, certificate_at);
-    ReadU32(pe, certificate_entry_at + 4, certificate_size);
-  } else {
-    return fail("no certificate table directory entry");
   }
 
   QCryptographicHash hash(QCryptographicHash::Sha256);
+  // DigestLevel 0: the Authenticode image digest. The CERT_PE_IMAGE_DIGEST_*
+  // flags widen it to cover debug info, resources and import tables, none of
+  // which Authenticode includes.
+  const auto ok = ImageGetDigestStream(handle, 0, PeDigestSink, &hash);
+  CloseHandle(handle);
 
-  // 1..4: headers, with the checksum and the certificate directory entry cut
-  // out. Everything else about the headers is covered.
-  hash.addData(pe.mid(0, checksum_at));
-  hash.addData(pe.mid(checksum_at + 4, certificate_entry_at - checksum_at - 4));
-  hash.addData(pe.mid(
-      certificate_entry_at + 8,
-      static_cast<qsizetype>(size_of_headers) - (certificate_entry_at + 8)));
-
-  // 5: every section, in file order, by its raw pointer and raw size.
-  const auto section_table_at = optional_at + optional_size;
-  QVector<QPair<quint32, quint32>> chunks;
-  for (quint16 i = 0; i < sections; ++i) {
-    const auto entry = section_table_at + static_cast<qsizetype>(i) * 40;
-    quint32 raw_size = 0;
-    quint32 raw_pointer = 0;
-    if (!ReadU32(pe, entry + 16, raw_size) ||
-        !ReadU32(pe, entry + 20, raw_pointer)) {
-      return fail("a truncated section table");
-    }
-    if (raw_size == 0) continue;
-    if (static_cast<qint64>(raw_pointer) + raw_size > pe.size()) {
-      return fail("a section past the end of the file");
-    }
-    chunks.append({raw_pointer, raw_size});
+  if (ok == FALSE) {
+    reason = QString("\"%1\" is not a PE image this can hash").arg(path);
+    return {};
   }
-  std::sort(chunks.begin(), chunks.end());
-
-  // SUM_OF_BYTES_HASHED, as the specification defines it: SizeOfHeaders plus
-  // each section's SizeOfRawData. Deliberately a SUM and not "the end of the
-  // last section" -- those agree for every well-formed image, where sections
-  // run contiguously from SizeOfHeaders, and the specification's arithmetic is
-  // what a real signer uses when they do not.
-  qint64 covered = size_of_headers;
-  for (const auto& chunk : chunks) {
-    hash.addData(pe.mid(chunk.first, chunk.second));
-    covered += chunk.second;
-  }
-
-  // 6: whatever trails the sections, up to where the certificate table
-  // begins. This is the part that makes signing invisible to the digest, and
-  // it is the part that is easy to get subtly wrong.
-  //
-  // Two details, both learned the hard way:
-  //
-  //  - The end of the hashed region is the certificate table's OFFSET, taken
-  //    from the data directory, not "end of file minus its size". Those differ
-  //    whenever the recorded size excludes padding or the table is not the
-  //    very last thing in the file, and the difference is invisible until
-  //    something is actually signed.
-  //
-  //  - An attribute certificate entry must begin on an EIGHT-BYTE boundary, so
-  //    a signer zero-pads the file before appending one, and that padding falls
-  //    INSIDE the hashed region. An unsigned image whose size is not already a
-  //    multiple of eight must therefore be hashed as though the padding were
-  //    there -- otherwise the digest changes the moment the file is signed,
-  //    which is precisely what this mode exists to prevent.
-  const auto has_certificate = certificate_at != 0 && certificate_size != 0;
-
-  if (has_certificate) {
-    const auto table_at = static_cast<qint64>(certificate_at);
-    if (table_at < covered || table_at > pe.size()) {
-      return fail("a certificate table outside the image");
-    }
-    if (table_at > covered) hash.addData(pe.mid(covered, table_at - covered));
-  } else {
-    if (pe.size() > covered) {
-      hash.addData(pe.mid(covered, pe.size() - covered));
-    }
-    // The padding a signer would insert. Hashing it now is what makes this
-    // value survive signing later.
-    const auto padding = (8 - (pe.size() % 8)) % 8;
-    if (padding > 0) hash.addData(QByteArray(padding, '\0'));
-  }
-
   return QString::fromLatin1(hash.result().toHex());
+#else
+  Q_UNUSED(path)
+  // Unreachable in production: a descriptor declaring `windows` is refused on
+  // another platform by the platform check, long before a binding is
+  // computed. Refusing rather than guessing keeps that true if it ever stops
+  // being.
+  reason =
+      "a PE image digest can only be computed on Windows, where the operating "
+      "system provides it";
+  return {};
+#endif
 }
 
 auto MachOBindingSection(const QByteArray& macho, QString& reason) -> QString {
@@ -589,15 +491,9 @@ auto ComputeEntryVerificationValue(ModuleEntryVerificationMode mode,
     }
 
     case ModuleEntryVerificationMode::kPE_AUTHENTICODE_SHA256: {
-      QFile file(native_path);
-      if (!file.open(QIODevice::ReadOnly)) {
-        reason = QString("\"%1\" could not be read").arg(native_path);
-        return false;
-      }
-      const auto bytes = file.readAll();
-      file.close();
-
-      const auto digest = PeAuthenticodeDigest(bytes, reason);
+      // The OS reads the file; nothing here pulls a whole DLL into memory to
+      // hash it.
+      const auto digest = PeAuthenticodeDigestOfFile(native_path, reason);
       if (digest.isEmpty()) return false;
       out = digest;
       return true;

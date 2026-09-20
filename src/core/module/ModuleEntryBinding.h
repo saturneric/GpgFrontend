@@ -127,39 +127,34 @@ auto GF_CORE_EXPORT ComputeEntryVerificationValue(
     -> bool;
 
 /**
- * @brief The Authenticode image digest of a PE file.
+ * @brief The Authenticode image digest of a PE file, from the OS.
  *
- * Not a digest of the file. It skips exactly the three regions that
- * Authenticode signing and timestamping write, per Microsoft's *Windows
- * Authenticode Portable Executable Signature Format*:
+ * Windows only, and computed by `ImageGetDigestStream()` rather than by
+ * parsing the file here.
  *
- *  1. the `CheckSum` field in the Optional Header (4 bytes);
- *  2. the Certificate Table entry in the Data Directory (8 bytes);
- *  3. the attribute certificate table itself, at the end of the file.
+ * This used to be a portable PE parser, so the Linux unit suite could exercise
+ * the Windows path from synthetic fixtures. That was a testing convenience
+ * rather than a requirement -- both sides that compute this value in
+ * production, the packager building Windows modules and the Host verifying
+ * them, run on Windows -- and it was paid for in the only way that matters: a
+ * signer must pad a file to an eight-byte boundary before appending a
+ * certificate, that padding falls INSIDE the hashed region, and the
+ * implementation disagreed with itself about it. Every module DLL failed the
+ * moment it was signed, and the tests said it was right because the synthetic
+ * fixture happened to be eight-byte aligned.
  *
- * That is what lets a module DLL be signed after its descriptor is final, by
- * CI or by hand, without the binding breaking and without the build key being
- * needed again.
+ * Microsoft owns the specification. Now it owns the implementation too, and
+ * both sides agree by construction because both call the same API.
  *
- * ## Two details the specification states and implementations forget
+ * What replaces the deleted fixtures is the gate that already signs real
+ * module DLLs with a throwaway certificate and re-verifies them, extended to
+ * prove the other half: that mutating executable content IS detected.
  *
- * An attribute certificate entry must begin on an EIGHT-BYTE boundary, so a
- * signer zero-pads the file before appending one and that padding is inside
- * the hashed region. An unsigned image is therefore hashed as though the
- * padding were already there; without that, the digest changes the instant the
- * file is signed -- which is the one thing this mode exists to prevent.
- *
- * The hashed region ends at the certificate table's OFFSET, taken from the
- * data directory, rather than at "end of file minus its recorded size". The
- * two agree for a well-formed image and the offset is right in the cases where
- * they do not.
- *
- * Exposed for testing. Everything else should go through
- * ComputeEntryVerificationValue(), so the producer and the verifier are
- * calling one implementation rather than two that agree today.
+ * @return the digest as lower-case hex, or empty with @p reason set. Always
+ * empty off Windows, where there is no such thing to compute.
  */
-auto GF_CORE_EXPORT PeAuthenticodeDigest(const QByteArray& pe_bytes,
-                                         QString& reason) -> QString;
+auto GF_CORE_EXPORT PeAuthenticodeDigestOfFile(const QString& path,
+                                               QString& reason) -> QString;
 
 /**
  * @brief Read the GpgFrontend binding section out of a Mach-O, without loading
