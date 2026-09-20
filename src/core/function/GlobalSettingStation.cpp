@@ -169,11 +169,26 @@ class GlobalSettingStation::Impl {
     const auto exec_binary_path = GetAppDir();
 
 #ifdef Q_OS_LINUX
-    // AppImage. Under `gpgfrontend/` rather than directly under `usr/lib`,
-    // matching the install layout: the namespace root now holds directories
-    // that a deployment tool walking `usr/lib` would otherwise scan.
-    if (IsAppImageENV()) {
-      return qEnvironmentVariable("APPDIR") + "/usr/lib/gpgfrontend/modules";
+    // AppImage, whether mounted or extracted. Under `gpgfrontend/` rather
+    // than directly under `usr/lib`, matching the install layout: the
+    // namespace root holds directories that a deployment tool walking
+    // `usr/lib` would otherwise scan.
+    //
+    // $APPIMAGE is set only when the .AppImage FILE is executed. AppRun sets
+    // $APPDIR in both cases -- including after `--appimage-extract`, which is
+    // how the image is run on a system without FUSE, and a workflow AppImage
+    // documents. Keying on $APPIMAGE alone sent an extracted run looking for
+    // modules beside the binary, where there are none, and the application
+    // started perfectly well with no modules and nothing to say about it.
+    //
+    // The extracted case is existence-checked rather than trusted: $APPDIR is
+    // a convention and a stray one must not redirect module discovery. When
+    // $APPIMAGE is set the answer is returned regardless, so a broken image
+    // still reports the path it meant to use.
+    const auto appdir = qEnvironmentVariable("APPDIR");
+    if (!appdir.isEmpty()) {
+      const auto candidate = appdir + "/usr/lib/gpgfrontend/modules";
+      if (IsAppImageENV() || QFileInfo(candidate).isDir()) return candidate;
     }
     // Flatpak
     if (IsFlatpakENV()) {
@@ -200,6 +215,20 @@ class GlobalSettingStation::Impl {
     auto module_install_path = QString(APP_LIB_PATH) + "/gpgfrontend/modules";
     if (QFileInfo(module_install_path).exists()) {
       return module_install_path;
+    }
+
+    // A relocatable prefix: <prefix>/bin/gpgfrontend with its modules under
+    // <prefix>/lib/gpgfrontend/modules.
+    //
+    // Derived from where the binary actually is, so it needs no environment
+    // variable to be right. That matters for an extracted AppImage: AppRun is
+    // expected to export $APPDIR, but an app whose modules only appear when
+    // some launcher remembered to set a variable is an app that silently has
+    // no modules when it forgets. It also covers a prefix that is not the one
+    // this build was configured with.
+    const auto relocatable = exec_binary_path + "/../lib/gpgfrontend/modules";
+    if (QFileInfo(relocatable).isDir()) {
+      return QDir(relocatable).absolutePath();
     }
 
     return exec_binary_path + "/modules";
