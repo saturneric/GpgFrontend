@@ -840,7 +840,7 @@ jobs:
       # Signed with a throwaway self-signed certificate: the point is that the
       # binding survives the FILE CHANGES signing makes, and nothing here cares
       # who signed it. No release key is involved and none is needed.
-      - name: Verify Authenticode Does Not Break The Binding (Windows)
+      - name: Verify The Authenticode Contract (Windows)
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -891,6 +891,31 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             throw 'Authenticode signing broke the entry binding'
           }
+
+          # The other half of the contract, and the half that was never
+          # proven here: certificates are invisible to this digest, and CODE
+          # IS NOT.
+          #
+          # Without this, a digest that covered nothing at all would pass
+          # everything above -- signing would not break it, because nothing
+          # could. That is not hypothetical: the implementation this replaced
+          # disagreed with itself about the padding a signer inserts, and the
+          # unit tests said it was right because the synthetic fixture they
+          # used happened to be eight-byte aligned.
+          $victim = $natives[0].FullName
+          $bytes = [System.IO.File]::ReadAllBytes($victim)
+          # Inside the first section's raw data: past the headers, far from the
+          # checksum and the certificate table, which are the regions the
+          # digest is supposed to ignore.
+          $at = 1024
+          $bytes[$at] = $bytes[$at] -bxor 0xFF
+          [System.IO.File]::WriteAllBytes($victim, $bytes)
+
+          & $packager verify-module-set --namespace-root $scratch --expect-count $expected
+          if ($LASTEXITCODE -eq 0) {
+            throw "executable content was changed in $([System.IO.Path]::GetFileName($victim)) and the binding still verified; this digest covers nothing"
+          }
+          Write-Host 'mutated executable content was refused, as it must be'
 
           Remove-Item -Recurse -Force $scratch
           Remove-Item -Force ("Cert:\CurrentUser\My\" + $cert.Thumbprint)
