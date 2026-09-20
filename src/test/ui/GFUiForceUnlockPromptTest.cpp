@@ -50,7 +50,7 @@ auto Held(qint64 pid, const QString& host) -> ProfileLockResult {
 // Rows are looked up by caption rather than by index, same as
 // GFUiProfilePackageMetaTest.cpp's CaptionOf(): the assertions should survive
 // a row being reordered or another one being inserted between them.
-auto RowValue(const QVector<MetaListRow>& rows, const QString& caption)
+auto RowValue(const QContainer<MetaListRow>& rows, const QString& caption)
     -> std::optional<QString> {
   for (const auto& row : rows) {
     if (row.caption == caption) return row.value;
@@ -58,7 +58,7 @@ auto RowValue(const QVector<MetaListRow>& rows, const QString& caption)
   return std::nullopt;
 }
 
-auto Row(const QVector<MetaListRow>& rows, const QString& caption)
+auto Row(const QContainer<MetaListRow>& rows, const QString& caption)
     -> std::optional<MetaListRow> {
   for (const auto& row : rows) {
     if (row.caption == caption) return row;
