@@ -42,6 +42,7 @@
 #include "ui/function/KeyDatabaseRefresh.h"
 #include "ui/function/OpenPGPEnvGuard.h"
 #include "ui/function/PassphrasePrompt.h"
+#include "ui/function/UIStyle.h"
 #include "ui/main_window/MainWindow.h"
 
 namespace GpgFrontend::UI {
@@ -54,37 +55,6 @@ QContainer<QTranslator*> registered_translators;
   qWarning() << "Application startup was canceled. Terminating process.";
   std::_Exit(0);
 }
-
-// QDialog that paints a faint GF logo watermark behind its children, matching
-// the status/report panel (see DocFrame in InfoBoardDocFrame.h).
-class StartupWaitingDialog : public QDialog {
- public:
-  using QDialog::QDialog;
-
- protected:
-  void paintEvent(QPaintEvent* ev) override {
-    QDialog::paintEvent(ev);
-
-    if (logo_.isNull()) {
-      logo_ = QPixmap(QStringLiteral(":/icons/gpgfrontend_logo.png"));
-    }
-    if (logo_.isNull()) return;
-
-    const int box = qMin(width(), height()) - 32;
-    if (box <= 0) return;
-
-    const QPixmap scaled =
-        logo_.scaled(box, box, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    QPainter p(this);
-    p.setRenderHint(QPainter::SmoothPixmapTransform);
-    p.setOpacity(0.06);
-    p.drawPixmap((width() - scaled.width()) / 2,
-                 (height() - scaled.height()) / 2, scaled);
-  }
-
- private:
-  QPixmap logo_;
-};
 
 /**
  * @brief The wording for one startup step.
@@ -148,28 +118,12 @@ void WaitEnvCheckingProcess() {
     return;
   }
 
-  auto* dialog = new StartupWaitingDialog(nullptr);
+  auto* dialog = new QDialog(nullptr);
   dialog->setAttribute(Qt::WA_DeleteOnClose);
   dialog->setWindowTitle(QCoreApplication::tr("Starting GpgFrontend"));
   dialog->setModal(true);
   dialog->setWindowFlag(Qt::WindowContextHelpButtonHint, false);
   dialog->setWindowFlag(Qt::MSWindowsFixedSizeDialogHint, true);
-
-  auto* title_label =
-      new QLabel(QCoreApplication::tr("Loading essential information"));
-  auto title_font = title_label->font();
-  title_font.setBold(true);
-  title_font.setPointSize(title_font.pointSize() + 1);
-  title_label->setFont(title_font);
-
-  auto* message_label = new QLabel(QCoreApplication::tr(
-      "GpgFrontend is checking your OpenPGP environment and preparing the "
-      "default engine. This may take a few seconds."));
-  message_label->setWordWrap(true);
-
-  auto* hint_label = new QLabel(QCoreApplication::tr(
-      "Please keep this window open while the initialization is running."));
-  hint_label->setWordWrap(true);
 
   auto* progress_bar = new QProgressBar;
   progress_bar->setRange(0, 100);
@@ -204,12 +158,13 @@ void WaitEnvCheckingProcess() {
   layout->setContentsMargins(kStartupDialogMargin, 20, kStartupDialogMargin,
                              20);
   layout->setSpacing(12);
-  layout->addWidget(title_label);
-  layout->addWidget(message_label);
+  layout->addLayout(CreateDialogHeader(
+      QStringLiteral(":/icons/gpgfrontend_logo.png"),
+      QCoreApplication::tr("Preparing OpenPGP Environment"),
+      QCoreApplication::tr("This only takes a few seconds."), dialog));
   layout->addSpacing(4);
   layout->addWidget(progress_bar);
   layout->addWidget(detail_label);
-  layout->addWidget(hint_label);
   layout->addSpacing(4);
   layout->addLayout(button_layout);
 
