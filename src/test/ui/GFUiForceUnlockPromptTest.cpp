@@ -36,6 +36,7 @@ namespace GpgFrontend::Test {
 namespace {
 
 using UI::BuildProfileLockConflictTexts;
+using UI::MetaListRow;
 
 auto Held(qint64 pid, const QString& host) -> ProfileLockResult {
   ProfileLockResult result;
@@ -46,14 +47,37 @@ auto Held(qint64 pid, const QString& host) -> ProfileLockResult {
   return result;
 }
 
+// Rows are looked up by caption rather than by index, same as
+// GFUiProfilePackageMetaTest.cpp's CaptionOf(): the assertions should survive
+// a row being reordered or another one being inserted between them.
+auto RowValue(const QVector<MetaListRow>& rows, const QString& caption)
+    -> std::optional<QString> {
+  for (const auto& row : rows) {
+    if (row.caption == caption) return row.value;
+  }
+  return std::nullopt;
+}
+
+auto Row(const QVector<MetaListRow>& rows, const QString& caption)
+    -> std::optional<MetaListRow> {
+  for (const auto& row : rows) {
+    if (row.caption == caption) return row;
+  }
+  return std::nullopt;
+}
+
 }  // namespace
 
 TEST(ForceUnlockPromptTest, AKnownHolderIsNamed) {
   const auto texts = BuildProfileLockConflictTexts(Held(4242, "workstation"));
 
   EXPECT_EQ(texts.title, "Profile Is Already Open");
-  EXPECT_TRUE(texts.text.contains("process 4242"));
-  EXPECT_TRUE(texts.text.contains("workstation"));
+  EXPECT_TRUE(texts.subtitle.contains("corrupt"));
+
+  const auto held_by = RowValue(texts.rows, "Held by");
+  ASSERT_TRUE(held_by.has_value());
+  EXPECT_TRUE(held_by->contains("4242"));
+  EXPECT_TRUE(held_by->contains("workstation"));
 }
 
 TEST(ForceUnlockPromptTest, AHolderWithoutAHostIsStillPlacedSomewhere) {
@@ -61,15 +85,19 @@ TEST(ForceUnlockPromptTest, AHolderWithoutAHostIsStillPlacedSomewhere) {
   // nothing after it would be a real thing to read.
   const auto texts = BuildProfileLockConflictTexts(Held(4242, {}));
 
-  EXPECT_TRUE(texts.text.contains("process 4242"));
-  EXPECT_TRUE(texts.text.contains("this computer"));
+  const auto held_by = RowValue(texts.rows, "Held by");
+  ASSERT_TRUE(held_by.has_value());
+  EXPECT_TRUE(held_by->contains("4242"));
+  EXPECT_TRUE(held_by->contains("this computer"));
 }
 
 TEST(ForceUnlockPromptTest, AnAnonymousHolderIsStillReported) {
   const auto texts = BuildProfileLockConflictTexts(Held(0, {}));
 
-  EXPECT_TRUE(texts.text.contains("Another process has it open."));
-  EXPECT_FALSE(texts.text.contains("process 0"));
+  const auto held_by = RowValue(texts.rows, "Held by");
+  ASSERT_TRUE(held_by.has_value());
+  EXPECT_TRUE(held_by->contains("Another process"));
+  EXPECT_FALSE(held_by->contains("process 0"));
 }
 
 TEST(ForceUnlockPromptTest, TheProfileIsNamed) {
@@ -77,8 +105,14 @@ TEST(ForceUnlockPromptTest, TheProfileIsNamed) {
   // a path, and more than one profile can be open at a time.
   const auto texts = BuildProfileLockConflictTexts(Held(4242, "workstation"));
 
-  EXPECT_TRUE(texts.text.contains(
-      "/home/someone/.local/share/GpgFrontend/profiles/work"));
+  const auto profile = Row(texts.rows, "Profile");
+  ASSERT_TRUE(profile.has_value());
+  EXPECT_EQ(profile->value,
+            "/home/someone/.local/share/GpgFrontend/profiles/work");
+  // Elided in the middle and shown in full on hover, like every other path in
+  // the application -- a profile's path is exactly the unbreakable token that
+  // styling exists for.
+  EXPECT_TRUE(profile->path);
 }
 
 TEST(ForceUnlockPromptTest, TheCorruptionWarningSurvivedTheSecondDialog) {
@@ -88,10 +122,10 @@ TEST(ForceUnlockPromptTest, TheCorruptionWarningSurvivedTheSecondDialog) {
   // asserts the warning was folded in rather than dropped with it.
   const auto texts = BuildProfileLockConflictTexts(Held(4242, "workstation"));
 
-  EXPECT_TRUE(texts.informative.contains(
+  EXPECT_TRUE(texts.note.contains(
       "Only do this if you are certain no other GpgFrontend window has this "
       "profile open."));
-  EXPECT_TRUE(texts.informative.contains(
+  EXPECT_TRUE(texts.note.contains(
       "both copies will corrupt the profile's stored data"));
 }
 
