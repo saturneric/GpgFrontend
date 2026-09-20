@@ -158,10 +158,10 @@ void WaitEnvCheckingProcess() {
   layout->setContentsMargins(kStartupDialogMargin, 20, kStartupDialogMargin,
                              20);
   layout->setSpacing(12);
-  layout->addLayout(CreateDialogHeader(
-      QStringLiteral(":/icons/gpgfrontend_logo.png"),
-      QCoreApplication::tr("Preparing OpenPGP Environment"),
-      QCoreApplication::tr("This only takes a few seconds."), dialog));
+  layout->addLayout(
+      CreateDialogHeader(QStringLiteral(":/icons/gpgfrontend_logo.png"),
+                         QCoreApplication::tr("Preparing OpenPGP Environment"),
+                         QCoreApplication::tr("Loading..."), dialog));
   layout->addSpacing(4);
   layout->addWidget(progress_bar);
   layout->addWidget(detail_label);
