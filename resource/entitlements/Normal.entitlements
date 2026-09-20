@@ -2,9 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>com.apple.security.cs.disable-library-validation</key>
-    <true/>
-    
+    <!-- com.apple.security.cs.disable-library-validation is deliberately NOT
+         here. It existed because module code lived outside the bundle, where
+         Apple could not sign it. Modules now ship inside Contents/Frameworks,
+         signed with the app's own identity, which is precisely the case
+         Library Validation is designed to allow. Re-adding it would silently
+         give up that protection. If modules stop loading, the cause is a
+         module signed with the wrong Team ID, and that is what to fix. -->
+
     <key>com.apple.security.cs.allow-jit</key>
     <true/>
     

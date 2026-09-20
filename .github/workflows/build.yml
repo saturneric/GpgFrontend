@@ -1164,6 +1164,13 @@ jobs:
           sudo make install
           ccache -s
 
+      # Before anything is built: the entitlements the signing job will apply
+      # must match the ones committed here, and must not have regained an
+      # exception. Cheap, and it fails before a build is spent rather than
+      # after one is signed.
+      - name: Check Entitlements Are In Sync
+        run: ${{github.workspace}}/scripts/check_entitlements_sync.sh
+
       - name: Build GpgFrontend
         run: |
           MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
@@ -1771,8 +1778,8 @@ jobs:
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
           <dict>
-              <key>com.apple.security.cs.disable-library-validation</key>
-              <true/>
+              <!-- disable-library-validation is deliberately absent; see
+                   resource/entitlements/Normal.entitlements. -->
 
               <key>com.apple.security.cs.allow-jit</key>
               <true/>
@@ -2063,6 +2070,27 @@ jobs:
             echo "hardened runtime is not enabled on the signed app" >&2
             exit 1
           fi
+
+          # Named explicitly, not left to the equality check above.
+          #
+          # That check compares the signed result against the expected plist in
+          # both directions, so it already refuses a stray entitlement -- but it
+          # would pass just as happily if someone re-added this one to BOTH
+          # files. This says out loud which entitlement must never come back.
+          #
+          # It was needed while module code lived outside the bundle, where
+          # Apple could not sign it. Modules now ship inside
+          # Contents/Frameworks, signed with the app's own identity, which is
+          # precisely the case Library Validation exists to permit. If modules
+          # stop loading, the fix is a module signed with the wrong Team ID --
+          # not this exception.
+          if grep -q 'disable-library-validation' "$RUNNER_TEMP/actual.entitlements"; then
+            echo "the signed app carries disable-library-validation;" >&2
+            echo "module code is signed with the app's identity and does not" >&2
+            echo "need it -- see resource/entitlements/Normal.entitlements" >&2
+            exit 1
+          fi
+          echo "library validation is ON: no disable-library-validation entitlement"
 
       - name: Notarize And Staple Application
         env:
