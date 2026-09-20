@@ -839,10 +839,31 @@ jobs:
           # signature, so embedding it afterwards would invalidate the seal.
           # A fixed path -- the profile's UUID was only ever used to name a
           # file, and Xcode no longer resolves a profile at build time.
-          umask 077
-          printf '%s' "$MAS_PROVISIONING_PROFILE_DATA" | base64 --decode \
-            -o "$RUNNER_TEMP/app/GpgFrontend.app/Contents/embedded.provisionprofile"
-          test -s "$RUNNER_TEMP/app/GpgFrontend.app/Contents/embedded.provisionprofile"
+          PROFILE="$RUNNER_TEMP/app/GpgFrontend.app/Contents/embedded.provisionprofile"
+          printf '%s' "$MAS_PROVISIONING_PROFILE_DATA" | base64 --decode -o "$PROFILE"
+          test -s "$PROFILE"
+
+          # Explicitly 0644, and deliberately NOT written under `umask 077`.
+          #
+          # The other three secret files this workflow writes -- two .p12
+          # certificates and the notary API key -- are created that way on
+          # purpose: they live in $RUNNER_TEMP, they are genuinely secret, and
+          # nothing but this job should read them. This one is different in the
+          # only way that matters: it is written INTO the bundle, so it ships
+          # inside every copy of the application. Treating it as a secret
+          # protects nothing, because it is distributed to everyone, and it
+          # breaks installation -- `productbuild` installs the package as root,
+          # a 0600 file in it is then readable only by root, and App Store
+          # Connect refuses the upload:
+          #
+          #   ERROR ITMS-90255: the installer package includes files that are
+          #   only readable by the root user. This will prevent verification of
+          #   the application's code signature when your app is run.
+          #
+          # Being a secret in the CI sense (kept out of the repository) and
+          # being a secret in the shipped sense are not the same property, and
+          # `umask` cannot tell them apart.
+          chmod 0644 "$PROFILE"
 
       - name: Sign Application
         env:
@@ -874,6 +895,45 @@ jobs:
           # The profile has to have survived signing, sealed inside the bundle.
           test -s "$APP/Contents/embedded.provisionprofile"
           echo "embedded.provisionprofile present after signing"
+
+      # Every file the installer will lay down must be readable by an ordinary
+      # user, because `productbuild` installs as root and macOS then verifies
+      # the code signature as whoever runs the app. App Store Connect refuses
+      # the upload otherwise (ITMS-90255), and it refuses it AFTER a green CI
+      # run, a successful signature and a completed upload -- which is the
+      # slowest possible place to learn it.
+      #
+      # Checked on the signed bundle rather than on what build-mas produced,
+      # because the offending file was added in this job: the provisioning
+      # profile, written under a umask meant for the certificates beside it.
+      # Nothing build-mas uploads could have shown it.
+      #
+      # Shell and system tools only: this job is forbidden to execute
+      # build-produced tooling, and that rule is worth more than any
+      # convenience a helper binary would buy.
+      - name: Check The Bundle Is Readable By Ordinary Users
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/app/GpgFrontend.app"
+
+          # -004 on files: readable by "other". -005 on directories: also
+          # traversable, since an unsearchable directory hides everything below
+          # it just as effectively.
+          UNREADABLE="$( { find "$APP" -type f ! -perm -004
+                           find "$APP" -type d ! -perm -005 ; } | sort )"
+
+          if [ -n "$UNREADABLE" ]; then
+            echo "these would be installed unreadable by ordinary users:" >&2
+            while IFS= read -r path; do
+              [ -n "$path" ] || continue
+              printf '  %s  %s\n' \
+                "$(stat -f%Sp "$path")" "$(echo "$path" | sed "s#^$APP/##")" >&2
+            done <<< "$UNREADABLE"
+            echo "App Store Connect refuses this package (ITMS-90255)" >&2
+            exit 1
+          fi
+
+          echo "every file and directory in the bundle is readable by others"
 
       - name: Build Installer Package
         env:
