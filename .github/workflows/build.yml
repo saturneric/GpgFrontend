@@ -798,32 +798,14 @@ jobs:
       # The audit comes LAST, after finalize. It asks the packager which native
       # each module's signed descriptor binds, so it needs descriptors that
       # verify -- which, before finalize, they are not guaranteed to be.
-      - name: Reseal and Audit Module Descriptors (Windows)
+      - name: Verify Module Descriptors (Windows)
         shell: msys2 {0}
         run: |
           set -euo pipefail
           cd $(cygpath -u "${{github.workspace}}")
           MODULE_ROOT="build/artifacts/modules"
           PACKAGER="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_packager)"
-          # How many modules this build actually produced, from the list
-          # CMake writes at configure time. Never a literal: a hardcoded count
-          # means adding a fifth module breaks every gate at once, and the
-          # obvious repair is to bump the number in each of them, which is how
-          # a gate quietly stops checking anything. `grep -c =` rather than
-          # `wc -l` because every real line carries one and a CR-terminated
-          # blank line does not.
           EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
-
-          # windeployqt does not rewrite module DLLs, so these descriptors are
-          # very likely still accurate. Resealing anyway costs a second and
-          # makes the step independent of that continuing to be true -- and
-          # `verify-module-set` below then proves the tree rather than assuming
-          # the deployment tool's manners.
-          "$PACKAGER" reseal \
-            --namespace-root "$MODULE_ROOT" \
-            --signing-seed build/.module-build-key/module-build.seed \
-            --expect-count "$EXPECTED"
-
           "$PACKAGER" verify-module-set \
             --namespace-root "$MODULE_ROOT" \
             --expect-count "$EXPECTED" \
