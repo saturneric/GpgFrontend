@@ -68,7 +68,7 @@ echo "==> Building gf_mod_email_fuzz"
 cmake --build "$BUILD_DIR" --target gf_mod_email_fuzz -j"$JOBS" \
   || { echo "error: fuzzer build failed" >&2; exit 1; }
 
-FUZZER="$BUILD_DIR/artifacts/module-tests/gf_mod_email_fuzz"
+FUZZER="$BUILD_DIR/test-bin/gf_mod_email_fuzz"
 if [[ ! -x "$FUZZER" ]]; then
   echo "error: fuzzer was not built at $FUZZER" >&2
   exit 1
