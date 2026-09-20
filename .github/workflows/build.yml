@@ -1796,8 +1796,50 @@ jobs:
           ENTITLEMENTS="$2"
           : "${IDENTITY:?IDENTITY must be set}"
 
+          # `--timestamp` is a network round trip to timestamp.apple.com for
+          # every single object, and that service throttles and occasionally
+          # just fails:
+          #
+          #   libgf_sdk.2.2.2.dylib: A timestamp was expected but was not found
+          #
+          # A bundle this size signs around a hundred objects, and shipping the
+          # modules added six more, which is what made a pre-existing fragility
+          # start showing up. Signing is idempotent under --force, so a retry is
+          # safe.
+          #
+          # Only timestamp-shaped failures are retried. A wrong identity, a
+          # locked keychain or a malformed object must still fail on the first
+          # attempt and say so -- retrying those would turn a clear error into a
+          # slow one.
+          codesign_retrying() {
+            local attempt=1
+            local output
+            while [ "$attempt" -le 5 ]; do
+              if output="$(codesign "$@" 2>&1)"; then
+                [ -n "$output" ] && printf '%s\n' "$output"
+                return 0
+              fi
+              case "$output" in
+                *timestamp*|*Timestamp*|*"network connection"*|*"service is not available"*|*"Connection refused"*)
+                  echo "  timestamp service failed (attempt $attempt/5), retrying:" >&2
+                  printf '    %s\n' "$output" >&2
+                  sleep $((attempt * 5))
+                  attempt=$((attempt + 1))
+                  ;;
+                *)
+                  printf '%s\n' "$output" >&2
+                  return 1
+                  ;;
+              esac
+            done
+            echo "codesign could not obtain a timestamp after 5 attempts:" >&2
+            printf '%s\n' "$output" >&2
+            return 1
+          }
+
           sign_inner() {   # nested code: hardened runtime, never entitlements
-            codesign --force --timestamp --options=runtime --sign "$IDENTITY" "$1"
+            codesign_retrying --force --timestamp --options=runtime \
+              --sign "$IDENTITY" "$1"
           }
 
           # Gate: fail closed on any executable bundle type this script does not
@@ -1868,8 +1910,10 @@ jobs:
           done
 
           # Pass 3: the application itself, last, and the only thing that gets
-          # entitlements.
-          codesign --force --timestamp --options=runtime \
+          # entitlements. Through the same retry: the outer signature needs a
+          # timestamp exactly as much as the inner ones, and it is the single
+          # call whose loss wastes the whole job.
+          codesign_retrying --force --timestamp --options=runtime \
             --entitlements "$ENTITLEMENTS" --sign "$IDENTITY" "$APP"
           SH
 
@@ -2118,7 +2162,22 @@ jobs:
           hdiutil convert "$RW" -format UDZO -o "$DMG" -ov
           rm -f "$RW"
 
-          codesign --force --timestamp --sign "$IDENTITY" "$DMG"
+          # Same timestamp exposure as every other signature, and by this point
+          # the app is built, signed, notarized and stapled -- so losing the
+          # job to a throttled timestamp service here is the most expensive
+          # place for it to happen. Retried inline rather than through
+          # sign-bundle.sh's helper, which is not sourced in this step.
+          for attempt in 1 2 3 4 5; do
+            if codesign --force --timestamp --sign "$IDENTITY" "$DMG"; then
+              break
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "could not sign the disk image after 5 attempts" >&2
+              exit 1
+            fi
+            echo "dmg signing failed (attempt $attempt/5), retrying" >&2
+            sleep $((attempt * 5))
+          done
           "$RUNNER_TEMP/notarize.sh" "$DMG"
           xcrun stapler staple "$DMG"
           xcrun stapler validate "$DMG"
