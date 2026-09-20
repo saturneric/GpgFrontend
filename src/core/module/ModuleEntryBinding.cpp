@@ -214,12 +214,28 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
   // under file-sha256, because platform signing legitimately changes the size
   // of the other two. It is an early exit, never a proof.
   if (entry.size >= 0 && info.size() != entry.size) {
+    // A smaller file is worth naming, because there is one overwhelmingly
+    // likely cause and a packager cannot be expected to guess it: `dh_strip`
+    // and `rpmbuild` strip installed binaries by default, after `make install`
+    // has finished and where no install rule can see it. On Linux the binding
+    // covers the exact ELF bytes, so stripping breaks every module -- and the
+    // symptom is an application that starts perfectly well with no features.
+    //
+    // Saying "it is 40 bytes shorter than it should be" leaves the reader to
+    // work that out. Saying it costs one sentence.
+    const auto hint =
+        info.size() < entry.size
+            ? QString(
+                  "; it is smaller than the descriptor records, which is what "
+                  "stripping it after installation looks like")
+            : QString();
     return Refuse(ModuleEntryStatus::kENTRY_VERIFICATION_MISMATCH,
                   QString("\"%1\" is %2 bytes, and this descriptor was "
-                          "signed for %3")
+                          "signed for %3%4")
                       .arg(info.fileName())
                       .arg(info.size())
-                      .arg(entry.size));
+                      .arg(entry.size)
+                      .arg(hint));
   }
 
   // Counted here because this is now where the bytes are. The descriptor

@@ -100,17 +100,6 @@ struct GF_CORE_EXPORT ModuleDescriptorBuildSpec {
   /// trusting the caller to have passed the right file.
   QByteArray signing_seed;
 
-  /// The binding value a preceding `seal-prepared` recorded for this entry,
-  /// or empty when nothing sealed one.
-  ///
-  /// When set, the value computed from @ref entry_native_file must equal it or
-  /// nothing is written. That is what makes the pipeline content-based rather
-  /// than build-graph-based: the tools that rewrite a prepared native --
-  /// `patchelf`, `linuxdeployqt`, `install_name_tool` -- run outside the build
-  /// graph, so a descriptor being newer than its library proves nothing. This
-  /// is not a trust check; see ModulePreparedEntry.h.
-  QString expected_entry_value;
-
   QString output_path;  ///< the `*.gfmodule` to write
 };
 

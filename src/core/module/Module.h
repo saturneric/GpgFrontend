@@ -37,7 +37,6 @@
 
 namespace GpgFrontend::Module {
 
-
 class Module;
 class GlobalModuleContext;
 class ModuleManager;
@@ -252,7 +251,6 @@ class GF_CORE_EXPORT Module : public QObject {
    * so could never tell two of them apart.
    */
   [[nodiscard]] auto GetModuleSDKABIVersion() const -> int;
-
 
   /**
    * @brief Return a checksum of the module binary.
