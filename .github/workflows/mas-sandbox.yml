@@ -381,7 +381,7 @@ jobs:
           # How many modules this build produced, from the list CMake writes at
           # configure time. Never a literal, and derived in every step that
           # needs it: a step's shell variables do not reach the next one.
-          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
+          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
 
           test -d "$APP"
           rm -rf "$DESC_ROOT" "$NATIVE_ROOT"
@@ -468,12 +468,12 @@ jobs:
           # How many modules this build produced, from the list CMake writes at
           # configure time. Never a literal, and derived in every step that
           # needs it: a step's shell variables do not reach the next one.
-          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
+          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
 
           ${{github.workspace}}/scripts/verify_macos_bundle_modules.sh \
             --app ${{github.workspace}}/build/package/GpgFrontend.app \
             --namespace-root ${{github.workspace}}/build/artifacts/modules \
-            --packager "$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager" \
+            --packager "$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_packager)" \
             --expect-count "$EXPECTED"
 
       - name: Inventory Bundle Code Objects

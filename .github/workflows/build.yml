@@ -381,9 +381,13 @@ jobs:
       - name: Build GpgFrontend (Linux)
         run: |
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
+          # No GPGFRONTEND_BUILD_APP_IMAGE: release packaging no longer
+          # redirects where the build puts things. The AppDir is produced by
+          # `cmake --install` below, which is the same tree a distribution
+          # gets, so CI stops assembling something nobody else can reproduce.
           cmake -B ${{github.workspace}}/build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DGPGFRONTEND_BUILD_APP_IMAGE=ON \
+            -DCMAKE_INSTALL_PREFIX=/usr \
             -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
             -DGPGFRONTEND_BUILD_PORTABLE=${{env.GPGFRONTEND_BUILD_PORTABLE}} \
             -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
@@ -394,17 +398,38 @@ jobs:
           ccache -s
         if: runner.os == 'Linux'
 
-      # The AppImage is assembled in five steps rather than one, because the
-      # module descriptors have to be written AFTER deployment has finished
-      # rewriting the natives they bind. linuxdeployqt patches rpaths, so a
-      # descriptor generated before it runs would describe bytes that no
-      # longer exist. See ModulePreparedEntry.h.
+      # The AppDir is an ordinary install tree.
       #
-      #   deploy -> repair rpaths -> audit -> seal -> finalize -> appimagetool
+      # It used to be produced by redirecting every output directory at
+      # configure time, which made the CI layout one no developer or packager
+      # could reproduce and put the host build tools inside the image. Now the
+      # job installs, exactly as a distribution would, and gets the modules,
+      # the desktop entry, the metainfo, the MIME package and the icons
+      # because install() already ships all of them.
       #
-      # Nothing here copies modules into place: CMake builds them straight
-      # into the AppDir at the path the Host looks for them, so the tree that
-      # is deployed, audited, sealed, verified and shipped is one tree.
+      # `cmake --install` verifies the module tree it writes, so this step also
+      # proves the descriptors are good BEFORE deployment starts rewriting the
+      # natives they bind.
+      - name: Assemble The AppDir (Linux)
+        run: |
+          set -euo pipefail
+          APP_DIR="${{github.workspace}}/build/artifacts/AppDir"
+          rm -rf "$APP_DIR"
+
+          cmake --install ${{github.workspace}}/build --prefix "$APP_DIR/usr"
+          # The icon and .DirIcon AppImage wants at the root of the image, and
+          # which a normal install correctly does not place.
+          cmake --install ${{github.workspace}}/build --component appimage \
+            --prefix "$APP_DIR"
+        if: runner.os == 'Linux'
+
+      # Deployment, and the repair deployment makes necessary.
+      #
+      # linuxdeployqt REPLACES a file's RUNPATH with its own hop to usr/lib.
+      # That is right for reaching Qt and wrong for reaching the private
+      # helpers beside a module entry, which need $ORIGIN itself. The two were
+      # separate steps; they are one operation on one tree, and splitting them
+      # only made it possible to run the second without the first.
       - name: Deploy Qt Dependencies (Linux)
         run: |
           set -euo pipefail
@@ -511,23 +536,12 @@ jobs:
           readelf -d "$APP_DIR/usr/lib/libsecret-1.so.0" | grep -E 'RUNPATH|RPATH|SONAME|NEEDED' || true
           readelf -d "$APP_DIR/usr/lib/libsecret-1.so.0" | grep -q 'ORIGIN' \
             || { echo "libsecret was not rpath-patched by linuxdeployqt"; exit 1; }
-        if: runner.os == 'Linux'
 
-      # linuxdeployqt REPLACES a file's RUNPATH with its own computed hop to
-      # usr/lib. That is correct for reaching Qt and wrong for reaching the
-      # private helpers beside the entry, which need $ORIGIN itself -- so it is
-      # put back here. This must run BEFORE sealing, because it rewrites the
-      # very bytes the descriptor will bind.
-      #
-      # Unconditional and idempotent rather than conditional on what
-      # linuxdeployqt did: the audit below is the gate, and a repair that only
-      # runs when someone predicted the need is a repair that stops running.
-      - name: Repair Module RUNPATHs (Linux)
-        run: |
-          set -euo pipefail
+          # Put $ORIGIN back on every module native. Unconditional and
+          # idempotent rather than conditional on what linuxdeployqt did: a
+          # repair that only runs when someone predicted the need is a repair
+          # that stops running, and the audit below is the gate either way.
           sudo apt-get install -y --no-install-recommends patchelf
-
-          MODULE_ROOT="${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules"
           while read -r native; do
             current="$(patchelf --print-rpath "$native" || true)"
             case ":$current:" in
@@ -540,76 +554,49 @@ jobs:
           done < <(find "$MODULE_ROOT" -type f -name '*.so' | sort)
         if: runner.os == 'Linux'
 
-      # Regenerate every descriptor against the natives as they now stand.
+      # The natives were just rewritten, so the descriptors that bind them
+      # are stale by construction. This re-describes them and then proves the
+      # result, in one step, because it is one operation on one tree.
       #
-      # NOT by deleting them and re-running the build, which is the obvious
-      # thing and is wrong here. The module natives are build outputs, and
-      # ninja records the mtime of everything it produces -- so a `cmake
-      # --build` at this point sees that linuxdeployqt and patchelf changed
-      # them underneath it and RELINKS them, discarding the rpath work of the
-      # two steps above. `reseal` does not involve the build graph at all: it
-      # verifies each descriptor, recomputes only the entry binding, carries
-      # the resources over and re-signs.
-      - name: Reseal Module Descriptors (Linux)
+      # NOT by deleting the descriptors and re-running the build, which is the
+      # obvious thing and is wrong here: the natives are build outputs, so a
+      # `cmake --build` at this point sees that linuxdeployqt and patchelf
+      # changed them underneath it and RELINKS them, discarding the rpath work
+      # of the step above. `reseal` does not involve the build graph at all.
+      #
+      # The audit is the third part and has to come last: it asks the packager
+      # which native each module's SIGNED descriptor binds, so it needs
+      # descriptors that verify. It is kept -- unlike the other intermediate
+      # gates -- because it proves something the smoke test structurally
+      # cannot: that no dependency resolves through a path that exists on this
+      # runner and not on a user's machine.
+      - name: Refresh And Verify Module Descriptors (Linux)
         run: |
           set -euo pipefail
+          INFO="${{github.workspace}}/build/artifacts/build-info.json"
           MODULE_ROOT="${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules"
-          # How many modules this build actually produced, from the list
-          # CMake writes at configure time. Never a literal: a hardcoded count
-          # means adding a fifth module breaks every gate at once, and the
-          # obvious repair is to bump the number in each of them, which is how
-          # a gate quietly stops checking anything. `grep -c =` rather than
-          # `wc -l` because every real line carries one and a CR-terminated
-          # blank line does not.
-          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
 
-          # Where CMake actually put the host tools. Read, not assumed: the
-          # answer differs per platform (Windows has no rpath, so a tool has to
-          # sit beside its DLLs) and guessing it was wrong twice.
-          PACKAGER="$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
+          # Everything this step needs to know, from the build system that
+          # decided it. The count, the tool path and the layout used to be
+          # re-derived here by hand, in eleven, eight and seventeen places
+          # respectively across these workflows.
+          PACKAGER="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['module_packager'])" "$INFO")"
+          EXPECTED="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['module_count'])" "$INFO")"
 
           "$PACKAGER" reseal \
             --namespace-root "$MODULE_ROOT" \
             --signing-seed ${{github.workspace}}/build/.module-build-key/module-build.seed \
             --expect-count "$EXPECTED"
 
-          # The generator-independent proof, run over the finished tree: every
-          # descriptor verifies under the Host's own embedded key, sits in the
-          # namespace its signed identity derives, and binds the native that is
-          # actually there. NOTHING may touch a module native after this point.
+          # NOTHING may touch a module native after this point.
           "$PACKAGER" verify-module-set \
             --namespace-root "$MODULE_ROOT" \
             --expect-count "$EXPECTED" \
             --assert-no-native-outside ${{github.workspace}}/build/artifacts/AppDir
-        if: runner.os == 'Linux'
-
-      # Deployment correctness, not descriptor authentication -- the two are
-      # different claims and the script says so at length. This is the gate
-      # that decides whether the $ORIGIN hop above actually reaches Qt in THIS
-      # layout, rather than in the one someone assumed while writing it down.
-      #
-      # AFTER finalize, not before, and the reason is worth stating because
-      # putting it earlier looks more natural and cannot work. The audit asks
-      # the packager which native each module's SIGNED DESCRIPTOR binds, so it
-      # needs the descriptors to verify -- and between the build and this point
-      # linuxdeployqt and patchelf have rewritten every one of those natives,
-      # which is precisely why the seal and finalize steps exist. Run any
-      # earlier and every descriptor is stale by construction.
-      - name: Audit Module Native Dependencies (Linux)
-        run: |
-          set -euo pipefail
-          # How many modules this build actually produced, from the list
-          # CMake writes at configure time. Never a literal: a hardcoded count
-          # means adding a fifth module breaks every gate at once, and the
-          # obvious repair is to bump the number in each of them, which is how
-          # a gate quietly stops checking anything. `grep -c =` rather than
-          # `wc -l` because every real line carries one and a CR-terminated
-          # blank line does not.
-          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
 
           ${{github.workspace}}/scripts/audit_module_natives.sh \
-            --namespace-root ${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules \
-            --packager "$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager" \
+            --namespace-root "$MODULE_ROOT" \
+            --packager "$PACKAGER" \
             --qt-relative ../../../.. \
             --expect-count "$EXPECTED"
         if: runner.os == 'Linux'
@@ -777,21 +764,6 @@ jobs:
           rm -rf build/artifacts/modules/*/native/*.a
           rm -rf build/artifacts/modules/*/native/*.dll.a
 
-          # The test sentinel, gone before anything inspects this tree.
-          #
-          # It is deliberately named `gf_mod_test_sentinel` so the module
-          # machinery treats it like a module, which is exactly why
-          # `verify-module-set --assert-no-native-outside` reports it: a
-          # module-shaped library sitting outside every namespace is precisely
-          # what that check exists to refuse.
-          #
-          # On Linux it lives outside the AppDir and never reaches the payload,
-          # so this is a Windows problem only -- here `artifacts/` IS the
-          # payload. Removed during payload staging, which is the step whose
-          # job is deciding what ships, and therefore before the assertion
-          # rather than after it.
-          rm -rf build/artifacts/test-modules
-
           cd build
           # The libraries CMake registered, read from the list it writes --
           # not a `libgf_*.dll` glob. The glob kept the "a new library cannot
@@ -806,7 +778,7 @@ jobs:
               exit 1
             }
             windeployqt6 --no-translations --force "./artifacts/bin/$lib"
-          done < <(tr -d '\r' < ./artifacts/deployable-libraries.txt)
+          done < <(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build deployable_libraries)
           windeployqt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
           # A module may need Qt modules the app itself never links (Qt6Xml,
           # Qt6Network, ...), so each one still has to be scanned. But --dir
@@ -832,7 +804,7 @@ jobs:
           set -euo pipefail
           cd $(cygpath -u "${{github.workspace}}")
           MODULE_ROOT="build/artifacts/modules"
-          PACKAGER="$(tr -d '\r' < build/artifacts/host-tool-dir.txt)/gf_module_packager.exe"
+          PACKAGER="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_packager)"
           # How many modules this build actually produced, from the list
           # CMake writes at configure time. Never a literal: a hardcoded count
           # means adding a fifth module breaks every gate at once, and the
@@ -840,7 +812,7 @@ jobs:
           # a gate quietly stops checking anything. `grep -c =` rather than
           # `wc -l` because every real line carries one and a CR-terminated
           # blank line does not.
-          EXPECTED="$(grep -c '=' build/artifacts/module-directory-keys.txt)"
+          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
 
           # windeployqt does not rewrite module DLLs, so these descriptors are
           # very likely still accurate. Resealing anyway costs a second and
@@ -882,8 +854,9 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $root = "${{github.workspace}}/build/artifacts/modules"
-          $toolDir = (Get-Content "${{github.workspace}}/build/artifacts/host-tool-dir.txt" -Raw).Trim()
-          $packager = Join-Path $toolDir 'gf_module_packager.exe'
+          # One source for both, read the way every other step reads it.
+          $info = Get-Content "${{github.workspace}}/build/artifacts/build-info.json" -Raw | ConvertFrom-Json
+          $packager = $info.module_packager
 
           # Derived HERE, not inherited. A `$EXPECTED` set by an earlier step
           # is that step's shell variable and nothing else: it does not survive
@@ -891,9 +864,8 @@ jobs:
           # empty string rather than complaining. Same source as every other
           # leg -- what CMake recorded at configure time -- so adding a fifth
           # module raises this expectation with the rest.
-          $keysFile = "${{github.workspace}}/build/artifacts/module-directory-keys.txt"
-          $expected = @(Get-Content $keysFile | Where-Object { $_ -match '=' }).Count
-          if ($expected -lt 1) { throw "no modules declared in $keysFile" }
+          $expected = $info.module_count
+          if ($expected -lt 1) { throw "build-info.json declares no modules" }
 
           # A scratch copy of the whole tree, so a failure here cannot damage
           # what is about to ship.
@@ -965,7 +937,7 @@ jobs:
       - name: Smoke Test The AppImage (Linux)
         run: |
           set -euo pipefail
-          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
+          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
 
           cd "$RUNNER_TEMP"
           IMAGE="$(find ${{github.workspace}}/build/upload-artifact \
@@ -1028,7 +1000,7 @@ jobs:
           set -euo pipefail
           cd "${{github.workspace}}"
 
-          PACKAGER="$(tr -d '\r' < build/artifacts/host-tool-dir.txt)/gf_module_packager${{ runner.os == 'Windows' && '.exe' || '' }}"
+          PACKAGER="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_packager)"
           MODULE_ROOT="${{ runner.os == 'Windows' && 'build/artifacts/modules' || 'build/artifacts/AppDir/usr/lib/gpgfrontend/modules' }}"
 
           "$PACKAGER" verify-module-set \
@@ -1060,7 +1032,7 @@ jobs:
         run: |
           set -euo pipefail
           cd $(cygpath -u "${{github.workspace}}")
-          TOOL_DIR="$(tr -d '\r' < build/artifacts/host-tool-dir.txt)"
+          TOOL_DIR="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build host_tool_dir)"
           rm -f "$TOOL_DIR/gf_module_packager.exe" "$TOOL_DIR/gf_module_keygen.exe"
 
           # Test fixtures went during payload staging, before the module-set
@@ -1089,11 +1061,11 @@ jobs:
       - name: Build MSI Installer (Windows)
         shell: pwsh
         run: |
-          # Version always tracks the CMake project() version, no wxs edit needed.
-          $match = Select-String -Path CMakeLists.txt `
-            -Pattern '^\s*VERSION\s+([0-9]+\.[0-9]+\.[0-9]+)' | Select-Object -First 1
-          if (-not $match) { throw "Could not extract project version from CMakeLists.txt" }
-          $version = $match.Matches[0].Groups[1].Value
+          # The version the build actually used, asked of the build. Scraping it
+          # out of CMakeLists.txt with a regular expression worked until the
+          # day someone reformatted that line.
+          $info = Get-Content "${{github.workspace}}/build/artifacts/build-info.json" -Raw | ConvertFrom-Json
+          $version = $info.project_version
           Write-Host "Project version: $version"
 
           # Toolset and extension versions must match: an unpinned extension resolves
@@ -1164,7 +1136,7 @@ jobs:
           # at configure time. Never a literal: a hardcoded count means adding
           # a fifth module breaks every gate at once, and the obvious repair
           # is to bump the number in each, which is how a gate stops checking.
-          EXPECTED="$(grep -c '=' build/artifacts/module-directory-keys.txt)"
+          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
           STATUS="$SMOKE/module-status.json"
 
           cd "$SMOKE/bin"
@@ -1474,7 +1446,7 @@ jobs:
           # at configure time. Never a literal: a hardcoded count means adding
           # a fifth module breaks every gate at once, and the obvious repair is
           # to bump the number in each, which is how a gate stops checking.
-          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
+          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
 
 
           materialized=0
@@ -1559,7 +1531,7 @@ jobs:
           # at configure time. Never a literal: a hardcoded count means adding
           # a fifth module breaks every gate at once, and the obvious repair is
           # to bump the number in each, which is how a gate stops checking.
-          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
+          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
 
           NATIVE_ROOT="$APP/Contents/Frameworks/GpgFrontendModules"
 
@@ -1656,12 +1628,12 @@ jobs:
           # How many modules this build produced, from the list CMake writes at
           # configure time. Never a literal, and derived in every step that
           # needs it: a step's shell variables do not reach the next one.
-          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
+          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
 
           ${{github.workspace}}/scripts/verify_macos_bundle_modules.sh \
             --app ${{github.workspace}}/build/package/GpgFrontend.app \
             --namespace-root ${{github.workspace}}/build/artifacts/modules \
-            --packager "$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager" \
+            --packager "$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_packager)" \
             --expect-count "$EXPECTED"
 
       - name: Inventory Bundle Code Objects
@@ -1737,7 +1709,7 @@ jobs:
           set -euo pipefail
           cd "${{github.workspace}}"
 
-          PACKAGER="$(tr -d '\r' < build/artifacts/host-tool-dir.txt)/gf_module_packager"
+          PACKAGER="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_packager)"
           "$PACKAGER" verify-module-set \
             --namespace-root build/artifacts/modules \
             --print-bindings | tr -d '\r' > build/module-bindings.txt
