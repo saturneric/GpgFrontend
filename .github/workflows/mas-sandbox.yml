@@ -118,11 +118,6 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Set git to use LF line endings
-        run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           lfs: "false"
@@ -285,82 +280,23 @@ jobs:
           mkdir -p ${{github.workspace}}/build/package
           cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app \
             ${{github.workspace}}/build/package/
-
-      # --- Modules -------------------------------------------------------
-      #
-      # This workflow had no module steps at all, and that was fine only for as
-      # long as Xcode placed them itself. It no longer does: the
-      # `MACOSX_PACKAGE_LOCATION` wiring was removed because `xcodebuild
-      # archive` redirects SKIP_INSTALL products into DerivedData and leaves
-      # symlinks behind. So the sandboxed bundle was being assembled with NO
-      # modules in it, silently -- it builds, it signs, it verifies, it
-      # installs, and the application comes up with none of its features.
-      #
-      # Nothing here would have noticed, because every check this workflow had
-      # asks whether the bundle is well formed, and a bundle with no modules is
-      # perfectly well formed. That is the same gap that shipped a notarized
-      # Developer ID dmg with three of four modules unable to load.
-      #
-      # The steps are the Developer ID ones, in the same order and for the same
-      # reasons.
-
-      # `xcodebuild archive` does not put products where CMake asks: a target
-      # marked SKIP_INSTALL -- which every module is -- is built into
-      # DerivedData and only linked from the requested directory. A symlink
-      # cannot be shipped, cannot be signed as its own object, and cannot be
-      # what a descriptor binds.
-      #
-      # Safe here because macOS binds `apple-binding-id`, an identifier
-      # embedded at link time, rather than a digest of the file: copying the
-      # bytes changes nothing the descriptor claims.
-      - name: Materialize Module Natives (macOS)
+      # The same install tree the Developer ID leg uses, for the same reason:
+      # `xcodebuild archive` leaves symlinks into DerivedData where CMake asked
+      # for the module natives, and `cmake --install` writes the real files and
+      # then verifies what it wrote.
+      - name: Install The Module Tree (macOS)
         run: |
           set -euo pipefail
-          MODULE_ROOT="${{github.workspace}}/build/artifacts/modules"
-          test -d "$MODULE_ROOT"
+          STAGING="${{github.workspace}}/build/staging"
+          rm -rf "$STAGING"
+          cmake --install ${{github.workspace}}/build --prefix "$STAGING"
+          test -d "$STAGING/lib/gpgfrontend/modules"
 
-          materialized=0
-          while IFS= read -r link; do
-            target="$(readlink "$link")"
-            case "$target" in
-              /*) resolved="$target" ;;
-              *)  resolved="$(cd "$(dirname "$link")" && cd "$(dirname "$target")" \
-                              && pwd)/$(basename "$target")" ;;
-            esac
-
-            if [ ! -f "$resolved" ]; then
-              echo "$link points at $resolved, which is not a regular file" >&2
-              exit 1
-            fi
-
-            # Copy beside it and rename over the link, so a failed copy leaves
-            # the tree as it was rather than leaving a module with no native.
-            cp "$resolved" "$link.materialized"
-            mv -f "$link.materialized" "$link"
-            echo "materialized $(basename "$link") ($(stat -f%z "$link") bytes)"
-            materialized=$((materialized + 1))
-          done < <(find "$MODULE_ROOT" -type l -name '*.dylib')
-
-          echo "$materialized module native(s) materialized"
-
-          if find "$MODULE_ROOT" -type l | grep -q .; then
-            echo "symlinks remain under $MODULE_ROOT:" >&2
-            find "$MODULE_ROOT" -type l -print >&2
-            exit 1
-          fi
-
-      # m_email links OpenSSL through vmime, and Homebrew builds its dylibs
-      # with an absolute install name in the Cellar -- a path that is correct on
-      # this runner and absent on a user's Mac. macdeployqt only processes the
-      # .app, and these are not in it yet, so nothing else does this.
-      #
-      # It matters more here than for Developer ID: a sandboxed App Store app
-      # cannot reach outside its own bundle for a library at all.
       - name: Bundle Module Dependencies (macOS)
         run: |
           set -euo pipefail
           ${{github.workspace}}/scripts/bundle_macos_module_deps.sh \
-            --namespace-root ${{github.workspace}}/build/artifacts/modules
+            --namespace-root ${{github.workspace}}/build/staging/lib/gpgfrontend/modules
 
       # A namespace is split across two directories here and nowhere else,
       # because Apple wants data under Resources and executable code under
@@ -375,7 +311,7 @@ jobs:
         run: |
           set -euo pipefail
           APP="${{github.workspace}}/build/package/GpgFrontend.app"
-          MODULE_ROOT="${{github.workspace}}/build/artifacts/modules"
+          MODULE_ROOT="${{github.workspace}}/build/staging/lib/gpgfrontend/modules"
           DESC_ROOT="$APP/Contents/Resources/modules"
           NATIVE_ROOT="$APP/Contents/Frameworks/GpgFrontendModules"
           # How many modules this build produced, from the list CMake writes at
@@ -472,41 +408,9 @@ jobs:
 
           ${{github.workspace}}/scripts/verify_macos_bundle_modules.sh \
             --app ${{github.workspace}}/build/package/GpgFrontend.app \
-            --namespace-root ${{github.workspace}}/build/artifacts/modules \
+            --namespace-root ${{github.workspace}}/build/staging/lib/gpgfrontend/modules \
             --packager "$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_packager)" \
             --expect-count "$EXPECTED"
-
-      - name: Inventory Bundle Code Objects
-        run: |
-          set -euo pipefail
-          APP="${{github.workspace}}/build/package/GpgFrontend.app"
-
-          # This listing is the ground truth that sign-mas's explicit signer has
-          # to match. -appstore-compliant deploys a different plugin set than a
-          # Developer ID build, so it is worth reading on its own terms.
-          echo "--- nested bundles ---"
-          find "$APP/Contents" -type d \
-            \( -name '*.framework' -o -name '*.app' -o -name '*.appex' \
-               -o -name '*.xpc' -o -name '*.bundle' -o -name '*.systemextension' \
-               -o -name '*.pluginkit' \) | sed "s#^$APP/##"
-
-          echo "--- Mach-O files and their signature state as built ---"
-          # `codesign -dv` exits non-zero on an unsigned object -- the normal
-          # state here -- so its status is classified rather than allowed to
-          # abort the loop.
-          find "$APP/Contents" -type f | while IFS= read -r f; do
-            if file -b "$f" | grep -q 'Mach-O'; then
-              out=$(codesign -dv "$f" 2>&1 || true)
-              case "$out" in
-                *"not signed at all"*) state=unsigned ;;
-                *"Signature=adhoc"*)   state=adhoc ;;
-                *"Signature size="*)   state=signed ;;
-                *)                     state=unknown ;;
-              esac
-              printf '%-9s %s\n' "$state" "${f#"$APP"/}"
-            fi
-          done
-
       - name: Stage Unsigned Payload
         run: |
           set -euo pipefail
