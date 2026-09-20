@@ -1425,6 +1425,16 @@ jobs:
           checked=0
           while IFS= read -r dylib; do
             here="$(dirname "$dylib")"
+
+            # `otool -L` prints the path header, then the dylib's OWN
+            # LC_ID_DYLIB, then its dependencies. Dropping just the header
+            # leaves the id looking like a dependency -- and since a module's
+            # id is `@rpath/libgf_mod_x.dylib`, this gate dutifully looked for
+            # it in Contents/Frameworks and reported every module as broken.
+            # `otool -D` gives the id alone, so it can be excluded by value.
+            own_id="$(otool -D "$dylib" 2>/dev/null | tail -n +2 \
+                        | sed 's/^[[:space:]]*//')"
+
             while IFS= read -r dep; do
               [ -n "$dep" ] || continue
               case "$dep" in
@@ -1447,7 +1457,8 @@ jobs:
               fi
               checked=$((checked + 1))
             done < <(otool -L "$dylib" | tail -n +2 \
-                       | sed 's/^[[:space:]]*//;s/ (compatibility.*//')
+                       | sed 's/^[[:space:]]*//;s/ (compatibility.*//' \
+                       | grep -vxF "$own_id")
           done < <(find "$NATIVE_ROOT" -type f -name '*.dylib' | sort)
 
           echo "resolved $checked dependency reference(s)"

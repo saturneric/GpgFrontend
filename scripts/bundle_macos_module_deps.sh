@@ -72,11 +72,22 @@ is_system_or_relocatable() {
   esac
 }
 
-# Load commands only, and never the file's own id: `otool -L` prints the id as
-# its first line, and treating that as a dependency would have every dylib
-# depend on itself.
+# Load commands only, and never the file's own id.
+#
+# `otool -L` prints THREE kinds of line: the path header first, then the
+# dylib's own LC_ID_DYLIB, then the actual dependencies. `tail -n +2` drops
+# only the header and leaves the id looking exactly like a dependency, so a
+# dylib appears to depend on itself. That was true here and did no harm only
+# because a module's id is `@rpath/...`, which the filter above happens to
+# skip -- and it did real harm the moment the same shape was used somewhere
+# that resolves @rpath.
+#
+# `otool -D` prints the id and nothing else, so it can be excluded by value.
 dependencies_of() {
-  otool -L "$1" | tail -n +2 | sed 's/^[[:space:]]*//;s/ (compatibility.*//'
+  local id
+  id="$(otool -D "$1" 2>/dev/null | tail -n +2 | sed 's/^[[:space:]]*//')"
+  otool -L "$1" | tail -n +2 | sed 's/^[[:space:]]*//;s/ (compatibility.*//' \
+    | { if [ -n "$id" ]; then grep -vxF "$id"; else cat; fi; }
 }
 
 # install_name_tool invalidates whatever signature a Mach-O had, and on Apple
