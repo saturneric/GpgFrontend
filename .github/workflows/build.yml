@@ -1077,6 +1077,105 @@ jobs:
         # An MSI installs into Program Files and keeps its data in the user
         # profile, so it is only ever built from the installed flavour.
         if: runner.os == 'Windows' && matrix.flavor == 'installed'
+      # Run the thing we ship, and count the modules.
+      #
+      # ## Why this exists even though no Windows loading bug is known
+      #
+      # macOS and Linux each got a smoke test only AFTER a shipped artifact
+      # failed to run -- three modules that could not load, then an AppImage
+      # that died before main(). Windows is now the only platform where nothing
+      # executes what ships, and it has produced the most silent breakage of
+      # the three: undefined symbols a shared ELF tolerates, an output
+      # directory property that does not govern a DLL, CRLF in generated
+      # lists, a test fixture in the payload. Every one was caught by the
+      # build. None would have been caught by running it, because nothing did.
+      #
+      # The specific Windows risk was checked rather than assumed, and it is
+      # NOT the macOS one: `SetDllDirectoryW` plus the default search order
+      # already includes the application directory, so the Qt DLLs windeployqt
+      # puts in `bin/` resolve for a module in `modules/<key>/native/`. What is
+      # untested is everything after that -- `<appdir>/../modules` against a
+      # tree extracted somewhere else, the per-module search path guard, and
+      # the Authenticode entry binding checked at load time rather than at
+      # package time.
+      #
+      # The portable archive, because it is self-contained and is a real
+      # deliverable. The installed flavour packages the same payload tree, so
+      # the module-loading question is the same question.
+      - name: Smoke Test The Portable Archive (Windows)
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          cd $(cygpath -u "${{github.workspace}}")
+
+          ZIP="$(find build/upload-artifact -name '*-portable.zip' | head -1)"
+          test -n "$ZIP" || { echo "no portable archive was built" >&2; exit 1; }
+
+          SMOKE="$(cygpath -u "$RUNNER_TEMP")/smoke"
+          rm -rf "$SMOKE"
+          mkdir -p "$SMOKE"
+          unzip -q "$ZIP" -d "$SMOKE"
+          test -f "$SMOKE/bin/GpgFrontend.exe"
+
+          # A CI runner has no desktop to draw on, and windeployqt deploys only
+          # the `windows` platform plugin. The offscreen one is copied into the
+          # EXTRACTED tree, never into the shipped payload: it is needed to run
+          # the test and would be dead weight in a user's download. It cannot
+          # affect module loading either way.
+          OFFSCREEN=/mingw64/share/qt6/plugins/platforms/qoffscreen.dll
+          if [ -f "$OFFSCREEN" ]; then
+            cp "$OFFSCREEN" "$SMOKE/bin/platforms/"
+            export QT_QPA_PLATFORM=offscreen
+          else
+            echo "::warning::no offscreen plugin; trying the default platform"
+          fi
+
+          # A profile that has never existed. Portable builds keep the profile
+          # beside the executable, so most of this lands under $SMOKE anyway --
+          # the rest is set so that nothing reaches the runner's own profile.
+          export USERPROFILE="$(cygpath -w "$SMOKE/home")"
+          export LOCALAPPDATA="$(cygpath -w "$SMOKE/home/AppData/Local")"
+          export APPDATA="$(cygpath -w "$SMOKE/home/AppData/Roaming")"
+          mkdir -p "$SMOKE/home/AppData/Local" "$SMOKE/home/AppData/Roaming"
+
+          cd "$SMOKE/bin"
+          ./GpgFrontend.exe >"$SMOKE/stdout.log" 2>&1 &
+          APP_PID=$!
+
+          found=""
+          for _ in $(seq 1 60); do
+            sleep 1
+            line="$(grep -rh 'module loading finished' "$SMOKE" 2>/dev/null | tail -1 || true)"
+            if [ -n "$line" ]; then found="$line"; break; fi
+            if ! kill -0 "$APP_PID" 2>/dev/null; then
+              echo "the app exited before it reported module loading" >&2
+              break
+            fi
+          done
+
+          kill "$APP_PID" 2>/dev/null || true
+          wait "$APP_PID" 2>/dev/null || true
+
+          if [ -z "$found" ]; then
+            echo "the portable build never reported module loading" >&2
+            echo "--- stdout (a missing DLL announces itself here) ---" >&2
+            cat "$SMOKE/stdout.log" >&2 || true
+            echo "--- logs ---" >&2
+            find "$SMOKE" -name '*.txt' -exec cat {} \; >&2 2>/dev/null || true
+            exit 1
+          fi
+
+          echo "$found"
+          case "$found" in
+            *"loaded 4 module(s), refused 0"*)
+              echo "all four modules loaded" ;;
+            *)
+              echo "the shipped portable build did not load its modules" >&2
+              grep -rh 'refuses module' "$SMOKE" 2>/dev/null >&2 || true
+              exit 1 ;;
+          esac
+        if: runner.os == 'Windows' && matrix.flavor == 'portable'
+
       # The build record: what this leg produced, and the exact bytes of it.
       #
       # AFTER packaging, deliberately. The digests have to be of the files that
