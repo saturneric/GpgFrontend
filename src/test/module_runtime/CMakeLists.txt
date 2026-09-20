@@ -46,5 +46,5 @@ target_compile_definitions(gf_module_runtime_test PRIVATE
   "GF_SDK_EXPORT=" "GF_MODULE_EXPORT=")
 
 set_target_properties(gf_module_runtime_test PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test-bin"
   AUTOMOC OFF)
