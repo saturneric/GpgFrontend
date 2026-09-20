@@ -958,9 +958,17 @@ jobs:
           export XDG_CACHE_HOME="$HOME/.cache"
           mkdir -p "$XDG_DATA_HOME" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME"
 
-          # No window server here. The status option does not need one: it
-          # brings the module system up, writes the report and exits.
-          export QT_QPA_PLATFORM=offscreen
+          # Offscreen only if it is actually deployed. linuxdeployqt is asked
+          # for `-extra-plugins=platforms`, which brings all of them including
+          # this one -- but asking unconditionally for a plugin that is not
+          # there aborts before main() with "no Qt platform plugin could be
+          # initialized", which reads like a broken build and is not one. That
+          # is exactly how the macOS leg failed.
+          if find ./squashfs-root -name 'libqoffscreen.so' | grep -q .; then
+            export QT_QPA_PLATFORM=offscreen
+          else
+            echo "no offscreen plugin deployed; using the default platform"
+          fi
 
           STATUS="$RUNNER_TEMP/module-status.json"
           rc=0
@@ -2636,10 +2644,26 @@ jobs:
           export HOME="$RUNNER_TEMP/smoke-home"
           mkdir -p "$HOME"
 
-          # offscreen, because a CI runner has no window server. The status
-          # option does not need one: it brings the module system up, writes
-          # the report and exits.
-          export QT_QPA_PLATFORM=offscreen
+          # Offscreen only if it is actually in the bundle.
+          #
+          # macdeployqt deploys the platform plugins the app uses, which on
+          # macOS is `cocoa` alone -- asking unconditionally for `offscreen`
+          # aborts before main() with "no Qt platform plugin could be
+          # initialized", which reads like a broken build and is not one.
+          #
+          # And it cannot simply be supplied: library validation is ON as of
+          # §18n, so a plugin signed by anyone but us would be refused, and
+          # copying one INTO the bundle breaks the very signature this job
+          # verified a step earlier. Either it ships or it is not used.
+          #
+          # `cocoa` is the fallback and works: a GitHub macOS runner has a
+          # window session. The status option exits as soon as it has written
+          # the report, so nothing is left waiting on a window.
+          if [ -f "$APP/Contents/PlugIns/platforms/libqoffscreen.dylib" ]; then
+            export QT_QPA_PLATFORM=offscreen
+          else
+            echo "no offscreen plugin in the bundle; using the default platform"
+          fi
 
           STATUS="$RUNNER_TEMP/module-status.json"
           rc=0
