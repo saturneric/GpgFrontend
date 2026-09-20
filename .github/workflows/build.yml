@@ -711,6 +711,22 @@ jobs:
           # layout's ordering load-bearing.
           rm -rf build/artifacts/modules/*/native/*.a
           rm -rf build/artifacts/modules/*/native/*.dll.a
+
+          # The test sentinel, gone before anything inspects this tree.
+          #
+          # It is deliberately named `gf_mod_test_sentinel` so the module
+          # machinery treats it like a module, which is exactly why
+          # `verify-module-set --assert-no-native-outside` reports it: a
+          # module-shaped library sitting outside every namespace is precisely
+          # what that check exists to refuse.
+          #
+          # On Linux it lives outside the AppDir and never reaches the payload,
+          # so this is a Windows problem only -- here `artifacts/` IS the
+          # payload. Removed during payload staging, which is the step whose
+          # job is deciding what ships, and therefore before the assertion
+          # rather than after it.
+          rm -rf build/artifacts/test-modules
+
           cd build
           # The libraries CMake registered, read from the list it writes --
           # not a `libgf_*.dll` glob. The glob kept the "a new library cannot
@@ -894,9 +910,8 @@ jobs:
           TOOL_DIR="$(tr -d '\r' < build/artifacts/host-tool-dir.txt)"
           rm -f "$TOOL_DIR/gf_module_packager.exe" "$TOOL_DIR/gf_module_keygen.exe"
 
-          # Test fixtures are not deliverables either, and artifacts/ is what
-          # gets packaged wholesale on this platform.
-          rm -rf build/artifacts/test-modules
+          # Test fixtures went during payload staging, before the module-set
+          # assertion could trip over them. The check below is what proves it.
 
           # Stated as a check rather than assumed: this is the last chance to
           # notice, and a stray build tool in a signed installer is the kind of
