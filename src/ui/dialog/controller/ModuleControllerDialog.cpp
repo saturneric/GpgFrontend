@@ -239,14 +239,6 @@ void ModuleControllerDialog::update_policy_notice() {
              "from the mods directory, change the module loading policy in "
              "Settings > General."));
       break;
-    case Module::ModuleLoadingPolicy::kPACKAGED_ONLY:
-      ui_->policyNoticeLabel->setText(
-          tr("Only modules that ship as signed packages are loaded. Loose "
-             "module libraries will stop being loaded in a future version, so "
-             "this is where module loading is going. A signature shows that a "
-             "package has not been altered since it was built; it does not "
-             "show who built it."));
-      break;
     case Module::ModuleLoadingPolicy::kALL:
       ui_->policyNoticeLabel->hide();
       break;

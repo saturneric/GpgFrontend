@@ -61,11 +61,11 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->modulePolicyComboBox->addItem(tr("Only Integrated Modules"),
                                      "only_integrated");
   ui_->modulePolicyComboBox->addItem(tr("All Modules"), "all");
-  // Where module loading is going: loose libraries are transitional, and a
-  // future version will stop loading them at all.
-  ui_->modulePolicyComboBox->addItem(tr("Signed Packages Only"),
-                                     "packaged_only");
   ui_->modulePolicyComboBox->addItem(tr("Disable"), "disable");
+  // No "Signed Packages Only": every policy is that now, because a native is
+  // named by a verified descriptor rather than found on disk. A profile that
+  // still stores the old key is read as "All Modules" (see ModuleInit.h) and
+  // rewritten the next time this dialog saves.
 
   ui_->importConfirmationBox->setTitle(tr("Operation"));
 
