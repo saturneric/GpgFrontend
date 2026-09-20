@@ -58,7 +58,7 @@ endif()
 # of a skip.
 list(LENGTH GPGFRONTEND_MODULE_DIRECTORY_KEYS GF_REGISTERED_MODULE_COUNT)
 target_compile_definitions(${LIBRARY_TARGET} PRIVATE
-  GF_MODULE_DIRECTORY_KEYS_FILE="${CMAKE_BINARY_DIR}/artifacts/module-directory-keys.txt"
+  GF_BUILD_INFO_FILE="${CMAKE_BINARY_DIR}/artifacts/build-info.json"
   GF_REGISTERED_MODULE_COUNT=${GF_REGISTERED_MODULE_COUNT})
 
 # set up pch

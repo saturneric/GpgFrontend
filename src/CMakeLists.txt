@@ -417,14 +417,7 @@ message(STATUS "Registered libraries: ${GPGFRONTEND_LIBRARY_TARGETS}")
 # Written out here instead, from the list CMake already maintains. Same
 # property -- a new library is picked up without anyone remembering -- without
 # the guess about what a filename means.
-set(gf_deployable_library_files)
-foreach(gf_library_target IN LISTS GPGFRONTEND_LIBRARY_TARGETS)
-  list(APPEND gf_deployable_library_files
-    "$<TARGET_FILE_NAME:${gf_library_target}>")
-endforeach()
-file(GENERATE
-  OUTPUT "${CMAKE_BINARY_DIR}/artifacts/deployable-libraries.txt"
-  CONTENT "$<JOIN:${gf_deployable_library_files},\n>\n")
+# The deployable library names are published in build-info.json.
 message(STATUS "Registered modules: ${GPGFRONTEND_MODULE_TARGETS}")
 
 if(XCODE_BUILD)
@@ -646,6 +639,24 @@ endif()
 # loaded and no explanation.
 if(GPGFRONTEND_MODULE_TARGETS)
   list(LENGTH GPGFRONTEND_MODULE_DIRECTORY_KEYS GF_INSTALL_MODULE_COUNT)
+
+  # The one case CMake cannot reach: packaging tools that strip AFTER install
+  # has finished. This is the hook they call, generated into the build tree and
+  # deliberately NOT installed -- it names the signing seed, which belongs to
+  # the build and not to anything shipped. See PACKAGING.md.
+  set(GF_PACKAGER
+    "${GPGFRONTEND_HOST_TOOL_DIR}/gf_module_packager${CMAKE_EXECUTABLE_SUFFIX}")
+  set(GF_SEED "${GF_MODULE_BUILD_KEY_DIR}/module-build.seed")
+  set(GF_MODULE_INSTALL_ROOT
+    "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/gpgfrontend/modules")
+  set(GF_MODULE_COUNT "${GF_INSTALL_MODULE_COUNT}")
+  set(BUILD_DIR "${CMAKE_BINARY_DIR}")
+  configure_file(
+    "${CMAKE_SOURCE_DIR}/cmake/gpgfrontend-module-refresh.in"
+    "${CMAKE_BINARY_DIR}/gpgfrontend-module-refresh"
+    @ONLY
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+                     GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
   install(CODE "
     set(_gf_packager \"${GPGFRONTEND_HOST_TOOL_DIR}/gf_module_packager${CMAKE_EXECUTABLE_SUFFIX}\")

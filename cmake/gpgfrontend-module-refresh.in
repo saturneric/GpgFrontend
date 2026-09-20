@@ -1,0 +1,66 @@
+#!/bin/sh
+# Copyright (C) 2021-2024 Saturneric <eric@bktus.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Re-describe the installed modules after something rewrote them.
+#
+# You need this in exactly one situation: your packaging tooling strips
+# installed binaries. `dh_strip` and `rpmbuild` both do, by default, after
+# `make install` has finished -- which is after the point where any CMake rule
+# could notice. On Linux a module descriptor binds the exact bytes of its
+# library, so stripping invalidates it and the application then starts with no
+# modules and no explanation.
+#
+# `cmake --install --strip` handles itself and does NOT need this.
+#
+# Usage, from your packaging rules, with the staged tree you are about to
+# package:
+#
+#   debian/rules:
+#       override_dh_strip:
+#           dh_strip
+#           @BUILD_DIR@/gpgfrontend-module-refresh debian/gpgfrontend
+#
+# The only argument is the staged root -- the directory that contains usr/.
+# Everything else (the tool, the signing seed, the module count, where the
+# namespace lives) is baked in by the build that generated this script, because
+# none of it is a packager's business.
+set -eu
+
+DESTDIR="${1:-}"
+if [ -z "$DESTDIR" ]; then
+  echo "usage: $0 <staged-root>" >&2
+  echo "  e.g. $0 debian/gpgfrontend" >&2
+  exit 2
+fi
+
+PACKAGER="@GF_PACKAGER@"
+SEED="@GF_SEED@"
+EXPECTED="@GF_MODULE_COUNT@"
+
+# The configured prefix first, which is what a DESTDIR-staged package uses.
+# If the tree was installed to a different prefix, find it instead of
+# insisting: a packager should not have to know how this was configured.
+ROOT="$DESTDIR@GF_MODULE_INSTALL_ROOT@"
+if [ ! -d "$ROOT" ]; then
+  ROOT="$(find "$DESTDIR" -type d -path '*/gpgfrontend/modules' -print 2>/dev/null | head -1)"
+fi
+
+if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
+  echo "gpgfrontend-module-refresh: no installed modules under $DESTDIR" >&2
+  echo "  is <staged-root> the directory that contains usr/ ?" >&2
+  exit 1
+fi
+echo "gpgfrontend-module-refresh: $ROOT" 
+for f in "$PACKAGER" "$SEED"; do
+  if [ ! -e "$f" ]; then
+    echo "gpgfrontend-module-refresh: $f is gone." >&2
+    echo "  This has to run from the build tree that produced the install." >&2
+    exit 1
+  fi
+done
+
+"$PACKAGER" reseal --namespace-root "$ROOT" --signing-seed "$SEED" \
+  --expect-count "$EXPECTED"
+"$PACKAGER" verify-module-set --namespace-root "$ROOT" \
+  --expect-count "$EXPECTED"

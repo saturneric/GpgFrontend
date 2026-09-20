@@ -591,10 +591,6 @@ function(gf_add_module)
   set(GPGFRONTEND_MODULE_DIRECTORY_KEYS "${keys}"
     CACHE INTERNAL "module id=directory key, as CMake derives them" FORCE)
 
-  string(REPLACE ";" "\n" keys_text "${keys}")
-  file(WRITE "${CMAKE_BINARY_DIR}/artifacts/module-directory-keys.txt"
-    "${keys_text}\n")
-
   # ---- generated identity, minimal ----------------------------------------
 
   set(GF_MODULE_ID "${module_id}")

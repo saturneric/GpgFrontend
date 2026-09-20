@@ -57,7 +57,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 option(GPGFRONTEND_QT5_BUILD "Swith to Qt5 building mode" OFF)
 option(GPGFRONTEND_BUILD_APP_FOR_PACKAGE "Allow generating an installable package(DEB or RPM)." OFF)
 option(GPGFRONTEND_ENABLE_ASAN "Enable ASAN for memory testing" OFF)
-option(GPGFRONTEND_BUILD_APP_IMAGE "Build AppImage" OFF)
+option(GPGFRONTEND_BUILD_APP_IMAGE "Deprecated; the AppImage job installs" OFF)
 option(GPGFRONTEND_BUILD_MODULES "Build Modules" ON)
 # Only the release pipeline's finalize step turns this on, after platform
 # deployment has rewritten the module natives. See ModulePreparedEntry.h: with
@@ -515,42 +515,6 @@ elseif(MINGW)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts/bin)
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts/bin)
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts/bin)
-elseif(BUILD_APP_IMAGE)
-  set(APPDIR "${CMAKE_BINARY_DIR}/artifacts/AppDir")
-
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${APPDIR}/usr/bin")
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${APPDIR}/usr/lib")
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${APPDIR}/usr/lib")
-
-  # Modules are built straight into the AppDir at the path the Host will look
-  # for them (GlobalSettingStation::GetIntegratedModulePath), so the tree that
-  # linuxdeployqt scans, the tree the audit checks, the tree that gets sealed
-  # and the tree that ships are all one tree. Copying them in afterwards was
-  # what made the old pipeline's ordering load-bearing and unverifiable.
-  set(GPGFRONTEND_MODULE_NAMESPACE_ROOT "${APPDIR}/usr/lib/gpgfrontend/modules")
-
-  file(MAKE_DIRECTORY "${APPDIR}/usr/share/icons")
-  file(COPY "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor" DESTINATION "${APPDIR}/usr/share/icons")
-
-  file(MAKE_DIRECTORY "${APPDIR}/usr/share/metainfo")
-  file(COPY "${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.metainfo.xml"
-    DESTINATION "${APPDIR}/usr/share/metainfo" FOLLOW_SYMLINK_CHAIN)
-
-  file(MAKE_DIRECTORY "${APPDIR}/usr/share/applications")
-  file(COPY "${CMAKE_SOURCE_DIR}/resource/appstream/com.bktus.gpgfrontend.desktop"
-    DESTINATION "${APPDIR}/usr/share/applications" FOLLOW_SYMLINK_CHAIN)
-
-  # An AppImage registers nothing by itself; an integrator (appimaged,
-  # AppImageLauncher) reads the embedded desktop entry and installs it along
-  # with any MIME package it finds beside it.
-  file(MAKE_DIRECTORY "${APPDIR}/usr/share/mime/packages")
-  file(COPY "${CMAKE_SOURCE_DIR}/resource/mime/com.bktus.gpgfrontend.xml"
-    DESTINATION "${APPDIR}/usr/share/mime/packages" FOLLOW_SYMLINK_CHAIN)
-
-  file(COPY "${CMAKE_SOURCE_DIR}/resource/lfs/pixmaps/com.bktus.gpgfrontend.png"
-    DESTINATION "${APPDIR}" FOLLOW_SYMLINK_CHAIN)
-
-  message(STATUS "AppImage mode enabled. All outputs will go to: ${APPDIR}")
 else()
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/artifacts)
@@ -583,11 +547,7 @@ else()
 endif()
 message(STATUS "Host build tools: ${GPGFRONTEND_HOST_TOOL_DIR}")
 
-# Published so nothing downstream has to re-derive it. The CI steps that run
-# these tools read this file instead of knowing which platform puts them
-# where, which is the knowledge that was wrong twice in two runs.
-file(WRITE "${CMAKE_BINARY_DIR}/artifacts/host-tool-dir.txt"
-  "${GPGFRONTEND_HOST_TOOL_DIR}\n")
+# Published in build-info.json, with everything else a CI step needs.
 
 # Put a target's output exactly where it is told, on every generator.
 #
@@ -664,3 +624,57 @@ if(BUILD_MODULES AND NOT GPGFRONTEND_QT5_BUILD)
 endif()
 
 add_subdirectory(src)
+# ---------------------------------------------------------------------------
+# One file that says what this build is and where it put things.
+#
+# It replaces four generated files and, more to the point, the places that
+# ignored them: the module count was re-derived in eleven workflow shells, the
+# host tool path in eight (each appending ".exe" by hand), the module root was
+# hardcoded in seventeen, and the project version was scraped out of this very
+# file with a regular expression.
+#
+# Deliberately dumb and internal. It is ephemeral build metadata -- not a
+# runtime input, not signed, not a versioned public schema, not a compatibility
+# surface. Nothing at runtime reads it and nothing should start.
+#
+# There is deliberately NO architecture here. CMake says `aarch64` where the
+# project says `arm64`, and normalising it in CMake would be a second
+# implementation of NormalizeManifestArch() that could drift from the first.
+# `gf_module_packager host-info` already answers it, from that one
+# implementation, and the two workflow steps that need it keep asking it.
+#
+# file(GENERATE) rather than file(WRITE): the library names are generator
+# expressions, and only the generate step can resolve them.
+set(gf_deployable_library_files)
+foreach(gf_library_target IN LISTS GPGFRONTEND_LIBRARY_TARGETS)
+  list(APPEND gf_deployable_library_files
+    "\"$<TARGET_FILE_NAME:${gf_library_target}>\"")
+endforeach()
+
+set(gf_module_entries)
+foreach(gf_pair IN LISTS GPGFRONTEND_MODULE_DIRECTORY_KEYS)
+  string(FIND "${gf_pair}" "=" gf_at)
+  string(SUBSTRING "${gf_pair}" 0 ${gf_at} gf_id)
+  math(EXPR gf_at "${gf_at} + 1")
+  string(SUBSTRING "${gf_pair}" ${gf_at} -1 gf_key)
+  list(APPEND gf_module_entries "    \"${gf_id}\": \"${gf_key}\"")
+endforeach()
+list(LENGTH gf_module_entries GPGFRONTEND_MODULE_COUNT)
+string(REPLACE ";" ",\n" gf_module_json "${gf_module_entries}")
+
+file(GENERATE
+  OUTPUT "${CMAKE_BINARY_DIR}/artifacts/build-info.json"
+  CONTENT "{
+  \"project_version\": \"${PROJECT_VERSION}\",
+  \"build_id\": \"${GPGFRONTEND_BUILD_ID}\",
+  \"host_os\": \"${_gf_build_os}\",
+  \"host_tool_dir\": \"${GPGFRONTEND_HOST_TOOL_DIR}\",
+  \"module_packager\": \"${GPGFRONTEND_HOST_TOOL_DIR}/gf_module_packager${CMAKE_EXECUTABLE_SUFFIX}\",
+  \"module_namespace_root\": \"${GPGFRONTEND_MODULE_NAMESPACE_ROOT}\",
+  \"module_count\": ${GPGFRONTEND_MODULE_COUNT},
+  \"modules\": {
+${gf_module_json}
+  },
+  \"deployable_libraries\": [$<JOIN:${gf_deployable_library_files},, >]
+}
+")
