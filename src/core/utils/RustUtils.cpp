@@ -333,6 +333,29 @@ auto SniffIssuerKeyIds(const GFBuffer& in_buffer) -> QStringList {
   return issuers_str.toUpper().split(",", Qt::SkipEmptyParts);
   ;
 }
+
+auto InspectOpenPGPData(const GFBuffer& in_buffer) -> QByteArray {
+#ifndef HAS_RUST_SUPPORT
+  (void)in_buffer;
+  return {};
+#else
+  Rust::GfrBuffer buffer = {
+      reinterpret_cast<const uint8_t*>(in_buffer.Data()),
+      static_cast<uintptr_t>(in_buffer.Size()),
+  };
+
+  char* out_json = nullptr;
+  auto err = Rust::gfr_pgp_inspect(buffer, &out_json);
+  if (err != Rust::GfrStatus::Success || out_json == nullptr) {
+    LOG_E() << "rust ffi pgp_inspect failed: " << static_cast<int>(err);
+    return {};
+  }
+
+  auto json = QByteArray(out_json);
+  Rust::gfr_crypto_free_string(out_json);
+  return json;
+#endif
+}
 auto GetKeyBlocksForVerification(GFKeyDatabase& key_db,
                                  const QStringList& key_ids)
     -> QContainer<GFBuffer> {

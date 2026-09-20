@@ -54,7 +54,10 @@ class TextEditTabWidget;
  * TextEdit also handles unsaved-document checks before closing tabs or exiting
  * the application.
  */
-class TextEdit : public QWidget {
+// Exported whole rather than member by member: CurrentEditorContent() casts a
+// registered QObject back to this type, and a qobject_cast needs
+// staticMetaObject visible, which a per-member export does not give.
+class GF_UI_EXPORT TextEdit : public QWidget {
   Q_OBJECT
 
  public:
@@ -268,9 +271,8 @@ class TextEdit : public QWidget {
    * it", because either would put the output of one document's operation --
    * a decrypted message, say -- into a different document.
    */
-  [[nodiscard]] static auto GF_UI_EXPORT ClassifyResultTarget(bool page_alive,
-                                                              int tab_index,
-                                                              bool is_text_page)
+  [[nodiscard]] static auto ClassifyResultTarget(bool page_alive, int tab_index,
+                                                 bool is_text_page)
       -> ResultTarget;
 
  public slots:

@@ -29,10 +29,12 @@
 #include "UIModuleManager.h"
 
 #include <QReadWriteLock>
+#include <QThread>
 
 #include "core/function/GlobalSettingStation.h"
 #include "core/module/ModuleManager.h"
 #include "core/utils/CommonUtils.h"
+#include "ui/widgets/TextEdit.h"
 
 namespace GpgFrontend::UI {
 
@@ -275,6 +277,28 @@ auto FileExtensionEventId(const QString& extension, const QString& operation)
     -> QString {
   return UIModuleManager::GetInstance().GetFileExtensionEventId(extension,
                                                                 operation);
+}
+
+auto CurrentEditorContent() -> QByteArray {
+  auto* edit = qobject_cast<TextEdit*>(
+      UIModuleManager::GetInstance().GetQObject("main_window_edit"));
+  if (edit == nullptr) return {};
+
+  // The document belongs to the GUI thread, and a module's handler does not
+  // necessarily run there. Blocking is right when it does not -- the caller
+  // asked for the bytes -- but a BlockingQueuedConnection to one's OWN thread
+  // is a deadlock, which Qt refuses with "Dead lock detected" and an empty
+  // result. A module dialog's button handler is on the GUI thread, so that is
+  // the common case, not the exotic one.
+  if (QThread::currentThread() == edit->thread()) {
+    return edit->CurDocumentBytesForOperation();
+  }
+
+  QByteArray bytes;
+  QMetaObject::invokeMethod(
+      edit, [&] { bytes = edit->CurDocumentBytesForOperation(); },
+      Qt::BlockingQueuedConnection);
+  return bytes;
 }
 
 auto UIModuleManager::RegisterFileExtensionHandleEvent(

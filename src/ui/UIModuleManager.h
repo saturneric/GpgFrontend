@@ -29,7 +29,6 @@
 #pragma once
 
 #include <QReadWriteLock>
-
 #include <optional>
 
 #include "core/function/basic/GpgFunctionObject.h"
@@ -316,5 +315,22 @@ auto GF_UI_EXPORT RegisterNamedQObject(const QString& id, QObject* p)
 
 auto GF_UI_EXPORT FileExtensionEventId(const QString& extension,
                                        const QString& operation) -> QString;
+
+/**
+ * @brief The current editor tab's exact octets, for the SDK to hand modules.
+ *
+ * The bytes as the document holds them, line endings included, with any module
+ * view flushed back first -- exactly what the application's own operations
+ * act on. Empty when no tab is open, or when the current tab is not a text
+ * tab.
+ *
+ * A typed function rather than a Q_INVOKABLE on TextEdit: reaching a widget
+ * method by string name from across the module boundary makes a gf_ui
+ * internal a de-facto ABI that nothing checks, and renaming it would break
+ * modules at run time with no build error anywhere.
+ *
+ * Safe to call from any thread; the read is marshalled to the GUI thread.
+ */
+auto GF_UI_EXPORT CurrentEditorContent() -> QByteArray;
 
 }  // namespace GpgFrontend::UI

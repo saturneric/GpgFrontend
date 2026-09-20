@@ -156,6 +156,19 @@ auto GF_CORE_EXPORT DetectKeyVersionByRpgp(const GFBuffer& key_block) -> int;
 auto GF_CORE_EXPORT SniffRecipientKeyIds(const GFBuffer& in_buffer)
     -> QStringList;
 
+/**
+ * @brief Describe the packet structure of an OpenPGP blob as JSON.
+ *
+ * Accepts anything: armored or binary, message, detached signature,
+ * certificate or cleartext-signed text. Encrypted payloads are never
+ * decrypted; compressed payloads are recursed into. Input that is not OpenPGP
+ * at all is not an error: the document says so in its `errors` array.
+ *
+ * @param in_buffer the data to inspect
+ * @return a UTF-8 JSON document, or an empty array when the engine is absent
+ */
+auto GF_CORE_EXPORT InspectOpenPGPData(const GFBuffer& in_buffer) -> QByteArray;
+
 }  // namespace GpgFrontend
 
 #ifdef HAS_RUST_SUPPORT

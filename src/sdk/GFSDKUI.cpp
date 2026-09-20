@@ -38,6 +38,7 @@
 #include "ui/UIModuleManager.h"
 #include "ui/function/FilePanelPath.h"
 #include "ui/function/UIStyle.h"
+#include "ui/widgets/TextEdit.h"
 
 auto GFUIShowDialog(void* dialog_raw_ptr, void* parent_raw_ptr) -> int {
   if (dialog_raw_ptr == nullptr) {
@@ -114,8 +115,8 @@ auto GF_SDK_EXPORT GFUIGetGUIObject(const char* id) -> void* {
     return nullptr;
   }
 
-  auto* object = GpgFrontend::UI::UIModuleManager::GetInstance().GetQObject(
-      GFStrView(id));
+  auto* object =
+      GpgFrontend::UI::UIModuleManager::GetInstance().GetQObject(GFStrView(id));
 
   return object;
 }
@@ -251,4 +252,10 @@ auto GFUIAccentColor(void* widget, int positive) -> uint32_t {
 
 auto GFUIHumanSize(int64_t bytes) -> char* {
   return GFStrDup(GpgFrontend::UI::HumanSize(static_cast<qint64>(bytes)));
+}
+
+auto GF_SDK_EXPORT GFUITakeCurrentEditorContent() -> GFBufferRef {
+  const auto bytes = GpgFrontend::UI::CurrentEditorContent();
+  return GFBufferNewFromBytes(bytes.constData(),
+                              static_cast<size_t>(bytes.size()));
 }

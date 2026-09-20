@@ -28,9 +28,9 @@
 
 #pragma once
 
-#include "GFSDKVisibility.h"
-
+#include "GFSDKBuffer.h"
 #include "GFSDKUIModel.h"
+#include "GFSDKVisibility.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -265,6 +265,23 @@ GF_SDK_EXPORT uint32_t GFUIAccentColor(void* widget, int positive);
  * @return Newly allocated string; free it with GFFreeMemory.
  */
 GF_SDK_EXPORT char* GFUIHumanSize(int64_t bytes);
+
+/**
+ * @brief The current editor tab's exact octets.
+ *
+ * Exactly what the application itself operates on: the bytes as the document
+ * holds them, line endings included, with any module view flushed back first.
+ * A module that wants to act on "what the user is looking at" has to go
+ * through this -- reading the QPlainTextEdit's text would give it a
+ * re-encoded approximation, and an approximation does not verify.
+ *
+ * Empty when no tab is open, or when the current tab is not a text tab.
+ *
+ * Safe to call from any thread: the read is marshalled to the GUI thread.
+ *
+ * @return Owned handle, or NULL on failure. Release with GFBufferRelease.
+ */
+GF_SDK_EXPORT GF_SDK_MUST_USE GFBufferRef GFUITakeCurrentEditorContent(void);
 #ifdef __cplusplus
 }
 #endif
