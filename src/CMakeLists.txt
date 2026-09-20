@@ -507,14 +507,22 @@ install(FILES "${CMAKE_SOURCE_DIR}/resource/mime/com.bktus.gpgfrontend.xml"
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/mime/packages"
   COMPONENT runtime)
 
+# An AppImage wants its icon and .DirIcon at the root of the image, beside
+# AppRun. Those are AppImage's rules, not a normal install's: in a prefix they
+# land as <prefix>/com.bktus.gpgfrontend.png and <prefix>/.DirIcon, two stray
+# files at the top of /usr that rpmbuild and dpkg both flag.
+#
+# So they are their own component, and only the AppImage job asks for it.
 install(FILES "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/256x256/apps/com.bktus.gpgfrontend.png"
   DESTINATION "."
-  COMPONENT runtime)
+  COMPONENT appimage
+  EXCLUDE_FROM_ALL)
 
 install(FILES "${CMAKE_SOURCE_DIR}/resource/lfs/hicolor/256x256/apps/com.bktus.gpgfrontend.png"
   DESTINATION "."
   RENAME ".DirIcon"
-  COMPONENT runtime)
+  COMPONENT appimage
+  EXCLUDE_FROM_ALL)
 
 #
 # Icons and pixmaps
@@ -613,4 +621,68 @@ if(BUILD_APP_FOR_PACKAGE)
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
   include(CPack)
+endif()
+# ---------------------------------------------------------------------------
+# The install tree is checked before it is called installed.
+#
+# Two things happen here, in this order, and they are the whole of what
+# `cmake --install` owes a downstream packager:
+#
+#   1. if the install STRIPPED the module natives, the descriptors are
+#      refreshed against what was actually written;
+#   2. the installed tree is verified, so the command either produces a
+#      loadable set of modules or fails.
+#
+# Declared in src/ rather than modules/ on purpose: install rules run in
+# add_subdirectory order and modules/ is configured first, so this is the
+# earliest point at which every module has already been installed.
+#
+# Why the refresh is conditional rather than a stage: a plain install is a
+# byte-for-byte copy -- module targets set BUILD_WITH_INSTALL_RPATH, so CMake
+# applies no RPATH_CHANGE to them -- and the copied descriptors stay valid.
+# Stripping is the one transformation `cmake --install` performs that changes
+# the bytes a Linux binding covers, and it used to break every module in
+# silence: the install exited 0 and the application then started with nothing
+# loaded and no explanation.
+if(GPGFRONTEND_MODULE_TARGETS)
+  list(LENGTH GPGFRONTEND_MODULE_DIRECTORY_KEYS GF_INSTALL_MODULE_COUNT)
+
+  install(CODE "
+    set(_gf_packager \"${GPGFRONTEND_HOST_TOOL_DIR}/gf_module_packager${CMAKE_EXECUTABLE_SUFFIX}\")
+    set(_gf_seed \"${GF_MODULE_BUILD_KEY_DIR}/module-build.seed\")
+    set(_gf_root
+      \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/gpgfrontend/modules\")
+
+    if(NOT EXISTS \"\${_gf_packager}\")
+      message(FATAL_ERROR
+        \"the module tool is missing, so the installed modules cannot be \"
+        \"checked: \${_gf_packager}\")
+    endif()
+
+    if(CMAKE_INSTALL_DO_STRIP)
+      message(STATUS \"Refreshing module descriptors after strip\")
+      execute_process(
+        COMMAND \"\${_gf_packager}\" reseal
+          --namespace-root \"\${_gf_root}\"
+          --signing-seed \"\${_gf_seed}\"
+          --expect-count ${GF_INSTALL_MODULE_COUNT}
+        RESULT_VARIABLE _gf_rc)
+      if(NOT _gf_rc EQUAL 0)
+        message(FATAL_ERROR
+          \"the installed module descriptors could not be refreshed after \"
+          \"stripping; the installed modules would not load\")
+      endif()
+    endif()
+
+    execute_process(
+      COMMAND \"\${_gf_packager}\" verify-module-set
+        --namespace-root \"\${_gf_root}\"
+        --expect-count ${GF_INSTALL_MODULE_COUNT}
+      RESULT_VARIABLE _gf_rc)
+    if(NOT _gf_rc EQUAL 0)
+      message(FATAL_ERROR
+        \"the installed module tree was refused; see the report above\")
+    endif()
+  "
+  COMPONENT runtime)
 endif()

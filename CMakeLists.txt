@@ -645,6 +645,11 @@ else()
   endif()
 endif()
 
+# Before any subdirectory, because modules/ is configured ahead of src/ and its
+# install rules need CMAKE_INSTALL_LIBDIR. Including it only in src/ meant the
+# module install destination resolved against an empty variable.
+include(GNUInstallDirs)
+
 add_subdirectory(third_party)
 
 # single source of truth for the UI locales shared by the app and all modules

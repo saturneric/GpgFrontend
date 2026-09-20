@@ -643,15 +643,24 @@ function(gf_add_module)
   # invariant. The invariant is that every one of them is bound by exactly one
   # verified descriptor, which is a thing gf_module_tool can check and a
   # directory listing cannot.
+  # RELATIVE, deliberately. This used to be CMAKE_INSTALL_FULL_LIBDIR, which is
+  # absolute and frozen at configure time -- so `cmake --install --prefix /opt`
+  # put the binary under /opt and then tried to write the modules into
+  # /usr/local/lib, failing outright without root. A downstream packager could
+  # not install this project at all, and nothing noticed because nothing in the
+  # repository ever ran `cmake --install`.
   gf_module_directory_key("${module_id}" install_namespace_key)
   set(install_namespace
-    "${CMAKE_INSTALL_FULL_LIBDIR}/gpgfrontend/modules/${install_namespace_key}")
+    "${CMAKE_INSTALL_LIBDIR}/gpgfrontend/modules/${install_namespace_key}")
 
   install(FILES
     "${GPGFRONTEND_MODULE_NAMESPACE_ROOT}/${install_namespace_key}/module.gfmodule"
-    DESTINATION "${install_namespace}")
+    DESTINATION "${install_namespace}"
+    COMPONENT runtime)
 
+  # ARCHIVE is omitted on purpose: an import library is a build input, and on
+  # Windows it is what used to be swept out of the payload by hand afterwards.
   install(TARGETS ${target_name}
-    LIBRARY DESTINATION "${install_namespace}/native"
-    RUNTIME DESTINATION "${install_namespace}/native")
+    LIBRARY DESTINATION "${install_namespace}/native" COMPONENT Runtime
+    RUNTIME DESTINATION "${install_namespace}/native" COMPONENT runtime)
 endfunction()
