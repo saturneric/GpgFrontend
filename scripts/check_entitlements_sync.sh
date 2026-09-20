@@ -41,22 +41,31 @@ FORBIDDEN = {
 }
 
 
-def entitlements_from_workflow(path, job, marker, terminator):
-    """The verbatim copy the signing job writes, lifted out of its heredoc."""
-    import yaml
-    d = yaml.safe_load(open(path))
-    for step in d["jobs"][job]["steps"]:
-        run = step.get("run") or ""
-        if marker not in run:
-            continue
-        after = run.split(marker, 1)[1]
-        lines = []
-        for line in after.split("\n"):
-            if line.strip() == terminator:
-                break
-            lines.append(line[10:] if line.startswith(" " * 10) else line)
-        return plistlib.loads("\n".join(lines).encode())
-    return None
+def entitlements_from_workflow(path, marker, terminator):
+    """The verbatim copy the signing job writes, lifted out of its heredoc.
+
+    Read as TEXT, not through a YAML parser. A heredoc body is a textual
+    construct -- the workflow's own shell finds it exactly this way -- and
+    reaching for PyYAML to locate it added a dependency the macOS runner's
+    python3 does not have. This runs on stdlib alone, which is the only thing
+    a check that gates a build should need.
+    """
+    text = open(path, encoding="utf-8").read()
+    if text.count(marker) != 1:
+        return None, f"expected exactly one {marker.strip()} heredoc"
+
+    after = text.split(marker, 1)[1]
+    body = []
+    for line in after.split("\n"):
+        if line.strip() == terminator:
+            # De-indent by whatever the terminator is indented by: a heredoc
+            # closed with <<- or written at a different depth still works.
+            pad = len(line) - len(line.lstrip())
+            return "\n".join(
+                l[pad:] if l.startswith(" " * pad) else l for l in body
+            ), None
+        body.append(line)
+    return None, f"heredoc opened with {marker.strip()} is never closed"
 
 
 pairs = [
@@ -64,22 +73,26 @@ pairs = [
         "Developer ID",
         f"{repo}/resource/entitlements/Normal.entitlements",
         f"{repo}/.github/workflows/build.yml",
-        "sign-macos",
         "<<'PLIST'\n",
         "PLIST",
     ),
 ]
 
-for name, repo_file, workflow, job, marker, terminator in pairs:
+for name, repo_file, workflow, marker, terminator in pairs:
     try:
         committed = plistlib.load(open(repo_file, "rb"))
     except Exception as exc:                                  # noqa: BLE001
         failures.append(f"{name}: {repo_file} does not parse: {exc}")
         continue
 
-    applied = entitlements_from_workflow(workflow, job, marker, terminator)
-    if applied is None:
-        failures.append(f"{name}: no entitlements heredoc found in {job}")
+    body, why = entitlements_from_workflow(workflow, marker, terminator)
+    if body is None:
+        failures.append(f"{name}: {why} in {workflow}")
+        continue
+    try:
+        applied = plistlib.loads(body.encode())
+    except Exception as exc:                                  # noqa: BLE001
+        failures.append(f"{name}: the copy in {workflow} does not parse: {exc}")
         continue
 
     if committed != applied:
