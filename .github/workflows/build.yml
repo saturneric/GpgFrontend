@@ -1223,14 +1223,6 @@ jobs:
           cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app \
             ${{github.workspace}}/build/package/
 
-      - name: Deploy Qt
-        run: |
-          # No -codesign=: macdeployqt only ever signed what it copied itself.
-          # sign-macos signs every code object explicitly, inside out.
-          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app \
-            -verbose=2 \
-            -always-overwrite
-
       # Replace symlinked module natives with the real files.
       #
       # `xcodebuild archive` does not put products where CMake asked. Targets
@@ -1370,16 +1362,109 @@ jobs:
             exit 1
           fi
 
-          # And the proof: every descriptor in the bundle verifies, sits in the
-          # namespace its signed identity derives, and resolves to the native
-          # that is actually there -- across the Resources/Frameworks split.
-          PACKAGER="$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
-          "$PACKAGER" verify-module-set \
-            --namespace-root "$DESC_ROOT" \
-            --expect-count 4
-
           echo "--- what ships ---"
           find "$DESC_ROOT" "$NATIVE_ROOT" -type f | sed "s#^$APP/##" | sort
+
+      - name: Deploy Qt
+        run: |
+          set -euo pipefail
+          APP="${{github.workspace}}/build/package/GpgFrontend.app"
+
+          # Every module native, named individually.
+          #
+          # macdeployqt deploys the Qt frameworks the APP links, and a module
+          # may need frameworks the app never does -- QtConcurrent and QtXml,
+          # here. Without this, those modules are placed in the bundle, pass
+          # every descriptor check, and then fail to dlopen on a user's Mac
+          # with "Library not loaded: @rpath/QtConcurrent.framework". Which is
+          # exactly what happened.
+          #
+          # This is the same thing the other two platforms already do:
+          # `-executable=` per module for linuxdeployqt, `--dir` per module for
+          # windeployqt. macOS was the one leg missing it.
+          #
+          # The modules have to be INSIDE the bundle first -- macdeployqt
+          # computes bundle-relative paths -- which is why placement moved
+          # above this step.
+          EXECUTABLES=()
+          while IFS= read -r native; do
+            EXECUTABLES+=("-executable=$native")
+          done < <(find "$APP/Contents/Frameworks/GpgFrontendModules" \
+                     -type f -name '*.dylib' | sort)
+          test "${#EXECUTABLES[@]}" -gt 0
+          echo "deploying for ${#EXECUTABLES[@]} module native(s)"
+
+          # No -codesign=: macdeployqt only ever signed what it copied itself.
+          # sign-macos signs every code object explicitly, inside out.
+          macdeployqt "$APP" \
+            -verbose=2 \
+            -always-overwrite \
+            "${EXECUTABLES[@]}"
+
+      # Every module dependency must actually resolve inside the bundle.
+      #
+      # This is the check whose absence let a signed, notarized dmg ship with
+      # three of its four modules unable to load. Everything else passed:
+      # descriptors verified, natives resolved across the Resources/Frameworks
+      # split, binding sections intact, codesign happy. The modules simply
+      # referenced `@rpath/QtConcurrent.framework` and `@rpath/QtXml.framework`
+      # -- Qt frameworks the APP does not link, so macdeployqt had never
+      # deployed them -- and dyld refused them at load.
+      #
+      # So this resolves each dependency the way dyld does, against the bundle,
+      # and fails if anything is missing. A module that cannot load is not a
+      # module that ships.
+      - name: Verify Module Dependencies Resolve In The Bundle (macOS)
+        run: |
+          set -euo pipefail
+          APP="${{github.workspace}}/build/package/GpgFrontend.app"
+          NATIVE_ROOT="$APP/Contents/Frameworks/GpgFrontendModules"
+          FRAMEWORKS="$APP/Contents/Frameworks"
+
+          missing=0
+          checked=0
+          while IFS= read -r dylib; do
+            here="$(dirname "$dylib")"
+            while IFS= read -r dep; do
+              [ -n "$dep" ] || continue
+              case "$dep" in
+                /usr/lib/*|/System/*) continue ;;
+                @loader_path/*) target="$here/${dep#@loader_path/}" ;;
+                @executable_path/*)
+                  target="$APP/Contents/MacOS/${dep#@executable_path/}" ;;
+                @rpath/*) target="$FRAMEWORKS/${dep#@rpath/}" ;;
+                *)
+                  echo "  FAIL  $(basename "$dylib") loads \"$dep\", an absolute path off this machine" >&2
+                  missing=$((missing + 1))
+                  continue
+                  ;;
+              esac
+
+              if [ ! -e "$target" ]; then
+                echo "  FAIL  $(basename "$dylib") needs \"$dep\"" >&2
+                echo "        which is not at $(echo "$target" | sed "s#^$APP/##")" >&2
+                missing=$((missing + 1))
+              fi
+              checked=$((checked + 1))
+            done < <(otool -L "$dylib" | tail -n +2 \
+                       | sed 's/^[[:space:]]*//;s/ (compatibility.*//')
+          done < <(find "$NATIVE_ROOT" -type f -name '*.dylib' | sort)
+
+          echo "resolved $checked dependency reference(s)"
+          if [ "$missing" -gt 0 ]; then
+            echo "$missing module dependency reference(s) do not resolve in the bundle;" >&2
+            echo "these modules would be refused at load on a user's machine" >&2
+            exit 1
+          fi
+
+          # And the proof the descriptors still describe what is there, now
+          # that macdeployqt has finished rewriting load commands. It can,
+          # because macOS binds `apple-binding-id` -- a section codesign and
+          # install_name_tool both leave alone -- and not a digest of the file.
+          PACKAGER="$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
+          "$PACKAGER" verify-module-set \
+            --namespace-root "$APP/Contents/Resources/modules" \
+            --expect-count 4
 
       # §11.0's dependency audit, plus the one property the macOS entry
       # binding rests on.
