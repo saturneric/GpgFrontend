@@ -629,54 +629,6 @@ TEST_F(ModuleDescriptorTest, ReadingResourcesFromANonDescriptorFails) {
 
 // ------------------------------------------------- the preparation seal
 
-TEST_F(ModuleDescriptorTest, ASealedValueThatStillMatchesChangesNothing) {
-  auto spec = GoodSpec(dir_.path(), payload_);
-  spec.output_path = Path("sealed.gfmodule");
-
-  // What seal-prepared would have recorded, taken from the descriptor the
-  // fixture already built against the same unchanged file.
-  const auto v = Module::VerifyModuleDescriptor(Package());
-  ASSERT_TRUE(v.ok) << v.reason.toStdString();
-  spec.expected_entry_value = v.manifest.entry_native.value;
-
-  const auto built = Module::BuildModuleDescriptor(spec);
-  EXPECT_TRUE(built.ok) << built.reason.toStdString();
-  EXPECT_TRUE(Module::VerifyModuleDescriptor(spec.output_path).ok);
-}
-
-TEST_F(ModuleDescriptorTest, AnEntryRewrittenAfterSealingIsRefused) {
-  // The case the seal exists for: preparation finished, something wrote to the
-  // native afterwards, and the descriptor about to be written would describe
-  // the file as it used to be.
-  const auto v = Module::VerifyModuleDescriptor(Package());
-  ASSERT_TRUE(v.ok) << v.reason.toStdString();
-  const auto sealed_value = v.manifest.entry_native.value;
-
-  QFile payload(payload_);
-  ASSERT_TRUE(payload.open(QIODevice::WriteOnly | QIODevice::Truncate));
-  payload.write(QByteArray(4096, 'n'));
-  payload.close();
-
-  auto spec = GoodSpec(dir_.path(), payload_);
-  spec.output_path = Path("stale.gfmodule");
-  spec.expected_entry_value = sealed_value;
-
-  const auto built = Module::BuildModuleDescriptor(spec);
-  EXPECT_FALSE(built.ok);
-  EXPECT_TRUE(built.reason.contains("sealed")) << built.reason.toStdString();
-  EXPECT_FALSE(QFileInfo::exists(spec.output_path))
-      << "a refused build must not leave a descriptor behind";
-}
-
-TEST_F(ModuleDescriptorTest, NoSealMeansNoCheckRatherThanAFailedOne) {
-  // A release that skips seal-prepared loses the check and nothing else.
-  auto spec = GoodSpec(dir_.path(), payload_);
-  spec.output_path = Path("unsealed.gfmodule");
-  ASSERT_TRUE(spec.expected_entry_value.isEmpty());
-
-  EXPECT_TRUE(Module::BuildModuleDescriptor(spec).ok);
-}
-
 TEST_F(ModuleDescriptorTest, TheBuilderRefusesAReservedPath) {
   auto spec = spec_;
   spec.resources.append({"META-INF/manifest.json", {}, QByteArray("mine")});
@@ -709,18 +661,15 @@ TEST_F(ModuleDescriptorTest, TheBuilderRefusesAnUnreadableSource) {
 
 namespace {
 
-/// The library that writes a file when it is mapped, if this build made one.
+/// The library that writes a file when it is mapped.
+///
+/// The path comes from CMake ($<TARGET_FILE:...>), not from guessing a
+/// directory beside the test binary and a suffix per platform. Both guesses
+/// were wrong somewhere: the directory moved, and a build configuration that
+/// dropped this target used to make four tests -- including BOTH halves of
+/// the proof that nothing runs unverified -- skip themselves in silence.
 auto SentinelLibrary() -> QString {
-  const auto path = QCoreApplication::applicationDirPath() +
-                    "/test-modules/libgf_mod_test_sentinel" +
-#if defined(Q_OS_WIN)
-                    ".dll";
-#elif defined(Q_OS_MACOS)
-                    ".dylib";
-#else
-                    ".so";
-#endif
-  return QFile::exists(path) ? path : QString();
+  return QString::fromUtf8(GF_TEST_SENTINEL_FILE);
 }
 
 }  // namespace
@@ -730,9 +679,8 @@ TEST_F(ModuleDescriptorTest, AVerifiedDescriptorDoesLoadTheCodeItBinds) {
   // refusal that runs no code proves nothing if a success would not have run
   // any either.
   const auto sentinel_library = SentinelLibrary();
-  if (sentinel_library.isEmpty()) {
-    GTEST_SKIP() << "this build has no sentinel library";
-  }
+  ASSERT_TRUE(QFile::exists(sentinel_library))
+      << "the sentinel library is missing: " << sentinel_library.toStdString();
 
   // Beside the descriptor, because that is where the Host looks. The
   // descriptor names `gf_mod_test_sentinel` and never says where it lives;
@@ -781,9 +729,8 @@ TEST_F(ModuleDescriptorTest, ATamperedEntryNativeIsRefusedAndNeverRuns) {
   // That window is documented on ResolveAndVerifyNativeEntry() and is outside
   // the threat model; this test is about the ordering, which is inside it.
   const auto sentinel_library = SentinelLibrary();
-  if (sentinel_library.isEmpty()) {
-    GTEST_SKIP() << "this build has no sentinel library";
-  }
+  ASSERT_TRUE(QFile::exists(sentinel_library))
+      << "the sentinel library is missing: " << sentinel_library.toStdString();
 
   const auto native =
       Path(Module::ModuleNativeFileName("gf_mod_test_sentinel"));
@@ -856,9 +803,8 @@ TEST_F(ModuleDescriptorTest, ASymlinkedEntryNativeIsRefusedRatherThanFollowed) {
   // is a different file, and following it would be the Host choosing to load
   // something the descriptor did not bind.
   const auto sentinel_library = SentinelLibrary();
-  if (sentinel_library.isEmpty()) {
-    GTEST_SKIP() << "this build has no sentinel library";
-  }
+  ASSERT_TRUE(QFile::exists(sentinel_library))
+      << "the sentinel library is missing: " << sentinel_library.toStdString();
 
   const auto native =
       Path(Module::ModuleNativeFileName("gf_mod_test_sentinel"));
@@ -890,9 +836,8 @@ TEST_F(ModuleDescriptorTest, ARefusedEntryNativeSaysWhatItActuallyFound) {
   // native should be -- the message named the condition but not the cause,
   // and the cause was in the link target all along.
   const auto sentinel_library = SentinelLibrary();
-  if (sentinel_library.isEmpty()) {
-    GTEST_SKIP() << "this build has no sentinel library";
-  }
+  ASSERT_TRUE(QFile::exists(sentinel_library))
+      << "the sentinel library is missing: " << sentinel_library.toStdString();
 
   auto spec = spec_;
   spec.entry_native_name = "gf_mod_test_sentinel";

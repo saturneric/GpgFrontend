@@ -30,6 +30,8 @@
 
 #include <QCoreApplication>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QRegularExpression>
 #include <QSet>
 
@@ -178,8 +180,8 @@ TEST(ModuleNamespaceTest, ManyNearbyIdsDoNotCollide) {
 // ------------------------------------------------- CMake agrees with C++
 
 TEST(ModuleNamespaceTest, CMakeDerivesTheSameKeysThisBuildDoes) {
-  // Written by gf_add_module() during configure, one `id=key` per line. This
-  // is the only place the CMake implementation and this one ever meet.
+  // build-info.json carries the keys CMake derived, and this is the only place
+  // the CMake implementation and this one ever meet.
   //
   // The path comes from CMake, not from applicationDirPath(). The file is
   // always in artifacts/, but the test binary is only there under Ninja -- it
@@ -187,7 +189,7 @@ TEST(ModuleNamespaceTest, CMakeDerivesTheSameKeysThisBuildDoes) {
   // build/<config> under Xcode. So on three of four layouts this test used to
   // skip itself, which meant the one check holding two implementations of
   // ModuleDirectoryKey together reported success without comparing anything.
-  const auto path = QString::fromUtf8(GF_MODULE_DIRECTORY_KEYS_FILE);
+  const auto path = QString::fromUtf8(GF_BUILD_INFO_FILE);
 
   QFile file(path);
   if (GF_REGISTERED_MODULE_COUNT == 0) {
@@ -196,19 +198,18 @@ TEST(ModuleNamespaceTest, CMakeDerivesTheSameKeysThisBuildDoes) {
   // A failure, not a skip: CMake registered modules, so it wrote this file.
   ASSERT_TRUE(file.exists())
       << GF_REGISTERED_MODULE_COUNT
-      << " module(s) were registered but the key file is missing: "
+      << " module(s) were registered but build-info.json is missing: "
       << path.toStdString();
-  ASSERT_TRUE(file.open(QIODevice::ReadOnly | QIODevice::Text));
-  const auto text = QString::fromUtf8(file.readAll());
+  ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+  const auto doc = QJsonDocument::fromJson(file.readAll());
   file.close();
+  ASSERT_TRUE(doc.isObject()) << path.toStdString() << " is not an object";
+  const auto declared = doc.object().value("modules").toObject();
 
   int checked = 0;
-  for (const auto& line : text.split(u'\n', Qt::SkipEmptyParts)) {
-    const auto split = line.indexOf(u'=');
-    ASSERT_GT(split, 0) << "malformed line: " << line.toStdString();
-
-    const auto id = line.left(split);
-    const auto cmake_key = line.mid(split + 1);
+  for (auto it = declared.constBegin(); it != declared.constEnd(); ++it) {
+    const auto id = it.key();
+    const auto cmake_key = it.value().toString();
 
     EXPECT_EQ(Module::ModuleDirectoryKey(id), cmake_key)
         << "cmake/ModuleRegistry.cmake and ModuleNamespace.cpp disagree "
@@ -219,7 +220,7 @@ TEST(ModuleNamespaceTest, CMakeDerivesTheSameKeysThisBuildDoes) {
   }
 
   EXPECT_EQ(checked, GF_REGISTERED_MODULE_COUNT)
-      << "the key file does not describe every module CMake registered";
+      << "build-info.json does not describe every module CMake registered";
 }
 
 // ------------------------------------------------- where the natives live

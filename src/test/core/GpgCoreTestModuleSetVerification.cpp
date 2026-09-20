@@ -200,9 +200,12 @@ TEST(ModuleSetVerificationTest, ThisBuildsOwnTreeVerifies) {
     GTEST_SKIP() << "this build produced no modules";
   }
 
+  // The expectation comes from CMake, not from what the walk happened to
+  // find. Counting the directories and then checking that many were verified
+  // is circular: a module that never reached the tree lowers both sides.
   const auto root = built.first().absolutePath() + "/..";
   const auto result = Module::VerifyModuleSet(QDir(root).absolutePath(),
-                                              static_cast<int>(built.size()));
+                                              GF_REGISTERED_MODULE_COUNT);
 
   for (const auto& problem : result.problems) {
     ADD_FAILURE() << problem.where.toStdString() << ": "
