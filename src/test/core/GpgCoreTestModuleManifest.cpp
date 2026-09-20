@@ -31,6 +31,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <array>
 
 #include "GpgFrontendTest.h"
 #include "core/module/ModuleDescriptorBuilder.h"
@@ -330,30 +331,46 @@ TEST(ModuleManifestTest, TheVerificationModeMustBeTheOneThePlatformMandates) {
   // The module author does not choose this. Every wrong pairing is refused,
   // and a descriptor cannot select a weaker mode by claiming a platform --
   // the platform claim is checked against the host before any of this matters.
-  const QMap<QString, QString> wrong{
+  // A LIST, not a map keyed by os. This was a QMap, and two of its four
+  // entries were keyed "linux" -- so the second silently replaced the first,
+  // the loop ran three times, and `linux` + `apple-binding-id`, the pairing
+  // named first above, was never tested at all. A container that dedupes its
+  // own test cases is the wrong container for a table of test cases.
+  const std::array<std::pair<QString, QString>, 4> wrong{{
       {"linux", "apple-binding-id"},
       {"linux", "pe-authenticode-sha256"},
       {"macos", "file-sha256"},
       {"windows", "file-sha256"},
-  };
+  }};
 
-  for (auto it = wrong.constBegin(); it != wrong.constEnd(); ++it) {
+  auto checked = 0;
+  for (const auto& [os, mode] : wrong) {
     auto o = GoodManifestObject();
     auto platform = o["platform"].toObject();
-    platform["os"] = it.key();
+    platform["os"] = os;
     o["platform"] = platform;
 
     auto entry = o["entry_native"].toObject();
     auto verification = entry["verification"].toObject();
-    verification["mode"] = it.value();
+    verification["mode"] = mode;
     entry["verification"] = verification;
     // size is only legal under file-sha256; drop it so the mode is what fails
     entry.remove("size");
     o["entry_native"] = entry;
 
-    EXPECT_FALSE(ParseObject(o).ok)
-        << it.key().toStdString() << " accepted " << it.value().toStdString();
+    const auto r = ParseObject(o);
+    ASSERT_FALSE(r.ok) << os.toStdString() << " accepted "
+                       << mode.toStdString();
+    // The reason, not just the refusal: every other field in this object is
+    // valid, but asserting only `!ok` would be satisfied by any future check
+    // that happened to fire earlier.
+    EXPECT_TRUE(r.reason.contains("must use"))
+        << os.toStdString() << " + " << mode.toStdString()
+        << " was refused for a different reason: " << r.reason.toStdString();
+    ++checked;
   }
+
+  EXPECT_EQ(checked, wrong.size()) << "the table stopped being fully walked";
 }
 
 TEST(ModuleManifestTest, RejectsAnUnknownOrMissingVerificationMode) {

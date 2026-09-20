@@ -55,19 +55,37 @@ TEST(ModuleLoadingPolicyTest, EveryValidKeyParsesToItsOwnPolicy) {
   EXPECT_EQ(ParseModuleLoadingPolicy("only_integrated").policy,
             ModuleLoadingPolicy::kONLY_INTEGRATED);
   EXPECT_EQ(ParseModuleLoadingPolicy("all").policy, ModuleLoadingPolicy::kALL);
-  EXPECT_EQ(ParseModuleLoadingPolicy("packaged_only").policy,
-            ModuleLoadingPolicy::kPACKAGED_ONLY);
 
-  for (const auto key :
-       {"disable", "only_integrated", "all", "packaged_only"}) {
+  for (const auto key : {"disable", "only_integrated", "all"}) {
     EXPECT_TRUE(ParseModuleLoadingPolicy(key).recognised) << key;
+  }
+}
+
+// The one key this build accepts and never writes.
+//
+// "packaged_only" meant "refuse loose libraries" when a loose library was
+// something the loader would pick up. Nothing is loose now, so it described
+// no behaviour -- it was parsed, persisted, offered in the settings dialog,
+// and then dropped with Q_UNUSED, which meant a user who chose it silently
+// got kALL. It is now kALL honestly, and the alias exists only so upgrading
+// does not turn a stored setting into "unrecognised".
+TEST(ModuleLoadingPolicyTest, TheRetiredKeyIsReadAsAllAndNeverWrittenBack) {
+  const auto parsed = ParseModuleLoadingPolicy("packaged_only");
+  EXPECT_TRUE(parsed.recognised) << "an upgrade must not read as corrupt";
+  EXPECT_EQ(parsed.policy, ModuleLoadingPolicy::kALL);
+
+  for (const auto policy :
+       {ModuleLoadingPolicy::kDISABLE, ModuleLoadingPolicy::kONLY_INTEGRATED,
+        ModuleLoadingPolicy::kALL}) {
+    EXPECT_NE(ModuleLoadingPolicyKey(policy), "packaged_only")
+        << "the alias was written back, so it would never age out";
   }
 }
 
 TEST(ModuleLoadingPolicyTest, EveryPolicyRoundTripsThroughItsKey) {
   for (const auto policy :
        {ModuleLoadingPolicy::kDISABLE, ModuleLoadingPolicy::kONLY_INTEGRATED,
-        ModuleLoadingPolicy::kALL, ModuleLoadingPolicy::kPACKAGED_ONLY}) {
+        ModuleLoadingPolicy::kALL}) {
     const auto key = ModuleLoadingPolicyKey(policy);
     EXPECT_FALSE(key.isEmpty());
 
@@ -98,7 +116,7 @@ TEST(ModuleLoadingPolicyTest, AnUnknownKeyFailsClosedAndSaysSo) {
 TEST(ModuleLoadingPolicyTest, TheKeysAreExactAndLowerCase) {
   for (const auto policy :
        {ModuleLoadingPolicy::kDISABLE, ModuleLoadingPolicy::kONLY_INTEGRATED,
-        ModuleLoadingPolicy::kALL, ModuleLoadingPolicy::kPACKAGED_ONLY}) {
+        ModuleLoadingPolicy::kALL}) {
     const auto key = ModuleLoadingPolicyKey(policy);
     EXPECT_EQ(key, key.toLower());
     EXPECT_EQ(key, key.trimmed());
@@ -112,7 +130,7 @@ TEST(ModuleLoadingPolicyTest, EveryPolicySurvivesPersistence) {
 
   for (const auto policy :
        {ModuleLoadingPolicy::kDISABLE, ModuleLoadingPolicy::kONLY_INTEGRATED,
-        ModuleLoadingPolicy::kALL, ModuleLoadingPolicy::kPACKAGED_ONLY}) {
+        ModuleLoadingPolicy::kALL}) {
     settings.setValue("basic/module_loading_policy",
                       ModuleLoadingPolicyKey(policy));
     settings.sync();

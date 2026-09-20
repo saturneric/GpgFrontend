@@ -180,13 +180,24 @@ TEST(ModuleNamespaceTest, ManyNearbyIdsDoNotCollide) {
 TEST(ModuleNamespaceTest, CMakeDerivesTheSameKeysThisBuildDoes) {
   // Written by gf_add_module() during configure, one `id=key` per line. This
   // is the only place the CMake implementation and this one ever meet.
-  const auto path =
-      QCoreApplication::applicationDirPath() + "/module-directory-keys.txt";
+  //
+  // The path comes from CMake, not from applicationDirPath(). The file is
+  // always in artifacts/, but the test binary is only there under Ninja -- it
+  // is artifacts/bin on MinGW, AppDir/usr/bin for an AppImage build and
+  // build/<config> under Xcode. So on three of four layouts this test used to
+  // skip itself, which meant the one check holding two implementations of
+  // ModuleDirectoryKey together reported success without comparing anything.
+  const auto path = QString::fromUtf8(GF_MODULE_DIRECTORY_KEYS_FILE);
 
   QFile file(path);
-  if (!file.exists()) {
-    GTEST_SKIP() << "this build registered no modules: " << path.toStdString();
+  if (GF_REGISTERED_MODULE_COUNT == 0) {
+    GTEST_SKIP() << "this build registered no modules";
   }
+  // A failure, not a skip: CMake registered modules, so it wrote this file.
+  ASSERT_TRUE(file.exists())
+      << GF_REGISTERED_MODULE_COUNT
+      << " module(s) were registered but the key file is missing: "
+      << path.toStdString();
   ASSERT_TRUE(file.open(QIODevice::ReadOnly | QIODevice::Text));
   const auto text = QString::fromUtf8(file.readAll());
   file.close();
@@ -207,7 +218,8 @@ TEST(ModuleNamespaceTest, CMakeDerivesTheSameKeysThisBuildDoes) {
     ++checked;
   }
 
-  EXPECT_GT(checked, 0) << "the key file was empty";
+  EXPECT_EQ(checked, GF_REGISTERED_MODULE_COUNT)
+      << "the key file does not describe every module CMake registered";
 }
 
 // ------------------------------------------------- where the natives live

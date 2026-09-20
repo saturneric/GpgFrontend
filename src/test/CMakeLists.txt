@@ -46,6 +46,21 @@ if(UNIX AND NOT APPLE)
     ${CMAKE_SOURCE_DIR}/src/platform/LibSecretSearchPath.cpp)
 endif()
 
+# Where CMake actually writes the module key list, and how many modules it
+# registered.
+#
+# The agreement test between gf_module_directory_key() and ModuleDirectoryKey()
+# used to look beside the test binary, which is `artifacts/` on Ninja and
+# `artifacts/bin`, `AppDir/usr/bin` or `build/<config>` everywhere else -- so on
+# three of four layouts the only check pinning the two implementations together
+# skipped itself and reported success. The path is a fact CMake knows; it is
+# passed in rather than guessed at, and an absent file is now a failure instead
+# of a skip.
+list(LENGTH GPGFRONTEND_MODULE_DIRECTORY_KEYS GF_REGISTERED_MODULE_COUNT)
+target_compile_definitions(${LIBRARY_TARGET} PRIVATE
+  GF_MODULE_DIRECTORY_KEYS_FILE="${CMAKE_BINARY_DIR}/artifacts/module-directory-keys.txt"
+  GF_REGISTERED_MODULE_COUNT=${GF_REGISTERED_MODULE_COUNT})
+
 # set up pch
 target_precompile_headers(${LIBRARY_TARGET} PUBLIC GpgFrontendTest.h)
 

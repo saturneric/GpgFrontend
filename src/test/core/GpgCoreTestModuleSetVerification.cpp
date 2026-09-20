@@ -31,6 +31,7 @@
 #include <QDir>
 #include <QFile>
 #include <QTemporaryDir>
+#include <algorithm>
 
 #include "GpgFrontendTest.h"
 #include "ModuleTestPackages.h"
@@ -55,6 +56,11 @@ namespace GpgFrontend::Test {
 namespace {
 
 /// A writable copy of this build's real module tree.
+///
+/// Returns false ONLY when this build produced no modules. A copy that fails
+/// halfway is reported as a failure here rather than folded into the same
+/// answer: it used to return false for both, so a genuine I/O error read as
+/// "no module tree to copy" and six negative tests skipped themselves.
 auto CopyBuiltTree(const QString& into) -> bool {
   const auto built = BuiltModulePackages();
   if (built.isEmpty()) return false;
@@ -62,20 +68,25 @@ auto CopyBuiltTree(const QString& into) -> bool {
   const QDir root(built.first().absolutePath() + "/..");
   for (const auto& ns : root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot)) {
     const auto target = into + "/" + ns.fileName();
-    if (!QDir().mkpath(target + "/native")) return false;
+    if (!QDir().mkpath(target + "/native")) {
+      ADD_FAILURE() << "could not create " << target.toStdString();
+      return true;
+    }
 
     const QDir source(ns.absoluteFilePath());
     for (const auto& file : source.entryInfoList(QDir::Files)) {
       if (!QFile::copy(file.absoluteFilePath(),
                        target + "/" + file.fileName())) {
-        return false;
+        ADD_FAILURE() << "could not copy " << file.fileName().toStdString();
+        return true;
       }
     }
     const QDir native(ns.absoluteFilePath() + "/native");
     for (const auto& file : native.entryInfoList(QDir::Files)) {
       if (!QFile::copy(file.absoluteFilePath(),
                        target + "/native/" + file.fileName())) {
-        return false;
+        ADD_FAILURE() << "could not copy " << file.fileName().toStdString();
+        return true;
       }
     }
   }
@@ -134,7 +145,11 @@ TEST(ModuleSetVerificationTest, ABundleLayoutResolvesAcrossItsTwoTrees) {
   // as missing its native. Covering the function and not its caller is how
   // that survived.
   const auto built = BuiltModulePackages();
-  if (built.isEmpty()) GTEST_SKIP() << "this build produced no modules";
+  if (built.isEmpty()) {
+    ASSERT_EQ(GF_REGISTERED_MODULE_COUNT, 0)
+        << "modules were registered but none reached the build tree";
+    GTEST_SKIP() << "this build produced no modules";
+  }
 
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());
@@ -157,7 +172,11 @@ TEST(ModuleSetVerificationTest, ABundleMissingItsFrameworksHalfIsRefused) {
   // natives do not -- the exact shape of the bug this layout work fixed --
   // every module must be refused rather than quietly absent.
   const auto built = BuiltModulePackages();
-  if (built.isEmpty()) GTEST_SKIP() << "this build produced no modules";
+  if (built.isEmpty()) {
+    ASSERT_EQ(GF_REGISTERED_MODULE_COUNT, 0)
+        << "modules were registered but none reached the build tree";
+    GTEST_SKIP() << "this build produced no modules";
+  }
 
   QTemporaryDir dir;
   ASSERT_TRUE(dir.isValid());
@@ -175,7 +194,11 @@ TEST(ModuleSetVerificationTest, ABundleMissingItsFrameworksHalfIsRefused) {
 
 TEST(ModuleSetVerificationTest, ThisBuildsOwnTreeVerifies) {
   const auto built = BuiltModulePackages();
-  if (built.isEmpty()) GTEST_SKIP() << "this build produced no modules";
+  if (built.isEmpty()) {
+    ASSERT_EQ(GF_REGISTERED_MODULE_COUNT, 0)
+        << "modules were registered but none reached the build tree";
+    GTEST_SKIP() << "this build produced no modules";
+  }
 
   const auto root = built.first().absolutePath() + "/..";
   const auto result = Module::VerifyModuleSet(QDir(root).absolutePath(),
@@ -191,7 +214,11 @@ TEST(ModuleSetVerificationTest, ThisBuildsOwnTreeVerifies) {
 
 TEST(ModuleSetVerificationTest, AWrongCountIsARefusal) {
   const auto built = BuiltModulePackages();
-  if (built.isEmpty()) GTEST_SKIP() << "this build produced no modules";
+  if (built.isEmpty()) {
+    ASSERT_EQ(GF_REGISTERED_MODULE_COUNT, 0)
+        << "modules were registered but none reached the build tree";
+    GTEST_SKIP() << "this build produced no modules";
+  }
 
   const auto root = QDir(built.first().absolutePath() + "/..").absolutePath();
   const auto result =
@@ -205,17 +232,28 @@ TEST(ModuleSetVerificationTest, AWrongCountIsARefusal) {
 TEST(ModuleSetVerificationTest, AMutatedEntryNativeIsCaught) {
   QTemporaryDir tree;
   ASSERT_TRUE(tree.isValid());
-  if (!CopyBuiltTree(tree.path())) GTEST_SKIP() << "no module tree to copy";
+  if (!CopyBuiltTree(tree.path())) {
+    ASSERT_EQ(GF_REGISTERED_MODULE_COUNT, 0)
+        << "modules were registered but none reached the build tree";
+    GTEST_SKIP() << "this build produced no modules";
+  }
 
   // One byte, in the middle, in a library that still loads perfectly well. It
   // is simply not the one its descriptor was signed for.
-  const QDir root(tree.path());
-  const auto ns = root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot).first();
-  const QDir native(ns.absoluteFilePath() + "/native");
-  const auto library = native.entryInfoList(QDir::Files).first();
+  //
+  // The file is the one the DESCRIPTOR BINDS, asked of the verifier, not the
+  // first file the directory happens to list. A namespace holds private
+  // dependencies too -- on macOS these directories carry libssl and libcrypto
+  // since dependency bundling landed -- and flipping a byte in one of those
+  // would prove nothing about the entry binding while still turning the tree
+  // red, for a reason the assertion below does not describe.
+  const auto before = Module::VerifyModuleSet(tree.path());
+  ASSERT_TRUE(before.ok) << "the copied tree was already broken";
+  ASSERT_FALSE(before.entries.isEmpty());
 
+  const auto entry_path = before.entries.constBegin().value();
   {
-    QFile file(library.absoluteFilePath());
+    QFile file(entry_path);
     ASSERT_TRUE(file.open(QIODevice::ReadWrite));
     ASSERT_TRUE(file.seek(file.size() / 2));
     const auto before = file.read(1);
@@ -226,15 +264,23 @@ TEST(ModuleSetVerificationTest, AMutatedEntryNativeIsCaught) {
 
   const auto result = Module::VerifyModuleSet(tree.path());
   EXPECT_FALSE(result.ok);
-  ASSERT_FALSE(result.problems.isEmpty());
-  EXPECT_TRUE(result.problems.first().reason.contains("entry native"))
-      << result.problems.first().reason.toStdString();
+
+  const auto mutated = before.entries.constBegin().key();
+  const auto caught = std::any_of(
+      result.problems.cbegin(), result.problems.cend(), [&](const auto& p) {
+        return p.where == mutated && p.reason.contains("entry native");
+      });
+  EXPECT_TRUE(caught) << "the mutated module was not the one reported";
 }
 
 TEST(ModuleSetVerificationTest, ARenamedNamespaceIsCaught) {
   QTemporaryDir tree;
   ASSERT_TRUE(tree.isValid());
-  if (!CopyBuiltTree(tree.path())) GTEST_SKIP() << "no module tree to copy";
+  if (!CopyBuiltTree(tree.path())) {
+    ASSERT_EQ(GF_REGISTERED_MODULE_COUNT, 0)
+        << "modules were registered but none reached the build tree";
+    GTEST_SKIP() << "this build produced no modules";
+  }
 
   const QDir root(tree.path());
   const auto ns = root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot).first();
@@ -248,14 +294,20 @@ TEST(ModuleSetVerificationTest, ARenamedNamespaceIsCaught) {
       << result.problems.first().reason.toStdString();
 }
 
-TEST(ModuleSetVerificationTest, TwoNamespacesClaimingOneModuleAreCaught) {
+// A module cannot ship twice, and the namespace key is what makes that true.
+//
+// This used to be called "two namespaces claiming one module are caught" and
+// asserted only that the tree was refused. It could not have been testing what
+// its name said: a second namespace has to be named something, that name is
+// not ModuleDirectoryKey(id), and the key rule refuses it before any
+// duplicate-id rule could run. There was such a rule, it was unreachable for
+// exactly this reason, and it has been deleted -- so this test now names the
+// mechanism that actually does the work, and asserts its reason.
+TEST(ModuleSetVerificationTest, AModuleCopiedIntoASecondNamespaceIsRefused) {
   QTemporaryDir tree;
   ASSERT_TRUE(tree.isValid());
-  if (!CopyBuiltTree(tree.path())) GTEST_SKIP() << "no module tree to copy";
+  ASSERT_TRUE(CopyBuiltTree(tree.path())) << "no module tree to copy";
 
-  // A copy under a different name: both descriptors verify, both entries
-  // match, and the tree still cannot be shipped, because a module id has to
-  // resolve to one place.
   const QDir root(tree.path());
   const auto ns = root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot).first();
   const auto duplicate = tree.path() + "/a-second-home";
@@ -265,12 +317,23 @@ TEST(ModuleSetVerificationTest, TwoNamespacesClaimingOneModuleAreCaught) {
 
   const auto result = Module::VerifyModuleSet(tree.path());
   EXPECT_FALSE(result.ok);
+
+  const auto refused = std::any_of(
+      result.problems.cbegin(), result.problems.cend(), [](const auto& p) {
+        return p.where == "a-second-home" &&
+               p.reason.contains("whose namespace");
+      });
+  EXPECT_TRUE(refused) << "the copy was not refused by the namespace key rule";
 }
 
 TEST(ModuleSetVerificationTest, ANamespaceWithNativesButNoDescriptorIsCaught) {
   QTemporaryDir tree;
   ASSERT_TRUE(tree.isValid());
-  if (!CopyBuiltTree(tree.path())) GTEST_SKIP() << "no module tree to copy";
+  if (!CopyBuiltTree(tree.path())) {
+    ASSERT_EQ(GF_REGISTERED_MODULE_COUNT, 0)
+        << "modules were registered but none reached the build tree";
+    GTEST_SKIP() << "this build produced no modules";
+  }
 
   const QDir root(tree.path());
   const auto ns = root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot).first();
@@ -286,7 +349,11 @@ TEST(ModuleSetVerificationTest, ANamespaceWithNativesButNoDescriptorIsCaught) {
 TEST(ModuleSetVerificationTest, AnEmptyDirectoryIsAWarningNotAFailure) {
   QTemporaryDir tree;
   ASSERT_TRUE(tree.isValid());
-  if (!CopyBuiltTree(tree.path())) GTEST_SKIP() << "no module tree to copy";
+  if (!CopyBuiltTree(tree.path())) {
+    ASSERT_EQ(GF_REGISTERED_MODULE_COUNT, 0)
+        << "modules were registered but none reached the build tree";
+    GTEST_SKIP() << "this build produced no modules";
+  }
 
   ASSERT_TRUE(QDir().mkpath(tree.path() + "/something-else"));
 
@@ -301,7 +368,11 @@ TEST(ModuleSetVerificationTest, ANativeOutsideAnyNamespaceIsFound) {
   ASSERT_TRUE(tree.isValid());
   const auto modules = tree.path() + "/modules";
   ASSERT_TRUE(QDir().mkpath(modules));
-  if (!CopyBuiltTree(modules)) GTEST_SKIP() << "no module tree to copy";
+  if (!CopyBuiltTree(modules)) {
+    ASSERT_EQ(GF_REGISTERED_MODULE_COUNT, 0)
+        << "modules were registered but none reached the build tree";
+    GTEST_SKIP() << "this build produced no modules";
+  }
 
   const QDir root(modules);
   const auto ns = root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot).first();
