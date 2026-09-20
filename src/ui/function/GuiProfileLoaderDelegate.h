@@ -44,10 +44,10 @@ namespace GpgFrontend::UI {
  * MetaListDialog rather than describing its own QMessageBox paragraphs.
  */
 struct GF_UI_EXPORT ProfileLockConflictTexts {
-  QString title;              ///< header title, and the window title
-  QString subtitle;           ///< one wrapped line saying what is wrong
-  QVector<MetaListRow> rows;  ///< the profile, and who holds it
-  QString note;               ///< what forcing the lock past this costs
+  QString title;                 ///< header title, and the window title
+  QString subtitle;              ///< one wrapped line saying what is wrong
+  QContainer<MetaListRow> rows;  ///< the profile, and who holds it
+  QString note;                  ///< what forcing the lock past this costs
 };
 
 /**
