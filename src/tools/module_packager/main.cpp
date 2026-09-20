@@ -37,7 +37,6 @@
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleManifest.h"
 #include "core/module/ModuleNamespace.h"
-#include "core/module/ModulePreparedEntry.h"
 #include "core/module/ModuleSetVerification.h"
 #include "core/module/ModuleTrustRoot.h"
 
@@ -72,10 +71,9 @@ void PrintUsage(QTextStream& err) {
       << "                         [--translation-context NAME]\n"
       << "                         [--meta KEY=VALUE]...\n"
       << "                         --entry-native name=NAME,file=PATH\n"
-      << "                         [--prepared-manifest FILE]\n"
       << "                         [--file ARCHIVE_PATH=SOURCE_FILE]...\n"
       << "\n"
-      << "subcommands: verify-module-set, seal-prepared, reseal, "
+      << "subcommands: verify-module-set, reseal, "
          "binding-id, host-info\n";
 }
 
@@ -221,145 +219,6 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
   }
 
   out << "  " << result.verified.size() << " module(s) verified\n";
-  return 0;
-}
-
-/// `seal-prepared`: record what each entry native binds to, after preparation.
-///
-/// Runs between the platform deployment step and the descriptor finalize step.
-/// The descriptors sitting in the tree at this point were written by the build
-/// against the freshly linked natives; `patchelf`, `linuxdeployqt` and
-/// `install_name_tool` have since rewritten those natives, so those
-/// descriptors are stale by construction and their recorded values are
-/// deliberately NOT what is written here. What is written is what the file
-/// binds to now.
-///
-/// Finalize then regenerates every descriptor with `--prepared-manifest`, and
-/// the build refuses if anything moved in between. See ModulePreparedEntry.h
-/// for why this is content-based rather than build-graph-based.
-auto SealPreparedCommand(const QStringList& args, QTextStream& err) -> int {
-  QString root;
-  auto expected = -1;
-
-  for (auto i = 0; i < args.size(); ++i) {
-    const auto& flag = args.at(i);
-    const auto value = [&]() -> QString {
-      if (i + 1 >= args.size()) return {};
-      return args.at(++i);
-    };
-
-    if (flag == "--namespace-root") {
-      root = value();
-    } else if (flag == "--expect-count") {
-      if (!ParseExpectCount(value(), expected, err)) return 2;
-    } else {
-      err << "gf_module_packager: unknown argument: " << flag << "\n";
-      return 2;
-    }
-  }
-
-  if (root.isEmpty()) {
-    err << "usage: gf_module_packager seal-prepared --namespace-root DIR\n"
-        << "                         [--expect-count N]\n";
-    return 2;
-  }
-
-  const QDir dir(root);
-  if (!dir.exists()) {
-    err << "gf_module_packager: " << root << ": this directory does not "
-        << "exist\n";
-    return 1;
-  }
-
-  QTextStream out(stdout);
-  out << "sealing " << root << "\n";
-
-  auto sealed = 0;
-  auto failed = false;
-
-  for (const auto& ns :
-       dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name)) {
-    const auto descriptor = ns.absoluteFilePath() + "/" +
-                            GpgFrontend::Module::kModuleDescriptorFileName;
-    if (!QFileInfo(descriptor).isFile()) continue;
-
-    // Verified, not merely parsed: the id and the entry name about to be
-    // sealed have to come from bytes this build signed, or the seal records
-    // whatever an unsigned file claimed.
-    const auto verdict =
-        GpgFrontend::Module::VerifyModuleDescriptor(descriptor);
-    if (!verdict.ok) {
-      err << "  FAIL  " << ns.fileName()
-          << ": its descriptor was refused: " << verdict.reason << "\n";
-      failed = true;
-      continue;
-    }
-
-    const auto& manifest = verdict.manifest;
-    const auto native_root =
-        GpgFrontend::Module::ModuleNativeRootFor(descriptor);
-    const auto native_path =
-        native_root + "/" +
-        GpgFrontend::Module::ModuleNativeFileName(manifest.entry_native.name);
-
-    if (!QFileInfo(native_path).isFile()) {
-      err << "  FAIL  " << ns.fileName()
-          << ": its entry native is not there: " << native_path << "\n";
-      failed = true;
-      continue;
-    }
-
-    GpgFrontend::Module::PreparedEntrySeal seal;
-    seal.module_id = manifest.id;
-    seal.build_id = manifest.build_id;
-    seal.entry_native_name = manifest.entry_native.name;
-    seal.mode = manifest.entry_native.mode;
-
-    QString why;
-    const GpgFrontend::Module::ModuleEntryBindingContext context{
-        manifest.id, manifest.build_id, manifest.sdk_abi};
-    if (!GpgFrontend::Module::ComputeEntryVerificationValue(
-            seal.mode, native_path, context, seal.value, why)) {
-      err << "  FAIL  " << ns.fileName() << ": " << why << "\n";
-      failed = true;
-      continue;
-    }
-
-    if (seal.mode ==
-        GpgFrontend::Module::ModuleEntryVerificationMode::kFILE_SHA256) {
-      seal.size = QFileInfo(native_path).size();
-    }
-
-    const auto seal_path =
-        native_root + "/" +
-        QString::fromUtf8(GpgFrontend::Module::kPreparedEntrySealFileName);
-    if (!GpgFrontend::Module::WritePreparedEntrySeal(seal_path, seal, why)) {
-      err << "  FAIL  " << ns.fileName()
-          << ": its seal could not be written: " << why << "\n";
-      failed = true;
-      continue;
-    }
-
-    // Worth printing even when it matches: a reader comparing this against the
-    // finalize step's output is exactly the audit this mechanism supports.
-    out << "  seal  " << manifest.id << " "
-        << GpgFrontend::Module::ModuleEntryVerificationModeKey(seal.mode) << " "
-        << seal.value << "\n";
-    ++sealed;
-  }
-
-  if (expected >= 0 && sealed != expected) {
-    err << "  FAIL  " << root << ": " << sealed << " sealed, and " << expected
-        << " were expected\n";
-    failed = true;
-  }
-
-  if (failed) {
-    err << "gf_module_packager: nothing downstream of this should run\n";
-    return 1;
-  }
-
-  out << "  " << sealed << " module(s) sealed\n";
   return 0;
 }
 
@@ -618,17 +477,12 @@ auto main(int argc, char** argv) -> int {
   QTextStream err(stderr);
 
   GpgFrontend::Module::ModuleDescriptorBuildSpec spec;
-  GpgFrontend::Module::PreparedEntrySeal prepared;
-  auto have_prepared = false;
   auto args = QCoreApplication::arguments();
 
   // Subcommands are dispatched first; the packaging flags stay the default so
   // every existing caller is unchanged.
   if (args.size() > 1 && args.at(1) == "verify-module-set") {
     return VerifyModuleSetCommand(args.mid(2), err);
-  }
-  if (args.size() > 1 && args.at(1) == "seal-prepared") {
-    return SealPreparedCommand(args.mid(2), err);
   }
   if (args.size() > 1 && args.at(1) == "reseal") {
     return ResealCommand(args.mid(2), err);
@@ -721,19 +575,6 @@ auto main(int argc, char** argv) -> int {
           return 2;
         }
       }
-    } else if (flag == "--prepared-manifest") {
-      // Read here and reduced to one expected value, so the builder's check is
-      // a string comparison it can be tested on rather than a file format it
-      // has to know.
-      const auto path = value();
-      GpgFrontend::Module::PreparedEntrySeal seal;
-      QString why;
-      if (!GpgFrontend::Module::ReadPreparedEntrySeal(path, seal, why)) {
-        err << "gf_module_packager: " << path << ": " << why << "\n";
-        return 2;
-      }
-      prepared = seal;
-      have_prepared = true;
     } else if (flag == "--file") {
       QString archive_path;
       QString source_file;
@@ -762,30 +603,6 @@ auto main(int argc, char** argv) -> int {
         QDateTime::currentDateTimeUtc().toString(Qt::ISODate);
   }
   if (spec.build_source_commit.isEmpty()) spec.build_source_commit = "unknown";
-
-  if (have_prepared) {
-    // The seal is for one module and one entry. Pointing the wrong one at it
-    // would otherwise pass whenever the two natives happened to bind alike,
-    // which for `apple-binding-id` is not even unlikely -- it is derived from
-    // identity, so two descriptors of one module in one build share it.
-    if (prepared.module_id != spec.module_id) {
-      err << "gf_module_packager: the prepared manifest is for \""
-          << prepared.module_id << "\", not \"" << spec.module_id << "\"\n";
-      return 2;
-    }
-    if (prepared.entry_native_name != spec.entry_native_name) {
-      err << "gf_module_packager: the prepared manifest binds \""
-          << prepared.entry_native_name << "\", not \""
-          << spec.entry_native_name << "\"\n";
-      return 2;
-    }
-    if (prepared.build_id != spec.build_id) {
-      err << "gf_module_packager: the prepared manifest is from build \""
-          << prepared.build_id << "\", not \"" << spec.build_id << "\"\n";
-      return 2;
-    }
-    spec.expected_entry_value = prepared.value;
-  }
 
   const auto result = GpgFrontend::Module::BuildModuleDescriptor(spec);
   if (!result.ok) {
