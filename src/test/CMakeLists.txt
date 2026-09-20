@@ -59,7 +59,8 @@ endif()
 list(LENGTH GPGFRONTEND_MODULE_DIRECTORY_KEYS GF_REGISTERED_MODULE_COUNT)
 target_compile_definitions(${LIBRARY_TARGET} PRIVATE
   GF_BUILD_INFO_FILE="${CMAKE_BINARY_DIR}/artifacts/build-info.json"
-  GF_REGISTERED_MODULE_COUNT=${GF_REGISTERED_MODULE_COUNT})
+  GF_REGISTERED_MODULE_COUNT=${GF_REGISTERED_MODULE_COUNT}
+  GF_TEST_SENTINEL_FILE="$<TARGET_FILE:gf_mod_test_sentinel>")
 
 # set up pch
 target_precompile_headers(${LIBRARY_TARGET} PUBLIC GpgFrontendTest.h)
@@ -106,8 +107,13 @@ set_target_properties(gf_mod_test_sentinel PROPERTIES
 # It is not a Qt executable, windeployqt6 said so, and the build stopped. On
 # Linux the .so IS a LIBRARY output, which is why this only ever broke on one
 # platform.
+# Outside artifacts/, because on Windows artifacts/ IS the payload and this
+# fixture is deliberately named so the module machinery treats it as a module
+# -- which is exactly why the release gate reports it as a module-shaped
+# library outside every namespace. It was being deleted again during staging;
+# not putting it there is simpler than removing it afterwards.
 gf_pin_output_directory(gf_mod_test_sentinel
-  "${CMAKE_BINARY_DIR}/artifacts/test-modules")
+  "${CMAKE_BINARY_DIR}/test-bin")
 
 # Not installed: a test fixture is not something a user gets.
 
