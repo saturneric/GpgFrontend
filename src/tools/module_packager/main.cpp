@@ -88,6 +88,27 @@ auto SplitPair(const QString& text, QString& key, QString& value) -> bool {
   return true;
 }
 
+/// Parse `--expect-count`'s value, refusing anything that is not a
+/// non-negative decimal integer.
+///
+/// `QString::toInt()` answers 0 for an empty or malformed string, and 0 is a
+/// meaningful count here -- so a caller that forgot to substitute a variable
+/// would not be refused, it would be silently held to "expect nothing", and
+/// the gate would report a count mismatch rather than the missing argument
+/// that caused it. A count this gate cannot read is a broken invocation, not
+/// an expectation of zero.
+auto ParseExpectCount(const QString& text, int& out, QTextStream& err) -> bool {
+  auto ok = false;
+  const auto parsed = text.toInt(&ok);
+  if (!ok || parsed < 0) {
+    err << "gf_module_packager: --expect-count needs a non-negative integer, "
+        << "got \"" << text << "\"\n";
+    return false;
+  }
+  out = parsed;
+  return true;
+}
+
 }  // namespace
 
 /// `verify-module-set`: the release gate, run over a finished tree.
@@ -114,7 +135,7 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
     if (flag == "--namespace-root") {
       root = value();
     } else if (flag == "--expect-count") {
-      expected = value().toInt();
+      if (!ParseExpectCount(value(), expected, err)) return 2;
     } else if (flag == "--print-entries") {
       // For the deployment audit, which has to tell an entry from a private
       // helper and must not guess it from a filename.
@@ -230,7 +251,7 @@ auto SealPreparedCommand(const QStringList& args, QTextStream& err) -> int {
     if (flag == "--namespace-root") {
       root = value();
     } else if (flag == "--expect-count") {
-      expected = value().toInt();
+      if (!ParseExpectCount(value(), expected, err)) return 2;
     } else {
       err << "gf_module_packager: unknown argument: " << flag << "\n";
       return 2;
@@ -384,7 +405,7 @@ auto ResealCommand(const QStringList& args, QTextStream& err) -> int {
     } else if (flag == "--signing-seed") {
       seed_path = value();
     } else if (flag == "--expect-count") {
-      expected = value().toInt();
+      if (!ParseExpectCount(value(), expected, err)) return 2;
     } else {
       err << "gf_module_packager: unknown argument: " << flag << "\n";
       return 2;

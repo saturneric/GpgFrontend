@@ -217,6 +217,22 @@ jobs:
           echo "Build type: ${BUILD_TYPE_EFFECTIVE}"
           echo "Build flavor: ${{ matrix.flavor }}"
 
+      # Before anything is built, because it costs a second and the failure it
+      # catches costs a full matrix.
+      #
+      # Every `run:` block is its own process. A variable set in one step is
+      # gone by the next, and neither shell says so usefully: bash under
+      # `set -u` at least aborts, while PowerShell expands an undefined
+      # variable to the EMPTY STRING -- which turned `--expect-count
+      # "$EXPECTED"` into a gate expecting nothing, and made four correctly
+      # verified modules look like a broken Authenticode binding.
+      #
+      # Two steps had that fault, in two shells, from one edit. That is the
+      # shape of thing a check catches and a reader does not.
+      - name: Check Workflow Steps Define What They Read
+        run: python3 scripts/check_workflow_steps.py
+        if: runner.os == 'Linux'
+
       - name: ccache
         uses: hendrikmuhs/ccache-action@f09c25b45002a07be2955cbe52e8cee55643f89d # v1.2.24
         with:
@@ -869,6 +885,16 @@ jobs:
           $toolDir = (Get-Content "${{github.workspace}}/build/artifacts/host-tool-dir.txt" -Raw).Trim()
           $packager = Join-Path $toolDir 'gf_module_packager.exe'
 
+          # Derived HERE, not inherited. A `$EXPECTED` set by an earlier step
+          # is that step's shell variable and nothing else: it does not survive
+          # into this one, and PowerShell expands an undefined variable to the
+          # empty string rather than complaining. Same source as every other
+          # leg -- what CMake recorded at configure time -- so adding a fifth
+          # module raises this expectation with the rest.
+          $keysFile = "${{github.workspace}}/build/artifacts/module-directory-keys.txt"
+          $expected = @(Get-Content $keysFile | Where-Object { $_ -match '=' }).Count
+          if ($expected -lt 1) { throw "no modules declared in $keysFile" }
+
           # A scratch copy of the whole tree, so a failure here cannot damage
           # what is about to ship.
           $scratch = Join-Path $env:RUNNER_TEMP 'authenticode-gate'
@@ -898,7 +924,7 @@ jobs:
             }
           }
 
-          & $packager verify-module-set --namespace-root $scratch --expect-count "$EXPECTED"
+          & $packager verify-module-set --namespace-root $scratch --expect-count $expected
           if ($LASTEXITCODE -ne 0) {
             throw 'Authenticode signing broke the entry binding'
           }
@@ -1706,6 +1732,10 @@ jobs:
           set -euo pipefail
           MODULE_ROOT="${{github.workspace}}/build/artifacts/modules"
           test -d "$MODULE_ROOT"
+          # How many modules this build produced, from the list CMake writes
+          # at configure time. Derived in every step that needs it: a step's
+          # shell variables are its own and do not reach the next one.
+          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
 
           "${{github.workspace}}/scripts/audit_module_natives.sh" \
             --namespace-root "$MODULE_ROOT" \
