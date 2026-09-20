@@ -166,7 +166,10 @@ ARTIFACT_JSON="$(printf '%s' "$ARTIFACT_JSON" | jq 'sort_by(.name)')"
 MODULE_JSON="[]"
 if [ -n "$MODULES_FROM" ]; then
   [ -f "$MODULES_FROM" ] || die "$MODULES_FROM: no such file"
-  MODULE_JSON="$(sed -n 's/^binding //p' "$MODULES_FROM" \
+  # tr first. This file comes from a tool whose output passes through a
+  # Windows shell, and a trailing CR would ride into the recorded value --
+  # making a digest that looks right and compares equal to nothing.
+  MODULE_JSON="$(tr -d '\r' < "$MODULES_FROM" | sed -n 's/^binding //p' \
     | jq -R 'split(" ") | {module: .[0], mode: .[1], value: .[2]}' \
     | jq -s 'sort_by(.module)')" || die "$MODULES_FROM: could not be parsed"
 fi

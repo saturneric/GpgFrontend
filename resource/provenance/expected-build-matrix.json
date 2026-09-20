@@ -1,0 +1,106 @@
+{
+  "comment": [
+    "Every build leg and stage that must have produced a build record before",
+    "anything is signed for provenance.",
+    "",
+    "The completeness gate exists because the build matrix runs with",
+    "continue-on-error: true -- a leg can fail and the release still assemble,",
+    "which is fine for a nightly and NOT fine for a provenance claim. Signing",
+    "whatever happened to arrive would attest to a set nobody chose.",
+    "",
+    "A leg is identified by os AND arch AND flavor. Architecture is part of",
+    "the key because it is the only thing that distinguishes some legs: two",
+    "runners can report the same os and flavour and produce binaries for",
+    "different machines.",
+    "",
+    "Each stage lists artifact_patterns. Every pattern must be matched by at",
+    "least one artifact recorded at that stage, so a leg that quietly stops",
+    "producing its MSI fails here rather than shipping a release that is",
+    "missing one. Patterns are shell globs against the artifact's name.",
+    "",
+    "Stages are separate statements about different bytes. macOS produces an",
+    "unsigned bundle in build-macos and a signed, notarized dmg in sign-macos;",
+    "codesigning REWRITES the file, so one digest cannot describe both and the",
+    "two are recorded apart.",
+    "",
+    "Keep this in step with the `build` and `build-macos` matrices in",
+    "build.yml. The gate fails loudly when they disagree, which is the point."
+  ],
+  "schema": 2,
+  "legs": [
+    {
+      "os": "ubuntu-22.04", "arch": "x86_64", "flavor": "installed",
+      "required": true,
+      "stages": [
+        { "stage": "unsigned", "artifact_patterns": ["*.AppImage"] }
+      ]
+    },
+    {
+      "os": "ubuntu-22.04", "arch": "x86_64", "flavor": "portable",
+      "required": true,
+      "stages": [
+        { "stage": "unsigned", "artifact_patterns": ["*.AppImage"] }
+      ]
+    },
+    {
+      "os": "ubuntu-24.04-arm", "arch": "arm64", "flavor": "installed",
+      "required": true,
+      "stages": [
+        { "stage": "unsigned", "artifact_patterns": ["*.AppImage"] }
+      ]
+    },
+    {
+      "os": "ubuntu-24.04-arm", "arch": "arm64", "flavor": "portable",
+      "required": true,
+      "stages": [
+        { "stage": "unsigned", "artifact_patterns": ["*.AppImage"] }
+      ]
+    },
+    {
+      "os": "windows-2022", "arch": "x86_64", "flavor": "installed",
+      "required": true,
+      "stages": [
+        { "stage": "unsigned", "artifact_patterns": ["*.msi"] }
+      ]
+    },
+    {
+      "os": "windows-2022", "arch": "x86_64", "flavor": "portable",
+      "required": true,
+      "stages": [
+        { "stage": "unsigned", "artifact_patterns": ["*-portable.zip"] }
+      ]
+    },
+    {
+      "os": "macos-15-intel", "arch": "x86_64", "flavor": "installed",
+      "required": true,
+      "stages": [
+        { "stage": "unsigned", "artifact_patterns": ["GpgFrontend.app.zip"] },
+        { "stage": "signed-notarized", "artifact_patterns": ["*.dmg"] }
+      ]
+    },
+    {
+      "os": "macos-15", "arch": "arm64", "flavor": "installed",
+      "required": true,
+      "stages": [
+        { "stage": "unsigned", "artifact_patterns": ["GpgFrontend.app.zip"] },
+        { "stage": "signed-notarized", "artifact_patterns": ["*.dmg"] }
+      ]
+    },
+    {
+      "os": "macos-26-intel", "arch": "x86_64", "flavor": "installed",
+      "required": true,
+      "stages": [
+        { "stage": "unsigned", "artifact_patterns": ["GpgFrontend.app.zip"] },
+        { "stage": "signed-notarized", "artifact_patterns": ["*.dmg"] }
+      ]
+    },
+    {
+      "os": "macos-26", "arch": "arm64", "flavor": "installed",
+      "required": true,
+      "stages": [
+        { "stage": "unsigned", "artifact_patterns": ["GpgFrontend.app.zip"] },
+        { "stage": "signed-notarized", "artifact_patterns": ["*.dmg"] }
+      ]
+    }
+  ]
+}

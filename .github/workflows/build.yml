@@ -510,7 +510,7 @@ jobs:
           # Where CMake actually put the host tools. Read, not assumed: the
           # answer differs per platform (Windows has no rpath, so a tool has to
           # sit beside its DLLs) and guessing it was wrong twice.
-          PACKAGER="$(cat ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
+          PACKAGER="$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
 
           "$PACKAGER" reseal \
             --namespace-root "$MODULE_ROOT" \
@@ -544,7 +544,7 @@ jobs:
           set -euo pipefail
           ${{github.workspace}}/scripts/audit_module_natives.sh \
             --namespace-root ${{github.workspace}}/build/artifacts/AppDir/usr/lib/gpgfrontend/modules \
-            --packager "$(cat ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager" \
+            --packager "$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager" \
             --qt-relative ../../../.. \
             --expect-count 4
         if: runner.os == 'Linux'
@@ -725,7 +725,7 @@ jobs:
               exit 1
             }
             windeployqt6 --no-translations --force "./artifacts/bin/$lib"
-          done < ./artifacts/deployable-libraries.txt
+          done < <(tr -d '\r' < ./artifacts/deployable-libraries.txt)
           windeployqt6 --no-translations --force ./artifacts/bin/GpgFrontend.exe
           # A module may need Qt modules the app itself never links (Qt6Xml,
           # Qt6Network, ...), so each one still has to be scanned. But --dir
@@ -751,7 +751,7 @@ jobs:
           set -euo pipefail
           cd $(cygpath -u "${{github.workspace}}")
           MODULE_ROOT="build/artifacts/modules"
-          PACKAGER="$(cat build/artifacts/host-tool-dir.txt)/gf_module_packager.exe"
+          PACKAGER="$(tr -d '\r' < build/artifacts/host-tool-dir.txt)/gf_module_packager.exe"
 
           # windeployqt does not rewrite module DLLs, so these descriptors are
           # very likely still accurate. Resealing anyway costs a second and
@@ -859,16 +859,16 @@ jobs:
           set -euo pipefail
           cd "${{github.workspace}}"
 
-          PACKAGER="$(cat build/artifacts/host-tool-dir.txt)/gf_module_packager${{ runner.os == 'Windows' && '.exe' || '' }}"
+          PACKAGER="$(tr -d '\r' < build/artifacts/host-tool-dir.txt)/gf_module_packager${{ runner.os == 'Windows' && '.exe' || '' }}"
           MODULE_ROOT="${{ runner.os == 'Windows' && 'build/artifacts/modules' || 'build/artifacts/AppDir/usr/lib/gpgfrontend/modules' }}"
 
           "$PACKAGER" verify-module-set \
             --namespace-root "$MODULE_ROOT" \
-            --print-bindings > build/module-bindings.txt
-          "$PACKAGER" host-info | sed -n 's/^arch //p' > build/host-arch.txt
+            --print-bindings | tr -d '\r' > build/module-bindings.txt
+          "$PACKAGER" host-info | tr -d '\r' | sed -n 's/^arch //p' > build/host-arch.txt
 
           cat build/module-bindings.txt
-          echo "arch: $(cat build/host-arch.txt)"
+          echo "arch: $(tr -d '\r' < build/host-arch.txt)"
         if: runner.os == 'Linux' || runner.os == 'Windows'
 
       # The host tools and test fixtures have done their last job. They must
@@ -891,7 +891,7 @@ jobs:
         run: |
           set -euo pipefail
           cd $(cygpath -u "${{github.workspace}}")
-          TOOL_DIR="$(cat build/artifacts/host-tool-dir.txt)"
+          TOOL_DIR="$(tr -d '\r' < build/artifacts/host-tool-dir.txt)"
           rm -f "$TOOL_DIR/gf_module_packager.exe" "$TOOL_DIR/gf_module_keygen.exe"
 
           # Test fixtures are not deliverables either, and artifacts/ is what
@@ -992,7 +992,7 @@ jobs:
                      ! -name 'build-record-*.json' | sort)
 
           ./scripts/write_build_record.sh \
-            --output "build/upload-artifact/build-record-${{ matrix.os }}-$(cat build/host-arch.txt)-${{ matrix.flavor }}-unsigned.json" \
+            --output "build/upload-artifact/build-record-${{ matrix.os }}-$(tr -d '\r' < build/host-arch.txt)-${{ matrix.flavor }}-unsigned.json" \
             --stage unsigned \
             --build-id "$(cat build/.module-build-key/build-id)" \
             --repository "${{ github.repository }}" \
@@ -1000,7 +1000,7 @@ jobs:
             --ref "${{ github.ref }}" \
             --build-type "${{ env.BUILD_TYPE }}" \
             --os "${{ matrix.os }}" \
-            --arch "$(cat build/host-arch.txt)" \
+            --arch "$(tr -d '\r' < build/host-arch.txt)" \
             --flavor "${{ matrix.flavor }}" \
             --modules-from build/module-bindings.txt \
             --ci-run-id "${{ github.run_id }}" \
@@ -1313,7 +1313,7 @@ jobs:
 
           "${{github.workspace}}/scripts/audit_module_natives.sh" \
             --namespace-root "$MODULE_ROOT" \
-            --packager "$(cat ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager" \
+            --packager "$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager" \
             --expect-count 4
 
           echo "--- GpgFrontend binding sections ---"
@@ -1325,7 +1325,7 @@ jobs:
           # carried a GpgFrontend section and never should. Requiring one of
           # them would fail the build for a file doing exactly what it is
           # supposed to.
-          PACKAGER="$(cat ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
+          PACKAGER="$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
           found=0
           while read -r _ _ dylib; do
             [ -n "$dylib" ] || continue
@@ -1435,10 +1435,10 @@ jobs:
           set -euo pipefail
           cd "${{github.workspace}}"
 
-          PACKAGER="$(cat build/artifacts/host-tool-dir.txt)/gf_module_packager"
+          PACKAGER="$(tr -d '\r' < build/artifacts/host-tool-dir.txt)/gf_module_packager"
           "$PACKAGER" verify-module-set \
             --namespace-root build/artifacts/modules \
-            --print-bindings > build/module-bindings.txt
+            --print-bindings | tr -d '\r' > build/module-bindings.txt
           ARCH="$("$PACKAGER" host-info | sed -n 's/^arch //p')"
 
           ./scripts/write_build_record.sh \

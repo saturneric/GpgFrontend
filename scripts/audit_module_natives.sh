@@ -86,8 +86,11 @@ if [ -n "$PACKAGER" ]; then
   # worth ten of anything repeated here. Throwing it away once turned "this
   # native was rewritten after its descriptor was signed" into "reported no
   # entries", which sent the reader to the wrong file entirely.
+  # tr -d '\r': on Windows this output has passed through a shell that may
+  # have turned its newlines into CRLF, and a path with a trailing CR matches
+  # no file on disk while looking identical in a log.
   PACKAGER_OUT="$("$PACKAGER" verify-module-set \
-    --namespace-root "$NAMESPACE_ROOT" --print-entries 2>&1)"
+    --namespace-root "$NAMESPACE_ROOT" --print-entries 2>&1 | tr -d '\r')"
   PACKAGER_RC=$?
 
   if [ "$PACKAGER_RC" -ne 0 ]; then

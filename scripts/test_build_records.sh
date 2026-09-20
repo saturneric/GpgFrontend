@@ -78,6 +78,24 @@ populate_full() {
   done
 }
 
+# Before anything else: the gate is useless if CI cannot see the files it
+# needs. `.gitignore` carries a `*build-*` rule aimed at Qt Creator shadow-build
+# directories, and it matches "build-" ANYWHERE in a name -- which silently
+# swallowed expected-build-matrix.json. Committed to nothing, invisible to
+# `git status`, absent from every checkout, and discovered only when the
+# provenance job failed on a file that was sitting right there locally.
+echo "=== 0. everything the gate needs is actually in git ==="
+for needed in \
+  "resource/provenance/expected-build-matrix.json" \
+  "scripts/write_build_record.sh" \
+  "scripts/verify_build_record_set.sh"; do
+  if git -C "$REPO" ls-files --error-unmatch "$needed" >/dev/null 2>&1; then
+    ok "$needed is tracked"
+  else
+    bad "$needed is NOT tracked -- CI will not have it ($(git -C "$REPO" check-ignore -v "$needed" 2>/dev/null || echo 'untracked'))"
+  fi
+done
+
 echo "=== 1. a modified artifact changes its recorded digest ==="
 D="$WORK/t1"; mkdir -p "$D"
 write_record "$D" ubuntu-22.04 x86_64 installed unsigned "GpgFrontend-a-linux-x86_64.AppImage=original" >/dev/null
