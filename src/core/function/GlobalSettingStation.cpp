@@ -197,7 +197,14 @@ class GlobalSettingStation::Impl {
 #endif
 
 #ifdef Q_OS_WINDOWS
-    return exec_binary_path + "/../modules";
+    // The portable and installer payloads are flat: gpgfrontend.exe in bin/
+    // with the namespaces beside it. Checked rather than returned
+    // unconditionally, so a Windows `cmake --install` -- which produces
+    // <prefix>/bin and <prefix>/lib/gpgfrontend/modules like every other
+    // platform -- falls through to the relocatable answer below instead of
+    // being told the modules are somewhere they are not.
+    const auto payload = exec_binary_path + "/../modules";
+    if (QFileInfo(payload).isDir()) return payload;
 #endif
 
 #ifdef Q_OS_MACOS
