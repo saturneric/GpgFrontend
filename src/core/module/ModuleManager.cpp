@@ -28,6 +28,7 @@
 
 #include "ModuleManager.h"
 
+#include <atomic>
 #include <optional>
 
 #include "core/function/ArchiveFileOperator.h"
@@ -501,9 +502,17 @@ class ModuleManager::Impl {
     return true;
   }
 
+  /// Set once, by whichever thread gets there first.
+  ///
+  /// The read and the write used to be two statements over a plain int, and
+  /// the three accessors below run on three different threads: this one on the
+  /// module runner, DropFromExpectedRegistrations() on the load loop, and
+  /// IsAllModulesRegistered() on whatever thread asks -- including the one
+  /// behind `--module-status`, which every platform's smoke test uses.
   void SetNeedRegisterModulesNum(int n) {
-    if (need_register_modules_ != -1 || n < 0) return;
-    need_register_modules_ = n;
+    if (n < 0) return;
+    auto unset = -1;
+    need_register_modules_.compare_exchange_strong(unset, n);
   }
 
   auto SearchModule(const ModuleIdentifier& module_id) -> ModulePtr {
@@ -618,16 +627,28 @@ class ModuleManager::Impl {
   /// otherwise push the target below the count permanently, and the
   /// "modules are ready" signal would never be true again.
   void DropFromExpectedRegistrations() {
-    if (need_register_modules_ <= gmc_->GetRegisteredModuleNum()) return;
-    need_register_modules_--;
+    // A compare-exchange loop rather than a test followed by a decrement:
+    // between those two statements the registered count can rise, and the
+    // decrement would then take the target below it -- which is exactly the
+    // permanent "never ready" state the comment above warns about.
+    auto current = need_register_modules_.load(std::memory_order_relaxed);
+    while (current > gmc_->GetRegisteredModuleNum()) {
+      if (need_register_modules_.compare_exchange_weak(
+              current, current - 1, std::memory_order_relaxed)) {
+        return;
+      }
+    }
   }
 
   auto IsAllModulesRegistered() {
-    if (need_register_modules_ == -1) return false;
-    LOG_D() << "module manager report, need register: "
-            << need_register_modules_ << "registered"
-            << gmc_->GetRegisteredModuleNum();
-    return need_register_modules_ == gmc_->GetRegisteredModuleNum();
+    // Read once. Logging one value and comparing another is how a report says
+    // "need 4, registered 4" and still answers false.
+    const auto needed = need_register_modules_.load(std::memory_order_relaxed);
+    if (needed == -1) return false;
+    const auto registered = gmc_->GetRegisteredModuleNum();
+    LOG_D() << "module manager report, need register:" << needed
+            << "registered" << registered;
+    return needed == registered;
   }
 
   auto GRT() -> GlobalRegisterTable* { return grt_.get(); }
@@ -637,10 +658,9 @@ class ModuleManager::Impl {
   }
 
  private:
-  static ModuleMangerPtr global_module_manager;
   SecureUniquePtr<GlobalModuleContext> gmc_;
   SecureUniquePtr<GlobalRegisterTable> grt_;
-  int need_register_modules_ = -1;
+  std::atomic<int> need_register_modules_ = -1;
 };
 
 auto GF_CORE_EXPORT IsModuleExists(ModuleIdentifier id) -> bool {
