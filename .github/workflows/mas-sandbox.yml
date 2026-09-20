@@ -226,6 +226,15 @@ jobs:
           sudo make install
           ccache -s
 
+      # Before anything is built: the committed Sandbox.entitlements and the
+      # verbatim copy sign-mas carries must agree. The copy exists so a
+      # compromised build job cannot choose its own entitlements and have them
+      # verified against its own choice, and until now nothing checked the two
+      # had not drifted -- for a pair that decides this app's keychain access
+      # group and its application identifier.
+      - name: Check Entitlements Are In Sync
+        run: scripts/check_entitlements_sync.sh
+
       - name: Build GpgFrontend
         run: |
           MACOS_MAJOR=$(sw_vers -productVersion | cut -d. -f1)
@@ -277,15 +286,195 @@ jobs:
           cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app \
             ${{github.workspace}}/build/package/
 
+      # --- Modules -------------------------------------------------------
+      #
+      # This workflow had no module steps at all, and that was fine only for as
+      # long as Xcode placed them itself. It no longer does: the
+      # `MACOSX_PACKAGE_LOCATION` wiring was removed because `xcodebuild
+      # archive` redirects SKIP_INSTALL products into DerivedData and leaves
+      # symlinks behind. So the sandboxed bundle was being assembled with NO
+      # modules in it, silently -- it builds, it signs, it verifies, it
+      # installs, and the application comes up with none of its features.
+      #
+      # Nothing here would have noticed, because every check this workflow had
+      # asks whether the bundle is well formed, and a bundle with no modules is
+      # perfectly well formed. That is the same gap that shipped a notarized
+      # Developer ID dmg with three of four modules unable to load.
+      #
+      # The steps are the Developer ID ones, in the same order and for the same
+      # reasons.
+
+      # `xcodebuild archive` does not put products where CMake asks: a target
+      # marked SKIP_INSTALL -- which every module is -- is built into
+      # DerivedData and only linked from the requested directory. A symlink
+      # cannot be shipped, cannot be signed as its own object, and cannot be
+      # what a descriptor binds.
+      #
+      # Safe here because macOS binds `apple-binding-id`, an identifier
+      # embedded at link time, rather than a digest of the file: copying the
+      # bytes changes nothing the descriptor claims.
+      - name: Materialize Module Natives (macOS)
+        run: |
+          set -euo pipefail
+          MODULE_ROOT="${{github.workspace}}/build/artifacts/modules"
+          test -d "$MODULE_ROOT"
+
+          materialized=0
+          while IFS= read -r link; do
+            target="$(readlink "$link")"
+            case "$target" in
+              /*) resolved="$target" ;;
+              *)  resolved="$(cd "$(dirname "$link")" && cd "$(dirname "$target")" \
+                              && pwd)/$(basename "$target")" ;;
+            esac
+
+            if [ ! -f "$resolved" ]; then
+              echo "$link points at $resolved, which is not a regular file" >&2
+              exit 1
+            fi
+
+            # Copy beside it and rename over the link, so a failed copy leaves
+            # the tree as it was rather than leaving a module with no native.
+            cp "$resolved" "$link.materialized"
+            mv -f "$link.materialized" "$link"
+            echo "materialized $(basename "$link") ($(stat -f%z "$link") bytes)"
+            materialized=$((materialized + 1))
+          done < <(find "$MODULE_ROOT" -type l -name '*.dylib')
+
+          echo "$materialized module native(s) materialized"
+
+          if find "$MODULE_ROOT" -type l | grep -q .; then
+            echo "symlinks remain under $MODULE_ROOT:" >&2
+            find "$MODULE_ROOT" -type l -print >&2
+            exit 1
+          fi
+
+      # m_email links OpenSSL through vmime, and Homebrew builds its dylibs
+      # with an absolute install name in the Cellar -- a path that is correct on
+      # this runner and absent on a user's Mac. macdeployqt only processes the
+      # .app, and these are not in it yet, so nothing else does this.
+      #
+      # It matters more here than for Developer ID: a sandboxed App Store app
+      # cannot reach outside its own bundle for a library at all.
+      - name: Bundle Module Dependencies (macOS)
+        run: |
+          set -euo pipefail
+          ${{github.workspace}}/scripts/bundle_macos_module_deps.sh \
+            --namespace-root ${{github.workspace}}/build/artifacts/modules
+
+      # A namespace is split across two directories here and nowhere else,
+      # because Apple wants data under Resources and executable code under
+      # Frameworks. ModuleNativeRootFor() is the single place that knows the two
+      # belong together.
+      #
+      # No install_name_tool: the rpaths a module needs are set at link time.
+      # Nothing re-signs either -- sign-mas's Pass 1 signs every loose Mach-O
+      # under Contents, these included, with the app's own identity, which is
+      # what Library Validation wants and what the App Store requires.
+      - name: Place Modules In The Bundle (macOS)
+        run: |
+          set -euo pipefail
+          APP="${{github.workspace}}/build/package/GpgFrontend.app"
+          MODULE_ROOT="${{github.workspace}}/build/artifacts/modules"
+          DESC_ROOT="$APP/Contents/Resources/modules"
+          NATIVE_ROOT="$APP/Contents/Frameworks/GpgFrontendModules"
+          # How many modules this build produced, from the list CMake writes at
+          # configure time. Never a literal, and derived in every step that
+          # needs it: a step's shell variables do not reach the next one.
+          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
+
+          test -d "$APP"
+          rm -rf "$DESC_ROOT" "$NATIVE_ROOT"
+          mkdir -p "$DESC_ROOT" "$NATIVE_ROOT"
+
+          placed=0
+          for ns in "$MODULE_ROOT"/*/; do
+            key="$(basename "$ns")"
+            [ -f "$ns/module.gfmodule" ] || continue
+
+            mkdir -p "$DESC_ROOT/$key" "$NATIVE_ROOT/$key"
+            cp "$ns/module.gfmodule" "$DESC_ROOT/$key/"
+            cp "$ns"native/*.dylib "$NATIVE_ROOT/$key/"
+
+            echo "  placed $key ($(ls -1 "$NATIVE_ROOT/$key" | wc -l | tr -d ' ') native file(s))"
+            placed=$((placed + 1))
+          done
+
+          # The gate that would have caught this workflow shipping nothing.
+          test "$placed" -eq "$EXPECTED" || {
+            echo "placed $placed namespaces, expected $EXPECTED" >&2
+            exit 1
+          }
+
+          STRAY="$(find "$APP/Contents" -name 'libgf_mod_*' \
+                     ! -path "$NATIVE_ROOT/*" -print)"
+          if [ -n "$STRAY" ]; then
+            echo "module libraries outside any namespace in the bundle:" >&2
+            printf '%s\n' "$STRAY" >&2
+            exit 1
+          fi
+
+          echo "--- what ships ---"
+          find "$DESC_ROOT" "$NATIVE_ROOT" -type f | sed "s#^$APP/##" | sort
+
       - name: Deploy Qt
         run: |
+          set -euo pipefail
+          APP="${{github.workspace}}/build/package/GpgFrontend.app"
+
+          # Every module native, named individually.
+          #
+          # macdeployqt deploys the Qt frameworks the APP links, and a module
+          # may need frameworks the app never does -- QtConcurrent and QtXml,
+          # here. Without this they are placed, pass every descriptor check, and
+          # then fail to load on a user's machine with "Library not loaded:
+          # @rpath/QtConcurrent.framework". Which is exactly what happened to
+          # the Developer ID build.
+          #
+          # The modules have to be INSIDE the bundle first, because macdeployqt
+          # computes bundle-relative paths, which is why placement is above.
+          EXECUTABLES=()
+          while IFS= read -r native; do
+            EXECUTABLES+=("-executable=$native")
+          done < <(find "$APP/Contents/Frameworks/GpgFrontendModules" \
+                     -type f -name '*.dylib' | sort)
+          test "${#EXECUTABLES[@]}" -gt 0
+          echo "deploying for ${#EXECUTABLES[@]} module native(s)"
+
           # -appstore-compliant drops the plugins that use API the App Store
           # rejects. No -codesign=: sign-mas signs every code object explicitly,
           # inside out.
-          macdeployqt ${{github.workspace}}/build/package/GpgFrontend.app \
+          macdeployqt "$APP" \
             -verbose=2 \
             -appstore-compliant \
-            -always-overwrite
+            -always-overwrite \
+            "${EXECUTABLES[@]}"
+
+      # The same four checks the Developer ID bundle gets, from the same
+      # script: dependencies resolve inside the bundle, descriptors still
+      # verify after deployment rewrote load commands, the deployment audit
+      # passes, and every entry still carries its binding section -- read on the
+      # copy that ships, not the staging copy it came from.
+      #
+      # What this leg CANNOT check is the one thing that gates shipping modules
+      # to the App Store: whether store processing -- re-signing and thinning --
+      # preserves the __GPGFRONTEND section the descriptor binds. No runner can
+      # answer that, because the artifact that matters is the one Apple produces
+      # from this one. That is stage X Tier 3, and it is answered by submitting
+      # this build, not by another check here.
+      - name: Verify The Bundle's Modules (macOS)
+        run: |
+          set -euo pipefail
+          # How many modules this build produced, from the list CMake writes at
+          # configure time. Never a literal, and derived in every step that
+          # needs it: a step's shell variables do not reach the next one.
+          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
+
+          ${{github.workspace}}/scripts/verify_macos_bundle_modules.sh \
+            --app ${{github.workspace}}/build/package/GpgFrontend.app \
+            --namespace-root ${{github.workspace}}/build/artifacts/modules \
+            --packager "$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager" \
+            --expect-count "$EXPECTED"
 
       - name: Inventory Bundle Code Objects
         run: |

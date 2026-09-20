@@ -76,6 +76,17 @@ pairs = [
         "<<'PLIST'\n",
         "PLIST",
     ),
+    (
+        # The same hazard, the same hand-sync comment, and until now the same
+        # lack of a check. A sandboxed build's entitlements decide its keychain
+        # access group and its application identifier, so the two drifting is
+        # not a cosmetic difference.
+        "App Store sandbox",
+        f"{repo}/resource/entitlements/Sandbox.entitlements",
+        f"{repo}/.github/workflows/mas-sandbox.yml",
+        "<<'PLIST'\n",
+        "PLIST",
+    ),
 ]
 
 for name, repo_file, workflow, marker, terminator in pairs:

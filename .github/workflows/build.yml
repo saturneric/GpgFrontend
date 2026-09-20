@@ -1635,158 +1635,34 @@ jobs:
             -always-overwrite \
             "${EXECUTABLES[@]}"
 
-      # Every module dependency must actually resolve inside the bundle.
+      # Every module dependency must actually resolve inside the bundle, the
+      # descriptors must still verify after deployment rewrote load commands,
+      # the natives must pass the deployment audit, and every entry must still
+      # carry its binding section.
       #
       # This is the check whose absence let a signed, notarized dmg ship with
       # three of its four modules unable to load. Everything else passed:
       # descriptors verified, natives resolved across the Resources/Frameworks
       # split, binding sections intact, codesign happy. The modules simply
-      # referenced `@rpath/QtConcurrent.framework` and `@rpath/QtXml.framework`
-      # -- Qt frameworks the APP does not link, so macdeployqt had never
-      # deployed them -- and dyld refused them at load.
+      # referenced Qt frameworks the app does not link, so macdeployqt had
+      # never deployed them, and dyld refused them at load.
       #
-      # So this resolves each dependency the way dyld does, against the bundle,
-      # and fails if anything is missing. A module that cannot load is not a
-      # module that ships.
-      - name: Verify Module Dependencies Resolve In The Bundle (macOS)
+      # In a script rather than inline, because mas-sandbox.yml assembles the
+      # same bundle from the same tree and needs the same four checks. Two
+      # copies of a gate is how one of them stops matching the other.
+      - name: Verify The Bundle's Modules (macOS)
         run: |
           set -euo pipefail
-          APP="${{github.workspace}}/build/package/GpgFrontend.app"
-          NATIVE_ROOT="$APP/Contents/Frameworks/GpgFrontendModules"
-          FRAMEWORKS="$APP/Contents/Frameworks"
-          # How many modules this build produced, from the list CMake writes
-          # at configure time. Never a literal: a hardcoded count means adding
-          # a fifth module breaks every gate at once, and the obvious repair is
-          # to bump the number in each, which is how a gate stops checking.
+          # How many modules this build produced, from the list CMake writes at
+          # configure time. Never a literal, and derived in every step that
+          # needs it: a step's shell variables do not reach the next one.
           EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
 
-
-          missing=0
-          checked=0
-          while IFS= read -r dylib; do
-            here="$(dirname "$dylib")"
-
-            # `otool -L` prints the path header, then the dylib's OWN
-            # LC_ID_DYLIB, then its dependencies. Dropping just the header
-            # leaves the id looking like a dependency -- and since a module's
-            # id is `@rpath/libgf_mod_x.dylib`, this gate dutifully looked for
-            # it in Contents/Frameworks and reported every module as broken.
-            # `otool -D` gives the id alone, so it can be excluded by value.
-            own_id="$(otool -D "$dylib" 2>/dev/null | tail -n +2 \
-                        | sed 's/^[[:space:]]*//')"
-
-            while IFS= read -r dep; do
-              [ -n "$dep" ] || continue
-              case "$dep" in
-                /usr/lib/*|/System/*) continue ;;
-                @loader_path/*) target="$here/${dep#@loader_path/}" ;;
-                @executable_path/*)
-                  target="$APP/Contents/MacOS/${dep#@executable_path/}" ;;
-                @rpath/*) target="$FRAMEWORKS/${dep#@rpath/}" ;;
-                *)
-                  echo "  FAIL  $(basename "$dylib") loads \"$dep\", an absolute path off this machine" >&2
-                  missing=$((missing + 1))
-                  continue
-                  ;;
-              esac
-
-              if [ ! -e "$target" ]; then
-                echo "  FAIL  $(basename "$dylib") needs \"$dep\"" >&2
-                echo "        which is not at $(echo "$target" | sed "s#^$APP/##")" >&2
-                missing=$((missing + 1))
-              fi
-              checked=$((checked + 1))
-            done < <(otool -L "$dylib" | tail -n +2 \
-                       | sed 's/^[[:space:]]*//;s/ (compatibility.*//' \
-                       | grep -vxF "$own_id")
-          done < <(find "$NATIVE_ROOT" -type f -name '*.dylib' | sort)
-
-          echo "resolved $checked dependency reference(s)"
-          if [ "$missing" -gt 0 ]; then
-            echo "$missing module dependency reference(s) do not resolve in the bundle;" >&2
-            echo "these modules would be refused at load on a user's machine" >&2
-            exit 1
-          fi
-
-          # And the proof the descriptors still describe what is there, now
-          # that macdeployqt has finished rewriting load commands. It can,
-          # because macOS binds `apple-binding-id` -- a section codesign and
-          # install_name_tool both leave alone -- and not a digest of the file.
-          PACKAGER="$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
-          "$PACKAGER" verify-module-set \
-            --namespace-root "$APP/Contents/Resources/modules" \
-            --expect-count "$EXPECTED"
-
-      # §11.0's dependency audit, plus the one property the macOS entry
-      # binding rests on.
-      #
-      # macOS does not bind its entry by a digest of the file: Apple signing
-      # rewrites __LINKEDIT and the App Store may re-sign again on download, so
-      # a digest would either forbid normal platform signing or have to be
-      # regenerated after it -- which is what would drag a build-produced
-      # packager into the privileged signing job. It binds an identifier placed
-      # in a Mach-O section at LINK time instead, and everything downstream
-      # assumes that section is there. Nothing else checks that it is.
-      - name: Audit Module Natives And Binding Sections (macOS)
-        run: |
-          set -euo pipefail
-          MODULE_ROOT="${{github.workspace}}/build/artifacts/modules"
-          test -d "$MODULE_ROOT"
-          # How many modules this build produced, from the list CMake writes
-          # at configure time. Derived in every step that needs it: a step's
-          # shell variables are its own and do not reach the next one.
-          EXPECTED="$(grep -c '=' ${{github.workspace}}/build/artifacts/module-directory-keys.txt)"
-
-          "${{github.workspace}}/scripts/audit_module_natives.sh" \
-            --namespace-root "$MODULE_ROOT" \
+          ${{github.workspace}}/scripts/verify_macos_bundle_modules.sh \
+            --app ${{github.workspace}}/build/package/GpgFrontend.app \
+            --namespace-root ${{github.workspace}}/build/artifacts/modules \
             --packager "$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager" \
             --expect-count "$EXPECTED"
-
-          echo "--- GpgFrontend binding sections ---"
-          # ENTRY natives only, taken from what each signed descriptor binds.
-          #
-          # Not every dylib under here: since the bundling step above, this
-          # directory also holds private dependencies -- libssl, libcrypto --
-          # and those are ordinary third-party libraries that have never
-          # carried a GpgFrontend section and never should. Requiring one of
-          # them would fail the build for a file doing exactly what it is
-          # supposed to.
-          PACKAGER="$(tr -d '\r' < ${{github.workspace}}/build/artifacts/host-tool-dir.txt)/gf_module_packager"
-          found=0
-          while read -r _ _ dylib; do
-            [ -n "$dylib" ] || continue
-            # otool prints the section contents as bytes; what matters here is
-            # that the section exists at all, which is what -sectcreate was
-            # asked for and what the descriptor's binding depends on.
-            if ! otool -s __GPGFRONTEND __gf_binding "$dylib" \
-                 | grep -q 'Contents of (__GPGFRONTEND,__gf_binding) section'; then
-              echo "FAIL $dylib carries no __GPGFRONTEND,__gf_binding section"
-              exit 1
-            fi
-            printf 'ok   %s\n' "$(basename "$dylib")"
-            found=$((found + 1))
-          done < <("$PACKAGER" verify-module-set \
-                     --namespace-root "$MODULE_ROOT" --print-entries \
-                   | grep '^entry ')
-
-          test "$found" -eq "$EXPECTED" || {
-            echo "expected $EXPECTED module entry natives, found $found"
-            exit 1
-          }
-
-      # NOTE (stage J, needs a Mac): the descriptors and natives are not yet
-      # placed inside the bundle. They belong at
-      #   Contents/Resources/modules/<key>/module.gfmodule
-      #   Contents/Frameworks/GpgFrontendModules/<key>/lib*.dylib
-      # which is what ModuleNativeRootFor() resolves and what
-      # GetIntegratedModulePath() searches. Getting an Xcode build to place
-      # them there -- with install names under @loader_path and the binding
-      # section intact -- has to be done and checked on a real Mac with
-      # `codesign --verify` and `verify-module-set` run three times: after the
-      # outer signature, after notarization and after stapling. Adding the
-      # placement untested would produce a bundle that looks right and fails
-      # Library Validation at launch, which is worse than one that plainly has
-      # no modules yet.
 
       - name: Inventory Bundle Code Objects
         run: |
