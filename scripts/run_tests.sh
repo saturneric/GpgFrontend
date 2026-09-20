@@ -640,7 +640,7 @@ run_rust_slow_phase() {
 # -DGPGFRONTEND_MODULES_BUILD_TESTS=ON; without that this phase is a no-op.
 run_modules_phase() {
   local log="$RESULTS_DIR/modules.log"
-  local dir="$BUILD_DIR/artifacts/modules"
+  local dir="$BUILD_DIR/artifacts/module-tests"
 
   echo
   echo "============================================================"

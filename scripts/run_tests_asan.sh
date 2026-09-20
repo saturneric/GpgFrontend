@@ -108,7 +108,7 @@ cmake --build "$BUILD_DIR" --target gf_mod_email_test gf_mod_email_net_test \
 
 MODULE_TEST_RC=0
 for t in gf_mod_email_test gf_mod_email_net_test gf_mod_email_crypto_test; do
-  bin="$BUILD_DIR/artifacts/modules/$t"
+  bin="$BUILD_DIR/artifacts/module-tests/$t"
   if [[ ! -x "$bin" ]]; then
     echo "error: expected sanitized module test not built: $t" >&2
     MODULE_TEST_RC=1
