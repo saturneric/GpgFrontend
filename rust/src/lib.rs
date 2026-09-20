@@ -66,6 +66,7 @@ pub mod types;
 
 mod cancel;
 mod crypto;
+mod inspect;
 mod err;
 mod key;
 mod keygen;

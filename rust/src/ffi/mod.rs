@@ -33,6 +33,7 @@ use std::ffi::{CString, c_char};
 use log::LevelFilter;
 
 pub mod crypto;
+pub mod inspect;
 pub mod key;
 pub mod keygen;
 pub mod mem;
