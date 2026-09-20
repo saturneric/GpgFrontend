@@ -800,13 +800,13 @@ jobs:
           mkdir -p upload-artifact
         if: runner.os == 'Windows'
 
-      # The same steps the Linux leg runs, in the same order and for the same
-      # reason: windeployqt has just finished touching the module tree, so
-      # nothing may describe it until it has. See ModulePreparedEntry.h.
+      # windeployqt has just run. It reads the module DLLs and writes only
+      # into bin/, so the descriptors still describe what is there -- and this
+      # proves that rather than assuming it.
       #
-      # The audit comes LAST, after finalize. It asks the packager which native
+      # The audit comes last within the step: it asks the packager which native
       # each module's signed descriptor binds, so it needs descriptors that
-      # verify -- which, before finalize, they are not guaranteed to be.
+      # verify.
       - name: Verify Module Descriptors (Windows)
         shell: msys2 {0}
         run: |
@@ -1107,11 +1107,6 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Set git to use LF line endings
-        run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           lfs: "false"
@@ -1281,91 +1276,37 @@ jobs:
           mkdir -p ${{github.workspace}}/build/package
           cp -R ${{github.workspace}}/build/GpgFrontend.xcarchive/Products/Applications/GpgFrontend.app \
             ${{github.workspace}}/build/package/
-
-      # Replace symlinked module natives with the real files.
+      # The modules come from an install tree, like every other platform.
       #
-      # `xcodebuild archive` does not put products where CMake asked. Targets
-      # marked SKIP_INSTALL -- which every module is -- are built into
-      # DerivedData under ArchiveIntermediates/.../UninstalledProducts/macosx,
-      # and CMake leaves a SYMLINK in the requested output directory pointing
-      # there. So `artifacts/modules/<key>/native/libgf_mod_*.dylib` is a link
-      # into a path that exists only on this runner, only during this job.
+      # This replaces a step that existed only to undo Xcode: `xcodebuild
+      # archive` builds SKIP_INSTALL products into DerivedData and leaves a
+      # SYMLINK where CMake asked for the file, so the module natives were
+      # links into a path that existed on one runner during one job. They had
+      # to be copied over by hand before anything could sign, ship or bind
+      # them.
       #
-      # That has to be resolved here rather than tolerated downstream. A
-      # symlink cannot be shipped in a bundle, cannot be code-signed as its own
-      # object, and cannot be what a descriptor binds: the Host refuses a
-      # symlinked entry outright, because following one would mean loading
-      # something the descriptor did not name.
-      #
-      # Safe to do at this point precisely because macOS binds its entry by
-      # `apple-binding-id` -- an identifier embedded at link time -- and not by
-      # a digest of the file. Copying the bytes changes nothing the descriptor
-      # claims. On a platform that bound a file digest this step would have to
-      # come before the descriptors were written.
-      - name: Materialize Module Natives (macOS)
+      # `cmake --install` resolves that by construction -- it installs the
+      # target's real file, not the link CMake left behind -- and then verifies
+      # what it wrote. If it ever does not, the failure is exact rather than
+      # mysterious: the installed-tree check refuses a symlinked entry native
+      # by name and prints where it points.
+      - name: Install The Module Tree (macOS)
         run: |
           set -euo pipefail
-          MODULE_ROOT="${{github.workspace}}/build/artifacts/modules"
-          test -d "$MODULE_ROOT"
-          # How many modules this build produced, from the list CMake writes
-          # at configure time. Never a literal: a hardcoded count means adding
-          # a fifth module breaks every gate at once, and the obvious repair is
-          # to bump the number in each, which is how a gate stops checking.
-          EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
+          STAGING="${{github.workspace}}/build/staging"
+          rm -rf "$STAGING"
+          cmake --install ${{github.workspace}}/build --prefix "$STAGING"
 
+          # The same namespace layout a distribution gets. The bundle's two
+          # roots are mapped from it below, which is the one macOS-specific
+          # step Apple's layout genuinely requires.
+          test -d "$STAGING/lib/gpgfrontend/modules"
 
-          materialized=0
-          while IFS= read -r link; do
-            target="$(readlink "$link")"
-            case "$target" in
-              /*) resolved="$target" ;;
-              *)  resolved="$(cd "$(dirname "$link")" && cd "$(dirname "$target")" \
-                              && pwd)/$(basename "$target")" ;;
-            esac
-
-            if [ ! -f "$resolved" ]; then
-              echo "$link points at $resolved, which is not a regular file" >&2
-              exit 1
-            fi
-
-            # Copy beside it and rename over the link, rather than deleting the
-            # link first: a failed copy then leaves the tree as it was instead
-            # of leaving a module with no native at all.
-            cp "$resolved" "$link.materialized"
-            mv -f "$link.materialized" "$link"
-            echo "materialized $(basename "$link") ($(stat -f%z "$link") bytes)"
-            materialized=$((materialized + 1))
-          done < <(find "$MODULE_ROOT" -type l -name '*.dylib')
-
-          echo "$materialized module native(s) materialized"
-
-          # Nothing may remain a link. The audit and the binding check below
-          # both read these files, and `codesign` later signs them; each would
-          # fail differently and none would say why.
-          if find "$MODULE_ROOT" -type l | grep -q .; then
-            echo "symlinks remain under $MODULE_ROOT:" >&2
-            find "$MODULE_ROOT" -type l -print >&2
-            exit 1
-          fi
-
-      # Bring each module's private dependencies into its own namespace.
-      #
-      # m_email links OpenSSL through vmime's TLS backend, and Homebrew builds
-      # its dylibs with an absolute install name in the Cellar -- a path that
-      # is correct here and absent on a user's Mac, or under /usr/local instead
-      # of /opt/homebrew on Intel. linuxdeployqt and windeployqt already handle
-      # this for the other two platforms; macdeployqt only processes the .app
-      # bundle, and the module natives are not in it, so nothing was doing it
-      # for them.
-      #
-      # Runs after materialization, because there is no point rewriting the
-      # load commands of a symlink, and before the audit, which is what proves
-      # it worked.
       - name: Bundle Module Dependencies (macOS)
         run: |
           set -euo pipefail
           ${{github.workspace}}/scripts/bundle_macos_module_deps.sh \
-            --namespace-root ${{github.workspace}}/build/artifacts/modules
+            --namespace-root ${{github.workspace}}/build/staging/lib/gpgfrontend/modules
 
       # Put the modules in the bundle. This is what makes macOS actually ship
       # them, and it is the last piece of §14.3.
@@ -1390,7 +1331,7 @@ jobs:
         run: |
           set -euo pipefail
           APP="${{github.workspace}}/build/package/GpgFrontend.app"
-          MODULE_ROOT="${{github.workspace}}/build/artifacts/modules"
+          MODULE_ROOT="${{github.workspace}}/build/staging/lib/gpgfrontend/modules"
           DESC_ROOT="$APP/Contents/Resources/modules"
           # How many modules this build produced, from the list CMake writes
           # at configure time. Never a literal: a hardcoded count means adding
@@ -1497,46 +1438,9 @@ jobs:
 
           ${{github.workspace}}/scripts/verify_macos_bundle_modules.sh \
             --app ${{github.workspace}}/build/package/GpgFrontend.app \
-            --namespace-root ${{github.workspace}}/build/artifacts/modules \
+            --namespace-root ${{github.workspace}}/build/staging/lib/gpgfrontend/modules \
             --packager "$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_packager)" \
             --expect-count "$EXPECTED"
-
-      - name: Inventory Bundle Code Objects
-        run: |
-          set -euo pipefail
-          APP="${{github.workspace}}/build/package/GpgFrontend.app"
-
-          # This listing is the ground truth that sign-macos's explicit signer
-          # has to match. Read it whenever the bundle layout could have moved:
-          # every object below must map to a deliberate rule over there.
-          echo "--- nested bundles ---"
-          find "$APP/Contents" -type d \
-            \( -name '*.framework' -o -name '*.app' -o -name '*.appex' \
-               -o -name '*.xpc' -o -name '*.bundle' -o -name '*.systemextension' \
-               -o -name '*.pluginkit' \) | sed "s#^$APP/##"
-
-          echo "--- Mach-O files and their signature state as built ---"
-          # CODE_SIGNING_ALLOWED=NO leaves the Xcode products bare, while
-          # macdeployqt ad-hoc signs some of what it copies even without
-          # -codesign. Record which is which.
-          #
-          # `codesign -dv` exits non-zero on an unsigned object -- the normal
-          # state here -- so its status is classified rather than allowed to
-          # abort the loop. A real signature reports "Signature size=", only an
-          # ad-hoc one reports "Signature=adhoc".
-          find "$APP/Contents" -type f | while IFS= read -r f; do
-            if file -b "$f" | grep -q 'Mach-O'; then
-              out=$(codesign -dv "$f" 2>&1 || true)
-              case "$out" in
-                *"not signed at all"*) state=unsigned ;;
-                *"Signature=adhoc"*)   state=adhoc ;;
-                *"Signature size="*)   state=signed ;;
-                *)                     state=unknown ;;
-              esac
-              printf '%-9s %s\n' "$state" "${f#"$APP"/}"
-            fi
-          done
-
       - name: Stage Unsigned Payload
         run: |
           set -euo pipefail
@@ -2479,6 +2383,12 @@ jobs:
           pattern: gpgfrontend-*
           merge-multiple: true
 
+      - name: Download Build Records
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: gpgfrontend-build-records
+          path: artifacts/
+
       - name: Download Provenance Bundles
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
@@ -2526,13 +2436,12 @@ jobs:
           test "$COUNT" -gt 0 || { echo "no bundles verified"; exit 1; }
           echo "$COUNT provenance bundle(s) verified"
 
-      - name: Ignore Non-Artifact Files
+      # No `.pkg` deletion. download-artifact only sees this run, and the only
+      # .pkg this project builds comes from mas-sandbox.yml, a different
+      # workflow whose artifacts this job can never download -- so the find
+      # matched nothing, every run, since it was written.
+      - name: Flatten Provenance Bundles
         run: |
-          # Remove MAS specific .pkg files if they exist, since they are not
-          # needed for the release and we only want to keep the main artifacts
-          # (dmg, AppImage, zip).
-          find artifacts/ -type f -name '*.pkg' -delete
-
           # Both halves ship: the deliverables and, beside them, the bundles
           # and build records that say where they came from. A provenance
           # bundle nobody can download is a provenance bundle nobody can check.
@@ -2545,9 +2454,6 @@ jobs:
         run: |
           sha256sum artifacts/* > artifacts/SHA256SUMS.txt
           cat artifacts/SHA256SUMS.txt
-
-      - name: List files
-        run: ls -rl artifacts/
 
       - name: Generate Nightly Release Title
         id: release_title
