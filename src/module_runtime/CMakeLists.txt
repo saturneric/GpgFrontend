@@ -37,7 +37,19 @@ add_library(gf_module_runtime STATIC
   GFModuleRuntime.cpp
   GFModuleRuntimeBoot.cpp
   GFModuleRuntimeDispatch.cpp
-  GFModuleRuntimeI18n.cpp)
+  GFModuleRuntimeI18n.cpp
+  # The module-side SDK. These DEFINE the public GFSDK* functions, over the
+  # capability groups the host granted; a module links this archive instead of
+  # gf_sdk, which is what makes the boundary enforceable at link time.
+  sdk/GFSdkApp.cpp
+  sdk/GFSdkBuffer.cpp
+  sdk/GFSdkCommon.cpp
+  sdk/GFSdkEvent.cpp
+  sdk/GFSdkGpg.cpp
+  sdk/GFSdkLog.cpp
+  sdk/GFSdkProcess.cpp
+  sdk/GFSdkStorage.cpp
+  sdk/GFSdkUi.cpp)
 
 set_target_properties(gf_module_runtime PROPERTIES
   POSITION_INDEPENDENT_CODE ON   # it is linked into shared objects
@@ -46,7 +58,7 @@ set_target_properties(gf_module_runtime PROPERTIES
   AUTOMOC OFF)                   # no QObject lives here; keep it that way
 
 target_compile_features(gf_module_runtime PUBLIC cxx_std_17)
-target_link_libraries(gf_module_runtime PUBLIC Qt::Core)
+F
 
 target_include_directories(gf_module_runtime PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
