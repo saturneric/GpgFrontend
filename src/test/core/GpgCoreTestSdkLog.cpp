@@ -239,6 +239,17 @@ TEST_F(LogCaptureFixture, TraceIsOnAtTraceLevelRatherThanUnreachable) {
   EXPECT_EQ(captured_.size(), 1);
 }
 
+TEST_F(LogCaptureFixture, AMessageIsNotDoubleQuotedRatherThanEscaped) {
+  // What arrives at GFModuleLogAt is a finished message. Emitting it through
+  // QDebug's default quoting wrapped every module line in quotes it never
+  // asked for, and escaped any quote the message legitimately contained.
+  GFModuleLogAt(kEmailId, GF_LOG_WARN, nullptr, 0, nullptr,
+                "he said \"hello\"");
+
+  EXPECT_EQ(Only().message, "he said \"hello\"");
+  EXPECT_FALSE(Only().message.startsWith('"'));
+}
+
 TEST(SdkLogLevelTest, TraceParsesAsALevelRatherThanAsUnspecified) {
   const auto trace = ParseLogLevelName("trace");
   ASSERT_TRUE(trace.has_value());

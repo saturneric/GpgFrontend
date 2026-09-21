@@ -187,6 +187,33 @@ namespace GpgFrontend::Test {
 
 // ------------------------------------------------------------ entry point
 
+TEST_F(ModuleRuntimeTest, TheStreamFormBuildsOneLineRatherThanSeveral) {
+  LOG_W() << "open" << QString("/tmp/x") << "failed:" << 42;
+
+  ASSERT_EQ(Rec().warnings.size(), 1);
+  EXPECT_EQ(Rec().warnings.first(), "open \"/tmp/x\" failed: 42");
+}
+
+TEST_F(ModuleRuntimeTest, TheStreamFormTakesWhatArgCannotRatherThanRefusing) {
+  // The reason this exists beside FLOG_*: QString::arg has no overload for a
+  // bool, a QByteArray or a container, so a caller had to convert by hand at
+  // every site. QDebug prints all of them.
+  LOG_E() << true << QByteArray("bytes") << QStringList{"a", "b"};
+
+  ASSERT_EQ(Rec().errors.size(), 1);
+  EXPECT_TRUE(Rec().errors.first().contains("true"));
+  EXPECT_TRUE(Rec().errors.first().contains("bytes"));
+  EXPECT_TRUE(Rec().errors.first().contains("a"));
+}
+
+TEST_F(ModuleRuntimeTest, TheStreamFormEmitsNothingExtraRatherThanAnEmptyLine) {
+  // A statement with nothing streamed is still one message, not zero and not
+  // a crash -- somebody will write it.
+  LOG_W();
+
+  EXPECT_EQ(Rec().warnings.size(), 1);
+}
+
 TEST_F(ModuleRuntimeTest, TheApiTableDescribesThisModule) {
   const auto* api = Api();
   ASSERT_NE(api, nullptr);
