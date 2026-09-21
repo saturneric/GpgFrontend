@@ -227,6 +227,7 @@ class ModuleManager::Impl {
       LOG_W() << "module manager refuses module descriptor: " << package_path
               << ", reason: " << read.reason << " ("
               << ModuleDescriptorStatusToString(read.status) << ")";
+      RecordRefusal({package_path, origin, {}, read.reason, {}, false});
       return false;
     }
 
@@ -250,18 +251,32 @@ class ModuleManager::Impl {
       // Fail closed and say so. When macOS external modules become possible
       // they will need a native-binding design of their own, reviewed on its
       // own evidence; apple-binding-id is not it and is not coming back.
+      const QString why =
+          QObject::tr("External modules are not supported on macOS: the "
+                      "system only loads code signed with this "
+                      "application's own Team ID.");
       LOG_W() << "module manager refuses external module: " << package_path
-              << ", reason: external modules are not supported on macOS, "
-                 "because Library Validation admits only code signed with "
-                 "this application's Team ID";
+              << ", reason: " << why;
+      RecordRefusal({package_path, origin, read.manifest.id, why,
+                     read.build_public_key, false});
       return false;
 #else
       const auto authorization = ExternalModuleAuthorization(
           read.manifest.id, read.build_public_key);
       if (authorization != ModuleAuthorizationState::kTRUSTED_AND_ENABLED) {
+        const QString why =
+            authorization == ModuleAuthorizationState::kKEY_UNTRUSTED
+                ? QObject::tr("Waiting for you to trust the build key that "
+                              "signed it.")
+                : QObject::tr("Waiting for you to enable it.");
         LOG_I() << "module manager holds external module: " << package_path
                 << ", reason: "
                 << ModuleAuthorizationStateToString(authorization);
+        // pending_user_action: this one has an action attached, and telling
+        // it apart from a broken module is the difference between a control
+        // to press and a problem to report.
+        RecordRefusal({package_path, origin, read.manifest.id, why,
+                       read.build_public_key, true});
         return false;
       }
 #endif
@@ -279,10 +294,14 @@ class ModuleManager::Impl {
     const QDir namespace_dir(QFileInfo(package_path).absolutePath());
     const auto expected_key = ModuleDirectoryKey(read.manifest.id);
     if (namespace_dir.dirName() != expected_key) {
+      const auto why =
+          QObject::tr("It declares %1, but sits in a directory named %2 "
+                      "rather than %3.")
+              .arg(read.manifest.id, namespace_dir.dirName(), expected_key);
       LOG_W() << "module manager refuses module descriptor: " << package_path
-              << ", reason: it declares" << read.manifest.id
-              << "but sits in a namespace named" << namespace_dir.dirName()
-              << "rather than" << expected_key;
+              << ", reason: " << why;
+      RecordRefusal({package_path, origin, read.manifest.id, why,
+                     read.build_public_key, false});
       return false;
     }
 
@@ -303,8 +322,15 @@ class ModuleManager::Impl {
       LOG_W() << "module manager refuses module entry: " << package_path
               << ", reason: " << entry.reason << " ("
               << ModuleEntryStatusToString(entry.status) << ")";
+      RecordRefusal({package_path, origin, read.manifest.id, entry.reason,
+                     read.build_public_key, false});
       return false;
     }
+
+    // It loaded this time, so whatever was said about it last time is no
+    // longer true. Without this, enabling a module would leave it listed as
+    // pending forever.
+    ForgetRefusal(package_path);
 
     library_path = entry.path;
     manifest = read.manifest;
@@ -719,10 +745,41 @@ class ModuleManager::Impl {
     return gmc_->IsEventListening(trigger_id);
   }
 
+  void RecordRefusal(ModuleRefusalRecord record) {
+    const QMutexLocker lock(&refusals_mutex_);
+    // Keyed by descriptor path: a rescan should update what it says about a
+    // module rather than list it twice, and a module the user has since
+    // enabled must stop being reported as pending.
+    for (auto& existing : refusals_) {
+      if (existing.descriptor_path == record.descriptor_path) {
+        existing = std::move(record);
+        return;
+      }
+    }
+    refusals_.append(std::move(record));
+  }
+
+  void ForgetRefusal(const QString& descriptor_path) {
+    const QMutexLocker lock(&refusals_mutex_);
+    refusals_.removeIf([&](const ModuleRefusalRecord& r) {
+      return r.descriptor_path == descriptor_path;
+    });
+  }
+
+  auto ListRefusals() -> QList<ModuleRefusalRecord> {
+    const QMutexLocker lock(&refusals_mutex_);
+    return refusals_;
+  }
+
  private:
   SecureUniquePtr<GlobalModuleContext> gmc_;
   SecureUniquePtr<GlobalRegisterTable> grt_;
   std::atomic<int> need_register_modules_ = -1;
+
+  /// Guards refusals_ alone. Phase one prepares modules concurrently, so
+  /// every record below is written from a worker thread and read from the UI.
+  QMutex refusals_mutex_;
+  QList<ModuleRefusalRecord> refusals_;
 };
 
 auto GF_CORE_EXPORT IsModuleExists(ModuleIdentifier id) -> bool {
@@ -746,6 +803,10 @@ ModuleManager::ModuleManager(int channel)
       p_(SecureCreateUniqueObject<Impl>()) {}
 
 ModuleManager::~ModuleManager() = default;
+
+auto ModuleManager::ListModuleRefusals() -> QList<ModuleRefusalRecord> {
+  return p_->ListRefusals();
+}
 
 auto ModuleManager::PrepareModule(const QString& path, ModuleOrigin origin)
     -> ModuleLoadCandidate {

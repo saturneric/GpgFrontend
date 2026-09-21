@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/module/ModuleManager.h"
+
 namespace GpgFrontend::Module {
 
 /**
@@ -68,6 +70,14 @@ struct GF_CORE_EXPORT ModuleStatusReport {
 
   /// Identifiers of the modules that registered, sorted.
   QStringList loaded_modules;
+
+  /// Everything discovered and not loaded, with a reason each.
+  ///
+  /// This used to be missing, and it was missing in the one place a caller
+  /// needs it most: a command that exits non-zero because something was
+  /// refused could not say WHICH thing, so the next step was always to go and
+  /// read a log whose location depends on the build flavour.
+  QList<ModuleRefusalRecord> refused_modules;
 };
 
 /**

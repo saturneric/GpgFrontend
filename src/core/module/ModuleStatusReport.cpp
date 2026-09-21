@@ -38,6 +38,7 @@
 #include <QThread>
 
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleExternalTrust.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleManager.h"
 #include "core/module/ModuleTrustRoot.h"
@@ -101,6 +102,8 @@ auto CollectModuleStatusReport() -> ModuleStatusReport {
       ModuleManager::GetInstance().ListAllRegisteredModuleID();
   report.loaded_modules.sort();
 
+  report.refused_modules = ModuleManager::GetInstance().ListModuleRefusals();
+
   return report;
 }
 
@@ -109,6 +112,26 @@ auto WriteModuleStatusReport(const QString& path, QString& reason) -> bool {
 
   QJsonArray modules;
   for (const auto& id : report.loaded_modules) modules.append(id);
+
+  // The build key is rendered as a fingerprint rather than raw bytes: this
+  // file is a testing aid people read, and the fingerprint is the thing a
+  // person would compare. It is derived here, exactly as the Controller
+  // derives it, because the key itself is the only stored form.
+  QJsonArray refused;
+  for (const auto& r : report.refused_modules) {
+    QJsonObject entry{
+        {"descriptor", r.descriptor_path},
+        {"origin", QString::fromLatin1(ModuleOriginToString(r.origin))},
+        {"reason", r.reason},
+        {"pending_user_action", r.pending_user_action},
+    };
+    if (!r.module_id.isEmpty()) entry.insert("id", r.module_id);
+    if (!r.build_key.isEmpty()) {
+      entry.insert("build_key_fingerprint",
+                   ModuleBuildKeyFingerprint(r.build_key));
+    }
+    refused.append(entry);
+  }
 
   const QJsonObject root{
       {"schema", 1},
@@ -119,6 +142,7 @@ auto WriteModuleStatusReport(const QString& path, QString& reason) -> bool {
       {"loaded", report.loaded},
       {"refused", report.refused},
       {"loaded_modules", modules},
+      {"refused_modules", refused},
   };
 
   QFile file(path);

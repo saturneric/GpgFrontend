@@ -116,6 +116,42 @@ using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
  * maps an image and runs its initialisers stays sequential -- see
  * ModuleManager::PrepareModule().
  */
+/**
+ * @brief A module that was found and not loaded, and why.
+ *
+ * Refusals used to be a counter. The reason string was written to the log and
+ * dropped, and a refused module simply never appeared in any list -- so the
+ * application could start with a module missing and have nothing to say about
+ * it beyond a number. `--module-status` had the same hole, in the one place a
+ * caller needs it most: its own help text says a caller wants to know WHICH
+ * module failed when the command failed.
+ *
+ * Kept for every origin, not just external. A pending external module and a
+ * broken integrated one are both things a person may need to see, and
+ * building this for external modules alone would have left the older gap open
+ * next to a new mechanism that closed it.
+ */
+struct GF_CORE_EXPORT ModuleRefusalRecord {
+  QString descriptor_path;
+  ModuleOrigin origin = ModuleOrigin::kINTEGRATED;
+
+  /// Empty when the descriptor did not parse far enough to have one.
+  QString module_id;
+
+  /// What to show. Already a sentence.
+  QString reason;
+
+  /// The build key an external descriptor carried, when it got far enough to
+  /// have one verified. Empty otherwise. Raw bytes; the fingerprint is
+  /// derived for display, never stored.
+  QByteArray build_key;
+
+  /// Waiting on a person rather than broken: the build key is untrusted, or
+  /// the module was never enabled. The Controller shows these differently,
+  /// because one of them has an action attached and the other does not.
+  bool pending_user_action = false;
+};
+
 struct GF_CORE_EXPORT ModuleLoadCandidate {
   QString source_path;  ///< the `*.gfmodule`, or the loose library
 
@@ -184,6 +220,14 @@ class GF_CORE_EXPORT ModuleManager
    * label, and the only thing that can say so
    * @return what was established; @c ok is false when it was refused
    */
+  /**
+   * @brief Everything discovered and not loaded, with reasons.
+   *
+   * Ordered as discovery found it. Safe to call at any time; empty before the
+   * first scan.
+   */
+  auto ListModuleRefusals() -> QList<ModuleRefusalRecord>;
+
   auto PrepareModule(const QString& path, ModuleOrigin origin)
       -> ModuleLoadCandidate;
 
