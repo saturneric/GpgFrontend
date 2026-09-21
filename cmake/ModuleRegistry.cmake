@@ -353,6 +353,74 @@ endfunction()
 # gpgfrontend_collect_ts_files() + module_add_translations() +
 # gf_add_module_package(), which between them repeated the same five values in
 # two languages.
+# Host implementation libraries a module may never link, directly or through
+# anything else it links.
+#
+# Reaching one of these means reaching host functionality outside the granted
+# capability table, which is the single thing this whole arrangement exists to
+# prevent. gf_module_runtime is deliberately absent from the list: it is a
+# static archive of module-side code, not a host library.
+set(GF_MODULE_FORBIDDEN_HOST_LIBRARIES gf_core gf_ui gf_sdk gf_test)
+
+# The capability vocabulary, in the two kinds it really has. Must agree with
+# src/core/module/ModuleCapability.cpp, which is the Host's copy; a test
+# compares the two so they cannot drift.
+#
+# Enforceable: maps to a GFHostApi group the Host hands over or withholds.
+set(GF_MODULE_ENFORCEABLE_CAPABILITIES gpg pgp ui editor storage process)
+# Advisory: signed, recorded and shown to the user, but not Host-mediated --
+# a module opens a socket through Qt, so there is nothing here to withhold.
+# Kept separate rather than mixed in, so a grant mask never claims more than
+# it can deliver.
+set(GF_MODULE_ADVISORY_CAPABILITIES network)
+
+function(_gf_module_forbid_host_libraries target)
+  set(pending "${target}")
+  set(seen "")
+
+  # A breadth-first walk of the link closure. Depth matters: a module that
+  # links a helper target which links gf_core has the same edge as one that
+  # links gf_core itself, and only one of the two is obvious in review.
+  while(pending)
+    list(POP_FRONT pending current)
+    if(current IN_LIST seen)
+      continue()
+    endif()
+    list(APPEND seen "${current}")
+
+    if(current IN_LIST GF_MODULE_FORBIDDEN_HOST_LIBRARIES)
+      message(FATAL_ERROR
+        "module target ${target} reaches the host library \"${current}\".\n"
+        "Modules link gf_module_runtime only: everything a module may do it "
+        "does through the GFHostApi capability table it is handed at "
+        "activation, and a direct link edge bypasses that gate. If the module "
+        "needs something the table does not offer, add a primitive to "
+        "src/sdk/GFSDKHostApi.h and a wrapper in src/module_runtime/sdk -- do "
+        "not link the host.")
+    endif()
+
+    if(NOT TARGET ${current})
+      continue()
+    endif()
+    get_target_property(type ${current} TYPE)
+    if(type STREQUAL "INTERFACE_LIBRARY")
+      get_target_property(next ${current} INTERFACE_LINK_LIBRARIES)
+    else()
+      get_target_property(next ${current} LINK_LIBRARIES)
+    endif()
+    if(next)
+      foreach(dep IN LISTS next)
+        # Generator expressions cannot be evaluated here; they are rare on
+        # module link lines and are skipped rather than guessed at. The
+        # post-build binary check is what covers anything this cannot see.
+        if(NOT dep MATCHES "^\\$<")
+          list(APPEND pending "${dep}")
+        endif()
+      endforeach()
+    endif()
+  endwhile()
+endfunction()
+
 function(gf_add_module)
   cmake_parse_arguments(GAM
     ""
@@ -398,6 +466,26 @@ function(gf_add_module)
   _gf_module_json_string_array("${manifest_json}" "${manifest_file}"
     capabilities module_capabilities)
 
+  # Checked here as well as in the Host's manifest parser, and the duplication
+  # is the point: this one fails at CONFIGURE time, in the file the author is
+  # editing, naming the vocabulary. The parser's check runs against a package
+  # that has already been built and signed, which is far too late to be the
+  # only place a typo is caught.
+  foreach(capability IN LISTS module_capabilities)
+    if(NOT capability IN_LIST GF_MODULE_ENFORCEABLE_CAPABILITIES AND
+       NOT capability IN_LIST GF_MODULE_ADVISORY_CAPABILITIES)
+      message(FATAL_ERROR
+        "${manifest_file}: \"${capability}\" is not a capability this host "
+        "knows.\n"
+        "  granted by the host: ${GF_MODULE_ENFORCEABLE_CAPABILITIES}\n"
+        "  recorded only:       ${GF_MODULE_ADVISORY_CAPABILITIES}\n"
+        "The two lists are different in kind. A granted capability decides "
+        "which GFHostApi groups the module is handed; a recorded one is "
+        "signed and shown to the user but nothing routes through the host, "
+        "so the host cannot withhold it.")
+    endif()
+  endforeach()
+
   # events: the subscription allowlist, required. The runtime subscribes to
   # exactly these and refuses to activate if the module's handler table
   # disagrees, so an omission here is not a smaller claim -- it is no claim.
@@ -436,13 +524,28 @@ function(gf_add_module)
   set(target_name "gf_mod_${GAM_NAME}")
   add_library(${target_name} SHARED ${module_sources})
 
-  set_target_properties(${target_name} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(${target_name} PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    # Nothing in a module is meant to be reachable by name from outside it
+    # except GFModuleGetApi, which carries GF_MODULE_EXPORT explicitly. Only
+    # m_email used to opt into this by hand, where it took the dynamic symbol
+    # table from 8404 entries to one.
+    C_VISIBILITY_PRESET hidden
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN ON)
   target_compile_features(${target_name} PRIVATE cxx_std_17)
-  # The runtime first: its undefined SDK symbols are resolved by gf_sdk, which
-  # follows it on the link line. Nothing forces the archive open -- the
-  # module's own GFModuleGetApi references GFModuleRuntimeGetApi, and that
-  # reference is what makes the linker keep the entry point.
-  target_link_libraries(${target_name} PRIVATE gf_module_runtime gf_sdk)
+
+  # gf_module_runtime and NOTHING ELSE from the host.
+  #
+  # The runtime is a static archive that DEFINES the GFSDK* functions on top
+  # of the capability groups the host granted this module at activation. A
+  # module therefore has no link edge to gf_sdk, gf_core or gf_ui at all --
+  # which is the whole boundary, expressed where it can be enforced.
+  #
+  # Nothing forces the archive open: the module's own GFModuleGetApi
+  # references GFModuleRuntimeGetApi, and that reference is what makes the
+  # linker keep the entry point.
+  target_link_libraries(${target_name} PRIVATE gf_module_runtime)
 
   foreach(component IN LISTS GAM_QT)
     target_link_libraries(${target_name} PRIVATE Qt::${component})
@@ -451,6 +554,22 @@ function(gf_add_module)
   if(GAM_LINK)
     target_link_libraries(${target_name} PRIVATE ${GAM_LINK})
   endif()
+
+  # An undefined symbol left for the loader to resolve is precisely how a
+  # module used to reach the host, so it stops being tolerated. On MinGW and
+  # Mach-O this is already the rule; saying it on Linux too means a forbidden
+  # reference fails the BUILD on the machine the developer is sitting at,
+  # rather than at load time on someone else's.
+  if(NOT WIN32 AND NOT APPLE)
+    target_link_options(${target_name} PRIVATE "LINKER:--no-undefined")
+  endif()
+
+  # A module must not reach a host implementation library, however it is
+  # spelled and however deep in someone's LINK list it hides. Checked after
+  # the caller's own libraries have been applied, by name, at generate time --
+  # so the failure names the offending target instead of appearing later as a
+  # puzzling DT_NEEDED entry.
+  _gf_module_forbid_host_libraries(${target_name})
   if(GAM_INCLUDE_DIRS)
     target_include_directories(${target_name} PRIVATE ${GAM_INCLUDE_DIRS})
   endif()
@@ -477,6 +596,21 @@ function(gf_add_module)
   # per-config subdirectory, and the entry native must be a DIRECT child of
   # native/ or the Host refuses to resolve it.
   gf_pin_output_directory(${target_name} "${target_native_dir}")
+
+  # The boundary, checked on the artefact rather than on the link line.
+  #
+  # POST_BUILD so it cannot be skipped and so it runs the moment the native
+  # appears -- the failure then names the module that was just built, which is
+  # the module whose change caused it. The script skips gracefully where the
+  # platform's inspector is missing, and says so; it never passes silently.
+  if(NOT CMAKE_CROSSCOMPILING AND EXISTS
+     "${CMAKE_SOURCE_DIR}/scripts/check_module_boundary.sh")
+    add_custom_command(TARGET ${target_name} POST_BUILD
+      COMMAND "${CMAKE_SOURCE_DIR}/scripts/check_module_boundary.sh" --quiet
+              "$<TARGET_FILE:${target_name}>"
+      COMMENT "checking ${target_name} reaches the host only through GFHostApi"
+      VERBATIM)
+  endif()
 
 
   if(APPLE)
