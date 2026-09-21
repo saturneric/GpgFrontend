@@ -630,33 +630,26 @@ endif()
 # add_subdirectory order and modules/ is configured first, so this is the
 # earliest point at which every module has already been installed.
 #
-# Why the refresh is conditional rather than a stage: a plain install is a
-# byte-for-byte copy -- module targets set BUILD_WITH_INSTALL_RPATH, so CMake
-# applies no RPATH_CHANGE to them -- and the copied descriptors stay valid.
-# Stripping is the one transformation `cmake --install` performs that changes
-# the bytes a Linux binding covers, and it used to break every module in
-# silence: the install exited 0 and the application then started with nothing
-# loaded and no explanation.
+# Why the refresh is conditional, and why it is usually absent entirely.
+#
+# A plain install is a byte-for-byte copy -- module targets set
+# BUILD_WITH_INSTALL_RPATH, so CMake applies no RPATH_CHANGE to them -- and the
+# copied descriptors stay valid. Stripping is the one transformation
+# `cmake --install` performs that changes bytes a binding covers.
+#
+# With the default policy (GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=OFF)
+# there is no binding to invalidate, so stripping is simply not an event: an
+# ordinary local install, dh_strip and rpmbuild all become byte changes nobody
+# is making a claim about. That is what retired the downstream packager hook
+# this block used to generate -- a `debian/rules` override a packager had to
+# know to write, for a failure mode they had no way to anticipate.
+#
+# The refresh survives only for a build that asked for REQUIRED, where
+# stripping genuinely does break every module -- and used to do it in silence:
+# the install exited 0 and the application then started with nothing loaded and
+# no explanation.
 if(GPGFRONTEND_MODULE_TARGETS)
   list(LENGTH GPGFRONTEND_MODULE_DIRECTORY_KEYS GF_INSTALL_MODULE_COUNT)
-
-  # The one case CMake cannot reach: packaging tools that strip AFTER install
-  # has finished. This is the hook they call, generated into the build tree and
-  # deliberately NOT installed -- it names the signing seed, which belongs to
-  # the build and not to anything shipped. See PACKAGING.md.
-  set(GF_PACKAGER
-    "${GPGFRONTEND_HOST_TOOL_DIR}/gf_module_packager${CMAKE_EXECUTABLE_SUFFIX}")
-  set(GF_SEED "${GF_MODULE_BUILD_KEY_DIR}/module-build.seed")
-  set(GF_MODULE_INSTALL_ROOT
-    "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/gpgfrontend/modules")
-  set(GF_MODULE_COUNT "${GF_INSTALL_MODULE_COUNT}")
-  set(BUILD_DIR "${CMAKE_BINARY_DIR}")
-  configure_file(
-    "${CMAKE_SOURCE_DIR}/cmake/gpgfrontend-module-refresh.in"
-    "${CMAKE_BINARY_DIR}/gpgfrontend-module-refresh"
-    @ONLY
-    FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-                     GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 
   install(CODE "
     set(_gf_packager \"${GPGFRONTEND_HOST_TOOL_DIR}/gf_module_packager${CMAKE_EXECUTABLE_SUFFIX}\")
@@ -670,7 +663,7 @@ if(GPGFRONTEND_MODULE_TARGETS)
         \"checked: \${_gf_packager}\")
     endif()
 
-    if(CMAKE_INSTALL_DO_STRIP)
+    if(CMAKE_INSTALL_DO_STRIP AND ${GF_INTEGRATED_MODULE_BINDING_REQUIRED})
       message(STATUS \"Refreshing module descriptors after strip\")
       execute_process(
         COMMAND \"\${_gf_packager}\" reseal
