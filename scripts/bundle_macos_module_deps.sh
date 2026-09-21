@@ -28,12 +28,13 @@
 # dependencies (they are deployment artifacts, not descriptor contents), and it
 # means two modules cannot collide on a dependency's file name.
 #
-# The descriptor is untouched and does not need regenerating: macOS binds its
-# entry by `apple-binding-id`, an identifier embedded in a Mach-O section at
-# link time, not by a digest of the file. `install_name_tool` rewrites load
-# commands and `codesign` rewrites __LINKEDIT; neither touches section
-# contents. This step could not be run in this position on a platform that
-# bound file bytes.
+# The descriptor is untouched and does not need regenerating: a macOS
+# descriptor makes no claim about the bytes of its entry at all. Apple signs
+# these dylibs with the application's own identity and dyld enforces that at
+# map time, which is what authenticates the executable here. `install_name_tool`
+# and `codesign` may therefore rewrite whatever they need to. This step could
+# not run in this position on a platform whose descriptor bound file bytes --
+# which is exactly why the Linux leg reseals and this one does not.
 #
 # Usage: scripts/bundle_macos_module_deps.sh --namespace-root DIR
 #

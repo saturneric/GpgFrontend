@@ -680,7 +680,19 @@ else()
     set(CMAKE_INSTALL_RPATH "@executable_path/../Frameworks")
   else()
     set(CMAKE_SKIP_INSTALL_RPATH FALSE)
-    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    # Relative to the binary, not to the prefix that happened to be configured.
+    #
+    # This was "${CMAKE_INSTALL_PREFIX}/lib", which is frozen at configure
+    # time -- so `cmake --install --prefix /somewhere/else` produced a tree
+    # whose own binary looked for its libraries under the ORIGINAL prefix and
+    # could not start. The module verification at the end of the install still
+    # passed, because it runs the build tree's tool rather than the installed
+    # application, so the failure only appeared when someone ran it.
+    #
+    # $ORIGIN/../lib covers <prefix>/bin -> <prefix>/lib, and the absolute
+    # libdir stays for a multilib install where that is not the same place.
+    set(CMAKE_INSTALL_RPATH
+      "$ORIGIN/../lib;$ORIGIN/../${CMAKE_INSTALL_LIBDIR};${CMAKE_INSTALL_PREFIX}/lib")
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   endif()
 endif()

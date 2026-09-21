@@ -390,6 +390,15 @@ jobs:
       - name: Build GpgFrontend (Linux)
         run: |
           export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH
+          # Native binding is REQUIRED here and OFF by default, which is the
+          # one place the two legitimately differ. An AppImage has no
+          # map-time code-integrity enforcement of its own -- nothing like
+          # Apple's signature checked by dyld -- so the exact-ELF binding is
+          # the only thing that would notice a stale, corrupt or simply wrong
+          # native inside the image. --require-binding below proves this
+          # setting was not lost, because an unbound tree verifies perfectly
+          # well without it.
+          #
           # No GPGFRONTEND_BUILD_APP_IMAGE: release packaging no longer
           # redirects where the build puts things. The AppDir is produced by
           # `cmake --install` below, which is the same tree a distribution
@@ -399,7 +408,9 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=/usr \
             -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
             -DGPGFRONTEND_BUILD_PORTABLE=${{env.GPGFRONTEND_BUILD_PORTABLE}} \
-            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
+            -DGPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED \
+            -DGPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM=FILE_SHA256
           cmake --build ${{ github.workspace }}/build \
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
@@ -598,9 +609,14 @@ jobs:
             --expect-count "$EXPECTED"
 
           # NOTHING may touch a module native after this point.
+          # --require-binding, because this leg MUST ship bound artifacts and
+          # the build default is the weaker one. Without it a configure line
+          # that lost -DGPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED
+          # would verify green and release an unbound AppImage.
           "$PACKAGER" verify-module-set \
             --namespace-root "$MODULE_ROOT" \
             --expect-count "$EXPECTED" \
+            --require-binding \
             --assert-no-native-outside ${{github.workspace}}/build/artifacts/AppDir
 
           ${{github.workspace}}/scripts/audit_module_natives.sh \
@@ -644,7 +660,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DGPGFRONTEND_BUILD_STABLE=${{env.GPGFRONTEND_BUILD_STABLE}} \
             -DGPGFRONTEND_BUILD_PORTABLE=${{env.GPGFRONTEND_BUILD_PORTABLE}} \
-            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON
+            -DGPGFRONTEND_LINK_GPGME_INTO_CORE=ON \
+            -DGPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED \
+            -DGPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM=PE_AUTHENTICODE_SHA256
           cmake --build build \
             --config ${{ env.BUILD_TYPE }} \
             --parallel \
@@ -815,9 +833,12 @@ jobs:
           MODULE_ROOT="build/artifacts/modules"
           PACKAGER="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_packager)"
           EXPECTED="$(${{github.workspace}}/scripts/build_info.sh ${{github.workspace}}/build module_count)"
+          # --require-binding: see the AppImage leg. Windows must ship bound
+          # artifacts, and an unbound tree verifies fine without this flag.
           "$PACKAGER" verify-module-set \
             --namespace-root "$MODULE_ROOT" \
             --expect-count "$EXPECTED" \
+            --require-binding \
             --assert-no-native-outside build/artifacts
 
           ./scripts/audit_module_natives.sh \
@@ -887,7 +908,7 @@ jobs:
             }
           }
 
-          & $packager verify-module-set --namespace-root $scratch --expect-count $expected
+          & $packager verify-module-set --namespace-root $scratch --expect-count $expected --require-binding
           if ($LASTEXITCODE -ne 0) {
             throw 'Authenticode signing broke the entry binding'
           }
@@ -911,7 +932,7 @@ jobs:
           $bytes[$at] = $bytes[$at] -bxor 0xFF
           [System.IO.File]::WriteAllBytes($victim, $bytes)
 
-          & $packager verify-module-set --namespace-root $scratch --expect-count $expected
+          & $packager verify-module-set --namespace-root $scratch --expect-count $expected --require-binding
           if ($LASTEXITCODE -eq 0) {
             throw "executable content was changed in $([System.IO.Path]::GetFileName($victim)) and the binding still verified; this digest covers nothing"
           }

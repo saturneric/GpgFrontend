@@ -389,15 +389,17 @@ jobs:
       # The same four checks the Developer ID bundle gets, from the same
       # script: dependencies resolve inside the bundle, descriptors still
       # verify after deployment rewrote load commands, the deployment audit
-      # passes, and every entry still carries its binding section -- read on the
-      # copy that ships, not the staging copy it came from.
+      # passes, and every entry a descriptor names is in the bundle -- checked
+      # on the copy that ships, not the staging copy it came from.
       #
-      # What this leg CANNOT check is the one thing that gates shipping modules
-      # to the App Store: whether store processing -- re-signing and thinning --
-      # preserves the __GPGFRONTEND section the descriptor binds. No runner can
-      # answer that, because the artifact that matters is the one Apple produces
-      # from this one. That is stage X Tier 3, and it is answered by submitting
-      # this build, not by another check here.
+      # This leg no longer has an unanswerable question in it. It used to: the
+      # descriptor bound a __GPGFRONTEND section, and whether App Store
+      # processing preserved that section through re-signing and thinning was
+      # something no runner could establish, because the artifact that matters
+      # is the one Apple produces. That mechanism is gone. A macOS descriptor
+      # authenticates module metadata and build identity; Apple authenticates
+      # the executable code and enforces it at load time, which it does for
+      # every other Mach-O in the bundle already.
       - name: Verify The Bundle's Modules (macOS)
         run: |
           set -euo pipefail

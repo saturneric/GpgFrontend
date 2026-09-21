@@ -28,7 +28,7 @@
 #   2. the descriptors still verify against the natives, after the deployment
 #      tools have finished rewriting load commands;
 #   3. the deployment audit (§11.0) over the staging tree;
-#   4. every ENTRY native still carries its __GPGFRONTEND binding section.
+#   4. every ENTRY native a descriptor names is actually in the bundle.
 #
 # Check 1 exists because a signed, notarized dmg shipped with three of its four
 # modules unable to load: they referenced Qt frameworks the app does not link,
@@ -134,9 +134,11 @@ if [ "$missing" -gt 0 ]; then
 fi
 
 # The proof the descriptors still describe what is there, now that the
-# deployment tools have finished rewriting load commands. They can, because
-# macOS binds `apple-binding-id` -- a section codesign and install_name_tool
-# both leave alone -- and not a digest of the file.
+# deployment tools have finished rewriting load commands. They can, because a
+# macOS descriptor makes no claim about the bytes of its entry at all: Apple
+# signs these dylibs with the application's own identity and dyld enforces
+# that at map time, which is stronger than a check we would perform once and
+# then hand a path to a loader.
 echo "--- descriptors still verify against the bundled natives ---"
 "$PACKAGER" verify-module-set \
   --namespace-root "$DESC_ROOT" \
@@ -148,38 +150,32 @@ echo "--- deployment audit ---"
   --packager "$PACKAGER" \
   --expect-count "$EXPECTED"
 
-echo "--- GpgFrontend binding sections, in the bundle ---"
-# ENTRY natives only, taken from what each signed descriptor binds, and checked
+echo "--- every bound entry is actually in the bundle ---"
+# ENTRY natives only, taken from what each signed descriptor names, and checked
 # on the copy that SHIPS rather than the staging copy it came from.
 #
 # Not every dylib under here: since the dependency bundling step a namespace
-# also holds private dependencies -- libssl, libcrypto -- and those are
-# ordinary third-party libraries that have never carried a GpgFrontend section
-# and never should. Requiring one of them would fail the build for a file doing
-# exactly what it is supposed to.
+# also holds private dependencies -- libssl, libcrypto -- which are ordinary
+# third-party libraries and are nobody's entry.
 #
 # Reading the staging tree instead looks equivalent and is not. A bundle
 # assembled with NO modules at all passes every check above it -- the
-# dependency walk finds nothing to complain about, and the sections are all
-# present in the tree the modules were copied FROM. That is how this leg came
-# to build a sandboxed app containing none of them.
+# dependency walk finds nothing to complain about, because there is nothing
+# there to walk. That is how this leg came to build a sandboxed app containing
+# none of them, and this loop is what notices.
+#
+# What this no longer does is look for a __GPGFRONTEND,__gf_binding section.
+# That mechanism is gone: the descriptor authenticates module metadata and
+# build identity, and Apple authenticates the executable code. Checking
+# placement is the part that was ever ours.
 found=0
 while read -r _ key dylib; do
   [ -n "$dylib" ] || continue
 
   shipped="$NATIVE_ROOT/$key/$(basename "$dylib")"
   if [ ! -f "$shipped" ]; then
-    echo "FAIL the descriptor for $key binds $(basename "$dylib")," >&2
+    echo "FAIL the descriptor for $key names $(basename "$dylib")," >&2
     echo "     which is not in the bundle at Contents/Frameworks/GpgFrontendModules/$key/" >&2
-    exit 1
-  fi
-
-  # otool prints the section contents as bytes; what matters here is that the
-  # section exists at all, which is what -sectcreate was asked for and what the
-  # descriptor's binding depends on.
-  if ! otool -s __GPGFRONTEND __gf_binding "$shipped" \
-       | grep -q 'Contents of (__GPGFRONTEND,__gf_binding) section'; then
-    echo "FAIL $shipped carries no __GPGFRONTEND,__gf_binding section" >&2
     exit 1
   fi
   printf 'ok   %s/%s\n' "$key" "$(basename "$shipped")"
@@ -193,4 +189,4 @@ test "$found" -eq "$EXPECTED" || {
   exit 1
 }
 
-echo "the bundle's $EXPECTED module(s) verify, resolve and are bound"
+echo "the bundle's $EXPECTED module(s) verify, resolve and are placed"
