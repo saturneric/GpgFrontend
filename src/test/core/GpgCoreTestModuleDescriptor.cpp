@@ -27,6 +27,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <sodium.h>
 
 #include <QCoreApplication>
 #include <QDir>
@@ -49,6 +50,7 @@
 #include "core/module/ModuleTrustRoot.h"
 #include "core/utils/AsyncUtils.h"
 #include "core/utils/BuildInfoUtils.h"
+#include "core/utils/CommonUtils.h"
 #include "sdk/GFSDKBuildInfo.h"
 
 /**
@@ -295,17 +297,50 @@ TEST_F(ModuleDescriptorTest, ADescriptorCarryingABuildKeyIsRefused) {
 }
 
 TEST_F(ModuleDescriptorTest, ADescriptorIsVerifiedWithTheHostsOwnKey) {
-  // The default is not "no key" but "this Host's key". There is no longer a
-  // way to ask for a verification that passes on the descriptor's own terms.
+  // There is no key parameter, and that is the assertion.
+  //
+  // This used to flip a bit in ModuleBuildPublicKey() and pass the result in,
+  // which tested that a wrong ARGUMENT was rejected -- a weaker claim, and
+  // one about a seam that should not exist. The integrated trust root is a
+  // property of the build, not something a caller supplies, so the only way
+  // to fail this check now is to sign with a key that is genuinely not this
+  // build's. Which is what happens below.
   ASSERT_TRUE(Module::VerifyModuleDescriptor(Package()).ok);
-  EXPECT_TRUE(
-      Module::VerifyModuleDescriptor(Package(), Module::ModuleBuildPublicKey())
-          .ok);
 
-  QByteArray wrong(Module::ModuleBuildPublicKey());
-  wrong[0] = static_cast<char>(wrong[0] ^ 0xFF);
+  EnsureSodiumInit();
+  QByteArray foreign_public(crypto_sign_PUBLICKEYBYTES, '\0');
+  QByteArray foreign_secret(crypto_sign_SECRETKEYBYTES, '\0');
+  crypto_sign_keypair(reinterpret_cast<unsigned char*>(foreign_public.data()),
+                      reinterpret_cast<unsigned char*>(foreign_secret.data()));
+  ASSERT_NE(foreign_public, Module::ModuleBuildPublicKey());
 
-  const auto v = Module::VerifyModuleDescriptor(Package(), wrong);
+  // An integrated-SHAPED descriptor -- it carries no build key of its own --
+  // signed by somebody else. Exactly the artifact an attacker would have to
+  // produce, and the one the embedded trust root exists to refuse.
+  QVector<QPair<QString, QByteArray>> members;
+  ASSERT_TRUE(ReadDescriptorMembers(Package(), members));
+
+  QByteArray manifest;
+  for (const auto& m : members) {
+    if (m.first == "META-INF/manifest.json") manifest = m.second;
+  }
+  ASSERT_FALSE(manifest.isEmpty());
+
+  QByteArray signature(crypto_sign_BYTES, '\0');
+  crypto_sign_detached(
+      reinterpret_cast<unsigned char*>(signature.data()), nullptr,
+      reinterpret_cast<const unsigned char*>(manifest.constData()),
+      static_cast<unsigned long long>(manifest.size()),
+      reinterpret_cast<const unsigned char*>(foreign_secret.constData()));
+
+  for (auto& m : members) {
+    if (m.first == "META-INF/manifest.sig") m.second = signature;
+  }
+
+  const auto foreign_path = Path("foreignkey.gfmodule");
+  ASSERT_TRUE(WriteDescriptorArchive(foreign_path, members));
+
+  const auto v = Module::VerifyModuleDescriptor(foreign_path);
   EXPECT_FALSE(v.ok);
   EXPECT_EQ(v.status, Module::ModuleDescriptorStatus::kUNTRUSTED_BUILD_KEY);
 }

@@ -125,6 +125,8 @@ class ModuleBindingPolicyTest : public ::testing::Test {
     spec.signing_seed = BuildSigningSeed();
     spec.output_path = dir_.path() + "/module.gfmodule";
 
+    descriptor_path_ = spec.output_path;
+
     const auto built = Module::BuildModuleDescriptor(spec);
     EXPECT_TRUE(built.ok) << built.reason.toStdString();
 
@@ -137,6 +139,7 @@ class ModuleBindingPolicyTest : public ::testing::Test {
   Module::ModuleNativeRoot native_root_;
   QString source_native_;
   QString entry_path_;
+  QString descriptor_path_;
 };
 
 }  // namespace
@@ -287,6 +290,71 @@ TEST_F(ModuleBindingPolicyTest, AStructurallyValidWrongNativeIsAccepted) {
   EXPECT_FALSE(with.ok) << "a bound descriptor must catch exactly this";
   EXPECT_EQ(with.status,
             Module::ModuleEntryStatus::kENTRY_VERIFICATION_MISMATCH);
+}
+
+// ---------------------------------------------------------------------------
+// The binding policy must never weaken descriptor authentication
+// ---------------------------------------------------------------------------
+
+TEST_F(ModuleBindingPolicyTest, TheBindingPolicyCannotWeakenDescriptorTrust) {
+  // The invariant, asserted against the policy that relaxes the most.
+  //
+  // kNOT_REQUIRED governs exactly one thing: whether the descriptor must also
+  // bind the bytes of its entry native. It has no bearing on what proves the
+  // descriptor itself, and this case exists so that a future change which
+  // quietly routes authentication through the policy fails here rather than
+  // in a release.
+  const auto manifest = Build(Module::ModuleBindingRequirement::kNOT_REQUIRED);
+
+  // Still signed by this build's embedded key -- there is no argument that
+  // could make it otherwise, which is the structural half of the invariant.
+  const auto verdict = Module::VerifyModuleDescriptor(descriptor_path_);
+  ASSERT_TRUE(verdict.ok) << verdict.reason.toStdString();
+  EXPECT_EQ(verdict.build_public_key, Module::ModuleBuildPublicKey());
+
+  // Still bound to this build's identity.
+  EXPECT_EQ(verdict.manifest.build_id, Module::ModuleBuildId());
+
+  // And the structural checks still ran: the entry resolved, which it only
+  // does after name validation, containment, file type and image header.
+  const auto entry = Module::ResolveAndVerifyNativeEntry(manifest, native_root_,
+                                                         kIntegratedUnbound);
+  EXPECT_TRUE(entry.ok) << entry.reason.toStdString();
+}
+
+TEST_F(ModuleBindingPolicyTest, AWrongBuildIdIsRefusedWhateverThePolicy) {
+  // build_id equality is not negotiable for an integrated module, and is not
+  // something the binding policy has an opinion about. Both policies, so a
+  // future "OFF also relaxes this" cannot pass by only being tried one way.
+  Module::ModuleDescriptorBuildSpec spec;
+  spec.module_id = "com.bktus.gpgfrontend.module.test";
+  spec.version = "1.0.0";
+  spec.sdk_abi = GF_SDK_ABI_VERSION;
+  spec.min_host_version = "2.0.0";
+  spec.events = QStringList{"APPLICATION_LOADED"};
+  spec.translation_context = "ModuleTest";
+  spec.metadata = {{"Name", "T"}, {"Description", "d"}, {"Author", "a"}};
+  spec.build_id = "gfb1-00000000000000000000000000000000";
+  spec.build_timestamp = "2026-09-15T00:00:00Z";
+  spec.build_source_commit = QString(40, '0');
+  spec.platform_os = Module::ManifestHostOsName();
+  spec.platform_arch = QSysInfo::currentCpuArchitecture();
+  spec.platform_qt = QT_VERSION_STR;
+  spec.entry_native_name = "gf_mod_test_sentinel";
+  spec.entry_native_file = entry_path_;
+  spec.signing_seed = BuildSigningSeed();
+
+  for (const auto binding : {Module::ModuleBindingRequirement::kNOT_REQUIRED,
+                             Module::ModuleBindingRequirement::kREQUIRED}) {
+    spec.entry_binding = binding;
+    spec.output_path = dir_.path() + "/otherbuild-" +
+                       QString::number(static_cast<int>(binding)) + ".gfmodule";
+    ASSERT_TRUE(Module::BuildModuleDescriptor(spec).ok);
+
+    const auto verdict = Module::VerifyModuleDescriptor(spec.output_path);
+    EXPECT_FALSE(verdict.ok);
+    EXPECT_EQ(verdict.status, Module::ModuleDescriptorStatus::kWRONG_BUILD);
+  }
 }
 
 // ---------------------------------------------------------------------------

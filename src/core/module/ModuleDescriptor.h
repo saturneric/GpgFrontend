@@ -202,9 +202,34 @@ auto GF_CORE_EXPORT ReadModuleDescriptorResources(
 auto GF_CORE_EXPORT VerifyExternalModuleDescriptor(const QString& package_path)
     -> ModuleDescriptorVerification;
 
-auto GF_CORE_EXPORT VerifyModuleDescriptor(
-    const QString& package_path,
-    const QByteArray& expected_public_key = ModuleBuildPublicKey())
+/**
+ * @brief Verify an INTEGRATED module descriptor.
+ *
+ * @warning There is no key parameter, and there must not be one. This
+ * function always verifies against ModuleBuildPublicKey() and always requires
+ * ModuleBuildId(), so no caller can ask for a verification on any other
+ * terms. It used to take a defaulted key, which meant the integrated trust
+ * root was a caller's argument -- a thing that can be passed wrongly -- when
+ * it is properly a property of the build.
+ *
+ * ## The invariant this exists to hold
+ *
+ * The native-binding policy may relax what a descriptor says about its entry
+ * native. It may never relax what proves the descriptor itself. Whatever
+ * GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING is set to, an integrated
+ * module is eligible to load only if all of this holds first:
+ *
+ * ```
+ * signature verifies against this Host build's embedded Ed25519 public key
+ * build_id equals this Host build's identity
+ * it came from the Host-controlled integrated namespace
+ * namespace key, path containment, file type and image header all pass
+ * ```
+ *
+ * Only then does the binding policy apply, and it governs one thing: whether
+ * the descriptor must also bind the bytes of its entry.
+ */
+auto GF_CORE_EXPORT VerifyModuleDescriptor(const QString& package_path)
     -> ModuleDescriptorVerification;
 
 }  // namespace GpgFrontend::Module

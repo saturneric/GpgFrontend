@@ -99,7 +99,10 @@ auto Refuse(ModuleDescriptorStatus status, const QString& reason)
  * @param public_key_bytes the key found alongside them
  * @param counts how many of each META-INF member were seen
  * @param actual_digests every non-META-INF file found, and its digest
- * @param expected_public_key when non-empty, the key that MUST have been used
+ * @param expected_public_key the key the signature must verify against. For
+ * an integrated descriptor this is always ModuleBuildPublicKey(), supplied by
+ * ReadPackage() and not reachable from any caller; for an external one it is
+ * the key the descriptor itself carries.
  * @return the verdict
  */
 auto ConcludeVerification(ModuleOrigin origin, const QByteArray& manifest_bytes,
@@ -305,8 +308,7 @@ namespace {
 /// NativeEntry()'s job, one layer up. This function knows about archives,
 /// manifests, signatures and resources, and deliberately knows nothing about
 /// how a library is found or loaded.
-auto ReadPackage(ModuleOrigin origin, const QString& package_path,
-                 const QByteArray& expected_public_key)
+auto ReadPackage(ModuleOrigin origin, const QString& package_path)
     -> ModuleDescriptorVerification {
   if (!EnsureSodiumInit()) {
     return Refuse(ModuleDescriptorStatus::kIO_FAILED,
@@ -412,8 +414,12 @@ auto ReadPackage(ModuleOrigin origin, const QString& package_path,
   // only internal consistency, and the decision that matters -- whether this
   // key is one the user accepts -- is made afterwards, by the user, against
   // the fingerprint of these exact bytes.
+  // Integrated: this build's embedded key, taken from the trust root rather
+  // than from an argument. Nothing above can substitute one, which is what
+  // makes "an integrated descriptor is signed by this build" a property of
+  // the code instead of a convention every caller has to keep.
   const auto verify_with = origin == ModuleOrigin::kINTEGRATED
-                               ? expected_public_key
+                               ? ModuleBuildPublicKey()
                                : public_key_bytes;
 
   auto conclusion = ConcludeVerification(
@@ -458,11 +464,9 @@ auto ReadModuleDescriptorResources(const QString& descriptor_path,
   return true;
 }
 
-auto VerifyModuleDescriptor(const QString& package_path,
-                            const QByteArray& expected_public_key)
+auto VerifyModuleDescriptor(const QString& package_path)
     -> ModuleDescriptorVerification {
-  return ReadPackage(ModuleOrigin::kINTEGRATED, package_path,
-                     expected_public_key);
+  return ReadPackage(ModuleOrigin::kINTEGRATED, package_path);
 }
 
 auto VerifyExternalModuleDescriptor(const QString& package_path)
@@ -478,7 +482,7 @@ auto VerifyExternalModuleDescriptor(const QString& package_path)
   // separate question "do we accept that key" belongs to whoever can show it
   // to a person, and keeping them apart is what lets the Controller display a
   // fingerprint for a module it is still refusing to load.
-  return ReadPackage(ModuleOrigin::kEXTERNAL, package_path, {});
+  return ReadPackage(ModuleOrigin::kEXTERNAL, package_path);
 }
 
 }  // namespace GpgFrontend::Module
