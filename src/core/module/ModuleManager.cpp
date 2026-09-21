@@ -39,6 +39,7 @@
 #include "core/module/GlobalRegisterTable.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleDescriptor.h"
+#include "core/module/ModuleExternalTrust.h"
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleEntryBinding.h"
 #include "core/module/ModuleLoadStats.h"
@@ -213,12 +214,57 @@ class ModuleManager::Impl {
                              QString& library_path, ModuleManifest& manifest,
                              QString& module_hash, QString& library_name)
       -> bool {
-    const auto read = VerifyModuleDescriptor(package_path);
+    // Two verifiers, because the two boundaries are genuinely different and
+    // one function full of `if (external)` would make it possible to add a
+    // check to the wrong side without noticing. Integrated descriptors are
+    // checked against the key compiled into this Host and must carry none of
+    // their own; external ones carry the key they are checked against, which
+    // proves internal consistency and nothing more.
+    const auto read = origin == ModuleOrigin::kINTEGRATED
+                          ? VerifyModuleDescriptor(package_path)
+                          : VerifyExternalModuleDescriptor(package_path);
     if (!read.ok) {
       LOG_W() << "module manager refuses module descriptor: " << package_path
               << ", reason: " << read.reason << " ("
               << ModuleDescriptorStatusToString(read.status) << ")";
       return false;
+    }
+
+    // The user's two decisions, asked BEFORE anything opens the native.
+    //
+    // Discovery must never imply execution: an external module the user has
+    // not approved costs one descriptor read and stops here, with its native
+    // never opened and its bytes never hashed. Both decisions are required,
+    // and the key is asked about first so a module whose key was never
+    // accepted says so rather than reporting "not enabled" and sending the
+    // reader to the wrong control.
+    if (origin == ModuleOrigin::kEXTERNAL) {
+#if defined(Q_OS_MACOS)
+      // Not "unimplemented": the configuration this application ships under
+      // forbids it. Library Validation is on, so the process cannot load a
+      // dylib that does not carry this application's Team ID -- and a third
+      // party's module by definition does not. Admitting one here would mean
+      // verifying it, trusting it, enabling it, and then watching dyld refuse
+      // it anyway, with the user having made two decisions for nothing.
+      //
+      // Fail closed and say so. When macOS external modules become possible
+      // they will need a native-binding design of their own, reviewed on its
+      // own evidence; apple-binding-id is not it and is not coming back.
+      LOG_W() << "module manager refuses external module: " << package_path
+              << ", reason: external modules are not supported on macOS, "
+                 "because Library Validation admits only code signed with "
+                 "this application's Team ID";
+      return false;
+#else
+      const auto authorization = ExternalModuleAuthorization(
+          read.manifest.id, read.build_public_key);
+      if (authorization != ModuleAuthorizationState::kTRUSTED_AND_ENABLED) {
+        LOG_I() << "module manager holds external module: " << package_path
+                << ", reason: "
+                << ModuleAuthorizationStateToString(authorization);
+        return false;
+      }
+#endif
     }
 
     // The namespace this descriptor was found in, and whether it is the one

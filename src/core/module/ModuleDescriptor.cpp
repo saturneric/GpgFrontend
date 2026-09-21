@@ -102,7 +102,7 @@ auto Refuse(ModuleDescriptorStatus status, const QString& reason)
  * @param expected_public_key when non-empty, the key that MUST have been used
  * @return the verdict
  */
-auto ConcludeVerification(const QByteArray& manifest_bytes,
+auto ConcludeVerification(ModuleOrigin origin, const QByteArray& manifest_bytes,
                           const QByteArray& signature_bytes,
                           const QByteArray& public_key_bytes,
                           const std::array<int, 3>& counts,
@@ -116,14 +116,36 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
     return Refuse(ModuleDescriptorStatus::kMALFORMED,
                   "it does not carry exactly one manifest and one signature");
   }
-  // The build key used to live in META-INF. A descriptor still carrying one is
-  // not a descriptor with an extra file in it -- it is one from before the
-  // trust root moved into the Host, and it was signed by a key this build has
-  // no reason to accept.
-  if (counts[2] != 0) {
-    return Refuse(ModuleDescriptorStatus::kMALFORMED,
-                  "it carries a build key inside itself; the trust root "
-                  "belongs to the Host that loads it, not to the package");
+  // Whether a descriptor may carry its own key depends entirely on which
+  // trust boundary it crossed, and the two shapes are disjoint on purpose:
+  // that is what stops a descriptor of one kind being accepted as the other
+  // by moving the file, with no policy comparison needed to notice.
+  //
+  // INTEGRATED: must not carry one. The trust root belongs to the Host that
+  // loads it, not to the package -- a descriptor that supplies the key it is
+  // checked against establishes only that it agrees with itself.
+  //
+  // EXTERNAL: must carry one, because nothing else can produce it. An Ed25519
+  // detached signature does not reveal its key, so without this the Host
+  // could not even tell the user WHICH key to decide about. The carried key
+  // is not a trust root either: it is a claim, and it means nothing until the
+  // user has trusted that exact key. The trust root is the user's store.
+  if (origin == ModuleOrigin::kINTEGRATED) {
+    if (counts[2] != 0) {
+      return Refuse(ModuleDescriptorStatus::kMALFORMED,
+                    "it carries a build key inside itself; the trust root "
+                    "belongs to the Host that loads it, not to the package");
+    }
+  } else {
+    if (counts[2] != 1) {
+      return Refuse(ModuleDescriptorStatus::kMALFORMED,
+                    "an external module must carry exactly one build key, so "
+                    "there is something to show you before you trust it");
+    }
+    if (public_key_bytes.size() != crypto_sign_PUBLICKEYBYTES) {
+      return Refuse(ModuleDescriptorStatus::kMALFORMED,
+                    "the build key it carries is the wrong size");
+    }
   }
   if (signature_bytes.size() != crypto_sign_BYTES) {
     return Refuse(ModuleDescriptorStatus::kMALFORMED,
@@ -148,7 +170,10 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
     // no second key in play any more, so there is no version of this check
     // that can pass for a descriptor this build did not sign.
     return Refuse(ModuleDescriptorStatus::kUNTRUSTED_BUILD_KEY,
-                  "it was not signed by this build of GpgFrontend");
+                  origin == ModuleOrigin::kINTEGRATED
+                      ? "it was not signed by this build of GpgFrontend"
+                      : "its signature does not match the build key it "
+                        "carries, so it is damaged or forged");
   }
 
   const auto parsed = ParseModuleManifest(manifest_bytes);
@@ -163,7 +188,13 @@ auto ConcludeVerification(const QByteArray& manifest_bytes,
   // Right key, wrong build. Distinct from kUNTRUSTED_BUILD_KEY on purpose:
   // one means "not ours", the other means "ours, but from a different build",
   // and only the second is something a rebuild fixes.
-  if (m.build_id != ModuleBuildId()) {
+  //
+  // Integrated only. An external module's build id names the build tree that
+  // produced it, which is somebody else's; comparing it to ours would refuse
+  // every external module ever made and would be asserting nothing. What
+  // stands in for it there is compatibility -- sdk_abi and min_host_version,
+  // checked below for both -- plus the user's decision about the key.
+  if (origin == ModuleOrigin::kINTEGRATED && m.build_id != ModuleBuildId()) {
     return Refuse(ModuleDescriptorStatus::kWRONG_BUILD,
                   QString("it was built for %1, and this is %2")
                       .arg(m.build_id, ModuleBuildId()));
@@ -274,7 +305,7 @@ namespace {
 /// NativeEntry()'s job, one layer up. This function knows about archives,
 /// manifests, signatures and resources, and deliberately knows nothing about
 /// how a library is found or loaded.
-auto ReadPackage(const QString& package_path,
+auto ReadPackage(ModuleOrigin origin, const QString& package_path,
                  const QByteArray& expected_public_key)
     -> ModuleDescriptorVerification {
   if (!EnsureSodiumInit()) {
@@ -376,10 +407,19 @@ auto ReadPackage(const QString& package_path,
                   "a file in it could not be read");
   }
 
-  auto conclusion =
-      ConcludeVerification(manifest_bytes, signature_bytes, public_key_bytes,
-                           {manifest_count, signature_count, public_key_count},
-                           actual_digests, expected_public_key);
+  // For an external descriptor the key it carries IS the key it is checked
+  // against. That is not circular reasoning being smuggled in: it establishes
+  // only internal consistency, and the decision that matters -- whether this
+  // key is one the user accepts -- is made afterwards, by the user, against
+  // the fingerprint of these exact bytes.
+  const auto verify_with = origin == ModuleOrigin::kINTEGRATED
+                               ? expected_public_key
+                               : public_key_bytes;
+
+  auto conclusion = ConcludeVerification(
+      origin, manifest_bytes, signature_bytes, public_key_bytes,
+      {manifest_count, signature_count, public_key_count}, actual_digests,
+      verify_with);
 
   return conclusion;
 }
@@ -421,7 +461,24 @@ auto ReadModuleDescriptorResources(const QString& descriptor_path,
 auto VerifyModuleDescriptor(const QString& package_path,
                             const QByteArray& expected_public_key)
     -> ModuleDescriptorVerification {
-  return ReadPackage(package_path, expected_public_key);
+  return ReadPackage(ModuleOrigin::kINTEGRATED, package_path,
+                     expected_public_key);
+}
+
+auto VerifyExternalModuleDescriptor(const QString& package_path)
+    -> ModuleDescriptorVerification {
+  // No key argument, and there cannot be one: the key is inside the
+  // descriptor, because a detached Ed25519 signature does not reveal it and
+  // the Host has to be able to name the key before anyone can decide about
+  // it. What comes back in build_public_key is that key, and it has been
+  // proven to match the signature -- which is all it has been proven to be.
+  //
+  // This function deliberately does NOT consult the user's trusted store. It
+  // answers "is this descriptor internally sound, and whose key says so"; the
+  // separate question "do we accept that key" belongs to whoever can show it
+  // to a person, and keeping them apart is what lets the Controller display a
+  // fingerprint for a module it is still refusing to load.
+  return ReadPackage(ModuleOrigin::kEXTERNAL, package_path, {});
 }
 
 }  // namespace GpgFrontend::Module

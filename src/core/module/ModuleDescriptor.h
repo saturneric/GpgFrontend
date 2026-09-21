@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/module/ModuleHostPolicy.h"
 #include "core/module/ModuleManifest.h"
 #include "core/module/ModuleTrustRoot.h"
 
@@ -175,6 +176,31 @@ struct GF_CORE_EXPORT ModuleDescriptorVerification {
 auto GF_CORE_EXPORT ReadModuleDescriptorResources(
     const QString& descriptor_path, QMap<QString, QByteArray>& out,
     QString& reason) -> bool;
+
+/**
+ * @brief Verify an EXTERNAL module descriptor against the key it carries.
+ *
+ * The external half of the split, and the shapes are disjoint on purpose: an
+ * integrated descriptor must not carry a key and is checked against the one
+ * compiled into this Host; an external descriptor must carry one and is
+ * checked against that. So a descriptor of either kind moved into the other's
+ * directory is refused by structure, with no policy comparison involved.
+ *
+ * @warning A successful return does NOT mean the module may be loaded. It
+ * means the descriptor is internally sound and names the key that signed it.
+ * Whether that key is trusted, and whether the user has enabled this module,
+ * are separate decisions made above this layer -- and both are required.
+ *
+ * `build_id` is not compared: it names the build tree that produced the
+ * module, which is not this one. Compatibility is carried by `sdk_abi` and
+ * `min_host_version`, which are checked exactly as they are for an integrated
+ * descriptor.
+ *
+ * @return the verdict; on success @c build_public_key is the carried key, and
+ * its fingerprint is what a person is asked about.
+ */
+auto GF_CORE_EXPORT VerifyExternalModuleDescriptor(const QString& package_path)
+    -> ModuleDescriptorVerification;
 
 auto GF_CORE_EXPORT VerifyModuleDescriptor(
     const QString& package_path,

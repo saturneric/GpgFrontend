@@ -41,10 +41,22 @@ struct ModuleInitArgs {};
  * a real case rather than a hypothetical: before this, a typo in the settings
  * file was indistinguishable from having chosen "only_integrated".
  */
+/// A DISCOVERY switch, not a loading one.
+///
+/// kALL used to mean "load external modules too", and it no longer can:
+/// external modules never load without the user trusting their build key and
+/// enabling them individually (ModuleExternalTrust.h). What this setting
+/// decides is whether the external directory is looked at -- and therefore
+/// whether anything can be offered for that decision at all.
+///
+/// The distinction is not pedantry. A setting that promises loading, with an
+/// approval gate silently overriding it, is a setting that lies to whoever
+/// reads it.
 enum class ModuleLoadingPolicy {
-  kDISABLE,          ///< load nothing at all
+  kDISABLE,          ///< look at nothing, load nothing
   kONLY_INTEGRATED,  ///< only the modules shipped with the application
-  kALL,              ///< also external ones
+  kALL,              ///< also LOOK AT the user's own; loading still needs
+                     ///< explicit per-module approval
 };
 
 /// The outcome of reading a persisted policy.
