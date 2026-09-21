@@ -57,14 +57,20 @@ GeneralTab::GeneralTab(QWidget* parent)
     ui_->defaultEngineComboBox->addItem(engine, engine.toUpper());
   }
 
-  ui_->modulePolicyLabel->setText(tr("Module Loading Policy:"));
+  ui_->modulePolicyLabel->setText(tr("Module Discovery:"));
   ui_->modulePolicyComboBox->addItem(tr("Only Integrated Modules"),
                                      "only_integrated");
-  ui_->modulePolicyComboBox->addItem(tr("All Modules"), "all");
+  ui_->modulePolicyComboBox->addItem(tr("Also Look For My Own Modules"),
+                                     "all");
   ui_->modulePolicyComboBox->addItem(tr("Disable"), "disable");
+  // Worded as discovery, because that is all it decides. Finding a module of
+  // the user's own does not run it: its build key has to be trusted and the
+  // module enabled, one at a time, in the module controller. A label reading
+  // "All Modules" promised something the approval gate then quietly refused.
+  //
   // No "Signed Packages Only": every policy is that now, because a native is
   // named by a verified descriptor rather than found on disk. A profile that
-  // still stores the old key is read as "All Modules" (see ModuleInit.h) and
+  // still stores the old key is read as the same value (see ModuleInit.h) and
   // rewritten the next time this dialog saves.
 
   ui_->importConfirmationBox->setTitle(tr("Operation"));
