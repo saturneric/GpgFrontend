@@ -41,7 +41,15 @@ namespace GpgFrontend {
  */
 auto GF_CORE_EXPORT BuildQtLoggingFilterRules(int level) -> QString;
 
-enum class GFLogLevel : uint8_t {
+/// @brief Log severity, as the host resolves it.
+///
+/// `kTRACE` is -1 rather than 0, and the rest keep the values they have always
+/// had, because an unset `advanced/log_level` setting reads back as 0 and the
+/// resolution path depends on that meaning `kDEBUG` (see GpgFrontendContext).
+/// Renumbering to make room below would silently change what every existing
+/// profile resolves to. A signed type is the price, and it is a small one.
+enum class GFLogLevel : int8_t {
+  kTRACE = -1,
   kDEBUG = 0,
   kINFO = 1,
   kWARNING = 2,

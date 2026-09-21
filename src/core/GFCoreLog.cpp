@@ -38,6 +38,7 @@ auto ParseLogLevelName(const QString& log_level) -> std::optional<int> {
   // a level anybody asks for, so it means "say nothing" — not "be quiet".
   if (level.isEmpty() || level == "none") return {};
 
+  if (level == "trace") return static_cast<int>(GFLogLevel::kTRACE);
   if (level == "debug") return static_cast<int>(GFLogLevel::kDEBUG);
   if (level == "info") return static_cast<int>(GFLogLevel::kINFO);
   if (level == "warn") return static_cast<int>(GFLogLevel::kWARNING);
@@ -46,25 +47,40 @@ auto ParseLogLevelName(const QString& log_level) -> std::optional<int> {
 }
 
 auto BuildQtLoggingFilterRules(int level) -> QString {
+  // A module's trace output is emitted at Qt's debug type on a `.trace` child
+  // category, so `debug` would otherwise turn it on. It is per-item chatter,
+  // and a reader who asked for debug has not asked to be buried in it -- so
+  // every level except kTRACE silences it explicitly. This line is what makes
+  // trace a level of its own rather than a second name for debug.
+  constexpr auto kNoModuleTrace = "module.*.trace.debug=false\n";
+
   switch (static_cast<GFLogLevel>(level)) {
-    case GFLogLevel::kDEBUG:
+    case GFLogLevel::kTRACE:
       return {};
+    case GFLogLevel::kDEBUG:
+      return kNoModuleTrace;
     case GFLogLevel::kINFO:
-      return "*.debug=false\n";
+      return kNoModuleTrace + QString("*.debug=false\n");
     case GFLogLevel::kWARNING:
-      return "*.debug=false\n"
-             "*.info=false\n";
+      return kNoModuleTrace +
+             QString(
+                 "*.debug=false\n"
+                 "*.info=false\n");
     case GFLogLevel::kCRITICAL:
-      return "*.debug=false\n"
-             "*.info=false\n"
-             "*.warning=false\n";
+      return kNoModuleTrace +
+             QString(
+                 "*.debug=false\n"
+                 "*.info=false\n"
+                 "*.warning=false\n");
     case GFLogLevel::kFATAL:
-      return "*.debug=false\n"
-             "*.info=false\n"
-             "*.warning=false\n"
-             "*.critical=false\n";
+      return kNoModuleTrace +
+             QString(
+                 "*.debug=false\n"
+                 "*.info=false\n"
+                 "*.warning=false\n"
+                 "*.critical=false\n");
     default:
-      return "*.debug=false\n";
+      return kNoModuleTrace + QString("*.debug=false\n");
   }
 }
 
