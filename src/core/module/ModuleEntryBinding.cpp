@@ -122,7 +122,7 @@ auto ModuleEntryStatusToString(ModuleEntryStatus status) -> const char* {
     case ModuleEntryStatus::kENTRY_VERIFICATION_MISMATCH:
       return "the library it names is not the one it was signed for";
     case ModuleEntryStatus::kENTRY_BINDING_ABSENT:
-      return "the library it names carries no binding";
+      return "its descriptor binds no library, and one was required";
     case ModuleEntryStatus::kIO_FAILED:
       return "the library it names could not be read";
   }
@@ -228,8 +228,8 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
     if (policy.BindingRequired()) {
       return Refuse(
           ModuleEntryStatus::kENTRY_BINDING_ABSENT,
-          QString("its descriptor records no binding for \"%1\", and a %2 "
-                  "module must bind the library it names")
+          QString("its descriptor records no binding for \"%1\", and %2 "
+                  "modules must bind the library they name")
               .arg(info.fileName(),
                    QString::fromLatin1(ModuleOriginToString(policy.origin))));
     }
