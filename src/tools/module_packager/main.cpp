@@ -71,10 +71,11 @@ void PrintUsage(QTextStream& err) {
       << "                         [--translation-context NAME]\n"
       << "                         [--meta KEY=VALUE]...\n"
       << "                         --entry-native name=NAME,file=PATH\n"
+      << "                         [--entry-binding required|omitted]\n"
       << "                         [--file ARCHIVE_PATH=SOURCE_FILE]...\n"
       << "\n"
       << "subcommands: verify-module-set, reseal, "
-         "binding-id, host-info\n";
+         "host-info\n";
 }
 
 /// Split `KEY=VALUE` at the FIRST `=`, so a value may contain one.
@@ -121,7 +122,7 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
   auto expected = -1;
   QString outside_root;
   auto print_entries = false;
-  auto print_bindings = false;
+  auto require_binding = false;
 
   for (auto i = 0; i < args.size(); ++i) {
     const auto& flag = args.at(i);
@@ -140,12 +141,17 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
       // No value to consume: the loop's own ++i is the whole advance. An
       // extra decrement here would cancel it out and spin forever.
       print_entries = true;
-    } else if (flag == "--print-bindings") {
-      // For the build record: what each module's entry is bound by, and to
-      // what. Separate from --print-entries because they answer different
-      // questions and one line trying to answer both is a line every consumer
-      // has to re-parse when either changes.
-      print_bindings = true;
+    } else if (flag == "--require-binding") {
+      // Demand a binding whatever this build was configured with.
+      //
+      // Monotonic on purpose: this flag can only ask for MORE than the build
+      // default, and there is deliberately no flag that asks for less. A
+      // release leg that must ship bound artifacts passes it, so forgetting
+      // -DGPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED fails here
+      // instead of shipping quietly. Without it, an unbound tree verifies
+      // perfectly well -- which is correct, and is exactly why the release
+      // legs cannot rely on a plain verify to notice.
+      require_binding = true;
     } else if (flag == "--assert-no-native-outside") {
       // A SHIPPING tree, not a build tree. A build tree legitimately holds
       // module libraries outside any namespace -- test fixtures, intermediate
@@ -163,7 +169,7 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
     err << "usage: gf_module_packager verify-module-set --namespace-root DIR\n"
         << "                         [--expect-count N]\n"
         << "                         [--assert-no-native-outside TREE]\n"
-        << "                         [--print-entries] [--print-bindings]\n";
+        << "                         [--print-entries] [--require-binding]\n";
     return 2;
   }
 
@@ -171,7 +177,20 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
   out << "verifying " << root << "\n"
       << "  build: " << GpgFrontend::Module::ModuleBuildId() << "\n";
 
-  const auto result = GpgFrontend::Module::VerifyModuleSet(root, expected);
+  // Integrated, because that is what this tree is: the set this build is
+  // about to ship as its own. Pointing it at a user's mods/ directory would
+  // grant external modules integrated trust, which is the one way this
+  // command can be misused from inside the tree.
+  const GpgFrontend::Module::ModuleEntryTrustPolicy policy{
+      GpgFrontend::Module::ModuleOrigin::kINTEGRATED,
+      require_binding ? GpgFrontend::Module::ModuleBindingRequirement::kREQUIRED
+                      : GpgFrontend::Module::HostIntegratedBindingRequirement()};
+
+  out << "  binding: "
+      << (policy.BindingRequired() ? "required" : "not required") << "\n";
+
+  const auto result =
+      GpgFrontend::Module::VerifyModuleSet(policy, root, expected);
 
   for (auto it = result.verified.constBegin(); it != result.verified.constEnd();
        ++it) {
@@ -208,13 +227,6 @@ auto VerifyModuleSetCommand(const QStringList& args, QTextStream& err) -> int {
     for (auto it = result.entries.constBegin(); it != result.entries.constEnd();
          ++it) {
       out << "entry " << it.key() << " " << it.value() << "\n";
-    }
-  }
-
-  if (print_bindings) {
-    for (auto it = result.bindings.constBegin();
-         it != result.bindings.constEnd(); ++it) {
-      out << "binding " << it.key() << " " << it.value() << "\n";
     }
   }
 
@@ -367,6 +379,14 @@ auto ResealCommand(const QStringList& args, QTextStream& err) -> int {
     spec.platform_qt = manifest.platform_qt;
     spec.entry_native_name = manifest.entry_native.name;
     spec.entry_native_file = native_path;
+    // Carried over from the signed original, like every other field here.
+    // Resealing recomputes a binding; it must never ADD one, because a
+    // descriptor that deliberately made no claim about its entry would
+    // otherwise start making one the moment a deployment tool ran.
+    spec.entry_binding =
+        manifest.entry_native.verification.has_value()
+            ? GpgFrontend::Module::ModuleBindingRequirement::kREQUIRED
+            : GpgFrontend::Module::ModuleBindingRequirement::kNOT_REQUIRED;
     spec.signing_seed = seed;
     spec.output_path = descriptor;
 
@@ -419,59 +439,6 @@ auto HostInfoCommand(const QStringList& args, QTextStream& err) -> int {
   return 0;
 }
 
-/// `binding-id`: write the macOS binding id for a module into a file.
-///
-/// A subcommand rather than a CMake function, and for a reason worth stating:
-/// the derivation hashes NUL-separated fields, and a CMake string cannot
-/// contain a NUL. Computing it there would mean hashing something else and
-/// calling it the same name -- a second implementation that could never agree
-/// with this one. So there is only this one, and CMake calls it.
-auto BindingIdCommand(const QStringList& args, QTextStream& err) -> int {
-  GpgFrontend::Module::ModuleEntryBindingContext context;
-  QString out_path;
-
-  for (auto i = 0; i < args.size(); ++i) {
-    const auto& flag = args.at(i);
-    const auto value = [&]() -> QString {
-      if (i + 1 >= args.size()) return {};
-      return args.at(++i);
-    };
-
-    if (flag == "--id") {
-      context.module_id = value();
-    } else if (flag == "--build-id") {
-      context.build_id = value();
-    } else if (flag == "--sdk-abi") {
-      context.sdk_abi = value().toInt();
-    } else if (flag == "--output") {
-      out_path = value();
-    } else {
-      err << "gf_module_packager: unknown argument: " << flag << "\n";
-      return 2;
-    }
-  }
-
-  if (context.module_id.isEmpty() || context.build_id.isEmpty() ||
-      context.sdk_abi <= 0 || out_path.isEmpty()) {
-    err << "usage: gf_module_packager binding-id --id ID --build-id ID "
-           "--sdk-abi N --output FILE\n";
-    return 2;
-  }
-
-  const auto binding = GpgFrontend::Module::ModuleEntryBindingId(context);
-
-  QFile out(out_path);
-  if (!out.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-    err << "gf_module_packager: could not write " << out_path << "\n";
-    return 1;
-  }
-  // Exactly 64 characters and no newline: this becomes the whole content of a
-  // Mach-O section, and a trailing byte would make it the wrong length.
-  out.write(binding.toLatin1());
-  out.close();
-  return 0;
-}
-
 auto main(int argc, char** argv) -> int {
   QCoreApplication app(argc, argv);
   QTextStream err(stderr);
@@ -490,10 +457,6 @@ auto main(int argc, char** argv) -> int {
   if (args.size() > 1 && args.at(1) == "host-info") {
     return HostInfoCommand(args.mid(2), err);
   }
-  if (args.size() > 1 && args.at(1) == "binding-id") {
-    return BindingIdCommand(args.mid(2), err);
-  }
-
   for (auto i = 1; i < args.size(); ++i) {
     const auto& flag = args.at(i);
 
@@ -552,6 +515,24 @@ auto main(int argc, char** argv) -> int {
       }
       spec.signing_seed = seed.readAll();
       seed.close();
+    } else if (flag == "--entry-binding") {
+      // A statement about the DESCRIPTOR, never an algorithm name. There is
+      // deliberately no `--binding-algorithm none`: absence is not an
+      // algorithm, and spelling it as one would hand the choice to whoever
+      // writes the packaging command.
+      const auto val = value();
+      if (val == "required") {
+        spec.entry_binding =
+            GpgFrontend::Module::ModuleBindingRequirement::kREQUIRED;
+      } else if (val == "omitted") {
+        spec.entry_binding =
+            GpgFrontend::Module::ModuleBindingRequirement::kNOT_REQUIRED;
+      } else {
+        err << "gf_module_packager: --entry-binding wants required or "
+               "omitted, not \""
+            << val << "\"\n";
+        return 2;
+      }
     } else if (flag == "--entry-native") {
       // name=<logical>,file=<path>. The logical name is what the descriptor
       // records; the file is read to compute the binding value and is NOT
