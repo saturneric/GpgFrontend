@@ -336,7 +336,7 @@ auto ReadPackage(ModuleOrigin origin, const QString& package_path)
   }
   if (package.size() > kMaxPackageTotalBytes) {
     return Refuse(ModuleDescriptorStatus::kMALFORMED,
-                  "this file is larger than a module package may be");
+                  "this file is too large to be a module package");
   }
   const auto package_bytes = package.readAll();
   package.close();

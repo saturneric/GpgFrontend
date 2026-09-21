@@ -60,11 +60,11 @@ GeneralTab::GeneralTab(QWidget* parent)
   ui_->modulePolicyLabel->setText(tr("Module Discovery:"));
   ui_->modulePolicyComboBox->addItem(tr("Only Integrated Modules"),
                                      "only_integrated");
-  ui_->modulePolicyComboBox->addItem(tr("Also Look For My Own Modules"),
+  ui_->modulePolicyComboBox->addItem(tr("Also Look For Modules I've Added"),
                                      "all");
   ui_->modulePolicyComboBox->addItem(tr("Disable"), "disable");
-  // Worded as discovery, because that is all it decides. Finding a module of
-  // the user's own does not run it: its build key has to be trusted and the
+  // Worded as discovery, because that is all it decides. Finding a module the
+  // user added does not run it: its build key has to be trusted and the
   // module enabled, one at a time, in the module controller. A label reading
   // "All Modules" promised something the approval gate then quietly refused.
   //

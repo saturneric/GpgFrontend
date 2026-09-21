@@ -136,11 +136,11 @@ auto ResolveNativeEntry(const ModuleManifest& manifest,
   if (!IsLogicalNativeName(entry.name)) {
     return Refuse(
         ModuleEntryStatus::kBAD_ENTRY_NAME,
-        QString("\"%1\" is not a logical native name").arg(entry.name));
+        QString("\"%1\" isn't a valid module file name").arg(entry.name));
   }
   if (root.path.isEmpty()) {
     return Refuse(ModuleEntryStatus::kIO_FAILED,
-                  "no module native directory was given");
+                  "no module folder was given to look in");
   }
 
   // Built from a validated name and a directory this process chose. A logical
@@ -183,8 +183,7 @@ auto ResolveNativeEntry(const ModuleManifest& manifest,
   if (canonical_root.isEmpty() || canonical_file.isEmpty() ||
       QFileInfo(canonical_file).absolutePath() != canonical_root) {
     return Refuse(ModuleEntryStatus::kNATIVE_PATH_ESCAPE,
-                  QString("\"%1\" does not live in the module native "
-                          "directory")
+                  QString("\"%1\" isn't located where this module expects it")
                       .arg(info.fileName()));
   }
 
@@ -228,8 +227,9 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
     if (policy.BindingRequired()) {
       return Refuse(
           ModuleEntryStatus::kENTRY_BINDING_ABSENT,
-          QString("its descriptor records no binding for \"%1\", and %2 "
-                  "modules must bind the library they name")
+          QString("this module doesn't include the security information "
+                  "needed to verify \"%1\", which %2 modules are required "
+                  "to have")
               .arg(info.fileName(),
                    QString::fromLatin1(ModuleOriginToString(policy.origin))));
     }
@@ -292,7 +292,7 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
   }
   if (actual != verification.value) {
     return Refuse(ModuleEntryStatus::kENTRY_VERIFICATION_MISMATCH,
-                  QString("\"%1\" is not the library this descriptor binds")
+                  QString("\"%1\" isn't the file this module was signed for")
                       .arg(info.fileName()));
   }
 

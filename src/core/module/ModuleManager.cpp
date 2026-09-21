@@ -526,7 +526,7 @@ class ModuleManager::Impl {
     module->SetGPC(gmc_.get());
     ModuleLoadStats::GetInstance().AddLoadedModule();
 
-    LOG_D() << "a new need register module: "
+    LOG_D() << "module loaded, awaiting registration: "
             << QFileInfo(module_library_path).fileName();
 
     auto runner = Thread::TaskRunnerGetter::GetInstance().GetTaskRunner(
@@ -734,8 +734,8 @@ class ModuleManager::Impl {
     const auto needed = need_register_modules_.load(std::memory_order_relaxed);
     if (needed == -1) return false;
     const auto registered = gmc_->GetRegisteredModuleNum();
-    LOG_D() << "module manager report, need register:" << needed << "registered"
-            << registered;
+    LOG_D() << "module manager report: needing registration" << needed
+            << ", registered" << registered;
     return needed == registered;
   }
 

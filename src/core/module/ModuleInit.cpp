@@ -35,9 +35,9 @@
 
 #include "core/function/CoreInitProgress.h"
 #include "core/function/GlobalSettingStation.h"
-#include "core/module/ModuleHostPolicy.h"
 #include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleDispatchGate.h"
+#include "core/module/ModuleHostPolicy.h"
 #include "core/module/ModuleLoadStats.h"
 #include "core/module/ModuleManager.h"
 #include "core/module/ModuleSdkBridge.h"
@@ -94,7 +94,7 @@ auto LoadIntegratedMods() -> QMap<QString, ModuleOrigin> {
 
   if (!QDir(module_path).exists()) {
     LOG_W() << "integrated modules at path: " << module_path
-            << " not found, abort...";
+            << " not found; aborting.";
     return {};
   }
 
@@ -107,7 +107,7 @@ auto LoadExternalMods() -> QMap<QString, ModuleOrigin> {
 
   if (!QDir(mods_path).exists()) {
     LOG_W() << "external module directory at path " << mods_path
-            << " not found, abort...";
+            << " not found; aborting.";
     return {};
   }
 
@@ -208,7 +208,7 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
   const auto policy = parsed.policy;
 
   if (policy == ModuleLoadingPolicy::kDISABLE) {
-    LOG_I() << "module loading is disabled by user settings, abort...";
+    LOG_I() << "module loading is disabled by user settings; aborting.";
     ModuleManager::GetInstance().SetNeedRegisterModulesNum(0);
     // Credited rather than skipped: the startup progress bar blends a fixed
     // set of weights, so a track that never reports leaves it stuck short of

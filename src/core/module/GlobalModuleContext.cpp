@@ -103,7 +103,7 @@ class GlobalModuleContext::Impl {
     if (module == nullptr ||
         module_register_table_.find(module->GetModuleIdentifier()) !=
             module_register_table_.end()) {
-      FLOG_W("module is null or have already registered this module");
+      FLOG_W("module is null, or has already been registered");
       registered_modules_++;
       return false;
     }
@@ -240,7 +240,7 @@ class GlobalModuleContext::Impl {
     if (met_it == module_events_table_.end()) {
       // Log a warning if the event is not registered and nobody is listening
       LOG_I() << "event: " << event_id
-              << " is not listening by anyone and not registered as well.";
+              << " has no listeners and is not registered either.";
       return false;
     }
 
@@ -250,7 +250,7 @@ class GlobalModuleContext::Impl {
     // Check if the set of listeners is empty
     if (listeners_set.empty()) {
       // Log a warning if nobody is listening to this event
-      LOG_I() << "event: " << event_id << " is not listening by anyone";
+      LOG_I() << "event: " << event_id << " has no listeners";
       return false;
     }
 
