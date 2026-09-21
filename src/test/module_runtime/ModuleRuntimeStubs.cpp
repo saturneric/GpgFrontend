@@ -30,6 +30,7 @@
 
 #include <GFSDKBasic.h>
 #include <GFSDKBasicModel.h>
+#include <GFSDKLog.h>
 #include <GFSDKModule.h>
 #include <GFSDKModuleModel.h>
 #include <GFSDKUI.h>
@@ -151,6 +152,30 @@ void GFModuleLogWarn(const char* msg) {
 }
 void GFModuleLogError(const char* msg) {
   Rec().errors.append(QString::fromUtf8(msg));
+}
+
+// The module log macros route through GFModuleLogAt now, so the recording has
+// to live here or the runtime's warnings and errors would stop being observed
+// while every test still passed.
+void GFModuleLogAt(const char* /*module_id*/, int severity,
+                   const char* /*file*/, int /*line*/, const char* /*function*/,
+                   const char* msg) {
+  switch (severity) {
+    case GF_LOG_WARN:
+      GFModuleLogWarn(msg);
+      break;
+    case GF_LOG_ERROR:
+      GFModuleLogError(msg);
+      break;
+    default:
+      break;
+  }
+}
+
+// Nothing is filtered in the harness: a test that asserts on a message must
+// not depend on a level having been configured.
+int GFModuleLogEnabled(const char* /*module_id*/, int /*severity*/) {
+  return 1;
 }
 
 }  // extern "C"
