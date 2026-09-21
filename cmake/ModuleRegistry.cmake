@@ -156,6 +156,16 @@ function(_gf_module_package_command)
   list(APPEND packager_args
     --entry-native "name=${module_target},file=$<TARGET_FILE:${module_target}>")
 
+  # Whether this descriptor binds the bytes of that native, from the Host
+  # build policy rather than from anything the module says. A statement about
+  # the descriptor, never an algorithm name: there is deliberately no way to
+  # ask for "algorithm: none", because absence is not an algorithm.
+  if(GF_INTEGRATED_MODULE_BINDING_REQUIRED)
+    list(APPEND packager_args --entry-binding required)
+  else()
+    list(APPEND packager_args --entry-binding omitted)
+  endif()
+
   add_custom_command(
     OUTPUT "${package_file}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${package_dir}"
@@ -468,45 +478,6 @@ function(gf_add_module)
   # native/ or the Host refuses to resolve it.
   gf_pin_output_directory(${target_name} "${target_native_dir}")
 
-  if(APPLE)
-    # The GpgFrontend binding, placed in its own Mach-O section at LINK time.
-    #
-    # macOS binds its entry by this identifier rather than by a digest of the
-    # file, because Apple signing rewrites __LINKEDIT and the App Store may
-    # re-sign again on download -- so a digest would either forbid normal
-    # platform signing or have to be regenerated after it, which is what would
-    # drag a build-produced packager into a privileged signing job.
-    #
-    # Sections survive both: codesign appends and rewrites load commands, and
-    # install_name_tool rewrites load commands, and neither touches section
-    # contents. The reader walks load commands rather than file offsets, so it
-    # is indifferent to both.
-    #
-    # It must be here, at link time, because everything it is derived from --
-    # module id, build id, SDK ABI -- is known at configure time and the
-    # section cannot be added afterwards without invalidating a signature.
-    # Computed by gf_module_packager, never here. The derivation hashes
-    # NUL-separated fields and a CMake string cannot hold a NUL, so a CMake
-    # implementation could not agree with the runtime's even in principle.
-    set(binding_file "${CMAKE_CURRENT_BINARY_DIR}/${target_name}_binding.bin")
-
-    add_custom_command(
-      OUTPUT "${binding_file}"
-      COMMAND gf_module_packager binding-id
-        --id "${module_id}"
-        --build-id "${GPGFRONTEND_BUILD_ID}"
-        --sdk-abi "${GF_SDK_ABI_VERSION}"
-        --output "${binding_file}"
-      DEPENDS gf_module_packager "${GF_MODULE_TRUST_ROOT_SOURCE}"
-      COMMENT "Binding id for ${target_name}"
-      VERBATIM)
-
-    add_custom_target(${target_name}_binding DEPENDS "${binding_file}")
-    add_dependencies(${target_name} ${target_name}_binding)
-
-    target_link_options(${target_name} PRIVATE
-      "LINKER:-sectcreate,__GPGFRONTEND,__gf_binding,${binding_file}")
-  endif()
 
   if(APPLE)
     # Where a module looks for Qt and the gf_* libraries.
