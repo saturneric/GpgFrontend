@@ -166,6 +166,10 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
   auto* diagnostics_form = new QFormLayout(diagnostics_box);
 
   log_level_combo_ = new QComboBox(diagnostics_box);
+  // Trace is listed because it is now a level the command line can set. Left
+  // out, SettingsAdvanced would find no matching item for a profile running at
+  // trace and quietly write Debug back over it on the next save.
+  log_level_combo_->addItem(tr("Trace"), static_cast<int>(GFLogLevel::kTRACE));
   log_level_combo_->addItem(tr("Debug"), static_cast<int>(GFLogLevel::kDEBUG));
   log_level_combo_->addItem(tr("Info"), static_cast<int>(GFLogLevel::kINFO));
   log_level_combo_->addItem(tr("Warning"),
@@ -174,8 +178,9 @@ AdvancedTab::AdvancedTab(QWidget* parent) : QWidget(parent) {
                             static_cast<int>(GFLogLevel::kCRITICAL));
   log_level_combo_->addItem(tr("Fatal"), static_cast<int>(GFLogLevel::kFATAL));
   log_level_combo_->setToolTip(WrappingToolTip(
-      tr("The least severe message that still gets written to the log. Debug "
-         "is the most detailed and writes the most to disk.")));
+      tr("The least severe message that still gets written to the log. Trace "
+         "is the most detailed and writes the most to disk; it adds per-item "
+         "output from modules that debug does not include.")));
   diagnostics_form->addRow(tr("Log Level:"), log_level_combo_);
 
   ring_capacity_spin_ = new QSpinBox(diagnostics_box);
