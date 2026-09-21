@@ -42,6 +42,10 @@ std::atomic<int> g_log_level{static_cast<int>(GpgFrontend::GFLogLevel::kINFO)};
 
 auto ShouldLogMessage(QtMsgType type, GpgFrontend::GFLogLevel level) -> bool {
   switch (level) {
+    // Trace rides on QtDebugMsg and is separated from debug by its own Qt
+    // category, not by this gate -- so the gate must let it through here, or
+    // the most verbose level would be the one that silences it.
+    case GpgFrontend::GFLogLevel::kTRACE:
     case GpgFrontend::GFLogLevel::kDEBUG:
       return true;
 

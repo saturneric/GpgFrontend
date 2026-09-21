@@ -28,16 +28,125 @@
 
 #include "GFSDKLog.h"
 
-#include <qglobal.h>
+#include <QLoggingCategory>
+#include <QMessageLogger>
+#include <QString>
 
-Q_LOGGING_CATEGORY(module, "module")
+#include "GFSDKModuleAttribution.h"
+#include "core/module/ModuleLogCategory.h"
 
-void GFModuleLogTrace(const char* l) { qCDebug(module) << QString(l); }
+/// Where a message the host could not attribute to any module goes.
+///
+/// Every module used to share this one category, which is why a log line could
+/// never say who wrote it. It is now the fallback alone.
+Q_LOGGING_CATEGORY(module, "module.unknown")
 
-void GFModuleLogDebug(const char* l) { qCDebug(module) << QString(l); }
+namespace {
 
-void GFModuleLogInfo(const char* l) { qCInfo(module) << QString(l); }
+/// The module a log call should be filed under.
+///
+/// The host's own thread-local record wins wherever it exists, because it is
+/// the half a module does not write. The argument is the fallback, and it is
+/// what makes attribution survive a module's own worker thread -- a thread the
+/// host never entered, and where the thread-local is therefore empty.
+auto ResolveModuleId(const char* module_id) -> QString {
+  const auto* entered = GFSdkCurrentModule();
+  if (entered != nullptr && *entered != '\0') {
+    return QString::fromUtf8(entered);
+  }
+  if (module_id != nullptr && *module_id != '\0') {
+    return QString::fromUtf8(module_id);
+  }
+  return {};
+}
 
-void GFModuleLogWarn(const char* l) { qCWarning(module) << QString(l); }
+/// The category one message belongs to.
+///
+/// Trace gets a `.trace` child so that Qt's own rule matching can silence it
+/// without silencing debug. An id that resolves to nothing lands on the shared
+/// fallback category rather than on a category named after an empty string.
+auto CategoryFor(const QString& module_id, int severity)
+    -> const QLoggingCategory& {
+  if (module_id.isEmpty()) return module();
 
-void GFModuleLogError(const char* l) { qCCritical(module) << QString(l); }
+  return severity == GF_LOG_TRACE
+             ? GpgFrontend::Module::ModuleTraceLogCategory(module_id)
+             : GpgFrontend::Module::ModuleLogCategory(module_id);
+}
+
+auto IsEnabled(const QLoggingCategory& category, int severity) -> bool {
+  switch (severity) {
+    case GF_LOG_TRACE:
+    case GF_LOG_DEBUG:
+      return category.isDebugEnabled();
+    case GF_LOG_INFO:
+      return category.isInfoEnabled();
+    case GF_LOG_WARN:
+      return category.isWarningEnabled();
+    case GF_LOG_ERROR:
+      return category.isCriticalEnabled();
+    default:
+      // An unknown severity is emitted rather than dropped: a module compiled
+      // against a newer SDK saying something is better heard at the wrong
+      // volume than not at all.
+      return category.isCriticalEnabled();
+  }
+}
+
+}  // namespace
+
+void GFModuleLogAt(const char* module_id, int severity, const char* file,
+                   int line, const char* function, const char* msg) {
+  const auto id = ResolveModuleId(module_id);
+  const auto& category = CategoryFor(id, severity);
+  if (!IsEnabled(category, severity)) return;
+
+  const auto text = msg == nullptr ? QString() : QString::fromUtf8(msg);
+
+  // Constructed here rather than through the qC* macros on purpose: the macros
+  // capture the context of wherever they are written, which is THIS file, and
+  // that is how every module line came to report GFSDKLog.cpp as its source.
+  // Handing QMessageLogger the module's own file and line is the whole fix.
+  const QMessageLogger logger(file, line, function, category.categoryName());
+
+  switch (severity) {
+    case GF_LOG_TRACE:
+    case GF_LOG_DEBUG:
+      logger.debug() << text;
+      break;
+    case GF_LOG_INFO:
+      logger.info() << text;
+      break;
+    case GF_LOG_WARN:
+      logger.warning() << text;
+      break;
+    default:
+      logger.critical() << text;
+      break;
+  }
+}
+
+auto GFModuleLogEnabled(const char* module_id, int severity) -> int {
+  const auto id = ResolveModuleId(module_id);
+  return IsEnabled(CategoryFor(id, severity), severity) ? 1 : 0;
+}
+
+void GFModuleLogTrace(const char* l) {
+  GFModuleLogAt(nullptr, GF_LOG_TRACE, nullptr, 0, nullptr, l);
+}
+
+void GFModuleLogDebug(const char* l) {
+  GFModuleLogAt(nullptr, GF_LOG_DEBUG, nullptr, 0, nullptr, l);
+}
+
+void GFModuleLogInfo(const char* l) {
+  GFModuleLogAt(nullptr, GF_LOG_INFO, nullptr, 0, nullptr, l);
+}
+
+void GFModuleLogWarn(const char* l) {
+  GFModuleLogAt(nullptr, GF_LOG_WARN, nullptr, 0, nullptr, l);
+}
+
+void GFModuleLogError(const char* l) {
+  GFModuleLogAt(nullptr, GF_LOG_ERROR, nullptr, 0, nullptr, l);
+}

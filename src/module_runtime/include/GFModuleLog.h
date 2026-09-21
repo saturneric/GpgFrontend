@@ -45,33 +45,95 @@
  *
  * The placeholders are Qt's `%1`, `%2`, ... and **not** printf's `%s`/`%d`.
  * Passing a printf format produces a message with the format string in it
- * rather than the value, which is the most common mistake made here.
+ * rather than the value, which is the most common mistake made here. Note that
+ * the identically-spelled `FLOG_*` in the host's own `GpgFrontendCore.h` is
+ * printf, so code moved between the two needs its format string rewritten.
  *
- * ## The levels are real levels
+ * ## Five levels, and they are all real
  *
- * They were not. `LOG_INFO`, `LOG_WARN` and `LOG_ERROR` all expanded to
- * `MLogDebug`, so 58 call sites across the modules -- 46 of them `LOG_ERROR`
- * -- were emitted at debug level and never appeared at any higher one. Every
- * module author who logged an error and saw nothing was looking at this. The
- * `FLOG_*` forms were always correct, which is exactly why it went unnoticed:
- * the two families sat beside each other and only one of them worked.
+ * `LOG_TRACE` through `LOG_ERROR`. Trace is for per-item chatter -- one line
+ * per key, per message, per request -- and is off even at `--log-level debug`;
+ * `--log-level trace` is what turns it on. It used to be an alias of debug at
+ * the ABI (`GFModuleLogTrace` had a body byte-identical to `GFModuleLogDebug`)
+ * and had no macro at all, so nothing in any module ever used it.
+ *
+ * Before that, `LOG_INFO`, `LOG_WARN` and `LOG_ERROR` all expanded to
+ * `MLogDebug`, so 58 call sites -- 46 of them `LOG_ERROR` -- were emitted at
+ * debug level and never appeared at any higher one. Every module author who
+ * logged an error and saw nothing was looking at this. The `FLOG_*` forms were
+ * always correct, which is exactly why it went unnoticed: the two families sat
+ * beside each other and only one of them worked.
+ *
+ * ## What a line says now
+ *
+ * Each module logs under its own Qt category, named for its id, and carries
+ * its own `__FILE__`/`__LINE__`:
+ *
+ *     [module.email] [W] EMailImapController.cpp:412 - imap connect failed
+ *
+ * rather than the `[module]` / `GFSDKLog.cpp:40` every module shared before.
+ * The category is a diagnostic and a filter handle, not an identity -- see
+ * GFModuleLogAt's own documentation for why that distinction matters.
+ *
+ * ## Cost when suppressed
+ *
+ * The level is checked **before** the message is formatted, so a suppressed
+ * `FLOG_TRACE` does not run its `arg()` chain. It used to build the QString
+ * first and discard it afterwards.
  */
 
-inline void MLogDebug(const QString& s) { GFModuleLogDebug(s.toUtf8()); }
-inline void MLogInfo(const QString& s) { GFModuleLogInfo(s.toUtf8()); }
-inline void MLogWarn(const QString& s) { GFModuleLogWarn(s.toUtf8()); }
-inline void MLogError(const QString& s) { GFModuleLogError(s.toUtf8()); }
+/// This module's verified identity as a stable C string.
+///
+/// Declared here rather than taken from GFModule.h, which includes this file
+/// before declaring it. Reading it is a plain load, not a thread-local one,
+/// which is what lets a module's own worker thread attribute its own output.
+auto GFGetModuleID() -> const char*;
 
-#define LOG_DEBUG(format) MLogDebug(FormatString(QString(format)))
-#define LOG_INFO(format) MLogInfo(FormatString(QString(format)))
-#define LOG_WARN(format) MLogWarn(FormatString(QString(format)))
-#define LOG_ERROR(format) MLogError(FormatString(QString(format)))
+/// One message, with the level checked before anything is formatted.
+///
+/// A do/while so the macro is a single statement and stays safe next to a bare
+/// `if`. The QByteArray is named rather than temporary so its lifetime plainly
+/// covers the call that reads its buffer.
+#define GF_MODULE_LOG_AT(severity, text)                                \
+  do {                                                                  \
+    if (GFModuleLogEnabled(GFGetModuleID(), (severity)) != 0) {         \
+      const auto gf_log_line_ = (text).toUtf8();                        \
+      GFModuleLogAt(GFGetModuleID(), (severity), __FILE__, __LINE__,    \
+                    Q_FUNC_INFO, gf_log_line_.constData());             \
+    }                                                                   \
+  } while (false)
 
+/// The QString-taking forms, kept because modules call them directly.
+///
+/// Macros rather than the inline functions they used to be, so that they pick
+/// up the caller's `__FILE__`/`__LINE__` like everything else here. They do NOT
+/// run FormatString: a caller of these has already done its own `arg()` chain,
+/// and re-interpreting the result would corrupt any message that legitimately
+/// contains a `%1`.
+#define MLogTrace(text) GF_MODULE_LOG_AT(GF_LOG_TRACE, QString(text))
+#define MLogDebug(text) GF_MODULE_LOG_AT(GF_LOG_DEBUG, QString(text))
+#define MLogInfo(text) GF_MODULE_LOG_AT(GF_LOG_INFO, QString(text))
+#define MLogWarn(text) GF_MODULE_LOG_AT(GF_LOG_WARN, QString(text))
+#define MLogError(text) GF_MODULE_LOG_AT(GF_LOG_ERROR, QString(text))
+
+#define LOG_TRACE(format) \
+  GF_MODULE_LOG_AT(GF_LOG_TRACE, FormatString(QString(format)))
+#define LOG_DEBUG(format) \
+  GF_MODULE_LOG_AT(GF_LOG_DEBUG, FormatString(QString(format)))
+#define LOG_INFO(format) \
+  GF_MODULE_LOG_AT(GF_LOG_INFO, FormatString(QString(format)))
+#define LOG_WARN(format) \
+  GF_MODULE_LOG_AT(GF_LOG_WARN, FormatString(QString(format)))
+#define LOG_ERROR(format) \
+  GF_MODULE_LOG_AT(GF_LOG_ERROR, FormatString(QString(format)))
+
+#define FLOG_TRACE(format, ...) \
+  GF_MODULE_LOG_AT(GF_LOG_TRACE, FormatString(QString(format), __VA_ARGS__))
 #define FLOG_DEBUG(format, ...) \
-  MLogDebug(FormatString(QString(format), __VA_ARGS__))
+  GF_MODULE_LOG_AT(GF_LOG_DEBUG, FormatString(QString(format), __VA_ARGS__))
 #define FLOG_INFO(format, ...) \
-  MLogInfo(FormatString(QString(format), __VA_ARGS__))
+  GF_MODULE_LOG_AT(GF_LOG_INFO, FormatString(QString(format), __VA_ARGS__))
 #define FLOG_WARN(format, ...) \
-  MLogWarn(FormatString(QString(format), __VA_ARGS__))
+  GF_MODULE_LOG_AT(GF_LOG_WARN, FormatString(QString(format), __VA_ARGS__))
 #define FLOG_ERROR(format, ...) \
-  MLogError(FormatString(QString(format), __VA_ARGS__))
+  GF_MODULE_LOG_AT(GF_LOG_ERROR, FormatString(QString(format), __VA_ARGS__))

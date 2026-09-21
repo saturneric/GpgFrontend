@@ -75,6 +75,9 @@ auto GFGetHostApi() -> const GFHostApi* {
       &GFModuleLogInfo,
       &GFModuleLogWarn,
       &GFModuleLogError,
+
+      &GFModuleLogAt,
+      &GFModuleLogEnabled,
   };
 
   return &kHostApi;

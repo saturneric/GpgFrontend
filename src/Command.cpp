@@ -208,6 +208,9 @@ void ApplyLogLevel(int level) {
   // user wins.
   const char* rust_level;
   switch (static_cast<GFLogLevel>(level)) {
+    case GFLogLevel::kTRACE:
+      rust_level = "trace";
+      break;
     case GFLogLevel::kDEBUG:
       rust_level = "debug";
       break;

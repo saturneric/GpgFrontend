@@ -118,6 +118,14 @@ typedef struct GFHostApi {
   void (*log_info)(const char* msg);
   void (*log_warn)(const char* msg);
   void (*log_error)(const char* msg);
+
+  /* logging, attributed -- carries the module's identity and source location,
+     which the four above structurally cannot. Appended after log_error, which
+     HostApiIsUsable() uses as the minimum-viable-table offset, so an older
+     module handed this larger table is unaffected. */
+  void (*log_at)(const char* module_id, int severity, const char* file,
+                 int line, const char* function, const char* msg);
+  int (*log_enabled)(const char* module_id, int severity);
 } GFHostApi;
 
 /**

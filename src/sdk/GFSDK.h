@@ -30,39 +30,7 @@
 
 #include "GFSDKVisibility.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/**
- * @brief Emits a trace-level log message from a module.
- * @param msg Null-terminated message string.
- */
-GF_SDK_EXPORT void GFModuleLogTrace(const char* msg);
-
-/**
- * @brief Emits a debug-level log message from a module.
- * @param msg Null-terminated message string.
- */
-GF_SDK_EXPORT void GFModuleLogDebug(const char* msg);
-
-/**
- * @brief Emits an info-level log message from a module.
- * @param msg Null-terminated message string.
- */
-GF_SDK_EXPORT void GFModuleLogInfo(const char* msg);
-
-/**
- * @brief Emits a warning-level log message from a module.
- * @param msg Null-terminated message string.
- */
-GF_SDK_EXPORT void GFModuleLogWarn(const char* msg);
-
-/**
- * @brief Emits an error-level log message from a module.
- * @param msg Null-terminated message string.
- */
-GF_SDK_EXPORT void GFModuleLogError(const char* msg);
-#ifdef __cplusplus
-}
-#endif
+// The logging entry points used to be declared a second time here, by hand,
+// beside their real declarations in GFSDKLog.h -- two copies of one ABI with
+// nothing keeping them in step. Include the one that owns them instead.
+#include "GFSDKLog.h"
