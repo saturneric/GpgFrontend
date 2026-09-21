@@ -32,6 +32,7 @@
 #include <optional>
 
 #include "core/module/GlobalModuleContext.h"
+#include "core/module/ModuleCapability.h"
 #include "core/module/ModuleManifest.h"
 #include "core/module/ModuleSdkBridge.h"
 #include "core/utils/CommonUtils.h"
@@ -230,16 +231,42 @@ class Module::Impl {
       info.events_size = static_cast<size_t>(events.size());
     }
 
+    // What this module is allowed to reach, computed from the SIGNED
+    // manifest and from nothing the binary said about itself.
+    //
+    // An unpackaged module -- a loose development build -- has no manifest and
+    // therefore no declaration, so it is granted nothing beyond the
+    // always-present groups. That is a real tightening over the previous
+    // behaviour, where every module reached everything, and it is said out
+    // loud rather than discovered as a puzzling failure.
+    uint32_t granted = 0;
+    if (manifest_.has_value()) {
+      granted = ModuleCapabilityMask(manifest_->capabilities);
+      const auto advisory = AdvisoryDeclarationsOf(manifest_->capabilities);
+      LOG_I() << "module" << identifier_ << "granted host capabilities:"
+              << QString("%1%2").arg(
+                     ModuleCapabilityMaskToString(granted),
+                     advisory.isEmpty()
+                         ? QString()
+                         : QString("; declared but not host-mediated: %1")
+                               .arg(advisory.join(", ")));
+    } else {
+      LOG_W() << "module" << identifier_
+              << "has no signed manifest, so it declares no capabilities and "
+                 "is granted none beyond buffers, logging and events";
+    }
+
     // Refused rather than activated with nothing: a module handed a null host
     // api could call nothing and could not say why. This cannot happen in a
     // normal process -- gf_sdk installs the bridge when it loads, and a module
     // cannot exist without it -- but "cannot happen" is the wrong thing to
     // encode as an unchecked dereference.
-    const auto* host_api = ModuleSdkHostApi();
+    const auto* host_api =
+        ModuleSdkMintHostApi(identifier_utf8_.constData(), granted);
     if (host_api == nullptr) {
       LOG_W() << "refusing to activate module" << identifier_utf8_
               << ": the sdk bridge was never installed, so there is no host "
-                 "api to give it";
+                 "api to mint for it";
       return -1;
     }
 
@@ -291,6 +318,12 @@ class Module::Impl {
     // a pointer into memory that is no longer mapped.
     api_ = nullptr;
     good_ = false;
+
+    // The grant dies with the module. A call that somehow arrives afterwards
+    // -- from a thread the module failed to stop -- presents a context the
+    // host no longer recognises and is refused, on whatever thread it is on,
+    // rather than followed into an unmapped image.
+    ModuleSdkReleaseHostApi(identifier_utf8_.constData());
 
     const auto unloaded = module_library_->unload();
     module_library_.reset();

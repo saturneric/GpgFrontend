@@ -36,6 +36,8 @@
 #include "core/module/Event.h"
 #include "core/module/Module.h"
 #include "core/module/ModuleDispatchGate.h"
+#include "core/module/ModuleEventRegistry.h"
+#include "core/module/ModuleManifest.h"
 #include "core/thread/Task.h"
 #include "model/DataObject.h"
 #include "thread/TaskRunnerGetter.h"
@@ -186,6 +188,49 @@ class GlobalModuleContext::Impl {
     auto module_info_opt = search_module_register_table(module_id);
     if (!module_info_opt.has_value()) {
       LOG_W() << "cannot find module id" << module_id << "at register table";
+      return false;
+    }
+
+    // An id the Host never fires is a subscription that can only ever be
+    // silence. Refusing it names the module and the id now, rather than
+    // leaving someone to work out months later why a handler never runs.
+    if (!IsKnownModuleEvent(event)) {
+      LOG_W() << "refusing to subscribe module" << module_id << "to event"
+              << event
+              << ": this host fires no such event. See "
+                 "core/module/ModuleEventRegistry.cpp for the catalogue.";
+      return false;
+    }
+
+    // THE allowlist check, and it belongs here rather than where it used to
+    // be.
+    //
+    // The module runtime reconciles a module's handler table against its
+    // manifest, which is a useful diagnostic and no kind of enforcement: that
+    // code ships INSIDE the module. A module that does not link our runtime,
+    // or links a patched one, previously subscribed to whatever it liked. The
+    // register table has the verified manifest right here, so the Host can
+    // decide for itself.
+    //
+    // An unpackaged module -- a loose development build -- has no manifest
+    // and therefore no allowlist to check it against. It is let through and
+    // said out loud, because refusing it would make local development
+    // impossible while protecting nothing: a loose build is already running
+    // unsigned code.
+    const auto& info = module_info_opt.value();
+    const auto manifest = info->module == nullptr
+                              ? std::optional<ModuleManifest>{}
+                              : info->module->GetModuleManifest();
+    if (!manifest.has_value()) {
+      LOG_W() << "module" << module_id
+              << "has no signed manifest; subscribing it to" << event
+              << "on its own word alone";
+    } else if (!manifest->events.contains(event)) {
+      LOG_W() << "refusing to subscribe module" << module_id << "to event"
+              << event
+              << ": its signed manifest does not declare it. The declared "
+                 "list is the allowlist -- add the event to module.json and "
+                 "rebuild.";
       return false;
     }
 

@@ -29,6 +29,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 
 namespace GpgFrontend::Module {
 
@@ -71,11 +72,19 @@ namespace GpgFrontend::Module {
  * other side of a link edge that only points one way".
  */
 
-/// The four entry points, as a table. A null member is a service this build
-/// does not have, which is not the same as one that does nothing -- see
-/// ModuleSdkHostApi().
+/// The entry points, as a table. A null member is a service this build does
+/// not have, which is not the same as one that does nothing -- see
+/// ModuleSdkMintHostApi().
 struct GF_CORE_EXPORT ModuleSdkBridge {
-  const void* (*get_host_api)() = nullptr;
+  /// Mint the host api table for ONE module, granting exactly @p granted.
+  /// There is deliberately no "get the host api" here any more: a getter
+  /// returns the same everything-table to every caller, which makes a
+  /// per-module grant advisory.
+  const void* (*mint_host_api)(const char* module_id,
+                               uint32_t granted) = nullptr;
+  /// Invalidate that module's table and context. A call arriving afterwards
+  /// is refused rather than served, on any thread.
+  void (*release_host_api)(const char* module_id) = nullptr;
   const char* (*enter_module)(const char* module_id) = nullptr;
   void (*leave_module)(const char* previous) = nullptr;
   size_t (*sweep_module_handles)(const char* module_id) = nullptr;
@@ -94,7 +103,13 @@ void GF_CORE_EXPORT InstallModuleSdkBridge(const ModuleSdkBridge& bridge);
 auto GF_CORE_EXPORT IsModuleSdkBridgeInstalled() -> bool;
 
 /**
- * @brief The host API table to hand a module at activation.
+ * @brief Mint the host api table to hand @p module_id at activation.
+ *
+ * @param module_id the module the table is for; it is baked into the table's
+ *        context, so the table cannot be usefully passed to another module
+ * @param granted GF_HOST_CAP_* bits from the module's signed manifest. A
+ *        group whose bit is clear is NULL in the resulting table, and its
+ *        primitives refuse the context even if reached another way.
  *
  * Returns nullptr when the bridge is not installed, which a caller MUST treat
  * as a refusal to activate rather than as an empty table. Handing a module a
@@ -105,7 +120,18 @@ auto GF_CORE_EXPORT IsModuleSdkBridgeInstalled() -> bool;
  * gf_core's. The one caller casts it back to `const GFHostApi*`, which is
  * safe because there is exactly one producer of this pointer.
  */
-auto GF_CORE_EXPORT ModuleSdkHostApi() -> const void*;
+auto GF_CORE_EXPORT ModuleSdkMintHostApi(const char* module_id,
+                                         uint32_t granted) -> const void*;
+
+/**
+ * @brief Drop @p module_id's table and invalidate its context.
+ *
+ * Called at unload, before the image is unmapped. Afterwards the module's
+ * context is unknown to the host, so a call that somehow arrives from a
+ * thread the module failed to stop is refused rather than followed into
+ * memory that is no longer there.
+ */
+void GF_CORE_EXPORT ModuleSdkReleaseHostApi(const char* module_id);
 
 /**
  * @brief Reclaim every SDK handle still held by @p module_id.

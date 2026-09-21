@@ -47,13 +47,20 @@ void InstallModuleSdkBridge(const ModuleSdkBridge& bridge) {
 }
 
 auto IsModuleSdkBridgeInstalled() -> bool {
-  return Bridge().get_host_api != nullptr;
+  return Bridge().mint_host_api != nullptr;
 }
 
-auto ModuleSdkHostApi() -> const void* {
+auto ModuleSdkMintHostApi(const char* module_id, uint32_t granted) -> const
+    void* {
   const auto& bridge = Bridge();
-  if (bridge.get_host_api == nullptr) return nullptr;
-  return bridge.get_host_api();
+  if (bridge.mint_host_api == nullptr) return nullptr;
+  return bridge.mint_host_api(module_id, granted);
+}
+
+void ModuleSdkReleaseHostApi(const char* module_id) {
+  const auto& bridge = Bridge();
+  if (bridge.release_host_api == nullptr) return;
+  bridge.release_host_api(module_id);
 }
 
 auto ModuleSdkSweepHandles(const char* module_id) -> size_t {

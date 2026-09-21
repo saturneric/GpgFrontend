@@ -35,6 +35,7 @@
 #include <QRegularExpression>
 #include <cmath>
 
+#include "core/module/ModuleCapability.h"
 #include "sdk/GFSDKBuildInfo.h"
 
 namespace GpgFrontend::Module {
@@ -229,8 +230,16 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
     return Malformed("a version number in it is negative");
   }
 
-  // capabilities: required, an array, and every element a string. An empty
-  // array is legitimate -- a module that asks for nothing.
+  // capabilities: required, an array, and every element a string from a
+  // vocabulary this Host build knows. An empty array is legitimate -- a
+  // module that asks for nothing.
+  //
+  // Refusing an unknown name matters more than it looks. The manifest is
+  // signed, and the grant is computed from it: a name the Host cannot place
+  // contributes nothing to the grant, so a typo would silently produce a
+  // module with LESS access than its author declared and than the user
+  // approved -- which then fails at run time, far from the cause. Refusing
+  // the package says it once, at the point the name was written.
   {
     const auto v = root.value("capabilities");
     if (v.isUndefined()) return Malformed("\"capabilities\" is missing");
@@ -239,7 +248,15 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
       if (!c.isString()) {
         return Malformed("a value in \"capabilities\" is not a string");
       }
-      m.capabilities.append(c.toString());
+      const auto name = c.toString();
+      if (ModuleCapabilityKindOf(name) == ModuleCapabilityKind::kUNKNOWN) {
+        return Malformed(
+            QString("\"capabilities\" names \"%1\", which this host does not "
+                    "know; it grants %2 and records %3")
+                .arg(name, EnforceableCapabilityNames().join(", "),
+                     AdvisoryCapabilityNames().join(", ")));
+      }
+      m.capabilities.append(name);
     }
   }
 
