@@ -209,9 +209,10 @@ class ModuleManager::Impl {
    * @param[out] library_name the entry's filename on this platform
    * @return false when the descriptor or its entry was refused
    */
-  auto VerifyAndResolveEntry(const QString& package_path, QString& library_path,
-                             ModuleManifest& manifest, QString& module_hash,
-                             QString& library_name) -> bool {
+  auto VerifyAndResolveEntry(ModuleOrigin origin, const QString& package_path,
+                             QString& library_path, ModuleManifest& manifest,
+                             QString& module_hash, QString& library_name)
+      -> bool {
     const auto read = VerifyModuleDescriptor(package_path);
     if (!read.ok) {
       LOG_W() << "module manager refuses module descriptor: " << package_path
@@ -244,7 +245,14 @@ class ModuleManager::Impl {
     // trees, because Apple wants executable code under Frameworks.
     const ModuleNativeRoot root{ModuleNativeRootFor(package_path)};
 
-    const auto entry = ResolveAndVerifyNativeEntry(read.manifest, root);
+    // The one place origin meets policy. Origin arrived from the directory
+    // that was scanned; the requirement is what this build was compiled with.
+    // Nothing between here and the manifest can influence either.
+    const ModuleEntryTrustPolicy policy{origin,
+                                        HostIntegratedBindingRequirement()};
+
+    const auto entry =
+        ResolveAndVerifyNativeEntry(read.manifest, root, policy);
     if (!entry.ok) {
       LOG_W() << "module manager refuses module entry: " << package_path
               << ", reason: " << entry.reason << " ("
@@ -254,7 +262,12 @@ class ModuleManager::Impl {
 
     library_path = entry.path;
     manifest = read.manifest;
-    module_hash = read.manifest.entry_native.value;
+    // Empty when this descriptor binds nothing, which is a legitimate state
+    // under a relaxed integrated policy. It is a display value and a settings
+    // key, never a check: what decided whether to load is above.
+    module_hash = read.manifest.entry_native.verification.has_value()
+                      ? read.manifest.entry_native.verification->value
+                      : QString();
     library_name = QFileInfo(entry.path).fileName();
     return true;
   }
@@ -272,11 +285,11 @@ class ModuleManager::Impl {
    * QThread that is still running is fatal. Off that thread, the cost stops
    * being a shutdown hazard as well as stopping being serial.
    */
-  auto PrepareModule(const QString& path, bool integrated)
+  auto PrepareModule(const QString& path, ModuleOrigin origin)
       -> ModuleLoadCandidate {
     ModuleLoadCandidate candidate;
     candidate.source_path = path;
-    candidate.integrated = integrated;
+    candidate.origin = origin;
     candidate.packaged = IsModuleDescriptorFileName(QFileInfo(path).fileName());
     candidate.library_path = path;
 
@@ -291,7 +304,7 @@ class ModuleManager::Impl {
       ModuleManifest verified;
       QString module_hash;
       QString library_name;
-      if (!VerifyAndResolveEntry(path, library_path, verified, module_hash,
+      if (!VerifyAndResolveEntry(origin, path, library_path, verified, module_hash,
                                  library_name)) {
         return candidate;
       }
@@ -450,7 +463,10 @@ class ModuleManager::Impl {
     runner->PostTask(new Thread::Task(
         [=](const GpgFrontend::DataObjectPtr&) -> int {
           // register module
-          if (!gmc_->RegisterModule(module, candidate.integrated)) return -1;
+          if (!gmc_->RegisterModule(
+                  module, candidate.origin == ModuleOrigin::kINTEGRATED)) {
+            return -1;
+          }
 
           return 0;
         },
@@ -481,7 +497,8 @@ class ModuleManager::Impl {
             module_so.module_id = module_id;
             module_so.module_hash = module_hash;
             // auto active integrated module by default
-            module_so.auto_activate = candidate.integrated;
+            module_so.auto_activate =
+                candidate.origin == ModuleOrigin::kINTEGRATED;
             module_so.set_by_user = false;
 
             so.Store(module_so.ToJson());
@@ -684,9 +701,9 @@ ModuleManager::ModuleManager(int channel)
 
 ModuleManager::~ModuleManager() = default;
 
-auto ModuleManager::PrepareModule(const QString& path, bool integrated)
+auto ModuleManager::PrepareModule(const QString& path, ModuleOrigin origin)
     -> ModuleLoadCandidate {
-  return p_->PrepareModule(path, integrated);
+  return p_->PrepareModule(path, origin);
 }
 
 auto ModuleManager::LoadPreparedModule(const ModuleLoadCandidate& candidate)

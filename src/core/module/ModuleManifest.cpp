@@ -156,22 +156,24 @@ auto ModuleEntryVerificationModeKey(ModuleEntryVerificationMode mode)
       return "file-sha256";
     case ModuleEntryVerificationMode::kPE_AUTHENTICODE_SHA256:
       return "pe-authenticode-sha256";
-    case ModuleEntryVerificationMode::kAPPLE_BINDING_ID:
-      return "apple-binding-id";
   }
   return {};
 }
 
 auto ModuleEntryVerificationModeFor(const QString& platform_os)
-    -> std::optional<ModuleEntryVerificationMode> {
-  if (platform_os == "linux") return ModuleEntryVerificationMode::kFILE_SHA256;
+    -> ModuleEntryVerificationModeRule {
+  if (platform_os == "linux") {
+    return {true, ModuleEntryVerificationMode::kFILE_SHA256};
+  }
   if (platform_os == "windows") {
-    return ModuleEntryVerificationMode::kPE_AUTHENTICODE_SHA256;
+    return {true, ModuleEntryVerificationMode::kPE_AUTHENTICODE_SHA256};
   }
-  if (platform_os == "macos") {
-    return ModuleEntryVerificationMode::kAPPLE_BINDING_ID;
-  }
-  return std::nullopt;
+  // Known, and deliberately modeless. Apple signs the module dylibs with the
+  // application's own identity and dyld enforces that at map time, in the
+  // kernel; a second GpgFrontend-side claim over the same bytes would be a
+  // weaker restatement of it, checked later and by us.
+  if (platform_os == "macos") return {true, std::nullopt};
+  return {false, std::nullopt};
 }
 
 auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
@@ -342,71 +344,102 @@ auto ParseModuleManifest(const QByteArray& bytes) -> ModuleManifestParseResult {
               .arg(m.entry_native.name));
     }
 
-    QJsonObject verification;
-    if (!TakeObject(entry, "verification", verification, error)) {
-      return Malformed(QString("entry_native.%1").arg(error));
-    }
-
-    QString mode_key;
-    if (!TakeString(verification, "mode", mode_key, error) ||
-        !TakeString(verification, "value", m.entry_native.value, error)) {
-      return Malformed(QString("entry_native.verification.%1").arg(error));
-    }
-
-    // The mode is not a choice. It follows platform.os, which was parsed
-    // above and which the verifier separately checks against the host it is
-    // running on -- so a descriptor cannot select a weaker mode by claiming a
-    // platform, because the claim is refused first.
-    const auto required = ModuleEntryVerificationModeFor(m.platform_os);
-    if (!required.has_value()) {
+    // The mode is not a choice, and neither is whether one is permitted at
+    // all. Both follow platform.os, which was parsed above and which the
+    // verifier separately checks against the host it is running on -- so a
+    // descriptor cannot select a weaker mode by claiming a platform, because
+    // the claim is refused first.
+    const auto rule = ModuleEntryVerificationModeFor(m.platform_os);
+    if (!rule.known_os) {
       return Malformed(
           QString("there is no entry verification mode for platform \"%1\"")
               .arg(m.platform_os));
     }
-    const auto expected_key = ModuleEntryVerificationModeKey(*required);
-    if (mode_key != expected_key) {
-      return Malformed(
-          QString("entry_native.verification.mode is \"%1\", but a \"%2\" "
-                  "module must use \"%3\"")
-              .arg(mode_key, m.platform_os, expected_key));
-    }
-    m.entry_native.mode = *required;
 
-    // All three modes currently carry a 256-bit value as hex. They mean
-    // different things -- a file digest, a PE image digest, an embedded
-    // identifier -- and the check here is only that the spelling is one a
-    // comparison can be made against.
-    if (!IsModuleHexDigest(m.entry_native.value)) {
-      return Malformed(
-          "entry_native.verification.value is not 64 lower-case hexadecimal "
-          "characters");
-    }
+    const auto verification_value = entry.value("verification");
 
-    // size: optional, and only where it means anything. Windows Authenticode
-    // signing appends a certificate table and macOS signing rewrites
-    // __LINKEDIT, so under either of those modes a recorded size is an
-    // invariant that legitimately breaks.
-    const auto size_value = entry.value("size");
-    if (!size_value.isUndefined()) {
-      if (m.entry_native.mode != ModuleEntryVerificationMode::kFILE_SHA256) {
+    if (verification_value.isUndefined()) {
+      // No claim about the entry's bytes. Legal here, because this parser
+      // describes structure and not trust: whether an unbound descriptor may
+      // be LOADED is decided by origin and Host policy, in
+      // ResolveAndVerifyNativeEntry(). Saying no here would put a trust
+      // decision in the one place that cannot see who is asking.
+      //
+      // A bare size is refused with it. Without this, a descriptor could
+      // carry a size and no binding and look like it proved something.
+      if (!entry.value("size").isUndefined()) {
         return Malformed(
-            QString("entry_native.size is only meaningful with \"%1\"; "
-                    "platform signing legitimately changes the size of a "
-                    "\"%2\" entry")
-                .arg(ModuleEntryVerificationModeKey(
-                         ModuleEntryVerificationMode::kFILE_SHA256),
-                     m.platform_os));
+            "entry_native.size is only meaningful alongside an "
+            "entry_native.verification");
       }
-      if (!size_value.isDouble()) {
-        return Malformed("entry_native.size is not a number");
+    } else {
+      if (!verification_value.isObject()) {
+        return Malformed("entry_native.verification is not an object");
       }
-      const auto as_double = size_value.toDouble();
-      if (as_double < 0 || as_double != std::floor(as_double)) {
+      // Present but wrong-typed is a corrupt descriptor, never an omission:
+      // the two are distinguished above, by isUndefined() alone.
+      const auto verification = verification_value.toObject();
+
+      if (!rule.mode.has_value()) {
         return Malformed(
-            "entry_native.size is not a whole, non-negative "
-            "number");
+            QString("a \"%1\" module carries no entry verification; its "
+                    "executable code is authenticated by the platform")
+                .arg(m.platform_os));
       }
-      m.entry_native.size = static_cast<qint64>(as_double);
+
+      ModuleEntryVerification v;
+
+      QString mode_key;
+      if (!TakeString(verification, "mode", mode_key, error) ||
+          !TakeString(verification, "value", v.value, error)) {
+        return Malformed(QString("entry_native.verification.%1").arg(error));
+      }
+
+      const auto expected_key = ModuleEntryVerificationModeKey(*rule.mode);
+      if (mode_key != expected_key) {
+        return Malformed(
+            QString("entry_native.verification.mode is \"%1\", but a \"%2\" "
+                    "module must use \"%3\"")
+                .arg(mode_key, m.platform_os, expected_key));
+      }
+      v.mode = *rule.mode;
+
+      // Both modes carry a 256-bit value as hex. They mean different things
+      // -- a file digest and a PE image digest -- and the check here is only
+      // that the spelling is one a comparison can be made against.
+      if (!IsModuleHexDigest(v.value)) {
+        return Malformed(
+            "entry_native.verification.value is not 64 lower-case hexadecimal "
+            "characters");
+      }
+
+      // size: optional, and only where it means anything. Windows
+      // Authenticode signing appends a certificate table, so under that mode
+      // a recorded size is an invariant that legitimately breaks.
+      const auto size_value = entry.value("size");
+      if (!size_value.isUndefined()) {
+        if (v.mode != ModuleEntryVerificationMode::kFILE_SHA256) {
+          return Malformed(
+              QString("entry_native.size is only meaningful with \"%1\"; "
+                      "platform signing legitimately changes the size of a "
+                      "\"%2\" entry")
+                  .arg(ModuleEntryVerificationModeKey(
+                           ModuleEntryVerificationMode::kFILE_SHA256),
+                       m.platform_os));
+        }
+        if (!size_value.isDouble()) {
+          return Malformed("entry_native.size is not a number");
+        }
+        const auto as_double = size_value.toDouble();
+        if (as_double < 0 || as_double != std::floor(as_double)) {
+          return Malformed(
+              "entry_native.size is not a whole, non-negative "
+              "number");
+        }
+        v.size = static_cast<qint64>(as_double);
+      }
+
+      m.entry_native.verification = v;
     }
   }
 

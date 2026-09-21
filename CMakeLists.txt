@@ -72,6 +72,39 @@ option(GPGFRONTEND_XCODE_ENABLE_SANDBOX "Enable SandBox For Xcode Build" OFF)
 # check options
 option(GPGFRONTEND_LINK_GPGME_INTO_CORE "Statically link GpgME into the core library" OFF)
 
+# Module native-binding policy, for INTEGRATED modules only.
+#
+# Integrated modules ship inside this distribution, so what protects them is
+# whatever protects the distribution: Apple's signature and Library Validation
+# on macOS, an immutable image on AppImage, the package manager elsewhere. The
+# per-file cryptographic binding on top of that is therefore a policy choice,
+# and it is not free -- binding exact ELF bytes is what makes linuxdeployqt,
+# patchelf, dh_strip and rpmbuild all invalidate a descriptor.
+#
+# External modules are NOT governed by this. They always require a binding;
+# see ModuleHostPolicy.h.
+#
+# OFF is the default because it is right for a developer tree and an ordinary
+# local install. Official Windows and AppImage releases MUST set REQUIRED, and
+# prove they did by passing --require-binding to verify-module-set.
+set(GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING "OFF" CACHE STRING
+  "Whether integrated module descriptors must bind their entry native: OFF or REQUIRED")
+set_property(CACHE GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING
+  PROPERTY STRINGS "OFF" "REQUIRED")
+
+# The algorithm is an ASSERTION, not a choice.
+#
+# Which algorithm is usable is already fixed by the platform: the PE image
+# digest is computed by a Windows-only OS API, and a full-file digest cannot
+# survive Authenticode. AUTO means "the mode this platform mandates". Naming
+# one explicitly states an intent that must match, so a release leg says what
+# it expects and a silent platform-detection change becomes a configure error
+# rather than a quietly weaker binding.
+set(GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM "AUTO" CACHE STRING
+  "Assert which binding algorithm integrated modules use: AUTO, FILE_SHA256 or PE_AUTHENTICODE_SHA256")
+set_property(CACHE GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM
+  PROPERTY STRINGS "AUTO" "FILE_SHA256" "PE_AUTHENTICODE_SHA256")
+
 if(GPGFRONTEND_BUILD_APP_IMAGE)
   set(BUILD_APP_IMAGE 1)
 endif()
@@ -483,6 +516,60 @@ message(STATUS "GpgFrontend Build ID: ${GPGFRONTEND_BUILD_ID}")
 set(GF_MODULE_BUILD_KEY_DIR "${CMAKE_BINARY_DIR}/.module-build-key")
 set(GF_MODULE_TRUST_ROOT_SOURCE
   "${CMAKE_BINARY_DIR}/generated/ModuleTrustRootGenerated.cpp")
+
+# Validate and resolve the integrated binding policy, once, here -- so that
+# every consumer (the generated constant, the packager command line, the CI
+# gates) is reading one already-checked answer rather than re-deciding.
+if(GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING STREQUAL "REQUIRED")
+  set(GF_INTEGRATED_MODULE_BINDING_REQUIRED 1)
+elseif(GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING STREQUAL "OFF")
+  set(GF_INTEGRATED_MODULE_BINDING_REQUIRED 0)
+else()
+  message(FATAL_ERROR
+    "GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING must be OFF or REQUIRED, "
+    "not \"${GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING}\"")
+endif()
+
+# The one mode this target platform mandates. macOS has none: its modules are
+# signed by Apple with the application's own identity and enforced at map time,
+# so the descriptor makes no claim about their bytes at all.
+if(WIN32)
+  set(GF_INTEGRATED_MODULE_BINDING_ALGORITHM "PE_AUTHENTICODE_SHA256")
+elseif(APPLE)
+  set(GF_INTEGRATED_MODULE_BINDING_ALGORITHM "NONE")
+else()
+  set(GF_INTEGRATED_MODULE_BINDING_ALGORITHM "FILE_SHA256")
+endif()
+
+if(GF_INTEGRATED_MODULE_BINDING_REQUIRED
+   AND GF_INTEGRATED_MODULE_BINDING_ALGORITHM STREQUAL "NONE")
+  message(FATAL_ERROR
+    "GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=REQUIRED cannot be honoured "
+    "on macOS: there is no entry binding mode on this platform. Apple code "
+    "signing and Library Validation provide executable integrity instead.")
+endif()
+
+if(NOT GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM STREQUAL "AUTO"
+   AND NOT GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM
+       STREQUAL GF_INTEGRATED_MODULE_BINDING_ALGORITHM)
+  message(FATAL_ERROR
+    "GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM asserts "
+    "\"${GPGFRONTEND_INTEGRATED_MODULE_BINDING_ALGORITHM}\", but this platform "
+    "mandates \"${GF_INTEGRATED_MODULE_BINDING_ALGORITHM}\". The algorithm "
+    "follows the platform; this setting exists to state an expectation, not "
+    "to choose one.")
+endif()
+
+message(STATUS
+  "Integrated module native binding: "
+  "${GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING} "
+  "(${GF_INTEGRATED_MODULE_BINDING_ALGORITHM})")
+
+set(GF_MODULE_HOST_POLICY_SOURCE
+  "${CMAKE_BINARY_DIR}/generated/ModuleHostPolicyGenerated.cpp")
+configure_file(
+  "${CMAKE_SOURCE_DIR}/cmake/ModuleHostPolicyGenerated.cpp.in"
+  "${GF_MODULE_HOST_POLICY_SOURCE}" @ONLY)
 
 
 # Set build information

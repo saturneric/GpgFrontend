@@ -72,6 +72,13 @@ set_source_files_properties("${GF_MODULE_TRUST_ROOT_SOURCE}"
 target_sources(${LIBRARY_TARGET} PRIVATE "${GF_MODULE_TRUST_ROOT_SOURCE}")
 add_dependencies(${LIBRARY_TARGET} gf_module_trust_root)
 
+# The integrated module native-binding policy this build was configured with.
+# Generated for the same reason the trust root is: one definition, compiled in,
+# so gf_core and gf_module_packager cannot hold different answers.
+set_source_files_properties("${GF_MODULE_HOST_POLICY_SOURCE}"
+  PROPERTIES GENERATED TRUE SKIP_PRECOMPILE_HEADERS ON)
+target_sources(${LIBRARY_TARGET} PRIVATE "${GF_MODULE_HOST_POLICY_SOURCE}")
+
 # link libsodium
 target_link_libraries(${LIBRARY_TARGET} PUBLIC sodium)
 

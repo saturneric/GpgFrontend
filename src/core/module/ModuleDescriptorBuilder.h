@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/module/ModuleHostPolicy.h"
 #include "core/module/ModuleManifest.h"
 
 namespace GpgFrontend::Module {
@@ -89,7 +90,23 @@ struct GF_CORE_EXPORT ModuleDescriptorBuildSpec {
   /// It is NOT packaged: executable code never travels inside a descriptor.
   /// It must already have had every platform preparation step applied to it,
   /// because what is recorded is what is there now.
+  ///
+  /// Not read at all when @c entry_binding is kNOT_REQUIRED: a value that
+  /// would be recorded and never consulted is work, and a claim nobody
+  /// checks is worse than no claim.
   QString entry_native_file;
+
+  /// Whether this descriptor must bind the bytes of its entry.
+  ///
+  /// kREQUIRED is the default so that a caller which forgets produces the
+  /// STRONGER descriptor. The packager spells it `--entry-binding`, as a
+  /// statement about the descriptor rather than as an algorithm name: there
+  /// is deliberately no way to ask for "algorithm: none", because absence is
+  /// not an algorithm and modelling it as one would put the choice in the
+  /// hands of whoever writes the manifest.
+  ///
+  /// On macOS kREQUIRED is refused: there is no mode to honour.
+  ModuleBindingRequirement entry_binding = ModuleBindingRequirement::kREQUIRED;
 
   /// The 32-byte Ed25519 seed this build signs descriptors with.
   ///

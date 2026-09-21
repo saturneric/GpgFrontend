@@ -33,6 +33,7 @@
 
 #include "core/function/basic/GpgFunctionObject.h"
 #include "core/module/Event.h"
+#include "core/module/ModuleHostPolicy.h"
 #include "core/module/ModuleManifest.h"
 #include "core/utils/MemoryUtils.h"
 
@@ -117,7 +118,12 @@ using LPCallback = std::function<void(Namespace, Key, int, std::any)>;
  */
 struct GF_CORE_EXPORT ModuleLoadCandidate {
   QString source_path;  ///< the `*.gfmodule`, or the loose library
-  bool integrated = false;
+
+  /// Which trust boundary this module crossed, decided by the directory it
+  /// was found in and never by anything the module says. See
+  /// ModuleHostPolicy.h.
+  ModuleOrigin origin = ModuleOrigin::kEXTERNAL;
+
   bool packaged = false;
 
   bool ok = false;  ///< preparation succeeded; phase 2 may proceed
@@ -174,10 +180,11 @@ class GF_CORE_EXPORT ModuleManager
    * declines.
    *
    * @param path the `*.gfmodule` or loose library the scan found
-   * @param integrated whether it came from the integrated module directory
+   * @param origin which namespace it was found in; a trust input, not a
+   * label, and the only thing that can say so
    * @return what was established; @c ok is false when it was refused
    */
-  auto PrepareModule(const QString& path, bool integrated)
+  auto PrepareModule(const QString& path, ModuleOrigin origin)
       -> ModuleLoadCandidate;
 
   /**

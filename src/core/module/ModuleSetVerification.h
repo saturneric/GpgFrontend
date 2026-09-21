@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include "core/module/ModuleHostPolicy.h"
+
 namespace GpgFrontend::Module {
 
 /**
@@ -66,14 +68,6 @@ struct GF_CORE_EXPORT ModuleSetVerification {
   /// Descriptors that verified and resolved, by module id.
   QMap<QString, QString> verified;
 
-  /// The entry binding each verified descriptor records, by module id, as
-  /// `<mode> <value>`.
-  ///
-  /// For the build record, which states what was shipped rather than asking a
-  /// reader to open four descriptors to find out. Taken from the manifest
-  /// that verified, so it cannot describe a descriptor that did not.
-  QMap<QString, QString> bindings;
-
   /// The verified entry native of each namespace, by directory key.
   ///
   /// Carried out rather than left to be worked out again, because the
@@ -107,10 +101,16 @@ struct GF_CORE_EXPORT ModuleSetVerification {
  * - no two namespaces claim the same module id;
  * - the number of modules is the number expected, when one is given.
  *
+ * @param policy what to demand of each entry binding. No default: this is
+ * a trust decision, and a default argument is how a future call site comes to
+ * inherit one nobody made. A tree of integrated modules is verified with
+ * kINTEGRATED and this build's own requirement, which is what keeps "the tool
+ * says yes" and "the Host will load these" the same statement.
  * @param root the namespace root; each subdirectory is one module
  * @param expected_count how many modules should be there, or -1 for any
  */
-auto GF_CORE_EXPORT VerifyModuleSet(const QString& root,
+auto GF_CORE_EXPORT VerifyModuleSet(const ModuleEntryTrustPolicy& policy,
+                                    const QString& root,
                                     int expected_count = -1)
     -> ModuleSetVerification;
 

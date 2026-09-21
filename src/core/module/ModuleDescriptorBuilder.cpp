@@ -281,40 +281,47 @@ auto BuildModuleDescriptor(const ModuleDescriptorBuildSpec& spec)
   // makes "the descriptor binds the final bytes" a property of the build
   // order rather than of anyone's discipline.
   {
-    const auto mode = ModuleEntryVerificationModeFor(platform_os);
-    if (!mode.has_value()) {
+    const auto rule = ModuleEntryVerificationModeFor(platform_os);
+    if (!rule.known_os) {
       return Fail(QString("there is no entry verification mode for platform "
                           "\"%1\"")
                       .arg(platform_os));
     }
 
-    QString value;
-    QString why;
-    const ModuleEntryBindingContext context{spec.module_id, spec.build_id,
-                                            spec.sdk_abi};
-    if (!ComputeEntryVerificationValue(*mode, spec.entry_native_file, context,
-                                       value, why)) {
-      return Fail(why);
+    QJsonObject entry{{"name", spec.entry_native_name}};
+
+    if (spec.entry_binding == ModuleBindingRequirement::kREQUIRED) {
+      if (!rule.mode.has_value()) {
+        return Fail(
+            QString("a \"%1\" descriptor cannot bind its entry native: this "
+                    "platform has no binding mode, because Apple code signing "
+                    "authenticates the executable instead")
+                .arg(platform_os));
+      }
+
+      QString value;
+      QString why;
+      if (!ComputeEntryVerificationValue(*rule.mode, spec.entry_native_file,
+                                         value, why)) {
+        return Fail(why);
+      }
+
+      entry.insert(
+          "verification",
+          QJsonObject{{"mode", ModuleEntryVerificationModeKey(*rule.mode)},
+                      {"value", value}});
+
+      // Only where it means anything: Authenticode signing changes the size
+      // of a Windows entry, so recording one there would be an invariant
+      // that legitimately breaks.
+      if (*rule.mode == ModuleEntryVerificationMode::kFILE_SHA256) {
+        const QFileInfo info(spec.entry_native_file);
+        entry.insert("size", static_cast<double>(info.size()));
+      }
     }
-
-    // The seal, when there is one. Checked here rather than in the tool so
-    // that a descriptor which was written at all was written against the file
-    // as it stood when preparation finished.
-
-    QJsonObject entry{
-        {"name", spec.entry_native_name},
-        {"verification",
-         QJsonObject{{"mode", ModuleEntryVerificationModeKey(*mode)},
-                     {"value", value}}},
-    };
-
-    // Only where it means anything: platform signing changes the size of a
-    // Windows or macOS entry, so recording one there would be an invariant
-    // that legitimately breaks.
-    if (*mode == ModuleEntryVerificationMode::kFILE_SHA256) {
-      const QFileInfo info(spec.entry_native_file);
-      entry.insert("size", static_cast<double>(info.size()));
-    }
+    // Otherwise nothing is written and the file is never opened. The omission
+    // IS the statement: this descriptor makes no claim about those bytes, and
+    // a reader decides from origin and Host policy whether that is acceptable.
 
     manifest.insert("entry_native", entry);
   }

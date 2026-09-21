@@ -84,7 +84,6 @@ enum class ModuleEntryVerificationMode {
   kFILE_SHA256,             ///< linux: the exact final ELF bytes
   kPE_AUTHENTICODE_SHA256,  ///< windows: PE image content, certificates
                             ///< excluded
-  kAPPLE_BINDING_ID,  ///< macos: an id embedded in the Mach-O before signing
 };
 
 /**
@@ -101,12 +100,28 @@ auto GF_CORE_EXPORT IsModuleHexDigest(const QString& s) -> bool;
 auto GF_CORE_EXPORT
 ModuleEntryVerificationModeKey(ModuleEntryVerificationMode mode) -> QString;
 
-/// The one mode a manifest for @p platform_os may carry.
-///
-/// Returns nullopt for an os this build has no mode for, which is a refusal
-/// rather than a reason to fall back to anything.
+/**
+ * @brief What a manifest for @p platform_os may carry, if anything.
+ *
+ * Two different "no" answers, which must not be conflated:
+ *
+ *   known_os == false   an os this build has never heard of. A refusal.
+ *   mode == nullopt     a known os with no entry binding mode at all. macOS
+ *                       is the only one: its module dylibs are signed by
+ *                       Apple with the application's own identity and checked
+ *                       by dyld at map time, so the descriptor makes no claim
+ *                       about their bytes and must not pretend to.
+ *
+ * Returning a bare nullopt for both would mean a descriptor claiming
+ * `platform.os = "haiku"` became an unbound module instead of a refused one.
+ */
+struct GF_CORE_EXPORT ModuleEntryVerificationModeRule {
+  bool known_os = false;
+  std::optional<ModuleEntryVerificationMode> mode;
+};
+
 auto GF_CORE_EXPORT ModuleEntryVerificationModeFor(const QString& platform_os)
-    -> std::optional<ModuleEntryVerificationMode>;
+    -> ModuleEntryVerificationModeRule;
 
 /**
  * @brief The one executable artifact a descriptor binds.
@@ -115,17 +130,33 @@ auto GF_CORE_EXPORT ModuleEntryVerificationModeFor(const QString& platform_os)
  * Host maps it to a file, which is what keeps a descriptor from influencing
  * where the loader looks.
  */
-struct GF_CORE_EXPORT ModuleEntryNative {
-  QString name;
+struct GF_CORE_EXPORT ModuleEntryVerification {
   ModuleEntryVerificationMode mode = ModuleEntryVerificationMode::kFILE_SHA256;
-  QString value;  ///< meaning fixed by `mode`; 64 lower-case hex for all three
+  QString value;  ///< meaning fixed by `mode`; 64 lower-case hex for both
 
   /// An early-mismatch optimisation and NEVER a security proof: a size
   /// disagreement refuses before hashing a large file. Permitted only with
-  /// kFILE_SHA256, because Windows and macOS signing both change file size and
-  /// an invariant that legitimately breaks is a trap rather than a check.
-  /// Negative means absent.
+  /// kFILE_SHA256, because Windows signing changes file size and an invariant
+  /// that legitimately breaks is a trap rather than a check. Negative means
+  /// absent.
   qint64 size = -1;
+};
+
+struct GF_CORE_EXPORT ModuleEntryNative {
+  QString name;
+
+  /// Absent means this descriptor makes NO claim about the bytes of its
+  /// entry. Whether that is acceptable is the READER's question, answered
+  /// from origin and Host policy -- never from here. See ModuleHostPolicy.h.
+  ///
+  /// std::optional rather than a `has_verification` flag, because a flag
+  /// leaves {mode = kFILE_SHA256, value = ""} representable, and an empty
+  /// value that looks like a mode is precisely the shape a skipped check
+  /// would wear.
+  ///
+  /// `size` lives inside it, so "a size with no binding" cannot be spelled
+  /// at all rather than merely being rejected by the parser.
+  std::optional<ModuleEntryVerification> verification;
 };
 
 /**

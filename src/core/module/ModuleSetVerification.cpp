@@ -40,7 +40,8 @@
 
 namespace GpgFrontend::Module {
 
-auto VerifyModuleSet(const QString& root, int expected_count)
+auto VerifyModuleSet(const ModuleEntryTrustPolicy& policy,
+                     const QString& root, int expected_count)
     -> ModuleSetVerification {
   ModuleSetVerification result;
 
@@ -100,7 +101,7 @@ auto VerifyModuleSet(const QString& root, int expected_count)
     // "<ns>/native" finds nothing there -- which is how a bundle full of
     // correctly placed modules reports every one of them as missing.
     const ModuleNativeRoot native{ModuleNativeRootFor(descriptor)};
-    const auto entry = ResolveAndVerifyNativeEntry(verdict.manifest, native);
+    const auto entry = ResolveAndVerifyNativeEntry(verdict.manifest, native, policy);
     if (!entry.ok) {
       result.problems.append(
           {ns.fileName(),
@@ -126,9 +127,6 @@ auto VerifyModuleSet(const QString& root, int expected_count)
 
     result.verified.insert(id, descriptor);
     result.entries.insert(ns.fileName(), entry.path);
-    result.bindings.insert(
-        id, ModuleEntryVerificationModeKey(verdict.manifest.entry_native.mode) +
-                " " + verdict.manifest.entry_native.value);
   }
 
   if (expected_count >= 0 && result.verified.size() != expected_count) {

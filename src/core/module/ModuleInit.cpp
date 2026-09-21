@@ -35,6 +35,7 @@
 
 #include "core/function/CoreInitProgress.h"
 #include "core/function/GlobalSettingStation.h"
+#include "core/module/ModuleHostPolicy.h"
 #include "core/module/ModuleDescriptor.h"
 #include "core/module/ModuleDispatchGate.h"
 #include "core/module/ModuleLoadStats.h"
@@ -43,11 +44,13 @@
 #include "core/thread/Task.h"
 #include "core/thread/TaskRunnerGetter.h"
 
+using GpgFrontend::Module::ModuleOrigin;
+
 namespace {
 
-auto SearchModuleFromPath(const QString& mods_path, bool integrated)
-    -> QMap<QString, bool> {
-  QMap<QString, bool> modules;
+auto SearchModuleFromPath(const QString& mods_path, ModuleOrigin origin)
+    -> QMap<QString, ModuleOrigin> {
+  QMap<QString, ModuleOrigin> modules;
 
   QDir dir(mods_path);
   if (!dir.exists()) return modules;
@@ -78,13 +81,13 @@ auto SearchModuleFromPath(const QString& mods_path, bool integrated)
     // right one for the identity inside is a question only the verified
     // manifest can answer, so it is asked later, by the manager.
     if (!descriptor.isFile()) continue;
-    modules.insert(descriptor.absoluteFilePath(), integrated);
+    modules.insert(descriptor.absoluteFilePath(), origin);
   }
 
   return modules;
 }
 
-auto LoadIntegratedMods() -> QMap<QString, bool> {
+auto LoadIntegratedMods() -> QMap<QString, ModuleOrigin> {
   const auto module_path = GpgFrontend::GlobalSettingStation::GetInstance()
                                .GetIntegratedModulePath();
   LOG_I() << "loading integrated modules from path:" << module_path;
@@ -95,10 +98,10 @@ auto LoadIntegratedMods() -> QMap<QString, bool> {
     return {};
   }
 
-  return SearchModuleFromPath(module_path, true);
+  return SearchModuleFromPath(module_path, ModuleOrigin::kINTEGRATED);
 }
 
-auto LoadExternalMods() -> QMap<QString, bool> {
+auto LoadExternalMods() -> QMap<QString, ModuleOrigin> {
   auto mods_path =
       GpgFrontend::GlobalSettingStation::GetInstance().GetModulesDir();
 
@@ -108,7 +111,7 @@ auto LoadExternalMods() -> QMap<QString, bool> {
     return {};
   }
 
-  return SearchModuleFromPath(mods_path, false);
+  return SearchModuleFromPath(mods_path, ModuleOrigin::kEXTERNAL);
 }
 
 /**
@@ -123,9 +126,9 @@ auto LoadExternalMods() -> QMap<QString, bool> {
  * run to run is a build that is harder to reason about.
  */
 auto PrepareModulesConcurrently(GpgFrontend::Module::ModuleManager& manager,
-                                const QMap<QString, bool>& modules)
+                                const QMap<QString, ModuleOrigin>& modules)
     -> QList<GpgFrontend::Module::ModuleLoadCandidate> {
-  QList<QPair<QString, bool>> discovered;
+  QList<QPair<QString, ModuleOrigin>> discovered;
   discovered.reserve(modules.size());
   for (auto it = modules.keyValueBegin(); it != modules.keyValueEnd(); ++it) {
     discovered.append({it->first, it->second});
@@ -225,7 +228,7 @@ void LoadGpgFrontendModules(ModuleInitArgs) {
             progress.Report(CoreInitStage::kMODULES, 0.0,
                             CoreInitStep::kSCANNING_MODULES);
 
-            QMap<QString, bool> modules = LoadIntegratedMods();
+            QMap<QString, ModuleOrigin> modules = LoadIntegratedMods();
 
             // if user want to load all modules, then check external modules
             if (policy == ModuleLoadingPolicy::kALL) {
