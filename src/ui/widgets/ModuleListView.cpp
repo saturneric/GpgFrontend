@@ -92,6 +92,8 @@ void ModuleItemDelegate::paint(QPainter* painter,
   const auto name = index.data(kModuleNameRole).toString();
   const auto version = index.data(kModuleVersionRole).toString();
   const auto description = index.data(kModuleDescriptionRole).toString();
+  const auto refused = index.data(kModuleRefusedRole).toBool();
+  const auto pending = index.data(kModulePendingUserActionRole).toBool();
 
   const auto text_color = selected ? palette.color(QPalette::HighlightedText)
                                    : palette.color(QPalette::Text);
@@ -156,6 +158,21 @@ void ModuleItemDelegate::paint(QPainter* painter,
 
   // line 3: chips
   auto chip_x = name_x;
+
+  // First chip, so it is the first thing read. "Needs Approval" and "Refused"
+  // are deliberately different words: one is a decision waiting for the user
+  // and the other is a problem, and a single label for both would send half
+  // the readers looking for a control that is not there.
+  if (refused) {
+    chip_x = PaintChip(painter, QPoint(chip_x, y),
+                       pending ? tr("Needs Approval") : tr("Refused"),
+                       selected ? palette.color(QPalette::HighlightedText)
+                                : DimColor(palette, false),
+                       small_font)
+                 .right() +
+             kChipSpacing + 1;
+  }
+
   const auto type_color = selected ? palette.color(QPalette::HighlightedText)
                           : palette.color(QPalette::Link).isValid()
                               ? palette.color(QPalette::Link)
@@ -170,7 +187,7 @@ void ModuleItemDelegate::paint(QPainter* painter,
   // came from. An integrated module has no package and needs no chip: it was
   // not loaded from anywhere. An external one always does, because "unsigned"
   // is the case worth seeing at a glance.
-  if (!integrated) {
+  if (!integrated && !refused) {
     const auto signed_color = selected
                                   ? palette.color(QPalette::HighlightedText)
                                   : (packaged ? AccentColor(palette, true)
@@ -232,11 +249,19 @@ auto ModuleListProxyModel::filterAcceptsRow(
   const auto index = sourceModel()->index(source_row, 0, source_parent);
   if (!index.isValid()) return false;
 
+  // A refused module is neither active nor inactive: it never got far enough
+  // to be either. Folding it into "Inactive" would put a module that cannot
+  // load beside ones the user merely turned off, which are different problems
+  // with different answers.
+  const auto refused = index.data(kModuleRefusedRole).toBool();
+
   switch (category_) {
+    case ModuleCategory::kPending:
+      return refused;
     case ModuleCategory::kActive:
-      return index.data(kModuleActiveRole).toBool();
+      return !refused && index.data(kModuleActiveRole).toBool();
     case ModuleCategory::kInactive:
-      return !index.data(kModuleActiveRole).toBool();
+      return !refused && !index.data(kModuleActiveRole).toBool();
     case ModuleCategory::kIntegrated:
       return index.data(kModuleIntegratedRole).toBool();
     case ModuleCategory::kExternal:
@@ -303,6 +328,7 @@ void ModuleListView::load_module_information() {
   model_->clear();
 
   auto active_count = 0;
+  auto refused_count = 0;
   for (const auto& module_id : module_ids) {
     // The same facts the detail panel is built from, assembled in one place
     // rather than gathered accessor by accessor here as well.
@@ -338,9 +364,45 @@ void ModuleListView::load_module_information() {
     model_->appendRow(item);
   }
 
+  // Everything that was found and not loaded, listed beside what was.
+  //
+  // These have no provenance to read -- they are not registered, and several
+  // never parsed far enough to have an identity -- so the card is built from
+  // the refusal record itself. Showing them at all is the point: a module the
+  // user has to approve cannot be approved from a list it is absent from, and
+  // a broken one used to leave no trace outside the log.
+  for (const auto& refusal : module_manager.ListModuleRefusals()) {
+    const auto display_id =
+        refusal.module_id.isEmpty()
+            ? QFileInfo(refusal.descriptor_path).dir().dirName()
+            : refusal.module_id;
+
+    auto* item = new QStandardItem(display_id);
+    item->setData(refusal.module_id, kModuleIdRole);
+    item->setData(display_id, kModuleNameRole);
+    item->setData(refusal.reason, kModuleDescriptionRole);
+    item->setData(true, kModuleRefusedRole);
+    item->setData(refusal.pending_user_action, kModulePendingUserActionRole);
+    item->setData(refusal.reason, kModuleReasonRole);
+    item->setData(refusal.build_key, kModuleBuildKeyRole);
+    item->setData(refusal.origin == Module::ModuleOrigin::kINTEGRATED,
+                  kModuleIntegratedRole);
+    item->setData(false, kModuleActiveRole);
+    item->setData(false, kModuleAutoActivateRole);
+    item->setData(true, kModulePackagedRole);
+    item->setData(refusal.descriptor_path, kModuleRefusedDescriptorRole);
+    item->setData(QStringList{display_id, refusal.reason}.join(' '),
+                  kModuleSearchTextRole);
+    item->setToolTip(refusal.reason);
+
+    model_->appendRow(item);
+    ++refused_count;
+  }
+
   proxy_model_->sort(0, Qt::AscendingOrder);
 
-  emit SignalCountsChanged(static_cast<int>(module_ids.size()), active_count);
+  emit SignalCountsChanged(static_cast<int>(module_ids.size()) + refused_count,
+                           active_count);
 }
 
 void ModuleListView::Refresh() {
@@ -390,5 +452,20 @@ auto ModuleListView::ActiveModuleCount() const -> int {
 auto ModuleListView::GetCurrentModuleID() -> Module::ModuleIdentifier {
   auto* item = model_->itemFromIndex(proxy_model_->mapToSource(currentIndex()));
   return item != nullptr ? item->data(kModuleIdRole).toString() : "";
+}
+
+auto ModuleListView::GetCurrentRefusal() -> SelectedRefusal {
+  auto* item = model_->itemFromIndex(proxy_model_->mapToSource(currentIndex()));
+  if (item == nullptr || !item->data(kModuleRefusedRole).toBool()) return {};
+
+  SelectedRefusal refusal;
+  refusal.valid = true;
+  refusal.pending_user_action =
+      item->data(kModulePendingUserActionRole).toBool();
+  refusal.module_id = item->data(kModuleIdRole).toString();
+  refusal.descriptor_path = item->data(kModuleRefusedDescriptorRole).toString();
+  refusal.reason = item->data(kModuleReasonRole).toString();
+  refusal.build_key = item->data(kModuleBuildKeyRole).toByteArray();
+  return refusal;
 }
 };  // namespace GpgFrontend::UI

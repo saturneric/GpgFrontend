@@ -36,6 +36,7 @@
 #include "ui_ModuleControllerDialog.h"
 
 //
+#include "core/module/ModuleExternalTrust.h"
 #include "core/module/ModuleManager.h"
 #include "ui/function/UIStyle.h"
 #include "ui/widgets/GRTTreeView.h"
@@ -112,6 +113,8 @@ void ModuleControllerDialog::init_texts() {
                                static_cast<int>(ModuleCategory::kIntegrated));
   ui_->filterComboBox->addItem(tr("External"),
                                static_cast<int>(ModuleCategory::kExternal));
+  ui_->filterComboBox->addItem(tr("Needs Approval Or Refused"),
+                               static_cast<int>(ModuleCategory::kPending));
 
   ui_->detailPlaceholderLabel->setText(
       tr("Select a module to see its details."));
@@ -185,6 +188,8 @@ void ModuleControllerDialog::init_connections() {
             refresh_all();
           });
 
+  init_authorization_actions();
+
   connect(ui_->showModsDirButton, &QPushButton::clicked, this, [=]() {
     QDesktopServices::openUrl(QUrl::fromLocalFile(
         GlobalSettingStation::GetInstance().GetModulesDir()));
@@ -250,8 +255,178 @@ void ModuleControllerDialog::refresh_all() {
   slot_load_module_details(ui_->moduleListView->GetCurrentModuleID());
 }
 
+void ModuleControllerDialog::init_authorization_actions() {
+  // Built here rather than in the .ui file because they are only ever shown
+  // for one kind of selection, and two permanently hidden buttons in the
+  // designer invite somebody to wire them to something else.
+  //
+  // TWO buttons, deliberately, for two decisions that must not collapse into
+  // one. Trusting a build key says "signatures by this key are worth
+  // considering"; enabling says "run this one". A single "Allow" would make
+  // one click do both, and the first of them applies to every module that key
+  // ever signs.
+  trust_key_button_ = new QPushButton(tr("Trust This Build Key..."), this);
+  enable_module_button_ = new QPushButton(tr("Enable This Module"), this);
+  trust_key_button_->hide();
+  enable_module_button_->hide();
+
+  ui_->actionsLayout->insertWidget(0, trust_key_button_);
+  ui_->actionsLayout->insertWidget(1, enable_module_button_);
+
+  connect(trust_key_button_, &QPushButton::clicked, this, [=]() {
+    const auto refusal = ui_->moduleListView->GetCurrentRefusal();
+    if (!refusal.valid || refusal.build_key.isEmpty()) return;
+
+    const auto fingerprint =
+        Module::ModuleBuildKeyFingerprint(refusal.build_key);
+
+    // The fingerprint is the decision. It is shown in full, and the question
+    // is phrased around the KEY rather than the module, because that is what
+    // is actually being accepted -- and because this key will admit anything
+    // else it signs that the user later enables.
+    const auto answer = QMessageBox::question(
+        this, tr("Trust This Build Key?"),
+        tr("<p>Modules signed by this build key will be offered for you to "
+           "enable, one at a time. Trusting it does not enable anything by "
+           "itself.</p>"
+           "<p><b>Build key fingerprint</b><br/>"
+           "<code>%1</code></p>"
+           "<p>This is a <b>build</b> key, not a lasting identity for whoever "
+           "made the module: it belongs to one build. A module rebuilt with a "
+           "different key will ask you again.</p>"
+           "<p>Only continue if you obtained this fingerprint from the "
+           "module's "
+           "author through a channel you trust.</p>")
+            .arg(fingerprint.toHtmlEscaped()),
+        QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Cancel);
+    if (answer != QMessageBox::Yes) return;
+
+    if (!Module::TrustModuleBuildKey(refusal.build_key, {})) {
+      QMessageBox::warning(
+          this, tr("Not Saved"),
+          tr("That decision could not be saved, so nothing has changed."));
+      return;
+    }
+    refresh_all();
+  });
+
+  connect(enable_module_button_, &QPushButton::clicked, this, [=]() {
+    const auto refusal = ui_->moduleListView->GetCurrentRefusal();
+    if (!refusal.valid || refusal.module_id.isEmpty() ||
+        refusal.build_key.isEmpty()) {
+      return;
+    }
+
+    if (!Module::SetExternalModuleEnabled(refusal.module_id, refusal.build_key,
+                                          true)) {
+      QMessageBox::warning(
+          this, tr("Not Saved"),
+          tr("That decision could not be saved, so nothing has changed."));
+      return;
+    }
+
+    // Loading happens on the next start: phase one runs once, during startup,
+    // and mapping module code into a running process on demand is a different
+    // and much larger change than this.
+    QMessageBox::information(
+        this, tr("Enabled"),
+        tr("This module will be loaded the next time GpgFrontend starts."));
+    refresh_all();
+  });
+}
+
+auto ModuleControllerDialog::show_refused_module() -> bool {
+  const auto refusal = ui_->moduleListView->GetCurrentRefusal();
+  if (!refusal.valid) {
+    trust_key_button_->hide();
+    enable_module_button_->hide();
+    return false;
+  }
+
+  ui_->detailStackedWidget->setCurrentWidget(ui_->detailPage);
+
+  // Nothing registered, so there is nothing to activate and nothing to start
+  // automatically. Left visible and disabled rather than hidden, so the
+  // controls do not move about as the selection changes.
+  ui_->activateOrDeactivateButton->setEnabled(false);
+  ui_->autoActivateCheckBox->setEnabled(false);
+
+  const auto display_id = refusal.module_id.isEmpty()
+                              ? QFileInfo(refusal.descriptor_path).fileName()
+                              : refusal.module_id;
+
+  auto name_font = ui_->detailNameLabel->font();
+  name_font.setBold(true);
+  name_font.setPointSizeF(font().pointSizeF() + 2);
+  ui_->detailNameLabel->setFont(name_font);
+  ui_->detailNameLabel->setText(display_id);
+
+  // Through the same helper the loaded case uses, so a refused module does
+  // not read as a differently styled kind of thing in the same pane.
+  SetChip(ui_->statusChipLabel,
+          refusal.pending_user_action ? tr("Needs Approval") : tr("Refused"),
+          AccentColor(palette(), false));
+  ui_->autoChipLabel->setVisible(false);
+  ui_->authorLabel->setVisible(false);
+  ui_->descriptionLabel->setVisible(true);
+  ui_->descriptionLabel->setText(refusal.reason);
+
+  QVector<MetaListRow> rows;
+  rows.append({.caption = tr("Status"),
+               .value = refusal.pending_user_action ? tr("Waiting for you")
+                                                    : tr("Not loaded"),
+               .detail = refusal.reason});
+  if (!refusal.module_id.isEmpty()) {
+    rows.append({.caption = tr("Identifier"), .value = refusal.module_id});
+  }
+  rows.append({.caption = tr("Descriptor"), .value = refusal.descriptor_path});
+
+  if (!refusal.build_key.isEmpty()) {
+    const auto fingerprint =
+        Module::ModuleBuildKeyFingerprint(refusal.build_key);
+    const auto trusted = Module::IsModuleBuildKeyTrusted(refusal.build_key);
+    rows.append(
+        {.caption = tr("Build key"),
+         .value = fingerprint,
+         .detail = trusted
+                       ? tr("You have trusted this build key.")
+                       : tr("You have not trusted this build key. Compare it "
+                            "with the one the module's author published "
+                            "before you do."),
+         .degraded = !trusted});
+  }
+
+  ui_->detailMetaPanel->SetRows(rows);
+  ui_->listeningEventsGroup->setVisible(false);
+  ui_->listeningEventsListWidget->clear();
+
+  // Only an external module has anything to decide. An integrated one that
+  // was refused is broken, not pending, and offering an approval control for
+  // it would suggest a remedy that does not exist.
+  const auto decidable = !refusal.build_key.isEmpty();
+  const auto trusted =
+      decidable && Module::IsModuleBuildKeyTrusted(refusal.build_key);
+
+  trust_key_button_->setVisible(decidable);
+  trust_key_button_->setEnabled(decidable && !trusted);
+  trust_key_button_->setText(trusted ? tr("Build Key Trusted")
+                                     : tr("Trust This Build Key..."));
+
+  enable_module_button_->setVisible(decidable);
+  // Enabling stays unavailable until the key is trusted. The order is the
+  // point: a module cannot be admitted by a decision about the module alone.
+  enable_module_button_->setEnabled(decidable && trusted &&
+                                    !refusal.module_id.isEmpty());
+
+  return true;
+}
+
 void ModuleControllerDialog::slot_load_module_details(
     Module::ModuleIdentifier module_id) {
+  // Refusals first: several of them have no identifier at all, so asking the
+  // manager about one would answer "no such module" and show the placeholder.
+  if (show_refused_module()) return;
+
   auto module = module_manager_->SearchModule(module_id);
 
   if (module_id.isEmpty() || module == nullptr) {
@@ -275,6 +450,8 @@ void ModuleControllerDialog::slot_load_module_details(
   ui_->detailStackedWidget->setCurrentWidget(ui_->detailPage);
   ui_->activateOrDeactivateButton->setEnabled(true);
   ui_->autoActivateCheckBox->setEnabled(true);
+  trust_key_button_->hide();
+  enable_module_button_->hide();
 
   // One set of facts, assembled by the manager. The header labels below and
   // the metadata panel further down used to read them from two different

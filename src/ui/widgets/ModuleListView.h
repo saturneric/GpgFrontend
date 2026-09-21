@@ -46,6 +46,30 @@ enum ModuleItemRole {
   kModuleAutoActivateRole,           ///< true if activated on start
   kModuleSearchTextRole,             ///< joined text used by the search filter
   kModulePackagedRole,               ///< true if loaded from a signed package
+
+  /// True for an item that was discovered and NOT loaded.
+  ///
+  /// These have no ModuleProvenance and are not registered anywhere: before
+  /// this they simply did not appear, so an application that came up missing
+  /// a module had nothing to show for it. An external module awaiting the
+  /// user's decision is the same shape as a broken one, and the difference is
+  /// kModulePendingUserActionRole below.
+  kModuleRefusedRole,
+
+  /// True when the refusal is waiting on a person rather than on a fix.
+  kModulePendingUserActionRole,
+
+  /// Why it was refused. Already a sentence.
+  kModuleReasonRole,
+
+  /// The build key an external descriptor carried, raw bytes, when there was
+  /// one. The fingerprint is derived for display and never stored.
+  kModuleBuildKeyRole,
+
+  /// The descriptor a refused item came from. Its identity may be empty --
+  /// a descriptor that did not parse has none -- so this is what identifies
+  /// the row.
+  kModuleRefusedDescriptorRole,
 };
 
 /**
@@ -57,6 +81,7 @@ enum class ModuleCategory {
   kInactive,
   kIntegrated,
   kExternal,
+  kPending,  ///< discovered and not loaded, for any reason
 };
 
 /**
@@ -107,6 +132,25 @@ class ModuleListView : public QListView {
   explicit ModuleListView(QWidget* parent);
 
   auto GetCurrentModuleID() -> Module::ModuleIdentifier;
+
+  /**
+   * @brief The refused item currently selected, if the selection is one.
+   *
+   * A separate accessor rather than more arguments on SignalSelectModule,
+   * because a refused row may have NO module identifier at all -- a
+   * descriptor that failed to parse never got one -- so the identifier alone
+   * cannot say which row is selected, or whether it is a refusal.
+   */
+  struct SelectedRefusal {
+    bool valid = false;
+    bool pending_user_action = false;
+    QString module_id;
+    QString descriptor_path;
+    QString reason;
+    QByteArray build_key;
+  };
+
+  auto GetCurrentRefusal() -> SelectedRefusal;
 
   /**
    * @brief Reload all module information, restoring the current selection.

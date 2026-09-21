@@ -78,6 +78,23 @@ class ModuleControllerDialog : public GeneralDialog {
    * @brief Reload the list and the currently displayed module's details.
    */
   void refresh_all();
+
+  /**
+   * @brief Show a module that was found and not loaded.
+   *
+   * Separate from slot_load_module_details() because there is no module to
+   * describe: nothing registered, nothing to activate, and for an external
+   * one two decisions to offer instead.
+   *
+   * @return whether the selection was a refusal and has been displayed
+   */
+  auto show_refused_module() -> bool;
+
+  /// Build the two authorization buttons and attach them to the action row.
+  void init_authorization_actions();
+
+  QPushButton* trust_key_button_ = nullptr;
+  QPushButton* enable_module_button_ = nullptr;
 };
 
 }  // namespace GpgFrontend::UI
