@@ -87,6 +87,36 @@ namespace GpgFrontend::Module {
  */
 auto GF_CORE_EXPORT ModuleDirectoryKey(const QString& module_id) -> QString;
 
+/**
+ * @brief The readable half of a module's identity: its last dotted component,
+ * reduced to a spelling that is safe in a path and in a log category.
+ *
+ * ```
+ * com.bktus.gpgfrontend.module.key_server_sync -> key-server-sync
+ * ```
+ *
+ * Lowercased, `_` mapped to `-` (dropping it would turn `ver_check` into
+ * `vercheck`, which reads as a different word), restricted to `[a-z0-9-]`,
+ * stripped of leading and trailing `-`, prefixed with `m` if it would not
+ * start with a letter, and truncated to 24 characters.
+ *
+ * ## It is not unique, and must never be used as though it were
+ *
+ * The leaf throws information away by construction: two ids ending in the same
+ * component produce the same leaf. That is why @ref ModuleDirectoryKey appends
+ * a hash of the full id, and why the leaf alone is only ever a *label* -- for
+ * a human reading a directory listing, or filtering a log category. The signed
+ * `manifest.id` remains the identity.
+ *
+ * Exported so the log category and the namespace directory derive their
+ * readable half from one function rather than from two that can drift.
+ *
+ * @param module_id the module's full, canonical identity
+ * @return a label matching `^[a-z][a-z0-9-]*$`, at most 24 characters; `m` if
+ * @p module_id is empty
+ */
+auto GF_CORE_EXPORT ModuleIdLeaf(const QString& module_id) -> QString;
+
 /// The subdirectory of a module namespace holding its native files, on every
 /// layout but the macOS bundle.
 constexpr auto kModuleNativeDirName = "native";

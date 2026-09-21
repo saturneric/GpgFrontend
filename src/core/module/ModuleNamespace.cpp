@@ -44,8 +44,9 @@ namespace {
 constexpr qsizetype kMaxLeafChars = 24;
 constexpr qsizetype kSuffixHexChars = 20;  // 80 bits
 
-/// The readable half: the last dotted component, reduced to a safe spelling.
-auto LeafOf(const QString& module_id) -> QString {
+}  // namespace
+
+auto ModuleIdLeaf(const QString& module_id) -> QString {
   const auto last_dot = module_id.lastIndexOf('.');
   const auto tail = last_dot < 0 ? module_id : module_id.mid(last_dot + 1);
 
@@ -80,8 +81,6 @@ auto LeafOf(const QString& module_id) -> QString {
   return leaf;
 }
 
-}  // namespace
-
 auto ModuleDirectoryKey(const QString& module_id) -> QString {
   if (module_id.isEmpty()) return {};
 
@@ -93,7 +92,7 @@ auto ModuleDirectoryKey(const QString& module_id) -> QString {
       QCryptographicHash::hash(module_id.toUtf8(), QCryptographicHash::Sha256);
   const auto suffix = QString::fromLatin1(digest.toHex().left(kSuffixHexChars));
 
-  return LeafOf(module_id) + u'-' + suffix;
+  return ModuleIdLeaf(module_id) + u'-' + suffix;
 }
 
 auto ModuleNativeRootFor(const QString& descriptor_path) -> QString {
