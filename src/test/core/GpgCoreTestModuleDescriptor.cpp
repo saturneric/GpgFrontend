@@ -39,6 +39,7 @@
 #include <thread>
 
 #include "GpgFrontendTest.h"
+#include "core/ModuleDescriptorArchive.h"
 #include "core/ModuleTestPackages.h"
 #include "core/function/ArchiveFileOperator.h"
 #include "core/module/ModuleDescriptor.h"
@@ -60,6 +61,26 @@
  */
 
 namespace GpgFrontend::Test {
+
+namespace {
+
+/// These cases build their own descriptors, and ModuleDescriptorBuildSpec
+/// defaults to kREQUIRED -- so they bind their entry whatever this build was
+/// configured with, and assert against a policy that demands it. Inheriting
+/// the build default instead would make every tamper assertion below vacuous
+/// the moment integrated binding is off.
+constexpr Module::ModuleEntryTrustPolicy kBoundPolicy{
+    Module::ModuleOrigin::kINTEGRATED,
+    Module::ModuleBindingRequirement::kREQUIRED};
+
+/// For the cases that check descriptors THIS BUILD produced, which carry a
+/// binding only if it was configured to require one.
+auto HostPolicy() -> Module::ModuleEntryTrustPolicy {
+  return {Module::ModuleOrigin::kINTEGRATED,
+          Module::HostIntegratedBindingRequirement()};
+}
+
+}  // namespace
 
 namespace {
 
@@ -134,52 +155,18 @@ auto RepackWith(const QString& source, const QString& destination,
                 const QStringList& removals = {},
                 const QVector<QPair<QString, QByteArray>>& additions = {})
     -> bool {
-  QTemporaryDir nowhere;
-  if (!nowhere.isValid()) return false;
+  QVector<QPair<QString, QByteArray>> read;
+  if (!ReadDescriptorMembers(source, read)) return false;
 
   QVector<QPair<QString, QByteArray>> members;
-  const auto error = ArchiveFileOperator::ExtractArchiveFromFileSync(
-      source, nowhere.path(), ArchiveExtractPolicy::Permissive(),
-      [](const QString&) { return true; },
-      [&](const QString& path, const GFBuffer& bytes) {
-        if (removals.contains(path)) return true;
-        const auto it = replacements.constFind(path);
-        members.append({path, it == replacements.constEnd()
-                                  ? bytes.ConvertToQByteArray()
-                                  : *it});
-        return true;
-      });
-  if (error != 0) return false;
-
+  for (const auto& m : read) {
+    if (removals.contains(m.first)) continue;
+    const auto it = replacements.constFind(m.first);
+    members.append({m.first, it == replacements.constEnd() ? m.second : *it});
+  }
   members.append(additions);
 
-  QFile out(destination);
-  if (!out.open(QIODevice::WriteOnly)) return false;
-
-  auto exchanger = CreateStandardGFDataExchanger();
-  GFError archive_error = 0;
-  std::thread producer([&]() {
-    qsizetype index = 0;
-    archive_error = ArchiveFileOperator::NewArchiveFromMembersSync(
-        [&](ArchiveMemberEntry& entry) {
-          if (index >= members.size()) return false;
-          const auto& m = members.at(index++);
-          entry.relative_path = m.first;
-          entry.bytes = GFBuffer(m.second);
-          return true;
-        },
-        exchanger, ArchiveCompression::kNONE, ArchiveFormat::kZIP);
-  });
-
-  std::array<std::byte, 64 * 1024> chunk{};
-  while (true) {
-    const auto n = exchanger->Read(chunk.data(), chunk.size());
-    if (n <= 0) break;
-    out.write(reinterpret_cast<const char*>(chunk.data()), n);
-  }
-  producer.join();
-  out.close();
-  return archive_error == 0;
+  return WriteDescriptorArchive(destination, members);
 }
 
 /// A temporary directory holding one package that is known to verify.
@@ -232,9 +219,11 @@ TEST_F(ModuleDescriptorTest, AValidPackageVerifies) {
   // filename and the value is not a path: turning the first into the second is
   // the Host's job, one layer up.
   EXPECT_EQ(v.manifest.entry_native.name, "gf_mod_test");
-  EXPECT_EQ(v.manifest.entry_native.mode,
+  ASSERT_TRUE(v.manifest.entry_native.verification.has_value())
+      << "the spec asked for a binding, so the descriptor must carry one";
+  EXPECT_EQ(v.manifest.entry_native.verification->mode,
             Module::ModuleEntryVerificationMode::kFILE_SHA256);
-  EXPECT_EQ(v.manifest.entry_native.value.size(), 64);
+  EXPECT_EQ(v.manifest.entry_native.verification->value.size(), 64);
 }
 
 TEST_F(ModuleDescriptorTest, TheSignedBytesAreTheStoredBytes) {
@@ -705,7 +694,8 @@ TEST_F(ModuleDescriptorTest, AVerifiedDescriptorDoesLoadTheCodeItBinds) {
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
   const Module::ModuleNativeRoot root{Path("")};
-  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  const auto entry =
+      Module::ResolveAndVerifyNativeEntry(read.manifest, root, kBoundPolicy);
   ASSERT_TRUE(entry.ok) << entry.reason.toStdString();
 
   QLibrary library(entry.path);
@@ -767,7 +757,8 @@ TEST_F(ModuleDescriptorTest, ATamperedEntryNativeIsRefusedAndNeverRuns) {
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
   const Module::ModuleNativeRoot root{Path("")};
-  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  const auto entry =
+      Module::ResolveAndVerifyNativeEntry(read.manifest, root, kBoundPolicy);
 
   EXPECT_FALSE(entry.ok);
   EXPECT_EQ(entry.status,
@@ -793,7 +784,8 @@ TEST_F(ModuleDescriptorTest, AMissingEntryNativeIsItsOwnRefusal) {
   const auto read = Module::VerifyModuleDescriptor(spec.output_path);
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
-  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  const auto entry =
+      Module::ResolveAndVerifyNativeEntry(read.manifest, root, kBoundPolicy);
   EXPECT_FALSE(entry.ok);
   EXPECT_EQ(entry.status, Module::ModuleEntryStatus::kMISSING_ENTRY_NATIVE);
 }
@@ -823,7 +815,8 @@ TEST_F(ModuleDescriptorTest, ASymlinkedEntryNativeIsRefusedRatherThanFollowed) {
   const auto read = Module::VerifyModuleDescriptor(spec.output_path);
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
-  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  const auto entry =
+      Module::ResolveAndVerifyNativeEntry(read.manifest, root, kBoundPolicy);
   EXPECT_FALSE(entry.ok);
   EXPECT_EQ(entry.status, Module::ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE);
 }
@@ -853,7 +846,8 @@ TEST_F(ModuleDescriptorTest, ARefusedEntryNativeSaysWhatItActuallyFound) {
   ASSERT_TRUE(read.ok) << read.reason.toStdString();
 
   const Module::ModuleNativeRoot root{dir_.path()};
-  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  const auto entry =
+      Module::ResolveAndVerifyNativeEntry(read.manifest, root, kBoundPolicy);
   EXPECT_FALSE(entry.ok);
   EXPECT_EQ(entry.status, Module::ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE);
   EXPECT_TRUE(entry.reason.contains("symlink")) << entry.reason.toStdString();
@@ -886,7 +880,8 @@ TEST_F(ModuleDescriptorTest, ATextFileWearingALibraryNameIsRefused) {
 
   // The digest matches -- it was computed from this very file. The refusal is
   // the file type, checked before anything is hashed or handed to a loader.
-  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  const auto entry =
+      Module::ResolveAndVerifyNativeEntry(read.manifest, root, kBoundPolicy);
   EXPECT_FALSE(entry.ok);
   EXPECT_EQ(entry.status, Module::ModuleEntryStatus::kBAD_NATIVE_FILE_TYPE);
 }
@@ -930,7 +925,8 @@ TEST(ModuleDescriptorSmokeTest, APackageBuiltByTheBuildVerifies) {
     // this platform spells it with. This is the end-to-end check that CMake's
     // placement and the Host's mapping agree.
     const Module::ModuleNativeRoot root{info.absolutePath() + "/native"};
-    const auto entry = Module::ResolveAndVerifyNativeEntry(v.manifest, root);
+    const auto entry =
+        Module::ResolveAndVerifyNativeEntry(v.manifest, root, HostPolicy());
     EXPECT_TRUE(entry.ok) << info.fileName().toStdString() << ": "
                           << entry.reason.toStdString();
   }

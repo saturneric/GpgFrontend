@@ -331,15 +331,12 @@ TEST(ModuleManifestTest, TheVerificationModeMustBeTheOneThePlatformMandates) {
   // The module author does not choose this. Every wrong pairing is refused,
   // and a descriptor cannot select a weaker mode by claiming a platform --
   // the platform claim is checked against the host before any of this matters.
-  // A LIST, not a map keyed by os. This was a QMap, and two of its four
-  // entries were keyed "linux" -- so the second silently replaced the first,
-  // the loop ran three times, and `linux` + `apple-binding-id`, the pairing
-  // named first above, was never tested at all. A container that dedupes its
-  // own test cases is the wrong container for a table of test cases.
-  const std::array<std::pair<QString, QString>, 4> wrong{{
-      {"linux", "apple-binding-id"},
+  // A LIST, not a map keyed by os. This was a QMap, and two of its entries
+  // were keyed "linux" -- so the second silently replaced the first and one
+  // pairing was never tested at all. A container that dedupes its own test
+  // cases is the wrong container for a table of test cases.
+  const std::array<std::pair<QString, QString>, 2> wrong{{
       {"linux", "pe-authenticode-sha256"},
-      {"macos", "file-sha256"},
       {"windows", "file-sha256"},
   }};
 
@@ -399,25 +396,105 @@ TEST(ModuleManifestTest, RejectsAnUnknownOrMissingVerificationMode) {
   EXPECT_FALSE(ParseObject(o).ok) << "an empty value is not a skipped check";
 }
 
-TEST(ModuleManifestTest, SizeIsOnlyAllowedWhereItMeansAnything) {
-  // Windows Authenticode signing appends a certificate table and macOS signing
-  // rewrites __LINKEDIT; a size recorded under either would be an invariant
-  // that legitimately breaks. Refusing it in the schema beats leaving a trap.
+TEST(ModuleManifestTest, AMacOsDescriptorMayNotCarryAVerificationAtAll) {
+  // Not "macOS must use some other mode": macOS has NO entry binding mode.
+  // Its module dylibs are signed by Apple with the application's own identity
+  // and checked by dyld at map time, so the descriptor makes no claim about
+  // their bytes -- and a descriptor that tried to would be asserting
+  // something this Host cannot check.
+  //
+  // This is also the fail-closed half of deleting apple-binding-id: naming
+  // the retired mode must be a refusal, not a fallback.
+  for (const auto* mode :
+       {"apple-binding-id", "file-sha256", "pe-authenticode-sha256"}) {
+    auto o = GoodManifestObject();
+    auto platform = o["platform"].toObject();
+    platform["os"] = "macos";
+    o["platform"] = platform;
+
+    auto entry = o["entry_native"].toObject();
+    auto verification = entry["verification"].toObject();
+    verification["mode"] = mode;
+    entry["verification"] = verification;
+    entry.remove("size");
+    o["entry_native"] = entry;
+
+    const auto r = ParseObject(o);
+    ASSERT_FALSE(r.ok) << "macos accepted " << mode;
+    EXPECT_TRUE(r.reason.contains("carries no entry verification"))
+        << "macos + " << mode
+        << " was refused for a different reason: " << r.reason.toStdString();
+  }
+}
+
+TEST(ModuleManifestTest, AMacOsDescriptorWithoutAVerificationParses) {
+  // The positive half, which is what every macOS descriptor now looks like.
   auto o = GoodManifestObject();
   auto platform = o["platform"].toObject();
   platform["os"] = "macos";
   o["platform"] = platform;
 
   auto entry = o["entry_native"].toObject();
-  auto verification = entry["verification"].toObject();
-  verification["mode"] = "apple-binding-id";
-  entry["verification"] = verification;
+  entry.remove("verification");
+  entry.remove("size");
+  o["entry_native"] = entry;
+
+  const auto r = ParseObject(o);
+  ASSERT_TRUE(r.ok) << r.reason.toStdString();
+  EXPECT_FALSE(r.manifest.entry_native.verification.has_value());
+  EXPECT_EQ(r.manifest.entry_native.name, "gf_mod_test");
+}
+
+TEST(ModuleManifestTest, AnOmittedVerificationIsStructureAndNotPermission) {
+  // The parser describes SHAPE. Whether an unbound descriptor may actually be
+  // loaded is a trust question, answered from origin and Host policy in
+  // ResolveAndVerifyNativeEntry() -- the one place that can see who is
+  // asking. Refusing here instead would put that decision where the caller is
+  // invisible, and would make an external module and an integrated one
+  // indistinguishable.
+  auto o = GoodManifestObject();
+  auto entry = o["entry_native"].toObject();
+  entry.remove("verification");
+  entry.remove("size");
+  o["entry_native"] = entry;
+
+  const auto r = ParseObject(o);
+  ASSERT_TRUE(r.ok) << r.reason.toStdString();
+  EXPECT_FALSE(r.manifest.entry_native.verification.has_value());
+}
+
+TEST(ModuleManifestTest, ASizeWithoutAVerificationIsRefused) {
+  // Otherwise a descriptor could record a size, carry no binding, and look
+  // like it had proved something about the file it names.
+  auto o = GoodManifestObject();
+  auto entry = o["entry_native"].toObject();
+  entry.remove("verification");
   entry["size"] = 4096;
   o["entry_native"] = entry;
 
   const auto r = ParseObject(o);
-  EXPECT_FALSE(r.ok);
-  EXPECT_TRUE(r.reason.contains("size")) << r.reason.toStdString();
+  ASSERT_FALSE(r.ok);
+  EXPECT_TRUE(r.reason.contains("size"))
+      << "refused for a different reason: " << r.reason.toStdString();
+}
+
+TEST(ModuleManifestTest, AVerificationThatIsNotAnObjectIsRefused) {
+  // Present but wrong-typed is a corrupt descriptor, never an omission. The
+  // two are distinguished by isUndefined() alone, so a `false` or a string
+  // here must not read as "no binding claimed".
+  for (const auto& bad : {QJsonValue(false), QJsonValue("file-sha256"),
+                          QJsonValue(QJsonArray{})}) {
+    auto o = GoodManifestObject();
+    auto entry = o["entry_native"].toObject();
+    entry["verification"] = bad;
+    entry.remove("size");
+    o["entry_native"] = entry;
+
+    const auto r = ParseObject(o);
+    ASSERT_FALSE(r.ok) << "a non-object verification was accepted";
+    EXPECT_TRUE(r.reason.contains("not an object"))
+        << "refused for a different reason: " << r.reason.toStdString();
+  }
 }
 
 TEST(ModuleManifestTest, SizeIsOptionalAndTypeChecked) {

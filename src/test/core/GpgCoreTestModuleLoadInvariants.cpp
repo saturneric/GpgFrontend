@@ -119,8 +119,23 @@ TEST(ModuleLoadInvariantsTest, VerifyingAPackageReadsItExactlyOnce) {
   const auto size = QFileInfo(native).size();
   ASSERT_GT(size, 0);
 
+  // Nothing to account for when this build's descriptors bind nothing: with
+  // integrated binding off the entry is never opened, so the figure this case
+  // exists to check is legitimately zero. Skipped with a reason rather than
+  // relaxed to "at most", which would keep passing if hashing broke entirely.
+  if (!read.manifest.entry_native.verification.has_value()) {
+    GTEST_SKIP() << "this build's descriptors carry no entry binding "
+                    "(GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=OFF), so "
+                    "no entry native is hashed";
+  }
+
+  const Module::ModuleEntryTrustPolicy policy{
+      Module::ModuleOrigin::kINTEGRATED,
+      Module::ModuleBindingRequirement::kREQUIRED};
+
   const auto before = stats.HashedBytes();
-  const auto entry = Module::ResolveAndVerifyNativeEntry(read.manifest, root);
+  const auto entry =
+      Module::ResolveAndVerifyNativeEntry(read.manifest, root, policy);
   ASSERT_TRUE(entry.ok) << entry.reason.toStdString();
   const auto delta = stats.HashedBytes() - before;
 
@@ -131,7 +146,7 @@ TEST(ModuleLoadInvariantsTest, VerifyingAPackageReadsItExactlyOnce) {
 
   // And the fact itself is published, so nobody downstream needs to look for
   // it: this is what the manager consumes in place of its own search.
-  EXPECT_EQ(read.manifest.entry_native.value.size(), 64);
+  EXPECT_EQ(read.manifest.entry_native.verification->value.size(), 64);
   EXPECT_FALSE(read.manifest.entry_native.name.isEmpty());
 }
 
@@ -218,7 +233,8 @@ TEST(ModuleLoadInvariantsTest, APackageCannotClaimAnIdentityItsBinaryDenies) {
   // Phase one must SUCCEED: the package really is well-formed and correctly
   // signed. That is what makes this a test of the identity cross-check rather
   // than of verification.
-  const auto candidate = manager.PrepareModule(spec.output_path, false);
+  const auto candidate = manager.PrepareModule(
+      spec.output_path, Module::ModuleOrigin::kINTEGRATED);
   ASSERT_TRUE(candidate.ok)
       << "the impostor package should verify; only its claim is false";
   ASSERT_TRUE(candidate.manifest.has_value());
@@ -339,7 +355,8 @@ TEST(ModuleLoadInvariantsTest, ADescriptorInTheWrongNamespaceIsRefused) {
   ASSERT_TRUE(direct.ok) << direct.reason.toStdString();
 
   auto& manager = Module::ModuleManager::GetInstance();
-  const auto candidate = manager.PrepareModule(spec.output_path, false);
+  const auto candidate = manager.PrepareModule(
+      spec.output_path, Module::ModuleOrigin::kINTEGRATED);
   EXPECT_FALSE(candidate.ok)
       << "a descriptor in a namespace its identity does not derive must be "
          "refused";

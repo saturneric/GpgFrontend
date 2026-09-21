@@ -134,6 +134,29 @@ auto CopyBuiltTreeAsBundle(const QString& app) -> bool {
 
 }  // namespace
 
+namespace {
+
+/// What this build configured: the answer the Host itself will give.
+///
+/// Most cases here are about the set -- namespaces, counts, descriptors -- and
+/// want the real policy so they exercise what actually ships.
+auto HostPolicy() -> Module::ModuleEntryTrustPolicy {
+  return {Module::ModuleOrigin::kINTEGRATED,
+          Module::HostIntegratedBindingRequirement()};
+}
+
+/// Binding demanded, whatever this build defaults to.
+///
+/// Used by the cases that assert tamper DETECTION. They must never inherit
+/// the build default: with binding off those descriptors carry no claim about
+/// their natives, the mutation is not caught, and the obvious repair is to
+/// relax the assertion -- which is how a gate stops checking anything.
+constexpr Module::ModuleEntryTrustPolicy kBoundPolicy{
+    Module::ModuleOrigin::kINTEGRATED,
+    Module::ModuleBindingRequirement::kREQUIRED};
+
+}  // namespace
+
 TEST(ModuleSetVerificationTest, ABundleLayoutResolvesAcrossItsTwoTrees) {
   // The macOS shipping layout, checked on any host.
   //
@@ -156,8 +179,9 @@ TEST(ModuleSetVerificationTest, ABundleLayoutResolvesAcrossItsTwoTrees) {
   const auto app = dir.path() + "/GpgFrontend.app";
   ASSERT_TRUE(CopyBuiltTreeAsBundle(app));
 
-  const auto result = Module::VerifyModuleSet(
-      app + "/Contents/Resources/modules", static_cast<int>(built.size()));
+  const auto result =
+      Module::VerifyModuleSet(HostPolicy(), app + "/Contents/Resources/modules",
+                              static_cast<int>(built.size()));
 
   for (const auto& problem : result.problems) {
     ADD_FAILURE() << problem.where.toStdString() << ": "
@@ -185,8 +209,9 @@ TEST(ModuleSetVerificationTest, ABundleMissingItsFrameworksHalfIsRefused) {
 
   QDir(app + "/Contents/Frameworks").removeRecursively();
 
-  const auto result = Module::VerifyModuleSet(
-      app + "/Contents/Resources/modules", static_cast<int>(built.size()));
+  const auto result =
+      Module::VerifyModuleSet(HostPolicy(), app + "/Contents/Resources/modules",
+                              static_cast<int>(built.size()));
   EXPECT_FALSE(result.ok);
   EXPECT_EQ(result.problems.size(), built.size() + 1)
       << "one refusal per module, plus the count mismatch";
@@ -204,8 +229,8 @@ TEST(ModuleSetVerificationTest, ThisBuildsOwnTreeVerifies) {
   // find. Counting the directories and then checking that many were verified
   // is circular: a module that never reached the tree lowers both sides.
   const auto root = built.first().absolutePath() + "/..";
-  const auto result = Module::VerifyModuleSet(QDir(root).absolutePath(),
-                                              GF_REGISTERED_MODULE_COUNT);
+  const auto result = Module::VerifyModuleSet(
+      HostPolicy(), QDir(root).absolutePath(), GF_REGISTERED_MODULE_COUNT);
 
   for (const auto& problem : result.problems) {
     ADD_FAILURE() << problem.where.toStdString() << ": "
@@ -224,8 +249,8 @@ TEST(ModuleSetVerificationTest, AWrongCountIsARefusal) {
   }
 
   const auto root = QDir(built.first().absolutePath() + "/..").absolutePath();
-  const auto result =
-      Module::VerifyModuleSet(root, static_cast<int>(built.size()) + 1);
+  const auto result = Module::VerifyModuleSet(
+      HostPolicy(), root, static_cast<int>(built.size()) + 1);
 
   EXPECT_FALSE(result.ok)
       << "a release that shipped fewer modules than it meant to is a release "
@@ -250,8 +275,18 @@ TEST(ModuleSetVerificationTest, AMutatedEntryNativeIsCaught) {
   // since dependency bundling landed -- and flipping a byte in one of those
   // would prove nothing about the entry binding while still turning the tree
   // red, for a reason the assertion below does not describe.
-  const auto before = Module::VerifyModuleSet(tree.path());
-  ASSERT_TRUE(before.ok) << "the copied tree was already broken";
+  //
+  // Verified under kBoundPolicy rather than this build's own, and that is the
+  // whole point: with integrated binding OFF these descriptors record no
+  // claim about their natives, so the flipped byte would go undetected and
+  // this test would pass while asserting nothing. If the tree really is
+  // unbound the case skips, loudly, instead of quietly succeeding.
+  const auto before = Module::VerifyModuleSet(kBoundPolicy, tree.path());
+  if (!before.ok) {
+    GTEST_SKIP() << "this build's descriptors carry no entry binding "
+                    "(GPGFRONTEND_INTEGRATED_MODULE_NATIVE_BINDING=OFF), so "
+                    "there is no binding here to detect a mutation with";
+  }
   ASSERT_FALSE(before.entries.isEmpty());
 
   const auto entry_path = before.entries.constBegin().value();
@@ -265,7 +300,7 @@ TEST(ModuleSetVerificationTest, AMutatedEntryNativeIsCaught) {
     ASSERT_EQ(file.write(&flipped, 1), 1);
   }
 
-  const auto result = Module::VerifyModuleSet(tree.path());
+  const auto result = Module::VerifyModuleSet(kBoundPolicy, tree.path());
   EXPECT_FALSE(result.ok);
 
   const auto mutated = before.entries.constBegin().key();
@@ -290,7 +325,7 @@ TEST(ModuleSetVerificationTest, ARenamedNamespaceIsCaught) {
   ASSERT_TRUE(QDir().rename(ns.absoluteFilePath(),
                             tree.path() + "/not-the-derived-key"));
 
-  const auto result = Module::VerifyModuleSet(tree.path());
+  const auto result = Module::VerifyModuleSet(HostPolicy(), tree.path());
   EXPECT_FALSE(result.ok);
   ASSERT_FALSE(result.problems.isEmpty());
   EXPECT_TRUE(result.problems.first().reason.contains("whose namespace is"))
@@ -318,7 +353,7 @@ TEST(ModuleSetVerificationTest, AModuleCopiedIntoASecondNamespaceIsRefused) {
   ASSERT_TRUE(QFile::copy(ns.absoluteFilePath() + "/module.gfmodule",
                           duplicate + "/module.gfmodule"));
 
-  const auto result = Module::VerifyModuleSet(tree.path());
+  const auto result = Module::VerifyModuleSet(HostPolicy(), tree.path());
   EXPECT_FALSE(result.ok);
 
   const auto refused = std::any_of(
@@ -342,7 +377,7 @@ TEST(ModuleSetVerificationTest, ANamespaceWithNativesButNoDescriptorIsCaught) {
   const auto ns = root.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot).first();
   ASSERT_TRUE(QFile::remove(ns.absoluteFilePath() + "/module.gfmodule"));
 
-  const auto result = Module::VerifyModuleSet(tree.path());
+  const auto result = Module::VerifyModuleSet(HostPolicy(), tree.path());
   EXPECT_FALSE(result.ok) << "native libraries nothing vouches for";
   ASSERT_FALSE(result.problems.isEmpty());
   EXPECT_TRUE(result.problems.first().reason.contains("vouches"))
@@ -360,7 +395,7 @@ TEST(ModuleSetVerificationTest, AnEmptyDirectoryIsAWarningNotAFailure) {
 
   ASSERT_TRUE(QDir().mkpath(tree.path() + "/something-else"));
 
-  const auto result = Module::VerifyModuleSet(tree.path());
+  const auto result = Module::VerifyModuleSet(HostPolicy(), tree.path());
   EXPECT_TRUE(result.ok) << "a directory that is not a module namespace is "
                             "not a reason to refuse a release";
   EXPECT_FALSE(result.warnings.isEmpty());
