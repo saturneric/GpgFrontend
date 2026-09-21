@@ -67,23 +67,20 @@ auto BuildQtLoggingFilterRules(int level) -> QString {
     case GFLogLevel::kINFO:
       return kNoModuleTrace + QString("*.debug=false\n");
     case GFLogLevel::kWARNING:
-      return kNoModuleTrace +
-             QString(
-                 "*.debug=false\n"
-                 "*.info=false\n");
+      return kNoModuleTrace + QString(
+                                  "*.debug=false\n"
+                                  "*.info=false\n");
     case GFLogLevel::kCRITICAL:
-      return kNoModuleTrace +
-             QString(
-                 "*.debug=false\n"
-                 "*.info=false\n"
-                 "*.warning=false\n");
+      return kNoModuleTrace + QString(
+                                  "*.debug=false\n"
+                                  "*.info=false\n"
+                                  "*.warning=false\n");
     case GFLogLevel::kFATAL:
-      return kNoModuleTrace +
-             QString(
-                 "*.debug=false\n"
-                 "*.info=false\n"
-                 "*.warning=false\n"
-                 "*.critical=false\n");
+      return kNoModuleTrace + QString(
+                                  "*.debug=false\n"
+                                  "*.info=false\n"
+                                  "*.warning=false\n"
+                                  "*.critical=false\n");
     default:
       return kNoModuleTrace + QString("*.debug=false\n");
   }

@@ -94,13 +94,13 @@ auto GFGetModuleID() -> const char*;
 /// A do/while so the macro is a single statement and stays safe next to a bare
 /// `if`. The QByteArray is named rather than temporary so its lifetime plainly
 /// covers the call that reads its buffer.
-#define GF_MODULE_LOG_AT(severity, text)                                \
-  do {                                                                  \
-    if (GFModuleLogEnabled(GFGetModuleID(), (severity)) != 0) {         \
-      const auto gf_log_line_ = (text).toUtf8();                        \
-      GFModuleLogAt(GFGetModuleID(), (severity), __FILE__, __LINE__,    \
-                    Q_FUNC_INFO, gf_log_line_.constData());             \
-    }                                                                   \
+#define GF_MODULE_LOG_AT(severity, text)                             \
+  do {                                                               \
+    if (GFModuleLogEnabled(GFGetModuleID(), (severity)) != 0) {      \
+      const auto gf_log_line_ = (text).toUtf8();                     \
+      GFModuleLogAt(GFGetModuleID(), (severity), __FILE__, __LINE__, \
+                    Q_FUNC_INFO, gf_log_line_.constData());          \
+    }                                                                \
   } while (false)
 
 /// The QString-taking forms, kept because modules call them directly.

@@ -72,7 +72,9 @@ auto main(int argc, char* argv[]) -> int {
       {{{}, "module-status"},
        "load modules, write a JSON status report to FILE, and exit",
        "file"},
-      {{"l", "log-level"}, "set log level (debug, info, warn, error)", "none"},
+      {{"l", "log-level"},
+       "set log level (trace, debug, info, warn, error)",
+       "none"},
       // Declaration only: this was already resolved during InitApplication(),
       // long before this parser existed, because where the settings live is
       // exactly what it decides. Registering it here just stops
