@@ -30,7 +30,9 @@
 
 #include <GFSDKLog.h>
 
+#include <QDebug>
 #include <QString>
+#include <optional>
 
 #include "GFModuleConvert.h"
 
@@ -38,10 +40,19 @@
  * @file GFModuleLog.h
  * @brief Logging from inside a module.
  *
- * Two families, differing only in whether they take arguments:
+ * Three families. The stream form is the one to reach for:
+ *
+ *     LOG_I() << "started with" << count << "accounts";
  *
  *     LOG_INFO("started");
  *     FLOG_INFO("started with %1 accounts", count);
+ *
+ * `LOG_I()` and friends take no format string, so there is no placeholder to
+ * get wrong and no arity to mismatch, and they accept anything QDebug can
+ * print -- enums, containers, QByteArray, bool -- where `FLOG_*` accepts only
+ * what `QString::arg` does. They are spelled exactly like the host's own
+ * `LOG_W() << ...` in GpgFrontendCore.h, so the two halves of this codebase
+ * read the same way.
  *
  * The placeholders are Qt's `%1`, `%2`, ... and **not** printf's `%s`/`%d`.
  * Passing a printf format produces a message with the format string in it
@@ -102,6 +113,75 @@ auto GFGetModuleID() -> const char*;
                     Q_FUNC_INFO, gf_log_line_.constData());          \
     }                                                                \
   } while (false)
+
+/// One log line, accumulated with QDebug and emitted when the object dies.
+///
+/// QDebug rather than a hand-rolled formatter: it already knows how to print
+/// every Qt type, and reusing it is what makes `LOG_W() << some_enum` work
+/// where `FLOG_WARN("%1", some_enum)` does not compile.
+///
+/// Nothing is formatted when the level is suppressed -- the check happens in
+/// the constructor and every `operator<<` after it is a no-op, so a silenced
+/// LOG_T() costs one call across the ABI and nothing else.
+class GFModuleLogStream {
+ public:
+  GFModuleLogStream(int severity, const char* file, int line,
+                    const char* function)
+      : severity_(severity),
+        file_(file),
+        line_(line),
+        function_(function),
+        enabled_(GFModuleLogEnabled(GFGetModuleID(), severity) != 0) {
+    if (enabled_) debug_.emplace(&buffer_);
+  }
+
+  ~GFModuleLogStream() {
+    if (!enabled_) return;
+
+    // Reset before reading the buffer: QDebug flushes its stream in its own
+    // destructor, and members outlive this body, so the last thing streamed
+    // would otherwise be missing from every line.
+    debug_.reset();
+
+    // QDebug writes a separator after every item, so the line otherwise ends
+    // in a space. Trailing only: leading whitespace could be something the
+    // caller actually streamed.
+    while (buffer_.endsWith(u' ')) buffer_.chop(1);
+
+    const auto utf8 = buffer_.toUtf8();
+    GFModuleLogAt(GFGetModuleID(), severity_, file_, line_, function_,
+                  utf8.constData());
+  }
+
+  GFModuleLogStream(const GFModuleLogStream&) = delete;
+  auto operator=(const GFModuleLogStream&) -> GFModuleLogStream& = delete;
+  GFModuleLogStream(GFModuleLogStream&&) = delete;
+  auto operator=(GFModuleLogStream&&) -> GFModuleLogStream& = delete;
+
+  template <typename T>
+  auto operator<<(const T& value) -> GFModuleLogStream& {
+    if (enabled_) *debug_ << value;
+    return *this;
+  }
+
+ private:
+  int severity_;
+  const char* file_;
+  int line_;
+  const char* function_;
+  bool enabled_;
+  QString buffer_;
+  std::optional<QDebug> debug_;
+};
+
+/// Stream-style logging, spelled as the host spells it in GpgFrontendCore.h.
+///
+///     LOG_W() << "could not open" << path << ":" << file.errorString();
+#define LOG_T() GFModuleLogStream(GF_LOG_TRACE, __FILE__, __LINE__, Q_FUNC_INFO)
+#define LOG_D() GFModuleLogStream(GF_LOG_DEBUG, __FILE__, __LINE__, Q_FUNC_INFO)
+#define LOG_I() GFModuleLogStream(GF_LOG_INFO, __FILE__, __LINE__, Q_FUNC_INFO)
+#define LOG_W() GFModuleLogStream(GF_LOG_WARN, __FILE__, __LINE__, Q_FUNC_INFO)
+#define LOG_E() GFModuleLogStream(GF_LOG_ERROR, __FILE__, __LINE__, Q_FUNC_INFO)
 
 /// The QString-taking forms, kept because modules call them directly.
 ///

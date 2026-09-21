@@ -109,19 +109,22 @@ void GFModuleLogAt(const char* module_id, int severity, const char* file,
   // Handing QMessageLogger the module's own file and line is the whole fix.
   const QMessageLogger logger(file, line, function, category.categoryName());
 
+  // noquote: what arrives here is a finished message, not a QString to be
+  // inspected. Without it every module line was wrapped in quotes it never
+  // asked for, and a message that itself contained a quote got escaped.
   switch (severity) {
     case GF_LOG_TRACE:
     case GF_LOG_DEBUG:
-      logger.debug() << text;
+      logger.debug().noquote() << text;
       break;
     case GF_LOG_INFO:
-      logger.info() << text;
+      logger.info().noquote() << text;
       break;
     case GF_LOG_WARN:
-      logger.warning() << text;
+      logger.warning().noquote() << text;
       break;
     default:
-      logger.critical() << text;
+      logger.critical().noquote() << text;
       break;
   }
 }
