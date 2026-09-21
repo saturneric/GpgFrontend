@@ -52,7 +52,12 @@ auto BuildQtLoggingFilterRules(int level) -> QString {
   // and a reader who asked for debug has not asked to be buried in it -- so
   // every level except kTRACE silences it explicitly. This line is what makes
   // trace a level of its own rather than a second name for debug.
-  constexpr auto kNoModuleTrace = "module.*.trace.debug=false\n";
+  //
+  // The leading wildcard is load-bearing. Qt accepts `*` only as the FIRST or
+  // LAST character of a category pattern, so the obvious `module.*.trace`
+  // parses as nothing and silently matches no category at all. Anchoring on the
+  // `.trace` suffix instead is the form that actually works.
+  constexpr auto kNoModuleTrace = "*.trace.debug=false\n";
 
   switch (static_cast<GFLogLevel>(level)) {
     case GFLogLevel::kTRACE:
