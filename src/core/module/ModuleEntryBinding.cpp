@@ -210,7 +210,8 @@ auto ResolveNativeEntry(const ModuleManifest& manifest,
 }
 
 auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
-                                 const ModuleNativeRoot& root)
+                                 const ModuleNativeRoot& root,
+                                 const ModuleEntryTrustPolicy& policy)
     -> VerifiedNativeEntry {
   const auto& entry = manifest.entry_native;
 
@@ -220,21 +221,50 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
   const auto& canonical_file = resolved.path;
   const QFileInfo info(canonical_file);
 
+  // Asked AFTER resolution, deliberately. A module whose file is missing must
+  // be reported as missing, not as unbound: the two call for different fixes
+  // by different people.
+  if (!entry.verification.has_value()) {
+    if (policy.BindingRequired()) {
+      return Refuse(
+          ModuleEntryStatus::kENTRY_BINDING_ABSENT,
+          QString("its descriptor records no binding for \"%1\", and a %2 "
+                  "module must bind the library it names")
+              .arg(info.fileName(),
+                   QString::fromLatin1(ModuleOriginToString(policy.origin))));
+    }
+
+    // Accepted, and worth being precise about what was just accepted. The
+    // structural checks above have run and passed: this is a regular file,
+    // not a symlink, directly inside this module's native directory, with a
+    // native image header. What has NOT been established is that it is the
+    // right library -- a well-formed image of the correct name is
+    // indistinguishable from the intended one here. That is the cost of a
+    // relaxed integrated policy, and the Host build chose it.
+    VerifiedNativeEntry unbound;
+    unbound.ok = true;
+    unbound.status = ModuleEntryStatus::kOK;
+    unbound.path = canonical_file;
+    return unbound;
+  }
+
+  // Present, so checked -- whatever the policy says. "You need not prove
+  // this" and "ignore the proof you were given" are different sentences, and
+  // only the first is ever true here.
+  const auto& verification = *entry.verification;
+
   // Cheap, and only where it means anything: the parser permits a size only
-  // under file-sha256, because platform signing legitimately changes the size
-  // of the other two. It is an early exit, never a proof.
-  if (entry.size >= 0 && info.size() != entry.size) {
+  // under file-sha256, because Authenticode signing legitimately changes the
+  // size of the other. It is an early exit, never a proof.
+  if (verification.size >= 0 && info.size() != verification.size) {
     // A smaller file is worth naming, because there is one overwhelmingly
     // likely cause and a packager cannot be expected to guess it: `dh_strip`
     // and `rpmbuild` strip installed binaries by default, after `make install`
-    // has finished and where no install rule can see it. On Linux the binding
-    // covers the exact ELF bytes, so stripping breaks every module -- and the
+    // has finished and where no install rule can see it. Where the binding
+    // covers the exact ELF bytes, stripping breaks every module -- and the
     // symptom is an application that starts perfectly well with no features.
-    //
-    // Saying "it is 40 bytes shorter than it should be" leaves the reader to
-    // work that out. Saying it costs one sentence.
     const auto hint =
-        info.size() < entry.size
+        info.size() < verification.size
             ? QString(
                   "; it is smaller than the descriptor records, which is what "
                   "stripping it after installation looks like")
@@ -244,7 +274,7 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
                           "signed for %3%4")
                       .arg(info.fileName())
                       .arg(info.size())
-                      .arg(entry.size)
+                      .arg(verification.size)
                       .arg(hint));
   }
 
@@ -256,13 +286,11 @@ auto ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
 
   QString actual;
   QString why;
-  const ModuleEntryBindingContext context{manifest.id, manifest.build_id,
-                                          manifest.sdk_abi};
-  if (!ComputeEntryVerificationValue(entry.mode, canonical_file, context,
-                                     actual, why)) {
+  if (!ComputeEntryVerificationValue(verification.mode, canonical_file, actual,
+                                     why)) {
     return Refuse(ModuleEntryStatus::kIO_FAILED, why);
   }
-  if (actual != entry.value) {
+  if (actual != verification.value) {
     return Refuse(ModuleEntryStatus::kENTRY_VERIFICATION_MISMATCH,
                   QString("\"%1\" is not the library this descriptor binds")
                       .arg(info.fileName()));
@@ -288,26 +316,8 @@ auto WINAPI PeDigestSink(DIGEST_HANDLE handle, PBYTE data, DWORD length)
 }
 #endif
 
-/// Little-endian reads, bounds-checked, because every offset in a PE or a
-/// Mach-O header comes from the file being examined.
-auto ReadU32(const QByteArray& b, qsizetype at, quint32& out) -> bool {
-  if (at < 0 || at + 4 > b.size()) return false;
-  out = static_cast<quint32>(static_cast<quint8>(b[at])) |
-        (static_cast<quint32>(static_cast<quint8>(b[at + 1])) << 8) |
-        (static_cast<quint32>(static_cast<quint8>(b[at + 2])) << 16) |
-        (static_cast<quint32>(static_cast<quint8>(b[at + 3])) << 24);
-  return true;
-}
-
-auto ReadU64(const QByteArray& b, qsizetype at, quint64& out) -> bool {
-  quint32 lo = 0;
-  quint32 hi = 0;
-  if (!ReadU32(b, at, lo) || !ReadU32(b, at + 4, hi)) return false;
-  out = static_cast<quint64>(lo) | (static_cast<quint64>(hi) << 32);
-  return true;
-}
-
 }  // namespace
+
 auto PeAuthenticodeDigestOfFile(const QString& path, QString& reason)
     -> QString {
 #if defined(Q_OS_WINDOWS)
@@ -344,141 +354,12 @@ auto PeAuthenticodeDigestOfFile(const QString& path, QString& reason)
 #endif
 }
 
-auto MachOBindingSection(const QByteArray& macho, QString& reason) -> QString {
-  const auto fail = [&reason](const QString& why) -> QString {
-    reason = why;
-    return {};
-  };
-
-  quint32 magic = 0;
-  if (!ReadU32(macho, 0, magic)) return fail("this file has no Mach-O header");
-
-  if (magic == 0xCAFEBABE || magic == 0xBEBAFECA) {
-    // Refused rather than parsed: no build in this matrix produces a universal
-    // binary, so picking a slice would be guessing which one was authoritative.
-    return fail(
-        "this is a universal binary, and a single-architecture one was "
-        "expected");
-  }
-
-  const auto sixty_four = magic == 0xFEEDFACF;
-  if (magic != 0xFEEDFACE && !sixty_four) {
-    return fail("this file is not a thin Mach-O image");
-  }
-
-  quint32 command_count = 0;
-  if (!ReadU32(macho, 16, command_count)) return fail("a truncated header");
-
-  auto at = static_cast<qsizetype>(sixty_four ? 32 : 28);
-
-  for (quint32 i = 0; i < command_count; ++i) {
-    quint32 command = 0;
-    quint32 command_size = 0;
-    if (!ReadU32(macho, at, command) || !ReadU32(macho, at + 4, command_size) ||
-        command_size < 8 || at + command_size > macho.size()) {
-      return fail("a truncated load command");
-    }
-
-    constexpr quint32 kSegment32 = 0x01;
-    constexpr quint32 kSegment64 = 0x19;
-
-    if (command == kSegment64 || command == kSegment32) {
-      const auto wide = command == kSegment64;
-      const auto section_count_at = at + (wide ? 64 : 48);
-      quint32 section_count = 0;
-      if (!ReadU32(macho, section_count_at, section_count)) {
-        return fail("a truncated segment command");
-      }
-
-      const auto sections_at = at + (wide ? 72 : 56);
-      const auto section_size = wide ? 80 : 68;
-
-      for (quint32 sec = 0; sec < section_count; ++sec) {
-        const auto section_at =
-            sections_at + static_cast<qsizetype>(sec) * section_size;
-        if (section_at + section_size > macho.size()) {
-          return fail("a truncated section header");
-        }
-
-        // 16 bytes of section name, then 16 of segment name, both NUL-padded
-        // rather than NUL-terminated, so they are taken by length.
-        const auto section_name =
-            QByteArray(macho.constData() + section_at, 16);
-        const auto segment_name =
-            QByteArray(macho.constData() + section_at + 16, 16);
-
-        const auto matches = [](const QByteArray& padded, const char* want) {
-          return padded.left(static_cast<qsizetype>(qstrlen(want))) == want &&
-                 (padded.size() == static_cast<qsizetype>(qstrlen(want)) ||
-                  padded.at(static_cast<qsizetype>(qstrlen(want))) == '\0');
-        };
-
-        if (!matches(section_name, "__gf_binding") ||
-            !matches(segment_name, "__GPGFRONTEND")) {
-          continue;
-        }
-
-        quint64 offset = 0;
-        quint64 size = 0;
-        if (wide) {
-          quint32 narrow_offset = 0;
-          if (!ReadU64(macho, section_at + 40, size) ||
-              !ReadU32(macho, section_at + 48, narrow_offset)) {
-            return fail("a truncated section header");
-          }
-          offset = narrow_offset;
-        } else {
-          quint32 narrow_size = 0;
-          quint32 narrow_offset = 0;
-          if (!ReadU32(macho, section_at + 40, narrow_size) ||
-              !ReadU32(macho, section_at + 44, narrow_offset)) {
-            return fail("a truncated section header");
-          }
-          size = narrow_size;
-          offset = narrow_offset;
-        }
-
-        // 64 lower-case hex characters, as text. Text rather than 32 raw
-        // bytes because the section content is produced by the build, and a
-        // build system writing exact binary is a build system with an
-        // encoding bug waiting in it.
-        if (size != 64 || static_cast<qint64>(offset) + 64 > macho.size()) {
-          return fail("its binding section is not sixty-four characters");
-        }
-
-        const auto text =
-            QString::fromLatin1(QByteArray(macho.constData() + offset, 64));
-        if (!IsModuleHexDigest(text)) {
-          return fail("its binding section is not a binding id");
-        }
-        return text;
-      }
-    }
-
-    at += command_size;
-  }
-
-  return fail("it carries no GpgFrontend binding section");
-}
-
-auto ModuleEntryBindingId(const ModuleEntryBindingContext& context) -> QString {
-  QByteArray input;
-  input.append("GpgFrontend.ModuleBinding.v1");
-  input.append('\0');
-  input.append(context.module_id.toUtf8());
-  input.append('\0');
-  input.append(context.build_id.toUtf8());
-  input.append('\0');
-  input.append(QByteArray::number(context.sdk_abi));
-
-  return QString::fromLatin1(
-      QCryptographicHash::hash(input, QCryptographicHash::Sha256).toHex());
-}
-
 auto ComputeEntryVerificationValue(ModuleEntryVerificationMode mode,
-                                   const QString& native_path,
-                                   const ModuleEntryBindingContext& context,
-                                   QString& out, QString& reason) -> bool {
+                                   const QString& native_path, QString& out,
+                                   QString& reason) -> bool {
+  // No default arm. The switch is exhaustive over the enumerators, so adding
+  // a mode is a compile error here rather than a runtime string nobody reads
+  // until a package cannot be built.
   switch (mode) {
     case ModuleEntryVerificationMode::kFILE_SHA256: {
       const auto digest = GFBufferFactory::Sha256HexOfFile(native_path);
@@ -498,56 +379,6 @@ auto ComputeEntryVerificationValue(ModuleEntryVerificationMode mode,
       out = digest;
       return true;
     }
-
-    case ModuleEntryVerificationMode::kAPPLE_BINDING_ID: {
-      // Two questions, both of which have to answer yes. What the Mach-O
-      // carries has to be what this module in this build should carry --
-      // otherwise a dylib from another module, signed by the same Apple team,
-      // would satisfy a descriptor it has nothing to do with.
-      QFile file(native_path);
-      if (!file.open(QIODevice::ReadOnly)) {
-        reason = QString("\"%1\" could not be read").arg(native_path);
-        return false;
-      }
-      const auto bytes = file.readAll();
-      file.close();
-
-      const auto embedded = MachOBindingSection(bytes, reason);
-      if (embedded.isEmpty()) return false;
-
-      const auto expected = ModuleEntryBindingId(context);
-      if (embedded != expected) {
-        reason = QString(
-                     "\"%1\" carries a binding for a different module or "
-                     "build")
-                     .arg(QFileInfo(native_path).fileName());
-        return false;
-      }
-
-      out = expected;
-      return true;
-    }
-
-    default:
-      // Deliberately a loud refusal rather than a plausible-looking value.
-      //
-      // Both of these are real algorithms with real specifications -- the PE
-      // Authenticode image digest skips the checksum, the certificate table
-      // directory entry and the certificate table itself; the Apple binding
-      // is an identifier read out of a `__GPGFRONTEND,__gf_binding` section
-      // without loading the Mach-O -- and both need committed fixtures and
-      // known-answer tests to be worth trusting. They land together, with
-      // those tests, rather than as an approximation that happens to produce
-      // sixty-four hexadecimal characters.
-      //
-      // Until then a Windows or macOS package cannot be built, which is the
-      // correct failure: the alternative is one that builds and cannot be
-      // verified by the Host that ships with it.
-      reason = QString(
-                   "the \"%1\" entry binding is not implemented yet; a "
-                   "package for this platform cannot be built by this tree")
-                   .arg(ModuleEntryVerificationModeKey(mode));
-      return false;
   }
 
   reason = "unknown entry verification mode";

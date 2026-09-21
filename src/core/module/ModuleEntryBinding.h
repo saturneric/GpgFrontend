@@ -28,6 +28,7 @@
 
 #pragma once
 
+#include "core/module/ModuleHostPolicy.h"
 #include "core/module/ModuleManifest.h"
 
 namespace GpgFrontend::Module {
@@ -41,69 +42,44 @@ namespace GpgFrontend::Module {
  * dlopen or LoadLibraryExW: it hands back a path that has been verified, and
  * the loader above it does the rest.
  *
- * ## Why the mode is platform-specific
+ * ## Why the mode is platform-specific, and why macOS has none
  *
- * A full-file digest is right on Linux and wrong on the other two. Windows
- * Authenticode signing appends a certificate table and rewrites the checksum;
- * macOS code signing rewrites `__LINKEDIT` and the App Store may re-sign on
- * download. Binding to raw bytes there would either forbid normal platform
- * signing or force the descriptor to be regenerated after it -- and on macOS,
- * regenerating it after signing is exactly what would drag a build-produced
- * packager into a privileged signing job.
- *
- * So each platform binds what is stable on it:
+ * A full-file digest is right on Linux and wrong on Windows, where
+ * Authenticode signing appends a certificate table and rewrites the checksum
+ * after the descriptor is final. So each platform binds what is stable on it:
  *
  * ```
  * linux    file-sha256             the exact final ELF bytes
  * windows  pe-authenticode-sha256  PE image content, certificates excluded
- * macos    apple-binding-id        an id embedded before Apple signing;
- *                                  Apple's own signature covers the content
+ * macos    none                    see below
  * ```
  *
- * The common contract is that the descriptor strongly binds the entry
- * native's identity. The mechanism is deliberately not the same everywhere.
+ * macOS carries no binding at all. Module dylibs ship inside the application
+ * bundle and are signed with the application's own identity, and dyld checks
+ * that in the kernel at map time; Library Validation additionally refuses any
+ * code whose Team ID is not the application's. A GpgFrontend-side claim over
+ * the same bytes would restate that more weakly -- ours checked once, at open
+ * time, in user space -- while obstructing the re-signing Apple's own
+ * distribution pipeline performs.
+ *
+ * ```
+ * descriptor -> authenticates module metadata, resources and build identity
+ * Apple      -> authenticates executable code and enforces it at load time
+ * ```
+ *
+ * The descriptor does not cryptographically bind a macOS dylib, and nothing
+ * here should be read as claiming it does.
+ *
+ * ## Whether a binding is required at all
+ *
+ * Separate from which one applies, and answered by origin plus Host build
+ * policy rather than by the descriptor. See ModuleHostPolicy.h.
  */
 
 /// Whether these leading bytes look like a shared library this platform could
 /// map. A cheap sanity filter that keeps text files, scripts and truncated
 /// downloads away from the loader; it says nothing about who produced the file.
 auto GF_CORE_EXPORT HasNativeImageHeader(const QByteArray& header) -> bool;
-
-/**
- * @brief What a binding is computed relative to.
- *
- * Only `apple-binding-id` uses it, and it is a required argument rather than
- * an optional one so that adding a mode which needs identity cannot silently
- * get an empty one.
- */
-struct GF_CORE_EXPORT ModuleEntryBindingContext {
-  QString module_id;
-  QString build_id;
-  int sdk_abi = 0;
-};
-
-/**
- * @brief The GpgFrontend binding id for a module in a build.
- *
- * Not secret, not a signature, and not derived from the file: it is a name for
- * "this module, in this build", computed from three public values so that a
- * test, CMake and the runtime all reach the same answer independently.
- *
- * ```
- * SHA-256( "GpgFrontend.ModuleBinding.v1" 0x00
- *          module_id                      0x00
- *          build_id                       0x00
- *          sdk_abi as ASCII decimal )
- * ```
- *
- * The domain prefix and the version in it make the scheme replaceable without
- * ambiguity. The separators are single NULs and there are no length prefixes,
- * which is safe here only because none of the three inputs may contain a NUL:
- * a module id and a build id are both constrained character sets, and the ABI
- * is a number.
- */
-auto GF_CORE_EXPORT
-ModuleEntryBindingId(const ModuleEntryBindingContext& context) -> QString;
 
 /**
  * @brief Compute what a descriptor should record for an entry native.
@@ -113,18 +89,14 @@ ModuleEntryBindingId(const ModuleEntryBindingContext& context) -> QString;
  * being one implementation rather than of a test that two of them match.
  *
  * @param mode which binding applies; fixed by the target platform
- * @param context the identity `apple-binding-id` is derived from; required
- * rather than optional so a mode that needs it cannot silently get an empty
- * one
  * @param native_path the finished native file, after all platform preparation
  * @param out set to the value on success, 64 lower-case hex characters
  * @param reason set on failure, to something worth showing a person
  * @return whether a value could be computed
  */
 auto GF_CORE_EXPORT ComputeEntryVerificationValue(
-    ModuleEntryVerificationMode mode, const QString& native_path,
-    const ModuleEntryBindingContext& context, QString& out, QString& reason)
-    -> bool;
+    ModuleEntryVerificationMode mode, const QString& native_path, QString& out,
+    QString& reason) -> bool;
 
 /**
  * @brief The Authenticode image digest of a PE file, from the OS.
@@ -157,19 +129,6 @@ auto GF_CORE_EXPORT PeAuthenticodeDigestOfFile(const QString& path,
                                                QString& reason) -> QString;
 
 /**
- * @brief Read the GpgFrontend binding section out of a Mach-O, without loading
- * it.
- *
- * Walks load commands rather than trusting file offsets, so it is indifferent
- * to `codesign` having appended to `__LINKEDIT` and rewritten them. A
- * universal (fat) binary is refused rather than parsed: no build in this
- * matrix produces one, so accepting it would mean guessing which slice was
- * authoritative.
- */
-auto GF_CORE_EXPORT MachOBindingSection(const QByteArray& macho_bytes,
-                                        QString& reason) -> QString;
-
-/**
  * @brief The directory a module's native files live in.
  *
  * A value type rather than a bare QString so that this layer cannot be handed
@@ -197,7 +156,7 @@ enum class ModuleEntryStatus {
   kMISSING_ENTRY_NATIVE,         ///< the file is not there
   kBAD_NATIVE_FILE_TYPE,         ///< a symlink, a directory, or not an image
   kENTRY_VERIFICATION_MISMATCH,  ///< it is not the one the descriptor binds
-  kENTRY_BINDING_ABSENT,         ///< macOS: the Mach-O carries no binding
+  kENTRY_BINDING_ABSENT,         ///< no binding recorded, and one was required
   kIO_FAILED,
 };
 
@@ -247,6 +206,26 @@ auto GF_CORE_EXPORT ResolveNativeEntry(const ModuleManifest& manifest,
  * @p root and prove it did not escape; require a regular file with a native
  * image header; then check it under the mode the manifest's platform mandates.
  *
+ * ## What @p policy does, and what it does not do
+ *
+ * It answers one question: may this descriptor omit a binding? External
+ * modules may never; integrated modules may, when this Host build says so.
+ *
+ * It does NOT make a present binding optional. A descriptor that carries
+ * verification data is checked against it whatever the policy says, because
+ * "you need not prove this" and "ignore the proof you were given" are
+ * different sentences and only the first one is ever true here.
+ *
+ * ## What survives when no binding is required
+ *
+ * Everything structural: the name is logical, the file exists, is a regular
+ * file and not a symlink, sits directly inside @p root, and carries a native
+ * image header. What does NOT survive is any claim that it is the RIGHT
+ * library. A structurally valid but wrong native -- another module's, an
+ * older build's, any well-formed image under the expected name -- passes.
+ * That is the cost of the relaxed policy, and it is stated here rather than
+ * left to be inferred from an absence.
+ *
  * @note There is a window between this returning and a loader opening the
  * path. It is documented rather than closed: anyone able to write into the
  * native root can already replace the Host binary itself, and closing it would
@@ -255,8 +234,8 @@ auto GF_CORE_EXPORT ResolveNativeEntry(const ModuleManifest& manifest,
  * macOS the window is closed by Apple's own signature, which dyld validates in
  * the kernel at map time.
  */
-auto GF_CORE_EXPORT ResolveAndVerifyNativeEntry(const ModuleManifest& manifest,
-                                                const ModuleNativeRoot& root)
-    -> VerifiedNativeEntry;
+auto GF_CORE_EXPORT ResolveAndVerifyNativeEntry(
+    const ModuleManifest& manifest, const ModuleNativeRoot& root,
+    const ModuleEntryTrustPolicy& policy) -> VerifiedNativeEntry;
 
 }  // namespace GpgFrontend::Module
