@@ -97,7 +97,8 @@ auto GFGpgResultText(GFSDKContext* ctx, GFGpgResultRef r, int field) -> const
   // never to be null, and a caller that trusted that would crash on a denial
   // instead of seeing an empty answer.
   GF_SDK_REQUIRE(ctx, gpg, "GFGpgResultText", "");
-  return g->result_text(hctx, r, field);
+  const auto* text = g->result_text(hctx, r, field);
+  return text == nullptr ? "" : text;
 }
 
 auto GFGpgResultTakeData(GFSDKContext* ctx, GFGpgResultRef r) -> GFBufferRef {

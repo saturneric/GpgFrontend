@@ -29,6 +29,7 @@
 #include "GFSdkInternal.h"
 
 #include <QString>
+#include <QStringList>
 
 /**
  * @file GFSdkInternal.cpp
@@ -47,12 +48,24 @@ void GFSdkReportUnavailable(const GFSDKContext* ctx, const char* group,
   const auto* log = ctx->host->log;
   if (log == nullptr || log->write == nullptr) return;
 
+  // Only some groups are grantable. The rest are always present, so a
+  // missing one means the host is too old or broken, not that the manifest
+  // forgot something, and telling the author to declare it would mislead.
+  const QStringList grantable = {"gpg",    "pgp",     "ui",
+                                 "editor", "storage", "process"};
+  const auto group_name = QString::fromLatin1(group);
   const auto message =
-      QString(
-          "%1 needs the \"%2\" capability, which this module's signed "
-          "manifest does not declare. Add it to module.json's "
-          "\"capabilities\" and rebuild; the call did nothing.")
-          .arg(QLatin1String(entry_point), QLatin1String(group));
+      grantable.contains(group_name)
+          ? QString(
+                "%1 needs the \"%2\" capability, which this module's signed "
+                "manifest does not declare. Add it to module.json's "
+                "\"capabilities\" and rebuild; the call did nothing.")
+                .arg(QLatin1String(entry_point), group_name)
+          : QString(
+                "%1 needs the \"%2\" group, which the host did not provide. "
+                "The host is older than this module or failed to start the "
+                "SDK; the call did nothing.")
+                .arg(QLatin1String(entry_point), group_name);
 
   log->write(ctx->host->context, GF_LOG_ERROR, __FILE__, __LINE__,
              "GFSdkReportUnavailable", message.toUtf8().constData());

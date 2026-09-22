@@ -28,6 +28,9 @@
 
 #pragma once
 
+#include <cstddef>
+#include <type_traits>
+
 #include "GFSDKContext.h"
 
 /**
@@ -85,6 +88,24 @@ void GFSdkReportUnavailable(const GFSDKContext* ctx, const char* group,
   }                                                               \
   const auto* g = (ctx)->host->member;                            \
   auto* hctx = (ctx)->host->context
+
+/**
+ * @brief Whether group @p g is long enough to contain member @p field.
+ *
+ * Group structs only grow by appending, and each begins with the
+ * `struct_size` the HOST compiled it with. Today every host this SDK accepts
+ * (GF_SDK_ABI_MIN_SUPPORTED) has every member, so no wrapper needs this. A
+ * member appended later does: its wrapper must check it before calling,
+ * because an older host's table simply ends before it.
+ *
+ *   GF_SDK_REQUIRE(ctx, app, "GFAppNewThing", -1);
+ *   if (!GF_SDK_GROUP_HAS(g, new_thing)) return -1;
+ */
+#define GF_SDK_GROUP_HAS(g, field)                                             \
+  ((g)->struct_size >=                                                         \
+       offsetof(std::remove_cv_t<std::remove_pointer_t<decltype(g)>>, field) + \
+           sizeof((g)->field) &&                                               \
+   (g)->field != nullptr)
 
 /// The void-returning form.
 #define GF_SDK_REQUIRE_VOID(ctx, member, name)                    \
