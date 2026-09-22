@@ -68,6 +68,10 @@ target_compile_definitions(${LIBRARY_TARGET} PRIVATE
   # knows is passed in, and an absent file fails instead of skipping.
   GF_TEST_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
   GF_TEST_MODULE_BOUNDARY_SCRIPT="${CMAKE_SOURCE_DIR}/scripts/check_module_boundary.sh"
+  # Where the application and the host libraries actually land, so the
+  # host-side half of the boundary check looks at this build's binaries
+  # rather than at whatever happens to sit beside the test binary.
+  GF_TEST_ARTIFACT_DIR="${CMAKE_BINARY_DIR}/artifacts"
   GF_TEST_MODULE_NAMESPACE_ROOT="${GPGFRONTEND_MODULE_NAMESPACE_ROOT}")
 
 # set up pch
